@@ -1,0 +1,31 @@
+Revision history for Perl extension Business::Telstra::PhoneBill.
+
+0.01  Mon Oct 31 02:33:01 2005
+    - original version; created by h2xs 1.23 with options
+        -XA -b 5.6.1 -n Business::Telstra::PhoneBill
+    - functions added:
+      * new
+      * file
+      * set_fieldorder
+      * find_entries
+      * entries
+      * filetype
+    - class Business::Telstra::PhoneBill::Entry created
+      that represents one line of the phone bill.
+      
+      - functions of each Entry:
+        * fieldnames
+        * fields
+        * value
+        * from_number
+        * to_number
+        * duration
+        * type
+        * date
+        * call_time
+        * place
+        * rate
+        * exclusive_gst
+        * inclusive_gst
+        * caller_group
+

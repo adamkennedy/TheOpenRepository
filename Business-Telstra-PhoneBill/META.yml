@@ -1,0 +1,14 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Business-Telstra-PhoneBill
+version:      0.01
+version_from: lib/Business/Telstra/PhoneBill.pm
+installdirs:  site
+requires:
+    Archive::Zip:                  1.13
+    File::Type:                    0.2
+    Text::CSV_XS:                  0.23
+    Tie::File:                     0.97
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
