@@ -5,7 +5,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 6;
+use Test::More tests => 10;
 use FindBin qw();
 
 
@@ -22,10 +22,21 @@ ok(1, 'include'); # If we made it this far, we're ok.
 ok(defined $bill && ref $bill eq 'Business::Telstra::PhoneBill', 'new works');
 ok($bill->filetype eq 'application/octet-stream','check filetype (csv)');
 
+my $csv_entries = $bill->entries();
+ok($csv_entries->[3]->from_number() eq '3525 616 436', 'from_number() (csv)');
+ok(scalar(@$csv_entries) == 4, 'entries()');
+
 my $zip  = $FindBin::Bin.'/test.zip';
 $bill->file($zip);
 ok($bill->filetype eq 'application/zip','check filetype (zip)');
 
 my $memref = $bill->entries();
-ok(scalar(@$memref) == 5,'parsing and entries()');
+ok(scalar(@$memref) == 4,'parsing and entries()');
 ok($memref->[1]->from_number() eq '5235 234 125', 'from_number()');
+
+my $csv2 = $FindBin::Bin.'/test2.csv';
+$bill->set_separator(';');
+$bill->file($csv2);
+my $csv2_calls = $bill->entries();
+ok($bill->filetype eq 'application/octet-stream','check filetype (csv) II');
+ok($csv2_calls->[2]->call_time() eq '7:06 PM','call_time check');

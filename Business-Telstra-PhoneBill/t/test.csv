@@ -1,5 +1,5 @@
-Service Number;Call Type;Date;Time;Place;Called Number;Rate;Duration;Excl GST $;Est Incl GST $;Caller Group
-0123 456 789;MobileNet National Direct Dialled;28. Okt;7:52 PM;Sydney   ;2358 239 107;Free Time;00:01:30;0;0;(unallocated)
-5235 274 125;MobileNet National Direct Dialled;28. Okt;7:20 PM;Darwin   ;2358 239 107;Free Time;00:27:00;5,25;5,77;(unallocated)
-3453 215 734;MobileNet National Direct Dialled;28. Okt;7:06 PM;Melbourne   ;2358 239 107;Free Time;00:01:00;0;0;(unallocated)
-3525 616 436;MobileNet National Direct Dialled;28. Okt;6:44 PM;Brisbane   ;2358 239 107;Free Time;00:01:00;0,47;0,52;(unallocated)
+Service Number,Call Type,Date,Time,Place,Called Number,Rate,Duration,Excl GST $,Est Incl GST $,Caller Group
+0123 456 789,MobileNet National Direct Dialled,28. Okt,7:52 PM,Sydney   ,2358 239 107,Free Time,00:01:30,0,0,(unallocated)
+5235 274 125,MobileNet National Direct Dialled,28. Okt,7:20 PM,Darwin   ,2358 239 107,Free Time,00:27:00,5.25,5.77,(unallocated)
+3453 215 734,MobileNet National Direct Dialled,28. Okt,7:06 PM,Melbourne   ,2358 239 107,Free Time,00:01:00,0,0,(unallocated)
+3525 616 436,MobileNet National Direct Dialled,28. Okt,6:44 PM,Brisbane   ,2358 239 107,Free Time,00:01:00,0.47,0.52,(unallocated)
