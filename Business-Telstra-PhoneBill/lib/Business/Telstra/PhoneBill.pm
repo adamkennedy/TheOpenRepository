@@ -18,6 +18,8 @@ our $VERSION = '0.01';
 #   * -colnames => 1: csv-file contains names in first line #
 #                  0: does not...                           #
 #          default: 1                                       #
+#   * -sep_char => the fieldseparator in the csv-file       #
+#          default: ,                                       #
 #===========================================================#
 sub new{
   my ($class,%args) = @_;
@@ -26,9 +28,9 @@ sub new{
   bless $self,$class;
   
   $self->{ArchiveZip} = Archive::Zip->new();
-  $self->{TextCSV}    = Text::CSV_XS->new();
   
   $self->{FirstLine}  = $args{-colnames} && $args{-colnames} == 0 ? 0 : 1;
+  $self->{Separator}  = $args{-sep_char} || ','; 
   
   my $filename = $args{-file};
   
@@ -80,6 +82,16 @@ sub file{
   
   1;
 }# file
+
+#==================================#
+# set the fieldseparator of the    #
+# csv-file (default: ,)            #
+#==================================#
+sub set_separator{
+  my ($self,$sepchar) = @_;
+  $sepchar = undef if(length($sepchar) != 1);
+  $self->{Separator} = $sepchar || ',';
+}# set_separator
 
 #=====================================#
 # if colnames is set to 0, the csv-   #
@@ -279,10 +291,11 @@ sub _parse_bill{
 #================================================#
 sub _create_entries{
   my ($self,$arref) = @_;
-  my $parser        = $self->{TextCSV};
+  my $parser        = Text::CSV_XS->new({sep_char => $self->{Separator}});
   my $count_lines   = 0;
   my (@fieldnames,@tmp_members);
   for my $line(@$arref){
+    next if($line =~ /^.$/);
     if($parser->parse($line)){
       my @fields = $parser->fields();
       my $entry  = Business::Telstra::PhoneBill::Entry->new();
@@ -331,13 +344,23 @@ Business::Telstra::PhoneBill parses the phone bill given in CSV-format
 
   my $bill = Business::Telstra::PhoneBill->new();
 
-new has two optional parameters:
+new has three optional parameters:
 
   * -file     => a csv- or a zip-file
   * -colnames => if colnames is set to 0, the csv-file does not contain 
                  the columnnames in its first line (default: 1)
+  * -sep_char => sets the fieldseparator of the csv-file (default: ,)
 
 and returns a new object of C<Business::Telstra::PhoneBill>
+
+=head2 set_sepchar ($sepchar)
+
+  $bill->set_sepchar(';');
+  $bill->file($file);
+  
+The default separator is ','. If the fieldseperator has to be changed, then
+it has to be set before the file is parsed, that means:
+Set the separator in the constructor or use this method before using the C<file>-method.
 
 =head2 entries ([$index])
 
