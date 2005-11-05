@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+
+# Basic testing for CPAN::Mini::Extract
+
+use strict;
+use lib ();
+use UNIVERSAL 'isa';
+use File::Spec::Functions ':ALL';
+BEGIN {
+	$| = 1;
+	unless ( $ENV{HARNESS_ACTIVE} ) {
+		require FindBin;
+		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
+		chdir catdir( $FindBin::Bin, updir() );
+		lib->import('blib', 'lib');
+	}
+}
+
+use Test::More tests => 8;
+use CPAN::Mini::Extract ();
+use File::Remove        ();
+
+# Prepare the test directories
+my $test_remote  = 'http://mirrors.kernel.org/cpan/';
+my $test_local   = catdir( 't', 'local'   );
+my $test_extract = catdir( 't', 'extract' );
+
+
+
+
+
+#####################################################################
+# Test creation
+
+# Create the most trivial object
+clear_test_dirs(); mkdir $test_local;
+my $trivial = CPAN::Mini::Extract->new(
+      remote         => $test_remote,
+      local          => $test_local,
+      extract        => $test_extract,
+      );
+isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+
+# A more complex object
+clear_test_dirs(); mkdir $test_local;
+my $worse = CPAN::Mini::Extract->new(
+      remote         => $test_remote,
+      offline        => 1,
+      local          => $test_local,
+      extract        => $test_extract,
+      extract_force  => 1,
+      extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
+      );
+isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+
+# Clean up
+clear_test_dirs();
+exit(0);
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub clear_test_dirs {
+	foreach ( $test_local, $test_extract ) {
+		next unless -e $_;
+		File::Remove::remove( \1, $_ )
+			or die "Failed to remove test directory '$_'";
+	}
+	ok( ! -e $test_local,   'minicpan local directory does not exist'   );
+	ok( ! -e $test_extract, 'minicpan extract directory does not exist' );
+}
+
+exit(0);

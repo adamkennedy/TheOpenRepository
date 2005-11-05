@@ -1,0 +1,34 @@
+Revision history for Perl extension CPAN::Mini::Extract
+
+0.10 Wed Oct 12 2005
+	- Converted from CPAN::Processor to CPAN::Mini::Extract.
+	- Stripped out the PPI::Processor code.
+	- This module is now considered EXPERIMENTAL again.
+
+0.08 Tue Jan 11 2005
+	- Adding the update_mirror option to disable CPAN synchronisation
+	- Updated copyright date
+
+0.07 Mon Jan 10 2005
+	- Fixing some small bugs in the Archive::Tar report
+	- Added a report for "Build.PL but no Makefile.PL in tarball"
+	  (Requested by Randal Schwartz)
+	- Adding some additional trace messages
+
+0.06 Mon Jan 10 2005
+	- Removed a useless setting of $self->{limit_processor}
+	- Updated the version dependency to match changes to PPI::Processor
+	- Fixed several bugs in the Archive::Tar extraction code
+
+0.05 Mon Jan 10 2005
+	- Added support for Archive::Tar warning reports
+
+0.04 Sun Jan  9 2005
+	- Added the force_processor option
+
+0.02 Thu Dec 30 2004
+	- Upgraded version dependency to 5.006
+	- Cleaned up and added code to handle tarballs errors better
+
+0.01 Tue Dec 28 2004
+	- Created the initial version of the module
