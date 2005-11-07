@@ -30,7 +30,7 @@ C<.cpanmetrics/metrics.sqlite>.
 
 use strict;
 use File::Spec    ();
-use File::Homedir ();
+use File::HomeDir ();
 use CPAN::Metrics ();
 
 use vars qw{$VERSION};
