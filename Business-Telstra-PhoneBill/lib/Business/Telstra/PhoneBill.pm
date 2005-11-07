@@ -84,6 +84,17 @@ sub file{
 }# file
 
 #==================================#
+# create the entries off an array- #
+# reference                        #
+#==================================#
+sub data{
+  my ($self,$arref) = @_;
+  if(defined $arref && ref($arref) eq 'ARRAY'){
+    $self->_create_entries($arref);
+  }
+}# data
+
+#==================================#
 # set the fieldseparator of the    #
 # csv-file (default: ,)            #
 #==================================#
@@ -340,7 +351,7 @@ Business::Telstra::PhoneBill parses the phone bill given in CSV-format
 
 =head1 METHODS
 
-=head2 new([-file => $file][, -colnames => 0|1])
+=head2 new([-file => $file][, -colnames => 0|1][, -sep_char => $sep_char])
 
   my $bill = Business::Telstra::PhoneBill->new();
 
@@ -353,7 +364,7 @@ new has three optional parameters:
 
 and returns a new object of C<Business::Telstra::PhoneBill>
 
-=head2 set_sepchar ($sepchar)
+=head2 set_sepchar($sepchar)
 
   $bill->set_sepchar(';');
   $bill->file($file);
@@ -362,7 +373,7 @@ The default separator is ','. If the fieldseperator has to be changed, then
 it has to be set before the file is parsed, that means:
 Set the separator in the constructor or use this method before using the C<file>-method.
 
-=head2 entries ([$index])
+=head2 entries([$index])
 
   my $entryref = $bill->entries();
 
@@ -420,6 +431,11 @@ But the Array has to inlcude the following fieldnames:
   Inclusive_GST
   Caller_Group
 
+=head2 data($arrayref)
+
+  $bill->data(\@lines);
+  
+parses the elements of the array reference
 
 =head2 colnames (0|1)
 
