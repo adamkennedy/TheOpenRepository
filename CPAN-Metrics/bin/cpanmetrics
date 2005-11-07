@@ -61,7 +61,7 @@ my $metrics   = File::Spec->catfile( $extracted, 'metrics.sqlite' );
 
 use vars qw{$metrics};
 $metrics = CPAN::Metrics->new(
-	verbose        => 1,
+	trace          => 1,
 	remote         => $mirror,
 	local          => $minicpan,
 	extract        => $extracted,
