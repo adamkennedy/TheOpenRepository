@@ -46,7 +46,7 @@ BEGIN {
 # Check the directories
 
 my $mirror    = 'http://mirrors.kernel.org/cpan/';
-my $homedir   = File::Homedir::homedir()
+my $homedir   = File::HomeDir::home()
 	or die "Failed to locate your home directory";
 my $minicpan  = File::Spec->catdir( $homedir, '.minicpan'         );
 my $extracted = File::Spec->catdir( $homedir, '.cpanmetrics'      );
