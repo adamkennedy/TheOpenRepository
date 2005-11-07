@@ -87,7 +87,14 @@ sub new {
 	my $class = ref $_[0] ? ref shift : shift;
 
 	# Call up to get the base object
-	my $self = $class->SUPER::new( @_ );
+	my $self = $class->SUPER::new(
+		skip_perl => 1,
+		module_filters => [
+			qr/^Acme::/,
+			qr/^Meta::/,
+			],
+		@_,
+		);
 
 	# Check and set the metrics database
 	unless ( $self->{metrics} ) {
