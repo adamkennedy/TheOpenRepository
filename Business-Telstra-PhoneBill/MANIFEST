@@ -5,6 +5,7 @@ README
 t/Business-Telstra-PhoneBill.t
 t/test.csv
 t/test.zip
+t/test2.csv
 lib/Business/Telstra/PhoneBill.pm
 lib/Business/Telstra/PhoneBill/Entry.pm
 META.yml                                 Module meta-data (added by MakeMaker)
