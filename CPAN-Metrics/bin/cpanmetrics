@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+cpanmetrics - Generation of CPAN metrics using some default settings
+
+=head1 SYNOPSIS
+
+C<cpanmetrics> is the script version of the L<CPAN::Metrics> module,
+downloading a L<minicpan> mirror, expanding out the default set of Perl
+files from the archives, and processing the metrics data for all
+installed L<Perl::Metrics> plugins.
+
+=head2 Settings Used
+
+The minicpan mirror will be checked out underneath a C<.minicpan>
+directory, created in your home directory.
+
+The archives will be extracted underneath a C<.cpanmetrics> directory,
+create in your home directory, with the root directory for each
+archive located at the same name as the relevant archive in the
+C<.minicpan> directory.
+
+And finally, the metrics SQLite database will be created at
+C<.cpanmetrics/metrics.sqlite>.
+
+=cut
+
+use strict;
+use File::Spec    ();
+use File::Homedir ();
+use CPAN::Metrics ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.02';
+}
+
+
+
+
+
+#####################################################################
+# Check the directories
+
+my $mirror    = 'http://mirrors.kernel.org/cpan/';
+my $homedir   = File::Homedir::homedir()
+	or die "Failed to locate your home directory";
+my $minicpan  = File::Spec->catdir( $homedir, '.minicpan'         );
+my $extracted = File::Spec->catdir( $homedir, '.cpanmetrics'      );
+my $metrics   = File::Spec->catfile( $extracted, 'metrics.sqlite' );
+
+
+
+
+
+#####################################################################
+# Create and execute the CPAN::Metrics object
+
+use vars qw{$metrics};
+$metrics = CPAN::Metrics->new(
+	remote         => $mirror,
+	local          => $minicpan,
+	extract        => $extracted,
+        extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
+	extract_check  => 1,
+	metrics        => $metrics,
+	)->run;
+
+exit(0);

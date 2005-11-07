@@ -10,10 +10,10 @@ CPAN::Metrics - Create and maintain a Perl::Metrics database for all of CPAN
 
   # Prepare a CPAN::Metrics run
   my $metrics = CPAN::Metrics->new(
-      remote  => 'ftp://cpan.pair.com/pub/CPAN/',
+      remote  => 'http://mirrors.kernel.org/cpan/',
       local   => '/home/adam/.minicpan',
-      extract => '/home/adam/explosion',
-      metrics => '/var/cache/perl/cpan_metrics.sqlite',
+      extract => '/home/adam/.cpanmetrics',
+      metrics => '/home/adam/.cpanmetrics/metrics.sqlite',
       );
   
   # Launch the run
@@ -52,7 +52,7 @@ use Perl::Metrics ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
