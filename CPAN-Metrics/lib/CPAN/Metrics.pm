@@ -88,7 +88,8 @@ sub new {
 
 	# Call up to get the base object
 	my $self = $class->SUPER::new(
-		skip_perl => 1,
+		force          => 1,
+		skip_perl      => 1, 
 		module_filters => [
 			qr/^Acme::/,
 			qr/^Meta::/,
