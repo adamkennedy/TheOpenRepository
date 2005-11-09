@@ -8,7 +8,7 @@ use File::Spec::Functions ':ALL';
 # Execute the tests
 use Test::More 'tests' => 5;
 use File::Find::Rule ();
-use File::Tasks     ();
+use File::Tasks      ();
 
 my $delete_dir = catdir( 't.data', 'delete' );
 ok( -d $delete_dir, "Found 'delete' test directory" );

@@ -1,5 +1,8 @@
 Revision history for Perl extension File::Tasks
 
+0.05 Thu Nov 10 2005
+	- First public release
+
 0.04 Thu Oct 20 2005
 	- Converted from File::Script to File::Tasks and moved into CPAN repository
 

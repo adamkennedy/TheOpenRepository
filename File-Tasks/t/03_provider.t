@@ -3,17 +3,6 @@
 # Test File::Tasks::Provider
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
-BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), 'lib') );
-	}
-}
 
 # Execute the tests
 use Test::More 'tests' => 13;
