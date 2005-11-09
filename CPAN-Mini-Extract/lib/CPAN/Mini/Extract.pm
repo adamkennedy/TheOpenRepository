@@ -10,10 +10,10 @@ CPAN::Mini::Extract - Create CPAN::Mini mirrors with the archives extracted
 
   # Create a CPAN extractor
   my $cpan = CPAN::Mini::Extract->new(
-      remote         => 'ftp://cpan.pair.com/pub/CPAN/',
+      remote         => 'http://mirrors.kernel.org/cpan/',
       local          => '/home/adam/.minicpan',
       trace          => 1,
-      extract        => '/home/adam/explosion',
+      extract        => '/home/adam/.cpanextracted',
       extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
       extract_check  => 1,
       );
@@ -320,7 +320,9 @@ sub mirror_extract {
 			Archive::Tar->list_archive( $local_tar );
 			};
 	}
-	return $self->_tar_error if ( $@ or ! @contents );
+	if ( $@ or ! @contents ) {
+		return $self->_tar_error("Expansion of $file failed");
+	}
 
 	# Filter to get just the ones we want
 	@contents = grep { /\.(?:pm|pl|t)$/ } @contents;
@@ -461,7 +463,13 @@ sub _tar_error {
 	my $self = shift;
 
 	# Get and clean up the message
-	my $message = shift || "Expansion of $self->{current_file} failed";
+	my $message = shift;
+	if ( ! $message and $self->{current_file} ) {
+		$message = "Expansion of $self->{current_file} failed";
+	}
+	if ( ! $message ) {
+		$message = "Expansion of file failed";
+	}
 	$message .= " (Archive::Tar warning)" if $@ =~ /Archive::Tar warning/;
 	$message .= "\n";
 

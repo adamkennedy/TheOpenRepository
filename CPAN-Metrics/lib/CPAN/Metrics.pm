@@ -47,7 +47,7 @@ What you do with the metrics after B<that> is up to you.
 
 use strict;
 use base 'CPAN::Mini::Extract';
-use Carp          'croak';
+use Carp 'croak';
 use Perl::Metrics ();
 
 use vars qw{$VERSION};
@@ -75,7 +75,7 @@ It takes a variety of different parameters.
 
 =over
 
-=item minicpan args
+=item minicpan arguments
 
 =back
 
@@ -89,7 +89,7 @@ sub new {
 	# Call up to get the base object
 	my $self = $class->SUPER::new(
 		force          => 1,
-		skip_perl      => 1, 
+		skip_perl      => 1,
 		module_filters => [
 			qr/^Acme::/,
 			qr/^Meta::/,
