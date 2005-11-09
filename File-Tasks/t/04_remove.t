@@ -3,17 +3,7 @@
 # Test File::Tasks::Provider
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
-BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
-}
 
 # Execute the tests
 use Test::More 'tests' => 5;
@@ -26,10 +16,10 @@ ok( -d $delete_dir, "Found 'delete' test directory" );
 # If we are executing this test inside of a CVS checkout, we need
 # to make sure that we don't accidentally include CVS folders.
 my $Rule;
-if ( -d catdir( $delete_dir, 'CVS' ) ) {
+if ( -d catdir( $delete_dir, '.svn' ) ) {
 	$Rule = File::Find::Rule->new;
 	$Rule = $Rule->or(
-		$Rule->new->directory->name('CVS')->prune->discard,
+		$Rule->new->directory->name('.svn')->prune->discard,
 		$Rule->new,
 		)->file;
 }
