@@ -1,0 +1,13 @@
+Revision history for Perl extension File::Tasks
+
+0.04 Thu Oct 20 2005
+	- Converted from File::Script to File::Tasks and moved into CPAN repository
+
+0.03 Thu Oct  7 2004
+	- Added support for Coercion from Archive::Builder
+
+0.02 Tue Sep 28 2004
+	- Moved to File::Script
+
+0.01 Wed Sep  1 2004
+	- original version
