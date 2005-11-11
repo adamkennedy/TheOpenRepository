@@ -49,7 +49,7 @@ ok( -d $test_extract, 'Constructor creates extraction dir' );
 
 # Ignoring the actual files in the minicpan, try to extract
 # the bad archive directly.
-my $rv = $offline->_extract( $empty_files_archive, $empty_files_dir );
+my $rv = $offline->_extract_archive( $empty_files_archive, $empty_files_dir );
 ok( $rv, 'Extract test archive OK' );
 
 # Check that files that should exist do
