@@ -16,7 +16,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 8;
+use Test::More tests => 12;
 use CPAN::Mini::Extract ();
 use File::Remove        ();
 
@@ -33,25 +33,33 @@ my $test_extract = catdir( 't', 'extract' );
 # Test creation
 
 # Create the most trivial object
-clear_test_dirs(); mkdir $test_local;
+clear_test_dirs();
 my $trivial = CPAN::Mini::Extract->new(
-      remote         => $test_remote,
-      local          => $test_local,
-      extract        => $test_extract,
-      );
+	trace          => 0, # Just in case
+	remote         => $test_remote,
+	local          => $test_local,
+	extract        => $test_extract,
+	);
 isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+ok( -d $test_local,   'Constructor creates local dir'      );
+ok( -d $test_extract, 'Constructor creates extraction dir' );
 
 # A more complex object
-clear_test_dirs(); mkdir $test_local;
+clear_test_dirs();
 my $worse = CPAN::Mini::Extract->new(
-      remote         => $test_remote,
-      offline        => 1,
-      local          => $test_local,
-      extract        => $test_extract,
-      extract_force  => 1,
-      extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
-      );
+	trace          => 0, # Just in case
+	remote         => $test_remote,
+	offline        => 1,
+	local          => $test_local,
+	extract        => $test_extract,
+	extract_force  => 1,
+	extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
+	);
 isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+ok( -d $test_local,   'Constructor creates local dir'      );
+ok( -d $test_extract, 'Constructor creates extraction dir' );
+
+
 
 # Clean up
 clear_test_dirs();

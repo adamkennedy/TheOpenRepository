@@ -53,12 +53,13 @@ maintainer while doing so.
 use 5.006;
 use strict;
 use base 'CPAN::Mini';
-use File::Spec       ();
 use Carp             'croak',
                      'carp';
-use List::Util       ();
+use File::Spec       ();
+use File::Basename   'dirname';
 use File::Path       'mkpath';
 use File::Remove     'remove';
+use List::Util       ();
 use IO::File         ();
 use IO::Zlib         (); # Will be needed by Archive::Tar
 use Archive::Tar     ();
@@ -69,7 +70,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 
@@ -175,9 +176,8 @@ sub new {
 			"The 'extract' path is not a writable directory"
 			);
 	} else {
-		mkpath( $self->{extract}, '', 0711 ) or croak(
-			"The 'extract' path does not exist, and could not be created"
-			);
+		mkpath( $self->{extract}, $self->{trace}, $self->{dirmode} )
+			or croak("The 'extract' path could not be created");
 	}
 
 	# Set defaults and apply rules
@@ -307,79 +307,16 @@ sub mirror_file {
 sub mirror_extract {
 	my ($self, $file) = @_;
 
-	# Don't try to extract anything other than tarballs to start with
+	# Don't try to extract anything other than normal tarballs for now.
 	return 1 unless $file =~ /\.tar\.gz$/;
 
 	# Extract the new file to the matching directory in
 	# the processor source directory.
-	my $local_tar = File::Spec->catfile( $self->{local}, $file );
-	my @contents;
-	{
-		local $SIG{__WARN__} = sub { 1 };
-		@contents = eval {
-			Archive::Tar->list_archive( $local_tar );
-			};
-	}
-	if ( $@ or ! @contents ) {
-		return $self->_tar_error("Expansion of $file failed");
-	}
+	my $local_file  = File::Spec->catfile( $self->{local}, $file   );
+	my $extract_dir = File::Spec->catfile( $self->{extract}, $file );
 
-	# Filter to get just the ones we want
-	@contents = grep { /\.(?:pm|pl|t)$/ } @contents;
-	if ( $self->{file_filters} ) {
-		@contents = grep &{$self->{file_filters}}, @contents;
-	}
-
-	unless ( @contents ) {
-		# Create an empty directory so it isn't checked over and over
-		my $source_dir = File::Spec->catfile( $self->{extract}, $file );
-		mkpath( $source_dir, $self->{trace}, $self->{dirmode} );
-		return 1;
-	}
-
-	# Extract the needed files
-	my $Tar;
-	{
-		local $SIG{__WARN__} = $self->{warn_hook};
-		$Tar = eval {
-			Archive::Tar->new( $local_tar );
-			};
-	}
-	return $self->_tar_error() if ( $@ or ! $Tar );
-
-	# Iterate and extract each file
-	foreach my $wanted ( @contents ) {
-		my $source_file = File::Spec->catfile(
-			$self->{extract}, $file, $wanted,
-			);
-		$self->trace("    $wanted");
-
-		my $rv;
-		{
-			local $SIG{__WARN__} = $self->{warn_hook};
-			$rv = eval {
-				$Tar->extract_file( $wanted, $source_file );
-				};
-		}
-		if ( $@ or ! $rv ) {
-			# There was an error during the extraction
-			$self->_tar_error( " ... failed" );
-			if ( -e $source_file ) {
-				# Remove any partial file left behind
-				chmod 0644, $source_file;
-				remove( $source_file );
-			}
-			return 1;
-		}
-
-		# Extraction successful
-		$self->trace(" ... extracted\n");
-		chmod 0644, $source_file;
-	}
-
-	$Tar->clear;
-
-	1;
+	# Do the actual extraction
+	$self->_extract_archive( $local_file, $extract_dir );
 }
 
 # Also remove any processing directory.
@@ -457,6 +394,84 @@ sub _compile_filter {
 		};
 
 	1;
+}
+
+# Encapsulate the actual extraction mechanism
+sub _extract {
+	my ($self, $archive, $to) = @_;
+
+	my @contents;
+	{
+		local $Archive::Tar::WARN = 0;
+		@contents = eval {
+			Archive::Tar->list_archive( $archive, undef, [ 'name', 'size' ] );
+			};
+	}
+	if ( $@ or ! @contents ) {
+		return $self->_tar_error("Expansion of $archive failed");
+	}
+
+	# Filter to get just the ones we want
+	@contents = grep {
+		$_->{size} # No dirs or null files
+		and
+		$_->{name} =~ /\.(?:pm|pl|t)$/ # Just "Perl" files.
+		} @contents;
+	@contents = map { $_->{name} } @contents;
+	if ( $self->{file_filters} ) {
+		@contents = grep &{$self->{file_filters}}, @contents;
+	}
+
+	unless ( @contents ) {
+		# Create an empty directory so it isn't checked over and over
+		mkpath( $to, $self->{trace}, $self->{dirmode} );
+		return 1;
+	}
+
+	# Extract the needed files
+	my $tar;
+	{
+		local $Archive::Tar::WARN = 0;
+		$tar = eval {
+			Archive::Tar->new( $archive );
+			};
+	}
+	return $self->_tar_error() if ( $@ or ! $tar );
+
+	# Iterate and extract each file
+	foreach my $wanted ( @contents ) {
+		# Where to extract to
+		my $to_file = File::Spec->catfile( $to, $wanted );
+		my $to_dir  = dirname( $to_file );
+		mkpath( $to_dir, $self->{trace}, $self->{dirmode} );
+		$self->trace("    $wanted");
+
+		my $rv;
+		{
+			local $Archive::Tar::WARN  = 0;
+			local $Archive::Tar::CHOWN = 0;
+			local $Archive::Tar::CHMOD = 0;
+			$rv = eval {
+				$tar->extract_file( $wanted, $to_file );
+				};
+		}
+		if ( $@ or ! $rv ) {
+			# There was an error during the extraction
+			$self->_tar_error( " ... failed" );
+			if ( -e $to_file ) {
+				# Remove any partial file left behind
+				remove( $to_file );
+			}
+			return 1;
+		}
+
+		# Extraction successful
+		$self->trace(" ... extracted\n");
+	}
+
+	$tar->clear;
+
+	1;	
 }
 
 sub _tar_error {

@@ -1,5 +1,11 @@
 Revision history for Perl extension CPAN::Mini::Extract
 
+0.11 Fri Nov 11 2005
+	- Added better testing
+	- Add better use of Archive::Tar
+	- Seperated out the actual extraction mechanics so it can more
+	  easily be upgraded to Archive::Extract later
+
 0.10 Wed Oct 12 2005
 	- Converted from CPAN::Processor to CPAN::Mini::Extract.
 	- Stripped out the PPI::Processor code.
