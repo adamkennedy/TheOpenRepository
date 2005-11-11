@@ -70,7 +70,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -397,7 +397,7 @@ sub _compile_filter {
 }
 
 # Encapsulate the actual extraction mechanism
-sub _extract {
+sub _extract_archive {
 	my ($self, $archive, $to) = @_;
 
 	my @contents;
