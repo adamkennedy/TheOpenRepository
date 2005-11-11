@@ -91,6 +91,9 @@ sub new {
 		force          => 1,
 		skip_perl      => 1,
 		extract_check  => 1,
+		path_filters   => [
+			qr/\bAcme\b/,
+			],
 		module_filters => [
 			qr/^Acme::/,
 			qr/^Meta::/,
