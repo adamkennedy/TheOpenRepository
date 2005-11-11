@@ -84,8 +84,6 @@ my $metrics = CPAN::Metrics->new(
 	remote         => $mirror,
 	local          => $minicpan,
 	extract        => $extracted,
-        extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
-	extract_check  => 1,
 	extract_force  => $EXTRACT_FORCE,
 	metrics        => $metrics,
 	);

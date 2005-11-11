@@ -90,10 +90,22 @@ sub new {
 	my $self = $class->SUPER::new(
 		force          => 1,
 		skip_perl      => 1,
+		extract_check  => 1,
 		module_filters => [
 			qr/^Acme::/,
 			qr/^Meta::/,
 			],
+	        extract_filter =>
+	        	sub {
+	        		return 0 if /\binc\b/;
+	        		return 1 if /\.pl$/;
+	        		if ( /\bt\b/ ) {
+		        		return 1 if /\.t$/;
+	        		} else {
+		        		return 1 if /\.pm$/;
+	        		}
+	        		return 0;
+	        	},
 		@_,
 		);
 
@@ -129,6 +141,8 @@ sub run {
 	$self->SUPER::run( @_ );
 
 	# Process the extraction directory
+	local $Perl::Metrics::TRACE = 1;
+	$self->trace("Indexing and processing documents in $self->{extract}...\n");
 	Perl::Metrics->process_directory( $self->{extract} );
 
 	1;
