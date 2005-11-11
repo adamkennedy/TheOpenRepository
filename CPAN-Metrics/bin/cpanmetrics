@@ -8,6 +8,11 @@ cpanmetrics - Generation of CPAN metrics using some default settings
 
 =head1 SYNOPSIS
 
+  > cpanmetrics
+  (various output for several hours)
+
+=head1 DESCRIPTION
+
 C<cpanmetrics> is the script version of the L<CPAN::Metrics> module,
 downloading a L<minicpan> mirror, expanding out the default set of Perl
 files from the archives, and processing the metrics data for all
@@ -31,11 +36,12 @@ C<.cpanmetrics/metrics.sqlite>.
 use strict;
 use File::Spec    ();
 use File::HomeDir ();
+use Getopt::Long  ();
 use CPAN::Metrics ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.04';
 }
 
 
@@ -52,6 +58,16 @@ my $minicpan  = File::Spec->catdir( $homedir, '.minicpan'         );
 my $extracted = File::Spec->catdir( $homedir, '.cpanmetrics'      );
 my $metrics   = File::Spec->catfile( $extracted, 'metrics.sqlite' );
 
+# Get some command line flags
+my $EXTRACT_FORCE = 0;
+my $OFFLINE       = 0;
+my $QUIET         = 0;
+Getopt::Long::GetOptions(
+	'quiet'         => \$QUIET,
+	'offline'       => \$OFFLINE,
+	'extract_force' => \$EXTRACT_FORCE,
+	);
+
 
 
 
@@ -59,15 +75,24 @@ my $metrics   = File::Spec->catfile( $extracted, 'metrics.sqlite' );
 #####################################################################
 # Create and execute the CPAN::Metrics object
 
-use vars qw{$metrics};
-$metrics = CPAN::Metrics->new(
-	trace          => 1,
+trace("Creating CPAN::Metrics object...\n");
+my $metrics = CPAN::Metrics->new(
+	trace          => ! $QUIET,
+	offline        => $OFFLINE,
 	remote         => $mirror,
 	local          => $minicpan,
 	extract        => $extracted,
         extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
 	extract_check  => 1,
+	extract_force  => $EXTRACT_FORCE,
 	metrics        => $metrics,
-	)->run;
+	);
+trace("Launching CPAN::Metrics process...\n");
+$metrics->run;
 
 exit(0);
+
+sub message {
+	return if $QUIET;
+	print $_[0];
+}
