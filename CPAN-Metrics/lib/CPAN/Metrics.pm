@@ -102,6 +102,7 @@ sub new {
 	        	sub {
 	        		return 0 if /\binc\b/;
 	        		return 1 if /\.pl$/;
+				return 0 if /\bexamples?\b/;
 	        		if ( /\bt\b/ ) {
 		        		return 1 if /\.t$/;
 	        		} else {
