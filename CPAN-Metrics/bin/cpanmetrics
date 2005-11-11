@@ -59,10 +59,12 @@ my $extracted = File::Spec->catdir( $homedir, '.cpanmetrics'      );
 my $metrics   = File::Spec->catfile( $extracted, 'metrics.sqlite' );
 
 # Get some command line flags
-my $EXTRACT_FORCE = 0;
-my $OFFLINE       = 0;
 my $QUIET         = 0;
+my $OFFLINE       = 0;
+my $EXTRACT_FORCE = 0;
 Getopt::Long::GetOptions(
+	'help'          => sub { help()    },
+	'version'       => sub { version() },
 	'quiet'         => \$QUIET,
 	'offline'       => \$OFFLINE,
 	'extract_force' => \$EXTRACT_FORCE,
@@ -75,7 +77,7 @@ Getopt::Long::GetOptions(
 #####################################################################
 # Create and execute the CPAN::Metrics object
 
-trace("Creating CPAN::Metrics object...\n");
+message("Creating CPAN::Metrics object...\n");
 my $metrics = CPAN::Metrics->new(
 	trace          => ! $QUIET,
 	offline        => $OFFLINE,
@@ -87,7 +89,7 @@ my $metrics = CPAN::Metrics->new(
 	extract_force  => $EXTRACT_FORCE,
 	metrics        => $metrics,
 	);
-trace("Launching CPAN::Metrics process...\n");
+message("Launching CPAN::Metrics process...\n");
 $metrics->run;
 
 exit(0);
@@ -95,4 +97,26 @@ exit(0);
 sub message {
 	return if $QUIET;
 	print $_[0];
+}
+
+sub version {
+	print "cpanmetrics $VERSION\n";
+	exit(0);
+}
+
+sub help {
+	print <<"END_HELP";
+This is cpanmetrics $VERSION, the CPAN::Metrics command line launcher
+
+Usage:
+  cpanmetrics [OPTIONS]
+
+Options:
+  --quiet         run quietly, with all tracing disabled
+  --offline       run in offline mode (not fully supported yet)
+  --extract_force remove ALL extracted files and re-extract
+  --help          show this help, then exit
+  --version       output version information, then exit
+END_HELP
+	exit(0);
 }
