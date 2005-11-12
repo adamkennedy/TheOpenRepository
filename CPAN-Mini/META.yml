@@ -1,0 +1,15 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         CPAN-Mini
+version:      0.40
+version_from: lib/CPAN/Mini.pm
+installdirs:  site
+requires:
+    Compress::Zlib:                1.20
+    File::HomeDir:                 0
+    LWP:                           5
+    Pod::Usage:                    1
+    URI:                           1
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
