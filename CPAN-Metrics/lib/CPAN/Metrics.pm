@@ -93,12 +93,12 @@ sub new {
 		extract_check  => 1,
 		path_filters   => [
 			qr/\bAcme\b/,
+			qr/\bPDF\-API2\b/,
 			],
 		# Remove some known troublemakers
 		module_filters => [
 			qr/^Acme::/,
 			qr/^Meta::/,
-			qr/^PDF::API2::/,
 			],
 	        extract_filter =>
 	        	sub {
