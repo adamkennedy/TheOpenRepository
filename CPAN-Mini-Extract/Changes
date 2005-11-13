@@ -1,5 +1,8 @@
 Revision history for Perl extension CPAN::Mini::Extract
 
+0.13 Sun Nov 13 2005
+	- Fixed a bug when cleaning up removed files from extract dir
+
 0.12 Fri Nov 11 2005
 	- Fixed a typo bug
 

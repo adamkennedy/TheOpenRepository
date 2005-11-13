@@ -70,7 +70,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.13';
 }
 
 
