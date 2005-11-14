@@ -68,7 +68,7 @@ is( $file3->get_header('content_length'), 490,            'GIF length returns ok
 # Freezing and thawing
 foreach my $file ( $file1, $file2, $file3 ) {
 	my $frozen = $file->freeze;
-	my $is_string = defined $frozen and ! ref $frozen and length $frozen;
+	my $is_string = (defined($frozen) and ! ref($frozen) and length($frozen));
 	ok( $is_string, '->freeze produces a string' );
 	my $thawed = File::BLOB->thaw( $frozen );
 	isa_ok( $thawed, 'File::BLOB' );
