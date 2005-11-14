@@ -75,13 +75,14 @@ and then file data.
 =cut
 
 use strict;
-use bytes        ();
-use Carp         ();
-use IO::File     ();
-use Storable     ();
-use Params::Util '_SCALAR',
-                 '_INSTANCE',
-                 '_IDENTIFIER';
+use bytes          ();
+use Carp           ();
+use IO::File       ();
+use Storable       ();
+use File::Basename ();
+use Params::Util   '_SCALAR',
+                   '_INSTANCE',
+                   '_IDENTIFIER';
 
 # Optional prefork support
 eval "use prefork 'File::Type';";
