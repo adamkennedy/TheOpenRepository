@@ -7,6 +7,7 @@ version_from   ( 'lib/File/Storable.pm'             );
 requires       ( 'perl'                 => '5.005'  );
 requires       ( 'bytes'                => 0        );
 requires       ( 'Carp'                 => 0        );
+requires       ( 'Storable'             => 0        );
 requires       ( 'Params::Util'         => '0.06'   );
 build_requires ( 'File::Spec'           => '0.80'   );
 build_requires ( 'Test::More'           => '0.47'   );
