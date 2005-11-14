@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Basic functionality testing for File::Storable
+# Basic functionality testing for File::BLOB
 
 use strict;
 use lib ();
@@ -17,7 +17,7 @@ BEGIN {
 }
 
 use Test::More tests => 26;
-use File::Storable ();
+use File::BLOB ();
 
 
 
@@ -27,12 +27,12 @@ use File::Storable ();
 # Creation and general use
 
 # Low-effort file
-my $file1 = File::Storable->new( "foo",
+my $file1 = File::BLOB->new( "foo",
 	content_type => 'text/plain',
 	FileName     => 'FOO.txt',
 	foo          => 'bar',
 	);
-isa_ok( $file1, 'File::Storable' );
+isa_ok( $file1, 'File::BLOB' );
 is( $file1->get_header('content_type'), 'text/plain', '->get_header(content_type) returns ok' );
 is( $file1->get_header('filename'), 'FOO.txt', '->get_header(filename) returns ok' );
 is( $file1->get_header('Foo'), 'bar', '->get_header(foo) returns ok' );
@@ -49,14 +49,14 @@ is( $$content, 'foo', '->get_content returns \"foo"' );
 
 
 # Test known files for correct loading and type guess
-my $file2 = File::Storable->from_file( catfile('t', 'data', 'image.gif') );
-isa_ok( $file2, 'File::Storable' );
+my $file2 = File::BLOB->from_file( catfile('t', 'data', 'image.gif') );
+isa_ok( $file2, 'File::BLOB' );
 is( $file2->get_header('content_type'),   'image/gif', 'GIF content_type returns ok' );
 is( $file2->get_header('filename'),       'image.gif', 'GIF filename returns ok' );
 is( $file2->get_header('content_length'), 62,           'GIF length returns ok' );
 
-my $file3 = File::Storable->from_file( catfile('t', 'data', 'image.jpg') );
-isa_ok( $file3, 'File::Storable' );
+my $file3 = File::BLOB->from_file( catfile('t', 'data', 'image.jpg') );
+isa_ok( $file3, 'File::BLOB' );
 is( $file3->get_header('content_type'),   'image/jpeg', 'GIF content_type returns ok' );
 is( $file3->get_header('filename'),       'image.jpg',  'GIF filename returns ok' );
 is( $file3->get_header('content_length'), 490,            'GIF length returns ok' );
@@ -70,9 +70,9 @@ foreach my $file ( $file1, $file2, $file3 ) {
 	my $frozen = $file->freeze;
 	my $is_string = defined $frozen and ! ref $frozen and length $frozen;
 	ok( $is_string, '->freeze produces a string' );
-	my $thawed = File::Storable->thaw( $frozen );
-	isa_ok( $thawed, 'File::Storable' );
-	is_deeply( $file, $thawed, 'Thawed File::Storable object matched original' );
+	my $thawed = File::BLOB->thaw( $frozen );
+	isa_ok( $thawed, 'File::BLOB' );
+	is_deeply( $file, $thawed, 'Thawed File::BLOB object matched original' );
 }
 
 exit(0);

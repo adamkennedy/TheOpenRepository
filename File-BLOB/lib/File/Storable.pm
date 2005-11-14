@@ -1,26 +1,26 @@
-package File::Storable;
+package File::BLOB;
 
 =pod
 
 =head1 NAME
 
-File::Storable - A file (with name, and other metadata) you can Storable'ize
+File::BLOB - A file (with name, and other metadata) you can Storable'ize
 
 =head1 SYNOPSIS
 
-  # Create a File::Storable object from data or a filehandle
-  $file = File::Storable->new( 'data'         ); # Copies
-  $file = File::Storable->new( \$data         ); # Doesn't copy
-  $file = File::Storable->new( $filehandle    );
+  # Create a File::BLOB object from data or a filehandle
+  $file = File::BLOB->new( 'data'         ); # Copies
+  $file = File::BLOB->new( \$data         ); # Doesn't copy
+  $file = File::BLOB->new( $filehandle    );
   
   # Create from an existing file
-  $fil	e = File::Storable->from_file( 'filename.txt' );
+  $fil	e = File::BLOB->from_file( 'filename.txt' );
   
   # Create from a file uploaded via CGI
-  $file = File::Storable->from_cgi( $CGI, 'param' );
+  $file = File::BLOB->from_cgi( $CGI, 'param' );
   
   # You can assign arbitrary headers/metadata when creating objects
-  $file = File::Storable->new( 'filename.txt',
+  $file = File::BLOB->new( 'filename.txt',
   	content_type => 'text/plain',
   	filename     => 'myname.txt',
   	owner        => 'ADAMK',
@@ -39,7 +39,7 @@ File::Storable - A file (with name, and other metadata) you can Storable'ize
   
   # Freeze to and thaw from a BLOB
   my $blob = $file->freeze;
-  $file = File::Storable->thaw( $blob );
+  $file = File::BLOB->thaw( $blob );
 
 =head1 DESCRIPTION
 
@@ -52,7 +52,7 @@ databases often support "BLOB" data types, they don't keep file names and
 encoding types attached so that these files are usable beyond treating
 them as mere data.
 
-C<File::Storable> is an object that represents a file, L<Storable> as a BLOB
+C<File::BLOB> is an object that represents a file, L<Storable> as a BLOB
 in a database or some other system, but retaining metadata such as file
 name, type and any other custom headers people want to attach.
 
@@ -65,7 +65,7 @@ the name of the file or other data.
 
 =head2 Storage Format
 
-C<File::Storable> stores its data in a way that is compatible with both
+C<File::BLOB> stores its data in a way that is compatible with both
 L<Storable> and HTTP. The stored form looks a lot like a HTTP response,
 with a series of newline-seperated header lines followed by two newlines
 and then file data.
@@ -102,15 +102,15 @@ BEGIN {
 
 =head1 new
 
-  $file = File::Storable->new( $data     );
-  $file = File::Storable->new( \$data    );
-  $file = File::Storable->new( $iohandle );
-  $file = File::Storable->new( $data,
+  $file = File::BLOB->new( $data     );
+  $file = File::BLOB->new( \$data    );
+  $file = File::BLOB->new( $iohandle );
+  $file = File::BLOB->new( $data,
   	header   => 'value',
   	filename => 'file.txt',
   	);
 
-Creates a new C<File::Storable> object from data.
+Creates a new C<File::BLOB> object from data.
 
 It takes as its first param the data, in the form of a normal scalar
 string (which will be copied), a C<SCALAR> reference (which will
@@ -121,7 +121,7 @@ While the C<content_length> header will be set automatically, you
 may wish to provide the C<content_type> header yourself if know, to
 avoid having to load L<File::Type> to determine the file type.
 
-Returns a C<File::Storable> object, or dies on error.
+Returns a C<File::BLOB> object, or dies on error.
 
 =cut
 
@@ -149,8 +149,8 @@ sub new {
 
 =head2 from_file
 
-  $file = File::Storable->from_file( "/home/me/some_picture.gif" );
-  $file = File::Storable->from_file( "foo.txt",
+  $file = File::BLOB->from_file( "/home/me/some_picture.gif" );
+  $file = File::BLOB->from_file( "foo.txt",
   	'content_type' => 'text/plain',
   	'foo'          => 'bar',
   	);
@@ -162,7 +162,7 @@ MIME type automatically.
 The same rules as for the C<new> constructor apply regarding additional
 parameters.
 
-Returns a new C<File::Storable> object, or dies on error.
+Returns a new C<File::BLOB> object, or dies on error.
 
 =cut
 
@@ -200,23 +200,23 @@ sub from_file {
 
 =head2 from_cgi
 
-  my $file = File::Storable->from_cgi( $CGI, 'param' );
+  my $file = File::BLOB->from_cgi( $CGI, 'param' );
 
 (NOT YET IMPLEMENTED)
 
-The C<from_cgi> constructor will allow creation of a C<File::Storable>
+The C<from_cgi> constructor will allow creation of a C<File::BLOB>
 object from a named file upload field in a CGI form.
 
 It takes a L<CGI> object and a CGI param name. Only a single
 file upload for the param is supported.
 
-Returns a new C<File::Storable> object, false (C<''>) if there was
+Returns a new C<File::BLOB> object, false (C<''>) if there was
 no file upload (or a file was not selected), or dies on error.
 
 =cut
 
 sub from_cgi {
-	die "File::Storable->from_cgi is not implemented";
+	die "File::BLOB->from_cgi is not implemented";
 }
 
 
@@ -290,7 +290,7 @@ sub set_content {
 	} elsif ( defined $data and ! ref $data ) {
 		$content = \$data;
 	} else {
-		Carp::croak("Invalid parameter to File::Storable::new");
+		Carp::croak("Invalid parameter to File::BLOB::new");
 	}
 
 	# Set the content and content_length
@@ -401,12 +401,12 @@ sub freeze {
 
 =head2 thaw
 
-  my $file = File::Storable->thaw( $string );
+  my $file = File::BLOB->thaw( $string );
 
 The C<thaw> method takes a string previous created by the C<frozen>
-method, and creates the C<File::Storable> object from it.
+method, and creates the C<File::BLOB> object from it.
 
-Returns a C<File::Storable> object, or dies on error.
+Returns a C<File::BLOB> object, or dies on error.
 
 =cut
 
@@ -419,7 +419,7 @@ sub thaw {
 		my $header = $1;
 		if ( bytes::length($header) ) {
 			unless ( $header =~ /^(.+?): (.+)$/s ) {
-				Carp::croak("Frozen File::Storable object is corrupt");
+				Carp::croak("Frozen File::BLOB object is corrupt");
 			}
 			$headers{lc $1} = $2;
 			next;
@@ -428,10 +428,10 @@ sub thaw {
 		# We hit the double-newline. The remainder of
 		# the file is the content.
 		unless ( defined $headers{content_length} ) {
-			Carp::croak("Frozen File::Storable object is corrupt");
+			Carp::croak("Frozen File::BLOB object is corrupt");
 		}
 		unless ( $headers{content_length} == bytes::length($serialized) ) {
-			Carp::croak("Frozen File::Storable object is corrupt");
+			Carp::croak("Frozen File::BLOB object is corrupt");
 		}
 
 		# Hand off to the constructor
@@ -440,7 +440,7 @@ sub thaw {
 	}
 
 	# This would be bad. It shouldn't happen
-	Carp::croak("Frozen File::Storable object is corrupt");
+	Carp::croak("Frozen File::BLOB object is corrupt");
 }
 
 
@@ -507,7 +507,7 @@ sub _value {
 sub _mime_type {
 	my $self = shift;
 	my $data = _SCALAR(shift) or Carp::croak(
-		"Did not provide a SCALAR reference to File::Storable::_mime_type"
+		"Did not provide a SCALAR reference to File::BLOB::_mime_type"
 		);
 	require File::Type;
 	return File::Type->checktype_contents($$data);

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Compile-testing for File::Storable
+# Basic functionality testing for File::BLOB
 
 use strict;
 use lib ();
@@ -17,9 +17,18 @@ BEGIN {
 }
 
 use Test::More tests => 2;
+use File::BLOB ();
 
-ok( $] > 5.005, 'Perl version is 5.004 or newer' );
 
-use_ok( 'File::Storable' );
+
+
+
+#####################################################################
+# Test creation from a CGI object
+
+SKIP: {
+	skip( 'CGI feature not yet implemented', 2 );
+	1;
+}
 
 exit(0);
