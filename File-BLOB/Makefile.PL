@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
-name           ( 'File-Storable'                   );
-abstract       ( "A file (with name, and other metadata) you can Storable'ize" );
+name           ( 'File-BLOB'                       );
+abstract       ( "A file (with name, and other metadata) you can BLOBify" );
 author         ( 'Adam Kennedy <adam@phase-n.com>' );
 version_from   ( 'lib/File/BLOB.pm'                );
 requires       ( 'perl'                 => '5.005' );

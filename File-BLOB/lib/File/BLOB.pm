@@ -4,7 +4,7 @@ package File::BLOB;
 
 =head1 NAME
 
-File::BLOB - A file (with name, and other metadata) you can Storable'ize
+File::BLOB - A file (with name, and other metadata) you can BLOBify
 
 =head1 SYNOPSIS
 
