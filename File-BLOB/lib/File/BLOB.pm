@@ -89,7 +89,7 @@ eval "use prefork 'File::Type';";
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -203,21 +203,58 @@ sub from_file {
 
   my $file = File::BLOB->from_cgi( $CGI, 'param' );
 
-(NOT YET IMPLEMENTED)
-
-The C<from_cgi> constructor will allow creation of a C<File::BLOB>
+The C<from_cgi> constructor allows you to create a C<File::BLOB>
 object from a named file upload field in a CGI form.
 
 It takes a L<CGI> object and a CGI param name. Only a single
 file upload for the param is supported.
 
-Returns a new C<File::BLOB> object, false (C<''>) if there was
-no file upload (or a file was not selected), or dies on error.
+When called in list context, the C<from_cgi> method will return
+a list of C<File::BLOB> objects, or the null list of there are
+no uploaded files for the param.
+
+When called in scalar context, the C<from_cgi> method return a
+single C<File::BLOB> object (if more than one the first), or
+false (C<''>) if there are no file uploads.
+
+An exception will be thrown if an error is encountered.
 
 =cut
 
 sub from_cgi {
-	die "File::BLOB->from_cgi is not implemented";
+	my $class = ref $_[0] ? ref shift : shift;
+	my $cgi   = _INSTANCE(shift, 'CGI') or Carp::croak(
+		'First argument to from_cgi was not a CGI object'
+		);
+	my $param = shift;
+	_SCALAR(\$param) or Carp::croak(
+		'Second argument to from_cgi was not a CGI param'
+		);
+
+	# Fetch the filehandles
+	my @handles = $cgi->upload($param) or return;
+	if ( ! wantarray ) {
+		# Remove all but the first filehandle
+		while ( @handles > 1 ) {
+			pop @handles;
+		}
+	}
+
+	# Convert each of the filehandles to File::BLOB objects,
+	# with all headers intact.
+	my @objects = ();
+	foreach my $fh ( @handles ) {
+		my $headers = $cgi->uploadInfo($fh) or Carp::croak(
+			"Failed to get headers for upload '$param'"
+			);
+		my $file = File::BLOB->new( $fh, %$headers ) or Carp::croak(
+			"Failed to create File::BLOB for upload '$param'"
+			);
+		push @objects, $file;
+	}
+
+	# Return in either list or scalar context
+	wantarray ? @objects : $objects[0];
 }
 
 
@@ -522,7 +559,7 @@ sub _mime_type {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-Storable>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-BLOB>
 
 For other issues, contact the author.
 

@@ -1,4 +1,7 @@
 Revision history for Perl extension File::BLOB
 
+0.02 Thu Nov 17 2005
+	- Adding an initial implementation of File::BLOB::from_cgi
+
 0.01 Mon Nov 14 2005
 	- original version
