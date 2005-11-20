@@ -4,6 +4,7 @@ name         ( 'Task'                       );
 abstract     ( 'The successor to Bundle:: for installing sets of modules' );
 author       ( 'Adam Kennedy <cpan@ali.as>' );
 version_from ( 'lib/Task.pm'                );
+license      ( 'perl'                       );
 auto_install (                              );
 
 # All the things we need for Task (err... nothing)

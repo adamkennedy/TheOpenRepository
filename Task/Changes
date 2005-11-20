@@ -1,4 +1,7 @@
 Revision history for Perl extension Task
 
+1.01 Sun Nov 20 2005
+	- Forgot to note the license in the Makefile.PL
+
 1.00 Sun Nov 20 2005
 	- Initial release

@@ -3,7 +3,7 @@ package Task;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 1;
@@ -25,6 +25,7 @@ Task:: - The successor to Bundle:: for installing sets of modules
   abstract     ( 'Install the most common Foo modules' );
   author       ( 'Adam Kennedy <cpan@ali.as>' );
   version_from ( 'lib/Task/Foo.pm'            );
+  license      ( 'perl'                       );
   auto_install (                              );
 
   # All the things we need for Foo
