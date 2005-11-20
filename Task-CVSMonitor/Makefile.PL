@@ -4,6 +4,7 @@ name         ( 'Task-CVSMonitor'                     );
 abstract     ( 'Install all the CPAN modules needed by CVS Monitor' );
 author       ( 'Adam Kennedy <cpan@ali.as>'          );
 version_from ( 'lib/Task/CVSMonitor.pm'              );
+license      ( 'perl'                                );
 auto_install (                                       );
 requires     ( 'perl'                => '5.005'      );
 requires     ( 'Array::Window'       => '0.4'        );
