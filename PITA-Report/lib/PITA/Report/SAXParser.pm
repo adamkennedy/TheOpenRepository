@@ -1,10 +1,10 @@
-package PITA::Report::Parser;
+package PITA::Report::SAXParser;
 
 =pod
 
 =head1 NAME
 
-PITA::Report::Parser - Implements a 
+PITA::Report::SAXParser - Implements a SAX Parser for PITA::Report files
 
 =cut
 
@@ -22,8 +22,8 @@ BEGIN {
 
 	# The list of tags to trim character whitespace for
 	%TRIM = map { $_ => 1 } qw{
-		osname    archname
-		distname  filename  md5sum  cpanpath
+		osname    archname  perlpath
+		distname  filename  cpanpath  md5sum  
 		};
 }
 
@@ -112,8 +112,8 @@ sub characters {
 # Generate the methods for the simple properties
 BEGIN {
 	foreach my $element ( qw{
-		osname   archname perlv
-		distname filename md5sum cpanpath
+		osname    archname  perlpath  perlv
+		distname  filename  cpanpath  md5sum   
 	} ) {
 		eval <<"END_PERL";
 sub start_element_$element {
@@ -161,15 +161,51 @@ sub end_element_distribution {
 	die "CODE INCOMPLETE";
 }
 
-sub start_element_filename {
+sub start_element_platform {
 	my ($self, $hash) = @_;
+
+	# Create a new ::Distribution object and add to the context
+	my $platform = bless {}, 'PITA::Report::Platform';
+	push @{$self->{context}}, $platform;
+
 	1;
 }
 
-sub end_element_filename {
+sub end_element_platform {
 	my $self = shift;
-	$self->{context}->[-1]->{filename} = $self->{character_buffer};
-	1;
+
+	# Take the distribution off the end of the context
+	my $platform = pop @{$self->{context}};
+
+	# Complete it and add to the larger $FOO
+	$platform->_init;
+	die "CODE INCOMPLETE";
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PITA-Report>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright 2005 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

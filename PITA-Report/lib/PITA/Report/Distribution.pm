@@ -87,7 +87,7 @@ sub _init {
 	unless (
 		defined $md5sum and ! ref $md5sum
 		and
-		$md5sum =~ /^[0-9a-f]{32}$/
+		$md5sum =~ /^[0-9a-f]{32}$/i
 	) {
 		Carp::croak('Invalid md5sum');
 	}

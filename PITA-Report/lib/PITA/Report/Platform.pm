@@ -1,15 +1,15 @@
-package PITA::Report::Configuration;
+package PITA::Report::Platform;
 
 =pod
 
 =head1 NAME
 
-PITA::Report::Configuration - Data object representing a platform configuration
+PITA::Report::Platform - Data object representing a platform configuration
 
 =head1 SYNOPSIS
 
   # Create a platform configuration
-  my $dist = PITA::Report::Configuration->new(
+  my $platform = PITA::Report::Platform->new(
   	# Mandatory fields
   	perlv    => join('', `perl -V`),
   	# Optional fields
@@ -18,11 +18,11 @@ PITA::Report::Configuration - Data object representing a platform configuration
   	);
   
   # Get the current platform configuration
-  my $current = PITA::Report->Configuration->current;
+  my $current = PITA::Report::Platform->current;
 
 =head1 DESCRIPTION
 
-C<PITA::Report::Configuration> is an object for holding information about
+C<PITA::Report::Platform> is an object for holding information about
 the platform that a package is being tested on.distribution to be tested.
 
 It can be created either as part of the parsing of a L<PITA::Report> XML
@@ -65,13 +65,21 @@ sub new {
 sub current {
 	my $class = shift;
 
-	# Find the current osname, archname, and perlv
-	die "CODE INCOMPLETE";
+	# Get the perl -V output
+	my $perlpath = $^X;
+	my $perlv    = join('', `$^X -V`);
+	my $osname   = $perlv =~ /\bosname=(.+?),/ ? $1
+		: die "Failed to locate osname in perl -V output";
+	my $archname = $perlv =~ /\barchname=(.+?)\s/ ? $1
+		: die "Failed to locate archname in perl -V output";
 
-	# Check the object
-	$self->_init;
-
-	$self;	
+	# Hand off to the main constructor
+	$class->new(
+		perlpath => $perlpath,
+		perlv    => $perlv,
+		osname   => $osname,
+		archname => $archname,
+		);
 }
 
 # Format-check the parameters
@@ -107,9 +115,34 @@ sub _init {
 	}
 
 	# Check the perlv
-	die "CODE INCOMPLETE";
+	my $perlv = $self->{perlv};
+	unless (
+		defined $perlv and ! ref $perlv
+		and
+		$perlv =~ /^Summary of my perl/
+		and
+		$perlv =~ /\@INC/,
+	) {
+		Carp::croak('Invalid Perl -V output');
+	}
 
 	1;
+}
+
+sub perlv {
+	$_[0]->{perlv};
+}
+
+sub archname {
+	$_[0]->{archname};
+}
+
+sub osname {
+	$_[0]->{osname};
+}
+
+sub perlpath {
+	$_[0]->{perlpath};
 }
 
 1;

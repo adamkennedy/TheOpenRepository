@@ -11,13 +11,17 @@ PITA::Report - Create, load, save and manipulate XML PITA reports
 =cut
 
 use strict;
-use Carp                    'croak';
-use Params::Util            ':ALL';
-use IO::File                ();
-use File::Flock             ();
-use XML::SAX::ParserFactory ();
-use XML::Validator::Schema  ();
-use PITA::Report::Parser    ();
+use Carp                       'croak';
+use Params::Util               ':ALL';
+use IO::File                   ();
+use File::Flock                ();
+use XML::SAX::ParserFactory    ();
+use XML::Validator::Schema     ();
+use PITA::Report::Platform     ();
+use PITA::Report::Distribution ();
+use PITA::Report::Install      ();
+use PITA::Report::SAXParser    ();
+use PITA::Report::SAXDriver    ();
 
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
@@ -28,7 +32,7 @@ BEGIN {
 $SCHEMA = $INC{'PITA/Report.pm'};
 $SCHEMA =~ s/pm$/xsd/;
 unless ( -f $SCHEMA and -r _ ) {
-	die "Failed to locate PITA::Report XML Schema";
+	Carp::croak("Cannot locate XML Schema. PITA::Report load failed");
 }
 
 
@@ -41,31 +45,23 @@ unless ( -f $SCHEMA and -r _ ) {
 sub new {
 	my $class = shift;
 
-	# Create the empty object
-	my $self = bless {
-		reports => {},
-		}, $class;
-	return $self;
-
 	# No params creates a new empty object
+	my $self = bless {
+		installs => {},
+		}, $class;
 	return $self unless @_;
 
-	# We also take a file name as a param
-	my $file  = shift;
-	unless ( $file and -f $file and -r _ ) {
-		croak("Did not pass a valid file to PITA::Report->new");
-	}
-
 	# Validate the document
-	$self->validate( $file );
+	my $fh = $self->_file(shift);
+	$self->validate( $fh );
 
-	# Create the empty
+	# Build the object from the file
 	my $parser = XML::SAX::ParserFactory->parser(
-		Handler => PITA::Report::Parser->new( $self ),
+		Handler => PITA::Report::SAXParser->new( $self ),
 		);
-        eval { $parser->parse_file($fh) };
-	return 1 unless $@; # Parsing worked
+        $parser->parse_file($fh);
 
+	$self;
 }
 
 # Validate the report
@@ -79,7 +75,7 @@ sub validate {
 		);
 
 	# Validate the document
-	eval { $parser->parse_file($fh) };
+	$parser->parse_file($fh);
 
 	1;
 }
