@@ -35,7 +35,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 
@@ -184,6 +184,12 @@ For other issues, contact the author.
 =head1 AUTHOR
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+
+=head1 SEE ALSO
+
+L<PITA::Report>
+
+The Perl Image-based Testing Architecture (L<http://ali.as/pita/>)
 
 =head1 COPYRIGHT
 

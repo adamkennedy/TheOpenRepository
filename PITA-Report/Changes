@@ -1,4 +1,6 @@
 Revision history for Perl extension PITA::Report
 
-0.01 Mon Nov 29 2005
-	- original version
+0.01_01 Mon Nov 29 2005
+	- Initial demonstration implementation
+	- Implements basic structure
+	- Supports only the <platform> and <distribution> tags

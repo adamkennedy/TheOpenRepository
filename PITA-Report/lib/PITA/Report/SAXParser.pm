@@ -6,6 +6,25 @@ package PITA::Report::SAXParser;
 
 PITA::Report::SAXParser - Implements a SAX Parser for PITA::Report files
 
+=head1 DESCRIPTION
+
+Although you won't need to use it directly, this class provides a
+"SAX Parser" class that converts a stream of SAX events (most likely from
+an XML file) and populates a L<PITA::Report> with L<PITA::Report::Install>
+objects.
+
+Please note that this class is incomplete at this time. Although you
+can create objects and parse some of the tags, many are still ignored
+at this time (in particular the E<lt>outputE<gt> and E<lt>analysisE<gt>
+tags.
+
+=head1 METHODS
+
+In addition to the following documented methods, this class implements
+a large number of methods relating to its implementation of a
+L<XML::SAX::Base> subclass. These are not considered part of the
+public API, and so are not documented here.
+
 =cut
 
 use strict;
@@ -15,7 +34,7 @@ use Params::Util ':ALL';
 
 use vars qw{$VERSION $XML_NAMESPACE %TRIM};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 
 	# Define the XML namespace we are a parser for
 	$XML_NAMESPACE = 'http://ali.as/xml/schemas/PITA/1.0';
@@ -35,14 +54,32 @@ BEGIN {
 #####################################################################
 # Constructor
 
+=pod
+
+=head2 new
+
+  # Create the SAX parser
+  my $parser = PITA::Report::SAXParser->new( $report );
+
+The C<new> constructor takes a single L<PITA::Report> object and creates
+a SAX Parser for it. When used, the SAX Parser object will fill the empty
+L<PITA::Report> object with L<PITA::Report::Install> reporting objects.
+
+If used with a L<PITA::Report> that already has existing content, it
+will add the new install reports in addition to the existing ones.
+
+Returns a new C<PITA::Report::SAXParser> object, or dies on error.
+
+=cut
+
 sub new {
 	my $class  = shift;
-	my $parent = _INSTANCE(shift, 'PITA::Report')
+	my $report = _INSTANCE(shift, 'PITA::Report')
 		or croak("Did not provie a PITA::Report param");
 
 	# Create the basic parsing object
 	my $self = bless {
-		parent => $parent,
+		report => $report,
 		}, $class;
 
 	$self;
@@ -63,17 +100,18 @@ sub start_element {
 		croak( __PACKAGE__ . ' does not support XML namespaces' );
 	}
 
+	# Shortcut if we don't implement a handler
+	my $handler = "start_element_$element->{LocalName}";
+	return 1 unless $self->can($handler);
+
 	# Flatten the Attributes into a simple hash
 	my %hash = map { $_->{LocalName}, $_->{Value} }
 		grep { $_->{Value} =~ s/^\s+//; $_->{Value} =~ s/\s+$//; 1; }
 		grep { ! $_->{Prefix} }
 		values %{$element->{Attributes}};
 
-	# Handle off to the appropriate tag-specific handler
-	my $handler = "start_element_$element->{LocalName}";
-	$self->can($handler)
-		? $self->$handler( \%hash )
-		: croak("No handler for tag $element->{LocalName}");
+	# Hand off to the handler
+	$self->$handler( \%hash );
 }
 
 sub end_element {
@@ -140,6 +178,49 @@ END_PERL
 # start_element_foo( $self, \%attribute_hash )
 # end_element_foo  ( $self )
 
+### Ignore the actual report tag
+# sub start_element_report {}
+# sub end_element_report {}
+
+
+
+
+
+#####################################################################
+# Handle the <install>...</install> tag
+
+sub start_element_install {
+	my ($self, $hash) = @_;
+
+	# Create a new ::Install object and add to the context
+	my $install = bless {}, 'PITA::Report::Install';
+	push @{$self->{context}}, $install;
+
+	1;
+}
+
+sub end_element_install {
+	my $self = shift;
+
+	# Take the install off the end of the context
+	my $install = pop @{$self->{context}};
+
+	# Complete it and add to the larger $FOO
+	$install->_init;
+
+	# Add it to the report
+	$self->{report}->add_install( $install );
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <distribution>...</distribution> tag
+
 sub start_element_distribution {
 	my ($self, $hash) = @_;
 
@@ -158,8 +239,19 @@ sub end_element_distribution {
 
 	# Complete it and add to the larger $FOO
 	$distribution->_init;
-	die "CODE INCOMPLETE";
+
+	# Set it in the install object
+	$self->{context}->[-1]->{distribution} = $distribution;
+
+	1;
 }
+
+
+
+
+
+#####################################################################
+# Handle the <platform>...</platform> tag
 
 sub start_element_platform {
 	my ($self, $hash) = @_;
@@ -179,7 +271,11 @@ sub end_element_platform {
 
 	# Complete it and add to the larger $FOO
 	$platform->_init;
-	die "CODE INCOMPLETE";
+
+	# Set it in the install object
+	$self->{context}->[-1]->{platform} = $platform;
+
+	1;
 }
 
 1;
@@ -197,6 +293,12 @@ For other issues, contact the author.
 =head1 AUTHOR
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+
+=head1 SEE ALSO
+
+L<PITA::Report>, L<PITA::Report::SAXDriver>
+
+The Perl Image-based Testing Architecture (L<http://ali.as/pita/>)
 
 =head1 COPYRIGHT
 
