@@ -12,7 +12,7 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
+		lib->import('blib/lib', 'blib/arch');
 	}
 }
 

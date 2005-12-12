@@ -67,8 +67,14 @@ BEGIN {
 	$VERSION = '0.01_02';
 }
 
+# The XML Schema File
 # Locate the Schema at use-time (instead of compile-time)
 $SCHEMA = File::ShareDir::dist_file('PITA-Report', 'PITA-Report.xsd');
+
+# While in development, use a version-specific namespace.
+# In theory, this ensures documents are only truly valid with the
+# version they were created with.
+use constant XMLNS => "http://ali.as/xml/schema/pita-xml/$VERSION";
 
 
 

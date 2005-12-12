@@ -21,14 +21,15 @@ can create objects, you can't actually run them yet.
 
 use strict;
 use base 'XML::SAX::Base';
-use Carp         ();
-use Params::Util ':ALL';
+use Carp           ();
+use Params::Util   ':ALL';
+use Class::Autouse 'XML::SAX::Writer';
+use PITA::Report   ();
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01_02';
 }
-
 
 
 
@@ -41,28 +42,319 @@ BEGIN {
 
 =head2 new
 
-  # Create a driver for a report
-  my $driver = PITA::Report::SAXDriver->new( $report );
+  # Create a SAX Driver to generate in-memory
+  $driver = PITA::Report::SAXDriver->new();
+  
+  # ... or to stream (write) to a file
+  $driver = PITA::Report::SAXDriver->new( Output => 'filename' );
+  
+  # ... or to send the events to a custom handler
+  $driver = PITA::Report::SAXDriver->new( Handler => $handler   );
 
-The C<new> constructor takes a L<PITA::Report> object and returns
-a new SAX Driver for it.
+The C<new> constructor creates a new SAX generator for PITA-XML files.
+
+It takes a named param of B<EITHER> an XML Handler object, or an
+C<Output> value that is compatible with L<XML::SAX::Writer>.
 
 Returns a C<PITA::Report::SAXDriver> object, or dies on error.
 
 =cut
 
 sub new {
-	my $class  = shift;
-	my $parent = _INSTANCE(shift, 'PITA::Report')
-		or Carp::croak("Did not provie a PITA::Report param");
+	my $class = shift;
 
-	# Create the basic parsing object
+	# Create the empty object
 	my $self = bless {
-		parent => $parent,
+		NamespaceURI => PITA::Report->XMLNS,
+		Prefix       => '',
+		@_,
 		}, $class;
+
+	# Add a default SAX Handler
+	unless ( $self->{Handler} ) {
+		# We are going to create a file writer to anything
+		# that it supports. So we will need an Output param.
+		unless ( $self->{Output} ) {
+			my $Output = '';
+			$self->{Output} = \$Output;
+		}
+
+		# Create the file writer
+		require XML::SAX::Writer;
+		$self->{Handler} = XML::SAX::Writer->new(
+			Output => $self->{Output},
+			) or Carp::croak("Failed to create XML Writer for Output");
+	}
+
+	# Check the namespace
+	unless ( defined $self->{NamespaceURI}
+               and ! ref $self->{NamespaceURI}
+              and length $self->{NamespaceURI}
+	) {
+		Carp::croak("Invalid NamespaceURI");
+	}
 
 	$self;
 }
+
+=pod
+
+=head2 NamespaceURI
+
+The C<NamespaceURI> returns the name of the XML namespace being used
+in the file generation.
+
+While PITA is still in development, this should be something like
+the following, where C<$VERSION> is the L<PITA::Report> version string.
+
+  http://ali.as/xml/schema/pita-xml/$VERSION
+
+=cut
+
+sub NamespaceURI {
+	$_[0]->{NamespaceURI};
+}
+
+=pod
+
+=head2 Prefix
+
+The C<Prefix> returns the name of the XML prefix being used for the output.
+
+=cut
+
+sub Prefix {
+	$_[0]->{Prefix};
+}
+
+=pod
+
+=head2 Handler
+
+The C<Handler> returns the SAX Handler object that the SAX events are being
+sent to. This will be or the SAX Handler object you originally passed
+in, or a L<XML::SAX::Writer> object pointing at your C<Output> value.
+
+=cut
+
+sub Handler {
+	$_[0]->{Handler};
+}
+
+=pod
+
+=head2 Output
+
+If you did not provide a custom SAX Handler, the C<Output> accessor
+returns the location you are writing the XML output to.
+
+If you did not provide a C<Handler> or C<Output> param to the constructor,
+then this returns a C<SCALAR> reference containing the XML as a string.
+
+=cut
+
+sub Output {
+	$_[0]->{Output};
+}
+
+
+
+
+
+#####################################################################
+# Main SAX Methods
+
+# Prevent use as a SAX Filter or SAX Parser
+# We only generate SAX events, we don't consume them.
+#sub start_document {
+#	my $class = ref $_[0] || $_[0];
+#	die "$class is not a SAX Filter or Driver, it cannot recieve events";
+#}
+
+sub parse {
+	my $self   = shift;
+	my $Report = _INSTANCE(shift, 'PITA::Report')
+		or Carp::croak("Did not provide a PITA::Report object");
+
+	# Attach the xmlns to the first tag
+	#$self->{xmlns} = $self->{NamespaceURI};
+
+	# Generate the SAX2 events
+	$self->SUPER::start_document( {} );
+	$self->_parse_report( $Report );
+	$self->SUPER::end_document( {} );
+
+	1;
+}
+
+# Generate events for the parent PITA::Report object
+sub _parse_report {
+	my ($self, $report) = @_;
+
+	# Send the open tag
+	my $element = $self->_element( 'report' );
+	$self->start_element( $element );
+
+	# Iterate over the individual installations
+	foreach my $install ( $report->installs ) {
+		$self->_parse_install( $install );
+	}
+
+	# Send the close tag
+	$self->end_element($element);
+}
+
+# Generate events for a single install
+sub _parse_install {
+	my ($self, $install) = @_;
+
+	# Send the open tag
+	my $element = $self->_element( 'install' );
+	$self->start_element( $element );
+
+	# Send the optional configuration tag
+	my $request = $install->request;
+	$self->_parse_request( $request ) if $request;
+
+	# Send the optional platform tag
+	my $platform = $install->platform;
+	$self->_parse_install( $platform ) if $platform;
+
+	# Add the command tags
+	foreach my $command ( $install->commands ) {
+		$self->_parse_command( $command );
+	}
+
+	# Add the optional analysis tag
+	my $analysis = $install->analysis;
+	$self->_parse_analysis( $analysis ) if $analysis;
+
+	# Send the close tag
+	$self->end_element( $element );
+}
+
+# Generate events for the request
+sub _parse_request {
+	die "CODE INCOMPLETE";
+}
+
+# Generate events for the platform configuration
+sub _parse_platform {
+	my ($self, $platform) = @_;
+
+	# Send the open tag
+	my $element = $self->_element( 'platform' );
+	$self->start_element( $element );
+
+	# Send the binary path
+	if ( $platform->bin ) {
+		my $el = $self->_element( 'bin' );
+		$self->start_element( $el );
+		$self->characters( $platform->bin );
+		$self->end_element( $el );
+	}
+
+	# Send each of the config variables
+	my $config = $platform->config;
+	foreach my $name ( sort keys %$config ) {
+		my $el = $self->_element( 'config', { name => $name } );
+		$self->start_element( $el );
+		defined($config->{$name})
+			? $self->characters( $config->{$name} )
+			: $self->_undef;
+		$self->end_element( $el );
+	}
+
+	# Send each of the environment variables
+	my $env = $platform->env;
+	foreach my $name ( sort keys %$env ) {
+		my $el = $self->_element( 'env', { name => $name } );
+		$self->start_element( $el );
+		defined($env->{$name})
+			? $self->characters( $env->{$name} )
+			: $self->_undef;
+		$self->end_element( $el );
+	}
+
+	# Send the close tag
+	$self->end_element( $element );
+}
+
+sub _parse_command {
+	die "CODE INCOMPLETE";
+}
+
+sub _parse_analysis {
+	die "CODE INCOMPLETE";
+}
+
+# Specifically send an undef tag pair
+sub _undef {
+	my $self = shift;
+	my $el   = $self->_element('null');
+	$self->start_element( $el );
+	$self->end_element( $el );
+}
+
+
+
+
+#####################################################################
+# Support Methods
+
+# Strip out the Attributes for the end element
+sub end_element {
+	delete $_[1]->{Attributes};
+	shift->SUPER::end_element(@_);
+}
+
+sub _element {
+	my $self       = shift;
+	my $LocalName  = shift;
+	my $attrs      = _HASH(shift) || {};
+
+	# Localise some variables for speed
+	my $NamespaceURI = $self->{NamespaceURI};
+	my $Prefix       = $self->{Prefix}
+		? "$self->{Prefix}:"
+		: '';
+
+	# Convert the attributes to the full version
+	my %Attributes = ();
+	foreach my $key ( keys %$attrs ) {
+		#$Attributes{"{$NamespaceURI}$key"} = {
+		$Attributes{$key} = {
+			Name         => $Prefix . $key,
+			#NamespaceURI => $NamespaceURI,
+			#Prefix       => $Prefix,
+			#LocalName    => $key,
+			Value        => $attrs->{$key},
+			};
+	}
+
+	# Complete the main element
+	return {
+		Name         => $Prefix . $LocalName,
+		#NamespaceURI => $NamespaceURI,
+		#Prefix       => $Prefix,
+		#LocalName    => $LocalName,
+		Attributes   => \%Attributes,
+		};
+}
+
+# Auto-preparation of the text
+sub characters {
+	my $self = shift;
+	_HASH($_[0])
+		? $self->SUPER::characters(shift)
+		: $self->SUPER::characters( {
+			Data => $self->_escape(shift),
+			} );
+}
+
+### Not sure if we escape here.
+### Just pass through for now.
+sub _escape { $_[1] }
 
 1;
 
