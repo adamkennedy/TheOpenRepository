@@ -113,12 +113,12 @@ SCOPE: {
 	my $platform_string = <<"END_XML";
 <platform>
 <bin>BIN</bin>
-<config name='bar'><null /></config>
-<config name='baz' />
-<config name='foo'>FOO</config>
 <env name='bar' />
 <env name='baz'><null /></env>
 <env name='foo'>FOO</env>
+<config name='bar'><null /></config>
+<config name='baz' />
+<config name='foo'>FOO</config>
 </platform>
 END_XML
 	$platform_string =~ s/\n//g;

@@ -254,17 +254,6 @@ sub _parse_platform {
 		$self->end_element( $el );
 	}
 
-	# Send each of the config variables
-	my $config = $platform->config;
-	foreach my $name ( sort keys %$config ) {
-		my $el = $self->_element( 'config', { name => $name } );
-		$self->start_element( $el );
-		defined($config->{$name})
-			? $self->characters( $config->{$name} )
-			: $self->_undef;
-		$self->end_element( $el );
-	}
-
 	# Send each of the environment variables
 	my $env = $platform->env;
 	foreach my $name ( sort keys %$env ) {
@@ -272,6 +261,17 @@ sub _parse_platform {
 		$self->start_element( $el );
 		defined($env->{$name})
 			? $self->characters( $env->{$name} )
+			: $self->_undef;
+		$self->end_element( $el );
+	}
+
+	# Send each of the config variables
+	my $config = $platform->config;
+	foreach my $name ( sort keys %$config ) {
+		my $el = $self->_element( 'config', { name => $name } );
+		$self->start_element( $el );
+		defined($config->{$name})
+			? $self->characters( $config->{$name} )
 			: $self->_undef;
 		$self->end_element( $el );
 	}
