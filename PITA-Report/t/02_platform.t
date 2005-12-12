@@ -16,13 +16,36 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 3;
+use Test::More tests => 6;
+use Config       ();
 use PITA::Report ();
+
+# Extra testing functions
+sub dies {
+	my $code = shift;
+	eval { &$code() };
+	ok( $@, $_[0] || 'Code dies as expected' );
+}
+
+
+
+
+
+#####################################################################
+# Testing a sample of the functionality
 
 # The easiest test to do is to get the current platform
 my $current = PITA::Report::Platform->current;
-isa_ok( $current, 'PITA::Report::Platform' );
-is( $current->osname,   $^O, '->osname matches expected'   );
-is( $current->perlpath, $^X, '->perlpath matches expected' );
+isa_ok(    $current, 'PITA::Report::Platform' );
+is(        $current->bin, $^X,   '->bin matches expected'   );
+is_deeply( $current->env, \%ENV, '->env matches expected' );
+is_deeply( $current->config, \%Config::Config, '->config matches expected' );
+
+# Creating with bad params dies
+dies( sub { PITA::Report::Platform->new }, '->new dies as expected' );
+dies( sub { PITA::Report::Platform->new(
+	bin => 'foo',
+	) }, '->new(bin) dies as expected' );
 
 exit(0);
+

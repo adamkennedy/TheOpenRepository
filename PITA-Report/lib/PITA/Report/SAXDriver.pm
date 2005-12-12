@@ -26,7 +26,7 @@ use Params::Util ':ALL';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_01';
+	$VERSION = '0.01_02';
 }
 
 

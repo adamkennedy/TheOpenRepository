@@ -10,11 +10,9 @@ PITA::Report::Platform - Data object representing a platform configuration
 
   # Create a platform configuration
   my $platform = PITA::Report::Platform->new(
-  	# Mandatory fields
-  	perlv    => join('', `perl -V`),
-  	# Optional fields
-  	osname   => '...',
-  	archname => '...',
+  	bin    => '/usr/bin/perl',
+  	env    => \%ENV,
+  	config => \%Config::Config,
   	);
   
   # Get the current platform configuration
@@ -23,24 +21,28 @@ PITA::Report::Platform - Data object representing a platform configuration
 =head1 DESCRIPTION
 
 C<PITA::Report::Platform> is an object for holding information about
-the platform that a package is being tested on.distribution to be tested.
+the platform that a package is being tested on
 
 It can be created either as part of the parsing of a L<PITA::Report> XML
-file, or if you wish you cn create one from the local system configuration.
+file, or if you wish you can create one from the local system configuration.
 
-It holds the contents of the very verbose 'perl -V', plus the name of the
-operating system and architecture (for convenience).
+Primarily it just holds information about the host's environment and the
+Perl configuration.
 
 =head1 METHODS
+
+As the functionality for L<PITA::Report> is still in flux, the methods
+will be documented once we stop changing them daily :)
 
 =cut
 
 use strict;
-use Carp ();
+use Carp         ();
+use Params::Util '_HASH';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_01';
+	$VERSION = '0.01_02';
 }
 
 
@@ -65,20 +67,15 @@ sub new {
 sub current {
 	my $class = shift;
 
-	# Get the perl -V output
-	my $perlpath = $^X;
-	my $perlv    = join('', `$^X -V`);
-	my $osname   = $perlv =~ /\bosname=(.+?),/ ? $1
-		: die "Failed to locate osname in perl -V output";
-	my $archname = $perlv =~ /\barchname=(.+?)\s/ ? $1
-		: die "Failed to locate archname in perl -V output";
-
+	# Source the information
+	my $bin = $^X;
+	require Config;
+	
 	# Hand off to the main constructor
 	$class->new(
-		perlpath => $perlpath,
-		perlv    => $perlv,
-		osname   => $osname,
-		archname => $archname,
+		bin    => $bin,
+		env    => { %ENV },            # Take a copy
+		config => { %Config::Config }, # Take a copy
 		);
 }
 
@@ -86,64 +83,34 @@ sub current {
 sub _init {
 	my $self = shift;
 
-	# Check the osname
-	if ( $self->{osname} ) {
-		my $osname = $self->{osname};
-		unless (
-			defined $osname and ! ref $osname
-			and
-			length $osname
-		) {
-			Carp::croak('Invalid osname');
-		}	
-	} else {
-		$self->{osname} = '';
-	}
-
-	# Check the archname
-	if ( $self->{archname} ) {
-		my $archname = $self->{archname};
-		unless (
-			defined $archname and ! ref $archname
-			and
-			length $archname
-		) {
-			Carp::croak('Invalid archname');
-		}	
-	} else {
-		$self->{archname} = '';
-	}
-
-	# Check the perlv
-	my $perlv = $self->{perlv};
+	# Check the binary we used
+	my $bin = $self->{bin};
 	unless (
-		defined $perlv and ! ref $perlv
+		defined $bin and ! ref $bin
 		and
-		$perlv =~ /^Summary of my perl/
-		and
-		$perlv =~ /\@INC/,
+		length $bin
 	) {
-		Carp::croak('Invalid Perl -V output');
+		Carp::croak('Invalid binary path');
+	}
+
+	# Check we have an environment
+	unless ( _HASH($self->{env}) ) {
+		Carp::croak('Missing or empty environment');
+	}
+
+	# Check we have a config
+	unless ( _HASH($self->{config}) ) {
+		Carp::croak('Missing or empty config');
 	}
 
 	1;
 }
 
-sub perlv {
-	$_[0]->{perlv};
-}
+sub bin { $_[0]->{bin} }
 
-sub archname {
-	$_[0]->{archname};
-}
+sub env { $_[0]->{env} }
 
-sub osname {
-	$_[0]->{osname};
-}
-
-sub perlpath {
-	$_[0]->{perlpath};
-}
+sub config { $_[0]->{config} }
 
 1;
 

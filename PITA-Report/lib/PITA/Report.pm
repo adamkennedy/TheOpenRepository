@@ -4,7 +4,7 @@ package PITA::Report;
 
 =head1 NAME
 
-PITA::Report - Create, load, save and manipulate XML PITA reports
+PITA::Report - Create, load, save and manipulate PITA-XML reports
 
 =head1 STATUS
 
@@ -22,7 +22,7 @@ B<Please note the .xsd schema file may not install correctly as yet.>
 
 =head1 DESCRIPTION
 
-The Perl Image-based Testing Architecture (PITA) is designed to provide a
+The Perl Image Testing Architecture (PITA) is designed to provide a
 highly modular and flexible set of components for doing testing of Perl
 distributions.
 
@@ -47,11 +47,13 @@ the report files themselves.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp                       ();
 use Params::Util               ':ALL';
 use IO::File                   ();
 use File::Flock                ();
+use File::ShareDir             ();
 use XML::SAX::ParserFactory    ();
 use XML::Validator::Schema     ();
 use PITA::Report::Platform     ();
@@ -62,15 +64,11 @@ use PITA::Report::SAXDriver    ();
 
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
-	$VERSION = '0.01_01';
+	$VERSION = '0.01_02';
 }
 
 # Locate the Schema at use-time (instead of compile-time)
-$SCHEMA = $INC{'PITA/Report.pm'};
-$SCHEMA =~ s/pm$/xsd/;
-unless ( -f $SCHEMA and -r _ ) {
-	Carp::croak("Cannot locate XML Schema. PITA::Report load failed");
-}
+$SCHEMA = File::ShareDir::dist_file('PITA-Report', 'PITA-Report.xsd');
 
 
 
