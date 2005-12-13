@@ -184,7 +184,7 @@ sub parse {
 	$self->_parse_report( $Report );
 	$self->SUPER::end_document( {} );
 
-	1;
+	return 1;
 }
 
 # Generate events for the parent PITA::Report object
@@ -202,6 +202,8 @@ sub _parse_report {
 
 	# Send the close tag
 	$self->end_element($element);
+
+	return 1;
 }
 
 # Generate events for a single install
@@ -231,11 +233,36 @@ sub _parse_install {
 
 	# Send the close tag
 	$self->end_element( $element );
+
+	return 1;
 }
 
 # Generate events for the request
 sub _parse_request {
-	die "CODE INCOMPLETE";
+	my ($self, $request) = @_;
+
+	# Send the open tag
+	my $element = $self->_element( 'request' );
+	$self->start_element( $element );
+
+	# Send the main accessors
+	$self->_accessor_element( $request, 'scheme'   );
+	$self->_accessor_element( $request, 'distname' );
+	$self->_accessor_element( $request, 'filename' );
+	$self->_accessor_element( $request, 'md5sum'   );
+
+	# Send the optional authority information
+	if ( $request->authority ) {
+		$self->_accessor_element( $request, 'authority' );
+		if ( $request->authpath ) {
+			$self->_accessor_element( $request, 'authpath' );
+		}
+	}
+
+	# Send the close tag
+	$self->end_element( $element );
+
+	return 1;
 }
 
 # Generate events for the platform configuration
@@ -278,6 +305,8 @@ sub _parse_platform {
 
 	# Send the close tag
 	$self->end_element( $element );
+
+	return 1;
 }
 
 sub _parse_command {
@@ -340,6 +369,18 @@ sub _element {
 		#LocalName    => $LocalName,
 		Attributes   => \%Attributes,
 		};
+}
+
+# Send a matching tag for a known object accessor
+sub _accessor_element {
+	my ($self, $object, $method) = @_;
+	my $value = $object->$method();
+
+	# Generate the element and send it
+	my $el = $self->_element( $method );
+	$self->start_element( $el );
+	$self->characters( $value );
+	$self->end_element( $el );	
 }
 
 # Auto-preparation of the text

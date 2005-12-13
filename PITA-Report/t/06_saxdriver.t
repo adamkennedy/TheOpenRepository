@@ -16,7 +16,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 use Config                  ();
 use PITA::Report            ();
 use PITA::Report::SAXDriver ();
@@ -122,5 +122,40 @@ SCOPE: {
 </platform>
 END_XML
 	$platform_string =~ s/\n//g;
-	driver_is( $driver, $platform_string, '->_platform works as expected' );	
+	driver_is( $driver, $platform_string, '->_parse_platform works as expected' );	
 }
+
+
+
+
+SCOPE: {
+	my $driver = driver_new();
+	$driver->start_document( {} );
+
+	# Create a test request
+	my $request = PITA::Report::Request->new(
+		scheme    => 'perl5',
+		distname  => 'Foo-Bar',
+		filename  => 'Foo-Bar-0.01.tar.gz',
+		md5sum    => '5cf0529234bac9935fc74f9579cc5be8',
+		authority => 'cpan',
+		authpath  => '/id/authors/A/AD/ADAMK/Foo-Bar-0.01.tar.gz',
+		);
+	isa_ok( $request, 'PITA::Report::Request' );
+	$driver->_parse_request( $request );
+
+	$driver->end_document( {} );	
+	my $request_string = <<"END_XML";
+<request>
+<scheme>perl5</scheme>
+<distname>Foo-Bar</distname>
+<filename>Foo-Bar-0.01.tar.gz</filename>
+<md5sum>5cf0529234bac9935fc74f9579cc5be8</md5sum>
+<authority>cpan</authority>
+<authpath>/id/authors/A/AD/ADAMK/Foo-Bar-0.01.tar.gz</authpath>
+</request>
+END_XML
+	$request_string =~ s/\n//g;
+	driver_is( $driver, $request_string, '->_parse_request works as expected' );	
+}
+	

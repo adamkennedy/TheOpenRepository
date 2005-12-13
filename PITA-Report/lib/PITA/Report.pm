@@ -49,18 +49,18 @@ the report files themselves.
 
 use 5.005;
 use strict;
-use Carp                       ();
-use Params::Util               ':ALL';
-use IO::File                   ();
-use File::Flock                ();
-use File::ShareDir             ();
-use XML::SAX::ParserFactory    ();
-use XML::Validator::Schema     ();
-use PITA::Report::Platform     ();
-use PITA::Report::Distribution ();
-use PITA::Report::Install      ();
-use PITA::Report::SAXParser    ();
-use PITA::Report::SAXDriver    ();
+use Carp                    ();
+use Params::Util            ':ALL';
+use IO::File                ();
+use File::Flock             ();
+use File::ShareDir          ();
+use XML::SAX::ParserFactory ();
+use XML::Validator::Schema  ();
+use PITA::Report::Install   ();
+use PITA::Report::Request   ();
+use PITA::Report::Platform  ();
+use PITA::Report::SAXParser ();
+use PITA::Report::SAXDriver ();
 
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
