@@ -75,8 +75,7 @@ sub new {
 sub _init {
 	my $self = shift;
 
-	# Arbitrarily apply the normal standard for distributions
-	### Might need to change this down the line
+	# Check the scheme
 	my $scheme = $self->{scheme};
 	unless ( 
 		defined $scheme and ! ref $scheme
@@ -273,7 +272,6 @@ sub authpath {
 }
 
 1;
-
 
 =pod
 

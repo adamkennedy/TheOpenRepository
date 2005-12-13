@@ -59,6 +59,7 @@ use XML::Validator::Schema  ();
 use PITA::Report::Install   ();
 use PITA::Report::Request   ();
 use PITA::Report::Platform  ();
+use PITA::Report::Command   ();
 use PITA::Report::SAXParser ();
 use PITA::Report::SAXDriver ();
 

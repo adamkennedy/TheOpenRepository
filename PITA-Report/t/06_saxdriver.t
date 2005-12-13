@@ -16,7 +16,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 14;
+use Test::More tests => 17;
 use Config                  ();
 use PITA::Report            ();
 use PITA::Report::SAXDriver ();
@@ -158,4 +158,91 @@ END_XML
 	$request_string =~ s/\n//g;
 	driver_is( $driver, $request_string, '->_parse_request works as expected' );	
 }
-	
+
+
+
+
+SCOPE: {
+	my $driver = driver_new();
+	$driver->start_document( {} );
+
+	# Create a test request
+	my $stdout = <<'END_STDOUT';
+include /home/adam/cpan2/trunk/PITA-Report/inc/Module/Install.pm
+include inc/Module/Install/Metadata.pm
+include inc/Module/Install/Base.pm
+include inc/Module/Install/Share.pm
+include inc/Module/Install/Makefile.pm
+include inc/Module/Install/AutoInstall.pm
+include inc/Module/Install/Include.pm
+include inc/Module/AutoInstall.pm
+*** Module::AutoInstall version 1.00
+*** Checking for dependencies...
+[Core Features]
+- File::Spec              ...loaded. (3.11 >= 0.80)
+- Test::More              ...loaded. (0.62 >= 0.47)
+- Module::Install::Share  ...loaded. (0.01)
+- Carp                    ...loaded. (1.02)
+- IO::Handle              ...loaded. (1.25)
+- IO::File                ...loaded. (1.13)
+- IO::Seekable            ...loaded. (1.1)
+- File::Flock             ...loaded. (104.111901 >= 101.060501)
+- Params::Util            ...loaded. (0.07 >= 0.07)
+- File::ShareDir          ...loaded. (0.02 >= 0.02)
+- XML::SAX::ParserFactory ...loaded. (1.01 >= 0.13)
+- XML::Validator::Schema  ...loaded. (1.08 >= 1.08)
+*** Module::AutoInstall configuration finished.
+include inc/Module/Install/WriteAll.pm
+Writing META.yml
+include inc/Module/Install/Win32.pm
+include inc/Module/Install/Can.pm
+include inc/Module/Install/Fetch.pm
+Writing Makefile for PITA::Report
+END_STDOUT
+
+	# Create the command object
+	my $command = PITA::Report::Command->new(
+		cmd       => 'perl Makefile.PL',
+		stdout    => \$stdout,
+		stderr    => \"",
+		);
+	isa_ok( $command, 'PITA::Report::Command' );
+	$driver->_parse_command( $command );
+
+	$driver->end_document( {} );	
+	my $command_string = <<"END_XML";
+<command><cmd>perl Makefile.PL</cmd><stdout>include /home/adam/cpan2/trunk/PITA-Report/inc/Module/Install.pm
+include inc/Module/Install/Metadata.pm
+include inc/Module/Install/Base.pm
+include inc/Module/Install/Share.pm
+include inc/Module/Install/Makefile.pm
+include inc/Module/Install/AutoInstall.pm
+include inc/Module/Install/Include.pm
+include inc/Module/AutoInstall.pm
+*** Module::AutoInstall version 1.00
+*** Checking for dependencies...
+[Core Features]
+- File::Spec              ...loaded. (3.11 &gt;= 0.80)
+- Test::More              ...loaded. (0.62 &gt;= 0.47)
+- Module::Install::Share  ...loaded. (0.01)
+- Carp                    ...loaded. (1.02)
+- IO::Handle              ...loaded. (1.25)
+- IO::File                ...loaded. (1.13)
+- IO::Seekable            ...loaded. (1.1)
+- File::Flock             ...loaded. (104.111901 &gt;= 101.060501)
+- Params::Util            ...loaded. (0.07 &gt;= 0.07)
+- File::ShareDir          ...loaded. (0.02 &gt;= 0.02)
+- XML::SAX::ParserFactory ...loaded. (1.01 &gt;= 0.13)
+- XML::Validator::Schema  ...loaded. (1.08 &gt;= 1.08)
+*** Module::AutoInstall configuration finished.
+include inc/Module/Install/WriteAll.pm
+Writing META.yml
+include inc/Module/Install/Win32.pm
+include inc/Module/Install/Can.pm
+include inc/Module/Install/Fetch.pm
+Writing Makefile for PITA::Report
+</stdout><stderr /></command>
+END_XML
+	chomp $command_string;
+	driver_is( $driver, $command_string, '->_parse_command works as expected' );	
+}

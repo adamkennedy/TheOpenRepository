@@ -310,7 +310,21 @@ sub _parse_platform {
 }
 
 sub _parse_command {
-	die "CODE INCOMPLETE";
+	my ($self, $command) = @_;
+
+	# Send the open tag
+	my $element = $self->_element( 'command' );
+	$self->start_element( $element );
+
+	# Send the accessors
+	$self->_accessor_element( $command, 'cmd'    );
+	$self->_accessor_element( $command, 'stdout' );
+	$self->_accessor_element( $command, 'stderr' );
+
+	# Send the close tag
+	$self->end_element( $element );
+
+	return 1;
 }
 
 sub _parse_analysis {
@@ -386,11 +400,24 @@ sub _accessor_element {
 # Auto-preparation of the text
 sub characters {
 	my $self = shift;
-	_HASH($_[0])
-		? $self->SUPER::characters(shift)
-		: $self->SUPER::characters( {
-			Data => $self->_escape(shift),
+
+	# A { Data => '...' } string
+	if ( _HASH($_[0]) ) {
+		return $self->SUPER::characters(shift);
+	}
+
+	# A normal string, by reference
+	if ( _SCALAR0($_[0]) ) {
+		my $scalar_ref = shift;
+		return $self->SUPER::characters( {
+			Data => $$scalar_ref,
 			} );
+	}
+
+	# Must be a normal string
+	$self->SUPER::characters( {
+		Data => shift,
+		} );
 }
 
 ### Not sure if we escape here.

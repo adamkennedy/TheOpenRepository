@@ -16,7 +16,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 ok( $] > 5.004, 'Perl version is 5.004 or newer' );
 
@@ -27,6 +27,8 @@ is( $PITA::Report::VERSION, $PITA::Report::Request::VERSION,
 	'$VERSION matches for ::Request' );
 is( $PITA::Report::VERSION, $PITA::Report::Platform::VERSION,
 	'$VERSION matches for ::Platform' );
+is( $PITA::Report::VERSION, $PITA::Report::Command::VERSION,
+	'$VERSION matches for ::Command' );
 is( $PITA::Report::VERSION, $PITA::Report::SAXParser::VERSION,
 	'$VERSION matches for ::SAXParser' );
 is( $PITA::Report::VERSION, $PITA::Report::SAXDriver::VERSION,
