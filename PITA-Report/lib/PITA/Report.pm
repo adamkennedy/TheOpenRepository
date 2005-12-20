@@ -18,7 +18,7 @@ B<Please note the .xsd schema file may not install correctly as yet.>
   my $report = PITA::Report->new;
   
   # Load an existing report
-  my $report = PITA::Report->new( 'filename.pita' );
+  my $report = PITA::Report->new('filename.pita');
 
 =head1 DESCRIPTION
 

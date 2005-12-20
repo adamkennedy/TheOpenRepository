@@ -61,7 +61,7 @@ use File::Path       'mkpath';
 use File::Remove     'remove';
 use List::Util       ();
 use IO::File         ();
-use IO::Zlib         (); # Will be needed by Archive::Tar
+use IO::Zlib         (); # Needed by Archive::Tar
 use Archive::Tar     ();
 use Params::Util     '_INSTANCE',
                      '_ARRAY0';
