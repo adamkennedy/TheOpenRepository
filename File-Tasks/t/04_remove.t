@@ -6,7 +6,7 @@ use strict;
 use File::Spec::Functions ':ALL';
 
 # Execute the tests
-use Test::More 'tests' => 5;
+use Test::More 'tests' => 11;
 use File::Find::Rule ();
 use File::Tasks      ();
 use constant FFR => 'File::Find::Rule';
@@ -53,8 +53,9 @@ my $Ignore = FFR->or(
 	FFR->file->name('one.*'),
 	);
 isa_ok( $Ignore, FFR );
-my $Script = File::Tasks->new( Ignore => $Ignore );
+my $Script = File::Tasks->new( ignore => $Ignore );
 isa_ok( $Script, 'File::Tasks' );
+isa_ok( $Script->ignore, 'File::Find::Rule' );
 is( $Script->remove_dir( $delete_dir, $Rule ), 2,
 	'->delete_dir returns the correct number of files for remove' );
 is( scalar($Script->paths), 2, 'Correct number of Tasks added' );
@@ -71,7 +72,6 @@ isa_ok( $Ignore, FFR );
 sub invert_ffr {
 	my $ffr = shift;
 	return FFR->or(
-		
 		$ffr->prune->discard,
 		FFR->new,
 		);

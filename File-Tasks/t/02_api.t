@@ -8,7 +8,7 @@ use strict;
 use File::Tasks;
 
 # Execute the tests
-use Test::More 'tests' => 57;
+use Test::More tests => 58;
 use Test::ClassAPI;
 
 # Execute the tests
@@ -23,6 +23,7 @@ File::Tasks::Task=abstract
 [File::Tasks]
 new=method
 provider=method
+ignore=method
 task=method
 tasks=method
 paths=method

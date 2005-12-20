@@ -23,15 +23,14 @@ BEGIN {
 
 
 
-
 #####################################################################
 # Constructor and Accessors
 
 sub new {
 	my $class  = ref $_[0] ? ref shift : shift;
-	my %params = (ref $_[0] eq 'HASH') ? %{shift()} : @);
+	my %params = (ref $_[0] eq 'HASH') ? %{shift()} : @_;
 
-s	# Create the basic object
+	# Create the basic object
 	my $self = bless {
 		provider => 'File::Tasks::Provider',
 		tasks    => {},
@@ -44,7 +43,7 @@ s	# Create the basic object
 	}
 
 	# Set the auto-ignore
-	if ( _INSTANCE($params{ignore}, FFR ) {
+	if ( _INSTANCE($params{ignore}, FFR) ) {
 		$self->{ignore} = $params{ignore}->prune->discard;
 	}
 
@@ -52,6 +51,8 @@ s	# Create the basic object
 }
 
 sub provider { $_[0]->{provider} }
+
+sub ignore { $_[0]->{ignore} }
 
 # We need to do this ourself, as sort in scalar context returns undef
 sub paths {
@@ -98,9 +99,11 @@ sub remove_dir {
 	$Rule = FFR->or( $self->{ignore} || (), $Rule )->relative->file;
 
 	# Execute the file and add all resulting files as Remove entries
-	foreach my $file ( $Rule->in($dir) ) {
+	my @files = $Rule->in($dir);
+	foreach my $file ( @files ) {
 		$self->remove( $file ) or return undef;
 	}
+
 	scalar @files;
 }
 
@@ -296,6 +299,11 @@ Returns a new C<File::Tasks> object.
 =head2 provider
 
 Returns the Provider object for the File::Tasks
+
+=head2 ignore
+
+Returns the original C<File::Find::Rule> for the files to be ignore
+provided to the constructor.
 
 =head2 paths
 
