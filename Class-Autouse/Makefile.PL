@@ -10,7 +10,7 @@ build_requires 'Test::More' => '0.47';
 
 # Out test directories contain valid looking modules.
 # Make sure they don't get indexed.
-no_index directory => 'modules';
+no_index       directory => 't';
 
 auto_install;
 
