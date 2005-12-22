@@ -67,7 +67,6 @@ access the array directly if you wish, or use the methods provided.
 
 use 5.005;
 use strict;
-use Email::Send (); # Is this needed?
 
 use vars qw{$VERSION};
 BEGIN {
@@ -102,7 +101,8 @@ Always returns true.
 =cut
 
 sub send {
-	push @EMAILS, shift;
+	my $class = shift;
+	push @EMAILS, @_;
 	return 1;
 }
 
