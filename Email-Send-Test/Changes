@@ -1,0 +1,18 @@
+Revision history for Perl extension Email::Send::Test
+
+2.00 Thu Dec 22 2005
+	 - Moved from CVS to SVN repository
+	 - Updated to match Email::Send 2.00
+	 - Removed direct access to the @emails array
+	 - Cleaned up the documentation a bit.
+	   (Reversed recommendation to say ->clear BEFORE testing)
+	   (Removed massive overuse of the word "simply")
+	 - Changed tests to test using new prefered use of Email::Send
+	 - Clearer synopsis and examples now.
+	 - Updated Makefile.PL for Module::Install 0.45 use
+
+0.02 Tue Feb 15 2005
+	- Removing braindead pass-through Build.PL file
+
+0.01 Tue Oct  5 2004
+	- Created the initial implementation
