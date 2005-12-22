@@ -2,16 +2,16 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
+	if ( $ENV{HARNESS_ACTIVE} ) {
+		lib->import( catdir( curdir(), 't', 'modules' ) );
+	} else {
 		require FindBin;
 		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
+		lib->import( 'modules' );
 	}
-	lib->import( catdir( curdir(), 'modules' ) );
 }
 
 use Test::More tests => 2;
