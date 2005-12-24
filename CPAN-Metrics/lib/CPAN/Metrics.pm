@@ -144,7 +144,7 @@ sub run {
 	my $self = shift;
 
 	# Do the superclass functionality
-	$self->SUPER::run( @_ );
+	my $changes = $self->SUPER::run( @_ );
 
 	# Process the extraction directory
 	local $Perl::Metrics::TRACE = 1;

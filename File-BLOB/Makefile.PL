@@ -4,6 +4,7 @@ name           ( 'File-BLOB'                       );
 abstract       ( "A file (with name, and other metadata) you can BLOBify" );
 author         ( 'Adam Kennedy <adam@phase-n.com>' );
 version_from   ( 'lib/File/BLOB.pm'                );
+license        ( 'perl'                            );
 requires       ( 'perl'                 => '5.005' );
 requires       ( 'bytes'                => 0       );
 requires       ( 'Carp'                 => 0       );

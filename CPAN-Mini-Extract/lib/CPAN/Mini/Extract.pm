@@ -19,7 +19,7 @@ CPAN::Mini::Extract - Create CPAN::Mini mirrors with the archives extracted
       );
   
   # Run the minicpan process
-  $cpan->run;
+  my $changes = $cpan->run;
 
 =head1 DESCRIPTION
 
@@ -70,7 +70,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 }
 
 
@@ -204,6 +204,9 @@ The C<run> methods starts the main process, updating the minicpan mirror
 and extracted version, and then launching the PPI Processor to process the
 files in the source directory.
 
+Returns the number of changes made to the local minicpan and extracted
+directories, or dies on error.
+
 =cut
 
 sub run {
@@ -251,7 +254,7 @@ sub run {
 	}
 
 	$self->trace("Completed minicpan extraction\n");
-	return 1;
+	$changes;
 }
 
 
@@ -506,7 +509,7 @@ For other issues, contact the maintainer
 
 =head1 AUTHOR
 
-Adam Kennedy E<gt>cpan@ali.asE<lt>, L<http://ali.as/>, 
+Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>, 
 
 Funding provided by The Perl Foundation
 
