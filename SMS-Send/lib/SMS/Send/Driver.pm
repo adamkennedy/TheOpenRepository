@@ -22,7 +22,7 @@ Please note that if your driver class not B<not> return true for
 C<$driver->isa('SMS::Send::Driver')> then the L<SMS::Send> constructor
 will refuse to use your class as a driver.
 
-=head1 
+=head1 METHODS
 
 =cut
 
@@ -34,10 +34,40 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
+=pod
+
+=head2 new
+
+The C<new> constructor is required to be implemented by your driver subclass.
+
+It recieves a set of arbitrary paired params. The values of these params are
+assumed to be driver-specific (this is expected to change).
+
+If your driver will need to login to some system, locate hardware, or
+do some other form of initialisation to validate the SMS delivery mechanism
+exists, it should do so in C<new>.
+
+Should return a new L<SMS::Send::Driver>-subclass object, or die on error.
+
+=cut
+
 sub new {
 	my $class = shift;
 	Carp::croak("Driver Error: $class does not implement the 'new' constructor");
 }
+
+=pod
+
+=head2 send_sms
+
+The C<send_sms> method is required to be implemented by your driver subclass.
+
+It recieves a set of param pairs as documented in L<SMS::Send>.
+
+Should return true for either success or fire-and-forget with unknown result,
+defined-but-false ('' or 0) for a failed message send, or die on a fatal error.
+
+=cut
 
 sub send_sms {
 	my $class = ref($_[0]) || $_[0];
