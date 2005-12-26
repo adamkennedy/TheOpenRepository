@@ -15,7 +15,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 4;
+use Test::More tests => 23;
 use SMS::Send;
 use Params::Util '_INSTANCE';
 
@@ -75,11 +75,28 @@ dies_like( sub { SMS::Send->new("Does::Not::Exist") }, $RE_NOEXIST );
 dies_like( sub { SMS::Send->new("FOOOOOOO") },         $RE_NOEXIST );
 
 SCOPE: {
-	local @INC = ( 't/modules', @INC );
+	local @INC = ( catdir('t', 'lib'), @INC );
 	dies_like( sub { SMS::Send->new('BAD1') },
-		qr/^Driver Error:/ );
-	dies_like( sub { SMS::Send->new('BAD2') },
 		qr/A SPECIFIC ERROR/ );
+
+	my $RE_NOTDRIVER = qr/is not a subclass of SMS::Send::Driver/;
+	dies_like( sub { SMS::Send->new('BAD2') },   $RE_NOTDRIVER );
+	dies_like( sub { SMS::Send->new('Driver') }, $RE_NOTDRIVER );
+
+	# Check when the driver dies
+	dies_like(
+		sub { SMS::Send->new('BAD3') },
+		qr/new dies as expected/,
+	);
+	dies_like(
+		sub { SMS::Send->new('BAD4') },
+		qr/^Driver Error:/,
+	);
+	dies_like(
+		sub { SMS::Send->new('BAD4') },
+		qr/does not implement the 'new' constructor/,
+	);
 }
+
 
 exit(0);

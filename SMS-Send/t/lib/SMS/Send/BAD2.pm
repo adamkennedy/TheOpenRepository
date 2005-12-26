@@ -7,6 +7,6 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
-die "Dying with A SPECIFIC ERROR";
+sub new { bless {}, shift }
 
 1;
