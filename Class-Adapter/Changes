@@ -1,0 +1,18 @@
+Revision history for Perl extension Class::Adapter
+
+1.00 Mon Dec 26 2005
+	- Added the AUTOLOAD => 'PUBLIC' options
+	- Implemented it and added comprehensive AUTOLOAD testing
+	- Fixed a number of other bugs, and cleaned up the docs a bit
+	- Set to 1.00 as I consider it ready for production use.
+
+0.02 Sat Apr 16 2005
+	- Research Decorator more, realised this actually implements
+	  the Adapter pattern.
+	- Renamed to from Decorator to Class::Adapter
+	- Changed __OBJECT to _OBJECT_
+	- Added Class::Adapter::Clear
+	- Added first attempt at Class::Adapter::Builder attempt
+
+0.01 Fri Apr 15 2005
+	- original version
