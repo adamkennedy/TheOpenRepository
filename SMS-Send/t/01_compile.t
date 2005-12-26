@@ -19,9 +19,9 @@ use Test::More tests => 5;
 
 ok( $] > 5.005, 'Perl version is 5.005 or newer' );
 
-use_ok( 'Send::SMS'           );
-use_ok( 'Send::SMS::Driver'   );
-use_ok( 'Send::SMS::Test'     );
-use_ok( 'Send::SMS::AU::Test' );
+use_ok( 'SMS::Send'           );
+use_ok( 'SMS::Send::Driver'   );
+use_ok( 'SMS::Send::Test'     );
+use_ok( 'SMS::Send::AU::Test' );
 
 exit(0);

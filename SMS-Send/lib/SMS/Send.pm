@@ -31,7 +31,12 @@ sent (although some drivers may not be able to provide certainty).
 =cut
 
 use strict;
+use Carp              ();
 use SMS::Send::Driver ();
+
+# Set up the Adapter functionality
+use Class::Adapter::Builder
+	AUTOLOAD => 'PUBLIC';
 
 # Initialize plugin support
 use Module::Pluggable
@@ -39,7 +44,7 @@ use Module::Pluggable
 	inner       => 0,
 	search_path => [ 'SMS::Send' ],
 	except      => [ 'SMS::Send::Driver' ],
-	sub_name    => '_installed_drivers',
+	sub_name    => '_installed_drivers';
 
 use vars qw{$VERSION @DRIVERS};
 BEGIN {
@@ -53,6 +58,8 @@ BEGIN {
 
 The C<installed_drivers> the list of SMS::Send drivers that are installed
 on the current system.
+
+=cut
 
 sub installed_drivers {
 	my $class = shift;
@@ -77,10 +84,21 @@ sub installed_drivers {
 # Constructor and Accessors
 
 sub new {
+	my $class  = shift;
+	my $driver = $class->_resolve_driver
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _resolve_driver {
 	my $class = shift;
 	
 }
-
 
 1;
 
