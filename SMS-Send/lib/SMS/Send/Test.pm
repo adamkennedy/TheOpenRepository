@@ -48,6 +48,7 @@ shared between multiple driver handles.
 =cut
 
 use strict;
+use base 'SMS::Send::Driver';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -63,10 +64,11 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $self  = $class->SUPER::new(@_);
 
-	# Create the message trap
-	$self->{messages} = [];
+	# Create the object
+	my $self = bless {
+		messages => [],
+		}, $class;
 
 	$self;
 }

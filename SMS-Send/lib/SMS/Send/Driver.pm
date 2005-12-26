@@ -1,5 +1,49 @@
 package SMS::Send::Driver;
 
+=pod
+
+=head1 NAME
+
+SMS::Send::Driver - Base class for SMS::Send drivers
+
+=head1 DESCRIPTION
+
+The C<SMS::Send::Driver> class provides an abstract base class for all
+L<SMS::Send> driver classes.
+
+At this time it does not provide any implementation code for drivers
+(although this may change in the future) with the exception of some
+methods provided to trigger "does not implement method" errors.
+
+However, it does serve as something you should sub-class your driver from
+to identify it as a L<SMS::Send> driver.
+
+Please note that if your driver class not B<not> return true for
+C<$driver->isa('SMS::Send::Driver')> then the L<SMS::Send> constructor
+will refuse to use your class as a driver.
+
+=head1 
+
+=cut
+
+use strict;
+use Carp ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+sub new {
+	my $class = shift;
+	Carp::croak("Driver Error: $class does not implement the 'new' constructor");
+}
+
+sub send_sms {
+	my $class = ref($_[0]) || $_[0];
+	Carp::croak("Driver Error: $class does not implement the 'send_sms' method");
+}
+
 1;
 
 =pod
