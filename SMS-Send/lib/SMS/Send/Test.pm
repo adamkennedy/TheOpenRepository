@@ -73,6 +73,13 @@ sub new {
 	$self;
 }
 
+sub send_sms {
+	my $self     = shift;
+	my $messages = $self->{messages};
+	push @$messages, [ @_ ];
+	1;
+}
+
 =pod
 
 =head1 METHODS

@@ -15,10 +15,10 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 23;
+use Test::More tests => 25;
 use SMS::Send;
-use Params::Util '_INSTANCE';
 
+use Params::Util '_INSTANCE';
 sub dies_like {
 	my $code   = shift;
 	my $regexp = _INSTANCE(shift, 'Regexp')
@@ -95,6 +95,14 @@ SCOPE: {
 	dies_like(
 		sub { SMS::Send->new('BAD4') },
 		qr/does not implement the 'new' constructor/,
+	);
+	dies_like(
+		sub { SMS::Send->new('BAD5') },
+		qr/^Driver Error:/,
+	);
+	dies_like(
+		sub { SMS::Send->new('BAD5') },
+		qr/did not return a driver object/,
 	);
 }
 

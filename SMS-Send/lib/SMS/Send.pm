@@ -8,7 +8,24 @@ SMS::Send - Driver-based API for sending SMS messages
 
 =head1 SYNOPSIS
 
-  ...
+  # Create a sender
+  my $sender = SMS::Send->new('SomeDriver',
+  	login    => 'myname',
+  	password => 'mypassword',
+  	);
+  
+  # Send a message
+  my $sent = $sender->send_sms(
+  	text => 'This is a test message',
+  	to   => '+61 (4) 1234 5678',
+  	);
+  
+  # Did the send succeed.
+  if ( $sent ) {
+  	print "Message sent ok\n";
+  } else {
+  	print "Failed to send message\n";
+  }
 
 =head1 DESCRIPTION
 
@@ -33,10 +50,10 @@ sent (although some drivers may not be able to provide certainty).
 use 5.005;
 use strict;
 use Carp              ();
-use Params::Util      '_HASH',
-                      '_CLASS',
-                      '_INSTANCE';
 use SMS::Send::Driver ();
+use Params::Util '_HASH',
+                 '_CLASS',
+                 '_INSTANCE';
 
 # We are a type of Adapter
 use Class::Adapter::Builder
@@ -88,6 +105,32 @@ sub installed_drivers {
 #####################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+  # The most basic sender
+  $sender = SMS::Send->new('Test');
+  
+  # Indicate regional driver with ::
+  $sender = SMS::Send->new('AU::Test');
+  
+  # Pass arbitrary params to the driver
+  $sender = SMS::Send->new('MyDriver',
+      login    => 'adam',
+      password => 'adam',
+      );
+
+The C<new> constructor creates a new SMS sender.
+
+It takes as its first parameter a driver name. These names map the class
+names. For example driver "Test" matches the testing driver
+L<SMS::Send::Test>.
+
+Returns a new L<SMS::Send> object, or dies on error.
+
+=cut
+
 sub new {
 	my $class  = shift;
 	my $driver = $class->_DRIVER(shift);
@@ -108,12 +151,134 @@ sub new {
 	return $self;
 }
 
+=pod
+
+=head2 send_sms
+
+  # Send a message to a particular address
+  my $result = $sender->send_sms(
+  	text => 'This is a test message',
+  	to   => '+61 4 1234 5678',
+  	);
+
+The C<send_sms> method sends a standard text SMS message to a destination
+phone number.
+
+It takes a set of named parameters to describe the message and its
+destination. This use of named params is primarily for future proofing,
+as a number of additional features are expected in the future.
+
+=over
+
+=item text
+
+The C<text> param is compulsory and should be a plain text string of
+non-zero length. The maximum length is currently determined by the
+driver, and exceeding this length will result in an exception being
+thrown if you breach it.
+
+Better functionality for determining the maximum-supported length is
+expected in the future. You input would be welcome.
+
+=item to
+
+The C<to> param is compulsory, and should be an international phone
+number as indicated by a leading plus "+" character. Punctuation in
+any form is allowed, and will be stripped out before it is provided
+to the driver.
+
+If and only if your driver is a regional driver (as indicated by a
+::-seperated name such as AU::Test) the C<to> number can also be in
+a regional-specific dialing format, C<without> a leading plus "+"
+character.
+
+Providing a regional number to a non-regional driver will throw an
+exception.
+
+=back
+
+Any parameters with a leading underscore are considered driver-specific
+and will be passed through without alteration.
+
+Any other parameters B<without> a leading underscore will be silently
+stripped out and not passed through to the driver.
+
+After calling C<send_sms> the driver will do whatever is required to
+send the message, including (potentially, but not always) waiting for
+a confirmation from the network that the SMS has been sent.
+
+Given that drivers may do the actual mechanics of sending a message by
+quite a large variety of different methods the C<send_sms> method may
+potentially block for some time. Timeout functionality is expected to
+be added later.
+
+The C<send_sms> returns true if the message was sent, or the driver
+is fire-and-forget and unable to determine success, or false if the
+message was not sent.
+
+=cut
+
+sub send_sms {
+	my $self   = shift;
+	my %params = @_;
+
+	# Get the text content
+	my $text = delete $params{text};
+	unless ( _STRING($text) ) {
+		Carp::croak("Did not provide a 'text' string param");
+	}
+
+	# Get the destination number
+	my $to = delete $params{to};
+	unless ( _STRING($to) ) {
+		Carp::croak("Did not provide a 'to' message destination");
+	}
+
+	# Clean up the number
+	$to =~ s/[\s\(\)\[\]\{\}\.-]//g;
+	unless ( $to =~ /^\+?\d+$/ ) {
+		Carp::croak("Invalid phone number format '$params{to}'");
+	}
+
+	# Extra validations of international or non-international issues
+	if ( $to =~ /^\+0/ ) {
+		Carp::croak("International phone numbers cannot have leading zeros");
+	}
+	unless ( $to =~ /^\+\d{6}/ ) {
+		Carp::croak("International phone numbers must be at least 6 digits");
+	}
+	unless ( ref($self->_OBJECT_) =~ /^SMS::Send::\w+::/ ) {
+		# International-only driver
+		unless ( $to =~ /^\+/ ) {
+			Carp::croak("Cannot use regional phone numbers with an international driver");
+		}
+	}
+
+	# Merge params and hand off
+	my $rv = $self->_OBJECT_->send_sms(
+		text => $text,
+		to   => $to,
+		$self->_private(@_),
+		);
+
+	# Verify we get some sort of result
+	unless ( defined $rv ) {
+		Carp::croak("Driver did not return a result");
+	}
+
+	return $rv;
+}
+
 
 
 
 
 #####################################################################
 # Support Methods
+
+sub _STRING {
+	!! (defined $_[0] and ! ref $_[0] and length $_[0]);
+}
 
 sub _DRIVER {
 	my $class  = shift;
@@ -147,6 +312,21 @@ sub _DRIVER {
 	}
 
 	return $driver;
+}
+
+# Filter params for only the private params
+sub _private {
+	my $self   = shift;
+	my @input  = @_;
+	my @output = ();
+	while ( @input ) {
+		my $key   = shift @input;
+		my $value = shift @input;
+		if ( _STRING($key) and $key =~ /^_/ ) {
+			push @output, $key, $value;
+		}
+	}
+	return @output;		
 }
 
 1;
