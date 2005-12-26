@@ -31,10 +31,42 @@ sent (although some drivers may not be able to provide certainty).
 =cut
 
 use strict;
+use SMS::Send::Driver ();
 
-use vars qw{$VERSION};
+# Initialize plugin support
+use Module::Pluggable
+	require     => 0,
+	inner       => 0,
+	search_path => [ 'SMS::Send' ],
+	except      => [ 'SMS::Send::Driver' ],
+	sub_name    => '_installed_drivers',
+
+use vars qw{$VERSION @DRIVERS};
 BEGIN {
 	$VERSION = '0.01';
+	@DRIVERS = ();
+}
+
+=pod
+
+=head2 installed_drivers
+
+The C<installed_drivers> the list of SMS::Send drivers that are installed
+on the current system.
+
+sub installed_drivers {
+	my $class = shift;
+
+	unless ( @DRIVERS ) {
+		my @rawlist = $class->_installed_drivers;
+		foreach my $d ( @rawlist ) {
+			$d =~ s/^SMS::Send:://;
+			$d =~ s/::/-/g;
+		}
+		@DRIVERS = @rawlist;
+	}
+
+	return @DRIVERS;
 }
 
 
@@ -49,9 +81,6 @@ sub new {
 	
 }
 
-sub available_drivers {
-	my $class = shift;
-}
 
 1;
 
