@@ -1,0 +1,14 @@
+Revision history for Perl extension Object::Signature
+
+1.00 Mon Dec 26 2005
+	- Updating version to a production version number
+	- Removing dependency on prefork
+	- Removing TO DO item that implied a bug (confirmed not the case)
+	- Moved to newer SVN repository
+	- Updaded Makefile.PL to newer Module::Install
+
+0.02 Tue Feb 15 2005
+	- Removing braindead Build.PL
+
+0.01 Sat Nov 13 2004
+	- Created the initial version of the file
