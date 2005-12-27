@@ -28,7 +28,7 @@ use PITA::Report   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_02';
+	$VERSION = '0.02';
 }
 
 
@@ -320,6 +320,34 @@ sub _parse_command {
 	$self->_accessor_element( $command, 'cmd'    );
 	$self->_accessor_element( $command, 'stdout' );
 	$self->_accessor_element( $command, 'stderr' );
+
+	# Send the close tag
+	$self->end_element( $element );
+
+	return 1;
+}
+
+sub _parse_test {
+	my ($self, $test) = @_;
+
+	# Send the open tag
+	my $attrs = {
+		language => $test->language,
+		};
+	if ( defined $test->name ) {
+		$attrs->{name} = $test->name;
+	}
+	my $element = $self->_element( 'test', $attrs );
+	$self->start_element( $element );
+
+	# Send the accessor elements
+	$self->_accessor_element( $test, 'stdout' );
+	if ( defined $test->stderr ) {
+		$self->_accessor_element( $test, 'stderr' );
+	}
+	if ( defined $test->exitcode ) {
+		$self->_accessor_element( $test, 'exitcode' );
+	}
 
 	# Send the close tag
 	$self->end_element( $element );

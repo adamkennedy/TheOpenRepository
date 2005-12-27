@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -12,7 +11,10 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib/lib', 'blib/arch');
+		lib->import(
+			catdir('blib', 'lib'),
+			catdir('blib', 'arch'),
+			);
 	}
 }
 
@@ -21,13 +23,15 @@ use PITA::Report ();
 
 SKIP: { skip("Tests out of date", 13 );
 
-my $EMPTY_FILE = catfile( 't', '05_empty.pita' );
+my $EMPTY_FILE = catfile( 't', '10_empty.pita' );
 ok( -f $EMPTY_FILE, 'Sample .pita file exists' );
 ok( -f $EMPTY_FILE, 'Sample .pita file is readable' );
 
-my $SINGLE_FILE = catfile( 't', '05_single.pita' );
+my $SINGLE_FILE = catfile( 't', '10_single.pita' );
 ok( -f $SINGLE_FILE, 'Sample .pita file exists' );
 ok( -f $SINGLE_FILE, 'Sample .pita file is readable' );
+
+
 
 
 

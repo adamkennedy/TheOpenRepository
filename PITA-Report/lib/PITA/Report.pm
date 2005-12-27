@@ -60,12 +60,13 @@ use PITA::Report::Install   ();
 use PITA::Report::Request   ();
 use PITA::Report::Platform  ();
 use PITA::Report::Command   ();
+use PITA::Report::Test      ();
 use PITA::Report::SAXParser ();
 use PITA::Report::SAXDriver ();
 
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
-	$VERSION = '0.01_02';
+	$VERSION = '0.02';
 }
 
 # The XML Schema File

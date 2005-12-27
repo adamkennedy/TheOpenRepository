@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -12,13 +11,16 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib/lib', 'blib/arch');
+		lib->import(
+			catdir('blib', 'lib'),
+			catdir('blib', 'arch'),
+			);
 	}
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 
-ok( $] > 5.004, 'Perl version is 5.004 or newer' );
+ok( $] > 5.005, 'Perl version is 5.004 or newer' );
 
 use_ok( 'PITA::Report' );
 is( $PITA::Report::VERSION, $PITA::Report::Install::VERSION,
@@ -29,6 +31,8 @@ is( $PITA::Report::VERSION, $PITA::Report::Platform::VERSION,
 	'$VERSION matches for ::Platform' );
 is( $PITA::Report::VERSION, $PITA::Report::Command::VERSION,
 	'$VERSION matches for ::Command' );
+is( $PITA::Report::VERSION, $PITA::Report::Test::VERSION,
+	'$VERSION matches for ::Test' );
 is( $PITA::Report::VERSION, $PITA::Report::SAXParser::VERSION,
 	'$VERSION matches for ::SAXParser' );
 is( $PITA::Report::VERSION, $PITA::Report::SAXDriver::VERSION,

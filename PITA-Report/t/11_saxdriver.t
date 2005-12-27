@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -12,11 +11,14 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib/lib', 'blib/arch');
+		lib->import(
+			catdir('blib', 'lib'),
+			catdir('blib', 'arch'),
+			);
 	}
 }
 
-use Test::More tests => 17;
+use Test::More tests => 20;
 use Config                  ();
 use PITA::Report            ();
 use PITA::Report::SAXDriver ();
@@ -202,14 +204,14 @@ END_STDOUT
 
 	# Create the command object
 	my $command = PITA::Report::Command->new(
-		cmd       => 'perl Makefile.PL',
-		stdout    => \$stdout,
-		stderr    => \"",
+		cmd    => 'perl Makefile.PL',
+		stdout => \$stdout,
+		stderr => \"",
 		);
 	isa_ok( $command, 'PITA::Report::Command' );
 	$driver->_parse_command( $command );
 
-	$driver->end_document( {} );	
+	$driver->end_document( {} );
 	my $command_string = <<"END_XML";
 <command><cmd>perl Makefile.PL</cmd><stdout>include /home/adam/cpan2/trunk/PITA-Report/inc/Module/Install.pm
 include inc/Module/Install/Metadata.pm
@@ -245,4 +247,45 @@ Writing Makefile for PITA::Report
 END_XML
 	chomp $command_string;
 	driver_is( $driver, $command_string, '->_parse_command works as expected' );	
+}
+
+
+
+
+SCOPE: {
+	my $driver = driver_new();
+	$driver->start_document( {} );
+
+	# Create a test request
+	my $stdout = <<'END_STDOUT';
+1..4
+ok 1 - Input file opened
+# diagnostic
+not ok 2 - First line of the input valid
+ok 3 - Read the rest of the file
+not ok 4 - Summarized correctly # TODO Not written yet
+END_STDOUT
+
+	# Create the command object
+	my $test = PITA::Report::Test->new(
+		name     => 't/01_main.t',
+		stdout   => \$stdout,
+		stderr   => \"",
+		exitcode => 0,
+		);
+	isa_ok( $test, 'PITA::Report::Test' );
+	$driver->_parse_test( $test );
+
+	$driver->end_document( {} );
+	my $test_string = <<"END_XML";
+<test language='text/x-tap' name='t/01_main.t'><stdout>1..4
+ok 1 - Input file opened
+# diagnostic
+not ok 2 - First line of the input valid
+ok 3 - Read the rest of the file
+not ok 4 - Summarized correctly # TODO Not written yet
+</stdout><stderr /><exitcode>0</exitcode></test>
+END_XML
+	chomp $test_string;
+	driver_is( $driver, $test_string, '->_parse_test works as expected' );	
 }
