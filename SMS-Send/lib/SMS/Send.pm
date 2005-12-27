@@ -10,8 +10,8 @@ SMS::Send - Driver-based API for sending SMS messages
 
   # Create a sender
   my $sender = SMS::Send->new('SomeDriver',
-  	login    => 'myname',
-  	password => 'mypassword',
+  	_login    => 'myname',
+  	_password => 'mypassword',
   	);
   
   # Send a message
@@ -29,14 +29,14 @@ SMS::Send - Driver-based API for sending SMS messages
 
 =head1 DESCRIPTION
 
-SMS::Send is intended to provide a driver-based single API for sending SMS
+C<SMS::Send> is intended to provide a driver-based single API for sending SMS
 and MMS messages. The intent is to provide a single API against which to
 write the code to send an SMS message.
 
 At the same time, the intent is to remove the limits of some of the previous
 attempts at this sort of API, like "must be free internet-based SMS services".
 
-SMS::Send drivers are installed seperately, and might use the web, email or
+C<SMS::Send> drivers are installed seperately, and might use the web, email or
 physical SMS hardware. It could be a free or paid. The details shouldn't
 matter.
 
@@ -51,7 +51,7 @@ use 5.005;
 use strict;
 use Carp              ();
 use SMS::Send::Driver ();
-use Params::Util '_HASH',
+use Params::Util '_HASH0',
                  '_CLASS',
                  '_INSTANCE';
 
@@ -69,7 +69,7 @@ use Module::Pluggable
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # Private driver cache
@@ -117,8 +117,8 @@ sub installed_drivers {
   
   # Pass arbitrary params to the driver
   $sender = SMS::Send->new('MyDriver',
-      login    => 'adam',
-      password => 'adam',
+      _login    => 'adam',
+      _password => 'adam',
       );
 
 The C<new> constructor creates a new SMS sender.
@@ -127,6 +127,15 @@ It takes as its first parameter a driver name. These names map the class
 names. For example driver "Test" matches the testing driver
 L<SMS::Send::Test>.
 
+Any additional params should be key/value pairs, split into two types.
+
+Params without a leading underscore are "public" options and relate to
+standardised features within the L<SMS::Send> API itself. At this
+time, there are no usable public options.
+
+Params B<with> a leading underscore are "private" driver-specific options
+and will be passed through to the driver unchanged.
+
 Returns a new L<SMS::Send> object, or dies on error.
 
 =cut
@@ -134,10 +143,10 @@ Returns a new L<SMS::Send> object, or dies on error.
 sub new {
 	my $class  = shift;
 	my $driver = $class->_DRIVER(shift);
-	my $params = _HASH($_[0]) || { @_ };
+	my @params = _HASH0($_[0]) ? %{$_[0]} : @_;
 
 	# Create the driver and verify
-	my $object = $driver->new( %$params );
+	my $object = $driver->new( $class->_PRIVATE(@params) );
 	unless ( _INSTANCE($object, 'SMS::Send::Driver') ) {
 		Carp::croak("Driver Error: $driver->new did not return a driver object");
 	}
@@ -165,8 +174,10 @@ The C<send_sms> method sends a standard text SMS message to a destination
 phone number.
 
 It takes a set of named parameters to describe the message and its
-destination. This use of named params is primarily for future proofing,
-as a number of additional features are expected in the future.
+destination, again split into two types.
+
+Params without a leading underscore are "public" options and relate to
+standardised features within the L<SMS::Send> API itself.
 
 =over
 
@@ -197,8 +208,8 @@ exception.
 
 =back
 
-Any parameters with a leading underscore are considered driver-specific
-and will be passed through without alteration.
+Any parameters B<with> a leading underscore are considered private
+driver-specific options and will be passed through without alteration.
 
 Any other parameters B<without> a leading underscore will be silently
 stripped out and not passed through to the driver.
@@ -236,6 +247,9 @@ sub send_sms {
 
 	# Clean up the number
 	$to =~ s/[\s\(\)\[\]\{\}\.-]//g;
+	unless ( _STRING($to) ) {
+		Carp::croak("Did not provide a 'to' message destination");
+	}
 	unless ( $to =~ /^\+?\d+$/ ) {
 		Carp::croak("Invalid phone number format '$params{to}'");
 	}
@@ -244,7 +258,7 @@ sub send_sms {
 	if ( $to =~ /^\+0/ ) {
 		Carp::croak("International phone numbers cannot have leading zeros");
 	}
-	unless ( $to =~ /^\+\d{6}/ ) {
+	if ( $to =~ /^\+/ and length($to) <= 7 ) {
 		Carp::croak("International phone numbers must be at least 6 digits");
 	}
 	unless ( ref($self->_OBJECT_) =~ /^SMS::Send::\w+::/ ) {
@@ -258,7 +272,7 @@ sub send_sms {
 	my $rv = $self->_OBJECT_->send_sms(
 		text => $text,
 		to   => $to,
-		$self->_private(@_),
+		$self->_PRIVATE(@_),
 		);
 
 	# Verify we get some sort of result
@@ -315,8 +329,8 @@ sub _DRIVER {
 }
 
 # Filter params for only the private params
-sub _private {
-	my $self   = shift;
+sub _PRIVATE {
+	my $class  = ref $_[0] ? ref shift : shift;
 	my @input  = @_;
 	my @output = ();
 	while ( @input ) {

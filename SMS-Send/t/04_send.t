@@ -15,7 +15,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 4;
+use Test::More tests => 17;
 use SMS::Send;
 
 use Params::Util '_INSTANCE';
@@ -63,8 +63,65 @@ SCOPE: {
 
 
 #####################################################################
-# Bad Creation
+# Bad Sending
 
-# To be completed
+my $sender = SMS::Send->new( 'Test' );
+isa_ok( $sender, 'SMS::Send' );
+is( $sender->clear, 1, 'Methods pass through to the driver' );
+
+dies_like(
+	sub { $sender->send_sms() },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => undef ) },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => '' ) },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => \'' ) },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => [] ) },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => {} ) },
+	qr/Did not provide a 'text' string param/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => 'foo' ) },
+	qr/Did not provide a 'to' message destination/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => 'foo', to => undef ) },
+	qr/Did not provide a 'to' message destination/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => 'foo', to => '' ) },
+	qr/Did not provide a 'to' message destination/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => 'foo', to => ' ' ) },
+	qr/Did not provide a 'to' message destination/,
+);
+
+dies_like(
+	sub { $sender->send_sms( text => 'foo', to => '()' ) },
+	qr/Did not provide a 'to' message destination/,
+);
 
 exit(0);
