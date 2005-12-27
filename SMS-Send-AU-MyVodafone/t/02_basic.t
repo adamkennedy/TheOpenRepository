@@ -29,6 +29,22 @@ sub dies_like {
 
 
 #####################################################################
+# Test as many errors as we can without hitting the web
+
+dies_like(
+	sub { SMS::Send->new( 'AU::MyVodafone',
+		login    => '0444 444 444',
+		password => 'foobarbaz',
+		) },
+	qr/Did not provide a login/,
+);
+
+
+
+
+
+
+#####################################################################
 # Testing up to the point of a working login
 
 # Create a new sender
@@ -56,19 +72,11 @@ ok( $sender->_OBJECT_->_get_login,
 
 
 #####################################################################
-# Test as many errors as we can without needing an account
+# More failures with an actual account
 
 dies_like(
 	sub { $sender->_OBJECT_->_send_login },
 	qr/Invalid login and password/,
-);
-
-dies_like(
-	sub { SMS::Send->new( 'AU::MyVodafone',
-		_login    => '0444 444 444',
-		_password => 'foobarbaz',
-		) },
-	qr/no login/,
 );
 
 exit(0);
