@@ -15,9 +15,8 @@ requires 'XML::SAX::Writer'        => '0.43';
 requires 'XML::SAX::ParserFactory' => '0.13';
 requires 'XML::Validator::Schema'  => '1.08';
 
-build_requires 'File::Spec'             => '0.80';
-build_requires 'Test::More'             => '0.47';
-build_requires 'Module::Install::Share' => 0;
+build_requires 'File::Spec'        => '0.80';
+build_requires 'Test::More'        => '0.47';
 
 install_share;
 auto_install;
