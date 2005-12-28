@@ -18,10 +18,8 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 13;
+use Test::More tests => 17;
 use PITA::Report ();
-
-SKIP: { skip("Tests out of date", 13 );
 
 my $EMPTY_FILE = catfile( 't', '10_empty.pita' );
 ok( -f $EMPTY_FILE, 'Sample .pita file exists' );
@@ -38,10 +36,17 @@ ok( -f $SINGLE_FILE, 'Sample .pita file is readable' );
 #####################################################################
 # Validation
 
-ok( PITA::Report->validate( $EMPTY_FILE ),
-	'Sample (empty) file validates' );
-ok( PITA::Report->validate( $SINGLE_FILE ),
-	'Sample (single) file validates' );
+SKIP: {
+	skip("Tests out of date", 3 );
+
+	ok( PITA::Report->validate( \"<report />" ),
+		'Sample (empty) string validates' );
+	ok( PITA::Report->validate( $EMPTY_FILE ),
+		'Sample (empty) file validates' );
+	ok( PITA::Report->validate( $SINGLE_FILE ),
+		'Sample (single) file validates' );
+
+}
 
 
 
@@ -50,24 +55,35 @@ ok( PITA::Report->validate( $SINGLE_FILE ),
 #####################################################################
 # Practical Parsing Test
 
-# Create a sample object from an empty
-{
-my $report = PITA::Report->new( $EMPTY_FILE );
-isa_ok( $report, 'PITA::Report' );
-is( scalar($report->installs), 0, '->installs returns zero' );
-is_deeply( [ $report->installs ], [], '->installs returns null list' );
+# Create a sample object from a minimal string
+SCOPE: {
+	my $report = PITA::Report->new( \"<report />" );
+	isa_ok( $report, 'PITA::Report' );
+	is( scalar($report->installs), 0, '->installs returns zero' );
+	is_deeply( [ $report->installs ], [], '->installs returns null list' );
 }
 
-# Create a sample object from a file with a single report
-{
-my $report = PITA::Report->new( $SINGLE_FILE );
-isa_ok( $report, 'PITA::Report' );
-is( scalar($report->installs), 1, '->installs returns one' );
-my @installs = $report->installs;
-is( scalar(@installs), 1, '->installs returns one thing' );
-isa_ok( $installs[0], 'PITA::Report::Install' );
-}
+SKIP: {
+	skip("Tests out of date", 7 );
 
-} #SKIP:
+	# Create a sample object from an empty file
+	SCOPE: {
+		my $report = PITA::Report->new( $EMPTY_FILE );
+		isa_ok( $report, 'PITA::Report' );
+		is( scalar($report->installs), 0, '->installs returns zero' );
+		is_deeply( [ $report->installs ], [], '->installs returns null list' );
+	}
+
+	# Create a sample object from a file with a single report
+	SCOPE: {
+		my $report = PITA::Report->new( $SINGLE_FILE );
+		isa_ok( $report, 'PITA::Report' );
+		is( scalar($report->installs), 1, '->installs returns one' );
+		my @installs = $report->installs;
+		is( scalar(@installs), 1, '->installs returns one thing' );
+		isa_ok( $installs[0], 'PITA::Report::Install' );
+	}
+
+}
 
 exit(0);

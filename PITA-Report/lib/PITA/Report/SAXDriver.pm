@@ -80,7 +80,6 @@ sub new {
 		}
 
 		# Create the file writer
-		require XML::SAX::Writer;
 		$self->{Handler} = XML::SAX::Writer->new(
 			Output => $self->{Output},
 			) or Carp::croak("Failed to create XML Writer for Output");
@@ -215,21 +214,26 @@ sub _parse_install {
 	$self->start_element( $element );
 
 	# Send the optional configuration tag
-	my $request = $install->request;
-	$self->_parse_request( $request ) if $request;
+	$self->_parse_request( $install->request );
 
 	# Send the optional platform tag
-	my $platform = $install->platform;
-	$self->_parse_install( $platform ) if $platform;
+	$self->_parse_platform( $install->platform );
 
 	# Add the command tags
 	foreach my $command ( $install->commands ) {
 		$self->_parse_command( $command );
 	}
 
+	# Add the test tags
+	foreach my $test ( $install->tests ) {
+		$self->_parse_test( $test );
+	}
+
 	# Add the optional analysis tag
 	my $analysis = $install->analysis;
-	$self->_parse_analysis( $analysis ) if $analysis;
+	if ( $analysis ) {
+		$self->_parse_analysis( $analysis );
+	}
 
 	# Send the close tag
 	$self->end_element( $element );

@@ -52,6 +52,7 @@ use strict;
 use Carp                    ();
 use Params::Util            ':ALL';
 use IO::File                ();
+use IO::Scalar              ();
 use File::Flock             ();
 use File::ShareDir          ();
 use XML::SAX::ParserFactory ();
@@ -122,7 +123,7 @@ sub new {
 	return $self unless @_;
 
 	# Validate the document
-	my $fh = $self->_fh(shift);
+	my $fh = $self->_FH(shift);
 	$class->validate( $fh );
 
 	# Reset the file handle for the next pass
@@ -156,7 +157,7 @@ Returns true, or dies if it fails to validate the file or file handle.
 
 sub validate {
 	my $class = shift;
-	my $fh    = $class->_fh(shift);
+	my $fh    = $class->_FH(shift);
 
 	# Create the validator
 	my $parser = XML::SAX::ParserFactory->parser(
@@ -169,44 +170,6 @@ sub validate {
 	$parser->parse_file( $fh );
 
 	1;
-}
-
-sub _fh {
-	my ($class, $file) = @_;
-	if ( _INSTANCE($file, 'IO::Seekable') ) {
-		# Reset the file handle
-		$file->seek( 0, 0 ) or Carp::croak(
-			'Failed to reset file handle (seek to 0)',
-			);
-		return $file;
-	}
-	if ( _INSTANCE($file, 'IO::Handle') ) {
-		Carp::croak('PITA::Report requires a seekable (IO::Seekable) handle');
-	}
-	unless ( defined $file and ! ref $file and length $file ) {
-		Carp::croak('Did not provide a file name or handle');
-	}
-	unless ( $file and -f $file and -r _ ) {
-		Carp::croak('Did not provide a readable file name');
-	}
-	my $fh = IO::File->new( $file );
-	unless ( $fh ) {
-		 Carp::croak("Failed to open PITA::Report file '$file'");
-	}
-	$fh;
-}
-
-=pod
-
-=head2 installs
-
-The C<installs> method returns all of the L<PITA::Report::Install> objects
-from the C<PITA::Report> as a list.
-
-=cut
-
-sub installs {
-	return (@{$_[0]->{installs}});
 }
 
 =pod
@@ -232,6 +195,94 @@ sub add_install {
 	push @{$self->{installs}}, $install;
 
 	1;
+}
+
+=pod
+
+=head2 installs
+
+The C<installs> method returns all of the L<PITA::Report::Install> objects
+from the C<PITA::Report> as a list.
+
+=cut
+
+sub installs {
+	return (@{$_[0]->{installs}});
+}
+
+=pod
+
+=head2 write
+
+  my $output = '';
+  $report->write( \$output        );
+  $report->write( 'filename.pita' );
+
+The C<write> method is used to save the report out to a named file.
+
+It takes a single parameter, which can be either an XML SAX Handler
+(any object that C<isa> L<XML::SAX::Base>) or any value that is
+legal to pass as the C<Output> parameter to L<XML::SAX::Writer>'s
+C<new> constructor.
+
+Returns true when the file is written, or dies on error.
+
+=cut
+
+sub write {
+	my $self   = shift;
+
+	# Prepate the driver params
+	my @params = _INSTANCE($_[0], 'XML::SAX::Base')
+		? ( Handler => shift )
+		: defined($_[0])
+			? ( Output  => shift )
+			: Carp::croak("Did not provide an output destination to ->write");
+
+	# Create the SAX Driver
+	my $driver = PITA::Report::SAXDriver->new( @params )
+		or die("Failed to create SAXDriver for report");
+
+	# Parse ourself with the driver to driver the writing
+	# of the output.
+	$driver->parse( $self );
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _FH {
+	my ($class, $file) = @_;
+	if ( _SCALAR($file) ) {
+		$file = IO::Scalar->new( $file );
+	}
+	if ( _INSTANCE($file, 'IO::Seekable') ) {
+		if ( _INSTANCE($file, 'IO::Seekable') or $file->can('seek') ) {
+			# Reset the file handle
+			$file->seek( 0, 0 ) or Carp::croak(
+				'Failed to reset file handle (seek to 0)',
+				);
+			return $file;
+		}
+		Carp::croak('PITA::Report requires a seekable handle');
+	}
+	unless ( defined $file and ! ref $file and length $file ) {
+		Carp::croak('Did not provide a file name or handle');
+	}
+	unless ( $file and -f $file and -r _ ) {
+		Carp::croak('Did not provide a readable file name');
+	}
+	my $fh = IO::File->new( $file );
+	unless ( $fh ) {
+		 Carp::croak("Failed to open PITA::Report file '$file'");
+	}
+	$fh;
 }
 
 1;
