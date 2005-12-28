@@ -62,6 +62,9 @@ my $BUF = '';      # buffer
 my $M;             # message
 
 
+
+
+
 #------------------------------
 # lines STR
 #------------------------------
@@ -69,6 +72,10 @@ sub lines {
     my $s = shift;
     split /^/, $s;
 }
+
+
+
+
 
 #------------------------------
 # test_init PARAMHASH
@@ -79,6 +86,10 @@ sub test_init {
     my ($self, %p) = @_;
     $T = $p{TBone};
 }
+
+
+
+
 
 #------------------------------
 # test_print HANDLE, TEST
@@ -96,6 +107,10 @@ sub test_print {
     $GH->print(@ADATA_SA[1..2]);
     $T->ok(1, $M);
 }
+
+
+
+
 
 #------------------------------
 # test_getc HANDLE
@@ -115,6 +130,10 @@ sub test_getc {
 	    ($c[1] eq ' ') &&
 	    ($c[2] eq 'd')), $M);
 }
+
+
+
+
 
 #------------------------------
 # test_getline HANDLE
@@ -156,6 +175,10 @@ sub test_getline {
 	   Got     => \@got);
 }
 
+
+
+
+
 #------------------------------
 # test_read HANDLE
 #------------------------------
@@ -183,6 +206,10 @@ sub test_read {
     $GH->read($BUF,1000);
     $T->ok(($BUF eq $FDATA_S), $M);
 }
+
+
+
+
 
 #------------------------------
 # test_seek HANDLE
@@ -212,6 +239,72 @@ sub test_seek {
     $T->ok_eq($BUF, 'one too',
 	      $M);
 }
+
+
+
+
+
+#------------------------------
+# test_truncate HANDLE
+#------------------------------
+# Tests the truncate method
+#
+sub test_truncate {
+    my ($self, $GH) = @_;
+    local($_);
+
+    # Get the position BEFORE the truncate
+    my $p = $GH->tell;
+
+    # Do the truncate
+    $M = "TRUNCATE: truncate(7) + seek(0,0) + getline() returns 'A diner'";
+    $T->ok( $GH->truncate(7), 'truncate(7) returns true' );
+
+    # Verify the position is unchanged
+    $T->ok_eq( $p, $GH->tell, '->tell location remains unchanged after truncate' );
+
+    # Check it actually truncated
+    $GH->seek(0,0);
+    my $line = $GH->getline();
+    $T->ok_eq( $line, 'A diner', $M );
+
+    # Truncate to zero
+    $T->ok( $GH->truncate(0), '->truncate(0) returns true' );
+    $GH->seek(0,0);
+    $T->ok_eq( $GH->read($BUF, 2), 0, '->read after seek(0,0) returns 0');
+    $T->ok_eq( $BUF, '', '->read after seek(0,0) captures ""' );
+}
+
+
+
+
+
+#------------------------------
+# test_seek_print HANDLE
+#------------------------------
+# Tests the interactions between seek(x,y) and print
+# Must start with an empty filehandle.
+#
+sub test_strict {
+    my ($self, $GH) = @_;
+    local($_);
+    local $IO::Scalar::STRICT = 1;
+
+    $M = "SEEK/PRINT: seek(2,0) + print(foo) + seek(0,0) + print(bar) creates 'baroo'";
+    $GH->seek(2,0);
+    $GH->print('foo');
+    $GH->seek(0,0);
+    $T->ok_eq( $GH->read($BUF, 6), 5, '->read(6) returns 5' );
+    $T->ok_eq( $BUF, "\c@\c@foo\c@", 'seek(2,0) + print(foo) creates "00foo0"' );
+    $GH->seek(0,0);
+    $GH->print('bar');
+    $GH->seek(0,0);
+    $T->ok_eq( $GH->getline, 'baroo', $M );
+}
+
+
+
+
 
 #------------------------------
 # test_tie PARAMHASH
@@ -263,14 +356,17 @@ sub test_tie {
 	   Lines=> "0..$#lines",
 	   Match=> $nmatched);
 
-#    $M = "TIE/TELL: telling data";
-#    my $tell_oo  = tied(*OUT)->tell;
-#    my $tell_tie = tell OUT;
-#    $T->ok(($tell_oo == $tell_tie), $M,
-#	   Want => $tell_oo,
-#	   Gotl => $tell_tie);
-
+    # $M = "TIE/TELL: telling data";
+    # my $tell_oo  = tied(*OUT)->tell;
+    # my $tell_tie = tell OUT;
+    # $T->ok(($tell_oo == $tell_tie), $M,
+    #     Want => $tell_oo,
+    #     Gotl => $tell_tie);
 }
+
+
+
+
 
 #------------------------------
 # test_recordsep
@@ -359,7 +455,4 @@ sub test_recordsep {
 
 }
 
-#------------------------------
 1;
-
-

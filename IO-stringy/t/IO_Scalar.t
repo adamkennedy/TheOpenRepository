@@ -21,10 +21,7 @@ Common->test_init(TBone=>$T);
 $T->log_warnings;
 
 ### Set the counter:
-my $main_tests = 1 + 1;
-my $common_tests = (1 + 1 + 4 + 4 + 3 + 4
-		    + Common->test_recordsep_count($RECORDSEP_TESTS));
-$T->begin($main_tests + $common_tests);
+$T->begin(47);
 
 ### Open a scalar on a string, containing initial data:
 my $s = $Common::DATA_S;
@@ -39,10 +36,10 @@ Common->test_getc($SH);
 Common->test_getline($SH);
 Common->test_read($SH);
 Common->test_seek($SH);
+Common->test_truncate($SH);
+Common->test_strict($SH);
 Common->test_tie(TieArgs => ['IO::Scalar']);
 Common->test_recordsep($RECORDSEP_TESTS, \&opener);
 
 ### So we know everything went well...
 $T->end;
-
-

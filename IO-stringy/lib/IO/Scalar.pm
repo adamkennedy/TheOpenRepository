@@ -10,7 +10,6 @@ IO::Scalar - IO:: interface for reading/writing a scalar
 
 Perform I/O on strings, using the basic OO interface...
 
-    use 5.005;
     use IO::Scalar;
     $data = "My message:\n";
 
@@ -49,7 +48,6 @@ Don't like OO for your I/O?  No problem.
 Thanks to the magic of an invisible tie(), the following now
 works out of the box, just as it does with IO::Handle:
 
-    use 5.005;
     use IO::Scalar;
     $data = "My message:\n";
 
@@ -146,25 +144,26 @@ Causes $s to be set to:
 
 =cut
 
-use Carp;
-use strict;
-use vars qw($VERSION @ISA);
-use IO::Handle;
-
 use 5.005;
-
-### Stringification, courtesy of B. K. Oxley (binkley):  :-)
-use overload '""'   => sub { ${*{$_[0]}->{SR}} };
-use overload 'bool' => sub { 1 };      ### have to do this, so object is true!
+use strict;
+use Carp;
+use vars qw($VERSION @ISA $STRICT);
 
 ### The package version, both in 1.23 style *and* usable by MakeMaker:
 $VERSION = "2.110";
 
 ### Inheritance:
-@ISA = qw(IO::Handle);
+# Although we don't want to inherit it's methods, we do actually
+# support seeking, so identifying ourselves as an IO::Seekable is more
+# accurate.
+use IO::Handle   ();
+use IO::Seekable ();
+use IO::WrapTie  ();
+@ISA = qw(IO::Handle IO::Seekable IO::WrapTie::Slave);
 
-### This stuff should be got rid of ASAP.
-require IO::WrapTie and push @ISA, 'IO::WrapTie::Slave' if ($] >= 5.004);
+### Stringification, courtesy of B. K. Oxley (binkley):  :-)
+use overload '""'   => sub { ${*{$_[0]}->{SR}} };
+use overload 'bool' => sub { 1 };      ### have to do this, so object is true!
 
 #==============================
 
@@ -187,11 +186,12 @@ If any arguments are given, they're sent to open().
 sub new {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my $self = bless \do { local *FH }, $class;
+    my $self  = bless \do { local *FH }, $class;
     tie *$self, $class, $self;
     $self->open(@_);   ### open on anonymous by default
     $self;
 }
+
 sub DESTROY {
     shift->close;
 }
@@ -417,10 +417,28 @@ still safer to explicitly seek-to-end before subsequent print()s.
 =cut
 
 sub print {
-    my $self = shift;
-    *$self->{Pos} = length(${*$self->{SR}} .= join('', @_) . (defined($\) ? $\ : ""));
-    1;
+    if ( $STRICT ) {
+        my $self   = shift;
+        my $str    = join('', @_);
+        my $strlen = length($str);
+
+        # Add the string itself
+        substr( ${*$self->{SR}}, *$self->{Pos}, $strlen, $str );
+        *$self->{Pos} += $strlen;
+
+        # Add record seperator if applicable
+        if ( defined($\) ) {
+            substr( ${*$self->{SR}}, *$self->{Pos}, length($\), $\ );
+        }
+
+        return 1
+    } else {
+        my $self = shift;
+        *$self->{Pos} = length(${*$self->{SR}} .= join('', @_) . (defined($\) ? $\ : ""));
+        return 1;
+    }
 }
+
 sub _unsafe_print {
     my $self = shift;
     my $append = join('', @_) . $\;
@@ -507,6 +525,27 @@ sub syswrite {
   $self->write(@_);
 }
 
+#------------------------------
+
+=item truncate BUF, LEN
+
+I<Instance method.>
+Truncates the filehandle to the specified length
+
+=cut
+
+sub truncate {
+    my $self = $_[0];
+    my $len  = $_[1] || 0;
+
+    # When truncating, we do NOT move the current position, even
+    # if it ends up off the end of the file.
+    my $eofpos = length(${*$self->{SR}});
+    substr( ${*$self->{SR}}, $len, $eofpos - $len, '' );
+
+    1;
+}
+
 =back
 
 =cut
@@ -563,7 +602,7 @@ I<Instance method.>  Are we at end of file?
 
 sub eof {
     my $self = shift;
-    (*$self->{Pos} >= length(${*$self->{SR}}));
+    ( *$self->{Pos} >= length( ${*$self->{SR}} ) );
 }
 
 #------------------------------

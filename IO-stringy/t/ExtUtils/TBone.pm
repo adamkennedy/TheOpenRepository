@@ -13,7 +13,7 @@ and then write your t/*.t files like this:
 
     use lib "./t";             # to pick up a ExtUtils::TBone
     use ExtUtils::TBone;
-
+    
     # Make a tester... here are 3 different alternatives:
     my $T = typical ExtUtils::TBone;                 # standard log
     my $T = new ExtUtils::TBone;                     # no log 
@@ -23,15 +23,15 @@ and then write your t/*.t files like this:
     $T->begin(3);                           # expect 3 tests
     $T->msg("Something for the log file");  # message for the log
     
-    # Run some tests:    
+    # Run some tests:
     $T->ok($this);                  # test 1: no real info logged
     $T->ok($that,                   # test 2: logs a comment
-	   "Is that ok, or isn't it?"); 
+	   "Is that ok, or isn't it?");
     $T->ok(($this eq $that),        # test 3: logs comment + vars 
 	   "Do they match?",
 	   This => $this,
 	   That => $that);
-     
+    
     # That last one could have also been written... 
     $T->ok_eq($this, $that);            # does 'eq' and logs operands
     $T->ok_eqnum($this, $that);         # does '==' and logs operands 
