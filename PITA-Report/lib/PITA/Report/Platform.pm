@@ -103,7 +103,7 @@ sub _init {
 		Carp::croak('Missing or empty config');
 	}
 
-	1;
+	$self;
 }
 
 sub bin { $_[0]->{bin} }

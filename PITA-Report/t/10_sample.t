@@ -21,6 +21,8 @@ BEGIN {
 use Test::More tests => 17;
 use PITA::Report ();
 
+my $XMLNS = PITA::Report->XMLNS;
+
 my $EMPTY_FILE = catfile( 't', '10_empty.pita' );
 ok( -f $EMPTY_FILE, 'Sample .pita file exists' );
 ok( -f $EMPTY_FILE, 'Sample .pita file is readable' );
@@ -39,7 +41,7 @@ ok( -f $SINGLE_FILE, 'Sample .pita file is readable' );
 SKIP: {
 	skip("Tests out of date", 3 );
 
-	ok( PITA::Report->validate( \"<report />" ),
+	ok( PITA::Report->validate( \"<report xmlns='$XMLNS' />" ),
 		'Sample (empty) string validates' );
 	ok( PITA::Report->validate( $EMPTY_FILE ),
 		'Sample (empty) file validates' );
@@ -57,7 +59,9 @@ SKIP: {
 
 # Create a sample object from a minimal string
 SCOPE: {
-	my $report = PITA::Report->new( \"<report />" );
+	my $report = PITA::Report->new( \<<"END_XML" );
+<?xml version="1.0" encoding="ISO-8859-1"?><report xmlns='$XMLNS' />
+END_XML
 	isa_ok( $report, 'PITA::Report' );
 	is( scalar($report->installs), 0, '->installs returns zero' );
 	is_deeply( [ $report->installs ], [], '->installs returns null list' );

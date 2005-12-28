@@ -93,6 +93,10 @@ sub new {
 		Carp::croak("Invalid NamespaceURI");
 	}
 
+	# Flag that an xmlns attribute be added
+	# to the first element in the document
+	$self->{xmlns} = $self->{NamespaceURI};
+
 	$self;
 }
 
@@ -176,14 +180,31 @@ sub parse {
 		or Carp::croak("Did not provide a PITA::Report object");
 
 	# Attach the xmlns to the first tag
-	#$self->{xmlns} = $self->{NamespaceURI};
+	if ( $self->{NamespaceURI} ) {
+		$self->{xmlns} = $self->{NamespaceURI};
+	}
 
 	# Generate the SAX2 events
-	$self->SUPER::start_document( {} );
+	$self->start_document( {} );
 	$self->_parse_report( $Report );
-	$self->SUPER::end_document( {} );
+	$self->end_document( {} );
 
 	return 1;
+}
+
+sub start_document {
+	my $self = shift;
+
+	# Do the normal start_document tasks
+	$self->SUPER::start_document( @_ );
+
+	# And always put the XML declaration at the start
+	$self->xml_decl( {
+		Version  => '1.0',
+		Encoding => 'UTF-8',
+		} );
+
+	1;
 }
 
 # Generate events for the parent PITA::Report object
@@ -374,8 +395,32 @@ sub _undef {
 
 
 
+
 #####################################################################
 # Support Methods
+
+# Make sure the first element gets an xmlns attribute
+sub start_element {
+	my $self    = shift;
+	my $element = shift;
+	my $xmlns   = delete $self->{xmlns};
+
+	# Shortcut for the most the common case
+	unless ( $xmlns ) {
+		return $self->SUPER::start_element( $element );
+	}
+
+	# Add the XMLNS Attribute
+	$element->{Attributes}->{'xmlns'} = {
+		Prefix    => '',
+		LocalName => 'xmlns',
+		Name      => 'xmlns',
+		Value     => $xmlns,
+		};
+
+	# Pass on to the parent class
+	$self->SUPER::start_element( $element );		
+}
 
 # Strip out the Attributes for the end element
 sub end_element {

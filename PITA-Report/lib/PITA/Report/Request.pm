@@ -154,7 +154,7 @@ sub _init {
 		$self->{authpath} = '';
 	}
 
-	1;
+	$self;
 }
 
 =pod

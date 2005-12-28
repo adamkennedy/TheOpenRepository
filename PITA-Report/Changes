@@ -1,6 +1,13 @@
 Revision history for Perl extension PITA::Report
 
-0.01_01 Mon Nov 29 2005
+0.02    Wed 28 Dec 2005
+	- Completed a reasonable first pass.
+	- Object model is done and working
+	- SAX Driver creates well-formed XML
+	- SAX Parser round-trips back to the objects
+	- Ready for the public to start poking.
+
+0.01_01 Mon 29 Nov 2005
 	- Initial demonstration implementation
 	- Implements basic structure
 	- Supports only the <platform> and <distribution> tags

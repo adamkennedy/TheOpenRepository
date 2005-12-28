@@ -18,7 +18,8 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 11;
+use Test::More   tests => 17;
+use Params::Util '_INSTANCE';
 use PITA::Report ();
 
 
@@ -26,9 +27,62 @@ use PITA::Report ();
 
 
 #####################################################################
-# Create the Report
+# Round-Testing Function
 
-my $platform = PITA::Report::Platform->current;
+sub round_trip_ok {
+	my $report = _INSTANCE(shift, 'PITA::Report')
+		or die "Did not pass a PITA::Report to round_trip_ok";
+	my $name   = $_[0] ? "$_[0]: " : '';
+
+
+	# Save the Report object
+	my $output = '';
+	ok( $report->write( \$output ), "${name}->write(SCALAR) returns true" );
+
+
+	# Did we generate an XML document
+	like( $output,
+
+		qr{^
+			<\?xml   .+
+			(?:
+				</report  \s*  >
+				|
+				<report[^<>]+/>
+			)
+		$}sx,
+		"${name}PITA-XML is written" );
+
+
+
+	SKIP: {
+		# Load
+		my $report2 = eval { PITA::Report->new( \$output ) };
+		diag($@) if $@;
+		isa_ok( $report2, 'PITA::Report' );
+
+		unless ( $report2 ) {
+			skip("${name}Parsing failed, skipping comparison check", 1);
+		}
+
+		# Compare
+		is_deeply( $report, $report2,
+			"${name}PITA::Report object round-trips correctly" );
+	}
+}
+
+
+
+
+
+#####################################################################
+# Create the Report components
+
+my $platform = PITA::Report::Platform->new(
+	bin    => '/usr/bin/perl',
+	env    => { abc => 'def' },
+	config => { foo => undef },
+	);
 isa_ok( $platform, 'PITA::Report::Platform' );
 
 my $request = PITA::Report::Request->new(
@@ -56,18 +110,7 @@ include inc/Module/AutoInstall.pm
 *** Module::AutoInstall version 1.00
 *** Checking for dependencies...
 [Core Features]
-- File::Spec              ...loaded. (3.11 >= 0.80)
-- Test::More              ...loaded. (0.62 >= 0.47)
-- Module::Install::Share  ...loaded. (0.01)
-- Carp                    ...loaded. (1.02)
-- IO::Handle              ...loaded. (1.25)
-- IO::File                ...loaded. (1.13)
-- IO::Seekable            ...loaded. (1.1)
-- File::Flock             ...loaded. (104.111901 >= 101.060501)
-- Params::Util            ...loaded. (0.07 >= 0.07)
-- File::ShareDir          ...loaded. (0.02 >= 0.02)
-- XML::SAX::ParserFactory ...loaded. (1.01 >= 0.13)
-- XML::Validator::Schema  ...loaded. (1.08 >= 1.08)
+- File::Spec ...loaded. (3.11 >= 0.80)
 *** Module::AutoInstall configuration finished.
 include inc/Module/Install/WriteAll.pm
 Writing META.yml
@@ -76,6 +119,7 @@ include inc/Module/Install/Can.pm
 include inc/Module/Install/Fetch.pm
 Writing Makefile for PITA::Report
 END_STDOUT
+
 isa_ok( $command, 'PITA::Report::Command' );
 
 my $test = PITA::Report::Test->new(
@@ -100,33 +144,29 @@ isa_ok( $install, 'PITA::Report::Install' );
 ok( $install->add_command( $command ), '->add_command returned true' );
 ok( $install->add_test( $test ), '->add_test returned true' );
 
+
+
+
+
+#####################################################################
+# Test a Simple Report
+
 my $report = PITA::Report->new;
 isa_ok( $report, 'PITA::Report' );
-
-ok( $report->add_install( $install ), '->add_install returns ok' );
+round_trip_ok( $report, 'Empty' );
 
 
 
 
 
 #####################################################################
-# Write out the file and read it back in
+# Repeat with a relatively simple Install
 
-# Save
-my $output = '';
-ok( $report->write( \$output ), '->write(SCALAR) returns true' );
-like( $output, qr(^\<report\>.+\<\/report\>$)s, 'PITA-XML is written' );
+ok( $report->add_install( $install ), '->add_install returns ok' );
+round_trip_ok( $report, 'Simple' );
 
-SKIP: {
 
-	# Load
-	my $report2 = PITA::Report->new( \$output );
-	isa_ok( $report2, 'PITA::Report' );
 
-	skip("Parsing failed, skipping comparison check", 1) unless $report2;
 
-	# Compare
-	is_deeply( $report, $report2, 'PITA::Report object round-trips correctly' );
-}
 
 exit(0);

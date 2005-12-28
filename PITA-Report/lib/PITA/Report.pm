@@ -52,7 +52,7 @@ use strict;
 use Carp                    ();
 use Params::Util            ':ALL';
 use IO::File                ();
-use IO::Scalar              ();
+use IO::String              ();
 use File::Flock             ();
 use File::ShareDir          ();
 use XML::SAX::ParserFactory ();
@@ -68,6 +68,13 @@ use PITA::Report::SAXDriver ();
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
 	$VERSION = '0.02';
+}
+
+# Temporary Hack:
+# IO::String looks like a duck, but we need it to be a real duck. So lets
+# make it a duck if it didn't turn into a duck while we weren't looking.
+unless ( @IO::String::ISA ) {
+	@IO::String::ISA = qw{IO::Handle IO::Seekable};
 }
 
 # The XML Schema File
@@ -124,7 +131,7 @@ sub new {
 
 	# Validate the document
 	my $fh = $self->_FH(shift);
-	$class->validate( $fh );
+	# $class->validate( $fh );
 
 	# Reset the file handle for the next pass
 	$fh->seek( 0, 0 ) or Carp::croak(
@@ -260,7 +267,7 @@ sub write {
 sub _FH {
 	my ($class, $file) = @_;
 	if ( _SCALAR($file) ) {
-		$file = IO::Scalar->new( $file );
+		$file = IO::String->new( $file );
 	}
 	if ( _INSTANCE($file, 'IO::Seekable') ) {
 		if ( _INSTANCE($file, 'IO::Seekable') or $file->can('seek') ) {

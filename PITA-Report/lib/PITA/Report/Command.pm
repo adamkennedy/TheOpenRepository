@@ -87,7 +87,7 @@ sub _init {
 		Carp::croak('Invalid or missing stderr');
 	}
 
-	1;
+	$self;
 }
 
 =pod

@@ -24,6 +24,8 @@ use PITA::Report            ();
 use PITA::Report::SAXDriver ();
 use XML::SAX::Writer        ();
 
+my $XMLNS = PITA::Report->XMLNS;
+
 # Extra testing functions
 sub dies {
 	my $code = shift;
@@ -96,7 +98,9 @@ SCOPE: {
 	$driver->_undef;
 
 	$driver->end_document( {} );
-	driver_is( $driver, '<null />', '->_undef works as expected' );
+	driver_is( $driver,
+		"<?xml version='1.0' encoding='UTF-8'?><null xmlns='$XMLNS' />",
+		'->_undef works as expected' );
 }
 
 
@@ -117,7 +121,8 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $platform_string = <<"END_XML";
-<platform>
+<?xml version='1.0' encoding='UTF-8'?>
+<platform xmlns='$XMLNS'>
 <bin>BIN</bin>
 <env name='bar' />
 <env name='baz'><null /></env>
@@ -127,7 +132,8 @@ SCOPE: {
 <config name='foo'>FOO</config>
 </platform>
 END_XML
-	$platform_string =~ s/\n//g;
+	chomp $platform_string;
+	$platform_string =~ s/>\n</></g;
 	driver_is( $driver, $platform_string, '->_parse_platform works as expected' );	
 }
 
@@ -153,7 +159,8 @@ SCOPE: {
 
 	$driver->end_document( {} );	
 	my $request_string = <<"END_XML";
-<request>
+<?xml version='1.0' encoding='UTF-8'?>
+<request xmlns='$XMLNS'>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
 <filename>Foo-Bar-0.01.tar.gz</filename>
@@ -162,7 +169,8 @@ SCOPE: {
 <authpath>/id/authors/A/AD/ADAMK/Foo-Bar-0.01.tar.gz</authpath>
 </request>
 END_XML
-	$request_string =~ s/\n//g;
+	chomp $request_string;
+	$request_string =~ s/>\n</></g;
 	driver_is( $driver, $request_string, '->_parse_request works as expected' );	
 }
 
@@ -215,7 +223,10 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $command_string = <<"END_XML";
-<command><cmd>perl Makefile.PL</cmd><stdout>include /home/adam/cpan2/trunk/PITA-Report/inc/Module/Install.pm
+<?xml version='1.0' encoding='UTF-8'?>
+<command xmlns='$XMLNS'>
+<cmd>perl Makefile.PL</cmd>
+<stdout>include /home/adam/cpan2/trunk/PITA-Report/inc/Module/Install.pm
 include inc/Module/Install/Metadata.pm
 include inc/Module/Install/Base.pm
 include inc/Module/Install/Share.pm
@@ -245,9 +256,12 @@ include inc/Module/Install/Win32.pm
 include inc/Module/Install/Can.pm
 include inc/Module/Install/Fetch.pm
 Writing Makefile for PITA::Report
-</stdout><stderr /></command>
+</stdout>
+<stderr />
+</command>
 END_XML
 	chomp $command_string;
+	$command_string =~ s/>\n</></g;
 	driver_is( $driver, $command_string, '->_parse_command works as expected' );	
 }
 
@@ -278,15 +292,21 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $test_string = <<"END_XML";
-<test language='text/x-tap' name='t/01_main.t'><stdout>1..4
+<?xml version='1.0' encoding='UTF-8'?>
+<test xmlns='$XMLNS' language='text/x-tap' name='t/01_main.t'>
+<stdout>1..4
 ok 1 - Input file opened
 # diagnostic
 not ok 2 - First line of the input valid
 ok 3 - Read the rest of the file
 not ok 4 - Summarized correctly # TODO Not written yet
-</stdout><stderr /><exitcode>0</exitcode></test>
+</stdout>
+<stderr />
+<exitcode>0</exitcode>
+</test>
 END_XML
 	chomp $test_string;
+	$test_string =~ s/>\n</></g;
 	driver_is( $driver, $test_string, '->_parse_test works as expected' );	
 }
 
@@ -310,7 +330,8 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<install>
+<?xml version='1.0' encoding='UTF-8'?>
+<install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -331,7 +352,7 @@ SCOPE: {
 </install>
 END_XML
 	chomp $install_string;
-	$install_string =~ s/\n//g;
+	$install_string =~ s/>\n</></g;
 	driver_is( $driver, $install_string, '->_parse_install works as expected' );	
 }
 
@@ -350,7 +371,8 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<install>
+<?xml version='1.0' encoding='UTF-8'?>
+<install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -436,7 +458,8 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $report_string = <<"END_XML";
-<report />
+<?xml version='1.0' encoding='UTF-8'?>
+<report xmlns='$XMLNS' />
 END_XML
 	chomp $report_string;
 	$report_string =~ s/>\n</></g;
@@ -450,7 +473,8 @@ END_XML
 # Add an install report to the file
 ok( $report->add_install( $install ), '->add_install returns ok' );
 my $report_string = <<"END_XML";
-<report>
+<?xml version='1.0' encoding='UTF-8'?>
+<report xmlns='$XMLNS'>
 <install>
 <request>
 <scheme>perl5</scheme>
@@ -526,9 +550,7 @@ SCOPE: {
 
 	# Create a installer
 	$driver->_parse_report( $report );
-
 	$driver->end_document( {} );
-
 	driver_is( $driver, $report_string,
 		'->_parse_report works as expected' );
 }

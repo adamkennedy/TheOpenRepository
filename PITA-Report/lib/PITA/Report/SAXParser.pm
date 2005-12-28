@@ -29,23 +29,47 @@ public API, and so are not documented here.
 
 use strict;
 use base 'XML::SAX::Base';
-use Carp         'croak';
-use Params::Util ':ALL';
+use Carp ();
+use Params::Util '_INSTANCE';
 
-use vars qw{$VERSION $XML_NAMESPACE %TRIM};
+use vars qw{$VERSION $XML_NAMESPACE @PROPERTIES %TRIM};
 BEGIN {
 	$VERSION = '0.02';
 
 	# Define the XML namespace we are a parser for
 	$XML_NAMESPACE = 'http://ali.as/xml/schemas/PITA/1.0';
 
-	# The list of tags to trim character whitespace for
-	%TRIM = map { $_ => 1 } qw{
-		osname    archname  perlpath
-		distname  filename  cpanpath  md5sum  
-		};
-}
+	# The name/tags for the simple properties
+	@PROPERTIES = qw{
+		scheme  distname   filename
+		md5sum  authority  authpath
+		cmd     bin        system
+		exitcode
+	};
 
+	# Set up the char strings to trim
+	%TRIM = map { $_ => 1 } @PROPERTIES;
+
+	# Create the property handlers
+	foreach my $name ( @PROPERTIES ) { eval <<"END_PERL" }
+
+	# Start capturing chars
+	sub start_element_${name} {
+		\$_[0]->{chars} = '';
+		1;
+	}
+
+	# Save those chars to the element
+	sub end_element_${name} {
+		my \$self = shift;
+
+		# Add the $name to the context
+		\$self->_context->{$name} = delete \$self->{chars};
+
+		1;
+	}
+END_PERL
+}
 
 
 
@@ -75,17 +99,54 @@ Returns a new C<PITA::Report::SAXParser> object, or dies on error.
 sub new {
 	my $class  = shift;
 	my $report = _INSTANCE(shift, 'PITA::Report')
-		or croak("Did not provie a PITA::Report param");
+		or Carp::croak("Did not provie a PITA::Report param");
 
 	# Create the basic parsing object
 	my $self = bless {
-		report => $report,
+		report  => $report,
+		context => [],
 		}, $class;
 
 	$self;
 }
 
+# Add to the context
+sub _push {
+	push @{shift->{context}}, @_;
+	return 1;
+}
 
+# Remove from the context
+sub _pop {
+	my $self = shift;
+	unless ( @{$self->{context}} ) {
+		die "Ran out of context";
+	}
+	return pop @{$self->{context}};
+}
+
+# Get the current context
+sub _context {
+	shift->{context}->[-1];
+}
+
+# Convert full Attribute data into a simple hash
+sub _hash {
+	my $self  = shift;
+	my $attrs = shift;
+
+	# Shrink it
+	my %hash  = map { $_->{LocalName}, $_->{Value} }
+		grep {
+			$_->{Value} =~ s/^\s+//;
+			$_->{Value} =~ s/\s+$//;
+			1;
+		}
+		grep { ! $_->{Prefix} }
+		values %$attrs;
+
+	return \%hash;
+}
 
 
 
@@ -97,42 +158,36 @@ sub start_element {
 
 	# We don't support namespaces.
 	if ( $element->{Prefix} ) {
-		croak( __PACKAGE__ . ' does not support XML namespaces' );
+		Carp::croak( __PACKAGE__
+		. ' does not support XML namespaces (yet)' );
 	}
 
 	# Shortcut if we don't implement a handler
-	my $handler = "start_element_$element->{LocalName}";
+	my $handler = 'start_element_' . $element->{LocalName};
 	return 1 unless $self->can($handler);
 
-	# Flatten the Attributes into a simple hash
-	my %hash = map { $_->{LocalName}, $_->{Value} }
-		grep { $_->{Value} =~ s/^\s+//; $_->{Value} =~ s/\s+$//; 1; }
-		grep { ! $_->{Prefix} }
-		values %{$element->{Attributes}};
-
 	# Hand off to the handler
-	$self->$handler( \%hash );
+	my $hash = $self->_hash($element->{Attributes});
+	return $self->$handler( $hash );
 }
 
 sub end_element {
 	my ($self, $element) = @_;
 
 	# Hand off to the optional tag-specific handler
-	my $handler = "end_element_$element->{LocalName}";
+	my $handler = 'end_element_' . $element->{LocalName};
 	if ( $self->can($handler) ) {
 		# If there is anything in the character buffer, trim whitespace
-		if ( defined $self->{character_buffer} ) {
-			$self->{character_buffer} =~ s/^\s+//;
-			$self->{character_buffer} =~ s/\s+$//;
+		if ( exists $self->{chars} and defined $self->{chars} ) {
+			if ( $TRIM{$element->{LocalName}} ) {
+				$self->{chars} =~ s/^\s+//;
+				$self->{chars} =~ s/\s+$//;
+			}
 		}
-
 		$self->$handler();
 	}
 
-	# Clean up
-	delete $self->{character_buffer};
-
-	1;
+	return 1;
 }
 
 # Because we don't know in what context this will be called,
@@ -141,31 +196,12 @@ sub end_element {
 sub characters {
 	my ($self, $element) = @_;
 
-	# Add to the buffer
-	$self->{character_buffer} .= $element->{Data};
-
-	1;
-}
-
-# Generate the methods for the simple properties
-BEGIN {
-	foreach my $element ( qw{
-		osname    archname  perlpath  perlv
-		distname  filename  cpanpath  md5sum   
-	} ) {
-		eval <<"END_PERL";
-sub start_element_$element {
-	1;
-}
-
-sub end_element_$element {
-	my \$self = shift;
-	\$self->{context}->[-1]->{$element} = \$self->{character_buffer};
-	1;
-}
-END_PERL
-
+	# Add to the buffer (if not null)
+	if ( exists $self->{chars} and defined $self->{chars} ) {
+		$self->{chars} .= $element->{Data};
 	}
+
+	1;
 }
 
 
@@ -178,9 +214,9 @@ END_PERL
 # start_element_foo( $self, \%attribute_hash )
 # end_element_foo  ( $self )
 
-### Ignore the actual report tag
-# sub start_element_report {}
-# sub end_element_report {}
+# Ignore the actual report tag
+sub start_element_report { 1 }
+sub   end_element_report { 1 }
 
 
 
@@ -190,26 +226,14 @@ END_PERL
 # Handle the <install>...</install> tag
 
 sub start_element_install {
-	my ($self, $hash) = @_;
-
-	# Create a new ::Install object and add to the context
-	my $install = bless {}, 'PITA::Report::Install';
-	push @{$self->{context}}, $install;
-
-	1;
+	$_[0]->_push( bless { commands => [], tests => [] }, 'PITA::Report::Install' );
 }
 
 sub end_element_install {
 	my $self = shift;
 
-	# Take the install off the end of the context
-	my $install = pop @{$self->{context}};
-
-	# Complete it and add to the larger $FOO
-	$install->_init;
-
-	# Add it to the report
-	$self->{report}->add_install( $install );
+	# Complete the install and add to the report
+	$self->{report}->add_install( $self->_pop->_init );
 
 	1;
 }
@@ -219,29 +243,17 @@ sub end_element_install {
 
 
 #####################################################################
-# Handle the <distribution>...</distribution> tag
+# Handle the <request>...</request> tag
 
-sub start_element_distribution {
-	my ($self, $hash) = @_;
-
-	# Create a new ::Distribution object and add to the context
-	my $distribution = bless {}, 'PITA::Report::Distribution';
-	push @{$self->{context}}, $distribution;
-
-	1;
+sub start_element_request {
+	$_[0]->_push( bless {}, 'PITA::Report::Request' );
 }
 
-sub end_element_distribution {
+sub end_element_request {
 	my $self = shift;
 
-	# Take the distribution off the end of the context
-	my $distribution = pop @{$self->{context}};
-
-	# Complete it and add to the larger $FOO
-	$distribution->_init;
-
-	# Set it in the install object
-	$self->{context}->[-1]->{distribution} = $distribution;
+	# Complete the Request and add to the Install
+	$self->_context->{request} = $self->_pop->_init;
 
 	1;
 }
@@ -254,27 +266,190 @@ sub end_element_distribution {
 # Handle the <platform>...</platform> tag
 
 sub start_element_platform {
-	my ($self, $hash) = @_;
-
-	# Create a new ::Distribution object and add to the context
-	my $platform = bless {}, 'PITA::Report::Platform';
-	push @{$self->{context}}, $platform;
-
-	1;
+	$_[0]->_push( bless { env => {}, config => {}, }, 'PITA::Report::Platform' );
 }
 
 sub end_element_platform {
 	my $self = shift;
 
-	# Take the distribution off the end of the context
-	my $platform = pop @{$self->{context}};
+	# Complete the Platform and add to the Install
+	$self->_context->{platform} = $self->_pop->_init;
 
-	# Complete it and add to the larger $FOO
-	$platform->_init;
+	1;
+}
 
-	# Set it in the install object
-	$self->{context}->[-1]->{platform} = $platform;
 
+
+
+
+#####################################################################
+# Handle the <command>...</command> tag
+
+sub start_element_command {
+	$_[0]->_push( bless {}, 'PITA::Report::Command' );
+}
+
+sub end_element_command {
+	my $self = shift;
+
+	# Complete the Command and add to the Install
+	my $command = $self->_pop->_init;
+	push @{ $self->_context->{commands} }, $command;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <test>...</test> tag
+
+sub start_element_test {
+	my ($self, $hash) = @_;
+
+	# Create the test object
+	my $test = bless {
+		language => $hash->{language},
+		}, 'PITA::Report::Test';
+	if ( $hash->{name} ) {
+		$test->{name} = $hash->{name};
+	}
+
+	$_[0]->_push( $test );
+}
+
+sub end_element_test {
+	my $self = shift;
+
+	# Complete the Command and add to the Install
+	my $test = $self->_pop->_init;
+	push @{ $self->_context->{tests} }, $test;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <stdout>...</stdout> tag
+
+# Start capturing the STDOUT content
+sub start_element_stdout {
+	$_[0]->{chars} = '';
+	1;
+}
+
+# Save those chars to the element by reference, not plain strings
+sub end_element_stdout {
+	my $self = shift;
+
+	# Add the $name to the context
+	my $stdout = delete $self->{chars};
+	$self->_context->{stdout} = \$stdout;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <stderr>...</stderr> tag
+
+# Start capturing the STDERR content
+sub start_element_stderr {
+	$_[0]->{chars} = '';
+	1;
+}
+
+# Save those chars to the element by reference, not plain strings
+sub end_element_stderr {
+	my $self = shift;
+
+	# Add the $name to the context
+	my $stderr = delete $self->{chars};
+	$self->_context->{stderr} = \$stderr;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <env>...</env> tag
+
+# Start capturing the $ENV{key} content
+sub start_element_env {
+	my ($self, $hash) = @_;
+	$self->{chars} = '';
+	$self->_push( $hash->{name} );
+}
+
+# Save those chars to the element by reference, not plain strings
+sub end_element_env {
+	my $self = shift;
+
+	# Add the vey/value pair to the env propery
+	my $name  = $self->_pop;
+	my $value = delete $self->{chars};
+	$self->_context->{env}->{$name} = $value;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle the <config>...</config> tag
+
+# Start capturing the %Config::Config content
+sub start_element_config {
+	my ($self, $hash) = @_;
+	$self->{chars} = '';
+	$self->_push( $hash->{name} );
+}
+
+# Save those chars to the element by reference, not plain strings
+sub end_element_config {
+	my $self = shift;
+
+	# Add the vey/value pair to the config propery
+	my $name  = $self->_pop;
+	my $value = delete $self->{chars};
+	$self->_context->{config}->{$name} = $value;
+
+	1;
+}
+
+
+
+
+
+#####################################################################
+# Handle <null/> tags in a variety of things
+
+sub start_element_null {
+	my ($self, $hash) = @_;
+
+	# A null tag indicates that the currently-accumulating character
+	# buffer should be set to undef.
+	if ( exists $self->{chars} ) {
+		$self->{chars} = undef;
+	}
+
+	1;
+}
+
+sub end_element_null {
 	1;
 }
 

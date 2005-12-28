@@ -105,7 +105,7 @@ sub _init {
 		}
 	}
 
-	1;
+	$self;
 }
 
 =pod

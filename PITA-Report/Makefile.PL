@@ -5,8 +5,8 @@ all_from 'lib/PITA/Report.pm';
 
 requires 'Carp'                    => 0;
 requires 'IO::Handle'              => 0;
-requires 'IO::File'                => 0;
 requires 'IO::Seekable'            => 0;
+requires 'IO::File'                => 0;
 requires 'IO::String'              => '1.06';
 requires 'File::Flock'             => '101.060501';
 requires 'Params::Util'            => '0.07';
