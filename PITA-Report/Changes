@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::Report
 
+0.03    Fri 30 Dec 2005
+	- Added the ability for PITA::Report::Request objects to coerce to
+	  and from Config::Tiny objects.
+
 0.02    Wed 28 Dec 2005
 	- Completed a reasonable first pass.
 	- Object model is done and working

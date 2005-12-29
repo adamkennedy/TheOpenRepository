@@ -41,7 +41,7 @@ use Carp ();
 
 use vars qw{$VERSION %SCHEMES};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	# The list of supported schemes
 	%SCHEMES = (
@@ -269,6 +269,25 @@ For non-CPAN distributions, returns false (the null string).
 
 sub authpath {
 	$_[0]->{authpath};
+}
+
+
+
+
+#####################################################################
+# Coercion Methods
+
+sub __as_Config_Tiny {
+	my $self   = shift;
+	my $config = Config::Tiny->new;
+	$config->{_} = { %$self }; # A little hacky, but simple
+	$config;
+}
+
+sub __from_Config_Tiny {
+	my ($class, $config) = @_;
+	my $section = $config->{_} || {};
+	$class->new( %$section );
 }
 
 1;
