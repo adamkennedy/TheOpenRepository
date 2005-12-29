@@ -15,13 +15,16 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 # Check their perl version
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
-use_ok('Class::Autouse');
+use_ok('Class::Autouse'        );
 use_ok('Class::Autouse::Parent');
+
+is( $Class::Autouse::VERSION, $Class::Autouse::Parent::VERSION,
+	'C:A and C:A:Parent versions match' );
 
 exit(0);

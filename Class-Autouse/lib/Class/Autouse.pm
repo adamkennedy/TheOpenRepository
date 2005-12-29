@@ -36,7 +36,7 @@ use vars qw{ $HOOKS %chased *_UNIVERSAL_can     }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.22';
+	$VERSION = '1.23';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
 	*_UNIVERSAL_can = *UNIVERSAL::can{CODE};
@@ -588,7 +588,7 @@ __END__
 
 =head1 NAME
 
-Class::Autouse - Run-time class loading on first method call
+Class::Autouse - Run-time load a class the first time you call a method in it.
 
 =head1 SYNOPSIS
 

@@ -1,5 +1,13 @@
 Revision history for Perl extension Class::Autouse.
 
+1.23 Thu Dec 29 2005
+	- In moving from CVS to SVN I forgot to bring ::Parent with it.
+	  (The tests passed spuriously because it found the old version.)
+	- Upgraded Module::Install and shrunk Makefile.PL again to reflect
+	  the new features in it.
+	- Upgraded List::Util dependency to 1.18 because of memory leaks
+	  and problems with non XS versions of functions we use.
+
 1.22 Wed Dec 21 2005
 	- Apparently generating spurious warnings on Perl 5.8.1
 	  on Mac OS X when using SVK. Tentatively applying solution.
