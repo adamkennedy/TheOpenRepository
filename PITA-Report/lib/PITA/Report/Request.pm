@@ -41,7 +41,7 @@ use Carp ();
 
 use vars qw{$VERSION %SCHEMES};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 
 	# The list of supported schemes
 	%SCHEMES = (
@@ -175,7 +175,7 @@ Perl 5 general testing scheme.
 Auto-detect the specific sub-scheme (currently either C<perl5.makefile>
 or C<perl5.build>)
 
-=item perl5.makefile
+=item perl5.make
 
 Traditional Perl 5 testing scheme.
 

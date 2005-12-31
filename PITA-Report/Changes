@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::Report
 
+0.04    Sat 31 Dec 2005
+	- Various small tweaks and bug fixes
+	- Upgraded to newer M:I with Cygwin fixes
+
 0.03    Fri 30 Dec 2005
 	- Added the ability for PITA::Report::Request objects to coerce to
 	  and from Config::Tiny objects.
