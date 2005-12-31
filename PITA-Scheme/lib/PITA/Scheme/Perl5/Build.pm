@@ -40,7 +40,7 @@ sub prepare_package {
 	$self->SUPER::prepare_package(@_);
 
 	# Validate that the package has a Makefile.PL in the root
-	unless ( grep { $_ eq 'Build.PL' } $self->extract_files ) {
+	unless ( -f $self->workarea_file('Build.PL') ) {
 		Carp::croak("Package does not contain a Makefile.PL");
 	}
 

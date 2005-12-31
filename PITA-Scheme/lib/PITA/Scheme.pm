@@ -80,9 +80,10 @@ sub new {
 	unless ( $p{injector} ) {
 		Carp::croak("Scheme 'injector' was not provided");
 	}
-	unless ( File::Spec->file_name_is_absolute($p{injector}) ) {
-		Carp::croak("Scheme 'injector' is not an absolute path");
-	}
+	### Might not be needed now we don't write back to it
+	#unless ( File::Spec->file_name_is_absolute($p{injector}) ) {
+	#	Carp::croak("Scheme 'injector' is not an absolute path");
+	#}
 	unless ( -d $p{injector} ) {
 		Carp::croak("Scheme 'injector' does not exist");
 	}
@@ -114,7 +115,7 @@ sub new {
 	}
 
 	# Load the config file
-	my $config = Config::Tiny->new( $scheme_conf );
+	my $config = Config::Tiny->read( $scheme_conf );
 	unless ( _INSTANCE($config, 'Config::Tiny') ) {
 		Carp::croak("Failed to load scheme.conf config file");
 	}
@@ -148,7 +149,7 @@ sub new {
 
 	# Resolve the specific schema class for this test run
 	my $scheme = $request->scheme;
-	my $driver = join( '::', 'PITA', 'Scheme', map { lcfirst $_ } split /-/, lc($scheme || '') );
+	my $driver = join( '::', 'PITA', 'Scheme', map { ucfirst $_ } split /\./, lc($scheme || '') );
 	unless ( $scheme and _CLASS($driver) ) {
 		Carp::croak("Request contains an invalid scheme name '$scheme'");
 	}
@@ -199,7 +200,7 @@ sub request {
 
 
 #####################################################################
-# Main Methods
+# PITA::Scheme Methods
 
 sub load_config {
 	my $self = shift;
@@ -211,6 +212,12 @@ sub load_config {
 
 	# Validate some basics
 
+	1;
+}
+
+# Nothing, yet
+sub prepare_package {
+	my $self = shift;
 	1;
 }
 

@@ -28,7 +28,7 @@ sub new {
 
 	# Can we locate the package?
 	my $filename = $self->request->filename;
-	$self->{archive} = File::Spec->catfile( $self->{injector}, $filename );
+	$self->{archive} = File::Spec->catfile( $self->injector, $filename );
 	unless ( -f $self->{archive} ) {
 		Carp::croak('Failed to find package $filename in injector');
 	}
@@ -45,7 +45,8 @@ sub extract_path {
 }
 
 sub extract_files {
-	@{$_[0]->{extract_files}};
+	my $files = $_[0]->{extract_files};
+	$files ? @$files : ();
 }
 
 
@@ -57,6 +58,7 @@ sub extract_files {
 
 sub prepare_package {
 	my $self = shift;
+	$self->SUPER::prepare_package(@_);
 	return 1 if $self->{extract_files};
 
 	# Extract the package to the working directory
@@ -72,9 +74,29 @@ sub prepare_package {
 	# Save the list of files
 	$self->{extract_path}  = $archive->extract_path;
 	$self->{extract_files} = $archive->files;
+	### For now this list is unreliable and inconsistent.
 
 	# Look for a single subdirectory and descend if needed
 	$self;
+}
+
+
+
+
+
+#####################################################################
+# PITA::Scheme::Perl Methods
+
+# Mainly a convenience for now.
+sub workarea_file {
+	my $self = shift;
+
+	# If the package has been extracted, prefer its
+	# interpretation of being where the workarea is.
+	my $workarea = defined $self->extract_path
+		? $self->extract_path
+		: $self->workarea;
+	File::Spec->catfile( $workarea, shift );
 }
 
 1;

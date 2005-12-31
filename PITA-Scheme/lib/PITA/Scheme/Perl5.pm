@@ -9,6 +9,7 @@ package PITA::Scheme::Perl5;
 
 use strict;
 use base 'PITA::Scheme::Perl';
+use File::Spec ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -47,12 +48,12 @@ sub prepare_package {
 	# Whichever one we call, it will end up called the same
 	# prepare_package in ::Perl. This isn't a problem, as it knows
 	# how to shortcut.
-	if ( grep { $_ eq 'Makefile.PL' } $self->extract_files ) {
+	if ( -f $self->workarea_file('Makefile.PL') ) {
 		require PITA::Scheme::Perl5::Make;
 		bless $self, 'PITA::Scheme::Perl5::Make';
 		return $self->prepare_package;
 
-	} elsif ( grep { $_ eq 'Build.PL' } $self->extract_files ) {
+	} elsif ( -f $self->workarea_file('Build.PL') ) {
 		require PITA::Scheme::Perl5::Make;
 		bless $self, 'PITA::Scheme::Perl5::Make';
 		return $self->prepare_package;
