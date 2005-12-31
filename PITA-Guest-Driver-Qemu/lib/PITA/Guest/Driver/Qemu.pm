@@ -108,10 +108,10 @@ sub save_host_config {
 	my $config = $self->request->__as_Config_Tiny;
 
 	# Add the host-specific config variables
-	$config->{host} = $options;
+	$config->{instance} = $options;
 
 	# Save the config file
-	my $file = File::Spec->catfile( $self->tempdir, 'pitahost.conf' );
+	my $file = File::Spec->catfile( $self->tempdir, 'scheme.conf' );
 	$config->write( $file )
 		or Carp::croak("Failed to write config to $file");
 
