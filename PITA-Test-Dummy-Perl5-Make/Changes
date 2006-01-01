@@ -1,4 +1,8 @@
 Revision history for PITA-Test-Dummy-Perl5-Make
 
-0.01    Mon  2 Jan 2006
-        First (and probably only) version
+1.01 Mon  2 Jan 2005
+     - Removed the extra included files
+     - Documented that Mike's head comes off
+
+1.00 Mon  2 Jan 2006
+     - First (and probably only) version

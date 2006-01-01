@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 sub dummy { 'Mike' }
@@ -50,7 +50,9 @@ Adam Kennedy, C<< <cpan at ali.as> >>
 
 =head1 SUPPORT
 
-No support is available for Mike
+No support is available for Mike.
+
+OK OK, yes his head B<is> meant to come off like that
 
 =head1 SEE ALSO
 
