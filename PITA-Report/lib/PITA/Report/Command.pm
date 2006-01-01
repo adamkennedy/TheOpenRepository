@@ -10,9 +10,9 @@ PITA::Report::Command - An executed command, with stored output
 
   # Create a command
   my $dist = PITA::Report::Request->new(
-  	system    => 'perl Makefile.PL',
-  	stdout    => \"...",
-  	stderr    => \"...",
+  	cmd    => 'perl Makefile.PL',
+  	stdout => \"...",
+  	stderr => \"...",
   	);
 
 =head1 DESCRIPTION
@@ -32,7 +32,7 @@ use Params::Util '_SCALAR0';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -48,7 +48,28 @@ BEGIN {
 
 The C<new> constructor is used to create a new ::Command object.
 
-TO BE COMPLETED
+It takes a set of key/value names params.
+
+=over
+
+=item cmd
+
+The C<cmd> param should contains the command that was executed,
+as it was sent to the operating system, as as a plain string.
+
+=item stdout
+
+The C<stdout> param should be the resulting output to C<STDOUT>,
+provided as a reference to a C<SCALAR> string.
+
+=item stderr
+
+The C<stderr> param should be the resulting output to C<STDERR>,
+provided as a reference to a C<SCALAR> string.
+
+=back
+
+Returns a new L<PITA::Report::Command> object, or dies on error.
 
 =cut
 
@@ -78,12 +99,12 @@ sub _init {
 	}
 
 	# Check the STDOUT
-	unless ( _SCALAR0($self->{stdout}) ) {
+	unless ( PITA::Report->_OUTPUT($self, 'stdout') ) {
 		Carp::croak('Invalid or missing stdout');
 	}
 
 	# Check the STDERR
-	unless ( _SCALAR0($self->{stderr}) ) {
+	unless ( PITA::Report->_OUTPUT($self, 'stderr') ) {
 		Carp::croak('Invalid or missing stderr');
 	}
 

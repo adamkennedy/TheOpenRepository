@@ -41,7 +41,7 @@ use Carp ();
 
 use vars qw{$VERSION %SCHEMES};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 
 	# The list of supported schemes
 	%SCHEMES = (

@@ -34,7 +34,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION $XML_NAMESPACE @PROPERTIES %TRIM};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 
 	# Define the XML namespace we are a parser for
 	$XML_NAMESPACE = 'http://ali.as/xml/schemas/PITA/1.0';

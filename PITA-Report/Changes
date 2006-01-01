@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::Report
 
+0.05    Sun  1 Jan 2005
+	- More flexibility for the stdout and stderr params to Command and Test
+	- Fixed some documentation mistakes
+
 0.04    Sat 31 Dec 2005
 	- Various small tweaks and bug fixes
 	- Upgraded to newer M:I with Cygwin fixes

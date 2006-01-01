@@ -67,7 +67,7 @@ use PITA::Report::SAXDriver ();
 
 use vars qw{$VERSION $SCHEMA};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 # Temporary Hack:
@@ -290,6 +290,26 @@ sub _FH {
 		 Carp::croak("Failed to open PITA::Report file '$file'");
 	}
 	$fh;
+}
+
+sub _OUTPUT {
+	my ($class, $object, $name) = @_;
+	return undef unless exists  $object->{$name};
+	return undef unless defined $object->{$name};
+
+	# Convert from array to scalar ref
+	if ( _ARRAY0($object->{$name}) ) {
+		# Clean up newlines and merge into SCALAR
+		my $param = $object->{$name};
+		foreach my $i ( 0 .. $#$param ) {
+			$param->[$i] =~ s/[\012\015]+$/\n/;
+		}
+		$param = join '', @$param;
+		$object->{$name} = \$param;
+	}
+
+	# Check for scalarness
+	_SCALAR0($object->{$name}) ? 1 : undef;
 }
 
 1;

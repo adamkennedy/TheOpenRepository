@@ -21,7 +21,7 @@ use Params::Util '_SCALAR0';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -82,13 +82,13 @@ sub _init {
 	}
 
 	# Check the STDOUT
-	unless ( _SCALAR0($self->{stdout}) ) {
+	unless ( PITA::Report->_OUTPUT($self, 'stdout') ) {
 		Carp::croak('Invalid or missing stdout');
 	}
 
 	# Check the STDERR
 	if ( exists $self->{stderr} ) {
-		unless ( _SCALAR0($self->{stderr}) ) {
+		unless ( PITA::Report->_OUTPUT($self, 'stderr') ) {
 			Carp::croak('Invalid or missing stderr');
 		}
 	}
