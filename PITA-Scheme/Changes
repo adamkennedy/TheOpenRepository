@@ -1,7 +1,0 @@
-Revision history for Perl extension PITA::Scheme
-
-0.01  Sat 31 Dec 2005
-	- Initial implementation
-	- Completes sequence up to prepare_package
-	- Releasing to get some early CPAN Testers results
-	  (As this needs to be highly platform neutral)
