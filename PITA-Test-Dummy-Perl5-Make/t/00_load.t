@@ -1,4 +1,4 @@
-#!perl -T
+#!perl 
 
 print "1..2\n";
 
@@ -15,7 +15,7 @@ eval {
 if ( length($@) ) {
 	print "not ok 2 - PITA::Test::Dummy::Perl5::Make loads ok\n";
 } else {
-	print "not ok 2 - PITA::Test::Dummy::Perl5::Make loads ok\n";
+	print "ok 2 - PITA::Test::Dummy::Perl5::Make loads ok\n";
 }
 
 exit(0);
