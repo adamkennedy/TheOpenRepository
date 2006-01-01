@@ -21,14 +21,14 @@ BEGIN {
 
 use File::Remove;
 use PITA::Scheme;
-use Test::More tests => 23;
+use Test::More tests => 29;
 
 # Locate the injector directory
-my $injector = catdir( 't', '02_empiric', 'injector' );
+my $injector = catdir( 't', '02_prepare', 'injector' );
 ok( -d $injector, 'Test injector exists' );
 
 # Create the workarea directory
-my $workarea = catdir( 't', '02_empiric', 'workarea' );
+my $workarea = catdir( 't', '02_prepare', 'workarea' );
       File::Remove::remove( \1, $workarea ) if -d $workarea;
 END { File::Remove::remove( \1, $workarea ) if -d $workarea; }
 ok( mkdir( $workarea ), 'Created workarea' );
@@ -63,8 +63,7 @@ is( scalar($scheme->extract_files), undef, 'No ->extract_files ' );
 is_deeply( [ $scheme->extract_files ], [], 'No ->extract_files ' );
 
 # Prepare the package
-my $rv = $scheme->prepare_package;
-ok( $rv, '->prepare_package runs ok' );
+ok( $scheme->prepare_package, '->prepare_package runs ok' );
 ok( $scheme->extract_path, '->extract_path gets set'  );
 ok( -d $scheme->extract_path, '->extract_path exists' );
 ok( $scheme->workarea_file('Makefile.PL'), '->workarea_file returns a value' );
@@ -72,5 +71,15 @@ like( $scheme->workarea_file('Makefile.PL'), qr/\bMakefile\.PL$/,
 	'->workarea_file return a right-looking string' );
 ok( -f $scheme->workarea_file('Makefile.PL'),
 	'Makefile.PL exists in the extract package' );
+
+# Prepare the environment
+ok( $scheme->prepare_environment, '->prepare_environment runs ok' );
+ok( -f 'Makefile.PL', 'Changed to package directory, found Makefile.PL' );
+isa_ok( $scheme->platform, 'PITA::Report::Platform' );
+
+# Prepare the report
+ok( $scheme->prepare_report, '->prepare_report runs ok' );
+isa_ok( $scheme->install, 'PITA::Report::Install'   );
+isa_ok( $scheme->report, 'PITA::Report'             );
 
 exit(0);

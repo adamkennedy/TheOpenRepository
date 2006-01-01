@@ -7,11 +7,12 @@ use strict;
 use base 'PITA::Scheme';
 use Carp             ();
 use File::Spec       ();
+use Params::Util     '_INSTANCE';
 use Archive::Extract ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -49,6 +50,10 @@ sub extract_files {
 	$files ? @$files : ();
 }
 
+sub platform {
+	$_[0]->{platform};
+}
+
 
 
 
@@ -79,6 +84,33 @@ sub prepare_package {
 	# Look for a single subdirectory and descend if needed
 	$self;
 }
+
+sub prepare_environment {
+	my $self = shift;
+	unless ( $self->extract_path ) {
+		Carp::croak("Cannot call prepare_environment without extracting pachage");
+	}
+
+	# Change to the extraction directory
+	unless ( chdir $self->extract_path ) {
+		Carp::croak("Failed to change to extract_path for execution");
+	}
+
+	# Set any environment variables from the Request
+	### Not supported by PITA::Report::Request yet
+
+	# Save the platform configuration
+	$self->{platform} = PITA::Report::Platform->current;
+	unless ( _INSTANCE($self->{platform}, 'PITA::Report::Platform') ) {
+		Carp::croak("Failed to capture platform information");
+	}
+
+	# Apply private changes to control the testing environment
+	### Not implemented
+
+	1;
+}
+
 
 
 

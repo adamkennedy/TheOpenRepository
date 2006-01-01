@@ -8,6 +8,8 @@ PITA::Scheme - PITA Testing Schemes
 
 =head1 SYNOPSIS
 
+  ...
+
 =head1 DESCRIPTION
 
 While most of the PITA system exists outside the guest testing images and
@@ -47,19 +49,20 @@ And it should do the rest. Or die... but we'll cover that later.
 
 use 5.005;
 use strict;
-use Carp         ();
-use IPC::Cmd     ();
-use File::Spec   ();
-use File::Temp   ();
-use Params::Util '_HASH',
-                 '_CLASS',
-                 '_INSTANCE';
-use Config::Tiny ();
-use PITA::Report ();
+use Carp           ();
+use IPC::Cmd       ();
+use File::Spec     ();
+use File::Temp     ();
+use Params::Util   '_HASH',
+                   '_CLASS',
+                   '_INSTANCE';
+use Config::Tiny   ();
+use LWP::UserAgent ();
+use PITA::Report   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -195,6 +198,14 @@ sub request {
 	$_[0]->{request};
 }
 
+sub install {
+	$_[0]->{install};	
+}
+
+sub report {
+	$_[0]->{report};
+}
+
 
 
 
@@ -215,25 +226,92 @@ sub load_config {
 	1;
 }
 
+# Do the various preparations
+sub prepare_all {
+	my $self = shift;
+	return 1 if $self->install;
+
+	# Prepare the package
+	$self->prepare_package;
+
+	# Prepare the environment
+	$self->prepare_environment;
+
+	# Prepare the report
+	$self->prepare_report;
+
+	1;
+}
+
 # Nothing, yet
 sub prepare_package {
 	my $self = shift;
 	1;
 }
 
+sub prepare_report {
+	my $self = shift;
+	return 1 if $self->install;
+
+	# Create the install object
+	$self->{install} = PITA::Report::Install->new(
+		request  => $self->request,
+		platform => $self->platform,
+		);
+
+	# Create the main report object
+	$self->{report} ||= PITA::Report->new();
+	$self->report->add_install( $self->install );
+
+	1;
+}
+
 sub execute_command {
 	my ($self, $cmd) = @_;
+
+	# Execute the command
 	my ($success, $error_code, undef, $stdout_buf, $stderr_buf )
 		= IPC::Cmd::run( command => $cmd, verbose => 0 );
+
+	# Turn the results into a Command object
 	my $command = PITA::Report::Command->new(
-		system => $cmd,
+		cmd    => $cmd,
 		stdout => $stdout_buf,
 		stderr => $stderr_buf,
 		);
 	unless ( _INSTANCE($command, 'PITA::Report::Command') ) {
 		Carp::croak("Error creating ::Command");
 	}
+
+	# If we have a PITA::Report::Install object available,
+	# automatically add to it.
+	if ( $self->install ) {
+		$self->install->add_command( $command );
+	}
+
 	$command;
+}
+
+# Save the report to somewhere
+sub write_report {
+	my $self = shift;
+	unless ( $self->report ) {
+		Carp::croak("No Report created to write");
+	}
+	$self->report->write( shift );
+}
+
+# Upload the report to the results server
+sub put_report {
+	my ($self, $uri) = @_;
+	unless ( $self->report ) {
+		Carp::croak("No Report created to PUT");
+	}
+	unless ( _INSTANCE($uri, 'URI') ) {
+		Carp::croak("Did not provide a URI parameter");
+	}
+
+	
 }
 
 1;

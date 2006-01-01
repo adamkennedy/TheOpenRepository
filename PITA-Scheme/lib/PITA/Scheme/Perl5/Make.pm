@@ -8,7 +8,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -18,10 +18,11 @@ BEGIN {
 #####################################################################
 # Constructor
 
-# Do the extra common checks we couldn't do in the main class
 sub new {
 	my $class = shift;
 	my $self  = $class->SUPER::new(@_);
+
+	### Additional checks
 
 	$self;
 }
@@ -45,6 +46,87 @@ sub prepare_package {
 	}
 
 	$self;
+}
+
+sub execute_all {
+	my $self = shift;
+
+	# Run the Makefile.PL
+	$self->execute_makefilepl or return '';
+
+	# Run the make
+	$self->execute_make or return '';
+
+	# Run the tests
+	$self->execute_maketest or return '';
+
+	1;
+}
+
+sub execute_makefilepl {
+	my $self = shift;
+	unless ( -f $self->workarea_file('Makefile.PL') ) {
+		Carp::croak("Cannot execute_makefilepl without a Makefile.PL");
+	}
+
+	# Run the Makefile.PL
+	my $command = $self->execute_command('perl Makefile.PL');
+
+	# Did it create a make file
+	if ( -f $self->workarea_file('Makefile') ) {
+		# Worked as expected
+		### Do we need to add stuff here later?
+		return 1;
+	}
+
+	# Didn't work
+	### Do we need to add stuff here later?
+	return '';
+}
+
+sub execute_make {
+	my $self = shift;
+	unless ( -f $self->workarea_file('Makefile') ) {
+		Carp::croak("Cannot execute_make without a Makefile");
+	}
+
+	# Run the make
+	my $command = $self->execute_command('make');
+
+	# Did it create a blib directory?
+	if ( -d $self->workarea_file('blib') ) {
+		# Worked as expected
+		### Do we need to add stuff here later?
+		return 1;
+	}
+
+	# Didn't work
+	### Do we need to add stuff here later?
+	return '';
+}
+
+sub execute_maketest {
+	my $self = shift;
+	unless ( -f $self->workarea_file('Makefile') ) {
+		Carp::croak("Cannot execute_maketest without a Makefile");
+	}
+	unless ( -d $self->workarea_file('blib') ) {
+		Carp::croak("Cannot execute_maketest without a blib");
+	}
+
+	# Run the make test
+	my $command = $self->execute_command('make test');
+
+	# Did it... erm...
+	if ( 1 ) {
+		# Worked as expected
+		### Do we need to add stuff here later?
+		return 1;
+	}
+
+	# Didn't work
+	### Do we need to add stuff here later?
+	return '';
 }
 
 1;
