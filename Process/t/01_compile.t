@@ -18,14 +18,19 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 8;
+use Test::More tests => 11;
 
-ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+BEGIN {
+	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+	use_ok( 'Process'           );
+	use_ok( 'Process::Infinite' );
+	use_ok( 'Process::Storable' );
+	use_ok( 'Process::Launcher' );
+}
 
-use_ok( 'Process'           );
-use_ok( 'Process::Infinite' );
-use_ok( 'Process::Storable' );
-use_ok( 'Process::Launcher' );
+is( $Process::VERSION, $Process::Infinite::VERSION, '::Process == ::Infinite' );
+is( $Process::VERSION, $Process::Storable::VERSION, '::Process == ::Storable' );
+is( $Process::VERSION, $Process::Launcher::VERSION, '::Process == ::Launcher' );
 
 # Does the launcher export the appropriate things
 ok( defined(&run),      'Process::Launcher exports &run'      );
