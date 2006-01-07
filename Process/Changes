@@ -1,4 +1,7 @@
 Revision history for Perl extension Process
 
+0.02 Sat  7 Jan 2006
+	- Added Process::Backgroundable
+
 0.01 Sat  7 Jan 2006
 	- Created initial version

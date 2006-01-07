@@ -2,12 +2,13 @@ package Process::Storable;
 
 # Process that is compatible with Storable after new, and after run.
 
+use 5.005;
 use strict;
 use Storable ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 1;

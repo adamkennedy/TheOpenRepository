@@ -6,7 +6,7 @@ use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@EXPORT  = qw{run run3 storable};
 }
 
@@ -86,6 +86,11 @@ sub storable() {
 sub execute($) {
 	my $object = shift;
 	my $class  = ref($object);
+	if ( $object->isa('Process::Backgroundable') ) {
+		close STDIN;
+		my $pid = fork();
+		exit(0) if $pid;
+	}
 	unless ( $object->prepare ) {
 		fail("$class->prepare returned false");
 	}
@@ -93,7 +98,7 @@ sub execute($) {
 		fail("$class->run returned false");
 	}
 	print "OK\n";
-	1;	
+	1;
 }
 
 sub load($) {
