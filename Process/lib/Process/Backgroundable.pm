@@ -8,7 +8,7 @@ use IPC::Run3  ();
 
 use vars qw{$VERSION @PERLCMD};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	# Contains the command to use to launch perl
 	# Should be the path to the perl current running.
@@ -29,7 +29,7 @@ sub background {
 	my $cmd = [ @PERLCMD, '-MProcess::Launcher', '-e storable' ];
 
 	# Fire the command
-	IPC::Run3::run3( $cmd, $stdin, undef, undef );
+	IPC::Run3::run3( $cmd, $stdin, \undef, \undef );
 
 	1;
 }

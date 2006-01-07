@@ -1,5 +1,9 @@
 Revision history for Perl extension Process
 
+0.03 Sat  7 Jan 2006
+	- Accidentally left a debugging trick in, cause backgrounded things
+	  to not actually release STDIO. Fixed
+
 0.02 Sat  7 Jan 2006
 	- Added Process::Backgroundable
 

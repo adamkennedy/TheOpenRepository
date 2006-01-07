@@ -7,7 +7,7 @@ use 5.005;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 # Default constructor

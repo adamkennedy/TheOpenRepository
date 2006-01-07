@@ -6,7 +6,7 @@ use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@EXPORT  = qw{run run3 storable};
 }
 
