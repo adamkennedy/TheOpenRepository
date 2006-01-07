@@ -18,11 +18,12 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 ok( $] > 5.005, 'Perl version is 5.005 or newer' );
 
 use_ok( 'Process'           );
+use_ok( 'Process::Infinite' );
 use_ok( 'Process::Storable' );
 use_ok( 'Process::Launcher' );
 

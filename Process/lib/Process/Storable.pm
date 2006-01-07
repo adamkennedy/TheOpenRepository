@@ -3,7 +3,6 @@ package Process::Storable;
 # Process that is compatible with Storable after new, and after run.
 
 use strict;
-use base 'Process';
 use Storable ();
 
 use vars qw{$VERSION};
@@ -21,10 +20,28 @@ __END__
 
 Process::Storable - Process object that is compatible with Storable
 
+=head1 SYNOPSIS
+
+  packate MyStorableProcess;
+  
+  use base 'Process::Storable',
+           'Process';
+  
+  sub prepare {
+      ...
+  }
+  
+  sub run {
+      ...
+  }
+  
+  1;
+
 =head1 DESCRIPTION
 
 C<Process::Storable> provides the base for objects that can be
-stored, or transported from place to place.
+stored, or transported from place to place. It is not itself a
+subclass of L<Process> so you will need to inherit from both.
 
 Objects that inherit from C<Process::Storable> must follow the C<new>,
 C<prepare>, C<run> rules much more strictly.
