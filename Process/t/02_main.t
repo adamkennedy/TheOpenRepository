@@ -12,14 +12,13 @@ BEGIN {
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
 		lib->import(
-			catdir('t', 'lib'),
 			catdir('blib', 'lib'),
 			'lib',
 			);
 	}
 }
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 my @base_cmd = ( $^X,
 	'-I' . catdir('blib', 'lib'),
@@ -27,6 +26,12 @@ my @base_cmd = ( $^X,
 	'-I' . catdir('t',    'lib'),
 	'-MProcess::Launcher',
 	);
+
+BEGIN {
+	my $testdir = catdir('t', 'lib');
+	ok( -d $testdir, 'Found test modules directory' );
+	lib->import( $testdir );
+}
 
 
 
