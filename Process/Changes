@@ -1,5 +1,9 @@
 Revision history for Perl extension Process
 
+0.04 Wed 11 Jan 2006
+	- Cleaning up the documentation a bit more and making certain
+	  things a bit clearer.
+
 0.03 Sat  7 Jan 2006
 	- Accidentally left a debugging trick in, cause backgrounded things
 	  to not actually release STDIO. Fixed

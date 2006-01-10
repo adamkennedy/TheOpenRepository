@@ -5,7 +5,7 @@ use base 'Process';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 1;
@@ -21,35 +21,32 @@ Process::Infinite - Base class for processes that do not naturally end
 =head1 DESCRIPTION
 
 C<Process::Infinite> is a base class for L<Process> objects that will
-not naturally finish without provocation for outside the process.
+not naturally finish without provocation from outside the process.
 
 Examples of this are system "daemons" and servers of various types.
 
-At the present time this class is indicative only. It contains no
+At the present time this class is purely indicative. It contains no
 additional functionality.
 
-=pod
+=head2 Stopping Your Process
 
-=head1 NAME
+When writing a C<Process::Infinite> class, the most important thing to
+note is how you plan to shutdown your process. This will vary from
+case to case but the general implementation tends to be the same.
 
-Process::Launcher - Execute Process objects from the command line
+Your C<run> class consists of a main loop. How often this loop will
+fire will vary, but it should generally fire at least once a second
+or so.
 
-=head1 SYNOPSIS
+The loop will check a flag or do some other cheap task to know if it
+is time to stop, then shutdown gracefully. You will then add some form
+of signal handler that sets the shutdown flag.
 
-  # Create from passed params and run
-  perl -MProcess::Launcher -e run MyProcessClass param value
-  
-  # Create from STDIN params and run
-  perl -MProcess::Launcher -e run3 MyProcessClass
-  
-  # Thaw via Storable from STDIN, and freeze back after to STDOUT
-  perl -MProcess::Launcher -e storable
-
-=head1 DESCRIPTION
-
-The C<Process::Launcher> module provides a mechanism for launching
-and running a L<Process>-compatible object from the command line,
-and returning the results.
+On UNIX platforms, you should at the very least add a signal handler
+for C<SIGTERM>, as this is what will be sent to you by the operating
+system when it shuts down. (If you don't respond in a few seconds, it
+will then C<SIGKILL> and take out your running process by force, with
+no chance for you to shut down gracefully)
 
 =head1 SUPPORT
 

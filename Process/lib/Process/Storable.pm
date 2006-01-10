@@ -4,11 +4,40 @@ package Process::Storable;
 
 use 5.005;
 use strict;
-use Storable ();
+use base 'Process::Serializable';
+use IO::Handle   ();
+use IO::File     ();
+use IO::String   ();
+use Scalar::Util ();
+use Storable     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
+}
+
+sub serialize {
+	my $self   = shift;
+
+	# Get the think to write to
+	my $handle;
+	if ( Params::Util::_INSTANCE($_[0], 'IO::Handle') ) {
+		$handle = shift;
+
+	} elsif ( Params::Util::_SCALAR0($_[0]) ) {
+		$handle = IO::String->new(shift);
+
+	} elsif ( defined $_[0] and ! ref $_[0] and length $_[0] ) {
+		$handle = IO::File->new(shift);
+	}
+	return undef unless $handle;
+
+	# ...
+}
+
+sub deserialize {
+	my $class = shift;
+	# ...
 }
 
 1;
@@ -19,11 +48,11 @@ __END__
 
 =head1 NAME
 
-Process::Storable - Process object that is compatible with Storable
+Process::Storable - The Process::Serializable role implemented by Storable
 
 =head1 SYNOPSIS
 
-  packate MyStorableProcess;
+  package MyStorableProcess;
   
   use base 'Process::Storable',
            'Process';
@@ -40,23 +69,13 @@ Process::Storable - Process object that is compatible with Storable
 
 =head1 DESCRIPTION
 
-C<Process::Storable> provides the base for objects that can be
-stored, or transported from place to place. It is not itself a
-subclass of L<Process> so you will need to inherit from both.
+C<Process::Storable> provides an implementation of the
+L<Process::Serializable> role using the standard L<Storable> module
+from the Perl core. It is not itself a subclass of L<Process> so you
+will need to inherit from both.
 
 Objects that inherit from C<Process::Storable> must follow the C<new>,
-C<prepare>, C<run> rules much more strictly.
-
-All platform-specific resource checking and binding must be done in
-C<prepare>, so that after C<new> (but before C<prepare>) the object
-can be stored via L<Storable> and later thawed, C<prepare>'ed and
-C<run>, then stored via C<Storable> again after completion.
-
-C<Process::Storable> is subclass (for now) of L<Process>.
-
-=head1 METHODS
-
-There is no change from the base C<Process> class.
+C<prepare>, C<run> rules of L<Process::Serializable>.
 
 =head1 SUPPORT
 

@@ -6,7 +6,7 @@ use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@EXPORT  = qw{run run3 storable};
 }
 
@@ -56,15 +56,20 @@ sub run3() {
 }
 
 sub storable() {
+	my $class = load(shift @ARGV);
+
 	# Load the Storable object from STDIN
 	require Storable;
 	my $object = Storable::fd_retrieve(\*STDIN);
-	my $class  = load(ref($object));
+	my $objectref = ref($object);
 	unless ( _INSTANCE($object, 'Process') ) {
-		fail("$class object is not a Process object");
+		fail("$objectref is not a Process object");
 	}
 	unless ( _INSTANCE($object, 'Process::Storable') ) {
-		fail("$class object is not a Process::Storable object");
+		fail("$objectref object is not a Process::Storable object");
+	}
+	unless ( _INSTANCE($object, $class) ) {
+		fail("$objectref object is not a $class object");
 	}
 
 	# Execute the object
@@ -140,13 +145,30 @@ Process::Launcher - Execute Process objects from the command line
   perl -MProcess::Launcher -e run3 MyProcessClass
   
   # Thaw via Storable from STDIN, and freeze back after to STDOUT
-  perl -MProcess::Launcher -e storable
+  perl -MProcess::Launcher -e storable MyProcessClass
 
 =head1 DESCRIPTION
 
 The C<Process::Launcher> module provides a mechanism for launching
 and running a L<Process>-compatible object from the command line,
 and returning the results.
+
+=head2 Example Uses Cases
+
+Most use cases involve isolation. By having a C<Process> object run
+inside its own interpreter, it is then free do things such as loading
+in vast amounts of data and modules without bloating out the main
+process.
+
+It provides a novel way of giving Out Of Memory (OOM) protection to
+your Perl process, because when the operating system's OOM-killer
+takes out the large (or runaway) process, the main program is left
+intact.
+
+It provides a way to run some piece of code in a different Perl
+environment than your own. This could mean a different Perl version,
+or running something with tainting on without needing the main process
+to have tainting.
 
 =head1 FUNCTIONS
 
@@ -195,8 +217,8 @@ The C<storable> function is more robust and thorough again.
 
 It reads data from C<STDIN> and then thaws that via L<Storable>.
 
-The data is expected to thaw to an already-constructed L<Process>
-object that is also a L<Process::Storable>.
+The data is expected to thaw to an already-constructed object
+that matches the class passed on the command line.
 
 This object has C<prepare> and then C<run> called on it.
 
@@ -205,9 +227,9 @@ that first line, the completed object will be frozen via
 the C<Storable::nstore_fd> function and written to C<STDOUT> as
 well.
 
-The intent is that you create your process in your main process,
-and then hand it off to another Perl instance for execution, and
-then optionally return it to handle the results.
+The intent is that you create your C<Process> object in your main
+interpreter thread, then hand it off to another Perl instance for
+execution, and then optionally return it to handle the results.
 
 =head1 SUPPORT
 

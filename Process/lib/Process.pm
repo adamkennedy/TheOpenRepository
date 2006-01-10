@@ -1,26 +1,18 @@
 package Process;
 
-# Base class for objects that represent processes in the
-# general sense.
+# Base class for objects that represent computational processes
 
 use 5.005;
 use strict;
+
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
-# Default constructor
-sub new {
-	my $class = shift;
-	bless { }, $class;
-}
-
-# Default prepare
+sub new     { bless {}, shift }
 sub prepare { 1 }
-
-# Default execution
-sub run { 1 }
+sub run     { 1 }
 
 1;
 
@@ -30,12 +22,7 @@ __END__
 
 =head1 NAME
 
-Process - Interface for objects that represent generic computational
-processes
-
-=head1 VERSION
-
-Version 0.01 - Please note that this distribution is currently experimental
+Process - Objects that represent generic computational processes
 
 =head1 SYNOPSIS
 
@@ -56,7 +43,7 @@ model a computational process as an object.
 An implementation of this sort of object generally looks like the following
 when somebody uses it.
 
-  my $object = MyProcessClass->new( ... );
+  my $object = MyProcessThingy->new( ... );
   
   my $rv = $object->run;
   
@@ -66,13 +53,16 @@ when somebody uses it.
       print "Failed to run thingy";
   }
 
-The C<Process> family of classes is intented to be used as base classes
-for these types of objects. They are used to help identify process
-objects, and enforce a very limited API on these objects.
+The C<Process> family of modules are intended to be used as base and
+role classes for these types of objects. They are used to help identify
+process objects, and enforce a common API on these objects.
 
-The main intent is to provide a common base for objects that will be
-able to be used with various distributed processing systems. The scope
-of these includes solutions to address the following scenarios.
+The primary intent is to provide a common base for objects that will be
+able to be used with various distributed processing systems, without
+itself actually implementing any form of distributed system.
+
+The scope of uses for Process includes solutions to address the following
+scenarios.
 
 =over 4
 
@@ -96,9 +86,90 @@ The actual ways in which the processes are run, and the handling of the
 results of the process are outside the scope of these classes.
 
 The C<Process> class itself is the root of all of these classes. In fact,
-it is so abstract that it contains almost no functionality at all, and
-serves primarily to indicate that an object obeys the general rules of
-a C<Process> class.
+it is so abstract that it contains no functionality at all, and serves
+primarily to indicate that an object obeys the general rules of a
+C<Process> class.
+
+Most of the basic C<Process> modules are similar. They define how your
+object should behave (an API for a particular concept) without
+dictating a particular implementation.
+
+However, by using them, you are confirming to some processing system
+that your objects will obey particular rules, and thus can interact
+sanely with any processing system that follows the API.
+
+=head2 What You Can and Cannot Do
+
+The use of C<Process> is mainly about making guarentees. Because this is
+Perl, it is not necesarily about enforcing those guarentees in a strict
+way. These sorts of guarentees need to be implemented at a language level
+to be meaningful in any case (for example, Perl's tainting or Haskell's
+monads). You may still hang yourself, but it's your own fault if you do.
+
+=over 4
+
+=item You may not alter the API of the three core methods
+
+It's always tempting to say "This acts like Foo, but we added an extra
+return condition for method bar". You may not do this.
+
+C<Process> and a few other members of the family dictate all possible
+return values for C<new>, C<prepare> and C<run> are, and what state the
+objects should be in before and after these methods are called in the
+various cases. You may not break from these rules, because larger systems
+will be depending on them to allow your objects to work with them
+flexibly and flawlessly.
+
+=item You may not store data in the surrounding Perl environment
+
+A C<Process> object should be entirely self-contained when you are told
+to be. If your process is involved in creating or transforming
+information, then your implementation should keep these results inside
+the C<Process> object. Do not store data elsewhere. This means no globals
+and no class-level variables. You can't leave error messages in a
+global C<$errstr> variable, as some Perl modules do.
+
+This does not mean you can't store data in files. For C<Process> objects
+that generate vast quantities of data it would be unweildy to limit you
+to holding all data in memory at once. However any object data that
+refers to files should use absolute paths.
+
+=item You may not assume the timing of new and prepare.
+
+Most uses of C<Process> will involve scheduling, transport, or
+otherwise mean that once a processing system has a C<Process> object,
+it won't get to it immediately.
+
+You should not assume that C<prepare> will be run immediately after
+C<new> or in the same interpretor. You B<may> however
+assume that C<run> B<is> run immediately after C<prepare>, and B<is>
+in the same interpreter.
+
+=item You may not assume an object is unchanged after C<run>
+
+A C<Process> object may be unchanged after C<run>. Then again, it may
+also be completely changed, and have accumulated all sorts of data in
+it.
+
+This also means that you should not assume that a C<Process> object
+can be run again after it completes. A specific class
+L<Process::Repeatable> will be provided at a later date for this
+case.
+
+=item You may not interelate with other Process objects
+
+In the default case, all C<Process> objects are considered to be
+independant and standalone. They may not have any form of dependency
+on other C<Process> objects, and they should not expect to communicate
+with any other C<Process> objects.
+
+If you choose to add this type of functionality to your particular class
+that is fine, but any processing system will not be aware of this and
+thus will not be doing anything to help you out.
+
+L<Process::Depends> will be provided at a later date for this case.
+
+=back
 
 =head1 METHODS
 
@@ -111,12 +182,14 @@ a C<Process> class.
   	print "Configuration not valid.\n";
   }
 
-The C<new> constructor is required for all classes. It may or may not
-take arbitrary params, with specifics to be determined by each class.
+The C<new> constructor is required for all classes. It takes zero or more
+arbitrary params, with the specifics of any params outside the scope of
+this module. The specifics of any params are to be determined by each
+specific class.
 
-A default implementation which ignores params and creates an empty object
-of a C<HASH> type is provided as a convenience. However it should not
-be assumed that all objects will be a C<HASH> type.
+A default implementation which ignores any params and creates an empty
+object of a C<HASH> type is provided as a convenience. However it should
+not be assumed that all objects will be a C<HASH> type.
 
 For objects that subclass only the base C<Process> class, and are not
 also subclasses of things like L<Process::Storable>, the param-checking
@@ -125,10 +198,10 @@ with problems at C<run>-time the exception rather than the rule.
 
 Returns a new C<Process> object on success.
 
-For blame-free "Cannot support process on this host" failure, return
-false.
+For blame-free "Cannot support process in this Perl interpreter" failure,
+return false.
 
-For blamed failure, may return a string or any other value that is not
+For failure with blame, may return a string or any other value that is not
 itself a C<Process> object.
 
 However, if you need to communicate failure, you should consider
@@ -141,7 +214,9 @@ data storage.
 
   unless ( $object->prepare ) {
   	# Failed
-  	
+  	die "Failed to prepare process";
+  }
+	
 The C<prepare> method is used to check object params and bind platform
 resources.
 
@@ -151,21 +226,28 @@ subclasses.
 
 Because many systems that make use of C<Process> do so through the
 desire to push process requests across a network and have them executed
-on a remote host, C<Process> provides the C<prepare> method provides
-a means to seperate checking of the params for general correctness
-from checking of params relative to the system the process is being
-run on. It additionally provides a good way to have errors remain
-attached to the object, and have them transported back across to the
-requesting host.
+on a remote host, C<Process> provides the C<prepare> method as
+a means to seperate the checking of the params for general correctness
+from checking of params relative to the system and interpreter the
+process is being run on. It additionally provides a good way to have
+the bulk of serious errors remain attached to the object, and have them
+transported back across to the requesting entity.
 
-Execution platforms are generally required to call C<run> immediately
-after C<prepare>. As a result you should feel free to lock files and
-hold socket ports as they B<will> be used immediately, and thus the only
-execution errors coming from C<run> should be due to unexpected changes
-or race-condition issues.
+Execution platforms are required to call C<run> immediately or nearly
+immediately after C<prepare>. Generally the only tasks done between
+C<prepare> and C<run> will be things like starting timers, setting flags
+and signalling to any requestor that the process is ok, and about to
+start.
 
-To restate, all possibly binding and checking should be done in C<prepare>
-if at possible.
+As a result you are encouraged to do all locking of files, socket ports,
+database handles and so on in C<prepare>, as they B<will> be used
+immediately. Thus the only execution errors coming from C<run> should be
+due to unexpected changes, race-condition events in the short gap
+between C<prepare> and C<run>, or some error that could not possibly be
+detected until part way through the C<run>.
+
+To restate, resource binding and checking should be done in C<prepare>
+if at all possible.
 
 A default null implementation is provided for you which does nothing
 and returns true.
@@ -173,12 +255,17 @@ and returns true.
 Returns true if all params check out ok, and all system resources
 needed for the execution are bound correctly.
 
-Returns false if not, with any errors to be propogated via storage in the
-object itself.
+Returns false if not, with any errors to be propogated via storage in
+the object itself, for example in a C<-E<gt>{errstr}> attribute.
 
 The object should B<not> return errors via exceptions. If you expect
-something you yourself use to potentially result in an exception, you
-should trap the exception and return false.
+something within B<your> code to potentially result in an exception,
+you should trap the exception and return false.
+
+You should B<not> expect the object to be L<Storable> or in any other
+way usable once the C<Process> object is C<prepare>'ed. The object
+is wound up and poised ready to C<run> and that is the B<only> thing
+you should do with it.
 
 =head2 run
 
@@ -200,11 +287,13 @@ of your choice after the C<run> call.
 A default implementation which does nothing and returns true is
 provided.
 
-Returns true of the process was completed fully, regardless of any
+Returns true if the C<Process> was completed fully, regardless of any
 results from the process.
 
 Returns false if the process was interrupted, or an unexpected
-error occurs.
+error occurs. In the default case for C<Process>, no distinction is
+made between the process being interrupted legitimately and any other
+type of unexpected failure. This distinction is only 
 
 If the process returns false, it should not be assumed that the process
 can be restarted or rerun. It should be discarded or returned to the
