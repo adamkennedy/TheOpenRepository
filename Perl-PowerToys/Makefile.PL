@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-name           'Process';
+name           'Perl-PowerToys';
 all_from       'lib/Perl/PowerToys.pm';
 requires       'File::Spec'       => '0.80';
 requires       'File::Find::Rule' => 0;
