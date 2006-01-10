@@ -1,4 +1,7 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.03 Wed 11 Jan 2006
+	- Added .t files to the list checked
+
 0.01 Wed 11 Jan 2006
 	- Created initial version
