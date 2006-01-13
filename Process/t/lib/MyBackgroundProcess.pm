@@ -3,7 +3,6 @@ package MyBackgroundProcess;
 use strict;
 use File::Remove ();
 use base 'Process::Backgroundable',
-         'Process::Storable',
          'Process';
 
 use vars qw{$VERSION};
@@ -20,7 +19,7 @@ sub new {
 
 sub prepare {
 	my $self = shift;
-	
+
 	# Confirm again the file exists
 	if ( $self->{file} and -f $self->{file} ) {
 		# print STDOUT "Found file $self->{file}\n";

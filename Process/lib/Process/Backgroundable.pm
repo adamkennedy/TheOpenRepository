@@ -26,7 +26,7 @@ sub background {
 	seek( $stdin, 0, 0 );
 
 	# Generate the command
-	my $cmd = [ @PERLCMD, '-MProcess::Launcher', '-e storable' ];
+	my $cmd = [ @PERLCMD, '-MProcess::Launcher', '-e storable', ref($self) ];
 
 	# Fire the command
 	IPC::Run3::run3( $cmd, $stdin, \undef, \undef );
