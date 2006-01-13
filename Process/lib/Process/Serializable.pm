@@ -1,5 +1,6 @@
 package Process::Serializable;
 
+use 5.005;
 use strict;
 
 use vars qw{$VERSION};
@@ -25,11 +26,13 @@ Process::Serializable - Indicates that a Process can be frozen to a string
   $object->serialize( 'filename.dat' );
   $object->serialize( \$string       );
   $object->serialize( \*FILEHANDLE   );
+  $object->serialize( $io_handle     );
   
   # Thaw from various things
   $object = MyFreezer->deserialize( 'filename.dat' );
   $object = MyFreezer->deserialize( \$string       );
   $object = MyFreezer->deserialize( \*FILEHANDLE   );
+  $object = MyFreezer->deserialize( $io_handle     );
   
   # Prepare and run as normal
   $object->prepare
@@ -99,16 +102,18 @@ so that this can be done. (but then you should be doing that anyway).
 
 =head2 serialize
 
-  $object->serialize( 'filename.proc' );
-  $object->serialize( \$string        );
-  $object->serialize( \*FILEHANDLE    );
+  $object->serialize( 'filename.dat' );
+  $object->serialize( \$string       );
+  $object->serialize( \*FILEHANDLE   );
+  $object->serialize( $io_handle     );
 
 The C<serialize> method converts your object to a string, and writes it
 to a destination.
 
 All implementations are required to accept three different param types,
 a string that is to be seen as a filename, a C<SCALAR> reference to a
-string, or a file handle (only raw filehandles are supported).
+string, or a file handle (either a raw C<GLOB> reference, or any
+L<IO::Handle> object).
 
 All three should have identical information written to them, and in a
 network-transparent order (if relevant for the serialization mechanism)
@@ -120,10 +125,12 @@ Should return true on success, or fail on failure.
   $object = MyFreezer->deserialize( 'filename.dat' );
   $object = MyFreezer->deserialize( \$string       );
   $object = MyFreezer->deserialize( \*FILEHANDLE   );
+  $object = MyFreezer->deserialize( $io_handle     );
 
 The C<deserialize> method takes a filename, string or file handle
-object and creates a new object, returning it. The same assumptions
-stated above apply for deserialization.
+(C<GLOB> reference or L<IO::Handle> object) and creates a new object,
+returning it. The same assumptions stated above apply for
+deserialization.
 
 Returns a new object of your class, or false on error.
 

@@ -2,8 +2,8 @@ package Process::Backgroundable;
 
 use strict;
 use base 'Process::Storable';
-use File::Temp ();
 use Storable   ();
+use File::Temp ();
 use IPC::Run3  ();
 
 use vars qw{$VERSION @PERLCMD};
@@ -42,7 +42,7 @@ __END__
 
 =head1 NAME
 
-Process::Backgroundable - A Process object that is to be backgrounded
+Process::Backgroundable - A Process::Storable object that can be backgrounded
 
 =head1 SYNOPSIS
 
@@ -68,8 +68,8 @@ no way to recieve any output from the background process, and you will
 not be notified if it exits.
 
 If you want to add logging or locks or some other feature to your
-backgrounded process, that is your responsibility, and you should do
-so in the C<prepare> method.
+backgrounded process, that is your responsibility, and you set them up
+in the C<prepare> method.
 
 =head1 METHODS
 
@@ -89,9 +89,8 @@ forking.
 
 =head1 BUGS
 
-This is implemented with &-ending L<IPC::Run3> calls for now, but
-we might have to move to L<Proc::Background> for more robustness
-later on.
+This is implemented with L<IPC::Run3> calls for now, but we might have
+to move to L<Proc::Background> for more robustness later on.
 
 =head1 SUPPORT
 

@@ -1,6 +1,6 @@
 package Process::Storable;
 
-# Process that is compatible with Storable after new, and after run.
+# Storable-based implementation of Process::Serializable
 
 use 5.005;
 use strict;
@@ -115,31 +115,37 @@ __END__
 
 =head1 NAME
 
-Process::Storable - The Process::Serializable role implemented by Storable
+Process::Storable - Storable-based implementation of Process::Serializable
 
 =head1 SYNOPSIS
 
-  package MyStorableProcess;
+Create your package...
+
+  package MyStorable;
   
-  use base 'Process::Storable',
-           'Process';
+  use base qw{Process::Storable Process};
   
-  sub prepare {
-      ...
-  }
-  
-  sub run {
-      ...
-  }
+  sub prepare { ... }
+  sub run     { ... }
   
   1;
+
+And then use it...
+
+  use MyStorable;
+  
+  my $process = MyStorable->new( ... );
+  $process->serialize( 'filename.dat' );
+  
+  # and so on...
 
 =head1 DESCRIPTION
 
 C<Process::Storable> provides an implementation of the
 L<Process::Serializable> role using the standard L<Storable> module
 from the Perl core. It is not itself a subclass of L<Process> so you
-will need to inherit from both.
+will need to inherit from both L<Process> (or a subclass) and
+L<Process::Storable> if you want to make use of it.
 
 Objects that inherit from C<Process::Storable> must follow the C<new>,
 C<prepare>, C<run> rules of L<Process::Serializable>.

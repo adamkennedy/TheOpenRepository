@@ -27,13 +27,16 @@ Process - Objects that represent generic computational processes
 =head1 SYNOPSIS
 
   # Create the process
-  my $object = MyProcess->new( ... ) or die("Invalid configuration format");
+  my $object = MyProcess->new( ... )
+      or die("Invalid configuration format");
   
   # Initialize it
-  $object->prepare or die("Configuration not supportable");
+  $object->prepare
+      or die("Configuration not supportable");
   
   # Execute the process
-  $object->run or die("Error while trying to execute the process");
+  $object->run
+      or die("Error while trying to execute the process");
 
 =head1 DESCRIPTION
 

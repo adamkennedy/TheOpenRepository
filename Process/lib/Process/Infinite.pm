@@ -1,5 +1,6 @@
 package Process::Infinite;
 
+use 5.005;
 use strict;
 use base 'Process';
 

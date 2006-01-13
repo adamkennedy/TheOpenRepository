@@ -1,5 +1,12 @@
 Revision history for Perl extension Process
 
+0.10 Sat 14 Jan 2006
+	- Completed Process::Serializable
+	- Completed Process::Storable
+	- Upgraded Process::Launcher and Process::Backgroundable
+	- Completed the documentation (I think)
+	- Completed the full test suite
+
 0.04 Wed 11 Jan 2006
 	- Cleaning up the documentation a bit more and making certain
 	  things a bit clearer.
