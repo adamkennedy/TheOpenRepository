@@ -23,9 +23,6 @@ sub prepare {
 
 sub run {
 	my $self = shift;
-	foreach my $key ( sort keys %$self ) {
-		print STDERR "$key=$self->{$key}\n";
-	}
 	unless ( $self->{run} ) {
 		$self->{run} = 1;
 	}

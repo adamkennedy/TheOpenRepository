@@ -24,12 +24,12 @@ Process::Serializable - Indicates that a Process can be frozen to a string
   # Freeze to various things
   $object->serialize( 'filename.dat' );
   $object->serialize( \$string       );
-  $object->serialize( $io_handle     );
+  $object->serialize( \*FILEHANDLE   );
   
   # Thaw from various things
   $object = MyFreezer->deserialize( 'filename.dat' );
   $object = MyFreezer->deserialize( \$string       );
-  $object = MyFreezer->deserialize( $io_handle     );
+  $object = MyFreezer->deserialize( \*FILEHANDLE   );
   
   # Prepare and run as normal
   $object->prepare
@@ -101,14 +101,14 @@ so that this can be done. (but then you should be doing that anyway).
 
   $object->serialize( 'filename.proc' );
   $object->serialize( \$string        );
-  $object->serialize( $io_handle      );
+  $object->serialize( \*FILEHANDLE    );
 
 The C<serialize> method converts your object to a string, and writes it
 to a destination.
 
 All implementations are required to accept three different param types,
 a string that is to be seen as a filename, a C<SCALAR> reference to a
-string, or a file handle in the form of any L<IO::Handle> sub-class.
+string, or a file handle (only raw filehandles are supported).
 
 All three should have identical information written to them, and in a
 network-transparent order (if relevant for the serialization mechanism)
@@ -119,9 +119,9 @@ Should return true on success, or fail on failure.
 
   $object = MyFreezer->deserialize( 'filename.dat' );
   $object = MyFreezer->deserialize( \$string       );
-  $object = MyFreezer->deserialize( $io_handle     );
+  $object = MyFreezer->deserialize( \*FILEHANDLE   );
 
-The C<deserialize> method takes a filename, string or L<IO::Handle>
+The C<deserialize> method takes a filename, string or file handle
 object and creates a new object, returning it. The same assumptions
 stated above apply for deserialization.
 
