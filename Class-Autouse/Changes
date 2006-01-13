@@ -1,4 +1,16 @@
-Revision history for Perl extension Class::Autouse.
+Revision history for Perl extension Class::Autouse
+
+1.24 Fri Jan 13 2006
+	- No functional changes. No need to upgrade.
+	- Updated copyright notice to 2006.
+	- Added t/05_base.t to try and chase down base.pm bug
+	  (Failed to find it, but left test so CPAN Tests can validate my
+	  assumptions on what should happen and that it happens for them)
+	- Added base.pm as a dep (although unversioned dep) to make sure
+	  it is installed on older perls.
+	- Module::Install updated to 0.52
+	- Decrement List::Util dep to 1.17 as 1.18 fails to build on some
+	  platforms.
 
 1.23 Thu Dec 29 2005
 	- In moving from CVS to SVN I forgot to bring ::Parent with it.
