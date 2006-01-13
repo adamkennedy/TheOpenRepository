@@ -22,7 +22,7 @@ sub background {
 
 	# Dump the object to the input filehandle
 	my $stdin = File::Temp::tempfile();
-	Storable::nstore_fd( $self, $stdin );
+	$self->serialize( $stdin );
 	seek( $stdin, 0, 0 );
 
 	# Generate the command

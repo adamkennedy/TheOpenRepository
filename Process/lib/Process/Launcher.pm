@@ -2,12 +2,18 @@ package Process::Launcher;
 
 use strict;
 use base 'Exporter';
+use Process ();
+use Process::Serializable ();
 use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
 	$VERSION = '0.10';
 	@EXPORT  = qw{run run3 storable};
+
+	# Preload the heavyish Process::Storable module
+	# (if prefork is available)
+	eval "use prefork 'Process::Storable';";
 }
 
 
@@ -19,9 +25,14 @@ BEGIN {
 
 sub run() {
 	my $class  = load(shift @ARGV);
+
+	# Create the object
 	my $object = $class->new( @ARGV )
 		or fail("$class->new returned false");
+
+	# Run it
 	execute($object);
+
 	exit(0);
 }
 
@@ -52,31 +63,28 @@ sub run3() {
 	# Run it
 	execute($object);
 
-	exit(0);	
+	exit(0);
 }
 
 sub storable() {
 	my $class = load(shift @ARGV);
-
-	# Load the Storable object from STDIN
-	require Storable;
-	my $object = Storable::fd_retrieve(\*STDIN);
-	my $objectref = ref($object);
-	unless ( _INSTANCE($object, 'Process') ) {
-		fail("$objectref is not a Process object");
-	}
-	unless ( _INSTANCE($object, 'Process::Storable') ) {
-		fail("$objectref object is not a Process::Storable object");
-	}
-	unless ( _INSTANCE($object, $class) ) {
-		fail("$objectref object is not a $class object");
+	unless ( $class->isa('Process::Storable') ) {
+		fail("$class is not a Process::Storable subclass");
 	}
 
-	# Execute the object
+	# Deserialize the object
+	# (via a buffer to prevent some weird bug)
+	my $buffer = do { local $/; <STDIN> };
+	my $object = $class->deserialize( \$buffer );
+	unless ( $object ) {
+		fail("Failed to deserialize STDIN to a $class");
+	}
+
+	# Run it
 	execute($object);
 
 	# Return the object after execution
-	Storable::nstore_fd( $object, \*STDOUT );
+	$object->serialize(\*STDOUT);
 
 	exit(0);
 }

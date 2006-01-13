@@ -19,7 +19,7 @@ BEGIN {
 }
 
 use lib catdir('t', 'lib');
-use Test::More tests => 27;
+use Test::More tests => 23;
 
 my @base_cmd = ( $^X,
 	'-I' . catdir('blib', 'lib'),
@@ -31,7 +31,9 @@ my @base_cmd = ( $^X,
 BEGIN {
 	my $testdir = catdir('t', 'lib');
 	ok( -d $testdir, 'Found test modules directory' );
-	lib->import( $testdir );
+	lib->import( $testdir );\
+
+	use_ok( 'Process::Launcher' );
 }
 
 
@@ -39,13 +41,29 @@ BEGIN {
 
 
 #####################################################################
-# Test the Process::Launcher 'run' command
+# Simulated test the Process::Launcher 'run' command
 
-use IPC::Run3 ();
 use_ok( 'MySimpleProcess' );
 SCOPE: {
+	@ARGV = qw{MySimpleProcess foo bar};
+	my $class  = Process::Launcher::load(shift @ARGV);
+	is( $class, 'MySimpleProcess', 'load(MySimpleProcess) returned ok' );
+	my $object = $class->new( @ARGV );
+	isa_ok( $object, $class );
+}
+
+
+
+
+
+#####################################################################
+# Live test the Process::Launcher 'run' command
+
+use IPC::Run3 ();
+use_ok( 'MyStorableProcess' );
+SCOPE: {
 	# Build the complex, uglyish cmd list
-	my @cmd = ( @base_cmd, '-e run', 'MySimpleProcess', 'foo' => 'bar' );
+	my @cmd = ( @base_cmd, '-e run', 'MyStorableProcess', 'foo' => 'bar' );
 	my $out = '';
 	my $err = '';
 	ok( IPC::Run3::run3( \@cmd, \undef, \$out, \$err ), 'run3 returns true' );
@@ -62,7 +80,7 @@ SCOPE: {
 
 SCOPE: {
 	# Build the complex, uglyish cmd list
-	my @cmd = ( @base_cmd, '-e run3', 'MySimpleProcess' );
+	my @cmd = ( @base_cmd, '-e run3', 'MyStorableProcess' );
 	my $inp  = "foo2=bar2\n";
 	my $out = "";
 	my $err = '';
@@ -79,16 +97,21 @@ SCOPE: {
 # Test the Process::Launcher 'storable' command
 
 use Storable ();
+ok( MyStorableProcess->isa('Process::Storable'),
+	'Confirm MyStorableProcess isa Process::Storable' );
 SCOPE: {
-	my $object = MySimpleProcess->new( 'foo3' => 'bar3' );
-	isa_ok( $object, 'MySimpleProcess' );
+	my $object = MyStorableProcess->new( 'foo3' => 'bar3' );
+	isa_ok( $object, 'MyStorableProcess' );
+	isa_ok( $object, 'Process::Storable' );
+	isa_ok( $object, 'Process'           );
 
 	# Get the Storablised version
-	my @cmd = ( @base_cmd, '-e storable' );
+	my @cmd = ( @base_cmd, '-e storable', 'MyStorableProcess' );
 	my $inp = File::Temp::tempfile();
 	my $out = File::Temp::tempfile();
-	ok( scalar(Storable::nstore_fd( $object, $inp )), 'nstore_fd ok' );
+	ok( $object->serialize( $inp ), '->serialize returns ok' );
 	ok( seek( $inp, 0, 0 ), 'Seeked on tempfile for input' );
+
 	my $err = '';
 	ok( IPC::Run3::run3( \@cmd, $inp, $out, \$err ), 'storable returns true' );
 	is( $err, "foo3=bar3\nprepare=1\n", "STDERR gets expected output" );
@@ -96,12 +119,16 @@ SCOPE: {
 	my $header = <$out>;
 	is( $header, "OK\n", 'STDOUT has OK header' );
 
-	my $after = Storable::fd_retrieve( $out );
-	is_deeply( $after,
-		(bless {
-			foo3    => 'bar3',
-			prepare => 1,
-			run     => 1,
-		}, 'MySimpleProcess'),
-		'Returned object matches expected' );
+	SKIP: {
+		skip("Nothing to deserialize", 1) unless $header eq "OK\n";
+
+		my $after = MyStorableProcess->deserialize( $out );
+		is_deeply( $after,
+			(bless {
+				foo3    => 'bar3',
+				prepare => 1,
+				run     => 1,
+			}, 'MyStorableProcess'),
+			'Returned object matches expected' );
+	}
 }

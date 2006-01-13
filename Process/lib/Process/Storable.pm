@@ -38,6 +38,7 @@ sub serialize {
 
 	# Serialize to a generic handle
 	if ( fileno($_[0]) ) {
+		local $/ = undef;
 		return Storable::nstore_fd($self, shift);
 	}
 
@@ -59,7 +60,7 @@ sub deserialize {
 	my $self  = $class->_deserialize(@_);
 
 	# Integrity check
-	(_INSTANCE($self, $class) and ref($self) eq $class) or return undef;
+	_INSTANCE($self, $class) or return undef;
 
 	$self;
 }
