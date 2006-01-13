@@ -5,7 +5,7 @@ use base 'Process';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.10';
 }
 
 1;

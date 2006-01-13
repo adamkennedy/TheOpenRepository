@@ -1,7 +1,8 @@
-package MySimpleProcess;
+package MyStorableProcess;
 
 use strict;
-use base 'Process';
+use base 'Process::Storable',
+         'Process';
 
 use vars qw{$VERSION};
 BEGIN {

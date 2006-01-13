@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Compile-testing for Process
+# Tests for Process::Storable
 
 use strict;
 use lib ();
@@ -19,7 +19,7 @@ BEGIN {
 }
 
 use lib catdir('t', 'lib');
-use Test::More tests => 4;
+use Test::More tests => 1;
 
 BEGIN {
 	my $testdir = catdir('t', 'lib');
@@ -32,14 +32,11 @@ BEGIN {
 
 
 #####################################################################
-# Test the base Process class
+# Write out to all three types of handle
 
-use Process;
-SCOPE: {
-	my $object = Process->new;
-	isa_ok( $object, 'Process' );
-	ok( $object->prepare, '->prepare returns true' );
-	ok( $object->run,     '->run returns true'     );
-}
+# Create a test Process object
 
-exit(0);
+my $string = '';
+ok( $
+
+1;

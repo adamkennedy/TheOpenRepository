@@ -13,26 +13,30 @@ use Storable     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.10';
 }
 
 sub serialize {
-	my $self   = shift;
+	my $self = shift;
 
-	# Get the think to write to
-	my $handle;
+	# Serialize to a generic handle
 	if ( Params::Util::_INSTANCE($_[0], 'IO::Handle') ) {
-		$handle = shift;
-
-	} elsif ( Params::Util::_SCALAR0($_[0]) ) {
-		$handle = IO::String->new(shift);
-
-	} elsif ( defined $_[0] and ! ref $_[0] and length $_[0] ) {
-		$handle = IO::File->new(shift);
+		return Storable::nstore_fd($self, $_[0]);
 	}
-	return undef unless $handle;
 
-	# ...
+	# Serialize to a string (via a handle)
+	if ( Params::Util::_SCALAR0($_[0]) ) {
+		my $handle = IO::String->new($_[0]);
+		return Storable::nstore_fd( $self, $handle );
+	}
+
+	# Serialize to a file name (locking it)
+	if ( defined $_[0] and ! ref $_[0] and length $_[0] ) {
+		return Storable::lock_nstore($self, $_[0]);
+	}
+
+	# We don't support anything else
+	undef;
 }
 
 sub deserialize {

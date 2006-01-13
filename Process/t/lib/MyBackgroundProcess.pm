@@ -1,9 +1,10 @@
 package MyBackgroundProcess;
 
 use strict;
-use base 'Process::Backgroundable',
-         'Process';
 use File::Remove ();
+use base 'Process::Backgroundable',
+         'Process::Storable',
+         'Process';
 
 use vars qw{$VERSION};
 BEGIN {
