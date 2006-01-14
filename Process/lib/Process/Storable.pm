@@ -13,10 +13,10 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 
 	# Hack IO::String to be a real IO::Handle
-	unless ( @IO::String::ISA ) {
+	unless ( IO::String->isa('IO::Handle') ) {
 		@IO::String::ISA = qw{IO::Handle IO::Seekable};
 	}
 }

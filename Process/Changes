@@ -1,5 +1,8 @@
 Revision history for Perl extension Process
 
+0.11 Sun 15 Jan 2006
+	- Changing to a slightly less evil IO::String workaround
+
 0.10 Sat 14 Jan 2006
 	- Completed Process::Serializable
 	- Completed Process::Storable

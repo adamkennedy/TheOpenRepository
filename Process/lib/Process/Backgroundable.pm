@@ -8,7 +8,7 @@ use IPC::Run3  ();
 
 use vars qw{$VERSION @PERLCMD};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 
 	# Contains the command to use to launch perl
 	# Should be the path to the perl current running.
