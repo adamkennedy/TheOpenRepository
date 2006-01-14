@@ -7,15 +7,15 @@ use File::Find::Rule ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 my $from = shift @ARGV;
-unless ( $from and $from =~ /^[\d\.]+$/ ) {
+unless ( $from and $from =~ /^[\d\._]+$/ ) {
 	die "From is not a number";
 }
 my $to = shift @ARGV;
-unless ( $to and $to =~ /^[\d\.]+$/ ) {
+unless ( $to and $to =~ /^[\d\._]+$/ ) {
 	die "To is not a number";
 }
 

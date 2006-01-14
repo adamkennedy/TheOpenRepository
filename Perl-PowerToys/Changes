@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.04 Sun 15 Jan 2006
+	- Allow _ in ppichangeversion versions
+
 0.03 Wed 11 Jan 2006
 	- Added .t files to the list checked
 
