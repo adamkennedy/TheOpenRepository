@@ -7,7 +7,7 @@ use File::Find::Rule ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.05';
 }
 
 my $from = shift @ARGV;
@@ -32,7 +32,9 @@ my $count = 0;
 foreach my $file ( @files ) {
 	print "$file...";
 	my $rv = changefile( $file, $from, $to );
-	if ( $rv ) {
+	if ( ! -w $file ) {
+		print " no write perms\n";
+	} elsif ( $rv ) {
 		print " updated\n";
 		$count++;
 	} else {
