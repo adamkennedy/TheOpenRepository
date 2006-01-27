@@ -8,6 +8,8 @@ requires       'File::HomeDir'  => '0.51';
 requires       'File::ShareDir' => '0.02';
 requires       'File::NCopy'    => 0;
 build_requires 'Test::More'     => '0.47';
+build_requires 'File::Remove'   => 0;
+install_share;
 
 auto_install;
 WriteAll;

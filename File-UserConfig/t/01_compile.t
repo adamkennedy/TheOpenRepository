@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Compile-testing for File::InitHome
+# Compile-testing for File::UserConfig
 
 use strict;
 use lib ();
@@ -19,6 +19,6 @@ use Test::More tests => 2;
 
 ok( $] > 5.005, 'Perl version is 5.004 or newer' );
 
-require_ok( 'File::InitDir' );
+require_ok( 'File::UserConfig' );
 
 exit(0);

@@ -92,6 +92,7 @@ In other words, the two following lines are equivalent.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp           ();
 use File::Spec     ();
@@ -100,7 +101,7 @@ use File::HomeDir  ();
 use File::ShareDir ();
 
 use vars qw{$VERSION};
-use BEGIN {
+BEGIN {
 	$VERSION = '0.01';
 }
 
@@ -155,7 +156,7 @@ sub new {
 	# If we don't have a sharedir, get it
 	# from the dist.
 	unless ( $self->sharedir ) {
-		$self->{sharedir} = File::ShareDir->dist_dir($self->dist);
+		$self->{sharedir} = File::ShareDir::dist_dir($self->dist);
 	}
 
 	# If we don't have a directory name, derive one
@@ -197,8 +198,10 @@ sub new {
 	}
 
 	# Copy in the files from the sharedir
-	File::NCopy::copy( \1, $self->sharedir => $self->configdir )
+	mkdir( $self->configdir )
 		or Carp::croak('Failed to copy create user-specific config directory');
+	File::NCopy::copy( \1, File::Spec->catfile($self->sharedir, '*') => $self->configdir )
+		or  Carp::croak('Failed to copy create user-specific config directory');
 
 	$self;
 }
@@ -309,6 +312,7 @@ sub _caller {
 	my $i = 0;
 	while ( my @c = caller($i++) ) {
 		next if $c[0]->isa(__PACKAGE__);
+		return $c[0];
 	}
 	die "Failed to find caller";
 }
@@ -335,7 +339,7 @@ L<File::HomeDir>, L<File::ShareDir>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2006 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
