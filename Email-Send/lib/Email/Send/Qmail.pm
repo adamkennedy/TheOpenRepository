@@ -7,7 +7,7 @@ $QMAIL   ||= q[qmail-inject];
 
 use Return::Value;
 
-$VERSION   = '2.01';
+$VERSION   = '2.02';
 
 sub is_available {
     return   `which $QMAIL`

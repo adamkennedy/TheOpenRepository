@@ -6,7 +6,7 @@ use UNIVERSAL::require;
 use Return::Value;
 
 use vars qw[$VERSION];
-$VERSION   = '2.01';
+$VERSION   = '2.02';
 
 use vars qw[@IO];
 @IO      = ('=') unless @IO;

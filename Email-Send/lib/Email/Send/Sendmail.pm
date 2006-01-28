@@ -7,7 +7,7 @@ use Return::Value;
 use vars qw[$SENDMAIL $VERSION];
 $SENDMAIL ||= q[sendmail];
 
-$VERSION   = '2.01';
+$VERSION   = '2.02';
 
 sub is_available {
     return   `which $SENDMAIL`

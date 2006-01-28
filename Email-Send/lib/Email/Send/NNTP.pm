@@ -7,7 +7,7 @@ use Net::NNTP;
 use Return::Value;
 use UNIVERSAL::require;
 
-$VERSION   = '2.01';
+$VERSION   = '2.02';
 
 sub is_available {
     return   Net::NNTP->require

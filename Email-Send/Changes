@@ -1,3 +1,12 @@
+2.02    2006-01-29
+  - The change to 2.00 cause Email::Send to be unupgradable on any
+    host that had also installed Email::Send::Test. Repaired normally but it
+    still left a circular upgrade dependency.
+    Resolved the problem by unilaterally merging the two distributions,
+    transfering primary maintainership of Email::Send::Test to CWEST, 
+    and then setting myself to co-maint to upload this release. (Adam Kennedy)
+  - Email::Send is otherwise unchanged. CWEST will continue future releases.
+
 2.01    2006-01-17
 
   - Updated tests to only check distributed mailers.

@@ -8,7 +8,7 @@ use Email::Address;
 use Return::Value;
 use UNIVERSAL::require;
 
-$VERSION   = '2.01';
+$VERSION   = '2.02';
 
 sub is_available {
     my ($class, %args) = @_;
