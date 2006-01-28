@@ -1,5 +1,9 @@
 Revision history for Perl extension Class::Adapter
 
+1.01 Sat Jan 28 2005
+	- Updating to a newer Module::Install
+	- Fixed support for Cygwin in doing so
+
 1.00 Mon Dec 26 2005
 	- Added the AUTOLOAD => 'PUBLIC' options
 	- Implemented it and added comprehensive AUTOLOAD testing
