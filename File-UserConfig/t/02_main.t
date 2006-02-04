@@ -96,6 +96,7 @@ sub foo {
 sub bar {
 	return File::UserConfig->new(
 		dist     => 'File-UserConfig',
+		module   => 'File::UserConfig',
 		homedir  => 't',
 		);
 }

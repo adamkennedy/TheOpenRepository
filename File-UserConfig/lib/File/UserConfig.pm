@@ -12,6 +12,7 @@ File::UserConfig - Get a user's existing config directory, or copy in defaults
   # Or without taking advantage of convention-based defaults
   $configdir = File::UserConfig->new(
   	dist     => 'My-Application',
+  	module   => 'My::Application',
   	dirname  => '.myapp',
   	sharedir => $defaults_here,
   	)->configdir;
@@ -58,7 +59,7 @@ be a lowercase hidden name with all '-' chars as '_'.
 So on unix only, "Module::Name" will become ".module_name". Most of the
 time, this well end up what you would have used anyway.
 
-C<3. Where does the config directory live>
+B<3. Where does the config directory live>
 
 C<File::UserConfig> knows where your home directory is by using
 L<File::HomeDir>. And more specifically, on platforms that support
@@ -66,7 +67,7 @@ application data being kept in a subdirectory, it will use that as well.
 
 On Unix, Windows, and Mac OS X, it will just Do The Right Thing.
 
-C<4. Where do the defaults come from?>
+B<4. Where do the defaults come from?>
 
 The ability for a distribution to provide a directory full of default
 files is provided in Perl by L<File::ShareDir>.
@@ -77,7 +78,7 @@ your dist is going to install to it will be the default config dir.
 
 =head1 METHODS
 
-The 5 accessors all feature implicit constructors.
+The 6 accessors all feature implicit constructors.
 
 In other words, the two following lines are equivalent.
 
@@ -102,7 +103,7 @@ use File::ShareDir        ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -153,10 +154,16 @@ sub new {
 		$self->{dist} =~ s/::/-/;
 	}
 
+	# If we don't have a module, use the caller
+	unless ( $self->module ) {
+		# Guess from the caller
+		$self->{module} = $self->_caller;
+	}
+
 	# If we don't have a sharedir, get it
 	# from the dist.
 	unless ( $self->sharedir ) {
-		$self->{sharedir} = File::ShareDir::dist_dir($self->dist);
+		$self->{sharedir} = File::ShareDir::module_dir($self->module);
 	}
 
 	# If we don't have a directory name, derive one
@@ -219,6 +226,26 @@ The C<dist> accessor returns the name of the distribution.
 sub dist {
 	my $self = ref $_[0] ? shift : shift()->new(@_);
 	$self->{dist};
+}
+
+=pod
+
+=head2 module
+
+  $name = File::UserConfig->new(...)->module;
+  
+  $name = File::UserConfig->module(...);
+
+The C<module> accessor returns the name of the module.
+
+Although the default dirname is based off the dist name, the module
+name is the one used to find the shared dir.
+
+=cut
+
+sub module {
+	my $self = ref $_[0] ? shift : shift()->new(@_);
+	$self->{module};
 }
 
 =pod
