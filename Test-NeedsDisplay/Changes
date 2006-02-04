@@ -1,4 +1,8 @@
 Revision history for Perl extension Test::NeedsDisplay
 
+0.02 Sun Feb  5 2006
+	- Minor bug fix
+	- Upgrading to Module::Install 0.55
+
 0.01 Tue Nov  8 2005
 	- Created the initial version of the module

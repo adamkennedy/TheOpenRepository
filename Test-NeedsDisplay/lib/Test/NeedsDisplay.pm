@@ -81,12 +81,13 @@ And that's all there is to do. The module will take care of the rest.
 
 =cut
 
+use 5.006;
 use strict;
 use File::Spec ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub import {
@@ -98,7 +99,7 @@ sub import {
 	print "# No DISPLAY. Looking for xvfb-run...\n";
 	my @PATHS = split /:/, $ENV{PATH};
 	foreach my $path ( @PATHS ) {
-		my $xvfb_run = File::Spec->catfile( $_, 'xvfb-run' );
+		my $xvfb_run = File::Spec->catfile( $path, 'xvfb-run' );
 		next unless -e $xvfb_run;
 		next unless -x $xvfb_run;
 		print "# Restarting with xvfb-run...\n";
@@ -131,7 +132,7 @@ Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy. All rights reserved.
+Copyright 2005 - 2006 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
