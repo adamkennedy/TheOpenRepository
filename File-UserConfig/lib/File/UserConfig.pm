@@ -94,15 +94,15 @@ In other words, the two following lines are equivalent.
 
 use 5.005;
 use strict;
-use Carp           ();
-use File::Spec     ();
-use File::NCopy    ();
-use File::HomeDir  ();
-use File::ShareDir ();
+use Carp                  ();
+use File::Spec            ();
+use File::Copy::Recursive ();
+use File::HomeDir         ();
+use File::ShareDir        ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -198,10 +198,8 @@ sub new {
 	}
 
 	# Copy in the files from the sharedir
-	mkdir( $self->configdir )
-		or Carp::croak('Failed to copy create user-specific config directory');
-	File::NCopy::copy( \1, File::Spec->catfile($self->sharedir, '*') => $self->configdir )
-		or  Carp::croak('Failed to copy create user-specific config directory');
+	File::Copy::Recursive::dircopy( $self->sharedir, $self->configdir )
+		or Carp::croak("Failed to copy user data to " . $self->configdir);
 
 	$self;
 }

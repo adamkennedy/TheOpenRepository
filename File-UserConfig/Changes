@@ -1,4 +1,7 @@
 Revision history for Perl extension File::UserConfig
 
+0.02 Sun  5 Feb 2006
+	- Switching to File::Copy::Recursive
+
 0.01 Fri 27 Jan 2006
 	- Releasing first version
