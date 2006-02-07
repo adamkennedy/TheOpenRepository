@@ -2,8 +2,9 @@ package LVAS;
 
 # See POD at end for docs
 
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
 use IO::Socket::SSL;
 
 use vars qw{$VERSION};
