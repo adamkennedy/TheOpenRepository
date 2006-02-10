@@ -33,7 +33,7 @@ unless ( $ENV{GEOSOL_ROOT} and -d $ENV{GEOSOL_ROOT} ) {
 	quit('GEOSOL_ROOT is not defined, or does not exist');
 }
 
-use GeoSol::Process::EmailSync;
+require GeoSol::Process::EmailSync;
 
 # Create the new default object and run it
 my $object = GeoSol::Process::EmailSync->default;
