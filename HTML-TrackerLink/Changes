@@ -1,0 +1,8 @@
+Revision history for Perl extension HTML::TrackerLink
+
+0.2  Sun Dec  7 2003
+	- ugh.. even the contructor didn't work.
+	- Added a few basic tests.
+
+0.1  Sun Dec 29 19:15:23 2002
+	- original version
