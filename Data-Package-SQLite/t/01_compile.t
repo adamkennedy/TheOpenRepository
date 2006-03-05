@@ -18,7 +18,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 
 # Add the t/lib in both harness and non-harness cases
 use lib catdir('t', 'lib');
@@ -27,10 +27,13 @@ use lib catdir('t', 'lib');
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
+use_ok('DBI');
+use_ok('DBD::SQLite');
 use_ok('Data::Package::SQLite');
 
 # Do the test packages load
 use_ok('My::DataPackage1');
 use_ok('My::DataPackage2');
+use_ok('My::DataPackage3');
 
 exit(0);

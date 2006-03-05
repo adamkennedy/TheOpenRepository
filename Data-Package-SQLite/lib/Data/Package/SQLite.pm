@@ -27,7 +27,7 @@ Data::Package::SQLite - A data package for a SQLite database
   $dbh = My::Data->get;
   
   # ... or if you want to be explicit
-  $dbh = My::Data->get('DBI::dbh');
+  $dbh = My::Data->get('DBI::db');
 
 =head1 DESCRIPTION
 
@@ -71,10 +71,10 @@ unless ( grep { $_ eq 'SQLite' } DBI->available_drivers ) {
 }
 
 # This class only provides a database handle
-sub _provides { 'DBI::dbh' }
+sub _provides { 'DBI::db' }
 
 # Load the database handle
-sub __as_DBI_dbh {
+sub __as_DBI_db {
 	my $self = shift;
 
 	# Create the database handle
@@ -138,23 +138,24 @@ situations.
 =cut
 
 sub sqlite_file {
-	my $self = shift;
-	my $type = _STRING(shift)
-		or Carp::croak("No SQLite location type provided");
+	my $self     = shift;
+	my @location = $self->sqlite_location;
+	my $type     = _STRING(shift @location)
+		or Carp::croak('No or bad SQLite location type provided');
 
 	if ( $type eq 'file' ) {
-		return shift;
+		return shift @location;
 
 	} elsif ( $type eq 'dist_file' ) {
-		my $dist = _STRING(shift)
-			or Carp::croak("No dist_file distribution provided");
-		my $file = _STRING(shift) || 'data.sqlite';
+		my $dist = _STRING(shift @location)
+			or Carp::croak('No dist_file distribution provided');
+		my $file = _STRING(shift @location) || 'data.sqlite';
 		return File::ShareDir::dist_file( $dist, $file );
 
 	} elsif ( $type eq 'module_file' ) {
-		my $module = _CLASS(shift)
-			or Carp::croak("Invalid or no module name provided");
-		my $file = _STRING(shift) || 'data.sqlite';
+		my $module = _CLASS(shift @location)
+			or Carp::croak('Invalid or no module name provided');
+		my $file = _STRING(shift @location) || 'data.sqlite';
 		return File::ShareDir::module_file( $module, $file );
 
 	} else {
@@ -228,7 +229,7 @@ of the L<Data::Package::SQLite> sub-class.
 =cut
 
 sub sqlite_location {
-	my $class = ref $_[0] or $_[0];
+	my $class = ref($_[0]) || "$_[0]";
 
 	# We don't know for sure that the class actually has
 	# a data.sqlite file, but it is the best guess.

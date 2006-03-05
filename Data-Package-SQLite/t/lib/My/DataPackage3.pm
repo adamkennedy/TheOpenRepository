@@ -1,4 +1,4 @@
-package My::DataPackage2;
+package My::DataPackage3;
 
 # Default implementation, use all defaults
 
@@ -11,7 +11,7 @@ BEGIN {
 }
 
 sub sqlite_location {
-	module_file => __PACKAGE__, 'data2.sqlite'
+	dist_file => 'My-DataPackage3', 'data3.sqlite'
 }
 
 1;
