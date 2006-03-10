@@ -7,7 +7,7 @@ use base 'Data::Package::SQLite';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub sqlite_location {

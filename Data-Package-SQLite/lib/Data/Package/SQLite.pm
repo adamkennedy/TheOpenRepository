@@ -62,7 +62,7 @@ use DBI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # Check the SQLite driver is available
