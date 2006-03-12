@@ -58,13 +58,27 @@ quit();
 
 sub quit {
 	if ( $_[0] ) {
-		my $message = shift;
-		$message =~ s/[\012\015]+$/\n/;
-		print $message;
+		message(shift);
 		exit(255);
 	} else {
 		exit(0);
 	}
+}
+
+my $cgi_header = 0;
+
+sub message {
+	my $message = shift;
+	$message =~ s/[\012\015]+$/\n/;
+	if ( $ENV{SCRIPT_FILENAME} ) {
+		unless ( $cgi_header ) {
+			print "Content-Type: text/plain\n\n";
+			$cgi_header = 1;
+		}
+
+	}
+	print $message;
+	1;
 }
 
 1;

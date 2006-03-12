@@ -194,7 +194,7 @@ sub run {
 	# Find the emails to add
 	foreach my $email ( keys %{$self->{wanted_aliases}} ) {
 		next if $self->{existing_aliases}->{$email};
-		$self->vserver_create_remote_mail_alias(
+		$self->lvas->vserver_create_remote_mail_alias(
 			$self->vs_id, $self->dns_id,
 			$email => $self->{wanted_aliases}->{$email},
 			) or Carp::croak(
@@ -205,7 +205,7 @@ sub run {
 	# Find the emails to remove
 	foreach my $email ( keys %{$self->{existing_aliases}} ) {
 		next if $self->{wanted_aliases}->{$email};
-		$self->vserver_remove_mail_alias(
+		$self->lvas->vserver_remove_mail_alias(
 			$self->vs_id, $self->dns_id,
 			$email,
 			) or Carp::croak(
