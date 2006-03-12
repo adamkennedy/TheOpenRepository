@@ -20,6 +20,7 @@ BEGIN {
 }
 
 use Test::More tests => 23;
+
 BEGIN {
 	use_ok( 'Data::Digest' );
 }
