@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;

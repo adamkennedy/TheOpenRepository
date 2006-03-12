@@ -14,11 +14,12 @@ BEGIN {
 
 sub new {
 	my ($package, $date) = @_;
-	my $self = bless {}, $package;
-
-	$self->{client} = undef;
-	$self->{state} = 'I';
 	
+	my $self = bless {
+		client => undef,
+		state  => 'I',
+		}, $package;
+
 	return $self;
 }
 
@@ -32,14 +33,14 @@ sub response_invalid {
 sub send_command {
 	my ($self, $command) = @_;
 	die "Not connected to server" if $self->{state} eq 'I';
-	$realcmd = $command . "\r\n";
+	my $realcmd = $command . "\r\n";
 	#print "--> $realcmd";
 	$self->{client}->print($realcmd);
 }
 
 sub read_response {
 	my $self = shift;
-	$line = $self->{client}->getline();
+	my $line = $self->{client}->getline();
 	chomp $line;
 	#print "<-- $line\r\n";
 	$line =~ s/\r//g;
