@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 23;
+use Test::More tests => 25;
 
 BEGIN {
 	use_ok( 'Data::Digest' );
@@ -49,6 +49,8 @@ my $digest2 = Data::Digest->new('MD5', '81686241319c589f3ebdd71cf8a39577');
 isa_ok( $digest1, 'Data::Digest' );
 isa_ok( $digest2, 'Data::Digest' );
 is_deeply( $digest1, $digest2, 'One and two-argument forms of new create the same thing' );
+is( $digest1->as_string, 'MD5.81686241319c589f3ebdd71cf8a39577', '->as_string returns as expected' );
+is( $digest2->as_string, 'MD5.81686241319c589f3ebdd71cf8a39577', '->as_string returns as expected' );
 
 # Matching a file (also tests handle)
 ok( $digest1->matches( $test_file ), 'Matched test file ok' );

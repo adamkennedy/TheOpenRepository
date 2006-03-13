@@ -46,7 +46,7 @@ use Params::Util qw{_STRING _SCALAR0 _INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # For all supported digest types, provide the expected lengths of the digest
@@ -200,6 +200,26 @@ sub digest {
 
 #####################################################################
 # Main Methods
+
+=pod
+
+=head2 as_string
+
+The C<as_string> method returns the stringified form of the digest,
+which will be equivalent to and suitable for use as the value passed
+to the single-parameter form of the constructor.
+
+  print $digest->as_string . "\n";
+  > MD5.d41d8cd98f00b204e9800998ecf8427e
+
+Returns a string between around 15 and 90 characters, depending on the
+type and encoding of the digest value.
+
+=cut
+
+sub as_string {
+	$_[0]->driver . '.' . $_[0]->digest;
+}
 
 =pod
 

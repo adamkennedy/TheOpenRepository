@@ -1,4 +1,7 @@
 Revision history for Perl extension Data::Digest
 
+0.02 Mon 13 Mar 2006
+	- Adding as_string method
+
 0.01 Sun 12 Mar 2006
 	- Created the initial version of the file
