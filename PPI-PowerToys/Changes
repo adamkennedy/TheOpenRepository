@@ -1,5 +1,10 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.06 Sun 19 Mar 2006
+	- Renaming to PPI-PowerToys for better clarity
+	- Changing ppichangeversion to ppi_version to allow the addition
+	  or more features in future versions.
+
 0.05 Sun 22 Jan 2006
 	- Skip files we can't write to
 
