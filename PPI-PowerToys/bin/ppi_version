@@ -7,7 +7,12 @@ use File::Find::Rule ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
+}
+
+my $command = shift @ARGV;
+unless ( $command and $command eq 'change' ) {
+	die "The 'change' command is the only commanded implemented at present";
 }
 
 my $from = shift @ARGV;
@@ -31,10 +36,12 @@ print  "Found " . scalar(@files) . " file(s)\n";
 my $count = 0;
 foreach my $file ( @files ) {
 	print "$file...";
-	my $rv = changefile( $file, $from, $to );
 	if ( ! -w $file ) {
-		print " no write perms\n";
-	} elsif ( $rv ) {
+		print " no write permission\n";
+		next;
+	}
+	my $rv = changefile( $file, $from, $to );
+	if ( $rv ) {
 		print " updated\n";
 		$count++;
 	} else {
@@ -74,4 +81,3 @@ sub changefile {
 }
 
 1;
-	

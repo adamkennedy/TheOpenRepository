@@ -22,7 +22,7 @@ use Test::More tests => 2;
 
 BEGIN {
 	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
-	use_ok( 'Perl::PowerToys' );
+	use_ok( 'PPI::PowerToys' );
 }
 
 exit(0);
