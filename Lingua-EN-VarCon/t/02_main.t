@@ -27,7 +27,7 @@ foreach my $dataset ( @datasets ) {
 	my $method = "${dataset}_file";
 	my $file   = eval { Lingua::EN::VarCon->$method() };
 	ok( $file, "->${method} returns a value" );
-	is( $@, "->${method} does not throw an exception" );
+	is( $@, '', "->${method} does not throw an exception" );
 	ok( -f $file, "->${method} returns a file that exists" );
 	ok( -f $file, "->${method} returns a file that is readable" );
 }

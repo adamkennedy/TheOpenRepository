@@ -33,7 +33,7 @@ Additional access methods will be provided later, or on request.
 =cut
 
 use 5.005;
-use struct;
+use strict;
 use File::ShareDir ();
 
 use vars qw{$VERSION};
