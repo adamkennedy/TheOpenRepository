@@ -14,7 +14,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 2;
+use Test::More tests => 1;
 use Scalar::Util 'refaddr';
 
 use Class::Autouse;
@@ -22,5 +22,3 @@ Class::Autouse->autouse('baseB');
 
 ok( baseB->isa('baseA'), 'isa() triggers autouse' );
 
-is( refaddr(\&UNIVERSAL::isa), refaddr($Class::Autouse::UNIVERSAL_isa),
-    'UNIVERSAL::isa() is restored once all classes are loaded' );

@@ -14,7 +14,7 @@ use UNIVERSAL ();
 # to be optimised out at compile time if not needed.
 use vars qw{$DEBUG};
 use constant DEBUG => $DEBUG;
-print "Class::Autouse::autoload -> Debugging Activated.\n" if defined DEBUG;
+print "Class::Autouse::autoload -> Debugging Activated.\n" if DEBUG;
 
 # Become an exporter so we don't get complaints when we act as a pragma.
 # I don't fully understand the reason for this, but it works and I can't
@@ -32,14 +32,15 @@ use List::Util ();
 # Globals
 use vars qw{ $VERSION $DEVEL $SUPERLOAD $NOSTAT }; # Load environment
 use vars qw{ %SPECIAL %LOADED %BAD              }; # Special cases
-use vars qw{ $HOOKS %chased *_UNIVERSAL_can     }; # Working information
+use vars qw{ $HOOKS %chased $orig_can $orig_isa }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
 	$VERSION = '1.24';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
-	*_UNIVERSAL_can = *UNIVERSAL::can{CODE};
+	$orig_can = \&UNIVERSAL::can;
+	$orig_isa = \&UNIVERSAL::isa;
 
 	# We always start with the superloader off
 	$SUPERLOAD = 0;
@@ -73,7 +74,7 @@ BEGIN {
 # Developer mode flag.
 # Cannot be turned off once turned on.
 sub devel {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 
 	# Enable if not already
 	return 1 if $DEVEL;
@@ -92,7 +93,7 @@ sub devel {
 # The process here is to replace the &UNIVERSAL::AUTOLOAD sub
 # ( which is just a dummy by default ) with a flexible class loader.
 sub superloader {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 
 	unless ( $SUPERLOAD ) {
 		# Overwrite UNIVERSAL::AUTOLOAD and catch any
@@ -103,9 +104,9 @@ sub superloader {
 		*UNIVERSAL::DESTROY  = \&_DESTROY;
 
 		# Because this will never go away, we increment $HOOKS such
-		# that it will never be decremented, and this the
-		# UNIVERSAL::can hijack will never be removed.
-		_UPDATE_CAN() unless $HOOKS++;
+		# that it will never be decremented, and thus the
+		# UNIVERSAL::can/isa hijack will never be removed.
+		_UPDATE_HOOKS() unless $HOOKS++;
 	}
 
 	$SUPERLOAD = 1;
@@ -119,7 +120,7 @@ sub autouse {
 	# Ignore calls with no arguments
 	return 1 unless @_;
 
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
 
 	foreach my $class ( grep { $_ } @_ ) {
 		# Control flag handling
@@ -159,8 +160,8 @@ sub autouse {
 		*{"${class}::AUTOLOAD"} = \&_AUTOLOAD;
 		$INC{$file} = 'Class::Autouse';
 
-		# When we add the first hook, hijack UNIVERSAL::can
-		_UPDATE_CAN() unless $HOOKS++;
+		# When we add the first hook, hijack UNIVERSAL::can/isa
+		_UPDATE_HOOKS() unless $HOOKS++;
 	}
 
 	1;
@@ -178,7 +179,7 @@ sub import { shift->autouse(@_) }
 
 # Completely load a class ( The class and all its dependencies ).
 sub load {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 
 	my $class = $_[1] or _cry('No class name specified to load');
 	return 1 if $LOADED{$class};
@@ -207,7 +208,7 @@ sub load {
 # Is a particular class installed in out @INC somewhere
 # OR is it loaded in our program already
 sub class_exists {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 	_namespace_occupied($_[1]) or _file_exists($_[1]);
 }
 
@@ -217,7 +218,7 @@ sub class_exists {
 # Returns 0 if the class is not loaded ( or autouse'd )
 # Returns 1 if the class can be used.
 sub can_call_methods {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 	_namespace_occupied($_[1]) or exists $INC{_class_file($_[1])};
 }
 
@@ -226,7 +227,7 @@ sub can_call_methods {
 
 # Autouse not only a class, but all others below it.
 sub autouse_recursive {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 
 	# Just load if in devel mode
 	return Class::Autouse->load_recursive($_[1]) if $DEVEL;
@@ -240,7 +241,7 @@ sub autouse_recursive {
 
 # Load not only a class and all others below it
 sub load_recursive {
-	_debug(\@_, 1) if defined DEBUG;
+	_debug(\@_, 1) if DEBUG;
 
 	# Load the parent class, and its children
 	foreach ( $_[1], _child_classes($_[1]) ) {
@@ -262,7 +263,7 @@ sub load_recursive {
 
 # Get's linked via the symbol table to any AUTOLOADs are required
 sub _AUTOLOAD {
-	_debug(\@_, 0, ", AUTOLOAD = '$Class::Autouse::AUTOLOAD'") if defined DEBUG;
+	_debug(\@_, 0, ", AUTOLOAD = '$Class::Autouse::AUTOLOAD'") if DEBUG;
 
 	# Loop detection ( Just in case )
 	my $method = $Class::Autouse::AUTOLOAD or _cry('Missing method name');
@@ -294,7 +295,19 @@ sub _AUTOLOAD {
 
 # This just handles the call and does nothing
 sub _DESTROY {
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
+}
+
+# This is the replacement for UNIVERSAL::isa
+sub _isa {
+	my $class = ref $_[0] || $_[0] || return undef;
+
+	# Shortcut for the most likely cases
+	if ( $LOADED{$class} or defined @{"${class}::ISA"} ) {
+		goto &{$orig_isa};
+	}
+
+	_preload_class($orig_isa, @_);
 }
 
 # This is the replacement for UNIVERSAL::can
@@ -302,9 +315,16 @@ sub _can {
 	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Shortcut for the most likely cases
-	if ( $LOADED{$class} or defined @{"${class}::ISA"} ) { 
-		goto &_UNIVERSAL_can;
+	if ( $LOADED{$class} or defined @{"${class}::ISA"} ) {
+		goto &{$orig_can};
 	}
+
+	_preload_class($orig_can, @_);
+}
+
+sub _preload_class {
+	my $orig  = shift;
+	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Does it look like a package?
 	$class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W\d]\w*)*$/o or return undef;
@@ -335,8 +355,8 @@ sub _can {
 		die $@ if $@;
 	}
 
-	# Hand off to the real UNIVERSAL::can
-	goto &_UNIVERSAL_can;
+	# Hand off to the real function
+	goto &{$orig};;
 }
 
 
@@ -348,7 +368,7 @@ sub _can {
 
 # Load a single class
 sub _load ($) {
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
 
 	# Don't attempt to load special classes
 	my $class = shift or _cry('Did not specify a class to load');
@@ -376,14 +396,14 @@ sub _load ($) {
 	}
 
 	# Load the file
-	print _call_depth(1) . "  Class::Autouse::load -> Loading in $file\n" if defined DEBUG;
+	print _call_depth(1) . "  Class::Autouse::load -> Loading in $file\n" if DEBUG;
 	eval {
 		CORE::require($file);
 	};
 	_cry($@) if $@;
 
-	# Give back UNIVERSAL::can if there are no other hooks
-	--$HOOKS or _UPDATE_CAN();
+	# Give back UNIVERSAL::can/isa if there are no other hooks
+	--$HOOKS or _UPDATE_HOOKS();
 
 	$LOADED{$class} = 1;
 }
@@ -391,7 +411,7 @@ sub _load ($) {
 # Find all the child classes for a parent class.
 # Returns in the list context.
 sub _child_classes ($) {
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
 
 	# Find where it is in @INC
 	my $base_file = _class_file(shift);
@@ -453,7 +473,7 @@ sub _child_classes ($) {
 # Does a class or file exists somewhere in our include path. For
 # convenience, returns the unresolved file name ( even if passed a class )
 sub _file_exists ($) {
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
 
 	# What are we looking for?
 	my $file = shift or return undef;
@@ -472,7 +492,7 @@ sub _file_exists ($) {
 
 # Is a namespace occupied by anything significant
 sub _namespace_occupied ($) {
-	_debug(\@_) if defined DEBUG;
+	_debug(\@_) if DEBUG;
 
 	# Handle the most likely case
 	my $class = shift or return undef;
@@ -497,7 +517,7 @@ sub _class_file ($) {
 # Establish our call depth
 sub _call_depth {
 	my $spaces = shift;
-	if ( defined DEBUG and ! $spaces ) { _debug(\@_) }
+	if ( DEBUG and ! $spaces ) { _debug(\@_) }
 
 	# Search up the caller stack to find the first call that isn't us.
 	my $level = 0;
@@ -516,7 +536,7 @@ sub _call_depth {
 
 # Die gracefully
 sub _cry {
-	_debug() if defined DEBUG;
+	_debug() if DEBUG;
 	local $Carp::CarpLevel;
 	$Carp::CarpLevel += _call_depth();
 	Carp::croak( $_[0] );
@@ -524,7 +544,7 @@ sub _cry {
 
 # Adaptive debug print generation
 BEGIN {
-	eval <<'END_DEBUG' if defined DEBUG;
+	eval <<'END_DEBUG' if DEBUG;
 
 sub _debug {
 	my $args    = shift;
@@ -550,15 +570,14 @@ END_DEBUG
 #####################################################################
 # Final Initialisation
 
-# The _UPDATE_CAN function is intended to turn our hijacking of UNIVERSAL::can
+# The _UPDATE_HOOKS function is intended to turn our hijacking of UNIVERSAL::can
 # on or off, depending on whether we have any live hooks. The idea being, if we
 # don't have any live hooks, why bother intercepting UNIVERSAL::can calls?
-BEGIN { eval <<'END_PERL'; die $@ if $@ }
-sub _UPDATE_CAN () {
+sub _UPDATE_HOOKS () {
 	local $^W = 0;
-	*UNIVERSAL::can = $HOOKS ? *_can{CODE} : *_UNIVERSAL_can{CODE};
+	*UNIVERSAL::can = $HOOKS ? \&_can : $orig_can;
+	*UNIVERSAL::isa = $HOOKS ? \&_isa : $orig_isa;
 }
-END_PERL
 
 BEGIN {
 	# Optional integration with prefork.pm (if installed)
@@ -588,7 +607,9 @@ Class::Autouse - Run-time load a class the first time you call a method in it.
 =head1 SYNOPSIS
 
   # Debugging (if you go that way) must be set before the first use
-  $Class::Autouse::DEBUG = 1;
+  BEGIN {
+      $Class::Autouse::DEBUG = 1;
+  }
   
   # Load a class on method call
   use Class::Autouse;

@@ -21,7 +21,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 26;
+use Test::More tests => 29;
 use Scalar::Util 'refaddr';
 use Class::Autouse ();
 
@@ -44,15 +44,21 @@ ok( ! Class::Autouse->class_exists( 'Class::Autouse::Nonexistant' ), '->class_ex
 # Does ->can for an autoused class correctly load the class and find the method.
 my $class = 'D';
 ok( refaddr(*UNIVERSAL::can{CODE}), "We know which version of UNIVERSAL::can we are using" );
-is( refaddr(*UNIVERSAL::can{CODE}), refaddr(*Class::Autouse::_UNIVERSAL_can{CODE}),
+is( refaddr(*UNIVERSAL::can{CODE}), refaddr($Class::Autouse::orig_can),
 	"Before autoloading, UNIVERSAL::can is in it's original state, and has been backed up");
+is( refaddr(*UNIVERSAL::isa{CODE}), refaddr($Class::Autouse::orig_isa),
+	"Before autoloading, UNIVERSAL::isa is in it's original state, and has been backed up");
 ok( Class::Autouse->autouse( $class ), "Test class '$class' autoused ok" );
 is( refaddr(*UNIVERSAL::can{CODE}), refaddr(*Class::Autouse::_can{CODE}),
 	"After autoloading, UNIVERSAL::can has been correctly hijacked");
+is( refaddr(*UNIVERSAL::isa{CODE}), refaddr(*Class::Autouse::_isa{CODE}),
+	"After autoloading, UNIVERSAL::isa has been correctly hijacked");
 ok( $class->can('method2'), "'can' found sub 'method2' in autoused class '$class'" );
 ok( $Class::Autouse::LOADED{$class}, "'can' loaded class '$class' while looking for 'method2'" );
-is( refaddr(*UNIVERSAL::can{CODE}), refaddr(*Class::Autouse::_UNIVERSAL_can{CODE}),
-	"When all classes are loaded, UNIVERSAL::can reverts back to the original states");
+is( refaddr(*UNIVERSAL::can{CODE}), refaddr($Class::Autouse::orig_can),
+	"When all classes are loaded, UNIVERSAL::can reverts back to the original state");
+is( refaddr(*UNIVERSAL::isa{CODE}), refaddr($Class::Autouse::orig_isa),
+	"Whan all classes are loaded, UNIVERSAL::isa reverts back to the original state");
 
 # Use the loaded hash again to avoid a warning
 $_ = $Class::Autouse::LOADED{$class};
