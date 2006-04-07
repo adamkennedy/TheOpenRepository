@@ -1,5 +1,11 @@
 Revision history for Perl extension Class::Autouse
 
+1.25 Fri Apr  7 2006
+	- Expands the can hook to also hook isa (Michael Schwern)
+	- Minor fixes to debugging (Michael Schwern)
+	- Optimised out the warnings.pm hook change (Michael Schwern)
+	- Module::Install updated to 0.61
+
 1.24 Fri Jan 13 2006
 	- No functional changes. No need to upgrade.
 	- Updated copyright notice to 2006.
