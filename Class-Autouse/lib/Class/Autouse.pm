@@ -553,17 +553,12 @@ END_DEBUG
 # The _UPDATE_CAN function is intended to turn our hijacking of UNIVERSAL::can
 # on or off, depending on whether we have any live hooks. The idea being, if we
 # don't have any live hooks, why bother intercepting UNIVERSAL::can calls?
-BEGIN { eval( $] >= 5.006 ? <<'END_NEW_PERL' : <<'END_OLD_PERL'); die $@ if $@ }
-sub _UPDATE_CAN () {
-	no warnings;
-	*UNIVERSAL::can = $HOOKS ? *_can{CODE} : *_UNIVERSAL_can{CODE};
-}
-END_NEW_PERL
+BEGIN { eval <<'END_PERL'; die $@ if $@ }
 sub _UPDATE_CAN () {
 	local $^W = 0;
 	*UNIVERSAL::can = $HOOKS ? *_can{CODE} : *_UNIVERSAL_can{CODE};
 }
-END_OLD_PERL
+END_PERL
 
 BEGIN {
 	# Optional integration with prefork.pm (if installed)
