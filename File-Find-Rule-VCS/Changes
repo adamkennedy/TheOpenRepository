@@ -1,6 +1,6 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
-0.03 Sat  8 Apr 2006
+1.00 Sat  8 Apr 2006
 	- Moved from old CVS to new SVN repository
 	- Upgraded to Module::Install 0.61
 
