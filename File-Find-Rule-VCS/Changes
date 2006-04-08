@@ -1,0 +1,12 @@
+Revision history for Perl extension File::Find::Rule::VCS
+
+0.03 Sat  8 Apr 2006
+	- Moved from old CVS to new SVN repository
+	- Upgraded to Module::Install 0.61
+
+0.02 Sat 12 Feb 2005
+	- Decided that ignore_ was better than discard_
+	- When filtering CVS, remove those post-merge dot-hash files
+
+0.01 Fri 11 Feb 2005
+	- Created the initial version of the module
