@@ -91,7 +91,7 @@ it locates C<Makefile.PL> and C<Build.PL> files.
 
 =cut
 
-sub File::Find::Rule::perl_test {
+sub File::Find::Rule::perl_installer {
 	my $self = shift()->_force_object;
 	$self->file->name( 'Makefile.PL', 'Build.PL' );
 }
@@ -114,7 +114,7 @@ sub File::Find::Rule::perl_script {
 		   ->name( '*.pl' ),
 		FFR->file
 		   ->name( qr/^[^.]+$/ )
-		   ->exec( &File::Find::Rule::Perl::_shebang ),
+		   ->exec( \&File::Find::Rule::Perl::_shebang ),
 		);
 }
 
@@ -142,7 +142,7 @@ sub File::Find::Rule::perl_file {
 	$self->file->or(
 		FFR->name( '*.pm', '*.t', '*.pl', 'Makefile.PL', 'Build.PL' ),
 		FFR->name( qr/^[^.]+$/ )
-		   ->exec( &File::Find::Rule::Perl::_shebang ),
+		   ->exec( \&File::Find::Rule::Perl::_shebang ),
 		);
 }
 
