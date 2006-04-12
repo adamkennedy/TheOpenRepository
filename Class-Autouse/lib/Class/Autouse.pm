@@ -9,10 +9,15 @@ use strict;
 no strict 'refs'; # We _really_ abuse refs :)
 use UNIVERSAL ();
 
-# Debugging
-# Handle debugging switch via a constant to allow debugging
-# to be optimised out at compile time if not needed.
+# Avoid a 5.6 bug where a constant set to undef throws a "useless use of
+# constant in void context" warning.
 use vars qw{$DEBUG};
+BEGIN {
+	$DEBUG ||= 0;
+}
+
+# Handle the debugging switch via a constant to allow debugging
+# to be optimised out at compile time if not needed.
 use constant DEBUG => $DEBUG;
 print "Class::Autouse::autoload -> Debugging Activated.\n" if DEBUG;
 
@@ -36,7 +41,7 @@ use vars qw{ $HOOKS %chased $orig_can $orig_isa }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.25';
+	$VERSION = '1.26';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
 	$orig_can = \&UNIVERSAL::can;

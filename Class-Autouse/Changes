@@ -1,8 +1,16 @@
 Revision history for Perl extension Class::Autouse
 
+1.26 Wed Apr 12 2006
+	- Debugging change in 1.25 regressed an undocumented 5.6-related
+	  bug first fixed in 1.20. Make sure $DEBUG is always defined
+	  (Michael Schwern)
+	- Re-introduced the List::Util 1.18 dependency, but stay at 1.17
+	  if on a Win32 (and cygwin, just in case) platform.
+	- Module::Install updated to pre-release of 0.62
+
 1.25 Fri Apr  7 2006
 	- Expands the can hook to also hook isa (Michael Schwern)
-	- Minor fixes to debugging (Michael Schwern)
+	- Minor change to debugging (Michael Schwern)
 	- Optimised out the warnings.pm hook change (Michael Schwern)
 	- Module::Install updated to 0.61
 
