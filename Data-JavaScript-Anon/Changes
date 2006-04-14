@@ -1,0 +1,34 @@
+Revision history for Perl extension Data::JavaScript::Anon
+
+0.7  Sat 15 Apr 2006
+	- No functional changes
+	- Moved from old CVS repository to new SVN one
+	- Direct use of UNIVERSAL::isa considered bad, moved to Params::Util
+	- Upgraded extremely old Module::Install 0.34 to 0.62
+
+0.6  Tue Jul 26 2005
+	- Merged in patch from ARC@cpan.org to quote keywords.
+
+0.5  Sat Jul 23 2005
+	- Merged in patch from John Alden at the BBC to handle various escaping things
+
+0.4  Fri Mar 25 2005
+	- Escape forward slashes correctly in strings (CPAN #11882)
+	- Removed SGML comments from script_wrap (CPAN #11646)
+	- Upgrade unit tests to current style
+	- Upgrade Makefile.PL to Module::Install
+
+0.3  Wed Aug  4 2004
+	- Converted word regex to something that actually detects words
+	- Fixed some minor error string bug to use Data::JavaScript::Anon
+	  instead of Serlialize::JavaScript (the original name)
+
+0.2  Thu Nov 20 2003
+	- Added a highly robust and more accurate regex test for numbers.
+	- Added the is_a_number method.
+	- Fixed the bug from #CPAN 4056
+	- Did a clean up and shrink of the code. Possibly saved enough bytes
+	  to cover the addition of the regex code.
+
+0.1  Sun May  4 8:30:23 2003
+	- original version
