@@ -138,16 +138,17 @@ BEGIN {
 }
 
 sub import {
-	my $have = caller(0);
-	my $code = join '',
-		"package $have;\n"
-		, "\n"
-		, "sub isa {\n"
-		( map { "\treturn 1 if \$_[1] eq '$_'; } @_ ),
-		, "\t shift->SUPER::isa(\@_);\n"
-		, "}\n";
-	Carp::croak( $code );
-	die "Failed to create isa method: $@" if $@;
+	my $class = shift;
+	my $have  = caller(0);
+	my $code  = join '',
+		"package $have;\n",
+		"\n",
+		"sub isa {\n",
+		( map { "\treturn 1 if \$_[1] eq '$_';\n" } @_ ),
+		"\tshift->SUPER::isa(\@_);\n",
+		"}\n";
+	eval( $code );
+	Carp::croak( "Failed to create isa method: $@" ) if $@;
 	return 1;
 }
 

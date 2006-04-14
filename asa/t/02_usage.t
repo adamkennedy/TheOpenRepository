@@ -19,12 +19,12 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 17;
+use Test::More tests => 18;
 
 my $duck = Duck->new;
 isa_ok( $duck, 'Duck' );
 can_ok( $duck, 'quack' );
-ok( ! $duck>{human}, 'Duck is not human' );
+ok( ! $duck->{human}, 'Duck is not human' );
 is( $duck->quack, 'Quack', 'A Duck quacks' );
 
 my $wereduck = WereDuck->new;
@@ -38,7 +38,7 @@ is( $wereduck->{human}, 1, 'A WereDuck is human' );
 is( $wereduck->quack, 'Hi! I mean Quack!', 'A wereduck quacks' );
 
 my $broken = BrokenDuck->new;
-isa_ok( $broken, 'WereDuck'    );
+isa_ok( $broken, 'BrokenDuck'  );
 isa_ok( $broken, 'Lycanthrope' );
 isa_ok( $broken, 'Duck'        );
 can_ok( $broken, 'morph' );
@@ -78,7 +78,7 @@ BEGIN {
 
 sub new { bless { human => 1 }, $_[0] }
 
-sub morph { 'HRALGLAHRLAHRAL' );
+sub morph { 'HRALGLAHRLAHRAL' };
 
 1;
 
