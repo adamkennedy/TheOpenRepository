@@ -31,6 +31,7 @@ my $wereduck = WereDuck->new;
 isa_ok( $wereduck, 'WereDuck'    );
 isa_ok( $wereduck, 'Lycanthrope' );
 isa_ok( $wereduck, 'Duck'        );
+isa_ok( $wereduck, 'Horror'      );
 can_ok( $wereduck, 'morph' );
 can_ok( $wereduck, 'quack' );
 is( $wereduck->{human}, 1, 'A WereDuck is human' );
@@ -92,7 +93,7 @@ BEGIN {
 }
 
 use base 'Lycanthrope';
-use asa  'Duck';
+use asa  'Duck', 'Horror';
 
 sub quack { 'Hi! I mean Quack!' }
 
