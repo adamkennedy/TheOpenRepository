@@ -1,0 +1,5 @@
+Revision history for Perl extension asa
+
+0.01  Fri 14 Apr 2006
+	- original version
+	- Only a naive implementation, doesn't handle corner cases yet
