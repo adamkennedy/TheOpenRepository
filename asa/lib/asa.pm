@@ -17,7 +17,7 @@ asa - Lets your class/object say it works like something else
   use asa  'Duck';
   
   sub quack {
-      return "Ow! errr... Quack!";
+      return "Hi! errr... Quack!";
   }
   
   ################################################
@@ -152,3 +152,31 @@ sub import {
 }
 
 1;
+
+=head1 SUPPORT
+
+Bugs should be always be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=asa>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>cpan@ali.asE<lt>
+
+=head1 SEE ALSO
+
+L<base>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2006 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
