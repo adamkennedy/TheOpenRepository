@@ -4,6 +4,7 @@ package Data::JavaScript::Anon;
 # into JavaScript structures, making it easier to transfer data
 # from Perl to JavaScript.
 
+use 5.005;
 use strict;
 use Params::Util qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 
