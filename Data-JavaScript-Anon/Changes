@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::JavaScript::Anon
 
+0.8  Sat 15 Apr 2006
+	- Forgot to add a dependency on Params::Util
+
 0.7  Sat 15 Apr 2006
 	- No functional changes
 	- Moved from old CVS repository to new SVN one

@@ -10,7 +10,7 @@ use Params::Util qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 
 use vars qw{$VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
 BEGIN {
-	$VERSION = '0.7';
+	$VERSION = '0.8';
 	$errstr  = '';
 
 	# Attempt to define a single, all encompasing,
