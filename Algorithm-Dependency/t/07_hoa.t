@@ -20,7 +20,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 109;
+use Test::More tests => 108;
 use Algorithm::Dependency              ();
 use Algorithm::Dependency::Source::HoA ();
 
@@ -102,7 +102,7 @@ foreach my $data ( [
 $Dep = Algorithm::Dependency->new( source => $Source, selected => [ 'F::G' ] );
 ok( $Dep, "Algorithm::Dependency->new returns true" );
 ok( ref $Dep, "Algorithm::Dependency->new returns reference" );
-isa_ok( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
+isa_ok( $Dep, 'Algorithm::Dependency');
 ok( $Dep->source, "Dependency->source returns true" );
 ok( $Dep->source eq $Source, "Dependency->source returns the original source" );
 ok( $Dep->item('A'), "Dependency->item returns true" );

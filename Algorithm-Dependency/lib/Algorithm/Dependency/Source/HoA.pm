@@ -37,7 +37,7 @@ use Params::Util qw{_HASH _ARRAY0};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.101';
+	$VERSION = '1.102';
 }
 
 
