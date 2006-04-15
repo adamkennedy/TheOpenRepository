@@ -33,5 +33,4 @@ Revision history for Perl extension Data::JavaScript::Anon
 	- Did a clean up and shrink of the code. Possibly saved enough bytes
 	  to cover the addition of the regex code.
 
-0.1  Sun May  4 8:30:23 2003
-	- original version
+0.1  Sun May  4 8:30:23 2003 - original version

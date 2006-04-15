@@ -45,9 +45,9 @@ ok( ! $Source->{loaded}, "Source isn't loaded" );
 
 ok( eval {$Source->load;}, "Source ->load returns true" );
 ok( $Source->{loaded}, "Source appears to be loaded" );
-ok( isa( $Source->item('A'), 'Algorithm::Dependency::Item' ), "->item returns an Item for A" );
-ok( isa( $Source->item('B'), 'Algorithm::Dependency::Item' ), "->item returns an Item for B" );
-ok( isa( $Source->item('D'), 'Algorithm::Dependency::Item' ), "->item returns an Item for D" );
+isa_ok( $Source->item('A'), 'Algorithm::Dependency::Item' );
+isa_ok( $Source->item('B'), 'Algorithm::Dependency::Item' );
+isa_ok( $Source->item('D'), 'Algorithm::Dependency::Item' );
 ok( ! defined $Source->item('BAD'), "->item for bad value properly returns undef" );
 
 ok( $Source->item('A')->id eq 'A', "Item ->id appears to work ok" );
@@ -57,9 +57,9 @@ ok( scalar $Source->item('D')->depends == 2, "Item ->depends for 2 depends retur
 
 my @items = $Source->items;
 ok( scalar @items == 6, "Source ->items returns a list" );
-ok( isa( $items[0], 'Algorithm::Dependency::Item' ), "List contains Items" );
-ok( isa( $items[1], 'Algorithm::Dependency::Item' ), "List contains Items" );
-ok( isa( $items[3], 'Algorithm::Dependency::Item' ), "List contains Items" );
+isa_ok( $items[0], 'Algorithm::Dependency::Item' );
+isa_ok( $items[1], 'Algorithm::Dependency::Item' );
+isa_ok( $items[3], 'Algorithm::Dependency::Item' );
 
 
 
@@ -69,7 +69,7 @@ ok( isa( $items[3], 'Algorithm::Dependency::Item' ), "List contains Items" );
 my $Dep = Algorithm::Dependency->new( source => $Source );
 ok( $Dep, "Algorithm::Dependency->new returns true" );
 ok( ref $Dep, "Algorithm::Dependency->new returns reference" );
-ok( isa( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
+isa_ok( $Dep, 'Algorithm::Dependency');
 ok( $Dep->source, "Dependency->source returns true" );
 ok( $Dep->source eq $Source, "Dependency->source returns the original source" );
 ok( $Dep->item('A'), "Dependency->item returns true" );
@@ -102,7 +102,7 @@ foreach my $data ( [
 $Dep = Algorithm::Dependency->new( source => $Source, selected => [ 'F::G' ] );
 ok( $Dep, "Algorithm::Dependency->new returns true" );
 ok( ref $Dep, "Algorithm::Dependency->new returns reference" );
-ok( isa( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
+isa_ok( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
 ok( $Dep->source, "Dependency->source returns true" );
 ok( $Dep->source eq $Source, "Dependency->source returns the original source" );
 ok( $Dep->item('A'), "Dependency->item returns true" );

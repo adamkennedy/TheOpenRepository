@@ -41,7 +41,7 @@ ok( eval {$Source->load;}, "Complex source loads" );
 my $Dep = Algorithm::Dependency->new( source => $Source );
 ok( $Dep, "Algorithm::Dependency->new returns true" );
 ok( ref $Dep, "Algorithm::Dependency->new returns reference" );
-ok( isa( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
+isa_ok( $Dep, 'Algorithm::Dependency');
 
 # Test each of the dependencies
 foreach my $data ( [
@@ -83,7 +83,7 @@ foreach my $data ( [
 $Dep = Algorithm::Dependency->new( source => $Source, selected => [qw{F H J N R P}] );
 ok( $Dep, "Algorithm::Dependency->new returns true" );
 ok( ref $Dep, "Algorithm::Dependency->new returns reference" );
-ok( isa( $Dep, 'Algorithm::Dependency'), "Algorithm::Dependency->new returns correctly" );
+isa_ok( $Dep, 'Algorithm::Dependency');
 
 # Test each of the dependencies
 foreach my $data ( [
