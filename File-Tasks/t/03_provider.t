@@ -5,7 +5,7 @@
 use strict;
 
 # Execute the tests
-use Test::More 'tests' => 13;
+use Test::More tests => 13;
 use File::Tasks;
 
 

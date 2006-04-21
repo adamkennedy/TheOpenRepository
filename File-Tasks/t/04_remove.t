@@ -6,16 +6,16 @@ use strict;
 use File::Spec::Functions ':ALL';
 
 # Execute the tests
-use Test::More 'tests' => 11;
+use Test::More tests => 11;
 use File::Find::Rule ();
 use File::Tasks      ();
 use constant FFR => 'File::Find::Rule';
 
-my $delete_dir = catdir( 't.data', 'delete' );
+my $delete_dir = catdir( 't', 'data', 'delete' );
 ok( -d $delete_dir, "Found 'delete' test directory" );
 
-# If we are executing this test inside of a CVS checkout, we need
-# to make sure that we don't accidentally include CVS folders.
+# If we are executing this test inside of a SVN checkout, we need
+# to make sure that we don't accidentally include SVN folders.
 my $Rule;
 if ( -d catdir( $delete_dir, '.svn' ) ) {
 	$Rule = FFR->or(
