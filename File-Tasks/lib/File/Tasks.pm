@@ -5,7 +5,7 @@ package File::Tasks;
 use strict;
 use Clone                 ();
 use Params::Util          '_INSTANCE';
-use Param::Coerce         ();
+use Params::Coerce         ();
 use File::Tasks::Provider ();
 use File::Tasks::Add      ();
 use File::Tasks::Edit     ();
@@ -160,7 +160,7 @@ sub execute {
 
 sub overlay {
 	my $self  = Clone::clone shift;
-	my $other = Param::Coerce::coerce('File::Tasks', shift) or return undef;
+	my $other = Params::Coerce::coerce('File::Tasks', shift) or return undef;
 	foreach my $Task ( $other->tasks ) {
 		my $Current = $self->task($Task->path);
 		unless ( $Current ) {
@@ -209,7 +209,7 @@ sub overlay {
 # A thin wrapper to handle the way overloaded arguments are provided
 sub _overlay {
 	my $left  = _INSTANCE(shift, 'File::Tasks') ? shift : return undef;
-	my $right = Param::Coerce::coerce('File::Tasks', shift) or return undef;
+	my $right = Params::Coerce::coerce('File::Tasks', shift) or return undef;
 	($left, $right) = ($right, $left) if $_[0];
 	$left->overlay($right);
 }
