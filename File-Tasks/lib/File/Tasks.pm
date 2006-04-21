@@ -2,10 +2,11 @@ package File::Tasks;
 
 # See POD at end for docs
 
+use 5.005;
 use strict;
 use Clone                 ();
 use Params::Util          '_INSTANCE';
-use Params::Coerce         ();
+use Params::Coerce        ();
 use File::Tasks::Provider ();
 use File::Tasks::Add      ();
 use File::Tasks::Edit     ();
@@ -469,7 +470,7 @@ Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy. All rights reserved.
+Copyright 2005, 2006 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
