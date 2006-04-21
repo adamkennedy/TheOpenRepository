@@ -1,5 +1,7 @@
 Revision history for Perl extension Archive::Builder
 
+	- Fix test 06_archives.t so it won't fail due to missing dependencies (Gabor Szabo)
+
 1.06 Fri 21 Apr 2006
 	- No functional changes
 	- Removed the use of UNIVERSAL::isa and UNIVERSAL::can

@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 41;
+use Test::More;
 use File::Flat;
 use Archive::Builder;
 
@@ -52,27 +52,39 @@ $files = {
 init();
 
 
-
-
+my %archive_types = (
+ 'tar'    => \&test_tar,
+ 'tgz'    => \&test_tgz,
+ 'tar.gz' => \&test_tar_gz,
+ 'zip'    => \&test_zip,
+);
 
 
 # First, identify the types that we can build
 my @types = Archive::Builder::Archive->types;
+
+my $tests = 1;
+foreach ( @types ) {
+  $tests += 3;
+  if ($archive_types{$_}) {
+    $tests += 7;
+  } else {
+    diag "No test for type '$_'";
+  } 
+}
+foreach my $type (keys %archive_types) {
+  diag "Skipping test of '$type' files due to missing dependency" if ! grep {$_ eq $type} @types
+}
+
+plan tests => $tests;
+
 ok( scalar @types, 'You can build at least one type of archive' );
 
 
 # Test the types they have available
 foreach ( @types ) {
 	test_common( $_ );
-	if ( $_ eq 'tar' ) {
-		test_tar();
-	} elsif ( $_ eq 'tgz' ) {
-		test_tgz();
-	} elsif ( $_ eq 'tar.gz' ) {
-		test_tar_gz();
-	} elsif ( $_ eq 'zip' ) {
-		test_zip();
-	}
+	if ($archive_types{$_}) { $archive_types{$_}->() } # TODO handle case of invalid type
 }
 
 
