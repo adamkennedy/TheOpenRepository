@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-name            'Algorithm-Builder';
+name            'Archive-Builder';
 all_from        'lib/Archive/Builder.pm';
 requires        'List::Util'       => '1.15';
 requires        'File::Spec'       => '0.80';
