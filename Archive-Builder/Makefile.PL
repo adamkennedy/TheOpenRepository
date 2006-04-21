@@ -15,5 +15,12 @@ build_requires  'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
 build_requires  'Test::ClassAPI'   => '1.02';
 include         'Test::ClassAPI';
 
+# When testing, have all the archive drivers available
+if ( $ENV{AUTOMATED_TESTING} ) {
+	requires 'Archive::Zip'   => 0;
+	requires 'Archive::Tar'   => 0;
+	requires 'Compress::Zlib' => 0;
+}
+
 auto_install;
 WriteAll;
