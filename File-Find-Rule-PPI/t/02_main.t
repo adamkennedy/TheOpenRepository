@@ -31,7 +31,7 @@ my $Rule = File::Find::Rule->file
 isa_ok( $Rule, 'File::Find::Rule' );
 
 # They all should
-my @files = $Rule->in( catdir('t', 'data' );
+my @files = $Rule->in( catdir('t', 'data') );
 @files = sort @files;
 is_deeply( \@files, [ 'Bar.pm', 'Foo.pm', catfile('dir', 'Baz.pm') ],
 	'Whitespace search returns expected file list' );
@@ -44,7 +44,7 @@ $Rule = File::Find::Rule->file
 isa_ok( $Rule, 'File::Find::Rule' );
 
 # They all should
-@files = $Rule->in( catdir('t', 'data' );
+@files = $Rule->in( catdir('t', 'data') );
 @files = sort @files;
 is_deeply( \@files, [ 'Bar.pm', catfile('dir', 'Baz.pm') ],
 	'Comment search returns expected file list' );
