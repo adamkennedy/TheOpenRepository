@@ -1,5 +1,11 @@
 Revision history for Perl extension Config::Tiny
 
+2.06 Sun 23 Apr 2006
+	- No functional changes.
+	- Removing last use of File::Spec
+	- Removing last use of FindBin
+	- Upgrading to Module::Install 0.62
+
 2.05 Thu 23 Feb 2006
 	- No functional changes.
 	- Moved over from the old CVS repository to the new SVN one
