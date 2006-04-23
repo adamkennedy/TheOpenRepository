@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::SubCalls
 
+0.05 Mon 24 Apr 2006
+	- Apparently my tweaking of the dependencies was incorrect.
+	- Removed the Test::Simple dep, the T:B:Tester one should be enough
+	- Minor pod change
+
 0.04 Sun 23 Apr 2006
 	- Moved from SourceForge CVS to new collaborative SVN repository
 	- Upgraded Module::Install to 0.62

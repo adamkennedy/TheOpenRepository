@@ -49,7 +49,7 @@ use base 'Exporter';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	@EXPORT  = qw{sub_track sub_calls sub_reset sub_reset_all};
 }
 
@@ -68,7 +68,7 @@ my %CALLS = ();
 
 =head2 sub_track $subname
 
-The c<sub_track> function creates a new call tracker for a named function.
+The C<sub_track> function creates a new call tracker for a named function.
 
 The sub to track must be provided by name, references to the function
 itself are insufficient.
