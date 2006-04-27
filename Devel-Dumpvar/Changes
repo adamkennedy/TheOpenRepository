@@ -1,0 +1,12 @@
+Revision history for Perl extension Devel::Dumpvar
+
+0.03  Thu Apr 27 2006
+	- Moving from old CVS to new SVN repository
+	- Moving installer to Module::Install 0.62
+	- Removing all uses of UNIVERSAL::isa
+
+0.02  Thu Aug  5 2004
+	- Adding basic CODE support
+
+0.01  Thu Apr  8 2003
+	- Adding initial version
