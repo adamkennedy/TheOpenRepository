@@ -1,5 +1,7 @@
 Revision history for Perl extension Devel::Dumpvar
 
+    - Remove quotes for hash keys.
+
 0.03  Thu Apr 27 2006
 	- Moving from old CVS to new SVN repository
 	- Moving installer to Module::Install 0.62

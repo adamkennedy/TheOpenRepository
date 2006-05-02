@@ -152,9 +152,8 @@ sub _dump_hash {
 	my $hash_ref = UNIVERSAL::isa( $_[0], 'HASH' ) ? shift
 		: die "Bad argument to _dump_hash";
 
-	foreach ( sort keys %$hash_ref ) {
-		my $key   = $self->_scalar( $_ );
-		my $value = $hash_ref->{$_};
+	foreach my $key ( sort keys %$hash_ref ) {
+		my $value = $hash_ref->{$key};
 
 		# Handle scalar values
 		unless ( ref $value ) {
@@ -214,7 +213,7 @@ sub _dump_child {
 	} elsif ( $type eq 'CODE' ) {
 		$self->_dump_code( $value );
 	} else {
-		die "ARRAY -> $type not supported";
+		warn "ARRAY -> $type not supported";
 	}
 
 	# Remove indent

@@ -86,7 +86,7 @@ END_DUMP
 # Dump a new dumper as a single class and hash test
 dump_is( $Dump->dump( Devel::Dumpvar->new( to => 'return' ) ), <<'END_DUMP', 'Dumping a dumper' );
 0  Devel::Dumpvar=HASH(0x83b440c)
-   'to' => 'return'
+   to => 'return'
 END_DUMP
 
 
@@ -103,25 +103,25 @@ END_DUMP
 
 # A reasonably large, combination object
 my $User = bless( {
-	'HideDescriptions' => bless( do{\(my $o = 1)}, 'Foo::Data::Boolean' ),
-	'Passwd' => bless( do{\(my $o = 'phlegm1!')}, 'Foo::Data::ShortString' ),
-	'Id' => bless( do{\(my $o = '1')}, 'Foo::Data::Integer' ),
-	'_ID' => '1',
-	'RealName' => bless( do{\(my $o = 'Adam Kennedy')}, 'Foo::Data::LongString' ),
-	'OutputPath' => bless( do{\(my $o = undef)}, 'Foo::Data::LongString' ),
-	'OutputURL' => bless( do{\(my $o = undef)}, 'Foo::Data::LongString' ),
-	'Username' => bless( do{\(my $o = 'adam')}, 'Foo::Data::ShortString' ),
-	'Created' => bless( do{\(my $o = bless( [
+	HideDescriptions => bless( do{\(my $o = 1)}, 'Foo::Data::Boolean' ),
+	Passwd => bless( do{\(my $o = 'phlegm1!')}, 'Foo::Data::ShortString' ),
+	Id => bless( do{\(my $o = '1')}, 'Foo::Data::Integer' ),
+	_ID => '1',
+	RealName => bless( do{\(my $o = 'Adam Kennedy')}, 'Foo::Data::LongString' ),
+	OutputPath => bless( do{\(my $o = undef)}, 'Foo::Data::LongString' ),
+	OutputURL => bless( do{\(my $o = undef)}, 'Foo::Data::LongString' ),
+	Username => bless( do{\(my $o = 'adam')}, 'Foo::Data::ShortString' ),
+	Created => bless( do{\(my $o = bless( [
 		37, 32, 4, 19, 7, 103, 2, 230, 0, 1061231557, 1
 		], 'Foo::Time' ))}, 'Foo::Data::DateTime' ),
-	'Email' => bless( do{\(my $o = 'adam@ali.as')}, 'Foo::Data::LongString' ),
-	'Modified' => bless( do{\(my $o = bless( [
+	Email => bless( do{\(my $o = 'adam@ali.as')}, 'Foo::Data::LongString' ),
+	Modified => bless( do{\(my $o = bless( [
 		35, 42, 17, 18, 10, 103, 2, 321, 1, 1069137755, 1
 		], 'Foo::Time' ))}, 'Foo::Data::DateTime' )
 	}, 'Foo::Entity::User' );
 dump_is( $Dump->dump( $User ), <<'END_DUMP', "More complex dump worked" );
 0  Foo::Entity::User=HASH(0x9e82358)
-   'Created' => Foo::Data::DateTime=REF(0x9e8a0d4)
+   Created => Foo::Data::DateTime=REF(0x9e8a0d4)
       -> Foo::Time=ARRAY(0x9ee62c4)
          0  37
          1  32
@@ -134,13 +134,13 @@ dump_is( $Dump->dump( $User ), <<'END_DUMP', "More complex dump worked" );
          8  0
          9  1061231557
          10  1
-   'Email' => Foo::Data::LongString=SCALAR(0x9e8a098)
+   Email => Foo::Data::LongString=SCALAR(0x9e8a098)
       -> 'adam@ali.as'
-   'HideDescriptions' => Foo::Data::Boolean=SCALAR(0x9e8a0a4)
+   HideDescriptions => Foo::Data::Boolean=SCALAR(0x9e8a0a4)
       -> 1
-   'Id' => Foo::Data::Integer=SCALAR(0x88a52c4)
+   Id => Foo::Data::Integer=SCALAR(0x88a52c4)
       -> 1
-   'Modified' => Foo::Data::DateTime=REF(0x9e8c3b4)
+   Modified => Foo::Data::DateTime=REF(0x9e8c3b4)
       -> Foo::Time=ARRAY(0x9e8c408)
          0  35
          1  42
@@ -153,17 +153,17 @@ dump_is( $Dump->dump( $User ), <<'END_DUMP', "More complex dump worked" );
          8  1
          9  1069137755
          10  1
-   'OutputPath' => Foo::Data::LongString=SCALAR(0x9e89ffc)
+   OutputPath => Foo::Data::LongString=SCALAR(0x9e89ffc)
       -> undef
-   'OutputURL' => Foo::Data::LongString=SCALAR(0x9e8a0b0)
+   OutputURL => Foo::Data::LongString=SCALAR(0x9e8a0b0)
       -> undef
-   'Passwd' => Foo::Data::ShortString=SCALAR(0x9e8a008)
+   Passwd => Foo::Data::ShortString=SCALAR(0x9e8a008)
       -> 'phlegm1!'
-   'RealName' => Foo::Data::LongString=SCALAR(0x9e89f60)
+   RealName => Foo::Data::LongString=SCALAR(0x9e89f60)
       -> 'Adam Kennedy'
-   'Username' => Foo::Data::ShortString=SCALAR(0x9e89df8)
+   Username => Foo::Data::ShortString=SCALAR(0x9e89df8)
       -> 'adam'
-   '_ID' => 1
+   _ID => 1
 END_DUMP
 
 
@@ -178,16 +178,16 @@ dump_is( $Dump->dump( $c ), <<'END_DUMP', 'Circular references work' );
    0  'foo'
    1  'bar'
    2  HASH(0x804c1b4)
-      'a' => 1
-      'b' => 'c'
-      'd' => ARRAY(0x82ed9cc)
+      a => 1
+      b => 'c'
+      d => ARRAY(0x82ed9cc)
          -> REUSED_ADDRESS
 END_DUMP
 dump_is( $Dump->dump( $d ), <<'END_DUMP', 'Circular references work' );
 0  HASH(0x804c1b4)
-   'a' => 1
-   'b' => 'c'
-   'd' => ARRAY(0x82ed9cc)
+   a => 1
+   b => 'c'
+   d => ARRAY(0x82ed9cc)
       0  'foo'
       1  'bar'
       2  HASH(0x804c1b4)
