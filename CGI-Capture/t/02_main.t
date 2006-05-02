@@ -31,7 +31,7 @@ SCOPE: {
 	my $foo = <STDIN>;
 	my $bar = <STDIN>;
 	is( $foo, "foo\n", 'Read from STDIN ok' );
-	is( $bar, "foo\n", 'Read from STDIN ok' );
+	is( $bar, "bar\n", 'Read from STDIN ok' );
 }
 
 exit(0);
