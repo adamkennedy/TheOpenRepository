@@ -30,8 +30,8 @@ SCOPE: {
 	ok( CGI::Capture->_stdin( $input_ref ), 'Set STDIN ok' );
 	my $foo = <STDIN>;
 	my $bar = <STDIN>;
-	is( $foo, 'foo', 'Read from STDIN ok' );
-	is( $bar, 'bar', 'Read from STDIN ok' );
+	is( $foo, "foo\n", 'Read from STDIN ok' );
+	is( $bar, "foo\n", 'Read from STDIN ok' );
 }
 
 exit(0);
