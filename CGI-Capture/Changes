@@ -1,5 +1,10 @@
 Revision history for Perl extension CGI::Capture
 
+1.06     Tue May  2 2006
+	- No functional changes
+	- IO::String is entirely more sane than IO::Scalar
+	- Upgraded Module::Install to much saner 0.62 as well
+
 1.05     Fri Dec 30 2005
 	- Moved from CVS to new SVN repository
 	- Upgraded Module::Install

@@ -79,10 +79,12 @@ object directly.
 use 5.006;
 use strict;
 use Storable   ();
-use IO::Scalar ();
+use IO::String ();
 
-our $VERSION = '1.05';
-our $DEPARSE;
+use vars qw{$VERSION $DEPARSE};
+BEGIN {
+	$VERSION = '1.06';
+}
 
 
 
@@ -339,7 +341,7 @@ sub _stdin {
 	my $self = shift;
 	my $scalar_ref = ref $_[0] eq 'SCALAR' ? shift
 		: die "SCALAR reference not passed to ->_stdin";
-	tie *MYSTDIN, 'IO::Scalar', $self->{STDIN};
+	tie *MYSTDIN, 'IO::String', $scalar_ref;
 	*STDIN = *MYSTDIN;
 }
 
@@ -351,20 +353,24 @@ sub _stdin {
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI%3A%3ACapture>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI-Capture>
 
 For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>cpan@ali.asE<gt>
 
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
 
+=head1 SEE ALSO
+
+L<http://ali.as/>, L<CGI>
+
 =head1 COPYRIGHT
 
-Copyright (c) 2004-200 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

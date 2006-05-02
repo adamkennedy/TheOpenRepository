@@ -16,15 +16,22 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 1;
+use Test::More tests => 4;
 use CGI::Capture ();
-
-
-
-
 
 # Create a new object
 my $capture = CGI::Capture->new;
 isa_ok( $capture, 'CGI::Capture' );
+
+# Check that the use of IO::String for _stdin works
+SCOPE: {
+	my $input     = "foo\nbar\n";
+	my $input_ref = \$input;
+	ok( CGI::Capture->_stdin( $input_ref ), 'Set STDIN ok' );
+	my $foo = <STDIN>;
+	my $bar = <STDIN>;
+	is( $foo, 'foo', 'Read from STDIN ok' );
+	is( $bar, 'bar', 'Read from STDIN ok' );
+}
 
 exit(0);
