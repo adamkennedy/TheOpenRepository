@@ -1,0 +1,9 @@
+Revision history for Perl extension Test::Object
+
+0.03 Thu  4 May 2006
+	- Actually implement some non-trivial proportion of Test::Object
+
+0.02 Missing
+
+0.01 Mon 30 May 2005
+	- Created the initial version of the module
