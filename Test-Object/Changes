@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Object
 
+0.04 Thu  4 May 2006
+	- Fixed missing dependencies
+
 0.03 Thu  4 May 2006
 	- Actually implement some non-trivial proportion of Test::Object
 

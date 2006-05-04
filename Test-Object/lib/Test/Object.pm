@@ -95,11 +95,12 @@ use strict;
 use base 'Exporter';
 use Carp               ();
 use Test::More         ();
+use Scalar::Util       ();
 use Test::Object::Test ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@EXPORT  = 'object_ok';
 }
 
@@ -125,12 +126,12 @@ sub register {
 # Testing Functions
 
 sub object_ok {
-	my $object = shift;
+	my $object = Scalar::Util::blessed($_[0]) ? shift
+		: Carp::croak("Did not provide an object to object_ok");
 
 	# Iterate over the tests and run any we ->isa
 	foreach my $test ( @TESTS ) {
-		next unless $object->isa( $test->class );
-		$test->run( $object );
+		$test->run( $object ) if $object->isa( $test->class );
 	}
 
 	1;
