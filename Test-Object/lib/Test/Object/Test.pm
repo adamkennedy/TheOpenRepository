@@ -9,6 +9,13 @@ BEGIN {
 	$VERSION = '0.03';
 }
 
+
+
+
+
+#####################################################################
+# Constructor and Accessors
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
@@ -36,9 +43,25 @@ sub code {
 	$_[0]->{code};
 }
 
+
+
+
+
+#####################################################################
+# Main Methods
+
 sub run {
 	$_[0]->code->( $_[1] );
 }
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+# Stolen from Params::Util to avoid adding a dependency needlessly
 
 sub _CLASS ($) {
 	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*$/s) ? $_[0] : undef;
