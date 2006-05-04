@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::Builder::Tester tests => 1,
+use Test::Builder::Tester tests => 1;
 use Test::More;
 use Test::Object;
 
