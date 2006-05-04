@@ -46,7 +46,7 @@ Test::Object->register(
 
 my $object = Foo->new;
 isa_ok( $object, 'Foo' );
-test_out("->foo is bar");
+test_out("ok 1 - ->foo is bar");
 object_ok( $object );
 test_test("Single Class - Single Registration - OK");
 
