@@ -92,9 +92,10 @@ test count.
 
 use 5.005;
 use strict;
-use Carp       ();
-use Test::More ();
 use base 'Exporter';
+use Carp               ();
+use Test::More         ();
+use Test::Object::Test ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
@@ -112,10 +113,8 @@ BEGIN {
 my @TESTS = ();
 
 sub register {
-	my $proto  = ref $_[0] ? ref shift : shift;
-	my %params = @_;
-	
-	...
+	my $class = shift;
+	push @TESTS, Test::Object::Test->new( @_ );
 }
 
 
@@ -126,7 +125,15 @@ sub register {
 # Testing Functions
 
 sub object_ok {
-	die "object_ok is not yet implemented";
+	my $object = shift;
+
+	# Iterate over the tests and run any we ->isa
+	foreach my $test ( @TESTS ) {
+		next unless $object->isa( $test->class );
+		$test->run( $object );
+	}
+
+	1;
 }
 
 1;
