@@ -41,7 +41,7 @@ SCOPE: {
 Test::Object->register(
 	class => 'Foo',
 	tests => 1,
-	code  => sub { ok( $_[0]->foo, 'bar', '->foo is bar' ) },
+	code  => sub { is( $_[0]->foo, 'bar', '->foo is bar' ) },
 );
 
 my $object = Foo->new;
