@@ -27,6 +27,7 @@ the local platform's newline style.
 
 =cut
 
+use 5.005;
 use strict;
 use base 'Class::Default';
 use File::Find::Rule ();
