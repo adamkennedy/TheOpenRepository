@@ -20,7 +20,7 @@ unless ( -e $target ) {
 
 # Create the localizer
 my $localizer = File::LocalizeNewlines->new(
-	filter => File::Find::Rule->file->nonbinary,
+	filter => File::Find::Rule->file->not_binary,
 	$QUIET ? () : ( verbose => 1 ),
 	) or bail("Failed to create localizer");
 
