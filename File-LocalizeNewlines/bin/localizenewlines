@@ -8,9 +8,13 @@ use Getopt::Long;
 use File::Find::Rule;
 use File::LocalizeNewlines;
 
+# Create the filter
+my $filter = File::Find::Rule->file->not_binary->writable;
+
 # Handle options
-my $QUIET = '';
-GetOptions( quiet => \$QUIET );
+my $QUIET   = '';
+my $SKIPSVN = '';
+GetOptions( quiet => \$QUIET, svn => \$SKIPSVN );
 
 # Check the target
 my $target = @ARGV ? $ARGV[0] : File::Spec->curdir;
@@ -19,8 +23,15 @@ unless ( -e $target ) {
 }
 
 # Create the localizer
+if ( $SKIPSVN ) {
+	$filter = File::Find::Rule->or(
+		File::Find::Rule->directory->name('.svn')->discard->prune,
+		$filter,
+		);
+}
+		
 my $localizer = File::LocalizeNewlines->new(
-	filter => File::Find::Rule->file->not_binary,
+	filter => $filter,
 	$QUIET ? () : ( verbose => 1 ),
 	) or bail("Failed to create localizer");
 

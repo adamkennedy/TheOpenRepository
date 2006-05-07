@@ -1,5 +1,9 @@
 Revision history for Perl extension File::LocalizeNewlines
 
+0.05 Sun  7 May 2006
+	- Adding .svn skip support
+	- Default filter only localises writable files
+
 0.04 Sun  7 May 2006
 	- Moved from older CVS to newer SVN repository
 	- Replaced uses of UNIVERSAL::isa|can with Params::Util
