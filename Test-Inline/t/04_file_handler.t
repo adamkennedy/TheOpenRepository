@@ -27,7 +27,7 @@ use Test::Inline ();
 # Prepare
 $| = 1;
 my $libdir = $ENV{HARNESS_ACTIVE} ? 'lib'
-	: catdir($FindBin::Bin, updir(), updir(), 'modules');
+	: catdir($FindBin::Bin, updir(), 'lib');
 ok( -d $libdir, 'Found the distribution lib directory' );
 my $inline2 = catfile('Test', 'Inline.pm');
 my $inline3 = catfile('Test', 'Inline3.pm');
@@ -53,7 +53,7 @@ ok( ! $File->exists_file( $inline3 ), '->exists return false for a file that doe
 my $source = $File->read( $inline2 );
 ok( ref $source eq 'SCALAR', '->read returns a SCALAR reference' );
 ok( length $$source > 10000, '->read returns a string that is long enough' );
-ok( length $$source < 21000, '->read returns a string that is not TOO long' );
+ok( length $$source < 25000, '->read returns a string that is not TOO long' );
 
 # Read of a bad file returns undef
 is( $File->read( $inline3 ), undef, '->read of a bad file returns undef' );
