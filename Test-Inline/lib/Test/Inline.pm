@@ -108,12 +108,12 @@ Tests with side-effects such as those that might change a testing database
 =head2 Getting Started
 
 Because Test::Inline creates test scripts with file names that B<don't>
-start with a number (for ordering purposes), the best way to get started
-is to create your normal test scripts using file names in the CPAN style
-of C<01_compile.t>, C<02_main.t>, C<03_foobar.t>.
+start with a number (for ordering purposes), the first step is to create
+your normal test scripts using file names in the CPAN style of
+F<01_compile.t>, F<02_main.t>, F<03_foobar.t>, and so on.
 
 You can then add your testing fragments wherever you like throughout
-your code, and use the C<inline2test> script to generate the test scripts
+your code, and use the F<inline2test> script to generate the test scripts
 for the inline tests. By default the test scripts will be named after
 the packages/classes that the test fragments are found in.
 
@@ -210,8 +210,8 @@ to the C<OutputHandler>.
 B<output> - The C<output> option provides the location of the directory
 where the tests will be written to. It should both already exist, and be
 writable. If using a custom C<OutputHandler>, the value of C<output> should
-refer to the location B<within the OutputHandler> the files will be written
-to.
+refer to the location B<within the OutputHandler> that the files will be
+written to.
 
 B<InputHandler> - The C<InputHandler> option, if provided, supplies an
 alternative C<FileHandler> from which source modules are retrieved.
@@ -766,7 +766,7 @@ sub _error {
 The "Extended =begin" syntax used for non-trivial sections is not formalised
 as part of the POD spec yet, although it is on the track to being included.
 
-While simple '=begin testing' sections are find and will pass POD testing,
+While simple '=begin testing' sections are fine and will pass POD testing,
 extended begin sections may cause POD errors.
 
 =head1 TO DO
