@@ -229,7 +229,7 @@ sub localize {
 
 sub _localize_dir {
 	my $self = shift->_self;
-	my $path = _DIRECTORY(shift) return undef;
+	my $path = _DIRECTORY(shift) or return undef;
 
 	# Find the files to localise
 	my @files = $self->Find->in( $path );
