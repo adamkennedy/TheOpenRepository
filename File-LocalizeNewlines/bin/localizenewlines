@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+
+# Script to localize newlines
+
+use strict;
+use File::Spec;
+use Getopt::Long;
+use File::Find::Rule;
+use File::LocalizeNewlines;
+
+# Handle options
+my $QUIET = '';
+GetOptions( quiet => \$QUIET );
+
+# Check the target
+my $target = @ARGV ? $ARGV[0] : File::Spec->curdir;
+unless ( -e $target ) {
+	bail("Cannot localize '$target', does not exist");
+}
+
+# Create the localizer
+my $localizer = File::LocalizeNewlines->new(
+	filter => File::Find::Rule->file->nonbinary,
+	$QUIET ? () : ( verbose => 1 ),
+	) or bail("Failed to create localizer");
+
+# Run the localization
+$localizer->localize( $target );
+
+exit(0);
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+sub bail ($) {
+	print "$_[0]\n";
+	exit(255);
+}
+	

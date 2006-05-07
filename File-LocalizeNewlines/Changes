@@ -1,0 +1,16 @@
+Revision history for Perl extension File::LocalizeNewlines
+
+0.04 Sun  7 May 2006
+	- Moved from older CVS to newer SVN repository
+	- Replaced uses of UNIVERSAL::isa|can with Params::Util
+	- Updated to Module::Install 0.62
+	- Added localizenewlines script
+
+0.03 Tue May 31 2005
+	- Added the verbose option (no unit tests for it yet)
+
+0.02 Sat Feb 19 2005
+	- Merged in patch from DDICK to add FileHandle support
+
+0.01 Thu Jan 27 2005
+	- Created the initial version of the module
