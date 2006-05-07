@@ -284,7 +284,7 @@ sub _message {
 }
 
 sub _CAN {
-	(_INSTANCE($_[0]) and $_[0]->can($_[1])) ? shift : undef;
+	(_INSTANCE($_[0], 'UNIVERSAL') and $_[0]->can($_[1])) ? shift : undef;
 }
 
 sub _DIRECTORY {
