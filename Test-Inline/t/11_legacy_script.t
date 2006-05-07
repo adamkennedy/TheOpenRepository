@@ -31,7 +31,7 @@ use Test::Inline ();
 # Test the examples from Inline.pm
 {
 	my $inline_file = File::Slurp::read_file(
-		catfile( 't.data', '10_legacy_extract', 'Inline.pm' ),
+		catfile( 't', 'data', '10_legacy_extract', 'Inline.pm' ),
 		scalar_ref => 1,
 		) or die "Failed to load Inline.pm test file";
 	is( ref($inline_file), 'SCALAR', 'Loaded Inline.pm examples' );

@@ -23,7 +23,7 @@ use Test::More tests => 36;
 use Test::Inline ();
 
 # Prepare
-my $example  = File::Spec->catfile( 't.data', 'example' );
+my $example  = File::Spec->catfile( 't', 'data', 'example' );
 my $testfile = 'foo_bar.t';
 
 sub is_string {
@@ -128,7 +128,7 @@ END_TEST
 
 
 
-$example  = File::Spec->catfile( 't.data', 'check_count' );
+$example  = File::Spec->catfile( 't', 'data', 'check_count' );
 
 
 

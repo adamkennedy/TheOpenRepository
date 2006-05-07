@@ -35,7 +35,7 @@ isa_ok( $Content, 'Test::Inline::Content' );
 # We'll need an Inline object
 my $Inline = Test::Inline->new;
 isa_ok( $Inline, 'Test::Inline' );
-my $example = catfile( 't.data', 'example' );
+my $example = catfile( 't', 'data', 'example' );
 ok( $Inline->add( $example ), 'Adding example file' );
 
 # Check the ::Script object created by the addition
@@ -95,7 +95,7 @@ ok( (defined $rv and ! ref $rv and length $rv), '->process(good) returns a strin
 #####################################################################
 # Test::Inline::Content::Simple Tests
 
-my $file   = catfile( 't.data', '12_content_handler', 'test.tpl' );
+my $file   = catfile( 't', 'data', '12_content_handler', 'test.tpl' );
 ok( -f $file, 'Test file exists' );
 my $Simple = Test::Inline::Content::Simple->new( $file );
 isa_ok( $Simple, 'Test::Inline::Content::Simple' );

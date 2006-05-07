@@ -23,7 +23,7 @@ use Test::More tests => 4;
 use Test::Inline ();
 
 # Prepare
-my $file = File::Spec->catfile( 't.data', 'bad_dependency' );
+my $file = File::Spec->catfile( 't', 'data', 'bad_dependency' );
 
 my $PODCONTENT = <<'END_TEST';
 # =begin testing foo after bar

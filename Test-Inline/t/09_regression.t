@@ -28,7 +28,7 @@ use Test::Inline ();
 
 
 # Change to the correct directory
-chdir catdir( 't.data', '09_regression' ) or die "Failed to change to test directory";
+chdir catdir( 't', 'data', '09_regression' ) or die "Failed to change to test directory";
 
 
 

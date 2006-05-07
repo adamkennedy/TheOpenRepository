@@ -28,7 +28,7 @@ use Test::Inline ();
 
 
 # Change to the correct directory
-chdir catdir( 't.data', '06_multifile' ) or die "Failed to change to test directory";
+chdir catdir( 't', 'data', '06_multifile' ) or die "Failed to change to test directory";
 
 # Create the Test::Inline object
 ok( -d 't', 'Output directory exists' );

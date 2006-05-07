@@ -3,6 +3,7 @@ Revision history for Perl extension Test::Inline
 2.104    Sun  7 May 2006
 	- Moved from old CVS to new SVN repository
 	- Various POD spelling/grammer fixes (Jeff Defik)
+	- Moved t/t.data to t/data
 	- Upgraded to Module::Install 0.62
 
 2.103    Wed Sep 28 2005

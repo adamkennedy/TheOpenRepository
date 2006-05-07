@@ -23,7 +23,7 @@ use Test::More tests => 71;
 use Test::Inline ();
 
 # Prepare
-my $example = File::Spec->catfile( 't.data', 'example' );
+my $example = File::Spec->catfile( 't', 'data', 'example' );
 my $testfile = 'foo_bar.t';
 
 my $PODCONTENT = <<'END_TEST';

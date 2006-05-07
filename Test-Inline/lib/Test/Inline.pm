@@ -21,15 +21,14 @@ function-specific testing code, and insert it anywhere you want in your
 modules, inside a specific tagged L<POD|perlpod> segment, like the
 following.
 
-  # A fragment of general test code
-  
   =begin testing
   
+  # This code assumes we have a cpuinfo file
   ok( -f /proc/cpuinfo, 'Host has a standard /proc/cpuinfo file' );
   
   =end testing
   
-  # Completely test a single method
+  
   
   =begin testing label
   
@@ -40,7 +39,7 @@ following.
   =end testing
 
 You can add as many, or as few, of these chunks of tests as you wish.
-The key condition when writing them is that they should be conceptually
+The key condition when writing them is that they should be logically
 independant of each other. Each chunk of testing code should not die
 or crash if it is run before or after another chunk.
 
@@ -58,7 +57,15 @@ In any large groups of modules, you can add testing code here, there and
 everywhere, anywhere you want. The next time the test compiler is run, a
 new test script will just appear.
 
-It's also extremely for systematically testing self-contained code.
+This also makes it great for testing assumptions you normally wouldn't
+bother to write run-time code to test. It ensures that your assumptions
+about the way Perl does some operation, or about the state of the host,
+are confirmed at install-time.
+
+If your assumption is ever wrong, it gets picked up at install-time and
+based on the test failures, you can correct your assumption.
+
+It's also extremely useful for systematically testing self-contained code.
 
 That is, any code which can be independantly tested without the need for
 external systems such as databases, and that has no side-effects on external
@@ -68,9 +75,18 @@ All of this code, written by multiple people, can then have one single set
 of test files generated. You can check all the bits and pieces of a large
 API, or anything you like, in fine detail.
 
+Test::Inline also introduces the concept of unit-tested documentation.
+
+Not only can your code be tested, but if you have a FAQ or some other
+pure documentation module, you can validate that the documentation is
+correct for the version of the module installed.
+
+If the module ever changes to break the documentation, you can catch it
+and correct the documentation.
+
 =head2 What is Test::Inline bad for?
 
-C<Test::Inline> is not a complete testing solution, and there are several
+C<Test::Inline> is B<not> a complete testing solution, and there are several
 types of testing you probably DON'T want to use it for.
 
 =over
