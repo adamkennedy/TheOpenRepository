@@ -37,6 +37,7 @@ database.
 
 =cut
 
+use 5.005;
 use strict;
 use DBI         ();
 use DBD::SQLite ();
