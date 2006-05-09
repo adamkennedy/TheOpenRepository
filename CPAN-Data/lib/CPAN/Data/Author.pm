@@ -20,6 +20,13 @@ __PACKAGE__->add_columns(
 		is_auto_increment => 0,
 		default_value     => '',
 		},
+	name => {
+		data_type         => 'varchar',
+		size              => 255,
+		is_nullable       => 0,
+		is_auto_increment => 0,
+		default_value     => '',
+		},
 	email => {
 		data_type         => 'varchar',
 		size              => 255,
