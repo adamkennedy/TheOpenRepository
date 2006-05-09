@@ -16,5 +16,4 @@ build_requires 'File::Copy'     => 0;
 build_requires 'File::Remove'   => 0;
 build_requires 'IO::File'       => 0;
 
-auto_install;
 WriteAll;

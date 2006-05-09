@@ -47,7 +47,7 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
-__PACKAGE__->load_classes('Album')
+__PACKAGE__->load_classes('Author');
 
 1;
 
