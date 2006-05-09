@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
-name           'CPAN-Data';
-all_from       'lib/CPAN/Data.pm';
+name           'CPAN-Index';
+all_from       'lib/CPAN/Index.pm';
 requires       'Carp'           => 0;
 requires       'IO::Handle'     => 0;
 requires       'Params::Util'   => '0.10';

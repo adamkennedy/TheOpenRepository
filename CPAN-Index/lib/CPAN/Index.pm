@@ -1,10 +1,10 @@
-package CPAN::Data;
+package CPAN::Index;
 
 =pod
 
 =head1 NAME
 
-CPAN::Data - Robust and object-oriented access to the CPAN index
+CPAN::Index - Robust and object-oriented access to the CPAN index
 
 =head1 DESCRIPTION
 
@@ -25,13 +25,13 @@ solely in memory structures.
 
 A more robust, richer, and more convenient approach is required.
 
-B<CPAN::Data> provides object-oriented access to the CPAN index,
+B<CPAN::Index> provides object-oriented access to the CPAN index,
 using a collection of relatively common modules, and automates
 entire process of fetching and accessing the index.
 
 The index is stored in a L<DBD::SQLite> database file, with an object
 model implemented around it using L<DBIx::Class>. To update the index,
-the L<CPAN::Data::Loader> class implements the logic to flush and reset
+the L<CPAN::Index::Loader> class implements the logic to flush and reset
 the database, fetch the index files, parse them, and repopulate the
 database.
 
@@ -63,7 +63,7 @@ A lot
 
 Bugs should be reported via the CPAN bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Data>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Index>
 
 For other issues, contact the author.
 
@@ -73,7 +73,7 @@ Adam Kennedy E<lt>cpan@ali.asE<gt>
 
 =head1 SEE ALSO
 
-L<CPAN::Data::Loader>, L<DBD::SQLite>, L<DBIx::Class>
+L<CPAN::Index::Loader>, L<DBD::SQLite>, L<DBIx::Class>
 
 =head1 COPYRIGHT
 

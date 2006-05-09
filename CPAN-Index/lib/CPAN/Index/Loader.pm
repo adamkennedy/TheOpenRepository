@@ -1,10 +1,10 @@
-package CPAN::Data::Loader;
+package CPAN::Index::Loader;
 
 =pod
 
 =head1 NAME
 
-CPAN::Data::Loader - Populates the CPAN index SQLite database
+CPAN::Index::Loader - Populates the CPAN index SQLite database
 
 =head1 DESCRIPTION
 
@@ -14,7 +14,7 @@ file.
 
 Because it involves loading a number of otherwise unneeded modules,
 this package is B<not> loaded by default with the rest of
-L<CPAN::Data>, but may be loaded on-demand if needed.
+L<CPAN::Index>, but may be loaded on-demand if needed.
 
 =head1 METHODS
 
@@ -48,7 +48,7 @@ BEGIN {
 
 =head2 load_authors
 
-  CPAN::Data::Loader->load_authors( $schema, $handle );
+  CPAN::Index::Loader->load_authors( $schema, $handle );
 
 The C<load_authors> method populates the authors table from the CPAN
 F<01mailrc.txt.gz> file.
@@ -103,7 +103,7 @@ sub load_authors {
 
 Bugs should be reported via the CPAN bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Data>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Index>
 
 For other issues, contact the author.
 
@@ -115,7 +115,7 @@ C<load_authors> based on L<Parse::CPAN::Authors> by Leon Brocard E<lt>acme@cpan.
 
 =head1 SEE ALSO
 
-L<CPAN::Data>, L<Parse::CPAN::Authors>
+L<CPAN::Index>, L<Parse::CPAN::Authors>
 
 =head1 COPYRIGHT
 

@@ -1,4 +1,4 @@
-package CPAN::Data::Author;
+package CPAN::Index::Author;
 
 use strict;
 use base 'DBIx::Class';
@@ -51,11 +51,11 @@ __END__
 
 =head1 NAME
 
-Email::Data::Author - An object representing a CPAN author
+CPAN::Index::Author - An object representing a CPAN author
 
 =head1 DESCRIPTION
 
-B<CPAN::Data::Author> object represent CPAN authors in the index.
+B<CPAN::Index::Author> object represent CPAN authors in the index.
 
 =head1 METHODS
 
@@ -82,7 +82,7 @@ a full name-inclusive L<Email::Address> object.
 
 Bugs should be reported via the CPAN bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Data>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Index>
 
 For other issues, contact the author.
 
@@ -94,7 +94,7 @@ C<load_authors> based on L<Parse::CPAN::Authors> by Leon Brocard E<lt>acme@cpan.
 
 =head1 SEE ALSO
 
-L<CPAN::Data>, L<Parse::CPAN::Authors>
+L<CPAN::Index>, L<Parse::CPAN::Authors>
 
 =head1 COPYRIGHT
 

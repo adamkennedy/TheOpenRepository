@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Test that CPAN::Data loads and compiles
+# Test that CPAN::Index loads and compiles
 
 use strict;
 use lib ();
@@ -22,7 +22,7 @@ BEGIN {
 use Test::More tests => 3;
 
 ok( $] >= 5.005, "Your perl is new enough" );
-use_ok( 'CPAN::Data'         );
-use_ok( 'CPAN::Data::Loader' );
+use_ok( 'CPAN::Index'         );
+use_ok( 'CPAN::Index::Loader' );
 
 exit(0);
