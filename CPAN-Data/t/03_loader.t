@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 11;
+use Test::More tests => 12;
 use File::Remove       'remove';
 use File::Copy         'copy';
 use IO::File           ();
@@ -69,6 +69,7 @@ SCOPE: {
 	is( $aassad->id, 'AASSAD', '->id ok' );
 	is( $aassad->name, "Arnaud 'Arhuman' Assad", '->name ok' );
 	is( $aassad->email, 'arhuman@hotmail.com', '->email ok' );
+	isa_ok( $aassad->address, 'Email::Address' );
 }
 
 exit(0);
