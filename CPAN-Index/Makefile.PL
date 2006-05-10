@@ -4,6 +4,7 @@ name           'CPAN-Index';
 all_from       'lib/CPAN/Index.pm';
 requires       'Carp'           => 0;
 requires       'IO::Handle'     => 0;
+requires       'version'        => '0.59';
 requires       'Params::Util'   => '0.10';
 requires       'Email::Address' => '1.80';
 requires       'LWP'            => 0;

@@ -48,7 +48,7 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
-__PACKAGE__->load_classes('Author');
+__PACKAGE__->load_classes('Author', 'Package');
 
 1;
 

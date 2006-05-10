@@ -50,7 +50,7 @@ BEGIN {
 
   CPAN::Index::Loader->load_authors( $schema, $handle );
 
-The C<load_authors> method populates the authors table from the CPAN
+The C<load_authors> method populates the C<package> table from the CPAN
 F<01mailrc.txt.gz> file.
 
 The C<author> table in the SQLite database should already be empty
@@ -71,7 +71,8 @@ sub load_authors {
 	# Process the author records
 	my $created = 0;
 	while ( my $line = $handle->getline ) {
-		unless ( $line =~ /^alias\s+(\w+)\s+\"(.+)\"[\012\015]+$/ ) {
+		# Parse the line
+		unless ( $line =~ /^alias\s+(\S+)\s+\"(.+)\"[\012\015]+$/ ) {
 			Carp::croak("Invalid 01mailrc.txt.gz line '$line'");
 		}
 		my $id    = $1;
@@ -95,6 +96,57 @@ sub load_authors {
 	$created;
 }
 
+=pod
+
+=head2 load_packages
+
+  CPAN::Index::Loader->load_packages( $schema, $handle );
+
+The C<load_packages> method populates the C<package> table from the CPAN
+F<02packages.details.txt.gz> file.
+
+The C<package> table in the SQLite database should already be empty
+B<before> this method is called.
+
+Returns the number of packages added to the database, or throws an
+exception on error.
+
+=cut
+
+sub load_authors {
+	my $self   = shift;
+	my $schema = _INSTANCE(shift, 'DBIx::Class::Schema')
+		or Carp::croak("Did not provide a DBIx::Class::Schema param");
+	my $handle = _INSTANCE(shift, 'IO::Handle')
+		or Carp::croak("Did not provide an IO::Handle param");
+
+	# Advance past the header, to the first blank line
+	while ( my $line = $handle->getline ) {
+		last if $line =~ /\s+/;
+	}
+
+	# Process the author records
+	my $created = 0;
+	while ( my $line = $handle->getline ) {
+		unless ( $line =~ /^(\S+)\s+(\S+)\s+(.+?)[\012\015]+$/ ) {
+			Carp::croak("Invalid 01mailrc.txt.gz line '$line'");
+		}
+		my $name    = $1;
+		my $version = $2 eq 'undef' ? undef : $2;
+		my $path    = $3;
+
+		# Create the record
+		$schema->resultset('Package')->create( {
+			name    => $name,
+			version => $version,
+			path    => $path,
+			} );
+		$created++;
+	}
+
+	$created;
+}
+
 1;
 
 =pod
@@ -111,11 +163,13 @@ For other issues, contact the author.
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>
 
-C<load_authors> based on L<Parse::CPAN::Authors> by Leon Brocard E<lt>acme@cpan.orgE<gt>
+Parts based on modules by Leon Brocard E<lt>acme@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<CPAN::Index>, L<Parse::CPAN::Authors>
+Related: L<CPAN::Index>, L<CPAN>
+
+Based on: L<Parse::CPAN::Authors>, L<Parse::CPAN::Packages>
 
 =head1 COPYRIGHT
 
