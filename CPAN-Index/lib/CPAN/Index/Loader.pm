@@ -129,7 +129,7 @@ sub load_authors {
 	my $created = 0;
 	while ( my $line = $handle->getline ) {
 		unless ( $line =~ /^(\S+)\s+(\S+)\s+(.+?)[\012\015]+$/ ) {
-			Carp::croak("Invalid 01mailrc.txt.gz line '$line'");
+			Carp::croak("Invalid 02packages.details.txt.gz line '$line'");
 		}
 		my $name    = $1;
 		my $version = $2 eq 'undef' ? undef : $2;
@@ -163,7 +163,7 @@ For other issues, contact the author.
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>
 
-Parts based on modules by Leon Brocard E<lt>acme@cpan.orgE<gt>
+Parts based on various modules by Leon Brocard E<lt>acme@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
