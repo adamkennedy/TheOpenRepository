@@ -57,7 +57,7 @@ package Duck;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub new { bless {}, $_[0] }
@@ -73,7 +73,7 @@ package Lycanthrope;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub new { bless { human => 1 }, $_[0] }
@@ -89,7 +89,7 @@ package WereDuck;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use base 'Lycanthrope';
@@ -106,7 +106,7 @@ package BrokenDuck;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use base 'Lycanthrope';
