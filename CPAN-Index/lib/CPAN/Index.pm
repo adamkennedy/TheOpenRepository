@@ -57,7 +57,11 @@ __PACKAGE__->load_classes('Author', 'Package');
 
 =head1 TO DO
 
-A lot
+- Write the index file download code
+
+- Verify CPAN::Index handles index unicode data properly
+
+- A bunch of other things...
 
 =head1 SUPPORT
 
