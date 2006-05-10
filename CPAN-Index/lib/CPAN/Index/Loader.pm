@@ -113,7 +113,7 @@ exception on error.
 
 =cut
 
-sub load_authors {
+sub load_packages {
 	my $self   = shift;
 	my $schema = _INSTANCE(shift, 'DBIx::Class::Schema')
 		or Carp::croak("Did not provide a DBIx::Class::Schema param");
@@ -122,7 +122,7 @@ sub load_authors {
 
 	# Advance past the header, to the first blank line
 	while ( my $line = $handle->getline ) {
-		last if $line =~ /\s+/;
+		last if $line !~ /[^\s\012\015]/;
 	}
 
 	# Process the author records

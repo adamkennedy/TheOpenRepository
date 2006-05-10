@@ -80,7 +80,7 @@ SCOPE: {
 SCOPE: {
 	my $packages = IO::File->new( $PACKAGE );
 	isa_ok( $packages, 'IO::File', 'IO::Handle' );
-	my $added = CPAN::Index::Loader->load_authors( $schema, $authors );
+	my $added = CPAN::Index::Loader->load_packages( $schema, $packages );
 	is( $added, 9, 'Appeared to add 9 packages' );
 	is( $schema->resultset('Package')->count, 9, 'Actually added 9 records' );
 	my $colour = $schema->resultset('Package')->find('Acme::Colour');
