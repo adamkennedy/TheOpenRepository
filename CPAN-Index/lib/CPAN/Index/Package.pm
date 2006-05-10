@@ -24,7 +24,7 @@ __PACKAGE__->add_columns(
 	version => {
 		data_type         => 'varchar',
 		size              => 32,
-		is_nullable       => 0,
+		is_nullable       => 1,
 		is_auto_increment => 0,
 		default_value     => '',
 		},
@@ -38,6 +38,12 @@ __PACKAGE__->add_columns(
 	);
 
 __PACKAGE__->set_primary_key('name');
+
+sub version {
+	my $self  = shift;
+	my $value = $self->next::version(@_);
+	defined($value) ? version->new($value) : undef;
+}
 
 1;
 
