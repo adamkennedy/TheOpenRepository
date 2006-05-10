@@ -88,7 +88,7 @@ SCOPE: {
 	is( $colour->name, 'Acme::Colour', '->name ok' );
 	isa_ok( $colour->version, 'version' );
 	is( $colour->version_string, '1.00', '->version ok' );
-	is( $colour->path, 'L/LB/LBROCARD/Acme-Colour-1.00.tar.gz' );
+	is( $colour->path, 'L/LB/LBROCARD/Acme-Colour-1.00.tar.gz', '->path ok' );
 }
 
 exit(0);
