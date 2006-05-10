@@ -6,7 +6,7 @@ use Scalar::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -24,7 +24,7 @@ sub new {
 	unless ( _CLASS($self->class) ) {
 		Carp::croak("Did not provide a valid test class");
 	}
-	unless ( _CALLABLE($self->code) ) {
+	unless ( _CODELIKE($self->code) ) {
 		Carp::croak("Did not provide a valid CODE or callable object");
 	}
 
@@ -67,7 +67,7 @@ sub _CLASS ($) {
 	(defined $_[0] and ! ref $_[0] and $_[0] =~ m/^[^\W\d]\w*(?:::\w+)*$/s) ? $_[0] : undef;
 }
 
-sub _CALLABLE {
+sub _CODELIKE {
 	(Scalar::Util::reftype($_[0])||'') eq 'CODE'
 	or
 	Scalar::Util::blessed($_[0]) and overload::Method($_[0],'&{}')

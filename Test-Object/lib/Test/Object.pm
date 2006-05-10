@@ -92,15 +92,16 @@ test count.
 
 use 5.005;
 use strict;
-use base 'Exporter';
 use Carp               ();
+use Exporter           ();
 use Test::More         ();
 use Scalar::Util       ();
 use Test::Object::Test ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
+	@ISA     = 'Exporter';
 	@EXPORT  = 'object_ok';
 }
 

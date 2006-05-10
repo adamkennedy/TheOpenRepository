@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::Object
 
+0.05 Wed 10 May 2006
+	# This release contains only build-time changes
+	- Upgraded to Module::Install 0.62
+	- No features() used in this dist, so removing auto_install
+
 0.04 Thu  4 May 2006
 	- Fixed missing dependencies
 
