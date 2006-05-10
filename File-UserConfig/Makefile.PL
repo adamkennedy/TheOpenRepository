@@ -9,7 +9,6 @@ requires       'File::ShareDir'        => '0.03';
 requires       'File::Copy::Recursive' => '0.18';
 build_requires 'Test::More'            => '0.47';
 build_requires 'File::Remove'          => 0;
-
 install_share;
-auto_install;
+
 WriteAll;

@@ -26,5 +26,4 @@ if ( can_cc() ) {
     requires   'Digest::SHA::PurePerl'   => 0;
 }
 
-auto_install;
 WriteAll;

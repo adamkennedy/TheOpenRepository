@@ -6,5 +6,4 @@ requires       'File::Find::Rule' => '0.20';
 build_requires 'File::Spec'       => '0.82';
 build_requires 'Test::More'       => '0.47';
 
-auto_install;
 WriteAll;

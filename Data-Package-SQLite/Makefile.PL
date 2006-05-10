@@ -12,5 +12,4 @@ build_requires 'Test::More'       => '0.47';
 build_requires 'File::Spec'       => '0.80';
 build_requires 'File::Path'       => 0;
 
-auto_install;
 WriteAll;

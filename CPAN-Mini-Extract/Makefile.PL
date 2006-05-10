@@ -19,6 +19,5 @@ requires       ( 'Archive::Tar'     => '1.22'  );
 requires       ( 'Params::Util'     => '0.06'  );
 requires       ( 'CPAN::Mini'       => '0.40'  );
 build_requires ( 'Test::More'       => '0.47'  );
-auto_install   (                               );
 
 &WriteAll;

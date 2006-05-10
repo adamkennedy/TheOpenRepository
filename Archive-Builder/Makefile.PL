@@ -22,5 +22,4 @@ if ( $ENV{AUTOMATED_TESTING} ) {
 	requires 'Compress::Zlib' => 0;
 }
 
-auto_install;
 WriteAll;

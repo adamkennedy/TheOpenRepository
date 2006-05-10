@@ -9,5 +9,4 @@ requires       'Hook::LexWrap'         => '0.20';
 # We need the updated non-broken Test-Simple
 build_requires 'Test::Builder::Tester' => '1.02';
 
-auto_install;
 WriteAll;

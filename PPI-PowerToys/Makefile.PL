@@ -8,5 +8,4 @@ requires       'PPI'              => '1.109';
 build_requires 'Test::More'       => '0.47';
 install_script 'bin/ppi_version';
 
-auto_install;
 WriteAll;

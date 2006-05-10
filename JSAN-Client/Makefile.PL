@@ -23,6 +23,5 @@ requires       'Algorithm::Dependency' => '1.02';
 build_requires 'Test::More'            => '0.47';
 build_requires 'File::Remove'          => '0.22';
 include        'File::Remove';
-auto_install;
 
 WriteAll;

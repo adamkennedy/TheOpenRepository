@@ -10,5 +10,4 @@ build_requires  'Test::ClassAPI' => '0.6';
 include         'Test::ClassAPI';
 include         'Class::Inspector';
 
-auto_install;
 WriteAll;

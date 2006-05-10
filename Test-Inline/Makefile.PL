@@ -23,5 +23,4 @@ install_script 'bin/inline2test';
 # ... we need to make sure it is installed.
 requires       'Pod::Tests'            => '0.18';
 
-auto_install;
 WriteAll;

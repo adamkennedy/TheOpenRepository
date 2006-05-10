@@ -16,5 +16,4 @@ build_requires 'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
 build_requires 'Test::ClassAPI'   => '1.02';
 include        'Test::ClassAPI';
 
-auto_install;
 WriteAll;

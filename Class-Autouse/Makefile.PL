@@ -15,5 +15,4 @@ if ( $^O eq 'Win32' or $^O eq 'cygwin' ) {
 }
 build_requires 'Test::More' => '0.47';
 
-auto_install;
 WriteAll;

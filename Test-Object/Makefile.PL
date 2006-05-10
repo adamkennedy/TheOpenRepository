@@ -8,5 +8,4 @@ requires 'Scalar::Util' => '1.16';
 requires 'Test::More'   => '0.47';
 requires 'File::Spec'   => '0.80';
 
-auto_install;
 WriteAll;

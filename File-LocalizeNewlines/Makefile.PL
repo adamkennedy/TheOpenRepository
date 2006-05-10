@@ -12,5 +12,4 @@ requires       'Params::Util'     => '0.10';
 build_requires 'Test::More'       => '0.42';
 install_script 'bin/localizenewlines';
 
-auto_install;
 WriteAll;
