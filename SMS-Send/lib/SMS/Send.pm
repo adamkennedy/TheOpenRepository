@@ -298,13 +298,18 @@ sub _DRIVER {
 	my $class  = shift;
 
 	# The driver should be a string (other than 'Driver')
-	my $driver = $_[0];
-	unless ( defined $driver and ! ref $driver and length $driver ) {
+	my $name = $_[0];
+	unless ( defined $name and ! ref $name and length $name ) {
 		Carp::croak("Did not provide a SMS::Send driver name");
+	}
+	if ( $name =~ /^\d+$/ ) {
+		# Although pure-digit Foo::123 class names are technically
+		# allowed, we don't allow them as drivers, to reduce insanity.
+		Carp::croak("Not a valid SMS::Send driver name");
 	}
 
 	# Clean up the driver name
-	$driver = "SMS::Send::$driver";
+	my $driver = "SMS::Send::$name";
 	unless ( Params::Util::_CLASS($driver) ) {
 		Carp::croak("Not a valid SMS::Send driver name");
 	}

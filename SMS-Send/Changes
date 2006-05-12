@@ -3,6 +3,8 @@ Revision history for Perl extension SMS::Send
 0.03 Fri May 12 2005
 	- Upgraded to Module::Install 0.62
 	- Removed auto_install
+	- Improvements to Params::Util::_CLASS made a case that
+	  previous errored, now pass. Fixed and updated Params::Util dep.
 
 0.02 Tue Dec 27 2005
 	- Fixed various bugs
