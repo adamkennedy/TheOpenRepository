@@ -49,7 +49,7 @@ use base 'Exporter';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.06';
 	@EXPORT  = qw{sub_track sub_calls sub_reset sub_reset_all};
 }
 

@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::SubCalls
 
+1.06 Fri 12 May 2006
+	- Moving to a stable version number
+	- Upgrading to Module::Install 0.62 final
+	- Removing auto_install
+
 0.05 Mon 24 Apr 2006
 	- Apparently my tweaking of the dependencies was incorrect.
 	- Removed the Test::Simple dep, the T:B:Tester one should be enough
