@@ -55,7 +55,7 @@ use Params::Util '_HASH', '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
