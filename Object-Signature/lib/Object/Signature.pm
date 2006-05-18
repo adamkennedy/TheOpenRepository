@@ -8,7 +8,7 @@ BEGIN {
 	$VERSION = '1.04';
 }
 
-# In the event prefork is loaded, apply prefork load-optimisation
+# In prefork is loaded, apply load-optimisation
 eval "use prefork 'Storable';";
 eval "use prefork 'Digest::MD5';";
 
