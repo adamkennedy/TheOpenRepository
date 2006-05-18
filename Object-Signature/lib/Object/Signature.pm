@@ -1,18 +1,17 @@
 package Object::Signature;
 
+use 5.005;
 use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 # In the event prefork is loaded, apply prefork load-optimisation
 eval "use prefork 'Storable';";
 eval "use prefork 'Digest::MD5';";
 
-# The main (only) method.
-# The prototype only applies when called as a function.
 sub signature {
 	require Storable;
 	require Digest::MD5;
@@ -21,6 +20,8 @@ sub signature {
 		Storable::nfreeze(shift)
 		);
 }
+
+__END__
 
 1;
 
@@ -87,11 +88,11 @@ it goes through Storable.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>cpan@ali.asE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004, 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
