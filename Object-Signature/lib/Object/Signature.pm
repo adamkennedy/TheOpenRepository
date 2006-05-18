@@ -8,7 +8,7 @@ BEGIN {
 	$VERSION = '1.04';
 }
 
-# In prefork is loaded, apply load-optimisation
+# If prefork is installed, use it
 eval "use prefork 'Storable';";
 eval "use prefork 'Digest::MD5';";
 
@@ -21,9 +21,9 @@ sub signature {
 		);
 }
 
-__END__
-
 1;
+
+__END__
 
 =pod
 
