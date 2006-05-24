@@ -290,8 +290,12 @@ sub make_class {
 		push @parts, $self->_make_method( $name, $methods->{$name} );
 	}
 
-	if ( @{$self->{isa}} == 1 and $self->{isa}->[0] eq '_OBJECT_' ) {
-		push @parts, $self->_make_OBJECT;
+	if ( @{$self->{isa}} == 1 ) {
+		if ( $self->{isa}->[0] eq '_OBJECT_' ) {
+			push @parts, $self->_make_OBJECT;
+		} else {
+			push @parts, $self->_make_ISA( @{$self->{isa}} );
+		}
 	}
 
 	if ( $self->{autoload} ) {
@@ -331,16 +335,34 @@ END_METHOD
 
 
 
-sub _make_OBJECT { <<"END_ISACAN" }
+sub _make_OBJECT { <<"END_OBJECT" }
 sub isa {
 	shift->_OBJECT_->isa(\@_);
 }
 
 sub can {
-	shiff->_OBJECT_->can(\@_);
+	shift->_OBJECT_->can(\@_);
 }
-END_ISACAN
+END_OBJECT
 
+
+
+sub _make_ISA {
+	my $self = shift;
+	my @lines = (
+		"sub isa {\n",
+		( map { "\treturn 1 if \$_[1]->isa('\$_');\n" } @_ ),
+		"\treturn undef;\n",
+		"}\n",
+		"\n",
+		"sub can {\n",
+		"\treturn 1 if \$_[0]->can(\$_[1]);\n",
+		( map { "\treturn 1 if \$_->can('\$_[1]');\n" } @_ ),
+		"\treturn undef;\n",
+		"}\n",
+	);
+	return join '', @lines;
+}		
 
 
 

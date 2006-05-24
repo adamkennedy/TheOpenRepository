@@ -39,7 +39,7 @@ sub isa {
 }
 
 sub can {
-	shiff->_OBJECT_->can(@_);
+	shift->_OBJECT_->can(@_);
 }
 
 sub AUTOLOAD {
