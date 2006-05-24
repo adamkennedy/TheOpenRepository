@@ -131,6 +131,7 @@ in an object.
 
 =cut
 
+use 5.005;
 use strict;
 use Class::Adapter::Builder
 	ISA      => '_OBJECT_',

@@ -137,6 +137,7 @@ Just stick to the pragma interface for now.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp           ();
 use Class::Adapter ();

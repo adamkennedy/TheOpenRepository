@@ -62,6 +62,7 @@ underlying object.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp         ();
 use Scalar::Util ();
