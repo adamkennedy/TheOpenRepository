@@ -352,13 +352,13 @@ sub _make_ISA {
 	my $self = shift;
 	my @lines = (
 		"sub isa {\n",
-		( map { "\treturn 1 if \$_[1]->isa('\$_');\n" } @_ ),
+		( map { "\treturn 1 if \$_[1]->isa('$_');\n" } @_ ),
 		"\treturn undef;\n",
 		"}\n",
 		"\n",
 		"sub can {\n",
-		"\treturn 1 if \$_[0]->can(\$_[1]);\n",
-		( map { "\treturn 1 if \$_->can('\$_[1]');\n" } @_ ),
+		"\treturn 1 if \$_[0]->SUPER::can(\$_[1]);\n",
+		( map { "\treturn 1 if $_->can(\$_[1]);\n" } @_ ),
 		"\treturn undef;\n",
 		"}\n",
 	);
