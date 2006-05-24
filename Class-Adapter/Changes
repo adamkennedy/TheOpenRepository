@@ -4,7 +4,7 @@ Revision history for Perl extension Class::Adapter
 	- Fixed static method calls
 	- Fixed a bad ->can case
 	- Fixed ISA => 'class'
-	- More testing
+	- Upgrading to Module::Install 0.62
 
 1.01 Sat Jan 28 2005
 	- Updating to a newer Module::Install
