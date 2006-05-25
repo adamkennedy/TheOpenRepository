@@ -14,12 +14,16 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 1;
+use Test::More tests => 19;
 use Scalar::Util ();
 
 # Ensure we can import weaken and isweak
-ok( Scalar::Util->import( 'weaken' ), '->import(weaken)' );
-ok( Scalar::Util->import( 'isweak' ), '->import(isweak)' );
+BEGIN {
+	Scalar::Util->import( 'weaken' );
+	Scalar::Util->import( 'isweak' );
+}
+ok( defined(&weaken), '->import(weaken) worked' );
+ok( defined(&isweak), '->import(isweak) worked' );
 
 
 
