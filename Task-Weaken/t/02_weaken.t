@@ -93,5 +93,7 @@ $x = {};
 weaken($x->{Y} = \$a);
 ok(isweak($x->{Y}));
 ok(!isweak($x->{Z}));
-
-1;
+package Dest;
+sub DESTROY {
+	${$_[0]{Flag}} ++;
+}
