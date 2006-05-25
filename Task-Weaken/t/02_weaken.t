@@ -30,6 +30,12 @@ ok( Scalar::Util->import( 'isweak' ), '->import(isweak)' );
 
 # Test weaken, just in case someone tries to fake its existance.
 # Code copied from Scalar::Util itself and stripped of non-essentials.
+SCOPE: {
+	package Dest;
+	sub DESTROY {
+		${$_[0]{Flag}} ++;
+	}
+}
 my ($y,$z);
 SCOPE: {
 	my $x = "foo";
@@ -50,9 +56,9 @@ SCOPE: {
 ok( ref($y) );
 weaken($y);
 ok( not defined $y  );
-$flag = 0;
+my $flag = 0;
 SCOPE: {
-	my $y = bless {}, Dest;
+	my $y = bless {}, 'Dest';
 	$y->{Self} = $y;
 	$y->{Flag} = \$flag;
 	weaken($y->{Self});
@@ -60,10 +66,10 @@ SCOPE: {
 }
 ok( $flag == 1 );
 undef $flag;
-my $flag = 0;
+$flag = 0;
 {
-	my $y = bless {}, Dest;
-	my $x = bless {}, Dest;
+	my $y = bless {}, 'Dest';
+	my $x = bless {}, 'Dest';
 	$x->{Ref} = $y;
 	$y->{Ref} = $x;
 	$x->{Flag} = \$flag;
@@ -89,11 +95,7 @@ ok(isweak($b));
 $b = \$a;
 ok(!isweak($b));
 
-$x = {};
+my $x = {};
 weaken($x->{Y} = \$a);
 ok(isweak($x->{Y}));
 ok(!isweak($x->{Z}));
-package Dest;
-sub DESTROY {
-	${$_[0]{Flag}} ++;
-}
