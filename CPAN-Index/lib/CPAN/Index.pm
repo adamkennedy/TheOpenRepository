@@ -1,5 +1,22 @@
 package CPAN::Index;
 
+use 5.005;
+use strict;
+use DBI         ();
+use DBD::SQLite ();
+use base 'DBIx::Class::Schema';
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+__PACKAGE__->load_classes('Author', 'Package', 'Distribution');
+
+1;
+
+__END__
+
 =pod
 
 =head1 NAME
@@ -34,26 +51,6 @@ model implemented around it using L<DBIx::Class>. To update the index,
 the L<CPAN::Index::Loader> class implements the logic to flush and reset
 the database, fetch the index files, parse them, and repopulate the
 database.
-
-=cut
-
-use 5.005;
-use strict;
-use DBI         ();
-use DBD::SQLite ();
-use base 'DBIx::Class::Schema';
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01';
-}
-
-__PACKAGE__->load_classes('Author', 'Package');
-
-1;
-
-
-=pod
 
 =head1 TO DO
 

@@ -22,9 +22,9 @@ L<CPAN::Index>, but may be loaded on-demand if needed.
 
 use strict;
 use Carp           ();
-use LWP            ();
 use Params::Util   qw{ _INSTANCE };
 use Email::Address ();
+use CPAN::Cache    ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -34,8 +34,91 @@ BEGIN {
 
 
 
+
 #####################################################################
-# Transport Methods
+# Constructor and Accessors
+
+=pod
+
+=head2 new
+
+  my $loader = CPAN::Index::Loader->new(
+      remote_uri => 'http://search.cpan.org/CPAN',
+      local_dir  => '/tmp/cpanindex',
+      );
+
+=cut
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+
+	# Create the cache object
+	unless ( $self->cache ) {
+		my @params = ();
+		$self->{cache} = CPAN::Cache->new(
+			remote_uri => delete($self->{remote_uri}),
+			local_dir  => delete($self->{local_dir}),
+			trace      => $self->{trace},
+			verbose    => $self->{verbose},
+			);
+	}
+			
+}
+
+=pod
+
+=head2 cache
+
+The C<cache> accessor returns a L<CPAN::Cache> object that represents the
+CPAN cache.
+
+=cut
+
+sub cache {
+	$_[0]->{cache};
+}
+
+=pod
+
+=head2 remote_uri
+
+The C<remote_uri> accessor return a L<URI> object for the location of the
+CPAN mirror.
+
+=cut
+
+sub remote_uri {
+	$_[0]->cache->remote_uri;
+}
+
+=pod
+
+=head2 local_dir
+
+The C<local_dir> accessor returns the filesystem path for the root directory
+of the local CPAN file cache.
+
+=cut
+
+sub local_dir {
+	$_[0]->cache->local_dir;
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+=pod
+
+=head2 load_files
+
+TO DO
+
+=cut
 
 
 
