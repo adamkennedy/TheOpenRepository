@@ -52,6 +52,24 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
+
+
+
+
+#####################################################################
+# Constructor and Accessors
+
+=pod
+
+=head2 new
+
+  my $cache = CPAN::Cache->new(
+      remote_uri => 'http://search.cpan.org/CPAN/',
+      local_dir  => '/tmp/cpan',
+      );
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
@@ -61,9 +79,9 @@ sub new {
 	$self->{readonly} = !! $self->{readonly};
 
 	# More thorough checking for the 
-	my $uri  = $self->{cpan_remote} || 'http://openjsan.org';
-	my $path = $self->{cpan_local}  || File::Spec->catdir(
-			File::HomeDir->my_home, '.cpan-cache'
+	my $uri  = $self->{remote_uri} || 'http://openjsan.org';
+	my $path = $self->{local_dir}  || File::Spec->catdir(
+			File::HomeDir->my_home, '.perl', 'CPAN-Cache'
 			);
 
 	# Strip superfluous trailing slashes
@@ -76,30 +94,49 @@ sub new {
 	-w $path or Carp::croak("mirror_local: No write permissions to path '$path'");
 
 	# Create the mirror object and save the updated values
-	$self->{cpan_remote} = $uri;
-	$self->{cpan_local}  = $path;
-	$self->{_mirror}     = URI::ToDisk->new( $path => $uri )
+	$self->{_mirror}    = URI::ToDisk->new( $path => $uri )
 		or Carp::croak("Unexpected error creating HTML::Location object");
 
 	$self;
 }
 
-sub cpan_remote {
-	$_[0]->{cpan_remote};
+=pod
+
+=head2 remote_uri
+
+The C<remote_uri> accessor returns a L<URI> object for the remote CPAN
+repository.
+
+=cut
+
+sub remote_uri {
+	$_[0]->{_mirror}->URI;
 }
 
-sub cpan_local {
-	$_[0]->{cpan_local};
+=pod
+
+=head2 local_dir
+
+The C<local_dir> accessor returns the filesystem path for the root
+root directory of the CPAN cache.
+
+=cut
+
+sub local_dir {
+	$_[0]->{_mirror}->path;
 }
 
+# Undocumented until it is usable
 sub trace {
 	$_[0]->{trace};
 }
 
+# Undocumented until it is usable
 sub verbose {
 	$_[0]->{verbose};
 }
 
+# Undocumented until it is usable
 sub readonly {
 	$_[0]->{readonly};
 }
@@ -242,7 +279,7 @@ an exception on error.
 
 =cut
 
-sub immutable {
+sub static {
 	my $self = shift;
 	my $path = $self->_path(shift);
 
