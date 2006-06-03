@@ -112,15 +112,15 @@ ok( -f $CI->resolved_filename,
 ok( $CI->installed, "->installed detects installed" );
 ok( ! $bad->installed, "->installed detects not installed" );
 my $functions = $CI->functions;
-ok( (ref($functions) eq 'ARRAY' )
+ok( (ref($functions) eq 'ARRAY'
 	and $functions->[0] eq '_class'
 	and scalar @$functions >= 14),
 	"->functions works correctly" );
 ok( ! $bad->functions, "->functions fails correctly" );
 $functions = $CI->function_refs;
-ok( (ref($functions) eq 'ARRAY' )
+ok( (ref($functions) eq 'ARRAY'
 	and ref $functions->[0]
-	and ref($functions->[0] eq 'CODE')
+	and ref($functions->[0]) eq 'CODE'
 	and scalar @$functions >= 14),
 	"->function_refs works correctly" );
 ok( ! $bad->function_refs, "->function_refs fails correctly" );
