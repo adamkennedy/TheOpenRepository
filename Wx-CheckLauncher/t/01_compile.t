@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# Test that CPAN::Index loads and compiles
+# Test that Wx::CheckLoader loads and compiles
 
 use strict;
 use lib ();
