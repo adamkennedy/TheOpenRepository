@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::JavaScript::Anon
 
+0.9  Sun  3 Jun 2006
+	- Fixed #15640 (Missing param in method call)
+
 0.8  Sat 15 Apr 2006
 	- Forgot to add a dependency on Params::Util
 

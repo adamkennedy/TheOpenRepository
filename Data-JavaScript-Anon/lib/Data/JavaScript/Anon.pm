@@ -10,7 +10,7 @@ use Params::Util qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 
 use vars qw{$VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
 BEGIN {
-	$VERSION = '0.8';
+	$VERSION = '0.9';
 	$errstr  = '';
 
 	# Attempt to define a single, all encompasing,
@@ -150,7 +150,7 @@ sub var_hash {
 	my $class    = shift;
 	my $name     = shift or return undef;
 	my $hash_ref = _HASH0(shift) or return undef;
-	my $struct   = $class->anon_hash( $hash_ref ) or return undef;
+	my $struct   = $class->anon_hash( $name, $hash_ref ) or return undef;
 	"var $name = $struct;";
 }
 
@@ -402,11 +402,16 @@ For other comments or queries, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<JSON>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 Adam Kennedy. All rights reserved.
+Copyright 2003 - 2006 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
