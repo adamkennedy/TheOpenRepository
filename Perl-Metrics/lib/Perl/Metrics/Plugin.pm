@@ -71,7 +71,7 @@ use Params::Util     '_IDENTIFIER',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 

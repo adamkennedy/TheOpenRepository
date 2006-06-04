@@ -25,7 +25,7 @@ use base 'Perl::Metrics::CDBI';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 

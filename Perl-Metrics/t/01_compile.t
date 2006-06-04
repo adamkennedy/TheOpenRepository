@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -12,7 +11,11 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
+		lib->import(
+			catdir('blib', 'arch'),
+			catdir('blib', 'lib' ),
+			catdir('lib'),
+			);
 	}
 }
 
@@ -26,7 +29,7 @@ use Test::More tests => 9;
 
 ok( $] >= 5.005, 'Your perl is new enough' );
 
-require_ok( 'Perl::Metrics'         );
+require_ok( 'Perl::Metrics' );
 ok( $Perl::Metrics::CDBI::VERSION,   '::Metrics loaded ::CDBI'   );
 ok( $Perl::Metrics::File::VERSION,   '::Metrics loaded ::File'   );
 ok( $Perl::Metrics::Metric::VERSION, '::Metrics loaded ::Metric' );

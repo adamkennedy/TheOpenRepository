@@ -4,7 +4,6 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
@@ -12,14 +11,18 @@ BEGIN {
 		require FindBin;
 		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
 		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
+		lib->import(
+			catdir('blib', 'arch'),
+			catdir('blib', 'lib' ),
+			catdir('lib'),
+			);
 	}
 }
 
 use Test::More tests => 13;
 
 # Prepare to test
-my $test_dir    = 't.data';
+my $test_dir    = catdir( 't', 'data' );
 my $test_create = catfile( $test_dir, 'create.sqlite' );
 ok( -d $test_dir, 'Test directory exists' );
 ok( -r $test_dir, 'Test directory read permissions ok' );

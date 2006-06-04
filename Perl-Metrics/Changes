@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl::Metrics
 
+0.06 Sun Jun  4 2006
+	- Moved from Sourceforge CVS to collaborative SVN
+
 0.05 Sun Nov 13 2005
 	- Various tweaks and bug fixes
 
