@@ -66,11 +66,11 @@ my @types = Archive::Builder::Archive->types;
 my $tests = 1;
 foreach ( @types ) {
   $tests += 3;
-  if ($archive_types{$_}) {
+  if ( $archive_types{$_} ) {
     $tests += 7;
   } else {
     diag "No test for type '$_'";
-  } 
+  }
 }
 foreach my $type (keys %archive_types) {
   diag "Skipping test of '$type' files due to missing dependency" if ! grep {$_ eq $type} @types
@@ -84,7 +84,10 @@ ok( scalar @types, 'You can build at least one type of archive' );
 # Test the types they have available
 foreach ( @types ) {
 	test_common( $_ );
-	if ($archive_types{$_}) { $archive_types{$_}->() } # TODO handle case of invalid type
+	if ( $archive_types{$_} ) {
+		$archive_types{$_}->();
+	}
+	# TODO handle case of invalid type
 }
 
 

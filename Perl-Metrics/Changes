@@ -1,0 +1,21 @@
+Revision history for Perl extension Perl::Metrics
+
+0.05 Sun Nov 13 2005
+	- Various tweaks and bug fixes
+
+0.04 Wed Nov  8 2005
+	- Added an undocumented tracing option
+	- Added a custom cascading delete for files
+	  When the last file for a hex_id is deleted, so are its metrics
+
+0.03 Thu Oct  6 2005
+	- There was a bug in PPI 1.102 functions we need.
+	- Updated dependency to PPI 1.103
+
+0.02 Wed Oct  5 2005
+	- Released for initial public review.
+	- Got connection and database creation working.
+	- Doesn't do anything yet, but the database does exist.
+
+0.01 Mon Oct  3 2005
+	- Experimental internal release
