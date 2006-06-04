@@ -262,12 +262,12 @@ sub index_directory {
 	$class->_trace("Search for files in $path...\n");
 	my @files = $FIND_PERL->in( $path );
 	$class->_trace("Found " . scalar(@files) . " file(s).\n");
-	if ( $TRACE ) {
-		# Only sort if someone is watching, so that have some idea
-		# of our progress.
-		$class->_trace("Sorting files...\n");
-		@files = sort @files;
-	}
+
+	# Sort the files so we index in deterministic order
+	$class->_trace("Sorting files...\n");
+	@files = sort @files;
+
+	# Index the files
 	$class->_trace("Indexing files...\n");
 	foreach my $file ( @files ) {
 		$class->index_file( $file );
