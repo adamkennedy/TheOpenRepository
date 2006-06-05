@@ -1,5 +1,6 @@
 package Acme::PerlML;
 
+use 5.005;
 use strict;
 use PPI;
 use Perl::SAX;
