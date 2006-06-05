@@ -1,4 +1,4 @@
-use inc::Array::Window;
+use inc::Module::Install;
 
 name           'Array-Window';
 all_from       'lib/Array/Window.pm';
