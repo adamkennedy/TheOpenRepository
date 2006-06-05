@@ -39,7 +39,7 @@ sub new {
 
 	# Check for a specific source
 	if ( $options{source} ) {
-		unless ( ref $options{source} eq 'ARRAY' ) ) {
+		unless ( ref $options{source} eq 'ARRAY' ) {
 			return undef;
 		}
 		$self->{source_start}  = 0;
