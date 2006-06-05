@@ -1,0 +1,11 @@
+Revision history for Perl extension Acme::Everything
+
+1.00 Tue  6 Jun 2006
+	- Moved from old CVS to new SVN repository
+	- Upgraded to Module::Install 0.62
+
+0.2  Sun Apr  17 2005
+	- Small changes and regenerating so we have a META.yaml
+
+0.1  Sat April  3 2004
+	- original version
