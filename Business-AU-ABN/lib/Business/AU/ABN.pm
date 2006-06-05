@@ -5,8 +5,7 @@ package Business::AU::ABN;
 
 # See POD at the end of the file
 
-### Memory Overhead: 52K
-
+use 5.005;
 use strict;
 use base 'Exporter';
 use List::Util   ();
