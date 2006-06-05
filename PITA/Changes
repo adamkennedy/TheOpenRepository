@@ -1,0 +1,30 @@
+Revision history for Perl extension PITA
+
+0.22    Sat 22 Apr 2006
+	- Updating to handle the new PITA::XML changes
+	- Upgraded from Data::UUID to far less insane Data::GUID
+	- Upgraded Module::Install to 0.62
+
+0.21    Tue 14 Feb 2006
+	- Changing a few method names to make the naming scheme of
+	  deep subclassed drivers clearer.
+
+0.20    Thu  3 Feb 2006
+	- Added a PITA::Guest abstraction
+	- Added the ability to auto-discover platforms in a Guest
+	- Added and completed the Local driver
+	- Completed ping/discover/test support for Image drivers
+	- Added and complete the Image::Test driver
+	- Partially refactored towards handling multiple tasks
+
+0.10    Sun 15 Jan 2006
+	- Completed the first version stable enough to distribute for
+	  experimenters to play with.
+
+0.01_02 Tue  3 Jan 2006
+	- Starting to add the guts of PITA::Host
+
+0.01_01 Fri 30 Dec 2005
+	- Initial implementation
+	- Currently implemented images all the way up to launch.
+	- Mainly uploading for CPAN Testers to poke at
