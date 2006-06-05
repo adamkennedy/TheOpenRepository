@@ -47,7 +47,7 @@ foreach ( <DATA> ) {
 		window_length => $parts[4],
 		);
 	ok( defined $Object, "$group:$test_id defined " );
-	ok( isa( $Object, 'Array::Window' ), "$group:$test_id is an Array::Window" );
+	isa_ok( $Object, 'Array::Window' );
 	ok( compare($Object->human_source_start, $parts[0] + 1), "$group:$test_id ->human_source_start returns correct" );
 	ok( compare($Object->human_source_end,   $parts[1] + 1), "$group:$test_id ->human_source_end returns correct" );
 	ok( compare($Object->source_length,         $parts[2]),  "$group:$test_id ->source_length returns correct" );
