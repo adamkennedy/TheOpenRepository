@@ -1,0 +1,173 @@
+#!/usr/bin/perl -w
+
+use 5.005;
+use strict;
+use Getopt::Long; # in core since 5.0
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+#Your favorite CPAN mirror.
+my $cpan = 'ftp://mirrors.kernel.org/pub/cpan';
+
+# Path to wget.
+my $wget = '/usr/bin/wget';
+my @wget_args = ( '--timestamping', '--passive-ftp', '--retr-symlinks', '--' );
+
+# If you want to enable MD5 checking, please do so here.
+my $do_md5 = 1;
+my $md5sum = '/usr/bin/md5sum';
+my @md5sum_args;
+
+my $help = 0;
+GetOptions(
+	"h"             => \$help,
+	"cpan=s"        => \$cpan,
+	"wget=s"        => \$wget,
+	"wget-args=s"   => \@wget_args,
+	"md5!"          => \$do_md5,
+	"md5sum=s"      => \$md5sum,
+	"md5sum-args=s" => \@md5sum_args,
+) or print_help(1);
+print_help() if $help;
+
+my %perls = (
+#	'5.4.0' => 'perl5.004.tar.gz',
+	'5.4.5' => 'perl5.004_05.tar.gz',
+#	'5.5.0' => 'perl5.005.tar.gz',
+#	'5.5.1' => 'perl5.005_01.tar.gz',
+#	'5.5.2' => 'perl5.005_02.tar.gz',
+	'5.5.3' => 'perl5.005_03.tar.gz',
+	'5.5.4' => 'perl5.005_04.tar.gz',
+	'5.6.0' => 'perl-5.6.0.tar.gz',
+	'5.6.1' => 'perl-5.6.1.tar.gz',
+	'5.6.2' => 'perl-5.6.2.tar.gz',
+	'5.8.0' => 'perl-5.8.0.tar.gz',
+	'5.8.1' => 'perl-5.8.1.tar.gz',
+	'5.8.2' => 'perl-5.8.2.tar.gz',
+	'5.8.3' => 'perl-5.8.3.tar.gz',
+	'5.8.4' => 'perl-5.8.4.tar.gz',
+	'5.8.5' => 'perl-5.8.5.tar.gz',
+	'5.8.6' => 'perl-5.8.6.tar.gz',
+	'5.8.7' => 'perl-5.8.7.tar.gz',
+	'5.8.8' => 'perl-5.8.8.tar.gz',
+	'5.9.0' => 'perl-5.9.0.tar.gz',
+	'5.9.1' => 'perl-5.9.1.tar.gz',
+	'5.9.2' => 'perl-5.9.2.tar.gz',
+	'5.9.3' => 'perl-5.9.3.tar.gz',
+);
+
+unless (-x $wget) {
+	print "wget unavailable at $wget\n";
+	print_help(1);
+}
+
+unless ($do_md5 && -x $md5sum) {
+	print "md5sum unavailable at $md5sum\n";
+	print "  Disabling MD5 verification; use --md5sum in the future\n";
+	$do_md5 = 0;
+}
+
+my %failure;
+foreach my $perl ( reverse sort keys %perls) {
+	print "Fetching Perl $perl...\n";
+	my $url = "$cpan/src/5.0/$perls{$perl}";
+	$url =~ s/'/\\'/g;
+	if (-f $perls{$perl}) {
+		print "$perls{$perl} already downloaded, skipping fetch\n";
+	}
+	else {
+		system $wget,@wget_args,$url,"$url.md5";
+		if ($@) {
+			my $exit = $?>>8;
+			print "Warning: wget system call failed with exit code $exit\n";
+		}
+	}
+
+	unless (-f $perls{$perl}) {
+		print "Error fetching $url\n";
+		$failure{$perl} = "Error fetching $url";
+		next;
+	}
+
+	if (-f $perls{$perl}.'.md5') {
+		if (open(MD5,"<$perls{$perl}.md5")) {
+			my $expected_md5 = <MD5>;
+			close MD5;
+			$expected_md5 =~ s/\s.*//ms;
+
+			my $md5_args = join(" ",@md5sum_args) || '';
+
+			my $real_md5 = qx($md5sum $md5_args '$perls{$perl}');
+			$real_md5 =~ s/\s.*//ms;
+
+			if ($@) {
+				my $exit = $?>>8;
+				print "Warning: md5sum system call failed with exit code $exit\n";
+			}
+
+			if ($expected_md5 ne $real_md5) {
+				print "Warning: $perls{$perl} MD5 does not match\n";
+				print " Expected: \"$expected_md5\"\n";
+				print "      Got: \"$real_md5\"\n";
+				$failure{$perl} = "MD5 for $perls{$perl} does not match";
+			}
+			else {
+				print "MD5 verification successful.\n";
+			}
+		}
+		else {
+			print "Can't open MD5 file: $!\n";
+			$failure{$perl} = "Can't open MD5 file $perls{$perl}.md5: $!";
+		}
+	}
+	else {
+		print "Can't check MD5; file not present\n";
+		$failure{$perl} = "Distribution retrieved but MD5 file missing";
+	}
+}
+
+print "\n\nSummary:\n";
+foreach my $perl (sort keys %perls) {
+	if (exists $failure{$perl}) {
+		printf("    %6s: %s\n",$perl,$failure{$perl});
+	}
+	else {
+		printf("    %6s: Retrieved and verified\n",$perl);
+	}
+}
+
+exit(0);
+
+sub print_help {
+	print <<HELP;
+Usage: $0 [OPTION]...
+Download a set of Perl distribution tarballs from CPAN.
+
+Options:
+    --cpan="ftp://mirrors.kernel.org/pub/cpan"
+                A URL to your favorite CPAN mirror
+    -h          This help output
+    -no-md5     Do not do MD5 checking on downloaded files.
+
+External Programs:
+    --md5sum=/usr/bin/md5sum
+                Path to the md5sum program
+    --md5sum-args=""
+                Additional arguments to supply to md5sum.
+                Can be used multiple times.
+
+    --wget=/usr/bin/wget
+                Path to the wget program
+    --wget-args="--passive-ftp"
+                Additional arguments to aupply to wget.
+                Can be used multiple times.
+
+On a *BSD system or Mac, you probably want to invoke as
+    perlfetch.pl --md5sum=/usr/bin/md5 --md5sum-args="-r"
+HELP
+	exit(1) if $_[0];
+	exit(0);
+}
