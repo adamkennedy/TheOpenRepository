@@ -1,5 +1,11 @@
 Revision history for Perl extension Test::Object
 
+0.06 Wed  7 Jun 2006
+	# This release contains only build-time changes
+	- Added explicit dependency on Test::Builder 0.62
+	- Added explicit dependency on Test::Builder::Tester 1.02
+	- Upgraded to Module::Install 0.63
+
 0.05 Wed 10 May 2006
 	# This release contains only build-time changes
 	- Upgraded to Module::Install 0.62
