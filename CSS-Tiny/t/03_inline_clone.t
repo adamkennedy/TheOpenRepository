@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 13;
+use Test::More tests => 7;
 
 my $new_called = 0;
 
@@ -51,17 +51,11 @@ SKIP: {
 	# Retry some tests to make sure the fake new works the same
 	# Test trivial creation
 	my $Trivial = CSS::Tiny->new();
-	ok( $Trivial, '->new returns true' );
-	ok( ref $Trivial, '->new returns a reference' );
-	is( ref($Trivial), 'HASH', '->new returns a hash reference' );
 	isa_ok( $Trivial, 'CSS::Tiny' );
 	ok( scalar keys %$Trivial == 0, '->new returns an empty object' );
 
 	# Try to read in a config
-	my $Config = CSS::Tiny->read( 'test.css' );
-	ok( $Config, '->read returns true' );
-	ok( ref $Config, '->read returns a reference' );
-	is( ref( $Config ), 'HASH', '->read returns a hash reference' );
+	my $Config = CSS::Tiny->read( catfile('t','data','test.css') );
 	isa_ok( $Config, 'CSS::Tiny' );
 
 	# Repeat the clone tests from 02_main.t

@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 31;
+use Test::More tests => 22;
 use CSS::Tiny;
 
 
@@ -28,17 +28,11 @@ use CSS::Tiny;
 
 # Test trivial creation
 my $Trivial = CSS::Tiny->new();
-ok( $Trivial, '->new returns true' );
-ok( ref $Trivial, '->new returns a reference' );
-is( ref($Trivial), 'HASH', '->new returns a hash reference' );
 isa_ok( $Trivial, 'CSS::Tiny' );
 is( scalar(keys %$Trivial), 0, '->new returns an empty object' );
 
 # Try to read in a config
-my $Config = CSS::Tiny->read( 'test.css' );
-ok( $Config, '->read returns true' );
-ok( ref $Config, '->read returns a reference' );
-is( ref($Config), 'HASH', '->read returns a hash reference' );
+my $Config = CSS::Tiny->read( catfile('t', 'data', 'test.css') );
 isa_ok( $Config, 'CSS::Tiny' );
 
 # Check the structure of the config
@@ -100,9 +94,6 @@ END {
 
 # Try to read the config back in
 $Read = CSS::Tiny->read( 'test2.css' );
-ok( $Read, '->read of what we wrote returns true' );
-ok( ref $Read, '->read of what we wrote returns a reference' );
-is( ref($Read), 'HASH', '->read of what we wrote returns a hash reference' );
 isa_ok( $Read, 'CSS::Tiny' );
 
 # Check the structure of what we read back in
