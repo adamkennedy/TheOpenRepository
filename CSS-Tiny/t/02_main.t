@@ -4,18 +4,18 @@
 
 use strict;
 use lib ();
-use UNIVERSAL 'isa';
-use File::Spec ();
+use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 	unless ( $ENV{HARNESS_ACTIVE} ) {
 		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( File::Spec->catdir(
-			File::Spec->updir,
-			File::Spec->updir,
-			'modules',
-			) );
+		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
+		chdir catdir( $FindBin::Bin, updir() );
+		lib->import(
+			catdir('blib', 'arch'),
+			catdir('blib', 'lib' ),
+			catdir('lib'),
+			);
 	}
 }
 
@@ -30,16 +30,16 @@ use CSS::Tiny;
 my $Trivial = CSS::Tiny->new();
 ok( $Trivial, '->new returns true' );
 ok( ref $Trivial, '->new returns a reference' );
-ok( isa( $Trivial, 'HASH' ), '->new returns a hash reference' );
-ok( isa( $Trivial, 'CSS::Tiny' ), '->new returns a CSS::Tiny object' );
-ok( scalar keys %$Trivial == 0, '->new returns an empty object' );
+is( ref($Trivial), 'HASH', '->new returns a hash reference' );
+isa_ok( $Trivial, 'CSS::Tiny' );
+is( scalar(keys %$Trivial), 0, '->new returns an empty object' );
 
 # Try to read in a config
 my $Config = CSS::Tiny->read( 'test.css' );
 ok( $Config, '->read returns true' );
 ok( ref $Config, '->read returns a reference' );
-ok( isa( $Config, 'HASH' ), '->read returns a hash reference' );
-ok( isa( $Config, 'CSS::Tiny' ), '->read returns a CSS::Tiny object' );
+is( ref($Config), 'HASH', '->read returns a hash reference' );
+isa_ok( $Config, 'CSS::Tiny' );
 
 # Check the structure of the config
 my $expected = {
@@ -102,8 +102,8 @@ END {
 $Read = CSS::Tiny->read( 'test2.css' );
 ok( $Read, '->read of what we wrote returns true' );
 ok( ref $Read, '->read of what we wrote returns a reference' );
-ok( isa( $Read, 'HASH' ), '->read of what we wrote returns a hash reference' );
-ok( isa( $Read, 'CSS::Tiny' ), '->read of what we wrote returns a CSS::Tiny object' );
+is( ref($Read), 'HASH', '->read of what we wrote returns a hash reference' );
+isa_ok( $Read, 'CSS::Tiny' );
 
 # Check the structure of what we read back in
 is_deeply( $Trivial, $Read, 'We get back what we wrote out' );		

@@ -109,11 +109,12 @@ reference the key C<$CSS-E<gt>{P}-E<gt>{font-family}>.
 
 =cut
 
+use 5.005;
 use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	$errstr  = '';
 }
 
@@ -207,9 +208,7 @@ object.
 
 =cut
 
-BEGIN {
-	eval "use Clone 'clone';";
-	eval <<'END_METHOD' if $@;
+BEGIN { eval "use Clone 'clone';"; eval <<'END_PERL' if $@; }
 sub clone {
 	my $self = shift;
 	my $copy = ref($self)->new;
@@ -222,8 +221,7 @@ sub clone {
 	}
 	$copy;
 }
-END_METHOD
-}
+END_PERL
 
 =pod
 
@@ -259,7 +257,8 @@ sub write_string {
 
 	# Iterate over the styles
 	# Note: We use 'reverse' in the sort to avoid a special case related
-	# to A:hover. See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
+	# to A:hover even though the file ends up backwards and looks funny.
+	# See http://www.w3.org/TR/CSS2/selector.html#dynamic-pseudo-classes
 	my $contents = '';
 	foreach my $style ( reverse sort keys %$self ) {
 		$contents .= "$style {\n";
@@ -326,15 +325,16 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>cpan@ali.asE<gt>
 
 =head1 SEE ALSO
 
-L<CSS>, L<http://www.w3.org/TR/REC-CSS1>, L<Config::Tiny>
+L<CSS>, L<http://www.w3.org/TR/REC-CSS1>, L<Config::Tiny>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2002 - 2006 Adam Kennedy. All rights reserved.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
