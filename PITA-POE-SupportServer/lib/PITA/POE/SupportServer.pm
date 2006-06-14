@@ -3,16 +3,22 @@ package PITA::POE::SupportServer;
 use strict;
 use warnings;
 
-use POE qw( Component::Server::HTTP Wheel::Run );
+use POE qw( Component::Server::HTTPServer Wheel::Run );
+# import constants like H_FINAL
+use POE::Component::Server::HTTPServer::Handler;
+
 use Process;
 
 use base qw( Process );
 
 our $VERSION = '0.01';
 
+# TODO use class accessor?
 
 sub new {
     my $package = shift;
+
+    # TODO error checking here?
 
     bless( { params => { @_ } }, $package );
 }
@@ -44,17 +50,77 @@ sub prepare {
         $self->{errstr} = 'unknown parameters: '.join( ',', keys %opt );
         return undef;
     }
+
+    $self->{http_id} = POE::Session->create(
+        object_states => [
+            $self => [qw(
+                _start
+                signals
+                http_request
+            )],
+        ]
+    )->ID();
     
     1;
 }
 
 sub run {
-    # TODO poe stuff
-    1;
+    my $self = shift;
+
+    # TODO setup timers
+
+    $self->{_http_service} = $self->{_http_server}->create_server();
+
+    $poe_kernel->run();
+
+    $self->{errstr} ? undef : 1;
 }
 
 sub http_result {
     1;
+}
+
+
+# Private methods
+
+sub _start {
+    my ( $self, $kernel, $session ) = @_[ OBJECT, KERNEL, SESSION ];
+
+    $kernel->sig( DIE => 'signals' );
+
+    my $svr = $self->{_http_server} = POE::Component::Server::HTTPServer->new();
+
+    # bah, HTTPServer doesn't have an address method, yet
+
+    $svr->port( $self->{http_local_port} );
+
+    $svr->handlers( [
+        '/' => $session->postback( 'http_request' )
+    ] );
+}
+
+sub signals {
+    my $sig = $_[ARG0];
+
+    if ( $sig eq 'DIE' ) {
+        my ( $self, $event, $file, $line, $from_state, $error )
+            = @_[ OBJECT, ARG2 .. ARG6 ];
+    
+        $self->{errstr} = "POE Exception at line $line in file "
+            ."$file (state '$from_state' called '$event') Error: $error";
+    }
+}
+
+sub http_request {
+    my $context = shift;
+    my $r = $context->{response};
+#    my $s = $context->{request};
+    
+    $r->code( 200 );
+    $r->content( "OK" );
+    $r->content_type( 'text/html' );
+    
+    return H_FINAL;
 }
 
 1;
