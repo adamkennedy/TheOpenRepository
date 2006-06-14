@@ -3,7 +3,6 @@ package PITA::POE::SupportServer;
 use strict;
 use warnings;
 
-use Carp qw( croak );
 use POE qw( Component::Server::HTTP Wheel::Run );
 use Process;
 
@@ -15,42 +14,47 @@ our $VERSION = '0.01';
 sub new {
     my $package = shift;
 
-    croak "new() only accepts an equal number of parameters" unless ( @_ % 2 );
-
-    my %opt = @_;
-    my $hr = {};
-
-    croak "execute must be an array ref"
-        unless ( $opt{execute} && ref( $opt{execute} ) eq 'ARRAY' );
-    $hr->{execute} = delete $opt{xecute};
-
-    croak "http_mirrors must be a hash ref of image paths to local paths"
-        unless ( $opt{http_mirrors} && ref( $opt{http_mirrors} ) eq 'HASH' );
-    $hr->{http_mirrors} = delete $opt{http_mirrors};
-    
-    $hr->{http_local_addr} = delete $opt{http_local_addr} || '127.0.0.1';
-    $hr->{http_local_port} = delete $opt{http_local_port} || 80;
-    
-    $hr->{http_result} = delete $opt{http_result} || '/result.xml';
-    $hr->{http_startup_timeout} = delete $opt{http_startup_timeout} || 30;
-    $hr->{http_activity_timeout} = delete $opt{http_activity_timeout} || 3600;
-    $hr->{http_shutdown_timeout} = delete $opt{http_shutdown_timeout} || 10;
-
-    croak "unknown parameters: ".join( ',',keys %opt ) if ( keys %opt );
-    
-    bless( $hr, $package );
+    bless( { params => { @_ } }, $package );
 }
 
 sub prepare {
+    my $self = shift;
+    my %opt =  %{ delete $self->{params} };
 
+    unless ( $opt{execute} && ref( $opt{execute} ) eq 'ARRAY' ) {
+        $self->{errstr} = 'execute must be an array ref';
+        return undef;
+    }
+    $self->{execute}               = delete $opt{xecute};
+    
+    unless ( $opt{http_mirrors} && ref( $opt{http_mirrors} ) eq 'HASH' ) {
+        $self->{errstr} = 'http_mirrors must be a hash ref of image paths to local paths';
+        return undef;
+    }
+    $self->{http_mirrors}          = delete $opt{http_mirrors};
+    
+    $self->{http_local_addr}       = delete $opt{http_local_addr} || '127.0.0.1';
+    $self->{http_local_port}       = delete $opt{http_local_port} || 80;
+    $self->{http_result}           = delete $opt{http_result} || '/result.xml';
+    $self->{http_startup_timeout}  = delete $opt{http_startup_timeout} || 30;
+    $self->{http_activity_timeout} = delete $opt{http_activity_timeout} || 3600;
+    $self->{http_shutdown_timeout} = delete $opt{http_shutdown_timeout} || 10;
+
+    if ( keys %opt ) {
+        $self->{errstr} = 'unknown parameters: '.join( ',', keys %opt );
+        return undef;
+    }
+    
+    1;
 }
 
 sub run {
-
+    # TODO poe stuff
+    1;
 }
 
 sub http_result {
-
+    1;
 }
 
 1;
