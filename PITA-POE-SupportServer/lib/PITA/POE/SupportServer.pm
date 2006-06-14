@@ -5,6 +5,7 @@ use warnings;
 
 use Carp qw( croak );
 use POE qw( Component::Server::HTTP Wheel::Run );
+use Process;
 
 use base qw( Process );
 
@@ -20,8 +21,8 @@ sub new {
     my $hr = {};
 
     croak "execute must be an array ref"
-        unless ( $opt{execute} && ref( $opt{execute} } eq 'ARRAY' );
-    $hr->{execute} = delete $opt{execute};
+        unless ( $opt{execute} && ref( $opt{execute} ) eq 'ARRAY' );
+    $hr->{execute} = delete $opt{xecute};
 
     croak "http_mirrors must be a hash ref of image paths to local paths"
         unless ( $opt{http_mirrors} && ref( $opt{http_mirrors} ) eq 'HASH' );
