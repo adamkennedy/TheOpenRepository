@@ -41,6 +41,13 @@ sub driver_new {
 sub driver_is {
 	my ($driver, $string, $message) = @_;
 	my $output = $driver->Output;
+
+	# Clean up the expected string
+	chomp $string;
+	$string =~ s/>\n</></g;
+	$string =~ s/\?\>/?>\n/;
+
+	# Compare the two
 	is( $$output, $string, $message );
 }
 
@@ -97,9 +104,10 @@ SCOPE: {
 	$driver->_undef;
 
 	$driver->end_document( {} );
-	driver_is( $driver,
-		"<?xml version='1.0' encoding='UTF-8'?><null xmlns='$XMLNS' />",
-		'->_undef works as expected' );
+	driver_is( $driver, <<END_XML, '->_undef works as expected' );
+<?xml version="1.0" encoding="UTF-8"?><null xmlns='$XMLNS' />
+END_XML
+		
 }
 
 
@@ -121,7 +129,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $platform_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <platform xmlns='$XMLNS'>
 <scheme>perl5</scheme>
 <path>PATH</path>
@@ -133,8 +141,7 @@ SCOPE: {
 <config name='foo'>FOO</config>
 </platform>
 END_XML
-	chomp $platform_string;
-	$platform_string =~ s/>\n</></g;
+
 	driver_is( $driver, $platform_string, '->_parse_platform works as expected' );	
 }
 
@@ -157,14 +164,13 @@ SCOPE: {
 
 	$driver->end_document( {} );	
 	my $request_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <file xmlns='$XMLNS'>
 <filename>Foo-Bar-0.01.tar.gz</filename>
 <digest>MD5.5cf0529234bac9935fc74f9579cc5be8</digest>
 </file>
 END_XML
-	chomp $request_string;
-	$request_string =~ s/>\n</></g;
+
 	driver_is( $driver, $request_string, '->_parse_file works as expected' );	
 }
 
@@ -188,7 +194,7 @@ SCOPE: {
 
 	$driver->end_document( {} );	
 	my $request_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <request xmlns='$XMLNS'>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -200,8 +206,7 @@ SCOPE: {
 <authpath>/id/authors/A/AD/ADAMK/Foo-Bar-0.01.tar.gz</authpath>
 </request>
 END_XML
-	chomp $request_string;
-	$request_string =~ s/>\n</></g;
+
 	driver_is( $driver, $request_string, '->_parse_request works as expected' );	
 }
 
@@ -254,7 +259,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $command_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <command xmlns='$XMLNS'>
 <cmd>perl Makefile.PL</cmd>
 <stdout>include /home/adam/cpan2/trunk/PITA-XML/inc/Module/Install.pm
@@ -291,8 +296,7 @@ Writing Makefile for PITA::XML
 <stderr />
 </command>
 END_XML
-	chomp $command_string;
-	$command_string =~ s/>\n</></g;
+
 	driver_is( $driver, $command_string, '->_parse_command works as expected' );	
 }
 
@@ -323,7 +327,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $test_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <test xmlns='$XMLNS' language='text/x-tap' name='t/01_main.t'>
 <stdout>1..4
 ok 1 - Input file opened
@@ -336,8 +340,7 @@ not ok 4 - Summarized correctly # TODO Not written yet
 <exitcode>0</exitcode>
 </test>
 END_XML
-	chomp $test_string;
-	$test_string =~ s/>\n</></g;
+
 	driver_is( $driver, $test_string, '->_parse_test works as expected' );	
 }
 
@@ -361,7 +364,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
@@ -385,8 +388,7 @@ SCOPE: {
 </platform>
 </install>
 END_XML
-	chomp $install_string;
-	$install_string =~ s/>\n</></g;
+
 	driver_is( $driver, $install_string, '->_parse_install works as expected' );	
 }
 
@@ -405,7 +407,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
@@ -475,8 +477,7 @@ not ok 4 - Summarized correctly # TODO Not written yet
 </test>
 </install>
 END_XML
-	chomp $install_string;
-	$install_string =~ s/>\n</></g;
+
 	driver_is( $driver, $install_string, '->_parse_install works as expected' );	
 }
 
@@ -495,11 +496,10 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $report_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <report xmlns='$XMLNS' />
 END_XML
-	chomp $report_string;
-	$report_string =~ s/>\n</></g;
+
 	driver_is( $driver, $report_string,
 		'->_parse_report works as expected' );
 }
@@ -510,7 +510,7 @@ END_XML
 # Add an install report to the file
 ok( $report->add_install( $install ), '->add_install returns ok' );
 my $report_string = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <report xmlns='$XMLNS'>
 <install>
 <request>
@@ -582,8 +582,7 @@ not ok 4 - Summarized correctly # TODO Not written yet
 </install>
 </report>
 END_XML
-chomp $report_string;
-$report_string =~ s/>\n</></g;
+
 SCOPE: {
 	my $driver = driver_new();
 	$driver->start_document( {} );
@@ -597,6 +596,10 @@ SCOPE: {
 
 
 
+# Clean up the expected string
+chomp $report_string;
+$report_string =~ s/>\n</></g;
+$report_string =~ s/\?\>/?>\n/;
 
 # Try the normal way
 my $string = '';

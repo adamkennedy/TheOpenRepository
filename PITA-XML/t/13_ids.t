@@ -75,7 +75,7 @@ is( $distid->authpath,  '', '->authpath returns "" as expected'             );
 my $output = '';
 ok( $distid->write( \$output ), '->write returns ok' );
 my $expected = <<"END_XML";
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
 <request xmlns='http://ali.as/xml/schema/pita-xml/$PITA::XML::Request::VERSION' id='1234'>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -85,7 +85,9 @@ my $expected = <<"END_XML";
 </file>
 </request>
 END_XML
+chomp $expected;
 $expected =~ s/\n//g;
+$expected =~ s/\?\>/?>\n/;
 is( $output, $expected, 'Wrote XML with id in it ok' );
 
 # Parse it back in
