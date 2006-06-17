@@ -1,5 +1,8 @@
 Revision history for PITA-Test-Dummy-Perl5-MI
 
+0.6301 Sat 17 Jun 2006
+     - Corrected a bug in the module
+
 0.63 Sat 17 Jun 2006
      - Upgraded to Module::Install 0.63
      - Removed the use of auto_install();

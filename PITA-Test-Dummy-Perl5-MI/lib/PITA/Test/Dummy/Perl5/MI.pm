@@ -1,11 +1,11 @@
-package PITA::Test::Dummy::Perl5::Make;
+package PITA::Test::Dummy::Perl5::MI;
 
 use 5.004;
 use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.63';
+	$VERSION = '0.6301';
 }
 
 sub dummy { 'Milton' }
