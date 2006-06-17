@@ -30,5 +30,4 @@ END_MESSAGE
 name     'PITA-Test-Dummy-Perl5-MI';
 all_from 'lib/PITA/Test/Dummy/Perl5/MI.pm';
 
-auto_install;
 WriteAll;
