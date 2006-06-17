@@ -2,6 +2,7 @@ package PITA::POE::SupportServer;
 
 use strict;
 use warnings;
+use Params::Util qw( _ARRAY _HASH );
 
 use POE qw( Component::Server::HTTPServer Wheel::Run );
 # import constants like H_FINAL
@@ -27,18 +28,17 @@ sub prepare {
     my $self = shift;
     my %opt =  %{ delete $self->{params} };
 
-    unless ( $opt{execute} && ref( $opt{execute} ) eq 'ARRAY' ) {
+    unless ( _ARRAY($opt{execute}) ) {
         $self->{errstr} = 'execute must be an array ref';
         return undef;
     }
     $self->{execute}               = delete $opt{xecute};
     
-    unless ( $opt{http_mirrors} && ref( $opt{http_mirrors} ) eq 'HASH' ) {
+    unless ( _HASH($opt{http_mirrors}) ) {
         $self->{errstr} = 'http_mirrors must be a hash ref of image paths to local paths';
         return undef;
     }
     $self->{http_mirrors}          = delete $opt{http_mirrors};
-    
     $self->{http_local_addr}       = delete $opt{http_local_addr} || '127.0.0.1';
     $self->{http_local_port}       = delete $opt{http_local_port} || 80;
     $self->{http_result}           = delete $opt{http_result} || '/result.xml';
