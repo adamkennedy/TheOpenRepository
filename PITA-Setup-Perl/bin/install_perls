@@ -1,0 +1,211 @@
+#!/usr/bin/perl
+
+require 5;
+use Cwd;
+use Getopt::Long;
+
+my $pwd = getcwd;
+my $instmain = "/opt/perl";
+
+my ($help, @versions);
+
+GetOptions(
+	"h"         => \$help,
+	"version=s" => \@versions,
+	"tardir=s"  => \$pwd,
+	"instdir=s" => \$instmain,
+) or print_help(1);
+print_help() if $help;
+
+opendir(Dir,$pwd) or do {
+	print "Can't open current directory? $pwd: $!\n";
+	print_help(1);
+};
+my @tars = grep { /^perl.*tar\.gz$/ } readdir(Dir);
+closedir(Dir);
+
+unless (-d $instmain) {
+	mkdir $instmain;
+	unless (-d $instmain) {
+		die "Can't create $instmain - please do so manually or use --instdir.\n";
+	}
+}
+
+foreach my $tarball (@tars) {
+	my ($base,$ver) = $tarball =~ /^(perl-?(5(?:\.?_?\d+)+))\.tar\.gz$/ or next;
+
+	if (@versions) {
+		next unless grep { $_ eq $ver } @versions;
+	}
+
+	if (-d "$instmain/$base") {
+		print "Not installing Perl $ver - directory $instmain/$base exists.\n";
+		print "Please remove this directory and run the installer again.\n\n";
+		next;
+	}
+	elsif (-d "$pwd/$base") {
+		print "Removing old install directory for Perl $ver...\n";
+		chdir $pwd;
+		system("rm -rf $base");
+		check_system_call($?,$!,"rm");
+		if (-d "$pwd/$base") {
+			print "Can't remove old install directory, skipping Perl $ver\n\n";
+			next;
+		}
+	}
+
+	print "Unpacking Perl $base...\n";
+	chdir $pwd;
+	system("gunzip -c $tarball | tar xf -");
+	check_system_call($?,$!,"gunzip | tar") && next;
+	chdir "$pwd/$base";
+
+	print "Configuring Perl $ver...\n";
+	my $develflag = '';
+	if ($ver =~ /^5\.9/) {
+		$develflag = "-Dusedevel";
+	}
+	system("./Configure -des -Dprefix='$instmain/$base' -Dinstallusrbinperl=n $develflag > $pwd/config-$ver.txt 2>&1");
+	check_system_call($?,$!,"./Configure") && next;
+
+	print "Making Perl $ver...\n";
+	system("make > $pwd/make-$ver.txt 2>&1");
+	check_system_call($?,$!,"make") && next;
+
+	print "Testing Perl $ver...\n";
+	system("make check > $pwd/check-$ver.txt 2>&1");
+	check_system_call($?,$!,"make check") && next;
+
+	print "Installing Perl $ver...\n";
+	system("make install > $pwd/install-$ver.txt 2>&1");
+	check_system_call($?,$!,"make install") && next;
+
+	print "Writing CPAN file for Perl $ver...\n";
+	my $cpanver = $ver;
+	$cpanver =~ s/_//;
+	if ($cpanver =~ /5.00[01234]/) {
+		write_cpan("$instmain/$base/lib/CPAN","$instmain/.cpan-$cpanver");
+	}
+	else {
+		write_cpan("$instmain/$base/lib/$cpanver/CPAN","$instmain/.cpan-$cpanver");
+	}
+
+	print "Removing build directory of Perl $ver...\n";
+	chdir $pwd;
+	system("rm -rf $base");
+	check_system_call($?,$!,"rm");
+
+	print "Perl $ver installed.\n\n";
+}
+
+exit(0);
+
+sub check_system_call {
+	my ($stat,$bang,$cmd) = @_;
+	if ($stat == -1) {
+		print "$cmd: failed to execute: $bang\n";
+		return 1;
+	}
+	elsif ($stat & 127) {
+		printf "$cmd: child died with signal %d, %s coredump\n", ($stat & 127),  ($stat & 128) ? 'with' : 'without';
+		return 1;
+	}
+	elsif ($stat >> 8) {
+		printf "$cmd: child exited with value %d\n", $stat >> 8;
+		return 1;
+	}
+
+	return;
+}
+
+sub print_help {
+	print <<HELP;
+Usage: $0 [OPTION]...
+Install a set of Perl distribution tarballs.
+
+Options:
+    -h            This help output
+    --instdir=""  Location to install Perls into (default: /opt/perl)
+    --tardir=""   Location of perl tarballs (default: current directory)
+    --version=""  A specific version to install; can be used multiple times
+HELP
+	exit(1) if $_[0];
+	exit(0);
+}
+
+sub write_cpan {
+	my $dir = shift;
+	my $build = shift;
+
+	unless (-d $dir) {
+		mkdir $dir or do {
+			print "Can't make directory $dir: $!\n";
+			return;
+		};
+	}
+
+	unless (-d $build) {
+		mkdir $build or print "Can't make directory $build - but this is not fatal.\n";
+	}
+
+	open CPANConf, ">$dir/Config.pm" or do {
+		print "Can't write $file: $!\n";
+		return;
+	};
+
+	print CPANConf <<CONFIGPM;
+# This is CPAN.pm's systemwide configuration file. This file provides
+# defaults for users, and the values can be changed in a per-user
+# configuration file. The user-config file is being looked for as
+# ~/.cpan/CPAN/MyConfig.pm.
+
+\$CPAN::Config = {
+  'build_cache' => q[100],
+  'build_dir' => q[$build/build],
+  'bzip2' => q[/usr/bin/bzip2],
+  'cache_metadata' => q[1],
+  'cpan_home' => q[$build],
+  'curl' => q[/usr/bin/curl],
+  'dontload_hash' => {  },
+  'ftp' => q[/usr/bin/ftp],
+  'ftp_proxy' => q[],
+  'getcwd' => q[cwd],
+  'gpg' => q[/usr/bin/gpg],
+  'gzip' => q[/bin/gzip],
+  'histfile' => q[$build/histfile],
+  'histsize' => q[100],
+  'http_proxy' => q[],
+  'inactivity_timeout' => q[0],
+  'index_expire' => q[1],
+  'inhibit_startup_message' => q[0],
+  'keep_source_where' => q[$build/sources],
+  'lynx' => q[/usr/bin/lynx],
+  'make' => q[/usr/bin/make],
+  'make_arg' => q[],
+  'make_install_arg' => q[],
+  'make_install_make_command' => q[/usr/bin/make],
+  'makepl_arg' => q[],
+  'mbuild_arg' => q[],
+  'mbuild_install_arg' => q[],
+  'mbuild_install_build_command' => q[./Build],
+  'mbuildpl_arg' => q[],
+  'ncftpget' => q[/usr/bin/ncftpget],
+  'no_proxy' => q[],
+  'pager' => q[less],
+  'prefer_installer' => q[EUMM],
+  'prerequisites_policy' => q[ask],
+  'scan_cache' => q[atstart],
+  'shell' => q[/bin/tcsh],
+  'show_upload_date' => q[1],
+  'tar' => q[/bin/tar],
+  'term_is_latin' => q[1],
+  'unzip' => q[/usr/bin/unzip],
+  'urllist' => [q[ftp://cpan.uchicago.edu/pub/CPAN/]],
+  'wget' => q[/usr/bin/wget],
+};
+1;
+CONFIGPM
+	close CPANConf;
+
+	return;
+}
