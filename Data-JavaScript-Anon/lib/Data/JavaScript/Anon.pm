@@ -183,7 +183,7 @@ sub anon_hash_key {
 	return '"' . $value . '"' if $KEYWORD{$value};
 
 	# Don't quote if it is just a set of word characters or numeric
-	return $value if $value =~ /^[^\W\d]\w*$/;
+	return $value if $value =~ /^[^\W\d]\w*\z/;
 	return $value if $value =~ /$RE_NUMERIC_HASHKEY/;
 
 	# Escape and quote

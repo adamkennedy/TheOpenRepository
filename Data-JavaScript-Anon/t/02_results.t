@@ -47,7 +47,26 @@ my @keywords = qw{
         try typeof var void volatile while with
 };
 
-plan tests => (@numbers + @not_numbers + @keywords + 7);
+my @hash_keys = (
+	# CPAN #7183:
+	{ input => "0596000278", output => '"0596000278"',
+	  desc => 'correctly escapes 0-leading non-octal' },
+
+	# CPAN #19915:
+	{ input => '0',          output => '0',
+	  desc => q[doesn't delete string '0'] },
+
+	{ input => '',           output => '""',
+	  desc => q[doesn't delete empty string] },
+
+	{ input => "foo\n",      output => '"foo\n"',
+	  desc => q[correctly quotes identifier+newline] },
+
+	{ input => "1\n",        output => '"1\n"',
+	  desc => q[correctly quotes number+newline] },
+);
+
+plan tests => (@numbers + @not_numbers + @keywords + @hash_keys + 4);
 
 foreach ( @numbers ) {
 	ok( Data::JavaScript::Anon->is_a_number( $_ ), "$_ is a number" );
@@ -62,16 +81,17 @@ foreach ( @keywords ) {
             "anon_hash_key correctly quotes keyword $_ used as hash key" );
 }
 
+# Test that hash keys aren't bent, folded, spindled, or mutilated
+foreach ( @hash_keys ) {
+	is( Data::JavaScript::Anon->anon_hash_key($_->{input}), $_->{output},
+	    "anon_hash_key $_->{desc}" );
+}
 
 
 # Do a simple test of most of the code in a single go
 my $rv = Data::JavaScript::Anon->anon_dump( [ 'a', 1, { a => { a => 1, } }, \"foo" ] );
 is( $rv, '[ "a", 1, { a: { a: 1 } }, "foo" ]',
 	'Generates expected output for simple combination struct' );
-
-# Test for CPAN bug #7183
-is( Data::JavaScript::Anon->anon_hash_key( "0596000278" ), '"0596000278"',
-	'anon_hash_key correctly escapes 0-leading non-octal' );
 
 # Test for CPAN bug #11882 (forward slash not being escaped)
 is( Data::JavaScript::Anon->anon_scalar( 'C:\\devel' ), '"C:\\\\devel"',
@@ -84,13 +104,5 @@ is( Data::JavaScript::Anon->anon_scalar( 'foo"bar' ), '"foo\\"bar"',
 # Test for generalised case of CPAN bug # (newline not being escaped)
 $rv = Data::JavaScript::Anon->anon_dump( [ "a\nb", "a\rb", "a	b", "a\"b", "a\bb" ] );
 is( $rv, '[ "a\nb", "a\rb", "a\tb", "a\\"b", "a\010b" ]', 'escape tabs, newlines, CRs and control chars');
-
-# Test for CPAN bug #19915 ('0' as anon_hash_key)
-$rv = Data::JavaScript::Anon->anon_hash_key( '0' );
-is( $rv, '0', q[numeric-zero hash keys don't disappear]);
-
-# Test for a case very similar to CPAN #19915 ('' as anon_hash_key)
-$rv = Data::JavaScript::Anon->anon_hash_key( '' );
-is( $rv, '""', q[empty-string hash keys don't disappear]);
 
 1;
