@@ -21,7 +21,7 @@ BEGIN {
 	my $_int = qr/(?:[1-9]\d*|0)/;                      # The integers section ( e.g. '2312' )
 	my $real = qr/(?:$_int(?:$_dec)?|$_dec)(?:$_sci)?/; # Merge the integer, decimal and scientific parts
 	my $_hex = qr/0[xX][0-9a-fA-F]+/;                   # Hexidecimal notation
-	my $_oct = qr/0[0-8]+/;                             # Octal notation
+	my $_oct = qr/0[0-7]+/;                             # Octal notation
 
 	# The final combination of all posibilities for a straight number
 	# The string to match must have no extra characters
