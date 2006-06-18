@@ -47,7 +47,7 @@ my @keywords = qw{
         try typeof var void volatile while with
 };
 
-plan tests => (@numbers + @not_numbers + @keywords + 5);
+plan tests => (@numbers + @not_numbers + @keywords + 7);
 
 foreach ( @numbers ) {
 	ok( Data::JavaScript::Anon->is_a_number( $_ ), "$_ is a number" );
@@ -85,5 +85,12 @@ is( Data::JavaScript::Anon->anon_scalar( 'foo"bar' ), '"foo\\"bar"',
 $rv = Data::JavaScript::Anon->anon_dump( [ "a\nb", "a\rb", "a	b", "a\"b", "a\bb" ] );
 is( $rv, '[ "a\nb", "a\rb", "a\tb", "a\\"b", "a\010b" ]', 'escape tabs, newlines, CRs and control chars');
 
+# Test for CPAN bug #19915 ('0' as anon_hash_key)
+$rv = Data::JavaScript::Anon->anon_hash_key( '0' );
+is( $rv, '0', q[numeric-zero hash keys don't disappear]);
+
+# Test for a case very similar to CPAN #19915 ('' as anon_hash_key)
+$rv = Data::JavaScript::Anon->anon_hash_key( '' );
+is( $rv, '""', q[empty-string hash keys don't disappear]);
 
 1;

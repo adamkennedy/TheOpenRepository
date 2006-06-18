@@ -177,7 +177,7 @@ sub anon_scalar {
 # Turn a single perl value into a javascript hash key
 sub anon_hash_key {
 	my $class = shift;
-	my $value = _STRING($_[0]) ? shift : return undef;
+	my $value = defined($_[0]) && !ref($_[0]) ? shift : return undef;
 
 	# Quote if it's a keyword
 	return '"' . $value . '"' if $KEYWORD{$value};
