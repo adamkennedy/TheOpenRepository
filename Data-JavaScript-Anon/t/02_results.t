@@ -36,6 +36,7 @@ my @not_numbers = qw{
 	a 09 +09 -09 ++1 +-34 
 	3com 2131.231fd2132 +0x21x
 };
+push @not_numbers, "0\n", "1\n";
 
 my @keywords = qw{
         abstract boolean break byte case catch char class const continue

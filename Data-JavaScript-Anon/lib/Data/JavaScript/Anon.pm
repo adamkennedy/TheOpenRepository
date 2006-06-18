@@ -25,10 +25,10 @@ BEGIN {
 
 	# The final combination of all posibilities for a straight number
 	# The string to match must have no extra characters
-	$RE_NUMERIC = qr/^(?:\+|\-)??(?:$real|$_hex|$_oct)$/;
+	$RE_NUMERIC = qr/^(?:\+|\-)??(?:$real|$_hex|$_oct)\z/;
 
 	# The numeric for of the hash key is similar, but without the + or - allowed
-	$RE_NUMERIC_HASHKEY = qr/^(?:$real|$_hex|$_oct)$/;
+	$RE_NUMERIC_HASHKEY = qr/^(?:$real|$_hex|$_oct)\z/;
 
 	%KEYWORD = map { $_ => 1 } qw{
 		abstract boolean break byte case catch char class const
