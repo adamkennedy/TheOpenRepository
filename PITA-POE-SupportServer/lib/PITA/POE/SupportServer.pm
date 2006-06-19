@@ -4,17 +4,14 @@ use strict;
 use warnings;
 use Params::Util qw( _ARRAY _HASH );
 
-use POE qw( Component::Server::HTTPServer Wheel::Run );
+use POE qw( Component::Server::HTTPServer Filter::Line Wheel::Run );
 # import constants like H_FINAL
 use POE::Component::Server::HTTPServer::Handler;
 
 use Process;
-
 use base qw( Process );
 
 our $VERSION = '0.01';
-
-# TODO use class accessor?
 
 sub new {
     my $package = shift;
@@ -32,7 +29,7 @@ sub prepare {
         $self->{errstr} = 'execute must be an array ref';
         return undef;
     }
-    $self->{execute}               = delete $opt{xecute};
+    $self->{execute}               = delete $opt{execute};
     
     unless ( _HASH($opt{http_mirrors}) ) {
         $self->{errstr} = 'http_mirrors must be a hash ref of image paths to local paths';
@@ -41,7 +38,10 @@ sub prepare {
     $self->{http_mirrors}          = delete $opt{http_mirrors};
     $self->{http_local_addr}       = delete $opt{http_local_addr} || '127.0.0.1';
     $self->{http_local_port}       = delete $opt{http_local_port} || 80;
-    $self->{http_result}           = delete $opt{http_result} || '/result.xml';
+    $self->{http_result}           = delete $opt{http_result} || [ '/result.xml' ];
+    unless ( _ARRAY( $self->{http_result} ) ) {
+        $self->{http_result} = [ $self->{http_result} ];
+    }
     $self->{http_startup_timeout}  = delete $opt{http_startup_timeout} || 30;
     $self->{http_activity_timeout} = delete $opt{http_activity_timeout} || 3600;
     $self->{http_shutdown_timeout} = delete $opt{http_shutdown_timeout} || 10;
@@ -51,16 +51,26 @@ sub prepare {
         return undef;
     }
 
-    $self->{http_id} = POE::Session->create(
+    $self->{_session_id} = POE::Session->create(
         object_states => [
             $self => [qw(
                 _start
                 signals
                 http_request
+                execute
+                shutdown
+                
+                error
+                closed
+                stdin
+                stderr
+                stdout
             )],
         ]
     )->ID();
-    
+ 
+    $self->{_has_run} = 0;
+ 
     1;
 }
 
@@ -68,20 +78,35 @@ sub run {
     my $self = shift;
 
     # TODO setup timers
+    
+    unless( $self->{_session_id} ) {
+        $self->{errstr} = "You must prepare() before run()";
+        return undef;
+    }
+    
+    $self->{_has_run}++;
 
     $self->{_http_service} = $self->{_http_server}->create_server();
 
+    $poe_kernel->post( $self->{_session_id} => 'execute' );
+
     $poe_kernel->run();
+
+    # cleanup
+    delete @{$self}->{qw( _http_service _http_server _wheel _session_id )};
 
     $self->{errstr} ? undef : 1;
 }
 
 sub http_result {
-    1;
+    shift->{_http_result} || undef;
 }
 
+sub has_run {
+    shift->{_has_run} || 0;
+}
 
-# Private methods
+# Private methods and events
 
 sub _start {
     my ( $self, $kernel, $session ) = @_[ OBJECT, KERNEL, SESSION ];
@@ -94,20 +119,26 @@ sub _start {
 
     $svr->port( $self->{http_local_port} );
 
+    # XXX we may not need to setup handlers for each http_result
     $svr->handlers( [
-        '/' => $session->postback( 'http_request' )
+        '/' => $session->postback( 'http_request' ),
+        ( map { $_ => $session->postback( 'http_result', $_ ) } @{$self->{http_result}} ),
     ] );
 }
 
 sub signals {
-    my $sig = $_[ARG0];
+    my $sig = $_[ ARG0 ];
 
     if ( $sig eq 'DIE' ) {
-        my ( $self, $event, $file, $line, $from_state, $error )
-            = @_[ OBJECT, ARG2 .. ARG6 ];
+        my ( $kernel, $self, $event, $file, $line, $from_state, $error )
+            = @_[ KERNEL, OBJECT, ARG2 .. ARG6 ];
     
-        $self->{errstr} = "POE Exception at line $line in file "
-            ."$file (state '$from_state' called '$event') Error: $error";
+        $self->{errstr} = "POE Exception at line $line in file $file "
+            ." (state '$from_state' called '$event') Error: $error";
+
+        $kernel->sig_handled();
+
+        $kernel->call( $_[ SESSION ] => 'shutdown' );
     }
 }
 
@@ -122,6 +153,63 @@ sub http_request {
     
     return H_FINAL;
 }
+
+sub execute {
+    my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
+
+    my @args = @{$self->{execute}};
+    
+    $self->{_wheel} = POE::Wheel::Run(
+        Program      => shift @args,
+        ProgramArgs  => \@args,
+        StderrFilter => POE::Filter::Line->new(),
+        StdioFilter  => POE::Filter::Line->new(),
+        ErrorEvent   => 'error',
+        CloseEvent   => 'closed',
+        StdinEvent   => 'stdin',
+        StdoutEvent  => 'stdout',
+        StderrEvent  => 'stderr',
+    );
+}
+
+sub shutdown {
+    my ( $self ) = $_[ OBJECT ];
+    
+    $self->{_wheel}->kill() if ( $self->{_wheel} );
+    
+    # TODO set timer and recheck for wheel closure
+    
+    delete @{$self}->{qw( _http_service _http_server )};
+}
+
+sub error {
+    my ( $kernel, $self, $ret, $errno, $error, $wheel_id, $handle ) = @_[ KERNEL, OBJECT, ARG0 .. ARG5 ];
+    
+    $self->{errstr} = "Error no $errno on $handle : $error ( Return value: $ret )";
+
+    $kernel->call( $_[ SESSION ] => 'shutdown' );
+}
+
+sub closed {
+    my ( $self, $kernel ) = @_[ OBJECT, KERNEL];
+    
+    $self->{_wheel_closed}++;
+    
+    $kernel->call( $_[ SESSION ] => 'shutdown' );
+}
+
+sub stdin {
+    warn $_[ARG0];
+}
+
+sub stdout {
+    warn $_[ARG0];
+}
+
+sub stderr {
+    warn $_[ARG0];
+}
+
 
 1;
 
