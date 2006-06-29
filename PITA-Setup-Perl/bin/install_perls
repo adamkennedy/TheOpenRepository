@@ -2,6 +2,7 @@
 
 require 5;
 use Cwd;
+use Data::Dumper;
 use Getopt::Long;
 
 my $pwd = getcwd;
@@ -10,7 +11,7 @@ my $instmain = "/opt/perl";
 my ($help, @versions);
 
 GetOptions(
-	"h"         => \$help,
+	"h|help"    => \$help,
 	"version=s" => \@versions,
 	"tardir=s"  => \$pwd,
 	"instdir=s" => \$instmain,
@@ -37,6 +38,8 @@ foreach my $tarball (@tars) {
 	if (@versions) {
 		next unless grep { $_ eq $ver } @versions;
 	}
+
+	if (0) {
 
 	if (-d "$instmain/$base") {
 		print "Not installing Perl $ver - directory $instmain/$base exists.\n";
@@ -80,14 +83,16 @@ foreach my $tarball (@tars) {
 	system("make install > $pwd/install-$ver.txt 2>&1");
 	check_system_call($?,$!,"make install") && next;
 
+	} # if 0
+
 	print "Writing CPAN file for Perl $ver...\n";
 	my $cpanver = $ver;
 	$cpanver =~ s/_//;
 	if ($cpanver =~ /5.00[01234]/) {
-		write_cpan("$instmain/$base/lib/CPAN","$instmain/.cpan-$cpanver");
+		write_cpan($ver,"$instmain/$base/lib/CPAN","$instmain/.cpan-$cpanver");
 	}
 	else {
-		write_cpan("$instmain/$base/lib/$cpanver/CPAN","$instmain/.cpan-$cpanver");
+		write_cpan($ver,"$instmain/$base/lib/$cpanver/CPAN","$instmain/.cpan-$cpanver");
 	}
 
 	print "Removing build directory of Perl $ver...\n";
@@ -134,6 +139,7 @@ HELP
 }
 
 sub write_cpan {
+	my $ver = shift;
 	my $dir = shift;
 	my $build = shift;
 
@@ -148,64 +154,234 @@ sub write_cpan {
 		mkdir $build or print "Can't make directory $build - but this is not fatal.\n";
 	}
 
+	eval { use CPAN::Config; };
+	$CPAN::Config = {} unless !$@ && defined($CPAN::Config);
+
+	my $real_config = {
+		build_cache 		=> 100,
+		build_dir   		=> "$build/build",
+		cache_metadata 		=> 1,
+		cpan_home 		=> $build,
+		histfile		=> "$build/histfile",
+		histsize	 	=> 100,
+		inactivity_timeout	=> 0,
+		index_expire		=> 1,
+		inhibit_startup_message => 0,
+		keep_source_where	=> "$build/sources",
+		prefer_installer        => 'EUMM',
+		prerequisites_policy    => 'follow',
+		scan_cache              => 'atstart',
+		show_upload_date        => 1,
+		term_is_latin           => 1,
+		urllist			=> [ 'http://10.0.0.2/CPAN/', 'http://search.cpan.org/CPAN/' ],
+	};
+
+	foreach my $binary qw( 
+		bzip2 curl ftp getcwd gpg gzip lynx make
+ 		ncftpget pager shell tar unzip wget ) {
+
+		if ($CPAN::Config->{$binary}) {
+			if (-x $CPAN::Config->{$binary}) {
+				$real_config->{$binary} = $CPAN::Config->{$binary};
+				next;
+			}
+		}
+
+		if ($ENV{uc($binary)} && -x $ENV{uc($binary)}) {
+			$real_config->{$binary} = $ENV{uc($binary)};
+			next;
+		}
+
+		if ($binary eq 'shell') {
+			foreach my $shell qw( bash tcsh zsh sh cmd ) {
+				my $bin = File::Which::which($shell);
+				if ($bin && -x $bin) {
+					$real_config->{'shell'} = $bin;
+					next;
+				}
+			}
+		}
+		elsif ($binary eq 'pager') {
+			foreach my $pager qw( less more ) {
+				my $bin = File::Which::which($pager);
+				if ($bin && -x $bin) {
+					$real_config->{'pager'} = $bin;
+					next;
+				}
+			}
+		}
+		elsif ($binary eq 'getcwd') {
+			foreach my $pager qw( cwd pwd ) {
+				my $bin = File::Which::which($binary);
+				if ($bin && -x $bin) {
+					$real_config->{$binary} = $bin;
+					next;
+				}
+			}
+		}
+		else {
+			my $bin = File::Which::which($binary);
+			if ($bin && -x $bin) {
+				$real_config->{$binary} = $bin;
+				next;
+			}
+		}
+
+		$real_config->{'binary'} = '';
+	}
+
+	$real_config->{'make_install_make_command'} = $real_config->{'make'};
+	$real_config->{'mbuild_install_build_command'} = './Build';
+
+	# proxies	
+	$real_config->{'ftp_proxy'} = '';
+	$real_config->{'http_proxy'} = '';
+	$real_config->{'no_proxy'} = '';
+
+	# TODO find better values for these ( -j3, for example )
+	$real_config->{'make_arg'} = '';
+	$real_config->{'make_install_arg'} = '';
+	$real_config->{'makepl_arg'} = '';
+	$real_config->{'mbuild_arg'} = '';
+	$real_config->{'mbuild_install_arg'} = '';
+	$real_config->{'mbuildpl_arg'} = '';
+
+	my ($sub) = $ver =~ /^5.0*(\d+)[_\.]/;
+	if ($sub && $sub >= 6) {
+		$real_config->{'dontload_hash'} = {};
+	}
+
 	open CPANConf, ">$dir/Config.pm" or do {
 		print "Can't write $file: $!\n";
 		return;
 	};
 
-	print CPANConf <<CONFIGPM;
-# This is CPAN.pm's systemwide configuration file. This file provides
-# defaults for users, and the values can be changed in a per-user
-# configuration file. The user-config file is being looked for as
-# ~/.cpan/CPAN/MyConfig.pm.
-
-\$CPAN::Config = {
-  'build_cache' => q[100],
-  'build_dir' => q[$build/build],
-  'bzip2' => q[/usr/bin/bzip2],
-  'cache_metadata' => q[1],
-  'cpan_home' => q[$build],
-  'curl' => q[/usr/bin/curl],
-  'dontload_hash' => {  },
-  'ftp' => q[/usr/bin/ftp],
-  'ftp_proxy' => q[],
-  'getcwd' => q[cwd],
-  'gpg' => q[/usr/bin/gpg],
-  'gzip' => q[/bin/gzip],
-  'histfile' => q[$build/histfile],
-  'histsize' => q[100],
-  'http_proxy' => q[],
-  'inactivity_timeout' => q[0],
-  'index_expire' => q[1],
-  'inhibit_startup_message' => q[0],
-  'keep_source_where' => q[$build/sources],
-  'lynx' => q[/usr/bin/lynx],
-  'make' => q[/usr/bin/make],
-  'make_arg' => q[],
-  'make_install_arg' => q[],
-  'make_install_make_command' => q[/usr/bin/make],
-  'makepl_arg' => q[],
-  'mbuild_arg' => q[],
-  'mbuild_install_arg' => q[],
-  'mbuild_install_build_command' => q[./Build],
-  'mbuildpl_arg' => q[],
-  'ncftpget' => q[/usr/bin/ncftpget],
-  'no_proxy' => q[],
-  'pager' => q[less],
-  'prefer_installer' => q[EUMM],
-  'prerequisites_policy' => q[ask],
-  'scan_cache' => q[atstart],
-  'shell' => q[/bin/tcsh],
-  'show_upload_date' => q[1],
-  'tar' => q[/bin/tar],
-  'term_is_latin' => q[1],
-  'unzip' => q[/usr/bin/unzip],
-  'urllist' => [q[ftp://cpan.uchicago.edu/pub/CPAN/]],
-  'wget' => q[/usr/bin/wget],
-};
-1;
-CONFIGPM
+	print CPANConf Data::Dumper->Dump([$real_config],[q($CPAN::Config)]);
 	close CPANConf;
-
 	return;
 }
+
+=pod
+
+TODO
+
+* Detect if a binary actually works, in addition to "finding" it
+  (idea by Yaakov Sloman)
+
+=cut
+
+# File::Which is inlined here to prevent a CPAN dependency.
+
+package File::Which;
+
+use strict;
+
+require Exporter;
+
+@File::Which::ISA       = qw(Exporter);
+
+# PETEK custom patch: We're not exporting.
+@File::Which::EXPORT    = qw();
+@File::Which::EXPORT_OK = qw(which where);
+
+$File::Which::VERSION = '0.05';
+
+use File::Spec;
+
+my $Is_VMS    = ($^O eq 'VMS');
+my $Is_MacOS  = ($^O eq 'MacOS');
+my $Is_DOSish = (($^O eq 'MSWin32') or
+                ($^O eq 'dos')     or
+                ($^O eq 'os2'));
+
+# For Win32 systems, stores the extensions used for
+# executable files
+# For others, the empty string is used
+# because 'perl' . '' eq 'perl' => easier
+my @path_ext = ('');
+if ($Is_DOSish) {
+    if ($ENV{PATHEXT} and $Is_DOSish) {    # WinNT. PATHEXT might be set on Cygwin, but not used.
+        push @path_ext, split ';', $ENV{PATHEXT};
+    }
+    else {
+        push @path_ext, qw(.com .exe .bat); # Win9X or other: doesn't have PATHEXT, so needs hardcoded.
+    }
+}
+elsif ($Is_VMS) { 
+    push @path_ext, qw(.exe .com);
+}
+
+sub which {
+    my ($exec) = @_;
+
+    return undef unless $exec;
+
+    my $all = wantarray;
+    my @results = ();
+    
+    # check for aliases first
+    if ($Is_VMS) {
+        my $symbol = `SHOW SYMBOL $exec`;
+        chomp($symbol);
+        if (!$?) {
+            return $symbol unless $all;
+            push @results, $symbol;
+        }
+    }
+    if ($Is_MacOS) {
+        my @aliases = split /\,/, $ENV{Aliases};
+        foreach my $alias (@aliases) {
+            # This has not been tested!!
+            # PPT which says MPW-Perl cannot resolve `Alias $alias`,
+            # let's just hope it's fixed
+            if (lc($alias) eq lc($exec)) {
+                chomp(my $file = `Alias $alias`);
+                last unless $file;  # if it failed, just go on the normal way
+                return $file unless $all;
+                push @results, $file;
+                # we can stop this loop as if it finds more aliases matching,
+                # it'll just be the same result anyway
+                last;
+            }
+        }
+    }
+
+    my @path = File::Spec->path();
+    unshift @path, File::Spec->curdir if $Is_DOSish or $Is_VMS or $Is_MacOS;
+
+    for my $base (map { File::Spec->catfile($_, $exec) } @path) {
+       for my $ext (@path_ext) {
+            my $file = $base.$ext;
+# print STDERR "$file\n";
+
+            if ((-x $file or    # executable, normal case
+                 ($Is_MacOS ||  # MacOS doesn't mark as executable so we check -e
+                  ($Is_DOSish and grep { $file =~ /$_$/i } @path_ext[1..$#path_ext])
+                                # DOSish systems don't pass -x on non-exe/bat/com files.
+                                # so we check -e. However, we don't want to pass -e on files
+                                # that aren't in PATHEXT, like README.
+                 and -e _)
+                ) and !-d _)
+            {                   # and finally, we don't want dirs to pass (as they are -x)
+
+# print STDERR "-x: ", -x $file, " -e: ", -e _, " -d: ", -d _, "\n";
+
+                    return $file unless $all;
+                    push @results, $file;       # Make list to return later
+            }
+        }
+    }
+    
+    if($all) {
+        return @results;
+    } else {
+        return undef;
+    }
+}
+
+sub where {
+    my @res = which($_[0]); # force wantarray
+    return @res;
+}
+
+1;
