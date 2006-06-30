@@ -61,7 +61,9 @@ directly from the C<JSAN::Index> class itself.
 
 =cut
 
+use 5.005;
 use strict;
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -117,11 +119,6 @@ package JSAN::Index::Release::_Dependency;
 
 use base 'Algorithm::Dependency::Ordered';
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.11';
-}
-
 sub new {
 	my $class  = ref $_[0] ? ref shift : shift;
 	my %params = @_;
@@ -152,10 +149,10 @@ sub schedule {
 		if ( defined $item and ! ref $item and $item =~ /^(?:\w+)(?:\.\w+)*$/ ) {
 			$item = JSAN::Index::Library->retrieve( name => $item );
 		}
-		if ( UNIVERSAL::isa($item, 'JSAN::Index::Library') ) {
+		if ( _INSTANCE($item, 'JSAN::Index::Library') ) {
 			$item = $item->release;
 		}
-		if ( UNIVERSAL::isa($item, 'JSAN::Index::Release') ) {
+		if ( _INSTANCE($item, 'JSAN::Index::Release') ) {
 			$item = $item->source;
 		}
 		push @cleaned, $item;
@@ -170,11 +167,6 @@ package JSAN::Index::Release::_Source;
 
 use Algorithm::Dependency::Item ();
 use base 'Algorithm::Dependency::Source';
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.11';
-}
 
 sub new {
 	my $class  = ref $_[0] ? ref shift : shift;
@@ -247,7 +239,7 @@ Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2005,2006 Adam Kennedy. All rights reserved.
+Copyright 2005, 2006 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
