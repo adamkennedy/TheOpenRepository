@@ -1,11 +1,7 @@
 use inc::Module::Install;
 
 name           'JSAN-Client';
-abstract       'The JavaScript Archive Network Client Library';
-author         'Adam Kennedy <cpan@ali.as>';
-version_from   'lib/JSAN/Client.pm';
-license        'perl';
-requires       'perl'                  => '5.005';
+all_from       'lib/JSAN/Client.pm';
 requires       'File::Spec'            => '0.80';
 requires       'Scalar::Util'          => '1.11';
 requires       'File::Path'            => '1.06';
@@ -22,6 +18,5 @@ requires       'YAML'                  => '0.39';
 requires       'Algorithm::Dependency' => '1.02';
 build_requires 'Test::More'            => '0.47';
 build_requires 'File::Remove'          => '0.22';
-include        'File::Remove';
 
 WriteAll;

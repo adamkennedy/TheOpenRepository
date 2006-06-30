@@ -1,5 +1,9 @@
 Revision history for Perl extension JSAN::Client
 
+0.12 Fri Jun 30 2006
+	- Cleaning up inpreparation for a new round of releases
+	- Upgrading to Module::Install 0.63
+
 0.11 Sun Jan 29 2006
 	- Fix to handle a change in the Class::DBI API (grrr)
 	- Upgraded to Module::Install 0.55
