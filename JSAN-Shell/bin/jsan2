@@ -3,7 +3,7 @@
 use 5.006;
 use strict;
 use warnings;
-use JSAN::Shell2 ();
+use JSAN::Shell ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -12,7 +12,7 @@ BEGIN {
 }
 
 # Launch the shell
-JSAN::Shell2->new->run;
+JSAN::Shell->new->run;
 exit(0);
 
 =pod
@@ -25,7 +25,7 @@ jsan2 - The JavaScript Archive Network (JSAN) Shell
 
   adam@red:~$ jsan2
   
-  jsan shell -- JSAN exploration and library installation (v2.00_02)
+  jsan shell -- JSAN exploration and library installation (v2.00_04)
              -- Copyright 2005 Adam Kennedy. All rights reserved.
              -- Type 'help' for a summary of available commands.
   

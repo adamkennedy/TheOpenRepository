@@ -1,14 +1,14 @@
-package JSAN::Shell2;
+package JSAN::Shell;
 
 =pod
 
 =head1 NAME
 
-JSAN::Shell2 - JavaScript Archive Network (JSAN) Shell (2nd Generation)
+JSAN::Shell - JavaScript Archive Network Client Shell
 
 =head1 DESCRIPTION
 
-C<JSAN::Shell2> provides command handling and dispatch for the L<jsan2>
+C<JSAN::Shell> provides command handling and dispatch for the L<jsan2>
 user application. It interprates these commands and provides the
 appropriate instructions to the L<JSAN::Client> and L<JSAN::Transport>
 APIs.
@@ -24,7 +24,7 @@ with the understanding that they would be replaced by lighter, more
 scalable and more comprehensive (but much slower to write) replacements
 once they had time to catch up.
 
-C<JSAN::Shell2> represents the rewrite of the end-user oriented shell
+C<JSAN::Shell> represents the rewrite of the end-user oriented shell
 component, with L<JSAN::Client> providing the seperate and more general
 programmatic client interface.
 
@@ -110,7 +110,7 @@ sub offline {
 
 
 #####################################################################
-# JSAN::Shell2 Main Methods
+# JSAN::Shell Main Methods
 
 sub run {
 	my $self = shift;
