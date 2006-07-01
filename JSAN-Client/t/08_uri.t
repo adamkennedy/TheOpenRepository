@@ -20,7 +20,7 @@ BEGIN {
 }
 
 use JSAN::URI ();
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 
 
@@ -28,15 +28,13 @@ use Test::More tests => 3;
 #####################################################################
 # Create an object for a mirror
 
-my $mirror = JSAN::URI->new( 'http://www.jsan.de' );
+my $mirror = JSAN::URI->new( 'http://master.openjsan.org/' );
 isa_ok( $mirror, 'JSAN::URI' );
-
-SKIP: {
-	skip "JSAN::URI incomplete", 2;
 
 my $config = $mirror->_config;
 my $master = $mirror->_master;
 isa_ok( $config, 'Config::Tiny' );
 isa_ok( $master, 'Config::Tiny' );
 
-}
+ok( $mirror->valid, "Mirror $mirror is valid" );
+

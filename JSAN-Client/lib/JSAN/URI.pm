@@ -47,7 +47,7 @@ use File::Spec::Unix ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.13';
 }
 
 use constant JSAN_MASTER => 'http://master.openjsan.org/';
@@ -127,7 +127,7 @@ Returns true if the mirror is valid, or false otherwise.
 sub valid {
 	my $self   = shift;
 	my $config = $self->_config or return '';
-	!! (defined $config->{mirror} and $config->{mirror} eq 'jsan');
+	!! (defined $config->{_}->{mirror} and $config->{_}->{mirror} eq 'jsan');
 }
 
 

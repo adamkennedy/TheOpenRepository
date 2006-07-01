@@ -12,7 +12,7 @@ use base 'JSAN::Index::Extractable';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.13';
 
 	# Optional prefork.pm support
 	eval "use prefork 'YAML'";
