@@ -8,7 +8,7 @@ use base 'JSAN::Index::CDBI';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 JSAN::Index::Author->table('author');
