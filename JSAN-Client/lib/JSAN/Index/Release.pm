@@ -6,9 +6,7 @@ use strict;
 use File::Spec       ();
 use File::Spec::Unix ();
 use File::Path       ();
-use Params::Util     '_HASH',
-                     '_ARRAY',
-                     '_INSTANCE';
+use Params::Util     '_INSTANCE';
 use JSAN::Index      ();
 use base 'JSAN::Index::Extractable';
 
@@ -57,13 +55,13 @@ sub requires {
 
 	# Get the raw dependency hash
 	my $meta = $self->meta_data;
-	unless ( _HASH($meta) ) {
+	unless ( UNIVERSAL::isa($meta, 'HASH') ) {
 		# If it has no META.yml at all, we assume that it
 		# has no dependencies.
 		return ();
 	}
 	my $requires = $meta->{requires} or return {};
-	if ( _HASH($requires) ) {
+	if ( UNIVERSAL::isa($requires, 'HASH') ) {
 		# To be safe (mainly in case it's a dependency object of
 		# some sort) make sure it's a plain hash before returning.
 		my %hash = %$requires;
@@ -71,7 +69,7 @@ sub requires {
 	}
 
 	# It could be an array of Requires objects
-	if ( _ARRAY($requires) ) {
+	if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
 		my %hash = ();
 		foreach my $dep ( @$requires ) {
 			unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
@@ -92,13 +90,13 @@ sub build_requires {
 
 	# Get the raw dependency hash
 	my $meta = $self->meta_data;
-	unless ( _HASH($meta) ) {
+	unless ( UNIVERSAL::isa($meta, 'HASH') ) {
 		# If it has no META.yml at all, we assume that it
 		# has no dependencies.
 		return ();
 	}
 	my $requires = $meta->{build_requires} or return {};
-	if ( _HASH($requires) ) {
+	if ( UNIVERSAL::isa($requires, 'HASH') ) {
 		# To be safe (mainly in case it's a dependency object of
 		# some sort) make sure it's a plain hash before returning.
 		my %hash = %$requires;
@@ -106,7 +104,7 @@ sub build_requires {
 	}
 
 	# It could be an array of Requires objects
-	if ( _ARRAY($requires) ) {
+	if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
 		my %hash = ();
 		foreach my $dep ( @$requires ) {
 			unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
