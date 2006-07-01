@@ -100,7 +100,7 @@ isa_ok( $swaprel->archive, 'Archive::Tar' );
 
 # Load the META.yaml data for the release
 my $meta = $swaprel->meta_data;
-ok( _HASH($meta), '::Release->meta_data returns a HASH' );
+ok( UNIVERSAL::isa($meta, 'HASH'), '::Release->meta_data returns a HASH' );
 
 # Is it extractable
 can_ok( $swaprel, 'extract_libs', 'extract_tests', 'extract_resource' );

@@ -63,7 +63,6 @@ directly from the C<JSAN::Index> class itself.
 
 use 5.005;
 use strict;
-use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -116,6 +115,8 @@ sub dependency {
 # Algorithm::Dependency::Ordered for the ::Release data
 
 package JSAN::Index::Release::_Dependency;
+
+use Params::Util '_INSTANCE';
 
 use base 'Algorithm::Dependency::Ordered';
 

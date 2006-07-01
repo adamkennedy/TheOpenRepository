@@ -47,7 +47,7 @@ use File::Spec::Unix ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 use constant JSAN_MASTER => 'http://master.openjsan.org/';
