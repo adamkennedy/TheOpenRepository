@@ -34,16 +34,15 @@ want to look at L<minijsan> instead.
 
 =cut
 
+use 5.005;
 use strict;
-BEGIN {
-	$DB::single = 1;
-}
+use Params::Util '_INSTANCE';
 use JSAN::Transport;
 use JSAN::Index;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -197,7 +196,7 @@ information contained) in other releases in the repository.
 
 sub add_release {
 	my $self    = shift;
-	my $release = UNIVERSAL::isa($_[0], 'JSAN::Index::Release') ? shift
+	my $release = _INSTANCE($_[0], 'JSAN::Index::Release') ? shift
 		: Carp::croak("JSAN::Mini::add_release was not passed a JSAN::Index::Release object");
 	$release->mirror;
 	1;

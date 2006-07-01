@@ -2,7 +2,8 @@ Revision history for Perl extension JSAN::Mini
 
 0.02  Fri Jun 30 2006
 	- Moving into collaborative SVN repository
-	- Updating to Module::Install 0.63
+	- Updated to Module::Install 0.63
+	- Updated to JSAN::Client 0.12 
 
 0.01  Sun Aug 22 2005
 	- original version
