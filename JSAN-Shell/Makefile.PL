@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
 name           'JSAN-Shell';
-all_from       'lib/JSAN/Shell2.pm';
+all_from       'lib/JSAN/Shell.pm';
 requires       'Term::ReadLine' => '1.01';
 requires       'Getopt::Long'   => '2.34';
 requires       'JSAN::Client'   => '0.13';
