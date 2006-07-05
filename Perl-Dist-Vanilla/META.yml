@@ -27,7 +27,11 @@ provides:
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2
+# spec says "dir", search.cpan.org seems to use "directory"
 no_index:
+  directory:
+    - bin
+    - extra
   dir:
     - bin
     - extra

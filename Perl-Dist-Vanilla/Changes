@@ -1,5 +1,12 @@
 Revision history for Vanilla Perl
 
+Build 5: in progress
+
+    - updated META.yml no_index to try to prevent spurious indexing by
+      CPAN.pm
+
+    - added a MANIFEST.SKIP file
+
 Build 4: Wed Jul  5 12:37:22 EST 2006
 
     - Build now generated programmatically from scripts released in
