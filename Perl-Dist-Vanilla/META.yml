@@ -1,0 +1,35 @@
+---
+name: Perl-Dist-Vanilla
+version: 4
+author:
+  - David A Golden <dagolden@cpan.org>
+abstract: Vanilla Perl for win32
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Archive::Tar: 1.29 
+  Archive::Zip: 1.16
+  File::Path: 1.08 
+  File::pushd: 0.32
+  File::Spec: 3.17
+  HTTP::Status: 1.28
+  LWP::UserAgent: 2.033
+  Perl6::Say: 0.04
+  Sub::Exporter: 0.966
+provides:
+  Perl::Dist::Vanilla:
+    file: lib/Perl/Dist/Vanilla.pm
+    version: 4
+  Perl::Dist::Vanilla::Build:
+    file: lib/Perl/Dist/Vanilla/Build.pm
+    version: 4
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
+no_index:
+  dir:
+    - bin
+    - extra
+  file:
+    - Util.pm

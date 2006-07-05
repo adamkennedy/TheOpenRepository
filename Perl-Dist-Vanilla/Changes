@@ -1,0 +1,51 @@
+Revision history for Vanilla Perl
+
+Build 4: Wed Jul  5 12:37:22 EST 2006
+
+    - Build now generated programmatically from scripts released in
+      Perl::Dist::Vanilla
+
+    - Added Win32API::File, Compress::Zlib, IO::Zlib, Archive::Tar and 
+      Net::FTP to satisfy CPAN dependencies without needed external binaries
+    
+    - Removed UnxUtils binaries (no longer necessary)
+    
+    - Added latest IO for IO::Socket fixes
+    
+    - Removed libwin32 (except for Win32API::File as described above) to get
+      back to a minimial set of modules. (libwin32 can be cleanly installed
+      directly from CPAN now)
+
+    - Removed additional "tools" directory that had libwin32 dependencies;
+      Description of path changes moved to README
+
+    - Automatically sets PATH, LIB, and INCLUDE environment variables
+      during installation; Path to perl is prepended to avoid any other
+      perl executables bundled in the path (e.g. windows SVK)
+    
+    - Moved dmake binaries into their own directory
+
+    - Relocated license files; included missing MinGW win32api license
+
+    - Updated Vanilla Perl documentation, license and README
+
+    - No longer sets FTP_PASSIVE environment variable -- sets this instead
+      in the libnet default configuration file
+
+    - Removed restriction on installing for Windows 95, 98, etc. as some 
+      developers have requested the ability to test on these platforms.  
+      Minimum version restrictions may/should be added to other, end-user-
+      oriented releases like Strawberry Perl
+      
+Build 3:
+
+    - executable installer release on SourceForge
+
+Build 2:
+
+    - source release on SourceForge
+
+Build 1:
+
+    - first release for the original "Vertical Metre of Beer" challenge
+
