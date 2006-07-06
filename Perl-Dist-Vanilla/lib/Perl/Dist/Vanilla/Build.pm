@@ -1,5 +1,5 @@
 package Perl::Dist::Vanilla::Build;
-$VERSION = 4;
+$VERSION = 5;
 use strict;
 use warnings;
 
@@ -12,7 +12,7 @@ Perl::Dist::Vanilla::Build - Building Vanilla Perl from scratch
 
 =head1 VERSION
 
-This document refers to Vanilla Perl Build 4.
+This document refers to Vanilla Perl Build 5.
 
 =head1 DESCRIPTION
 

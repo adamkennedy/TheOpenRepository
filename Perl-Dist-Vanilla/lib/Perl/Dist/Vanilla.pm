@@ -1,5 +1,5 @@
 package Perl::Dist::Vanilla;
-$VERSION = '4'; # build number
+$VERSION = '5'; # build number
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ Perl::Dist::Vanilla - Vanilla Perl for win32
 
 =head1 VERSION
 
-This document refers to Vanilla Perl Build 4.
+This document refers to Vanilla Perl Build 5.
 
 =head1 DESCRIPTION
 

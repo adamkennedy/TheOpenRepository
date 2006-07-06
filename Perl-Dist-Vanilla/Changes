@@ -1,9 +1,12 @@
 Revision history for Vanilla Perl
 
-Build 5: in progress
+Build 5: Wed Jul  5 20:28:00 EST 2006
 
-    - updated META.yml no_index to try to prevent spurious indexing by
+    - updated META.yml no_index (hopefully) prevent spurious indexing by
       CPAN.pm
+      
+    - pulled mock Module::Signature from the distribution (not being used
+      in Vanilla -- wait for Strawberry instead)
 
     - added a MANIFEST.SKIP file
 

@@ -1,6 +1,6 @@
 [Setup]
 AppName=Vanilla Perl
-AppVerName=Vanilla Perl 5.8.8 build 4
+AppVerName=Vanilla Perl 5.8.8 build 5
 
 AppId=vanillaperl
 
@@ -14,7 +14,7 @@ DisableDirPage=yes
 
 ; folder + filename of created setup exe
 OutputDir=C:\
-OutputBaseFilename=vanilla-perl-5.8.8-build-4
+OutputBaseFilename=vanilla-perl-5.8.8-build-5
 
 ; location of source files
 SourceDir=C:\vanilla-perl

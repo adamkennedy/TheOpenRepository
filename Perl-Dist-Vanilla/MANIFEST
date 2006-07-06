@@ -16,7 +16,6 @@ extra/links/Search-CPAN-Modules.url
 extra/links/Vanilla-Perl-Homepage.url
 extra/Packlist.pm
 extra/README.w32api
-extra/Signature.pm
 lib/Perl/Dist/Vanilla.pm
 lib/Perl/Dist/Vanilla/Build.pm
 LICENSE.txt

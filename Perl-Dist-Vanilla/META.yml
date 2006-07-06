@@ -1,6 +1,6 @@
 ---
 name: Perl-Dist-Vanilla
-version: 4
+version: 5
 author:
   - David A Golden <dagolden@cpan.org>
 abstract: Vanilla Perl for win32

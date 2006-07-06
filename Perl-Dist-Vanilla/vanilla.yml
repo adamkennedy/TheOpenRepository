@@ -2,7 +2,7 @@
 ---
 # package info
 package_name:       VanillaPerl
-package_version:    4
+package_version:    5
 
 # directories
 download_dir:   c:\temp\vp_sources
