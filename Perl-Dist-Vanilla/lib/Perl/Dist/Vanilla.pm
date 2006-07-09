@@ -1,5 +1,5 @@
 package Perl::Dist::Vanilla;
-$VERSION = '5'; # build number
+$VERSION = '6'; # build number
 
 use strict;
 use warnings;
@@ -10,10 +10,6 @@ __END__
 =head1 NAME
 
 Perl::Dist::Vanilla - Vanilla Perl for win32
-
-=head1 VERSION
-
-This document refers to Vanilla Perl Build 5.
 
 =head1 DESCRIPTION
 
@@ -72,9 +68,8 @@ installation itself.
 See L</"DOWNLOADING THE INSTALLER"> for instructions on where to download and
 how to install Vanilla Perl.  
 
-See L<Perl::Dist::Vanilla::Build> at L<http://search.cpan.org> for instructions
-on generating a Vanilla Perl installation and executable installer from
-scratch.
+See L<Perl::Dist::Build> at L<http://search.cpan.org> for details on 
+the builder used to create Vanilla Perl from source.
 
 =head1 CHANGES FROM CORE PERL
 
@@ -108,6 +103,11 @@ dependency on external, binary programs to handle .tar.gz files
 
 =item *
 
+Archive::Zip (and its dependency, Time::Local) -- to eliminate the CPAN.pm
+dependency on external, binary programs to handle .zip files
+
+=item *
+
 libnet -- provides Net::FTP to eliminate the CPAN.pm dependency on an external,
 binary ftp program; installed configured for FTP passive mode
 
@@ -119,9 +119,7 @@ Windows temporary directory for the CPAN working directory.
 
 =head1 DOWNLOADING THE INSTALLER
 
-A stable repository for Vanilla Perl is still in progress.
-
-Vanilla Perl Build 4 is available from L<http://vanillaperl.com/>.
+Vanilla Perl Builds from 4 on are available from L<http://vanillaperl.com/>.
 
 Earlier builds of Vanilla Perl are available on Sourceforge.net as part of the
 Camelpack project: L<http://camelpack.sourceforge.net/>
@@ -134,7 +132,7 @@ installer adds the following environment variable changes:
     * adds directories to PATH
         - C:\vanilla-perl\dmake\bin
         - C:\vanilla-perl\mingw\bin
-        - C:\vanilla-perl\perl\bin  (prepended)
+        - C:\vanilla-perl\perl\bin 
 
     * adds directories to LIB
         - C:\vanilla-perl\mingw\lib

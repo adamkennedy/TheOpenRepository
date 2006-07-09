@@ -2,9 +2,19 @@ Revision history for Vanilla Perl
 
 Build 6:
 
-    - switched to Perl::Dist::Builder as the generator
+    - switched to Perl::Dist::Builder as the generator and Module::Install
+      for Makefile.PL
 
-    - backported .iss changes from Strawberry Alpha 1
+    - backported .iss changes from Strawberry Alpha 1; added .iss build 
+      script to bin/
+
+    - perl path no longer prepended
+
+    - added Time::Local and Archive::Tar to eliminate need for binary unzip
+
+    - tweaked preloaded CPAN\Config.pm
+
+    - minor doc cleanup
 
 Build 5: Wed Jul  5 20:28:00 EST 2006
 

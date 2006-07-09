@@ -1,8 +1,8 @@
 # VanillaPerl YAML config file
 ---
 # package info
-package_name:       VanillaPerl
-package_version:    5
+package_name:       Vanilla Perl
+package_version:    6
 
 # directories
 download_dir:   c:\temp\vp_sources
@@ -68,28 +68,32 @@ source:
 
 # Additional modules to bundle in site\lib
 modules:
-    -   name: Win32::Job    # i.e. not used, but gets us the libwin32 dist
+    -   name: Win32::Job    
+        # i.e. not used, but gets us the libwin32 dist
         unpack_to:
             APIFile: Win32API-File
     -   name: IO
         force: 1
     -   name: Compress::Zlib
     -   name: IO::Zlib
+        force: 1
     -   name: Archive::Tar
+    -   name: Time::Local
+    -   name: Archive::Zip
     -   name: Net::FTP
         extra: 
             extra\libnet.cfg: libnet.cfg
 
 # Extra files to be placed
-#    Signature.pm: perl\site\lib\Module\Signature.pm
 extra:
     README:  README.txt
     LICENSE.txt: LICENSE.txt
     Changes: Release-Notes.txt
-    extra\Config.pm:  perl\lib\CPAN\Config.pm  # reset this again
-    extra\links\Perl-Documentation.url: links\Perl Documentation.url
-    extra\links\Perl-Homepage.url: links\Perl Homepage.url
-    extra\links\Perl-Mailing-Lists.url: links\Perl Mailing Lists.url
-    extra\links\Perlmonks-Community-Forum.url: links\Perlmonks Community Forum.url
-    extra\links\Search-CPAN-Modules.url: links\Search CPAN Modules.url
-    extra\links\Vanilla-Perl-Homepage.url: links\Vanilla Perl Homepage.url
+    # reset this again
+    extra\Config.pm:  perl\lib\CPAN\Config.pm  
+    extra\links\Perl-Documentation.url: links\Perl-Documentation.url
+    extra\links\Perl-Homepage.url: links\Perl-Homepage.url
+    extra\links\Perl-Mailing-Lists.url: links\Perl-Mailing-Lists.url
+    extra\links\Perlmonks-Community-Forum.url: links\Perlmonks-Community-Forum.url
+    extra\links\Search-CPAN-Modules.url: links\Search-CPAN-Modules.url
+    extra\links\Vanilla-Perl-Homepage.url: links\Vanilla-Perl-Homepage.url

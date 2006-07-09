@@ -6,10 +6,12 @@
 
 $CPAN::Config = {
   'cpan_home' => File::Spec->catdir( File::Spec->tmpdir, 'cpan' ),
-  'make' => q[dmake.EXE],
-  'urllist' => [ q[ftp://ftp.perl.org/pub/CPAN/] ],
+  'make' => q[], # should autodetect from path
+  'urllist' => [ q[ftp://ftp.perl.org/cpan/] ],
   'prerequisites_policy' => q[follow],
   'make_install_arg' => q[UNINST=1],
+  'mbuild_install_arg' => q[--uninst 1],
+  # wish CPAN.pm would leave these disabled, but it doesn't yet
   'ftp' => q[ ],
   'gpg' => q[ ],
   'gzip' => q[ ],

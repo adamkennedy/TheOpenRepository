@@ -61,6 +61,6 @@ Name: {group}\README; Filename: {app}\README.txt
 [Registry]
 ; only for task passiveftp
 ; set the path
-Root: HKLM; Subkey: SYSTEM\CurrentControlSet\Control\Session Manager\Environment; ValueType: expandsz; ValueName: PATH; ValueData: "{app}\perl\bin;{olddata};{app}\dmake\bin;{app}\mingw\bin"
+Root: HKLM; Subkey: SYSTEM\CurrentControlSet\Control\Session Manager\Environment; ValueType: expandsz; ValueName: PATH; ValueData: "{olddata};{app}\perl\bin;{app}\dmake\bin;{app}\mingw\bin"
 Root: HKLM; Subkey: SYSTEM\CurrentControlSet\Control\Session Manager\Environment; ValueType: expandsz; ValueName: LIB; ValueData: "{olddata};{app}\mingw\lib;{app}\perl\bin"
 Root: HKLM; Subkey: SYSTEM\CurrentControlSet\Control\Session Manager\Environment; ValueType: expandsz; ValueName: INCLUDE; ValueData: "{olddata};{app}\mingw\include;{app}\perl\lib\CORE;{app}\perl\lib\encode"
