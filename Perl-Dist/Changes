@@ -1,0 +1,5 @@
+Revision history for Perl module Perl::Dist
+
+0.000001 Sun Jul  9 13:30:10 EDT 2006
+    - refactored build scripts from Perl::Dist::Vanilla to a module
+      in Perl::Dist::Builder
