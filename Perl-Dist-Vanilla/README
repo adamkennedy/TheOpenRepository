@@ -1,9 +1,6 @@
 NAME
     Perl::Dist::Vanilla - Vanilla Perl for win32
 
-VERSION
-    This document refers to Vanilla Perl Build 4.
-
 DESCRIPTION
     Vanilla Perl is an experimental Perl distribution for the Microsoft
     Windows platform that includes a bundled compiler. Vanilla Perl provides
@@ -50,9 +47,8 @@ DESCRIPTION
     See "DOWNLOADING THE INSTALLER" for instructions on where to download
     and how to install Vanilla Perl.
 
-    See Perl::Dist::Vanilla::Build at <http://search.cpan.org> for
-    instructions on generating a Vanilla Perl installation and executable
-    installer from scratch.
+    See Perl::Dist::Build at <http://search.cpan.org> for details on the
+    builder used to create Vanilla Perl from source.
 
 CHANGES FROM CORE PERL
     Vanilla Perl is and will continue to be based on the latest "stable"
@@ -77,6 +73,9 @@ CHANGES FROM CORE PERL
         CPAN.pm dependency on external, binary programs to handle .tar.gz
         files
 
+    *   Archive::Zip (and its dependency, Time::Local) -- to eliminate the
+        CPAN.pm dependency on external, binary programs to handle .zip files
+
     *   libnet -- provides Net::FTP to eliminate the CPAN.pm dependency on
         an external, binary ftp program; installed configured for FTP
         passive mode
@@ -86,9 +85,8 @@ CHANGES FROM CORE PERL
     to use the Windows temporary directory for the CPAN working directory.
 
 DOWNLOADING THE INSTALLER
-    A stable repository for Vanilla Perl is still in progress.
-
-    Vanilla Perl Build 4 is available from <http://vanillaperl.com/>.
+    Vanilla Perl Builds from 4 on are available from
+    <http://vanillaperl.com/>.
 
     Earlier builds of Vanilla Perl are available on Sourceforge.net as part
     of the Camelpack project: <http://camelpack.sourceforge.net/>
@@ -100,7 +98,7 @@ CONFIGURATION
         * adds directories to PATH
             - C:\vanilla-perl\dmake\bin
             - C:\vanilla-perl\mingw\bin
-            - C:\vanilla-perl\perl\bin  (prepended)
+            - C:\vanilla-perl\perl\bin 
 
         * adds directories to LIB
             - C:\vanilla-perl\mingw\lib
