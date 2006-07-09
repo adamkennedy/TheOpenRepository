@@ -1,5 +1,11 @@
 Revision history for Vanilla Perl
 
+Build 6:
+
+    - switched to Perl::Dist::Builder as the generator
+
+    - backported .iss changes from Strawberry Alpha 1
+
 Build 5: Wed Jul  5 20:28:00 EST 2006
 
     - updated META.yml no_index (hopefully) prevent spurious indexing by

@@ -1,20 +1,23 @@
 COPYRIGHT AND LICENSE
 
-The Vanilla Perl project aggregates multiple free software packages into a 
-single Win32 installer file and, on installation, pre-configures these packages
-for interoperability on the installation computer.
+Vanilla Perl is part of the Vanilla Perl Project (hereafter "VPP").
 
-Contributors to Vanilla Perl (as listed below) collectively agree to license
-their individual project contributions under the same terms as Perl itself.
-Therefore, Vanilla Perl may be licensed under either the GNU Public License or
-the Artisic License.  A copy of each may be found in the "licenses/perl"
-directory included with this package.
+The VPP aggregates multiple free software packages into a single Win32
+installer file and, on installation, pre-configures these packages for
+interoperability on the installation computer.
+
+Contributors to the VPP (as listed below) collectively agree to license
+their individual project contributions under the same terms as Perl
+itself.  Therefore, VPP code may be licensed under either the GNU Public
+License or the Artisic License.  A copy of each may be found in the
+"licenses/perl" directory included with a VPP release.
 
 Licenses for the individual packages distributed in aggregate as part of
-Vanilla Perl are contained either within the "licenses" directory or, for Perl
-modules, directly within module documentation files.
+a VPP release are contained either within the "licenses" directory or,
+for bundled Perl modules, wherever specified within the module
+documentation files included in the release.
 
-Individual Vanilla Perl contributions Copyright (c) 2006 by:
+Individual VPP contributions Copyright (c) 2006 by:
 
 * Adam Kennedy
 * Carl Franks
