@@ -1,6 +1,6 @@
 Revision history for Vanilla Perl
 
-Build 6:
+Build 6: Sun Jul  9 16:59:55 EDT 2006
 
     - switched to Perl::Dist::Builder as the generator and Module::Install
       for Makefile.PL
