@@ -1,6 +1,6 @@
 package Perl::Dist;
 
-$VERSION = "0.000001";
+$VERSION = "0.000002";
 use strict;
 use warnings; 
 

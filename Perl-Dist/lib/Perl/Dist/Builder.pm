@@ -1,6 +1,6 @@
 package Perl::Dist::Builder;
 
-$VERSION = "0.000001";
+$VERSION = "0.000002";
 use strict;
 use warnings; 
 
@@ -24,7 +24,7 @@ use IPC::Run3;
 use LWP::UserAgent;
 use Perl6::Say;
 use Tie::File;
-use YAML::Syck ();
+use YAML ();
 
 #--------------------------------------------------------------------------#
 # Constants
@@ -412,7 +412,7 @@ sub install_perl {
 
 sub new {
     my ($class, $yaml) = @_;
-    my $self = YAML::Syck::LoadFile( $yaml );
+    my $self = YAML::LoadFile( $yaml );
     bless $self, $class;
 }
 
