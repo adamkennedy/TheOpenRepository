@@ -57,6 +57,7 @@ sub prepare {
                 _start
                 signals
                 http_request
+                http_result
                 execute
                 shutdown
                 
@@ -65,6 +66,10 @@ sub prepare {
                 stdin
                 stderr
                 stdout
+
+                startup_timeout
+                activity_timeout
+                shutdown_timeout
             )],
         ]
     )->ID();
@@ -147,6 +152,32 @@ sub http_request {
     my $r = $context->{response};
 #    my $s = $context->{request};
     
+    require Data::Dumper;
+    warn Data::Dumper->Dump( [ $r ] );
+
+    # XXX 
+    # if startup request, then kill startup timeout
+    # if activity request, then reset activity timeout
+
+    $r->code( 200 );
+    $r->content( "OK" );
+    $r->content_type( 'text/html' );
+    
+    return H_FINAL;
+}
+
+sub http_result {
+    # TODO check if this is right for a postback
+    my ( $self, $result, $context ) = ( $_[ OBJECT ], $_[ ARG0 ]->[ 0 ], $_[ ARG1 ]->[ 0 ] );
+    my $r = $context->{response};
+#    my $s = $context->{request};
+    
+    require Data::Dumper;
+    warn Data::Dumper->Dump( [ $r ] );
+
+    # XXX 
+    # if activity request, then reset activity timeout
+
     $r->code( 200 );
     $r->content( "OK" );
     $r->content_type( 'text/html' );
@@ -158,7 +189,10 @@ sub execute {
     my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
 
     my @args = @{$self->{execute}};
-    
+   
+    $self->{_http_startup_timer} = $kernel->alarm_set( startup_timeout => $self->{http_startup_timeout} );
+ #   $self->{_http_activity_timer} = $kernel->alarm_set( activity_timeout => $self->{http_activity_timeout} );
+   
     $self->{_wheel} = POE::Wheel::Run(
         Program      => shift @args,
         ProgramArgs  => \@args,
@@ -173,7 +207,10 @@ sub execute {
 }
 
 sub shutdown {
-    my ( $self ) = $_[ OBJECT ];
+    my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
+    
+    # XXX is this right?
+    $self->{_http_shutdown_timer} = $kernel->alarm_set( shutdown_timeout => $self->{http_shutdown_timeout} );
     
     $self->{_wheel}->kill() if ( $self->{_wheel} );
     
@@ -210,6 +247,17 @@ sub stderr {
     warn $_[ARG0];
 }
 
+sub startup_timeout {
+    warn "startup_timeout";
+}
+
+sub activity_timeout {
+    warn "activity_timeout";
+}
+
+sub shutdown_timeout {
+    warn "shutdown_timeout";
+}
 
 1;
 
