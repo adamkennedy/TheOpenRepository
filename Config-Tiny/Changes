@@ -1,5 +1,10 @@
 Revision history for Perl extension Config::Tiny
 
+2.09 Sat 15 Jul 2006
+	- This release contains only build-time changes
+	- Added a dependency on ExtUtils::MakeMaker 6.11
+	  Module::Install may have an issue with older EU:MM installs
+
 2.08 Sat 15 Jul 2006
 	- This release contains only build-time changes
 	- Upgraded to Module::Install 0.63
