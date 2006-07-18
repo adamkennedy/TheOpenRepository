@@ -1,5 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.04 Tue 18 Jul 2006
+	- This time, make ADAMK::Debug an actual Exporter
+
 0.03 Tue 18 Jul 2006
 	- Call perl -d with -Mblib if needed
 	- Enable warnings in apld by default

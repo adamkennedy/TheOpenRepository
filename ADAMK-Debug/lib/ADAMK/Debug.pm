@@ -7,9 +7,10 @@ use Carp     ();
 use Exporter ();
 use File::Spec::Functions ':ALL';
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
+	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
 		in_distroot has_makefile has_blib
 		MakefilePL  Makefile     blib
