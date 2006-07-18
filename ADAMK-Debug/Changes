@@ -1,5 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.05 Tue 18 Jul 2006
+	- Bug fix
+
 0.04 Tue 18 Jul 2006
 	- This time, make ADAMK::Debug an actual Exporter
 

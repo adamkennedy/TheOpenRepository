@@ -9,7 +9,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
 		in_distroot has_makefile has_blib
@@ -27,11 +27,11 @@ BEGIN {
 # Convenience Functions
 
 sub in_distroot () {
-	!! -f MakefilePL;
+	!! -f MakefilePL();
 }
 
 sub has_makefile () {
-	!! -f Makefile;
+	!! -f Makefile();
 }
 
 sub has_blib () {
