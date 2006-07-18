@@ -3,17 +3,18 @@ package ADAMK::Debug;
 # Provides the collection of functions for apld
 
 use strict;
+use Carp     ();
 use Exporter ();
 use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@EXPORT  = qw{
-		in_distroot has_makefile
-		MakefilePL  Makefile
+		in_distroot has_makefile has_blib
+		MakefilePL  Makefile     blib
 		verbose     message
-		error       run
+		error       run          handoff
 		};
 }
 
@@ -32,12 +33,20 @@ sub has_makefile () {
 	!! -f Makefile;
 }
 
+sub has_blib () {
+	!! -d blib();
+}
+
 sub MakefilePL () {
 	catfile( curdir(), 'Makefile.PL' );
 }
 
 sub Makefile () {
 	catfile( curdir(), 'Makefile' );
+}
+
+sub blib () {
+	catdir( curdir(), 'blib' );
 }
 
 
@@ -70,6 +79,12 @@ sub run ($) {
 	my $cmd = shift;
 	verbose( "> $cmd" );
 	system( $cmd );
+}
+
+sub handoff ($) {
+	my $cmd = shift;
+	verbose( "> $cmd" );
+	exec( $cmd ) or Carp::croak("Failed to exec '$cmd'");
 }
 
 1;

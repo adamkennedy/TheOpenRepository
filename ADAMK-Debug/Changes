@@ -1,5 +1,9 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.03 Tue 18 Jul 2006
+	- Call perl -d with -Mblib if needed
+	- Enable warnings in apld by default
+
 0.02 Tue 18 Jul 2006
 	- Run make if needed
 	- Shifted support functions out to the module

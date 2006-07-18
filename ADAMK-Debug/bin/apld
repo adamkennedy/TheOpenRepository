@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 =pod
 
@@ -28,7 +28,7 @@ use ADAMK::Debug;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -52,10 +52,15 @@ if ( in_distroot and has_makefile ) {
 	run('make');
 }
 
+# Build the command to execute
+my @cmd = (
+	$perl,
+	has_blib ? '-Mblib' : (),
+	'-d', $script,
+);
+
 # Hand off to the perl debugger
-my $cmd = "$perl -d $script";
-verbose( "> $cmd" );
-exec( $cmd );
+handoff( join ' ', @cmd );
 
 =pod
 
