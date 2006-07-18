@@ -29,7 +29,16 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
-# Simple placeholder, pass the call on to the Perl debugger
+sub verbose ($);
+sub message ($);
+sub error   (@);
+
+
+
+
+
+#####################################################################
+# Main Script
 
 my $perl   = $^X;
 my $script = shift @ARGV;
@@ -54,7 +63,7 @@ exit(0);
 #####################################################################
 # Support Functions
 
-use vars qw{$VERSION};
+use vars qw{$VERBOSE};
 BEGIN {
 	unless ( defined $VERBOSE ) {
 		$VERBOSE = 0;
