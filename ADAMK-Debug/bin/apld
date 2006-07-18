@@ -28,7 +28,7 @@ use ADAMK::Debug;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 
@@ -53,14 +53,15 @@ if ( in_distroot and has_makefile ) {
 }
 
 # Build the command to execute
-my @cmd = (
-	$perl,
-	has_blib ? '-Mblib' : (),
-	'-d', $script,
-);
+my @flags = ();
+if ( has_blib ) {
+	push @flags, '-Mblib';
+} elsif ( has_lib ) {
+	push @flags, '-Ilib';
+}
 
 # Hand off to the perl debugger
-handoff( join ' ', @cmd );
+handoff( join ' ', $perl, @flags, '-d', $script );
 
 =pod
 

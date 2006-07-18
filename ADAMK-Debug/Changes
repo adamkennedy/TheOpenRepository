@@ -1,5 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.06 Wed 19 Jul 2006
+	- Add lib to @INC if there is not blib but there is an inc
+
 0.05 Tue 18 Jul 2006
 	- Bug fix
 

@@ -9,11 +9,11 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
-		in_distroot has_makefile has_blib
-		MakefilePL  Makefile     blib
+		in_distroot has_makefile has_blib has_lib
+		MakefilePL  Makefile     blib     lib
 		verbose     message
 		error       run          handoff
 		};
@@ -38,6 +38,10 @@ sub has_blib () {
 	!! -d blib();
 }
 
+sub has_lib () {
+	!! -d lib();
+}
+
 sub MakefilePL () {
 	catfile( curdir(), 'Makefile.PL' );
 }
@@ -48,6 +52,10 @@ sub Makefile () {
 
 sub blib () {
 	catdir( curdir(), 'blib' );
+}
+
+sub lib () {
+	catdir( curdir(), 'lib' );
 }
 
 
