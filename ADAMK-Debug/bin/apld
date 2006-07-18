@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+apld - Adam's Perl Debugger
+
+=head1 DESCRIPTION
+
+This is a small script which provides a sanity layer for debugging test
+scripts in Perl distributions.
+
+While L<prove> has is highly useful program for manually running one or
+more scripts, when debugging you want some similar things to happen, but
+is of only limited use in a debugging context.
+
+This script checks that the environment is sound, runs some cleanup tasks
+if needed, makes sure you are in the right directory, and then hands off
+to the perl debugger as normal.
+
+=cut
+
+use 5.005;
+use strict;
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+# Simple placeholder, pass the call on to the Perl debugger
+
+my $perl   = $^X;
+my $script = shift @ARGV;
+unless ( defined $script ) {
+	error "Did not provide a test script name";
+}
+unless ( -f $script ) {
+	error "Test script '$script' does not exist";
+}
+
+# Hand off to the perl debugger
+my $cmd = "$perl -d $script";
+print "> $cmd\n";
+exec( $cmd );
+
+exit(0);
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+use vars qw{$VERSION};
+BEGIN {
+	unless ( defined $VERBOSE ) {
+		$VERBOSE = 0;
+	}
+}
+
+sub verbose ($) {
+	return 1 unless $VERBOSE;
+	print ' ' . $_[0];
+}
+
+sub message ($) {
+	print ' ' . $_[0];
+}
+
+sub error (@) {
+	print ' ' . join '', map { "$_\n" } ('', @_, '');
+	exit(255);
+}
+
+=pod
+
+=head1 TO DO
+
+- Allow execution from the base or F<t> directory.
+
+- Automatically rerun F<make>.
+
+- Automatically run the F<Makefile.PL>
+
+=head1 SUPPORT
+
+All bugs should be filed via the bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ADAMK-Debug>
+
+For other issues, or commercial enhancement and support, contact the author
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<prove>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright 2006 Adam Kennedy. All rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
