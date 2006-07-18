@@ -19,13 +19,14 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::Script;
 
 # Check their perl version
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the script compile
+use_ok( 'ADAMK::Debug' );
 script_compiles_ok( 'bin/apld' );
 
 exit(0);

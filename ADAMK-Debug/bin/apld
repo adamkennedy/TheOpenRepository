@@ -23,15 +23,13 @@ to the perl debugger as normal.
 
 use 5.005;
 use strict;
+use File::Spec::Functions ':ALL';
+use ADAMK::Debug;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
-
-sub verbose ($);
-sub message ($);
-sub error   (@);
 
 
 
@@ -49,40 +47,15 @@ unless ( -f $script ) {
 	error "Test script '$script' does not exist";
 }
 
+# Rerun make if needed
+if ( in_distroot and has_makefile ) {
+	run('make');
+}
+
 # Hand off to the perl debugger
 my $cmd = "$perl -d $script";
-print "> $cmd\n";
+verbose( "> $cmd" );
 exec( $cmd );
-
-exit(0);
-
-
-
-
-
-#####################################################################
-# Support Functions
-
-use vars qw{$VERBOSE};
-BEGIN {
-	unless ( defined $VERBOSE ) {
-		$VERBOSE = 0;
-	}
-}
-
-sub verbose ($) {
-	return 1 unless $VERBOSE;
-	print ' ' . $_[0];
-}
-
-sub message ($) {
-	print ' ' . $_[0];
-}
-
-sub error (@) {
-	print ' ' . join '', map { "$_\n" } ('', @_, '');
-	exit(255);
-}
 
 =pod
 

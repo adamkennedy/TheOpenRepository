@@ -1,4 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.02 Tue 18 Jul 2006
+	- Run make if needed
+	- Shifted support functions out to the module
+
 0.01 Tue 18 Jul 2006
 	- Created the initial implementation
