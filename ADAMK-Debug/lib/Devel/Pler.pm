@@ -1,6 +1,6 @@
-package ADAMK::Debug;
+package Devel::Pler;
 
-# Provides the collection of functions for apld
+# Provides the collection of functions for pler
 
 use strict;
 use Carp     ();
@@ -9,7 +9,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
 		in_distroot has_makefile has_blib has_lib

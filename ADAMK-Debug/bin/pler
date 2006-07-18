@@ -4,16 +4,16 @@
 
 =head1 NAME
 
-apld - Adam's Perl Debugger
+pler - The DWIM Perl Debugger
 
 =head1 DESCRIPTION
 
-This is a small script which provides a sanity layer for debugging test
-scripts in Perl distributions.
+B<pler> is a small script which provides a sanity layer for debugging
+test scripts in Perl distributions.
 
 While L<prove> has is highly useful program for manually running one or
-more scripts, when debugging you want some similar things to happen, but
-is of only limited use in a debugging context.
+more groups of scripts in a distribution, what we also need is something
+that works similarly in a debugging context.
 
 This script checks that the environment is sound, runs some cleanup tasks
 if needed, makes sure you are in the right directory, and then hands off
@@ -28,7 +28,7 @@ use ADAMK::Debug;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 

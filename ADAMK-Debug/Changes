@@ -1,5 +1,10 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.07 Wed 19 Jul 2006
+	- Renaming apld script to pler :)
+	- Renaming ADAMK::Debug to Devel::Pler
+	- Renaming distribution from ADAMK-Debug to Devel-Pler
+
 0.06 Wed 19 Jul 2006
 	- Add lib to @INC if there is not blib but there is an inc
 
