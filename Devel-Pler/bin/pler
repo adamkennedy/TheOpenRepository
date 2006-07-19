@@ -11,11 +11,12 @@ pler - The DWIM Perl Debugger
 B<pler> is a small script which provides a sanity layer for debugging
 test scripts in Perl distributions.
 
-While L<prove> has is highly useful program for manually running one or
-more groups of scripts in a distribution, what we also need is something
-that works similarly in a debugging context.
+While L<prove> has proven itself to be a highly useful program for
+manually running one or more groups of scripts in a distribution,
+what we also need is something that provides a similar level of
+intelligence in a debugging context.
 
-This script checks that the environment is sound, runs some cleanup tasks
+B<pler> checks that the environment is sound, runs some cleanup tasks
 if needed, makes sure you are in the right directory, and then hands off
 to the perl debugger as normal.
 
@@ -24,11 +25,11 @@ to the perl debugger as normal.
 use 5.005;
 use strict;
 use File::Spec::Functions ':ALL';
-use ADAMK::Debug;
+use Devel::Pler;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 }
 
 
@@ -69,15 +70,15 @@ handoff( join ' ', $perl, @flags, '-d', $script );
 
 - Allow execution from the base or F<t> directory.
 
-- Automatically rerun F<make>.
+- Automatically run the F<Makefile.PL> if it needs to be
 
-- Automatically run the F<Makefile.PL>
+- Write a heuristic to determine if it needs to be
 
 =head1 SUPPORT
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ADAMK-Debug>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Devel-Pler>
 
 For other issues, or commercial enhancement and support, contact the author
 
