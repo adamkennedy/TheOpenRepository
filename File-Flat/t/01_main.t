@@ -17,7 +17,7 @@ BEGIN {
 	$root = ($> == 0) ? 1 : 0;
 }
 
-use Test::More tests => 266;
+use Test::More tests => 269;
 
 # Set up any needed globals
 use vars qw{$loaded $ci $bad};
@@ -136,6 +136,10 @@ use_ok( 'File::Flat' );
 
 
 
+# Check for the three files that should already exist
+ok( -f $f{ff_text},    'ff_text exists'    );
+ok( -f $f{ff_binary},  'ff_binary exists'  );
+ok( -f $f{ff_content}, 'ff_content exists' );
 
 # Create the files for the file test section
 touch_test_file('0000') or die "Failed to create file we can do anything to";
