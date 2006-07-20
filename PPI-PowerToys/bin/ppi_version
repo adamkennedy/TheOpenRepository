@@ -70,7 +70,7 @@ sub changefile {
 		} );
 	return '' unless $elements;
 	if ( @$elements > 1 ) {
-		die "$file contains more than one $VERSION = '$from';";
+		die "$file contains more than one \$VERSION = '$from';";
 	}
 	my $element = $elements->[0];
 	$element->{content} = $to;
