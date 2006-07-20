@@ -1,5 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.09 Thu 20 Jul 2006
+	- Left an ADAMK::Debug reference in 01_compile.t
+
 0.08 Wed 19 Jul 2006
 	- Bug fix to remove remaining ADAMK::Debug references
 	- Fix some other grammar/spelling errors.

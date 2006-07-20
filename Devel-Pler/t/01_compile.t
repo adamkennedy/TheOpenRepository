@@ -26,7 +26,7 @@ use Test::Script;
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the script compile
-use_ok( 'ADAMK::Debug' );
+use_ok( 'Devel::Pler' );
 script_compiles_ok( 'bin/apld' );
 
 exit(0);
