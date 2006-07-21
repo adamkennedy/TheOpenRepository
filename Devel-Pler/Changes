@@ -1,5 +1,8 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.10 Fri 21 Jul 2006
+	- Added support for refering to scripts by a unique substring
+
 0.09 Thu 20 Jul 2006
 	- Left an ADAMK::Debug reference in 01_compile.t
 

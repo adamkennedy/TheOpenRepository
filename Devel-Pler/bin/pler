@@ -25,11 +25,15 @@ to the perl debugger as normal.
 use 5.005;
 use strict;
 use File::Spec::Functions ':ALL';
+use File::Find::Rule      ();
 use Devel::Pler;
+
+# Convenience constants
+use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 }
 
 
@@ -43,6 +47,27 @@ my $perl   = $^X;
 my $script = shift @ARGV;
 unless ( defined $script ) {
 	error "Did not provide a test script name";
+}
+unless ( $script =~ /\.t$/ ) {
+	# Only works in the dist-root for now
+	unless ( in_distroot ) {
+		error "Implied test names can only be used in the dist root";
+	}
+
+	# Get the list of possible tests
+	my @possible = FFR->file->name('*.t')->in( 't' );
+
+	# If a number, look for a numeric match
+	my $pattern = quotemeta $script;
+	my @matches = grep { /$pattern/ } @possible;
+	unless ( @matches ) {
+		error "No tests match '$script'";
+	}
+	if ( @matches > 1 ) {
+		print map { "  $_\n" } @matches;
+		error "More than one possible test";
+	}
+	$script = $matches[0];
 }
 unless ( -f $script ) {
 	error "Test script '$script' does not exist";
