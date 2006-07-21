@@ -33,7 +33,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 
@@ -64,8 +64,10 @@ unless ( $script =~ /\.t$/ ) {
 		error "No tests match '$script'";
 	}
 	if ( @matches > 1 ) {
-		print map { "  $_\n" } @matches;
-		error "More than one possible test";
+		error(
+			"More than one possible test",
+			map { "  $_" } sort @matches,
+		);
 	}
 	$script = $matches[0];
 }
