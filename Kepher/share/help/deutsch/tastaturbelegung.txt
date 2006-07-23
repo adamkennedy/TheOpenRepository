@@ -1,0 +1,111 @@
+
+  ------------------------
+  | PCE Tastaturbelegung |
+  ------------------------
+
+Nacht Tasten geordnet :
+
+     Entf                  lösche Markierung
+     Pos1                  springe an Zeilenanfang, 1. Buchstaben (2mal drücken)
+     BildHoch              blättere Seite nach oben
+     BildRunter            blättere Seite nach unten
+     F3                    suche nächsten Eintrag
+
+     Shift+F3              suche vorigen Eintrag
+     Shift+Back            delete to next tabstop
+
+     Strg+Tab              rücke um ein Tab ein
+     Strg+Leertaste        rücke um ein Leerzeichen ein
+     Strg+Rück             springe zu letztbenutzter Datei
+     Strg+Links            springe ein Wort links
+     Strg+Rechts           springe ein Wort rechts
+     Strg+Hoch             bewege Text eine Zeile hoch
+     Strg+Runter           bewege Text eine Zeile runter
+     Strg+Entf             entferne alle Leerzeichen rechts
+     Strg+Pos1             gehe an textanfang
+     Strg+Ende             gehe an textende
+     Strg+BildHoch         gehe zu vorigem offenem Dokument
+     Strg+BildRunter       gehe zu nächstem offenem Dokument
+     Strg++                Text vergrössern (zoomen)
+     Strg+-                Text verkleinern
+     Strg+A                markiere ganzen Text des Dokumentes
+     Strg+B                kommentiere Markierung (stream comment)
+     Strg+C                kopiere Markierung
+     Strg+F                Suchzeile
+     Strg+G                Gehe zu Zeile
+     Strg+N                neues Dokument
+     Strg+O                öffne Datei
+     Strg+P                kommentiere Zeilen (block comment wie in perl, ruby, python, php)
+     Strg+Q                schliesse Datei
+     Strg+R                ersetzen
+     Strg+S                speichere Datei
+     Strg+T                schalte Fenster im Vordergrund Modus an und aus
+     Strg+V                einfügen (Inhalt der Zwischenablage)
+     Strg+W                tausche Markierung mit Zwischenablage
+     Strg+X                Markierung ausschneiden
+     Strg+Z                rückgängig
+     Strg+1..9             Gehe zu Lesezeichen 1..9
+
+     Strg+Shift+Leertaste  Markierung ein Leerzeichen ausrücken
+     Strg+Shift+Tab        Markierung einen Tab ausrücken
+     Strg+Shift+Entf       lösche Zeile
+     Strg+Shift+B          Markierung kommentieren (/* c, c++, c#, java */)
+     Strg+Shift+C          kopiere Zeile
+     Strg+Shift+D          Zeile doppeln (füge Kopie unterhalb ein)
+     Strg+Shift+F          Suchdialog
+     Strg+Shift+G          Gehe zur letzten Bearbeitung
+     Strg+Shift+L          lösche Zeile links vom Textcursor(caret)
+     Strg+Shift+O          lade Datei erneut
+     Strg+Shift+P          Zeilen markieren ( #perl, ruby, php, python)
+     Strg+Shift+Q          alle anderen Dokumente schliessen
+     Strg+Shift+R          lösche Zeile rechts vom Textcursor(caret)
+     Strg+Shift+S          speichere Datei unter
+     Strg+Shift+W          akuelle Zeile mit Zwischenablage austauschen
+     Strg+Shift+X          Zeile ausschneiden
+     Strg+Shift+Z          wiederhohlen
+     Strg+Shift+1..9       Lesezeichen 1..9 umschalten
+
+     Alt+Links             springe zu voriger Klammer
+     Alt+Rechts            springe zu nächster Klammer
+     Alt+Hoch              springe zu voriger Klammer gleicher Art
+     Alt+Runter            springe zu nächster Klammer gleicher Art
+     Alt+BildHoch          springe zum anfang dieses Blocks oder Absatzes
+     Alt+BildRunter        springe zum nächsten Block oder Absatz
+     Alt+Q                 beende programm
+     Alt+Z                 mehrere Schritte rückgängig
+     
+     Alt+Shift+I           zeige Infobox
+     Alt+Shift+K           zeige Tastaturbelegung
+     Alt+Shift+O           lade Datei neu
+     Alt+Shift+R           alles ersetzen
+     Alt+Shift+S           Kopie der Datei speichern unter ...
+     Alt+Shift+Z           mehrere Schritte wiederhohlen
+
+     Strg+Alt+Oben         bewege Markierung oder Zeile zeilenweise hoch
+     Strg+Alt+Unten        bewege Markierung oder Zeile zeilenweise runter
+     Strg+Alt+BildHoch     bewege Markierung oder Zeile seitenweise hoch
+     Strg+Alt+BildRunter   bewege Markierung oder Zeile seitenweise runter
+     Strg+Alt+Links        bewege Markierung zeichenweise links
+     Strg+Alt+Rechts       bewege Markierung zeichenweise rechts
+     Strg+Alt+O            lese alle Dateien erneut ein
+     Strg+Alt+Q            schliesse alle Dateien
+     Strg+Alt+S            speichere alle Dateien
+     Strg+Alt+Z            rückgängig bis zum Anfang
+
+     Strg+Alt+Shift+Z      wiederhohlen bis zum jüngsten Stand
+
+Inhaltlich geordnet:
+
+   Datei Operationen
+
+   Text Navigation
+
+   Text Bearbeiten
+
+   Such Funktionen
+
+   Dialoge
+     Strg+Shift+F          Suchdialog
+     Strg+R                Ersetzendialog
+     Strg+G                Gehe zu Zeile
+     Alt+Shift+I           Infobox

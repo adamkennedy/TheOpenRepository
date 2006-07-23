@@ -1,0 +1,69 @@
+editpanel_contextmenu:
+ - item edit-records-undo
+ - item edit-records-redo
+ -
+ - item edit-paste
+ - item select-document
+ -
+ - item file-save
+ - item file-open
+ -
+ - item file-close
+ -
+ - item find-dialog
+ - item goto-last-edit
+
+textselection_contextmenu:
+ - item edit-copy
+ - item edit-paste
+ - item edit-replace
+ - item edit-cut
+ - item edit-delete
+ -
+ - item find-selection
+ -
+ - item edit-selection-convert-uppercase
+ - item edit-selection-convert-lowercase
+
+searchbar_contextmenu:
+ - checkitem find-attribute-incremental-switch
+ - checkitem find-attribute-autowrap-switch
+ -
+ - checkitem find-attribute-regex-switch
+ - checkitem find-attribute-match-whole-word-switch
+ - checkitem find-attribute-match-word-begin-switch
+ - checkitem find-attribute-match-case-switch
+
+document_syntaxstyle_contextmenu:
+ - checkitem document-syntaxmode-c
+ - checkitem document-syntaxmode-conf
+ - checkitem document-syntaxmode-css
+ - checkitem document-syntaxmode-html
+ - checkitem document-syntaxmode-js
+ - checkitem document-syntaxmode-perl
+ - checkitem document-syntaxmode-xml
+ - checkitem document-syntaxmode-yaml
+ -
+ - item document-syntaxmode-auto
+ - checkitem document-syntaxmode-none
+
+document_whitespace_contextmenu:
+ - item edit-document-format-del-trailing-whitespace
+ -
+ - item edit-document-convert-indent2spaces
+ - item edit-document-convert-indent2tabs
+ -
+ - item edit-document-convert-tabs2spaces
+ - item edit-document-convert-spaces2tabs
+ -
+ - checkitem document-tabs-soft
+ - checkitem document-tabs-hard
+
+document_lineendchar_contextmenu:
+ - checkitem view-editpanel-EOL
+ -
+ - item document-EOL-auto
+ -
+ - checkitem document-EOL-lf
+ - checkitem document-EOL-cr
+ - checkitem document-EOL-cr+lf

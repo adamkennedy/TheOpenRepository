@@ -1,0 +1,100 @@
+package PCE::App;
+our $VERSION = '0.04';
+
+use strict;
+use Wx qw(
+	wxDefaultPosition wxDefaultSize   wxGROW wxTOP wxBOTTOM
+	wxVERTICAL 
+	wxSTAY_ON_TOP wxSIMPLE_BORDER wxFRAME_NO_TASKBAR  
+	wxSPLASH_CENTRE_ON_SCREEN wxSPLASH_TIMEOUT 
+	wxBITMAP_TYPE_JPEG wxBITMAP_TYPE_PNG wxBITMAP_TYPE_ICO wxBITMAP_TYPE_XPM
+	wxTheClipboard
+);
+
+sub get_ref{ $PCE::app{'ref'} };
+sub set_ref{ $PCE::app{'ref'} = shift };
+
+# main layout, main frame
+sub splashscreen {
+	Wx::InitAllImageHandlers();
+	Wx::SplashScreen->new(
+		Wx::Bitmap->new(
+			$PCE::internal{path}{config}.$PCE::internal{file}{img}{splashscreen},
+			wxBITMAP_TYPE_JPEG
+		),
+		wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 150, undef, -1,
+		wxDefaultPosition, wxDefaultSize,
+		wxSIMPLE_BORDER | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP
+	);
+}
+
+sub assemble_layout {
+	my $win = PCE::App::Window::_get();
+
+	my $main_sizer = $win->{'sizer'} = Wx::BoxSizer->new(wxVERTICAL);
+	$main_sizer->Add( PCE::App::TabBar::_get_sizer(), 0, wxTOP|wxGROW, 0 );
+	#$main_sizer->AddSpace(8, 0) if ($^O eq 'linux'); #dirty lin hack remove asap
+	$main_sizer->Add( PCE::App::EditPanel::_get(),    1, wxTOP|wxGROW, 0 );
+	if (PCE::App::SearchBar::_get_config()->{'position'} eq 'top') {
+		$main_sizer->Prepend(PCE::App::SearchBar::_get(), 0, wxTOP|wxGROW, 2)
+	} else {
+		$main_sizer->Add(PCE::App::SearchBar::_get(), 0, wxBOTTOM|wxGROW, 3)
+	}
+	$win->SetSizer($main_sizer);
+	$win->SetAutoLayout(1);
+	$win->Layout;
+	$win->SetBackgroundColour(PCE::App::TabBar::_get_tabs()->GetBackgroundColour);
+	PCE::App::TabBar::show();
+	$win;
+}
+
+sub start {
+	use Benchmark qw(:all);
+	my $t0 = new Benchmark;
+	my $app = shift;
+	set_ref($app);
+	splashscreen();             # 2'nd splashscreen can close when app is ready
+	Wx::InitAllImageHandlers();
+	my $frame = PCE::App::Window::create();
+	my $ep = PCE::App::EditPanel::create();
+	$PCE::internal{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
+	$PCE::internal{'document'}{'buffer'} = 1;
+	PCE::Config::Global::load_autosaved();
+	if (PCE::Config::Global::evaluate()) {
+		$frame->Show(1);
+		print "pce startet in:",
+			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
+		my $t2 = new Benchmark;
+		PCE::File::Session::restore();
+		PCE::Document::Internal::add($_) for @ARGV;
+		print "pce dateien in:",
+			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n";
+		1;                      # everything is good
+	} else {
+		$app->ExitMainLoop(1);
+	}
+}
+
+sub exit { 
+	my $t0 = new Benchmark;
+	return if PCE::Dialog::save_on_exit() eq 'cancel';
+	PCE::Config::Global::refresh();
+	PCE::File::Session::store();
+	PCE::File::Session::delete();
+	PCE::Config::Global::save_autosaved();
+	if ($PCE::config{app}{interface_cache}{use}){
+		PCE::App::CommandList::save_cache() ;
+	}
+	PCE::Config::set_xp_style(); #
+	wxTheClipboard->Flush;       # set copied text free to the global Clipboard
+	PCE::App::Window::destroy(); # close window
+	print "pce shut down in:",
+		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
+}
+
+sub raw_exit { Wx::Window::Destroy(shift) }
+
+
+#sub new_instance { system("pce.exe") }
+
+1;

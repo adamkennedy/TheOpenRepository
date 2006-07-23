@@ -1,0 +1,32 @@
+
+          -----------
+         | Wilkommen |
+          -----------
+
+
+Alle beteiligten Entwickler sind begeistert das Du diesen Editor benutzt.
+Damit er auch auch dein Lieblingseditor werden kann, mach reichlich
+Gebrauch von unserer Internetseite: 
+
+                  http://proton-ce.sourceforge.net
+
+Wir sind natürlich noch lange nicht am Ziel, eher noch ziemlich am Anfang
+also freu dich das du bei der Enstehung von was schönem dabei bist. Vorschläge
+und Kritik sind immer erwünscht.
+
+
+
+
+                                                        Danke
+
+
+
+
+
+
+
+
+
+
+
+P.S. Dieser Text ist schreibgeschützt, was vom Entwickler als Feature angesehen wird.

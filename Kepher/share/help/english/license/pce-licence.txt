@@ -1,0 +1,15 @@
+PCE is licensed under GPL. 
+see under (help/gpl.txt or http://www.fsf.org/licenses/gpl.txt)
+
+the icons in /config/ico/jenne are licensed under lgpl
+
+the doku is licensed under GFDL
+
+
+
+Perl is licensed under the GPL or artistic license (artsitc.txt)
+
+wxWindows is licensed under the wxWindows license (wx-licence.txt)
+wich is a derivat of the LGPL (lgpl.txt or http://www.fsf.org/licenses/lgpl.txt)
+
+Scintilla ist licensed under Neils license (scintilla.txt)

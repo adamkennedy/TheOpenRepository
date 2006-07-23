@@ -1,0 +1,97 @@
+
+    -----------------
+   | PCE Version 0.3 |
+    -----------------
+
+
+1. Preliminary note
+2. New in this version
+3. Known bugs and issues
+4. Hints
+
+1. Preliminary note
+
+ - This release brings file sessions a better search dialog, contexmenus in the 
+  statusbar and some fixes.
+
+ - Last stable Version was 0.2, and next mighty be 0.4.
+
+ - 0.3 never was planned as stable, we wanted brind 0.3 as next stable but
+   we think that would last tool long and the current release is at least as stable
+   as 0.2.
+
+ - Some people are afraid of this low figures, and think that v0.3 means very 
+   early, crappy or unpolished software. This is far from truth, 
+   the version number only says something about how far we're from our main 
+   goal (1.0) wich is a very high, and reaches up to levels where jedit and 
+   kommodo lives.
+
+
+2. New in this version
+
+ - Sessions
+    The names and properties of all currently opened files (called session),
+    can now be saved in a restoreable session file. (Menu: File > Session)
+    The editor also understands the SciTE session file format, which holds only
+    filenames and cursorposition.
+
+ - Coding support
+   _Autoindent: New lines are automaticaly indented like the previous line.
+   _Bracelight: Belonging brackets are highlighted in chosen color if caret 
+    comes near to them.
+   _Badlight: Brackets without associated counterpart are highlighted in a 
+    warning color.
+   _Braceindent: If you press enter after an opening brace, the next new line is
+    indented and the closing brace appears in the next line unindented.
+   _Bracededent: If you press enter after an closing brace, the next new line is
+    dedented and duplicated closing braces, created by braceindent will be 
+    deleted.
+   _Linenumbermargin has always enough width.
+   
+ - Search and replace dialog
+    Find in files and selection is now possible. Also the searchpad in the dialog
+    can work in all opened files. The input fields for search and replace
+    remember now there history.
+
+ - Tabbar
+   _Unsaved files have in the tab a "*" after the name and writeprotected a "#". 
+   _Middle click can close the file (only current file). 
+   _Left click on the current tab switches back to the last used file, the keys:
+    Strg+Enter does the same and the menu item in "Document > Navigate".
+   _Files can be dragged from the explorer and other programs and dropped into
+    the tabbar to open them instantly.
+
+ - Statusbar
+   _The statusbar was rearranged to give messages more space and to display
+    caret position under the linenumbers which makes a little more sense.
+   _All file properties which are displayed via statusbar can now be changed here
+    with a mouse click. Left and right mouse clicks may perform different tasks,
+    when it makes sense.
+   _Left mouce clicks on the message field (the rightmost of statusbar) calls 
+    informations about the current file like size and time of last change.
+
+ - Close
+    All not saved files will be listed in a dialog before closing, so you can 
+    select which to save, save all, none or cancel. If you change settings, 
+    the editor saves or not without a question.
+
+
+3. Known bugs and issues
+
+ - Menu
+   The menu has no checkboxes and disabled functions are not shaded.
+   This features will be added in a 0.3.5 version when we kicked out Wx::XRC.
+
+ - Drag 'n Drop
+   The DND behaviour depends on the program which the text comes from or is
+   dragged in. If you want to prevent that the text you are dragging leaves the
+   editor, you can press Ctrl while you are moving it.
+
+
+4. Hints
+
+   To understand the config file, it is helpfull to read the 
+   "pce/config/DND/default.conf" cause this file is commented and explains the
+   settings.
+
+   Try selection move in the edit menu.

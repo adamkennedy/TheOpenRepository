@@ -1,0 +1,109 @@
+
+  ------------------------------
+  | PCE List Keyboard Bindings |
+  ------------------------------
+
+Key Order :
+
+     Del                   delete selection
+     Pos1                  jump to line begin or first wordcharacter(push twice)
+     F3                    find next
+
+     Shift+F3              find previous
+     Shift+Back            tabweise einrücken
+
+     Ctrl+Tab              indent selection a tab
+     Ctrl+Space            indent selection a space
+     Strg+Back             jump to last selected file
+     Ctrl+Left             jump one word left
+     Ctrl+Right            jump one word right
+     Ctrl+Up               scroll text 1 line up
+     Ctrl+Down             scroll text 1 line down
+     Ctrl+Del              delete all spaces on left
+     Ctrl+Home             goto text begin
+     Ctrl+End              goto text end
+     Ctrl+PageUp           select previous open document
+     Ctrl+PageDown         select next open document
+     Ctrl+ +               zoom in
+     Ctrl+ -               zoom out
+     Ctrl+A                select all text of the document
+     Ctrl+B                stream comment (/* c, c++, c#, java */)
+     Ctrl+C                copy selection
+     Ctrl+F                searchbar
+     Ctrl+G                goto line
+     Ctrl+N                new file
+     Ctrl+O                open file
+     Ctrl+P                block comment (# perl, ruby, python, php)
+     Ctrl+Q                close file
+     Ctrl+R                replace dialog
+     Ctrl+S                save file
+     Ctrl+T                switch stay on tope mode
+     Ctrl+V                insert from clipboard
+     Ctrl+W                replace (clipboard & selection)
+     Ctrl+X                cut selection
+     Ctrl+Z                undo
+     Ctrl+1..9             go to bookmark 1..9
+
+     Ctrl+Shift+Space      dedent selection a space
+     Ctrl+Shift+Tab        dedent selection a tab
+     Ctrl+Shift+Del        delete line
+     Ctrl+Shift+B          stream uncomment
+     Ctrl+Shift+C          copy line
+     Ctrl+Shift+D          double line
+     Ctrl+Shift+F          search dialog
+     Ctrl+Shift+G          goto last edit
+     Ctrl+Shift+L          delete line left from cursor
+     Ctrl+Shift+O          reopen file
+     Ctrl+Shift+P          block uncomment (perl, php, python)
+     Ctrl+Shift+Q          close all other files
+     Ctrl+Shift+R          delete line right from cursor
+     Ctrl+Shift+S          file save as
+     Ctrl+Shift+W          replace current line with clipboard
+     Ctrl+Shift+X          cut line
+     Ctrl+Shift+Z          redo
+     Ctrl+Shift+1..9       toggle bookmark 1..9
+
+     Alt+Left              jump to previous brace
+     Alt+Right             jump to next brace
+     Alt+Up                jump to previous brace of same kind
+     Alt+Down              jump to next brace of same kind
+     Alt+PgUp              jumps to the begin of block or paragraph
+     Alt+PgDown            jumps to the next block or paragraph
+     Alt+Q                 quit program
+     Alt+Z                 fast undo
+
+     Alt+Shift+I           show Info dialog
+     Alt+Shift+K           show keyboard map
+     Alt+Shift+O           reopen file
+     Alt+Shift+R           replace all
+     Alt+Shift+S           save file copy under ...
+     Alt+Shift+Z           fast redo
+
+     Ctrl+Alt+Up           move selection up (or current row nothing selected)
+     Ctrl+Alt+Down         move selection or line down
+     Ctrl+Alt+PgUp         move selection or line page up
+     Ctrl+Alt+PgDown       move selection or line page down
+     Ctrl+Alt+Left         move selection left
+     Ctrl+Alt+Right        move selection right
+     Ctrl+Alt+O            reload all open files
+     Ctrl+Alt+Q            close all open files
+     Ctrl+Alt+S            save all open files
+     Ctrl+Alt+Z            undo history begin
+
+     Ctrl+Alt+Shift+Z      undo history end
+
+Thematical Order
+
+   File Operation
+
+   Text Navigation
+
+   Edit Operation
+
+   Search Operation
+   
+   Dialogs
+     Ctrl+Shift+F          search dialog
+     Ctrl+R                replace dialog
+     Ctrl+G                goto line
+     Alt+Shift+I           show Info dialog

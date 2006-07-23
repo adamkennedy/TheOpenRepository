@@ -1,0 +1,42 @@
+main_toolbar:
+ - item file-new
+ - item file-open
+ - item file-close#
+ - item file-save
+ - item file-save-all
+ -
+ - item edit-records-undo
+ - item edit-records-redo
+ -
+ - item edit-cut
+ - item edit-copy
+ - item edit-paste
+ - item edit-replace
+ - item edit-delete
+ -
+ - checkitem view-editpanel-line-wrap
+ - checkitem view-window-stay-on-top
+ -
+ - item view-dialog-find
+ - item view-dialog-keymap#
+ - item view-dialog-config#
+
+searchbar:
+ - item searchbar-switch-visibility
+ - combobox find 140
+ - item find-mark-all#
+ - item find-prev
+ - item find-next
+ -
+ - item goto-last-edit
+ -
+ - item goto-line#
+ - item dialog-find
+
+statusbar:
+ - textpanel cursor_pos
+ - textpanel percent_pos_selection
+ - textpanel syntax_mode
+ - textpanel tab_mode
+ - textpanel eol_mode
+ - textpanel info

@@ -1,0 +1,30 @@
+
+
+PCE by (C) Herbert Breunung and other, uses all the things listed below and is
+    licensed under GPL. (help/license/gpl.txt or www.fsf.org/licenses/gpl.txt)
+    Icons (in /config/ico/jenne) are made by Jens Neuwerk (www.stockicons.org)
+    starter-exe under Windows by Robin Haberkorn (Shai-Hulud)
+
+Perl (in /pre) by (C) Larry Wall and many others is licensed under the artistic 
+      license (help/license/artistic.txt or www.perl.com/language/misc/Artistic.html)
+      and GPL (see above)
+
+WxPerl (in /pre/wx) by Mattia Barbon wrappes WxWidgets for Perl 
+        and is licensed under the same terms as Perl itself 
+
+WxWidgets by Julian Smart, Robert Roebling, Vadim Zeitlin and others is licensed
+          under the wxWidgets license (help/license/wx.txt) wich is based upon
+          LGPL (help/license/lgpl.txt or www.fsf.org/licenses/lgpl.txt)
+          Portions (c) 1996 Artificial Intelligence Applications Institute
+
+Scintilla by (c) Neil Hodgson, see Neils license under (help/license/sci.txt)
+          it is included in WxWidgets as an contribution called wxSTC
+
+ActivePerl (this Distribution of Perl) by Active State is licensed under the 
+            ActiveState Community License (help/license/asl.txt or
+            www.activestate.com/Products/ActivePerl/license_agreement.plex)
+Config::General (in /pre/cpan/config) by (c) 2000-2003 Thomas Linden 
+                 This library is free software; you can redistribute it and/or 
+                 modify it under the same terms as Perl itself.
+
+YAML            Brian Ingerson aka Ingy döt Net, same license as Perl

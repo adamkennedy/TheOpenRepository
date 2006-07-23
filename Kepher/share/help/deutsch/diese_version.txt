@@ -1,0 +1,106 @@
+
+    -----------------
+   | PCE Version 0.3 |
+    -----------------
+
+
+1. Vorbemerkungen
+2. NEU in dieser Version
+3. bekannte Fehler und Probleme
+4. Tips
+
+1. Vorbemerkungen:
+
+ - Wichtigste Neuigkeit der Version 0.3 sind Sessions, besserer Suchdialog,
+   Kontexmenüs und Einrückungshilfen.
+
+ - Die letzte stabile Version war 0.2, die nächste wird wohl 0.4 werden.
+
+ - Geplant war nach 0.2 als nächste stabile Version 0.3 zu bringen aber wir
+   glauben die wartezeit wäre zu lang und diese verion ist mindestens so gut
+   getestet wie 0.2.
+
+ - Manche lassen sich von der niedrigen Versionsnummer abschrecken, und glauben
+   Version 0.3 bedeutet unausgereift. Das stimmt aber nicht, sondern es zeigt
+   an wie weit wir noch von unserem hochgesteckten Ziel (Version 1.0)
+   enfernt sind. PCE soll ähnlich wie Jedit oder Kommodo werden.
+   Dabei versuchen wir gerade über viele kleine ausgefeilte Details einen
+   Unterschied zu machen.
+
+
+2. NEU in dieser Version
+
+ - Sessions
+    Die Gruppe der aktuell geöffneten Dateien kann in Sessionfiles gespeichert
+    und wieder geladen oder hinzugefügt werden, siehe dazu Menü "Datei > Gruppe".
+    Es können auch sessions des SciTE-Editors importiert und exportiert werden.
+
+ - Programmierhilfen
+   _Autoindent: Automatische Einrückung auf gleiche höhe zu letzten Zeile.
+   _Bracelight: Zugehörige Klammern werden in beliebiger Farbe beim berühren 
+    mit dem Caret hervorgehoben. 
+   _Badlight: Klammern mit fehlendem Gegenstück werden in anderer Farbe 
+    hervorgehoben.
+   _Braceindent(Klammereinrückung): Drückt man nach einer öffnenden,
+    geschweiften Klammer Enter, ist die neue Zeile eingerückt und in der 
+    nächsten zeile wieder ausgerückt die schliessende Klammer.
+   _Bracededent: Drückt man nach einer schliessenden, geschweiften Klammer Enter,
+    ist die neue Zeile ausgerückt, mögliche durch Bracededent erzeugte doppelten 
+    Klammern werden gelöscht.
+   _Zeilennummerierung: hat automatisch immer genug Platz und verbreitert sich 
+    bei bedarf.
+ 
+ - Suchdialog
+   _suchen und erstzen in allen offenen Dateien
+   _suchen und erstzen im markiertem Bereich
+   _Alle Funktionen sind auf den jewailig gewählten Bereich anwendbar. 
+   _Beliebig viele(einstellbar) Such- und Ersetzbegriffe werden gemerkt
+    und können mit Richtungstasten oder per Mouse abgerufen werden.
+
+ - Tabbar
+   _Ungespeicherte Dateien haben nun einen Stern(*) im Reiter, schreibgeschützte
+    eine Raute(#).
+   _Dateien können jetzt mit der mittleren Mousetaste auf den Reiter
+    geschlossen werden (nur aktuelle Datei).
+   _Ein Links-klick auf den aktuellen Reiter oder neben die Reiter holt die zuletzt
+    benutzte Datei hervor (switch back). Dieses Verhalten ist auch an die
+    Tastetnkombination Strg+Enter gekoppelt und findet sich im Menü:
+    "Dokument > Wähle".
+   _Um Dateien zu öffnen kann man sie aus dem Filemanager oder anderen Programmen
+    auf die Reiterleiste ziehen(Drag'nDrop).
+
+ - Statuszeile
+    _Die Statuszeile wurde umgestellt um den Schnellhilfetexten und Meldungen
+     mehr Platz zu lassen und auch die Anzeige der Caretposition in Höhe der
+     Zeilennummern zu lassen.
+    _Die dort angezeigten Eigenschaften der aktuellen Datei lassen sich nun mit
+     links und rechts-klick auf das feld ändern. Links-Klicks auf das Info-feld
+     (ganz rechts) zeigt Informationen über die aktuelle Datei wie Alter und Länge.
+    _Neue Azeige über Anzahl der markierten Zeichen die wenn nichts markiert ist
+     die prozentuale Position des Carets angibt.
+
+ - Beenden
+    Alle nicht gespeicherten Datein werden beim beenden aufgelistet und können
+    einzeln oder zusammen zum speichern gewählt werden. Wie alle Funktionen kann
+    dies auch abgestellt werden oder das Speichern der Dateien beim beenden auch
+    automatisch geschehen.
+
+3. bekannte Fehler und Probleme
+
+ - Menü
+   Enthält keine Häkchen und deaktivierte Funktionen werden nicht ausgeblendet.
+   Diese Features kommen Wx::XRC bedingt erst in einer 0.2.5 Version.
+
+ - Drag 'n Drop
+   Das DND Verhalten hängt auch immer an dem Programm von dem der Text stammt,
+   oder in das der Text reingezogen wird. Will man unbedingt verhindern, das der
+   verschobene Text den Editor verlässt, drücke man STRG während des Verschiebens.
+
+
+4. Tips
+
+   Um die Haupteinstellungsdatei besser zu verstehen hilft es die Datei mit den
+   Voreinstellungen: pce/config/DND/default.conf zu lesen, denn sie ist
+   auskommentiert, wenn auch bloß englisch.
+
+   Der markierte Text kann durch halten der Strg und Alt Tasten bewegt werden.
