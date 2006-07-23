@@ -1,4 +1,4 @@
-package PCE;     # KPR
+package Kepher;
 
 # See end of file for docs, -NI = not implemented, -DEP = depreciated
 
@@ -30,51 +30,51 @@ use Wx::DND;                    # Drag'n Drop & Clipboard support
 #use Class::Inspector ();       # Class checking
 
 # used internal modules, parts of pce
-use PCE::App;                   # App start&exit, namespace 4 wx related things
-use PCE::App::ContextMenu;      # contextmenu manager
-use PCE::App::EditPanel;        #
-use PCE::App::EditPanel::Margin;#
-use PCE::App::EventList;        # 
-use PCE::App::Events;           # -DEP mouse, keyboard events, eventtable
-use PCE::App::MainToolBar;      # 
-use PCE::App::Menu;             # base menu builder
-use PCE::App::MenuBar;          # main menu
-use PCE::App::ToolBar;          # base toolbar builder
-use PCE::App::SearchBar;        # Toolbar for searching and navigation
-use PCE::App::StatusBar;        #
-use PCE::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
-use PCE::App::Window;           # API 2 Wx::Frame and more
-use PCE::App::STC;              # -DEP scintilla controls
-use PCE::App::CommandList;      #
-use PCE::Config;                # low level config manipulation
-use PCE::Config::File;          # API 2 ConfigParser Config::General
-use PCE::Config::Global;        # API 4 config, general content level
-use PCE::Config::Interface;     #
-use PCE::Dialog;                # API 2 dialogs, submodules are loaded runtime
-use PCE::Document;              # document menu funktions
-use PCE::Document::Change;      # calls for changing current doc
-use PCE::Document::Internal;    # doc handling helper methods
-use PCE::Document::SyntaxMode;  # doc handling helper methods
-use PCE::Edit;                  # basic edit menu funktions
-use PCE::Edit::Comment;         # comment functions
-use PCE::Edit::Convert;         # convert functions
-use PCE::Edit::Format;          # formating functions
-use PCE::Edit::Goto;            # editpanel textcursor navigation
-use PCE::Edit::Search;          # search menu functions
-use PCE::Edit::Select;          # text selection
-use PCE::Edit::Bookmark;        # 
-use PCE::File;                  # file menu funktions
-use PCE::File::IO;              # API 2 FS, read write files
-use PCE::File::Session;         # session handling
-use PCE::Show;                  # -DEP display content: files, boxes
+use KEPHER::App;                   # App start&exit, namespace 4 wx related things
+use KEPHER::App::ContextMenu;      # contextmenu manager
+use KEPHER::App::EditPanel;        #
+use KEPHER::App::EditPanel::Margin;#
+use KEPHER::App::EventList;        # 
+use KEPHER::App::Events;           # -DEP mouse, keyboard events, eventtable
+use KEPHER::App::MainToolBar;      # 
+use KEPHER::App::Menu;             # base menu builder
+use KEPHER::App::MenuBar;          # main menu
+use KEPHER::App::ToolBar;          # base toolbar builder
+use KEPHER::App::SearchBar;        # Toolbar for searching and navigation
+use KEPHER::App::StatusBar;        #
+use KEPHER::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
+use KEPHER::App::Window;           # API 2 Wx::Frame and more
+use KEPHER::App::STC;              # -DEP scintilla controls
+use KEPHER::App::CommandList;      #
+use KEPHER::Config;                # low level config manipulation
+use KEPHER::Config::File;          # API 2 ConfigParser Config::General
+use KEPHER::Config::Global;        # API 4 config, general content level
+use KEPHER::Config::Interface;     #
+use KEPHER::Dialog;                # API 2 dialogs, submodules are loaded runtime
+use KEPHER::Document;              # document menu funktions
+use KEPHER::Document::Change;      # calls for changing current doc
+use KEPHER::Document::Internal;    # doc handling helper methods
+use KEPHER::Document::SyntaxMode;  # doc handling helper methods
+use KEPHER::Edit;                  # basic edit menu funktions
+use KEPHER::Edit::Comment;         # comment functions
+use KEPHER::Edit::Convert;         # convert functions
+use KEPHER::Edit::Format;          # formating functions
+use KEPHER::Edit::Goto;            # editpanel textcursor navigation
+use KEPHER::Edit::Search;          # search menu functions
+use KEPHER::Edit::Select;          # text selection
+use KEPHER::Edit::Bookmark;        # 
+use KEPHER::File;                  # file menu funktions
+use KEPHER::File::IO;              # API 2 FS, read write files
+use KEPHER::File::Session;         # session handling
+use KEPHER::Show;                  # -DEP display content: files, boxes
 
 # internal modules / loaded when needed
-#require PCE::Config::Embedded; # build in emergency settings
-#require PCE::Dialog::Config;   # config dialog
-#require PCE::Dialog::Exit;     # select files to be saved while exit program
-#require PCE::Dialog::Info;     # info box
-#require PCE::Dialog::Keymap;   #
-#require PCE::Dialog::Search;   # find and replace dialog
+#require KEPHER::Config::Embedded; # build in emergency settings
+#require KEPHER::Dialog::Config;   # config dialog
+#require KEPHER::Dialog::Exit;     # select files to be saved while exit program
+#require KEPHER::Dialog::Info;     # info box
+#require KEPHER::Dialog::Keymap;   #
+#require KEPHER::Dialog::Search;   # find and replace dialog
 
 # global data
 our %app;           # ref to app parts and app data for GUI, Events, Parser
@@ -86,8 +86,8 @@ our %localisation;  # all localisation strings in your currently selected lang
 our %syntaxmode;    # -NI
 
 # Wx App Events 
-sub OnInit {&PCE::App::start}   # boot app: init core and load config files
-sub quit   {&PCE::App::exit }   # save files & settings as configured
+sub OnInit {&KEPHER::App::start}   # boot app: init core and load config files
+sub quit   {&KEPHER::App::exit }   # save files & settings as configured
 
 
 sub user_config {
@@ -108,13 +108,11 @@ __END__
 
 =head1 NAME
 
-PCE - The PCE Perl Editor, a pure perl cross-platform editor
+Kepher - A pure-Perl cross-platform CPAN-installable programmer's editor
 
 =head1 DESCRIPTION
 
-PCE is ...
-
-The PCE module itself serves as a class loader, configuration loader,
+The Kepher.pm module itself serves as a class loader, configuration loader,
 bootstrap and shutdown module, and provides some global variables.
 
 =head1 TO DO
@@ -129,7 +127,7 @@ bootstrap and shutdown module, and provides some global variables.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PCE>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Kepher>
 
 For other issues, contact the author.
 

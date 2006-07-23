@@ -1,10 +1,10 @@
-package PCE::App::STC;
+package KEPHER::App::STC;
 $VERSION = '0.18';
 
 use strict;
 use constant APPROOT => 'editpanel';
 use constant CFGROOT => 'editpanel';
-#use base qw(Wx::Panel);    #PCE::Dialog::msg_box(undef,$fr,"");
+#use base qw(Wx::Panel);    #KEPHER::Dialog::msg_box(undef,$fr,"");
 use Wx qw(wxDEFAULT wxNORMAL wxDefaultPosition wxDefaultSize
 	wxBOTTOM wxRED wxBLUE wxLIGHT_GREY wxBLACK wxLIGHT wxBOLD wxSLANT wxITALIC
 	wxSTC_EDGE_NONE wxSTC_EDGE_LINE wxSTC_WRAP_NONE wxSTC_WRAP_WORD
@@ -17,17 +17,17 @@ use Wx qw(wxDEFAULT wxNORMAL wxDefaultPosition wxDefaultSize
 #$ep->GetSelectionMode; #SetSTCFocus(focus)
 
 
-sub _get { PCE::App::EditPanel::_get() } # -DEP
+sub _get { KEPHER::App::EditPanel::_get() } # -DEP
 
-sub _get_config { $PCE::config{(CFGROOT)} }
+sub _get_config { $KEPHER::config{(CFGROOT)} }
 
 
 sub apply_settings {
 	my $ep       = _get();
-	$ep = PCE::App::EditPanel::_create() unless $ep;
-	my $conf     = $PCE::config{(CFGROOT)};
+	$ep = KEPHER::App::EditPanel::_create() unless $ep;
+	my $conf     = $KEPHER::config{(CFGROOT)};
 	my $indicator= $conf->{'indicator'};
-	$PCE::internal{'edit'}{'caret'}{'positions'} = ();
+	$KEPHER::internal{'edit'}{'caret'}{'positions'} = ();
 
 	# text visuals: font whitespaces EOL
 	load_font();
@@ -56,7 +56,7 @@ sub apply_settings {
 	load_view_caret_line();
 	load_view_indention_guide();
 
-	PCE::App::EditPanel::Margin::apply_settings();
+	KEPHER::App::EditPanel::Margin::apply_settings();
 
 	#folding
 	#$ep->SetEdgeColumn(100);
@@ -71,7 +71,7 @@ sub apply_settings {
 
 #$ep->StyleSetForeground (wxSTC_STYLE_CONTROLCHAR, Wx::Colour->new(0x55, 0x55, 0x55));
 #$ep->StyleSetBackground (wxSTC_STYLE_CONTROLCHAR, Wx::Colour->new(0xff, 0xff, 0xff));
-#$ep->SetScrollWidth($PCE::config{'editpanel'}{'scroll_width'}); #defaultbreite
+#$ep->SetScrollWidth($KEPHER::config{'editpanel'}{'scroll_width'}); #defaultbreite
 	$ep->SetScrollWidth( $ep->GetEndAtLastLine() );
 	$ep->SetCodePage(0);    #wxSTC_CP_UTF8 Wx::wxUNICODE()
 	$ep->SetWordChars( $conf->{'word_chars'} );
@@ -83,8 +83,8 @@ sub apply_settings {
 	#hilfe
 	#  $ep->CallTipShow(3,"testtooltip\n next line"); #tips
 	#  $ep->SetSelectionMode(wxSTC_SEL_RECTANGLE); #rect selection
-	PCE::Edit::eval_newline_sub();
-	PCE::App::EditPanel::apply_bracelight_settings();
+	KEPHER::Edit::eval_newline_sub();
+	KEPHER::App::EditPanel::apply_bracelight_settings();
 }
 
 
@@ -100,7 +100,7 @@ sub set_tab_size {
 # indicators
 sub set_LLI {
 	my $ep = &_get;
-	my $config = \%{$PCE::config{editpanel}{indicator}{right_margin}};
+	my $config = \%{$KEPHER::config{editpanel}{indicator}{right_margin}};
 
 	$ep->SetEdgeColour(
 		Wx::Colour->new( @{_scan2dec_color_array( $config->{color} )} ) );
@@ -109,86 +109,86 @@ sub set_LLI {
 }
 sub load_LLI {
 	_get->SetEdgeMode(
-		$PCE::config{(CFGROOT)}{'indicator'}{'right_margin'}{'style'} );
+		$KEPHER::config{(CFGROOT)}{'indicator'}{'right_margin'}{'style'} );
 }
 sub switch_view_LLI {
-	my $config = $PCE::config{(CFGROOT)}{'indicator'}{'right_margin'};
+	my $config = $KEPHER::config{(CFGROOT)}{'indicator'}{'right_margin'};
 	if ( &_get->GetEdgeMode == wxSTC_EDGE_NONE ) {
 			$config->{'style'} = wxSTC_EDGE_LINE
 	} else { $config->{'style'}= wxSTC_EDGE_NONE }
 	&load_LLI;
 }
 sub get_view_LLI { 
-	$PCE::config{(CFGROOT)}{indicator}{right_margin}{style} == wxSTC_EDGE_LINE
+	$KEPHER::config{(CFGROOT)}{indicator}{right_margin}{style} == wxSTC_EDGE_LINE
 }
 
 
 sub get_view_indention_guide { 
-	$PCE::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'}
+	$KEPHER::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'}
 }
 sub load_view_indention_guide {
 	_get->SetIndentationGuides(
-		$PCE::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'} );
+		$KEPHER::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'} );
 }
 sub switch_view_IG {
-	$PCE::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'} ^= 1;
+	$KEPHER::config{(CFGROOT)}{'indicator'}{'indent_guide'}{'visible'} ^= 1;
 	load_view_indention_guide();
 }
 
 
 sub get_view_caret_line { 
-	$PCE::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'}
+	$KEPHER::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'}
 }
 sub load_view_caret_line {
 	_get()->SetCaretLineVisible(
-		$PCE::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'} );
+		$KEPHER::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'} );
 }
 sub switch_view_caret_line {
-	$PCE::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'} ^= 1;
+	$KEPHER::config{(CFGROOT)}{'indicator'}{'caret_line'}{'visible'} ^= 1;
 	&load_view_caret_line;
 }
 
 
 sub load_view_autowrap {
-	_get()->SetWrapMode( $PCE::config{(CFGROOT)}{'line_wrap'} );
-	PCE::App::EventList::trigger('editpanel.autowrap');
+	_get()->SetWrapMode( $KEPHER::config{(CFGROOT)}{'line_wrap'} );
+	KEPHER::App::EventList::trigger('editpanel.autowrap');
 
 }
-sub get_view_autowrap { $PCE::config{(CFGROOT)}{'line_wrap'} == wxSTC_WRAP_WORD}
+sub get_view_autowrap { $KEPHER::config{(CFGROOT)}{'line_wrap'} == wxSTC_WRAP_WORD}
 sub switch_view_autowrap {
-	if ($PCE::config{(CFGROOT)}{'line_wrap'} == wxSTC_WRAP_WORD) {
-		$PCE::config{(CFGROOT)}{'line_wrap'} = wxSTC_WRAP_NONE
-	} else {$PCE::config{(CFGROOT)}{'line_wrap'} = wxSTC_WRAP_WORD}
+	if ($KEPHER::config{(CFGROOT)}{'line_wrap'} == wxSTC_WRAP_WORD) {
+		$KEPHER::config{(CFGROOT)}{'line_wrap'} = wxSTC_WRAP_NONE
+	} else {$KEPHER::config{(CFGROOT)}{'line_wrap'} = wxSTC_WRAP_WORD}
 	&load_view_autowrap;
 }
 
 sub load_view_EOL {
-	_get()->SetViewEOL($PCE::config{editpanel}{indicator}{end_of_line_marker} );
+	_get()->SetViewEOL($KEPHER::config{editpanel}{indicator}{end_of_line_marker} );
 }
 
 sub switch_view_EOL {
-	$PCE::config{editpanel}{indicator}{end_of_line_marker} ^= 1;
+	$KEPHER::config{editpanel}{indicator}{end_of_line_marker} ^= 1;
 	&load_view_EOL;
 }
 
 #
 # textstyle font
-sub get_view_whitespace {$PCE::config{editpanel}{indicator}{whitespace}{visible}}
+sub get_view_whitespace {$KEPHER::config{editpanel}{indicator}{whitespace}{visible}}
 sub load_view_whitespace {
 	_get()->SetViewWhiteSpace(
-			$PCE::config{editpanel}{indicator}{whitespace}{visible} );
+			$KEPHER::config{editpanel}{indicator}{whitespace}{visible} );
 }
 
 sub switch_view_whitespace {
-	$PCE::config{editpanel}{indicator}{whitespace}{visible} ^= 1;
+	$KEPHER::config{editpanel}{indicator}{whitespace}{visible} ^= 1;
 	load_view_whitespace();
-	return $PCE::config{editpanel}{indicator}{whitespace}{visible};
+	return $KEPHER::config{editpanel}{indicator}{whitespace}{visible};
 }
 
 sub load_font {
 	my $ep = _get();
 	my ( $fontweight, $fontstyle ) = ( wxNORMAL, wxNORMAL );
-	my $font = $PCE::config{(CFGROOT)}{'font'};
+	my $font = $KEPHER::config{(CFGROOT)}{'font'};
 	$fontweight = wxLIGHT  if $font->{'weight'} eq 'light';
 	$fontweight = wxBOLD   if $font->{'weight'} eq 'bold';
 	$fontstyle  = wxSLANT  if $font->{'style'}  eq 'slant';
@@ -200,14 +200,14 @@ sub load_font {
 
 sub change_font {
 	my ( $fontweight, $fontstyle ) = ( wxNORMAL, wxNORMAL );
-	my $font_config = $PCE::config{(CFGROOT)}{'font'};
+	my $font_config = $KEPHER::config{(CFGROOT)}{'font'};
 	$fontweight = wxLIGHT  if ( $$font_config{'weight'} eq 'light' );
 	$fontweight = wxBOLD   if ( $$font_config{'weight'} eq 'bold' );
 	$fontstyle  = wxSLANT  if ( $$font_config{'style'}  eq 'slant' );
 	$fontstyle  = wxITALIC if ( $$font_config{'style'}  eq 'italic' );
 	my $oldfont = Wx::Font->new( $$font_config{'size'}, wxDEFAULT, $fontstyle,
 		$fontweight, 0, $$font_config{'family'} );
-	my $newfont = PCE::Dialog::get_font( PCE::App::Window::_get(), $oldfont );
+	my $newfont = KEPHER::Dialog::get_font( KEPHER::App::Window::_get(), $oldfont );
 
 	if ( $newfont->Ok > 0 ) {
 		($fontweight, $fontstyle) = ($newfont->GetWeight, $newfont->GetStyle);
@@ -221,7 +221,7 @@ sub change_font {
 		$$font_config{'style'}  = 'italic' if $fontstyle == wxITALIC;
 		&load_font;
 		&load_number_margin;
-		&PCE::Document::select_syntaxstyle('auto');
+		&KEPHER::Document::select_syntaxstyle('auto');
 	}
 }
 

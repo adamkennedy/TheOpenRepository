@@ -1,10 +1,10 @@
-package PCE::Edit;
+package KEPHER::Edit;
 $VERSION = '0.30';
 
 # edit menu basic calls and internals for editing
 
 use strict;
-use Wx qw(:stc);    #PCE::Dialog::msg_box(undef,'',"");
+use Wx qw(:stc);    #KEPHER::Dialog::msg_box(undef,'',"");
 use Wx
 	qw(wxSTC_CMD_LINECUT wxSTC_CMD_LINEDELETE wxSTC_CMD_DELLINELEFT
 	wxSTC_CMD_DELLINERIGHT wxSTC_CMD_UPPERCASE wxSTC_CMD_LOWERCASE
@@ -16,11 +16,11 @@ use Wx
 
 #
 #
-sub _get_panel { PCE::App::EditPanel::_get() }
-sub _keep_focus{ Wx::Window::SetFocus( PCE::App::EditPanel::_get() ) }
+sub _get_panel { KEPHER::App::EditPanel::_get() }
+sub _keep_focus{ Wx::Window::SetFocus( KEPHER::App::EditPanel::_get() ) }
 
 sub _let_caret_visible {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my ( $selstart, $selend ) = $ep->GetSelection;
 	my $los = $ep->LinesOnScreen;
 	if ( $selstart == $selend ) {
@@ -37,15 +37,15 @@ sub _let_caret_visible {
 }
 
 sub _center_caret{
- my $ep = PCE::App::EditPanel::_get();
+ my $ep = KEPHER::App::EditPanel::_get();
 	$ep->ScrollToLine($ep->GetCurrentLine - ( $ep->LinesOnScreen / 2 ));
 	$ep->EnsureCaretVisible;
 }
 
-#PCE::App::EditPanel::_get()->GotoPos(shift);
+#KEPHER::App::EditPanel::_get()->GotoPos(shift);
 sub _goto_pos {
 	my $pos = shift;
-	my $ep  = PCE::App::EditPanel::_get();
+	my $ep  = KEPHER::App::EditPanel::_get();
 	my $max = $ep->GetLength;
 	my $fvl = $ep->GetFirstVisibleLine;
 	my $visible = $ep->GetLineVisible( $ep->LineFromPosition($pos) );
@@ -62,23 +62,23 @@ sub _goto_pos {
 }
 
 sub _save_positions {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my %pos;
-	$pos{'document'}  = &PCE::Document::_get_current_nr;
+	$pos{'document'}  = &KEPHER::Document::_get_current_nr;
 	$pos{'pos'}       = $ep->GetCurrentPos;
 	$pos{'line'}      = $ep->GetCurrentLine;
 	$pos{'col'}       = $ep->GetColumn( $pos{'pos'} );
 	$pos{'sel_begin'} = $ep->GetSelectionStart;
 	$pos{'sel_end'}   = $ep->GetSelectionEnd;
-	push @{ $PCE::internal{'edit'}{'caret'}{'positions'} }, \%pos;
+	push @{ $KEPHER::internal{'edit'}{'caret'}{'positions'} }, \%pos;
 }
 
 sub _restore_positions {
-	my $ep = PCE::App::EditPanel::_get();
-	my %pos      = %{ pop @{ $PCE::internal{'edit'}{'caret'}{'positions'} } };
+	my $ep = KEPHER::App::EditPanel::_get();
+	my %pos      = %{ pop @{ $KEPHER::internal{'edit'}{'caret'}{'positions'} } };
 	if (%pos) {
-		PCE::Document::Change::to_number( $pos{'document'} )
-			if $pos{'document'} != &PCE::Document::_get_current_nr;
+		KEPHER::Document::Change::to_number( $pos{'document'} )
+			if $pos{'document'} != &KEPHER::Document::_get_current_nr;
 		$ep->SetCurrentPos( $pos{'pos'} );
 		$ep->GotoLine( $pos{'line'} ) if $ep->GetCurrentLine != $pos{'line'};
 		if ( $ep->GetColumn( $ep->GetCurrentPos ) == $pos{'col'} ) {
@@ -95,7 +95,7 @@ sub _restore_positions {
 }
 
 sub _select_all_if_non {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my ($start, $end) = $ep->GetSelection;
 	if ( $start == $end ) {
 		$ep->SelectAll;
@@ -106,46 +106,46 @@ sub _select_all_if_non {
 }
 
 # history
-sub undo { PCE::App::EditPanel::_get()->Undo; }
-sub redo { PCE::App::EditPanel::_get()->Redo; }
+sub undo { KEPHER::App::EditPanel::_get()->Undo; }
+sub redo { KEPHER::App::EditPanel::_get()->Redo; }
 
 sub undo_several {
-	my $ep = PCE::App::EditPanel::_get();
-	$ep->Undo for 1 .. $PCE::config{'editpanel'}{'history'}{'fast_undo_steps'};
+	my $ep = KEPHER::App::EditPanel::_get();
+	$ep->Undo for 1 .. $KEPHER::config{'editpanel'}{'history'}{'fast_undo_steps'};
 }
 
 sub redo_several {
-	my $ep = PCE::App::EditPanel::_get();
-	$ep->Redo for 1 .. $PCE::config{'editpanel'}{'history'}{'fast_undo_steps'};
+	my $ep = KEPHER::App::EditPanel::_get();
+	$ep->Redo for 1 .. $KEPHER::config{'editpanel'}{'history'}{'fast_undo_steps'};
 }
 
 sub undo_begin {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	$ep->Undo while $ep->CanUndo;
 }
 
 sub redo_end {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	$ep->Redo while $ep->CanRedo;
 }
 
 sub records_clear { 
-	PCE::App::EditPanel::_get()->EmptyUndoBuffer;
-	PCE::App::EventList::trigger('document.savepoint');
+	KEPHER::App::EditPanel::_get()->EmptyUndoBuffer;
+	KEPHER::App::EventList::trigger('document.savepoint');
 }
 
-sub can_undo  { PCE::App::EditPanel::_get()->CanUndo}
-sub can_redo  { PCE::App::EditPanel::_get()->CanRedo}
-sub can_paste { PCE::App::EditPanel::_get()->CanPaste}
-sub can_copy  { $PCE::internal{'current_doc'}{'text_selected'} }
+sub can_undo  { KEPHER::App::EditPanel::_get()->CanUndo}
+sub can_redo  { KEPHER::App::EditPanel::_get()->CanRedo}
+sub can_paste { KEPHER::App::EditPanel::_get()->CanPaste}
+sub can_copy  { $KEPHER::internal{'current_doc'}{'text_selected'} }
 
 # simple textedit
-sub cut       { PCE::App::EditPanel::_get()->Cut }
-sub copy      { PCE::App::EditPanel::_get()->Copy }
-sub paste     { PCE::App::EditPanel::_get()->Paste }
+sub cut       { KEPHER::App::EditPanel::_get()->Cut }
+sub copy      { KEPHER::App::EditPanel::_get()->Copy }
+sub paste     { KEPHER::App::EditPanel::_get()->Paste }
 
 sub replace {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my $length = ( $ep->GetSelectionEnd - $ep->GetSelectionStart );
 	$ep->BeginUndoAction;
 	$ep->SetSelectionEnd( $ep->GetSelectionStart );
@@ -154,12 +154,12 @@ sub replace {
 	$ep->Cut;
 	$ep->EndUndoAction;
 }
-sub clear { PCE::App::EditPanel::_get()->Clear; }
+sub clear { KEPHER::App::EditPanel::_get()->Clear; }
 
 sub del_back_tab{
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my $pos = $ep->GetCurrentPos();
-	my $tab_size = $PCE::document{'current'}{'tab_size'};
+	my $tab_size = $KEPHER::document{'current'}{'tab_size'};
 	my $deltaspace = $ep->GetColumn($pos--) % $tab_size;
 	$deltaspace = $tab_size unless $deltaspace;
 	do { $ep->CmdKeyExecute(wxSTC_CMD_DELETEBACK) }
@@ -195,10 +195,10 @@ sub selection_move {
 }
 
 sub selection_move_left {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	if ( $ep->GetSelectionStart > 0 ) {
 		my $text = $ep->GetSelectedText();
-		my $eoll = $PCE::internal{'current_doc'}{'EOL_length'};
+		my $eoll = $KEPHER::internal{'current_doc'}{'EOL_length'};
 		$ep->BeginUndoAction;
 		$ep->ReplaceSelection("");
 		my $pos = $ep->GetCurrentPos;
@@ -212,10 +212,10 @@ sub selection_move_left {
 }
 
 sub selection_move_right {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	if ( $ep->GetSelectionEnd < $ep->GetTextLength ) {
 		my $text = $ep->GetSelectedText;
-		my $eoll = $PCE::internal{'current_doc'}{'EOL_length'};
+		my $eoll = $KEPHER::internal{'current_doc'}{'EOL_length'};
 		$ep->BeginUndoAction;
 		$ep->ReplaceSelection("");
 		my $pos  = $ep->GetCurrentPos;
@@ -229,7 +229,7 @@ sub selection_move_right {
 }
 
 sub selection_move_up {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	if ( $ep->LineFromPosition( $ep->GetSelectionStart ) > 0 ) {
 		if ( $ep->GetSelectionStart == $ep->GetSelectionEnd ) {
 			$ep->BeginUndoAction;
@@ -243,7 +243,7 @@ sub selection_move_up {
 }
 
 sub selection_move_down {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	if ($ep->LineFromPosition( $ep->GetSelectionEnd ) < $ep->GetLineCount - 1) {
 		if ( $ep->GetSelectionStart == $ep->GetSelectionEnd ) {
 			$ep->BeginUndoAction;
@@ -257,7 +257,7 @@ sub selection_move_down {
 }
 
 sub selection_move_page_up {
-	my $ep  = PCE::App::EditPanel::_get();
+	my $ep  = KEPHER::App::EditPanel::_get();
 	my $linedelta = $ep->LinesOnScreen;
 	if ( $ep->LineFromPosition( $ep->GetSelectionStart ) > 0 ) {
 		if ( $ep->GetSelectionStart == $ep->GetSelectionEnd ) {
@@ -277,7 +277,7 @@ sub selection_move_page_up {
 }
 
 sub selection_move_page_down {
-	my $ep  = PCE::App::EditPanel::_get();
+	my $ep  = KEPHER::App::EditPanel::_get();
 	my $linedelta = $ep->LinesOnScreen;
 	if ($ep->LineFromPosition( $ep->GetSelectionEnd ) < $ep->GetLineCount - 1) {
 		if ( $ep->GetSelectionStart == $ep->GetSelectionEnd ) {
@@ -298,10 +298,10 @@ sub selection_move_page_down {
 }
 
 # Edit Line
-sub cut_current_line { PCE::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINECUT) }
-sub copy_current_line{ PCE::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINECOPY)}
+sub cut_current_line { KEPHER::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINECUT) }
+sub copy_current_line{ KEPHER::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINECOPY)}
 sub double_current_line {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my $pos = $ep->GetCurrentPos;
 	$ep->BeginUndoAction;
 	$ep->CmdKeyExecute(wxSTC_CMD_LINECUT);
@@ -312,7 +312,7 @@ sub double_current_line {
 }
 
 sub replace_current_line {
-	my $ep   = PCE::App::EditPanel::_get();
+	my $ep   = KEPHER::App::EditPanel::_get();
 	my $line = $ep->GetCurrentLine;
 	$ep->BeginUndoAction;
 	$ep->GotoLine($line);
@@ -324,16 +324,16 @@ sub replace_current_line {
 	$ep->EndUndoAction;
 }
 
-sub del_current_line{PCE::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINEDELETE)}
-sub del_line_left {PCE::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_DELLINELEFT) }
-sub del_line_right{PCE::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_DELLINERIGHT)}
+sub del_current_line{KEPHER::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_LINEDELETE)}
+sub del_line_left {KEPHER::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_DELLINELEFT) }
+sub del_line_right{KEPHER::App::EditPanel::_get()->CmdKeyExecute(wxSTC_CMD_DELLINERIGHT)}
 
 #
 sub eval_newline_sub{
 }
 
 sub autoindent {
-	my $ep  = PCE::App::EditPanel::_get();
+	my $ep  = KEPHER::App::EditPanel::_get();
 	my $line = $ep->GetCurrentLine;
 
 	$ep->BeginUndoAction;
@@ -345,8 +345,8 @@ sub autoindent {
 }
 
 sub blockindent_open {
-	my $ep     = PCE::App::EditPanel::_get();
-	my $tabsize        = $PCE::document{'current'}{'tab_size'};
+	my $ep     = KEPHER::App::EditPanel::_get();
+	my $tabsize        = $KEPHER::document{'current'}{'tab_size'};
 	my $line           = $ep->GetCurrentLine;
 	my $first_cpos     = $ep->PositionFromLine($line)
 		+ $ep->GetLineIndentation($line); # position of first char in line
@@ -369,7 +369,7 @@ sub blockindent_open {
 	$ep->CmdKeyExecute(wxSTC_CMD_NEWLINE);
 
 	# make new brace if there is missing one
-	if ($PCE::config{'editpanel'}{'auto'}{'brace'}{'make'} and 
+	if ($KEPHER::config{'editpanel'}{'auto'}{'brace'}{'make'} and 
 		($matchbrace == -1 or $ep->GetLineIndentation($line) != $matchindent )){
 		$ep->CmdKeyExecute(wxSTC_CMD_NEWLINE);
 		$ep->AddText('}');
@@ -382,7 +382,7 @@ sub blockindent_open {
 }
 
 sub blockindent_close {
-	my $ep = PCE::App::EditPanel::_get();
+	my $ep = KEPHER::App::EditPanel::_get();
 	my $bracepos = shift;
 	unless ($bracepos) {
 		$bracepos = $ep->GetCurrentPos - 1;
@@ -409,16 +409,16 @@ sub blockindent_close {
 	} else {
 		$ep->SetLineIndentation( $line,
 			$ep->GetLineIndentation( $line - 1 )
-				- $PCE::document{'current'}{'tab_size'} );
+				- $KEPHER::document{'current'}{'tab_size'} );
 	}
 
 	# make new line
-	$PCE::config{'editpanel'}{'auto'}{'indent'}
+	$KEPHER::config{'editpanel'}{'auto'}{'indent'}
 		? autoindent()
 		: $ep->CmdKeyExecute(wxSTC_CMD_NEWLINE);
 
 	# 3 lösche dubs wenn in nächster zeile nur spaces bis dup
-	if ( $PCE::config{'editpanel'}{'auto'}{'brace'}{'join'} ) {
+	if ( $KEPHER::config{'editpanel'}{'auto'}{'brace'}{'join'} ) {
 		my $delbrace = $ep->PositionFromLine( $line + 2 )
 			+ $ep->GetLineIndentation( $line + 1 );
 		if ( $ep->GetCharAt($delbrace) == 125 ) {

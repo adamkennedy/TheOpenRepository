@@ -1,4 +1,4 @@
-package PCE::Document::Internal;
+package KEPHER::Document::Internal;
 $VERSION = '0.03';
 
 use strict;
@@ -7,12 +7,12 @@ use Wx qw(wxYES wxNO);
 
 # make document empty and reset all document properties to default
 sub reset {
-	my $edit_panel = PCE::App::STC::_get();
-	PCE::Document::set_readonly(0);
+	my $edit_panel = KEPHER::App::STC::_get();
+	KEPHER::Document::set_readonly(0);
 	$edit_panel->ClearAll();
 	$edit_panel->EmptyUndoBuffer();
 	$edit_panel->SetSavePoint();
-	PCE::Document::set_file_path('');
+	KEPHER::Document::set_file_path('');
 	reset_properties();
 	eval_properties();
 }
@@ -25,17 +25,17 @@ sub restore {
 
 		# open only text files and empty files
 		return if !-z $file_name and -B $file_name
-			and ( $PCE::config{'file'}{'open'}{'only_text'} == 1 );
+			and ( $KEPHER::config{'file'}{'open'}{'only_text'} == 1 );
 		# check if file is already open and goto this already opened
-		if ( $PCE::config{'file'}{'open'}{'each_once'} == 1 ){
-			for ( 0 .. PCE::Document::_get_last_nr() ) {
-				return if $PCE::document{'open'}[$_]{'path'} eq $file_name;
+		if ( $KEPHER::config{'file'}{'open'}{'each_once'} == 1 ){
+			for ( 0 .. KEPHER::Document::_get_last_nr() ) {
+				return if $KEPHER::document{'open'}[$_]{'path'} eq $file_name;
 			}
 		}
 
 		my $doc_nr = new_if_allowed('restore');
 		load_in_current_buffer($file_name);
-		%{ $PCE::document{'open'}[$doc_nr] } = %file_settings;
+		%{ $KEPHER::document{'open'}[$doc_nr] } = %file_settings;
 	}
 }
 
@@ -47,13 +47,13 @@ sub add {
 
 		# open only text files and empty files
 		return if ( !-z $file_name and -B $file_name
-			and $PCE::config{'file'}{'open'}{'only_text'} == 1 );
+			and $KEPHER::config{'file'}{'open'}{'only_text'} == 1 );
 
 		# check if file is already open and goto this already opened
-		if ( $PCE::config{'file'}{'open'}{'each_once'} == 1 ){
-			for ( 0 .. PCE::Document::_get_last_nr() ) {
-				if ( $PCE::document{'open'}[$_]{'path'} eq $file_name ){
-					PCE::Document::Change::to_number($_);
+		if ( $KEPHER::config{'file'}{'open'}{'each_once'} == 1 ){
+			for ( 0 .. KEPHER::Document::_get_last_nr() ) {
+				if ( $KEPHER::document{'open'}[$_]{'path'} eq $file_name ){
+					KEPHER::Document::Change::to_number($_);
 					return;
 				}
 			}
@@ -61,11 +61,11 @@ sub add {
 		save_properties();
 		my $doc_nr = new_if_allowed('add');
 		load_in_current_buffer($file_name);
-		PCE::Document::_set_current_nr($doc_nr);
+		KEPHER::Document::_set_current_nr($doc_nr);
 		reset_properties();
 		eval_properties();
-		PCE::App::EditPanel::Margin::autosize_line_number();
-		PCE::App::EventList::trigger('document.list');
+		KEPHER::App::EditPanel::Margin::autosize_line_number();
+		KEPHER::App::EventList::trigger('document.list');
 	}
 
 }
@@ -73,16 +73,16 @@ sub add {
 # create a new document if settings allow it
 sub new_if_allowed {
 	my $mode = shift;	# new(empty), add(open) restore(open session)
-	my $ep  = PCE::App::EditPanel::_get();
-	my $file_name = PCE::Document::_get_current_file_path();
-	my $old_doc_nr= PCE::Document::_get_current_nr();
-	my $doc_nr    = $PCE::internal{'document'}{'buffer'};
-	my $config    = $PCE::config{'file'}{'open'};
+	my $ep  = KEPHER::App::EditPanel::_get();
+	my $file_name = KEPHER::Document::_get_current_file_path();
+	my $old_doc_nr= KEPHER::Document::_get_current_nr();
+	my $doc_nr    = $KEPHER::internal{'document'}{'buffer'};
+	my $config    = $KEPHER::config{'file'}{'open'};
 
 	# check settings
 	# in single doc mode close previous doc first
 	if ( $config->{'single_doc'} == 1 ) {
-		PCE::File::close_current();
+		KEPHER::File::close_current();
 		return 0;
 	}
 	unless ( $mode eq 'new' ) {
@@ -92,17 +92,17 @@ sub new_if_allowed {
 			return $old_doc_nr
 				if ($config->{'into_empty_doc'} == 1)
 				or ($config->{'into_only_empty_doc'} == 1
-					and $PCE::internal{'document'}{'buffer'} == 1 );
+					and $KEPHER::internal{'document'}{'buffer'} == 1 );
 		}
 	}
 
 	# still there? ok now we make a new document
-	$PCE::internal{'document'}{'open'}[$doc_nr]{'pointer'}= $ep->CreateDocument;
-	$PCE::internal{'document'}{'buffer'}++;
+	$KEPHER::internal{'document'}{'open'}[$doc_nr]{'pointer'}= $ep->CreateDocument;
+	$KEPHER::internal{'document'}{'buffer'}++;
 
 	change_pointer($doc_nr);
-	PCE::App::TabBar::add_page();
-	PCE::App::TabBar::set_current_page($doc_nr);
+	KEPHER::App::TabBar::add_page();
+	KEPHER::App::TabBar::set_current_page($doc_nr);
 	return $doc_nr;
 }
 
@@ -110,25 +110,25 @@ sub new_if_allowed {
 sub load_in_current_buffer {
 	my $file_name = shift;
 	$file_name ||= '';
-	my $edit_panel = PCE::App::STC::_get();
+	my $edit_panel = KEPHER::App::STC::_get();
 	$edit_panel->ClearAll();
-	PCE::File::IO::open_pipe($file_name);
+	KEPHER::File::IO::open_pipe($file_name);
 	$edit_panel->EmptyUndoBuffer;
 	$edit_panel->SetSavePoint;
-	PCE::Document::set_file_path($file_name);
-	$PCE::internal{'document'}{'loaded'}++;
+	KEPHER::Document::set_file_path($file_name);
+	$KEPHER::internal{'document'}{'loaded'}++;
 }
 
 
 sub check_b4_overwite {
 	my $filename = shift;
-	$filename = PCE::Document::_get_current_file_path() unless $filename;
-	my $allow = $PCE::config{'file'}{'save'}{'overwrite'};
+	$filename = KEPHER::Document::_get_current_file_path() unless $filename;
+	my $allow = $KEPHER::config{'file'}{'save'}{'overwrite'};
 	if ( -e $filename ) {
-		my $frame = &PCE::App::Window::_get();
-		my $label = \%{ $PCE::localisation{'dialog'} };
+		my $frame = &KEPHER::App::Window::_get();
+		my $label = \%{ $KEPHER::localisation{'dialog'} };
 		if ( $allow eq 'ask' ) {
-			my $answer = PCE::Dialog::get_confirm_2( $frame,
+			my $answer = KEPHER::Dialog::get_confirm_2( $frame,
 				"$label->{general}{overwrite} $filename ?",
 				$label->{'file'}{'overwrite'},
 				-1, -1
@@ -136,7 +136,7 @@ sub check_b4_overwite {
 			return 1 if $answer == wxYES;
 			return 0 if $answer == wxNO;
 		} else {
-			PCE::Dialog::info_box( $frame,
+			KEPHER::Dialog::info_box( $frame,
 				$label->{'general'}{'dont_allow'},
 				$label->{'file'}{'overwrite'}
 			) unless $allow;
@@ -148,19 +148,19 @@ sub check_b4_overwite {
 # set the config default to the selected document
 sub reset_properties {
 	my $doc_nr = shift;
-	$doc_nr = $PCE::document{'current_nr'} unless $doc_nr;
-	my $defaults  = \%{ $PCE::config{'file'}{'defaultsettings'} };
-	my $doc_attr  = \%{ $PCE::document{'open'}[$doc_nr] };
+	$doc_nr = $KEPHER::document{'current_nr'} unless $doc_nr;
+	my $defaults  = \%{ $KEPHER::config{'file'}{'defaultsettings'} };
+	my $doc_attr  = \%{ $KEPHER::document{'open'}[$doc_nr] };
 	my $file_name = $doc_attr->{'path'};
 
 	$doc_attr->{'syntaxmode'} = $defaults->{'syntaxmode'} eq 'auto'
-		? PCE::Document::SyntaxMode::_get_auto($doc_nr)
+		? KEPHER::Document::SyntaxMode::_get_auto($doc_nr)
 		: $defaults->{'syntaxmode'};
 
 	if ($file_name and ( -e $file_name )) 
 		 {$doc_attr->{'EOL'} = $defaults->{'EOL_open'}}
 	else {$doc_attr->{'EOL'} = $defaults->{'EOL_new'};
-		PCE::Document::set_EOL_mode( $doc_attr->{'EOL'} );
+		KEPHER::Document::set_EOL_mode( $doc_attr->{'EOL'} );
 	}
 	$doc_attr->{'tab_use'}  = $defaults->{'tab_use'};
 	$doc_attr->{'tab_size'} = $defaults->{'tab_size'};
@@ -174,17 +174,17 @@ sub reset_properties {
 
 sub eval_properties {
 	my $doc_nr = shift;
-	$doc_nr = PCE::Document::_get_current_nr() if ( !$doc_nr );
-	my $doc_attr = \%{$PCE::document{'open'}[$doc_nr]};
-	my $doc_data = \%{$PCE::internal{'document'}{'open'}[$doc_nr]};
-	my $ep = PCE::App::EditPanel::_get();
+	$doc_nr = KEPHER::Document::_get_current_nr() if ( !$doc_nr );
+	my $doc_attr = \%{$KEPHER::document{'open'}[$doc_nr]};
+	my $doc_data = \%{$KEPHER::internal{'document'}{'open'}[$doc_nr]};
+	my $ep = KEPHER::App::EditPanel::_get();
 
 	$doc_attr->{'syntaxmode'} = "none" unless $doc_attr->{'syntaxmode'};
-	PCE::Document::SyntaxMode::change_to( $doc_attr->{'syntaxmode'} );
-	PCE::Document::set_EOL_mode( $doc_attr->{'EOL'} );
-	PCE::Document::set_tab_mode( $doc_attr->{'tab_use'} );
-	PCE::Document::set_tab_size( $doc_attr->{'tab_size'} );
-	PCE::Document::set_readonly( $doc_attr->{'readonly'} );
+	KEPHER::Document::SyntaxMode::change_to( $doc_attr->{'syntaxmode'} );
+	KEPHER::Document::set_EOL_mode( $doc_attr->{'EOL'} );
+	KEPHER::Document::set_tab_mode( $doc_attr->{'tab_use'} );
+	KEPHER::Document::set_tab_size( $doc_attr->{'tab_size'} );
+	KEPHER::Document::set_readonly( $doc_attr->{'readonly'} );
 
 	# setting selection and caret position
 	if ($doc_data->{'selstart'} and $doc_data->{'selstart'}) {
@@ -192,27 +192,27 @@ sub eval_properties {
 			? $ep->SetSelection( $doc_data->{'selend'},$doc_data->{'selstart'})
 			: $ep->SetSelection( $doc_data->{'selstart'},$doc_data->{'selend'});
 	} else { $ep->GotoPos( $doc_attr->{'cursor_pos'} ) }
-	if ($PCE::config{'file'}{'open'}{'in_current_dir'}){
-		$PCE::config{'file'}{'current'}{'directory'} = $doc_data->{'directory'}
+	if ($KEPHER::config{'file'}{'open'}{'in_current_dir'}){
+		$KEPHER::config{'file'}{'current'}{'directory'} = $doc_data->{'directory'}
 			if $doc_data->{'directory'};
-	} else { $PCE::config{'file'}{'current'}{'directory'} = '' }
-	PCE::Edit::_let_caret_visible();
-	PCE::App::StatusBar::refresh();
-	PCE::App::EditPanel::paint_bracelight()
-		if $PCE::config{'editpanel'}{'indicator'}{'bracelight'}{'visible'};
-	Wx::Window::SetFocus($ep) unless $PCE::internal{'dialog'}{'control'};
+	} else { $KEPHER::config{'file'}{'current'}{'directory'} = '' }
+	KEPHER::Edit::_let_caret_visible();
+	KEPHER::App::StatusBar::refresh();
+	KEPHER::App::EditPanel::paint_bracelight()
+		if $KEPHER::config{'editpanel'}{'indicator'}{'bracelight'}{'visible'};
+	Wx::Window::SetFocus($ep) unless $KEPHER::internal{'dialog'}{'control'};
 	
-	PCE::App::EventList::trigger
+	KEPHER::App::EventList::trigger
 		('document.text.select','document.text.change','document.savepoint');
 }
 
 
 sub save_properties {
 	my $doc_nr = shift;
-	$doc_nr = $PCE::document{'current_nr'} unless $doc_nr;
-	my $doc_attr = $PCE::document{'open'}[$doc_nr];
-	my $doc_data = $PCE::internal{'document'}{'open'}[$doc_nr];
-	my $ep = PCE::App::STC::_get();
+	$doc_nr = $KEPHER::document{'current_nr'} unless $doc_nr;
+	my $doc_attr = $KEPHER::document{'open'}[$doc_nr];
+	my $doc_data = $KEPHER::internal{'document'}{'open'}[$doc_nr];
+	my $ep = KEPHER::App::STC::_get();
 
 	$doc_attr->{'cursor_pos'}= $ep->GetCurrentPos;
 	$doc_data->{'selstart'} = $ep->GetSelectionStart;
@@ -225,13 +225,13 @@ sub save_properties {
 sub change_pointer {
 	my $newtab = shift;
 	$newtab = 0 unless $newtab ;
-	my $oldtab  = PCE::Document::_get_current_nr();
-	my $docsdata = $PCE::internal{'document'}{'open'};
-	my $ep      = PCE::App::EditPanel::_get();
+	my $oldtab  = KEPHER::Document::_get_current_nr();
+	my $docsdata = $KEPHER::internal{'document'}{'open'};
+	my $ep      = KEPHER::App::EditPanel::_get();
 	$ep->AddRefDocument( $docsdata->[$oldtab]{'pointer'} );
 	$ep->SetDocPointer( $docsdata->[$newtab]{'pointer'} );
 	$ep->ReleaseDocument( $docsdata->[$newtab]{'pointer'} );
-	PCE::Document::_set_current_nr($newtab);
+	KEPHER::Document::_set_current_nr($newtab);
 }
 
 # various helper
@@ -239,7 +239,7 @@ sub dissect_path {
 	my ( $file_path, $doc_nr ) = @_;
 	my ( @dirs, @filenameparts, $dir, $name, $ending );
 	$file_path = '' unless $file_path;
-	$doc_nr = PCE::Document::_get_current_nr() unless $doc_nr;
+	$doc_nr = KEPHER::Document::_get_current_nr() unless $doc_nr;
 
 	# split filename into parts
 	if ( length($file_path) > 0 ) {
@@ -251,7 +251,7 @@ sub dissect_path {
 		@filenameparts = split( /\./, $name );
 		$ending = $filenameparts[-1];
 	}
-	my $doc_data = $PCE::internal{'document'}{'open'}[$doc_nr];
+	my $doc_data = $KEPHER::internal{'document'}{'open'}[$doc_nr];
 	$doc_data->{'directory'} = $dir;
 	$doc_data->{'name'}      = $name;
 	$doc_data->{'ending'}    = $ending;

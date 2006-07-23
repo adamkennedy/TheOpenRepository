@@ -1,4 +1,4 @@
-package PCE::Plugin::Demo;
+package KEPHER::Plugin::Demo;
 $VERSION = '0.01';
 
 use strict;

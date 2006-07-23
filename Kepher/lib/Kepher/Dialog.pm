@@ -1,4 +1,4 @@
-package PCE::Dialog;
+package KEPHER::Dialog;
 $VERSION = '0.18';
 
 use strict;
@@ -55,28 +55,28 @@ sub get_text { Wx::GetTextFromUser  ( $_[1], $_[2], "", $_[0], -1, -1, 1 ) }
 sub get_number{Wx::GetNumberFromUser( $_[1], '', $_[2],$_[3], 0, 100000, $_[0])}
 
 sub find {
-	require PCE::Dialog::Search;
-	&PCE::Dialog::Search::find;
+	require KEPHER::Dialog::Search;
+	&KEPHER::Dialog::Search::find;
 }
 
 sub replace {
-	require PCE::Dialog::Search;
-	&PCE::Dialog::Search::replace;
+	require KEPHER::Dialog::Search;
+	&KEPHER::Dialog::Search::replace;
 }
 
 sub info {
-	require PCE::Dialog::Info;
-	&PCE::Dialog::Info::combined;
+	require KEPHER::Dialog::Info;
+	&KEPHER::Dialog::Info::combined;
 }
 
 sub config {
-	require PCE::Dialog::Config;
-	&PCE::Dialog::Config::main;
+	require KEPHER::Dialog::Config;
+	&KEPHER::Dialog::Config::main;
 }
 
 sub save_on_exit {
-	require PCE::Dialog::Exit;
-	&PCE::Dialog::Exit::save_on_exit;
+	require KEPHER::Dialog::Exit;
+	&KEPHER::Dialog::Exit::save_on_exit;
 }
 
 1;

@@ -1,4 +1,4 @@
-package PCE::App;
+package KEPHER::App;
 our $VERSION = '0.04';
 
 use strict;
@@ -11,15 +11,15 @@ use Wx qw(
 	wxTheClipboard
 );
 
-sub get_ref{ $PCE::app{'ref'} };
-sub set_ref{ $PCE::app{'ref'} = shift };
+sub get_ref{ $KEPHER::app{'ref'} };
+sub set_ref{ $KEPHER::app{'ref'} = shift };
 
 # main layout, main frame
 sub splashscreen {
 	Wx::InitAllImageHandlers();
 	Wx::SplashScreen->new(
 		Wx::Bitmap->new(
-			$PCE::internal{path}{config}.$PCE::internal{file}{img}{splashscreen},
+			$KEPHER::internal{path}{config}.$KEPHER::internal{file}{img}{splashscreen},
 			wxBITMAP_TYPE_JPEG
 		),
 		wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 150, undef, -1,
@@ -29,22 +29,22 @@ sub splashscreen {
 }
 
 sub assemble_layout {
-	my $win = PCE::App::Window::_get();
+	my $win = KEPHER::App::Window::_get();
 
 	my $main_sizer = $win->{'sizer'} = Wx::BoxSizer->new(wxVERTICAL);
-	$main_sizer->Add( PCE::App::TabBar::_get_sizer(), 0, wxTOP|wxGROW, 0 );
+	$main_sizer->Add( KEPHER::App::TabBar::_get_sizer(), 0, wxTOP|wxGROW, 0 );
 	#$main_sizer->AddSpace(8, 0) if ($^O eq 'linux'); #dirty lin hack remove asap
-	$main_sizer->Add( PCE::App::EditPanel::_get(),    1, wxTOP|wxGROW, 0 );
-	if (PCE::App::SearchBar::_get_config()->{'position'} eq 'top') {
-		$main_sizer->Prepend(PCE::App::SearchBar::_get(), 0, wxTOP|wxGROW, 2)
+	$main_sizer->Add( KEPHER::App::EditPanel::_get(),    1, wxTOP|wxGROW, 0 );
+	if (KEPHER::App::SearchBar::_get_config()->{'position'} eq 'top') {
+		$main_sizer->Prepend(KEPHER::App::SearchBar::_get(), 0, wxTOP|wxGROW, 2)
 	} else {
-		$main_sizer->Add(PCE::App::SearchBar::_get(), 0, wxBOTTOM|wxGROW, 3)
+		$main_sizer->Add(KEPHER::App::SearchBar::_get(), 0, wxBOTTOM|wxGROW, 3)
 	}
 	$win->SetSizer($main_sizer);
 	$win->SetAutoLayout(1);
 	$win->Layout;
-	$win->SetBackgroundColour(PCE::App::TabBar::_get_tabs()->GetBackgroundColour);
-	PCE::App::TabBar::show();
+	$win->SetBackgroundColour(KEPHER::App::TabBar::_get_tabs()->GetBackgroundColour);
+	KEPHER::App::TabBar::show();
 	$win;
 }
 
@@ -55,18 +55,18 @@ sub start {
 	set_ref($app);
 	splashscreen();             # 2'nd splashscreen can close when app is ready
 	Wx::InitAllImageHandlers();
-	my $frame = PCE::App::Window::create();
-	my $ep = PCE::App::EditPanel::create();
-	$PCE::internal{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
-	$PCE::internal{'document'}{'buffer'} = 1;
-	PCE::Config::Global::load_autosaved();
-	if (PCE::Config::Global::evaluate()) {
+	my $frame = KEPHER::App::Window::create();
+	my $ep = KEPHER::App::EditPanel::create();
+	$KEPHER::internal{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
+	$KEPHER::internal{'document'}{'buffer'} = 1;
+	KEPHER::Config::Global::load_autosaved();
+	if (KEPHER::Config::Global::evaluate()) {
 		$frame->Show(1);
 		print "pce startet in:",
 			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
 		my $t2 = new Benchmark;
-		PCE::File::Session::restore();
-		PCE::Document::Internal::add($_) for @ARGV;
+		KEPHER::File::Session::restore();
+		KEPHER::Document::Internal::add($_) for @ARGV;
 		print "pce dateien in:",
 			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n";
 		1;                      # everything is good
@@ -77,17 +77,17 @@ sub start {
 
 sub exit { 
 	my $t0 = new Benchmark;
-	return if PCE::Dialog::save_on_exit() eq 'cancel';
-	PCE::Config::Global::refresh();
-	PCE::File::Session::store();
-	PCE::File::Session::delete();
-	PCE::Config::Global::save_autosaved();
-	if ($PCE::config{app}{interface_cache}{use}){
-		PCE::App::CommandList::save_cache() ;
+	return if KEPHER::Dialog::save_on_exit() eq 'cancel';
+	KEPHER::Config::Global::refresh();
+	KEPHER::File::Session::store();
+	KEPHER::File::Session::delete();
+	KEPHER::Config::Global::save_autosaved();
+	if ($KEPHER::config{app}{interface_cache}{use}){
+		KEPHER::App::CommandList::save_cache() ;
 	}
-	PCE::Config::set_xp_style(); #
+	KEPHER::Config::set_xp_style(); #
 	wxTheClipboard->Flush;       # set copied text free to the global Clipboard
-	PCE::App::Window::destroy(); # close window
+	KEPHER::App::Window::destroy(); # close window
 	print "pce shut down in:",
 		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
 }

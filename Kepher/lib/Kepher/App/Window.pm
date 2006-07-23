@@ -1,4 +1,4 @@
-package PCE::App::Window;    # Main application window
+package KEPHER::App::Window;    # Main application window
 $VERSION = '0.05';
 
 use strict;
@@ -10,9 +10,9 @@ use Wx qw(
 );
 use constant APPROOT => 'window';
 
-sub _get {$PCE::app{(APPROOT)} }
-sub _set {$PCE::app{(APPROOT)} = shift}
-sub _get_config {$PCE::config{'app'}{'window'}}
+sub _get {$KEPHER::app{(APPROOT)} }
+sub _set {$KEPHER::app{(APPROOT)} = shift}
+sub _get_config {$KEPHER::config{'app'}{'window'}}
 
 sub create {
 	#shift->SUPER::new
@@ -25,7 +25,7 @@ sub create {
 sub apply_settings{
 	my $win = _get();
 	$win->DragAcceptFiles(1);
-	my $icon = $PCE::internal{path}{config}._get_config()->{'icon'};
+	my $icon = $KEPHER::internal{path}{config}._get_config()->{'icon'};
 	load_icon( $win, $icon );
 	restore_positions();
 	eval_on_top_flag();
@@ -44,13 +44,13 @@ sub load_icon {
 
 sub set_title {
 	my ( $text, $title ) = shift;
-	my $nv_text = "- $PCE::NAME $PCE::VERSION";
+	my $nv_text = "- $KEPHER::NAME $KEPHER::VERSION";
 	if ($text) { $title = " $text $nv_text" } 
-	else { $title = " < $PCE::localisation{app}{tabbar}{untitled} > $nv_text" }
+	else { $title = " < $KEPHER::localisation{app}{tabbar}{untitled} > $nv_text" }
 	_get()->SetTitle($title);
 
 }
-sub refresh_title {set_title( $PCE::document{'current'}{'path'} )}
+sub refresh_title {set_title( $KEPHER::document{'current'}{'path'} )}
 
 
 sub get_on_top_mode { _get_config()->{'stay_on_top'} }
@@ -64,12 +64,12 @@ sub eval_on_top_flag {
 	if ( get_on_top_mode() ) { $style |= wxSTAY_ON_TOP }
 	else                     { $style &= ~wxSTAY_ON_TOP }
 	$win->SetWindowStyle($style);
-	PCE::App::EventList::trigger('app.window.ontop');
+	KEPHER::App::EventList::trigger('app.window.ontop');
 }
 
 
 sub save_positions{
-	my $app_win = PCE::App::Window::_get();
+	my $app_win = KEPHER::App::Window::_get();
 	my $config  = _get_config();
 	if ($config->{'save_position'}){
 		($config->{'position_x'},$config->{'position_y'})=$app_win->GetPositionXY;

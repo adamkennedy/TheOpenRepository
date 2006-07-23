@@ -1,4 +1,4 @@
-package PCE::Edit::Goto;
+package KEPHER::Edit::Goto;
 $VERSION = '0.04';
 
 # editpanel navigation
@@ -7,29 +7,29 @@ use strict;
 use Wx qw( wxCANCEL wxSTC_CMD_PARAUP wxSTC_CMD_PARADOWN wxSTC_FIND_REGEXP);
 
 sub line_nr {
-	my $line = PCE::Dialog::get_number( PCE::App::Window::_get(),
-		$PCE::localisation{'dialog'}{'edit'}{'goto_line_input'},
-		$PCE::localisation{'dialog'}{'edit'}{'goto_line_headline'},
-		PCE::App::STC::_get()->GetCurrentLine
+	my $line = KEPHER::Dialog::get_number( KEPHER::App::Window::_get(),
+		$KEPHER::localisation{'dialog'}{'edit'}{'goto_line_input'},
+		$KEPHER::localisation{'dialog'}{'edit'}{'goto_line_headline'},
+		KEPHER::App::STC::_get()->GetCurrentLine
 	);
-	PCE::Edit::_goto_pos( PCE::App::STC::_get->PositionFromLine($line - 1) )
+	KEPHER::Edit::_goto_pos( KEPHER::App::STC::_get->PositionFromLine($line - 1) )
 		unless $line == wxCANCEL;
 }
 
 sub last_edit {
-	PCE::Edit::_goto_pos($PCE::document{'current'}{'edit_pos'})
-		if defined $PCE::document{'current'}{'edit_pos'};
+	KEPHER::Edit::_goto_pos($KEPHER::document{'current'}{'edit_pos'})
+		if defined $KEPHER::document{'current'}{'edit_pos'};
 }
 
 
 # block navigation
-sub prev_block{ PCE::App::STC::_get()->CmdKeyExecute(wxSTC_CMD_PARAUP) }
-sub next_block{ PCE::App::STC::_get()->CmdKeyExecute(wxSTC_CMD_PARADOWN) }
+sub prev_block{ KEPHER::App::STC::_get()->CmdKeyExecute(wxSTC_CMD_PARAUP) }
+sub next_block{ KEPHER::App::STC::_get()->CmdKeyExecute(wxSTC_CMD_PARADOWN) }
 
 
 # brace navigation
 sub prev_brace{
-	my $ep  = PCE::App::STC::_get();
+	my $ep  = KEPHER::App::STC::_get();
 	my $pos = $ep->GetCurrentPos;
 	$ep->GotoPos($pos - 1) if $ep->BraceMatch($pos) > -1;
 	$ep->GotoPos($pos - 2) if $ep->BraceMatch($pos - 1) > -1;
@@ -40,7 +40,7 @@ sub prev_brace{
 }
 
 sub next_brace{
-	my $ep  = PCE::App::STC::_get();
+	my $ep  = KEPHER::App::STC::_get();
 	my $pos = $ep->GetCurrentPos;
 	$ep->GotoPos($pos + 1);
 	$ep->SearchAnchor();
@@ -50,7 +50,7 @@ sub next_brace{
 }
 
 sub prev_related_brace{
-	my $ep  = PCE::App::STC::_get();
+	my $ep  = KEPHER::App::STC::_get();
 	my $pos = $ep->GetCurrentPos;
 	my $matchpos = $ep->BraceMatch(--$pos);
 	$matchpos = $ep->BraceMatch(++$pos) if $matchpos == -1;
@@ -73,7 +73,7 @@ sub prev_related_brace{
 }
 
 sub next_related_brace{
-	my $ep  = PCE::App::STC::_get();
+	my $ep  = KEPHER::App::STC::_get();
 	my $pos = $ep->GetCurrentPos;
 	my $matchpos = $ep->BraceMatch($pos);
 	$matchpos = $ep->BraceMatch(--$pos) if $matchpos == -1;

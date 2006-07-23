@@ -1,4 +1,4 @@
-package PCE::App::SearchBar;
+package KEPHER::App::SearchBar;
 $VERSION = '0.08';
 
 use strict;
@@ -13,19 +13,19 @@ use Wx::Event qw(
 );
 use constant APPROOT => 'searchbar';
 
-sub _get { $PCE::app{'window'}{(APPROOT)} }
-sub _set { $PCE::app{'window'}{(APPROOT)} = shift }
-sub _get_config { $PCE::config{'app'}{'toolbar'}{'search'} }
+sub _get { $KEPHER::app{'window'}{(APPROOT)} }
+sub _set { $KEPHER::app{'window'}{(APPROOT)} = shift }
+sub _get_config { $KEPHER::config{'app'}{'toolbar'}{'search'} }
 
 sub _create_empty {
-	return $PCE::app{window}{(APPROOT)} =
-		Wx::ToolBar->new( PCE::App::Window::_get(),
+	return $KEPHER::app{window}{(APPROOT)} =
+		Wx::ToolBar->new( KEPHER::App::Window::_get(),
 			-1, [-1,-1], [-1,-1], wxTB_HORIZONTAL|wxTB_DOCKABLE );
 }
 
 sub create {
-	my $ico_dir = $PCE::internal{path}{config}.$PCE::config{app}{iconset_path};
-	my $label = \%{$PCE::localisation{commandlist}{label}};
+	my $ico_dir = $KEPHER::internal{path}{config}.$KEPHER::config{app}{iconset_path};
+	my $label = \%{$KEPHER::localisation{commandlist}{label}};
 	my $xpm_bt = wxBITMAP_TYPE_XPM;
 
 	#
@@ -35,19 +35,19 @@ sub create {
 
 	#
 	my ($find_input, $item_id);
-	if (exists $PCE::app{(APPROOT)}{item_id}){
-		$item_id = $PCE::app{(APPROOT)}{item_id}
-	} else { $item_id = $PCE::app{GUI}{masterID}++ * 100 }
+	if (exists $KEPHER::app{(APPROOT)}{item_id}){
+		$item_id = $KEPHER::app{(APPROOT)}{item_id}
+	} else { $item_id = $KEPHER::app{GUI}{masterID}++ * 100 }
 	# prepare search-keywords-input-combobox
 	unless ($sb->{find_input}){
 		$sb->{find_input} = Wx::ComboBox->new(
-			$sb, -1, PCE::Edit::Search::get_find_item(),[-1,-1],[160,-1],[],,1);
+			$sb, -1, KEPHER::Edit::Search::get_find_item(),[-1,-1],[160,-1],[],,1);
 		$sb->{find_input}->SetDropTarget
 			( SearchInputTarget->new($find_input, 'find'));
 	}
 	$find_input = $sb->{find_input};
-	if ( $PCE::config{'search'}{'history'}{'use'} ){
-		$find_input->Append($_) for @{$PCE::config{search}{history}{find_item}}
+	if ( $KEPHER::config{'search'}{'history'}{'use'} ){
+		$find_input->Append($_) for @{$KEPHER::config{search}{history}{find_item}}
 	}
 	EVT_TEXT( $sb, $find_input,   \&find_increment );
 	EVT_KEY_DOWN(  $find_input,   sub {
@@ -56,12 +56,12 @@ sub create {
 		my $key = $event->GetKeyCode;
 		if ( $key == 13 ) {
 			if  ( $event->ControlDown and $event->ShiftDown)   
-			                             {PCE::Edit::Search::find_last() }
-			elsif ( $event->ControlDown ){PCE::Edit::Search::find_first()}
-			elsif ( $event->ShiftDown )  {PCE::Edit::Search::find_prev() }
-			else                         {PCE::Edit::Search::find_next() }
-			refresh_find_input($PCE::internal{'search'}{'history'}{'refresh'})
-				if $PCE::config{'search'}{'history'}{'use'};
+			                             {KEPHER::Edit::Search::find_last() }
+			elsif ( $event->ControlDown ){KEPHER::Edit::Search::find_first()}
+			elsif ( $event->ShiftDown )  {KEPHER::Edit::Search::find_prev() }
+			else                         {KEPHER::Edit::Search::find_next() }
+			refresh_find_input($KEPHER::internal{'search'}{'history'}{'refresh'})
+				if $KEPHER::config{'search'}{'history'}{'use'};
 		} elsif ( $key == 27 ) {
 			give_editpanel_focus_back()
 		} elsif ( $key == 70 and $event->ControlDown ) {
@@ -74,26 +74,26 @@ sub create {
 
 	# build toolbar #$sb->SetSize(-1,30); #$sb->SetMargins( 14, 14 );
 	$sb->AddTool( 50100,'',Wx::Bitmap->new($ico_dir.'edit_delete.xpm', $xpm_bt),
-		$PCE::localisation{dialog}{general}{close}, wxITEM_NORMAL);
+		$KEPHER::localisation{dialog}{general}{close}, wxITEM_NORMAL);
 	EVT_MENU( $sb, 50100, \&switch_visibility );
 	$sb->AddControl( $find_input );
 	#$sb->AddTool( 50101,'', Wx::Bitmap->new($ico_dir.'find_start.xpm', wxBITMAP_TYPE_XPM),
 		#$label->{mark_all}, wxITEM_NORMAL);
-	#EVT_MENU( $sb, 50101, sub { refresh_find_input(PCE::Edit::Search::find_prev()) } );
+	#EVT_MENU( $sb, 50101, sub { refresh_find_input(KEPHER::Edit::Search::find_prev()) } );
 	$sb->AddTool( 50102,'',Wx::Bitmap->new($ico_dir.'find_previous.xpm', $xpm_bt),
 		$label->{find}{prev},wxITEM_NORMAL);
-	EVT_MENU( $sb, 50102, sub { refresh_find_input(PCE::Edit::Search::find_prev()) } );
+	EVT_MENU( $sb, 50102, sub { refresh_find_input(KEPHER::Edit::Search::find_prev()) } );
 	$sb->AddTool( 50103,'',Wx::Bitmap->new($ico_dir.'find_next.xpm', $xpm_bt),
 		$label->{find}{'next'},wxITEM_NORMAL);
-	EVT_MENU( $sb, 50103, sub { refresh_find_input(PCE::Edit::Search::find_next()) } );
+	EVT_MENU( $sb, 50103, sub { refresh_find_input(KEPHER::Edit::Search::find_next()) } );
 	$sb->AddSeparator();
 	$sb->AddTool( 50104,'',Wx::Bitmap->new($ico_dir.'goto_last_edit.xpm', $xpm_bt),
 		$label->{'goto'}{'last-edit'}, wxITEM_NORMAL);
-	EVT_MENU( $sb, 50104, \&PCE::Edit::Goto::last_edit );
+	EVT_MENU( $sb, 50104, \&KEPHER::Edit::Goto::last_edit );
 	$sb->AddSeparator();
 	$sb->AddTool( 50105,'',Wx::Bitmap->new($ico_dir.'find_start.xpm', $xpm_bt),
 		$label->{view}{dialog}{find}, wxITEM_NORMAL);
-	EVT_MENU( $sb, 50105, \&PCE::Dialog::find );
+	EVT_MENU( $sb, 50105, \&KEPHER::Dialog::find );
 	$sb->SetRows(1);
 
 	EVT_LEAVE_WINDOW($sb, \&leave_focus);
@@ -105,9 +105,9 @@ sub create {
 sub find_increment{
 	my ($bar, $event) = @_;
 	my $find_input    = _get()->{'find_input'};
-	PCE::Edit::Search::set_find_item( $find_input->GetValue );
-	colour_find_input( PCE::Edit::Search::first_increment() )
-		if $PCE::config{'search'}{'attribute'}{'incremental'};
+	KEPHER::Edit::Search::set_find_item( $find_input->GetValue );
+	colour_find_input( KEPHER::Edit::Search::first_increment() )
+		if $KEPHER::config{'search'}{'attribute'}{'incremental'};
 }
 
 
@@ -119,8 +119,8 @@ sub refresh_find_input {
 #print $find_input->GetValue."-".$find_input->GetString(0)."-$new_find_item-\n";
 	if ($new_find_item and $find_input->GetString(0) ne $value){
 			$find_input->Clear();
-			$find_input->Append($_) for @{ $PCE::config{'search'}{'history'}{'find_item'} };
-			$find_input->SetValue(PCE::Edit::Search::get_find_item());
+			$find_input->Append($_) for @{ $KEPHER::config{'search'}{'history'}{'find_item'} };
+			$find_input->SetValue(KEPHER::Edit::Search::get_find_item());
 			#$find_input->SetInsertionPointEnd;
 
 	}
@@ -142,8 +142,8 @@ sub colour_find_input{
 }
 
 sub activate{
-    my $text = PCE::App::STC::_get()->GetSelectedText();
-    PCE::Edit::Search::set_find_item($text) if $text;
+    my $text = KEPHER::App::STC::_get()->GetSelectedText();
+    KEPHER::Edit::Search::set_find_item($text) if $text;
     enter_focus();
 }
 
@@ -155,11 +155,11 @@ sub enter_focus{
 		give_editpanel_focus_back();
 		return;
 	}
-	$find_input->SetValue( PCE::Edit::Search::get_find_item() );
+	$find_input->SetValue( KEPHER::Edit::Search::get_find_item() );
 	switch_visibility() unless $sb->IsShown();
 	#Wx::Window::SetFocus( $sb );
 	Wx::Window::SetFocus( $find_input );
-	$PCE::internal{'search'}{'old_pos'} = PCE::App::STC::_get()->GetCurrentPos();
+	$KEPHER::internal{'search'}{'old_pos'} = KEPHER::App::STC::_get()->GetCurrentPos();
 }
 
 
@@ -169,7 +169,7 @@ sub leave_focus{
 
 
 sub give_editpanel_focus_back{
-	Wx::Window::SetFocus( PCE::App::STC::_get() );
+	Wx::Window::SetFocus( KEPHER::App::STC::_get() );
 	leave_focus();
 }
 
@@ -177,7 +177,7 @@ sub give_editpanel_focus_back{
 # set visibility
 sub show {
 	_get()->Show( get_visibility() );
-	my $sizer = PCE::App::Window::_get()->GetSizer;
+	my $sizer = KEPHER::App::Window::_get()->GetSizer;
 	$sizer->Layout() if $sizer;
 }
 
@@ -189,7 +189,7 @@ sub switch_visibility {
 
 
 sub ensure_position{
-	my $app_win    = PCE::App::Window::_get();
+	my $app_win    = KEPHER::App::Window::_get();
 	my $sb         = _get();
 	my $main_sizer = $app_win->GetSizer;
 	#$main_sizer->Detach($sb);

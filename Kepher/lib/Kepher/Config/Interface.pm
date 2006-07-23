@@ -1,20 +1,20 @@
-package PCE::Config::Interface;
+package KEPHER::Config::Interface;
 $VERSION = '0.01';
  
 use strict;
 
 
 sub load_data {
-	my $conf = $PCE::config{'app'};
-	my $conf_path = $PCE::internal{path}{config};
+	my $conf = $KEPHER::config{'app'};
+	my $conf_path = $KEPHER::internal{path}{config};
 
 	# localisation
-	%PCE::localisation = 
-		%{ PCE::Config::File::load( $conf_path.$conf->{'localisation_file'} ) };
+	%KEPHER::localisation = 
+		%{ KEPHER::Config::File::load( $conf_path.$conf->{'localisation_file'} ) };
 	# load embedded localisation for emergency cases
-	unless (%PCE::localisation) {
-		require PCE::Config::Embedded;
-		%PCE::localisation = %{&PCE::Config::Embedded::get_english_localisation};
+	unless (%KEPHER::localisation) {
+		require KEPHER::Config::Embedded;
+		%KEPHER::localisation = %{&KEPHER::Config::Embedded::get_english_localisation};
 	}
 
 
@@ -23,9 +23,9 @@ sub load_data {
 	} else {
 	}
 
-	PCE::App::CommandList::assemble_data();
+	KEPHER::App::CommandList::assemble_data();
 	store_cache();
-	#delete $PCE::localisation {'commandlist'};
+	#delete $KEPHER::localisation {'commandlist'};
 }
 
 sub del_temp_data {

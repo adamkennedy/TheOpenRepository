@@ -1,4 +1,4 @@
-package PCE::App::EditPanel::Margin;
+package KEPHER::App::EditPanel::Margin;
 $VERSION = '0.03';
 
 # 
@@ -8,10 +8,10 @@ use Wx qw(wxSTC_STYLE_LINENUMBER wxSTC_MARGIN_SYMBOL wxSTC_MARGIN_NUMBER);
 #wxSTC_MARK_MINUS wxSTC_MARK_PLUS wxSTC_MARK_CIRCLE wxSTC_MARK_BOXPLUS
 #wxSTC_MARKNUM_FOLDEREND wxSTC_MARK_SHORTARROW
 
-sub _get_ep           {  PCE::App::EditPanel::_get() }
-sub _get_config       { $PCE::config{'editpanel'}{'margin'} }
-sub _get_line_config  { $PCE::config{'editpanel'}{'margin'}{'linenumber'} }
-sub _get_marker_config{ $PCE::config{'editpanel'}{'margin'}{'marker'} }
+sub _get_ep           {  KEPHER::App::EditPanel::_get() }
+sub _get_config       { $KEPHER::config{'editpanel'}{'margin'} }
+sub _get_line_config  { $KEPHER::config{'editpanel'}{'margin'}{'linenumber'} }
+sub _get_marker_config{ $KEPHER::config{'editpanel'}{'margin'}{'marker'} }
 
 
 sub apply_settings{
@@ -26,7 +26,7 @@ sub apply_settings{
 	$ep->SetMarginType( 2, wxSTC_MARGIN_SYMBOL );
 	$ep->SetMarginSensitive( 2, 1 );
 
-	$PCE::internal{'margin_linemax'} = 0;
+	$KEPHER::internal{'margin_linemax'} = 0;
 	show_marker();
 	apply_line_number_width();
 	apply_color();
@@ -52,14 +52,14 @@ sub set_line_number_width{
 sub apply_line_number_width {
 	my $config = _get_line_config();
 	my $width = $config->{'visible'}
-		? $config->{'width'} * $PCE::config{'editpanel'}{'font'}{'size'}
+		? $config->{'width'} * $KEPHER::config{'editpanel'}{'font'}{'size'}
 		: 0;
 	_get_ep->SetMarginWidth( 1, $width);
 	if ($config->{'autosize'} and $config->{'visible'}) {
-		PCE::App::EventList::add_call ('document.text.change', 
+		KEPHER::App::EventList::add_call ('document.text.change', 
 			'autosize_line_number', \&line_number_autosize_update);
 	} else {
-		PCE::App::EventList::del_call
+		KEPHER::App::EventList::del_call
 			('document.text.change', 'autosize_line_number');
 	}
 }
@@ -70,18 +70,18 @@ sub reset_line_number_width{
 
 	if ( $config->{'start_with_min'} ) {
 		$width = $config->{'min_width'};
-		if ((ref $PCE::document{'open'} eq 'ARRAY') and $config->{'autosize'}) {
+		if ((ref $KEPHER::document{'open'} eq 'ARRAY') and $config->{'autosize'}) {
 			my $ep = &_get_ep;
-			my $doc_nr = PCE::Document::_get_current_nr();
-			for ( 0 .. $#{ $PCE::document{'open'} } ) {
-				PCE::Document::Internal::change_pointer($_);
+			my $doc_nr = KEPHER::Document::_get_current_nr();
+			for ( 0 .. $#{ $KEPHER::document{'open'} } ) {
+				KEPHER::Document::Internal::change_pointer($_);
 				$doc_line_with = length $ep->GetLineCount;
 				$width = $doc_line_with if $doc_line_with > $width;
 			}
-			PCE::Document::Internal::change_pointer($doc_nr);
+			KEPHER::Document::Internal::change_pointer($doc_nr);
 		}
 		$config->{'width'} = $width;
-		$PCE::internal{'margin_linemax'} = 10 ** $width - 1;
+		$KEPHER::internal{'margin_linemax'} = 10 ** $width - 1;
 	}
 	apply_line_number_width();
 }
@@ -92,21 +92,21 @@ sub autosize_line_number {
 	return unless $config->{'autosize'};
 	my $need = length _get_ep->GetLineCount;
 	set_line_number_width($need) if $need > $config->{'width'};
-	$PCE::internal{'margin_linemax'} = 10 ** $need - 1;
+	$KEPHER::internal{'margin_linemax'} = 10 ** $need - 1;
 }
 sub line_number_autosize_update {
 	autosize_line_number()
-		if _get_ep->GetLineCount > $PCE::internal{'margin_linemax'};
+		if _get_ep->GetLineCount > $KEPHER::internal{'margin_linemax'};
 }
 
 sub apply_color {
 	my $ep = &_get_ep;
 	my $config = _get_line_config();
 	$ep->StyleSetForeground ( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{PCE::Config::_hex2dec_color_array
+			@{KEPHER::Config::_hex2dec_color_array
 				( $config->{'fore_color'} )}[0,1,2] ) );
 	$ep->StyleSetBackground( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{PCE::Config::_hex2dec_color_array
+			@{KEPHER::Config::_hex2dec_color_array
 				( $config->{'back_color'} )}[0,1,2] ) );
 }
 

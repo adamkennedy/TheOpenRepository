@@ -1,4 +1,4 @@
-package PCE::Edit::Format;
+package KEPHER::Edit::Format;
 $VERSION = '0.22';
 
 use strict;
@@ -10,7 +10,7 @@ use Wx qw(
 # indention
 sub _indent {
 	my $width = shift;
-	my $ep    = PCE::App::STC::_get();
+	my $ep    = KEPHER::App::STC::_get();
 	$width ||= 0;
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) + $width ) 
@@ -21,7 +21,7 @@ sub _indent {
 
 sub _dedent {
 	my $width = shift;
-	my $ep   = PCE::App::STC::_get();
+	my $ep   = KEPHER::App::STC::_get();
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) - $width )
 		for $ep->LineFromPosition($ep->GetSelectionStart)
@@ -31,12 +31,12 @@ sub _dedent {
 
 sub indent_space { _indent(1) }
 sub dedent_space { _dedent(1) }
-sub indent_tab   { _indent($PCE::document{'current'}{'tab_size'}) }
-sub dedent_tab   { _dedent($PCE::document{'current'}{'tab_size'}) }
+sub indent_tab   { _indent($KEPHER::document{'current'}{'tab_size'}) }
+sub dedent_tab   { _dedent($KEPHER::document{'current'}{'tab_size'}) }
 
 #
 sub align_indent {
-	my $ep = PCE::App::STC::_get();
+	my $ep = KEPHER::App::STC::_get();
 	my $firstline = $ep->LineFromPosition( $ep->GetSelectionStart );
 	my $align = $ep->GetLineIndentation($firstline);
 	$ep->BeginUndoAction();
@@ -47,19 +47,19 @@ sub align_indent {
 
 # deleting trailing spaces on line ends
 sub del_trailing_spaces {
-	&PCE::Edit::_save_positions;
-	my $ep = PCE::App::STC::_get();
-	my $text = PCE::Edit::_select_all_if_non();
+	&KEPHER::Edit::_save_positions;
+	my $ep = KEPHER::App::STC::_get();
+	my $text = KEPHER::Edit::_select_all_if_non();
 	$text =~ s/[ \t]+(\r|\n|\Z)/$1/g;
 	$ep->BeginUndoAction;
 	$ep->ReplaceSelection($text);
 	$ep->EndUndoAction;
-	PCE::Edit::_restore_positions();
+	KEPHER::Edit::_restore_positions();
 }
 
 #
 sub join_lines {
- my $ep = PCE::App::STC::_get();
+ my $ep = KEPHER::App::STC::_get();
  my $text = $ep->GetSelectedText();
 	$text =~ tr/\r\n//d; # delete end of line marker
 	$ep->BeginUndoAction;
@@ -71,13 +71,13 @@ sub blockformat{
 }
 
 sub blockformat_LLI{
-	blockformat( $PCE::config{editpanel}{indicator}{right_margin}{position} );
+	blockformat( $KEPHER::config{editpanel}{indicator}{right_margin}{position} );
 }
 
 sub blockformat_custom{
-	my $width = PCE::Dialog::get_text( PCE::App::Window::_get(),
-			$PCE::localisation{dialog}{edit}{wrap_width_input},
-			$PCE::localisation{dialog}{edit}{wrap_custom_headline}
+	my $width = KEPHER::Dialog::get_text( KEPHER::App::Window::_get(),
+			$KEPHER::localisation{dialog}{edit}{wrap_width_input},
+			$KEPHER::localisation{dialog}{edit}{wrap_custom_headline}
 	);
 	blockformat( $width ) if defined $width and $width;}
 
@@ -85,9 +85,9 @@ sub blockformat_custom{
 # breaking too long lines into smaller one
 sub line_break {
 	my $width = shift;
-	my $ep    = &PCE::App::STC::_get;
-	my $autoindent = $PCE::config{'editpanel'}{'auto'}{'indention'};
-	my $eol_width  = $PCE::internal{'current_doc'}{'EOL_length'};
+	my $ep    = &KEPHER::App::STC::_get;
+	my $autoindent = $KEPHER::config{'editpanel'}{'auto'}{'indention'};
+	my $eol_width  = $KEPHER::internal{'current_doc'}{'EOL_length'};
 	my ($begin_pos, $end_pos) = ( $ep->GetSelectionStart, $ep->GetSelectionEnd );
 	($begin_pos, $end_pos) = ($end_pos, $begin_pos) if $begin_pos > $end_pos;
 	my $line = $ep->LineFromPosition( $begin_pos );
@@ -108,7 +108,7 @@ sub line_break {
 		$col = $ep->GetColumn($ep->GetCurrentPos());
 		if ($col > $line_end) {
 			#$pos += $width - $col
-			PCE::Dialog::msg_box( undef,);
+			KEPHER::Dialog::msg_box( undef,);
 		} else {
 			$ep->GotoLine(++$line);
 			#next; 
@@ -137,31 +137,31 @@ sub line_break {
 	$ep->GotoPos($end_pos);
 	$ep->EndUndoAction();
 
-	#PCE::Dialog::msg_box( undef, $ep->GetColumn($ep->GetCurrentPos()).$width,     '' );
+	#KEPHER::Dialog::msg_box( undef, $ep->GetColumn($ep->GetCurrentPos()).$width,     '' );
 	# GetLineEndPosition                                                  LineLength
 	# $ep->CmdKeyExecute(wxSTC_CMD_WORDLEFT);#wxSTC_CMD_WORDRIGHT
 	
 #$ep->CmdKeyExecute(); #GetCharAt(position)   
-#$PCE::internal{'edit'}{'wordchars'}WordEndPosition(pos, onlyWordCharacters) WordStartPosition(pos, onlyWordCharacters)
+#$KEPHER::internal{'edit'}{'wordchars'}WordEndPosition(pos, onlyWordCharacters) WordStartPosition(pos, onlyWordCharacters)
 }
 
 sub linebreak_custom {
-	my $l10n = $PCE::localisation{dialog}{edit};
-	my $width = PCE::Dialog::get_text( PCE::App::Window::_get(),
+	my $l10n = $KEPHER::localisation{dialog}{edit};
+	my $width = KEPHER::Dialog::get_text( KEPHER::App::Window::_get(),
 			$l10n->{wrap_width_input}, $l10n->{wrap_custom_headline} );
 	line_break( $width ) if defined $width and $width;
 }
 
 sub linebreak_LLI {
-	line_break( $PCE::config{editpanel}{indicator}{right_margin}{position} );
+	line_break( $KEPHER::config{editpanel}{indicator}{right_margin}{position} );
 }
 
 sub linebreak_window {
-	my $app     = PCE::App::Window::_get();
-	my $ep = PCE::App::STC::_get();
+	my $app     = KEPHER::App::Window::_get();
+	my $ep = KEPHER::App::STC::_get();
 	my ($width) = $app->GetSizeWH();
 	my $pos = $ep->GetColumn($ep->PositionFromPointClose(100, 67));
-	PCE::Dialog::msg_box( $app, $pos, '' );
+	KEPHER::Dialog::msg_box( $app, $pos, '' );
 	#line_break($width);
 }
 
