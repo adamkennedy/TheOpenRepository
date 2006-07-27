@@ -33,7 +33,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -46,7 +46,8 @@ BEGIN {
 my $perl   = $^X;
 my $script = shift @ARGV;
 unless ( defined $script ) {
-	error "Did not provide a test script name";
+	print "# No file name pattern provided, using 't'...\n"
+	$script = 't';
 }
 unless ( $script =~ /\.t$/ ) {
 	# Only works in the dist-root for now
@@ -89,6 +90,9 @@ if ( has_blib ) {
 }
 
 # Hand off to the perl debugger
+unless ( Devel::Pler->is_verbose ) {
+	message( "# Debugging $script" );
+}
 handoff( join ' ', $perl, @flags, '-d', $script );
 
 =pod

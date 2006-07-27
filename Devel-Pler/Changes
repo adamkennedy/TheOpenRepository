@@ -1,5 +1,14 @@
 Revision history for Perl extension ADAMK-Debug
 
+0.12 Thu 25 Jul 2006
+	- Show the list of scripts with no params, or run script
+	  if there is only one in the t directory.
+	- When verbose is off, comment on the script name for clarity
+	- Copying the POD in the Devel::Pler for better toolchain
+	  compatibility.
+
+0.11 missing
+
 0.10 Fri 21 Jul 2006
 	- Added support for refering to scripts by a unique substring
 
