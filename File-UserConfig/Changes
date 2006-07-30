@@ -1,5 +1,9 @@
 Revision history for Perl extension File::UserConfig
 
+0.04 Sun 30 Jul 2006
+	- Getting rid of autoinstall
+	- Upgrading to Module::Install 0.63
+
 0.03 Sun  5 Feb 2006
 	- Added the module element for more accurate dir-finding
 
