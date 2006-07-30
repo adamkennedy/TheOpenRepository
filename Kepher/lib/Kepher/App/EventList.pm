@@ -1,4 +1,4 @@
-package KEPHER::App::EventList;
+package Kepher::App::EventList;
 $VERSION = '0.03';
 
 # internal app events handling
@@ -12,22 +12,22 @@ use Wx::Event qw(
 # EVT_STC_CHARADDED EVT_STC_MODIFIED
 
 # get pointer to the event list
-sub _get { $KEPHER::app{'eventlist'} }
+sub _get { $Kepher::app{'eventlist'} }
 
 
 sub init {
-	my $win = KEPHER::App::Window::_get();
-	my $ep  = KEPHER::App::EditPanel::_get();
+	my $win = Kepher::App::Window::_get();
+	my $ep  = Kepher::App::EditPanel::_get();
 
 	EVT_MENU_OPEN  ( $win,    sub { trigger('menu.open') });
 	EVT_STC_CHANGE ( $ep, -1, sub {
 		my ( $ep, $event ) = @_;
-		$KEPHER::document{'current'}{'edit_pos'} = $ep->GetCurrentPos;
+		$Kepher::document{'current'}{'edit_pos'} = $ep->GetCurrentPos;
 print "change \n";
 		trigger('document.text.change');
 	});
 	EVT_ENTER_WINDOW ($ep,    sub {
-		Wx::Window::SetFocus( $ep ) unless $KEPHER::internal{'dialog'}{'active'};
+		Wx::Window::SetFocus( $ep ) unless $Kepher::internal{'dialog'}{'active'};
 		trigger('editpanel.focus');
 	});
 }
@@ -35,7 +35,7 @@ print "change \n";
 
 sub add_call{
 	return until ref $_[2] eq 'CODE';
-	$KEPHER::app{'eventlist'}{ $_[0] }{ $_[1] } = $_[2];
+	$Kepher::app{'eventlist'}{ $_[0] }{ $_[1] } = $_[2];
 }
 
 sub trigger{
@@ -52,7 +52,7 @@ sub freeze{
 	my $list = _get();
 	for my $event (@_){
 		if (ref $list->{$event} eq 'HASH'){
-			$KEPHER::internal{'eventlist'}{$event} = $list->{$event};
+			$Kepher::internal{'eventlist'}{$event} = $list->{$event};
 			delete $list->{$event};
 		}
 	}
@@ -62,7 +62,7 @@ sub freeze_all{
 	my $list = _get();
 	for my $event (keys %$list ){
 		if (ref $list->{$event} eq 'HASH'){
-			$KEPHER::internal{'eventlist'}{$event} = $list->{$event};
+			$Kepher::internal{'eventlist'}{$event} = $list->{$event};
 			delete $list->{$event};
 		}
 	}
@@ -70,7 +70,7 @@ sub freeze_all{
 
 sub thaw{
 	my $list = _get();
-	my $store = $KEPHER::internal{'eventlist'};
+	my $store = $Kepher::internal{'eventlist'};
 	for my $event (@_){
 		if (ref $store->{$event} eq 'HASH'){
 			$list->{$event} = $store->{$event};
@@ -81,7 +81,7 @@ sub thaw{
 
 sub thaw_all{
 	my $list = _get();
-	my $store = $KEPHER::internal{'eventlist'};
+	my $store = $Kepher::internal{'eventlist'};
 	for my $event (keys %$store ){
 		if (ref $store->{$event} eq 'HASH'){
 			$list->{$event} = $store->{$event};

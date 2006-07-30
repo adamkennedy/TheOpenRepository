@@ -1,12 +1,12 @@
-package KEPHER::Edit::Comment;
+package Kepher::Edit::Comment;
 $VERSION = '0.06';
 
 use strict;
-use Wx qw(:stc);    #KEPHER::Dialog::msg_box(undef,$fr,"");+
+use Wx qw(:stc);    #Kepher::Dialog::msg_box(undef,$fr,"");+
 
 # Comment
 sub add_block {
-	my $ep = &KEPHER::App::STC::_get;
+	my $ep = &Kepher::App::STC::_get;
 	my $csymbol = shift;
 	my ( $lb, $lie );
 
@@ -25,7 +25,7 @@ sub add_block {
 }
 
 sub remove_block {
-	my $ep = &KEPHER::App::STC::_get;
+	my $ep = &Kepher::App::STC::_get;
 	my $csymbol = shift;
 	my $lp;
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart() );
@@ -42,7 +42,7 @@ sub remove_block {
 }
 
 sub toggle_block {
-	my $ep = &KEPHER::App::STC::_get;
+	my $ep = &Kepher::App::STC::_get;
 	my $csymbol  = shift;
 	my ($lb, $lie);
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart() );
@@ -60,7 +60,7 @@ sub toggle_block {
 }
 
 sub format_block {
-	my $ep = KEPHER::App::STC::_get();
+	my $ep = Kepher::App::STC::_get();
 	my $csymbol  = shift;
 	my $lp;
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart );
@@ -73,7 +73,7 @@ sub format_block {
 }
 
 sub add_stream {
-	my $ep = KEPHER::App::STC::_get();
+	my $ep = Kepher::App::STC::_get();
 	my ( $openbrace, $closebrace ) = (@_);
 	my ( $startpos, $endpos ) = $ep->GetSelection;
 	my ( $commentpos, $firstopos, $lastopos, $firstcpos, $lastcpos )
@@ -113,7 +113,7 @@ sub add_stream {
 }
 
 sub remove_stream {    #o=openposition c=closeposition
-	my $sciframe = KEPHER::App::STC::_get();
+	my $sciframe = Kepher::App::STC::_get();
 	my ( $openbrace, $closebrace ) = (@_);
 	my ( $startpos, $endpos )
 		= ( $sciframe->GetSelectionStart(), $sciframe->GetSelectionEnd() );

@@ -1,4 +1,4 @@
-package KEPHER::Dialog::Search;
+package Kepher::Dialog::Search;
 $VERSION = '0.22';
 
 use strict;
@@ -20,20 +20,20 @@ use Wx::Event qw(
 ##########################
 sub find {
 	my $d         = get_dialog();
-	my $selection = KEPHER::App::STC::_get()->GetSelectedText;
+	my $selection = Kepher::App::STC::_get()->GetSelectedText;
 	if ( length $selection > 0 and not $d->{'selection_radio'}->GetValue ) {
-		KEPHER::Edit::Search::set_find_item( $selection );
+		Kepher::Edit::Search::set_find_item( $selection );
 		$d->{'find_input'}->SetValue( $selection );
 	}
-	$d->{'replace_input'}->SetValue( KEPHER::Edit::Search::get_replace_item() );
+	$d->{'replace_input'}->SetValue( Kepher::Edit::Search::get_replace_item() );
 	Wx::Window::SetFocus( $d->{'find_input'} );
 }
 ##########################
 sub replace {
 	my $d = get_dialog();
-	my $selection = KEPHER::App::STC::_get()->GetSelectedText;
+	my $selection = Kepher::App::STC::_get()->GetSelectedText;
 	if ( length $selection > 0 and not $d->{'selection_radio'}->GetValue ) {
-		KEPHER::Edit::Search::set_replace_item( $selection );
+		Kepher::Edit::Search::set_replace_item( $selection );
 		$d->{'replace_input'}->SetValue( $selection );
 	}
 	$d->{'find_input'}->SetValue( $selection );
@@ -41,39 +41,39 @@ sub replace {
 }
 ##########################
 sub get_dialog {
-	if ( not $KEPHER::internal{'dialog'}{'search'}{'active'} ) {
+	if ( not $Kepher::internal{'dialog'}{'search'}{'active'} ) {
 
 		# prepare some internal var and for better handling
-		my $sci_frame       = &KEPHER::App::STC::_get;
-		my $attr            = $KEPHER::config{'search'}{'attribute'};
-		my $dsettings       = $KEPHER::config{'dialog'}{'search'};
-		my $label           = $KEPHER::localisation{'dialog'}{'search'}{'label'};
-		my $hint            = $KEPHER::localisation{'dialog'}{'search'}{'hint'};
+		my $sci_frame       = &Kepher::App::STC::_get;
+		my $attr            = $Kepher::config{'search'}{'attribute'};
+		my $dsettings       = $Kepher::config{'dialog'}{'search'};
+		my $label           = $Kepher::localisation{'dialog'}{'search'}{'label'};
+		my $hint            = $Kepher::localisation{'dialog'}{'search'}{'hint'};
 		my @find_history    = ();
 		my @replace_history = ();
-		my $ico_dir = $KEPHER::internal{path}{config}.$KEPHER::config{app}{iconset_path};
+		my $ico_dir = $Kepher::internal{path}{config}.$Kepher::config{app}{iconset_path};
 		my $win_style = wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 			| wxMINIMIZE_BOX | wxCLOSE_BOX;
-		$win_style |= wxSTAY_ON_TOP if $KEPHER::config{'app'}{'window'}{'stay_on_top'};
+		$win_style |= wxSTAY_ON_TOP if $Kepher::config{'app'}{'window'}{'stay_on_top'};
 		$dsettings->{'position_x'} = 10 if $dsettings->{'position_x'} < 0;
 		$dsettings->{'position_y'} = 10 if $dsettings->{'position_y'} < 0;
-		if ( $KEPHER::config{'search'}{'history'}{'use'} ) {
-			@find_history = @{ $KEPHER::config{'search'}{'history'}{'find_item'} };
-			@replace_history = @{ $KEPHER::config{'search'}{'history'}{'replace_item'} };
+		if ( $Kepher::config{'search'}{'history'}{'use'} ) {
+			@find_history = @{ $Kepher::config{'search'}{'history'}{'find_item'} };
+			@replace_history = @{ $Kepher::config{'search'}{'history'}{'replace_item'} };
 		}
 
 		# init search and replace dialog and release
-		KEPHER::Edit::Search::_refresh_search_flags();
-		$KEPHER::internal{'dialog'}{'search'}{'active'} = 1;
-		$KEPHER::internal{'dialog'}{'active'}++;
+		Kepher::Edit::Search::_refresh_search_flags();
+		$Kepher::internal{'dialog'}{'search'}{'active'} = 1;
+		$Kepher::internal{'dialog'}{'active'}++;
 
 		# make dialog window and main panel
-		my $d = $KEPHER::app{'dialog'}{'search'} = Wx::Frame->new( 
-			KEPHER::App::Window::_get(), -1, 
-			$KEPHER::localisation{'dialog'}{'search'}{'title'},
+		my $d = $Kepher::app{'dialog'}{'search'} = Wx::Frame->new( 
+			Kepher::App::Window::_get(), -1, 
+			$Kepher::localisation{'dialog'}{'search'}{'title'},
 			[ $dsettings->{'position_x'}, $dsettings->{'position_y'} ],
 			[ 436                       , 268                   ], $win_style );
-		KEPHER::App::Window::load_icon( $d, 'config/icon/app/find.ico' );
+		Kepher::App::Window::load_icon( $d, 'config/icon/app/find.ico' );
 		my $panel = Wx::Panel->new( $d, -1 );
 
 		# input boxes with labels
@@ -129,7 +129,7 @@ sub get_dialog {
 		$d->{'replace_button'} = Wx::Button->new($panel, -1, $label->{'replace_all'} );
 		$d->{'confirm_button'} = Wx::Button->new($panel, -1, $label->{'with_confirmation'} );
 		$d->{'close_button'} = Wx::Button->new($panel, -1,
-			$KEPHER::localisation{'dialog'}{'general'}{'close'} );
+			$Kepher::localisation{'dialog'}{'general'}{'close'} );
 
 		#tooltips / hints
 		if ( $dsettings->{'tooltips'} ) {
@@ -156,22 +156,22 @@ sub get_dialog {
 		EVT_KEY_DOWN($d->{'replace_input'},    \&replace_input_keyfilter );
 		EVT_TEXT($d, $d->{'find_input'},       \&incremental_search );
 		EVT_TEXT($d, $d->{'replace_input'}, sub {
-			KEPHER::Edit::Search::set_replace_item( $d->{'replace_input'}->GetValue)});
+			Kepher::Edit::Search::set_replace_item( $d->{'replace_input'}->GetValue)});
 		EVT_CHECKBOX($d, $d->{'case_box'}, sub {
 				$$attr{'match_case'} = $d->{'case_box'}->GetValue;
-				KEPHER::Edit::Search::_refresh_search_flags();
+				Kepher::Edit::Search::_refresh_search_flags();
 		} );
 		EVT_CHECKBOX($d, $d->{'begin_box'}, sub {
 				$$attr{'match_word_begin'} = $d->{'begin_box'}->GetValue;
-				KEPHER::Edit::Search::_refresh_search_flags();
+				Kepher::Edit::Search::_refresh_search_flags();
 		} );
 		EVT_CHECKBOX($d, $d->{'word_box'}, sub {
 				$$attr{'match_whole_word'} = $d->{'word_box'}->GetValue;
-				KEPHER::Edit::Search::_refresh_search_flags();
+				Kepher::Edit::Search::_refresh_search_flags();
 		} );
 		EVT_CHECKBOX($d, $d->{'regex_box'}, sub {
 				$$attr{'match_regex'} = $d->{'regex_box'}->GetValue;
-				KEPHER::Edit::Search::_refresh_search_flags();
+				Kepher::Edit::Search::_refresh_search_flags();
 		} );
 		EVT_CHECKBOX($d, $d->{'wrap_box'}, sub {
 				$$attr{'auto_wrap'} = $d->{'wrap_box'}->GetValue;
@@ -184,39 +184,39 @@ sub get_dialog {
 		EVT_RADIOBUTTON($d, $d->{'all_open_radio'}, sub {$attr->{'in'} = 'open_docs'});
 		EVT_BUTTON($d, $d->{'foreward_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::find_next();
+				Kepher::Edit::Search::find_next();
 		} );
 		EVT_BUTTON($d, $d->{'backward_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::find_prev();
+				Kepher::Edit::Search::find_prev();
 		} );
 		EVT_BUTTON($d, $d->{'fast_fore_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::fast_fore();
+				Kepher::Edit::Search::fast_fore();
 		} );
 		EVT_BUTTON($d, $d->{'fast_back_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::fast_back();
+				Kepher::Edit::Search::fast_back();
 		} );
 		EVT_BUTTON($d, $d->{'first_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::find_first();
+				Kepher::Edit::Search::find_first();
 		} );
 		EVT_BUTTON($d, $d->{'last_button'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::find_last();
+				Kepher::Edit::Search::find_last();
 		} );
 		EVT_BUTTON($d, $d->{'replace_fore'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::replace_fore();
+				Kepher::Edit::Search::replace_fore();
 		} );
 		EVT_BUTTON($d, $d->{'replace_back'}, sub {
 				&no_sel_range;
-				KEPHER::Edit::Search::replace_back();
+				Kepher::Edit::Search::replace_back();
 		} );
-		EVT_BUTTON($d, $d->{'search_button'},  sub{ &KEPHER::Edit::Search::find_first } );
-		EVT_BUTTON($d, $d->{'replace_button'}, sub{ &KEPHER::Edit::Search::replace_all } );
-		EVT_BUTTON($d, $d->{'confirm_button'}, sub{ &KEPHER::Edit::Search::replace_confirm } );
+		EVT_BUTTON($d, $d->{'search_button'},  sub{ &Kepher::Edit::Search::find_first } );
+		EVT_BUTTON($d, $d->{'replace_button'}, sub{ &Kepher::Edit::Search::replace_all } );
+		EVT_BUTTON($d, $d->{'confirm_button'}, sub{ &Kepher::Edit::Search::replace_confirm } );
 		EVT_BUTTON($d, $d->{'close_button'},   sub{ shift->Close() } );
 
 		EVT_CLOSE( $d, \&quit_search_dialog );
@@ -235,12 +235,12 @@ sub get_dialog {
 		# detecting and selecting search range
 		if ( $sci_frame->LineFromPosition( $sci_frame->GetSelectionStart )
 			!= $sci_frame->LineFromPosition( $sci_frame->GetSelectionEnd ) ) {
-			$KEPHER::config{'search'}{'attribute'}{'in'} = 'selection';
+			$Kepher::config{'search'}{'attribute'}{'in'} = 'selection';
 			$d->{'selection_radio'}->SetValue(1);
-			} elsif ( $KEPHER::config{'search'}{'attribute'}{'in'} eq 'open_docs' ) {
+			} elsif ( $Kepher::config{'search'}{'attribute'}{'in'} eq 'open_docs' ) {
 			$d->{'all_open_radio'}->SetValue(1);
 			} else {
-			$KEPHER::config{'search'}{'attribute'}{'in'} = 'document';
+			$Kepher::config{'search'}{'attribute'}{'in'} = 'document';
 			$d->{'document_radio'}->SetValue(1);
 		}
 
@@ -299,7 +299,7 @@ sub get_dialog {
 		$d->Show(1);
 		return $d;
 	} else {
-		my $d = $KEPHER::app{'dialog'}{'search'};
+		my $d = $Kepher::app{'dialog'}{'search'};
 		$d->Iconize(0);
 		$d->Raise;
 		return $d;
@@ -310,26 +310,26 @@ sub get_dialog {
 
 
 sub refresh_replace_history {
-	return unless $KEPHER::config{'search'}{'history'}{'use'};
-	my $dialog = $KEPHER::app{'dialog'}{'search'};
+	return unless $Kepher::config{'search'}{'history'}{'use'};
+	my $dialog = $Kepher::app{'dialog'}{'search'};
 	my $cb     = $dialog->{'replace_input'};
 	my $value  = $cb->GetValue;
-	$KEPHER::internal{'dialog'}{'search'}{'control'} = 1;
-	if (KEPHER::Edit::Search::get_replace_item() ne $value){
-		KEPHER::Edit::Search::set_replace_item($value);
+	$Kepher::internal{'dialog'}{'search'}{'control'} = 1;
+	if (Kepher::Edit::Search::get_replace_item() ne $value){
+		Kepher::Edit::Search::set_replace_item($value);
 		$cb->Delete(0) for 0 .. $cb->GetCount;
-		$cb->Append($_) for @{ $KEPHER::config{'search'}{'history'}{'replace_item'} };
+		$cb->Append($_) for @{ $Kepher::config{'search'}{'history'}{'replace_item'} };
 		$cb->SetValue($value);
 		$cb->SetInsertionPointEnd;
 	}
-	$KEPHER::internal{'dialog'}{'search'}{'control'} = 0;
+	$Kepher::internal{'dialog'}{'search'}{'control'} = 0;
 }
 
 sub no_sel_range {
-	my $dialog = $KEPHER::app{'dialog'}{'search'};
+	my $dialog = $Kepher::app{'dialog'}{'search'};
 	if ( $dialog->{'selection_radio'}->GetValue ) {
 		$dialog->{'document_radio'}->SetValue(1);
-		$KEPHER::config{'search'}{'attribute'}{'in'} = 'document';
+		$Kepher::config{'search'}{'attribute'}{'in'} = 'document';
 	}
 	
 	#$dialog->Refresh;
@@ -345,12 +345,12 @@ sub find_input_keyfilter {
 	if ($key_code == 13) {
 		no_sel_range();
 		if ($event->ControlDown) {
-			&KEPHER::Edit::Search::find_first;
+			&Kepher::Edit::Search::find_first;
 			$dialog->Close;
 		} elsif ( $event->ShiftDown ) {
-			&KEPHER::Edit::Search::find_prev;
+			&Kepher::Edit::Search::find_prev;
 		} else {
-			&KEPHER::Edit::Search::find_next;
+			&Kepher::Edit::Search::find_next;
 		}
 		refresh_find_history();
 	}
@@ -359,30 +359,30 @@ sub find_input_keyfilter {
 }
 
 sub refresh_find_history {
-	return unless $KEPHER::config{'search'}{'history'}{'use'};
-	my $dialog = $KEPHER::app{'dialog'}{'search'};
+	return unless $Kepher::config{'search'}{'history'}{'use'};
+	my $dialog = $Kepher::app{'dialog'}{'search'};
 	my $cb     = $dialog->{'find_input'};
 	my $value  = $cb->GetValue;
-	$KEPHER::internal{'dialog'}{'search'}{'control'} = 1;
-	if (KEPHER::Edit::Search::get_find_item() ne $value){
-		KEPHER::Edit::Search::set_find_item($value);
+	$Kepher::internal{'dialog'}{'search'}{'control'} = 1;
+	if (Kepher::Edit::Search::get_find_item() ne $value){
+		Kepher::Edit::Search::set_find_item($value);
 		$cb->Delete(0)  for 0 .. $cb->GetCount;
-		KEPHER::App::get_ref->Yield();
-		$cb->Append($_) for @{ $KEPHER::config{'search'}{'history'}{'find_item'} };
+		Kepher::App::get_ref->Yield();
+		$cb->Append($_) for @{ $Kepher::config{'search'}{'history'}{'find_item'} };
 		$cb->SetValue($value);
 		$cb->SetInsertionPointEnd;
 	}
-	$KEPHER::internal{'dialog'}{'search'}{'control'} = 0;
+	$Kepher::internal{'dialog'}{'search'}{'control'} = 0;
 }
 
 sub incremental_search {
-	my $dialog = $KEPHER::app{'dialog'}{'search'};
-	if ( $KEPHER::config{'search'}{'attribute'}{'incremental'}
-		and not $KEPHER::internal{'dialog'}{'search'}{'control'} ) {
+	my $dialog = $Kepher::app{'dialog'}{'search'};
+	if ( $Kepher::config{'search'}{'attribute'}{'incremental'}
+		and not $Kepher::internal{'dialog'}{'search'}{'control'} ) {
 		my $inputbox = $dialog->{'find_input'};
-		KEPHER::Edit::Search::set_find_item($inputbox->GetValue);
+		Kepher::Edit::Search::set_find_item($inputbox->GetValue);
 
-		if (KEPHER::Edit::Search::first_increment) {
+		if (Kepher::Edit::Search::first_increment) {
 			$inputbox->SetForegroundColour(	Wx::Colour->new( 0x00, 0x00, 0x55 ) );
 			$inputbox->SetBackgroundColour(	Wx::Colour->new( 0xff, 0xff, 0xff ) );
 		} else {
@@ -398,10 +398,10 @@ sub replace_input_keyfilter {
 	my ($dialog, $key_code) =($input->GetParent->GetParent, $event->GetKeyCode);
 	if ($key_code == 13 ) {
 		if ( $event->ControlDown ) {
-			KEPHER::Edit::Search::replace_all;
+			Kepher::Edit::Search::replace_all;
 			$dialog->Close;
 		} elsif ( $event->AltDown ) { replace_confirm($dialog) }
-		else                        { KEPHER::Edit::Search::replace_all() }
+		else                        { Kepher::Edit::Search::replace_all() }
 		refresh_find_history();
 	}
 	if ( $key_code == 27 ) { $dialog->Close }
@@ -418,7 +418,7 @@ sub foreward_keyfilter {
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
 	if ($key_code == 13 or $key_code == 32) {
-		KEPHER::Edit::Search::find_next()
+		Kepher::Edit::Search::find_next()
 	}
 	if ( $key_code == 27 ) { $win->Close }
 	if ( $key_code == 316 ) { Wx::Window::SetFocus( $win->{'close_button'} ) }
@@ -438,7 +438,7 @@ sub backward_keyfilter {
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
 	if ($key_code == 13 or $key_code == 32) {
-		KEPHER::Edit::Search::find_prev()
+		Kepher::Edit::Search::find_prev()
 	}
 	if ( $key_code ==  27 ) { $win->Close }
 	if ( $key_code == 316 ) { Wx::Window::SetFocus( $win->{'foreward_button'} ) }
@@ -457,7 +457,7 @@ sub fast_fore_keyfilter {
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
 	if ($key_code == 13 or $key_code == 32) {
-		KEPHER::Edit::Search::fast_fore()
+		Kepher::Edit::Search::fast_fore()
 	}
 	if ( $key_code == 27 )  { $win->Close }
 	if ( $key_code == 316 ) { Wx::Window::SetFocus( $win->{'range_group'} ) }
@@ -475,7 +475,7 @@ sub fast_back_keyfilter {
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
 	if ($key_code == 13 or $key_code == 32) {
-		KEPHER::Edit::Search::fast_back( $win->GetParent() );
+		Kepher::Edit::Search::fast_back( $win->GetParent() );
 	}
 	if ( $key_code == 27 ) { $win->Close }
 	if ( $key_code == 316 ) { Wx::Window::SetFocus( $win->{'fast_fore_button'} ) }
@@ -493,7 +493,7 @@ sub first_keyfilter {
 		? Wx::Window::SetFocus($win->{'close_button'})
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
-	KEPHER::Edit::Search::find_first() if $key_code == 13 or $key_code == 32;
+	Kepher::Edit::Search::find_first() if $key_code == 13 or $key_code == 32;
 	if ( $key_code ==  27 ) { $win->Close }
 	if ( $key_code == 316 ) { Wx::Window::SetFocus( $win->{'range_group'} ) }
 	if ( $key_code == 317 ) { Wx::Window::SetFocus( $win->{'fast_fore_button'} ) }
@@ -505,7 +505,7 @@ sub last_keyfilter {
 	my ($win, $event) = (shift->GetParent, shift);
 	my $key_code = $event->GetKeyCode;
 
-	KEPHER::Edit::Search::find_last() if $key_code == 13 or $key_code == 32;
+	Kepher::Edit::Search::find_last() if $key_code == 13 or $key_code == 32;
 	if ( $key_code == 9 ) {
 		$event->ShiftDown
 		? Wx::Window::SetFocus($win->{'close_button'})
@@ -527,9 +527,9 @@ sub replace_fore_keyfilter {
 			? Wx::Window::SetFocus($win->{'close_button'})
 			: Wx::Window::SetFocus($win->{'range_group'});
 	}
-	elsif ( $key_code ==  13 ) {KEPHER::Edit::Search::replace_fore()}
+	elsif ( $key_code ==  13 ) {Kepher::Edit::Search::replace_fore()}
 	elsif ( $key_code ==  27 ) {$win->Close}
-	elsif ( $key_code ==  32 ) {KEPHER::Edit::Search::replace_fore()}
+	elsif ( $key_code ==  32 ) {Kepher::Edit::Search::replace_fore()}
 	elsif ( $key_code == 316 ) {Wx::Window::SetFocus( $win->{'range_group'} )}
 	elsif ( $key_code == 317 ) {Wx::Window::SetFocus( $win->{'replace_button'} )}
 	elsif ( $key_code == 318 ) {Wx::Window::SetFocus( $win->{'replace_back'} )}
@@ -545,7 +545,7 @@ sub replace_back_keyfilter {
 		? Wx::Window::SetFocus($win->{'close_button'})
 		: Wx::Window::SetFocus($win->{'range_group'});
 	}
-	KEPHER::Edit::Search::replace_back() if $key_code == 13 or $key_code == 32;
+	Kepher::Edit::Search::replace_back() if $key_code == 13 or $key_code == 32;
 
 	if ( $key_code ==  27 ) {$win->Close}
 	if ( $key_code == 316 ) {Wx::Window::SetFocus( $win->{'replace_fore'} )}
@@ -555,17 +555,17 @@ sub replace_back_keyfilter {
 }
 
 
-sub replace_all { KEPHER::Edit::Search::replace_all() }
-sub replace_confirm { KEPHER::Edit::Search::replace_confirm() }
+sub replace_all { Kepher::Edit::Search::replace_all() }
+sub replace_confirm { Kepher::Edit::Search::replace_confirm() }
 
 sub quit_search_dialog {
 	my ( $win, $event ) = @_;
-	my $config = $KEPHER::config{'dialog'}{'search'};
+	my $config = $Kepher::config{'dialog'}{'search'};
 	($config->{'position_x'}, $config->{'position_y'} ) = $win->GetPositionXY
 		if $config->{'save_position'} == 1;
 
-	$KEPHER::internal{'dialog'}{'search'}{'active'} = 0;
-	$KEPHER::internal{'dialog'}{'active'}--;
+	$Kepher::internal{'dialog'}{'search'}{'active'} = 0;
+	$Kepher::internal{'dialog'}{'active'}--;
 	$win->Destroy();
 }
 #######################

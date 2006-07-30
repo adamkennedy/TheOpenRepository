@@ -1,4 +1,4 @@
-package KEPHER::Dialog::Exit;
+package Kepher::Dialog::Exit;
 $VERSION = '0.04';
 
 use strict;
@@ -13,21 +13,21 @@ use Wx::Event qw( EVT_BUTTON EVT_CHECKBOX EVT_CLOSE );
 sub save_on_exit {
 
 	# checking settings if i should save or quit without question
-	if    ( $KEPHER::config{'file'}{'save'}{'b4_quit'} eq '0' ) {                      return}
-	elsif ( $KEPHER::config{'file'}{'save'}{'b4_quit'} eq '1' ) {&KEPHER::File::save_all; return}
+	if    ( $Kepher::config{'file'}{'save'}{'b4_quit'} eq '0' ) {                      return}
+	elsif ( $Kepher::config{'file'}{'save'}{'b4_quit'} eq '1' ) {&Kepher::File::save_all; return}
 
 	# count unsaved dacuments?
 	my $unsaved_docs = 0;
-	for ( 0 .. KEPHER::Document::_get_last_nr() ) {
-		$unsaved_docs++ if $KEPHER::internal{'document'}{'open'}[$_]{'modified'}
+	for ( 0 .. Kepher::Document::_get_last_nr() ) {
+		$unsaved_docs++ if $Kepher::internal{'document'}{'open'}[$_]{'modified'}
 	}
 
 	# if so...
 	if ($unsaved_docs) {
-		my $localisation = $KEPHER::localisation{'dialog'}{'general'};
-		my $dialog = $KEPHER::app{'dialog'}{'exit'} = Wx::Dialog->new(
-			KEPHER::App::Window::_get(), -1,
-			$KEPHER::localisation{'dialog'}{'file'}{'quit_unsaved'},
+		my $localisation = $Kepher::localisation{'dialog'}{'general'};
+		my $dialog = $Kepher::app{'dialog'}{'exit'} = Wx::Dialog->new(
+			Kepher::App::Window::_get(), -1,
+			$Kepher::localisation{'dialog'}{'file'}{'quit_unsaved'},
 			[-1,-1], [-1,-1],
 			wxNO_FULL_REPAINT_ON_RESIZE | wxCAPTION | wxSTAY_ON_TOP,
 		);
@@ -42,13 +42,13 @@ sub save_on_exit {
 		my ( $file_name,  $check_label );
 
 		# generating checkbox list of unsaved files
-		for ( 0 .. KEPHER::Document::_get_last_nr() ) {
-			if ( $KEPHER::internal{'document'}{'open'}[$_]{'modified'} ) {
+		for ( 0 .. Kepher::Document::_get_last_nr() ) {
+			if ( $Kepher::internal{'document'}{'open'}[$_]{'modified'} ) {
 				$file_name = '';
-				$file_name = $KEPHER::document{'open'}[$_]{'path'};
+				$file_name = $Kepher::document{'open'}[$_]{'path'};
 				if ($file_name) {$check_label = 1 + $_ . ' ' . $file_name}
 				else {$check_label = 1+$_ . ' '
-						. $KEPHER::localisation{'app'}{'tabs'}{'untitled'};
+						. $Kepher::localisation{'app'}{'tabs'}{'untitled'};
 				}
 				$check_boxes[$_] = Wx::CheckBox->new($dialog, -1, $check_label);
 				$check_boxes[$_]->SetValue(1);
@@ -71,7 +71,7 @@ sub save_on_exit {
 		$dialog->{'cancel'} = Wx::Button->new($dialog, -1, $$localisation{'cancel'} );
 
 		# events
-		EVT_BUTTON( $dialog, $dialog->{'save_all'}, sub {&quit_dialog; &KEPHER::File::save_all} );
+		EVT_BUTTON( $dialog, $dialog->{'save_all'}, sub {&quit_dialog; &Kepher::File::save_all} );
 		EVT_BUTTON( $dialog, $dialog->{'save_sel'}, sub {&quit_dialog; save_selected(\@check_boxes)} );
 		EVT_BUTTON( $dialog, $dialog->{'save_none'}, sub { quit_dialog() } );
 		EVT_BUTTON( $dialog, $dialog->{'cancel'}, sub { &quit_dialog; $dialog->{'cancel'} = 1; } );
@@ -109,21 +109,21 @@ sub save_on_exit {
 ################
 sub save_selected {
 	my @check_boxes = @{ shift; };
-	my $doc_nr = &KEPHER::Document::_get_current_nr;
+	my $doc_nr = &Kepher::Document::_get_current_nr;
 	for ( 0 .. $#check_boxes ) {
 		if ( ref $check_boxes[$_] ne '' ) {
 			if ( $check_boxes[$_]->GetValue ) {
-				KEPHER::Document::Internal::change_pointer($_);
-				&KEPHER::File::save_current;
+				Kepher::Document::Internal::change_pointer($_);
+				&Kepher::File::save_current;
 			}
 		}
 	}
-	KEPHER::Document::Change::to_number($doc_nr);
+	Kepher::Document::Change::to_number($doc_nr);
 }
 
 sub quit_dialog {
 	my ( $win, $event ) = @_;
-	$KEPHER::app{'dialog'}{'exit'}->Destroy;
+	$Kepher::app{'dialog'}{'exit'}->Destroy;
 }
 
 1;

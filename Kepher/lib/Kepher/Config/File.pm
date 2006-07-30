@@ -1,14 +1,14 @@
-package KEPHER::Config::File;
+package Kepher::Config::File;
 $VERSION = '0.03';
 
 use strict;
 
 sub load {
 	my ( $configfilename, %config ) = shift;
-	my $error_msg = $KEPHER::localisation{'dialogs'}{'error'};
+	my $error_msg = $Kepher::localisation{'dialogs'}{'error'};
 	if ( -e $configfilename ) {
 		eval {
-			$KEPHER::app{config}{parser} = Config::General->new(
+			$Kepher::app{config}{parser} = Config::General->new(
 				-AutoTrue              => 1,
 				-UseApacheInclude      => 1,
 				-IncludeRelative       => 1,
@@ -19,13 +19,13 @@ sub load {
 				-ConfigFile            => $configfilename,
 				-SplitPolicy           => 'equalsign'
 			);
-			%config = $KEPHER::app{config}{parser}->getall;
+			%config = $Kepher::app{config}{parser}->getall;
 		};
-		KEPHER::Dialog::warning_box (undef,
+		Kepher::Dialog::warning_box (undef,
 			"$configfilename: \n $@", $error_msg->{'config_read'})
 				if $@ or !%config;
 	} else {
-		KEPHER::Dialog::warning_box (undef,
+		Kepher::Dialog::warning_box (undef,
 			$error_msg->{config_read}." ".$configfilename, $error_msg->{file});
 	}
 	\%config;
@@ -33,7 +33,7 @@ sub load {
 
 sub store {
 	my ( $configfilename, $config ) = @_;
-	$KEPHER::app{config}{parser}->save_file( $configfilename, $config );
+	$Kepher::app{config}{parser}->save_file( $configfilename, $config );
 }
 
 1;

@@ -1,4 +1,4 @@
-package KEPHER::App::StatusBar;
+package Kepher::App::StatusBar;
 $VERSION = '0.02';
 
 use strict;
@@ -6,36 +6,36 @@ use Wx::Event qw( EVT_LEFT_DOWN EVT_RIGHT_DOWN );
 use constant APPROOT => 'status'; 
 
 
-sub _get { $KEPHER::app{statusbar} }
+sub _get { $Kepher::app{statusbar} }
 sub _get_item {}
-sub _get_config { $KEPHER::config{'app'}{'statusbar'} }
+sub _get_config { $Kepher::config{'app'}{'statusbar'} }
 
 sub create {
 	# StatusBar settings, will be removed by stusbar config file
-	$KEPHER::internal{'app'}{'status'}{'cursor'}{'index'}    = 0;
-	$KEPHER::internal{'app'}{'status'}{'selection'}{'index'} = 1;
-	$KEPHER::internal{'app'}{'status'}{'style'}{'index'}     = 2;
-	$KEPHER::internal{'app'}{'status'}{'tab'}{'index'}       = 3;
-	$KEPHER::internal{'app'}{'status'}{'EOL'}{'index'}       = 4;
-	$KEPHER::internal{'app'}{'status'}{'message'}{'index'}   = 5;
+	$Kepher::internal{'app'}{'status'}{'cursor'}{'index'}    = 0;
+	$Kepher::internal{'app'}{'status'}{'selection'}{'index'} = 1;
+	$Kepher::internal{'app'}{'status'}{'style'}{'index'}     = 2;
+	$Kepher::internal{'app'}{'status'}{'tab'}{'index'}       = 3;
+	$Kepher::internal{'app'}{'status'}{'EOL'}{'index'}       = 4;
+	$Kepher::internal{'app'}{'status'}{'message'}{'index'}   = 5;
 
-	my $win = KEPHER::App::Window::_get();
+	my $win = Kepher::App::Window::_get();
 	$win->CreateStatusBar(1);
 	my $bar = $win->GetStatusBar;
 
 	$bar->SetFieldsCount(6);
 	if ( $^O eq 'linux' ) { $bar->SetStatusWidths( 90, 66, 60, 40, 70, -1 ) }
 	else                  { $bar->SetStatusWidths( 66, 60, 50, 25, 32, -1 ) }
-	$win->SetStatusBarPane($KEPHER::internal{'app'}{'status'}{'message'}{'index'});
+	$win->SetStatusBarPane($Kepher::internal{'app'}{'status'}{'message'}{'index'});
 
 	EVT_LEFT_DOWN ( $bar,  \&left_click);
 	EVT_RIGHT_DOWN( $bar,  \&right_click);
 
-	KEPHER::App::EventList::add_call
+	Kepher::App::EventList::add_call
 		('caret.move',           'caret_status',\&caret_pos_info);
-	KEPHER::App::EventList::add_call
+	Kepher::App::EventList::add_call
 		('document.text.change', 'status_msg',  \&refresh_info_msg);
-	KEPHER::App::EventList::add_call
+	Kepher::App::EventList::add_call
 		('editpanel.focus',      'status_msg',  \&refresh_info_msg);
 
 	show();
@@ -46,15 +46,15 @@ sub get_visibility { _get_config()->{'visible'} }
 sub switch_visibility {
 	_get_config()->{'visible'} ^= 1;
 	show();
-	KEPHER::App::Window::_get()->Layout();
+	Kepher::App::Window::_get()->Layout();
 }
-sub show { KEPHER::App::Window::_get()->GetStatusBar->Show( get_visibility() ) }
+sub show { Kepher::App::Window::_get()->GetStatusBar->Show( get_visibility() ) }
 
 sub right_click {
 	return unless get_interactive();
 	my ( $bar,    $event )  = @_;
 	my ( $x,      $y )      = ( $event->GetX, $event->GetY );
-	my $menu = \&KEPHER::App::ContextMenu::get;
+	my $menu = \&Kepher::App::ContextMenu::get;
 	if ( $^O eq 'linux' ) {
 		if    ($x < 156) {}
 		elsif ($x < 215) {$bar->PopupMenu( &$menu('status_syntaxmode'), $x, $y)}
@@ -73,17 +73,17 @@ sub left_click {
 	return unless get_interactive();
 	my ( $bar,    $event )  = @_;
 	my ( $x,      $y )      = ( $event->GetX, $event->GetY );
-	my $menu = \&KEPHER::App::ContextMenu::get;
+	my $menu = \&Kepher::App::ContextMenu::get;
 	if ( $^O eq 'linux' ) {
 		if    ($x < 156) {}
 		elsif ($x < 215) {$bar->PopupMenu(&$menu('status_syntaxmode'), $x, $y )}
-		elsif ($x < 256) {&KEPHER::Document::switch_tab_mode;}
+		elsif ($x < 256) {&Kepher::Document::switch_tab_mode;}
 		elsif ($x < 326) {$bar->PopupMenu(&$menu('status_eol')       , $x, $y )}
 		else             {next_file_info()}
 	} else {
 		if    ($x < 128) {}
 		elsif ($x < 180) {$bar->PopupMenu(&$menu('status_syntaxmode'), $x, $y )}
-		elsif ($x < 206) {&KEPHER::Document::switch_tab_mode}
+		elsif ($x < 206) {&Kepher::Document::switch_tab_mode}
 		elsif ($x < 241) {$bar->PopupMenu(&$menu('status_eol'),        $x, $y )}
 		else             {next_file_info()}
 	}
@@ -100,13 +100,13 @@ sub refresh {
 }
 
 sub caret_pos_info {
-	my $frame  = KEPHER::App::Window::_get();
-	my $ep     = KEPHER::App::STC::_get();
+	my $frame  = Kepher::App::Window::_get();
+	my $ep     = Kepher::App::STC::_get();
 	my $pos    = $ep->GetCurrentPos;
 	my $line   = $ep->LineFromPosition($pos) + 1;
 	my $lpos   = $ep->GetColumn($pos) + 1;
-	my $cindex = $KEPHER::internal{'app'}{'status'}{'cursor'}{'index'};
-	my $sindex = $KEPHER::internal{'app'}{'status'}{'selection'}{'index'};
+	my $cindex = $Kepher::internal{'app'}{'status'}{'cursor'}{'index'};
+	my $sindex = $Kepher::internal{'app'}{'status'}{'selection'}{'index'};
 	my ($value);
 
 	# caret pos display
@@ -116,7 +116,7 @@ sub caret_pos_info {
 
 	# selection or  pos % display
 	my ( $sel_beg, $sel_end ) = $ep->GetSelection;
-	if ( $KEPHER::internal{'current_doc'}{'text_selected'} ) {
+	if ( $Kepher::internal{'current_doc'}{'text_selected'} ) {
 		my $chars = $ep->GetLength;
 		if ($chars) {
 			my $value = int 100 * $pos / $chars + .5;
@@ -124,7 +124,7 @@ sub caret_pos_info {
 			$value = ' ' . $value . ' ' if $value < 100;
 			$frame->SetStatusText( "    $value%", $sindex );
 		} else { $frame->SetStatusText( "    100%", $sindex ) }
-		$KEPHER::internal{'edit'}{'selected'} = 0;
+		$Kepher::internal{'edit'}{'selected'} = 0;
 	} else {
 		if ( $ep->SelectionIsRectangle ) {
 			my $x = abs int $ep->GetColumn($sel_beg) - $ep->GetColumn($sel_end);
@@ -139,13 +139,13 @@ sub caret_pos_info {
 			my $lines = 1 + $ep->LineFromPosition($sel_end)
 			              - $ep->LineFromPosition($sel_beg);
 			my $chars = $sel_end - $sel_beg - 
-				($lines - 1) * $KEPHER::internal{'current_doc'}{'EOL_length'};
+				($lines - 1) * $Kepher::internal{'current_doc'}{'EOL_length'};
 			$lines = ' ' . $lines if $lines < 100;
 			if ($lines < 10000) { $value = "$lines : $chars" }
 			else                { $value = "$lines:$chars" }
 			$frame->SetStatusText( $value, $sindex );
 		}
-		$KEPHER::internal{'edit'}{'selected'} = 1;
+		$Kepher::internal{'edit'}{'selected'} = 1;
 	}
 	#status_msg();
 	#$sci->CallTipShow($pos-1, $match_before);
@@ -155,17 +155,17 @@ sub caret_pos_info {
 sub style_info {
 	my $style = shift;
 	if ( !$style ) {
-		my $doc_nr = &KEPHER::Document::_get_current_nr;
-		$style = $KEPHER::document{'current'}{'syntaxstyle'};
+		my $doc_nr = &Kepher::Document::_get_current_nr;
+		$style = $Kepher::document{'current'}{'syntaxstyle'};
 	}
-	KEPHER::App::Window::_get()->SetStatusText( " " . $style,
-		$KEPHER::internal{'app'}{'status'}{'style'}{'index'} );
+	Kepher::App::Window::_get()->SetStatusText( " " . $style,
+		$Kepher::internal{'app'}{'status'}{'style'}{'index'} );
 }
 
 sub tab_info {
-	my $win   = KEPHER::App::Window::_get();
-	my $mode  = KEPHER::App::STC::_get()->GetUseTabs;
-	my $index = $KEPHER::internal{'app'}{'status'}{'tab'}{'index'};
+	my $win   = Kepher::App::Window::_get();
+	my $mode  = Kepher::App::STC::_get()->GetUseTabs;
+	my $index = $Kepher::internal{'app'}{'status'}{'tab'}{'index'};
 	#$mode = 0 unless $mode;
 	$mode ? $win->SetStatusText( " HT", $index ) 
 		  : $win->SetStatusText( " ST", $index );
@@ -173,21 +173,21 @@ sub tab_info {
 
 sub EOL_info {
 	my ( $mode, $msg ) = shift;
-	$mode = $KEPHER::internal{'file'}{'current'}{'one'}{'EOL'} if !$mode;
+	$mode = $Kepher::internal{'file'}{'current'}{'one'}{'EOL'} if !$mode;
 	if    ( $mode eq 'cr'    or $mode eq 'mac' ) { $msg = " Mac" }
 	elsif ( $mode eq 'lf'    or $mode eq 'lin' ) { $msg = "Linux" }
 	elsif ( $mode eq 'cr+lf' or $mode eq 'win' ) { $msg = " Win" }
 	elsif ( $mode eq 'none'  or $mode eq 'no' )  {
-		$msg = $KEPHER::localisation{'dialog'}{'general'}{'none'};
+		$msg = $Kepher::localisation{'dialog'}{'general'}{'none'};
 	}
-	KEPHER::App::Window::_get()->SetStatusText
-		( $msg, $KEPHER::internal{'app'}{'status'}{'EOL'}{'index'} );
+	Kepher::App::Window::_get()->SetStatusText
+		( $msg, $Kepher::internal{'app'}{'status'}{'EOL'}{'index'} );
 }
 
 sub info_msg {
 	return unless $_[0];
-	KEPHER::App::Window::_get()->SetStatusText( shift,
-		$KEPHER::internal{'app'}{'status'}{'message'}{'index'}
+	Kepher::App::Window::_get()->SetStatusText( shift,
+		$Kepher::internal{'app'}{'status'}{'message'}{'index'}
 	);
 }
 
@@ -206,25 +206,25 @@ sub next_file_info {
 sub file_info {
 	my $msg = _get_config()->{'msg_nr'}
 		? _get_file_info( _get_config()->{'msg_nr'} ) : '';
-	KEPHER::App::Window::_get()->GetStatusBar->SetStatusText
-		($msg, $KEPHER::internal{'app'}{'status'}{'message'}{'index'} );
+	Kepher::App::Window::_get()->GetStatusBar->SetStatusText
+		($msg, $Kepher::internal{'app'}{'status'}{'message'}{'index'} );
 }
 
 sub _get_file_info {
 	my $selector = shift;
 	return '' unless $selector;
-	my $l10 = $KEPHER::localisation{app}{status};
+	my $l10 = $Kepher::localisation{app}{status};
 
 	# show how big file is
 	if ( $selector == 1 ) {
-		my $ep = KEPHER::App::STC::_get();
+		my $ep = Kepher::App::STC::_get();
 
 		return sprintf ' %s: %s   %s: %s',
 			$l10->{chars}, $ep->GetLength, $l10->{lines}, $ep->GetLineCount;
 
 	# show how old file is
 	} elsif ( $selector == 2 ) {
-		my $file_name = KEPHER::Document::_get_current_file_path();
+		my $file_name = Kepher::Document::_get_current_file_path();
 		if ($file_name) {
 			my @time = localtime( $^T - ( -M $file_name ) * 86300 );
 			return sprintf ' %s: %02d:%02d - %02d.%02d.%d', $l10->{last_change},

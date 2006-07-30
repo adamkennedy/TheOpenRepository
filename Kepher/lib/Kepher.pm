@@ -30,51 +30,51 @@ use Wx::DND;                    # Drag'n Drop & Clipboard support
 #use Class::Inspector ();       # Class checking
 
 # used internal modules, parts of pce
-use KEPHER::App;                   # App start&exit, namespace 4 wx related things
-use KEPHER::App::ContextMenu;      # contextmenu manager
-use KEPHER::App::EditPanel;        #
-use KEPHER::App::EditPanel::Margin;#
-use KEPHER::App::EventList;        # 
-use KEPHER::App::Events;           # -DEP mouse, keyboard events, eventtable
-use KEPHER::App::MainToolBar;      # 
-use KEPHER::App::Menu;             # base menu builder
-use KEPHER::App::MenuBar;          # main menu
-use KEPHER::App::ToolBar;          # base toolbar builder
-use KEPHER::App::SearchBar;        # Toolbar for searching and navigation
-use KEPHER::App::StatusBar;        #
-use KEPHER::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
-use KEPHER::App::Window;           # API 2 Wx::Frame and more
-use KEPHER::App::STC;              # -DEP scintilla controls
-use KEPHER::App::CommandList;      #
-use KEPHER::Config;                # low level config manipulation
-use KEPHER::Config::File;          # API 2 ConfigParser Config::General
-use KEPHER::Config::Global;        # API 4 config, general content level
-use KEPHER::Config::Interface;     #
-use KEPHER::Dialog;                # API 2 dialogs, submodules are loaded runtime
-use KEPHER::Document;              # document menu funktions
-use KEPHER::Document::Change;      # calls for changing current doc
-use KEPHER::Document::Internal;    # doc handling helper methods
-use KEPHER::Document::SyntaxMode;  # doc handling helper methods
-use KEPHER::Edit;                  # basic edit menu funktions
-use KEPHER::Edit::Comment;         # comment functions
-use KEPHER::Edit::Convert;         # convert functions
-use KEPHER::Edit::Format;          # formating functions
-use KEPHER::Edit::Goto;            # editpanel textcursor navigation
-use KEPHER::Edit::Search;          # search menu functions
-use KEPHER::Edit::Select;          # text selection
-use KEPHER::Edit::Bookmark;        # 
-use KEPHER::File;                  # file menu funktions
-use KEPHER::File::IO;              # API 2 FS, read write files
-use KEPHER::File::Session;         # session handling
-use KEPHER::Show;                  # -DEP display content: files, boxes
+use Kepher::App;                   # App start&exit, namespace 4 wx related things
+use Kepher::App::ContextMenu;      # contextmenu manager
+use Kepher::App::EditPanel;        #
+use Kepher::App::EditPanel::Margin;#
+use Kepher::App::EventList;        # 
+use Kepher::App::Events;           # -DEP mouse, keyboard events, eventtable
+use Kepher::App::MainToolBar;      # 
+use Kepher::App::Menu;             # base menu builder
+use Kepher::App::MenuBar;          # main menu
+use Kepher::App::ToolBar;          # base toolbar builder
+use Kepher::App::SearchBar;        # Toolbar for searching and navigation
+use Kepher::App::StatusBar;        #
+use Kepher::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
+use Kepher::App::Window;           # API 2 Wx::Frame and more
+use Kepher::App::STC;              # -DEP scintilla controls
+use Kepher::App::CommandList;      #
+use Kepher::Config;                # low level config manipulation
+use Kepher::Config::File;          # API 2 ConfigParser Config::General
+use Kepher::Config::Global;        # API 4 config, general content level
+use Kepher::Config::Interface;     #
+use Kepher::Dialog;                # API 2 dialogs, submodules are loaded runtime
+use Kepher::Document;              # document menu funktions
+use Kepher::Document::Change;      # calls for changing current doc
+use Kepher::Document::Internal;    # doc handling helper methods
+use Kepher::Document::SyntaxMode;  # doc handling helper methods
+use Kepher::Edit;                  # basic edit menu funktions
+use Kepher::Edit::Comment;         # comment functions
+use Kepher::Edit::Convert;         # convert functions
+use Kepher::Edit::Format;          # formating functions
+use Kepher::Edit::Goto;            # editpanel textcursor navigation
+use Kepher::Edit::Search;          # search menu functions
+use Kepher::Edit::Select;          # text selection
+use Kepher::Edit::Bookmark;        # 
+use Kepher::File;                  # file menu funktions
+use Kepher::File::IO;              # API 2 FS, read write files
+use Kepher::File::Session;         # session handling
+use Kepher::Show;                  # -DEP display content: files, boxes
 
 # internal modules / loaded when needed
-#require KEPHER::Config::Embedded; # build in emergency settings
-#require KEPHER::Dialog::Config;   # config dialog
-#require KEPHER::Dialog::Exit;     # select files to be saved while exit program
-#require KEPHER::Dialog::Info;     # info box
-#require KEPHER::Dialog::Keymap;   #
-#require KEPHER::Dialog::Search;   # find and replace dialog
+#require Kepher::Config::Embedded; # build in emergency settings
+#require Kepher::Dialog::Config;   # config dialog
+#require Kepher::Dialog::Exit;     # select files to be saved while exit program
+#require Kepher::Dialog::Info;     # info box
+#require Kepher::Dialog::Keymap;   #
+#require Kepher::Dialog::Search;   # find and replace dialog
 
 # global data
 our %app;           # ref to app parts and app data for GUI, Events, Parser
@@ -86,8 +86,8 @@ our %localisation;  # all localisation strings in your currently selected lang
 our %syntaxmode;    # -NI
 
 # Wx App Events 
-sub OnInit {&KEPHER::App::start}   # boot app: init core and load config files
-sub quit   {&KEPHER::App::exit }   # save files & settings as configured
+sub OnInit {&Kepher::App::start}   # boot app: init core and load config files
+sub quit   {&Kepher::App::exit }   # save files & settings as configured
 
 
 sub user_config {

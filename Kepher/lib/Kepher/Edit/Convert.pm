@@ -1,4 +1,4 @@
-package KEPHER::Edit::Convert;
+package Kepher::Edit::Convert;
 $VERSION = '0.08';
 
 use strict;
@@ -6,25 +6,25 @@ use Wx qw(wxSTC_CMD_UPPERCASE wxSTC_CMD_LOWERCASE wxSTC_CMD_WORDRIGHT);
 
 # Convert
 sub upper_case {
-	my $ep = &KEPHER::App::STC::_get;
-	&KEPHER::Edit::_save_positions;
-	&KEPHER::Edit::_select_all_if_non;
+	my $ep = &Kepher::App::STC::_get;
+	&Kepher::Edit::_save_positions;
+	&Kepher::Edit::_select_all_if_non;
 	$ep->CmdKeyExecute(wxSTC_CMD_UPPERCASE);
-	&KEPHER::Edit::_restore_positions;
+	&Kepher::Edit::_restore_positions;
 }
 
 sub lower_case {
-	my $ep = &KEPHER::App::STC::_get;
-	&KEPHER::Edit::_save_positions;
-	&KEPHER::Edit::_select_all_if_non;
+	my $ep = &Kepher::App::STC::_get;
+	&Kepher::Edit::_save_positions;
+	&Kepher::Edit::_select_all_if_non;
 	$ep->CmdKeyExecute(wxSTC_CMD_LOWERCASE);
-	&KEPHER::Edit::_restore_positions;
+	&Kepher::Edit::_restore_positions;
 }
 
 sub title_case {
-	my $ep = &KEPHER::App::STC::_get;
-	&KEPHER::Edit::_save_positions;
-	&KEPHER::Edit::_select_all_if_non;
+	my $ep = &Kepher::App::STC::_get;
+	&Kepher::Edit::_save_positions;
+	&Kepher::Edit::_select_all_if_non;
 	my ($sel_end, $pos) = ($ep->GetSelectionEnd, 0);
 	$ep->BeginUndoAction;
 	$ep->SetCurrentPos( $ep->GetSelectionStart - 1 );
@@ -35,15 +35,15 @@ sub title_case {
 		$ep->SetSelection( $pos, $pos + 1 );
 		$ep->CmdKeyExecute(wxSTC_CMD_UPPERCASE);
 	}
-	&KEPHER::Edit::_restore_positions;
+	&Kepher::Edit::_restore_positions;
 	$ep->EndUndoAction;
 }
 
 sub sentence_case {
-	my $ep = &KEPHER::App::STC::_get;
+	my $ep = &Kepher::App::STC::_get;
 	my $line;
-	&KEPHER::Edit::_save_positions;
-	&KEPHER::Edit::_select_all_if_non;
+	&Kepher::Edit::_save_positions;
+	&Kepher::Edit::_select_all_if_non;
 	my ($sel_end, $pos) = ($ep->GetSelectionEnd, 0);
 	$ep->BeginUndoAction;
 	$ep->SetCurrentPos( $ep->GetSelectionStart() - 1 );
@@ -62,32 +62,32 @@ sub sentence_case {
 		$ep->SearchAnchor;
 		last if $ep->SearchNext( 0, "." ) == -1 ;
 	}
-	&KEPHER::Edit::_restore_positions;
+	&Kepher::Edit::_restore_positions;
 	$ep->EndUndoAction;
 }
 
 sub spaces2tabs {
-	KEPHER::Edit::_save_positions();
-	my $ep = &KEPHER::App::STC::_get;
-	my $space = " " x $KEPHER::document{'current'}{'tab_size'};
-	my $text = KEPHER::Edit::_select_all_if_non();
+	Kepher::Edit::_save_positions();
+	my $ep = &Kepher::App::STC::_get;
+	my $space = " " x $Kepher::document{'current'}{'tab_size'};
+	my $text = Kepher::Edit::_select_all_if_non();
 	$text =~ s/$space/\t/g;
 	$ep->BeginUndoAction();
 	$ep->ReplaceSelection($text);
 	$ep->EndUndoAction();
-	KEPHER::Edit::_restore_positions();
+	Kepher::Edit::_restore_positions();
 }
 
 sub tabs2spaces {
-	KEPHER::Edit::_save_positions();
-	my $ep = &KEPHER::App::STC::_get;
-	my $space = " " x $KEPHER::document{'current'}{'tab_size'};
-	my $text = KEPHER::Edit::_select_all_if_non();
+	Kepher::Edit::_save_positions();
+	my $ep = &Kepher::App::STC::_get;
+	my $space = " " x $Kepher::document{'current'}{'tab_size'};
+	my $text = Kepher::Edit::_select_all_if_non();
 	$text =~ s/\t/$space/g;
 	$ep->BeginUndoAction;
 	$ep->ReplaceSelection($text);
 	$ep->EndUndoAction;
-	KEPHER::Edit::_restore_positions();
+	Kepher::Edit::_restore_positions();
 }
 
 1;

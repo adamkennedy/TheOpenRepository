@@ -1,4 +1,4 @@
-package KEPHER::App::ToolBar;
+package Kepher::App::ToolBar;
 $VERSION = '0.03';
 
 use strict;
@@ -6,8 +6,8 @@ use Wx qw( wxNullBitmap  wxITEM_NORMAL  wxITEM_CHECK wxSIZE);
 use Wx::Event qw( EVT_MENU );
 use constant APPROOT => 'toolbar'; 
 
-sub _get{ $KEPHER::app{(APPROOT)}{ $_[0] } }
-sub _set{ $KEPHER::app{(APPROOT)}{ $_[0] } = $_[1] if ref $_[1] eq 'Wx::ToolBar'}
+sub _get{ $Kepher::app{(APPROOT)}{ $_[0] } }
+sub _set{ $Kepher::app{(APPROOT)}{ $_[0] } = $_[1] if ref $_[1] eq 'Wx::ToolBar'}
 
 
 sub create {
@@ -39,7 +39,7 @@ sub assemble_data_from_def {
 			next if $pos == -1;
 			$item{type} = substr $item_def, 0, $pos;
 			$cmd_name = substr $item_def, $pos+1;
-			$cmd_data = KEPHER::App::CommandList::get_cmd_properties( $cmd_name );
+			$cmd_data = Kepher::App::CommandList::get_cmd_properties( $cmd_name );
 			# skipping when command call is missing
 			next unless ref $cmd_data and exists $cmd_data->{call};
 			for ('call','enable','enable_event','state', 'state_event','label','help','icon'){
@@ -59,11 +59,11 @@ sub eval_data {
 	my $bar = _get($bar_id);
 	return $bar unless ref $bar_data eq 'ARRAY';
 
-	my $win = KEPHER::App::Window::_get();
-	my $bar_item_id = exists $KEPHER::app{(APPROOT)}{item_id}
-		? $KEPHER::app{(APPROOT)}{item_id}
-		: $KEPHER::app{GUI}{masterID}++ * 100;
-	$KEPHER::app{(APPROOT)}{item_id} = $bar_item_id;
+	my $win = Kepher::App::Window::_get();
+	my $bar_item_id = exists $Kepher::app{(APPROOT)}{item_id}
+		? $Kepher::app{(APPROOT)}{item_id}
+		: $Kepher::app{GUI}{masterID}++ * 100;
+	$Kepher::app{(APPROOT)}{item_id} = $bar_item_id;
 	my $item_kind;
 
 	for my $item_data (@$bar_data){
@@ -83,7 +83,7 @@ sub eval_data {
 			EVT_MENU ($win, $item_id, $item_data->{call});
 			if (ref $item_data->{enable} eq 'CODE'){
 				$tool->Enable( $item_data->{enable}() );
-				KEPHER::App::EventList::add_call ( 
+				Kepher::App::EventList::add_call ( 
 					$item_data->{enable_event}, $tool, sub{
 						$bar->EnableTool( $item_id, $item_data->{enable}() )
 				} ) if exists $item_data->{enable_event};
@@ -91,7 +91,7 @@ sub eval_data {
 			if (ref $item_data->{state} eq 'CODE'
 				and $item_data->{type} eq 'checkitem'){
 				$bar->ToggleTool( $item_id, $item_data->{state}() );
-				KEPHER::App::EventList::add_call ( 
+				Kepher::App::EventList::add_call ( 
 					$item_data->{state_event}, $tool, sub{
 						$bar->ToggleTool( $item_id, $item_data->{state}() )
 				} ) if exists $item_data->{state_event};

@@ -1,4 +1,4 @@
-package KEPHER::Config::Embedded;
+package Kepher::Config::Embedded;
 $VERSION = '0.11';
 
 #   complete set of config to be able to start app under all circumstances
@@ -11,7 +11,7 @@ sub get_global_settings{
 	return {
 		about => {
 			purpose => 'build in global settings',
-			version => $KEPHER::VERSION,
+			version => $Kepher::VERSION,
 		},
 		app => {
 			commandlist => {
@@ -1269,9 +1269,9 @@ sub drop_xp_style_file{
  </assembly>
 EOD
 
-	open my $FILE, ">$file" or KEPHER::Dialog::warning_box(undef,
-			$KEPHER::localisation{'dialogs'}{'error'}{'file_write'}." $file",
-			$KEPHER::localisation{'dialogs'}{'error'}{'file'});
+	open my $FILE, ">$file" or Kepher::Dialog::warning_box(undef,
+			$Kepher::localisation{'dialogs'}{'error'}{'file_write'}." $file",
+			$Kepher::localisation{'dialogs'}{'error'}{'file'});
 	print $FILE $content;
 }
 

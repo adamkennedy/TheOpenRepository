@@ -1,4 +1,4 @@
-package KEPHER::App::CommandList;
+package Kepher::App::CommandList;
 $VERSION = '0.06';
 
 use strict;
@@ -7,13 +7,13 @@ use constant CFGROOT => 'commandlist';
 use Wx qw(wxBITMAP_TYPE_XPM);
 
 
-sub _get_config{ $KEPHER::config{'app'}{'commandlist'} }
+sub _get_config{ $Kepher::config{'app'}{'commandlist'} }
 
 sub assemble_data{
 	# get info from global configs and load commandlist conf file
 	my $config = _get_config();
-	my $file_name = $KEPHER::internal{path}{config} . $config->{file};
-	my $cmd_list_def = KEPHER::Config::File::load($file_name);
+	my $file_name = $Kepher::internal{path}{config} . $config->{file};
+	my $cmd_list_def = Kepher::Config::File::load($file_name);
 	if ($config->{node} and exists $cmd_list_def->{ $config->{node} }) {
 		$cmd_list_def = $cmd_list_def->{$config->{node}};
 	} else { return }#
@@ -27,8 +27,8 @@ sub assemble_data{
 	_copy_conf_values($cmd_list_def->{state_event}, 'state_event');
 	_copy_conf_values($cmd_list_def->{key},   'key');
 	_copy_conf_values($cmd_list_def->{icon},  'icon');
-	_copy_conf_values($KEPHER::localisation{(CFGROOT)}{label},'label');
-	_copy_conf_values($KEPHER::localisation{(CFGROOT)}{help}, 'help');
+	_copy_conf_values($Kepher::localisation{(CFGROOT)}{label},'label');
+	_copy_conf_values($Kepher::localisation{(CFGROOT)}{help}, 'help');
 	_create_keymap()
 }
 
@@ -37,7 +37,7 @@ sub _copy_conf_values {
 	my $root_node = shift;                # source
 	local $target_leafe = shift;
 	local ($leaf_type, $cmd_id);
-	local $list = \%{$KEPHER::app{(APPROOT)}}; # commandlist data
+	local $list = \%{$Kepher::app{(APPROOT)}}; # commandlist data
 	_parse_node($root_node, '') if ref $root_node eq 'HASH';
 }
 
@@ -57,11 +57,11 @@ sub _parse_node{
 }
 
 sub _create_keymap{
-	my $list = \%{$KEPHER::app{(APPROOT)}};
+	my $list = \%{$Kepher::app{(APPROOT)}};
 	my ($item_data, $rd, $kc, $kn, $i, $char); #rawdata, keycode
-	my $shift = $KEPHER::localisation{key}{meta}{shift}.'+';
-	my $alt   = $KEPHER::localisation{key}{meta}{alt}.'+';
-	my $ctrl  = $KEPHER::localisation{key}{meta}{ctrl}.'+';
+	my $shift = $Kepher::localisation{key}{meta}{shift}.'+';
+	my $alt   = $Kepher::localisation{key}{meta}{alt}.'+';
+	my $ctrl  = $Kepher::localisation{key}{meta}{ctrl}.'+';
 	my %keycode_map = (
 		back => 8, tab => 9, enter => 13, esc => 27, space => 32,
 		'#' => 47,
@@ -88,8 +88,8 @@ sub _create_keymap{
 				elsif ($char eq 'a') {$kn .= $alt;   $kc += 4000}
 				$rd = substr $rd, $i + 1;
 			}
-			if (exists $KEPHER::localisation{key}{$rd})
-				{$kn .= $KEPHER::localisation{key}{$rd}}
+			if (exists $Kepher::localisation{key}{$rd})
+				{$kn .= $Kepher::localisation{key}{$rd}}
 			else {$kn .= ucfirst $rd}
 			$item_data->{label} .= "\t $kn "; # adding key name to label
 			if (length ($rd)  == 1) { $kc += ord uc $rd } #
@@ -100,9 +100,9 @@ sub _create_keymap{
 }
 
 sub eval_data{
-	my $list = \%{$KEPHER::app{(APPROOT)}};
-	my $ico_dir = $KEPHER::internal{path}{config}.$KEPHER::config{app}{iconset_path};
-	my $keymap = \@{$KEPHER::app{editpanel}{keymap}};
+	my $list = \%{$Kepher::app{(APPROOT)}};
+	my $ico_dir = $Kepher::internal{path}{config}.$Kepher::config{app}{iconset_path};
+	my $keymap = \@{$Kepher::app{editpanel}{keymap}};
 
 	my ($item_data, $ico_path);
 	for (keys %$list){
@@ -129,20 +129,20 @@ sub eval_data{
 
 sub get_cmd_properties{
 	my $cmd_id = shift;
-	$KEPHER::app{(APPROOT)}{$cmd_id} if ref $KEPHER::app{(APPROOT)}{$cmd_id} eq 'HASH';
+	$Kepher::app{(APPROOT)}{$cmd_id} if ref $Kepher::app{(APPROOT)}{$cmd_id} eq 'HASH';
 }
 
 sub get_cmd_property{
 	my $cmd_id = shift;
 	my $leafe = shift;
-	$KEPHER::app{(APPROOT)}{$cmd_id}{$leafe}
-		if ref $KEPHER::app{(APPROOT)}{$cmd_id} eq 'HASH'
-		and exists $KEPHER::app{(APPROOT)}{$cmd_id}{$leafe};
+	$Kepher::app{(APPROOT)}{$cmd_id}{$leafe}
+		if ref $Kepher::app{(APPROOT)}{$cmd_id} eq 'HASH'
+		and exists $Kepher::app{(APPROOT)}{$cmd_id}{$leafe};
 }
 
 sub del_data{
-	#delete $KEPHER::localisation{'commandlist'}
-	#	if exists $KEPHER::localisation{'commandlist'};
+	#delete $Kepher::localisation{'commandlist'}
+	#	if exists $Kepher::localisation{'commandlist'};
 }
 
 #(stat $dateiname)[9]

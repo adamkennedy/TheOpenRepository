@@ -1,4 +1,4 @@
-package KEPHER::Dialog;
+package Kepher::Dialog;
 $VERSION = '0.18';
 
 use strict;
@@ -55,28 +55,28 @@ sub get_text { Wx::GetTextFromUser  ( $_[1], $_[2], "", $_[0], -1, -1, 1 ) }
 sub get_number{Wx::GetNumberFromUser( $_[1], '', $_[2],$_[3], 0, 100000, $_[0])}
 
 sub find {
-	require KEPHER::Dialog::Search;
-	&KEPHER::Dialog::Search::find;
+	require Kepher::Dialog::Search;
+	&Kepher::Dialog::Search::find;
 }
 
 sub replace {
-	require KEPHER::Dialog::Search;
-	&KEPHER::Dialog::Search::replace;
+	require Kepher::Dialog::Search;
+	&Kepher::Dialog::Search::replace;
 }
 
 sub info {
-	require KEPHER::Dialog::Info;
-	&KEPHER::Dialog::Info::combined;
+	require Kepher::Dialog::Info;
+	&Kepher::Dialog::Info::combined;
 }
 
 sub config {
-	require KEPHER::Dialog::Config;
-	&KEPHER::Dialog::Config::main;
+	require Kepher::Dialog::Config;
+	&Kepher::Dialog::Config::main;
 }
 
 sub save_on_exit {
-	require KEPHER::Dialog::Exit;
-	&KEPHER::Dialog::Exit::save_on_exit;
+	require Kepher::Dialog::Exit;
+	&Kepher::Dialog::Exit::save_on_exit;
 }
 
 1;

@@ -1,4 +1,4 @@
-package KEPHER::Dialog::Info;
+package Kepher::Dialog::Info;
 $VERSION = '0.05';
 
 use strict;
@@ -9,14 +9,14 @@ sub combined {
 	return simple();
 
 	my $info_win = Wx::Frame->new(
-		KEPHER::App::Window::_get(), -1,
+		Kepher::App::Window::_get(), -1,
 		" Info About Kepher",
 		[ 100, 100 ],
 		[ 460, 260 ],
 		wxSYSTEM_MENU | wxCAPTION | wxMINIMIZE_BOX | wxCLOSE_BOX,
 	);
-	KEPHER::App::Window::load_icon( $info_win,
-		$KEPHER::config{'app'}{'window'}{'icon'} );
+	Kepher::App::Window::load_icon( $info_win,
+		$Kepher::config{'app'}{'window'}{'icon'} );
 	$info_win->SetBackgroundColour( Wx::Colour->new( 0xed, 0xeb, 0xdb ) );
 
 	$info_win->Centre(wxBOTH);
@@ -24,7 +24,7 @@ sub combined {
 }
 
 sub simple {
-	my $info = \%{$KEPHER::localisation{'dialog'}{'info'}};
+	my $info = \%{$Kepher::localisation{'dialog'}{'info'}};
 	my $sciv = 'Scintilla ';
 	if (substr(wxVERSION_STRING ,-5) eq '2.6.2'){$sciv .= '1.62'}
 	elsif (substr(wxVERSION_STRING ,-5) eq '2.4.2'){$sciv = '1.54'}
@@ -41,9 +41,9 @@ sub simple {
 		. " - YAML $YAML::VERSION \n"
 		."\n\n $info->{dedication}"
 		. "";
-	my $title = "$info->{title} $KEPHER::NAME $KEPHER::VERSION";
-	$title .=  ' pl ' . $KEPHER::PATCHLEVEL if $KEPHER::PATCHLEVEL;
-	KEPHER::Dialog::msg_box( KEPHER::App::Window::_get(), $content, $title );
+	my $title = "$info->{title} $Kepher::NAME $Kepher::VERSION";
+	$title .=  ' pl ' . $Kepher::PATCHLEVEL if $Kepher::PATCHLEVEL;
+	Kepher::Dialog::msg_box( Kepher::App::Window::_get(), $content, $title );
 }
 
 1;

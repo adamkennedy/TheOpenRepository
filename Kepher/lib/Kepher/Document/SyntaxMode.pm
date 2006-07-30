@@ -1,4 +1,4 @@
-package KEPHER::Document::SyntaxMode;
+package Kepher::Document::SyntaxMode;
 $VERSION = '0.01';
 
 use strict;
@@ -8,21 +8,21 @@ use Wx qw(
 );
 
 # syntaxstyles
-sub set {$KEPHER::document{'current'}{'syntaxmode'} = shift }
-sub get {$KEPHER::document{'current'}{'syntaxmode'} 
-	if exists $KEPHER::document{'current'}{'syntaxmode'}
+sub set {$Kepher::document{'current'}{'syntaxmode'} = shift }
+sub get {$Kepher::document{'current'}{'syntaxmode'} 
+	if exists $Kepher::document{'current'}{'syntaxmode'}
 }
 
 sub _get_auto{ &_get_by_fileending }
 sub _get_by_fileending {
 	my $doc_nr = shift;
-	$doc_nr = KEPHER::Document::_get_current_nr unless $doc_nr;
-	my $file_ending = $KEPHER::internal{'document'}{'open'}[$doc_nr]{'ending'};
+	$doc_nr = Kepher::Document::_get_current_nr unless $doc_nr;
+	my $file_ending = $Kepher::internal{'document'}{'open'}[$doc_nr]{'ending'};
 	my $language_id;
 	chop $file_ending if $file_ending and (substr ($file_ending, -1) eq '~');
 	if ($file_ending) {
-		$language_id = $KEPHER::internal{'file'}{'end2langmap'}
-				{ KEPHER::Document::_lc_utf($file_ending) };
+		$language_id = $Kepher::internal{'file'}{'end2langmap'}
+				{ Kepher::Document::_lc_utf($file_ending) };
 	} else                                     { return "none" }
 	if ( !$language_id  or $language_id eq '') { return "none" }
 	elsif ( $language_id eq 'text' )           { return "none" }
@@ -30,7 +30,7 @@ sub _get_by_fileending {
 }
 
 sub change_to {
-	my $ep     = KEPHER::App::STC::_get();
+	my $ep     = Kepher::App::STC::_get();
 	my $style = shift;
 	$style = _get_by_fileending() if $style eq 'auto';
 	$style = 'none' unless $style;
@@ -42,7 +42,7 @@ sub change_to {
 	# clear style infos
 	$ep->StyleClearAll;
 	$ep->StyleResetDefault;
-	KEPHER::App::STC::load_font();
+	Kepher::App::STC::load_font();
 	$ep->SetKeyWords( 0, '' );
 
 	# load syntax style
@@ -53,27 +53,27 @@ sub change_to {
 	}
 
 	# restore bracelight, bracebadlight indentguide colors
-	my $bracelight = \%{ $KEPHER::config{'editpanel'}{'indicator'}{'bracelight'} };
+	my $bracelight = \%{ $Kepher::config{'editpanel'}{'indicator'}{'bracelight'} };
 	if ( $bracelight->{'visible'} ) {
 		$ep->StyleSetBold( wxSTC_STYLE_BRACELIGHT, 1 );
 		$ep->StyleSetBold( wxSTC_STYLE_BRACEBAD,   1 );
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACELIGHT, Wx::Colour->new(
-			@{ KEPHER::Config::_hex2dec_color_array( $bracelight->{'good_color'}
+			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'good_color'}
 		)} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACEBAD, Wx::Colour->new(
-			@{ KEPHER::Config::_hex2dec_color_array( $bracelight->{'bad_color'}
+			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'bad_color'}
 		)} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_INDENTGUIDE, Wx::Colour->new(
-			@{ KEPHER::Config::_hex2dec_color_array(
-						$KEPHER::config{editpanel}{indicator}{indent_guide}{color}
+			@{ Kepher::Config::_hex2dec_color_array(
+						$Kepher::config{editpanel}{indicator}{indent_guide}{color}
 		)} ));
 	}
 
 	# cleanup
 	set($style);
 	$ep->Colourise( 0, $ep->GetTextLength );# refreh editpanel painting
-	KEPHER::App::EditPanel::Margin::apply_color();
-	KEPHER::App::StatusBar::style_info($style);
+	Kepher::App::EditPanel::Margin::apply_color();
+	Kepher::App::StatusBar::style_info($style);
 	return $style;
 }
 

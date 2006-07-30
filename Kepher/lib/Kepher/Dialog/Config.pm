@@ -1,4 +1,4 @@
-package KEPHER::Dialog::Config;
+package Kepher::Dialog::Config;
 $VERSION = '0.15';
 
 use strict;
@@ -16,27 +16,27 @@ use Wx::Event
 	qw(EVT_KEY_DOWN EVT_TEXT EVT_BUTTON EVT_CHECKBOX EVT_RADIOBUTTON EVT_CLOSE);
 
 sub main {
-	my $frame = $KEPHER::internal{'mainframe'};
-	if ( !$KEPHER::internal{'config'}{'dialog_active'}
-		|| $KEPHER::internal{'config'}{'dialog_active'} == 0 ) {
+	my $frame = $Kepher::internal{'mainframe'};
+	if ( !$Kepher::internal{'config'}{'dialog_active'}
+		|| $Kepher::internal{'config'}{'dialog_active'} == 0 ) {
 
 		# init search and replace dialog
-		my $ico_dir = $KEPHER::internal{path}{config} . 'icon/set/jenne/';
-		$KEPHER::internal{'config'}{'dialog_active'} = 1;
+		my $ico_dir = $Kepher::internal{path}{config} . 'icon/set/jenne/';
+		$Kepher::internal{'config'}{'dialog_active'} = 1;
 
 		# making window & main design
 		my $config_win = Wx::Frame->new(
 			$frame, -1,
-			' ' . $KEPHER::localisation{'dialog'}{'settings'}{'title'},
-			[            $KEPHER::config{'dialog'}{'config'}{'position_x'},
-				$KEPHER::config{'dialog'}{'config'}{'position_y'}
+			' ' . $Kepher::localisation{'dialog'}{'settings'}{'title'},
+			[            $Kepher::config{'dialog'}{'config'}{'position_x'},
+				$Kepher::config{'dialog'}{'config'}{'position_y'}
 			],
 			[ 440, 460 ],
 			wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 				| wxMINIMIZE_BOX | wxCLOSE_BOX,
 		);
-		&KEPHER::App::Window::load_icon( $config_win,
-			$KEPHER::config{'main'}{'icon'} );
+		&Kepher::App::Window::load_icon( $config_win,
+			$Kepher::config{'main'}{'icon'} );
 
 		my $config_main
 			= Wx::Panel->new( $config_win, -1, [ 0, 0 ], [ 480, 460 ],, );
@@ -89,21 +89,21 @@ sub main {
 		);
 		my $program_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$KEPHER::localisation{'dialog'}{'settings'}{'panel'}{'general'},
+			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'general'},
 			[ 0,  56 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
 		);
 		my $edit_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$KEPHER::localisation{'dialog'}{'settings'}{'panel'}{'edit'},
+			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'edit'},
 			[ 0,  129 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
 		);
 		my $file_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$KEPHER::localisation{'dialog'}{'settings'}{'panel'}{'files'},
+			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'files'},
 			[ 0,  201 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
@@ -112,28 +112,28 @@ sub main {
 		#
 		$config_win->{'apply_button'} = Wx::Button->new(
 			$config_main, -1,
-			$KEPHER::localisation{'dialog'}{'general'}{'apply'},
+			$Kepher::localisation{'dialog'}{'general'}{'apply'},
 			[ 83, 392 ],
 			[ 80, -1 ],
 			,,
 		);
 		$config_win->{'save_button'} = Wx::Button->new(
 			$config_main, -1,
-			$KEPHER::localisation{'dialog'}{'general'}{'save'},
+			$Kepher::localisation{'dialog'}{'general'}{'save'},
 			[ 172, 392 ],
 			[ 76,  -1 ],
 			,,
 		);
 		$config_win->{'restore_button'} = Wx::Button->new(
 			$config_main, -1,
-			$KEPHER::localisation{'dialog'}{'general'}{'restore'},
+			$Kepher::localisation{'dialog'}{'general'}{'restore'},
 			[ 257, 392 ],
 			[ 80,  -1 ],
 			,,
 		);
 		$config_win->{'cancel_button'} = Wx::Button->new(
 			$config_main, -1,
-			$KEPHER::localisation{'dialog'}{'general'}{'cancel'},
+			$Kepher::localisation{'dialog'}{'general'}{'cancel'},
 			[ 346, 392 ],
 			[ 76,  -1 ],
 			,,
@@ -171,13 +171,13 @@ sub main {
 
 		sub quit_config_dialog {
 			my ( $win, $event ) = @_;
-			if ( $KEPHER::config{'dialog'}{'config'}{'save_position'} == 1 ) {
-				(               $KEPHER::config{'dialog'}{'config'}{'position_x'},
-					$KEPHER::config{'dialog'}{'config'}{'position_y'}
+			if ( $Kepher::config{'dialog'}{'config'}{'save_position'} == 1 ) {
+				(               $Kepher::config{'dialog'}{'config'}{'position_x'},
+					$Kepher::config{'dialog'}{'config'}{'position_y'}
 					)
 					= $win->GetPositionXY();
 			}
-			$KEPHER::internal{'config'}{'dialog_active'} = 0;
+			$Kepher::internal{'config'}{'dialog_active'} = 0;
 			$win->Destroy();
 		}
 

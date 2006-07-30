@@ -1,4 +1,4 @@
-package KEPHER::Config;
+package Kepher::Config;
 our $VERSION = '0.27';
 # low level config manipulation
 use strict;
@@ -57,12 +57,12 @@ sub _hex2dec_color_array {
 sub set_xp_style {
 	my $xp_def_file = "$^X.manifest";
 	if ( $^O eq 'MSWin32' ) {
-		if (    ( $KEPHER::config{'app'}{'xp_style'} eq '1' )
+		if (    ( $Kepher::config{'app'}{'xp_style'} eq '1' )
 			and ( !-r $xp_def_file ) ) {
-			require KEPHER::Config::Embedded;
-			&KEPHER::Config::Embedded::drop_xp_style_file($xp_def_file);
+			require Kepher::Config::Embedded;
+			&Kepher::Config::Embedded::drop_xp_style_file($xp_def_file);
 		}
-		if (    ( $KEPHER::config{'app'}{'xp_style'} eq '0' )
+		if (    ( $Kepher::config{'app'}{'xp_style'} eq '0' )
 			and ( -r $xp_def_file ) ) {
 			unlink $xp_def_file;
 		}
@@ -70,37 +70,37 @@ sub set_xp_style {
 }
 
 sub _build_fileendings2syntaxstyle_map {
-	foreach ( keys %{ $KEPHER::config{'file'}{'endings'} } ) {
+	foreach ( keys %{ $Kepher::config{'file'}{'endings'} } ) {
 		my $language_id = $_;
 		my @fileendings
-			= split( /\s+/, $KEPHER::config{'file'}{'endings'}{$language_id} );
+			= split( /\s+/, $Kepher::config{'file'}{'endings'}{$language_id} );
 		foreach (@fileendings) {
-			$KEPHER::internal{'file'}{'end2langmap'}{$_} = $language_id;
+			$Kepher::internal{'file'}{'end2langmap'}{$_} = $language_id;
 		}
 	}
 }
 
 sub _build_fileendings_filterstring {
-	my $files = $KEPHER::localisation{'dialog'}{'file'}{'files'};
-	my $all   = "$KEPHER::localisation{dialog}{general}{all} $files (*.*)|*.*";
-	$KEPHER::internal{'file'}{'filterstring'}{'all'} = $all;
-	foreach ( keys %{ $KEPHER::config{'file'}{'filter'} } ) {
+	my $files = $Kepher::localisation{'dialog'}{'file'}{'files'};
+	my $all   = "$Kepher::localisation{dialog}{general}{all} $files (*.*)|*.*";
+	$Kepher::internal{'file'}{'filterstring'}{'all'} = $all;
+	foreach ( keys %{ $Kepher::config{'file'}{'filter'} } ) {
 		my ( $filter_id, $file_filter ) = ( $_, '' );
 		my $filtername = ucfirst($filter_id);
 		my @language_ids
-			= split( /\s+/, $KEPHER::config{'file'}{'filter'}{$filter_id} );
+			= split( /\s+/, $Kepher::config{'file'}{'filter'}{$filter_id} );
 		foreach (@language_ids) {
 			my @fileendings
-				= split( /\s+/, $KEPHER::config{'file'}{'endings'}{$_} );
+				= split( /\s+/, $Kepher::config{'file'}{'endings'}{$_} );
 			foreach (@fileendings) { $file_filter .= "*.$_;"; }
 		}
 		chop($file_filter);
-		$KEPHER::internal{'file'}{'filterstring'}{'all'}
+		$Kepher::internal{'file'}{'filterstring'}{'all'}
 			.= "|$filtername $files ($file_filter)|$file_filter";
 	}
-	$KEPHER::internal{'file'}{'filterstring'}{'config'}
+	$Kepher::internal{'file'}{'filterstring'}{'config'}
 		= "Config $files (*.conf)|*.conf|$all";
-	$KEPHER::internal{'file'}{'filterstring'}{'scite'}
+	$Kepher::internal{'file'}{'filterstring'}{'scite'}
 		= "Scite $files (*.ses)|*.ses|$all";
 }
 
