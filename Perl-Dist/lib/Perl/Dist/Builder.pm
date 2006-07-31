@@ -1,6 +1,6 @@
 package Perl::Dist::Builder;
 
-$VERSION = "0.000002";
+$VERSION = "0.000003";
 use strict;
 use warnings; 
 
@@ -22,7 +22,6 @@ use File::Spec::Unix; # for canonpath
 use HTTP::Status;
 use IPC::Run3;
 use LWP::UserAgent;
-use Perl6::Say;
 use Tie::File;
 use YAML ();
 
@@ -33,14 +32,12 @@ use YAML ();
 use constant COMPRESSED => 1;
 
 #--------------------------------------------------------------------------#
-# Exporting
+# Helper functions
 #--------------------------------------------------------------------------#
 
-use Sub::Exporter -setup => {
-    exports => [
-        qw/ get_binaries build_perl build_modules copy_extra full_build /,
-    ],
-};
+sub say {
+    print @_, "\n";
+}
 
 #--------------------------------------------------------------------------#
 # API Functions

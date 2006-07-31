@@ -1,5 +1,10 @@
 Revision history for Perl module Perl::Dist
 
+0.000003 in progress
+
+    - Removed Sub::Exporter from dependencies (not used), removed
+      Perl6::Say from dependencies (build problems)
+    
 0.000002 Mon Jul 10 07:47:09 EDT 2006
 
     - Forgot to switch Builder.pm to YAML from YAML::Syck

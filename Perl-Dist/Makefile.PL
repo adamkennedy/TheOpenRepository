@@ -20,8 +20,6 @@ requires    'IPC::Run3'         => 0.034;
 requires    'LWP::UserAgent'    => 2.033;
 requires    'Perl6::Say'        => 0.04;
 requires    'Tie::File'         => 0;
-requires    'Sub::Exporter'     => 0.966;
 requires    'YAML'              => 0.62;
 
-auto_install;
 WriteAll;
