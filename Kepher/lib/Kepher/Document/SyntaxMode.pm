@@ -29,6 +29,8 @@ sub _get_by_fileending {
 	return $language_id;
 }
 
+sub reload { change_to( get() ) }
+
 sub change_to {
 	my $ep     = Kepher::App::STC::_get();
 	my $style = shift;

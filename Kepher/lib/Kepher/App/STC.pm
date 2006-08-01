@@ -220,8 +220,8 @@ sub change_font {
 		$$font_config{'style'}  = 'slant' if $fontstyle == wxSLANT;
 		$$font_config{'style'}  = 'italic' if $fontstyle == wxITALIC;
 		&load_font;
-		&load_number_margin;
-		&Kepher::Document::select_syntaxstyle('auto');
+		Kepher::Document::SyntaxMode::reload();
+		Kepher::App::EditPanel::Margin::apply_line_number_width();
 	}
 }
 
