@@ -5,13 +5,13 @@ editpanel_contextmenu:
  - item edit-paste
  - item select-document
  -
+ - item goto-last-edit
+ - item view-dialog-find
+ -
  - item file-save
  - item file-open
  -
  - item file-close
- -
- - item find-dialog
- - item goto-last-edit
 
 textselection_contextmenu:
  - item edit-copy

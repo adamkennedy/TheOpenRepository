@@ -2,8 +2,8 @@ main_toolbar:
  - item file-new
  - item file-open
  - item file-close#
- - item file-save
  - item file-save-all
+ - item file-save
  -
  - item edit-records-undo
  - item edit-records-redo
@@ -22,7 +22,7 @@ main_toolbar:
  - item view-dialog-config#
 
 searchbar:
- - item searchbar-switch-visibility
+ - item view-toolbar-search
  - combobox find 140
  - item find-mark-all#
  - item find-prev
@@ -31,7 +31,7 @@ searchbar:
  - item goto-last-edit
  -
  - item goto-line#
- - item dialog-find
+ - item view-dialog-find
 
 statusbar:
  - textpanel cursor_pos

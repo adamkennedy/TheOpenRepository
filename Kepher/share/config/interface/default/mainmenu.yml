@@ -7,7 +7,8 @@ full_menubar:
       - item file-reload-all
       - item file-insert
       -
-      - menu &file_history
+      - menu file_history
+      -
       - file_session:
           - item file-session-open
           - item file-session-add
@@ -77,11 +78,11 @@ full_menubar:
           -
           - item edit-selection-format-join-lines
           -
-          - item edit-selection-format-block-on-right-margin
-          - item edit-selection-format-block-on-width
-          - item edit-selection-format-linebreaks-on-right-margin
-          - item edit-selection-format-linebreaks-on-width
-          -
+          - item edit-selection-format-block-on-right-margin#
+          - item edit-selection-format-block-on-width#
+          - item edit-selection-format-linebreaks-on-right-margin#
+          - item edit-selection-format-linebreaks-on-width#
+          - l#
           - item edit-selection-format-del-trailing-whitespace
       - selection_comment:
           - item edit-selection-comment-add-perl
@@ -313,7 +314,8 @@ full_menubar:
           - item config-file-interface-commandlist
           - item config-file-interface-menubar
           - item config-file-interface-contextmenu
-          - item config-file-interface-maintoolbar
+          - item config-file-interface-toolbar
+          - item config-file-interface-maintoolbar#
           - item config-file-interface-searchbar#
           - item config-file-interface-statusbar#
       - config_localisation:
