@@ -20,8 +20,8 @@ BEGIN {
 	$STANDALONE = 1;
 
 	%pathes = (
-		config => 'config/',
-		help   => 'help/',
+		config => 'share/config/',
+		help   => 'share/help/',
 	);
 
 	if  ($^O eq 'MSWin32') {

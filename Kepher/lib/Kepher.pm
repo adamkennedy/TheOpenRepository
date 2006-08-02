@@ -6,7 +6,7 @@ use 5.006;
 use strict;
 
 our $NAME       = 'Kepher';     # name of entire applikation
-our $VERSION    = '0.3.3.1';    # program - version
+our $VERSION    = '0.3.3.2';    # program - version
 our @ISA        = 'Wx::App';    # $NAME is a wx application
 
 # used external modules (loaded at start)

@@ -23,7 +23,7 @@ sub init {
 	EVT_STC_CHANGE ( $ep, -1, sub {
 		my ( $ep, $event ) = @_;
 		$Kepher::document{'current'}{'edit_pos'} = $ep->GetCurrentPos;
-print "change \n";
+#print "change \n";
 		trigger('document.text.change');
 	});
 	EVT_ENTER_WINDOW ($ep,    sub {
