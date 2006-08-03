@@ -2,6 +2,8 @@
 # Version 1.63  Date: 2006/08/03 (Adam Kennedy)
 #========================================================================
 
+* Unified version numbers and removed repository magic
+
 * Removed "use warnings" to get the Perl version dependency back to 5.005
 
 * Removed "use base Exporter" which doesn't always work
