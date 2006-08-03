@@ -415,7 +415,7 @@ sub _expand {
 		    }
 		} else {
 		    # determine home directory 
-		    $val = $self->{ HOME })) {
+		    $val = $self->{ HOME };
 		}
 
 		# catch-all for undefined $dir
