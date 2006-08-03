@@ -412,9 +412,12 @@ sub _expand {
 		} else {
 		    # determine home directory 
 		    unless (defined($val = $self->{ HOME })) {
-			# Find the home directory and cache
-			$self->{ HOME } = File::HomeDir->my_home
+			# Find the home directory
+			$val = File::HomeDir->my_home
 				or die "Failed to locate home directory";
+
+			# Save it for next time
+			$self->{ HOME } = $var;
 		    }
 		}
 
