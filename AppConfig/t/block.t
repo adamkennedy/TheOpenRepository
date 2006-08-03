@@ -1,3 +1,5 @@
+#!/usr/bin/perl -w
+
 #========================================================================
 #
 # t/block.t 
@@ -19,7 +21,6 @@ use vars qw($loaded);
 use AppConfig qw(:expand :argcount);
 use AppConfig::File;
 use Test::More tests => 7;
-$^W = 1;
 
 
 #------------------------------------------------------------------------

@@ -18,10 +18,13 @@ package AppConfig::Sys;
 
 require 5.004;
 use strict;
-use vars qw( $VERSION $AUTOLOAD $OS %CAN %METHOD);
+use vars qw( $AUTOLOAD $OS %CAN %METHOD);
 use POSIX qw( getpwnam getpwuid );
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.61 $ =~ /(\d+)\.(\d+)/);
+use vars qw( $VERSION );
+BEGIN {
+	$VERSION = '1.63';
+}
 
 BEGIN {
     # define the methods that may be available

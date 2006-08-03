@@ -16,13 +16,21 @@
 
 package AppConfig::File;
 
+use strict;
+
 require 5.005;
+
 use AppConfig;
 use AppConfig::State;
-use strict;
-use vars qw( $VERSION );
+use File::HomeDir;
 
-$VERSION = sprintf("%d.%02d", q$Revision: 1.62 $ =~ /(\d+)\.(\d+)/);
+use vars qw( $VERSION );
+BEGIN {
+	$VERSION = '1.63';
+}
+
+
+
 
 
 #------------------------------------------------------------------------
@@ -401,19 +409,12 @@ sub _expand {
 		    if ($sys->can_getpwnam()) {
 			$val = ($sys->getpwnam($var))[7];
 		    }
-		}
-		else {
+		} else {
 		    # determine home directory 
 		    unless (defined($val = $self->{ HOME })) {
-			if (exists $ENV{ HOME }) {
-			    $val = $ENV{ HOME };
-			}
-			elsif ($sys->can_getpwuid()) {
-			    $val = ($sys->getpwuid($<))[7];
-			}
-
-			# cache value for next time
-			$self->{ HOME } = $val;
+			# Find the home directory and cache
+			$self->{ HOME } = File::HomeDir->my_home
+				or die "Failed to locate home directory";
 		    }
 		}
 
