@@ -6,8 +6,11 @@
 
 * Removed "use base Exporter" which doesn't always work
 
-* Use File::HomeDir to find $HOME instead of doing it ourself
+* Use File::HomeDir to find $HOME instead of doing it ourself, sorta
 
+* Fixed a POD bug in AppConfig::Sys and added a 99_pod.t test
+
+* Added a LICENSE file
 
 #========================================================================
 # Version 1.56  Date: 2004/02/04
