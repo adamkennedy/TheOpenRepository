@@ -33,7 +33,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.13';
 }
 
 
@@ -46,7 +46,7 @@ BEGIN {
 my $perl   = $^X;
 my $script = shift @ARGV;
 unless ( defined $script ) {
-	print "# No file name pattern provided, using 't'...\n"
+	print "# No file name pattern provided, using 't'...\n";
 	$script = 't';
 }
 unless ( $script =~ /\.t$/ ) {

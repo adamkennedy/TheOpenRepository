@@ -1,4 +1,8 @@
-Revision history for Perl extension ADAMK-Debug
+Revision history for Perl extension Devel-Pler
+
+0.13 Thu  3 Aug 2006
+	- Bug fixes
+	  (I honestly don't know his this crap gets out to CPAN)
 
 0.12 Thu 25 Jul 2006
 	- Show the list of scripts with no params, or run script
