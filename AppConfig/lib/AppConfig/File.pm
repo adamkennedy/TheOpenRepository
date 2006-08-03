@@ -56,9 +56,13 @@ sub new {
 
     bless $self, $class;
 
+    # Find the home directory
+    my $home = File::HomeDir->my_home
+        or die "Failed to locate HOME directory";
+    $self->{ HOME } = $home;
+
     # call parse(@_) to parse any files specified as further params
-    $self->parse(@_)
-	if @_;
+    $self->parse(@_) if @_;
 
     return $self;
 }
@@ -411,14 +415,7 @@ sub _expand {
 		    }
 		} else {
 		    # determine home directory 
-		    unless (defined($val = $self->{ HOME })) {
-			# Find the home directory
-			$val = File::HomeDir->my_home
-				or die "Failed to locate home directory";
-
-			# Save it for next time
-			$self->{ HOME } = $var;
-		    }
+		    $val = $self->{ HOME })) {
 		}
 
 		# catch-all for undefined $dir
@@ -457,8 +454,11 @@ sub _expand {
 		# expand the variable if defined
 		if (exists $ENV{ $var }) {
 		    $val = $ENV{ $var };
-		}
-		else {
+		} elsif ( $var eq 'HOME' ) {
+		    # In the special case of HOME, if not set
+		    # use the internal version
+		    $val = $self->{ HOME };
+		} else {
 		    # raise a warning if EXPAND_WARN set
 		    if ($expand & AppConfig::EXPAND_WARN) {
 			$state->_error("$var: no such environment variable");
