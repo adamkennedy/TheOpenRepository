@@ -1,7 +1,6 @@
 package Perl::Dist::Vanilla::Build;
-$VERSION = 6;
+$VERSION = 7;
 use strict;
-use warnings;
 
 1;
 __END__

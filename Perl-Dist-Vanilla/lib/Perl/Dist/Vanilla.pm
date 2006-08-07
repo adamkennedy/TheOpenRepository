@@ -1,5 +1,5 @@
 package Perl::Dist::Vanilla;
-$VERSION = '6'; # build number
+$VERSION = '7'; # build number
 
 use strict;
 use warnings;
