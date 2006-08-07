@@ -213,14 +213,18 @@ sub install_modules {
     my @build_queue;
     my %saw_dist;
 
-    my $url_prefix = "http://search.cpan.org/CPAN/authors/id/";
+    my $url_prefix = "http://mirrors.kernel.org/CPAN/authors/id/";
 
     for my $mod ( @$modules ) {
         my $mod_type = $mod->{type} || 'Module';
         # figure out the dist for the module
-        my $mod_info = CPAN::Shell->expand( $mod_type, $mod->{name})
+        my $mod_info = CPAN::Shell->expandany( $mod->{name})
             or die "Couldn't expand ", $mod->{name};
-        my $cpan_file = $mod_info->cpan_file();
+        my $cpan_file = 
+            ref $mod_info eq 'CPAN::Module' ? $mod_info->cpan_file() :
+            ref $mod_info eq 'CPAN::Distribution' ? $mod_info->id() :
+            $mod->{name};
+
         next if $saw_dist{ $cpan_file }++;
 
         # download
