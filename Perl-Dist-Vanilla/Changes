@@ -1,5 +1,12 @@
 Revision history for Vanilla Perl
 
+Build 7:
+
+    - Added mingw32-make binary to mingw
+
+    - Installs CPAN-1.87_55 for better handling of missing command line
+      programs and no unnecessary prompting for Module::Signature
+
 Build 6: Sun Jul  9 16:59:55 EDT 2006
 
     - switched to Perl::Dist::Builder as the generator and Module::Install

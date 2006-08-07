@@ -2,7 +2,7 @@
 ---
 # package info
 package_name:       Vanilla Perl
-package_version:    6
+package_version:    7
 
 # directories
 download_dir:   c:\temp\vp_sources
@@ -29,6 +29,11 @@ binary:
     
     -   name: gcc-g++
         url: http://umn.dl.sourceforge.net/mingw/gcc-g++-3.4.5-20060117-1.tar.gz
+        license:
+        install_to: mingw
+
+    -   name: mingw32-make
+        url: http://umn.dl.sourceforge.net/mingw/mingw32-make-3.81-1.tar.gz 
         license:
         install_to: mingw
 
@@ -68,10 +73,8 @@ source:
 
 # Additional modules to bundle in site\lib
 modules:
-    -   name: Win32::Job    
-        # i.e. not used, but gets us the libwin32 dist
-        unpack_to:
-            APIFile: Win32API-File
+    -   name: ANDK/CPAN-1.87_55.tar.gz 
+    -   name: Win32API::File
     -   name: IO
         force: 1
     -   name: Compress::Zlib
