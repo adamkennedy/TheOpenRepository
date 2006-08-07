@@ -1,11 +1,11 @@
 Revision history for Perl module Perl::Dist
 
-0.000003 in progress
+0.000003 Mon Aug  7 07:23:55 EDT 2006
 
-    - Added support for dist names to modules section
-    - Removed Sub::Exporter from dependencies (not used), removed
-      Perl6::Say from dependencies (build problems)
-    
+    - Added support for distributions names to modules section
+      to allow installation of developer releases (e.g. CPAN)
+    - Removed Sub::Exporter from dependencies (not used)    
+
 0.000002 Mon Jul 10 07:47:09 EDT 2006
 
     - Forgot to switch Builder.pm to YAML from YAML::Syck
