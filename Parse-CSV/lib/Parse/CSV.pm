@@ -57,7 +57,7 @@ use strict;
 use Carp         ();
 use IO::File     ();
 use Text::CSV_XS ();
-use Params::Util qw{ _STRING _ARRAY _CALLABLE _HANDLE };
+use Params::Util qw{ _STRING _ARRAY _HASH0 _CALLABLE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -130,8 +130,8 @@ Returns a new L<Parse::CSV> object, or throws an exception (dies) on error.
 sub new {
 	my $class = shift;
 	my $self  = bless { @_,
-		row   => 0,
-		error => '',
+		row    => 0,
+		errstr => '',
 		}, $class;
 
 	# Do we have a file name
@@ -175,12 +175,20 @@ sub new {
 	# Handle automatic fields
 	if ( _STRING($self->{fields}) and lc($self->{fields}) eq 'auto' ) {
 		# Grab the first line
-		$self->{row}++;
-		my $fields = $self->{cvs_xs}->getline( $self->{handle} );
-		unless ( $fields ) {
+		my $line = $self->_getline;
+		unless ( defined $line ) {
 			Carp::croak("Failed to get header line from CSV");
 		}
-		$self->{fields} = $fields;
+
+		# Parse the line into columns
+		unless ( $self->{csv_xs}->parse($line) ) {
+			$self->{errstr} = "Failed to parse header line from CSV";
+			return undef;
+		}
+
+		# Turn the array ref into a hash if needed
+		my @cols = $self->{csv_xs}->fields;
+		$self->{fields} = \@cols;
 	}
 
 	# Check fields
@@ -236,17 +244,10 @@ following.
 
 sub fetch {
 	my $self = shift;
-	$self->{errstr} = '';
-
-	# Fetch the next file line
-	my $line = <$self->{handle}>;
-	unless ( defined $value ) {
-		$self->{errstr} = $!;
-		return undef;
-	}
+	my $line = $self->_getline;
+	return undef unless defined $line;
 
 	# Parse the line into columns
-	$self->{row}++;
 	unless ( $self->{csv_xs}->parse($line) ) {
 		$self->{errstr} = "Failed to parse row $self->{row}";
 		return undef;
@@ -255,7 +256,7 @@ sub fetch {
 	# Turn the array ref into a hash if needed
 	my $rv   = undef;
 	my $f    = $self->{fields};
-	my @cols = $self->{csv_cs}->fields;
+	my @cols = $self->{csv_xs}->fields;
 	if ( $f ) {
 		$rv = {};
 		foreach ( 0 .. $#$f ) {
@@ -267,13 +268,33 @@ sub fetch {
 
 	# Filter if needed
 	if ( $self->{filter} ) {
-		$rv = $self->{filter}->( $rv );
+		SCOPE: {
+			local $_ = $rv;
+			$rv = $self->{filter}->();
+		}
 		unless ( defined $rv ) {
 			$self->{errstr} = 'Filter error';
 		}
 	}
 
 	$rv;
+}
+
+sub _getline {
+	my $self = shift;
+	$self->{errstr} = '';
+
+	# Fetch the next file line
+	my $handle = $self->{handle};
+	my $line   = <$handle>;
+	unless ( defined $line ) {
+		$self->{errstr} = $handle->eof ? '' : $!;
+		return undef;
+	}
+
+	# Parse the line into columns
+	$self->{row}++;
+	return $line;
 }
 
 =pod
