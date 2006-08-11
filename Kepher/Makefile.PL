@@ -6,7 +6,6 @@ requires       'File::Spec'            => '0.80';
 requires       'Wx'                    => '0.50';
 requires       'Wx::STC'               => 0;
 requires       'Wx::DND'               => 0;
-requires       'Wx::XRC'               => 0;
 requires       'Wx::Grid'              => 0;
 requires       'Config::General'       => 0;
 requires       'File::Copy'            => 0;
