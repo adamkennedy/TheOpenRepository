@@ -50,6 +50,7 @@ of an L<Acme::Bleach> rip-off using PerlML.
 use 5.005;
 use strict;
 use base 'XML::SAX::Base';
+use Carp 'croak';
 use Params::Util '_INSTANCE';
 use PPI::Util    '_Document';
 eval "use prefork 'XML::SAX::Writer';";
@@ -162,7 +163,7 @@ sub Output       { $_[0]->{Output}       }
 # We only generate SAX events, we don't consume them.
 sub start_document {
 	my $class = ref $_[0] || $_[0];
-	die "$class can only be used as a SAX Driver";
+	croak "$class can only be used as a SAX Driver";
 }
 
 sub parse {
