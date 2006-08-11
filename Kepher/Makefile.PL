@@ -8,6 +8,7 @@ requires       'Wx::STC'               => 0;
 requires       'Wx::DND'               => 0;
 requires       'Wx::Grid'              => 0;
 requires       'Config::General'       => 0;
+requires       'YAML'                  => 0;
 requires       'File::Copy'            => 0;
 requires       'File::Copy::Recursive' => 0;
 requires       'Hash::Merge'           => 0;
