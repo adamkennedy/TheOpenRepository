@@ -48,6 +48,51 @@ have only the heavyweight L<XML::SAXDriver::CSV> option.
 L<Parse::CSV> is intended to fill this gap, and provide a light-weight,
 flexible and customisable incremental parser for large CSV files.
 
+=head2 Main Features
+
+B<Incremental Parsing> - To reduce memory load, all parsing is done
+incrementally.
+
+B<Array Mode> - Parsing can be done in simple array mode, returning
+a reference to an array if the columns are not named.
+
+B<Hash Mode> - Parsing can be done in hash mode, putting the data into
+a hash and return a reference to it.
+
+C<Filter Capability> - All items returned can be pass through a custom
+filter. This filter can either modify the data on the fly, or drop
+records you don't need.
+
+=head2 Writing Filters
+
+A L<Parse::CSV> filter is a subroutine reference that is passed the raw
+record as C<$_>, and should C<return> the alternative or modified record
+to return to the user.
+
+The basic null filter (does not modify or drop any records thus looks
+like the following).
+
+  sub { $_ };
+
+A filter which reversed the order of the columns (assuming they are
+passed as an array) might look like the following.
+
+  sub { return [ reverse @$_ ] };
+
+To drop the record, you should return C<undef> from the filter. The
+parser will then keep pulling and parsing new records until one
+passes the filter.
+
+  # Only keep records where foo is true
+  sub { $_->{foo} ? $_ : undef }
+
+To signal an error, throw an exception
+
+  sub {
+      $_->{foo} =~ /bar/ or die "Assumption failed";
+      return $_;
+  }
+
 =head1 METHODS
 
 =cut
@@ -61,7 +106,7 @@ use Params::Util qw{ _STRING _ARRAY _HASH0 _CALLABLE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -244,40 +289,52 @@ following.
 
 sub fetch {
 	my $self = shift;
-	my $line = $self->_getline;
-	return undef unless defined $line;
 
-	# Parse the line into columns
-	unless ( $self->{csv_xs}->parse($line) ) {
-		$self->{errstr} = "Failed to parse row $self->{row}";
-		return undef;
-	}
-
-	# Turn the array ref into a hash if needed
-	my $rv   = undef;
-	my $f    = $self->{fields};
-	my @cols = $self->{csv_xs}->fields;
-	if ( $f ) {
-		$rv = {};
-		foreach ( 0 .. $#$f ) {
-			$rv->{ $f->[$_] } = $cols[$_];
+	# The filter can skip rows,
+	# iterate till we get something.
+	while ( defined(my $line = $self->_getline) ) {
+		# Parse the line into columns
+		unless ( $self->{csv_xs}->parse($line) ) {
+			$self->{errstr} = "Failed to parse row $self->{row}";
+			return undef;
 		}
-	} else {
-		$rv = \@cols;
-	}
 
-	# Filter if needed
-	if ( $self->{filter} ) {
-		SCOPE: {
-			local $_ = $rv;
+		# Turn the array ref into a hash if needed
+		my $rv   = undef;
+		my $f    = $self->{fields};
+		my @cols = $self->{csv_xs}->fields;
+		if ( $f ) {
+			$rv = {};
+			foreach ( 0 .. $#$f ) {
+				$rv->{ $f->[$_] } = $cols[$_];
+			}
+		} else {
+			$rv = \@cols;
+		}
+
+		# Just return for simple uses
+		return $rv unless $self->{filter};
+
+		# Filter if needed
+		local $_ = $rv;
+		eval {
 			$rv = $self->{filter}->();
 		}
-		unless ( defined $rv ) {
-			$self->{errstr} = 'Filter error';
+		if ( $@ ) {
+			# Handle filter errors
+			$self->{errstr} = "Filter error: $@";
+			$self->{errstr} =~ s/^(.+)at line.+$/$1/;
+			return undef;
 		}
+
+		# Filter returns undef to drop a record
+		next unless defined $rv;
+
+		# We have a good record, return it
+		return $rv;
 	}
 
-	$rv;
+	return undef;
 }
 
 sub _getline {
