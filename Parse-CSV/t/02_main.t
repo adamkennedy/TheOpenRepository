@@ -8,7 +8,7 @@ BEGIN {
 	$| = 1;
 }
 
-use Test::More tests => 40;
+use Test::More tests => 49;
 use Parse::CSV;
 
 my $readfile = catfile( 't', 'data', 'simple.csv' );
@@ -148,16 +148,9 @@ SCOPE: {
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 
-	# Get the second line
-	my $fetch2 = $csv->fetch;	
-	is_deeply( $fetch2, bless( { a => 1, b => 2, c => 3, d => 4.5, e => 5 }, 'Foo' ),
-		'->fetch returns as expected' );
-	is( $csv->row,    3,  '->row returns 3' );
-	is( $csv->errstr, '', '->errstr returns ""' );
-
 	# Get the line after the end
-	my $fetch3 = $csv->fetch;
-	is( $fetch3, undef, '->fetch returns undef' );
+	my $fetch2 = $csv->fetch;
+	is( $fetch2, undef, '->fetch returns undef' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 }
