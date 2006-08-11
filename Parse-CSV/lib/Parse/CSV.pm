@@ -317,9 +317,7 @@ sub fetch {
 
 		# Filter if needed
 		local $_ = $rv;
-		eval {
-			$rv = $self->{filter}->();
-		}
+		$rv = eval { $self->{filter}->() };
 		if ( $@ ) {
 			# Handle filter errors
 			$self->{errstr} = "Filter error: $@";
