@@ -24,7 +24,7 @@ sub characters {
 sub xml2code {
 	XML::Parser::PerlSAX->new(
 		Handler => Acme::PerlML->new
-		)->parse($_[0]);
+	)->parse($_[0]);
 	return $CODE;
 }
 
@@ -86,13 +86,13 @@ L<Acme::Bleach>, L<Acme::Pony>, L<PPI>, L<Perl::SAX>, L<http://ali.as/>
 
 =head1 AUTHOR
 
-Original code by Dan Brooks
+Original code by Dan Brook
 
 Refactored, documented and released by Adam Kennedy
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2006 Dan Brooks and Adam Kennedy. All rights reserved.
+Copyright 2005 - 2006 Dan Brook and Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
