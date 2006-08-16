@@ -25,7 +25,7 @@ BEGIN {
 	);
 
 	if  ($^O eq 'MSWin32') {
-		push @INC, ( 'pre/lib', 'pre/cpan', 'src' );
+		push @INC, ( 'pre/lib', 'pre/cpan', 'src', 'lib' );
 		my @filenameparts = split( /\\/, __FILE__ );
 		my $destination_dir;
 		$destination_dir .= "$filenameparts[$_]/" for ( 0 .. $#filenameparts - 2 );
