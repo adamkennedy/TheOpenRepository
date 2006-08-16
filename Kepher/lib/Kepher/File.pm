@@ -83,7 +83,7 @@ sub reload_current {
 	my $file_path = Kepher::Document::_get_current_file_path();
 	my $nr = Kepher::Document::_get_current_nr();
 	if ($file_path and -e $file_path){
-		my $ep = Kepher::App::STC::_get();
+		my $ep = Kepher::App::EditPanel::_get();
 		Kepher::Document::Internal::save_properties();
 		$ep->BeginUndoAction;
 		$ep->SetText("");
@@ -115,7 +115,7 @@ sub insert {
 		$Kepher::internal{'file'}{'filterstring'}{'all'}
 	);
 	if ( -e $insertfilename ) {
-		my $ep = Kepher::App::STC::_get();
+		my $ep = Kepher::App::EditPanel::_get();
 		my $text = Kepher::File::IO::open_buffer($insertfilename);
 		$ep->InsertText( $ep->GetCurrentPos, $text );
 	}
@@ -123,7 +123,7 @@ sub insert {
 
 sub save_current {
 	my ($ctrl, $event) = @_;
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $file_name   = Kepher::Document::_get_current_file_path();
 	my $save_config = $Kepher::config{'file'}{'save'};
 	if ( $ep->GetModify == 1 or $save_config->{'unchanged'} ) {
@@ -155,7 +155,7 @@ sub save_as {
 	);
 	if (length($filename) > 0
 		and Kepher::Document::Internal::check_b4_overwite($filename) ) {
-		my $ep = Kepher::App::STC::_get();
+		my $ep = Kepher::App::EditPanel::_get();
 		$Kepher::internal{'document'}{'loaded'}++
 			if length($Kepher::document{'current'}{'path'}) == 0;
 		Kepher::File::IO::write_buffer( $filename, $ep->GetText );
@@ -175,7 +175,7 @@ sub save_copy_as {
 		$Kepher::localisation{'dialog'}{'file'}{'save_copy_as'},
 		$Kepher::config{'file'}{'current'}{'directory'},
 		$Kepher::internal{'file'}{'filterstring'}{'all'} );
-	Kepher::File::IO::write_buffer( $file_name, Kepher::App::STC::_get()->GetText )
+	Kepher::File::IO::write_buffer( $file_name, Kepher::App::EditPanel::_get()->GetText )
 		if $file_name and Kepher::Document::Internal::check_b4_overwite($file_name);
 }
 
@@ -210,7 +210,7 @@ sub save_all {
 
 sub close_current {
 	my ( $frame, $event ) = @_;
-	my $ep           = Kepher::App::STC::_get();
+	my $ep           = Kepher::App::EditPanel::_get();
 	my $close_tab_nr = Kepher::Document::_get_current_nr();
 	my $config       = $Kepher::config{'file'}{'save'};
 	my $save_answer  = wxNO;
