@@ -10,7 +10,7 @@ use Wx qw(
 # indention
 sub _indent {
 	my $width = shift;
-	my $ep    = Kepher::App::STC::_get();
+	my $ep    = Kepher::App::EditPanel::_get();
 	$width ||= 0;
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) + $width ) 
@@ -21,7 +21,7 @@ sub _indent {
 
 sub _dedent {
 	my $width = shift;
-	my $ep   = Kepher::App::STC::_get();
+	my $ep   = Kepher::App::EditPanel::_get();
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) - $width )
 		for $ep->LineFromPosition($ep->GetSelectionStart)
@@ -36,7 +36,7 @@ sub dedent_tab   { _dedent($Kepher::document{'current'}{'tab_size'}) }
 
 #
 sub align_indent {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $firstline = $ep->LineFromPosition( $ep->GetSelectionStart );
 	my $align = $ep->GetLineIndentation($firstline);
 	$ep->BeginUndoAction();
@@ -48,7 +48,7 @@ sub align_indent {
 # deleting trailing spaces on line ends
 sub del_trailing_spaces {
 	&Kepher::Edit::_save_positions;
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $text = Kepher::Edit::_select_all_if_non();
 	$text =~ s/[ \t]+(\r|\n|\Z)/$1/g;
 	$ep->BeginUndoAction;
@@ -59,7 +59,7 @@ sub del_trailing_spaces {
 
 #
 sub join_lines {
- my $ep = Kepher::App::STC::_get();
+ my $ep = Kepher::App::EditPanel::_get();
  my $text = $ep->GetSelectedText();
 	$text =~ tr/\r\n//d; # delete end of line marker
 	$ep->BeginUndoAction;
@@ -85,7 +85,7 @@ sub blockformat_custom{
 # breaking too long lines into smaller one
 sub line_break {
 	my $width = shift;
-	my $ep    = &Kepher::App::STC::_get;
+	my $ep    = &Kepher::App::EditPanel::_get;
 	my $autoindent = $Kepher::config{'editpanel'}{'auto'}{'indention'};
 	my $eol_width  = $Kepher::internal{'current_doc'}{'EOL_length'};
 	my ($begin_pos, $end_pos) = ( $ep->GetSelectionStart, $ep->GetSelectionEnd );
@@ -158,7 +158,7 @@ sub linebreak_LLI {
 
 sub linebreak_window {
 	my $app     = Kepher::App::Window::_get();
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my ($width) = $app->GetSizeWH();
 	my $pos = $ep->GetColumn($ep->PositionFromPointClose(100, 67));
 	Kepher::Dialog::msg_box( $app, $pos, '' );

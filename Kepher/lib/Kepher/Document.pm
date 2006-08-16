@@ -78,11 +78,11 @@ sub _get_current_pos{
 
 #
 sub set_codepage {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	# my $app_win = shift;
 	#$ep->SetCodePage(65001); wxSTC_CP_UTF8 Wx::wxUNICODE()
 	#Kepher::Dialog::msg_box(undef, Wx::wxUNICODE(), '');
-use Wx::STC qw(wxSTC_CP_UTF8);
+#use Wx::STC qw(wxSTC_CP_UTF8);
 }
 
 #
@@ -91,7 +91,7 @@ sub set_tab_size {
 	my $size = shift;
 	return unless $size;
 	$Kepher::document{'current'}{'tab_size'} = $size;
-	Kepher::App::STC::set_tab_size($size);
+	Kepher::App::EditPanel::set_tab_size($size);
 }
 sub set_tab_size_2 { set_tab_size(2) }
 sub set_tab_size_3 { set_tab_size(3) }
@@ -106,7 +106,7 @@ sub set_tab_mode {
 	my $mode = shift;
 	$mode ||= 0;
 	$Kepher::document{'current'}{'tab_use'} = $mode;
-	Kepher::App::STC::_get()->SetUseTabs($mode);
+	Kepher::App::EditPanel::_get()->SetUseTabs($mode);
 	Kepher::App::StatusBar::tab_info();
 }
 sub set_tabs_hard  { set_tab_mode(1) }
@@ -117,7 +117,7 @@ sub convert_indent2tabs   { convert_indention(1) }
 sub convert_indent2spaces { convert_indention(0) }
 sub convert_indention {
 	my $use_tab = shift;
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $indention = $ep->GetUseTabs;
 	my $i;
 	$ep->SetUseTabs($use_tab);
@@ -155,7 +155,7 @@ sub del_trailing_spaces {
 #
 sub get_EOL_mode { $Kepher::document{'current'}{'EOL'} }
 sub set_EOL_mode {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $mode      = shift;
 	$mode = $Kepher::config{'file'}{'defaultsettings'}{'EOL_new'} if ( !$mode );
 	my $eoll = \$Kepher::internal{'current_doc'}{'EOL_length'};
@@ -176,7 +176,7 @@ sub set_EOL_mode_crlf { set_EOL_mode('cr+lf') }
 sub set_EOL_mode_auto { set_EOL_mode('auto' ) }
 
 sub convert_EOL {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $doc_nr    = &_get_current_nr;
 	my $mode      = shift;
 	$mode = $Kepher::config{'file'}{'defaultsettings'}{'EOL_new'} if ( !$mode );
@@ -193,7 +193,7 @@ sub convert_EOL_2_cr   { convert_EOL('cr') }
 sub convert_EOL_2_crlf { convert_EOL('cr+lf') }
 
 sub detect_EOL_mode {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $end_pos   = $ep->PositionFromLine(1);
 	my $begin_pos = $end_pos - 3;
 	$begin_pos = 0 if $begin_pos < 0;
@@ -265,7 +265,7 @@ sub set_bracelight_off {
 sub get_readonly { $Kepher::document{'current'}{'readonly'} }
 sub set_readonly {
 	my $status     = shift;
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $file_name  = _get_current_file_path();
 	my $old_state  = $ep->GetReadOnly;
 

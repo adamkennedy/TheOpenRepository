@@ -4,15 +4,19 @@ $VERSION = '0.03';
 # 
 
 use strict;
-use Wx qw(wxSTC_STYLE_LINENUMBER wxSTC_MARGIN_SYMBOL wxSTC_MARGIN_NUMBER);
+use Wx qw(
+		wxSTC_STYLE_LINENUMBER
+		wxSTC_MARGIN_SYMBOL wxSTC_MARGIN_NUMBER
+		wxSTC_MASK_FOLDERS
+);
 #wxSTC_MARK_MINUS wxSTC_MARK_PLUS wxSTC_MARK_CIRCLE wxSTC_MARK_BOXPLUS
 #wxSTC_MARKNUM_FOLDEREND wxSTC_MARK_SHORTARROW
+#wxSTC_FOLDFLAG_LINEBEFORE_CONTRACTED
 
 sub _get_ep           {  Kepher::App::EditPanel::_get() }
 sub _get_config       { $Kepher::config{'editpanel'}{'margin'} }
 sub _get_line_config  { $Kepher::config{'editpanel'}{'margin'}{'linenumber'} }
 sub _get_marker_config{ $Kepher::config{'editpanel'}{'margin'}{'marker'} }
-
 
 sub apply_settings{
 	my $ep = _get_ep();
@@ -24,6 +28,7 @@ sub apply_settings{
 	$ep->SetMarginMask( 1, 0 );
 	$ep->SetMarginSensitive( 1, 0 );
 	$ep->SetMarginType( 2, wxSTC_MARGIN_SYMBOL );
+	$ep->SetMarginMask( 2, wxSTC_MASK_FOLDERS );
 	$ep->SetMarginSensitive( 2, 1 );
 
 	$Kepher::internal{'margin_linemax'} = 0;
@@ -136,6 +141,7 @@ sub switch_fold {
 	show_fold();
 }
 
+#$ep->SetFoldFlags(flags)8/64
 
 # extra text margin
 sub get_text_width { _get_config->{'text'} }

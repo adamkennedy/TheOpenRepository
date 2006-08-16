@@ -125,7 +125,7 @@ sub _refresh_replace_history {
 }
 
 sub _find_next  {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	$ep->SearchAnchor;
 	return $ep->SearchNext(
 		$Kepher::internal{'search'}{'flags'},
@@ -134,7 +134,7 @@ sub _find_next  {
 }
 
 sub _find_prev  {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	$ep->SearchAnchor;
 	return $ep->SearchPrev(
 		$Kepher::internal{'search'}{'flags'},
@@ -153,7 +153,7 @@ sub _find_last  {
 }
 
 sub _caret_2_sel_end    {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	my $pos       = $ep->GetCurrentPos;
 	my $sel_start = $ep->GetSelectionStart;
 	my $sel_end   = $ep->GetSelectionEnd;
@@ -166,7 +166,7 @@ sub _caret_2_sel_end    {
 sub _exist_find_item    { length( get_find_item() ) }
 sub _exist_replace_item { length( get_replace_item() ) }
 sub _replace_selection  {
-	Kepher::App::STC::_get()->ReplaceSelection( get_replace_item() )
+	Kepher::App::EditPanel::_get()->ReplaceSelection( get_replace_item() )
 }
   # find helper function
 sub get_find_item {
@@ -179,7 +179,7 @@ sub set_find_item {
 }
 
 sub set_selection_as_find_item {
-	set_find_item( Kepher::App::STC::_get()->GetSelectedText )
+	set_find_item( Kepher::App::EditPanel::_get()->GetSelectedText )
 }
 
 sub get_replace_item {
@@ -192,11 +192,11 @@ sub set_replace_item {
 }
 
 sub set_selection_as_replace_item{
-	set_replace_item( Kepher::App::STC::_get()->GetSelectedText )
+	set_replace_item( Kepher::App::EditPanel::_get()->GetSelectedText )
 }
  # find related menu calls
 sub first_increment {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	if ( _exist_find_item() ) {
 		Kepher::Edit::_save_positions;
 		if ( _find_first() > -1 ) {
@@ -212,7 +212,7 @@ sub first_increment {
 
 sub find_all{
 #Kepher::Dialog::msg_box(undef, Wx::wxUNICODE(), '');
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	if ( _exist_find_item() ) {
 		my $search_result = _find_first();
 		my ($sel_start, $sel_end);
@@ -244,7 +244,7 @@ sub find_all{
 }
 
 sub find_prev {
-	my $ep    = Kepher::App::STC::_get();
+	my $ep    = Kepher::App::EditPanel::_get();
 	my $attr = \%{ $Kepher::config{'search'}{'attribute'} };
 	my $return = -1;
 	if ( _exist_find_item() ) {
@@ -281,7 +281,7 @@ sub find_prev {
 }
 
 sub find_next {
-	my $ep    = Kepher::App::STC::_get();
+	my $ep    = Kepher::App::EditPanel::_get();
 	my $attr = \%{ $Kepher::config{'search'}{'attribute'} };
 	my $return = -1;
 
@@ -318,7 +318,7 @@ sub find_next {
 }
 
 sub fast_back {
-	my $ep = &Kepher::App::STC::_get;
+	my $ep = &Kepher::App::EditPanel::_get;
 	my $attr = \%{ $Kepher::config{'search'}{'attribute'} };
 	my $return    = -1;
 	if (&_exist_find_item) {
@@ -354,7 +354,7 @@ sub fast_back {
 }
 
 sub fast_fore {
-	my $ep = &Kepher::App::STC::_get;
+	my $ep = &Kepher::App::EditPanel::_get;
 	my $attr = $Kepher::config{'search'}{'attribute'};
 	my $return    = -1;
 	if (&_exist_find_item) {
@@ -392,7 +392,7 @@ sub fast_fore {
 
 sub find_first {
 	my $menu_call = shift;
-	my $ep = &Kepher::App::STC::_get;
+	my $ep = &Kepher::App::EditPanel::_get;
 	my $attr = $Kepher::config{'search'}{'attribute'};
 	my ( $sel_begin, $sel_end ) = $ep->GetSelection;
 	my $pos = $ep->GetCurrentPos;
@@ -448,7 +448,7 @@ sub find_first {
 
 sub find_last {
 	my $menu_call = shift;
-	my $ep = &Kepher::App::STC::_get;
+	my $ep = &Kepher::App::EditPanel::_get;
 	my $attr = $Kepher::config{'search'}{'attribute'};
 	my ( $sel_begin, $sel_end ) = $ep->GetSelection;
 	my $pos = $ep->GetCurrentPos;
@@ -505,7 +505,7 @@ sub find_last {
 
   # replace
 sub replace_back {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	if ( $ep->GetSelectionStart != $ep->GetSelectionEnd ) {
 		_replace_selection();
 		_refresh_replace_history();
@@ -514,7 +514,7 @@ sub replace_back {
 }
 
 sub replace_fore {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 	if ( $ep->GetSelectionStart != $ep->GetSelectionEnd ) {
 		_replace_selection();
 		_refresh_replace_history();
@@ -524,7 +524,7 @@ sub replace_fore {
 
 sub replace_all {
 	my $menu_call = shift;
-	my $ep = &Kepher::App::STC::_get;
+	my $ep = &Kepher::App::EditPanel::_get;
 	my ($sel_begin, $sel_end ) = $ep->GetSelection;
 	my $line           = $ep->GetCurrentLine;
 	my $len            = _exist_find_item();
@@ -573,7 +573,7 @@ sub replace_all {
 
 sub replace_confirm {
 	if (&_exist_find_item) {
-		my $ep = Kepher::App::STC::_get();
+		my $ep = Kepher::App::EditPanel::_get();
 		my $attr = $Kepher::config{'search'}{'attribute'};
 		my $line = $ep->LineFromPosition( $ep->GetCurrentPos );
 		my $len  = _exist_find_item();
@@ -644,7 +644,7 @@ sub new {
 	my $self = $class->SUPER::new(@_);
 	$self->{target} = $target if substr(ref $target, 0, 12) eq 'Wx::ComboBox';
 	$self->{kind} = $kind;
-	$self;
+	return $self;
 }
 
 sub OnDropText {

@@ -35,9 +35,7 @@ sub load_icon {
 	my $frame     = shift;
 	my $icon_file = shift;
 	if ( -e $icon_file ) {
-		my $icon = Wx::Icon->new;
-		$icon->LoadFile( $icon_file, wxBITMAP_TYPE_ICO );
-		$frame->SetIcon($icon);
+		$frame->SetIcon( Wx::Icon->new( $icon_file, wxBITMAP_TYPE_ICO ) );
 	}
 }
 

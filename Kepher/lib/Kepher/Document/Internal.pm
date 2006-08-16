@@ -7,7 +7,7 @@ use Wx qw(wxYES wxNO);
 
 # make document empty and reset all document properties to default
 sub reset {
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	Kepher::Document::set_readonly(0);
 	$edit_panel->ClearAll();
 	$edit_panel->EmptyUndoBuffer();
@@ -110,7 +110,7 @@ sub new_if_allowed {
 sub load_in_current_buffer {
 	my $file_name = shift;
 	$file_name ||= '';
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	$edit_panel->ClearAll();
 	Kepher::File::IO::open_pipe($file_name);
 	$edit_panel->EmptyUndoBuffer;
@@ -212,7 +212,7 @@ sub save_properties {
 	$doc_nr = $Kepher::document{'current_nr'} unless $doc_nr;
 	my $doc_attr = $Kepher::document{'open'}[$doc_nr];
 	my $doc_data = $Kepher::internal{'document'}{'open'}[$doc_nr];
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kepher::App::EditPanel::_get();
 
 	$doc_attr->{'cursor_pos'}= $ep->GetCurrentPos;
 	$doc_data->{'selstart'} = $ep->GetSelectionStart;

@@ -101,7 +101,7 @@ sub refresh {
 
 sub caret_pos_info {
 	my $frame  = Kepher::App::Window::_get();
-	my $ep     = Kepher::App::STC::_get();
+	my $ep     = Kepher::App::EditPanel::_get();
 	my $pos    = $ep->GetCurrentPos;
 	my $line   = $ep->LineFromPosition($pos) + 1;
 	my $lpos   = $ep->GetColumn($pos) + 1;
@@ -164,7 +164,7 @@ sub style_info {
 
 sub tab_info {
 	my $win   = Kepher::App::Window::_get();
-	my $mode  = Kepher::App::STC::_get()->GetUseTabs;
+	my $mode  = Kepher::App::EditPanel::_get()->GetUseTabs;
 	my $index = $Kepher::internal{'app'}{'status'}{'tab'}{'index'};
 	#$mode = 0 unless $mode;
 	$mode ? $win->SetStatusText( " HT", $index ) 
@@ -217,7 +217,7 @@ sub _get_file_info {
 
 	# show how big file is
 	if ( $selector == 1 ) {
-		my $ep = Kepher::App::STC::_get();
+		my $ep = Kepher::App::EditPanel::_get();
 
 		return sprintf ' %s: %s   %s: %s',
 			$l10->{chars}, $ep->GetLength, $l10->{lines}, $ep->GetLineCount;

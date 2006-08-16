@@ -94,7 +94,7 @@ sub evaluate {
 	Kepher::App::assemble_layout();
 
 	Kepher::App::ContextMenu::connect_all();
-	Kepher::App::STC::apply_settings();
+	Kepher::App::EditPanel::apply_settings();
 	Kepher::Edit::Bookmark::define_marker();
 	Kepher::App::EventList::init();
 	Kepher::App::Events::set_table();

@@ -40,12 +40,11 @@ sub create {
 	} else { $item_id = $Kepher::app{GUI}{masterID}++ * 100 }
 	# prepare search-keywords-input-combobox
 	unless ($sb->{find_input}){
-		$sb->{find_input} = Wx::ComboBox->new(
+		$find_input = $sb->{find_input} = Wx::ComboBox->new(
 			$sb, -1, Kepher::Edit::Search::get_find_item(),[-1,-1],[160,-1],[],,1);
 		$sb->{find_input}->SetDropTarget
 			( SearchInputTarget->new($find_input, 'find'));
 	}
-	$find_input = $sb->{find_input};
 	if ( $Kepher::config{'search'}{'history'}{'use'} ){
 		$find_input->Append($_) for @{$Kepher::config{search}{history}{find_item}}
 	}

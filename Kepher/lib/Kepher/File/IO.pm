@@ -6,7 +6,7 @@ use strict;
 # read a file into a scintilla buffer, is much faster then open_buffer
 sub open_pipe {
 	my $file_name  = shift;
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	my $err_txt    = \$Kepher::localisation{'dialog'}{'error'};
 	my $input;
 	unless ($file_name) {

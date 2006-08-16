@@ -4,7 +4,6 @@ $VERSION = '0.14';
 use strict;
 use Wx qw(wxSTC_MARK_SHORTARROW);
 
-
 # internal subs
 
 sub is_set{ 
@@ -71,19 +70,16 @@ sub _delete_data {
 	delete $Kepher::config{'search'}{'bookmark'}{$nr};
 	delete $Kepher::internal{'search'}{'bookmark'}{$nr};
 }
-
+#
 # API
-
+#
 sub define_marker {
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	my $conf       = $Kepher::config{'editpanel'}{'margin'}{'marker'};
+	my $hex2dec    = \&Kepher::Config::_hex2dec_color_array;
 
-	my $wxColor_fore = Wx::Colour->new(
-		@{Kepher::Config::_hex2dec_color_array( $conf->{'fore_color'} ) }
-	);
-	my $wxColor_back = Wx::Colour->new(
-		@{Kepher::Config::_hex2dec_color_array( $conf->{'back_color'} ) }
-	);
+	my $wxColor_fore = Wx::Colour->new( @{ &$hex2dec($conf->{'fore_color'}) } );
+	my $wxColor_back = Wx::Colour->new( @{ &$hex2dec($conf->{'back_color'}) } );
 	$edit_panel->MarkerDefine
 		( $_, wxSTC_MARK_SHORTARROW, $wxColor_fore, $wxColor_back ) for 0 .. 9;
 
@@ -92,7 +88,7 @@ sub define_marker {
 }
 
 sub restore_all {
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	my $cur_doc_nr = Kepher::Document::_get_current_nr();
 	my $bookmark   = $Kepher::config{'search'}{'bookmark'};
 	my $doc_nr;
@@ -114,7 +110,7 @@ sub save_all { _refresh_data_nr($_) for 0..9 }
 
 sub toggle_nr {
 	my $nr = shift;
-	my $edit_panel = Kepher::App::STC::_get();
+	my $edit_panel = Kepher::App::EditPanel::_get();
 	my $pos = $edit_panel->GetCurrentPos;
 	my $line = $edit_panel->GetCurrentLine;
 	# is selected bookmark in current line ?
@@ -170,13 +166,13 @@ sub delete_all {
 	Kepher::Edit::_save_positions();
 	delete_nr($_) for 0..9;
 	Kepher::Edit::_restore_positions();
-	Wx::Window::SetFocus(Kepher::App::STC::_get());
+	Wx::Window::SetFocus(Kepher::App::EditPanel::_get());
 }
 
 sub delete_nr {
 	my $nr = shift;
 	if ( _refresh_data_nr( $nr ) ){
-		my $edit_panel = Kepher::App::STC::_get();
+		my $edit_panel = Kepher::App::EditPanel::_get();
 		my $cur_doc_nr = Kepher::Document::_get_current_nr();
 
 		Kepher::Document::Internal::change_pointer(

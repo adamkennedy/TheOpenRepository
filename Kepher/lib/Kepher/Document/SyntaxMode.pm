@@ -32,8 +32,9 @@ sub _get_by_fileending {
 sub reload { change_to( get() ) }
 
 sub change_to {
-	my $ep     = Kepher::App::STC::_get();
-	my $style = shift;
+	my $ep      = Kepher::App::EditPanel::_get();
+	my $hex2dec = \&Kepher::Config::_hex2dec_color_array;
+	my $style   = shift;
 	$style = _get_by_fileending() if $style eq 'auto';
 	$style = 'none' unless $style;
 
@@ -44,7 +45,7 @@ sub change_to {
 	# clear style infos
 	$ep->StyleClearAll;
 	$ep->StyleResetDefault;
-	Kepher::App::STC::load_font();
+	Kepher::App::EditPanel::load_font();
 	$ep->SetKeyWords( 0, '' );
 
 	# load syntax style
@@ -60,14 +61,11 @@ sub change_to {
 		$ep->StyleSetBold( wxSTC_STYLE_BRACELIGHT, 1 );
 		$ep->StyleSetBold( wxSTC_STYLE_BRACEBAD,   1 );
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACELIGHT, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'good_color'}
-		)} ));
+			@{&$hex2dec( $bracelight->{'good_color'} )} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACEBAD, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'bad_color'}
-		)} ));
+			@{&$hex2dec( $bracelight->{'bad_color'} )} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_INDENTGUIDE, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array(
-						$Kepher::config{editpanel}{indicator}{indent_guide}{color}
+			@{&$hex2dec( $Kepher::config{editpanel}{indicator}{indent_guide}{color}
 		)} ));
 	}
 

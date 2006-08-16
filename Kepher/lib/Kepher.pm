@@ -5,8 +5,8 @@ package Kepher;
 use 5.006;
 use strict;
 
-our $NAME       = 'Kepher';     # name of entire applikation
-our $VERSION    = '0.3.3.2';    # program - version
+our $NAME       = 'Kephra';     # name of entire application
+our $VERSION    = '0.3.3.3';    # program - version
 our @ISA        = 'Wx::App';    # $NAME is a wx application
 
 # used external modules (loaded at start)
@@ -44,7 +44,6 @@ use Kepher::App::SearchBar;        # Toolbar for searching and navigation
 use Kepher::App::StatusBar;        #
 use Kepher::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
 use Kepher::App::Window;           # API 2 Wx::Frame and more
-use Kepher::App::STC;              # -DEP scintilla controls
 use Kepher::App::CommandList;      #
 use Kepher::Config;                # low level config manipulation
 use Kepher::Config::File;          # API 2 ConfigParser Config::General
@@ -108,7 +107,8 @@ __END__
 
 =head1 NAME
 
-Kepher - A pure-Perl cross-platform CPAN-installable programmer's editor
+Kepher - A pure-Perl cross-platform CPAN-installable programmer's editor for 
+         multiple languages, designed along Perl's Paradigms
 
 =head1 DESCRIPTION
 
@@ -116,6 +116,8 @@ The Kepher.pm module itself serves as a class loader, configuration loader,
 bootstrap and shutdown module, and provides some global variables.
 
 =head1 TO DO
+
+- Find Name 
 
 - Write the DESCRIPTION :)
 
