@@ -1,5 +1,8 @@
 Revision history for Perl module Perl::Dist
 
+0.0.5 Tue Aug 29 05:51:10 EDT 2006
+    - fixed up version numbering format from Module::Install
+
 0.0.4 Tue Aug 29 00:10:26 EDT 2006
     - Changed version numbering
     - Forced install of CPAN modules no longer dies if modules can't be 

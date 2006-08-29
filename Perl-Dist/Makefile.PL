@@ -5,6 +5,7 @@ use inc::Module::Install;
 name        'Perl-Dist';
 author      'David A Golden <dagolden@cpan.org>';
 license     'perl';
+version     '0.0.5';
 all_from    'lib/Perl/Dist.pm';
 
 requires    'Archive::Tar'      => 1.29; 

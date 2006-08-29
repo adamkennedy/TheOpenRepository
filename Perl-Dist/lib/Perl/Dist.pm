@@ -1,6 +1,6 @@
 package Perl::Dist;
 
-use version; $VERSION = qv("0.0.4")->stringify;
+use version; $VERSION = qv("0.0.5")->stringify;
 use strict;
 use warnings; 
 
