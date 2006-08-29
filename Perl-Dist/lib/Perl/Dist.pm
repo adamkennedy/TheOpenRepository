@@ -1,6 +1,6 @@
 package Perl::Dist;
 
-$VERSION = "0.000003";
+use version; $VERSION = qv("0.0.4")->stringify;
 use strict;
 use warnings; 
 

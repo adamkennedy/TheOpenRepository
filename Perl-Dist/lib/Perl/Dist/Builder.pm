@@ -1,6 +1,6 @@
 package Perl::Dist::Builder;
 
-$VERSION = "0.000003";
+use version; $VERSION = qv("0.0.4")->stringify;
 use strict;
 use warnings; 
 
@@ -137,6 +137,7 @@ if ( \$obj->uptodate ) {
 }
 if ( $force ) {
     \$obj->force("install");
+    $CPAN::DEBUG=1;
     \$obj->uptodate or 
         die "Forced installation of $name appears to have failed";
 }

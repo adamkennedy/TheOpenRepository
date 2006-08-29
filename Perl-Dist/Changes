@@ -1,5 +1,11 @@
 Revision history for Perl module Perl::Dist
 
+0.0.4
+    - Changed version numbering
+    - Forced install of CPAN modules no longer dies if modules can't be 
+      confirmed up to date.  (Hack to work around Bundle::CPAN with a 
+      specific file to install.)
+
 0.000003 Mon Aug  7 07:23:55 EDT 2006
 
     - Added support for distributions names to modules section
