@@ -11,9 +11,6 @@ use Wx qw(
 	wxSTC_FIND_REGEXP wxYES wxCANCEL
 );
 
-# Kepher::Dialog::msg_box(undef, "", " ");
-#my $t0 = new Benchmark;print "find dups:",Benchmark::timestr(Benchmark::timediff(new Benchmark, $t0)),"\n";
-
 # internal functions
 sub _init_history {
 	my $history = $Kepher::config{'search'}{'history'};

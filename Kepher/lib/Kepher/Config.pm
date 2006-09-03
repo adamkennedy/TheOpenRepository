@@ -1,5 +1,7 @@
 package Kepher::Config;
+
 our $VERSION = '0.27';
+
 # low level config manipulation
 use strict;
 
@@ -120,7 +122,5 @@ sub _lc_utf {
 	}
 	$lc;
 }
-#pce:dialog::msg_box(undef,$mode,'');
-#Wx::wxUNICODE()
 
 1;

@@ -99,7 +99,6 @@ sub evaluate {
 	Kepher::App::EventList::init();
 	Kepher::App::Events::set_table();
 
-	Kepher::Config::Interface::del_temp_data();
 	Kepher::App::CommandList::del_data();
 
 	return 1;

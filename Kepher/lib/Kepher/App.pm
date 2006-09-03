@@ -49,8 +49,6 @@ sub assemble_layout {
 }
 
 sub start {
-	use Benchmark qw(:all);
-	my $t0 = new Benchmark;
 	my $app = shift;
 	set_ref($app);
 	splashscreen();             # 2'nd splashscreen can close when app is ready
@@ -62,21 +60,15 @@ sub start {
 	Kepher::Config::Global::load_autosaved();
 	if (Kepher::Config::Global::evaluate()) {
 		$frame->Show(1);
-		print "pce startet in:",
-			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
-		my $t2 = new Benchmark;
 		Kepher::File::Session::restore();
 		Kepher::Document::Internal::add($_) for @ARGV;
-		print "pce dateien in:",
-			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n";
-		1;                      # everything is good
+		1;
 	} else {
 		$app->ExitMainLoop(1);
 	}
 }
 
 sub exit { 
-	my $t0 = new Benchmark;
 	return if Kepher::Dialog::save_on_exit() eq 'cancel';
 	Kepher::Config::Global::refresh();
 	Kepher::File::Session::store();
@@ -88,8 +80,6 @@ sub exit {
 	Kepher::Config::set_xp_style(); #
 	wxTheClipboard->Flush;       # set copied text free to the global Clipboard
 	Kepher::App::Window::destroy(); # close window
-	print "pce shut down in:",
-		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
 }
 
 sub raw_exit { Wx::Window::Destroy(shift) }
