@@ -41,7 +41,7 @@ use vars qw{ $HOOKS %chased $orig_can $orig_isa }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.26';
+	$VERSION = '1.27';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
 	$orig_can = \&UNIVERSAL::can;

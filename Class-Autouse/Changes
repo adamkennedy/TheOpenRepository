@@ -1,5 +1,8 @@
 Revision history for Perl extension Class::Autouse
 
+1.27 Mon  4 Sep 2006
+	- Upgrading to Module::Install 0.64
+
 1.26 Wed Apr 12 2006
 	- Debugging change in 1.25 regressed an undocumented 5.6-related
 	  bug first fixed in 1.20. Make sure $DEBUG is always defined
