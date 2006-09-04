@@ -40,7 +40,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
 

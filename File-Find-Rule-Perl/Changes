@@ -1,4 +1,7 @@
 Revision history for Perl extension File::Find::Rule::Perl
 
+0.02 Mon  4 Sep 2006
+	- Upgrading to Module::Install 0.64
+
 0.01 Sat  8 Apr 2006
 	- Created the initial version of the module

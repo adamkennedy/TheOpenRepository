@@ -38,7 +38,7 @@ use PPI ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 
 	# Preload PPI::Find module if needed and possible
