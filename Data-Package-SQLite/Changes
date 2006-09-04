@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::Package::SQLite
 
+1.00 Mon  4 Sep 2006
+	- Upgrading to Module::Install 0.64
+
 0.02 Sat 10 Mar 2006
 	- No functional changes.
 	- Upgraded to Module::Install 0.59 (I broke 0.58)
