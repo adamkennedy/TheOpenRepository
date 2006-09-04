@@ -8,7 +8,7 @@ use strict;
 # The very first version
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 # Load in the PPI classes
@@ -17,6 +17,7 @@ use PPI::Dumper ();
 
 # Load the wxWindows library
 use Wx;
+
 sub new {
 	PPI::Tester::App->new;
 }
@@ -69,6 +70,7 @@ package PPI::Tester::Window;
 
 use base 'Wx::Frame';
 use Wx        qw{:everything};
+use Wx        qw{wxHIDE_READONLY};
 use Wx::Event 'EVT_TOOL',
               'EVT_TEXT',
               'EVT_CHECKBOX';
@@ -205,7 +207,7 @@ sub load {
 		"Modules(*.pm)|*.pm|perl header(.*ph)|*.ph|*.cgi|*.cgi|perl programs (*.pl)|*.pl|test files (*.t)|*.t|AutoSplit (*.al)|All files (*.*)|*.*",
 
 		# The "Open as Read-Only" means nothing to us (I think)
-		wxOPEN | wxHIDE_READONLY,
+		wxOPEN,
 		);
 
 	if ( $Dialog->ShowModal == wxID_CANCEL ) {
