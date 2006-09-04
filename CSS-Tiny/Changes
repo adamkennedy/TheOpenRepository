@@ -1,5 +1,8 @@
 Revision history for Perl extension CSS::Tiny
 
+1.14 Mon  4 Sep 2006
+	- Upgrading to Module::Install 0.64
+
 1.12 Thu  9 Jun 2006
 	- Moved from old CVS to new SVN repository
 	- Removed uses of UNIVERSAL::isa
