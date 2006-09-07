@@ -100,7 +100,7 @@ use Test::Object::Test ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'object_ok';
 }
