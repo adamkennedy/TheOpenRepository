@@ -67,10 +67,12 @@ hidden away.
 
 use 5.008005;
 use strict;
-use Carp         ();
-use Params::Util ();
-use Scalar::Util qw{ refaddr };
-use POE          qw{ Session };
+use attributes           ();
+use Carp                 ();
+use Params::Util         ();
+use Scalar::Util         ();
+use POE                  qw{ Session };
+use POE::Thing::Registry ();
 
 our $VERSION;
 BEGIN {
@@ -87,8 +89,20 @@ my %SESSIONID = ();
 #####################################################################
 # Attribute Hooks
 
-sub MODIFY_CODE_ATTRIBUTE {
-	die join ', ', @_;
+sub MODIFY_CODE_ATTRIBUTES {
+	my ($class, $code, $name, @params) = @_;
+
+	# Register an event
+	if ( $name eq 'Event' ) {
+		if ( $POE::Thing::Registry::INLINE_STATES{$name} ) {
+			Carp::croak("$class already initialialized, too late to add event");
+		}
+		$POE::Thing::Registry::EVENTS{$class}->{ Scalar::Util::refaddr($code) } = 1;
+		return ();
+	}
+
+	# Only events are supported for now
+	Carp::croak("Unknown of unsupported attribute $name");
 }
 
 
@@ -131,9 +145,17 @@ sub spawn {
 	}
 
 	# Handle the normal object context
-	my $self = shift;
+	my $self  = shift;
+	my $class = ref $self;
 
 	# Create the session
+	$self->{__SESSIONID} = POE::Session->create(
+		inline_states => POE::Thing::Registry::inline_states($class),
+		heap          => $self,
+		)->ID;
+
+	# Return the alias
+	$self->Alias;
 }
 
 sub spawned {
@@ -147,6 +169,10 @@ sub session_id {
 sub session {
 	my $id = $_[0]->{__SESSIONID}      or return undef;
 	$poe_kernel->ID_id_to_session($id) or return undef;
+}
+
+sub kernel {
+	$poe_kernel;
 }
 
 
@@ -213,10 +239,6 @@ sub _stop {
 
 	return;
 }
-
-
-
-
 
 
 
