@@ -3,20 +3,10 @@
 # Primary testing for File::Find::Rule::PPI
 
 use strict;
-use lib ();
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 4;
@@ -33,7 +23,7 @@ isa_ok( $Rule, 'File::Find::Rule' );
 # They all should
 my @files = $Rule->in( catdir('t', 'data') );
 @files = sort @files;
-is_deeply( \@files, [ 'Bar.pm', 'Foo.pm', catfile('dir', 'Baz.pm') ],
+is_deeply( \@files, [ 'Bar.pm', 'Foo.pm', 'dir/Baz.pm' ],
 	'Whitespace search returns expected file list' );
 
 # Not find files with comments in them
@@ -46,7 +36,7 @@ isa_ok( $Rule, 'File::Find::Rule' );
 # They all should
 @files = $Rule->in( catdir('t', 'data') );
 @files = sort @files;
-is_deeply( \@files, [ 'Bar.pm', catfile('dir', 'Baz.pm') ],
+is_deeply( \@files, [ 'Bar.pm', 'dir/Baz.pm' ],
 	'Comment search returns expected file list' );
 
 exit(0);

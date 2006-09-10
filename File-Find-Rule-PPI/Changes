@@ -1,5 +1,8 @@
 Revision history for Perl extension File::Find::Rule::PPI
 
+0.05 Sun 10 Sep 2006
+	- Correcting the tests to use Unix paths since FFR doesn't return localised
+
 0.04 Mon  4 Sep 2006
 	- Upgrading to Module::Install 0.64
 

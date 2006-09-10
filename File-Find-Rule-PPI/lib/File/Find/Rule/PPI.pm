@@ -38,7 +38,7 @@ use PPI ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 
 	# Preload PPI::Find module if needed and possible
@@ -114,7 +114,7 @@ For other issues, contact the maintainer
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 ACKNOWLEDGMENTS
 
@@ -126,7 +126,7 @@ L<http://ali.as/>, L<File::Find::Rule>, L<PPI>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, 2006 Adam Kennedy. All rights reserved.
+Copyright 2005, 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
