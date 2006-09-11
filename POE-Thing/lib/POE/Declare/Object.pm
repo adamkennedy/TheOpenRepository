@@ -1,4 +1,4 @@
-package POE::Thing;
+package POE::Declare::Object;
 
 =pod
 
@@ -74,7 +74,7 @@ use Scalar::Util         ();
 use POE                  qw{ Session };
 use POE::Thing::Registry ();
 
-our $VERSION;
+use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 }
@@ -117,7 +117,7 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Clear out any accidentally set internal values
-	delete $SESSIONID{refaddr $self};
+	delete $SESSIONID{Scalar::Util::refaddr $self};
 
 	# Set the alias
 	if ( $self->{Alias} ) {
