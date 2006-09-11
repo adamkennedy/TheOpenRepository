@@ -1,4 +1,4 @@
-package POE::Declare::Meta::Internal;
+package POE::Declare::Meta::Event;
 
 use strict;
 use base 'POE::Declare::Meta::Slot';

@@ -31,7 +31,7 @@ use POE::Declare::Meta   ();
 # Provide the SELF constant
 use constant SELF => HEAP;
 
-use vars qw{$VERSION @ISA @EXPORT %ATTR %META};
+use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
 	$VERSION = '0.01';
 	@ISA     = 'Exporter';
@@ -39,6 +39,7 @@ BEGIN {
 
 	# Metadata Storage
 	%ATTR    = ();
+	%EVENT   = ();
 	%META    = ();
 }
 
@@ -131,6 +132,11 @@ sub declare (@) {
 	return 1;
 }
 
+# Declare an event
+sub event {
+	$EVENT{$_[0]}->{$_[1]} = 1;
+}
+
 # Compile a named class
 sub compile {
 	my $pkg = @_ ? shift : caller();
@@ -165,6 +171,11 @@ sub compile {
 # Primarily used for testing purposes.
 sub meta {
 	$META{$_[0]};
+}
+
+sub next_alias {
+	my $meta = $META{$_[0]}	or croak("Cannot instantiate $_[0], class not defined");
+	$meta->next_alias;
 }
 
 1;

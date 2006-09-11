@@ -37,8 +37,10 @@ sub new {
 
 	# Create the object
 	my $self  = bless {
-		name => $name,
-		attr => { },
+		name     => $name,
+		attr     => { },
+		alias    => $name,
+		sequence => 0,
 		}, $class;
 
 	$self;
@@ -48,12 +50,23 @@ sub name {
 	$_[0]->{name};
 }
 
+sub alias {
+	$_[0]->{alias};
+}
+
+sub sequence {
+	$_[0]->{sequence};
+}
 
 
 
 
 #####################################################################
 # Methods
+
+sub next_alias {
+	$_[0]->{alias} . '.' . ++$_[0]->{sequence};
+}
 
 sub super_path {
 	my $self  = shift;
@@ -80,7 +93,18 @@ sub compile {
 	eval $code;
 	croak("Failed to compile code for " . $self->name) if $@;
 
+
 	return 1;
+}
+
+# Resolve the inline states for a class
+sub package_states {
+	my $self   = shift;
+	my @path   = $self->super_path;
+	my %events = map  { %{POE::Declare::EVENT} }
+	             grep { $POE::Declare::EVENT{$_} }
+	             $self->super_path;
+	return sort keys %events;
 }
 
 1;

@@ -67,12 +67,11 @@ hidden away.
 
 use 5.008005;
 use strict;
-use attributes           ();
-use Carp                 ();
-use Params::Util         ();
-use Scalar::Util         ();
-use POE                  qw{ Session };
-use POE::Thing::Registry ();
+use attributes   ();
+use Carp         ();
+use Scalar::Util qw{ refaddr };
+use Params::Util ();
+use POE          qw{ Session };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -89,20 +88,20 @@ my %SESSIONID = ();
 #####################################################################
 # Attribute Hooks
 
+# Only events are supported for now
 sub MODIFY_CODE_ATTRIBUTES {
 	my ($class, $code, $name, @params) = @_;
-
-	# Register an event
-	if ( $name eq 'Event' ) {
-		if ( $POE::Thing::Registry::INLINE_STATES{$name} ) {
-			Carp::croak("$class already initialialized, too late to add event");
-		}
-		$POE::Thing::Registry::EVENTS{$class}->{ Scalar::Util::refaddr($code) } = 1;
-		return ();
+	unless ( $name eq 'Event' ) {
+		Carp::croak("Unknown of unsupported attribute $name");
 	}
 
-	# Only events are supported for now
-	Carp::croak("Unknown of unsupported attribute $name");
+	# Register an event
+	POE::Declare::event( $class, $name );
+	return ();
+}
+
+sub meta {
+	POE::Declare::meta( ref $_[0] || $_[0] );
 }
 
 
@@ -117,22 +116,22 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Clear out any accidentally set internal values
-	delete $SESSIONID{Scalar::Util::refaddr $self};
+	delete $SESSIONID{$self->refaddr};
 
 	# Set the alias
-	if ( $self->{Alias} ) {
+	if ( exists $self->{Alias} ) {
 		unless ( Params::Util::_STRING($self->{Alias}) ) {
 			Carp::croak("Did not provide a valid Alias param, must be a string");
 		}
 	} else {
-		$self->{Alias} = POE::Thing::Registry::next_alias( $class );
+		$self->{Alias} = $self->meta->next_alias;
 	}
 
 	$self;
 }
 
 sub Alias {
-	$_[0]->{__ALIAS};
+	$_[0]->{Alias};
 }
 
 sub spawn {
@@ -146,13 +145,12 @@ sub spawn {
 
 	# Handle the normal object context
 	my $self  = shift;
-	my $class = ref $self;
 
 	# Create the session
-	$self->{__SESSIONID} = POE::Session->create(
+	$SESSIONID{$self->refaddr} = POE::Session->create(
 		heap           => $self,
 		package_states => [
-			$class => POE::Thing::Registry::inline_states($class),
+			$self->meta->name => $self->meta->package_states,
 			],
 		)->ID;
 
@@ -161,16 +159,17 @@ sub spawn {
 }
 
 sub spawned {
-	!! $_[0]->{__SESSIONID};
+	!! $SESSIONID{$_[0]->refaddr};
+
 }
 
 sub session_id {
-	$_[0]->{__SESSIONID};
+	$SESSIONID{$_[0]->refaddr};
 }
 
 sub session {
-	my $id = $_[0]->{__SESSIONID}      or return undef;
-	$poe_kernel->ID_id_to_session($id) or return undef;
+	my $id = $SESSIONID{$_[0]->refaddr} or return undef;
+	$poe_kernel->ID_id_to_session($id)  or return undef;
 }
 
 sub kernel {
@@ -264,7 +263,7 @@ Returns an integer, or C<undef> if the heap object has not spawned.
 =cut
 
 sub ID {
-	$_[0]->{__session};
+	$SESSIONID{$_[0]->refaddr}
 }
 
 =pod
@@ -284,7 +283,7 @@ spawned.
 =cut
 
 sub postback {
-	shift()->session->postback( @_ );
+	shift->session->postback( @_ );
 }
 
 =pod
@@ -342,11 +341,11 @@ sub lookback {
 
 	# Does the method exist?
 	unless ( $self->can($name) ) {
-		Carp::croak( "$class has no method '$name'" );
+		Carp::croak( ref($self) . " has no method '$name'" );
 	}
 
 	# Is it an event
-	unless ( grep { $_ eq $name } $class->init_package_states ) {
+	unless ( grep { $_ eq $name } $self->meta->package_states ) {
 		Carp::croak( "$class does not have the event '$name'" );
 	}
 
@@ -371,7 +370,7 @@ Returns void.
 =cut
 
 sub post {
-	$poe_kernel->post( shift()->{Alias}, @_ );
+	$poe_kernel->post( shift->Alias, @_ );
 }
 
 =pod
@@ -386,7 +385,7 @@ Returns as for the particular event handler, but generally returns void.
 =cut
 
 sub call {
-	$poe_kernel->call( shift()->{Alias}, @_ );
+	$poe_kernel->call( shift->Alias, @_ );
 }
 
 ### Wrapper for the (new) POE timer API
@@ -510,7 +509,7 @@ sub set_message {
 	unless ( $self->{__callback}->{$name} ) {
 		Carp::croak("The callback event $name does not exist");
 	}
-	$self->{$name} = _CALLBACK(shift);	
+	$self->{$name} = _CALLBACK(shift);
 	return 1;
 }
 
