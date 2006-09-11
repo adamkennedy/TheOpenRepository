@@ -121,8 +121,8 @@ sub declare (@) {
 	}
 
 	# Is the class an attribute class?
-	unless ( $type->isa('POE::Declare::Meta::Attribute') ) {
-		croak("The class $type is not a POE::Declare::Atribute");
+	unless ( $type->isa('POE::Declare::Meta::Slot') ) {
+		croak("The class $type is not a POE::Declare::Slot");
 	}
 
 	# Create and save the attribute
