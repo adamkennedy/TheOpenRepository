@@ -212,7 +212,7 @@ format, which returns in the form "2006-04-12".
 =cut
 
 sub ymd {
-	sprintf( "%04u%02u%02u", $_[0]->year, $_[0]->month, $_[0]->day );
+	sprintf( "%04u-%02u-%02u", $_[0]->year, $_[0]->month, $_[0]->day );
 }
 
 
@@ -229,6 +229,9 @@ sub ymd {
 The C<as_string> method converts the date to the default string, which
 at present is the same as that returned by the C<ymd> method above.
 
+This string matches the ISO 8601 standard for the encoding of a date as
+a string.
+
 =cut
 
 sub as_string {
@@ -239,12 +242,20 @@ sub as_string {
 
 =head2 DateTime
 
-The C<DateTime> method is used to inflate the B<Date::Time> object into a
-full L<DateTime> object.
+The C<DateTime> method is used to create a L<DateTime> object
+that is equivalent to the B<Date::Tiny> object, for use in
+comversions and caluculations.
+
+As mentioned earlier, the object will be set to the 'C' locate,
+and the 'floating' time zone.
+
+If installed, the L<DateTime> module will be loaded automatically.
+
+Returns a L<DateTime> object, or throws an exception if L<DateTime>
+is not installed on the current host.
 
 =cut
 
-# Convert to "real" DateTime object
 sub DateTime {
 	require DateTime;
 	my $self = shift;
