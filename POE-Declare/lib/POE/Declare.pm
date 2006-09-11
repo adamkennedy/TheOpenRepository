@@ -4,16 +4,47 @@ package POE::Declare;
 
 =head1 NAME
 
-POE::Thing - A POE abstraction layer for conciseness and simplicity
+POE::Declare - A POE abstraction layer for conciseness and simplicity
 
 =head1 DESCRIPTION
+
+B<WARNING: THIS CODE IS HIGHLY EXPERIMENTAL AND MADE BE CHANGED
+OR DELETED ENTIRELY WITHOUT NOTICE>
 
 L<POE> is a very powerful and flexible system for doing asynchronous
 programming.
 
 But personally, I find it confusing and tricky to use at times.
 
-(to be continued)
+In particular, I have found it hard to resolve L<POE>'s way of
+programming with the highly abstracted OO that I am used to,
+with layer stacked upon layer ad-infinitum.
+
+I have found this particularly noticable as the scale of a
+codebase gets later. At three levels of abstraction the layering
+become quite difficult, and beyond this it became worse and worse.
+
+B<POE::Declare> is my attempt to resolve this problem by locking
+down some of the traditional flexibility of POE, and by (hopefully)
+makeing it easier to split the implementation of each object between
+an object-oriented half and a POE half. 
+
+This will hopefully allow me to utilise POE's asynchronous nature,
+while retaining the traditional codebase scaling capability
+provided by normal OO.
+
+Of course, this entire exercise is something of a grand experiment
+and it may well turn out that I am wrong. But I think I'm heading
+in the right general direction (I just don't know if I'm taking
+quite the right path).
+
+=head1 METHODS
+
+For the first few releases, I plan to leave this module undocumented.
+
+That I am releasing this distribution at all is more of a way to
+mark my progress, and to allow other POE/OO people to look at the
+implementation and comment.
 
 =cut
 
