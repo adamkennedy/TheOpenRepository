@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 12;
 
 
 
@@ -19,8 +19,6 @@ use Test::More tests => 4;
 
 SCOPE: {
 	package Foo;
-
-	BEGIN { $DB::single = 1 }
 
 	use POE::Declare;
 
@@ -55,7 +53,8 @@ SCOPE: {
 	# Create an object
 	my $object = Foo->new( foo => 'foo' );
 	isa_ok( $object, 'Foo' );
-	is( $object->foo, 'foo', '->foo created and returns correctly' );
+	is( $object->foo,   'foo',   '->foo created and returns correctly' );
+	is( $object->Alias, 'Foo.1', 'Pregenerated ->Alias returns as expected' );
 }
 
 exit(0);
