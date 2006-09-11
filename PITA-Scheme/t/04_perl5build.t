@@ -31,10 +31,17 @@ ok( -d $injector, 'Test injector exists' );
 # Create the workarea directory
 my $cwd      = cwd();
 my $workarea = catdir( 't', 'perl5build', 'workarea' );
-File::Remove::remove( \1, $workarea ) if -d $workarea;
+my $readonly = catfile( $workarea, 'PITA-Test-Dummy-Perl5-Build-1.01', 'blib', 'lib', 'PITA', 'Test', 'Dummy', 'Perl5', 'Build.pm' );
+if ( -d $workarea ) {
+	chmod( 0644, $readonly ) if -f $readonly;
+	File::Remove::remove( \1, $workarea );
+}
 END {
 	chdir $cwd;
-	File::Remove::remove( \1, $workarea ) if -d $workarea;
+	if ( -d $workarea ) {
+		chmod( 0644, $readonly ) if -f $readonly;
+		File::Remove::remove( \1, $workarea );
+	}
 }
 ok( mkdir( $workarea ), 'Created workarea' );
 ok( -d $workarea, 'Test workarea exists' );

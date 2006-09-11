@@ -32,8 +32,10 @@ relating to the integration of a CPAN client an an arbitrary module.
 use 5.005;
 use strict;
 use base 'PITA::Scheme';
-use Carp        ();
-use File::Which ();
+use Carp         ();
+use File::Spec   ();
+use File::Which  ();
+use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -47,16 +49,54 @@ BEGIN {
 #####################################################################
 # Constructor
 
-sub default_path {
-	File::Which::which('perl') || '';
-}
-
 sub new {
 	my $class = shift;
 	my $self  = $class->SUPER::new(@_);
 
-	### Additional checks
+	# Prepare some additional things
+	$self->{dot_cpan} = File::Spec->catdir( $self->workarea, '.cpan'            );
 
 	$self;
 }
 
+sub dot_cpan {
+	$_[0]->{dot_cpan};
+}
+
+
+
+
+
+#####################################################################
+# PITA::Scheme Methods
+
+sub default_path {
+	File::Which::which('perl') || '';
+}
+
+sub prepare_environment {
+	my $self = shift;
+
+	# Create the .cpan directory
+	unless ( mkdir $self->dot_cpan ) {
+		Carp::croak("Failed to create workarea .cpan directory");
+	}
+
+	# Save the platform configuration
+	$self->{platform} = PITA::XML::Platform->autodetect_perl5;
+	unless ( _INSTANCE($self->{platform}, 'PITA::XML::Platform') ) {
+		Carp::croak("Failed to capture platform information");
+	}
+
+}
+
+sub execute_all {
+	my $self = shift;
+
+	# Set the current HOME path to the workarea
+	local $ENV{HOME} = $self->workarea;
+
+	1;
+}
+
+1;

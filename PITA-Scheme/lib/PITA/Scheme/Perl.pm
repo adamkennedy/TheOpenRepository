@@ -52,10 +52,6 @@ sub extract_files {
 	$files ? @$files : ();
 }
 
-sub platform {
-	$_[0]->{platform};
-}
-
 
 
 

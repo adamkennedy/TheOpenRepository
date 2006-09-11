@@ -168,6 +168,10 @@ sub request_id {
 	undef;
 }
 
+sub platform {
+	$_[0]->{platform};
+}
+
 sub install {
 	$_[0]->{install};	
 }
