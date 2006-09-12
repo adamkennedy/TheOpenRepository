@@ -64,8 +64,8 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.01';
-	@ISA     = 'Exporter';
+	$VERSION = '0.02';
+	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
 	# Metadata Storage
@@ -102,12 +102,12 @@ sub import {
 		Carp::croak("$callpkg already exists, cannot use POE::Declare");
 	}
 
-	# Set @ISA for the package, which does most of the work.
+	# Set @ISA for the package, which does most of the work
 	@{"$callpkg\::ISA"} = qw{ POE::Declare::Object };
 
 	# Export the symbols
 	local $Exporter::ExportLevel += 1;
-	$pkg->SUPER::import(@_);	
+	$pkg->SUPER::import(@_);
 }
 
 sub declare (@) {

@@ -10,7 +10,7 @@ use Class::ISA       qw{ self_and_super_path };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -92,7 +92,6 @@ sub compile {
 	my $code = join "\n\n", @main;
 	eval $code;
 	croak("Failed to compile code for " . $self->name) if $@;
-
 
 	return 1;
 }

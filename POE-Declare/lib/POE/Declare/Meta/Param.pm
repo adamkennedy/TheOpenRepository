@@ -5,7 +5,7 @@ use base 'POE::Declare::Meta::Attribute';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 

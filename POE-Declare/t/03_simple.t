@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 
 
@@ -21,9 +21,13 @@ SCOPE: {
 	package Foo;
 
 	use POE::Declare;
+	use POE qw{ Session };
 
 	declare foo => 'Attribute';
 	declare bar => 'Internal';
+
+	# Check that SELF is exported, and matches HEAP
+	main::is( SELF, HEAP, 'SELF == HEAP' );
 }
 
 

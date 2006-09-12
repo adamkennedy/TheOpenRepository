@@ -1,4 +1,8 @@
 Revision history for Perl extension POE::Declare
 
+0.02 Tue 12 Sep 2006
+	- More thorough testing
+	- Fixing various bugs
+
 0.01 Thu  7 Sep 2006
 	- original version

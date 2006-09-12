@@ -75,7 +75,7 @@ use POE          qw{ Session };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # Inside-out storage of internal values
