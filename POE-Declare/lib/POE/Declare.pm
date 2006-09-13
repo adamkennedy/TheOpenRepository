@@ -56,8 +56,12 @@ use List::Util           qw{ first };
 use Params::Util         qw{ _IDENTIFIER _CLASS };
 use Class::Inspector     ();
 use POE                  qw{ Session };
-use POE::Declare::Object ();
 use POE::Declare::Meta   ();
+
+# The base class requires POE::Declare to be fully compiled,
+# so load it in post-BEGIN with a require rather than at BEGIN-time
+# with a use.
+require POE::Declare::Object;
 
 # Provide the SELF constant
 use constant SELF => HEAP;
@@ -95,6 +99,7 @@ sub import {
 		# Are we a subclass of an existing POE::Declare class
 		if ( $callpkg->isa('POE::Declare::Object') ) {
 			# Yes, don't set up anything, just do the exports
+			local $Exporter::ExportLevel += 1;
 			return $pkg->SUPER::import(@_);
 		}
 
@@ -112,6 +117,12 @@ sub import {
 
 sub declare (@) {
 	my $pkg = caller();
+	local $Carp::CarpLevel += 1;
+	_declare( $pkg, @_ );
+}
+
+sub _declare {
+	my $pkg = shift;
 	if ( $META{$pkg} ) {
 		croak("Too late to declare additions to $pkg");
 	}
@@ -127,7 +138,26 @@ sub declare (@) {
 		croak("Attribute $name already defined in class $pkg");
 	}
 
-	# Resolve the attribute type
+	# # Resolve the attribute class
+	my $type = do {
+		local $Carp::CarpLevel += 1;
+		attribute_class(shift);
+		};
+
+	# Is the class an attribute class?
+	unless ( $type->isa('POE::Declare::Meta::Slot') ) {
+		croak("The class $type is not a POE::Declare::Slot");
+	}
+
+	# Create and save the attribute
+	my $attribute = $type->new( name => $name, @_ );
+	$ATTR{$pkg}->{$name} = $attribute;
+
+	return 1;
+}
+
+# Resolve an attribute type
+sub attribute_class {
 	my $type = shift;
 	if ( _IDENTIFIER($type) ) {
 		$type = "POE::Declare::Meta::$type";
@@ -151,20 +181,12 @@ sub declare (@) {
 		}
 	}
 
-	# Is the class an attribute class?
-	unless ( $type->isa('POE::Declare::Meta::Slot') ) {
-		croak("The class $type is not a POE::Declare::Slot");
-	}
-
-	# Create and save the attribute
-	my $attribute = $type->new( name => $name, @_ );
-	$ATTR{$pkg}->{$name} = $attribute;
-
-	return 1;
+	return $type;
 }
 
 # Declare an event
 sub event {
+	
 	$EVENT{$_[0]}->{$_[1]} = 1;
 }
 

@@ -72,6 +72,7 @@ use Carp         ();
 use Scalar::Util qw{ refaddr };
 use Params::Util ();
 use POE          qw{ Session };
+use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -80,6 +81,9 @@ BEGIN {
 
 # Inside-out storage of internal values
 my %SESSIONID = ();
+
+# Set default attributes
+POE::Declare::declare( Alias => 'Param' );
 
 
 
@@ -91,13 +95,16 @@ my %SESSIONID = ();
 # Only events are supported for now
 sub MODIFY_CODE_ATTRIBUTES {
 	my ($class, $code, $name, @params) = @_;
-	unless ( $name eq 'Event' ) {
-		Carp::croak("Unknown of unsupported attribute $name");
-	}
 
 	# Register an event
-	POE::Declare::event( $class, $name );
-	return ();
+	if ( $name eq 'Event' ) {
+		# Add to the coderef event register
+		$POE::Declare::EVENT{refaddr $code} = 1;
+		return ();
+	}
+
+	# Unknown method type
+	Carp::croak("Unknown of unsupported attribute $name");
 }
 
 sub meta {
@@ -150,7 +157,7 @@ sub spawn {
 	$SESSIONID{$self->refaddr} = POE::Session->create(
 		heap           => $self,
 		package_states => [
-			$self->meta->name => $self->meta->package_states,
+			$self->meta->name => [ $self->meta->package_states ],
 			],
 		)->ID;
 
@@ -205,7 +212,7 @@ after the SUPER call.
 
 =cut
 
-sub _start {
+sub _start : Event {
 	$poe_kernel->alias_set( $_[HEAP]->Alias );
 	return;
 }
@@ -230,7 +237,7 @@ SUPER last.
 
 =cut
 
-sub _stop {
+sub _stop : Event {
 	my $self = $_[HEAP];
 
 	# Clean up the named session.
@@ -545,7 +552,14 @@ sub is_message {
 	Carp::croak('Invalid callback event handler');
 }
 
-1;
+
+
+
+
+#####################################################################
+# Compile the POE::Declare form of POE::Declare::Object itself
+
+POE::Declare::compile();
 
 =pod
 
@@ -553,13 +567,13 @@ sub is_message {
 
 Bugs should be always be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Twin>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare>
 
 For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<lt>
+Adam Kennedy E<lt>adamk@cpan.orgE<lt>
 
 =head1 SEE ALSO
 
@@ -567,7 +581,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2006 Adam Kennedy.
+Copyright 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

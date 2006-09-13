@@ -3,10 +3,12 @@ package POE::Declare::Meta;
 # Provides a simple metaclass object for POE::Declare
 
 use strict;
-use Carp             qw{ croak  };
-use Params::Util     qw{ _CLASS };
-use Class::Inspector ();
+use Carp             qw{ croak   };
+use Scalar::Util     qw{ refaddr };
+use List::Util       qw{ first   };
+use Params::Util     qw{ _CLASS  };
 use Class::ISA       qw{ self_and_super_path };
+use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -69,17 +71,31 @@ sub next_alias {
 }
 
 sub super_path {
-	my $self  = shift;
-	my @super = Class::ISA::self_and_super_path( $self->name );
-	if ( $super[-1] eq 'POE::Declare::Object' ) {
-		pop @super;
-	}
-	return @super;
+	Class::ISA::self_and_super_path( $_[0]->name );
 }
 
 sub compile {
 	my $self = shift;
+	my $name = $self->name;
 	my $attr = $self->{attr};
+
+	# Go over all our methods, and add any required events
+	my $methods = Class::Inspector->methods($name, 'expanded');
+	foreach my $method ( @$methods ) {
+		my $mname = $method->[2];
+		my $mcode = $method->[3];
+		next unless $POE::Declare::EVENT{Scalar::Util::refaddr $mcode};
+		my $method_attr = $self->attr($mname);
+		if ( $method_attr ) {
+			# Make sure the existing attribute is an event
+			next if $method_attr->isa('POE::Declare::Meta::Event');
+			croak("Event '$mname' in $name clashes with non-event in parent class");
+		} else {
+			# Add an attribute for the event
+			require POE::Declare::Meta::Event;
+			$self->{attr}->{$mname} = POE::Declare::Meta::Event->new( name =>$mname );
+		}
+	}
 
 	# Get all the package fragments
 	my @parts = map { $attr->{$_}->compile } sort keys %$attr;
@@ -98,12 +114,33 @@ sub compile {
 
 # Resolve the inline states for a class
 sub package_states {
-	my $self   = shift;
-	my @path   = $self->super_path;
-	my %events = map  { %{POE::Declare::EVENT} }
-	             grep { $POE::Declare::EVENT{$_} }
-	             $self->super_path;
-	return sort keys %events;
+	sort map { $_->name } grep { $_->isa('POE::Declare::Meta::Event') } $_[0]->attrs;
+}
+
+# Fetch a named attribute (from this or parents)
+sub attr {
+	my $self = shift;
+	my $name = shift;
+	foreach my $c ( $self->super_path ) {
+		my $meta = $POE::Declare::META{$c} or next;
+		my $attr = $meta->{attr}->{$name}  or next;
+		return $attr;
+	}
+	return undef;
+}
+
+# Fetch all named attributes (from this or parents)
+sub attrs {
+	my $self = shift;
+	my %hash = ();
+	foreach my $c ( $self->super_path ) {
+		my $meta = $POE::Declare::META{$c} or next;
+		my $attr = $meta->{attr};
+		foreach ( keys %$attr ) {
+			$hash{$_} = $attr->{$_};
+		}
+	}
+	values %hash;
 }
 
 1;
