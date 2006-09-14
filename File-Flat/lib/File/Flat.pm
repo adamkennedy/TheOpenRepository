@@ -14,7 +14,7 @@ use IO::File    ();
 use prefork 'File::Slurp';
 use prefork 'File::Temp';
 use prefork 'File::Copy';
-use prefork 'File::NCopy';
+use prefork 'File::Copy::Recursive';
 use prefork 'File::Remove';
 
 use vars qw{$VERSION $errstr %modes $AUTO_PRUNE};

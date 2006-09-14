@@ -12,9 +12,10 @@ use File::Find   'find';
 
 # If we are root, some things we WANT to fail won't,
 # and we'll have to skip some tests.
-use vars qw{$root};
+use vars qw{$root $win32};
 BEGIN {
-	$root = ($> == 0) ? 1 : 0;
+	$root  = ($> == 0) ? 1 : 0;
+	$win32 = ($^O eq 'MSWin32') ? 1 : 0;
 }
 
 use Test::More tests => 269;
@@ -276,18 +277,21 @@ SKIP: {
 }
 
 # Test the static ->canExecute method
-ok( ! File::Flat->canExecute( $f{null} ), "Static ->canExecute returns false for missing file" );
-ok( ! File::Flat->canExecute( $f{rwx} ), "Static ->canExecute returns false for mode 000 file" );
-ok( ! File::Flat->canExecute( $f{Rwx} ), "Static ->canExecute returns false for mode 400 file" );
-ok( ! File::Flat->canExecute( $f{rWx} ), "Static ->canExecute returns false for mode 200 file" );
-ok( File::Flat->canExecute( $f{rwX} ), "Static ->canExecute returns true for mode 100 file" );
-ok( ! File::Flat->canExecute( $f{RWx} ), "Static ->canExecute returns false for mode 500 file" );
-ok( File::Flat->canExecute( $f{RwX} ), "Static ->canExecute returns true for mode 300 file" );
-ok( File::Flat->canExecute( $f{RWX} ), "Static ->canExecute returns true for mode 700 file" );
-ok( File::Flat->canExecute( $curdir ), "Static ->canExecute returns true for current directory" );
-ok( File::Flat->canExecute( $f{gooddir} ), "Static ->canExecute returns true for executable subdirectory" );
 SKIP: {
-	skip "Skipping tests known to fail for root", 1 if $root;
+	skip( "Skipping tests known to falsely fail on Win32", 11 ) if $win32;
+
+	ok( ! File::Flat->canExecute( $f{null} ), "Static ->canExecute returns false for missing file" );
+	ok( ! File::Flat->canExecute( $f{rwx} ), "Static ->canExecute returns false for mode 000 file" );
+	ok( ! File::Flat->canExecute( $f{Rwx} ), "Static ->canExecute returns false for mode 400 file" );
+	ok( ! File::Flat->canExecute( $f{rWx} ), "Static ->canExecute returns false for mode 200 file" );
+	ok( File::Flat->canExecute( $f{rwX} ), "Static ->canExecute returns true for mode 100 file" );
+	ok( ! File::Flat->canExecute( $f{RWx} ), "Static ->canExecute returns false for mode 500 file" );
+	ok( File::Flat->canExecute( $f{RwX} ), "Static ->canExecute returns true for mode 300 file" );
+	ok( File::Flat->canExecute( $f{RWX} ), "Static ->canExecute returns true for mode 700 file" );
+	ok( File::Flat->canExecute( $curdir ), "Static ->canExecute returns true for current directory" );
+	ok( File::Flat->canExecute( $f{gooddir} ), "Static ->canExecute returns true for executable subdirectory" );
+
+	skip( "Skipping tests known to falsely fail for root", 1 ) if $root;
 	ok( ! File::Flat->canExecute( $f{baddir} ), "Static ->canExecute returns false for unexecutable subdirectory" );
 }
 
