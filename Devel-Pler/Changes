@@ -1,5 +1,10 @@
 Revision history for Perl extension Devel-Pler
 
+0.14 Fri 15 Sep 2006
+	- exec() does not work on Win32 (and we assume cygwin).
+	  Instead, use system() which uses more memory, but
+	  does at least work.
+
 0.13 Thu  3 Aug 2006
 	- Bug fixes
 	  (I honestly don't know his this crap gets out to CPAN)

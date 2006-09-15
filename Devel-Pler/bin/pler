@@ -24,16 +24,18 @@ to the perl debugger as normal.
 
 use 5.005;
 use strict;
+use Config;
+use File::Which ();
 use File::Spec::Functions ':ALL';
-use File::Find::Rule      ();
+use File::Find::Rule ();
 use Devel::Pler;
 
 # Convenience constants
-use constant FFR => 'File::Find::Rule';
+use constant FFR  => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 }
 
 
@@ -43,7 +45,6 @@ BEGIN {
 #####################################################################
 # Main Script
 
-my $perl   = $^X;
 my $script = shift @ARGV;
 unless ( defined $script ) {
 	print "# No file name pattern provided, using 't'...\n";
@@ -78,7 +79,7 @@ unless ( -f $script ) {
 
 # Rerun make if needed
 if ( in_distroot and has_makefile ) {
-	run('make');
+	run( make );
 }
 
 # Build the command to execute
@@ -93,7 +94,8 @@ if ( has_blib ) {
 unless ( Devel::Pler->is_verbose ) {
 	message( "# Debugging $script" );
 }
-handoff( join ' ', $perl, @flags, '-d', $script );
+my @cmd = ( perl, @flags, '-d', $script );
+handoff( @cmd );
 
 =pod
 

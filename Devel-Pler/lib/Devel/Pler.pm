@@ -2,22 +2,29 @@ package Devel::Pler;
 
 # Provides the collection of functions for pler
 
+use 5.005;
 use strict;
-use Carp     ();
-use Exporter ();
+use Carp        'croak';
+use Config      ();
+use Exporter    ();
+use File::Which ();
 use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
 		in_distroot has_makefile has_blib has_lib
-		MakefilePL  Makefile     blib     lib
+		MakefilePL  Makefile     perl     make     
+		blib        lib
 		verbose     message
 		error       run          handoff
 		};
 }
+
+# Does exec work on this platform
+use constant EXEC_OK => ($^O ne 'MSWin32' and $^O ne 'cygwin');
 
 
 
@@ -48,6 +55,24 @@ sub MakefilePL () {
 
 sub Makefile () {
 	catfile( curdir(), 'Makefile' );
+}
+
+sub perl () {
+	my $perl = $^X;
+	unless ( -f $perl ) {
+		croak("Failed to find perl at '$perl'");
+	}
+	return $perl;
+}
+
+# Look for make in $Config
+sub make () {
+	my $make  = $Config::Config{make};
+	my $found = File::Which::which( $make );
+	unless ( $found ) {
+		croak("Failed to find '$make' (as specified by \$Config{make})");
+	}
+	return $make;
 }
 
 sub blib () {
@@ -94,10 +119,16 @@ sub run ($) {
 	system( $cmd );
 }
 
-sub handoff ($) {
-	my $cmd = shift;
+sub handoff (@) {
+	my $cmd = join ' ', @_;
 	verbose( "> $cmd" );
-	exec( $cmd ) or Carp::croak("Failed to exec '$cmd'");
+	if ( EXEC_OK ) {
+		exec( @_ );
+		croak("Failed to exec '$cmd'");
+	} else {
+		system( @_ );
+		exit(0);
+	}
 }
 
 1;
