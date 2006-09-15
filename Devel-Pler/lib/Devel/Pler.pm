@@ -123,8 +123,7 @@ sub handoff (@) {
 	my $cmd = join ' ', @_;
 	verbose( "> $cmd" );
 	if ( EXEC_OK ) {
-		exec( @_ );
-		croak("Failed to exec '$cmd'");
+		exec( @_ ) or croak("Failed to exec '$cmd'");
 	} else {
 		system( @_ );
 		exit(0);
