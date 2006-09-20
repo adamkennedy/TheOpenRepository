@@ -1,0 +1,30 @@
+<?xml version="1.0">
+<Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
+    <Product
+     Id='12345678-1234-1234-1234-123456789012'
+     Name='Test Package'
+     Language='1033'
+     Version='1.0.0.0'
+     Manufacturer='Microsoft Corporation'>
+        <Package
+         Id='12345678-1234-1234-1234-123456789012'
+         Description='My first Windows Installer package'
+         Comments='This is my first attempt at creating a Windows Installer database'
+         Manufacturer='Microsoft Corporation'
+         InstallerVersion='200'
+         Compressed='yes' />
+        <Media Id='1' Cabinet='product.cab' EmbedCab='yes' />
+        <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='ProgramFilesFolder' Name='PFiles'>
+                <Directory Id='MyDir' Name='TestProg' LongName='Test Program'>
+                    <Component Id='MyComponent' Guid='12345678-1234-1234-1234-123456789012'>
+                        <File Id='readme' Name='readme.txt' DiskId='1' src='readme.txt' />
+                    </Component>
+                </Directory>
+            </Directory>
+        </Directory>
+        <Feature Id='MyFeature' Title='My 1st Feature' Level='1'>
+            <ComponentRef Id='MyComponent' />
+        </Feature>
+    </Product>
+</Wix>
