@@ -1,34 +1,32 @@
 package Kepher::App::CommandList;
-$VERSION = '0.06';
 
 use strict;
-use constant APPROOT => 'command';
-use constant CFGROOT => 'commandlist';
 use Wx qw(wxBITMAP_TYPE_XPM);
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.06';
+}
 
 sub _get_config{ $Kepher::config{'app'}{'commandlist'} }
 
-sub assemble_data{
+sub assemble_data {
 	# get info from global configs and load commandlist conf file
-	my $config = _get_config();
-	my $file_name = $Kepher::internal{path}{config} . $config->{file};
+	my $config       = _get_config();
+	my $file_name    = Kepher::Config::existing_filepath( $config->{file} );
 	my $cmd_list_def = Kepher::Config::File::load($file_name);
 	if ($config->{node} and exists $cmd_list_def->{ $config->{node} }) {
 		$cmd_list_def = $cmd_list_def->{$config->{node}};
-	} else { return }#
-
+	} else {
+		return;
+	}
 
 	# copy data of a hash structures into specified commandlist leafes
-	_copy_conf_values($cmd_list_def->{call},  'call');
-	_copy_conf_values($cmd_list_def->{enable},'enable');
-	_copy_conf_values($cmd_list_def->{enable_event},'enable_event');
-	_copy_conf_values($cmd_list_def->{state}, 'state');
-	_copy_conf_values($cmd_list_def->{state_event}, 'state_event');
-	_copy_conf_values($cmd_list_def->{key},   'key');
-	_copy_conf_values($cmd_list_def->{icon},  'icon');
-	_copy_conf_values($Kepher::localisation{(CFGROOT)}{label},'label');
-	_copy_conf_values($Kepher::localisation{(CFGROOT)}{help}, 'help');
+	foreach my $key ( qw{call enable enable_event state state_event key icon} ) {
+		_copy_conf_values($cmd_list_def->{$key}, $key);
+	}
+	_copy_conf_values($Kepher::localisation{commandlist}{label}, 'label');
+	_copy_conf_values($Kepher::localisation{commandlist}{help},  'help' );
 	_create_keymap()
 }
 
@@ -37,7 +35,7 @@ sub _copy_conf_values {
 	my $root_node = shift;                # source
 	local $target_leafe = shift;
 	local ($leaf_type, $cmd_id);
-	local $list = \%{$Kepher::app{(APPROOT)}}; # commandlist data
+	local $list = \%{$Kepher::app{command}}; # commandlist data
 	_parse_node($root_node, '') if ref $root_node eq 'HASH';
 }
 
@@ -56,12 +54,12 @@ sub _parse_node{
 	}
 }
 
-sub _create_keymap{
-	my $list = \%{$Kepher::app{(APPROOT)}};
+sub _create_keymap {
+	my $list = \%{$Kepher::app{command}};
 	my ($item_data, $rd, $kc, $kn, $i, $char); #rawdata, keycode
-	my $shift = $Kepher::localisation{key}{meta}{shift}.'+';
-	my $alt   = $Kepher::localisation{key}{meta}{alt}.'+';
-	my $ctrl  = $Kepher::localisation{key}{meta}{ctrl}.'+';
+	my $shift = $Kepher::localisation{key}{meta}{shift} . '+';
+	my $alt   = $Kepher::localisation{key}{meta}{alt}   . '+';
+	my $ctrl  = $Kepher::localisation{key}{meta}{ctrl}  . '+';
 	my %keycode_map = (
 		back => 8, tab => 9, enter => 13, esc => 27, space => 32,
 		'#' => 47,
@@ -99,14 +97,12 @@ sub _create_keymap{
 	}
 }
 
-sub eval_data{
-	my $list = \%{$Kepher::app{(APPROOT)}};
-	my $ico_dir = $Kepher::internal{path}{config}.$Kepher::config{app}{iconset_path};
+sub eval_data {
+	my $list   = \%{$Kepher::app{command}};
 	my $keymap = \@{$Kepher::app{editpanel}{keymap}};
 
-	my ($item_data, $ico_path);
-	for (keys %$list){
-		$item_data = $list->{$_};
+	for ( keys %$list ){
+		my $item_data = $list->{$_};
 		if ($item_data->{call}){
 			if ($item_data->{key}){
 				$keymap->[$item_data->{key}] = $item_data->{call} = 
@@ -119,25 +115,31 @@ sub eval_data{
 			if $item_data->{enable};
 		$item_data->{state} = eval 'sub {'.$item_data->{state}.'}'
 			if $item_data->{state};
+
+		# Does it have an (existing) icon
 		next unless $item_data->{icon};
-		$ico_path = $ico_dir . $item_data->{icon};
-		$item_data->{icon} = Wx::Bitmap->new( $ico_path, wxBITMAP_TYPE_XPM)
-			if -e $ico_path;
-#			Wx::Image->new($ico_path, wxBITMAP_TYPE_XPM)->Scale( 15, 15 ) 
+		my $ico_path = Kepher::Config::filepath(
+			$Kepher::config{app}{iconset_path},
+			$item_data->{icon},
+			);
+		next unless -e $ico_path;
+
+		# Load the icon
+		$item_data->{icon} = Kepher::Config::icon_bitmap( $item_data->{icon} );
 	}
 }
 
 sub get_cmd_properties{
 	my $cmd_id = shift;
-	$Kepher::app{(APPROOT)}{$cmd_id} if ref $Kepher::app{(APPROOT)}{$cmd_id} eq 'HASH';
+	$Kepher::app{command}{$cmd_id} if ref $Kepher::app{command}{$cmd_id} eq 'HASH';
 }
 
 sub get_cmd_property{
 	my $cmd_id = shift;
 	my $leafe = shift;
-	$Kepher::app{(APPROOT)}{$cmd_id}{$leafe}
-		if ref $Kepher::app{(APPROOT)}{$cmd_id} eq 'HASH'
-		and exists $Kepher::app{(APPROOT)}{$cmd_id}{$leafe};
+	$Kepher::app{command}{$cmd_id}{$leafe}
+		if ref $Kepher::app{command}{$cmd_id} eq 'HASH'
+		and exists $Kepher::app{command}{$cmd_id}{$leafe};
 }
 
 sub del_data{

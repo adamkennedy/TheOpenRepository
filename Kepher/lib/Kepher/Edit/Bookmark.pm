@@ -75,44 +75,48 @@ sub _delete_data {
 #
 sub define_marker {
 	my $edit_panel = Kepher::App::EditPanel::_get();
-	my $conf       = $Kepher::config{'editpanel'}{'margin'}{'marker'};
-	my $hex2dec    = \&Kepher::Config::_hex2dec_color_array;
+	my $conf       = $Kepher::config{editpanel}{margin}{marker};
+	my $foreground = Kepher::Config::color( $conf->{fore_color} );
+	my $background = Kepher::Config::color( $conf->{back_color} );
 
-	my $wxColor_fore = Wx::Colour->new( @{ &$hex2dec($conf->{'fore_color'}) } );
-	my $wxColor_back = Wx::Colour->new( @{ &$hex2dec($conf->{'back_color'}) } );
-	$edit_panel->MarkerDefine
-		( $_, wxSTC_MARK_SHORTARROW, $wxColor_fore, $wxColor_back ) for 0 .. 9;
+	foreach my $i ( 0 .. 9 ) {
+		$edit_panel->MarkerDefine(
+			$i,
+			wxSTC_MARK_SHORTARROW,
+			$foreground,
+			$background,
+		);
+	}
 
-	#wxSTC_MARK_CIRCLE wxSTC_MARK_MINUS wxSTC_MARK_SHORTARROW wxSTC_MARK_PLUS
-	#wxSTC_MARKNUM_FOLDEREND wxSTC_MARK_BOXPLUSCONNECTED
+	return 1;
 }
 
 sub restore_all {
 	my $edit_panel = Kepher::App::EditPanel::_get();
 	my $cur_doc_nr = Kepher::Document::_get_current_nr();
 	my $bookmark   = $Kepher::config{'search'}{'bookmark'};
-	my $doc_nr;
 
-	for my $nr (0..9){
-		if ($bookmark->{$nr}){
-			$doc_nr = Kepher::Document::_get_nr_from_path( $bookmark->{$nr}{'file'} );
-			if (ref $doc_nr eq 'ARRAY') { $doc_nr = $doc_nr->[0] }
-			else                        { next }
-			Kepher::Document::Internal::change_pointer( $doc_nr );
-			$edit_panel->GotoPos( $bookmark->{$nr}{'pos'} );
-			toggle_nr( $nr );
-		}
+	for my $nr ( 0 .. 9 ) {
+		next unless $bookmark->{$nr};
+		my $doc_nr = Kepher::Document::_get_nr_from_path( $bookmark->{$nr}{'file'} );
+		if (ref $doc_nr eq 'ARRAY') { $doc_nr = $doc_nr->[0] }
+		else                        { next }
+		Kepher::Document::Internal::change_pointer( $doc_nr );
+		$edit_panel->GotoPos( $bookmark->{$nr}{'pos'} );
+		toggle_nr( $nr );
 	}
+
 	Kepher::Document::Internal::change_pointer($cur_doc_nr);
 }
 
 sub save_all { _refresh_data_nr($_) for 0..9 }
 
 sub toggle_nr {
-	my $nr = shift;
+	my $nr         = shift;
 	my $edit_panel = Kepher::App::EditPanel::_get();
-	my $pos = $edit_panel->GetCurrentPos;
-	my $line = $edit_panel->GetCurrentLine;
+	my $pos        = $edit_panel->GetCurrentPos;
+	my $line       = $edit_panel->GetCurrentLine;
+
 	# is selected bookmark in current line ?
 	my $marker_in_line = (1 << $nr) & $edit_panel->MarkerGet($line);
 

@@ -4,14 +4,81 @@ our $VERSION = '0.27';
 
 # low level config manipulation
 use strict;
+use File::Spec ();
 
+use Wx qw(
+	wxBITMAP_TYPE_XPM
+	);
 
-
-# tree manipulation
-sub _merge {
+# Generate a path to a configuration file
+sub filepath {
+	File::Spec->catfile( $Kepher::internal{path}{config}, @_ );
 }
 
-sub _update {
+sub existing_filepath {
+	my $path = filepath( @_ );
+	unless ( -f $path ) {
+		warn("The config file '$path' does not exist");
+	}
+	return $path;
+}
+
+sub dirpath {
+	File::Spec->catdir( $Kepher::internal{path}{config}, @_ );
+}
+
+sub existing_dirpath {
+	my $path = dirpath( @_ );
+	unless ( -d $path ) {
+		warn("The config directory '$path' does not exist");
+	}
+	return $path;
+}
+
+# Create a Wx::Colour from a config string
+# Either hex "0066FF" or decimal "0,128,255" is allowed.
+sub color {
+	my $string = shift;
+	unless ( defined $string ) {
+		die "Color string is not defined";
+	}
+
+	# Handle hex format
+	$string = lc $string;
+	if ( $string =~ /^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i ) {
+		return Wx::Colour->new( hex $1, hex $2, hex $3 );
+	}
+
+	# Handle comma-seperated
+	if ( $string =~ /^(\d+),(\d+),(\d+)$/ ) {
+		return Wx::Colour->new( $1 + 0, $2 + 0, $3 + 0 );
+	}
+
+	# Unknown
+	die "Unknown color string '$string'";
+}
+
+# Create an icon bitmap Wx::Bitmap for a named icon
+sub icon_bitmap {
+	# Find the path from the name
+	my $name = shift;
+	unless ( defined $name ) {
+		die "Did not provide an icon name to icon_bitmap";
+	}
+	unless ( $name =~ /\.xpm$/ ) {
+		$name .= '.xpm';
+	}
+	my $path = existing_filepath( 
+		$Kepher::config{app}{iconset_path}, $name,
+		);
+
+	# Create the bitmap object
+	my $bitmap = Wx::Bitmap->new( $path, wxBITMAP_TYPE_XPM );
+	unless ( $bitmap ) {
+		die "Failed to create bit map from $path";
+	}
+
+	return $bitmap;
 }
 
 # single node manipulation
@@ -45,17 +112,6 @@ sub _convert_node_2_AoS {
 	}
 }
 
-sub _hex2dec_color_array {
-	my $color  = shift;
-	my @values = (
-		hex( substr( $color, 0, 2 ) ),
-		hex( substr( $color, 2, 2 ) ),
-		hex( substr( $color, 4, 2 ) )
-	);
-	#split /,/, $color; #if ($#values == 0) {@values =
-	return \@values;
-}
-
 sub set_xp_style {
 	my $xp_def_file = "$^X.manifest";
 	if ( $^O eq 'MSWin32' ) {
@@ -76,7 +132,7 @@ sub _build_fileendings2syntaxstyle_map {
 		my $language_id = $_;
 		my @fileendings
 			= split( /\s+/, $Kepher::config{'file'}{'endings'}{$language_id} );
-		foreach (@fileendings) {
+		foreach ( @fileendings ) {
 			$Kepher::internal{'file'}{'end2langmap'}{$_} = $language_id;
 		}
 	}

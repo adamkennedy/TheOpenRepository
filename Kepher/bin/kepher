@@ -1,10 +1,10 @@
-#! /usr/bin/perl -w
+#!/usr/bin/perl -w
 
 #############################################################################
 ## Author:      Herbert Breunung, Maik Glatki, Wanja Chresta
-## Purpose:     Kepher Starter, Checking Directories
+## Purpose:     Kepher Launch Script
 ## Created:     06/1/2005
-## Copyright:   (c) Herbert Breunung, Maik Glatki, Wanja Chresta
+## Copyright:   (c) Herbert Breunung, Maik Glatki, Wanja Chresta, Adam Kennedy
 ## Licence:     GPL
 #############################################################################
 
@@ -15,34 +15,12 @@ use File::HomeDir    ();
 use File::UserConfig ();
 use Kepher;
 
-use vars qw{$VERSION $CONFIG $HOME};
+use vars qw{$VERSION};
 BEGIN {
 	$VERSION = "0.66";
-
-        # Where is our configuration directory
-        $CONFIG = File::UserConfig->new(
-		dist   => 'Kepher',
-		module => 'Kepher',
-		)->configdir;
 }
 
 use Kepher;
-use File::HomeDir ();
-
-# set directory locations
-$Kepher::internal{path}{config}            = $CONFIG;
-$Kepher::internal{path}{help}              = catdir($CONFIG, 'help');
-$Kepher::internal{path}{user}              = File::HomeDir->my_home;
-
-# set locations of boot files
-$Kepher::internal{file}{config}{auto}      = catfile('global', 'autosaved.conf');
-$Kepher::internal{file}{config}{default}   = catfile('global', 'default.conf');
-$Kepher::internal{file}{img}{splashscreen} = catfile('icon', 'splash', 'wx_perl_splash.jpg');
-
-# make config files acessable
-push @INC, $Kepher::internal{path}{config};
-
-# starter for the main app
 Kepher->new->MainLoop;
 
 exit(0);

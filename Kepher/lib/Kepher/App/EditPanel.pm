@@ -21,43 +21,51 @@ sub _get_config { $Kepher::config{'editpanel'} }
 sub _indicator_config { $Kepher::config{'editpanel'}{'indicator'} }
 
 sub create {
-	my $ep = Wx::StyledTextCtrl->new
-		(Kepher::App::Window::_get(), -1, [-1,-1], [-1,-1]);
+	my $ep = Wx::StyledTextCtrl->new(
+		Kepher::App::Window::_get(),
+		-1,
+		[ -1, -1 ],
+		[ -1, -1 ]
+	);
 	$ep->DragAcceptFiles(1);
 	_set($ep);
 	return $ep;
 }
 
 sub apply_settings {
-	my $ep        = _get();
-	$ep = _create() unless $ep;
+	my $ep        = _get() || _create();
 	my $conf      = _get_config();
 	my $indicator = _indicator_config();
-	my $hex2dec   = \&Kepher::Config::_hex2dec_color_array;
 	$Kepher::internal{'edit'}{'caret'}{'positions'} = ();
 
 	# text visuals: font whitespaces
 	load_font();
 	apply_whitespace_settings();
-	$ep->SetWhitespaceForeground( 1, Wx::Colour->new( 
-		@{&$hex2dec( $indicator->{'whitespace'}{'color'} )} ));
+	$ep->SetWhitespaceForeground( 1,
+		Kepher::Config::color( $indicator->{whitespace}{color} ),
+	);
 
 	# indicators: caret, selection, ...
-	$ep->SetCaretLineBack( Wx::Colour->new(
-			@{ &$hex2dec( $indicator->{'caret_line'}{'color'} ) } )
+	$ep->SetCaretLineBack(
+		Kepher::Config::color( $indicator->{'caret_line'}{'color'} )
 	);
 	$ep->SetCaretPeriod( $indicator->{'caret'}{'period'} );
-	$ep->SetCaretWidth( $indicator->{'caret'}{'width'} );
-	$ep->SetCaretForeground( Wx::Colour->new(
-		@{ &$hex2dec( $indicator->{'caret'}{'color'} ) } )
+	$ep->SetCaretWidth(  $indicator->{'caret'}{'width'}  );
+	$ep->SetCaretForeground(
+		Kepher::Config::color( $indicator->{'caret'}{'color'} )
 	);
 	if ( $indicator->{'selection'}{'fore_color'} ne '-1' ) {
-		$ep->SetSelForeground( 1, Wx::Colour->new(
-			@{ &$hex2dec( $indicator->{'selection'}{'fore_color'} )} )
+		$ep->SetSelForeground( 1,
+			Kepher::Config::color(
+				$indicator->{'selection'}{'fore_color'}
+			)
 		);
 	}
-	$ep->SetSelBackground( 1, Wx::Colour->new(
-		@{ &$hex2dec($indicator->{'selection'}{'back_color'} )} ));
+	$ep->SetSelBackground( 1,
+		Kepher::Config::color(
+			$indicator->{'selection'}{'back_color'}
+		)
+	);
 	apply_EOL_settings();
 	apply_LLI_settings();
 	apply_caret_line_settings();
@@ -71,9 +79,13 @@ sub apply_settings {
 
 	$ep->SetScrollWidth( $ep->GetEndAtLastLine() );
 	$ep->SetCodePage(0);
-	$ep->SetWordChars( $conf->{'word_chars'} );
+	if ( $conf->{word_chars} ) {
+		$ep->SetWordChars( $conf->{word_chars} );
+	} else {
+		$ep->SetWordChars( 'abcdefghijklmnopqrstuvwxyz_' );
+	}
 
-	#interna
+	# Internal
 	$ep->SetLayoutCache(wxSTC_CACHE_PAGE);
 	$ep->SetBufferedDraw(1);
 
@@ -83,8 +95,8 @@ sub apply_settings {
 
 
 sub set_tab_size {
-	my $ep = &_get;
-	my $size      = shift;
+	my $ep   = _get();
+	my $size = shift;
 	$ep->SetTabWidth($size);
 	$ep->SetIndent($size);
 	$ep->SetHighlightGuide($size);
@@ -177,28 +189,34 @@ sub switch_caret_line_visibility {
 #
 # LLI = long line indicator = right margin
 #
-sub LLI_visible { _indicator_config()->{right_margin}{style} == wxSTC_EDGE_LINE }
-sub apply_LLI_settings {
-	my $ep = &_get;
-	my $config = _indicator_config()->{'right_margin'};
-	my $hex2dec  = \&Kepher::Config::_hex2dec_color_array;
-
-	$ep->SetEdgeColour( Wx::Colour->new( @{&$hex2dec( $config->{color} )} ));
-	$ep->SetEdgeColumn( $config->{position} );
-	show_LLI( $config->{'style'} );
+sub LLI_visible {
+	_indicator_config()->{right_margin}{style} == wxSTC_EDGE_LINE;
 }
-sub show_LLI { _get->SetEdgeMode( shift ) }
+sub apply_LLI_settings {
+	my $ep     = _get();
+	my $config = _indicator_config()->{right_margin};
+	$ep->SetEdgeColour( Kepher::Config::color( $config->{color} ) );
+	$ep->SetEdgeColumn( $config->{position} );
+	show_LLI( $config->{style} );
+}
+sub show_LLI {
+	_get()->SetEdgeMode( shift );
+}
 sub switch_LLI_visibility {
-	my $style = _indicator_config()->{'right_margin'}{'style'} = LLI_visible()
+	my $style = _indicator_config()->{right_margin}{style} = LLI_visible()
 		? wxSTC_EDGE_NONE
 		: wxSTC_EDGE_LINE;
 	show_LLI($style);
 }
-#
-# EOL = end of line marker
-#
-sub EOL_visible { _indicator_config()->{'end_of_line_marker'} }
-sub apply_EOL_settings { _get()->SetViewEOL( EOL_visible() ) }
+
+sub EOL_visible {
+	_indicator_config()->{'end_of_line_marker'};
+}
+
+sub apply_EOL_settings {
+	_get()->SetViewEOL( EOL_visible() );
+}
+
 sub switch_EOL_visibility {
 	_get_config()->{indicator}{end_of_line_marker} ^= 1;
 	&load_view_EOL;

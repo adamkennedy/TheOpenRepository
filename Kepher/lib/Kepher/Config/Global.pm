@@ -15,24 +15,23 @@ sub load_autosaved {
 
 	# try first auto config file, than backup, then defaults
 	for my $configfile (@main_conf_files) {
-		$configfile = $Kepher::internal{path}{config} . $configfile;
+		$configfile = Kepher::Config::filepath($configfile);
 		if ( -e $configfile ) {
 			%Kepher::config = %{ Kepher::Config::File::load($configfile) };
-			if (%Kepher::config) { last; }
-			else              { rename $configfile, 'failed.' . $configfile; }
+			last if %Kepher::config;
+			rename $configfile, 'failed.' . $configfile;
 		}
 	}
 
 	# emergency program if configs missing
-	unless (%Kepher::config) {
+	unless ( %Kepher::config ) {
 		require Kepher::Config::Embedded;
 		%Kepher::config = %{&Kepher::Config::Embedded::get_global_settings};
 	}
 }
 
 sub save_autosaved {
-	my $config_path = $Kepher::internal{path}{config};
-	my $config_file = $config_path . $Kepher::internal{file}{config}{auto};
+	my $config_file = Kepher::Config::filepath( $Kepher::internal{file}{config}{auto} );
 	rename $config_file, $config_file . '~';
 	Kepher::Config::File::store( $config_file, \%Kepher::config );
 }
@@ -47,11 +46,11 @@ sub open_current_file {
 }
 
 sub load_backup_file {
-	reload($Kepher::internal{path}{config}.$Kepher::internal{file}{config}{auto}.'~')
+	reload( filepath( $Kepher::internal{file}{config}{auto}.'~' ) );
 }
 
 sub load_default_file {
-	reload( $Kepher::internal{path}{config}.$Kepher::internal{file}{config}{default} )
+	reload( filepath( $Kepher::internal{file}{config}{default} ) );
 }
 
 sub load_from {
@@ -61,7 +60,7 @@ sub load_from {
 		$Kepher::internal{path}{config} . 'general/',
 		$Kepher::internal{'file'}{'filterstring'}{'config'}
 	);
-	&reload($filename) if ( -e $filename );
+	reload($filename) if -e $filename;
 }
 
 sub refresh {
@@ -105,9 +104,9 @@ sub evaluate {
 }
 
 sub reload {
-	my $configfile = shift;
-	$configfile = $Kepher::internal{path}{config}.$Kepher::internal{file}{config}{auto}
-		unless $configfile;
+	my $configfile = shift
+		|| Kepher::Config::filepath( $Kepher::internal{file}{config}{auto} );
+
 	if ( -e $configfile ) {
 		Kepher::Document::Internal::save_properties();
 		my %test_hash = %{ Kepher::Config::File::load($configfile) };

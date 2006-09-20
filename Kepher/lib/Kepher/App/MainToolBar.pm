@@ -17,12 +17,11 @@ sub create {
 	$bar = $frame->CreateToolBar;
 	Kepher::App::ToolBar::_set('main', $bar);
 
-	my $config = _get_config();
-	my $file_name = $Kepher::internal{path}{config} . $config->{file};
-	my $bars_def = YAML::LoadFile($file_name);# DumpFile
+	my $config    = _get_config();
+	my $file_name = Kepher::Config::existing_filepath( $config->{file} );
+	my $bars_def  = YAML::LoadFile($file_name);# DumpFile
 	Kepher::App::ToolBar::create('main', $bars_def->{ $config->{node} } );
 }
-
 
 sub get_visibility    { _get_config()->{'visible'} }
 sub switch_visibility { _get_config()->{'visible'} ^= 1; show(); }

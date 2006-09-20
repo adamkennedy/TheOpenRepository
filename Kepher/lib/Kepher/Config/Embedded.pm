@@ -193,7 +193,7 @@ sub get_global_settings{
 				'open'    => [],
 				session => {
 					directory => 'config/sessions/',
-					file      => 'general/session.conf',
+					file      => 'global/session.conf',
 					node      => 'files',
 					save      => 'extern',
 				},

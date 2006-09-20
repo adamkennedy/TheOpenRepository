@@ -2,31 +2,45 @@ package Kepher::App::SearchBar;
 $VERSION = '0.08';
 
 use strict;
+use File::Spec ();
+
 use Wx qw(
-	wxITEM_NORMAL wxTOP wxGROW
-	wxTB_HORIZONTAL wxTB_DOCKABLE
-	wxBITMAP_TYPE_XPM wxNullBitmap
-	wxWANTS_CHARS wxDefaultValidator
+	wxITEM_NORMAL
+	wxTOP
+	wxGROW
+	wxTB_HORIZONTAL
+	wxTB_DOCKABLE
+	wxBITMAP_TYPE_XPM
+	wxNullBitmap
+	wxWANTS_CHARS
+	wxDefaultValidator
 );
 use Wx::Event qw( 
-	EVT_TOOL EVT_MENU EVT_TEXT EVT_KEY_DOWN EVT_ENTER_WINDOW EVT_LEAVE_WINDOW
+	EVT_TOOL
+	EVT_MENU
+	EVT_TEXT
+	EVT_KEY_DOWN
+	EVT_ENTER_WINDOW
+	EVT_LEAVE_WINDOW
 );
-use constant APPROOT => 'searchbar';
 
-sub _get { $Kepher::app{'window'}{(APPROOT)} }
-sub _set { $Kepher::app{'window'}{(APPROOT)} = shift }
+sub _get        { $Kepher::app{'window'}{searchbar} }
+sub _set        { $Kepher::app{'window'}{searchbar} = shift }
 sub _get_config { $Kepher::config{'app'}{'toolbar'}{'search'} }
 
 sub _create_empty {
-	return $Kepher::app{window}{(APPROOT)} =
-		Wx::ToolBar->new( Kepher::App::Window::_get(),
-			-1, [-1,-1], [-1,-1], wxTB_HORIZONTAL|wxTB_DOCKABLE );
+	return $Kepher::app{window}{searchbar} =
+		Wx::ToolBar->new(
+			Kepher::App::Window::_get(),
+			-1,
+			[ -1, -1 ],
+			[ -1, -1 ],
+			wxTB_HORIZONTAL|wxTB_DOCKABLE
+		 );
 }
 
 sub create {
-	my $ico_dir = $Kepher::internal{path}{config}.$Kepher::config{app}{iconset_path};
-	my $label = \%{$Kepher::localisation{commandlist}{label}};
-	my $xpm_bt = wxBITMAP_TYPE_XPM;
+	my $label   = \%{$Kepher::localisation{commandlist}{label}};
 
 	#
 	my $sb = _get();
@@ -35,9 +49,10 @@ sub create {
 
 	#
 	my ($find_input, $item_id);
-	if (exists $Kepher::app{(APPROOT)}{item_id}){
-		$item_id = $Kepher::app{(APPROOT)}{item_id}
+	if (exists $Kepher::app{searchbar}{item_id}){
+		$item_id = $Kepher::app{searchbar}{item_id}
 	} else { $item_id = $Kepher::app{GUI}{masterID}++ * 100 }
+
 	# prepare search-keywords-input-combobox
 	unless ($sb->{find_input}){
 		$find_input = $sb->{find_input} = Wx::ComboBox->new(
@@ -68,30 +83,51 @@ sub create {
 		} else  { $event->Skip }
 		1;
 	} );
-	EVT_ENTER_WINDOW( $find_input, sub { refresh_find_input(1)} )
-		if _get_config()->{'autofocus'};
-
-	# build toolbar #$sb->SetSize(-1,30); #$sb->SetMargins( 14, 14 );
-	$sb->AddTool( 50100,'',Wx::Bitmap->new($ico_dir.'edit_delete.xpm', $xpm_bt),
-		$Kepher::localisation{dialog}{general}{close}, wxITEM_NORMAL);
+	if ( _get_config()->{'autofocus'} ) {
+		EVT_ENTER_WINDOW( $find_input, sub { refresh_find_input(1)} );
+	}
+	$sb->AddTool(
+		50100,
+		'',
+		Kepher::Config::icon_bitmap( 'edit_delete' ),
+		$Kepher::localisation{dialog}{general}{close},
+		wxITEM_NORMAL,
+	);
 	EVT_MENU( $sb, 50100, \&switch_visibility );
 	$sb->AddControl( $find_input );
-	#$sb->AddTool( 50101,'', Wx::Bitmap->new($ico_dir.'find_start.xpm', wxBITMAP_TYPE_XPM),
-		#$label->{mark_all}, wxITEM_NORMAL);
-	#EVT_MENU( $sb, 50101, sub { refresh_find_input(Kepher::Edit::Search::find_prev()) } );
-	$sb->AddTool( 50102,'',Wx::Bitmap->new($ico_dir.'find_previous.xpm', $xpm_bt),
-		$label->{find}{prev},wxITEM_NORMAL);
+	$sb->AddTool(
+		50102,
+		'',
+		Kepher::Config::icon_bitmap( 'find_previous' ),
+		$label->{find}{prev},
+		wxITEM_NORMAL,
+	);
 	EVT_MENU( $sb, 50102, sub { refresh_find_input(Kepher::Edit::Search::find_prev()) } );
-	$sb->AddTool( 50103,'',Wx::Bitmap->new($ico_dir.'find_next.xpm', $xpm_bt),
-		$label->{find}{'next'},wxITEM_NORMAL);
+	$sb->AddTool(
+		50103,
+		'',
+		Kepher::Config::icon_bitmap( 'find_next' ),
+		$label->{find}{'next'},
+		wxITEM_NORMAL,
+	);
 	EVT_MENU( $sb, 50103, sub { refresh_find_input(Kepher::Edit::Search::find_next()) } );
 	$sb->AddSeparator();
-	$sb->AddTool( 50104,'',Wx::Bitmap->new($ico_dir.'goto_last_edit.xpm', $xpm_bt),
-		$label->{'goto'}{'last-edit'}, wxITEM_NORMAL);
+	$sb->AddTool(
+		50104,
+		'',
+		Kepher::Config::icon_bitmap( 'goto_last_edit' ),
+		$label->{'goto'}{'last-edit'},
+		wxITEM_NORMAL,
+	);
 	EVT_MENU( $sb, 50104, \&Kepher::Edit::Goto::last_edit );
 	$sb->AddSeparator();
-	$sb->AddTool( 50105,'',Wx::Bitmap->new($ico_dir.'find_start.xpm', $xpm_bt),
-		$label->{view}{dialog}{find}, wxITEM_NORMAL);
+	$sb->AddTool(
+		50105,
+		'',
+		Kepher::Config::icon_bitmap( 'find_start' ),
+		$label->{view}{dialog}{find},
+		wxITEM_NORMAL,
+		);
 	EVT_MENU( $sb, 50105, \&Kepher::Dialog::find );
 	$sb->SetRows(1);
 
@@ -99,7 +135,6 @@ sub create {
 	$sb->Realize();
 	show();
 }
-
 
 sub find_increment{
 	my ($bar, $event) = @_;
@@ -115,7 +150,6 @@ sub refresh_find_input {
 	my $new_find_item  = shift;
 	my $value  = $find_input->GetValue;
 
-#print $find_input->GetValue."-".$find_input->GetString(0)."-$new_find_item-\n";
 	if ($new_find_item and $find_input->GetString(0) ne $value){
 			$find_input->Clear();
 			$find_input->Append($_) for @{ $Kepher::config{'search'}{'history'}{'find_item'} };

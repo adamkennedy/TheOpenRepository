@@ -51,8 +51,9 @@ sub get_dialog {
 		my $hint            = $Kepher::localisation{'dialog'}{'search'}{'hint'};
 		my @find_history    = ();
 		my @replace_history = ();
-		my $ico_dir = $Kepher::internal{path}{config}.$Kepher::config{app}{iconset_path};
-		my $win_style = wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
+		my $ico_dir         = $Kepher::internal{path}{config}
+			. $Kepher::config{app}{iconset_path};
+		my $win_style       = wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 			| wxMINIMIZE_BOX | wxCLOSE_BOX;
 		$win_style |= wxSTAY_ON_TOP if $Kepher::config{'app'}{'window'}{'stay_on_top'};
 		$dsettings->{'position_x'} = 10 if $dsettings->{'position_x'} < 0;

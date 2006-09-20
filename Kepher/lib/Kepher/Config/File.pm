@@ -1,7 +1,10 @@
 package Kepher::Config::File;
-$VERSION = '0.03';
 
 use strict;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.03';
+}
 
 sub load {
 	my ( $configfilename, %config ) = shift;

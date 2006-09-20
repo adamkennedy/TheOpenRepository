@@ -4,16 +4,13 @@ $VERSION = '0.03';
 use strict;
 use Wx qw( wxNullBitmap  wxITEM_NORMAL  wxITEM_CHECK wxSIZE);
 use Wx::Event qw( EVT_MENU );
-use constant APPROOT => 'toolbar'; 
 
-sub _get{ $Kepher::app{(APPROOT)}{ $_[0] } }
-sub _set{ $Kepher::app{(APPROOT)}{ $_[0] } = $_[1] if ref $_[1] eq 'Wx::ToolBar'}
-
+sub _get{ $Kepher::app{toolbar}{ $_[0] } }
+sub _set{ $Kepher::app{toolbar}{ $_[0] } = $_[1] if ref $_[1] eq 'Wx::ToolBar'}
 
 sub create {
-	my $bar_id = shift;
+	my $bar_id  = shift;
 	my $bar_def = shift;
-	
 	eval_data($bar_id, assemble_data_from_def($bar_def));
 }
 
@@ -23,8 +20,10 @@ sub assemble_data_from_def {
 
 	my @tbds = (); # toolbar data structure
 	my ($cmd_name, $cmd_data, $type_name, $pos, $sub_id);
-#
+
 	for my $item_def (@$bar_def){
+		# undef means null string
+		$item_def = '' unless defined $item_def;
 
 		# sorting commented lines out
 		next if substr($item_def, -1) eq '#';
@@ -40,12 +39,12 @@ sub assemble_data_from_def {
 			$item{type} = substr $item_def, 0, $pos;
 			$cmd_name = substr $item_def, $pos+1;
 			$cmd_data = Kepher::App::CommandList::get_cmd_properties( $cmd_name );
+
 			# skipping when command call is missing
 			next unless ref $cmd_data and exists $cmd_data->{call};
 			for ('call','enable','enable_event','state', 'state_event','label','help','icon'){
 				$item{$_} = $cmd_data->{$_} if $cmd_data->{$_}
 			}
-			#$item{type} = 'item'if not $cmd_data->{state} and $item{type} eq 'checkitem';
 		}
 		push @tbds, \%item;
 	}
@@ -53,17 +52,16 @@ sub assemble_data_from_def {
 }
 
 sub eval_data {
-	my $bar_id = shift;
+	my $bar_id   = shift;
 	my $bar_data = shift;
-
-	my $bar = _get($bar_id);
+	my $bar      = _get($bar_id);
 	return $bar unless ref $bar_data eq 'ARRAY';
 
 	my $win = Kepher::App::Window::_get();
-	my $bar_item_id = exists $Kepher::app{(APPROOT)}{item_id}
-		? $Kepher::app{(APPROOT)}{item_id}
+	my $bar_item_id = exists $Kepher::app{toolbar}{item_id}
+		? $Kepher::app{toolbar}{item_id}
 		: $Kepher::app{GUI}{masterID}++ * 100;
-	$Kepher::app{(APPROOT)}{item_id} = $bar_item_id;
+	$Kepher::app{toolbar}{item_id} = $bar_item_id;
 	my $item_kind;
 
 	for my $item_data (@$bar_data){
@@ -78,7 +76,7 @@ sub eval_data {
 			my $item_id = $bar_item_id++;
 			my $tool = $bar->AddTool(
 				$item_id, '', $item_data->{icon}, wxNullBitmap, 
-				$item_kind, $item_data->{label} ,$item_data->{help}
+				$item_kind, $item_data->{label}, $item_data->{help}
 			);
 			EVT_MENU ($win, $item_id, $item_data->{call});
 			if (ref $item_data->{enable} eq 'CODE'){
@@ -98,10 +96,6 @@ sub eval_data {
 			}
 		}
 	}
-	#$bar->>SetRows(1);
-	#$bar->SetMargins(1, 1);
-	#$bar->SetToolBitmapSize([16,15]);
-	#$bar->SetToolBitmapSize( wxSIZE( 15,15 ) );
 	$bar->Realize;
 	$bar->SetRows(1);
 	_set($bar_id, $bar);

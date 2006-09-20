@@ -1,34 +1,35 @@
 package Kepher::App::EditPanel::Margin;
-$VERSION = '0.03';
-
-# 
 
 use strict;
-use Wx qw(
-		wxSTC_STYLE_LINENUMBER
-		wxSTC_MARGIN_SYMBOL wxSTC_MARGIN_NUMBER
-		wxSTC_MASK_FOLDERS
-);
-#wxSTC_MARK_MINUS wxSTC_MARK_PLUS wxSTC_MARK_CIRCLE wxSTC_MARK_BOXPLUS
-#wxSTC_MARKNUM_FOLDEREND wxSTC_MARK_SHORTARROW
-#wxSTC_FOLDFLAG_LINEBEFORE_CONTRACTED
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.03';
+}
 
-sub _get_ep           {  Kepher::App::EditPanel::_get() }
-sub _get_config       { $Kepher::config{'editpanel'}{'margin'} }
-sub _get_line_config  { $Kepher::config{'editpanel'}{'margin'}{'linenumber'} }
-sub _get_marker_config{ $Kepher::config{'editpanel'}{'margin'}{'marker'} }
+use Wx qw(
+	wxSTC_STYLE_LINENUMBER
+	wxSTC_MARGIN_SYMBOL
+	wxSTC_MARGIN_NUMBER
+	wxSTC_MASK_FOLDERS
+);
+
+sub _get_ep            {  Kepher::App::EditPanel::_get()                }
+sub _get_config        { $Kepher::config{editpanel}{margin}             }
+sub _get_line_config   { $Kepher::config{editpanel}{margin}{linenumber} }
+sub _get_marker_config { $Kepher::config{editpanel}{margin}{marker}     }
 
 sub apply_settings{
 	my $ep = _get_ep();
+
 	# build
 	$ep->SetMarginType( 0, wxSTC_MARGIN_SYMBOL );
-	$ep->SetMarginMask( 0, 0x01FFFFFF );    #$ep->GetMarginMask(1)
-	$ep->SetMarginSensitive( 0, 1 );
 	$ep->SetMarginType( 1, wxSTC_MARGIN_NUMBER );
-	$ep->SetMarginMask( 1, 0 );
-	$ep->SetMarginSensitive( 1, 0 );
 	$ep->SetMarginType( 2, wxSTC_MARGIN_SYMBOL );
+	$ep->SetMarginMask( 0, 0x01FFFFFF         );
+	$ep->SetMarginMask( 1, 0                  );
 	$ep->SetMarginMask( 2, wxSTC_MASK_FOLDERS );
+	$ep->SetMarginSensitive( 0, 1 );
+	$ep->SetMarginSensitive( 1, 0 );
 	$ep->SetMarginSensitive( 2, 1 );
 
 	$Kepher::internal{'margin_linemax'} = 0;
@@ -38,7 +39,6 @@ sub apply_settings{
 	show_fold();
 	apply_text_width();
 }
-
 
 # line number margin
 sub line_number_visible{ _get_line_config->{'visible'} }
@@ -105,25 +105,27 @@ sub line_number_autosize_update {
 }
 
 sub apply_color {
-	my $ep = &_get_ep;
+	my $ep     = _get_ep();
 	my $config = _get_line_config();
-	$ep->StyleSetForeground ( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{Kepher::Config::_hex2dec_color_array
-				( $config->{'fore_color'} )}[0,1,2] ) );
-	$ep->StyleSetBackground( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{Kepher::Config::_hex2dec_color_array
-				( $config->{'back_color'} )}[0,1,2] ) );
+	$ep->StyleSetForeground (
+		wxSTC_STYLE_LINENUMBER,
+		Kepher::Config::color( $config->{fore_color} ),
+	);
+	$ep->StyleSetBackground(
+		wxSTC_STYLE_LINENUMBER,
+		Kepher::Config::color( $config->{back_color} ),
+	);
 }
 
-
 # marker margin
-
 sub marker_visible{ _get_marker_config->{'visible'} }
+
 sub show_marker {
 	marker_visible()
 		? _get_ep->SetMarginWidth(0, 16)
 		: _get_ep->SetMarginWidth(0,  0);
 }
+
 sub switch_marker {
 	_get_marker_config->{'visible'} ^= 1;
 	show_marker();
@@ -132,28 +134,28 @@ sub switch_marker {
 
 # fold margin
 sub fold_visible{ _get_config->{'fold'} }
+
 sub show_fold {
 	my $width = fold_visible() ? 16 : 0;
 	_get_ep->SetMarginWidth( 2, $width );
 }
+
 sub switch_fold {
 	_get_config->{'fold'} ^= 1;
 	show_fold();
 }
 
-#$ep->SetFoldFlags(flags)8/64
-
 # extra text margin
 sub get_text_width { _get_config->{'text'} }
+
 sub set_text_width {
 	_get_config->{'text'} = shift;
 	apply_text_width();
 }
+
 sub apply_text_width {
 	my $width = get_text_width();
 	_get_ep->SetMargins( $width, $width );
 }
-
-
 
 1;

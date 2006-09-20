@@ -3,7 +3,6 @@
 # Compile Testing for Kepher
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
 }

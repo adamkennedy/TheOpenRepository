@@ -25,7 +25,7 @@ sub create {
 sub apply_settings{
 	my $win = _get();
 	$win->DragAcceptFiles(1);
-	my $icon = $Kepher::internal{path}{config}._get_config()->{'icon'};
+	my $icon = Kepher::Config::existing_filepath( _get_config()->{icon} );
 	load_icon( $win, $icon );
 	restore_positions();
 	eval_on_top_flag();

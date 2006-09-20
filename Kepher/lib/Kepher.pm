@@ -9,11 +9,50 @@ our $NAME       = 'Kephra';     # name of entire application
 our $VERSION    = '0.3.3.3';    # program - version
 our @ISA        = 'Wx::App';    # $NAME is a wx application
 
-# used external modules (loaded at start)
-use File::UserConfig;           # config dir manager
-use Config::General;            # config file Parser
-use YAML;                       # gui config file Parser
 
+
+
+
+#####################################################################
+# Configuration Phase
+
+use File::Spec::Functions ':ALL';
+use File::HomeDir    ();
+use File::UserConfig ();
+use Config::General  ();
+use YAML             ();
+
+BEGIN {
+        # Find the configuration directory
+        $main::CONFIG = File::UserConfig->new(
+		dist   => 'Kepher',
+		module => 'Kepher',
+		)->configdir;
+
+	# Set and check main directories
+	$Kepher::internal{path}{config} = catdir($main::CONFIG, 'config');
+	unless ( -d $Kepher::internal{path}{config} ) {
+		Carp::croak("Failed to locate main config path");
+	}
+	$Kepher::internal{path}{help} = catdir($main::CONFIG, 'help');
+	unless ( -d $Kepher::internal{path}{help} ) {
+		Carp::croak("Failed to locate help directory");
+	}
+	$Kepher::internal{path}{user} = File::HomeDir->my_home;
+	unless ( -d $Kepher::internal{path}{user} ) {
+		Carp::croak("Failed to locate user home directory");
+	}	
+
+	# set locations of boot files
+	$Kepher::internal{file}{config}{auto}      = catfile('global', 'autosaved.conf');
+	$Kepher::internal{file}{config}{default}   = catfile('global', 'default.conf');
+	$Kepher::internal{file}{img}{splashscreen} = catfile('icon', 'splash', 'wx_perl_splash.jpg');
+
+	# Make module-style config files accessible
+	push @INC, $main::CONFIG;
+}
+
+# used external modules (loaded at start)
 use Wx;                         # wxWidgets Framework Core
 use Wx::STC;                    # Scintilla editor component
 use Wx::DND;                    # Drag'n Drop & Clipboard support
@@ -28,6 +67,12 @@ use Wx::DND;                    # Drag'n Drop & Clipboard support
 #use PPI ();                    # For refactoring support
 #use Params::Util ();           # Parameter checking
 #use Class::Inspector ();       # Class checking
+
+# Load configuration modules
+use Kepher::Config;                # low level config manipulation
+use Kepher::Config::File;          # API 2 ConfigParser Config::General
+use Kepher::Config::Global;        # API 4 config, general content level
+use Kepher::Config::Interface;     #
 
 # used internal modules, parts of pce
 use Kepher::App;                   # App start&exit, namespace 4 wx related things
@@ -45,10 +90,6 @@ use Kepher::App::StatusBar;        #
 use Kepher::App::TabBar;           # API 2 Wx::Notebook, FileSelector Notepad
 use Kepher::App::Window;           # API 2 Wx::Frame and more
 use Kepher::App::CommandList;      #
-use Kepher::Config;                # low level config manipulation
-use Kepher::Config::File;          # API 2 ConfigParser Config::General
-use Kepher::Config::Global;        # API 4 config, general content level
-use Kepher::Config::Interface;     #
 use Kepher::Dialog;                # API 2 dialogs, submodules are loaded runtime
 use Kepher::Document;              # document menu funktions
 use Kepher::Document::Change;      # calls for changing current doc
@@ -85,9 +126,8 @@ our %localisation;  # all localisation strings in your currently selected lang
 our %syntaxmode;    # -NI
 
 # Wx App Events 
-sub OnInit {&Kepher::App::start}   # boot app: init core and load config files
-sub quit   {&Kepher::App::exit }   # save files & settings as configured
-
+sub OnInit { &Kepher::App::start }   # boot app: init core and load config files
+sub quit   { &Kepher::App::exit  }   # save files & settings as configured
 
 sub user_config {
 	$_[0] and $_[0] eq 'PCE' and shift;
@@ -107,8 +147,7 @@ __END__
 
 =head1 NAME
 
-Kepher - A pure-Perl cross-platform CPAN-installable programmer's editor for 
-         multiple languages, designed along Perl's Paradigms
+Kepher - A pure-Perl cross-platform CPAN-installable Programmer's Editor
 
 =head1 DESCRIPTION
 
@@ -120,8 +159,6 @@ bootstrap and shutdown module, and provides some global variables.
 - Find Name 
 
 - Write the DESCRIPTION :)
-
-- Complete CPANification
 
 - Lots and lots of other things
 
@@ -139,7 +176,7 @@ Herbert Breunung E<lt>lichtkind@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Herbert Breunung. All rights reserved.
+Copyright 2004 - 2006 Herbert Breunung.
 
 This program is free software; you can redistribute
 it and/or modify it under the terms of the GNU GPL.

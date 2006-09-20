@@ -2,6 +2,7 @@ package Kepher::App;
 our $VERSION = '0.04';
 
 use strict;
+use File::Spec ();
 use Wx qw(
 	wxDefaultPosition wxDefaultSize   wxGROW wxTOP wxBOTTOM
 	wxVERTICAL 
@@ -19,7 +20,10 @@ sub splashscreen {
 	Wx::InitAllImageHandlers();
 	Wx::SplashScreen->new(
 		Wx::Bitmap->new(
-			$Kepher::internal{path}{config}.$Kepher::internal{file}{img}{splashscreen},
+			File::Spec->catfile(
+				$Kepher::internal{path}{config},
+				$Kepher::internal{file}{img}{splashscreen},
+				),
 			wxBITMAP_TYPE_JPEG
 		),
 		wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 150, undef, -1,

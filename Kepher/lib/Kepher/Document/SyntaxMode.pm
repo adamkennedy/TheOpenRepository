@@ -32,15 +32,17 @@ sub _get_by_fileending {
 sub reload { change_to( get() ) }
 
 sub change_to {
-	my $ep      = Kepher::App::EditPanel::_get();
-	my $hex2dec = \&Kepher::Config::_hex2dec_color_array;
-	my $style   = shift;
+	my $ep    = Kepher::App::EditPanel::_get();
+	my $style = shift;
 	$style = _get_by_fileending() if $style eq 'auto';
 	$style = 'none' unless $style;
 
 	# prevent clash between big lexer & indicator
-	if ( $style =~ /asp|html|php|xml/ ) { $ep->SetStyleBits(7) }
-	else                                { $ep->SetStyleBits(5) }
+	if ( $style =~ /asp|html|php|xml/ ) {
+		$ep->SetStyleBits(7);
+	} else {
+		$ep->SetStyleBits(5);
+	}
 
 	# clear style infos
 	$ep->StyleClearAll;
@@ -49,69 +51,80 @@ sub change_to {
 	$ep->SetKeyWords( 0, '' );
 
 	# load syntax style
-	if ( $style eq 'none' ) { $ep->SetLexer(wxSTC_LEX_NULL) }
-	else {
+	if ( $style eq 'none' ) {
+		$ep->SetLexer(wxSTC_LEX_NULL);
+	} else {
 		eval("require syntaxhighlighter::$style");
 		eval("syntaxhighlighter::$style" . '::load($ep)');
 	}
 
 	# restore bracelight, bracebadlight indentguide colors
-	my $bracelight = \%{ $Kepher::config{'editpanel'}{'indicator'}{'bracelight'} };
+	my $bracelight = $Kepher::config{'editpanel'}{'indicator'}{'bracelight'};
 	if ( $bracelight->{'visible'} ) {
 		$ep->StyleSetBold( wxSTC_STYLE_BRACELIGHT, 1 );
 		$ep->StyleSetBold( wxSTC_STYLE_BRACEBAD,   1 );
-		$ep->StyleSetForeground( wxSTC_STYLE_BRACELIGHT, Wx::Colour->new(
-			@{&$hex2dec( $bracelight->{'good_color'} )} ));
-		$ep->StyleSetForeground( wxSTC_STYLE_BRACEBAD, Wx::Colour->new(
-			@{&$hex2dec( $bracelight->{'bad_color'} )} ));
-		$ep->StyleSetForeground( wxSTC_STYLE_INDENTGUIDE, Wx::Colour->new(
-			@{&$hex2dec( $Kepher::config{editpanel}{indicator}{indent_guide}{color}
-		)} ));
+		$ep->StyleSetForeground(
+			wxSTC_STYLE_BRACELIGHT,
+			Kepher::Config::color( $bracelight->{good_color} ),
+		);
+		$ep->StyleSetForeground(
+			wxSTC_STYLE_BRACEBAD,
+			Kepher::Config::color( $bracelight->{bad_color} ),
+		);
+		$ep->StyleSetForeground(
+			wxSTC_STYLE_INDENTGUIDE,
+			Kepher::Config::color(
+				$Kepher::config{editpanel}{indicator}{indent_guide}{color}
+			),
+		);
 	}
 
 	# cleanup
 	set($style);
-	$ep->Colourise( 0, $ep->GetTextLength );# refreh editpanel painting
+
+	# refreh editpanel painting
+	$ep->Colourise( 0, $ep->GetTextLength );
 	Kepher::App::EditPanel::Margin::apply_color();
 	Kepher::App::StatusBar::style_info($style);
+
 	return $style;
 }
 
-sub change_to_auto    {change_to(_get_by_fileending())}
-sub change_to_none    {change_to("none")}
-sub change_to_ada     {change_to("ada")}
-sub change_to_as      {change_to("as")}
-sub change_to_asm     {change_to("asm")}
-sub change_to_conf    {change_to("conf")}
-sub change_to_context {change_to("context")}
-sub change_to_cpp     {change_to("cpp")}
-sub change_to_cs      {change_to("cs")}
-sub change_to_css     {change_to("css")}
-sub change_to_eiffel  {change_to("eiffel")}
-sub change_to_forth   {change_to("forth")}
-sub change_to_fortran {change_to("fortran")}
-sub change_to_html    {change_to("html")}
-sub change_to_idl     {change_to("idl")}
-sub change_to_java    {change_to("java")}
-sub change_to_js      {change_to("js")}
-sub change_to_latex   {change_to("latex")}
-sub change_to_lisp    {change_to("lisp")}
-sub change_to_lua     {change_to("lua")}
-sub change_to_nsis    {change_to("nsis")}
-sub change_to_pascal  {change_to("pascal")}
-sub change_to_perl    {change_to("perl")}
-sub change_to_php     {change_to("php")}
-sub change_to_ps      {change_to("ps")}
-sub change_to_python  {change_to("python")}
-sub change_to_ruby    {change_to("ruby")}
-sub change_to_scheme  {change_to("scheme")}
-sub change_to_sh      {change_to("sh")}
-sub change_to_sql     {change_to("sql")}
-sub change_to_tcl     {change_to("tcl")}
-sub change_to_tex     {change_to("tex")}
-sub change_to_vb      {change_to("vb")}
-sub change_to_vbs     {change_to("vbs")}
-sub change_to_xml     {change_to("xml")}
-sub change_to_yaml    {change_to("yaml")}
+sub change_to_auto    { change_to(_get_by_fileending())}
+sub change_to_none    { change_to("none")    }
+sub change_to_ada     { change_to("ada")     }
+sub change_to_as      { change_to("as")      }
+sub change_to_asm     { change_to("asm")     }
+sub change_to_conf    { change_to("conf")    }
+sub change_to_context { change_to("context") }
+sub change_to_cpp     { change_to("cpp")     }
+sub change_to_cs      { change_to("cs")      }
+sub change_to_css     { change_to("css")     }
+sub change_to_eiffel  { change_to("eiffel")  }
+sub change_to_forth   { change_to("forth")   }
+sub change_to_fortran { change_to("fortran") }
+sub change_to_html    { change_to("html")    }
+sub change_to_idl     { change_to("idl")     }
+sub change_to_java    { change_to("java")    }
+sub change_to_js      { change_to("js")      }
+sub change_to_latex   { change_to("latex")   }
+sub change_to_lisp    { change_to("lisp")    }
+sub change_to_lua     { change_to("lua")     }
+sub change_to_nsis    { change_to("nsis")    }
+sub change_to_pascal  { change_to("pascal")  }
+sub change_to_perl    { change_to("perl")    }
+sub change_to_php     { change_to("php")     }
+sub change_to_ps      { change_to("ps")      }
+sub change_to_python  { change_to("python")  }
+sub change_to_ruby    { change_to("ruby")    }
+sub change_to_scheme  { change_to("scheme")  }
+sub change_to_sh      { change_to("sh")      }
+sub change_to_sql     { change_to("sql")     }
+sub change_to_tcl     { change_to("tcl")     }
+sub change_to_tex     { change_to("tex")     }
+sub change_to_vb      { change_to("vb")      }
+sub change_to_vbs     { change_to("vbs")     }
+sub change_to_xml     { change_to("xml")     }
+sub change_to_yaml    { change_to("yaml")    }
 
 1;

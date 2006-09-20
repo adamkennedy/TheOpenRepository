@@ -1,7 +1,10 @@
 package Kepher::File::Session;
-$VERSION = '0.11';
 
 use strict;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.11';
+}
 
 # extern
 sub load {
@@ -182,8 +185,9 @@ sub export_scite {
 # default session handling
 sub store {
 	my $config = $Kepher::config{'file'}{'current'}{'session'};
-	save( $Kepher::internal{path}{config} . $config->{'file'} )
-		if $config->{'save'} eq 'extern';
+	if ( $config->{'save'} eq 'extern' ) {
+		save( Kepher::Config::filepath( $config->{file} ) );
+	}
 }
 
 sub restore {
@@ -197,11 +201,14 @@ sub restore {
 	$Kepher::internal{'document'}{'loaded'} = 0;
 
 	# detect wich files to load
-	if ( $config->{'save'} eq 'not' ) { }
-	elsif ( $config->{'save'} eq 'intern' ) {
+	if ( $config->{'save'} eq 'not' ) {
+		# Do nothing
+
+	} elsif ( $config->{'save'} eq 'intern' ) {
 		@load_files = @{ Kepher::Config::_convert_node_2_AoH( \$Kepher::document{open} ) };
+
 	} elsif ( $config->{'save'} eq 'extern' ) {
-		my $file_name = $Kepher::internal{path}{config} . $config->{'file'};
+		my $file_name   = Kepher::Config::filepath( $config->{file} );
 		my $start_node  = $config->{'node'};
 		my %temp_config = %{ Kepher::Config::File::load($file_name) };
 		@load_files = @{
@@ -214,12 +221,13 @@ sub restore {
 	undef $Kepher::document{'open'};
 	@load_files = @{ &_forget_gone_files( \@load_files ) };
 
-	# open remembered files with all properties
-	if ( $load_files[0]{'path'} ) {
-		Kepher::Document::Internal::restore(\%{$load_files[$_]}) for 0..$#load_files;
+	if ( $load_files[0]->{path} ) {
+		# open remembered files with all properties
+		Kepher::Document::Internal::restore(\%{$load_files[$_]}) for 0 .. $#load_files;
+	} else {
+		# or make an emty edit panel if no doc remembered
+		Kepher::Document::Internal::reset();
 	}
-	# or make an emty edit panel if no doc remembered
-	else { Kepher::Document::Internal::reset() }
 
 
 
