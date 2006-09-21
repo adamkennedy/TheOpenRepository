@@ -1,5 +1,8 @@
 Revision history for Perl extension Task
 
+1.xx
+	- Spelling, grammar, and POD corrections
+
 1.01 Sun Nov 20 2005
 	- Forgot to note the license in the Makefile.PL
 

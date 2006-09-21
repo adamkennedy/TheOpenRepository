@@ -53,17 +53,17 @@ Task:: - The successor to Bundle:: for installing sets of modules
 =head1 DESCRIPTION
 
 The C<Bundle::> namespace has long served as the CPAN's "expansion"
-mechanism for module installation. A Bundle module contains no code
+mechanism for module installation. A C<Bundle::> module contains no code
 in itself, but serves as a way to specify an entire collection of
 modules/version pairs to be installed.
 
-=head2 The Problem with Bundle
+=head2 The Problem with C<Bundle::>
 
-Although it has done a reasonably good job, Bundle modules suffer from
+Although it has done a reasonably good job, C<Bundle::> modules suffer from
 some problems.
 
-Firstly, Bundle functionality is fairly magical. The Bundle:: magic 
-needs to be specially implemented by the CPAN client, and a Bundle
+Firstly, C<Bundle::> functionality is fairly magical. The C<Bundle::> magic 
+needs to be specially implemented by the CPAN client, and a C<Bundle::>
 dist is treated differently to every other type of dist.
 
 It provides only static dependencies. That is, it only provides a
@@ -71,25 +71,26 @@ specific set of dependencies, and you cannot change the list depending
 on the platform (for example, installing an extra Win32:: module if
 the bundle is being installed on Windows).
 
-Finally, it exists only in CPAN. It is not possible to take a Bundle
+Finally, it exists only in CPAN. It is not possible to take a C<Bundle::>
 dist and just install it, because Makefile.PL files are irrelevant
-for Bundle dists.
+for C<Bundle::> dists.
 
 The irony now is that an ordinary module has far more flexible and
-powerful dependency capabilities than Bundle distributions. And because
+powerful dependency capabilities than C<Bundle::> distributions. And because
 the functionality is hard-coded into the CPAN clients for the entire
-"Bundle" namespace, moving beyond the current situation is going to
+C<Bundle::> namespace, moving beyond the current situation is going to
 mean a change of namespace.
 
-=head2 Requirements for a Bundle Successor
+=head2 Requirements for a C<Bundle::> Successor
 
-The C<Task::> namespace (modelled off the debian packages of the same
+The C<Task::> namespace (modeled off the Debian packages of the same
 name) is used to provide similar functionality to the traditional
 C<Bundle::> namespace, but without the need to magic and special
 client-side support in order to have them work.
 
-A Task:: module is implemented as a normal .pm module, with only a
-version defined. The lib itself should NOT load in all the modules.
+A C<Task::> module is implemented as a normal .pm module, with only a
+version defined. That .pm module itself should NOT load in all the
+dependencies.
 
 This implementation as a module allows normal Perl tools to be able
 to load the module and check it's version to confirm you have the
@@ -99,7 +100,7 @@ Instead of using a magic POD format, the dependency specification
 is implemented using the Makefile.PL, as you would for any other 
 module.
 
-This also means that if the Task needs to check for the existance of
+This also means that if the Task needs to check for the existence of
 a non-Perl application, or some other dependency, it can be done as well.
 
 And you can adapt the dependencies based on the configuration of the
@@ -110,12 +111,12 @@ only for Windows platform, you can use two alternate versions based on
 platform detection code, rather than needing to apply the highest version
 in all cases.
 
-This "normal" implementation also means that Bundle modules can be created
+This "normal" implementation also means that C<Bundle::> modules can be created
 privately and no longer need to be stored in CPAN, opening up the bundling
 capability to companies and other non-public users.
 
 You should also be able to do things like encode the full dependencies for
-you web application as a private Task:: dist and send this tarball to the
+you web application as a private C<Task::> dist and send this tarball to the
 hosting company.
 
 Their admin can then use the dist to install the required modules from CPAN
@@ -124,12 +125,12 @@ installed than in the traditional case.
 
 =head2 Implementation
 
-At this time the prefered implementation is done using L<Module::Install>.
+At this time the preferred implementation is done using L<Module::Install>.
 
 L<Module::Install> allows a much more simplified syntax, and bundles the
 required "Do What I Mean" functionality in the distribution itself.
 
-This bundling means removes many assuptions on what may or may not be
+This bundling removes many assumptions on what may or may not be
 installed on the the destination system, as the installation logic can
 be included in the dist and does not have to be first fetched from CPAN.
 
@@ -141,11 +142,11 @@ Of course, this is merely a convention. If you wish to write your
 Makefile.PL/Build.PL file using another installer, you are free to do so.
 
 Please note that this L<Task> class provides no functionality in and of
-itself, and your Task distributions do not need to inherit from it.
+itself, and your C<Task::> distributions do not need to inherit from it.
 
 In general, you also should not need to provide any test scripts for your
-Task:: distribution, although you may wish to add tests to validate the
-correct installation if you wish (another option not available in Bundle
+C<Task::> distribution, although you may wish to add tests to validate the
+correct installation if you wish (another option not available in C<Bundle::>
 distributions).
 
 =head1 SUPPORT
