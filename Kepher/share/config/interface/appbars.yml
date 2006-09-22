@@ -23,7 +23,7 @@ main_toolbar:
 
 searchbar:
  - item view-toolbar-search
- - combobox find 140
+ - combobox find 160
  - item find-mark-all#
  - item find-prev
  - item find-next
