@@ -40,7 +40,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
 
@@ -63,7 +63,10 @@ in-sensitive.
 
 Names currently supported are 'cvs', 'svn' and 'subversion'.
 
-The use of none, or any other name will throw an exception.
+As a convenience for high-level APIs, if the VCS name is the defined
+null string B<''> then the call will be treated as a nullop.
+
+The use of no param, or of undef, or any other name, will throw an exception.
 
 =cut
 
@@ -71,6 +74,10 @@ sub File::Find::Rule::ignore_vcs {
 	my $self = shift()->_force_object;
 	my $vcs  = defined $_[0] ? lc shift
 		: Carp::croak("->ignore_vcs: No Version Control System name provided");
+
+        # As a convenience for higher-level APIs
+        # we treat a defined null string as a nullop
+        return $self if $vcs eq '';
 
 	# Hand off to the rules for each VCS
 	return $self->ignore_cvs if $vcs eq 'cvs';

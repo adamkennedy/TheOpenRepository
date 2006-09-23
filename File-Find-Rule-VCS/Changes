@@ -1,5 +1,8 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
+1.02 Fri 22 Sep 2006
+        - Making ->ignore_vcs('') a nullop, as a convenience
+
 1.01 Mon  4 Sep 2006
 	- Upgrading to Module::Install 0.64
 

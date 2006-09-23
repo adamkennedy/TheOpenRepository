@@ -3,20 +3,9 @@
 # Testing for File::Find::Rule::VCS
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+        $|  = 1;
+        $^W = 1;
 }
 
 use Test::More tests => 4;
@@ -29,8 +18,13 @@ ok( FFR->can('ignore_vcs'), '->ignore_vcs method exists' );
 ok( FFR->can('ignore_cvs'), '->ignore_cvs method exists' );
 ok( FFR->can('ignore_svn'), '->ignore_svn method exists' );
 
-# Make an object containing all of them
-my $Rule = File::Find::Rule->new->ignore_cvs->ignore_svn;
+# Make an object containing all of them, to ensure there are no errors
+my $Rule = File::Find::Rule->new
+                           ->ignore_cvs
+                           ->ignore_svn
+                           ->ignore_vcs('')
+                           ->ignore_vcs('cvs')
+                           ->ignore_vcs('svn');
 isa_ok( $Rule, 'File::Find::Rule' );
 
 exit(0);
