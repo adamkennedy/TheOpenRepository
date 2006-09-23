@@ -4,7 +4,7 @@ name           'Module-Inspector';
 all_from       'lib/Module/Inspector.pm';
 requires       'Carp'                   => 0;
 requires       'File::Spec'             => '0.80';
-requires       'File::Path'             => '1.08';
+requires       'File::Path'             => '1.06';
 requires       'File::Temp'             => '0.17';
 requires       'Params::Util'           => '0.17';
 requires       'Archive::Extract'       => '0.12';
