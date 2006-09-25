@@ -1,0 +1,623 @@
+BUGS:
+ ! keypressed on kontext menu
+ ! textchanged event double
+ ! loose session on forced exit
+
+TODO:
+ + blockformat
+ + line break
+ + file history menu
+ + document history menu
+ ~ caching interface data
+ ~ centralized interface data loading
+
+
+0.3.3.10
+ ~ cleaned eventlist freeze implementation
+
+0.3.3.9
+ + subconfigs from nested nodes
+ + ability to store single contextmenu in seperate file
+ ! warnings on empty commandlist nodes
+
+0.3.3.8
+ ~ using Kephra::Config::File::load not YAML directly
+ ~ simplified session files
+ ] started Kephra::Config::Tree
+ ' more benchmarks
+
+0.3.3.7
+ [ german localisation correctoin, spell checks
+ ~ build searchbar from configs, findinput is now sizeable
+
+0.3.3.6
+ ! crash on view EOL
+
+0.3.3.5
+ ! save first time rightmost doc
+
+0.3.3.4
+ ~ some text folding preparations
+ ! searchbar and search dialog dind't run
+
+0.3.3.3
+ ~ reduced code in App::Window::load_icon
+ ~ dissolving depreciated lib Kepher::App::STC > Kepher::App::EditPanel
+ ! DND on Seachbarbar input
+
+0.3.3.2
+ ! fix config for rename
+ [ hiding error logs
+
+0.3.3.1
+ ~ edit contex menu fixed and chenged
+ [ item label: Fortran -> Fortran 90 
+ ! change font
+
+0.3.3 rounded up for test release
+
+0.3.2.21
+ ] new namespace for line number margin 
+ ] slimmed events, faster now
+
+0.3.2.20
+ ! fix toolbars visibilities
+ ! fix searchbar contextmenu connector
+ ! sane app gui part layout when changing language
+
+0.3.2.19
+ + configurable middle click on tabbar
+ ~ correct tooltip and status help msg on tabbar
+ ! repaired tabbar
+
+0.3.2.18
+ ~ lot of internal cleanup
+ ] internal unified namespace App::ToolBar
+
+0.3.2.17
+ + repairing subconfs
+ + nearly comlete set of embedded config (interface missing)
+
+0.3.2.16
+ + toolbar toggle buttons
+ + eventsystem
+ + dynamic toolbar with events
+
+0.3.2.15
+ [ removed most search dialog button flicker
+ ~ faster search dialog
+
+0.3.2.14
+ ] toolbar rebuild
+ - remove xrc interna
+ ! crash on edit document calls
+
+0.3.2.13
+ ] Config menu rebuild
+ ] Help menu rebuild
+ ] Menubar completly set to new Interface text compiler
+ ~ ::App::Window::create
+ - most xrc files except toolbar
+
+0.3.2.12
+ ] View menu rebuild
+ ] Document menu rebuild
+ ] Search menu rebuild
+ ] Document menu rebuild
+ ] View menu rebuild
+ ] moved braced nav to edit::goto modul
+ ! brace nav crash
+
+0.3.2.11
+ ] Edit menu rebuild
+ ! crash while text refresh
+ ! set bookmark annoyance
+
+0.3.2.10
+ [ EOL checks
+ ! fixed tabbar context menu 
+
+0.3.2.9
+ ] new Document::SyntaxMode, Edit::Goto and Edit::Select namespaces
+ ] File menu rebuild
+ ] dispatch own key events
+ - shorten Events.pm
+ ! replace all replaced with zero
+ 
+0.3.2.8
+ ] moved last parts of visual.pm code Statusbar.pm and Toolbar.pm
+ [ checkitem in syntaxmodeinfo contextmenu
+ [ can_save_all now much faster
+
+0.3.2.7
+ + rename files
+ ! fixed check and radio item update
+
+0.3.2.6
+ [ better goto line dialog
+ ]+ can_save_all Event which is set whenn there is an unsaved doc
+ ! correct checkings and disabling on all menu items
+ ! tab change event echo
+ ! del mismatch in searchbar combobox
+
+0.3.2.5
+ [ first main menu works with a submenu
+ ] PCE::Config::Stettings to PCE::Config::Global, cleaned namespace
+ ! fixing search dialog find combo loosing search item while search
+
+0.3.2.4
+ [ no cursor or text deselection jump when save all files
+ ] PCE::App namespace newly ordered
+ ! crash on search dialog Drag'n Drop
+
+0.3.2.3
+ + searchbar contextmenu
+ ! pathname mismatch with numbers
+ ! opening changing and save rightmost doc
+ 
+0.3.2.2
+ + drag n drop in search dialog
+ [ single wrong indention on tabbar contexmenu
+ ] overall slimmed and cleaned up code
+ ! no proper eol mode display in statusbar
+
+0.3.2.1
+ ] cleaned up statusbar internals
+ ! forgotten update call for document list update
+ ! statusbar showed not correct number of document lines
+
+0.3.2
+ ] more checks when loading GUI configs
+
+0.3.1.14
+ + menuitem radiogroups 
+ + disable menuitems
+
+0.3.1.13
+ ] unified commandlist value loading
+ ! crash while change Localisation Language again
+
+0.3.1.12
+ + documents contextmenu
+ ] lot of cleadup in Edit.pm
+ [ slightly changed goto behaviour
+
+0.3.1.11
+ ] all contexmenu on gtc
+ ] contexmenu-editpanel eval connector
+ [ new german iso lacalisation
+ ! crash when current doc setting in session file is to high
+
+0.3.1.10
+ + icons in new contex menus
+ ! crash while change Localisation Language
+
+0.3.1.9
+ + contextmenu on selected text
+ ] editpanel contextmenus working in minimal mode
+ 
+0.3.1.8
+ ] adding contextmenu gui config file
+ ] info dialog cleanup
+ ] added embedded emergency localisation
+
+0.3.1.7
+ ] cleaned app namespace
+ ] cleaned up program name handling
+
+0.3.1.6
+ + searchbar takes eventual selection as search item
+ ! open button did disappear for after cliscked
+
+0.3.1.5
+ + config key {app}{searchbar}{autofocus} sets focus to input while onmouseover
+ ! cursor jump to begin when deleting bookmark
+ ! deleting all bookmark
+ ! crash if reload nonexisting file
+
+0.3.1.4
+ ' keymap updated
+ ~ goto last edit now on <Ctrl>+<Shift>+<G>
+ ! open files from command line with pce was broken since 0.3.0
+ ! current doc pointer now correct even if there is only one doc
+
+0.3.1.3
+ + brace navigation with <alt>+<arrow keys>
+ [ <Ctrl>+<F> now also switches focus back to editpanel
+ [ button added on searchbar to call search dialog
+ ] cleaned PCE::App::Event::key_down_filter
+
+0.3.1.2
+ + delete back tab, <shift>+<back> deletes now to naxt indention level
+ ~ switch back now on <Ctrl>+<back>
+ ] property handling while restoring file session now much slicker
+ ! warning caused by checking more filenames that exist while open file
+ ! fixing file session loading and restoring
+
+0.3.1.1
+ [ fix in german toolbar "Suchdialog"
+ [ caret position better visible when switching to document
+ ! warning in info dialog when there is no patchlevel
+
+0.3.1
+ ? testing release
+ [ closing street holes
+
+0.3.0.27
+ + block navigation reestablished
+
+0.3.0.26
+ ! fixed blockindent
+
+0.3.0.25
+ + Bookmarks workin now
+
+0.3.0.24
+ ! fixed tab converter
+
+0.3.0.23
+ + restoring bookmarks
+ ! display of selection lines now correct
+
+0.3.0.22
+ ! typo in toolbar
+
+0.3.0.21
+ ! no label for unnamed files 
+
+0.3.0.20
+ + chow selected lines in statusbar
+ ~ shorter format::join_lines algorithm
+ ! typo in searchflag refresh
+
+0.3.0.19
+ + opens whole dir when dragged onto
+ ! crash when try to drag dir into edititor
+ ! find and replace dialog repaired and slightly optimized
+
+0.3.0.18
+ + PCE now remembers current search and replace item
+ ] rebuild some PCE::Edit::Search.pm sub, renamed config keys
+
+0.3.0.17
+ + find input can now recieve dragged text
+
+0.3.0.16
+ ~ searchbar hints do work now
+ ~ find input history now works
+ + introduced function mark all matches
+ + editpanel can now recieve dragged files
+
+0.3.0.15
+ ! repairing linenumbermargin autosize
+ ! repairing english goto line menu call
+
+0.3.0.14
+ ~ building up simple but usable Searchbar with some jitters
+
+0.3.0.13
+ ! file data got lost after closing empty files
+
+0.3.0.12
+ ~ toggle searchbar visibility
+ ~ start SearchBar
+ ! repair exit dialog
+
+0.3.0.11
+ ~ established standart way of normalizing path slashes
+ ~ better way to position context menus
+ ~ Replace with confirm now on <Alt>+<Enter> on replace dialog
+ ! tabbar buttons has right background color
+
+0.3.0.10
+ + toggle visibilty of tabbar icons
+ + toggle visibilty of tabbar seperator line
+ ~ Show.pm now opens help & config files with full path
+ ] simplified edit: line copy
+ ! shown pathes now compatible to current OS
+ ! reinsert tab seperator line
+ ! toggle visibilty of tabbar works now
+
+0.3.0.9
+ ~ rename config/general -> config/global
+ ! rename tablabel when change language
+ ! ensure inner data current doc pointer always set correct
+
+0.3.0.8
+ + put EOL switch visibility into EOL status context menu
+ ~ modulnames now all uppercase, sources cranked throug perltidy
+
+0.3.0.7
+ ~ introducing use strict 2 all.pm
+ ~ rewrite document namespace
+ ~ Reorganising into a CPAN-compatible distribution
+
+0.3.0.6
+ ~ refaktoring the app namespace (packages, methods, config keys)
+ [ introducing pce::App::TabBar
+ ! no more hang up on empty docs
+
+0.3.0.5
+ ! fix tabbar consume too much height
+ ! dont clear editpanel when close last writeprotected file -> pl2
+ ! dont recognize protection when open first write protected file -> pl2
+
+0.3.0.4
+ + goto last edit
+ ! mainframe was invisible under win when minimize and then close  -> pl2
+
+0.3.0.3
+ ~ update to wxperl 0.25
+ ] pce::document::internal founded pce::document::property deleted
+ [ 2 icons in tabbar
+ [ 3 new icons in toolbar config dialog aktivated
+
+0.3.0.2
+ ! bugfix starting minized search dialog  -> pl2
+ ] changed to sizer based searchdialog
+ ] find modules renamed in search because its more than find like search menu
+
+0.3.0.1
+ ! increment search lost caret visible  -> pl2
+ [ rename localisation ref
+ ] new icons left of search icons
+
+0.3
+ ? full stable release
+
+0.2.3.47
+ ] info dialog now displayes patch level
+ ' finish english docu
+
+0.2.3.46
+ + replace line
+ ' translating doku
+ ] new fresher icons, several new for coming new functions
+ ] 2 more functions in the toolbar
+ ] slicker help menu
+
+0.2.3.45
+ ! fixed CVS vs Clone.pm clash
+
+0.2.3.44
+ ' doku improvements
+ ] faster splashscreen
+
+0.2.3.43
+ ] Boundary check vor app_frame
+
+0.2.3.42
+ ! Bugfix in pce::edit::format::del_trailing_spaces
+
+... missing some
+
+0.2.3.19
+ + strg+Enter menu item document_switch_back
+ 
+... missing some
+
+0.2.3
+ ? feature enhancement and bug fix
+ * file sessions
+ * on quit dialog for selecting files to save
+ + open multiple files via dialog
+ + history for search and replace strings
+ + xp style now optional
+ ] close current file with middle click on tabbar
+ ! open empty files
+
+0.2.2
+ ? feature enhancement and bug fix
+ * search and replace in files
+ + asm style
+ + save on change doc
+ + open statusmenu files via mainmenu
+ [ internal sub now only have one _ prefix
+ ! bug in search prev
+ ! style repaint on save as bug
+
+0.2.11
+ ? feature enhancement and bugfix release
+ + find in selection
+ + replace all in selection
+ + replace with confirm in selection
+ + menu item find from start
+ + recognise selection from menu calls
+ + Ctrl+Enter (in search dialog) closes dialog and finds first
+   (find button behaviour)
+ + set max tab width via config
+ [ more benchmark
+ ! reload autosettings fixed
+ ! status context menu changes language properly
+ ! dialog saves search and replace text first time like it should
+ ! minor checkbox selection fix in search dialog
+ ! bug in font change
+ ! line wrap bug
+
+0.2.10:
+ ? new feature and maintain release
+ * contextmenus on statusbar
+ + shift+Enter in search dialog searches backward
+ [  massive refracturing fore new namespace
+ [  several new modules
+ !  minor fixes in menu
+
+0.2.09:
+ ? testing and maintain release
+ + call replace in find dialog
+ ~ DND Files now only over tabbar
+ ~ close other now with ctrl+shift+Q
+ ~ better search menu
+ [  massive refracturing fore new namespace
+ !  minor fixes in menu, statusbar, and keymap
+
+0.2.08:
+ ? shiny little feature enhancement release
+ + Drag 'n Drop Files from Explorer into the Editor
+
+0.2.07:
+ ?  suporting porters release
+ +  pce.pl can now called under win from anywhere
+ !  small bugs in show files
+
+0.2.06:
+ ? minor enhancement release
+ + block navigation
+ + open files in current directory
+
+0.2.05:
+ ? maintaince release for linux usage
+ - direct document selection with Alt+Number
+ [ path for config and help can now be set freely
+
+0.2.04:
+ ? major stable and bugfix release
+ + view option: stay on top
+ / internal changes and cleanups
+ ! bugfixes in menu and logic
+
+0.2.03:
+ ~ converter take now the whole text when nothing is selected
+ /  internal cleanup
+
+0.2.02:
+ + delete trailing spaces
+ / cleaning internals
+
+0.2.01:
+ + 2 new options for opening files, replace new empty docs
+ + single document mode
+ + save last tilde files like that: file.name~
+ ! Bugfix in EOL Mode, the editor produced always cr+lf
+ ! 2 Bugfixes in Main menu
+
+0.2.00:
+ ? major stable and bugfix release
+
+0.1.99:
+ + backup autosave file, and restore ist in emergency case
+ - Bookmarks
+ ! bugfixes
+
+0.1.98:
+ + save dialog on close and exit now contain cancel
+ / internal improvements
+ ! bugfixes in Config
+
+0.1.97:
+ + jumpes to the file if you open an already opened file
+ / internal improvements
+ ! bugfixes in main, config, file, document, STC
+ ! bugfix in General::Config
+
+0.1.96:
+ + visual feature: switch back if you click on current a la opera
+ + new option: start with an empty file
+ + new option: open each file once
+ + new option: open text files only
+ / bugfixes
+
+0.1.95:
+ + autoreload for config files
+ + this version texts
+ ~ better menus
+ ! bugfixes
+
+0.1.94:
+ ! fix from ugly bug that eating docs, therefor HIGHLY RECOMMANDED updated
+ + ask now for unsaved files to save on quit
+ ~ minor optikal fixes in search dialog, save all icon, color of LLI
+
+0.1.93:
+ * settings for each document will handled seperately and saved to the next start
+   these settings are at start cursorpos, syntaxstyle, EOL Mode, Tab usage
+ + intention guides
+ + caret line highlighting
+ + autodetect EOL Mode
+ + autodetect write protection
+ + direct doc selection with Alt+Number
+ ~ right margin color changesd
+ ~ another app icon
+ ~ search menu unfolded
+
+0.1.89: ? bugfix release
+0.1.87:
+ * multiple document handling
+   find, replace and bookmarks are still single document oriented
+
+0.1.84:
+ * find and replace dialog
+ + win XP look
+
+0.1.68: autosave options, customizable Syntaxstyle autoselect
+0.1.64: german localisation
+0.1.60: config: many new styles, contextmenu
+        file menu: insert file, edit menu: format functions, convert functions
+        document menu: eol mode, styles, spaces, write protection
+        Statusbar: cursorpos, eol, spaaces, style
+        faster file reading, several bugs
+0.1.31: save and load external configs, handling close window event
+        many bug fixes, color and caret settings
+0.1.24: SECOND COMPLETE RELEASE (incl. PRE 0.2pre1)! new config file,
+        old removed, holds now all properties, default.conf, open, load and
+        save config on the fly, release history, reopen, save copy as,
+        Replace, Undo History, brace comment, 3Bookmarks, find selection
+        new view options: hard tabs, whitespace, 4Margins, Line Wrap
+0.1.12: Fontselect and many other fixes
+0.1.11: Selection Move, fixes & updates
+0.1.10: indent unindent,  script comment uncomment, CSS Style, several fixes
+0.1. 9: open Configfiles, goto line number, line move, fixes
+0.1. 8: holds file, save before exit, fixed and updates
+0.1. 7: find previous, C-style fixed, setEOLMode removed
+0.1. 6: find, find next
+0.1. 5: setEOLMode(removed), select and autoselect Syntaxstyle, C - Style,
+0.1. 4: asks for filename if you save new file, better Perl-style
+0.1. 3: Keyboard Map, Licenses, fix
+0.1. 2: View Menu, View EOL, HTML-Style
+0.1. 1: checkable Menuitems, english Toolbarhints, show License
+0.1. 0: FIRST COMPLETE RELEASE(incl. PRE 0.2)!, smaller startexe, english Menu,
+        long line indikator, colored gutter,
+0.0.20: first syntaxstyle(perl), filename in tab, toggle linenumbermargin, fixes
+0.0.19: pce.exe, undo, redo, cut, copy, paste, clear, select all
+        filename in the title, warningboxes bugfixes
+0.0.18: save file, bugfix
+0.0.17: new file, open & save as
+0.0.15: First Public Release!: shows the editbox!
+
+PRE
+0.3. 2: Perl 5.8.8, wxPerl 0.26
+0.3   : Perl 5.8.7, General::Config 0.30
+0.2.00: Perl 5.8.6, libs added, General::Config patched, better starter
+0.1.80: wxPerl 0.21, cpan: Hash::Merge, Clone.pm added
+0.1.60: simplifications
+0.1.55: Perl 5.8.4, Config::General 2.27
+0.1.50: Perl 5.8.3, wxPerl 0.19, Config::General 2.26, more standart libs
+0.1.01: wxPerl 0.18, more libs, simplifications
+0.1.00: Perl 5.6.1, wxPerl 0.17, some standart libs
+
+
+the VERSION number is like a date in the development timeline of the program,
+no matter which part, a bigger number comes always after a smaller, pce 0.2
+comes after pre 0.1.23
+
+the PHASE number is like a stage of expansion; for all of you, who need a normal
+editor just grab PHASE 1 in some future there will things like PHASE 2 with a
+lot of space consuming toys not everybody needs
+
+the PRE is the bundle off all needed 3rd party software to run the program.
+normally ist is included in every full release, but for instance to settle with
+pce 0.2.23 from windows to linux you may need pre 0.2 for linux
+
+
+Legend:
+
+ ? purpose
+ * big new feature
+ + new feature
+ ~ change
+ - remove
+ ! bugfix
+ [ interface
+ ] internals
+ ' help/docu
+ / comment
