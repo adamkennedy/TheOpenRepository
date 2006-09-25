@@ -4,7 +4,7 @@ package Module::Manifest;
 
 =head1 NAME
 
-Perl::Manifest - Parse and examine a Perl distribution MANIFEST file
+Module::Manifest - Parse and examine a Perl distribution MANIFEST file
 
 =head1 DESCRIPTION
 
@@ -51,7 +51,7 @@ use Params::Util   '_STRING';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
