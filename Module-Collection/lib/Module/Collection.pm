@@ -8,6 +8,9 @@ Module::Collection - Examine a group of Perl distributions
 
 =head1 DESCRIPTION
 
+B<WARNING: THIS IS AN EARLY RELEASE FOR INFORMATIONAL PURPOSES ONLY.
+PARTS OF THIS MODULE ARE SUBJECT TO CHANGE WITHOUT NOTICE.>
+
 The canonical source of all CPAN and Perl installation functionality is a
 simple group of release tarballs, contained within some directory.
 
@@ -48,6 +51,21 @@ my $find_dist = File::Find::Rule->relative->file->name('*.tar.gz');
 #####################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+  my $collection = Module::Collection->new( root => $directory );
+
+The C<new> constructor creates a new collection. It takes the named
+C<root> param (the only param now, but with more to come) and scans
+recursively inside it for any tarballs, which should be Perl
+distribution release tarballs.
+
+Returns a new B<Module::Collection> object, or dies on error.
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_,
@@ -68,6 +86,15 @@ sub new {
 	$self;
 }
 
+=pod
+
+=head2 root
+
+The C<root> accessor returns the path to the collection root, as
+provided originally to the constructor.
+
+=cut
+
 sub root {
 	$_[0]->{root};
 }
@@ -79,6 +106,17 @@ sub root {
 #####################################################################
 # Distribution Handling
 
+=pod
+
+=head2 dists
+
+The C<dists> method returns a list of the file names for the
+distributions that the collection is currently aware of.
+
+In scalar context, returns the number of dists instead.
+
+=cut
+
 sub dists {
 	if ( wantarray ) {
 		return sort { lc $a cmp lc $b } keys %{$_[0]->{dists}};
@@ -87,10 +125,33 @@ sub dists {
 	}
 }
 
+=pod
+
+=head2 dist_path
+
+  my $file_path = $collection->dist_path('dists/Config-Tiny-2.09.tar.gz');
+
+The c<dist_path> method takes the name of a dist in the collection in
+relative unix-style format, and returns a localised absolute path to the
+distribution tarball.
+
+=cut
+
 sub dist_path {
 	my $self = shift;
 	File::Spec->catfile( $self->root, shift );
 }
+
+=pod
+
+=head2 dist
+
+  my $inspector = $collection->dist('dists/Config-Tiny-2.09.tar.gz');
+
+The C<dist> methods creates and returns a L<Module::Inspector> object
+for the distribution.
+
+=cut
 
 sub dist {
 	my $self = shift;
@@ -115,6 +176,24 @@ sub dist {
 	return $self->{dists}->{$file} = $module;
 }
 
+=pod
+
+=head2 ignore_dist
+
+Most of the time when working with a collection of release tarballs
+your code is only going to want to have to work with a subset.
+
+The C<ignore_dist> method takes the name of a dist in the collection
+and removes it from the collection.
+
+Note the method is called "ignore" for a reason. This does NOT in any
+way delete or remove the dist itself, it just removes it from the
+collection's view.
+
+Returns true or dies on error.
+
+=cut
+
 sub ignore_dist {
 	my $self = shift;
 	my $file = _STRING(shift);
@@ -133,6 +212,21 @@ sub ignore_dist {
 
 #####################################################################
 # Common Tasks
+
+=pod
+
+=head2 ignore_old_dists
+
+The C<ignore_old_dists> method scans through all of the dists in the
+collection, and removes (ignores) any distribution that has a never
+version of the same distribution.
+
+This has the result of taking a whole mishmash of distributions and
+leaving you with only the newest version or each unique distribution.
+
+Returns true or dies on error.
+
+=cut
 
 sub ignore_old_dists {
 	my $self = shift;
