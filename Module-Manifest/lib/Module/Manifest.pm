@@ -61,6 +61,22 @@ BEGIN {
 #####################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+  my $manifest = Module::Manifest->new( $filename );
+
+The C<new> constructor takes the name of a MANIFEST file on disk and
+and creates a new object.
+
+At the present time, a new empty manifest object cannot be created,
+although this may be added in a later version.
+
+Return a B<Module::Manifest> object or dies on error.
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $file  = _STRING(shift);
@@ -91,16 +107,46 @@ sub new {
 		}, $class;
 }
 
+=pod
+
+=head2 file
+
+The C<file> accessor returns the absolute path of the MANIFEST file that
+was loaded.
+
+=cut
+
 sub file {
 	$_[0]->{file};
 }
+
+=pod
+
+=head2 dir
+
+The C<dir> accessor returns the path to the directory that contains the
+MANIFEST file, and thus SHOULD be the root of the distribution.
+
+=cut
 
 sub dir {
 	$_[0]->{dir};
 }
 
+=head2 files
+
+The C<files> method returns the (relative, unix-style) list of files
+within the manifest. In scalar context, returns the number of files
+in the manifest.
+
+=cut
+
 sub files {
-	sort { lc $a cmp lc $b } keys %{$_[0]->{files}};
+	if ( wantarray ) {
+		return sort { lc $a cmp lc $b } keys %{$_[0]->{files}};
+	} else {
+		return scalar keys %{$_[0]->{files}};
+	}
 }
 
 1;
