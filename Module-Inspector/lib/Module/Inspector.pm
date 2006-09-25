@@ -46,6 +46,7 @@ inside a tarball.
 use 5.005;
 use strict;
 use Carp                   ();
+use version                ();
 use File::Spec             ();
 use File::Path             ();
 use File::Temp             ();
@@ -53,17 +54,22 @@ use File::Find::Rule       ();
 use File::Find::Rule::VCS  ();
 use File::Find::Rule::Perl ();
 use Params::Util           ('_STRING');
+use Module::Manifest       ();
+use Module::Math::Depends  ();
+use YAML::Tiny             ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION %SPECIAL};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
+	%SPECIAL = (
+		'MANIFEST' => 'Module::Manifest',
+		'META.yml' => 'YAML::Tiny',
+		);
 }
 
 # If prefork is available, flag the optional modules
-eval " use prefork 'YAML::Tiny';          ";
-eval " use prefork 'Archive::Extract';    ";
-eval " use prefork 'PPI::Document::File'; ";
-
+eval " use prefork 'Archive::Extract';      ";
+eval " use prefork 'PPI::Document::File';   ";
 
 
 
@@ -145,9 +151,10 @@ sub new {
 	# Create the document store
 	$self->{document} = {};
 
-	# Add the META.yml file to the document store
-	if ( -e $self->file_path('META.yml') ) {
-		$self->{document}->{'META.yml'} = 'YAML::Tiny';
+	# Add all single special files to the document store
+	foreach my $file ( sort keys %SPECIAL ) {
+		next unless -f $self->file_path($file);
+		$self->{document}->{$file} = $SPECIAL{$file};
 	}
 
 	# Populate the document store with all Perl files
@@ -242,8 +249,12 @@ sub document {
 		$self->{document}->{$file} = $document;
 
 	} elsif ( $loader eq 'YAML::Tiny' ) {
-		require	YAML::Tiny;
 		my $document = YAML::Tiny->read( $path )
+			or Carp::croak("Failed to load $file with $loader");
+		$self->{document}->{$file} = $document;
+
+	} elsif ( $loader eq 'Module::Manifest' ) {
+		my $document = Module::Manifest->new( $path )
 			or Carp::croak("Failed to load $file with $loader");
 		$self->{document}->{$file} = $document;
 
@@ -259,18 +270,53 @@ sub document {
 
 
 #####################################################################
-# Installer Detection
+# Analysis Layer
 
-sub makefile_pl {
-	shift->document('Makefile.PL');
+sub dist_name {
+	my $self = shift;
+	my $meta = $self->document('META.yml');
+	$meta->[0]->{name} or Carp::croak(
+		"META.yml does not have a name: value"
+		);
 }
 
-sub build_pl {
-	shift->document('Build.PL');
+sub dist_version {
+	my $self    = shift;
+	my $meta    = $self->document('META.yml');
+	my $version = $meta->[0]->{version}
+		or Carp::croak("META.yml does not have a version: value");
+	version->new($version);
+}
+
+sub dist_requires {
+	my $self     = shift;
+	my $meta     = $self->document('META.yml');
+	my $requires = $meta->[0]->{requires};
+	return $requires
+		? Module::Math::Depends->from_hash( $requires )
+		: Module::Math::Depends->new;
+}
+
+sub dist_build_requires {
+	my $self     = shift;
+	my $meta     = $self->document('META.yml');
+	my $requires = $meta->[0]->{build_requires} or return {};
+	return $requires
+		? Module::Math::Depends->from_hash( $requires )
+		: Module::Math::Depends->new;
+}
+
+sub dist_depends {
+	my $self           = shift;
+	my $requires       = $self->dist_requires;
+	my $build_requires = $self->dist_build_requires;
+	$requires->merge( $build_requires );
+	return $requires;
 }
 
 1;
 
+=pod
 
 =head1 TO DO
 
@@ -303,13 +349,6 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Inspector>
 For other issues, for commercial enhancement or support, or to have your
 write access enabled for the repository, contact the author at the email
 address above.
-
-=head1 ACKNOWLEDGEMENTS
-
-The biggest acknowledgement must go to Chris Nandor, who wielded his
-legendary Mac-fu and turned my initial fairly ordinary Darwin
-implementation into something that actually worked properly everywhere,
-and then donated a Mac OS X license to allow it to be maintained properly.
 
 =head1 AUTHORS
 

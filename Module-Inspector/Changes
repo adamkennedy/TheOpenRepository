@@ -1,4 +1,7 @@
 Version history for Perl distribution Module-Inspector
 
-0.01 ...
+0.02 Sun 25 Sep 2006
+        - Added support for MANIFEST files
+
+0.01 Sat 24 Sep 2006
         - Initial Version

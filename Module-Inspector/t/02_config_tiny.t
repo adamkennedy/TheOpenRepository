@@ -1,3 +1,4 @@
+
 #!/usr/bin/perl -w
 
 use strict;
@@ -7,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 16;
+use Test::More tests => 27;
 use Module::Inspector;
 
 my $tarball = catfile( 't', 'dists', 'Config-Tiny-2.09.tar.gz' );
@@ -30,6 +31,7 @@ SCOPE: {
 	is( $mod->version_control, '', '->version_control is null' );
 	my @docs = grep { ! /^inc\b/ } $mod->documents;
 	is_deeply( \@docs, [qw{
+		MANIFEST
 		META.yml
 		Makefile.PL
 		lib/Config/Tiny.pm
@@ -38,15 +40,30 @@ SCOPE: {
 		t/99_pod.t
 		}], '->documents ok' );
 
-	# Check YAML support
-	is( $mod->document_type('META.yml'), 'YAML::Tiny', '->document_type(YAML) ok' );
-	isa_ok( $mod->document('META.yml'), 'YAML::Tiny' );
-	is( $mod->document_type('META.yml'), 'YAML::Tiny', '->document_type(YAML) ok' );
-	isa_ok( $mod->document('META.yml'), 'YAML::Tiny' );
+	# Check support for various document types
+	my @types = qw{
+		MANIFEST     Module::Manifest
+		META.yml     YAML::Tiny
+		Makefile.PL  PPI::Document::File
+		};
+	while ( @types ) {
+		my $file = shift @types;
+		my $type = shift @types;
+		is( $mod->document_type($file), $type, "->document_type($type) ok" );
+		isa_ok( $mod->document($file), $type );
+		is( $mod->document_type($file), $type, "->document_type($type) ok" );
+		isa_ok( $mod->document($file), $type );
+	}
 
-	# Check Perl support
-	is( $mod->document_type('Makefile.PL'), 'PPI::Document::File', '->document_type(Perl) ok' );
-	isa_ok( $mod->document('Makefile.PL'), 'PPI::Document::File' );
-	is( $mod->document_type('Makefile.PL'), 'PPI::Document::File', '->document_type(Perl) ok' );
-	isa_ok( $mod->document('Makefile.PL'), 'PPI::Document::File' );
+	# Analysis later
+	is( $mod->dist_name, 'Config-Tiny', '->dist_name ok' );
+	my $dist_version = $mod->dist_version;
+	isa_ok( $dist_version, 'version' );
+	is( "$dist_version", '2.090', '->dist_version ok' );
+	is( "$dist_version"+0, 2.09,    '->dist_version ok' );
+
+	# Dependencies
+	isa_ok( $mod->dist_requires,       'Module::Math::Depends' );
+	isa_ok( $mod->dist_build_requires, 'Module::Math::Depends' );
+	isa_ok( $mod->dist_depends,        'Module::Math::Depends' );
 }
