@@ -2,6 +2,9 @@ Version history for Perl distribution Module-Inspector
 
 0.02 Sun 25 Sep 2006
         - Added support for MANIFEST files
+	- Documented the main methods
+	- Added dist_name, dist_version, dist_requires, dist_build_requires
+	  and dist_depends methods.
 
 0.01 Sat 24 Sep 2006
         - Initial Version
