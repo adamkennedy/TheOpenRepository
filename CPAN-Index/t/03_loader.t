@@ -3,23 +3,13 @@
 # Test that CPAN::Index::Loader works
 
 use strict;
-use lib ();
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 21;
+use Test::More tests => 23;
 use File::Remove        'remove';
 use File::Copy          'copy';
 use IO::File            ();
@@ -27,11 +17,11 @@ use CPAN::Index         ();
 use CPAN::Index::Loader ();
 
 # Locate and open a handle to the plain test author file
-my $AUTHOR = catfile('t', 'data', '01mailrc.txt');
+my $AUTHOR = catfile('t', 'data', 'authors', '01mailrc.txt');
 ok( -f $AUTHOR, "Found uncompressed author file at $AUTHOR" );
 
 # Locate and open a handle to the plain test package file
-my $PACKAGE = catfile('t', 'data', '02packages.details.txt');
+my $PACKAGE = catfile('t', 'data', 'modules', '02packages.details.txt');
 ok( -f $PACKAGE, "Found uncompressed package file at $PACKAGE" );
 
 
@@ -45,10 +35,12 @@ ok( -f $PACKAGE, "Found uncompressed package file at $PACKAGE" );
 my $TESTDB = catfile('share', 'cpan.db');
 my $MYDB   = catfile('t',     'cpan.db');
 my $MYDSN  = "dbi:SQLite:$MYDB";
-ok( -f $TESTDB, 'Found empty database' );
       remove($MYDB) if -f $MYDB;
 END { remove($MYDB) if -f $MYDB; }
+ok( -f $TESTDB, 'Found empty database' );
+ok( ! -f $MYDB, 'Testing copy does not exist yet' );
 ok( copy( $TESTDB => $MYDB ), 'Create testing database' );
+ok( -f $MYDB,   'Testing copy created ok' );
 
 # Connect to the database
 my $schema = CPAN::Index->connect( $MYDSN );
@@ -74,6 +66,9 @@ SCOPE: {
 	is( $aassad->name, "Arnaud 'Arhuman' Assad", '->name ok' );
 	is( $aassad->email, 'arhuman@hotmail.com', '->email ok' );
 	isa_ok( $aassad->address, 'Email::Address' );
+
+	# Check we used the entire handle
+	ok( $authors->eof, 'Handle at EOF after loading' );
 }
 
 # Load the packages
@@ -89,6 +84,9 @@ SCOPE: {
 	isa_ok( $colour->version, 'version' );
 	is( $colour->version_string, '1.00', '->version ok' );
 	is( $colour->path, 'L/LB/LBROCARD/Acme-Colour-1.00.tar.gz', '->path ok' );
+
+	# Check we used the entire handle
+	ok( $packages->eof, 'Handle at EOF after loading' );
 }
 
 exit(0);

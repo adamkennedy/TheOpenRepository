@@ -22,7 +22,9 @@ L<CPAN::Index>, but may be loaded on-demand if needed.
 
 use strict;
 use Carp           ();
-use Params::Util   qw{ _INSTANCE };
+use IO::File       ();
+use IO::ZLib       ();
+use Params::Util   qw{ _INSTANCE _HANDLE };
 use Email::Address ();
 use CPAN::Cache    ();
 
@@ -63,7 +65,8 @@ sub new {
 			verbose    => $self->{verbose},
 			);
 	}
-			
+
+	$self;
 }
 
 =pod
@@ -105,6 +108,45 @@ sub local_dir {
 	$_[0]->cache->local_dir;
 }
 
+=pod
+
+=head2 local_file
+
+  my $path = $loader->local_file('01mailrc.txt.gz');
+
+The C<local_file> method takes the name of a file in the CPAN and returns
+the local path to the file.
+
+Returns a path string, or throws an exception on error.
+
+=cut
+
+sub local_file {
+	$_[0]->cache->file($_[1])->path;
+}
+
+=pod
+
+=head2 local_handle
+
+  my $path = $loader->local_handle('01mailrc.txt.gz');
+
+The C<local_handle> method takes the name of a file in the CPAN and returns
+an L<IO::Handle> to the file.
+
+Returns an L<IO::Handle>, most likely an L<IO::Handle>, or throws an
+exception on error.
+
+=cut
+
+sub local_handle {
+	my $self = shift;
+	my $file = $self->local_file(shift);
+	$file =~ /\.gz$/
+		? IO::Zlib->new( $file, 'rb' ) # [r]ead [b]inary file
+		: IO::File->new( $file );
+}
+
 
 
 
@@ -114,11 +156,36 @@ sub local_dir {
 
 =pod
 
-=head2 load_files
+=head2 load_index
 
-TO DO
+The C<load_index> takes a single param of the schema to load, locates
+the three main index files based on the C<local_dir> path, and then
+loads the index from those files.
+
+Returns the total number of records added.
 
 =cut
+
+sub load_index {
+	my $self    = shift;
+	my $schema  = shift;
+	my $created = 0;
+
+	# Load the files
+	$created += $self->load_authors(
+		$schema,
+		$self->local_handle('authors/01mailrc.txt') ||
+		$self->local_handle('authors/01mailrc.txt.gz'),
+		);
+	$created += $self->load_packages(
+		$schema,
+		$self->local_handle('modules/02packages.details.txt') ||
+		$self->local_handle('modules/02packages.details.txt.gz'),
+		);
+
+	# Return the total
+	$created;
+}
 
 
 
@@ -148,8 +215,32 @@ sub load_authors {
 	my $self   = shift;
 	my $schema = _INSTANCE(shift, 'DBIx::Class::Schema')
 		or Carp::croak("Did not provide a DBIx::Class::Schema param");
-	my $handle = _INSTANCE(shift, 'IO::Handle')
-		or Carp::croak("Did not provide an IO::Handle param");
+	my $handle = _HANDLE(shift)
+		or Carp::croak("Did not provide a file handle param");
+
+	# Wrap the actual method in a DBIx::Class transaction
+	my $created = 0;
+	
+	my $rs = eval {
+		$schema->txn_do( sub {
+			$created = $self->_load_authors( $schema, $handle );
+		} );
+	};
+	if ( $@ =~ /Rollback failed/ ) {
+		Carp::croak("Rollback failed, database may be corrupt");
+	} elsif ( $@ ) {
+		Carp::croak("Database error while loading authors: $@");
+	}
+
+	$created;	
+}
+	
+sub _load_authors {
+	my ($self, $schema, $handle) = @_;
+
+	# Every email address should be different, so disable
+	# Email::Address caching so we don't waste a bunch of memory.
+	local $Email::Address::NOCACHE = 1;
 
 	# Process the author records
 	my $created = 0;
@@ -163,9 +254,15 @@ sub load_authors {
 
 		# Parse the full email address to seperate the parts
 		my @found = Email::Address->parse($email);
-		unless ( @found == 1 ) {
-			Carp::croak("Failed to correctly parse email address");
+		unless ( @found ) {
+			# Invalid email or something that Email::Address can't handle.
+			# Use a default name and address for now.
+			@found = Email::Address->parse( "$id <$id\@cpan.org>" );
 		}
+
+		# Some CPAN users have multiple addresses, for example
+		# A. PREM ANAND <prem_and@rediffmail.com,prem@ncbs.res.in>
+		# When this happens, we'll just take the first one.
 
 		# Create the record
 		$schema->resultset('Author')->create( {
@@ -174,6 +271,11 @@ sub load_authors {
 			email => $found[0]->address,
 			} );
 		$created++;
+
+		# Debugging
+		if ( $Test::More::VERSION ) {
+			Test::More::diag("$created...");
+		}
 	}
 
 	$created;
@@ -200,13 +302,32 @@ sub load_packages {
 	my $self   = shift;
 	my $schema = _INSTANCE(shift, 'DBIx::Class::Schema')
 		or Carp::croak("Did not provide a DBIx::Class::Schema param");
-	my $handle = _INSTANCE(shift, 'IO::Handle')
-		or Carp::croak("Did not provide an IO::Handle param");
+	my $handle = _HANDLE(shift)
+		or Carp::croak("Did not provide a file handle param");
 
 	# Advance past the header, to the first blank line
 	while ( my $line = $handle->getline ) {
 		last if $line !~ /[^\s\012\015]/;
 	}
+
+	# Wrap the database method in a DBIx::Class transaction
+	my $created;
+	my $rs = eval {
+		$schema->txn_do( sub {
+			$created = $self->_load_packages( $schema, $handle );
+		} );
+	};
+	if ( $@ =~ /Rollback failed/ ) {
+		Carp::croak("Rollback failed, database may be corrupt");
+	} elsif ( $@ ) {
+		Carp::croak("Database error while loading packages: $@");
+	}
+
+	$created;
+}
+
+sub _load_packages {
+	my ($self, $schema, $handle) = @_;
 
 	# Process the author records
 	my $created = 0;
@@ -225,6 +346,11 @@ sub load_packages {
 			path    => $path,
 			} );
 		$created++;
+
+		# Debugging
+		if ( $Test::More::VERSION ) {
+			Test::More::diag("$created...");
+		}
 	}
 
 	$created;
@@ -256,7 +382,7 @@ Based on: L<Parse::CPAN::Authors>, L<Parse::CPAN::Packages>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2006 Adam Kennedy. All rights reserved.
+Copyright (c) 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
