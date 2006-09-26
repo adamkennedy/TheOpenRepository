@@ -17,7 +17,7 @@ use CPAN::Index         ();
 use CPAN::Index::Loader ();
 
 # Locate the root path for the fake mirror
-my $MIRROR = catdir('t', 'data');
+my $MIRROR = catdir('t', 'mirror');
 ok( -d $MIRROR, "Found mirror dir at $MIRROR" );
 
 

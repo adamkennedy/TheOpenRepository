@@ -17,11 +17,11 @@ use CPAN::Index         ();
 use CPAN::Index::Loader ();
 
 # Locate and open a handle to the plain test author file
-my $AUTHOR = catfile('t', 'data', 'authors', '01mailrc.txt');
+my $AUTHOR = catfile('t', 'mirror', 'authors', '01mailrc.txt');
 ok( -f $AUTHOR, "Found uncompressed author file at $AUTHOR" );
 
 # Locate and open a handle to the plain test package file
-my $PACKAGE = catfile('t', 'data', 'modules', '02packages.details.txt');
+my $PACKAGE = catfile('t', 'mirror', 'modules', '02packages.details.txt');
 ok( -f $PACKAGE, "Found uncompressed package file at $PACKAGE" );
 
 
