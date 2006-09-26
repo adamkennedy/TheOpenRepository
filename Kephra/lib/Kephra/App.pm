@@ -1,4 +1,4 @@
-package Kepher::App;
+package Kephra::App;
 our $VERSION = '0.04';
 
 use strict;
@@ -11,15 +11,15 @@ use Wx qw(
 	wxTheClipboard
 );
 
-sub get_ref{ $Kepher::app{'ref'} };
-sub set_ref{ $Kepher::app{'ref'} = shift };
+sub _get{ $Kephra::app{'ref'} };
+sub _set{ $Kephra::app{'ref'} = shift };
 
 # main layout, main frame
 sub splashscreen {
 	Wx::InitAllImageHandlers();
 	Wx::SplashScreen->new(
 		Wx::Bitmap->new(
-			$Kepher::internal{path}{config}.$Kepher::internal{file}{img}{splashscreen},
+			$Kephra::temp{path}{config}.$Kephra::temp{file}{img}{splashscreen},
 			wxBITMAP_TYPE_JPEG
 		),
 		wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 150, undef, -1,
@@ -29,22 +29,22 @@ sub splashscreen {
 }
 
 sub assemble_layout {
-	my $win = Kepher::App::Window::_get();
+	my $win = Kephra::App::Window::_get();
 
 	my $main_sizer = $win->{'sizer'} = Wx::BoxSizer->new(wxVERTICAL);
-	$main_sizer->Add( Kepher::App::TabBar::_get_sizer(), 0, wxTOP|wxGROW, 0 );
+	$main_sizer->Add( Kephra::App::TabBar::_get_sizer(), 0, wxTOP|wxGROW, 0 );
 	#$main_sizer->AddSpace(8, 0) if ($^O eq 'linux'); #dirty lin hack remove asap
-	$main_sizer->Add( Kepher::App::EditPanel::_get(),    1, wxTOP|wxGROW, 0 );
-	if (Kepher::App::SearchBar::_get_config()->{'position'} eq 'top') {
-		$main_sizer->Prepend(Kepher::App::SearchBar::_get(), 0, wxTOP|wxGROW, 2)
+	$main_sizer->Add( Kephra::App::EditPanel::_get(),    1, wxTOP|wxGROW, 0 );
+	if (Kephra::App::SearchBar::_get_config()->{'position'} eq 'top') {
+		$main_sizer->Prepend(Kephra::App::SearchBar::_get(), 0, wxTOP|wxGROW, 2)
 	} else {
-		$main_sizer->Add(Kepher::App::SearchBar::_get(), 0, wxBOTTOM|wxGROW, 3)
+		$main_sizer->Add(Kephra::App::SearchBar::_get(), 0, wxBOTTOM|wxGROW, 3)
 	}
 	$win->SetSizer($main_sizer);
 	$win->SetAutoLayout(1);
 	$win->Layout;
-	$win->SetBackgroundColour(Kepher::App::TabBar::_get_tabs()->GetBackgroundColour);
-	Kepher::App::TabBar::show();
+	$win->SetBackgroundColour(Kephra::App::TabBar::_get_tabs()->GetBackgroundColour);
+	Kephra::App::TabBar::show();
 	$win;
 }
 
@@ -52,21 +52,21 @@ sub start {
 	use Benchmark qw(:all);
 	my $t0 = new Benchmark;
 	my $app = shift;
-	set_ref($app);
+	_set($app);
 	splashscreen();             # 2'nd splashscreen can close when app is ready
 	Wx::InitAllImageHandlers();
-	my $frame = Kepher::App::Window::create();
-	my $ep = Kepher::App::EditPanel::create();
-	$Kepher::internal{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
-	$Kepher::internal{'document'}{'buffer'} = 1;
-	Kepher::Config::Global::load_autosaved();
-	if (Kepher::Config::Global::evaluate()) {
+	my $frame = Kephra::App::Window::create();
+	my $ep = Kephra::App::EditPanel::create();
+	$Kephra::temp{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
+	$Kephra::temp{'document'}{'buffer'} = 1;
+	Kephra::Config::Global::load_autosaved();
+	if (Kephra::Config::Global::evaluate()) {
 		$frame->Show(1);
 		print "pce startet in:",
 			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
 		my $t2 = new Benchmark;
-		Kepher::File::Session::restore();
-		Kepher::Document::Internal::add($_) for @ARGV;
+		Kephra::File::Session::restore();
+		Kephra::Document::Internal::add($_) for @ARGV;
 		print "pce dateien in:",
 			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n";
 		1;                      # everything is good
@@ -77,17 +77,17 @@ sub start {
 
 sub exit { 
 	my $t0 = new Benchmark;
-	return if Kepher::Dialog::save_on_exit() eq 'cancel';
-	Kepher::Config::Global::refresh();
-	Kepher::File::Session::store();
-	Kepher::File::Session::delete();
-	Kepher::Config::Global::save_autosaved();
-	if ($Kepher::config{app}{interface_cache}{use}){
-		Kepher::App::CommandList::save_cache() ;
+	return if Kephra::Dialog::save_on_exit() eq 'cancel';
+	Kephra::Config::Global::refresh();
+	Kephra::File::Session::store();
+	Kephra::File::Session::delete();
+	Kephra::Config::Global::save_autosaved();
+	if ($Kephra::config{app}{interface_cache}{use}){
+		Kephra::App::CommandList::save_cache() ;
 	}
-	Kepher::Config::set_xp_style(); #
+	Kephra::Config::set_xp_style(); #
 	wxTheClipboard->Flush;       # set copied text free to the global Clipboard
-	Kepher::App::Window::destroy(); # close window
+	Kephra::App::Window::destroy(); # close window
 	print "pce shut down in:",
 		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
 }

@@ -6,7 +6,7 @@ use 5.006;
 use strict;
 
 our $NAME       = 'Kephra';     # name of entire application
-our $VERSION    = '0.3.3.9';    # program - version
+our $VERSION    = '0.3.3.10';   # program - version
 our @ISA        = 'Wx::App';    # $NAME is a wx application
 
 # used external modules (loaded at start)
@@ -80,8 +80,8 @@ use Kephra::Show;                  # -DEP display content: files, boxes
 our %app;           # ref to app parts and app data for GUI, Events, Parser
 our %config;        # global settings, saved in /config/global/autosaved.conf
 our %document;      # data of current documents, to be stored in session file
-our %documentation; # -NI locations of documentation files in current language
-our %internal;      # global internal temp data
+our %help;          # -NI locations of documentation files in current language
+our %temp;          # global internal temp data
 our %localisation;  # all localisation strings in your currently selected lang
 our %syntaxmode;    # -NI
 

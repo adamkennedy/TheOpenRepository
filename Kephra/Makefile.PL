@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
 name           'Kepher';
-all_from       'lib/Kepher.pm';   
+all_from       'lib/Kephra.pm';   
 requires       'File::Spec'            => '0.80';
 requires       'File::Copy'            => 0;
 requires       'File::Copy::Recursive' => 0;
@@ -17,7 +17,7 @@ requires       'Config::General'       => 0;
 requires       'YAML'                  => 0;
 build_requires 'Test::More'            => '0.47';
 build_requires 'Test::Script'          => '0.01';
-install_script 'bin/kepher';
+install_script 'bin/kephra';
 install_share;
 
 WriteAll;

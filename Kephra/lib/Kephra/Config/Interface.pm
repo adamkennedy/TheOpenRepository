@@ -1,20 +1,20 @@
-package Kepher::Config::Interface;
+package Kephra::Config::Interface;
 $VERSION = '0.01';
  
 use strict;
 
 
 sub load_data {
-	my $conf = $Kepher::config{'app'};
-	my $conf_path = $Kepher::internal{path}{config};
+	my $conf = $Kephra::config{'app'};
+	my $conf_path = $Kephra::temp{path}{config};
 
 	# localisation
-	%Kepher::localisation = 
-		%{ Kepher::Config::File::load( $conf_path.$conf->{'localisation_file'} ) };
+	%Kephra::localisation = 
+		%{ Kephra::Config::File::load( $conf_path.$conf->{'localisation_file'} ) };
 	# load embedded localisation for emergency cases
-	unless (%Kepher::localisation) {
-		require Kepher::Config::Embedded;
-		%Kepher::localisation = %{&Kepher::Config::Embedded::get_english_localisation};
+	unless (%Kephra::localisation) {
+		require Kephra::Config::Embedded;
+		%Kephra::localisation = %{&Kephra::Config::Embedded::get_english_localisation};
 	}
 
 
@@ -23,9 +23,9 @@ sub load_data {
 	} else {
 	}
 
-	Kepher::App::CommandList::assemble_data();
+	Kephra::App::CommandList::assemble_data();
 	store_cache();
-	#delete $Kepher::localisation {'commandlist'};
+	#delete $Kephra::localisation {'commandlist'};
 }
 
 sub del_temp_data {

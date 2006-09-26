@@ -1,5 +1,5 @@
-package Kepher::Document::SyntaxMode;
-$VERSION = '0.01';
+package Kephra::Document::SyntaxMode;
+$VERSION = '0.02';
 
 use strict;
 use Wx qw(
@@ -8,30 +8,33 @@ use Wx qw(
 );
 
 # syntaxstyles
-sub set {$Kepher::document{'current'}{'syntaxmode'} = shift }
-sub get {$Kepher::document{'current'}{'syntaxmode'} 
-	if exists $Kepher::document{'current'}{'syntaxmode'}
+sub set {$Kephra::document{'current'}{'syntaxmode'} = shift }
+sub get {$Kephra::document{'current'}{'syntaxmode'} 
+	if exists $Kephra::document{'current'}{'syntaxmode'}
 }
 
 sub _get_auto{ &_get_by_fileending }
 sub _get_by_fileending {
 	my $doc_nr = shift;
-	$doc_nr = Kepher::Document::_get_current_nr unless $doc_nr;
-	my $file_ending = $Kepher::internal{'document'}{'open'}[$doc_nr]{'ending'};
+	$doc_nr = Kephra::Document::_get_current_nr unless $doc_nr;
+	my $file_ending = $Kephra::temp{'document'}{'open'}[$doc_nr]{'ending'};
 	my $language_id;
 	chop $file_ending if $file_ending and (substr ($file_ending, -1) eq '~');
 	if ($file_ending) {
-		$language_id = $Kepher::internal{'file'}{'end2langmap'}
-				{ Kepher::Document::_lc_utf($file_ending) };
+		$language_id = $Kephra::temp{'file'}{'end2langmap'}
+				{ Kephra::Document::_lc_utf($file_ending) };
 	} else                                     { return "none" }
 	if ( !$language_id  or $language_id eq '') { return "none" }
 	elsif ( $language_id eq 'text' )           { return "none" }
 	return $language_id;
 }
 
+sub reload { change_to( get() ) }
+
 sub change_to {
-	my $ep     = Kepher::App::STC::_get();
-	my $style = shift;
+	my $ep      = Kephra::App::EditPanel::_get();
+	my $hex2dec = \&Kephra::Config::_hex2dec_color_array;
+	my $style   = shift;
 	$style = _get_by_fileending() if $style eq 'auto';
 	$style = 'none' unless $style;
 
@@ -42,7 +45,7 @@ sub change_to {
 	# clear style infos
 	$ep->StyleClearAll;
 	$ep->StyleResetDefault;
-	Kepher::App::STC::load_font();
+	Kephra::App::EditPanel::load_font();
 	$ep->SetKeyWords( 0, '' );
 
 	# load syntax style
@@ -53,65 +56,25 @@ sub change_to {
 	}
 
 	# restore bracelight, bracebadlight indentguide colors
-	my $bracelight = \%{ $Kepher::config{'editpanel'}{'indicator'}{'bracelight'} };
+	my $bracelight = \%{ $Kephra::config{'editpanel'}{'indicator'}{'bracelight'} };
 	if ( $bracelight->{'visible'} ) {
 		$ep->StyleSetBold( wxSTC_STYLE_BRACELIGHT, 1 );
 		$ep->StyleSetBold( wxSTC_STYLE_BRACEBAD,   1 );
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACELIGHT, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'good_color'}
-		)} ));
+			@{&$hex2dec( $bracelight->{'good_color'} )} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_BRACEBAD, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array( $bracelight->{'bad_color'}
-		)} ));
+			@{&$hex2dec( $bracelight->{'bad_color'} )} ));
 		$ep->StyleSetForeground( wxSTC_STYLE_INDENTGUIDE, Wx::Colour->new(
-			@{ Kepher::Config::_hex2dec_color_array(
-						$Kepher::config{editpanel}{indicator}{indent_guide}{color}
+			@{&$hex2dec( $Kephra::config{editpanel}{indicator}{indent_guide}{color}
 		)} ));
 	}
 
 	# cleanup
 	set($style);
 	$ep->Colourise( 0, $ep->GetTextLength );# refreh editpanel painting
-	Kepher::App::EditPanel::Margin::apply_color();
-	Kepher::App::StatusBar::style_info($style);
+	Kephra::App::EditPanel::Margin::apply_color();
+	Kephra::App::StatusBar::style_info($style);
 	return $style;
 }
-
-sub change_to_auto    {change_to(_get_by_fileending())}
-sub change_to_none    {change_to("none")}
-sub change_to_ada     {change_to("ada")}
-sub change_to_as      {change_to("as")}
-sub change_to_asm     {change_to("asm")}
-sub change_to_conf    {change_to("conf")}
-sub change_to_context {change_to("context")}
-sub change_to_cpp     {change_to("cpp")}
-sub change_to_cs      {change_to("cs")}
-sub change_to_css     {change_to("css")}
-sub change_to_eiffel  {change_to("eiffel")}
-sub change_to_forth   {change_to("forth")}
-sub change_to_fortran {change_to("fortran")}
-sub change_to_html    {change_to("html")}
-sub change_to_idl     {change_to("idl")}
-sub change_to_java    {change_to("java")}
-sub change_to_js      {change_to("js")}
-sub change_to_latex   {change_to("latex")}
-sub change_to_lisp    {change_to("lisp")}
-sub change_to_lua     {change_to("lua")}
-sub change_to_nsis    {change_to("nsis")}
-sub change_to_pascal  {change_to("pascal")}
-sub change_to_perl    {change_to("perl")}
-sub change_to_php     {change_to("php")}
-sub change_to_ps      {change_to("ps")}
-sub change_to_python  {change_to("python")}
-sub change_to_ruby    {change_to("ruby")}
-sub change_to_scheme  {change_to("scheme")}
-sub change_to_sh      {change_to("sh")}
-sub change_to_sql     {change_to("sql")}
-sub change_to_tcl     {change_to("tcl")}
-sub change_to_tex     {change_to("tex")}
-sub change_to_vb      {change_to("vb")}
-sub change_to_vbs     {change_to("vbs")}
-sub change_to_xml     {change_to("xml")}
-sub change_to_yaml    {change_to("yaml")}
 
 1;

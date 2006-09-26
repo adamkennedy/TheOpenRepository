@@ -8,12 +8,19 @@ TODO:
  + line break
  + file history menu
  + document history menu
+ + add search range to searchbar contexmenu
  ~ caching interface data
  ~ centralized interface data loading
 
 
+0.3.3.11
+
+
 0.3.3.10
+ ~ merged with adams code version
  ~ cleaned eventlist freeze implementation
+ ! crash while find or replace in all open docs with dialog
+ ! search dialog lost icon when config in nonstandart path
 
 0.3.3.9
  + subconfigs from nested nodes
@@ -473,16 +480,16 @@ TODO:
 0.2.04:
  ? major stable and bugfix release
  + view option: stay on top
- / internal changes and cleanups
+ ] internal changes and cleanups
  ! bugfixes in menu and logic
 
 0.2.03:
  ~ converter take now the whole text when nothing is selected
- /  internal cleanup
+ ]  internal cleanup
 
 0.2.02:
  + delete trailing spaces
- / cleaning internals
+ ] cleaning internals
 
 0.2.01:
  + 2 new options for opening files, replace new empty docs
@@ -501,12 +508,12 @@ TODO:
 
 0.1.98:
  + save dialog on close and exit now contain cancel
- / internal improvements
+ ] internal improvements
  ! bugfixes in Config
 
 0.1.97:
  + jumpes to the file if you open an already opened file
- / internal improvements
+ ] internal improvements
  ! bugfixes in main, config, file, document, STC
  ! bugfix in General::Config
 
@@ -515,7 +522,7 @@ TODO:
  + new option: start with an empty file
  + new option: open each file once
  + new option: open text files only
- / bugfixes
+ ! bugfixes
 
 0.1.95:
  + autoreload for config files

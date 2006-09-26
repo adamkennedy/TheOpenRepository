@@ -1,4 +1,4 @@
-package Kepher::Dialog::Config;
+package Kephra::Dialog::Config;
 $VERSION = '0.15';
 
 use strict;
@@ -16,27 +16,27 @@ use Wx::Event
 	qw(EVT_KEY_DOWN EVT_TEXT EVT_BUTTON EVT_CHECKBOX EVT_RADIOBUTTON EVT_CLOSE);
 
 sub main {
-	my $frame = $Kepher::internal{'mainframe'};
-	if ( !$Kepher::internal{'config'}{'dialog_active'}
-		|| $Kepher::internal{'config'}{'dialog_active'} == 0 ) {
+	my $frame = $Kephra::temp{'mainframe'};
+	if ( !$Kephra::temp{'config'}{'dialog_active'}
+		|| $Kephra::temp{'config'}{'dialog_active'} == 0 ) {
 
 		# init search and replace dialog
-		my $ico_dir = $Kepher::internal{path}{config} . 'icon/set/jenne/';
-		$Kepher::internal{'config'}{'dialog_active'} = 1;
+		my $ico_dir = $Kephra::temp{path}{config} . 'icon/set/jenne/';
+		$Kephra::temp{'config'}{'dialog_active'} = 1;
 
 		# making window & main design
 		my $config_win = Wx::Frame->new(
 			$frame, -1,
-			' ' . $Kepher::localisation{'dialog'}{'settings'}{'title'},
-			[            $Kepher::config{'dialog'}{'config'}{'position_x'},
-				$Kepher::config{'dialog'}{'config'}{'position_y'}
+			' ' . $Kephra::localisation{'dialog'}{'settings'}{'title'},
+			[            $Kephra::config{'dialog'}{'config'}{'position_x'},
+				$Kephra::config{'dialog'}{'config'}{'position_y'}
 			],
 			[ 440, 460 ],
 			wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 				| wxMINIMIZE_BOX | wxCLOSE_BOX,
 		);
-		&Kepher::App::Window::load_icon( $config_win,
-			$Kepher::config{'main'}{'icon'} );
+		&Kephra::App::Window::load_icon( $config_win,
+			$Kephra::config{'main'}{'icon'} );
 
 		my $config_main
 			= Wx::Panel->new( $config_win, -1, [ 0, 0 ], [ 480, 460 ],, );
@@ -89,21 +89,21 @@ sub main {
 		);
 		my $program_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'general'},
+			$Kephra::localisation{'dialog'}{'settings'}{'panel'}{'general'},
 			[ 0,  56 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
 		);
 		my $edit_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'edit'},
+			$Kephra::localisation{'dialog'}{'settings'}{'panel'}{'edit'},
 			[ 0,  129 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
 		);
 		my $file_label = Wx::StaticText->new(
 			$config_menu, -1,
-			$Kepher::localisation{'dialog'}{'settings'}{'panel'}{'files'},
+			$Kephra::localisation{'dialog'}{'settings'}{'panel'}{'files'},
 			[ 0,  201 ],
 			[ 70, 14 ],
 			wxALIGN_CENTRE,
@@ -112,28 +112,28 @@ sub main {
 		#
 		$config_win->{'apply_button'} = Wx::Button->new(
 			$config_main, -1,
-			$Kepher::localisation{'dialog'}{'general'}{'apply'},
+			$Kephra::localisation{'dialog'}{'general'}{'apply'},
 			[ 83, 392 ],
 			[ 80, -1 ],
 			,,
 		);
 		$config_win->{'save_button'} = Wx::Button->new(
 			$config_main, -1,
-			$Kepher::localisation{'dialog'}{'general'}{'save'},
+			$Kephra::localisation{'dialog'}{'general'}{'save'},
 			[ 172, 392 ],
 			[ 76,  -1 ],
 			,,
 		);
 		$config_win->{'restore_button'} = Wx::Button->new(
 			$config_main, -1,
-			$Kepher::localisation{'dialog'}{'general'}{'restore'},
+			$Kephra::localisation{'dialog'}{'general'}{'restore'},
 			[ 257, 392 ],
 			[ 80,  -1 ],
 			,,
 		);
 		$config_win->{'cancel_button'} = Wx::Button->new(
 			$config_main, -1,
-			$Kepher::localisation{'dialog'}{'general'}{'cancel'},
+			$Kephra::localisation{'dialog'}{'general'}{'cancel'},
 			[ 346, 392 ],
 			[ 76,  -1 ],
 			,,
@@ -171,13 +171,13 @@ sub main {
 
 		sub quit_config_dialog {
 			my ( $win, $event ) = @_;
-			if ( $Kepher::config{'dialog'}{'config'}{'save_position'} == 1 ) {
-				(               $Kepher::config{'dialog'}{'config'}{'position_x'},
-					$Kepher::config{'dialog'}{'config'}{'position_y'}
+			if ( $Kephra::config{'dialog'}{'config'}{'save_position'} == 1 ) {
+				(               $Kephra::config{'dialog'}{'config'}{'position_x'},
+					$Kephra::config{'dialog'}{'config'}{'position_y'}
 					)
 					= $win->GetPositionXY();
 			}
-			$Kepher::internal{'config'}{'dialog_active'} = 0;
+			$Kephra::temp{'config'}{'dialog_active'} = 0;
 			$win->Destroy();
 		}
 

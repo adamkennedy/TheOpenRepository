@@ -1,4 +1,4 @@
-package Kepher::App::Window;    # Main application window
+package Kephra::App::Window;    # Main application window
 $VERSION = '0.05';
 
 use strict;
@@ -10,9 +10,9 @@ use Wx qw(
 );
 use constant APPROOT => 'window';
 
-sub _get {$Kepher::app{(APPROOT)} }
-sub _set {$Kepher::app{(APPROOT)} = shift}
-sub _get_config {$Kepher::config{'app'}{'window'}}
+sub _get {$Kephra::app{(APPROOT)} }
+sub _set {$Kephra::app{(APPROOT)} = shift}
+sub _get_config {$Kephra::config{'app'}{'window'}}
 
 sub create {
 	#shift->SUPER::new
@@ -25,7 +25,7 @@ sub create {
 sub apply_settings{
 	my $win = _get();
 	$win->DragAcceptFiles(1);
-	my $icon = $Kepher::internal{path}{config}._get_config()->{'icon'};
+	my $icon = $Kephra::temp{path}{config}._get_config()->{'icon'};
 	load_icon( $win, $icon );
 	restore_positions();
 	eval_on_top_flag();
@@ -35,22 +35,20 @@ sub load_icon {
 	my $frame     = shift;
 	my $icon_file = shift;
 	if ( -e $icon_file ) {
-		my $icon = Wx::Icon->new;
-		$icon->LoadFile( $icon_file, wxBITMAP_TYPE_ICO );
-		$frame->SetIcon($icon);
+		$frame->SetIcon( Wx::Icon->new( $icon_file, wxBITMAP_TYPE_ICO ) );
 	}
 }
 
 
 sub set_title {
 	my ( $text, $title ) = shift;
-	my $nv_text = "- $Kepher::NAME $Kepher::VERSION";
+	my $nv_text = "- $Kephra::NAME $Kephra::VERSION";
 	if ($text) { $title = " $text $nv_text" } 
-	else { $title = " < $Kepher::localisation{app}{tabbar}{untitled} > $nv_text" }
+	else { $title = " < $Kephra::localisation{app}{tabbar}{untitled} > $nv_text" }
 	_get()->SetTitle($title);
 
 }
-sub refresh_title {set_title( $Kepher::document{'current'}{'path'} )}
+sub refresh_title { set_title( Kephra::Document::_get_current_file_path() ) }
 
 
 sub get_on_top_mode { _get_config()->{'stay_on_top'} }
@@ -64,12 +62,12 @@ sub eval_on_top_flag {
 	if ( get_on_top_mode() ) { $style |= wxSTAY_ON_TOP }
 	else                     { $style &= ~wxSTAY_ON_TOP }
 	$win->SetWindowStyle($style);
-	Kepher::App::EventList::trigger('app.window.ontop');
+	Kephra::App::EventList::trigger('app.window.ontop');
 }
 
 
 sub save_positions{
-	my $app_win = Kepher::App::Window::_get();
+	my $app_win = Kephra::App::Window::_get();
 	my $config  = _get_config();
 	if ($config->{'save_position'}){
 		($config->{'position_x'},$config->{'position_y'})=$app_win->GetPositionXY;

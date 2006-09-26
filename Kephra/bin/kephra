@@ -69,16 +69,16 @@ print "src loaded in: ",
 	Benchmark::timestr( Benchmark::timediff( Benchmark->new, $t0 ) ), "\n";
 
 	# set directory locations
-	$Kephra::internal{path}{config}            = $pathes{config};
-	$Kephra::internal{path}{help}              = $pathes{help};
-	$Kephra::internal{path}{user}              = $ENV{HOME};
+	$Kephra::temp{path}{config}            = $pathes{config};
+	$Kephra::temp{path}{help}              = $pathes{help};
+	$Kephra::temp{path}{user}              = $ENV{HOME};
 	# set locations of boot files
-	$Kephra::internal{file}{config}{auto}      = 'global/autosaved.conf';
-	$Kephra::internal{file}{config}{default}   = 'global/default/default.conf';
-	$Kephra::internal{file}{img}{splashscreen} = 'icon/splash/wx_perl_splash.jpg'; # has to be jpeg
+	$Kephra::temp{file}{config}{auto}      = 'global/autosaved.conf';
+	$Kephra::temp{file}{config}{default}   = 'global/default/default.conf';
+	$Kephra::temp{file}{img}{splashscreen} = 'icon/splash/wx_perl_splash.jpg'; # has to be jpeg
 
 # make config files acessable
-push @INC, $Kephra::internal{path}{config};
+push @INC, $Kephra::temp{path}{config};
 
 # first splashscreen without caution to app but fast
 #use Wx::Perl::SplashFast ($pathes{config}.'icon/splash/wx_perl_splash.jpg', 150) ;

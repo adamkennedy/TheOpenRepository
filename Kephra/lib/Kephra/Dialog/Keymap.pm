@@ -1,4 +1,4 @@
-package Kepher::Dialog::Keymap;
+package Kephra::Dialog::Keymap;
 
 use strict;
 
@@ -8,23 +8,23 @@ sub keymap {
 	elements::proton::show::keyboard_map();
 	return 0;
 
-	if ( !$Kepher::internal{'keymap'}{'dialog_active'}
-		|| $Kepher::internal{'keymap'}{'dialog_active'} == 0 ) {
+	if ( !$Kephra::temp{'keymap'}{'dialog_active'}
+		|| $Kephra::temp{'keymap'}{'dialog_active'} == 0 ) {
 
 		# init win mit grunddesign
-		$Kepher::internal{'keymap'}{'dialog_active'} = 1;
+		$Kephra::temp{'keymap'}{'dialog_active'} = 1;
 		my $keymap_win = Wx::Frame->new(
 			$frame,
 			-1,
-			' ' . $Kepher::localisation{'dialogs'}{'keyboard_map'}{'title'},
+			' ' . $Kephra::localisation{'dialogs'}{'keyboard_map'}{'title'},
 			[ 10,  10 ],
 			[ 420, 460 ],
 			wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 				| wxMINIMIZE_BOX | wxCLOSE_BOX | wxRESIZE_BORDER,
 		);
 		$frame->{'keymap_win'} = $keymap_win;
-		Kepher::App::Window::load_icon( $keymap_win,
-			$Kepher::config{'main'}{'icon'} );
+		Kephra::App::Window::load_icon( $keymap_win,
+			$Kephra::config{'main'}{'icon'} );
 		$keymap_win->SetBackgroundColour(wxWHITE);
 
 	  #my $keymap_ground = Wx::Panel->new($keymap_win, -1, [0,0], [-1,-1], ,);
@@ -57,7 +57,7 @@ sub keymap {
 		sub quit_keymap_dialog {
 			my ( $win, $event ) = @_;
 
-			$Kepher::internal{'keymap'}{'dialog_active'} = 0;
+			$Kephra::temp{'keymap'}{'dialog_active'} = 0;
 			$win->Destroy();
 		}
 

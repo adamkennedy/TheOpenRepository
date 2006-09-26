@@ -1,4 +1,4 @@
-package Kepher::App::TabBar;    # notebook file selector
+package Kephra::App::TabBar;    # notebook file selector
 $VERSION = '0.10';
 
 use strict;
@@ -14,16 +14,16 @@ use Wx::Event qw(
 	EVT_NOTEBOOK_PAGE_CHANGED
 );
 
-sub _get      { $Kepher::app{window}{(APPROOT)} }
-sub _get_tabs { $Kepher::app{window}{(APPROOT)}{tabs} }
-sub _set_tabs { $Kepher::app{window}{(APPROOT)}{tabs} = shift }
-sub _get_sizer{ $Kepher::app{window}{(APPROOT)}{sizer} }
-sub _set_sizer{ $Kepher::app{window}{(APPROOT)}{sizer} = shift }
-sub _get_config{$Kepher::config{app}{tabbar} }
-#sub new{ return Kepher::App::Window::_get()->{'notebook'} = Wx::Notebook->new($frame, -1, [0,0], [1,1],)}
+sub _get      { $Kephra::app{window}{(APPROOT)} }
+sub _get_tabs { $Kephra::app{window}{(APPROOT)}{tabs} }
+sub _set_tabs { $Kephra::app{window}{(APPROOT)}{tabs} = shift }
+sub _get_sizer{ $Kephra::app{window}{(APPROOT)}{sizer} }
+sub _set_sizer{ $Kephra::app{window}{(APPROOT)}{sizer} = shift }
+sub _get_config{$Kephra::config{app}{tabbar} }
+#sub new{ return Kephra::App::Window::_get()->{'notebook'} = Wx::Notebook->new($frame, -1, [0,0], [1,1],)}
 
 sub create {
-	my $win = Kepher::App::Window::_get();
+	my $win = Kephra::App::Window::_get();
 
 	# create notebook if there is none
 	unless (ref _get_tabs() eq 'Wx::Notebook'){
@@ -36,7 +36,7 @@ sub create {
 	$tabbar_h_sizer->Add( $tabbar->{tabs} , 1, wxLEFT | wxGROW , 0 );
 
 	# create icons above panels
-	my $cmd_new_data = Kepher::App::CommandList::get_cmd_properties('file-new');
+	my $cmd_new_data = Kephra::App::CommandList::get_cmd_properties('file-new');
 	if (ref $cmd_new_data->{'icon'} eq 'Wx::Bitmap'){
 		my $new_btn = $tabbar->{button}{new} = Wx::BitmapButton->new
 			($win, -1, $cmd_new_data->{'icon'}, [-1,-1], [-1,-1], wxNO_BORDER );
@@ -45,12 +45,12 @@ sub create {
 		$tabbar_h_sizer->Prepend($new_btn, 0, wxLEFT|wxALIGN_CENTER_VERTICAL, 2);
 		EVT_BUTTON($win, $new_btn, $cmd_new_data->{'call'} );
 		EVT_ENTER_WINDOW( $new_btn, sub {
-			Kepher::App::StatusBar::info_msg( $cmd_new_data->{'help'} )
+			Kephra::App::StatusBar::info_msg( $cmd_new_data->{'help'} )
 		});
-		EVT_LEAVE_WINDOW( $new_btn, \&Kepher::App::StatusBar::refresh_info_msg );
+		EVT_LEAVE_WINDOW( $new_btn, \&Kephra::App::StatusBar::refresh_info_msg );
 	}
 
-	my $cmd_close_data = Kepher::App::CommandList::get_cmd_properties('file-close');
+	my $cmd_close_data = Kephra::App::CommandList::get_cmd_properties('file-close');
 	if (ref $cmd_close_data->{'icon'} eq 'Wx::Bitmap'){
 		my $close_btn = $tabbar->{button}{close} = Wx::BitmapButton->new
 			($win, -1, $cmd_close_data->{'icon'}, [-1,-1], [-1,-1], wxNO_BORDER );
@@ -59,9 +59,9 @@ sub create {
 		$tabbar_h_sizer->Add($close_btn, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 2);
 		EVT_BUTTON($win, $close_btn, $cmd_close_data->{'call'} );
 		EVT_ENTER_WINDOW($close_btn, sub {
-			Kepher::App::StatusBar::info_msg( $cmd_close_data->{'help'} )
+			Kephra::App::StatusBar::info_msg( $cmd_close_data->{'help'} )
 		});
-		EVT_LEAVE_WINDOW( $close_btn, \&Kepher::App::StatusBar::refresh_info_msg );
+		EVT_LEAVE_WINDOW( $close_btn, \&Kephra::App::StatusBar::refresh_info_msg );
 	}
 
 	#
@@ -76,7 +76,7 @@ sub create {
 
 	EVT_LEFT_UP(   $tabbar->{tabs}, \&left_off_tabs);
 	EVT_LEFT_DOWN( $tabbar->{tabs}, \&left_on_tabs);
-	EVT_MIDDLE_UP( $tabbar->{tabs}, Kepher::App::CommandList::get_cmd_property
+	EVT_MIDDLE_UP( $tabbar->{tabs}, Kephra::App::CommandList::get_cmd_property
 			(_get_config()->{'middle_click'}, 'call') );
 	EVT_NOTEBOOK_PAGE_CHANGED($win,$tabbar->{tabs}, \&change_tab);
 
@@ -102,11 +102,11 @@ sub refresh_label {
 	my $config = _get_config();
 	my $doc_nr = shift;
 	$doc_nr ||= 0;
-	return unless defined $Kepher::internal{'document'}{'open'}[$doc_nr];
+	return unless defined $Kephra::temp{'document'}{'open'}[$doc_nr];
 
-	my $doc_internals = \%{ $Kepher::internal{'document'}{'open'}[$doc_nr] };
+	my $doc_internals = \%{ $Kephra::temp{'document'}{'open'}[$doc_nr] };
 	my $label         = $doc_internals->{'name'};
-	$label = "<$Kepher::localisation{app}{tabbar}{untitled}>" unless $label;
+	$label = "<$Kephra::localisation{app}{tabbar}{untitled}>" unless $label;
 
 	my $max_tab_width = $config->{'tab_width'};
 	if ( ( $max_tab_width > 7 ) and ( length($label) > $max_tab_width ) ) {
@@ -121,12 +121,12 @@ sub refresh_label {
 	_get_tabs()->SetPageText( $doc_nr, $label );
 }
 
-sub refresh_current_label { refresh_label( Kepher::Document::_get_current_nr() ) }
+sub refresh_current_label { refresh_label( Kephra::Document::_get_current_nr() ) }
 
 sub refresh_all_label {
-	if ($Kepher::internal{'document'}{'loaded'}){
-		refresh_label($_) for 0 .. Kepher::Document::_get_last_nr();
-		set_current_page( Kepher::Document::_get_current_nr() );
+	if ($Kephra::temp{'document'}{'loaded'}){
+		refresh_label($_) for 0 .. Kephra::Document::_get_last_nr();
+		set_current_page( Kephra::Document::_get_current_nr() );
 	}
 }
 
@@ -137,7 +137,7 @@ sub switch_visibility {
 	show();
 }
 sub show {
-	my $main_sizer = Kepher::App::Window::_get()->GetSizer;
+	my $main_sizer = Kephra::App::Window::_get()->GetSizer;
 
 	$main_sizer->Show( _get()->{v_sizer}, get_visibility() );
 	refresh_layout();
@@ -155,18 +155,18 @@ sub refresh_layout{
 
 sub left_on_tabs {
 	my ($tabs, $event) = @_;
-	$Kepher::internal{'document'}{'b4tabchange'} = $tabs->GetSelection;
+	$Kephra::temp{'document'}{'b4tabchange'} = $tabs->GetSelection;
 	$event->Skip;
 }
 sub left_off_tabs {
 	my ($tabs, $event) = @_;
-	Kepher::Document::Change::switch_back()
-		if $Kepher::internal{'document'}{'b4tabchange'} == $tabs->GetSelection;
+	Kephra::Document::Change::switch_back()
+		if $Kephra::temp{'document'}{'b4tabchange'} == $tabs->GetSelection;
 	$event->Skip;
 }
 sub change_tab {
 	my ( $frame, $event ) = @_;
-	Kepher::Document::Change::to_number($event->GetSelection);
+	Kephra::Document::Change::to_number($event->GetSelection);
 	$event->Skip;
 }
 

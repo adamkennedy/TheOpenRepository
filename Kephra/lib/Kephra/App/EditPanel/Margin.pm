@@ -1,4 +1,4 @@
-package Kepher::App::EditPanel::Margin;
+package Kephra::App::EditPanel::Margin;
 $VERSION = '0.03';
 
 # 
@@ -8,10 +8,10 @@ use Wx qw(wxSTC_STYLE_LINENUMBER wxSTC_MARGIN_SYMBOL wxSTC_MARGIN_NUMBER);
 #wxSTC_MARK_MINUS wxSTC_MARK_PLUS wxSTC_MARK_CIRCLE wxSTC_MARK_BOXPLUS
 #wxSTC_MARKNUM_FOLDEREND wxSTC_MARK_SHORTARROW
 
-sub _get_ep           {  Kepher::App::EditPanel::_get() }
-sub _get_config       { $Kepher::config{'editpanel'}{'margin'} }
-sub _get_line_config  { $Kepher::config{'editpanel'}{'margin'}{'linenumber'} }
-sub _get_marker_config{ $Kepher::config{'editpanel'}{'margin'}{'marker'} }
+sub _get_ep           {  Kephra::App::EditPanel::_get() }
+sub _get_config       { $Kephra::config{'editpanel'}{'margin'} }
+sub _get_line_config  { $Kephra::config{'editpanel'}{'margin'}{'linenumber'} }
+sub _get_marker_config{ $Kephra::config{'editpanel'}{'margin'}{'marker'} }
 
 
 sub apply_settings{
@@ -26,7 +26,7 @@ sub apply_settings{
 	$ep->SetMarginType( 2, wxSTC_MARGIN_SYMBOL );
 	$ep->SetMarginSensitive( 2, 1 );
 
-	$Kepher::internal{'margin_linemax'} = 0;
+	$Kephra::temp{'margin_linemax'} = 0;
 	show_marker();
 	apply_line_number_width();
 	apply_color();
@@ -52,14 +52,14 @@ sub set_line_number_width{
 sub apply_line_number_width {
 	my $config = _get_line_config();
 	my $width = $config->{'visible'}
-		? $config->{'width'} * $Kepher::config{'editpanel'}{'font'}{'size'}
+		? $config->{'width'} * $Kephra::config{'editpanel'}{'font'}{'size'}
 		: 0;
 	_get_ep->SetMarginWidth( 1, $width);
 	if ($config->{'autosize'} and $config->{'visible'}) {
-		Kepher::App::EventList::add_call ('document.text.change', 
+		Kephra::App::EventList::add_call ('document.text.change', 
 			'autosize_line_number', \&line_number_autosize_update);
 	} else {
-		Kepher::App::EventList::del_call
+		Kephra::App::EventList::del_call
 			('document.text.change', 'autosize_line_number');
 	}
 }
@@ -70,18 +70,18 @@ sub reset_line_number_width{
 
 	if ( $config->{'start_with_min'} ) {
 		$width = $config->{'min_width'};
-		if ((ref $Kepher::document{'open'} eq 'ARRAY') and $config->{'autosize'}) {
+		if ((ref $Kephra::document{'open'} eq 'ARRAY') and $config->{'autosize'}) {
 			my $ep = &_get_ep;
-			my $doc_nr = Kepher::Document::_get_current_nr();
-			for ( 0 .. $#{ $Kepher::document{'open'} } ) {
-				Kepher::Document::Internal::change_pointer($_);
+			my $doc_nr = Kephra::Document::_get_current_nr();
+			for ( 0 .. $#{ $Kephra::document{'open'} } ) {
+				Kephra::Document::Internal::change_pointer($_);
 				$doc_line_with = length $ep->GetLineCount;
 				$width = $doc_line_with if $doc_line_with > $width;
 			}
-			Kepher::Document::Internal::change_pointer($doc_nr);
+			Kephra::Document::Internal::change_pointer($doc_nr);
 		}
 		$config->{'width'} = $width;
-		$Kepher::internal{'margin_linemax'} = 10 ** $width - 1;
+		$Kephra::temp{'margin_linemax'} = 10 ** $width - 1;
 	}
 	apply_line_number_width();
 }
@@ -92,21 +92,21 @@ sub autosize_line_number {
 	return unless $config->{'autosize'};
 	my $need = length _get_ep->GetLineCount;
 	set_line_number_width($need) if $need > $config->{'width'};
-	$Kepher::internal{'margin_linemax'} = 10 ** $need - 1;
+	$Kephra::temp{'margin_linemax'} = 10 ** $need - 1;
 }
 sub line_number_autosize_update {
 	autosize_line_number()
-		if _get_ep->GetLineCount > $Kepher::internal{'margin_linemax'};
+		if _get_ep->GetLineCount > $Kephra::temp{'margin_linemax'};
 }
 
 sub apply_color {
 	my $ep = &_get_ep;
 	my $config = _get_line_config();
 	$ep->StyleSetForeground ( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{Kepher::Config::_hex2dec_color_array
+			@{Kephra::Config::_hex2dec_color_array
 				( $config->{'fore_color'} )}[0,1,2] ) );
 	$ep->StyleSetBackground( wxSTC_STYLE_LINENUMBER, Wx::Colour->new(
-			@{Kepher::Config::_hex2dec_color_array
+			@{Kephra::Config::_hex2dec_color_array
 				( $config->{'back_color'} )}[0,1,2] ) );
 }
 

@@ -1,4 +1,4 @@
-package Kepher::Edit::Format;
+package Kephra::Edit::Format;
 $VERSION = '0.22';
 
 use strict;
@@ -10,7 +10,7 @@ use Wx qw(
 # indention
 sub _indent {
 	my $width = shift;
-	my $ep    = Kepher::App::STC::_get();
+	my $ep    = Kephra::App::STC::_get();
 	$width ||= 0;
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) + $width ) 
@@ -21,7 +21,7 @@ sub _indent {
 
 sub _dedent {
 	my $width = shift;
-	my $ep   = Kepher::App::STC::_get();
+	my $ep   = Kephra::App::STC::_get();
 	$ep->BeginUndoAction;
 	$ep->SetLineIndentation( $_, $ep->GetLineIndentation($_) - $width )
 		for $ep->LineFromPosition($ep->GetSelectionStart)
@@ -31,12 +31,12 @@ sub _dedent {
 
 sub indent_space { _indent(1) }
 sub dedent_space { _dedent(1) }
-sub indent_tab   { _indent($Kepher::document{'current'}{'tab_size'}) }
-sub dedent_tab   { _dedent($Kepher::document{'current'}{'tab_size'}) }
+sub indent_tab   { _indent($Kephra::document{'current'}{'tab_size'}) }
+sub dedent_tab   { _dedent($Kephra::document{'current'}{'tab_size'}) }
 
 #
 sub align_indent {
-	my $ep = Kepher::App::STC::_get();
+	my $ep = Kephra::App::STC::_get();
 	my $firstline = $ep->LineFromPosition( $ep->GetSelectionStart );
 	my $align = $ep->GetLineIndentation($firstline);
 	$ep->BeginUndoAction();
@@ -47,19 +47,19 @@ sub align_indent {
 
 # deleting trailing spaces on line ends
 sub del_trailing_spaces {
-	&Kepher::Edit::_save_positions;
-	my $ep = Kepher::App::STC::_get();
-	my $text = Kepher::Edit::_select_all_if_non();
+	&Kephra::Edit::_save_positions;
+	my $ep = Kephra::App::STC::_get();
+	my $text = Kephra::Edit::_select_all_if_non();
 	$text =~ s/[ \t]+(\r|\n|\Z)/$1/g;
 	$ep->BeginUndoAction;
 	$ep->ReplaceSelection($text);
 	$ep->EndUndoAction;
-	Kepher::Edit::_restore_positions();
+	Kephra::Edit::_restore_positions();
 }
 
 #
 sub join_lines {
- my $ep = Kepher::App::STC::_get();
+ my $ep = Kephra::App::STC::_get();
  my $text = $ep->GetSelectedText();
 	$text =~ tr/\r\n//d; # delete end of line marker
 	$ep->BeginUndoAction;
@@ -71,13 +71,13 @@ sub blockformat{
 }
 
 sub blockformat_LLI{
-	blockformat( $Kepher::config{editpanel}{indicator}{right_margin}{position} );
+	blockformat( $Kephra::config{editpanel}{indicator}{right_margin}{position} );
 }
 
 sub blockformat_custom{
-	my $width = Kepher::Dialog::get_text( Kepher::App::Window::_get(),
-			$Kepher::localisation{dialog}{edit}{wrap_width_input},
-			$Kepher::localisation{dialog}{edit}{wrap_custom_headline}
+	my $width = Kephra::Dialog::get_text( Kephra::App::Window::_get(),
+			$Kephra::localisation{dialog}{edit}{wrap_width_input},
+			$Kephra::localisation{dialog}{edit}{wrap_custom_headline}
 	);
 	blockformat( $width ) if defined $width and $width;}
 
@@ -85,9 +85,9 @@ sub blockformat_custom{
 # breaking too long lines into smaller one
 sub line_break {
 	my $width = shift;
-	my $ep    = &Kepher::App::STC::_get;
-	my $autoindent = $Kepher::config{'editpanel'}{'auto'}{'indention'};
-	my $eol_width  = $Kepher::internal{'current_doc'}{'EOL_length'};
+	my $ep    = &Kephra::App::STC::_get;
+	my $autoindent = $Kephra::config{'editpanel'}{'auto'}{'indention'};
+	my $eol_width  = $Kephra::temp{'current_doc'}{'EOL_length'};
 	my ($begin_pos, $end_pos) = ( $ep->GetSelectionStart, $ep->GetSelectionEnd );
 	($begin_pos, $end_pos) = ($end_pos, $begin_pos) if $begin_pos > $end_pos;
 	my $line = $ep->LineFromPosition( $begin_pos );
@@ -108,7 +108,7 @@ sub line_break {
 		$col = $ep->GetColumn($ep->GetCurrentPos());
 		if ($col > $line_end) {
 			#$pos += $width - $col
-			Kepher::Dialog::msg_box( undef,);
+			Kephra::Dialog::msg_box( undef,);
 		} else {
 			$ep->GotoLine(++$line);
 			#next; 
@@ -137,31 +137,31 @@ sub line_break {
 	$ep->GotoPos($end_pos);
 	$ep->EndUndoAction();
 
-	#Kepher::Dialog::msg_box( undef, $ep->GetColumn($ep->GetCurrentPos()).$width,     '' );
+	#Kephra::Dialog::msg_box( undef, $ep->GetColumn($ep->GetCurrentPos()).$width,     '' );
 	# GetLineEndPosition                                                  LineLength
 	# $ep->CmdKeyExecute(wxSTC_CMD_WORDLEFT);#wxSTC_CMD_WORDRIGHT
 	
 #$ep->CmdKeyExecute(); #GetCharAt(position)   
-#$Kepher::internal{'edit'}{'wordchars'}WordEndPosition(pos, onlyWordCharacters) WordStartPosition(pos, onlyWordCharacters)
+#$Kephra::temp{'edit'}{'wordchars'}WordEndPosition(pos, onlyWordCharacters) WordStartPosition(pos, onlyWordCharacters)
 }
 
 sub linebreak_custom {
-	my $l10n = $Kepher::localisation{dialog}{edit};
-	my $width = Kepher::Dialog::get_text( Kepher::App::Window::_get(),
+	my $l10n = $Kephra::localisation{dialog}{edit};
+	my $width = Kephra::Dialog::get_text( Kephra::App::Window::_get(),
 			$l10n->{wrap_width_input}, $l10n->{wrap_custom_headline} );
 	line_break( $width ) if defined $width and $width;
 }
 
 sub linebreak_LLI {
-	line_break( $Kepher::config{editpanel}{indicator}{right_margin}{position} );
+	line_break( $Kephra::config{editpanel}{indicator}{right_margin}{position} );
 }
 
 sub linebreak_window {
-	my $app     = Kepher::App::Window::_get();
-	my $ep = Kepher::App::STC::_get();
+	my $app     = Kephra::App::Window::_get();
+	my $ep = Kephra::App::STC::_get();
 	my ($width) = $app->GetSizeWH();
 	my $pos = $ep->GetColumn($ep->PositionFromPointClose(100, 67));
-	Kepher::Dialog::msg_box( $app, $pos, '' );
+	Kephra::Dialog::msg_box( $app, $pos, '' );
 	#line_break($width);
 }
 
