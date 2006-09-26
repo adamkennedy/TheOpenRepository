@@ -39,7 +39,7 @@ use Module::Math::Depends ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 my $find_dist = File::Find::Rule->relative->file->name('*.tar.gz');
