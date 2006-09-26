@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 10;
 use Params::Util '_HANDLE';
 use CPAN::Index;
 use CPAN::Index::Loader;
@@ -25,15 +25,15 @@ ok( -d $MIRROR, 'Mirror directory found' );
 #####################################################################
 # Create the loader
 
-my $loader = CPAN::Index::Loader->new( root => $MIRROR );
+my $loader = CPAN::Index::Loader->new( local_dir => $MIRROR );
 isa_ok( $loader, 'CPAN::Index::Loader' );
 
 # Test a file in the mirror
 sub test_file {
 	my $file = shift;
-	my $path = $loader->local_file('files/test.txt');
+	my $path = $loader->local_file($file);
 	ok( -f $path, "Found test file $file" );
-	my $handle = $loader->local_handle('files/text.txt');
+	my $handle = $loader->local_handle($file);
 	ok( _HANDLE($handle), '->local_handle($file) returns a _HANDLE ' );
 
 	# Pull the lines off it
@@ -46,7 +46,7 @@ sub test_file {
 	ok( $counter, "Got $counter lines from the $file handle" );
 	SKIP: {
 		if ( $handle->isa('IO::Zlib') ) {
-			skip("EOF known to fail for IO::Zlib (for now)");
+			skip("EOF known to fail for IO::Zlib (for now)", 1);
 		}
 		ok( $handle->eof, '->eof returns true at EOF' );
 	}

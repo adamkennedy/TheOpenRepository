@@ -23,7 +23,7 @@ L<CPAN::Index>, but may be loaded on-demand if needed.
 use strict;
 use Carp           ();
 use IO::File       ();
-use IO::ZLib       ();
+use IO::Zlib       ();
 use Params::Util   qw{ _INSTANCE _HANDLE };
 use Email::Address ();
 use CPAN::Cache    ();
@@ -273,9 +273,9 @@ sub _load_authors {
 		$created++;
 
 		# Debugging
-		if ( $Test::More::VERSION ) {
-			Test::More::diag("$created...");
-		}
+		#if ( $Test::More::VERSION ) {
+		#	Test::More::diag("$created...");
+		#}
 	}
 
 	$created;
@@ -348,9 +348,9 @@ sub _load_packages {
 		$created++;
 
 		# Debugging
-		if ( $Test::More::VERSION ) {
-			Test::More::diag("$created...");
-		}
+		#if ( $Test::More::VERSION ) {
+		#	Test::More::diag("$created...");
+		#}
 	}
 
 	$created;

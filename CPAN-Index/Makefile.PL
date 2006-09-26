@@ -5,7 +5,7 @@ all_from       'lib/CPAN/Index.pm';
 requires       'Carp'           => 0;
 requires       'IO::Handle'     => 0;
 requires       'IO::File'       => 0;
-requires       'IO::ZLib'       => 0;
+requires       'IO::Zlib'       => 0;
 requires       'version'        => '0.59';
 requires       'Params::Util'   => '0.20'; # _HANDLE(IO::Zlib)
 requires       'Email::Address' => '1.80';

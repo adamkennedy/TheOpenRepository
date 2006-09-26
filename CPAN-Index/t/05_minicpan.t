@@ -17,7 +17,7 @@ use CPAN::Index         ();
 use CPAN::Index::Loader ();
 
 # Locate the root path for the fake mirror
-my $MIRROR = 'C:\devel\minicpan';
+my $MIRROR = $ENV{MINICPAN};
 #unless ( $ENV{AUTOMATED_TESTING} ) {
 #	plan( skip_all => 'Too heavy for normal installation' );
 #}
@@ -40,7 +40,7 @@ my $TESTDB = catfile('share', 'cpan.db');
 my $MYDB   = catfile('t',     'cpan.db');
 my $MYDSN  = "dbi:SQLite:$MYDB";
       remove($MYDB) if -f $MYDB;
-END { remove($MYDB) if -f $MYDB; }
+END { remove($MYDB) if $MYDB and -f $MYDB; }
 ok( -f $TESTDB, 'Found empty database' );
 ok( ! -f $MYDB, 'Testing copy does not exist yet' );
 ok( copy( $TESTDB => $MYDB ), 'Create testing database' );

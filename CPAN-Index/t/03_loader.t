@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 23;
+use Test::More tests => 25;
 use File::Remove        'remove';
 use File::Copy          'copy';
 use IO::File            ();
