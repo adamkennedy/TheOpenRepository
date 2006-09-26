@@ -1,5 +1,10 @@
 Version history for Perl distribution Module-Inspector
 
+0.03 Mon 25 Sep 2006
+	- Updating the YAML::Tiny dependency to 0.11
+        - Return an empty Module::Math::Depends (not HASH)
+          when either dist_requires or dist_build_requires is null
+
 0.02 Sun 25 Sep 2006
         - Added support for MANIFEST files
 	- Documented the main methods

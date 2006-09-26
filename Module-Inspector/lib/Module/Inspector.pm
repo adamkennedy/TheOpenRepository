@@ -60,7 +60,7 @@ use YAML::Tiny             ();
 
 use vars qw{$VERSION %SPECIAL};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	%SPECIAL = (
 		'MANIFEST' => 'Module::Manifest',
 		'META.yml' => 'YAML::Tiny',
@@ -517,7 +517,7 @@ Returns a L<Module::Math::Depends> object, or dies on exception.
 sub dist_build_requires {
 	my $self     = shift;
 	my $meta     = $self->document('META.yml');
-	my $requires = $meta->[0]->{build_requires} or return {};
+	my $requires = $meta->[0]->{build_requires};
 	return $requires
 		? Module::Math::Depends->from_hash( $requires )
 		: Module::Math::Depends->new;

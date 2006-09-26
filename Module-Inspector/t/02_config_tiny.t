@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 27;
+use Test::More tests => 31;
 use Module::Inspector;
 
 my $tarball = catfile( 't', 'dists', 'Config-Tiny-2.09.tar.gz' );
@@ -63,6 +63,16 @@ SCOPE: {
 	is( "$dist_version"+0, 2.09,    '->dist_version ok' );
 
 	# Dependencies
+	isa_ok( $mod->dist_requires,       'Module::Math::Depends' );
+	isa_ok( $mod->dist_build_requires, 'Module::Math::Depends' );
+	isa_ok( $mod->dist_depends,        'Module::Math::Depends' );
+
+	# Strip build_requires to no deps and make sure it still
+	# returns objects
+	my $meta_yml = $mod->document('META.yml');
+	isa_ok( $meta_yml, 'YAML::Tiny' );
+	delete $meta_yml->[0]->{requires};
+	delete $meta_yml->[0]->{build_requires};
 	isa_ok( $mod->dist_requires,       'Module::Math::Depends' );
 	isa_ok( $mod->dist_build_requires, 'Module::Math::Depends' );
 	isa_ok( $mod->dist_depends,        'Module::Math::Depends' );
