@@ -1,8 +1,13 @@
 #!/usr/bin/perl -w
 
-# Formal testing for Config::Tiny
+# Main testing script for Config::Tiny
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use UNIVERSAL;
 use Test::More tests => 33;
 
