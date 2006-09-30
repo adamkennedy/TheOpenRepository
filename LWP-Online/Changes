@@ -1,0 +1,4 @@
+Release history for Perl module LWP::Online
+
+0.01 Sat 30 Sep 2006
+	- Created initial (fairly naive) implementation
