@@ -30,7 +30,7 @@ use File::Basename ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '1.00';
 }
 
 my $SEPERATOR = qr/__CODE__/;
