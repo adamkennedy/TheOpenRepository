@@ -34,14 +34,14 @@ database connectivity to the JSAN index.
 =cut
 
 use strict;
-use Carp                  ();
-use File::Spec            ();
-use File::Path            ();
-use File::HomeDir         ();
-use File::Basename        ();
-use HTML::Location        ();
-use LWP::Simple           ();
-use DBI                   ();
+use Carp           ();
+use File::Spec     ();
+use File::Path     ();
+use File::HomeDir  ();
+use File::Basename ();
+use URI::ToDisk    ();
+use LWP::Simple    ();
+use DBI            ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -140,8 +140,8 @@ sub init {
 	-w $path or Carp::croak("mirror_local: No write permissions to path '$path'");
 
 	# Create the location object
-	$self->{mirror} = HTML::Location->new( $path => $uri )
-		or Carp::croak("Unexpected error creating HTML::Location object");
+	$self->{mirror} = URI::ToDisk->new( $path => $uri )
+		or Carp::croak("Unexpected error creating URI::ToDisk object");
 
 	$SINGLETON = $self;
 	1;
@@ -156,7 +156,7 @@ sub _self {
 
 =pod
 
-The C<mirror_location> accessor returns the L<HTML::Location> of the
+The C<mirror_location> accessor returns the L<URI::ToDisk> of the
 L<URI> to local path map.
 
 =cut
@@ -204,13 +204,13 @@ sub verbose { shift->_self->{verbose} }
 =head2 file_location path/to/file.txt
 
 The C<file_location> method takes the path of a file within the
-repository, and returns a L<HTML::Location> object representing
+repository, and returns a L<URI::ToDisk> object representing
 it's location on both the server, and on the local filesystem.
 
 Paths should B<always> be provided in unix/web format, not the
 local filesystem's format.
 
-Returns a L<HTML::Location> or throws an exception if passed a
+Returns a L<URI::ToDisk> or throws an exception if passed a
 bad path.
 
 =cut
@@ -239,7 +239,7 @@ it at the appropriate local path.
 As all C<file_> operations, paths should B<always> be provided
 in unix/web format, not the local filesystem's format.
 
-Returns the L<HTML::Location> for the file if retrieved successfully,
+Returns the L<URI::ToDisk> for the file if retrieved successfully,
 false (C<''>) if the file did not exist in the repository, or C<undef>
 on error.
 
@@ -279,7 +279,7 @@ freshly download each time.
 As all C<file_> operations, paths should B<always> be provided
 in unix/web format, not the local filesystem's format.
 
-Returns the L<HTML::Location> for the file if mirrored successfully,
+Returns the L<URI::ToDisk> for the file if mirrored successfully,
 false (C<''>) if the file did not exist in the repository, or
 C<undef> on error.
 

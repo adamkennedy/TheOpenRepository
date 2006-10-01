@@ -1,5 +1,10 @@
 Revision history for Perl extension JSAN::Client
 
+0.14 Sun  1 Oct 2006
+	- Ported from HTML::Location to URI::ToDisk
+	- Some minor cleanups
+	- Updated to Module::Install 0.64
+
 0.13 Sat Jul  1 2006
 	- Casey turned on mirror.conf
 	- Turned off URI skipping
