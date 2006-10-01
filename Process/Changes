@@ -1,5 +1,8 @@
 Revision history for Perl extension Process
 
+0.18 Sun  1 Oct 2006
+	- Upgrading to Module::Install 0.64
+
 0.17 Sat 26 Feb 2006
 	- No functional changes.
 	- Resolved #17402: Documentation bug in Process::Delegatable
