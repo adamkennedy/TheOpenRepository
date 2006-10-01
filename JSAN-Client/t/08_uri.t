@@ -10,6 +10,8 @@ BEGIN {
 
 use JSAN::URI ();
 use Test::More tests => 4;
+use LWP::Online 'online';
+
 
 
 
@@ -20,9 +22,16 @@ use Test::More tests => 4;
 my $mirror = JSAN::URI->new( 'http://master.openjsan.org/' );
 isa_ok( $mirror, 'JSAN::URI' );
 
-my $config = $mirror->_config;
-my $master = $mirror->_master;
-isa_ok( $config, 'Config::Tiny' );
-isa_ok( $master, 'Config::Tiny' );
+SKIP: {
+	skip( "Skipping online tests", 3 ) unless online();
 
-ok( $mirror->valid, "Mirror $mirror is valid" );
+	my $config = $mirror->_config;
+	my $master = $mirror->_master;
+	isa_ok( $config, 'Config::Tiny' );
+	isa_ok( $master, 'Config::Tiny' );
+
+	ok( $mirror->valid, "Mirror $mirror is valid" );
+
+}
+
+exit(0);

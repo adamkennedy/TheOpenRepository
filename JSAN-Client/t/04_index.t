@@ -8,12 +8,19 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 50;
-
+use Test::More;
 use Params::Util '_HASH';
 use File::Remove 'remove';
+use LWP::Online  'online';
 use JSAN::Transport;
 use JSAN::Index;
+
+if ( online() ) {
+	plan( tests => 50 );
+} else {
+	plan( skip_all => "Skipping online tests" );
+	exit(0);
+}
 
 
 

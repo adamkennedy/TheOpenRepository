@@ -8,10 +8,19 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
-
+use Test::More;
 use JSAN::Transport;
 use JSAN::Index;
+use LWP::Online 'online';
+
+if ( online() ) {
+	plan( tests => 8 );
+} else {
+	plan( skip_all => "Skipping online tests" );
+	exit(0);
+}
+
+
 
 
 
