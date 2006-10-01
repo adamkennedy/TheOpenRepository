@@ -1,3 +1,9 @@
+1.00 2006-09-30
+        - This release has only build-time changes
+        - Incrementing to 1.00
+        - Minor changes to Makefile.PL and tests
+        - Updating to Module::Install 0.64
+
 0.04 2006-07-01
 	- Importing into collaborative repository
 	- Converting to Module::Install 0.63
