@@ -19,7 +19,7 @@ use prefork 'File::Remove';
 
 use vars qw{$VERSION $errstr %modes $AUTO_PRUNE};
 BEGIN {
-	$VERSION = '0.96';
+	$VERSION = '0.97';
 
 	# The main error string
 	$errstr  = '';
@@ -367,9 +367,9 @@ sub copy {
 			"Failed to create directory '$target'" );
 	}
 
-	# Hand off to File::NCopy
-	require File::NCopy;
-	my $rv = File::NCopy::copy( \1, $tocopy, $target );
+	# Hand off to File::Copy::Recursive
+	require File::Copy::Recursive;
+	my $rv = File::Copy::Recursive::dircopy( $tocopy, $target );
 	defined $rv ? $rv : $class->_andRemove( $remove_on_fail );
 }
 
@@ -848,8 +848,8 @@ All methods are statically called, for example, to write some stuff to a file.
 =head2 Use of other modules
 
 File::Flat tries to use more task orientated modules wherever possible. This
-includes the use of File::Copy, File::NCopy, File::Remove and others. These
-are mostly loaded on-demand.
+includes the use of L<File::Copy>, L<File::Copy::Recursive>, L<File::Remove>
+and others. These are mostly loaded on-demand.
 
 =head2 Pruning and $AUTO_PRUNE
 
@@ -884,13 +884,8 @@ this locally, such as in the following example.
 
 =head2 Non-Unix platforms
 
-File::Flat itself should be completely capable of handling any platform
-through its exclusive use of File::Spec.
-
-However, some of the modules it relies upon, particularly File::Remove, and
-possible File::NCopy are not File::Spec happy yet. Results may wary on non
-Unix platforms. Users of non-Unix platforms are invited to patch
-File::Remove ( and possibly File::NCopy ) and File::Flat should work.
+As of version 0.97 File::Flat should work correctly on Win32. Other
+platforms (such as VMS) are believed to work, but require confirmation.
 
 =head1 METHODS
 
