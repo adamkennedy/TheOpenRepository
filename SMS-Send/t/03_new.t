@@ -10,6 +10,7 @@ BEGIN {
 
 use Test::More tests => 25;
 use SMS::Send;
+use File::Spec::Functions ':ALL';
 
 use Params::Util '_INSTANCE';
 sub dies_like {
