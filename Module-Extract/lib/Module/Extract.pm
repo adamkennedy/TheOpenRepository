@@ -168,7 +168,7 @@ sub new {
 		Carp::croak("Did not provide a dist_file or dist_dir param");
 	}
 
-
+	$self;
 }
 
 =pod

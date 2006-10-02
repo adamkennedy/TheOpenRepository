@@ -29,5 +29,5 @@ SCOPE: {
 	is( $mod->dist_type, 'tgz', '->dist_type ok' );
 	ok( -d $mod->dist_dir, '->dist_dir exists' );
 	ok( -f $mod->file_path('MANIFEST'), '->file_path ok' );
-	ok( -d $mod->dir_path('t/dists'),   '->dir_path ok' );
+	ok( -d $mod->dir_path('t'),   '->dir_path ok' );
 }

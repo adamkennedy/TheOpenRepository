@@ -2,7 +2,7 @@ use strict;
 use inc::Module::Install;
 
 name           'Module-Extract';
-all_from       'lib/Module/Extract';
+all_from       'lib/Module/Extract.pm';
 requires       'Carp'             => 0;
 requires       'File::Path'       => '1.06';
 requires       'File::Temp'       => '0.17';
