@@ -1,9 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 require 5;
 use Cwd;
 use Data::Dumper;
 use Getopt::Long;
+
+use strict;
 
 my $pwd = getcwd;
 my $instmain = "/opt/perl";
@@ -18,11 +20,37 @@ GetOptions(
 ) or print_help(1);
 print_help() if $help;
 
+eval "use CPAN::Config";
+$CPAN::Config = {} if $@ || !defined($CPAN::Config);
+unless (keys %{$CPAN::Config}) {
+	print <<'CPANConfig';
+CPAN::Config not found.
+
+CPAN::Config is the module that provides configuration information
+about your system for the CPAN.pm module to use.  Installations
+will proceed, but if you have binaries somewhere other than the
+normal system locations, this installer may not find them.
+
+If you have doubts, please initialize the CPAN::Config module
+with the following command:
+  perl -MCPAN -e shell
+
+CPANConfig
+
+	print "Would you like to continue? [Yn] ";
+	my $input = <STDIN>;
+	if ($input && $input =~ /^n/i) {
+		print "\nExiting...\n";
+		exit(0);
+	}
+	print "\n";
+}
+
 opendir(Dir,$pwd) or do {
 	print "Can't open current directory? $pwd: $!\n";
 	print_help(1);
 };
-my @tars = grep { /^perl.*tar\.gz$/ } readdir(Dir);
+my @tars = grep { /^perl.*\.tar\.gz$/ } readdir(Dir);
 closedir(Dir);
 
 unless (-d $instmain) {
@@ -31,6 +59,8 @@ unless (-d $instmain) {
 		die "Can't create $instmain - please do so manually or use --instdir.\n";
 	}
 }
+
+my %status;
 
 foreach my $tarball (@tars) {
 	my ($base,$ver) = $tarball =~ /^(perl-?(5(?:\.?_?\d+)+))\.tar\.gz$/ or next;
@@ -42,6 +72,7 @@ foreach my $tarball (@tars) {
 	if (-d "$instmain/$base") {
 		print "Not installing Perl $ver - directory $instmain/$base exists.\n";
 		print "Please remove this directory and run the installer again.\n\n";
+		$status{$ver} = "Already installed";
 		next;
 	}
 	elsif (-d "$pwd/$base") {
@@ -51,6 +82,7 @@ foreach my $tarball (@tars) {
 		check_system_call($?,$!,"rm");
 		if (-d "$pwd/$base") {
 			print "Can't remove old install directory, skipping Perl $ver\n\n";
+			$status{$ver} = "Error removing old install directory";
 			next;
 		}
 	}
@@ -58,8 +90,14 @@ foreach my $tarball (@tars) {
 	print "Unpacking Perl $base...\n";
 	chdir $pwd;
 	system("gunzip -c $tarball | tar xf -");
-	check_system_call($?,$!,"gunzip | tar") && next;
-	chdir "$pwd/$base";
+	check_system_call($?,$!,"gunzip | tar") && do {
+		$status{$ver} = "Error unpacking source tarball";
+		next;
+	};
+	chdir "$pwd/$base" or do {
+		$status{$ver} = "Error in source tarball (did it unpack right?)";
+		next;
+	};
 
 	# With newer gcc/make toolchains, make will fail on earlier Perls with a message like this:
 	# *** No rule to make target `<built-in>', needed by > `miniperlmain.o'. Stop.
@@ -70,14 +108,17 @@ foreach my $tarball (@tars) {
 		print "Applying makedepend patch for Perl $ver...\n";
 		rename("makedepend.SH","makedepend.SH.orig") or do {
 			print "Error: corrupted Perl tarball: no makefile.SH?\n";
+			$status{$ver} = "Error applying patch: couldn't rename makedepend.SH";
 			next;
 		};
 		open(OldMakeDepend, "makedepend.SH.orig") or do {
 			print "Error: can't read makedepend.SH.orig: $!\n";
+			$status{$ver} = "Error applying patch: couldn't open makedepend.SH.orig";
 			next;
 		};
 		open(MakeDepend,">makedepend.SH") or do {
 			print "Error: Can't write makedepend.SH: $!\n";
+			$status{$ver} = "Error applying patch: couldn't write makedepend.SH";
 			close(OldMakeDepend);
 			next;
 		};
@@ -95,19 +136,31 @@ foreach my $tarball (@tars) {
 		$develflag = "-Dusedevel";
 	}
 	system("./Configure -des -Dprefix='$instmain/$base' -Dinstallusrbinperl=n $develflag > $pwd/config-$ver.txt 2>&1");
-	check_system_call($?,$!,"./Configure") && next;
+	check_system_call($?,$!,"./Configure") && do {
+		$status{$ver} = "Error running Configure";
+		next;
+	};
 
 	print "Making Perl $ver...\n";
 	system("make > $pwd/make-$ver.txt 2>&1");
-	check_system_call($?,$!,"make") && next;
+	check_system_call($?,$!,"make") && do {
+		$status{$ver} = "Error running make";
+		next;
+	};
 
 	print "Testing Perl $ver...\n";
 	system("make check > $pwd/check-$ver.txt 2>&1");
-	check_system_call($?,$!,"make check") && next;
+	check_system_call($?,$!,"make check") && do {
+		$status{$ver} = "Error running make check";
+		next;
+	};
 
 	print "Installing Perl $ver...\n";
 	system("make install > $pwd/install-$ver.txt 2>&1");
-	check_system_call($?,$!,"make install") && next;
+	check_system_call($?,$!,"make install") && do {
+		$status{$ver} = "Error running make install";
+		next;
+	};
 
 	print "Writing CPAN file for Perl $ver...\n";
 	my $cpanver = $ver;
@@ -123,8 +176,15 @@ foreach my $tarball (@tars) {
 	chdir $pwd;
 	system("rm -rf $base");
 	check_system_call($?,$!,"rm");
+	$status{$ver} = "Successfully installed";
 
 	print "Perl $ver installed.\n\n";
+}
+
+print "\n\n";
+print "Summary of installations:\n";
+foreach my $ver ( sort { version_comp($a,$b) } keys %status) {
+	print "  $ver: $status{$ver}\n";
 }
 
 exit(0);
@@ -132,15 +192,15 @@ exit(0);
 sub check_system_call {
 	my ($stat,$bang,$cmd) = @_;
 	if ($stat == -1) {
-		print "$cmd: failed to execute: $bang\n";
+		print "$cmd: failed to execute: $bang\n\n";
 		return 1;
 	}
 	elsif ($stat & 127) {
-		printf "$cmd: child died with signal %d, %s coredump\n", ($stat & 127),  ($stat & 128) ? 'with' : 'without';
+		printf "$cmd: child died with signal %d, %s coredump\n\n", ($stat & 127),  ($stat & 128) ? 'with' : 'without';
 		return 1;
 	}
 	elsif ($stat >> 8) {
-		printf "$cmd: child exited with value %d\n", $stat >> 8;
+		printf "$cmd: child exited with value %d\n\n", $stat >> 8;
 		return 1;
 	}
 
@@ -162,6 +222,16 @@ HELP
 	exit(0);
 }
 
+sub version_comp {
+	my $first = shift;
+	my $second = shift;
+
+	my ($fa,$fb,$fc) = split(/[._]/,$first);
+	my ($sa,$sb,$sc) = split(/[._]/,$second);
+
+	return (($fa <=> $sa) || ($fb <=> $sb) || ($fc <=> $sc) | ($first cmp $second));
+}
+
 sub write_cpan {
 	my $ver = shift;
 	my $dir = shift;
@@ -178,8 +248,7 @@ sub write_cpan {
 		mkdir $build or print "Can't make directory $build - but this is not fatal.\n";
 	}
 
-	eval { use CPAN::Config; };
-	$CPAN::Config = {} unless !$@ && defined($CPAN::Config);
+	$CPAN::Config = {} unless defined($CPAN::Config);
 
 	my $real_config = {
 		build_cache 		=> 100,
@@ -276,7 +345,7 @@ sub write_cpan {
 	}
 
 	open CPANConf, ">$dir/Config.pm" or do {
-		print "Can't write $file: $!\n";
+		print "Can't write $dir/Config.pm: $!\n";
 		return;
 	};
 

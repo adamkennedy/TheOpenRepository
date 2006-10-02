@@ -76,8 +76,23 @@ foreach my $perl ( reverse sort keys %perls) {
 	print "Fetching Perl $perl...\n";
 	my $url = "$cpan/src/5.0/$perls{$perl}";
 	$url =~ s/'/\\'/g;
-	if (-f $perls{$perl}) {
+	if (-f $perls{$perl} && -f "$perls{$perl}.md5") {
 		print "$perls{$perl} already downloaded, skipping fetch\n";
+	}
+	elsif (-f $perls{$perl}) {
+		print "Perl fetched, but md5 file missing.  Trying again...\n";
+		system $wget,@wget_args,"$url.md5";
+		if ($@) {
+			my $exit = $?>>8;
+			print "Warning: wget system call failed with exit code $exit\n";
+		}
+	}
+	elsif (-f "$perls{$perl}.md5") {
+		system $wget,@wget_args,$url;
+		if ($@) {
+			my $exit = $?>>8;
+			print "Warning: wget system call failed with exit code $exit\n";
+		}
 	}
 	else {
 		system $wget,@wget_args,$url,"$url.md5";
