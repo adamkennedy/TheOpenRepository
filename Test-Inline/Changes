@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::Inline
 
+2.105    Mon  2 Oct 2006
+	- No functional changes
+	- Upgraded to Module::Install 0.64
+	- Fixed a few kwalitee nigglies
+
 2.104    Sun  7 May 2006
 	- Moved from old CVS to new SVN repository
 	- Various POD spelling/grammer fixes (Jeff Defik)

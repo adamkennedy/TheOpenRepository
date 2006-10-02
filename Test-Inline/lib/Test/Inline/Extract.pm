@@ -23,7 +23,7 @@ use Params::Util qw{_CLASS _INSTANCE _SCALAR};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.103';
+	$VERSION = '2.105';
 }
 
 
