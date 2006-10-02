@@ -1,5 +1,11 @@
 Revision history for Perl extension Object::Signature
 
+1.05 Mon  2 Oct 2006
+	- No functional changes
+	- Upgrading to Module::Install 0.64
+	- Fixed a few minor kwalitee nigglies
+	- Upgraded tests to remove need for File::Spec dependency
+
 1.04 Thu 18 May 2005
 	- No functional changes
 	- Upgrading Module::Install to 0.62 (final)

@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 # If prefork is installed, use it
@@ -79,8 +79,8 @@ in one pass so that it becomes much more memory efficient for large objects.
 Once the current (as of 2005) hashing controversy settles down, consider
 selecting a newer and more powerful hashing algorithm to replace MD5. Or
 offer alternatives depending on how important the security situation is,
-as MD5 is B<very> fast (90 meg a second) and many more secure ones are a
-lot slower (worse than 1/10th the speed in some cases).
+as MD5 is B<very> fast (90 meg a second) and many more-secure ones are a
+lot slower (more than 10 times slower in some cases).
 
 On our side is the fact we use Storable. It should be B<much> harder to create
 collisions when you don't control the string, only the structure B<before>
@@ -88,11 +88,12 @@ it goes through Storable.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2006 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
