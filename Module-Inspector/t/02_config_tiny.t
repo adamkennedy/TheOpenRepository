@@ -26,7 +26,7 @@ SCOPE: {
 	my $mod = Module::Inspector->new( dist_file => $tarball );
 	isa_ok( $mod, 'Module::Inspector' );
 	is( $mod->dist_file, $tarball, '->dist_file ok' );
-	is( $mod->dist_file_type, 'tgz', '->dist_file_type ok' );
+	is( $mod->dist_type, 'tgz', '->dist_type ok' );
 	ok( -d $mod->dist_dir, '->dist_dir exists' );
 	is( $mod->version_control, '', '->version_control is null' );
 	my @docs = grep { ! /^inc\b/ } $mod->documents;

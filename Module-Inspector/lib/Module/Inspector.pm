@@ -45,31 +45,29 @@ inside a tarball.
 
 use 5.005;
 use strict;
+use base 'Module::Extract';
 use Carp                   ();
 use version                ();
-use File::Spec             ();
-use File::Path             ();
-use File::Temp             ();
+use Params::Util           ('_STRING');
 use File::Find::Rule       ();
 use File::Find::Rule::VCS  ();
 use File::Find::Rule::Perl ();
-use Params::Util           ('_STRING');
 use Module::Manifest       ();
 use Module::Math::Depends  ();
 use YAML::Tiny             ();
 
 use vars qw{$VERSION %SPECIAL};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	%SPECIAL = (
 		'MANIFEST' => 'Module::Manifest',
 		'META.yml' => 'YAML::Tiny',
 		);
 }
 
-# If prefork is available, flag the optional modules
-eval " use prefork 'Archive::Extract';      ";
+# If prefork is available, flag PPI for preforking if needed
 eval " use prefork 'PPI::Document::File';   ";
+
 
 
 
@@ -106,69 +104,7 @@ Returns a new C<Module::Inspector> object, or dies on exception.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
-
-	if ( $self->dist_file ) {
-		# Create the inspector for a tarball
-		unless ( $self->dist_file =~ /\.(?:zip|tgz|tar\.gz)$/ ) {
-			Carp::croak("The dist_file '" . $self->dist_file . "' is not a zip|tgz|tar.gz");
-		}
-		unless ( -f $self->dist_file ) {
-			Carp::croak("The dist_file '" . $self->dist_file . "' does not exist");
-		}
-
-		# Do we have a directory to unroll to
-		if ( $self->dist_dir ) {
-			# The directory should not exist
-			if ( -d $self->dist_dir ) {
-				Carp::croak("Cannot reuse an pre-existing dist_dir '"
-					. $self->dist_dir
-					. "'" );
-			}
-
-			# Create it
-			File::Path::mkpath( $self->dist_dir );
-		} else {
-			# Find a temp directory
-			$self->{dist_dir} = File::Temp::tempdir( CLEANUP => 1 );
-		}
-
-		# Double check it now exists and is writable
-		unless ( -d $self->dist_dir and -w $self->dist_dir ) {
-			Carp::croak("The dist_dir '" . $self->dist_dir . "' is not writeable");
-		}
-
-		# Unpack dist_file into dist_dir
-		require Archive::Extract;
-		my $archive = Archive::Extract->new( archive => $self->dist_file )
-			or Carp::croak("Failed to extract dist_file '"
-				. $self->dist_file . "'"
-				);
-		$self->{dist_file_type} = $archive->type;
-		unless ( $archive->extract( to => $self->dist_dir ) ) {
-			Carp::croak("Failed to extract dist_file '"
-				. $self->dist_file . "'"
-				);
-		}
-
-		# Double check the expansion directory
-		if ( $archive->extract_path ne $self->dist_dir ) {
-			# Archive::Extract can extract to a single
-			# directory beneath the target, in which case
-			# we actually want to be using that as our dist_dir.
-			$self->{dist_dir} = $archive->extract_path;
-		}
-
-	} elsif ( $self->dist_dir ) {
-		# Create the inspector for a directory
-		unless ( -d $self->dist_dir ) {
-			Carp::croak("Missing or invalid module root $self->{dist_dir}");
-		}
-
-	} else {
-		# Missing a module location
-		Carp::croak("Did not provide a dist_file or dist_dir param");
-	}
+	my $self  = $class->SUPER::new(@_);
 
 	# Auto-detect version control
 	unless ( defined $self->version_control ) {
@@ -191,90 +127,6 @@ sub new {
 	}
 
 	$self;
-}
-
-=pod
-
-=head2 dist_file
-
-The C<dist_file> accessor returns the (absolute) path to the
-distribution tarball. If the inspector was created with C<dist_dir>
-rather than C<dist_file>, this will return C<undef>.
-
-=cut
-
-sub dist_file {
-	$_[0]->{dist_file};
-}
-
-=pod
-
-=head2 dist_file_type
-
-The C<dist_file_type> method returns the archive type of the
-distribution tarball. This will be either 'tar.gz', 'tgz', or
-'zip'. Other file types are not supported.
-
-If the inspector was created with C<dist_dir> rather than 
-C<dist_file>, this will return C<undef>.
-
-=cut
-
-sub dist_file_type {
-	$_[0]->{dist_file_type};
-}
-
-=pod
-
-=head2 dist_dir
-
-The C<dist_dir> method returns the (absolute) distribution root directory.
-
-If the inspector was created with C<dist_file> rather than C<dist_file>,
-this method will return the temporary directory created to hold the
-unwrapped tarball.
-
-=cut
-
-sub dist_dir {
-	$_[0]->{dist_dir};
-}
-
-=pod
-
-=head2 file_path
-
-  my $local_path = $inspector->file_path('lib/Foo.pm');
-
-To simplify implementations, most tools that work with distributions
-identify files in unix-style relative paths.
-
-The C<file_path> method takes a unix-style relative path and returns
-a localised absolute path to the file on disk (either in the actual
-distribution directory, or the temp directory holding the expanded
-tarball.
-
-=cut
-
-sub file_path {
-	File::Spec->catfile( $_[0]->dist_dir, $_[1] );
-}
-
-=pod
-
-=head2 dir_path
-
-  my $local_path = $inspector->file_path('lib');
-
-The C<dir_path> method is the matching pair of the C<file_path> method.
-
-As for that method, it takes a unix-style relative directory name,
-and returns a localised absolute path to the directory.
-
-=cut
-
-sub dir_path {
-	File::Spec->catdir( $_[0]->dist_dir, $_[1] );
 }
 
 =pod

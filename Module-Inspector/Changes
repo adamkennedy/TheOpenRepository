@@ -1,5 +1,10 @@
 Version history for Perl distribution Module-Inspector
 
+0.04 Mon  2 Oct 2006
+	- Factored out the dist location and extraction to Module::Extract
+	  (needed to reuse the same functionality for Module::P4P)
+	- Otherwise unchanged from 0.03
+
 0.03 Mon 25 Sep 2006
 	- Updating the YAML::Tiny dependency to 0.11
         - Return an empty Module::Math::Depends (not HASH)
