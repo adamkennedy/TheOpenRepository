@@ -86,7 +86,7 @@ event, the POE kernel will have nothing else left to do and so will stop.
 
 sub poe_stopping {
 	my $result = _poe_stopping();
-	ok( $result, 'POE appears to be stopping cleanly' );
+	$Test->ok( $result, 'POE appears to be stopping cleanly' );
 	$poe_kernel->stop unless $result;
 	return 1;	
 }		
@@ -98,16 +98,24 @@ sub _poe_stopping {
 	return undef unless $api->is_kernel_running;
 
 	# There should only be one session left
-	return undef unless $api->session_list == 1;
+	# Why 2? One for the controlling session, one for the kernel
+	return undef unless $api->session_count == 2;
 
 	# There should be no events left for this session
-	return undef unless $api->session_event_list == 1;
+	return undef if $api->event_queue->get_item_count;
 
 	# The kernel should not be tracking any handles
 	return undef if $api->handle_count;
 
 	# Is this last session watching any signals
-	return undef if $api->signals_watched_by_session;
+	my %signals = eval {
+		$api->signals_watched_by_session;
+		};
+	# Catch and handle a bug in POE
+	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
+		%signals = ();
+	}
+	return undef if %signals;
 
 	# Looks good
 	return 1;
