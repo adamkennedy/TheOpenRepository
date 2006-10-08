@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 
 use vars qw{$VERSION $CHECK_OWNER};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 
 	# Attempt to determine whether or not we are capable
 	# of finding the owner of a directory.
@@ -232,7 +232,8 @@ path, and adds it to the sources path.
 The specific location the tarball is copied to will be in the root
 directory for the author provided to the constructor.
 
-Returns true, or throws an exception on error.
+Returns the install_path value as a convenience, or throws an exception
+on error.
 
 =cut
 
@@ -278,7 +279,8 @@ sub add {
 	chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
 		or Carp::croak("Failed to correct permissions for CHECKSUMS");
 
-	1;
+	# Return the install_path as a convenience
+	$self->install_path( $name );
 }
 
 =pod

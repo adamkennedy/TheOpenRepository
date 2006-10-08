@@ -105,7 +105,11 @@ SCOPE: {
 	# Add the distribution
 	my $dist = catfile( 't', 'data', 'Config-Tiny-2.09.tar.gz' );
 	ok( -f $dist, 'Test distribution exists' );
-	ok( $cpan->add( file => $dist ), '->add ok' );
+	is(
+		$cpan->add( file => $dist ),
+		'LOCAL/Config-Tiny-2.09.tar.gz',
+		'->add ok',
+	);
 	my $author = catdir($sources, 'authors', 'id', 'L', 'LO', 'LOCAL');
 	ok( -d $author, 'Created LOCAL base directory' );
 	ok(

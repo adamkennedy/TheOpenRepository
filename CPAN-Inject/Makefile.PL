@@ -13,6 +13,8 @@ requires       'Params::Util'    => '0.10';
 requires       'CPAN'            => '1.87';
 requires       'CPAN::Checksums' => '1.05';
 build_requires 'Test::More'      => '0.42';
+build_requires 'Test::Script'    => '0.01';
 build_requires 'File::Remove'    => '0.22';
+install_script 'bin/cpaninject';
 
 WriteAll;
