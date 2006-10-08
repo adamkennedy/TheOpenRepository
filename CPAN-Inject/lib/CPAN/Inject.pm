@@ -222,8 +222,8 @@ sub add {
 		or die "Failed to get filename";
 
 	# Find the location to copy it to
-	my $to_file = $self->file_path( $params{name} );
-	my $to_dir  = File::Basename::basedir( $to_file );
+	my $to_file = $self->file_path( $name );
+	my $to_dir  = File::Basename::dirname( $to_file );
 
 	# Make the path for the file
 	eval {
@@ -233,19 +233,23 @@ sub add {
 		Carp::croak("Failed to create $to_dir: $@");
 	}
 
-	# Copy the file to the directory
+	# Copy the file to the directory, and ensure writable
 	File::Copy::copy( $from_file => $to_file )
 		or Carp::croak("Failed to copy $from_file to $to_file");
+	chmod( 0644, $to_file )
+		or Carp::croak("Failed to correct permissions for $to_file");
 
-	# Update the checksums file
+	# Update the checksums file, and ensure writable
 	eval {
 		CPAN::Checksums::updatedir( $to_dir );
 	};
 	if ( $@ ) {
 		Carp::croak("Failed to update CHECKSUMS after insertion: $@");
 	}
+	chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
+		or Carp::croak("Failed to correct permissions for CHECKSUMS");
 
-	return 1;
+	1;
 }
 
 =pod
@@ -340,9 +344,10 @@ Returns the path as a string.
 =cut
 
 sub install_path {
-	my $self   = shift;
-	my $author = @_ == 2 ? shift : $self->author;
-	return "$author/$_[0]";
+	my $self = shift;
+	my $file = File::Basename::fileparse( shift )
+		or Carp::croak("Failed to get filename");
+	join( '/', $self->author, $file );
 }
 
 

@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 18;
 use File::Spec::Functions ':ALL';
 use File::Remove          'remove';
 use CPAN::Inject;
@@ -22,5 +22,80 @@ mkdir $sources;
 ok( -e $sources, 'Created sources directory' );
 
 
+
+
+
+#####################################################################
+# Constructor, Accessors, and Basic Methods
+
+SCOPE: {
+	my $cpan = CPAN::Inject->new(
+		sources => $sources,
+		);
+	isa_ok( $cpan, 'CPAN::Inject' );
+	is( $cpan->sources, $sources, '->sources ok' );
+	is( $cpan->author,  'LOCAL',  '->author ok' );
+	is(
+		$cpan->author_subpath,
+		catdir('authors', 'id', 'L', 'LO', 'LOCAL' ),
+		'->author_subpath ok',
+	);
+	is(
+		$cpan->author_path,
+		catdir($sources, 'authors', 'id', 'L', 'LO', 'LOCAL' ),
+		'->author_path ok',
+	);
+	is(
+		$cpan->install_path('Perl-Tarball-1.00.tar.gz'),
+		'LOCAL/Perl-Tarball-1.00.tar.gz',
+		'->install_path ok',
+	);
+	is(
+		$cpan->install_path(
+			catfile('foo', 'bar', 'Perl-Tarball-1.00.tar.gz'),
+			),
+		'LOCAL/Perl-Tarball-1.00.tar.gz',
+		'->install_path ok',
+	);
+}
+
+SCOPE: {
+	my $cpan = CPAN::Inject->new(
+		sources => $sources,
+		author  => 'ADAMK',
+		);
+	isa_ok( $cpan, 'CPAN::Inject' );
+	is( $cpan->sources, $sources, '->sources ok' );
+	is( $cpan->author,  'ADAMK',  '->author ok' );
+}
+
+
+
+
+
+#####################################################################
+# Add a distribution
+
+SCOPE: {
+	my $cpan = CPAN::Inject->new(
+		sources => $sources,
+		);
+	isa_ok( $cpan, 'CPAN::Inject' );
+
+	# Add the distribution
+	my $dist = catfile( 't', 'data', 'Config-Tiny-2.09.tar.gz' );
+	ok( -f $dist, 'Test distribution exists' );
+	ok( $cpan->add( file => $dist ), '->add ok' );
+	my $author = catdir($sources, 'authors', 'id', 'L', 'LO', 'LOCAL');
+	ok( -d $author, 'Created LOCAL base directory' );
+	ok(
+		-f catfile($author, 'Config-Tiny-2.09.tar.gz'),
+		'Copied distribution to the correct destination',
+	);
+	ok(
+		-f catfile($author, 'CHECKSUMS'),
+		'Created CHECKSUMS file',
+	);	
+}
 
 1;
