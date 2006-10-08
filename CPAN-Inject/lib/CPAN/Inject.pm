@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 
 use vars qw{$VERSION $CHECK_OWNER};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 
 	# Attempt to determine whether or not we are capable
 	# of finding the owner of a directory.
