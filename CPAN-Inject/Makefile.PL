@@ -10,8 +10,8 @@ requires       'File::Path'      => '1.00';
 requires       'File::Copy'      => '2.02';
 requires       'File::Basename'  => '2.6';
 requires       'Params::Util'    => '0.10';
-requires       'CPAN'            => '1.88';
-requires       'CPAN::Checksums' => '1.08';
+requires       'CPAN'            => '1.87';
+requires       'CPAN::Checksums' => '1.05';
 build_requires 'Test::More'      => '0.42';
 build_requires 'File::Remove'    => '0.22';
 
