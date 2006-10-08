@@ -47,7 +47,7 @@ use CPAN::Inject;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -82,7 +82,7 @@ if ( $@ ) {
 }
 
 # Add the file
-my $path = $cpan->add( $file );
+my $path = $cpan->add( file => $file );
 message( "Injected $file ok." );
 message( "The following command will install it from the CPAN shell." );
 message( "" );

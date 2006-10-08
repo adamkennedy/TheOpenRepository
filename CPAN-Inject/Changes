@@ -1,5 +1,8 @@
 Revision history for Perl extension CPAN-Inject
 
+0.03 Mon  9 Oct 2006
+	- Bug fix
+
 0.02 Mon  9 Oct 2006
 	- Adding cpaninject console application
 
