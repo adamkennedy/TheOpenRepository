@@ -159,6 +159,35 @@ sub new {
 
 =pod
 
+=head2 from_cpan_config
+
+The C<from_cpan_config> constructor loads the CPAN.pm configuration file, and
+uses the data contained within to specific the sources path for the
+object.
+
+This constructor is otherwise the same.
+
+Returns a B<CPAN::Inject> object on success, or throws an exception on
+error.
+
+=cut
+
+sub from_cpan_config {
+	my $class = shift;
+
+	# Load the CPAN configuration
+	require CPAN::Config;
+
+	# Get the sources directory
+	my $sources = $CPAN::Config->{keep_source_where}
+		or Carp::croak("Failed to find sources directory in CPAN::Config");
+
+	# Hand off to the main constructor
+	$class->new( sources => $sources, @_ );
+}
+
+=pod
+
 =head2 sources
 
 The C<sources> accessor returns the path to the root of the directory tree.

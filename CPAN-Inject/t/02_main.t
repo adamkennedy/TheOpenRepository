@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 18;
+use Test::More tests => 21;
 use File::Spec::Functions ':ALL';
 use File::Remove          'remove';
 use CPAN::Inject;
@@ -67,6 +67,26 @@ SCOPE: {
 	isa_ok( $cpan, 'CPAN::Inject' );
 	is( $cpan->sources, $sources, '->sources ok' );
 	is( $cpan->author,  'ADAMK',  '->author ok' );
+}
+
+SCOPE: {
+	my $cpan = eval {
+		CPAN::Inject->from_cpan_config(
+			author  => 'ADAMK',
+			);
+	};
+	SKIP: {
+		skip( "Current user owns CPAN::Config", 1 ) unless $@;
+		ok(
+			$@ =~ /The sources directory is not owned by the current user/,
+			'Got expected error',
+		);
+	}
+	SKIP: {
+		skip( "Current user does not own CPAN::Config", 2 ) if $@;
+		isa_ok( $cpan, 'CPAN::Inject' );
+		is( $cpan->author,  'ADAMK',  '->author ok' );
+	}
 }
 
 
