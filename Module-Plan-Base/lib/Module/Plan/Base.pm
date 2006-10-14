@@ -60,10 +60,11 @@ sub read {
 	croak( "Insufficient permissions to read '$pip'" ) unless -r _;
 
 	# Slurp in the file
+	my $contents;
 	SCOPE: {
 		local $/ = undef;
 		open CFG, $pip or croak( "Failed to open file '$pip': $!" );
-		my $contents = <CFG>;
+		$contents = <CFG>;
 		close CFG;
 	}
 
@@ -75,7 +76,7 @@ sub read {
 	}
 
 	# Load the class
-	require join('/', split /::/, $header);
+	require join('/', split /::/, $header) . '.pm';
 	unless ( $header->VERSION and $header->isa($class) ) {
 		croak("Invalid header '$header', class is not a Module::Plan::Base subclass");
 	}
@@ -122,7 +123,7 @@ sub add_file {
 
 	# Handle relative and absolute paths
 	$file = File::Spec->rel2abs( $file );
-	(undef, undef, $name) = File::Spec->splitpath( $file );
+	my (undef, undef, $name) = File::Spec->splitpath( $file );
 
 	# Add the name and the file name
 	push @{ $self->{names} }, $name;

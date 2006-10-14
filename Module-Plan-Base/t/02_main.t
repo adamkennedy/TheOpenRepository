@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 1;
 use File::Spec::Functions ':ALL';
 use Module::Plan::Base;
 

@@ -47,7 +47,7 @@ sub new {
 		$self->add_file( $_ );
 	}
 
-	1;
+	$self;
 }
 
 1;
