@@ -22,7 +22,7 @@ The following is the contents of your default.pip file.
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use base 'Module::Plan::Base';
@@ -48,6 +48,14 @@ sub new {
 	}
 
 	$self;
+}
+
+sub run {
+	my $self = shift;
+	foreach my $name ( $self->names ) {
+		$self->_cpan_inject( $name );
+		$self->_cpan_install( $name );
+	}
 }
 
 1;

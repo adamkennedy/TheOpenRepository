@@ -80,7 +80,7 @@ sub main {
 		error( "The plan file $pip does not exist" );
 	}
 
-	# Create the plan object	
+	# Create the plan object
 	my $plan = Module::Plan::Base->read( $pip );
 	$plan->run;
 }

@@ -25,11 +25,13 @@ use strict;
 use Carp           ('croak');
 use File::Spec     ();
 use File::Basename ();
-use Params::Util   ('_STRING', '_CLASS');
+use Params::Util   ('_STRING', '_CLASS', '_INSTANCE');
+use CPAN::Inject   ();
+use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -43,11 +45,22 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
+	# Create internal state variables
+	$self->{names}     = [ ];
+	$self->{dists}     = { };
+	$self->{cpan_path} = { };
+
 	# Precalculate the absolute basedir
 	$self->{pip} = File::Spec->rel2abs( $self->pip );
 	$self->{dir} = File::Basename::dirname( $self->pip );
 
-	return $self;
+	# Create the CPAN injector
+	$self->{inject} ||= CPAN::Inject->from_cpan_config;
+	unless ( _INSTANCE($self->{inject}) ) {
+		Carp::croak("Did not provide a valid 'param' CPAN::Inject object");
+	}
+
+	$self;
 }
 
 sub read {
@@ -85,8 +98,6 @@ sub read {
 	return $header->new(
 		pip   => $pip,
 		lines => \@lines,
-		names => [ ],
-		dists => { },
 		);
 }
 
@@ -110,6 +121,10 @@ sub dists {
 	%{ $_[0]->{dists} };
 }
 
+sub inject {
+	$_[0]->{inject};
+}
+
 
 
 
@@ -130,6 +145,36 @@ sub add_file {
 	$self->{dists}->{$name} = $file;
 
 	return 1;
+}
+
+sub run {
+	die ref($_[0]) . " does not implement 'run'";
+}
+
+sub _cpan_inject {
+	my $self = shift;
+	my $name = shift;
+	my $file = $self->{files}->{$name};
+	unless ( $file ) {
+		die("Unknown file $name");
+	}
+
+	# Inject the file into the CPAN cache
+	$self->{cpan_path}->{$name} = $self->inject->add( $file );
+
+	1;
+}
+
+sub _cpan_install {
+	my $self = shift;
+	my $name = shift;
+	my $path = $self->{cpan_path}->{$name};
+	unless ( $path ) {
+		die("Unknown file $name");
+	}
+
+	# Install via the CPAN::Shell
+	CPAN::Shell->install($distro);
 }
 
 1;
