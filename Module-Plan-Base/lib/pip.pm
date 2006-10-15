@@ -49,11 +49,25 @@ Thus, the following are equivalent
   pip
   pip .
   pip ./default.pip
+
+=head2 Syntax of a plan file
+
+Initially, the only plan is available is the L<Module::Plan::Lite>
+(MPL) plan.
+
+A typical MPL plan will look like the following
+
+  # myplan.pip
+  Module::Plan::Lite
   
+  Process-0.17.tar.gz
+  YAML-Tiny-0.10.tar.gz
+
 =cut
 
 use strict;
-use File::Spec;
+use File::Spec  ();
+use File::Which ();
 use Module::Plan::Base;
 
 use vars qw{$VERSION};
@@ -67,6 +81,9 @@ BEGIN {
 
 #####################################################################
 # Main Function
+
+# Save a copy of @ARGV for error messages
+my @args = @ARGV;
 
 sub main {
 	# Create the plan object
@@ -85,19 +102,31 @@ sub main {
 		Module::Plan::Base->read( $pip );
 	};
 	if ( $@ ) {
-		if ( $@ =~ /The sources directory is not owned by the current user/ ) {
-			error("Current user does not control the default CPAN client");
-		} else {
-			# Rethrow
+		unless ( $@ =~ /The sources directory is not owned by the current user/ ) {
+			# Rethrow the error
 			die $@;
 		}
+
+		# Generate an appropriate error
+		my @msg = (
+			"The current user does not control the default CPAN client",
+			);
+		if ( File::Which::which('sudo') ) {
+			my $cmd = join(' ', 'sudo', $0, @args);
+			push @msg, "You may need to try again with the following command:";
+			push @msg, "";
+			push @msg, "  $cmd";
+		}
+		error( @msg );
 	}
 
 	$plan->run;
 }
 
 sub error {
-	print $_[0] . "\n";
+	print "\n";
+	print map { $_ . "\n" } @_;
+	print "\n";
 	exit(255);
 }
 

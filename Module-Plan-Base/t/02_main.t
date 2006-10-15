@@ -18,8 +18,8 @@ use Module::Plan::Base;
 # Constructor Testing
 
 # ... with the full name
-SCOPE: {
+SKIP: {
+	skip("Only tested when run as root", 1) unless $< == 0;
 	my $plan = Module::Plan::Base->read( catfile('t','data','default.pip') );
 	isa_ok( $plan, 'Module::Plan::Lite' );
-
 }

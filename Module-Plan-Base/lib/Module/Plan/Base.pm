@@ -137,7 +137,7 @@ sub add_file {
 	my $file = _STRING(shift) or croak("Did not provide a file name");
 
 	# Handle relative and absolute paths
-	$file = File::Spec->rel2abs( $file );
+	$file = File::Spec->rel2abs( $file, $self->dir );
 	my (undef, undef, $name) = File::Spec->splitpath( $file );
 
 	# Add the name and the file name
@@ -154,13 +154,13 @@ sub run {
 sub _cpan_inject {
 	my $self = shift;
 	my $name = shift;
-	my $file = $self->{files}->{$name};
+	my $file = $self->{dists}->{$name};
 	unless ( $file ) {
 		die("Unknown file $name");
 	}
 
 	# Inject the file into the CPAN cache
-	$self->{cpan_path}->{$name} = $self->inject->add( $file );
+	$self->{cpan_path}->{$name} = $self->inject->add( file => $file );
 
 	1;
 }

@@ -5,7 +5,7 @@ use pip;
 
 eval {
 	pip::main( @ARGV );
-}
+};
 
 if ( $@ ) {
 	my $errstr = $@;
