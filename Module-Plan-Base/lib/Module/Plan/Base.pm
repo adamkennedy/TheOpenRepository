@@ -56,7 +56,7 @@ sub new {
 
 	# Create the CPAN injector
 	$self->{inject} ||= CPAN::Inject->from_cpan_config;
-	unless ( _INSTANCE($self->{inject}) ) {
+	unless ( _INSTANCE($self->{inject}, 'CPAN::Inject') ) {
 		Carp::croak("Did not provide a valid 'param' CPAN::Inject object");
 	}
 
@@ -166,10 +166,10 @@ sub _cpan_inject {
 }
 
 sub _cpan_install {
-	my $self = shift;
-	my $name = shift;
-	my $path = $self->{cpan_path}->{$name};
-	unless ( $path ) {
+	my $self   = shift;
+	my $name   = shift;
+	my $distro = $self->{cpan_path}->{$name};
+	unless ( $distro ) {
 		die("Unknown file $name");
 	}
 
