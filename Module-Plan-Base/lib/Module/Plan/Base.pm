@@ -18,6 +18,8 @@ later into a dependency-based system.
 
 This class is undocumented for the moment.
 
+See L<pip> for the front-end console application for this module.
+
 =cut
 
 use 5.005;
@@ -31,7 +33,7 @@ use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 

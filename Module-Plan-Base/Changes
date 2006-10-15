@@ -1,5 +1,10 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.03 Mon 16 Oct 2006
+	- It turns out .pip is taken by Microsoft, thwarting the potential
+	  ability to associate plan files with pip and make then actually clickable.
+	- Converted everything to .p5i
+
 0.02 Sun 15 Oct 2006
 	- Added pip.pm
 	- Added real dists to t/data

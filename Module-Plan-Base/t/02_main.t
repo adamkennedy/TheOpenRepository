@@ -20,6 +20,6 @@ use Module::Plan::Base;
 # ... with the full name
 SKIP: {
 	skip("Only tested when run as root", 1) unless $< == 0;
-	my $plan = Module::Plan::Base->read( catfile('t','data','default.pip') );
+	my $plan = Module::Plan::Base->read( catfile('t','data','default.p5i') );
 	isa_ok( $plan, 'Module::Plan::Lite' );
 }

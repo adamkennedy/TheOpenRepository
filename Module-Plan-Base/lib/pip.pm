@@ -4,51 +4,59 @@ package pip;
 
 =head1 NAME
 
-pip - Console application for running "Perl Install Plan" (PIP) files
+pip - Console application for running Perl 5 Installer (P5I) files
 
 =head1 DESCRIPTION
 
-A Perl Install Plan (PIP) file is a file that describes a set of
-distributions to install, and integrates the installation of these
-distributions with the CPAN installer.
+B<WARNING: THIS APPLICATION IS CONSIDERED EXPERIMENTAL. FEATURES
+MAY BE BROKEN OR SUBJECT TO CHANGE. YOU HAVE BEEN WARNED!>
 
-The primary use of PIP files are for installing proprietary or non-CPAN
-software that may still require the installation of a number of
+A Perl 5 Installer (P5I) file is a small script-like file that
+describes a set of distributions to install, and integrates the
+installation of these distributions with the CPAN installer.
+
+The pip ("Perl Installation Program") command is used to install the
+distributions described by the p5i script.
+
+The primary use of P5I files are for installing proprietary or
+non-CPAN software that may still require the installation of a number of
 distributions in order.
 
 It can also be used to ensure specific versions of CPAN modules are
 installed instead of the most current version.
 
-PIP files are also extensible, with the first line of the file
-specifying the name of the Perl class (which must be installed)
-that implements the plan.
+P5I files are also extensible, with the first line of the file
+specifying the name of the Perl class that implements the plan.
+
+For the moment, the class described at the top of the P5I file must
+be installed.
 
 The simple L<Module::Plan::Lite> plan class is bundled with the main
 distribution, and additional types can be installed if needed.
 
 =head1 USAGE
 
-The F<pip> command is used to install a PIP file and in the canonical
+The F<pip> command is used to install a P5I file and in the canonical
 case is used as follows
 
-  pip directory/myplan.pip
+  pip directory/myplan.p5i
 
-This command will load the plan file F<directory/myplan.pip>, create
+This command will load the plan file F<directory/myplan.p5i>, create
 the plan, and then execute it.
 
-If only a directory name is given, F<pip> will look for a F<default.pip>
+If only a directory name is given, F<pip> will look for a F<default.p5i>
 plan in the directory. Thus, all of the following are equivalent
 
   pip directory
   pip directory/
-  pip directory/default.pip
+  pip directory/default.p5i
 
 If no target is provided at all, then the current directory will be used.
 Thus, the following are equivalent
 
   pip
   pip .
-  pip ./default.pip
+  pip ./default.p5i
 
 =head2 Syntax of a plan file
 
@@ -57,7 +65,7 @@ Initially, the only plan is available is the L<Module::Plan::Lite>
 
 A typical MPL plan will look like the following
 
-  # myplan.pip
+  # myplan.p5i
   Module::Plan::Lite
   
   Process-0.17.tar.gz
@@ -72,7 +80,7 @@ use Module::Plan::Base;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -91,7 +99,7 @@ sub main {
 		? shift(@ARGV)
 		: File::Spec->curdir;
 	if ( -d $pip ) {
-		$pip = File::Spec->catfile( $pip, 'default.pip' );
+		$pip = File::Spec->catfile( $pip, 'default.p5i' );
 	}
 	unless ( -f $pip ) {
 		error( "The plan file $pip does not exist" );
