@@ -81,7 +81,18 @@ sub main {
 	}
 
 	# Create the plan object
-	my $plan = Module::Plan::Base->read( $pip );
+	my $plan = eval {
+		Module::Plan::Base->read( $pip );
+	};
+	if ( $@ ) {
+		if ( $@ =~ /The sources directory is not owned by the current user/ ) {
+			error("Current user does not control the default CPAN client");
+		} else {
+			# Rethrow
+			die $@;
+		}
+	}
+
 	$plan->run;
 }
 
