@@ -9,7 +9,7 @@ Net::IP::Resolver - Resolve IPs to a particular network
 =head1 SYNOPSIS
 
   # Create the resolver and add some networks
-  my $resolver = Net::IP::Resolve->new;
+  my $resolver = Net::IP::Resolver->new;
   $resolver->add( 'Comcast' => '123.0.0.0/8', '124.128.0.0/10' );
   $resolver->add( 'Foobar'  => [ '1.2.3.0/24', '1.2.4.0/24' ] );
   
@@ -40,7 +40,7 @@ use Net::IP::Match::XS ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Net::IP::Resolver
 
+0.03 Sun 15 Oct 2006
+	- Spelling fix in synopsis
+
 0.02 Mon  4 Sep 2006
 	- Moved from old CVS to new SVN repository
 	- Modernised tests and packaging
