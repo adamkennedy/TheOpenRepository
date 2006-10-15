@@ -170,7 +170,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Module::Plan>, L<Module::Inspector>
+L<pip>, L<Module::Plan>, L<Module::Inspector>
 
 =head1 COPYRIGHT
 

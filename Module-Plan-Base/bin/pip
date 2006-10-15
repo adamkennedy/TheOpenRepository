@@ -1,6 +1,17 @@
 #!/usr/bin/perl
 
-print "Hello World\n";
+use strict;
+use pip;
+
+eval {
+	pip::main( @ARGV );
+}
+
+if ( $@ ) {
+	my $errstr = $@;
+	$errstr =~ s/\sat line\b.+$//;
+	print "Unexpected Error: $errstr\n";
+	exit(255);
+}
 
 exit(0);
-
