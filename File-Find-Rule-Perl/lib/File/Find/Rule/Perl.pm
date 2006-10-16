@@ -37,7 +37,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
 
@@ -123,6 +123,7 @@ sub File::Find::Rule::Perl::_shebang {
 	open SEARCHFILE, $_ or return !1;
 	my $first_line = <SEARCHFILE>;
 	close SEARCHFILE;
+	return !1 unless defined $first_line;
 	return $first_line =~ /^#!.*\bperl\b/;
 }
 
