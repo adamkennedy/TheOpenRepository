@@ -1,0 +1,55 @@
+Revision history for Perl extension File::Remove.
+
+0.31 Wed Dec 28 17:40:00 2005
+    - Applied Eric Hanchrow's patch to support filenames with spaces.
+    - Skip recycle tests unless recycle/trash support is available.
+
+0.30 Wed Jul 14 19:12:00 2005
+    - Applied CNANDOR's patch to fix trash() support on OS X 10.4.
+
+0.29 Mon Dec 04 16:35:00 2004
+    - Stabilize undelete support for OS X and Windows.
+
+0.26 Mon Nov 16 07:31:00 2004
+    - Fix the synopsis.
+
+0.25 Mon Nov 15 12:04:00 2004
+    - Renamed undelete() to trash(), to be more clear.
+    - Allow users to provide their own rmdir/unlink to trash().
+    - Re-disabled debugging by default.
+
+0.24 Mon Nov 15 11:32:00 2004
+    - Add undelete support for OS X (via Mac::Glue).
+    - Fix undelete overloading of unlink/rmdir and update tests.
+    - Fix the documentation to be readable with perldoc.
+
+0.23 Mon Nov 15 09:45:00 2004
+    - Add undelete supportand tests (currently only for Win32, via
+      Win32::FileOp).
+
+0.22 Mon Nov 15 08:17:00 2004
+    - Add the first set of tests.
+
+0.21 Tue Jul 20 10:17:00 2004
+    - Converted the internals to File::Spec.
+
+    - Maintenance transferred by modules@perl.org to Richard Soderberg.
+      Please e-mail bug reports to <bug-File-Remove@rt.cpan.org>.
+
+0.20 Tue Apr 15 23:34:25 1998
+    - Now you can pass a scalar reference as the first argument and it
+      will used as the recursive flag when removing directories.  With
+      recursive flag set to 0 only the files in the directory are
+      removed and no attempt is made to recurse into subdirectories.
+      Nevertheless, if the directory becomes empty it is removed.
+
+0.12 Tue Apr 14 15:50:56 1998
+    - change the umask and set the permission on directories so we can
+      remove the files
+
+0.11 Mon Apr 13 16:37:30 1998
+    - changed the return values to successes rather than failures since
+      it makes more sense.
+
+0.10  Fri Apr 10 22:32:13 EDT 1998
+    - original version

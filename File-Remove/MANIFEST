@@ -1,0 +1,9 @@
+CHANGES
+MANIFEST
+Makefile.PL
+README
+lib/File/Remove.pm
+META.yml                                 Module meta-data (added by MakeMaker)
+SIGNATURE
+t/0_use.t
+t/1_directories.t
