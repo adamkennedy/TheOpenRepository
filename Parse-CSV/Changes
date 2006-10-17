@@ -1,5 +1,10 @@
 Revision history for Perl extension Parse::CSV
 
+1.00 Tue 17 Oct 2006
+	- Converting to _CODELIKE
+	- Cleaning up the docs
+	- Added shortcuts to combine, string, print
+
 0.02 Fri 11 Aug 2006
 	- Adding support for filters dropping records
 

@@ -15,9 +15,9 @@ Parse::CSV - Highly flexible CVS parser for large files
   while ( my $array_ref = $simple->fetch ) {
      # Do something...
   }
-  
-  
-  
+
+... or a more complex example...
+
   # Parse a colon-seperated variables file  from a filehandle as a hash
   # based on headers from the first line.
   # Then filter, so we emit objects rather than the plain hash.
@@ -38,20 +38,21 @@ Surely the CPAN doesn't need yet another CSV parsing module.
 L<Text::CSV_XS> is the standard parser for CSV files. It is fast as hell,
 but unfortunately it can be a bit verbose to use.
 
-A number of other modules attempt to put usability wrappers around this
-venerable module, but they all tend to focus on parsing the entire file
-at once.
+A number of other modules have attempted to put usability wrappers around
+this venerable module, but they have all focussed on parsing the entire
+file into memory at once.
 
-This is fine unless your CSV files start to get large. For that case, you
-have only the heavyweight L<XML::SAXDriver::CSV> option.
+This method is fine unless your CSV files start to get large. Once that
+happens, the only existing option is to fall back on the relatively slow
+and heavyweight L<XML::SAXDriver::CSV> module.
 
-L<Parse::CSV> is intended to fill this gap, and provide a light-weight,
-flexible and customisable incremental parser for large CSV files.
+L<Parse::CSV> fills this functionality gap. It provides a flexible
+and light-weight streaming parser for large, extremely large, or
+arbitrarily large CSV files.
 
 =head2 Main Features
 
-B<Incremental Parsing> - To reduce memory load, all parsing is done
-incrementally.
+B<Stream-Based Parser> - All parsing a line at a time.
 
 B<Array Mode> - Parsing can be done in simple array mode, returning
 a reference to an array if the columns are not named.
@@ -59,9 +60,9 @@ a reference to an array if the columns are not named.
 B<Hash Mode> - Parsing can be done in hash mode, putting the data into
 a hash and return a reference to it.
 
-C<Filter Capability> - All items returned can be pass through a custom
-filter. This filter can either modify the data on the fly, or drop
-records you don't need.
+C<Filter Capability> - All items returned can be passed through a
+custom filter. This filter can either modify the data on the fly,
+or drop records you don't need.
 
 =head2 Writing Filters
 
@@ -69,8 +70,8 @@ A L<Parse::CSV> filter is a subroutine reference that is passed the raw
 record as C<$_>, and should C<return> the alternative or modified record
 to return to the user.
 
-The basic null filter (does not modify or drop any records thus looks
-like the following).
+The null filter (does not modify or drop any records) looks like the
+following.
 
   sub { $_ };
 
@@ -102,11 +103,11 @@ use strict;
 use Carp         ();
 use IO::File     ();
 use Text::CSV_XS ();
-use Params::Util qw{ _STRING _ARRAY _HASH0 _CALLABLE _HANDLE };
+use Params::Util qw{ _STRING _ARRAY _HASH0 _CODELIKE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '1.00';
 }
 
 
@@ -242,7 +243,7 @@ sub new {
 	}
 
 	# Check filter
-	if ( exists $self->{filter} and ! _CALLABLE($self->{filter}) ) {
+	if ( exists $self->{filter} and ! _CODELIKE($self->{filter}) ) {
 		Carp::croak("Parse::CSV filter param is not callable");
 	}
 
@@ -370,6 +371,51 @@ sub row {
 
 =pod
 
+=head2 combine
+
+  $status = $csv->combine(@columns);
+
+The C<combine> method is provided as a convenience, and is passed through
+to the underlying L<Text::CSV_XS> object.
+
+=cut
+
+sub combine {
+	shift->combine(@_);
+}
+
+=pod
+
+=head2 string
+
+  $line = $cvs->string;
+
+The C<string> method is provided as a convenience, and is passed through
+to the underlying L<Text::CSV_XS> object.
+
+=cut
+
+sub string {
+	shift->string(@_);
+}
+
+=pod
+
+=head2 print
+
+  $status = $cvs->print($io, $columns);
+
+The C<print> method is provided as a convenience, and is passed through
+to the underlying L<Text::CSV_XS> object.
+
+=cut
+
+sub print {
+	shift->print(@_);
+}
+
+=pod
+
 =head2 errstr
 
 On error, the C<errstr> method returns the error that occured.
@@ -396,7 +442,7 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>adamk@cpan.orgE<lt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -404,7 +450,7 @@ L<Text::CSV_XS>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2006 Adam Kennedy.
+Copyright 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

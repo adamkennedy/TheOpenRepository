@@ -5,7 +5,8 @@
 use strict;
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 2;
@@ -14,6 +15,4 @@ use Test::More tests => 2;
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
-require_ok('Parse::CSV');
-
-exit(0);
+use_ok('Parse::CSV');
