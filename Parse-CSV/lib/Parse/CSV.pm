@@ -18,11 +18,11 @@ Parse::CSV - Highly flexible CVS parser for large files
 
 ... or a more complex example...
 
-  # Parse a colon-seperated variables file  from a filehandle as a hash
+  # Parse a colon-seperated variables file  from a handle as a hash
   # based on headers from the first line.
   # Then filter, so we emit objects rather than the plain hash.
   my $objects = Parse::CSV->new(
-      filehandle => $io_handle,
+      handle => $io_handle,
       sep_char   => ';',
       fields     => 'auto',
       filter     => sub { My::Object->new( $_ ) },
@@ -60,7 +60,7 @@ a reference to an array if the columns are not named.
 B<Hash Mode> - Parsing can be done in hash mode, putting the data into
 a hash and return a reference to it.
 
-C<Filter Capability> - All items returned can be passed through a
+B<Filter Capability> - All items returned can be passed through a
 custom filter. This filter can either modify the data on the fly,
 or drop records you don't need.
 
@@ -228,8 +228,10 @@ sub new {
 
 		# Parse the line into columns
 		unless ( $self->{csv_xs}->parse($line) ) {
-			$self->{errstr} = "Failed to parse header line from CSV";
-			return undef;
+			Carp::croak(
+				"Failed to parse header line from CSV: "
+				. $self->{csv_xs}->error_input
+			);
 		}
 
 		# Turn the array ref into a hash if needed
