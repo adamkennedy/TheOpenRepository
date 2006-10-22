@@ -9,7 +9,6 @@ use Test::More qw(no_plan); # tests => 2;
 BEGIN { use_ok('File::Remove' => qw(remove trash)) };
 
 #########################
-
 # Insert your test code below, the Test::More module is use()ed here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 
