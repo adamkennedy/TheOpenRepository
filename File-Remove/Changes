@@ -1,5 +1,16 @@
 Revision history for Perl extension File::Remove.
 
+0.32_01 Mon 23 Oct 2006
+    - Use File::Spec to clean/canon paths instead of hand-stripping trailing slash
+    - Apply the File::Path "safe" check manually for the root only, and
+      use File::Path itself with safe OFF, so that we can handle deleting
+      deep readonly files (and do it properly on VMS)
+    - Added a test for the deletion of deep readonly files
+    - Removing the use of "our" variables to try and get the Perl version
+      dependency back to at least 5.005.
+    - Report "deleted" for non-existant files they want to delete
+    - Report the path they pass, but for dir USE a File::Spec->canonpath
+
 0.31 Wed Dec 28 17:40:00 2005
     - Applied Eric Hanchrow's patch to support filenames with spaces.
     - Skip recycle tests unless recycle/trash support is available.
