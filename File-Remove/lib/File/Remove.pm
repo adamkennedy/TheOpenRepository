@@ -135,7 +135,7 @@ sub remove (@) {
 	    print "dir: $file\n" if $debug;
 	    # XXX: this regex seems unnecessary, and may trigger bugs someday.
 	    # TODO: but better to trim trailing slashes for now.
-	    s/\/$//;
+	    $file =~ s/\/$//;
 	    if ( $$recursive ) {
 		my $result = File::Path::rmtree( [ $file ], $debug, 1 );
 		push(@removes, $file) if $result;

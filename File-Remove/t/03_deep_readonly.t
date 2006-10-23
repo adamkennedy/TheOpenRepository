@@ -1,0 +1,86 @@
+#!/usr/bin/perl
+
+# Test that File::Remove can recursively remove a directory that
+# deeply contains a readonly file that is owned by the current user.
+use strict;
+BEGIN {
+	$| = 1;
+	$^W = 1;
+}
+
+use Test::More qw(no_plan);
+use File::Spec ();
+use_ok( 'File::Remove' );
+
+
+
+
+
+#####################################################################
+# Set up for the test
+
+my $in = File::Spec->catdir( File::Spec->curdir, 't' );
+ok( -d $in, 'Found t dir' );
+my $d1 = File::Spec->catdir( $in, 'd1' );
+my $d2 = File::Spec->catdir( $d1, 'd2' );
+my $f3 = File::Spec->catfile( $d2, 'f3.txt' );
+
+sub create_directory {
+	mkdir $d1 or die "Failed to create $d1";
+	ok( -d $d1, "Created $d1 ok" );
+	ok( -r $d1, "Created $d1 -r" );
+	ok( -w $d1, "Created $d1 -w" );
+	mkdir $d2 or die "Failed to create $d2";
+	ok( -d $d2, "Created $d2 ok" );
+	ok( -r $d2, "Created $d2 -r" );
+	ok( -w $d2, "Created $d2 -w" );
+	local *FILE;
+	open( FILE, ">$f3" )             or die "open: $f3 failed";
+	print FILE "This is a test file" or die "print: $f3 failed";
+	close( FILE )                    or die "close: $f3 failed";
+	ok( -f $f3, "Created $f3 ok" );
+	ok( -r $f3, "Created $f3 -r" );
+	ok( -w $f3, "Created $f3 -w" );
+	chmod( 0400, $f3 ) or die "chmod 0400 $f3 failed";
+	ok( -f $f3, "Created $f3 ok" );
+	ok( -r $f3, "Created $f3 -r" );
+	ok( ! -w $f3, "Created $f3 -w" );	
+}
+
+sub clear_directory {
+	if ( -e $f3 ) {
+		chmod( 0700, $f3 ) or die "chmod 0700 $f3 failed";
+		unlink( $f3 )      or die "unlink: $f3 failed";
+		! -e $f3           or die "unlink didn't work";
+	}
+	if ( -e $d2 ) {
+		rmdir( $d2 )       or die "rmdir: $d2 failed";
+		! -e $d2           or die "rmdir didn't work";
+	}
+	if ( -e $d1 ) {
+		rmdir( $d1 )       or die "rmdir: $d1 failed";
+		! -e $d1           or die "rmdir didn't work";
+	}
+}
+
+# Make sure there is no directory from a previous run
+clear_directory();
+
+# Create the directory
+create_directory();
+
+# Schedule cleanup
+END {
+	clear_directory();
+}
+
+
+
+
+
+#####################################################################
+# Main Testing
+
+# Call a recursive remove of the directory, nothing should be left after
+ok( File::Remove::remove( \1, $d1 ), "remove('$d1') ok" );
+ok( ! -e $d1, "Removed the directory ok" );
