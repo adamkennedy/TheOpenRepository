@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Remove.
 
+0.33 Tue 24 Oct 2006
+    - Previous release tested ok.
+    - Incrementing for production release.
+    - No functional changes
+
 0.32_01 Mon 23 Oct 2006
     - Use File::Spec to clean/canon paths instead of hand-stripping trailing slash
     - Apply the File::Path "safe" check manually for the root only, and
