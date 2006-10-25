@@ -1,5 +1,8 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.04 Wed 26 Oct 2006
+	- Added the -i option to install a particular tarball
+
 0.03 Mon 16 Oct 2006
 	- It turns out .pip is taken by Microsoft, thwarting the potential
 	  ability to associate plan files with pip and make then actually clickable.

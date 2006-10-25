@@ -56,6 +56,7 @@ Thus, the following are equivalent
 
   pip
   pip .
+  pip default.p5i
   pip ./default.p5i
 
 =head2 Syntax of a plan file
@@ -71,6 +72,31 @@ A typical MPL plan will look like the following
   Process-0.17.tar.gz
   YAML-Tiny-0.10.tar.gz
 
+=head2 Direct installation of a single file with -i or --install
+
+With the functionality available in F<pip>, you can find that sometimes
+you don't even want to make a file at all, you just want to install a
+single tarball.
+
+The C<-i> option lets you pass the name of a single file and it will treat
+it as an installer for that single file. For example, the following are
+equivalent.
+
+  # Installing with the -i|--install option
+  > ppi -i Process-0.17.tar.gz
+  > ppi --install Process-0.17.tar.gz
+  
+  # Installing from the file as normal
+  > pip ./default.p5i
+  
+  # myplan.p5i
+  Module::Plan::Lite
+  
+  Process-0.17.tar.gz
+
+The C<-i> option can be used with any single value supported by
+L<Module::Plan::Lite> (see above).
+
 =cut
 
 use strict;
@@ -80,7 +106,7 @@ use Module::Plan::Base;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 
@@ -91,12 +117,31 @@ BEGIN {
 # Main Function
 
 # Save a copy of @ARGV for error messages
-my @args = @ARGV;
+my $install = 0;
+Getopt::Long::GetOptions(
+	'install' => \$install,
+	);
 
 sub main {
-	# Create the plan object
-	my $pip = @ARGV
-		? shift(@ARGV)
+	my $plan = $install
+		? main_install(@ARGS)
+		: main_read(@ARGV);
+	$plan->run;
+}
+
+sub main_install {
+	require Module::Plan::Lite;
+	my $file = shift;
+	Module::Plan::Lite->new(
+		pip   => 'default.p5i',
+		lines => [ '', $file ],
+		);
+}
+
+# Create the plan object from a file
+sub main_read {
+	my $pip = @_
+		? shift
 		: File::Spec->curdir;
 	if ( -d $pip ) {
 		$pip = File::Spec->catfile( $pip, 'default.p5i' );
@@ -128,7 +173,7 @@ sub main {
 		error( @msg );
 	}
 
-	$plan->run;
+	return $plan;
 }
 
 sub error {
