@@ -100,8 +100,9 @@ L<Module::Plan::Lite> (see above).
 =cut
 
 use strict;
-use File::Spec  ();
-use File::Which ();
+use File::Spec   ();
+use File::Which  ();
+use Getopt::Long ();
 use Module::Plan::Base;
 
 use vars qw{$VERSION};
@@ -124,7 +125,7 @@ Getopt::Long::GetOptions(
 
 sub main {
 	my $plan = $install
-		? main_install(@ARGS)
+		? main_install(@ARGV)
 		: main_read(@ARGV);
 	$plan->run;
 }
@@ -165,7 +166,7 @@ sub main_read {
 			"The current user does not control the default CPAN client",
 			);
 		if ( File::Which::which('sudo') ) {
-			my $cmd = join(' ', 'sudo', $0, @args);
+			my $cmd = join(' ', 'sudo', $0, @_);
 			push @msg, "You may need to try again with the following command:";
 			push @msg, "";
 			push @msg, "  $cmd";
