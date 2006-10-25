@@ -172,7 +172,7 @@ L<base>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2006 Adam Kennedy. All rights reserved.
+Copyright 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
