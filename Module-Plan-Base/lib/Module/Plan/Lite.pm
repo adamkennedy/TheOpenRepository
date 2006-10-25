@@ -22,7 +22,7 @@ The following is the contents of your default.pip file.
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 use base 'Module::Plan::Base';
