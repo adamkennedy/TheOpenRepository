@@ -332,7 +332,7 @@ sub get_english_localisation {
 				selection_comment => 'Comment',
 				selection_convert => 'Convert',
 				search => 'Search',
-				find_attributes => 'Attributes',
+				search_attributes => 'Attributes',
 				find_functions => 'Find Functions',
 				replace_functions => 'Replace Functions',
 				goto_bookmark => 'Goto Bookmark',
@@ -491,9 +491,26 @@ sub get_english_localisation {
 					},
 				},
 				'select' => {
-					document => 'Select All',
+					'document' => 'Select All',
 					'to-block-begin' => '',
 					'to-block-end' => '',
+				},
+				'search' => {
+					'attribute' => {
+						'autowrap-switch' => 'Auto Wrap',
+						'incremental-switch' => 'Incremental Search',
+						'regex-switch' => 'Regular Expression',
+						'match' => {
+							'case-switch' => 'Match Case',
+							'whole-word-switch' => 'Whole Word only',
+							'word-begin-switch' => 'Word Begin',
+						},
+					},
+					'range' => {
+						selection => 'Selection',
+						document => 'Document',
+						'open-docs' => 'Open Documents'
+					},
 				},
 				find => {
 					prev => 'Find Previous',
@@ -502,16 +519,6 @@ sub get_english_localisation {
 					'last' => 'Find Last',
 					selection => 'Find Selection',
 					'mark-all' => 'Mark all Matches',
-					attribute => {
-						'autowrap-switch' => 'Auto Wrap',
-						'incremental-switch' => 'Incremental Search',
-						'regex-switch' => 'Regular Expression',
-						match => {
-							'case-switch' => 'Match Case',
-							'whole-word-switch' => 'Whole Word only',
-							'word-begin-switch' => 'Word Begin',
-						},
-					},
 				},
 				replace => {
 					prev => 'Replace Backward',
@@ -561,10 +568,15 @@ sub get_english_localisation {
 						cr => 'CR (Macintosh)',
 						lf => 'LF (Linux)',
 					},
+					change => {
+						back => 'Switch Back',
+						prev => 'Previous Tab',
+						'next' => 'Next Tab',
+					},
 					readonly => {
 						'as-attr' => 'As Attribute',
 						'on' => 'Always On',
-						off => 'Always Off',
+						'off' => 'Always Off',
 					},
 					syntaxmode => {
 						auto => 'Autoselect',
@@ -853,12 +865,7 @@ sub get_english_localisation {
 					'to-block-begin' => '',
 					'to-block-end' => '',
 				},
-				find => {
-					prev => 'find the previous match of the textsearch',
-					'next' => 'find the next match of the textsearch',
-					first => 'find first textsearch match in document',
-					'last' => 'find last textsearch match in document',
-					selection => 'remember selected text as current search item',
+				search => {
 					attribute => {
 						'autowrap-switch' => 'Auto Wrap',
 						'incremental-switch' => 'Incremental Search',
@@ -869,6 +876,18 @@ sub get_english_localisation {
 							'word-begin-switch' => 'Word Begin',
 						},
 					},
+					'range' => {
+						selection => 'search and replace only within selected text',
+						document => 'search and replace in whole current document',
+						'open-docs' => 'search and replace in all open documents',
+					},
+				},
+				find => {
+					prev => 'find the previous match of the textsearch',
+					'next' => 'find the next match of the textsearch',
+					first => 'find first textsearch match in document',
+					'last' => 'find last textsearch match in document',
+					selection => 'remember selected text as current search item',
 				},
 				replace => {
 					prev => 'replace selection and find previous match',
@@ -917,6 +936,11 @@ sub get_english_localisation {
 						'cr+lf' => 'line endings for Windows or Dos',
 						cr => ' convert line endings to the Mac standart',
 						lf => 'convert line endings to the UNIX standart',
+					},
+					change => {
+						back => 'switches to the last used document',
+						prev => 'changes the current document one tab to the left',
+						next => 'changes the current document one tab to the right',
 					},
 					readonly => {
 						'as-attr' => 'turns write protection on if file is readonly',

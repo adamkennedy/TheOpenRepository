@@ -76,15 +76,15 @@ sub left_click {
 	my $menu = \&Kephra::App::ContextMenu::get;
 	if ( $^O eq 'linux' ) {
 		if    ($x < 156) {}
-		elsif ($x < 215) {$bar->PopupMenu(&$menu('status_syntaxmode'), $x, $y )}
-		elsif ($x < 256) {&Kephra::Document::switch_tab_mode;}
-		elsif ($x < 326) {$bar->PopupMenu(&$menu('status_eol')       , $x, $y )}
+		elsif ($x < 215) {Kephra::Document::SyntaxMode::switch_auto()}
+		elsif ($x < 256) {&Kephra::Document::switch_tab_mode}
+		elsif ($x < 326) {&Kephra::App::EditPanel::switch_EOL_visibility}
 		else             {next_file_info()}
 	} else {
 		if    ($x < 128) {}
-		elsif ($x < 180) {$bar->PopupMenu(&$menu('status_syntaxmode'), $x, $y )}
+		elsif ($x < 180) {Kephra::Document::SyntaxMode::switch_auto()}
 		elsif ($x < 206) {&Kephra::Document::switch_tab_mode}
-		elsif ($x < 241) {$bar->PopupMenu(&$menu('status_eol'),        $x, $y )}
+		elsif ($x < 241) {&Kephra::App::EditPanel::switch_EOL_visibility}
 		else             {next_file_info()}
 	}
 }

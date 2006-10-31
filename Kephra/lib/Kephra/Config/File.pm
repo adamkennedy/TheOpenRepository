@@ -1,9 +1,60 @@
 package Kephra::Config::File;
-$VERSION = '0.03';
+$VERSION = '0.05';
 
 use strict;
 
+#
+# internal
+#
+sub _get_type {
+	my $name = shift;
+	return unless $name;
+	my $file_end = substr $name, index($name , '.') + 1 , 1;
+	return $file_end eq 'y' 
+		? 'yaml'
+		: 'conf';
+}
+#
+# API 2 App
+#
 sub load {
+	my $file_name = shift;
+	my $type = _get_type($file_name);
+	if    ($type eq 'conf') { load_conf($file_name) }
+	elsif ($type eq 'yaml') { load_yaml($file_name) }
+}
+
+sub load_node{
+	my $file_name = shift;
+	my $start_node = shift;
+	my $config = load($file_name);
+	return $config unless $start_node;
+	for (split '/', $start_node) {
+		$config = $config->{$_} if defined $config->{$_}
+	}
+}
+
+sub store {
+	my $file_name = shift;
+	my $config = shift;
+	my $type = _get_type($file_name);
+	if    ($type eq 'conf') { store_conf($file_name, $config) }
+	elsif ($type eq 'yaml') { store_yaml($file_name, $config) }
+}
+
+sub store_node{
+	my $file_name = shift;
+	my $start_node = shift;
+}
+#
+# API 2 YAML
+#
+sub load_yaml  { &YAML::LoadFile }
+sub store_yaml { &YAML::DumpFile }
+#
+# API 2 General::Config 
+#
+sub load_conf {
 	my ( $configfilename, %config ) = shift;
 	my $error_msg = $Kephra::localisation{'dialogs'}{'error'};
 	if ( -e $configfilename ) {
@@ -31,7 +82,7 @@ sub load {
 	\%config;
 }
 
-sub store {
+sub store_conf {
 	my ( $configfilename, $config ) = @_;
 	$Kephra::app{config}{parser}->save_file( $configfilename, $config );
 }

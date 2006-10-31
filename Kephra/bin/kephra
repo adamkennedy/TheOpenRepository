@@ -14,7 +14,7 @@ use File::Spec ();
 use vars qw{$VERSION $STANDALONE};
 my %pathes;
 BEGIN {
-	$VERSION = "0.66";
+	$VERSION = "0.67";
 
 	# Is this the standalone Win32 implementation
 	$STANDALONE = 1;
@@ -60,13 +60,11 @@ BEGIN {
 
 use Benchmark ();
 my $t0;
+
 BEGIN { $t0 = Benchmark->new; }
 
 use Kephra;
 use File::HomeDir ();
-
-print "src loaded in: ",
-	Benchmark::timestr( Benchmark::timediff( Benchmark->new, $t0 ) ), "\n";
 
 	# set directory locations
 	$Kephra::temp{path}{config}            = $pathes{config};
@@ -76,6 +74,12 @@ print "src loaded in: ",
 	$Kephra::temp{file}{config}{auto}      = 'global/autosaved.conf';
 	$Kephra::temp{file}{config}{default}   = 'global/default/default.conf';
 	$Kephra::temp{file}{img}{splashscreen} = 'icon/splash/wx_perl_splash.jpg'; # has to be jpeg
+
+	$Kephra::benchmark = 1; # switch for benchmark output
+
+print "src loaded in:",
+	Benchmark::timestr( Benchmark::timediff( Benchmark->new, $t0 ) ), "\n"
+	if $Kephra::benchmark;
 
 # make config files acessable
 push @INC, $Kephra::temp{path}{config};

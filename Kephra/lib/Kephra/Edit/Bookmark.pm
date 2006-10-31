@@ -4,7 +4,6 @@ $VERSION = '0.14';
 use strict;
 use Wx qw(wxSTC_MARK_SHORTARROW);
 
-
 # internal subs
 
 sub is_set{ 
@@ -71,19 +70,16 @@ sub _delete_data {
 	delete $Kephra::config{'search'}{'bookmark'}{$nr};
 	delete $Kephra::temp{'search'}{'bookmark'}{$nr};
 }
-
+#
 # API
-
+#
 sub define_marker {
 	my $edit_panel = Kephra::App::EditPanel::_get();
 	my $conf       = $Kephra::config{'editpanel'}{'margin'}{'marker'};
+	my $hex2dec    = \&Kephra::Config::_hex2dec_color_array;
 
-	my $wxColor_fore = Wx::Colour->new(
-		@{Kephra::Config::_hex2dec_color_array( $conf->{'fore_color'} ) }
-	);
-	my $wxColor_back = Wx::Colour->new(
-		@{Kephra::Config::_hex2dec_color_array( $conf->{'back_color'} ) }
-	);
+	my $wxColor_fore = Wx::Colour->new( @{ &$hex2dec($conf->{'fore_color'}) } );
+	my $wxColor_back = Wx::Colour->new( @{ &$hex2dec($conf->{'back_color'}) } );
 	$edit_panel->MarkerDefine
 		( $_, wxSTC_MARK_SHORTARROW, $wxColor_fore, $wxColor_back ) for 0 .. 9;
 

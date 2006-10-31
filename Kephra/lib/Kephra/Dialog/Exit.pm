@@ -45,7 +45,7 @@ sub save_on_exit {
 		for ( 0 .. Kephra::Document::_get_last_nr() ) {
 			if ( $Kephra::temp{'document'}{'open'}[$_]{'modified'} ) {
 				$file_name = '';
-				$file_name = $Kephra::document{'open'}[$_]{'path'};
+				$file_name = Kephra::Document::_get_path_from_nr($_);
 				if ($file_name) {$check_label = 1 + $_ . ' ' . $file_name}
 				else {$check_label = 1+$_ . ' '
 						. $Kephra::localisation{'app'}{'tabs'}{'untitled'};

@@ -1,6 +1,6 @@
 editpanel_contextmenu:
- - item edit-records-undo
- - item edit-records-redo
+ - item edit-changes-undo
+ - item edit-changes-redo
  -
  - item edit-paste
  - item select-document
@@ -26,13 +26,17 @@ textselection_contextmenu:
  - item edit-selection-convert-lowercase
 
 searchbar_contextmenu:
- - checkitem find-attribute-incremental-switch
- - checkitem find-attribute-autowrap-switch
+ - checkitem search-attribute-incremental-switch
+ - checkitem search-attribute-autowrap-switch
  -
- - checkitem find-attribute-regex-switch
- - checkitem find-attribute-match-whole-word-switch
- - checkitem find-attribute-match-word-begin-switch
- - checkitem find-attribute-match-case-switch
+ - checkitem search-attribute-regex-switch
+ - checkitem search-attribute-match-whole-word-switch
+ - checkitem search-attribute-match-word-begin-switch
+ - checkitem search-attribute-match-case-switch
+ -
+ - radioitem search-range-selection
+ - radioitem search-range-document
+ - radioitem search-range-open-docs
 
 document_syntaxstyle_contextmenu:
  - checkitem document-syntaxmode-c
@@ -67,3 +71,8 @@ document_lineendchar_contextmenu:
  - checkitem document-EOL-lf
  - checkitem document-EOL-cr
  - checkitem document-EOL-cr+lf
+
+document_info_contexmenu:
+ - checkitem document-statusinfo-length
+ - checkitem document-statusinfo-date
+ - checkitem document-statusinfo-none

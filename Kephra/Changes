@@ -1,3 +1,10 @@
+0.3.4
+
+ + srarchbar contextmenu extended for search range
+ + documentlist menu extended
+ ~ format and convert function much faster
+ ! change font crash
+
 0.3.3
  ? new configurable GUI, commands and event system
  + rebuild mainmenu
@@ -60,14 +67,14 @@
  ! php lexer fixed
  ! over 35 bugfixes
 
- 
+
 0.2.3
  ? feature enhancement and bug fix
  * file sessions
  * on quit dialog for selecting files to save
  + open multiple files via dialog
  + history for search and replace strings
- + xp style now optional 
+ + xp style now optional
  [ close current file with middle click on tabbar
  ! open empty files
 
@@ -221,14 +228,14 @@
         Statusbar: cursorpos, eol, spaaces, style
         save and load external configs, handling close window event
         config: many new styles, contextmenu, color and caret settings
-0.1.24: SECOND COMPLETE RELEASE (incl. PRE 0.2pre1)! 
+0.1.24: SECOND COMPLETE RELEASE (incl. PRE 0.2pre1)!
         file menu: reopen, save copy as,
         edit menu: Replace, Undo History, brace comment, Selection Move, line move
                    indent unindent,  script comment uncomment,
         search menu: find, find next, find previous, find selection, 3Bookmarks
                      goto line number,
         view menu: hard tabs, whitespace, 4Margins, Line Wrap, font dialog, View EOL
-        config menu: open, load and save config on the fly, default config file 
+        config menu: open, load and save config on the fly, default config file
         autsaves now all properties, save before exit, Keyboard Map, Licenses
         C-style, CSS Style, HTML-Style, select and autoselect Syntaxstyle
         remember file, asks for filename if you save new file, better Perl-style
@@ -236,7 +243,7 @@
 0.1: FIRST COMPLETE RELEASE(incl. PRE 0.2)!, startexe, english Menu,
         file menu: new file, open, save file, save as
         edit menu: undo, redo, cut, copy, paste, clear, select all
-        view menu: linenumbermargin, long line indikator, 
+        view menu: linenumbermargin, long line indikator,
         colored gutter, first syntaxstyle(perl), filename in tab and the title
 
 Legend:

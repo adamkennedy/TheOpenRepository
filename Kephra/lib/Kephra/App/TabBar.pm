@@ -10,8 +10,7 @@ use Wx qw(
 );
 use Wx::Event qw(
 	EVT_LEFT_UP EVT_LEFT_DOWN EVT_MIDDLE_UP EVT_BUTTON
-	EVT_ENTER_WINDOW EVT_LEAVE_WINDOW
-	EVT_NOTEBOOK_PAGE_CHANGED
+	EVT_ENTER_WINDOW EVT_LEAVE_WINDOW EVT_NOTEBOOK_PAGE_CHANGED
 );
 
 sub _get      { $Kephra::app{window}{(APPROOT)} }
@@ -104,9 +103,9 @@ sub refresh_label {
 	$doc_nr ||= 0;
 	return unless defined $Kephra::temp{'document'}{'open'}[$doc_nr];
 
-	my $doc_internals = \%{ $Kephra::temp{'document'}{'open'}[$doc_nr] };
+	my $doc_internals = $Kephra::temp{'document'}{'open'}[$doc_nr];
 	my $label         = $doc_internals->{'name'};
-	$label = "<$Kephra::localisation{app}{tabbar}{untitled}>" unless $label;
+	$label = "<$Kephra::localisation{app}{general}{untitled}>" unless $label;
 
 	my $max_tab_width = $config->{'tab_width'};
 	if ( ( $max_tab_width > 7 ) and ( length($label) > $max_tab_width ) ) {

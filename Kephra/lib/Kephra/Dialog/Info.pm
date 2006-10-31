@@ -10,7 +10,7 @@ sub combined {
 
 	my $info_win = Wx::Frame->new(
 		Kephra::App::Window::_get(), -1,
-		" Info About Kepher",
+		" Info About Kephra",
 		[ 100, 100 ],
 		[ 460, 260 ],
 		wxSYSTEM_MENU | wxCAPTION | wxMINIMIZE_BOX | wxCLOSE_BOX,

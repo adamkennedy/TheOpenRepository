@@ -1,5 +1,5 @@
 package Kephra::Document::Change;
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 # changing the current document
 
@@ -16,8 +16,8 @@ sub to_number {
 		Kephra::File::save_current() if $Kephra::config{'file'}{'save'}{'change_doc'};
 		Kephra::Document::Internal::change_pointer($newtab);
 		Kephra::App::TabBar::set_current_page($newtab);
-		Kephra::App::Window::refresh_title();
 		Kephra::Document::Internal::eval_properties($newtab);
+		Kephra::App::Window::refresh_title();
 		Kephra::Edit::_center_caret();
 		Kephra::Document::_set_previous_nr($oldtab);
 	}

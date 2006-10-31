@@ -64,6 +64,7 @@ sub add {
 		Kephra::Document::_set_current_nr($doc_nr);
 		reset_properties();
 		eval_properties();
+		Kephra::App::Window::refresh_title();
 		Kephra::App::EditPanel::Margin::autosize_line_number();
 		Kephra::App::EventList::trigger('document.list');
 	}
@@ -197,14 +198,14 @@ sub eval_properties {
 			if $doc_data->{'directory'};
 	} else { $Kephra::config{'file'}{'current'}{'directory'} = '' }
 	Kephra::Edit::_let_caret_visible();
-	Kephra::App::StatusBar::refresh();
+	#Kephra::App::StatusBar::refresh();
+	Kephra::App::EditPanel::set_word_chars();
 	Kephra::App::EditPanel::paint_bracelight()
 		if $Kephra::config{'editpanel'}{'indicator'}{'bracelight'}{'visible'};
 	Wx::Window::SetFocus($ep) unless $Kephra::temp{'dialog'}{'control'};
 	
 	# is that really necesary ?
-	Kephra::App::EventList::trigger
-		('document.text.select','document.text.change','document.savepoint');
+	Kephra::App::EventList::trigger('document.savepoint','document.text.change');
 }
 
 

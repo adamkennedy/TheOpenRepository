@@ -6,7 +6,7 @@ use Wx qw(:stc);    #Kephra::Dialog::msg_box(undef,$fr,"");+
 
 # Comment
 sub add_block {
-	my $ep = &Kephra::App::STC::_get;
+	my $ep = &Kephra::App::EditPanel::_get;
 	my $csymbol = shift;
 	my ( $lb, $lie );
 
@@ -25,7 +25,7 @@ sub add_block {
 }
 
 sub remove_block {
-	my $ep = &Kephra::App::STC::_get;
+	my $ep = &Kephra::App::EditPanel::_get;
 	my $csymbol = shift;
 	my $lp;
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart() );
@@ -42,7 +42,7 @@ sub remove_block {
 }
 
 sub toggle_block {
-	my $ep = &Kephra::App::STC::_get;
+	my $ep = &Kephra::App::EditPanel::_get;
 	my $csymbol  = shift;
 	my ($lb, $lie);
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart() );
@@ -60,7 +60,7 @@ sub toggle_block {
 }
 
 sub format_block {
-	my $ep = Kephra::App::STC::_get();
+	my $ep = Kephra::App::EditPanel::_get();
 	my $csymbol  = shift;
 	my $lp;
 	my $a = $ep->LineFromPosition( $ep->GetSelectionStart );
@@ -73,7 +73,7 @@ sub format_block {
 }
 
 sub add_stream {
-	my $ep = Kephra::App::STC::_get();
+	my $ep = Kephra::App::EditPanel::_get();
 	my ( $openbrace, $closebrace ) = (@_);
 	my ( $startpos, $endpos ) = $ep->GetSelection;
 	my ( $commentpos, $firstopos, $lastopos, $firstcpos, $lastcpos )
@@ -113,7 +113,7 @@ sub add_stream {
 }
 
 sub remove_stream {    #o=openposition c=closeposition
-	my $sciframe = Kephra::App::STC::_get();
+	my $sciframe = Kephra::App::EditPanel::_get();
 	my ( $openbrace, $closebrace ) = (@_);
 	my ( $startpos, $endpos )
 		= ( $sciframe->GetSelectionStart(), $sciframe->GetSelectionEnd() );

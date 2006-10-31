@@ -1,5 +1,5 @@
 package Kephra::App::ContextMenu;
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 use strict;
 use constant CFGROOT => 'contextmenu';# name of root node in configs
@@ -9,16 +9,28 @@ sub get{ &Kephra::App::Menu::ready }
 #
 sub create_all {
 	my $config = $Kephra::config{app}{(CFGROOT)};
-	my $file_name = $Kephra::temp{path}{config} . $config->{defaultfile};
-	my ($tempname, $start_node) = 'contextmenus';
-	my $menu_def = YAML::LoadFile($file_name);# DumpFile
+	my $default_file = $Kephra::temp{path}{config} . $config->{defaultfile};
+	my $default_menu_def = Kephra::Config::File::load($default_file);
+
 	for my $menu_id (keys %{$config->{id}}){
 		if (not ref $menu_id){
-			$start_node = $config->{id}{$menu_id};
+#print "contexmenu $menu_id\n";
+			my $start_node = $config->{id}{$menu_id};
 			substr($start_node, 0, 1) eq '&'
 				? Kephra::App::Menu::create_dynamic($menu_id, $start_node)
-				: Kephra::App::Menu::create_static
-					($menu_id, $menu_def->{$start_node});
+				: do {
+					my $menu_def = Kephra::Config::Tree::get_subtree
+						($default_menu_def, $start_node);
+					Kephra::App::Menu::create_static ($menu_id, $menu_def);
+				}
+		} elsif (ref $menu_id eq 'HASH'){
+			my $menu = $config->{id}{$menu_id};
+			next unless exists $menu->{file};
+			my $file_name = $Kephra::temp{path}{config} . $menu->{file};
+			next unless -e $file_name;
+			my $menu_def = Kephra::Config::File::load($file_name);
+			$menu_def = Kephra::Config::Tree::get_subtree($menu_def, $menu->{node});
+			Kephra::App::Menu::create_static($menu_id, $menu_def);
 		}
 	}
 }

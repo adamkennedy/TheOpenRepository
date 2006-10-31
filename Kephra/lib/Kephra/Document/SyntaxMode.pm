@@ -29,6 +29,12 @@ sub _get_by_fileending {
 	return $language_id;
 }
 
+sub switch_auto {
+	my $auto_style = _get_auto();
+	if (get() ne $auto_style) {change_to($auto_style)}
+	else                      {change_to('none')     }
+}
+
 sub reload { change_to( get() ) }
 
 sub change_to {

@@ -13,13 +13,15 @@ use Wx::Event qw(
 # EVT_STC_CHARADDED EVT_STC_MODIFIED
 
 # get pointer to the event list
-sub _get        { $Kephra::app{'eventlist'} }
+sub _get		{ $Kephra::app{'eventlist'} }
 sub _get_frozen { $Kephra::temp{'eventlist'} }
 
 
 sub init {
 	my $win = Kephra::App::Window::_get();
 	my $ep  = Kephra::App::EditPanel::_get();
+	$Kephra::app{'eventlist'}{'test'} = 1;
+	$Kephra::temp{'eventlist'}{'test'} = 1;
 
 	# events for whole window
 	EVT_CLOSE      ($win,  sub { trigger('app.close'); Kephra::quit() });
@@ -27,21 +29,30 @@ sub init {
 	EVT_MENU_OPEN  ($win,  sub { trigger('menu.open') });
 
 	# scintilla and editpanel events
+	connect_editpanel();
 	EVT_DROP_FILES ($ep,   \&Kephra::File::add_dropped); # override sci presets
-	EVT_STC_CHANGE ($ep, -1, sub {
-		my ( $ep, $event ) = @_;
-		$Kephra::document{'current'}{'edit_pos'} = $ep->GetCurrentPos;
-		trigger('document.text.change');
-#print "change \n";
-	});
 
 	EVT_ENTER_WINDOW ($ep,   sub {
 		Wx::Window::SetFocus( $ep ) unless $Kephra::temp{'dialog'}{'active'};
 		trigger('editpanel.focus');
 	});
-	#EVT_SET_FOCUS           ($stc,    sub {});
+	#EVT_SET_FOCUS		   ($stc,	sub {});
 
-	EVT_STC_UPDATEUI        ($ep, -1, sub {
+	EVT_STC_SAVEPOINTREACHED($ep, -1, \&Kephra::File::savepoint_reached);
+	EVT_STC_SAVEPOINTLEFT   ($ep, -1, \&Kephra::File::savepoint_left);
+	#EVT_STC_MARGINCLICK	 ($stc, -1, sub {Kephra::Dialog::msg_box($_[0], '')});
+}
+
+sub connect_editpanel{
+	my $ep  = Kephra::App::EditPanel::_get();
+
+	EVT_STC_CHANGE ($ep, -1, sub {
+		my ( $ep, $event ) = @_;
+		$Kephra::document{'current'}{'edit_pos'} = $ep->GetCurrentPos;
+		trigger('document.text.change');#print "change \n";
+	});
+
+	EVT_STC_UPDATEUI		($ep, -1, sub {
 		my ( $ep, $event) = @_;
 		my ( $sel_beg, $sel_end ) = $ep->GetSelection;
 		my $prev_selected = $Kephra::temp{'current_doc'}{'text_selected'};
@@ -50,10 +61,13 @@ sub init {
 			if $Kephra::temp{'current_doc'}{'text_selected'} xor $prev_selected;
 		Kephra::App::EventList::trigger('caret.move');
 	});
+}
 
-	EVT_STC_SAVEPOINTREACHED($ep, -1, \&Kephra::File::savepoint_reached);
-	EVT_STC_SAVEPOINTLEFT   ($ep, -1, \&Kephra::File::savepoint_left);
-	#EVT_STC_MARGINCLICK     ($stc, -1, sub {Kephra::Dialog::msg_box($_[0], '')});
+sub disconnect_editpanel{
+	my $ep  = Kephra::App::EditPanel::_get();
+
+	EVT_STC_CHANGE  ($ep, -1, sub {});
+	EVT_STC_UPDATEUI($ep, -1, sub {});
 }
 
 

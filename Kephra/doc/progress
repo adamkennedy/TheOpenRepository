@@ -1,6 +1,7 @@
 BUGS:
- ! keypressed on kontext menu
- ! textchanged event double
+ !!! keypressed on kontext menu
+ !! textchanged event triggers twice
+ !! combobox text event triggers twice
  ! loose session on forced exit
 
 TODO:
@@ -9,12 +10,50 @@ TODO:
  + file history menu
  + document history menu
  + add search range to searchbar contexmenu
- ~ caching interface data
- ~ centralized interface data loading
 
+
+0.3.3.17
+ + switch syntaxhighlight when left click on third status pane
+ ~ correct refresh while rename file
+ [ file rename got shortcut <ctrl>+<alt>+<shift>+<S>
+
+0.3.3.16
+ + find next and prev in searchbar now also with F3 and shift+F3
+ ~ perl sigils and namespaceseparator now word chars
+ ! searched first when setting find item with strg+F3
+ ! crash while call replace with confirmation
+
+0.3.3.15
+ ~ doclist menu shows untitled
+ ~ less events on doc change fired
+ ! correct window title while open file or session reload if current doc is last
+ ! state of find menu items
+ ! crash when saving a file that was in a recently deleted dir
+
+0.3.3.14
+ [ proper searchdialog replace input update
+ [ put config dialog call into main menu
+ [ searchbar find input size now changeable due config file
+ ] config node "file > current > session" renamed to "file > session"
+ ] config node "file > filter" renamed to "file > group"
+ ! dynamic doc list menu is updating again
+
+0.3.3.13
+ ~ config dialog cleanup
+ ~ extracting ::Edit::Changes.pm
+ ~ proper searchbar find input update
+ ~ proper searchdialog find input update
+ ~ doc edit commands much faster now, they use event freeze
+ [ exit dialog shows file names again
+ ! event freeze was brokes
+
+0.3.3.12
+ ~ updated starter exe in win distro
+ ~ benchmark output switchable
 
 0.3.3.11
-
+ ~ search range items in main and searchbar context menu
+ ~ doc change items in doclist menu
 
 0.3.3.10
  ~ merged with adams code version
@@ -58,13 +97,13 @@ TODO:
 
 0.3.3.1
  ~ edit contex menu fixed and chenged
- [ item label: Fortran -> Fortran 90 
+ [ item label: Fortran -> Fortran 90
  ! change font
 
 0.3.3 rounded up for test release
 
 0.3.2.21
- ] new namespace for line number margin 
+ ] new namespace for line number margin
  ] slimmed events, faster now
 
 0.3.2.20
@@ -122,7 +161,7 @@ TODO:
 
 0.3.2.10
  [ EOL checks
- ! fixed tabbar context menu 
+ ! fixed tabbar context menu
 
 0.3.2.9
  ] new Document::SyntaxMode, Edit::Goto and Edit::Select namespaces
@@ -130,7 +169,7 @@ TODO:
  ] dispatch own key events
  - shorten Events.pm
  ! replace all replaced with zero
- 
+
 0.3.2.8
  ] moved last parts of visual.pm code Statusbar.pm and Toolbar.pm
  [ checkitem in syntaxmodeinfo contextmenu
@@ -161,7 +200,7 @@ TODO:
  + searchbar contextmenu
  ! pathname mismatch with numbers
  ! opening changing and save rightmost doc
- 
+
 0.3.2.2
  + drag n drop in search dialog
  [ single wrong indention on tabbar contexmenu
@@ -177,7 +216,7 @@ TODO:
  ] more checks when loading GUI configs
 
 0.3.1.14
- + menuitem radiogroups 
+ + menuitem radiogroups
  + disable menuitems
 
 0.3.1.13
@@ -202,7 +241,7 @@ TODO:
 0.3.1.9
  + contextmenu on selected text
  ] editpanel contextmenus working in minimal mode
- 
+
 0.3.1.8
  ] adding contextmenu gui config file
  ] info dialog cleanup
@@ -270,7 +309,7 @@ TODO:
  ! typo in toolbar
 
 0.3.0.21
- ! no label for unnamed files 
+ ! no label for unnamed files
 
 0.3.0.20
  + chow selected lines in statusbar
@@ -395,12 +434,10 @@ TODO:
 
 0.2.3.42
  ! Bugfix in pce::edit::format::del_trailing_spaces
-
 ... missing some
 
 0.2.3.19
  + strg+Enter menu item document_switch_back
- 
 ... missing some
 
 0.2.3
@@ -422,6 +459,7 @@ TODO:
  [ internal sub now only have one _ prefix
  ! bug in search prev
  ! style repaint on save as bug
+...yes here is inconsistancy due change
 
 0.2.11
  ? feature enhancement and bugfix release

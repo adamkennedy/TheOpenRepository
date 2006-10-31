@@ -76,7 +76,8 @@ sub evaluate {
 	Kephra::App::EventList::delete_all();
 	Kephra::Config::Interface::load_data();
 	my $t1 = new Benchmark;
-print " iface cfg:", Benchmark::timestr( Benchmark::timediff( $t1, $t0 ) ), "\n";
+print " iface cnfg:", Benchmark::timestr( Benchmark::timediff( $t1, $t0 ) ), "\n"
+	if $Kephra::benchmark;
 
 	# set interna to default
 	$Kephra::app{'GUI'}{'masterID'}         = 20;
@@ -86,7 +87,8 @@ print " iface cfg:", Benchmark::timestr( Benchmark::timediff( $t1, $t0 ) ), "\n"
 	Kephra::Config::build_fileendings2syntaxstyle_map();
 	Kephra::Config::build_fileendings_filterstring();
 	my $t2 = new Benchmark;
-print " prep. data:", Benchmark::timestr( Benchmark::timediff( $t2, $t1 ) ), "\n";
+print " prep. data:", Benchmark::timestr( Benchmark::timediff( $t2, $t1 ) ), "\n"
+	if $Kephra::benchmark;
 
 	# main window components
 	Kephra::App::CommandList::eval_data();
@@ -99,7 +101,8 @@ print " prep. data:", Benchmark::timestr( Benchmark::timediff( $t2, $t1 ) ), "\n
 	Kephra::App::StatusBar::create();
 	Kephra::App::assemble_layout();
 	my $t3 = new Benchmark;
-print " create gui:", Benchmark::timestr( Benchmark::timediff( $t3, $t2 ) ), "\n";
+print " create gui:", Benchmark::timestr( Benchmark::timediff( $t3, $t2 ) ), "\n"
+	if $Kephra::benchmark;
 
 	Kephra::App::ContextMenu::connect_all();
 	Kephra::App::EditPanel::apply_settings();
@@ -107,7 +110,8 @@ print " create gui:", Benchmark::timestr( Benchmark::timediff( $t3, $t2 ) ), "\n
 	Kephra::App::EventList::init();
 	Kephra::App::Events::set_table();
 	my $t4 = new Benchmark;
-print " apply sets:", Benchmark::timestr( Benchmark::timediff( $t4, $t3 ) ), "\n";
+print " apply sets:", Benchmark::timestr( Benchmark::timediff( $t4, $t3 ) ), "\n"
+	if $Kephra::benchmark;
 
 	Kephra::Config::Interface::del_temp_data();
 	Kephra::App::CommandList::del_temp_data();

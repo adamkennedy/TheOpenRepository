@@ -8,7 +8,6 @@ full_menubar:
       - item file-insert
       -
       - menu file_history
-      -
       - file_session:
           - item file-session-open
           - item file-session-add
@@ -29,16 +28,16 @@ full_menubar:
       -
       - item app-exit
   - edit:
-      - item edit-records-undo
-      - item edit-records-redo
-      - edit_history:
-          - item edit-records-undo-several
-          - item edit-records-redo-several
+      - item edit-changes-undo
+      - item edit-changes-redo
+      - edit_changes:
+          - item edit-changes-undo-several
+          - item edit-changes-redo-several
           -
-          - item edit-records-goto-begin
-          - item edit-records-goto-end
+          - item edit-changes-goto-begin
+          - item edit-changes-goto-end
           -
-          - item edit-records-delete
+          - item edit-changes-delete
       -
       - item edit-cut
       - item edit-copy
@@ -118,14 +117,18 @@ full_menubar:
           - item replace-all
           - item replace-with-confirm
           - item replace-selection
-      - find_attributes:
-          - checkitem find-attribute-incremental-switch
-          - checkitem find-attribute-autowrap-switch
+      - search_attributes:
+          - checkitem search-attribute-incremental-switch
+          - checkitem search-attribute-autowrap-switch
           -
-          - checkitem find-attribute-regex-switch
-          - checkitem find-attribute-match-whole-word-switch
-          - checkitem find-attribute-match-word-begin-switch
-          - checkitem find-attribute-match-case-switch
+          - checkitem search-attribute-regex-switch
+          - checkitem search-attribute-match-whole-word-switch
+          - checkitem search-attribute-match-word-begin-switch
+          - checkitem search-attribute-match-case-switch
+          -
+          - radioitem search-range-selection
+          - radioitem search-range-document
+          - radioitem search-range-open-docs
       -
       - item goto-line-nr
       - item goto-last-edit
@@ -154,7 +157,7 @@ full_menubar:
           - item bookmark-toggle-0
       - item bookmark-delete-all
   - document:
-      - menu &document_list
+      - menu document_change
       -
       - document_syntaxmode:
           - item document-syntaxmode-auto
@@ -293,6 +296,8 @@ full_menubar:
       - checkitem view-editpanel-whitespace
       - item view-editpanel-font
   - config:
+      - item view-dialog-config#
+      - l#
       - config_app_lang:
           - checkitem config-app-lang-english
           - checkitem config-app-lang-deutsch-iso

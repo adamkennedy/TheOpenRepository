@@ -8,7 +8,7 @@ sub load {
 	my $file_name = Kephra::Dialog::get_file_open(
 		Kephra::App::Window::_get(),
 		$Kephra::localisation{'dialog'}{'file'}{'open_session'},
-		$Kephra::config{'file'}{'current'}{'session'}{'directory'},
+		$Kephra::config{'file'}{'session'}{'directory'},
 		$Kephra::temp{'file'}{'filterstring'}{'config'}
 	);
 	if ( -r $file_name ) {
@@ -47,7 +47,7 @@ sub add {
 	my $file_name = Kephra::Dialog::get_file_open(
 		Kephra::App::Window::_get(),
 		$Kephra::localisation{'dialog'}{'file'}{'add_session'},
-		$Kephra::config{'file'}{'current'}{'session'}{'directory'},
+		$Kephra::config{'file'}{'session'}{'directory'},
 		$Kephra::temp{'file'}{'filterstring'}{'config'}
 	);
 	if ( -r $file_name ) {
@@ -80,7 +80,7 @@ sub add {
 sub save {
 	my $config_file = shift;
 	$config_file = $Kephra::temp{path}{config}
-		. $Kephra::config{'file'}{'current'}{'session'}{'file'}
+		. $Kephra::config{'file'}{'session'}{'file'}
 		unless $config_file;
 	my %temp_config;
 	%temp_config = %{ Kephra::Config::File::load($config_file) }
@@ -98,7 +98,7 @@ sub save {
 sub save_as {
 	my $file_name = Kephra::Dialog::get_file_save( Kephra::App::Window::_get(),
 		$Kephra::localisation{'dialog'}{'file'}{'save_session'},
-		$Kephra::config{'file'}{'current'}{'session'}{'directory'},
+		$Kephra::config{'file'}{'session'}{'directory'},
 		$Kephra::temp{'file'}{'filterstring'}{'config'}
 	);
 	if ( length($file_name) > 0 ) {
@@ -175,13 +175,13 @@ sub export_scite {
 
 # default session handling
 sub store {
-	my $config = $Kephra::config{'file'}{'current'}{'session'};
+	my $config = $Kephra::config{'file'}{'session'};
 	save( $Kephra::temp{path}{config} . $config->{'file'} )
 		if $config->{'save'} eq 'extern';
 }
 
 sub restore {
-	my $config = $Kephra::config{'file'}{'current'}{'session'};
+	my $config = $Kephra::config{'file'}{'session'};
 	my $intern = $Kephra::temp{'document'};
 	my @load_files;
 	my $start_file_nr = $Kephra::document{'current_nr'};
@@ -225,6 +225,7 @@ sub restore {
 		$start_file_nr >= $intern->{'loaded'} and $intern->{'loaded'};
 
 	Kephra::Edit::Bookmark::restore_all();
+	Kephra::App::Window::refresh_title();
 	Kephra::App::EditPanel::Margin::reset_line_number_width();
 	Kephra::Document::Internal::eval_properties($#load_files);
 	Kephra::Document::Change::to_number($start_file_nr);
@@ -233,8 +234,8 @@ sub restore {
 
 sub delete {
 	delete $Kephra::document{'open'}
-		if $Kephra::config{'file'}{'current'}{'session'}{'save'} eq 'not' 
-		or $Kephra::config{'file'}{'current'}{'session'}{'save'} eq 'extern';
+		if $Kephra::config{'file'}{'session'}{'save'} eq 'not' 
+		or $Kephra::config{'file'}{'session'}{'save'} eq 'extern';
 }
 
 # intern
@@ -260,7 +261,7 @@ sub _remember_directory {
 		@dirs = split( /\\/, $filename ) if ( $filename =~ /\\/ );
 		@dirs = split( /\//, $filename ) if ( $filename =~ /\// );
 		$dir .= "$dirs[$_]/" for 0 .. $#dirs - 1;
-		$Kephra::config{'file'}{'current'}{'session'}{'directory'} = $dir if $dir;
+		$Kephra::config{'file'}{'session'}{'directory'} = $dir if $dir;
 	}
 
 }

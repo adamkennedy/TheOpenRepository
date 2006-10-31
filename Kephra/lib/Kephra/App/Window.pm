@@ -41,14 +41,19 @@ sub load_icon {
 
 
 sub set_title {
-	my ( $text, $title ) = shift;
-	my $nv_text = "- $Kephra::NAME $Kephra::VERSION";
-	if ($text) { $title = " $text $nv_text" } 
-	else { $title = " < $Kephra::localisation{app}{tabbar}{untitled} > $nv_text" }
+	my $msg = shift;
+	my $title = " $Kephra::NAME $Kephra::VERSION";
+	if ($msg) { $title = " $msg -$title" } 
+	else {}
 	_get()->SetTitle($title);
 
 }
-sub refresh_title { set_title( Kephra::Document::_get_current_file_path() ) }
+sub refresh_title {
+	my $nr = Kephra::Document::_get_current_nr() + 1;
+	my $path = Kephra::Document::_get_current_file_path();
+	if ($path) { set_title($path) }
+	else       { set_title("<$Kephra::localisation{app}{general}{untitled}>") }
+}
 
 
 sub get_on_top_mode { _get_config()->{'stay_on_top'} }

@@ -5,23 +5,24 @@ $VERSION = '0.30';
 
 use strict;
 use Wx qw(:stc);    #Kephra::Dialog::msg_box(undef,'',"");
-use Wx
-	qw(wxSTC_CMD_LINECUT wxSTC_CMD_LINEDELETE wxSTC_CMD_DELLINELEFT
+use Wx qw(
+	wxSTC_CMD_NEWLINE wxSTC_CMD_LINECUT wxSTC_CMD_LINEDELETE wxSTC_CMD_DELLINELEFT
 	wxSTC_CMD_DELLINERIGHT wxSTC_CMD_UPPERCASE wxSTC_CMD_LOWERCASE
 	wxSTC_CMD_LINETRANSPOSE wxSTC_CMD_LINECOPY wxSTC_CMD_WORDLEFT
-	wxSTC_CMD_WORDRIGHT wxSTC_FIND_WORDSTART wxSTC_CMD_LINEEND 
+	wxSTC_CMD_WORDRIGHT wxSTC_FIND_WORDSTART wxSTC_CMD_LINEEND
 	wxSTC_CMD_DELETEBACK wxSTC_CMD_PASTE
 	wxSTC_MARK_CIRCLE wxSTC_MARK_ARROW wxSTC_MARK_MINUS
 	wxCANCEL);
 
 #
+# internal helper function
 #
 sub _get_panel { Kephra::App::EditPanel::_get() }
-sub _keep_focus{ Wx::Window::SetFocus( Kephra::App::EditPanel::_get() ) }
+sub _keep_focus{ Wx::Window::SetFocus( _get_panel() ) }
 
 sub _let_caret_visible {
 	my $ep = Kephra::App::EditPanel::_get();
-	my ( $selstart, $selend ) = $ep->GetSelection;
+	my ($selstart, $selend) = $ep->GetSelection;
 	my $los = $ep->LinesOnScreen;
 	if ( $selstart == $selend ) {
 		$ep->ScrollToLine($ep->GetCurrentLine - ( $los / 2 ))
@@ -94,7 +95,7 @@ sub _restore_positions {
 	&_let_caret_visible;
 }
 
-sub _select_all_if_non {
+sub _select_all_if_none {
 	my $ep = Kephra::App::EditPanel::_get();
 	my ($start, $end) = $ep->GetSelection;
 	if ( $start == $end ) {
@@ -105,38 +106,7 @@ sub _select_all_if_non {
 	return $ep->GetTextRange( $start, $end );
 }
 
-# history
-sub undo { Kephra::App::EditPanel::_get()->Undo; }
-sub redo { Kephra::App::EditPanel::_get()->Redo; }
-
-sub undo_several {
-	my $ep = Kephra::App::EditPanel::_get();
-	$ep->Undo for 1 .. $Kephra::config{'editpanel'}{'history'}{'fast_undo_steps'};
-}
-
-sub redo_several {
-	my $ep = Kephra::App::EditPanel::_get();
-	$ep->Redo for 1 .. $Kephra::config{'editpanel'}{'history'}{'fast_undo_steps'};
-}
-
-sub undo_begin {
-	my $ep = Kephra::App::EditPanel::_get();
-	$ep->Undo while $ep->CanUndo;
-}
-
-sub redo_end {
-	my $ep = Kephra::App::EditPanel::_get();
-	$ep->Redo while $ep->CanRedo;
-}
-
-sub records_clear { 
-	Kephra::App::EditPanel::_get()->EmptyUndoBuffer;
-	Kephra::App::EventList::trigger('document.savepoint');
-}
-
-sub can_undo  { Kephra::App::EditPanel::_get()->CanUndo}
-sub can_redo  { Kephra::App::EditPanel::_get()->CanRedo}
-sub can_paste { Kephra::App::EditPanel::_get()->CanPaste}
+sub can_paste { Kephra::App::EditPanel::_get()->CanPaste }
 sub can_copy  { $Kephra::temp{'current_doc'}{'text_selected'} }
 
 # simple textedit
@@ -154,6 +124,7 @@ sub replace {
 	$ep->Cut;
 	$ep->EndUndoAction;
 }
+
 sub clear { Kephra::App::EditPanel::_get()->Clear; }
 
 sub del_back_tab{
@@ -165,6 +136,7 @@ sub del_back_tab{
 	do { $ep->CmdKeyExecute(wxSTC_CMD_DELETEBACK) }
 	while $ep->GetCharAt(--$pos) == 32 and --$deltaspace;
 }
+
 
 # Edit Selection
 
@@ -186,7 +158,7 @@ sub selection_move {
 		  < $posinline ) {
 		$newpos = $ep->GetLineEndPosition($targetline);
 	} else { $newpos = $ep->PositionFromLine($targetline) + $posinline }
-	
+
 	$ep->SetCurrentPos($newpos);
 	$ep->InsertText( $newpos, $text );
 	$ep->SetSelection( $newpos, $newpos + length($text) );
@@ -369,7 +341,7 @@ sub blockindent_open {
 	$ep->CmdKeyExecute(wxSTC_CMD_NEWLINE);
 
 	# make new brace if there is missing one
-	if ($Kephra::config{'editpanel'}{'auto'}{'brace'}{'make'} and 
+	if ($Kephra::config{'editpanel'}{'auto'}{'brace'}{'make'} and
 		($matchbrace == -1 or $ep->GetLineIndentation($line) != $matchindent )){
 		$ep->CmdKeyExecute(wxSTC_CMD_NEWLINE);
 		$ep->AddText('}');
@@ -404,7 +376,7 @@ sub blockindent_close {
 
 	# 2 wenn match dann korrigiere einrückung ansonst letzte - tabsize
 	if ( $match > -1 ) {
-		$ep->SetLineIndentation( $line, 
+		$ep->SetLineIndentation( $line,
 			$ep->GetLineIndentation( $ep->LineFromPosition($match) ) );
 	} else {
 		$ep->SetLineIndentation( $line,
@@ -432,6 +404,5 @@ sub blockindent_close {
 }
 
 ##########################
-
 
 1;

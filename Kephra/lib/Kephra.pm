@@ -1,12 +1,13 @@
 package Kephra;
 
-# See end of file for docs, -NI = not implemented, -DEP = depreciated
+# See end of file for docs
+# -NI = not implemented or used, -DEP = depreciated
 
 use 5.006;
 use strict;
 
 our $NAME       = 'Kephra';     # name of entire application
-our $VERSION    = '0.3.3.10';   # program - version
+our $VERSION    = '0.3.3.17';   # program - version
 our @ISA        = 'Wx::App';    # $NAME is a wx application
 
 # used external modules (loaded at start)
@@ -56,6 +57,7 @@ use Kephra::Document::Change;      # calls for changing current doc
 use Kephra::Document::Internal;    # doc handling helper methods
 use Kephra::Document::SyntaxMode;  # doc handling helper methods
 use Kephra::Edit;                  # basic edit menu funktions
+use Kephra::Edit::Changes;         # undo redo etc.
 use Kephra::Edit::Comment;         # comment functions
 use Kephra::Edit::Convert;         # convert functions
 use Kephra::Edit::Format;          # formating functions
@@ -84,6 +86,7 @@ our %help;          # -NI locations of documentation files in current language
 our %temp;          # global internal temp data
 our %localisation;  # all localisation strings in your currently selected lang
 our %syntaxmode;    # -NI
+
 
 # Wx App Events 
 sub OnInit {&Kephra::App::start}   # boot app: init core and load config files

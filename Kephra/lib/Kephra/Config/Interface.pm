@@ -1,11 +1,13 @@
 package Kephra::Config::Interface;
-$VERSION = '0.01';
+$VERSION = '0.02';
  
 use strict;
 
 
 sub load_data {
-	my $conf = $Kephra::config{'app'};
+	my $conf      = $Kephra::config{'app'};
+	my $gui_store = $Kephra::temp{configfile};
+	my $gui_ref   = $Kephra::temp{config};
 	my $conf_path = $Kephra::temp{path}{config};
 
 	# localisation
@@ -14,24 +16,24 @@ sub load_data {
 	# load embedded localisation for emergency cases
 	unless (%Kephra::localisation) {
 		require Kephra::Config::Embedded;
-		%Kephra::localisation = %{&Kephra::Config::Embedded::get_english_localisation};
+		%Kephra::localisation = 
+			%{&Kephra::Config::Embedded::get_english_localisation};
 	}
 
+	# commandlist
+	#Kephra::App::CommandList::load_cache() if $conf->{commandlist}{cache}{use};
+	#Kephra::App::CommandList::load_data();
+	Kephra::App::CommandList::assemble_data();
+	#delete $Kephra::localisation {'commandlist'};
 
 	#try du load from cache first
-	if ($conf->{commandlist}{cache}{use}){
-	} else {
-	}
-
-	Kephra::App::CommandList::assemble_data();
-	store_cache();
-	#delete $Kephra::localisation {'commandlist'};
 }
 
 sub del_temp_data {
+	
 }
 
-sub store_cache {
-}
+sub load_cache {}
+sub store_cache {}
 
 1;

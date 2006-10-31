@@ -2,15 +2,13 @@ package Kephra::Dialog::Search;
 $VERSION = '0.23';
 
 use strict;
-use Wx qw( wxDefaultPosition wxDefaultSize  wxVERTICAL wxHORIZONTAL 
-	wxLEFT wxRIGHT wxTOP wxBOTTOM wxCENTER wxGROW wxEXPAND wxBOTH
+use Wx qw(  
+	wxVERTICAL wxHORIZONTAL wxLEFT wxRIGHT wxTOP wxBOTTOM wxCENTER wxGROW wxEXPAND wxBOTH
 	wxALIGN_LEFT wxALIGN_CENTRE wxALIGN_CENTER_VERTICAL wxALIGN_CENTER_HORIZONTAL
 	wxSYSTEM_MENU wxCAPTION wxDIALOG_NO_PARENT wxSTAY_ON_TOP wxNO_FULL_REPAINT_ON_RESIZE
 	wxSIMPLE_BORDER wxRAISED_BORDER wxNO_BORDER wxRESIZE_BORDER
-	wxCLOSE_BOX wxMINIMIZE_BOX wxFRAME_NO_TASKBAR
-	wxTHICK_FRAME wxTAB_TRAVERSAL wxCLIP_CHILDREN  wxCHK_2STATE  wxRA_SPECIFY_COLS
-	wxTE_PROCESS_ENTER wxTE_LEFT  wxLI_HORIZONTAL   wxBU_EXACTFIT  wxCB_DROPDOWN
-	wxBITMAP_TYPE_XPM
+	wxCLOSE_BOX wxMINIMIZE_BOX wxFRAME_NO_TASKBAR 
+	wxLI_HORIZONTAL   wxBITMAP_TYPE_XPM
 );
 
 use Wx::Event qw(
@@ -18,17 +16,17 @@ use Wx::Event qw(
 	EVT_CHAR EVT_TEXT_ENTER EVT_ENTER_WINDOW
 );
 
-sub _get { $Kephra::app{'dialog'}{'search'} }
-sub _set { $Kephra::app{'dialog'}{'search'} = shift }
+sub _get {$Kephra::app{'dialog'}{'search'} }
+sub _set {$Kephra::app{'dialog'}{'search'} = $_[0] if ref $_[0] eq 'Wx::Frame'}
 ##########################
 # call as find dialog
 sub find {
 	my $d = ready();
 	my $selection = Kephra::App::EditPanel::_get()->GetSelectedText;
-	if ( length $selection > 0 and not $d->{'selection_radio'}->GetValue ) {
+	if ($selection and not $d->{'selection_radio'}->GetValue ) {
 		Kephra::Edit::Search::set_find_item( $selection );
 		$d->{'find_input'}->SetValue( $selection );
-	}
+	} else {$d->{'find_input'}->SetValue( Kephra::Edit::Search::get_find_item())}
 	$d->{'replace_input'}->SetValue( Kephra::Edit::Search::get_replace_item() );
 	Wx::Window::SetFocus( $d->{'find_input'} );
 }
@@ -50,7 +48,7 @@ sub ready {
 	if ( not $Kephra::temp{'dialog'}{'search'}{'active'} ) {
 
 		# prepare some internal var and for better handling
-		my $sci_frame       = &Kephra::App::EditPanel::_get;
+		my $edit_panel      = &Kephra::App::EditPanel::_get;
 		my $attr            = $Kephra::config{'search'}{'attribute'};
 		my $dsettings       = $Kephra::config{'dialog'}{'search'};
 		my $label           = $Kephra::localisation{'dialog'}{'search'}{'label'};
@@ -58,9 +56,9 @@ sub ready {
 		my @find_history    = ();
 		my @replace_history = ();
 		my $ico_dir = $Kephra::temp{path}{config}.$Kephra::config{app}{iconset_path};
-		my $win_style = wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
+		my $d_style = wxNO_FULL_REPAINT_ON_RESIZE | wxSYSTEM_MENU | wxCAPTION
 			| wxMINIMIZE_BOX | wxCLOSE_BOX;
-		$win_style |= wxSTAY_ON_TOP if $Kephra::config{'app'}{'window'}{'stay_on_top'};
+		$d_style |= wxSTAY_ON_TOP if $Kephra::config{'app'}{'window'}{'stay_on_top'};
 		$dsettings->{'position_x'} = 10 if $dsettings->{'position_x'} < 0;
 		$dsettings->{'position_y'} = 10 if $dsettings->{'position_y'} < 0;
 		if ( $Kephra::config{'search'}{'history'}{'use'} ) {
@@ -78,7 +76,7 @@ sub ready {
 			Kephra::App::Window::_get(), -1, 
 			$Kephra::localisation{'dialog'}{'search'}{'title'},
 			[ $dsettings->{'position_x'}, $dsettings->{'position_y'} ],
-			[ 436                       , 268                   ], $win_style );
+			[ 436                       , 268                   ], $d_style );
 		Kephra::App::Window::load_icon
 			( $d, $Kephra::temp{path}{config}.'icon/app/find.ico' );
 		my $panel = Wx::Panel->new( $d, -1 );
@@ -87,7 +85,7 @@ sub ready {
 		# input boxes with labels
 		$d->{'find_label'} = Wx::StaticText->new($panel, -1, $label->{'search_for'} );
 		$d->{'replace_label'} = Wx::StaticText->new($panel, -1, $label->{'replace_with'} );
-		$d->{'find_input'} = Wx::ComboBox->new($panel, -1, '', [-1,-1], [324,22], [@find_history],);
+		$d->{'find_input'} = Wx::ComboBox->new($panel, -1,'', [-1,-1], [324,22], [@find_history]);
 		$d->{'find_input'}->SetDropTarget( SearchInputTarget->new($d->{'find_input'}, 'find'));
 		$d->{'replace_input'} = Wx::ComboBox->new($panel, -1, '', [-1,-1], [324,22], [@replace_history],);
 		$d->{'replace_input'}->SetDropTarget( SearchInputTarget->new($d->{'replace_input'}, 'replace'));
@@ -228,21 +226,20 @@ sub ready {
 		EVT_BUTTON($d, $d->{'close_button'},   sub{ shift->Close() } );
 
 		EVT_CLOSE( $d, \&quit_search_dialog );
-	 #EVT_CHAR
-	 #EVT_COMMAND_TEXT_ENTER($d->{'find_input'},sub {start_search($d);}});
-	 #EVT_KEY_DOWN($d->{'foreward_button'}, \&foreward_keyfilter);
-	 #EVT_KEY_DOWN($d->{'backward_button'}, \&backward_keyfilter);
-	 #EVT_KEY_DOWN($d->{'fast_fore_button'},\&fast_fore_keyfilter);
-	 #EVT_KEY_DOWN($d->{'fast_back_button'},\&fast_back_keyfilter);
-	 #EVT_KEY_DOWN($d->{'first_button'},    \&first_keyfilter);
-	 #EVT_KEY_DOWN($d->{'last_button'},     \&last_keyfilter);
-	 #EVT_KEY_DOWN($d->{'replace_fore'},    \&replace_fore_keyfilter);
-	 #EVT_KEY_DOWN($d->{'replace_back'},    \&replace_back_keyfilter);
-	 #EVT_KEY_DOWN($d->{'range_group'},\&range_keyfilter);
+
+		Kephra::App::EventList::add_call( 'find.item.changed', 'search_dialog', sub {
+			$d->{'find_input'}->SetValue(Kephra::Edit::Search::get_find_item());
+			$d->{'find_input'}->SetInsertionPointEnd;
+		});
+
+		Kephra::App::EventList::add_call( 'replace.item.changed', 'search_dialog', sub {
+			$d->{'replace_input'}->SetValue(Kephra::Edit::Search::get_replace_item());
+			$d->{'replace_input'}->SetInsertionPointEnd;
+		});
 
 		# detecting and selecting search range
-		if ( $sci_frame->LineFromPosition( $sci_frame->GetSelectionStart )
-			!= $sci_frame->LineFromPosition( $sci_frame->GetSelectionEnd ) ) {
+		if ( $edit_panel->LineFromPosition( $edit_panel->GetSelectionStart )
+			!= $edit_panel->LineFromPosition( $edit_panel->GetSelectionEnd ) ) {
 			$Kephra::config{'search'}{'attribute'}{'in'} = 'selection';
 			$d->{'selection_radio'}->SetValue(1);
 			} elsif ( $Kephra::config{'search'}{'attribute'}{'in'} eq 'open_docs' ) {
@@ -574,6 +571,9 @@ sub quit_search_dialog {
 
 	$Kephra::temp{'dialog'}{'search'}{'active'} = 0;
 	$Kephra::temp{'dialog'}{'active'}--;
+
+	Kephra::App::EventList::del_call('find.item', 'search_dialog');
+
 	$win->Destroy();
 }
 #######################

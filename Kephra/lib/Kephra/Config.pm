@@ -78,11 +78,11 @@ sub build_fileendings_filterstring {
 	my $files = $Kephra::localisation{'dialog'}{'file'}{'files'};
 	my $all   = "$Kephra::localisation{dialog}{general}{all} $files (*.*)|*.*";
 	$Kephra::temp{'file'}{'filterstring'}{'all'} = $all;
-	foreach ( keys %{ $Kephra::config{'file'}{'filter'} } ) {
+	foreach ( keys %{ $Kephra::config{'file'}{'group'} } ) {
 		my ( $filter_id, $file_filter ) = ( $_, '' );
 		my $filter_name = ucfirst($filter_id);
 		my @language_ids
-			= split( /\s+/, $Kephra::config{'file'}{'filter'}{$filter_id} );
+			= split( /\s+/, $Kephra::config{'file'}{'group'}{$filter_id} );
 		foreach (@language_ids) {
 			my @fileendings
 				= split( /\s+/, $Kephra::config{'file'}{'endings'}{$_} );

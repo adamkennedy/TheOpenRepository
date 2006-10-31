@@ -128,8 +128,8 @@ sub save_current {
 	my $file_name   = Kephra::Document::_get_current_file_path();
 	my $save_config = $Kephra::config{'file'}{'save'};
 	if ( $ep->GetModify == 1 or $save_config->{'unchanged'} ) {
-		if ( $file_name and length($file_name) > 0 ) {
-			if ( -e $file_name and not -w $file_name ) {
+		if ( $file_name and -e $file_name ) {
+			if (not -w $file_name ) {
 				my $err_msg = $Kephra::localisation{'dialog'}{'error'};
 				Kephra::Dialog::warning_box( Kephra::App::Window::_get(),
 					$err_msg->{write_protected}.'\n'.$err_msg->{write_protected2},
@@ -193,6 +193,10 @@ sub rename {
 		my $old_path_name = Kephra::Document::_get_current_file_path();
 		rename $old_path_name, $new_path_name if $old_path_name;
 		Kephra::Document::set_file_path($new_path_name);
+		Kephra::Document::SyntaxMode::change_to('auto');
+		$Kephra::config{'file'}{'current'}{'directory'} = 
+			$Kephra::temp{'current_doc'}{'directory'};
+		Kephra::App::EventList::trigger('document.list');
 	}
 }
 

@@ -67,20 +67,21 @@ sub apply_settings {
 	Kephra::App::EditPanel::Margin::apply_settings();
 
 	#misc: scroll width, codepage, wordcharss
-	Kephra::App::EditPanel::apply_autowrap_settings();
+	apply_autowrap_settings();
 
 	$ep->SetScrollWidth( $ep->GetEndAtLastLine() );
 	$ep->SetCodePage(0);
-	$ep->SetWordChars( $conf->{'word_chars'} );
+	set_word_chars();
 
 	#interna
 	$ep->SetLayoutCache(wxSTC_CACHE_PAGE);
 	$ep->SetBufferedDraw(1);
 
-	Kephra::Edit::eval_newline_sub();
 	apply_bracelight_settings();
+	Kephra::Edit::eval_newline_sub();
 }
 
+sub set_word_chars { _get()->SetWordChars( _get_config()->{'word_chars'} ) }
 
 sub set_tab_size {
 	my $ep = &_get;

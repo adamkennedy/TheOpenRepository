@@ -5,7 +5,7 @@ use strict;
 use Wx qw(
 	wxDefaultPosition wxDefaultSize   wxGROW wxTOP wxBOTTOM
 	wxVERTICAL 
-	wxSTAY_ON_TOP wxSIMPLE_BORDER wxFRAME_NO_TASKBAR  
+	wxSTAY_ON_TOP wxSIMPLE_BORDER wxFRAME_NO_TASKBAR
 	wxSPLASH_CENTRE_ON_SCREEN wxSPLASH_TIMEOUT 
 	wxBITMAP_TYPE_JPEG wxBITMAP_TYPE_PNG wxBITMAP_TYPE_ICO wxBITMAP_TYPE_XPM
 	wxTheClipboard
@@ -59,16 +59,26 @@ sub start {
 	my $ep = Kephra::App::EditPanel::create();
 	$Kephra::temp{'document'}{'open'}[0]{'pointer'} = $ep->GetDocPointer();
 	$Kephra::temp{'document'}{'buffer'} = 1;
+	print "init app pntr:",
+		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n"
+		if $Kephra::benchmark;
+	my $t1 = new Benchmark;
 	Kephra::Config::Global::load_autosaved();
+	print "glob cfg load:",
+		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t1 ) ), "\n"
+		if $Kephra::benchmark;
+	my $t2 = new Benchmark;
 	if (Kephra::Config::Global::evaluate()) {
 		$frame->Show(1);
-		print "pce startet in:",
-			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
-		my $t2 = new Benchmark;
+		print "configs eval:",
+			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n"
+			if $Kephra::benchmark;
+		my $t3 = new Benchmark;
 		Kephra::File::Session::restore();
 		Kephra::Document::Internal::add($_) for @ARGV;
-		print "pce dateien in:",
-			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t2 ) ), "\n";
+		print "file session:",
+			Benchmark::timestr( Benchmark::timediff( new Benchmark, $t3 ) ), "\n"
+			if $Kephra::benchmark;
 		1;                      # everything is good
 	} else {
 		$app->ExitMainLoop(1);
@@ -80,20 +90,17 @@ sub exit {
 	return if Kephra::Dialog::save_on_exit() eq 'cancel';
 	Kephra::Config::Global::refresh();
 	Kephra::File::Session::store();
-	Kephra::File::Session::delete();
 	Kephra::Config::Global::save_autosaved();
-	if ($Kephra::config{app}{interface_cache}{use}){
-		Kephra::App::CommandList::save_cache() ;
-	}
+	Kephra::App::CommandList::store_cache();
 	Kephra::Config::set_xp_style(); #
-	wxTheClipboard->Flush;       # set copied text free to the global Clipboard
+	wxTheClipboard->Flush;          # set copied text free to the global Clipboard
 	Kephra::App::Window::destroy(); # close window
-	print "pce shut down in:",
-		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n";
+	print "shut down in:",
+		Benchmark::timestr( Benchmark::timediff( new Benchmark, $t0 ) ), "\n"
+		if $Kephra::benchmark;
 }
 
 sub raw_exit { Wx::Window::Destroy(shift) }
-
 
 #sub new_instance { system("pce.exe") }
 

@@ -54,7 +54,7 @@ sub set_file_path {
 	$Kephra::document{'open'}[$doc_nr]{'file_path'} = $file_path;
 	Kephra::Document::Internal::dissect_path( $file_path, $doc_nr );
 	Kephra::App::TabBar::refresh_label($doc_nr);
-	Kephra::App::Window::set_title($file_path);
+	Kephra::App::Window::refresh_title();
 }
 
 sub _get_name_from_nr{
@@ -112,43 +112,24 @@ sub set_tabs_hard  { set_tab_mode(1) }
 sub set_tabs_soft  { set_tab_mode(0) }
 sub switch_tab_mode{ get_tab_mode() ? set_tab_mode(0) : set_tab_mode(1) }
 #
-sub convert_indent2tabs   { convert_indention(1) }
-sub convert_indent2spaces { convert_indention(0) }
-sub convert_indention {
-	my $use_tab = shift;
-	my $ep = Kephra::App::EditPanel::_get();
-	my $indention = $ep->GetUseTabs;
-	my $i;
-	$ep->SetUseTabs($use_tab);
-	$ep->BeginUndoAction();
-	for ( 0 .. $ep->LineFromPosition( $ep->GetLength ) ) {
-		$i = $ep->GetLineIndentation($_);
-		$ep->SetLineIndentation( $_, $i + 1 );
-		$ep->SetLineIndentation( $_, $i );
-	}
-	$ep->EndUndoAction;
-	$ep->SetUseTabs($indention);
-}
+sub convert_indent2tabs   { _edit( \&Kephra::Edit::Convert::indent2tabs  )}
+sub convert_indent2spaces { _edit( \&Kephra::Edit::Convert::indent2spaces)}
+sub convert_spaces2tabs   { _edit( \&Kephra::Edit::Convert::spaces2tabs  )}
+sub convert_tabs2spaces   { _edit( \&Kephra::Edit::Convert::tabs2spaces  )}
+sub del_trailing_spaces   { _edit( \&Kephra::Edit::Format::del_trailing_spaces)}
 
-sub convert_spaces2tabs {
+sub _edit{
+	my $coderef = shift;
+	return unless ref $coderef eq 'CODE';
+	my @txt_events = ('document.text.change','document.text.select','caret.move');
+	Kephra::App::EventList::freeze(@txt_events);
 	Kephra::Edit::_save_positions();
 	Kephra::Edit::Select::document();
-	Kephra::Edit::Convert::spaces2tabs();
+	&$coderef();
 	Kephra::Edit::_restore_positions();
-}
-
-sub convert_tabs2spaces {
-	Kephra::Edit::_save_positions();
-	Kephra::Edit::Select::document();
-	Kephra::Edit::Convert::tabs2spaces();
-	Kephra::Edit::_restore_positions();
-}
-
-sub del_trailing_spaces {
-	Kephra::Edit::_save_positions();
-	Kephra::Edit::Select::document();
-	Kephra::Edit::Format::del_trailing_spaces();
-	Kephra::Edit::_restore_positions();
+	Kephra::App::EventList::thaw(@txt_events);
+	Kephra::App::EventList::trigger(@txt_events);
+	1;
 }
 
 #
