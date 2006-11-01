@@ -164,8 +164,6 @@ BEGIN {
 
 =pod
 
-=head1 METHODS
-
 =head2 new
 
   my $Tests = Test::Inline->new(
