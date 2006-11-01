@@ -1,5 +1,13 @@
 Revision history for Perl extension Chart::Math::Axis.
 
+1.00 Wed  1 Nov 2006
+	- Importing from CVS to new SVN repository
+	- Upgrading tests
+	- Switching from UNIVERSAL::isa to Params::Util::_INSTANCE
+	- Making tests use tainting
+	- Clone segfaults on tainted data, changed to Storable
+	- Creating a chart untaints the data
+
 0.3  Sat Mar 20 2004
 	- Updated Math::BigInt dependency to 1.70 to force them to upgrade
 
