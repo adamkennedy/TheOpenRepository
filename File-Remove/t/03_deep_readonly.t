@@ -44,7 +44,10 @@ sub create_directory {
 	chmod( 0400, $f3 ) or die "chmod 0400 $f3 failed";
 	ok( -f $f3, "Created $f3 ok" );
 	ok( -r $f3, "Created $f3 -r" );
-	ok( ! -w $f3, "Created $f3 -w" );	
+    SKIP: {
+      skip "This test doesn't work as root", 1 if($< == 0 );
+   	  ok( ! -w $f3, "Created $f3 -w" );	
+    };
 }
 
 sub clear_directory {

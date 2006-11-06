@@ -1,5 +1,11 @@
 Revision history for Perl extension File::Remove.
 
+0.34 Mon Nov 6 2006
+    - Update t/03 to skip the "is this file not writable" test when
+      it would fail because the tests are being run by root (as sometimes
+      happens when installing Perl modules). 
+                            --Jesse Vincent (jesse@bestpractical.com)
+
 0.33 Tue 24 Oct 2006
     - Previous release tested ok.
     - Incrementing for production release.
