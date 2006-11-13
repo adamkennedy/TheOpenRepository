@@ -44,30 +44,30 @@ BEGIN {
 
 sub document {
 	my $self     = shift;
-	my $Document = _INSTANCE(shift, 'PPI::Document') or return undef;
+	my $document = _INSTANCE(shift, 'PPI::Document') or return undef;
 
 	# Remove the easy things
-	$Document->prune('Statement::End');
-	$Document->prune('Token::Comment');
-	$Document->prune('Token::Pod');
+	$document->prune('Statement::End');
+	$document->prune('Token::Comment');
+	$document->prune('Token::Pod');
 
 	# Remove redundant braces from ->method()
-	$Document->prune( sub {
-		my $Braces = $_[1];
-		$Braces->isa('PPI::Structure::List')      or return '';
-		$Braces->children == 0                    or return '';
-		my $Method = $Braces->sprevious_sibling   or return '';
-		$Method->isa('PPI::Token::Word')          or return '';
-		$Method->content !~ /:/                   or return '';
-		my $Operator = $Method->sprevious_sibling or return '';
-		$Operator->isa('PPI::Token::Operator')    or return '';
-		$Operator->content eq '->'                or return '';
+	$document->prune( sub {
+		my $braces = $_[1];
+		$braces->isa('PPI::Structure::List')      or return '';
+		$braces->children == 0                    or return '';
+		my $method = $braces->sprevious_sibling   or return '';
+		$method->isa('PPI::Token::Word')          or return '';
+		$method->content !~ /:/                   or return '';
+		my $operator = $method->sprevious_sibling or return '';
+		$operator->isa('PPI::Token::Operator')    or return '';
+		$operator->content eq '->'                or return '';
 		return 1;
 		} );
 
 	# Lets also do some whitespace cleanup
-	$Document->index_locations or return undef;
-	my $whitespace = $Document->find('Token::Whitespace');
+	$document->index_locations or return undef;
+	my $whitespace = $document->find('Token::Whitespace');
 	foreach ( @$whitespace ) {
 		if ( $_->location->[1] == 1 and $_->{content} =~ /\n\z/s ) {
 			$_->delete;
@@ -75,9 +75,9 @@ sub document {
 			$_->{content} = $_->{content} =~ /\n/ ? "\n" : " ";
 		}
 	}
-	$Document->flush_locations;
+	$document->flush_locations;
 
-	$Document;
+	$document;
 }
 
 1;
