@@ -26,8 +26,10 @@ use 5.005;
 use strict;
 use Carp           ('croak');
 use File::Spec     ();
+use File::Temp     ();
 use File::Basename ();
 use Params::Util   ('_STRING', '_CLASS', '_INSTANCE');
+use URI            ();
 use CPAN::Inject   ();
 use CPAN;
 
@@ -52,9 +54,10 @@ sub new {
 	$self->{dists}     = { };
 	$self->{cpan_path} = { };
 
-	# Precalculate the absolute basedir
-	$self->{pip} = File::Spec->rel2abs( $self->pip );
-	$self->{dir} = File::Basename::dirname( $self->pip );
+	# Precalculate the various paths for the P5I file
+	$self->{p5i_uri}   = $self->_p5i_uri( $self->p5i     );
+	$self->{p5i_dir}   = $self->_p5i_dir( $self->p5i_uri );
+	$self->{dir}       = File::Temp::tempdir( CLEANUP => 1 );
 
 	# Create the CPAN injector
 	$self->{inject} ||= CPAN::Inject->from_cpan_config;
@@ -69,16 +72,16 @@ sub read {
 	my $class = shift;
 
 	# Check the file
-	my $pip = shift or croak( 'You did not specify a file name' );
-	croak( "File '$pip' does not exist" )              unless -e $pip;
-	croak( "'$pip' is a directory, not a file" )       unless -f _;
-	croak( "Insufficient permissions to read '$pip'" ) unless -r _;
+	my $p5i = shift or croak( 'You did not specify a file name' );
+	croak( "File '$p5i' does not exist" )              unless -e $p5i;
+	croak( "'$p5i' is a directory, not a file" )       unless -f _;
+	croak( "Insufficient permissions to read '$p5i'" ) unless -r _;
 
 	# Slurp in the file
 	my $contents;
 	SCOPE: {
 		local $/ = undef;
-		open CFG, $pip or croak( "Failed to open file '$pip': $!" );
+		open CFG, $p5i or croak( "Failed to open file '$p5i': $!" );
 		$contents = <CFG>;
 		close CFG;
 	}
@@ -98,13 +101,21 @@ sub read {
 
 	# Class looks good, create our object and hand off
 	return $header->new(
-		pip   => $pip,
+		p5i   => $p5i,
 		lines => \@lines,
 		);
 }
 
-sub pip {
-	$_[0]->{pip};
+sub p5i {
+	$_[0]->{p5i};
+}
+
+sub p5i_uri {
+	$_[0]->{p5i_uri};
+}
+
+sub p5i_dir {
+	$_[0]->{p5i_dir};
 }
 
 sub dir {
@@ -177,6 +188,40 @@ sub _cpan_install {
 
 	# Install via the CPAN::Shell
 	CPAN::Shell->install($distro);
+}
+
+# Takes arbitrary param, returns URI to the P5I file
+sub _p5i_uri {
+	my $uri = _INSTANCE($_[1], 'URI') ? $_[1]
+		: _STRING($_[1])          ? URI->new($_[1])
+		: undef
+		or croak("Not a valid P5I path");
+
+	# Convert generics to file URIs
+	unless ( $uri->scheme ) {
+		# It's a raw filename
+		$uri = URI->new("file:$uri") or croak("Not a valid P5I path");
+	}
+
+	# Make any file paths absolute
+	if ( $uri->isa('URI::file') ) {
+		my $file = File::Spec->rel2abs( $uri->path );
+		$uri = URI->new( "file:$file" );
+	}
+
+	$uri;
+}
+
+sub _p5i_dir {
+	my $uri = _INSTANCE($_[1], 'URI')
+		or croak("Did not pass a URI to p5i_dir");
+
+	# Use a naive method for the moment
+	my $string = $uri->as_string;
+	$string =~ s/\/[^\/]+$//;
+
+	# Return the modified version
+	URI->new( $string, $uri->scheme );
 }
 
 1;
