@@ -1,0 +1,11 @@
+\bCVS\b
+[#~]$
+\.bak$
+\.xls$
+\.zip$
+\.tmp$
+\bblib/
+\bdevel/
+\bmisc/
+\btarballs/
+\bMakefile\b
