@@ -1,0 +1,20 @@
+abstract: ~
+author: Adam Kennedy <adamk@cpan.org>
+build_requires: 
+  Test::More: 0
+distribution_type: module
+generated_by: Module::Install version 0.64
+license: proprietary
+name: EVE-Macro
+no_index: 
+  directory: 
+    - inc
+    - t
+requires: 
+  Config::Tiny: 0
+  File::HomeDir: 0
+  File::Spec: 0
+  Params::Util: 0
+  Win32::GuiTest: 0
+  perl: 5.6.0
+version: 0.01
