@@ -10,7 +10,7 @@ make
 make test (optional but recommended)
 make install
 
-This module uses no C-coded parts in itself, but it  use
+This module uses no C-coded parts in itself, but it uses
 the rar command available under Windsows (WinRar) and Linux.
 Archive::Rar don't work without that.
 
