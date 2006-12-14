@@ -10,13 +10,17 @@ WriteMakefile
     (
      'NAME' => 'Archive::Rar',
      'VERSION_FROM' => 'lib/Archive/Rar.pm', # finds $VERSION
-     'dist' => { COMPRESS => 'gzip -9f', SUFFIX => 'gz' },
      'PREREQ_PM' => {
          'Data::Dumper' => '0',
          'Test::Simple' => '0',
          ($iswindows ? ('Win32::Registry' => '0') : () ),
      },
      'LICENSE' => 'perl',
-     $] >= 5.005 ? ('AUTHOR' => 'jean-marc boulade <jmbperl@hotmail.com>',
-		    'ABSTRACT' => 'Manipulates RAR archives') : ()
+     ($] >= 5.005)
+     ? (
+         'AUTHOR' => 'jean-marc boulade <jmbperl@hotmail.com>',
+		'ABSTRACT' => 'Manipulates RAR archives'
+     )
+     : ()
     );
+
