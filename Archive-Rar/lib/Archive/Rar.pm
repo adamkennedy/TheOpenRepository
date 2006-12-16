@@ -4,7 +4,7 @@ require 5.002;
 
 use strict;
 require Exporter;
-use vars ('@ISA', '@EXPORT', '$VERSION', '$version');
+use vars ('@ISA', '@EXPORT', '$VERSION');
 
 @ISA = qw(Exporter);
 @EXPORT = qw( );
@@ -13,8 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.91';
-$version ="V$VERSION 24/03/2002 (Perl $] $^O)";
+$VERSION = '1.92';
 
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-

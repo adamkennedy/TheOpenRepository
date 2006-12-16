@@ -1,4 +1,10 @@
 
+Version 1.92: 2006-12-16  steffen mueller <smueller@cpan.org>
+	
+	* Switch to using Module::Install as a build tool so we can test
+	  for the availability of 'rar' during Makefile.PL.
+	* Remove additional "$version" variable from lib/Archive/Rar.pm
+
 Version 1.91: 2006-12-14  steffen mueller <smueller@cpan.org>
 
 	Some of these changes were contributed by Alexandr Ciornii:
