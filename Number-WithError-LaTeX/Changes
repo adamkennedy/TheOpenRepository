@@ -1,0 +1,18 @@
+Revision history for Perl extension Number::WithError::LaTeX.
+
+0.05  Mon Dec 18 2006
+  - Fix typo in docs.
+  - No dependency on Math::SymbolicX::Inline any more.
+  - Require Number::WithError 0.08.
+
+0.04  Wed Aug 30 2006
+  - Upgraded to Module::Install 0.64.
+  - Removed SIGNATURE because Module::Signature is still broken.
+  - Removed auto_install from Makefile.PL
+
+0.03  Fri Jun  9 2006
+  - Upgraded to Module::Install 0.63.
+
+0.02  Thu Feb  9 11:39:37 2006
+  - original version as uploaded to CPAN
+
