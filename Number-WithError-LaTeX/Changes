@@ -1,5 +1,12 @@
 Revision history for Perl extension Number::WithError::LaTeX.
 
+0.06  Wed Dec 20 2006
+  - Error report from imacat at
+    http://www.nntp.perl.org/group/perl.cpan.testers/388841
+    suggests a bug with stringification of bignums. (See recent fix in
+    Number::WithError.)
+  ==> Attempt band-aid fix. This might be a wild guess. :(
+
 0.05  Mon Dec 18 2006
   - Fix typo in docs.
   - No dependency on Math::SymbolicX::Inline any more.

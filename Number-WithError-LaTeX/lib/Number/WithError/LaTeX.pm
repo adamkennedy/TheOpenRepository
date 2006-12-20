@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use base 'Number::WithError';
 
@@ -130,7 +130,7 @@ sub latex {
 	$enclose = '' if not defined $enclose;
 	$enclose = '' if _ARRAY0($enclose) and @$enclose != 2;
 	
-	my $str = $self->round();
+	my $str = "".$self->round();
 
 	my $result;
 	pos($str) = 0;
