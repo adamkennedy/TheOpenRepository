@@ -1,8 +1,9 @@
-Revision history for Perl extension Devel-Pler
+Revision history for Perl extension pler
 
 0.15 Mon  1 Jan 2007
 	- Converted from Devel::Pler to just pler.pm to allow
 	  for better installation and documentation on search.cpan.
+	- You can now "cpan -i pler"
 
 0.14 Fri 15 Sep 2006
 	- exec() does not work on Win32 (and we assume cygwin).
