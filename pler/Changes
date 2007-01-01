@@ -1,0 +1,58 @@
+Revision history for Perl extension Devel-Pler
+
+0.15 Mon  1 Jan 2007
+	- Converted from Devel::Pler to just pler.pm to allow
+	  for better installation and documentation on search.cpan.
+
+0.14 Fri 15 Sep 2006
+	- exec() does not work on Win32 (and we assume cygwin).
+	  Instead, use system() which uses more memory, but
+	  does at least work.
+
+0.13 Thu  3 Aug 2006
+	- Bug fixes
+	  (I honestly don't know his this crap gets out to CPAN)
+
+0.12 Thu 25 Jul 2006
+	- Show the list of scripts with no params, or run script
+	  if there is only one in the t directory.
+	- When verbose is off, comment on the script name for clarity
+	- Copying the POD in the Devel::Pler for better toolchain
+	  compatibility.
+
+0.11 missing
+
+0.10 Fri 21 Jul 2006
+	- Added support for refering to scripts by a unique substring
+
+0.09 Thu 20 Jul 2006
+	- Left an ADAMK::Debug reference in 01_compile.t
+
+0.08 Wed 19 Jul 2006
+	- Bug fix to remove remaining ADAMK::Debug references
+	- Fix some other grammar/spelling errors.
+
+0.07 Wed 19 Jul 2006
+	- Renaming apld script to pler :)
+	- Renaming ADAMK::Debug to Devel::Pler
+	- Renaming distribution from ADAMK-Debug to Devel-Pler
+
+0.06 Wed 19 Jul 2006
+	- Add lib to @INC if there is not blib but there is an inc
+
+0.05 Tue 18 Jul 2006
+	- Bug fix
+
+0.04 Tue 18 Jul 2006
+	- This time, make ADAMK::Debug an actual Exporter
+
+0.03 Tue 18 Jul 2006
+	- Call perl -d with -Mblib if needed
+	- Enable warnings in apld by default
+
+0.02 Tue 18 Jul 2006
+	- Run make if needed
+	- Shifted support functions out to the module
+
+0.01 Tue 18 Jul 2006
+	- Created the initial implementation

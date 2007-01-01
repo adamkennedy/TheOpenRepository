@@ -1,0 +1,76 @@
+#!/usr/bin/perl -w
+
+use 5.005;
+use strict;
+use Config;
+use File::Which ();
+use File::Spec::Functions ':ALL';
+use File::Find::Rule ();
+use pler;
+
+# Convenience constants
+use constant FFR  => 'File::Find::Rule';
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.15';
+}
+
+
+
+
+
+#####################################################################
+# Main Script
+
+my $script = shift @ARGV;
+unless ( defined $script ) {
+	print "# No file name pattern provided, using 't'...\n";
+	$script = 't';
+}
+unless ( $script =~ /\.t$/ ) {
+	# Only works in the dist-root for now
+	unless ( in_distroot ) {
+		error "Implied test names can only be used in the dist root";
+	}
+
+	# Get the list of possible tests
+	my @possible = FFR->file->name('*.t')->in( 't' );
+
+	# If a number, look for a numeric match
+	my $pattern = quotemeta $script;
+	my @matches = grep { /$pattern/ } @possible;
+	unless ( @matches ) {
+		error "No tests match '$script'";
+	}
+	if ( @matches > 1 ) {
+		error(
+			"More than one possible test",
+			map { "  $_" } sort @matches,
+		);
+	}
+	$script = $matches[0];
+}
+unless ( -f $script ) {
+	error "Test script '$script' does not exist";
+}
+
+# Rerun make if needed
+if ( in_distroot and has_makefile ) {
+	run( make );
+}
+
+# Build the command to execute
+my @flags = ();
+if ( has_blib ) {
+	push @flags, '-Mblib';
+} elsif ( has_lib ) {
+	push @flags, '-Ilib';
+}
+
+# Hand off to the perl debugger
+unless ( pler->is_verbose ) {
+	message( "# Debugging $script" );
+}
+my @cmd = ( perl, @flags, '-d', $script );
+handoff( @cmd );
