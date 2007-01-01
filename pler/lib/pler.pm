@@ -77,7 +77,7 @@ sub make () {
 	unless ( $found ) {
 		croak("Failed to find '$make' (as specified by \$Config{make})");
 	}
-	return $make;
+	return $found;
 }
 
 sub blib () {
