@@ -1,4 +1,4 @@
-package Devel::Pler;
+package pler;
 
 # Provides the collection of functions for pler
 
@@ -59,6 +59,11 @@ sub Makefile () {
 
 sub perl () {
 	my $perl = $^X;
+	if ( $perl eq 'perl' and ! -f $perl ) {
+		# Some platforms don't provide an absolute $^X
+		# Apply File::Which in this case
+		$perl = File::Which::which( $perl );
+	}
 	unless ( -f $perl ) {
 		croak("Failed to find perl at '$perl'");
 	}
@@ -181,7 +186,7 @@ L<prove>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy. All rights reserved.
+Copyright 2006 - 2007 Adam Kennedy. All rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
