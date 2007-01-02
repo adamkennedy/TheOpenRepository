@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+0.16 Tue  2 Jan 2007
+	- Fixed a test bug I thought I'd fixed already
+
 0.15 Mon  1 Jan 2007
 	- Converted from Devel::Pler to just pler.pm to allow
 	  for better installation and documentation on search.cpan.

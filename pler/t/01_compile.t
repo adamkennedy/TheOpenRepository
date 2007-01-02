@@ -15,7 +15,7 @@ use Test::Script;
 ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the script compile
-use_ok( 'Devel::Pler' );
+use_ok( 'pler' );
 script_compiles_ok( 'bin/pler' );
 
 exit(0);
