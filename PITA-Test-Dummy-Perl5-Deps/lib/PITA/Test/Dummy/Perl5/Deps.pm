@@ -8,7 +8,7 @@ use PITA::Test::Dummy::Perl5::MI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 sub dummy { 'Darren' }
@@ -63,7 +63,7 @@ L<PITA>, L<PITA::Scheme::Perl5::Make>, L<http://ali.as/pita/>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Adam Kennedy, all rights reserved.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.6301';
+	$VERSION = '0.64';
 }
 
 sub dummy { 'Milton' }

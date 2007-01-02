@@ -4,8 +4,8 @@ use Module::Build;
 my $builder = Module::Build->new(
     module_name  => 'PITA::Test::Dummy::Perl5::Build',
     license      => 'perl',
-    dist_author  => 'Adam Kennedy <cpan@ali.as>',
-    dist_version => '1.01',
+    dist_author  => 'Adam Kennedy <adamk@cpan.org>',
+    dist_version => '1.02',
 );
 
 $builder->create_build_script();

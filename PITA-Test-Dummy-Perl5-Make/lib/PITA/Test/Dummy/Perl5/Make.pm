@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.02';
+	$VERSION = '1.03';
 }
 
 sub dummy { 'Mike' }
@@ -46,7 +46,7 @@ Returns the dummy's name, in this case 'Mike'
 
 =head1 AUTHOR
 
-Adam Kennedy, C<< <cpan at ali.as> >>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SUPPORT
 
@@ -60,7 +60,7 @@ L<PITA>, L<PITA::Scheme::Perl5::Make>, L<http://ali.as/pita/>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Adam Kennedy, all rights reserved.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
