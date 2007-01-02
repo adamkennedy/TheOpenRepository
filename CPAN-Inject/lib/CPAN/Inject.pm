@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 
 use vars qw{$VERSION $CHECK_OWNER};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 
 	# Attempt to determine whether or not we are capable
 	# of finding the owner of a directory.
@@ -176,7 +176,7 @@ sub from_cpan_config {
 	my $class = shift;
 
 	# Load the CPAN configuration
-	require CPAN::Config;
+	CPAN::HandleConfig->load;
 
 	# Get the sources directory
 	my $sources = $CPAN::Config->{keep_source_where}
