@@ -12,6 +12,7 @@ requires       'File::Basename' => 0;
 requires       'Getopt::Long'   => 0;
 requires       'Params::Util'   => '0.10';
 requires       'URI'            => 0;
+requires       'LWP::Simple'    => 0;
 build_requires 'Test::More'     => '0.42';
 build_requires 'Test::Script'   => '1.02';
 build_requires 'LWP::Online'    => '0.01';

@@ -26,6 +26,7 @@ BEGIN {
 }
 
 use base 'Module::Plan::Base';
+use URI ();
 
 
 
@@ -43,15 +44,44 @@ sub new {
 		# Strip whitespace and comments
 		next if /^\s*(?:\#|$)/;
 
-		# The line is a file
-		$self->add_file( $_ );
+		# Create the URI
+		my $uri = URI->new_abs( $_, $self->p5i_uri );
+		unless ( $uri ) {
+			croak("Failed to get the URI for $_");
+		}
+
+		# Add the uri
+		$self->add_uri( $uri );
 	}
 
 	$self;
 }
 
+sub fetch {
+	my $self = shift;
+
+	# Download the needed modules
+	foreach my $name ( $self->names ) {
+		next if $self->{dists}->{$name};
+		$self->_fetch_uri( $name );
+	}
+
+	return 1;
+}
+
 sub run {
 	my $self = shift;
+
+	# Fetch again
+	$self->fetch;
+
+	# Download the needed modules
+	foreach my $name ( $self->names ) {
+		next if $self->{dists}->{$name};
+		$self->_fetch_uri( $name );
+	}
+
+	# Inject them into CPAN and install
 	foreach my $name ( $self->names ) {
 		$self->_cpan_inject( $name );
 		$self->_cpan_install( $name );

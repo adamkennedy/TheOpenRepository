@@ -30,6 +30,7 @@ use File::Temp     ();
 use File::Basename ();
 use Params::Util   ('_STRING', '_CLASS', '_INSTANCE');
 use URI            ();
+use LWP::Simple    ();
 use CPAN::Inject   ();
 use CPAN;
 
@@ -51,6 +52,7 @@ sub new {
 
 	# Create internal state variables
 	$self->{names}     = [ ];
+	$self->{uris}      = { };
 	$self->{dists}     = { };
 	$self->{cpan_path} = { };
 
@@ -134,6 +136,15 @@ sub dists {
 	%{ $_[0]->{dists} };
 }
 
+sub uris {
+	my $self = shift;
+	my %copy = %{ $self->{uris} };
+	foreach my $key ( keys %copy ) {
+		$copy{$key} = $copy{$key}->clone;
+	}
+	%copy;
+}
+
 sub inject {
 	$_[0]->{inject};
 }
@@ -153,6 +164,11 @@ sub add_file {
 	$file = File::Spec->rel2abs( $file, $self->dir );
 	my (undef, undef, $name) = File::Spec->splitpath( $file );
 
+	# Check for duplicates
+	if ( scalar grep { $name eq $_ } @{$self->{names}} ) {
+		croak("Duplicate file $name in plan");
+	}
+
 	# Add the name and the file name
 	push @{ $self->{names} }, $name;
 	$self->{dists}->{$name} = $file;
@@ -160,8 +176,67 @@ sub add_file {
 	return 1;
 }
 
+sub add_uri {
+	my $self = shift;
+	my $uri  = _INSTANCE(shift, 'URI') or croak("Did not provide a URI");
+	unless ( $uri->can('path') ) {
+		croak("URI is not have a ->path method");
+	}
+
+	# Split into segments to get the file
+	my @segments = $uri->path_segments;
+	my $name     = $segments[-1];
+
+	# Check for duplicates
+	if ( scalar grep { $name eq $_ } @{$self->{names}} ) {
+		croak("Duplicate file $name in plan");
+	}
+
+	# Add the name and the file name
+	push @{ $self->{names} }, $name;
+	$self->{uris}->{$name} = $uri;
+
+	return 1;
+}
+
 sub run {
 	die ref($_[0]) . " does not implement 'run'";
+}
+
+sub _fetch_uri {
+	my $self = shift;
+	my $name = shift;
+	my $uri  = $self->{uris}->{$name};
+	unless ( $uri ) {
+		die("Unknown uri for $name");
+	}
+
+	# Determine the dists file name
+ 	my $file = File::Spec->catfile( $self->{dir}, $name );
+	if ( -f $file ) {
+		die("File $file already exists");
+	}
+	$self->{dists}->{$name} = $file;
+
+	# Download the URI to the destination
+	my $content = LWP::Simple::get( $uri );
+	unless ( defined $content ) {
+		croak("Failed to download $uri");
+	}
+
+	# Save the file
+	unless ( open( DOWNLOAD, '>', $file ) ) {
+		croak("Failed to open $file to write");
+	}
+	binmode( DOWNLOAD );
+	unless ( print DOWNLOAD $content ) {
+		croak("Failed to write to $file");
+	}
+	unless ( close( DOWNLOAD ) ) {
+		croak("Failed to close $file");
+	}
+
+	return 1;
 }
 
 sub _cpan_inject {

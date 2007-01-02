@@ -1,5 +1,8 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.05 Wed  3 Jan 2007
+	- Added basic URI support
+
 0.04 Wed 26 Oct 2006
 	- Added the -i option to install a particular tarball
 
