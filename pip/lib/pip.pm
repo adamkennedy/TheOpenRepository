@@ -107,7 +107,7 @@ use Module::Plan::Base;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 
@@ -134,7 +134,7 @@ sub main_install {
 	require Module::Plan::Lite;
 	my $file = shift;
 	Module::Plan::Lite->new(
-		pip   => 'default.p5i',
+		p5i   => 'default.p5i',
 		lines => [ '', $file ],
 		);
 }
