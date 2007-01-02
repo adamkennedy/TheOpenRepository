@@ -1,8 +1,8 @@
 use strict;
 use inc::Module::Install;
 
-name           'Module-Plan-Base';
-all_from       'lib/Module/Plan/Base.pm';
+name           'pip';
+all_from       'lib/pip.pm';
 requires       'Carp'           => 0;
 requires       'CPAN'           => '1.76';
 requires       'CPAN::Inject'   => '0.01';
@@ -14,6 +14,7 @@ requires       'Params::Util'   => '0.10';
 requires       'URI'            => 0;
 build_requires 'Test::More'     => '0.42';
 build_requires 'Test::Script'   => '1.02';
+build_requires 'LWP::Online'    => '0.01';
 install_script 'bin/pip';
 
 WriteAll;

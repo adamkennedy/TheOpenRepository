@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
 BEGIN {
@@ -12,6 +12,7 @@ unless ( $ENV{TEST_P5I_URI} ) {
 }
 
 plan( tests => 10 );
+
 use File::Spec::Functions ':ALL';
 use Module::Plan::Base;
 
@@ -24,6 +25,6 @@ use Module::Plan::Base;
 
 # Test with the repository URI
 SKIP: {
-	my $plan = Module::Plan::Base->read( $ENV{TEST_P5I_URI );
+	my $plan = Module::Plan::Base->read( $ENV{TEST_P5I_URI} );
 	isa_ok( $plan, 'Module::Plan::Lite' );
 }
