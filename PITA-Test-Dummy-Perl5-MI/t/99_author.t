@@ -19,7 +19,7 @@ if ( length($@) ) {
 }
 
 my $v = $PITA::Test::Dummy::Perl5::MI::VERSION;
-my $e = 0.6301;
+my $e = 0.64;
 if ( $v == $e ) {
 	print "ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' == '$e' )\n";
 } else {
