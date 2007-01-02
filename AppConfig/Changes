@@ -1,4 +1,13 @@
 #========================================================================
+# Version 1.64  Date: 2007/01/02 (Adam Kennedy)
+#========================================================================
+
+* Bug fix to prevent crashing for users with no home directory
+
+* Increase File::HomeDir dep to 0.61 which supports no home directory
+  cases properly.
+
+#========================================================================
 # Version 1.63  Date: 2006/08/03 (Adam Kennedy)
 #========================================================================
 
