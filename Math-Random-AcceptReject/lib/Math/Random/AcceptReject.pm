@@ -48,7 +48,7 @@ distributed random numbers to mostly arbitrary probability density functions
 (I<PDF>s).
 
 Note that whereas J. von Neumann's algorithm can transform from arbitrary
-source PDFs arbitrary destination PDFs, this module is currently limited to
+source PDFs to arbitrary destination PDFs, this module is currently limited to
 uniform C<[0,1]> source PDFs!
 
 =head1 METHODS
