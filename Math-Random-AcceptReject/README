@@ -34,7 +34,7 @@ DESCRIPTION
     functions (*PDF*s).
 
     Note that whereas J. von Neumann's algorithm can transform from
-    arbitrary source PDFs arbitrary destination PDFs, this module is
+    arbitrary source PDFs to arbitrary destination PDFs, this module is
     currently limited to uniform "[0,1]" source PDFs!
 
 METHODS
@@ -78,10 +78,10 @@ SEE ALSO
     The examples in the examples/ subdirectory of this distribution.
 
 AUTHOR
-    Steffen Müller, <smueller@cpan.org>
+    Steffen Mueller, <smueller@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2007 by Steffen Müller
+    Copyright (C) 2007 by Steffen Mueller
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself, either Perl version 5.6 or, at your
