@@ -4,8 +4,7 @@ package Image::Delivery;
 
 =head1 NAME
 
-Image::Delivery - Sophisticated ultra-efficient delivery of generated website
-images
+Image::Delivery - Efficient transformation and delivery of web images
 
 =head1 INTRODUCTION
 
@@ -13,7 +12,7 @@ Many web applications generate or otherwise deliver graphics as part of their
 interface. Getting the delivery of these images right is tricky, and
 developers usually need to make trade-offs in order to get a usable mechanism.
 
-Image::Delivery is an extremely sophisticated module for deliverying these
+Image::Delivery is an extremely sophisticated module for delivering these
 generated images. It is designed to be powerful, flexible, extensible,
 scalable, secure, stable and correct, and use a minimum of resources.
 
@@ -39,7 +38,7 @@ use cases that drove it.
   get the image without a CGI hit.
 
 The solution to this problem, and the primary mechanism that Image::Delivery
-implements could be called "Static Delivery vis Cached Disk", but is best
+implements could be called "Static Delivery via Cached Disk", but is best
 demonstrated with the diagram outlined in General Structure below.
 
 =head2 Use Case 2: Thumbnails
@@ -458,29 +457,22 @@ sub _exists {
 
 - Add pluggable cache cleaners
 
-- Write Image::Delivery::Provider
-
-- Write Image::Delivery::Provider::IOHandle
-
-- Write Image::Delivery::Provider::Scalar
-
-- Write Unit Tests for all of the above
-
 =head1 SUPPORT
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Image%3A%3ADelivery>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Image-Delivery>
 
 For other issues, contact the author
 
 =head1 AUTHORS
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>cpan@ali.asE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
