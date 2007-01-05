@@ -10,12 +10,8 @@ use lib ();
 use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More 'tests' => 49;
@@ -32,12 +28,12 @@ use Image::Delivery::Provider::File ();
 # Preparation
 
 # The test path to use
-my $good_dir = catdir( 't.data', '04_good' );
+my $good_dir = catdir( 't', 'data', '04_good' );
 ok( -d $good_dir, 'Good test directory exists' );
 ok( -w $good_dir, 'Good test directory is writable' );
 
 # ... and one not to.
-my $bad_dir  = catdir( 't.data', '04_bad' );
+my $bad_dir  = catdir( 't', 'data', '04_bad' );
 ok( ! -d $bad_dir, 'Bad test directory is not writable' );
 
 # The derived location for the above
@@ -48,8 +44,8 @@ my $bad_location = HTML::Location->new( $bad_dir, 'http://bad.site/path' );
 isa_ok( $bad_location, 'HTML::Location' );
 
 # Test images to use
-my $image1 = catfile( 't.data', '03_image.gif' );
-my $image2 = catfile( 't.data', '04_help.gif'  );
+my $image1 = catfile( 't', 'data', '03_image.gif' );
+my $image2 = catfile( 't', 'data', '04_help.gif'  );
 ok( (-f $image1 and -r $image1), 'Found usable test image 1' );
 ok( (-f $image2 and -r $image2), 'Found usable test image 2' );
 
@@ -110,11 +106,11 @@ is( $Delivery->filename( $new_provider ), 'e/ee2067f1d7', '->filename(Provider) 
 my $Location = $Delivery->exists( $good_path );
 isa_ok( $Location, 'HTML::Location' );
 is( $Location->uri, 'http://good.site/path/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
-is( $Location->path, 't.data/04_good/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
+is( $Location->path, 't/data/04_good/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
 $Location = $Delivery->exists( $good_provider );
 isa_ok( $Location, 'HTML::Location' );
 is( $Location->uri, 'http://good.site/path/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
-is( $Location->path, 't.data/04_good/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
+is( $Location->path, 't/data/04_good/3/377f84afe0.gif', '->exists(TransformPath) finds the correct existing file' );
 }
 
 { # ->exists returns false ('') when it can't find the existing file
@@ -142,7 +138,7 @@ is( $Delivery->set( $new_path ), undef, '->set(TransformPath) return undef' );
 my $Location = $Delivery->set( $new_provider );
 isa_ok( $Location, 'HTML::Location' );
 is( $Location->uri, 'http://good.site/path/e/ee2067f1d7.gif', '->set returns the expected URI' );
-is( $Location->path, 't.data/04_good/e/ee2067f1d7.gif', '->set returns the expected path' );
+is( $Location->path, 't/data/04_good/e/ee2067f1d7.gif', '->set returns the expected path' );
 
 # Does the written data match the source data?
 is( File::Slurp::read_file($image2), File::Slurp::read_file($Location->path),

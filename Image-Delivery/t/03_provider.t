@@ -8,11 +8,6 @@ use UNIVERSAL 'isa';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'lib') );
-	}
 }
 
 use Test::More 'tests' => 52;
@@ -21,7 +16,7 @@ use IO::File                        ();
 use Image::Delivery                 ();
 use Image::Delivery::Provider::File ();
 
-my $file = catfile('t.data', '03_image.gif');
+my $file = catfile('t', 'data', '03_image.gif');
 
 ok( -f $file, 'Found test file' );
 ok( -r $file, 'Permission to read test file' );

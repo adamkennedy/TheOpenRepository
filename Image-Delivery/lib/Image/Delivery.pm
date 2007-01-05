@@ -237,6 +237,7 @@ some changes.
 
 =cut
 
+use 5.005;
 use strict;
 use UNIVERSAL 'isa', 'can';
 use File::Spec                ();
