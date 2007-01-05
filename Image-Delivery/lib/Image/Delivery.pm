@@ -255,7 +255,7 @@ use Params::Coerce '_TransformPath' => 'Digest::TransformPath';
 
 use vars qw{$VERSION @FILETYPES};
 BEGIN {
-	$VERSION   = '0.12';
+	$VERSION   = '0.13';
 	@FILETYPES = qw{gif jpg png};
 }
 
