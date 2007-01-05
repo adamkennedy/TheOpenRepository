@@ -5,6 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'Math::Random::AcceptReject',
     VERSION_FROM      => 'lib/Math/Random/AcceptReject.pm', # finds $VERSION
+    LICENSE => 'perl',
     PREREQ_PM         => {
         Math::Symbolic => '0.504',
     }, # e.g., Module::Name => 1.1
