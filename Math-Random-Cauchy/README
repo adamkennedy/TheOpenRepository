@@ -28,7 +28,7 @@ DESCRIPTION
     A more general transformation method is implemented in
     Math::Random::AcceptReject.
 
-    The algorithm is from Bobel et al as quoted in the *SEE ALSO* section
+    The algorithm is from Blobel et al as quoted in the *SEE ALSO* section
     below.
 
 METHODS

@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp qw/croak/;
 
@@ -41,7 +41,7 @@ numbers that follow the Cauchy Probability Density Function (I<PDF>).
 A more general transformation method is implemented in
 L<Math::Random::AcceptReject>.
 
-The algorithm is from Bobel et al as quoted in the I<SEE ALSO> section
+The algorithm is from Blobel et al as quoted in the I<SEE ALSO> section
 below.
 
 =head1 METHODS
