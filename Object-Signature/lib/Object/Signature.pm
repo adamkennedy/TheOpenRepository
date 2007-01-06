@@ -86,13 +86,17 @@ On our side is the fact we use Storable. It should be B<much> harder to create
 collisions when you don't control the string, only the structure B<before>
 it goes through Storable.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
+=head1 SEE ALSO
+
+L<Object::Signature::File>, L<http://ali.as/>
+
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Adam Kennedy.
+Copyright 2004 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
