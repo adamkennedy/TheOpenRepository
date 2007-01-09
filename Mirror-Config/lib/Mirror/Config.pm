@@ -30,13 +30,13 @@ sub new {
 sub read {
 	my $class = shift;
 	my $yaml  = YAML::Tiny->read( @_ );
-	$class->new( %$yaml );
+	$class->new( %{ $yaml->[0] } );
 }
 
 sub read_string {
 	my $class = shift;
 	my $yaml  = YAML::Tiny->read_string( @_ );
-	$class->new( %$yaml );
+	$class->new( %{ $yaml->[0] } );
 }
 
 sub write {
