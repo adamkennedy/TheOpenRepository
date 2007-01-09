@@ -1,12 +1,62 @@
 package Mirror::Config;
 
 use 5.005;
-use base 'YAML::Tiny';
+use YAML::Tiny;
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 }
+
+
+
+
+
+#####################################################################
+# Wrapper for the YAML::Tiny methods
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+	return $self;
+}
+
+sub read {
+	my $class = shift;
+	my $yaml  = YAML::Tiny->read( @_ );
+	my $self  = $yaml->[0];
+	bless $self, $class;
+	return $self;
+}
+
+sub read_string {
+	my $class = shift;
+	my $yaml  = YAML::Tiny->read_string( @_ );
+	my $self  = $yaml->[0];
+	bless $self, $class;
+	return $self;
+}
+
+sub write {
+	my $self = shift;
+	my $hash = { %$self };
+	my $yaml = YAML::Tiny->new( $hash );
+	return $yaml->write( @_ );
+}
+
+sub write_string {
+	my $self = shift;
+	my $hash = { %$self };
+	my $yaml = YAML::Tiny->new( $hash );
+	return $yaml->write_string( @_ );
+}
+
+
+
+
+
+#####################################################################
+# Mirror::Config Methods
 
 sub name {
 	$_[0]->{name};
