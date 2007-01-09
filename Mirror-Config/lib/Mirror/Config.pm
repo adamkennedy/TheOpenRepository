@@ -1,7 +1,10 @@
 package Mirror::Config;
 
 use 5.005;
-use YAML::Tiny;
+use strict;
+use Params::Util '_STRING';
+use YAML::Tiny   ();
+use URI          ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -18,37 +21,41 @@ BEGIN {
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
+	if ( _STRING($self->{source}) ) {
+		$self->{source} = URI->new($self->{source});
+	}
 	return $self;
 }
 
 sub read {
 	my $class = shift;
 	my $yaml  = YAML::Tiny->read( @_ );
-	my $self  = $yaml->[0];
-	bless $self, $class;
-	return $self;
+	$class->new( %$yaml );
 }
 
 sub read_string {
 	my $class = shift;
 	my $yaml  = YAML::Tiny->read_string( @_ );
-	my $self  = $yaml->[0];
-	bless $self, $class;
-	return $self;
+	$class->new( %$yaml );
 }
 
 sub write {
 	my $self = shift;
-	my $hash = { %$self };
-	my $yaml = YAML::Tiny->new( $hash );
-	return $yaml->write( @_ );
+	$self->as_yaml_tiny->write( @_ );
 }
 
 sub write_string {
 	my $self = shift;
-	my $hash = { %$self };
-	my $yaml = YAML::Tiny->new( $hash );
-	return $yaml->write_string( @_ );
+	$self->as_yaml_tiny->write_string( @_ );
+}
+
+sub as_yaml_tiny {
+	my $self = shift;
+	my $yaml = YAML::Tiny->( { %$self } );
+	if ( defined $yaml->{source} ) {
+		$yaml->{source} = "$yaml->{source}";
+	}
+	$yaml;
 }
 
 
@@ -60,6 +67,10 @@ sub write_string {
 
 sub name {
 	$_[0]->{name};
+}
+
+sub source {
+	$_[0]->{source};
 }
 
 1;
