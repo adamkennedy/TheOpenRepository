@@ -8,11 +8,12 @@ use File::Flat   ();
 use File::Remove ();
 use File::Which  ();
 
-use vars qw{$VERSION $VERBOSE @EXPORT_OK %EXPORT_TAGS};
+use vars qw{$VERSION @ISA $VERBOSE @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
 	require Exporter;
 
-	$VERSION     = '0.01';
+	$VERSION     = '0.02';
+	@ISA         = ( 'Exporter' );
 	$VERBOSE     = 0 unless defined $VERBOSE;
 	@EXPORT_OK   = qw{ shell chdir copy move remove which };
 	%EXPORT_TAGS = (
