@@ -9,6 +9,7 @@ requires       'File::Basename'   => 0;
 requires       'File::Temp'       => 0;
 requires       'File::Path'       => 0;
 requires       'File::Copy'       => 0;
+requires       'File::Flock'      => 0;
 requires       'File::Remove'     => '0.22';
 requires       'Storable'         => 0;
 requires       'File::Find::Rule' => 0;
