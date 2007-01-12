@@ -3,8 +3,9 @@ package Business::AU::Data::ANZIC;
 use 5.005;
 use strict;
 use IO::File       ();
-use Params::Util   '_CLASS';
+use Parse::CSV     ();
 use File::ShareDir ();
+use Params::Util   '_CLASS';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -12,7 +13,7 @@ BEGIN {
 }
 
 # Locate the file
-my $cvs_file = File::ShareDir::module_file('Business::AU::Data::ANZIC', 'anzic.csv');
+my $csv_file = File::ShareDir::module_file('Business::AU::Data::ANZIC', 'anzic.csv');
 
 
 
