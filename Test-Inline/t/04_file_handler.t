@@ -1,26 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Test as much of Test::Inline::IO::File as we can without having
 # to actually write to disk. We might deal with the last ->write method
 # another time
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
+	require FindBin;
+	$FindBin::Bin = $FindBin::Bin;
 }
 
+use File::Spec::Functions ':ALL';
 use Test::More tests => 13;
 use Test::Inline ();
 

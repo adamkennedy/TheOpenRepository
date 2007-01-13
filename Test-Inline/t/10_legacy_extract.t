@@ -1,26 +1,16 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Check Test::Inline::Extract support for older test styles
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Class::Autouse ':devel';
 use File::Slurp ();
+use File::Spec::Functions ':ALL';
 use Test::More tests => 7;
 use Test::Inline::Extract ();
 

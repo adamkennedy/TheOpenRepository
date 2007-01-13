@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Inline
 
+2.200    Sun 14 Jan 2007
+	- Added Win32 support
+
 2.105    Mon  2 Oct 2006
 	- No functional changes
 	- Upgraded to Module::Install 0.64

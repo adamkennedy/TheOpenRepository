@@ -1,29 +1,19 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Formal testing for Test::Inline.
 # Tests loading and API of classes.
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 # Load the class to test
 use Test::Inline;
 
 # Execute the API test
+use File::Spec::Functions ':ALL';
 use Test::More 'tests' => 100;
 use Test::ClassAPI;
 Test::ClassAPI->execute('complete', 'collisions');

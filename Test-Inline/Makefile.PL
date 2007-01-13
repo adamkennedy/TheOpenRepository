@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 name           'Test-Inline';
@@ -11,9 +12,10 @@ requires       'Config::Tiny'          => '2.00';
 requires       'Params::Util'          => '0.05';
 requires       'Class::Autouse'        => '1.15';
 requires       'Algorithm::Dependency' => '1.02';
-requires       'File::Flat'            => '0.95';
+requires       'File::Flat'            => '1.00';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::ClassAPI'        => '1.02';
+build_requires 'File::Remove'          => 0;
 include        'Test::ClassAPI';
 include        'Class::Inspector';
 install_script 'bin/inline2test';

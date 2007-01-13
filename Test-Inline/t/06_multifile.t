@@ -1,25 +1,16 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Tests the parsing and generation of multiple files
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-use Class::Autouse ':devel';
+use Class::Autouse        ':devel';
+use File::Spec::Functions ':ALL';
+use File::Remove          'remove';
 use Test::More tests => 14;
 use Test::Inline ();
 
@@ -62,15 +53,19 @@ ok( -f $out4,     'Found test_four.t'  );
 ok( -f $manifest, 'Found manifest file' );
 
 # Check the contents of the manifest
-is( $Inline->manifest, <<END_MANIFEST, 'manifest contains expected content' );
+my $manifest_content = <<'END_MANIFEST';
 t/test_four.t
 t/test_one.t
 t/test_three.t
 END_MANIFEST
+if ( $^O eq 'MSWin32' or $^O eq 'cygwin' ) {
+	$manifest_content =~ s/\//\\/g;
+}
+is( $Inline->manifest, $manifest_content, 'manifest contains expected content' );
 
 END {
-	unlink $out1     if -f $out1;
-	unlink $out3     if -f $out3;
-	unlink $out4     if -f $out4;
-	unlink $manifest if -f $manifest;
+	remove($out1)     if -f $out1;
+	remove($out3)     if -f $out3;
+	remove($out4)     if -f $out4;
+	remove($manifest) if -f $manifest;
 }
