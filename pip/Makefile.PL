@@ -8,6 +8,7 @@ requires       'CPAN'           => '1.76';
 requires       'CPAN::Inject'   => '0.01';
 requires       'File::Spec'     => '0.80';
 requires       'File::Which'    => '0.05';
+requires       'File::Temp'     => '0.15';
 requires       'File::Basename' => 0;
 requires       'Getopt::Long'   => 0;
 requires       'Params::Util'   => '0.10';
