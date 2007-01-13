@@ -6,12 +6,6 @@ package Digest::TransformPath;
 
 Digest::TransformPath - Implements the TransformPath concept
 
-=head1 ACKNOWLEDGEMENTS
-
-A big thank you goes out to "coraline" (Richard Soderburg) for bringing the
-caching mechanism of ccache to my attention, which sparked the idea, and upon
-which this module is loosely (very) and conceptually (just barely) based.
-
 =head1 SYNOPSIS
 
   # Pull the original image from the database
@@ -93,7 +87,7 @@ BEGIN {
 
 =head1 METHODS
 
-=head2 new $id [, $string, ... ]
+=head2 new $id [, $transform, $transform, ... ]
 
 The C<new> constructor creates a new Digest::TransformPath object.
 
@@ -104,7 +98,7 @@ string for the identifier.
 
 sub new {
 	my $class = ref $_[0] ? ref shift : shift;
-	my $self = bless [ ], $class;
+	my $self  = bless [ ], $class;
 
 	# Add the id
 	$self->add(shift) or return undef;
@@ -173,20 +167,28 @@ sub digest {
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Digest%3A%3ATransformPath>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Digest-TransformPath>
 
 For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>cpan@ali.asE<gt>
+
+=head1 ACKNOWLEDGEMENTS
 
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
 
+And a big thank you goes out to Richard "coraline" Soderburg for bringing the
+caching mechanism of ccache to my attention, which sparked the idea for
+this module, and upon which this module is loosely (very) and
+conceptually (just barely) based.
+
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
