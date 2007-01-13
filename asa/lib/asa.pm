@@ -154,6 +154,8 @@ sub import {
 
 1;
 
+=pod
+
 =head1 SUPPORT
 
 Bugs should be always be reported via the CPAN bug tracker at
