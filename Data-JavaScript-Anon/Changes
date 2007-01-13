@@ -1,6 +1,6 @@
 Revision history for Perl extension Data::JavaScript::Anon
 
-1.00 Sun 17 Jun 2006
+1.00  Sun 17 Jun 2006
 	- Patch from ARC@cpan.org to fix a variety of small bugs including
 	  CPAN #19915
 
