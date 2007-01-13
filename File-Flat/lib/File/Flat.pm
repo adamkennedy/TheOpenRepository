@@ -8,18 +8,18 @@ package File::Flat;
 
 use 5.005;
 use strict;
-use Cwd         ();
-use File::Spec  ();
-use IO::File    ();
-use prefork 'File::Slurp';
-use prefork 'File::Temp';
-use prefork 'File::Copy';
-use prefork 'File::Copy::Recursive';
-use prefork 'File::Remove';
+use Cwd        ();
+use File::Spec ();
+use IO::File   ();
+use prefork    'File::Slurp';
+use prefork    'File::Temp';
+use prefork    'File::Copy';
+use prefork    'File::Copy::Recursive';
+use prefork    'File::Remove';
 
 use vars qw{$VERSION $errstr %modes $AUTO_PRUNE};
 BEGIN {
-	$VERSION = '0.97';
+	$VERSION = '1.00';
 
 	# The main error string
 	$errstr  = '';
@@ -705,13 +705,14 @@ sub prune {
 		# Does it contain anything, other that (possibly) curdir and updir entries
 		opendir( PRUNEDIR, $dir )
 			or return $self->_error("opendir failed while pruning: $!");
-		foreach ( readdir PRUNEDIR ) {
+		my @files = readdir PRUNEDIR;
+		closedir PRUNEDIR;
+		foreach ( @files ) {
 			next if $_ eq File::Spec->curdir;
 			next if $_ eq File::Spec->updir;
 
 			# Found something, we don't need to prune this,
 			# or anything else for that matter.
-			closedir PRUNEDIR;
 			return 1;
 		}
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension File::Flat.
 
+1.00 Sun 14 Jan 2007
+	- FINALLY completed full functionality on Win32
+
 0.96 Wed 19 Jul 2006
 	- Moving from CVS to new SVN repository
 	- Upgrading to Module::Install
