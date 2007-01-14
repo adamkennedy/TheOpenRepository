@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
-# Compile testing for Mirror::Config
+# Compile testing for Mirror::YAML
 
 use strict;
 BEGIN {
@@ -11,6 +11,4 @@ BEGIN {
 use Test::More tests => 2;
 
 ok( $] >= 5.005, "Your perl is new enough" );
-use_ok('Mirror::Config');
-
-exit(0);
+use_ok('Mirror::YAML');

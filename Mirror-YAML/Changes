@@ -1,4 +1,7 @@
-Revision history for Perl extension Mirror::Config
+Revision history for Perl extension Mirror::YAML
+
+0.02 Sun 14 Jan 2007
+	- Renaming to Mirror::YAML
 
 0.01 Tue  9 Jan 2007
 	- Initial version
