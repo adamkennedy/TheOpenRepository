@@ -1,4 +1,4 @@
-package Mirror::Config;
+package Mirror::YAML;
 
 use 5.005;
 use strict;
@@ -63,7 +63,7 @@ sub as_yaml_tiny {
 
 
 #####################################################################
-# Mirror::Config Methods
+# Mirror::YAML Methods
 
 sub name {
 	$_[0]->{name};
@@ -81,17 +81,17 @@ __END__
 
 =head1 NAME
 
-Mirror Configuration Object
+Mirror::YAML - Mirror Configuration and Auto-Discovery
 
 =head1 DESCRIPTION
 
-blah
+
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mirror-Config>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mirror-YAML>
 
 For other issues, or commercial enhancement or support, contact the author.
 

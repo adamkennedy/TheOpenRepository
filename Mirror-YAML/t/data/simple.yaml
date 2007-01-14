@@ -1,4 +1,9 @@
 ---
 name: JavaScript Archive Network
-source: http://master.openjsan.org/
+master: http://openjsan.org/
 time: 2007-01-10T21:17:52
+mirrors:
+  - uri: http://jsan.caseywest.com/
+  - uri: http://back.openjsan.org/
+  - uri: http://jsan.jp/
+  - uri: http://jsan.nc.cyut.edu.tw/
