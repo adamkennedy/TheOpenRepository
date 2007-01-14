@@ -2,10 +2,13 @@ package Mirror::YAML;
 
 use 5.005;
 use strict;
-use Params::Util '_STRING';
-use YAML::Tiny   ();
-use URI          ();
-use Time::Local  ();
+use Params::Util      qw{ _STRING _POSINT _ARRAY0 _INSTANCE };
+use YAML::Tiny        ();
+use URI               ();
+use Time::HiRes       ();
+use Time::Local       ();
+use LWP::Simple       ();
+use Mirror::YAML::URI ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -22,14 +25,23 @@ BEGIN {
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
-	if ( _STRING($self->{source}) ) {
+	if ( _STRING($self->{uri}) ) {
 		$self->{uri} = URI->new($self->{uri});
 	}
-	if ( _STRING($self->{timestamp}) and ! _POSINT($self->{timestamp} ) {
+	if ( _STRING($self->{timestamp}) and ! _POSINT($self->{timestamp}) ) {
 		unless ( $self->{timestamp} =~ /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)Z$/ ) {
 			return undef;
 		}
-		$self->{timestamp} = Time::Local::timegm( $6, $5, $4, $3, $2, $1 );
+		$self->{timestamp} = Time::Local::timegm( $6, $5, $4, $3, $2 - 1, $1 );
+	}
+	unless ( _ARRAY0($self->{mirrors}) ) {
+		return undef;
+	}
+	foreach ( @{$self->{mirrors}} ) {
+		if ( _STRING($_->{uri}) ) {
+			$_->{uri} = URI->new($_->{uri});
+			$_ = Mirror::YAML::URI->new( %$_ ) or return undef;
+		}
 	}
 	return $self;
 }
@@ -84,8 +96,27 @@ sub timestamp {
 	$_[0]->{timestamp};
 }
 
+sub benchmark {
+	$_[0]->{benchmark};
+}
+
 sub mirrors {
 	@{ $_[0]->{mirrors} };
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub get_all {
+	my $self = shift;
+	foreach my $mirror ( $self->mirrors ) {
+		$mirror->get;
+	}
+	return 1;
 }
 
 1;

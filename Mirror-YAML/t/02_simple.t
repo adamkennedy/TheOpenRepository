@@ -12,12 +12,21 @@ use Test::More tests => 4;
 use File::Spec::Functions ':ALL';
 use Mirror::YAML;
 
+# Basic construction
 my $simple_file = catfile('t', 'data', 'simple.yaml');
 ok( -f $simple_file, "Found test file" );
 my $simple_conf = Mirror::YAML->read($simple_file);
 isa_ok( $simple_conf, 'Mirror::YAML' );
 is( $simple_conf->name, 'JavaScript Archive Network', '->name ok' );
 isa_ok( $simple_conf->uri, 'URI' );
-is( $simple_conf->timestamp, 12346, '->timestamp ok' );
+is( $simple_conf->timestamp, 1168463872, '->timestamp ok' );
+
+
+
+
+
+# Fetch URIs
+my $rv = $simple_conf->get_all;
+
 
 exit(0);
