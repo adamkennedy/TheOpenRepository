@@ -4,7 +4,8 @@ use inc::Module::Install;
 name     'Mirror-YAML';
 all_from 'lib/Mirror/YAML.pm';
 requires 'Params::Util' => '0.10';
-requires 'YAML::Tiny'   => '1.00';
-requires 'URI'          => 0;
+requires 'YAML::Tiny'   => '1.03';
+requires 'URI'          => '1.28';
+requires 'Time::Local'  => '1.13';
 
 WriteAll;

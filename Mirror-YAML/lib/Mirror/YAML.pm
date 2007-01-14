@@ -5,6 +5,7 @@ use strict;
 use Params::Util '_STRING';
 use YAML::Tiny   ();
 use URI          ();
+use Time::Local  ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -22,7 +23,13 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 	if ( _STRING($self->{source}) ) {
-		$self->{source} = URI->new($self->{source});
+		$self->{uri} = URI->new($self->{uri});
+	}
+	if ( _STRING($self->{timestamp}) and ! _POSINT($self->{timestamp} ) {
+		unless ( $self->{timestamp} =~ /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)Z$/ ) {
+			return undef;
+		}
+		$self->{timestamp} = Time::Local::timegm( $6, $5, $4, $3, $2, $1 );
 	}
 	return $self;
 }
@@ -69,8 +76,16 @@ sub name {
 	$_[0]->{name};
 }
 
-sub source {
-	$_[0]->{source};
+sub uri {
+	$_[0]->{uri};
+}
+
+sub timestamp {
+	$_[0]->{timestamp};
+}
+
+sub mirrors {
+	@{ $_[0]->{mirrors} };
 }
 
 1;
