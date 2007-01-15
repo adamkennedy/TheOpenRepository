@@ -11,6 +11,7 @@ BEGIN {
 use Test::More tests => 4;
 use File::Spec::Functions ':ALL';
 use Mirror::YAML;
+use LWP::Online 'online';
 
 # Basic construction
 my $simple_file = catfile('t', 'data', 'simple.yaml');
@@ -26,7 +27,10 @@ is( $simple_conf->timestamp, 1168463872, '->timestamp ok' );
 
 
 # Fetch URIs
-my $rv = $simple_conf->get_all;
-
+SKIP: {
+	skip("Not online", 1) unless online;
+	my $rv = $simple_conf->get_all;
+	ok( $rv, '->get_all ok' );
+}
 
 exit(0);

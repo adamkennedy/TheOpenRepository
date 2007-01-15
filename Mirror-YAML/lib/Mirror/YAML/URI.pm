@@ -54,7 +54,7 @@ sub get {
 	my $self      = shift;
 	my $uri       = URI->new('mirror.yaml')->abs( $self->uri );
 	my $before    = Time::HiRes::time();
-	$self->{yaml} = LWP::Simple::get($uri)) or return undef;
+	$self->{yaml} = LWP::Simple::get($uri) or return undef;
 	$self->{lag}  = Time::HiRes::time() - $before;
 	return 1;
 }
