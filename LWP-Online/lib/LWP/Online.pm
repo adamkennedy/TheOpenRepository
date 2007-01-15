@@ -105,7 +105,7 @@ use LWP::Simple;
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 
 	# We are an Exporter
 	require Exporter;
@@ -269,7 +269,7 @@ L<LWP::Simple>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 Some parts copyright 2000 Sean M. Burke.
 
