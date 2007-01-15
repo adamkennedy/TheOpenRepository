@@ -20,7 +20,7 @@ my $simple_conf = Mirror::YAML->read($simple_file);
 isa_ok( $simple_conf, 'Mirror::YAML' );
 is( $simple_conf->name, 'JavaScript Archive Network', '->name ok' );
 isa_ok( $simple_conf->uri, 'URI' );
-is( $simple_conf->timestamp, 1168463872, '->timestamp ok' );
+is( $simple_conf->timestamp, 1168895872, '->timestamp ok' );
 
 
 
