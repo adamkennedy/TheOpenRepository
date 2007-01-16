@@ -2,10 +2,10 @@ package pip;
 
 use 5.005;
 use strict;
-use File::Spec   ();
-use File::Which  ();
-use Getopt::Long ();
-use Module::Plan::Base;
+use File::Spec         ();
+use File::Which        ();
+use Getopt::Long       ();
+use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
