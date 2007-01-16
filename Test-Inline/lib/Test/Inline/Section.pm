@@ -102,7 +102,7 @@ use Params::Util qw{_ARRAY};
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.200';
+	$VERSION = '2.201';
 	$errstr  = '';
 }
 

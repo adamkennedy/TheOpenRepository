@@ -50,7 +50,7 @@ use Params::Util qw{_INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.200';
+	$VERSION = '2.201';
 }
 
 
@@ -81,7 +81,7 @@ sub new {
 	# Load, check and add the file
 	my $template = File::Slurp::read_file( $file ) or return undef;
 	$template =~ /\[%\s+tests\s+\%\]/              or return undef;
-	$template =~ /\[\%\s+plan\s+\%\]/              or return undef;
+	# $template =~ /\[\%\s+plan\s+\%\]/              or return undef;
 	$self->{template} = $template;
 
 	$self;

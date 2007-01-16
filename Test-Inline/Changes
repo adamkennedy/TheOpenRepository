@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Inline
 
+2.201    Tue 16 Jan 2007
+	- [% plan %] in test2inline templates is no longer compulsory
+
 2.200    Sun 14 Jan 2007
 	- Added Win32 support
 
