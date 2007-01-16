@@ -33,7 +33,7 @@ use Module::Plan::Base;
 
 # Test with the repository URI
 SKIP: {
-	skip("Cannot test unless running as root", 10) unless $< == 0;
+	skip("Cannot test unless running as root", 9) unless $< == 0;
 	my $plan = Module::Plan::Base->read(
 		catdir(qw{ t data 03_uri.p5i })
 		);

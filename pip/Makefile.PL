@@ -16,7 +16,7 @@ requires       'URI'            => 0;
 requires       'LWP::Simple'    => 0;
 build_requires 'Test::More'     => '0.42';
 build_requires 'Test::Script'   => '1.02';
-build_requires 'LWP::Online'    => '0.01';
+build_requires 'LWP::Online'    => '0.02';
 install_script 'bin/pip';
 
 WriteAll;

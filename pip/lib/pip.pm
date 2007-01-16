@@ -1,5 +1,116 @@
 package pip;
 
+use 5.005;
+use strict;
+use File::Spec   ();
+use File::Which  ();
+use Getopt::Long ();
+use Module::Plan::Base;
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.08';
+}
+
+
+
+
+
+#####################################################################
+# Main Function
+
+# Save a copy of @ARGV for error messages
+my $install = 0;
+Getopt::Long::GetOptions(
+	install => \$install,
+);
+
+sub main {
+	unless ( @ARGV ) {
+		die "Did not provide a command";
+	}
+	my $plan = undef;
+	if ( $install ) {
+		$plan = main_install(@ARGV);
+	} else {
+		$plan = main_dwim(@ARGV);
+	}
+	$plan->run;
+}
+
+sub main_dwim {
+	my $param = $_[0];
+
+	# If the first argument is a p5i file, hand off to read
+	if ( $param =~ /\.p5i$/ ) {
+		return main_read(@_);
+	}
+
+	# If the first argument is a tar.gz file, hand off to install
+	if ( $param =~ /\.tar\.gz$/ ) {
+		return main_install(@_);
+	}
+
+	# No idea
+	die "Unknown command '$param'";
+}
+
+sub main_install {
+	require Module::Plan::Lite;
+	my $file = shift;
+	Module::Plan::Lite->new(
+		p5i   => 'default.p5i',
+		lines => [ '', $file ],
+		);
+}
+
+# Create the plan object from a file
+sub main_read {
+	my $pip = @_
+		? shift
+		: File::Spec->curdir;
+	if ( -d $pip ) {
+		$pip = File::Spec->catfile( $pip, 'default.p5i' );
+	}
+	unless ( -f $pip ) {
+		error( "The plan file $pip does not exist" );
+	}
+
+	# Create the plan object
+	my $plan = eval {
+		Module::Plan::Base->read( $pip );
+	};
+	if ( $@ ) {
+		unless ( $@ =~ /The sources directory is not owned by the current user/ ) {
+			# Rethrow the error
+			die $@;
+		}
+
+		# Generate an appropriate error
+		my @msg = (
+			"The current user does not control the default CPAN client",
+			);
+		if ( File::Which::which('sudo') ) {
+			my $cmd = join(' ', 'sudo', '-H', $0, @_);
+			push @msg, "You may need to try again with the following command:";
+			push @msg, "";
+			push @msg, "  $cmd";
+		}
+		error( @msg );
+	}
+
+	return $plan;
+}
+
+sub error {
+	print "\n";
+	print map { $_ . "\n" } @_;
+	print "\n";
+	exit(255);
+}
+
+1;
+
 =pod
 
 =head1 NAME
@@ -7,9 +118,6 @@ package pip;
 pip - Console application for running Perl 5 Installer (P5I) files
 
 =head1 DESCRIPTION
-
-B<WARNING: THIS APPLICATION IS CONSIDERED EXPERIMENTAL. FEATURES
-MAY BE BROKEN OR SUBJECT TO CHANGE. YOU HAVE BEEN WARNED!>
 
 A Perl 5 Installer (P5I) file is a small script-like file that
 describes a set of distributions to install, and integrates the
@@ -97,102 +205,11 @@ equivalent.
 The C<-i> option can be used with any single value supported by
 L<Module::Plan::Lite> (see above).
 
-=cut
-
-use strict;
-use File::Spec   ();
-use File::Which  ();
-use Getopt::Long ();
-use Module::Plan::Base;
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.07';
-}
-
-
-
-
-
-#####################################################################
-# Main Function
-
-# Save a copy of @ARGV for error messages
-my $install = 0;
-Getopt::Long::GetOptions(
-	'install' => \$install,
-	);
-
-sub main {
-	my $plan = $install
-		? main_install(@ARGV)
-		: main_read(@ARGV);
-	$plan->run;
-}
-
-sub main_install {
-	require Module::Plan::Lite;
-	my $file = shift;
-	Module::Plan::Lite->new(
-		p5i   => 'default.p5i',
-		lines => [ '', $file ],
-		);
-}
-
-# Create the plan object from a file
-sub main_read {
-	my $pip = @_
-		? shift
-		: File::Spec->curdir;
-	if ( -d $pip ) {
-		$pip = File::Spec->catfile( $pip, 'default.p5i' );
-	}
-	unless ( -f $pip ) {
-		error( "The plan file $pip does not exist" );
-	}
-
-	# Create the plan object
-	my $plan = eval {
-		Module::Plan::Base->read( $pip );
-	};
-	if ( $@ ) {
-		unless ( $@ =~ /The sources directory is not owned by the current user/ ) {
-			# Rethrow the error
-			die $@;
-		}
-
-		# Generate an appropriate error
-		my @msg = (
-			"The current user does not control the default CPAN client",
-			);
-		if ( File::Which::which('sudo') ) {
-			my $cmd = join(' ', 'sudo', $0, @_);
-			push @msg, "You may need to try again with the following command:";
-			push @msg, "";
-			push @msg, "  $cmd";
-		}
-		error( @msg );
-	}
-
-	return $plan;
-}
-
-sub error {
-	print "\n";
-	print map { $_ . "\n" } @_;
-	print "\n";
-	exit(255);
-}
-
-1;
-
-=pod
-
 =head1 SUPPORT
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/Module-Plan-Base>
+L<http://svn.phase-n.com/svn/cpan/trunk/pip>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.
@@ -210,7 +227,7 @@ If you cannot provide a direct test or fix, or don't have time to do so,
 then regular bug reports are still accepted and appreciated via the CPAN
 bug tracker.
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Plan-Base>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=pip>
 
 For other issues, for commercial enhancement and support, or to have your
 write access enabled for the repository, contact the author at the email
@@ -226,7 +243,7 @@ L<Module::Plan::Base>, L<Module::Plan::Lite>, L<Module::Plan>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
