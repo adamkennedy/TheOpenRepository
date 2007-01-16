@@ -101,6 +101,11 @@ sub read {
 		croak("Invalid header '$header', class is not a Module::Plan::Base subclass");
 	}
 
+	# MSWIN32: we want this because URI encodes backslashes
+	# and encoded backslashes make File::Spec (and later LWP::Simple)
+	# confuse afterwords.
+	$p5i =~ s{\\}{/}g;
+
 	# Class looks good, create our object and hand off
 	return $header->new(
 		p5i   => $p5i,
@@ -281,6 +286,11 @@ sub _p5i_uri {
 	# Make any file paths absolute
 	if ( $uri->isa('URI::file') ) {
 		my $file = File::Spec->rel2abs( $uri->path );
+
+		# MSWIN32: we want this because URI encodes backslashes
+		# and encoded backslashes make LWP::Simple confuse afterwords.
+        $file =~ s{\\}{/}g;
+
 		$uri = URI->new( "file:$file" );
 	}
 
