@@ -34,13 +34,12 @@ sub yaml {
 	$_[0]->{yaml};
 }
 
-sub lag {
-	$_[0]->{lag};
+sub live {
+	!! $_[0]->{live};
 }
 
-sub age {
-	$_[0]->{age} = shift if @_;
-	$_[0]->{age};
+sub lag {
+	$_[0]->{lag};
 }
 
 
@@ -51,12 +50,17 @@ sub age {
 # Main Methods
 
 sub get {
-	my $self      = shift;
-	my $uri       = URI->new('mirror.yaml')->abs( $self->uri );
-	my $before    = Time::HiRes::time();
-	$self->{yaml} = LWP::Simple::get($uri) or return undef;
+	my $self   = shift;
+	my $uri    = URI->new('mirror.yml')->abs( $self->uri );
+	my $before = Time::HiRes::time();
+	my $yaml   = LWP::Simple::get($uri);
+	unless ( $yaml and $yaml =~ /^---/ ) {
+		# Site does not exist, or is broken
+		return $self->{live} = 0;
+	}
 	$self->{lag}  = Time::HiRes::time() - $before;
-	return 1;
+	$self->{yaml} = Mirror::YAML->read_string( $yaml );
+	return $self->{live} = 1;
 }
 
 1;
