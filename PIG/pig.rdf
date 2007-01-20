@@ -1,0 +1,51 @@
+<rdf:RDF
+	xmlns="http://ali.as/ns/pig/0.1#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:doap="http://usefulinc.com/ns/doap#"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+>
+
+<rdfs:Class rdf:about="http://ali.as/ns/pig/0.1#Resource>
+	<rdfs:label lang="en">Name</rdfs:label>
+	<rdfs:comment lang="en">A Software Resource that provides a capability to a program</rdfs:coment>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="http://ali.as/ns/pig/0.1#Library>
+	<rdfs:label lang="en">Library</rdfs:label>
+	<rdfs:comment lang="en">A file containing a collection of functionality</rdfs:comment>
+	<rdfs:subClassOf rdf:resource="http://ali.as/ns/pig/0.1#Resource/>
+</rdfs:Class>
+
+<rdfs:Property rdf:about="http://ali.as/pig#name">
+	<rdfs:label lang="en">Name</rdfs:label>
+	<rdfs:comment lang="en">The name of a distribution or project</rdfs:comment>
+	<rdfs:domain rdf:resource="http://usefulinc.com/ns/doap#Project"/>
+	<rdfs:subPropertyOf rdf:resource="http://usefulinc.com/ns/doap#Name/>
+</rdfs:Property>
+
+<rdfs:Property rdf:about="http://ali.as/pig/requres/runtime">
+	<rdfs:label lang="en">Runtime Dependency</rdfs:label>
+	<rdfs:comment lang="en">The domain requires the range to be installed on the same host at runtime</rdfs:comment>
+	<rdfs:domain rdf:resource="http://ali.as/pig#Project"/>
+</rdfs:Property>
+
+<rdfs:Property rdf:about="http://ali.as/ns/pig/0.1#requires_test">
+	<rdfs:label lang="en"></rdfs:label>
+	<rdfs:comment lang="en"></rdfs:comment>
+	<rdfs:domain rdf:resource="http://ali.as/pig#Project"/>
+</rdfs:Property>
+
+<rdfs:Property rdf:about="http://ali.as/pig/abstract">
+	<rdfs:label lang="en">Abstract</rdfs:label>
+	<rdfs:comment lang="en">A short description of the project</rdfs:comment>
+	<rdfs:domain rdf:resource="http://ali.as/pig#Project"/>
+</rdfs:Property>
+
+license
+author
+name
+version
+distribution_type
+generated_by

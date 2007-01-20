@@ -1,0 +1,48 @@
+<rdf:RDF
+	xmlns="http://ali.as/ns/pig/0.1#"
+	xmlns:cpan="http://ali.as/ns/pig/repo/cpan/0.1#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+	xmlns:owl="http://www.w3.org/2002/07/owl#"
+	xmlns:doap="http://usefulinc.com/ns/doap#"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+>
+
+<Resource>
+	<doap:name>PPI</doap:Name>
+	<doap:shortDesc>Parse, Analyze and Manipulate Perl (without perl)</doap:shortDesc>
+	<doap:version>1.118</doap:version>
+	<provides>
+		<cpan:class>
+			<name>PPI</name>
+			<doap:version>1.118</doap:version>
+		</cpan:class>
+		<cpan:class></cpan:class>
+		<cpan:class></cpan:class>
+		<cpan:class></cpan:class>
+		<cpan:class></cpan:class>
+		<cpan:class></cpan:class>
+	</provides>
+	<requires_test>
+		<language rdf:resource="http://ali.as/ns/pig/lang/0.1#perl5"/>
+		<cpan:class>
+			<name>IO::String</name>
+		</cpan:class>
+	</requires_test>
+	<requires_test>
+		<language rdf:resource="http://ali.as/ns/pig/lang/0.1#perl5"/>
+		<cpan:class>Storable</cpan:class>
+		<minversion>1.07</minversion>
+	</requires_test>
+	<requires_test>
+		<language rdf:resource="http://ali.as/ns/pig/lang/0.1#perl5"/>
+		<minversion>2.14</minversion>
+		<cpan:class>Storable</cpan:class>
+	</requires_test>
+	<requires_test>
+		<language rdf:resource="http://ali.as/ns/pig/lang/0.1#perl5"/>
+		<cpan:class>Carp</cpan:class>
+		<minversion>0</minversion>
+	</requires_test>
+</Resource>
+</rdf:RDF>
