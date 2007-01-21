@@ -13,7 +13,7 @@ user application. It interprates these commands and provides the
 appropriate instructions to the L<JSAN::Client> and L<JSAN::Transport>
 APIs.
 
-=head2 Why Do Another Shell So Soon?
+=head2 Why Do A New Shell?
 
 The JavaScript Archive Network, like its predecessor CPAN, is a large
 system with quite a number of different parts.
@@ -32,19 +32,28 @@ programmatic client interface.
 
 =cut
 
-use 5.006;
+use 5.005;
 use strict;
 use Params::Util    '_IDENTIFIER',
                     '_INSTANCE';
 use Term::ReadLine  ();
+use File::HomeDir   ();
+use File::ShareDir  ();
+use Mirror::YAML    ();
+use LWP::Online     ();
 use JSAN::Transport ();
 use JSAN::Index     ();
 use JSAN::Client    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.00_04';
+	$VERSION = '2.00_05';
 }
+
+# Locate the starting mirror.yml
+use constant MIRROR_INIT => File::ShareDir::module_file(
+	'JSAN::Shell', 'mirror.yml',
+	);
 
 
 
@@ -58,9 +67,9 @@ sub new {
 	my %params = @_;
 
 	# Find a terminal to use
-	my $term = _INSTANCE($params{term}, 'Term::Readline')    # Use an explicitly passed terminal...
-		|| $Term::ReadLine::Perl::term # ... or an existing terminal...
-		|| Term::ReadLine->new;        # ... or create a new one.
+	my $term =  _INSTANCE($params{term}, 'Term::Readline') # Use an explicitly passed terminal...
+	         || $Term::ReadLine::Perl::term                # ... or an existing terminal...
+	         || Term::ReadLine->new;                       # ... or create a new one.
 
 	# Create the actual object
 	my $self = bless {
@@ -75,12 +84,40 @@ sub new {
 			},
 		}, $class;
 
+	# Are we online?
+	unless ( $self->{config}->{offline} ) {
+		$self->_print("Checking for Internet access...");
+		unless ( LWP::Online::online('http') ) {
+			$self->{config}->{offline} = 1;
+		}
+	}
+
+	# Shortcut if offline
+	if ( $self->{config}->{offline} ) {
+		$self->_print("No direct access, offline mode enabled.");
+		return $self;
+	}
+
+	# Locate the best mirror
+	unless ( $self->{config}->{mirror} ) {
+		$self->_print("Locating closest JSAN mirror...");
+		my $mirror_yaml = Mirror::YAML->read( MIRROR_INIT );
+		$mirror_yaml->check_master;
+		my @mirrors = $mirror_yaml->select_mirrors;
+		my $mirror  = $mirrors[ int rand scalar @mirrors ];
+		$self->{config}->{mirror} = $mirror;
+	}
+
 	$self;
 }
 
-sub term { $_[0]->{term} }
+sub term {
+	$_[0]->{term};
+}
 
-sub prompt { $_[0]->{prompt} }
+sub prompt {
+	$_[0]->{prompt};
+}
 
 # Get or create the JSAN::Client object for the shell
 sub client {
@@ -240,10 +277,10 @@ sub command_find {
 
 	# Do the search
 	my @objects = ();
-	push @objects, JSAN::Index::Author->search_like(       login  => $search );
-	push @objects, JSAN::Index::Distribution->search_like( name   => $search );
-	push @objects, JSAN::Index::Release->search_like(      source => $search );
-	push @objects, JSAN::Index::Library->search_like(      name   => $search );
+	push @objects, sort JSAN::Index::Author->search_like(       login  => $search );
+	push @objects, sort JSAN::Index::Library->search_like(      name   => $search );
+	push @objects, sort JSAN::Index::Distribution->search_like( name   => $search );
+	push @objects, sort JSAN::Index::Release->search_like(      source => $search );
 
 	# Did we find anything?
 	unless ( @objects ) {
@@ -500,7 +537,7 @@ sub show_list {
 	foreach my $object ( @_ ) {
 		if ( $object->isa('JSAN::Index::Author') ) {
 			push @output, sprintf(
-				"  Author:        %-10s (\"%s\" <%s>)",
+				"  Author:       %-10s (\"%s\" <%s>)",
 				$object->login,
 				$object->name,
 				$object->email,
@@ -508,25 +545,26 @@ sub show_list {
 
 		} elsif ( $object->isa('JSAN::Index::Distribution') ) {
 			push @output, sprintf(
-				"  Distribution:  %s",
+				"  Distribution: %s",
 				$object->name,
 				);
 
 		} elsif ( $object->isa('JSAN::Index::Release') ) {
 			push @output, sprintf(
-				"  Release:       %s",
+				"  Release:      %s",
 				$object->source,
 				);
 
 		} elsif ( $object->isa('JSAN::Index::Library') ) {
 			push @output, sprintf(
-				"  Library:       %s",
+				"  Library:      %s",
 				$object->name,
 				);
 		}
 	}
 
 	# Summary
+	push @output, "";
 	push @output, "  Found "
 		. scalar(@_)
 		. " matching objects in the index";

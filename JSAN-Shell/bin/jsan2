@@ -1,19 +1,22 @@
 #!/usr/bin/perl
 
-use 5.006;
+use 5.005;
 use strict;
-use warnings;
 use JSAN::Shell ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$| = 1;
-	$VERSION = '2.00_04';
+	$|  = 1;
+	$^W = 1;
+	$VERSION = '2.00_05';
 }
 
 # Launch the shell
 JSAN::Shell->new->run;
+
 exit(0);
+
+__END__
 
 =pod
 
@@ -134,13 +137,7 @@ I haven't gotten around to it yet).
 
 =head1 AUTHOR
 
-=pod
-
-=head1 AUTHORS
-
-Adam Kennedy <F<adam@ali.as>>, L<http://ali.as>
-
-Original by Casey West <F<casey@geeknest.com>>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -148,7 +145,7 @@ L<jsan>, L<JSAN::Shell>, L<JSAN::Client>, L<http://openjsan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Adam Kennedy.  All rights reserved.
+Copyright 2005 - 2007 Adam Kennedy.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
