@@ -373,7 +373,7 @@ sub command_set_prefix {
 	my $self  = shift;
 
 	# Check the prefix directory
-	my $value = shift;
+	my $value = glob shift;
 	unless ( -d $value ) {
 		return $self->_show("The directory '$value' does not exist.");
 	}
