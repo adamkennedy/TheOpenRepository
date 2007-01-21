@@ -20,7 +20,7 @@ JSAN::Transport - JavaScript Archive Network Transport and Resources
   
   # Get an index database connection
   JSAN::Transport->index_dbh;
- 
+
 =head1 DESCRIPTION
 
 C<JSAN::Transport> provides the primary programatic interface for creating
@@ -35,6 +35,7 @@ database connectivity to the JSAN index.
 
 use strict;
 use Carp           ();
+use Digest::MD5    ();
 use File::Spec     ();
 use File::Path     ();
 use File::HomeDir  ();
@@ -45,7 +46,7 @@ use DBI            ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 
 	# Optional prefork.pm support
 	eval "use prefork 'Class::DBI';";
@@ -134,6 +135,10 @@ sub init {
 	$path =~ s/\/+$//;
 	$uri  =~ s/\/+$//;
 
+	# To ensure we don't overwrite cache, hash the uri
+	my $digest = Digest::MD5::md5_hex("$uri");
+	$path = File::Spec->catdir( $path, $digest );
+
 	# Create the mirror_local path if needed
 	-e $path or File::Path::mkpath($path);
 	-d $path or Carp::croak("mirror_local: Path '$path' is not a directory");
@@ -144,6 +149,7 @@ sub init {
 		or Carp::croak("Unexpected error creating URI::ToDisk object");
 
 	$SINGLETON = $self;
+
 	1;
 }
 

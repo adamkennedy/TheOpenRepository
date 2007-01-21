@@ -42,7 +42,7 @@ use JSAN::Index;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 # Bundled version of Params::Util::_INSTANCE

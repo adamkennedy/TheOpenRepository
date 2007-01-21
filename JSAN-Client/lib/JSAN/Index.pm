@@ -66,7 +66,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 # Load the components

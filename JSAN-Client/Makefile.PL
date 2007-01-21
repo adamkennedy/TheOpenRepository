@@ -9,6 +9,7 @@ requires       'File::Spec'            => '0.80';
 requires       'File::Path'            => '1.06';
 requires       'File::HomeDir'         => '0.50';
 requires       'Config::Tiny'          => '2.02';
+requires       'Digest::MD5'           => '2.33';
 requires       'URI'                   => 0 ;
 requires       'URI::ToDisk'           => '0.07';
 requires       'LWP::Simple'           => '1.41';

@@ -1,5 +1,10 @@
 Revision history for Perl extension JSAN::Client
 
+0.15 Mon 22 Jan 2007
+	- Add support for per-mirror hashed subdirs in the cache
+	  (This should ensure we don't accidentally merge
+	   caches from different dates)
+
 0.14 Sun  1 Oct 2006
 	- Ported from HTML::Location to URI::ToDisk
 	- Some minor cleanups
