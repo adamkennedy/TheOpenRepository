@@ -16,7 +16,7 @@ use base 'JSAN::Index::CDBI';
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.15';
+	$VERSION = '0.16';
 	@ISA     = 'JSAN::Index::CDBI';
 }
 
