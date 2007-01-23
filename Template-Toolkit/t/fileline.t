@@ -16,11 +16,19 @@
 # 
 #========================================================================
 
+BEGIN {
+	if ( $^O eq 'MSWin32' ) {
+		print "1..0 # Skip Temporarily skipping on Win32\n";
+		exit(0);
+	}
+}
+
 use strict;
 use lib qw( ./lib ../lib );
 use Template::Test;
 use Template::Parser;
 use Template::Directive;
+
 $^W = 1;
 
 #$Template::Parser::DEBUG = 1;
