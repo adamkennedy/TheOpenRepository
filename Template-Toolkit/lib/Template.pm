@@ -38,7 +38,7 @@ use File::Path;
 
 ## This is the main version number for the Template Toolkit.
 ## It is extracted by ExtUtils::MakeMaker and inserted in various places.
-$VERSION     = '2.15';
+$VERSION     = '2.16';
 $ERROR       = '';
 $DEBUG       = 0;
 $BINMODE     = 0 unless defined $BINMODE;
