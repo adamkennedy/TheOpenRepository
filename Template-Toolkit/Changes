@@ -23,6 +23,28 @@
 #========================================================================
 
 #------------------------------------------------------------------------
+# Version 2.16 - 23rd Jan 2007
+#------------------------------------------------------------------------
+
+This release only contains some minor tweaks to Makefile.PL and
+tests to allow installation on Win32 in cases where installation was
+spuriously failing and thus blocking other modules.
+
+If you already have 2.15 no upgrade is needed under any circumstances.
+
+Build Changes
+-------------
+
+* Skip fileline.t on Win32, as it has some hard-coded path seperator
+  assumptions. This will be fixed more comprehensily later.
+
+* Handle spurious errors in Makefile.PL when a dev version of
+  ExtUtils::MakeMaker is installed.
+
+* Don't say "nmake" on Win32 when $Config{make} is 'dmake'.
+  This corrects the message on Strawberry Perl.
+
+#------------------------------------------------------------------------
 # Version 2.15 - 26th May 2006
 #------------------------------------------------------------------------
 
