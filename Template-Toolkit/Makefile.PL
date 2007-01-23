@@ -27,7 +27,7 @@ if ($^O eq 'MSWin32') {  # any others also?
     $FLAVOUR = 'Win32';
     $PREFIX  = 'C:/Program Files/Template Toolkit 2';
     $IMAGES  = '/tt2/images';
-    $MAKE    = 'nmake';
+    $MAKE    = $Config{make} eq 'dmake' ? 'dmake' : 'nmake';
 }
 else {
     $WIN32   = 0;
@@ -261,7 +261,11 @@ my %opts = (
 
 push @{ $opts{'DIR'} }, 'xs' if $TT_XS_ENABLE;
 
-if ($ExtUtils::MakeMaker::VERSION >= 5.43) {
+# Handle dev versions in our check
+my $mmv = $ExtUtils::MakeMaker::VERSION;
+$mmv =~ s/\_.+//;
+
+if ( $mmv >= 5.43) {
     $opts{ AUTHOR   } = 'Andy Wardley <abw@wardley.org>';
     $opts{ ABSTRACT } = 'comprehensive template processing system',
 }
