@@ -3,9 +3,18 @@
 # Tests that DateTime::Tiny compiles
 
 use strict;
-use Test::More tests => 2;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
-ok( $] >= 5.005, "Your perl is new enough" );
-use_ok( 'DateTime::Tiny' );
+use Test::More tests => 2;
+use DateTime::Tiny;
+
+# Create an object
+SCOPE: {
+	my $blank = DateTime::Tiny->new;
+	isa_ok( $blank, 'DateTime::Tiny' );
+}
 
 exit(0);
