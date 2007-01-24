@@ -194,7 +194,7 @@ The C<year> accessor returns the 4-digit year for the date.
 =cut
 
 sub year {
-	$_[0]->{year};
+	defined $_[0]->{year} ? $_[0]->{year} : 1970;
 }
 
 =pod
@@ -206,7 +206,7 @@ The C<month> accessor returns the 1-12 month of the year for the date.
 =cut
 
 sub month {
-	$_[0]->{month};
+	$_[0]->{month} || 1;
 }
 
 =pod
@@ -218,7 +218,7 @@ The C<day> accessor returns the 1-31 day of the month for the date.
 =cut
 
 sub day {
-	$_[0]->{day};
+	$_[0]->{day} || 1;
 }
 
 =pod
@@ -263,15 +263,18 @@ sub second {
 
 =pod
 
-=head2 ymd
+=head2 ymdhms
 
-The C<ymd> method returns the most common and accurate stringified date
+The C<ymdhms> method returns the most common and accurate stringified date
 format, which returns in the form "2006-04-12".
 
 =cut
 
-sub ymd {
-	sprintf( "%04u-%02u-%02u", $_[0]->year, $_[0]->month, $_[0]->day );
+sub ymdhms {
+	sprintf( "%04u-%02u-%02uT%02u:%02u:%02u",
+		$_[0]->year, $_[0]->month,  $_[0]->day,
+		$_[0]->hour, $_[0]->minute, $_[0]->second,
+	);
 }
 
 
@@ -280,6 +283,39 @@ sub ymd {
 
 #####################################################################
 # Type Conversion
+
+=pod
+
+=head2 from_string
+
+The C<from_string> method creates a new B<DateTime::Tiny> object from a string.
+
+The string is expected to be an ISO 8601 time, with seperators.
+
+  my $almost_midnight = DateTime::Tiny->from_string( '2006-12-20T23:59:59' );
+
+Returns a new B<DateTime::Tiny> object, or throws an exception on error.
+
+=cut
+
+sub from_string {
+	my $class  = shift;
+	my $string = shift;
+	unless ( defined $string and ! ref $string ) {
+		Carp::croak("Did not provide a string to from_string");
+	}
+	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)$/ ) {
+		Carp::croak("Invalid time format (does not match ISO 8601)");
+	}
+	$class->new(
+		year   => $1 + 0,
+		month  => $2 + 0,
+		day    => $3 + 0,
+		hour   => $4 + 0,
+		minute => $5 + 0,
+		second => $6 + 0,
+		);
+}
 
 =pod
 
@@ -294,7 +330,7 @@ a string.
 =cut
 
 sub as_string {
-	$_[0]->ymd;
+	$_[0]->ymdhms;
 }
 
 =pod
