@@ -4,7 +4,7 @@ package Module::Plan::Lite;
 
 =head1 NAME
 
-Module::Script::Lite - Lite installation scripts for third-party modules
+Module::Plan::Lite - Lite installation scripts for third-party modules
 
 =head1 SYNOPSIS
 
