@@ -21,6 +21,10 @@ BEGIN {
 		print "1..0 # Skip Temporarily skipping on Win32\n";
 		exit(0);
 	}
+	if ( $^O eq 'darwin' ) {
+		print "1..0 # Skip Temporarily skipping on darwin\n";
+		exit(0);
+	}
 }
 
 use strict;

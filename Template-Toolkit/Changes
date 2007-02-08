@@ -23,6 +23,26 @@
 #========================================================================
 
 #------------------------------------------------------------------------
+# Version 2.17 - 8th Feb 2007
+#------------------------------------------------------------------------
+
+This release contains a small installer change to force an upgrade to
+File::HomeDir 0.64 on darwin. This is due to problems caused by changes
+made to Perl on the new Intel versions of Mac OS X.
+
+One test continueing to cause problems due to path assumptions has been
+skipped entirely on darwin now as well.
+
+If you already have 2.15 or higher no upgrade is needed.
+
+Build Changes
+-------------
+
+* Add a dependency on File::HomeDir 0.64 if on platform 'darwin'
+
+* skip_all filelines.t on darwin
+
+#------------------------------------------------------------------------
 # Version 2.16 - 23rd Jan 2007
 #------------------------------------------------------------------------
 
