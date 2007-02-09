@@ -3,7 +3,7 @@ package File::Remove;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.34';
+	$VERSION   = '0.35';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 }
@@ -159,7 +159,7 @@ B<File::Remove::trash> accepts the same arguments as B<remove>, with
 the addition of an optional, infrequently used "other platforms"
 hashref.
 
-=head1 METHODS
+=head1 SUBROUTINES
 
 =over 4
 

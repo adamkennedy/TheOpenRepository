@@ -14,7 +14,7 @@ WriteMakefile(
 	#	? ('Win32::FileOp' => 0)
 	#	: (),
 	($^O eq 'darwin')
-		? ('Mac::Glue' => 0)
+		? ('Mac::Glue' => '1.28')
 		: (),
     }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005

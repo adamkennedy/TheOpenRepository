@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Remove.
 
+0.35 Fri 9 Feb 2007  (Stephen Steneker)
+    - Update makefile to require Mac::Glue version compatible with Intel macs
+    - Change pod heading from "methods" to "subroutines" [RT#13687]
+    - No functional changes from 0.34
+
 0.34 Mon Nov 6 2006
     - Update t/03 to skip the "is this file not writable" test when
       it would fail because the tests are being run by root (as sometimes
