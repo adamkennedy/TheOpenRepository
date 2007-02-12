@@ -49,6 +49,9 @@ use File::Spec       ();
 use File::Basename   ();
 use File::Find::Rule ();
 
+# Load child classes
+use Test::File::Cleaner::State ();
+
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.03';
