@@ -99,8 +99,7 @@ sub DESTROY {
 	my $self = shift;
 	return 1 unless $self->{alive};
 	$self->clean;
-	delete $self->{alive};
-	return;
+	return delete $self->{alive};
 }
 
 
