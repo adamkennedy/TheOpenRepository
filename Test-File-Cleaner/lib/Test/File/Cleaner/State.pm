@@ -19,10 +19,13 @@ use 5.005;
 use strict;
 use File::stat ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $DEBUG};
 BEGIN {
 	$VERSION = '0.03';
+	*DEBUG   = *Test::File::Cleaner::DEBUG;
 }
+
+=pod
 
 =head2 new $file
 
@@ -145,7 +148,7 @@ sub clean {
 	my $mode2 = File::stat::stat($path)->mode & 07777;
 	unless ( $mode == $mode2 ) {
 		# Revert the permissions to match the old one
-		printf "# chmod 0%lo %s\n", $mode, $path;
+		printf( "# chmod 0%lo %s\n", $mode, $path ) if $DEBUG;
 		chmod $mode, $path or die "Failed to correct permissions mode for $term '$path'";
 	}
 
@@ -175,20 +178,20 @@ sub remove {
 	unless ( -w $path ) {
 		# Try to give ourself write permissions
 		if ( $self->dir ) {
-			print "# chmod 0777 $path\n";
+			print( "# chmod 0777 $path\n" ) if $DEBUG;
 			chmod 0777, $path or die "Failed to get enough permissions to delete $term '$path'";
 		} else {
-			print "# chmod 0666 $path\n";
+			print( "# chmod 0666 $path\n" ) if $DEBUG;
 			chmod 0666, $path or die "Failed to get enough permissions to delete $term '$path'";
 		}
 	}
 
 	# Now attempt to delete it
 	if ( $self->dir ) {
-		print "# rmdir $path\n";
+		print( "# rmdir $path\n" ) if $DEBUG;
 		rmdir $path or die "Failed to delete $term '$path'";
 	} else {
-		print "# rm $path\n";
+		print( "# rm $path\n" ) if $DEBUG;
 		unlink $path or die "Failed to delete $term '$path'";
 	}
 

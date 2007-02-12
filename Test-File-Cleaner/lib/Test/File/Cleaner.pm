@@ -49,14 +49,13 @@ use File::Spec       ();
 use File::Basename   ();
 use File::Find::Rule ();
 
-# Load child classes
-use Test::File::Cleaner::State ();
-
-use vars qw{$VERSION};
+use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION   = '0.03';
+	$DEBUG   ||= 0;
 }
 
+use Test::File::Cleaner::State ();
 
 
 
@@ -96,12 +95,12 @@ sub new {
 	$self;
 }
 
-# Clean up when we are destroyed
 sub DESTROY {
 	my $self = shift;
 	return 1 unless $self->{alive};
 	$self->clean;
 	delete $self->{alive};
+	return;
 }
 
 

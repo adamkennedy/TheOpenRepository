@@ -11,12 +11,17 @@ BEGIN {
 use Test::More 'tests' => 40;
 use File::stat ();
 use File::Spec::Functions ':ALL';
+
+# Load the module to test
 use Test::File::Cleaner ();
+BEGIN {
+	$Test::File::Cleaner::DEBUG = 0;
+}
 
 # Prepare
 my $root   = catdir( 't',   'data' );
 my $dir1   = catdir( $root, 'dir1' );
-my $states = -d catdir( $root, 'CVS') ? 6 : 2; # Support development testing
+my $states = -d catdir( $root, '.svn') ? 21 : 2; # Support development testing
 
 sub touch($) {
 	open( FILE, ">$_[0]" ) or die "open: $!";
@@ -35,7 +40,7 @@ sub touch($) {
 my $Cleaner1 = Test::File::Cleaner->new( $root );
 isa_ok( $Cleaner1, 'Test::File::Cleaner' );
 is( $Cleaner1->path, $root, '->path return the path' );
-is( scalar(keys %{$Cleaner1->{state}}), $states, 'New cleaner has one state file' );
+is( scalar(keys %{$Cleaner1->{state}}), $states, "New cleaner has $states state file" );
 
 
 
