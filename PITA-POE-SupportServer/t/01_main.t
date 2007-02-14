@@ -20,8 +20,9 @@ my $server = PITA::POE::SupportServer->new(
         $image,
     ],
     http_mirrors => {
-        '/cpan' => '/var/cache/minicpan',
+        '/cpan' => '.',
     },
+    http_local_addr => '127.0.0.1',
 );
 
 ok( 1, 'Server created' ); # 4
