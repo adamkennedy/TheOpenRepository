@@ -82,7 +82,7 @@ scenarios.
 =back
 
 To put it another way, this family of classes is intended to addresses
-the seperation of concerns between the processing of something, and the
+the separation of concerns between the processing of something, and the
 results of something.
 
 The actual ways in which the processes are run, and the handling of the
@@ -103,9 +103,9 @@ sanely with any processing system that follows the API.
 
 =head2 What You Can and Cannot Do
 
-The use of C<Process> is mainly about making guarentees. Because this is
-Perl, it is not necesarily about enforcing those guarentees in a strict
-way. These sorts of guarentees need to be implemented at a language level
+The use of C<Process> is mainly about making guarantees. Because this is
+Perl, it is not necesarily about enforcing those guarantees in a strict
+way. These sorts of guarantees need to be implemented at a language level
 to be meaningful in any case (for example, Perl's tainting or Haskell's
 monads). You may still hang yourself, but it's your own fault if you do.
 
@@ -117,9 +117,9 @@ It's always tempting to say "This acts like Foo, but we added an extra
 return condition for method bar". You may not do this.
 
 C<Process> and a few other members of the family dictate all possible
-return values for C<new>, C<prepare> and C<run> are, and what state the
+return values for C<new>, C<prepare> and C<run>, and what state the
 objects should be in before and after these methods are called in the
-various cases. You may not break from these rules, because larger systems
+various cases. You may not break these rules, because larger systems
 will be depending on them to allow your objects to work with them
 flexibly and flawlessly.
 
@@ -133,7 +133,7 @@ and no class-level variables. You can't leave error messages in a
 global C<$errstr> variable, as some Perl modules do.
 
 This does not mean you can't store data in files. For C<Process> objects
-that generate vast quantities of data it would be unweildy to limit you
+that generate vast quantities of data it would be unwieldy to limit you
 to holding all data in memory at once. However any object data that
 refers to files should use absolute paths.
 
@@ -159,10 +159,10 @@ can be run again after it completes. A specific class
 L<Process::Repeatable> will be provided at a later date for this
 case.
 
-=item You may not interelate with other Process objects
+=item You may not interrelate with other Process objects
 
 In the default case, all C<Process> objects are considered to be
-independant and standalone. They may not have any form of dependency
+independent and standalone. They may not have any form of dependency
 on other C<Process> objects, and they should not expect to communicate
 with any other C<Process> objects.
 
@@ -223,14 +223,14 @@ data storage.
 The C<prepare> method is used to check object params and bind platform
 resources.
 
-The concept of object creation in C<new> is seperated from the concept
+The concept of object creation in C<new> is separated from the concept
 of checking and binding to support storage and transportation in some
 subclasses.
 
 Because many systems that make use of C<Process> do so through the
 desire to push process requests across a network and have them executed
 on a remote host, C<Process> provides the C<prepare> method as
-a means to seperate the checking of the params for general correctness
+a means to separate the checking of the params for general correctness
 from checking of params relative to the system and interpreter the
 process is being run on. It additionally provides a good way to have
 the bulk of serious errors remain attached to the object, and have them
@@ -258,7 +258,7 @@ and returns true.
 Returns true if all params check out ok, and all system resources
 needed for the execution are bound correctly.
 
-Returns false if not, with any errors to be propogated via storage in
+Returns false if not, with any errors to be propagated via storage in
 the object itself, for example in a C<-E<gt>{errstr}> attribute.
 
 The object should B<not> return errors via exceptions. If you expect
@@ -296,7 +296,7 @@ results from the process.
 Returns false if the process was interrupted, or an unexpected
 error occurs. In the default case for C<Process>, no distinction is
 made between the process being interrupted legitimately and any other
-type of unexpected failure. This distinction is only 
+type of unexpected failure.
 
 If the process returns false, it should not be assumed that the process
 can be restarted or rerun. It should be discarded or returned to the
