@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::NeedsDisplay
 
+0.03 Thu Feb 15 2007
+	- pod fix: correct link to RT queue [RT#17950]
+
 0.02 Sun Feb  5 2006
 	- Minor bug fix
 	- Upgrading to Module::Install 0.55
