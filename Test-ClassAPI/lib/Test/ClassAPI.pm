@@ -4,10 +4,10 @@ package Test::ClassAPI;
 # Implemented as a wrapper around Test::More, Class::Inspector and Config::Tiny.
 
 use strict;
-use UNIVERSAL 'isa';
 use Test::More       ();
 use Config::Tiny     ();
 use Class::Inspector ();
+use Params::Util     '_INSTANCE';
 
 use vars qw{$VERSION $CONFIG $SCHEDULE $EXECUTED %IGNORE *DATA};
 BEGIN {
@@ -56,7 +56,7 @@ sub init {
 	my $class = shift;
 
 	# Use the script's DATA handle or one passed
-	*DATA = isa( $_[0], 'GLOB' ) ? shift : *main::DATA;
+	*DATA = UNIVERSAL::isa( $_[0], 'GLOB' ) ? shift : *main::DATA;
  
 	# Read in all the data, and create the config object
 	local $/ = undef;
@@ -139,7 +139,7 @@ sub execute {
 
 				# Does the class inherit from a named parent
 				if ( $type eq 'isa' ) {
-					Test::More::ok( isa( $class, $test ), "$class isa $test" );
+					Test::More::ok( $class->isa($test), "$class isa $test" );
 					next;
 				}
 
@@ -334,11 +334,12 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-opyright (c) 2002-2005 Adam Kennedy. All rights reserved.
+Copyright 2002 - 2007 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
