@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Tests for whether making Archives actually works
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More;
@@ -58,7 +47,6 @@ my %archive_types = (
  'tar.gz' => \&test_tar_gz,
  'zip'    => \&test_zip,
 );
-
 
 # First, identify the types that we can build
 my @types = Archive::Builder::Archive->types;
@@ -177,7 +165,7 @@ sub test_zip {
         # Does the string match the expected value
         ok( ref($scalar) eq 'SCALAR', '->generate returns a scalar ref' );
         ok( $$scalar =~ /^PK/, 'Contents appears to be zipped' );
-        ok( length $$scalar > 470, 'Length appears to be long enough to contain everything' );
+        ok( length $$scalar > 400, 'Length appears to be long enough to contain everything' );
 
         # Save the file
         ok( $Archive->save( 'first' ), '->save returns true' );

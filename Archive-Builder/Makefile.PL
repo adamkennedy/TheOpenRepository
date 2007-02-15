@@ -1,25 +1,21 @@
+use strict;
 use inc::Module::Install;
 
 name            'Archive-Builder';
 all_from        'lib/Archive/Builder.pm';
 requires        'List::Util'       => '1.15';
 requires        'File::Spec'       => '0.80';
-requires        'File::Flat'       => '0.92';
-requires        'Class::Autouse'   => '1.04';
-requires        'Class::Inspector' => '1.11';
-requires        'IO::Scalar'       => '2.104';
+requires        'File::Flat'       => '1.00';
+requires        'Class::Autouse'   => '1.27';
+requires        'Class::Inspector' => '1.12';
+requires        'IO::String'       => '1.08';
 requires        'IO::Zlib'         => 0;
-requires        'Params::Util'     => '0.10';
+requires        'Params::Util'     => '0.22';
 build_requires  'Test::More'       => '0.47';
-build_requires  'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
 build_requires  'Test::ClassAPI'   => '1.02';
-include         'Test::ClassAPI';
 
-# When testing, have all the archive drivers available
-if ( $ENV{AUTOMATED_TESTING} ) {
-	requires 'Archive::Zip'   => 0;
-	requires 'Archive::Tar'   => 0;
-	requires 'Compress::Zlib' => 0;
-}
+# Tar and Zip archives are support by default
+requires        'Archive::Zip'     => '1.18';
+requires        'Archive::Tar'     => '1.30';
 
 WriteAll;

@@ -3,12 +3,14 @@ package Archive::Builder::Archive;
 # Represents the actual or potential Archive.
 
 use strict;
-use Scalar::Util;
+use Scalar::Util     ();
+use Params::Util     '_STRING';
 use Archive::Builder ();
+use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
@@ -20,9 +22,9 @@ BEGIN {
 use vars qw{$dependencies $support};
 BEGIN {
 	$dependencies = {
-		zip      => [ 'Archive::Zip', 'Compress::Zlib' ],
-		tar      => [ 'Archive::Tar' ],
-		tgz      => [ 'Archive::Tar', 'Compress::Zlib' ],
+		'zip'    => [ 'Archive::Zip', 'Compress::Zlib' ],
+		'tar'    => [ 'Archive::Tar'                   ],
+		'tgz'    => [ 'Archive::Tar', 'Compress::Zlib' ],
 		'tar.gz' => [ 'Archive::Tar', 'Compress::Zlib' ],
 		};
 
@@ -48,7 +50,7 @@ sub types {
 # Create the new Archive handle
 sub new {
 	my $class  = shift;
-	my $type   = exists $support->{$_[0]} ? shift : return undef;
+	my $type   = (_STRING($_[0]) and exists $support->{$_[0]}) ? shift : return undef;
 	my $Source = _CAN(shift, '_archive_content') or return undef;
 
 	# Can we use the type?
@@ -159,8 +161,11 @@ sub _zip {
 	}
 
 	# Now stringify the Archive and return it
-	my $handle = IO::Scalar->new;
-	$Archive->writeToFileHandle( $handle ) == Archive::Zip::AZ_OK() ? $handle->sref : undef;
+	my $handle = IO::String->new;
+	unless ( $Archive->writeToFileHandle( $handle ) == Archive::Zip::AZ_OK() ) {
+		return undef;
+	}
+	return $handle->string_ref;
 }
 
 sub _tar {

@@ -5,14 +5,15 @@ package Archive::Builder;
 
 use 5.005;
 use strict;
-use List::Util   ();
-use File::Spec   ();
-use Params::Util '_INSTANCE';
+use Scalar::Util     ();
+use List::Util       ();
+use File::Spec       ();
+use Params::Util     '_INSTANCE', '_STRING';
+use Class::Inspector ();
+use IO::String       ();
 
 # Autoload anything any of our children might need
-use Class::Autouse 'File::Flat',
-                   'Class::Inspector',
-                   'IO::Scalar';
+use Class::Autouse 'File::Flat';
 
 # Load the rest of the classes;
 use Archive::Builder::Section    ();
@@ -23,7 +24,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	$errstr  = '';
 }
 
@@ -110,7 +111,7 @@ sub add_section {
 	}
 
 	# Add the section
-	$Archive::Builder::Section::_PARENT{refaddr $Section} = $self;
+	$Archive::Builder::Section::_PARENT{Scalar::Util::refaddr($Section)} = $self;
 	$self->{sections}->{$name} = $Section;
 }
 
@@ -162,14 +163,16 @@ sub remove_section {
 	delete $self->{sections}->{$name};
 
 	# Remove the parent link
-	delete $Archive::Builder::Section::_PARENT{ refaddr $Section };
+	delete $Archive::Builder::Section::_PARENT{Scalar::Util::refaddr($Section)};
 
 	1;
 }
 
 # Returns the number of files in the Builder, by totalling
 # all it's sections
-sub file_count { List::Util::sum map { $_->file_count } $_[0]->section_list or 0 }
+sub file_count {
+	List::Util::sum map { $_->file_count } $_[0]->section_list or 0;
+}
 
 # Get a hash of files
 sub files {
@@ -219,7 +222,7 @@ sub _check {
 		$string = "Archive::Builder::Generators::$string" unless $string =~ /::/;
 
 		# All is good if the function is already loaded
-		{ no strict 'refs';
+		SCOPE: { no strict 'refs';
 			return 1 if defined *{"$string"}{CODE};
 		}
 
@@ -237,9 +240,7 @@ sub _check {
 
 sub _relative_path {
 	my $either = shift;
-	my $string = shift;
-	return '' unless defined $string;
-	return '' unless length $string;
+	my $string = _STRING(shift) or return '';
 
 	# Get the canonical version of the path
 	my $canon = File::Spec->canonpath( $string );

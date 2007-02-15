@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive::Builder
 
+1.07 Tue 15 Feb 2007
+	- Upgrading to Module::Install 0.64
+	- Upgraded from IO::Scalar to IO::String
+	- Bumping dependencies to counter various problems
 	- Fix test 06_archives.t so it won't fail due to missing dependencies (Gabor Szabo)
 
 1.06 Fri 21 Apr 2006

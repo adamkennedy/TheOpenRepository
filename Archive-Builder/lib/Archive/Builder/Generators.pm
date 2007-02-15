@@ -11,7 +11,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
@@ -25,7 +25,7 @@ BEGIN {
 sub string {
 	my $File   = _INSTANCE(shift, 'Archive::Builder::File' ) or return undef;
 	my $string = shift;
-	_SCALAR0($string) ? $string
+	return _SCALAR0($string) ? $string
 		: ref $string ? undef
 		: defined $string ? \$string
 		: undef;

@@ -3,13 +3,13 @@ package Archive::Builder::File;
 # This package represents a single file in the Archive::Builder structure
 
 use strict;
-use Scalar::Util 'refaddr';
+use Scalar::Util ();
 use Params::Util '_SCALAR0';
 use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	%_PARENT = ();
 }
 
@@ -83,7 +83,7 @@ sub binary {
 sub executable { $_[0]->{executable} = 1 }
 
 # Get our parent Section
-sub Section { $_PARENT{ refaddr $_[0] } }
+sub Section { $_PARENT{ Scalar::Util::refaddr($_[0]) } }
 
 # Delete this from from its parent
 sub delete {
