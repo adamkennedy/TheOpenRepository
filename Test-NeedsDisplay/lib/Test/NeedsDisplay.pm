@@ -122,7 +122,7 @@ sub import {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-WithDisplay>
+L<http://rt.cpan.org/Dist/Display.html?Queue=Test-NeedsDisplay>
 
 For other issues, contact the author.
 
