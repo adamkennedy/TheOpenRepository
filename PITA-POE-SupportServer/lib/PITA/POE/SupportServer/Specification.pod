@@ -4,133 +4,145 @@ PITA::POE::SupportServer::Specification - Spec for the POE Support Server
 
 =head1 DESCRIPTION
 
-L<PITA>'s guest driver design for image-based drivers is based on the
+L<PITA>'s driver design for image-based guest drivers is based on the
 following rules about how the image will be launched and run.
+
+The Support Server implements these rules.
 
 =head2 Surrounding Environment
 
 The Support Server's role is to launch and provide supporting services to
-emulators.
+guests.
 
-Each emulator will be executed from the command line, with the actual
-command line to run determined in the main part of the driver and
-provided to the support server ready to launch.
+Each guest will be executed from the command line, with the actual
+command line to run determined in the main class of each driver and
+provided to the support server as a pre-built command ready to execute.
 
 Any testing data, files, and commands will be provided inside an ISO
-image provided as a CD or second hard drive, known as an "injector".
-The specification for loading this image will already have been set
-as part of the command line to be run.
+image that the guest will load as a CD or second hard drive, known as an
+"injector". Any command line options for loading this image will already
+have been set as part of the command to be run.
 
-Once the image has started, an image manager program pre-installed into
-each image will take control of the image immediately at startup time.
+Once the command has been run, an program termed the Image Manager
+pre-installed into each image will take control of the image immediately
+at startup time.
 
-As soon as it has been started, the image manager will contact the
-support server to signal a successful startup. This will be in the
-form of a HTTP C< GET / > request to a HTTP server that is part of
-the support server.
+As soon as the Image Manager has been started, it will contact the
+support server to signal a successful startup. This contact will be in
+the form of a HTTP C<GET /> request to a HTTP server that is integrated
+into the support server.
 
 After loading the test data from the injector inside the image, one of
-three named tasks will be done.
+three named tasks will be done by the image manager.
 
 =head3 ping
 
-A "ping" instruction will cause the image manager to load, contact the
+The "ping" task will cause the image manager to load, contact the
 support server, and then immediately shut down.
 
-The purpose of the ping command is only to verify that the image is a
-valid PITA test image, and nothing else.
+The purpose of the ping command is to validate and verify that the image
+is a valid PITA test image.
 
 =head3 discover
 
 In PITA, a testing context is identified by a testing "scheme" name,
-and a filesystem path that defines the root of the context.
+and a file-system path that defines the root of the testing context.
 
-However, the specification for a the "platform" component of the
-testing context is far more complex. Rather than a simple naming scheme,
-it is described by a large C<HASH> containing up to 200 key/value pairs,
-which  includes the normal items such as architecture but may extend
-to additional values such as support for threads, or even individual
-compiler optimisations.
+However, the definition for the "platform description" element of the
+testing context is far more complex.
 
-As such, it is not realistic or practical for the user to provide any
-information about the testing contexts, and so PITA supports auto-discovery
-of testing contexts within an image, on the assuption that the image is
-valid (previously determined using "ping").
+Rather than a simple naming scheme, it is described by a large C<HASH>
+containing up to 200 key/value pairs, which includes normal items such as
+architecture but may extend to additional values such as support for
+threads, or even to a level of detail which includes the details of
+the individual compiler optimisations Perl was built with.
 
-The "discover" instruction will cause the image manager to proceed through
-the "ping" sequence, and then to to some processing to determine the 
-platform specification, returning it to the support server via a PUT
-command.
+As such, it is not realistic or practical to expect the user to provide any
+information about the testing contexts. Instead PITA supports auto-discovery
+of testing contexts within an image, on the assuption that the image itself
+valid (which will have been previously determined using the "ping"
+instruction).
+
+Each test image will contain a simple configuration file that lists only the
+scheme and root path each of the testing contexts contained on the image.
+
+The "discover" instruction will cause the image manager to check each of the
+testing contexts contained in the config file and do some processing to
+extract the platform definition for each one, returning it to the support
+server via a PUT command.
 
 =head3 test
 
-The "test" instruction is performed on a discovered guest image, and
-results in the provision of a software package for testing inside the
-injector. The image will launch, test the package, which may or may
-not result in additional requests being sent to the support server, and
-then on completion the image will PUT the result of the testing to the
-support server.
+The "test" instruction is performed on a discovered guest, and
+processed on a software package included inside the injector.
+
+The guest will launch, test the package (which may or may not result in
+additional requests being sent to the support server such as CPAN requests)
+and then on completion of the test run the image will PUT the result of the
+testing to the support server at a known path.
 
 =head2 Functional Requirements
 
-The primary requirement for the Support Server is to execute a command
-which starts and monitors the emulator, accepts and records HTTP
-requests from the guest image, and tracks timeouts and error conditions
-for the image, and then return the information gather during the run
-to the caller.
+The primary responsibility of the Support Server is to execute a command
+which starts the guest, to monitor the guest, to accept and record HTTP
+requests from the guest image, and to track various timeout and error
+conditions for the image, and finally on shutdown of the guest to return
+the information gathered during the run to the caller.
 
-=head3 Launch and monitoring of the emulator
+=head3 Launch and monitoring of the guest
 
-The Support Server will be provided with a pre-compiled command line,
-appropriate for the host operating system, which will launch and run
-an emulator instance.
+The Support Server will be provided with a pre-compiled command to be run
+on the command line, appropriate for the host operating system, which
+will launch the guest instance.
 
-The Support Server should execute the command, and observe that it
-continues to run, noting any unexpected crash of the emulator. For
-cases when the emulator does not shut down correctly, the Support
-Server should have the capability to reliably and forcefully shut
-down the emulator, preferable elegantly, but if necesary forcefully.
+The Support Server should execute the command, and observe that the process
+starts and continues to run, noting any unexpected crash of the guest. For
+cases when the guest does not shut down correctly, the Support
+Server should have the capability to reliably shut down the guest,
+preferable elegantly, but if needed forcefully.
 
 =head3 Detection of the Startup Ping
 
-As mentioned, when the guest image starts, it should issue a HTTP
-"GET /" request to the internal IP address of the host. The
-Support Server should operate an HTTP server which will accept
-the "GET /" request and understand it as a successful startup of
-the guest image.
+When the guest image starts, it should issue a HTTP "GET /" request to
+the internal IP address of the host. The Support Server should operate
+a HTTP server which will accept the "GET /" request and understand it to
+meana a successful startup of the guest and the Image Manager process.
 
 The Support Server should understand that, after a configurable
-period of time, that the startup has failed, and should shut down
-accordingly.
+period of time, that the startup has failed, and should shut down the
+process accordingly.
 
 =head3 Capture of Testing Results
 
-All testing generates results, and since the injector may well be
-read-only, it is not a reliably mechanism for extracting the
+All discovery testing generates results, and since the injector may
+well be read-only, it is not a reliably mechanism for extracting the
 results.
 
 However, since a requirement of a successful start as that the
-guest image issues a simple HTTP GET request, we use HTTP as the
-mechanism for extracting the results.
+guest image issues a simple HTTP GET request, we can also use the same
+HTTP mechanism for extracting the results.
 
 The Support Server will be provided at constructor-time with a
-configurable set of file/path names, such as "/results.xml".
+configurable set of file/path names, for example "/results.xml".
 
-As an aside, while initially this will be a single file, in the
+While initially this will most likely be a single file, in the
 future a more complex specification for the files (multiple,
 order, compulsory/optional, etc) may be necesary.
 
+At the least, initially the support server should support multiple
+files.
+
 The Support Server should accept HTTP PUT messages for these
 paths, accepting and storing the files (most likely in memory
-initially).
+initially but that is an implementation detail).
 
-On completion of it's execution run, the files should be
-returned to the caller.
+On completion of it's execution run, the files and their contents should
+be returned to the caller.
 
 Note that the size of the result files may be quite large, and in
 the future some amount of protection may be required (in the form of
-an upper limit) for protection of the host from runaway or malicious
-guests.
+an upper limits) for protection of the host from runaway or malicious
+processes on the guests.
 
 =head3 Provision of Supporting Resources
 
@@ -139,10 +151,10 @@ that they were not provided with originally. Again, they will need to
 request these resources from outside the guest image.
 
 For security reasons, access from the guest to the Internet may not
-be guarenteed, but access to the Support Server will be.
+be guarenteed. Access to the Support Server will however be available.
 
 In the Perl case, the Support Server will need to provide the guest
-image with access to a CPAN mirror.
+image with access to a CPAN mirror or proxy.
 
 The Support Server should be able to provide, configurably, access
 to files within a directory on the host server, via a HTTP subpath.
@@ -151,30 +163,34 @@ For example, a L<minicpan> checkout may exist on the host server
 at F</var/cache/minicpan/>. This might be accessed via the HTTP
 request "GET /cpan/".
 
-All requests to the mirror should be recorded (as the relative
-path that will need to be determined to map the GET path to the
-file path preferably, but as the GET path otherwise).
+All requests to the mirror should be recorded. Ideally this should be
+done as a list of paths relative to the CPAN mount point, but an
+absolute path is acceptable as well.
 
-As an aside, it may be necesary at a later date to also allow
-the Support Server to act as a full web proxy, but won't be
-required initially.
+It may be necesary at a later date to also allow the Support Server
+to act as a full web proxy, but won't be required initially.
 
 =head3 Shutdown and Detection of Failure
 
-The Support Server should have the ability to shut down the server.
+The Support Server should have the ability to reliably shut down the
+server.
 
 The conditions for shutdown are.
 
-1. Receiving the result file (or later, ALL of the files) from
-the guest image, plus an optional and configurable timeout,
-to give a brief opportunity for the emulator to shut itself down
-elegantly.
+1. Receiving the result file, or all required result files, from
+the guest image, plus an optional and configurable timeout period
+to give an opportunity for the guest to shut itself down.
 
 2. The compulsory, configurable timeout from the initial execution
-of the emulator to the reception of the startup GET / request.
+of the guest to the reception of the startup GET / request, indicating
+a startup failure or that the guest is not a PITA image.
 
-3. A compulsory, configurable timeout from the last time ANY HTTP
-request was recieved from the guest image.
+3. A compulsory, configurable timeout from the last time any HTTP
+request was recieved from the guest image, indicating a hard-loop or
+some other crash on the guest.
+
+4. A compulsory, configurable timeout for the entire testing run,
+catching any actively-looping failed installation process.
 
 =head2 General Implementation
 
@@ -227,7 +243,8 @@ PITA::POE::SupportServer object might look as follows.
           or die "Guest Image execution failed";
 
 Although the use of the L<Process> API may look pointless
-in this example, it will allow the actual execution to be
+in this example its use will let us contain the POE process
+more strictly, and it will allow the actual execution to be
 done in a seperate Perl instance, on a different CPU, or
 even on a different host to the main PITA host process.
 
@@ -241,7 +258,7 @@ L<PITA>, L<POE>, L<Process>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy. All rights reserved.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

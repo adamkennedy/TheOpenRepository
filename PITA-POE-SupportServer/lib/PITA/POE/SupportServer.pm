@@ -1,5 +1,6 @@
 package PITA::POE::SupportServer;
 
+use 5.006;
 use strict;
 use warnings;
 use Params::Util qw( _ARRAY _HASH );
@@ -328,13 +329,13 @@ PITA::POE::SupportServer
 
 =head1 METHODS
 
-=head2 EXPORT
-
-Nothing.
-
 =head1 AUTHORS
 
-David Davis E<lt>xantus@cpan.orgE<gt>, Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+David Davis E<lt>xantus@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+Chris Williams E<lt>bingos@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
