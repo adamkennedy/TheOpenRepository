@@ -7,7 +7,7 @@ use Test::More tests => 6;
 
 BEGIN {
 	use_ok( 'PITA::POE::SupportServer' ); # 1
-    use_ok( 'PITA::Test::Image::Qemu' ); # 2
+        use_ok( 'PITA::Test::Image::Qemu' ); # 2
 };
 
 
@@ -23,6 +23,7 @@ my $server = PITA::POE::SupportServer->new(
         '/cpan' => '.',
     },
     http_local_addr => '127.0.0.1',
+    http_local_port => 8080,
 );
 
 ok( 1, 'Server created' ); # 4

@@ -79,6 +79,7 @@ sub run {
             $self => [qw(
                 _start
                 _signals
+		_sig_child
                 _http_success
                 _http_result
                 execute
@@ -103,7 +104,9 @@ sub run {
 }
 
 sub http_result {
-    shift->{_http_result} || return;
+    my $self = shift;
+    my $result = shift || return;
+    return $self->{_http_result}->{ $result };
 }
 
 sub has_run {
@@ -115,8 +118,6 @@ sub has_run {
 sub _start {
     my ( $self, $kernel, $session ) = @_[ OBJECT, KERNEL, SESSION ];
     $self->{_session_id} = $session->ID();
-
-    #$kernel->sig( DIE => '_signals' );
 
     $self->{content_servers} = [ ];
 
@@ -144,16 +145,27 @@ sub _start {
 			   SESSION => $self->{_session_id},
 			   EVENT   => '_http_success', };
 
-    $self->{_http_server} = POE::Component::Server::SimpleHTTP->new(
-	ALIAS    => __PACKAGE__ . $$,
+    $self->{_http_server} = __PACKAGE__ . $$;
+    POE::Component::Server::SimpleHTTP->new(
+	ALIAS    => $self->{_http_server},
 	ADDRESS  => $self->{http_local_addr},
 	PORT     => $self->{http_local_port},
 	HANDLERS => $handlers,
+	LOGHANDLER => { SESSION => $self->{_session_id}, EVENT => '_http_activity', },
     );
 
     $kernel->yield('execute');
 
     return;
+}
+
+sub _sig_child {
+  my ($kernel,$self,$thing,$pid,$status) = @_[KERNEL,OBJECT,ARG0..ARG2];
+  $self->{_wheel_closed}++;
+  warn "$thing $pid $status\n";
+  $kernel->alarm_remove_all();
+  $kernel->yield( 'shutdown' );
+  $kernel->sig_handled();
 }
 
 sub _signals {
@@ -179,6 +191,14 @@ sub _http_success {
   $response->content( 'OK' );
   $response->content_type( 'text/html' );
   $kernel->call( $sender, 'DONE', $response );
+  $self->{_http_activity_timer} = $kernel->delay_set( _activity_timeout => $self->{http_activity_timeout} );
+  return;
+}
+
+sub _http_activity {
+  my ($kernel,$self) = @_[KERNEL,OBJECT];
+  return unless $self->{_http_activity_timer};
+  $kernel->delay_adjust( $self->{_http_activity_timer}, $self->{http_activity_timeout} );
   return;
 }
 
@@ -188,11 +208,16 @@ sub _http_result {
   my $path = $uri->path;
   if ( $request->method() eq 'PUT' ) {
 	if ( grep { $_ eq $path } @{ $self->{http_result} } ) {
+	   $self->{_http_result}->{ $path } = $request->content();
+	   $response->code( 201 );
+	   $response->content_type( 'text/html' );
+	   $response->content('OK');
 	}
 	else {
 	   $response->code( 405 );
 	   $response->content_type( 'text/html' );
 	   $response->content('NOK');
+	   $response->header( 'allow', 'GET,HEAD,POST,OPTIONS,TRACE' );
 	}
   }
   else {
@@ -215,9 +240,8 @@ sub execute {
 
     my @args = @{$self->{execute}};
    
-    $self->{_http_startup_timer} = $kernel->alarm_set( _startup_timeout => $self->{http_startup_timeout} );
- #   $self->{_http_activity_timer} = $kernel->alarm_set( activity_timeout => $self->{http_activity_timeout} );
-   
+    $self->{_http_startup_timer} = $kernel->delay_set( _startup_timeout => $self->{http_startup_timeout} );
+
     $self->{_wheel} = POE::Wheel::Run->new(
         Program      => shift @args,
         ProgramArgs  => \@args,
@@ -229,35 +253,36 @@ sub execute {
         StdoutEvent  => '_stdout',
         StderrEvent  => '_stderr',
     );
+
+    $kernel->sig_child( $self->{_wheel}->PID(), '_sig_child' );
+    return;
 }
 
 sub shutdown {
-    my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
+    my ($self,$kernel) = @_[OBJECT,KERNEL];
     
-    # XXX is this right?
-    $self->{_http_shutdown_timer} = $kernel->alarm_set( shutdown_timeout => $self->{http_shutdown_timeout} );
-    
-    $self->{_wheel}->kill() if ( $self->{_wheel} );
-
-    # TODO set timer and recheck for wheel closure
-    
-    delete @{$self}->{qw( _http_service _http_server )};
+    unless ( $self->{_wheel_closed} ) {
+	$self->{_wheel}->kill() if $self->{_wheel};
+	$self->{_shutdown_timer} = $kernel->delay_set( _shutdown_timeout => $self->{http_shutdown_timeout} );
+	return;
+    }
+    $kernel->alarm_remove_all(); # Just in case
+    $_->shutdown() for @{ $self->{content_servers} };
+    $kernel->post( $self->{_http_server}, 'SHUTDOWN' );
+    return;
 }
 
 sub _error {
     my ( $kernel, $self, $ret, $errno, $error, $wheel_id, $handle ) = @_[ KERNEL, OBJECT, ARG0 .. ARG5 ];
-    
     $self->{errstr} = "Error no $errno on $handle : $error ( Return value: $ret )";
-
-    $kernel->call( $_[ SESSION ] => 'shutdown' );
+    delete $self->{_wheel};
+    return;
 }
 
 sub _closed {
     my ( $self, $kernel ) = @_[ OBJECT, KERNEL];
-    
-    $self->{_wheel_closed}++;
-    
-    $kernel->call( $_[ SESSION ] => 'shutdown' );
+    delete $self->{_wheel};
+    return;
 }
 
 sub _stdin {
@@ -274,14 +299,20 @@ sub _stderr {
 
 sub _startup_timeout {
     warn "startup_timeout";
+    $poe_kernel->yield( 'shutdown' );
+    return;
 }
 
 sub _activity_timeout {
     warn "activity_timeout";
+    $poe_kernel->yield( 'shutdown' );
+    return;
 }
 
 sub _shutdown_timeout {
     warn "shutdown_timeout";
+    $_[OBJECT]->{_wheel}->kill(9) if $_[OBJECT]->{_wheel};
+    return;
 }
 
 1;
