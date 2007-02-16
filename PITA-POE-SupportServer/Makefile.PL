@@ -10,6 +10,6 @@ requires 'Process' => 0.18;
 requires 'Carp' => 0;
 requires 'POE'  => 0.38;
 requires 'PITA::Test::Image::Qemu' => 0.02;
-requires 'POE::Component::Server::SimpleHTTP' => 1.17;
+requires 'POE::Component::Server::SimpleHTTP' => 1.19;
 requires 'POE::Component::Server::SimpleContent' => 1.05;
 WriteAll();
