@@ -42,7 +42,8 @@ sub prepare {
     }
     $self->{http_mirrors}          = delete $opt{http_mirrors};
     $self->{http_local_addr}       = delete $opt{http_local_addr} || '127.0.0.1';
-    $self->{http_local_port}       = delete $opt{http_local_port} || 80;
+    $self->{http_local_port}       = delete $opt{http_local_port};
+    $self->{http_local_port}       = 80 unless defined $self->{http_local_port};
     $self->{http_result}           = delete $opt{http_result} || [ '/result.xml' ];
     unless ( _ARRAY( $self->{http_result} ) ) {
         $self->{http_result} = [ $self->{http_result} ];
@@ -163,6 +164,7 @@ sub _sig_child {
   my ($kernel,$self,$thing,$pid,$status) = @_[KERNEL,OBJECT,ARG0..ARG2];
   $self->{_wheel_closed}++;
   warn "$thing $pid $status\n";
+  $self->{exitcode} = $status;
   $kernel->alarm_remove_all();
   $kernel->yield( 'shutdown' );
   $kernel->sig_handled();
