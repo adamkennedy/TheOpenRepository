@@ -96,7 +96,7 @@ sub run {
                 _activity_timeout
                 _shutdown_timeout
             )],
-        ]
+        ],
     )->ID();
 
     $poe_kernel->run();
@@ -214,6 +214,9 @@ sub _http_result {
 	   $response->code( 201 );
 	   $response->content_type( 'text/html' );
 	   $response->content('OK');
+	   if ( scalar @{ $self->{http_result} } == scalar keys %{ $self->{_http_result} } ) {
+  		$kernel->alarm_remove( delete $self->{_http_activity_timer} );
+	   }
 	}
 	else {
 	   $response->code( 405 );
