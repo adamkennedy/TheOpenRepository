@@ -48,6 +48,9 @@ sub read_string {
 		# Skip comments and empty lines
 		next if /^\s*(?:\#|\;|$)/;
 
+		# Remove inline comments
+		s/\s\;\s.+$//g;
+
 		# Handle section headers
 		if ( /^\s*\[\s*(.+?)\s*\]\s*$/ ) {
 			# Create the sub-hash if it doesn't exist.
