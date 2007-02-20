@@ -24,7 +24,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 	$errstr  = '';
 }
 

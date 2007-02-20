@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+1.08 Tue 20 Feb 2007
+	- Improve error message on content generation failure
+
 1.07 Tue 15 Feb 2007
 	- Upgrading to Module::Install 0.64
 	- Upgraded from IO::Scalar to IO::String
