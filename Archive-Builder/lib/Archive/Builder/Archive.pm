@@ -67,9 +67,9 @@ sub new {
 	# Get the generated files
 	my $files = $Source->_archive_content;
 	return $class->_error(
-			"Error generating content to create archive: "
-			. $Source->errstr || 'Unknown Error'
-			) unless $files;
+		"Error generating content to create archive: "
+		. $Source->errstr || 'Unknown Error'
+		) unless $files;
 
 	# Create the object
 	my $self = bless {
