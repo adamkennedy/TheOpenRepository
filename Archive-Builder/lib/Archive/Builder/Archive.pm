@@ -73,7 +73,7 @@ sub new {
 
 	# Create the object
 	my $self = bless {
-		type => $type,
+		type  => $type,
 		files => $files,
 		}, $class;
 
