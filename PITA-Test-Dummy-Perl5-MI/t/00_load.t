@@ -19,11 +19,11 @@ if ( length($@) ) {
 }
 
 my $v = $PITA::Test::Dummy::Perl5::MI::VERSION;
-my $e = 0.64;
-if ( $v == $e ) {
-	print "ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' == '$e' )\n";
+my $e = '0.65_01';
+if ( $v eq $e ) {
+	print "ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' eq '$e' )\n";
 } else {
-	print "not ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' != '$e' )\n";
+	print "not ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' ne '$e' )\n";
 }
 
 exit(0);

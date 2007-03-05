@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 # Instrumentation for exercising the Module::Install::With commands
