@@ -15,7 +15,7 @@ requires       'Algorithm::Dependency' => '1.02';
 requires       'File::Flat'            => '1.00';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::ClassAPI'        => '1.02';
-build_requires 'File::Remove'          => 0;
+build_requires 'File::Remove'          => '0.34';
 include        'Test::ClassAPI';
 include        'Class::Inspector';
 install_script 'bin/inline2test';

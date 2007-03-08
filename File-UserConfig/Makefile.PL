@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 name           'File-UserConfig';
@@ -8,7 +9,7 @@ requires       'File::HomeDir'         => '0.51';
 requires       'File::ShareDir'        => '0.03';
 requires       'File::Copy::Recursive' => '0.18';
 build_requires 'Test::More'            => '0.47';
-build_requires 'File::Remove'          => 0;
+build_requires 'File::Remove'          => '0.34';
 install_share;
 
 WriteAll;

@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 name           'CPAN-Index';
@@ -16,6 +17,6 @@ requires       'CPAN::Cache'    => '0.01';
 build_requires 'Test::More'     => '0.47';
 build_requires 'File::Spec'     => '0.80';
 build_requires 'File::Copy'     => 0;
-build_requires 'File::Remove'   => 0;
+build_requires 'File::Remove'   => '0.34';
 
 WriteAll;

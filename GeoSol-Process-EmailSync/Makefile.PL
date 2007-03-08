@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 use 5.005;
@@ -33,5 +34,4 @@ requires       'GeoSol'         => 0;
 
 build_requires 'Test::More'     => '0.47';
 
-auto_install;
 WriteAll;

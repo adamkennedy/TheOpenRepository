@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 name           'PITA-Scheme';
@@ -15,6 +16,6 @@ requires       'Process'          => '0.16';
 requires       'PITA::XML'        => '0.30';
 build_requires 'Cwd'              => 0;
 build_requires 'Test::More'       => '0.47';
-build_requires 'File::Remove'     => '0.22';
+build_requires 'File::Remove'     => '0.34';
 
 WriteAll;
