@@ -11,7 +11,7 @@ use File::Which ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29';
+	$VERSION = '0.30';
 }
 
 
