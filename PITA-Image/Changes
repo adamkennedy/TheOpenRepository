@@ -1,5 +1,9 @@
 Revision history for Perl distribution PITA-Image
 
+0.30 Fri  9 Mar 2007
+	- Upgrading to Module::Install 0.65
+	- Upgrading to sync with PITA-XML 0.30
+
 0.29 Wed 14 Mar 2006
 	- Upgrading to Module::Install 0.60
 	- Upgrading to sync with PITA-XML 0.29 changes
