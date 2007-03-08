@@ -1,28 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Testing the perl5.cpan scheme
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
+use Test::More tests => 27;
 use Cwd;
 use File::Remove;
+use File::Spec::Functions ':ALL';
 use PITA::Scheme::Perl5::CPAN;
-use Test::More tests => 27;
 
 # Locate the injector directory
 my $injector = catdir( 't', 'perl5cpan', 'injector' );
@@ -81,20 +71,12 @@ isa_ok( $scheme->report, 'PITA::XML::Report'     );
 ok( $scheme->execute_all, '->execute_all runs ok' );
 
 # Does the install object contain things
-is( scalar($scheme->install->commands), 3,
+is( scalar($scheme->install->commands), 1,
 	'->execute_all added three commands to the report' );
 my @commands = $scheme->install->commands;
 isa_ok( $commands[0], 'PITA::XML::Command' );
-isa_ok( $commands[1], 'PITA::XML::Command' );
-isa_ok( $commands[2], 'PITA::XML::Command' );
 is( $commands[0]->cmd, 'perl Makefile.PL',
 	'Command 1 contains the expected command' );
-like( $commands[1]->cmd, qr/Makefile$/,
-	'Command 2 contains the expected command' );
-like( $commands[2]->cmd, qr/Makefile test$/,
-	'Command 3 contains the expected command' );
-like( ${$commands[2]->stdout}, qr/All tests successful./,
-	'Command 3 contains "all tests pass"' );
 ok( -f $scheme->workarea_file('Makefile'),
 	'Makefile actually got created' );
 ok( -d $scheme->workarea_file('blib'),

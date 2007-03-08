@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile-testing for PITA-Scheme
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 12;
@@ -32,10 +21,8 @@ BEGIN {
 	use_ok( 'PITA::Scheme::Perl::Discovery' );
 }
 
-is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl::VERSION,             '::Scheme == ::Perl'       );
+is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl::VERSION,            '::Scheme == ::Perl'      );
 is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl::Discovery::VERSION, '::Scheme == ::Discovery' );
-is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::VERSION,            '::Scheme == ::Perl5'      );
-is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::Make::VERSION,      '::Scheme == ::Make'       );
-is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::Build::VERSION,     '::Scheme == ::Build'      );
-
-exit(0);
+is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::VERSION,           '::Scheme == ::Perl5'     );
+is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::Make::VERSION,     '::Scheme == ::Make'      );
+is( $PITA::Scheme::VERSION, $PITA::Scheme::Perl5::Build::VERSION,    '::Scheme == ::Build'     );

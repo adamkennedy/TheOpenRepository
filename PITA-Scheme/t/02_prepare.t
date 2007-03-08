@@ -1,28 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile-testing for PITA-Scheme
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
+use Test::More tests => 28;
 use Cwd;
 use File::Remove;
+use File::Spec::Functions ':ALL';
 use PITA::Scheme::Perl5::Make ();
-use Test::More tests => 28;
 
 # Locate the injector directory
 my $injector = catdir( 't', 'prepare', 'injector' );

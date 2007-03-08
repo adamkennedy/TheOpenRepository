@@ -54,7 +54,7 @@ sub new {
 	my $self  = $class->SUPER::new(@_);
 
 	# Prepare some additional things
-	$self->{dot_cpan} = File::Spec->catdir( $self->workarea, '.cpan'            );
+	$self->{dot_cpan} = File::Spec->catdir( $self->workarea, '.cpan' );
 
 	$self;
 }
@@ -95,6 +95,9 @@ sub execute_all {
 
 	# Set the current HOME path to the workarea
 	local $ENV{HOME} = $self->workarea;
+
+	# Run the make
+	my $command = $self->execute_command('make');
 
 	1;
 }
