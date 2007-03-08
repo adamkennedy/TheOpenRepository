@@ -1,5 +1,10 @@
 Revision history for Perl extension PITA::Scheme
 
+0.30  Fri  9 Mar 2007
+	- Removed perl5.cpan scheme
+	- Upgraded to Module::Install 0.65
+	- Upgraded to handle PITA-XML 0.30
+
 0.29  Wed 14 Mar 2006
 	- Upgraded to Module::Install 0.60
 	- Upgraded to handle the new XML layout in PITA-XML 0.29
