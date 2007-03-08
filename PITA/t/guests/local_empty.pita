@@ -1,4 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<guest xmlns='http://ali.as/xml/schema/pita-xml/0.29'>
+<guest xmlns='http://ali.as/xml/schema/pita-xml/0.30'>
   <driver>Local</driver>
 </guest>

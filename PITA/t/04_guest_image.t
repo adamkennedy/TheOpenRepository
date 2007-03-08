@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Testing PITA::Guest
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 # Until prove fixes it
@@ -26,6 +15,7 @@ use Test::More tests => 97;
 
 use PITA ();
 use File::Remove 'remove';
+use File::Spec::Functions ':ALL';
 
 sub compare_guests {
 	my ($left, $right, $message) = @_;
@@ -115,7 +105,7 @@ SCOPE: {
 	isa_ok( $guest->driver, 'PITA::Guest::Driver'              );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image'       );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image::Test' );
-	isa_ok( $guest->driver->support_server, 'PITA::Guest::SupportServer' );
+	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
 	is( scalar($guest->guestxml->platforms),    0,  '->platforms(scalar) returns 0' );
 	is_deeply( [ $guest->guestxml->platforms ], [], '->platforms(list) return ()'   ); 
 

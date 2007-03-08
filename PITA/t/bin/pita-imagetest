@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+# Binary application for the PITA::Guest::Driver::Image::Test driver
+
+use strict;
+use GetOpt::Long ();
+use PITA::Image  ();
+
+
+
+
+
+#####################################################################
+# Options
+
+my $injector = '';
+GetOpt::Long::GetOptions(
+	"injector=s" => \$data,
+	) or die "Failed to get options";
+
+
+
+
+
+#####################################################################
+# Main Sequence
+
+my $manager = PITA::Image->new(
+	injector => $injector,
+	cleanup  => 1,
+	) or die "Failed to create PITA::Image";
+
+# For platforms, we support the current Perl only
+$manager->add_platform(
+	scheme => 'perl5',
+	path   => $^X, # Only works on Unix
+	);
+
+# Run the image manager
+$manager->run;
+
+exit(0);

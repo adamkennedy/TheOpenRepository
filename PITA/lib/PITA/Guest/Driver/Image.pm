@@ -18,11 +18,11 @@ use Params::Util     '_INSTANCE',
                      '_STRING';
 use Config::Tiny     ();
 use Class::Inspector ();
-use PITA::Guest::SupportServer ();
+use PITA::POE::SupportServer ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.22';
+	$VERSION = '0.30';
 }
 
 
@@ -69,18 +69,6 @@ sub new {
 		$self->{support_server_dir} = File::Temp::tempdir();
 	}
 
-	# Create the support server object
-	unless ( $self->support_server ) {
-		$self->{support_server} = PITA::Guest::SupportServer->new(
-			LocalAddr => $self->support_server_addr,
-			LocalPort => $self->support_server_port,
-			directory => $self->support_server_dir,
-			);
-	}
-	unless ( $self->support_server ) {
-		Carp::croak("Failed to create PITA::Guest::SupportServer");
-	}
-
 	$self;
 }
 
@@ -100,26 +88,16 @@ sub snapshot {
 		: $_[0]->guest->config->{memory};
 }
 
-sub support_server {
-	$_[0]->{support_server};
-}
-
 sub support_server_addr {
-	$_[0]->support_server
-		? $_[0]->support_server->LocalAddr
-		: $_[0]->{support_server_addr};
+	$_[0]->{support_server_addr};
 }
 
 sub support_server_port {
-	$_[0]->support_server
-		? $_[0]->support_server->LocalPort
-		: $_[0]->{support_server_port};
+	$_[0]->{support_server_port};
 }
 
 sub support_server_dir {
-	$_[0]->support_server
-		? $_[0]->support_server->directory
-		: $_[0]->{support_server_dir};
+	$_[0]->{support_server_dir};
 }
 
 # Provide a default implementation.
@@ -168,8 +146,7 @@ sub ping_prepare {
 sub ping_execute {
 	my $self = shift;
 
-	# Start the Support Server instance
-	$self->support_server->background;
+	1;
 }
 
 sub ping_cleanup {
@@ -198,8 +175,7 @@ sub discover_prepare {
 sub discover_execute {
 	my $self = shift;
 
-	# Start the Support Server instance
-	$self->support_server->background;
+	1;
 }
 
 sub discover_cleanup {
@@ -243,8 +219,7 @@ sub test_prepare {
 sub test_execute {
 	my $self = shift;
 
-	# Start the Support Server instance
-	$self->support_server->background;
+	1;
 }
 
 sub test_cleanup {
@@ -267,6 +242,12 @@ sub test_cleanup {
 #####################################################################
 # PITA::Guest:Driver::Image Methods
 
+# The command used to execute the guest
+sub execute_cmd {
+	my $class = ref $_[0] || $_[0];
+	die "The guest driver class $class does not implement execute_cmd";
+}
+
 sub prepare_task {
 	my $self = shift;
 	my $task = shift;
@@ -275,7 +256,7 @@ sub prepare_task {
 	my $image_conf = Config::Tiny->new;
 	$image_conf->{_} = {
 		class      => 'PITA::Image',
-		version    => '0.29',
+		version    => '0.30',
 		server_uri => $self->support_server_uri,
 		};
 	if ( -d $self->perl5lib_dir ) {

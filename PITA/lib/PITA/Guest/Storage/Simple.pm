@@ -26,7 +26,7 @@ use base 'PITA::Guest::Storage';
 
 use vars qw{$VERSION $LOCKFILE};
 BEGIN {
-	$VERSION  = '0.22';
+	$VERSION  = '0.30';
 	$LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
 }
 

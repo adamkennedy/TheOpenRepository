@@ -14,7 +14,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.22';
+	$VERSION = '0.30';
 }
 
 

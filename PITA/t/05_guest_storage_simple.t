@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Testing PITA::Guest::Storage::Simple
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 # Until prove fixes it
@@ -27,6 +16,7 @@ use Test::More tests => 7;
 use PITA ();
 use PITA::Guest::Storage::Simple ();
 use File::Remove 'remove';
+use File::Spec::Functions ':ALL';
 
 # Set up an existing directory
 my $storage_dir = catdir( 't', 'storage_simple' );
