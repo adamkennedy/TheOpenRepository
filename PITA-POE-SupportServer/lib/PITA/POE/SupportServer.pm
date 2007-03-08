@@ -14,7 +14,7 @@ use MIME::Types qw(by_suffix);
 use Process;
 use base qw( Process );
 
-our $VERSION = '0.02';
+our $VERSION = '0.30';
 
 sub new {
     my $package = shift;

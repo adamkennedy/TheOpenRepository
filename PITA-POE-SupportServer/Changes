@@ -1,5 +1,8 @@
 Revision history for Perl extension PITA::POE::SupportServer
 
+0.30 Fri  9 Mar 2007
+	- Syncing versions with the rest of PITA
+
 0.02 Mon 19 Feb 2007
 	- Chris Williams completes first implementation
 
