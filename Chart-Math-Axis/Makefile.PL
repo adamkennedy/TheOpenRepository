@@ -4,7 +4,7 @@ WriteMakefile(
 	'NAME'         => 'Chart::Math::Axis',
 	'VERSION_FROM' => 'lib/Chart/Math/Axis.pm',
 	'PREREQ_PM'    => {
-		'Clone'          => '0.13',
+		'Clone'          => '0.21',
 		'Math::BigInt'   => '1.70',
 		'Math::BigFloat' => '1.44', # Needs bdiv()
 		'Storable'       => '2.12',

@@ -3,7 +3,7 @@ use inc::Module::Install;
 
 name           'URI-ToDisk';
 all_from       'lib/URI/ToDisk.pm';
-requires       'Clone'           => '0.13';
+requires       'Clone'           => '0.21';
 requires       'List::Util'      => '1.11';
 requires       'URI'             => 0;
 requires       'Params::Util'    => '0.10';

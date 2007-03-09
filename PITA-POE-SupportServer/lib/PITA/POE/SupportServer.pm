@@ -26,7 +26,7 @@ sub new {
 
 sub prepare {
     my $self = shift;
-    my %opt =  %{ delete $self->{params} };
+    my %opt  =  %{ delete $self->{params} };
 
     $opt{lc $_} = delete $opt{$_} for keys %opt;
 
@@ -48,7 +48,7 @@ sub prepare {
     unless ( _ARRAY( $self->{http_result} ) ) {
         $self->{http_result} = [ $self->{http_result} ];
     }
-    $self->{http_startup_timeout}  = delete $opt{http_startup_timeout} || 30;
+    $self->{http_startup_timeout}  = delete $opt{http_startup_timeout}  || 30;
     $self->{http_activity_timeout} = delete $opt{http_activity_timeout} || 3600;
     $self->{http_shutdown_timeout} = delete $opt{http_shutdown_timeout} || 10;
 
@@ -58,7 +58,7 @@ sub prepare {
     }
 
     $self->{_prepared} = 1;
-    $self->{_has_run} = 0;
+    $self->{_has_run}  = 0;
  
     1;
 }
