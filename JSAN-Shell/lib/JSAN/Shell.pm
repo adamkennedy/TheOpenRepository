@@ -69,7 +69,7 @@ sub new {
 	# Find a terminal to use
 	my $term =  _INSTANCE($params{term}, 'Term::Readline') # Use an explicitly passed terminal...
 	         || $Term::ReadLine::Perl::term                # ... or an existing terminal...
-	         || Term::ReadLine->new;                       # ... or create a new one.
+	         || Term::ReadLine->new('JSAN Shell');         # ... or create a new one.
 
 	# Create the actual object
 	my $self = bless {
