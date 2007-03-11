@@ -3,6 +3,7 @@ package Test::ClassAPI;
 # Allows us to test class APIs in a simplified manner.
 # Implemented as a wrapper around Test::More, Class::Inspector and Config::Tiny.
 
+use 5.005;
 use strict;
 use Test::More       ();
 use Config::Tiny     ();
@@ -11,7 +12,7 @@ use Params::Util     '_INSTANCE';
 
 use vars qw{$VERSION $CONFIG $SCHEDULE $EXECUTED %IGNORE *DATA};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 
 	# Config starts empty
 	$CONFIG   = undef;
@@ -56,7 +57,7 @@ sub init {
 	my $class = shift;
 
 	# Use the script's DATA handle or one passed
-	*DATA = UNIVERSAL::isa( $_[0], 'GLOB' ) ? shift : *main::DATA;
+	*DATA = ref($_[0]) eq 'GLOB' ? shift : *main::DATA;
  
 	# Read in all the data, and create the config object
 	local $/ = undef;

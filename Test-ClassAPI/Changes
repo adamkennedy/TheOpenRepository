@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::ClassAPI
 
+1.04 Sun 11 Mar 2007
+	- No functional changes. No need to upgrade
+	- Adding a missing Params::Util dependency
+	- Upgrading to Module::Install 0.65
+
 1.03 Thu 15 Feb 2007
 	- Moving from old CVS to new SVN repository
 	- Cleaning up unit tests
