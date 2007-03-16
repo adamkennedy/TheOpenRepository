@@ -1,5 +1,6 @@
 package Win32::Wix;
 
+use 5.005;
 use strict;
 use File::Which  ();
 use File::Remove ();
@@ -226,3 +227,46 @@ sub _build_msm {
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Win32::Wix - Generate WIX files and build .msi installers from them
+
+=head1 DESCRIPTION
+
+WIX is an XML format that can be used to generate Microsoft .msi
+installers.
+
+Win32::Wix allows you to take one of these WIX files and convert it
+into a .msi installer.
+
+In the future, it will also allow you to generate the WIX files.
+
+=head1 INSTALLATION
+
+Some of the functionality of this module requires it to wrap the "candle"
+application used to generate .msi installers from WIX files.
+
+You will need to have this application installed in order to install
+Win32::Wix. The Makefile.PL will search for the candle binary and fail
+if it cannot find it.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
