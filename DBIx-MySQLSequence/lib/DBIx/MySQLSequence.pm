@@ -703,12 +703,16 @@ Patches are welcome
 
 =head1 SEE ALSO
 
-DBIx::OracleSequence, 
+DBIx::OracleSequence
 
 =head1 COPYRIGHT
 
-Copyright 2002, 2007 Adam Kennedy
+Copyright 2002, 2007 Adam Kennedy.
 
-This code is released under the terms of Perl itself.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
