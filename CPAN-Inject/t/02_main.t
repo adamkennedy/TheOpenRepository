@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 21;
+use Test::More tests => 24;
 use File::Spec::Functions ':ALL';
 use File::Remove          'remove';
 use CPAN::Inject;
@@ -120,6 +120,27 @@ SCOPE: {
 		-f catfile($author, 'CHECKSUMS'),
 		'Created CHECKSUMS file',
 	);	
+}
+
+#####################################################################
+# Remove a distribution
+
+SCOPE: {
+	my $cpan = CPAN::Inject->new(
+		sources => $sources,
+		);
+	isa_ok( $cpan, 'CPAN::Inject' );
+
+	# Remove the distribution
+	ok(
+		eval { $cpan->remove( dist => 'LOCAL/Config-Tiny-2.09.tar.gz' ); 1 },
+		'->remove ok',
+	);
+	my $author = catdir($sources, 'authors', 'id', 'L', 'LO', 'LOCAL');
+	ok(
+		! -f catfile($author, 'Config-Tiny-2.09.tar.gz'),
+		'Removed distribution file',
+	);
 }
 
 1;

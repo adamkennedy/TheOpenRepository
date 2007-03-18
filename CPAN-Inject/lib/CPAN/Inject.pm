@@ -19,7 +19,7 @@ CPAN::Inject - Base class for injecting distributions into CPAN sources
   
   # What would have have to use when installing
   # $path = 'LOCAL/Perl-Tarball-1.02.tar.gz';
-  my $path = $cpan->cpan_path( 'some/random/Perl-Tarball-1.02.tar.gz' );
+  my $path = $cpan->install_path( 'some/random/Perl-Tarball-1.02.tar.gz' );
 
 =head1 DESCRIPTION
 
@@ -51,7 +51,7 @@ and sub-classable, so that it can be reused in other situations.
 
 use 5.005;
 use strict;
-use Params::Util    '_STRING';
+use Params::Util '_STRING';
 use File::stat      ();
 use File::chmod     ();
 use File::Spec      ();
@@ -62,35 +62,34 @@ use CPAN            ();
 use CPAN::Checksums ();
 
 use vars qw{$VERSION $CHECK_OWNER};
+
 BEGIN {
-	$VERSION = '0.05';
+    $VERSION = '0.06';
 
-	# Attempt to determine whether or not we are capable
-	# of finding the owner of a directory.
-	# Unless someone set it to a hard-coded value before we
-	# started to load this module.
-	unless ( defined $CHECK_OWNER ) {
-		# Take a directory we know should exist...
-		my $root = File::Spec->rootdir();
-		unless ( -d $root ) {
-			die "Cannot determine if CPAN::Inject can operate on this platform";
-		}
+    # Attempt to determine whether or not we are capable
+    # of finding the owner of a directory.
+    # Unless someone set it to a hard-coded value before we
+    # started to load this module.
+    unless ( defined $CHECK_OWNER ) {
 
-		# ... find the owner for it...
-		my $owner = File::stat::stat($root)->uid;
+        # Take a directory we know should exist...
+        my $root = File::Spec->rootdir();
+        unless ( -d $root ) {
+            die
+                "Cannot determine if CPAN::Inject can operate on this platform";
+        }
 
-		# ... and if it works, check again in the future.
-		# Unless someone set it already, in which case
-		$CHECK_OWNER = defined $owner ? 1 : '';
-	}
+        # ... find the owner for it...
+        my $owner = File::stat::stat($root)->uid;
 
-	# And boolify the value, just to be a little safer
-	$CHECK_OWNER = !! $CHECK_OWNER;
+        # ... and if it works, check again in the future.
+        # Unless someone set it already, in which case
+        $CHECK_OWNER = defined $owner ? 1 : '';
+    }
+
+    # And boolify the value, just to be a little safer
+    $CHECK_OWNER = !!$CHECK_OWNER;
 }
-
-
-
-
 
 #####################################################################
 # Constructor and Accessors
@@ -131,30 +130,30 @@ Returns a C<CPAN::Inject> object, or throws an exception on error.
 =cut
 
 sub new {
-	my $class = shift;
-	my $self  = bless { @_ }, $class;
+    my $class = shift;
+    my $self = bless {@_}, $class;
 
-	# Check where we are going to write to
-	my $sources = $self->sources;
-	unless ( _STRING($sources) ) {
-		Carp::croak("Did not probide a sources param, or not a string");
-	}
-	unless ( -d $sources ) {
-		Carp::croak("The directory '$sources' does not exist");
-	}
-	unless ( $< == File::stat::stat($sources)->uid ) {
-		Carp::croak("The sources directory is not owned by the current user");
-	}
+    # Check where we are going to write to
+    my $sources = $self->sources;
+    unless ( _STRING($sources) ) {
+        Carp::croak("Did not probide a sources param, or not a string");
+    }
+    unless ( -d $sources ) {
+        Carp::croak("The directory '$sources' does not exist");
+    }
+    unless ( $< == File::stat::stat($sources)->uid ) {
+        Carp::croak("The sources directory is not owned by the current user");
+    }
 
-	# Check for a default author name
-	$self->{author} = 'LOCAL' unless $self->author;
-	unless ( _AUTHOR($self->author) ) {
-		Carp::croak("The author name '"
-			. $self->author
-			. "' is not a valid author string");
-	}
+    # Check for a default author name
+    $self->{author} = 'LOCAL' unless $self->author;
+    unless ( _AUTHOR( $self->author ) ) {
+        Carp::croak( "The author name '"
+                . $self->author
+                . "' is not a valid author string" );
+    }
 
-	$self;
+    $self;
 }
 
 =pod
@@ -173,17 +172,17 @@ error.
 =cut
 
 sub from_cpan_config {
-	my $class = shift;
+    my $class = shift;
 
-	# Load the CPAN configuration
-	CPAN::HandleConfig->load;
+    # Load the CPAN configuration
+    CPAN::HandleConfig->load;
 
-	# Get the sources directory
-	my $sources = $CPAN::Config->{keep_source_where}
-		or Carp::croak("Failed to find sources directory in CPAN::Config");
+    # Get the sources directory
+    my $sources = $CPAN::Config->{keep_source_where}
+        or Carp::croak("Failed to find sources directory in CPAN::Config");
 
-	# Hand off to the main constructor
-	$class->new( sources => $sources, @_ );
+    # Hand off to the main constructor
+    $class->new( sources => $sources, @_ );
 }
 
 =pod
@@ -195,7 +194,7 @@ The C<sources> accessor returns the path to the root of the directory tree.
 =cut
 
 sub sources {
-	$_[0]->{sources};
+    $_[0]->{sources};
 }
 
 =pod
@@ -209,12 +208,8 @@ C<new> constructor.
 =cut
 
 sub author {
-	$_[0]->{author};
+    $_[0]->{author};
 }
-
-
-
-
 
 #####################################################################
 # Main methods
@@ -224,7 +219,7 @@ sub author {
 =head2 add
 
   # Add a file to the constructor/default author
-  $cpan->add( 'any/arbitrary/Perl-Tarball-1.01.tar.gz' );
+  $cpan->add( file => 'any/arbitrary/Perl-Tarball-1.01.tar.gz' );
 
 The C<add> method takes a Perl distribution tarball from an arbitrary
 path, and adds it to the sources path.
@@ -238,49 +233,86 @@ on error.
 =cut
 
 sub add {
-	my $self   = shift;
-	my %params = @_;
+    my $self   = shift;
+    my %params = @_;
 
-	# Check the file source path
-	my $from_file = $params{file};
-	unless ( $from_file and -f $from_file and -r $from_file ) {
-		Carp::croak("Did not provide a file name, or does not exist");
-	}
+    # Check the file source path
+    my $from_file = $params{file};
+    unless ( $from_file and -f $from_file and -r $from_file ) {
+        Carp::croak("Did not provide a file name, or does not exist");
+    }
 
-	# Get the file name
-	my $name = File::Basename::fileparse( $from_file )
-		or die "Failed to get filename";
+    # Get the file name
+    my $name = File::Basename::fileparse($from_file)
+        or die "Failed to get filename";
 
-	# Find the location to copy it to
-	my $to_file = $self->file_path( $name );
-	my $to_dir  = File::Basename::dirname( $to_file );
+    # Find the location to copy it to
+    my $to_file = $self->file_path($name);
+    my $to_dir  = File::Basename::dirname($to_file);
 
-	# Make the path for the file
-	eval {
-		File::Path::mkpath( $to_dir )
-	};
-	if ( $@ ) {
-		Carp::croak("Failed to create $to_dir: $@");
-	}
+    # Make the path for the file
+    eval { File::Path::mkpath($to_dir) };
+    if ( my $e = $@ ) {
+        Carp::croak("Failed to create $to_dir: $e");
+    }
 
-	# Copy the file to the directory, and ensure writable
-	File::Copy::copy( $from_file => $to_file )
-		or Carp::croak("Failed to copy $from_file to $to_file");
-	chmod( 0644, $to_file )
-		or Carp::croak("Failed to correct permissions for $to_file");
+    # Copy the file to the directory, and ensure writable
+    File::Copy::copy( $from_file => $to_file )
+        or Carp::croak("Failed to copy $from_file to $to_file");
+    ## no critic (ProhibitLeadingZeros)
+    chmod( 0644, $to_file )
+        or Carp::croak("Failed to correct permissions for $to_file");
 
-	# Update the checksums file, and ensure writable
-	eval {
-		CPAN::Checksums::updatedir( $to_dir );
-	};
-	if ( $@ ) {
-		Carp::croak("Failed to update CHECKSUMS after insertion: $@");
-	}
-	chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
-		or Carp::croak("Failed to correct permissions for CHECKSUMS");
+    # Update the checksums file, and ensure writable
+    eval { CPAN::Checksums::updatedir($to_dir); };
+    if ( my $e = $@ ) {
+        Carp::croak("Failed to update CHECKSUMS after insertion: $e");
+    }
+    chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
+        or Carp::croak("Failed to correct permissions for CHECKSUMS");
 
-	# Return the install_path as a convenience
-	$self->install_path( $name );
+    # Return the install_path as a convenience
+    $self->install_path($name);
+}
+
+=pod
+
+=head2 remove
+
+  # Remove a distribution from the repository
+  $cpan->remove( dist => 'LOCAL/Perl-Tarball-1.01.tar.gz' );
+
+The C<remove> method takes a distribution path and removes it from the
+sources path. The file is also removed.
+
+Does not return anything useful and throws an exception on error.
+
+=cut
+
+sub remove {
+    my $self   = shift @_;
+    my %params = @_;
+
+    my $from_dist = $params{dist};
+
+    # Get the file name
+    my $name = File::Basename::fileparse($from_dist)
+        or die "Failed to get filename";
+
+    my $file_path = $self->file_path($name);
+
+    # Remove the file from CPAN.
+    unlink $file_path while -e $file_path;
+
+    # Update the checksums file
+    my $to_file = $self->file_path($name);
+    my $to_dir  = File::Basename::dirname($to_file);
+    eval { CPAN::Checksums::updatedir($to_dir); };
+    if ( my $e = $@ ) {
+        Carp::croak("Failed to update CHECKSUMS after removal: $e");
+    }
+
+    return;
 }
 
 =pod
@@ -299,14 +331,12 @@ Returns the subpath as a string.
 =cut
 
 sub author_subpath {
-	my $author = $_[0]->author;
-	File::Spec->catdir(
-		'authors',
-		'id',
-		substr( $author, 0, 1 ),
-		substr( $author, 0, 2 ),
-		$author,
-		);
+    my $author = $_[0]->author;
+    File::Spec->catdir(
+        'authors', 'id',
+        substr( $author, 0, 1 ),
+        substr( $author, 0, 2 ), $author,
+    );
 }
 
 =pod
@@ -324,10 +354,7 @@ Returns the path as a string.
 =cut
 
 sub author_path {
-	File::Spec->catdir(
-		$_[0]->sources,
-		$_[0]->author_subpath,
-		);
+    File::Spec->catdir( $_[0]->sources, $_[0]->author_subpath, );
 }
 
 =pod
@@ -349,11 +376,7 @@ Returns the path as a string.
 =cut
 
 sub file_path {
-	File::Spec->catfile(
-		$_[0]->sources,
-		$_[0]->author_subpath,
-		$_[1],
-		);
+    File::Spec->catfile( $_[0]->sources, $_[0]->author_subpath, $_[1], );
 }
 
 =pod
@@ -364,7 +387,7 @@ sub file_path {
   $path = $cpan->install_path( 'Perl-Tarball-1.01.tar.gz' );
   $path = $cpan->install_path( '/some/random/place/Perl-Tarball-1.02.tar.gz' );
 
-The C<cpan_path> method returns the path for the distribution as the
+The C<install_path> method returns the path for the distribution as the
 CPAN shell understands it.
 
 Using this path, the CPAN shell can expand it to locate the
@@ -375,21 +398,17 @@ Returns the path as a string.
 =cut
 
 sub install_path {
-	my $self = shift;
-	my $file = File::Basename::fileparse( shift )
-		or Carp::croak("Failed to get filename");
-	join( '/', $self->author, $file );
+    my $self = shift;
+    my $file = File::Basename::fileparse(shift)
+        or Carp::croak("Failed to get filename");
+    join( '/', $self->author, $file );
 }
-
-
-
-
 
 #####################################################################
 # Support Functions
 
 sub _AUTHOR {
-	(_STRING($_[0]) and $_[0] =~ /^[A-Z]{3,}$/) ? $_[0] : undef;
+    ( _STRING( $_[0] ) and $_[0] =~ /^[A-Z]{3,}$/ ) ? $_[0] : undef;
 }
 
 1;
@@ -400,7 +419,7 @@ sub _AUTHOR {
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/Module-Inject>
+L<http://svn.phase-n.com/svn/cpan/trunk/CPAN-Inject>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.
@@ -418,7 +437,7 @@ If you cannot provide a direct test or fix, or don't have time to do so,
 then regular bug reports are still accepted and appreciated via the CPAN
 bug tracker.
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Inject>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Inject>
 
 For other issues, for commercial enhancement or support, or to have your
 write access enabled for the repository, contact the author at the email
@@ -442,4 +461,36 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=for VIM
+
+???
+
+=for PERLTIDY
+
+# PBP .perltidyrc file
+
+-l=78   # Max line width is 78 cols
+-i=4    # Indent level is 4 cols
+-ci=4   # Continuation indent is 4 cols
+-st     # Output to STDOUT
+-se     # Errors to STDERR
+-vt=2   # Maximal vertical tightness
+-cti=0  # No extra indentation for closing brackets
+-pt=1   # Medium parenthesis tightness
+-bt=1   # Medium brace tightness
+-sbt=1  # Medium square bracket tightness
+-bbt=1  # Medium block brace tightness
+-nsfs   # No space before semicolons
+-nolq   # Don't outdent long quoted strings
+-wbb="% + - * / x != == >= <= =~ !~ < > | & >= < = **= += *= &= <<= &&= -= /= |= >>= ||= .= %= ^= x="
+        # Break before all operators
+-fs
+
+=for EMACS
+
+;;; Local Variables: ***
+;;; mode:cperl ***
+;;; cperl-indent-level: 4 ***
+;;; End: ***
 =cut
+

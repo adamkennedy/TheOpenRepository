@@ -1,5 +1,11 @@
 Revision history for Perl extension CPAN-Inject
 
+0.06 Sat 16 Mar 2007
+        - Added ->remove method
+	- Corrected usage notes for ->add
+	- Fixed mentions of Module-Inject to CPAN-Inject
+	- Added formatting notes for Emacs and Perltidy
+
 0.05 Wed  3 Jan 2007
 	- Config loading does not match CPAN's loading.
 	- Changing to use CPAN::HandleConfig->load
