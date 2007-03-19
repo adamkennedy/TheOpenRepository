@@ -8,6 +8,11 @@ use Getopt::Long;
 use File::Find::Rule;
 use File::LocalizeNewlines;
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.06';
+}
+
 # Create the filter
 my $filter = File::Find::Rule->file->not_binary->writable;
 

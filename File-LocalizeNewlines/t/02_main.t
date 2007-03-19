@@ -1,27 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for File::LocalizeNewlines
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 46;
 use FileHandle             ();
+use File::Spec::Functions  ':ALL';
 use File::Slurp            ();
+use File::Remove           'remove';
 use File::Find::Rule       ();
 use File::LocalizeNewlines ();
 use constant FLN => 'File::LocalizeNewlines';
@@ -39,9 +30,9 @@ is( length(File::Slurp::read_file( $not_file )),  12, 'both.txt is the right len
 is( length(File::Slurp::read_file( $not_file2 )), 12, 'both.pm is the right length' );
 
 END {
-	unlink $local_file if -e $local_file;
-	unlink $not_file   if -e $not_file;
-	unlink $not_file2  if -e $not_file2;
+	remove($local_file) if -e $local_file;
+	remove($not_file)   if -e $not_file;
+	remove($not_file2)  if -e $not_file2;
 }
 
 
@@ -51,7 +42,7 @@ END {
 #####################################################################
 # Constructor and Accessors
 
-{
+SCOPE: {
 	my $Object = FLN->new;
 	isa_ok( $Object, 'File::LocalizeNewlines' );
 
@@ -62,7 +53,7 @@ END {
 	is( $Object->newline, "\n", '->newline returns the platform newline' );
 }
 
-{
+SCOPE: {
 	my $Object = FLN->new( newline => 'foo' );
 	isa_ok( $Object, FLN );
 	
@@ -73,7 +64,7 @@ END {
 	is( $Object->newline, "foo", '->newline returns the custom value' );
 }
 
-{
+SCOPE: {
 	my $rule = newFFR()->name('*.pm');
 	my $Object = FLN->new( filter => $rule );
 	isa_ok( $Object, FLN );
@@ -86,7 +77,7 @@ END {
 	is( $Object->newline, "\n", '->newline returns the platform value' );
 }
 
-{
+SCOPE: {
 	my $rule = newFFR()->name('*.pm');
 	my $Object = FLN->new( newline => 'foo', filter => $rule );
 	isa_ok( $Object, FLN );
@@ -106,7 +97,7 @@ END {
 #####################################################################
 # Localisation Testing
 
-{
+SCOPE: {
 	my $Object = FLN->new;
 	isa_ok( $Object, FLN );
 	ok( $Object->localized( $local_file ),   '->localized returns true for known-local file' );
@@ -133,7 +124,7 @@ END {
 #####################################################################
 # Finding
 
-{
+SCOPE: {
 	my $Object = FLN->new;
 	isa_ok( $Object, FLN );
 
@@ -142,13 +133,13 @@ END {
 	is_deeply( \@files, [qw{both.txt both.pm}], '->find returns expected for normal search' );
 }
 
-{
+SCOPE: {
 	my @files = FLN->find( $simple_dir );
 	@files = grep { ! /ignore/ } grep { ! /CVS/ } @files; # For when building
 	is_deeply( \@files, [qw{both.txt both.pm}], '->find returns expected for normal search' );
 }
 
-{
+SCOPE: {
 	my $rule = newFFR()->name('*.pm');
 	my $Object = FLN->new( filter => $rule );
 	isa_ok( $Object, FLN );
@@ -164,7 +155,7 @@ END {
 #####################################################################
 # Localisation
 
-{
+SCOPE: {
 	my $Object = FLN->new( filter => newFFR() );
 	isa_ok( $Object, FLN );
 
@@ -175,7 +166,7 @@ END {
 	ok( ($length2 == 11 or $length2 == 13), 'length for both.pm is as expected' );
 }
 
-{
+SCOPE: {
 	my $Object = FLN->new( filter => newFFR()->name('*.pm'), newline => 'foo' );
 	isa_ok( $Object, FLN );
 	
