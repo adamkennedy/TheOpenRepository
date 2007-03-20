@@ -4,8 +4,8 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
 	require 5.004;
+	$VERSION = '1.00';
 }
 
 
