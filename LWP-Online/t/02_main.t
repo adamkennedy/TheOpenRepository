@@ -16,7 +16,7 @@ ok( defined &online, 'LWP::Online exports the online function' );
 # We can't actually be sure if we are online or not currently.
 # So as long as calling online never crashes, and returns EITHER
 # 1 or '', then it is a success.
-diag("Looking for the internet, this may take a few minutes if you are offline.");
+diag("\nLooking for the internet, this may take a few minutes if you are offline...");
 
 my $rv = eval { online() };
 is( $@, '', 'Call to online() does not crash' );
@@ -26,4 +26,4 @@ if ( $rv ) {
 } else {
 	diag("You are not online");
 }
-exit(0);
+
