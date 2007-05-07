@@ -240,6 +240,36 @@ sub as_string {
 
 =pod
 
+=head2 from_string
+
+The C<from_string> method creates a new B<Date::Tiny> object from a string.
+
+The string is expected to be an "yyyy-mm-dd" type ISO 8601 time string.
+
+  my $almost_christmas = Date::Tiny->from_string( '2006-12-23' );
+
+Returns a new B<Date::Tiny> object, or throws an exception on error.
+
+=cut
+
+sub from_string {
+	my $class  = shift;
+	my $string = shift;
+	unless ( defined $string and ! ref $string ) {
+		Carp::croak("Did not provide a string to from_string");
+	}
+	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)$/ ) {
+		Carp::croak("Invalid time format (does not match ISO 8601 yyyy-mm-dd)");
+	}
+	$class->new(
+		year  => $1 + 0,
+		month => $2 + 0,
+		day   => $3 + 0,
+		);
+}
+
+=pod
+
 =head2 DateTime
 
 The C<DateTime> method is used to create a L<DateTime> object

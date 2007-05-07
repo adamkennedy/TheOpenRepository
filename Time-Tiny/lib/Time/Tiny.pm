@@ -226,7 +226,7 @@ sub second {
 
 The C<from_string> method creates a new B<Time::Tiny> object from a string.
 
-The string is expected to be an ISO 8601 time, with seperators.
+The string is expected to be an "hh:mm:ss" type ISO 8601 time string.
 
   my $almost_midnight = Time::Tiny->from_string( '23:59:59' );
 
@@ -241,7 +241,7 @@ sub from_string {
 		Carp::croak("Did not provide a string to from_string");
 	}
 	unless ( $string =~ /^(\d\d):(\d\d):(\d\d)$/ ) {
-		Carp::croak("Invalid time format (does not match ISO 8601)");
+		Carp::croak("Invalid time format (does not match ISO 8601 hh:mm:ss)");
 	}
 	$class->new(
 		hour   => $1 + 0,

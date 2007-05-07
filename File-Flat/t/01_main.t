@@ -1,10 +1,13 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Formal testing for File::Flat
 
 use strict;
 use File::Spec::Functions ':ALL';
-BEGIN { $| = 1 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 use File::Copy   'copy';
 use File::Remove 'remove';

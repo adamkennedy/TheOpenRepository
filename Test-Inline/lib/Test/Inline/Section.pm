@@ -181,9 +181,11 @@ sub new {
 	# Remove the =begin
 	shift @parts;
 
-	# If the line ends with a number then this is the number of tests
-	if ( defined $parts[-1] and $parts[-1] =~ /^(0|[1-9]\d*)$/ ) {
-		$self->{tests} = pop @parts;
+	# If the line contains a number then this is part of the tests
+	foreach my $i ( 0 .. $#$parts ) {
+		next unless $parts[$i] =~ /^(0|[1-9]\d*)$/;
+		$self->{tests} = splice @parts, $i, 1;
+		last;
 	}
 
 	# Handle setup sections via =begin test setup or =begin testing SETUP
