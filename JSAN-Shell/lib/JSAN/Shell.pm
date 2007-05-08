@@ -11,7 +11,7 @@ JSAN::Shell - JavaScript Archive Network Client Shell
 C<JSAN::Shell> provides command handling and dispatch for the L<jsan2>
 user application. It interprates these commands and provides the
 appropriate instructions to the L<JSAN::Client> and L<JSAN::Transport>
-APIs.
+APIs to download and install JSAN modules.
 
 =head2 Why Do A New Shell?
 
@@ -19,14 +19,14 @@ The JavaScript Archive Network, like its predecessor CPAN, is a large
 system with quite a number of different parts.
 
 In an effort to have a usable repository up, running and usable as
-quickly as possible, some systems (such as the JSAN shell) were built
-with the understanding that they would be replaced by lighter, more
-scalable and more comprehensive (but much slower to write) replacements
-once they had time to catch up.
+quickly as possible, some systems (such as the original JSAN shell)
+were built with the understanding that they would be replaced by lighter,
+more scalable and more comprehensive (but much slower to write)
+replacements eventually.
 
-C<JSAN::Shell> represents the rewrite of the end-user oriented shell
-component, with L<JSAN::Client> providing the seperate and more general
-programmatic client interface.
+C<JSAN::Shell> represents the rewrite of the end-user JSAN shell
+component, with L<JSAN::Client> providing the seperate and more
+general programmatic client interface.
 
 =head1 METHODS
 
@@ -73,15 +73,11 @@ sub new {
 
 	# Create the actual object
 	my $self = bless {
-		prompt => 'jsan> ',
-		term   => $term,
-		client => undef,          # Create this later
-		config => {
-			prefix  => undef, # Where to install to
-			mirror  => undef, # JSAN remote mirror
-			verbose => '',    # Quiet or noisy
-			offline => '',    # Offline mode
-			},
+		prompt    => 'jsan> ',
+		term      => $term,
+		client    => undef,          # Create this later
+		configdir => File::UserConfig->configdir,
+		config    => undef,
 		}, $class;
 
 	# Are we online?
@@ -222,6 +218,22 @@ sub command_help {
 #####################################################################
 # Investigation
 
+sub help_a      { shift->help_author }
+sub help_author { <<'END_HELP'       }
+  jsan> author adamk
+  
+  Author ID = adamk
+      Name:    Adam Kennedy
+      Email:   jsan@ali.as
+      Website: http://ali.as/
+
+The "author" command is used to to locate an author and information
+about them. 
+
+It takes a single argument which should be the full JSAN identifier
+for the author.
+END_HELP
+
 sub command_author {
 	my $self   = shift;
 	my %args   = @_;
@@ -238,6 +250,42 @@ sub command_author {
 	$self->show_author( $author );
 }
 
+sub help_d    { shift->help_dist }
+sub help_dist { <<'END_HELP'     }
+  jsan> dist JSAN
+  
+  Distribution   = JSAN
+  Latest Release = /dist/c/cw/cwest/JSAN-0.10.tar.gz
+      Version:  0.10
+      Created:  Tue Jul 26 17:26:35 2005
+      Author:   cwest
+          Name:    Casey West
+          Email:   casey@geeknest.com
+          Website:
+      Library:  JSAN  0.10
+  
+  The "dist" command is used to fetch information about a Distribution,
+  including the current release package, the author, and what Libraries
+  are contained in it.
+  
+  The dist command takes a single argument which should be the full name
+  of the distribution.
+  
+  In the JSAN, a Distribution represents an overall product/release-series.
+  Each distribution will have one or more Release package, which are the
+  actual archive files in the repository, and each distribution contains
+  one more more Library, which are the actual classes and APIs.
+  
+  For various reasons, it is occasionally necesary for a Library to move
+  from one Distribution to another. For this reason, most of the time
+  operations (such as installation) are done at the Library level, and the
+  JSAN client will automatically determine which Distribution (and thus
+  which Release package) to install.
+  
+  However, for cases when you do need information about the actual
+  Distribution, this command is made available.
+END_HELP
+
 sub command_dist {
 	my $self   = shift;
 	my %args   = @_;
@@ -252,6 +300,28 @@ sub command_dist {
 
 	$self->show_dist( $dist );
 }
+
+sub help_l       { shift->help_library(@_) }
+sub help_library { <<'END_LIBRARY'         }
+  jsan> library Test.Simple
+  
+  Library          = Test.Simple
+      Version: 0.20
+  In Distribution  = Test.Simple
+  Latest Release   = /dist/t/th/theory/Test.Simple-0.20.tar.gz
+      Version:  0.20
+      Created:  Thu Aug 18 04:09:19 2005
+      Author:   theory
+          Name:    David Wheeler
+          Email:   david@justatheory.com
+          Website: http://www.justatheory.com/
+      Library:  Test.Builder           0.20
+      Library:  Test.Harness           0.20
+      Library:  Test.Harness.Browser   0.20
+      Library:  Test.Harness.Director  0.20
+      Library:  Test.More              0.20
+      Library:  Test.Simple            0.20
+END_HELP
 
 sub command_library {
 	my $self   = shift;
@@ -637,8 +707,8 @@ END_HELP
 
 
 sub help_motd { <<"END_HELP" }
-jsan shell -- JSAN exploration and library installation (v$VERSION)
-           -- Copyright 2005 Adam Kennedy. All rights reserved.
+jsan shell -- JSAN repository explorer and package installer (v$VERSION)
+           -- Copyright 2005 - 2007 Adam Kennedy.
            -- Type 'help' for a summary of available commands.
 END_HELP
 
@@ -712,17 +782,15 @@ sub _show {
 
 Adam Kennedy <F<adam@ali.as>>, L<http://ali.as>
 
-Guts stolen from JSAN::Shell by Casey West <F<casey@geeknest.com>>
-
 =head1 SEE ALSO
 
 L<jsan2>, L<JSAN::Client>, L<http://openjsan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.  All rights reserved.
+Copyright 2005 - 2007 Adam Kennedy.
  
-Parts copyright (c) 2005 Casey West.  All rights reserved.
+Some parts copyright 2005 Casey West.
   
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

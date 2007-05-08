@@ -3,6 +3,7 @@ package pip;
 use 5.005;
 use strict;
 use File::Spec         ();
+use File::Temp         ();
 use File::Which        ();
 use Getopt::Long       ();
 use Module::Plan::Base ();
@@ -27,45 +28,49 @@ Getopt::Long::GetOptions(
 
 sub main {
 	unless ( @ARGV ) {
-		die "Did not provide a command";
+		error("Did not provide a command");
 	}
-	my $plan = undef;
-	if ( $install ) {
-		$plan = main_install(@ARGV);
-	} else {
-		$plan = main_dwim(@ARGV);
+
+	# If the first argument is a file, install it
+	if ( -f $ARGV[0] ) {
+		return install_any(@ARGV);
 	}
-	$plan->run;
+
 }
 
-sub main_dwim {
+sub install_any {
+	# Load the plan
+	my $plan = read_any(@_);
+
+	# Run it
+	$plan->run;
+
+	return 1;
+}
+
+sub read_any {
 	my $param = $_[0];
 
 	# If the first argument is a p5i file, hand off to read
 	if ( $param =~ /\.p5i$/ ) {
-		return main_read(@_);
+		return read_p5i(@_);
 	}
 
 	# If the first argument is a tar.gz file, hand off to install
 	if ( $param =~ /\.tar\.gz$/ ) {
-		return main_install(@_);
+		return read_tarball(@_);
 	}
 
-	# No idea
-	die "Unknown command '$param'";
-}
+	# If the first argument is a p5z file, hand off to instal
+	if ( $param =~ /\.p5z$/ ) {
+		return read_p5z(@_);
+	}
 
-sub main_install {
-	require Module::Plan::Lite;
-	my $file = shift;
-	Module::Plan::Lite->new(
-		p5i   => 'default.p5i',
-		lines => [ '', $file ],
-		);
+	error("Unknown or unsupported file '$param'");
 }
 
 # Create the plan object from a file
-sub main_read {
+sub read_p5i {
 	my $pip = @_
 		? shift
 		: File::Spec->curdir;
@@ -102,10 +107,49 @@ sub main_read {
 	return $plan;
 }
 
+sub read_tarball {
+	require Module::Plan::Lite;
+	my $targz = shift;
+	Module::Plan::Lite->new(
+		p5i   => 'default.p5i',
+		lines => [ '', $targz ],
+		);
+}
+
+sub read_p5z {
+	my $p5z = shift;
+
+	# Create the temp directory
+	my $dir   = File::Temp::tempdir( CLEANUP => 1 );
+	my $pushd = File::pushd::pushd( $dir );
+
+	# Extract the tarball
+	require Archive::Tar;
+	my @files = Archive::Tar->extract_archive( $p5z, 1 );
+	unless ( @archives ) 
+		error( "Failed to extract P5Z file: " . Archive::Tar->error );
+	}
+
+	# Find the plan
+	my $path = File::Spec->catfile( $dir, 'default.p5i' );
+	unless ( -f $path ) {
+		error("P5Z file did not contain a default.p5i");
+	}
+
+	# Load the plan
+	return read_p5i( $path );
+}
+
+
+
+
+
+#####################################################################
+# Support Functions
+
 sub error {
 	print "\n";
 	print map { $_ . "\n" } @_;
-	print "\n";
 	exit(255);
 }
 

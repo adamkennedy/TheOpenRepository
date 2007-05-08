@@ -1,0 +1,490 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="robots" content="nofollow">
+<title>XELAS Alliance Killboard</title>
+<link href="http://static.griefwatch.net/templates/gwdark/style.css" rel="stylesheet" type="text/css">
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+
+<div class="main">
+<img src="http://static.griefwatch.net/images/logos/xelas.jpg" alt="XELAS Alliance Killboard"><br>
+
+<div class="content">
+
+
+<table width="100%" cellspacing="0" cellpadding="5" border="0" align="center">
+<tr>
+	<td valign="top" width="180">
+
+<!-- Navigation -->
+<div class="box">
+<div class="boxheader">Kill List Navigation</div>
+<div class="boxcontent" style="padding: 2px;">
+<b>Home</b><br>
+&raquo; <a href="?p=main">Main Page</a><br>
+&raquo; <a href="?p=news">News</a><br>
+&raquo; <a href="?p=kills">Kills</a><br>
+&raquo; <a href="?p=losses">Losses</a><br>
+&raquo; <a href="?p=campaigns">Campaigns</a><br>
+&raquo; <a href="?p=gallery">Gallery</a><br><hr size="1" width="80%">
+<b>Statistics</b><br>
+&raquo; <a href="?p=corplist">Corporations</a><br>
+&raquo; <a href="?p=alliances">Alliances</a><br>
+&raquo; <a href="?p=ranking">Ranking</a><br>
+&raquo; <a href="?p=monthly">Monthly Stats</a><br>
+&raquo; <a href="?p=top10">Top 10 Summary</a><br>
+&raquo; <a href="?p=activity">Region Activity</a><br>
+&raquo; <a href="?p=search">Search</a><br>
+<hr size="1" width="80%">
+<b>Alliance</b><br>
+&raquo; <a href="?p=alliance&amp;alliance=Xelas Alliance">Xelas Alliance</a><br>
+<hr size="1" width="80%">
+<b>Tools</b><br>
+&raquo; <a href="?p=addmail">Add Kill Mail</a><br>
+<!--&raquo; <a href="/itemdb/" target="_blank">Ship Database</a><br>-->
+&raquo; <a href="http://sigs.griefwatch.net/?board=xelas">Signatures</a><br>
+&raquo; <a href="http://admin.griefwatch.net/">Administration Panel</a><br>
+</div></div>
+
+<div class="box" style="margin-top: 10px;">
+<div class="boxheader">Quick Search</div>
+<div class="boxcontent" style="padding: 2px;">
+<form method="GET" action="?" onsubmit="return check()" id="qsearch">
+<input type="hidden" name="p" value="qsearch">
+<input type="text" style="width: 160px;" name="q"><br>
+<select style="width: 120px;" name="w">
+<option value="pilot">Pilot<option value="corp">Corporation<option value="alliance">Alliance
+</select>&nbsp;<input type="submit" value="Go">
+</form>
+</div>
+</div>
+<script type="text/javascript">
+<!--
+var orig = document.getElementById("qsearch").innerHTML;
+function check()
+{
+  if (document.forms[0].q.value.length < 3)
+  {
+    var a = document.getElementById("qsearch");
+    a.innerHTML = "Search string too short" + orig;
+    return false;
+  }
+}
+-->
+</script>
+
+<div class="box" style="margin-top: 10px;">
+<div class="boxheader">GPS Ranking</div>
+<div class="boxcontent stats">
+<div style="text-align: center">
+<img src="http://static.griefwatch.net/images/portraits/690691489_64.jpg" class="icon" width="64" height="64"><br>
+<b><a href="?p=pilot&amp;pilot=norman protector">norman protector</a></b><br>
+(Most dangerous of us all)
+</div>
+<hr size="1" width="80%" align="center">
+1: <a href="?p=pilot&amp;pilot=norman protector">norman protector</a> [2531]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="166.6" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+2: <a href="?p=pilot&amp;pilot=Proxay">Proxay</a> [730]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="67.2" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+3: <a href="?p=pilot&amp;pilot=MilaNoCZ">MilaNoCZ</a> [659]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="64.4" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+4: <a href="?p=pilot&amp;pilot=Michel Licari">Michel Licari</a> [374]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="47.6" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+5: <a href="?p=pilot&amp;pilot=Natheniel">Natheniel</a> [331]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="46.2" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+6: <a href="?p=pilot&amp;pilot=R0ot">R0ot</a> [298]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="43.4" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+7: <a href="?p=pilot&amp;pilot=Reinhant">Reinhant</a> [289]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="43.4" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+8: <a href="?p=pilot&amp;pilot=Strelook">Strelook</a> [264]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="42" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+9: <a href="?p=pilot&amp;pilot=Hito Ming">Hito Ming</a> [260]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="42" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+10: <a href="?p=pilot&amp;pilot=Criosachille">Criosachille</a> [259]<br>
+<img src="http://static.griefwatch.net/templates/gwdark/images/bar.png" width="42" height="3" style="padding-top: 2px; padding-bottom: 1px;"><br>
+</div></div>
+
+<div class="box" style="margin-top: 10px;">
+<div class="boxheader">Griefwatch</div>
+<div class="boxcontent" style="text-align: center;">
+<br>Help us out! Read <a href="http://www.griefwatch.net/forums/read.php?5,639">this</a>!<br><br>
+Killboard Copyright &copy; <a href="http://www.griefwatch.net/">Griefwatch.net</a><br><br>
+EVE Graphics Copyright &copy; <a href="http://www.ccpgames.com/">CCP Games</a><br><br>
+<a href="http://static.griefwatch.net/rss.php?kb=xelas">RSS Feed</a><br><br>
+</div>
+</div>
+
+  </td>
+
+  <td valign="top">
+<!-- Content begin -->
+
+<div class="box">
+<div class="boxheader headerline">
+<div class="headerfilter">[ <a href="?p=kills&amp;date=2007-04-19&amp;class=Battleship">BS</a> | <a href="?p=kills&amp;date=2007-04-19&amp;mode=solo">Solo</a> | <a href="?p=kills&amp;date=2007-04-19&amp;class=Capsule">Pods</a> ]</div>
+<div class="headercontent">Thursday 19th April, 2007</div>
+</div>
+<div class="boxcontent" style="border-top: 0px;">
+<table width="100%" cellpadding="1" cellspacing="0" border="0" class="header">
+<tr class="headerline">
+<td width="60">Time</td>
+<td width="170">Victim</td>
+<td width="250">Corporation</td>
+<td width="140" colspan="2">Ship</td>
+<td width="90">System</td>
+<td width="16">&nbsp;</td>
+</tr>
+<tr class="line">
+<td>&nbsp;01:29</td>
+<td><a href="?p=pilot&amp;pilot=LiNkIsMaXiMuS">LiNkIsMaXiMuS</a></td>
+<td><a href="?p=corp&amp;corp=Shiva">Shiva</a></td>
+<td width="14"><a href="?p=details&amp;kill=16486"><img src="http://static.griefwatch.net/images/icons/32_32/16229.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Brutix">Brutix</a></td>
+<td><a href="?p=system&amp;system=UAYL-F">UAYL-F</a></td>
+<td align="center"><a href="?p=details&amp;kill=16486">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+</table>
+
+</div></div><div style="padding: 5px;"></div>
+<div class="box">
+<div class="boxheader headerline">
+<div class="headerfilter">[ <a href="?p=kills&amp;date=2007-04-18&amp;class=Battleship">BS</a> | <a href="?p=kills&amp;date=2007-04-18&amp;mode=solo">Solo</a> | <a href="?p=kills&amp;date=2007-04-18&amp;class=Capsule">Pods</a> ]</div>
+<div class="headercontent">Wednesday 18th April, 2007</div>
+</div>
+<div class="boxcontent" style="border-top: 0px;">
+<table width="100%" cellpadding="1" cellspacing="0" border="0" class="header">
+<tr class="headerline">
+<td width="60">Time</td>
+<td width="170">Victim</td>
+<td width="250">Corporation</td>
+<td width="140" colspan="2">Ship</td>
+<td width="90">System</td>
+<td width="16">&nbsp;</td>
+</tr>
+<tr class="line">
+<td>&nbsp;22:42</td>
+<td><a href="?p=pilot&amp;pilot=Zehn Takakura">Zehn Takakura</a></td>
+<td><a href="?p=corp&amp;corp=United Space Republic">United Space Republic</a></td>
+<td width="14"><a href="?p=details&amp;kill=16485"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16485">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;21:17</td>
+<td><a href="?p=pilot&amp;pilot=eddie valvetino">eddie valvetino</a></td>
+<td><a href="?p=corp&amp;corp=ECP Rogues">ECP Rogues</a></td>
+<td width="14"><a href="?p=details&amp;kill=16478"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16478">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;21:16</td>
+<td><a href="?p=pilot&amp;pilot=eddie valvetino">eddie valvetino</a></td>
+<td><a href="?p=corp&amp;corp=ECP Rogues">ECP Rogues</a></td>
+<td width="14"><a href="?p=details&amp;kill=16479"><img src="http://static.griefwatch.net/images/icons/32_32/641.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Megathron">Megathron</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16479">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;21:07</td>
+<td><a href="?p=pilot&amp;pilot=auch aye">auch aye</a></td>
+<td><a href="?p=corp&amp;corp=Beer Drinking Woman Chasers">Beer Drinking Woman Chasers</a></td>
+<td width="14"><a href="?p=details&amp;kill=16477"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16477">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;21:05</td>
+<td><a href="?p=pilot&amp;pilot=auch aye">auch aye</a></td>
+<td><a href="?p=corp&amp;corp=Beer Drinking Woman Chasers">Beer Drinking Woman Chasers</a></td>
+<td width="14"><a href="?p=details&amp;kill=16476"><img src="http://static.griefwatch.net/images/icons/32_32/601.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ibis">Ibis</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16476">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:49</td>
+<td><a href="?p=pilot&amp;pilot=Jamieson Lock">Jamieson Lock</a></td>
+<td><a href="?p=corp&amp;corp=Delta Omega Iota Inc.">Delta Omega Iota Inc.</a></td>
+<td width="14"><a href="?p=details&amp;kill=16475"><img src="http://static.griefwatch.net/images/icons/32_32/583.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Condor">Condor</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16475">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:48</td>
+<td><a href="?p=pilot&amp;pilot=Gloria Vizce">Gloria Vizce</a></td>
+<td><a href="?p=corp&amp;corp=Blood crossing">Blood crossing</a></td>
+<td width="14"><a href="?p=details&amp;kill=16474"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16474">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:46</td>
+<td><a href="?p=pilot&amp;pilot=Gloria Vizce">Gloria Vizce</a></td>
+<td><a href="?p=corp&amp;corp=Blood crossing">Blood crossing</a></td>
+<td width="14"><a href="?p=details&amp;kill=16473"><img src="http://static.griefwatch.net/images/icons/32_32/601.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ibis">Ibis</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16473">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:44</td>
+<td><a href="?p=pilot&amp;pilot=Gloria Vizce">Gloria Vizce</a></td>
+<td><a href="?p=corp&amp;corp=Blood crossing">Blood crossing</a></td>
+<td width="14"><a href="?p=details&amp;kill=16472"><img src="http://static.griefwatch.net/images/icons/32_32/601.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ibis">Ibis</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16472">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:06</td>
+<td><a href="?p=pilot&amp;pilot=Nathan Voughn">Nathan Voughn</a></td>
+<td><a href="?p=corp&amp;corp=4S Corporation">4S Corporation</a></td>
+<td width="14"><a href="?p=details&amp;kill=16464"><img src="http://static.griefwatch.net/images/icons/32_32/11963.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Rapier">Rapier</a></td>
+<td><a href="?p=system&amp;system=C-C99Z">C-C99Z</a></td>
+<td align="center"><a href="?p=details&amp;kill=16464">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:02</td>
+<td><a href="?p=pilot&amp;pilot=ruger62">ruger62</a></td>
+<td><a href="?p=corp&amp;corp=NorCorp Security">NorCorp Security</a></td>
+<td width="14"><a href="?p=details&amp;kill=16469"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16469">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;20:00</td>
+<td><a href="?p=pilot&amp;pilot=ruger62">ruger62</a></td>
+<td><a href="?p=corp&amp;corp=NorCorp Security">NorCorp Security</a></td>
+<td width="14"><a href="?p=details&amp;kill=16468"><img src="http://static.griefwatch.net/images/icons/32_32/606.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Velator">Velator</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16468">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;19:46</td>
+<td><a href="?p=pilot&amp;pilot=Kenjuto">Kenjuto</a></td>
+<td><a href="?p=corp&amp;corp=Netquarter">Netquarter</a></td>
+<td width="14"><a href="?p=details&amp;kill=16467"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16467">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;19:44</td>
+<td><a href="?p=pilot&amp;pilot=Kenjuto">Kenjuto</a></td>
+<td><a href="?p=corp&amp;corp=Netquarter">Netquarter</a></td>
+<td width="14"><a href="?p=details&amp;kill=16466"><img src="http://static.griefwatch.net/images/icons/32_32/606.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Velator">Velator</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16466">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;19:43</td>
+<td><a href="?p=pilot&amp;pilot=The Shepherd">The Shepherd</a></td>
+<td><a href="?p=corp&amp;corp=Celestial Apocalypse">Celestial Apocalypse</a></td>
+<td width="14"><a href="?p=details&amp;kill=16465"><img src="http://static.griefwatch.net/images/icons/32_32/601.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ibis">Ibis</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16465">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;19:07</td>
+<td><a href="?p=pilot&amp;pilot=Spinning Plates">Spinning Plates</a></td>
+<td><a href="?p=corp&amp;corp=StateCorp">StateCorp</a></td>
+<td width="14"><a href="?p=details&amp;kill=16455"><img src="http://static.griefwatch.net/images/icons/32_32/606.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Velator">Velator</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16455">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;16:58</td>
+<td><a href="?p=pilot&amp;pilot=Alise Hkarr">Alise Hkarr</a></td>
+<td><a href="?p=corp&amp;corp=Lynx Frontier Inc.">Lynx Frontier Inc.</a></td>
+<td width="14"><a href="?p=details&amp;kill=16453"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16453">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;15:52</td>
+<td><a href="?p=pilot&amp;pilot=Mystafyre">Mystafyre</a></td>
+<td><a href="?p=corp&amp;corp=Celestial Apocalypse">Celestial Apocalypse</a></td>
+<td width="14"><a href="?p=details&amp;kill=16451"><img src="http://static.griefwatch.net/images/icons/32_32/11129.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Gallente Shuttle">Gallente Shuttle</a></td>
+<td><a href="?p=system&amp;system=Serpentis Prime" title="Serpentis Prime">Serpentis Pr...</a></td>
+<td align="center"><a href="?p=details&amp;kill=16451">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;15:46</td>
+<td><a href="?p=pilot&amp;pilot=Shariona">Shariona</a></td>
+<td><a href="?p=corp&amp;corp=Celestial Apocalypse">Celestial Apocalypse</a></td>
+<td width="14"><a href="?p=details&amp;kill=16452"><img src="http://static.griefwatch.net/images/icons/32_32/11129.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Gallente Shuttle">Gallente Shuttle</a></td>
+<td><a href="?p=system&amp;system=Serpentis Prime" title="Serpentis Prime">Serpentis Pr...</a></td>
+<td align="center"><a href="?p=details&amp;kill=16452">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;15:46</td>
+<td><a href="?p=pilot&amp;pilot=SSgt Sniper2">SSgt Sniper2</a></td>
+<td><a href="?p=corp&amp;corp=Dreamscape">Dreamscape</a></td>
+<td width="14"><a href="?p=details&amp;kill=16450"><img src="http://static.griefwatch.net/images/icons/32_32/622.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Stabber">Stabber</a></td>
+<td><a href="?p=system&amp;system=Z9PP-H">Z9PP-H</a></td>
+<td align="center"><a href="?p=details&amp;kill=16450">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;14:50</td>
+<td><a href="?p=pilot&amp;pilot=GBSabre">GBSabre</a></td>
+<td><a href="?p=corp&amp;corp=Antipodean inc.">Antipodean inc.</a></td>
+<td width="14"><a href="?p=details&amp;kill=16447"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16447">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;14:49</td>
+<td><a href="?p=pilot&amp;pilot=GBSabre">GBSabre</a></td>
+<td><a href="?p=corp&amp;corp=Antipodean inc.">Antipodean inc.</a></td>
+<td width="14"><a href="?p=details&amp;kill=16449"><img src="http://static.griefwatch.net/images/icons/32_32/11192.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Buzzard">Buzzard</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16449">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;14:47</td>
+<td><a href="?p=pilot&amp;pilot=Ragnos Fell">Ragnos Fell</a></td>
+<td><a href="?p=corp&amp;corp=hirr">hirr</a></td>
+<td width="14"><a href="?p=details&amp;kill=16448"><img src="http://static.griefwatch.net/images/icons/32_32/11963.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Rapier">Rapier</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16448">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:57</td>
+<td><a href="?p=pilot&amp;pilot=wind00">wind00</a></td>
+<td><a href="?p=corp&amp;corp=Republic Military School">Republic Military School</a></td>
+<td width="14"><a href="?p=details&amp;kill=16444"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=XF-TQL">XF-TQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16444">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:56</td>
+<td><a href="?p=pilot&amp;pilot=wind00">wind00</a></td>
+<td><a href="?p=corp&amp;corp=Republic Military School">Republic Military School</a></td>
+<td width="14"><a href="?p=details&amp;kill=16443"><img src="http://static.griefwatch.net/images/icons/32_32/651.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Hoarder">Hoarder</a></td>
+<td><a href="?p=system&amp;system=XF-TQL">XF-TQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16443">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:47</td>
+<td><a href="?p=pilot&amp;pilot=Armory One">Armory One</a></td>
+<td><a href="?p=corp&amp;corp=science Manufacture Corp">science Manufacture Corp</a></td>
+<td width="14"><a href="?p=details&amp;kill=16442"><img src="http://static.griefwatch.net/images/icons/32_32/12005.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ishtar">Ishtar</a></td>
+<td><a href="?p=system&amp;system=XF-TQL">XF-TQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16442">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:25</td>
+<td><a href="?p=pilot&amp;pilot=Anarchy Core">Anarchy Core</a></td>
+<td><a href="?p=corp&amp;corp=Blood crossing">Blood crossing</a></td>
+<td width="14"><a href="?p=details&amp;kill=16441"><img src="http://static.griefwatch.net/images/icons/32_32/670.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Capsule">Capsule</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16441">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:25</td>
+<td><a href="?p=pilot&amp;pilot=Gating Corss">Gating Corss</a></td>
+<td><a href="?p=corp&amp;corp=Blood crossing">Blood crossing</a></td>
+<td width="14"><a href="?p=details&amp;kill=16440"><img src="http://static.griefwatch.net/images/icons/32_32/606.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Velator">Velator</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16440">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+<tr class="line">
+<td>&nbsp;13:22</td>
+<td><a href="?p=pilot&amp;pilot=HURT ME">HURT ME</a></td>
+<td><a href="?p=corp&amp;corp=Zoroaster Corp">Zoroaster Corp</a></td>
+<td width="14"><a href="?p=details&amp;kill=16439"><img src="http://static.griefwatch.net/images/icons/32_32/601.png" alt="" width="14" height="14" class="icon"></a></td>
+<td width="126"><a href="?p=kills&amp;type=Ibis">Ibis</a></td>
+<td><a href="?p=system&amp;system=YZ-LQL">YZ-LQL</a></td>
+<td align="center"><a href="?p=details&amp;kill=16439">
+<div class="mailicon"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" border="0" title="View killmail" alt="View kill" width="16" height="12"></div></a></td>
+</tr>
+</table>
+
+</div></div><div style="padding: 5px;"></div>
+
+<div class="box" style="width: 400px; margin: auto;">
+<div class="boxcontent" style="padding: 2px; text-align: center;">
+Page: 
+1 
+<a href="?p=kills&amp;page=2">2</a> 
+<a href="?p=kills&amp;page=3">3</a> 
+<a href="?p=kills&amp;page=4">4</a> 
+<a href="?p=kills&amp;page=5">5</a> 
+<a href="?p=kills&amp;page=6">6</a> 
+<a href="?p=kills&amp;page=7">7</a> 
+<a href="?p=kills&amp;page=8">8</a> 
+<a href="?p=kills&amp;page=9">9</a> 
+<a href="?p=kills&amp;page=10">10</a> 
+<a href="?p=kills&amp;page=2">Next</a> 
+(8684 entries)
+<!-- Content end -->
+  </td>
+</tr>
+</table>
+</div>
+</div>
+
+<div align="center" style="padding-top: 10px;" class="copyright">
+<!--
+Killboard Copyright &copy; <a href="http://www.griefwatch.net/">Griefwatch.net</a><br>EVE Graphics Copyright &copy; CCP Games<br><a href="http://static.griefwatch.net/rss.php?kb=xelas">RSS Feed</a><br><br>
+-->
+<div class="poweredby"><a href="http://www.griefwatch.net/"><img src="http://static.griefwatch.net/templates/gwdark/images/nil.gif" width="150" height="15" border="0"></a></div>
+</div><br>
+</body>
+</html>

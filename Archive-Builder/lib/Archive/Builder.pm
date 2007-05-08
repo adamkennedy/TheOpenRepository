@@ -8,6 +8,7 @@ use strict;
 use Scalar::Util     ();
 use List::Util       ();
 use File::Spec       ();
+use File::Spec::Unix ();
 use Params::Util     '_INSTANCE', '_STRING';
 use Class::Inspector ();
 use IO::String       ();
@@ -180,7 +181,7 @@ sub files {
 	my %files = ();
 	foreach my $Section ( values %{$self->{sections}} ) {
 		foreach my $File ( $Section->file_list ) {
-			my $path = File::Spec->catfile( $Section->path, $File->path );
+			my $path = File::Spec::Unix->catfile( $Section->path, $File->path );
 			$files{$path} = $File;
 		}
 	}
@@ -243,12 +244,10 @@ sub _relative_path {
 	my $string = _STRING(shift) or return '';
 
 	# Get the canonical version of the path
-	my $canon = File::Spec->canonpath( $string );
+	my $canon = File::Spec::Unix->canonpath( $string );
 
 	# Does the path contain escaping forward slashes
-	unless ( File::Spec->isa('File::Spec::Win32') ) {
-		return '' if $string =~ /\\/;
-	}
+	return '' if $string =~ /\\/;
 
 	# We allow one specific exception to the upwards rules.
 	# That is in the case where we want to put the content from
@@ -256,11 +255,11 @@ sub _relative_path {
 	return $string if $string eq '.';
 
 	# Does the path contain upwards stuff?
-	return '' unless File::Spec->no_upwards( $string );
+	return '' unless File::Spec::Unix->no_upwards( $string );
 	return '' if $string =~ /\.\./;
 
 	# Is the path absolute
-	! File::Spec->file_name_is_absolute( $string );
+	! File::Spec::Unix->file_name_is_absolute( $string );
 }
 
 # Error handling

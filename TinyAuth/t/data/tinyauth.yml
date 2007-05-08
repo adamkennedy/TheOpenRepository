@@ -1,0 +1,8 @@
+---
+accounts:
+  - email: adamk@cpan.org
+    pass: ~
+    level: admin
+target:
+  path: /etc/svn/passwords
+ 

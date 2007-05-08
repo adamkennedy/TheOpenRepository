@@ -61,23 +61,37 @@ sub new {
 	$self->{p5i_dir}   = $self->_p5i_dir( $self->p5i_uri );
 	$self->{dir}       = File::Temp::tempdir( CLEANUP => 1 );
 
+	# Check the no_inject option
+	$self->{no_inject} = !! $self->{no_inject};
+
 	# Create the CPAN injector
-	$self->{inject} ||= CPAN::Inject->from_cpan_config;
-	unless ( _INSTANCE($self->{inject}, 'CPAN::Inject') ) {
-		Carp::croak("Did not provide a valid 'param' CPAN::Inject object");
+	unless ( $self->no_inject ) {
+		$self->{inject} ||= CPAN::Inject->from_cpan_config;
+		unless ( _INSTANCE($self->{inject}, 'CPAN::Inject') ) {
+			Carp::croak("Did not provide a valid 'param' CPAN::Inject object");
+		}
 	}
 
 	$self;
 }
 
+# Which params do we allow to read
+my %READ_ALLOW = ( no_inject => 1 );
+
 sub read {
-	my $class = shift;
+	my $class  = shift;
 
 	# Check the file
 	my $p5i = shift or croak( 'You did not specify a file name' );
 	croak( "File '$p5i' does not exist" )              unless -e $p5i;
 	croak( "'$p5i' is a directory, not a file" )       unless -f _;
 	croak( "Insufficient permissions to read '$p5i'" ) unless -r _;
+
+	# Get a filtered set of params to pass through
+	my %params = @_;
+	   %params = map { $_ => $params{$_} }
+	             grep { $READ_ALLOW{$_} }
+	             sort keys %params;
 
 	# Slurp in the file
 	my $contents;
@@ -110,6 +124,7 @@ sub read {
 	return $header->new(
 		p5i   => $p5i,
 		lines => \@lines,
+		%params,
 		);
 }
 
@@ -141,6 +156,10 @@ sub dists {
 	%{ $_[0]->{dists} };
 }
 
+sub dists_hash {
+	$_[0]->{dists};
+}
+
 sub uris {
 	my $self = shift;
 	my %copy = %{ $self->{uris} };
@@ -150,8 +169,23 @@ sub uris {
 	%copy;
 }
 
+sub no_inject {
+	$_[0]->{no_inject};
+}
+
 sub inject {
 	$_[0]->{inject};
+}
+
+# Generate the plan file from the plan object
+sub as_string {
+	return join '',
+		map { "$_\n" }
+		$_[0]->can('ref')
+			? $_[0]->ref
+			: ref $_[0],
+		"",
+		$_[0]->lines;
 }
 
 

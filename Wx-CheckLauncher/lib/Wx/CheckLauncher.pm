@@ -68,7 +68,7 @@ sub import {
 	return 1 if $^O eq 'MSWin32';
 
 	# For the rest, can we find a wxperl binary?
-	require File::Which ();
+	require File::Which;
 	my $wxperl = File::Which::which('wxperl');
 	print "# Restarting with wxperl...\n";
 	exec "$wxperl $^X $0";

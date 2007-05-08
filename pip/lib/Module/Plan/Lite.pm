@@ -86,6 +86,8 @@ sub run {
 		$self->_cpan_inject( $name );
 		$self->_cpan_install( $name );
 	}
+
+	return 1;
 }
 
 1;

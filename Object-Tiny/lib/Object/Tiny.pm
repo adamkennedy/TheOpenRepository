@@ -1,11 +1,13 @@
 package Object::Tiny;
 
-use strict;
+BEGIN {
+	require 5.004;
+}
+use strict qw{vars subs};
 
 use vars qw{$VERSION};
 BEGIN {
-	require 5.004;
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 
@@ -17,9 +19,11 @@ BEGIN {
 
 sub import {
 	return unless shift eq 'Object::Tiny';
-	my $pkg = caller;
+	my $pkg   = caller;
+	my $child = !! @{"${pkg}::ISA"};
 	eval join '',
-		"package $pkg;\n\@${pkg}::ISA = 'Object::Tiny';\n",
+		"package $pkg;\n",
+		($child ? () : "\@${pkg}::ISA = 'Object::Tiny';\n"),
 		map {
 			defined and ! ref and /^[^\W\d]\w*$/s
 			or die "Invalid accessor name '$_'";
@@ -139,6 +143,15 @@ magic going on under the covers you might break.
 
 And that's really all there is to it. Let a million simple data classes
 bloom. Features? We don't need no stinking features.
+
+=head2 Handling Subclasses
+
+If the class you are using Object::Tiny for is already a subclass of
+another Object::Tiny class (or a subclass of anything else) it doesn't
+really work to make the class use multiple inheritance.
+
+So in this case, Object::Tiny will create the accessors you specify, but
+WON'T make it a subclass of Object::Tiny.
 
 =head1 SUPPORT
 
