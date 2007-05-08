@@ -81,7 +81,32 @@ sub new {
 }
 
 # Get the type
-sub type { $_[0]->{type} }
+sub type {
+	$_[0]->{type};
+}
+
+# Get the file hahs
+sub files {
+	$_[0]->{files};
+}
+
+# Get them in the special sorted order
+sub sorted_files {
+	my $self  = shift;
+	my @files = sort keys $self->files or return ();
+	my $first = undef;
+        my $parts = undef;
+	foreach ( 0 .. $#files ) {
+		my $this = scalar split /\//, $files[$_];
+                if ( defined $parts and $this >= $parts ) {
+                        next;
+                }
+		$first = $_;
+                $parts = $this;
+	}
+	unshift @files, splice( @files, $first, 1 );
+        return @files;
+}
 
 # Get the generated file as a scalar ref
 sub generate {
@@ -181,7 +206,7 @@ sub _tar {
 	}
 
 	# Add each file to it
-	foreach my $path ( keys %{ $self->{files} } ) {
+	foreach my $path ( $self->sorted_files ) {
 		$Archive->add_data( $path, ${ $self->{files}->{$path} } );
 	}
 
