@@ -10,7 +10,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.10';
 }
 
 
@@ -93,11 +93,13 @@ sub files {
 # Get them in the special sorted order
 sub sorted_files {
 	my $self  = shift;
-	my @files = sort keys $self->files or return ();
+	my @files = sort keys %{$self->files};
+	return () unless @files;
 	my $first = undef;
         my $parts = undef;
 	foreach ( 0 .. $#files ) {
-		my $this = scalar split /\//, $files[$_];
+		my @f    = split /\//, $files[$_];
+		my $this = scalar @f;
                 if ( defined $parts and $this >= $parts ) {
                         next;
                 }

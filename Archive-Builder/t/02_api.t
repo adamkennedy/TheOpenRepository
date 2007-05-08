@@ -12,7 +12,7 @@ BEGIN {
 use Archive::Builder ();
 
 # Execute the tests
-use Test::More 'tests' => 70;
+use Test::More 'tests' => 72;
 use Test::ClassAPI;
 
 # Ignore imported functions
@@ -91,6 +91,8 @@ template=method
 types=method
 new=method
 type=method
+files=method
+sorted_files=method
 generate=method
 save=method
 errstr=method
