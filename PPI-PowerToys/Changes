@@ -1,5 +1,9 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.07 Wed  9 May 2007
+        - Upgrading to use File::Find::Rule::Perl
+        - Upgrading to Module::Install 0.67
+
 0.06 Sun 19 Mar 2006
 	- Renaming to PPI-PowerToys for better clarity
 	- Changing ppichangeversion to ppi_version to allow the addition
