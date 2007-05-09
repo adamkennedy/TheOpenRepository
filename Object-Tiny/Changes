@@ -1,5 +1,9 @@
 Revision history for Perl extension Object-Tiny
 
+1.02 Wed  9 May 2007
+	- Fixing some POD things
+	- No functional changes
+
 1.01 Fri 23 Mar 2007
 	- Allowing the use of Object::Tiny with sub-classes
 

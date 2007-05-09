@@ -7,7 +7,7 @@ use strict qw{vars subs};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 
@@ -73,7 +73,7 @@ Object::Tiny - Class building as simple as it gets
 =head1 DESCRIPTION
 
 There's a whole bunch of class builders out there. In fact, creating
-a class builder seems to be something of a right of passage (this is
+a class builder seems to be something of a rite of passage (this is
 my fifth, at least).
 
 Unfortunately, most of the time I want a class builder I'm in a
@@ -157,7 +157,7 @@ WON'T make it a subclass of Object::Tiny.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Object-Simple>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Object-Tiny>
 
 For other issues, contact the author.
 
