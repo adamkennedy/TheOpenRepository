@@ -62,7 +62,7 @@ sub read_string {
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
-			$self->set_property($ns, $1, $2);
+			$self->set($ns, $1, $2);
 			next;
 		}
 
@@ -72,7 +72,7 @@ sub read_string {
 	$self;
 }
 
-sub set_property { $_[0]->{$_[1]}->{$_[2]} = $_[3] }
+sub set { $_[0]->{$_[1]}->{$_[2]} = $_[3] }
 
 # Save an object to a file
 sub write {
@@ -233,9 +233,9 @@ C<$Config::Tiny::errstr> variable, or using the C<errstr()> method.
 This method is called to produce the string used to represent the property in a
 section.  It is passed the section name and property name.
 
-=head2 set_property
+=head2 set
 
-This method is called to set a value found in the parsed config string.  It is
+This is a convenience is called to set a value found in the parsed config string.  It is
 passed the section name, property name, and value.
 
 =head1 SUPPORT
