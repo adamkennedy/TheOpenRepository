@@ -1,4 +1,7 @@
 Revision history for Perl extension Date::Tiny
 
+0.02 Thu 10 May 2007
+	- Adding the missing from_string method
+
 0.01 Sun 27 Aug 2006
 	- original version

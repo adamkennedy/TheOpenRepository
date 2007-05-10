@@ -105,7 +105,7 @@ use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -244,7 +244,7 @@ sub as_string {
 
 The C<from_string> method creates a new B<Date::Tiny> object from a string.
 
-The string is expected to be an "yyyy-mm-dd" type ISO 8601 time string.
+The string is expected to be a "yyyy-mm-dd" ISO 8601 time string.
 
   my $almost_christmas = Date::Tiny->from_string( '2006-12-23' );
 

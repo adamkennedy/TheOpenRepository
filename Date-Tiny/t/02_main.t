@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;	
 }
 
-use Test::More tests => 15;
+use Test::More tests => 19;
 use Date::Tiny;
 
 
@@ -68,6 +68,15 @@ SKIP: {
 	is( $date->year,  $dt->year,  '->year matches'  );
 	is( $date->month, $dt->month, '->month matches' );
 	is( $date->day,   $dt->day,   '->day matches'   );
+}
+
+# Testing from_string
+SCOPE: {
+	my $date = Date::Tiny->from_string( '2006-01-31' );
+        isa_ok( $date, 'Date::Tiny' );
+	is( $date->year, 2006, '->year ok' );
+	is( $date->month, 1, '->month ok' );
+	is( $date->day, 31, '->day ok' );
 }
 
 exit(0);
