@@ -1,5 +1,9 @@
 Revision history for Perl extension Config::Tiny
 
+2.11 Wed 09 May 2007
+  - No behavior changes, but set_property and property_string methods broken
+    out and documented to aid subclasing. (RJBS)
+
 2.10 Sat 20 Sep 2006
 	- This release contains only build-time changes
 	- Did a little housekeeping on Makefile.PL and the unit tests

@@ -7,7 +7,7 @@ use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.10';
+	$VERSION = '2.11';
 	$errstr  = '';
 }
 
@@ -62,7 +62,7 @@ sub read_string {
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
-			$self->{$ns}->{$1} = $2;
+			$self->set_property($ns, $1, $2);
 			next;
 		}
 
@@ -71,6 +71,8 @@ sub read_string {
 
 	$self;
 }
+
+sub set_property { $_[0]->{$_[1]}->{$_[2]} = $_[3] }
 
 # Save an object to a file
 sub write {
@@ -97,12 +99,14 @@ sub write_string {
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
 		foreach my $property ( sort keys %$block ) {
-			$contents .= "$property=$block->{$property}\n";
+			$contents .= $self->property_string($section, $property);
 		}
 	}
 	
 	$contents;
 }
+
+sub property_string { "$_[2]=$_[0]->{$_[1]}->{$_[2]}\n" };
 
 # Error handling
 sub errstr { $errstr }
@@ -223,6 +227,16 @@ Generates the file content for the object and returns it as a string.
 
 When an error occurs, you can retrieve the error message either from the
 C<$Config::Tiny::errstr> variable, or using the C<errstr()> method.
+
+=head2 property_string
+
+This method is called to produce the string used to represent the property in a
+section.  It is passed the section name and property name.
+
+=head2 set_property
+
+This method is called to set a value found in the parsed config string.  It is
+passed the section name, property name, and value.
 
 =head1 SUPPORT
 
