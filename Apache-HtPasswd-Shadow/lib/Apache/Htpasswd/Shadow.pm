@@ -87,6 +87,7 @@ sub new {
 		passwdObject => undef,
 		shadowFile   => $param{shadowFile},
 		shadowObject => undef,
+		UseMD5       => $param{UseMD5},
 		}, $class;
 
 	# Get the password file name

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More               tests => 49;
+use Test::More               tests => 50;
 use Test::File::Cleaner      ();
 use File::Spec::Functions    ':ALL';
 use Apache::Htpasswd::Shadow ();
@@ -15,11 +15,11 @@ use Apache::Htpasswd::Shadow ();
 my $cleaner = Test::File::Cleaner->new('t');
 
 # Check for the test data files
-my $file1 = catfile( 't', 'data', 'passwd1.txt' );
+my $file1 = catfile( 't', 'data', 'md51.txt' );
 ok( -f $file1, 'Test file 1 exists' );
-my $file2 = catfile( 't', 'data', 'passwd2.txt' );
+my $file2 = catfile( 't', 'data', 'md52.txt' );
 ok( -f $file2, 'Test file 2 exists' );
-my $file3 = catfile( 't', 'data', 'passwd3.txt' );
+my $file3 = catfile( 't', 'data', 'md53.txt' );
 ok( ! -f $file3, 'Test file 3 does not exist' );
 
 sub methods_match {
@@ -46,6 +46,7 @@ SCOPE: {
 	my $auth = Apache::Htpasswd::Shadow->new({
 		passwdFile => $file1,
 		ReadOnly   => 1,
+		UseMD5     => 1,
 		} );
 	isa_ok( $auth, 'Apache::Htpasswd::Shadow' );
 	isa_ok( $auth, 'Apache::Htpasswd'         );
@@ -72,6 +73,7 @@ SCOPE: {
 	my $auth = Apache::Htpasswd::Shadow->new({
 		passwdFile => $file1,
 		shadowFile => $file2,
+		UseMD5     => 1,
 		} );
 	isa_ok( $auth, 'Apache::Htpasswd::Shadow' );
 	isa_ok( $auth, 'Apache::Htpasswd'         );
@@ -96,6 +98,7 @@ SCOPE: {
 	my $auth = Apache::Htpasswd::Shadow->new({
 		passwdFile => $file1,
 		shadowFile => $file3,
+		UseMD5     => 1,
 		} );
 	ok( -f $file3, 'Shadow file was created' );
 	isa_ok( $auth, 'Apache::Htpasswd::Shadow' );
@@ -116,6 +119,15 @@ SCOPE: {
 	is( scalar($auth->fetchUsers), 2, 'File has two accounts' );
 	ok( $auth->htCheckPassword('foo', 'bar'), '->htCheckPassword for new account ok' );
 	ok( ! $auth->htCheckPassword('foo', 'baz'), 'Negative case works ok' );
+
+	# Did we actually write it in md5?
+	SCOPE: {
+		local $/ = undef;
+		open( FILE, $file3 ) or die "open: $!";
+		my $buffer = <FILE>;
+		close( FILE ) or die "close: $!";
+		ok( $buffer =~ /foo\:\$apr1\$/, 'Wrote the password with MD5' );
+	}
 }
 
 
@@ -129,6 +141,7 @@ SCOPE: {
 SCOPE: {
 	my $auth = Apache::Htpasswd::Shadow->new({
 		passwdFile => $file1,
+		UseMD5     => 1,
 		} );
 	ok( -f "$file1.new", 'Shadow file was created' );
 	isa_ok( $auth, 'Apache::Htpasswd::Shadow' );
