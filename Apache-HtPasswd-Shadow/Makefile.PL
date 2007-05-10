@@ -1,8 +1,8 @@
 use strict;
 use inc::Module::Install;
 
-name           'Apache-HtPasswd-Shadow';
-all_from       'lib/Apache/HtPasswd/Shadow.pm';
+name           'Apache-Htpasswd-Shadow';
+all_from       'lib/Apache/Htpasswd/Shadow.pm';
 requires       'File::Copy'          => 0;
 requires       'Apache::Htpasswd'    => 0;
 build_requires 'File::Spec'          => '0.80';
