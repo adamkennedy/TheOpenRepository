@@ -13,7 +13,7 @@ use constant FFR  => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.15';
+	$VERSION = '0.16';
 }
 
 
@@ -50,6 +50,9 @@ unless ( $script =~ /\.t$/ ) {
 		);
 	}
 	$script = $matches[0];
+
+	# Localize the path
+	$script = File::Spec->catfile( split /\//, $script );
 }
 unless ( -f $script ) {
 	error "Test script '$script' does not exist";
