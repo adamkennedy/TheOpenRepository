@@ -12,4 +12,4 @@ use Test::More tests => 2;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
-use_ok( 'ADAMK::Starter' );
+require_ok( 'ADAMK::Starter' );
