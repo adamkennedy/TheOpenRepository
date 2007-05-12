@@ -24,12 +24,10 @@ my $cleaner = Test::File::Cleaner->new( $trunk );
 # Main Tests
 
 SCOPE: {
-	my $starter = ADAMK::Starter->new(
-		module => 'Foo::Bar',
-		trunk  => $trunk,
-	);
-	isa_ok( $starter, 'ADAMK::Starter' );
-	ok( $starter->run, '->run ok' );
+	my $bin = catfile( 'bin', 'adamk-starter' );
+	ok( -f $bin, 'Found binary' );
+	my $rv = system( "$bin --module Foo::Bar --trunk $trunk" );
+	is( $rv, 0, 'Binary returns 0' );
 	ok( -f $starter->makefile_pl, 'Created Makefile.PL'  );
 	ok( -f $starter->changes,     'Created Changes'      );
 	ok( -f $starter->compile_t,   'Created 01_compile.t' );
