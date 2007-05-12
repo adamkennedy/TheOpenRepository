@@ -2,6 +2,7 @@ package ADAMK::Starter;
 
 use 5.005;
 use strict;
+use Carp         qw{ croak };
 use Getopt::Long ();
 use Params::Util qw{ _STRING _INSTANCE };
 use Date::Tiny   ();
