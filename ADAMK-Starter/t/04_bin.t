@@ -28,9 +28,9 @@ SCOPE: {
 	ok( -f $bin, 'Found binary' );
 	my $rv = system( "$bin --module Foo::Bar --trunk $trunk" );
 	is( $rv, 0, 'Binary returns 0' );
-	ok( -f $starter->makefile_pl, 'Created Makefile.PL'  );
-	ok( -f $starter->changes,     'Created Changes'      );
-	ok( -f $starter->compile_t,   'Created 01_compile.t' );
-	ok( -f $starter->main_t,      'Created 02_main.t'    );
-	ok( -f $starter->module_pm,   'Created main module'  );
+	ok( -f catfile(qw(t data Foo-Bar Makefile.PL)),    'Created Makefile.PL'  );
+	ok( -f catfile(qw(t data Foo-Bar Changes)),        'Created Changes'      );
+	ok( -f catfile(qw(t data Foo-Bar t 01_compile.t)), 'Created 01_compile.t' );
+	ok( -f catfile(qw(t data Foo-Bar t 02_main.t)),    'Created 02_main.t'    );
+	ok( -f catfile(qw(t data Foo-Bar lib Foo Bar.pm)), 'Created main module'  );
 }
