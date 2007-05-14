@@ -1,5 +1,9 @@
 Revision history for Perl extension CPAN::Mini::Extract
 
+1.15 Mon 14 May 2007
+	- Fixing a typo in the handling of extract_filter
+	- Upgrading to Module::Install 0.67
+
 0.13 Sun Nov 13 2005
 	- Fixed a bug when cleaning up removed files from extract dir
 
