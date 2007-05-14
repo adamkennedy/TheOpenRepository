@@ -1,22 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Regression tests CPAN::Mini::Extract
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 14;
+use File::Spec::Functions ':ALL';
 use CPAN::Mini::Extract ();
 use File::Remove        ();
 
@@ -37,11 +30,12 @@ my $empty_files_dir     = catdir(  't', 'data', '10_regression', 'empty_files' )
 # Create an offline extract object
 clear_test_dirs();
 my $offline = CPAN::Mini::Extract->new(
-	trace   => 0, # Just in case
-	offline => 1,
-	remote  => $test_remote,
-	local   => $test_local,
-	extract => $test_extract,	
+	trace          => 0, # Just in case
+	offline        => 1,
+	remote         => $test_remote,
+	local          => $test_local,
+	extract        => $test_extract,
+	extract_filter => sub { /\.(?:pm|pl|t)$/i },
 	);
 isa_ok( $offline, 'CPAN::Mini', 'CPAN::Mini::Extract' );
 ok( -d $test_local,   'Constructor creates local dir'      );

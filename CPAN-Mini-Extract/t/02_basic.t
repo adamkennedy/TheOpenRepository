@@ -1,24 +1,17 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Basic testing for CPAN::Mini::Extract
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 12;
-use CPAN::Mini::Extract ();
-use File::Remove        ();
+use File::Spec::Functions ':ALL';
+use CPAN::Mini::Extract   ();
+use File::Remove          ();
 
 # Prepare the test directories
 my $test_remote  = 'http://mirrors.kernel.org/cpan/';
