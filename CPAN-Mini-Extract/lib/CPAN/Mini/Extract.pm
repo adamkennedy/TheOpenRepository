@@ -395,9 +395,9 @@ sub _compile_filter {
 	# Build the anonymous sub
 	$self->{$name} = sub {
 		foreach my $regexp ( @filters ) {
-			return '' if $_ =~ $regexp;
+			return 1 if $_ =~ $regexp;
 		}
-		1;
+		return '';
 	};
 
 	1;
