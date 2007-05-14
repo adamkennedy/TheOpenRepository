@@ -160,7 +160,7 @@ Returns a new C<CPAN::Mini::Extract> object, or dies on error.
 =cut
 
 sub new {
-	my $class = ref $_[0] ? ref shift : shift;
+	my $class = shift;
 
 	# Call up to get the base object
 	my $self = $class->SUPER::new(
@@ -172,9 +172,11 @@ sub new {
 		"Did not provide an 'extract' path"
 		);
 	if ( -e $self->{extract} ) {
-		-d _ and -w _ or Carp::croak(
-			"The 'extract' path is not a writable directory"
-			);
+		unless ( -d _ and -w _ ) {
+			Carp::croak(
+				"The 'extract' path is not a writable directory"
+				);
+		}
 	} else {
 		File::Path::mkpath( $self->{extract}, $self->{trace}, $self->{dirmode} )
 			or Carp::croak("The 'extract' path could not be created");
@@ -218,6 +220,20 @@ sub run {
 	$self->{added}   = {};
 	$self->{cleaned} = {};
 
+	# If we want to force re-expansion,
+	# remove all current expansion dirs.
+	if ( $self->{extract_force} ) {
+		$self->trace("Flushing all expansion directories (extract_force enabled)\n");
+		my $authors_dir = File::Spec->catfile( $self->{extract}, 'authors' );
+		if ( -e $authors_dir ) {
+			$self->trace("Removing $authors_dir...");
+			File::Remove::remove( \1, $authors_dir ) or Carp::croak(
+				"Failed to remove previous expansion directory '$authors_dir'"
+				);
+			$self->trace(" removed\n");
+		}
+	}
+
 	# Update the CPAN::Mini local mirror
 	if ( $self->{offline} ) {
 		$self->trace("Skipping MiniCPAN update (offline mode enabled)\n");
@@ -227,7 +243,7 @@ sub run {
 	}
 
 	$changes ||= 0;
-	if ( $self->{extract_check} and ! $self->{extract_force} ) {
+	if ( $self->{extract_check} and $self->{extract_force} ) {
 		# Expansion checking is enabled, and we didn't do a normal
 		# forced check, so find the full list of files to check.
 		$self->trace("Tarball expansion checking enabled\n");
@@ -263,29 +279,6 @@ sub run {
 
 #####################################################################
 # CPAN::Mini Methods
-
-# If doing forced expansion, remove the old extracted files
-# before beginning the mirror update so we don't have to redelete
-# and create the ones we do during the update.
-sub update_mirror {
-	my $self = shift;
-
-	# If we want to force re-expansion,
-	# remove all current expansion dirs.
-	if ( $self->{extract_force} ) {
-		$self->trace("Flushing all expansion directories (extract_force enabled)\n");
-		my $authors_dir = File::Spec->catfile( $self->{extract}, 'authors' );
-		if ( -e $authors_dir ) {
-			$self->trace("Removing $authors_dir");
-			File::Remove::remove( \1, $authors_dir ) or Carp::croak(
-				"Failed to remove previous expansion directory '$authors_dir'"
-				);
-			$self->trace(" ... removed\n");
-		}
-	}
-
-	$self->SUPER::update_mirror(@_);
-}
 
 # Track what we have added
 sub mirror_file {
