@@ -164,7 +164,7 @@ sub new {
 	my $class = shift;
 
 	# Call up to get the base object
-	my %params = ();
+	my %params = @_;
 	unless ( defined $params{offline} ) {
 		$params{offline} = LWP::Online::offline();
 	}
