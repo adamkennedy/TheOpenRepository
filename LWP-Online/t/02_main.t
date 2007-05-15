@@ -8,10 +8,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
-use LWP::Online 'online';
+use Test::More tests => 6;
+use LWP::Online 'online', 'offline';
 
-ok( defined &online, 'LWP::Online exports the online function' );
+ok( defined &online,  'LWP::Online exports the online function'  );
+ok( defined &offline, 'LWP::Online exports the offline function' );
 
 # We can't actually be sure if we are online or not currently.
 # So as long as calling online never crashes, and returns EITHER
@@ -26,4 +27,6 @@ if ( $rv ) {
 } else {
 	diag("You are not online");
 }
-
+my $off = eval { offline() };
+is( $@, '', 'Call to offline() does not crash' );
+is( $off, ! $rv, 'online() and offline() return opposite results' );

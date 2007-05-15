@@ -11,9 +11,7 @@ LWP::Online - Does your process have access to the web
   use LWP::Online 'online';
   
   # "Is the internet working?"
-  unless ( online() ) {
-      die "NO INTARWEB!!!";
-  }
+  die "NO INTARWWEB!!!" unless online();
   
   # The above means something like this
   unless ( online('http') ) {
@@ -80,17 +78,17 @@ indefinitely, asymtopically approaching 100% correctness but never
 reaching it.
 
 And so this module is intended to do as good a job as possible, without
-having to resort to asked a human questions (who may well get it wrong
+having to resort to asking any human questions (who may well get it wrong
 anyway), and limiting itself to a finite amount of programming work and
 a reasonable level of memory overhead to load the code.
 
 It is thus understood the module will B<never> be perfect, and that if
-any new functionality is desired, it need to be able to implemented by
+any new functionality is desired, it needs to be able to implemented by
 the person that desires the new behaviour, and in a reasonably small
 amount of additional code.
 
-This module is also B<not> intended to deal with malicious behaviour of
-any kind, it is quite possible that some malicious person might proxy
+This module is also B<not> intended to compensate for malicious behaviour
+of any kind, it is quite possible that some malicious person might proxy
 fake versions of sites that pass our content checks and then proceed
 to show you other bad pages.
 
@@ -105,12 +103,12 @@ use LWP::Simple;
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	# We are an Exporter
 	require Exporter;
 	@ISA       = qw{ Exporter };
-	@EXPORT_OK = qw{ online   };
+	@EXPORT_OK = qw{ online offline };
 }
 
 # Set up configuration data
@@ -138,6 +136,40 @@ BEGIN {
 #####################################################################
 # Exportable Functions
 
+=pod
+
+=head2 online
+
+  # Default check (uses http)
+  online() or die "No Internet";
+  
+  # The above is equivalent to
+  online('http') or die "No Internet";
+
+The importable B<online> function is the main functionality provided
+by B<LWP::Online>. It takes a single optional transport name ('http'
+by default) and checks that LWP connectivity is available for that
+transport.
+
+Because it is intended as a Do What You Mean function, it checks not
+only that a network connection is available, and http requests return
+content, but also that it returns the CORRECT content instead of
+unexpected content supplied by a man in the middle.
+
+For example, many wireless connections require login or payment, and
+will return a service provider page for any URI that you attempt to
+fetch.
+
+The set of websites used for the testing is the Google, Amazon,
+Yahoo and CNN websites. The check is for a copyright statement on their
+homepage, and the function returns true as soon as two of the website
+return correctly, making the method relatively redundant.
+
+Returns true if the computer is "online" (has a working connection via
+LWP) or false if not.
+
+=cut
+
 sub online {
 	# Shortcut the default to plain http_online test
 	return http_online() unless @_;
@@ -159,6 +191,21 @@ sub online {
 
 	# All required transports available
 	return 1;
+}
+
+=pod
+
+=head2 offline
+
+The importable B<offline> function is provided as a convenience.
+
+It provides a simple pass-through (including any params) to the B<online>
+function, but with a negated result.
+
+=cut
+
+sub offline {
+	! online(@_);
 }
 
 
@@ -225,9 +272,6 @@ sub http_online {
 
 =head1 TO DO
 
-- I'm writing this offline. Write better site checkers once I get
-online and can get hold of the actual front pages.
-
 - Add more transport types that can be checked, somehow keeping the
 code growth under control.
 
@@ -270,10 +314,6 @@ L<LWP::Simple>
 =head1 COPYRIGHT
 
 Copyright 2006 - 2007 Adam Kennedy.
-
-Some parts copyright 2000 Sean M. Burke.
-
-Some parts copyright 2006 Chris Nandor.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
