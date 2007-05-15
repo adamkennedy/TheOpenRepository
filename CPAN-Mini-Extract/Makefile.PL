@@ -15,6 +15,7 @@ requires       'IO::Zlib'         => '1.04';
 requires       'Archive::Tar'     => '1.22';
 requires       'Params::Util'     => '0.20';
 requires       'CPAN::Mini'       => '0.550';
+requires       'LWP::Online'      => '0.03';
 build_requires 'Test::More'       => '0.47';
 
 WriteAll;

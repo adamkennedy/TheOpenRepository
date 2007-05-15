@@ -65,6 +65,7 @@ use Archive::Tar     ();
 use Params::Util     '_CODELIKE',
                      '_INSTANCE',
                      '_ARRAY0';
+use LWP::Online      ();
 use File::Find::Rule ();
 use constant FFR  => 'File::Find::Rule';
 
@@ -163,9 +164,11 @@ sub new {
 	my $class = shift;
 
 	# Call up to get the base object
-	my $self = $class->SUPER::new(
-		offline => 0,
-		@_ );
+	my %params = ();
+	unless ( defined $params{offline} ) {
+		$params{offline} = LWP::Online::offline();
+	}
+	my $self = $class->SUPER::new( %params );
 
 	# Check the extract param
 	$self->{extract} or Carp::croak(
