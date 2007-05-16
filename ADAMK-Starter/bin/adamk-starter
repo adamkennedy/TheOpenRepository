@@ -1,3 +1,5 @@
 #!/usr/bin/perl
 
-use ADAMK::Starter;
+use ADAMK::Starter ();
+
+ADAMK::Starter::main(@ARGV);

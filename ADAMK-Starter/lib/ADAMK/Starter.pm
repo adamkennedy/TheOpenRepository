@@ -11,7 +11,7 @@ use File::Flat   ();
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = qw{ Exporter Object::Tiny };
 	@EXPORT  = qw{ main };
 }
@@ -42,11 +42,9 @@ use Object::Tiny qw{
 #####################################################################
 # Main Functions
 
-sub import {
-	main();
-}
-
 sub main {
+	@ARGV = @_;
+
 	# Parse the command line options
 	my %params = ();
 	Getopt::Long::GetOptions(
@@ -58,6 +56,7 @@ sub main {
 		'author=s'       => \$params{author},
 		'email=s'        => \$params{email},
 		'verbose'        => \$params{verbose},
+		'trunk=s'        => \$params{trunk},
 	);
 
 	# Create the starter object

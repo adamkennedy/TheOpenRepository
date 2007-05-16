@@ -27,7 +27,9 @@ SCOPE: {
 	my $bin = catfile( 'bin', 'adamk-starter' );
 	ok( -f $bin, 'Found binary' );
 	ok( -x $bin, 'Binary is executable' );
-	my $rv = system( "$bin --module Foo::Bar --trunk $trunk" );
+	my $perl = $^X;
+	my $cmd  = "$perl -Mblib $bin --module Foo::Bar --trunk $trunk";
+	my $rv   = system( $cmd );
 	is( $rv, 0, 'Binary returns 0' );
 	ok( -f catfile(qw(t data Foo-Bar Makefile.PL)),    'Created Makefile.PL'  );
 	ok( -f catfile(qw(t data Foo-Bar Changes)),        'Created Changes'      );
