@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Test::File::Cleaner   ();
 use File::Spec::Functions ':ALL';
 use ADAMK::Starter        ();
