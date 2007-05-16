@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
 name           'pler';
-all_from       'lib/pler.pm';
+all_from       'lib/Devel/Pler.pm';
 requires       'Exporter'         => 0;
 requires       'File::Spec'       => '0.80';
 requires       'File::Which'      => '0.05';

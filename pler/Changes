@@ -1,5 +1,11 @@
 Revision history for Perl extension pler
 
+0.18 Wed 16 May 2007
+        - Adding the ability to run scripts from the t directory
+        - Moving pler.pm to Devel::Pler
+        - Moving bin/pler to pler.pm
+        - Added a stubbed launch script as bin/pler
+
 0.17 Fri 11 May 2007
         - Fixing a path bug that breaks Test::Files
 	- Updated Test::Script dependency to 1.02
