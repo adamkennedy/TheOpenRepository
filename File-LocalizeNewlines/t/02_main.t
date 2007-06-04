@@ -129,14 +129,14 @@ SCOPE: {
 	isa_ok( $Object, FLN );
 
 	my @files = $Object->find( $simple_dir );
-	@files = grep { ! /ignore/ } grep { ! /CVS/ } @files; # For when building
-	is_deeply( \@files, [qw{both.txt both.pm}], '->find returns expected for normal search' );
+	@files = sort grep { ! /ignore/ } grep { ! /CVS/ } @files; # For when building
+	is_deeply( \@files, [qw{both.pm both.txt}], '->find returns expected for normal search' );
 }
 
 SCOPE: {
 	my @files = FLN->find( $simple_dir );
-	@files = grep { ! /ignore/ } grep { ! /CVS/ } @files; # For when building
-	is_deeply( \@files, [qw{both.txt both.pm}], '->find returns expected for normal search' );
+	@files = sort grep { ! /ignore/ } grep { ! /CVS/ } @files; # For when building
+	is_deeply( \@files, [qw{both.pm both.txt}], '->find returns expected for normal search' );
 }
 
 SCOPE: {

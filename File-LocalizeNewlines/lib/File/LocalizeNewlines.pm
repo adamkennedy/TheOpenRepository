@@ -37,7 +37,7 @@ use Params::Util     '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
@@ -316,7 +316,7 @@ L<FileHandle> support added by David Dick E<lt>ddick@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Adam Kennedy. All rights reserved.
+Copyright 2005 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
