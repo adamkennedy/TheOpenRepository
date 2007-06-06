@@ -1,5 +1,8 @@
 Revision history for Perl extension File::LocalizeNewlines
 
+1.08 Wed  6 Jun 2007
+	- Adding a missing build-time dependency on Test::Script
+
 1.07 Mon  4 Jun 2007
 	- Adding a sort to the tests to factor out filesystem order
 

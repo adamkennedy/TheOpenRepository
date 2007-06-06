@@ -12,6 +12,7 @@ requires       'File::Find::Rule' => '0.20';
 requires       'Class::Default'   => '1.0';
 requires       'Params::Util'     => '0.10';
 build_requires 'Test::More'       => '0.42';
+build_requires 'Test::Script'     => '1.02';
 install_script 'bin/localizenewlines';
 
 WriteAll;
