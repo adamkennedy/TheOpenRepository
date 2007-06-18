@@ -37,7 +37,7 @@ sub __as_Parse_CSV {
 		# Locate the data
 		my $csv_handle = $class->csv_handle;
 		if ( $csv_handle ) {
-			$options{handle} = $cvs_handle;
+			$options{handle} = $csv_handle;
 			delete $options{file};
 		} else {
 			my $csv_file = $class->csv_file;

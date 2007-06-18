@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 27;
 use Data::Package::CSV;
 
 
@@ -21,21 +21,22 @@ SCOPE: {
 		scalar(My::Test::Package1->provides('Parse::CSV')) => 1,
 		'Package1->provides returns true',
 	);
+	my @foo = My::Test::Package1->provides('Parse::CSV');
 	is(
-		My::Test::Package1->provides('Parse::CSV') => 'Parse::CSV',
+		$foo[0] => 'Parse::CSV',
 		'->provides returns Parse::CSV',
 	);
 	is(
-		My::Test::Package1->provides('Foo') => undef,
+		My::Test::Package1->provides('Foo') => 0,
 		'->provides returns false for Foo',
 	);
 	my $csv1 = My::Test::Package1->get;
 	isa_ok( $csv1, 'Parse::CSV' );
 	my $csv2 = My::Test::Package1->get('Parse::CSV');
 	isa_ok( $csv2, 'Parse::CSV' );
-	is_deeply( $csv1->fetch, [ qw{ foo bar bz } ], 'Got line 1' );
-	is_deeply( $csv1->fetch, [ qw{ 1   2   3  } ], 'Got line 2' );
-	is_deeply( $csv1->fetch, [ qw{ a   b   c  } ], 'Got line 3' );
+	is_deeply( $csv1->fetch, [ qw{ foo bar baz } ], 'Got line 1' );
+	is_deeply( $csv1->fetch, [ qw{ 1   2   3   } ], 'Got line 2' );
+	is_deeply( $csv1->fetch, [ qw{ a   b   c   } ], 'Got line 3' );
 	is_deeply( $csv1->fetch, [ 'this', 'that', 'the other' ], 'Got line 4' );
 	is( $csv1->fetch, undef, 'Got end of file' );
 }
@@ -67,16 +68,16 @@ SCOPE: {
 	my $object3 = $csv->fetch;
 	my $end     = $csv->fetch;
 	isa_ok( $object1, 'My::Test::Object' );
-	is( $object1->foo, 1,      'Line 1 foo ok' );
-	is( $object1->bar, 'a',    'Line 1 bar ok' );
-	is( $object1->baz, 'this', 'Line 1 baz ok' );
+	is( $object1->foo, 1, 'Line 1 foo ok' );
+	is( $object1->bar, 2, 'Line 1 bar ok' );
+	is( $object1->baz, 3, 'Line 1 baz ok' );
 	isa_ok( $object2, 'My::Test::Object' );
-	is( $object2->foo, 2,      'Line 2 foo ok' );
-	is( $object2->bar, 'b',    'Line 2 bar ok' );
-	is( $object2->baz, 'that', 'Line 2 baz ok' );
+	is( $object2->foo, 'a', 'Line 2 foo ok' );
+	is( $object2->bar, 'b', 'Line 2 bar ok' );
+	is( $object2->baz, 'c', 'Line 2 baz ok' );
 	isa_ok( $object3, 'My::Test::Object' );
-	is( $object3->foo, 3,           'Line 3 foo ok' );
-	is( $object3->bar, 'c',         'Line 3 bar ok' );
+	is( $object3->foo, 'this',      'Line 3 foo ok' );
+	is( $object3->bar, 'that',      'Line 3 bar ok' );
 	is( $object3->baz, 'the other', 'Line 3 baz ok' );
 	is( $end, undef, 'Got end of file' );
 }
