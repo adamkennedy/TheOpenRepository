@@ -135,6 +135,7 @@ not affect it.
 use 5.005;
 use strict;
 use Class::Inspector ();
+use Params::Util     qw{ _CLASS };
 use Params::Coerce   ();
 
 use vars qw{$VERSION};
@@ -207,14 +208,19 @@ number of classes in scalar context. This also lets you do things like:
 
 sub provides {
 	my $class = ref $_[0] ? ref shift : shift;
+	my $want  = _CLASS(shift);
 
 	# Get the raw list of classes
-	my @provides = $class->_provides;
+	my %seen     = ();
+	my @provides = grep { ! $seen{$_}++ }
+	               grep { defined $_    }
+	               $class->_provides;
 
 	# Return the full list unless we were given a filter
-	my $want = shift or return @provides;
+	return @provides unless $want;
 
-	grep { UNIVERSAL::isa($_, $want) } @provides;
+	# Filter for the class we want, loading as needed
+	return grep { eval "require $_;"; ! $@ and $_->isa($want); } @provides;
 }
 
 sub _provides {

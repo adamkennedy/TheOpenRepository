@@ -24,7 +24,7 @@ use strict;
 use base 'Data::Package';
 use File::Spec       ();
 use IO::File         ();
-use Params::Util     '_STRING';
+use Params::Util     qw{ _STRING };
 use Class::Inspector ();
 use File::ShareDir   ();
 
@@ -178,31 +178,11 @@ sub module_file {
 #####################################################################
 # Add support for IO::File, Path::Class and URI
 
-sub _provides {
-	my $class = shift;
-
-	# Get the list from the parent class
-	my @provides = $class->SUPER::_provides(@_);
-
-	# Add IO::File and any other classes we support to the END
-	# of the list (so if they are using a @PROVIDES array we
-	# don't change the default return format)
-	push @provides, 'IO::File';
-	if ( Class::Inspector->installed('Path::Class') ) {
-		push @provides, 'Path::Class::File';
-	}
-	if ( Class::Inspector->installed('URI::file') ) {
-		push @provides, 'URI::file';
-	}
-
-	return @provides;
-}
-
 sub __as_IO_File {
 	IO::File->new( $_[0]->file );
 }
 
-sub __as_Path_Class {
+sub __as_Path_Class_File {
 	require Path::Class;
 	Path::Class::file( $_[0]->file );
 }
