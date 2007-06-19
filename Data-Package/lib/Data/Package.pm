@@ -220,7 +220,11 @@ sub provides {
 	return @provides unless $want;
 
 	# Filter for the class we want, loading as needed
-	return grep { eval "require $_;"; ! $@ and $_->isa($want); } @provides;
+	return grep {
+		return $_ if $_ eq $want;
+		eval "require $_;";
+		return (! $@ and $_->isa($want)) ? $_ : ();
+		} @provides;
 }
 
 sub _provides {

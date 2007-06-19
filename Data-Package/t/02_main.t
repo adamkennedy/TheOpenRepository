@@ -44,6 +44,13 @@ is_deeply( Bar::Data->get('Bar'), Bar::Data->get('Foo'), '->get(Foo) and ->get(B
 #####################################################################
 # Testing Packages
 
+package Foo;
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
 package Foo::Data;
 
 use base 'Data::Package';
@@ -62,9 +69,10 @@ sub __as_Bar {
 
 package Bar;
 
-use vars qw{@ISA};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	@ISA = 'Foo';
+	$VERSION = '0.1';
+	@ISA     = 'Foo';
 }
 
 1;
