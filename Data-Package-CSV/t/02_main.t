@@ -99,7 +99,7 @@ SCOPE: {
 		$VERSION = '0.01';
 	}
 
-	sub csv_dist_file {
+	sub dist_file {
 		return ('Data-Package-CSV', 'test1.csv');
 	}
 
