@@ -134,6 +134,7 @@ not affect it.
 
 use 5.005;
 use strict;
+use Params::Util     '_CLASS';
 use Class::Inspector ();
 use Params::Util     qw{ _CLASS };
 use Params::Coerce   ();
@@ -201,7 +202,7 @@ And either way, the method returns the classes in list context, or the
 number of classes in scalar context. This also lets you do things like:
 
   if ( Data::Thingy->provides('Big::Thing') ) {
-  	die "Data::Thing cannot provide a Big::Thing";
+  	die "Data::Thingy cannot provide a Big::Thing";
   }
 
 =cut
@@ -237,8 +238,8 @@ sub _provides {
 	}
 
 	# Scan the class for __as_Foo_Bar methods
-	my $methods = Class::Inspector->methods($class) or die
-		"Error while looking for providor method in $class";
+	my $methods = Class::Inspector->methods($class)
+		or die "Error while looking for providor method in $class";
 
 	# Filter to just provider methods and convert to classes
 	return map  { s/^__as_//; s/_/::/g; $_ }
