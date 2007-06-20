@@ -141,7 +141,7 @@ use Params::Coerce   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 
@@ -221,11 +221,22 @@ sub provides {
 	return @provides unless $want;
 
 	# Filter for the class we want, loading as needed
-	return grep {
-		return $_ if $_ eq $want;
-		eval "require $_;";
-		return (! $@ and $_->isa($want)) ? $_ : ();
-		} @provides;
+	my @filtered = ();
+	foreach my $p ( @provides ) {
+		if ( Class::Inspector->loaded($p) ) {
+
+		} else {
+			eval "require $p;";
+			if ( $@ ) {
+				next;
+			}
+		}
+		if ( $p->isa($want) ) {
+			push @filtered, $p;
+		}
+	}
+
+	return @filtered;
 }
 
 sub _provides {

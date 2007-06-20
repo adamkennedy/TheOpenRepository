@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::Package
 
+1.02 Thu 21 Jun 2007
+	- Various additional bug fixes
+
 1.01 Tue 19 Jun 2007
 	- Adding Data::Package::File and integration with File::ShareDir
 
