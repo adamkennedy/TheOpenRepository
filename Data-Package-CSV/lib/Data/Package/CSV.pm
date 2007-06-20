@@ -18,12 +18,17 @@ with L<Parse::CSV>.
 
 use 5.005;
 use strict;
-use base 'Data::Package';
+use base 'Data::Package::File';
 use Parse::CSV     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '1.00';
+}
+
+sub import {
+	return 1 if $_[0] eq __PACKAGE__;
+	return shift->SUPER::import(@_);
 }
 
 
@@ -65,6 +70,11 @@ sub csv_options {
 
 #####################################################################
 # Data::Package Methods
+
+sub _provides {
+	my @provides = shift->SUPER::_provides(@_);
+	return ( 'Parse::CSV', @provides );
+}
 
 sub __as_Parse_CSV {
 	my $class = ref($_[0]) || $_[0];

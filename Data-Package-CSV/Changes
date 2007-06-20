@@ -1,5 +1,8 @@
 Changes for Perl extension Data-Package-CSV
 
+1.00 Thu 21 Jun 2007
+	- Bug fixing
+
 0.02 Wed 20 Jun 2007
 	- Converting to a subclass of Data::Package::File
 
