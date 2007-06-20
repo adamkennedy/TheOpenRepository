@@ -2,63 +2,14 @@ package Business::AU::Data::ANZIC;
 
 use 5.005;
 use strict;
-use IO::File       ();
-use Parse::CSV     ();
-use File::ShareDir ();
-use Params::Util   '_CLASS';
+use base 'Data::Package::CSV';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '1.00';
 }
 
-# Locate the file
-my $csv_file = File::ShareDir::module_file('Business::AU::Data::ANZIC', 'anzic.csv');
-
-
-
-
-
-
-#####################################################################
-
-sub new {
-	my $class = shift;
-	my $self  = bless { }, $class;
-	return $self;
-}
-
-sub provides {
-	my @provides = qw{ IO::File Parse::CSV };
-	my $want     = _CLASS($_[1]);
-	if ( $want ) {
-		return grep { $_->isa($want) } @provides;
-	} else {
-		return @provides;
-	}
-}
-
-sub get {
-	my $either = shift;
-	my $want  = _CLASS($_[0]) || 'Parse::CSV';
-	if ( $want eq 'IO::File' ) {
-		return $either->_io_file;
-	}
-	if ( $want eq 'Parse::CSV' ) {
-		return $either->_parse_csv;
-	}
-	Carp::croak("Unknown or unsupported data class '$_[0]'");
-}
-
-sub _io_file {
-	IO::File->new( $csv_file );
-}
-
-sub _parse_csv {
-	Parse::CSV->new(
-		file => $csv_file,
-		);
-}
+sub module_file { 'anzic.csv' }
 
 1;
 
@@ -78,13 +29,13 @@ Business::AU::Data::ANZIC - Australian New Zealand Standard Industrial Classific
 
 =head1 DESCRIPTION
 
-B<Business::AU::Data::ANZIC> is a module which ties the Australian New
-Zealand Standard Industrial Classification (ANZSIC) Codes to a cpan
-namespace.
+B<Business::AU::Data::ANZIC> is a module which ties the Australia and
+New Zealand Standard Industrial Classification (ANZSIC) Codes to a
+cpan namespace.
 
 For applications that need to capture and store information on the
-sector of the economy that a business or person operates in, this module
-provides data that can be used to specify an industry sector.
+sector of the Australian economy that a business or person operates in,
+this module provides data that can be used to specify the industry sector.
 
 The data is provided internally as a CSV heirachal serialization of the
 official Australian Bureau of Statistics data cube from product 1292.0.
@@ -93,7 +44,8 @@ L<http://www.abs.gov.au/AUSSTATS/abs@.nsf/DetailsPage/1292.02006?OpenDocument>
 
 =head2 Using this module
 
-This module provides the raw data access using the L<Data::Package> API.
+This module provides the raw data access using the L<Data::Package> API, and
+is implemented as a L<Data::Package::CSV> subclass.
 
 The modules will provide the data as either a raw L<IO::File> handle, or
 as a L<Parse::CSV> object with numeric columns, from which you can

@@ -1,4 +1,7 @@
-Revision history for Perl extension Business::AU::Data::ANZIC;
+Revision history for Perl extension Business::AU::Data::ANZIC
 
-0.01  Fri Jan 12 2007
-	- original version
+1.02 Wed Jun 20 2007
+	- Converted to a subclass of Data::Package::CSV
+
+0.01 Fri Jan 12 2007
+	- Original version
