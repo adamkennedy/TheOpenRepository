@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use 5.005;
+use strict;
+use FindBin    ();
+use YAML::Tiny ();
+use TinyAuth   ();
+
+# Create the configuration
+my $config_file = $FindBin::Bin . '.conf';
+my $config      = YAML::Tiny->read( $config_file );
+
+# Get the CGI context
+my $cgi = CGI->new;
+unless ( $cgi ) {
+	die "Failed to create CGI context";
+}
+
+# Create the web application
+my $application = TinyAuth->new( $config );
+unless ( $application ) {
+	die "Failed to create TinyAuth instance";
+}
+
+# Run the instance
+my $rv = $application->run;
+unless ( $rv ) {
+	die "Application instance failed to run";
+}
+
+exit(0);

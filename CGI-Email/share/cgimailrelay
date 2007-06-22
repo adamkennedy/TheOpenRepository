@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+# CGI Email Relay Script
+
+use strict;
+use CGI            ();
+use CGI::EmailSend ();
+
+eval {
+	CGI::MailRelay->run;
+};
+if ( $@ ) {
+	# Interval Server Error
+	print CGI::header('text/plain', '503 Internal Server Error');
+	print "503 Internal Server Error\n";
+	print "CGI::MailRelay threw an exception while handling your request\n";
+}
+
+exit(0);
