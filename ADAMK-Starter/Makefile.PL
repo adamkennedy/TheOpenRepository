@@ -10,6 +10,7 @@ requires       'Object::Tiny'        => '1.01';
 requires       'Date::Tiny'          => '0.02';
 requires       'File::Flat'          => '1.00';
 build_requires 'Test::More'          => '0.42';
+build_requires 'Test::Script'        => '1.02';
 build_requires 'Test::File::Cleaner' => '0.03';
 install_script 'bin/adamk-starter';
 

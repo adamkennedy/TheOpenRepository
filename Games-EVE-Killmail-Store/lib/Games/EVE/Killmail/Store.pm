@@ -2,12 +2,12 @@ package Games::EVE::Killmail::Store;
 
 use 5.005;
 use strict;
-use Carp                                ();
-use Params::Util                        qw{ _INSTANCE };
-use DBIx::Class                         ();
-use DBIx::Class::Schema::Loader         ();
-use DBIx::Class::Schema::Loader::SQLite ();
+use Carp         ();
+use Params::Util qw{ _INSTANCE _STRING };
+use DBIx::Class  ();
 use Games::EVE::Killmail::Store::Schema ();
+
+use base 'Class::Default';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -19,10 +19,9 @@ BEGIN {
 
 
 #####################################################################
-# Data Location
+# Data Location and Constructor
 
 my $FILE = undef;
-my $DSN  = undef;
 
 sub import {
 	return unless defined $_[0];
@@ -33,42 +32,62 @@ sub import {
 		Carp::croak("SQLite location is already set and cannot be changed");
 	}
 
+	$FILE = $_[0];
+}
+
+sub _create_default_object {
+	my $class = shift;
+	unless ( $FILE ) {
+		Carp::croak("Default SQLite file has not been set");
+	}
+	return $class->new( $FILE );
+}
+
+sub new {
+	my $class = shift;
+	my $file  = shift;
+
 	# Should be a file that exists
-	unless ( -f $_[0] ) {
+	unless ( $file ) {
+		Carp::croak("Did not provide a SQLite file name");
+	}
+	unless ( -f $file ) {
 		Carp::croak("SQLite file '$FILE' does not exist");
 	}
 
-	$FILE = $_[0];
-	$DSN  = "dbi:SQLite:$FILE";
+	# Create the object
+	my $self = bless {
+		file   => $file,
+		dsn    => "dbi:SQLite:$file",
+		schema => undef,
+		}, $class;
+
+	# Create the schema
+	$self->{schema} = Games::EVE::Killmail::Store::Schema->connect($self->dsn)
+		or Carp::croak("Failed to create schema for $file");
+
+	$self;
+}
+
+sub file {
+	my $self = shift->_self;
+	return $self->{file};
 }
 
 sub dsn {
-	return $DSN;
-}
-
-sub dbh {
-	my $class = shift;
-	my $dsn   = $class->dsn or Carp::croak("SQLite DSN has not been set");
-
-	my $dbh = DBI->connect( $dsn );
-	unless ( _INSTANCE($dbh, 'DBI::db') ) {
-		Carp::croak("Failed to create connection to $dsn");
-	}
-
-	return $dbh;
+	my $self = shift->_self;
+	return $self->{dsn};
 }
 
 sub schema {
-	my $class  = shift;
-	my $dsn   = $class->dsn or Carp::croak("SQLite DSN has not been set");
+	my $self = shift->_self;
+	return $self->{schema};
+}
 
-	# Create the schema
-	my $schema = Games::EVE::Killmail::Store::Schema->connect( $dsn );
-	unless ( _INSTANCE($schema, 'Something') ) {
-		Carp::croak("Failed to create connection to $dsn");
-	}
-
-	return $schema;
+sub resultset {
+	my $self = shift->_self;
+	my $name = defined _STRING($_[0]) ? shift : 'Killmail';
+	return $self->schema->resultset($name);
 }
 
 1;

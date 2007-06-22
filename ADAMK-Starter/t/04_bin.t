@@ -24,12 +24,12 @@ my $cleaner = Test::File::Cleaner->new( $trunk );
 # Main Tests
 
 SCOPE: {
-	my $bin = catfile( 'bin', 'adamk-starter' );
+        my $perl = $^X;
+        ok( -f $perl, "Found perl at $perl" );
+        my $bin  = catfile( 'bin', 'adamk-starter' );
 	ok( -f $bin, 'Found binary' );
-	ok( -x $bin, 'Binary is executable' );
-	my $perl = $^X;
-	my $cmd  = "$perl -Mblib $bin --module Foo::Bar --trunk $trunk";
-	my $rv   = system( $cmd );
+        my $cmd = "$perl -Mblib $bin --module Foo::Bar --trunk $trunk";
+        my $rv  = system( $cmd );
 	is( $rv, 0, 'Binary returns 0' );
 	ok( -f catfile(qw(t data Foo-Bar Makefile.PL)),    'Created Makefile.PL'  );
 	ok( -f catfile(qw(t data Foo-Bar Changes)),        'Created Changes'      );

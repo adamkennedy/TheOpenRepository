@@ -1,7 +1,7 @@
 # This Makefile is for the EVE::Macro extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 6.30_01 (Revision: 1) from the contents of
+# 6.31 (Revision: 19606) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
@@ -16,9 +16,9 @@
 #     NAME => q[EVE::Macro]
 #     NO_META => q[1]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::More=>q[0], Params::Util=>q[0], File::HomeDir=>q[0], File::Spec=>q[0], Win32::GuiTest=>q[0], Config::Tiny=>q[0] }
+#     PREREQ_PM => { Win32::Process::List=>q[0], File::HomeDir=>q[0], File::Spec=>q[0], Test::More=>q[0], Params::Util=>q[0], Win32::Process=>q[0], Win32::GuiTest=>q[0], Config::Tiny=>q[0], Win32=>q[0] }
 #     VERSION => q[0.01]
-#     dist => { PREOP=>q[$(PERL) -I. -MModule::Install::Admin -e "dist_preop(q($(DISTVNAME)))"] }
+#     dist => { PREOP=>q[$(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"] }
 
 # --- MakeMaker post_initialize section:
 
@@ -99,6 +99,10 @@ INSTALLVENDORBIN =
 DESTINSTALLVENDORBIN = $(DESTDIR)$(INSTALLVENDORBIN)
 INSTALLSCRIPT = c:\strawberry-perl\perl\bin
 DESTINSTALLSCRIPT = $(DESTDIR)$(INSTALLSCRIPT)
+INSTALLSITESCRIPT = $(INSTALLSCRIPT)
+DESTINSTALLSITESCRIPT = $(DESTDIR)$(INSTALLSITESCRIPT)
+INSTALLVENDORSCRIPT = 
+DESTINSTALLVENDORSCRIPT = $(DESTDIR)$(INSTALLVENDORSCRIPT)
 INSTALLMAN1DIR = c:\strawberry-perl\perl\man\man1
 DESTINSTALLMAN1DIR = $(DESTDIR)$(INSTALLMAN1DIR)
 INSTALLSITEMAN1DIR = $(INSTALLMAN1DIR)
@@ -132,9 +136,9 @@ PERL_CORE = 0
 PERM_RW = 644
 PERM_RWX = 755
 
-MAKEMAKER   = C:/strawberry-perl/perl/site/lib/ExtUtils/MakeMaker.pm
-MM_VERSION  = 6.30_01
-MM_REVISION = 1
+MAKEMAKER   = C:/strawberry-perl/perl/lib/ExtUtils/MakeMaker.pm
+MM_VERSION  = 6.31
+MM_REVISION = 19606
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
@@ -186,7 +190,7 @@ PM_TO_BLIB = lib/EVE/Macro/Object.pm \
 
 
 # --- MakeMaker platform_constants section:
-MM_Win32_VERSION = 1.12_01
+MM_Win32_VERSION = 1.13
 
 
 # --- MakeMaker tool_autosplit section:
@@ -239,7 +243,7 @@ ZIPFLAGS = -r
 COMPRESS = gzip --best
 SUFFIX = .gz
 SHAR = shar
-PREOP = $(PERL) -I. -MModule::Install::Admin -e "dist_preop(q($(DISTVNAME)))"
+PREOP = $(PERL) -I. "-MModule::Install::Admin" -e "dist_preop(q($(DISTVNAME)))"
 POSTOP = $(NOECHO) $(NOOP)
 TO_UNIX = $(NOECHO) $(NOOP)
 CI = ci -u
@@ -618,7 +622,7 @@ pure_site_install ::
 		$(INST_LIB) $(DESTINSTALLSITELIB) \
 		$(INST_ARCHLIB) $(DESTINSTALLSITEARCH) \
 		$(INST_BIN) $(DESTINSTALLSITEBIN) \
-		$(INST_SCRIPT) $(DESTINSTALLSCRIPT) \
+		$(INST_SCRIPT) $(DESTINSTALLSITESCRIPT) \
 		$(INST_MAN1DIR) $(DESTINSTALLSITEMAN1DIR) \
 		$(INST_MAN3DIR) $(DESTINSTALLSITEMAN3DIR)
 	$(NOECHO) $(WARN_IF_OLD_PACKLIST) \
@@ -631,7 +635,7 @@ pure_vendor_install ::
 		$(INST_LIB) $(DESTINSTALLVENDORLIB) \
 		$(INST_ARCHLIB) $(DESTINSTALLVENDORARCH) \
 		$(INST_BIN) $(DESTINSTALLVENDORBIN) \
-		$(INST_SCRIPT) $(DESTINSTALLSCRIPT) \
+		$(INST_SCRIPT) $(DESTINSTALLVENDORSCRIPT) \
 		$(INST_MAN1DIR) $(DESTINSTALLVENDORMAN1DIR) \
 		$(INST_MAN3DIR) $(DESTINSTALLVENDORMAN3DIR)
 
@@ -738,7 +742,6 @@ test :: $(TEST_TYPE)
 
 test_dynamic :: pure_all
 	$(FULLPERLRUN) "-MExtUtils::Command::MM" "-e" "test_harness($(TEST_VERBOSE), 'inc', '$(INST_LIB)', '$(INST_ARCHLIB)')" $(TEST_FILES)
-	$(FULLPERLRUN) "-Iinc" "-I$(INST_LIB)" "-I$(INST_ARCHLIB)" $(TEST_FILE)
 
 testdb_dynamic :: pure_all
 	$(FULLPERLRUN) $(TESTDB_SW) "-Iinc" "-I$(INST_LIB)" "-I$(INST_ARCHLIB)" $(TEST_FILE)
@@ -762,9 +765,12 @@ ppd:
 	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"File-Spec\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Params-Util\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Test-More\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Win32\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Win32-GuiTest\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Win32-Process\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) "        <DEPENDENCY NAME=\"Win32-Process-List\" VERSION=\"0,0,0,0\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "        <OS NAME=\"$(OSNAME)\" />" >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) "        <ARCHITECTURE NAME=\"MSWin32-x86-multi-thread\" />" >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) "        <ARCHITECTURE NAME=\"MSWin32-x86-multi-thread-5.8\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "        <CODEBASE HREF=\"\" />" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "    </IMPLEMENTATION>" >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) "</SOFTPKG>" >> $(DISTNAME).ppd
@@ -785,13 +791,13 @@ pm_to_blib : $(TO_INST_PM)
 
 
 # End.
-# Postamble by Module::Install 0.64
+# Postamble by Module::Install 0.67
 # --- Module::Install::Admin::Makefile section:
 
 realclean purge ::
 	$(RM_F) $(DISTVNAME).tar$(SUFFIX)
 	$(RM_RF) inc MANIFEST.bak _build
-	$(PERL) -I. -MModule::Install::Admin -e "remove_meta()"
+	$(PERL) -I. "-MModule::Install::Admin" -e "remove_meta()"
 
 reset :: purge
 

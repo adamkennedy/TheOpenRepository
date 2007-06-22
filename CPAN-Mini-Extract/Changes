@@ -2,6 +2,9 @@ Revision history for Perl extension CPAN::Mini::Extract
 
 1.17 Tue 15 May 2007
 	- Integrating LWP::Online to auto-detect the internet
+        - When in offline mode, provide a fake remote param to
+          CPAN::Mini to trick it into not checking for the remote
+          URI, and thus failsely failing.
 
 1.16 Mon 14 May 2007
 	- Don't pre-filter for only Perl files

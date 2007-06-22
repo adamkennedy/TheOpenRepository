@@ -2,19 +2,30 @@ package EVE::Macro::Object;
 
 use 5.006;
 use strict;
-use Carp           'croak';
-use File::Spec     ();
-use Params::Util   qw{_POSINT _STRING};
-use File::HomeDir  ();
-use Config::Tiny   ();
-use Win32::GuiTest ();
-use Time::HiRes    ();
+use Carp               'croak';
+use File::Spec         ();
+use File::HomeDir      ();
+use Params::Util       qw{ _POSINT _STRING _INSTANCE };
+use Config::Tiny       ();
+use Time::HiRes        ();
+use Imager::Screenshot ();
+use Win32::GuiTest     ();
+use Win32::Process     'STILL_ACTIVE';
+use Win32::Process::List;
+use Win32;
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 	$Win32::GuiTest::debug = 0;
 }
+
+use Object::Tiny qw{
+	config
+	config_file
+	process
+	window
+	};
 
 
 
@@ -24,8 +35,7 @@ BEGIN {
 # Constructor
 
 sub new {
-	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self = shift->SUPER::new(@_);
 
 	# Find and load the config file if it exists
 	unless ( $self->config ) {
@@ -57,6 +67,25 @@ sub new {
 		}
 	}
 
+	$self;
+}
+
+# Create a new EVE instance
+sub start {
+	my $self = shift->new(@_);
+
+	# Launch eve, wait a bit, then find the login screen
+	$self->launch;
+	sleep 10;
+	$self->attach;
+
+	return $self;
+}	
+
+# Connect to an existing instance of EVE
+sub connect {
+	my $self = shift->new(@_);
+
 	# Locate the EVE window
 	unless ( $self->window ) {
 		my @windows = Win32::GuiTest::FindWindowLike(0, '^EVE$');
@@ -69,19 +98,101 @@ sub new {
 		$self->{window} = $windows[0];
 	}
 
-	$self;
+	return $self;	
 }
 
-sub config {
-	$_[0]->{config};
+
+# Kill the EVE session
+sub stop {
+	my $self = shift;
+
+	# Stop the process
+	unless ( $self->process ) {
+		croak("No process handle, unable to stop EVE");
+	}
+	$self->process->Kill(0);
+
+	return 1;
 }
 
-sub config_file {
-	$_[0]->{config_file};
+
+
+
+
+#####################################################################
+# Process Mechanics
+
+# Launch the executable
+sub launch {
+	my $self = shift;
+
+	# We need an executable location
+	my $process;
+	my $rv = Win32::Process::Create(
+		$process,
+		$self->config->{_}->{exe} || "C:\\Program Files\\CCP\\EVE\\eve.exe",
+		"eve",
+		0,
+		NORMAL_PRIORITY_CLASS,
+		".",
+	);
+	unless ( $rv and $process ){
+		croak("Failed to start EVE");
+	}
+
+	return 1;
 }
 
-sub window {
-	$_[0]->{window};
+# Update the process and window handles
+sub attach {
+	my $self = shift;
+
+	# Clear the handles
+	$self->{process} = undef;
+	$self->{window}  = undef;
+
+	# Locate the process
+	my $process_list = Win32::Process::List->new;
+	my ($pid, $name) = $process_list->GetProcessPid('ExeFile');
+	unless ( $pid ) {
+		return undef;
+	}
+
+	# Create the process handle
+	my $process = undef;
+	Win32::Process::Open(
+		$process,
+		
+
+
+
+
+#####################################################################
+# Get Information
+
+# Find the current mouse co-ordinate
+sub mouse_pos {
+	my $self    = shift;
+	my ($x, $y) = Win32::GuiTest::GetCursorPos();
+	return [ $x, $y ];
+}
+
+# Find the colour of a specific pixel
+sub pixel_color {
+	my $self  = shift;
+	my $pixel = '';
+}
+
+# Get the screenshot for the window
+sub screenshot {
+	my $self   = shift;
+	my $screen = Imager::Screenshot::screenshot(
+		hwnd => $self->window,
+		);
+	unless ( _INSTANCE($screen, 'Imager') ) {
+		croak("Failed to capture screen");
+	}
+	return $screen;
 }
 
 
@@ -152,19 +263,6 @@ sub right_click_target {
 	my $target = $self->config->{mouse_target}->{$name}
 		or croak("No such [mouse_target] name '$name'");
 	$self->right_click( $target );
-}
-
-# Find the current mouse co-ordinate
-sub mouse_pos {
-	my $self    = shift;
-	my ($x, $y) = Win32::GuiTest::GetCursorPos();
-	return [ $x, $y ];
-}
-
-# Find the colour of a specific pixel
-sub pixel_color {
-	my $self  = shift;
-	my $pixel = '';
 }
 
 # Wait for a defined period of time

@@ -1,5 +1,11 @@
 #!/usr/bin/perl
 
-use ADAMK::Starter ();
+use strict;
+use ADAMK::Starter;
 
-ADAMK::Starter::main(@ARGV);
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.02';
+}
+
+ADAMK::Starter::main();

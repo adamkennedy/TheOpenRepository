@@ -2,6 +2,8 @@ use strict;
 use inc::Module::Install;
 
 name     'Games-EVE-Killmail-Store';
+author   'Adam Kennedy <adamk@cpan.org>';
+license  'perl';
 all_from 'lib/Games/EVE/Killmail/Store.pm';
 requires 'Carp'                                => 0;
 requires 'Params::Util'                        => '0.20';

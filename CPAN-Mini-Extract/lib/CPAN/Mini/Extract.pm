@@ -59,6 +59,9 @@ use File::Basename   ();
 use File::Path       ();
 use File::Remove     ();
 use List::Util       ();
+use File::HomeDir    ();
+use File::Temp       ();
+use URI::file        ();
 use IO::File         ();
 use IO::Zlib         (); # Needed by Archive::Tar
 use Archive::Tar     ();
@@ -71,7 +74,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-	$VERSION = '1.16';
+        $VERSION = '1.17';
 }
 
 
@@ -162,13 +165,31 @@ Returns a new C<CPAN::Mini::Extract> object, or dies on error.
 
 sub new {
 	my $class = shift;
-
-	# Call up to get the base object
 	my %params = @_;
+
+        # Look for a user-config
+        my %config = CPAN::Mini->read_config;
+
+        # Unless provided auto-detect offline mode
 	unless ( defined $params{offline} ) {
 		$params{offline} = LWP::Online::offline();
 	}
-	my $self = $class->SUPER::new( %params );
+
+        # Fake a remote URI if CPAN::Mini can't handle offline mode
+        my %fake = ();
+        if ( $params{offline} and $CPAN::Mini::VERSION <= 0.552 ) {
+                my $tempdir   = File::Temp::tempdir();
+                my $tempuri   = URI::file->new( $tempdir )->as_string;
+                $fake{remote} = $tempuri;
+        }
+
+        # Use a default local path if none provided
+        unless ( defined $params{local} ) {
+                my $local = File::HomeDir
+        }
+
+        # Call our superclass to create the object
+        my $self = $class->SUPER::new( %params, %fake );
 
 	# Check the extract param
 	$self->{extract} or Carp::croak(
@@ -246,7 +267,7 @@ sub run {
 	}
 
 	$changes ||= 0;
-	if ( $self->{extract_check} and $self->{extract_force} ) {
+        if ( $self->{extract_check} or $self->{extract_force} ) {
 		# Expansion checking is enabled, and we didn't do a normal
 		# forced check, so find the full list of files to check.
 		$self->trace("Tarball expansion checking enabled\n");
