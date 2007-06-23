@@ -6,12 +6,13 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 6;
 
 use File::Spec::Functions ':ALL';
 use lib catdir( 't', 'lib' );
 use YAML::Tiny;
 use My::TinyAuth;
+use My::Tests;
 
 # Test files
 my $config_file = rel2abs( catfile( 't', 'data', 'tinyauth.yml' ) );
@@ -38,7 +39,7 @@ isa_ok( $instance, 'My::TinyAuth' );
 is( $instance->run, 1, '->run ok' );
 
 # Check the output
-my $page = <<'END_HTML';
+cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
 Content-Type: text/html; charset=ISO-8859-1
 
 <!DOCTYPE html
@@ -54,6 +55,3 @@ Content-Type: text/html; charset=ISO-8859-1
 </body>
 </html>
 END_HTML
-
-chomp($page);
-is( $instance->stdout, $page, '->stdout returns as expect' );
