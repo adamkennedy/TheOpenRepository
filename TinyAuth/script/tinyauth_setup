@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+# Setup/installer program
+
+use strict;
+use File::Copy;
+use File::Which;
+use Getopt::Long;
+
+# Define the configuration
+my $PATH = undef;
+my $URI  = undef;
+
+# Get any params from the command line
+GetOptions(
+	'path=s' => \$PATH,
+	'uri=s'  => \$URI,
+);
+
+unless ( defined $PATH ) {
+	
+}
+
+sub copy_files {
+	
+}
+
+sub find_module {
+	my @parts = split /::/, $_[0];
+	my @found =
+		grep { -f $_ }
+		map  { catdir( $_, @parts ) . '.pm' }
+		grep { -d $_ } @INC;
+	return $found[0];
+}
