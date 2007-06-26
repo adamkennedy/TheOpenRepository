@@ -1,18 +1,36 @@
 package CGI::Install;
 
+=pod
+
+=head1 NAME
+
+CGI::Install - Package for installing CGI applications
+
+=head1 DESCRIPTION
+
+=cut
+
 use 5.005;
 use strict;
+use Carp         ();
 use File::Spec   ();
 use File::Copy   ();
+use File::Which  ();
 use Scalar::Util ();
 use Params::Util qw{ _STRING _CLASS };
 use Term::Prompt ();
 use URI::ToDisk  ();
 use LWP::Simple  ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
 	$VERSION = '0.01';
+
+	# Locate the cgicapture application
+	$CGICAPTURE ||= File::Which::which('cgicapture');
+	unless ( $CGICAPTURE and -f $CGICAPTURE ) {
+		Carp::croak("Failed to locate the 'cgicapture' application");
+	}
 }
 
 use Object::Tiny qw{
@@ -23,6 +41,7 @@ use Object::Tiny qw{
 	static_uri
 	errstr
 };
+
 
 
 
@@ -100,7 +119,7 @@ sub static_map {
 
 
 #####################################################################
-# Adding 
+# Manipulation
 
 sub add_bin {
 	my $self = shift;
@@ -116,6 +135,19 @@ sub add_class {
 	$self->_module_exists($class) or die "Failed to find '$class'";
 	push @{$self->{class}}, $class;
 	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Functional Methods
+
+sub valid_cgi {
+	my $self = shift;
+
+	
 }
 
 
@@ -174,3 +206,33 @@ sub _module_exists {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+All bugs should be filed via the bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI-Install>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>cpan@ali.asE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>, L<CGI::Capture>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
