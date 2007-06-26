@@ -1,22 +1,17 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Main tests for CGI::Capture.
 # There aren't many, but then CGI::Capture is so damned simple that
 # there's really not that much to test.
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir(updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 6;
+use Test::More tests => 9;
+use File::Spec::Functions ':ALL';
 use CGI::Capture ();
 
 # Check that the use of IO::String for _stdin works
@@ -45,8 +40,12 @@ SCOPE: {
 	is_deeply( $yaml, $yaml2, 'YAML object round-trips ok' );
 
 	# Generate the YAML document
-	my $string = $yaml->as_yaml_string;
+	my $string = $cgi->as_yaml_string;
 	ok( $string =~ /^---\nARGV:\s/, '->as_yaml returns a YAML document' );
+
+	# Round-trip the CGI::Capture
+	my $cgi2 = CGI::Capture->from_yaml_string( $string );
+	is_deeply( $cgi, $cgi2, 'CGI::Capture round-trips ok' );
 }
 
 exit(0);

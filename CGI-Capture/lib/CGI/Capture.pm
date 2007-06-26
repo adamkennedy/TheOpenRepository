@@ -85,7 +85,7 @@ use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
@@ -209,7 +209,7 @@ sub as_yaml {
 	my $yaml = YAML::Tiny->new;
 
 	# Populate the YAML
-	$yaml->[0] = Storable::dclone( $yaml );
+	$yaml->[0] = Storable::dclone( { %$self } );
 	$yaml->[0]->{STDIN} = ${$yaml->[0]->{STDIN}};
 
 	return $yaml;
@@ -243,6 +243,10 @@ sub from_yaml {
 	# Create the object
 	my $self = $class->new;
 	%$self = %{$yaml->[0]};
+
+	# Correct some nigglies
+	my $stdin = $self->{STDIN};
+	$self->{STDIN} = \$stdin;
 
 	return $self;
 }

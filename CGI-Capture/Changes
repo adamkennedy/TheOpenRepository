@@ -1,25 +1,29 @@
 Revision history for Perl extension CGI::Capture
 
-1.06     Tue May  2 2006
+1.07 Tue Jun 26 2007
+	- Adding YAML (de)serialization support
+	- A few minor updates and cleanups
+
+1.06 Tue May  2 2006
 	- No functional changes
 	- IO::String is entirely more sane than IO::Scalar
 	- Upgraded Module::Install to much saner 0.62 as well
 
-1.05     Fri Dec 30 2005
+1.05 Fri Dec 30 2005
 	- Moved from CVS to new SVN repository
 	- Upgraded Module::Install
 	- Moved to production version number.
 
-0.04     Tue Feb 15 2005
+0.04 Tue Feb 15 2005
 	- Removing braindead Build.PL
 
-0.03     Sun Dec 12 2004
+0.03 Sun Dec 12 2004
 	- Fixed a documentation bug
 
-0.02     Fri Dec 10 2004
+0.02 Fri Dec 10 2004
 	- Oops, left the warning in
 
-0.01     Thu Dec  9 2004
+0.01 Thu Dec  9 2004
 	- Confident the main functionality works
 
 0.00_02  Thu Dec  9 2004
