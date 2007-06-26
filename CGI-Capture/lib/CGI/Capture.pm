@@ -80,6 +80,7 @@ use 5.006;
 use strict;
 use Storable   ();
 use IO::String ();
+use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
@@ -168,7 +169,7 @@ sub store {
 
 =pod
 
-=head1 retrieve
+=head2 retrieve
 
 The C<retrieve> method is used identically to the Storable method of the
 same name, and wraps it.
@@ -188,6 +189,29 @@ sub retrieve {
 	my $self = Storable::lock_retrieve(shift);
 	return $self if UNIVERSAL::isa(ref $self, $class);
 	die "Storable did not contains a $class object";
+}
+
+=pod
+
+=head2 as_yaml
+
+To allow for more portable storage and communication of the CGI
+environment, the C<as_yaml> method can be used to generate a YAML
+document for the request (generated via L<YAML::Tiny>).
+
+Returns a YAML document as a string.
+
+=cut
+
+sub as_yaml {
+	my $self = shift;
+	my $yaml = YAML::Tiny->new;
+
+	# Populate the YAML
+	$yaml->[0] = { %$self };
+	$yaml->[0]->{STDIN} = ${$yaml->[0]->{STDIN}};
+
+	return $yaml->write_string;
 }
 
 

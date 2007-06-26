@@ -19,10 +19,6 @@ BEGIN {
 use Test::More tests => 4;
 use CGI::Capture ();
 
-# Create a new object
-my $capture = CGI::Capture->new;
-isa_ok( $capture, 'CGI::Capture' );
-
 # Check that the use of IO::String for _stdin works
 SCOPE: {
 	my $input     = "foo\nbar\n";
@@ -32,6 +28,17 @@ SCOPE: {
 	my $bar = <STDIN>;
 	is( $foo, "foo\n", 'Read from STDIN ok' );
 	is( $bar, "bar\n", 'Read from STDIN ok' );
+}
+
+# Create a new object
+my $cgi = CGI::Capture->new;
+isa_ok( $cgi, 'CGI::Capture' );
+
+# Do an actual capture, and convert to YAML
+SCOPE: {
+	ok( $cgi->capture, '->capture ok' );
+	my $yaml = $cgi->as_yaml;
+	ok( $yaml =~ /^---/, '->as_yaml returns a YAML document' );
 }
 
 exit(0);
