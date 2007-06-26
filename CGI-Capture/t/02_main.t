@@ -38,7 +38,15 @@ isa_ok( $cgi, 'CGI::Capture' );
 SCOPE: {
 	ok( $cgi->capture, '->capture ok' );
 	my $yaml = $cgi->as_yaml;
-	ok( $yaml =~ /^---/, '->as_yaml returns a YAML document' );
+	isa_ok( $yaml, 'YAML::Tiny' );
+
+	# Does the YAML document round-trip
+	my $yaml2 = YAML::Tiny->read_string( $yaml->write_string );
+	is_deeply( $yaml, $yaml2, 'YAML object round-trips ok' );
+
+	# Generate the YAML document
+	my $string = $yaml->as_yaml_string;
+	ok( $string =~ /^---\nARGV:\s/, '->as_yaml returns a YAML document' );
 }
 
 exit(0);
