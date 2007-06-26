@@ -75,7 +75,7 @@ get more fine-grained control, you can create and manipulate CGI::Capture
 object directly.
 
 =cut
-  
+
 use 5.006;
 use strict;
 use Carp       ();
@@ -85,7 +85,7 @@ use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 }
 
 

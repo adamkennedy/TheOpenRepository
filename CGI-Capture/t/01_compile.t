@@ -8,10 +8,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
+use Test::Script;
 
 # Check their perl version
 ok( $] >= 5.006, 'Your perl is new enough' );
 
 # Does the module load
 use_ok('CGI::Capture');
+
+# Does the script compile
+script_compiles_ok('script/cgicapture');

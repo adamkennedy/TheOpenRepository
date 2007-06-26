@@ -1,5 +1,8 @@
 Revision history for Perl extension CGI::Capture
 
+1.08 Tue Jun 26 2007
+	- Adding the cgicapture program for CGI debugging
+
 1.07 Tue Jun 26 2007
 	- Adding YAML (de)serialization support
 	- A few minor updates and cleanups
