@@ -16,7 +16,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use CGI::Capture ();
 
 # Check that the use of IO::String for _stdin works

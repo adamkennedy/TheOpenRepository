@@ -78,6 +78,7 @@ object directly.
   
 use 5.006;
 use strict;
+use Carp       ();
 use Storable   ();
 use IO::String ();
 use YAML::Tiny ();
@@ -199,7 +200,7 @@ To allow for more portable storage and communication of the CGI
 environment, the C<as_yaml> method can be used to generate a YAML
 document for the request (generated via L<YAML::Tiny>).
 
-Returns a YAML document as a string.
+Returns a YAML::Tiny object.
 
 =cut
 
@@ -208,10 +209,79 @@ sub as_yaml {
 	my $yaml = YAML::Tiny->new;
 
 	# Populate the YAML
-	$yaml->[0] = { %$self };
+	$yaml->[0] = Storable::dclone( $yaml );
 	$yaml->[0]->{STDIN} = ${$yaml->[0]->{STDIN}};
 
-	return $yaml->write_string;
+	return $yaml;
+}
+
+=pod
+
+=head2 from_yaml
+
+To allow for more portable storage and communication of the CGI
+environment, the C<from_yaml> method can be used to restore a
+B<CGI::Capture> object from a L<YAML::Tiny> object.
+
+Returns a new B<CGI::Capture> object, or croaks if passed an
+invalid param.
+
+=cut
+
+sub from_yaml {
+	my $class = shift;
+
+	# Check params
+	my $yaml  = shift;
+	unless ( defined $yaml and ref($yaml) and $yaml->isa('YAML::Tiny') ) {
+		Carp::croak("Did not provide a YAML::Tiny object to from_yaml");
+	}
+	unless ( ref($yaml->[0]) eq 'HASH' ) {
+		Carp::croak("The YAML::Tiny object does not have a HASH as first element");
+	}
+
+	# Create the object
+	my $self = $class->new;
+	%$self = %{$yaml->[0]};
+
+	return $self;
+}
+
+=pod
+
+=head2 as_yaml_string
+
+To allow for more portable storage and communication of the CGI
+environment, the C<as_yaml_string> method can be used to generate a YAML
+document for the request (generated via L<YAML::Tiny>).
+
+Returns a YAML document as a string.
+
+=cut
+
+sub as_yaml_string {
+	$_[0]->as_yaml->write_string;
+}
+
+=pod
+
+=head2 from_yaml_string
+
+To allow for more portable storage and communication of the CGI
+environment, the C<from_yaml_string> method can be used to 
+restore a B<CGI::Capture> object from a string containing a YAML
+document.
+
+Returns a new B<CGI::Capture> object, or croaks if the YAML document
+is invalid.
+
+=cut
+
+sub from_yaml_string {
+	my $class  = shift;
+	my $string = shift;
+	my $yaml   = YAML::Tiny->read_string( $string );
+	return $class->from_yaml( $yaml );
 }
 
 
@@ -394,7 +464,8 @@ L<http://ali.as/>, L<CGI>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
