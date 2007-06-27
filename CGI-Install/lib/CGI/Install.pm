@@ -8,6 +8,25 @@ CGI::Install - Installer for CGI applications
 
 =head1 DESCRIPTION
 
+B<CGI::Install> is a package for installing CGI applications.
+
+It is based on the principle that a particular application may need to
+be installed multiple times on a single host.
+
+So an application can be installed normally onto the system, and from
+there the functionality provided by B<CGI::Install> creates a way to
+quickly, easily and safely move a copy of that application (or at least
+the parts that matter) from the default system install location to
+the specific CGI directory.
+
+=head2 Intended for CGI Application Authors
+
+The API described below is primarily for the benefit of CGI application
+authors.
+
+End-users looking to actually install the applications should be using
+the L<cgiinstall> command line tool.
+
 =head1 METHODS
 
 =cut
