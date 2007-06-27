@@ -14,22 +14,24 @@ CGI::Install - Installer for CGI applications
 
 use 5.005;
 use strict;
-use Carp         ();
-use File::Spec   ();
-use File::Copy   ();
-use File::chmod  ();
-use File::Which  ();
-use File::Remove ();
-use Scalar::Util ();
-use Params::Util qw{ _STRING _CLASS _INSTANCE };
-use Term::Prompt ();
-use URI::ToDisk  ();
-use LWP::Simple  ();
-use CGI::Capture ();
+use Carp           ();
+use File::Spec     ();
+use File::Copy     ();
+use File::Path     ();
+use File::chmod    ();
+use File::Which    ();
+use File::Remove   ();
+use File::Basename ();
+use Scalar::Util   ();
+use Params::Util   qw{ _STRING _CLASS _INSTANCE };
+use Term::Prompt   ();
+use URI::ToDisk    ();
+use LWP::Simple    ();
+use CGI::Capture   ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 
 	# Locate the cgicapture application
 	$CGICAPTURE ||= File::Which::which('cgicapture');
@@ -130,7 +132,7 @@ sub prepare {
 		}
 
 		# Validate the CGI settings
-		unless ( $self->validate_cgi($self->cgi_map->catfile('test')) ) {
+		unless ( $self->validate_cgi_dir($self->cgi_map) ) {
 			return $self->prepare_error("CGI mapping failed testing");
 		}
 	}
@@ -166,9 +168,44 @@ sub prepare {
 		}
 
 		# Validate the CGI settings
-		$self->validate_static_dir(
-			$self->static_map->catfile('cgicapture.txt')
-			) or return $self->prepare_error("Static mapping failed testing");
+		unless ( $self->validate_static_dir($self->static_map) ) {
+			return $self->prepare_error("Static mapping failed testing");
+		}
+	}
+
+	return 1;
+}
+
+sub run {
+	my $self = shift;
+
+	# Install any binary files
+	foreach my $bin ( @{$self->{bin}} ) {
+		my $from = File::Which::which($bin)
+			or die "Unexpectedly failed to find '$bin'";
+		my $to = $self->cgi_map->catfile($bin)->path;
+		File::Copy::copy( $from => $to );
+		unless ( -f $to ) {
+			die "Unexpectedly failed to create '$to'";
+		}
+	}
+
+	# Install any class files
+	foreach my $class ( @{$self->{class}} ) {
+		my $from = $self->_module_path($class);
+		my $to   = File::Spec->catfile(
+			$self->cgi_map->catdir('lib')->path,
+			File::Spec->catfile(split /::/, $class) . '.pm',
+		);
+		my $dirname = File::Basename::dirname($to);
+		File::Path::mkpath( $dirname, 0, 0755 );
+		unless ( -d $dirname ) {
+			die "Failed to create directory '$dirname'";
+		}
+		File::Copy::copy( $from => $to );
+		unless ( -f $to ) {
+			die "Unexpectedly failed to create '$to'";
+		}
 	}
 
 	return 1;
@@ -239,6 +276,11 @@ sub validate_cgi_dir {
 
 	# Call the URI
 	my $www = LWP::Simple::get( $file->URI );
+
+	# Clean up the file now, before we check for errors
+	File::Remove::remove( $file->path );
+
+	# Continue and check for errors
 	unless ( defined $www ) {
 		return undef;
 		# Carp::croak("Nothing returned from the cgicapture web request");
@@ -342,12 +384,19 @@ sub _is_interactive {
 }
 
 sub _module_exists {
+	my $self = shift;
+	my $path = $self->_module_path(shift);
+	return !! $path;
+}
+
+sub _module_path {
+	my $self  = shift;
 	my @parts = split /::/, $_[0];
 	my @found =
 		grep { -f $_ }
-		map  { catdir($_, @parts) . '.pm' }
+		map  { File::Spec->catdir($_, @parts) . '.pm' }
 		grep { -d $_ } @INC;
-	return !! @found;
+	return $found[0];
 }
 
 1;

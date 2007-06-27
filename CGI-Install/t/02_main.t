@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 10;
 use File::Spec::Functions ':ALL';
 use CGI::Install ();
 use URI::file    ();
@@ -37,4 +37,8 @@ SCOPE: {
 	is( $cgi->static_path,    undef, '->static_path ok'    );
 	is( $cgi->cgi_uri,        undef, '->cgi_uri ok'        );
 	is( $cgi->cgi_path,       undef, '->cgi_path ok'       );
+
+	# Test support files
+	ok(   $cgi->_module_exists('CGI::Capture'), '->_module_exists(good) ok' );
+	ok( ! $cgi->_module_exists('My::FooBar'),   '->_module_exists(bad) ok'  );
 }

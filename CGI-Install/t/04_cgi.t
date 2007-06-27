@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Testing of the static path
+# Testing of a cgi path
 
 use strict;
 BEGIN {
