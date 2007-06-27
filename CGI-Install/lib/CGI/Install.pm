@@ -83,6 +83,16 @@ sub new {
 	$self->{install_cgi}    = !! $self->{install_cgi};
 	$self->{install_static} = !! $self->{install_static};
 
+	# Delete params that should not have been provided
+	unless ( $self->install_cgi ) {
+		delete $self->{cgi_uri};
+		delete $self->{cgi_path};
+	}
+	unless ( $self->install_static ) {
+		delete $self->{static_uri};
+		delete $self->{static_path};
+	}
+
 	return $self;
 }
 
@@ -123,10 +133,6 @@ sub prepare {
 		unless ( $self->validate_cgi($self->cgi_map->catfile('test')) ) {
 			return $self->prepare_error("CGI mapping failed testing");
 		}
-	} else {
-		# CGI stuff not needed
-		delete $self->{cgi_path};
-		delete $self->{cgi_uri};
 	}
 
 	# Check the static params if installing static
@@ -163,10 +169,6 @@ sub prepare {
 		$self->validate_static_dir(
 			$self->static_map->catfile('cgicapture.txt')
 			) or return $self->prepare_error("Static mapping failed testing");
-	} else {
-		# Static stuff not needed
-		delete $self->{static_path};
-		delete $self->{static_uri};
 	}
 
 	return 1;
@@ -221,21 +223,22 @@ sub add_class {
 
 sub validate_cgi_dir {
 	my $self = shift;
-	my $cgi  = _INSTANCE(shift, 'URI::ToDisk')
+	my $dir  = _INSTANCE(shift, 'URI::ToDisk')
 		or Carp::croak("Did not pass a URI::ToDisk object to valid_cgi");
+	my $file = $dir->catfile('cgicapture');
 
 	# Copy the cgicapture application to the CGI path
-	unless ( File::Copy::copy( $CGICAPTURE, $cgi->path ) ) {
+	unless ( File::Copy::copy( $CGICAPTURE, $file->path ) ) {
 		return undef;
 		# Carp::croak("Failed to copy cgicapture into place");
 	}
-	unless ( File::chmod::chmod('a+rx', $cgi->path) ) {
+	unless ( File::chmod::chmod('a+rx', $file->path) ) {
 		return undef;
 		# Carp::croak("Failed to set executable permissions");
 	}
 
 	# Call the URI
-	my $www = LWP::Simple::get( $cgi->URI );
+	my $www = LWP::Simple::get( $file->URI );
 	unless ( defined $www ) {
 		return undef;
 		# Carp::croak("Nothing returned from the cgicapture web request");

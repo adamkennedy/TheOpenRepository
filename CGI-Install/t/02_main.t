@@ -6,13 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use CGI::Install ();
 use URI::file    ();
-
-my $cgi_path = catdir( 't', 'data', 'cgidir' );
-ok( -d $cgi_path, 'The cgidir exists' );
 
 
 
@@ -21,10 +18,23 @@ ok( -d $cgi_path, 'The cgidir exists' );
 #####################################################################
 # Instantiation
 
+# Test the null case
 SCOPE: {
 	my $cgi = CGI::Install->new(
-		interactive => 0,
-		cgi_path    => $cgi_path,
+		interactive    => 0,
+		install_static => 0,
+		static_uri     => 'foo',
+		static_path    => 'foo',		
+		install_cgi    => 0,
+		cgi_uri        => 'foo',
+		cgi_path       => 'foo',
 	);
 	isa_ok( $cgi, 'CGI::Install' );
+	is( $cgi->interactive,    '',    '->interactive ok'    );
+	is( $cgi->install_static, '',    '->install_static ok' );
+	is( $cgi->install_cgi,    '',    '->install_cgi ok'    );
+	is( $cgi->static_uri,     undef, '->static_uri ok'     );
+	is( $cgi->static_path,    undef, '->static_path ok'    );
+	is( $cgi->cgi_uri,        undef, '->cgi_uri ok'        );
+	is( $cgi->cgi_path,       undef, '->cgi_path ok'       );
 }
