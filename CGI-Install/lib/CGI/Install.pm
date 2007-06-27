@@ -4,7 +4,7 @@ package CGI::Install;
 
 =head1 NAME
 
-CGI::Install - Package for installing CGI applications
+CGI::Install - Installer for CGI applications
 
 =head1 DESCRIPTION
 
@@ -15,12 +15,14 @@ use strict;
 use Carp         ();
 use File::Spec   ();
 use File::Copy   ();
+use File::chmod  ();
 use File::Which  ();
 use Scalar::Util ();
-use Params::Util qw{ _STRING _CLASS };
+use Params::Util qw{ _STRING _CLASS _INSTANCE };
 use Term::Prompt ();
 use URI::ToDisk  ();
 use LWP::Simple  ();
+use CGI::Capture ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
@@ -35,8 +37,11 @@ BEGIN {
 
 use Object::Tiny qw{
 	interactive
+	install_cgi
+	install_static
 	cgi_path
 	cgi_uri
+	cgi_capture
 	static_path
 	static_uri
 	errstr
@@ -57,10 +62,23 @@ sub new {
 	$self->{bin}   = [];
 	$self->{class} = [];
 
+	# By default, install CGI but not static
+	unless ( defined $self->install_cgi ) {
+		$self->{install_cgi} = 1;
+	}
+	unless ( defined $self->install_static ) {
+		$self->{install_static} = 1;
+	}
+	
 	# Auto-detect interactive mode if needed
-	unless ( defined $self->interfactive ) {
+	unless ( defined $self->interactive ) {
 		$self->{interactive} = $self->_is_interactive;
 	}
+
+	# Normalize the boolean flags
+	$self->{interactive}    = !! $self->{interactive};
+	$self->{install_cgi}    = !! $self->{install_cgi};
+	$self->{install_static} = !! $self->{install_static};
 
 	return $self;
 }
@@ -68,32 +86,40 @@ sub new {
 sub prepare {
 	my $self = shift;
 
-	# Get and check the base cgi path
-	if ( $self->interactive and ! defined $self->cgi_path ) {
-		$self->{cgi_path} = Term::Prompt(
-			'x', 'CGI Directory:', '',
-			File::Spec->rel2abs( File::Spec->curdir ),
-		);
-	}
-	my $cgi_path = $self->cgi_path;
-	unless ( defined $cgi_path ) {
-		return $self->prepare_error("No cgi_path provided");
-	}
-	unless ( -d $cgi_path ) {	
-		return $self->prepare_error("The cgi_path '$cgi_path' does not exist");
-	}
-	unless ( -w $cgi_path ) {
-		return $self->prepare_error("The cgi_path '$cgi_path' is not writable");
+	# Check the cgi params if installing CGI
+	if ( $self->install_cgi ) {
+		# Get and check the base cgi path
+		if ( $self->interactive and ! defined $self->cgi_path ) {
+			$self->{cgi_path} = Term::Prompt(
+				'x', 'CGI Directory:', '',
+				File::Spec->rel2abs( File::Spec->curdir ),
+			);
+		}
+		my $cgi_path = $self->cgi_path;
+		unless ( defined $cgi_path ) {
+			return $self->prepare_error("No cgi_path provided");
+		}
+		unless ( -d $cgi_path ) {	
+			return $self->prepare_error("The cgi_path '$cgi_path' does not exist");
+		}
+		unless ( -w $cgi_path ) {
+			return $self->prepare_error("The cgi_path '$cgi_path' is not writable");
+		}
+
+		# Get and check the cgi_uri
+		if ( $self->interactive and ! defined $self->cgi_uri ) {
+			$self->{cgi_uri} = Term::Prompt(
+				'x', 'CGI URI:', '', '',
+			);
+		}
+		unless ( defined _STRING($self->cgi_uri) ) {
+			return $self->prepare_error("No cgi_path provided");
+		}
 	}
 
-	# Get and check the cgi_uri
-	if ( $self->interactive and ! defined $self->cgi_uri ) {
-		$self->{cgi_uri} = Term::Prompt(
-			'x', 'CGI URI:', '', '',
-		);
-	}
-	unless ( defined _STRING($self->cgi_uri) ) {
-		return $self->prepare_error("No cgi_path provided");
+	# Check the static params if installing static
+	if ( $self->install_static ) {
+
 	}
 
 	return 1;	
@@ -146,8 +172,69 @@ sub add_class {
 
 sub valid_cgi {
 	my $self = shift;
+	my $cgi  = _INSTANCE(shift, 'URI::ToDisk')
+		or Carp::croak("Did not pass a URI::ToDisk object to valid_cgi");
 
-	
+	# Copy the cgicapture application to the CGI path
+	unless ( File::Copy::copy( $CGICAPTURE, $cgi->path ) ) {
+		return undef;
+		# Carp::croak("Failed to copy cgicapture into place");
+	}
+	unless ( File::chmod::chmod('a+rx', $cgi->path) ) {
+		return undef;
+		# Carp::croak("Failed to set executable permissions");
+	}
+
+	# Call the URI
+	my $www = LWP::Simple::GET( $cgi->URI );
+	unless ( defined $www ) {
+		return undef;
+		# Carp::croak("Nothing returned from the cgicapture web request");
+	}
+	if ( $www =~ /^\#\!\/usr\/bin\/perl/ ) {
+		return undef;
+		# Carp::croak("URI is not a CGI path");
+	}
+	unless ( $www =~ /^---\nARGV\:/ ) {
+		return undef;
+		# Carp::croak("Unknown value returned from URI");
+	}
+
+	# Superficially ok, convert to capture object
+	$self->{cgi_capture} = CGI::Capture->from_yaml_string($www);
+	unless ( _INSTANCE($self->{cgi_capture}, 'CGI::Capture') ) {
+		return undef;
+		# Carp::croak("Failed to create capture object");
+	}
+
+	return 1;
+}
+
+sub valid_static {
+	my $self   = shift;
+	my $static = _INSTANCE(shift, 'URI::ToDisk')
+		or Carp::croak("Did not pass a URI::ToDisk object to valid_static");
+
+	# Write a test file to the directory
+	my $test_string = int(rand(100000000+1000));
+	open( FILE, $static->path ) or Carp::croak("open: $!");
+	print FILE $test_string;
+	close FILE;
+
+	# Call the URI
+	my $www = LWP::Simple::GET( $static->URI );
+	unless ( defined $www ) {
+		return undef;
+		# Carp::croak("Nothing returned from the cgicapture web request");
+	}
+
+	# Check the result
+	unless ( $www eq $test_string ) {
+		return undef;
+		# Carp::croak("Unknown value returned from URI");
+	}
+
+	return 1;
 }
 
 

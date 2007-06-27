@@ -11,8 +11,8 @@ use File::Spec::Functions ':ALL';
 use CGI::Install ();
 use URI::file    ();
 
-my $cgidir = catdir( 't', 'data', 'cgidir' );
-ok( -d $cgidir, 'The cgidir exists' );
+my $cgi_path = catdir( 't', 'data', 'cgidir' );
+ok( -d $cgi_path, 'The cgidir exists' );
 
 
 
@@ -23,5 +23,8 @@ ok( -d $cgidir, 'The cgidir exists' );
 
 SCOPE: {
 	my $cgi = CGI::Install->new(
-		
+		interactive => 0,
+		cgi_path    => $cgi_path,
+	);
+	isa_ok( $cgi, 'CGI::Install' );
 }

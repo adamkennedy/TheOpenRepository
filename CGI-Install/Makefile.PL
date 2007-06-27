@@ -6,6 +6,7 @@ all_from       'lib/CGI/Install.pm';
 requires       'Carp'         => 0;
 requires       'File::Copy'   => 0;
 requires       'File::Spec'   => '0.80';
+requires       'File::chmod'  => '0.31';
 requires       'File::Which'  => '0.05';
 requires       'Scalar::Util' => '1.17';
 requires       'Params::Util' => '0.25';
