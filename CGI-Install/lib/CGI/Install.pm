@@ -8,6 +8,8 @@ CGI::Install - Installer for CGI applications
 
 =head1 DESCRIPTION
 
+=head1 METHODS
+
 =cut
 
 use 5.005;
@@ -17,6 +19,7 @@ use File::Spec   ();
 use File::Copy   ();
 use File::chmod  ();
 use File::Which  ();
+use File::Remove ();
 use Scalar::Util ();
 use Params::Util qw{ _STRING _CLASS _INSTANCE };
 use Term::Prompt ();
@@ -115,14 +118,58 @@ sub prepare {
 		unless ( defined _STRING($self->cgi_uri) ) {
 			return $self->prepare_error("No cgi_path provided");
 		}
+
+		# Validate the CGI settings
+		unless ( $self->validate_cgi($self->cgi_map->catfile('test')) ) {
+			return $self->prepare_error("CGI mapping failed testing");
+		}
+	} else {
+		# CGI stuff not needed
+		delete $self->{cgi_path};
+		delete $self->{cgi_uri};
 	}
 
 	# Check the static params if installing static
 	if ( $self->install_static ) {
+		# Get and check the base cgi path
+		if ( $self->interactive and ! defined $self->static_path ) {
+			$self->{static_path} = Term::Prompt(
+				'x', 'Static Directory:', '',
+				File::Spec->rel2abs( File::Spec->curdir ),
+			);
+		}
+		my $static_path = $self->static_path;
+		unless ( defined $static_path ) {
+			return $self->prepare_error("No static_path provided");
+		}
+		unless ( -d $static_path ) {	
+			return $self->prepare_error("The static_path '$static_path' does not exist");
+		}
+		unless ( -w $static_path ) {
+			return $self->prepare_error("The static_path '$static_path' is not writable");
+		}
 
+		# Get and check the cgi_uri
+		if ( $self->interactive and ! defined $self->static_uri ) {
+			$self->{static_uri} = Term::Prompt(
+				'x', 'Static URI:', '', '',
+			);
+		}
+		unless ( defined _STRING($self->static_uri) ) {
+			return $self->prepare_error("No static_path provided");
+		}
+
+		# Validate the CGI settings
+		$self->validate_static_dir(
+			$self->static_map->catfile('cgicapture.txt')
+			) or return $self->prepare_error("Static mapping failed testing");
+	} else {
+		# Static stuff not needed
+		delete $self->{static_path};
+		delete $self->{static_uri};
 	}
 
-	return 1;	
+	return 1;
 }
 
 
@@ -133,10 +180,12 @@ sub prepare {
 # Accessor-Derived Methods
 
 sub cgi_map {
+	$_[0]->install_cgi or return undef;
 	URI::ToDisk->new( $_[0]->cgi_path => $_[0]->cgi_uri );
 }
 
 sub static_map {
+	$_[0]->install_static or return undef;
 	URI::ToDisk->new( $_[0]->static_path => $_[0]->static_uri );
 }
 
@@ -170,7 +219,7 @@ sub add_class {
 #####################################################################
 # Functional Methods
 
-sub valid_cgi {
+sub validate_cgi_dir {
 	my $self = shift;
 	my $cgi  = _INSTANCE(shift, 'URI::ToDisk')
 		or Carp::croak("Did not pass a URI::ToDisk object to valid_cgi");
@@ -186,7 +235,7 @@ sub valid_cgi {
 	}
 
 	# Call the URI
-	my $www = LWP::Simple::GET( $cgi->URI );
+	my $www = LWP::Simple::get( $cgi->URI );
 	unless ( defined $www ) {
 		return undef;
 		# Carp::croak("Nothing returned from the cgicapture web request");
@@ -210,19 +259,25 @@ sub valid_cgi {
 	return 1;
 }
 
-sub valid_static {
-	my $self   = shift;
-	my $static = _INSTANCE(shift, 'URI::ToDisk')
+sub validate_static_dir {
+	my $self = shift;
+	my $dir  = _INSTANCE(shift, 'URI::ToDisk')
 		or Carp::croak("Did not pass a URI::ToDisk object to valid_static");
+	my $file = $dir->catfile('cgiinstall.txt');
 
 	# Write a test file to the directory
 	my $test_string = int(rand(100000000+1000));
-	open( FILE, $static->path ) or Carp::croak("open: $!");
-	print FILE $test_string;
-	close FILE;
+	open( FILE, '>' . $file->path ) or die "open: $!";
+	print FILE $test_string           or die "print: $!";
+	close FILE                        or die "close: $!";
 
 	# Call the URI
-	my $www = LWP::Simple::GET( $static->URI );
+	my $www = LWP::Simple::get( $file->URI );
+
+	# Clean up the file now, before we check for errors
+	File::Remove::remove( $file->path );
+
+	# Continue and check for errors
 	unless ( defined $www ) {
 		return undef;
 		# Carp::croak("Nothing returned from the cgicapture web request");
