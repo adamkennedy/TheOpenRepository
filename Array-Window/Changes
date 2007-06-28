@@ -1,5 +1,9 @@
 Revision history for Perl extension Array::Window
 
+1.01 Thu 28 Jun 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.65
+
 1.00 Tue  5 Jun 2006
 	- Removed use of UNIVERSAL::isa
 	- Upgraded to Module::Install 0.62

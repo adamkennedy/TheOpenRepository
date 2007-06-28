@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN { 
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 # A description of the properties
@@ -499,7 +499,7 @@ L<Set::Window>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2002 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

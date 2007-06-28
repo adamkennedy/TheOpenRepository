@@ -19,7 +19,7 @@ use constant WEIGHT => qw{10 1 3 5 7 9 11 13 15 17 19};
 
 use vars qw{$VERSION @EXPORT_OK $errstr};
 BEGIN {
-	$VERSION   = '1.06';
+	$VERSION   = '1.07';
 	@EXPORT_OK = 'validate_abn';
 	$errstr    = '';
 }

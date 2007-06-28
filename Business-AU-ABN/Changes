@@ -1,5 +1,9 @@
 Revision history for Perl extension Business::AU::ABN
 
+1.07 Thu 29 Jun 2007
+	- No functional changes
+	- Upgraded to Module::Install 0.65
+
 1.06 Tue  6 Jun 2006
 	- Moving from old CVS to new SVN repository
 	- Converted to Params::Util
