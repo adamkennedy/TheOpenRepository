@@ -23,5 +23,6 @@ build_requires 'Test::Script'        => '1.02';
 build_requires 'Test::File::Cleaner' => '0.03';
 build_requires 'URI'                 => '1.35';
 build_requires 'URI::file'           => 0;
+install_script 'script/cgi_install';
 
 WriteAll;

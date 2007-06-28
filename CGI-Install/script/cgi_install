@@ -1,0 +1,80 @@
+#!/usr/bin/perl
+
+use 5.005;
+use strict;
+use Params::Util qw{ _CLASS };
+use Getopt::Long ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+my $CGIPATH    = undef;
+my $CGIURI     = undef;
+my $STATICPATH = undef;
+my $STATICURI  = undef;
+
+Getopt::Long::GetOptions(
+	'cgipath=s'    => \$CGIPATH,
+	'cgiuri=s'     => \$CGIURI,
+	'staticpath=s' => \$STATICPATH,
+	'staticuri=s'  => \$STATICURI,
+);
+
+my $class = _CLASS($_[0]);
+unless ( $class ) {
+	error("Did not provide a CGI::Install sub-class");
+}
+my $driver;
+if ( _DRIVER("$class::Install", 'CGI::Install') ) {
+	$driver = "$class::Install";
+
+} elsif ( _DRIVER($class, 'CGI::Install') ) {
+	$driver = $class;
+
+} else {
+	error("Did not provide a CGI::Install sub-class");
+}
+
+# Create an instance of the class
+my $installer = $class->new(
+	cgi_path    => $CGIPATH,
+	cgi_uri     => $CGIURI,
+	static_path => $STATICPATH,
+	static_uri  => $STATICURI,
+);
+unless ( _INSTANCE($installer, 'CGI::Install') ) {
+	croak("Failed to create installer");
+}
+unless ( $installer->prepare ) {
+	croak("Failed to prepare installer for execution");
+}
+unless ( $installer->run ) {
+	croak("Error during installation");
+}
+
+exit(0);
+
+sub error {
+	print $_[0] . "\n";
+	exit(255);
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+cgi_install - Command line script for installing web applications
+
+=head1 SYNOPSIS
+
+  cgi_install My::WebApp
+
+=head1 DESCRIPTION
+
+B<cgi_install> is a command line tool for installing web applications that come with
+L<CGI::Install>-based install classes.
+
