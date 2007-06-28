@@ -2,7 +2,7 @@
 
 use 5.005;
 use strict;
-use Params::Util qw{ _CLASS };
+use Params::Util qw{ _CLASS _DRIVER _INSTANCE };
 use Getopt::Long ();
 
 use vars qw{$VERSION};
@@ -22,13 +22,13 @@ Getopt::Long::GetOptions(
 	'staticuri=s'  => \$STATICURI,
 );
 
-my $class = _CLASS($_[0]);
+my $class = _CLASS(shift @ARGV);
 unless ( $class ) {
 	error("Did not provide a CGI::Install sub-class");
 }
 my $driver;
-if ( _DRIVER("$class::Install", 'CGI::Install') ) {
-	$driver = "$class::Install";
+if ( _DRIVER("${class}::Install", 'CGI::Install') ) {
+	$driver = "${class}::Install";
 
 } elsif ( _DRIVER($class, 'CGI::Install') ) {
 	$driver = $class;
@@ -38,7 +38,7 @@ if ( _DRIVER("$class::Install", 'CGI::Install') ) {
 }
 
 # Create an instance of the class
-my $installer = $class->new(
+my $installer = $driver->new(
 	cgi_path    => $CGIPATH,
 	cgi_uri     => $CGIURI,
 	static_path => $STATICPATH,
