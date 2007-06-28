@@ -1,4 +1,4 @@
-use strict
+use strict;
 use inc::Module::Install;
 
 name            'Algorithm-Dependency';
