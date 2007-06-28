@@ -1,5 +1,9 @@
 Revision history for Perl extension File::UserConfig
 
+0.05 Thu 29 Jun 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.65
+
 0.04 Sun 30 Jul 2006
 	- Getting rid of autoinstall
 	- Upgrading to Module::Install 0.63
