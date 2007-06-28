@@ -1,5 +1,9 @@
 Revision history for Perl extension File::PathList
 
+0.03 Thu 29 Jun 2007
+	- No functional changes.
+	- Upgrading to Module::Install 0.65
+
 0.02 Fri 24 Feb 2006
 	- No functional changes.
 	- Moving over from old CVS repository to SVN repository.

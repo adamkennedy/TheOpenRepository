@@ -61,7 +61,7 @@ use Params::Util     qw{_ARRAY _CODE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
