@@ -46,7 +46,7 @@ use Params::Util qw{_STRING _SCALAR0 _INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 # For all supported digest types, provide the expected lengths of the digest
