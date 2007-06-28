@@ -13,5 +13,6 @@ requires       'CGI::Install'     => '0.01';
 build_requires 'Test::More'       => '0.42';
 build_requires 'Test::Script'     => '1.02';
 build_requires 'Test::LongString' => '0.11';
+install_script 'script/tinyauth';
 
 WriteAll;

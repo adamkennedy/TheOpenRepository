@@ -124,7 +124,7 @@ sub prepare {
 	if ( $self->install_cgi ) {
 		# Get and check the base cgi path
 		if ( $self->interactive and ! defined $self->cgi_path ) {
-			$self->{cgi_path} = Term::Prompt(
+			$self->{cgi_path} = Term::Prompt::prompt(
 				'x', 'CGI Directory:', '',
 				File::Spec->rel2abs( File::Spec->curdir ),
 			);
@@ -142,7 +142,7 @@ sub prepare {
 
 		# Get and check the cgi_uri
 		if ( $self->interactive and ! defined $self->cgi_uri ) {
-			$self->{cgi_uri} = Term::Prompt(
+			$self->{cgi_uri} = Term::Prompt::prompt(
 				'x', 'CGI URI:', '', '',
 			);
 		}
@@ -160,7 +160,7 @@ sub prepare {
 	if ( $self->install_static ) {
 		# Get and check the base cgi path
 		if ( $self->interactive and ! defined $self->static_path ) {
-			$self->{static_path} = Term::Prompt(
+			$self->{static_path} = Term::Prompt::prompt(
 				'x', 'Static Directory:', '',
 				File::Spec->rel2abs( File::Spec->curdir ),
 			);
@@ -178,7 +178,7 @@ sub prepare {
 
 		# Get and check the cgi_uri
 		if ( $self->interactive and ! defined $self->static_uri ) {
-			$self->{static_uri} = Term::Prompt(
+			$self->{static_uri} = Term::Prompt::prompt(
 				'x', 'Static URI:', '', '',
 			);
 		}
