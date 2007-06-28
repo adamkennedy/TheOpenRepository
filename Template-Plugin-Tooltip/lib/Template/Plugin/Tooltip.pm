@@ -98,7 +98,7 @@ use HTML::Tooltip::Javascript ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 # Inlined copy of Params::Util::_INSTANCE
