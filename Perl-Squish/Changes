@@ -1,5 +1,9 @@
 Revision history for Perl extension Perl::Squish
 
+0.03 Thu 29 Jun 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.65
+
 0.02 Fri Jun 17 2005
 	- Ported to the new PPI::Transform API
 
