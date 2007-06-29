@@ -9,7 +9,9 @@ Revision history for Perl extension File::Remove.
     - Constanting the debugger flag for a minor speed and memory improvement
     - Copy in a known-readonly flag for more accurate testing on Win32
     - Remove assumption that -w implied deletion rights on Win32
-    - Validate that the file was actually deleted
+    - Validate that the file was actually deleted.
+    - Add better mode-handling for files.
+    - Add smarter implementation of "candelete" logic.
 
 0.35 Fri  9 Feb 2007  (Stephen Steneker)
     - Update makefile to require Mac::Glue version compatible with Intel macs

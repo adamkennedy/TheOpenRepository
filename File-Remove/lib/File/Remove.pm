@@ -63,9 +63,18 @@ sub remove (@) {
 		} elsif ( IS_WIN32 ) {
 			# Assume we can delete it for the moment
 			$can_delete = 1;
+		} elsif ( -w $path ) {
+			# We have write permissions already
+			$can_delete = 1;
+		} elsif ( $< == 0 ) {
+			# Unixy and root
+			$can_delete = 1;
+		} elsif ( (lstat($path))[4] == $< ) {
+			# I own the file
+			$can_delete = 1;
 		} else {
-			# Dependant on write permissions
-			$can_delete = -w $path;
+			# I don't think we can delete it
+			$can_delete = 0;
 		}
 		unless ( $can_delete ) {
 			print "nowrite: $path\n" if DEBUG;
@@ -74,6 +83,13 @@ sub remove (@) {
 
 		if ( -f $path or -l $path ) {
 			print "file: $path\n" if DEBUG;
+			unless ( -w $path ) {
+				# Make the file writable (implementation from File::Path)
+				(undef, undef, my $rp) = lstat $path or next;
+				$rp &= 07777; # Don't forget setuid, setgid, sticky bits
+				$rp |= 0600;  # Turn on user read/write
+				chmod $rp, $path;
+			}
 			if ( $unlink ? $unlink->($path) : unlink($path) ) {
 				# Failed to delete the file
 				next if -e $path;

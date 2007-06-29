@@ -37,6 +37,7 @@ sub create_directory {
 	ok( -w $d2, "Created $d2 -w" );
 	# Copy in a known-readonly file (in this case, the File::Spec lib we are using
 	File::Copy::copy( $INC{'File/Spec.pm'} => $f3 );
+	chmod( 0400, $f3 );
 	ok( -f $f3, "Created $f3 ok" );
 	ok( -r $f3, "Created $f3 -r" );
     SKIP: {
@@ -82,5 +83,5 @@ END {
 # Main Testing
 
 # Call a recursive remove of the directory, nothing should be left after
-ok( File::Remove::remove( $f3 ), "remove('$f3') ok" );
+is_deeply( [ File::Remove::remove( $f3 ) ], [ $f3 ], "remove('$f3') ok" );
 ok( ! -e $f3, "Removed the file ok" );
