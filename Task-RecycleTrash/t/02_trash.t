@@ -17,14 +17,20 @@ END {
 	File::Remove::remove( $file );
 }
 
-# Create a file and send it to the trash
-open( FILE, ">$file" ) or die "open: $!";
-print FILE "This is a test file\n" or die "print: $!";
-close( FILE ) or die "close: $!";
-ok( -f $file, 'Created test file' );
+SKIP: {
+	unless ( $^O eq 'darwin' or $^O eq 'MSWin32' ) {
+		skip("Trash support not implemented", 2);
+	}
 
-# Move the file to the trash/recycle-bin
-File::Remove::trash( $file );
+	# Create a file and send it to the trash
+	open( FILE, ">$file" ) or die "open: $!";
+	print FILE "This is a test file\n" or die "print: $!";
+	close( FILE ) or die "close: $!";
+	ok( -f $file, 'Created test file' );
 
-# File should now be gone
-ok( ! -f $file, 'File was deleted successfully' );
+	# Move the file to the trash/recycle-bin
+	File::Remove::trash( $file );
+
+	# File should now be gone
+	ok( ! -f $file, 'File was deleted successfully' );
+}
