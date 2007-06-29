@@ -75,6 +75,8 @@ sub remove (@) {
 		if ( -f $path or -l $path ) {
 			print "file: $path\n" if DEBUG;
 			if ( $unlink ? $unlink->($path) : unlink($path) ) {
+				# Failed to delete the file
+				next if -e $path;
 				push @removes, $path;
 			}
 
@@ -83,6 +85,8 @@ sub remove (@) {
 			my $dir = File::Spec->canonpath( $path );
 			if ( $$recursive ) {
 				if ( File::Path::rmtree( [ $dir ], DEBUG, 0 ) ) {
+					# Failed to delete the directory
+					next if -e $path;
 					push @removes, $path;
 				}
 
@@ -90,6 +94,8 @@ sub remove (@) {
 				my ($save_mode) = (stat $dir)[2];
 				chmod $save_mode & 0777, $dir; # just in case we cannot remove it.
 				if ( $rmdir ? $rmdir->($dir) : rmdir($dir) ) {
+					# Failed to delete the directory
+					next if -e $path;
 					push @removes, $path;
 				}
 			}
