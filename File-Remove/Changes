@@ -1,6 +1,16 @@
 Revision history for Perl extension File::Remove.
 
-0.35 Fri 9 Feb 2007  (Stephen Steneker)
+0.36 Fri 30 Jun 2007  (Adam Kennedy)
+    - Avoid the installation of Mac::Glue.
+      (It should not be necesary to test voice synthesis to delete a file)
+    - Anyone truly needing "trash" support will need to add a dependency
+      on Mac::Glue themself. The function may be split out of File::Remove
+      later down the track.
+    - Constanting the debugger flag for a minor speed and memory improvement
+    - Copy in a known-readonly flag for more accurate testing on Win32
+    - Remove assumption that -w implied deletion rights on Win32
+
+0.35 Fri  9 Feb 2007  (Stephen Steneker)
     - Update makefile to require Mac::Glue version compatible with Intel macs
     - Change pod heading from "methods" to "subroutines" [RT#13687]
     - No functional changes from 0.34

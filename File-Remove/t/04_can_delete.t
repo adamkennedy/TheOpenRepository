@@ -4,7 +4,7 @@
 # deeply contains a readonly file that is owned by the current user.
 use strict;
 BEGIN {
-	$| = 1;
+	$|  = 1;
 	$^W = 1;
 }
 
@@ -82,5 +82,5 @@ END {
 # Main Testing
 
 # Call a recursive remove of the directory, nothing should be left after
-ok( File::Remove::remove( \1, $d1 ), "remove('$d1') ok" );
-ok( ! -e $d1, "Removed the directory ok" );
+ok( File::Remove::remove( $f3 ), "remove('$f3') ok" );
+ok( ! -e $f3, "Removed the file ok" );

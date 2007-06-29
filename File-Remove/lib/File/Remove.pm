@@ -3,9 +3,12 @@ package File::Remove;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.35';
+	$VERSION   = '0.36';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
+
+	# Booleanise the debug flag
+	$debug = !! $debug;
 }
 
 # If we ever need a Mac::Glue object,
@@ -14,15 +17,23 @@ my $glue;
 
 use File::Spec ();
 use File::Path ();
-use File::Glob qw(bsd_glob);
+use File::Glob ();
 
 sub expand (@) {
 	map { File::Glob::bsd_glob($_) } @_;
 }
 
+# $debug variable must be set before loading File::Remove.
+# Convert to a constant to allow debugging code to be pruned out.
+use constant DEBUG => $debug;
+
 # Are we on VMS?
 # If so copy File::Path and assume VMS::Filespec is loaded
-use constant IS_VMS => $^O eq 'VMS';
+use constant IS_VMS   => $^O eq 'VMS';
+
+# Are we on Win32?
+# If so write permissions does not imply deletion permissions
+use constant IS_WIN32 => $^O eq 'MSWin32';
 
 
 
@@ -42,26 +53,36 @@ sub remove (@) {
 	my @removes;
 	foreach my $path ( @files ) {
 		unless ( -e $path ) {
-			print "missing: $path\n" if $debug;
+			print "missing: $path\n" if DEBUG;
 			push @removes, $path; # Say we deleted it
 			next;
 		}
-		unless ( IS_VMS ? VMS::Filespec::candelete($path) : -w $path ) {
-			print "nowrite: $path\n" if $debug;
+		my $can_delete;
+		if ( IS_VMS ) {
+			$can_delete = VMS::Filespec::candelete($path);
+		} elsif ( IS_WIN32 ) {
+			# Assume we can delete it for the moment
+			$can_delete = 1;
+		} else {
+			# Dependant on write permissions
+			$can_delete = -w $path;
+		}
+		unless ( $can_delete ) {
+			print "nowrite: $path\n" if DEBUG;
 			next;
 		}
 
 		if ( -f $path or -l $path ) {
-			print "file: $path\n" if $debug;
+			print "file: $path\n" if DEBUG;
 			if ( $unlink ? $unlink->($path) : unlink($path) ) {
 				push @removes, $path;
 			}
 
 		} elsif ( -d $path ) {
-			print "dir: $path\n" if $debug;
+			print "dir: $path\n" if DEBUG;
 			my $dir = File::Spec->canonpath( $path );
 			if ( $$recursive ) {
-				if ( File::Path::rmtree( [ $dir ], $debug, 0 ) ) {
+				if ( File::Path::rmtree( [ $dir ], DEBUG, 0 ) ) {
 					push @removes, $path;
 				}
 
@@ -74,7 +95,7 @@ sub remove (@) {
 			}
 
 		} else {
-			print "???: $path\n" if $debug;
+			print "???: $path\n" if DEBUG;
 		}
 	}
 
