@@ -1,21 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Unit tests for various things that have identifiers
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 17;
@@ -75,7 +65,7 @@ is( $distid->authpath,  '', '->authpath returns "" as expected'             );
 my $output = '';
 ok( $distid->write( \$output ), '->write returns ok' );
 my $expected = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <request xmlns='http://ali.as/xml/schema/pita-xml/$PITA::XML::Request::VERSION' id='1234'>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -87,7 +77,6 @@ my $expected = <<"END_XML";
 END_XML
 chomp $expected;
 $expected =~ s/\n//g;
-$expected =~ s/\?\>/?>\n/;
 is( $output, $expected, 'Wrote XML with id in it ok' );
 
 # Parse it back in

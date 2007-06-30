@@ -1,24 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Unit tests for the PITA::XML::Platform class
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 40;
+use Test::LongString;
 use Config           ();
 use PITA::XML        ();
 use XML::SAX::Writer ();
@@ -45,10 +36,9 @@ sub driver_is {
 	# Clean up the expected string
 	chomp $string;
 	$string =~ s/>\n</></g;
-	$string =~ s/\?\>/?>\n/;
 
 	# Compare the two
-	is( $$output, $string, $message );
+	is_string( $$output, $string, $message );
 }
 
 
@@ -105,7 +95,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	driver_is( $driver, <<END_XML, '->_undef works as expected' );
-<?xml version="1.0" encoding="UTF-8"?><null xmlns='$XMLNS' />
+<?xml version='1.0' encoding='UTF-8'?><null xmlns='$XMLNS' />
 END_XML
 		
 }
@@ -129,7 +119,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $platform_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <platform xmlns='$XMLNS'>
 <scheme>perl5</scheme>
 <path>PATH</path>
@@ -164,7 +154,7 @@ SCOPE: {
 
 	$driver->end_document( {} );	
 	my $request_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <file xmlns='$XMLNS'>
 <filename>Foo-Bar-0.01.tar.gz</filename>
 <digest>MD5.5cf0529234bac9935fc74f9579cc5be8</digest>
@@ -194,7 +184,7 @@ SCOPE: {
 
 	$driver->end_document( {} );	
 	my $request_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <request xmlns='$XMLNS'>
 <scheme>perl5</scheme>
 <distname>Foo-Bar</distname>
@@ -259,7 +249,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $command_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <command xmlns='$XMLNS'>
 <cmd>perl Makefile.PL</cmd>
 <stdout>include /home/adam/cpan2/trunk/PITA-XML/inc/Module/Install.pm
@@ -327,7 +317,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $test_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <test xmlns='$XMLNS' language='text/x-tap' name='t/01_main.t'>
 <stdout>1..4
 ok 1 - Input file opened
@@ -364,7 +354,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
@@ -407,7 +397,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $install_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <install xmlns='$XMLNS'>
 <request>
 <scheme>perl5</scheme>
@@ -496,7 +486,7 @@ SCOPE: {
 
 	$driver->end_document( {} );
 	my $report_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <report xmlns='$XMLNS' />
 END_XML
 
@@ -510,7 +500,7 @@ END_XML
 # Add an install report to the file
 ok( $report->add_install( $install ), '->add_install returns ok' );
 my $report_string = <<"END_XML";
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <report xmlns='$XMLNS'>
 <install>
 <request>
@@ -599,9 +589,8 @@ SCOPE: {
 # Clean up the expected string
 chomp $report_string;
 $report_string =~ s/>\n</></g;
-$report_string =~ s/\?\>/?>\n/;
 
 # Try the normal way
 my $string = '';
 ok( $report->write( \$string ), '->write returns true for report' );
-is( $string, $report_string, '->write outputs the expected XML' );
+is_string( $string, $report_string, '->write outputs the expected XML' );
