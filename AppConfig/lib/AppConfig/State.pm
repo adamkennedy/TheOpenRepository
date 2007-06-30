@@ -32,7 +32,7 @@ package AppConfig::State;
 #   but not applied in config files, general usage, etc.  The GLOBAL 
 #   CMDARG might be specified as a format, e.g. "-%c" where %s = name, 
 #   %c = first character, %u - first unique sequence(?).  Will 
-#   GetOpt::Long handle --long to -l application automagically?
+#   Getopt::Long handle --long to -l application automagically?
 #
 # * ..and an added thought is that CASE sensitivity may be required for the
 #   command line (-v vs -V, -r vs -R, for example), but not for parsing 
