@@ -371,7 +371,7 @@ L<http://ali.as/>, L<PPI>, L<Acme::PerlML>
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the Open Sourcing and release of this distribution.
 
-Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright (c) 2004 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

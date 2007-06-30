@@ -148,7 +148,7 @@ L<Algorithm::Dependency>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 - 2005 Adam Kennedy. All rights reserved.
+Copyright (c) 2003 - 2005 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

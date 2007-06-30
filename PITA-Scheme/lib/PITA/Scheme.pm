@@ -326,7 +326,7 @@ L<PITA>, L<PITA::XML>, L<PITA::Host::ResultServer>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy. All rights reserved.
+Copyright 2005 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

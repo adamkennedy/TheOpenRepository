@@ -85,7 +85,7 @@ L<http://ali.as/>, L<Data::GUID>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2006 Adam Kennedy. All rights reserved.
+Copyright (c) 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

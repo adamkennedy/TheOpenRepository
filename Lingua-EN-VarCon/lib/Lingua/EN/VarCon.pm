@@ -154,7 +154,7 @@ Copyright for this distribution is a little more involved than most.
 
 =head2 The Lingua::EN::VarCon Module
 
-Copyright (c) 2006 Adam Kennedy. All rights reserved.
+Copyright (c) 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

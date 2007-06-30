@@ -333,7 +333,7 @@ L<CSS>, L<http://www.w3.org/TR/REC-CSS1>, L<Config::Tiny>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2002 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

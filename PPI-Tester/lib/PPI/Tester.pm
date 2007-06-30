@@ -323,7 +323,7 @@ L<PPI::Manual>, L<http://sf.net/parseperl>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2006 Adam Kennedy.
 
 Some parts copyright 2004 'DH'.
 

@@ -183,7 +183,7 @@ Original written by Rob Kinyon <rob.kinyon@iinteractive.com>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Rob Kinyon and Adam Kennedy. All rights reserved.
+Copyright 2005, 2006 Rob Kinyon and Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
