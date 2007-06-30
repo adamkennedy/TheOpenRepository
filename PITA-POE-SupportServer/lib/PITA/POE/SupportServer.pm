@@ -3,7 +3,7 @@ package PITA::POE::SupportServer;
 use 5.006;
 use strict;
 use warnings;
-use Params::Util qw( _ARRAY _HASH );
+use Params::Util qw( _ARRAY _HASH0 );
 
 use POE qw(Filter::Line Wheel::Run );
 use POE::Component::Server::SimpleContent;
@@ -36,7 +36,7 @@ sub prepare {
     }
     $self->{execute}               = delete $opt{execute};
     
-    unless ( _HASH($opt{http_mirrors}) ) {
+    unless ( _HASH0($opt{http_mirrors}) ) {
         $self->{errstr} = 'http_mirrors must be a hash ref of image paths to local paths';
         return;
     }
@@ -126,25 +126,31 @@ sub _start {
 
     while ( my ($alias_path,$root_dir) = each %{ $self->{http_mirrors} } ) {
 	my $content = POE::Component::Server::SimpleContent->spawn( 
-		root_dir => $root_dir,
+		root_dir   => $root_dir,
 		alias_path => $alias_path,
 	);
 	next unless $content;
 	push @{ $self->{content_servers} }, $content;
-	push @{ $handlers }, { DIR     => "^$alias_path",
-			       SESSION => $content->session_id(),
-			       EVENT   => 'request', };
+	push @{ $handlers }, {
+		DIR     => "^$alias_path",
+		SESSION => $content->session_id(),
+		EVENT   => 'request',
+		};
     }
 
     foreach my $result ( @{ $self->{http_result} } ) {
-	push @{ $handlers }, { DIR     => "^$result\$",
-			       SESSION => $self->{_session_id},
-			       EVENT   => '_http_result', };
+	push @{ $handlers }, {
+		DIR     => "^$result\$",
+		SESSION => $self->{_session_id},
+		EVENT   => '_http_result',
+		};
     }
 
-    push @{ $handlers }, { DIR     => '^/$', 
-			   SESSION => $self->{_session_id},
-			   EVENT   => '_http_success', };
+    push @{ $handlers }, {
+		DIR     => '^/$', 
+		SESSION => $self->{_session_id},
+		EVENT   => '_http_success',
+		};
 
     $self->{_http_server} = __PACKAGE__ . $$;
     POE::Component::Server::SimpleHTTP->new(
@@ -163,7 +169,7 @@ sub _start {
 sub _sig_child {
   my ($kernel,$self,$thing,$pid,$status) = @_[KERNEL,OBJECT,ARG0..ARG2];
   $self->{_wheel_closed}++;
-  warn "$thing $pid $status\n";
+  # warn "$thing $pid $status\n";
   $self->{exitcode} = $status;
   $kernel->alarm_remove_all();
   $kernel->yield( 'shutdown' );
@@ -278,10 +284,12 @@ sub shutdown {
 }
 
 sub _error {
-    my ( $kernel, $self, $ret, $errno, $error, $wheel_id, $handle ) = @_[ KERNEL, OBJECT, ARG0 .. ARG5 ];
-    $self->{errstr} = "Error no $errno on $handle : $error ( Return value: $ret )";
-    delete $self->{_wheel};
-    return;
+	my ( $kernel, $self, $ret, $errno, $error, $wheel_id, $handle ) = @_[ KERNEL, OBJECT, ARG0 .. ARG5 ];
+	if ( $errno ) {
+		$self->{errstr} = "Error no $errno on $handle : $error ( Return value: $ret )";
+	}
+	delete $self->{_wheel};
+	return;
 }
 
 sub _closed {
@@ -303,19 +311,19 @@ sub _stderr {
 }
 
 sub _startup_timeout {
-    warn "startup_timeout";
+    # warn "startup_timeout";
     $poe_kernel->yield( 'shutdown' );
     return;
 }
 
 sub _activity_timeout {
-    warn "activity_timeout";
+    # warn "activity_timeout";
     $poe_kernel->yield( 'shutdown' );
     return;
 }
 
 sub _shutdown_timeout {
-    warn "shutdown_timeout";
+    # warn "shutdown_timeout";
     $_[OBJECT]->{_wheel}->kill(9) if $_[OBJECT]->{_wheel};
     return;
 }
@@ -379,7 +387,7 @@ L<PITA>, L<POE>, L<Process>, L<http://ali.as/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006 David Davis. All rights reserved.
+Copyright 2006 David Davis.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

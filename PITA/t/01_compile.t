@@ -8,7 +8,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 21;
+use Test::More tests => 22;
+use Test::Script;
 
 BEGIN {
 	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
@@ -24,6 +25,8 @@ BEGIN {
 	use_ok( 'PITA::Guest::Storage'             );
 	use_ok( 'PITA::Guest::Storage::Simple'     );
 }
+
+script_compiles_ok( 't/bin/pita-imagetest' );
 
 ok( $PITA::VERSION,      'PITA was loaded'      );
 ok( $PITA::XML::VERSION, 'PITA::XML was loaded' );

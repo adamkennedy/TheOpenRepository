@@ -8,9 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-# Until prove fixes it
-local $ENV{PERL5LIB} = join ':', catdir('blib', 'lib'), catdir('blib', 'arch'), 'lib';
-
 use Test::More tests => 97;
 
 use PITA ();
@@ -111,13 +108,10 @@ SCOPE: {
 
 	# Check various working directories are created
 	ok( -d $guest->driver->injector_dir, 'Driver injector directory is created' );
-	ok( -d $guest->driver->support_server->directory,
-		'Support Server directory exists' );
 
 	# Save a copy for later
 	@working_dirs = (
 		$guest->driver->injector_dir,
-		$guest->driver->support_server->directory,
 		);
 
 	# Check that we can prepare for a ping
@@ -189,16 +183,6 @@ SCOPE: {
 
 	# Ping the guest
 	ok( $guest->ping, '->ping returns ok' );
-
-	# Did everything happen as we expected?
-	ok( $guest->driver->{_test}->{ss_pidfile}, 
-		'Got the pidfile for the support server' );
-	ok( $guest->driver->{_test}->{ss_started},
-		'Support server started at the right time' );
-	ok( $guest->driver->{_test}->{im_run},
-		'Image Manager ran ok' );
-	ok( $guest->driver->{_test}->{ss_stopped},
-		'Support server stopped at the right time' );
 }
 
 
@@ -216,18 +200,6 @@ SCOPE: {
 
 	# Discover the platforms
 	ok( $guest->discover, '->discover returns ok' );
-
-	# Did everything happen as we expected?
-	ok( $guest->driver->{_test}->{ss_pidfile}, 
-		'Got the pidfile for the support server' );
-	ok( $guest->driver->{_test}->{ss_started},
-		'Support server started at the right time' );
-	ok( $guest->driver->{_test}->{im_run},
-		'Image Manager ran ok' );
-	ok( $guest->driver->{_test}->{im_report},
-		'Image Manager reported ok' );
-	ok( $guest->driver->{_test}->{ss_stopped},
-		'Support server stopped at the right time' );
 
 	# Is the guest now discovered?
 	is( $guest->discovered, 1, '->discovered returns true' );

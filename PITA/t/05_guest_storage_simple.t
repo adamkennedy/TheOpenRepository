@@ -8,9 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-# Until prove fixes it
-local $ENV{PERL5LIB} = join ':', catdir('blib', 'lib'), catdir('blib', 'arch'), 'lib';
-
 use Test::More tests => 7;
 
 use PITA ();

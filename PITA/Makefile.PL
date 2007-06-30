@@ -26,5 +26,6 @@ requires       'PITA::Scheme'             => '0.30';
 requires       'PITA::Image'              => '0.30';
 requires       'PITA::POE::SupportServer' => '0.30';
 build_requires 'Test::More'               => '0.47';
+build_requires 'Test::Script'             => '1.02';
 
 WriteAll;

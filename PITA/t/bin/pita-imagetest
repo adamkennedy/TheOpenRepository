@@ -3,7 +3,7 @@
 # Binary application for the PITA::Guest::Driver::Image::Test driver
 
 use strict;
-use GetOpt::Long ();
+use Getopt::Long ();
 use PITA::Image  ();
 
 
@@ -13,9 +13,9 @@ use PITA::Image  ();
 #####################################################################
 # Options
 
-my $injector = '';
-GetOpt::Long::GetOptions(
-	"injector=s" => \$data,
+my $INJECTOR = undef;
+Getopt::Long::GetOptions(
+	"injector=s" => \$INJECTOR,
 	) or die "Failed to get options";
 
 
@@ -26,7 +26,7 @@ GetOpt::Long::GetOptions(
 # Main Sequence
 
 my $manager = PITA::Image->new(
-	injector => $injector,
+	injector => $INJECTOR,
 	cleanup  => 1,
 	) or die "Failed to create PITA::Image";
 

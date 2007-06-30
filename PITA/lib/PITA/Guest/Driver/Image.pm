@@ -69,6 +69,9 @@ sub new {
 		$self->{support_server_dir} = File::Temp::tempdir();
 	}
 
+	# Create the support server result files to expect
+	$self->{support_server_results} = [];
+
 	$self;
 }
 
@@ -98,6 +101,10 @@ sub support_server_port {
 
 sub support_server_dir {
 	$_[0]->{support_server_dir};
+}
+
+sub support_server_results {
+	$_[0]->{support_server_results};
 }
 
 # Provide a default implementation.
@@ -146,6 +153,11 @@ sub ping_prepare {
 sub ping_execute {
 	my $self = shift;
 
+	# By default, launch the support server
+	my $server = $self->support_server;
+	$server->prepare or die "Failed to prepare support server";
+	$server->run or die "Failed to execute support server";
+
 	1;
 }
 
@@ -175,6 +187,11 @@ sub discover_prepare {
 sub discover_execute {
 	my $self = shift;
 
+	# By default, launch the support server
+	my $server = $self->support_server;
+	$server->prepare or die "Failed to prepare support server";
+	$server->run or die "Failed to execute support server";
+
 	1;
 }
 
@@ -183,6 +200,7 @@ sub discover_cleanup {
 
 	# Load and check the report file
 	my $report_file = File::Spec->catfile( $self->support_server_dir, '1.pita' );
+	$DB::single = 1;
 	my $report      = PITA::XML::Guest->read($report_file);	
 	unless ( $report->platforms ) {
 		Carp::croak("Discovery report did not contain any platforms");
@@ -218,6 +236,11 @@ sub test_prepare {
 
 sub test_execute {
 	my $self = shift;
+
+	# By default, launch the support server
+	my $server = $self->support_server;
+	$server->prepare or die "Failed to prepare support server";
+	$server->run or die "Failed to execute support server";
 
 	1;
 }
@@ -278,7 +301,7 @@ sub prepare_task {
 			};
 
 		# Tell the support server to expect the report
-		$self->support_server->expect(1);
+		$self->{support_server_results} = [ '/1.xml' ];
 
 	} elsif ( $self->_REQUEST($task) ) {
 		# Copy the request, because we need to alter it
@@ -316,7 +339,7 @@ sub prepare_task {
 			};
 
 		# Tell the support server to expect the report
-		$self->support_server->expect($request->id);
+		$self->{support_server_results} = [ "/" . $request->id . ".xml" ];
 
 	} else {
 		Carp::croak("Unexpected or invalid task param to prepare_task");
