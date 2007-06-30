@@ -200,7 +200,6 @@ sub discover_cleanup {
 
 	# Load and check the report file
 	my $report_file = File::Spec->catfile( $self->support_server_dir, '1.pita' );
-	$DB::single = 1;
 	my $report      = PITA::XML::Guest->read($report_file);	
 	unless ( $report->platforms ) {
 		Carp::croak("Discovery report did not contain any platforms");
