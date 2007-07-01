@@ -49,7 +49,7 @@ use Params::Util   '_INSTANCE',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.30';
+	$VERSION = '0.40';
 }
 
 sub xml_entity { 'request' }

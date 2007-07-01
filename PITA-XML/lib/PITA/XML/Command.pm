@@ -33,7 +33,7 @@ use Params::Util '_SCALAR0',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.30';
+	$VERSION = '0.40';
 }
 
 

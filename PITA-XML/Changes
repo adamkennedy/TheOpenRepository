@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::XML
 
+0.40 Sun  1 Jul 2007
+	- Updated for the 0.40 release (minor tweaks only)
+	- Updated to Module::Install 0.65
+
 0.30 Sat 18 Jun 2006
 	- Updated to match changes to XML::SAX::Writer
 	- Updated to Module::Install 0.63
