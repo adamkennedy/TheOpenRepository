@@ -11,8 +11,8 @@ my %rv = (
 	'automated_testing'  => yn(automated_testing),
 	'eumm'               => yn(eumm),
 	'mb'                 => yn(mb),
-	'user_mode'          => yn(user_mode),
-	'author_mode'        => yn(author_mode),
+#	'user_mode'          => yn(user_mode),
+#	'author_mode'        => yn(author_mode),
 	);
 print <<"END_MESSAGE";
 # BEGIN DIAGNOSTICS
@@ -22,8 +22,6 @@ print <<"END_MESSAGE";
 #   MI is running under AUTOMATED_TESTING : $rv{automated_testing}
 #   MI is targetting ExtUtils::MakeMaker  : $rv{eumm}
 #   MI is targetting Module::Build        : $rv{mb}
-#   MI is running in end-user mode        : $rv{user_mode}
-#   MI is running in author mode          : $rv{author_mode}
 # END DIAGNOSTICS
 END_MESSAGE
 

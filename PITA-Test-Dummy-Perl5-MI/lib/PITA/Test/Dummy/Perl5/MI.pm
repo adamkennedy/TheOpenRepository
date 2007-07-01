@@ -70,7 +70,7 @@ L<Module::Install>, L<PITA>, L<http://ali.as/pita/>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Adam Kennedy, all rights reserved.
+Copyright 2006 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
