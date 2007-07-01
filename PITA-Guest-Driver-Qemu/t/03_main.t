@@ -28,7 +28,7 @@ if ( $@ ) {
 	exit(0);
 }
 
-plan( tests => 14 );
+plan( tests => 15 );
 use_ok( 'PITA::XML'   );
 use_ok( 'PITA::Guest' );
 
