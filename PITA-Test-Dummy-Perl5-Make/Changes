@@ -1,5 +1,8 @@
 Revision history for PITA-Test-Dummy-Perl5-Make
 
+1.04 Sun  1 Jul 2007
+	- Updating for gratuitous CPANTS points
+
 1.03 Tue  2 Jan 2007
 	- Removing a 99_author.t QA test that used Test::More
 
