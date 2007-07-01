@@ -1,24 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Check that making an iso works like we expect
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 47;
+use File::Spec::Functions ':ALL';
 use File::Temp   'tempfile';
 use File::Remove 'remove';
 use Filesys::MakeISO;

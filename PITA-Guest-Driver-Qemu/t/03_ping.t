@@ -1,25 +1,23 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Check that making an iso works like we expect
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More;
+use File::Spec::Functions ':ALL';
 use File::Remove 'remove';
+
+# Set the name of the test image (and remove redundant files)
+my $pitafile = catfile( 't', 'ping.pita' );
+remove( $pitafile ) if -f $pitafile;
+END { 
+	remove( $pitafile ) if -f $pitafile;
+}
 
 # Can we load the test data package
 eval {
@@ -30,14 +28,10 @@ if ( $@ ) {
 	exit(0);
 }
 
-plan( tests => 1 );
+plan( tests => 15 );
 use_ok( 'PITA::XML'   );
 use_ok( 'PITA::Guest' );
 
-# Set the name of the test image (and remove redundant files)
-my $pitafile = catfile( 't', 'ping.pita' );
-      remove( $pitafile ) if -f $pitafile;
-END { remove( $pitafile ) if -f $pitafile; }
 
 
 
@@ -63,7 +57,7 @@ isa_ok( $filexml, 'PITA::XML::File' );
 # create live guest objects with on-disk files.
 my $guestxml = PITA::XML::Guest->new(
 	driver   => 'Qemu',
-	memory   => 256,
+	memory   => 128,
 	snapshot => 1,
 	);
 isa_ok( $guestxml, 'PITA::XML::Guest' );
@@ -81,7 +75,8 @@ ok( -f $pitafile, 'Wrote guest file ok' );
 # Create the guest
 my $guest = PITA::Guest->new( $pitafile );
 isa_ok( $guest, 'PITA::Guest' );
-ok( -f ($guest->files)[0]->filename, 'File exists' );
+ok( -f $guest->file, 'File exists' );
+ok( -f ($guest->driver->guest->files)[0]->filename, 'File exists' );
 ok( $guest->ping, 'Guest pings ok' );
 
 1;
