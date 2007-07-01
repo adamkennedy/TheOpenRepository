@@ -20,12 +20,13 @@ It verifies that the driver is using the F<qemu> binary properly.
 
 =cut
 
+use 5.005;
 use strict;
 use File::ShareDir ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 1;
