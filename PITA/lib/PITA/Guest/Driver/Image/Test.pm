@@ -8,7 +8,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.30';
+	$VERSION = '0.40';
 }
 
 # The location of the support server

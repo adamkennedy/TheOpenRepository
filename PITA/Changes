@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA
 
+0.40    Sun  1 Jul 2007
+	- Upgraded to the new PITA::POE::SupportServer
+	- Upgraded Module::Install 0.65
+
 0.22    Sat 22 Apr 2006
 	- Updating to handle the new PITA::XML changes
 	- Upgraded from Data::UUID to far less insane Data::GUID
