@@ -786,7 +786,7 @@ For other issues, contact the maintainer.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 ACKNOWLEDGEMENTS
 

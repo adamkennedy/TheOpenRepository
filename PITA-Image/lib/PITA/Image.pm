@@ -435,7 +435,7 @@ sub report_task_uri {
 	my ($self, $task) = @_;
 	my $uri  = $self->server_uri;
 	my $job  = $task->job_id;
-	my $path = File::Spec->catfile( $uri->path || '/', $job );
+	my $path = File::Spec->catfile( $uri->path || '/', "$job.pita" );
 	$uri->path( $path );
 	$uri;
 }
@@ -484,7 +484,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 SEE ALSO
 

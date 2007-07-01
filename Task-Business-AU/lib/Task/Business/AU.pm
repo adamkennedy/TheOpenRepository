@@ -27,11 +27,9 @@ the development of Australia-specific Business:: modules, and
 provide a single C< cpan Task::Business::AU > command that can be
 used to install all the modules in one hit.
 
-
-
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 

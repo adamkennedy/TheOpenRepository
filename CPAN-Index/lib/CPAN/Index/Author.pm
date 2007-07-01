@@ -88,7 +88,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 C<load_authors> based on L<Parse::CPAN::Authors> by Leon Brocard E<lt>acme@cpan.orgE<gt>
 

@@ -15,6 +15,7 @@ be installed multiple times on a single host.
 
 So an application can be installed normally onto the system, and from
 there the functionality provided by B<CGI::Install> creates a way to
+
 quickly, easily and safely move a copy of that application (or at least
 the parts that matter) from the default system install location to
 the specific CGI directory.
@@ -60,6 +61,7 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	force
 	interactive
 	install_cgi
 	install_static
@@ -91,7 +93,7 @@ sub new {
 		$self->{install_cgi} = 1;
 	}
 	unless ( defined $self->install_static ) {
-		$self->{install_static} = 1;
+		$self->{install_static} = 0;
 	}
 	
 	# Auto-detect interactive mode if needed
@@ -100,6 +102,7 @@ sub new {
 	}
 
 	# Normalize the boolean flags
+	$self->{force}          = !! $self->{force};
 	$self->{interactive}    = !! $self->{interactive};
 	$self->{install_cgi}    = !! $self->{install_cgi};
 	$self->{install_static} = !! $self->{install_static};
@@ -151,7 +154,7 @@ sub prepare {
 		}
 
 		# Validate the CGI settings
-		unless ( $self->validate_cgi_dir($self->cgi_map) ) {
+		unless ( $self->force or $self->validate_cgi_dir($self->cgi_map) ) {
 			return $self->prepare_error("CGI mapping failed testing");
 		}
 	}
@@ -187,7 +190,7 @@ sub prepare {
 		}
 
 		# Validate the CGI settings
-		unless ( $self->validate_static_dir($self->static_map) ) {
+		unless ( $self->force or $self->validate_static_dir($self->static_map) ) {
 			return $self->prepare_error("Static mapping failed testing");
 		}
 	}
@@ -432,7 +435,7 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 

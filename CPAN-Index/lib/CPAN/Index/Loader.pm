@@ -370,7 +370,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Parts based on various modules by Leon Brocard E<lt>acme@cpan.orgE<gt>
 

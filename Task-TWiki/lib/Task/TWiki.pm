@@ -51,7 +51,7 @@ You may wish to double-check that programs are indeed of the correct version.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 If the TWiki developers want to take this over at some point to upgrade
 it for newer versions, let me know.

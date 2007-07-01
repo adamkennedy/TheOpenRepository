@@ -697,7 +697,7 @@ This would be a good thing. It would make things MUCH faster.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Patches are welcome
 

@@ -3,9 +3,12 @@
 # Setup/installer program
 
 use strict;
+use File::Spec;
 use File::Copy;
 use File::Which;
 use Getopt::Long;
+use Term::Prompt;
+use LWP::Simple;
 
 # Define the configuration
 my $PATH = undef;
@@ -17,8 +20,18 @@ GetOptions(
 	'uri=s'  => \$URI,
 );
 
+# Check the path information
 unless ( defined $PATH ) {
-	
+	$PATH = prompt( "x", "CGI Directory:", '', File::Spec->curdir );
+}
+unless ( -d $PATH ) {
+	die "The directory '$PATH' does not exist";
+}
+unless ( -w $PATH ) {
+	die "No write permissions to '$PATH'";
+}
+unless ( defined $CGI ) {
+	$URI = prompt( "x", "CGI URL:", '', '' );
 }
 
 sub copy_files {

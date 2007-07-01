@@ -63,7 +63,7 @@ SCOPE: {
 	is( $cgi->static_map,     undef,     '->static_map undef'  );
 
 	# Validate the static path
-	ok( ! -f $cgi->cgi_map->catfile('cgicapture'), 'No script before the test' );
-	is( $cgi->validate_cgi_dir($cgi->cgi_map), 1, '->validate_cgi_dir ok'      );
-	ok( ! -f $cgi->cgi_map->catfile('cgicapture'), 'No script after the test'  );
+	ok( ! -f $cgi->cgi_map->catfile('cgicapture')->path, 'No script before the test' );
+	is( $cgi->validate_cgi_dir($cgi->cgi_map), 1, '->validate_cgi_dir ok' );
+	ok( ! -f $cgi->cgi_map->catfile('cgicapture')->path, 'No script after the test'  );
 }
