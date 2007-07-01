@@ -60,6 +60,8 @@ sub prepare {
 	$self->{_prepared} = 1;
 	$self->{_has_run}  = 0;
 	$self->{_log}      = [];
+	$self->{_stdout}   = [];
+	$self->{_stderr}   = [];
 
 	return 1;
 }
@@ -112,12 +114,19 @@ sub http_result {
 }
 
 sub get_log {
-	my $self = shift;
-	return @{ $self->{_log} };
+	return @{$_[0]->{_log}};
+}
+
+sub get_stdout {
+	return @{$_[0]->{_stdout}};
+}
+
+sub get_stderr {
+	return @{$_[0]->{_stderr}};
 }
 
 sub has_run {
-	shift->{_has_run} || 0;
+	$_[0]->{_has_run} || 0;
 }
 
 # Private methods and events
@@ -311,11 +320,15 @@ sub _stdin {
 }
 
 sub _stdout {
-	warn $_[ARG0];
+	my ($self, $message) = @_[ OBJECT, ARG0];
+	push @{$self->{_stdout}}, $message;
+	# warn $_[ARG0];
 }
 
 sub _stderr {
-	warn $_[ARG0];
+	my ($self, $message) = @_[ OBJECT, ARG0];
+	push @{$self->{_stdout}}, $message;
+	# warn $_[ARG0];
 }
 
 sub _startup_timeout {
