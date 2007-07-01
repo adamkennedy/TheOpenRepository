@@ -21,10 +21,10 @@ requires       'URI'                      => '1.35';
 requires       'LWP'                      => '5.69';
 requires       'Params::Util'             => '0.10';
 requires       'Process'                  => '0.16';
-requires       'PITA::XML'                => '0.30';
-requires       'PITA::Scheme'             => '0.30';
-requires       'PITA::Image'              => '0.30';
-requires       'PITA::POE::SupportServer' => '0.30';
+requires       'PITA::XML'                => '0.40';
+requires       'PITA::Scheme'             => '0.40';
+requires       'PITA::Image'              => '0.40';
+requires       'PITA::POE::SupportServer' => '0.40';
 build_requires 'Test::More'               => '0.47';
 build_requires 'Test::Script'             => '1.02';
 
