@@ -131,7 +131,7 @@ sub read {
 	#	);
 
 	# Build the object from the file and validate
-	my $self = bless { config => {} }, $class;
+	my $self   = bless { config => {} }, $class;
 	my $parser = XML::SAX::ParserFactory->parser(
 		Handler => PITA::XML::SAXParser->new($self),
 		);
