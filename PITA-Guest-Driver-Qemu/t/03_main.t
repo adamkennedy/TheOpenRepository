@@ -28,7 +28,7 @@ if ( $@ ) {
 	exit(0);
 }
 
-plan( tests => 15 );
+plan( tests => 14 );
 use_ok( 'PITA::XML'   );
 use_ok( 'PITA::Guest' );
 
@@ -77,6 +77,8 @@ my $guest = PITA::Guest->new( $pitafile );
 isa_ok( $guest, 'PITA::Guest' );
 ok( -f $guest->file, 'File exists' );
 ok( -f ($guest->driver->guest->files)[0]->filename, 'File exists' );
+
+# Ping the guest
 ok( $guest->ping, 'Guest pings ok' );
 
 1;

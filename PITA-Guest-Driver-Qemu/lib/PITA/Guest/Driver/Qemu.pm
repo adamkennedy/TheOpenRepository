@@ -26,7 +26,7 @@ use Filesys::MakeISO ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.21';
+	$VERSION = '0.30';
 }
 
 
@@ -41,7 +41,9 @@ sub new {
 	my $self  = $class->SUPER::new(@_);
 
 	# Locate the qemu binary
-	$self->{qemu_bin} = File::Which::which('qemu') unless $self->qemu_bin;
+	unless ( $self->qemu_bin ) {
+		$self->{qemu_bin} = File::Which::which('qemu');
+	}
 	unless ( $self->qemu_bin ) {
 		Carp::croak("Cannot locate qemu, requires explicit param");
 	}
@@ -70,7 +72,7 @@ sub new {
 		Carp::croak("Failed to find or create a temporary file for the injector iso");
 	}
 
-	$self;
+	return $self;
 }
 
 sub injector_iso {
@@ -91,8 +93,6 @@ sub qemu_version {
 
 #####################################################################
 # PITA::Guest::Driver::Qemu Methods
-
-
 
 # Generate the basic qemu launch command
 sub qemu_command {
@@ -119,7 +119,6 @@ sub qemu_command {
 	return \@cmd;
 }
 
-
 sub support_server_new {
 	my $self = shift;
 	PITA::POE::SupportServer->new(
@@ -133,6 +132,7 @@ sub support_server_new {
 		http_shutdown_timeout => 30,
 		) or die "Failed to create support server";
 }
+
 
 
 
