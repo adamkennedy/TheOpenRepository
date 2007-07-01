@@ -1,6 +1,6 @@
 package PITA::POE::SupportServer;
 
-use 5.006;
+use 5.005;
 use strict;
 use Params::Util qw( _ARRAY _HASH0 );
 
