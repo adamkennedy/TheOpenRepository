@@ -7,7 +7,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.18';
+	$VERSION = '0.20';
 }
 
 sub new     { bless {}, shift }
@@ -312,7 +312,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
