@@ -111,6 +111,11 @@ sub http_result {
 	return $self->{_http_result}->{ $result };
 }
 
+sub get_log {
+	my $self = shift;
+	return @{ $self->{_log} };
+}
+
 sub has_run {
 	shift->{_has_run} || 0;
 }
@@ -196,7 +201,8 @@ sub _signals {
 }
 
 sub _http_success {
-	my ($kernel,$self,$sender,$request,$response) = @_[KERNEL,OBJECT,SENDER,ARG0,ARG1];
+	my ($kernel, $self, $sender, $request, $response) = @_[KERNEL, OBJECT, SENDER, ARG0, ARG1];
+	push @{$self->{_log}}, $request->method . ' ' . $request->uri->path;
 	$kernel->alarm_remove( delete $self->{_http_startup_timer} );
 	$response->code( 200 );
 	$response->content( 'OK' );
@@ -207,7 +213,8 @@ sub _http_success {
 }
 
 sub _http_activity {
-	my ($kernel,$self) = @_[KERNEL,OBJECT];
+	my ($kernel, $self, $request) = @_[KERNEL, OBJECT, ARG0];
+	push @{$self->{_log}}, $request->method . ' ' . $request->uri->path;
 	return unless $self->{_http_activity_timer};
 	$kernel->delay_adjust( $self->{_http_activity_timer}, $self->{http_activity_timeout} );
 	return;
@@ -215,7 +222,8 @@ sub _http_activity {
 
 sub _http_result {
 	my ($kernel,$self,$sender,$request,$response) = @_[KERNEL,OBJECT,SENDER,ARG0,ARG1];
-	my $uri = URI->new( $request->uri );
+	push @{$self->{_log}}, $request->method . ' ' . $request->uri->path;
+	my $uri  = URI->new( $request->uri );
 	my $path = $uri->path;
 	if ( $request->method() eq 'PUT' ) {
 		if ( grep { $_ eq $path } @{ $self->{http_result} } ) {

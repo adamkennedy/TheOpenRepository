@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use LWP::UserAgent;
 use HTTP::Request;
 use IO::Socket::INET;
@@ -44,6 +44,8 @@ ok( 1, 'Server prepared' ); # 3
 $server->run();
 
 ok( !$server->{exitcode}, 'Server ran and timed out' ); # 4
+
+is_deeply( [ $server->get_log ], [ 'GET /', 'PUT /result.xml' ], 'HTTP log ok' );
 
 ok( $server->http_result( '/result.xml' ) eq 'Blah Blah Blah Blah Blah', 'Got result.xml' );
 
