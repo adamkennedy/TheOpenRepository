@@ -102,7 +102,7 @@ use PITA::Image::Test     ();
 
 use vars qw{$VERSION $NOSERVER};
 BEGIN {
-	$VERSION = '0.30';
+	$VERSION = '0.40';
 }
 
 
