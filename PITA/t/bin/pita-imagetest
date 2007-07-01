@@ -16,6 +16,7 @@ use PITA::Image  ();
 my $INJECTOR = undef;
 Getopt::Long::GetOptions(
 	"injector=s" => \$INJECTOR,
+	"noserver"   => \$PITA::Image::NOSERVER,
 	) or die "Failed to get options";
 
 
@@ -36,7 +37,10 @@ $manager->add_platform(
 	path   => $^X, # Only works on Unix
 	);
 
-# Run the image manager
-$manager->run;
+# Run the discover tasks
+$manager->run or die "Failed to run tasks";
+
+# Report the results
+$manager->report or die "Failed to report tasks";
 
 exit(0);

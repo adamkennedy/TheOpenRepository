@@ -91,6 +91,10 @@ sub snapshot {
 		: $_[0]->guest->config->{memory};
 }
 
+sub support_server {
+	$_[0]->{support_server};
+}
+
 sub support_server_addr {
 	$_[0]->{support_server_addr};
 }
@@ -141,6 +145,7 @@ sub ping {
 	$_[0]->ping_prepare;
 	$_[0]->ping_execute;
 	$_[0]->ping_cleanup;
+	return 1;
 }
 
 sub ping_prepare {
@@ -148,23 +153,33 @@ sub ping_prepare {
 
 	# Generate the image.conf
 	$self->prepare_task('ping');
+
+	# Create the support server
+	$self->{support_server} = $self->support_server_new;
+
+	return 1;
 }
 
 sub ping_execute {
 	my $self = shift;
 
 	# By default, launch the support server
-	my $server = $self->support_server;
-	$server->prepare or die "Failed to prepare support server";
-	$server->run or die "Failed to execute support server";
+	$self->support_server->prepare
+	and
+	$self->support_server->run
+	or
+	Carp::croak("Failed to execute support server");
 
-	1;
+	return 1;
 }
 
 sub ping_cleanup {
 	my $self = shift;
 
-	1;
+	# Delete the support server
+	delete $self->{support_server};
+
+	return 1;
 }
 
 sub discover {
@@ -172,6 +187,7 @@ sub discover {
 	$_[0]->discover_prepare;
 	$_[0]->discover_execute;
 	$_[0]->discover_cleanup;
+	return 1;
 }
 
 sub discover_prepare {
@@ -182,15 +198,22 @@ sub discover_prepare {
 
 	# Generate the image.conf
 	$self->prepare_task('discover');
+
+	# Create the support server
+	$self->{support_server} = $self->support_server_new;
+
+	return 1;
 }
 
 sub discover_execute {
 	my $self = shift;
 
 	# By default, launch the support server
-	my $server = $self->support_server;
-	$server->prepare or die "Failed to prepare support server";
-	$server->run or die "Failed to execute support server";
+	$self->support_server->prepare
+	and
+	$self->support_server->run
+	or
+	Carp::croak("Failed to execute support server");
 
 	1;
 }
@@ -198,9 +221,14 @@ sub discover_execute {
 sub discover_cleanup {
 	my $self = shift;
 
-	# Load and check the report file
-	my $report_file = File::Spec->catfile( $self->support_server_dir, '1.pita' );
-	my $report      = PITA::XML::Guest->read($report_file);	
+	# Get the report file contents
+	my $string = $self->support_server->http_result('/1');
+	unless ( _STRING($string) ) {
+		Carp::croak("Discovery report was not uploaded to the support server");
+	}
+
+	# Parse into a report
+	my $report = PITA::XML::Guest->read(\$string);	
 	unless ( $report->platforms ) {
 		Carp::croak("Discovery report did not contain any platforms");
 	}
@@ -210,7 +238,10 @@ sub discover_cleanup {
 		$self->guest->add_platform( $platform );
 	}
 
-	1;
+	# Cleanup the support server
+	delete $self->{support_server};
+
+	return 1;
 }
 
 sub test {
@@ -218,7 +249,8 @@ sub test {
 	$self->clean_injector;
 	$self->test_prepare(@_);
 	$self->test_execute(@_);
-	$self->test_cleanup(@_); # Returns the report
+	my $report = $self->test_cleanup(@_);
+	return $report;
 }
 
 sub test_prepare {
@@ -230,16 +262,21 @@ sub test_prepare {
 	# Generate the scheme.conf into the injector
 	$self->prepare_task(@_);
 
-	1;
+	# Create the support server
+	$self->{support_server} = $self->support_server_new;
+
+	return 1;
 }
 
 sub test_execute {
 	my $self = shift;
 
 	# By default, launch the support server
-	my $server = $self->support_server;
-	$server->prepare or die "Failed to prepare support server";
-	$server->run or die "Failed to execute support server";
+	$self->support_server->prepare
+	and
+	$self->support_server->run
+	or
+	Carp::croak("Failed to execute support server");
 
 	1;
 }
@@ -248,13 +285,23 @@ sub test_cleanup {
 	my $self    = shift;
 	my $request = shift;
 
-	# Load and return the report file
-	PITA::XML::Report->read(
-		File::Spec->catfile(
-			$self->support_server_dir,
-			$request->id . '.pita',
-			)
-		);
+	# Get the report
+	my $string = $self->support_server->http_result('/' . $request->id);
+	unless ( $string ) {
+		Carp::croak("Failed to get report " . $request->id . " from support server");
+	}
+
+	# Parse into a report
+	my $report = PITA::XML::Report->read(\$string);	
+	unless ( $report ) {
+		Carp::croak("Discovery report did not contain any platforms");
+	}
+
+	# Cleanup the support server
+	delete $self->{support_server};
+
+	# Return the report
+	return $report;
 }
 
 
@@ -300,7 +347,7 @@ sub prepare_task {
 			};
 
 		# Tell the support server to expect the report
-		$self->{support_server_results} = [ '/1.xml' ];
+		$self->{support_server_results} = '/1';
 
 	} elsif ( $self->_REQUEST($task) ) {
 		# Copy the request, because we need to alter it
@@ -338,7 +385,7 @@ sub prepare_task {
 			};
 
 		# Tell the support server to expect the report
-		$self->{support_server_results} = [ "/" . $request->id . ".xml" ];
+		$self->{support_server_results} = [ "/" . $request->id ];
 
 	} else {
 		Carp::croak("Unexpected or invalid task param to prepare_task");

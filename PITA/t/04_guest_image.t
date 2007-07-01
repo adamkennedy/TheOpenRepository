@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 97;
+use Test::More tests => 93;
 
 use PITA ();
 use File::Remove 'remove';
@@ -102,7 +102,8 @@ SCOPE: {
 	isa_ok( $guest->driver, 'PITA::Guest::Driver'              );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image'       );
 	isa_ok( $guest->driver, 'PITA::Guest::Driver::Image::Test' );
-	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
+	isa_ok( $guest->driver->support_server_new, 'PITA::POE::SupportServer' );
+	is( $guest->driver->support_server, undef, 'Not support server when not prepared' );
 	is( scalar($guest->guestxml->platforms),    0,  '->platforms(scalar) returns 0' );
 	is_deeply( [ $guest->guestxml->platforms ], [], '->platforms(list) return ()'   ); 
 
@@ -116,6 +117,7 @@ SCOPE: {
 
 	# Check that we can prepare for a ping
 	ok( $guest->driver->ping_prepare, '->driver->ping_prepare returns true' );
+	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
 	my $injector = $guest->driver->injector_dir;
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
@@ -132,6 +134,7 @@ SCOPE: {
 
 	# Check that we can prepare for discovery
 	ok( $guest->driver->discover_prepare, '->driver->discover_prepare returns true' );
+	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir not created' );
@@ -148,6 +151,7 @@ SCOPE: {
 
 	# Check that we can prepare for a test
 	ok( $guest->driver->test_prepare($request), '->driver->test_prepare returns true' );
+	isa_ok( $guest->driver->support_server, 'PITA::POE::SupportServer' );
 	ok( -d $injector, 'Injector exists' );
 	ok( -f catfile( $injector, 'image.conf' ), 'image.conf file created' );
 	ok( -d catfile( $injector, 'perl5lib' ),   'perl5lib dir created' );
@@ -168,7 +172,6 @@ sleep 1;
 
 # Check all the various work directories are removed
 ok( ! -d $working_dirs[0], 'Driver injector removed' );
-ok( ! -d $working_dirs[1], 'Support Server directory exists' );
 
 
 
@@ -183,6 +186,14 @@ SCOPE: {
 
 	# Ping the guest
 	ok( $guest->ping, '->ping returns ok' );
+	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
+	is_deeply(
+		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
+		[ 'GET /' ],
+		'->get_log ok',
+	);
+	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
+
 }
 
 
@@ -200,6 +211,13 @@ SCOPE: {
 
 	# Discover the platforms
 	ok( $guest->discover, '->discover returns ok' );
+	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
+	is_deeply(
+		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
+		[ 'GET /', 'PUT /1' ],
+		'->get_log ok',
+	);
+	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 	# Is the guest now discovered?
 	is( $guest->discovered, 1, '->discovered returns true' );
@@ -218,6 +236,13 @@ SCOPE: {
 
 	# Save it
 	ok( $guest->save, '->save returns true' );
+	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
+	is_deeply(
+		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
+		[ 'GET /', 'PUT /1' ],
+		'->get_log ok',
+	);
+	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 	# Load it again
 	my $guest2 = PITA::Guest->new( $image_write );
@@ -239,20 +264,17 @@ SCOPE: {
 	is( $guest->discovered, 1, '->discovered is true' );
 
 	# Run the test
-	my $rv = $guest->test( $simple_request );
-	isa_ok( $rv, 'PITA::XML::Report' );
+	my $report = $guest->test( $simple_request );
+	isa_ok( $report, 'PITA::XML::Report' );
 
-	# Did everything happen as we expected?
-	ok( $guest->driver->{_test}->{ss_pidfile}, 
-		'Got the pidfile for the support server' );
-	ok( $guest->driver->{_test}->{ss_started},
-		'Support server started at the right time' );
-	ok( $guest->driver->{_test}->{im_run},
-		'Image manager ran ok' );
-	ok( $guest->driver->{_test}->{im_report},
-		'Image manager reported' );
-	ok( $guest->driver->{_test}->{ss_stopped},
-		'Support server stopped at the right time' );
+	# Check results
+	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
+	is_deeply(
+		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
+		[ 'GET /', 'PUT /1234' ],
+		'->get_log ok',
+	);
+	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 }
 
