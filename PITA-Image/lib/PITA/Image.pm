@@ -155,8 +155,8 @@ sub new {
 	$self->{platforms} = [];
 	$self->{tasks}     = [];
 
-	# Cleanup param is boolean
-	$self->{cleanup} = !! $self->{cleanup};
+	# Normalize boolean params
+	$self->{cleanup}    = !! $self->{cleanup};
 
 	# Check some params
 	unless ( $self->injector ) {
@@ -435,7 +435,7 @@ sub report_task_uri {
 	my ($self, $task) = @_;
 	my $uri  = $self->server_uri;
 	my $job  = $task->job_id;
-	my $path = File::Spec->catfile( $uri->path || '/', "$job.pita" );
+	my $path = File::Spec->catfile( $uri->path || '/', $job );
 	$uri->path( $path );
 	$uri;
 }
