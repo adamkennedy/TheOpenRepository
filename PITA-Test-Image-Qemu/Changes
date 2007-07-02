@@ -1,6 +1,6 @@
 Revision history for Perl extension PITA::Test::Image::Qemu
 
-0.03 Sun  1 Jul 2007
+0.40 Sun  1 Jul 2007
 	- Updating to Module::Install 0.65
 	- Adding a Perl version dependency
 	- Cleaning up tests a little
