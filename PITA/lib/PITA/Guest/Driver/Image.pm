@@ -325,7 +325,7 @@ sub prepare_task {
 	my $image_conf = Config::Tiny->new;
 	$image_conf->{_} = {
 		class      => 'PITA::Image',
-		version    => '0.30',
+		version    => '0.40',
 		server_uri => $self->support_server_uri,
 		};
 	if ( -d $self->perl5lib_dir ) {
