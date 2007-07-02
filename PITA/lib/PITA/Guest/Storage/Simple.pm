@@ -225,6 +225,12 @@ sub add_guest {
 	my $guest = _INSTANCE(shift, 'PITA::XML::Guest')
 		or Carp::croak('Did not provide a PITA::XML::Guest to add_guest');
 
+	# Is the driver available for this guest
+	unless ( $guest->driver_available ) {
+		Carp::croak("The guest driver " . $guest->driver . " is not available");
+	}
+
+	# Does the guest have a guid...
 	
 
 	die "CODE INCOMPLETE";
