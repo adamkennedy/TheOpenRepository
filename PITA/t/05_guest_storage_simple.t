@@ -47,7 +47,7 @@ is( $storage->storage_lock, $lock_file,  '->storage_lock returns as expected' );
 # Create a simple guest and add it
 SCOPE: {
 	my $guest = PITA::XML::Guest->read( $image_test );
-	isa_ok( $xml, 'PITA::XML::Guest' );
+	isa_ok( $guest, 'PITA::XML::Guest' );
 	ok( $storage->add_guest($guest), '->add_guest ok' );
 }
 
