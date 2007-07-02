@@ -159,6 +159,12 @@ sub _DISTNAME {
 	($distname =~ /^[a-z]\w*(?:\-[a-z]\w*)+$/is) ? $distname : undef;
 }
 
+sub _GUID {
+	my $class = shift;
+	my $guid  = _STRING(shift) or return undef;
+	($guid =~ /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/) ? $guid : undef;
+}
+
 1;
 
 __END__

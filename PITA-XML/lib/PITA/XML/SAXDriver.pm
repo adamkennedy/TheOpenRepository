@@ -304,7 +304,10 @@ sub _parse_guest {
 	my ($self, $guest) = @_;
 
 	# Send the open tag
-	my $element = $self->_element( 'guest' );
+	my $attr = $guest->id
+		? { id => $guest->id }
+		: { };
+	my $element = $self->_element( 'guest', $attr );
 	$self->start_element( $element );
 
 	# Send the main accessors

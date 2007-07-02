@@ -79,8 +79,8 @@ sub _init {
 
 	# Check the id, if it has one
 	if ( defined $self->id ) {
-		unless ( _STRING($self->id) ) {
-			Carp::croak('Invalid id value');
+		unless ( PITA::XML->_GUID($self->id) ) {
+			Carp::croak('Invalid id value format');
 		}
 	}
 
@@ -137,7 +137,7 @@ sub _init {
 =head2 id
 
 The C<id> accessor returns the unique identifier of the request, if
-it has one. This will generally be some form of L<Data::UUID> string.
+it has one. This should be some form of L<Data::UUID> string.
 
 Returns the identifier as a string, or C<undef> if the request has not
 been assigned an id.

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <guest xmlns='http://ali.as/xml/schema/pita-xml/0.30'>
+        <id>17585D96-2896-11DC-B63B-8D0B94882154</id>
 	<driver>Image::Test</driver>
 	<file>
 		<filename>guest.img</filename>

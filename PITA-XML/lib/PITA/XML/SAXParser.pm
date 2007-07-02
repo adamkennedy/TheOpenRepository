@@ -41,7 +41,7 @@ BEGIN {
 
 	# The name/tags for the simple properties
 	@PROPERTIES = qw{
-		driver
+		id         driver
 		scheme     distname
 		filename   resource  digest
 		authority  authpath
