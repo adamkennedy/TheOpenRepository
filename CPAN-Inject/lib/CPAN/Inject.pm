@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 use vars qw{$VERSION $CHECK_OWNER};
 
 BEGIN {
-    $VERSION = '0.06';
+    $VERSION = '0.07';
 
     # Attempt to determine whether or not we are capable
     # of finding the owner of a directory.
@@ -89,6 +89,10 @@ BEGIN {
     # And boolify the value, just to be a little safer
     $CHECK_OWNER = !!$CHECK_OWNER;
 }
+
+
+
+
 
 #####################################################################
 # Constructor and Accessors
@@ -178,28 +182,27 @@ sub from_cpan_config {
 
     # Support for different mechanisms depending on the version
     # of CPAN that is in use.
-    if ( $CPAN::VERSION >= 1.87 ) {
-        return $class->_from_cpan_config_187(@_);
+    if ( defined $CPAN::HandleConfig::VERSION ) {
+        CPAN::HandleConfig->load;
+    } else {
+        CPAN::Config->load;
     }
 
-    Carp::croak("Unsupported CPAN version $CPAN::VERSION");
-}
-
-sub _from_cpan_config_187 {
-    my $class = shift;
-
-    # Load the CPAN configuration
-    CPAN::HandleConfig->load;
-
     # Get the sources directory
-    my $sources = $CPAN::Config->{keep_source_where}
-        or Carp::croak("Failed to find sources directory in CPAN::Config");
+    my $sources = undef;
+    if ( defined $CPAN::Config->{keep_source_where} ) {
+        $sources = $CPAN::Config->{keep_source_where};
+    } elsif ( defined $CPAN::Config->{cpan_home} ) {
+        $sources = File::Spec->catdir( $CPAN::Config->{cpan_home}, 'sources' );
+    } else {
+        Carp::croak("Failed to find sources directory in CPAN::Config");
+    }
 
     # Hand off to the main constructor
     return $class->new(
         sources => $sources,
         @_,
-    );
+        );
 }
 
 =pod
@@ -227,6 +230,10 @@ C<new> constructor.
 sub author {
     $_[0]->{author};
 }
+
+
+
+
 
 #####################################################################
 # Main methods
@@ -307,13 +314,11 @@ Does not return anything useful and throws an exception on error.
 =cut
 
 sub remove {
-    my $self   = shift @_;
+    my $self   = shift;
     my %params = @_;
 
-    my $from_dist = $params{dist};
-
     # Get the file name
-    my $name = File::Basename::fileparse($from_dist)
+    my $name = File::Basename::fileparse($params{dist})
         or die "Failed to get filename";
 
     my $file_path = $self->file_path($name);
@@ -329,7 +334,7 @@ sub remove {
         Carp::croak("Failed to update CHECKSUMS after removal: $e");
     }
 
-    return;
+    return 1;
 }
 
 =pod
@@ -420,6 +425,10 @@ sub install_path {
         or Carp::croak("Failed to get filename");
     join( '/', $self->author, $file );
 }
+
+
+
+
 
 #####################################################################
 # Support Functions
