@@ -58,7 +58,6 @@ use File::Spec      ();
 use File::Path      ();
 use File::Copy      ();
 use File::Basename  ();
-use CPAN            ();
 use CPAN::Checksums ();
 
 use vars qw{$VERSION $CHECK_OWNER};
@@ -131,7 +130,7 @@ Returns a C<CPAN::Inject> object, or throws an exception on error.
 
 sub new {
     my $class = shift;
-    my $self = bless {@_}, $class;
+    my $self  = bless {@_}, $class;
 
     # Check where we are going to write to
     my $sources = $self->sources;
@@ -174,6 +173,21 @@ error.
 sub from_cpan_config {
     my $class = shift;
 
+    # Load the CPAN module
+    require CPAN;
+
+    # Support for different mechanisms depending on the version
+    # of CPAN that is in use.
+    if ( $CPAN::VERSION >= 1.87 ) {
+        return $class->_from_cpan_config_187(@_);
+    }
+
+    Carp::croak("Unsupported CPAN version $CPAN::VERSION");
+}
+
+sub _from_cpan_config_187 {
+    my $class = shift;
+
     # Load the CPAN configuration
     CPAN::HandleConfig->load;
 
@@ -182,7 +196,10 @@ sub from_cpan_config {
         or Carp::croak("Failed to find sources directory in CPAN::Config");
 
     # Hand off to the main constructor
-    $class->new( sources => $sources, @_ );
+    return $class->new(
+        sources => $sources,
+        @_,
+    );
 }
 
 =pod
