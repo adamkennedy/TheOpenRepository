@@ -18,6 +18,7 @@ typically stored in a Guest image library.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp         ();
 use Data::GUID   ();
@@ -47,12 +48,12 @@ BEGIN {
   	);
 
 The C<new> constructor (regardless of the subclass) takes a set of
-key/value params and returns a new C<PITA::Guest::Storage> object.
+key/value params and returns a new B<PITA::Guest::Storage> object.
 
-Note the C<PITA::Guest::Storage> class itself cannot be instantiated
+Note the B<PITA::Guest::Storage> class itself cannot be instantiated
 directly. You can only create objects of subclasses.
 
-Returns a new C<PITA::Guest::Storage> object, or throws an exception
+Returns a new B<PITA::Guest::Storage> object, or throws an exception
 on error.
 
 =cut
@@ -62,7 +63,7 @@ sub new {
 	if ( $class eq __PACKAGE__ ) {
 		Carp::croak('Cannot instantiate PITA::Guest::Storage directly');
 	}
-	bless { @_ }, $class;
+	return bless { @_ }, $class;
 }
 
 
@@ -151,7 +152,7 @@ in the storage, or throws an exception on error.
 
 sub platform {
 	my $self = shift;
-	my $guid  = _GUID(shift)
+	my $guid = _GUID(shift)
 		or Carp::croak('Did not provide a GUID to the platform method');
 	Carp::croak( ref($self) . ' has not implemented the platform method' );	
 }

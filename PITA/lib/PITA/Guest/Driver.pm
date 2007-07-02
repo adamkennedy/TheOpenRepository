@@ -1,5 +1,6 @@
 package PITA::Guest::Driver;
 
+use 5.005;
 use strict;
 use Carp         ();
 use File::Temp   ();

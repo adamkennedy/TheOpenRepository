@@ -18,10 +18,12 @@ Guest image location and searching is done the long way, with no indexing.
 
 =cut
 
+use 5.005;
 use strict;
-use Carp       ();
-use File::Spec ();
-use File::Path ();
+use Carp        ();
+use File::Spec  ();
+use File::Path  ();
+use File::Flock ();
 use base 'PITA::Guest::Storage';
 
 use vars qw{$VERSION $LOCKFILE};
@@ -42,7 +44,7 @@ BEGIN {
 =head2 new
 
   my $store = PITA::Guest::Storage::Simple->new(
-  	storage_dir => '/var/pita/storage',
+  	storage_dir => '/var/PITA-Guest-Storable-Simple',
   	);
 
 The C<new> method creates a new simple storage object. It takes a single
@@ -90,7 +92,7 @@ sub storage_dir {
 =head2 create
 
   my $store = PITA::Guest::Storage::Simple->new(
-  	storage_dir => 
+  	storage_dir => '/var/PITA-Guest-Storable-Simple',
   	);
 
 The C<create> constructor creates a new C<PITA::Guest::Storage::Simple>
@@ -218,8 +220,13 @@ sub storage_lock_delete {
 # PITA::Guest::Storage Methods
 
 sub add_guest {
-	my $self = shift;
-	die 'CODE INCOMPLETE';
+	my $self  = shift;
+	my $guest = _INSTANCE(shift, 'PITA::XML::Guest')
+		or Carp::croak('Did not provide a PITA::XML::Guest to add_guest');
+
+	
+
+	die "CODE INCOMPLETE";
 }
 
 sub guest {
