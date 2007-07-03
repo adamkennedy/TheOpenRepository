@@ -12,6 +12,9 @@ The L<PITA::Guest::Storage> class provides an API for cataloguing and
 retrieving Guest images, with all the data stored on the filesystem using
 the native XML file formats.
 
+B<PITA::Guest::Storage::Simple> implements a very simple version of
+the L<PITA::Guest::Storage> API.
+
 Guest image location and searching is done the long way, with no indexing.
 
 =head1 METHODS
@@ -25,6 +28,7 @@ use File::Spec   ();
 use File::Path   ();
 use File::Flock  ();
 use Params::Util '_INSTANCE';
+use Data::GUID   ();
 use base 'PITA::Guest::Storage';
 
 use vars qw{$VERSION $LOCKFILE};
@@ -118,12 +122,6 @@ sub create {
 		Carp::croak("Failed to create the storage_dir '$storage_dir': $@");
 	}
 
-	# Create the lock file and take it
-	unless ( $self->storage_lock_take ) {
-		# In create, a false return is a bigger problem
-		Carp::croak('Failed to create and take the lock file');
-	}
-
 	$self;
 }
 
@@ -131,24 +129,7 @@ sub create {
 
 =head2 storage_lock
 
-The C<storage_lock> method returns the location of the storage lock file.
-
-The lock file is taken by a C<PITA::Guest::Storage::Simple> object at
-constructor-time, and hold for the duration of the object's existance.
-
-Returns a file path string.
-
-=cut
-
-sub storage_lock {
-	File::Spec->catfile( $_[0]->storage_dir, $LOCKFILE );
-}
-
-=pod
-
-=head2 storage_lock_take
-
-The C<storage_lock_take> method takes a lock on the C<storage_lock> file,
+The C<storage_lock> method takes a lock on the C<storage_lock> file,
 creating it if needed (in the C<create> method case).
 
 It does not wait to take the lock, failing immediately if the lock
@@ -159,58 +140,10 @@ or throws an exception on error.
 
 =cut
 
-sub storage_lock_take {
-	my $self = shift;
-	my $lock = $self->storage_lock;
-
-	# Take the lock
-
-	# Create the file if needed
-	unless ( -f $lock ) {
-		local *LOCKFILE;
-		open( LOCKFILE, ">$lock" )   or Carp::croak("open: $!" );
-		print LOCKFILE  "A lockfile" or Carp::croak("print: $!");
-		close LOCKFILE               or Carp::croak("close: $!");
-	}
-
-	# Store the lock in the object
-	$self->{storage_lock_object} = 1; ### Temporary object
-
-	1;
-}
-
-=pod
-
-=head2 storage_lock_object
-
-If we have a lock on the storage, returns the lock object for the lock.
-
-Returns a C<XXXXXX> object or false if we do not have a lock
-
-=cut
-
-sub storage_lock_object {
-	$_[0]->{storage_lock_object};	
-}
-
-=pod
-
-=head2 storage_lock_release
-
-If we have a lock on the storage, release the lock.
-
-Returns true once the lock is released, or throws an exception on error
-or if the object does not hold the lock.
-
-=cut
-
-sub storage_lock_delete {
-	my $self = shift;
-	unless ( $self->storage_lock_object ) {
-		Carp::croak('Cannot release a lock that we do not hold');
-	}
-	delete $self->{storage_lock_object};
-	1;
+sub storage_lock {
+	File::Flock->new(
+		File::Spec->catfile( $_[0]->storage_dir, $LOCKFILE ),
+	);
 }
 
 
@@ -231,7 +164,19 @@ sub add_guest {
 	}
 
 	# Does the guest have a guid...
-	
+	unless ( $guest->id ) {
+		$guest->set_id( Data::GUID->new->as_string );
+	}
+
+	# Does the GUID match an existing one
+	if ( $self->guest( $guest->id ) ) {
+		Carp::croak("The guest " . $guest->id . " already exists");
+	}
+
+	# Store the PITA file
+	my $lock = $self->storage_lock;
+	my $file = File::Spec->catfile( $self->storage_dir, $guest->id . '.pita' );
+	$guest->write( $file ) or Carp::croak("Failed to save guest XML file");
 
 	die "CODE INCOMPLETE";
 }
