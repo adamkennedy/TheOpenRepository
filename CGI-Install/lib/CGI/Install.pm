@@ -393,9 +393,9 @@ sub _is_interactive {
 		return -t *STDIN if defined $ARGV && $ARGV eq '-';
 
 		# ...it's at end-of-file and the next file is the magic '-' file
-		return @ARGV>0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
+		return @ARGV > 0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
 
-		# ...it's directly attached to the terminal 
+		# ...it's directly attached to the terminal
 		return -t *ARGV;
 	}
 
