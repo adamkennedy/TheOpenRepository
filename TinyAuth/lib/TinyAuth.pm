@@ -2,8 +2,7 @@ package TinyAuth;
 
 use 5.005;
 use strict;
-use CGI          ();
-use Params::Util qw{ _IDENTIFIER _INSTANCE };
+use Apache::Htpassword::Shadow ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -11,9 +10,14 @@ BEGIN {
 }
 
 use Object::Tiny qw{
-	config
 	cgi
-};
+	action
+	header
+	title
+	homepage
+	auth_store
+	auth_target
+	};
 
 
 
@@ -25,47 +29,65 @@ use Object::Tiny qw{
 sub new {
 	my $self = shift->SUPER::new(@_);
 
-	# Check params
-	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
-		croak("The config param was not a YAML::Tiny object");
-	}
-	unless ( _INSTANCE($self->cgi, 'CGI') ) {
-		croak("The cgi param was not a CGI object");
+	# Set the header
+	unless ( $self->header ) {
+		$self->{header} = CGI::header( 'text/html' );
 	}
 
+	# Set the page title
+	unless ( $self->title ) {
+		$self->{title} = 'SVN Repository Management';
+	}
+
+	# Set the homepage
+	unless ( $self->homepage ) {
+		$self->{homepage} = 'http://search.cpan.org/perldoc?TinyAuth';
+	}
+
+	# Determine the action
+	unless ( $self->action ) {
+		$self->{action} = $self->cgi->param('a') || '';
+	}
+
+	# Set the base arguments
+	$self->{args} ||= {
+		CLASS    => ref($self),
+		VERSION  => $self->VERSION,
+		HOMEPAGE => $self->homepage,
+		DOCTYPE  => $self->html__doctype,
+		HEAD     => $self->html__head,
+		TITLE    => $self->title,
+		BANNER   => $self->html__banner,
+		HOME     => $self->html__home,
+	};
+
+	# Check for configuration variables
+	unless ( $self->svn_
 	return $self;
 }
 
+sub args {
+	return { %{$_[0]->{args}} };
+}
+
 
 
 
 
 #####################################################################
-# Convenience and Support Methods
-
-sub print {
-	my $self = shift;
-	print STDOUT @_;
-}
-
-BEGIN {
-	my @functions = qw{
-		header start_html end_html
-		p
-	};
-	foreach ( @functions ) {
-		eval "sub cgi_$_ {\n\tmy \$self = shift;\n\t\$self->print( \$self->cgi->$_(\@_) );\n}\n";
-		$@ and die "Failed to create method for CGI::$_";
-	}
-}
+# Main Methods
 
 sub run {
-	my $self   = shift;
-	my $action = _IDENTIFIER($self->cgi->param('a')) || 'view_index';
-	unless ( $action =~ /^(?:view|action)_/ ) {
-		die "Illegal action";
+	my $self = shift;
+	if ( $self->action eq 'f' ) {
+		return $self->view_forgot;
+	} elsif ( $self->action eq 'c' ) {
+		return $self->view_change;
+	} elsif ( $self->action eq 'n' ) {
+		return $self->view_new;
+	} else {
+		return $self->view_index;
 	}
-	return $self->$action();
 }
 
 
@@ -73,65 +95,233 @@ sub run {
 
 
 #####################################################################
-# View Methods
+# Views
 
 sub view_index {
 	my $self = shift;
-	$self->cgi_header;
-	$self->cgi_start_html("TinyAuth $VERSION");
-	$self->cgi_p('Hello World!');
-	$self->cgi_end_html;
-	return 1;	
+	$self->print_template(
+		$self->html_front,
+	);
+	return 1;
 }
 
+sub view_forgot {
+	my $self = shift;
+	$self->print_template(
+		$self->html_forgot,
+	);
+	return 1;
+}
+
+sub view_change {
+	my $self = shift;
+	$self->print_template(
+		$self->html_change,
+	);
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+sub print {
+	my $self = shift;
+	if ( defined $self->header ) {
+		# Show the page header if this is the first thing
+		CORE::print( $self->header );
+		$self->{header} = undef;
+	}
+	CORE::print( @_ );
+}
+
+sub template {
+	my $self = shift;
+	my $html = shift;
+	my $args = shift || $self->args;
+	foreach ( 0 .. 10 ) {
+		# Allow up to 10 levels of recursion
+		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g;
+	}
+	return $html;
+}
+
+sub print_template {
+	my $self = shift;
+	$self->print(
+		$self->template( @_ )
+	);
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Pages
+
+
+
+
+
+sub html__doctype { <<'END_HTML' }
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+END_HTML
+
+
+
+
+
+sub html__head { <<'END_HTML' }
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>[% TITLE %]</title>
+<style type="text/css">
+<!--
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+-->
+</style>
+</head>
+END_HTML
+
+
+
+
+
+sub html__banner { <<'END_HTML' }
+<table width="100%%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><strong><font size="6">[% TITLE %]</font></strong></td>
+    <td align="right" valign="bottom"><font size="1"><a href="http://search.cpan.org/perldoc?[% CLASS %]">[% CLASS %] [% VERSION %]</a></font></td>
+  </tr>
+</table>
+<hr>
+END_HTML
+
+
+
+
+
+sub html__home { <<'END_HTML' }
+<p><a href="?a=i">Back to the main page</a></p>
+END_HTML
+
+
+
+
+
+sub html_front { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+[% BANNER %]
+<h2>What brings you here today?</h2>
+<p><a href="?a=f">I don't know my password :(</a></p>
+<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="?a=n">I want to add a new account (and I'm an admin)</a></p>
+<p><a href="?a=l">I want to see all the accounts (and I'm an admin)</a></p>
+<hr>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_forgot { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+[% BANNER %]
+<h2>You don't know your password :(</h2>
+<form name="f" action="">
+<input type="hidden" name="a" value="r"
+<p>I can't tell you what your current password is, but I can send you a new one.</p>
+<p>&nbsp;</p>
+<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
+</form>
+<p>&nbsp;</p>
+<hr>
+[% HOME %]
+<script language="JavaScript">
+document.f.e.focus();
+</script>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_change { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+[% BANNER %]
+<h2>You want to change your password</h2>
+<p>I just need to know a few things to do that</p>
+<form name="f">
+<table border="0" cellpadding="0" cellspacing="0">
+<tr><td>
+<p>What is your email address?</p>
+<p>What is your current password?</p> 
+<p>Type in the new password you want&nbsp;&nbsp;</p>
+<p>Type it again to prevent mistakes</p>
+</td><td>
+<p><input type="text" name="e" size="30"></p>
+<p><input type="text" name"p" size="30"></p>
+<p><input type="text" name"n" size="30"></p>
+<p><input type="text" name"c" size="30"></p>
+</td></tr>
+</table>
+<p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password now"></p>
+</form>
+<hr>
+[% HOME %]
+<script language="JavaScript">
+document.f.e.focus();
+</script>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_new { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+[% BANNER %]
+<h2>You don't know your password :(</h2>
+<form name="f" action="">
+<input type="hidden" name="a" value="r"
+<p>I can't tell you what your current password is, but I can send you a new one.</p>
+<p>&nbsp;</p>
+<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
+</form>
+<p>&nbsp;</p>
+<hr>
+[% HOME %]
+<script language="JavaScript">
+document.f.e.focus();
+</script>
+</body>
+</html>
+END_HTML
+
 1;
-
-__END__
-
-=pod
-
-=head1 NAME
-
-TinyAuth - Simple web/mobile authentication
-
-=head1 DESCRIPTION
-
-TinyAuth is a web application for managing a set of email-based usernames
-and passwords, generally for managing access to a web-based resource, such
-as a subversion repository.
-
-It users extremely simple HTML, so that the application can be used both
-with a regular browser and with the web browsers available in many mobile
-phones.
-
-This allows the management of users in an extremely accessible way, and
-allows for situations in which no PC or regular internet connection is
-available.
-
-=head1 SUPPORT
-
-All bugs should be filed via the bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=TinyAuth>
-
-For other issues, or commercial enhancement or support, contact the author.
-
-=head1 AUTHORS
-
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-L<http://ali.as/>
-
-=head1 COPYRIGHT
-
-Copyright 2007 Adam Kennedy.
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-The full text of the license can be found in the
-LICENSE file included with this module.
-
-=cut
