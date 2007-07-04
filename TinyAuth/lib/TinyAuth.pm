@@ -1,5 +1,31 @@
 package TinyAuth;
 
+=pod
+
+=head1 NAME
+
+TinyAuth - Extremely light-weight web-based authentication manager
+
+=head1 DESCRIPTION
+
+B<TinyAuth> is an extremely light-weight authentication management
+web application, initially created to assist in managing a subversion
+repository.
+
+It is designed to provide the basic functionality of adding and removing
+users, and handling password maintenance with as little code and fuss
+as possible.
+
+More importantly, it is intended to be extremely easy to install and
+set up, even on shared hosting accounts. The interface is simple enough
+that it can be used on typical limited-functionality browsers such as
+the text-mode lynx browser, and the browsers found in most mobile phones.
+
+The intent is to allow users and be added, removed and repaired from
+anywhere, even without a computer or "regular" internet connection.
+
+=cut
+
 use 5.005;
 use strict;
 use Apache::Htpassword::Shadow ();
@@ -61,8 +87,6 @@ sub new {
 		HOME     => $self->html__home,
 	};
 
-	# Check for configuration variables
-	unless ( $self->svn_
 	return $self;
 }
 
