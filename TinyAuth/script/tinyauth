@@ -17,7 +17,8 @@ unless ( $cgi ) {
 }
 
 # Create the web application
-my $application = TinyAuth->new( $config );
+my $application = TinyAuth->new( config => $config );
+
 unless ( $application ) {
 	die "Failed to create TinyAuth instance";
 }
