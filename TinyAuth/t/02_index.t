@@ -45,11 +45,11 @@ cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.02</title>
+<title>TinyAuth 0.03</title>
 </head>
 
 <body>
-<p>TinyAuth 0.02</p>
+<h1>TinyAuth 0.03</h1>
 
 <h2>User</h2>
 <p><a href="?a=f">I forgot my password</a></p>
@@ -57,7 +57,6 @@ cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
-<hr>
 </body>
 </html>
 
