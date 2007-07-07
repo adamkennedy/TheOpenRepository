@@ -34,7 +34,7 @@ use Apache::Htpasswd::Shadow ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Object::Tiny qw{
@@ -70,12 +70,14 @@ sub new {
 
 	# Set the page title
 	unless ( $self->title ) {
-		$self->{title} = __PACKAGE__ . ' ' . $VERSION;
+		$self->{title} ||= $self->config->[0]->{title};
+		$self->{title} ||= __PACKAGE__ . ' ' . $VERSION;
 	}
 
 	# Set the homepage
 	unless ( $self->homepage ) {
-		$self->{homepage} = 'http://search.cpan.org/perldoc?TinyAuth';
+		$self->{homepage} ||= $self->config->[0]->{homepage};
+		$self->{homepage} ||= 'http://search.cpan.org/perldoc?TinyAuth';
 	}
 
 	# Set the CGI object
@@ -225,7 +227,7 @@ END_HTML
 
 
 sub html__banner { <<'END_HTML' }
-<p>[% TITLE %]</p>
+<h1>[% TITLE %]</h1>
 END_HTML
 
 
@@ -252,7 +254,6 @@ sub html_front { <<'END_HTML' }
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
-<hr>
 </body>
 </html>
 END_HTML
