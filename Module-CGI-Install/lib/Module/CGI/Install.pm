@@ -52,7 +52,7 @@ use ExtUtils::Packlist ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 $CGICAPTURE ||= __PACKAGE__->_find_script('CGI::Capture', 'cgicapture');
@@ -211,6 +211,9 @@ sub run {
 		File::Copy::copy( $from => $to );
 		unless ( -f $to ) {
 			die "Unexpectedly failed to create '$to'";
+		}
+		unless ( File::chmod::chmod('a+rx', $to) ) {
+			die "Failed to set executable permissions";
 		}
 	}
 

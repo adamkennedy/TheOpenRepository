@@ -1,5 +1,8 @@
 Changes for Perl extension Module-CGI-Install
 
+0.06 Sat  7 Jul 2007
+	- Set executable permissions for scripts
+
 0.05 Sat  7 Jul 2007
 	- Renaming from CGI::Install to Module::CGI::Install to avoid
 	  some confusion
