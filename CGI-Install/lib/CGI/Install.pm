@@ -34,12 +34,12 @@ the L<cgiinstall> command line tool.
 
 use 5.005;
 use strict;
+use Config;
 use Carp           ();
 use File::Spec     ();
 use File::Copy     ();
 use File::Path     ();
 use File::chmod    ();
-use File::Which    ();
 use File::Remove   ();
 use File::Basename ();
 use Scalar::Util   ();
@@ -51,10 +51,13 @@ use CGI::Capture   ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	# Locate the cgicapture application
-	$CGICAPTURE ||= File::Which::which('cgicapture');
+	unless ( $Config{scriptdir} and -d $Config{scriptdir} ) {
+		die "\$Config{scriptdir} missing or invalid";
+	}
+	$CGICAPTURE ||= File::Spec->catfile( $Config{scriptdir}, 'cgicapture' );
 	unless ( $CGICAPTURE and -f $CGICAPTURE ) {
 		Carp::croak("Failed to locate the 'cgicapture' application");
 	}
@@ -203,8 +206,10 @@ sub run {
 
 	# Install any binary files
 	foreach my $bin ( @{$self->{bin}} ) {
-		my $from = File::Which::which($bin)
-			or die "Unexpectedly failed to find '$bin'";
+		my $from = File::Spec->catfile( $Config{scriptdir}, $bin );
+		unless ( $from and -f $from ) {
+			die "Unexpectedly failed to find '$bin'";
+		}
 		my $to = $self->cgi_map->catfile($bin)->path;
 		File::Copy::copy( $from => $to );
 		unless ( -f $to ) {
@@ -260,7 +265,10 @@ sub static_map {
 sub add_bin {
 	my $self = shift;
 	my $bin  = _STRING(shift) or die "Invalid bin name";
-	File::Which::which($bin)  or die "Failed to find '$bin'";
+	my $path = File::Spec->catfile( $Config{scriptdir}, $bin );
+	unless ( $path and -f $path ) {
+		Carp::croak( "Failed to find '$bin'");
+	}
 	push @{$self->{bin}}, $bin;
 	return 1;
 }

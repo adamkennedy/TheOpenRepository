@@ -7,7 +7,7 @@ use Getopt::Long ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 my $CGIPATH    = undef;

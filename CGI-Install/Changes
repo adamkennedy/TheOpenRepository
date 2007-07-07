@@ -1,5 +1,9 @@
 Changes for Perl extension CGI-Install
 
+0.03 Thu Jul  5 2007
+	- Using File::Which assumed system perl.
+	  Switch to checking based on $Config{scriptdir} instead.
+
 0.02 Tue Jul  3 2007
 	- Preparing for the first public release
 
