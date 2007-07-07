@@ -57,7 +57,7 @@ SCOPE: {
 	my $cleaner = Test::File::Cleaner->new('t');
 
 	# Specify what to install
-	ok( $cgi->add_bin('cgicapture'),     '->add_bin(cgicapture) ok' );
+	ok( $cgi->add_script('CGI::Capture', 'cgicapture'),     '->add_script(CGI::Capture, cgicapture) ok' );
 	ok( $cgi->add_class('CGI::Capture'), '->add_class() ok'         );
 
 	# Check accessors

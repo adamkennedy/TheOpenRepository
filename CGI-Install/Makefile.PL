@@ -3,8 +3,9 @@ use inc::Module::Install;
 
 name           'CGI-Install';
 all_from       'lib/CGI/Install.pm';
-requires       'Config'              => 0;
 requires       'Carp'                => 0;
+requires       'Config'              => 0;
+requires       'ExtUtils::Packlist'  => 0;
 requires       'File::Copy'          => 0;
 requires       'File::Path'          => 0;
 requires       'File::Spec'          => '0.80';
