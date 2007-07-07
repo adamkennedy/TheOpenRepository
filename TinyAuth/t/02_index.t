@@ -40,18 +40,25 @@ is( $instance->run, 1, '->run ok' );
 
 # Check the output
 cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
-Content-Type: text/html; charset=ISO-8859-1
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
-<!DOCTYPE html
-	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+<html>
 <head>
-<title>TinyAuth 0.01</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>TinyAuth 0.02</title>
 </head>
+
 <body>
-<p>Hello World!</p>
+<p>TinyAuth 0.02</p>
+
+<h2>User</h2>
+<p><a href="?a=f">I forgot my password</a></p>
+<p><a href="?a=c">I want to change my password</a></p>
+<h2>Admin</h2>
+<p><a href="?a=n">I want to add a new account</a></p>
+<p><a href="?a=l">I want to see all the accounts</a></p>
+<hr>
 </body>
 </html>
+
 END_HTML

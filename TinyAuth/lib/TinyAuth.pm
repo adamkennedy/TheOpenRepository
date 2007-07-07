@@ -28,14 +28,17 @@ anywhere, even without a computer or "regular" internet connection.
 
 use 5.005;
 use strict;
-use Apache::Htpassword::Shadow ();
+use CGI ();
+use Params::Util qw{ _INSTANCE };
+use Apache::Htpasswd::Shadow ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use Object::Tiny qw{
+	config
 	cgi
 	action
 	header
@@ -55,6 +58,11 @@ use Object::Tiny qw{
 sub new {
 	my $self = shift->SUPER::new(@_);
 
+	# Check and set the config
+	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
+		Carp::croak("Did not provide a config param");
+	}
+
 	# Set the header
 	unless ( $self->header ) {
 		$self->{header} = CGI::header( 'text/html' );
@@ -62,12 +70,17 @@ sub new {
 
 	# Set the page title
 	unless ( $self->title ) {
-		$self->{title} = 'SVN Repository Management';
+		$self->{title} = __PACKAGE__ . ' ' . $VERSION;
 	}
 
 	# Set the homepage
 	unless ( $self->homepage ) {
 		$self->{homepage} = 'http://search.cpan.org/perldoc?TinyAuth';
+	}
+
+	# Set the CGI object
+	unless ( _INSTANCE($self->cgi, 'CGI') ) {
+		$self->{cgi} = CGI->new;
 	}
 
 	# Determine the action
@@ -193,8 +206,7 @@ sub print_template {
 
 
 sub html__doctype { <<'END_HTML' }
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 END_HTML
 
 
@@ -205,13 +217,6 @@ sub html__head { <<'END_HTML' }
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>[% TITLE %]</title>
-<style type="text/css">
-<!--
-body {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
-}
--->
-</style>
 </head>
 END_HTML
 
@@ -220,13 +225,7 @@ END_HTML
 
 
 sub html__banner { <<'END_HTML' }
-<table width="100%%" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td><strong><font size="6">[% TITLE %]</font></strong></td>
-    <td align="right" valign="bottom"><font size="1"><a href="http://search.cpan.org/perldoc?[% CLASS %]">[% CLASS %] [% VERSION %]</a></font></td>
-  </tr>
-</table>
-<hr>
+<p>[% TITLE %]</p>
 END_HTML
 
 
@@ -247,11 +246,12 @@ sub html_front { <<'END_HTML' }
 [% HEAD %]
 <body>
 [% BANNER %]
-<h2>What brings you here today?</h2>
-<p><a href="?a=f">I don't know my password :(</a></p>
+<h2>User</h2>
+<p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
-<p><a href="?a=n">I want to add a new account (and I'm an admin)</a></p>
-<p><a href="?a=l">I want to see all the accounts (and I'm an admin)</a></p>
+<h2>Admin</h2>
+<p><a href="?a=n">I want to add a new account</a></p>
+<p><a href="?a=l">I want to see all the accounts</a></p>
 <hr>
 </body>
 </html>
@@ -267,7 +267,7 @@ sub html_forgot { <<'END_HTML' }
 [% HEAD %]
 <body>
 [% BANNER %]
-<h2>You don't know your password :(</h2>
+<h2>You don't know your password</h2>
 <form name="f" action="">
 <input type="hidden" name="a" value="r"
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
@@ -277,9 +277,6 @@ sub html_forgot { <<'END_HTML' }
 <p>&nbsp;</p>
 <hr>
 [% HOME %]
-<script language="JavaScript">
-document.f.e.focus();
-</script>
 </body>
 </html>
 END_HTML
@@ -349,3 +346,33 @@ document.f.e.focus();
 END_HTML
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+All bugs should be filed via the bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=TinyAuth>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>, L<CGI::Capture>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
