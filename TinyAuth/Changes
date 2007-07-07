@@ -1,4 +1,11 @@
 Changes for Perl extension TinyAuth
 
+0.03 Sat  7 Jul 2007
+	- Adding a default (empty) config file to the installer
+	- Adding a $VERSION to the launch script
+
+0.02 Sat  7 Jul 2007
+	- Moving to a Module::CGI::Install installer
+
 0.01 ...
 	- Creating initial version
