@@ -154,31 +154,43 @@ sub storage_lock {
 # PITA::Guest::Storage Methods
 
 sub add_guest {
-	my $self  = shift;
-	my $guest = _INSTANCE(shift, 'PITA::XML::Guest')
+	my $self = shift;
+	my $xml  = _INSTANCE(shift, 'PITA::XML::Guest')
 		or Carp::croak('Did not provide a PITA::XML::Guest to add_guest');
 
 	# Is the driver available for this guest
-	unless ( $guest->driver_available ) {
-		Carp::croak("The guest driver " . $guest->driver . " is not available");
+	unless ( $xml->driver_available ) {
+		Carp::croak("The guest driver " . $xml->driver . " is not available");
 	}
 
 	# Does the guest have a guid...
-	unless ( $guest->id ) {
-		$guest->set_id( Data::GUID->new->as_string );
-	}
+	$xml->set_id( Data::GUID->new->as_string ) unless $xml->id;
 
 	# Does the GUID match an existing one
-	if ( $self->guest( $guest->id ) ) {
-		Carp::croak("The guest " . $guest->id . " already exists");
+	if ( $self->guest( $xml->id ) ) {
+		Carp::croak("The guest " . $xml->id . " already exists");
 	}
 
-	# Store the PITA file
-	my $lock = $self->storage_lock;
-	my $file = File::Spec->catfile( $self->storage_dir, $guest->id . '.pita' );
-	$guest->write( $file ) or Carp::croak("Failed to save guest XML file");
+	# Load a full PITA::Guest object from the file
+	my $guest = PITA::Guest->new( $file )
+		or die "Failed to load PITA::Guest from $file";
 
-	die "CODE INCOMPLETE";
+	# Can we ping the guest
+	unless ( $guest->ping ) {
+		Carp::croak("Ping failed, not a valid guest image");
+	}
+
+	# Run discovery if needed
+	unless ( $guest->discovered ) {
+		$guest->discover or Carp::croak("Failed to discover platforms in guest");
+	}
+
+	# Store the guest
+	my $lock = $self->storage_lock;
+	my $file = File::Spec->catfile( $self->storage_dir, $xml->id . '.pita' );
+	$xml->write( $file ) or Carp::croak("Failed to save guest XML file");
+
+	return $xml;
 }
 
 sub guest {

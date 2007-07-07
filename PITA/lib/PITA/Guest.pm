@@ -22,8 +22,7 @@ use strict;
 use base 'Process'; # Process::YAML
 use File::Spec     ();
 use File::Basename ();
-use Params::Util   '_INSTANCE',
-                   '_STRING';
+use Params::Util   qw{ _STRING _SCALAR _INSTANCE };
 use PITA::XML      ();
 
 use vars qw{$VERSION};
@@ -36,16 +35,21 @@ BEGIN {
 
 
 #####################################################################
-# Constructor
+# Constructors
 
 =pod
 
 =head2 new
 
   $guest = PITA::Guest->new( 'guest-51231.pita' );
+  $guest = PITA::Guest->new( \$file_content     );
+  $guest = PITA::Guest->new( $guest_xml_object  );
 
-Takes the name of a L<PITA::XML> file with a E<lt>guestE<gt> at the
-root, and creates a new testing container.
+The C<new> constructor creates a new B<PITA::Guest> object from an XML
+description. It takes a single param of either a L<PITA::XML::Guest>
+object, a string which is the name of a PITA file containing the XML
+description, or a SCALAR reference (which may be a constant SCALAR ref)
+containing the XML.
 
 Returns a new C<PITA::Guest> object, or dies on error.
 
@@ -54,16 +58,27 @@ Returns a new C<PITA::Guest> object, or dies on error.
 sub new {
 	my $class = shift;
 
-	# Get the Guest XML file name
-	my $file  = shift;
-	unless ( _STRING($file) and -f $file ) {
-		Carp::croak('Did not provide a valid filename');
+	# Handle the param
+	my $file      = undef;
+	my $guest_xml = undef;
+	if ( _INSTANCE($_[0], 'PITA::XML::Guest') ) {
+		$guest_xml = shift;
+
+	} elsif ( _STRING($_[0]) ) {
+		unless ( -f $file ) {
+			Carp::croak('Did not provide a valid filename');
+		}
+		$file      = shift;
+		$guest_xml = PITA::XML::Guest->read($file);
+
+	} else {
+		Carp::croak("Invalid param provided to PITA::Guest::new");
 	}
 
 	# Create the object
 	my $self = bless {
 		file     => $file,
-		guestxml => PITA::XML::Guest->read($file),
+		guestxml => $guestxml,
 		driver   => undef,
 		}, $class;
 
@@ -92,6 +107,9 @@ sub new {
 	if ( $self->{absimage} ) {
 		$params{absimage} = $self->{absimage};
 	}
+	if ( $self->{minicpan} ) {
+		$params{minicpan} = $self->{minicpan};
+	}
 	if ( $driver->isa('PITA::Guest::Driver::Image') ) {
 		$params{support_server_addr} = '127.0.0.1';
 		$params{support_server_port} = 12345;
@@ -100,6 +118,13 @@ sub new {
 
 	$self;
 }
+
+
+
+
+
+#####################################################################
+# Accessors
 
 =pod
 
@@ -255,12 +280,6 @@ sub test {
 		Carp::croak('Could not autoselect a platform');
 	}
 
-	# Set a default job_id if needed
-	### Temporary hack???
-	unless ( $request->id ) {
-		$request->{id} = 1234;
-	}
-
 	# Hand off the testing request to the driver
 	$self->driver->test( $request, $platform );
 }
@@ -279,7 +298,11 @@ Returns true or dies on error.
 =cut
 
 sub save {
-	$_[0]->guestxml->write( $_[0]->file );
+	my $self = shift;
+	unless ( defined $self->file ) {
+		Carp::croak("No file to save to");
+	}
+	$self->guestxml->write( $self->file );
 }
 
 1;
@@ -296,17 +319,17 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 The Practical Image Testing Architecture (L<http://ali.as/pita/>)
 
-L<PITA::XML>, L<PITA::Scheme>, L<PITA::Guest::Driver::Qemu>
+L<PITA::XML>, L<PITA::Scheme>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Adam Kennedy.
+Copyright 2005 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
