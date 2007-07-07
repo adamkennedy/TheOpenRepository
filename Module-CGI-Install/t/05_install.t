@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 24;
 use Test::File::Cleaner   ();
 use File::Spec::Functions ':ALL';
-use CGI::Install          ();
+use Module::CGI::Install          ();
 use URI::file             ();
 
 my $cleaner = Test::File::Cleaner->new('t');
@@ -42,7 +42,7 @@ isa_ok( $cgi_uri, 'URI::file' );
 # Instantiation
 
 # Create the installation object
-my $cgi = CGI::Install->new(
+my $cgi = Module::CGI::Install->new(
 	interactive    => 0,
 	install_static => 1,
 	static_path    => $static_path,
@@ -51,7 +51,7 @@ my $cgi = CGI::Install->new(
 	cgi_path       => $cgi_path,
 	cgi_uri        => $cgi_uri->as_string,
 );
-isa_ok( $cgi, 'CGI::Install' );
+isa_ok( $cgi, 'Module::CGI::Install' );
 
 SCOPE: {
 	my $cleaner = Test::File::Cleaner->new('t');

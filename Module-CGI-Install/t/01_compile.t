@@ -13,7 +13,7 @@ use Test::Script;
 ok( $] >= 5.005, 'Perl version is new enough' );
 
 # Load the module
-use_ok( 'CGI::Install' );
+use_ok( 'Module::CGI::Install' );
 
 # Compile-test the script
 script_compiles_ok( 'script/cgi_install' );

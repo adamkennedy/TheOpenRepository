@@ -1,20 +1,20 @@
-package CGI::Install;
+package Module::CGI::Install;
 
 =pod
 
 =head1 NAME
 
-CGI::Install - Installer for CGI applications
+Module::CGI::Install - Installer for CGI applications
 
 =head1 DESCRIPTION
 
-B<CGI::Install> is a package for installing CGI applications.
+B<Module::CGI::Install> is a package for installing CGI applications.
 
 It is based on the principle that a particular application may need to
 be installed multiple times on a single host.
 
 So an application can be installed normally onto the system, and from
-there the functionality provided by B<CGI::Install> creates a way to
+there the functionality provided by B<Module::CGI::Install> creates a way to
 
 quickly, easily and safely move a copy of that application (or at least
 the parts that matter) from the default system install location to
@@ -52,7 +52,7 @@ use ExtUtils::Packlist ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 $CGICAPTURE ||= __PACKAGE__->_find_script('CGI::Capture', 'cgicapture');

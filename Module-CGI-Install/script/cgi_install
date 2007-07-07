@@ -7,7 +7,7 @@ use Getopt::Long ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 my $CGIPATH    = undef;
@@ -24,17 +24,17 @@ Getopt::Long::GetOptions(
 
 my $class = _CLASS(shift @ARGV);
 unless ( $class ) {
-	error("Did not provide a CGI::Install sub-class");
+	error("Did not provide a Module::CGI::Install sub-class");
 }
 my $driver;
-if ( _DRIVER("${class}::Install", 'CGI::Install') ) {
+if ( _DRIVER("${class}::Install", 'Module::CGI::Install') ) {
 	$driver = "${class}::Install";
 
-} elsif ( _DRIVER($class, 'CGI::Install') ) {
+} elsif ( _DRIVER($class, 'Module::CGI::Install') ) {
 	$driver = $class;
 
 } else {
-	error("Did not provide a CGI::Install sub-class");
+	error("Did not provide a Module::CGI::Install sub-class");
 }
 
 # Create an instance of the class
@@ -44,7 +44,7 @@ my $installer = $driver->new(
 	static_path => $STATICPATH,
 	static_uri  => $STATICURI,
 );
-unless ( _INSTANCE($installer, 'CGI::Install') ) {
+unless ( _INSTANCE($installer, 'Module::CGI::Install') ) {
 	croak("Failed to create installer");
 }
 unless ( $installer->prepare ) {
@@ -76,11 +76,11 @@ cgi_install - Command line script for installing web applications
 =head1 DESCRIPTION
 
 B<cgi_install> is a command line tool for installing web applications that
-come with L<CGI::Install>-based install classes.
+come with L<Module::CGI::Install>-based install classes.
 
 The B<cgi_install> application takes a single parameter of the class name
 of the application to install (the application itself must implement support
-for CGI::Install).
+for Module::CGI::Install).
 
 The application will be told by the CGI application what it needs to install.
 

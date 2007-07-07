@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 16;
 use Test::File::Cleaner   ();
 use File::Spec::Functions ':ALL';
-use CGI::Install          ();
+use Module::CGI::Install          ();
 use URI::file             ();
 
 my $cleaner = Test::File::Cleaner->new('t');
@@ -38,14 +38,14 @@ isa_ok( $static_uri, 'URI::file' );
 
 SCOPE: {
 	# Create the installation object
-	my $cgi = CGI::Install->new(
+	my $cgi = Module::CGI::Install->new(
 		interactive    => 0,
 		install_cgi    => 0,
 		install_static => 1,
 		static_path    => $static_path,
 		static_uri     => $static_uri->as_string,
 	);
-	isa_ok( $cgi, 'CGI::Install' );
+	isa_ok( $cgi, 'Module::CGI::Install' );
 
 	# Check accessors
 	is( $cgi->interactive,    '',           '->interactive ok'    );

@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More tests => 10;
 use File::Spec::Functions ':ALL';
-use CGI::Install ();
+use Module::CGI::Install ();
 use URI::file    ();
 
 
@@ -20,7 +20,7 @@ use URI::file    ();
 
 # Test the null case
 SCOPE: {
-	my $cgi = CGI::Install->new(
+	my $cgi = Module::CGI::Install->new(
 		interactive    => 0,
 		install_static => 0,
 		static_uri     => 'foo',
@@ -29,7 +29,7 @@ SCOPE: {
 		cgi_uri        => 'foo',
 		cgi_path       => 'foo',
 	);
-	isa_ok( $cgi, 'CGI::Install' );
+	isa_ok( $cgi, 'Module::CGI::Install' );
 	is( $cgi->interactive,    '',    '->interactive ok'    );
 	is( $cgi->install_static, '',    '->install_static ok' );
 	is( $cgi->install_cgi,    '',    '->install_cgi ok'    );

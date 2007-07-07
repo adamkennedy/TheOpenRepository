@@ -1,4 +1,8 @@
-Changes for Perl extension CGI-Install
+Changes for Perl extension Module-CGI-Install
+
+0.05 Sat  7 Jul 2007
+	- Renaming from CGI::Install to Module::CGI::Install to avoid
+	  some confusion
 
 0.04 Sat  7 Jul 2007
 	- $Config{scriptdir} didn't properly work either.

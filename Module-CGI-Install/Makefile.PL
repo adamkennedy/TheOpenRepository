@@ -1,8 +1,8 @@
 use strict;
 use inc::Module::Install;
 
-name           'CGI-Install';
-all_from       'lib/CGI/Install.pm';
+name           'Module-CGI-Install';
+all_from       'lib/Module/CGI/Install.pm';
 requires       'Carp'                => 0;
 requires       'Config'              => 0;
 requires       'ExtUtils::Packlist'  => 0;
