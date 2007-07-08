@@ -159,7 +159,8 @@ sub error {
 
 =head1 NAME
 
-pip - Console application for running Perl 5 Installer (P5I) files
+pip - The Perl Installation Program, for scripted and third-party
+distribution installation.
 
 =head1 DESCRIPTION
 
