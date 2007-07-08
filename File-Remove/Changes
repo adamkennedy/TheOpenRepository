@@ -1,8 +1,9 @@
 Revision history for Perl extension File::Remove.
 
 0.37 Sun  8 Jul 2007  (Adam Kennedy)
-	- Better support for broken symlinks (Marek Rouchal)
-	- Tab-indenting Changes file
+	- Restoring support for broken symlinks (Marek Rouchal)
+	- Adding tests for the broken symlink case (Marek Rouchal)
+	- Tidying up the Changes file a bit
 
 0.36 Fri 30 Jun 2007  (Adam Kennedy)
 	- Avoid the installation of Mac::Glue.
