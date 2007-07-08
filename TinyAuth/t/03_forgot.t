@@ -52,7 +52,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.03</title>
+<title>TinyAuth 0.04</title>
 </head>
 
 <body>
@@ -103,7 +103,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.03</title>
+<title>TinyAuth 0.04</title>
 </head>
 
 <body>
@@ -146,7 +146,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.03</title>
+<title>TinyAuth 0.04</title>
 </head>
 
 <body>
