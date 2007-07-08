@@ -28,9 +28,12 @@ anywhere, even without a computer or "regular" internet connection.
 
 use 5.005;
 use strict;
-use CGI ();
-use Params::Util qw{ _INSTANCE };
+use CGI                      ();
+use Params::Util             qw{ _STRING _INSTANCE };
+use String::MkPasswd         ();
 use Apache::Htpasswd::Shadow ();
+use Email::Send              ();
+use Email::Stuff             ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -40,12 +43,13 @@ BEGIN {
 use Object::Tiny qw{
 	config
 	cgi
+	auth
+	mailer
+
 	action
 	header
 	title
 	homepage
-	auth_htpasswd
-	auth_htshadow
 	};
 
 
@@ -61,6 +65,37 @@ sub new {
 	# Check and set the config
 	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
 		Carp::croak("Did not provide a config param");
+	}
+
+	# Create the htpasswd shadow
+	unless ( $self->auth ) {
+		# Check for a htpasswd value
+		unless ( $self->passwd_file ) {
+			Carp::croak("No htpasswd file provided");
+		}
+		unless ( -r $self->passwd_file ) {
+			Carp::croak("No permission to read htpasswd file");
+		}
+		$self->{auth} = Apache::Htpasswd::Shadow->new( {
+			passwdFile => $self->passwd_file,
+			shadowFile => $self->shadow_file,
+			} );
+	}
+	unless ( _INSTANCE($self->auth, 'Apache::Htpasswd::Shadow') ) {
+		 Carp::croak("Failed to create htpasswd object");
+	}
+
+	# Create the mailer
+	unless ( $self->email_from ) {
+		Carp::croak("No email_from address in config file");
+	}
+	unless ( $self->mailer ) {
+		$self->{mailer} = Email::Send->new( {
+			mailer => $self->email_driver,
+			} );
+	}
+	unless ( _INSTANCE($self->mailer, 'Email::Send') ) {
+		Carp::croak("Failed to create mailer");
 	}
 
 	# Set the header
@@ -90,33 +125,38 @@ sub new {
 		$self->{action} = $self->cgi->param('a') || '';
 	}
 
-	# Check for htpasswd and shadow values
-	unless ( $self->auth_htpasswd ) {
-		Carp::croak("No auth_htpasswd config value provided");
-	}
-	unless ( $self->auth_htshadow ) {
-		Carp::croak("No auth_htshadow config value provided");
-	}
-
 	# Set the base arguments
 	$self->{args} ||= {
 		CLASS    => ref($self),
 		VERSION  => $self->VERSION,
 		HOMEPAGE => $self->homepage,
+		TITLE    => $self->title,
 		DOCTYPE  => $self->html__doctype,
 		HEAD     => $self->html__head,
-		TITLE    => $self->title,
 		HOME     => $self->html__home,
 	};
 
-	# Create the htpasswd shadow
-	$self->{auth} = Apache::Htpasswd::Shadow->new(
-		
 	return $self;
 }
 
 sub args {
 	return { %{$_[0]->{args}} };
+}
+
+sub passwd_file {
+	$_[0]->config->[0]->{htpasswd};
+}
+
+sub shadow_file {
+	$_[0]->config->[0]->{htshadow};
+}
+
+sub email_from {
+	$_[0]->config->[0]->{email_from};
+}
+
+sub email_driver {
+	$_[0]->config->[0]->{email_driver} || 'Sendmail';
 }
 
 
@@ -130,6 +170,8 @@ sub run {
 	my $self = shift;
 	if ( $self->action eq 'f' ) {
 		return $self->view_forgot;
+	} elsif ( $self->action eq 'r' ) {
+		return $self->action_forgot;
 	} elsif ( $self->action eq 'c' ) {
 		return $self->view_change;
 	} elsif ( $self->action eq 'n' ) {
@@ -139,17 +181,34 @@ sub run {
 	}
 }
 
+sub mkpasswd {
+	String::MkPasswd::mkpasswd( -fatal => 1 );
+}
+
+sub send_email {
+	my $self   = shift;
+	my %params = @_;
+	my $email  = Email::Stuff->new;
+	$email->to(        $params{to}       );
+	$email->from(      $self->email_from );
+	$email->subject(   $params{subject}  );
+	$email->text_body( $params{body}     );
+	$email->using(     $self->mailer     );
+	$email->send;
+	return 1;
+}
+
 
 
 
 
 #####################################################################
-# Views
+# Main Methods
 
 sub view_index {
 	my $self = shift;
 	$self->print_template(
-		$self->html_front,
+		$self->html_index,
 	);
 	return 1;
 }
@@ -162,10 +221,70 @@ sub view_forgot {
 	return 1;
 }
 
+# Re-issue a password
+sub action_forgot {
+	my $self  = shift;
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $pass = $self->auth->fetchPass($email);
+	unless ( defined $pass ) {
+		return $self->error("Internal error while finding your account");
+	}
+	unless ( $pass ) {
+		return $self->error("No account for that email address");
+	}
+
+	# Create the new password
+	my $password = $self->mkpasswd;
+
+	# Set the password
+	$self->auth->htpasswd($email, $password, { overwrite => 1 } );
+	$self->{args}->{password} = $password;
+
+	# Send the password email
+	$self->send_forgot( $email, $password );
+
+	# Show the "password email sent" page
+	$self->view_message("Password email sent");
+}
+
+sub send_forgot {
+	my ($self, $to) = @_;
+	$self->send_email(
+		to      => $to,
+		subject => '[TinyAuth] Forgot Your Password',
+		body    => $self->template(
+			$self->email_forgot,
+		),
+	);
+}
+
 sub view_change {
 	my $self = shift;
 	$self->print_template(
 		$self->html_change,
+	);
+	return 1;
+}
+
+sub view_message {
+	my $self = shift;
+	$self->{args}->{message} = shift;
+	$self->print_template(
+		$self->html_message,
+	);
+	return 1;
+}
+
+sub error {
+	my $self = shift;
+	$self->{args}->{error} = shift;
+	$self->print_template(
+		$self->html_error,
 	);
 	return 1;
 }
@@ -249,7 +368,7 @@ END_HTML
 
 
 
-sub html_front { <<'END_HTML' }
+sub html_index { <<'END_HTML' }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -276,7 +395,7 @@ sub html_forgot { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>You don't know your password</h2>
-<form name="f" action="">
+<form method="post" name="f" action="">
 <input type="hidden" name="a" value="r"
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
@@ -350,6 +469,50 @@ document.f.e.focus();
 </body>
 </html>
 END_HTML
+
+
+
+
+
+sub html_message { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h1>Action Completed</h1>
+<h2>[% message %]</h2>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_error { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h1>Error</h1>
+<h2>[% error %]</h2>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub email_forgot { <<'END_TEXT' }
+Hi
+
+You forgot your password, so here is a new one
+
+Password: [% password %]
+
+Have a nice day!
+END_TEXT
 
 1;
 

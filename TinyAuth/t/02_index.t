@@ -6,34 +6,27 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use File::Spec::Functions ':ALL';
-use lib catdir( 't', 'lib' );
 use YAML::Tiny;
-use My::TinyAuth;
-use My::Tests;
+use t::lib::Test;
+use t::lib::TinyAuth;
 
 # Test files
-my $config_file = rel2abs( catfile( 't', 'data', 'tinyauth.yml' ) );
 my $cgi_file    = rel2abs( catfile( 't', 'data', '02_index.cgi'  ) );
-ok( -f $config_file, 'Testing config file exists' );
 ok( -f $cgi_file,    'Testing cgi file exists'    );
-
-# Constructor objects
-my $config = YAML::Tiny->new;
-$config->[0]->{htpass} = $config_file;
-isa_ok( $config, 'YAML::Tiny' );
 
 open( CGIFILE, $cgi_file ) or die "open: $!";
 my $cgi = CGI->new(\*CGIFILE);
 
 # Create the object
-my $instance = My::TinyAuth->new(
-	config => $config,
+my $instance = t::lib::TinyAuth->new(
+	config => default_config(),
 	cgi    => $cgi,
 );
-isa_ok( $instance, 'My::TinyAuth' );
+isa_ok( $instance, 't::lib::TinyAuth' );
+isa_ok( $instance, 'TinyAuth' );
 
 # Run the instance
 is( $instance->run, 1, '->run ok' );
@@ -55,7 +48,8 @@ cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
-
+<hr>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
 </html>
 

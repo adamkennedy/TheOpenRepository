@@ -1,4 +1,4 @@
-package My::TinyAuth;
+package t::lib::TinyAuth;
 
 # Testing subclass of TinyAuth that captures instead of prints
 use strict;
