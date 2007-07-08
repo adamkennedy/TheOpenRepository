@@ -3,7 +3,7 @@ package File::Remove;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.36';
+	$VERSION   = '0.37';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 
@@ -52,6 +52,15 @@ sub remove (@) {
 	# Iterate over the files
 	my @removes;
 	foreach my $path ( @files ) {
+                # need to check for symlink first
+                # could be pointing to nonexisting/non-readable destination
+		if ( -l $path ) {
+			print "link: $path\n" if $debug;
+			if ( $unlink ? $unlink->($path) : unlink($path) ) {
+				push @removes, $path;
+			}
+			next;
+                }
 		unless ( -e $path ) {
 			print "missing: $path\n" if DEBUG;
 			push @removes, $path; # Say we deleted it
@@ -81,7 +90,7 @@ sub remove (@) {
 			next;
 		}
 
-		if ( -f $path or -l $path ) {
+		if ( -f $path ) {
 			print "file: $path\n" if DEBUG;
 			unless ( -w $path ) {
 				# Make the file writable (implementation from File::Path)
