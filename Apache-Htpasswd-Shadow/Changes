@@ -1,5 +1,8 @@
 Changes for Perl extension Apache-Htpasswd-Shadow
 
+0.03 Sun  8 Jul 2007
+	- Fixing the croak call
+
 0.02 Thu 10 May 2007
 	- Adding better testing for the MD5 case
 

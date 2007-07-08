@@ -35,12 +35,13 @@ module for interface documentation.
 
 use 5.005;
 use strict;
+use Carp             ();
 use File::Copy       ();
 use Apache::Htpasswd ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -115,7 +116,7 @@ sub new {
 
 		# Create the shadow file
 		File::Copy::copy( $self->passwdFile => $self->shadowFile )
-			or croak("Failed to create shadow file $self->{shadowFile}");		
+			or Carp::croak("Failed to create shadow file $self->{shadowFile}");		
 	}
 
 	# The shadow file exists.
