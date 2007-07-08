@@ -263,7 +263,7 @@ sub dir_path {
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/Module-Extract>
+L<http://svn.ali.as/cpan/trunk/Module-Extract>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.

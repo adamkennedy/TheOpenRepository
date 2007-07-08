@@ -10,7 +10,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.10';
 }
 
 
@@ -235,8 +235,8 @@ it as an installer for that single file. For example, the following are
 equivalent.
 
   # Installing with the -i|--install option
-  > ppi -i Process-0.17.tar.gz
-  > ppi --install Process-0.17.tar.gz
+  > pip -i Process-0.17.tar.gz
+  > pip --install Process-0.17.tar.gz
   
   # Installing from the file as normal
   > pip ./default.p5i
@@ -253,7 +253,7 @@ L<Module::Plan::Lite> (see above).
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/pip>
+L<http://svn.ali.as/cpan/trunk/pip>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.

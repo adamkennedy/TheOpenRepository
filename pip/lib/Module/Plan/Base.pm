@@ -24,11 +24,11 @@ See L<pip> for the front-end console application for this module.
 
 use 5.005;
 use strict;
-use Carp           ('croak');
+use Carp           'croak';
 use File::Spec     ();
 use File::Temp     ();
 use File::Basename ();
-use Params::Util   ('_STRING', '_CLASS', '_INSTANCE');
+use Params::Util   qw{ _STRING _CLASS _INSTANCE };
 use URI            ();
 use LWP::Simple    ();
 use CPAN::Inject   ();
@@ -36,7 +36,7 @@ use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.10';
 }
 
 
@@ -351,7 +351,7 @@ sub _p5i_dir {
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/Module-Plan-Base>
+L<http://svn.ali.as/cpan/trunk/pip>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.
@@ -369,7 +369,7 @@ If you cannot provide a direct test or fix, or don't have time to do so,
 then regular bug reports are still accepted and appreciated via the CPAN
 bug tracker.
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Plan-Base>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=pip>
 
 For other issues, for commercial enhancement and support, or to have your
 write access enabled for the repository, contact the author at the email

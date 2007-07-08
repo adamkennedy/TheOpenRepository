@@ -49,14 +49,13 @@ cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
 </head>
 
 <body>
-<h1>TinyAuth 0.03</h1>
-
 <h2>User</h2>
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
+
 </body>
 </html>
 

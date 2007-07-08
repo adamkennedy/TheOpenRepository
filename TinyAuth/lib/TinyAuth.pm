@@ -44,8 +44,8 @@ use Object::Tiny qw{
 	header
 	title
 	homepage
-	auth_store
-	auth_target
+	auth_htpasswd
+	auth_htshadow
 	};
 
 
@@ -90,6 +90,14 @@ sub new {
 		$self->{action} = $self->cgi->param('a') || '';
 	}
 
+	# Check for htpasswd and shadow values
+	unless ( $self->auth_htpasswd ) {
+		Carp::croak("No auth_htpasswd config value provided");
+	}
+	unless ( $self->auth_htshadow ) {
+		Carp::croak("No auth_htshadow config value provided");
+	}
+
 	# Set the base arguments
 	$self->{args} ||= {
 		CLASS    => ref($self),
@@ -98,10 +106,12 @@ sub new {
 		DOCTYPE  => $self->html__doctype,
 		HEAD     => $self->html__head,
 		TITLE    => $self->title,
-		BANNER   => $self->html__banner,
 		HOME     => $self->html__home,
 	};
 
+	# Create the htpasswd shadow
+	$self->{auth} = Apache::Htpasswd::Shadow->new(
+		
 	return $self;
 }
 
@@ -226,9 +236,6 @@ END_HTML
 
 
 
-sub html__banner { <<'END_HTML' }
-<h1>[% TITLE %]</h1>
-END_HTML
 
 
 
@@ -247,13 +254,14 @@ sub html_front { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-[% BANNER %]
 <h2>User</h2>
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
+<hr>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
 </html>
 END_HTML
@@ -267,7 +275,6 @@ sub html_forgot { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-[% BANNER %]
 <h2>You don't know your password</h2>
 <form name="f" action="">
 <input type="hidden" name="a" value="r"
@@ -291,7 +298,6 @@ sub html_change { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-[% BANNER %]
 <h2>You want to change your password</h2>
 <p>I just need to know a few things to do that</p>
 <form name="f">
@@ -328,7 +334,6 @@ sub html_new { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-[% BANNER %]
 <h2>You don't know your password :(</h2>
 <form name="f" action="">
 <input type="hidden" name="a" value="r"

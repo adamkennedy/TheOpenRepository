@@ -411,7 +411,7 @@ sub dist_depends {
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/Module-Inspector>
+L<http://svn.ali.as/cpan/trunk/Module-Inspector>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.

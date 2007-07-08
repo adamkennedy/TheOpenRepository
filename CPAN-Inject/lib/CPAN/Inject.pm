@@ -445,7 +445,7 @@ sub _AUTHOR {
 
 This module is stored in an Open Repository at the following address.
 
-L<http://svn.phase-n.com/svn/cpan/trunk/CPAN-Inject>
+L<http://svn.ali.as/cpan/trunk/CPAN-Inject>
 
 Write access to the repository is made available automatically to any
 published CPAN author, and to most other volunteers on request.

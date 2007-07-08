@@ -1,7 +1,10 @@
 Revision history for Perl extension Module::Plan::Base
 
 0.09 xxx
-	- Minor pod fix
+	- Minor pod fixes
+	- Adding undocumented experimental support for p5z files
+	- Increasing CPAN::Inject dependency to decrease CPAN.pm dependency :)
+	- Moving bin/pip to more correct script/pip
 
 0.08 Tue 16 Jan 2007
 	- Minor testing fixes
