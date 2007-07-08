@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl 
 
 # Compile testing for CPAN::Inject
 
@@ -14,4 +14,4 @@ use Test::Script;
 ok( $] >= 5.005, 'Your perl is new enough' );
 
 use_ok( 'CPAN::Inject' );
-script_compiles_ok( 'bin/cpaninject' );
+script_compiles_ok( 'script/cpaninject' );

@@ -1,5 +1,10 @@
 Revision history for Perl extension CPAN-Inject
 
+0.08 Sun  8 Jul 2007
+	- No functional changes. No need to upgrade.
+	- Correcting the use of ->add in the SYNOPSIS
+	- Moving bin to more correct script
+
 0.07 Mon  2 Jul 2007
 	- Adding support for older CPAN configuration loading mechanism.
 	  This should allow CPAN::Inject to work with the default CPAN.pm
