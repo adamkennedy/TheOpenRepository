@@ -1,4 +1,4 @@
-package Module::Plan::P5Z;
+package Module::P5Z;
 
 use 5.005;
 use strict;
@@ -19,11 +19,12 @@ BEGIN {
 
 sub read {
 	my $class = shift;
-	my $self  = bless { @_ }, $self;
+	my $self  = bless { @_ }, $class;
 
 	# Apply defaults
 	$self->{tempd} ||= File::pushd::tempd();
-	
+
+	$self;
 }
 
 sub tempd {

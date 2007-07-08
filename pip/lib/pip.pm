@@ -126,7 +126,7 @@ sub read_p5z {
 	# Extract the tarball
 	require Archive::Tar;
 	my @files = Archive::Tar->extract_archive( $p5z, 1 );
-	unless ( @archives ) 
+	unless ( @files ) {
 		error( "Failed to extract P5Z file: " . Archive::Tar->error );
 	}
 
@@ -163,33 +163,51 @@ pip - Console application for running Perl 5 Installer (P5I) files
 
 =head1 DESCRIPTION
 
-A Perl 5 Installer (P5I) file is a small script-like file that
+The B<pip> ("Perl Installation Program") console application is used to
+install Perl distributions in a wide variety of formats, both from CPAN
+and from external third-party locations, while supporting module
+dependencies that go across the boundary from third-party to CPAN.
+
+Using B<pip> you can install CPAN modules, arbitrary tarballs from both
+the local file-system or across the internet from arbitrary URIs.
+
+You can use B<pip> to ensure that specific versions of CPAN modules are
+installed I<instead> of the most current version.
+
+And beyond just single installations, you script script a series of
+these installations by creating a "P5I" (Perl 5 Installation) file.
+
+A Perl 5 Installation (P5I) file is a small script-like file that
 describes a set of distributions to install, and integrates the
 installation of these distributions with the CPAN installer.
 
-The pip ("Perl Installation Program") command is used to install the
-distributions described by the p5i script.
-
 The primary use of P5I files are for installing proprietary or
-non-CPAN software that may still require the installation of a number of
-distributions in order.
-
-It can also be used to ensure specific versions of CPAN modules are
-installed instead of the most current version.
+non-CPAN software that may still require the installation of a
+number of CPAN dependencies in order to function.
 
 P5I files are also extensible, with the first line of the file
 specifying the name of the Perl class that implements the plan.
 
-For the moment, the class described at the top of the P5I file must
-be installed.
+For the moment, the class described at the top of the P5I file
+must be installed.
 
 The simple L<Module::Plan::Lite> plan class is bundled with the main
 distribution, and additional types can be installed if needed.
 
+=head2 Future Additions
+
+Also on the development schedule for B<pip> is the creation and
+installation of distributions via "P5Z" files, which are tarballs
+containing a P5I file, as well as all the distribution tarballs
+referenced by the P5I file.
+
+It is also anticipated that B<pip> will gain support for L<PAR>
+binary packages and potentially also for ActivePerl L<PPM> files.
+
 =head1 USAGE
 
-The F<pip> command is used to install a P5I file and in the canonical
-case is used as follows
+The primary use of F<pip> is to install from a P5I script, with the
+canonical use case as follows:
 
   pip directory/myplan.p5i
 
@@ -224,17 +242,20 @@ A typical MPL plan will look like the following
   Process-0.17.tar.gz
   YAML-Tiny-0.10.tar.gz
 
-=head2 Direct installation of a single file with -i or --install
+=head2 Direct installation of a single tarball
 
 With the functionality available in F<pip>, you can find that sometimes
 you don't even want to make a file at all, you just want to install a
 single tarball.
 
 The C<-i> option lets you pass the name of a single file and it will treat
-it as an installer for that single file. For example, the following are
-equivalent.
+it as an installer for that single file. Further, if the extention of the
+tarball is .tar.gz, the B<-i> option is implied.
+
+For example, the following are equivalent.
 
   # Installing with the -i|--install option
+  > pip Process-0.17.tar.gz
   > pip -i Process-0.17.tar.gz
   > pip --install Process-0.17.tar.gz
   
@@ -248,6 +269,11 @@ equivalent.
 
 The C<-i> option can be used with any single value supported by
 L<Module::Plan::Lite> (see above).
+
+This means you can also use B<pip> to install a distribution from any
+arbitrary URI, including installing direct from a subversion repository.
+
+  > pip http://svn.ali.as/cpan/release/Process-0.17.tar.gz
 
 =head1 SUPPORT
 
