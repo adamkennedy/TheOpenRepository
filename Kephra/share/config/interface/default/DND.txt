@@ -1,7 +1,0 @@
-DND = Do Not Disturb
-
-writing in these files can cause that the program won't start
-
-the defaults should never be written so that you alway have 
-something to start this program with, when you messed up the other
-files
