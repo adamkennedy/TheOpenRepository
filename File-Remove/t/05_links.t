@@ -6,56 +6,61 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More qw(no_plan); # tests => 3;
-BEGIN {
-	use_ok('File::Remove' => qw(remove trash))
-};
+use Test::More; # tests => 3;
+use File::Spec::Functions ':ALL';
+use File::Remove ();
 
-unless(eval { symlink("",""); 1 }) {
-  diag("system cannot do symlinks");
-  exit 0;
+unless( eval { symlink("",""); 1 } ) {
+	plan("skip_all" => "Operating system does not support symlinks");
+	exit(0);
 }
+
+plan( tests => 8 );
 
 # Set up the tests
-
-my $testdir = "linktest";
-if(-d $testdir) {
-  BAIL_OUT("Directory '$testdir' exists - please remove it manually");
+my $testdir = catdir( 't', 'linktest' );
+if ( -d $testdir ) {
+	File::Remove::remove( \1, $testdir );
+	die "Failed to clear test directory '$testdir'" if -d $testdir;
 }
-unless(mkdir($testdir, 0777)) {
-  BAIL_OUT("Cannot create test directory '$testdir': $!");
+ok( ! -d $testdir, 'Cleared testdir' );
+unless( mkdir($testdir, 0777) ) {
+	die("Cannot create test directory '$testdir': $!");
 }
+ok( -d $testdir, 'Created testdir' );
 my %links = (
-   l_ex => '.',
-   l_ex_a => '/',
-   l_nex => 'does_not_exist'
+	l_ex   => curdir(),
+	l_ex_a => rootdir(),
+	l_nex  => 'does_not_exist'
 );
 my $errs = 0;
 foreach my $link (keys %links) {
-  unless(symlink($links{$link}, "$testdir/$link")) {
-    diag("Cannot create symlink $link -> $links{$link}: $!");
-    $errs++;
-  }
+	my $path = catdir( $testdir, $link );
+	unless( symlink($links{$link}, $path )) {
+		diag("Cannot create symlink $link -> $links{$link}: $!");
+		$errs++;
+	}
 }
-if($errs) {
-  BAIL_OUT("Could not create test links");
+if ( $errs ) {
+	die("Could not create test links");
 }
 
-ok( remove(\1, map { "$testdir/$_" } keys %links), "remove \\1: all links" );
+ok( File::Remove::remove(\1, map { catdir($testdir, $_) } keys %links), "remove \\1: all links" );
 
 my @entries;
 
-ok(opendir(DIR, $testdir));
-foreach(readdir(DIR)) {
-  next if(/^\.\.?$/);
-  push(@entries, $_);
+ok( opendir(DIR, $testdir) );
+foreach my $dir ( readdir(DIR) ) {
+	next if $dir eq curdir();
+	next if $dir eq updir();
+	push @entries, $dir;
 }
-ok(closedir(DIR));
+ok( closedir(DIR) );
 
-ok(@entries == 0, "no links remained in directory; found @entries");
+ok( @entries == 0, "no links remained in directory; found @entries" );
 
-ok( remove(\1, $testdir), "remove \\1: $testdir" );
+ok( File::Remove::remove(\1, $testdir), "remove \\1: $testdir" );
 
-ok( !-e $testdir,         "!-e: $testdir" );
+ok( ! -e $testdir,         "!-e: $testdir" );
 
 1;
