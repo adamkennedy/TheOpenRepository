@@ -14,7 +14,7 @@ use Test::Inline;
 
 # Execute the API test
 use File::Spec::Functions ':ALL';
-use Test::More 'tests' => 100;
+use Test::More 'tests' => 102;
 use Test::ClassAPI;
 Test::ClassAPI->execute('complete', 'collisions');
 
@@ -76,6 +76,8 @@ elements=method
 
 [Test::Inline::IO::File]
 new=method
+path=method
+readonly=method
 exists_file=method
 exists_dir=method
 read=method

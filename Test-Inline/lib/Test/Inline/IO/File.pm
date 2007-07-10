@@ -35,7 +35,8 @@ the translating to the underlying filesystem themselves if required.
 =cut
 
 use strict;
-use File::Spec ();
+use File::Spec  ();
+use File::chmod ();
 use Class::Autouse 'File::Flat',
                    'File::Find::Rule';
 
@@ -43,6 +44,8 @@ use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '2.201';
 }
+
+use constant FS_WIN => !! $^O eq 'MSWin32';
 
 
 
@@ -79,7 +82,7 @@ sub new {
 	}
 
 	# Create the object
-	bless { @params }, $class;
+	my $self = bless { @params }, $class;
 
 	# Apply defaults
 	$self->{readonly} = !! $self->{readonly};
@@ -176,7 +179,16 @@ it and it's path if needed.
 sub write {
 	my $self = shift;
 	my $file = $self->_path(shift) or return undef;
-	File::Flat->write( $file, @_ );
+	my $rv   = File::Flat->write( $file, @_ );
+	if ( $rv and $self->readonly ) {
+		if ( FS_WIN ) {
+			# Enable Win32 filesystem readonly flag
+			### TO BE COMPLETED
+		} else {
+			File::chmod::symchmod('a-w', $file);
+		}
+	}
+	return $rv;
 }
 
 =pod
@@ -244,7 +256,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Phase N Austalia. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

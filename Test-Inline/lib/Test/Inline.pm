@@ -278,7 +278,10 @@ sub new {
 	$self->{ExtractHandler} ||= 'Test::Inline::Extract';
 	$self->{ContentHandler} ||= Test::Inline::Content::Default->new;
 	$self->{InputHandler}   ||= Test::Inline::IO::File->new( File::Spec->curdir );
-	$self->{OutputHandler}  ||= Test::Inline::IO::File->new( File::Spec->curdir );
+	$self->{OutputHandler}  ||= Test::Inline::IO::File->new(
+		path     => File::Spec->curdir,
+		readonly => $self->{readonly},
+		);
 
 	# Where to write test file to, within the context of the OutputHandler
 	$self->{output} = defined $params{output} ? $params{output} : '';
@@ -808,7 +811,7 @@ the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2006 Phase N Austalia. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

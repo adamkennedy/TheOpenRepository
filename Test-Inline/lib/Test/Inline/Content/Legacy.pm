@@ -122,7 +122,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2005 Phase N Austalia. All rights reserved.
+Copyright 2004 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
