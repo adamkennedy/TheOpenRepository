@@ -1,31 +1,39 @@
 Revision history for Perl extension Test::Inline
 
-2.201    Tue 16 Jan 2007
+2.202 Tue 10 Jul 2007
+	- Adding support for writing test scripts with read-only permissions
+	- Upgraded to Module::Install 0.65
+	- Moving bin/inline2test to the more correct script/inline2test
+	  (this has no effect on where it will actually be installed)
+	- Fixing another couple of kwalitee nigglies
+	  (automatically via release tool improvements since last release)
+
+2.201 Tue 16 Jan 2007
 	- [% plan %] in test2inline templates is no longer compulsory
 
-2.200    Sun 14 Jan 2007
+2.200 Sun 14 Jan 2007
 	- Added Win32 support
 
-2.105    Mon  2 Oct 2006
+2.105 Mon  2 Oct 2006
 	- No functional changes
 	- Upgraded to Module::Install 0.64
 	- Fixed a few kwalitee nigglies
 
-2.104    Sun  7 May 2006
+2.104 Sun  7 May 2006
 	- Moved from old CVS to new SVN repository
 	- Various POD spelling/grammer fixes (Jeff Defik)
 	- Moved t/t.data to t/data
 	- Upgraded to Module::Install 0.62
 
-2.103    Wed Sep 28 2005
+2.103 Wed Sep 28 2005
 	- Removed Test::Inline::IO::File::VCS. It is incompleted, and never
 	  should have been distributed in the dist.
 
-2.102    Thu Sep 22 2005
+2.102 Thu Sep 22 2005
 	- To handle people with problems installing RT and a few other
 	  programs, add a dependency on Pod::Tests
 
-2.101    Tue Sep 13 2005
+2.101 Tue Sep 13 2005
 	- Rebuilding to synchronize with new Module::Install and
 	  ExtUtils::AutoInstall
 	- Tweaks the per-section test code to make more applicable value
@@ -34,7 +42,7 @@ Revision history for Perl extension Test::Inline
 	  more accurate Params::Util approach. Should allow for improved
 	  extensibility.
 
-2.100    Thu Jul 14 2005
+2.100 Thu Jul 14 2005
 	- Worked as good as I hoped, moving to production release
 	- Bundling a couple of build-time-only deps
 
@@ -54,11 +62,11 @@ Revision history for Perl extension Test::Inline
 	- Reorganised code to make it all work again
 	- Added 12_content.t
 
-2.002   Sat Jun 11 2005
+2.002 Sat Jun 11 2005
 	- The Test::Builder interface changes, breaking the test counts.
 	- This change makes them work again
 
-2.001   Sat Jun 11 2005
+2.001 Sat Jun 11 2005
 	- After determining Test::Inline 1 doesn't actually USE
 	  the Test::Inline namespace, decided Schwern can just sod off
 	  and I'm moving to production now.

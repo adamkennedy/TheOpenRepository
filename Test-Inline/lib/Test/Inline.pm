@@ -168,6 +168,7 @@ BEGIN {
 
   my $Tests = Test::Inline->new(
           verbose  => 1,
+          readonly => 1,
           output   => 'auto',
           manifest => 'auto.manifest',
           );
@@ -211,6 +212,15 @@ writable. If using a custom C<OutputHandler>, the value of C<output> should
 refer to the location B<within the OutputHandler> that the files will be
 written to.
 
+B<readonly> - The C<readonly> option, if provided, indicates that any
+generated test files should be created (or set when updated) with
+read-only permissions, to prevent accidentally adding to or editing the
+test scripts directly (instead of via the classes).
+
+This option is currently disabled by default, by may be enabled by default
+in a future release, so if you do NOT want your tests being created as
+read-only, you should explicitly set this option to false.
+
 B<InputHandler> - The C<InputHandler> option, if provided, supplies an
 alternative C<FileHandler> from which source modules are retrieved.
 
@@ -241,7 +251,10 @@ sub new {
 		}, $class;
 
 	# Run in verbose mode?
-	$self->{verbose} = 1 if $params{verbose};
+	$self->{verbose} = !! $params{verbose};
+
+	# Generate tests with read-only permissions?
+	$self->{readonly} = !! $params{readonly};
 
 	# Generate a manifest file?
 	$self->{manifest} = $params{manifest} if $params{manifest};

@@ -15,6 +15,7 @@ inline2test - The Test::Inline 2 Test Compiler
   output=t
   execute=0
   verbose=1
+  readonly=1
   header=inline2text.txt
 
 =head1 DESCRIPTION
@@ -28,11 +29,11 @@ and write them to an output path.
 =cut
 
 use strict;
-use File::Spec::Functions ':ALL';
-use Getopt::Long;
-use Config::Tiny;
-use Test::Inline;
-use File::Slurp ();
+use File::Spec::Functions  ':ALL';
+use Getopt::Long           ();
+use Config::Tiny           ();
+use Test::Inline           ();
+use File::Slurp            ();
 use Test::Inline::IO::File ();
 
 use vars qw{$VERSION};
@@ -50,13 +51,15 @@ sub stop ($);
 #####################################################################
 # Process Options, Input and Config
 
-my $execute = '';
-my $changed = '';
-my $verbose = '';
-my $rv = GetOptions(
-	execute => \$execute,
-	changed => \$changed,
-	verbose => \$verbose,
+my $execute  = '';
+my $changed  = '';
+my $verbose  = '';
+my $readonly = '';
+my $rv = Getopt::Long::GetOptions(
+	execute  => \$execute,
+	changed  => \$changed,
+	verbose  => \$verbose,
+	readonly => \$readonly,
 	);
 exit(0) unless $rv;
 
@@ -86,9 +89,10 @@ my $Config = Config::Tiny->read($config) or stop("Failed to load config file");
 my %args = %{$Config->{_}}               or stop("No config entries found");
 
 # Add any forced options
-$args{execute} = 1 if $execute;
-$args{changed} = 1 if $changed;
-$args{verbose} = 1 if $verbose;
+$args{execute}  = 1 if $execute;
+$args{changed}  = 1 if $changed;
+$args{verbose}  = 1 if $verbose;
+$args{readonly} = 1 if $readonly;
 
 # Automatically use an inline2test.tpl file if it exists
 if ( $configdir and ! $args{template} ) {
