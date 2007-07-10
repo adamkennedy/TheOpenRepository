@@ -8,6 +8,7 @@ requires       'List::Util'            => '1.11';
 requires       'Getopt::Long'          => '2.34';
 requires       'File::Slurp'           => '9999.04';
 requires       'File::Find::Rule'      => '0.26';
+requires       'File::chmod'           => '0.31';
 requires       'Config::Tiny'          => '2.00';
 requires       'Params::Util'          => '0.05';
 requires       'Class::Autouse'        => '1.15';
@@ -18,7 +19,7 @@ build_requires 'Test::ClassAPI'        => '1.02';
 build_requires 'File::Remove'          => '0.34';
 include        'Test::ClassAPI';
 include        'Class::Inspector';
-install_script 'bin/inline2test';
+install_script 'script/inline2test';
 
 # Because some programs incorrectly do things like...
 #   if ( installed('Test::Inline') ) { system('pod2test') }

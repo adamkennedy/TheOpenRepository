@@ -42,7 +42,7 @@ use Class::Autouse 'File::Flat',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.201';
+	$VERSION = '2.202';
 }
 
 use constant FS_WIN => !! $^O eq 'MSWin32';

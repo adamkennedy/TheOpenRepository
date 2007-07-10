@@ -8,7 +8,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 11;
+use Test::More tests => 12;
+use Test::Script;
 use File::Spec::Functions ':ALL';
 
 # Check their perl version
@@ -26,5 +27,7 @@ use_ok('Test::Inline'                   );
 use_ok('Test::Inline::Util'             );
 use_ok('Test::Inline::Script'           );
 use_ok('Test::Inline::Section'          );
+
+script_compiles_ok('script/inline2test');
 
 exit(0);
