@@ -10,9 +10,6 @@ BEGIN {
 
 eval {
 	require FindBin;
-	require File::Spec;
-	require CGI;
-	require YAML::Tiny;
 	require TinyAuth;
 };
 if ( $@ ) {
@@ -31,12 +28,6 @@ unless ( -f $config_file ) {
 my $config = YAML::Tiny->read( $config_file );
 unless ( $config ) {
 	error("Failed to load config file at $config_file");
-}
-
-# Get the CGI context
-my $cgi = eval { CGI->new };
-unless ( $cgi ) {
-	error("Failed to create CGI context");
 }
 
 # Create the web application

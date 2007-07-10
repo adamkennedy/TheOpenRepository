@@ -28,6 +28,8 @@ anywhere, even without a computer or "regular" internet connection.
 
 use 5.005;
 use strict;
+use File::Spec               ();
+use YAML::Tiny               ();
 use CGI                      ();
 use Params::Util             qw{ _STRING _INSTANCE };
 use String::MkPasswd         ();
@@ -41,6 +43,7 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	config_file
 	config
 	cgi
 	auth
