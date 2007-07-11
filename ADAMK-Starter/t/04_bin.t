@@ -26,7 +26,7 @@ my $cleaner = Test::File::Cleaner->new( $trunk );
 SCOPE: {
         my $perl = $^X;
         ok( -f $perl, "Found perl at $perl" );
-        my $bin  = catfile( 'bin', 'adamk-starter' );
+        my $bin  = catfile( 'script', 'adamk-starter' );
 	ok( -f $bin, 'Found binary' );
         my $cmd = "$perl -Mblib $bin --module Foo::Bar --trunk $trunk";
         my $rv  = system( $cmd );

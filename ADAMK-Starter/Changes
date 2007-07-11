@@ -1,5 +1,9 @@
 Changes file for Perl extension ADAMK-Starter
 
+0.03 Wed 11 Jul 2007
+	- Bug fixes
+	- Moved bin/adamk-starter to script/adamk-starter
+
 0.02 Wed 16 May 2007
 	- Minor bug fixes
 

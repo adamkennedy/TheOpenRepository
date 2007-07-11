@@ -2,7 +2,7 @@ package ADAMK::Starter;
 
 use 5.005;
 use strict;
-use Carp         qw{ croak };
+use Carp         ();
 use Getopt::Long ();
 use Params::Util qw{ _STRING _INSTANCE };
 use Date::Tiny   ();
@@ -11,7 +11,7 @@ use File::Flat   ();
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = qw{ Exporter Object::Tiny };
 	@EXPORT  = qw{ main };
 }
@@ -91,13 +91,13 @@ sub new {
 
 	# Apply defaults and check params
 	unless ( $self->module ) {
-		croak("Did not provide a module name");
+		Carp::croak("Did not provide a module name");
 	}
 	unless ( $self->trunk ) {
-		croak("Did not provide the trunk directory");
+		Carp::croak("Did not provide the trunk directory");
 	}
 	unless ( -d $self->trunk ) {
-		croak("The trunk directory does not exist");
+		Carp::croak("The trunk directory does not exist");
 	}
 	$self->{trunk} = File::Spec->rel2abs( $self->trunk );
 	$self->{perl_version} ||= '5.005';
@@ -107,7 +107,7 @@ sub new {
 	$self->{email}        ||= 'adamk@cpan.org';
 	$self->{date}         ||= Date::Tiny->now;
 	unless ( _INSTANCE($self->date, 'Date::Tiny') ) {
-		croak("Did not provide a Date::Tiny value for ->date");
+		Carp::croak("Did not provide a Date::Tiny value for ->date");
 	}
 	$self->{date} = $self->date->as_string;
 	unless ( $self->name ) {
@@ -122,7 +122,7 @@ sub new {
 	# Derive some additional paths
 	$self->{dist_dir} = File::Spec->catdir( $self->trunk, $self->name );
 	if ( -d $self->dist_dir ) {
-		croak("The dist directory " . $self->dist_dir . " already exists");
+		Carp::croak("The dist directory " . $self->dist_dir . " already exists");
 	}
 	$self->{makefile_pl} = File::Spec->catfile( $self->dist_dir, 'Makefile.PL'             );
 	$self->{changes}     = File::Spec->catfile( $self->dist_dir, 'Changes'                 );
