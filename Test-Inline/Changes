@@ -1,5 +1,12 @@
 Revision history for Perl extension Test::Inline
 
+2.203 Wed 11 Jul 2007
+	- When overwriting readonly files, delete them properly first.
+	  Don't naively assume we can write to them (obviously, duh) :(
+	- It turns out that File::chmod is smart enough to correctly
+	  make files readonly even on Win32. Removed all the code that
+	  skipped on Win32. All platforms now equal again! Yay!
+
 2.202 Tue 10 Jul 2007
 	- Adding support for writing test scripts with read-only permissions
 	- Upgraded to Module::Install 0.65

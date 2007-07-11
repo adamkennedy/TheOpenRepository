@@ -35,17 +35,16 @@ the translating to the underlying filesystem themselves if required.
 =cut
 
 use strict;
-use File::Spec  ();
-use File::chmod ();
+use File::Spec   ();
+use File::chmod  ();
+use File::Remove ();
 use Class::Autouse 'File::Flat',
                    'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.202';
+	$VERSION = '2.203';
 }
-
-use constant FS_WIN => !! $^O eq 'MSWin32';
 
 
 
@@ -179,14 +178,12 @@ it and it's path if needed.
 sub write {
 	my $self = shift;
 	my $file = $self->_path(shift) or return undef;
-	my $rv   = File::Flat->write( $file, @_ );
+	if ( -f $file and ! -w $file ) {
+		File::Remove::remove($file) or return undef;
+	}
+	my $rv = File::Flat->write( $file, @_ );
 	if ( $rv and $self->readonly ) {
-		if ( FS_WIN ) {
-			# Enable Win32 filesystem readonly flag
-			### TO BE COMPLETED
-		} else {
-			File::chmod::symchmod('a-w', $file);
-		}
+		File::chmod::symchmod('a-w', $file);
 	}
 	return $rv;
 }
