@@ -1,12 +1,14 @@
+use strict;
 use inc::Module::Install;
 
 name           'PPI-PowerToys';
 all_from       'lib/PPI/PowerToys.pm';
 requires       'File::Spec'             => '0.80';
 requires       'File::Find::Rule'       => 0;
-requires       'File::Find::Rule::Perl' => 0;
+requires       'File::Find::Rule::Perl' => '0.03';
 requires       'PPI'                    => '1.109';
 build_requires 'Test::More'             => '0.47';
-install_script 'bin/ppi_version';
+build_requires 'Test::Script'           => '1.02';
+install_script 'script/ppi_version';
 
 WriteAll;

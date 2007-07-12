@@ -1,28 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile-testing for Perl::PowerToys
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
+use Test::Script;
 
-BEGIN {
-	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
-	use_ok( 'PPI::PowerToys' );
-}
+ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+use_ok( 'PPI::PowerToys' );
+script_compiles_ok( 'script/ppi_version' );
 
 exit(0);
