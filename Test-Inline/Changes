@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Inline
 
+2.204 Thu 12 Jul 2007
+	- Adding a missing dependency on Test::Script
+	- Correcting the script/inline2test version
+
 2.203 Wed 11 Jul 2007
 	- When overwriting readonly files, delete them properly first.
 	  Don't naively assume we can write to them (obviously, duh) :(
