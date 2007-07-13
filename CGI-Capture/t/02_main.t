@@ -10,7 +10,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 5;
 use File::Spec::Functions ':ALL';
 use CGI::Capture ();
 
@@ -25,27 +25,15 @@ SCOPE: {
 	is( $bar, "bar\n", 'Read from STDIN ok' );
 }
 
-# Create a new object
-my $cgi = CGI::Capture->new;
-isa_ok( $cgi, 'CGI::Capture' );
-
-# Do an actual capture, and convert to YAML
+# Test basic functionality
 SCOPE: {
-	ok( $cgi->capture, '->capture ok' );
-	my $yaml = $cgi->as_yaml;
-	isa_ok( $yaml, 'YAML::Tiny' );
+	# Create a new object
+	my $cgi = CGI::Capture->new;
+	isa_ok( $cgi, 'CGI::Capture' );
 
-	# Does the YAML document round-trip
-	my $yaml2 = YAML::Tiny->read_string( $yaml->write_string );
-	is_deeply( $yaml, $yaml2, 'YAML object round-trips ok' );
-
-	# Generate the YAML document
-	my $string = $cgi->as_yaml_string;
-	ok( $string =~ /^---\nARGV:\s/, '->as_yaml returns a YAML document' );
-
-	# Round-trip the CGI::Capture
-	my $cgi2 = CGI::Capture->from_yaml_string( $string );
-	is_deeply( $cgi, $cgi2, 'CGI::Capture round-trips ok' );
+	# Check that capture auto-constructs
+	$cgi = CGI::Capture->capture;
+	is( $cgi->{CONFIG_PATH}, $INC{'Config.pm'}, 'Config path is captured' );
 }
 
 exit(0);

@@ -79,6 +79,7 @@ object directly.
 use 5.006;
 use strict;
 use Carp       ();
+use Config     ();
 use Storable   ();
 use IO::String ();
 use YAML::Tiny ();
@@ -326,11 +327,16 @@ sub capture {
 	# Grab ARGV just to be on the safe side
 	$self->{ARGV} = [ @ARGV ];
 
-	# Grab the contents of STDIN
-	$self->{STDIN} = do { local $/; my $tmp = <STDIN>; \$tmp };
+	if ( -t STDIN ) {
+		# Interactive mode
+		$self->{STDIN} = \'';
+	} else {
+		# Grab the contents of STDIN
+		$self->{STDIN} = do { local $/; my $tmp = <STDIN>; \$tmp };
 
-	# Having captured it, restore it
-	$self->_stdin( $self->{STDIN} );
+		# Having captured it, restore it
+		$self->_stdin( $self->{STDIN} );
+	}
 
 	# Grab the include path
 	$self->{INC} = [ @INC ];
@@ -346,6 +352,10 @@ sub capture {
 	$self->{OSNAME}             = $^O;
 	$self->{TAINT}              = ${^TAINT};
 	$self->{PERL_VERSION}       = $];
+
+	# Capture the most critical %Config values
+	$self->{CONFIG_PATH}        = $INC{'Config.pm'};
+	$self->{PERL_PATH}          = $Config::Config{perlpath};
 
 	$self;
 }
@@ -406,13 +416,15 @@ sub apply {
 	$0 = $self->{PROGRAM_NAME};
 
 	# Check that the critical variables match
-	$self->_check( OSNAME             => $^O       );
-	$self->_check( REAL_USER_ID       => $<        );
-	$self->_check( EFFECTIVE_USER_ID  => $>        );
-	$self->_check( REAL_GROUP_ID      => $(        );
-	$self->_check( EFFECTIVE_GROUP_ID => $)        );
-	$self->_check( TAINT              => ${^TAINT} );
-	$self->_check( PERL_VERSION       => $]        );
+	$self->_check( OSNAME             => $^O                       );
+	$self->_check( REAL_USER_ID       => $<                        );
+	$self->_check( EFFECTIVE_USER_ID  => $>                        );
+	$self->_check( REAL_GROUP_ID      => $(                        );
+	$self->_check( EFFECTIVE_GROUP_ID => $)                        );
+	$self->_check( TAINT              => ${^TAINT}                 );
+	$self->_check( PERL_VERSION       => $]                        );
+	$self->_check( CONFIG_PATH        => $INC{'Config.pm'}         );
+	$self->_check( PERL_PATH          => $Config::config{perlpath} );
 
 	1;
 }

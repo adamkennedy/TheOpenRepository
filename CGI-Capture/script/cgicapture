@@ -10,7 +10,7 @@ BEGIN {
 }
 
 # Capture the CGI environment
-my $cgi = CGI::Capture->new->capture;
+my $cgi = CGI::Capture->capture;
 
 # Print the output
 print "Content-type: text/plain\n\n";
