@@ -319,7 +319,10 @@ sub capture {
 	my $self = ref $_[0] ? shift : shift->new;
 
 	# Reset the object
-	%$self = ( CAPTURE_TIME => time );
+	%$self = (
+		CAPTURE_TIME    => time,
+		CAPTURE_VERSION => $VERSION,
+	);
 
 	# Capture the environment
 	$self->{ENV} = { %ENV };
@@ -416,6 +419,7 @@ sub apply {
 	$0 = $self->{PROGRAM_NAME};
 
 	# Check that the critical variables match
+	$self->_check( CAPTURE_VERSION    => $VERSION                  );
 	$self->_check( OSNAME             => $^O                       );
 	$self->_check( REAL_USER_ID       => $<                        );
 	$self->_check( EFFECTIVE_USER_ID  => $>                        );
