@@ -418,7 +418,7 @@ sub apply {
 	$| = $self->{OUTPUT_AUTOFLUSH};
 	$0 = $self->{PROGRAM_NAME};
 
-	# Check that the critical variables match
+	# Check that the variables we can't control match
 	$self->_check( CAPTURE_VERSION    => $VERSION                  );
 	$self->_check( OSNAME             => $^O                       );
 	$self->_check( REAL_USER_ID       => $<                        );
