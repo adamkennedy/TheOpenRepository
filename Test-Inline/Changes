@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Inline
 
+2.205 Thu 12 Jul 2007
+	- ACTUALLY adding a missing dependency on Test::Script
+
 2.204 Thu 12 Jul 2007
 	- Adding a missing dependency on Test::Script
 	- Correcting the script/inline2test version
