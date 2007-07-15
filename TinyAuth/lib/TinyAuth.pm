@@ -28,14 +28,14 @@ anywhere, even without a computer or "regular" internet connection.
 
 use 5.005;
 use strict;
-use File::Spec               ();
-use YAML::Tiny               ();
-use CGI                      ();
-use Params::Util             qw{ _STRING _INSTANCE };
-use String::MkPasswd         ();
-use Apache::Htpasswd::Shadow ();
-use Email::Send              ();
-use Email::Stuff             ();
+use File::Spec       ();
+use YAML::Tiny       ();
+use CGI              ();
+use Params::Util     qw{ _STRING _INSTANCE };
+use String::MkPasswd ();
+use Authen::Htpasswd ();
+use Email::Send      ();
+use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -48,7 +48,6 @@ use Object::Tiny qw{
 	cgi
 	auth
 	mailer
-
 	action
 	header
 	title
@@ -73,18 +72,15 @@ sub new {
 	# Create the htpasswd shadow
 	unless ( $self->auth ) {
 		# Check for a htpasswd value
-		unless ( $self->passwd_file ) {
+		unless ( $self->htpasswd ) {
 			Carp::croak("No htpasswd file provided");
 		}
-		unless ( -r $self->passwd_file ) {
+		unless ( -r $self->htpasswd ) {
 			Carp::croak("No permission to read htpasswd file");
 		}
-		$self->{auth} = Apache::Htpasswd::Shadow->new( {
-			passwdFile => $self->passwd_file,
-			shadowFile => $self->shadow_file,
-			} );
+		$self->{auth} = Authen::Htpasswd->new( $self->htpasswd );
 	}
-	unless ( _INSTANCE($self->auth, 'Apache::Htpasswd::Shadow') ) {
+	unless ( _INSTANCE($self->auth, 'Authen::Htpasswd') ) {
 		 Carp::croak("Failed to create htpasswd object");
 	}
 
@@ -146,12 +142,8 @@ sub args {
 	return { %{$_[0]->{args}} };
 }
 
-sub passwd_file {
+sub htpasswd {
 	$_[0]->config->[0]->{htpasswd};
-}
-
-sub shadow_file {
-	$_[0]->config->[0]->{htshadow};
 }
 
 sub email_from {
@@ -233,32 +225,28 @@ sub action_forgot {
 	}
 
 	# Does the account exist
-	my $pass = $self->auth->fetchPass($email);
-	unless ( defined $pass ) {
-		return $self->error("Internal error while finding your account");
-	}
-	unless ( $pass ) {
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
 		return $self->error("No account for that email address");
 	}
 
 	# Create the new password
 	my $password = $self->mkpasswd;
-
-	# Set the password
-	$self->auth->htpasswd($email, $password, { overwrite => 1 } );
+	$user->password($password);
+	$self->auth->update_user($user);
 	$self->{args}->{password} = $password;
 
 	# Send the password email
-	$self->send_forgot( $email, $password );
+	$self->send_forgot( $user );
 
 	# Show the "password email sent" page
 	$self->view_message("Password email sent");
 }
 
 sub send_forgot {
-	my ($self, $to) = @_;
+	my ($self, $user) = @_;
 	$self->send_email(
-		to      => $to,
+		to      => $user->username,
 		subject => '[TinyAuth] Forgot Your Password',
 		body    => $self->template(
 			$self->email_forgot,

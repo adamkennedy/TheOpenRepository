@@ -34,7 +34,6 @@ unless ( $config ) {
 my $application = eval {
 	TinyAuth->new(
 		config => $config,
-		cgi    => $cgi,
 	)
 };
 unless ( $application ) {

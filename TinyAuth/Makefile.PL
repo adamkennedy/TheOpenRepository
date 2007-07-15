@@ -17,6 +17,8 @@ requires       'Email::Stuff'             => '2.05';
 build_requires 'Test::More'               => '0.42';
 build_requires 'Test::Script'             => '1.02';
 build_requires 'Test::LongString'         => '0.11';
+build_requires 'File::Copy'               => 0;
+build_requires 'File::Remove'             => '0.37';
 install_script 'script/tinyauth';
 
 WriteAll;

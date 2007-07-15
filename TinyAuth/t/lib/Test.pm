@@ -11,11 +11,18 @@ BEGIN {
 }
 
 use File::Spec::Functions ':ALL';
+use File::Copy       ();
+use File::Remove     ();
 use YAML::Tiny       ();
 use Test::LongString ();
 
+my $prototype_file = rel2abs( catfile( 't', 'data', 'htpasswd'      ) );
+my $config_file    = rel2abs( catfile( 't', 'data', 'htpasswd_copy' ) );
+END { File::Remove::remove( $config_file ) if -f $config_file; }
+
 sub default_config {
-	my $config_file = rel2abs( catfile( 't', 'data', 'htpasswd'      ) );
+	File::Remove::remove( $config_file ) if -f $config_file;
+	File::Copy::copy( $prototype_file => $config_file );
 	Test::More::ok( -f $config_file, 'Testing config file exists' );
 
 	my $config = YAML::Tiny->new;
