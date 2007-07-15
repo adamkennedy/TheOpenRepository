@@ -1,0 +1,550 @@
+package TinyAuth;
+
+=pod
+
+=head1 NAME
+
+TinyAuth - Extremely light-weight web-based authentication manager
+
+=head1 DESCRIPTION
+
+B<TinyAuth> is an extremely light-weight authentication management
+web application, initially created to assist in managing a subversion
+repository.
+
+It is designed to provide the basic functionality of adding and removing
+users, and handling password maintenance with as little code and fuss
+as possible.
+
+More importantly, it is intended to be extremely easy to install and
+set up, even on shared hosting accounts. The interface is simple enough
+that it can be used on typical limited-functionality browsers such as
+the text-mode lynx browser, and the browsers found in most mobile phones.
+
+The intent is to allow users and be added, removed and repaired from
+anywhere, even without a computer or "regular" internet connection.
+
+=cut
+
+use 5.005;
+use strict;
+use File::Spec               ();
+use YAML::Tiny               ();
+use CGI                      ();
+use Params::Util             qw{ _STRING _INSTANCE };
+use String::MkPasswd         ();
+use Apache::Htpasswd::Shadow ();
+use Email::Send              ();
+use Email::Stuff             ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.04';
+}
+
+use Object::Tiny qw{
+	config_file
+	config
+	cgi
+	auth
+	mailer
+
+	action
+	header
+	title
+	homepage
+	};
+
+
+
+
+
+#####################################################################
+# Constructor and Accessors
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	# Check and set the config
+	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
+		Carp::croak("Did not provide a config param");
+	}
+
+	# Create the htpasswd shadow
+	unless ( $self->auth ) {
+		# Check for a htpasswd value
+		unless ( $self->passwd_file ) {
+			Carp::croak("No htpasswd file provided");
+		}
+		unless ( -r $self->passwd_file ) {
+			Carp::croak("No permission to read htpasswd file");
+		}
+		$self->{auth} = Apache::Htpasswd::Shadow->new( {
+			passwdFile => $self->passwd_file,
+			shadowFile => $self->shadow_file,
+			} );
+	}
+	unless ( _INSTANCE($self->auth, 'Apache::Htpasswd::Shadow') ) {
+		 Carp::croak("Failed to create htpasswd object");
+	}
+
+	# Create the mailer
+	unless ( $self->email_from ) {
+		Carp::croak("No email_from address in config file");
+	}
+	unless ( $self->mailer ) {
+		$self->{mailer} = Email::Send->new( {
+			mailer => $self->email_driver,
+			} );
+	}
+	unless ( _INSTANCE($self->mailer, 'Email::Send') ) {
+		Carp::croak("Failed to create mailer");
+	}
+
+	# Set the header
+	unless ( $self->header ) {
+		$self->{header} = CGI::header( 'text/html' );
+	}
+
+	# Set the page title
+	unless ( $self->title ) {
+		$self->{title} ||= $self->config->[0]->{title};
+		$self->{title} ||= __PACKAGE__ . ' ' . $VERSION;
+	}
+
+	# Set the homepage
+	unless ( $self->homepage ) {
+		$self->{homepage} ||= $self->config->[0]->{homepage};
+		$self->{homepage} ||= 'http://search.cpan.org/perldoc?TinyAuth';
+	}
+
+	# Set the CGI object
+	unless ( _INSTANCE($self->cgi, 'CGI') ) {
+		$self->{cgi} = CGI->new;
+	}
+
+	# Determine the action
+	unless ( $self->action ) {
+		$self->{action} = $self->cgi->param('a') || '';
+	}
+
+	# Set the base arguments
+	$self->{args} ||= {
+		CLASS    => ref($self),
+		VERSION  => $self->VERSION,
+		HOMEPAGE => $self->homepage,
+		TITLE    => $self->title,
+		DOCTYPE  => $self->html__doctype,
+		HEAD     => $self->html__head,
+		HOME     => $self->html__home,
+	};
+
+	return $self;
+}
+
+sub args {
+	return { %{$_[0]->{args}} };
+}
+
+sub passwd_file {
+	$_[0]->config->[0]->{htpasswd};
+}
+
+sub shadow_file {
+	$_[0]->config->[0]->{htshadow};
+}
+
+sub email_from {
+	$_[0]->config->[0]->{email_from};
+}
+
+sub email_driver {
+	$_[0]->config->[0]->{email_driver} || 'Sendmail';
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub run {
+	my $self = shift;
+	if ( $self->action eq 'f' ) {
+		return $self->view_forgot;
+	} elsif ( $self->action eq 'r' ) {
+		return $self->action_forgot;
+	} elsif ( $self->action eq 'c' ) {
+		return $self->view_change;
+	} elsif ( $self->action eq 'n' ) {
+		return $self->view_new;
+	} else {
+		return $self->view_index;
+	}
+}
+
+sub mkpasswd {
+	String::MkPasswd::mkpasswd( -fatal => 1 );
+}
+
+sub send_email {
+	my $self   = shift;
+	my %params = @_;
+	my $email  = Email::Stuff->new;
+	$email->to(        $params{to}       );
+	$email->from(      $self->email_from );
+	$email->subject(   $params{subject}  );
+	$email->text_body( $params{body}     );
+	$email->using(     $self->mailer     );
+	$email->send;
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub view_index {
+	my $self = shift;
+	$self->print_template(
+		$self->html_index,
+	);
+	return 1;
+}
+
+sub view_forgot {
+	my $self = shift;
+	$self->print_template(
+		$self->html_forgot,
+	);
+	return 1;
+}
+
+# Re-issue a password
+sub action_forgot {
+	my $self  = shift;
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $pass = $self->auth->fetchPass($email);
+	unless ( defined $pass ) {
+		return $self->error("Internal error while finding your account");
+	}
+	unless ( $pass ) {
+		return $self->error("No account for that email address");
+	}
+
+	# Create the new password
+	my $password = $self->mkpasswd;
+
+	# Set the password
+	$self->auth->htpasswd($email, $password, { overwrite => 1 } );
+	$self->{args}->{password} = $password;
+
+	# Send the password email
+	$self->send_forgot( $email, $password );
+
+	# Show the "password email sent" page
+	$self->view_message("Password email sent");
+}
+
+sub send_forgot {
+	my ($self, $to) = @_;
+	$self->send_email(
+		to      => $to,
+		subject => '[TinyAuth] Forgot Your Password',
+		body    => $self->template(
+			$self->email_forgot,
+		),
+	);
+}
+
+sub view_change {
+	my $self = shift;
+	$self->print_template(
+		$self->html_change,
+	);
+	return 1;
+}
+
+sub view_message {
+	my $self = shift;
+	$self->{args}->{message} = shift;
+	$self->print_template(
+		$self->html_message,
+	);
+	return 1;
+}
+
+sub error {
+	my $self = shift;
+	$self->{args}->{error} = shift;
+	$self->print_template(
+		$self->html_error,
+	);
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+sub print {
+	my $self = shift;
+	if ( defined $self->header ) {
+		# Show the page header if this is the first thing
+		CORE::print( $self->header );
+		$self->{header} = undef;
+	}
+	CORE::print( @_ );
+}
+
+sub template {
+	my $self = shift;
+	my $html = shift;
+	my $args = shift || $self->args;
+	foreach ( 0 .. 10 ) {
+		# Allow up to 10 levels of recursion
+		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g;
+	}
+	return $html;
+}
+
+sub print_template {
+	my $self = shift;
+	$self->print(
+		$self->template( @_ )
+	);
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Pages
+
+
+
+
+
+sub html__doctype { <<'END_HTML' }
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+END_HTML
+
+
+
+
+
+sub html__head { <<'END_HTML' }
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>[% TITLE %]</title>
+</head>
+END_HTML
+
+
+
+
+
+
+
+
+
+
+sub html__home { <<'END_HTML' }
+<p><a href="?a=i">Back to the main page</a></p>
+END_HTML
+
+
+
+
+
+sub html_index { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>User</h2>
+<p><a href="?a=f">I forgot my password</a></p>
+<p><a href="?a=c">I want to change my password</a></p>
+<h2>Admin</h2>
+<p><a href="?a=n">I want to add a new account</a></p>
+<p><a href="?a=l">I want to see all the accounts</a></p>
+<hr>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_forgot { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>You don't know your password</h2>
+<form method="post" name="f" action="">
+<input type="hidden" name="a" value="r"
+<p>I can't tell you what your current password is, but I can send you a new one.</p>
+<p>&nbsp;</p>
+<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
+</form>
+<p>&nbsp;</p>
+<hr>
+[% HOME %]
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_change { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>You want to change your password</h2>
+<p>I just need to know a few things to do that</p>
+<form name="f">
+<table border="0" cellpadding="0" cellspacing="0">
+<tr><td>
+<p>What is your email address?</p>
+<p>What is your current password?</p> 
+<p>Type in the new password you want&nbsp;&nbsp;</p>
+<p>Type it again to prevent mistakes</p>
+</td><td>
+<p><input type="text" name="e" size="30"></p>
+<p><input type="text" name"p" size="30"></p>
+<p><input type="text" name"n" size="30"></p>
+<p><input type="text" name"c" size="30"></p>
+</td></tr>
+</table>
+<p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password now"></p>
+</form>
+<hr>
+[% HOME %]
+<script language="JavaScript">
+document.f.e.focus();
+</script>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_new { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>You don't know your password :(</h2>
+<form name="f" action="">
+<input type="hidden" name="a" value="r"
+<p>I can't tell you what your current password is, but I can send you a new one.</p>
+<p>&nbsp;</p>
+<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
+</form>
+<p>&nbsp;</p>
+<hr>
+[% HOME %]
+<script language="JavaScript">
+document.f.e.focus();
+</script>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_message { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h1>Action Completed</h1>
+<h2>[% message %]</h2>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_error { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h1>Error</h1>
+<h2>[% error %]</h2>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub email_forgot { <<'END_TEXT' }
+Hi
+
+You forgot your password, so here is a new one
+
+Password: [% password %]
+
+Have a nice day!
+END_TEXT
+
+1;
+
+=pod
+
+=head1 SUPPORT
+
+All bugs should be filed via the bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=TinyAuth>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>, L<CGI::Capture>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
