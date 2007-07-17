@@ -1,9 +1,11 @@
 #!/usr/bin/perl
 
 use strict;
+use vars qw{$VERSION};
 BEGIN {
 	$|  = 1;
 	$^W = 1;
+	$VERSION = '0.05';
 }
 
 use Test::More tests => 23;
@@ -46,13 +48,13 @@ SCOPE: {
 	is( $instance->run, 1, '->run ok' );
 
 	# Check the output
-	cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
+	cgi_cmp( $instance->stdout, <<"END_HTML', '->stdout returns as expect' );
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.04</title>
+<title>TinyAuth $VERSION</title>
 </head>
 
 <body>
@@ -97,13 +99,13 @@ SCOPE: {
 	is( $instance->run, 1, '->run ok' );
 
 	# Check the output
-	cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
+	cgi_cmp( $instance->stdout, <<"END_HTML", '->stdout returns as expect' );
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.04</title>
+<title>TinyAuth $VERSION</title>
 </head>
 
 <body>
@@ -140,13 +142,13 @@ SCOPE: {
 	is( $instance->run, 1, '->run ok' );
 
 	# Check the output
-	cgi_cmp( $instance->stdout, <<'END_HTML', '->stdout returns as expect' );
+	cgi_cmp( $instance->stdout, <<"END_HTML", '->stdout returns as expect' );
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth 0.04</title>
+<title>TinyAuth $VERSION</title>
 </head>
 
 <body>
