@@ -31,7 +31,7 @@ use strict;
 use File::Spec       ();
 use YAML::Tiny       ();
 use CGI              ();
-use Params::Util     qw{ _STRING _INSTANCE };
+use Params::Util     qw{ _STRING _INSTANCE _ARRAY };
 use String::MkPasswd ();
 use Authen::Htpasswd ();
 use Email::Send      ();
@@ -171,6 +171,8 @@ sub run {
 		return $self->view_change;
 	} elsif ( $self->action eq 'n' ) {
 		return $self->view_new;
+	} elsif ( $self->action eq 'l' ) {
+		return $self->view_list;
 	} else {
 		return $self->view_index;
 	}
@@ -252,6 +254,31 @@ sub send_forgot {
 			$self->email_forgot,
 		),
 	);
+}
+
+sub view_list {
+	my $self  = shift;
+
+	# Prepare the user list
+	my @users = sort {
+		$a->username cmp $b->username
+		} $self->auth->all_users;
+	my $list = '';
+	foreach my $user ( @users ) {
+		my $item = $self->cgi->escapeHTML($user->username);
+		my $info = $user->extra_info;
+		if ( _ARRAY($info) and $info->[0] eq 'admin' ) {
+			$item = $self->cgi->b($item);
+		}
+		$list .= $item . $self->cgi->br . "\n";
+	}
+
+	# Show the page
+	$self->{args}->{users} = $list;
+	$self->print_template(
+		$self->html_list,
+	);
+	return 1;
 }
 
 sub view_change {
@@ -457,6 +484,21 @@ sub html_new { <<'END_HTML' }
 <script language="JavaScript">
 document.f.e.focus();
 </script>
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_list { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>Account List</h2>
+[% users %]
 </body>
 </html>
 END_HTML
