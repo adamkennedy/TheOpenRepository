@@ -1,5 +1,9 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.11 Mon 16 Jul 2007
+	- Apply rel2abs more often to hopefully allow installation of
+	  tarballs in parent directories
+
 0.10 Sun  8 Jul 2007
 	- Minor pod fixes
 	- Adding undocumented experimental support for p5z files

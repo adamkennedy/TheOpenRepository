@@ -30,13 +30,14 @@ use File::Temp     ();
 use File::Basename ();
 use Params::Util   qw{ _STRING _CLASS _INSTANCE };
 use URI            ();
+use URI::file      ();
 use LWP::Simple    ();
 use CPAN::Inject   ();
 use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 
@@ -314,18 +315,13 @@ sub _p5i_uri {
 	# Convert generics to file URIs
 	unless ( $uri->scheme ) {
 		# It's a raw filename
-		$uri = URI->new("file:$uri") or croak("Not a valid P5I path");
+		$uri = URI::file->new($uri->as_string) or croak("Not a valid P5I path");
 	}
 
 	# Make any file paths absolute
 	if ( $uri->isa('URI::file') ) {
 		my $file = File::Spec->rel2abs( $uri->path );
-
-		# MSWIN32: we want this because URI encodes backslashes
-		# and encoded backslashes make LWP::Simple confuse afterwords.
-        $file =~ s{\\}{/}g;
-
-		$uri = URI->new( "file:$file" );
+		$uri = URI::file->new($file);
 	}
 
 	$uri;

@@ -6,11 +6,12 @@ use File::Spec         ();
 use File::Temp         ();
 use File::Which        ();
 use Getopt::Long       ();
+use URI::file          ();
 use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 
@@ -77,6 +78,7 @@ sub read_p5i {
 	if ( -d $pip ) {
 		$pip = File::Spec->catfile( $pip, 'default.p5i' );
 	}
+	$pip = File::Spec->rel2abs( $pip );
 	unless ( -f $pip ) {
 		error( "The plan file $pip does not exist" );
 	}
@@ -109,15 +111,21 @@ sub read_p5i {
 
 sub read_tarball {
 	require Module::Plan::Lite;
-	my $targz = shift;
+	my $targz = File::Spec->rel2abs(shift);
+	unless ( -f $targz ) {
+		error("Filed does no exist: $targz");
+	}
 	Module::Plan::Lite->new(
 		p5i   => 'default.p5i',
-		lines => [ '', $targz ],
+		lines => [ '', URI::file->new($targz)->as_string ],
 		);
 }
 
 sub read_p5z {
-	my $p5z = shift;
+	my $p5z = File::Spec->rel2abs(shift);
+	unless ( -f $p5z ) {
+		error("File does not exist: $p5z");
+	}
 
 	# Create the temp directory
 	my $dir   = File::Temp::tempdir( CLEANUP => 1 );
