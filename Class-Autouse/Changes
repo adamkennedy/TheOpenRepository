@@ -1,5 +1,11 @@
 Revision history for Perl extension Class::Autouse
 
+1.28 Tue 17 Jul 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.65
+	- Updating List::Util dependency to 1.19.
+	  (Fixes memory leak AND resolving the Win32 problem listed below)
+
 1.27 Mon  4 Sep 2006
 	- Upgrading to Module::Install 0.64
 
