@@ -11,6 +11,8 @@ BEGIN {
 
 sub module_file { 'postcode.csv' }
 
+sub csv_options { fields => 'auto' }
+
 1;
 
 __END__
