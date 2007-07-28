@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 18;
+use Test::More tests => 24;
 use File::Spec::Functions ':ALL';
 use Imager;
 use Imager::Search::RRGGBB;
@@ -59,9 +59,12 @@ is( length($$small_string), 644, '->small_string correct length' );
 
 # Do a simple search
 my $position = $search->find_first;
-is( ref($position), 'HASH', '->find_first returns a HASH as expected' );
-is( $position->{x}, 26,  '->{x} is 26'  );
-is( $position->{y}, 135, '->{y} is 135' );
-foreach ( 0 .. 10 ) {
-	$search->find_first;
-}
+isa_ok( $position, 'Imager::Search::Match' );
+is( $position->left,     3,   '->left ok'      );
+is( $position->right,    15,  '->right ok'     );
+is( $position->top,      521, '->top ok'       );
+is( $position->bottom,   533, '->bottom ok'    );
+is( $position->width,    13,  '->width ok'     );
+is( $position->height,   13,  '->height ok'    );
+is( $position->center_x, 9,   '->center_x ok ' );
+is( $position->center_y, 527, '->center_y ok'  );
