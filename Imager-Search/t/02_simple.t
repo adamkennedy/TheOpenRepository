@@ -53,9 +53,9 @@ isa_ok( $search->big,   'Imager' );
 isa_ok( $search->small, 'Imager' );
 
 # Get the small_string
-my $small_string = $search->small_string;
-is( ref($small_string), 'SCALAR', '->small_string returns a SCALAR' );
-is( length($$small_string), 644, '->small_string correct length' );
+my $small_string = $search->_small_string;
+is( ref($small_string), 'SCALAR', '->_small_string returns a SCALAR' );
+is( length($$small_string), 644, '->_small_string correct length' );
 
 # Do a simple search
 my $position = $search->find_first;
