@@ -22,6 +22,8 @@ Imager::Search - Locate an image inside another image
 
 =head1 DESCRIPTION
 
+B<THIS MODULE IS CONSIDERED EXPERIMENTAL AND SUBJECT TO CHANGE>
+
 This module is designed to solve a conceptually simple problem.
 
 Given two images (we'll call them Big and Small), where Small is
