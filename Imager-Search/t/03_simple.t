@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 24;
+use Test::More tests => 36;
 use File::Spec::Functions ':ALL';
 use Imager;
 use Imager::Search::RRGGBB;
@@ -68,3 +68,18 @@ is( $position->width,    13, '->width ok'     );
 is( $position->height,   13, '->height ok'    );
 is( $position->center_x, 12, '->center_x ok ' );
 is( $position->center_y, 80, '->center_y ok'  );
+
+# Find all of them
+my @all = $search->find;
+is(scalar(@all), 3, 'Found 3 matches' );
+isa_ok( $all[0], 'Imager::Search::Match' );
+is( $all[0]->left,     6,  '->left ok'      );
+is( $all[0]->right,    18, '->right ok'     );
+is( $all[0]->top,      74, '->top ok'       );
+is( $all[0]->bottom,   86, '->bottom ok'    );
+is( $all[0]->width,    13, '->width ok'     );
+is( $all[0]->height,   13, '->height ok'    );
+is( $all[0]->center_x, 12, '->center_x ok ' );
+is( $all[0]->center_y, 80, '->center_y ok'  );
+isa_ok( $all[1], 'Imager::Search::Match' );
+isa_ok( $all[2], 'Imager::Search::Match' );

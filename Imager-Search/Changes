@@ -1,5 +1,10 @@
 Changes for Perl extension Imager-Search
 
+0.03 Sun 29 Jul 2007
+	- Adding the ->find method to return all matches
+	- Updated the test images to ensure the regex finds
+	- Multiple overlapping patterns
+
 0.02 Sun 29 Jul 2007
 	- Divide the match position by 7 to get the correct location
 	- Added proof of concept for using the @- and scalar //g with

@@ -7,7 +7,7 @@ use base 'Imager::Search';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -42,6 +42,10 @@ sub newline_transform {
 sub __newline_transform {
 	my $chars = $_[0] * 7;
 	return ".{$chars}";
+}
+
+sub bytes_per_pixel {
+	return 7;
 }
 
 1;

@@ -49,7 +49,7 @@ use Imager::Search::Match ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -159,13 +159,34 @@ sub small {
 
 =pod
 
+=head2 find
+
+The C<find> method compiles the search and target images in memory, and
+executes a single search, returning the position of the first match as a
+L<Imager::Search::Match> object.
+
+=cut
+
+sub find {
+	my $self  = shift;
+	my $big   = ${$self->_big_string};
+	my $small = ${$self->_small_string};
+	my @match = ();
+	my $bpp   = $self->bytes_per_pixel;
+	while ( scalar $big =~ /$small/gs ) {
+		my $p = $-[0];
+		push @match, Imager::Search::Match->from_position($self, $p / $bpp);
+		pos $big = $p + 1;
+	}
+	return @match;
+}
+
+=pod
+
 =head2 find_first
 
-The C<find_first> method is the only one implemented in this first release
-of L<Imager::Search>.
-
-It compiles the search and target images in memory, and executes a single
-search, returning the position of the first match as a
+The C<find_first> compiles the search and target images in memory, and
+executes a single search, returning the position of the first match as a
 L<Imager::Search::Match> object.
 
 =cut
@@ -174,17 +195,12 @@ sub find_first {
 	my $self  = shift;
 	my $big   = ${$self->_big_string};
 	my $small = ${$self->_small_string};
-	my @match = ();
+	my $bpp   = $self->bytes_per_pixel;
 	while ( scalar $big =~ /$small/gs ) {
 		my $p = $-[0];
-		push @match, $p / 7;
-		pos $big = $p + 1;
+		return Imager::Search::Match->from_position($self, $p / $bpp);
 	}
-	if ( @match ) {
-		Imager::Search::Match->from_position($self, $match[0]);
-	} else {
-		return undef;
-	}
+	return undef;
 }
 
 
