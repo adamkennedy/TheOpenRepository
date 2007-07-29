@@ -49,7 +49,7 @@ use Imager::Search::Match ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -172,12 +172,19 @@ L<Imager::Search::Match> object.
 
 sub find_first {
 	my $self  = shift;
-	my $big   = $self->_big_string;
-	my $small = $self->_small_string;
-	$$big =~ /^(.+?)$$small/s or return undef;
-	return Imager::Search::Match->from_position(
-		$self, length($1),
-		);
+	my $big   = ${$self->_big_string};
+	my $small = ${$self->_small_string};
+	my @match = ();
+	while ( scalar $big =~ /$small/gs ) {
+		my $p = $-[0];
+		push @match, $p / 7;
+		pos $big = $p + 1;
+	}
+	if ( @match ) {
+		Imager::Search::Match->from_position($self, $match[0]);
+	} else {
+		return undef;
+	}
 }
 
 

@@ -7,7 +7,7 @@ use Params::Util qw{ _INSTANCE _POSINT };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use Object::Tiny qw{

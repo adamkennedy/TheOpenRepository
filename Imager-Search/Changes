@@ -1,4 +1,9 @@
 Changes for Perl extension Imager-Search
 
+0.02 Sun 29 Jul 2007
+	- Divide the match position by 7 to get the correct location
+	- Added proof of concept for using the @- and scalar //g with
+	  pos manipulation to allow multiple, overlapping, matches.
+
 0.01 Sun 29 Jul 2007
 	- Creating initial version
