@@ -1,5 +1,9 @@
 Changes for Perl extension Imager-Search
 
+0.04 Sun 29 Jul 2007
+	- Changed the calling semantics of the driver API to prevent several
+	  large needless memory copies.
+
 0.03 Sun 29 Jul 2007
 	- Adding the ->find method to return all matches
 	- Updated the test images to ensure the regex finds
