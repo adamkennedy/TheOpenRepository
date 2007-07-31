@@ -169,8 +169,12 @@ sub run {
 		return $self->action_forgot;
 	} elsif ( $self->action eq 'c' ) {
 		return $self->view_change;
+	} elsif ( $self->action eq 'p' ) {
+		return $self->action_change;
 	} elsif ( $self->action eq 'n' ) {
 		return $self->view_new;
+	} elsif ( $self->action eq 'a' ) {
+		return $self->action_new;
 	} elsif ( $self->action eq 'l' ) {
 		return $self->view_list;
 	} else {
@@ -287,6 +291,56 @@ sub view_change {
 		$self->html_change,
 	);
 	return 1;
+}
+
+sub action_change {
+	my $self  = shift;
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
+		return $self->error("No account for that email address");
+	}
+
+	# Get and check the password
+	my $password = _STRING($self->cgi->param('p'));
+	unless ( $password ) {
+		return $self->error("You did not enter your current password");
+	}
+	unless ( $user->check_password($password) ) {
+		sleep 3;
+		return $self->error("Incorrect current password");
+	}
+
+	# Get and check the new password
+	my $new = _STRING($self->cgi->param('n'));
+	unless ( $new ) {
+		return $self->error("Did not provide a new password");
+	}
+	my $confirm = _STRING($self->cgi->param('c'));
+	unless ( $confirm ) {
+		return $self->error("Did not provide a confirmation password");
+	}
+	unless ( $new eq $confirm ) {
+		return $self->error("New password and confirmation do not match");
+	}
+
+	# Set the new password
+	$user->set('password' => $new);
+
+	return $self->view_message("Your password has been changed");
+}
+
+sub view_new {
+	die "CODE INCOMPLETE";
+}
+
+sub action_new {
+	die "CODE INCOMPLETE";
 }
 
 sub view_message {
@@ -441,7 +495,7 @@ sub html_change { <<'END_HTML' }
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td>
 <p>What is your email address?</p>
-<p>What is your current password?</p> 
+<p>What is your current password?</p>
 <p>Type in the new password you want&nbsp;&nbsp;</p>
 <p>Type it again to prevent mistakes</p>
 </td><td>
@@ -451,7 +505,7 @@ sub html_change { <<'END_HTML' }
 <p><input type="text" name"c" size="30"></p>
 </td></tr>
 </table>
-<p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password now"></p>
+<p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password"></p>
 </form>
 <hr>
 [% HOME %]
