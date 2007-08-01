@@ -1,15 +1,15 @@
-package Imager::Search;
+package Imager::Match;
 
 =pod
 
 =head1 NAME
 
-Imager::Search - Locate an image inside another image
+Imager::Match - Locate an image inside another image
 
 =head1 SYNOPSIS
 
   # Create the search
-  my $search = Imager::Search::RRBBGG->new(
+  my $search = Imager::Match::RRBBGG->new(
       big    => $large_imager_object,
       small  => $small_imager_object,
   );
@@ -42,10 +42,10 @@ scenarios, or desktop gui automation, and so on.
 
 use 5.005;
 use strict;
-use Carp                  ();
-use Params::Util          qw{ _INSTANCE _STRING _CODELIKE };
-use Imager                ();
-use Imager::Search::Match ();
+use Carp                     ();
+use Params::Util             qw{ _INSTANCE _STRING _CODELIKE };
+use Imager                   ();
+use Imager::Match::Occurance ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -63,7 +63,7 @@ BEGIN {
 
 =head2 new
 
-  my $search = Imager::Search::RRBBGG->new(
+  my $search = Imager::Match::RRBBGG->new(
       big    => $large_imager_object,
       small  => $small_imager_object,
   );
@@ -76,7 +76,7 @@ and C<small>. Both should be L<Imager> objects.
 The C<small> param is the image you are searching B<for>, and the C<big>
 param is the image you will be searching B<in>.
 
-Returns a new B<Imager::Search> object, or croaks on error.
+Returns a new B<Imager::Match> object, or croaks on error.
 
 =cut
 
@@ -160,7 +160,7 @@ sub small {
 
 The C<find> method compiles the search and target images in memory, and
 executes a single search, returning the position of the first match as a
-L<Imager::Search::Match> object.
+L<Imager::Match::Occurance> object.
 
 =cut
 
@@ -180,7 +180,7 @@ sub find {
 	my $bpp   = $self->bytes_per_pixel;
 	while ( scalar $big =~ /$small/gs ) {
 		my $p = $-[0];
-		push @match, Imager::Search::Match->from_position($self, $p / $bpp);
+		push @match, Imager::Match::Occurance->from_position($self, $p / $bpp);
 		pos $big = $p + 1;
 	}
 	return @match;
@@ -192,7 +192,7 @@ sub find {
 
 The C<find_first> compiles the search and target images in memory, and
 executes a single search, returning the position of the first match as a
-L<Imager::Search::Match> object.
+L<Imager::Match::Occurance> object.
 
 =cut
 
@@ -211,7 +211,7 @@ sub find_first {
 	my $bpp = $self->bytes_per_pixel;
 	while ( scalar $big =~ /$small/gs ) {
 		my $p = $-[0];
-		return Imager::Search::Match->from_position($self, $p / $bpp);
+		return Imager::Match::Occurance->from_position($self, $p / $bpp);
 	}
 	return undef;
 }

@@ -1,5 +1,8 @@
 Changes for Perl extension Imager-Search
 
+0.05 Mon 30 Jul 2007
+	- Adding a missing dependency
+
 0.04 Sun 29 Jul 2007
 	- Changed the calling semantics of the driver API to prevent several
 	  large needless memory copies.
