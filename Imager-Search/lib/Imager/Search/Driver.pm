@@ -44,7 +44,7 @@ scenarios, or desktop gui automation, and so on.
 use 5.005;
 use strict;
 use Carp         ();
-use Params::Util qw{ _STRING _CODELIKE _SCALARLIKE _INSTANCE };
+use Params::Util qw{ _STRING _CODELIKE _SCALAR _INSTANCE };
 use Imager       ();
 
 use vars qw{$VERSION};
@@ -106,7 +106,7 @@ sub new {
 sub pattern_lines {
 	my $self   = shift;
 	my $image  = shift;
-	my $height = $self->small->getheight;	
+	my $height = $image->getheight;	
 	my @lines  = ();
 	foreach my $row ( 0 .. $height - 1 ) {
 		$lines[$row] = $self->pattern_scanline($image, $row);
@@ -114,7 +114,7 @@ sub pattern_lines {
 	return \@lines;
 }
 
-sub pattern_line {
+sub pattern_scanline {
 	my ($self, $image, $row) = @_;
 
 	# Get the colour array
@@ -123,7 +123,7 @@ sub pattern_line {
 	my $func = $self->pattern_transform;
 	my $this = '';
 	my $more = 1;
-	foreach my $color ( $self->small->getscanline( y => $row ) ) {
+	foreach my $color ( $image->getscanline( y => $row ) ) {
 		$col++;
 		my $string = &$func( $color );
 		unless ( _STRING($string) ) {
@@ -145,12 +145,13 @@ sub pattern_line {
 sub image_string {
 	my $self       = shift;
 	my $scalar_ref = shift;
-	my $height     = $self->big->getheight;
+	my $image      = shift;
+	my $height     = $image->getheight;
 	my $func       = $self->big_transform;
 	foreach my $row ( 0 .. $height - 1 ) {
 		# Get the string for the row
 		my $col = 0;
-		foreach my $color ( $self->big->getscanline( y => $row ) ) {
+		foreach my $color ( $image->getscanline( y => $row ) ) {
 			my $pixel = &$func( $color );
 			unless ( _STRING($pixel) ) {
 				Carp::croak("Did not generate a search string for cell $row,$col");

@@ -32,7 +32,7 @@ applied to many different sizes of target images.
 use 5.005;
 use strict;
 use Carp         ();
-use Params::Util qw{ _POSINT _INSTANCE _DRIVER };
+use Params::Util qw{ _POSINT _ARRAY _INSTANCE _DRIVER };
 use Imager       ();
 
 use vars qw{$VERSION};
@@ -72,7 +72,7 @@ sub new {
 		}
 		$self->{height} = $self->image->getheight;
 		$self->{width}  = $self->image->getwidth;
-		$self->{lines}  = $self->driver->pattern_array;
+		$self->{lines}  = $self->driver->pattern_lines($self->image);
 	}
 	unless ( _POSINT($self->height) ) {
 		Carp::croak("Invalid or missing image height");
@@ -110,12 +110,12 @@ sub regexp {
 	# Get the newline pattern
 	my $newline_pixels   = $width = $self->width;
 	my $newline_function = $self->driver->newline_transform;
-	my $newline_regexp   = &$newline_function( $newlines_pixels );
+	my $newline_regexp   = &$newline_function( $newline_pixels );
 
 	# Merge into the final string
 	my $string = '';
 	my $lines  = $self->lines;
-	foreach my $i ( 0 .. $#lines ) {
+	foreach my $i ( 0 .. $#$lines ) {
 		$string .= $newline_regexp unless $string;
 		$string .= $lines->[$i];
 	}
