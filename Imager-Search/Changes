@@ -1,5 +1,8 @@
 Changes for Perl extension Imager-Search
 
+0.10 Wed  1 Aug 2007
+	- Redesigned the API from scratch to be more scalable
+
 0.05 Mon 30 Jul 2007
 	- Adding a missing dependency
 

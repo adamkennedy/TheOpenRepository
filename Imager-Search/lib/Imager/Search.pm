@@ -2,11 +2,16 @@ package Imager::Search;
 
 use 5.005;
 use strict;
+use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.10';
 }
+
+use Imager::Search::Pattern ();
+use Imager::Search::Driver  ();
+use Imager::Search::Match   ();
 
 
 

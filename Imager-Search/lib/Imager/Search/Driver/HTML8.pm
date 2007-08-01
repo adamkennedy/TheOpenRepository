@@ -3,15 +3,14 @@ package Imager::Search::Driver::HTML8;
 # Basic search driver implemented in terms of 8-bit
 # HTML-style strings ( #003399 )
 
+use 5.005;
 use strict;
 use base 'Imager::Search::Driver';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.10';
 }
-
-my $bytes_perl_pixel = 7;
 
 
 
@@ -21,15 +20,15 @@ my $bytes_perl_pixel = 7;
 # API Methods
 
 sub bytes_per_pixel {
-	return $bytes_perl_pixel;
+	return 7;
 }
 
-sub small_transform {
-	return \&__small_transform;
+sub pattern_transform {
+	return \&__pattern_transform;
 }
 
-sub big_transform {
-	return \&__big_transform;
+sub image_transform {
+	return \&__image_transform;
 }
 
 sub newline_transform {
@@ -43,18 +42,18 @@ sub newline_transform {
 #####################################################################
 # Transform Functions
 
-sub __small_transform {
+sub __pattern_transform {
 	my ($r, $g, $b, undef) = $_[0]->rgba;
 	return sprintf("#%02X%02X%02X", $r, $g, $b);
 }
 
-sub __big_transform {
+sub __image_transform {
 	my ($r, $g, $b, undef) = $_[0]->rgba;
 	return sprintf("#%02X%02X%02X", $r, $g, $b);
 };
 
 sub __newline_transform {
-	return '.{' . ($_[0] * $bytes_per_pixel) . '}';
+	return '.{' . ($_[0] * 7) . '}';
 }
 
 1;

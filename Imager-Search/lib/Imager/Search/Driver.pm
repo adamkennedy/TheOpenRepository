@@ -1,15 +1,16 @@
-package Imager::Match;
+package Imager::Search::Driver;
 
 =pod
 
 =head1 NAME
 
-Imager::Match - Locate an image inside another image
+Imager::Search::Driver - Locate an image inside another image
 
 =head1 SYNOPSIS
 
   # Create the search
-  my $search = Imager::Match::RRBBGG->new(
+  my $search = Imager::Search::Driver->new(
+      driver => 'HTML8',
       big    => $large_imager_object,
       small  => $small_imager_object,
   );
@@ -42,14 +43,13 @@ scenarios, or desktop gui automation, and so on.
 
 use 5.005;
 use strict;
-use Carp                          ();
-use Params::Util                  qw{ _INSTANCE _STRING _CODELIKE };
-use Imager                        ();
-use Imager::Search::Match         ();
+use Carp         ();
+use Params::Util qw{ _STRING _CODELIKE _SCALARLIKE _INSTANCE };
+use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.10';
 }
 
 
@@ -63,7 +63,7 @@ BEGIN {
 
 =head2 new
 
-  my $search = Imager::Search::Driver::HTML8;
+  my $driver = Imager::Search::Driver->new;
 
 The C<new> constructor takes a new search driver object.
 
@@ -103,30 +103,24 @@ sub new {
 #####################################################################
 # Support Methods
 
-sub _small_string {
-	my $self        = shift;
-	my $scalar_ref  = shift;
-	my $height      = $self->small->getheight;
-	my $nl_width    = $self->big->getwidth - $self->small->getwidth;
-	my $nl_function = $self->newline_transform;
-	my $nl_string   = &$nl_function( $nl_width );
+sub pattern_lines {
+	my $self   = shift;
+	my $image  = shift;
+	my $height = $self->small->getheight;	
+	my @lines  = ();
 	foreach my $row ( 0 .. $height - 1 ) {
-		$$scalar_ref .= $nl_string if $row;
-		$$scalar_ref .= $self->_small_scanline($row);
+		$lines[$row] = $self->pattern_scanline($image, $row);
 	}
-
-	# Return the scalar reference as a convenience
-	return $scalar_ref;
+	return \@lines;
 }
 
-sub _small_scanline {
-	my $self = shift;
-	my $row  = shift;
+sub pattern_line {
+	my ($self, $image, $row) = @_;
 
 	# Get the colour array
 	my $col  = -1;
 	my $line = '';
-	my $func = $self->small_transform;
+	my $func = $self->pattern_transform;
 	my $this = '';
 	my $more = 1;
 	foreach my $color ( $self->small->getscanline( y => $row ) ) {
@@ -148,7 +142,7 @@ sub _small_scanline {
 	return $line;
 }
 
-sub _big_string {
+sub image_string {
 	my $self       = shift;
 	my $scalar_ref = shift;
 	my $height     = $self->big->getheight;
@@ -193,4 +187,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-

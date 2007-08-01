@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 36;
 use File::Spec::Functions ':ALL';
 use Imager;
-use Imager::Search::RRGGBB;
+use Imager::Search;
 
 
 
@@ -44,9 +44,8 @@ is( $small->bits, 8, '->bits is 8' );
 #####################################################################
 # Test Construction
 
-my $search = Imager::Search::RRGGBB->new(
-	big   => $big,
-	small => $small,
+my $pattern = Imager::Search::Pattern->new(
+	
 );
 isa_ok( $search, 'Imager::Search::RRGGBB' );
 isa_ok( $search->big,   'Imager' );

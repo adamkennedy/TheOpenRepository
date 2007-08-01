@@ -1,12 +1,43 @@
 package Imager::Search::Pattern;
 
+=pod
+
+=head1 NAME
+
+Imager::Search::Pattern - Search object for an image
+
+=head1 SYNOPSIS
+
+  my $pattern = Imager::Search::Pattern->new(
+          driver => 'Imager::Search::Driver::HTML8',
+          image  => $Imager,
+  );
+  
+  my $regexp = $pattern->regexp;
+
+=head1 DESCRIPTION
+
+B<Imager::Search::Pattern> takes an L<Imager> object, and converts it
+into a partially-compiled regular expression.
+
+This partial regexp can then be quickly turned into the final L<Regexp>
+once the widget of the target image is known, as well as being able to
+be cached.
+
+This allows a single B<Imager::Search::Pattern> object to be quickly
+applied to many different sizes of target images.
+
+=cut
+
+use 5.005;
 use strict;
-use Params::Util qw{ _INSTANCE };
+use Carp         ();
+use Params::Util qw{ _POSINT _INSTANCE _DRIVER };
 use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.10';
 }
 
 use Object::Tiny qw{
@@ -29,6 +60,9 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Check params
+	if ( _DRIVER($self->driver, 'Imager::Search::Driver') ) {
+		$self->{driver} = $self->driver->new;
+	}
 	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 		Carp::croak("Did not provide a valid driver");
 	}
@@ -38,16 +72,78 @@ sub new {
 		}
 		$self->{height} = $self->image->getheight;
 		$self->{width}  = $self->image->getwidth;
-		unless ( _POSINT($self->height) ) {
-			Carp::croak("Invalid or missing image height");
-		}
-		unless ( _POSINT($self->width) ) {
-			Carp::croak("Invalid or missing image width");
-		}
-		$self->{lines} = $self->driver->
+		$self->{lines}  = $self->driver->pattern_array;
+	}
+	unless ( _POSINT($self->height) ) {
+		Carp::croak("Invalid or missing image height");
+	}
+	unless ( _POSINT($self->width) ) {
+		Carp::croak("Invalid or missing image width");
+	}
+	unless ( _ARRAY($self->lines) ) {
+		Carp::croak("Did not provide an ARRAY of line patterns");
 	}
 
 	return $self;
 }
 
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub regexp {
+	my $self = shift;
+
+	# Get the width param
+	my $width = undef;
+	if ( _INSTANCE($_[0], 'Imager') ) {
+		$width = $_[0]->getwidth;
+	} elsif ( _POSINT($_[0]) ) {
+		$width = $_[0];
+	} else {
+		Carp::croak("Did not provide a width to Imager::Search::Pattern::regexp");
+	}
+
+	# Get the newline pattern
+	my $newline_pixels   = $width = $self->width;
+	my $newline_function = $self->driver->newline_transform;
+	my $newline_regexp   = &$newline_function( $newlines_pixels );
+
+	# Merge into the final string
+	my $string = '';
+	my $lines  = $self->lines;
+	foreach my $i ( 0 .. $#lines ) {
+		$string .= $newline_regexp unless $string;
+		$string .= $lines->[$i];
+	}
+
+	# Return the Regexp object
+	return qr/$string/si;
+}
+
 1;
+
+=pod
+
+=head1 SUPPORT
+
+No support is available for this module
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

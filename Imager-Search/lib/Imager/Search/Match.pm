@@ -3,11 +3,11 @@ package Imager::Search::Match;
 use 5.005;
 use strict;
 use Carp         ();
-use Params::Util qw{ _INSTANCE _POSINT };
+use Params::Util qw{ _POSINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.10';
 }
 
 use Object::Tiny qw{
@@ -19,7 +19,8 @@ use Object::Tiny qw{
 	width
 	center_x
 	center_y
-	};
+};
+
 
 
 
