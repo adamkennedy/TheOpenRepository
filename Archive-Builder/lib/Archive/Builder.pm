@@ -25,7 +25,7 @@ use Archive::Builder::Generators ();
 # Version
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	$errstr  = '';
 }
 
@@ -85,7 +85,7 @@ sub _archive_content {
 		my $subtree = $Section->_archive_content or return undef;
 		my $path = $Section->path;
 		foreach ( keys %$subtree ) {
-			my $full = File::Spec->catfile( $path, $_ );
+			my $full = File::Spec::Unix->catfile( $path, $_ );
 			$tree{$full} = $subtree->{$_};
 		}
 	}

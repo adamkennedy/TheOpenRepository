@@ -10,7 +10,7 @@ use Archive::Builder ();
 
 use vars qw{$VERSION %_PARENT};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	%_PARENT = ();
 }
 

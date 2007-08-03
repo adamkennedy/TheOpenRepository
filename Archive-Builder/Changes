@@ -1,5 +1,8 @@
 Revision history for Perl extension Archive::Builder
 
+1.12 Fri  3 Aug 2007
+	- Fixing a small bug in archive file generation (Jeffery Candiloro)
+
 1.11 Tue  8 May 2007
 	- Adding a test to verify the file sorted works implemented
 	  in the previous version works as expected.
