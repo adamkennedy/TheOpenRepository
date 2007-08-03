@@ -27,11 +27,14 @@ be cached.
 This allows a single B<Imager::Search::Pattern> object to be quickly
 applied to many different sizes of target images.
 
+=head1 METHODS
+
 =cut
 
 use 5.005;
 use strict;
 use Carp         ();
+use IO::File     ();
 use Params::Util qw{ _POSINT _ARRAY _INSTANCE _DRIVER };
 use Imager       ();
 
@@ -43,6 +46,7 @@ BEGIN {
 use Object::Tiny qw{
 	name
 	driver
+	file
 	image
 	height
 	width
@@ -56,15 +60,34 @@ use Object::Tiny qw{
 #####################################################################
 # Constructors
 
+=pod
+
+=head2 new
+
+  $pattern = Imager::Search::Pattern->new(
+      driver => 'Imager::Search::Driver::HTML8',
+      file   => 'search/image.gif',
+  );
+
+=cut
+
 sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Check params
+	if ( _IDENTIFIER($self->driver) ) {
+		$self->{driver} = "Imager::Search::Driver::" . $self->driver;
+	}
 	if ( _DRIVER($self->driver, 'Imager::Search::Driver') ) {
 		$self->{driver} = $self->driver->new;
 	}
 	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 		Carp::croak("Did not provide a valid driver");
+	}
+	if ( defined $self->file and ! defined $self->image ) {
+		# Load the image from a file
+		$self->{image} = Imager->new;
+		$self->{image}->read( file => $self->file );
 	}
 	if ( defined $self->image ) {
 		unless( _INSTANCE($self->image, 'Imager') ) {
@@ -85,6 +108,43 @@ sub new {
 	}
 
 	return $self;
+}
+
+sub write {
+	my $self = shift;
+	my $io   = undef;
+	if ( _INSTANCE($_[0], 'IO::Handle') ) {
+		$io = $_[0];
+	} elsif ( _STRING($_[0]) ) {
+		$io = IO::File->new( $_[0], 'w' );
+		unless ( _INSTANCE($io, 'IO::File') ) {
+			Carp::croak("Failed to open $_[0] to write");
+		}
+	} else {
+		Carp::croak("Did not provide a file or handle to write");
+	}
+
+	# The first line is the class of this object
+	$io->print( "class: " . ref($self) . "\n" );
+
+	# Next, a series of key: value pairs of the main properties
+	foreach my $key ( qw{ driver width height } ) {
+		$io->print( $key . ': ' . $self->$key() . "\n" );
+	}
+
+	# Ending with a blank newline to indicate the end of the headers
+	$io->print("\n");
+
+	# And now we print all of the pattern lines
+	my $lines = $self->lines;
+	foreach ( 0 .. $#$lines ) {
+		$io->print( $lines->[0] . "\n" );
+	}
+
+	# Return without closing.
+	# Any file we opened will auto-close,
+	# and anyone passing a handle should close it themselves.
+	return 1;
 }
 
 
