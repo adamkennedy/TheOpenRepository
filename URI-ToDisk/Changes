@@ -1,5 +1,8 @@
 Revision history for Perl extension URI-ToDisk
 
+1.11 Sat  4 Aug 2007
+	- Upgrading Module::Install
+
 1.10 Fri  9 Mar 2007
 	- No functional changes
 	- Removing the use of auto_install
