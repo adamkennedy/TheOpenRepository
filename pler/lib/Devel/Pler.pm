@@ -16,7 +16,8 @@ BEGIN {
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{
                 in_distroot  in_subdir
-                has_makefile has_blib  has_lib
+                has_makefile needs_makefile     old_makefile
+		has_blib     has_lib		
                 MakefilePL   Makefile  perl     make     
                 blib         lib
                 verbose      message
@@ -32,7 +33,7 @@ use constant EXEC_OK => ($^O ne 'MSWin32' and $^O ne 'cygwin');
 
 
 #####################################################################
-# Convenience Functions
+# Convenience Logic
 
 sub in_distroot () {
 	!! -f MakefilePL();
@@ -46,6 +47,10 @@ sub has_makefile () {
 	!! -f Makefile();
 }
 
+sub has_makefilepl () {
+	!! -f MakefilePL();
+}
+
 sub has_blib () {
 	!! -d blib();
 }
@@ -53,6 +58,25 @@ sub has_blib () {
 sub has_lib () {
 	!! -d lib();
 }
+
+sub needs_makefile () {
+	has_makefilepl() and ! has_makefile();
+}
+
+sub old_makefile () {
+	has_makefile()
+	and
+	has_makefilepl()
+	and
+	stat(Makefile()))[4]) < stat(Makefile()))[4];
+}
+
+
+
+
+
+#####################################################################
+# Resource Locations
 
 sub MakefilePL () {
 	catfile( curdir(), 'Makefile.PL' );

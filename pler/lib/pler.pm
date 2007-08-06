@@ -38,6 +38,13 @@ sub main {
                 error "Failed to locate the distribution root";
         }
 
+	# Build, or rebuild, the Makefile if needed.
+	# Currently we do not support Build.PL or remembering previous Makefile.PL params
+	if ( needs_makefile or old_makefile ) {
+		run( join ' ', perl, MakefilePL );
+	}
+
+	# Locate the test script to run
         unless ( $script =~ /\.t$/ ) {
                 # Get the list of possible tests
                 my @possible = FFR->file->name('*.t')->in( 't' );
