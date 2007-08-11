@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use File::Spec::Functions ':ALL';
 use t::lib::SQLite::Temp;
 
@@ -23,7 +23,7 @@ ok( -f $csv_file, 'Test CSV file exists' );
 # Testing SQLite::Temp
 
 SCOPE: {
-	my $db = new_db();
+	my $db = empty_db();
 	isa_ok( $db, 'DBI::db' );
 }
 
@@ -31,15 +31,12 @@ SCOPE: {
 	my $db = create_db( $sql_file, $csv_file );
 	isa_ok( $db, 'DBI::db' );
 
-	my $data = $db->selectall_hashref( 'select * from one order by foo' );
-	is_deeply( $data, [ {
-		foo => 1,
-		bar => 'Hello, World!',
-	}, {
-		foo => 2,
-		bar => 'secondrow',
-	} ], 'Data in table one matches expected' );
+	my $data = $db->selectall_arrayref( 'select * from one order by foo' );
+	is_deeply( $data, [
+		[ 1, 'Hello, World!' ],
+		[ 2, 'secondrow'     ],
+	], 'Data in table one matches expected' );
 
-	my $rv = $db->selectall_arrayref( 'select count(*) from two' );
-	is_deeply( $rb, [ [ 0 ] ], 'Nothing in table two' );
+	my $rv = $db->selectrow_arrayref( 'select count(*) from two' );
+	is_deeply( $rv, [ 0 ], 'Nothing in table two' );
 }

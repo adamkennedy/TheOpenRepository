@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
+use_ok( 't::lib::SQLite::Temp' );
 use_ok( 'Algorithm::Dependency::Source::DBI' );

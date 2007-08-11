@@ -21,7 +21,8 @@ The author is lame
 use 5.005;
 use strict;
 use base 'Algorithm::Dependency::Source';
-use Params::Util qw{ _INSTANCE _STRING };
+use Params::Util qw{  _STRING _ARRAY _INSTANCE };
+use Algorithm::Dependency::Item ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -41,14 +42,22 @@ sub new {
 	# Create the object
 	my $self = bless { @_ }, $class;
 
+	# Apply defaults
+	if ( _STRING($self->{select_ids}) ) {
+		$self->{select_ids} = [ $self->{select_ids} ];
+	}
+	if ( _STRING($self->{select_depends}) ) {
+		$self->{select_depends} = [ $self->{select_depends} ];
+	}
+
 	# Check params
-	unless ( _INSTANCE($self->dbh, 'DBI::dbh') ) {
+	unless ( _INSTANCE($self->dbh, 'DBI::db') ) {
 		Carp::croak("The dbh param is not a DBI database handle");
 	}
-	unless ( $self->select_ids ) {
-		Carp::croak("Did not provide the select_ids query");
+	unless ( _ARRAY($self->select_ids) and _STRING($self->select_ids->[0]) ) {
+		Carp::croak("Missing or invalid select_ids param");
 	}
-	unless ( $self->select_depends ) {
+	unless ( _ARRAY($self->select_depends) and _STRING($self->select_depends->[0]) ) {
 		Carp::croak("Did not provide the select_depends query");
 	}
 
@@ -65,6 +74,44 @@ sub select_ids {
 
 sub select_depends {
 	$_[0]->{select_depends};
+}
+
+
+
+
+
+#####################################################################
+# Main Functionality
+
+sub _load_item_list {
+	my $self = shift;
+
+	# Get the list of ids
+	my $ids  = $self->dbh->selectcol_arrayref(
+		$self->select_ids->[0],
+		{}, # No options
+		@{$self->select_ids}[1..-1],
+		);
+	my %hash = map { $_ => [ ] } @$ids;
+
+	# Get the list of links
+	my $depends = $self->dbh->selectall_arrayref(
+		$self->select_depends->[0],
+		{}, # No options
+		@{$self->select_depends}[1..-1],
+		);
+	foreach my $depend ( @$depends ) {
+		next unless $hash{$depend->[0]};
+		push @{$hash{$depend->[0]}}, $depend->[1];
+	}
+
+	# Now convert to items
+	my @items = map {
+		Algorithm::Dependency::Item->new( $_, @{$hash{$_}} )
+		or return undef;
+		} keys %hash;
+
+	\@items;
 }
 
 1;

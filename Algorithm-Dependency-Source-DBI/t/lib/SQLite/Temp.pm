@@ -13,10 +13,10 @@ BEGIN {
 	$VERSION = '0.01';
 	require Exporter;
 	@ISA    = 'Exporter';
-	@EXPORT = qw{ new_db test_db };
+	@EXPORT = qw{ empty_db create_db };
 }
 
-sub new_db {
+sub empty_db {
 	# Get a temp file name
 	my $dir  = File::Temp::tempdir( CLEANUP => 1 );
 	my $file = File::Spec->catfile( $dir, 'sqlite.db' );
@@ -26,10 +26,10 @@ sub new_db {
 }
 
 sub create_db {
-	my $dbh = new_db();
+	my $dbh = empty_db();
 
 	# For each value provided fill the database
-	foreach my $file ( @files ) {
+	foreach my $file ( @_ ) {
 		if ( $file =~ /\.sql$/ ) {
 			fill_sql( $dbh, $file );
 		} elsif ( $file =~ /\.csv$/ ) {
@@ -42,7 +42,7 @@ sub create_db {
 	return $dbh;
 }
 
-sub fill_db {
+sub fill_sql {
 	my $dbh  = shift;
 	my $file = shift;
 	my @sql  = ();
@@ -75,11 +75,11 @@ sub fill_csv {
 	$table =~ s/\.csv$// or die "Failed to trim table name";
 
 	# Process the inserts
-	while ( my $row = $parser->next ) {
+	while ( my $row = $parser->fetch ) {
 		my $sql = "INSERT INTO $table ( "
-			. join( ' ',  keys %$row )
+			. join( ', ',  keys %$row )
 			. " ) values ( "
-			. join( ' ', map { '?' } values %$row )
+			. join( ', ', map { '?' } values %$row )
 			. " )";
 		my $sth = $dbh->prepare( $sql ) or die "prepare_cached failed";
 		my $rv  = $sth->execute( values %$row ) or die "execute failed";
