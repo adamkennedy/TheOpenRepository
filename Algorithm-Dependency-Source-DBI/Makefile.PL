@@ -1,7 +1,7 @@
 use strict;
 use inc::Module::Install;
 
-name           'Algorithm-Depedendency-Source-DBI';
+name           'Algorithm-Dependendency-Source-DBI';
 all_from       'lib/Algorithm/Dependency/Source/DBI.pm';
 requires       'DBI'                   => 0;
 requires       'Params::Util'          => '0.23';
