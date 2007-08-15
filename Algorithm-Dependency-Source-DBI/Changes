@@ -1,4 +1,8 @@
 Change for Perl extension Algorithm-Dependency-Source-DBI
 
+0.02 Tue 16 Aug 2007
+	- Removed boilerplate POD and added a real description
+	  (I am no longer an idiot)
+
 0.01 Tue  7 Aug 2007
 	- Created the initial version

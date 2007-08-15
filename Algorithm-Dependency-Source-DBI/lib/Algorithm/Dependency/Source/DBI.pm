@@ -8,11 +8,47 @@ Algorithm::Dependency::Source::DBI - Database source for Algorithm::Dependency
 
 =head1 SYNOPSIS
 
-  The author is an idiot
+  use DBI;
+  use Algorithm::Dependency;
+  use Algorithm::Dependency::Source::DBI;
+  
+  # Load the data from a database
+  my $data_source = Algorithm::Dependency::Source::DBI->new(
+      dbh            => DBI->connect('dbi:SQLite:sqlite.db'),
+      select_ids     => 'select name from stuff',
+      select_depends => 'select from, to from m2m_deps',
+  );
+  
+  # Create the dependency object, and indicate the items that are already
+  # selected/installed/etc in the database
+  my $dep = Algorithm::Dependency->new(
+      source   => $data_source,
+      selected => [ 'This', 'That' ]
+      ) or die 'Failed to set up dependency algorithm';
+  
+  # For the item 'Foo', find out the other things we also have to select.
+  # This WON'T include the item we selected, 'Foo'.
+  my $also = $dep->depends( 'Foo' );
+  print $also
+  	? "By selecting 'Foo', you are also selecting the following items: "
+  		. join( ', ', @$also )
+  	: "Nothing else to select for 'Foo'";
+  
+  # Find out the order we need to act on the items in.
+  # This WILL include the item we selected, 'Foo'.
+  my $schedule = $dep->schedule( 'Foo' );
 
 =head1 DESCRIPTION
 
-The author is lame
+The L<Algorithm::Dependency> module has shown itself to be quite reliable
+over a long period of time, as well as relatively easy to setup and use.
+
+However, recently there has been an increasing use of things like
+L<DBD::SQLite> to store and distribute structured data.
+
+L<Algorithm::Dependency::Source::DBI> extends L<Algorithm::Dependency>
+by providing a simple way to create dependency objects that pull their
+data from a database directly.
 
 =head1 METHODS
 
@@ -26,7 +62,7 @@ use Algorithm::Dependency::Item ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -35,6 +71,46 @@ BEGIN {
 
 #####################################################################
 # Constructor and Accessors
+
+=pod
+
+=head2 new
+
+  my $simple = Algorithm::Dependency::Source::DBI->new(
+      dbh            => $dbi_db_handle,
+      select_ids     => 'select name from stuff',
+      select_depends => 'select from, to from m2m_deps',
+  );
+  
+  my $complex = Algorithm::Dependency::Source::DBI->new(
+      dbh            => $dbi_db_handle,
+      select_ids     => [ 'select name from stuff where foo = ?',         'bar' ],
+      select_depends => [ 'select from, to from m2m_deps where from = ?', 'bar' ],
+  );
+
+The C<new> constructor takes three named named params.
+
+The C<dbh> param should be a standard L<DBI> database connection.
+
+The C<select_ids> param is either a complete SQL string, or a reference to
+an C<ARRAY> containing a SQL string with placeholders and matching
+variables.
+
+When executed on the database, it should return a single column containing
+the complete set of all item identifiers.
+
+The C<select_depends> param is either a complete SQL string, or a reference
+to an C<ARRAY> containing a SQL string with placeholders and matching
+variables.
+
+When executed on the database, it should return two columns containing
+the complete set of all dependencies, where identifiers in the first-column
+depends on identifiers in the second-column.
+
+Returns a new L<Algorithm::Dependency::Source::DBI> object, or dies on
+error.
+
+=cut
 
 sub new {
 	my $class = shift;
@@ -64,13 +140,41 @@ sub new {
 	return $self;
 }
 
+=pod
+
+=head2 dbh
+
+The C<dbh> accessor returns the database handle provided to the constructor.
+
+=cut
+
 sub dbh {
 	$_[0]->{dbh};
 }
 
+=pod
+
+=head2 select_ids
+
+The C<select_ids> accessor returns the SQL statement provided to the
+constructor. If a raw string was provided, it will be returned as a
+reference to an C<ARRAY> containing the SQL string and no params.
+
+=cut
+
 sub select_ids {
 	$_[0]->{select_ids};
 }
+
+=pod
+
+=head2 select_depends
+
+The C<select_depends> accessor returns the SQL statement provided to
+the constructor. If a raw string was provided, it will be returned as
+a reference to an C<ARRAY> containing the SQL string and no params.
+
+=cut
 
 sub select_depends {
 	$_[0]->{select_depends};
