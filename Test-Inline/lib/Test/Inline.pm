@@ -152,7 +152,7 @@ use base 'Algorithm::Dependency::Source';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.205';
+	$VERSION = '2.206';
 }
 
 

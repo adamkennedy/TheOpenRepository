@@ -16,6 +16,10 @@ use File::Remove          'remove';
 use Test::More tests => 23;
 use Test::Inline ();
 
+# Are we the root user
+use constant ROOT => ! $<;
+
+
 
 
 
@@ -51,16 +55,28 @@ my $out4 = catfile( 't', 'test_four.t'  );
 is( $Inline->save, 3, '->save returns 3 as expected' );
 ok(   -f $out1,     'Found test_one.t'    );
 ok(   -r $out1,     'Found test_one.t'    );
-ok( ! -w $out1,     'Found test_one.t'    );
+SKIP: {
+	skip("Skipping readonly test for root", 1) if ROOT;
+	ok( ! -w $out1,     'Found test_one.t'    );
+}
 ok(   -f $out3,     'Found test_three.t'  );
 ok(   -r $out3,     'Found test_three.t'  );
-ok( ! -w $out3,     'Found test_three.t'  );
+SKIP: {
+	skip("Skipping readonly test for root", 1) if ROOT;
+	ok( ! -w $out3,     'Found test_three.t'  );
+}
 ok(   -f $out4,     'Found test_four.t'   );
 ok(   -r $out4,     'Found test_four.t'   );
-ok( ! -w $out4,     'Found test_four.t'   );
+SKIP: {
+	skip("Skipping readonly test for root", 1) if ROOT;
+	ok( ! -w $out4,     'Found test_four.t'   );
+}
 ok(   -f $manifest, 'Found manifest file' );
 ok(   -r $manifest, 'Found manifest file' );
-ok( ! -w $manifest, 'Found manifest file' );
+SKIP: {
+	skip("Skipping readonly test for root", 1) if ROOT;
+	ok( ! -w $manifest, 'Found manifest file' );
+}
 
 # Run the install again, overwriting the readonly files
 is( $Inline->save, 3, '->save returns 3 as expected on overwrite' );

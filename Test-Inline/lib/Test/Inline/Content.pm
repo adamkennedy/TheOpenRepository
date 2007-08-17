@@ -23,7 +23,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.205';
+	$VERSION = '2.206';
 }
 
 =pod
@@ -67,7 +67,7 @@ sub process {
 	my $content = <<"END_PERL";
 #!/usr/bin/perl
 
-use script;
+use strict;
 use Test::More tests => 1;
 
 fail('Generation of inline test script for $class failed' );
