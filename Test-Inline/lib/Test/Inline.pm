@@ -4,15 +4,13 @@ package Test::Inline;
 
 =head1 NAME
 
-Test::Inline - Lets you put tests in your modules, next to tested code
+Test::Inline - Embed your tests in your code, next to what is being tested
 
 =head1 DESCRIPTION
 
 Embedding tests allows tests to be placed near the code being tested.
 
 This is a nice supplement to the traditional .t files.
-
-It's like XUnit, only better and Perl-style.
 
 =head2 How does it work?
 
@@ -152,7 +150,7 @@ use base 'Algorithm::Dependency::Source';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.206';
+	$VERSION = '2.207';
 }
 
 
@@ -170,7 +168,7 @@ BEGIN {
           verbose  => 1,
           readonly => 1,
           output   => 'auto',
-          manifest => 'auto.manifest',
+          manifest => 'auto/manifest',
           );
 
 The C<new> constructor creates a new test generation framework. Once the
@@ -548,6 +546,9 @@ sub filenames {
 
 	# Get the build schedule
 	$self->_verbose("Checking dependencies\n");
+	unless ( $Algorithm->source->items ) {
+		return 0;
+	}
 	my $schedule = $Algorithm->schedule_all or return undef;
 
 	# Merge the test position counter with the class base names

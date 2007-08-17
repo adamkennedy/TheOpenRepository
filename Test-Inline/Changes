@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Inline
 
+2.207 Fri 17 Aug 2007
+	- The filenames method not correctly returns 0 when there are no file names.
+
 2.206 Fri 17 Aug 2007
 	- Updating Params::Util dep to 0.21 to avoid a problem on ActivePerl
 	- Updating List::Util to 1.19 to avoid leaks on some platforms
