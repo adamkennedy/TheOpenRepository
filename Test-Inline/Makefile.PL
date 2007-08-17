@@ -18,8 +18,6 @@ requires       'File::Flat'            => '1.00';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::Script'          => '1.02';
 build_requires 'Test::ClassAPI'        => '1.02';
-include        'Test::ClassAPI';
-include        'Class::Inspector';
 install_script 'script/inline2test';
 
 # Because some programs incorrectly do things like...

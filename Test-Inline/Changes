@@ -3,6 +3,7 @@ Revision history for Perl extension Test::Inline
 2.206 Fri 17 Aug 2007
 	- Updating Params::Util dep to 0.21 to avoid a problem on ActivePerl
 	- Updating List::Util to 1.19 to avoid leaks on some platforms
+	- No longer include Test::ClassAPI
 	- Skip the false-negative failing readonly tests when testing as root
 	- Changed some non-working code in a heredoc that should never be
 	  run that was none-the-less breaking the RedHat package generator
