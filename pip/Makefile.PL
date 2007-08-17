@@ -5,7 +5,9 @@ name           'pip';
 all_from       'lib/pip.pm';
 requires       'Carp'           => 0;
 requires       'File::Basename' => 0;
-requires       'File::Spec'     => '0.80';
+requires       'File::Spec'     => ($^O eq 'MSWin32')
+	? '3.23' # On Windows we need the rel2abs volume improvements
+	: '0.80';
 requires       'File::Which'    => '0.05';
 requires       'File::Temp'     => '0.15';
 requires       'File::pushd'    => '0.32';

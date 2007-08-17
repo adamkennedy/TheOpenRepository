@@ -11,7 +11,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -33,10 +33,46 @@ sub main {
 	}
 
 	# If the first argument is a file, install it
+	if ( $ARGV[0] =~ /^http\:\/\// ) {
+		return fetch_any($ARGV[0]);
+	}
 	if ( -f $ARGV[0] ) {
-		return install_any(@ARGV);
+		return install_any($ARGV[0]);
 	}
 
+	error("Unknown or unsupported command '$ARGV[0]'");
+}
+
+sub fetch_any {
+	my $uri = $_[0];
+
+	# Handle tarballs via a custom Module::Plan::Lite object
+	if ( $uri =~ /\.tar\.gz/ ) {
+		require Module::Plan::Lite;
+		my $plan = Module::Plan::Lite->new(
+			p5i   => 'default.p5i',
+			lines => [ '', $uri ],
+		);
+		$plan->run;
+		return 1;
+	}
+
+	# P5I files can have a plan created for the remote URI
+	if ( $uri =~ /\.p5i$/ ) {
+		require Module::Plan::Lite;
+		my $plan = Module::Plan::Lite->new(
+			p5i => $uri,
+		);
+		$plan->run;
+		return 1;
+	}
+
+	# We don't yet support remote p5z files
+	if ( $uri =~ /\.p5z$/ ) {
+		error("Remote p5z installation is not yet supported");
+	}
+
+	error("Unknown or unsupported uri '$uri'");
 }
 
 sub install_any {
@@ -110,11 +146,11 @@ sub read_p5i {
 }
 
 sub read_tarball {
-	require Module::Plan::Lite;
 	my $targz = File::Spec->rel2abs(shift);
 	unless ( -f $targz ) {
 		error("Filed does no exist: $targz");
 	}
+	require Module::Plan::Lite;
 	Module::Plan::Lite->new(
 		p5i   => 'default.p5i',
 		lines => [ '', URI::file->new($targz)->as_string ],

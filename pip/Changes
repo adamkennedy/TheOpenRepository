@@ -1,5 +1,10 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.12 Fri 17 Aug 2007
+	- Fixing support for pip http://server/path/distribution.tar.gz
+	- Added an @INC hack to allow the use with CPAN.pm older than 1.88
+	- Upgrade File::Spec dependency on Win32 to ensure we some rel2abs fixes
+
 0.11 Mon 16 Jul 2007
 	- Apply rel2abs more often to hopefully allow installation of
 	  tarballs in parent directories

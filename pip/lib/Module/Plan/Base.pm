@@ -33,11 +33,26 @@ use URI            ();
 use URI::file      ();
 use LWP::Simple    ();
 use CPAN::Inject   ();
+BEGIN {
+	# Versions of CPAN older than 1.88 strip off '.' from @INC,
+	# breaking stuff. At 1.88 CPAN changed to converting them
+	# to absolute paths via rel2abs instead.
+	# This is an exact copy of the code that does this, which
+	# will allow Module::Plan::Base to work with versions of CPAN.pm
+	# older than 1.88 without being impacted by the bug.
+	# This is mainly good, because forcing CPAN.pm to be upgraded
+	# has problems of it's own, and so by using this hack we can
+	# install correctly with the version of CPAN.pm bundled with
+	# older versions of Perl.
+	for my $inc (@INC) {
+		$inc = File::Spec->rel2abs($inc) unless ref $inc;
+	}
+}
 use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -69,7 +84,7 @@ sub new {
 	unless ( $self->no_inject ) {
 		$self->{inject} ||= CPAN::Inject->from_cpan_config;
 		unless ( _INSTANCE($self->{inject}, 'CPAN::Inject') ) {
-			Carp::croak("Did not provide a valid 'param' CPAN::Inject object");
+			croak("Did not provide a valid 'param' CPAN::Inject object");
 		}
 	}
 
