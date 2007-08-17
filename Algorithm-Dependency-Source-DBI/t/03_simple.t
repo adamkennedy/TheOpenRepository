@@ -6,7 +6,16 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More;
+BEGIN {
+	if ( $ENV{AUTOMATED_TESTING} ) {
+		plan( tests => 10 );
+	} else {
+		plan( skip_all => 'AUTOMATED_TESTING is not enabled' );
+		exit(0);
+	}
+}
+
 use File::Spec::Functions ':ALL';
 use File::Temp  ();
 use t::lib::SQLite::Temp;
