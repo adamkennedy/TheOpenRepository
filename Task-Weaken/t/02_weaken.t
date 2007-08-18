@@ -1,20 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Ensure that this platform really does have weak references and weaken.
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 19;
+use File::Spec::Functions ':ALL';
 use Scalar::Util ();
 
 # Ensure we can import weaken and isweak

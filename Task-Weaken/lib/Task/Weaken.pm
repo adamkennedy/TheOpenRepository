@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.99';
+	$VERSION = '1.00';
 }
 
 1;
@@ -52,15 +52,10 @@ To get around that for this module, it will do a few dirty tricks.
 
 If L<Scalar::Util> is not available at all, it will issue a normal
 dependency on the module. However, if L<Scalar::Util> is relatively
-new ( it is >= 1.14 ) and the module does B<not> have weaken, the
-install will bail out altogether with a "platform does not support
-this module" error.
-
-This means that a distributor cannot just force the install, as there
-will be no F<Makefile> at all to do the installation phase.
-
-This is to some degree lying, so it is somewhat debatable if this
-strategy should continue, and may be removed later.
+new ( it is >= 1.19 ) and the module does B<not> have weaken, the
+install will bail out altogether with a long error encouraging the
+user to seek support from their vendor (this problem happens most
+often in vendor-packaged Perl versions).
 
 This distribution also contains tests to ensure that weaken is
 available using more normal methods.
@@ -68,7 +63,7 @@ available using more normal methods.
 So if your module uses C<weaken>, you can just add the following to
 your L<Module::Install>-based F<Makefile.PL> (or equivalent).
 
-  requires 'Task::Weaken';
+  requires 'Task::Weaken' => 0;
 
 =head1 AUTHOR
 
@@ -80,7 +75,7 @@ L<Task>, L<Scalar::Util>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
