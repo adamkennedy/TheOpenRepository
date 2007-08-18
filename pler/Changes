@@ -5,6 +5,8 @@ Revision history for Perl extension pler
 	- Collapse Devel::Pler into pler.pm
 	- Adding support for regenerating the Makefile from Makefile.PL
 	  (only on Win32, because the Makefile is not capable of regenerating)
+	- Set TERM=dumb if no TERM value is set
+	  (prevents a noisy error when the debugger starts up)
 
 0.19 skipped
 

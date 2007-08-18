@@ -28,6 +28,7 @@ use constant OVERWRITE_OK => !! ( $^O ne 'MSWin32' );
 
 
 
+
 #####################################################################
 # Resource Locations
 
@@ -110,7 +111,7 @@ sub old_makefile () {
 	and
 	has_makefilepl
 	and
-	(stat(Makefile))[4] < (stat(Makefile))[4];
+	(stat(Makefile))[9] < (stat(MakefilePL))[9];
 }
 
 
@@ -227,9 +228,16 @@ sub main {
                 push @flags, '-Ilib';
         }
 
+	# On some platforms (mostly Windows), we get errors because
+	# of Term::Cap issues. To avoid this, set TERM=dump if the
+	# user does not have a TERM value already.
+	# This doesn't remove all possible errors, just the most
+	# annoying and common ones.
+	$ENV{TERM} ||= 'dump';
+
         # Hand off to the perl debugger
         unless ( pler->is_verbose ) {
-                message( "# Debugging $script" );
+                message( "# Debugging $script...\n" );
         }
         my @cmd = ( perl, @flags, '-d', $script );
         handoff( @cmd );
