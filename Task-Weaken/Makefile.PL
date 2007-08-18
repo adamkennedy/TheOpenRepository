@@ -118,5 +118,46 @@ sub check_scalar_util {
 sub message1 {
 	print "\n\n\n";
 	print "    ERROR:\n\n";
-	print "    A CPAN module 
+	print "    A CPAN module critically requires a function\n";
+	print "    (Scalar::Util::weaken) that can only be provided by\n";
+	print "    upgrading your Scalar::Util module to a bew version,\n";
+	print "    which will need a C compiler in order to install.\n\n";
+	print "    Unfortunately, I can't seem to locate a C compiler on this\n";
+	print "    computer.\n\n";
+	print "    I'm going to try to continue anyway, but the most likely result\n";
+	print "    is going to be an extremely noisy series of testing errors.\n\n";
+	print "    If this happens, you will need to install a C compiler\n";
+	print "    (such as gcc) and then try to install whatever it is you are\n";
+	print "    installing again.\n\n";
+	print "    During the second attempt, I should be able to find the C\n";
+	print "    compiler and be able to build the needed function without\n";
+	print "    having to bother you again.\n\n";
+	print "    I'm going to wait for about a minute now in the hope you read\n";
+	print "    this\n\n\n";
+	sleep( 50 );
+}
+
+sub message2 {
+	print "\n\n\n";
+	print "    ERROR:\n\n";
+	print "    A CPAN module critically requires a function\n";
+	print "    (Scalar::Util::weaken) that should exist in your\n";
+	print "    Scalar::Util module but doesn't.\n\n";
+	print "    This probably happened because you are using a Perl\n";
+	print "    provided by a binary package from a vendor, and this\n";
+	print "    vendor has packaged Perl incorrectly.\n\n";
+	print "    I have checked for a couple of potential workarounds\n";
+	print "    but none of them appear to be usable in your\n";
+	print "    situation.\n\n";
+	print "    I will try a last-ditch option anyway, but the most\n";
+	print "    likely result is a number of noisily failing tests\n\n";
+	print "    If this happens, you will need to contact technical\n";
+	print "    support for your vendor and report the broken Perl,\n";
+	print "    so that they can repair it.\n\n";
+	print "    Please refer them to the documentation for the\n";
+	print "    'Task::Weaken' CPAN module, which explains the problem\n";
+	print "    and how they can fix it.\n\n";
+	print "    I'm going to wait for about a minute now so you have time\n";
+	print "    to read this message\n\n\n";
+	sleep( 50 );
 }
