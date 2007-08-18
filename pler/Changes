@@ -2,7 +2,11 @@ Revision history for Perl extension pler
 
 0.20 Thu  2 Aug 2007
 	- Moving bin/pler to the more standard script/pler
+	- Collapse Devel::Pler into pler.pm
 	- Adding support for regenerating the Makefile from Makefile.PL
+	  (only on Win32, because the Makefile is not capable of regenerating)
+
+0.19 skipped
 
 0.18 Wed 16 May 2007
         - Adding the ability to run scripts from the t directory

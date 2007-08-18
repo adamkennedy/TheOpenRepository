@@ -1,11 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
-# Compile testing for Test::Script
+# Compile testing for pler
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 3;
@@ -16,6 +16,6 @@ ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the script compile
 use_ok( 'pler' );
-script_compiles_ok( 'bin/pler' );
+script_compiles_ok( 'script/pler' );
 
 exit(0);
