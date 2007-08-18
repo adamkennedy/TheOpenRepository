@@ -15,5 +15,6 @@ SKIP: {
 		skip("AUTOMATED_TESTING is not enabled", 1);
 	}
 	use_ok( 't::lib::SQLite::Temp' );
-	use_ok( 'Algorithm::Dependency::Source::DBI' );
 }
+
+use_ok( 'Algorithm::Dependency::Source::DBI' );
