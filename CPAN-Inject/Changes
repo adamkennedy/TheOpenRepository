@@ -1,5 +1,10 @@
 Revision history for Perl extension CPAN-Inject
 
+0.09 Sat 18 Aug 2007
+	- When -d sources fails, do a more thorough check for why
+	  (prevents "does not exist" errors for some "does not own sources" cases)
+	- Bumping File::Remove dependency on Win32 to 0.37
+
 0.08 Sun  8 Jul 2007
 	- No functional changes. No need to upgrade.
 	- Correcting the use of ->add in the SYNOPSIS

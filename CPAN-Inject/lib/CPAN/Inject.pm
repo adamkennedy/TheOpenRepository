@@ -63,31 +63,29 @@ use CPAN::Checksums ();
 use vars qw{$VERSION $CHECK_OWNER};
 
 BEGIN {
-    $VERSION = '0.08';
+	$VERSION = '0.09';
 
-    # Attempt to determine whether or not we are capable
-    # of finding the owner of a directory.
-    # Unless someone set it to a hard-coded value before we
-    # started to load this module.
-    unless ( defined $CHECK_OWNER ) {
+	# Attempt to determine whether or not we are capable
+	# of finding the owner of a directory.
+	# Unless someone set it to a hard-coded value before we
+	# started to load this module.
+	unless ( defined $CHECK_OWNER ) {
+		# Take a directory we know should exist...
+		my $root = File::Spec->rootdir();
+		unless ( -d $root ) {
+			die "Cannot determine if CPAN::Inject can operate on this platform";
+		}
 
-        # Take a directory we know should exist...
-        my $root = File::Spec->rootdir();
-        unless ( -d $root ) {
-            die
-                "Cannot determine if CPAN::Inject can operate on this platform";
-        }
+		# ... find the owner for it...
+		my $owner = File::stat::stat($root)->uid;
 
-        # ... find the owner for it...
-        my $owner = File::stat::stat($root)->uid;
+		# ... and if it works, check again in the future.
+		# Unless someone set it already, in which case
+		$CHECK_OWNER = defined $owner ? 1 : '';
+	}
 
-        # ... and if it works, check again in the future.
-        # Unless someone set it already, in which case
-        $CHECK_OWNER = defined $owner ? 1 : '';
-    }
-
-    # And boolify the value, just to be a little safer
-    $CHECK_OWNER = !!$CHECK_OWNER;
+	# And boolify the value, just to be a little safer
+	$CHECK_OWNER = !! $CHECK_OWNER;
 }
 
 
@@ -133,30 +131,55 @@ Returns a C<CPAN::Inject> object, or throws an exception on error.
 =cut
 
 sub new {
-    my $class = shift;
-    my $self  = bless {@_}, $class;
+	my $class = shift;
+	my $self  = bless {@_}, $class;
 
-    # Check where we are going to write to
-    my $sources = $self->sources;
-    unless ( _STRING($sources) ) {
-        Carp::croak("Did not probide a sources param, or not a string");
-    }
-    unless ( -d $sources ) {
-        Carp::croak("The directory '$sources' does not exist");
-    }
-    unless ( $< == File::stat::stat($sources)->uid ) {
-        Carp::croak("The sources directory is not owned by the current user");
-    }
+	# Check where we are going to write to
+	my $sources = $self->sources;
+	unless ( _STRING($sources) ) {
+		Carp::croak("Did not probide a sources param, or not a string");
+	}
+	unless ( -d $sources ) {
+		# The sources directory may actually exist, but we cannot
+		# see it because we do not have execute permissions to the
+		# parent directory tree.
+		# For example, if it is at /root/.cpan/source and we do not
+		# have -x permissions to /root
+		my ($v, $d) = File::Spec->splitpath( $sources, 'nofile' );
+		my @dirs    = File::Spec->splitdir( $d );
 
-    # Check for a default author name
-    $self->{author} = 'LOCAL' unless $self->author;
-    unless ( _AUTHOR( $self->author ) ) {
-        Carp::croak( "The author name '"
-                . $self->author
-                . "' is not a valid author string" );
-    }
+		# Ignore the last directory, since that is what we -d tested
+		pop @dirs;
 
-    $self;
+		# Check for the existance and rx status of each parent
+		foreach my $i ( 0 .. $#dirs ) {
+			my $parent = File::Spec->catpath( $v,
+				File::Spec->catdir( @dirs[0..$i] ),
+				);
+			unless ( -d $parent ) {
+				Carp::croak("The directory '$sources' does not exist");
+			}
+			unless ( -r $parent and -x $parent ) {
+				# Assume that it does exist, but that we can't see it
+				Carp::croak("The sources directory is not owned by the current user");
+			}
+		}
+		Carp::croak("The directory '$sources' does not exist");
+	}
+	unless ( $< == File::stat::stat($sources)->uid ) {
+		Carp::croak("The sources directory is not owned by the current user");
+	}
+
+	# Check for a default author name
+	$self->{author} = 'LOCAL' unless $self->author;
+	unless ( _AUTHOR( $self->author ) ) {
+		Carp::croak( "The author name '"
+			. $self->author
+			. "' is not a valid author string"
+		);
+	}
+
+	$self;
 }
 
 =pod
@@ -175,34 +198,34 @@ error.
 =cut
 
 sub from_cpan_config {
-    my $class = shift;
+	my $class = shift;
 
-    # Load the CPAN module
-    require CPAN;
+	# Load the CPAN module
+	require CPAN;
 
-    # Support for different mechanisms depending on the version
-    # of CPAN that is in use.
-    if ( defined $CPAN::HandleConfig::VERSION ) {
-        CPAN::HandleConfig->load;
-    } else {
-        CPAN::Config->load;
-    }
+	# Support for different mechanisms depending on the version
+	# of CPAN that is in use.
+	if ( defined $CPAN::HandleConfig::VERSION ) {
+		CPAN::HandleConfig->load;
+	} else {
+		CPAN::Config->load;
+	}
 
-    # Get the sources directory
-    my $sources = undef;
-    if ( defined $CPAN::Config->{keep_source_where} ) {
-        $sources = $CPAN::Config->{keep_source_where};
-    } elsif ( defined $CPAN::Config->{cpan_home} ) {
-        $sources = File::Spec->catdir( $CPAN::Config->{cpan_home}, 'sources' );
-    } else {
-        Carp::croak("Failed to find sources directory in CPAN::Config");
-    }
+	# Get the sources directory
+	my $sources = undef;
+	if ( defined $CPAN::Config->{keep_source_where} ) {
+		$sources = $CPAN::Config->{keep_source_where};
+	} elsif ( defined $CPAN::Config->{cpan_home} ) {
+		$sources = File::Spec->catdir( $CPAN::Config->{cpan_home}, 'sources' );
+	} else {
+		Carp::croak("Failed to find sources directory in CPAN::Config");
+	}
 
-    # Hand off to the main constructor
-    return $class->new(
-        sources => $sources,
-        @_,
-        );
+	# Hand off to the main constructor
+	return $class->new(
+		sources => $sources,
+		@_,
+		);
 }
 
 =pod
@@ -214,7 +237,7 @@ The C<sources> accessor returns the path to the root of the directory tree.
 =cut
 
 sub sources {
-    $_[0]->{sources};
+	$_[0]->{sources};
 }
 
 =pod
@@ -228,7 +251,7 @@ C<new> constructor.
 =cut
 
 sub author {
-    $_[0]->{author};
+	$_[0]->{author};
 }
 
 
@@ -257,46 +280,45 @@ on error.
 =cut
 
 sub add {
-    my $self   = shift;
-    my %params = @_;
+	my $self   = shift;
+	my %params = @_;
 
-    # Check the file source path
-    my $from_file = $params{file};
-    unless ( $from_file and -f $from_file and -r $from_file ) {
-        Carp::croak("Did not provide a file name, or does not exist");
-    }
+	# Check the file source path
+	my $from_file = $params{file};
+	unless ( $from_file and -f $from_file and -r $from_file ) {
+		Carp::croak("Did not provide a file name, or does not exist");
+	}
 
-    # Get the file name
-    my $name = File::Basename::fileparse($from_file)
-        or die "Failed to get filename";
+	# Get the file name
+	my $name = File::Basename::fileparse($from_file)
+		or die "Failed to get filename";
 
-    # Find the location to copy it to
-    my $to_file = $self->file_path($name);
-    my $to_dir  = File::Basename::dirname($to_file);
+	# Find the location to copy it to
+	my $to_file = $self->file_path($name);
+	my $to_dir  = File::Basename::dirname($to_file);
 
-    # Make the path for the file
-    eval { File::Path::mkpath($to_dir) };
-    if ( my $e = $@ ) {
-        Carp::croak("Failed to create $to_dir: $e");
-    }
+	# Make the path for the file
+	eval { File::Path::mkpath($to_dir) };
+	if ( my $e = $@ ) {
+		Carp::croak("Failed to create $to_dir: $e");
+	}
 
-    # Copy the file to the directory, and ensure writable
-    File::Copy::copy( $from_file => $to_file )
-        or Carp::croak("Failed to copy $from_file to $to_file");
-    ## no critic (ProhibitLeadingZeros)
-    chmod( 0644, $to_file )
-        or Carp::croak("Failed to correct permissions for $to_file");
+	# Copy the file to the directory, and ensure writable
+	File::Copy::copy( $from_file => $to_file )
+		or Carp::croak("Failed to copy $from_file to $to_file");
+	chmod( 0644, $to_file )
+		or Carp::croak("Failed to correct permissions for $to_file");
 
-    # Update the checksums file, and ensure writable
-    eval { CPAN::Checksums::updatedir($to_dir); };
-    if ( my $e = $@ ) {
-        Carp::croak("Failed to update CHECKSUMS after insertion: $e");
-    }
-    chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
-        or Carp::croak("Failed to correct permissions for CHECKSUMS");
+	# Update the checksums file, and ensure writable
+	eval { CPAN::Checksums::updatedir($to_dir); };
+	if ( my $e = $@ ) {
+		Carp::croak("Failed to update CHECKSUMS after insertion: $e");
+	}
+	chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
+		or Carp::croak("Failed to correct permissions for CHECKSUMS");
 
-    # Return the install_path as a convenience
-    $self->install_path($name);
+	# Return the install_path as a convenience
+	$self->install_path($name);
 }
 
 =pod
@@ -314,27 +336,27 @@ Does not return anything useful and throws an exception on error.
 =cut
 
 sub remove {
-    my $self   = shift;
-    my %params = @_;
+	my $self   = shift;
+	my %params = @_;
 
-    # Get the file name
-    my $name = File::Basename::fileparse($params{dist})
-        or die "Failed to get filename";
+	# Get the file name
+	my $name = File::Basename::fileparse($params{dist})
+		or die "Failed to get filename";
 
-    my $file_path = $self->file_path($name);
+	my $file_path = $self->file_path($name);
 
-    # Remove the file from CPAN.
-    unlink $file_path while -e $file_path;
+	# Remove the file from CPAN.
+	unlink $file_path while -e $file_path;
 
-    # Update the checksums file
-    my $to_file = $self->file_path($name);
-    my $to_dir  = File::Basename::dirname($to_file);
-    eval { CPAN::Checksums::updatedir($to_dir); };
-    if ( my $e = $@ ) {
-        Carp::croak("Failed to update CHECKSUMS after removal: $e");
-    }
+	# Update the checksums file
+	my $to_file = $self->file_path($name);
+	my $to_dir  = File::Basename::dirname($to_file);
+	eval { CPAN::Checksums::updatedir($to_dir); };
+	if ( my $e = $@ ) {
+		Carp::croak("Failed to update CHECKSUMS after removal: $e");
+	}
 
-    return 1;
+	return 1;
 }
 
 =pod
@@ -353,12 +375,12 @@ Returns the subpath as a string.
 =cut
 
 sub author_subpath {
-    my $author = $_[0]->author;
-    File::Spec->catdir(
-        'authors', 'id',
-        substr( $author, 0, 1 ),
-        substr( $author, 0, 2 ), $author,
-    );
+	my $author = $_[0]->author;
+	File::Spec->catdir(
+		'authors', 'id',
+		substr( $author, 0, 1 ),
+		substr( $author, 0, 2 ), $author,
+	);
 }
 
 =pod
@@ -376,7 +398,7 @@ Returns the path as a string.
 =cut
 
 sub author_path {
-    File::Spec->catdir( $_[0]->sources, $_[0]->author_subpath, );
+	File::Spec->catdir( $_[0]->sources, $_[0]->author_subpath, );
 }
 
 =pod
@@ -398,7 +420,7 @@ Returns the path as a string.
 =cut
 
 sub file_path {
-    File::Spec->catfile( $_[0]->sources, $_[0]->author_subpath, $_[1], );
+	File::Spec->catfile( $_[0]->sources, $_[0]->author_subpath, $_[1], );
 }
 
 =pod
@@ -420,10 +442,10 @@ Returns the path as a string.
 =cut
 
 sub install_path {
-    my $self = shift;
-    my $file = File::Basename::fileparse(shift)
-        or Carp::croak("Failed to get filename");
-    join( '/', $self->author, $file );
+	my $self = shift;
+	my $file = File::Basename::fileparse(shift)
+		or Carp::croak("Failed to get filename");
+	join( '/', $self->author, $file );
 }
 
 
@@ -434,7 +456,7 @@ sub install_path {
 # Support Functions
 
 sub _AUTHOR {
-    ( _STRING( $_[0] ) and $_[0] =~ /^[A-Z]{3,}$/ ) ? $_[0] : undef;
+	( _STRING( $_[0] ) and $_[0] =~ /^[A-Z]{3,}$/ ) ? $_[0] : undef;
 }
 
 1;
@@ -479,7 +501,7 @@ L<CPAN::Mini::Inject>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -487,36 +509,4 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
-=for VIM
-
-???
-
-=for PERLTIDY
-
-# PBP .perltidyrc file
-
--l=78   # Max line width is 78 cols
--i=4    # Indent level is 4 cols
--ci=4   # Continuation indent is 4 cols
--st     # Output to STDOUT
--se     # Errors to STDERR
--vt=2   # Maximal vertical tightness
--cti=0  # No extra indentation for closing brackets
--pt=1   # Medium parenthesis tightness
--bt=1   # Medium brace tightness
--sbt=1  # Medium square bracket tightness
--bbt=1  # Medium block brace tightness
--nsfs   # No space before semicolons
--nolq   # Don't outdent long quoted strings
--wbb="% + - * / x != == >= <= =~ !~ < > | & >= < = **= += *= &= <<= &&= -= /= |= >>= ||= .= %= ^= x="
-        # Break before all operators
--fs
-
-=for EMACS
-
-;;; Local Variables: ***
-;;; mode:cperl ***
-;;; cperl-indent-level: 4 ***
-;;; End: ***
 =cut
-
