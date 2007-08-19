@@ -60,7 +60,7 @@ SCOPE: {
 <body>
 <h2>You don't know your password</h2>
 <form method="post" name="f" action="">
-<input type="hidden" name="a" value="r"
+<input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
 <p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>

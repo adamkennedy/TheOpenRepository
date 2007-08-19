@@ -336,16 +336,57 @@ sub action_change {
 }
 
 sub view_new {
-	die "CODE INCOMPLETE";
+	my $self = shift;
+	$self->print_template(
+		$self->html_new,
+	);
+	return 1;
 }
 
 sub action_new {
-	die "CODE INCOMPLETE";
+	my $self = shift;
+
+	# Get the new user
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	if ( $self->auth->lookup_user($email) ) {
+		return $self->error("That account already exists");
+	}
+
+	# Create the new password
+	my $password = $self->mkpasswd;
+	$self->{args}->{email}    = $email;
+	$self->{args}->{password} = $password;
+
+	# Add the user
+	my $user = Authen::Htpasswd::User->new($email, $password);
+	$self->auth->add_user($user);
+
+	# Send the new user email
+	$self->send_new($user);
+
+	# Print the "added" message
+	return $self->view_message("Added new user $email");
+}
+
+sub send_new {
+	my ($self, $user) = @_;
+	$self->send_email(
+		to      => $user->username,
+		subject => '[TinyAuth] Create new account',
+		body    => $self->template(
+			$self->email_new,
+		),
+	);
 }
 
 sub view_message {
 	my $self = shift;
-	$self->{args}->{message} = shift;
+	$self->{args}->{message} = CGI::escapeHTML(shift);
 	$self->print_template(
 		$self->html_message,
 	);
@@ -468,7 +509,7 @@ sub html_forgot { <<'END_HTML' }
 <body>
 <h2>You don't know your password</h2>
 <form method="post" name="f" action="">
-<input type="hidden" name="a" value="r"
+<input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
 <p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
@@ -492,6 +533,7 @@ sub html_change { <<'END_HTML' }
 <h2>You want to change your password</h2>
 <p>I just need to know a few things to do that</p>
 <form name="f">
+<input type="hidden" name="a" value="p">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td>
 <p>What is your email address?</p>
@@ -520,24 +562,13 @@ END_HTML
 
 
 
-sub html_new { <<'END_HTML' }
+sub html_list { <<'END_HTML' }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
 <body>
-<h2>You don't know your password :(</h2>
-<form name="f" action="">
-<input type="hidden" name="a" value="r"
-<p>I can't tell you what your current password is, but I can send you a new one.</p>
-<p>&nbsp;</p>
-<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
-</form>
-<p>&nbsp;</p>
-<hr>
-[% HOME %]
-<script language="JavaScript">
-document.f.e.focus();
-</script>
+<h2>Account List</h2>
+[% users %]
 </body>
 </html>
 END_HTML
@@ -546,13 +577,17 @@ END_HTML
 
 
 
-sub html_list { <<'END_HTML' }
+sub html_new { <<'END_HTML' }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
 <body>
-<h2>Account List</h2>
-[% users %]
+<h2>Admin - Add a new user</h2>
+<form name="f">
+<input type="hidden" name="a" value="a">
+<p>Email <input type="text" name="e" size="30"></p>
+<p><input type="submit" name="s" value="Add New User"></p>
+</form>
 </body>
 </html>
 END_HTML
@@ -600,6 +635,25 @@ Password: [% password %]
 
 Have a nice day!
 END_TEXT
+
+
+
+
+
+sub email_new { <<'END_TEXT' }
+Hi
+
+A new account has been created for you
+
+Email:    [% email %]
+Password: [% password %]
+
+Have a nice day!
+END_TEXT
+
+
+
+
 
 1;
 
