@@ -3,13 +3,13 @@
 # Test specific functions in Devel::Pler
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
 use Test::More tests => 8;
+use File::Spec::Functions ':ALL';
 use pler;
 
 # Can we find the current perl executable ok
