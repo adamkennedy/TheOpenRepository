@@ -1,5 +1,8 @@
 Change for Perl extension Algorithm-Dependency-Source-DBI
 
+0.04 Tue 21 Aug 2007
+	- Added a missing dependency on Parse::CSV under AUTOMATED_TESTING
+
 0.03 Fri 17 Aug 2007
 	- Skip tests properly, unless AUTOMATED_TESTING is enabled
 

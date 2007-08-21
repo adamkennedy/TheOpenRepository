@@ -12,6 +12,8 @@ build_requires 'File::Temp'            => 0;
 
 # Additional dependencies for automated testing
 if ( $ENV{AUTOMATED_TESTING} ) {
+	print "AUTOMATED_TESTING enabled, adding additional test dependencies\n";
+	requires 'Parse::CSV'  => '1.00';
 	requires 'DBD::SQLite' => '1.13';
 }
 
