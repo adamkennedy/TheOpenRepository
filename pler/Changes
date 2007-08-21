@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+0.22 Tue 21 Aug 2007
+	- If no Makefile.PL, intuit the dist root by looking for a "lib" and "t" dir
+
 0.21 Mon 20 Aug 2007
 	- dumb is spelled with a "b", not a "p". Oh the irony :(
 

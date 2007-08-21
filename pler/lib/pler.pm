@@ -15,7 +15,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.21';
+        $VERSION = '0.22';
 }
 
 # Does exec work on this platform
@@ -71,20 +71,16 @@ sub lib () {
 	catdir( curdir(), 'lib' );
 }
 
+sub t () {
+	catdir( curdir(), 't' );
+}
+
 
 
 
 
 #####################################################################
 # Convenience Logic
-
-sub in_distroot () {
-	!! -f MakefilePL;
-}
-
-sub in_subdir () {
-        !! -f catfile( updir(), 'Makefile.PL' );
-}
 
 sub has_makefile () {
 	!! -f Makefile;
@@ -100,6 +96,24 @@ sub has_blib () {
 
 sub has_lib () {
 	!! -d lib;
+}
+
+sub has_t () {
+	!! -d t;
+}
+
+sub in_distroot () {
+	!! (
+		has_makefilepl or (has_lib and has_t)
+	);
+}
+
+sub in_subdir () {
+        !! (
+		-f catfile( updir(), 'Makefile.PL' )
+		or
+		-d catdir( updir(), 't' )
+	);
 }
 
 sub needs_makefile () {
