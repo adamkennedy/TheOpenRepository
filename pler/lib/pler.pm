@@ -16,7 +16,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.24';
+        $VERSION = '0.25';
 }
 
 # Does exec work on this platform
@@ -190,6 +190,12 @@ sub main {
                 $script = 't';
         }
 
+	# Abuse the highly mature logic in Cwd to define an $ENV{PWD} value
+	# by chdir'ing to the current directory.
+	# This lets us get the current directory without losing symlinks.
+	Cwd::chdir(curdir());
+	my $orig = $ENV{PWD} or die "Failed to get original directory";
+
         # Can we locate the distribution root directory
         if ( in_subdir ) {
                 Cwd::chdir(updir());
@@ -205,7 +211,21 @@ sub main {
 	}
 
 	# Locate the test script to run
-        unless ( $script =~ /\.t$/ ) {
+	if ( $script =~ /\.t$/ ) {
+		# EITHER
+		# 1. They tab-completed the script relative to the original directory (most likely)
+		# OR
+		# 2. They typed the entire name of the test script
+		my $tab_completed = File::Spec->catfile( $orig, $script );
+		if ( -f $tab_completed ) {
+			if ( $orig eq $ENV{PWD} ) {
+				$script = $script; # Included for clarity
+			} else {
+				$script = File::Spec->abs2rel( $tab_completed, $ENV{PWD} );
+			}
+		}
+
+        } else {
                 # Get the list of possible tests
                 my @possible = FFR->file->name('*.t')->in( 't' );
 

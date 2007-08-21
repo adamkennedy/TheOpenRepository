@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+0.25 Tue 21 Aug 2007
+	- When inside the t directory and the user uses tab-completion to specify the
+	  filename, call the file they meant even after we chdir up to the root.
+
 0.24 Tue 21 Aug 2007
 	- I am an idiot, and didn't actually USE the Cwd::chdir in the below release
 	  (this fixes that)
