@@ -16,7 +16,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.23';
+        $VERSION = '0.24';
 }
 
 # Does exec work on this platform
@@ -192,7 +192,7 @@ sub main {
 
         # Can we locate the distribution root directory
         if ( in_subdir ) {
-                chdir updir();
+                Cwd::chdir(updir());
         }
         unless ( in_distroot ) {
                 error "Failed to locate the distribution root";

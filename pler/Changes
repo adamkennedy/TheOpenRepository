@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+0.24 Tue 21 Aug 2007
+	- I am an idiot, and didn't actually USE the Cwd::chdir in the below release
+	  (this fixes that)
+
 0.23 Tue 21 Aug 2007
 	- Use Cwd::chdir instead of the core chdir so that $ENV{PWD} is kept up to date
 	  (This prevents pler breaking code which uses $ENV{PWD})
