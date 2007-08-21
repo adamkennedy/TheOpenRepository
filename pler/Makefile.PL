@@ -3,6 +3,7 @@ use inc::Module::Install;
 
 name           'pler';
 all_from       'lib/pler.pm';
+requires       'Cwd'              => '3.00';
 requires       'File::Spec'       => '0.80';
 requires       'File::Which'      => '0.05';
 requires       'File::Find::Rule' => '0.20';

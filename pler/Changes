@@ -1,5 +1,10 @@
 Revision history for Perl extension pler
 
+0.23 Tue 21 Aug 2007
+	- Use Cwd::chdir instead of the core chdir so that $ENV{PWD} is kept up to date
+	  (This prevents pler breaking code which uses $ENV{PWD})
+	- Adding a more recent dependency on 3.00 Pathtools to make sure we have Cwd
+
 0.22 Tue 21 Aug 2007
 	- If no Makefile.PL, intuit the dist root by looking for a "lib" and "t" dir
 

@@ -6,6 +6,7 @@ use 5.005;
 use strict;
 use Config;
 use Carp                  'croak';
+use Cwd                   ();
 use File::Which           ();
 use File::Spec::Functions ':ALL';
 use File::Find::Rule      ();
@@ -15,7 +16,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.22';
+        $VERSION = '0.23';
 }
 
 # Does exec work on this platform
