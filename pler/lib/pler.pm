@@ -251,7 +251,10 @@ sub main {
         }
 
         # Rerun make if needed
-        if ( in_distroot and has_makefile ) {
+	# Do NOT run make if there is no Makefile.PL, because it likely means
+	# there is a hand-written Makefile and NOT one derived from Makefile.PL,
+	# and we have no idea what functionality we might trigger.
+        if ( in_distroot and has_makefile and has_makefilepl ) {
                 run( make );
         }
 
@@ -262,13 +265,6 @@ sub main {
         } elsif ( has_lib ) {
                 push @flags, '-Ilib';
         }
-
-	# On some platforms (mostly Windows), we get errors because
-	# of Term::Cap issues. To avoid this, set TERM=dumb if the
-	# user does not have a TERM value already.
-	# This doesn't remove all possible errors, just the most
-	# annoying and common ones.
-	$ENV{TERM} ||= 'dumb';
 
         # Hand off to the perl debugger
         unless ( pler->is_verbose ) {

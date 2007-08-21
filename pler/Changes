@@ -3,6 +3,8 @@ Revision history for Perl extension pler
 0.25 Tue 21 Aug 2007
 	- When inside the t directory and the user uses tab-completion to specify the
 	  filename, call the file they meant even after we chdir up to the root.
+	- If the root has a Makefile, but NOT a Makefile.PL, don't run it and risk
+	  causing some unknown functionality to run.
 
 0.24 Tue 21 Aug 2007
 	- I am an idiot, and didn't actually USE the Cwd::chdir in the below release
