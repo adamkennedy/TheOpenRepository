@@ -57,7 +57,7 @@ SCOPE: {
 
 <body>
 <h2>Admin - Add a new user</h2>
-<form name="f">
+<form method="post" name="f">
 <input type="hidden" name="a" value="a">
 <p>Email <input type="text" name="e" size="30"></p>
 <p><input type="submit" name="s" value="Add New User"></p>

@@ -58,7 +58,7 @@ SCOPE: {
 <body>
 <h2>You want to change your password</h2>
 <p>I just need to know a few things to do that</p>
-<form name="f">
+<form method="post" name="f">
 <input type="hidden" name="a" value="p">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td>

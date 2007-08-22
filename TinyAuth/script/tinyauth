@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 eval {
@@ -37,13 +37,13 @@ my $application = eval {
 	)
 };
 unless ( $application ) {
-	error("Failed to create TinyAuth instance");
+	error("Failed to create TinyAuth instance: $@");
 }
 
 # Run the instance
 my $rv = eval { $application->run };
 unless ( $rv ) {
-	error("Application instance failed to run");
+	error("Application instance failed to run: $@");
 }
 
 exit(0);

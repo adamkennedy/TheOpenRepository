@@ -39,7 +39,7 @@ use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use Object::Tiny qw{
@@ -77,6 +77,9 @@ sub new {
 		}
 		unless ( -r $self->htpasswd ) {
 			Carp::croak("No permission to read htpasswd file");
+		}
+		unless ( -w $self->htpasswd ) {
+			Carp::croak("No permission to write htpasswd file");
 		}
 		$self->{auth} = Authen::Htpasswd->new( $self->htpasswd );
 	}
@@ -532,7 +535,7 @@ sub html_change { <<'END_HTML' }
 <body>
 <h2>You want to change your password</h2>
 <p>I just need to know a few things to do that</p>
-<form name="f">
+<form method="post" name="f">
 <input type="hidden" name="a" value="p">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td>
@@ -583,7 +586,7 @@ sub html_new { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Admin - Add a new user</h2>
-<form name="f">
+<form method="post" name="f">
 <input type="hidden" name="a" value="a">
 <p>Email <input type="text" name="e" size="30"></p>
 <p><input type="submit" name="s" value="Add New User"></p>

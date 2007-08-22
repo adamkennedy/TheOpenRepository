@@ -1,7 +1,11 @@
 Changes for Perl extension TinyAuth
 
+0.06 Wed 22 Jul 2007
+	- 
+
 0.05 Mon 15 Jul 2007
 	- Converted to Authen::Htpasswd
+	- Implemented a number of additional functions
 
 0.04 Mon  9 Jul 2007
 	- Completing support for "I forgot my password"
