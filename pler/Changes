@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+0.27 Mon 27 Aug 2007
+	- Added a first experimental attempt at Module::Build support
+
 0.26 Mon 27 Aug 2007
 	- Adding a -V option for the version
 	- Adding a --help option for help/usage

@@ -17,7 +17,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.26';
+        $VERSION = '0.27';
 }
 
 # Does exec work on this platform
@@ -38,8 +38,16 @@ sub MakefilePL () {
 	catfile( curdir(), 'Makefile.PL' );
 }
 
+sub BuildPL () {
+	catfile( curdir(), 'Build.PL' );
+}
+
 sub Makefile () {
 	catfile( curdir(), 'Makefile' );
+}
+
+sub Build () {
+	catfile( curdir(), 'Build' );
 }
 
 sub perl () {
@@ -84,12 +92,20 @@ sub t () {
 #####################################################################
 # Convenience Logic
 
+sub has_makefilepl () {
+	!! -f MakefilePL;
+}
+
+sub has_buildpl () {
+	!! -f BuildPL;
+}
+
 sub has_makefile () {
 	!! -f Makefile;
 }
 
-sub has_makefilepl () {
-	!! -f MakefilePL;
+sub has_build () {
+	!! -f Build;
 }
 
 sub has_blib () {
@@ -122,12 +138,24 @@ sub needs_makefile () {
 	has_makefilepl and ! has_makefile;
 }
 
+sub needs_build () {
+	has_buildpl and ! has_build;
+}
+
 sub old_makefile () {
 	has_makefile
 	and
 	has_makefilepl
 	and
 	(stat(Makefile))[9] < (stat(MakefilePL))[9];
+}
+
+sub old_build () {
+	has_build
+	and
+	has_buildpl
+	and
+	(stat(Makefile))[9] < (stat(BuildPL))[9];
 }
 
 
@@ -215,10 +243,26 @@ sub main {
                 error "Failed to locate the distribution root";
         }
 
-	# Build, or rebuild, the Makefile if needed.
-	# Currently we do not support Build.PL or remembering previous Makefile.PL params
-	if ( needs_makefile or (old_makefile and ! OVERWRITE_OK) ) {
-		run( join ' ', perl, MakefilePL );
+	# Makefile.PL? Or Build.PL?
+	my $BUILD_SYSTEM = has_buildpl ? 'build' : has_makefilepl ? 'make' : '';
+	if ( $BUILD_SYSTEM eq 'build' ) {
+		# Because Module::Build always runs with warnings on,
+		# pler will as well when you use a Build.PL
+		unless ( grep { $_ eq '-w' } @SWITCHES ) {
+			push @SWITCHES, '-w';
+		}
+	}
+
+	# If needed, regenerate the Makefile or Build file
+	# Currently we do not remember Makefile.PL or Build.PL params
+	if ( $BUILD_SYSTEM eq 'make' ) {
+		if ( needs_makefile or (old_makefile and ! OVERWRITE_OK) ) {
+			run( join ' ', perl, MakefilePL );
+		}
+	} elsif ( $BUILD_SYSTEM eq 'build' ) {
+		if ( needs_build or old_build ) {
+			run( join ' ', perl, BuildPL );
+		}
 	}
 
 	# Locate the test script to run
@@ -261,13 +305,19 @@ sub main {
                 error "Test script '$script' does not exist";
         }
 
-        # Rerun make if needed
-	# Do NOT run make if there is no Makefile.PL, because it likely means
-	# there is a hand-written Makefile and NOT one derived from Makefile.PL,
-	# and we have no idea what functionality we might trigger.
-        if ( in_distroot and has_makefile and has_makefilepl ) {
-                run( make );
-        }
+        # Rerun make or Build if needed
+	if ( $BUILD_SYSTEM eq 'make' ) {
+		# Do NOT run make if there is no Makefile.PL, because it likely means
+		# there is a hand-written Makefile and NOT one derived from Makefile.PL,
+		# and we have no idea what functionality we might trigger.
+        	if ( in_distroot and has_makefile and has_makefilepl ) {
+	                run( make );
+	        }
+	} elsif ( $BUILD_SYSTEM eq 'build' ) {
+		if ( in_distroot and has_build and has_buildpl ) {
+			run( Build );
+		}
+	}
 
         # Build the command to execute
         my @flags = @SWITCHES;
