@@ -10,13 +10,14 @@ use Cwd                   ();
 use File::Which           ();
 use File::Spec::Functions ':ALL';
 use File::Find::Rule      ();
+use Getopt::Long          ();
 
 # Convenience constants
 use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.25';
+        $VERSION = '0.26';
 }
 
 # Does exec work on this platform
@@ -183,12 +184,22 @@ sub handoff (@) {
 #####################################################################
 # Main Script
 
+my @SWITCHES = ();
+
 sub main {
-        my $script = shift @ARGV;
-        unless ( defined $script ) {
-                print "# No file name pattern provided, using 't'...\n";
-                $script = 't';
-        }
+	Getopt::Long::Configure('no_ignore_case');
+	Getopt::Long::GetOptions(
+		'help' => \&help,
+		'V'    => sub { print "pler $VERSION\n"; exit(0) }, 
+		'w'    => sub { push @SWITCHES, '-w' },
+	);
+
+	# Get the script name
+	my $script = shift @ARGV;
+	unless ( defined $script ) {
+		print "# No file name pattern provided, using 't'...\n";
+		$script = 't';
+	}
 
 	# Abuse the highly mature logic in Cwd to define an $ENV{PWD} value
 	# by chdir'ing to the current directory.
@@ -259,7 +270,7 @@ sub main {
         }
 
         # Build the command to execute
-        my @flags = ();
+        my @flags = @SWITCHES;
         if ( has_blib ) {
                 push @flags, '-Mblib';
         } elsif ( has_lib ) {
@@ -273,6 +284,16 @@ sub main {
         my @cmd = ( perl, @flags, '-d', $script );
         handoff( @cmd );
 }
+
+sub help { print <<'END_HELP'; exit(0); }
+Usage:
+    pler [options] [file/pattern]
+
+Options:
+        -V              Print the pler version
+        -h, --help      Display this help
+        -w              Run test with the -w warnings flag
+END_HELP
 
 1;
 
