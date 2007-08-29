@@ -618,6 +618,8 @@ sub html_index { <<'END_HTML' }
 <h2>Admin</h2>
 <p><a href="?a=n">I want to add a new account</a></p>
 <p><a href="?a=l">I want to see all the accounts</a></p>
+<p><a href="?a=d">I want to delete an account</a></p>
+<p><a href="?a=m">I want to promote an account to admin</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
