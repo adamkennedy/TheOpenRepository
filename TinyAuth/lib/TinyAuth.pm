@@ -336,8 +336,10 @@ sub action_promote {
 
 	# Thus, they exist and are not an admin.
 	# So we now upgrade them to an admin.
+	$user->extra_info('admin');
 
-	die "CODE INCOMPLETE";	
+	# Show the "Promoted ok" page
+	$self->view_message("Promoted $e to admin");
 }
 
 sub view_delete {
@@ -383,8 +385,10 @@ sub action_delete {
 
 	# Thus, they exist and are not an admin.
 	# So we now delete the user.
+	$self->auth->delete_user($user);
 
-	die "CODE INCOMPLETE";	
+	# Show the "Deleted ok" page
+	$self->view_message("Deleted $e");
 }
 
 sub view_change {
