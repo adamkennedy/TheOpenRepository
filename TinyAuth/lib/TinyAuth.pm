@@ -39,7 +39,7 @@ use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 use Object::Tiny qw{
@@ -180,6 +180,14 @@ sub run {
 		return $self->action_new;
 	} elsif ( $self->action eq 'l' ) {
 		return $self->view_list;
+	} elsif ( $self->action eq 'm' ) {
+		return $self->view_promote;
+	} elsif ( $self->action eq 'b' ) {
+		return $self->action_promote;
+	} elsif ( $self->action eq 'd' ) {
+		return $self->view_delete;
+	} elsif ( $self->action eq 'r' ) {
+		retunr $self->action_delete;
 	} else {
 		return $self->view_index;
 	}
@@ -267,14 +275,11 @@ sub view_list {
 	my $self  = shift;
 
 	# Prepare the user list
-	my @users = sort {
-		$a->username cmp $b->username
-		} $self->auth->all_users;
-	my $list = '';
+	my @users = $self->all_users;
+	my $list  = '';
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
-		my $info = $user->extra_info;
-		if ( _ARRAY($info) and $info->[0] eq 'admin' ) {
+		if ( $self->is_admin($user) ) {
 			$item = $self->cgi->b($item);
 		}
 		$list .= $item . $self->cgi->br . "\n";
@@ -286,6 +291,100 @@ sub view_list {
 		$self->html_list,
 	);
 	return 1;
+}
+
+sub view_promote {
+	my $self = shift;
+
+	# Prepare the user list
+	my @users = $self->all_users;
+	my $list  = '';
+	foreach my $user ( @users ) {
+		my $item = $self->cgi->escapeHTML($user->username);
+		if ( $self->is_admin($user) ) {
+			$item = $self->cgi->b($item);
+		} else {
+			$item = $self->cgi->a($item);
+		}
+		$list .= $item . $self->cgi->br . "\n";
+	}
+
+	# Show the page
+	$self->{args}->{users} = $list;
+	$self->print_template(
+		$self->html_promote,
+	);
+}
+
+sub action_promote {
+	my $self = shift;
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
+		return $self->error("No account for that email address");
+	}
+
+	# We can't operate on admins
+	if ( $self->is_admin($user) ) {
+		return $self->error("Admins cannot modify other admins");
+	}
+
+	# Thus, they exist and are not an admin.
+	# So we now upgrade them to an admin.
+
+	die "CODE INCOMPLETE";	
+}
+
+sub view_delete {
+	my $self = shift;
+
+	# Prepare the user list
+	my @users = $self->all_users;
+	my $list  = '';
+	foreach my $user ( @users ) {
+		my $item = $self->cgi->escapeHTML($user->username);
+		if ( $self->is_admin($user) ) {
+			$item = $self->cgi->b($item);
+		} else {
+			$item = $self->cgi->a($item);
+		}
+		$list .= $item . $self->cgi->br . "\n";
+	}
+
+	# Show the page
+	$self->{args}->{users} = $list;
+	$self->print_template(
+		$self->html_delete,
+	);
+}
+
+sub action_delete {
+	my $self = shift;
+	my $email = _STRING($self->cgi->param('e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
+		return $self->error("No account for that email address");
+	}
+
+	# We can't operate on admins
+	if ( $self->is_admin($user) ) {
+		return $self->error("Admins cannot modify other admins");
+	}
+
+	# Thus, they exist and are not an admin.
+	# So we now delete the user.
+
+	die "CODE INCOMPLETE";	
 }
 
 sub view_change {
@@ -441,6 +540,26 @@ sub print_template {
 	return 1;
 }
 
+sub is_admin {
+	my $self = shift;
+	my $user = shift;
+	my $info = $user->extra_info;
+	return !! ( _ARRAY($info) and $info->[0] eq 'admin' );
+}
+
+sub all_users {
+	my $self = shift;
+	my @list = map { $_->[0] }
+		sort {
+			$b->[2] <=> $a->[2] # Admins first
+			or
+			$a->[1] cmp $b->[1] # Then by username
+		}
+		map { [ $_, $_->username, $self->is_admin($_) ] }
+		$self->auth->all_users;
+	return @list;
+}
+
 
 
 
@@ -571,6 +690,36 @@ sub html_list { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Account List</h2>
+[% users %]
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_promote { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>Click to Promote Account</h2>
+[% users %]
+</body>
+</html>
+END_HTML
+
+
+
+
+
+sub html_delete { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>Click to Delete Account</h2>
 [% users %]
 </body>
 </html>
