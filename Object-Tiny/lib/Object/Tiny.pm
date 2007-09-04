@@ -16,7 +16,7 @@ sub import {
 		map {
 			defined and ! ref and /^[^\W\d]\w*$/s
 			or die "Invalid accessor name '$_'";
-			"sub $_ {\n\t\return $_[0]->{$_};\n}\n"
+			"sub $_ { return $_[0]->{$_} }\n"
 		} @_;
 	die "Failed to generate $pkg" if $@;
 	return 1;
@@ -45,7 +45,7 @@ Object::Tiny - Class building as simple as it gets
   use Object::Tiny qw{ bar baz };
   
   1;
-   
+  
   
   # Use the class
   my $object = Foo->new( bar => 1 );
@@ -146,13 +146,13 @@ hand-holding, Object::Tiny is just outright better, faster or cheaper
 on every single metric than L<Class::Accessor::Fast>, which
 is the most comparable member of the Class::Accessor::* family.
 
-B<Object::Tiny is 93% smaller than Class::Accessor>
+B<Object::Tiny is 93% smaller than Class::Accessor::Fast>
 
 Class::Accessor::Fast requires about 125k of memory to load.
 
 Object::Tiny requires about 8k of memory to load.
 
-B<Object::Tiny is 75% more terse to use than Class::Accessor>
+B<Object::Tiny is 75% more terse to use than Class::Accessor::Fast>
 
 Object::Tiny is used with the least possible number of keystrokes
 (short of making the actual name Object::Tiny smaller).
@@ -267,7 +267,7 @@ Here's what the classes used in the benchmark end up like.
      22  'set'
 
 As you can see, Object::Tiny adds 2 methods to your class, Class::Accessor
-dds 16 methods, plus one extra one for every accessor.
+adds 16 methods, plus one extra one for every accessor.
 
 B<Object::Tiny doesn't have any of the caveats of Class::Accessor::Fast>
 
