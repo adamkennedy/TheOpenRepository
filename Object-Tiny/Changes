@@ -1,5 +1,11 @@
 Revision history for Perl extension Object-Tiny
 
+1.03 Tue  4 Sep 2007
+    - Use explicit return in the generated accessors
+      (makes them 5-10% faster according to benchmarking)
+    - Jonathon Rockway asks why both when we have Class::Accessor::Fast.
+      (I've added a documentation segment to answer it)
+
 1.02 Wed  9 May 2007
 	- Fixing some POD things
 	- No functional changes
