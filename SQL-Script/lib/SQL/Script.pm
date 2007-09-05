@@ -38,6 +38,7 @@ quite of format-specific SQL splitters.
 
 =cut
 
+use 5.006;
 use strict;
 use Carp         'croak';
 use Params::Util '_STRING', '_SCALAR';
@@ -54,39 +55,99 @@ BEGIN {
 #####################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+  # Default naive split
+  $script = SQL::Script->new;
+  
+  # Custom split (string)
+  $script = SQL::Script->new( split_by => "\n\n;" );
+  
+  # Custom split (regexp)
+  $script = SQL::Script->new( split_by => qr/\n\n;/ );
+
+The C<new> constructor create a new SQL script object, containing zero statements.
+
+It takes a single option param or C<split_by> which can be either a string
+or regexp by which to split the SQL.
+
+Returns a new B<SQL::String> object, or throws an exception on error.
+
+=cut
+  
 sub new {
     my $class = shift;
+    my $self  = bless { @_, statements => [] }, $class;
 
-    # Create the object
-    my $self = bless {
-        split_by   => ';\n',
-        statements => [],
-        }, $class;
-
-    # Normalise params
-    if ( _STRING($self->split_by) ) {
-        my $escaped = quotemeta $self->split_by;
-        
+    # Check and apply default params
+    unless ( $self->split_by ) {
+        $self->{split_by} = ";\n";
+    }
+    unless ( _STRING($self->split_by) or ref($self->split_by) eq 'Regexp' ) {
+        croak("Missing or invalid split_by param");
     }
 
     return $self;
 }
 
+=pod
+
+=head2 read
+
+  # Read a SQL script from one of several sources
+  $script->read( 'filename.sql' );
+  $script->read( \$sql_string   );
+  $script->read( $io_handle     );
+
+The C<read> method is used to read SQL from an input source (which can
+be provided as either a file name, a reference to a SCALAR containing the
+SQL, or as an IO handle) and split it into a set of statements.
+
+If the B<SQL::Script> object already contains a set of statements, they will
+be overwritten and replaced.
+
+Returns true on success, or throw an exception on error.
+
+=cut
+
 sub read {
     my $self  = shift;
-    my $input = _READSCALAR(shift) or return undef;
-    
+    my $input = _INPUT_SCALAR(shift) or croak("Missing or invalid param to read");
+    $self->{statements} = $self->split_sql( $input );
+    return 1;
 }
+
+=pod
+
+=head2 split_by
+
+The C<split_by> accessor returns the string or regexp that will be used to
+split the SQL into statements.
+
+=cut
 
 sub split_by {
     $_[0]->{split_by};
 }
 
+=pod
+
+=head2 statements
+
+In list context, the C<statements> method returns a list of all the
+individual statements for the script.
+
+In scalar context, it returns the number of statements.
+
+=cut
+
 sub statements {
     if ( wantarray ) {
-        return @{$self->{statements}};
+        return @{$_[0]->{statements}};
     } else {
-        return scalar @{$self->{statements}};
+        return scalar @{$_[0]->{statements}};
     }
 }
 
@@ -97,9 +158,22 @@ sub statements {
 #####################################################################
 # Main Methods
 
+=pod
+
+=head2 split_sql
+
+The C<split_sql> method takes a reference to a SCALAR containing a string
+of SQL statements, and splits it into the separate statements, returning
+them as a reference to an ARRAY, or throwing an exception on error.
+
+This method does NOT update the internal state, it simply applies the
+appropriate parsing rules.
+
+=cut
+
 sub split_sql {
     my $self   = shift;
-    my $sql    = _SCALAR(shift) or return undef;
+    my $sql    = _SCALAR(shift) or croak("Did not pass a SCALAR ref to split_sql");
 
     # Find the regex to split by
     my $regexp;
@@ -114,8 +188,7 @@ sub split_sql {
 
     # Split the sql
     my @statements = split( $regexp, $sql );
-    $self->{statements} = \@statements;
-    return 1;
+    return \@statements;
 }
 
 
@@ -135,7 +208,7 @@ sub _INPUT_SCALAR {
         }
         local $/ = undef;
         open( FILE, $_[0] ) or return undef;
-        my $buffer = <FILE> or return undef;
+        defined(my $buffer = <FILE>) or return undef;
         close FILE          or return undef;
         return \$buffer;
     }
