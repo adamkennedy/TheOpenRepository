@@ -45,10 +45,15 @@ is( $storage->storage_dir, $storage_dir, '->storage_dir returns as expected' );
 is( $storage->storage_lock, $lock_file,  '->storage_lock returns as expected' );
 
 # Create a simple guest and add it
-SCOPE: {
-	my $guest = PITA::XML::Guest->read( $image_test );
-	isa_ok( $guest, 'PITA::XML::Guest' );
-	ok( $storage->add_guest($guest), '->add_guest ok' );
-}
+my $guest = PITA::XML::Guest->read( $image_test );
+isa_ok( $guest, 'PITA::XML::Guest' );
+ok( ! $guest->id, 'Guest has no identifier' );
+ok( $storage->add_guest($guest), '->add_guest ok' );
+ok(   $guest->id, 'Guest has an identifier' );
+
+# Refetch the guest
+my $guest2 = $storage->guest($id);
+isa_ok( $guest2, 'PITA::XML::Guest' );
+is_deeply( $guest, $guest2, 'Guest refetched matches original' );
 
 exit(0);

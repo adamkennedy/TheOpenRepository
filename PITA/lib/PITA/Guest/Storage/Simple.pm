@@ -23,12 +23,13 @@ Guest image location and searching is done the long way, with no indexing.
 
 use 5.005;
 use strict;
-use Carp         ();
-use File::Spec   ();
-use File::Path   ();
-use File::Flock  ();
-use Params::Util '_INSTANCE';
-use Data::GUID   ();
+use Carp             ();
+use File::Spec       ();
+use File::Path       ();
+use File::Flock      ();
+use Params::Util     '_INSTANCE';
+use Data::GUID       ();
+use PITA::XML::Guest ();
 use base 'PITA::Guest::Storage';
 
 use vars qw{$VERSION $LOCKFILE};
@@ -193,14 +194,64 @@ sub add_guest {
 	return $xml;
 }
 
+# Each guest has a matching directory name
 sub guest {
 	my $self = shift;
-	die 'CODE INCOMPLETE';
+	my $id   = shift;
+
+	# Find the file
+	my $file = $self->guest_file($id);
+	unless ( -f $file ) {
+		return undef;
+	}
+
+	# Load the guest metadata object
+	my $guest = PITA::XML::Guest->read($file);
+	unless ( $guest->id ) {
+		Carp::croak("Guest id mismatch for $file");
+	}
+
+	return $guest;
+}
+
+sub guest_exists {
+	-f shift->guest_file(shift);
+}
+
+sub guest_file {
+	File::Spec->catfile(
+		$_[0]->storage_dir, "$_[1].pita",
+		);
 }
 
 sub guests {
 	my $self = shift;
-	die 'CODE INCOMPLETE';
+
+	# Find all *.pita files in the storage directory
+	opendir( STORAGE, $self->storage_dir ) or Carp::croak("opendir: $!");
+	my @files = readdir(STORAGE)           or Carp::croak("readdir: $!");
+	closedir( STORAGE )                    or Carp::croak("closedir: $!");
+
+	# Load and check the metadata files
+	my @guests = ();
+	foreach my $file ( @files ) {
+		# Filter out unwanted things
+		next if $file =~ /^\./;
+		next unless -f $file;
+		next unless $file =~ /^(.+)\.pita$/;
+
+		# Load the object
+		my $id    = $1;
+		my $path  = File::Spec->catfile( $self->storage_dir, $file );
+		my $guest = PITA::XML::Guest->read( $path );
+		unless ( $guest->id eq $id ) {
+			Carp::croak("Guest id mismatch for $path");
+		}
+
+		push @guests;
+	}
+
+	return @guests;
 }
 
 sub platform {
