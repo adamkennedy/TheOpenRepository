@@ -65,10 +65,10 @@ sub new {
 		$guest_xml = shift;
 
 	} elsif ( _STRING($_[0]) ) {
+		$file = shift;
 		unless ( -f $file ) {
 			Carp::croak('Did not provide a valid filename');
 		}
-		$file      = shift;
 		$guest_xml = PITA::XML::Guest->read($file);
 
 	} else {
@@ -78,7 +78,7 @@ sub new {
 	# Create the object
 	my $self = bless {
 		file     => $file,
-		guestxml => $guestxml,
+		guestxml => $guest_xml,
 		driver   => undef,
 		}, $class;
 

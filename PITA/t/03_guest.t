@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 46;
+use Test::More tests => 47;
 
 use PITA ();
 use File::Remove 'remove';
@@ -122,6 +122,7 @@ SCOPE: {
 	# Load the request object
 	my $request = PITA::XML::Request->read( $simple_request );
 	isa_ok( $request, 'PITA::XML::Request' );
+	is( $request->id, 1234, '->id ok' );
 
 	# Try to test it
 	my $report = $guest->test( $simple_request );
@@ -132,7 +133,6 @@ SCOPE: {
 	my $install = ($report->installs)[0];
 	isa_ok( $install, 'PITA::XML::Install' );
 	isa_ok( $install->request, 'PITA::XML::Request' );
-	delete $install->request->{id}; # Ignoring the defaulted id...
 	is_deeply( $install->request, $request, 'Request matched original' );
 	is( scalar($install->commands), 3, 'Found three commands' );
 }

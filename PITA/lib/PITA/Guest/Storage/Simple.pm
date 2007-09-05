@@ -173,8 +173,8 @@ sub add_guest {
 	}
 
 	# Load a full PITA::Guest object from the file
-	my $guest = PITA::Guest->new( $file )
-		or die "Failed to load PITA::Guest from $file";
+	my $guest = PITA::Guest->new( $xml )
+		or die "Failed to load PITA::Guest";
 
 	# Can we ping the guest
 	unless ( $guest->ping ) {
@@ -248,7 +248,7 @@ sub guests {
 			Carp::croak("Guest id mismatch for $path");
 		}
 
-		push @guests;
+		push @guests, $guest;
 	}
 
 	return @guests;

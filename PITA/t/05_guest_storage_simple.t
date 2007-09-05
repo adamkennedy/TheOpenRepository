@@ -42,11 +42,12 @@ my $storage = PITA::Guest::Storage::Simple->new(
 isa_ok( $storage, 'PITA::Guest::Storage::Simple' );
 isa_ok( $storage, 'PITA::Guest::Storage' );
 is( $storage->storage_dir, $storage_dir, '->storage_dir returns as expected' );
-is( $storage->storage_lock, $lock_file,  '->storage_lock returns as expected' );
+isa_ok( $storage->storage_lock, 'File::Flock' );
 
 # Create a simple guest and add it
 my $guest = PITA::XML::Guest->read( $image_test );
 isa_ok( $guest, 'PITA::XML::Guest' );
+my $id = $guest->id;
 ok( ! $guest->id, 'Guest has no identifier' );
 ok( $storage->add_guest($guest), '->add_guest ok' );
 ok(   $guest->id, 'Guest has an identifier' );
