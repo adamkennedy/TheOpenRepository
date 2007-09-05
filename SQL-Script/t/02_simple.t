@@ -5,7 +5,7 @@ BEGIN {
     $^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 use File::Spec::Functions ':ALL';
 use SQL::Script;
 
@@ -19,7 +19,17 @@ ok( -f $simple, "$simple exists" );
 #####################################################################
 # Create and work with simple scripts
 
+# Create the object
 my $script = SQL::Script->new;
 isa_ok( $script, 'SQL::Script' );
 is( $script->split_by, ";\n", '->split_by default ok' );
 is_deeply( [ $script->statements ], [], '->statements returns empty list by default' );
+is( scalar($script->statements), 0, 'scalar ->statements returns 0' );
+
+# Read a script
+ok( $script->read($simple), '->read ok' );
+is_deeply( [ $script->statements ], [
+    "create table foo ( id integer not null primary key, foo varchar(32) )",
+    "insert foo values ( 1, 'Hello World\n' )",
+], '->statements returns two statements' );
+is( scalar($script->statements), 2, '->statements ok' );
