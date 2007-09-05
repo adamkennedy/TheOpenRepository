@@ -39,6 +39,8 @@ quite of format-specific SQL splitters.
 =cut
 
 use strict;
+use Carp         'croak';
+use Params::Util '_STRING', '_SCALAR';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -57,19 +59,95 @@ sub new {
 
     # Create the object
     my $self = bless {
-        split_by => ';\n',
+        split_by   => ';\n',
+        statements => [],
         }, $class;
+
+    # Normalise params
+    if ( _STRING($self->split_by) ) {
+        my $escaped = quotemeta $self->split_by;
+        
+    }
 
     return $self;
 }
 
-sub statements {
-
+sub read {
+    my $self  = shift;
+    my $input = _READSCALAR(shift) or return undef;
+    
 }
 
-sub _SLURP {
-    return undef unless defined $_[0];
-    if ( _SCALARLIKE(
+sub split_by {
+    $_[0]->{split_by};
+}
+
+sub statements {
+    if ( wantarray ) {
+        return @{$self->{statements}};
+    } else {
+        return scalar @{$self->{statements}};
+    }
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub split_sql {
+    my $self   = shift;
+    my $sql    = _SCALAR(shift) or return undef;
+
+    # Find the regex to split by
+    my $regexp;
+    if ( _STRING($self->split_by) ) {
+        $regexp = quotemeta $self->split_by;
+        $regexp = qr/$regexp/;
+    } elsif ( ref($self->split_by) eq 'Regexp' ) {
+        $regexp = $self->split_by;
+    } else {
+        croak("Unknown or unsupported split_by value");
+    }
+
+    # Split the sql
+    my @statements = split( $regexp, $sql );
+    $self->{statements} = \@statements;
+    return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Functions
+
+sub _INPUT_SCALAR {
+    unless ( defined $_[0] ) {
+        return undef;
+    }
+    unless ( ref $_[0] ) {
+        unless ( -f $_[0] and -r _ ) {
+            return undef;
+        }
+        local $/ = undef;
+        open( FILE, $_[0] ) or return undef;
+        my $buffer = <FILE> or return undef;
+        close FILE          or return undef;
+        return \$buffer;
+    }
+    if ( _SCALAR($_[0]) ) {
+        return shift;
+    }
+    if ( _HANDLE($_[0]) ) {
+        local $/ = undef;
+        my $buffer = <$_[0]>;
+        return \$buffer;
+    }
+    return undef;
 }
 
 1;
@@ -77,5 +155,25 @@ sub _SLURP {
 =pod
 
 =head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SQL-Script>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
