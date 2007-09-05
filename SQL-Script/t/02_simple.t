@@ -5,7 +5,7 @@ BEGIN {
     $^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use SQL::Script;
 
@@ -30,6 +30,6 @@ is( scalar($script->statements), 0, 'scalar ->statements returns 0' );
 ok( $script->read($simple), '->read ok' );
 is_deeply( [ $script->statements ], [
     "create table foo ( id integer not null primary key, foo varchar(32) )",
-    "insert foo values ( 1, 'Hello World\n' )",
+    "insert foo values ( 1, 'Hello World\\n' )",
 ], '->statements returns two statements' );
 is( scalar($script->statements), 2, '->statements ok' );

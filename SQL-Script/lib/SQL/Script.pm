@@ -45,7 +45,7 @@ use Params::Util '_STRING', '_SCALAR';
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.01';
+    $VERSION = '0.02';
 }
 
 
@@ -187,7 +187,7 @@ sub split_sql {
     }
 
     # Split the sql
-    my @statements = split( $regexp, $sql );
+    my @statements = split( $regexp, $$sql );
     return \@statements;
 }
 

@@ -1,4 +1,8 @@
 Changes for Perl extension SQL-Script
 
+0.02 Wed  5 Sep 2007
+	- Added a proper test for ->read
+	- Fixed a rather obvious bug in ->read
+
 0.01 Wed  5 Sep 2007
-    - Created initial (simplistic) version
+	- Created initial (simplistic) version
