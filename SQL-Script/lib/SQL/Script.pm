@@ -41,11 +41,11 @@ quite of format-specific SQL splitters.
 use 5.006;
 use strict;
 use Carp         'croak';
-use Params::Util '_STRING', '_SCALAR';
+use Params::Util '_STRING', '_SCALAR', '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.02';
+    $VERSION = '0.03';
 }
 
 
@@ -189,6 +189,31 @@ sub split_sql {
     # Split the sql
     my @statements = split( $regexp, $$sql );
     return \@statements;
+}
+
+=pod
+
+=head2 run
+
+The C<run> method executes the SQL statements in the script object.
+
+Returns true if ALL queries are executed successfully, or C<undef> on error.
+
+(These return values may be changed in future, probably to a style where all
+the successfully executed queries are returned, and the object throws an
+exception on error)
+
+=cut
+
+sub run {
+	my $self = shift;
+	my $dbh  = _INSTANCE(shift, 'DBI::db') or croak("Did not provide DBI handle to run");
+
+	# Execute each of the statements
+	foreach my $sql ( $self->statements ) {
+		$dbh->do($sql) or return undef;
+	}
+	return 1;
 }
 
 
