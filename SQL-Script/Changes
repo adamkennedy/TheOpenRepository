@@ -1,5 +1,8 @@
 Changes for Perl extension SQL-Script
 
+0.04 Mon 10 Sep 2006
+	- Do some trimming and filtering to remove useless stuff
+
 0.03 Mon 10 Sep 2007
         - Adding the ->run method
        

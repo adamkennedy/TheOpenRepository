@@ -45,7 +45,7 @@ use Params::Util '_STRING', '_SCALAR', '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.03';
+    $VERSION = '0.04';
 }
 
 
@@ -186,8 +186,13 @@ sub split_sql {
         croak("Unknown or unsupported split_by value");
     }
 
-    # Split the sql
-    my @statements = split( $regexp, $$sql );
+    # Split the sql, clean up and remove empty ones
+    my @statements = grep { /\S/ } split( $regexp, $$sql );
+    foreach ( @statements ) {
+        s/^\s+//;
+        s/\s+$//;
+    }
+
     return \@statements;
 }
 
