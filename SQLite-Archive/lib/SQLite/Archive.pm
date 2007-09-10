@@ -1,4 +1,4 @@
-package Archive::SQLite;
+package SQLite::Archive;
 
 =pod
 
@@ -41,6 +41,7 @@ database with the data from the archive.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp             'croak';
 use File::Spec       ();
@@ -48,6 +49,7 @@ use File::Temp       ();
 use Archive::Extract ();
 use SQL::Script      ();
 use Parse::CSV       ();
+use DBI              ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -168,33 +170,49 @@ sub create_db {
 
 =pod
 
-=head1 create_db
+=head1 build_db
 
-  $dbh = $archive->create_db; # Temp file created
-  $dbh = $archive->create_db( 'dir/sqlite.db' );
+  $dbh = $archive->build_db; # Temp file created
+  $dbh = $archive->build_db( 'dir/sqlite.db' );
+
+The C<build_db> method provides the main functionality for SQLite::Archive.
+
+It creates a new SQLite database (at a temporary file if needed), executes
+any SQL scripts, populates tables from any CSV files, and returns a DBI
+handle.
+
+Returns a BDI::db object, or throws an exception on error.
 
 =cut
 
 sub build_db {
 	my $self = shift;
-	my $dbh  = $self->new_db(@_);
+	my $dbh  = $self->create_db(@_);
 
 	# Execute any SQL files first, in order
+	my $dir = $self->dir;
 	foreach my $sql ( @{$self->{sql}} ) {
+		my $file = File::Spec->catfile( $dir, $sql );
+
+		# Load the script
 		my $script = SQL::Script->new;
-		$script->read( $sql );
+		$script->read( $file );
+
+		# Execute the script
 		$script->run( $dbh );
 	}
 
 	# Now parse and insert any CSV data
 	foreach my $csv ( @{$self->{csv}} ) {
+		my $file = File::Spec->catfile( $dir, $csv );
+
 		# Create the parser for the file
 		my $parser = Parse::CSV->new(
-			file   => $csv,
+			file   => $file,
 			fields => 'auto',
 			) or die "Failed to create CSV::Parser for $csv";
-		my (undef, undef, $table) = File::Spec->splitpath($csv);
-		$csv =~ s/\.csv$// or die "Failed to find table name";
+		my (undef, undef, $table) = File::Spec->splitpath($file);
+		$table =~ s/\.csv$// or die "Failed to find table name";
 
 		# Process the inserts
 		# Don't bother chunking for now, just auto-commit.
@@ -204,17 +222,19 @@ sub build_db {
 				. " ) values ( "
 				. join( ', ', map { '?' } values %$row )
 				. " )";
-			$dbh->do( $sql ) and next;
+			$dbh->do( $sql, {}, values %$row ) and next;
 			die "Table insert failed in $csv: $DBI::errstr";
 		}
 	}
 
-	return 1;
+	return $dbh;
 }
 
 1;
 
 __END__
+
+=pod
 
 =head1 SUPPORT
 
