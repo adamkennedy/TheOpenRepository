@@ -17,7 +17,7 @@ BEGIN {
 	@EXPORT = qw{ empty_db create_db };
 }
 
-sub empty_db {
+sub sqlite_db {
 	# Get a temp file name
 	my $dir  = File::Temp::tempdir( CLEANUP => 1 );
 	my $file = File::Spec->catfile( $dir, 'sqlite.db' );

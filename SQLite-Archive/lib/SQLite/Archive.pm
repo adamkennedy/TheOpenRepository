@@ -1,36 +1,5 @@
 package Archive::SQLite;
 
-use strict;
-use Carp         ();
-use IO::Zlib     ();
-use Archive::Tar ();
-use SQL::Script  ();
-use Parse::CSV   ();
-
-use vars qw{$VERSION};
-BEGIN {
-    $VERSION = '0.01';
-}
-
-
-
-
-
-#####################################################################
-# One-Shot Methods
-
-sub extract {
-	my $class   = shift;
-	my $archive = shift;
-	my $sqlite  = shift;
-
-	die "CODE INCOMPLETE";
-}
-
-1;
-
-__END__
-
 =pod
 
 =head1 NAME
@@ -39,11 +8,213 @@ SQLite::Archive - Version-agnostic storage and manipulation of SQLite databases
 
 =head1 DESCRIPTION
 
-B<WARNING - THIS MODULE (AND RELATED MODULES IN THIS DISTRIBUTION) IS EXPERIMENTAL>
+SQLite (and the Perl module for it L<DBD::SQLite>) is an extremely handy
+database for storing various types of simple information.
 
-B<MODULE API AND IMPLEMENTATION SUBJECT TO CHANGE WITHOUT NOTICE OR EXPLAINATION>
+However, as SQLite has developed, the binary structure of the SQLite
+database format itself has changed and evolved, and continues to change
+and evolve. As new releases come out, new versions of L<DBD::SQLite> are
+also released with matching code.
 
-Documentation to follow at a later date. Please don't spank me :)
+This makes SQLite database files suboptimal (at best) for use in
+distributing data sets between disparate systems.
+
+At the same time, a giant raw .sql script says very little about the
+data itself (such as which database and version it is intended for),
+requires a client front end to throw the SQL script at, and it not
+easily editable or manipulatable while dumped.
+
+B<SQLite::Archive> provides a straight forward mechanism for exporting
+(and importing) SQLite databases, and moving that data around as a
+single file to (or from) other hosts.
+
+It uses a regular tar archive, with the data stored in CSV files, and
+the table structure stored in a create.sql file.
+
+Given a SQLite archive file (B<SQLite::Archive> will take anything
+supported by L<Archive::Extract>) it will extract the tarball to a
+temporary directory, create a SQLite database (in a location of your
+choice or also in a temp directory) and then populate the SQLite
+database with the data from the archive.
+
+=head1 METHODS
+
+=cut
+
+use strict;
+use Carp             'croak';
+use File::Spec       ();
+use File::Temp       ();
+use Archive::Extract ();
+use SQL::Script      ();
+use Parse::CSV       ();
+
+use vars qw{$VERSION};
+BEGIN {
+    $VERSION = '0.01';
+}
+
+use Object::Tiny qw{
+	uri
+	file
+	dir
+};
+
+
+
+
+
+#####################################################################
+# Constructor and Accessors
+
+=pod
+
+=head1 new
+
+  SQLite::Archive->new( file => 'data.tar.gz' );
+  SQLite::Archive->new( file => 'data.zip'    );
+  SQLite::Archive->new( dir  => 'extracted'   );
+
+The C<new> constructor creates a new SQLite archive object.
+
+It takes a data source as either a C<file> param (which should be
+an L<Archive::Extract>-compatible archive, or a C<dir> param (which
+should contain the equivalent of the content of the archive, but
+already expanded as single files).
+
+Returns a new B<SQLite::Archive> object, or throws an exception
+on error.
+
+=cut
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	# Check the archive directory
+	unless ( defined $self->dir ) {
+		# Check the archive file
+		unless ( -f $self->file ) {
+			croak("The file '" . $self->file . "' does not exist");
+		}
+
+		# Extract the archive
+		my $archive = Archive::Extract->new( archive => $self->file );
+		my $tempdir = File::Temp::tempdir( CLEANUP => 1 );
+		$archive->extract( to => $tempdir ) or die $archive->error;
+		$self->{dir}  = $archive->extract_path;
+	}
+	unless ( -d $self->dir ) {
+		croak("The directory '" . $self->dir . "' does not exist");
+	}
+
+	# Locate all data files
+	opendir( ARCHIVE, $self->dir ) or die "opendir: $!";
+	my @files = sort readdir( ARCHIVE );
+	closedir( ARCHIVE ) or die "closedir: $!";
+	$self->{sql} = [ grep { /^\w+\.sql/ } @files ];
+	$self->{csv} = [ grep { /^\w+\.csv/ } @files ];
+
+	return $self;
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+=pod
+
+=head1 create_db
+
+  $dbh = $archive->create_db; # Temp file created
+  $dbh = $archive->create_db( 'dir/sqlite.db' );
+
+The C<create_db> method create a new (empty) SQLite database.
+
+It optionally takes a single param of a path at which it should
+create the SQLite file.
+
+If created as a temp file, the database file will be destroyed
+until END-time (as opposed to being destroyed when the DBI
+connection handle goes out of scope).
+
+Returns a L<DBI> connection (as a B<DBI::db> object) or throws
+an exception on error.
+
+=cut
+
+sub create_db {
+	my $self = shift;
+	my $file = undef;
+	if ( @_ ) {
+		# Explicit file name
+		die "CODE INCOMPLETE";
+	} else {
+		# Get a temp file name
+		my $dir  = File::Temp::tempdir( CLEANUP => 1 );
+		$file = File::Spec->catfile( $dir, 'sqlite.db' );
+	}
+
+	# Create the database
+	my $db = DBI->connect( 'dbi:SQLite:' . $file );
+	unless ( $db ) {
+		croak("Failed to create test DB handle");
+	}
+
+	return $db;
+}
+
+=pod
+
+=head1 create_db
+
+  $dbh = $archive->create_db; # Temp file created
+  $dbh = $archive->create_db( 'dir/sqlite.db' );
+
+=cut
+
+sub build_db {
+	my $self = shift;
+	my $dbh  = $self->new_db(@_);
+
+	# Execute any SQL files first, in order
+	foreach my $sql ( @{$self->{sql}} ) {
+		my $script = SQL::Script->new;
+		$script->read( $sql );
+		$script->run( $dbh );
+	}
+
+	# Now parse and insert any CSV data
+	foreach my $csv ( @{$self->{csv}} ) {
+		# Create the parser for the file
+		my $parser = Parse::CSV->new(
+			file   => $csv,
+			fields => 'auto',
+			) or die "Failed to create CSV::Parser for $csv";
+		my (undef, undef, $table) = File::Spec->splitpath($csv);
+		$csv =~ s/\.csv$// or die "Failed to find table name";
+
+		# Process the inserts
+		# Don't bother chunking for now, just auto-commit.
+		while ( my $row = $parser->fetch ) {
+			my $sql = "INSERT INTO $table ( "
+				. join( ', ',  keys %$row )
+				. " ) values ( "
+				. join( ', ', map { '?' } values %$row )
+				. " )";
+			$dbh->do( $sql ) and next;
+			die "Table insert failed in $csv: $DBI::errstr";
+		}
+	}
+
+	return 1;
+}
+
+1;
+
+__END__
 
 =head1 SUPPORT
 
