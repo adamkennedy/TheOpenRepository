@@ -17,7 +17,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.28';
+        $VERSION = '0.29';
 }
 
 # Does exec work on this platform
@@ -301,7 +301,7 @@ sub main {
 
 		# If there are subfilters, apply them as well
 		while ( @ARGV ) {
-			my $subpattern = quotemeta shift;
+			my $subpattern = quotemeta shift @ARGV;
 			@matches = grep { /$subpattern/i } @possible;
 		}
 		unless ( @matches ) {

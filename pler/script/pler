@@ -13,13 +13,13 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.28';
+	$VERSION = '0.29';
 }
 
 use pler ();
 
 unless ( $VERSION eq $pler::VERSION ) {
-	die "Error: Code version mismatch (launch script $VERSION loaded module $pler::$VERSION)";
+	die "Error: Version mismatch (launch script $VERSION using module $pler::VERSION)";
 }
 pler::main(@ARGV);
 

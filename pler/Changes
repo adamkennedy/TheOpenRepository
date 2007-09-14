@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+0.29 Fri 14 Sep 2007
+	- Bug in multiple filters would cause an infinite loop, fixed
+	- Fix a mistake in the version mismatch error message
+
 0.28 Fri 14 Sep 2007
 	- Added support for multiple filters, to make life easier in big test suites
 	  (So stuff like "pler db 4" will match t/db-tests/04_foo.t but not t/04_static.t)
