@@ -16,8 +16,8 @@ use t::lib::Test;
 use t::lib::TinyAuth;
 
 # Test files
-my $cgi_file    = rel2abs( catfile( 't', 'data', '02_index.cgi'  ) );
-ok( -f $cgi_file,    'Testing cgi file exists'    );
+my $cgi_file = rel2abs( catfile( 't', 'data', '08_login.cgi'  ) );
+ok( -f $cgi_file, 'Testing cgi file exists' );
 
 open( CGIFILE, $cgi_file ) or die "open: $!";
 my $cgi = CGI->new(\*CGIFILE);

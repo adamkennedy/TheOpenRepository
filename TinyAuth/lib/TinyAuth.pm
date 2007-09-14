@@ -48,6 +48,7 @@ use Object::Tiny qw{
 	cgi
 	auth
 	mailer
+	admin
 	action
 	header
 	title
@@ -138,6 +139,18 @@ sub new {
 		HOME     => $self->html__home,
 	};
 
+	# Apply security policy
+	if ( $self->cgi->param('_e') or $self->cgi->param('_p') ) {
+		my $admin = $self->authenticate(
+			$self->cgi->param('_e'),
+			$self->cgi->param('_p'),
+		);
+		unless ( $self->is_user_admin($admin) ) {
+			$self->error("User is not an administrator");
+		}
+		$self->{admin} = $admin;
+	}
+
 	return $self;
 }
 
@@ -225,6 +238,58 @@ sub view_index {
 	return 1;
 }
 
+# Login
+sub action_login {
+	my $self = shift;
+	my $email = _STRING($self->cgi->param('_e'));
+	unless ( $email ) {
+		return $self->error("You did not enter an email address");
+	}
+
+	# Does the account exist
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
+		return $self->error("No account for that email address");
+	}
+
+	# Get and check the password
+	my $password = _STRING($self->cgi->param('_p'));
+	unless ( $password ) {
+		return $self->error("You did not enter your current password");
+	}
+	unless ( $user->check_password($password) ) {
+		sleep 3;
+		return $self->error("Incorrect current password");
+	}
+
+	# Only admins can login
+	unless ( $self->is_user_admin($user) ) {
+		return $self->error("You are not an administrator");
+	}
+
+	# Authenticated.
+	# Set the cookies
+	my $user_cookie = CGI::cookie(
+		-name    => '_e',
+		-value   => $email,
+		-path    => '/',
+		-expires => '+1d',
+	);
+	my $pass_cookie = CGI::cookie(
+		-name    => '_p',
+		-value   => $password,
+		-path    => '/',
+		-expires => '+1d',
+	);
+	$self->{header} = CGI::header(
+		-cookie => [ $user_cookie, $pass_cookie ],
+	);
+
+	# Return to the main page
+	$self->view_index;
+}
+
+# Show the "I forgot my password" form
 sub view_forgot {
 	my $self = shift;
 	$self->print_template(
@@ -279,7 +344,7 @@ sub view_list {
 	my $list  = '';
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
-		if ( $self->is_admin($user) ) {
+		if ( $self->is_user_admin($user) ) {
 			$item = $self->cgi->b($item);
 		}
 		$list .= $item . $self->cgi->br . "\n";
@@ -301,7 +366,7 @@ sub view_promote {
 	my $list  = '';
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
-		if ( $self->is_admin($user) ) {
+		if ( $self->is_user_admin($user) ) {
 			$item = $self->cgi->b($item);
 		} else {
 			$item = $self->cgi->a($item);
@@ -330,7 +395,7 @@ sub action_promote {
 	}
 
 	# We can't operate on admins
-	if ( $self->is_admin($user) ) {
+	if ( $self->is_user_admin($user) ) {
 		return $self->error("Admins cannot modify other admins");
 	}
 
@@ -339,7 +404,7 @@ sub action_promote {
 	$user->extra_info('admin');
 
 	# Show the "Promoted ok" page
-	$self->view_message("Promoted $e to admin");
+	$self->view_message("Promoted $email to admin");
 }
 
 sub view_delete {
@@ -350,7 +415,7 @@ sub view_delete {
 	my $list  = '';
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
-		if ( $self->is_admin($user) ) {
+		if ( $self->is_user_admin($user) ) {
 			$item = $self->cgi->b($item);
 		} else {
 			$item = $self->cgi->a($item);
@@ -379,7 +444,7 @@ sub action_delete {
 	}
 
 	# We can't operate on admins
-	if ( $self->is_admin($user) ) {
+	if ( $self->is_user_admin($user) ) {
 		return $self->error("Admins cannot modify other admins");
 	}
 
@@ -388,7 +453,7 @@ sub action_delete {
 	$self->auth->delete_user($user);
 
 	# Show the "Deleted ok" page
-	$self->view_message("Deleted $e");
+	$self->view_message("Deleted $email");
 }
 
 sub view_change {
@@ -401,28 +466,12 @@ sub view_change {
 
 sub action_change {
 	my $self  = shift;
-	my $email = _STRING($self->cgi->param('e'));
-	unless ( $email ) {
-		return $self->error("You did not enter an email address");
-	}
+	my $user  = $self->authenticate(
+		$self->cgi->param('e'),
+		$self->cgi->param('p'),
+	);
 
-	# Does the account exist
-	my $user = $self->auth->lookup_user($email);
-	unless ( $user ) {
-		return $self->error("No account for that email address");
-	}
-
-	# Get and check the password
-	my $password = _STRING($self->cgi->param('p'));
-	unless ( $password ) {
-		return $self->error("You did not enter your current password");
-	}
-	unless ( $user->check_password($password) ) {
-		sleep 3;
-		return $self->error("Incorrect current password");
-	}
-
-	# Get and check the new password
+	# Check the new password
 	my $new = _STRING($self->cgi->param('n'));
 	unless ( $new ) {
 		return $self->error("Did not provide a new password");
@@ -544,7 +593,7 @@ sub print_template {
 	return 1;
 }
 
-sub is_admin {
+sub is_user_admin {
 	my $self = shift;
 	my $user = shift;
 	my $info = $user->extra_info;
@@ -559,9 +608,35 @@ sub all_users {
 			or
 			$a->[1] cmp $b->[1] # Then by username
 		}
-		map { [ $_, $_->username, $self->is_admin($_) ] }
+		map { [ $_, $_->username, $self->is_user_admin($_) ] }
 		$self->auth->all_users;
 	return @list;
+}
+
+sub authenticate {
+	my ($self, $email, $password) = @_;
+
+	# Check params
+	unless ( defined _STRING($email) ) {
+		return $self->error("Missing or invalid email address");
+	}
+	unless ( defined _STRING($password) ) {
+		return $self->error("Missing or invalid password");
+	}
+
+	# Does the account exist
+	my $user = $self->auth->lookup_user($email);
+	unless ( $user ) {
+		return $self->error("No account for that email address");
+	}
+
+	# Get and check the password
+	unless ( $user->check_password($password) ) {
+		sleep 3;
+		return $self->error("Incorrect password");
+	}
+
+	return $user;
 }
 
 
@@ -601,6 +676,29 @@ END_HTML
 
 sub html__home { <<'END_HTML' }
 <p><a href="?a=i">Back to the main page</a></p>
+END_HTML
+
+
+
+
+sub html_public { <<'END_HTML' }
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>User</h2>
+<p><a href="?a=f">I forgot my password</a></p>
+<p><a href="?a=c">I want to change my password</a></p>
+<h2>Admin</h2>
+<form method="post" name="f" action="">
+<p><input type="text" name="_e" size="30"> Email</p>
+<p><input type="text" name="_p" size="30"> Password</p>
+<p><input type="submit" name="s" value="Login"></p>
+</form>
+<hr>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+</body>
+</html>
 END_HTML
 
 
@@ -808,10 +906,6 @@ Password: [% password %]
 
 Have a nice day!
 END_TEXT
-
-
-
-
 
 1;
 
