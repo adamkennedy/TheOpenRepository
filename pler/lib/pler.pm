@@ -149,12 +149,16 @@ sub needs_build () {
 	has_buildpl and ! has_build;
 }
 
+sub mtime ($) {
+	(stat($_[0]))[9];
+}
+
 sub old_makefile () {
 	has_makefile
 	and
 	has_makefilepl
 	and
-	(stat(Makefile))[9] < (stat(MakefilePL))[9];
+	mtime(Makefile) < mtime(MakefilePL);
 }
 
 sub old_build () {
@@ -162,7 +166,7 @@ sub old_build () {
 	and
 	has_buildpl
 	and
-	(stat(Build))[9] < (stat(BuildPL))[9];
+	mtime(Build) < mtime(BuildPL);
 }
 
 
