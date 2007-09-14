@@ -17,7 +17,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.27';
+        $VERSION = '0.28';
 }
 
 # Does exec work on this platform
@@ -112,6 +112,13 @@ sub has_blib () {
 	!! -d blib;
 }
 
+sub blibpm () {
+	eval {
+		require blib;
+	};
+	return ! $@;
+}
+
 sub has_lib () {
 	!! -d lib;
 }
@@ -127,7 +134,7 @@ sub in_distroot () {
 }
 
 sub in_subdir () {
-        !! (
+	!! (
 		-f catfile( updir(), 'Makefile.PL' )
 		or
 		-d catdir( updir(), 't' )
@@ -155,7 +162,7 @@ sub old_build () {
 	and
 	has_buildpl
 	and
-	(stat(Makefile))[9] < (stat(BuildPL))[9];
+	(stat(Build))[9] < (stat(BuildPL))[9];
 }
 
 
@@ -235,13 +242,13 @@ sub main {
 	Cwd::chdir(curdir());
 	my $orig = $ENV{PWD} or die "Failed to get original directory";
 
-        # Can we locate the distribution root directory
-        if ( in_subdir ) {
-                Cwd::chdir(updir());
-        }
-        unless ( in_distroot ) {
-                error "Failed to locate the distribution root";
-        }
+	# Can we locate the distribution root directory
+	if ( in_subdir ) {
+		Cwd::chdir(updir());
+	}
+	unless ( in_distroot ) {
+		error "Failed to locate the distribution root";
+	}
 
 	# Makefile.PL? Or Build.PL?
 	my $BUILD_SYSTEM = has_buildpl ? 'build' : has_makefilepl ? 'make' : '';
@@ -281,26 +288,32 @@ sub main {
 		}
 
         } else {
-                # Get the list of possible tests
-                my @possible = FFR->file->name('*.t')->in( 't' );
+		# Get the list of possible tests
+		my @possible = FFR->file->name('*.t')->in( 't' );
 
-                # If a number, look for a numeric match
-                my $pattern = quotemeta $script;
-                my @matches = grep { /$pattern/ } @possible;
-                unless ( @matches ) {
-                        error "No tests match '$script'";
-                }
-                if ( @matches > 1 ) {
-                        error(
-                                "More than one possible test",
-                                map { "  $_" } sort @matches,
-                        );
-                }
-                $script = $matches[0];
+		# Look for a naive string match
+		my $pattern = quotemeta $script;
+		my @matches = grep { /$pattern/i } @possible;
 
-                # Localize the path
-                $script = File::Spec->catfile( split /\//, $script );
-        }
+		# If there are subfilters, apply them as well
+		while ( @ARGV ) {
+			my $subpattern = quotemeta shift;
+			@matches = grep { /$subpattern/i } @possible;
+		}
+		unless ( @matches ) {
+			error "No tests match '$script'";
+		}
+		if ( @matches > 1 ) {
+			error(
+			        "More than one possible test",
+		        	map { "  $_" } sort @matches,
+			);
+		}
+		$script = $matches[0];
+
+		# Localize the path
+		$script = File::Spec->catfile( split /\//, $script );
+	}
         unless ( -f $script ) {
                 error "Test script '$script' does not exist";
         }
@@ -319,20 +332,21 @@ sub main {
 		}
 	}
 
-        # Build the command to execute
-        my @flags = @SWITCHES;
-        if ( has_blib ) {
-                push @flags, '-Mblib';
-        } elsif ( has_lib ) {
-                push @flags, '-Ilib';
-        }
+	# Build the command to execute
+	my @flags = @SWITCHES;
+	if ( has_blib ) {
+		push @flags, '-Mblib';
 
-        # Hand off to the perl debugger
-        unless ( pler->is_verbose ) {
-                message( "# Debugging $script...\n" );
-        }
-        my @cmd = ( perl, @flags, '-d', $script );
-        handoff( @cmd );
+	} elsif ( has_lib ) {
+		push @flags, '-Ilib';
+	}
+
+	# Hand off to the perl debugger
+	unless ( pler->is_verbose ) {
+		message( "# Debugging $script...\n" );
+	}
+	my @cmd = ( perl, @flags, '-d', $script );
+	handoff( @cmd );
 }
 
 sub help { print <<'END_HELP'; exit(0); }

@@ -1,5 +1,14 @@
 Revision history for Perl extension pler
 
+0.28 Fri 14 Sep 2007
+	- Added support for multiple filters, to make life easier in big test suites
+	  (So stuff like "pler db 4" will match t/db-tests/04_foo.t but not t/04_static.t)
+	- All pattern filters are now case-insensitive
+	- Bug Fix: Stopped needlessly running ./Build every time
+	  (A typo meant I was statting the wrong file in the shortcutting test)
+	- Script now tests that it loads the module with matching version
+	- Adding explicit dependencies for core modules (just in case)
+
 0.27 Mon 27 Aug 2007
 	- Added a first experimental attempt at Module::Build support
 
