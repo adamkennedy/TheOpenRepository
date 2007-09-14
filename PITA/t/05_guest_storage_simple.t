@@ -14,6 +14,7 @@ use PITA                         ();
 use PITA::Guest::Storage::Simple ();
 use File::Remove                 'remove';
 use File::Spec::Functions        ':ALL';
+use Params::Util                 '_SET';
 
 # Set up an existing directory
 my $storage_dir = catdir( 't', 'storage_simple' );
@@ -56,5 +57,9 @@ ok(   $guest->id, 'Guest has an identifier' );
 my $guest2 = $storage->guest($id);
 isa_ok( $guest2, 'PITA::XML::Guest' );
 is_deeply( $guest, $guest2, 'Guest refetched matches original' );
+
+# Get the set of platforms
+my @platforms = $storage->platforms;
+ok( !! _SET0(\@platforms, 'PITA::XML::Platform'), '->platforms ok' );
 
 exit(0);
