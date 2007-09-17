@@ -16,12 +16,6 @@ use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
-# Test files
-my $cgi_file1 = rel2abs( catfile( 't', 'data', '06_adduser1.cgi'  ) );
-my $cgi_file2 = rel2abs( catfile( 't', 'data', '06_adduser2.cgi'  ) );
-ok( -f $cgi_file1, 'Testing cgi file exists' );
-ok( -f $cgi_file2, 'Testing cgi file exists' );
-
 
 
 
@@ -30,17 +24,7 @@ ok( -f $cgi_file2, 'Testing cgi file exists' );
 # Show the "I forgot my password" form
 
 SCOPE: {
-	open( CGIFILE, $cgi_file1 ) or die "open: $!";
-	my $cgi = CGI->new(\*CGIFILE);
-	close( CGIFILE );
-
-	# Create the object
-	my $instance = t::lib::TinyAuth->new(
-		config => default_config(),
-		cgi    => $cgi,
-	);
-	isa_ok( $instance, 't::lib::TinyAuth' );
-	isa_ok( $instance, 'TinyAuth' );
+	my $instance = t::lib::TinyAuth->new( "06_adduser1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -76,17 +60,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	open( CGIFILE, $cgi_file2 ) or die "open: $!";
-	my $cgi = CGI->new(\*CGIFILE);
-	close( CGIFILE );
-
-	# Create the object
-	my $instance = t::lib::TinyAuth->new(
-		config => default_config(),
-		cgi    => $cgi,
-	);
-	isa_ok( $instance, 't::lib::TinyAuth' );
-	isa_ok( $instance, 'TinyAuth' );
+	my $instance = t::lib::TinyAuth->new( "06_adduser1.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;

@@ -179,7 +179,9 @@ sub email_driver {
 
 sub run {
 	my $self = shift;
-	if ( $self->action eq 'f' ) {
+	if ( $self->action eq 'o' ) {
+		return $self->action_logout;
+	} elsif ( $self->action eq 'f' ) {
 		return $self->view_forgot;
 	} elsif ( $self->action eq 'r' ) {
 		return $self->action_forgot;
@@ -233,7 +235,9 @@ sub send_email {
 sub view_index {
 	my $self = shift;
 	$self->print_template(
-		$self->html_index,
+		$self->admin
+			? $self->html_index
+			: $self->html_public
 	);
 	return 1;
 }
@@ -267,26 +271,37 @@ sub action_login {
 		return $self->error("You are not an administrator");
 	}
 
-	# Authenticated.
-	# Set the cookies
-	my $user_cookie = CGI::cookie(
-		-name    => '_e',
-		-value   => $email,
-		-path    => '/',
-		-expires => '+1d',
-	);
-	my $pass_cookie = CGI::cookie(
-		-name    => '_p',
-		-value   => $password,
-		-path    => '/',
-		-expires => '+1d',
-	);
+	# Authenticated, set the cookies
 	$self->{header} = CGI::header(
-		-cookie => [ $user_cookie, $pass_cookie ],
+		-cookie => [
+			CGI::cookie(
+				-name    => '_e',
+				-value   => $email,
+				-path    => '/',
+				-expires => '+1d',
+			),
+			CGI::cookie(
+				-name    => '_p',
+				-value   => $password,
+				-path    => '/',
+				-expires => '+1d',
+			),
+		],
 	);
 
 	# Return to the main page
 	$self->view_index;
+}
+
+# Logout
+sub action_logout {
+	my $self = shift;
+
+	# Remove the cookies
+	die "CODE INCOMPLETE";
+
+	# Return to the index page
+	return $self->view_index;
 }
 
 # Show the "I forgot my password" form

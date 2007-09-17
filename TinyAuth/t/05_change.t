@@ -30,17 +30,10 @@ ok( -f $cgi_file2, 'Testing cgi file exists' );
 # Show the "I forgot my password" form
 
 SCOPE: {
-	open( CGIFILE, $cgi_file1 ) or die "open: $!";
-	my $cgi = CGI->new(\*CGIFILE);
-	close( CGIFILE );
-
-	# Create the object
 	my $instance = t::lib::TinyAuth->new(
 		config => default_config(),
-		cgi    => $cgi,
+		cgi    => [qw{ t data 05_change1.cgi }],
 	);
-	isa_ok( $instance, 't::lib::TinyAuth' );
-	isa_ok( $instance, 'TinyAuth' );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -95,20 +88,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	open( CGIFILE, $cgi_file2 ) or die "open: $!";
-	my $cgi = CGI->new(\*CGIFILE);
-	close( CGIFILE );
-
-	# Create the object
-	my $instance = t::lib::TinyAuth->new(
-		config => default_config(),
-		cgi    => $cgi,
-	);
-	isa_ok( $instance, 't::lib::TinyAuth' );
-	isa_ok( $instance, 'TinyAuth' );
-
-	# Set the password to what we want
-	$instance->auth->lookup_user('adamk@cpan.org')->set(password => 'foo');
+	my $instance = t::lib::TinyAuth->new( "05_change2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );

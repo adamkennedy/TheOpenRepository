@@ -3,24 +3,50 @@ package t::lib::TinyAuth;
 # Testing subclass of TinyAuth that captures instead of prints
 use strict;
 use base 'TinyAuth';
-use YAML::Tiny ();
+use YAML::Tiny   ();
+use t::lib::Test ();
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 }
 
-use Object::Tiny qw{
-	stdout
-};
-
 sub new {
-	my $self = shift->SUPER::new(@_);
+	my $class  = shift;
 
-	# Add the output
+	# Load the CGI file if needed
+	my %params = (@_ == 1) ? (cgi => [ 't', 'data', shift ]) : @_;
+	unless ( defined $params{config} ) {
+		$params{config} = t::lib::Test::default_config();
+	}
+	if ( defined $params{cgi} ) {
+		if ( ref $params{cgi} eq 'ARRAY' ) {
+			$params{cgi} = File::Spec->catfile( @{$params{cgi}} );
+			Test::More::ok( -f $params{cgi}, "CGI file $params{cgi} exists" );
+		}
+		if ( ! ref $params{cgi} and length $params{cgi} ) {
+			open( CGIFILE, $params{cgi} ) or die "open: $!";
+			$params{cgi} = CGI->new(\*CGIFILE);
+			close( CGIFILE );
+			Test::More::isa_ok( $params{cgi}, 'CGI' );
+		}
+	}
+
+	# Create the object
+	my $self = $class->SUPER::new(%params);
+
+	# Add the output string
 	$self->{stdout} = '';
 
+	# Self-test
+	Test::More::isa_ok( $self, 't::lib::TinyAuth' );
+	Test::More::isa_ok( $self, 'TinyAuth'         );
+
 	return $self;
+}
+
+sub stdout {
+	$_[0]->{stdout};
 }
 
 sub print {
