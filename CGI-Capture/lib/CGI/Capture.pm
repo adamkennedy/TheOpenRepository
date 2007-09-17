@@ -68,6 +68,21 @@ in your @INC path (such as with PAR files), you will need to disable
 security for Storable by setting $CGI::Capture::DEPARSE to true, which will
 enable B::Deparse and Eval support for stored objects.
 
+=head2 Hand-Crafting CGI Captures
+
+In its default usage, B<CGI::Capture> takes an all or nothing approach,
+requiring you to capture absolutely every element of a CGI call.
+
+Sometimes you want to be a little more targetted, and for these situations
+an alternative methodology is provided.
+
+The C<as_yaml> and C<from_yaml> methods allow you to store and retrieve a
+CGI capture using L<YAML::Tiny> instead of L<Storable>.
+
+
+
+Instead of 
+
 =head1 METHODS
 
 In most cases, the above is all you probably need. However, if you want to
@@ -246,8 +261,10 @@ sub from_yaml {
 	%$self = %{$yaml->[0]};
 
 	# Correct some nigglies
-	my $stdin = $self->{STDIN};
-	$self->{STDIN} = \$stdin;
+	if ( exists $self->{STDIN} ) {
+		my $stdin = $self->{STDIN};
+		$self->{STDIN} = \$stdin;
+	}
 
 	return $self;
 }
@@ -403,20 +420,32 @@ sub apply {
 	$self->{CAPTURE_TIME} or die "Cannot apply empty capture object";
 
 	# Update the environment
-	%ENV = %{$self->{ENV}};
+	if ( exists $self->{ENV} ) {
+		%ENV = %{$self->{ENV}};
+	}
 
 	# Set @ARGV
-	@ARGV = @{$self->{ARGV}};
+	if ( exists $self->{ARGV} ) {
+		@ARGV = @{$self->{ARGV}};
+	}
 
 	# Set STDIN
-	$self->_stdin( $self->{STDIN} );
+	if ( exists $self->{STDIN} ) {
+		$self->_stdin( $self->{STDIN} );
+	}
 
 	# Replace INC
-	@INC = @{$self->{INC}};
+	if ( exists $self->{INC} ) {
+		@INC = @{$self->{INC}};
+	}
 
 	# Replace the internal variables we are allowed to
-	$| = $self->{OUTPUT_AUTOFLUSH};
-	$0 = $self->{PROGRAM_NAME};
+	if ( exists $self->{OUTPUT_AUTOFLUSH} ) {
+		$| = $self->{OUTPUT_AUTOFLUSH};
+	}
+	if ( exists $self->{PROGRAM_NAME} ) {
+		$0 = $self->{PROGRAM_NAME};
+	}
 
 	# Check that the variables we can't control match
 	$self->_check( CAPTURE_VERSION    => $VERSION                  );
@@ -437,7 +466,10 @@ sub apply {
 sub _check {
 	my $self  = shift;
 	my $name  = defined $_[0] ? shift : die "Var name not passed to ->_check";
-	exists $self->{$name} or die "Bad name passed to ->_check";
+	unless ( exists $self->{$name} ) {
+		# Not defined in the capture, nothing to check
+		return;
+	}
 	my $value = shift;
 	unless ( defined $self->{$name} or defined $value ) {
 		return 1;
