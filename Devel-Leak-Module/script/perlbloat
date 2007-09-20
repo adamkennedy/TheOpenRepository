@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use 5.005;
+use strict;
+use Devel::Leak::Module;
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01_01';
+}
+
+# Set the initial checkpoint
+Devel::Leak::Module::checkpoint;
+
+# Load the passed modules
+foreach my $load ( @ARGV ) {
+	eval "require $load;";
+	if ( $@ ) {
+		print "Loaded:   $load\n";
+	} else {
+		print "Loaded:   $load (failed!)\n";
+	}
+}
+
+Devel::Leak::Module::print_new();
+
+exit(0);
