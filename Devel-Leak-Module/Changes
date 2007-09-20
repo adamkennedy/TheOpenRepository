@@ -1,0 +1,7 @@
+Changes for Perl extension Devel-Leak-Module
+
+0.01_02 Thu 20 Sep 2007
+	- Estimated too high for minimum packages in the tests
+
+0.01_01 Thu 20 Sep 2007
+	- Creating initial test release

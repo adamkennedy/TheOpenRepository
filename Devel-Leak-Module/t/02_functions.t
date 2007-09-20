@@ -40,8 +40,8 @@ SCOPE: {
 	unless ( scalar(@names1) > 40 ) {
 		diag("Found " . scalar(@names1) . " namespaces");
 	}
-	ok( scalar(@packages1) > 25, 'Found enough packages'   );
-	unless ( scalar(@packages1) > 25 ) {
+	ok( scalar(@packages1) > 20, 'Found enough packages'   );
+	unless ( scalar(@packages1) > 20 ) {
 		diag("Found " . scalar(@packages1) . " namespaces");
 	}
 	ok( scalar(@modules1)  > 15, 'Found enough modules'    );
