@@ -17,7 +17,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.29';
+        $VERSION = '0.30';
 }
 
 # Does exec work on this platform
@@ -246,13 +246,29 @@ sub main {
 	Cwd::chdir(curdir());
 	my $orig = $ENV{PWD} or die "Failed to get original directory";
 
-	# Can we locate the distribution root directory
-	if ( in_subdir ) {
-		Cwd::chdir(updir());
+        # Can we locate the distribution root
+	my ($v,$d,$f) = splitpath($ENV{PWD}, 'nofile');
+	my @dirs      = splitdir($d);
+	while ( @dirs ) {
+		my $buildpl = catpath(
+			$v, catdir(@dirs), BuildPL,
+		);
+		my $makefilepl = catpath(
+			$v, catdir(@dirs), MakefilePL,
+		);
+		unless ( -f $buildpl or -f $makefilepl ) {
+			pop @dirs;
+			next;
+		}
+
+		# This is a distroot
+		my $distroot = catpath( $v, catdir(@dirs), undef );
+		Cwd::chdir($distroot);
+		last;
 	}
-	unless ( in_distroot ) {
-		error "Failed to locate the distribution root";
-	}
+        unless ( in_distroot ) {
+                error "Failed to locate the distribution root";
+        }
 
 	# Makefile.PL? Or Build.PL?
 	my $BUILD_SYSTEM = has_buildpl ? 'build' : has_makefilepl ? 'make' : '';

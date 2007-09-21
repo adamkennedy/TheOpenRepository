@@ -1,5 +1,10 @@
 Revision history for Perl extension pler
 
+0.30 Thu  6 Sep 2007
+        - Adding support for multiple filters
+        - Detect the distroot correctly from multiple
+          levels down subdirectories.
+
 0.29 Fri 14 Sep 2007
 	- Bug in multiple filters would cause an infinite loop, fixed
 	- Fix a mistake in the version mismatch error message
