@@ -6,6 +6,7 @@ all_from       'lib/TinyAuth.pm';
 requires       'Carp'                     => 0;
 requires       'FindBin'                  => 0;
 requires       'CGI'                      => '3.00';
+requires       'CGI::Cookie'              => 0;
 requires       'Params::Util'             => '0.21';
 requires       'Object::Tiny'             => '1.02';
 requires       'YAML::Tiny'               => '1.12';

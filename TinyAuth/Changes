@@ -1,9 +1,10 @@
 Changes for Perl extension TinyAuth
 
-0.07 Fri 21 Sep 2007
-	- Adding promotion to admin status
-	- Adding support for admin information via cookies
+0.90 Fri 21 Sep 2007
+	- BETA RELEASE. TEST AWAY FOLKS
+	- Huge amount of code added, all primary functionality completed.
 	- Completed primary set of tests
+	- Implemented security model, with tests
 
 0.06 Wed 22 Jul 2007
 	- Various small bug fixes
