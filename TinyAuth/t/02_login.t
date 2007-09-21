@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.90';
+	$VERSION = '0.07';
 }
 
 use Test::More tests => 36;
@@ -35,7 +35,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>TinyAuth 0.07</title>
 </head>
 
 <body>
@@ -104,6 +104,42 @@ END_HTML
 
 
 #####################################################################
+# Bad Login
+
+SCOPE: {
+	my $instance = t::lib::TinyAuth->new( "02_login2.cgi" );
+
+	# Was an admin user found and set?
+        ok( $instance->user, 'Admin user set' );
+        isa_ok( $instance->user, 'Authen::Htpasswd::User' );
+
+	# Run the instance
+	is( $instance->run, 1, '->run ok' );
+
+	# Check the output
+	cgi_cmp( $instance->stdout, <<"END_HTML", '->stdout returns as expect' );
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>TinyAuth $VERSION</title>
+</head>
+
+<body>
+<h1>Error</h1>
+<h2>Incorrect password</h2>
+</body>
+</html>
+
+END_HTML
+}
+
+
+
+
+
+#####################################################################
 # Normal Index Page
 
 SCOPE: {
@@ -120,7 +156,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>TinyAuth 0.07</title>
 </head>
 
 <body>
@@ -168,7 +204,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>TinyAuth 0.07</title>
 </head>
 
 <body>
