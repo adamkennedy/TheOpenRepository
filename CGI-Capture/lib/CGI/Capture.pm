@@ -79,9 +79,14 @@ an alternative methodology is provided.
 The C<as_yaml> and C<from_yaml> methods allow you to store and retrieve a
 CGI capture using L<YAML::Tiny> instead of L<Storable>.
 
+Once you have stored the CGI capture as a YAML file, you can hand-edit the
+capture file, removing any keys you will not want to be restored, keeping
+only the useful parts.
 
-
-Instead of 
+For example, to create a test file upload or CGI request involving
+cookies, you could discard everything except for the STDIN section of
+the capture file, which will then allow you to reuse the capture on
+other hosts, operating systems, and so on.
 
 =head1 METHODS
 
