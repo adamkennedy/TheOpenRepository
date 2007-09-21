@@ -35,9 +35,6 @@ sub new {
 	# Create the object
 	my $self = $class->SUPER::new(%params);
 
-	# Add the output string
-	$self->{stdout} = '';
-
 	# Self-test
 	Test::More::isa_ok( $self, 't::lib::TinyAuth' );
 	Test::More::isa_ok( $self, 'TinyAuth'         );
@@ -46,11 +43,14 @@ sub new {
 }
 
 sub stdout {
-	$_[0]->{stdout};
+	$_[0]->{stdout} || '';
 }
 
 sub print {
 	my $self = shift;
+	unless ( defined $self->{stdout} ) {
+		$self->{stdout} = '';
+	}
 	$self->{stdout} .= join '', @_;
 	return 1;
 }

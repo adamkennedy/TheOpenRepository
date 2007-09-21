@@ -6,7 +6,7 @@ use base 'Module::CGI::Install';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.90';
+	$VERSION = '0.91';
 }
 
 sub prepare {

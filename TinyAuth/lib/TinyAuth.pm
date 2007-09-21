@@ -39,7 +39,7 @@ use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.90';
+	$VERSION = '0.91';
 }
 
 use Object::Tiny qw{
@@ -153,8 +153,7 @@ sub new {
 	}
 	if ( ref $self->{user} ) {
 		unless ( $self->is_user_admin($self->{user}) ) {
-			$self->{action} = 'error';
-			$self->{error}  = 'Only administrators are allowed to do that';
+			$self->error('Only administrators are allowed to do that');
 		}
 	} else {
 		delete $self->{user};
@@ -213,8 +212,6 @@ sub run {
 	} elsif ( $self->action eq 'e' ) {
 		return $self->action_delete;
 	} elsif ( $self->action eq 'error' ) {
-		return $self->error( delete $self->{error} );
-	} elsif ( $self->action eq 'done' ) {
 		return 1;
 	} else {
 		return $self->view_index;
@@ -631,7 +628,7 @@ sub error {
 	$self->print_template(
 		$self->html_error,
 	);
-	$self->{action} = 'done';
+	$self->{action} = 'error';
 	return 1;
 }
 

@@ -1,5 +1,9 @@
 Changes for Perl extension TinyAuth
 
+0.91 Fri 21 Sep 2007
+	- Errors during authentication at constructor time create bad instances
+	- Add explicit test for logins with bad passwords
+
 0.90 Fri 21 Sep 2007
 	- BETA RELEASE. TEST AWAY FOLKS
 	- Huge amount of code added, all primary functionality completed.

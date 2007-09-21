@@ -5,10 +5,10 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.90';
+	$VERSION = '0.91';
 }
 
-use Test::More tests => 36;
+use Test::More tests => 45;
 
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
