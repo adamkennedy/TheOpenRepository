@@ -8,19 +8,13 @@ BEGIN {
 	$VERSION = '0.07';
 }
 
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
-
-# Test files
-my $cgi_file1 = rel2abs( catfile( 't', 'data', '05_change1.cgi'  ) );
-my $cgi_file2 = rel2abs( catfile( 't', 'data', '05_change2.cgi'  ) );
-ok( -f $cgi_file1, 'Testing cgi file exists' );
-ok( -f $cgi_file2, 'Testing cgi file exists' );
 
 
 
@@ -30,10 +24,7 @@ ok( -f $cgi_file2, 'Testing cgi file exists' );
 # Show the "I forgot my password" form
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(
-		config => default_config(),
-		cgi    => [qw{ t data 05_change1.cgi }],
-	);
+	my $instance = t::lib::TinyAuth->new( '05_change1.cgi' );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );

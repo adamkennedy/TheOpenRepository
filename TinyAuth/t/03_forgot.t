@@ -8,7 +8,7 @@ BEGIN {
 	$VERSION = '0.07';
 }
 
-use Test::More tests => 23;
+use Test::More tests => 26;
 
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;

@@ -10,7 +10,7 @@ BEGIN {
 	$VERSION = '0.07';
 }
 
-use Test::More tests => 16;
+use Test::More tests => 34;
 
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
@@ -23,9 +23,71 @@ use t::lib::TinyAuth;
 
 
 #####################################################################
+# Try to the actions as a (forbidden) regular user
+
+SCOPE: {
+	my $instance = t::lib::TinyAuth->new(  "07_promote1.cgi" );
+
+	# Run the instance
+	is( $instance->run, 1, '->run ok' );
+
+	# Check the output
+	cgi_cmp( $instance->stdout, <<"END_HTML", '->stdout returns as expect' );
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>TinyAuth $VERSION</title>
+</head>
+
+<body>
+<h1>Error</h1>
+<h2>Only administrators are allowed to do that</h2>
+</body>
+</html>
+
+END_HTML
+}
+
+SCOPE: {
+	my $instance = t::lib::TinyAuth->new(  "07_promote2.cgi" );
+
+	# Run the instance
+	is( $instance->run, 1, '->run ok' );
+
+	# Check the output
+	cgi_cmp( $instance->stdout, <<"END_HTML", '->stdout returns as expect' );
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>TinyAuth $VERSION</title>
+</head>
+
+<body>
+<h1>Error</h1>
+<h2>Only administrators are allowed to do that</h2>
+</body>
+</html>
+
+END_HTML
+}
+
+
+
+
+
+
+
+
+
+#####################################################################
 # Show the "I forgot my password" form
 
 SCOPE: {
+	$ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
 	my $instance = t::lib::TinyAuth->new( "07_promote1.cgi" );
 
 	# Run the instance
@@ -42,12 +104,10 @@ SCOPE: {
 </head>
 
 <body>
-<h2>Admin - Add a new user</h2>
-<form method="post" name="f">
-<input type="hidden" name="a" value="a">
-<p>Email <input type="text" name="e" size="30"></p>
-<p><input type="submit" name="s" value="Add New User"></p>
-</form>
+<h2>Click to Promote Account</h2>
+<b>adamk\@cpan.org</b><br />
+<a href="http://localhost?a=m;e=foo%40bar.com">foo\@bar.com</a><br />
+
 </body>
 </html>
 
@@ -80,7 +140,7 @@ SCOPE: {
 
 <body>
 <h1>Action Completed</h1>
-<h2>Added new user foo\@bar.com</h2>
+<h2>Promoted account foo\@bar.com to admin</h2>
 </body>
 </html>
 

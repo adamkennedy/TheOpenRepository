@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+# Test promotion to administrator
+
 use strict;
 use vars qw{$VERSION};
 BEGIN {
@@ -8,7 +10,7 @@ BEGIN {
 	$VERSION = '0.07';
 }
 
-use Test::More tests => 34;
+use Test::More tests => 32;
 
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
@@ -24,7 +26,7 @@ use t::lib::TinyAuth;
 # Try to the actions as a (forbidden) regular user
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "06_adduser1.cgi" );
+	my $instance = t::lib::TinyAuth->new(  "08_delete1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -49,7 +51,7 @@ END_HTML
 }
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "06_adduser2.cgi" );
+	my $instance = t::lib::TinyAuth->new(  "08_delete2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -72,6 +74,10 @@ SCOPE: {
 
 END_HTML
 }
+
+
+
+
 
 
 
@@ -80,10 +86,9 @@ END_HTML
 #####################################################################
 # Show the "I forgot my password" form
 
-$ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
-
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "06_adduser1.cgi" );
+	$ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
+	my $instance = t::lib::TinyAuth->new( "08_delete1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -99,12 +104,10 @@ SCOPE: {
 </head>
 
 <body>
-<h2>Admin - Add a new user</h2>
-<form method="post" name="f">
-<input type="hidden" name="a" value="a">
-<p>Email <input type="text" name="e" size="30"></p>
-<p><input type="submit" name="s" value="Add New User"></p>
-</form>
+<h2>Click to Delete Account</h2>
+<b>adamk\@cpan.org</b><br />
+<a href="http://localhost?a=e;e=foo%40bar.com">foo\@bar.com</a><br />
+
 </body>
 </html>
 
@@ -119,7 +122,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "06_adduser2.cgi" );
+	my $instance = t::lib::TinyAuth->new( "08_delete2.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;
@@ -137,14 +140,9 @@ SCOPE: {
 
 <body>
 <h1>Action Completed</h1>
-<h2>Added new user foo\@baz.com</h2>
+<h2>Deleted account foo\@bar.com</h2>
 </body>
 </html>
 
 END_HTML
-
-	# Look for a test email
-	my @mails = Email::Send::Test->emails;
-	is( scalar(@mails), 1, 'Found 1 email' );
-	isa_ok( $mails[0], 'Email::Simple' );
 }

@@ -48,7 +48,7 @@ use Object::Tiny qw{
 	cgi
 	auth
 	mailer
-	admin
+	user
 	action
 	header
 	title
@@ -141,14 +141,23 @@ sub new {
 
 	# Apply security policy
 	if ( $self->cgi->param('_e') or $self->cgi->param('_p') ) {
-		my $admin = $self->authenticate(
+		$self->{user} = $self->authenticate(
 			$self->cgi->param('_e'),
 			$self->cgi->param('_p'),
 		);
-		unless ( $self->is_user_admin($admin) ) {
-			$self->error("User is not an administrator");
+		unless ( $self->is_user_admin($self->{user}) ) {
+			$self->{action} = 'error';
+			$self->{error}  = 'Only administrators are allowed to do that';
 		}
-		$self->{admin} = $admin;
+	} elsif ( $self->cgi->cookie('e') and $self->cgi->cookie('p') ) {
+		$self->{user} = $self->authenticate(
+			$self->cgi->cookie('e'),
+			$self->cgi->cookie('p'),
+		);
+		unless ( $self->is_user_admin($self->{user}) ) {
+			$self->{action} = 'error';
+			$self->{error}  = 'Only administrators are allowed to do that';
+		}
 	}
 
 	return $self;
@@ -201,8 +210,10 @@ sub run {
 		return $self->action_promote;
 	} elsif ( $self->action eq 'd' ) {
 		return $self->view_delete;
-	} elsif ( $self->action eq 'r' ) {
-		retunr $self->action_delete;
+	} elsif ( $self->action eq 'e' ) {
+		return $self->action_delete;
+	} elsif ( $self->action eq 'error' ) {
+		return $self->view_error( delete $self->{error} );
 	} else {
 		return $self->view_index;
 	}
@@ -232,10 +243,11 @@ sub send_email {
 #####################################################################
 # Main Methods
 
+# The front page
 sub view_index {
 	my $self = shift;
 	$self->print_template(
-		$self->admin
+		$self->user
 			? $self->html_index
 			: $self->html_public
 	);
@@ -267,21 +279,19 @@ sub action_login {
 	}
 
 	# Only admins can login
-	unless ( $self->is_user_admin($user) ) {
-		return $self->error("You are not an administrator");
-	}
+	$self->admins_only($user) or return 1;
 
 	# Authenticated, set the cookies
 	$self->{header} = CGI::header(
 		-cookie => [
 			CGI::cookie(
-				-name    => '_e',
+				-name    => 'e',
 				-value   => $email,
 				-path    => '/',
 				-expires => '+1d',
 			),
 			CGI::cookie(
-				-name    => '_p',
+				-name    => 'p',
 				-value   => $password,
 				-path    => '/',
 				-expires => '+1d',
@@ -297,9 +307,27 @@ sub action_login {
 sub action_logout {
 	my $self = shift;
 
-	# Remove the cookies
-	die "CODE INCOMPLETE";
+	# Set the user/pass cookies to null
+	$self->{header} = CGI::header(
+		-cookie => [
+			CGI::cookie(
+				-name    => 'e',
+				-value   => '0',
+				-path    => '/',
+				-expires => '-1y',
+			),
+			CGI::cookie(
+				-name    => 'p',
+				-value   => '0',
+				-path    => '/',
+				-expires => '-1y',
+			),
+		],
+	);
 
+	# Clear the current user
+	delete $self->{user};
+	
 	# Return to the index page
 	return $self->view_index;
 }
@@ -352,7 +380,8 @@ sub send_forgot {
 }
 
 sub view_list {
-	my $self  = shift;
+	my $self = shift;
+	$self->admins_only or return 1;
 
 	# Prepare the user list
 	my @users = $self->all_users;
@@ -375,16 +404,22 @@ sub view_list {
 
 sub view_promote {
 	my $self = shift;
+	$self->admins_only or return 1;
 
 	# Prepare the user list
 	my @users = $self->all_users;
 	my $list  = '';
+	my $cgi   = $self->cgi;
+	$cgi->param( a => 'm');
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
 		if ( $self->is_user_admin($user) ) {
 			$item = $self->cgi->b($item);
 		} else {
-			$item = $self->cgi->a($item);
+			$cgi->param( e => $item );
+			$item = $self->cgi->a( {
+				-href => $cgi->self_url,
+				}, $item );
 		}
 		$list .= $item . $self->cgi->br . "\n";
 	}
@@ -398,12 +433,13 @@ sub view_promote {
 
 sub action_promote {
 	my $self = shift;
+	$self->admins_only or return 1;
+
+	# Does the account exist
 	my $email = _STRING($self->cgi->param('e'));
 	unless ( $email ) {
 		return $self->error("You did not enter an email address");
 	}
-
-	# Does the account exist
 	my $user = $self->auth->lookup_user($email);
 	unless ( $user ) {
 		return $self->error("No account for that email address");
@@ -411,29 +447,50 @@ sub action_promote {
 
 	# We can't operate on admins
 	if ( $self->is_user_admin($user) ) {
-		return $self->error("Admins cannot modify other admins");
+		return $self->error("You cannot control other admins");
 	}
 
 	# Thus, they exist and are not an admin.
 	# So we now upgrade them to an admin.
 	$user->extra_info('admin');
 
+	# Send the promotion email
+	$self->{args}->{email} = $user->username;
+	$self->send_promote($user);
+
 	# Show the "Promoted ok" page
-	$self->view_message("Promoted $email to admin");
+	$self->view_message("Promoted account $email to admin");
+}
+
+sub send_promote {
+	my ($self, $user) = @_;
+	$self->send_email(
+		to      => $user->username,
+		subject => '[TinyAuth] You have been promoted to admin',
+		body    => $self->template(
+			$self->email_promote,
+		),
+	);
 }
 
 sub view_delete {
 	my $self = shift;
+	$self->admins_only or return 1;
 
 	# Prepare the user list
 	my @users = $self->all_users;
 	my $list  = '';
+	my $cgi   = $self->cgi;
+	$cgi->param( a => 'e');
 	foreach my $user ( @users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
 		if ( $self->is_user_admin($user) ) {
 			$item = $self->cgi->b($item);
 		} else {
-			$item = $self->cgi->a($item);
+			$cgi->param( e => $item );
+			$item = $self->cgi->a( {
+				-href => $cgi->self_url,
+				}, $item );
 		}
 		$list .= $item . $self->cgi->br . "\n";
 	}
@@ -447,12 +504,13 @@ sub view_delete {
 
 sub action_delete {
 	my $self = shift;
+	$self->admins_only or return 1;
+
+	# Does the account exist
 	my $email = _STRING($self->cgi->param('e'));
 	unless ( $email ) {
 		return $self->error("You did not enter an email address");
 	}
-
-	# Does the account exist
 	my $user = $self->auth->lookup_user($email);
 	unless ( $user ) {
 		return $self->error("No account for that email address");
@@ -460,7 +518,7 @@ sub action_delete {
 
 	# We can't operate on admins
 	if ( $self->is_user_admin($user) ) {
-		return $self->error("Admins cannot modify other admins");
+		return $self->error("Admins cannot control other admins");
 	}
 
 	# Thus, they exist and are not an admin.
@@ -468,7 +526,7 @@ sub action_delete {
 	$self->auth->delete_user($user);
 
 	# Show the "Deleted ok" page
-	$self->view_message("Deleted $email");
+	$self->view_message("Deleted account $email");
 }
 
 sub view_change {
@@ -507,6 +565,7 @@ sub action_change {
 
 sub view_new {
 	my $self = shift;
+	$self->admins_only or return 1;
 	$self->print_template(
 		$self->html_new,
 	);
@@ -515,6 +574,7 @@ sub view_new {
 
 sub action_new {
 	my $self = shift;
+	$self->admins_only or return 1;
 
 	# Get the new user
 	my $email = _STRING($self->cgi->param('e'));
@@ -547,7 +607,7 @@ sub send_new {
 	my ($self, $user) = @_;
 	$self->send_email(
 		to      => $user->username,
-		subject => '[TinyAuth] Create new account',
+		subject => '[TinyAuth] Created new account',
 		body    => $self->template(
 			$self->email_new,
 		),
@@ -652,6 +712,16 @@ sub authenticate {
 	}
 
 	return $user;
+}
+
+sub admins_only {
+	my $self  = shift;
+	my $admin = $_[0] ? shift : $self->{user};
+	unless ( $admin and $self->is_user_admin($admin) ) {
+		$self->error("Only administrators are allowed to do that");
+		return 0;
+	}
+	return 1;
 }
 
 
@@ -918,6 +988,20 @@ A new account has been created for you
 
 Email:    [% email %]
 Password: [% password %]
+
+Have a nice day!
+END_TEXT
+
+
+
+
+
+sub email_promote { <<'END_TEXT' }
+Hi
+
+Your account ([% email %]) has been promoted to an administrator.
+
+You can now login to TinyAuth to get access to additional functions.
 
 Have a nice day!
 END_TEXT
