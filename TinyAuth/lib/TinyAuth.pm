@@ -404,33 +404,7 @@ sub view_list {
 sub view_promote {
 	my $self = shift;
 	$self->admins_only or return 1;
-
-	# Prepare the user list
-	my $list  = '';
-	foreach my $user ( $self->all_users ) {
-		my $item = $self->cgi->escapeHTML($user->username);
-		if ( $self->is_user_admin($user) ) {
-			$list .= $self->cgi->b(
-                $self->cgi->checkbox(
-                    -name     => '_',
-                    -value    => $user->username,
-				    -checked  => undef,
-				    -disabled => undef,
-				    -label    => $user->username,
-			    )
-            );
-		} else {
-			$list .= $self->cgi->checkbox(
-				-name     =>  'e',
-				-value    => $user->username,
-				-label    => $user->username,
-			);
-		}
-		$list .= $self->cgi->br . "\n";
-	}
-
-	# Show the page
-	$self->{args}->{users} = $list;
+	$self->{args}->{users} = $self->user_checkbox_list;
 	$self->print_template(
 		$self->html_promote,
 	);
@@ -481,27 +455,7 @@ sub send_promote {
 sub view_delete {
 	my $self = shift;
 	$self->admins_only or return 1;
-
-	# Prepare the user list
-	my @users = $self->all_users;
-	my $list  = '';
-	my $cgi   = $self->cgi;
-	$cgi->param( a => 'e');
-	foreach my $user ( @users ) {
-		my $item = $self->cgi->escapeHTML($user->username);
-		if ( $self->is_user_admin($user) ) {
-			$item = $self->cgi->b($item);
-		} else {
-			$cgi->param( e => $item );
-			$item = $self->cgi->a( {
-				-href => $cgi->self_url,
-				}, $item );
-		}
-		$list .= $item . $self->cgi->br . "\n";
-	}
-
-	# Show the page
-	$self->{args}->{users} = $list;
+	$self->{args}->{users} = $self->user_checkbox_list;
 	$self->print_template(
 		$self->html_delete,
 	);
@@ -728,6 +682,36 @@ sub admins_only {
 		return 0;
 	}
 	return 1;
+}
+
+sub user_checkbox_list {
+	my $self = shift;
+
+	# Prepare the user list
+	my $list  = '';
+	foreach my $user ( $self->all_users ) {
+		my $item = $self->cgi->escapeHTML($user->username);
+		if ( $self->is_user_admin($user) ) {
+			$list .= $self->cgi->b(
+				$self->cgi->checkbox(
+					-name     => '_',
+					-value    => $user->username,
+					-checked  => undef,
+					-disabled => undef,
+					-label    => $user->username,
+				)
+			);
+		} else {
+			$list .= $self->cgi->checkbox(
+				-name     =>  'e',
+				-value    => $user->username,
+				-label    => $user->username,
+			);
+		}
+		$list .= $self->cgi->br . "\n";
+	}
+
+	return $list;
 }
 
 
