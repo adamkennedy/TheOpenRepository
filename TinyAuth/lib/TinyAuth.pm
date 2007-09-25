@@ -406,21 +406,24 @@ sub view_promote {
 	$self->admins_only or return 1;
 
 	# Prepare the user list
-	my @users = $self->all_users;
 	my $list  = '';
-	my $cgi   = $self->cgi;
-	$cgi->param( a => 'm');
-	foreach my $user ( @users ) {
+	foreach my $user ( $self->all_users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
 		if ( $self->is_user_admin($user) ) {
-			$item = $self->cgi->b($item);
+			$list .= $self->cgi->checkbox(
+				-checked  => 1,
+				-label    => $self->cgi->b($item),
+				-disabled => undef,
+			);
 		} else {
-			$cgi->param( e => $item );
-			$item = $self->cgi->a( {
-				-href => $cgi->self_url,
-				}, $item );
+			$list .= $self->cgi->checkbox(
+				-name     =>  'e',
+				-checked  => 0,
+				-value    => $user->username,
+				-label    => $user->username,
+			);
 		}
-		$list .= $item . $self->cgi->br . "\n";
+		$list .= $self->cgi->br . "\n";
 	}
 
 	# Show the page
