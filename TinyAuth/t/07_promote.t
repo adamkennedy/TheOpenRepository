@@ -104,10 +104,14 @@ SCOPE: {
 </head>
 
 <body>
-<h2>Click to Promote Account</h2>
-<b>adamk\@cpan.org</b><br />
-<a href="http://localhost?a=m;e=foo%40bar.com">foo\@bar.com</a><br />
+<h2>Select Accounts to Promote</h2>
+<form name="f" action="">
+<b><label><input type="checkbox" name="_" value="adamk\@cpan.org" disabled />adamk\@cpan.org</label></b><br />
+<label><input type="checkbox" name="e" value="foo\@bar.com" />foo\@bar.com</label><br />
 
+<input type="hidden" name="a" value="m">
+<input type="submit" name="s" value="Promote">
+</form>
 </body>
 </html>
 

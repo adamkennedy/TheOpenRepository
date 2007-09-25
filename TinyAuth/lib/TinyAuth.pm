@@ -410,15 +410,18 @@ sub view_promote {
 	foreach my $user ( $self->all_users ) {
 		my $item = $self->cgi->escapeHTML($user->username);
 		if ( $self->is_user_admin($user) ) {
-			$list .= $self->cgi->checkbox(
-				-checked  => 1,
-				-label    => $self->cgi->b($item),
-				-disabled => undef,
-			);
+			$list .= $self->cgi->b(
+                $self->cgi->checkbox(
+                    -name     => '_',
+                    -value    => $user->username,
+				    -checked  => undef,
+				    -disabled => undef,
+				    -label    => $user->username,
+			    )
+            );
 		} else {
 			$list .= $self->cgi->checkbox(
 				-name     =>  'e',
-				-checked  => 0,
 				-value    => $user->username,
 				-label    => $user->username,
 			);
@@ -656,8 +659,8 @@ sub template {
 	my $self = shift;
 	my $html = shift;
 	my $args = shift || $self->args;
+	# Allow up to 10 levels of recursion
 	foreach ( 0 .. 10 ) {
-		# Allow up to 10 levels of recursion
 		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g;
 	}
 	return $html;
@@ -896,8 +899,12 @@ sub html_promote { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-<h2>Click to Promote Account</h2>
+<h2>Select Accounts to Promote</h2>
+<form name="f" action="">
 [% users %]
+<input type="hidden" name="a" value="m">
+<input type="submit" name="s" value="Promote">
+</form>
 </body>
 </html>
 END_HTML
