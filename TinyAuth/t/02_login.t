@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.91';
+	$VERSION = '0.92';
 }
 
 use Test::More tests => 45;
@@ -44,8 +44,10 @@ SCOPE: {
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <form method="post" name="f" action="">
-<p><input type="text" name="_e" size="30"> Email</p>
-<p><input type="text" name="_p" size="30"> Password</p>
+<p>Email</p>
+<p><input type="text" name="_e" size="30"></p>
+<p>Password</p>
+<p><input type="text" name="_p" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
@@ -210,8 +212,10 @@ SCOPE: {
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <form method="post" name="f" action="">
-<p><input type="text" name="_e" size="30"> Email</p>
-<p><input type="text" name="_p" size="30"> Password</p>
+<p>Email</p>
+<p><input type="text" name="_e" size="30"></p>
+<p>Password</p>
+<p><input type="text" name="_p" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>

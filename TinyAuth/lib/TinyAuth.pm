@@ -39,7 +39,7 @@ use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.91';
+	$VERSION = '0.92';
 }
 
 use Object::Tiny qw{
@@ -414,31 +414,49 @@ sub action_promote {
 	my $self = shift;
 	$self->admins_only or return 1;
 
-	# Does the account exist
-	my $email = _STRING($self->cgi->param('e'));
-	unless ( $email ) {
-		return $self->error("You did not enter an email address");
-	}
-	my $user = $self->auth->lookup_user($email);
-	unless ( $user ) {
-		return $self->error("No account for that email address");
+    # Which accounts are we promoting
+	my @accounts = $self->cgi->param('e');
+	unless ( @accounts ) {
+		return $self->error("You did not select an account");
 	}
 
-	# We can't operate on admins
-	if ( $self->is_user_admin($user) ) {
-		return $self->error("You cannot control other admins");
-	}
+    # Check all the proposed promotions first
+    my @users = ();
+    foreach ( @accounts ) {
+        my $account = _STRING($_);
+        unless ( $account ) {
+            return $self->error("Missing, invalid, or corrupt email address");
+        }
 
-	# Thus, they exist and are not an admin.
-	# So we now upgrade them to an admin.
-	$user->extra_info('admin');
+    	# Does the account exist
+        my $user = $self->auth->lookup_user($account);
+        unless ( $user ) {
+            return $self->error("The account '$account' does not exist");
+        }
 
-	# Send the promotion email
-	$self->{args}->{email} = $user->username;
-	$self->send_promote($user);
+    	# We can't operate on admins
+	    if ( $self->is_user_admin($user) ) {
+		    return $self->error("You cannot control admin account '$account'");
+	    }
+
+        push @users, $user;
+    }
+
+    # Apply the promotions and send mails
+    foreach my $user ( @users ) {
+    	$user->extra_info('admin');
+
+    	# Send the promotion email
+	    $self->{args}->{email} = $user->username;
+	    $self->send_promote($user);
+    }
 
 	# Show the "Promoted ok" page
-	$self->view_message("Promoted account $email to admin");
+	return $self->view_message(
+        join( "\n", map {
+            "Promoted account " . $_->username . " to admin"
+        } @users )
+    );
 }
 
 sub send_promote {
@@ -465,27 +483,45 @@ sub action_delete {
 	my $self = shift;
 	$self->admins_only or return 1;
 
-	# Does the account exist
-	my $email = _STRING($self->cgi->param('e'));
-	unless ( $email ) {
-		return $self->error("You did not enter an email address");
-	}
-	my $user = $self->auth->lookup_user($email);
-	unless ( $user ) {
-		return $self->error("No account for that email address");
+    # Which accounts are we deleting
+	my @accounts = $self->cgi->param('e');
+	unless ( @accounts ) {
+		return $self->error("You did not select an account");
 	}
 
-	# We can't operate on admins
-	if ( $self->is_user_admin($user) ) {
-		return $self->error("Admins cannot control other admins");
-	}
+    # Check all the proposed promotions first
+    my @users = ();
+    foreach ( @accounts ) {
+        my $account = _STRING($_);
+        unless ( $account ) {
+            return $self->error("Missing, invalid, or corrupt email address");
+        }
 
-	# Thus, they exist and are not an admin.
-	# So we now delete the user.
-	$self->auth->delete_user($user);
+    	# Does the account exist
+        my $user = $self->auth->lookup_user($account);
+        unless ( $user ) {
+            return $self->error("The account '$account' does not exist");
+        }
+
+    	# We can't operate on admins
+	    if ( $self->is_user_admin($user) ) {
+		    return $self->error("You cannot control admin account '$account'");
+	    }
+
+        push @users, $user;
+    }
+
+	# Delete the accounts
+    foreach my $user ( @users ) {
+	    $self->auth->delete_user($user);
+    }
 
 	# Show the "Deleted ok" page
-	$self->view_message("Deleted account $email");
+	return $self->view_message(
+        join( "\n", map {
+            "Deleted account " . $_->username
+        } @users )
+    );
 }
 
 sub view_change {
@@ -576,6 +612,7 @@ sub send_new {
 sub view_message {
 	my $self = shift;
 	$self->{args}->{message} = CGI::escapeHTML(shift);
+    $self->{args}->{message} =~ s/\n/<br \/>/g;
 	$self->print_template(
 		$self->html_message,
 	);
@@ -766,8 +803,10 @@ sub html_public { <<'END_HTML' }
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <form method="post" name="f" action="">
-<p><input type="text" name="_e" size="30"> Email</p>
-<p><input type="text" name="_p" size="30"> Password</p>
+<p>Email</p>
+<p><input type="text" name="_e" size="30"></p>
+<p>Password</p>
+<p><input type="text" name="_p" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
@@ -813,11 +852,10 @@ sub html_forgot { <<'END_HTML' }
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
-<p>What is your email address? <input type="text" name="e" size="30"> <input type="submit" name="s" value="Email me a new password"></p>
+<p>Email Address</p>
+<p><input type="text" name="e" size="30"></p>
+<p><input type="submit" name="s" value="Email me a new password"></p>
 </form>
-<p>&nbsp;</p>
-<hr>
-[% HOME %]
 </body>
 </html>
 END_HTML
@@ -850,8 +888,6 @@ sub html_change { <<'END_HTML' }
 </table>
 <p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password"></p>
 </form>
-<hr>
-[% HOME %]
 <script language="JavaScript">
 document.f.e.focus();
 </script>
@@ -883,10 +919,10 @@ sub html_promote { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-<h2>Select Accounts to Promote</h2>
+<h2>Select Account(s) to Promote</h2>
 <form name="f" action="">
-[% users %]
 <input type="hidden" name="a" value="m">
+[% users %]
 <input type="submit" name="s" value="Promote">
 </form>
 </body>
@@ -902,8 +938,12 @@ sub html_delete { <<'END_HTML' }
 <html>
 [% HEAD %]
 <body>
-<h2>Click to Delete Account</h2>
+<h2>Select Account(s) to Delete</h2>
+<form name="f" action="">
+<input type="hidden" name="a" value="e">
 [% users %]
+<input type="submit" name="s" value="Delete">
+</form>
 </body>
 </html>
 END_HTML
@@ -920,7 +960,8 @@ sub html_new { <<'END_HTML' }
 <h2>Admin - Add a new user</h2>
 <form method="post" name="f">
 <input type="hidden" name="a" value="a">
-<p>Email <input type="text" name="e" size="30"></p>
+<p>Email</p>
+<p><input type="text" name="e" size="30"></p>
 <p><input type="submit" name="s" value="Add New User"></p>
 </form>
 </body>

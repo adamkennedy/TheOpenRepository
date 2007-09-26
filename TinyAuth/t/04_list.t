@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.91';
+	$VERSION = '0.92';
 }
 
 use Test::More tests => 16;
@@ -75,6 +75,7 @@ SCOPE: {
 <h2>Account List</h2>
 <b>adamk\@cpan.org</b><br />
 foo\@bar.com<br />
+foo\@one.com<br />
 
 </body>
 </html>

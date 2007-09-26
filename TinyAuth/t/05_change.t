@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.91';
+	$VERSION = '0.92';
 }
 
 use Test::More tests => 16;
@@ -59,9 +59,6 @@ SCOPE: {
 </table>
 <p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password"></p>
 </form>
-<hr>
-<p><a href="?a=i">Back to the main page</a></p>
-
 <script language="JavaScript">
 document.f.e.focus();
 </script>

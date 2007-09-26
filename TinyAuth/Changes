@@ -1,5 +1,12 @@
 Changes for Perl extension TinyAuth
 
+0.92 Wed 26 Sep 2007
+    - The promote and delete functions were being triggered from a GET request
+      (Fixed to use POST instead)
+    - At the same time I realised I might as well allow the promotion and
+      deletion of multiple people at the same time.
+    - Tweaks to make the forms look better on my crappy mobile phone browser :)
+
 0.91 Fri 21 Sep 2007
 	- Errors during authentication at constructor time create bad instances
 	- Add explicit test for logins with bad passwords
