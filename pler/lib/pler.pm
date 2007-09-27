@@ -17,7 +17,7 @@ use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.30';
+        $VERSION = '0.31';
 }
 
 # Does exec work on this platform
@@ -318,7 +318,7 @@ sub main {
 		# If there are subfilters, apply them as well
 		while ( @ARGV ) {
 			my $subpattern = quotemeta shift @ARGV;
-			@matches = grep { /$subpattern/i } @possible;
+			@matches = grep { /$subpattern/i } @matches;
 		}
 		unless ( @matches ) {
 			error "No tests match '$script'";
@@ -334,9 +334,9 @@ sub main {
 		# Localize the path
 		$script = File::Spec->catfile( split /\//, $script );
 	}
-        unless ( -f $script ) {
-                error "Test script '$script' does not exist";
-        }
+    unless ( -f $script ) {
+        error "Test script '$script' does not exist";
+    }
 
         # Rerun make or Build if needed
 	if ( $BUILD_SYSTEM eq 'make' ) {
