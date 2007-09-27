@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.92';
+	$VERSION = '0.93';
 }
 
 use Test::More tests => 16;
@@ -52,9 +52,9 @@ SCOPE: {
 <p>Type it again to prevent mistakes</p>
 </td><td>
 <p><input type="text" name="e" size="30"></p>
-<p><input type="text" name"p" size="30"></p>
-<p><input type="text" name"n" size="30"></p>
-<p><input type="text" name"c" size="30"></p>
+<p><input type="password" name="p" size="30"></p>
+<p><input type="password" name="n" size="30"></p>
+<p><input type="password" name="c" size="30"></p>
 </td></tr>
 </table>
 <p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password"></p>

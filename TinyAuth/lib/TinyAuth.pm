@@ -8,30 +8,45 @@ TinyAuth - Extremely light-weight web-based authentication manager
 
 =head1 DESCRIPTION
 
-B<TinyAuth> is an extremely light-weight authentication management
-web application, initially created to assist in managing a subversion
-repository.
+B<TinyAuth> is a light-weight authentication management web application
+with a focus on usability.
 
-It is designed to provide the basic functionality of adding and removing
+It was initially created to assist in managing a subversion repository but
+also usable for anything where authentication can be run from a F<.htpasswd>
+file.
+
+It provides the basic functionality needed for adding and removing
 users, and handling password maintenance with as little code and fuss
-as possible.
+as possible, while still applying robust and correct security practices.
 
-More importantly, it is intended to be extremely easy to install and
-set up, even on shared hosting accounts. The interface is simple enough
-that it can be used on typical limited-functionality browsers such as
-the text-mode lynx browser, and the browsers found in most mobile phones.
+It is intended to be extremely easy to install and set up, even on shared
+hosting accounts. The interface is so simple and pages are so small
+(most under 1k) that it can be used on most limited-functionality browsers
+such as the text-mode browsers, and the strange micro-browsers found inside
+video games and mobile phones.
 
-The intent is to allow users and be added, removed and repaired from
+The goal is to allow users and be added, removed and fixed from
 anywhere, even without a computer or "regular" internet connection.
+
+=head1 STATUS
+
+TinyAuth is currently currently feature-complete and undergoing polishing
+and testing. Part of this process focuses on naming ("TinyAuth" is just
+a working codename), reduction of dependencies, improvements to the
+installer, and other similar tasks.
+
+Releases are provided "as is" for the curious, and installation is not
+recommended for production purposes at this time. As a consequence,
+documentation on the install process is not currently included.
 
 =cut
 
 use 5.005;
 use strict;
 use File::Spec       ();
+use Scalar::Util     ();
 use YAML::Tiny       ();
 use CGI              ();
-use Params::Util     qw{ _STRING _INSTANCE _ARRAY };
 use String::MkPasswd ();
 use Authen::Htpasswd ();
 use Email::Send      ();
@@ -39,21 +54,31 @@ use Email::Stuff     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.92';
+	$VERSION = '0.93';
 }
 
-use Object::Tiny qw{
-	config_file
-	config
-	cgi
-	auth
-	mailer
-	user
-	action
-	header
-	title
-	homepage
-	};
+
+
+
+
+#####################################################################
+# Embedded Functions
+
+# Scalar::Util::_STRING
+sub _STRING ($) {
+	(defined $_[0] and ! ref $_[0] and length($_[0])) ? $_[0] : undef;
+}
+
+# Scalar::Util::_ARRAY
+sub _ARRAY ($) {
+	(ref $_[0] eq 'ARRAY' and @{$_[0]}) ? $_[0] : undef;
+}
+
+# Scalar::Util::_INSTANCE
+sub _INSTANCE ($$) {
+	(Scalar::Util::blessed($_[0]) and $_[0]->isa($_[1])) ? $_[0] : undef;
+}
+
 
 
 
@@ -63,7 +88,8 @@ use Object::Tiny qw{
 # Constructor and Accessors
 
 sub new {
-	my $self = shift->SUPER::new(@_);
+    my $class = shift;
+    my $self  = bless { @_ }, $class;
 
 	# Check and set the config
 	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
@@ -160,6 +186,46 @@ sub new {
 	}
 
 	return $self;
+}
+
+sub config_file {
+    $_[0]->{config_file};
+}
+
+sub config {
+    $_[0]->{config};
+}
+
+sub cgi {
+    $_[0]->{cgi};
+}
+
+sub auth {
+    $_[0]->{auth};
+}
+
+sub mailer {
+    $_[0]->{mailer};
+}
+
+sub user {
+    $_[0]->{user};
+}
+
+sub action {
+    $_[0]->{action};
+}
+
+sub header {
+    $_[0]->{header};
+}
+
+sub title {
+    $_[0]->{title};
+}
+
+sub homepage {
+    $_[0]->{homepage};
 }
 
 sub args {
@@ -806,7 +872,7 @@ sub html_public { <<'END_HTML' }
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
-<p><input type="text" name="_p" size="30"></p>
+<p><input type="password" name="_p" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
@@ -881,9 +947,9 @@ sub html_change { <<'END_HTML' }
 <p>Type it again to prevent mistakes</p>
 </td><td>
 <p><input type="text" name="e" size="30"></p>
-<p><input type="text" name"p" size="30"></p>
-<p><input type="text" name"n" size="30"></p>
-<p><input type="text" name"c" size="30"></p>
+<p><input type="password" name="p" size="30"></p>
+<p><input type="password" name="n" size="30"></p>
+<p><input type="password" name="c" size="30"></p>
 </td></tr>
 </table>
 <p>Hit the button when you are ready to go <input type="submit" name="s" value="Change my password"></p>

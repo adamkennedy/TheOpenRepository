@@ -1,5 +1,11 @@
 Changes for Perl extension TinyAuth
 
+0.93 Thu 27 Sep 2007
+    - Polishing continues
+    - Password text boxes are now actually password instead of text boxes
+    - Removing dependency on Object::Tiny
+    - Removing dependency on Params::Util
+
 0.92 Wed 26 Sep 2007
     - The promote and delete functions were being triggered from a GET request
       (Fixed to use POST instead)
