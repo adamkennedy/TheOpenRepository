@@ -8,6 +8,7 @@ Changes for Perl extension TinyAuth
         - Changed form actions to $ENV{SCRIPT_NAME} instead of ""
 	- Fix a bug in the promotion form
 	- Add an explicit Logout link for admins
+	- Adding installation documentation
 
 0.94 Fri 27 Sep 2007
 	- Inlining and dependency reduction
