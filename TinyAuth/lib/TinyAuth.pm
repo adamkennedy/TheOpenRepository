@@ -891,6 +891,7 @@ sub html_index { <<'END_HTML' }
 <p><a href="?a=l">List all accounts</a></p>
 <p><a href="?a=d">Delete an account</a></p>
 <p><a href="?a=m">Promote an account</a></p>
+<p><a href="?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -980,7 +981,7 @@ sub html_promote { <<'END_HTML' }
 <body>
 <h2>Select Account(s) to Promote</h2>
 <form name="f" action="[% SCRIPT_NAME %]">
-<input type="hidden" name="a" value="m">
+<input type="hidden" name="a" value="b">
 [% users %]
 <input type="submit" name="s" value="Promote">
 </form>

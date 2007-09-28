@@ -95,6 +95,7 @@ SCOPE: {
 <p><a href="?a=l">List all accounts</a></p>
 <p><a href="?a=d">Delete an account</a></p>
 <p><a href="?a=m">Promote an account</a></p>
+<p><a href="?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -169,6 +170,7 @@ SCOPE: {
 <p><a href="?a=l">List all accounts</a></p>
 <p><a href="?a=d">Delete an account</a></p>
 <p><a href="?a=m">Promote an account</a></p>
+<p><a href="?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
