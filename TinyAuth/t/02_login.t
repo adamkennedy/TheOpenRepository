@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.94';
+	$VERSION = '0.05';
 }
 
 use Test::More tests => 45;
@@ -43,7 +43,7 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action="">
+<form method="post" name="f" action=".">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
@@ -89,10 +89,10 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">I want to add a new account</a></p>
-<p><a href="?a=l">I want to see all the accounts</a></p>
-<p><a href="?a=d">I want to delete an account</a></p>
-<p><a href="?a=m">I want to promote an account to admin</a></p>
+<p><a href="?a=n">Add a new account</a></p>
+<p><a href="?a=l">List all accounts</a></p>
+<p><a href="?a=d">Delete an account</a></p>
+<p><a href="?a=m">Promote an account</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -163,10 +163,10 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">I want to add a new account</a></p>
-<p><a href="?a=l">I want to see all the accounts</a></p>
-<p><a href="?a=d">I want to delete an account</a></p>
-<p><a href="?a=m">I want to promote an account to admin</a></p>
+<p><a href="?a=n">Add a new account</a></p>
+<p><a href="?a=l">List all accounts</a></p>
+<p><a href="?a=d">Delete an account</a></p>
+<p><a href="?a=m">Promote an account</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -211,7 +211,7 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action="">
+<form method="post" name="f" action=".">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>

@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.94';
+	$VERSION = '0.05';
 }
 
 use Test::More tests => 26;
@@ -41,7 +41,7 @@ SCOPE: {
 
 <body>
 <h2>You don't know your password</h2>
-<form method="post" name="f" action="">
+<form method="post" name="f" action=".">
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>

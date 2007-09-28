@@ -7,7 +7,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.94';
+	$VERSION = '0.05';
 }
 
 use Test::More tests => 40;
@@ -105,7 +105,7 @@ SCOPE: {
 
 <body>
 <h2>Select Account(s) to Delete</h2>
-<form name="f" action="">
+<form name="f" action=".">
 <input type="hidden" name="a" value="e">
 <b><label><input type="checkbox" name="_" value="adamk\@cpan.org" disabled />adamk\@cpan.org</label></b><br />
 <label><input type="checkbox" name="e" value="foo\@bar.com" />foo\@bar.com</label><br />

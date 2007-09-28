@@ -54,7 +54,7 @@ use Email::Send          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.94';
+	$VERSION = '0.05';
 }
 
 
@@ -162,25 +162,44 @@ sub new {
 		TITLE    => $self->title,
 		DOCTYPE  => $self->html__doctype,
 		HEAD     => $self->html__head,
-		HOME     => $self->html__home,
 	};
 
 	# Apply security policy
+	my ($username, $password) = ();
 	if ( $self->cgi->param('_e') or $self->cgi->param('_p') ) {
-		$self->{user} = $self->authenticate(
-			$self->cgi->param('_e'),
-			$self->cgi->param('_p'),
-		);
+		$username = $self->cgi->param('_e');
+		$password = $self->cgi->param('_p');
+		$self->{user} = $self->authenticate( $username, $password );
 	} elsif ( $self->cgi->cookie('e') and $self->cgi->cookie('p') ) {
-		$self->{user} = $self->authenticate(
-			$self->cgi->cookie('e'),
-			$self->cgi->cookie('p'),
-		);
+		$username = $self->cgi->cookie('e');
+		$password = $self->cgi->cookie('p');
+		$self->{user} = $self->authenticate( $username, $password );
+	} else {
+		delete $self->{user};
 	}
 	if ( ref $self->{user} ) {
 		unless ( $self->is_user_admin($self->{user}) ) {
 			$self->error('Only administrators are allowed to do that');
 		}
+
+		# Authenticated ok, set the cookies
+		$self->{header} = CGI::header(
+			-cookie => [
+				CGI::cookie(
+					-name    => 'e',
+					-value   => $username,
+					-path    => '/',
+					-expires => '+1d',
+				),
+				CGI::cookie(
+					-name    => 'p',
+					-value   => $password,
+					-path    => '/',
+					-expires => '+1d',
+				),
+			],
+		);
+
 	} else {
 		delete $self->{user};
 	}
@@ -290,8 +309,8 @@ sub mkpasswd {
 	my @lower = ( 'a' .. 'z' );
 	my @nums  = ( 0   .. 9   );
 	my @spec  = (
-		qw| ^ & * ( ) - = _ + [ ] { } \ ; : ' " < > . ? / |,
-		",", "|"
+		qw| ^ & * ( ) - = _ + [ ] { } \ ; : < > . ? / |,
+		",", "|", '"', "'",
 	);
 
 	# Assemble the password characters
@@ -350,55 +369,6 @@ sub view_index {
 			: $self->html_public
 	);
 	return 1;
-}
-
-# Login
-sub action_login {
-	my $self = shift;
-	my $email = _STRING($self->cgi->param('_e'));
-	unless ( $email ) {
-		return $self->error("You did not enter an email address");
-	}
-
-	# Does the account exist
-	my $user = $self->auth->lookup_user($email);
-	unless ( $user ) {
-		return $self->error("No account for that email address");
-	}
-
-	# Get and check the password
-	my $password = _STRING($self->cgi->param('_p'));
-	unless ( $password ) {
-		return $self->error("You did not enter your current password");
-	}
-	unless ( $user->check_password($password) ) {
-		sleep 3;
-		return $self->error("Incorrect current password");
-	}
-
-	# Only admins can login
-	$self->admins_only($user) or return 1;
-
-	# Authenticated, set the cookies
-	$self->{header} = CGI::header(
-		-cookie => [
-			CGI::cookie(
-				-name    => 'e',
-				-value   => $email,
-				-path    => '/',
-				-expires => '+1d',
-			),
-			CGI::cookie(
-				-name    => 'p',
-				-value   => $password,
-				-path    => '/',
-				-expires => '+1d',
-			),
-		],
-	);
-
-	# Return to the main page
-	$self->view_index;
 }
 
 # Logout
@@ -881,17 +851,6 @@ END_HTML
 
 
 
-
-
-
-
-sub html__home { <<'END_HTML' }
-<p><a href="?a=i">Back to the main page</a></p>
-END_HTML
-
-
-
-
 sub html_public { <<'END_HTML' }
 [% DOCTYPE %]
 <html>
@@ -901,7 +860,7 @@ sub html_public { <<'END_HTML' }
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action="">
+<form method="post" name="f" action=".">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
@@ -927,10 +886,10 @@ sub html_index { <<'END_HTML' }
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">I want to add a new account</a></p>
-<p><a href="?a=l">I want to see all the accounts</a></p>
-<p><a href="?a=d">I want to delete an account</a></p>
-<p><a href="?a=m">I want to promote an account to admin</a></p>
+<p><a href="?a=n">Add a new account</a></p>
+<p><a href="?a=l">List all accounts</a></p>
+<p><a href="?a=d">Delete an account</a></p>
+<p><a href="?a=m">Promote an account</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -947,7 +906,7 @@ sub html_forgot { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>You don't know your password</h2>
-<form method="post" name="f" action="">
+<form method="post" name="f" action=".">
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
@@ -1019,7 +978,7 @@ sub html_promote { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Select Account(s) to Promote</h2>
-<form name="f" action="">
+<form name="f" action=".">
 <input type="hidden" name="a" value="m">
 [% users %]
 <input type="submit" name="s" value="Promote">
@@ -1038,7 +997,7 @@ sub html_delete { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Select Account(s) to Delete</h2>
-<form name="f" action="">
+<form name="f" action=".">
 <input type="hidden" name="a" value="e">
 [% users %]
 <input type="submit" name="s" value="Delete">
