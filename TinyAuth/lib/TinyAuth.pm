@@ -54,7 +54,7 @@ use Email::Send          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.93';
+	$VERSION = '0.94';
 }
 
 

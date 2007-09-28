@@ -52,7 +52,7 @@ sub cgi_cmp {
 	$right =~ s/\s+$//is;
 	$right =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
 
-	is( $left, $right, $_[0] );
+        Test::More::is( $left, $right, $_[0] );
 #	Test::LongString::is_string( $left, $right, $_[0] );
 }
 

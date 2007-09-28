@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.93';
+	$VERSION = '0.94';
 }
 
 use Test::More tests => 7;
@@ -39,9 +39,9 @@ sub script_compiles_ok {
 	my $stderr = '';
 	my $rv     = IPC::Run3::run3( $cmd, \undef, \undef, \$stderr );
 	my $ok     = !! ( $rv and $stderr =~ /syntax OK\s+$/si );
-	$Test->ok( $ok, $name );
+        ok( $ok, $name );
 	# Add this once I can make the tests work ok
-	# $Test->diag( $stderr ) unless $ok;
+        diag( $stderr ) unless $ok;
 	return $ok;
 }
 
