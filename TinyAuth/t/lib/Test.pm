@@ -14,7 +14,7 @@ use File::Spec::Functions ':ALL';
 use File::Copy       ();
 use File::Remove     ();
 use YAML::Tiny       ();
-use Test::LongString ();
+#use Test::LongString ();
 
 my $prototype_file = rel2abs( catfile( 't', 'data', 'htpasswd'      ) );
 my $config_file    = rel2abs( catfile( 't', 'data', 'htpasswd_copy' ) );
@@ -52,7 +52,8 @@ sub cgi_cmp {
 	$right =~ s/\s+$//is;
 	$right =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
 
-	Test::LongString::is_string( $left, $right, $_[0] );
+	is( $left, $right, $_[0] );
+#	Test::LongString::is_string( $left, $right, $_[0] );
 }
 
 1;

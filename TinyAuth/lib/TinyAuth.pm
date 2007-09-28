@@ -43,14 +43,14 @@ documentation on the install process is not currently included.
 
 use 5.005;
 use strict;
-use File::Spec       ();
-use Scalar::Util     ();
-use YAML::Tiny       ();
-use CGI              ();
-use String::MkPasswd ();
-use Authen::Htpasswd ();
-use Email::Send      ();
-use Email::Stuff     ();
+use File::Spec           ();
+use Scalar::Util         ();
+use YAML::Tiny           ();
+use CGI                  ();
+use Authen::Htpasswd     ();
+use Email::MIME          ();
+use Email::MIME::Creator ();
+use Email::Send          ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -284,20 +284,53 @@ sub run {
 	}
 }
 
+# Cloned and simplified from String::MkPasswd
 sub mkpasswd {
-	String::MkPasswd::mkpasswd( -fatal => 1 );
-}
+	my @upper = ( 'A' .. 'Z' );
+	my @lower = ( 'a' .. 'z' );
+	my @nums  = ( 0   .. 9   );
+	my @spec  = (
+		qw| ^ & * ( ) - = _ + [ ] { } \ ; : ' " < > . ? / |,
+		",", "|"
+	);
 
+	# Assemble the password characters
+	my @password = ();
+	push @password, map { $upper[int rand $#upper] } (0..1);
+	push @password, map { $spec[ int rand $#spec ] } (0..1);
+	push @password, map { $nums[ int rand $#nums ] } (0..1);
+	push @password, map { $lower[int rand $#lower] } (0..4);
+
+	# Join the characters to get the final password
+	return join( '', sort { rand(1) <=> rand(1) } @password );
+}
+# Inlined from Email::Stuff
 sub send_email {
 	my $self   = shift;
 	my %params = @_;
-	my $email  = Email::Stuff->new;
-	$email->to(        $params{to}       );
-	$email->from(      $self->email_from );
-	$email->subject(   $params{subject}  );
-	$email->text_body( $params{body}     );
-	$email->using(     $self->mailer     );
-	$email->send;
+
+	# Create the email
+	my $email  = Email::MIME->create(
+		header => [
+			to      => $params{to},
+			from    => $self->email_from,
+			subject => $params{subject},
+		],
+		parts  => [
+			Email::MIME->create(
+				attributes => {
+					charset      => 'us-ascii',
+					content_type => 'text/plain',
+					format       => 'flowed',
+				},
+				body => $params{body},
+			),
+		],
+	);
+
+	# Send the email
+	$self->mailer->send( $email );
+
 	return 1;
 }
 
@@ -480,49 +513,49 @@ sub action_promote {
 	my $self = shift;
 	$self->admins_only or return 1;
 
-    # Which accounts are we promoting
+	# Which accounts are we promoting
 	my @accounts = $self->cgi->param('e');
 	unless ( @accounts ) {
 		return $self->error("You did not select an account");
 	}
 
-    # Check all the proposed promotions first
-    my @users = ();
-    foreach ( @accounts ) {
-        my $account = _STRING($_);
-        unless ( $account ) {
-            return $self->error("Missing, invalid, or corrupt email address");
-        }
+	# Check all the proposed promotions first
+	my @users = ();
+	foreach ( @accounts ) {
+		my $account = _STRING($_);
+		unless ( $account ) {
+			return $self->error("Missing, invalid, or corrupt email address");
+		}
 
-    	# Does the account exist
-        my $user = $self->auth->lookup_user($account);
-        unless ( $user ) {
-            return $self->error("The account '$account' does not exist");
-        }
+		# Does the account exist
+		my $user = $self->auth->lookup_user($account);
+		unless ( $user ) {
+			return $self->error("The account '$account' does not exist");
+		}
 
-    	# We can't operate on admins
-	    if ( $self->is_user_admin($user) ) {
-		    return $self->error("You cannot control admin account '$account'");
-	    }
+		# We can't operate on admins
+		if ( $self->is_user_admin($user) ) {
+			return $self->error("You cannot control admin account '$account'");
+		}
 
-        push @users, $user;
-    }
+		push @users, $user;
+	}
 
-    # Apply the promotions and send mails
-    foreach my $user ( @users ) {
-    	$user->extra_info('admin');
+	# Apply the promotions and send mails
+	foreach my $user ( @users ) {
+		$user->extra_info('admin');
 
-    	# Send the promotion email
-	    $self->{args}->{email} = $user->username;
-	    $self->send_promote($user);
-    }
+		# Send the promotion email
+		$self->{args}->{email} = $user->username;
+		$self->send_promote($user);
+	}
 
 	# Show the "Promoted ok" page
 	return $self->view_message(
-        join( "\n", map {
-            "Promoted account " . $_->username . " to admin"
-        } @users )
-    );
+		join( "\n", map {
+			"Promoted account " . $_->username . " to admin"
+		} @users )
+	);
 }
 
 sub send_promote {
