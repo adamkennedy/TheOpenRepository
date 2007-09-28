@@ -18,6 +18,8 @@ use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
+$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+
 
 
 
@@ -102,7 +104,7 @@ SCOPE: {
 
 <body>
 <h2>Select Account(s) to Promote</h2>
-<form name="f" action=".">
+<form name="f" action="/cgi-bin/tinyauth">
 <input type="hidden" name="a" value="m">
 <b><label><input type="checkbox" name="_" value="adamk\@cpan.org" disabled />adamk\@cpan.org</label></b><br />
 <label><input type="checkbox" name="e" value="foo\@bar.com" />foo\@bar.com</label><br />

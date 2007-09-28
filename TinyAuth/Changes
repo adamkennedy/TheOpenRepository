@@ -5,7 +5,7 @@ Changes for Perl extension TinyAuth
         - Inlined ->action_login into ->new
           (Fixed problem with cookies not being emitted)
         - Removing unused html__home
-        - All form actions set to "."
+        - Changed form actions to $ENV{SCRIPT_NAME} instead of ""
 
 0.94 Fri 27 Sep 2007
 	- Inlining and dependency reduction

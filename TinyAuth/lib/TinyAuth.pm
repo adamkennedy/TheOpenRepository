@@ -156,12 +156,13 @@ sub new {
 
 	# Set the base arguments
 	$self->{args} ||= {
-		CLASS    => ref($self),
-		VERSION  => $self->VERSION,
-		HOMEPAGE => $self->homepage,
-		TITLE    => $self->title,
-		DOCTYPE  => $self->html__doctype,
-		HEAD     => $self->html__head,
+		CLASS       => ref($self),
+		VERSION     => $self->VERSION,
+		SCRIPT_NAME => $ENV{SCRIPT_NAME},
+		HOMEPAGE    => $self->homepage,
+		TITLE       => $self->title,
+		DOCTYPE     => $self->html__doctype,
+		HEAD        => $self->html__head,
 	};
 
 	# Apply security policy
@@ -860,7 +861,7 @@ sub html_public { <<'END_HTML' }
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action=".">
+<form method="post" name="f" action="[% SCRIPT_NAME %]">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
@@ -906,7 +907,7 @@ sub html_forgot { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>You don't know your password</h2>
-<form method="post" name="f" action=".">
+<form method="post" name="f" action="[% SCRIPT_NAME %]">
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>
@@ -978,7 +979,7 @@ sub html_promote { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Select Account(s) to Promote</h2>
-<form name="f" action=".">
+<form name="f" action="[% SCRIPT_NAME %]">
 <input type="hidden" name="a" value="m">
 [% users %]
 <input type="submit" name="s" value="Promote">
@@ -997,7 +998,7 @@ sub html_delete { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>Select Account(s) to Delete</h2>
-<form name="f" action=".">
+<form name="f" action="[% SCRIPT_NAME %]">
 <input type="hidden" name="a" value="e">
 [% users %]
 <input type="submit" name="s" value="Delete">

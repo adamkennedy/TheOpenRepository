@@ -16,6 +16,8 @@ use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
+$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+
 
 
 
@@ -41,7 +43,7 @@ SCOPE: {
 
 <body>
 <h2>You don't know your password</h2>
-<form method="post" name="f" action=".">
+<form method="post" name="f" action="/cgi-bin/tinyauth">
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>

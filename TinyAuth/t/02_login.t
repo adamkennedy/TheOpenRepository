@@ -15,6 +15,8 @@ use YAML::Tiny;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
+$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+
 
 
 
@@ -43,7 +45,7 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action=".">
+<form method="post" name="f" action="/cgi-bin/tinyauth">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
@@ -211,7 +213,7 @@ SCOPE: {
 <p><a href="?a=f">I forgot my password</a></p>
 <p><a href="?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action=".">
+<form method="post" name="f" action="/cgi-bin/tinyauth">
 <p>Email</p>
 <p><input type="text" name="_e" size="30"></p>
 <p>Password</p>
