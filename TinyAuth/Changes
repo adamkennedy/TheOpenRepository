@@ -1,11 +1,14 @@
 Changes for Perl extension TinyAuth
 
+0.96 Tue  2 Oct 2007
+	- Cleaning up the dispatch to be more readable
+
 0.95 Fri 27 Sep 2007
-        - BETA 2 RELEASE. NOW ACTUALLY USABLE! :)
-        - Inlined ->action_login into ->new
-          (Fixed problem with cookies not being emitted)
-        - Removing unused html__home
-        - Changed form actions to $ENV{SCRIPT_NAME} instead of ""
+	- BETA 2 RELEASE. NOW ACTUALLY USABLE! :)
+	- Inlined ->action_login into ->new
+	  (Fixed problem with cookies not being emitted)
+	- Removing unused html__home
+	- Changed form actions to $ENV{SCRIPT_NAME} instead of ""
 	- Fix a bug in the promotion form
 	- Add an explicit Logout link for admins
 	- Adding installation documentation

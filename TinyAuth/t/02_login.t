@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.95';
+	$VERSION = '0.96';
 }
 
 use Test::More tests => 45;
@@ -47,9 +47,9 @@ SCOPE: {
 <h2>Admin</h2>
 <form method="post" name="f" action="/cgi-bin/tinyauth">
 <p>Email</p>
-<p><input type="text" name="_e" size="30"></p>
+<p><input type="text" name="E" size="30"></p>
 <p>Password</p>
-<p><input type="password" name="_p" size="30"></p>
+<p><input type="password" name="P" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
@@ -217,9 +217,9 @@ SCOPE: {
 <h2>Admin</h2>
 <form method="post" name="f" action="/cgi-bin/tinyauth">
 <p>Email</p>
-<p><input type="text" name="_e" size="30"></p>
+<p><input type="text" name="E" size="30"></p>
 <p>Password</p>
-<p><input type="password" name="_p" size="30"></p>
+<p><input type="password" name="P" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>

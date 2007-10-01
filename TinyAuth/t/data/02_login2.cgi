@@ -1,2 +1,2 @@
-_e=adamk@cpan.org
-_p=foo
+E=adamk@cpan.org
+P=foo

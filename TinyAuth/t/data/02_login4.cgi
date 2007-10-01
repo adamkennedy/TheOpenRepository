@@ -1,2 +1,2 @@
-_e=adamk@cpan.org
-_p=bar
+E=adamk@cpan.org
+P=bar

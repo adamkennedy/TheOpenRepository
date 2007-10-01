@@ -109,7 +109,7 @@ use Email::Send          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.95';
+	$VERSION = '0.96';
 }
 
 
@@ -222,14 +222,17 @@ sub new {
 
 	# Apply security policy
 	my ($username, $password) = ();
-	if ( $self->cgi->param('_e') or $self->cgi->param('_p') ) {
-		$username = $self->cgi->param('_e');
-		$password = $self->cgi->param('_p');
+	if ( $self->cgi->param('E') or $self->cgi->param('P') ) {
+		$username = $self->cgi->param('E');
+		$password = $self->cgi->param('P');
 		$self->{user} = $self->authenticate( $username, $password );
 	} elsif ( $self->cgi->cookie('e') and $self->cgi->cookie('p') ) {
 		$username = $self->cgi->cookie('e');
 		$password = $self->cgi->cookie('p');
-		$self->{user} = $self->authenticate( $username, $password );
+		$self->{user} = $self->lookup_user( $username, $password );
+		if ( $self->{user} and ! $self->{user}->check_password($password) ) {
+			$self->{action} = 'o';
+		}
 	} else {
 		delete $self->{user};
 	}
@@ -328,35 +331,22 @@ sub email_driver {
 
 sub run {
 	my $self = shift;
-	if ( $self->action eq 'o' ) {
-		return $self->action_logout;
-	} elsif ( $self->action eq 'f' ) {
-		return $self->view_forgot;
-	} elsif ( $self->action eq 'r' ) {
-		return $self->action_forgot;
-	} elsif ( $self->action eq 'c' ) {
-		return $self->view_change;
-	} elsif ( $self->action eq 'p' ) {
-		return $self->action_change;
-	} elsif ( $self->action eq 'n' ) {
-		return $self->view_new;
-	} elsif ( $self->action eq 'a' ) {
-		return $self->action_new;
-	} elsif ( $self->action eq 'l' ) {
-		return $self->view_list;
-	} elsif ( $self->action eq 'm' ) {
-		return $self->view_promote;
-	} elsif ( $self->action eq 'b' ) {
-		return $self->action_promote;
-	} elsif ( $self->action eq 'd' ) {
-		return $self->view_delete;
-	} elsif ( $self->action eq 'e' ) {
-		return $self->action_delete;
-	} elsif ( $self->action eq 'error' ) {
-		return 1;
-	} else {
-		return $self->view_index;
-	}
+	return 1 if $self->action eq 'error';
+
+	return $self->action_logout  if $self->action eq 'o';
+	return $self->view_forgot    if $self->action eq 'f';
+	return $self->action_forgot  if $self->action eq 'r';
+	return $self->view_change    if $self->action eq 'c';
+	return $self->action_change  if $self->action eq 'p';
+	return $self->view_new       if $self->action eq 'n';
+	return $self->action_new     if $self->action eq 'a';
+	return $self->view_list      if $self->action eq 'l';
+	return $self->view_promote   if $self->action eq 'm';
+	return $self->action_promote if $self->action eq 'b';
+	return $self->view_delete    if $self->action eq 'd';
+	return $self->action_delete  if $self->action eq 'e';
+
+	return $self->view_index;
 }
 
 # Cloned and simplified from String::MkPasswd
@@ -810,7 +800,7 @@ sub all_users {
 	return @list;
 }
 
-sub authenticate {
+sub lookup_user {
 	my ($self, $email, $password) = @_;
 
 	# Check params
@@ -827,8 +817,16 @@ sub authenticate {
 		return $self->error("No account for that email address");
 	}
 
+	return $user;
+}
+
+sub authenticate {
+	my $self = shift;
+	my $user = $self->lookup_user(@_);
+	return $user unless $user;
+
 	# Get and check the password
-	unless ( $user->check_password($password) ) {
+	unless ( $user->check_password($_[1]) ) {
 		sleep 3;
 		return $self->error("Incorrect password");
 	}
@@ -918,9 +916,9 @@ sub html_public { <<'END_HTML' }
 <h2>Admin</h2>
 <form method="post" name="f" action="[% SCRIPT_NAME %]">
 <p>Email</p>
-<p><input type="text" name="_e" size="30"></p>
+<p><input type="text" name="E" size="30"></p>
 <p>Password</p>
-<p><input type="password" name="_p" size="30"></p>
+<p><input type="password" name="P" size="30"></p>
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
