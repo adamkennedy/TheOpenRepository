@@ -2,6 +2,7 @@ Changes for Perl extension TinyAuth
 
 0.96 Tue  2 Oct 2007
 	- Cleaning up the dispatch to be more readable
+	- Get rid of old, bad, cookies silently
 
 0.95 Fri 27 Sep 2007
 	- BETA 2 RELEASE. NOW ACTUALLY USABLE! :)
