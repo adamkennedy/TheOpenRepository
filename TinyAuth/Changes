@@ -1,5 +1,8 @@
 Changes for Perl extension TinyAuth
 
+0.97 Tue  2 Oct 2007
+	- Commenced dogfooding on my main repository
+
 0.96 Tue  2 Oct 2007
 	- Cleaning up the dispatch to be more readable
 	- Get rid of old, bad, cookies silently
