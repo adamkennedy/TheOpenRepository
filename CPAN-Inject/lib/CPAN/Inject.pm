@@ -155,7 +155,7 @@ sub new {
 		foreach my $i ( 0 .. $#dirs ) {
 			my $parent = File::Spec->catpath(
 				$v,
-				File::Spec->catdir( @dirs[0..$i],
+				File::Spec->catdir( @dirs[0..$i] ),
 				'', # No file (returns just the dir)
 				);
 			unless ( -d $parent ) {
