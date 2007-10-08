@@ -1,5 +1,8 @@
 Revision history for Perl extension CPAN-Inject
 
+0.10 Mon  8 Oct 2007
+	- Bad call to File::Spec->catpath threw a warning when $^W = 1
+
 0.09 Sat 18 Aug 2007
 	- When -d sources fails, do a more thorough check for why
 	  (prevents "does not exist" errors for some "does not own sources" cases)

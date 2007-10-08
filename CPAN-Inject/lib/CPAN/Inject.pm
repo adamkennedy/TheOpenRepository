@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 use vars qw{$VERSION $CHECK_OWNER};
 
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 
 	# Attempt to determine whether or not we are capable
 	# of finding the owner of a directory.
@@ -153,8 +153,10 @@ sub new {
 
 		# Check for the existance and rx status of each parent
 		foreach my $i ( 0 .. $#dirs ) {
-			my $parent = File::Spec->catpath( $v,
-				File::Spec->catdir( @dirs[0..$i] ),
+			my $parent = File::Spec->catpath(
+				$v,
+				File::Spec->catdir( @dirs[0..$i],
+				'', # No file (returns just the dir)
 				);
 			unless ( -d $parent ) {
 				Carp::croak("The directory '$sources' does not exist");
