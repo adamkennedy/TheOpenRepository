@@ -65,11 +65,13 @@ use Object::Tiny qw{
 	interactive
 	install_cgi
 	install_static
-	cgi_path
+	install_config
+	cgi_dir
 	cgi_uri
 	cgi_capture
-	static_path
+	static_dir
 	static_uri
+	config_dir
 	errstr
 };
 
@@ -85,17 +87,21 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Create the arrays for scripts and libraries
-	$self->{script}   = [];
-	$self->{class} = [];
+	$self->{script} = [];
+	$self->{class}  = [];
+	$self->{config} = {};
 
-	# By default, install CGI but not static
+	# By default, install CGI but not static or config
 	unless ( defined $self->install_cgi ) {
-		$self->{install_cgi} = 1;
+		$self->{install_cgi}    = 1;
 	}
 	unless ( defined $self->install_static ) {
 		$self->{install_static} = 0;
 	}
-	
+	unless ( defined $self->install_config ) {
+		$self->{install_config} = 0;
+	}
+
 	# Auto-detect interactive mode if needed
 	unless ( defined $self->interactive ) {
 		$self->{interactive} = $self->_is_interactive;
@@ -106,15 +112,20 @@ sub new {
 	$self->{interactive}    = !! $self->{interactive};
 	$self->{install_cgi}    = !! $self->{install_cgi};
 	$self->{install_static} = !! $self->{install_static};
+	$self->{install_config} = !! $self->{install_config};
 
 	# Delete params that should not have been provided
 	unless ( $self->install_cgi ) {
 		delete $self->{cgi_uri};
-		delete $self->{cgi_path};
+		delete $self->{cgi_dir};
 	}
 	unless ( $self->install_static ) {
 		delete $self->{static_uri};
-		delete $self->{static_path};
+		delete $self->{static_dir};
+	}
+	unless ( $self->install_config ) {
+		delete $self->{config_dir};
+		delete $self->{config_keep};
 	}
 
 	return $self;
@@ -126,21 +137,21 @@ sub prepare {
 	# Check the cgi params if installing CGI
 	if ( $self->install_cgi ) {
 		# Get and check the base cgi path
-		if ( $self->interactive and ! defined $self->cgi_path ) {
-			$self->{cgi_path} = Term::Prompt::prompt(
+		if ( $self->interactive and ! defined $self->cgi_dir ) {
+			$self->{cgi_dir} = Term::Prompt::prompt(
 				'x', 'CGI Directory:', '',
 				File::Spec->rel2abs( File::Spec->curdir ),
 			);
 		}
-		my $cgi_path = $self->cgi_path;
-		unless ( defined $cgi_path ) {
-			return $self->prepare_error("No cgi_path provided");
+		my $cgi_dir = $self->cgi_dir;
+		unless ( defined $cgi_dir ) {
+			return $self->prepare_error("No cgi_dir provided");
 		}
-		unless ( -d $cgi_path ) {	
-			return $self->prepare_error("The cgi_path '$cgi_path' does not exist");
+		unless ( -d $cgi_dir ) {	
+			return $self->prepare_error("The cgi_dir '$cgi_dir' does not exist");
 		}
-		unless ( -w $cgi_path ) {
-			return $self->prepare_error("The cgi_path '$cgi_path' is not writable");
+		unless ( -w $cgi_dir ) {
+			return $self->prepare_error("The cgi_dir '$cgi_dir' is not writable");
 		}
 
 		# Get and check the cgi_uri
@@ -150,7 +161,7 @@ sub prepare {
 			);
 		}
 		unless ( defined _STRING($self->cgi_uri) ) {
-			return $self->prepare_error("No cgi_path provided");
+			return $self->prepare_error("No cgi_dir provided");
 		}
 
 		# Validate the CGI settings
@@ -159,24 +170,49 @@ sub prepare {
 		}
 	}
 
+	# Check the config params if installing config
+	if ( $self->install_config ) {
+		# Get and check the base config directory
+		if ( $self->interactive and ! defined $self->config_dir ) {
+			my $default = $self->install_cgi
+				? $self->cgi_dir
+				: File::Spec->rel2abs( File::Spec->curdir );
+			$self->{config_dir} = Term::Prompt::prompt(
+				'x', 'Config Directory:', '',
+				$default
+			);
+		}
+		my $config_dir = $self->config_dir;
+		unless ( defined $config_dir ) {
+			return $self->prepare_error("No config_dir provided");
+		}
+		unless ( -d $config_dir ) {	
+			return $self->prepare_error("The config_dir '$config_dir' does not exist");
+		}
+		unless ( -w $config_dir ) {
+			return $self->prepare_error("The config_dir '$config_dir' is not writable");
+		}
+
+	}
+		
 	# Check the static params if installing static
 	if ( $self->install_static ) {
-		# Get and check the base cgi path
-		if ( $self->interactive and ! defined $self->static_path ) {
-			$self->{static_path} = Term::Prompt::prompt(
+		# Get and check the base cgi directory
+		if ( $self->interactive and ! defined $self->static_dir ) {
+			$self->{static_dir} = Term::Prompt::prompt(
 				'x', 'Static Directory:', '',
 				File::Spec->rel2abs( File::Spec->curdir ),
 			);
 		}
-		my $static_path = $self->static_path;
-		unless ( defined $static_path ) {
-			return $self->prepare_error("No static_path provided");
+		my $static_dir = $self->static_dir;
+		unless ( defined $static_dir ) {
+			return $self->prepare_error("No static_dir provided");
 		}
-		unless ( -d $static_path ) {	
-			return $self->prepare_error("The static_path '$static_path' does not exist");
+		unless ( -d $static_dir ) {	
+			return $self->prepare_error("The static_dir '$static_dir' does not exist");
 		}
-		unless ( -w $static_path ) {
-			return $self->prepare_error("The static_path '$static_path' is not writable");
+		unless ( -w $static_dir ) {
+			return $self->prepare_error("The static_dir '$static_dir' is not writable");
 		}
 
 		# Get and check the cgi_uri
@@ -186,7 +222,7 @@ sub prepare {
 			);
 		}
 		unless ( defined _STRING($self->static_uri) ) {
-			return $self->prepare_error("No static_path provided");
+			return $self->prepare_error("No static_dir provided");
 		}
 
 		# Validate the CGI settings
@@ -235,6 +271,24 @@ sub run {
 		}
 	}
 
+	# Install any config files
+	foreach my $name ( %{$self->{config}} ) {
+		my $from = $self->{config}->{$name};
+		my $to   = File::Spec->catfile(
+			$self->config_dir,
+			$name,
+		);
+		if (
+			_INSTANCE($config, 'YAML::Tiny')
+			or
+			_INSTANCE($config, 'Config::Tiny')
+		) {
+			unless ( $config->write($to) ) {
+				die "Failed to write to config file '$name'";
+			}
+		}
+	}
+
 	return 1;
 }
 
@@ -247,12 +301,12 @@ sub run {
 
 sub cgi_map {
 	$_[0]->install_cgi or return undef;
-	URI::ToDisk->new( $_[0]->cgi_path => $_[0]->cgi_uri );
+	URI::ToDisk->new( $_[0]->cgi_dir => $_[0]->cgi_uri );
 }
 
 sub static_map {
 	$_[0]->install_static or return undef;
-	URI::ToDisk->new( $_[0]->static_path => $_[0]->static_uri );
+	URI::ToDisk->new( $_[0]->static_dir => $_[0]->static_uri );
 }
 
 
@@ -279,6 +333,27 @@ sub add_class {
 	my $class = _CLASS(shift)     or die "Invalid class name";
 	$self->_module_exists($class) or die "Failed to find '$class'";
 	push @{$self->{class}}, $class;
+	return 1;
+}
+
+sub add_config {
+	my $self   = shift;
+	my $config = shift;
+	my $name   = _STRING(shift) or die "Did not provide a config file name";
+	if ( _CLASSISA($config, 'Config::Tiny') ) {
+		$config = $config->new;
+	}
+	if ( _CLASSISA($config, 'YAML::Tiny') ) {
+		$config = $config->new( {} );
+	}
+	unless (
+		_INSTANCE($config, 'Config::Tiny')
+		or
+		_INSTANCE($config, 'Config::YAML')
+	) {
+		die "Missing, invalid, or unsupported config object";
+	}
+	$self->{config}->{$name} = $config;
 	return 1;
 }
 
@@ -327,7 +402,7 @@ sub validate_cgi_dir {
 
 	# Superficially ok, convert to capture object
 	$self->{cgi_capture} = CGI::Capture->from_yaml_string($www);
-	unless ( _INSTANCE($self->{cgi_capture}, 'CGI::Capture') ) {
+	unless ( _INSTANCE($self->cgi_capture, 'CGI::Capture') ) {
 		return undef;
 		# Carp::croak("Failed to create capture object");
 	}
