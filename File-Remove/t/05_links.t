@@ -30,7 +30,7 @@ unless( mkdir($testdir, 0777) ) {
 ok( -d $testdir, 'Created testdir' );
 my %links = (
 	l_ex   => curdir(),
-	l_ex_a => rootdir(),
+#	l_ex_a => rootdir(),
 	l_nex  => 'does_not_exist'
 );
 my $errs = 0;

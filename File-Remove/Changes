@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Remove.
 
+0.38 Mon 15 Oct 2007  (Adam Kennedy)
+	- Removed an extremely dangerous and reckless test case that tried
+	  to delete a soft link to root and (when it failed) deleted the
+	  actual root directory.
+
 0.37 Sun  8 Jul 2007  (Adam Kennedy)
 	- Restoring support for broken symlinks (Marek Rouchal)
 	- Adding tests for the broken symlink case (Marek Rouchal)
