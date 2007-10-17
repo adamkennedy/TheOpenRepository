@@ -6,9 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 2;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
-use_ok( 'Perl::Dist'          );
-use_ok( 'Perl::Dist::Builder' );
+use_ok( 'Perl::Dist::Downloads' );
