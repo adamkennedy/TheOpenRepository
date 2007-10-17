@@ -1,5 +1,6 @@
 Revision history for Perl module Perl::Dist
 
+0.01 
 0.0.5 Tue Aug 29 05:51:10 EDT 2006
     - fixed up version numbering format from Module::Install
 

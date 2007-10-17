@@ -4,16 +4,16 @@ Perl::Dist::Bootstrap - Bootstrapping to build Win32 Perl from scratch
 
 =head1 DESCRIPTION
 
-Running Perl::Dist::Builder requires Perl and numerous modules.  Therefore, one
-needs to have a working installation of Perl on Win32 with all the appropriate
-modules.  A pre-built Win32 binary installer is one possibility to bootstrap
-an environment to build other Win32 binary installations.
+Running Perl::Dist::Builder requires Perl and numerous modules.  Therefore,
+one needs to have a working installation of Perl on Win32 with all the
+appropriate modules.  A pre-built Win32 binary installer is one possibility
+to bootstrap an environment to build other Win32 binary installations.
 
-However, a binary Perl installation cannot be used to build another copy of
-itself (or it would overwrite itself as it tried).  Since Perl hard-codes @INC
-directories into the binary, avoiding this collision requires more than
-renaming the installed Perl directory and changing PATH and other enviroment
-variables.
+However, a binary Perl installation cannot be used to build another copy
+of itself (or it would overwrite itself as it tried).  Since Perl
+hard-codes @INC directories into the binary, avoiding this collision
+requires more than renaming the installed Perl directory and changing PATH
+and other enviroment variables.
 
 Instead, a new Perl distribution must be built with a custom path that won't
 collide with the path of any Perl that will be built.  Here is one way of
@@ -39,8 +39,8 @@ command shell in that directory.
 
 =item *
 
-Edit C<< strawberry.yml >> and change the "image_dir" parameter to a different
-path, e.g. C<< C:\bootstrap-perl >>.
+Edit C<< strawberry.yml >> and change the "image_dir" parameter to a
+different path, e.g. C<< C:\bootstrap-perl >>.
 
 =item *
 
@@ -64,8 +64,6 @@ C<< C:\strawberry-perl >> (for building Strawberry Perl).
 
 =back
 
-At this point, the perl located at C<< C:\bootstrap-perl >> will be the default
-perl and will not be affected by rebuilding a new Strawberry Perl at 
-C<< C:\strawberry-perl >>.  
-
-=cut
+At this point, the perl located at C<< C:\bootstrap-perl >> will be the
+default perl and will not be affected by rebuilding a new Strawberry Perl
+at C<< C:\strawberry-perl >>.

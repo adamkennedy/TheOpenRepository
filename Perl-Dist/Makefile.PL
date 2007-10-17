@@ -3,26 +3,27 @@ use strict;
 use inc::Module::Install;
 use File::Spec;
 
-# Define metadata
-name        'Perl-Dist';
-author      'David A Golden <dagolden@cpan.org>';
-all_from    'lib/Perl/Dist.pm';
+name     'Perl-Dist';
+author   'David A Golden <dagolden@cpan.org>';
+all_from 'lib/Perl/Dist.pm';
+requires 'Archive::Tar'          => '1.34'; 
+requires 'Archive::Zip'          => '1.20';
+requires 'File::Copy::Recursive' => '0.25';
+requires 'File::Find::Rule'      => '0.30';
+requires 'File::Path'            => '1.08';
+requires 'File::pushd'           => '0.32';
+requires 'File::Spec'            => '3.17';
+requires 'File::Remove'          => '0.37';
+requires 'File::ShareDir'        => '0.05';
+requires 'HTTP::Status'          => '1.28';
+requires 'IPC::Run3'             => '0.034';
+requires 'LWP::UserAgent'        => '2.033';
+requires 'LWP::Online'           => '0.02';
+requires 'Tie::File'             => 0;
+requires 'YAML::Tiny'            => '1.12';
+requires 'CPAN'                  => 0;
 
-requires    'Archive::Tar'          => '1.29'; 
-requires    'Archive::Zip'          => '1.16';
-requires    'CPAN'                  => 0;
-requires    'File::Copy::Recursive' => '0.25';
-requires    'File::Find::Rule'      => '0.30';
-requires    'File::Path'            => '1.08'; 
-requires    'File::pushd'           => '0.32';
-requires    'File::Spec'            => '3.17';
-requires    'File::Remove'          => '0.37';
-requires    'HTTP::Status'          => '1.28';
-requires    'IPC::Run3'             => '0.034';
-requires    'LWP::UserAgent'        => '2.033';
-requires    'LWP::Online'           => 0;
-requires    'Tie::File'             => 0;
-requires    'YAML'                  => '0.62';
+install_share;
 
 WriteAll;
 

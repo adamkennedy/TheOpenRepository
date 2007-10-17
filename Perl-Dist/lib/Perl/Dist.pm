@@ -5,16 +5,14 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = "0.000005";
+	$VERSION = '0.06';
 }
 
 1;
 
 __END__
 
-#--------------------------------------------------------------------------#
-# main pod documentation 
-#--------------------------------------------------------------------------#
+=pod
 
 =head1 NAME
 
@@ -29,9 +27,11 @@ general support tool for Perl application deployment.
 
 Packages in this namespace include both "builders" and "distributions".
 Builder packages automate the generation of distributions.  Distribution
-packages contain configuration files for a particular builder, extra files to
-be bundled with the pre-packaged binary, and documentation.  Distribution
-namespaces are also recommended to consolidate bug reporting using rt.cpan.org.
+packages contain configuration files for a particular builder, extra files
+to be bundled with the pre-packaged binary, and documentation.
+Distribution namespaces are also recommended to consolidate bug reporting
+using http://rt.cpan.org/.
+
 I<Distribution packages should not contain the pre-packaged install files
 themselves.>
 
@@ -61,8 +61,8 @@ for distribution developers
 =item *
 
 L<Perl::Dist::Strawberry> -- a practical Win32 Perl release for
-experienced Perl developers to experiment and test the installation of various
-CPAN modules under Win32 conditions
+experienced Perl developers to experiment and test the installation of
+various CPAN modules under Win32 conditions
 
 =back
 
@@ -115,15 +115,15 @@ L<irc://irc.perl.org/#win32>
 
 =head1 AUTHOR
 
-David A. Golden (DAGOLDEN)
+Adam Kennedy <adamk@cpan.org>
 
-dagolden@cpan.org
-
-http://dagolden.com/
+David A. Golden <dagolden@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2006 by David A. Golden
+Cyopright 2007 Adam Kennedy
+
+Copyright 2006 David A. Golden
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
