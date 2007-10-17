@@ -276,7 +276,7 @@ sub install_modules {
 		File::Spec->catdir( $self->build_dir, $dir ),
 	);
 
-        warn "Needs better INSTALLDIRS handling!";
+        # warn "Needs better INSTALLDIRS handling!";
         $self->trace("Building $dir\n");
         SCOPE: {
             local $ENV{PERL_MM_USE_DEFAULT} = 1;
