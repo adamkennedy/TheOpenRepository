@@ -1,4 +1,7 @@
 Changes for Perl extension Perl-Dist-Downloads
 
+0.02 Wed 17 Oct 2007
+	- Adding the mingw runtime
+
 0.01 Wed 17 Oct 2007
 	- Creating initial version with dmake and several mingw packages
