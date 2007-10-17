@@ -21,6 +21,8 @@ use File::Remove          ();
 use File::Copy::Recursive ();
 use File::Find::Rule      ();
 use File::pushd           ();
+use File::ShareDir        ();
+use Perl::Dist::Downloads ();
 use Tie::File             ();
 use IPC::Run3             ();
 use Archive::Tar          ();
@@ -28,16 +30,21 @@ use Archive::Zip          ();
 use LWP::UserAgent        ();
 use LWP::Online           ();
 use HTTP::Status          ();
-use YAML                  ();
+use URI::file             ();
+use YAML::Tiny            ();
+
 use CPAN                  ();
 
-#--------------------------------------------------------------------------#
+
+
+
+
+#####################################################################
 # Constructor and Accessors
-#--------------------------------------------------------------------------#
 
 sub new {
-    my $class = shift;
-    my $self  = YAML::LoadFile( shift );
+    my $class  = shift;
+    my ($self) = YAML::Tiny::LoadFile( shift );
     bless $self, $class;
 
     # Auto-detect online-ness if needed
@@ -119,38 +126,51 @@ sub install_binaries {
     for my $binary ( $self->binaries ) {
         my $name = $binary->{name};
         $self->trace("Preparing $name\n");
-        
-        # downloading
+
+	# If a share, map to a URI
+	if ( $binary->{share} ) {
+		my ($dist, $name) = split /\s+/, $binary->{share};
+		$self->trace("Finding $name in $dist... ");
+		my $file = File::Spec->rel2abs(
+			File::ShareDir::dist_file( $dist, $name )
+		);
+		unless ( -f $file ) {
+			die "Failed to find $file";
+		}
+		$binary->{url} = URI::file->new($file)->as_string;
+		$self->trace(" found\n");
+	}
+
+        # Download the file
         my $tgz = $self->_mirror(
 		$binary->{url},
 		File::Spec->catdir( $self->download_dir, $name ),
 	);
 
-        # unpacking
+        # Unpack the archive
         my $install_to = $binary->{install_to} || q{};
         if ( ref $install_to eq 'HASH' ) {
             $self->_extract_filemap( $tgz, $install_to, $image_dir );
-        }
-        elsif ( ! ref $install_to ) {
+
+        } elsif ( ! ref $install_to ) {
             # unpack as a whole
             my $tgt = File::Spec->catdir( $image_dir, $install_to );
             $self->_extract_whole( $tgz => $tgt );
-        }
-        else {
+
+        } else {
             die "didn't expect install_to to be a " . ref $install_to;
         }
         
-        # finding licenses
+        # Find the licenses
         if ( ref $binary->{license} eq 'HASH' )   {
             my $license_dir = File::Spec->catdir( $image_dir, 'licenses' );
             $self->_extract_filemap( $tgz, $binary->{license}, $license_dir, 1 );
         }
         
-        # copy in any extras (e.g. CPAN\Config.pm starter)
+        # Copy in any extras (e.g. CPAN\Config.pm starter)
         if ( my $extras = $binary->{extra} ) {
-            for my $f ( keys %$extras ) {
-                my $from = $f;
-                my $to   = File::Spec->catfile( $image_dir, $extras->{$f} );
+            for my $from ( keys %$extras ) {
+                my $to   = File::Spec->catfile( $image_dir, $extras->{$from} );
                 $self->_copy( $from => $to );
             }
         }
@@ -167,8 +187,8 @@ sub install_binaries {
 
 sub install_extras {
     # Load configurations
-    my $self       = shift;
-    my $extras    = $self->{extra}; # Hash
+    my $self   = shift;
+    my $extras = $self->{extra}; # Hash
 
     # recursively copy in any extras (e.g. CPAN\Config.pm starter)
     if ( ref $extras eq 'HASH' ) {
@@ -295,8 +315,24 @@ sub install_perl {
     # download perl
     $self->trace("Building perl:\n");
 
-    my $perl_cfg = $sources->[0]; # perl is the only one so far
+    # perl is the only one so far
+    my $perl_cfg = $sources->[0];
 
+    # If a share, map to a URI
+    if ( $perl_cfg->{share} ) {
+        my ($dist, $name) = split /\s+/, $perl_cfg->{share};
+        $self->trace("Finding $name in $dist... ");
+        my $file = File::Spec->rel2abs(
+            File::ShareDir::dist_file( $dist, $name )
+        );
+        unless ( -f $file ) {
+            die "Failed to find $file";
+        }
+        $perl_cfg->{url} = URI::file->new($file)->as_string;
+        $self->trace(" found\n");
+    }
+
+    # Download the file
     my $tgz = $self->_mirror( 
         $perl_cfg->{url},
         File::Spec->catdir( $self->download_dir, $perl_cfg->{name} ) 

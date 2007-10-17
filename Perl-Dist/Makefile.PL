@@ -6,6 +6,7 @@ use File::Spec;
 name     'Perl-Dist';
 author   'David A Golden <dagolden@cpan.org>';
 all_from 'lib/Perl/Dist.pm';
+
 requires 'Archive::Tar'          => '1.34'; 
 requires 'Archive::Zip'          => '1.20';
 requires 'File::Copy::Recursive' => '0.25';
@@ -22,8 +23,7 @@ requires 'LWP::Online'           => '0.02';
 requires 'Tie::File'             => 0;
 requires 'YAML::Tiny'            => '1.12';
 requires 'CPAN'                  => 0;
-
-install_share;
+requires 'Perl::Dist::Downloads' => '0.02';
 
 WriteAll;
 
