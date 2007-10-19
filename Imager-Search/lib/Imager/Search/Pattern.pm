@@ -35,7 +35,7 @@ use 5.005;
 use strict;
 use Carp         ();
 use IO::File     ();
-use Params::Util qw{ _POSINT _ARRAY _INSTANCE _DRIVER };
+use Params::Util qw{ _STRING _IDENTIFIER _POSINT _ARRAY _INSTANCE _DRIVER };
 use Imager       ();
 
 use vars qw{$VERSION};

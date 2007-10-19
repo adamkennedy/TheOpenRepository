@@ -42,18 +42,42 @@ sub newline_transform {
 #####################################################################
 # Transform Functions
 
-sub __pattern_transform {
+sub __pattern_transform ($) {
 	my ($r, $g, $b, undef) = $_[0]->rgba;
 	return sprintf("#%02X%02X%02X", $r, $g, $b);
 }
 
-sub __image_transform {
+sub __image_transform ($) {
 	my ($r, $g, $b, undef) = $_[0]->rgba;
 	return sprintf("#%02X%02X%02X", $r, $g, $b);
 };
 
-sub __newline_transform {
+sub __newline_transform ($) {
 	return '.{' . ($_[0] * 7) . '}';
+}
+
+
+
+
+
+#####################################################################
+# Imager::Search::Driver Methods
+
+sub image_string {
+	my $self       = shift;
+	my $scalar_ref = shift;
+	my $image      = shift;
+	my $height     = $image->getheight;
+	foreach my $row ( 0 .. $height - 1 ) {
+		# Get the string for the row
+		$$scalar_ref = join('',
+			map { sprintf("#%02X%02X%02X", ($_->rgba)[0..2]) }
+			$image->getscanline( y => $row )
+			);
+	}
+
+	# Return the scalar reference as a convenience
+	return $scalar_ref;
 }
 
 1;
