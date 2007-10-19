@@ -5,9 +5,9 @@ package_name:       Vanilla Perl
 package_version:    7
 
 # directories
-download_dir:   c:\temp\vp_sources
-build_dir:      c:\temp\vp_build
-image_dir:      c:\vanilla-perl
+download_dir:   C:\temp\vp_sources
+build_dir:      C:\temp\vp_build
+image_dir:      C:\vanilla-perl
 
 # Binary components
 binary:
