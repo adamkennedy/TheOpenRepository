@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use 5.006;
+use strict;
+use warnings;
+use Perl::Dist::Builder;
+
+# Did we get a valid file as the first param?
+unless ( $ARGV[0] ) {
+	print "Did not get a build configuration param\n";
+	exit(0);
+}
+
+my $pdb = Perl::Dist::Builder->new( $ARGV[0] );
+unless ( $pdb ) {
+	die "Failed to create Perl::Dist::Builder";
+}
+
+unless ( $pdb->remove_image ) {
+	die "Failed to remove previous image";
+}
+
+unless ( $pdb->build_all ) {
+	die "Failed to build_all";
+}
+
+exit(0);
