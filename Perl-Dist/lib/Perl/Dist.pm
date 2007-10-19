@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.10';
 }
 
 1;
@@ -98,31 +98,13 @@ Better uninstall support and upgradability
 
 =back
 
-=head1 SEE ALSO
-
-=over
-
-=item *
-
-L<http://win32.perl.org/>
-
-=item *
-
-L<http://vanillaperl.com>
-
-=item *
-
-L<irc://irc.perl.org/#win32>
-
-=back
-
 =head1 AUTHOR
 
 Adam Kennedy <adamk@cpan.org>
 
 David A. Golden <dagolden@cpan.org>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Cyopright 2007 Adam Kennedy
 
@@ -133,5 +115,43 @@ it and/or modify it under the same terms as Perl itself.
 
 The full text of the license can be found in the
 LICENSE file included with this module.
+
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Perl::Dist::Builder>
+
+=item *
+
+L<Perl::Dist::Vanilla>
+
+=item *
+
+L<Perl::Dist::Strawberry>
+
+=item *
+
+L<http://win32.perl.org/>
+
+=item *
+
+L<http://vanillaperl.com/>
+
+=item *
+
+L<irc://irc.perl.org/#win32>
+
+=item *
+
+L<http://ali.as/>
+
+=item *
+
+L<http://dagolden.com/>
+
+=back
 
 =cut

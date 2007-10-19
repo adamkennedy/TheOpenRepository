@@ -1,11 +1,15 @@
-# Perl::Dist tests
+#!/usr/bin/perl
+
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
-use Test::More;
+use Test::More tests => 3;
+use Test::Script;
 
-plan tests =>  2 ;
+use_ok( 'Perl::Dist'          );
+use_ok( 'Perl::Dist::Builder' );
 
-require_ok( 'Perl::Dist' );
-require_ok( 'Perl::Dist::Builder' );
-
-
+script_compiles_ok( 'script/perldist' );
