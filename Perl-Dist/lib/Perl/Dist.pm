@@ -2,10 +2,167 @@ package Perl::Dist;
 
 use 5.005;
 use strict;
+use Carp 'croak';
+use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.10';
+}
+
+use Object::Tiny qw{
+	offline
+	download_dir
+	image_dir
+	remove_image
+	user_agent
+};
+
+
+
+
+
+#####################################################################
+# Constructor
+
+sub new {
+	my $class  = shift;
+	my %params = @_;
+
+	# Apply some defaults
+	unless ( defined $params{default_dir_name} ) {
+		if ( $params{image_dir} ) {
+			$params{default_dir_name} = $params{image_dir};
+		} else {
+			croak("Missing or invalid image_dir param");
+		}
+	}
+	unless ( defined $params{user_agent} ) {
+		$params{user_agent} = LWP::UserAgent->new;
+	}
+
+	# Hand off to the parent class
+	my $self = shift->SUPER::new(%params);
+
+	# Auto-detect online-ness if needed
+	unless ( defined $self->{offline} ) {
+		$self->{offline} = LWP::Online::offline();
+	}
+
+	# Normalize some params
+	$self->{offline}      = !! $self->offline;
+	$self->{remove_image} = !! $self->remove_image;
+
+	# Check params
+	unless ( _STRING($self->download_dir) ) {
+		croak("Missing or invalid download_dir param");
+	}
+	unless ( _STRING($self->image_dir) ) {
+		croak("Missing or invalid image_dir param");
+	}
+	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
+		croak("Missing or invalid user_agent param");
+	}
+
+	# Clear the previous build
+	if ( -d $self->image_dir ) {
+		if ( $self->remove_image ) {
+			$self->trace("Removing previous $image\n");
+			File::Remove::remove( \1, $image );
+		} else {
+			croak("The image_dir directory already exists");
+		}
+	} else {
+		$self->trace("No previous $image found\n");
+	}
+
+	# Initialize the build
+	File::Path::mkpath($self->image_dir);
+	for my $d ( qw/dmake mingw licenses links perl/ ) {
+		File::Path::mkpath(
+			File::Spec->catdir( $dir, $d )
+		);
+	}
+
+	# Create the working directories
+	for my $d ( $self->download_dir, $self->image_dir ) {
+		next if -d $d;
+		File::Path::mkpath($d) or die "Couldn't create $d";
+	}
+
+        return $self;
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub run {
+
+}
+
+sub install_binary {
+	my $self = shift;
+
+	
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub trace {
+	print $_[0];
+}
+
+sub _mirror {
+	my ($self, $url, $dir) = @_;
+	my ($file) = $url =~ m{/([^/?]+\.(?:tar\.gz|tgz|zip))}ims;
+	my $target = File::Spec->catfile( $dir, $file );
+	if ( $self->{offline} and -f $target ) {
+		$self->trace(" already downloaded\n");
+		return $target;
+	}
+	File::Path::mkpath($dir);
+	$| = 1;
+
+	$self->trace("Downloading $file...");
+	my $ua = LWP::UserAgent->new;
+	my $r  = $ua->mirror( $url, $target );
+	if ( $r->is_error ) {
+		$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
+
+	} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
+		$self->trace(" already up to date.\n");
+
+	} else {
+		$self->trace(" done\n");
+	}
+
+	return $target;
+}
+
+sub _copy {
+	my ($self, $from, $to) = @_;
+	my $basedir = File::Basename::dirname( $to );
+	File::Path::mkpath($basedir) unless -e $basedir;
+	$self->trace("Copying $from to $to\n");
+	File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+}
+
+sub _make {
+	my $self   = shift;
+	my @params = @_;
+	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
+	IPC::Run3::run3( [ $self->bin_make, @params ] ) or die "make failed";
+	die "make failed (OS error)" if ( $? >> 8 );
+	return 1;
 }
 
 1;

@@ -170,7 +170,7 @@ sub install_binaries {
 		}
 	}
 
-	Initialize the image_dir binaries
+	# Initialize the image_dir binaries
 	$self->{bin_make} = File::Spec->catfile( $self->image_dir, 'dmake', 'bin', 'dmake.exe' );
 	unless ( -x $self->bin_make ) {
 		die "Can't execute make";
@@ -473,7 +473,7 @@ sub remove_image {
 	} else {
 		$self->trace("No previous $image found\n");
 	}
-	return;
+        return 1;
 }
 
 
