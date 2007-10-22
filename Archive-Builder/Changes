@@ -1,5 +1,9 @@
 Revision history for Perl extension Archive::Builder
 
+1.13 Mon 22 Oct 2007
+	- No functional changes. No need to upgrade.
+	- Incremental release to get a newer set of AUTOMATED_TESTING tests
+
 1.12 Fri  3 Aug 2007
 	- Fixing a small bug in archive file generation (Jeffery Candiloro)
 
