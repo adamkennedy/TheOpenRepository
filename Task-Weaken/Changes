@@ -1,5 +1,8 @@
 Revision history for Perl extension Task::CVSMonitor
 
+1.01 Mon 22 Oct 2007
+	- Updating to newer AUTOMATED_TESTING tests
+
 1.00 Sat 18 Aug 2007
 	- Adding more detail to the Makefile.PL, better error messages,
 	  and several additional fallback options.
