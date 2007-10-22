@@ -1,5 +1,9 @@
 Revision history for Perl extension Object-Tiny
 
+1.04 Mon 22 Oct 2007
+	- No functional changes
+	- Upgrading to a newer set of AUTOMATED_TESTING tests
+
 1.03 Tue  4 Sep 2007
     - Use explicit return in the generated accessors
       (makes them 5-10% faster according to benchmarking)

@@ -3,7 +3,7 @@ package Object::Tiny;
 # use strict; # Enable during dev and testing
 BEGIN {
 	require 5.004;
-	$Object::Tiny::VERSION = '1.03';
+	$Object::Tiny::VERSION = '1.04';
 }
 
 sub import {
