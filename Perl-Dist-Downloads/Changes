@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-Downloads
 
+0.03 Mon 22 Oct 2007
+	- Setting the guideline that Perl-Dist needs to work with a non-skip_perl
+	  minicpan. Thus, removing perl-5.8.8.tar.gz because it will be available
+	  in the minicpan.
+
 0.02 Wed 17 Oct 2007
 	- Adding the mingw runtime
 

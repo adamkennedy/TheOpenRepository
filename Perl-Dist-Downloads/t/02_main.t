@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 
 use Perl::Dist::Downloads ();
 use File::ShareDir ':ALL';
@@ -18,7 +18,6 @@ foreach ( qw{
 	gcc-g++-3.4.5-20060117-1.tar.gz
 	mingw-runtime-3.13.tar.gz
 	mingw32-make-3.81-2.tar.gz
-	perl-5.8.8.tar.gz
 	w32api-3.10.tar.gz
 } ) {
 	ok( -f dist_file('Perl-Dist-Downloads', $_), "Found $_" );
