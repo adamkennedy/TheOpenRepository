@@ -1,5 +1,9 @@
 Revision history for Perl extension CGI::Capture
 
+1.10 Mon 22 Oct 2007
+	- No functional changes
+	- Upgrading to newer AUTOMATED_TESTING tests
+
 1.09 Sat Jul 14 2007
 	- Now CGI::Capture is even MORE correct! :)
 	- Store and check the $INC{Config.pm} to be absolutely sure

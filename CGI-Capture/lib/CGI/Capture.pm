@@ -106,7 +106,7 @@ use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.09';
+	$VERSION = '1.10';
 }
 
 
