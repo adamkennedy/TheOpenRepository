@@ -16,6 +16,9 @@ use Object::Tiny qw{
 	image_dir
 	remove_image
 	user_agent
+	asset_perl
+	bin_perl
+	bin_make
 };
 
 
@@ -110,6 +113,105 @@ sub install_binary {
 	
 }
 
+sub install_perl_588 {
+	my $self = shift;
+	unless ( $self->bin_make ) {
+		croak("Cannot build Perl yet, no bin_make defined");
+	}
+	if ( $self->asset_perl ) {
+		croak("A version of Perl has already been built");
+	}
+	my $perl = $self->{asset_perl} = Perl::Dist::Asset::Perl->new(@_);
+
+	# Download the file
+	my $tgz = $self->_mirror( 
+		$perl->url,
+		File::Spec->catdir( $self->download_dir, $perl->name ) 
+	);
+
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $unpack_to );
+
+	# Get the versioned name of the directory
+	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
+	$perlsrc = File::Basename::basename($perlsrc);
+
+	# Manually patch in the Win32 friendly ExtUtils::Install
+	for my $f ( qw/Install.pm Installed.pm Packlist.pm/ ) {
+		my $from = File::Spec->catfile( "extra", $f );
+		my $to   = File::Spec->catfile( $unpack_to, $perlsrc, qw/lib ExtUtils/, $f );
+		$self->_copy( $from => $to );
+	}
+
+	# Copy in licenses
+	my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+	$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
+
+	# Setup fresh install directory
+	my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
+
+	if ( -d $perl_install ) {
+		$self->trace("Removing previous $perl_install\n");
+		File::Remove::remove( \1, $perl_install );
+	}
+
+	# Build win32 perl
+	SCOPE: {
+		my $wd = File::pushd::pushd(
+			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
+		);
+
+		my $image_dir             = $self->image_dir;
+		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+		$self->trace("Patching makefile.mk\n");
+		tie my @makefile, 'Tie::File', 'makefile.mk'
+			or die "Couldn't read makefile.mk";
+		for ( @makefile ) {
+			if ( m{\AINST_TOP\s+\*=\s+} ) {
+				s{\\perl}{$short_install}; # short has the leading \
+
+			} elsif ( m{\ACCHOME\s+\*=} ) {
+				s{c:\\mingw}{$image_dir\\mingw}i;
+
+			} else {
+				next;
+			}
+		}
+		untie @makefile;
+
+		$self->trace("Building perl...\n");
+		$self->_make;
+
+		# XXX Ugh -- tests take too long right now
+		$self->trace("Testing perl build\n");
+		$self->_make('test');
+
+		$self->trace("Installing perl...\n");
+		$self->_make( qw/install UNINST=1/ );
+	}
+
+	# Copy in any extras (e.g. CPAN\Config.pm starter)
+	if ( my $extras = $perl->{after} ) {
+		for my $f ( keys %$extras ) {
+			my $from = File::Spec->catfile( $f );
+			my $to   = File::Spec->catfile( $perl_install, $extras->{$f} );
+			$self->_copy( $from => $to );
+		}
+	}
+
+	# Should now have a perl to use
+	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
+	unless ( -x $self->bin_perl ) {
+		die "Can't execute " . $self->bin_perl;
+	}
+
+	return $self;
+}
+
 
 
 
@@ -162,6 +264,28 @@ sub _make {
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
 	IPC::Run3::run3( [ $self->bin_make, @params ] ) or die "make failed";
 	die "make failed (OS error)" if ( $? >> 8 );
+	return 1;
+}
+
+sub _extract {
+	my ( $self, $from, $to ) = @_;
+	File::Path::mkpath($to);
+	my $wd = File::pushd::pushd( $to );
+	$|++;
+	$self->trace("Extracting $from...");
+	if ( $from =~ m{\.zip\z} ) {
+		my $zip = Archive::Zip->new( $from );
+		$zip->extractTree();
+		$self->trace("done\n");
+
+	} elsif ( $from =~ m{\.tar\.gz|\.tgz} ) {
+		local $Archive::Tar::CHMOD = 0;
+		Archive::Tar->extract_archive($from, 1);
+		$self->trace("done\n");
+
+	} else {
+		die "Didn't recognize archive type for $from";
+	}
 	return 1;
 }
 
