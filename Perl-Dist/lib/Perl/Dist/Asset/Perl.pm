@@ -3,8 +3,11 @@ package Perl::Dist::Asset::Perl;
 # Perl::Dist asset for the Perl source code itself
 
 use strict;
-use Carp 'croak';
-use Params::Util qw{ _STRING };
+use Carp           'croak';
+use File::Spec     ();
+use File::ShareDir ();
+use Params::Util   qw{ _STRING _HASH };
+use URI::file      ();
 
 use vars qw{$VERSION};
 BEGIN {

@@ -289,6 +289,53 @@ sub _extract {
 	return 1;
 }
 
+
+sub _extract_filemap {
+	my ( $self, $archive, $filemap, $basedir, $file_only ) = @_;
+
+	if ( $archive =~ m{\.zip\z} ) {
+		my $zip = Archive::Zip->new( $archive );
+		my $wd = File::pushd::pushd( $basedir );
+		while ( my ($f, $t) = each %$filemap ) {
+			$self->trace("Extracting $f to $t\n");
+			my $dest = File::Spec->catfile( $basedir, $t );
+			$zip->extractTree( $f, $dest );
+		}
+
+	} elsif ( $archive =~ m{\.tar\.gz|\.tgz} ) {
+		local $Archive::Tar::CHMOD = 0;
+		my $tar = Archive::Tar->new( $archive );
+		for my $file ( $tar->get_files ) {
+			my $f = $file->full_path;
+			my $canon_f = File::Spec::Unix->canonpath( $f );
+			for my $tgt ( keys %$filemap ) {
+				my $canon_tgt = File::Spec::Unix->canonpath( $tgt );
+				my $t;
+
+				# say "matching $canon_f vs $canon_tgt";
+				if ( $file_only ) {
+					next unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}i;
+					($t = $canon_f)   =~ s{\A([^/]+[/])?\Q$canon_tgt\E\z}
+	             				{$filemap->{$tgt}}i;
+
+				} else {
+					next unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}i;
+					($t = $canon_f) =~ s{\A([^/]+[/])?\Q$canon_tgt\E}
+	             				{$filemap->{$tgt}}i;
+				}
+				my $full_t = File::Spec->catfile( $basedir, $t );
+				$self->trace("Extracting $f to $full_t\n");
+				$tar->extract_file( $f, $full_t );
+			}
+		}
+
+	} else {
+		die "Didn't recognize archive type for $archive";
+	}
+
+	return 1;
+}
+
 1;
 
 __END__
