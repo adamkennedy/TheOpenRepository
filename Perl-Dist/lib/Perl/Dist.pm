@@ -108,9 +108,45 @@ sub run {
 }
 
 sub install_binary {
-	my $self = shift;
+	my $self   = shift;
+	my $binary = Perl::Dist::Asset::Binary->new(@_);
+	my $name   = $binary->name;
+	$self->trace("Preparing $name\n");
 
-	
+	# Download the file
+	my $tgz = $self->_mirror(
+		$binary->url,
+		File::Spec->catdir( $self->download_dir, $name ),
+	);
+
+	# Unpack the archive
+	my $install_to = $binary->install_to;
+	if ( ref $install_to eq 'HASH' ) {
+		$self->_extract_filemap( $tgz, $install_to, $image_dir );
+
+	} elsif ( ! ref $install_to ) {
+		# unpack as a whole
+		my $tgt = File::Spec->catdir( $self->image_dir, $install_to );
+		$self->_extract_whole( $tgz => $tgt );
+
+	} else {
+		die "didn't expect install_to to be a " . ref $install_to;
+	}
+
+	# Find the licenses
+	if ( ref $binary->license eq 'HASH' )   {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $binary->{license}, $license_dir, 1 );
+	}
+
+	# Copy in any extras (e.g. CPAN\Config.pm starter)
+	my $extras = $binary->extras;
+	if ( $extras ) {
+		for my $from ( keys %{$extras ) {
+			my $to = File::Spec->catfile( $self->image_dir, $extras->{$from} );
+			$self->_copy( $from => $to );
+		}
+	}
 }
 
 sub install_perl_588 {
