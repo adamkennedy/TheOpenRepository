@@ -192,6 +192,8 @@ sub install_extras {
 			$self->_copy($from => $to);
 		}
 	}
+
+        return 1;
 }
 
 sub install_modules {
@@ -295,6 +297,8 @@ sub install_modules {
 			$self->_make( qw/install UNINST=1/ );
 		}
 	}
+
+        return 1;
 }
 
 sub install_perl {
@@ -415,6 +419,7 @@ sub install_perl {
 	}
 
 	$self->trace("Perl build completed ok\n");
+        return 1;
 }
 
 sub install_from_cpan {
@@ -461,6 +466,8 @@ END_PERL
 			}
 		}
 	}
+
+        return 1;
 }
 
 sub remove_image {
