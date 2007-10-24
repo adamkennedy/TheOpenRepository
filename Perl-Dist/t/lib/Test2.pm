@@ -1,4 +1,4 @@
-package t::lib::Test1;
+package t::lib::Test2;
 
 use strict;
 use base 'Perl::Dist';
@@ -35,18 +35,23 @@ sub remove_image         { 1 }
 sub run {
 	my $self = shift;
 
-	# Just install a single binary
-	$self->install_binary(
-		name    => 'dmake',
-		share   => 'Perl-Dist-Downloads dmake-4.8-20070327-SHAY.zip',
+	# Install the core binaries
+	$self->install_binaries;
+
+	# Install Perl 5.8.8
+	$self->install_perl_588(
+		name    => 'perl',
+		share   => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
 		license => {
-			'dmake/COPYING'            => 'dmake/COPYING',
-			'dmake/readme/license.txt' => 'dmake/license.txt',
+			'perl-5.8.8/Readme'   => 'perl/Readme',
+			'perl-5.8.8/Artistic' => 'perl/Artistic',
+			'perl-5.8.8/Copying'  => 'perl/Copying',
 		},
-		install_to => {
-			'dmake/dmake.exe' => 'dmake/bin/dmake.exe',	
-			'dmake/startup'   => 'dmake/bin/startup',
-		},
+		unpack_to => 'perl',
+		install_to => 'perl',
+		extras     => {
+			'extra\Config.pm' => 'lib\CPAN\Config.pm',
+		}
 	);
 
 	return 1;
@@ -56,6 +61,10 @@ sub trace { 1 }
 
 sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );
+}
+
+sub install_perl_588 {
+	return shift->SUPER::install_perl_588( @_, trace => sub { 1 } );
 }
 
 1;
