@@ -18,6 +18,7 @@ use Params::Util          qw{ _STRING _INSTANCE };
 use HTTP::Status          ();
 use LWP::UserAgent        ();
 use LWP::Online           ();
+use Tie::File             ();
 
 use base 'Perl::Dist::Inno';
 
@@ -32,9 +33,9 @@ use Object::Tiny qw{
 	image_dir
 	modules_dir
 	license_dir
+	build_dir
 	remove_image
 	user_agent
-	asset_perl
 	bin_perl
 	bin_make
 };
@@ -93,7 +94,10 @@ sub new {
 		$self->{license_dir} = File::Spec->catdir( $self->image_dir, 'licenses' );
 	}
 	unless ( _STRING($self->license_dir) ) {
-		croak("Invalid license_dir");
+		croak("Invalid license_dir param");
+	}
+	unless ( _STRING($self->build_dir) ) {
+		croak("Missing or invalid build_dir param");
 	}
 	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
 		croak("Missing or invalid user_agent param");
@@ -139,6 +143,90 @@ sub run {
 
 }
 
+sub install_binaries {
+	my $self = shift;
+
+	# Install dmake
+	$self->install_binary(
+		name       => 'dmake',
+		share      => 'Perl-Dist-Downloads dmake-4.8-20070327-SHAY.zip',
+		license    => {
+			'dmake/COPYING'            => 'dmake/COPYING',
+			'dmake/readme/license.txt' => 'dmake/license.txt',
+		},
+		install_to => {
+			'dmake/dmake.exe' => 'dmake/bin/dmake.exe',	
+			'dmake/startup'   => 'dmake/bin/startup',
+		},
+	);
+
+	# Initialize the image_dir binaries
+	$self->{bin_make} = File::Spec->catfile( $self->image_dir, 'dmake', 'bin', 'dmake.exe' );
+	unless ( -x $self->bin_make ) {
+		die "Can't execute make";
+	}
+
+	# Install the compilers (gcc)
+	$self->install_binary(
+		name       => 'gcc-core',
+		share      => 'Perl-Dist-Downloads gcc-core-3.4.5-20060117-1.tar.gz',
+		license    => {
+			'COPYING'     => 'gcc/COPYING',
+			'COPYING.lib' => 'gcc/COPYING.lib',
+		},
+		install_to => 'mingw',
+	);
+	$self->install_binary(
+		name       => 'gcc-g++',
+		share      => 'Perl-Dist-Downloads gcc-g++-3.4.5-20060117-1.tar.gz',
+		install_to => 'mingw',
+	);
+
+	# Install the binary utilities
+	$self->install_binary(
+		name       => 'mingw-make',
+		share      => 'Perl-Dist-Downloads mingw32-make-3.81-2.tar.gz',
+		install_to => 'mingw',
+	);
+	$self->install_binary(
+		name       => 'binutils',
+		share      => 'Perl-Dist-Downloads binutils-2.17.50-20060824-1.tar.gz',
+		license    => {
+			'Copying'     => 'binutils/Copying',
+			'Copying.lib' => 'binutils/Copying.lib',
+		},
+		install_to => 'mingw',
+	);
+
+	# Install support libraries
+	$self->install_binary(
+		name       => 'mingw-runtime',
+		share      => 'Perl-Dist-Downloads mingw-runtime-3.13.tar.gz',
+		license    => {
+			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
+			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
+		},
+		install_to => 'mingw',
+	);
+	$self->install_binary(
+		name       => 'w32api',
+		share      => 'Perl-Dist-Downloads w32api-3.10.tar.gz',
+		install_to => 'mingw',
+		extra      => {
+			'extra\README.w32api' => 'licenses\win32api\README.w32api',
+		},
+	);
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
 sub install_binary {
 	my $self   = shift;
 	my $binary = Perl::Dist::Asset::Binary->new(@_);
@@ -154,12 +242,12 @@ sub install_binary {
 	# Unpack the archive
 	my $install_to = $binary->install_to;
 	if ( ref $binary->install_to eq 'HASH' ) {
-		$self->_extract_filemap( $tgz, $binary->install_to, $binary->image_dir );
+		$self->_extract_filemap( $tgz, $binary->install_to, $self->image_dir );
 
 	} elsif ( ! ref $binary->install_to ) {
 		# unpack as a whole
 		my $tgt = File::Spec->catdir( $self->image_dir, $binary->install_to );
-		$self->_extract_whole( $tgz => $tgt );
+		$self->_extract( $tgz => $tgt );
 
 	} else {
 		die "didn't expect install_to to be a " . ref $binary->install_to;
@@ -185,10 +273,7 @@ sub install_perl_588 {
 	unless ( $self->bin_make ) {
 		croak("Cannot build Perl yet, no bin_make defined");
 	}
-	if ( $self->asset_perl ) {
-		croak("A version of Perl has already been built");
-	}
-	my $perl = $self->{asset_perl} = Perl::Dist::Asset::Perl->new(@_);
+	my $perl = Perl::Dist::Asset::Perl->new(@_);
 
 	# Download the file
 	my $tgz = $self->_mirror( 
@@ -208,11 +293,11 @@ sub install_perl_588 {
 	$perlsrc = File::Basename::basename($perlsrc);
 
 	# Manually patch in the Win32 friendly ExtUtils::Install
-	for my $f ( qw/Install.pm Installed.pm Packlist.pm/ ) {
-		my $from = File::Spec->catfile( "extra", $f );
-		my $to   = File::Spec->catfile( $unpack_to, $perlsrc, qw/lib ExtUtils/, $f );
-		$self->_copy( $from => $to );
-	}
+	#for my $f ( qw/Install.pm Installed.pm Packlist.pm/ ) {
+	#	my $from = File::Spec->catfile( "extra", $f );
+	#	my $to   = File::Spec->catfile( $unpack_to, $perlsrc, qw/lib ExtUtils/, $f );
+	#	$self->_copy( $from => $to );
+	#}
 
 	# Copy in licenses
 	my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
@@ -262,7 +347,7 @@ sub install_perl_588 {
 	}
 
 	# Copy in any extras (e.g. CPAN\Config.pm starter)
-	if ( my $extras = $perl->{after} ) {
+	if ( my $extras = $perl->extras ) {
 		for my $f ( keys %$extras ) {
 			my $from = File::Spec->catfile( $f );
 			my $to   = File::Spec->catfile( $perl_install, $extras->{$f} );
@@ -286,13 +371,6 @@ sub install_module {
 
 	return 1;
 }
-
-
-
-
-
-#####################################################################
-# Support Methods
 
 sub trace {
 	print $_[0];

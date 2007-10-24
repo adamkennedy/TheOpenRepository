@@ -17,7 +17,7 @@ use Object::Tiny qw{
 	license
 	unpack_to
 	install_to
-	after
+	extras
 };
 
 
@@ -46,8 +46,8 @@ sub new {
 	unless ( _STRING($self->install_to) ) {
 		croak("Missing or invalid install_to param");
 	}
-	unless ( _HASH($self->after) ) {
-		croak("Missing or invalid after param");
+	unless ( _HASH($self->extras) ) {
+		croak("Missing or invalid extras param");
 	}
 
 	return $self;

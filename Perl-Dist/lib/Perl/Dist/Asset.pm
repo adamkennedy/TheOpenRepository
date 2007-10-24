@@ -7,7 +7,7 @@ use Carp           'croak';
 use File::Spec     ();
 use File::ShareDir ();
 use URI::file      ();
-use Params::Util   qw{ _STRING };
+use Params::Util   qw{ _STRING _CODELIKE };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -59,7 +59,12 @@ sub new {
 # Support Methods
 
 sub trace {
-	print $_[0];
+	my $self = shift;
+	if ( _CODELIKE($self->{trace}) ) {
+		$self->{trace}->(@_);
+	} else {
+		print $_[1];
+	}
 }
 
 1;

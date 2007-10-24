@@ -31,7 +31,7 @@ sub new {
 	unless ( _STRING($self->name) ) {
 		croak("Missing or invalid name param");
 	}
-	unless ( _STRING($self->install_to) ) {
+	unless ( _STRING($self->install_to) or _HASH($self->install_to) ) {
 		croak("Missing or invalid install_to param");
 	}
 	if ( defined $self->extras and ! _HASH($self->extras) ) {
