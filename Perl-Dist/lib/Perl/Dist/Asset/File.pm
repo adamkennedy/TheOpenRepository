@@ -5,9 +5,9 @@ package Perl::Dist::Asset::File;
 # build.
 
 use strict;
-use base 'Perl::Dist::Asset';
 use Carp         'croak';
 use Params::Util qw{ _STRING };
+use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {

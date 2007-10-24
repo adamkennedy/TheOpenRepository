@@ -2,7 +2,23 @@ package Perl::Dist;
 
 use 5.005;
 use strict;
-use Carp 'croak';
+use Carp                  'croak';
+use Archive::Tar          ();
+use Archive::Zip          ();
+use File::Spec            ();
+use File::Spec::Unix      ();
+use File::Copy            ();
+use File::Copy::Recursive ();
+use File::Path            ();
+use File::pushd           ();
+use File::Remove          ();
+use File::Basename        ();
+use IPC::Run3             ();
+use Params::Util          qw{ _STRING _INSTANCE };
+use HTTP::Status          ();
+use LWP::UserAgent        ();
+use LWP::Online           ();
+
 use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
@@ -14,12 +30,20 @@ use Object::Tiny qw{
 	offline
 	download_dir
 	image_dir
+	modules_dir
+	license_dir
 	remove_image
 	user_agent
 	asset_perl
 	bin_perl
 	bin_make
 };
+
+use Perl::Dist::Asset;
+use Perl::Dist::Asset::Perl;
+use Perl::Dist::Asset::Binary;
+use Perl::Dist::Asset::Module;
+use Perl::Dist::Asset::File;
 
 
 
@@ -33,22 +57,18 @@ sub new {
 	my %params = @_;
 
 	# Apply some defaults
-	unless ( defined $params{default_dir_name} ) {
-		if ( $params{image_dir} ) {
-			$params{default_dir_name} = $params{image_dir};
-		} else {
-			croak("Missing or invalid image_dir param");
-		}
-	}
-	unless ( defined $params{user_agent} ) {
-		$params{user_agent} = LWP::UserAgent->new;
+	if ( defined $params{image_dir} and ! defined $params{default_dir_name} ) {
+		$params{default_dir_name} = $params{image_dir};
 	}
 
 	# Hand off to the parent class
-	my $self = shift->SUPER::new(%params);
+	my $self = $class->SUPER::new(%params);
 
 	# Auto-detect online-ness if needed
-	unless ( defined $self->{offline} ) {
+	unless ( defined $self->user_agent ) {
+		$self->{user_agent} = LWP::UserAgent->new;
+	}
+	unless ( defined $self->offline ) {
 		$self->{offline} = LWP::Online::offline();
 	}
 
@@ -60,8 +80,20 @@ sub new {
 	unless ( _STRING($self->download_dir) ) {
 		croak("Missing or invalid download_dir param");
 	}
+	unless ( defined $self->modules_dir ) {
+		$self->{modules_dir} = File::Spec->catdir( $self->download_dir, 'modules' );
+	}
+	unless ( _STRING($self->modules_dir) ) {
+		croak("Invalid modules_dir param");
+	}
 	unless ( _STRING($self->image_dir) ) {
 		croak("Missing or invalid image_dir param");
+	}
+	unless ( defined $self->license_dir ) {
+		$self->{license_dir} = File::Spec->catdir( $self->image_dir, 'licenses' );
+	}
+	unless ( _STRING($self->license_dir) ) {
+		croak("Invalid license_dir");
 	}
 	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
 		croak("Missing or invalid user_agent param");
@@ -70,25 +102,25 @@ sub new {
 	# Clear the previous build
 	if ( -d $self->image_dir ) {
 		if ( $self->remove_image ) {
-			$self->trace("Removing previous $image\n");
-			File::Remove::remove( \1, $image );
+			$self->trace("Removing previous " . $self->image_dir . "\n");
+			File::Remove::remove( \1, $self->image_dir );
 		} else {
 			croak("The image_dir directory already exists");
 		}
 	} else {
-		$self->trace("No previous $image found\n");
+		$self->trace("No previous " . $self->image_dir . " found\n");
 	}
 
 	# Initialize the build
 	File::Path::mkpath($self->image_dir);
 	for my $d ( qw/dmake mingw licenses links perl/ ) {
 		File::Path::mkpath(
-			File::Spec->catdir( $dir, $d )
+			File::Spec->catdir( $self->image_dir, $d )
 		);
 	}
 
 	# Create the working directories
-	for my $d ( $self->download_dir, $self->image_dir ) {
+	for my $d ( $self->download_dir, $self->image_dir, $self->modules_dir, $self->license_dir ) {
 		next if -d $d;
 		File::Path::mkpath($d) or die "Couldn't create $d";
 	}
@@ -121,28 +153,27 @@ sub install_binary {
 
 	# Unpack the archive
 	my $install_to = $binary->install_to;
-	if ( ref $install_to eq 'HASH' ) {
-		$self->_extract_filemap( $tgz, $install_to, $image_dir );
+	if ( ref $binary->install_to eq 'HASH' ) {
+		$self->_extract_filemap( $tgz, $binary->install_to, $binary->image_dir );
 
-	} elsif ( ! ref $install_to ) {
+	} elsif ( ! ref $binary->install_to ) {
 		# unpack as a whole
-		my $tgt = File::Spec->catdir( $self->image_dir, $install_to );
+		my $tgt = File::Spec->catdir( $self->image_dir, $binary->install_to );
 		$self->_extract_whole( $tgz => $tgt );
 
 	} else {
-		die "didn't expect install_to to be a " . ref $install_to;
+		die "didn't expect install_to to be a " . ref $binary->install_to;
 	}
 
 	# Find the licenses
 	if ( ref $binary->license eq 'HASH' )   {
-		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $binary->{license}, $license_dir, 1 );
+		$self->_extract_filemap( $tgz, $binary->license, $self->license_dir, 1 );
 	}
 
 	# Copy in any extras (e.g. CPAN\Config.pm starter)
 	my $extras = $binary->extras;
 	if ( $extras ) {
-		for my $from ( keys %{$extras ) {
+		for my $from ( keys %$extras ) {
 			my $to = File::Spec->catfile( $self->image_dir, $extras->{$from} );
 			$self->_copy( $from => $to );
 		}
@@ -245,7 +276,15 @@ sub install_perl_588 {
 		die "Can't execute " . $self->bin_perl;
 	}
 
-	return $self;
+	return 1;
+}
+
+sub install_module {
+	my $self = shift;
+
+
+
+	return 1;
 }
 
 

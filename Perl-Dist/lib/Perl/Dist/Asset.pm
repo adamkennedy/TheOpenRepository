@@ -31,7 +31,7 @@ sub new {
 
 	# Map share to url
 	if ( $self->share ) {
-		my ($dist, $name) = split /\s+/, $binary->{share};
+		my ($dist, $name) = split /\s+/, $self->share;
 		$self->trace("Finding $name in $dist... ");
 		my $file = File::Spec->rel2abs(
 			File::ShareDir::dist_file( $dist, $name )
@@ -39,7 +39,7 @@ sub new {
 		unless ( -f $file ) {
 			croak("Failed to find $file");
 		}
-		$binary->{url} = URI::file->new($file)->as_string;
+		$self->{url} = URI::file->new($file)->as_string;
 		$self->trace(" found\n");
 	}
 

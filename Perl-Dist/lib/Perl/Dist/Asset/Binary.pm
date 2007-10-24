@@ -3,6 +3,7 @@ package Perl::Dist::Asset::Binary;
 use strict;
 use Carp           'croak';
 use Params::Util   qw{ _STRING _HASH };
+use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {

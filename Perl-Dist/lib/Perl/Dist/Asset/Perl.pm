@@ -3,11 +3,9 @@ package Perl::Dist::Asset::Perl;
 # Perl::Dist asset for the Perl source code itself
 
 use strict;
-use Carp           'croak';
-use File::Spec     ();
-use File::ShareDir ();
-use Params::Util   qw{ _STRING _HASH };
-use URI::file      ();
+use Carp         'croak';
+use Params::Util qw{ _STRING _HASH };
+use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -16,8 +14,6 @@ BEGIN {
 
 use Object::Tiny qw{
 	name
-	share
-	url
 	license
 	unpack_to
 	install_to
@@ -34,28 +30,12 @@ use Object::Tiny qw{
 sub new {
 	my $self = shift->SUPER::new(@_);
 
-	# Apply defaults and shortcuts
-	if ( $self->share and ! defined $self->url ) {
-		# If a share, map to a URI
-		my ($dist, $name) = split /\s+/, $self->share;
-		$self->trace("Finding $name in $dist... ");
-		my $file = File::Spec->rel2abs(
-			File::ShareDir::dist_file( $dist, $name )
-		);
-		unless ( -f $file ) {
-			croak("Failed to find $file");
-		}
-		$self->{url} = URI::file->new($file)->as_string;
-		$self->trace(" found\n");
-	}
+	# Apply defaults
 	$self->{unpack_to} = '' unless defined $self->unpack_to;
 
 	# Check params
 	unless ( _STRING($self->name) ) {
 		croak("Missing or invalid name param");
-	}
-	unless ( _STRING($self->url) ) {
-		croak("Missing or invalid url param");
 	}
 	unless ( _HASH($self->license) ) {
 		croak("Missing or invalid license param");
@@ -71,17 +51,6 @@ sub new {
 	}
 
 	return $self;
-}
-
-
-
-
-
-#####################################################################
-# Support Methods
-
-sub trace {
-	print $_[0];
 }
 
 1;
