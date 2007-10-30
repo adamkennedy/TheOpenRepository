@@ -17,7 +17,8 @@ use Object::Tiny qw{
 	license
 	unpack_to
 	install_to
-	extras
+	pre_copy
+	post_copy
 };
 
 
@@ -46,8 +47,16 @@ sub new {
 	unless ( _STRING($self->install_to) ) {
 		croak("Missing or invalid install_to param");
 	}
-	unless ( _HASH($self->extras) ) {
-		croak("Missing or invalid extras param");
+	if ( $self->pre_copy and ! _HASH($self->pre_copy) ) {
+		croak("Invalid pre_copy param");
+	}
+	if ( $self->post_copy and ! _HASH($self->post_copy) ) {
+		croak("Invalid post_copy param");
+	}
+
+	# De-share the pre/post copy sources
+	if ( $self->pre_copy ) {
+		
 	}
 
 	return $self;

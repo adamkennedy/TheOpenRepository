@@ -63,7 +63,7 @@ sub trace {
 	if ( _CODELIKE($self->{trace}) ) {
 		$self->{trace}->(@_);
 	} else {
-		print $_[1];
+		print $_[0];
 	}
 }
 

@@ -24,7 +24,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+        $VERSION = '0.003';
 }
 
 use Object::Tiny qw{
@@ -38,11 +38,14 @@ use Object::Tiny qw{
 	user_agent
 	bin_perl
 	bin_make
+	cpan_uri
 };
 
+use Perl::Dist::Inno;
 use Perl::Dist::Asset;
 use Perl::Dist::Asset::Perl;
 use Perl::Dist::Asset::Binary;
+use Perl::Dist::Asset::Distribution;
 use Perl::Dist::Asset::Module;
 use Perl::Dist::Asset::File;
 
@@ -61,9 +64,52 @@ sub new {
 	if ( defined $params{image_dir} and ! defined $params{default_dir_name} ) {
 		$params{default_dir_name} = $params{image_dir};
 	}
+	if ( defined $params{temp_dir} ) {
+		unless ( defined $params{download_dir} ) {
+			$params{download_dir} = File::Spec->catdir(
+				$params{temp_dir}, 'download',
+			);
+			File::Path::mkpath($params{download_dir});
+		}
+		unless ( defined $params{source_dir} ) {
+			$params{source_dir} = File::Spec->catdir(
+				$params{temp_dir}, 'source',
+			);
+			if ( -d $params{source_dir} ) {
+				File::Remove::remove( \1, $params{source_dir} );
+			}
+			File::Path::mkpath($params{source_dir});
+		}
+		unless ( defined $params{build_dir} ) {
+			$params{build_dir} = File::Spec->catdir(
+				$params{temp_dir}, 'build',
+			);
+			if ( -d $params{build_dir} ) {
+				File::Remove::remove( \1, $params{build_dir} );
+			}
+			File::Path::mkpath($params{build_dir});
+		}
+		unless ( defined $params{output_dir} ) {
+			$params{output_dir} = File::Spec->catdir(
+				$params{temp_dir}, 'output',
+			);
+			if ( -d $params{output_dir} ) {
+				File::Remove::remove( \1, $params{output_dir} );
+			}
+			File::Path::mkpath($params{output_dir});
+		}
+	}
 
 	# Hand off to the parent class
 	my $self = $class->SUPER::new(%params);
+
+        # Apply more defaults
+	unless ( defined $self->remove_image ) {
+		$self->{remove_image} = 1;
+	}
+	unless ( defined $self->{trace} ) {
+		$self->{trace} = 1;
+	}
 
 	# Auto-detect online-ness if needed
 	unless ( defined $self->user_agent ) {
@@ -75,6 +121,7 @@ sub new {
 
 	# Normalize some params
 	$self->{offline}      = !! $self->offline;
+	$self->{trace}        = !! $self->{trace};
 	$self->{remove_image} = !! $self->remove_image;
 
 	# Check params
@@ -102,6 +149,12 @@ sub new {
 	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
 		croak("Missing or invalid user_agent param");
 	}
+	unless ( _INSTANCE($self->cpan_uri, 'URI') ) {
+		croak("Missing or invalid cpan_uri param");
+	}
+	unless ( $self->cpan_uri->as_string =~ /\/$/ ) {
+		croak("Missing trailing slash in cpan_uri param");
+	}
 
 	# Clear the previous build
 	if ( -d $self->image_dir ) {
@@ -116,17 +169,14 @@ sub new {
 	}
 
 	# Initialize the build
-	File::Path::mkpath($self->image_dir);
-	for my $d ( qw/dmake mingw licenses links perl/ ) {
-		File::Path::mkpath(
-			File::Spec->catdir( $self->image_dir, $d )
-		);
-	}
-
-	# Create the working directories
-	for my $d ( $self->download_dir, $self->image_dir, $self->modules_dir, $self->license_dir ) {
+	for my $d (
+		$self->download_dir,
+		$self->image_dir,
+		$self->modules_dir,
+		$self->license_dir,
+	) {
 		next if -d $d;
-		File::Path::mkpath($d) or die "Couldn't create $d";
+		File::Path::mkpath($d);
 	}
 
         return $self;
@@ -140,7 +190,7 @@ sub new {
 # Main Methods
 
 sub run {
-
+	die "CODE INCOMPLETE";
 }
 
 sub install_binaries {
@@ -236,7 +286,7 @@ sub install_binary {
 	# Download the file
 	my $tgz = $self->_mirror(
 		$binary->url,
-		File::Spec->catdir( $self->download_dir, $name ),
+		File::Spec->catdir( $self->download_dir ),
 	);
 
 	# Unpack the archive
@@ -278,7 +328,7 @@ sub install_perl_588 {
 	# Download the file
 	my $tgz = $self->_mirror( 
 		$perl->url,
-		File::Spec->catdir( $self->download_dir, $perl->name ) 
+		File::Spec->catdir( $self->download_dir ) 
 	);
 
 	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
@@ -292,12 +342,17 @@ sub install_perl_588 {
 	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
 	$perlsrc = File::Basename::basename($perlsrc);
 
-	# Manually patch in the Win32 friendly ExtUtils::Install
-	#for my $f ( qw/Install.pm Installed.pm Packlist.pm/ ) {
-	#	my $from = File::Spec->catfile( "extra", $f );
-	#	my $to   = File::Spec->catfile( $unpack_to, $perlsrc, qw/lib ExtUtils/, $f );
-	#	$self->_copy( $from => $to );
-	#}
+	# Pre-copy updated files over the top of the source
+	my $pre_copy = $perl->pre_copy;
+	if ( $pre_copy ) {
+		foreach my $f ( sort keys %$pre_copy ) {
+			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $to   = File::Spec->catfile(
+				$unpack_to, $perlsrc, $pre_copy->{$f},
+			);
+			$self->_copy( $from => $to );
+		}
+	}
 
 	# Copy in licenses
 	my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
@@ -338,19 +393,24 @@ sub install_perl_588 {
 		$self->trace("Building perl...\n");
 		$self->_make;
 
-		# XXX Ugh -- tests take too long right now
-		$self->trace("Testing perl build\n");
-		$self->_make('test');
+		SCOPE: {
+			local $ENV{PERL_SKIP_TTY_TEST} = 1;
+			$self->trace("Testing perl build\n");
+			$self->_make('test');
+		}
 
 		$self->trace("Installing perl...\n");
 		$self->_make( qw/install UNINST=1/ );
 	}
 
-	# Copy in any extras (e.g. CPAN\Config.pm starter)
-	if ( my $extras = $perl->extras ) {
-		for my $f ( keys %$extras ) {
-			my $from = File::Spec->catfile( $f );
-			my $to   = File::Spec->catfile( $perl_install, $extras->{$f} );
+	# Post-copy updated files over the top of the source
+	my $post_copy = $perl->post_copy;
+	if ( $post_copy ) {
+		foreach my $f ( sort keys %$post_copy ) {
+			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $to   = File::Spec->catfile(
+				$perl_install, $post_copy->{$f},
+			);
 			$self->_copy( $from => $to );
 		}
 	}
@@ -364,25 +424,73 @@ sub install_perl_588 {
 	return 1;
 }
 
-sub install_module {
+sub install_distribution {
 	my $self = shift;
+	my $dist = Perl::Dist::Asset::Distribution->new(@_);
 
+	# Download the file
+	my $tgz = $self->_mirror( 
+		$dist->abs_uri( $self->cpan_uri ),
+		File::Spec->catdir( $self->download_dir ) 
+	);
 
+	# Where will it get extracted to
+	my $dist_path = $dist->name;
+	$dist_path =~ s/\.tar\.gz//;
+	$dist_path =~ s/\.zip//;
+	$dist_path =~ s/.+\///;
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $dist_path );
+
+	# Extract the tarball
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $self->build_dir );
+	unless ( -d $unpack_to ) {
+		croak("Failed to extract $unpack_to");
+	}
+
+	# Build the module
+	SCOPE: {
+		my $wd = File::pushd::pushd( $unpack_to );
+
+		$self->trace("Configuring " . $dist->name . "...\n");
+		$self->_perl( 'Makefile.PL' );
+
+		$self->trace("Building " . $dist->name . "...\n");
+		$self->_make;
+
+		# XXX Ugh -- tests take too long right now
+		$self->trace("Testing " . $dist->name . "\n");
+		$self->_make('test');
+
+		$self->trace("Installing " . $dist->name . "...\n");
+		$self->_make( qw/install UNINST=1/ );
+	}
 
 	return 1;
 }
 
 sub trace {
-	print $_[0];
+	my $self = shift;
+	if ( $self->{trace} ) {
+		print $_[0];
+	}
+	return 1;
 }
 
 sub _mirror {
 	my ($self, $url, $dir) = @_;
 	my ($file) = $url =~ m{/([^/?]+\.(?:tar\.gz|tgz|zip))}ims;
 	my $target = File::Spec->catfile( $dir, $file );
-	if ( $self->{offline} and -f $target ) {
+	if ( $self->offline and -f $target ) {
 		$self->trace(" already downloaded\n");
 		return $target;
+	}
+	if ( $self->offline and ! $url =~ m|^file://| ) {
+		$self->trace(" offline, cannot download.");
+		exit(0);
 	}
 	File::Path::mkpath($dir);
 	$| = 1;
@@ -415,8 +523,17 @@ sub _make {
 	my $self   = shift;
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
-	IPC::Run3::run3( [ $self->bin_make, @params ] ) or die "make failed";
+	IPC::Run3::run3( [ $self->bin_make, @params ], \undef, \undef, \undef ) or die "make failed";
 	die "make failed (OS error)" if ( $? >> 8 );
+	return 1;
+}
+
+sub _perl {
+	my $self   = shift;
+	my @params = @_;
+	$self->trace(join(' ', '>', $self->bin_perl, @params) . "\n");
+	IPC::Run3::run3( [ $self->bin_perl, @params ], \undef, \undef, \undef ) or die "perl failed";
+	die "perl failed (OS error)" if ( $? >> 8 );
 	return 1;
 }
 

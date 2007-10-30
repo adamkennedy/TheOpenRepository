@@ -1,7 +1,12 @@
 Revision history for Perl module Perl::Dist
 
 0.10  Fri 19 Oct 2007
-	- 
+        - Converting from config-driver to code-driven
+        - Implementing data classes for Inno
+        - Implementing data classes for "Assets"
+        - Converting binary-installation and source-compilation
+          to the new class structure.
+        - Adding various tests scripts.
 
 0.0.5 Tue Aug 29 05:51:10 EDT 2006
 	- fixed up version numbering format from Module::Install

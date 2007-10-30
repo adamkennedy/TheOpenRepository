@@ -22,9 +22,6 @@ sub app_publisher_url    { 'http://vanillaperl.org'  }
 sub app_id               { 'testperl'                }
 sub output_base_filename { 'test-perl-5.8.8-alpha-1' }
 
-# Always remove the old image
-sub remove_image         { 1 }
-
 
 
 
@@ -40,18 +37,28 @@ sub run {
 
 	# Install Perl 5.8.8
 	$self->install_perl_588(
-		name    => 'perl',
-		share   => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
-		license => {
+		name       => 'perl',
+		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
+		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
 			'perl-5.8.8/Artistic' => 'perl/Artistic',
 			'perl-5.8.8/Copying'  => 'perl/Copying',
 		},
-		unpack_to => 'perl',
+		unpack_to  => 'perl',
 		install_to => 'perl',
-		extras     => {
-			'extra\Config.pm' => 'lib\CPAN\Config.pm',
+		pre_copy   => {
+			'Install.pm'   => 'lib\ExtUtils\Install.pm',
+			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
+			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+		},
+		post_copy  => {
+			'Config.pm'    => 'lib\CPAN\Config.pm',
 		}
+	);
+
+	# Install a test distro
+	$self->install_distribution(
+		name => 'ADAMK/Config-Tiny-2.10.tar.gz',
 	);
 
 	return 1;
@@ -65,6 +72,10 @@ sub install_binary {
 
 sub install_perl_588 {
 	return shift->SUPER::install_perl_588( @_, trace => sub { 1 } );
+}
+
+sub install_distribution {
+	return shift->SUPER::install_distribution( @_, trace => sub { 1 } );
 }
 
 1;

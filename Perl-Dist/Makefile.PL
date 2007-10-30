@@ -20,10 +20,11 @@ requires       'LWP::Online'           => '0.03';
 requires       'Tie::File'             => 0;
 requires       'YAML::Tiny'            => '1.12';
 requires       'CPAN'                  => 0;
-requires       'Perl::Dist::Downloads' => '0.03';
+requires       'Perl::Dist::Downloads' => '0.02';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::Script'          => '1.02';
 install_script 'script/perldist';
+install_share;
 
 WriteAll;
 
