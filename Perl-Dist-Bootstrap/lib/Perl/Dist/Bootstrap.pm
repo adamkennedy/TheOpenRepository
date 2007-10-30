@@ -1,150 +1,185 @@
-package Perl::Dist::Strawberry;
+package Perl::Dist::Bootstrap;
 
-use 5.005;
+use 5.006;
 use strict;
+use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.901';
+	$VERSION = '0.01';
+}
+
+
+
+
+
+#####################################################################
+# Configuration
+
+sub app_name             { 'Bootstrap Perl'               }
+sub app_ver_name         { 'Bootstrap Perl Alpha 1'       }
+sub app_publisher        { 'Vanilla Perl Project'         }
+sub app_publisher_url    { 'http://vanillaperl.com/'      }
+sub app_id               { 'bootstrapperl'                }
+sub output_base_filename { 'bootstrap-perl-5.8.8-alpha-1' }
+
+
+
+
+
+#####################################################################
+# Constructor
+
+# Apply some default paths
+sub new {
+	my $class = shift;
+	return $class->SUPER::new(
+		image_dir => 'C:\\bootstrap-perl',
+		temp_dir  => 'C:\\tmp\\bp',
+		@_,
+	);
+}
+
+sub run {
+	my $self = shift;
+
+	# Install the main binaries
+	my $t1 = time;
+	$self->install_binaries;
+	my $d1 = time - $t1;
+	$self->trace("Completed install_binaries in $d1 seconds\n");
+
+	# Install Perl 5.8.8
+	my $t2 = time;
+	$self->install_perl;
+	my $d2 = time - $t2;
+	$self->trace("Completed install_perl in $d2 seconds\n");
+
+	# Install the primary toolchain distributions
+	my $t3 = time;
+	$self->install_toolchain;
+	my $d3 = time - $t3;
+	$self->trace("Completed install_toolchain in $d3 seconds\n");
+
+	return 1;
+}
+
+sub install_perl {
+	my $self = shift;
+
+	$self->install_perl_588(
+		name       => 'perl',
+		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
+		license    => {
+			'perl-5.8.8/Readme'   => 'perl/Readme',
+			'perl-5.8.8/Artistic' => 'perl/Artistic',
+			'perl-5.8.8/Copying'  => 'perl/Copying',
+		},
+		unpack_to  => 'perl',
+		install_to => 'perl',
+		pre_copy   => {
+			'Install.pm'   => 'lib\ExtUtils\Install.pm',
+			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
+			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+		},
+		post_copy  => {
+			'Config.pm'    => 'lib\CPAN\Config.pm',
+		}
+	);
+
+	return 1;
+}
+
+my @TOOLCHAIN_DISTRIBUTIONS = qw{
+	MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
+	DLAND/File-Path-2.01.tar.gz
+	RKOBES/ExtUtils-Command-1.13.tar.gz
+	YVES/Win32API-File-0.1001.tar.gz
+ 	MSCHWERN/ExtUtils-Install-1.44.tar.gz
+	RKOBES/ExtUtils-Manifest-1.51.tar.gz
+	PETDANCE/Test-Harness-2.64.tar.gz
+	MSCHWERN/Test-Simple-0.72.tar.gz
+	KWILLIAMS/ExtUtils-CBuilder-0.19.tar.gz
+	KWILLIAMS/ExtUtils-ParseXS-2.18.tar.gz
+	JPEACOCK/version-0.74.tar.gz
+	GBARR/Scalar-List-Utils-1.19.tar.gz
+	PMQS/IO-Compress-Base-2.006.tar.gz
+	PMQS/Compress-Raw-Zlib-2.006.tar.gz
+	PMQS/IO-Compress-Zlib-2.006.tar.gz
+	PMQS/Compress-Zlib-2.007.tar.gz
+	TOMHUGHES/IO-Zlib-1.07.tar.gz
+	KWILLIAMS/PathTools-3.25.tar.gz
+	TJENNESS/File-Temp-0.18.tar.gz
+	BLM/Win32API-Registry-0.28.tar.gz
+	ADAMK/Win32-TieRegistry-0.25.zip
+	ADAMK/File-HomeDir-0.66.tar.gz
+	PEREINAR/File-Which-0.05.tar.gz
+	ADAMK/Archive-Zip-1.20.tar.gz
+	KANE/Archive-Tar-1.36.tar.gz
+	INGY/YAML-0.66.tar.gz
+	GBARR/libnet-1.22.tar.gz
+	GAAS/Digest-MD5-2.36.tar.gz
+	GAAS/Digest-SHA1-2.11.tar.gz
+	MSHELOR/Digest-SHA-5.45.tar.gz
+	KWILLIAMS/Module-Build-0.2808.tar.gz
+	ANDK/CPAN-1.9203.tar.gz
+};
+
+sub install_toolchain {
+	my $self = shift;
+
+	foreach my $dist ( @TOOLCHAIN_DISTRIBUTIONS ) {
+		$self->install_distribution(
+			name => $dist,
+		);
+	}
+
+	return 1;
 }
 
 1;
+
 __END__
 
 =head1 NAME
 
-Perl::Dist::Strawberry - Strawberry Perl for win32
-
-=head1 VERSION
-
-This is 0.901, corresponding to Strawberry Perl 5.8.8 Beta 1
+Perl::Dist::Bootstrap - A bootstrap Perl for building Perl distributions
 
 =head1 DESCRIPTION
 
-I<Strawberry Perl is currently an alpha release and is not recommended 
-for production purposes.>
+"Bootstrap Perl" is a Perl distribution, and a member of the
+"Vanilla Perl" series of distributions.
 
-Strawberry Perl is a binary distribution of Perl for the Windows operating
-system.  It includes a bundled compiler and pre-installed modules that offer
-the ability to install XS CPAN modules directly from CPAN.  
+The Perl::Dist::Bootstrap module can be used to create a bootstrap
+Perl distribution.
 
-The purpose of the Strawberry Perl series is to provide a practical Win32 Perl
-environment for experienced Perl developers to experiment with and test the
-installation of various CPAN modules under Win32 conditions, and to provide a
-useful platform for doing real work.
+Most of the time nobody will be using
+Perl::Dist::Bootstrap directly, but will be downloading the pre-built
+installer for Bootstrap Perl from the Vanilla Perl website at
+L<http://vanillaperl.com/>.
 
-Strawberry Perl includes:
+For people building Win32 Perl distributions based on L<Perl::Dist>,
+one gotcha is that the distributions have hard-coded install paths.
 
-=over
+As a result of this, it is not possible to use a distribution to build
+a new/modified version of the same distribution.
 
-=item *
+To compensate for this, and make the process of building custom
+distributions easier, this distribution has been created.
 
-Perl 5.8.8
+As an additional convenience, Bootstrap Perl comes with L<Perl::Dist>,
+and several distribution subclasses (L<Perl::Dist::Vanilla>,
+L<Perl::Dist::Strawberry> etc) already installed, as well as some
+additional Perl development tools that might be useful during the
+Perl distribution creation process.
 
-=item *
+=head2 CONFIGURATION
 
-Mingw GCC C/C++ compiler
-
-=item *
-
-Dmake "make" tool
-
-=item *
-
-L<ExtUtils::CBuilder> and L<ExtUtils::ParseXS>
-
-=item *
-
-L<Bundle::CPAN> (including Perl modules that largely eliminate the need for
-external helper programs like C<gzip> and C<tar>)
-
-=item *
-
-L<Bundle::LWP> (providing more reliable http CPAN repository support)
-
-=item *
-
-Additional Perl modules that enhance the stability of core Perl for the
-Win32 platform
-
-=back
-
-The Perl::Dist::Strawberry distribution on CPAN contains programs and
-instructions for downloading component sources and assembling them into the
-executable installer for Strawberry Perl.  It B<does not> include the resulting
-Strawberry Perl installer itself.  
-
-See L</"DOWNLOADING THE INSTALLER"> for instructions on where to download and
-how to install Strawberry Perl.  
-
-See L<Perl::Dist::Build> at L<http://search.cpan.org> for details on 
-the builder used to create Strawberry Perl from source.
-
-=head1 CHANGES FROM CORE PERL
-
-Strawberry Perl is and will continue to be based on the latest "stable" release
-of Perl, currently version 5.8.8.  Some additional modifications are included
-that improve general compatibility with the Win32 platform or improve
-"turnkey" operation on Win32.  
-
-Whenever possible, these modifications will be made only by preinstalling
-additional CPAN modules within Strawberry Perl, particularly modules that have
-been newly included as core Perl modules in the "development" branch of perl
-to address Win32 compatibility issues.
-
-Modules or distributions currently included are:
-
-=over
-
-=item *
-
-ExtUtils::MakeMaker 6.30_01 -- fixes a Win32 perl path bug
-
-=item *
-
-CPAN 1.87_57 -- many small fixes for numerous annoyances on Win32
-
-=item * 
-
-Win32API::File -- to allow for deletion of in-use files at next reboot;
-required for CPAN.pm to be able to upgrade itself
-
-=item *
-
-IO -- to address Win32 Socket bugs
-    
-=item *
-
-Compress::Zlib, IO::Zlib and Archive::Tar -- to eliminate the CPAN.pm
-dependency on external, binary programs to handle .tar.gz files
-
-=item *
-
-Archive::Zip (and its dependency, Time::Local) -- to eliminate the CPAN.pm
-dependency on external, binary programs to handle .zip files
-
-=item *
-
-libnet -- provides Net::FTP to eliminate the CPAN.pm dependency on an external,
-binary ftp program; installed configured for FTP passive mode
-
-=back
-
-Additionally, a stub CPAN Config.pm file is installed.  It provides defaults
-to the path for dmake, to automatically follow dependencies and to use the
-Windows temporary directory for the CPAN working directory. 
-
-=head1 DOWNLOADING THE INSTALLER
-
-Strawberry Perl is available from L<http://vanillaperl.com/>.
-
-=head1 CONFIGURATION
-
-At present, Strawberry Perl must be installed in C:\strawberry-perl.  The
+Bootstrap Perl must be installed in C:\strawberry-perl.  The
 executable installer adds the following environment variable changes:
 
     * adds directories to PATH
-        - C:\strawberry-perl\perl\bin  
+        - C:\strawberry-perl\perl\bin
         - C:\strawberry-perl\dmake\bin
         - C:\strawberry-perl\mingw
         - C:\strawberry-perl\mingw\bin
@@ -154,15 +189,12 @@ executable installer adds the following environment variable changes:
         - C:\strawberry-perl\perl\bin
 
     * adds directories to INCLUDE 
-        - C:\strawberry-perl\mingw\include 
-        - C:\strawberry-perl\perl\lib\CORE 
+        - C:\strawberry-perl\mingw\include
+        - C:\strawberry-perl\perl\lib\CORE
         - C:\strawberry-perl\perl\lib\encode
 
 LIB and INCLUDE changes are likely more than are necessary, but attempt to
 head off potential problems compiling external programs for use with Perl.
-
-Users installing Strawberry Perl manually without the installer will need to
-change their environment variables manually.
 
 The first time that the "cpan" program is run, users will be prompted for
 configuration settings.  With the defaults provided in Strawberry Perl, users
@@ -172,64 +204,29 @@ Manual CPAN configuration may be repeated by running the following command:
 
     perl -MCPAN::FirstTime -e "CPAN::FirstTime::init"
 
-=head1 VERSION HISTORY AND ROADMAP
+=head1 SUPPORT
 
-Perl::Dist::Strawberry version numbers map to Strawberry Perl release
-versions as follows:
+Vanilla Perl discussion is centered at L<http://win32.perl.org/>.
 
- Pre-release series (0.x.y)
-   0.0.1 -- Strawberry Perl 5.8.8 Alpha 1 (July 9, 2006)
-   0.1.2 -- Strawberry Perl 5.8.8 Alpha 2 (August 27, 2006)
-   0.1.y -- Alpha series
-   0.3.y -- Beta series
-   0.5.y -- Release candidate series
-
- Perl 5.8 series (1.x.y) -- 'x' will be odd for test releases 
- 
- Perl 5.10 series (2.x.y) -- 'x' will be odd for test releases 
-
-Strawberry Perl is targeting release 1.0.0 to correspond to the next 
-maintenance release of Perl (5.8.9), which should include most of the 
-"changes from core Perl" listed above.  Strawberry Perl will be declared
-Beta when the pre-release candidate for Perl 5.8.9 is available.
-
-=head1 CONTACTS AND BUGS REPORTING
-
-Currently, Strawberry Perl discussion is centered at win32.perl.org.  New 
-venues for discussion may be listed there.
+Other venues for discussion may be listed there.
 
 Please report bugs or feature requests using the CPAN Request Tracker.
-Bugs can be sent by email to C<<< bug-Perl-Dist-Strawberry@rt.cpan.org >>> or
+Bugs can be sent by email to C<<< bug-Perl-Dist-Bootstrap@rt.cpan.org >>> or
 submitted using the web interface at
-L<http://rt.cpan.org/Dist/Display.html?Queue=Perl-Dist-Strawberry>
+L<http://rt.cpan.org/Dist/Display.html?Queue=Perl-Dist-Bootstrap>
 
-=head1 LICENSE AND COPYRIGHT
+=head1 AUTHOR
 
-Strawberry Perl is open source and may be licensed under the same terms as
-Perl.  Open source software included with Strawberry Perl installations are
-governed by their respective licenses.  See LICENSE.txt for details.
+Adam Kennedy <adamk@cpan.org>
 
-=head1 DISCLAIMER OF WARRANTY
+=head1 COPYRIGHT
 
-BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
-FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
-OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
-PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
-EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
-ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
-YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
-NECESSARY SERVICING, REPAIR, OR CORRECTION.
+Copyright 2007 Adam Kennedy.
 
-IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
-WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
-REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
-LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
-OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
-THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
-RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
-FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
-SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGES.
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
