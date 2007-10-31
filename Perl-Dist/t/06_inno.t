@@ -6,7 +6,16 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 27;
+# Skip if not on Windows
+use Test::More;
+BEGIN {
+	unless ( $^O eq 'MSWin32' ) {
+		plan( skip_all => 'Not on Win32' );
+		exit(0);
+	};
+	plan( tests => 27 );
+}
+
 use Perl::Dist::Inno ();
 
 

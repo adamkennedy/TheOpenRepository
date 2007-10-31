@@ -6,7 +6,16 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+# Skip if not on Windows
+use Test::More;
+BEGIN {
+	unless ( $^O eq 'MSWin32' ) {
+		plan( skip_all => 'Not on Win32' );
+		exit(0);
+	}
+	plan( tests => 12 );
+}
+
 use File::Path ();
 use File::Spec::Functions ':ALL';
 use_ok( 't::lib::Test' );
