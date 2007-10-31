@@ -17,6 +17,7 @@ BEGIN {
 use Object::Tiny qw{
 	share
 	url
+	file
 };
 
 
@@ -46,6 +47,13 @@ sub new {
 	# Check params
 	unless ( _STRING($self->url) ) {
 		croak("Missing or invalid url param");
+	}
+
+	# Create the filename from the url
+	$self->{file} = $self->url;
+	$self->{file} =~ s|.+/||;
+	unless ( $self->file and length $self->file ) {
+		croak("Missing or invalid file");
 	}
 
 	return $self;
