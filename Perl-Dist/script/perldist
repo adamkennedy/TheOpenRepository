@@ -3,7 +3,11 @@
 use 5.006;
 use strict;
 use warnings;
-use Perl::Dist::Builder;
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.29_01';
+}
 
 # Did we get a valid file as the first param?
 unless ( $ARGV[0] ) {
@@ -11,17 +15,13 @@ unless ( $ARGV[0] ) {
 	exit(0);
 }
 
-my $pdb = Perl::Dist::Builder->new( $ARGV[0] );
-unless ( $pdb ) {
-	die "Failed to create Perl::Dist::Builder";
+my $class = $ARGV[0];
+my $dist  = $class->new;
+unless ( $dist ) {
+	die "Failed to create $class";
 }
-
-unless ( $pdb->remove_image ) {
-	die "Failed to remove previous image";
-}
-
-unless ( $pdb->build_all ) {
-	die "Failed to build_all";
+unless ( $dist->run ) {
+	die "Failed to run";
 }
 
 exit(0);

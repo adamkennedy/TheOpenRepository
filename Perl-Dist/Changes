@@ -1,5 +1,9 @@
 Revision history for Perl module Perl::Dist
 
+0.29_01 Wed 31 Oct 2007
+	- Experimental release
+	- Huge refactoring
+	
 0.10  Fri 19 Oct 2007
         - Converting from config-driver to code-driven
         - Implementing data classes for Inno
