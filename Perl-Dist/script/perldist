@@ -6,7 +6,7 @@ use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_01';
+	$VERSION = '0.29_02';
 }
 
 # Did we get a valid file as the first param?

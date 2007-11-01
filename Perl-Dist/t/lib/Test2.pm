@@ -5,7 +5,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_01';
+	$VERSION = '0.29_02';
 }
 
 
@@ -39,21 +39,24 @@ sub run {
 	$self->install_perl_588(
 		name       => 'perl',
 		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
+		unpack_to  => 'perl',
+		patch      => {
+			'Install.pm'   => 'lib\ExtUtils\Install.pm',
+			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
+			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+		},
 		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
 			'perl-5.8.8/Artistic' => 'perl/Artistic',
 			'perl-5.8.8/Copying'  => 'perl/Copying',
 		},
-		unpack_to  => 'perl',
 		install_to => 'perl',
-		pre_copy   => {
-			'Install.pm'   => 'lib\ExtUtils\Install.pm',
-			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
-			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
-		},
-		post_copy  => {
-			'Config.pm'    => 'lib\CPAN\Config.pm',
-		}
+	);
+
+	# Install the CPAN configuration
+	$self->install_file(
+		share      => 'Perl-Dist Config.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
 	# Install a test distro

@@ -1,5 +1,12 @@
 Revision history for Perl module Perl::Dist
 
+0.29_02 Thy 31 Oct 2007
+        - Adding install_file support for tweaking stuff
+          post-installation of binaries/perl/dists/etc
+        - Removed post_copy and replaced with install_file
+        - Renamed pre_copy to patch since it makes more sense
+          that way now.
+
 0.29_01 Wed 31 Oct 2007
 	- Experimental release, only intended for review
 	- Huge refactoring

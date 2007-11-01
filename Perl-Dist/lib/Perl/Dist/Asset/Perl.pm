@@ -9,7 +9,7 @@ use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_01';
+	$VERSION = '0.29_02';
 }
 
 use Object::Tiny qw{
@@ -17,8 +17,7 @@ use Object::Tiny qw{
 	license
 	unpack_to
 	install_to
-	pre_copy
-	post_copy
+	patch
 };
 
 
@@ -47,16 +46,8 @@ sub new {
 	unless ( _STRING($self->install_to) ) {
 		croak("Missing or invalid install_to param");
 	}
-	if ( $self->pre_copy and ! _HASH($self->pre_copy) ) {
-		croak("Invalid pre_copy param");
-	}
-	if ( $self->post_copy and ! _HASH($self->post_copy) ) {
-		croak("Invalid post_copy param");
-	}
-
-	# De-share the pre/post copy sources
-	if ( $self->pre_copy ) {
-		
+	if ( $self->patch and ! _HASH($self->patch) ) {
+		croak("Invalid patch param");
 	}
 
 	return $self;

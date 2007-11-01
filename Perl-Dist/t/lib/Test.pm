@@ -12,7 +12,7 @@ use t::lib::Test2 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_01';
+	$VERSION = '0.29_02';
 }
 
 

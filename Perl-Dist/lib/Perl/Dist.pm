@@ -24,7 +24,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.29_01';
+        $VERSION = '0.29_02';
 }
 
 use Object::Tiny qw{
@@ -262,20 +262,38 @@ sub install_binaries {
 		name       => 'w32api',
 		share      => 'Perl-Dist-Downloads w32api-3.10.tar.gz',
 		install_to => 'mingw',
-		extra      => {
-			'extra\README.w32api' => 'licenses\win32api\README.w32api',
-		},
+	);
+	$self->install_file(
+		share      => 'Perl-Dist README.w32api',
+		install_to => 'licenses\win32api\README.w32api',
 	);
 
 	return 1;
 }
 
+sub install_perl {
+	my $self = shift;
 
+	# By default, install Perl 5.8.8
+	$self->install_perl_588(
+		name       => 'perl',
+		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
+		unpack_to  => 'perl',
+		patch      => {
+			'Install.pm'   => 'lib\ExtUtils\Install.pm',
+			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
+			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+		},
+		install_to => 'perl',
+		license    => {
+			'perl-5.8.8/Readme'   => 'perl/Readme',
+			'perl-5.8.8/Artistic' => 'perl/Artistic',
+			'perl-5.8.8/Copying'  => 'perl/Copying',
+		},
+	);
 
-
-
-#####################################################################
-# Support Methods
+	return 1;
+}
 
 sub install_binary {
 	my $self   = shift;
@@ -286,7 +304,7 @@ sub install_binary {
 	# Download the file
 	my $tgz = $self->_mirror(
 		$binary->url,
-		File::Spec->catdir( $self->download_dir ),
+		$self->download_dir,
 	);
 
 	# Unpack the archive
@@ -308,14 +326,7 @@ sub install_binary {
 		$self->_extract_filemap( $tgz, $binary->license, $self->license_dir, 1 );
 	}
 
-	# Copy in any extras (e.g. CPAN\Config.pm starter)
-	my $extras = $binary->extras;
-	if ( $extras ) {
-		for my $from ( keys %$extras ) {
-			my $to = File::Spec->catfile( $self->image_dir, $extras->{$from} );
-			$self->_copy( $from => $to );
-		}
-	}
+	return 1;
 }
 
 sub install_perl_588 {
@@ -328,7 +339,7 @@ sub install_perl_588 {
 	# Download the file
 	my $tgz = $self->_mirror( 
 		$perl->url,
-		File::Spec->catdir( $self->download_dir ) 
+		$self->download_dir,
 	);
 
 	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
@@ -343,12 +354,12 @@ sub install_perl_588 {
 	$perlsrc = File::Basename::basename($perlsrc);
 
 	# Pre-copy updated files over the top of the source
-	my $pre_copy = $perl->pre_copy;
-	if ( $pre_copy ) {
-		foreach my $f ( sort keys %$pre_copy ) {
+	my $patch = $perl->patch;
+	if ( $patch ) {
+		foreach my $f ( sort keys %$patch ) {
 			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
 			my $to   = File::Spec->catfile(
-				$unpack_to, $perlsrc, $pre_copy->{$f},
+				$unpack_to, $perlsrc, $patch->{$f},
 			);
 			$self->_copy( $from => $to );
 		}
@@ -360,7 +371,6 @@ sub install_perl_588 {
 
 	# Setup fresh install directory
 	my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-
 	if ( -d $perl_install ) {
 		$self->trace("Removing previous $perl_install\n");
 		File::Remove::remove( \1, $perl_install );
@@ -403,18 +413,6 @@ sub install_perl_588 {
 		$self->_make( qw/install UNINST=1/ );
 	}
 
-	# Post-copy updated files over the top of the source
-	my $post_copy = $perl->post_copy;
-	if ( $post_copy ) {
-		foreach my $f ( sort keys %$post_copy ) {
-			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
-			my $to   = File::Spec->catfile(
-				$perl_install, $post_copy->{$f},
-			);
-			$self->_copy( $from => $to );
-		}
-	}
-
 	# Should now have a perl to use
 	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
 	unless ( -x $self->bin_perl ) {
@@ -431,7 +429,7 @@ sub install_distribution {
 	# Download the file
 	my $tgz = $self->_mirror( 
 		$dist->abs_uri( $self->cpan_uri ),
-		File::Spec->catdir( $self->download_dir ) 
+		$self->download_dir,
 	);
 
 	# Where will it get extracted to
@@ -461,7 +459,6 @@ sub install_distribution {
 		$self->trace("Building " . $dist->name . "...\n");
 		$self->_make;
 
-		# XXX Ugh -- tests take too long right now
 		$self->trace("Testing " . $dist->name . "\n");
 		$self->_make('test');
 
@@ -471,6 +468,34 @@ sub install_distribution {
 
 	return 1;
 }
+
+sub install_file {
+	my $self = shift;
+	my $dist = Perl::Dist::Asset::File->new(@_);
+
+	# Get the file
+	my $tgz = $self->_mirror(
+		$dist->url,
+		$self->download_dir
+	);
+
+	# Copy the file to the target location
+	my $from = File::Spec->catfile( $self->download_dir, $dist->file );
+	my $to   = File::Spec->catfile( $self->image_dir, $dist->install_to );
+	$self->_copy( $from => $to );	
+
+	# Clear the download file
+	File::Remove::remove( \1, $tgz );
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
 
 sub trace {
 	my $self = shift;
@@ -482,7 +507,8 @@ sub trace {
 
 sub _mirror {
 	my ($self, $url, $dir) = @_;
-	my ($file) = $url =~ m{/([^/?]+\.(?:tar\.gz|tgz|zip))}ims;
+	my $file = $url;
+	$file =~ s|.+\/||;
 	my $target = File::Spec->catfile( $dir, $file );
 	if ( $self->offline and -f $target ) {
 		$self->trace(" already downloaded\n");
@@ -604,6 +630,29 @@ sub _extract_filemap {
 	}
 
 	return 1;
+}
+
+sub _source {
+	my $self   = shift;
+	my $string = shift;
+	if ( $string =~ m|^\w+://| ) {
+		return $string;
+	}
+	if ( $string =~ m|^([A-Z])([A-Z])[A-Z]+/| ) {
+		return $self->cpan_uri . "/$1/$1$2/$string";
+	}
+	if ( $string =~ m|\w+(?:-\w+)*\s+| ) {
+		my ($dist, $name) = split /\s+/, $string;
+		$self->trace("Finding $name in $dist... ");
+		my $file = File::Spec->rel2abs(
+			File::ShareDir::dist_file( $dist, $name )
+		);
+		unless ( -f $file ) {
+			croak("Failed to find $file");
+		}
+		return URI::file->new($file)->as_string;
+	}
+	die "Unknown or unsupported source $string";
 }
 
 1;
