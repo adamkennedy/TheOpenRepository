@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.09 Fri  2 Nov 2007
+	- VERSION detection supports fully referenced variables
+
 0.08 Thu 12 Jul 2007
         - If PPI::Document fails for a document, skip it
         - Add a Usage message if no command
