@@ -60,7 +60,7 @@ sub read_string {
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
-			$self->set($ns, $1, $2);
+			$self->{$ns}->{$1} = $2;
 			next;
 		}
 
@@ -69,8 +69,6 @@ sub read_string {
 
 	$self;
 }
-
-sub set { $_[0]->{$_[1]}->{$_[2]} = $_[3] }
 
 # Save an object to a file
 sub write {
@@ -97,14 +95,12 @@ sub write_string {
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
 		foreach my $property ( sort keys %$block ) {
-			$contents .= $self->property_string($section, $property);
+			$contents .= "$property=$block->{$property}\n";
 		}
 	}
 	
 	$contents;
 }
-
-sub property_string { "$_[2]=$_[0]->{$_[1]}->{$_[2]}\n" };
 
 # Error handling
 sub errstr { $Config::Tiny::errstr }
