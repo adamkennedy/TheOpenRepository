@@ -1,9 +1,22 @@
 use strict;
-use inc::Module::Install;
+use vars qw{$VERSION};
+BEGIN {
+	require 5.003_96;
+	$VERSION = '1.03';
+}
+use ExtUtils::MakeMaker;
 
-name           'Object-Tiny';
-perl_version   '5.004';
-all_from       'lib/Object/Tiny.pm';
-build_requires 'Test::More' => '0.42';
-
-WriteAll;
+WriteMakefile(
+	NAME      => 'Object::Tiny',
+	ABSTRACT  => 'A date object with as little code as possible',
+	VERSION   => $VERSION,
+	PREREQ_PM => {
+		'Test::More' => '0.47',
+	},
+	($] >= 5.005 ? (
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
+	) : ()),
+	($ExtUtils::MakeMaker::VERSION ge '6.30_00' ? (
+		LICENSE => 'perl',
+	) : ()),
+);

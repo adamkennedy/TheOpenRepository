@@ -14,7 +14,7 @@ File::BLOB - A file (with name, and other metadata) you can BLOBify
   $file = File::BLOB->new( $filehandle    );
   
   # Create from an existing file
-  $fil	e = File::BLOB->from_file( 'filename.txt' );
+  $file = File::BLOB->from_file( 'filename.txt' );
   
   # Create from a file uploaded via CGI
   $file = File::BLOB->from_cgi( $CGI, 'param' );
@@ -479,6 +479,48 @@ sub thaw {
 
 	# This would be bad. It shouldn't happen
 	Carp::croak("Frozen File::BLOB object is corrupt");
+}
+
+
+
+
+
+#####################################################################
+# File Serialization
+
+sub save {
+
+}
+
+sub read {
+	my $class = shift;
+
+	# Check the file
+	my $file = shift;
+	Carp::croak('You did not specify a file name')          unless $file;
+	Carp::croak("File '$file' does not exist")              unless -e $file;
+	Carp::croak("'$file' is a directory, not a file")       unless -f _;
+	Carp::croak("Insufficient permissions to read '$file'") unless -r _;
+
+	# Open the file and read in the headers
+	my %headers = ();
+	my $handle  = IO::File->new($file, 'r');
+	Carp::croak("Failed to open file $file") unless $handle;
+	while ( defined(my $line = $handle->getline) ) {
+		chomp($line);
+		last if ! length($line);
+		unless ( $line =~ /^(\w+):\s*(.+?)\s$/ ) {
+			Carp::croak("Illegal header line $line");
+		}
+		$headers{$1} = $2;
+	}
+
+	# Check class
+	unless ( $self{class} eq $class ) {
+		Carp::croak("Serialized class mismatch. Expected $class, got $self{$class}");
+	}
+
+	return $class->new( $handle, %headers );
 }
 
 

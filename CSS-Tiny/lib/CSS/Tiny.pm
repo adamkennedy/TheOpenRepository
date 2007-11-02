@@ -109,13 +109,11 @@ reference the key C<$CSS-E<gt>{P}-E<gt>{font-family}>.
 
 =cut
 
-use 5.005;
 use strict;
-
-use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.14';
-	$errstr  = '';
+	require 5.004;
+	$CSS::Tiny::VERSION = '1.15';
+	$CSS::Tiny::errstr  = '';
 }
 
 =pod
@@ -308,8 +306,8 @@ C<$CSS::Tiny::errstr> variable, or using the C<errstr> method.
 
 =cut
 
-sub errstr { $errstr }
-sub _error { $errstr = $_[1]; undef }
+sub errstr { $CSS::Tiny::errstr }
+sub _error { $CSS::Tiny::errstr = $_[1]; undef }
 
 1;
 
@@ -333,7 +331,7 @@ L<CSS>, L<http://www.w3.org/TR/REC-CSS1>, L<Config::Tiny>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2006 Adam Kennedy.
+Copyright 2002 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Formal testing for CSS::Tiny
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 7;
@@ -55,7 +44,7 @@ SKIP: {
 	ok( scalar keys %$Trivial == 0, '->new returns an empty object' );
 
 	# Try to read in a config
-	my $Config = CSS::Tiny->read( catfile('t','data','test.css') );
+	my $Config = CSS::Tiny->read( 'test.css' );
 	isa_ok( $Config, 'CSS::Tiny' );
 
 	# Repeat the clone tests from 02_main.t
@@ -65,5 +54,3 @@ SKIP: {
 	is_deeply( $copy, $Config, '->clone works as expected' );
 	is( $new_called, 1, 'The inline ->clone was used as expected' );
 }
-
-1;

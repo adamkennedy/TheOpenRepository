@@ -96,17 +96,15 @@ less of it.
 
 =cut
 
-use 5.005;
 use strict;
+BEGIN {
+	require 5.004;
+	$Time::Tiny::VERSION = '1.02';
+}
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
 use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
 use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01';
-}
 
 
 
@@ -164,9 +162,8 @@ Returns a new B<Time::Tiny> object.
 =cut
 
 sub now {
-	my $class = shift;
-	my @t     = localtime time;
-	$class->new(
+	my @t = localtime time;
+	return $_[0]->new(
 		hour   => $t[2],
 		minute => $t[1],
 		second => $t[0],
@@ -235,15 +232,14 @@ Returns a new B<Time::Tiny> object, or throws an exception on error.
 =cut
 
 sub from_string {
-	my $class  = shift;
-	my $string = shift;
+	my $string = $_[1];
 	unless ( defined $string and ! ref $string ) {
 		Carp::croak("Did not provide a string to from_string");
 	}
 	unless ( $string =~ /^(\d\d):(\d\d):(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601 hh:mm:ss)");
 	}
-	$class->new(
+	return $_[0]->new(
 		hour   => $1 + 0,
 		minute => $2 + 0,
 		second => $3 + 0,
@@ -325,7 +321,7 @@ L<DateTime>, L<DateTime::Tiny>, L<Time::Tiny>, L<Config::Tiny>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

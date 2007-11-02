@@ -2,13 +2,11 @@ package Config::Tiny;
 
 # If you thought Config::Simple was small...
 
-use 5.004;
 use strict;
-
-use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '2.11';
-	$errstr  = '';
+	require 5.004;
+	$Config::Tiny::VERSION = '2.12';
+	$Config::Tiny::errstr  = '';
 }
 
 # Create an empty object
@@ -109,8 +107,8 @@ sub write_string {
 sub property_string { "$_[2]=$_[0]->{$_[1]}->{$_[2]}\n" };
 
 # Error handling
-sub errstr { $errstr }
-sub _error { $errstr = $_[1]; undef }
+sub errstr { $Config::Tiny::errstr }
+sub _error { $Config::Tiny::errstr = $_[1]; undef }
 
 1;
 
@@ -262,7 +260,7 @@ L<Config::Simple>, L<Config::General>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2006 Adam Kennedy.
+Copyright 2002 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

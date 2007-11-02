@@ -106,17 +106,15 @@ less of it.
 
 =cut
 
-use 5.005;
 use strict;
+BEGIN {
+	require 5.004;
+	$DateTime::Tiny::VERSION = '0.02';
+}
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
 use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
 use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01';
-}
 
 
 
@@ -173,9 +171,8 @@ Returns a new B<DateTime::Tiny> object.
 =cut
 
 sub now {
-	my $class = shift;
-	my @t     = localtime time;
-	$class->new(
+	my @t = localtime time;
+	return shift->new(
 		year   => $t[5] + 1900,
 		month  => $t[4] + 1,
 		day    => $t[3],
@@ -299,15 +296,14 @@ Returns a new B<DateTime::Tiny> object, or throws an exception on error.
 =cut
 
 sub from_string {
-	my $class  = shift;
-	my $string = shift;
+	my $string = $_[1];
 	unless ( defined $string and ! ref $string ) {
 		Carp::croak("Did not provide a string to from_string");
 	}
 	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601)");
 	}
-	$class->new(
+	return $_[0]->new(
 		year   => $1 + 0,
 		month  => $2 + 0,
 		day    => $3 + 0,

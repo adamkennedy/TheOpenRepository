@@ -469,6 +469,47 @@ sub install_distribution {
 	return 1;
 }
 
+sub install_module {
+	my $self   = shift;
+	unless ( $self->bin_perl ) {
+		croak("Cannot install CPAN modules yet, perl is not installed");
+	}
+	my $module = Perl::Dist::Asset::Module->new(@_);
+	my $name   = $module->name;
+	my $force  = $module->force;
+
+	# Generate the CPAN installation script
+	my $cpan_str = <<"END_PERL";
+print "Installing $name from CPAN...\n";
+my \$module = CPAN::Shell->expandany( "$name" ) 
+	or die "CPAN.pm couldn't locate $name";
+if ( \$module->uptodate ) {
+	print "$name is up to date\n";
+	exit(0);
+}
+if ( $force ) {
+	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
+	\$module->force("install");
+	\$CPAN::DEBUG=1;
+	unless ( \$module->uptodate ) {
+		die "Forced installation of $name appears to have failed";
+	}
+} else {
+	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
+	\$module->install;
+	unless ( \$module->uptodate ) {
+		die "Installation of $name appears to have failed";
+	}
+}
+END_PERL
+
+	# Execute the CPAN installation script
+	IPC::Run3::run3 [ $self->bin_perl, "-MCPAN", "-e", $cpan_str ];
+	die "Failure detected installing $name, stopping" if $?;
+
+	return 1;
+}
+
 sub install_file {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::File->new(@_);

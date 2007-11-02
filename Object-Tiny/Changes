@@ -1,14 +1,18 @@
 Revision history for Perl extension Object-Tiny
 
+1.05 Thu  1 Nov 2007
+	- No functional changes
+	- Converted Makefile.PL from Module::Install to EU:MM
+
 1.04 Mon 22 Oct 2007
 	- No functional changes
 	- Upgrading to a newer set of AUTOMATED_TESTING tests
 
 1.03 Tue  4 Sep 2007
-    - Use explicit return in the generated accessors
-      (makes them 5-10% faster according to benchmarking)
-    - Jonathon Rockway asks why both when we have Class::Accessor::Fast.
-      (I've added a documentation segment to answer it)
+	- Use explicit return in the generated accessors
+	  (makes them 5-10% faster according to benchmarking)
+	- Jonathon Rockway asks why both when we have Class::Accessor::Fast.
+	  (I've added a documentation segment to answer it)
 
 1.02 Wed  9 May 2007
 	- Fixing some POD things

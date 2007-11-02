@@ -1,5 +1,9 @@
 Revision history for Perl extension Date::Tiny
 
+1.03 Thu  1 Nov 2007
+	- Converting from Module::Install to EU::MM
+	- Moving to a production version
+
 0.02 Thu 10 May 2007
 	- Adding the missing from_string method
 

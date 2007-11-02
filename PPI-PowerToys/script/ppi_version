@@ -8,7 +8,7 @@ use File::Find::Rule::Perl ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.08';
+        $VERSION = '0.09';
 }
 
 sub error ($);
@@ -92,27 +92,27 @@ sub show {
 		# Does the document contain a simple version number
 		my $elements = $Document->find( sub {
 			# Find a $VERSION symbol
-			$_[1]->isa('PPI::Token::Symbol')      or return '';
-			$_[1]->content eq '$VERSION'          or return '';
+			$_[1]->isa('PPI::Token::Symbol')          or return '';
+			$_[1]->content =~ /^\$(?:\w+::)*VERSION$/ or return '';
 
 			# It is the first thing in the statement
-			$_[1]->sprevious_sibling             and return '';
+			$_[1]->sprevious_sibling                 and return '';
 
 			# Followed by an "equals"
-			my $equals = $_[1]->snext_sibling     or return '';
-			$equals->isa('PPI::Token::Operator')  or return '';
-			$equals->content eq '='               or return '';
+			my $equals = $_[1]->snext_sibling         or return '';
+			$equals->isa('PPI::Token::Operator')      or return '';
+			$equals->content eq '='                   or return '';
 
 			# Followed by a quote
-			my $quote = $equals->snext_sibling    or return '';
-			$quote->isa('PPI::Token::Quote')      or return '';
+			my $quote = $equals->snext_sibling        or return '';
+			$quote->isa('PPI::Token::Quote')          or return '';
 
 			# ... which is EITHER the end of the statement
-			my $next = $quote->snext_sibling      or return 1;
+			my $next = $quote->snext_sibling          or return 1;
 
 			# ... or is a statement terminator
-			$next->isa('PPI::Token::Structure')   or return '';
-			$next->content eq ';'                 or return '';
+			$next->isa('PPI::Token::Structure')       or return '';
+			$next->content eq ';'                     or return '';
 
 			return 1;
 			} );

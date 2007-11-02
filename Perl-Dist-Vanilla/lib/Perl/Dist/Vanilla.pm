@@ -1,10 +1,49 @@
 package Perl::Dist::Vanilla;
-$VERSION = '7'; # build number
 
 use strict;
-use warnings;
+use base 'Perl::Dist';
+use Cwd ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = 8;
+}
+
+
+
+
+
+#####################################################################
+# Configuration
+
+sub app_name             { 'Vanilla Perl'                    }
+sub app_ver_name         { 'Vanilla Perl 5.8.8 Build 8'      }
+sub app_publisher        { 'Vanilla Perl Project'            }
+sub app_publisher_url    { 'http://vanillaperl.org/'         }
+sub app_id               { 'vanillaperl'                     }
+sub default_group_name   { 'Vanilla Perl'                    }
+sub output_dir           { Cwd::cwd()                        }
+sub output_base_filename { 'vanilla-perl-5.8.8-build-8'      }
+sub source_dir           { 'C:\\vanilla-perl'                }
+sub download_dir         { 'C:\\temp\\vanilla-perl\\sources' }
+sub image_dir            { 'C:\\vanilla-perl'                }
+
+
+
+
+
+#####################################################################
+# Installation Script
+
+sub run {
+	my $self = shift;
+
+	# Install the core binary elements
+	$self->
+}
 
 1;
+
 __END__
 
 =head1 NAME

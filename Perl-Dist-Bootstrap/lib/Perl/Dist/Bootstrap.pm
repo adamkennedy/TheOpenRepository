@@ -64,32 +64,6 @@ sub run {
 	return 1;
 }
 
-sub install_perl {
-	my $self = shift;
-
-	$self->install_perl_588(
-		name       => 'perl',
-		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
-		license    => {
-			'perl-5.8.8/Readme'   => 'perl/Readme',
-			'perl-5.8.8/Artistic' => 'perl/Artistic',
-			'perl-5.8.8/Copying'  => 'perl/Copying',
-		},
-		unpack_to  => 'perl',
-		install_to => 'perl',
-		pre_copy   => {
-			'Install.pm'   => 'lib\ExtUtils\Install.pm',
-			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
-			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
-		},
-		post_copy  => {
-			'Config.pm'    => 'lib\CPAN\Config.pm',
-		}
-	);
-
-	return 1;
-}
-
 my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
 	DLAND/File-Path-2.01.tar.gz
@@ -133,6 +107,18 @@ sub install_toolchain {
 			name => $dist,
 		);
 	}
+
+	# With the toolchain we need in place, install the default
+	# configuation.
+	$self->install_file(
+		share      => 'Perl::Dist::Bootstrap CPAN_Config.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
+	);
+
+	# Now start installing modules from CPAN
+	$self->install_module(
+		name => 'Params::Util',
+	);
 
 	return 1;
 }

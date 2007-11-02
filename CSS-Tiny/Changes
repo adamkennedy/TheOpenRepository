@@ -1,5 +1,9 @@
 Revision history for Perl extension CSS::Tiny
 
+1.15 Thu  1 Nov 2007
+	- Moving from Module::Install to the tinier EU:MM
+	- Changed use 5.005 to BEGIN { require 5.004 }
+
 1.14 Mon  4 Sep 2006
 	- Upgrading to Module::Install 0.64
 

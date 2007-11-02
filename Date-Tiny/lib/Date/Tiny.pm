@@ -4,7 +4,7 @@ package Date::Tiny;
 
 =head1 NAME
 
-Date::Tiny - A date object, with as little code as possible
+Date::Tiny - A date object with as little code as possible
 
 =head1 SYNOPSIS
 
@@ -96,17 +96,15 @@ less of it.
 
 =cut
 
-use 5.005;
 use strict;
+BEGIN {
+	require 5.004;
+	$Date::Tiny::VERSION = '1.03';
+}
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
 use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
 use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.02';
-}
 
 
 
@@ -157,9 +155,8 @@ Returns a new B<Date::Tiny> object.
 =cut
 
 sub now {
-	my $class = shift;
-	my @t     = localtime time;
-	$class->new(
+	my @t = localtime time;
+	return shift->new(
 		year   => $t[5] + 1900,
 		month  => $t[4] + 1,
 		day    => $t[3],
@@ -253,15 +250,14 @@ Returns a new B<Date::Tiny> object, or throws an exception on error.
 =cut
 
 sub from_string {
-	my $class  = shift;
-	my $string = shift;
+	my $string = $_[1];
 	unless ( defined $string and ! ref $string ) {
 		Carp::croak("Did not provide a string to from_string");
 	}
 	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601 yyyy-mm-dd)");
 	}
-	$class->new(
+	return $_[0]->new(
 		year  => $1 + 0,
 		month => $2 + 0,
 		day   => $3 + 0,
@@ -321,7 +317,7 @@ L<DateTime>, L<DateTime::Tiny>, L<Time::Tiny>, L<Config::Tiny>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

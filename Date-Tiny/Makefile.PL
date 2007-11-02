@@ -1,8 +1,22 @@
 use strict;
-use inc::Module::Install;
+use vars qw{$VERSION};
+BEGIN {
+	require 5.003_96;
+	$VERSION = '1.03';
+}
+use ExtUtils::MakeMaker;
 
-name           'Date-Tiny';
-all_from       'lib/Date/Tiny.pm';
-build_requires 'Test::More' => '0.47';
-
-WriteAll;
+WriteMakefile(
+	NAME      => 'Date::Tiny',
+	ABSTRACT  => 'A date object with as little code as possible',
+	VERSION   => $VERSION,
+	PREREQ_PM => {
+		'Test::More' => '0.47',
+	},
+	($] >= 5.005 ? (
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
+	) : ()),
+	($ExtUtils::MakeMaker::VERSION ge '6.30_00' ? (
+		LICENSE => 'perl',
+	) : ()),
+);

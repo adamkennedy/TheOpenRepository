@@ -1,4 +1,7 @@
 Revision history for Perl extension DateTime::Tiny
 
+0.02 Thu  1 Nov 2007
+	- Moving from Module::Install to EU:MM
+
 0.01 Wed 24 Jan 2007
 	- original version

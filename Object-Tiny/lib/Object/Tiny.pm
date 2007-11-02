@@ -3,20 +3,20 @@ package Object::Tiny;
 # use strict; # Enable during dev and testing
 BEGIN {
 	require 5.004;
-	$Object::Tiny::VERSION = '1.04';
+	$Object::Tiny::VERSION = '1.05';
 }
 
 sub import {
 	return unless shift eq 'Object::Tiny';
 	my $pkg   = caller;
 	my $child = !! @{"${pkg}::ISA"};
-	eval join '',
-		"package $pkg;\n",
-		($child ? () : "\@${pkg}::ISA = 'Object::Tiny';\n"),
+	eval join "\n",
+		"package $pkg;",
+		($child ? () : "\@${pkg}::ISA = 'Object::Tiny';"),
 		map {
 			defined and ! ref and /^[^\W\d]\w*$/s
 			or die "Invalid accessor name '$_'";
-			"sub $_ { return \$_[0]->{$_} }\n"
+			"sub $_ { return \$_[0]->{$_} }"
 		} @_;
 	die "Failed to generate $pkg" if $@;
 	return 1;
