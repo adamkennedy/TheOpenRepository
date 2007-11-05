@@ -13,7 +13,7 @@ WriteMakefile(
 		'Params::Util'   => '0.15',
 	},
 	($] >= 5.005) ? (
-		'AUTHOR'     => 'Adam Kennedy (cpan@ali.as)',
+		'AUTHOR'     => 'Adam Kennedy <cpan@ali.as>',
 		'ABSTRACT'   => 'An algorithm to find good values for chart axis',
 	) : (),
 );

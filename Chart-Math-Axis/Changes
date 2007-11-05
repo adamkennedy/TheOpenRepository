@@ -1,5 +1,8 @@
 Revision history for Perl extension Chart::Math::Axis.
 
+1.02 Mon  5 Nov 2007
+	- Upgrading to newer bundled tests
+
 1.01 Fri  7 Sep 2007
 	- Adding a missing dependency on Params::Util
 	- Bumping Clone dependency to remove memory leaks
