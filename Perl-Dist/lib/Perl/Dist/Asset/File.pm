@@ -11,7 +11,7 @@ use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_02';
+	$VERSION = '0.29_03';
 }
 
 use Object::Tiny qw{

@@ -15,6 +15,9 @@ BEGIN {
 	plan( tests => 4 );
 }
 
+my $p5l = defined $ENV{PERL5LIB} ? "'$ENV{PERL5LIB}'" : 'undef';
+diag("PERL5LIB = '$p5l';\n");
+
 use File::Spec::Functions ':ALL';
 use t::lib::Bootstrap ();
 use URI::file             ();

@@ -3,6 +3,7 @@ package Perl::Dist::Bootstrap;
 use 5.006;
 use strict;
 use base 'Perl::Dist';
+use File::Remove ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -61,12 +62,25 @@ sub run {
 	my $d3 = time - $t3;
 	$self->trace("Completed install_toolchain in $d3 seconds\n");
 
+	# Install the additional modules
+	my $t4 = time;
+	$self->install_modules;
+	my $d4 = time - $t4;
+	$self->trace("Completed install_modules in $d4 seconds\n");
+
+	# Write out the zip
+	my $t5  = time;
+	my $zip = $self->generate_zip;
+	my $d5  = time - $t5;
+	$self->trace("Completed generate_zip in $d5 seconds\n");
+	$self->trace("Distribution created as $zip\n");
+
 	return 1;
 }
 
 my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
-	DLAND/File-Path-2.01.tar.gz
+	DLAND/File-Path-2.02.tar.gz
 	RKOBES/ExtUtils-Command-1.13.tar.gz
 	YVES/Win32API-File-0.1001.tar.gz
  	MSCHWERN/ExtUtils-Install-1.44.tar.gz
@@ -96,6 +110,7 @@ my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	GAAS/Digest-SHA1-2.11.tar.gz
 	MSHELOR/Digest-SHA-5.45.tar.gz
 	KWILLIAMS/Module-Build-0.2808.tar.gz
+	JSTOWE/Term-Cap-1.11.tar.gz
 	ANDK/CPAN-1.9203.tar.gz
 };
 
@@ -108,17 +123,56 @@ sub install_toolchain {
 		);
 	}
 
+	# Special install of Term::ReadLine::Perl, which does
+	# evil things when testing
+	$self->install_distribution(
+		name              => 'ILYAZ/modules/Term-ReadLine-Perl-1.0302.tar.gz',
+		automated_testing => 1,
+	);
+
 	# With the toolchain we need in place, install the default
 	# configuation.
 	$self->install_file(
-		share      => 'Perl::Dist::Bootstrap CPAN_Config.pm',
+		share      => 'Perl-Dist-Bootstrap CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
-	# Now start installing modules from CPAN
+	return 1;
+}
+
+sub install_modules {
+	my $self = shift;
+
+	# Install the basics
 	$self->install_module(
 		name => 'Params::Util',
 	);
+	$self->install_module(
+		name => 'Bundle::LWP',
+	);
+
+	# Install various developer tools
+	$self->install_module(
+		name => 'Bundle::CPAN',
+	);
+	$self->install_module(
+		name => 'pler',
+	);
+	$self->install_module(
+		name => 'pip',
+	);
+	$self->install_module(
+		name => 'PAR::Dist',
+	);
+
+	# Now we are done, delete unneeded working dirs
+	$self->trace("Removing CPAN working data\n");
+	File::Remove::remove( \1, File::Spec->catdir(
+		$self->image_dir, 'perl', 'cpan', 'build',
+	) );
+	File::Remove::remove( \1, File::Spec->catdir(
+		$self->image_dir, 'perl', 'cpan', 'sources',
+	) );
 
 	return 1;
 }

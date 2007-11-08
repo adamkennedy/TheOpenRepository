@@ -24,7 +24,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.29_02';
+        $VERSION = '0.29_03';
 }
 
 use Object::Tiny qw{
@@ -179,6 +179,15 @@ sub new {
 		File::Path::mkpath($d);
 	}
 
+	# More details on the tracing
+	if ( $self->{trace} ) {
+		$self->{stdout} = undef;
+		$self->{stderr} = undef;
+	} else {
+		$self->{stdout} = \undef;
+		$self->{stderr} = \undef;
+	}
+
         return $self;
 }
 
@@ -205,13 +214,13 @@ sub install_binaries {
 			'dmake/readme/license.txt' => 'dmake/license.txt',
 		},
 		install_to => {
-			'dmake/dmake.exe' => 'dmake/bin/dmake.exe',	
-			'dmake/startup'   => 'dmake/bin/startup',
+			'dmake/dmake.exe' => 'perl/bin/dmake.exe',	
+			'dmake/startup'   => 'perl/bin/startup',
 		},
 	);
 
 	# Initialize the image_dir binaries
-	$self->{bin_make} = File::Spec->catfile( $self->image_dir, 'dmake', 'bin', 'dmake.exe' );
+	$self->{bin_make} = File::Spec->catfile( $self->image_dir, 'perl', 'bin', 'dmake.exe' );
 	unless ( -x $self->bin_make ) {
 		die "Can't execute make";
 	}
@@ -371,10 +380,6 @@ sub install_perl_588 {
 
 	# Setup fresh install directory
 	my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-	if ( -d $perl_install ) {
-		$self->trace("Removing previous $perl_install\n");
-		File::Remove::remove( \1, $perl_install );
-	}
 
 	# Build win32 perl
 	SCOPE: {
@@ -453,6 +458,13 @@ sub install_distribution {
 	SCOPE: {
 		my $wd = File::pushd::pushd( $unpack_to );
 
+		# Enable automated_testing mode if needed
+		# Blame Term::ReadLine::Perl for needing this ugly hack.
+		if ( $dist->automated_testing ) {
+			$self->trace("Installing with AUTOMATED_TESTING enabled");
+		}
+		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing ? 1 : '';
+
 		$self->trace("Configuring " . $dist->name . "...\n");
 		$self->_perl( 'Makefile.PL' );
 
@@ -496,15 +508,24 @@ if ( $force ) {
 	}
 } else {
 	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
-	\$module->install;
+	CPAN::Shell->install('$name');
+	print "Completed install of $name\n";
 	unless ( \$module->uptodate ) {
 		die "Installation of $name appears to have failed";
 	}
 }
+exit(0);
 END_PERL
 
 	# Execute the CPAN installation script
-	IPC::Run3::run3 [ $self->bin_perl, "-MCPAN", "-e", $cpan_str ];
+	$self->trace("Running install of $name\n");
+	local $ENV{PERL5LIB} = '';
+	IPC::Run3::run3(
+		[ $self->bin_perl, "-MCPAN", "-e", $cpan_str ],
+		\undef,
+		'c:\param.out',
+		'c:\param.err',
+	) or die "perl -MCPAN -e failed";
 	die "Failure detected installing $name, stopping" if $?;
 
 	return 1;
@@ -521,14 +542,33 @@ sub install_file {
 	);
 
 	# Copy the file to the target location
-	my $from = File::Spec->catfile( $self->download_dir, $dist->file );
-	my $to   = File::Spec->catfile( $self->image_dir, $dist->install_to );
+	my $from = File::Spec->catfile( $self->download_dir, $dist->file       );
+	my $to   = File::Spec->catfile( $self->image_dir,    $dist->install_to );
 	$self->_copy( $from => $to );	
 
 	# Clear the download file
 	File::Remove::remove( \1, $tgz );
 
 	return 1;
+}
+
+sub generate_zip {
+	my $self = shift;
+	my $file = File::Spec->catfile(
+		$self->output_dir, $self->output_base_filename . '.zip'
+	);
+	$self->trace("Generating zip at $file\n");
+
+	# Create the archive
+	my $zip = Archive::Zip->new;
+
+	# Add the image directory to the root
+	$zip->addTree( $self->image_dir, '' );
+
+	# Write out the file name
+	$zip->writeToFileNamed( $file );
+
+	return $file;
 }
 
 
@@ -590,7 +630,13 @@ sub _make {
 	my $self   = shift;
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
-	IPC::Run3::run3( [ $self->bin_make, @params ], \undef, \undef, \undef ) or die "make failed";
+	local $ENV{PERL5LIB} = '';
+	IPC::Run3::run3(
+		[ $self->bin_make, @params ],
+		\undef,
+		\undef,
+		\undef,
+	) or die "make failed";
 	die "make failed (OS error)" if ( $? >> 8 );
 	return 1;
 }
@@ -599,7 +645,13 @@ sub _perl {
 	my $self   = shift;
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_perl, @params) . "\n");
-	IPC::Run3::run3( [ $self->bin_perl, @params ], \undef, \undef, \undef ) or die "perl failed";
+	local $ENV{PERL5LIB} = '';
+	IPC::Run3::run3(
+		[ $self->bin_perl, @params ],
+		\undef,
+		\undef,
+		\undef,
+	) or die "perl failed";
 	die "perl failed (OS error)" if ( $? >> 8 );
 	return 1;
 }

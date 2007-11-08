@@ -5,7 +5,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_02';
+	$VERSION = '0.29_03';
 }
 
 
@@ -49,7 +49,7 @@ sub run {
 	return 1;
 }
 
-sub trace { 1 }
+sub trace { Test::More::diag($_[1]) }
 
 sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );

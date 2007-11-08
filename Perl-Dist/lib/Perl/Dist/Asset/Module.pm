@@ -3,11 +3,10 @@ package Perl::Dist::Asset::Module;
 use strict;
 use Carp         'croak';
 use Params::Util qw{ _STRING _HASH };
-use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_02';
+	$VERSION = '0.29_03';
 }
 
 use Object::Tiny qw{
@@ -28,23 +27,30 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Apply defaults
-	unless ( defined $self->type ) {
-		$self->{type} = 'Module';
-	}
-	$self->{force} = !! $self->force;
+	$self->{force} = $self->force ? 1 : 0; # Needs to be numeric
 
 	# Check params
-	unless ( _STRING($self->type) ) {
-		croak("Missing or invalid type param");
-	}
 	unless ( _STRING($self->name) ) {
 		croak("Missing or invalid name param");
 	}
-	if ( defined $self->extras and ! _HASH($self->extras) ) {
-		croak("Invalid extras param");
-	}
 
 	return $self;
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub trace {
+	my $self = shift;
+	if ( _CODELIKE($self->{trace}) ) {
+		$self->{trace}->(@_);
+	} else {
+		print $_[0];
+	}
 }
 
 1;
