@@ -347,6 +347,23 @@ sub install_libraries {
 		},
 	);
 
+	# Install libxslt
+	$self->install_library(
+		name       => 'libxslt',
+		share      => 'Perl-Dist-Downloads libxslt-1.1.22.win32.zip',
+		unpack_to  => 'libxslt',
+		build_a    => {
+			'dll'    => 'libxslt-1.1.22.win32/bin/libxslt.dll',
+			'def'    => 'libxslt-1.1.22.win32/bin/libxslt.def',
+			'a'      => 'libxslt-1.1.22.win32/lib/libxslt.a',
+		},			
+		install_to => {
+			'libxslt-1.1.22.win32/bin'     => 'mingw/bin',
+			'libxslt-1.1.22.win32/lib'     => 'mingw/lib',
+			'libxslt-1.1.22.win32/include' => 'mingw/include',
+		},
+	);
+
 	# Install iconv
 	$self->install_library(
 		name       => 'iconv',
