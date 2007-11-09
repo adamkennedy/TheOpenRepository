@@ -4,6 +4,10 @@ Revision history for Perl module Perl::Dist
 	- Completing install_perl_588
 	- Completing install_distribution
 	- Completing install_module
+	- Adding install_library
+	- Adding install_libraries
+	- Completing installation of zlib
+	- Starting installation of iconv
 	- Adding pexports to the list of binaries to install
 
 0.29_02 Thu 31 Oct 2007

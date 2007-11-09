@@ -14,7 +14,7 @@ use File::pushd           ();
 use File::Remove          ();
 use File::Basename        ();
 use IPC::Run3             ();
-use Params::Util          qw{ _STRING _INSTANCE };
+use Params::Util          qw{ _STRING _HASH _INSTANCE };
 use HTTP::Status          ();
 use LWP::UserAgent        ();
 use LWP::Online           ();
@@ -36,18 +36,21 @@ use Object::Tiny qw{
 	build_dir
 	remove_image
 	user_agent
+	cpan_uri
 	bin_perl
 	bin_make
-	cpan_uri
+	bin_pexports
+	bin_dlltool
 };
 
-use Perl::Dist::Inno;
-use Perl::Dist::Asset;
-use Perl::Dist::Asset::Perl;
-use Perl::Dist::Asset::Binary;
-use Perl::Dist::Asset::Distribution;
-use Perl::Dist::Asset::Module;
-use Perl::Dist::Asset::File;
+use Perl::Dist::Inno                ();
+use Perl::Dist::Asset               ();
+use Perl::Dist::Asset::Binary       ();
+use Perl::Dist::Asset::Library      ();
+use Perl::Dist::Asset::Perl         ();
+use Perl::Dist::Asset::Distribution ();
+use Perl::Dist::Asset::Module       ();
+use Perl::Dist::Asset::File         ();
 
 
 
@@ -219,10 +222,12 @@ sub install_binaries {
 		},
 	);
 
-	# Initialize the image_dir binaries
-	$self->{bin_make} = File::Spec->catfile( $self->image_dir, 'perl', 'bin', 'dmake.exe' );
+	# Initialize the make location
+	$self->{bin_make} = File::Spec->catfile(
+		$self->image_dir, 'perl', 'bin', 'dmake.exe',
+	);
 	unless ( -x $self->bin_make ) {
-		die "Can't execute make";
+		croak("Can't execute make");
 	}
 
 	# Install the compilers (gcc)
@@ -247,6 +252,7 @@ sub install_binaries {
 		share      => 'Perl-Dist-Downloads mingw32-make-3.81-2.tar.gz',
 		install_to => 'mingw',
 	);
+
 	$self->install_binary(
 		name       => 'binutils',
 		share      => 'Perl-Dist-Downloads binutils-2.17.50-20060824-1.tar.gz',
@@ -256,14 +262,29 @@ sub install_binaries {
 		},
 		install_to => 'mingw',
 	);
+	$self->{bin_dlltool} = File::Spec->catfile(
+		$self->image_dir, 'mingw', 'bin', 'dlltool.exe',
+	);
+	unless ( -x $self->bin_dlltool ) {
+		die "Can't execute dlltool";
+	}
+
 	$self->install_binary(
 		name       => 'pexports',
 		share      => 'Perl-Dist-Downloads pexports-0.43-1.zip',
 		license    => {
-			'COPYING' => 'pexports/COPYING',
+			'pexports-0.43/COPYING' => 'pexports/COPYING',
 		},
-		install_to => 'mingw',
+		install_to => {
+			'pexports-0.43/bin' => 'mingw/bin',
+		},
 	);
+	$self->{bin_pexports} = File::Spec->catfile(
+		$self->image_dir, 'mingw', 'bin', 'pexports.exe',
+	);
+	unless ( -x $self->bin_pexports ) {
+		die "Can't execute pexports";
+	}
 
 	# Install support libraries
 	$self->install_binary(
@@ -283,6 +304,55 @@ sub install_binaries {
 	$self->install_file(
 		share      => 'Perl-Dist README.w32api',
 		install_to => 'licenses\win32api\README.w32api',
+	);
+
+	return 1;
+}
+
+sub install_libraries {
+	my $self = shift;
+
+	# Install zlib
+	$self->install_library(
+		name       => 'zlib',
+		share      => 'Perl-Dist-Downloads zlib-1.2.3.win32.zip',
+		unpack_to  => 'zlib',
+		build_a    => {
+			'source' => 'zlib-1.2.3.win32/bin/zlib1.dll',
+			'dll'    => 'zlib-1.2.3.win32/bin/zlib.dll',
+			'def'    => 'zlib-1.2.3.win32/bin/zlib.def',
+			'a'      => 'zlib-1.2.3.win32/lib/zlib.a',
+		},
+		install_to => {
+			'zlib-1.2.3.win32/bin'     => 'mingw/bin',
+			'zlib-1.2.3.win32/lib'     => 'mingw/lib',
+			'zlib-1.2.3.win32/include' => 'mingw/include',
+		},
+	);
+
+	# Install libxml2
+	$self->install_library(
+		name       => 'libxml2',
+		share      => 'Perl-Dist-Downloads 
+		install_to => {
+		},
+	);
+
+	# Install iconv
+	$self->install_library(
+		name       => 'iconv',
+		share      => 'Perl-Dist-Downloads iconv-1.9.2.win32.zip',
+		unpack_to  => 'iconv',
+		build_a    => {
+			'dll'    => 'iconv-1.9.2.win32/bin/iconv.dll',
+			'def'    => 'iconv-1.9.2.win32/bin/iconv.def',
+			'a'      => 'iconv-1.9.2.win32/lib/iconv.a',
+		},
+		install_to => {
+			'iconv-1.9.2.win32/bin'     => 'mingw/bin',
+			'iconv-1.9.2.win32/lib'     => 'mingw/lib',
+			'iconv-1.9.2.win32/include' => 'mingw/include',
+		},
 	);
 
 	return 1;
@@ -346,12 +416,63 @@ sub install_binary {
 	return 1;
 }
 
+sub install_library {
+	my $self    = shift;
+	my $library = Perl::Dist::Asset::Library->new(@_);
+	my $name    = $library->name;
+	$self->trace("Preparing $name\n");
+
+	# Download the file
+	my $tgz = $self->_mirror(
+		$library->url,
+		$self->download_dir,
+	);
+
+	# Unpack to the build directory
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $library->unpack_to );
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $unpack_to );
+
+	# Build the .a file if needed
+	if ( _HASH($library->build_a) ) {
+		# Hand off for the .a generation
+		$self->_dll_to_a(
+			$library->build_a->{source} ?
+			(
+				source => File::Spec->catfile(
+					$unpack_to, $library->build_a->{source},
+				),
+			) : (),
+			dll    => File::Spec->catfile(
+				$unpack_to, $library->build_a->{dll},
+			),
+			def    => File::Spec->catfile(
+				$unpack_to, $library->build_a->{def},
+			),
+			a      => File::Spec->catfile(
+				$unpack_to, $library->build_a->{a},
+			),
+		);
+	}
+
+	# Copy in licenses
+	if ( _HASH($library->license) ) {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $library->license, $license_dir, 1 );
+	}
+
+	return 1;
+}
+
 sub install_perl_588 {
 	my $self = shift;
+	my $perl = Perl::Dist::Asset::Perl->new(@_);
 	unless ( $self->bin_make ) {
 		croak("Cannot build Perl yet, no bin_make defined");
 	}
-	my $perl = Perl::Dist::Asset::Perl->new(@_);
 
 	# Download the file
 	my $tgz = $self->_mirror( 
@@ -359,6 +480,7 @@ sub install_perl_588 {
 		$self->download_dir,
 	);
 
+	# Unpack to the build directory
 	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
 	if ( -d $unpack_to ) {
 		$self->trace("Removing previous $unpack_to\n");
@@ -383,11 +505,10 @@ sub install_perl_588 {
 	}
 
 	# Copy in licenses
-	my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
-	$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
-
-	# Setup fresh install directory
-	my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
+	if ( ref $perl->license eq 'HASH' ) {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
+	}
 
 	# Build win32 perl
 	SCOPE: {
@@ -395,7 +516,9 @@ sub install_perl_588 {
 			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
 		);
 
-		my $image_dir             = $self->image_dir;
+		# Prepare to patch
+		my $image_dir    = $self->image_dir;
+		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
 		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
 		$self->trace("Patching makefile.mk\n");
 		tie my @makefile, 'Tie::File', 'makefile.mk'
@@ -491,12 +614,12 @@ sub install_distribution {
 
 sub install_module {
 	my $self   = shift;
-	unless ( $self->bin_perl ) {
-		croak("Cannot install CPAN modules yet, perl is not installed");
-	}
 	my $module = Perl::Dist::Asset::Module->new(@_);
 	my $name   = $module->name;
 	my $force  = $module->force;
+	unless ( $self->bin_perl ) {
+		croak("Cannot install CPAN modules yet, perl is not installed");
+	}
 
 	# Generate the CPAN installation script
 	my $cpan_str = <<"END_PERL";
@@ -634,6 +757,14 @@ sub _copy {
 	File::Copy::Recursive::rcopy( $from, $to ) or die $!;
 }
 
+sub _move {
+	my ($self, $from, $to) = @_;
+	my $basedir = File::Basename::dirname( $to );
+	File::Path::mkpath($basedir) unless -e $basedir;
+	$self->trace("Moving $from to $to\n");
+	File::Copy::Recursive::rmove( $from, $to ) or die $!;
+}
+
 sub _make {
 	my $self   = shift;
 	my @params = @_;
@@ -754,6 +885,73 @@ sub _source {
 		return URI::file->new($file)->as_string;
 	}
 	die "Unknown or unsupported source $string";
+}
+
+# Convert a .dll to an .a file
+sub _dll_to_a {
+	my $self   = shift;
+	my %params = @_;
+	unless ( $self->bin_dlltool ) {
+		croak("Required method bin_dlltool is not defined");
+	}
+
+	# Source file
+	my $source = $params{source};
+	if ( $source and ! $source =~ /\.dll$/ ) {
+		croak("Missing or invalid source param");
+	}
+
+	# Target .dll file
+	my $dll = $params{dll};
+	unless ( $dll and $dll =~ /\.dll/ ) {
+		croak("Missing or invalid .dll file");
+	}
+
+	# Target .def file
+	my $def = $params{def};
+	unless ( $def and $def =~ /\.def$/ ) {
+		croak("Missing or invalid .def file");
+	}
+
+	# Target .a file
+	my $_a = $params{a};
+	unless ( $_a and $_a =~ /\.a$/ ) {
+		croak("Missing or invalid .a file");
+	}
+
+	# Step 1 - Copy the source .dll to the target if needed
+	unless ( ($source and -f $source) or -f $dll ) {
+		croak("Need either a source or dll param");
+	}
+	if ( $source ) {
+		$self->_move( $source => $dll );
+	}
+
+	# Step 2 - Generate the .def from the .dll
+	SCOPE: {
+		my $bin = $self->bin_pexports;
+		unless ( $bin ) {
+			croak("Required method bin_pexports is not defined");
+		}
+		my $ok = ! system("$bin $dll > $def");
+		unless ( $ok and -f $def ) {
+			croak("Failed to generate .def file");
+		}
+	}
+
+	# Step 3 - Generate the .a from the .def
+	SCOPE: {
+		my $bin = $self->bin_dlltool;
+		unless ( $bin ) {
+			croak("Required method bin_dlltool is not defined");
+		}
+		my $ok = ! system("$bin -dllname $dll --def $def --output-lib $_a");
+		unless ( $ok and -f $_a ) {
+			croak("Failed to generate .a file");
+		}
+	}
+
+	return 1;
 }
 
 1;

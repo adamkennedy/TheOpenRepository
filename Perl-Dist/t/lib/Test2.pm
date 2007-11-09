@@ -35,6 +35,9 @@ sub run {
 	# Install the core binaries
 	$self->install_binaries;
 
+	# Install the extra libraries
+	$self->install_libraries;
+
 	# Install Perl 5.8.8
 	$self->install_perl_588(
 		name       => 'perl',

@@ -27,3 +27,6 @@ isa_ok( $dist, 't::lib::Test2' );
 # Run the dist object, and ensure everything we expect was created
 diag( "Building test dist, may take up to an hour... (sorry)" );
 ok( $dist->run, '->run ok' );
+ok( -f "C:\\tmp\\sp\\image\\dmake\\bin\\dmake.exe", 'Found dmake.exe' );
+ok( -f "C:\\tmp\\sp\\image\\dmake\\bin\\startup\\Makefile.in", 'Found startup' );
+ok( -f "C:\\tmp\\sp\\image\\dmake\\bin\\pexports.exe", 'Found pexports' );
