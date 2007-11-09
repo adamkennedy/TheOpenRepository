@@ -333,8 +333,17 @@ sub install_libraries {
 	# Install libxml2
 	$self->install_library(
 		name       => 'libxml2',
-		share      => 'Perl-Dist-Downloads 
+		share      => 'Perl-Dist-Downloads libxml2-2.6.30.win32.zip',
+		unpack_to  => 'libxml2',
+		build_a    => {
+			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
+			'def'    => 'libxml2-2.6.30.win32/bin/libxml2.def',
+			'a'      => 'libxml2-2.6.30.win32/lib/libxml2.a',
+		},			
 		install_to => {
+			'libxml2-2.6.30.win32/bin'     => 'mingw/bin',
+			'libxml2-2.6.30.win32/lib'     => 'mingw/lib',
+			'libxml2-2.6.30.win32/include' => 'mingw/include',
 		},
 	);
 
@@ -458,11 +467,28 @@ sub install_library {
 		);
 	}
 
+	# Copy in the files
+	my $install_to = $library->install_to;
+	if ( _HASH($install_to) ) {
+		foreach my $k ( sort keys %$install_to ) {
+			my $from = File::Spec->catdir(
+				$unpack_to, $k,
+			);
+			my $to = File::Spec->catdir(
+				$self->image_dir, $install_to->{$k},
+			);
+			$self->_copy( $from => $to );
+		}
+	}
+
 	# Copy in licenses
 	if ( _HASH($library->license) ) {
 		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
 		$self->_extract_filemap( $tgz, $library->license, $license_dir, 1 );
 	}
+
+	# Copy in the files
+	
 
 	return 1;
 }
