@@ -256,6 +256,14 @@ sub install_binaries {
 		},
 		install_to => 'mingw',
 	);
+	$self->install_binary(
+		name       => 'pexports',
+		share      => 'Perl-Dist-Downloads pexports-0.43-1.zip',
+		license    => {
+			'COPYING' => 'pexports/COPYING',
+		},
+		install_to => 'mingw',
+	);
 
 	# Install support libraries
 	$self->install_binary(

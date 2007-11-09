@@ -1,6 +1,12 @@
 Revision history for Perl module Perl::Dist
 
-0.29_02 Thy 31 Oct 2007
+0.29_03 Fri  9 Nov 2007
+	- Completing install_perl_588
+	- Completing install_distribution
+	- Completing install_module
+	- Adding pexports to the list of binaries to install
+
+0.29_02 Thu 31 Oct 2007
         - Adding install_file support for tweaking stuff
           post-installation of binaries/perl/dists/etc
         - Removed post_copy and replaced with install_file
