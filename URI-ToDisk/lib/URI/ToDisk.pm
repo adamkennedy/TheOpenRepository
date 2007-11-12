@@ -90,7 +90,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 }
 
 
