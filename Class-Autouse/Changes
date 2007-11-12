@@ -1,5 +1,10 @@
 Revision history for Perl extension Class::Autouse
 
+1.29 Mon 12 Nov 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.68
+	- Updating to newer author tests
+
 1.28 Tue 17 Jul 2007
 	- No functional changes
 	- Upgrading to Module::Install 0.65
