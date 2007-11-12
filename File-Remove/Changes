@@ -1,5 +1,9 @@
 Revision history for Perl extension File::Remove.
 
+0.39 Mon 12 Nov 2007  (Adam Kennedy)
+	- No functional changes
+	- Updating to Module::Install 0.68
+
 0.38 Mon 15 Oct 2007  (Adam Kennedy)
 	- Removed an extremely dangerous and reckless test case that tried
 	  to delete a soft link to root and (when it failed) deleted the

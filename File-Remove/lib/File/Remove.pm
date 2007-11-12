@@ -3,7 +3,7 @@ package File::Remove;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.38';
+	$VERSION   = '0.39';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 
