@@ -1,5 +1,10 @@
 Revision history for Perl extension Algorithm::Dependency
 
+1.104 Mon 12 Nov 2007
+	- No functional changes
+	- Updating to Module::Install 0.68
+	- Updating bundled tests
+
 1.103 Thu 29 Jun 2007
 	- No functional changes, no need to upgrade
 	- Updating to Module::Install 0.65
