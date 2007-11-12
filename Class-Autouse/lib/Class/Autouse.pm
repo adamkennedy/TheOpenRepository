@@ -26,7 +26,11 @@ print "Class::Autouse::autoload -> Debugging Activated.\n" if DEBUG;
 # recall how to replicate the problem, so leaving it in to avoid any
 # possible reversion. Besides, so many things use Exporter it should
 # be practically free to do this.
-use base 'Exporter';
+use vars qw{@ISA};
+BEGIN {
+	require Exporter;
+	@ISA = qw{ Exporter };
+}
 
 # Load required modules
 # Luckily, these are so common they are basically free

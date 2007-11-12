@@ -4,6 +4,7 @@ Revision history for Perl extension Class::Autouse
 	- No functional changes
 	- Upgrading to Module::Install 0.68
 	- Updating to newer author tests
+	- Removing the use of base.pm
 
 1.28 Tue 17 Jul 2007
 	- No functional changes
