@@ -35,7 +35,7 @@ sub output_base_filename { 'bootstrap-perl-5.8.8-alpha-1' }
 sub new {
 	my $class = shift;
 	return $class->SUPER::new(
-		image_dir => 'C:\\bootstrap-perl',
+		image_dir => 'C:\\bootperl',
 		temp_dir  => 'C:\\tmp\\bp',
 		@_,
 	);
@@ -49,6 +49,12 @@ sub run {
 	$self->install_binaries;
 	my $d1 = time - $t1;
 	$self->trace("Completed install_binaries in $d1 seconds\n");
+
+	# Install the additional C libs
+	my $t6 = time;
+	$self->install_libraries;
+	my $d6 = time - $t6;
+	$self->trace("Completed install_libraries in $d6 seconds\n");
 
 	# Install Perl 5.8.8
 	my $t2 = time;
@@ -70,6 +76,7 @@ sub run {
 
 	# Write out the zip
 	my $t5  = time;
+	$self->remove_waste;
 	my $zip = $self->generate_zip;
 	my $d5  = time - $t5;
 	$self->trace("Completed generate_zip in $d5 seconds\n");
@@ -142,6 +149,15 @@ sub install_toolchain {
 
 sub install_modules {
 	my $self = shift;
+
+	# Install the companion Perl modules for the
+	# various libs we installed.
+	$self->install_module(
+		name => 'Text::Iconv',
+	);
+	$self->install_module(
+		name => 'XML::LibXML',
+	);
 
 	# Install the basics
 	$self->install_module(

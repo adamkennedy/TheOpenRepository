@@ -17,6 +17,7 @@ my @PACKAGES = qw{
 	mingw32-make-3.81-2.tar.gz
 	w32api-3.10.tar.gz
 	pexports-0.43-1.zip
+        libiconv-1.9.2-1-lib.zip
 };
 
 plan( tests => scalar(@PACKAGES) );

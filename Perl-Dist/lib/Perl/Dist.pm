@@ -41,6 +41,7 @@ use Object::Tiny qw{
 	bin_make
 	bin_pexports
 	bin_dlltool
+	env_path
 };
 
 use Perl::Dist::Inno                ();
@@ -191,6 +192,11 @@ sub new {
 		$self->{stderr} = \undef;
 	}
 
+	# Inno-Setup Information
+	$self->{env_path}    = [];
+	$self->{env_lib}     = [];
+	$self->{env_include} = [];
+
         return $self;
 }
 
@@ -199,11 +205,93 @@ sub new {
 
 
 #####################################################################
-# Main Methods
+# Adding Inno-Setup Information
 
-sub run {
-	die "CODE INCOMPLETE";
+sub add_env_path {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("PATH directory $dir does not exist");
+	}
+	push @{$self->{env_path}}, [ @path ];
+	return 1;
 }
+
+sub get_env_path {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_path};
+}
+
+sub get_inno_path {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_path};
+}
+
+sub add_env_lib {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("INC directory $dir does not exist");
+	}
+	push @{$self->{env_lib}}, [ @path ];
+	return 1;
+}
+
+sub get_env_lib {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_lib};
+}
+
+sub get_inno_lib {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_lib};
+}
+
+sub add_env_include {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("PATH directory $dir does not exist");
+	}
+	push @{$self->{env_include}}, [ @path ];
+	return 1;
+}
+
+sub get_env_include {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_include};
+}
+
+sub get_inno_include {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_include};
+}
+
+
+
+#####################################################################
+# Main Methods
 
 sub install_binaries {
 	my $self = shift;
@@ -306,6 +394,11 @@ sub install_binaries {
 		install_to => 'licenses\win32api\README.w32api',
 	);
 
+	# Set up the environment variables for the binaries
+	$self->add_env_path(    'mingw', 'bin'     );
+	$self->add_env_lib(     'mingw', 'lib'     );
+	$self->add_env_include( 'mingw', 'include' );
+
 	return 1;
 }
 
@@ -313,73 +406,13 @@ sub install_libraries {
 	my $self = shift;
 
 	# Install zlib
-	$self->install_library(
-		name       => 'zlib',
-		share      => 'Perl-Dist-Downloads zlib-1.2.3.win32.zip',
-		unpack_to  => 'zlib',
-		build_a    => {
-			'source' => 'zlib-1.2.3.win32/bin/zlib1.dll',
-			'dll'    => 'zlib-1.2.3.win32/bin/zlib.dll',
-			'def'    => 'zlib-1.2.3.win32/bin/zlib.def',
-			'a'      => 'zlib-1.2.3.win32/lib/zlib.a',
-		},
-		install_to => {
-			'zlib-1.2.3.win32/bin'     => 'mingw/bin',
-			'zlib-1.2.3.win32/lib'     => 'mingw/lib',
-			'zlib-1.2.3.win32/include' => 'mingw/include',
-		},
-	);
-
-	# Install libxml2
-	$self->install_library(
-		name       => 'libxml2',
-		share      => 'Perl-Dist-Downloads libxml2-2.6.30.win32.zip',
-		unpack_to  => 'libxml2',
-		build_a    => {
-			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
-			'def'    => 'libxml2-2.6.30.win32/bin/libxml2.def',
-			'a'      => 'libxml2-2.6.30.win32/lib/libxml2.a',
-		},			
-		install_to => {
-			'libxml2-2.6.30.win32/bin'     => 'mingw/bin',
-			'libxml2-2.6.30.win32/lib'     => 'mingw/lib',
-			'libxml2-2.6.30.win32/include' => 'mingw/include',
-		},
-	);
-
-	# Install libxslt
-	$self->install_library(
-		name       => 'libxslt',
-		share      => 'Perl-Dist-Downloads libxslt-1.1.22.win32.zip',
-		unpack_to  => 'libxslt',
-		build_a    => {
-			'dll'    => 'libxslt-1.1.22.win32/bin/libxslt.dll',
-			'def'    => 'libxslt-1.1.22.win32/bin/libxslt.def',
-			'a'      => 'libxslt-1.1.22.win32/lib/libxslt.a',
-		},			
-		install_to => {
-			'libxslt-1.1.22.win32/bin'     => 'mingw/bin',
-			'libxslt-1.1.22.win32/lib'     => 'mingw/lib',
-			'libxslt-1.1.22.win32/include' => 'mingw/include',
-		},
-	);
+	$self->install_zlib;
 
 	# Install iconv
-	$self->install_library(
-		name       => 'iconv',
-		share      => 'Perl-Dist-Downloads iconv-1.9.2.win32.zip',
-		unpack_to  => 'iconv',
-		build_a    => {
-			'dll'    => 'iconv-1.9.2.win32/bin/iconv.dll',
-			'def'    => 'iconv-1.9.2.win32/bin/iconv.def',
-			'a'      => 'iconv-1.9.2.win32/lib/iconv.a',
-		},
-		install_to => {
-			'iconv-1.9.2.win32/bin'     => 'mingw/bin',
-			'iconv-1.9.2.win32/lib'     => 'mingw/lib',
-			'iconv-1.9.2.win32/include' => 'mingw/include',
-		},
-	);
+	$self->install_libiconv;
+
+	# Install libxml2
+	$self->install_libxml;
 
 	return 1;
 }
@@ -407,6 +440,212 @@ sub install_perl {
 
 	return 1;
 }
+
+sub remove_waste {
+	my $self = shift;
+
+	# Remove the man pages from mingw
+	$self->trace("Removing man pages...\n");
+	File::Remove::remove( \1, $self->_dir('mingw', 'man') );
+	File::Remove::remove( \1, $self->_dir('perl',  'man') );
+			
+	# Remove the manifests from C libs install
+	$self->trace("Removing manifests...\n");
+	File::Remove::remove( \1, $self->_dir('mingw', 'manifest') );
+
+	# Remove the CPAN source and build directories
+	$self->trace("Removing CPAN caches...\n");
+	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
+	File::Remove::remove( \1, $self->_dir('cpan', 'build') );
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Topic-Specific Installation
+
+sub install_perl_588 {
+	my $self = shift;
+	my $perl = Perl::Dist::Asset::Perl->new(@_);
+	unless ( $self->bin_make ) {
+		croak("Cannot build Perl yet, no bin_make defined");
+	}
+
+	# Download the file
+	my $tgz = $self->_mirror( 
+		$perl->url,
+		$self->download_dir,
+	);
+
+	# Unpack to the build directory
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $unpack_to );
+
+	# Get the versioned name of the directory
+	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
+	$perlsrc = File::Basename::basename($perlsrc);
+
+	# Pre-copy updated files over the top of the source
+	my $patch = $perl->patch;
+	if ( $patch ) {
+		foreach my $f ( sort keys %$patch ) {
+			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $to   = File::Spec->catfile(
+				$unpack_to, $perlsrc, $patch->{$f},
+			);
+			$self->_copy( $from => $to );
+		}
+	}
+
+	# Copy in licenses
+	if ( ref $perl->license eq 'HASH' ) {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
+	}
+
+	# Build win32 perl
+	SCOPE: {
+		my $wd = File::pushd::pushd(
+			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
+		);
+
+		# Prepare to patch
+		my $image_dir    = $self->image_dir;
+		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
+		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+		$self->trace("Patching makefile.mk\n");
+		tie my @makefile, 'Tie::File', 'makefile.mk'
+			or die "Couldn't read makefile.mk";
+		for ( @makefile ) {
+			if ( m{\AINST_TOP\s+\*=\s+} ) {
+				s{\\perl}{$short_install}; # short has the leading \
+
+			} elsif ( m{\ACCHOME\s+\*=} ) {
+				s{c:\\mingw}{$image_dir\\mingw}i;
+
+			} else {
+				next;
+			}
+		}
+		untie @makefile;
+
+		$self->trace("Building perl...\n");
+		$self->_make;
+
+		SCOPE: {
+			local $ENV{PERL_SKIP_TTY_TEST} = 1;
+			$self->trace("Testing perl build\n");
+			$self->_make('test');
+		}
+
+		$self->trace("Installing perl...\n");
+		$self->_make( qw/install UNINST=1/ );
+	}
+
+	# Should now have a perl to use
+	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
+	unless ( -x $self->bin_perl ) {
+		die "Can't execute " . $self->bin_perl;
+	}
+
+	# Add to the environment variables
+	$self->{env_path} .= ';' . File::Spec->catfile(
+		$self->image_dir, 'perl', 'bin',
+	);
+
+	return 1;
+}
+
+sub install_zlib {
+	my $self = shift;
+
+	# Zlib is a pexport-based lib-install
+	$self->install_library(
+		name       => 'zlib',
+		share      => 'Perl-Dist-Downloads zlib-1.2.3.win32.zip',
+		unpack_to  => 'zlib',
+		build_a    => {
+			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
+			'def'    => 'zlib-1.2.3.win32/bin/zlib1.def',
+			'a'      => 'zlib-1.2.3.win32/lib/zlib1.a',
+		},
+		install_to => {
+			'zlib-1.2.3.win32/bin'     => 'mingw/bin',
+			'zlib-1.2.3.win32/lib'     => 'mingw/lib',
+			'zlib-1.2.3.win32/include' => 'mingw/include',
+		},
+	);
+
+	return 1;
+}
+
+sub install_libiconv {
+	my $self = shift;
+
+	# libiconv for win32 comes in 3 parts, install them.
+	$self->install_binary(
+		name       => 'iconv-dep',
+		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-dep.zip',
+		install_to => 'mingw',
+	);
+	$self->install_binary(
+		name       => 'iconv-lib',
+		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-lib.zip',
+		install_to => 'mingw',
+	);
+	$self->install_binary(
+		name       => 'iconv-bin',
+		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-bin.zip',
+		install_to => 'mingw',
+	);
+
+	# The dll is installed with an unexpected name,
+	# so we correct it post-install.
+	$self->_move(
+		File::Spec->catfile( $self->image_dir, 'mingw', 'bin', 'libiconv2.dll' ),
+		File::Spec->catfile( $self->image_dir, 'mingw', 'bin', 'iconv.dll'     ),
+	);
+
+	return 1;
+}
+
+sub install_libxml {
+	my $self = shift;
+
+	# libxml is a straight forward pexport-based install
+	$self->install_library(
+		name       => 'libxml2',
+		share      => 'Perl-Dist-Downloads libxml2-2.6.30.win32.zip',
+		unpack_to  => 'libxml2',
+		build_a    => {
+			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
+			'def'    => 'libxml2-2.6.30.win32/bin/libxml2.def',
+			'a'      => 'libxml2-2.6.30.win32/lib/libxml2.a',
+		},			
+		install_to => {
+			'libxml2-2.6.30.win32/bin'     => 'mingw/bin',
+			'libxml2-2.6.30.win32/lib'     => 'mingw/lib',
+			'libxml2-2.6.30.win32/include' => 'mingw/include',
+		},
+	);
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Generic Resource Installation
 
 sub install_binary {
 	my $self   = shift;
@@ -510,96 +749,6 @@ sub install_library {
 	return 1;
 }
 
-sub install_perl_588 {
-	my $self = shift;
-	my $perl = Perl::Dist::Asset::Perl->new(@_);
-	unless ( $self->bin_make ) {
-		croak("Cannot build Perl yet, no bin_make defined");
-	}
-
-	# Download the file
-	my $tgz = $self->_mirror( 
-		$perl->url,
-		$self->download_dir,
-	);
-
-	# Unpack to the build directory
-	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
-	if ( -d $unpack_to ) {
-		$self->trace("Removing previous $unpack_to\n");
-		File::Remove::remove( \1, $unpack_to );
-	}
-	$self->_extract( $tgz => $unpack_to );
-
-	# Get the versioned name of the directory
-	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
-	$perlsrc = File::Basename::basename($perlsrc);
-
-	# Pre-copy updated files over the top of the source
-	my $patch = $perl->patch;
-	if ( $patch ) {
-		foreach my $f ( sort keys %$patch ) {
-			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
-			my $to   = File::Spec->catfile(
-				$unpack_to, $perlsrc, $patch->{$f},
-			);
-			$self->_copy( $from => $to );
-		}
-	}
-
-	# Copy in licenses
-	if ( ref $perl->license eq 'HASH' ) {
-		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
-	}
-
-	# Build win32 perl
-	SCOPE: {
-		my $wd = File::pushd::pushd(
-			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
-		);
-
-		# Prepare to patch
-		my $image_dir    = $self->image_dir;
-		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
-		$self->trace("Patching makefile.mk\n");
-		tie my @makefile, 'Tie::File', 'makefile.mk'
-			or die "Couldn't read makefile.mk";
-		for ( @makefile ) {
-			if ( m{\AINST_TOP\s+\*=\s+} ) {
-				s{\\perl}{$short_install}; # short has the leading \
-
-			} elsif ( m{\ACCHOME\s+\*=} ) {
-				s{c:\\mingw}{$image_dir\\mingw}i;
-
-			} else {
-				next;
-			}
-		}
-		untie @makefile;
-
-		$self->trace("Building perl...\n");
-		$self->_make;
-
-		SCOPE: {
-			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->trace("Testing perl build\n");
-			$self->_make('test');
-		}
-
-		$self->trace("Installing perl...\n");
-		$self->_make( qw/install UNINST=1/ );
-	}
-
-	# Should now have a perl to use
-	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
-	unless ( -x $self->bin_perl ) {
-		die "Can't execute " . $self->bin_perl;
-	}
-
-	return 1;
-}
 
 sub install_distribution {
 	my $self = shift;
@@ -694,6 +843,9 @@ END_PERL
 	# Execute the CPAN installation script
 	$self->trace("Running install of $name\n");
 	local $ENV{PERL5LIB} = '';
+	local $ENV{INCLUDE}  = '';
+	local $ENV{LIB}      = '';
+	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_perl, "-MCPAN", "-e", $cpan_str ],
 		\undef,
@@ -725,6 +877,13 @@ sub install_file {
 
 	return 1;
 }
+
+
+
+
+
+#####################################################################
+# Package Production
 
 sub generate_zip {
 	my $self = shift;
@@ -758,6 +917,10 @@ sub trace {
 		print $_[0];
 	}
 	return 1;
+}
+
+sub _dir {
+	File::Spec->catdir( shift->image_dir, @_ );
 }
 
 sub _mirror {
@@ -813,6 +976,9 @@ sub _make {
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
 	local $ENV{PERL5LIB} = '';
+	local $ENV{INCLUDE}  = '';
+	local $ENV{LIB}      = '';
+	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_make, @params ],
 		\undef,
@@ -828,6 +994,9 @@ sub _perl {
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_perl, @params) . "\n");
 	local $ENV{PERL5LIB} = '';
+	local $ENV{INCLUDE}  = '';
+	local $ENV{LIB}      = '';
+	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_perl, @params ],
 		\undef,
