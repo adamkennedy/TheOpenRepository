@@ -40,4 +40,4 @@ requires     ( 'URI::Escape'         => 0            );
 requires     ( 'Validate::Net'       => '0.5'        );
 requires     ( 'XML::Generator'      => 0            );
 
-&WriteAll;
+WriteAll;

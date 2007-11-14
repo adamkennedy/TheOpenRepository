@@ -3,7 +3,7 @@ package Task::CVSMonitor;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.006003';
+	$VERSION = '0.006004';
 }
 
 1;
