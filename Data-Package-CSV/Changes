@@ -1,5 +1,8 @@
 Changes for Perl extension Data-Package-CSV
 
+1.01 Wed 14 Nov 2007
+	- Upgrading to Module::Install 1.01
+
 1.00 Thu 21 Jun 2007
 	- Bug fixing
 
