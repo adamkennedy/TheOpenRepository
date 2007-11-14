@@ -1,5 +1,8 @@
 Revision history for Perl extension Chart::Math::Axis.
 
+1.03 Wed 14 Nov 2007
+	- Upgrading to Module::Install 0.68
+
 1.02 Mon  5 Nov 2007
 	- Upgrading to newer bundled tests
 
