@@ -14,6 +14,7 @@ SKIP: {
 	unless ( $ENV{AUTOMATED_TESTING} ) {
 		skip("AUTOMATED_TESTING is not enabled", 1);
 	}
+	diag("AUTOMATED_TESTING is enabled");
 	use_ok( 't::lib::SQLite::Temp' );
 }
 
