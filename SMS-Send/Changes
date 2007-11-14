@@ -1,5 +1,9 @@
 Revision history for Perl extension SMS::Send
 
+0.05 Wed 14 Nov 2007
+	- No functional changes
+	- Updating to Module::Install 0.68
+
 0.04 Mon  2 Oct 2006
 	- Upgraded to Module::Install 0.64
 	- Some minor kwalitee nigglies fixed
