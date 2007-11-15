@@ -1,5 +1,9 @@
 Revision history for Perl extension Task
 
+1.03 Fri 16 Nov 2007
+	- Adding a compile test so that the tests
+	  don't return UNKNOWN to CPAN Testers.
+
 1.02 Wed 14 Nov 2007
 	- Updating to Module::Install 0.68
 	- Newer tests and valid META.yml
