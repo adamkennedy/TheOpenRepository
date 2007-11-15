@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::Package
 
+1.04 Fri 16 Nov 2007
+	- Bug fix: Load Path::Class at run-time instead of load-time
+	
 1.03 Wed 14 Nov 2007
 	- Updating to Module::Install 0.68
 

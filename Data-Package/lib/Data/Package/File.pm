@@ -30,7 +30,7 @@ use File::ShareDir   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 
@@ -182,8 +182,8 @@ sub __as_IO_File {
 	IO::File->new( $_[0]->file );
 }
 
-require Path::Class;
 sub __as_Path_Class_File {
+	require Path::Class;
 	Path::Class::file( $_[0]->file );
 }
 
