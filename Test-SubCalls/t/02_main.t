@@ -3,21 +3,11 @@
 # Main testing for Test::SubCalls
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$^W = 1;
 }
+use File::Spec::Functions ':ALL';
 
 # Set up
 use Test::Builder::Tester tests => 18;
