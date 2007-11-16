@@ -1,5 +1,10 @@
 Revision history for Perl extension Class::Default.
 
+1.51 Fri 16 Nov 2007
+	- No functional changes
+	- Upgrading to Module::Install 0.68
+	- Removing the use of base.pm
+
 1.50 Mon  4 Sep 2006
 	- No functional change
 	- Upgrading to Module::Install 0.64

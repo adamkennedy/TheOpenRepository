@@ -66,7 +66,10 @@ ok( $default1->class eq 'Class::Default::Test1', "Object ->_class returns the cl
 # Define the testing package
 package Class::Default::Test1;
 
-use base 'Class::Default';
+use Class::Default ();
+BEGIN {
+	@Class::Default::Test1::ISA = 'Class::Default';
+}
 
 sub new {
 	my $class = shift;
