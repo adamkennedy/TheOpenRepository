@@ -34,6 +34,7 @@ use Object::Tiny qw{
 	modules_dir
 	license_dir
 	build_dir
+	iss_file
 	remove_image
 	user_agent
 	cpan_uri
@@ -42,6 +43,8 @@ use Object::Tiny qw{
 	bin_pexports
 	bin_dlltool
 	env_path
+	env_lib
+	env_include
 };
 
 use Perl::Dist::Inno                ();
@@ -158,6 +161,11 @@ sub new {
 	}
 	unless ( $self->cpan_uri->as_string =~ /\/$/ ) {
 		croak("Missing trailing slash in cpan_uri param");
+	}
+	unless ( defined $self->iss_file ) {
+		$self->{iss_file} = File::Spec->catfile(
+			$self->output_dir, $self->app_id . '.iss'
+		);
 	}
 
 	# Clear the previous build
@@ -326,19 +334,19 @@ sub install_binaries {
 			'COPYING'     => 'gcc/COPYING',
 			'COPYING.lib' => 'gcc/COPYING.lib',
 		},
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'gcc-g++',
 		share      => 'Perl-Dist-Downloads gcc-g++-3.4.5-20060117-1.tar.gz',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 
 	# Install the binary utilities
 	$self->install_binary(
 		name       => 'mingw-make',
 		share      => 'Perl-Dist-Downloads mingw32-make-3.81-2.tar.gz',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 
 	$self->install_binary(
@@ -348,10 +356,10 @@ sub install_binaries {
 			'Copying'     => 'binutils/Copying',
 			'Copying.lib' => 'binutils/Copying.lib',
 		},
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->{bin_dlltool} = File::Spec->catfile(
-		$self->image_dir, 'mingw', 'bin', 'dlltool.exe',
+		$self->image_dir, 'c', 'bin', 'dlltool.exe',
 	);
 	unless ( -x $self->bin_dlltool ) {
 		die "Can't execute dlltool";
@@ -364,11 +372,11 @@ sub install_binaries {
 			'pexports-0.43/COPYING' => 'pexports/COPYING',
 		},
 		install_to => {
-			'pexports-0.43/bin' => 'mingw/bin',
+			'pexports-0.43/bin' => 'c/bin',
 		},
 	);
 	$self->{bin_pexports} = File::Spec->catfile(
-		$self->image_dir, 'mingw', 'bin', 'pexports.exe',
+		$self->image_dir, 'c', 'bin', 'pexports.exe',
 	);
 	unless ( -x $self->bin_pexports ) {
 		die "Can't execute pexports";
@@ -382,12 +390,12 @@ sub install_binaries {
 			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
 			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
 		},
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'w32api',
 		share      => 'Perl-Dist-Downloads w32api-3.10.tar.gz',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->install_file(
 		share      => 'Perl-Dist README.w32api',
@@ -395,25 +403,19 @@ sub install_binaries {
 	);
 
 	# Set up the environment variables for the binaries
-	$self->add_env_path(    'mingw', 'bin'     );
-	$self->add_env_lib(     'mingw', 'lib'     );
-	$self->add_env_include( 'mingw', 'include' );
+	$self->add_env_path(    'c', 'bin'     );
+	$self->add_env_lib(     'c', 'lib'     );
+	$self->add_env_include( 'c', 'include' );
 
 	return 1;
 }
 
-sub install_libraries {
+sub install_c_toolchain {
 	my $self = shift;
-
-	# Install zlib
 	$self->install_zlib;
-
-	# Install iconv
+	# $self->install_bzlib2;
 	$self->install_libiconv;
-
-	# Install libxml2
 	$self->install_libxml;
-
 	return 1;
 }
 
@@ -444,14 +446,16 @@ sub install_perl {
 sub remove_waste {
 	my $self = shift;
 
-	# Remove the man pages from mingw
+	# Remove the man and unneeded doc pages from mingw
 	$self->trace("Removing man pages...\n");
-	File::Remove::remove( \1, $self->_dir('mingw', 'man') );
-	File::Remove::remove( \1, $self->_dir('perl',  'man') );
-			
+	File::Remove::remove( \1, $self->_dir('perl', 'man' ) );
+	File::Remove::remove( \1, $self->_dir('c',    'man' ) );
+	File::Remove::remove( \1, $self->_dir('c',    'doc' ) );
+	File::Remove::remove( \1, $self->_dir('c',    'info') );
+
 	# Remove the manifests from C libs install
 	$self->trace("Removing manifests...\n");
-	File::Remove::remove( \1, $self->_dir('mingw', 'manifest') );
+	File::Remove::remove( \1, $self->_dir('c', 'manifest') );
 
 	# Remove the CPAN source and build directories
 	$self->trace("Removing CPAN caches...\n");
@@ -529,7 +533,7 @@ sub install_perl_588 {
 				s{\\perl}{$short_install}; # short has the leading \
 
 			} elsif ( m{\ACCHOME\s+\*=} ) {
-				s{c:\\mingw}{$image_dir\\mingw}i;
+				s{c:\\mingw}{$image_dir\\c}i;
 
 			} else {
 				next;
@@ -543,7 +547,7 @@ sub install_perl_588 {
 		SCOPE: {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->trace("Testing perl build\n");
-			$self->_make('test');
+			$self->_make('test') if 0;
 		}
 
 		$self->trace("Installing perl...\n");
@@ -557,9 +561,9 @@ sub install_perl_588 {
 	}
 
 	# Add to the environment variables
-	$self->{env_path} .= ';' . File::Spec->catfile(
-		$self->image_dir, 'perl', 'bin',
-	);
+	$self->add_env_path( 'perl', 'bin' );
+	$self->add_env_lib(  'perl', 'bin' );
+	$self->add_env_include( 'perl', 'lib', 'CORE' );
 
 	return 1;
 }
@@ -578,9 +582,9 @@ sub install_zlib {
 			'a'      => 'zlib-1.2.3.win32/lib/zlib1.a',
 		},
 		install_to => {
-			'zlib-1.2.3.win32/bin'     => 'mingw/bin',
-			'zlib-1.2.3.win32/lib'     => 'mingw/lib',
-			'zlib-1.2.3.win32/include' => 'mingw/include',
+			'zlib-1.2.3.win32/bin'     => 'c/bin',
+			'zlib-1.2.3.win32/lib'     => 'c/lib',
+			'zlib-1.2.3.win32/include' => 'c/include',
 		},
 	);
 
@@ -594,24 +598,24 @@ sub install_libiconv {
 	$self->install_binary(
 		name       => 'iconv-dep',
 		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-dep.zip',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'iconv-lib',
 		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-lib.zip',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'iconv-bin',
 		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-bin.zip',
-		install_to => 'mingw',
+		install_to => 'c',
 	);
 
 	# The dll is installed with an unexpected name,
 	# so we correct it post-install.
 	$self->_move(
-		File::Spec->catfile( $self->image_dir, 'mingw', 'bin', 'libiconv2.dll' ),
-		File::Spec->catfile( $self->image_dir, 'mingw', 'bin', 'iconv.dll'     ),
+		File::Spec->catfile( $self->image_dir, 'c', 'bin', 'libiconv2.dll' ),
+		File::Spec->catfile( $self->image_dir, 'c', 'bin', 'iconv.dll'     ),
 	);
 
 	return 1;
@@ -631,9 +635,9 @@ sub install_libxml {
 			'a'      => 'libxml2-2.6.30.win32/lib/libxml2.a',
 		},			
 		install_to => {
-			'libxml2-2.6.30.win32/bin'     => 'mingw/bin',
-			'libxml2-2.6.30.win32/lib'     => 'mingw/lib',
-			'libxml2-2.6.30.win32/include' => 'mingw/include',
+			'libxml2-2.6.30.win32/bin'     => 'c/bin',
+			'libxml2-2.6.30.win32/lib'     => 'c/lib',
+			'libxml2-2.6.30.win32/include' => 'c/include',
 		},
 	);
 
@@ -814,7 +818,9 @@ sub install_module {
 	}
 
 	# Generate the CPAN installation script
-	my $cpan_str = <<"END_PERL";
+	my $env_lib     = $self->get_env_lib;
+	my $env_include = $self->get_env_include;
+	my $cpan_str    = <<"END_PERL";
 print "Installing $name from CPAN...\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
@@ -822,6 +828,8 @@ if ( \$module->uptodate ) {
 	print "$name is up to date\n";
 	exit(0);
 }
+print "\$ENV{LIB}     = '$ENV{LIB}'\n";
+print "\$ENV{INCLUDE} = '$ENV{INCLUDE}'\n";
 if ( $force ) {
 	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 	\$module->force("install");
@@ -843,9 +851,9 @@ END_PERL
 	# Execute the CPAN installation script
 	$self->trace("Running install of $name\n");
 	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = '';
-	local $ENV{LIB}      = '';
-	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
+	local $ENV{INCLUDE}  = $self->get_env_include;
+	local $ENV{LIB}      = $self->get_env_lib;
+	local $ENV{PATH}     = $self->get_env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_perl, "-MCPAN", "-e", $cpan_str ],
 		\undef,
@@ -885,7 +893,17 @@ sub install_file {
 #####################################################################
 # Package Production
 
-sub generate_zip {
+sub write_iss {
+	my $self = shift;
+	my $file = $self->iss_file;
+	my $iss  = $self->as_string;
+	open( ISS, ">$file" ) or croak("Failed to open ISS file to write");
+	print ISS $iss;
+	close ISS;
+	return $file;
+}
+
+sub write_zip {
 	my $self = shift;
 	my $file = File::Spec->catfile(
 		$self->output_dir, $self->output_base_filename . '.zip'
@@ -976,8 +994,8 @@ sub _make {
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
 	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = '';
-	local $ENV{LIB}      = '';
+	local $ENV{INCLUDE}  = $self->get_env_include;
+	local $ENV{LIB}      = $self->get_env_lib;
 	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_make, @params ],
@@ -994,8 +1012,8 @@ sub _perl {
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_perl, @params) . "\n");
 	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = '';
-	local $ENV{LIB}      = '';
+	local $ENV{INCLUDE}  = $self->get_env_include;
+	local $ENV{LIB}      = $self->get_env_lib;
 	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
 	IPC::Run3::run3(
 		[ $self->bin_perl, @params ],

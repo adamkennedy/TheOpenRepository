@@ -77,10 +77,12 @@ sub run {
 	# Write out the zip
 	my $t5  = time;
 	$self->remove_waste;
-	my $zip = $self->generate_zip;
+	my $iss = $self->write_iss;
+	my $zip = $self->write_zip;
 	my $d5  = time - $t5;
-	$self->trace("Completed generate_zip in $d5 seconds\n");
-	$self->trace("Distribution created as $zip\n");
+	$self->trace("Completed write in $d5 seconds\n");
+	$self->trace("Inno-Setup Script created as $iss\n");
+	$self->trace("Distribution zip file created as $zip\n");
 
 	return 1;
 }
@@ -100,8 +102,11 @@ my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	GBARR/Scalar-List-Utils-1.19.tar.gz
 	PMQS/IO-Compress-Base-2.006.tar.gz
 	PMQS/Compress-Raw-Zlib-2.006.tar.gz
+	PMQS/Compress-Raw-Bzip2-2.006.tar.gz
 	PMQS/IO-Compress-Zlib-2.006.tar.gz
+	PMQS/IO-Compress-Bzip2-2.006.tar.gz
 	PMQS/Compress-Zlib-2.007.tar.gz
+	ARJAY/Compress-Bzip2-2.09.tar.gz
 	TOMHUGHES/IO-Zlib-1.07.tar.gz
 	KWILLIAMS/PathTools-3.25.tar.gz
 	TJENNESS/File-Temp-0.18.tar.gz
@@ -153,9 +158,6 @@ sub install_modules {
 	# Install the companion Perl modules for the
 	# various libs we installed.
 	$self->install_module(
-		name => 'Text::Iconv',
-	);
-	$self->install_module(
 		name => 'XML::LibXML',
 	);
 
@@ -181,14 +183,11 @@ sub install_modules {
 		name => 'PAR::Dist',
 	);
 
-	# Now we are done, delete unneeded working dirs
-	$self->trace("Removing CPAN working data\n");
-	File::Remove::remove( \1, File::Spec->catdir(
-		$self->image_dir, 'perl', 'cpan', 'build',
-	) );
-	File::Remove::remove( \1, File::Spec->catdir(
-		$self->image_dir, 'perl', 'cpan', 'sources',
-	) );
+	# Install SQLite
+	$self->install_module(
+		name  => 'SQLite',
+		force => 1,
+	);
 
 	return 1;
 }
@@ -237,15 +236,15 @@ executable installer adds the following environment variable changes:
     * adds directories to PATH
         - C:\strawberry-perl\perl\bin
         - C:\strawberry-perl\dmake\bin
-        - C:\strawberry-perl\mingw
-        - C:\strawberry-perl\mingw\bin
+        - C:\strawberry-perl\c
+        - C:\strawberry-perl\c\bin
 
     * adds directories to LIB
-        - C:\strawberry-perl\mingw\lib
+        - C:\strawberry-perl\c\lib
         - C:\strawberry-perl\perl\bin
 
     * adds directories to INCLUDE 
-        - C:\strawberry-perl\mingw\include
+        - C:\strawberry-perl\c\include
         - C:\strawberry-perl\perl\lib\CORE
         - C:\strawberry-perl\perl\lib\encode
 

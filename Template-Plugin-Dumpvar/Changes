@@ -1,0 +1,7 @@
+Revision history for Perl extension Template::Plugin::Dumpvar
+
+0.02 Tue Feb 15 2005
+	- Removing braindead Build.PL
+
+0.01 Thu Oct  8 2004
+	- Created the initial version of the file

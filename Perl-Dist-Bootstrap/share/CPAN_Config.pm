@@ -38,7 +38,7 @@ $CPAN::Config = {
   make                          => q[C:\\bootperl\\perl\\bin\\dmake.EXE],
   make_arg                      => q[],
   make_install_arg              => q[UNINST=1],
-  makepl_arg                    => q[LIBS=-LC:\\bootperl\\mingw\\lib INC=-IC:\\bootperl\\mingw\\include ],
+  makepl_arg                    => q[LIBS=-LC:\\bootperl\\c\\lib INC=-IC:\\bootperl\\c\\include],
   mbuild_arg                    => q[],
   mbuild_install_arg            => q[--uninst 1],
   mbuildpl_arg                  => q[],

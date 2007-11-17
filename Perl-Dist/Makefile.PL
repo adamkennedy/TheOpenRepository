@@ -17,6 +17,7 @@ requires       'HTTP::Status'          => '1.28';
 requires       'IPC::Run3'             => '0.034';
 requires       'LWP::UserAgent'        => '2.033';
 requires       'LWP::Online'           => '0.03';
+requires       'Object::Tiny'          => '1.02';
 requires       'Tie::File'             => 0;
 requires       'YAML::Tiny'            => '1.12';
 requires       'CPAN'                  => 0;

@@ -1,5 +1,11 @@
 Version history for Perl distribution Module-Inspector
 
+1.05 Fri 16 Nov 2007
+	- No functional changes
+	- Moving to a production version
+	- Upgrading to Module::Install 0.68
+	- Upgrading bundled author tests
+
 0.04 Mon  2 Oct 2006
 	- Factored out the dist location and extraction to Module::Extract
 	  (needed to reuse the same functionality for Module::P4P)
