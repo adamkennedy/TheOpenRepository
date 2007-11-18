@@ -46,13 +46,13 @@ sub run {
 
 	# Install the main binaries
 	my $t1 = time;
-	$self->install_binaries;
+	$self->install_c_toolchain;
 	my $d1 = time - $t1;
 	$self->trace("Completed install_binaries in $d1 seconds\n");
 
 	# Install the additional C libs
 	my $t6 = time;
-	$self->install_libraries;
+	$self->install_c_libraries;
 	my $d6 = time - $t6;
 	$self->trace("Completed install_libraries in $d6 seconds\n");
 
@@ -64,13 +64,13 @@ sub run {
 
 	# Install the primary toolchain distributions
 	my $t3 = time;
-	$self->install_toolchain;
+	$self->install_perl_toolchain;
 	my $d3 = time - $t3;
 	$self->trace("Completed install_toolchain in $d3 seconds\n");
 
 	# Install the additional modules
 	my $t4 = time;
-	$self->install_modules;
+	$self->install_perl_modules;
 	my $d4 = time - $t4;
 	$self->trace("Completed install_modules in $d4 seconds\n");
 
@@ -89,23 +89,23 @@ sub run {
 
 my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
-	DLAND/File-Path-2.02.tar.gz
+	DLAND/File-Path-2.03.tar.gz
 	RKOBES/ExtUtils-Command-1.13.tar.gz
 	YVES/Win32API-File-0.1001.tar.gz
- 	MSCHWERN/ExtUtils-Install-1.44.tar.gz
+	MSCHWERN/ExtUtils-Install-1.44.tar.gz
 	RKOBES/ExtUtils-Manifest-1.51.tar.gz
-	PETDANCE/Test-Harness-2.64.tar.gz
+	ANDYA/Test-Harness-3.02.tar.gz
 	MSCHWERN/Test-Simple-0.72.tar.gz
-	KWILLIAMS/ExtUtils-CBuilder-0.19.tar.gz
+	KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz
 	KWILLIAMS/ExtUtils-ParseXS-2.18.tar.gz
 	JPEACOCK/version-0.74.tar.gz
 	GBARR/Scalar-List-Utils-1.19.tar.gz
-	PMQS/IO-Compress-Base-2.006.tar.gz
-	PMQS/Compress-Raw-Zlib-2.006.tar.gz
-	PMQS/Compress-Raw-Bzip2-2.006.tar.gz
-	PMQS/IO-Compress-Zlib-2.006.tar.gz
-	PMQS/IO-Compress-Bzip2-2.006.tar.gz
-	PMQS/Compress-Zlib-2.007.tar.gz
+	PMQS/IO-Compress-Base-2.008.tar.gz
+	PMQS/Compress-Raw-Zlib-2.008.tar.gz
+	PMQS/Compress-Raw-Bzip2-2.008.tar.gz
+	PMQS/IO-Compress-Zlib-2.008.tar.gz
+	PMQS/IO-Compress-Bzip2-2.008.tar.gz
+	PMQS/Compress-Zlib-2.008.tar.gz
 	ARJAY/Compress-Bzip2-2.09.tar.gz
 	TOMHUGHES/IO-Zlib-1.07.tar.gz
 	KWILLIAMS/PathTools-3.25.tar.gz
@@ -114,7 +114,7 @@ my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	ADAMK/Win32-TieRegistry-0.25.zip
 	ADAMK/File-HomeDir-0.66.tar.gz
 	PEREINAR/File-Which-0.05.tar.gz
-	ADAMK/Archive-Zip-1.20.tar.gz
+	ADAMK/Archive-Zip-1.23.tar.gz
 	KANE/Archive-Tar-1.36.tar.gz
 	INGY/YAML-0.66.tar.gz
 	GBARR/libnet-1.22.tar.gz
@@ -123,10 +123,10 @@ my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	MSHELOR/Digest-SHA-5.45.tar.gz
 	KWILLIAMS/Module-Build-0.2808.tar.gz
 	JSTOWE/Term-Cap-1.11.tar.gz
-	ANDK/CPAN-1.9203.tar.gz
+	ANDK/CPAN-1.9205.tar.gz
 };
 
-sub install_toolchain {
+sub install_perl_toolchain {
 	my $self = shift;
 
 	foreach my $dist ( @TOOLCHAIN_DISTRIBUTIONS ) {
@@ -152,7 +152,7 @@ sub install_toolchain {
 	return 1;
 }
 
-sub install_modules {
+sub install_perl_modules {
 	my $self = shift;
 
 	# Install the companion Perl modules for the
