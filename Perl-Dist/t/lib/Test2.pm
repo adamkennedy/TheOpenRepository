@@ -5,7 +5,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_03';
+	$VERSION = '0.29_04';
 }
 
 
@@ -33,10 +33,10 @@ sub run {
 	my $self = shift;
 
 	# Install the core binaries
-	$self->install_binaries;
+	$self->install_c_toolchain;
 
 	# Install the extra libraries
-	$self->install_libraries;
+	$self->install_c_libraries;
 
 	# Install Perl 5.8.8
 	$self->install_perl_588(

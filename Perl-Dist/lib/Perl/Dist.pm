@@ -24,7 +24,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.29_03';
+        $VERSION = '0.29_04';
 }
 
 use Object::Tiny qw{
@@ -301,7 +301,7 @@ sub get_inno_include {
 #####################################################################
 # Main Methods
 
-sub install_binaries {
+sub install_c_toolchain {
 	my $self = shift;
 
 	# Install dmake
@@ -410,7 +410,7 @@ sub install_binaries {
 	return 1;
 }
 
-sub install_c_toolchain {
+sub install_c_libraries {
 	my $self = shift;
 	$self->install_zlib;
 	# $self->install_bzlib2;
@@ -481,6 +481,102 @@ sub install_perl_588 {
 
 	# Download the file
 	my $tgz = $self->_mirror( 
+		$perl->url,
+		$self->download_dir,
+	);
+
+	# Unpack to the build directory
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $unpack_to );
+
+	# Get the versioned name of the directory
+	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
+	$perlsrc = File::Basename::basename($perlsrc);
+
+	# Pre-copy updated files over the top of the source
+	my $patch = $perl->patch;
+	if ( $patch ) {
+		foreach my $f ( sort keys %$patch ) {
+			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $to   = File::Spec->catfile(
+				$unpack_to, $perlsrc, $patch->{$f},
+			);
+			$self->_copy( $from => $to );
+		}
+	}
+
+	# Copy in licenses
+	if ( ref $perl->license eq 'HASH' ) {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
+	}
+
+	# Build win32 perl
+	SCOPE: {
+		my $wd = File::pushd::pushd(
+			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
+		);
+
+		# Prepare to patch
+		my $image_dir    = $self->image_dir;
+		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
+		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+		$self->trace("Patching makefile.mk\n");
+		tie my @makefile, 'Tie::File', 'makefile.mk'
+			or die "Couldn't read makefile.mk";
+		for ( @makefile ) {
+			if ( m{\AINST_TOP\s+\*=\s+} ) {
+				s{\\perl}{$short_install}; # short has the leading \
+
+			} elsif ( m{\ACCHOME\s+\*=} ) {
+				s{c:\\mingw}{$image_dir\\c}i;
+
+			} else {
+				next;
+			}
+		}
+		untie @makefile;
+
+		$self->trace("Building perl...\n");
+		$self->_make;
+
+		SCOPE: {
+			local $ENV{PERL_SKIP_TTY_TEST} = 1;
+			$self->trace("Testing perl build\n");
+			$self->_make('test') if 0;
+		}
+
+		$self->trace("Installing perl...\n");
+		$self->_make( qw/install UNINST=1/ );
+	}
+
+	# Should now have a perl to use
+	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
+	unless ( -x $self->bin_perl ) {
+		die "Can't execute " . $self->bin_perl;
+	}
+
+	# Add to the environment variables
+	$self->add_env_path( 'perl', 'bin' );
+	$self->add_env_lib(  'perl', 'bin' );
+	$self->add_env_include( 'perl', 'lib', 'CORE' );
+
+	return 1;
+}
+
+sub install_perl_595 {
+	my $self = shift;
+	my $perl = Perl::Dist::Asset::Perl->new(@_);
+	unless ( $self->bin_make ) {
+		croak("Cannot build Perl yet, no bin_make defined");
+	}
+
+	# Download the file
+	my $tgz = $self->_mirror(
 		$perl->url,
 		$self->download_dir,
 	);
@@ -798,8 +894,10 @@ sub install_distribution {
 		$self->trace("Building " . $dist->name . "...\n");
 		$self->_make;
 
-		$self->trace("Testing " . $dist->name . "\n");
-		$self->_make('test');
+		unless ( $dist->force ) {
+			$self->trace("Testing " . $dist->name . "\n");
+			$self->_make('test');
+		}
 
 		$self->trace("Installing " . $dist->name . "...\n");
 		$self->_make( qw/install UNINST=1/ );

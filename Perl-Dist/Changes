@@ -1,5 +1,13 @@
 Revision history for Perl module Perl::Dist
 
+0.29_04 Sun 18 Nov 2007
+	- Adding support for zlib
+	- Adding support for bzlib2
+	- Adding support for iconv
+	- Adding support for libxml2
+	- Adding support for SQLite
+	- Completing generation of zip releases
+
 0.29_03 Fri  9 Nov 2007
 	- Completing install_perl_588
 	- Completing install_distribution
