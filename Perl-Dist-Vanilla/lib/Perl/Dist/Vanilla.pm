@@ -1,12 +1,12 @@
 package Perl::Dist::Vanilla;
 
+use 5.005;
 use strict;
 use base 'Perl::Dist';
-use Cwd ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 8;
+	$VERSION = 9;
 }
 
 
@@ -16,17 +16,21 @@ BEGIN {
 #####################################################################
 # Configuration
 
-sub app_name             { 'Vanilla Perl'                    }
-sub app_ver_name         { 'Vanilla Perl 5.8.8 Build 8'      }
-sub app_publisher        { 'Vanilla Perl Project'            }
-sub app_publisher_url    { 'http://vanillaperl.org/'         }
-sub app_id               { 'vanillaperl'                     }
-sub default_group_name   { 'Vanilla Perl'                    }
-sub output_dir           { Cwd::cwd()                        }
-sub output_base_filename { 'vanilla-perl-5.8.8-build-8'      }
-sub source_dir           { 'C:\\vanilla-perl'                }
-sub download_dir         { 'C:\\temp\\vanilla-perl\\sources' }
-sub image_dir            { 'C:\\vanilla-perl'                }
+sub app_name             { 'Vanilla Perl'                }
+sub app_ver_name         { 'Vanilla Perl 5.10.0 Build 9' }
+sub app_publisher        { 'Vanilla Perl Project'        }
+sub app_publisher_url    { 'http://vanillaperl.org/'     }
+sub app_id               { 'vanillaperl'                 }
+sub output_base_filename { 'vanilla-perl-5.10.0-build-9' }
+
+# Apply some default paths
+sub new {
+	shift->SUPER::new(
+		image_dir => 'C:\\vanilla',
+		temp_dir  => 'C:\\tmp\\vp',
+		@_,
+	);
+}
 
 
 
@@ -35,11 +39,30 @@ sub image_dir            { 'C:\\vanilla-perl'                }
 #####################################################################
 # Installation Script
 
+# Vanilla never has any additional libraries.
+# Just install the C toolchain and Perl core.
 sub run {
 	my $self = shift;
 
-	# Install the core binary elements
-	$self->
+	# Install the C toolchain
+	my $t1 = time;
+	$self->install_c_toolchain;
+	$self->trace("Completed install_c_toolchain in " . (time - $t1) . " seconds\n");
+
+	# Install the Perl 5.10.0 binary
+	my $t2 = time;
+	$self->install_perl_5100_bin;
+	$self->trace("Complete install_perl_5110_bin in " . (time - $t2) . " seconds\n");
+
+	# Write out the zip
+	my $t3  = time;
+	$self->remove_waste;
+	my $zip = $self->write_zip;
+	$self->trace("Completed write_zip in " . (time - $t3) . " seconds\n");
+
+	# Finished
+	$self->trace("Distribution zip file created as $zip\n");
+	return 1;
 }
 
 1;
@@ -65,7 +88,7 @@ Vanilla Perl includes:
 
 =item *
 
-Perl 5.8.8
+Perl 5.10.0
 
 =item *
 
@@ -74,10 +97,6 @@ Mingw GCC C/C++ compiler
 =item *
 
 Dmake "make" tool
-
-=item *
-
-Select CPAN modules
 
 =back
 
@@ -113,48 +132,13 @@ the builder used to create Vanilla Perl from source.
 =head1 CHANGES FROM CORE PERL
 
 Vanilla Perl is and will continue to be based on the latest "stable" release
-of Perl, currently version 5.8.8.  Some additional modifications are included
-that improve general compatibility with the Win32 platform or improve
-"turnkey" operation on Win32.  
+of Perl, currently version 5.10.0.
 
-Whenever possible, these modifications will be made only by preinstalling
-additional CPAN modules within Vanilla Perl, particularly modules that have
-been newly included as core Perl modules in the "development" branch of perl
-(aka "bleadperl") to address Win32 compatibility issues.
+For the 5.10.0 series, no additional modules are installed.
 
-Modules or distributions currently included are:
-
-=over
-
-=item * 
-
-Win32API::File -- to allow for deletion of in-use files at next reboot;
-required for CPAN.pm to be able to upgrade itself
-
-=item *
-
-IO -- to address Win32 Socket bugs
-    
-=item *
-
-Compress::Zlib, IO::Zlib and Archive::Tar -- to eliminate the CPAN.pm
-dependency on external, binary programs to handle .tar.gz files
-
-=item *
-
-Archive::Zip (and its dependency, Time::Local) -- to eliminate the CPAN.pm
-dependency on external, binary programs to handle .zip files
-
-=item *
-
-libnet -- provides Net::FTP to eliminate the CPAN.pm dependency on an external,
-binary ftp program; installed configured for FTP passive mode
-
-=back
-
-Additionally, a stub CPAN Config.pm file is installed.  It provides defaults
-to the path for dmake, to automatically follow dependencies and to use the
-Windows temporary directory for the CPAN working directory. 
+A stub CPAN Config.pm file is installed.  It provides defaults to the path
+for dmake, to automatically follow dependencies and to use the Windows
+temporary directory for the CPAN working directory.
 
 =head1 DOWNLOADING THE INSTALLER
 
@@ -165,32 +149,43 @@ Camelpack project: L<http://camelpack.sourceforge.net/>
 
 =head1 CONFIGURATION
 
-At present, Vanilla Perl must be installed in C:\vanilla-perl.  The executable
-installer adds the following environment variable changes:
+At present, the installation criteria for Vanilla Perl are quite strict.
 
-    * adds directories to PATH
-        - C:\vanilla-perl\dmake\bin
-        - C:\vanilla-perl\mingw\bin
-        - C:\vanilla-perl\perl\bin 
+We hope to address some of these issues during the 5.10.1 timeline to
+make things a bit more flexible.
 
-    * adds directories to LIB
-        - C:\vanilla-perl\mingw\lib
-        - C:\vanilla-perl\perl\bin
+Sorry :(
 
-    * adds directories to INCLUDE 
-        - C:\vanilla-perl\mingw\include 
-        - C:\vanilla-perl\perl\lib\CORE 
-        - C:\vanilla-perl\perl\lib\encode
+Vanilla cannot co-exist with any other Perl installations at this time.
+
+You should remove any other Perl installations before installing Vanilla Perl.
+
+Vanilla Perl must be installed in C:\vanilla.
+
+Vanilla Perl 5.10.0 Build 9 comes in .zip format. Availability of an
+.exe installer has regressed while .exe creation undergoes a rewrite.
+
+Once installed, you should add to the following environment variables.
+
+    * add directories to PATH
+        - C:\vanilla\c\bin
+        - C:\vanilla\perl\bin 
+
+    * add directories to LIB
+        - C:\vanilla\c\lib
+        - C:\vanilla\perl\bin
+
+    * add directories to INCLUDE 
+        - C:\vanilla\c\include 
+        - C:\vanilla\perl\lib\CORE 
 
 LIB and INCLUDE changes are likely more than are necessary, but attempt to
-head off potential problems compiling external programs for use with Perl.
-
-Users installing Vanilla Perl manually without the installer will need to
-change their environment variables manually.
+head off potential problems compiling external programs for use with Perl
+and various CPAN modules.
 
 The first time that the "cpan" program is run, users will be prompted for
-configuration settings.  With the defaults provided in Vanilla Perl, users may
-answer "no" to manual configuration and the installation should still work.
+configuration settings. You can go with the defaults if you wish, although
+since Vanilla is for experts only, you should probably configure manually.
 
 Manual CPAN configuration may be repeated by running the following command:
 
