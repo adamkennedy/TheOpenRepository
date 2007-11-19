@@ -467,8 +467,28 @@ sub remove_waste {
 
 sub install_perl_588 {
 	my $self = shift;
-	$self->install_perl_588_bin;
+
+	# Install the main perl distributions
+	$self->install_perl_588_bin(
+		name       => 'perl',
+		dist       => 'NWCLARK/perl-5.8.8.tar.gz',
+		unpack_to  => 'perl',
+		patch      => {
+			'Install.pm'   => 'lib\ExtUtils\Install.pm',
+			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
+			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+		},
+		license    => {
+			'perl-5.8.8/Readme'   => 'perl/Readme',
+			'perl-5.8.8/Artistic' => 'perl/Artistic',
+			'perl-5.8.8/Copying'  => 'perl/Copying',
+		},
+		install_to => 'perl',
+	);
+
+	# Upgrade the toolchain modules
 	$self->install_perl_588_toolchain;
+
 	return 1;
 }
 
@@ -652,8 +672,24 @@ sub install_perl_588_toolchain {
 
 sub install_perl_5100 {
 	my $self = shift;
-	$self->install_perl_5100_bin;
+
+	# Install the main binary
+	$self->install_perl_5100_bin(
+		name       => 'perl',
+		url        => 'file://c|/devel/minicpan/authors/id/R/RG/RGARCIA/perl-5.10.0-RC1.tar.gz',
+		unpack_to  => 'perl',
+		license    => {
+			'perl-5.10.0/Readme'   => 'perl/Readme',
+			'perl-5.10.0/Artistic' => 'perl/Artistic',
+			'perl-5.10.0/Copying'  => 'perl/Copying',
+		},
+		install_to => 'perl',
+		# force      => 1,
+	);
+
+	# Install the toolchain
 	$self->install_perl_5100_toolchain;
+
 	return 1;
 }
 

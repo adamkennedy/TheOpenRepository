@@ -39,18 +39,7 @@ sub run {
 	$self->install_c_libraries;
 
 	# Install Perl 5.10.0
-	$self->install_perl_5100(
-		name       => 'perl',
-		url        => 'file://c|/devel/minicpan/authors/id/R/RG/RGARCIA/perl-5.10.0-RC1.tar.gz',
-		unpack_to  => 'perl',
-		license    => {
-			'perl-5.10.0/Readme'   => 'perl/Readme',
-			'perl-5.10.0/Artistic' => 'perl/Artistic',
-			'perl-5.10.0/Copying'  => 'perl/Copying',
-		},
-		install_to => 'perl',
-		# force      => 1,
-	);
+	$self->install_perl_5100;
 
 	# Install the CPAN configuration
 	# $self->install_file(
@@ -60,7 +49,7 @@ sub run {
 
 	# Install a test distro
 	$self->install_distribution(
-		name => 'ADAMK/Config-Tiny-2.10.tar.gz',
+		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
 	);
 
 	return 1;
@@ -72,12 +61,20 @@ sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );
 }
 
-sub install_perl_5100 {
-	return shift->SUPER::install_perl_5100( @_, trace => sub { 1 } );
+sub install_library {
+	return shift->SUPER::install_library( @_, trace => sub { 1 } );
 }
 
 sub install_distribution {
 	return shift->SUPER::install_distribution( @_, trace => sub { 1 } );
+}
+
+sub install_perl_5100_bin {
+	return shift->SUPER::install_perl_5100_bin( @_, trace => sub { 1 } );
+}
+
+sub install_perl_5100_toolchain {
+	return shift->SUPER::install_perl_5100_toolchain( @_, trace => sub { 1 } );
 }
 
 1;

@@ -39,22 +39,7 @@ sub run {
 	$self->install_c_libraries;
 
 	# Install Perl 5.8.8
-	$self->install_perl_588(
-		name       => 'perl',
-		dist       => 'RGARCIA/perl-5.8.8.tar.gz',
-		unpack_to  => 'perl',
-		patch      => {
-			'Install.pm'   => 'lib\ExtUtils\Install.pm',
-			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
-			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
-		},
-		license    => {
-			'perl-5.8.8/Readme'   => 'perl/Readme',
-			'perl-5.8.8/Artistic' => 'perl/Artistic',
-			'perl-5.8.8/Copying'  => 'perl/Copying',
-		},
-		install_to => 'perl',
-	);
+	$self->install_perl_588;
 
 	# Install the CPAN configuration
 	$self->install_file(
@@ -64,7 +49,7 @@ sub run {
 
 	# Install a test distro
 	$self->install_distribution(
-		name => 'ADAMK/Config-Tiny-2.10.tar.gz',
+		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
 	);
 
 	return 1;
@@ -76,12 +61,20 @@ sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );
 }
 
-sub install_perl_588 {
-	return shift->SUPER::install_perl_588( @_, trace => sub { 1 } );
+sub install_perl_588_bin {
+	return shift->SUPER::install_perl_588_bin( @_, trace => sub { 1 } );
+}
+
+sub install_perl_588_toolchain {
+	return shift->SUPER::install_perl_588_toolchain( @_, trace => sub { 1 } );
 }
 
 sub install_distribution {
 	return shift->SUPER::install_distribution( @_, trace => sub { 1 } );
+}
+
+sub install_file {
+	return shift->SUPER::install_file( @_, trace => sub { 1 } );
 }
 
 1;

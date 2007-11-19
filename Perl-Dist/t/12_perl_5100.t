@@ -17,7 +17,7 @@ BEGIN {
 		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
 		exit(0);
 	}
-	plan( tests => 10 );
+	plan( tests => 8 );
 }
 
 use File::Path ();

@@ -55,9 +55,12 @@ sub paths {
 }
 
 sub cpan {
+	if ( $ENV{TEST_PERLDIST_CPAN} ) {
+		return URI->new($ENV{TEST_PERLDIST_CPAN});
+	}
 	my $path = rel2abs( catdir( 't', 'data', 'cpan' ) );
 	Test::More::ok( -d $path, 'Found CPAN directory' );
-	Test::More::ok( -d catdir( $path, 'id' ), 'Found id subdirectory' );
+	Test::More::ok( -d catdir( $path, 'authors', 'id' ), 'Found id subdirectory' );
 	return URI::file->new($path . '\\');
 }
 
