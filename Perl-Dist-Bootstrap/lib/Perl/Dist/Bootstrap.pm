@@ -124,23 +124,30 @@ my @TOOLCHAIN_DISTRIBUTIONS = qw{
 	KWILLIAMS/Module-Build-0.2808.tar.gz
 	JSTOWE/Term-Cap-1.11.tar.gz
 	ANDK/CPAN-1.9205.tar.gz
+	ILYAZ/modules/Term-ReadLine-Perl-1.0302.tar.gz
 };
 
 sub install_perl_toolchain {
 	my $self = shift;
 
 	foreach my $dist ( @TOOLCHAIN_DISTRIBUTIONS ) {
+		my $force             = 0;
+		my $automated_testing = 0;
+		if ( $dist =~ /Scalar-List-Util/ ) {
+			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /Term-ReadLine-Perl/ ) {
+			# Does evil things when testing, and
+			# so testing cannot be automated.
+			$automated_testing = 1;
+		}
 		$self->install_distribution(
-			name => $dist,
+			name              => $dist,
+			force             => $force,
+			automated_testing => $automated_testing,
 		);
 	}
-
-	# Special install of Term::ReadLine::Perl, which does
-	# evil things when testing
-	$self->install_distribution(
-		name              => 'ILYAZ/modules/Term-ReadLine-Perl-1.0302.tar.gz',
-		automated_testing => 1,
-	);
 
 	# With the toolchain we need in place, install the default
 	# configuation.
@@ -182,11 +189,19 @@ sub install_perl_modules {
 	$self->install_module(
 		name => 'PAR::Dist',
 	);
+	$self->install_module(
+		name => 'DBI',
+	);
 
 	# Install SQLite
-	$self->install_module(
-		name  => 'SQLite',
+	$self->install_distribution(
+		name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
 		force => 1,
+	);
+
+	# Now we have SQLite, install the CPAN::SQLite upgrade
+	$self->install_module(
+		name => 'CPAN::SQLite',
 	);
 
 	return 1;

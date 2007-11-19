@@ -43,6 +43,7 @@ my @modules = qw{
 	Module::Build
 	Term::Cap
 	CPAN
+	Term::ReadLine::Perl
 };
 
 my %seen = ();
