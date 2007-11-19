@@ -9,7 +9,7 @@ use Perl::Dist::Inno::Registry ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_04';
+	$VERSION = '0.30';
 }
 
 use Object::Tiny qw{

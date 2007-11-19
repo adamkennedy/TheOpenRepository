@@ -12,7 +12,7 @@ use Params::Util     qw{ _STRING _CODELIKE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.29_04';
+	$VERSION = '0.30';
 }
 
 use Object::Tiny qw{
