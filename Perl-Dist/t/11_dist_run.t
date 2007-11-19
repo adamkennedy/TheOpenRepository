@@ -13,6 +13,10 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	};
+	unless ( $ENV{TEST_PERLDIST_ALL} ) {
+		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
+		exit(0);
+	}
 	plan( tests => 13 );
 }
 

@@ -1,6 +1,6 @@
 Revision history for Perl module Perl::Dist
 
-0.29_04 Sun 18 Nov 2007
+0.30 Sun 18 Nov 2007
 	- Adding support for zlib
 	- Adding support for bzlib2
 	- Adding support for iconv

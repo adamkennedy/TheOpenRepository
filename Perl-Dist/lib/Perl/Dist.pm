@@ -2,24 +2,23 @@ package Perl::Dist;
 
 use 5.005;
 use strict;
-use Carp                   'croak';
-use Archive::Tar           ();
-use Archive::Zip           ();
-use File::Spec             ();
-use File::Spec::Unix       ();
-use File::Copy             ();
-use File::Copy::Recursive  ();
-use File::Path             ();
-use File::pushd            ();
-use File::Remove           ();
-use File::Basename         ();
-use File::LocalizeNewlines ();
-use IPC::Run3              ();
-use Params::Util           qw{ _STRING _HASH _INSTANCE };
-use HTTP::Status           ();
-use LWP::UserAgent         ();
-use LWP::Online            ();
-use Tie::File              ();
+use Carp                  'croak';
+use Archive::Tar          ();
+use Archive::Zip          ();
+use File::Spec            ();
+use File::Spec::Unix      ();
+use File::Copy            ();
+use File::Copy::Recursive ();
+use File::Path            ();
+use File::pushd           ();
+use File::Remove          ();
+use File::Basename        ();
+use IPC::Run3             ();
+use Params::Util          qw{ _STRING _HASH _INSTANCE };
+use HTTP::Status          ();
+use LWP::UserAgent        ();
+use LWP::Online           ();
+use Tie::File             ();
 
 use base 'Perl::Dist::Inno';
 
@@ -56,8 +55,6 @@ use Perl::Dist::Asset::Perl         ();
 use Perl::Dist::Asset::Distribution ();
 use Perl::Dist::Asset::Module       ();
 use Perl::Dist::Asset::File         ();
-
-my $localize = File::LocalizeNewlines->new;
 
 
 
@@ -416,7 +413,6 @@ sub install_c_toolchain {
 sub install_c_libraries {
 	my $self = shift;
 	$self->install_zlib;
-	# $self->install_bzlib2;
 	$self->install_libiconv;
 	$self->install_libxml;
 	return 1;
@@ -448,23 +444,17 @@ sub install_perl {
 
 sub remove_waste {
 	my $self = shift;
-
-	# Remove the man and unneeded doc pages from mingw
-	$self->trace("Removing man pages...\n");
-	File::Remove::remove( \1, $self->_dir('perl', 'man' ) );
-	File::Remove::remove( \1, $self->_dir('c',    'man' ) );
-	File::Remove::remove( \1, $self->_dir('c',    'doc' ) );
-	File::Remove::remove( \1, $self->_dir('c',    'info') );
-
-	# Remove the manifests from C libs install
-	$self->trace("Removing manifests...\n");
-	File::Remove::remove( \1, $self->_dir('c', 'manifest') );
-
-	# Remove the CPAN source and build directories
-	$self->trace("Removing CPAN caches...\n");
+	$self->trace("Removing doc, man, info and html documentation...\n");
+	File::Remove::remove( \1, $self->_dir('perl', 'man')     );
+	File::Remove::remove( \1, $self->_dir('perl', 'html')    );
+	File::Remove::remove( \1, $self->_dir('c',    'man')     );
+	File::Remove::remove( \1, $self->_dir('c',    'doc')     );
+	File::Remove::remove( \1, $self->_dir('c',    'info')    );
+	$self->trace("Removing C library manifests...\n");
+	File::Remove::remove( \1, $self->_dir('c', 'manifest')   );
+	$self->trace("Removing CPAN build directories and download caches...\n");
 	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
-	File::Remove::remove( \1, $self->_dir('cpan', 'build') );
-
+	File::Remove::remove( \1, $self->_dir('cpan', 'build')   );
 	return 1;
 }
 
@@ -473,9 +463,16 @@ sub remove_waste {
 
 
 #####################################################################
-# Topic-Specific Installation
+# Perl 5.8.8 Support
 
 sub install_perl_588 {
+	my $self = shift;
+	$self->install_perl_588_bin;
+	$self->install_perl_588_toolchain;
+	return 1;
+}
+
+sub install_perl_588_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
 		cpan => $self->cpan,
@@ -574,7 +571,93 @@ sub install_perl_588 {
 	return 1;
 }
 
+sub install_perl_588_toolchain {
+	my $self = shift;
+
+	my @dists = qw{
+		MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
+		DLAND/File-Path-2.03.tar.gz
+		RKOBES/ExtUtils-Command-1.13.tar.gz
+		YVES/Win32API-File-0.1001.tar.gz
+		MSCHWERN/ExtUtils-Install-1.44.tar.gz
+		RKOBES/ExtUtils-Manifest-1.51.tar.gz
+		ANDYA/Test-Harness-3.02.tar.gz
+		MSCHWERN/Test-Simple-0.72.tar.gz
+		KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz
+		KWILLIAMS/ExtUtils-ParseXS-2.18.tar.gz
+		JPEACOCK/version-0.74.tar.gz
+		GBARR/Scalar-List-Utils-1.19.tar.gz
+		PMQS/IO-Compress-Base-2.008.tar.gz
+		PMQS/Compress-Raw-Zlib-2.008.tar.gz
+		PMQS/Compress-Raw-Bzip2-2.008.tar.gz
+		PMQS/IO-Compress-Zlib-2.008.tar.gz
+		PMQS/IO-Compress-Bzip2-2.008.tar.gz
+		PMQS/Compress-Zlib-2.008.tar.gz
+		ARJAY/Compress-Bzip2-2.09.tar.gz
+		TOMHUGHES/IO-Zlib-1.07.tar.gz
+		KWILLIAMS/PathTools-3.25.tar.gz
+		TJENNESS/File-Temp-0.18.tar.gz
+		BLM/Win32API-Registry-0.28.tar.gz
+		ADAMK/Win32-TieRegistry-0.25.zip
+		ADAMK/File-HomeDir-0.66.tar.gz
+		PEREINAR/File-Which-0.05.tar.gz
+		ADAMK/Archive-Zip-1.23.tar.gz
+		KANE/Archive-Tar-1.36.tar.gz
+		INGY/YAML-0.66.tar.gz
+		GBARR/libnet-1.22.tar.gz
+		GAAS/Digest-MD5-2.36.tar.gz
+		GAAS/Digest-SHA1-2.11.tar.gz
+		MSHELOR/Digest-SHA-5.45.tar.gz
+		KWILLIAMS/Module-Build-0.2808.tar.gz
+		JSTOWE/Term-Cap-1.11.tar.gz
+		ANDK/CPAN-1.9205.tar.gz
+		ILYAZ/modules/Term-ReadLine-Perl-1.0302.tar.gz
+	};
+
+	foreach my $dist ( @dists ) {
+		my $force             = 0;
+		my $automated_testing = 0;
+		if ( $dist =~ /Scalar-List-Util/ ) {
+			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /Term-ReadLine-Perl/ ) {
+			# Does evil things when testing, and
+			# so testing cannot be automated.
+			$automated_testing = 1;
+		}
+		$self->install_distribution(
+			name              => $dist,
+			force             => $force,
+			automated_testing => $automated_testing,
+		);
+	}
+
+	# With the toolchain we need in place, install the default
+	# configuation.
+	$self->install_file(
+		share      => 'Perl-Dist-Bootstrap CPAN_Config.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
+	);
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Perl 5.10.0 Support
+
 sub install_perl_5100 {
+	my $self = shift;
+	$self->install_perl_5100_bin;
+	$self->install_perl_5100_toolchain;
+	return 1;
+}
+
+sub install_perl_5100_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
 		cpan => $self->cpan,
@@ -680,6 +763,21 @@ sub install_perl_5100 {
 	return 1;
 }
 
+sub install_perl_5100_toolchain {
+	my $self = shift;
+
+
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Install C Libraries
+
 sub install_zlib {
 	my $self = shift;
 
@@ -761,7 +859,7 @@ sub install_libxml {
 
 
 #####################################################################
-# Generic Resource Installation
+# Generic Installation Methods
 
 sub install_binary {
 	my $self   = shift;
@@ -1017,7 +1115,7 @@ sub install_file {
 
 
 #####################################################################
-# Package Production
+# Package Generation
 
 sub write_iss {
 	my $self = shift;
