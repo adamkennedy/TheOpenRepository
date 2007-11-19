@@ -2,23 +2,24 @@ package Perl::Dist;
 
 use 5.005;
 use strict;
-use Carp                  'croak';
-use Archive::Tar          ();
-use Archive::Zip          ();
-use File::Spec            ();
-use File::Spec::Unix      ();
-use File::Copy            ();
-use File::Copy::Recursive ();
-use File::Path            ();
-use File::pushd           ();
-use File::Remove          ();
-use File::Basename        ();
-use IPC::Run3             ();
-use Params::Util          qw{ _STRING _HASH _INSTANCE };
-use HTTP::Status          ();
-use LWP::UserAgent        ();
-use LWP::Online           ();
-use Tie::File             ();
+use Carp                   'croak';
+use Archive::Tar           ();
+use Archive::Zip           ();
+use File::Spec             ();
+use File::Spec::Unix       ();
+use File::Copy             ();
+use File::Copy::Recursive  ();
+use File::Path             ();
+use File::pushd            ();
+use File::Remove           ();
+use File::Basename         ();
+use File::LocalizeNewlines ();
+use IPC::Run3              ();
+use Params::Util           qw{ _STRING _HASH _INSTANCE };
+use HTTP::Status           ();
+use LWP::UserAgent         ();
+use LWP::Online            ();
+use Tie::File              ();
 
 use base 'Perl::Dist::Inno';
 
@@ -37,7 +38,7 @@ use Object::Tiny qw{
 	iss_file
 	remove_image
 	user_agent
-	cpan_uri
+	cpan
 	bin_perl
 	bin_make
 	bin_pexports
@@ -55,6 +56,8 @@ use Perl::Dist::Asset::Perl         ();
 use Perl::Dist::Asset::Distribution ();
 use Perl::Dist::Asset::Module       ();
 use Perl::Dist::Asset::File         ();
+
+my $localize = File::LocalizeNewlines->new;
 
 
 
@@ -156,11 +159,11 @@ sub new {
 	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
 		croak("Missing or invalid user_agent param");
 	}
-	unless ( _INSTANCE($self->cpan_uri, 'URI') ) {
-		croak("Missing or invalid cpan_uri param");
+	unless ( _INSTANCE($self->cpan, 'URI') ) {
+		croak("Missing or invalid cpan param");
 	}
-	unless ( $self->cpan_uri->as_string =~ /\/$/ ) {
-		croak("Missing trailing slash in cpan_uri param");
+	unless ( $self->cpan->as_string =~ /\/$/ ) {
+		croak("Missing trailing slash in cpan param");
 	}
 	unless ( defined $self->iss_file ) {
 		$self->{iss_file} = File::Spec->catfile(
@@ -313,14 +316,14 @@ sub install_c_toolchain {
 			'dmake/readme/license.txt' => 'dmake/license.txt',
 		},
 		install_to => {
-			'dmake/dmake.exe' => 'perl/bin/dmake.exe',	
-			'dmake/startup'   => 'perl/bin/startup',
+			'dmake/dmake.exe' => 'c/bin/dmake.exe',	
+			'dmake/startup'   => 'c/bin/startup',
 		},
 	);
 
 	# Initialize the make location
 	$self->{bin_make} = File::Spec->catfile(
-		$self->image_dir, 'perl', 'bin', 'dmake.exe',
+		$self->image_dir, 'c', 'bin', 'dmake.exe',
 	);
 	unless ( -x $self->bin_make ) {
 		croak("Can't execute make");
@@ -474,7 +477,10 @@ sub remove_waste {
 
 sub install_perl_588 {
 	my $self = shift;
-	my $perl = Perl::Dist::Asset::Perl->new(@_);
+	my $perl = Perl::Dist::Asset::Perl->new(
+		cpan => $self->cpan,
+		@_,
+	);
 	unless ( $self->bin_make ) {
 		croak("Cannot build Perl yet, no bin_make defined");
 	}
@@ -568,12 +574,16 @@ sub install_perl_588 {
 	return 1;
 }
 
-sub install_perl_595 {
+sub install_perl_5100 {
 	my $self = shift;
-	my $perl = Perl::Dist::Asset::Perl->new(@_);
+	my $perl = Perl::Dist::Asset::Perl->new(
+		cpan => $self->cpan,
+		@_,
+	);
 	unless ( $self->bin_make ) {
 		croak("Cannot build Perl yet, no bin_make defined");
 	}
+	$self->trace("Preparing " . $perl->name . "\n");
 
 	# Download the file
 	my $tgz = $self->_mirror(
@@ -620,34 +630,40 @@ sub install_perl_595 {
 		# Prepare to patch
 		my $image_dir    = $self->image_dir;
 		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
-		$self->trace("Patching makefile.mk\n");
-		tie my @makefile, 'Tie::File', 'makefile.mk'
-			or die "Couldn't read makefile.mk";
-		for ( @makefile ) {
-			if ( m{\AINST_TOP\s+\*=\s+} ) {
-				s{\\perl}{$short_install}; # short has the leading \
+		my ($vol,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+		SCOPE: {
+			$self->trace("Patching makefile.mk\n");
 
-			} elsif ( m{\ACCHOME\s+\*=} ) {
-				s{c:\\mingw}{$image_dir\\c}i;
+			# Read in the makefile
+			local *MAKEFILE;
+			local $/ = undef;
+			open( MAKEFILE, 'makefile.mk' ) or die "open: $!";
+			my $makefile_mk = <MAKEFILE>;
+			$makefile_mk =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
+			close MAKEFILE;
 
-			} else {
-				next;
-			}
+			# Apply the changes
+			$makefile_mk =~ s/^(INST_DRV\s+\*=\s+).+?(\n)/$1$vol$2/m;
+			$makefile_mk =~ s/^(INST_TOP\s+\*=\s+).+?(\n)/$1$perl_install$2/m;
+			$makefile_mk =~ s/C\:\\MinGW/$image_dir\\c/;
+
+			# Write out the makefile
+			open( MAKEFILE, '>makefile.mk' ) or die "open: $!";
+			print MAKEFILE $makefile_mk;
+			close MAKEFILE;
 		}
-		untie @makefile;
 
 		$self->trace("Building perl...\n");
 		$self->_make;
 
-		SCOPE: {
+		unless ( $perl->force ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->trace("Testing perl build\n");
-			$self->_make('test') if 0;
+			$self->_make('test');
 		}
 
 		$self->trace("Installing perl...\n");
-		$self->_make( qw/install UNINST=1/ );
+		$self->_make( 'install' );
 	}
 
 	# Should now have a perl to use
@@ -783,8 +799,11 @@ sub install_binary {
 
 sub install_library {
 	my $self    = shift;
-	my $library = Perl::Dist::Asset::Library->new(@_);
-	my $name    = $library->name;
+	my $library = Perl::Dist::Asset::Library->new(
+		cpan => $self->cpan,
+		@_,
+	);
+	my $name = $library->name;
 	$self->trace("Preparing $name\n");
 
 	# Download the file
@@ -852,11 +871,14 @@ sub install_library {
 
 sub install_distribution {
 	my $self = shift;
-	my $dist = Perl::Dist::Asset::Distribution->new(@_);
+	my $dist = Perl::Dist::Asset::Distribution->new(
+		cpan => $self->cpan,
+		@_,
+	);
 
 	# Download the file
 	my $tgz = $self->_mirror( 
-		$dist->abs_uri( $self->cpan_uri ),
+		$dist->abs_uri( $self->cpan ),
 		$self->download_dir,
 	);
 
@@ -908,7 +930,10 @@ sub install_distribution {
 
 sub install_module {
 	my $self   = shift;
-	my $module = Perl::Dist::Asset::Module->new(@_);
+	my $module = Perl::Dist::Asset::Module->new(
+		cpan => $self->cpan,
+		@_,
+	);
 	my $name   = $module->name;
 	my $force  = $module->force;
 	unless ( $self->bin_perl ) {
@@ -965,7 +990,10 @@ END_PERL
 
 sub install_file {
 	my $self = shift;
-	my $dist = Perl::Dist::Asset::File->new(@_);
+	my $dist = Perl::Dist::Asset::File->new(
+		cpan => $self->cpan,
+		@_,
+	);
 
 	# Get the file
 	my $tgz = $self->_mirror(
@@ -1045,27 +1073,24 @@ sub _mirror {
 	$file =~ s|.+\/||;
 	my $target = File::Spec->catfile( $dir, $file );
 	if ( $self->offline and -f $target ) {
-		$self->trace(" already downloaded\n");
 		return $target;
 	}
 	if ( $self->offline and ! $url =~ m|^file://| ) {
-		$self->trace(" offline, cannot download.");
+		$self->trace("Error: Currently offline, cannot download.\n");
 		exit(0);
 	}
 	File::Path::mkpath($dir);
 	$| = 1;
 
-	$self->trace("Downloading $file...");
+	$self->trace("Downloading $file...\n");
 	my $ua = LWP::UserAgent->new;
 	my $r  = $ua->mirror( $url, $target );
 	if ( $r->is_error ) {
 		$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
 
 	} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
-		$self->trace(" already up to date.\n");
+		$self->trace("(already up to date)\n");
 
-	} else {
-		$self->trace(" done\n");
 	}
 
 	return $target;
@@ -1128,16 +1153,14 @@ sub _extract {
 	File::Path::mkpath($to);
 	my $wd = File::pushd::pushd( $to );
 	$|++;
-	$self->trace("Extracting $from...");
+	$self->trace("Extracting $from...\n");
 	if ( $from =~ m{\.zip\z} ) {
 		my $zip = Archive::Zip->new( $from );
 		$zip->extractTree();
-		$self->trace("done\n");
 
 	} elsif ( $from =~ m{\.tar\.gz|\.tgz} ) {
 		local $Archive::Tar::CHMOD = 0;
 		Archive::Tar->extract_archive($from, 1);
-		$self->trace("done\n");
 
 	} else {
 		die "Didn't recognize archive type for $from";
@@ -1190,29 +1213,6 @@ sub _extract_filemap {
 	}
 
 	return 1;
-}
-
-sub _source {
-	my $self   = shift;
-	my $string = shift;
-	if ( $string =~ m|^\w+://| ) {
-		return $string;
-	}
-	if ( $string =~ m|^([A-Z])([A-Z])[A-Z]+/| ) {
-		return $self->cpan_uri . "/$1/$1$2/$string";
-	}
-	if ( $string =~ m|\w+(?:-\w+)*\s+| ) {
-		my ($dist, $name) = split /\s+/, $string;
-		$self->trace("Finding $name in $dist... ");
-		my $file = File::Spec->rel2abs(
-			File::ShareDir::dist_file( $dist, $name )
-		);
-		unless ( -f $file ) {
-			croak("Failed to find $file");
-		}
-		return URI::file->new($file)->as_string;
-	}
-	die "Unknown or unsupported source $string";
 }
 
 # Convert a .dll to an .a file

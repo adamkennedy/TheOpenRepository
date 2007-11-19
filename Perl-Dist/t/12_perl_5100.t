@@ -13,7 +13,7 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	};
-	plan( tests => 13 );
+	plan( tests => 10 );
 }
 
 use File::Path ();
@@ -21,12 +21,9 @@ use File::Spec::Functions ':ALL';
 use_ok( 't::lib::Test' );
 
 # Create the dist object
-my $dist = t::lib::Test->new2;
-isa_ok( $dist, 't::lib::Test2' );
+my $dist = t::lib::Test->new3;
+isa_ok( $dist, 't::lib::Test3' );
 
 # Run the dist object, and ensure everything we expect was created
 diag( "Building test dist, may take up to an hour... (sorry)" );
 ok( $dist->run, '->run ok' );
-ok( -f "C:\\tmp\\sp\\image\\c\\bin\\dmake.exe", 'Found dmake.exe' );
-ok( -f "C:\\tmp\\sp\\image\\c\\bin\\startup\\Makefile.in", 'Found startup' );
-ok( -f "C:\\tmp\\sp\\image\\c\\bin\\pexports.exe", 'Found pexports' );

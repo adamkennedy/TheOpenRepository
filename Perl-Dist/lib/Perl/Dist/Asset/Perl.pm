@@ -14,6 +14,7 @@ BEGIN {
 
 use Object::Tiny qw{
 	name
+	force
 	license
 	unpack_to
 	install_to
@@ -49,6 +50,7 @@ sub new {
 	if ( $self->patch and ! _HASH($self->patch) ) {
 		croak("Invalid patch param");
 	}
+	$self->{force} = !! $self->force;
 
 	return $self;
 }

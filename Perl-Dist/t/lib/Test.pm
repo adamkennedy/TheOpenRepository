@@ -9,6 +9,7 @@ use File::Path    ();
 use File::Remove  ();
 use t::lib::Test1 ();
 use t::lib::Test2 ();
+use t::lib::Test3 ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -53,8 +54,8 @@ sub paths {
 	);
 }
 
-sub cpan_uri {
-	my $path  = rel2abs( catdir( 't', 'data', 'cpan' ) );
+sub cpan {
+	my $path = rel2abs( catdir( 't', 'data', 'cpan' ) );
 	Test::More::ok( -d $path, 'Found CPAN directory' );
 	Test::More::ok( -d catdir( $path, 'id' ), 'Found id subdirectory' );
 	return URI::file->new($path . '\\');
@@ -63,15 +64,22 @@ sub cpan_uri {
 sub new1 {
 	my $class = shift;
 	my @paths = $class->paths;
-	my $cpan_uri = $class->cpan_uri;
-	return t::lib::Test1->new( cpan_uri => $cpan_uri, @paths, @_ );
+	my $cpan  = $class->cpan;
+	return t::lib::Test1->new( cpan => $cpan, @paths, @_ );
 }
 
 sub new2 {
-	my $class    = shift;
-	my @paths    = $class->paths;
-	my $cpan_uri = $class->cpan_uri;
-	return t::lib::Test2->new( cpan_uri => $cpan_uri, @paths, @_ );
+	my $class = shift;
+	my @paths = $class->paths;
+	my $cpan  = $class->cpan;
+	return t::lib::Test2->new( cpan => $cpan, @paths, @_ );
+}
+
+sub new3 {
+	my $class = shift;
+	my @paths = $class->paths;
+	my $cpan  = $class->cpan;
+	return t::lib::Test3->new( cpan => $cpan, @paths, @_ );
 }
 
 1;

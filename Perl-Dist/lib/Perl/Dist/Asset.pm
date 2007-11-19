@@ -3,11 +3,12 @@ package Perl::Dist::Asset;
 # Convenience base class for Perl::Dist assets
 
 use strict;
-use Carp           'croak';
-use File::Spec     ();
-use File::ShareDir ();
-use URI::file      ();
-use Params::Util   qw{ _STRING _CODELIKE };
+use Carp             'croak';
+use File::Spec       ();
+use File::Spec::Unix ();
+use File::ShareDir   ();
+use URI::file        ();
+use Params::Util     qw{ _STRING _CODELIKE };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -15,9 +16,11 @@ BEGIN {
 }
 
 use Object::Tiny qw{
-	share
-	url
 	file
+	url
+	share
+	dist
+	cpan
 };
 
 
@@ -31,7 +34,7 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Map share to url
-	if ( $self->share ) {
+	if ( $self->share and ! $self->url ) {
 		my ($dist, $name) = split /\s+/, $self->share;
 		$self->trace("Finding $name in $dist... ");
 		my $file = File::Spec->rel2abs(
@@ -42,6 +45,18 @@ sub new {
 		}
 		$self->{url} = URI::file->new($file)->as_string;
 		$self->trace(" found\n");
+	}
+
+	# Map dist to url
+	if ( $self->dist and ! $self->url ) {
+		my $dist = $self->dist;
+		$self->trace("Using distribution path $dist\n");
+		my $one  = substr( $self->dist, 0, 1 );
+		my $two  = substr( $self->dist, 1, 1 );
+		my $path = File::Spec::Unix->catfile(
+			'authors', 'id', $one, "$one$two", $dist,
+		);
+		$self->{url} = URI->new_abs( $path, $self->cpan )->as_string;
 	}
 
 	# Check params

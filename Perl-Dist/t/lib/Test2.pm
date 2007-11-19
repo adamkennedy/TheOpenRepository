@@ -41,7 +41,7 @@ sub run {
 	# Install Perl 5.8.8
 	$self->install_perl_588(
 		name       => 'perl',
-		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
+		dist       => 'RGARCIA/perl-5.8.8.tar.gz',
 		unpack_to  => 'perl',
 		patch      => {
 			'Install.pm'   => 'lib\ExtUtils\Install.pm',
