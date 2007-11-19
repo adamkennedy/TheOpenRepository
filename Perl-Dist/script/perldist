@@ -3,20 +3,48 @@
 use 5.006;
 use strict;
 use warnings;
+use Pod::Usage;
+use URI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.30';
+	$VERSION = '0.31';
+}
+
+# Show usage
+unless ( @ARGV ) {
+	pod2usage( {
+		-exitval => 0,
+		-verbose => 0,
+	} );
+	exit(0);
 }
 
 # Did we get a valid file as the first param?
 unless ( $ARGV[0] ) {
-	print "Did not get a build configuration param\n";
+	print "Did not get a distribution class\n";
+	exit(0);
+}
+unless ( $ARGV[1] ) {
+	print "Did not get a CPAN url\n";
 	exit(0);
 }
 
+# Get the distribution class name
 my $class = $ARGV[0];
-my $dist  = $class->new;
+eval "require $class;";
+if ( $@ ) {
+        die "Failed to load $class: $@";
+}
+unless ( $class->isa('Perl::Dist') ) {
+	die "$class is not a Perl::Dist subclass";
+}
+
+# Get the CPAN URI
+my $cpan = URI->new( $ARGV[1] );
+
+# Run the build
+my $dist = $class->new( cpan => $cpan );
 unless ( $dist ) {
 	die "Failed to create $class";
 }
@@ -25,3 +53,67 @@ unless ( $dist->run ) {
 }
 
 exit(0);
+
+__END__
+
+=pod
+
+=head1 NAME
+
+perldist - Windows Perl distribution builder
+
+=head1 SYNOPSIS
+
+  perldist Perl::Dist::Vanilla file://C|/minicpan/
+  ...
+  (various output for 1-2 hours)
+  ...
+  Created as C:\tmp\vp\output\vanilla-perl-5.10.0-build-9.zip
+
+=head1 DESCRIPTION
+
+B<perldist> is the command line front-end to the L<Perl::Dist> Win32
+Perl distribution builder.
+
+It takes two arguments, burns CPU for a couple of hours, and then
+spits out a distribution package.
+
+The first argument is the class name for the distribution. This will be
+a subclass of Perl::Dist that provides configuration information and
+scripts the installation sequence.
+
+The second argument should be the URL (with trailing slash) for a CPAN
+(or L<minicpan>) repository, that the distribution builder can use to
+pull anything it needs for the build process.
+
+And that's about all there is to it.
+
+For more information, see L<Perl::Dist>.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

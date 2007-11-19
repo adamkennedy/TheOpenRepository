@@ -24,7 +24,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.30';
+        $VERSION = '0.31';
 }
 
 use Object::Tiny qw{
@@ -1428,6 +1428,8 @@ Perl::Dist - Perl Distribution Creation Toolkit
 
 =head1 DESCRIPTION
 
+B<THIS DOCUMENTATION IS CURRENTLY OUT OF DATE>
+
 The Perl::Dist namespace encompasses creation of pre-packaged, binary
 distributions of Perl, such as executable installers for Win32.  While initial
 efforts are targeted at Win32, there is hope that this may become a more
@@ -1445,18 +1447,6 @@ themselves.>
 
 B<Please note that this module is currently considered experimental, and
 not really suitable for general use>.
-
-=head2 BUILDERS
-
-There is currently only the default builder:
-
-=over
-
-=item *
-
-L<Perl::Dist::Builder> -- an alpha version of a distribution builder
-
-=back
 
 =head2 DISTRIBUTIONS
 
@@ -1492,17 +1482,23 @@ Bug-squashing Win32 compatibility problems in popular modules
 
 =item *
 
-Refactoring the initial builder for greater modularity and control of the
-build process
+Customisable installation path.
 
 =item *
 
-Support for Win32 *.msi installation files instead of standalone *.exe
-installers
+Support installation paths with spaces and other weird characters.
 
 =item *
 
-Better uninstall support and upgradability
+Restore support for .exe installation instead of .zip.
+
+=item *
+
+Support for Win32 *.msi installation instead of *.exe.
+
+=item *
+
+Better uninstall support and upgradability.
 
 =back
 
@@ -1514,9 +1510,9 @@ David A. Golden <dagolden@cpan.org>
 
 =head1 COPYRIGHT
 
-Cyopright 2007 Adam Kennedy
+Cyopright 2007 Adam Kennedy.
 
-Copyright 2006 David A. Golden
+Copyright 2006 David A. Golden.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -1526,40 +1522,9 @@ LICENSE file included with this module.
 
 =head1 SEE ALSO
 
-=over
-
-=item *
-
-L<Perl::Dist::Builder>
-
-=item *
-
-L<Perl::Dist::Vanilla>
-
-=item *
-
-L<Perl::Dist::Strawberry>
-
-=item *
-
-L<http://win32.perl.org/>
-
-=item *
-
-L<http://vanillaperl.com/>
-
-=item *
-
-L<irc://irc.perl.org/#win32>
-
-=item *
-
-L<http://ali.as/>
-
-=item *
-
-L<http://dagolden.com/>
-
-=back
+L<Perl::Dist>, L<Perl::Dist::Vanilla>,
+L<Perl::Dist::Strawberry>, L<http://win32.perl.org/>,
+L<http://vanillaperl.com/>, L<irc://irc.perl.org/#win32>,
+L<http://ali.as/>, L<http://dagolden.com/>
 
 =cut
