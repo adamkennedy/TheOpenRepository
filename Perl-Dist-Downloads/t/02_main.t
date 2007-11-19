@@ -13,11 +13,17 @@ my @PACKAGES = qw{
 	dmake-4.8-20070327-SHAY.zip
 	gcc-core-3.4.5-20060117-1.tar.gz
 	gcc-g++-3.4.5-20060117-1.tar.gz
+	gmp-4.2.1-vanilla.zip
+        libiconv-1.9.2-1-bin.zip
+        libiconv-1.9.2-1-dep.zip
+        libiconv-1.9.2-1-lib.zip
+	libxml2-2.6.30.win32.zip
+	libxslt-1.1.22.win32.zip
 	mingw-runtime-3.13.tar.gz
 	mingw32-make-3.81-2.tar.gz
-	w32api-3.10.tar.gz
 	pexports-0.43-1.zip
-        libiconv-1.9.2-1-lib.zip
+	w32api-3.10.tar.gz
+	zlib-1.2.3.win32.zip
 };
 
 plan( tests => scalar(@PACKAGES) );
