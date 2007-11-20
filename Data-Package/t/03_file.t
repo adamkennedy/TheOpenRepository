@@ -56,7 +56,10 @@ SKIP: {
 SCOPE: {
 	package My::Test1;
 
-	use base 'Data::Package::File';
+	use Data::Package::File ();
+	BEGIN {
+		@My::Test1::ISA = 'Data::Package::File';
+	}
 
 	sub file {
 		return File::Spec->rel2abs(
@@ -66,7 +69,10 @@ SCOPE: {
 
 	package My::Test2;
 
-	use base 'Data::Package::File';
+	use Data::Package::File ();
+	BEGIN {
+		@My::Test1::ISA = 'Data::Package::File';
+	}
 
 	sub dist_file {
 		'Data-Package', 'test.txt';
@@ -74,7 +80,10 @@ SCOPE: {
 
 	package My::Test3;
 
-	use base 'Data::Package::File';
+	use Data::Package::File ();
+	BEGIN {
+		@My::Test1::ISA = 'Data::Package::File';
+	}
 
 	sub module_file {
 		'Data::Package', 'test.txt';

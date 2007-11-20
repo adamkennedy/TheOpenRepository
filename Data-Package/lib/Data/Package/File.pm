@@ -21,16 +21,17 @@ additional methods.
 
 use 5.005;
 use strict;
-use base 'Data::Package';
+use Data::Package    ();
 use File::Spec       ();
 use IO::File         ();
 use Params::Util     qw{ _STRING };
 use Class::Inspector ();
 use File::ShareDir   ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
+	@ISA     = 'Data::Package';
 }
 
 

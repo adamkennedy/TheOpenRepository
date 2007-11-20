@@ -1,5 +1,9 @@
 Revision history for Perl extension Data::Package
 
+1.05 Tue 20 Nov 2007
+	- Bug fix, avoid the use of base.pm to try and prevent an error
+	  on Perl 5.005.
+
 1.04 Fri 16 Nov 2007
 	- Bug fix: Load Path::Class at run-time instead of load-time
 	

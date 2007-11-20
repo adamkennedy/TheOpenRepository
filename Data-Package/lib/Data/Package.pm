@@ -134,14 +134,13 @@ not affect it.
 
 use 5.005;
 use strict;
-use Params::Util     '_CLASS';
 use Class::Inspector ();
 use Params::Util     qw{ _CLASS };
 use Params::Coerce   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 
@@ -307,7 +306,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2006 Adam Kennedy.
+Copyright 2005-2007 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
