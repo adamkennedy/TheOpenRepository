@@ -71,7 +71,7 @@ SCOPE: {
 
 	use Data::Package::File ();
 	BEGIN {
-		@My::Test1::ISA = 'Data::Package::File';
+		@My::Test2::ISA = 'Data::Package::File';
 	}
 
 	sub dist_file {
@@ -82,7 +82,7 @@ SCOPE: {
 
 	use Data::Package::File ();
 	BEGIN {
-		@My::Test1::ISA = 'Data::Package::File';
+		@My::Test3::ISA = 'Data::Package::File';
 	}
 
 	sub module_file {
