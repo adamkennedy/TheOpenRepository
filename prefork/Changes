@@ -1,5 +1,8 @@
 Revision history for Perl extension prefork
 
+1.02 Fri 23 Nov 2007
+	- Upgrading to Module::Install 0.68
+
 1.01 Tue 25 Jul 2006
 	- Imported from CVS to svn repository
 
