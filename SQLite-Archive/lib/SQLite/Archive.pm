@@ -53,14 +53,8 @@ use DBI              ();
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.01';
+	$VERSION = '0.02';
 }
-
-use Object::Tiny qw{
-	uri
-	file
-	dir
-};
 
 
 
@@ -90,7 +84,8 @@ on error.
 =cut
 
 sub new {
-	my $self = shift->SUPER::new(@_);
+	my $class = shift;
+	my $self = bless { @_ }, $class;
 
 	# Check the archive directory
 	unless ( defined $self->dir ) {
@@ -117,6 +112,18 @@ sub new {
 	$self->{csv} = [ grep { /^\w+\.csv/ } @files ];
 
 	return $self;
+}
+
+sub uri {
+	$_[0]->{uri};
+}
+
+sub file {
+	$_[0]->{file};
+}
+
+sub dir {
+	$_[0]->{dir};
 }
 
 

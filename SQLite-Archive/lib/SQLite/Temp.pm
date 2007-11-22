@@ -11,7 +11,7 @@ use Parse::CSV  ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	require Exporter;
 	@ISA    = 'Exporter';
 	@EXPORT = qw{ empty_db create_db };
