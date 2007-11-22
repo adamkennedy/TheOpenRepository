@@ -5,15 +5,13 @@ use Test::More;
 BEGIN {
   if ($^O eq 'MSWin32') {
     plan skip_all => "Not portable on Win32\n";
-  }
-  else {
+  } else {
     plan tests => 17;
   }
   use_ok ("Pod::Usage");
 }
 
-sub getoutput
-{
+sub getoutput {
   my ($code) = @_;
   my $pid = open(IN, "-|");
   unless(defined $pid) {
@@ -36,8 +34,7 @@ sub getoutput
   exit 0;
 }
 
-sub compare
-{
+sub compare {
   my ($left,$right) = @_;
   $left  =~ s/^#\s+/#/gm;
   $right =~ s/^#\s+/#/gm;
