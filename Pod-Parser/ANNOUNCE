@@ -1,0 +1,18 @@
+
+   This parrot is dead. It has ceased to be. It's gone to meet it's Maker!
+   THIS IS AN EX-PARROT!
+                              The Dead Parrot Sketch, Monty Python's Flying Circus
+
+Do s/parrot/package/g and you know the status of this distribution.
+The current version 1.33 has been provided to fix a number of bugs
+and integrate a bunch of useful enhancements, which were provided as
+patches, thanks to the contributers.
+
+But: There is Pod::Simple, which provides a much better and robust parser,
+as well as Unicode support and a lot of other useful things. When thinking
+POD, please (start to) think Pod::Simple!
+
+Some of the other modules bundled here (Pod::Usage, Pod::Find etc.) may
+appear soon in other distributions, as soon as they are ported away from
+Pod::Parser.
+
