@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+package main;
+
 use 5.005;
 use strict;
 
@@ -30,7 +32,7 @@ BEGIN {
 	}
 }
 
-unless ( $ENV{TEST_TINYAUTH_TEST} ) {
+unless ( $ENV{TEST_TINYAUTH} ) {
 	# Create the configuration
 	my $config_file = File::Spec->catfile( $FindBin::Bin, 'tinyauth.conf' );
 	unless ( -f $config_file ) {

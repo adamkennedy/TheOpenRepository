@@ -2,6 +2,12 @@ package t::lib::TinyAuth;
 
 # Testing subclass of TinyAuth that captures instead of prints
 use strict;
+BEGIN {
+	local $ENV{TEST_TINYAUTH} = 1;
+	my $script = File::Spec->catfile( 'script', 'tinyauth' );
+	die("Failed to find $script") unless -f $script;
+	require( $script );
+}
 use base 'TinyAuth';
 use YAML::Tiny   ();
 use t::lib::Test ();

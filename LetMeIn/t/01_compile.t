@@ -8,14 +8,17 @@ BEGIN {
 	$VERSION = '0.98';
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use File::Spec;
 use File::Spec::Unix;
 use IPC::Run3;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
-use_ok( 'TinyAuth'          );
+local $ENV{TEST_TINYAUTH} = 1;
+my $script = File::Spec->catfile( 'script', 'tinyauth' );
+ok( -f $script, 'script/tinyauth exists' );
+require_ok( $script );
 use_ok( 't::lib::Test'      );
 use_ok( 't::lib::TinyAuth'  );
 use_ok( 'TinyAuth::Install' );
