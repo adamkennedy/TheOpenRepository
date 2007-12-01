@@ -7,7 +7,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.96';
+	$VERSION = '0.98';
 }
 
 use Test::More tests => 44;
@@ -18,7 +18,7 @@ use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
-$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+$ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
 
 
@@ -104,7 +104,7 @@ SCOPE: {
 
 <body>
 <h2>Select Account(s) to Promote</h2>
-<form name="f" action="/cgi-bin/tinyauth">
+<form name="f" action="$ENV{SCRIPT_NAME}">
 <input type="hidden" name="a" value="b">
 <b><label><input type="checkbox" name="_" value="adamk\@cpan.org" disabled />adamk\@cpan.org</label></b><br />
 <label><input type="checkbox" name="e" value="foo\@bar.com" />foo\@bar.com</label><br />

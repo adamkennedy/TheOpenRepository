@@ -109,7 +109,7 @@ use Email::Send          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.96';
+	$VERSION = '0.98';
 }
 
 
@@ -119,17 +119,17 @@ BEGIN {
 #####################################################################
 # Embedded Functions
 
-# Scalar::Util::_STRING
+# Params::Util::_STRING
 sub _STRING ($) {
 	(defined $_[0] and ! ref $_[0] and length($_[0])) ? $_[0] : undef;
 }
 
-# Scalar::Util::_ARRAY
+# Params::Util::_ARRAY
 sub _ARRAY ($) {
 	(ref $_[0] eq 'ARRAY' and @{$_[0]}) ? $_[0] : undef;
 }
 
-# Scalar::Util::_INSTANCE
+# Params::Util::_INSTANCE
 sub _INSTANCE ($$) {
 	(Scalar::Util::blessed($_[0]) and $_[0]->isa($_[1])) ? $_[0] : undef;
 }
@@ -143,8 +143,8 @@ sub _INSTANCE ($$) {
 # Constructor and Accessors
 
 sub new {
-    my $class = shift;
-    my $self  = bless { @_ }, $class;
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Check and set the config
 	unless ( _INSTANCE($self->config, 'YAML::Tiny') ) {
@@ -267,43 +267,43 @@ sub new {
 }
 
 sub config_file {
-    $_[0]->{config_file};
+	$_[0]->{config_file};
 }
 
 sub config {
-    $_[0]->{config};
+	$_[0]->{config};
 }
 
 sub cgi {
-    $_[0]->{cgi};
+	$_[0]->{cgi};
 }
 
 sub auth {
-    $_[0]->{auth};
+	$_[0]->{auth};
 }
 
 sub mailer {
-    $_[0]->{mailer};
+	$_[0]->{mailer};
 }
 
 sub user {
-    $_[0]->{user};
+	$_[0]->{user};
 }
 
 sub action {
-    $_[0]->{action};
+	$_[0]->{action};
 }
 
 sub header {
-    $_[0]->{header};
+	$_[0]->{header};
 }
 
 sub title {
-    $_[0]->{title};
+	$_[0]->{title};
 }
 
 sub homepage {
-    $_[0]->{homepage};
+	$_[0]->{homepage};
 }
 
 sub args {
@@ -546,12 +546,12 @@ sub action_promote {
 		# Does the account exist
 		my $user = $self->auth->lookup_user($account);
 		unless ( $user ) {
-			return $self->error("The account '$account' does not exist");
+			return $self->error("The account does not exist");
 		}
 
 		# We can't operate on admins
 		if ( $self->is_user_admin($user) ) {
-			return $self->error("You cannot control admin account '$account'");
+			return $self->error("You cannot control an admin account '$account'");
 		}
 
 		push @users, $user;
@@ -598,45 +598,45 @@ sub action_delete {
 	my $self = shift;
 	$self->admins_only or return 1;
 
-    # Which accounts are we deleting
+	# Which accounts are we deleting
 	my @accounts = $self->cgi->param('e');
 	unless ( @accounts ) {
 		return $self->error("You did not select an account");
 	}
 
-    # Check all the proposed promotions first
-    my @users = ();
-    foreach ( @accounts ) {
-        my $account = _STRING($_);
-        unless ( $account ) {
-            return $self->error("Missing, invalid, or corrupt email address");
-        }
+	# Check all the proposed promotions first
+	my @users = ();
+	foreach ( @accounts ) {
+		my $account = _STRING($_);
+		unless ( $account ) {
+			return $self->error("Missing, invalid, or corrupt email address");
+		}
 
-    	# Does the account exist
-        my $user = $self->auth->lookup_user($account);
-        unless ( $user ) {
-            return $self->error("The account '$account' does not exist");
-        }
+		# Does the account exist
+		my $user = $self->auth->lookup_user($account);
+		unless ( $user ) {
+			return $self->error("The account '$account' does not exist");
+		}
 
-    	# We can't operate on admins
-	    if ( $self->is_user_admin($user) ) {
-		    return $self->error("You cannot control admin account '$account'");
-	    }
+		# We can't operate on admins
+		if ( $self->is_user_admin($user) ) {
+			return $self->error("You cannot control admin account '$account'");
+		}
 
-        push @users, $user;
-    }
+		push @users, $user;
+	}
 
 	# Delete the accounts
-    foreach my $user ( @users ) {
-	    $self->auth->delete_user($user);
-    }
+	foreach my $user ( @users ) {
+		$self->auth->delete_user($user);
+	}
 
 	# Show the "Deleted ok" page
 	return $self->view_message(
-        join( "\n", map {
-            "Deleted account " . $_->username
-        } @users )
-    );
+		join( "\n", map {
+			"Deleted account " . $_->username
+		} @users )
+	);
 }
 
 sub view_change {
@@ -727,7 +727,7 @@ sub send_new {
 sub view_message {
 	my $self = shift;
 	$self->{args}->{message} = CGI::escapeHTML(shift);
-    $self->{args}->{message} =~ s/\n/<br \/>/g;
+	$self->{args}->{message} =~ s/\n/<br \/>/g;
 	$self->print_template(
 		$self->html_message,
 	);
@@ -911,8 +911,8 @@ sub html_public { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=f">I forgot my password</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
 <form method="post" name="f" action="[% SCRIPT_NAME %]">
 <p>Email</p>
@@ -937,14 +937,14 @@ sub html_index { <<'END_HTML' }
 [% HEAD %]
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=f">I forgot my password</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">Add a new account</a></p>
-<p><a href="?a=l">List all accounts</a></p>
-<p><a href="?a=d">Delete an account</a></p>
-<p><a href="?a=m">Promote an account</a></p>
-<p><a href="?a=o">Logout</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=n">Add a new account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=l">List all accounts</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=d">Delete an account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=m">Promote an account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>

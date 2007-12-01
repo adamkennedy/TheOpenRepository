@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.96';
+	$VERSION = '0.98';
 }
 
 use Test::More tests => 26;
@@ -16,7 +16,7 @@ use Email::Send::Test;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
-$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+$ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
 
 
@@ -43,7 +43,7 @@ SCOPE: {
 
 <body>
 <h2>You don't know your password</h2>
-<form method="post" name="f" action="/cgi-bin/tinyauth">
+<form method="post" name="f" action="$ENV{SCRIPT_NAME}">
 <input type="hidden" name="a" value="r">
 <p>I can't tell you what your current password is, but I can send you a new one.</p>
 <p>&nbsp;</p>

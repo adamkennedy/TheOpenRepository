@@ -1,5 +1,12 @@
 Changes for Perl extension TinyAuth
 
+0.98 Sat 01 Dec 2007
+	- Hard-to-detect errors occur when the "use TinyAuth" call
+	  loads the system version incorrectly, instead of the local
+	  version. So we will get rid of the .pm file completely.
+	  The Makefile.PL now generates script/tinyauth from two
+	  separate source tinyauth.pl and TinyAuth.pm files.
+
 0.97 Tue  2 Oct 2007
 	- Commenced dogfooding on my main repository
 

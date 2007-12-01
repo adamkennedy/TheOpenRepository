@@ -5,7 +5,7 @@ use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
 	$^W      = 1;
-	$VERSION = '0.96';
+	$VERSION = '0.98';
 }
 
 use Test::More tests => 45;
@@ -15,7 +15,7 @@ use YAML::Tiny;
 use t::lib::Test;
 use t::lib::TinyAuth;
 
-$ENV{SCRIPT_NAME} = '/cgi-bin/tinyauth';
+$ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
 
 
@@ -42,10 +42,10 @@ SCOPE: {
 
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=f">I forgot my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action="/cgi-bin/tinyauth">
+<form method="post" name="f" action="$ENV{SCRIPT_NAME}">
 <p>Email</p>
 <p><input type="text" name="E" size="30"></p>
 <p>Password</p>
@@ -88,14 +88,14 @@ SCOPE: {
 
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=f">I forgot my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">Add a new account</a></p>
-<p><a href="?a=l">List all accounts</a></p>
-<p><a href="?a=d">Delete an account</a></p>
-<p><a href="?a=m">Promote an account</a></p>
-<p><a href="?a=o">Logout</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=n">Add a new account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=l">List all accounts</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=d">Delete an account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=m">Promote an account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -163,14 +163,14 @@ SCOPE: {
 
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=f">I forgot my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<p><a href="?a=n">Add a new account</a></p>
-<p><a href="?a=l">List all accounts</a></p>
-<p><a href="?a=d">Delete an account</a></p>
-<p><a href="?a=m">Promote an account</a></p>
-<p><a href="?a=o">Logout</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=n">Add a new account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=l">List all accounts</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=d">Delete an account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=m">Promote an account</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=o">Logout</a></p>
 <hr>
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
 </body>
@@ -212,10 +212,10 @@ SCOPE: {
 
 <body>
 <h2>User</h2>
-<p><a href="?a=f">I forgot my password</a></p>
-<p><a href="?a=c">I want to change my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=f">I forgot my password</a></p>
+<p><a href="$ENV{SCRIPT_NAME}?a=c">I want to change my password</a></p>
 <h2>Admin</h2>
-<form method="post" name="f" action="/cgi-bin/tinyauth">
+<form method="post" name="f" action="$ENV{SCRIPT_NAME}">
 <p>Email</p>
 <p><input type="text" name="E" size="30"></p>
 <p>Password</p>
