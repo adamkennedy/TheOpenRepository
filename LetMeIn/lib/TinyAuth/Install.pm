@@ -6,7 +6,7 @@ use base 'Module::CGI::Install';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.96';
+	$VERSION = '0.98';
 }
 
 sub prepare {
@@ -14,7 +14,6 @@ sub prepare {
 
 	# Add the files to install
 	$self->add_script('TinyAuth', 'tinyauth');
-	$self->add_class('TinyAuth');
 
 	# Hand off to the parent class
 	return $self->SUPER::prepare(@_);

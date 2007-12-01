@@ -8,7 +8,7 @@ BEGIN {
 	$VERSION = '0.98';
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use File::Spec;
 use File::Spec::Unix;
 use IPC::Run3;
@@ -23,7 +23,8 @@ use_ok( 't::lib::Test'      );
 use_ok( 't::lib::TinyAuth'  );
 use_ok( 'TinyAuth::Install' );
 
-script_compiles_ok( 'script/tinyauth' );
+script_compiles_ok( 'script/tinyauth'    );
+script_compiles_ok( 'script/tinyauth.pl' );
 
 is( $TinyAuth::VERSION, $VERSION, 'Versions match' );
 
