@@ -1,5 +1,10 @@
 Revision history for Perl extension Module::Plan::Base
 
+0.13 Thu  6 Dec 2007
+	- No functional changes, no need to upgrade
+	- Upgrading to Module::Install 0.68
+	- Updating bundled author tests
+
 0.12 Fri 17 Aug 2007
 	- Fixing support for pip http://server/path/distribution.tar.gz
 	- Added an @INC hack to allow the use with CPAN.pm older than 1.88
