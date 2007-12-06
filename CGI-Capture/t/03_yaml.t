@@ -11,9 +11,6 @@ use CGI::Capture ();
 
 # Test YAML support
 SKIP: {
-	#skip( "TERMCAP currently breaks YAML::Tiny", 6 ) if $ENV{TERMCAP};
-	$ENV{TERMCAP} = "foo\\\n\tbar";
-
 	my $cgi = CGI::Capture->new;
 	isa_ok( $cgi, 'CGI::Capture' );
 
