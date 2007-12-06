@@ -1,5 +1,11 @@
 Revision history for Perl extension CGI::Capture
 
+1.11 Thu  6 Dec 2007
+	- Updating YAML::Tiny to ensure a bug fix is
+	  made for TERMCAP strings with unprintable
+	  characters in them. This was causing a large
+	  percentage of install attempts to spuriously fail.
+
 1.10 Mon 22 Oct 2007
 	- No functional changes
 	- Upgrading to newer AUTOMATED_TESTING tests
