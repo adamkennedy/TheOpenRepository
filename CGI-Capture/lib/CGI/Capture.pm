@@ -101,7 +101,7 @@ use strict;
 use Carp       ();
 use Config     ();
 use Storable   ();
-use IO::String ();
+use IO::Scalar ();
 use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
@@ -492,7 +492,8 @@ sub _stdin {
 	my $self = shift;
 	my $scalar_ref = ref $_[0] eq 'SCALAR' ? shift
 		: die "SCALAR reference not passed to ->_stdin";
-	tie *MYSTDIN, 'IO::String', $scalar_ref;
+	tie *MYSTDIN, 'IO::Scalar', $scalar_ref;
+	tied(OUT)->seek(0,0);
 	*STDIN = *MYSTDIN;
 }
 
