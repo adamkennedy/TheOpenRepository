@@ -82,7 +82,7 @@ use Class::Inspector ();
 # Set the version
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
