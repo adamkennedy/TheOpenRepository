@@ -15,7 +15,7 @@ requires       'CPAN::Checksums' => '1.05';
 build_requires 'Test::More'      => '0.42';
 build_requires 'Test::Script'    => '1.02';
 build_requires 'File::Remove'    => ($^O eq 'MSWin32')
-	? '0.37'  # 0.36 had lots of Win32 fixes
+	? '0.38'  # 0.36 had lots of Win32 fixes
 	: '0.34'; # No need to be aggressive otherwise
 install_script 'script/cpaninject';
 
