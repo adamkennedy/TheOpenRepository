@@ -1,16 +1,21 @@
 use strict;
 use inc::Module::Install;
 
+# Because many filesystem modules are buggier
+# on Windows, we're going to push for more aggressive
+# dependencies to get the most current bug fixes.
+my $WIN32 = ($^O eq 'MSWin32' or $^O eq 'cygwin');
+
 name           'File-Flat';
 all_from       'lib/File/Flat.pm';
 requires       'Cwd'                   => 0;
 requires       'prefork'               => '0.02';
-requires       'File::Spec'            => '0.85';    # Faster and featureful
+requires       'File::Spec'            => ($WIN32 ? '3.24' : '0.85');    
 requires       'File::Copy'            => 0;
-requires       'File::Copy::Recursive' => '0.28';
-requires       'File::Slurp'           => '9999.04';
-requires       'File::Remove'          => '0.34';
-requires       'File::Temp'            => '0.14';    # Some bugs below 0.12 could matter
+requires       'File::Copy::Recursive' => '0.35';
+requires       'File::Slurp'           => '9999.10';
+requires       'File::Remove'          => '0.38';
+requires       'File::Temp'            => '0.17';   
 requires       'IO::File'              => 0;
 build_requires 'Test::More'            => '0.47';
 build_requires 'Test::ClassAPI'        => '1.04';

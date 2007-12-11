@@ -21,6 +21,17 @@ BEGIN {
 	$win32 = ($^O eq 'MSWin32') ? 1 : 0;
 }
 
+# cygwin permissions are insane, so lets treat everyone like
+# root and skip all the relevant tests.
+# we ALSO want to skip all the tests (mostly related to canExecute)
+# that fail on Win32.
+BEGIN {
+	if ( $^O eq 'cygwin' ) {
+		$root  = 1;
+		$win32 = 1;
+	}
+}
+
 use Test::More tests => 269;
 
 # Set up any needed globals
