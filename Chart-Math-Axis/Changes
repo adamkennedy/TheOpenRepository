@@ -1,5 +1,8 @@
 Revision history for Perl extension Chart::Math::Axis.
 
+1.04 Tue 11 Dec 2007
+	- Don't use the tainting flag except in the taint tests
+
 1.03 Wed 14 Nov 2007
 	- Upgrading to Module::Install 0.68
 
