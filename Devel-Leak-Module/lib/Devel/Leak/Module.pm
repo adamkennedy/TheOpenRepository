@@ -22,7 +22,7 @@ no strict 'refs';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01_02';
+	$VERSION = '0.01_03';
 }
 
 BEGIN {

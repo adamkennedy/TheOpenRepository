@@ -1,5 +1,8 @@
 Changes for Perl extension Devel-Leak-Module
 
+0.01_03 Tue 11 Dec 2007
+	- Updating bundled modules (fixed non-5.10 failures)
+
 0.01_02 Thu 20 Sep 2007
 	- Estimated too high for minimum packages in the tests
 
