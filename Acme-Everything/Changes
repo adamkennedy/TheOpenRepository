@@ -1,5 +1,10 @@
 Revision history for Perl extension Acme::Everything
 
+1.01 Tue 11 Dec 2007
+	- Bug fix in Makefile.PL
+	- Upgrading to Module::Install 0.68
+	- Upgrading bundled author tests
+
 1.00 Tue  6 Jun 2006
 	- Moved from old CVS to new SVN repository
 	- Upgraded to Module::Install 0.62

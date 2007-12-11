@@ -7,7 +7,7 @@ use 5.006;
 use strict;
 use Class::Autouse ':superloader';
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # Define our replacement load method
 sub _load {
