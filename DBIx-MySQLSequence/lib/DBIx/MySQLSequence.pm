@@ -166,7 +166,7 @@ use DBI          ();
 
 use vars qw{$VERSION $errstr $MYSQL_SEQUENCE_TABLE};
 BEGIN {
-	$VERSION              = '1.02';
+	$VERSION              = '1.04';
 
 	# Class-level error string
 	$errstr               = '';
