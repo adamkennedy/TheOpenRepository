@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl 
 
 # Compile testing for Chart::Math::Axis
 
