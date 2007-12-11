@@ -1,5 +1,10 @@
 Revision history for Perl extension Class::Handle.
 
+1.07 Tue 11 Dec 2007
+	- No functional changes
+	- Updating to Module::Install 0.68
+	- Updating bundled author test
+
 1.06 Sun  4 Jun 2006
 	- Fixed bug #18553 (resolve_filename in sub load)
 	- Moved from old CVS to new SVN repository
