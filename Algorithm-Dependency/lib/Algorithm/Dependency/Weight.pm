@@ -63,6 +63,7 @@ the situation, which is probably more important.
 
 =cut
 
+use 5.005;
 use strict;
 use List::Util            ();
 use Algorithm::Dependency ();

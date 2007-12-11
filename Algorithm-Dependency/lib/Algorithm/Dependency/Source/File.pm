@@ -51,12 +51,14 @@ L<Algorithm::Dependency::Source> methods.
 
 =cut
 
+use 5.005;
 use strict;
-use base 'Algorithm::Dependency::Source';
+use Algorithm::Dependency::Source ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.104';
+	@ISA     = 'Algorithm::Dependency::Source';
 }
 
 
@@ -83,7 +85,7 @@ sub new {
 	return undef unless -r $filename;
 
 	# Get the basic source object
-	my $self = $class->SUPER::new or return undef;
+	my $self = $class->SUPER::new() or return undef;
 
 	# Add our arguments
 	$self->{filename} = $filename;

@@ -1,5 +1,9 @@
 Revision history for Perl extension Algorithm::Dependency
 
+1.105 Tue 11 Dec 2007
+	- Make test scripts more 5.005-compatible
+	- Removing the use of base.pm for 5.006-compatibility
+
 1.104 Mon 12 Nov 2007
 	- No functional changes
 	- Updating to Module::Install 0.68

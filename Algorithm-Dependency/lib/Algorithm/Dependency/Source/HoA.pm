@@ -31,13 +31,15 @@ L<Algorithm::Dependency::Source> methods.
 
 =cut
 
+use 5.005;
 use strict;
-use base 'Algorithm::Dependency::Source';
+use Algorithm::Dependency::Source ();
 use Params::Util qw{_HASH _ARRAY0};
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.104';
+	@ISA     = 'Algorithm::Dependency::Source';
 }
 
 

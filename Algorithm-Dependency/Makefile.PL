@@ -8,7 +8,5 @@ requires        'List::Util'     => '1.11';
 build_requires  'Test::More'     => '0.47';
 build_requires  'File::Spec'     => '0.80';
 build_requires  'Test::ClassAPI' => '0.6';
-include         'Test::ClassAPI';
-include         'Class::Inspector';
 
 WriteAll;

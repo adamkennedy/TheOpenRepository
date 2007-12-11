@@ -18,6 +18,7 @@ L<Algorithm::Dependency> package.
 
 =cut
 
+use 5.005;
 use strict;
 use Algorithm::Dependency ();
 use Params::Util qw{_SET};

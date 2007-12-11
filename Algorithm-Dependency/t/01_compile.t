@@ -1,22 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Basic load and method existance tests for Algorithm::Dependency
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 11;
@@ -33,6 +22,8 @@ use_ok( 'Algorithm::Dependency::Ordered'      );
 use_ok( 'Algorithm::Dependency::Weight'       );
 use_ok( 'Algorithm::Dependency::Source::File' );
 use_ok( 'Algorithm::Dependency::Source::HoA'  );
+
+# Check for version lock
 is( $Algorithm::Dependency::VERSION,
     $Algorithm::Dependency::Ordered::VERSION,
     '$VERSION matches for ::Ordered' );
