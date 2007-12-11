@@ -1,5 +1,8 @@
 Revision history for Perl extension Image::Delivery
 
+0.14 Wed 12 Dec 2007
+	- Adding missing dependency
+
 0.13 Fri Jan  5 2007
 	- Moving from Phase N to CPAN repository
 
