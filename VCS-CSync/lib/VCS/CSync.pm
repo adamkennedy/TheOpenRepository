@@ -14,6 +14,7 @@ No specific documentation on module in the C<VCS::CSync> is available.
 
 =cut
 
+use 5.005;
 use strict;
 use Config::Tiny ();
 use Params::Util '_INSTANCE';
