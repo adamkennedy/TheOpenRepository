@@ -23,7 +23,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.207';
+	$VERSION = '2.208';
 }
 
 =pod

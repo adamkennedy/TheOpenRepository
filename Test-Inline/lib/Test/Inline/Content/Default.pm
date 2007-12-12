@@ -21,7 +21,7 @@ use Params::Util qw{_INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.207';
+	$VERSION = '2.208';
 }
 
 sub process {

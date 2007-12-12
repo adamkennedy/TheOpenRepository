@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Inline
 
+2.208 Wed 12 Dec 2007
+	- Updating to Module::Install 0.68
+	- Updating bundled tests
+
 2.207 Fri 17 Aug 2007
 	- The filenames method not correctly returns 0 when there are no file names.
 
