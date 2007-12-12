@@ -42,7 +42,7 @@ foreach my $bad ( @evil ) {
 	$VERSION = $bad;
 	my $rv = eval "use only::matching 't::lib::MyTestModule';";
 	ok( $@, 'Bad call errored' );
-	ok( $@ =~ /t::lib::MyTestModule version 0.01 does not match caller main/,
+	ok( $@ =~ /t::lib::MyTestModule version 0.02 does not match caller main/,
 		"Bad call errored with expected message" );
 	is( $LOADED, ($counter += 10), '->import was not called' );
 }
