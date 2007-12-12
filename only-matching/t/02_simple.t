@@ -10,11 +10,11 @@ BEGIN {
 
 use vars qw{$VERSION $LOADED};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	$LOADED  = 0;
 }
 
-use Test::More tests => 36;
+use Test::More tests => 33;
 
 # Test that the module matches the version for this test
 use_ok( 'only::matching', 't::lib::MyTestModule' );
@@ -37,7 +37,7 @@ ok( $@ =~ /Calling package main does not have a version/,
 is( $LOADED, 33, '->import was not called' );
 
 my $counter = 33;
-my @evil = ( '', 1, '0.010', '0.01_01', 'hi!', );
+my @evil = ( '', 1, '0.010', '0.01_01', );
 foreach my $bad ( @evil ) {
 	$VERSION = $bad;
 	my $rv = eval "use only::matching 't::lib::MyTestModule';";
