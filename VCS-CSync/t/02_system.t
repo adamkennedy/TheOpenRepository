@@ -1,25 +1,18 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl 
 
 # Test things needed on the local filesystem
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 5;
 use File::Flat;
 
 # Create the test directory containing a test file
-my $testdir  = 't.data';
+my $testdir  = catdir('t', 'data');
 my $testfile = catfile( $testdir, 'foo', 'testfile' );
 File::Flat->write( $testfile, 'This is some content' );
 END {
@@ -28,9 +21,9 @@ END {
 }
 
 # Does chmod behave the way we wan't
-is( system( "chmod -R a-w $testdir/*" ),  0, 'chmod a-w is supported' );
-is( system( "chmod -R a+rX $testdir" ), 0, 'chmod a+rX is supported' );
-is( system( "chmod -R u+w $testdir" ),  0, 'chmod u+w is supported' );
+is( system( "chmod -R a-w $testdir/*" ), 0, 'chmod a-w is supported'  );
+is( system( "chmod -R a+rX $testdir" ),  0, 'chmod a+rX is supported' );
+is( system( "chmod -R u+w $testdir" ),   0, 'chmod u+w is supported'  );
 
 # Is the CVS client new enough
 my @version = `cvs -v`;
