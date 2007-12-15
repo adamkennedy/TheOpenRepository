@@ -42,13 +42,11 @@ sub paths {
 	# Prepare the test directories
 	my $output_dir   = remake_path( "C:\\tmp\\sp\\output"   );
 	my $image_dir    = remake_path( "C:\\tmp\\sp\\image"    );
-	my $source_dir   = remake_path( "C:\\tmp\\sp\\source"   );
 	my $download_dir =   make_path( "C:\\tmp\\sp\\download" );
 	my $build_dir    = remake_path( "C:\\tmp\\sp\\build"    );
 	return (
 		output_dir   => $output_dir,
 		image_dir    => $image_dir,
-		source_dir   => $source_dir,
 		download_dir => $download_dir,
 		build_dir    => $build_dir,
 	);

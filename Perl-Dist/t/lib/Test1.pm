@@ -1,7 +1,7 @@
 package t::lib::Test1;
 
 use strict;
-use base 'Perl::Dist';
+use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {

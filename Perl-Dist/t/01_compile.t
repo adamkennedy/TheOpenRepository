@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 use Test::Script;
 
 use_ok( 'Perl::Dist'                 );
@@ -20,5 +20,6 @@ use_ok( 'Perl::Dist::Asset::Binary'  );
 use_ok( 'Perl::Dist::Asset::Perl'    );
 use_ok( 'Perl::Dist::Asset::Module'  );
 use_ok( 'Perl::Dist::Asset::File'    );
+use_ok( 'Perl::Dist::Vanilla'        );
 
 script_compiles_ok( 'script/perldist' );
