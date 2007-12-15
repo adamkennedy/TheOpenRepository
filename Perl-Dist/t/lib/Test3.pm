@@ -27,6 +27,23 @@ sub output_base_filename { 'test-perl-5.10.0-alpha-1' }
 
 
 #####################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	my $self  = $class->SUPER::new(@_);
+
+	# Add links
+	
+
+	return $self;
+}
+
+
+
+
+
+#####################################################################
 # Main Methods
 
 sub run {
@@ -52,6 +69,9 @@ sub run {
 		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
 	);
 
+	# Generate the exe file
+	my $output = $self->write_exe;
+	print "Generated $output\n";
 	return 1;
 }
 

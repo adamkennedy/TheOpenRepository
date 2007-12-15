@@ -7,6 +7,7 @@ use Archive::Tar          ();
 use Archive::Zip          ();
 use File::Spec            ();
 use File::Spec::Unix      ();
+use File::Spec::Win32     ();
 use File::Copy            ();
 use File::Copy::Recursive ();
 use File::Path            ();
@@ -200,10 +201,18 @@ sub new {
 		$self->{stderr} = \undef;
 	}
 
-	# Inno-Setup Information
+	# Inno-Setup Initialization
 	$self->{env_path}    = [];
 	$self->{env_lib}     = [];
 	$self->{env_include} = [];
+	$self->add_dir('c');
+	$self->add_dir('perl');
+	$self->add_dir('licenses');
+	$self->add_uninstall;
+	$self->add_icon(
+		name     => 'Perl Documentation',
+		filename => 'perl\bin\perldoc',
+	);
 
         return $self;
 }
@@ -214,6 +223,16 @@ sub new {
 
 #####################################################################
 # Adding Inno-Setup Information
+
+sub add_icon {
+	my $self   = shift;
+	my %params = @_;
+	$params{name}     = "{group}\\$params{name}";
+	unless ( $params{filename} =~ /^\{/ ) {
+		$params{filename} = "{app}\\$params{filename}";
+	}
+	$self->SUPER::add_icon(%params);
+}
 
 sub add_env_path {
 	my $self = shift;
@@ -676,7 +695,7 @@ sub install_perl_5100 {
 	# Install the main binary
 	$self->install_perl_5100_bin(
 		name       => 'perl',
-		url        => 'file://c|/devel/minicpan/authors/id/R/RG/RGARCIA/perl-5.10.0-RC1.tar.gz',
+		url        => 'file://c|/devel/minicpan/authors/id/R/RG/RGARCIA/perl-5.10.0-RC2.tar.gz',
 		unpack_to  => 'perl',
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
@@ -684,7 +703,7 @@ sub install_perl_5100 {
 			'perl-5.10.0/Copying'  => 'perl/Copying',
 		},
 		install_to => 'perl',
-		# force      => 1,
+		force      => 1,
 	);
 
 	# Install the toolchain
@@ -801,8 +820,6 @@ sub install_perl_5100_bin {
 
 sub install_perl_5100_toolchain {
 	my $self = shift;
-
-
 
 	return 1;
 }
@@ -1152,6 +1169,41 @@ sub install_file {
 
 #####################################################################
 # Package Generation
+
+sub write_exe {
+	my $self = shift;
+
+	# Convert the environment to registry entries
+	if ( @{$self->{env_path}} ) {
+		my $value = "{olddata}";
+		foreach my $array ( @{$self->{env_path}} ) {
+			$value .= File::Spec::Win32->catdir(
+				';{app}', @$array,
+			);
+		}
+		$self->add_env( PATH => $value );
+	}
+	if ( @{$self->{env_lib}} ) {
+		my $value = "{olddata}";
+		foreach my $array ( @{$self->{env_lib}} ) {
+			$value .= File::Spec::Win32->catdir(
+				';{app}', @$array,
+			);
+		}
+		$self->add_env( LIB => $value );
+	}
+	if ( @{$self->{env_include}} ) {
+		my $value = "{olddata}";
+		foreach my $array ( @{$self->{env_include}} ) {
+			$value .= File::Spec::Win32->catdir(
+				';{app}', @$array,
+			);
+		}
+		$self->add_env( INCLUDE => $value );
+	}
+
+	$self->SUPER::write_exe(@_);
+}
 
 sub write_iss {
 	my $self = shift;

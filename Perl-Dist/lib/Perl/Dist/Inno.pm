@@ -2,6 +2,9 @@ package Perl::Dist::Inno;
 
 use strict;
 use Carp                       qw{ croak   };
+use File::Spec                 ();
+use File::Temp                 ();
+use IPC::Run3                  ();
 use Params::Util               qw{ _STRING };
 use Perl::Dist::Inno::File     ();
 use Perl::Dist::Inno::Icon     ();
@@ -23,6 +26,7 @@ use Object::Tiny qw{
 	output_dir
 	output_base_filename
 	source_dir
+	bin_compil32
 };
 
 sub new {
@@ -84,6 +88,20 @@ sub new {
 	$self->{icons}    = [];
 	$self->{registry} = [];
 
+	# Find the compil32 program
+	unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
+		die("Failed to find the Program Files directory\n");
+	}
+	my $innosetup_dir  = File::Spec->catdir( $ENV{PROGRAMFILES}, "Inno Setup 5" );
+	my $innosetup_file = File::Spec->catfile( $innosetup_dir, 'Compil32.exe' );
+	unless ( -f $innosetup_file ) {
+		die("Failed to find the Inno Setup Compil32.exe program");
+	}
+	$self->{bin_compil32} = $innosetup_file;
+
+	# Prepopulate some common values
+	$self->add_env( TERM => 'dumb' );
+
 	return $self;
 }
 
@@ -104,6 +122,42 @@ sub registry {
 
 
 #####################################################################
+# Main Methods
+
+sub write_exe {
+	my $self = shift;
+
+	# Write out the .iss file
+	my $content         = $self->as_string;
+	my ($fh, $filename) = File::Temp::tempfile();
+	$fh->print( $content );
+	$fh->close;
+
+	# Compile the .iss file
+	my $cmd = [
+		$self->bin_compil32,
+		'/cc',
+		$filename,
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
+
+	# Return the name of the exe file generated
+	my $output_exe = File::Spec->catfile(
+		$self->output_dir,
+		$self->output_base_filename . '.exe',
+	);
+	unless ( -f $output_exe ) {
+		croak("Failed to find $output_exe");
+	}
+
+	return $output_exe;
+}
+
+
+
+
+
+#####################################################################
 # Manipulation Methods
 
 sub add_file {
@@ -113,10 +167,43 @@ sub add_file {
 	return 1;
 }
 
+sub add_dir {
+	my $self = shift;
+	my $name = shift;
+	$self->add_file(
+		source   => "$name\\*",
+		dest_dir => "{app}\\$name",
+		recurse_subdirs    => 1,
+		create_all_subdirs => 1,
+	);
+	return 1;
+}
+
 sub add_icon {
 	my $self = shift;
 	my $icon = Perl::Dist::Inno::Icon->new(@_);
 	push @{$self->{icons}}, $icon;
+	return 1;
+}
+
+sub add_uninstall {
+	my $self = shift;
+	my $name = $self->app_name;
+	$self->add_icon(
+		name     => "{cm:UninstallProgram,$name}",
+		filename => '{uninstallexe}',
+	);
+	return 1;
+}
+
+sub add_url {
+	my $self = shift;
+	my $name = shift;
+	my $url  = shift;
+	$self->add_icon(
+		name     => '',
+		filename =>
+	);
 	return 1;
 }
 
@@ -165,14 +252,14 @@ sub as_string {
 		'',
 		'; Installation Path (This is always hard-coded)',
 		'DefaultDirName='     . $self->default_dir_name,
-		'DisableDirPath='     . 'yes',
+		'DisableDirPage='     . 'yes',
 		'',
 		'; Where the output goes',
 		'OutputDir='          . $self->output_dir,
 		'OutputBaseFilename=' . $self->output_base_filename,
 		'',
 		'; Source location',
-		'SourceDir='          . $self->source_dir,
+		'SourceDir='          . $self->image_dir,
 		'',
 		'; Win2K or newer required',
 		'MinVersion='         . '4.0.950,4.0.1381',
