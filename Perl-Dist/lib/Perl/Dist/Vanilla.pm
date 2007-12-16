@@ -6,7 +6,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 10;
+	$VERSION = 11;
 }
 
 
@@ -16,12 +16,12 @@ BEGIN {
 #####################################################################
 # Configuration
 
-sub app_name             { 'Vanilla Perl'                 }
-sub app_ver_name         { 'Vanilla Perl 5.10.0 Build 10' }
-sub app_publisher        { 'Vanilla Perl Project'         }
-sub app_publisher_url    { 'http://vanillaperl.org/'      }
-sub app_id               { 'vanillaperl'                  }
-sub output_base_filename { 'vanilla-perl-5.10.0-build-10' }
+sub app_name             { 'Vanilla Perl'                       }
+sub app_ver_name         { "Vanilla Perl 5.10.0 Build $VERSION" }
+sub app_publisher        { 'Vanilla Perl Project'               }
+sub app_publisher_url    { 'http://vanillaperl.org/'            }
+sub app_id               { 'vanillaperl'                        }
+sub output_base_filename { "vanilla-perl-5.10.0-build-$VERSION" }
 
 # Apply some default paths
 sub new {
