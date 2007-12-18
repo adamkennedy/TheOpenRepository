@@ -137,15 +137,6 @@ sub install_perl_modules {
 		name => 'CPAN::SQLite',
 	);
 
-	# Install the same Perl::Dist modules used to build
-	# this distribution.
-	$self->install_module(
-		name => 'Perl::Dist::Downloads',
-	);
-	$self->install_module(
-		name => 'Perl::Dist',
-	);
-
 	return 1;
 }
 
