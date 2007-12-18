@@ -1,7 +1,13 @@
 Revision history for Perl module Perl::Dist
 
-0.31 Mon 19 Nov 2007
+0.50 Mon 19 Nov 2007
+	- Merging in Perl::Dist::Vanilla
+	- Merging in Perl::Dist::Bootstrap
+	- Added Perl::Dist::Util::Toolchain
+	- Dynamically generate the distribution list
+	- Clean up the shared files
 	- Bug fixing and repairing perldist
+	- Completed generation of exe releases
 
 0.30 Sun 18 Nov 2007
 	- Adding support for zlib

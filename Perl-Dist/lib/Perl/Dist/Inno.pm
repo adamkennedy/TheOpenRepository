@@ -25,7 +25,7 @@ use base 'Perl::Dist::Inno::Script';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.31';
+        $VERSION = '0.50';
 }
 
 use Object::Tiny qw{
@@ -46,6 +46,8 @@ use Object::Tiny qw{
 	env_path
 	env_lib
 	env_include
+	debug_stdout
+	debug_stderr
 };
 
 use Perl::Dist::Inno                ();
@@ -56,6 +58,7 @@ use Perl::Dist::Asset::Perl         ();
 use Perl::Dist::Asset::Distribution ();
 use Perl::Dist::Asset::Module       ();
 use Perl::Dist::Asset::File         ();
+use Perl::Dist::Util::Toolchain     ();
 
 
 
@@ -108,6 +111,18 @@ sub new {
 	}
 	unless ( defined $self->{trace} ) {
 		$self->{trace} = 1;
+	}
+	unless ( defined $self->debug_stdout ) {
+		$self->{debug_stdout} = File::Spec->catfile(
+			$self->output_dir,
+			'debug.out',
+		);
+	}
+	unless ( defined $self->debug_stderr ) {
+		$self->{debug_stderr} = File::Spec->catfile(
+			$self->output_dir,
+			'debug.err',
+		);
 	}
 
 	# Auto-detect online-ness if needed
@@ -488,9 +503,9 @@ sub install_perl_588 {
 		dist       => 'NWCLARK/perl-5.8.8.tar.gz',
 		unpack_to  => 'perl',
 		patch      => {
-			'Install.pm'   => 'lib\ExtUtils\Install.pm',
-			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
-			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
+			'ExtUtils_Install588.pm'   => 'lib\ExtUtils\Install.pm',
+			'ExtUtils_Installed588.pm' => 'lib\ExtUtils\Installed.pm',
+			'ExtUtils_Packlist588.pm'  => 'lib\ExtUtils\Packlist.pm',
 		},
 		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
@@ -605,54 +620,67 @@ sub install_perl_588_bin {
 	return 1;
 }
 
+# Resolve the distribution list at startup time
+my $toolchain = Perl::Dist::Util::Toolchain->new( qw{
+	ExtUtils::MakeMaker
+	File::Path
+	ExtUtils::Command
+	Win32API::File
+	ExtUtils::Install
+	ExtUtils::Manifest
+	Test::Harness
+	Test::Simple
+	ExtUtils::CBuilder
+	ExtUtils::ParseXS
+	version
+	Scalar::Util
+	IO::Compress::Base
+	Compress::Raw::Zlib
+	Compress::Raw::Bzip2
+	IO::Compress::Zip
+	IO::Compress::Bzip2
+	Compress::Zlib
+	Compress::Bzip2
+	IO::Zlib
+	File::Spec
+	File::Temp
+	Win32API::Registry
+	Win32::TieRegistry
+	File::HomeDir
+	File::Which
+	Archive::Zip
+	Archive::Tar
+	YAML
+	Net::FTP
+	Digest::MD5
+	Digest::SHA1
+	Digest::SHA
+	Module::Build
+	Term::Cap
+	CPAN
+	Term::ReadLine::Perl
+} );
+
+# Get the regular Perl to generate the list.
+# Run it in a separate process so we don't hold
+# any permanent CPAN.pm locks (for now).
+$toolchain->delegate;
+if ( $toolchain->{errstr} ) {
+	die "Failed to generate toolchain distributions";
+}
+
 sub install_perl_588_toolchain {
 	my $self = shift;
 
-	my @dists = qw{
-		MSCHWERN/ExtUtils-MakeMaker-6.36.tar.gz
-		DLAND/File-Path-2.03.tar.gz
-		RKOBES/ExtUtils-Command-1.13.tar.gz
-		YVES/Win32API-File-0.1001.tar.gz
-		MSCHWERN/ExtUtils-Install-1.44.tar.gz
-		RKOBES/ExtUtils-Manifest-1.51.tar.gz
-		ANDYA/Test-Harness-3.02.tar.gz
-		MSCHWERN/Test-Simple-0.72.tar.gz
-		KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz
-		KWILLIAMS/ExtUtils-ParseXS-2.18.tar.gz
-		JPEACOCK/version-0.74.tar.gz
-		GBARR/Scalar-List-Utils-1.19.tar.gz
-		PMQS/IO-Compress-Base-2.008.tar.gz
-		PMQS/Compress-Raw-Zlib-2.008.tar.gz
-		PMQS/Compress-Raw-Bzip2-2.008.tar.gz
-		PMQS/IO-Compress-Zlib-2.008.tar.gz
-		PMQS/IO-Compress-Bzip2-2.008.tar.gz
-		PMQS/Compress-Zlib-2.008.tar.gz
-		ARJAY/Compress-Bzip2-2.09.tar.gz
-		TOMHUGHES/IO-Zlib-1.07.tar.gz
-		KWILLIAMS/PathTools-3.25.tar.gz
-		TJENNESS/File-Temp-0.18.tar.gz
-		BLM/Win32API-Registry-0.28.tar.gz
-		ADAMK/Win32-TieRegistry-0.25.zip
-		ADAMK/File-HomeDir-0.66.tar.gz
-		PEREINAR/File-Which-0.05.tar.gz
-		ADAMK/Archive-Zip-1.23.tar.gz
-		KANE/Archive-Tar-1.36.tar.gz
-		INGY/YAML-0.66.tar.gz
-		GBARR/libnet-1.22.tar.gz
-		GAAS/Digest-MD5-2.36.tar.gz
-		GAAS/Digest-SHA1-2.11.tar.gz
-		MSHELOR/Digest-SHA-5.45.tar.gz
-		KWILLIAMS/Module-Build-0.2808.tar.gz
-		JSTOWE/Term-Cap-1.11.tar.gz
-		ANDK/CPAN-1.9205.tar.gz
-		ILYAZ/modules/Term-ReadLine-Perl-1.0302.tar.gz
-	};
-
-	foreach my $dist ( @dists ) {
+	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $force             = 0;
 		my $automated_testing = 0;
 		if ( $dist =~ /Scalar-List-Util/ ) {
 			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /File-Temp/ ) {
+			# Lock tests break
 			$force = 1;
 		}
 		if ( $dist =~ /Term-ReadLine-Perl/ ) {
@@ -670,7 +698,7 @@ sub install_perl_588_toolchain {
 	# With the toolchain we need in place, install the default
 	# configuation.
 	$self->install_file(
-		share      => 'Perl-Dist-Bootstrap CPAN_Config.pm',
+		share      => 'Perl-Dist CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
@@ -1052,7 +1080,7 @@ sub install_distribution {
 		# Enable automated_testing mode if needed
 		# Blame Term::ReadLine::Perl for needing this ugly hack.
 		if ( $dist->automated_testing ) {
-			$self->trace("Installing with AUTOMATED_TESTING enabled");
+			$self->trace("Installing with AUTOMATED_TESTING enabled...\n");
 		}
 		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing ? 1 : '';
 
@@ -1097,8 +1125,9 @@ if ( \$module->uptodate ) {
 	print "$name is up to date\n";
 	exit(0);
 }
-print "\$ENV{LIB}     = '$ENV{LIB}'\n";
-print "\$ENV{INCLUDE} = '$ENV{INCLUDE}'\n";
+print "\\\$ENV{PATH}    = '\$ENV{PATH}'\n";
+print "\\\$ENV{LIB}     = '\$ENV{LIB}'\n";
+print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'\n";
 if ( $force ) {
 	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 	\$module->force("install");
@@ -1119,16 +1148,8 @@ END_PERL
 
 	# Execute the CPAN installation script
 	$self->trace("Running install of $name\n");
-	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = $self->get_env_include;
-	local $ENV{LIB}      = $self->get_env_lib;
-	local $ENV{PATH}     = $self->get_env_path . ';' . $ENV{PATH};
-	IPC::Run3::run3(
-		[ $self->bin_perl, "-MCPAN", "-e", $cpan_str ],
-		\undef,
-		'c:\param.out',
-		'c:\param.err',
-	) or die "perl -MCPAN -e failed";
+	$self->_run3( $self->bin_perl, "-MCPAN", "-e", $cpan_str )
+		or die "perl -MCPAN -e failed";
 	die "Failure detected installing $name, stopping" if $?;
 
 	return 1;
@@ -1297,16 +1318,7 @@ sub _make {
 	my $self   = shift;
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_make, @params) . "\n");
-	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = $self->get_env_include;
-	local $ENV{LIB}      = $self->get_env_lib;
-	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
-	IPC::Run3::run3(
-		[ $self->bin_make, @params ],
-		\undef,
-		\undef,
-		\undef,
-	) or die "make failed";
+	$self->_run3( $self->bin_make, @params ) or die "make failed";
 	die "make failed (OS error)" if ( $? >> 8 );
 	return 1;
 }
@@ -1315,18 +1327,22 @@ sub _perl {
 	my $self   = shift;
 	my @params = @_;
 	$self->trace(join(' ', '>', $self->bin_perl, @params) . "\n");
+	$self->_run3( $self->bin_perl, @params ) or die "perl failed";
+	die "perl failed (OS error)" if ( $? >> 8 );
+	return 1;
+}
+
+sub _run3 {
+	my $self = shift;
 	local $ENV{PERL5LIB} = '';
 	local $ENV{INCLUDE}  = $self->get_env_include;
 	local $ENV{LIB}      = $self->get_env_lib;
-	local $ENV{PATH}     = $self->env_path . ';' . $ENV{PATH};
-	IPC::Run3::run3(
-		[ $self->bin_perl, @params ],
+	local $ENV{PATH}     = $self->get_env_path . ';' . $ENV{PATH};
+	return IPC::Run3::run3( [ @_ ],
 		\undef,
-		\undef,
-		\undef,
-	) or die "perl failed";
-	die "perl failed (OS error)" if ( $? >> 8 );
-	return 1;
+		$self->debug_stdout,
+		$self->debug_stderr,
+	);
 }
 
 sub _extract {

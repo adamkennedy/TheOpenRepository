@@ -6,7 +6,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = 11;
+	$VERSION = '11';
 }
 
 
@@ -16,12 +16,12 @@ BEGIN {
 #####################################################################
 # Configuration
 
-sub app_name             { 'Vanilla Perl'                       }
-sub app_ver_name         { "Vanilla Perl 5.10.0 Build $VERSION" }
-sub app_publisher        { 'Vanilla Perl Project'               }
-sub app_publisher_url    { 'http://vanillaperl.org/'            }
-sub app_id               { 'vanillaperl'                        }
-sub output_base_filename { "vanilla-perl-5.10.0-build-$VERSION" }
+sub app_name             { 'Vanilla Perl'                           }
+sub app_ver_name         { "Vanilla Perl 5.10.0 RC2 Build $VERSION" }
+sub app_publisher        { 'Vanilla Perl Project'                   }
+sub app_publisher_url    { 'http://vanillaperl.org/'                }
+sub app_id               { 'vanillaperl'                            }
+sub output_base_filename { "vanilla-perl-5.10.0-rc2-build-$VERSION" }
 
 # Apply some default paths
 sub new {
@@ -62,6 +62,19 @@ sub run {
 
 	# Finished
 	$self->trace("Distribution exe file created as $exe\n");
+	return 1;
+}
+
+sub install_perl_5110 {
+	my $self = shift;
+	$self->SUPER::install_perl(@_);
+
+	# Install the vanilla CPAN::Config
+	$self->install_file(
+		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
+	);
+
 	return 1;
 }
 
