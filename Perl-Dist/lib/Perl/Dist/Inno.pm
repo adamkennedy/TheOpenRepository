@@ -220,6 +220,10 @@ sub new {
 		filename => 'perl\bin\perldoc',
 	);
 
+	# Set some common environment variables
+	$self->add_env( TERM        => 'dumb' );
+	$self->add_env( FTP_PASSIVE => 1      );
+
         return $self;
 }
 

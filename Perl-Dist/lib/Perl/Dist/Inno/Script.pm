@@ -99,9 +99,6 @@ sub new {
 	}
 	$self->{bin_compil32} = $innosetup_file;
 
-	# Prepopulate some common values
-	$self->add_env( TERM => 'dumb' );
-
 	return $self;
 }
 
