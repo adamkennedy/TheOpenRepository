@@ -2,6 +2,8 @@ package Perl::Dist::Util::Toolchain;
 
 use 5.005;
 use strict;
+use IO::Capture::Stdout ();
+use IO::Capture::Stderr ();
 use base 'Process::Delegatable',
          'Process::Storable',
          'Process';
@@ -45,6 +47,12 @@ sub prepare {
 sub run {
 	my $self = shift;
 
+	# Squash all output that CPAN might spew during this process
+	my $stdout = IO::Capture::Stdout->new;
+	my $stderr = IO::Capture::Stderr->new;
+	$stdout->start;
+	$stderr->start;
+	
 	# Find the module
 	my %seen = ();
 	foreach my $name ( @{$self->{modules}} ) {
@@ -61,6 +69,10 @@ sub run {
 
 		push @{$self->{dists}}, $file;
 	}
+
+	# Free up stdout/stderr for normal output again
+	$stdout->stop;
+	$stderr->stop;
 
 	return 1;
 }

@@ -25,6 +25,7 @@ requires       'Perl::Dist::Downloads' => '0.05';
 requires       'Process'               => '0.20';
 requires       'Process::Storable'     => 0;
 requires       'Process::Delegatable'  => 0;
+requires       'IO::Capture'           => '0.05';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::Script'          => '1.02';
 build_requires 'Test::LongString'      => 0;
