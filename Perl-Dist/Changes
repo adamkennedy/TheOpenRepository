@@ -3,6 +3,8 @@ Revision history for Perl module Perl::Dist
 0.51 Wed 19 Dec 2007
 	- Hard-code in the path to Perl 5.10.0 final
 	- Move default environment vars from ::Script to ::Inno
+	- Add share to no_index to prevent 5.8.8 overwritten
+	  modules being listed on search.cpan.org
 
 0.50 Wed 19 Dec 2007
 	- Merging in Perl::Dist::Vanilla
