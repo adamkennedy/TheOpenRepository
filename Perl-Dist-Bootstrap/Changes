@@ -1,5 +1,0 @@
-Revision history for Bootstrap Perl
-
-0.01 Sat 27 Oct 2006
-	- Cloned Strawberry Perl to create initial version
-	- Ported to use the new Perl::Dist style
