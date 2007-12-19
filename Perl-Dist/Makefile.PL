@@ -31,6 +31,7 @@ build_requires 'Test::Script'          => '1.02';
 build_requires 'Test::LongString'      => 0;
 install_script 'script/perldist';
 install_share;
+no_index( directory => 'share' );
 
 WriteAll;
 
