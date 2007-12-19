@@ -8,9 +8,10 @@ use base 'Process::Delegatable',
          'Process::Storable',
          'Process';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @DELEGATE};
 BEGIN {
-	$VERSION = '0.50';
+	$VERSION  = '0.50';
+	@DELEGATE = ();
 }
 
 
@@ -31,6 +32,12 @@ sub new {
 sub prepare {
 	my $self = shift;
 
+	# Squash all output that CPAN might spew during this process
+	my $stdout = IO::Capture::Stdout->new;
+	my $stderr = IO::Capture::Stderr->new;
+	$stdout->start;
+	$stderr->start;
+
 	# Load the CPAN client
 	require CPAN;
 	CPAN->import();
@@ -41,6 +48,8 @@ sub prepare {
 		CPAN::Index->reload;
 	}
 
+	$stdout->stop;
+	$stderr->stop;
 	return 1;
 }
 
@@ -77,4 +86,9 @@ sub run {
 	return 1;
 }
 
+sub delegate {
+	return shift->SUPER::delegate( @DELEGATE );
+}
+
 1;
+

@@ -7,7 +7,13 @@ BEGIN {
 }
 
 use Test::More tests => 7;
+use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
+
+@Perl::Dist::Util::Toolchain::DELEGATE = (
+	'perl',
+	'-I' . File::Spec->catdir('blib', 'lib'),
+);
 
 
 
