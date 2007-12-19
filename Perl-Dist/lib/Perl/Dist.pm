@@ -1,6 +1,6 @@
 package Perl::Dist;
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'Perl::Dist::Inno';
 
