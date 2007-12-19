@@ -51,10 +51,10 @@ is( $inno->output_base_filename => 'strawberry-perl-5.8.8-alpha-3', '->output_ba
 is( $inno->source_dir           => "C:\\" );
 is( scalar($inno->files), 0,    '->files ok'    );
 is( scalar($inno->icons), 0,    '->icons ok'    );
-is( scalar($inno->registry), 1, '->registry ok' );
+is( scalar($inno->registry), 0, '->registry ok' );
 is_deeply( [ $inno->files ],    [], '->files ok'    );
 is_deeply( [ $inno->icons ],    [], '->icons ok'    );
-isa_ok( ($inno->registry)[0], 'Perl::Dist::Inno::Registry' );
+is_deeply( [ $inno->registry ], [], '->registry ok' );
 
 # Add a file
 is( $inno->add_file(
@@ -120,5 +120,4 @@ Source: dmake\*; DestDir: {app}\dmake; Flags: ignoreversion recursesubdirs creat
 Name: {group}\{cm:UninstallProgram,Strawberry Perl}; Filename: {uninstallexe}
 
 [Registry]
-Root: HKLM; Subkey: SYSTEM\CurrentControlSet\Control\Session Manager\Environment; ValueType: expandsz; ValueName: TERM; ValueData: "dumb"
 END_ISS

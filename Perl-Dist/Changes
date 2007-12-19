@@ -1,6 +1,10 @@
 Revision history for Perl module Perl::Dist
 
-0.50 Mon 19 Nov 2007
+0.51 Wed 19 Dec 2007
+	- Hard-code in the path to Perl 5.10.0 final
+	- Move default environment vars from ::Script to ::Inno
+
+0.50 Wed 19 Dec 2007
 	- Merging in Perl::Dist::Vanilla
 	- Merging in Perl::Dist::Bootstrap
 	- Added Perl::Dist::Util::Toolchain
