@@ -54,7 +54,7 @@ sub run {
 	$self->install_perl_5100;
 	$self->trace("Complete install_perl_5110 in " . (time - $t2) . " seconds\n");
 
-	# Write out the zip
+	# Write out the exe
 	my $t3  = time;
 	$self->remove_waste;
 	my $exe = $self->write_exe;

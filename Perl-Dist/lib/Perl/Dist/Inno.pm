@@ -101,6 +101,12 @@ sub new {
 			File::Path::mkpath($params{output_dir});
 		}
 	}
+	if ( defined $params{image_dir} ) {
+		if ( -d $params{image_dir} ) {
+			File::Remove::remove( \1, $params{image_dir} );
+		}
+		File::Path::mkpath($params{image_dir});
+	}
 
 	# Hand off to the parent class
 	my $self = $class->SUPER::new(%params);
@@ -625,7 +631,7 @@ sub install_perl_588_bin {
 }
 
 # Resolve the distribution list at startup time
-my $toolchain = Perl::Dist::Util::Toolchain->new( qw{
+my $toolchain588 = Perl::Dist::Util::Toolchain->new( qw{
 	ExtUtils::MakeMaker
 	File::Path
 	ExtUtils::Command
@@ -668,15 +674,15 @@ my $toolchain = Perl::Dist::Util::Toolchain->new( qw{
 # Get the regular Perl to generate the list.
 # Run it in a separate process so we don't hold
 # any permanent CPAN.pm locks (for now).
-$toolchain->delegate;
-if ( $toolchain->{errstr} ) {
+$toolchain588->delegate;
+if ( $toolchain588->{errstr} ) {
 	die "Failed to generate toolchain distributions";
 }
 
 sub install_perl_588_toolchain {
 	my $self = shift;
 
-	foreach my $dist ( @{$toolchain->{dists}} ) {
+	foreach my $dist ( @{$toolchain588->{dists}} ) {
 		my $force             = 0;
 		my $automated_testing = 0;
 		if ( $dist =~ /Scalar-List-Util/ ) {
