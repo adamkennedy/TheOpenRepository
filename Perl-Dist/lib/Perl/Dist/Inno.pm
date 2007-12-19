@@ -25,7 +25,7 @@ use base 'Perl::Dist::Inno::Script';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.50';
+        $VERSION = '0.51';
 }
 
 use Object::Tiny qw{
@@ -722,7 +722,7 @@ sub install_perl_5100 {
 	# Install the main binary
 	$self->install_perl_5100_bin(
 		name       => 'perl',
-		dist       => 'RGARCIA/perl-5.10.0-RC2.tar.gz',
+                dist       => 'RGARCIA/perl-5.10.0.tar.gz',
 		unpack_to  => 'perl',
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
