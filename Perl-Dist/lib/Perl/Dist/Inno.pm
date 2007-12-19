@@ -722,7 +722,7 @@ sub install_perl_5100 {
 	# Install the main binary
 	$self->install_perl_5100_bin(
 		name       => 'perl',
-		url        => 'file://c|/devel/minicpan/authors/id/R/RG/RGARCIA/perl-5.10.0-RC2.tar.gz',
+		dist       => 'RGARCIA/perl-5.10.0-RC2.tar.gz',
 		unpack_to  => 'perl',
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
