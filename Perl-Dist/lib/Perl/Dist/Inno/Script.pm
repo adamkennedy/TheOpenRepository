@@ -254,6 +254,7 @@ sub as_string {
 		'; Where the output goes',
 		'OutputDir='          . $self->output_dir,
 		'OutputBaseFilename=' . $self->output_base_filename,
+		'UsePreviousAppDir='  . 'no',
 		'',
 		'; Source location',
 		'SourceDir='          . $self->source_dir,
