@@ -1,5 +1,9 @@
 Revision history for Perl module Perl::Dist
 
+0.52 Thu 20 Dec 2007
+        - Adding an additional install flag to prevent
+          installation to the old directory.
+
 0.51 Wed 19 Dec 2007
 	- Hard-code in the path to Perl 5.10.0 final
 	- Move default environment vars from ::Script to ::Inno

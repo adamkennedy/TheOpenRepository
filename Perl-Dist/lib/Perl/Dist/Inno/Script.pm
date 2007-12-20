@@ -12,7 +12,7 @@ use Perl::Dist::Inno::Registry ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.51';
+	$VERSION = '0.52';
 }
 
 use Object::Tiny qw{
