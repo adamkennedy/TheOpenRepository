@@ -12,7 +12,7 @@ use Perl::Dist::Inno::Registry ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.52';
+	$VERSION = '0.53';
 }
 
 use Object::Tiny qw{
@@ -68,7 +68,7 @@ sub new {
 		croak("Missing or invalid output_dir param");
 	}
 	unless ( -d $self->output_dir ) {
-		croak("The output_dir directory does not exist");
+		croak("The output_dir " . $self->output_dir . "directory does not exist");
 	}
 	unless ( -w $self->output_dir ) {
 		croak("The output_dir directory is not writable");

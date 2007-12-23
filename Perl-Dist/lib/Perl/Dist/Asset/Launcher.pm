@@ -1,13 +1,8 @@
-package Perl::Dist::Asset::File;
-
-# The simplest asset, a File asset pulls a simple file
-# from an arbitrary location/URI and copies it into the
-# build.
+package Perl::Dist::Asset::Launcher;
 
 use strict;
-use Carp         'croak';
+use Carp 'croak';
 use Params::Util qw{ _STRING };
-use base 'Perl::Dist::Asset';
 
 use vars qw{$VERSION};
 BEGIN {
@@ -15,7 +10,8 @@ BEGIN {
 }
 
 use Object::Tiny qw{
-	install_to
+	name
+	bin
 };
 
 
@@ -29,8 +25,11 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Check params
-	unless ( _STRING($self->install_to) ) {
-		croak("Missing or invalid install_to param");
+	unless ( _STRING($self->name) ) {
+		croak("Did not provide a name");
+	}
+	unless ( _STRING($self->bin) ) {
+		croak("Did not provide a URL");
 	}
 
 	return $self;

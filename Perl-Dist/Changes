@@ -1,5 +1,8 @@
 Revision history for Perl module Perl::Dist
 
+0.53 Sun 24 Dec 2007
+	- Adding support for websites in the start menu entries
+
 0.52 Thu 20 Dec 2007
         - Adding an additional install flag to prevent
           installation to the old directory.

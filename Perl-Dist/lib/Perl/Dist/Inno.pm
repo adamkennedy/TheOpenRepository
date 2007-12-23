@@ -25,7 +25,7 @@ use base 'Perl::Dist::Inno::Script';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.52';
+        $VERSION = '0.53';
 }
 
 use Object::Tiny qw{
@@ -58,7 +58,10 @@ use Perl::Dist::Asset::Perl         ();
 use Perl::Dist::Asset::Distribution ();
 use Perl::Dist::Asset::Module       ();
 use Perl::Dist::Asset::File         ();
+use Perl::Dist::Asset::Website      ();
+use Perl::Dist::Asset::Launcher     ();
 use Perl::Dist::Util::Toolchain     ();
+
 
 
 
@@ -221,10 +224,6 @@ sub new {
 	$self->add_dir('perl');
 	$self->add_dir('licenses');
 	$self->add_uninstall;
-	$self->add_icon(
-		name     => 'Perl Documentation',
-		filename => 'perl\bin\perldoc',
-	);
 
 	# Set some common environment variables
 	$self->add_env( TERM        => 'dumb' );
@@ -630,59 +629,66 @@ sub install_perl_588_bin {
 	return 1;
 }
 
-# Resolve the distribution list at startup time
-my $toolchain588 = Perl::Dist::Util::Toolchain->new( qw{
-	ExtUtils::MakeMaker
-	File::Path
-	ExtUtils::Command
-	Win32API::File
-	ExtUtils::Install
-	ExtUtils::Manifest
-	Test::Harness
-	Test::Simple
-	ExtUtils::CBuilder
-	ExtUtils::ParseXS
-	version
-	Scalar::Util
-	IO::Compress::Base
-	Compress::Raw::Zlib
-	Compress::Raw::Bzip2
-	IO::Compress::Zip
-	IO::Compress::Bzip2
-	Compress::Zlib
-	Compress::Bzip2
-	IO::Zlib
-	File::Spec
-	File::Temp
-	Win32API::Registry
-	Win32::TieRegistry
-	File::HomeDir
-	File::Which
-	Archive::Zip
-	Archive::Tar
-	YAML
-	Net::FTP
-	Digest::MD5
-	Digest::SHA1
-	Digest::SHA
-	Module::Build
-	Term::Cap
-	CPAN
-	Term::ReadLine::Perl
-} );
+sub find_588_toolchain {
+	my $self = shift;
 
-# Get the regular Perl to generate the list.
-# Run it in a separate process so we don't hold
-# any permanent CPAN.pm locks (for now).
-$toolchain588->delegate;
-if ( $toolchain588->{errstr} ) {
-	die "Failed to generate toolchain distributions";
+	# Resolve the distribution list at startup time
+	my $toolchain588 = Perl::Dist::Util::Toolchain->new( qw{
+		ExtUtils::MakeMaker
+		File::Path
+		ExtUtils::Command
+		Win32API::File
+		ExtUtils::Install
+		ExtUtils::Manifest
+		Test::Harness
+		Test::Simple
+		ExtUtils::CBuilder
+		ExtUtils::ParseXS
+		version
+		Scalar::Util
+		IO::Compress::Base
+		Compress::Raw::Zlib
+		Compress::Raw::Bzip2
+		IO::Compress::Zip
+		IO::Compress::Bzip2
+		Compress::Zlib
+		Compress::Bzip2
+		IO::Zlib
+		File::Spec
+		File::Temp
+		Win32API::Registry
+		Win32::TieRegistry
+		File::HomeDir
+		File::Which
+		Archive::Zip
+		Archive::Tar
+		YAML
+		Net::FTP
+		Digest::MD5
+		Digest::SHA1
+		Digest::SHA
+		Module::Build
+		Term::Cap
+		CPAN
+		Term::ReadLine::Perl
+	} );
+
+	# Get the regular Perl to generate the list.
+	# Run it in a separate process so we don't hold
+	# any permanent CPAN.pm locks (for now).
+	$toolchain588->delegate;
+	if ( $toolchain588->{errstr} ) {
+		die "Failed to generate toolchain distributions";
+	}
+
+	return $toolchain588;
 }
 
 sub install_perl_588_toolchain {
-	my $self = shift;
+	my $self      = shift;
+	my $toolchain = $self->find_588_toolchain;
 
-	foreach my $dist ( @{$toolchain588->{dists}} ) {
+	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $force             = 0;
 		my $automated_testing = 0;
 		if ( $dist =~ /Scalar-List-Util/ ) {
@@ -851,8 +857,88 @@ sub install_perl_5100_bin {
 	return 1;
 }
 
-sub install_perl_5100_toolchain {
+sub find_5100_toolchain {
 	my $self = shift;
+
+	# Resolve the distribution list at startup time
+	my $toolchain5100 = Perl::Dist::Util::Toolchain->new( qw{
+		Compress::Raw::Bzip2
+		IO::Compress::Bzip2
+		Compress::Bzip2
+		File::Temp
+		Win32API::Registry
+		Win32::TieRegistry
+		File::HomeDir
+		File::Which
+		Archive::Zip
+		YAML
+		Digest::SHA1
+		Term::ReadLine::Perl
+	} );
+
+	# Get the regular Perl to generate the list.
+	# Run it in a separate process so we don't hold
+	# any permanent CPAN.pm locks (for now).
+	$toolchain5100->delegate;
+	if ( $toolchain5100->{errstr} ) {
+		die "Failed to generate toolchain distributions";
+	}
+
+	return $toolchain5100;
+}
+
+sub install_perl_5100_toolchain {
+	my $self      = shift;
+	my $toolchain = $self->find_5100_toolchain;
+
+	foreach my $dist ( @{$toolchain->{dists}} ) {
+		my $force             = 0;
+		my $automated_testing = 0;
+		if ( $dist =~ /Scalar-List-Util/ ) {
+			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /File-Temp/ ) {
+			# Lock tests break
+			$force = 1;
+		}
+		if ( $dist =~ /Term-ReadLine-Perl/ ) {
+			# Does evil things when testing, and
+			# so testing cannot be automated.
+			$automated_testing = 1;
+		}
+		$self->install_distribution(
+			name              => $dist,
+			force             => $force,
+			automated_testing => $automated_testing,
+		);
+	}
+
+	return 1;
+}
+
+# Install links and launchers and so on
+sub install_win32_extras {
+	my $self = shift;
+
+	$self->install_website(
+		name => 'CPAN Search',
+		url  => 'http://search.cpan.org/',
+	);
+	$self->install_launcher(
+		name => 'CPAN Client',
+		bin  => 'cpan',
+	);
+
+	$self->install_website(
+		name => 'Perl Documentation',
+		url  => 'http://perldoc.perl.org/',
+	);
+
+	$self->install_website(
+		name => 'Win32 Perl Wiki',
+		url  => 'http://win32.perl.org/',
+	);
 
 	return 1;
 }
@@ -1185,6 +1271,48 @@ sub install_file {
 
 	# Clear the download file
 	File::Remove::remove( \1, $tgz );
+
+	return 1;
+}
+
+sub install_launcher {
+	my $self     = shift;
+	my $launcher = Perl::Dist::Asset::Launcher->new(@_);
+
+	# Check the script exists
+	my $to = File::Spec->catfile( $self->image_dir, 'perl', 'bin', $launcher->bin . '.bat' );
+	unless ( -f $to ) {
+		die "The script '" . $launcher->bin . '" does not exist';
+	}
+
+	# Add the icon
+	$self->add_icon(
+		name     => $launcher->name,
+		filename => '{app}\\perl\bin\\' . $launcher->bin . '.bat',
+	);
+
+	return 1;
+}
+
+sub install_website {
+	my $self    = shift;
+	my $website = Perl::Dist::Asset::Website->new(@_);
+
+	# Write the file directly to the image
+	my $to = File::Spec->catfile( $self->image_dir, $website->file );
+	$website->write( $to );
+
+	# Add the file to the files section of the inno script
+	$self->add_file(
+		source     => $website->file,
+		dest_dir   => '{app}',
+	);
+
+	# Add the file to the icons section of the inno script
+	$self->add_icon(
+		name     => $website->name,
+		filename => '{app}\\' . $website->file,
+	);
 
 	return 1;
 }

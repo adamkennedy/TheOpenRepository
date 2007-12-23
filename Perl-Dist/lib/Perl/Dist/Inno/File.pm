@@ -6,7 +6,7 @@ use Params::Util qw{ _IDENTIFIER _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.52';
+	$VERSION = '0.53';
 }
 
 use Object::Tiny qw{
@@ -65,8 +65,8 @@ sub as_string {
 	push @flags, 'createallsubdirs' if $self->create_all_subdirs;
 	push @flags, 'isreadme'         if $self->is_readme;
 	return join( '; ',
-		"Source: "  . $self->source,
-		"DestDir: " . $self->dest_dir,
+		"Source: \""  . $self->source . "\"",
+		"DestDir: \"" . $self->dest_dir . "\"",
 		(scalar @flags)
 			? ("Flags: " . join(' ', @flags))
 			: (),

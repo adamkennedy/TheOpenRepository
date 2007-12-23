@@ -6,7 +6,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '12';
+	$VERSION = '13';
 }
 
 
@@ -54,6 +54,9 @@ sub run {
 	$self->install_perl_5100;
 	$self->trace("Complete install_perl_5110 in " . (time - $t2) . " seconds\n");
 
+	# Install the Win32 extras
+	$self->install_win32_extras;
+
 	# Write out the exe
 	my $t3  = time;
 	$self->remove_waste;
@@ -74,6 +77,21 @@ sub install_perl_5110 {
 		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
+
+	return 1;
+}
+
+sub install_win32_extras {
+	my $self = shift;
+
+	# The first link is the one to our website
+	$self->install_website(
+		name => 'Vanilla Perl Website',
+		url  => 'http://vanillaperl.com',
+	);
+
+	# Now add the rest of the normal stuff
+	$self->SUPER::install_win32_extras(@_);
 
 	return 1;
 }

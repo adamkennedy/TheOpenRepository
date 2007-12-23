@@ -6,7 +6,7 @@ use Params::Util qw{ _IDENTIFIER _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.52';
+	$VERSION = '0.53';
 }
 
 use Object::Tiny qw{
@@ -49,10 +49,10 @@ sub new {
 sub as_string {
 	my $self = shift;
 	return join( '; ',
-		"Name: "     . $self->name,
-		"Filename: " . $self->filename,
+		"Name: \""     . $self->name . "\"",
+		"Filename: \"" . $self->filename . "\"",
 		defined($self->working_dir)
-			? ("WorkingDir: " . $self->working_dir)
+			? ("WorkingDir: \"" . $self->working_dir . "\"")
 			: (),
 	);
 }
