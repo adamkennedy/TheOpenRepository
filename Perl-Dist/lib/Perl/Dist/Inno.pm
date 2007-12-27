@@ -1,5 +1,119 @@
 package Perl::Dist::Inno;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::Inno - Inno Setup Builder for Win32 Perl Distributions
+
+=head1 SYNOPSIS
+
+Creating a custom distribution
+
+  package My::Perl::Dist;
+  
+  use strict;
+  use base 'Perl::Dist::Strawberry';
+  
+  
+  1;
+
+Building that distribution...
+
+  > perldist My::Perl::Dist "file://c|/minicpan/"
+
+=head1 DESCRIPTION
+
+B<Perl::Dist::Inno> is a Win32 Perl distribution builder that targets
+the Inno Setup 5 installer creation program.
+
+It provides a rich set of functionality that allows a distribution
+developer to specify either Perl 5.8.8 or Perl 5.10.0, specify
+additional C libraries and CPAN modules to be installed, and then
+set start menu entries to websites and programs as needed.
+
+A distribution directory and a matching .iss script is
+generated, which is then handed off to Inno Setup 5 to create the
+final distribution .exe installer.
+
+Alternatively, B<Perl::Dist::Inno> can generate a .zip file for
+the distribution without the installer.
+
+Because the API for Perl::Dist::Inno is extremely rich and fairly
+complex (and a moving target) the documentation is unfortunately
+a bit less complete than it should be.
+
+As parts of the API solidify I hope to document them better.
+
+=head2 API Structure
+
+The L<Perl::Dist::Inno> API is separated into 2 layers, and a series
+of objects.
+
+L<Perl::Dist::Inno::Script> provides the direct mapping to the Inno
+Setup 5 .iss script, and has no logical understand of Perl Distribution.
+
+It stores the values that will ultimately be written into the .iss
+files as attributes, and contains a series of collections of
+L<Perl::Dist::Inno::File>, L<Perl::Dist::Inno::Registry> and
+L>Perl::Dist::Inno::Icon> objects, which map directly to entries
+in the .iss script's [Files], [Icons] and [Registry] sections.
+
+To the extent that it does interact with actual distributions, it is
+only to the extent of validating some directories exist, and
+triggering the actual execution of the Inno Setup 5 compiler.
+
+B<Perl::Dist::Inno> (this class) is a sub-class of
+L<Perl::Dist::Inno::Script> and represents the layer at which
+the understanding of the Perl distribution itself is implemented.
+
+L<Perl::Dist::Asset> and its various subclasses provides the internal
+representation of the logical elements of a Perl distribution.
+
+These assets are mostly transient and are destroyed once the asset
+has been added to the distribution (this may change).
+
+In the process of adding the asset to the distribution, various
+files may be created and objects added to the script object that
+will result in .iss keys being created where the installer builder
+needs to know about that asset explicitly.
+
+L<Perl::Dist::Inno> itself provides both many levels of abstraction
+with sensible default implementations of high level concept methods,
+as well as multiple levels of submethods.
+
+Strong separation of concerns in this manner allows people creating
+distribution sub-classes to add hooks to the build process in many
+places, for maximum customisability.
+
+The main Perl::Dist::Inno B<run> method implements the basic flow
+for the creation of a Perl distribution. The order is rougly as
+follows:
+
+=over 4
+
+=item 1. Install a C toolchain
+
+=item 2. Install additional C libraries
+
+=item 3. Install Perl itself
+
+=item 4. Install/Upgrade the CPAN toolchain
+
+=item 5. Install additional CPAN modules
+
+=item 6. Install Win32 "extras" such as start menu entries
+
+=item 7. Remove any files we don't need in the final distribution
+
+=item 8. Generate the zip or exe files as needed.
+
+=back
+
+=head1 METHODS
+
+=cut
+
 use 5.005;
 use strict;
 use Carp                  'croak';
@@ -66,9 +180,68 @@ use Perl::Dist::Util::Toolchain     ();
 
 
 
-
 #####################################################################
 # Constructor
+
+=pod
+
+=head2 new
+
+The B<new> method creates a new Perl Distribution build as an object.
+
+Each object is used to create a single distribution, and then should be
+discarded.
+
+Although there are about 30 potential constructor arguments that can be
+provided, most of them are automatically resolved and exist for overloading
+puposes only, or they revert to sensible default and generally never need
+to be modified.
+
+The following is an example of the most likely attributes that will be
+specified.
+
+  my $build = Perl::Dist::Inno->new(
+      image_dir => 'C:\vanilla',
+      temp_dir  => 'C:\tmp\vp',
+      cpan      => 'file://C|/minicpan/',
+  );
+
+=over 4
+
+=item image_dir
+
+Perl::Dist::Inno distributions can only be installed to fixed paths.
+
+To facilitate a correctly working CPAN setup, the files that will
+ultimately end up in the installer must also be assembled under the
+same path on the author's machine.
+
+The C<image_dir> method specifies the location of the Perl install,
+both on the author's and end-user's host.
+
+Please note that this directory will be automatically deleted if it
+already exists at object creation time. Trying to build a Perl
+distribution on the SAME distribution can thus have devestating
+results.
+
+=item temp_dir
+
+B<Perl::Dist::Inno> needs a series of temporary directories while
+it is running the build, including places to cache downloaded files,
+somewhere to expand tarballs to build things, and somewhere to put
+debugging output and the final installer zip and exe files.
+
+The C<temp_dir> param specifies the root path for where these
+temporary directories should be created.
+
+For convenience it is best to make these short paths with simple
+names, near the root.
+
+=item cpan
+
+TO BE COMPLETED
+
+=cut
 
 sub new {
 	my $class  = shift;

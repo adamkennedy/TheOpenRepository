@@ -153,13 +153,15 @@ Perl::Dist::Bootstrap - A bootstrap Perl for building Perl distributions
 "Bootstrap Perl" is a Perl distribution, and a member of the
 "Vanilla Perl" series of distributions.
 
-The Perl::Dist::Bootstrap module can be used to create a bootstrap
-Perl distribution.
+The L<Perl::Dist::Bootstrap> module can be used in conjunction wit the
+L<perldist> command line tool to create a bootstrap Perl distribution.
 
 Most of the time nobody will be using
 Perl::Dist::Bootstrap directly, but will be downloading the pre-built
 installer for Bootstrap Perl from the Vanilla Perl website at
 L<http://vanillaperl.com/>.
+
+=head2 Why Is This Needed?
 
 For people building Win32 Perl distributions based on L<Perl::Dist>,
 one gotcha is that the distributions have hard-coded install paths.
@@ -178,30 +180,26 @@ Perl distribution creation process.
 
 =head2 CONFIGURATION
 
-Bootstrap Perl must be installed in C:\strawberry-perl.  The
+Bootstrap Perl must be installed in C:\bootstrap.  The
 executable installer adds the following environment variable changes:
 
     * adds directories to PATH
-        - C:\strawberry-perl\perl\bin
-        - C:\strawberry-perl\dmake\bin
-        - C:\strawberry-perl\c
-        - C:\strawberry-perl\c\bin
+        - C:\bootstrap\perl\bin
+        - C:\bootstrap\c\bin
 
     * adds directories to LIB
-        - C:\strawberry-perl\c\lib
-        - C:\strawberry-perl\perl\bin
+        - C:\bootstrap\c\lib
+        - C:\bootstrap\perl\bin
 
     * adds directories to INCLUDE 
-        - C:\strawberry-perl\c\include
-        - C:\strawberry-perl\perl\lib\CORE
-        - C:\strawberry-perl\perl\lib\encode
+        - C:\bootstrap\c\include
+        - C:\bootstrap\perl\lib\CORE
 
 LIB and INCLUDE changes are likely more than are necessary, but attempt to
 head off potential problems compiling external programs for use with Perl.
 
-The first time that the "cpan" program is run, users will be prompted for
-configuration settings.  With the defaults provided in Strawberry Perl, users
-may answer "no" to manual configuration and the installation should still work.
+The "cpan" program is pre-configured with a known-good setup, but you may
+wish to reconfigure it.
 
 Manual CPAN configuration may be repeated by running the following command:
 
@@ -209,7 +207,7 @@ Manual CPAN configuration may be repeated by running the following command:
 
 =head1 SUPPORT
 
-Vanilla Perl discussion is centered at L<http://win32.perl.org/>.
+Bootstrap Perl discussion is centered at L<http://win32.perl.org/>.
 
 Other venues for discussion may be listed there.
 

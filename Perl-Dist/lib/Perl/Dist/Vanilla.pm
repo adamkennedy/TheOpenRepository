@@ -102,7 +102,7 @@ __END__
 
 =head1 NAME
 
-Perl::Dist::Vanilla - Vanilla Perl for win32
+Perl::Dist::Vanilla - Vanilla Perl for Win32
 
 =head1 DESCRIPTION
 
@@ -136,12 +136,12 @@ Perl developers.  The primary anticipated uses for Vanilla Perl include
 examining Win32-related issues in the Perl core, and for working on fixing
 complex dependency and Win32 platform bugs in CPAN modules.  
 
-Vanilla Perl will eventually serve as the basis for additional Win32 Perl
-distributions that include incremental bundled capabilities for general
-application development or application deployment needs.
+Vanilla Perl serves as the basis more user-centric Win32 Perl distributions
+that include incremental bundled capabilities for general application
+development or application deployment needs.
 
-Vanilla Perl is strongly not recommended for general use on Win32 platforms at
-this time for any purpose other than detecting and fixing bugs in Vanilla Perl
+Vanilla Perl is strongly not recommended for general use on Win32 platforms
+for any purpose other than detecting and fixing bugs in Vanilla Perl
 and testing Win32 compatibility of various CPAN modules.
 
 Vanilla Perl will undergo changes without notice over time in an attempt to
@@ -149,15 +149,10 @@ intentionally provoke errors and uncover problems close to the Perl core, so
 users should expect that it may unexpectedly display strange behaviours and
 various other problems.
 
-The Perl::Dist::Vanilla distribution on CPAN contains scripts and instructions
-for downloading component sources and assembling them into the executable
-installer for Vanilla Perl.  It B<does not> include the resulting Vanilla Perl
-installation itself.  
-
 See L</"DOWNLOADING THE INSTALLER"> for instructions on where to download and
 how to install Vanilla Perl.  
 
-See L<Perl::Dist::Build> at L<http://search.cpan.org> for details on 
+See L<Perl::Dist::Inno> at L<http://search.cpan.org> for details on 
 the builder used to create Vanilla Perl from source.
 
 =head1 CHANGES FROM CORE PERL
@@ -168,8 +163,8 @@ of Perl, currently version 5.10.0.
 For the 5.10.0 series, no additional modules are installed.
 
 A stub CPAN Config.pm file is installed.  It provides defaults to the path
-for dmake, to automatically follow dependencies and to use the Windows
-temporary directory for the CPAN working directory.
+for dmake, to automatically follow dependencies and some other tweaks to
+allow for a smoother CPAN usage.
 
 =head1 DOWNLOADING THE INSTALLER
 
@@ -189,12 +184,11 @@ Sorry :(
 
 Vanilla cannot co-exist with any other Perl installations at this time.
 
+Vanilla cannot co-exist with Cygwin.
+
 You should remove any other Perl installations before installing Vanilla Perl.
 
 Vanilla Perl must be installed in C:\vanilla.
-
-Vanilla Perl 5.10.0 Build 9 comes in .zip format. Availability of an
-.exe installer has regressed while .exe creation undergoes a rewrite.
 
 Once installed, you should add to the following environment variables.
 
@@ -214,9 +208,8 @@ LIB and INCLUDE changes are likely more than are necessary, but attempt to
 head off potential problems compiling external programs for use with Perl
 and various CPAN modules.
 
-The first time that the "cpan" program is run, users will be prompted for
-configuration settings. You can go with the defaults if you wish, although
-since Vanilla is for experts only, you should probably configure manually.
+The "cpan" program is pre-configured with a known-good setup, but you may
+wish to reconfigure it.
 
 Manual CPAN configuration may be repeated by running the following command:
 
@@ -224,8 +217,8 @@ Manual CPAN configuration may be repeated by running the following command:
 
 =head1 CONTACTS AND BUGS REPORTING
 
-Currently, Vanilla Perl discussion is centered at win32.perl.org.  New 
-venues for discussion may be listed there.
+Currently, Vanilla Perl discussion is centered at L<http://win32.perl.org>.
+New venues for discussion may be listed there.
 
 Please report bugs or feature requests using the CPAN Request Tracker.
 Bugs can be sent by email to C<<< bug-Perl-Dist-Vanilla@rt.cpan.org >>> or

@@ -19,25 +19,25 @@ Perl::Dist - Perl Distribution Creation Toolkit
 
 =head1 DESCRIPTION
 
-B<THIS DOCUMENTATION IS CURRENTLY OUT OF DATE>
-
 The Perl::Dist namespace encompasses creation of pre-packaged, binary
-distributions of Perl, such as executable installers for Win32.  While initial
-efforts are targeted at Win32, there is hope that this may become a more
-general support tool for Perl application deployment.
+distributions of Perl, primarily as executable installers for Win32.
 
 Packages in this namespace include both "builders" and "distributions".
-Builder packages automate the generation of distributions.  Distribution
-packages contain configuration files for a particular builder, extra files
-to be bundled with the pre-packaged binary, and documentation.
+
+Builder packages automate the generation of distributions.
+
+Distribution packages contain configuration files for a particular builder,
+extra files to be bundled with the pre-packaged binary, and documentation.
+
 Distribution namespaces are also recommended to consolidate bug reporting
 using http://rt.cpan.org/.
 
 I<Distribution packages should not contain the pre-packaged install files
 themselves.>
 
-B<Please note that this module is currently considered experimental, and
-not really suitable for general use>.
+=head2 BUILDERS
+
+At the present time the primarily builder module is L<Perl::Dist::Inno>.
 
 =head2 DISTRIBUTIONS
 
@@ -47,23 +47,46 @@ Currently available distributions include:
 
 =item *
 
-L<Perl::Dist::Vanilla> -- an experimental "core Perl" distribution intended
-for distribution developers
+L<Perl::Dist::Vanilla> -- An experimental "core Perl" distribution intended
+for distribution developers.
 
 =item *
 
-L<Perl::Dist::Strawberry> -- a practical Win32 Perl release for
-experienced Perl developers to experiment and test the installation of
-various CPAN modules under Win32 conditions
+L<Perl::Dist::Strawberry> -- A practical Win32 Perl release for
+experienced Perl developers familiar with Perl on Unix environments
+with full CPAN capabilities.
+
+Strawberry Perl is considered stable, and can be downloaded from the
+Strawberry Perl website at L<http://strawberryperl.com/>.
+
+=item *
+
+L<Perl::Dist::Chocolate> -- A concept distribution that bundled a large
+"standard library" collection of CPAN modules, and provides a variety of
+WxWindows-based GUI tools.
+
+=item *
+
+L<Perl::Dist::Bootstrap> -- Bootstrap Perl is a Perl 5.8.8 distribution
+designed for people that are themselves creating Perl distributions.
+
+It installs to a disk location out of the way and not used by any "end-user"
+distributions, and comes with Perl::Dist and support modules pre-bundled.
 
 =back
 
 =head1 ROADMAP
 
-Everything is currently alpha, at best.  These packages have been released
-to enable community support in ongoing development.
+L<Perl::Dist::Inno>, based on Inno Setup, is working well, but has a
+limited lifespace, as it is not capable of produces Windows native
+.msi installer files.
 
-Some specific items for development include:
+Ultimately this means that Perl::Dist will see the additional of an
+alternative module based on Nullsoft or Wix that allows the creation
+of .msi files (a major feature for corporate users).
+
+Various other features are able to be implemented within the Inno Setup
+feature set, and include:
 
 =over
 
@@ -82,10 +105,6 @@ Support installation paths with spaces and other weird characters.
 =item *
 
 Restore support for .exe installation instead of .zip.
-
-=item *
-
-Support for Win32 *.msi installation instead of *.exe.
 
 =item *
 

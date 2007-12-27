@@ -68,14 +68,14 @@ perldist - Windows Perl distribution builder
   ...
   (various output for 1-2 hours)
   ...
-  Created as C:\tmp\vp\output\vanilla-perl-5.10.0-build-9.zip
+  Created as C:\tmp\vp\output\vanilla-perl-5.10.0-build-9.exe
 
 =head1 DESCRIPTION
 
 B<perldist> is the command line front-end to the L<Perl::Dist> Win32
 Perl distribution builder.
 
-It takes two arguments, burns CPU for a couple of hours, and then
+It takes two arguments, burns CPU for an hour or more, and then
 spits out a distribution package.
 
 The first argument is the class name for the distribution. This will be
