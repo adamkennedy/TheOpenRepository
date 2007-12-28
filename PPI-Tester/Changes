@@ -1,5 +1,10 @@
 Revision history for Perl extension PPI::Tester and script ppitester
 
+0.12 Fri 28 Dec 2007
+	- Upgrading to Module::Install 0.65
+	- Cleaning up the Makefile.PL and test script
+	- Adding a compile test for the launcher
+
 0.11 Sun  3 Sep 2006
 	- Removed use of bad constant wxHIDE_READONLY
 	- Added the use of Wx::CheckLauncher

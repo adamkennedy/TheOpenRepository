@@ -5,30 +5,22 @@
 
 use 5.005;
 use strict;
-use FindBin;
-use File::Spec ();
-use lib        ();
+
+use vars qw{$VERSION};
 BEGIN {
-	chdir $FindBin::Bin;
-	lib->import(
-		File::Spec->catdir( File::Spec->updir(), 'lib' )
-		);
+	$VERSION = '0.12';
 }
 
-# Load and run the Tester
 use PPI::Tester;
-my $instance = PPI::Tester->new;
-unless ( $instance ) {
-	die "Failed to load PPI Tester application";
-}
-$instance->MainLoop;
-exit(0);
+PPI::Tester->main;
+
+__END__
 
 =pod
 
 =head1 NAME
 
-PPI::Tester - A wxPerl-based interactive PPI debugger/tester
+ppitester - A wxPerl-based interactive PPI debugger/tester
 
 =head1 DESCRIPTION
 
@@ -54,8 +46,6 @@ implemented. ( It's early days yet for this application ).
 
 =head1 TO DO
 
-- The "Load file" toolbar button does not work yet
-
 - There are no icons on the toolbar buttons
 
 - An option is needed to save both the left and right panels into
@@ -80,7 +70,7 @@ L<PPI::Manual>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2006 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

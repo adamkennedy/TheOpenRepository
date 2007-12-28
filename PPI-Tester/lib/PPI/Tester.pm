@@ -8,7 +8,7 @@ use strict;
 # The very first version
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 # Load in the PPI classes
@@ -17,6 +17,16 @@ use PPI::Dumper ();
 
 # Load the wxWindows library
 use Wx;
+
+sub main {
+	my $class = shift;
+	my $app   = $class->new;
+	unless ( $app ) {
+		croak("Failed to load PPI Tester application");
+	}
+	$app->MainLoop;
+	exit(0);
+}
 
 sub new {
 	PPI::Tester::App->new;
