@@ -239,7 +239,9 @@ names, near the root.
 
 =item cpan
 
-TO BE COMPLETED
+The C<cpan> param provides a path to a CPAN or minicpan mirror that
+the installer can use to fetch any needed files during the build
+process.
 
 =cut
 
@@ -312,7 +314,10 @@ sub new {
 
 	# Auto-detect online-ness if needed
 	unless ( defined $self->user_agent ) {
-		$self->{user_agent} = LWP::UserAgent->new;
+		$self->{user_agent} = LWP::UserAgent->new(
+			agent   => "$class/" . $VERSION || '0.00',
+			timeout => 30,
+		);
 	}
 	unless ( defined $self->offline ) {
 		$self->{offline} = LWP::Online::offline();
@@ -322,6 +327,12 @@ sub new {
 	$self->{offline}      = !! $self->offline;
 	$self->{trace}        = !! $self->{trace};
 	$self->{remove_image} = !! $self->remove_image;
+
+	# If we are online and don't have a cpan repository,
+	# use cpan.strawberryperl.com as a default.
+	if ( ! $self->offline and ! $self->cpan ) {
+		$self->{cpan} = URI->new('http://cpan.strawberryperl.com/');
+	}
 
 	# Check params
 	unless ( _STRING($self->download_dir) ) {
