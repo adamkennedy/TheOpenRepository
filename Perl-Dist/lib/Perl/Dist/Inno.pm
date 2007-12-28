@@ -251,31 +251,34 @@ sub new {
 	if ( defined $params{image_dir} and ! defined $params{default_dir_name} ) {
 		$params{default_dir_name} = $params{image_dir};
 	}
-	if ( defined $params{temp_dir} ) {
-		unless ( defined $params{download_dir} ) {
-			$params{download_dir} = File::Spec->catdir(
-				$params{temp_dir}, 'download',
-			);
-			File::Path::mkpath($params{download_dir});
+	unless ( defined $params{temp_dir} ) {
+		$params{temp_dir} = File::Spec->catdir(
+			File::Spec->tmpdir, 'perldist',
+		);
+	}
+	unless ( defined $params{download_dir} ) {
+		$params{download_dir} = File::Spec->catdir(
+			$params{temp_dir}, 'download',
+		);
+		File::Path::mkpath($params{download_dir});
+	}
+	unless ( defined $params{build_dir} ) {
+		$params{build_dir} = File::Spec->catdir(
+			$params{temp_dir}, 'build',
+		);
+		if ( -d $params{build_dir} ) {
+			File::Remove::remove( \1, $params{build_dir} );
 		}
-		unless ( defined $params{build_dir} ) {
-			$params{build_dir} = File::Spec->catdir(
-				$params{temp_dir}, 'build',
-			);
-			if ( -d $params{build_dir} ) {
-				File::Remove::remove( \1, $params{build_dir} );
-			}
-			File::Path::mkpath($params{build_dir});
+		File::Path::mkpath($params{build_dir});
+	}
+	unless ( defined $params{output_dir} ) {
+		$params{output_dir} = File::Spec->catdir(
+			$params{temp_dir}, 'output',
+		);
+		if ( -d $params{output_dir} ) {
+			File::Remove::remove( \1, $params{output_dir} );
 		}
-		unless ( defined $params{output_dir} ) {
-			$params{output_dir} = File::Spec->catdir(
-				$params{temp_dir}, 'output',
-			);
-			if ( -d $params{output_dir} ) {
-				File::Remove::remove( \1, $params{output_dir} );
-			}
-			File::Path::mkpath($params{output_dir});
-		}
+		File::Path::mkpath($params{output_dir});
 	}
 	if ( defined $params{image_dir} ) {
 		if ( -d $params{image_dir} ) {
