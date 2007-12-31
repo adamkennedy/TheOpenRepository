@@ -267,6 +267,10 @@ sub as_string {
 		'SolidCompression='   . 'yes',
 		'ChangesEnvironment=' . 'yes',
 		'',
+		'; Delete old install',
+		'[InstallDelete]',
+		'Type: filesandordirs; Name: "' . $self->source_dir . '"',
+		'',
 	);
 
 	# Start with only English for now

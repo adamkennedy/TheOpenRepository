@@ -152,6 +152,8 @@ use Object::Tiny qw{
 	iss_file
 	remove_image
 	user_agent
+	perl_ver
+	perl_version
 	cpan
 	bin_perl
 	bin_make
@@ -293,6 +295,14 @@ sub new {
 	my $self = $class->SUPER::new(%params);
 
         # Apply more defaults
+	unless ( defined $self->perl_version ) {
+		$self->{perl_version} = '5.10.0';
+	}
+	$self->{perl_ver} = $self->perl_version;
+	$self->{perl_ver} =~ s/\.//g;
+	unless ( $self->can('install_perl_' . $self->perl_ver) ) {
+		croak("Perl::Dist does not support Perl " . $self->perl_version);
+	}
 	unless ( defined $self->remove_image ) {
 		$self->{remove_image} = 1;
 	}
@@ -621,10 +631,6 @@ sub install_c_toolchain {
 		name       => 'w32api',
 		share      => 'Perl-Dist-Downloads w32api-3.10.tar.gz',
 		install_to => 'c',
-	);
-	$self->install_file(
-		share      => 'Perl-Dist README.w32api',
-		install_to => 'licenses\win32api\README.w32api',
 	);
 
 	# Set up the environment variables for the binaries
