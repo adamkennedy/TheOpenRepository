@@ -39,59 +39,17 @@ sub new {
 #####################################################################
 # Installation Script
 
-# Vanilla never has any additional libraries.
-# Just install the C toolchain and Perl core.
-sub run {
-	my $self = shift;
-
-	# Install the C toolchain
-	my $t1 = time;
-	$self->install_c_toolchain;
-	$self->trace("Completed install_c_toolchain in " . (time - $t1) . " seconds\n");
-
-	# Install the Perl 5.10.0 binary
-	my $t2 = time;
-	$self->install_perl_5100;
-	$self->trace("Complete install_perl_5110 in " . (time - $t2) . " seconds\n");
-
-	# Install the Win32 extras
-	$self->install_win32_extras;
-
-	# Write out the exe
-	my $t3  = time;
-	$self->remove_waste;
-	my $exe = $self->write_exe;
-	$self->trace("Completed write_exe in " . (time - $t3) . " seconds\n");
-
-	# Finished
-	$self->trace("Distribution exe file created as $exe\n");
-	return 1;
-}
-
 sub install_perl_5110 {
 	my $self = shift;
 	$self->SUPER::install_perl(@_);
 
-	# Install the vanilla CPAN::Config
+	# Overwrite the default stub CPAN config with a Vanilla one.
+	# This is just there so that we at least have a working CPAN
+	# mirror setup by default.
 	$self->install_file(
 		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
-
-	return 1;
-}
-
-sub install_win32_extras {
-	my $self = shift;
-
-	# The first link is the one to our website
-	$self->install_website(
-		name => 'Vanilla Perl Website',
-		url  => 'http://vanillaperl.com',
-	);
-
-	# Now add the rest of the normal stuff
-	$self->SUPER::install_win32_extras(@_);
 
 	return 1;
 }

@@ -41,42 +41,9 @@ sub new {
 	);
 }
 
-sub run {
-	my $self = shift;
-
-	# Install the main binaries
-	my $t1 = time;
-	$self->install_c_toolchain;
-	my $d1 = time - $t1;
-	$self->trace("Completed install_binaries in $d1 seconds\n");
-
-	# Install the additional C libs
-	my $t6 = time;
-	$self->install_c_libraries;
-	my $d6 = time - $t6;
-	$self->trace("Completed install_libraries in $d6 seconds\n");
-
-	# Install Perl 5.8.8
-	my $t2 = time;
-	$self->install_perl_588;
-	my $d2 = time - $t2;
-	$self->trace("Completed install_perl_588 in $d2 seconds\n");
-
-	# Install the additional modules
-	my $t4 = time;
-	$self->install_perl_modules;
-	my $d4 = time - $t4;
-	$self->trace("Completed install_modules in $d4 seconds\n");
-
-	# Write out the zip
-	my $t5  = time;
-	$self->remove_waste;
-	my $exe = $self->write_exe;
-	my $d5  = time - $t5;
-	$self->trace("Completed write in $d5 seconds\n");
-	$self->trace("Distribution exe file created as $exe\n");
-
-	return 1;
+# Install Perl 5.8.8 instead of 5.10
+sub install_perl {
+	shift->install_perl_588(@_);
 }
 
 sub install_perl_588 {
@@ -92,6 +59,7 @@ sub install_perl_588 {
 	return 1;
 }
 
+# Install various additional modules
 sub install_perl_modules {
 	my $self = shift;
 

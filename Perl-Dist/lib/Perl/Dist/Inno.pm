@@ -110,6 +110,14 @@ follows:
 
 =back
 
+=head2 Creating Your Own Distribution
+
+Rather than building directly on top of Perl::Dist::Inno, it is probably
+better to build on top of a particular distribution, probably Strawberry.
+
+For more information, see the L<Perl::Dist::Strawberry> documentation
+which details how to sub-class the distribution.
+
 =head1 METHODS
 
 =cut
@@ -150,7 +158,6 @@ use Object::Tiny qw{
 	license_dir
 	build_dir
 	iss_file
-	remove_image
 	user_agent
 	perl_ver
 	perl_version
@@ -164,6 +171,7 @@ use Object::Tiny qw{
 	env_include
 	debug_stdout
 	debug_stderr
+	output_file
 };
 
 use Perl::Dist::Inno                ();
@@ -245,6 +253,18 @@ The C<cpan> param provides a path to a CPAN or minicpan mirror that
 the installer can use to fetch any needed files during the build
 process.
 
+The param should be a L<URI> object to the root of the CPAN repository,
+including trailing newline.
+
+If you are online and no C<cpan> param is provided, the value will
+default to the L<http://cpan.strawberryperl.com> repository as a
+convenience.
+
+=back
+
+The C<new> constructor returns a B<Perl::Dist> object, which you
+should then call C<run> on to generate the distribution.
+
 =cut
 
 sub new {
@@ -303,9 +323,6 @@ sub new {
 	unless ( $self->can('install_perl_' . $self->perl_ver) ) {
 		croak("Perl::Dist does not support Perl " . $self->perl_version);
 	}
-	unless ( defined $self->remove_image ) {
-		$self->{remove_image} = 1;
-	}
 	unless ( defined $self->{trace} ) {
 		$self->{trace} = 1;
 	}
@@ -336,7 +353,6 @@ sub new {
 	# Normalize some params
 	$self->{offline}      = !! $self->offline;
 	$self->{trace}        = !! $self->{trace};
-	$self->{remove_image} = !! $self->remove_image;
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
@@ -383,12 +399,8 @@ sub new {
 
 	# Clear the previous build
 	if ( -d $self->image_dir ) {
-		if ( $self->remove_image ) {
-			$self->trace("Removing previous " . $self->image_dir . "\n");
-			File::Remove::remove( \1, $self->image_dir );
-		} else {
-			croak("The image_dir directory already exists");
-		}
+		$self->trace("Removing previous " . $self->image_dir . "\n");
+		File::Remove::remove( \1, $self->image_dir );
 	} else {
 		$self->trace("No previous " . $self->image_dir . " found\n");
 	}
@@ -438,103 +450,54 @@ sub source_dir {
 
 
 #####################################################################
-# Adding Inno-Setup Information
+# Top Level Process Methods
 
-sub add_icon {
-	my $self   = shift;
-	my %params = @_;
-	$params{name}     = "{group}\\$params{name}";
-	unless ( $params{filename} =~ /^\{/ ) {
-		$params{filename} = "{app}\\$params{filename}";
-	}
-	$self->SUPER::add_icon(%params);
-}
+sub run {
+	my $self  = shift;
+	my $start = time;
+	my $t     = undef;
 
-sub add_env_path {
-	my $self = shift;
-	my @path = @_;
-	my $dir = File::Spec->catdir(
-		$self->image_dir, @path,
-	);
-	unless ( -d $dir ) {
-		croak("PATH directory $dir does not exist");
-	}
-	push @{$self->{env_path}}, [ @path ];
+	# Install the core C toolchain
+	$t = time;
+	$self->install_c_toolchain;
+	$self->trace("Completed install_c_toolchain in " . (time - $t) . " seconds\n");
+
+	# Install any additional C libraries
+	$t = time;
+	$self->install_c_libraries;
+	$self->trace("Completed install_c_libraries in " . (time - $t) . " seconds\n");
+
+	# Install the Perl binary
+	$t = time;
+	$self->install_perl;
+	$self->trace("Completed install_perl in " . (time - $t) . " seconds\n");
+
+	# Install additional Perl modules
+	$t = time;
+	$self->install_perl_modules
+	$self->trace("Completed install_perl_modules in " . (time - $t) . " seconds\n");
+
+	# Install the Win32 extras
+	$t = time;
+	$self->install_win32_extras;
+	$self->trace("Completed install_win32_extras in " . (time - $t) . " seconds\n");
+
+	# Remove waste and temporary files
+	$t = time;
+	$self->remove_waste;
+	$self->trace("Completed remove_waste in " . (time - $t) . " seconds\n");
+
+	# Write out the exe
+	$t = time;
+	my $exe = $self->write;
+	$self->trace("Completed write in " . (time - $t) . " seconds\n");
+
+	# Finished
+	$self->trace("Distribution generation completed in " . (time - $start) . " seconds\n");
+	$self->trace("Distribution created at " . $self->output_file . "\n");
+
 	return 1;
 }
-
-sub get_env_path {
-	my $self = shift;
-	return join ';', map {
-		File::Spec->catdir( $self->image_dir, @$_ )
-	} @{$self->env_path};
-}
-
-sub get_inno_path {
-	my $self = shift;
-	return join ';', '{olddata}', map {
-		File::Spec->catdir( '{app}', @$_ )
-	} @{$self->env_path};
-}
-
-sub add_env_lib {
-	my $self = shift;
-	my @path = @_;
-	my $dir = File::Spec->catdir(
-		$self->image_dir, @path,
-	);
-	unless ( -d $dir ) {
-		croak("INC directory $dir does not exist");
-	}
-	push @{$self->{env_lib}}, [ @path ];
-	return 1;
-}
-
-sub get_env_lib {
-	my $self = shift;
-	return join ';', map {
-		File::Spec->catdir( $self->image_dir, @$_ )
-	} @{$self->env_lib};
-}
-
-sub get_inno_lib {
-	my $self = shift;
-	return join ';', '{olddata}', map {
-		File::Spec->catdir( '{app}', @$_ )
-	} @{$self->env_lib};
-}
-
-sub add_env_include {
-	my $self = shift;
-	my @path = @_;
-	my $dir = File::Spec->catdir(
-		$self->image_dir, @path,
-	);
-	unless ( -d $dir ) {
-		croak("PATH directory $dir does not exist");
-	}
-	push @{$self->{env_include}}, [ @path ];
-	return 1;
-}
-
-sub get_env_include {
-	my $self = shift;
-	return join ';', map {
-		File::Spec->catdir( $self->image_dir, @$_ )
-	} @{$self->env_include};
-}
-
-sub get_inno_include {
-	my $self = shift;
-	return join ';', '{olddata}', map {
-		File::Spec->catdir( '{app}', @$_ )
-	} @{$self->env_include};
-}
-
-
-
-#####################################################################
-# Main Methods
 
 sub install_c_toolchain {
 	my $self = shift;
@@ -641,38 +604,49 @@ sub install_c_toolchain {
 	return 1;
 }
 
+# No additional modules by default
 sub install_c_libraries {
-	my $self = shift;
-	$self->install_zlib;
-	$self->install_libiconv;
-	$self->install_libxml;
-	return 1;
+	shift->trace("install_c_libraries: Nothing to do\n");
 }
 
+# Install Perl 5.10.0 by default.
+# Just hand off to the larger set of Perl install methods.
 sub install_perl {
+	shift->install_perl_5100(@_);
+}
+
+# No additional modules by default
+sub install_perl_modules {
+	shift->trace("install_perl_modules: Nothing to do\n");
+}
+
+# Install links and launchers and so on
+sub install_win32_extras {
 	my $self = shift;
 
-	# By default, install Perl 5.8.8
-	$self->install_perl_588(
-		name       => 'perl',
-		share      => 'Perl-Dist-Downloads perl-5.8.8.tar.gz',
-		unpack_to  => 'perl',
-		patch      => {
-			'Install.pm'   => 'lib\ExtUtils\Install.pm',
-			'Installed.pm' => 'lib\ExtUtils\Installed.pm',
-			'Packlist.pm'  => 'lib\ExtUtils\Packlist.pm',
-		},
-		install_to => 'perl',
-		license    => {
-			'perl-5.8.8/Readme'   => 'perl/Readme',
-			'perl-5.8.8/Artistic' => 'perl/Artistic',
-			'perl-5.8.8/Copying'  => 'perl/Copying',
-		},
+	$self->install_website(
+		name => 'CPAN Search',
+		url  => 'http://search.cpan.org/',
+	);
+	$self->install_launcher(
+		name => 'CPAN Client',
+		bin  => 'cpan',
+	);
+
+	$self->install_website(
+		name => 'Perl Documentation',
+		url  => 'http://perldoc.perl.org/',
+	);
+
+	$self->install_website(
+		name => 'Win32 Perl Wiki',
+		url  => 'http://win32.perl.org/',
 	);
 
 	return 1;
 }
 
+# Delete various stuff we won't be needing
 sub remove_waste {
 	my $self = shift;
 	$self->trace("Removing doc, man, info and html documentation...\n");
@@ -686,6 +660,13 @@ sub remove_waste {
 	$self->trace("Removing CPAN build directories and download caches...\n");
 	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
 	File::Remove::remove( \1, $self->_dir('cpan', 'build')   );
+	return 1;
+}
+
+# By default, create an .exe installer
+sub write {
+	my $self = shift;
+	$self->{output_file} = $self->write_exe(@_);
 	return 1;
 }
 
@@ -1110,38 +1091,12 @@ sub install_perl_5100_toolchain {
 	return 1;
 }
 
-# Install links and launchers and so on
-sub install_win32_extras {
-	my $self = shift;
-
-	$self->install_website(
-		name => 'CPAN Search',
-		url  => 'http://search.cpan.org/',
-	);
-	$self->install_launcher(
-		name => 'CPAN Client',
-		bin  => 'cpan',
-	);
-
-	$self->install_website(
-		name => 'Perl Documentation',
-		url  => 'http://perldoc.perl.org/',
-	);
-
-	$self->install_website(
-		name => 'Win32 Perl Wiki',
-		url  => 'http://win32.perl.org/',
-	);
-
-	return 1;
-}
-
 
 
 
 
 #####################################################################
-# Install C Libraries
+# Installing C Libraries
 
 sub install_zlib {
 	my $self = shift;
@@ -1224,7 +1179,7 @@ sub install_libxml {
 
 
 #####################################################################
-# Generic Installation Methods
+# General Installation Methods
 
 sub install_binary {
 	my $self   = shift;
@@ -1552,16 +1507,6 @@ sub write_exe {
 	$self->SUPER::write_exe(@_);
 }
 
-sub write_iss {
-	my $self = shift;
-	my $file = $self->iss_file;
-	my $iss  = $self->as_string;
-	open( ISS, ">$file" ) or croak("Failed to open ISS file to write");
-	print ISS $iss;
-	close ISS;
-	return $file;
-}
-
 sub write_zip {
 	my $self = shift;
 	my $file = File::Spec->catfile(
@@ -1579,6 +1524,114 @@ sub write_zip {
 	$zip->writeToFileNamed( $file );
 
 	return $file;
+}
+
+sub write_iss {
+	my $self = shift;
+	my $file = $self->iss_file;
+	my $iss  = $self->as_string;
+	open( ISS, ">$file" ) or croak("Failed to open ISS file to write");
+	print ISS $iss;
+	close ISS;
+	return $file;
+}
+
+
+
+
+
+#####################################################################
+# Adding Inno-Setup Information
+
+sub add_icon {
+	my $self   = shift;
+	my %params = @_;
+	$params{name}     = "{group}\\$params{name}";
+	unless ( $params{filename} =~ /^\{/ ) {
+		$params{filename} = "{app}\\$params{filename}";
+	}
+	$self->SUPER::add_icon(%params);
+}
+
+sub add_env_path {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("PATH directory $dir does not exist");
+	}
+	push @{$self->{env_path}}, [ @path ];
+	return 1;
+}
+
+sub get_env_path {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_path};
+}
+
+sub get_inno_path {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_path};
+}
+
+sub add_env_lib {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("INC directory $dir does not exist");
+	}
+	push @{$self->{env_lib}}, [ @path ];
+	return 1;
+}
+
+sub get_env_lib {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_lib};
+}
+
+sub get_inno_lib {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_lib};
+}
+
+sub add_env_include {
+	my $self = shift;
+	my @path = @_;
+	my $dir = File::Spec->catdir(
+		$self->image_dir, @path,
+	);
+	unless ( -d $dir ) {
+		croak("PATH directory $dir does not exist");
+	}
+	push @{$self->{env_include}}, [ @path ];
+	return 1;
+}
+
+sub get_env_include {
+	my $self = shift;
+	return join ';', map {
+		File::Spec->catdir( $self->image_dir, @$_ )
+	} @{$self->env_include};
+}
+
+sub get_inno_include {
+	my $self = shift;
+	return join ';', '{olddata}', map {
+		File::Spec->catdir( '{app}', @$_ )
+	} @{$self->env_include};
 }
 
 
