@@ -2,6 +2,8 @@ Revision history for Perl module Perl::Dist
 
 0.53 Sun 24 Dec 2007
 	- Adding support for websites in the start menu entries
+	- Adding support for .bat launchers in the start menu
+	- Completed Strawberry Perl 5.10.0 using this version
 
 0.52 Thu 20 Dec 2007
         - Adding an additional install flag to prevent
