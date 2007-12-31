@@ -31,6 +31,6 @@ is( $file1->recurse_subdirs, 1, '->recurse_subdirs ok' );
 is( $file1->create_all_subdirs, 1, '->create_all_subdirs ok' );
 is(
 	$file1->as_string,
-	'Source: dmake\*; DestDir: {app}\dmake; Flags: ignoreversion recursesubdirs createallsubdirs',
+	'Source: "dmake\*"; DestDir: "{app}\dmake"; Flags: ignoreversion recursesubdirs createallsubdirs',
 	'->as_string ok',
 );

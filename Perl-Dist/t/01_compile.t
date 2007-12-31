@@ -6,11 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 14;
 use Test::Script;
 
 use_ok( 'Perl::Dist'                  );
-use_ok( 'Perl::Dist::Builder'         );
 use_ok( 'Perl::Dist::Inno'            );
 use_ok( 'Perl::Dist::Inno::File'      );
 use_ok( 'Perl::Dist::Inno::Icon'      );

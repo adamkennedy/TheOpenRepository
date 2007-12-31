@@ -27,7 +27,7 @@ is( $icon1->filename,    '{uninstallexe}', '->filename ok' );
 is( $icon1->working_dir, undef, '->working_dir ok' );
 is(
 	$icon1->as_string,
-	'Name: {group}\{cm:UninstallProgram,Strawberry Perl}; Filename: {uninstallexe}',
+	'Name: "{group}\{cm:UninstallProgram,Strawberry Perl}"; Filename: "{uninstallexe}"',
 	'->as_string ok',
 );
 
@@ -44,6 +44,6 @@ is( $icon2->filename,    '{app}\perl\bin\cpan.bat', '->filename ok' );
 is( $icon2->working_dir, '{app}\perl', '->working_dir ok' );
 is(
 	$icon2->as_string,
-	'Name: {group}\Install modules with CPAN.pm; Filename: {app}\perl\bin\cpan.bat; WorkingDir: {app}\perl',
+	'Name: "{group}\Install modules with CPAN.pm"; Filename: "{app}\perl\bin\cpan.bat"; WorkingDir: "{app}\perl"',
 	'->as_string ok',
 );
