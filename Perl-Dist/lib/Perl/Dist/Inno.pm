@@ -141,6 +141,7 @@ use Params::Util          qw{ _STRING _HASH _INSTANCE };
 use HTTP::Status          ();
 use LWP::UserAgent        ();
 use LWP::Online           ();
+use Module::CoreList      ();
 use Tie::File             ();
 
 use base 'Perl::Dist::Inno::Script';
@@ -159,8 +160,10 @@ use Object::Tiny qw{
 	build_dir
 	iss_file
 	user_agent
-	perl_ver
 	perl_version
+	perl_version_literal
+	perl_version_human
+	perl_version_corelist
 	cpan
 	bin_perl
 	bin_make
@@ -314,15 +317,27 @@ sub new {
 	# Hand off to the parent class
 	my $self = $class->SUPER::new(%params);
 
-        # Apply more defaults
+	# Check the version of Perl to build
 	unless ( defined $self->perl_version ) {
-		$self->{perl_version} = '5.10.0';
+		$self->{perl_version} = '5100';
 	}
-	$self->{perl_ver} = $self->perl_version;
-	$self->{perl_ver} =~ s/\.//g;
-	unless ( $self->can('install_perl_' . $self->perl_ver) ) {
+	unless ( $self->can('install_perl_' . $self->perl_version) ) {
 		croak("Perl::Dist does not support Perl " . $self->perl_version);
 	}
+	$self->{perl_version_literal} = {
+		588  => '5.008008',
+		5110 => '5.010000',
+		}->{$self->perl_version};
+	$self->{perl_version_human} = {
+		588  => '5.8.8',
+		5110 => '5.10.0',
+		}->{$self->perl_version};
+	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal};
+	unless ( _HASH($self->{perl_version_corelist}) ) {
+		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
+	}
+
+        # Apply more defaults
 	unless ( defined $self->{trace} ) {
 		$self->{trace} = 1;
 	}
@@ -612,7 +627,12 @@ sub install_c_libraries {
 # Install Perl 5.10.0 by default.
 # Just hand off to the larger set of Perl install methods.
 sub install_perl {
-	shift->install_perl_5100(@_);
+	my $self = shift;
+	my $install_perl_method = "install_perl_" . $self->perl_version;
+	unless ( $self->can($install_perl_method) ) {
+		croak("Cannot generate perl, missing $install_perl_method method in " . ref($self));
+	}
+	$self->$method(@_);
 }
 
 # No additional modules by default
