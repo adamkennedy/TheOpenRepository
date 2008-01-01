@@ -11,6 +11,7 @@ requires       'Scalar::Util' => '1.17';
 requires       'Params::Util' => '0.10';
 requires       'File::Temp'   => 0;
 requires       'IPC::Run3'    => '0.034';
+requires       'Perl::Exe'    => '0.01';
 build_requires 'File::Spec'   => '0.80';
 build_requires 'File::Remove' => '0.34';
 build_requires 'Test::More'   => '0.47';

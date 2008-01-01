@@ -5,16 +5,17 @@ use base 'Process::Storable';
 use Storable   ();
 use File::Temp ();
 use IPC::Run3  ();
+use Perl::Exe  ();
 
 use vars qw{$VERSION @PERLCMD};
 BEGIN {
-	$VERSION = '0.20';
+	$VERSION = '0.21';
 
 	# Contains the command to use to launch perl
 	# Should be the path to the perl current running.
 	# People with special needs should localise this
 	# to add any flags.
-	@PERLCMD = ( $^X );
+	@PERLCMD = ( Perl::Exe::find );
 }
 
 sub delegate {

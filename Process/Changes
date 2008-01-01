@@ -1,5 +1,8 @@
 Revision history for Perl extension Process
 
+0.21 Tue  2 Jan 2008
+	- Moving from using $^X to Perl::Exe
+
 0.20 Sun  1 Jul 2007
 	- Upgrading to Module::Install 0.65
 	- Split Process::Backgroundable into a seperate distribution

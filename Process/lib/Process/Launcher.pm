@@ -8,7 +8,7 @@ use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.20';
+	$VERSION = '0.21';
 	@EXPORT  = qw{run run3 serialized};
 
 	# Preload the heavyish Process::Storable module
