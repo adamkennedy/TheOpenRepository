@@ -11,13 +11,14 @@ use File::Which           ();
 use File::Spec::Functions ':ALL';
 use File::Find::Rule      ();
 use Getopt::Long          ();
+use Perl::Exe             ();
 
 # Convenience constants
 use constant FFR     => 'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.31';
+        $VERSION = '0.32';
 }
 
 # Does exec work on this platform
@@ -51,16 +52,7 @@ sub Build () {
 }
 
 sub perl () {
-	my $perl = $^X;
-	if ( $perl eq 'perl' and ! -f $perl ) {
-		# Some platforms don't provide an absolute $^X
-		# Apply File::Which in this case
-		$perl = File::Which::which( $perl );
-	}
-	unless ( -f $perl ) {
-		croak("Failed to find perl at '$perl'");
-	}
-	return $perl;
+	Perl::Exe::find;
 }
 
 # Look for make in $Config

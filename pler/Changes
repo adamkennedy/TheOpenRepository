@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+0.32 Tue  1 Jan 2008
+	- Replacing the use of $^X with Perl::Exe::find
+
 0.31 Thu 27 Sep 2007
 	- Fixing multiple filters
 	- Incrementing to get new author tests

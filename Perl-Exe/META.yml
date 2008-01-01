@@ -1,0 +1,22 @@
+---
+abstract: ~
+author: ~
+build_requires:
+  Test::More: 0.47
+distribution_type: module
+generated_by: 'Module::Install version 0.68'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
+name: Perl-Exe
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  File::Spec: 0.80
+  File:Basename: 0
+  IPC::Run3: 0
+  perl: 5.005
+version: 0.01
