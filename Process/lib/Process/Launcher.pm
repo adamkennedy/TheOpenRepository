@@ -1,14 +1,15 @@
 package Process::Launcher;
 
 use strict;
-use base 'Exporter';
-use Process ();
+use Exporter ();
+use Process  ();
 use Process::Serializable ();
 use Params::Util qw{_CLASS _INSTANCE};
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	$VERSION = '0.21';
+	@ISA     = qw{Exporter};
 	@EXPORT  = qw{run run3 serialized};
 
 	# Preload the heavyish Process::Storable module
