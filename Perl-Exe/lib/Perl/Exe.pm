@@ -179,7 +179,7 @@ sub discover () {
 
 =pod
 
-=head is
+=head2 is
 
   if ( Perl::Exe::is($path) ) {
      print "The Perl interpreter is $path";
