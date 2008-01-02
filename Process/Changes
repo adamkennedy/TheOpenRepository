@@ -1,6 +1,9 @@
 Revision history for Perl extension Process
 
-0.21 Tue  2 Jan 2008
+0.22 Wed  2 Jan 2008
+	- Moving from Perl::Exe to Probe::Perl
+
+0.21 Wed  2 Jan 2008
 	- Moving from using $^X to Perl::Exe
 
 0.20 Sun  1 Jul 2007
