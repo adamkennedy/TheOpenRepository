@@ -1,14 +1,19 @@
 
-# This is CPAN.pm's systemwide configuration file. This file provides
-# defaults for users, and the values can be changed in a per-user
-# configuration file. The user-config file is being looked for as
-# ~/.cpan/CPAN/MyConfig.pm.
+# Find the main distribution paths
+use Config ();
+my $root     =  $Config{'prefix'};
+   $root     =~ s/\\perl$//;
+my $cpan     =  "$root\\cpan";
+my $minicpan =  "$root\\minicpan";
+my $windows  =  $ENV{SYSTEMROOT} || "C:\\WINDOWS";
+my $system32 =  "$windows\\system32";
 
+# Derive the CPAN Config
 $CPAN::Config = {
   applypatch                    => q[],
   auto_commit                   => q[1],
-  build_cache                   => q[10],
-  build_dir                     => q[C:\\vanilla\\cpan\\build],
+  build_cache                   => q[20],
+  build_dir                     => "$cpan\\build",
   build_dir_reuse               => q[0],
   build_requires_install_policy => q[yes],
   bzip2                         => q[],
@@ -18,40 +23,40 @@ $CPAN::Config = {
   colorize_print                => q[bold blue on_white],
   colorize_warn                 => q[bold red on_white],
   commandnumber_in_prompt       => q[0],
-  cpan_home                     => q[C:\\vanilla\\cpan],
+  cpan_home                     => $cpan,
   curl                          => q[],
-  ftp                           => q[C:\\WINDOWS\\system32\\ftp.EXE],
+  ftp                           => "$system32\\ftp.exe",
   ftp_passive                   => q[1],
   ftp_proxy                     => q[],
   getcwd                        => q[cwd],
   gpg                           => q[],
   gzip                          => q[],
-  histfile                      => q[C:\\vanilla\\cpan\\histfile],
+  histfile                      => "$cpan\\histfile",
   histsize                      => q[100],
   http_proxy                    => q[],
   inactivity_timeout            => q[0],
   index_expire                  => q[1],
   inhibit_startup_message       => q[0],
-  keep_source_where             => q[C:\\vanilla\\cpan\\sources],
+  keep_source_where             => "$cpan\\sources",
   load_module_verbosity         => q[none],
   lynx                          => q[],
-  make                          => q[C:\\vanilla\\c\\bin\\dmake.EXE],
+  make                          => "$root\\c\\bin\\dmake.exe",
   make_arg                      => q[],
   make_install_arg              => q[UNINST=1],
-  makepl_arg                    => q[LIBS=-LC:\\vanilla\\c\\lib INC=-IC:\\vanilla\\c\\include],
+  makepl_arg                    => "LIBS=-L$root\\c\\lib INC=-I$root\\c\\include",
   mbuild_arg                    => q[],
   mbuild_install_arg            => q[--uninst 1],
   mbuildpl_arg                  => q[],
   ncftp                         => q[],
   ncftpget                      => q[],
   no_proxy                      => q[],
-  pager                         => q[C:\\WINDOWS\\system32\\more.COM],
+  pager                         => "$system32\\more.com",
   patch                         => q[],
   prefer_installer              => q[MB],
-  prefs_dir                     => q[C:\\vanilla\\cpan\\prefs],
+  prefs_dir                     => "$cpan\\prefs",
   prerequisites_policy          => q[follow],
   scan_cache                    => q[atstart],
-  shell                         => q[C:\\WINDOWS\\system32\\cmd.exe],
+  shell                         => "$system32\\cmd.exe",
   show_unparsable_versions      => q[0],
   show_upload_date              => q[1],
   show_zero_versions            => q[0],
@@ -61,11 +66,14 @@ $CPAN::Config = {
   term_ornaments                => q[0],
   test_report                   => q[0],
   unzip                         => q[],
-  urllist                       => [q[http://mirrors.kernel.org/CPAN/],q[file://c|/minicpan/]],
+  urllist                       => [
+      q[http://mirrors.kernel.org/CPAN/],
+      -d $minicpan ? ($minicpan) : (),
+  ],
   use_sqlite                    => q[1],
   wget                          => q[],
   yaml_load_code                => q[0],
   yaml_module                   => q[YAML],
 };
+
 1;
-__END__
