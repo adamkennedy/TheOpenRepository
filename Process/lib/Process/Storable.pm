@@ -13,7 +13,7 @@ use Params::Util '_INSTANCE';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.21';
+	$VERSION = '0.22';
 
 	# Hack IO::String to be a real IO::Handle
 	unless ( IO::String->isa('IO::Handle') ) {
