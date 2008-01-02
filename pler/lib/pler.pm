@@ -11,7 +11,7 @@ use File::Which           ();
 use File::Spec::Functions ':ALL';
 use File::Find::Rule      ();
 use Getopt::Long          ();
-use Perl::Exe             ();
+use Probe::Perl           ();
 
 # Convenience constants
 use constant FFR     => 'File::Find::Rule';
@@ -52,7 +52,7 @@ sub Build () {
 }
 
 sub perl () {
-	Perl::Exe::find;
+	Probe::Perl->find_perl_interpreter;
 }
 
 # Look for make in $Config
