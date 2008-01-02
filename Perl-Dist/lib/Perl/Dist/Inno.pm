@@ -24,6 +24,12 @@ Building that distribution...
 
 =head1 DESCRIPTION
 
+B<ATTENTION: THE API OF THIS MODULES IS BEING HEAVILY REFACTORED.>
+
+B<SUBCLASSING IS ENCOURAGED BUT MAY NEED TO BE CHANGED WITH FUTURE RELEASES.>
+
+B<YOU HAVE BEEN WARNED!>
+
 B<Perl::Dist::Inno> is a Win32 Perl distribution builder that targets
 the Inno Setup 5 installer creation program.
 
@@ -148,7 +154,7 @@ use base 'Perl::Dist::Inno::Script';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.53';
+        $VERSION = '0.90_01';
 }
 
 use Object::Tiny qw{
@@ -268,6 +274,8 @@ convenience.
 The C<new> constructor returns a B<Perl::Dist> object, which you
 should then call C<run> on to generate the distribution.
 
+TO BE CONTINUED
+
 =cut
 
 sub new {
@@ -326,13 +334,15 @@ sub new {
 	}
 	$self->{perl_version_literal} = {
 		588  => '5.008008',
-		5110 => '5.010000',
-		}->{$self->perl_version};
+		5100 => '5.010000',
+		}->{$self->perl_version}
+	or die "Failed to resolve perl_version_literal";
 	$self->{perl_version_human} = {
 		588  => '5.8.8',
-		5110 => '5.10.0',
-		}->{$self->perl_version};
-	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal};
+		5100 => '5.10.0',
+		}->{$self->perl_version}
+	or die "Failed to resolve perl_version_human";
+	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal+0};
 	unless ( _HASH($self->{perl_version_corelist}) ) {
 		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
 	}
@@ -489,7 +499,7 @@ sub run {
 
 	# Install additional Perl modules
 	$t = time;
-	$self->install_perl_modules
+	$self->install_perl_modules;
 	$self->trace("Completed install_perl_modules in " . (time - $t) . " seconds\n");
 
 	# Install the Win32 extras
@@ -632,7 +642,7 @@ sub install_perl {
 	unless ( $self->can($install_perl_method) ) {
 		croak("Cannot generate perl, missing $install_perl_method method in " . ref($self));
 	}
-	$self->$method(@_);
+	$self->$install_perl_method(@_);
 }
 
 # No additional modules by default
@@ -827,45 +837,9 @@ sub find_588_toolchain {
 	my $self = shift;
 
 	# Resolve the distribution list at startup time
-	my $toolchain588 = Perl::Dist::Util::Toolchain->new( qw{
-		ExtUtils::MakeMaker
-		File::Path
-		ExtUtils::Command
-		Win32API::File
-		ExtUtils::Install
-		ExtUtils::Manifest
-		Test::Harness
-		Test::Simple
-		ExtUtils::CBuilder
-		ExtUtils::ParseXS
-		version
-		Scalar::Util
-		IO::Compress::Base
-		Compress::Raw::Zlib
-		Compress::Raw::Bzip2
-		IO::Compress::Zip
-		IO::Compress::Bzip2
-		Compress::Zlib
-		Compress::Bzip2
-		IO::Zlib
-		File::Spec
-		File::Temp
-		Win32API::Registry
-		Win32::TieRegistry
-		File::HomeDir
-		File::Which
-		Archive::Zip
-		Archive::Tar
-		YAML
-		Net::FTP
-		Digest::MD5
-		Digest::SHA1
-		Digest::SHA
-		Module::Build
-		Term::Cap
-		CPAN
-		Term::ReadLine::Perl
-	} );
+	my $toolchain588 = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+	);
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
@@ -1055,20 +1029,9 @@ sub find_5100_toolchain {
 	my $self = shift;
 
 	# Resolve the distribution list at startup time
-	my $toolchain5100 = Perl::Dist::Util::Toolchain->new( qw{
-		Compress::Raw::Bzip2
-		IO::Compress::Bzip2
-		Compress::Bzip2
-		File::Temp
-		Win32API::Registry
-		Win32::TieRegistry
-		File::HomeDir
-		File::Which
-		Archive::Zip
-		YAML
-		Digest::SHA1
-		Term::ReadLine::Perl
-	} );
+	my $toolchain5100 = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+	);
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
@@ -1738,10 +1701,31 @@ sub _perl {
 
 sub _run3 {
 	my $self = shift;
+
+	# Clean the simple environment keys
 	local $ENV{PERL5LIB} = '';
 	local $ENV{INCLUDE}  = $self->get_env_include;
 	local $ENV{LIB}      = $self->get_env_lib;
-	local $ENV{PATH}     = $self->get_env_path . ';' . $ENV{PATH};
+
+	# Remove any Perl installs from PATH to prevent
+	# "which" discovering stuff it shouldn't.
+	my @path = split /;/, $ENV{PATH};
+	my @keep = ();
+	foreach my $p ( @path ) {
+		# Strip any path that doesn't exist
+		next unless -d $p;
+
+		# Strip any path that contains either dmake or perl.exe.
+		# This should remove both the ...\c\bin and ...\perl\bin
+		# parts of the paths that Vanilla/Strawberry added.
+		next if -f File::Spec->catfile( $p, 'dmake.exe' );
+		next if -f File::Spec->catfile( $p, 'perl.exe'  );
+
+		push @keep, $p;
+	}
+	local $ENV{PATH} = $self->get_env_path . ';' . join( ';', @keep );
+
+	# Execute the child process
 	return IPC::Run3::run3( [ @_ ],
 		\undef,
 		$self->debug_stdout,

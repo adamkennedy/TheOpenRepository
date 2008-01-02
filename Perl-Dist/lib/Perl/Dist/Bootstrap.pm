@@ -7,7 +7,7 @@ use File::Remove ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.53';
+	$VERSION = '0.90_01';
 }
 
 
@@ -18,11 +18,11 @@ BEGIN {
 # Configuration
 
 sub app_name             { 'Bootstrap Perl'              }
-sub app_ver_name         { 'Bootstrap Perl Beta 1'       }
+sub app_ver_name         { 'Bootstrap Perl Beta 2'       }
 sub app_publisher        { 'Vanilla Perl Project'        }
 sub app_publisher_url    { 'http://vanillaperl.com/'     }
 sub app_id               { 'bootstrapperl'               }
-sub output_base_filename { 'bootstrap-perl-5.8.8-beta-1' }
+sub output_base_filename { 'bootstrap-perl-5.8.8-beta-2' }
 
 
 
@@ -35,20 +35,16 @@ sub output_base_filename { 'bootstrap-perl-5.8.8-beta-1' }
 sub new {
 	my $class = shift;
 	return $class->SUPER::new(
-		image_dir => 'C:\\bootperl',
-		temp_dir  => 'C:\\tmp\\bp',
+		perl_version => '588',
+		image_dir    => 'C:\\bootperl',
+		temp_dir     => 'C:\\tmp\\bp',
 		@_,
 	);
 }
 
-# Install Perl 5.8.8 instead of 5.10
 sub install_perl {
-	shift->install_perl_588(@_);
-}
-
-sub install_perl_588 {
 	my $self = shift;
-	$self->SUPER::install_perl_588(@_);
+	$self->SUPER::install_perl(@_);
 
 	# Install the bootperl CPAN::Config
 	$self->install_file(
@@ -63,16 +59,7 @@ sub install_perl_588 {
 sub install_perl_modules {
 	my $self = shift;
 
-	# Install the companion Perl modules for the
-	# various libs we installed.
-	$self->install_module(
-		name => 'XML::LibXML',
-	);
-
 	# Install the basics
-	$self->install_module(
-		name => 'Params::Util',
-	);
 	$self->install_module(
 		name => 'Bundle::LWP',
 	);
@@ -83,9 +70,6 @@ sub install_perl_modules {
 	);
 	$self->install_module(
 		name => 'pler',
-	);
-	$self->install_module(
-		name => 'pip',
 	);
 	$self->install_module(
 		name => 'PAR::Dist',

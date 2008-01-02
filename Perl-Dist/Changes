@@ -1,6 +1,12 @@
 Revision history for Perl module Perl::Dist
 
-0.53 Sun 24 Dec 2007
+0.90_01 Wed  2 Jan 2008
+	- Major API refactoring
+	- Converted Perl::Dist::Util::Toolchain to be completely
+	  auto-resolving for what it should install.
+	- Started the documentation process.
+
+0.53 Sun 24 Dec 2007 (unreleased)
 	- Adding support for websites in the start menu entries
 	- Adding support for .bat launchers in the start menu
 	- Completed Strawberry Perl 5.10.0 using this version

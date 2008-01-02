@@ -113,6 +113,10 @@ Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=yes
 
+; Delete old install
+[InstallDelete]
+Type: filesandordirs; Name: "$dir"
+
 [Languages]
 Name: eng; MessagesFile: compiler:Default.isl
 
