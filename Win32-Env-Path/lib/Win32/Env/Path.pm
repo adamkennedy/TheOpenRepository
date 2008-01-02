@@ -63,9 +63,9 @@ sub new {
 	$self->{autosave} = defined $self->{autosave} ? !! $self->{autosave} : 1;
 	$self->{user}     = !! $self->{user};
 	$self->{env}      = $self->user ? $Registry->{$USER_ENV} : $Registry->{$SYSTEM_ENV};
-	$self->{string}   = $self->env->{$self->name};
+	($self->{value},$self->{type}) = $self->env->GetValue($self->name);
 	$self->{array}    = undef;
-	$self->{array}    = [ split /;/, $self->string ] if defined($self->string);
+	$self->{array}    = [ split /;/, $self->value ] if defined($self->value);
 	$self->{changed}  = 0;
 
 	return $self;
@@ -87,8 +87,12 @@ sub env {
 	$_[0]->{env};
 }
 
-sub string {
-	$_[0]->{string};
+sub value {
+	$_[0]->{value};
+}
+
+sub type {
+	$_[0]->{type};
 }
 
 sub array {
@@ -176,7 +180,7 @@ sub sync {
 	$self->{changed} = 1;
 
 	# Convert the list to the string
-	$self->{string} = join(';', @{$self->array});
+	$self->{value} = join(';', @{$self->array});
 
 	# Save to the registry if needed
 	$self->save if $self->autosave;
@@ -188,7 +192,7 @@ sub save {
 	my $self = shift;
 
 	# The string is already set correctly, just write it
-	$self->env->{$self->name} = $self->string;
+	$self->env->SetValue( $self->name, $self->value, $self->type );
 
 	# Remove the changed flag
 	$self->{changed} = 0;
@@ -206,7 +210,9 @@ sub save {
 sub resolve {
 	my $self = shift;
 	my $path = shift;
-	$path =~ s/\%(\w+)\%/$ENV{uc("$1")}/g;
+	if ( $self->type == REG_EXPAND_SZ ) {
+		$path =~ s/\%(\w+)\%/$ENV{uc("$1")}/g;
+	}
 	return lc $path;
 }
 
