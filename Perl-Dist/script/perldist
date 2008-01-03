@@ -3,7 +3,9 @@
 use 5.006;
 use strict;
 use warnings;
+use Params::Util qw{ _IDENTIFIER };
 use Pod::Usage;
+use Getopt::Long;
 use URI;
 
 use vars qw{$VERSION};
@@ -20,18 +22,32 @@ unless ( @ARGV ) {
 	exit(0);
 }
 
+
+
+
+
+#####################################################################
+# Handle Options
+
+my $PERL_VERSION = undef;
+my $CPAN         = undef;
+my $result       = GetOptions(
+	"perl_version=s" => \$PERL_VERSION,
+	"cpan=s"         => \$CPAN,
+);
+
 # Did we get a valid file as the first param?
 unless ( $ARGV[0] ) {
-	print "Did not get a distribution class\n";
-	exit(0);
-}
-unless ( $ARGV[1] ) {
-	print "Did not get a CPAN url\n";
+	print "Did not get a distribution name\n";
 	exit(0);
 }
 
 # Get the distribution class name
 my $class = $ARGV[0];
+if ( _IDENTIFIER($class) ) {
+	# Simple name like "Vanilla"
+	$class = "Perl::Dist::$class";
+}
 eval "require $class;";
 if ( $@ ) {
         die "Failed to load $class: $@";
@@ -40,11 +56,21 @@ unless ( $class->isa('Perl::Dist') ) {
 	die "$class is not a Perl::Dist subclass";
 }
 
-# Get the CPAN URI
-my $cpan = URI->new( $ARGV[1] );
+
+
+
+
+# Generate options and hand off to the class
+my %options = ();
+if ( defined $PERL_VERSION ) {
+	$options{perl_version} = $PERL_VERSION;
+}
+if ( defined $CPAN ) {
+	$options{cpan} = URI->new( $CPAN );
+}
 
 # Run the build
-my $dist = $class->new( cpan => $cpan );
+my $dist = $class->new( %options );
 unless ( $dist ) {
 	die "Failed to create $class";
 }
@@ -64,11 +90,17 @@ perldist - Windows Perl distribution builder
 
 =head1 SYNOPSIS
 
-  perldist Perl::Dist::Vanilla file://C|/minicpan/
+Simplfied usage...
+
+  perldist Vanilla
   ...
   (various output for 1-2 hours)
   ...
   Created as C:\tmp\vp\output\vanilla-perl-5.10.0-build-9.exe
+
+Full usage equivalent...
+
+  perldist --perl_version=588 --cpan="file://c|/minicpan/" Perl::Dist::Vanilla
 
 =head1 DESCRIPTION
 
@@ -78,13 +110,12 @@ Perl distribution builder.
 It takes two arguments, burns CPU for an hour or more, and then
 spits out a distribution package.
 
-The first argument is the class name for the distribution. This will be
-a subclass of Perl::Dist that provides configuration information and
+The argument is the class name for the distribution. This will be
+a subclass of L<Perl::Dist> that provides configuration information and
 scripts the installation sequence.
 
-The second argument should be the URL (with trailing slash) for a CPAN
-(or L<minicpan>) repository, that the distribution builder can use to
-pull anything it needs for the build process.
+If you are building a "Perl::Dist::Distribution" class, you can drop
+the "Perl::Dist::" as a convenience.
 
 And that's about all there is to it.
 
@@ -108,7 +139,7 @@ L<Perl::Dist>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

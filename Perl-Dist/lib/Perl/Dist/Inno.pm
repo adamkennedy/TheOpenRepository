@@ -128,8 +128,9 @@ which details how to sub-class the distribution.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
 use Carp                  'croak';
 use Archive::Tar          ();
 use Archive::Zip          ();
@@ -984,8 +985,8 @@ sub install_perl_5100_bin {
 			local $/ = undef;
 			open( MAKEFILE, 'makefile.mk' ) or die "open: $!";
 			my $makefile_mk = <MAKEFILE>;
+			close( MAKEFILE ) or die "close: $!";
 			$makefile_mk =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
-			close MAKEFILE;
 
 			# Apply the changes
 			$makefile_mk =~ s/^(INST_DRV\s+\*=\s+).+?(\n)/$1$vol$2/m;
@@ -993,9 +994,9 @@ sub install_perl_5100_bin {
 			$makefile_mk =~ s/C\:\\MinGW/$image_dir\\c/;
 
 			# Write out the makefile
-			open( MAKEFILE, '>makefile.mk' ) or die "open: $!";
-			print MAKEFILE $makefile_mk;
-			close MAKEFILE;
+			open ( MAKEFILE, '>makefile.mk' ) or die "open: $!";
+			print( MAKEFILE $makefile_mk    ) or die "print: $!";
+			close( MAKEFILE                 ) or die "close: $!";
 		}
 
 		$self->trace("Building perl...\n");

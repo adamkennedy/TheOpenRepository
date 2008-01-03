@@ -1,3 +1,11 @@
+# This CPAN/Config.pm file has hand-crafted for Vanilla Perl style
+# distributions as a good generic product-agnostic default.
+# However, the first time you run the CPAN "firsttime" or "o conf init"
+# type process, it will overwrite this file and everything will revert
+# to flattened and hardcoded strings.
+
+
+
 
 # Find the main distribution paths
 use Config ();
@@ -7,6 +15,9 @@ my $cpan     =  "$root\\cpan";
 my $minicpan =  "$root\\minicpan";
 my $windows  =  $ENV{SYSTEMROOT} || "C:\\WINDOWS";
 my $system32 =  "$windows\\system32";
+
+
+
 
 # Derive the CPAN Config
 $CPAN::Config = {

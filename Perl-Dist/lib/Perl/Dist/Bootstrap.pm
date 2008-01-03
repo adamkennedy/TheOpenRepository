@@ -2,7 +2,8 @@ package Perl::Dist::Bootstrap;
 
 use 5.006;
 use strict;
-use base 'Perl::Dist';
+use warnings;
+use base 'Perl::Dist::Vanilla';
 use File::Remove ();
 
 use vars qw{$VERSION};
@@ -15,29 +16,16 @@ BEGIN {
 
 
 #####################################################################
-# Configuration
-
-sub app_name             { 'Bootstrap Perl'              }
-sub app_ver_name         { 'Bootstrap Perl Beta 2'       }
-sub app_publisher        { 'Vanilla Perl Project'        }
-sub app_publisher_url    { 'http://vanillaperl.com/'     }
-sub app_id               { 'bootstrapperl'               }
-sub output_base_filename { 'bootstrap-perl-5.8.8-beta-2' }
-
-
-
-
-
-#####################################################################
 # Constructor
 
 # Apply some default paths
 sub new {
-	my $class = shift;
-	return $class->SUPER::new(
-		perl_version => '588',
-		image_dir    => 'C:\\bootperl',
-		temp_dir     => 'C:\\tmp\\bp',
+	shift->SUPER::new(
+		perl_version         => '588',
+		app_name             => 'Bootstrap Perl',
+		app_ver_name         => 'Bootstrap Perl Beta 2',
+		output_base_filename => 'bootstrap-perl-5.8.8-beta-2',
+		image_dir            => 'C:\\bootperl',
 		@_,
 	);
 }

@@ -1,5 +1,6 @@
 Revision history for Perl module Perl::Dist
 
+0.90_02 
 0.90_01 Wed  2 Jan 2008
 	- Major API refactoring
 	- Converted Perl::Dist::Util::Toolchain to be completely

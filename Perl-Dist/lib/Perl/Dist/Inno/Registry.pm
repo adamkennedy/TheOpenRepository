@@ -1,6 +1,8 @@
 package Perl::Dist::Inno::Registry;
 
+use 5.006;
 use strict;
+use warnings;
 use Carp         qw{ croak               };
 use Params::Util qw{ _IDENTIFIER _STRING };
 

@@ -1,12 +1,13 @@
 package Perl::Dist::Vanilla;
 
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
 use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '13';
+	$VERSION = '14';
 }
 
 
@@ -16,20 +17,31 @@ BEGIN {
 #####################################################################
 # Configuration
 
-sub app_name             { 'Vanilla Perl'                       }
-sub app_ver_name         { "Vanilla Perl 5.10.0 $VERSION"       }
-sub app_publisher        { 'Vanilla Perl Project'               }
-sub app_publisher_url    { 'http://vanillaperl.org/'            }
-sub app_id               { 'vanillaperl'                        }
-sub output_base_filename { "vanilla-perl-5.10.0-build-$VERSION" }
-
 # Apply some default paths
 sub new {
-	shift->SUPER::new(
-		image_dir => 'C:\\vanilla',
-		temp_dir  => 'C:\\tmp\\vp',
+	my $class = shift;
+
+	# Prepend defaults
+	my $self = $class->SUPER::new(
+		app_id               => 'vanillaperl',
+		app_name             => 'Vanilla Perl',
+		app_publisher        => 'Vanilla Perl Project',
+		app_publisher_url    => 'http://vanillaperl.org/',
+		image_dir            => 'C:\\vanilla',
 		@_,
 	);
+}
+
+# Lazily default the full name
+sub app_ver_name {
+	$_[0]->{app_ver_name} or
+	$_[0]->app_name . ' ' . $_[0]->perl_version_human . ' ' . $_[0]->VERSION;
+}
+
+# Lazily default the file name
+sub output_base_filename {
+	$_[0]->{output_base_filename} or
+	'vanilla-perl-' . $_[0]->perl_version_human . '-build-' . $_[0]->VERSION;
 }
 
 

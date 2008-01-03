@@ -2,7 +2,9 @@ package Perl::Dist::Asset;
 
 # Convenience base class for Perl::Dist assets
 
+use 5.006;
 use strict;
+use warnings;
 use Carp             'croak';
 use File::Spec       ();
 use File::Spec::Unix ();
