@@ -3,7 +3,7 @@ package Perl::Dist::Inno::Script;
 use 5.006;
 use strict;
 use warnings;
-use Carp                       qw{ croak   };
+use Carp                       qw{ croak };
 use File::Spec                 ();
 use File::Temp                 ();
 use IPC::Run3                  ();
@@ -18,18 +18,13 @@ BEGIN {
 }
 
 use Object::Tiny qw{
-	perl_version
-	perl_version_literal
-	perl_version_human
 	app_id
 	app_name
-	app_ver_name
 	app_publisher
 	app_publisher_url
 	default_group_name
 	default_dir_name
 	output_dir
-	output_base_filename
 	source_dir
 	bin_compil32
 };
@@ -48,26 +43,6 @@ sub new {
 	}
 
 	# Check and default params
-	unless ( defined $self->perl_version ) {
-		$self->{perl_version} = '5100';
-	}
-	unless ( defined $self->{perl_version_literal} ) {
-		$self->{perl_version_literal} = {
-			588  => '5.008008',
-			5100 => '5.010000',
-		}->{$self->perl_version};
-	unless ( $self->perl_version_literal ) {
-		croak "Failed to resolve perl_version_literal";
-	}
-	unless ( defined $self->{perl_version_human} ) {
-		$self->{perl_version_human} = {
-			588  => '5.8.8',
-			5100 => '5.10.0',
-		}->{$self->perl_version};
-	}
-	unless ( $self->perl_version_human ) {
-		croak "Failed to resolve perl_version_human";
-	}
 	unless ( _IDENTIFIER($self->app_id) ) {
 		croak("Missing or invalid app_id param");
 	}
@@ -125,6 +100,24 @@ sub new {
 	$self->{bin_compil32} = $innosetup_file;
 
 	return $self;
+}
+
+# Default the versioned name to an unversioned name
+sub app_ver_name {
+	$_[0]->{app_ver_name} or
+	$_[0]->app_name;
+}
+
+# Default the output filename to the id plus the current date
+sub output_base_filename {
+	$_[0]->{output_base_filename} or
+	$_[0]->app_id . '-' . $_[0]->output_date_string;
+}
+
+# Convenience method
+sub output_date_string {
+	my @t = scalar localtime;
+	return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
 }
 
 sub files {

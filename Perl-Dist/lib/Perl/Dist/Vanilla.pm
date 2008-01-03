@@ -30,6 +30,8 @@ sub new {
 		image_dir            => 'C:\\vanilla',
 		@_,
 	);
+
+	return $self;
 }
 
 # Lazily default the full name

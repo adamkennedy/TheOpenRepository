@@ -167,6 +167,9 @@ use Object::Tiny qw{
 	build_dir
 	iss_file
 	user_agent
+	perl_version
+	perl_version_literal
+	perl_version_human
 	perl_version_corelist
 	cpan
 	bin_perl
@@ -324,6 +327,26 @@ sub new {
 	my $self = $class->SUPER::new(%params);
 
 	# Check the version of Perl to build
+	unless ( defined $self->perl_version ) {
+		$self->{perl_version} = '5100';
+	}
+	unless ( defined $self->{perl_version_literal} ) {
+		$self->{perl_version_literal} = {
+			588  => '5.008008',
+			5100 => '5.010000',
+		}->{$self->perl_version};
+	unless ( $self->perl_version_literal ) {
+		croak "Failed to resolve perl_version_literal";
+	}
+	unless ( defined $self->{perl_version_human} ) {
+		$self->{perl_version_human} = {
+			588  => '5.8.8',
+			5100 => '5.10.0',
+		}->{$self->perl_version};
+	}
+	unless ( $self->perl_version_human ) {
+		croak "Failed to resolve perl_version_human";
+	}
 	unless ( $self->can('install_perl_' . $self->perl_version) ) {
 		croak("$class does not support Perl " . $self->perl_version);
 	}
@@ -453,6 +476,32 @@ sub new {
 
 sub source_dir {
 	$_[0]->image_dir;
+}
+
+# Default the versioned name to an unversioned name
+sub app_ver_name {
+	my $self = shift;
+	if ( $self->{app_ver_name} ) {
+		return $self->{app_ver_name};
+	}
+	if ( $self->perl_version_human ) {
+		return $self->app_name . ' ' . $self->perl_version_human;
+	}
+	$self->SUPER::app_ver_name(@_);	
+}
+
+# Default the output filename to the id plus the current date
+sub output_base_filename {
+	my $self = shift;
+	if ( $self->{output_base_filename} ) {
+		return $self->{output_base_filename};
+	}
+	if ( $self->perl_version_human ) {
+		return $self->app_id
+		     . '-' . $self->perl_version_human
+		     . '-' . $self->output_date_string;
+	}
+	$self->SUPER::output_base_filename(@_);
 }
 
 
