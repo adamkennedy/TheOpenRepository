@@ -1,5 +1,9 @@
 Revision history for Perl extension ExtUtils::InferConfig.
 
-0.01  Sat Jan 27 12:18:30 2007
+1.00  Thu Aug 30 14:59 2007
+	- Add IPC::Cmd as a dependency.
+        - Should now work as far back as perl 5.004.
+
+0.01  Sat Jan 27 12:18 2007
 	- original version
 

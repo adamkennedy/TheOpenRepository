@@ -1,13 +1,14 @@
 package ExtUtils::InferConfig;
 
-use 5.006;
 use strict;
-use warnings;
 use Config;
 use Carp qw/croak/;
 use IPC::Cmd qw//;
 
-our $VERSION = '0.01';
+use vars qw/$VERSION/;
+BEGIN {
+    $VERSION = '1.00';
+}
 
 use constant ISWIN32 => ($^O =~ /win32/i ? 1 : 0);
 

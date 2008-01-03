@@ -1,6 +1,5 @@
-#!perl
+#!perl -w
 use strict;
-use warnings;
 use lib 'lib';
 use Config;
 use Test::More tests => scalar(keys(%Config))*2 + 4;

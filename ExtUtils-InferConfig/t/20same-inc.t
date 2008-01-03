@@ -1,6 +1,5 @@
-#!perl
+#!perl -w
 use strict;
-use warnings;
 use Test::More tests => scalar(grep {not ref($_)} @INC) + 4;
 
 use_ok('ExtUtils::InferConfig');
