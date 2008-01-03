@@ -9,10 +9,11 @@ BEGIN {
 use Test::More tests => 32;
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
+use Probe::Perl ();
 
+my $perl = Probe::Perl->find_perl_interpreter;
 @Perl::Dist::Util::Toolchain::DELEGATE = (
-	'perl',
-	'-I' . File::Spec->catdir('blib', 'lib'),
+	$perl, '-I' . File::Spec->catdir('blib', 'lib'),
 );
 
 
