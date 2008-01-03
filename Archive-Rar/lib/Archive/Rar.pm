@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.92';
+$VERSION = '1.93';
 
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-
@@ -205,7 +205,7 @@ sub SetOptions {
 	}
 	$me->{current} =\%args;
 
-	$args{'-files'} ='.' if (IsEmpty($args{'-files'}));
+        $args{'-files'} =$command eq 'vt' ? [] : '.' if (IsEmpty($args{'-files'}));
 	$args{'-files'} =[ $args{'-files'} ] if (ref($args{'-files'}) eq '');
 
 	$me->{archive} =$args{'-archive'} if (!IsEmpty($args{'-archive'}));
@@ -299,8 +299,8 @@ Fin:
 # 
 sub _AddToList {
 	my ($me,$pcurrfile,$pattrib) =@_;
-	return if ($pattrib->[6] =~ /d/i);
 	return if ($#$pattrib < 0);
+	return if ($pattrib->[6] =~ /d/i);
 	$me->{list} =() if (!defined $me->{list});
 	if ($pattrib->[3] =~ /(^<->$)|(^<--$)/) {
 		$pcurrfile->{packed} +=$pattrib->[2];
@@ -388,7 +388,7 @@ sub PrintList {
 +------------------------------------------+----------+----------+------+
 EOD
 	foreach my $p (@{$me->{list}}) {
-		printf $fh ("| %-40.40s | %8.8s | %8.8s | %3.3s% |\n",$p->{name},$p->{size},$p->{packed},100-$p->{ratio});
+		printf $fh ("| %-40.40s | %8.8s | %8.8s | %3.3s%% |\n",$p->{name},$p->{size},$p->{packed},100-$p->{ratio});
 	}
 	print $fh <<EOD;
 +------------------------------------------+----------+----------+------+
