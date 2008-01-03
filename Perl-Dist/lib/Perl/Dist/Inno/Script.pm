@@ -18,6 +18,9 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	perl_version
+	perl_version_literal
+	perl_version_human
 	app_id
 	app_name
 	app_ver_name
@@ -44,7 +47,27 @@ sub new {
 		$self->{default_group_name} = $self->app_name;
 	}
 
-	# Check params
+	# Check and default params
+	unless ( defined $self->perl_version ) {
+		$self->{perl_version} = '5100';
+	}
+	unless ( defined $self->{perl_version_literal} ) {
+		$self->{perl_version_literal} = {
+			588  => '5.008008',
+			5100 => '5.010000',
+		}->{$self->perl_version};
+	unless ( $self->perl_version_literal ) {
+		croak "Failed to resolve perl_version_literal";
+	}
+	unless ( defined $self->{perl_version_human} ) {
+		$self->{perl_version_human} = {
+			588  => '5.8.8',
+			5100 => '5.10.0',
+		}->{$self->perl_version};
+	}
+	unless ( $self->perl_version_human ) {
+		croak "Failed to resolve perl_version_human";
+	}
 	unless ( _IDENTIFIER($self->app_id) ) {
 		croak("Missing or invalid app_id param");
 	}

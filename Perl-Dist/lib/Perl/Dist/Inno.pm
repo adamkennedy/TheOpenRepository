@@ -167,9 +167,6 @@ use Object::Tiny qw{
 	build_dir
 	iss_file
 	user_agent
-	perl_version
-	perl_version_literal
-	perl_version_human
 	perl_version_corelist
 	cpan
 	bin_perl
@@ -327,22 +324,9 @@ sub new {
 	my $self = $class->SUPER::new(%params);
 
 	# Check the version of Perl to build
-	unless ( defined $self->perl_version ) {
-		$self->{perl_version} = '5100';
-	}
 	unless ( $self->can('install_perl_' . $self->perl_version) ) {
-		croak("Perl::Dist does not support Perl " . $self->perl_version);
+		croak("$class does not support Perl " . $self->perl_version);
 	}
-	$self->{perl_version_literal} = {
-		588  => '5.008008',
-		5100 => '5.010000',
-		}->{$self->perl_version}
-	or die "Failed to resolve perl_version_literal";
-	$self->{perl_version_human} = {
-		588  => '5.8.8',
-		5100 => '5.10.0',
-		}->{$self->perl_version}
-	or die "Failed to resolve perl_version_human";
 	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal+0};
 	unless ( _HASH($self->{perl_version_corelist}) ) {
 		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
