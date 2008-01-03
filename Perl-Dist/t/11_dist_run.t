@@ -17,6 +17,10 @@ BEGIN {
 		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
 		exit(0);
 	}
+	unless ( $ENV{TEST_PERLDIST_CPAN} ) {
+		plan( skip_all => 'Skipping multi-hour tests that require a live CPAN mirror' );
+		exit(0);
+	}
 	plan( tests => 11 );
 }
 
