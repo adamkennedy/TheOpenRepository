@@ -1,6 +1,7 @@
 Revision history for Perl module Perl::Dist
 
 0.90_02 Thu  3 Jan 2008
+	- This release was used to build Vanilla Perl 13
 	- Reorganising the default way that app_ver_name etc are done
 	  to allow for distributions classes that can generate BOTH
 	  5.8.8 and 5.10.0 distributions.
