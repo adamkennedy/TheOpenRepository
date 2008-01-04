@@ -37,7 +37,6 @@ sub cpan_uri {
 #####################################################################
 # Constructor Test
 
-
 my $dist = Perl::Dist::Bootstrap->new(
 	cpan => cpan_uri(),
 );

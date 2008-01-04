@@ -559,7 +559,7 @@ sub install_c_toolchain {
 	# Install dmake
 	$self->install_binary(
 		name       => 'dmake',
-		share      => 'Perl-Dist-Downloads dmake-4.8-20070327-SHAY.zip',
+		uri        => $self->strawberry('dmake-4.8-20070327-SHAY.zip'),
 		license    => {
 			'dmake/COPYING'            => 'dmake/COPYING',
 			'dmake/readme/license.txt' => 'dmake/license.txt',
@@ -581,7 +581,7 @@ sub install_c_toolchain {
 	# Install the compilers (gcc)
 	$self->install_binary(
 		name       => 'gcc-core',
-		share      => 'Perl-Dist-Downloads gcc-core-3.4.5-20060117-1.tar.gz',
+		uri        => $self->strawberry('gcc-core-3.4.5-20060117-1.tar.gz'),
 		license    => {
 			'COPYING'     => 'gcc/COPYING',
 			'COPYING.lib' => 'gcc/COPYING.lib',
@@ -590,20 +590,20 @@ sub install_c_toolchain {
 	);
 	$self->install_binary(
 		name       => 'gcc-g++',
-		share      => 'Perl-Dist-Downloads gcc-g++-3.4.5-20060117-1.tar.gz',
+		uri        => $self->strawberry('gcc-g++-3.4.5-20060117-1.tar.gz'),
 		install_to => 'c',
 	);
 
 	# Install the binary utilities
 	$self->install_binary(
 		name       => 'mingw-make',
-		share      => 'Perl-Dist-Downloads mingw32-make-3.81-2.tar.gz',
+		uri        => $self->strawberry('mingw32-make-3.81-2.tar.gz'),
 		install_to => 'c',
 	);
 
 	$self->install_binary(
 		name       => 'binutils',
-		share      => 'Perl-Dist-Downloads binutils-2.17.50-20060824-1.tar.gz',
+		uri        => $self->strawberry('binutils-2.17.50-20060824-1.tar.gz'),
 		license    => {
 			'Copying'     => 'binutils/Copying',
 			'Copying.lib' => 'binutils/Copying.lib',
@@ -619,7 +619,7 @@ sub install_c_toolchain {
 
 	$self->install_binary(
 		name       => 'pexports',
-		share      => 'Perl-Dist-Downloads pexports-0.43-1.zip',
+		uri        => $self->strawberry('pexports-0.43-1.zip'),
 		license    => {
 			'pexports-0.43/COPYING' => 'pexports/COPYING',
 		},
@@ -637,7 +637,7 @@ sub install_c_toolchain {
 	# Install support libraries
 	$self->install_binary(
 		name       => 'mingw-runtime',
-		share      => 'Perl-Dist-Downloads mingw-runtime-3.13.tar.gz',
+		uri        => $self->strawberry('mingw-runtime-3.13.tar.gz'),
 		license    => {
 			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
 			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
@@ -646,7 +646,7 @@ sub install_c_toolchain {
 	);
 	$self->install_binary(
 		name       => 'w32api',
-		share      => 'Perl-Dist-Downloads w32api-3.10.tar.gz',
+		uri        => $self->strawberry('w32api-3.10.tar.gz'),
 		install_to => 'c',
 	);
 
@@ -1116,7 +1116,7 @@ sub install_zlib {
 	# Zlib is a pexport-based lib-install
 	$self->install_library(
 		name       => 'zlib',
-		share      => 'Perl-Dist-Downloads zlib-1.2.3.win32.zip',
+		uri        => $self->strawberry('zlib-1.2.3.win32.zip'),
 		unpack_to  => 'zlib',
 		build_a    => {
 			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
@@ -1139,17 +1139,17 @@ sub install_libiconv {
 	# libiconv for win32 comes in 3 parts, install them.
 	$self->install_binary(
 		name       => 'iconv-dep',
-		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-dep.zip',
+		uri        => $self->strawberry('libiconv-1.9.2-1-dep.zip'),
 		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'iconv-lib',
-		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-lib.zip',
+		uri        => $self->strawberry('libiconv-1.9.2-1-lib.zip'),
 		install_to => 'c',
 	);
 	$self->install_binary(
 		name       => 'iconv-bin',
-		share      => 'Perl-Dist-Downloads libiconv-1.9.2-1-bin.zip',
+		uri        => $self->strawberry('libiconv-1.9.2-1-bin.zip'),
 		install_to => 'c',
 	);
 
@@ -1169,7 +1169,7 @@ sub install_libxml {
 	# libxml is a straight forward pexport-based install
 	$self->install_library(
 		name       => 'libxml2',
-		share      => 'Perl-Dist-Downloads libxml2-2.6.30.win32.zip',
+		uri        => $self->strawberry('libxml2-2.6.30.win32.zip'),
 		unpack_to  => 'libxml2',
 		build_a    => {
 			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
@@ -1659,6 +1659,10 @@ sub trace {
 		print $_[0];
 	}
 	return 1;
+}
+
+sub strawberry {
+	URI->new("http://strawberryperl.com/package/$_[1]");
 }
 
 sub _dir {
