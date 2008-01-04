@@ -155,7 +155,7 @@ use base 'Perl::Dist::Inno::Script';
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.90_02';
+        $VERSION  = '0.90_02';
 }
 
 use Object::Tiny qw{
@@ -193,6 +193,45 @@ use Perl::Dist::Asset::File         ();
 use Perl::Dist::Asset::Website      ();
 use Perl::Dist::Asset::Launcher     ();
 use Perl::Dist::Util::Toolchain     ();
+
+
+
+
+
+#####################################################################
+# Upstream Binary Packages (Mirrored)
+
+sub binary_root { 'http://strawberryperl.com/package' }
+
+my %PACKAGES = (
+	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
+	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
+	'mingw32-make'  => 'mingw32-make-3.81-2.tar.gz',
+	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
+	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
+	'w32api'        => 'w32api-3.10.tar.gz',
+	'libiconv-dep'  => 'libiconv-1.9.2-1-dep.zip',
+	'libiconv-lib'  => 'libiconv-1.9.2-1-lib.zip',
+	'libiconv-bin'  => 'libiconv-1.9.2-1-bin.zip',
+);
+
+sub binary_file {
+	unless ( $PACKAGES{$_[1]} ) {
+		croak("Unknown package '$_[1]'");
+	}
+	return $PACKAGES{$_[1]};
+}
+
+sub binary_uri {
+	my $self = shift;
+	my $file = shift;
+	unless ( $file =~ /\.(zip|gz|tgz)$/i ) {
+		# Shorthand, map to full file name
+		$file = $self->binary_file(@_);
+	}
+	return URI->new($self->binary_root . '/' . $file);
+}
 
 
 
@@ -553,102 +592,27 @@ sub run {
 	return 1;
 }
 
+# Install the required toolchain elements.
+# We use separate methods for each tool to make
+# it easier for individual distributions to customize
+# the versions of tools they incorporate.
 sub install_c_toolchain {
 	my $self = shift;
 
-	# Install dmake
-	$self->install_binary(
-		name       => 'dmake',
-		uri        => $self->strawberry('dmake-4.8-20070327-SHAY.zip'),
-		license    => {
-			'dmake/COPYING'            => 'dmake/COPYING',
-			'dmake/readme/license.txt' => 'dmake/license.txt',
-		},
-		install_to => {
-			'dmake/dmake.exe' => 'c/bin/dmake.exe',	
-			'dmake/startup'   => 'c/bin/startup',
-		},
-	);
+	# The primary make
+	$self->install_dmake;
 
-	# Initialize the make location
-	$self->{bin_make} = File::Spec->catfile(
-		$self->image_dir, 'c', 'bin', 'dmake.exe',
-	);
-	unless ( -x $self->bin_make ) {
-		croak("Can't execute make");
-	}
+	# Core compiler
+	$self->install_gcc;
 
-	# Install the compilers (gcc)
-	$self->install_binary(
-		name       => 'gcc-core',
-		uri        => $self->strawberry('gcc-core-3.4.5-20060117-1.tar.gz'),
-		license    => {
-			'COPYING'     => 'gcc/COPYING',
-			'COPYING.lib' => 'gcc/COPYING.lib',
-		},
-		install_to => 'c',
-	);
-	$self->install_binary(
-		name       => 'gcc-g++',
-		uri        => $self->strawberry('gcc-g++-3.4.5-20060117-1.tar.gz'),
-		install_to => 'c',
-	);
-
-	# Install the binary utilities
-	$self->install_binary(
-		name       => 'mingw-make',
-		uri        => $self->strawberry('mingw32-make-3.81-2.tar.gz'),
-		install_to => 'c',
-	);
-
-	$self->install_binary(
-		name       => 'binutils',
-		uri        => $self->strawberry('binutils-2.17.50-20060824-1.tar.gz'),
-		license    => {
-			'Copying'     => 'binutils/Copying',
-			'Copying.lib' => 'binutils/Copying.lib',
-		},
-		install_to => 'c',
-	);
-	$self->{bin_dlltool} = File::Spec->catfile(
-		$self->image_dir, 'c', 'bin', 'dlltool.exe',
-	);
-	unless ( -x $self->bin_dlltool ) {
-		die "Can't execute dlltool";
-	}
-
-	$self->install_binary(
-		name       => 'pexports',
-		uri        => $self->strawberry('pexports-0.43-1.zip'),
-		license    => {
-			'pexports-0.43/COPYING' => 'pexports/COPYING',
-		},
-		install_to => {
-			'pexports-0.43/bin' => 'c/bin',
-		},
-	);
-	$self->{bin_pexports} = File::Spec->catfile(
-		$self->image_dir, 'c', 'bin', 'pexports.exe',
-	);
-	unless ( -x $self->bin_pexports ) {
-		die "Can't execute pexports";
-	}
+	# C Utilities
+	$self->install_mingw_make;
+	$self->install_binutils;
+	$self->install_pexports;
 
 	# Install support libraries
-	$self->install_binary(
-		name       => 'mingw-runtime',
-		uri        => $self->strawberry('mingw-runtime-3.13.tar.gz'),
-		license    => {
-			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
-			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
-		},
-		install_to => 'c',
-	);
-	$self->install_binary(
-		name       => 'w32api',
-		uri        => $self->strawberry('w32api-3.10.tar.gz'),
-		install_to => 'c',
-	);
+	$self->install_mingw_runtime;
+	$self->install_win32api;
 
 	# Set up the environment variables for the binaries
 	$self->add_env_path(    'c', 'bin'     );
@@ -1108,7 +1072,53 @@ sub install_perl_5100_toolchain {
 
 
 #####################################################################
-# Installing C Libraries
+# Installing C Toolchain and Library Packages
+
+sub install_dmake {
+	my $self = shift;
+
+	# Install dmake
+	$self->install_binary(
+		name       => 'dmake',
+		license    => {
+			'dmake/COPYING'            => 'dmake/COPYING',
+			'dmake/readme/license.txt' => 'dmake/license.txt',
+		},
+		install_to => {
+			'dmake/dmake.exe' => 'c/bin/dmake.exe',	
+			'dmake/startup'   => 'c/bin/startup',
+		},
+	);
+
+	# Initialize the make location
+	$self->{bin_make} = File::Spec->catfile(
+		$self->image_dir, 'c', 'bin', 'dmake.exe',
+	);
+	unless ( -x $self->bin_make ) {
+		croak("Can't execute make");
+	}
+
+	return 1;
+}
+
+sub install_gcc {
+	my $self = shift;
+
+
+	# Install the compilers (gcc)
+	$self->install_binary(
+		name       => 'gcc-core',
+		license    => {
+			'COPYING'     => 'gcc/COPYING',
+			'COPYING.lib' => 'gcc/COPYING.lib',
+		},
+	);
+	$self->install_binary(
+		name       => 'gcc-g++',
+	);
+
+	return 1;
+}
 
 sub install_zlib {
 	my $self = shift;
@@ -1116,7 +1126,7 @@ sub install_zlib {
 	# Zlib is a pexport-based lib-install
 	$self->install_library(
 		name       => 'zlib',
-		uri        => $self->strawberry('zlib-1.2.3.win32.zip'),
+		uri        => $self->binary_uri('zlib-1.2.3.win32.zip'),
 		unpack_to  => 'zlib',
 		build_a    => {
 			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
@@ -1133,24 +1143,95 @@ sub install_zlib {
 	return 1;
 }
 
+sub install_mingw_make {
+	my $self = shift;
+
+	$self->install_binary(
+		name => 'mingw-make',
+	);
+
+	return 1;
+}
+
+sub install_binutils {
+	my $self = shift;
+
+	$self->install_binary(
+		name       => 'binutils',
+		license    => {
+			'Copying'     => 'binutils/Copying',
+			'Copying.lib' => 'binutils/Copying.lib',
+		},
+	);
+	$self->{bin_dlltool} = File::Spec->catfile(
+		$self->image_dir, 'c', 'bin', 'dlltool.exe',
+	);
+	unless ( -x $self->bin_dlltool ) {
+		die "Can't execute dlltool";
+	}
+
+	return 1;
+}
+
+sub install_pexports {
+	my $self = shift;
+
+	$self->install_binary(
+		name       => 'pexports',
+		uri        => $self->binary_uri('pexports-0.43-1.zip'),
+		license    => {
+			'pexports-0.43/COPYING' => 'pexports/COPYING',
+		},
+		install_to => {
+			'pexports-0.43/bin' => 'c/bin',
+		},
+	);
+	$self->{bin_pexports} = File::Spec->catfile(
+		$self->image_dir, 'c', 'bin', 'pexports.exe',
+	);
+	unless ( -x $self->bin_pexports ) {
+		die "Can't execute pexports";
+	}
+
+	return 1;
+}
+
+sub install_mingw_runtime {
+	my $self = shift;
+
+	$self->install_binary(
+		name       => 'mingw-runtime',
+		license    => {
+			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
+			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
+		},
+	);
+
+	return 1;
+}
+
+sub install_win32api {
+	my $self = shift;
+
+	$self->install_binary(
+		name => 'w32api',
+	);
+
+	return 1;
+}
+
 sub install_libiconv {
 	my $self = shift;
 
 	# libiconv for win32 comes in 3 parts, install them.
 	$self->install_binary(
-		name       => 'iconv-dep',
-		uri        => $self->strawberry('libiconv-1.9.2-1-dep.zip'),
-		install_to => 'c',
+		name => 'libiconv-dep',
 	);
 	$self->install_binary(
-		name       => 'iconv-lib',
-		uri        => $self->strawberry('libiconv-1.9.2-1-lib.zip'),
-		install_to => 'c',
+		name => 'libiconv-lib',
 	);
 	$self->install_binary(
-		name       => 'iconv-bin',
-		uri        => $self->strawberry('libiconv-1.9.2-1-bin.zip'),
-		install_to => 'c',
+		name => 'libiconv-bin',
 	);
 
 	# The dll is installed with an unexpected name,
@@ -1169,7 +1250,7 @@ sub install_libxml {
 	# libxml is a straight forward pexport-based install
 	$self->install_library(
 		name       => 'libxml2',
-		uri        => $self->strawberry('libxml2-2.6.30.win32.zip'),
+		uri        => $self->binary_uri('libxml2-2.6.30.win32.zip'),
 		unpack_to  => 'libxml2',
 		build_a    => {
 			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
@@ -1195,7 +1276,10 @@ sub install_libxml {
 
 sub install_binary {
 	my $self   = shift;
-	my $binary = Perl::Dist::Asset::Binary->new(@_);
+	my $binary = Perl::Dist::Asset::Binary->new(
+		install_to => 'c', # Default to the C dir
+		@_,
+	);
 	my $name   = $binary->name;
 	$self->trace("Preparing $name\n");
 
@@ -1292,9 +1376,6 @@ sub install_library {
 		$self->_extract_filemap( $tgz, $library->license, $license_dir, 1 );
 	}
 
-	# Copy in the files
-	
-
 	return 1;
 }
 
@@ -1305,6 +1386,7 @@ sub install_distribution {
 		cpan => $self->cpan,
 		@_,
 	);
+	my $name = $dist->name;
 
 	# Download the file
 	my $tgz = $self->_mirror( 
@@ -1313,10 +1395,10 @@ sub install_distribution {
 	);
 
 	# Where will it get extracted to
-	my $dist_path = $dist->name;
-	$dist_path =~ s/\.tar\.gz//;
-	$dist_path =~ s/\.zip//;
-	$dist_path =~ s/.+\///;
+	my $dist_path = $name;
+	$dist_path   =~ s/\.tar\.gz//;
+	$dist_path   =~ s/\.zip//;
+	$dist_path   =~ s/.+\///;
 	my $unpack_to = File::Spec->catdir( $self->build_dir, $dist_path );
 
 	# Extract the tarball
@@ -1340,18 +1422,18 @@ sub install_distribution {
 		}
 		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing ? 1 : '';
 
-		$self->trace("Configuring " . $dist->name . "...\n");
+		$self->trace("Configuring $name...\n");
 		$self->_perl( 'Makefile.PL' );
 
-		$self->trace("Building " . $dist->name . "...\n");
+		$self->trace("Building $name...\n");
 		$self->_make;
 
 		unless ( $dist->force ) {
-			$self->trace("Testing " . $dist->name . "\n");
+			$self->trace("Testing $name...\n");
 			$self->_make('test');
 		}
 
-		$self->trace("Installing " . $dist->name . "...\n");
+		$self->trace("Installing $name...\n");
 		$self->_make( qw/install UNINST=1/ );
 	}
 
@@ -1459,13 +1541,14 @@ sub install_website {
 	my $website = Perl::Dist::Asset::Website->new(@_);
 
 	# Write the file directly to the image
-	my $to = File::Spec->catfile( $self->image_dir, $website->file );
-	$website->write( $to );
+	$website->write(
+		File::Spec->catfile($self->image_dir, $website->file)
+	);
 
 	# Add the file to the files section of the inno script
 	$self->add_file(
-		source     => $website->file,
-		dest_dir   => '{app}',
+		source   => $website->file,
+		dest_dir => '{app}',
 	);
 
 	# Add the file to the icons section of the inno script
@@ -1659,10 +1742,6 @@ sub trace {
 		print $_[0];
 	}
 	return 1;
-}
-
-sub strawberry {
-	URI->new("http://strawberryperl.com/package/$_[1]");
 }
 
 sub _dir {

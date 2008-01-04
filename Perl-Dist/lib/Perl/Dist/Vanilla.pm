@@ -7,7 +7,31 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '14';
+	$VERSION = '15';
+}
+
+
+
+
+
+#####################################################################
+# Upstream Binary Packages
+
+my %PACKAGES = (
+	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
+	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
+	'mingw32-make'  => 'mingw32-make-3.81-2.tar.gz',
+	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
+	'mingw-runtime' => 'mingw-runtime-3.14.tar.gz',
+	'w32api'        => 'w32api-3.11.tar.gz',
+);
+
+sub binary_file {
+	unless ( $PACKAGES{$_[1]} ) {
+		croak("Unknown package '$_[1]'");
+	}
+	return $PACKAGES{$_[1]};
 }
 
 
