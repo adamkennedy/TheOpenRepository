@@ -18,20 +18,14 @@ BEGIN {
 # Upstream Binary Packages
 
 my %PACKAGES = (
-	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
-	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
-	'mingw32-make'  => 'mingw32-make-3.81-2.tar.gz',
-	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
 	'mingw-runtime' => 'mingw-runtime-3.14.tar.gz',
 	'w32api'        => 'w32api-3.11.tar.gz',
+	'expat'         => 'expat-2.0.1-vanilla.zip',
 );
 
 sub binary_file {
-	unless ( $PACKAGES{$_[1]} ) {
-		croak("Unknown package '$_[1]'");
-	}
-	return $PACKAGES{$_[1]};
+	$PACKAGES{$_[1]} or
+	shift->SUPER::binary_file(@_);
 }
 
 
@@ -77,6 +71,26 @@ sub output_base_filename {
 #####################################################################
 # Installation Script
 
+sub install_c_libraries {
+	my $self = shift;
+	$self->SUPER::install_c_libraries(@_);
+
+	# We want expat as well
+	$self->install_expat;
+
+	return 1;
+}
+
+sub install_expat {
+	my $self = shift;
+
+	$self->install_binary(
+		name       => 'gcc-g++',
+	);
+
+	return 1;
+}
+
 sub install_perl_5110 {
 	my $self = shift;
 	$self->SUPER::install_perl(@_);
@@ -87,6 +101,11 @@ sub install_perl_5110 {
 	$self->install_file(
 		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
+	);
+
+	# Install XML::Parser
+	$self->install_module(
+		name => 'XML::Parser',
 	);
 
 	return 1;

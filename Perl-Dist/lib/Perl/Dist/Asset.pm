@@ -18,11 +18,11 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	parent
 	file
 	url
 	share
 	dist
-	cpan
 };
 
 
@@ -62,7 +62,7 @@ sub new {
 
 		} elsif ( $self->can('name') and $self->name ) {
 			# Map name to URL via the default package path
-			$self->{url} = $self->package_uri($name);
+			$self->{url} = $self->parent->binary_url($self->name);
 		}
 	}
 
@@ -79,6 +79,10 @@ sub new {
 	}
 
 	return $self;
+}
+
+sub cpan {
+	$_[0]->parent->cpan;
 }
 
 

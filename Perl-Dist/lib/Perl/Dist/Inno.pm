@@ -207,7 +207,7 @@ my %PACKAGES = (
 	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
 	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
-	'mingw32-make'  => 'mingw32-make-3.81-2.tar.gz',
+	'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
 	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
 	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
 	'w32api'        => 'w32api-3.10.tar.gz',
@@ -223,14 +223,14 @@ sub binary_file {
 	return $PACKAGES{$_[1]};
 }
 
-sub binary_uri {
+sub binary_url {
 	my $self = shift;
 	my $file = shift;
 	unless ( $file =~ /\.(zip|gz|tgz)$/i ) {
 		# Shorthand, map to full file name
-		$file = $self->binary_file(@_);
+		$file = $self->binary_file($file, @_);
 	}
-	return URI->new($self->binary_root . '/' . $file);
+	return $self->binary_root . '/' . $file;
 }
 
 
@@ -730,7 +730,7 @@ sub install_perl_588 {
 sub install_perl_588_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 	unless ( $self->bin_make ) {
@@ -915,7 +915,7 @@ sub install_perl_5100 {
 sub install_perl_5100_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 	unless ( $self->bin_make ) {
@@ -1126,7 +1126,7 @@ sub install_zlib {
 	# Zlib is a pexport-based lib-install
 	$self->install_library(
 		name       => 'zlib',
-		uri        => $self->binary_uri('zlib-1.2.3.win32.zip'),
+		url        => $self->binary_url('zlib-1.2.3.win32.zip'),
 		unpack_to  => 'zlib',
 		build_a    => {
 			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
@@ -1178,7 +1178,7 @@ sub install_pexports {
 
 	$self->install_binary(
 		name       => 'pexports',
-		uri        => $self->binary_uri('pexports-0.43-1.zip'),
+		url        => $self->binary_url('pexports-0.43-1.zip'),
 		license    => {
 			'pexports-0.43/COPYING' => 'pexports/COPYING',
 		},
@@ -1250,7 +1250,7 @@ sub install_libxml {
 	# libxml is a straight forward pexport-based install
 	$self->install_library(
 		name       => 'libxml2',
-		uri        => $self->binary_uri('libxml2-2.6.30.win32.zip'),
+		url        => $self->binary_url('libxml2-2.6.30.win32.zip'),
 		unpack_to  => 'libxml2',
 		build_a    => {
 			'dll'    => 'libxml2-2.6.30.win32/bin/libxml2.dll',
@@ -1277,6 +1277,7 @@ sub install_libxml {
 sub install_binary {
 	my $self   = shift;
 	my $binary = Perl::Dist::Asset::Binary->new(
+		parent     => $self,
 		install_to => 'c', # Default to the C dir
 		@_,
 	);
@@ -1314,7 +1315,7 @@ sub install_binary {
 sub install_library {
 	my $self    = shift;
 	my $library = Perl::Dist::Asset::Library->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 	my $name = $library->name;
@@ -1383,7 +1384,7 @@ sub install_library {
 sub install_distribution {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::Distribution->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 	my $name = $dist->name;
@@ -1443,7 +1444,7 @@ sub install_distribution {
 sub install_module {
 	my $self   = shift;
 	my $module = Perl::Dist::Asset::Module->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 	my $name   = $module->name;
@@ -1496,7 +1497,7 @@ END_PERL
 sub install_file {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::File->new(
-		cpan => $self->cpan,
+		parent => $self,
 		@_,
 	);
 
@@ -1519,7 +1520,10 @@ sub install_file {
 
 sub install_launcher {
 	my $self     = shift;
-	my $launcher = Perl::Dist::Asset::Launcher->new(@_);
+	my $launcher = Perl::Dist::Asset::Launcher->new(
+		parent => $self,
+		@_,
+	);
 
 	# Check the script exists
 	my $to = File::Spec->catfile( $self->image_dir, 'perl', 'bin', $launcher->bin . '.bat' );
@@ -1538,7 +1542,10 @@ sub install_launcher {
 
 sub install_website {
 	my $self    = shift;
-	my $website = Perl::Dist::Asset::Website->new(@_);
+	my $website = Perl::Dist::Asset::Website->new(
+		parent => $self,
+		@_,
+	);
 
 	# Write the file directly to the image
 	$website->write(
@@ -1763,7 +1770,7 @@ sub _mirror {
 	File::Path::mkpath($dir);
 	$| = 1;
 
-	$self->trace("Downloading $file...\n");
+	$self->trace("Downloading $url...\n");
 	my $ua = LWP::UserAgent->new;
 	my $r  = $ua->mirror( $url, $target );
 	if ( $r->is_error ) {
