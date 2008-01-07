@@ -21,6 +21,7 @@ my %PACKAGES = (
 	# Disabled as the generate test failures in 5.10.0
 	# 'mingw-runtime' => 'mingw-runtime-3.14.tar.gz',
 	# 'w32api'        => 'w32api-3.11.tar.gz',
+	'dmake'         => 'dmake-4.11-20080107-SHAY.zip',
 	'expat'         => 'expat-2.0.1-vanilla.zip',
 );
 
