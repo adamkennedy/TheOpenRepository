@@ -9,11 +9,11 @@
 
 # Find the main distribution paths
 use Config ();
-my $root     =  $Config{'prefix'};
+my $root     =  $Config::Config{'prefix'};
    $root     =~ s/\\perl$//;
 my $cpan     =  "$root\\cpan";
 my $minicpan =  "$root\\minicpan";
-my $windows  =  $ENV{SYSTEMROOT} || "C:\\WINDOWS";
+my $windows  =  $ENV{'SYSTEMROOT'} || "C:\\WINDOWS";
 my $system32 =  "$windows\\system32";
 
 

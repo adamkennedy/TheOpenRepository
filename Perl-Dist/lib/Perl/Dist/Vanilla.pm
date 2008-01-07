@@ -18,8 +18,9 @@ BEGIN {
 # Upstream Binary Packages
 
 my %PACKAGES = (
-	'mingw-runtime' => 'mingw-runtime-3.14.tar.gz',
-	'w32api'        => 'w32api-3.11.tar.gz',
+	# Disabled as the generate test failures in 5.10.0
+	# 'mingw-runtime' => 'mingw-runtime-3.14.tar.gz',
+	# 'w32api'        => 'w32api-3.11.tar.gz',
 	'expat'         => 'expat-2.0.1-vanilla.zip',
 );
 
@@ -85,15 +86,15 @@ sub install_expat {
 	my $self = shift;
 
 	$self->install_binary(
-		name       => 'gcc-g++',
+		name => 'expat',
 	);
 
 	return 1;
 }
 
-sub install_perl_5110 {
+sub install_perl_5100 {
 	my $self = shift;
-	$self->SUPER::install_perl(@_);
+	$self->SUPER::install_perl_5100(@_);
 
 	# Overwrite the default stub CPAN config with a Vanilla one.
 	# This is just there so that we at least have a working CPAN
@@ -103,9 +104,24 @@ sub install_perl_5110 {
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
+	return 1;
+}
+
+sub install_perl_modules {
+	my $self = shift;
+	$self->SUPER::install_perl_modules(@_);
+
 	# Install XML::Parser
-	$self->install_module(
-		name => 'XML::Parser',
+	$self->install_distribution(
+		name             => 'MSERGEANT/XML-Parser-2.36.tar.gz',
+		makefilepl_param => [
+			'EXPATLIBPATH=' . File::Spec->catdir(
+				$self->image_dir, 'c', 'lib',
+			),
+			'EXPATINCPATH=' . File::Spec->catdir(
+				$self->image_dir, 'c', 'include',
+			),
+		],
 	);
 
 	return 1;

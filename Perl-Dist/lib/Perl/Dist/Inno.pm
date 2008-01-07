@@ -1424,7 +1424,7 @@ sub install_distribution {
 		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing ? 1 : '';
 
 		$self->trace("Configuring $name...\n");
-		$self->_perl( 'Makefile.PL' );
+		$self->_perl( 'Makefile.PL', @{$dist->makefilepl_param} );
 
 		$self->trace("Building $name...\n");
 		$self->_make;

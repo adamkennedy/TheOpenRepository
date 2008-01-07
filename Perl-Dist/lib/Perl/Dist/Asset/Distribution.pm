@@ -2,7 +2,7 @@ package Perl::Dist::Asset::Distribution;
 
 use strict;
 use Carp         'croak';
-use Params::Util qw{ _HASH _INSTANCE };
+use Params::Util qw{ _ARRAY _HASH _INSTANCE };
 use base 'Perl::Dist::Asset';
 use File::Spec;
 use File::Spec::Unix;
@@ -19,6 +19,7 @@ use Object::Tiny qw{
 	force
 	extras
 	automated_testing
+	makefilepl_param
 };
 
 
@@ -41,6 +42,10 @@ sub new {
 	if ( defined $self->extras and ! _HASH($self->extras) ) {
 		croak("Invalid extras param");
 	}
+	if ( defined $self->makefilepl_param and ! _ARRAY($self->makefilepl_param) ) {
+		croak("Invalid makefilepl_param param");
+	}
+	$self->{makefilepl_param} ||= [];
 
 	return $self;
 }
