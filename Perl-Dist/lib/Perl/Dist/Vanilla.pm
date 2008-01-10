@@ -43,11 +43,11 @@ sub new {
 
 	# Prepend defaults
 	my $self = $class->SUPER::new(
-		app_id               => 'vanillaperl',
-		app_name             => 'Vanilla Perl',
-		app_publisher        => 'Vanilla Perl Project',
-		app_publisher_url    => 'http://vanillaperl.org/',
-		image_dir            => 'C:\\vanilla',
+		app_id            => 'vanillaperl',
+		app_name          => 'Vanilla Perl',
+		app_publisher     => 'Vanilla Perl Project',
+		app_publisher_url => 'http://vanillaperl.org/',
+		image_dir         => 'C:\\vanilla',
 		@_,
 	);
 

@@ -12,6 +12,8 @@ BEGIN {
 use Object::Tiny qw{
 	name
 	url
+	icon_file
+	icon_index
 };
 
 
@@ -23,6 +25,11 @@ use Object::Tiny qw{
 
 sub new {
 	my $self = shift->SUPER::new(@_);
+
+	# If we have an icon, default to the first one in it
+	if ( defined $self->icon_file and ! defined $self->icon_index ) {
+		$self->{icon_index} = 0;
+	}
 
 	# Check params
 	unless ( _STRING($self->name) ) {
@@ -40,9 +47,16 @@ sub file {
 }
 
 sub content {
-	my $self = shift;
-	return "[InternetShortcut]\n"
-	     . "URL=" . $self->url . "\n";
+	my $self    = shift;
+	my @content = "[InternetShortcut]\n";
+	push @content, "URL=" . $self->url;
+	if ( $self->icon_file ) {
+		push @content, "IconFile=" . $self->icon_file;
+	}
+	if ( $self->icon_index ) {
+		push @content, "IconIndex=" . $self->icon_index;
+	}
+	return join '', map { "$_\n" } @content;
 }
 
 sub write {
