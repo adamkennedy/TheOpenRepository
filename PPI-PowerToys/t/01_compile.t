@@ -8,11 +8,12 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 use Test::Script;
 
 ok( $] > 5.005, 'Perl version is 5.005 or newer' );
-use_ok( 'PPI::PowerToys' );
-script_compiles_ok( 'script/ppi_version' );
 
-exit(0);
+use_ok( 'PPI::PowerToys'    );
+use_ok( 'PPI::App::Version' );
+
+script_compiles_ok( 'script/ppi_version' );

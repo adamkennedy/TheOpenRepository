@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.09';
+        $VERSION = '0.10';
 }
 
 1;
@@ -21,36 +21,40 @@ PPI::PowerToys - A handy collection of small PPI-based utilities
 =head1 DESCRIPTION
 
 The PPI PowerToys are a small collection of utilities for working
-with Perl files compiled by Adam Kennedy, the author of L<PPI>.
+with Perl files, modules and distributions.
 
-To kick off the collection, he's added a very simple and raw version of
-one of his own little tools.
+To kick off the collection, he's added a very simple and raw version
+of one of his own little tools.
 
 =head2 ppi_version
 
+  > ppi_version show
   > ppi_version change 0.01 0.02
 
-ppi_version is a small utility for working with version numbers in groups
-of modules.
+B<ppi_version> is a utility for working with version numbers in
+groups of modules.
 
-At the present time it only offers the "change" command, which takes a
-version number to change from and to.
+The C<ppi_version show> command will scan through your distribution
+(starting in the current directory and working down) and locate all
+the versions for the various Perl files in the distribution.
 
 It scans through all files inside the current directory with one-only
 instance of the line.
 
   $VERSION = '0.01';
 
-If the version matches the from version, it (safely) changes it to the
-new replacement version.
+The C<ppi_version change> command scans through your distribution
+(starting in the current directory and working down) and locate all
+cases where the C<$VERSION> is the first param, replacing it (safely)
+with the second params.
 
 =head1 TO DO
 
 - Add extra commands to ppi_version
 
-- Do you have a handy PPI-based utility you'd like to contribute?
+- Include more useful utilities
 
-- Any improvements to the current PPI toys are also very welcome.
+- Any improvements to the current utilities are also very welcome.
 
 =head1 SUPPORT
 
@@ -62,11 +66,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
