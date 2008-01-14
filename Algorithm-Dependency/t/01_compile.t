@@ -39,3 +39,20 @@ is( $Algorithm::Dependency::VERSION,
 is( $Algorithm::Dependency::VERSION,
     $Algorithm::Dependency::Source::HoA::VERSION,
     '$VERSION matches for ::Source::HoA' );
+
+# Do it again to avoid warnings
+is( $Algorithm::Dependency::VERSION,
+    $Algorithm::Dependency::Ordered::VERSION,
+    '$VERSION matches for ::Ordered' );
+is( $Algorithm::Dependency::VERSION,
+    $Algorithm::Dependency::Weight::VERSION,
+    '$VERSION matches for ::Weight' );
+is( $Algorithm::Dependency::VERSION,
+    $Algorithm::Dependency::Source::VERSION,
+    '$VERSION matches for ::Source' );
+is( $Algorithm::Dependency::VERSION,
+    $Algorithm::Dependency::Source::File::VERSION,
+    '$VERSION matches for ::Source::File' );
+is( $Algorithm::Dependency::VERSION,
+    $Algorithm::Dependency::Source::HoA::VERSION,
+    '$VERSION matches for ::Source::HoA' );
