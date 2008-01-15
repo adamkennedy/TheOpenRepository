@@ -4,7 +4,7 @@ use warnings;
 use strict;
 our $test_the_test = 0;
 
-use Test::More tests => (324 * ($test_the_test ? 2 : 1));
+use Test::More tests => (768 * ($test_the_test ? 2 : 1));
 use File::Temp;
 use IO::File;
 use Class::Autouse;
@@ -49,7 +49,7 @@ sub failed_test {
 # Number the use case.  
 # Make a fresh set of classes for each case using the case number in the names.
 my $n = 0;
-my @file_types = qw/use_file autouse_file autouse_dynamic/;
+my @file_types = qw/use_file autouse_file autouse_callback autouse_regex/;
 my @uses = qw/can isa regular_method autoload_method/; 
 my @targets = qw/self parent grandparent/;
 my $retval;
@@ -91,7 +91,7 @@ for my $class_type (@file_types) {
                             my $has_autoload = ( (($first_use eq 'autoload_method') && $might_have_autoload) ? 1 : 0 );
                             
                             $n+=0;
-                            if ($type eq 'autouse_dynamic') {
+                            if ($type eq 'autouse_callback') {
                                 Class::Autouse->autouse(
                                     sub { 
                                         my ($class,$method,@args) = @_; 
@@ -117,6 +117,9 @@ for my $class_type (@file_types) {
                                 mkfile(class_name => $class_name, parent_class_name => $parent_class_name, parent_class_type => $parent_type, has_autoload => $has_autoload);
                                 if ($type eq 'autouse_file') {
                                     Class::Autouse->autouse($class_name);
+                                }
+                                elsif ($type eq 'autouse_regex') {
+                                    Class::Autouse->autouse(qr/$class_name/);
                                 }
                                 elsif ($type eq 'use_file') {
                                     no warnings;
@@ -231,8 +234,8 @@ sub class_src {
     my (%args) = @_;
     my ($cname, $pname, $ptype, $has_autoload) = @args{'class_name','parent_class_name', 'parent_class_type', 'has_autoload'};
 
-    #my $isa_src = ($pname ? "our \@ISA = ('$pname');\n" : "\n");
-    my $isa_src = ($pname ? "use base '$pname';\n" : "\n");
+    my $isa_src = ($pname ? "our \@ISA = ('$pname');\n" : "\n");
+    #my $isa_src = ($pname ? "use base '$pname';\n" : "\n");
     if (!defined($ptype)) {
         $isa_src .= "#no parent class\n";
     }
@@ -242,7 +245,7 @@ sub class_src {
     elsif ($ptype eq 'autouse_file') {
         $isa_src .= "use Class::Autouse '$pname';\n"; 
     }
-    elsif ($ptype eq 'autouse_dynamic') {
+    elsif ($ptype eq 'autouse_callback' or $ptype eq 'autouse_regex') {
         $isa_src .= "#use Class::Autouse sub {...} is in the test\n";
     }
     else {
