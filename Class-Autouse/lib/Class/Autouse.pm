@@ -39,26 +39,26 @@ use File::Spec ();
 use List::Util ();
 
 # Globals
-use vars qw{ $VERSION $DEVEL $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA      }; # Load environment
-use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                           }; # Special cases
-use vars qw{ $HOOKS %chased $orig_can $orig_isa @special_loaders @sugar		}; # Working information
+use vars qw{ $VERSION $DEVEL  $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA           }; # Load environment
+use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                                 }; # Special cases
+use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @special_loaders @sugar }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.30';
+	$VERSION = '1.99_01';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
-	$orig_can = \&UNIVERSAL::can;
-	$orig_isa = \&UNIVERSAL::isa;
+	$ORIGINAL_CAN = \&UNIVERSAL::can;
+	$ORIGINAL_ISA = \&UNIVERSAL::isa;
 
 	# We always start with the superloader off
 	$SUPERLOAD = 0;
 
-		# When set, disables $obj->isa/can where $obj is blessed before its class is loaded
-		# Things will operate more quickly when set, but this breaks things if you're 
-		# unserializing objects from Data::Dumper, etc., and relying on this module to 
-		# load the related classes on demand.
-		$NOPREBLESS = 0;
+	# When set, disables $obj->isa/can where $obj is blessed before its class is loaded
+	# Things will operate more quickly when set, but this breaks things if you're 
+	# unserializing objects from Data::Dumper, etc., and relying on this module to 
+	# load the related classes on demand.
+	$NOPREBLESS = 0;
 
 	# Disable stating for situations where modules are on remote disks
 	$NOSTAT = 0;
@@ -76,7 +76,7 @@ BEGIN {
 
 	# "Have we tried to autoload a method before?"
 	# Anti-loop protection. Contains fully referenced sub names
-	%chased = ();
+	%CHASED = ();
 }
 
 
@@ -205,7 +205,7 @@ sub autouse {
 
 		# Load now if in devel mode, or if its a bad class
 		if ( $DEVEL || $BAD{$class} ) {
-			Class::Autouse->load( $class );
+			Class::Autouse->load($class);
 			next;
 		}
 
@@ -344,7 +344,7 @@ sub _AUTOLOAD {
 
 	# Loop detection ( Just in case )
 	my $method = $Class::Autouse::AUTOLOAD or _cry('Missing method name');
-	_cry("Undefined subroutine &$method called") if ++$chased{ $method } > 10;
+	_cry("Undefined subroutine &$method called") if ++$CHASED{ $method } > 10;
 
 	# Don't bother with special classes
 	my ($class, $function) = $method =~ m/^(.*)::(.*)$/s;
@@ -516,10 +516,10 @@ sub _isa {
 		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
 		# in this case on the first call, and subsequent calls will go directly to $orig_isa.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
-		goto &{$orig_isa};
+		goto &{$ORIGINAL_ISA};
 	}
 	
-	_preload_class($orig_isa, @_);
+	_preload_class($ORIGINAL_ISA, @_);
 }
 
 # This is the replacement for UNIVERSAL::can
@@ -532,26 +532,31 @@ sub _can {
 		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
 		# in this case on the first call, and subsequent calls will go directly to $orig_can.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
-		goto &{$orig_can};
+		goto &{$ORIGINAL_CAN};
 	}
 
-	_preload_class($orig_can, @_);
+	_preload_class($ORIGINAL_CAN, @_);
 }
 
 sub _preload_class {
 	my $orig  = shift;
 	my $class = ref $_[0] || $_[0];
 	# Does it look like a package?
+<<<<<<< .mine
+	$class =~ /^[^\W\d]\w*(?:(?:\'|::)[^\W\d]\w*)*$/o or return undef;
+
+=======
 	
 	unless (
 		$class
-		and $class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W]\w*)*$/o
+		and $class =~ /^[^\W\d]\w*(?:(?:\'|::)[^\W]\w*)*$/o
 	) {
 		$LOADED{$class} = 1;
 		goto $orig if $orig;
 		return 1;
 	}
 	
+>>>>>>> .r2674
 	# Do we try to load the class
 	my $load = 0;
 	my $file = _class_file($class);
@@ -695,8 +700,8 @@ sub _child_classes ($) {
 		closedir FILELIST;
 
 		# Iterate over them
-		@files = map { File::Spec->catfile($dir, $_) } # Full relative path
-			grep { ! /^\./ } @files;                 # Ignore hidden files
+		@files = map  { File::Spec->catfile($dir, $_) } # Full relative path
+		         grep { ! /^\./ } @files;               # Ignore hidden files
 		foreach my $file ( @files ) {
 			my $full_file = File::Spec->catfile($inc_path, $file);
 
@@ -716,7 +721,7 @@ sub _child_classes ($) {
 
 	# Convert the file names into modules
 	map { join '::', File::Spec->splitdir($_) }
-		map { substr($_, 0, length($_) - 3) } @modules;
+	map { substr($_, 0, length($_) - 3)       } @modules;
 }
 
 
@@ -740,6 +745,7 @@ sub _file_exists ($) {
 
 	# Scan @INC for the file
 	foreach ( @INC ) {
+		next if ref $_ eq 'CODE';
 		return $file if -f File::Spec->catfile($_, $file);
 	}
 
@@ -839,8 +845,8 @@ END_DEBUG
 # don't have any live hooks, why bother intercepting UNIVERSAL::can calls?
 sub _UPDATE_HOOKS () {
 	local $^W = 0;
-	*UNIVERSAL::can = $HOOKS ? \&_can : $orig_can;
-	*UNIVERSAL::isa = $HOOKS ? \&_isa : $orig_isa;
+	*UNIVERSAL::can = $HOOKS ? \&_can : $ORIGINAL_CAN;
+	*UNIVERSAL::isa = $HOOKS ? \&_isa : $ORIGINAL_ISA;
 }
 
 BEGIN {
@@ -925,7 +931,7 @@ to use a subroutine directly, say with C<Class::method()>, the class will
 not be loaded and a fatal error will mostly likely occur.
 
 This limitation is made to allow more powerfull features in other areas,
-because the module can focus on just loading the modules, and not have
+because we can focus on just loading the modules, and not have
 to deal with importing.
 
 And really, if you are doing OO Perl, you should be avoiding importing
@@ -1253,9 +1259,11 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy (Creator and Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>cpan@ali.asE<gt>
 
-Rob Napier (No longer involved), rnapier@employees.org
+Scott Smith E<ssmith@watson.wustl.eduE<gt>
+
+Rob Napier E<lt>rnapier@employees.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -1263,7 +1271,8 @@ L<autoload>, L<autoclass>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002 - 2006 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
+
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
