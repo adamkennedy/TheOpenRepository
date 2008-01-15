@@ -1,16 +1,16 @@
 #!/usr/bin/env perl
 
 # This is the example from the POD
+# modified slightly to work w/o module deps.
 
 use strict;
-use warnings;
 use Test::More tests => 4;
 
 use Class::Autouse sub {
 	my ($class) = @_;
 	if ($class =~ /(^.*)::Wrapper/) {
 		my $wrapped_class = $1;
-		eval "package $class; use Class::AutoloadCAN;";
+		eval "package $class; ## use Class::AutoloaCAN";
 		die $@ if $@;
 		no strict 'refs';
 		*{$class . '::new' } = sub {
@@ -19,9 +19,16 @@ use Class::Autouse sub {
 			my $self = bless({proxy => $proxy},$class);
 			return $self;
 		};
-		*{$class . '::CAN' } = sub {
-			my ($obj,$method) = @_;
-			my $delegate = $wrapped_class->can($method);
+                # if you're on a recent enough version of Perl, you should use Class::AutolaodCAN below
+                # and just return the delegator...
+		## *{$class . '::CAN' } = sub {
+		*{$class . '::AUTOLOAD' } = sub {
+			##my ($obj,$method) = @_;
+			my $obj = shift;
+                        our $AUTOLOAD;
+                        my ($method) = ($AUTOLOAD =~ /^.*::(\w+)$/);
+			
+                        my $delegate = $wrapped_class->can($method);
 			return unless $delegate;
 			my $delegator = sub {
 				my $self = shift;
@@ -32,7 +39,10 @@ use Class::Autouse sub {
 					return $wrapped_class->$method(@_);	
 				}
 			};
-			return *{ $class . '::' . $method } = $delegator;	
+			*{ $class . '::' . $method } = $delegator;	
+			
+                        ##return $delegator;	
+			$delegator->($obj,@_);
 		};
 		
 		return 1;
