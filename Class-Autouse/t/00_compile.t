@@ -1,25 +1,16 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for Class::Autouse
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
+	require lib;
+	lib->import( catdir( curdir(), 't', 'modules' ) );
 }
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 # Check their perl version
 ok( $] >= 5.005, "Your perl is new enough" );
@@ -28,7 +19,10 @@ ok( $] >= 5.005, "Your perl is new enough" );
 use_ok('Class::Autouse'        );
 use_ok('Class::Autouse::Parent');
 
+# Check version locking
 is( $Class::Autouse::VERSION, $Class::Autouse::Parent::VERSION,
 	'C:A and C:A:Parent versions match' );
 
-exit(0);
+# Again to avoid warnings
+is( $Class::Autouse::VERSION, $Class::Autouse::Parent::VERSION,
+	'C:A and C:A:Parent versions match' );

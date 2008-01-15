@@ -8,18 +8,11 @@
 # as advertised... we hope ;)
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	if ( $ENV{HARNESS_ACTIVE} ) {
-		lib->import( catdir( curdir(), 't', 'modules' ) );
-	} else {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( 'modules' );
-	}
+	require lib;
+	lib->import( catdir( curdir(), 't', 'modules' ) );
 }
 
 use Test::More tests => 29;
