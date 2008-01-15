@@ -2,8 +2,6 @@ package Class::Autouse;
 
 # See POD at end of file for documentation
 
-### Memory Overhead: 396K
-
 use 5.005;
 use strict;
 no strict 'refs'; # We _really_ abuse refs :)
@@ -41,7 +39,7 @@ use List::Util ();
 # Globals
 use vars qw{ $VERSION $DEVEL  $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA           }; # Load environment
 use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                                 }; # Special cases
-use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @special_loaders @sugar }; # Working information
+use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @LOADERS @sugar }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
@@ -77,6 +75,9 @@ BEGIN {
 	# "Have we tried to autoload a method before?"
 	# Anti-loop protection. Contains fully referenced sub names
 	%CHASED = ();
+
+	# Contains any dynamic loading callbacks
+	@LOADERS = ();
 }
 
 
@@ -110,21 +111,25 @@ sub devel {
 sub superloader {
 	_debug(\@_, 1) if DEBUG;
 
-	unless ( $SUPERLOAD ) {
-		# Overwrite UNIVERSAL::AUTOLOAD and catch any
-		# UNIVERSAL::DESTROY calls so they don't trigger
-		# UNIVERSAL::AUTOLOAD. Anyone handling DESTROY calls
-		# via an AUTOLOAD should be summarily shot.
-		*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
-		*UNIVERSAL::DESTROY  = \&_DESTROY;
+	# Shortcut if needed
+	return 1 if $SUPERLOAD;
 
-		# Because this will never go away, we increment $HOOKS such
-		# that it will never be decremented, and thus the
-		# UNIVERSAL::can/isa hijack will never be removed.
-		_UPDATE_HOOKS() unless $HOOKS++;
-	}
+	# Overwrite UNIVERSAL::AUTOLOAD and catch any
+	# UNIVERSAL::DESTROY calls so they don't trigger
+	# UNIVERSAL::AUTOLOAD. Anyone handling DESTROY calls
+	# via an AUTOLOAD should be summarily shot.
+	*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
+	*UNIVERSAL::DESTROY  = \&_DESTROY;
 
+	# Update the state
 	$SUPERLOAD = 1;
+
+	# Because this will never go away, we increment $HOOKS such
+	# that it will never be decremented, and thus the
+	# UNIVERSAL::can/isa hijack will never be removed.
+	_UPDATE_HOOKS() unless $HOOKS++;
+
+	return 1;
 }
 
 sub sugar {
@@ -138,15 +143,18 @@ sub sugar {
 
 	foreach my $callback ( grep { $_ } @_ ) {
 		# Handle a callback or regex
-		unless (ref($callback) eq 'CODE') {
-			die __PACKAGE__ 
+		unless ( ref($callback) eq 'CODE' ) {
+			die(
+				__PACKAGE__ 
 				. ' takes a code reference for syntactic sugar handlers'
-				. ": unexpected value $callback has type " . ref($callback);
+				. ": unexpected value $callback has type "
+				. ref($callback)
+			);
 		}
 		push @sugar, $callback;
-		unless (\&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD) {
+		unless ( \&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD ) {
 			*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
-			*UNIVERSAL::DESTROY = \&_DESTROY;
+			*UNIVERSAL::DESTROY  = \&_DESTROY;
 			_UPDATE_HOOKS() unless $HOOKS++;
 		}
 	}
@@ -163,23 +171,24 @@ sub autouse {
 	_debug(\@_) if DEBUG;
 
 	foreach my $class ( grep { $_ } @_ ) {
-		# Handle a callback or regex
-		if (my $reftype = ref($class)) {
-				unless ($reftype eq 'Regexp' or $reftype eq 'CODE') {
-					die __PACKAGE__ 
-						. ' can autouse explicit class names, or take a regex or subroutine reference'
-						. ": unexpected value $class has type $reftype";
-				}
-				push @special_loaders, $class;
-				unless (\&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD) {
-					*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
-					*UNIVERSAL::DESTROY = \&_DESTROY;
-					_UPDATE_HOOKS() unless $HOOKS++;
-				}
-				# reset this, since we may have previously tried a class and failed, which could now work
-				%TRIED_LOADING = %LOADED;   
-				next;
+		if ( ref $class ) {
+			unless ( ref $class eq 'Regexp' or ref $class eq 'CODE') {
+				die( __PACKAGE__ 
+					. ' can autouse explicit class names, or take a regex or subroutine reference'
+					. ": unexpected value $class has type "
+					. ref($class);
+				);
 			}
+			push @LOADERS, $class;
+			unless ( \&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD ) {
+				*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
+				*UNIVERSAL::DESTROY  = \&_DESTROY;
+				_UPDATE_HOOKS() unless $HOOKS++;
+			}
+			# reset this, since we may have previously tried a class and failed, which could now work
+			%TRIED_LOADING = %LOADED;   
+			next;
+		}
 
 		# Control flag handling
 		if ( substr($class, 0, 1) eq ':' ) {
@@ -396,7 +405,7 @@ sub _UNIVERSAL_AUTOLOAD {
 	unless (@search) {
 		# The special loaders will attempt to dynamically instantiate the class.
 		# They will not fire if the superloader is turned on and has already loaded the class.
-		if (_try_special_loaders($class,$function,@_)) {
+		if (_try_LOADERS($class,$function,@_)) {
 			my $fref = $ORIGINAL_CAN->($class,$function); 
 			if ($fref) {
 				goto $fref;
@@ -432,7 +441,7 @@ sub _UNIVERSAL_AUTOLOAD {
 }
 
 
-sub _try_special_loaders {
+sub _try_loaders {
 	my ($class,$function,@optional_args) = @_;
 	# the function and args are only present to help callbacks whose main goal is to 
 	# do "syntactic sugar" instead of really writing a class   
@@ -447,7 +456,7 @@ sub _try_special_loaders {
 	}
 
 	# Try each of the special loaders, if there are any.
-	for my $loader (@special_loaders) {
+	for my $loader (@LOADERS) {
 		my $ref = ref($loader);
 		if ($ref) {
 			if ($ref eq "Regexp") {
@@ -541,6 +550,7 @@ sub _can {
 sub _preload_class {
 	my $orig  = shift;
 	my $class = ref $_[0] || $_[0];
+
 	# Does it look like a package?
 	unless (
 		$class
@@ -550,7 +560,7 @@ sub _preload_class {
 		goto $orig if $orig;
 		return 1;
 	}
-	
+
 	# Do we try to load the class
 	my $load = 0;
 	my $file = _class_file($class);
@@ -570,32 +580,26 @@ sub _preload_class {
 		# tell otherwise. Thus, we have to have a go at loading.
 		$load = 1;
 	}
-	
+
 	# If needed, load the class and all its dependencies.
 	if ( $load ) {
 		eval { Class::Autouse->load($class) };
-		die $@ if $@; 
+		die $@ if $@;
 	}
-		
+
 	unless ($LOADED{$class}) {
-		_try_special_loaders($class);
+		_try_loaders($class);
 	}
-			
+
 	unless ($LOADED{$class}) {
-		if (_namespace_occupied($class)) {
+		if ( _namespace_occupied($class) ) {
 			# the class is not flagged as loaded by autouse, but exists
 			# ensure its ancestry is loaded before calling $orig
 			$LOADED{$class} = 1;
 			_load_ancestors($class);	
 		}	
 	}
-	
-	
-	
-	
-	
-	
-	
+
 	# Hand off to the real function
 	goto &{$orig} if $orig;
 	return 1;
@@ -640,8 +644,8 @@ sub _load ($) {
 		# defined in some other module that got loaded a different way.
 		return $LOADED{$class} = 1 if _namespace_occupied($class);
 		
-		if (_try_special_loaders($class)) {
-				return 1;
+		if ( _try_loaders($class) ) {
+			return 1;
 		}
 		
 		my $inc = join ', ', @INC;
@@ -879,29 +883,29 @@ Class::Autouse - Run-time load a class the first time you call a method in it.
   use Class::Autouse;
   Class::Autouse->autouse( 'CGI' );
   print CGI->b('Wow!');
-
+  
   # Use as a pragma
   use Class::Autouse qw{CGI};
-
+  
   # Use a whole module tree
   Class::Autouse->autouse_recursive('Acme');
-
+  
   # Autouse any class matching a given regular expression
   use Class::Autouse qr/::Test$/;
-
+  
   # Install a class generator (instead of overriding UNIVERSAL::AUTOLOAD)
   # (See below for a detailed example)
   use Class::Autouse \&my_class_generator;
-
+  
   # Turn on developer mode
   use Class::Autouse qw{:devel};
-
+  
   # Turn on the Super Loader
   use Class::Autouse qw{:superloader};
-
+  
   # Add a callback to UNIVERSAL::AUTOLOAD for syntactic sugar
   Class::Autouse->sugar(\&my_magic);
-
+  
   # Disable module-existance check, and thus one additional 'stat'
   # per module, at autouse-time if loading modules off a remote
   # network drive such as NFS or SMB.
