@@ -506,7 +506,7 @@ sub _preload_class {
 	my $orig  = shift;
 	my $class = ref $_[0] || $_[0] || return undef;
 	# Does it look like a package?
-	$class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W\d]\w*)*$/o or return undef;
+	$class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W]\w*)*$/o or return undef;
 
 	# Do we try to load the class
 	my $load = 0;
