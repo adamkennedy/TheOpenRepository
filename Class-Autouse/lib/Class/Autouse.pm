@@ -377,7 +377,7 @@ sub _UNIVERSAL_AUTOLOAD {
 	
 	# Loop detection ( Just in case )
 	my $method = $Class::Autouse::AUTOLOAD or _cry('Missing method name');
-	_cry("Undefined subroutine &$method called") if ++$chased{ $method } > 10;
+	_cry("Undefined subroutine &$method called") if ++$CHASED{ $method } > 10;
 	
 	# Don't bother with special classes
 	my ($class, $function) = $method =~ m/^(.*)::(.*)$/s;
@@ -397,7 +397,7 @@ sub _UNIVERSAL_AUTOLOAD {
 		# The special loaders will attempt to dynamically instantiate the class.
 		# They will not fire if the superloader is turned on and has already loaded the class.
 		if (_try_special_loaders($class,$function,@_)) {
-			my $fref = $orig_can->($class,$function); 
+			my $fref = $ORIGINAL_CAN->($class,$function); 
 			if ($fref) {
 				goto $fref;
 			}
@@ -496,8 +496,8 @@ sub _load_ancestors {
 		# This keeps the versions in this module from being used where they're not needed.
 		my $final_parent = $ancestors[-1] || $this_class;
 		no strict 'refs';
-		*{ $final_parent . '::can'} = $orig_can;
-		*{ $final_parent . '::isa'} = $orig_isa;
+		*{ $final_parent . '::can'} = $ORIGINAL_CAN;
+		*{ $final_parent . '::isa'} = $ORIGINAL_ISA;
 	}
 	return 1;
 }
@@ -508,13 +508,13 @@ sub _DESTROY {
 }
 
 sub _isa {
-		goto $orig_isa if ref $_[0] and $NOPREBLESS;    # optional performance adj.
+		goto $ORIGINAL_ISA if ref $_[0] and $NOPREBLESS;    # optional performance adj.
 	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Shortcut for the most likely cases
 		# We no longer take @ISA as a sign the module is loaded, since its parents might not
 		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
-		# in this case on the first call, and subsequent calls will go directly to $orig_isa.
+		# in this case on the first call, and subsequent calls will go directly to $ORIGINAL_ISA.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
 		goto &{$ORIGINAL_ISA};
 	}
@@ -524,13 +524,13 @@ sub _isa {
 
 # This is the replacement for UNIVERSAL::can
 sub _can {
-		goto $orig_can if ref $_[0] and $NOPREBLESS;    # optional preformance adj.
+		goto $ORIGINAL_CAN if ref $_[0] and $NOPREBLESS;    # optional preformance adj.
 	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Shortcut for the most likely cases
 		# We no longer take @ISA as a sign the module is loaded, since its parents might not
 		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
-		# in this case on the first call, and subsequent calls will go directly to $orig_can.
+		# $ORIGINAL_CAN in this case on the first call, and subsequent calls will go directly to $.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
 		goto &{$ORIGINAL_CAN};
 	}
@@ -542,11 +542,6 @@ sub _preload_class {
 	my $orig  = shift;
 	my $class = ref $_[0] || $_[0];
 	# Does it look like a package?
-<<<<<<< .mine
-	$class =~ /^[^\W\d]\w*(?:(?:\'|::)[^\W\d]\w*)*$/o or return undef;
-
-=======
-	
 	unless (
 		$class
 		and $class =~ /^[^\W\d]\w*(?:(?:\'|::)[^\W]\w*)*$/o
@@ -556,7 +551,6 @@ sub _preload_class {
 		return 1;
 	}
 	
->>>>>>> .r2674
 	# Do we try to load the class
 	my $load = 0;
 	my $file = _class_file($class);
@@ -1261,7 +1255,7 @@ For other issues, or commercial enhancement or support, contact the author.
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>
 
-Scott Smith E<ssmith@watson.wustl.eduE<gt>
+Scott Smith E<lt>ssmith@watson.wustl.eduE<gt>
 
 Rob Napier E<lt>rnapier@employees.orgE<gt>
 
