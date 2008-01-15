@@ -109,6 +109,7 @@ for my $class_type (@file_types) {
                                             if ($@) {
                                                 Carp::confess("Error in test code.  Failed to make module source for $class_name (isa $parent_class_name): $@");
                                             }
+                                            return 1;
                                         }
                                     }
                                 );

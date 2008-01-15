@@ -41,7 +41,7 @@ use List::Util ();
 # Globals
 use vars qw{ $VERSION $DEVEL $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA      }; # Load environment
 use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                           }; # Special cases
-use vars qw{ $HOOKS %chased $orig_can $orig_isa @special_loaders            }; # Working information
+use vars qw{ $HOOKS %chased $orig_can $orig_isa @special_loaders @sugar		}; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
@@ -54,11 +54,11 @@ BEGIN {
 	# We always start with the superloader off
 	$SUPERLOAD = 0;
 
-    	# When set, disables $obj->isa/can where $obj is blessed before its class is loaded
-    	# Things will operate more quickly when set, but this breaks things if you're 
-    	# unserializing objects from Data::Dumper, etc., and relying on this module to 
-    	# load the related classes on demand.
-    	$NOPREBLESS = 0;
+		# When set, disables $obj->isa/can where $obj is blessed before its class is loaded
+		# Things will operate more quickly when set, but this breaks things if you're 
+		# unserializing objects from Data::Dumper, etc., and relying on this module to 
+		# load the related classes on demand.
+		$NOPREBLESS = 0;
 
 	# Disable stating for situations where modules are on remote disks
 	$NOSTAT = 0;
@@ -127,6 +127,31 @@ sub superloader {
 	$SUPERLOAD = 1;
 }
 
+sub sugar {
+	# Operate as a function or a method
+	shift if $_[0] eq 'Class::Autouse';
+
+	# Ignore calls with no arguments
+	return 1 unless @_;
+
+	_debug(\@_) if DEBUG;
+
+	foreach my $callback ( grep { $_ } @_ ) {
+		# Handle a callback or regex
+		unless (ref($callback) eq 'CODE') {
+			die __PACKAGE__ 
+				. ' takes a code reference for syntactic sugar handlers'
+				. ": unexpected value $callback has type " . ref($callback);
+		}
+		push @sugar, $callback;
+		unless (\&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD) {
+			*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
+			*UNIVERSAL::DESTROY = \&_DESTROY;
+			_UPDATE_HOOKS() unless $HOOKS++;
+		}
+	}
+}
+
 # The main autouse sub
 sub autouse {
 	# Operate as a function or a method
@@ -138,26 +163,25 @@ sub autouse {
 	_debug(\@_) if DEBUG;
 
 	foreach my $class ( grep { $_ } @_ ) {
-	    	# Handle a callback or regex
-		if (my $reftype = ref($class)) {                    
-	        	unless ($reftype eq 'Regexp' or $reftype eq 'CODE') {
-	            	die __PACKAGE__ 
-	                	. ' can autouse explicit class names, or take a regex or subroutine reference'
-	                	. ": unexpected value $class has type $reftype";
-	        	}
-	               
-	        	push @special_loaders, $class;
-	        	unless (\&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD) {
-	            	*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
-	            	*UNIVERSAL::DESTROY = \&_DESTROY;
-		        _UPDATE_HOOKS() unless $HOOKS++;
-	        	}
-	            # reset this, since we may have previously tried a class and failed, which could now work
-	            %TRIED_LOADING = %LOADED;   
-	        	next;
-	    	}
+		# Handle a callback or regex
+		if (my $reftype = ref($class)) {
+				unless ($reftype eq 'Regexp' or $reftype eq 'CODE') {
+					die __PACKAGE__ 
+						. ' can autouse explicit class names, or take a regex or subroutine reference'
+						. ": unexpected value $class has type $reftype";
+				}
+				push @special_loaders, $class;
+				unless (\&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD) {
+					*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
+					*UNIVERSAL::DESTROY = \&_DESTROY;
+					_UPDATE_HOOKS() unless $HOOKS++;
+				}
+				# reset this, since we may have previously tried a class and failed, which could now work
+				%TRIED_LOADING = %LOADED;   
+				next;
+			}
 
-	    	# Control flag handling
+		# Control flag handling
 		if ( substr($class, 0, 1) eq ':' ) {
 			if ( $class eq ':superloader' ) {
 				# Turn on the superloader
@@ -168,14 +192,14 @@ sub autouse {
 			} elsif ( $class eq ':nostat' ) {
 				# Disable stat checks
 				$NOSTAT = 1;
-	            	} elsif ( $class eq ':noprebless') {
-	                    	# Disable support for objects blessed before their class module is loaded
-	                    	$NOPREBLESS = 1; 
-	            	} elsif ( $class eq ':staticisa') {
-	                    	# Expect that @ISA won't change after loading
-	                    	# This allows some performance tweaks 
-	                    	$STATICISA = 1; 
-	            	}
+					} elsif ( $class eq ':noprebless') {
+							# Disable support for objects blessed before their class module is loaded
+							$NOPREBLESS = 1; 
+					} elsif ( $class eq ':staticisa') {
+							# Expect that @ISA won't change after loading
+							# This allows some performance tweaks 
+							$STATICISA = 1; 
+					}
 			next;
 		}
 
@@ -225,7 +249,7 @@ sub load {
 	my $class = $_[1] or _cry('No class name specified to load');
 	return 1 if $LOADED{$class};
 
-    	my @search = _recurse_inheritance($class,\&_load);
+		my @search = _recurse_inheritance($class,\&_load);
 
 	# If called an an array context, return the ISA tree.
 	# In scalar context, just return true.
@@ -247,7 +271,7 @@ sub _recurse_inheritance {
 		# This may load the class in question, so 
 		# we call it before checking @ISA. 
 		if ($for_each) {
-	    	$for_each->($c) unless $LOADED{$c};
+			$for_each->($c) unless $LOADED{$c};
 		}
 
 		# Add the class to the search list,
@@ -350,26 +374,26 @@ sub _AUTOLOAD {
 # It does the :superloader, and/or also any regex or callback (code ref) loaders
 sub _UNIVERSAL_AUTOLOAD {
 	_debug(\@_, 0, ", AUTOLOAD = '$Class::Autouse::_UNIVERSAL_AUTOLOAD'") if DEBUG;
-
+	
 	# Loop detection ( Just in case )
 	my $method = $Class::Autouse::AUTOLOAD or _cry('Missing method name');
 	_cry("Undefined subroutine &$method called") if ++$chased{ $method } > 10;
-
+	
 	# Don't bother with special classes
 	my ($class, $function) = $method =~ m/^(.*)::(.*)$/s;
 	_cry("Undefined subroutine &$method called") if $SPECIAL{$class};
-
-    	my @search;
-
-    	if ($SUPERLOAD) {
+	
+	my @search;
+	
+	if ($SUPERLOAD) {
 		# Only try direct loading of the class if the superloader is active.
 		# This might be installed in universal for either the superloader, special loaders, or both.
-
+	
 		# Load the class and it's dependancies, and get the search path
 		@search = Class::Autouse->load($class);
-    	}
-
-    	unless (@search) {
+	}
+	
+	unless (@search) {
 		# The special loaders will attempt to dynamically instantiate the class.
 		# They will not fire if the superloader is turned on and has already loaded the class.
 		if (_try_special_loaders($class,$function,@_)) {
@@ -381,12 +405,12 @@ sub _UNIVERSAL_AUTOLOAD {
 				@search = _recurse_inheritance($class);
 			}
 		}
-    	}
-
-    	# Find and go to the named method
-    	my $found = List::Util::first { defined *{"${_}::$function"}{CODE} } @search;
-    	goto &{"${found}::$function"} if $found;
-
+	}
+	
+	# Find and go to the named method
+	my $found = List::Util::first { defined *{"${_}::$function"}{CODE} } @search;
+	goto &{"${found}::$function"} if $found;
+	
 	# Check for package AUTOLOADs
 	foreach my $c ( @search ) {
 		if ( defined *{"${c}::AUTOLOAD"}{CODE} ) {
@@ -396,19 +420,32 @@ sub _UNIVERSAL_AUTOLOAD {
 		}
 	}
 
+	for my $callback (@sugar) {
+		my $rv = $callback->($class,$function,@_);
+		if ($rv) {
+			goto $rv;
+		}
+	}
+
 	# Can't find the method anywhere. Throw the same error Perl does.
 	_cry("Can't locate object method \"$function\" via package \"$class\"");
 }
 
-		
+
 sub _try_special_loaders {
 	my ($class,$function,@optional_args) = @_;
 	# the function and args are only present to help callbacks whose main goal is to 
 	# do "syntactic sugar" instead of really writing a class   
+	
+	# this allows us to shortcut out of re-checking a class
+	$TRIED_LOADING{$class}++;
+	
+	if (_namespace_occupied($class)) {
+			$LOADED{$class} = 1;
+			_load_ancestors($class);
+			return 1;
+	}
 
-    # this allows us to shortcut out of re-checking a class
-    $TRIED_LOADING{$class}++;
-    
 	# Try each of the special loaders, if there are any.
 	for my $loader (@special_loaders) {
 		my $ref = ref($loader);
@@ -420,23 +457,22 @@ sub _try_special_loaders {
 				local $^W = 0;
 				eval "use $class";
 				die "Class::Autouse found module $file for class $class matching regex '$loader',"
-	                            . " but it failed to compile with the following error: $@" if $@;
-			}       
+					. " but it failed to compile with the following error: $@" if $@;
+			}
 			elsif ($ref eq "CODE") {
-				$loader->($class,$function,@optional_args);        
-			}       
-			else {  
+				unless ($loader->($class,$function,@optional_args)) {
+					next;
+				}
+			}
+			else {
 				die "Unexpected loader.  Expected qr//, sub{}, or class name string."
-			}       
-		}       
-		else {  
-			die "Odd loader $loader passed to " . __PACKAGE__;
-		}
-	       
-		if (_namespace_occupied($class)) {
+			}
 			$LOADED{$class} = 1;
 			_load_ancestors($class);
 			return 1;
+		}
+		else {  
+			die "Odd loader $loader passed to " . __PACKAGE__;
 		}
 	}
 
@@ -472,15 +508,15 @@ sub _DESTROY {
 }
 
 sub _isa {
-    	goto $orig_isa if ref $_[0] and $NOPREBLESS;    # optional performance adj.
+		goto $orig_isa if ref $_[0] and $NOPREBLESS;    # optional performance adj.
 	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Shortcut for the most likely cases
-    	# We no longer take @ISA as a sign the module is loaded, since its parents might not
-    	# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
-    	# in this case on the first call, and subsequent calls will go directly to $orig_isa.
+		# We no longer take @ISA as a sign the module is loaded, since its parents might not
+		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
+		# in this case on the first call, and subsequent calls will go directly to $orig_isa.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
-	    goto &{$orig_isa};
+		goto &{$orig_isa};
 	}
 	
 	_preload_class($orig_isa, @_);
@@ -488,26 +524,34 @@ sub _isa {
 
 # This is the replacement for UNIVERSAL::can
 sub _can {
-    	goto $orig_can if ref $_[0] and $NOPREBLESS;    # optional preformance adj.
+		goto $orig_can if ref $_[0] and $NOPREBLESS;    # optional preformance adj.
 	my $class = ref $_[0] || $_[0] || return undef;
 
 	# Shortcut for the most likely cases
-    	# We no longer take @ISA as a sign the module is loaded, since its parents might not
-    	# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
-    	# in this case on the first call, and subsequent calls will go directly to $orig_can.
+		# We no longer take @ISA as a sign the module is loaded, since its parents might not
+		# be loaded.  The _preload_class call will tie up loose ends and ensure the LOADED flag is set
+		# in this case on the first call, and subsequent calls will go directly to $orig_can.
 	if ( $TRIED_LOADING{$class} or $LOADED{$class} ) { #defined @{"${class}::ISA"} ) {
 		goto &{$orig_can};
- 	}
+	}
 
 	_preload_class($orig_can, @_);
 }
 
 sub _preload_class {
 	my $orig  = shift;
-	my $class = ref $_[0] || $_[0] || return undef;
+	my $class = ref $_[0] || $_[0];
 	# Does it look like a package?
-	$class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W]\w*)*$/o or return undef;
-
+	
+	unless (
+		$class
+		and $class =~ /^[^\W\d]\w*(?:(?:'|::)[^\W]\w*)*$/o
+	) {
+		$LOADED{$class} = 1;
+		goto $orig if $orig;
+		return 1;
+	}
+	
 	# Do we try to load the class
 	my $load = 0;
 	my $file = _class_file($class);
@@ -527,27 +571,35 @@ sub _preload_class {
 		# tell otherwise. Thus, we have to have a go at loading.
 		$load = 1;
 	}
-
+	
 	# If needed, load the class and all its dependencies.
 	if ( $load ) {
 		eval { Class::Autouse->load($class) };
 		die $@ if $@; 
 	}
-
-    	unless ($LOADED{$class}) {
-		unless (_try_special_loaders($class)) {
-	        	if (_namespace_occupied($class)) {
-				# the class is not flagged as loaded by autouse, but exists
-				# ensure its ancestry is loaded before calling $orig
-				$LOADED{$class} = 1;
-				_load_ancestors($class);
-	        	}
-	    	}
-    	}
-
+		
+	unless ($LOADED{$class}) {
+		_try_special_loaders($class);
+	}
+			
+	unless ($LOADED{$class}) {
+		if (_namespace_occupied($class)) {
+			# the class is not flagged as loaded by autouse, but exists
+			# ensure its ancestry is loaded before calling $orig
+			$LOADED{$class} = 1;
+			_load_ancestors($class);	
+		}	
+	}
+	
+	
+	
+	
+	
+	
+	
 	# Hand off to the real function
 	goto &{$orig} if $orig;
-    	return 1;
+	return 1;
 }
 
 
@@ -563,9 +615,9 @@ sub _load ($) {
 
 	# Don't attempt to load special classes
 	my $class = shift or _cry('Did not specify a class to load');
-    $TRIED_LOADING{$class}++;
-    
-    	return 1 if $SPECIAL{$class};
+	$TRIED_LOADING{$class}++;
+	
+	return 1 if $SPECIAL{$class};
 
 	# Run some checks
 	my $file = _class_file($class);
@@ -573,11 +625,11 @@ sub _load ($) {
 		# If the %INC lock is set to any other value, the file is
 		# already loaded. We do not need to do anything.
 		if ($INC{$file} ne 'Class::Autouse') {
-    		    	$LOADED{$class} = 1;
-	        	_load_ancestors($class);
-	        	return 1;
-	    	}
-
+			$LOADED{$class} = 1;
+			_load_ancestors($class);
+			return 1;
+		}
+		
 		# Because we autoused it earlier, we know the file for this
 		# class MUST exist.
 		# Removing the AUTOLOAD hook and %INC lock is all we have to do
@@ -588,15 +640,15 @@ sub _load ($) {
 		# File doesn't exist. We might still be OK, if the class was
 		# defined in some other module that got loaded a different way.
 		return $LOADED{$class} = 1 if _namespace_occupied($class);
-
-	    	if (_try_special_loaders($class)) {
-	            	return 1;
-	    	}
-
+		
+		if (_try_special_loaders($class)) {
+				return 1;
+		}
+		
 		my $inc = join ', ', @INC;
 		_cry("Can't locate $file in \@INC (\@INC contains: $inc)");
 	}
-
+	
 	# Load the file
 	print _call_depth(1) . "  Class::Autouse::load -> Loading in $file\n" if DEBUG;
 	eval {
@@ -608,8 +660,8 @@ sub _load ($) {
 	--$HOOKS or _UPDATE_HOOKS();
 
 	$LOADED{$class} = 1;
-    	_load_ancestors($class);
-    	return 1;
+	_load_ancestors($class);
+	return 1;
 }
 
 # Find all the child classes for a parent class.
@@ -621,7 +673,7 @@ sub _child_classes ($) {
 	my $base_file = _class_file(shift);
 	my $inc_path  = List::Util::first {
 		-f File::Spec->catfile($_, $base_file)
-		} @INC or return;
+	} @INC or return;
 
 	# Does the file have a subdirectory
 	# i.e. Are there child classes
@@ -707,7 +759,15 @@ sub _namespace_occupied ($) {
 		next if substr($_, -2) eq '::';
 
 		# Only check for methods, since that's all that's reliable
-		return 1 if defined *{"${class}::$_"}{CODE};
+		if (defined *{"${class}::$_"}{CODE}) {
+			if ($_ eq 'AUTOLOAD' and \&{"${class}::$_"} == \&_AUTOLOAD) {
+				# This is a Class::Autouse hook.  Ignore.
+				next;
+			}
+			else {
+				return 1;
+			}
+		}
 	}
 
 	'';
@@ -812,7 +872,7 @@ Class::Autouse - Run-time load a class the first time you call a method in it.
 
   # Debugging (if you go that way) must be set before the first use
   BEGIN {
-  	$Class::Autouse::DEBUG = 1;
+	$Class::Autouse::DEBUG = 1;
   }
   
   # Load a class on method call
@@ -838,7 +898,10 @@ Class::Autouse - Run-time load a class the first time you call a method in it.
 
   # Turn on the Super Loader
   use Class::Autouse qw{:superloader};
-  
+
+  # Add a callback to UNIVERSAL::AUTOLOAD for syntactic sugar
+  Class::Autouse->sugar(\&my_magic);
+
   # Disable module-existance check, and thus one additional 'stat'
   # per module, at autouse-time if loading modules off a remote
   # network drive such as NFS or SMB.
@@ -973,14 +1036,6 @@ It is up to the callback to define the class, the details of which
 are beyond the scope of this document.   See the example below for 
 a quick reference:  
 
-=head3 Note on Syntactic Sugar Magic
-
-When triggered by a regular method call (not isa()) the callback is also
-given the name of the method and the arguments used.  This is NOT because the callback
-should call the method in question after generating the class.  It is present to 
-support "syntactic sugar": allowing the developer to put things into Perl which do 
-not look like regular Perl.
-
 =head3 Callback Example
 
 Any use of a class like Foo::Wrapper autogenerates that class as a proxy 
@@ -1037,6 +1092,42 @@ around Foo.
 	print Foo::Wrapper->class_method,"\n";
 
 
+=head2 sugar
+
+This method is present to support "syntactic sugar": allowing the developer 
+to put things into Perl which do not look like regular Perl.
+
+When Perl is unable to find a subroutine/method, and all of the class loaders
+are exhausted, callbacks registered via sugar() are called.  The callbacks
+recieve the class name, method name, and parameters of the call.
+
+If the callback returns nothing, Class::Autouse will continue to iterate through
+other callbacks.  The first callback which returns a subroutine reference will
+end iteration, and Class::Autouse will turn control over to that subroutine
+to handle the call.
+
+Note: The callback will only be fired by UNIVERSAL::AUTOLOAD after all other 
+attempts at loading the class are done, and after attempts to use regular 
+AUTOLOAD to handle the method call.  It is never fired by isa() or can().
+
+=head3 Syntactic Sugar Example
+
+use Class::Autouse;
+Class::Autouse->sugar(
+	sub magic {
+		my $caller = caller(1);
+		my ($class,$method,@params) = @_;
+		shift @params; 
+		my @words = ($method,$class,@params);
+		my $sentence = join(" ",@words);
+		return sub { $sentence };
+	}
+);
+
+$x = trolls have big ugly hairy feet;
+
+print $x,"\n";
+# trolls have big ugly hairy feet
 
 =head2 mod_perl
 
@@ -1057,6 +1148,8 @@ requested by L<prefork>.
 
 =head2 Performance Optimizatons
 
+=over
+
 =item :nostat
 
 Described above, this option is useful when the module in question is on remote disk.
@@ -1075,6 +1168,8 @@ When set, presumes that @ISA will not change for a class once it is loaded.  The
 grandparent of a class will be given back the original can/isa implementations which are faster
 than those Class::Autouse installs into UNIVERSAL.  This is a performance tweak useful in 
 most cases, but is left off by default to prevent obscure bugs.
+
+=back
 
 =head2 The Internal Debugger
 
