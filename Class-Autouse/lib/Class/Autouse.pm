@@ -176,7 +176,7 @@ sub autouse {
 				die( __PACKAGE__ 
 					. ' can autouse explicit class names, or take a regex or subroutine reference'
 					. ": unexpected value $class has type "
-					. ref($class);
+					. ref($class)
 				);
 			}
 			push @LOADERS, $class;
