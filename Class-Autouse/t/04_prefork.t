@@ -3,11 +3,16 @@
 # Test compatibility with prefork.pm
 
 use strict;
+use File::Spec ();
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 	require lib;
-	lib->import( catdir( curdir(), 't', 'modules' ) );
+	lib->import(
+		File::Spec->catdir(
+			File::Spec->curdir, 't', 'modules',
+		)
+	);
 }
 
 # We don't need to run this if prefork is not installed

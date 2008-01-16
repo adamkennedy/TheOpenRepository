@@ -3,11 +3,16 @@
 # Test interaction with base.pm
 
 use strict;
+use File::Spec ();
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 	require lib;
-	lib->import( catdir( curdir(), 't', 'modules' ) );
+	lib->import(
+		File::Spec->catdir(
+			File::Spec->curdir, 't', 'modules',
+		)
+	);
 }
 
 use Test::More tests => 4;
