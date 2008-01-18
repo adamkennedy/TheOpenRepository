@@ -1,5 +1,22 @@
 package Perl::Dist::Inno::File;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::Inno::File - Inno Setup Script [Files] Section Entry
+
+=head1 DESCRIPTION
+
+The B<Perl::Dist::Inno::File> class provides a data class that represents
+an entry in the [Files] section of the Inno Setup Script.
+
+=head1 METHODS
+
+TO BE COMPLETED
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
@@ -76,3 +93,33 @@ sub as_string {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist>
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

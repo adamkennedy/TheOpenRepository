@@ -500,22 +500,52 @@ sub new {
         return $self;
 }
 
+=pod
+
+=head2 offline
+
+The B<Perl::Dist> module has limited ability to build offline, if all
+packages have already been downloaded and cached.
+
+The connectedness of the Perl::Dist object is checked automatically
+be default using L<LWP::Online>. It can be overidden by providing an
+offline param to the constructor.
+
+The C<offline> accessor returns true if no connection to "the internet"
+is available and the object will run in offline mode, or false
+otherwise.
+
+=head2 download_dir
+
+The C<download_dir> accessor returns the path to the directory that
+packages of various types will be downloaded and cached to.
+
+An explicit value can be provided via a C<download_dir> param to the
+constructor. Otherwise the value is derived from C<temp_dir>.
+
+=head2 image_dir
+
+The C<image_dir> accessor returns the path to the built distribution
+image. That is, the directory in which the build C/Perl code and
+modules will be installed on the build server.
+
+At the present time, this is also the path to which Perl will be
+installed on the user's machine via the C<source_dir> accessor,
+which is an alias to the L<Perl::Dist::Inno::Script> method
+C<source_dir>. (although theoretically they can be different,
+this is likely to break the user's Perl install)
+
+=cut
+
+
+
+
+
+#####################################################################
+# Perl::Dist::Inno::Script Methods
+
 sub source_dir {
 	$_[0]->image_dir;
-}
-
-sub perl_version_literal {
-	return {
-		588  => '5.008008',
-		5100 => '5.010000',
-	}->{$_[0]->perl_version} || 0;
-}
-
-sub perl_version_human {
-	return {
-		588  => '5.8.8',
-		5100 => '5.10.0',
-	}->{$_[0]->perl_version} || 0;
 }
 
 # Default the versioned name to an unversioned name
@@ -543,7 +573,73 @@ sub output_base_filename {
 
 
 #####################################################################
+# Perl::Dist::Inno Main Methods
+
+=pod
+
+=head2 perl_version
+
+The C<perl_version> accessor returns the shorthand perl version
+as a string (consisting of the three-part version with dots
+removed).
+
+Thus Perl 5.8.8 will be "588" and Perl 5.10.0 will return "5100".
+
+=head2 perl_version_literal
+
+The C<perl_version_literal> method returns the literal numeric Perl
+version for the distribution.
+
+For Perl 5.8.8 this will be '5.008008' and for Perl 5.10.0 this will
+be '5.010000'.
+
+=cut
+
+sub perl_version_literal {
+	return {
+		588  => '5.008008',
+		5100 => '5.010000',
+	}->{$_[0]->perl_version} || 0;
+}
+
+=pod
+
+=head2 perl_version_human
+
+The C<perl_version_human> method returns the "marketing" form
+of the Perl version.
+
+This will be either '5.8.8' or '5.10.0'.
+
+=cut
+
+sub perl_version_human {
+	return {
+		588  => '5.8.8',
+		5100 => '5.10.0',
+	}->{$_[0]->perl_version} || 0;
+}
+
+
+
+
+
+#####################################################################
 # Top Level Process Methods
+
+=pod
+
+=head1 run
+
+The C<run> method is the main method for the class.
+
+It does a complete build of a product, spitting out an installer.
+
+Returns true, or throws an exception on error.
+
+This method may take an hour or more to run.
+
+=cut
 
 sub run {
 	my $self  = shift;
