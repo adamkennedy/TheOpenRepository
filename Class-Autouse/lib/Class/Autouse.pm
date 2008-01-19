@@ -405,7 +405,7 @@ sub _UNIVERSAL_AUTOLOAD {
 	unless (@search) {
 		# The special loaders will attempt to dynamically instantiate the class.
 		# They will not fire if the superloader is turned on and has already loaded the class.
-		if (_try_LOADERS($class,$function,@_)) {
+		if (_try_loaders($class,$function,@_)) {
 			my $fref = $ORIGINAL_CAN->($class,$function); 
 			if ($fref) {
 				goto $fref;
@@ -1099,26 +1099,31 @@ around Foo.
 =head2 sugar
 
 This method is present to support "syntactic sugar": allowing the developer 
-to put things into Perl which do not look like regular Perl.
+to put things into Perl which do not look like regular Perl.  There are
+several ways to do this in Perl.  Strategies which require overriding 
+UNIVERSAL::AUTOLOAD can use this interface instead to share that method 
+with the superloader, and with class gnerators.
 
 When Perl is unable to find a subroutine/method, and all of the class loaders
 are exhausted, callbacks registered via sugar() are called.  The callbacks
 recieve the class name, method name, and parameters of the call.
 
 If the callback returns nothing, Class::Autouse will continue to iterate through
-other callbacks.  The first callback which returns a subroutine reference will
-end iteration, and Class::Autouse will turn control over to that subroutine
-to handle the call.
+other callbacks.  The first callback which returns a true value will
+end iteration.  That value is expected to be a CODE reference which will respond
+to the AUTOLOAD call.
 
-Note: The callback will only be fired by UNIVERSAL::AUTOLOAD after all other 
-attempts at loading the class are done, and after attempts to use regular 
-AUTOLOAD to handle the method call.  It is never fired by isa() or can().
+Note: The sugar callback(s) will only be fired by UNIVERSAL::AUTOLOAD after all 
+other attempts at loading the class are done, and after attempts to use regular 
+AUTOLOAD to handle the method call.  It is never fired by isa() or can().  It
+will fire repatedly for the same class.  To generate classes, use the 
+regular CODE ref support in autouse().
 
 =head3 Syntactic Sugar Example
 
 use Class::Autouse;
 Class::Autouse->sugar(
-	sub magic {
+	sub {
 		my $caller = caller(1);
 		my ($class,$method,@params) = @_;
 		shift @params; 
@@ -1144,11 +1149,19 @@ This is actually beneficial, as under mod_perl classes should be preloaded
 in the parent mod_perl process anyway, to prevent them having to be loaded
 by the Apache child classes. It also saves HUGE amounts of memory.
 
+Note that dynamically generated classes and classes loaded via regex CANNOT
+be pre-loaded automatically before forking child processes.  They will still
+be loaded on demand, often in the child process.  See L<prefork> below.
+
 =head2 prefork
 
 As for mod_perl, C<Class::Autouse> is compatible with the L<prefork> module,
-and all modules autoloaded will be loaded before forking correctly, when
-requested by L<prefork>.
+and all modules specifically autoloaded will be loaded before forking correctly, 
+when requested by L<prefork>.
+
+Since modules generated via callback or regex cannot be loaded automatically 
+by prefork in a generic way, it's advised to use prefork directly to load/generate 
+classes when using mod_perl.
 
 =head2 Performance Optimizatons
 
@@ -1259,7 +1272,7 @@ For other issues, or commercial enhancement or support, contact the author.
 
 Adam Kennedy E<lt>cpan@ali.asE<gt>
 
-Scott Smith E<lt>ssmith@watson.wustl.eduE<gt>
+Scott Smith E<lt>sakoht@cpan.orgE<gt>
 
 Rob Napier E<lt>rnapier@employees.orgE<gt>
 
