@@ -5,7 +5,6 @@
 
 use strict;
 use Test::More tests => 4;
-use vars qw/our/;
 
 use Class::Autouse sub {
 	my ($class) = @_;
@@ -26,7 +25,7 @@ use Class::Autouse sub {
 		*{$class . '::AUTOLOAD' } = sub {
 			##my ($obj,$method) = @_;
 			my $obj = shift;
-                        $AUTOLOAD;
+                        use vars '$AUTOLOAD';
                         my ($method) = ($AUTOLOAD =~ /^.*::(\w+)$/);
 			
                         my $delegate = $wrapped_class->can($method);
