@@ -13,8 +13,6 @@ an entry in the [Files] section of the Inno Setup Script.
 
 =head1 METHODS
 
-TO BE COMPLETED
-
 =cut
 
 use 5.006;
@@ -44,7 +42,13 @@ use Object::Tiny qw{
 #####################################################################
 # Constructors
 
-sub new {
+=pod
+
+=head2 new
+
+The C<new>
+
+sub new  
 	my $self = shift->SUPER::new(@_);
 
 	# Apply defaults
