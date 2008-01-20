@@ -1,10 +1,11 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 # This is the example from the POD
 # modified slightly to work w/o module deps.
 
 use strict;
 use Test::More tests => 4;
+use vars qw/our/;
 
 use Class::Autouse sub {
 	my ($class) = @_;
@@ -19,13 +20,13 @@ use Class::Autouse sub {
 			my $self = bless({proxy => $proxy},$class);
 			return $self;
 		};
-                # if you're on a recent enough version of Perl, you should use Class::AutolaodCAN below
-                # and just return the delegator...
+                # If you're on a recent enough version of Perl, you should use Class::AutolaodCAN below
+                # and just return the delegator. 
 		## *{$class . '::CAN' } = sub {
 		*{$class . '::AUTOLOAD' } = sub {
 			##my ($obj,$method) = @_;
 			my $obj = shift;
-                        our $AUTOLOAD;
+                        $AUTOLOAD;
                         my ($method) = ($AUTOLOAD =~ /^.*::(\w+)$/);
 			
                         my $delegate = $wrapped_class->can($method);
@@ -49,7 +50,6 @@ use Class::Autouse sub {
 	}
 	return;
 };
-
 
 package Foo;
 

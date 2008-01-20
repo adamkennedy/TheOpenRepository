@@ -1,8 +1,8 @@
+#!/usr/bin/env perl -w
 
 # after using Class::Autouse, make sure non-existent class/method
 # calls fail
 
-use warnings FATAL => 'all';
 use strict;
 
 use Test::More;

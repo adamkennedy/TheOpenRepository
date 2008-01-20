@@ -1,7 +1,6 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 use strict;
-use warnings;
 use Test::More tests => 10;
 
 use Class::Autouse \&my_loader;

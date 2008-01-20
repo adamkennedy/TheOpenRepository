@@ -1,9 +1,8 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
-use warnings;
+my $test_the_test = 0;
+
 use strict;
-our $test_the_test = 0;
-
 use Test::More tests => (768 * ($test_the_test ? 2 : 1));
 use File::Temp;
 use IO::File;
@@ -16,6 +15,7 @@ $SIG{__WARN__} = \&Carp::cluck;
 # write a temp directory of modules for testing
 #
 
+
 my $temp_dir;
 BEGIN {
     $temp_dir = File::Temp::tempdir(CLEANUP => 1);
@@ -27,7 +27,7 @@ use lib $temp_dir;
 sub class_isa_ok {
     my ($class,$parent,$msg) = @_;
     $msg ||= "$class isa $parent"; 
-    no warnings;
+    local $^W = 0; 
     ok($class->isa($parent),$msg);
 }
 
@@ -104,7 +104,7 @@ for my $class_type (@file_types) {
                                                 parent_class_type => $parent_type, 
                                                 has_autoload => $has_autoload,
                                             );
-                                            no warnings;
+                                            local $^W = 0;
                                             eval $src;
                                             if ($@) {
                                                 Carp::confess("Error in test code.  Failed to make module source for $class_name (isa $parent_class_name): $@");
@@ -123,7 +123,7 @@ for my $class_type (@file_types) {
                                     Class::Autouse->autouse(qr/$class_name/);
                                 }
                                 elsif ($type eq 'use_file') {
-                                    no warnings;
+                                    $^W = 0; 
                                     eval "use $class_name";
                                     die $@ if $@;
                                 }
@@ -158,9 +158,9 @@ for my $class_type (@file_types) {
                         else {
                             if ($first_use eq 'can') {
                                 my $target_method_name = $target_class_name . '_method';
-                                no warnings;
+                                $^W = 0; 
                                 my $code = $cname->can($target_method_name);
-                                use warnings;
+                                $^W = 1;
                                 if ($code) {
                                     no strict 'refs';
                                     no strict 'subs';
@@ -182,7 +182,7 @@ for my $class_type (@file_types) {
                                     $target_method_name = $target_class_name . '_method';
                                 }
                                 $retval = undef;
-                                no warnings;
+                                $^W = 0; 
                                 eval "\$retval = $cname->$target_method_name();";
                                 if ($@) {
                                     fail("failed to try $target_method_name on $cname! $msg\n $@");
@@ -235,7 +235,7 @@ sub class_src {
     my (%args) = @_;
     my ($cname, $pname, $ptype, $has_autoload) = @args{'class_name','parent_class_name', 'parent_class_type', 'has_autoload'};
 
-    my $isa_src = ($pname ? "our \@ISA = ('$pname');\n" : "\n");
+    my $isa_src = ($pname ? "use vars '\@ISA';\n\@ISA = ('$pname');\n" : "\n");
     #my $isa_src = ($pname ? "use base '$pname';\n" : "\n");
     if (!defined($ptype)) {
         $isa_src .= "#no parent class\n";
@@ -263,9 +263,8 @@ package $cname;
 
 # turn off warnings since we may not want to load the parent class 
 # until we're actually using can/isa or failing to find a method
-no warnings;
+local \$^W = 0;
 $isa_src
-use warnings;
 
 # this is a no-op, and is primarily for debugging
 main::class_is_being_used(__PACKAGE__);
@@ -282,3 +281,5 @@ EOS
     #print "####\n$src\n###\n";
     return $src;
 }
+
+
