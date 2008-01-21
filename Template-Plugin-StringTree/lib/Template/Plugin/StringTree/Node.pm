@@ -7,7 +7,7 @@ use strict;
 use Scalar::Util ();
 use overload '""'   => '__get';
 
-use vars qw{$VERSION };
+use vars qw{$VERSION %STRING};
 BEGIN {
 	$VERSION = '0.08';
 
