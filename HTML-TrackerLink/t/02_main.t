@@ -5,7 +5,7 @@
 use strict;
 BEGIN {
 	$|  = 1;
-	$^w = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 13;

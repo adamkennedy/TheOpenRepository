@@ -144,11 +144,11 @@ sub process {
 	# Prepare the transforms
 	my @replace = ();
 	if ( $self->keywords ) {
-		my $any_keyword = '(?i:' . join('|', $self->keywords) .')';
+		my $any_keyword = '(?:' . join('|', $self->keywords) .')';
 		push @replace, [
-			qr/\b($any_keyword)\s+\#?(\d+)/s,
+			qr/\b($any_keyword)\s+\#?(\d+)/is,
 			sub { $self->_replace(
-				$self->{keywords}->{lc $_[2]}, $_[1], $_[3],
+				$self->{keywords}->{lc $_[3]}, $_[2], $_[4],
 			) },
 		];
 	}
@@ -156,7 +156,7 @@ sub process {
 		push @replace, [
 			qr/\#(\d+)/s,
 			sub { $self->_replace(
-				$self->default, $_[1], $_[2],
+				$self->default, $_[2], $_[3],
 			) },
 		];
 	}
@@ -173,7 +173,7 @@ sub _subst {
 	# Map the match regex to capture everything BEFORE the match,
 	# and the entire pattern provided.
 	# (We'll provide them as the first params)
-	my @try = map { [ qr/\G(.*?)($_->[0])/ => $_->[1] ] } @_;
+	my @try = map { [ qr/\G(.*?)($_->[0])/s => $_->[1] ] } @_;
 	unless ( @try ) {
 		# Handle the pathological no-replace case
 		return $input;
@@ -193,7 +193,7 @@ sub _subst {
 			next unless $input =~ $r->[0];
 
 			# Skip if it DOESN'T match earlier
-			if ( $found and $start[1] <= $-[1] ) {
+			if ( $found and $start[2] <= $-[2] ) {
 				next;
 			}
 
@@ -205,18 +205,18 @@ sub _subst {
 		}
 
 		# Break out if no more matches
-		last unless @end;
+		last unless $found;
 
 		# Append the pre-match string to the output
-		$output .= substr( $input, $end[1], $start[1] - $end[1] );
+		$output .= substr( $input, $start[1], $end[1] - $start[1] );
 
 		# Pass the rest to the transform function
 		my $rv = $found->(
 			map {
-				substr( $input, $end[$_], $start[$_] - $end[$_] )
+				substr( $input, $start[$_], $end[$_] - $start[$_] )
 			} 0 .. $#end
 		);
-		unless defined $rv ) {
+		unless ( defined $rv ) {
 			# Transform is signaling an error
 			return undef;
 		}
@@ -225,7 +225,7 @@ sub _subst {
 		$output .= $rv;
 
 		# Move the match position for the next iteration
-		$pos = $end[1];
+		$position = $end[2];
 	}
 
 	# Append the remainder of the string
