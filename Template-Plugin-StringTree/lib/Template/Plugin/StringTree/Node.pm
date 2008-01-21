@@ -3,6 +3,7 @@ package Template::Plugin::StringTree::Node;
 # This package implements the actual nodes in the StringTree.
 # We need to be very careful not to pollute this namespace with methods.
 
+use 5.005;
 use strict;
 use Scalar::Util ();
 use overload '""'   => '__get';

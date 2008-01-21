@@ -46,6 +46,7 @@ every node can have a value. And you can get at these naturally in templates.
 
 =cut
 
+use 5.005;
 use strict;
 use Template::Plugin::StringTree::Node ();
 
