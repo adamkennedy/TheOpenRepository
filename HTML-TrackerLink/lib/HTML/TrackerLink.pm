@@ -6,7 +6,7 @@ package HTML::TrackerLink;
 
 # See POD below for more details
 
-use 5.005;
+use 5.006;
 use strict;
 
 use vars qw{$VERSION $errstr};
@@ -137,42 +137,99 @@ sub process {
 	my $text = (@_ and defined $_[0]) ? shift
 		: return $self->_error( 'You did not provide a string to process' );
 
-	my $default      = $self->default;
-	my @keywords     = $self->keywords;
-	my $any_keywords = '(?i:' . join('|', @keywords) .')';
-	my $p_text       = '';
-	local $_ = $text;
-
-	LOOP: {
-		# Match keywords
-		if ( @keywords && /\G(.*?)\b(($any_keywords)\s+\#?(\d+))/gcs ) {
-			$p_text .= $1;
-			my $url = $self->{keywords}->{lc $3};
-			$p_text .= $self->_replacer($url, $2, $4);
-			redo LOOP;
-		}
-
-		# Match the default replace
-		if ( $default && /\G(.*?)(\#(\d+))/gcs ) {
-			$p_text .= $1;
-			$p_text .= $self->_replacer($default, $2, $3);
-			redo LOOP;
-		}
-
-		# Fall off the loop
+	# Prepare the transforms
+	my @replace = ();
+	if ( $self->keywords ) {
+		my $any_keyword = '(?i:' . join('|', $self->keywords) .')';
+		push @replace, [
+			qr/\b($any_keyword)\s+\#?(\d+)/s,
+			sub { $self->_replace(
+				$self->{keywords}->{lc $_[2]}, $_[1], $_[3],
+			) },
+		];
+	}
+	if ( $self->default ) {
+		push @replace, [
+			qr/\#(\d+)/s,
+			sub { $self->_replace(
+				$self->default, $_[1], $_[2],
+			) },
+		];
 	}
 
-	# Match everything else
-	if ( /\G(.+)$/s ) {
-		$p_text .= $1;
+	# Hand off to the main substitution method
+	return $self->_subst( $text, @replace );
+}
+
+# Implement the parallel substitution
+sub _subst {
+	my $self  = shift;
+	my $input = shift;
+
+	# Map the match regex to capture everything BEFORE the match,
+	# and the entire pattern provided.
+	# (We'll provide them as the first params)
+	my @try = map { [ qr/\G(.*?)($_->[0])/ => $_->[1] ] } @_;
+	unless ( @try ) {
+		# Handle the pathological no-replace case
+		return $input;
 	}
 
-	return $p_text;
+	# Start the main loop
+	my $position = 0;
+	my $len      = length $input;
+	my $output   = '';
+	while ( $position < $len ) {
+		my $found = undef;
+		my @start = ();
+		my @end   = ();
+		foreach my $r ( @try ) {
+			# Skip if it is not in the string
+			pos $input = $position;
+			next unless $input =~ $r->[0];
+
+			# Skip if it DOESN'T match earlier
+			if ( $found and $start[1] <= $-[1] ) {
+				next;
+			}
+
+			# This is the best option.
+			# Save the matching regex
+			$found = $r->[1];
+			@start = @-;
+			@end   = @+;
+		}
+
+		# Break out if no more matches
+		last unless @end;
+
+		# Append the pre-match string to the output
+		$output .= substr( $input, $end[1], $start[1] - $end[1] );
+
+		# Pass the rest to the transform function
+		my $rv = $found->(
+			map {
+				substr( $input, $end[$_], $start[$_] - $end[$_] )
+			} 0 .. $#end
+		);
+		unless defined $rv ) {
+			# Transform is signaling an error
+			return undef;
+		}
+
+		# Transform completed ok
+		$output .= $rv;
+
+		# Move the match position for the next iteration
+		$pos = $end[1];
+	}
+
+	# Append the remainder of the string
+	return $output . substr( $input, $position );
 }
 
 # Return any error message
 sub errstr { $errstr }
-
 
 
 
@@ -202,7 +259,7 @@ sub _check_url {
 }
 
 # Generates the link in the replacer
-sub _replacer {
+sub _replace {
 	my ($self, $url, $text, $id) = @_;
 
 	# Create the link
