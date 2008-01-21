@@ -11,7 +11,7 @@ use strict;
 
 use vars qw{$VERSION $errstr};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.03';
 	$errstr  = '';
 }
 
@@ -28,7 +28,7 @@ sub new {
 	# Create our object
 	my $self = bless {
 		keywords => {},
-		}, $class;
+	}, $class;
 	return $self unless @_;
 
 	# Handle arguments
@@ -186,7 +186,7 @@ sub _check_keyword {
 	my $kw = shift or return $self->_error( 'You did not provide a keyword' );
 	return $self->_error( 'Keyword contains non-word characters' ) if $kw =~ /\W/;
 	return $self->_error( 'Keyword cannot start with a number' )   if $kw =~ /^\d/;
-	1;
+	return 1;
 }
 
 sub _check_url {
@@ -198,7 +198,7 @@ sub _check_url {
 	unless ( $url =~ /\%n/ ) {
 		return $self->_error( 'The tracker URL does not contain a %n placeholder' );
 	}
-	1;
+	return 1;
 }
 
 # Generates the link in the replacer
@@ -207,7 +207,7 @@ sub _replacer {
 
 	# Create the link
 	$url =~ s/\%n/$id/g;
-	"<a href='$url'>$text</a>";
+	return "<a href='$url'>$text</a>";
 }
 
 sub _error { $errstr = $_[1]; undef }
@@ -225,26 +225,26 @@ HTML::TrackerLink - Autogenerates links to Bug/Tracker systems
 =head1 SYNOPSIS
 
   # Create a linker for only #12345 for a single tracker system
-  my $Linker = HTML::TrackerLink->new( 'http://host/path?id=%n' );
+  my $linker = HTML::TrackerLink->new( 'http://host/path?id=%n' );
   
   # Create a linker for a single named ( 'Bug #12345' ) system
-  $Linker = HTML::TrackerLink->new( 'bug', 'http://host/path?id=%n' );
+  $linker = HTML::TrackerLink->new( 'bug', 'http://host/path?id=%n' );
   
   # Create a linker for multiple named systems
-  $Linker = HTML::TrackerLink->new(
+  $linker = HTML::TrackerLink->new(
           'bug'     => 'http://host1/path?id=%n',
           'tracker' => 'http://host2/path?id=%n',
           );
   
   # For the multiple linker, make it default to an arbitrary system
-  $Linker->default( 'http://host/path?id=%n' );
+  $linker->default( 'http://host/path?id=%n' );
   
   # For the multiple linker, make it default to one of the keywords
-  $Linker->default_keyword( 'bug' );
+  $linker->default_keyword( 'bug' );
   
   # Process a string, and add links
   my $string = 'Fix for bug 1234, described in client request CT #1234';
-  $string = $Linker->process( $string );
+  $string = $linker->process( $string );
 
 =head1 DESCRIPTION
 
@@ -408,12 +408,12 @@ error message. C<errstr> can be called as either a static or object method.
 i.e. The following are equivalent
 
   # Calling errstr as a static method
-  my $Linker = HTML::TrackerLink->new( 'badurl' );
+  my $linker = HTML::TrackerLink->new( 'badurl' );
   die HTML::TrackerLink->errstr;
 
   # Calling errstr as an object method
-  my $Linker = HTML::TrackerLink->new( 'badurl' );
-  die $Linker->errstr;
+  my $linker = HTML::TrackerLink->new( 'badurl' );
+  die $linker->errstr;
 
 =head1 TO DO
 
@@ -425,17 +425,18 @@ any bugs encountered.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTML%3A%3ATrackerLink>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTML-TrackerLink>
 
 For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2002-2004 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

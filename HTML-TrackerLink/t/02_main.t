@@ -3,19 +3,9 @@
 # Formal testing for HTML::TrackerLink
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^w = 1;
 }
 
 use Test::More tests => 13;
@@ -103,5 +93,3 @@ Also to <a href='http://host2/path?id=2345'>change #2345</a> and to <a href='htt
 
 END_HTML
 }
-
-1;
