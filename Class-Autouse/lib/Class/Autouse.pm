@@ -405,12 +405,11 @@ sub _UNIVERSAL_AUTOLOAD {
 	unless (@search) {
 		# The special loaders will attempt to dynamically instantiate the class.
 		# They will not fire if the superloader is turned on and has already loaded the class.
-		if (_try_loaders($class,$function,@_)) {
+		if ( _try_loaders($class,$function,@_) ) {
 			my $fref = $ORIGINAL_CAN->($class,$function); 
 			if ($fref) {
 				goto $fref;
-			}
-			else {
+			} else {
 				@search = _recurse_inheritance($class);
 			}
 		}
@@ -431,9 +430,7 @@ sub _UNIVERSAL_AUTOLOAD {
 
 	for my $callback (@sugar) {
 		my $rv = $callback->($class,$function,@_);
-		if ($rv) {
-			goto $rv;
-		}
+		goto $rv if $rv;
 	}
 
 	# Can't find the method anywhere. Throw the same error Perl does.
@@ -449,10 +446,10 @@ sub _try_loaders {
 	# this allows us to shortcut out of re-checking a class
 	$TRIED_LOADING{$class}++;
 	
-	if (_namespace_occupied($class)) {
-			$LOADED{$class} = 1;
-			_load_ancestors($class);
-			return 1;
+	if ( _namespace_occupied($class) ) {
+		$LOADED{$class} = 1;
+		_load_ancestors($class);
+		return 1;
 	}
 
 	# Try each of the special loaders, if there are any.
@@ -632,7 +629,7 @@ sub _load ($) {
 			_load_ancestors($class);
 			return 1;
 		}
-		
+
 		# Because we autoused it earlier, we know the file for this
 		# class MUST exist.
 		# Removing the AUTOLOAD hook and %INC lock is all we have to do
@@ -643,15 +640,15 @@ sub _load ($) {
 		# File doesn't exist. We might still be OK, if the class was
 		# defined in some other module that got loaded a different way.
 		return $LOADED{$class} = 1 if _namespace_occupied($class);
-		
+
 		if ( _try_loaders($class) ) {
 			return 1;
 		}
-		
+
 		my $inc = join ', ', @INC;
 		_cry("Can't locate $file in \@INC (\@INC contains: $inc)");
 	}
-	
+
 	# Load the file
 	print _call_depth(1) . "  Class::Autouse::load -> Loading in $file\n" if DEBUG;
 	eval {
