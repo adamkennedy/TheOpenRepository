@@ -79,7 +79,11 @@ sub new {
 
 # Return the currently defined keywords
 sub keywords {
-	sort keys %{ $_[0]->{keywords} };
+	if ( wantarray ) {
+		return sort keys %{ $_[0]->{keywords} };
+	} else {
+		return scalar keys %{ $_[0]->{keywords} };
+	}
 }
 
 
