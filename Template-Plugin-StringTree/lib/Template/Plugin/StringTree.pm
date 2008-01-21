@@ -47,12 +47,11 @@ every node can have a value. And you can get at these naturally in templates.
 =cut
 
 use strict;
-use UNIVERSAL 'isa';
-use Template::Plugin::StringTree::Node;
+use Template::Plugin::StringTree::Node ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 }
 
 
@@ -362,23 +361,24 @@ sub _path {
 
 1;
 
+=pod
+
 =head1 SUPPORT
 
 Bugs should be submitted via the CPAN bug tracker, located at
 
-  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template%3A%3APlugin%3A%3AStringTree
+  http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Plugin-StringTree
 
 For other issues, contact the author
 
 =head1 AUTHOR
 
-    Adam Kennedy (Maintainer)
-    cpan@ali.as
-    http//ali.as/
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004, 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

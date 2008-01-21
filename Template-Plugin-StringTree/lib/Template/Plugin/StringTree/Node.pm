@@ -7,25 +7,22 @@ use strict;
 use Scalar::Util ();
 use overload '""'   => '__get';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION };
 BEGIN {
-	$VERSION = '0.07';
-}
+	$VERSION = '0.08';
 
-# Create the data store for the Nodes
-use vars qw{%STRING};
-BEGIN {
-	%STRING = ();
+	# Data store for the Nodes
+	%STRING  = ();
 }
 
 # Create a new node, with an optional value
 sub __new {
 	my $class = ref $_[0] ? ref shift : shift;
-	my $self = bless {}, $class;
+	my $self  = bless {}, $class;
 
 	if ( defined $_[0] and ! ref $_[0] ) {
 		# The value for this node
-		$STRING{Scalar::Util::refaddr $self} = shift;
+		$STRING{Scalar::Util::refaddr($self)} = shift;
 	}
 
 	$self;
@@ -34,16 +31,16 @@ sub __new {
 # Get the value for this node
 sub __get {
 	my $self = ref $_[0] ? shift : return undef;
-	$STRING{Scalar::Util::refaddr $self};
+	$STRING{Scalar::Util::refaddr($self)};
 }
 
 # Set the value for this node
 sub __set {
 	my $self = ref $_[0] ? shift : return undef;
 	if ( defined $_[0] ) {
-		$STRING{Scalar::Util::refaddr $self} = shift;
+		$STRING{Scalar::Util::refaddr($self)} = shift;
 	} else {
-		delete $STRING{Scalar::Util::refaddr $_[0]};
+		delete $STRING{Scalar::Util::refaddr($_[0])};
 	}
 
 	1;
@@ -68,7 +65,7 @@ sub can {
 # To prevent pollution, we'll throw an error should we ever try to set
 # a value using a DESTROY segment in a path.
 sub DESTROY {
-	delete $STRING{Scalar::Util::refaddr $_[0]} if ref $_[0];
+	delete $STRING{Scalar::Util::refaddr($_[0])} if ref $_[0];
 }
 
 1;

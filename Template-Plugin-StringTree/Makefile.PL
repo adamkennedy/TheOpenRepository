@@ -1,18 +1,12 @@
-require 5.000;
-use ExtUtils::MakeMaker;
-WriteMakefile(
-	'NAME'         => 'Template::Plugin::StringTree',
-	'VERSION_FROM' => 'lib/Template/Plugin/StringTree.pm',
-	'PREREQ_PM'    => {
-		# Application dependencies
-		File::Spec    => '0.82',
-		List::Util    => '1.11',
+use strict;
+use inc::Module::Install;
 
-		# Test dependencies
-		Test::More => 0,
-	},
-	($] >= 5.005) ? (
-		'AUTHOR'   => 'Adam Kennedy (cpan@ali.as)',
-		'ABSTRACT' => 'Access tree-like groups of strings naturally in both code and TT',
-	) : (),
-);
+name           'Template-Plugin-StringTree';
+all_from       'lib/Template/Plugin/StringTree.pm';
+requires       'File::Spec'   => '0.80';
+requires       'List::Util'   => '1.11';
+requires       'Scalar::Util' => 0;
+requires       'Template'     => 0;
+build_requires 'Test::More'   => '0.42';
+
+WriteAll;
