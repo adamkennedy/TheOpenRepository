@@ -1,4 +1,9 @@
-Revision history for Perl extension Module::Plan::Base
+Revision history for Perl extension pip
+
+0.14 Fri  5 Oct 2007
+	- Dropping the File::Temp dependency on non-Windows to 0.14
+	  (allows easier installation on RedHat Enterprise Linux 4, and other perl 5.8.5 platforms)
+	- Adding initial PAR support
 
 0.13 Thu  6 Dec 2007
 	- No functional changes, no need to upgrade
