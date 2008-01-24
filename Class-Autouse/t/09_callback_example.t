@@ -1,9 +1,14 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 # This is the example from the POD
 # modified slightly to work w/o module deps.
 
-use strict;
 use Test::More tests => 4;
 
 use Class::Autouse sub {

@@ -1,8 +1,13 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 my $test_the_test = 0;
 
-use strict;
 use Test::More tests => (768 * ($test_the_test ? 2 : 1));
 use File::Temp;
 use IO::File;

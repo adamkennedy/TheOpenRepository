@@ -1,6 +1,11 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use Test::More tests => 10;
 
 use Class::Autouse \&my_loader;
@@ -28,7 +33,7 @@ Class::Autouse->autouse(
     sub {
         my $class = shift;
         if ($class eq 'Guppie') {
-            eval "package Fish; sub swim { 123 }; package Guppie; our \@ISA=('Fish');";
+            eval "package Fish; sub swim { 123 }; package Guppie; use vars '\@ISA'; \@ISA=('Fish');";
             die if $@;
             return 1;
         }

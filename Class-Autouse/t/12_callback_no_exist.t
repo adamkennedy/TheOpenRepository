@@ -1,10 +1,14 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 # try 2 basic loaders
 # after using Class::Autouse, make sure non-existent class/method
 # calls fail
-
-use strict;
 
 use Test::More;
 

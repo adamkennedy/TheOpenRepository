@@ -1,14 +1,15 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 # after using Class::Autouse, make sure non-existent class/method
 # calls fail
 
-use strict;
-
-use Test::More;
-
-plan tests => 2;
-
+use Test::More tests => 2;
 use Class::Autouse;
 
 eval { Foo->bar; };

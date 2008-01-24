@@ -43,7 +43,7 @@ use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @LOADERS @sugar }; # W
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.99_01';
+	$VERSION = '1.99_02';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
 	$ORIGINAL_CAN = \&UNIVERSAL::can;

@@ -1,6 +1,10 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 use Test::More tests => 10; 
 use File::Temp;
@@ -45,7 +49,7 @@ sub mkfile {
     $fname =~ s/::/\//g;
     my $dname = $fname;
     $dname =~ s/\/[^\/]+//;
-    mkdir "$temp_dir/$dname";
+    mkdir( "$temp_dir/$dname" );
     die $! unless -d "$temp_dir/$dname";
     $fname =~ s/::/\//g;
     my $n1 = "$temp_dir/${fname}.pm";
