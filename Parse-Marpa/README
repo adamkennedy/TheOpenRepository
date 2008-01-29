@@ -1,0 +1,64 @@
+Parse::Marpa
+
+FIRST THE CAVEATS ...
+
+This is an Alpha release.
+
+It's intended to let people look Marpa over and try it out. Uses
+beyond that are risky. While Marpa is in alpha, you certainly don't
+want to use it for anything mission-critical or with a serious
+deadline.
+
+... THEN THE HYPE
+
+* Parse::Marpa parses any cycle-free context-free grammar.
+
+* Marpa parses any grammar which can be specified in cycle-free
+BNF. (A cycle is a case where A produces A -- the BNF version of
+an infinite loop.)
+
+* The ban on cycles is not a ban on recursion. Marpa cheerfully
+parses left-recursive, right-recursive and any other kind of recursive
+grammar, so long as it is cycle-free. Recursion is useful. Cycles
+(which are essentially recursion without change) seem to always be
+pathological.
+
+* Marpa parses grammars with empty productions. Empty productions
+are often important in specifying semantics.
+
+* Ambiguous grammars are a Marpa specialty. They are useful even
+if you only want one parse. An ambiguous grammar is often the easiest
+and most sensible way to express a language. Human languages are
+ambiguous. We listen and pull out the parse that makes most sense.
+Marpa allows the user to prioritize rules so that a preferred parse
+comes up first.
+
+* Marpa can also return all the parses of an ambiguous grammar.
+
+* Marpa incorporates the latest academic research on Earley's
+algorithm, combining it with LR(0) precomputation.
+
+* Marpa's own innovations include predictive and ambiguous lexing.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the perldoc command.
+
+    perldoc Parse::Marpa
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2007 Jeffrey Kegler
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.

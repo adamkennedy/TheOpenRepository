@@ -1,0 +1,174 @@
+=head1 NAME
+
+Parse::Marpa::ALGORITHM - The Marpa Algorithm
+
+=head1 OVERVIEW
+
+Marpa is based on and derived from
+the parser
+L<described by John Aycock and R.  Nigel Horspool|Parse::Marpa::Bibliography/"Aycock and Horspool 2002">.
+This combines LR(0)
+precomputation
+with the general parsing algorithm
+L<described by Jay
+Earley in 1970|Parse::Marpa::BIBLIOGRAPHY/"Earley 1970">.
+
+Someday I'd like to set forth the whole algorithm,
+including the contributions of Aycock, Horspool and Earley,
+at a level that
+someone who has not taken a course in parsing could understand.
+Marpa combines many parsing techniques,
+and a full description would be a small textbook.
+For now, I have to content myself
+with briefly describing the more significant ideas new with Marpa,
+and I have to assume that the reader is familiar with parsing in general,
+and that he understands terms like Earley set and Earley item.
+It will be helpful to have read the other Marpa documents,
+especially L<Parse::Marpa::INTERNALS>.
+
+All claims of originality are limited by my ignorance.
+The parsing literature is large, and I may have been preceded by someone whose
+work I'm not aware of.
+Also, as readers familiar with the academic literature will know,
+if I claim combining A and B is original,
+I should B<not> be read as claiming to be the inventor of either A or B.
+
+=head1 A NEW EARLEY PARSE ENGINE, AND PREDICTIVE LEXING
+
+Marpa takes the parse engine as
+described by Horspool and Aycock
+and turns it inside out and upside down.
+In the Horspool and Aycock version of Earley's,
+the main loop iterated over each item of an Earley set,
+first scanning for tokens,
+then completing items in the set.
+Marpa turns this into two separate loops over the
+Earley items,
+the first of which completes the current earley set,
+and the second of which scans for tokens.
+
+The advantage of this double inversion is that the lexical analysis
+can be put between the two loops
+-- after completion,
+but before scanning.
+This makes predictive lexing possible.
+Being able to predict which lexables are legal at a given
+point in the parse can save a lot of processing,
+especially if the lexing is complex.
+Any lexemes
+which are not predicted by 
+items in the current
+Earley set do not need to be scanned for.
+Now that Hayspool and Aycock have sped up Earley's algorithm,
+the time spent lexing is a significant factor in overall speed.
+Predictive lexing can reduce lexing time to a fraction of the original.
+
+=head1 EARLEMES
+
+Marpa allows ambiguous lexing,
+including recognition of lexemes of different lengths starting at the
+same lexical position,
+and recognition of overlapping lexemes.
+To facilitate this,
+Marpa introduces the "earleme" (named after Jay Earley).
+Previous
+implementations required the Earley parser's input to be broken
+up into tokens, usually by lexical analysis of the input using
+DFA's.
+(DFA's -- deterministic finite automata -- are the equivalent of
+regular expressions when that term is used in the strictest sense).
+Requiring that the first level of analysis
+be performed by a DFA hobbles a general parser like Earley's.
+
+Marpa allows the scanning phase of
+Earley's algorithm to add items not just to the
+next Earley set, but to any later one.
+Several
+alternative scans of the input can be put into the Earley sets, and
+the power of Earley's algorithm harnessed to deal with the
+indeterminism.
+
+Marpa does this by allowing
+each scanned item to have a length in "earlemes",
+call it I<L>.
+If the current Earley set is I<I>, a newly scanned
+Earley item is added to Earley set I<I+L>.
+In other words, the B<earleme> is a unit of distance
+measured in Earley sets.
+An implementation can sync
+earlemes up with any measure that's convenient.
+For example, the
+distance in earlemes may be the length of a string, measured
+either in bytes or UNICODE graphemes.
+An implementation may also mimic traditional lexing by defining
+the earleme to be the same as the distance in a token stream,
+measured in tokens.
+
+=head1 CHOMSKY-HORSPOOL-AYCOCK FORM
+
+Marpa's third significant change to the Aycock and Horspool algorithm is
+in internal rewriting
+of the grammar.  Aycock and Horspool call their rewriting
+NNF (Nihilist Normal Form).  Earley's original
+algorithm had serious issues with nullable symbols and productions,
+and NNF fixes almost all of them.  (A nullable symbol or production is
+one which could eventually parse out to the empty string.) Importantly,
+NNF also allows complete and easy mapping of the semantics of the
+original grammar to its NNF rewrite, so that NNF and the whole
+rewrite process can be made invisible to the user.
+
+My problem with NNF is that the rewritten grammar is
+exponentially larger than the original in the theoretical worst
+case, and I just don't like exponential explosion, even as a
+theoretical possibility in pre-processing.  I also think
+that there are cases likely to arise in practice
+where the size explosion, if not exponential,
+is linear with a very large multiplier.
+One such case might be a
+Perl 6 rule where whitespace was significant but optional.
+
+My solution is Chomsky-Horspool-Aycock Form (CHAF).
+This is
+Horspool and Aycock's NNF, but with the further restriction that
+no more than two nullable symbols may appear in any production.
+(The idea that any context-free grammar can
+be rewritten into productions of at most a small fixed size appears to
+originate, like so much else, with Noam Chomsky.)
+The shortened CHAF production maps back
+to the original grammar, so that like NNF, the CHAF rewrite can be
+made invisible to the user.
+With CHAF, the theoretical worst
+behavior is linear, and in those difficult cases likely to arise
+in practice the multiplier is much smaller.
+
+=head1 ITERATING PARSES IN THE HORSPOOL-AYCOCK-EARLEY ITEMS
+
+Aycock and Horspool give an algorithm for constructing a rightmost derivation
+from their version of the Earley sets.
+They suggest that in the case of multiple parses,
+their Earley sets could be iterated through,
+and they point out where the decision points occur
+in their algorithm.
+But they give no algorithm to do that iteration.
+Marpa's solution is new, as far as I know.
+
+=head1 PRECEDENCE PARSING AND EARLEY PARSING
+
+In order to iterate through the parses,
+Marpa stores, with most of the Earley items,
+information about why it was
+added.
+Marpa uses lists of "links" and tokens to this,
+expanding on ideas from Aycock and Horspool.
+I noticed that the order of these lists
+controls the order of the parses,
+and realized that the order of those lists could be changed to anything useful.
+The order of the link and token lists might,
+in fact, be based on priorities assigned by the user to the rules and tokens of the grammar.
+These user-assigned priorities could then force the most desirable parse,
+instead of the rightmost, to be first in parsing order.
+
+In effect,
+Marpa's rule and terminal priorities turn ambiguous parsing
+into a convenient form of precedence parsing.
+I don't believe Earley parsing and precedence parsing have been combined before.

@@ -1,0 +1,196 @@
+#!/usr/local/ActivePerl-5.10/bin/perl
+use 5.010_000;
+
+use Carp;
+use Getopt::Long;
+use Parse::Marpa;
+use English;
+use Fatal qw(open close);
+
+my $command = shift;
+my $grammar_file;
+my $text_to_parse;
+my $SDFA;
+my $NFA;
+my $inaccessible_symbols;
+my $accessible_symbols;
+my $nullable_symbols;
+my $nulling_symbols;
+my $unproductive_symbols;
+my $productive_symbols;
+my $show_rules;
+my $show_problems;
+my $show_symbols;
+my $show_derivation;
+my $show_status;
+my $all_parses;
+my %options;
+
+given ($command) {
+    when ('compile') {
+        croak unless GetOptions("option=s" => \%options);
+	do_compile();
+    }
+    when ('parse') {
+        croak unless GetOptions(
+	    "grammar=s" => \$grammar_file,
+	    "compiled_grammar=s" => \$compiled_grammar_file,
+	    "text=s" => \$text_to_parse,
+	    "SDFA" => \$SDFA,
+	    "NFA" => \$NFA,
+	    "inaccessible_symbols" => \$inaccessible_symbols,
+	    "accessible_symbols" => \$accessible_symbols,
+	    "nullable_symbols" => \$nullable_symbols,
+	    "nulling_symbols" => \$nulling_symbols,
+	    "unproductive_symbols" => \$unproductive_symbols,
+	    "productive_symbols" => \$productive_symbols,
+	    "show_rules" => \$show_rules,
+	    "show_problems" => \$show_problems,
+	    "show_symbols" => \$show_symbols,
+	    "show_status" => \$show_status,
+	    "show_derivation" => \$show_derivation,
+	    "source_option=s" => \%source_options,
+	    "all_parses" => \$all_parses,
+	    "option=s" => \%options,
+	);
+	do_parse();
+    }
+    default {
+        croak("Unimplemented marpa command: $command");
+    }
+}
+
+sub do_compile {
+    my $grammar_source; { local($RS) = undef; $grammar_source = <STDIN>; }
+
+    my $grammar = new Parse::Marpa(
+	 source => \$grammar_source,
+	 %options
+    );
+
+    $grammar->precompute();
+    my $compiled_grammar = $grammar->compile();
+    print $$compiled_grammar;
+}
+
+sub do_parse {
+
+    my $grammar;
+    if (defined $compiled_grammar_file) {
+	open(GRAMMAR, "<", $compiled_grammar_file);
+	my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
+	$grammar = Parse::Marpa::decompile();
+    }
+    elsif (defined $grammar_file) {
+	open(GRAMMAR, "<", $grammar_file);
+	my $grammar_source; { local($RS) = undef; $grammar_source = <GRAMMAR>; }
+	eval {
+	    $grammar = new Parse::Marpa(
+		%options,
+	    );
+	    $grammar->set(
+		source => \$grammar_source,
+		source_options => \%source_options,
+	    );
+	};
+	if ($@) {
+	    die("Parse of $grammar_file failed:\n", $@);
+	}
+	%options = ();
+    }
+    else {
+        croak("No grammar specified");
+    }
+
+    $grammar->precompute();
+
+    if ($show_symbols) {
+       print $grammar->show_symbols();
+    }
+
+    if ($show_rules) {
+       print $grammar->show_rules();
+    }
+
+    if ($show_problems) {
+       print $grammar->show_problems();
+    }
+
+    if ($show_NFA) {
+       print $grammar->show_NFA();
+    }
+
+    if ($SDFA) {
+       print $grammar->show_SDFA();
+    }
+
+    if ($accessible_symbols) {
+       say "Accessible symbols: ", $grammar->show_accessible_symbols();
+    }
+
+    if ($inaccessible_symbols) {
+       for my $symbol (@{$grammar->inaccessible_symbols()}) {
+	   say "Inaccessible symbol: ", $symbol;
+       }
+    }
+
+    if ($nullable_symbols) {
+       say "Nullable symbols: ", $grammar->show_nullable_symbols();
+    }
+
+    if ($nulling_symbols) {
+       say "Nulling symbols: ", $grammar->show_nulling_symbols();
+    }
+
+    if ($productive_symbols) {
+       say "Productive symbols: ", $grammar->show_productive_symbols();
+    }
+
+    if ($unproductive_symbols) {
+       for my $symbol (@{$grammar->unproductive_symbols()}) {
+	   say "Unproductive symbol: ", $symbol;
+       }
+    }
+
+    my $parse = new Parse::Marpa::Parse(
+        grammar => $grammar,
+    );
+    if (not defined $text_to_parse) {
+	local($RS) = undef; $text_to_parse = <STDIN>;
+    }
+
+    if ((my $fail_location = $parse->text(\$text_to_parse)) >= 0) {
+        print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
+	exit 1;
+    }
+
+    if (!$parse->initial()) {
+        croak("No parse")
+    }
+
+    PARSE: while (1) {
+
+	my $value = $parse->value();
+	if (not defined $value) {
+	    say 'Marpa returned a "Marpa No Value"';
+	    return;
+	}
+
+	given ($$value) {
+	    when (undef) { say 'Marpa returned an undefined' }
+	    default { say $$value }
+	}
+
+	if ($show_status) {
+	    print $parse->show_status();
+	}
+
+	if ($show_derivation) {
+	    print $parse->show();
+	}
+
+	last PARSE unless $all_parses and $parse->next();
+
+    } # while (1)
+
+}

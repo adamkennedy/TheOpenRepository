@@ -1,0 +1,472 @@
+semantics are perl5.  version is 0.204.0.  the start symbol is
+grammar.
+
+the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
+
+concatenate lines is q{
+    my $v_count = scalar @$Parse::Marpa::Read_Only::v;
+    return undef if $v_count <= 0;
+    join("\n", grep { $_ } @$Parse::Marpa::Read_Only::v);
+}.  # perl5 style comment
+
+a preamble is q{
+    our $regex_data = [];
+}.
+
+grammar: paragraphs.  q{ $Parse::Marpa::Read_Only::v->[0] }.
+
+grammar: paragraphs, whitespace lines.  q{ $Parse::Marpa::Read_Only::v->[0] }.
+
+paragraphs: empty line separated paragraph sequence.  concatenate lines.
+
+comment: NOT USED: paragraph: empty paragraph.
+
+paragraph: definition paragraph.  concatenate lines.
+
+paragraph: production paragraph.  concatenate lines.
+
+paragraph: terminal paragraph.  concatenate lines.
+
+note: (not used) empty paragraph: whitespace.
+
+[ comment paragraph: comment sequence.  concatenate lines. ]
+
+definition paragraph: definition sequence. concatenate lines.
+
+production paragraph:
+    non structural production sentences,
+    production sentence,
+    non structural production sentences,
+    optional action sentence,
+    non structural production sentences.
+    q{
+        my $action = $Parse::Marpa::Read_Only::v->[3];
+        my $other_key_value = join(",\n", map { $_ // "" } @{$Parse::Marpa::Read_Only::v}[0,2,4]);
+        my $result =
+            'push(@$new_rules, '
+             . "{\n"
+             . $Parse::Marpa::Read_Only::v->[1] . ",\n"
+             . (defined $action ? ($action . ",\n") : "")
+             . $other_key_value
+             . "\n});"
+         ;
+         our @implicit_terminals;
+         if (@implicit_terminals) {
+             $result .= "\n" . 'push(@$new_terminals,' . "\n";
+             while (my $implicit_terminal = shift @implicit_terminals) {
+                 $result .= "    [" . $implicit_terminal . "],\n";
+             }
+             $result .= ");\n";
+         }
+         our @implicit_rules;
+         if (@implicit_rules) {
+             $result .= "\n" . 'push(@$new_rules, ' . "\n";
+             while (my $implicit_production = shift @implicit_rules) {
+                 $result .= "    {" . $implicit_production . "},\n";
+             }
+             $result .= " );\n";
+         }
+         $result;
+    }.
+
+non structural production sentences:
+optional non structural production sentence sequence.
+concatenate lines.
+
+non structural production sentence: /priority/, integer, period.
+q{ q{ priority => } . $Parse::Marpa::Read_Only::v->[1] }.
+
+action sentence:
+optional /the/, /action/, /is/, action specifier, period.
+q{
+    "    action => "
+    . $Parse::Marpa::Read_Only::v->[3]
+}.
+
+action sentence: action specifier, period.
+q{
+    "    action => "
+    . $Parse::Marpa::Read_Only::v->[0]
+}.
+
+action specifier: string specifier.  concatenate_lines.
+
+non-structural production sentence: comment sentence.  concatenate lines.
+
+non-structural terminal sentence: comment sentence.  concatenate lines.
+
+definition: predefined setting, period.  q{ $Parse::Marpa::Read_Only::v->[0] }.  priority 1000.
+
+definition: comment sentence.
+
+definition: bracketed comment.
+
+definition: string definition.  concatenate lines.
+
+predefined setting: default action setting.  concatenate lines.
+
+predefined setting: default null value setting.  concatenate lines.
+
+predefined setting: preamble setting.  concatenate lines.
+
+predefined setting: semantics setting.  concatenate lines.
+
+predefined setting: version setting.  concatenate lines.
+
+predefined setting: start symbol setting.  concatenate lines.
+
+predefined setting: default lex prefix setting.  concatenate lines.
+
+semantics setting:  optional /the/, /semantics/, copula, /perl5/.
+     q{
+         q{$new_semantics = '}
+         . $Parse::Marpa::Read_Only::v->[3]
+        . qq{';\n}
+}.
+
+semantics setting: /perl5/, copula, optional /the/, /semantics/.
+q{
+    q{$new_semantics = '}
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{';\n}
+}.
+
+version setting: optional /the/, /version/, copula, version number.
+q{
+    q{ $new_version = '}
+    . Parse::Marpa::MDL::canonical_version($Parse::Marpa::Read_Only::v->[3])
+    . qq{';\n}
+}.
+
+version setting: /version number/, copula, optional /the/, /version/.
+q{
+    q{ $new_version = '}
+    . Parse::Marpa::MDL::canonical_version($Parse::Marpa::Read_Only::v->[0])
+    . qq{';\n}
+}.
+
+start symbol setting: optional /the/, /start/, /symbol/, copula,
+symbol phrase.
+q{
+    q{$new_start_symbol = "}
+    . $Parse::Marpa::Read_Only::v->[4]
+    . qq{";\n}
+}.
+
+start symbol setting: symbol phrase, copula, optional /the/, /start/,
+/symbol/, .
+q{
+    q{$new_start_symbol = }
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{;\n}
+}.
+
+default lex prefix setting: regex, copula, optional /the/, /default/,
+/lex/, /prefix/, .
+q{
+             q{$new_default_lex_prefix = }
+             . $Parse::Marpa::Read_Only::v->[0]
+             . qq{;\n}
+}.
+
+default lex prefix setting: optional /the/, /default/, /lex/,
+/prefix/, copula, regex, .
+q{
+    q{$new_default_lex_prefix = }
+    . $Parse::Marpa::Read_Only::v->[5]
+    . qq{;\n}
+}.
+
+default null value setting: string specifier, copula, optional /the/, /default/,
+/null/, /value/, .
+q{
+             q{$new_default_null_value = }
+             . $Parse::Marpa::Read_Only::v->[0]
+             . qq{;\n}
+}.
+
+default null value setting: optional /the/, /default/, /null/,
+/value/, copula, string specifier, .
+q{
+    q{$new_default_null_value = }
+    . $Parse::Marpa::Read_Only::v->[5]
+    . qq{;\n}
+}.
+
+preamble setting: /a/, /preamble/, /is/, string specifier.
+priority 1000.
+q{
+    q{$new_preamble .= }
+    . $Parse::Marpa::Read_Only::v->[3]
+    . qq{;\n}
+}.
+ 
+preamble setting: string specifier, /is/, /a/, /preamble/ .
+priority 1000.
+q{
+    q{$new_preamble .= }
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{;\n}
+}.
+ 
+copula: /is/.
+
+copula: /are/.
+
+string definition:
+symbol phrase, /is/, string specifier, period.
+q{
+    '$strings{"'
+    . $Parse::Marpa::Read_Only::v->[0]
+    . '"} = '
+    . $Parse::Marpa::Read_Only::v->[2]
+    . qq{;\n}
+}.
+
+default action setting:
+action specifier, /is/, optional /the/, /default/, /action/.
+q{
+    q{ $new_default_action = }
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{;\n}
+}.
+
+default action setting:
+optional /the/, /default/, /action/, /is/, action specifier.
+q{
+    q{ $new_default_action = }
+    . $Parse::Marpa::Read_Only::v->[4]
+    . qq{;\n}
+}.
+
+comment sentence: comment tag, /:/, comment words, period.
+
+comment words: comment word sequence.
+
+literal string: q string.  q{ $Parse::Marpa::Read_Only::v->[0] }.
+
+literal string: double quoted string.  concatenate_lines.
+
+literal string: single quoted string.  concatenate_lines.
+
+production sentence: lhs, /:/, rhs, period.
+q{
+    $Parse::Marpa::Read_Only::v->[0]
+    . "\n,"
+    . $Parse::Marpa::Read_Only::v->[2]
+}.
+
+symbol phrase: symbol word sequence.
+q{ Parse::Marpa::MDL::canonical_symbol_name(join("-", @$Parse::Marpa::Read_Only::v)) }.
+
+lhs: symbol phrase.
+q{ '    lhs => "' . $Parse::Marpa::Read_Only::v->[0] . q{"} }.
+
+rhs: .
+q{ "    rhs => []" }.
+
+rhs: comma separated rhs element sequence.
+q{ "    rhs => [" . join(", ", @$Parse::Marpa::Read_Only::v) . "]" }.
+
+rhs: symbol phrase, /sequence/.
+priority 1000.
+q{
+    q{rhs => ["}
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{"],\n}
+    . qq{min => 1,\n}
+}.
+
+rhs: /optional/, symbol phrase, /sequence/.
+priority 2000.
+q{
+    q{rhs => ["}
+    . $Parse::Marpa::Read_Only::v->[1]
+    . qq{"],\n}
+    . qq{min => 0,\n}
+}.
+
+rhs: symbol phrase, /separated/, symbol phrase, /sequence/.
+priority 2000.
+q{
+    q{rhs => ["}
+    . $Parse::Marpa::Read_Only::v->[2]
+    . qq{"],\n}
+    . q{separator => "}
+    . $Parse::Marpa::Read_Only::v->[0]
+    . qq{",\n}
+    . qq{min => 1,\n}
+}.
+
+rhs: /optional/, symbol phrase, /separated/, symbol phrase, /sequence/.
+priority 3000.
+q{
+    q{rhs => ["}
+    . $Parse::Marpa::Read_Only::v->[3]
+    . qq{"],\n}
+    . q{separator => "}
+    . $Parse::Marpa::Read_Only::v->[1]
+    . qq{",\n}
+    . qq{min => 0,\n}
+}.
+
+rhs element: mandatory rhs element.  concatenate lines.
+
+rhs element: Optional rhs element. concatenate lines.
+
+mandatory rhs element: rhs symbol specifier.
+q{ q{"} . $Parse::Marpa::Read_Only::v->[0] . q{"} }.
+
+optional rhs element: /optional/, rhs symbol specifier.
+q{
+     my $symbol_phrase = $Parse::Marpa::Read_Only::v->[1];
+     my $optional_symbol_phrase = $symbol_phrase . ":optional";
+     our %implicit_rules;
+     if (not defined $implicit_rules{$optional_symbol_phrase}) {
+         $implicit_rules{$optional_symbol_phrase} = 1;
+         our @implicit_rules;
+         push(
+             @implicit_rules,
+             q{ lhs => "} . $optional_symbol_phrase . q{", }
+             . q{ rhs => [ "} . $symbol_phrase . qq{" ], }
+             . q{
+                     min => 0,
+                     max => 1,
+                     action => q{ $Parse::Marpa::Read_Only::v->[0] }
+             }
+         );
+     }
+     q{"} . $optional_symbol_phrase . q{"};
+}.
+
+rhs symbol specifier: symbol phrase.
+q{ $Parse::Marpa::Read_Only::v->[0] }.
+
+rhs symbol specifier: regex.
+q{
+    our $regex_data;
+    my $regex = $Parse::Marpa::Read_Only::v->[0];
+    my ($symbol, $new) = Parse::Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
+    if ($new) {
+        our @implicit_terminals;
+        push(@implicit_terminals,
+            q{"}
+            . $symbol
+            . '" => { regex => '
+            . $regex
+            . " }"
+        );
+    }
+    $symbol;
+}.
+
+terminal paragraph: non structural terminal sentences, terminal
+sentence, non structural terminal sentences.  concatenate lines.
+
+non structural terminal sentences: optional non structural terminal sentence
+sequence.  concatenate lines.
+
+terminal sentence:
+symbol phrase, /matches/, regex, period.
+q{
+    q{push(@$new_terminals, [ "}
+    . $Parse::Marpa::Read_Only::v->[0]
+    . q{" => }
+    . "{ regex => "
+    . $Parse::Marpa::Read_Only::v->[2]
+    . "}"
+    . qq{ ] );\n}
+}.
+
+terminal sentence:
+/match/, symbol phrase, /using/, string specifier, period.
+q{
+    q{push(@$new_terminals, [ "}
+    . $Parse::Marpa::Read_Only::v->[1]
+    . q{" => }
+    . "{ action => "
+    . $Parse::Marpa::Read_Only::v->[3]
+    . "}"
+    . qq{ ] );\n}
+}.
+
+string specifier: literal string.  concatenate lines.
+
+string specifier: symbol phrase.
+q{
+    '$strings{ "'
+    . $Parse::Marpa::Read_Only::v->[0]
+    . '" }'
+}.
+
+whitespace lines: whitespace line sequence.
+
+match q string using "lex_q_quote".
+
+match regex using "lex_regex".
+
+empty line matches qr/^[ \t]*\n/m.
+
+bracketed comment matches qr/\x{5b}[^\x{5d}]*\x{5d}/.
+
+note: change this to use lex_q_quote sometime(?).
+match single quoted string using q{
+    my $match_start = pos $$STRING;
+    state $prefix_regex = qr/\G'/o;
+    return unless $$STRING =~ /$prefix_regex/g;
+    state $regex = qr/\G[^'\0134]*('|\0134')/;
+    MATCH: while ($$STRING =~ /$regex/gc) {
+        next MATCH unless defined $1;
+        if ($1 eq q{'}) {
+            my $end_pos = pos $$STRING;
+            my $match_length = $end_pos - $match_start;
+            my $lex_length = $end_pos - $START;
+            return (substr($$STRING, $match_start, $match_length), $lex_length);
+        }
+    }
+    return;
+}.
+
+match double quoted string using q{
+    my $match_start = pos $$STRING;
+    state $prefix_regex = qr/\G"/o;
+    return unless $$STRING =~ /$prefix_regex/g;
+    state $regex = qr/\G[^"\0134]*("|\0134")/;
+    MATCH: while ($$STRING =~ /$regex/gc) {
+        next MATCH unless defined $1;
+        if ($1 eq q{"}) {
+            my $end_pos = pos $$STRING;
+            my $match_length = $end_pos - $match_start;
+            my $lex_length = $end_pos - $START;
+            return (substr($$STRING, $match_start, $match_length), $lex_length);
+        }
+    }
+    return;
+}.
+
+version number matches qr/(\d+\.)*\d+/.
+
+[ NOT USED: comment matches qr/#.*\n/. ]
+
+symbol word matches qr/[a-zA-Z_][a-zA-Z0-9_-]*/.
+
+period matches qr/\./.
+
+integer matches qr/\d+/.
+
+# Do I want to allow comments between "to" and "do" ?
+comment tag matches qr/(to\s+do|note|comment)/.
+
+# Includes all non-whitespace printable characters except period
+comment word matches qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/.
+
+comma matches qr/\,/.
+
+whitespace line matches qr/^[ \t]*(?:\#[^\n]*)?\n/m.
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

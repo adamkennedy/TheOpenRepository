@@ -1,0 +1,111 @@
+=head1 NAME
+
+Parse::Marpa::BIBLIOGRAPHY - A Marpa Bibliography
+
+=head1 Aho and Ullman 1972
+
+I<The Theory of Parsing, Translation and Compiling, Volume I: Parsing>
+by Alfred Aho and Jeffrey Ullman
+(Prentice-Hall: Englewood Cliffs, New Jersey, 1972).
+I think this was the 
+standard source for Earley's algorithm for decades.
+It certainly was B<my> standard source.
+The account of Earley's algorithm is on pages 320-330.
+
+=head1 Aycock and Horspool 2002
+
+Marpa is based on and derived from
+the parser described in John Aycock and R.
+Nigel Horspool's "Practical Earley Parsing", I<The Computer Journal>,
+Vol. 45, No. 6, 2002, pp. 620-630.
+The idea of doing LR(0)
+precomputation for
+L<Earley's general parsing algorithm|"Earley 1970">,
+as well as details of how to do it,
+came to me from this article.
+
+The Aycock and Horspool paper 
+summarizes Earley's very nicely and is
+available on the web: L<http://www.cs.uvic.ca/~nigelh/Publications/PracticalEarleyParsing.pdf>,
+unlike L<"Earley 1970">.
+Aycock and Horspool 2002 is B<not>, however, easy reading.
+I have been following
+this particular topic on and off for years.
+Nonetheless I found this paper very heavy going.
+Readers who want to get into might find the Marpa documentation,
+up to and including L<Parse::Marpa::INTERNALS>,
+the easiest approach to the Aycock and Horspool paper,
+though I can't promise you there won't be leaps of
+insight required at several points.
+
+=head1 Earley 1970
+
+Jay Earley's most accessible paper on his algorithm
+is "An efficient context-free parsing algorithm",
+I<Communications of the Association for Computing Machinery>,
+13:2:94-102, 1970.
+
+Ordinarily, I'd not bother pointing out 35-year old nits
+in a brilliant and historically important article.
+But more than a few people cite this article as not just the first word in Earley
+parsing, but also the last.
+They need to be aware of two issues.
+
+First, the parse engine itself, as described, has a serious bug.
+There's an easy fix, but one that greatly slows down an algorithm
+whose main problem, in its original form, was speed.
+The whole matter is well laid out by
+Aycock and Horspool
+L<in their article|"Aycock and Horspool 2002">.
+
+Second,
+according to Tomita there is a mistake in the parse
+tree representation.
+See page 153 of L<"Grune and Jacobs 1990">,
+page 210 of L<"Grune and Jacobs 2008">,
+and the bibliography entry for Earley 1970 in L<"Grune and Jacobs 2008">.
+In the printed edition of the 2008 bibliography, the entry is on page 578,
+and on the web
+(L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>),
+it's on pp. 583-584.
+My methods for getting the parses
+out of Earley sets
+have come from L<Aho and Ullman|/"Aho and Ullmann 1972">,
+from L<Aycock and Horspool|/"Aycock and Horspool 2002">,
+or been of my own device,
+so I am taking Tomita's word on this one.
+
+=head1 Grune and Jacobs 1990
+
+I<Parsing Techniques: A Practical Guide>,
+by Dick Grune 
+Ceriel Jacobs,
+(Ellis Horwood Limited: Chichester, West Sussex, England,
+1990).
+This book is L<available on the Web|http://www.cs.vu.nl/~dick/PTAPG.html>
+
+=head1 Grune and Jacobs 2008
+
+I<Parsing Techniques: A Practical Guide>,
+by Dick Grune 
+Ceriel Jacobs,
+2nd Edition.
+(Springer: New York NY, 2008).
+
+This is L<Grune and Jacobs 1990> updated.
+The bibliography for this book is available in enlarged form
+on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
+
+=head1 Wikipedia
+
+Wikipedia's article on Backus-Naur form is
+L<http://en.wikipedia.org/wiki/Backus-Naur_form>.
+It's a great place to start if you don't know the
+basics of grammars and parsing.
+
+As Wikipedia points out, 
+BNF might better be called Panini-Backus Form.
+The grammarian Panini
+gave a precise description of Sanskirt
+more than 23 centuries earlier in India
+using a similar notation.

@@ -1,0 +1,186 @@
+=head1 NAME
+
+Parse::Marpa::RAW - Marpa's Raw Grammar Interface
+
+=head1 OVERVIEW
+
+This document describes Marpa's Raw Grammar Interface.
+It is the low-level interface used by all others.
+The Raw Grammar Interface can be used
+directly.
+It is a short list of method options to the
+C<Parse::Marpa::new()>,
+C<Parse::Marpa::set()>,
+and C<Parse::Marpa::Parse::new()> methods.
+
+Marpa does not allow use of both the raw interface and a high level interface
+to build the same grammar,
+with a minor exception as described below.
+Marpa throws an exception if the user attempts to build the same grammar using
+both kinds of interface.
+
+=head1 RAW INTERFACE SYMBOL NAMES
+
+Each interface has its own rules for symbol names.
+The raw interface's conventions are
+designed to allow the most flexibility to higher level interfaces.
+
+Any valid Perl string not ending in a right square bracket is an acceptable
+raw interface symbol name.
+Raw interface symbol names which end in right square brackets are reserved for Marpa internal use.
+
+Unlike MDL, raw interface symbols are not considered identical unless their names
+match exactly.
+Unless stated otherwise, any reference to a "symbol name" in this document
+means its raw interface symbol name.
+
+=head1 THE RULES METHOD OPTION
+
+The C<rules> option is available with both C<Parse::Marpa::new()>
+and C<Parse::Marpa::set()>.
+The C<rules> option may be specified multiple times, adding new rules
+to the grammar each time.
+New rules may continue to be added until the grammar is precomputed.
+
+The value of the rules option must be a reference to an array,
+and each element of the array must be a reference to a description of a rule.
+Rule descriptions can be either "short form" (in which case they are arrays)
+or "long form" (in which case they are hashes).
+
+=head2 Short Form Rules
+
+The short form description of a rule is an array with 4 elements,
+the last two of which are optional.
+The first element must be the name of the left hand side symbol.
+The second element must be a reference to an array of names of right hand side symbol names.
+In the case of an empty rule, the right hand side symbol array is zero length.
+
+The third and fourth two elements of the short form rule array are optional.
+The third element, if present, must be a string describing the rule's action
+in the current Marpa semantics.  Right now, the only available semantics is Perl 5.
+If undefined, the "default action" (returning an undefined value) will be used.
+The default action is a Marpa predefined, and can be reset.
+
+The fourth and last element, if present, must be an integer.
+It can be negative.
+It will be the priority of the rule.
+If undefined, a rule's priority defaults to zero.
+
+=head2 Long Form Rules
+
+The long form description of a rule is a hash,
+which is treated as I<option>, I<value> pairs.
+The available long form rules options are:
+
+=over 4
+
+=item C<lhs>, C<rhs>, C<action>, and C<priority>
+
+The values of the C<lhs>, C<rhs>, C<action>, and C<priority> rules options
+follow the same rules as for the corresponding elements of the short form array description,
+described above.
+
+=item C<min> and C<max>
+
+The values of the C<min> and C<max> options must be non-negative integers.
+C<max> may be undefined,
+or both C<min> and C<max> may be undefined.
+If C<max> is defined, C<min> must be defined.
+If defined, C<max> cannot be zero, and must be greater than or equal to C<min>.
+
+C<min> and C<max> determine whether the production is a sequence production
+or a BNF production.
+If C<min> and C<max> are both undefined, or are both 1, the rule is BNF production.
+If both C<min> and C<max> are defined and greater than one, the rule is a "counted" sequence,
+and the right hand side symbol may be repeated anywhere from C<min> to C<max> times.
+If C<max> is not defined, the rule is a potentially infinite sequence where the right hand side
+must be repeated at least C<min> times.
+
+Only one symbol is allowed on the right hand side of a sequence production,
+and it is repeated according to C<min> and C<max>.
+The right hand side symbol is not allowed be a nullable symbol.
+For an introduction to sequence productions, see the L<MDL document|Parse::Marpa::LANGUAGE>.
+
+=item C<separator>
+
+Any sequence production may have a C<separator> defined.
+The value must be a symbol name.
+Marpa allows trailing separators, Perl style.
+The separator is not allowed to be a nullable symbol.
+
+=back
+
+=head2 Duplicate Rules
+
+Marpa throws an exception if a duplicate rule is added.
+For BNF productions, a rule is considered a duplicate if it has the
+same left hand side symbol,
+and the same symbols in the same order on the right hand side.
+
+For sequences, a rule is considered a duplicate if it has the same
+left hand symbol, the same right hand side symbol,
+and the same separator.
+It's possible this prevents some non-pathological uses of
+sequences,
+but that can be worked around by writing them
+as BNF productions.
+Since the semantics sequences in such cases would be tricky,
+writing them as BNF productions may be the best thing, anyway.
+
+=head1 THE TERMINALS METHOD OPTION
+
+The value of the C<terminals> option must be a reference to an array of references to terminal descriptions.
+Terminal descriptions are arrays of two elements.
+The first element is the symbol name for the terminal.
+The second element must be a reference to a hash of C<terminals> suboptions,
+as I<suboption>, I<value> pairs.
+
+=head2 Suboptions for the C<terminals> option.
+
+=over 4
+
+=item C<regex>
+
+The value of the C<regex> suboption must be a regular expression.
+It will be use to match the terminal in the input stream.
+
+Only one of the C<regex> and C<action> suboptions may be specified.
+See L<the MDL document|Parse::Marpa::Language> for details on writing regexes.
+
+=item C<action>
+
+The value of the action suboption must be a string with code in the current semantics.
+Right now the only available semantics is Perl 5.
+The lex action will be used to match the terminal in the input stream.
+
+Only one of the C<regex> and C<action> suboptions may be specified.
+See L<the MDL document|Parse::Marpa::Language> for details on writing lex actions.
+
+=item C<prefix>
+
+The value of the C<prefix> suboption must be a regular expression.
+It will be used to match and discard text from the input stream
+before any attempt is made to match the terminal itself.
+The most common use is to discard leading whitespace.
+
+=item C<priority>
+
+The value of the priority suboption must be an integer.
+It can be negative.
+It will control the order in which terminal matches are attempted.
+
+=back
+
+=head1 THE START OPTION
+
+The value of the start option must be a raw interface symbol name.
+It will be used as the start symbol for the grammar.
+Unlike most of the raw interface options, which may not be used
+in combination with a high-level interface or the C<source> option,
+The C<start> option may be used to set the default for, or to override
+the choice of, start symbol in a high-level interface grammar.
+
+If you use the C<start> option to specify a symbol from a high-level
+grammar, you must be careful to use the raw interface symbol name.
+The documentation for the high-level interface should describe how
+its symbol names can be converted to raw interface symbol names.
