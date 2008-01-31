@@ -26,7 +26,7 @@ $g->set( source => \$source);
 
 $g->precompute();
 
-my $parse = new Parse::Marpa::Parse(grammar => $g);
+my $parse = new Parse::Marpa::Recce(grammar => $g);
 
 my $lc_a = Parse::Marpa::MDL::get_symbol($g, "lowercase a");
 $parse->earleme([$lc_a, "lowercase a", 1]);

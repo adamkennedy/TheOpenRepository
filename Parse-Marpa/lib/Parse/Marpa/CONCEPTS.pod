@@ -101,10 +101,10 @@ for instance, is 3 earlemes.
 
 The conventional parsing model of dividing text into tokens before parsing
 corresponds to a B<one-earleme-per-token> model in Marpa.
-Marpa's C<Parse::Marpa::Parse::text()> method uses a model where
+Marpa's C<Parse::Marpa::Recce::text()> method uses a model where
 there's B<one earleme per character>.
 
-C<Parse::Marpa::Parse::text()> is the routine used most commonly to provide input
+C<Parse::Marpa::Recce::text()> is the routine used most commonly to provide input
 for a Marpa grammar to parse.
 It lexes an input string for the user, using the regexes or lexing actions supplied
 by the user.
@@ -128,7 +128,7 @@ of empty earlemes, and some of these stretches can be quite long.
 
 Users of Marpa are not restricted to either the one-token-per-earleme or the one-character-per-earleme
 scheme.
-Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Parse::earleme()> method
+Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Recce::earleme()> method
 and a user may supply earleme lengths according to any rules he finds useful, subject to
 the two restrictions above.
 
@@ -200,7 +200,7 @@ details.
 =item * Creating the parse object
 
 To parse a text, a parse object must be created.
-The constructor C<Parse::Marpa::Parse::new()> is called
+The constructor C<Parse::Marpa::Recce::new()> is called
 to do this, either directly or indirectly.
 Options describing the semantics may have been specified in earlier phases,
 but it is only now that the semantics are finalized.
@@ -212,25 +212,25 @@ and recognition is performed as the input is received.
 Marpa will eventually be
 capable of online, or stream, processing.
 Currently input may be specified as text,
-with the C<Parse::Marpa::Parse::text()> method,
+with the C<Parse::Marpa::Recce::text()> method,
 or directly as tokens
-with the C<Parse::Marpa::Parse::earleme()> method.
+with the C<Parse::Marpa::Recce::earleme()> method.
 
 =item * Initial Parse Evaluation
 
 Once the input is recognized, it can be evaluated.
-The first value is computed with the C<Parse::Marpa::Parse::initial()> method.
+The first value is computed with the C<Parse::Marpa::Recce::initial()> method.
 C<initial()'s> return value indicates success or failure.
-The actual value of the parse is returned by the C<Parse::Marpa::Parse::value()> method.
+The actual value of the parse is returned by the C<Parse::Marpa::Recce::value()> method.
 C<initial()> converts the parse object into an iterator,
 in case other parses will be evaluated.
 
 =item * Parse Iteration
 
-Parse iteration is continued with the C<Parse::Marpa::Parse::next()> method,
+Parse iteration is continued with the C<Parse::Marpa::Recce::next()> method,
 which returns failure when there are no more parses.
 The value of the parse at each stage of the iteration may be retrieved with
-C<Parse::Marpa::Parse::value()> method.
+C<Parse::Marpa::Recce::value()> method.
 
 =back
 

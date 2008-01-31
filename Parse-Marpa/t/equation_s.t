@@ -25,7 +25,7 @@ my $g = new Parse::Marpa(
     source => \$source,
 );
 
-my $parse = new Parse::Marpa::Parse(grammar => $g);
+my $parse = new Parse::Marpa::Recce(grammar => $g);
 
 my $op = Parse::Marpa::MDL::get_symbol($g, "Op");
 my $number = Parse::Marpa::MDL::get_symbol($g, "Number");

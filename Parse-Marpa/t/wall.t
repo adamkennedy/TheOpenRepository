@@ -84,7 +84,7 @@ my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
 for my $n (1 .. 12) {
 
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
     my $minus = $g->get_symbol("Minus");
     my $number = $g->get_symbol("Number");
     $parse->earleme([$number, 6, 1]);

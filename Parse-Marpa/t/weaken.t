@@ -29,7 +29,7 @@ my $test = sub {
         ],
     );
     my $a = $g->get_symbol("a");
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
     $parse->earleme([$a, "a", 1]);
     $parse->earleme([$a, "a", 1]);
     $parse->earleme([$a, "a", 1]);

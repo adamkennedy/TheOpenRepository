@@ -18,7 +18,7 @@ my $g = new Parse::Marpa( source => \$source);
 
 TEST: while (my $test = pop @tests) {
     say "Here's what I'm parsing: ", $test;
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
     my $exhaustion_location = $parse->text(\$test);
     if ($exhaustion_location >= 0) {
         die("Parse exhausted at location $exhaustion_location in line: $test\n");

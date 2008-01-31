@@ -22,7 +22,7 @@ $g->set(default_action => $new_default_action)
 $g->set(default_null_value => $new_default_null_value)
     if defined $new_default_null_value;
 
-my $parse = new Parse::Marpa::Parse(
+my $parse = new Parse::Marpa::Recce(
    grammar=> $g,
    preamble => $new_preamble,
 );

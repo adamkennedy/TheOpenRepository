@@ -60,7 +60,7 @@ EOCODE
     },
 );
 
-my $parse = new Parse::Marpa::Parse(grammar => $g);
+my $parse = new Parse::Marpa::Recce(grammar => $g);
 
 my $op = $g->get_symbol("Op");
 my $number = $g->get_symbol("Number");

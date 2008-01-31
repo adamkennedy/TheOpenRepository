@@ -75,7 +75,7 @@ EOCODE
 EOCODE
 );
 
-my $parse = new Parse::Marpa::Parse(
+my $parse = new Parse::Marpa::Recce(
     grammar => $g,
 );
 

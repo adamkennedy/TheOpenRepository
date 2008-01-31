@@ -428,7 +428,7 @@ sub Parse::Marpa::marpa {
         source => $grammar,
         %{$options}
     );
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
 
     my $failed_at_earleme = $parse->text($text);
     if ($failed_at_earleme >= 0) {
@@ -606,7 +606,7 @@ sub source_grammar {
     }
     $source_options //= {};
     use integer;
-    my $parse = new Parse::Marpa::Parse(
+    my $parse = new Parse::Marpa::Recce(
         grammar => $source_grammar,
         %{$source_options}
     );
@@ -3951,7 +3951,7 @@ sub eval_grammar {
 }
 
 # Returns the new parse object or throws an exception
-sub Parse::Marpa::Parse::new {
+sub Parse::Marpa::Recce::new {
     my $class = shift;
 
     my $parse = [];
@@ -4205,7 +4205,7 @@ sub Parse::Marpa::show_earley_set_list {
     $text;
 }
 
-sub Parse::Marpa::Parse::show_status {
+sub Parse::Marpa::Recce::show_status {
     my $parse = shift;
     my $ii    = shift;
     my ( $current_set, $furthest_earleme, $earley_set_list ) =
@@ -4218,7 +4218,7 @@ sub Parse::Marpa::Parse::show_status {
     $text .= Parse::Marpa::show_earley_set_list( $earley_set_list, $ii );
 }
 
-sub Parse::Marpa::Parse::clear_notations {
+sub Parse::Marpa::Recce::clear_notations {
     my $parse = shift;
     my ($earley_set_list) = @{$parse}[EARLEY_SETS];
     for my $earley_set (@$earley_set_list) {
@@ -4251,7 +4251,7 @@ sub clear_values {
 }
 
 # check class of parse?
-sub Parse::Marpa::Parse::earleme {
+sub Parse::Marpa::Recce::earleme {
     my $parse = shift;
 
     my $grammar = $parse->[ Parse::Marpa::Internal::Parse::GRAMMAR ];
@@ -4268,14 +4268,14 @@ sub Parse::Marpa::Parse::earleme {
 
 # First arg is the current parse object
 # Second arg is ref to string
-sub Parse::Marpa::Parse::text {
+sub Parse::Marpa::Recce::text {
     my $parse     = shift;
     my $input_ref = shift;
     my $length    = shift;
-    croak("Parse::Marpa::Parse::text() third argument not yet implemented")
+    croak("Parse::Marpa::Recce::text() third argument not yet implemented")
         if defined $length;
 
-    croak("text argument to Parse::Marpa::Parse::text() must be string ref")
+    croak("text argument to Parse::Marpa::Recce::text() must be string ref")
         unless ref $input_ref eq "SCALAR";
 
     my ( $grammar, $earley_sets, $current_set, 
@@ -4418,7 +4418,7 @@ sub Parse::Marpa::Parse::text {
 
 }    # sub text
 
-sub Parse::Marpa::Parse::end_input {
+sub Parse::Marpa::Recce::end_input {
     my $parse = shift;
 
     my (
@@ -4756,7 +4756,7 @@ sub complete_set {
 
 }    # sub complete_set
 
-sub Parse::Marpa::Parse::show {
+sub Parse::Marpa::Recce::show {
     my $parse = shift;
     my $text  = "";
 
@@ -4842,12 +4842,12 @@ sub Parse::Marpa::show_derivation {
 }
 
 # returns 1 if it starts OK, undef otherwise
-sub Parse::Marpa::Parse::initial {
+sub Parse::Marpa::Recce::initial {
     my $parse         = shift;
     my $parse_set_arg = shift;
 
     my $parse_class = ref $parse;
-    my $right_class = "Parse::Marpa::Parse";
+    my $right_class = "Parse::Marpa::Recce";
     croak(
         "Don't parse argument is class: $parse_class; should be: $right_class"
     ) unless $parse_class eq $right_class;
@@ -4871,12 +4871,12 @@ sub Parse::Marpa::Parse::initial {
 
     my $online = $grammar->[ Parse::Marpa::Internal::Grammar::ONLINE ];
     if (not $online) {
-         Parse::Marpa::Parse::end_input($parse);
+         Parse::Marpa::Recce::end_input($parse);
     }
     my $default_parse_set = $parse->[ Parse::Marpa::Internal::Parse::DEFAULT_PARSE_SET ];
 
     $parse->[ Parse::Marpa::Internal::Parse::PARSE_COUNT ] = 0;
-    Parse::Marpa::Parse::clear_notations($parse);
+    Parse::Marpa::Recce::clear_notations($parse);
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
 
@@ -4981,7 +4981,7 @@ sub finish_evaluation {
 
 }
 
-sub Parse::Marpa::Parse::find_complete_rule {
+sub Parse::Marpa::Recce::find_complete_rule {
     my $parse         = shift;
     my $start_earleme = shift;
     my $symbol        = shift;
@@ -5308,7 +5308,7 @@ sub initialize_children {
 
 }
 
-sub Parse::Marpa::Parse::value {
+sub Parse::Marpa::Recce::value {
     my $parse = shift;
 
     my $start_item = $parse->[Parse::Marpa::Internal::Parse::START_ITEM];
@@ -5318,12 +5318,12 @@ sub Parse::Marpa::Parse::value {
     return $value_ref;
 }
 
-sub Parse::Marpa::Parse::next {
+sub Parse::Marpa::Recce::next {
     my $parse = shift;
 
     croak("No parse supplied") unless defined $parse;
     my $parse_class = ref $parse;
-    my $right_class = "Parse::Marpa::Parse";
+    my $right_class = "Parse::Marpa::Recce";
     croak(
         "Don't parse argument is class: $parse_class; should be: $right_class"
     ) unless $parse_class eq $right_class;
@@ -5717,7 +5717,7 @@ Next, as many times as you like, ...
 
 create a parse object, ...
 
-        my $parse = new Parse::Marpa::Parse($g);
+        my $parse = new Parse::Marpa::Recce($g);
 
 pass text to the recognizer, ...
 
@@ -5872,19 +5872,19 @@ L<Marpa Demonstration Language|Parse::Marpa::LANGUAGE>.
 
 =item new Parse::Marpa(I<option> => I<value>, [I<option> => I<value>, ...])
 
-C<Parse::Marpa::Parse::new()> takes as its arguments a series of I<option>, I<value> pairs which
+C<Parse::Marpa::Recce::new()> takes as its arguments a series of I<option>, I<value> pairs which
 are treated as a hash.  It returns a new grammar object or throws an exception.
 For valid options see the L<options section|/"Options">.
 
-=item new Parse::Marpa::Parse(I<option> => I<value>, [I<option> => I<value>, ...])
+=item new Parse::Marpa::Recce(I<option> => I<value>, [I<option> => I<value>, ...])
 
-C<Parse::Marpa::Parse::new()> takes as its arguments a series of I<option>, I<value> pairs which
+C<Parse::Marpa::Recce::new()> takes as its arguments a series of I<option>, I<value> pairs which
 are treated as a hash.  It returns a new parse object or throws an exception.
 The C<grammar> option must be specified,
 and its value must be a grammar object with rules defined in it.
 For valid options see the L<options section|/"Options">.
 
-=item Parse::Marpa::Parse::text(I<parse>, I<text_to_parse>)
+=item Parse::Marpa::Recce::text(I<parse>, I<text_to_parse>)
 
 Extends the parse in the 
 I<parse> object using the input I<text_to_parse>, a B<reference> to a string.
@@ -5910,7 +5910,7 @@ where a successful parse becomes impossible.
 In most cases,
 an exhausted parse is a failed parse.
 
-=item Parse::Marpa::Parse::earleme(I<parse>, I<token_list>)
+=item Parse::Marpa::Recce::earleme(I<parse>, I<token_list>)
 
 Extends the parse one earleme using as the input at that earleme, I<token_list>,
 a reference to a list of token alternatives.
@@ -5934,17 +5934,17 @@ and the user is free to invent her own.
 Given a symbol's raw interface name, returns the symbol's "cookie".
 Returns undefined if a symbol with that name doesn't exist.
 
-The primary use of symbol cookies is with C<Parse::Marpa::Parse::earleme()>.
+The primary use of symbol cookies is with C<Parse::Marpa::Recce::earleme()>.
 To get the cookie for a symbol using a high-level interface symbol name,
 see the documentation for the individual high level interface.
 
-=item Parse::Marpa::Parse::initial(I<parse>, I<parse_end>)
+=item Parse::Marpa::Recce::initial(I<parse>, I<parse_end>)
 
 Performs the recognition phase of a parse,
 and initializes the iteration through its values.
 On successful recognition of a parse, C<initial()> returns a value of 1.
-The user may then get value of the parse with C<Parse::Marpa::Parse::value()>, 
-and may iterate through any other parses with C<Parse::Marpa::Parse::next()>.
+The user may then get value of the parse with C<Parse::Marpa::Recce::value()>, 
+and may iterate through any other parses with C<Parse::Marpa::Recce::next()>.
 
 C<initial()> returns undefined if it fails to recognize a parse.
 Other failures are thrown as exceptions.
@@ -5976,16 +5976,16 @@ Marpa doesn't yet provide a lot of tools for working with it.
 It's up to the user to determine where to look for parses,
 perhaps using her specific knowledge of the grammar and the problem
 space.
-The C<Parse::Marpa::Parse::find_complete_rule()> method,
+The C<Parse::Marpa::Recce::find_complete_rule()> method,
 documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
 is a prototype of the methods that will be needed in online mode.
 
-=item Parse::Marpa::Parse::next(I<parse>)
+=item Parse::Marpa::Recce::next(I<parse>)
 
 Takes a parse object as its only argument,
 and performs the next iteration through its values.
 The iteration must have been initialized with
-C<Parse::Marpa::Parse::initial()>.
+C<Parse::Marpa::Recce::initial()>.
 Returns 1 if there was a next iteration.
 Returns undefined when there are no more iterations.
 Other failures are exceptions.
@@ -5994,12 +5994,12 @@ Parses are iterated from rightmost to leftmost, but their order
 may be manipulated by assigning priorities to the rules and
 terminals.
 
-=item Parse::Marpa::Parse::value(I<parse>)
+=item Parse::Marpa::Recce::value(I<parse>)
 
 Takes a parse object, which has been set up with
-C<Parse::Marpa::Parse::initial()>
+C<Parse::Marpa::Recce::initial()>
 and may have been iterated with
-C<Parse::Marpa::Parse::next()>.
+C<Parse::Marpa::Recce::next()>.
 Returns a reference to its current value.
 Failures are thrown as exceptions.
 
@@ -6023,7 +6023,7 @@ use the default end parse location in your call to the C<initial()> method.
 
 The methods in this section explicitly run processing phases 
 which Marpa typically performs indirectly.
-For example, when C<Parse::Marpa::Parse::new()> is asked to create a new parse object
+For example, when C<Parse::Marpa::Recce::new()> is asked to create a new parse object
 from a grammar which has not been through the precomputation phase,
 that grammar is automatically precomputed
 and deep copied.
@@ -6084,7 +6084,7 @@ with methods used primarily to debug grammars and parses.
 This section documents
 the options recognized by the
 C<Parse::Marpa::new()>,
-C<Parse::Marpa::Parse::new()>,
+C<Parse::Marpa::Recce::new()>,
 and C<Parse::Marpa::set()> methods.
 When the same option is specified in two different method calls,
 the most recent overrides any previous setting, unless
@@ -6109,7 +6109,7 @@ L<the separate document on diagnostics|Parse::Marpa::DIAGNOSTICS>.
 
 Takes as its value a grammar object.
 Only valid as an option to
-C<Parse::Marpa::Parse::new()>,
+C<Parse::Marpa::Recce::new()>,
 where it's required.
 
 =item source
@@ -6129,7 +6129,7 @@ The most basic is as
 B<method options>:
 options of the 
 C<Parse::Marpa::new()>,
-C<Parse::Marpa::Parse::new()>,
+C<Parse::Marpa::Recce::new()>,
 and C<Parse::Marpa::set()> methods.
 The other way to set them is as
 B<high-level interface options>:
@@ -6265,7 +6265,7 @@ but in online mode that is often not be what the user wants.
 If it's not, it up to her
 to determine the right places to look for complete parses,
 based on her knowledge of the structure of the grammar and the input.
-The method C<Parse::Marpa::Parse::find_complete_rule()>,
+The method C<Parse::Marpa::Recce::find_complete_rule()>,
 documented L<as a diagnostic method|Parse::Marpa::DIAGNOSTIC>, may help.
 
 =item preamble
@@ -6370,7 +6370,7 @@ users should use only documented methods:
     Parse::Marpa
     Parse::Marpa::Lex
     Parse::Marpa::MDL
-    Parse::Marpa::Parse
+    Parse::Marpa::Recce
 
 In the C<Parse::Marpa::Read_Only> namespace,
 users should used only documented variables,

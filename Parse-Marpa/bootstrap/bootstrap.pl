@@ -695,7 +695,7 @@ my $g = new Parse::Marpa(
     warnings => 0,
 );
 
-my $parse = new Parse::Marpa::Parse(
+my $parse = new Parse::Marpa::Recce(
    grammar=> $g,
 );
 

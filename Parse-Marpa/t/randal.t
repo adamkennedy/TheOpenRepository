@@ -35,7 +35,7 @@ $g->set( source => \$source);
 $g->precompute();
 
 TEST: while (my $test = pop @tests) {
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
     $parse->text(\$test);
     $parse->initial();
     my @parses;

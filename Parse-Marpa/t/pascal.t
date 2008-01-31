@@ -32,7 +32,7 @@ sub ah_extended {
         warnings => ($n ? 1 : 0),
     );
 
-    my $parse = new Parse::Marpa::Parse(grammar => $g);
+    my $parse = new Parse::Marpa::Recce(grammar => $g);
 
     my $a = $g->get_symbol("a");
     for (0 .. $n) { $parse->earleme([$a, "a", 1]); }

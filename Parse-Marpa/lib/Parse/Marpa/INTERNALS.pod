@@ -41,8 +41,8 @@ Once the recognition phase is done, and the Earley sets have been built,
 the parse can be found in them.
 In Marpa, recognition is done and the Earley sets are built as the input comes into
 the parse.
-The first parse is found with C<Parse::Marpa::Parse::initial()>,
-and subsequent parses are found with C<Parse::Marpa::Parse::next()>.
+The first parse is found with C<Parse::Marpa::Recce::initial()>,
+and subsequent parses are found with C<Parse::Marpa::Recce::next()>.
 
 =head1 EARLEY SETS AND EARLEY ITEMS
 
