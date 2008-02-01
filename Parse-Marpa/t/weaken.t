@@ -29,14 +29,16 @@ my $test = sub {
         ],
     );
     my $a = $g->get_symbol("a");
-    my $parse = new Parse::Marpa::Recce(grammar => $g);
-    $parse->earleme([$a, "a", 1]);
-    $parse->earleme([$a, "a", 1]);
-    $parse->earleme([$a, "a", 1]);
-    $parse->earleme([$a, "a", 1]);
-    $parse->initial();
-    $parse->next();
-    [ $g, $parse ];
+    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    $recce->earleme([$a, "a", 1]);
+    $recce->earleme([$a, "a", 1]);
+    $recce->earleme([$a, "a", 1]);
+    $recce->earleme([$a, "a", 1]);
+    $recce->end_input();
+    my $parser = new Parse::Marpa::Parser($recce);
+    die("No parse found") unless $parser;
+    $parser->next();
+    [ $g, $recce, $parser ];
 };
 
 my ($weak_count, $strong_count, $unfreed_weak, $unfreed_strong)

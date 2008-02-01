@@ -84,24 +84,24 @@ my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
 for my $n (1 .. 12) {
 
-    my $parse = new Parse::Marpa::Recce(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
     my $minus = $g->get_symbol("Minus");
     my $number = $g->get_symbol("Number");
-    $parse->earleme([$number, 6, 1]);
+    $recce->earleme([$number, 6, 1]);
     for my $i (1 .. $n) {
-        $parse->earleme([$minus, "-", 1]);
+        $recce->earleme([$minus, "-", 1]);
     }
-    $parse->earleme([$number, 1, 1]);
+    $recce->earleme([$number, 1, 1]);
 
-    $parse->initial();
+    my $parser = new Parse::Marpa::Parser($recce);
 
     my $parse_count = 0;
     # Set max at 20 just in case there's an infinite loop.
     # This is for debugging, after all
     PARSE: for (my $i = 0;  1; $i++) {
-        my $value = $parse->value();
+        my $value = $parser->value();
         $parse_count++;
-        last PARSE unless $parse->next();
+        last PARSE unless $parser->next();
     }
 
     is($expected[$n], $parse_count, "Wall Series Number $n");

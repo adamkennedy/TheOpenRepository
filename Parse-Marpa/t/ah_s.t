@@ -26,14 +26,14 @@ $g->set( source => \$source);
 
 $g->precompute();
 
-my $parse = new Parse::Marpa::Recce(grammar => $g);
+my $recce = new Parse::Marpa::Recognizer(grammar => $g);
 
 my $lc_a = Parse::Marpa::MDL::get_symbol($g, "lowercase a");
-$parse->earleme([$lc_a, "lowercase a", 1]);
-$parse->earleme([$lc_a, "lowercase a", 1]);
-$parse->earleme([$lc_a, "lowercase a", 1]);
-$parse->earleme([$lc_a, "lowercase a", 1]);
-$parse->end_input();
+$recce->earleme([$lc_a, "lowercase a", 1]);
+$recce->earleme([$lc_a, "lowercase a", 1]);
+$recce->earleme([$lc_a, "lowercase a", 1]);
+$recce->earleme([$lc_a, "lowercase a", 1]);
+$recce->end_input();
 
 # from Tye McQueen's Algorithm::Loops
 sub NextPermute(\@)
@@ -74,8 +74,8 @@ my @answer = (
 
 PERMUTATION: for (;;) {
     for my $i (@a) {
-        $parse->initial($i);
-        my $result = $parse->value();
+        my $parser = new Parse::Marpa::Parser($recce, $i);
+        my $result = $parser->value();
         $total_count++;
         if ($answer[$i] ne $$result) {
             diag( "got "

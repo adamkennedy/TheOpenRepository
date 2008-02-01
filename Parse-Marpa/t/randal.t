@@ -35,13 +35,13 @@ $g->set( source => \$source);
 $g->precompute();
 
 TEST: while (my $test = pop @tests) {
-    my $parse = new Parse::Marpa::Recce(grammar => $g);
-    $parse->text(\$test);
-    $parse->initial();
+    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    $recce->text(\$test);
+    my $parser = new Parse::Marpa::Parser($recce);
     my @parses;
-    push(@parses, $parse->value);
-    while ($parse->next) {
-        push(@parses, $parse->value);
+    push(@parses, $parser->value());
+    while ($parser->next()) {
+        push(@parses, $parser->value());
     }
     my @expected_parses;
     my ($test_name) = ($test =~ /^([a-z]+) /);

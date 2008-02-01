@@ -695,13 +695,9 @@ my $g = new Parse::Marpa(
     warnings => 0,
 );
 
-my $parse = new Parse::Marpa::Recce(
+my $recce = new Parse::Marpa::Recognizer(
    grammar=> $g,
 );
-
-# print STDERR $g->show_rules(), "\n";
-
-# print STDERR $g->show_SDFA(), "\n";
 
 sub binary_search {
     my ($target, $data) = @_;  
@@ -740,8 +736,7 @@ my $spec;
 {
     local($RS) = undef;
     $spec = <GRAMMAR>;
-    if ((my $earleme = $parse->text(\$spec)) >= 0) {
-	# print $parse->show_status();
+    if ((my $earleme = $recce->text(\$spec)) >= 0) {
         # for the editors, line numbering starts at 1
         # do something about this?
 	my ($line, $line_start) = locator($earleme, \$spec);
@@ -755,23 +750,8 @@ my $spec;
     }
 }
 
-unless ($parse->initial()) {
-    say STDERR "No parse";
-    my ($earleme, $lhs) = $parse->find_complete_rule();
-    unless (defined $earleme) {
-	say STDERR "No rules completed";
-	exit 1;
-    }
-    my ($line, $line_start) = locator($earleme, \$spec);
-    say STDERR "Parses completed at line $line, earleme $earleme for symbols:";
-    say STDERR join(", ", @$lhs);
-    given (index($spec, "\n", $line_start)) {
-	when (undef) { say STDERR substr($spec, $line_start) }
-	default { say STDERR substr($spec, $line_start, $_-$line_start) }
-    }
-    say STDERR +(" " x ($earleme-$line_start)), "^";
-    exit 1;
-}
+my $parser = new Parse::Marpa::Parser($recce);
+die("No parse") unless $parser;
 
 our $HEADER; # to silence spurious warning
 my $header;
@@ -781,7 +761,7 @@ our $TRAILER; # to silence spurious warning
 my $trailer;
 { open(TRAILER, "<", $trailer_file_name); local($RS) = undef; $trailer = <TRAILER>; }
 
-my $value = $parse->value();
+my $value = $parser->value();
 print $header, $$value, $trailer;
 
 # Local Variables:

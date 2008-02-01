@@ -32,21 +32,22 @@ sub ah_extended {
         warnings => ($n ? 1 : 0),
     );
 
-    my $parse = new Parse::Marpa::Recce(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
 
     my $a = $g->get_symbol("a");
-    for (0 .. $n) { $parse->earleme([$a, "a", 1]); }
+    for (0 .. $n) { $recce->earleme([$a, "a", 1]); }
 
     my @parse_counts;
     for my $loc (0 .. $n) {
         my $parse_number = 0;
-        die("Cannot initialize parse at location $loc") unless $parse->initial($loc);
+        my $parser = new Parse::Marpa::Parser($recce, $loc);
+        die("Cannot initialize parse at location $loc") unless $parser;
 
         # An arbitrary maximum is put on the number of parses -- this is for
         # debugging, and infinite loops happen.
         PARSE: for my $parse_number (1 .. 999) {
            $parse_counts[$loc]++;
-           last PARSE unless $parse->next();
+           last PARSE unless $parser->next();
         }
     }
     join(" ", @parse_counts);

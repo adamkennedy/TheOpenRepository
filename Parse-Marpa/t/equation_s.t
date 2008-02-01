@@ -25,17 +25,17 @@ my $g = new Parse::Marpa(
     source => \$source,
 );
 
-my $parse = new Parse::Marpa::Recce(grammar => $g);
+my $recce = new Parse::Marpa::Recognizer(grammar => $g);
 
 my $op = Parse::Marpa::MDL::get_symbol($g, "Op");
 my $number = Parse::Marpa::MDL::get_symbol($g, "Number");
-$parse->earleme([$number, 2, 1]);
-$parse->earleme([$op, "-", 1]);
-$parse->earleme([$number, 0, 1]);
-$parse->earleme([$op, "*", 1]);
-$parse->earleme([$number, 3, 1]);
-$parse->earleme([$op, "+", 1]);
-$parse->earleme([$number, 1, 1]);
+$recce->earleme([$number, 2, 1]);
+$recce->earleme([$op, "-", 1]);
+$recce->earleme([$number, 0, 1]);
+$recce->earleme([$op, "*", 1]);
+$recce->earleme([$number, 3, 1]);
+$recce->earleme([$op, "+", 1]);
+$recce->earleme([$number, 1, 1]);
 
 my @expected = (
     '(((2-0)*3)+1)==7',
@@ -44,18 +44,19 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-$parse->initial();
+my $parser = new Parse::Marpa::Parser($recce);
+die("Parse failed") unless $parser;
 
 # Set max at 10 just in case there's an infinite loop.
 # This is for debugging, after all
 PARSE: for my $i (0 .. 10) {
-    my $value = $parse->value();
+    my $value = $parser->value();
     if ($i > $#expected) {
        fail("Ambiguous equation has extra value: " . $$value . "\n");
     } else {
         is($$value, $expected[$i], "Ambiguous Equation Value $i");
     }
-    last PARSE unless $parse->next();
+    last PARSE unless $parser->next();
 }
 
 # Local Variables:

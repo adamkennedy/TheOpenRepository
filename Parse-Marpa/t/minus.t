@@ -75,7 +75,7 @@ EOCODE
 EOCODE
 );
 
-my $parse = new Parse::Marpa::Recce(
+my $recce = new Parse::Marpa::Recognizer(
     grammar => $g,
 );
 
@@ -145,24 +145,24 @@ my @expected = (
     '(6-(-(--(-1))))==4',
 );
 
-my $fail_offset = $parse->text(\("6-----1"));
+my $fail_offset = $recce->text(\("6-----1"));
 if ($fail_offset >= 0) {
    die("Parse failed at offset $fail_offset");
 }
 
-die("Could not initialize parse") unless $parse->initial();
+my $parser = new Parse::Marpa::Parser($recce);
+die("Could not initialize parse") unless $parser;
 
 # Set max at 20 just in case there's an infinite loop.
 # This is for debugging, after all
 PARSE: for my $i (0 .. 20) {
-    my $value = $parse->value();
-    # print $parse->show();
+    my $value = $parser->value();
     if ($i > $#expected) {
        fail("Minuses equation has extra value: " . $$value . "\n");
     } else {
         is($$value, $expected[$i], "Minuses Equation Value $i");
     }
-    last PARSE unless $parse->next();
+    last PARSE unless $parser->next();
 }
 
 # Local Variables:
