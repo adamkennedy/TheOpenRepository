@@ -683,7 +683,7 @@ for my $rule (@$rules) {
     }
 }
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => Parse::Marpa::MDL::canonical_symbol_name("grammar"),
     rules => $rules,
     terminals => $terminals,

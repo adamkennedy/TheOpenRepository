@@ -21,7 +21,7 @@ BEGIN {
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     source => \$source,
 );
 

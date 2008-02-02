@@ -12,7 +12,7 @@ BEGIN {
     use_ok('Parse::Marpa');
 }
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => "S'",
     rules => [  
         [ "S'", [qw/S/] ],

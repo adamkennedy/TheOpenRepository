@@ -16,7 +16,7 @@ BEGIN {
 sub ah_extended {
      my $n = shift;
 
-    my $g = new Parse::Marpa(
+    my $g = new Parse::Marpa::Grammar(
         start => "S",
         rules => [
             [ "S", [("A")x$n] ],

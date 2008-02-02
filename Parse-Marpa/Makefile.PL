@@ -32,6 +32,10 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Lex.pm',
 	'lib/Parse/Marpa/MDL.pm'
 	    => '$(INST_LIB)/Parse/Marpa/MDL.pm',
+	'lib/Parse/Marpa/Grammar.pm'
+	    => '$(INST_LIB)/Parse/Marpa/Grammar.pm',
+	'lib/Parse/Marpa/Recognizer.pm'
+	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
 	'lib/Parse/Marpa/Parser.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Parser.pm',
 	'lib/Parse/Marpa/TUTORIAL.pod'

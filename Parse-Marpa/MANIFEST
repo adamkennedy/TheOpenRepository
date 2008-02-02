@@ -19,7 +19,9 @@ lib/Parse/Marpa/INTERNALS.pod
 lib/Parse/Marpa/LANGUAGE.pod
 lib/Parse/Marpa/Lex.pm
 lib/Parse/Marpa/MDL.pm
+lib/Parse/Marpa/Grammar.pm
 lib/Parse/Marpa/Parser.pm
+lib/Parse/Marpa/Recognizer.pm
 lib/Parse/Marpa/RAW.pod
 lib/Parse/Marpa/Raw_Source.pm
 lib/Parse/Marpa/Source.pm.PL

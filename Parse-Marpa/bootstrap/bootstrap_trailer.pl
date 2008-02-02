@@ -8,7 +8,7 @@ croak("Version requested is ", $new_version, "\nVersion must match ", $Parse::Ma
 croak("Semantics are ", $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq "perl5";
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => $new_start_symbol,
     rules => $new_rules,
     terminals => $new_terminals,

@@ -16,7 +16,7 @@ plan tests => 5;
 use_ok( 'Parse::Marpa' );
 
 my $test = sub {
-    my $g = new Parse::Marpa(
+    my $g = new Parse::Marpa::Grammar(
         start => "S",
         rules => [
             [ "S", [qw/A A A A/] ],

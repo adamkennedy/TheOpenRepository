@@ -12,7 +12,7 @@ BEGIN {
 # A grammar from Grune & Jacobs, Parsing Techniques: A Practical Guide, pp 206-207.
 # The book is available on the web.
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => "S'",
     rules => [
         [ "S'", [qw/S $/] ],

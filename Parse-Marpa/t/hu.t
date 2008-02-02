@@ -14,7 +14,7 @@ BEGIN {
 # (Addison-Wesley, Reading, Massachusetts: 1979),
 # pp. 248, 250.
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => "S'",
     rules => [
         [ "S'", [qw/S c/] ],

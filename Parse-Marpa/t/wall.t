@@ -25,7 +25,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa(
+my $g = new Parse::Marpa::Grammar(
     start => "E",
     volatile => 0,
     rules => [

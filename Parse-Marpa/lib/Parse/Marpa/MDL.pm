@@ -42,7 +42,7 @@ sub canonical_version {
 sub get_symbol {
     my $grammar = shift;
     my $symbol_name = shift;
-    Parse::Marpa::get_symbol(
+    Parse::Marpa::Grammar::get_symbol(
         $grammar,
         canonical_symbol_name($symbol_name)
     );
