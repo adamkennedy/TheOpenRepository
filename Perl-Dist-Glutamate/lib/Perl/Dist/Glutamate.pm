@@ -134,17 +134,24 @@ sub install_perl_modules {
 #		name => 'Bundle::libwin32',
 
 
-	$self->install_module(
-		name => 'PAR::Packer',
+	$self->install_par(
+		name => 'Perl-Dist-PrepackagedPAR-libexpat',
+		url => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
 	);
+	$self->install_module(
+		name => 'XML::Parser',
+	);
+#	$self->install_module(
+#		name => 'PAR::Packer',
+#	);
 	$self->install_module(
 		name => 'SREZIC/Tk-804.028.tar.gz',
 		force => 1,
 	);
 	# FIXME: blocking on expat!
-#	$self->install_module(
-#		name => 'PAR::InstallPPD::GUI',
-#	);
+	$self->install_module(
+		name => 'PAR::InstallPPD::GUI',
+	);
 	$self->install_module(
 		name => 'PAR::Repository::Client',
 	);

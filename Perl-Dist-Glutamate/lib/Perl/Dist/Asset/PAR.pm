@@ -73,6 +73,8 @@ sub install_par {
 	$no_colon_name =~ s/::/-/g;
 	my $packlist = File::Spec->catfile($libdir, $no_colon_name, '.packlist');
 
+	my $cdir = File::Spec->catdir($self->image_dir, 'c');
+
 	# install
 	PAR::Dist::install_par(
 		dist           => $par->url,
@@ -84,6 +86,12 @@ sub install_par {
 		inst_man3dir   => $man3dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
 		packlist_read  => $packlist,
 		packlist_write => $packlist,
+		custom_targets =>  {
+			'blib/c/lib' => File::Spec->catdir($cdir, 'lib'),
+			'blib/c/bin' => File::Spec->catdir($cdir, 'bin'),
+			'blib/c/include' => File::Spec->catdir($cdir, 'include'),
+			'blib/c/share' => File::Spec->catdir($cdir, 'share'),
+		},
 	);
 
 	return 1;
@@ -152,6 +160,18 @@ sub new {
 1;
 
 =pod
+
+=head1 PAR FILE FORMAT EXTENSIONS
+
+This concerns packagers of .par binaries only. 
+A .par usually mostly contains the blib/ directory after making a Perl module.
+For use with Perl::Dist::Asset::PAR, there are currently three more subdirectories
+which will be installed:
+
+ blib/c/lib => goes into the c/lib library directory for non-Perl extensions
+ blib/c/bin => goes into the c/bin executable/dll directory for non-Perl extensions
+ blib/c/include => goes into the c/include header directory for non-Perl extensions
+ blib/c/share => goes into the c/share share directory for non-Perl extensions
 
 =head1 SUPPORT
 
