@@ -112,7 +112,7 @@ sub install_perl_5100 {
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
-	eeturn 1;
+	return 1;
 }
 
 sub install_perl_modules {
