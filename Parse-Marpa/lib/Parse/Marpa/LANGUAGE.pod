@@ -403,7 +403,7 @@ The usual form of a production sentence is
 a BNF (Backus-Naur Form) production.
 (The Marpa documents assume you know what BNF is.
 If you don't, a good start is
-L<Wikipedia's article on Backus Naur form|Parse::Marpa::BIBLIOGRAPHY/"WIKIPEDIA ON BNF">.)
+L<Wikipedia's article on Backus Naur form|Parse::Marpa::Doc::Bibliography/"WIKIPEDIA ON BNF">.)
 
 A BNF sentence consists of a left hand side and a right hand side, separated by a colon.
 The left hand side is the name of a single symbol.

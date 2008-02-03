@@ -7,7 +7,7 @@ Parse::Marpa::CONCEPTS - Concepts helpful for Using Marpa
 This document is about
 concepts important for putting Marpa to work in your applications.
 The math and theory are dealt with
-L<elsewhere|Parse::Marpa::ALGORITHM>.
+L<elsewhere|Parse::Marpa::Doc::Algorithm>.
 
 It's not a tutorial on grammars or BNF.  For that consult
 a modern textbook, such as Grune and Jacobs I<Parsing Techniques -

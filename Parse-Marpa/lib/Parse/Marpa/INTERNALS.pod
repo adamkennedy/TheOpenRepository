@@ -30,7 +30,7 @@ or at least has worked with another parser generator.
 =head1 THE EARLEY ALGORITHM
 
 To speak pedantically, the algorithm in
-L<Earley's 1970 parsing article|Parse::Marpa::BIBLIOGRAPHY/"Earley 1970">
+L<Earley's 1970 parsing article|Parse::Marpa::Doc::Bibliography/"Earley 1970">
 does not actually parse it's input.
 It is a recognizer, not a parser.
 It builts a series of Earley sets.
@@ -103,7 +103,7 @@ Earley items are built from LR(0) items.
 In traditional Earley parsing, each Earley item contained one and only one LR(0) item.
 This made the internals simpler, but was not as efficient.
 Marpa combines LR(0) items into SDFA states,
-based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::BIBLIOGRAPHY/"Aycock and Horspool 2002">.
+based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
 Each SDFA state is a statement about possible parses.
 The presence of an SDFA state in an Earley set means that the parses in its LR(0) items
@@ -240,7 +240,7 @@ the same item is not added twice,
 and where an item comes from is not important in recognition.
 But the reason why an Earley item was put into an Earley set is essential for parsing.
 Marpa (again following a suggestion from
-L<Aycock and Horspool|Parse::Marpa::BIBLIOGRAPHY/"Aycock and Horspool 2002">)
+L<Aycock and Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">)
 tracks the reasons Earley items were added to the Earley sets using B<links>.
 We've already seen a link in the scanning example.
 This example has another: C<[p=S5@0-2; c=S4@2-3]>.
@@ -387,7 +387,7 @@ In other words, a proper nullable is any nullable symbol which is not a nulling 
 
 Nullable symbols have been a major issue with previous versions of Earley parsers.
 In dealing with them, I follow the approach in
-L<Aycock and Horspool 2002|Parse::Marpa::BIBLIOGRAPHY/"Aycock and Horspool 2002">,
+L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">,
 with additional changes of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.

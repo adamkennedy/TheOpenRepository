@@ -333,7 +333,7 @@ L<Parse::Marpa::CONCEPTS> should be read before
 using Marpa, in fact probably before your first careful reading of this document.
 The "concepts" in it are all practical
 -- the theoretical discussions went
-into L<Parse::Marpa::ALGORITHM>.
+into L<Parse::Marpa::Doc::Algorithm>.
 Even experts in Earley parsing will want to skim L<Parse::Marpa::CONCEPTS>
 because,
 as one example,
@@ -1155,12 +1155,12 @@ L<http://search.cpan.org/dist/Parse-Marpa>
 
 Marpa is
 the parser described in
-L<Aycock and Horspool 2002|Parse::Marpa::BIBLIOGRAPHY/"Aycock and Horspool 2002">.
+L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 I've made significant changes to it,
-which are documented separately (L<Parse::Marpa::ALGORITHM>).
+which are documented separately (L<Parse::Marpa::Doc::Algorithm>).
 Aycock and Horspool, for their part,
 built on the
-L<algorithm discovered by Jay Earley|Parse::Marpa::BIBLIOGRAPHY/"Earley 1970">.
+L<algorithm discovered by Jay Earley|Parse::Marpa::Doc::Bibliography/"Earley 1970">.
 
 I'm grateful to Randal Schwartz for his encouragement over the years that
 I've been working on Marpa.  My one conversation
