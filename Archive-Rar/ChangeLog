@@ -1,4 +1,14 @@
 
+Version 1.94: 2008-02-03  steffen mueller <smueller@cpan.org>
+	* Upgrade to newest Module::Install again.
+	* Big patch from Francesco Rotondella:
+	  --> Fix overwrite option to constructor. (#32623)
+	  --> Error with blanks in file name (#31835)
+	  --> Previously could only open files with .RAR
+	      extension (#32090).
+	  --> Extract to cwd (#32196)
+	  --> Implement lowprio feature.
+
 Version 1.93: 2007-06-17  steffen mueller <smueller@cpan.org>
 	
 	* Upgrade to newest Module::Install.

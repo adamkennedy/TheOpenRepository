@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.93';
+$VERSION = '1.94';
 
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-
@@ -170,7 +170,6 @@ sub initialize {
 		-yes =>1,
 		-recurse =>1,
 		-mode => 5,
-		-overwrite => 1,
 		-volume => 1,
 		-alldata => 1,
 		);
@@ -205,14 +204,16 @@ sub SetOptions {
 	}
 	$me->{current} =\%args;
 
-        $args{'-files'} =$command eq 'vt' ? [] : '.' if (IsEmpty($args{'-files'}));
+    $args{'-files'} =$command eq 'vt' ? [] : '.' if (IsEmpty($args{'-files'}));
 	$args{'-files'} =[ $args{'-files'} ] if (ref($args{'-files'}) eq '');
 
 	$me->{archive} =$args{'-archive'} if (!IsEmpty($args{'-archive'}));
 	# print "ARCHIVE='$me->{archive}' '$args->{-archive}'\n";
 	if (defined $me->{archive} && $me->{archive} ne '') {
 		# goto Suite if ($command =~ /^[levx]/i && -f $me->{archive});
-		my $ext ='.rar';
+        # fixed #32090
+        $me->{archive} =~ /\.(\w+)$/;
+		my $ext =".$1";
 		$ext =($^O eq 'MSWin32') ? '.exe' : '.sfx' if (defined $args{'-sfx'} && $args{'-sfx'});
 		$me->{archive} =~ s/\.\w+$/$ext/;
 		$me->{archive} =CleanDir($me->{archive});
@@ -226,8 +227,17 @@ Suite:
 	$me->{archive} =~ s|/|\\|g  if ($^O eq 'MSWin32');
 	# print "ARCHIVE='$me->{archive}'\n";
 
+    # fixed #31835
+    $me->{archive} = "\"$me->{archive}\"";
+    $me->{options} ='';
 
-	$me->{options} ='';
+    # new feature for using with nice
+    $me->{nice} ='';
+	if ($command =~ /^[x]/i) {
+		$me->{nice} .='nice' if (!IsEmpty($args{'-lowprio'}) &&
+                                 $args{'-lowprio'} &&
+                                 ($me->{sys} ne 'w'));
+    }
 	if ($command =~ /^[a]/i) {
 		$me->{options} .=' -sfx' if (defined $args{'-sfx'} && $args{'-sfx'});
 		$me->{options} .=' -r' if (!IsEmpty($args{'-recurse'}));
@@ -237,9 +247,13 @@ Suite:
 	if ($command =~ /^[levx]/i) {
 		$me->{options} .=' -v' if (!IsEmpty($args{'-volume'}));
 	}
+
+    # fixed #32196
+	$me->{options} .=' -ep' if (!IsEmpty($args{'-excludepaths'}));
 	$me->{options} .=' -inul' if (!IsEmpty($args{'-quiet'}));
 	$me->{options} .=' -y' if (!IsEmpty($args{'-yes'}));
-	$me->{options} .=' -o+' if (!IsEmpty($args{'-overwrite'}));
+    # fixed #32623
+	$me->{options} .=' -o-' if (!IsEmpty($args{'-donotoverwrite'}) && $args{'-donotoverwrite'});
 	
 	if (!IsEmpty($me->{args}->{'-verbose'}) && $me->{args}->{'-verbose'} > 9) {
 		print "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
@@ -286,7 +300,7 @@ sub Extract {
 		return $me->SetError(256,$args->{'-initial'}) if (!chdir($args->{'-initial'}));
 		$retour =getcwd;
 	}
-	$res =$me->Execute("$me->{rar} $me->{command} $me->{options} $me->{archive} " . join(' ',@{$args->{'-files'}}));
+	$res =$me->Execute("$me->{nice} $me->{rar} $me->{command} $me->{options} $me->{archive} " . join(' ',@{$args->{'-files'}}));
 	goto Fin if ($res != 0);
 	if (!IsEmpty($retour)) {
 		return $me->SetError(257,$retour) if (!chdir($retour));
@@ -383,15 +397,15 @@ sub PrintList {
 	return if (!defined $me->{list} || ref($me->{list}) ne 'ARRAY' || ref($me->{list}->[0]) ne 'HASH');
 	$fh =\*STDOUT if (IsEmpty($fh));
 	print $fh <<EOD;
-+------------------------------------------+----------+----------+------+
-|                File                      |   Size   |  Packed  | Gain |
-+------------------------------------------+----------+----------+------+
++-------------------------------------------------+----------+----------+------+
+|                    File                         |   Size   |  Packed  | Gain |
++-------------------------------------------------+----------+----------+------+
 EOD
 	foreach my $p (@{$me->{list}}) {
-		printf $fh ("| %-40.40s | %8.8s | %8.8s | %3.3s%% |\n",$p->{name},$p->{size},$p->{packed},100-$p->{ratio});
+		printf $fh ("| %-47.47s | %8.8s | %8.8s | %3.3s%% |\n",$p->{name},$p->{size},$p->{packed},100-$p->{ratio});
 	}
 	print $fh <<EOD;
-+------------------------------------------+----------+----------+------+
++-------------------------------------------------+----------+----------+------+
 EOD
 }
 # ----------------------------------------------------------------
@@ -491,7 +505,27 @@ Linux
 	-files => \@list_of_files,
  );
 
- 
+To extract files from archive:
+
+ use Archive::Rar;
+ my $rar = new Archive::Rar( -archive => $archive );
+ $rar->List( );
+ my $res = $rar->Extract( );
+ print "Error $res in extracting from $archive\n" if ( $res );
+
+To list archived files:
+
+ use Archive::Rar;
+ my $rar = new Archive::Rar( -archive => $archive );
+ $rar->List( );
+ $rar->PrintList( );
+
+Using further options:
+
+ use Archive::Rar;
+ my $rar = new Archive::Rar( -archive => $archive );
+ my $res = $rar->Extract(-donotoverwrite => 1, -quiet => 1 );
+ print "Error $res in extracting from $archive\n" if ( $res );
 
 =head1 DESCRIPTION
 
@@ -549,6 +583,18 @@ Size of the parts in bytes.
 =item C<-verbose>
 
 Level of verbosity.
+
+=item C<-excludepaths>
+
+Exclude paths from names.
+
+=item C<-donotoverwrite>
+
+Do not overwrite existing files if True.
+
+=item C<-lowprio>
+
+For Unix-like systems only, this options runs the extraction with low scheduling priority, if Ture.
 
 =back
 
