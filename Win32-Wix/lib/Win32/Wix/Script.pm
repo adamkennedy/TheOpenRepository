@@ -154,17 +154,12 @@ sub xml_product {
 				Id   => 'ProgramFilesFolder',
 				Name => 'PFiles',
 				},
-				$X->
-				
-		<Directory Id='TARGETDIR' Name='SourceDir'>
-		$X->Feature( {
-			Id    => 'MainFeature',
-			Title => 'Main Feature',
-			Level => 1,
-			},
-			$X->ComponentRef( {
-				Id => 'MainComponent',
-			} )
+				$X->Directory( {
+					Id   => 'TARGETDIR',
+					Name => 'SourceDir',
+					},
+				),
+			),
 		),
 	);
 }
@@ -179,7 +174,7 @@ sub xml_property {
 
 sub xml_file {
 	my $self = shift;
-	my $file = shift
+	my $file = shift;
 	$self->xml_generator->File( {
 		Id     => $file->id,
 		Name   => $file->name,

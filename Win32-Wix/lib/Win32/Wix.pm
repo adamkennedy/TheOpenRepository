@@ -12,6 +12,10 @@ BEGIN {
 	$VERSION = '0.01';
 }
 
+# Load in the rest of the API
+use Win32::Wix::File   ();
+use Win32::Wix::Script ();
+
 
 
 
