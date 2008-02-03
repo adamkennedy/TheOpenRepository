@@ -15,8 +15,8 @@ Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
   
   # Or usually more like this:
   $perldistinno->install_par(
-    name => 'Math::Symbolic',
-    url => 'http://foo/Math-Symbolic-0.510-MSWin32-x86-multi-thread-5.10.0.par',
+    name => 'Perl-Dist-PrepackagedPAR-libexpat',
+    url => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
   );
 
 =head1 DESCRIPTION
@@ -113,7 +113,6 @@ BEGIN {
 use Object::Tiny qw{
 	name
 };
-
 
 
 
