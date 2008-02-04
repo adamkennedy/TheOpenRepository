@@ -4,9 +4,10 @@ package Win32::Wix::Product;
 # with a single product inside it.
 
 use strict;
-use Carp 'croak';
-use XML::Generator ();
-use Params::Util '_INSTANCE';
+use Carp             'croak';
+use XML::Generator   ();
+use Params::Util     '_INSTANCE';
+use File::Find::Rule ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -27,7 +28,7 @@ use Object::Tiny qw{
 	package_manufacturer
 	source_dir
 	install_dir
-	xml_generator
+	xml
 };
 
 
@@ -84,19 +85,26 @@ sub name {
 	}
 
 	# Create the XML generator
-	unless ( $self->xml_generator ) {
-		$self->{xml_generator} = XML::Generator->new(
+	unless ( $self->xml ) {
+		$self->{xml} = XML::Generator->new(
 			escape      => 'always',
 			conformance => 'strict',
 			pretty      => 2,
 			namespace   => [ XMLNS ],
 		) or die("Failed to create default XML::Generator");
 	}
-	unless ( _INSTANCE($self->xml_generator, 'XML::Generator') ) {
+	unless ( _INSTANCE($self->xml, 'XML::Generator') ) {
 		croak('The xml param is not an XML::Generator object');
 	}
 
+	# Scan the sources directory for files
+	$self->{files} = [];
+
 	return $self;
+}
+
+sub files {
+	return ( @{ $_[0]->{files} } );
 }
 
 
@@ -108,7 +116,7 @@ sub name {
 
 sub as_xml {
 	my $self = shift;
-	my $X    = $self->xml_generator;
+	my $X    = $self->xml;
 
 	# Get the product XML document
 	my $product = $self->xml_product;
@@ -120,62 +128,94 @@ sub as_xml {
 sub xml_product {
 	my $self    = shift;
 	my $product = shift;
-	my $X       = $self->xml_generator;
-
-	# Generate the main product.
-	# For clarity, generate it as a single large nested structure
-	# that looks like the XML it is generating.
-	return $X->Product( {
+	$self->xml->Product( {
 		Id           => $product->product_id,
 		Name         => $product->product_name,
 		Language     => $product->product_language,
 		Version      => $product->product_version,
 		Manufacturer => $product->product_manufacturer,
-		}, 
-		$X->Package( {
-			Id               => $product->package_id,
-			Description      => $product->package_description,
-			Comments         => $product->package_comments,
-			Manufacturer     => $product->package_manufacturer,
-			InstallerVersion => 200,
-			Compressed       => 'yes',
-		} ),
-		$X->Media( {
-			Id       => 1,
-			Cabinet  => 'product.cab',
-			EmbedCab => 'yes',
-		} ),
-		( map { $_->as_xml } $product->properties ),
-		$X->Directory( {
+		},
+		$self->xml_package,
+		$self->xml_product_cab,
+		$self->xml_properties,
+		$self->xml->Directory( {
 			Id   => 'TARGETDIR',
 			Name => 'SourceDir',
 			},
-			$X->Directory( {
+			$self->xml->Directory( {
 				Id   => 'ProgramFilesFolder',
 				Name => 'PFiles',
 				},
-				$X->Directory( {
-					Id   => 'TARGETDIR',
-					Name => 'SourceDir',
+				$self->xml->Directory( {
+					Id   => 'MYAPPPATH',
+					Name => '.',
 					},
+					$self->xml_component,
 				),
 			),
 		),
 	);
 }
 
+sub xml_package {
+	my $self = shift;
+	$self->xml->Package( {
+		Id               => $product->package_id,
+		Description      => $product->package_description,
+		Comments         => $product->package_comments,
+		Manufacturer     => $product->package_manufacturer,
+		InstallerVersion => 200,
+		Compressed       => 'yes',
+	} );
+}
+
+sub xml_product_cab {
+	my $self = shift;
+	$self->xml->Media( {
+		Id       => 1,
+		Cabinet  => 'product.cab',
+		EmbedCab => 'yes',
+	} );
+}
+
+sub xml_properties {
+	my $self = shift;
+	map {
+		$self->xml_property
+	} $self->properties;
+}
+
 sub xml_property {
 	my $self     = shift;
 	my $property = shift;
-	my $X        = $self->xml_generator;
+	$self->xml->Property( {
+		Id => $property->id
+		},
+		$property->value,
+	);
+}
 
-	die 'TO BE COMPLETED';
+sub xml_component {
+	my $self = shift;
+	$self->xml->Component( {
+		Id   => 'MyComponent',
+		Guid => '12345678-1234-1234-1234-123456789012',
+	},
+	$self->xml_files,
+	);
+}
+
+sub xml_files {
+	my $self = shift;
+	map {
+		$self->xml_file( $_ )
+	} $self->files;
 }
 
 sub xml_file {
 	my $self = shift;
 	my $file = shift;
-	$self->xml_generator->File( {
+	$self->xml->File( {
 		Id     => $file->id,
 		Name   => $file->name,
 		DiskId => $file->diskid,
