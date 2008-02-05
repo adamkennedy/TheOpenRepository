@@ -1025,7 +1025,7 @@ and the documentation tightened up.
 If non-default priorities are given to rules, it's possible two rules
 with different priorities could wind up in the same SDFA state.
 I won't explain the details of SDFA's here,
-(see the L<internals document|Parse::Marpa::INTERNALS>),
+(see the L<internals document|Parse::Marpa::Doc::Internals>),
 but Marpa can't proceed when that happens.
 
 I've actually never seen this happen, and one reason the problem is

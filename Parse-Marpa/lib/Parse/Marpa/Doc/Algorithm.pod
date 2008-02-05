@@ -24,7 +24,7 @@ with briefly describing the more significant ideas new with Marpa,
 and I have to assume that the reader is familiar with parsing in general,
 and that he understands terms like Earley set and Earley item.
 It will be helpful to have read the other Marpa documents,
-especially L<Parse::Marpa::INTERNALS>.
+especially L<Parse::Marpa::Doc::Internals>.
 
 All claims of originality are limited by my ignorance.
 The parsing literature is large, and I may have been preceded by someone whose

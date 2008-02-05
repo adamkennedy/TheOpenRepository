@@ -10,7 +10,7 @@ With each trace
 and each diagnostic method there is often an indication of the degree of
 knowledge of Marpa's internal workings needed to use the output.
 There's a guide to Marpa internals in the
-L<internals document|Parse::Marpa::INTERNALS>.
+L<internals document|Parse::Marpa::Doc::Internals>.
 
 =head1 HINTS
 
@@ -49,7 +49,7 @@ C<trace_iteration_changes> and C<trace_rules> traces the initialization of, and 
 
 For the real "into the Earley sets with gun and camera" stuff,
 run C<show_SDFA()> on the grammar and C<show_status()> on the parse object.
-The L<internals document|Parse::Marpa::INTERNALS>
+The L<internals document|Parse::Marpa::Doc::Internals>
 has example outputs from these methods and outlines how to read them.
 
 =head1 DIAGNOSTIC OPTIONS

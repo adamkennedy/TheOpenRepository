@@ -33,7 +33,7 @@ I have been following
 this particular topic on and off for years.
 Nonetheless I found this paper very heavy going.
 Readers who want to get into might find the Marpa documentation,
-up to and including L<Parse::Marpa::INTERNALS>,
+up to and including L<Parse::Marpa::Doc::Internals>,
 the easiest approach to the Aycock and Horspool paper,
 though I can't promise you there won't be leaps of
 insight required at several points.

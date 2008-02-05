@@ -20,8 +20,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Bibliography.pod',
 	'lib/Parse/Marpa/Doc/Diagnostics.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Diagnostics.pod',
-	'lib/Parse/Marpa/INTERNALS.pod'
-	    => '$(INST_LIB)/Parse/Marpa/INTERNALS.pod',
+	'lib/Parse/Marpa/Doc/Internals.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/Internals.pod',
 	'lib/Parse/Marpa/RAW.pod'
 	    => '$(INST_LIB)/Parse/Marpa/RAW.pod',
 	'lib/Parse/Marpa/LANGUAGE.pod'
