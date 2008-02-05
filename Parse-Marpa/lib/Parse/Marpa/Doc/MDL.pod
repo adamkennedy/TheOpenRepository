@@ -281,7 +281,7 @@ until Marpa goes beta.
 
 Pedantically speaking, the start symbol is optional,
 in the sense that it may be specified later
-using L<the raw interface|Parse::Marpa::RAW>.
+using L<the raw interface|Parse::Marpa::Doc::Raw>.
 But if no start symbol has been specified by precomputation time,
 Marpa will fail.
 

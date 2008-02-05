@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::RAW - Marpa's Raw Grammar Interface
+Parse::Marpa::Doc::Raw - Marpa's Raw Grammar Interface
 
 =head1 OVERVIEW
 
@@ -99,7 +99,7 @@ must be repeated at least C<min> times.
 Only one symbol is allowed on the right hand side of a sequence production,
 and it is repeated according to C<min> and C<max>.
 The right hand side symbol is not allowed be a nullable symbol.
-For an introduction to sequence productions, see the L<MDL document|Parse::Marpa::LANGUAGE>.
+For an introduction to sequence productions, see the L<MDL document|Parse::Marpa::Doc::MDL>.
 
 =item C<separator>
 

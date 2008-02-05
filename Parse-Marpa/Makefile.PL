@@ -22,10 +22,10 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Diagnostics.pod',
 	'lib/Parse/Marpa/Doc/Internals.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Internals.pod',
-	'lib/Parse/Marpa/RAW.pod'
-	    => '$(INST_LIB)/Parse/Marpa/RAW.pod',
-	'lib/Parse/Marpa/LANGUAGE.pod'
-	    => '$(INST_LIB)/Parse/Marpa/LANGUAGE.pod',
+	'lib/Parse/Marpa/Doc/Raw.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/Raw.pod',
+	'lib/Parse/Marpa/Doc/MDL.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/MDL.pod',
 	'lib/Parse/Marpa/Doc/Concepts.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Concepts.pod',
 	'lib/Parse/Marpa/Lex.pm'

@@ -174,7 +174,7 @@ It's possible to specify the grammar and the text to be parsed all in one step
     my $value = Parse::Marpa::marpa(\$grammar, \$text_to_parse);
 
 The syntax for C<$grammar> can be found in the document for the
-L<Marpa Demonstration Language|Parse::Marpa::LANGUAGE.pod>.
+L<Marpa Demonstration Language|Parse::Marpa::Doc::MDL.pod>.
 You can even include options if you make a hash ref the third argument.
 
     my $value = Parse::Marpa::marpa(
@@ -339,7 +339,7 @@ because,
 as one example,
 the availability of ambiguous lexing has unusual implications for term I<token>.
 
-L<Parse::Marpa::LANGUAGE> documents what is currently
+L<Parse::Marpa::Doc::MDL> documents what is currently
 Marpa's only high-level interface.
 Of Marpa's current documents,
 it is the most tutorial in approach.
@@ -364,7 +364,7 @@ This is the empty list if there were no parses.
 The description referenced by the I<grammar> argument must use
 one of the high-level Marpa grammar interfaces.
 Currently the default (and only) high-level grammar interface is the
-L<Marpa Demonstration Language|Parse::Marpa::LANGUAGE>.
+L<Marpa Demonstration Language|Parse::Marpa::Doc::MDL>.
 
 =back
 
@@ -616,7 +616,7 @@ where it's required.
 =item source
 
 This takes as its value a B<reference> to a string containing a description of
-the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::LANGUAGE>.
+the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::Doc::MDL>.
 It must be specified before any rules are added,
 and may be specified at most once in the life of a grammar object.
 

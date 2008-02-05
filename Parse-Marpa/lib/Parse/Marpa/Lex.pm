@@ -192,7 +192,7 @@ I<start_earleme>
 should be the location where the prefix started.
 If no prefix was removed, I<start_earleme> should be the same as C<pos $$string>.
 
-How C<lex_regex()> delimits a regex is described in L<the MDL document|Parse::Marpa::LANGUAGE>.
+How C<lex_regex()> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
 C<lex_regex()> returns the null array on failure.
 On success, it returns an array of two elements.
 The first element is a string containing the regex,
@@ -216,7 +216,7 @@ I<start_earleme>
 should be the location where the prefix started.
 If no prefix was removed, I<start_earleme> should be the same as C<pos $$string>.
 
-How C<lex_q_quote()> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::LANGUAGE>.
+How C<lex_q_quote()> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
 C<lex_q_quote()> returns the null array on failure.
 On success, it returns an array of two elements.
 The first element is a string containing the C<q-> or C<qq->quoted string,

@@ -37,7 +37,7 @@ but indirectly.
 The raw grammar interface is efficient,
 but users will usually want something higher level.
 The documentation for the raw grammar interface
-is L<Parse::Marpa::RAW>.
+is L<Parse::Marpa::Doc::Raw>.
 
 =head2 The Marpa Demonstration Language
 
@@ -48,7 +48,7 @@ I call the one that I am delivering with
 Marpa the B<Marpa Demonstration Language> instead
 of the "Marpa Language" to emphasize it's lack of
 special status.
-Its documentation is at L<Parse::Marpa::LANGUAGE>.
+Its documentation is at L<Parse::Marpa::Doc::MDL>.
 
 =head2 Your Grammar Interface Here
 
