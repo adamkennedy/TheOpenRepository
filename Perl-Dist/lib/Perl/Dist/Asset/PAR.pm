@@ -1,4 +1,17 @@
 package Perl::Dist::Asset::PAR;
+use strict;
+use Carp           'croak';
+use Params::Util   qw{ _STRING };
+use base 'Perl::Dist::Asset';
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.02';
+}
+
+use Object::Tiny qw{
+	name
+};
 
 =pod
 
@@ -13,7 +26,7 @@ Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
   );
   
   # Or usually more like this:
-  $perldistinno->install_par(
+  $perl_dist_inno_obj->install_par(
     name => 'Perl-Dist-PrepackagedPAR-libexpat',
     url  => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
   );
@@ -32,25 +45,16 @@ L<Perl::Dist::Inno> namespace. This will hopefully change in future.
 The specification of the location to retrieve the package is done via
 the standard mechanism implemented in L<Perl::Dist::Asset>.
 
+The C<install_to> argument of the L<Perl::Dist::Asset::Library> Perl::Dist asset
+is nto currently supported by the PAR asset.
+See L<PAR FILE FORMAT EXTENSIONS> below for details on how non-Perl binaries
+are installed.
+
 =head1 METHODS
 
 This class inherits from L<Perl::Dist::Asset> and shares its API.
 
 =cut
-
-use strict;
-use Carp           'croak';
-use Params::Util   qw{ _STRING _HASH };
-use base 'Perl::Dist::Asset';
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.01_01';
-}
-
-use Object::Tiny qw{
-	name
-};
 
 
 

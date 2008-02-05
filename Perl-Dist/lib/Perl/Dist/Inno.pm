@@ -1596,7 +1596,8 @@ sub install_par {
 	my $self = shift;
 	my $par  = Perl::Dist::Asset::PAR->new(
 		parent     => $self,
-		install_to => 'c', # Default to the C dir
+		# not supported at the moment:
+		#install_to => 'c', # Default to the C dir
 		@_,
 	);
 
