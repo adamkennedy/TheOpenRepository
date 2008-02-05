@@ -50,7 +50,7 @@ The C<new>
 
 =cut
 
-sub new  
+sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Apply defaults
