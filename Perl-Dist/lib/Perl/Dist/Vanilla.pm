@@ -77,17 +77,20 @@ sub install_c_libraries {
 	my $self = shift;
 	$self->SUPER::install_c_libraries(@_);
 
-	# We want expat as well
-	$self->install_expat;
-
 	return 1;
 }
 
 sub install_expat {
 	my $self = shift;
 
-	$self->install_binary(
-		name => 'expat',
+	#$self->install_binary(
+	#	name => 'expat',
+	#);
+
+	# Install the PAR version of libexpat
+	$self->install_par(
+		name  => 'libexpat',
+		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
 	);
 
 	return 1;
@@ -111,6 +114,9 @@ sub install_perl_5100 {
 sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
+
+	# We want expat as well
+	$self->install_expat;
 
 	# Install XML::Parser
 	$self->install_distribution(
