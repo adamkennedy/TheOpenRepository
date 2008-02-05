@@ -1,4 +1,4 @@
-package Win32::Wix::Product;
+package Win32::Wix::Script;
 
 # Top level package representing a single "wxs" XML file,
 # with a single product inside it.
@@ -26,8 +26,8 @@ use Object::Tiny qw{
 	package_description
 	package_comments
 	package_manufacturer
-	source_dir
-	install_dir
+	targetdir
+	installdir
 	xml
 };
 
@@ -38,7 +38,7 @@ use Object::Tiny qw{
 #####################################################################
 # Constructor
 
-sub name {
+sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Check params and apply defaults
@@ -69,19 +69,22 @@ sub name {
 	unless ( $self->package_manufacturer ) {
 		$self->{package_manufacturer} = $self->product_manufacturer;
 	}
-	unless ( $self->source_dir ) {
-		croak('Did not provide the source_dir param');
+	unless ( $self->targetdir ) {
+		croak('Did not provide the targetdir param');
 	}
-	unless ( -d $self->source_dir ) {
-		croak('The source_dir directory does not exist');
+	unless ( -d $self->targetdir ) {
+		croak('The targetdir directory does not exist');
 	}
-	if ( defined $self->install_path ) {
-		unless ( -d $self->install_path ) {
-			croak('The install_path directory does not exist');
+	if ( defined $self->installdir ) {
+		unless ( -d $self->installdir ) {
+			croak('The installdir directory does not exist');
 		}
-		unless ( File::Spec->file_name_is_absolute($self->install_path) ) {
-			croak('The install_path param must be an absolute path');
+		unless ( File::Spec->file_name_is_absolute($self->installdir) ) {
+			croak('The installdir param must be an absolute path');
 		}
+	}
+	unless ( $self->installdir ) {
+		croak('You did not provide an installdir');
 	}
 
 	# Create the XML generator
@@ -97,14 +100,38 @@ sub name {
 		croak('The xml param is not an XML::Generator object');
 	}
 
-	# Scan the sources directory for files
-	$self->{files} = [];
-
+	# Initialize Data Storage
+	$self->{properties} = {};
+	
 	return $self;
 }
 
-sub files {
-	return ( @{ $_[0]->{files} } );
+
+
+
+
+#####################################################################
+# Handle Property Objects
+
+sub property {
+	my $self  = shift;
+	my $id    = shift;
+	my $value = shift;
+	if ( $self->{properties}->{$id} ) {
+		croak("Property '$id' already exists");
+	}
+
+	# Add the property and return it as a convenience
+	$self->{properties}->{$id} = Win32::Wix::Property->new(
+		id    => $id,
+		value => $value,
+	);
+}
+
+sub properties {
+	my $self = shift;
+	my $prop = $self->{properties};
+	map { $prop->{$_} } sort keys %$prop;
 }
 
 
@@ -119,10 +146,11 @@ sub as_xml {
 	my $X    = $self->xml;
 
 	# Get the product XML document
-	my $product = $self->xml_product;
+	my $product = $self->xml_product( $self );
 
 	# Wrap in the standard stuff and return
-	return $X->xml( $X->Wix( $product ) );
+	my $string = $X->xml( $X->Wix( $product ) );
+	return "$string";
 }
 
 sub xml_product {
@@ -220,7 +248,7 @@ sub xml_file {
 		Name   => $file->name,
 		DiskId => $file->diskid,
 		Src    => File::Spec->catfile(
-			$self->source_dir,
+			$self->targetdir,
 			$file->src,
 		),
 	} );
