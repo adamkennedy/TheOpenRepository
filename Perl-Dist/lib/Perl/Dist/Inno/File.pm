@@ -48,6 +48,8 @@ use Object::Tiny qw{
 
 The C<new>
 
+=cut
+
 sub new  
 	my $self = shift->SUPER::new(@_);
 
