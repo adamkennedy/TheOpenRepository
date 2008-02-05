@@ -329,12 +329,12 @@ leaves beta.
 
 =head1 READING THESE DOCUMENTS
 
-L<Parse::Marpa::CONCEPTS> should be read before
+L<Parse::Marpa::Doc::Concepts> should be read before
 using Marpa, in fact probably before your first careful reading of this document.
 The "concepts" in it are all practical
 -- the theoretical discussions went
 into L<Parse::Marpa::Doc::Algorithm>.
-Even experts in Earley parsing will want to skim L<Parse::Marpa::CONCEPTS>
+Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
 because,
 as one example,
 the availability of ambiguous lexing has unusual implications for term I<token>.
@@ -742,7 +742,7 @@ The null value of a symbol is its value when it matches the empty string in a pa
 By default, that value is a Perl 5 undefined.
 Resetting the C<default_null_value> Marpa predefined resets that default.
 There's more about null values in
-L<the CONCEPTS document|Parse::Marpa::CONCEPTS>.
+L<the Concepts document|Parse::Marpa::Doc::Concepts>.
 
 =item online
 
@@ -835,7 +835,7 @@ The "volatility unsetting exception" will be thrown even
 if Marpa marked the grammar volatile internally.
 Marpa often does this when a grammar has sequence productions.
 For more details,
-see L<Parse::Marpa::CONCEPTS>.
+see L<Parse::Marpa::Doc::Concepts>.
 
 =item warnings
 

@@ -757,7 +757,7 @@ The first element must be the value of the token at the match.
 This is often the matched substring, but it can be anything useful.
 The second element of the array must be the length of the token
 in earlemes
-(see L<the CONCEPTS document|Parse::Marpa::CONCEPTS> about earlemes).
+(see L<the Concepts document|Parse::Marpa::Doc::Concepts> about earlemes).
 Lex closures in MDL should assume
 that a one-character-per-earleme model is in use.
 

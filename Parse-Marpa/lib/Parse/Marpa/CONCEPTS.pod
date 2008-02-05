@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::CONCEPTS - Concepts helpful for Using Marpa
+Parse::Marpa::Doc::Concepts - Concepts helpful for Using Marpa
 
 =head1 OVERVIEW
 
