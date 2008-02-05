@@ -577,7 +577,7 @@ object or throws an exception.
 
 =head1 DIAGNOSTIC METHODS
 
-L<The separate document on diagnostics|Parse::Marpa::DIAGNOSTICS> deals
+L<The separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
 with methods used primarily to debug grammars and parses.
 
 =head1 OPTIONS
@@ -602,7 +602,7 @@ L<the section on predefineds|/"PREDEFINEDS"> below,
 except for those primarily used to
 debug and trace grammars and parses.
 Options for debugging and tracing are dealt with in
-L<the separate document on diagnostics|Parse::Marpa::DIAGNOSTICS>.
+L<the separate document on diagnostics|Parse::Marpa::Doc::Diagnostics>.
 
 =over 4
 

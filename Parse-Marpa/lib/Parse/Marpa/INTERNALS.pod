@@ -18,7 +18,7 @@ Even in these cases,
 it's best to make your first investigations
 without getting deep
 into the Earley items.
-See L<the diagnostics document|Parse::Marpa::DIAGNOSTICS> for hints.
+See L<the diagnostics document|Parse::Marpa::Doc::Diagnostics> for hints.
 
 But every once in a while,
 the "gun and camera" approach makes sense.

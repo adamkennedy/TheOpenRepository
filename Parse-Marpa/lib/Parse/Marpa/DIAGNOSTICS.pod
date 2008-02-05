@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::DIAGNOSTICS - Marpa's Diagnostics
+Parse::Marpa::Doc::Diagnostics - Marpa's Diagnostics
 
 =head1 OVERVIEW
 
