@@ -150,6 +150,7 @@ use LWP::UserAgent        ();
 use LWP::Online           ();
 use Module::CoreList      ();
 use Tie::File             ();
+use PAR::Dist             ();
 
 use base 'Perl::Dist::Inno::Script';
 
@@ -189,6 +190,7 @@ use Perl::Dist::Asset::Library      ();
 use Perl::Dist::Asset::Perl         ();
 use Perl::Dist::Asset::Distribution ();
 use Perl::Dist::Asset::Module       ();
+use Perl::Dist::Asset::PAR          ();
 use Perl::Dist::Asset::File         ();
 use Perl::Dist::Asset::Website      ();
 use Perl::Dist::Asset::Launcher     ();
@@ -1586,6 +1588,55 @@ END_PERL
 	$self->_run3( $self->bin_perl, "-MCPAN", "-e", $cpan_str )
 		or die "perl -MCPAN -e failed";
 	die "Failure detected installing $name, stopping" if $?;
+
+	return 1;
+}
+
+sub install_par {
+	my $self = shift;
+	my $par  = Perl::Dist::Asset::PAR->new(
+		parent     => $self,
+		install_to => 'c', # Default to the C dir
+		@_,
+	);
+
+	my $name = $par->name;
+	$self->trace("Preparing $name\n");
+
+	# set the appropriate installation paths
+	my $perldir  = File::Spec->catdir($self->image_dir, 'perl');
+	my $man1dir  = File::Spec->catdir($perldir, 'man1');
+	my $man3dir  = File::Spec->catdir($perldir, 'man3');
+
+	for ($man1dir, $man3dir) {
+		mkdir($_) if not -d $_;
+	}
+
+	my $libdir = File::Spec->catdir($perldir, 'site', 'lib');
+	my $bindir = File::Spec->catdir($perldir, 'bin');
+	my $no_colon_name = $name;
+	$no_colon_name =~ s/::/-/g;
+	my $packlist = File::Spec->catfile($libdir, $no_colon_name, '.packlist');
+	my $cdir     = File::Spec->catdir($self->image_dir, 'c');
+
+	# install
+	PAR::Dist::install_par(
+		dist           => $par->url,
+		inst_lib       => $libdir,
+		inst_archlib   => $libdir,
+		inst_bin       => $bindir,
+		inst_script    => $bindir,
+		inst_man1dir   => $man1dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
+		inst_man3dir   => $man3dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
+		packlist_read  => $packlist,
+		packlist_write => $packlist,
+		custom_targets =>  {
+			'blib/c/lib'     => File::Spec->catdir($cdir, 'lib'),
+			'blib/c/bin'     => File::Spec->catdir($cdir, 'bin'),
+			'blib/c/include' => File::Spec->catdir($cdir, 'include'),
+			'blib/c/share'   => File::Spec->catdir($cdir, 'share'),
+		},
+	);
 
 	return 1;
 }

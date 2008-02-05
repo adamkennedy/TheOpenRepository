@@ -1,5 +1,4 @@
 package Perl::Dist::Asset::PAR;
-use strict;
 
 =pod
 
@@ -16,7 +15,7 @@ Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
   # Or usually more like this:
   $perldistinno->install_par(
     name => 'Perl-Dist-PrepackagedPAR-libexpat',
-    url => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
+    url  => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
   );
 
 =head1 DESCRIPTION
@@ -38,67 +37,6 @@ the standard mechanism implemented in L<Perl::Dist::Asset>.
 This class inherits from L<Perl::Dist::Asset> and shares its API.
 
 =cut
-
-package Perl::Dist::Inno;
-sub install_par {
-	my $self   = shift;
-	require PAR::Dist;
-	#require ExtUtils::InferConfig;
-
-	my $par = Perl::Dist::Asset::PAR->new(
-		parent     => $self,
-		install_to => 'c', # Default to the C dir
-		@_,
-	);
-
-	my $name = $par->name;
-	$self->trace("Preparing $name\n");
-
-	#my $Config = ExtUtils::InferConfig->new(
-	#  perl => File::Spec->catdir($self->image_dir, 'perl', 'bin', 'perl'),
-	#)->get_config;
-
-	# set the appropriate installation paths
-	my $perldir  = File::Spec->catdir($self->image_dir, 'perl');
-	my $man1dir  = File::Spec->catdir($perldir, 'man1');
-	my $man3dir  = File::Spec->catdir($perldir, 'man3');
-
-	for ($man1dir, $man3dir) {
-		mkdir($_) if not -d $_;
-	}
-
-	my $libdir = File::Spec->catdir($perldir, 'site', 'lib');
-	my $bindir = File::Spec->catdir($perldir, 'bin');
-	my $no_colon_name = $name;
-	$no_colon_name =~ s/::/-/g;
-	my $packlist = File::Spec->catfile($libdir, $no_colon_name, '.packlist');
-
-	my $cdir = File::Spec->catdir($self->image_dir, 'c');
-
-	# install
-	PAR::Dist::install_par(
-		dist           => $par->url,
-		inst_lib       => $libdir,
-		inst_archlib   => $libdir,
-		inst_bin       => $bindir,
-		inst_script    => $bindir,
-		inst_man1dir   => $man1dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
-		inst_man3dir   => $man3dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
-		packlist_read  => $packlist,
-		packlist_write => $packlist,
-		custom_targets =>  {
-			'blib/c/lib' => File::Spec->catdir($cdir, 'lib'),
-			'blib/c/bin' => File::Spec->catdir($cdir, 'bin'),
-			'blib/c/include' => File::Spec->catdir($cdir, 'include'),
-			'blib/c/share' => File::Spec->catdir($cdir, 'share'),
-		},
-	);
-
-	return 1;
-}
-
-
-package Perl::Dist::Asset::PAR;
 
 use strict;
 use Carp           'croak';
@@ -167,16 +105,16 @@ A .par usually mostly contains the blib/ directory after making a Perl module.
 For use with Perl::Dist::Asset::PAR, there are currently three more subdirectories
 which will be installed:
 
- blib/c/lib => goes into the c/lib library directory for non-Perl extensions
- blib/c/bin => goes into the c/bin executable/dll directory for non-Perl extensions
+ blib/c/lib     => goes into the c/lib library directory for non-Perl extensions
+ blib/c/bin     => goes into the c/bin executable/dll directory for non-Perl extensions
  blib/c/include => goes into the c/include header directory for non-Perl extensions
- blib/c/share => goes into the c/share share directory for non-Perl extensions
+ blib/c/share   => goes into the c/share share directory for non-Perl extensions
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-Asset-PAR>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
 
 For other issues, contact the author.
 

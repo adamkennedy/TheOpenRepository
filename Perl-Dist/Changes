@@ -5,6 +5,7 @@ Revision history for Perl module Perl::Dist
 	  to build distribution from a minicpan mirror, but maintaining
 	  that package and incrementing it every time a minor release
 	  happens of an upstream package will become a nightmare.
+	- Merged in PAR support from Perl-Dist-Glutamate (Steffen Muller)
 
 0.90_02 Thu  3 Jan 2008
 	- This release was used to build Vanilla Perl 14

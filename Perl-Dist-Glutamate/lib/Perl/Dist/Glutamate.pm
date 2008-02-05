@@ -2,10 +2,7 @@ package Perl::Dist::Glutamate;
 
 use 5.005;
 use strict;
-use Perl::Dist::Strawberry;
 use base 'Perl::Dist::Strawberry';
-use Perl::Dist::Util::Toolchain ();
-require Perl::Dist::Asset::PAR;
 
 use vars qw{$VERSION};
 BEGIN {
@@ -70,20 +67,8 @@ sub install_c_libraries {
 	return 1;
 }
 
-sub package_file {
-	my $self = shift;
-	my $name = shift;
 
-	# Additional packages for this distribution
-	#if ( $name eq 'gmp' ) {
-	#	return 'gmp-4.2.1-vanilla.zip';
-	#} elsif ( $name eq 'expat' ) {
-	#	return 'expat-2.0.1-vanilla.zip';
-	#}
 
-	# Otherwise default upwards
-	return $self->SUPER::package_file($name, @_);
-}
 
 
 #####################################################################
@@ -93,7 +78,7 @@ sub install_perl_588 {
 	my $self = shift;
 	$self->SUPER::install_perl_588(@_);
 
-	# Install the vanilla CPAN::Config
+	# Install the custom CPAN::Config
 	$self->install_file(
 		share      => 'Perl-Dist-Glutamate CPAN_Config_588.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
@@ -106,7 +91,7 @@ sub install_perl_5100 {
 	my $self = shift;
 	$self->SUPER::install_perl_5100(@_);
 
-	# Install the vanilla CPAN::Config
+	# Install the custom CPAN::Config
 	$self->install_file(
 		share      => 'Perl-Dist-Glutamate CPAN_Config_5100.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
@@ -133,11 +118,11 @@ sub install_perl_modules {
 #		name => 'CPAN::SQLite',
 #		name => 'Bundle::libwin32',
 
-
 	$self->install_par(
 		name => 'Perl-Dist-PrepackagedPAR-libexpat',
-		url => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
+		url  => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
 	);
+
 	$self->install_module(
 		name => 'XML::Parser',
 	);
@@ -167,37 +152,6 @@ sub install_perl_modules {
 #		name => 'Math::Symbolic',
 #		url => 'C:\Dokumente und Einstellungen\tsee\Desktop\build\Math-Symbolic-0.510-MSWin32-x86-multi-thread-5.10.0.par',
 #	);
-
-	return 1;
-}
-
-
-
-
-
-#####################################################################
-# Customisations to Windows assets
-
-sub install_win32_extras {
-	my $self = shift;
-
-	# Link to the Strawberry Perl website.
-	# Don't include this for non-Strawberry sub-classes
-#        if ( ref($self) =~ /Strawberry/ ) {
-#		$self->install_file(
-#			name       => 'Strawberry Perl Website Icon',
-#			url        => 'http://strawberryperl.com/favicon.ico',
-#			install_to => 'Strawberry Perl Website.ico',
-#		);
-#		$self->install_website(
-#			name       => 'Strawberry Perl Website',
-#			url        => 'http://strawberryperl.com/' . $self->output_base_filename,
-#			icon_file  => 
-#		);
-#	}
-
-	# Add the rest of the extras
-	$self->SUPER::install_win32_extras(@_);
 
 	return 1;
 }
