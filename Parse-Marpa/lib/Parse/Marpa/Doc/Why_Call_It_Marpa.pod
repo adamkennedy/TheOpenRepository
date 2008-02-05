@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::WHY - Why call this parser "Marpa"?
+Parse::Marpa::Doc::Why - Why call this parser "Marpa"?
 
 =head1 WHY CALL IT MARPA?
 

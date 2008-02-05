@@ -38,8 +38,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
 	'lib/Parse/Marpa/Parser.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Parser.pm',
-	'lib/Parse/Marpa/TUTORIAL.pod'
-	    => '$(INST_LIB)/Parse/Marpa/TUTORIAL.pod',
+	'lib/Parse/Marpa/Doc/Tutorial.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/Tutorial.pod',
 	'lib/Parse/Marpa.pm'
 	    => '$(INST_LIB)/Parse/Marpa.pm',
 	'lib/Parse/Marpa/trailer_Raw_Source.pm'
@@ -48,8 +48,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Source.pm',
 	'lib/Parse/Marpa/Source.pm.PL'
 	    => '$(INST_LIB)/Parse/Marpa/Source.pm.PL',
-	'lib/Parse/Marpa/WHY_CALL_IT_MARPA.pod'
-	    => '$(INST_LIB)/Parse/Marpa/WHY_CALL_IT_MARPA.pod',
+	'lib/Parse/Marpa/Doc/Why_Call_It_Marpa.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Why_Call_It_Marpa.pod',
 	'lib/Parse/Marpa/header_Raw_Source.pm'
 	    => '$(INST_LIB)/Parse/Marpa/header_Raw_Source.pm',
     },
