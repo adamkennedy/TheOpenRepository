@@ -1605,12 +1605,6 @@ sub install_par {
 
 	# set the appropriate installation paths
 	my $perldir  = File::Spec->catdir($self->image_dir, 'perl');
-	my $man1dir  = File::Spec->catdir($perldir, 'man1');
-	my $man3dir  = File::Spec->catdir($perldir, 'man3');
-
-	for ($man1dir, $man3dir) {
-		mkdir($_) if not -d $_;
-	}
 
 	my $libdir = File::Spec->catdir($perldir, 'site', 'lib');
 	my $bindir = File::Spec->catdir($perldir, 'bin');
@@ -1626,8 +1620,8 @@ sub install_par {
 		inst_archlib   => $libdir,
 		inst_bin       => $bindir,
 		inst_script    => $bindir,
-		inst_man1dir   => $man1dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
-		inst_man3dir   => $man3dir, # shouldn't be there at all, undef not supported by PAR::Dist yet
+		inst_man1dir   => undef, # no man pages
+		inst_man3dir   => undef,
 		packlist_read  => $packlist,
 		packlist_write => $packlist,
 		custom_targets =>  {
