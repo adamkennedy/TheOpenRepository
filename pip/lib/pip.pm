@@ -46,8 +46,9 @@ sub main {
 sub fetch_any {
 	my $uri = $_[0];
 
-	# Handle tarballs via a custom Module::Plan::Lite object
-	if ( $uri =~ /\.tar\.gz/ ) {
+	# Handle tarballs via a custom Module::Plan::Lite object.
+	# Also handle PAR archives
+	if ( $uri =~ /\.(?:par|tar\.gz)$/  ) {
 		require Module::Plan::Lite;
 		my $plan = Module::Plan::Lite->new(
 			p5i   => 'default.p5i',
@@ -88,14 +89,19 @@ sub install_any {
 sub read_any {
 	my $param = $_[0];
 
+	# If the first argument is a tar.gz file, hand off to install
+	if ( $param =~ /\.tar\.gz$/ ) {
+		return read_archive(@_);
+	}
+
+	# If the first argument is a par file, hand off to install
+	if ( $param =~ /\.par$/ ) {
+		return read_archive(@_);
+	}
+
 	# If the first argument is a p5i file, hand off to read
 	if ( $param =~ /\.p5i$/ ) {
 		return read_p5i(@_);
-	}
-
-	# If the first argument is a tar.gz file, hand off to install
-	if ( $param =~ /\.tar\.gz$/ ) {
-		return read_tarball(@_);
 	}
 
 	# If the first argument is a p5z file, hand off to instal
@@ -145,15 +151,15 @@ sub read_p5i {
 	return $plan;
 }
 
-sub read_tarball {
-	my $targz = File::Spec->rel2abs(shift);
-	unless ( -f $targz ) {
-		error("Filed does no exist: $targz");
+sub read_archive {
+	my $archive = File::Spec->rel2abs(shift);
+	unless ( -f $archive ) {
+		error("Filed does no exist: $archive");
 	}
 	require Module::Plan::Lite;
 	Module::Plan::Lite->new(
 		p5i   => 'default.p5i',
-		lines => [ '', URI::file->new($targz)->as_string ],
+		lines => [ '', URI::file->new($archive)->as_string ],
 		);
 }
 

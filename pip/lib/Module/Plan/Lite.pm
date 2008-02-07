@@ -24,7 +24,7 @@ The following is the contents of your default.pip file.
   ftp://foo.com/pip-0.13.tar.gz
   http://foo.com/pip-0.13.tar.gz
   
-  # Support for PAR installation
+  # Support for PAR installation and conventions
   http://foo.com/DBI-1.37-MSWin32-5.8.0.par
   http://foo.com/DBI-1.37
   cpan://SMUELLER/PAR-Packer-0.975
