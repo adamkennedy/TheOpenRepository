@@ -126,32 +126,34 @@ sub install_perl_modules {
 	$self->install_module(
 		name => 'XML::Parser',
 	);
+	# fails!?
 #	$self->install_module(
 #		name => 'PAR::Packer',
 #	);
+	#$self->install_module(
+#		name => 'SREZIC/Tk-804.028.tar.gz',
+#		force => 1,
+#	);
+
 	$self->install_module(
-		name => 'SREZIC/Tk-804.028.tar.gz',
-		force => 1,
+		name => 'PAR::Dist::InstallPPD',
 	);
-	# FIXME: blocking on expat!
-	$self->install_module(
-		name => 'PAR::InstallPPD::GUI',
-	);
-	$self->install_module(
-		name => 'PAR::Repository::Client',
-	);
+
+#	FIXME: Tk causing trouble
+#	$self->install_module(
+#		name => 'PAR::Dist::InstallPPD::GUI',
+#	);
+
+#	FIXME: DBM::Deep causing trouble
+#	$self->install_module(
+#		name => 'PAR::Repository::Client',
+#	);
 	$self->install_module(
 		name => 'Alien::wxWidgets',
 	);
 	$self->install_module(
 		name => 'Wx',
 	);
-
-	# yes, this also works. (With urls, too)
-#	$self->install_par(
-#		name => 'Math::Symbolic',
-#		url => 'C:\Dokumente und Einstellungen\tsee\Desktop\build\Math-Symbolic-0.510-MSWin32-x86-multi-thread-5.10.0.par',
-#	);
 
 	return 1;
 }
