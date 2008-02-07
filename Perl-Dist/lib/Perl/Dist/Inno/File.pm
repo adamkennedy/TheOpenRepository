@@ -42,14 +42,6 @@ use Object::Tiny qw{
 #####################################################################
 # Constructors
 
-=pod
-
-=head2 new
-
-The C<new>
-
-=cut
-
 sub new {
 	my $self = shift->SUPER::new(@_);
 
