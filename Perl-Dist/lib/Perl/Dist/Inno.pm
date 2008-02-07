@@ -108,11 +108,11 @@ follows:
 
 =item 5. Install additional CPAN modules
 
-=item 6. Install Win32 "extras" such as start menu entries
+=item 6. Install Win32-specific things such as start menu entries
 
 =item 7. Remove any files we don't need in the final distribution
 
-=item 8. Generate the zip or exe files as needed.
+=item 8. Generate the zip, exe or msi files.
 
 =back
 
@@ -181,6 +181,7 @@ use Object::Tiny qw{
 	debug_stdout
 	debug_stderr
 	output_file
+	force
 };
 
 use Perl::Dist::Inno                ();
@@ -384,6 +385,9 @@ sub new {
 	}
 
         # Apply more defaults
+	unless ( defined $self->{force} ) {
+		$self->{force} = 0;
+	}
 	unless ( defined $self->{trace} ) {
 		$self->{trace} = 1;
 	}
@@ -414,6 +418,7 @@ sub new {
 	# Normalize some params
 	$self->{offline}      = !! $self->offline;
 	$self->{trace}        = !! $self->{trace};
+	$self->{force}        = !! $self->force;
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
@@ -829,6 +834,7 @@ sub install_perl_588_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
 		parent => $self,
+		force  => $self->force,
 		@_,
 	);
 	unless ( $self->bin_make ) {
@@ -900,10 +906,10 @@ sub install_perl_588_bin {
 		$self->trace("Building perl...\n");
 		$self->_make;
 
-		SCOPE: {
+		unless ( $perl->force ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->trace("Testing perl build\n");
-			$self->_make('test') if 0;
+			$self->trace("Testing perl...\n");
+			$self->_make('test');
 		}
 
 		$self->trace("Installing perl...\n");
@@ -948,8 +954,8 @@ sub install_perl_588_toolchain {
 	my $toolchain = $self->find_588_toolchain;
 
 	foreach my $dist ( @{$toolchain->{dists}} ) {
-		my $force             = 0;
 		my $automated_testing = 0;
+		my $force             = $self->force;
 		if ( $dist =~ /Scalar-List-Util/ ) {
 			# Does something weird with tainting
 			$force = 1;
@@ -1001,7 +1007,6 @@ sub install_perl_5100 {
 			'perl-5.10.0/Copying'  => 'perl/Copying',
 		},
 		install_to => 'perl',
-		# force      => 1,
 	);
 
 	# Install the toolchain
@@ -1014,6 +1019,7 @@ sub install_perl_5100_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::Asset::Perl->new(
 		parent => $self,
+		force  => $self->force,
 		@_,
 	);
 	unless ( $self->bin_make ) {
@@ -1094,7 +1100,7 @@ sub install_perl_5100_bin {
 
 		unless ( $perl->force ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->trace("Testing perl build\n");
+			$self->trace("Testing perl...\n");
 			$self->_make('test');
 		}
 
@@ -1140,8 +1146,8 @@ sub install_perl_5100_toolchain {
 	my $toolchain = $self->find_5100_toolchain;
 
 	foreach my $dist ( @{$toolchain->{dists}} ) {
-		my $force             = 0;
 		my $automated_testing = 0;
+		my $force             = $self->force;
 		if ( $dist =~ /Scalar-List-Util/ ) {
 			# Does something weird with tainting
 			$force = 1;
@@ -1483,6 +1489,7 @@ sub install_distribution {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::Distribution->new(
 		parent => $self,
+		force  => $self->force,
 		@_,
 	);
 	my $name = $dist->name;
@@ -1542,6 +1549,7 @@ sub install_distribution {
 sub install_module {
 	my $self   = shift;
 	my $module = Perl::Dist::Asset::Module->new(
+		force  => $self->force,
 		parent => $self,
 		@_,
 	);
@@ -1600,9 +1608,16 @@ sub install_par {
 		#install_to => 'c', # Default to the C dir
 		@_,
 	);
-
 	my $name = $par->name;
+
+	# Download the file.
+	# Do it here for consistency, instead of letting PAR::Dist do it
 	$self->trace("Preparing $name\n");
+	my $file = $self->_mirror( 
+		$par->url,
+		$self->download_dir,
+	);
+
 
 	# set the appropriate installation paths
 	my $perldir  = File::Spec->catdir($self->image_dir, 'perl');
@@ -1616,7 +1631,7 @@ sub install_par {
 
 	# install
 	PAR::Dist::install_par(
-		dist           => $par->url,
+		dist           => $file,
 		inst_lib       => $libdir,
 		inst_archlib   => $libdir,
 		inst_bin       => $bindir,
