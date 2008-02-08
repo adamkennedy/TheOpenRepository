@@ -72,6 +72,8 @@ CPAN modules don't follow his guidelines all that closely.
 
 package Parse::Marpa::Internal;
 
+use Carp;
+
 our $compiled_eval_error;
 BEGIN {
     eval "use Parse::Marpa::Source $Parse::Marpa::STRING_VERSION";
