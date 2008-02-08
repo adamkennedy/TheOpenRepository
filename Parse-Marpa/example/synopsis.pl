@@ -18,7 +18,7 @@ my $value = Parse::Marpa::marpa(
 say $$value;
 
 __DATA__
-semantics are perl5.  version is 0.205.0.  start symbol is Expression.
+semantics are perl5.  version is 0.204.0.  start symbol is Expression.
 
 Expression: Factor, /[*]/, Factor.  q{
     $Parse::Marpa::Read_Only::v->[0] * $Parse::Marpa::Read_Only::v->[2]
