@@ -3,31 +3,23 @@ use strict;
 use warnings;
 use lib "../lib";
 use English;
+use Config;
+# use Fatal qw(open close);
 
 use Test::More tests => 1;
 
-BEGIN {
-	use_ok( 'Parse::Marpa' );
+unless ($Config{"d_pipe"}) {
+    plan skip_all => "Pipes required to test examples";
+    exit 0;
 }
 
-# remember to use refs to strings
-my $value = Parse::Marpa::marpa(
-    (do { local($RS) = undef; my $source = <DATA>; \$source; }),
-    \("2+2*3")
-);
-say $$value;
+my $example_dir = $0 =~ m{t/} ? "example" : "../example";
+chdir($example_dir);
 
-__DATA__
-semantics are perl5.  version is 0.205.0.  start symbol is Expression.
-
-Expression: Factor, /[*]/, Factor.  q{
-    $Parse::Marpa::Read_Only::v->[0] * $Parse::Marpa::Read_Only::v->[2]
-}.
-
-Factor: Term.  q{ $Parse::Marpa::Read_Only::v->[0] }.
-
-Factor: Term, /[+]/, Term.  q{
-    $Parse::Marpa::Read_Only::v->[0] + $Parse::Marpa::Read_Only::v->[2]
-}.
-
-Term: /\d+/.  q{ $Parse::Marpa::Read_Only::v->[0] }.
+my $this_perl = $^X; 
+our $PIPE;
+open(PIPE, "-|", $this_perl, "-I../lib", "synopsis.pl")
+    or die("Cannot open pipe: $!");
+local($RS) = undef;
+my $result = <PIPE>;
+is($result, "12\n", "synopsis example");

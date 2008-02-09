@@ -29,9 +29,6 @@ END_OF_PREAMBLE_CODE
 say 'our $VERSION = "', $Parse::Marpa::VERSION, q{";};
 
 print <<'END_OF_PREAMBLE_CODE';
-package Parse::Marpa::Internal;
-
-our $compiled_source_grammar;
 
 package Parse::Marpa::Internal::Source;
 

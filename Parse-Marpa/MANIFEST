@@ -10,6 +10,7 @@ bootstrap/bootstrap.pl
 bootstrap/bootstrap_header.pl
 bootstrap/bootstrap_trailer.pl
 bootstrap/self.marpa
+example/synopsis.pl
 lib/Parse/Marpa.pm
 lib/Parse/Marpa/Doc/Algorithm.pod
 lib/Parse/Marpa/Doc/Bibliography.pod
@@ -43,5 +44,6 @@ t/minus_s.t
 t/pascal.t
 t/randal.pl
 t/randal.t
+t/synopsis.t
 t/wall.t
 t/weaken.t

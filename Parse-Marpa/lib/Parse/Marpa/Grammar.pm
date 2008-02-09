@@ -361,10 +361,8 @@ sub Parse::Marpa::Grammar::new {
     $grammar->set(%args);
 }
 
-our $compiled_source_grammar;
-
 sub Parse::Marpa::show_source_grammar_status {
-    my $status = $compiled_source_grammar ?  "Compiled" : "Raw";
+    my $status = $Parse::Marpa::Internal::compiled_source_grammar ?  "Compiled" : "Raw";
     if ( $Parse::Marpa::Internal::compiled_eval_error ) {
         $status .= "\nCompiled source had error:\n" . $Parse::Marpa::Internal::compiled_eval_error;
     }
