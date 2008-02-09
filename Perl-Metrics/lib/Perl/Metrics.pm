@@ -77,7 +77,7 @@ use Module::Pluggable;
 
 use vars qw{$VERSION $TRACE};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	
 	# Enable the trace flag to show trace messages during the
 	# main processing loops in this class

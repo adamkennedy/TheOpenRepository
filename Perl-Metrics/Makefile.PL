@@ -1,3 +1,4 @@
+use strict;
 use inc::Module::Install;
 
 name           'Perl-Metrics';
@@ -12,7 +13,7 @@ requires       'Module::Pluggable' => '2.2';
 requires       'DBI'               => '1.143';
 requires       'DBD::SQLite'       => '1.08';
 requires       'Class::DBI'        => '3.0.9';
-requires       'PPI'               => '1.103';
+requires       'PPI'               => '1.201';
 build_requires 'Test::More'        => '0.47';
 
 WriteAll;

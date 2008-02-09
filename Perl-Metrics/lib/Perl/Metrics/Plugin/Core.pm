@@ -26,7 +26,7 @@ use List::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.07';
 }
 
 =pod
