@@ -45,6 +45,7 @@ What you do with the metrics after B<that> is up to you.
 
 =cut
 
+use 5.005;
 use strict;
 use base 'CPAN::Mini::Extract';
 use Carp 'croak';
@@ -52,7 +53,7 @@ use Perl::Metrics ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -185,7 +186,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
