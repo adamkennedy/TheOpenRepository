@@ -74,22 +74,21 @@ and then file data.
 
 =cut
 
+use 5.005;
 use strict;
 use bytes          ();
 use Carp           ();
 use IO::File       ();
 use Storable       ();
 use File::Basename ();
-use Params::Util   '_SCALAR',
-                   '_INSTANCE',
-                   '_IDENTIFIER';
+use Params::Util   qw{ _SCALAR _INSTANCE _IDENTIFIER };
 
 # Optional prefork support
 eval "use prefork 'File::Type';";
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
