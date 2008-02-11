@@ -28,4 +28,6 @@ requires       'PITA::POE::SupportServer' => '0.40';
 build_requires 'Test::More'               => '0.47';
 build_requires 'Test::Script'             => '1.02';
 
+no_index( directory => 'doc' );
+
 WriteAll;
