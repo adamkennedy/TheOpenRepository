@@ -89,7 +89,7 @@ Every time we want to parse different input, we need to create
 another parse object to do it.  In this case we'll have a new
 parse object for each test line.
 
-	my $parse = new Parse::Marpa::Recce(grammar => $g);
+	my $parse = new Parse::Marpa::Recognizer(grammar => $g);
 
 Now we give the parser its input.
 

@@ -467,7 +467,7 @@ sub source_grammar {
             croak("No compiled source grammar:\n", $eval_error);
         }
     }
-    my $source_grammar = Parse::Marpa::decompile(
+    my $source_grammar = Parse::Marpa::Grammar::decompile(
         $Parse::Marpa::Internal::compiled_source_grammar,
         $trace_fh
     );
@@ -874,7 +874,7 @@ sub Parse::Marpa::Grammar::compile {
 # If not trace file handle supplied, it reverts to the default, STDERR
 #
 # Returns the decompiled grammar
-sub Parse::Marpa::decompile {
+sub Parse::Marpa::Grammar::decompile {
     my $compiled_grammar = shift;
     my $trace_fh = shift;
     $trace_fh //= *STDERR;
@@ -3323,3 +3323,85 @@ sub rewrite_as_CHAF {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Parse::Marpa::Grammar - A Marpa Grammar Object
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 METHODS
+
+=head2 new(I<option> => I<value> ...)
+
+C<Parse::Marpa::Recognizer::new()> takes as its arguments a series of I<option>, I<value> pairs which
+are treated as a hash.  It returns a new grammar object or throws an exception.
+For valid options see the L<Parse::Marpa|/"Method Options">.
+
+=head2 compile
+
+The C<compile> method takes as its single argument a grammar object, and "compiles" it,
+that is, writes it out as a string, using L<Data::Dumper>.
+It returns a reference to the compiled
+grammar, or throws an exception.
+
+=item decompile(I<compiled_grammar>, [I<trace_file_handle>])
+
+The C<decompile> static method takes a reference to a compiled grammar as its first
+argument.
+The second, optional, argument is a file handle.  It is used both to override the
+compiled grammar's trace file handle, and for any trace messages produced by
+C<decompile()> itself.
+C<decompile()> returns the decompiled grammar object unless it throws an
+exception.
+
+If the trace file handle argument is omitted, it defaults to STDERR
+and the new grammar's trace file handle reverts to the default for a new
+grammar, which is also STDERR.
+The trace file handle argument is needed because in the course of compilation,
+the grammar's original trace file handle may have been lost.
+For example, a compiled grammar can be written to a file and emailed.
+Marpa cannot rely on finding the original trace file handle available and open
+when the compiled grammar is decompiled.
+
+Marpa compiles and decompiles a grammar as part of its deep copy processing phase.
+Internally, the deep copy processing phase saves the trace file handle of the original grammar
+to a temporary, then
+restores it using the trace file handle argument of C<decompile()>.
+
+=item precompute
+
+Takes as its only argument a grammar object and
+performs the precomputation phase on it.  It returns the grammar
+object or throws an exception.
+
+=head2 get_symbol(I<symbol_name>)
+
+Given a symbol's raw interface name, returns the symbol's "cookie".
+Returns undefined if a symbol with that name doesn't exist.
+
+The primary use of symbol cookies is with the C<Parse::Marpa::Recognizer::earleme>
+method.
+To get the cookie for a symbol using a high-level interface symbol name,
+see the documentation for the individual high level interface.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut

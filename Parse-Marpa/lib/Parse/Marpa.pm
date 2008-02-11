@@ -168,84 +168,31 @@ mission-critical or with a serious deadline.
 
 =head1 SYNOPSIS
 
-=head2 The Easy Way
-
-It's possible to specify the grammar and the text to be parsed all in one step
-
+    use 5.010_000;
+    use strict;
+    use warnings;
+    use English;
     use Parse::Marpa;
-    my $value = Parse::Marpa::marpa(\$grammar, \$text_to_parse);
 
-The syntax for C<$grammar> can be found in the document for the
-L<Marpa Demonstration Language|Parse::Marpa::Doc::MDL.pod>.
-You can even include options if you make a hash ref the third argument.
-
+    # remember to use refs to strings
     my $value = Parse::Marpa::marpa(
-        \$grammar,
-        \$text_to_parse
-        {
-            warnings => 1,
-        }
+        (do { local($RS) = undef; my $source = <DATA>; \$source; }),
+        \("2+2*3")
     );
+    say $$value;
 
-To get all the values of an ambiguous parse, invoke C<Parse::Marpa::marpa()> in
-list context.
+    __DATA__
+    semantics are perl5.  version is 0.205.0.  start symbol is Expression.
 
-    my @values = Parse::Marpa::marpa(\$ambiguous_grammar, \$text_to_parse);
+    Expression: Expression, /[*]/, Expression.  priority 200.  q{
+        $Parse::Marpa::Read_Only::v->[0] * $Parse::Marpa::Read_Only::v->[2]
+    }.
 
-=head2 Step by Step
+    Expression: Expression, /[+]/, Expression.  priority 100.  q{
+        $Parse::Marpa::Read_Only::v->[0] + $Parse::Marpa::Read_Only::v->[2]
+    }.
 
-First, set things up ...
-
-    use Parse::Marpa;
-
-    my @tests = split(/\n/, <<'EO_TESTS');
-    time  / 25 ; # / ; die "this dies!";
-    localtime  / 25 ; # / ; die "this dies!";
-    EO_TESTS
-
-then create a grammar object, ...
-
-    my $g = new Parse::Marpa(
-        warnings => 1,
-        code_lines => -1,
-    );
-
-and set the grammar.
-
-    my $mock_perl_grammar; { local($RS) = undef; $mock_perl_grammar = <DATA> };
-    $g->set( source => \$mock_perl_grammar);
-
-Next, as many times as you like, ...
-
-    TEST: while (my $test = pop @tests) {
-
-create a parse object, ...
-
-        my $parse = new Parse::Marpa::Recognizer($g);
-
-pass text to the recognizer, ...
-
-        $parse->text(\$test);
-
-evaluate the initial parse, ...
-
-        $parse->initial();
-        my @parses;
-        push(@parses, $parse->value);
-
-... and get others, if there are any.
-
-        while ($parse->next) {
-            push(@parses, $parse->value);
-        }
-
-You're now ready to announce your results and continue the loop.
-
-        say "I've got ", scalar @parses, " parses:";
-        for (my $i = 0; $i < @parses; $i++) {
-            say "Parse $i: ", ${$parses[$i]};
-        }
-    }
+    Expression: /\d+/.  q{ $Parse::Marpa::Read_Only::v->[0] }.
 
 =head1 DESCRIPTION
 
@@ -298,7 +245,7 @@ include predictive and ambiguous lexing.
 
 =back
 
-=head1 THE STATUS OF THIS MODULE
+=head2 The Status of this Module
 
 This is an alpha release.
 See the warnings L<above|"VERSION">.
@@ -329,7 +276,7 @@ That's a hassle, but so is alpha software.
 The version number regime will become less harsh before Marpa
 leaves beta.
 
-=head1 READING THESE DOCUMENTS
+=head2 Reading these Documents
 
 L<Parse::Marpa::Doc::Concepts> should be read before
 using Marpa, in fact probably before your first careful reading of this document.
@@ -346,13 +293,11 @@ Marpa's only high-level interface.
 Of Marpa's current documents,
 it is the most tutorial in approach.
 
-=head1 THE EASY WAY
+=head1 METHODS
 
-=over 4
+=head2 marpa(I<grammar>, I<text_to_parse>, I<option_hash>)
 
-=item Parse::Marpa::marpa(I<grammar>, I<text_to_parse>, I<option_hash>);
-
-The C<marpa()> method takes three arguments:
+The C<marpa> method takes three arguments:
 a B<reference> to a string containing a Marpa source description of the grammar in
 one of the high-level interfaces;
 a B<reference> to a string with the text to be parsed;
@@ -368,216 +313,7 @@ one of the high-level Marpa grammar interfaces.
 Currently the default (and only) high-level grammar interface is the
 L<Marpa Demonstration Language|Parse::Marpa::Doc::MDL>.
 
-=back
-
-=head1 METHODS FOR FINER CONTROL
-
-=over 4
-
-=item new Parse::Marpa(I<option> => I<value>, [I<option> => I<value>, ...])
-
-C<Parse::Marpa::Recognizer::new()> takes as its arguments a series of I<option>, I<value> pairs which
-are treated as a hash.  It returns a new grammar object or throws an exception.
-For valid options see the L<options section|/"Options">.
-
-=item new Parse::Marpa::Recognizer(I<option> => I<value>, [I<option> => I<value>, ...])
-
-C<Parse::Marpa::Recognizer::new()> takes as its arguments a series of I<option>, I<value> pairs which
-are treated as a hash.  It returns a new parse object or throws an exception.
-The C<grammar> option must be specified,
-and its value must be a grammar object with rules defined in it.
-For valid options see the L<options section|/"Options">.
-
-=item Parse::Marpa::Recognizer::text(I<parse>, I<text_to_parse>)
-
-Extends the parse in the 
-I<parse> object using the input I<text_to_parse>, a B<reference> to a string.
-Returns -1 if the parse is still active after the I<text_to_parse>
-has been processed.  Otherwise the offset of the character where the parse was exhausted
-is returned.
-Failures, other than exhausted parses,
-are thrown as exceptions.
-
-The text is parsed using the one-earleme-per-character model.
-Terminals are recognized using the lexers that were specified in the source file
-or with the raw interface.
-
-The character offset where the parse was exhausted
-is reported in characters from
-the start of C<text_to_parse>.
-The first character is at offset zero.
-This means that a zero return from C<text()> indicates
-that the parse was exhausted at the first character.
-
-A parse is "exhausted" at a point in the input
-where a successful parse becomes impossible.
-In most cases,
-an exhausted parse is a failed parse.
-
-=item Parse::Marpa::Recognizer::earleme(I<parse>, I<token_list>)
-
-Extends the parse one earleme using as the input at that earleme, I<token_list>,
-a reference to a list of token alternatives.
-Each token alternative is a reference to a three element array.
-The first element is a "cookie" for the token's symbol,
-as returned by the C<Parse::Marpa::get_symbol()> method.
-The second element is the token's value in the parse.
-The third is the token's length in earlemes.
-
-Returns 1 on success.
-Returns 0 if the parse was exhausted at that earleme.
-Throws an exception on other failures.
-
-This is the low-level token input method, and allows maximum
-control over the context and form of tokens.
-No model of the relationship between the input and the earlemes is assumed,
-and the user is free to invent her own.
-
-=item Parse::Marpa::get_symbol(I<grammar>, I<symbol_name>)
-
-Given a symbol's raw interface name, returns the symbol's "cookie".
-Returns undefined if a symbol with that name doesn't exist.
-
-The primary use of symbol cookies is with C<Parse::Marpa::Recognizer::earleme()>.
-To get the cookie for a symbol using a high-level interface symbol name,
-see the documentation for the individual high level interface.
-
-=item Parse::Marpa::Parse::new(I<recognizer>, I<parse_end>)
-
-Creates a parser object and finds the first parse.
-On succes, returns the parser object.
-The user may get the value of the first parse with C<Parse::Marpa::Parser::value()>. 
-She may iterate through the other parses with C<Parse::Marpa::Parser::next()>.
-
-If no parse is found, returns undefined.
-Other failures are thrown as exceptions.
-
-The I<parse_end> argument is optional.
-If provided, it must be the number of the earleme at which
-the parse ends.
-In the case of a still active parse in offline mode,
-the default is to parse to the end of the input.
-
-C<initial()> may be run as often as you like on the same parse,
-with or without changing the arguments to C<initial()>.
-Each call to C<initial()> resets the iteration of the parse's values to the beginning.
-
-In case of an exhausted parse,
-the default is to end the parse
-at the point at which the parse was exhausted.
-This default isn't very helpful, frankly, and if I
-think of anything better I'll change it.
-An exhausted parse is a failed parse unless
-you're trying advanced wizardry.
-Failed parses are usually addressed by fixing the grammar or the
-input.
-
-The alternative to offline mode is online mode, which is bleeding-edge.
-In online mode there is no obvious "end of input".
-Online mode is not well tested, and
-Marpa doesn't yet provide a lot of tools for working with it.
-It's up to the user to determine where to look for parses,
-perhaps using her specific knowledge of the grammar and the problem
-space.
-The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
-documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
-is a prototype of the methods that will be needed in online mode.
-
-=item Parse::Marpa::Parser::next(I<parse>)
-
-Takes a parse object as its only argument,
-and performs the next iteration through its values.
-The iteration must have been initialized with
-C<Parse::Marpa::Parser::initial()>.
-Returns 1 if there was a next iteration.
-Returns undefined when there are no more iterations.
-Other failures are exceptions.
-
-Parses are iterated from rightmost to leftmost, but their order
-may be manipulated by assigning priorities to the rules and
-terminals.
-
-=item Parse::Marpa::Parser::value(I<parse>)
-
-Takes a parse object, which has been set up with
-C<Parse::Marpa::Parser::initial()>
-and may have been iterated with
-C<Parse::Marpa::Parser::next()>.
-Returns a reference to its current value.
-Failures are thrown as exceptions.
-
-Defaults, nulling rules, and non-existent optional items
-all have as their value a Perl 5 undefined.
-These undefineds count as "node values"
-and C<value()> returns them as a reference to an undefined.
-
-In unusual cases,
-(probably be the result of advanced wizardry gone wrong),
-Marpa will not find a node value and
-the return value will be undefined instead of a pointer to undefined.
-This is considered a Marpa "no node value".
-Returns of "no node value" should not occur
-if you are in offline mode and 
-use the default end parse location in your call to the C<initial()> method.
-
-=back
-
-=head1 LESS USED METHODS
-
-The methods in this section explicitly run processing phases 
-which Marpa typically performs indirectly.
-For example, when C<Parse::Marpa::Recognizer::new()> is asked to create a new recognizer object
-from a grammar which has not been through the precomputation phase,
-that grammar is automatically precomputed
-and deep copied.
-
-The most important use of these methods is with diagnostics.
-A user may want to trace Marpa's behavior during, or examine
-a Marpa object immediately after, a particular processing phase.
-In such cases, it can be helpful or even necessary to run the phase explicitly.
-
-=over 4
-
-=item Parse::Marpa::compile(I<grammar>) or $grammar->compile()
-
-The C<compile> method takes as its single argument a grammar object, and "compiles" it,
-that is, writes it out as a string, using L<Data::Dumper>.
-It returns a reference to the compiled
-grammar, or throws an exception.
-
-=item Parse::Marpa::decompile(I<compiled_grammar>, [I<trace_file_handle>])
-
-The C<decompile> static method takes a reference to a compiled grammar as its first
-argument.
-The second, optional, argument is a file handle.  It is used both to override the
-compiled grammar's trace file handle, and for any trace messages produced by
-C<decompile()> itself.
-C<decompile()> returns the decompiled grammar object unless it throws an
-exception.
-
-If the trace file handle argument is omitted, it defaults to STDERR
-and the new grammar's trace file handle reverts to the default for a new
-grammar, which is also STDERR.
-The trace file handle argument is needed because in the course of compilation,
-the grammar's original trace file handle may have been lost.
-For example, a compiled grammar can be written to a file and emailed.
-Marpa cannot rely on finding the original trace file handle available and open
-when the compiled grammar is decompiled.
-
-Marpa compiles and decompiles a grammar as part of its deep copy processing phase.
-Internally, the deep copy processing phase saves the trace file handle of the original grammar
-to a temporary, then
-restores it using the trace file handle argument of C<decompile()>.
-
-=item Parse::Marpa::precompute(I<grammar>) or $grammar->precompute()
-
-Takes as its only argument a grammar object and
-performs the precomputation phase on it.  It returns the grammar
-object or throws an exception.
-
-=back
-
-=head1 DIAGNOSTIC METHODS
+=head2 Diagnostic Methods
 
 L<The separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
 with methods used primarily to debug grammars and parses.
@@ -586,9 +322,9 @@ with methods used primarily to debug grammars and parses.
 
 This section documents
 the options recognized by the
-C<Parse::Marpa::new()>,
-C<Parse::Marpa::Recognizer::new()>,
-and C<Parse::Marpa::set()> methods.
+C<Parse::Marpa::Grammar::new>,
+C<Parse::Marpa::Recognizer::new>,
+and C<Parse::Marpa::Grammar::set> methods.
 When the same option is specified in two different method calls,
 the most recent overrides any previous setting, unless
 stated otherwise in the description of the option.
@@ -907,25 +643,13 @@ If you don't want the exception to be fatal, catch it using C<eval>.
 A few failures are considered "non-exceptional" and returned.
 Non-exceptional failures are described in the documentation for the method which returns them.
 
-=head1 AUTHOR
-
-Jeffrey Kegler
-
-=head1 DEPENDENCIES
-
-Requires Perl 5.10.
-Users who want or need the maturity and/or stability of Perl 5.8 or earlier
-are probably also best off with more mature and stable alternatives to Marpa.
-
-=head1 LIMITATIONS
-
 =head2 Speed
 
 Speed seems very good for an Earley's implementation.
 In fact, the current bottlenecks seem not to be in the Marpa parse engine, but
 in the lexing, and in the design of the Marpa Demonstration Language.
 
-=head3 Ambiguous Lexing and Speed
+=head3 Ambiguous Lexing
 
 Ambiguous lexing has a cost, and grammars which can turn ambiguous lexing off
 can expect to parse twice as fast.
@@ -942,7 +666,7 @@ But I believe that
 lazy evaluation and memoizing could have big payoffs in the cases of most
 interest.
 
-=head3 The Marpa Demonstration Language and Speed
+=head3 The Marpa Demonstration Language
 
 The Marpa Demonstration Language was
 written to show off a wide range of Marpa's capabilities.
@@ -956,7 +680,7 @@ that grammar can be precompiled.
 Subsequent runs from the precompiled grammar won't incur the overhead of either
 MDL parsing or precomputation.
 
-=head2 More Generally, about Parsers and Speed
+=head3 Parsers and Speed, in general
 
 In thinking about speed, it's helpful to be 
 keep in mind Marpa's position in the hierarchy of parsers.
@@ -1001,6 +725,55 @@ We want to write some quick BNF,
 do the parsing,
 and move on.
 For this, there's Marpa.
+
+=head1 DEPENDENCIES
+
+Requires Perl 5.10.
+Users who want or need the maturity and/or stability of Perl 5.8 or earlier
+are probably also best off with more mature and stable alternatives to Marpa.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head2 Why is the Module named "Marpa"?
+
+Marpa is the name of the greatest of the Tibetan "translators".  In
+that time (we're talking the 11th century AD) Indian Buddhism was
+at its height.  A generation of Tibetan translators were devoting
+themselves to producing Tibetan versions of Buddhism's Sanskrit scriptures.
+Marpa was their major figure, and today he is known simply as Marpa
+Lotsawa: "Marpa the Translator".
+
+In the 11th century, translation was not a job for the indoors type.
+A translator needed to study with the teachers who had the
+texts and could explain them.  That meant going to India.  Marpa's
+home was in the Lhotrak Valley.
+The route from the Lhotrak to India was via the three-mile high Khala Chela Pass,
+two hundred difficult and lawless miles away.
+
+From Khala Chela to the great Buddhist center of Nalanda
+University was four hundred miles downhill,
+but Tibetans would stop off for years or months in Nepal,
+getting used to the low altitudes.
+Tibetans had learned
+not to go straight to Nalanda the hard way.
+Almost no germs live in the cold,
+thin air of Tibet,
+and Tibetans arriving
+directly in the lowlands had no immunities.
+Whole expeditions had
+died from disease within weeks of arrival on the hot plains.
+
+=head2 Blatant Plug
+
+There's more about Marpa in my new novel, B<The God Proof>, in which
+his studies, travels and adventures are a major subplot.  B<The God
+Proof> centers around Kurt GE<ouml>del's proof of God's existence.
+Yes, I<that> Kurt GE<ouml>del, and yes, he really did work out a
+God Proof (it's in his I<Collected Works>, Vol. 3, pp. 403-404).
+B<The God Proof> is available at Amazon:
+L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
 =head1 BUGS AND MISFEATURES
 

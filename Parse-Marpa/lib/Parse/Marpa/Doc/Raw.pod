@@ -11,7 +11,7 @@ directly.
 It is a short list of method options to the
 C<Parse::Marpa::new()>,
 C<Parse::Marpa::set()>,
-and C<Parse::Marpa::Recce::new()> methods.
+and C<Parse::Marpa::Recognizer::new()> methods.
 
 Marpa does not allow use of both the raw interface and a high level interface
 to build the same grammar,

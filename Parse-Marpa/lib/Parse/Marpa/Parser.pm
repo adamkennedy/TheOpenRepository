@@ -929,3 +929,110 @@ sub show_derivation {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Parse::Marpa::Parser - A Marpa Parser Object
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 METHODS
+
+=head2 Parse::Marpa::Parser::new(I<recognizer>, I<parse_end>)
+
+Creates a parser object and finds the first parse.
+On succes, returns the parser object.
+The user may get the value of the first parse with C<Parse::Marpa::Parser::value()>. 
+She may iterate through the other parses with C<Parse::Marpa::Parser::next()>.
+
+If no parse is found, returns undefined.
+Other failures are thrown as exceptions.
+
+The I<parse_end> argument is optional.
+If provided, it must be the number of the earleme at which
+the parse ends.
+In the case of a still active parse in offline mode,
+the default is to parse to the end of the input.
+
+C<initial()> may be run as often as you like on the same parse,
+with or without changing the arguments to C<initial()>.
+Each call to C<initial()> resets the iteration of the parse's values to the beginning.
+
+In case of an exhausted parse,
+the default is to end the parse
+at the point at which the parse was exhausted.
+This default isn't very helpful, frankly, and if I
+think of anything better I'll change it.
+An exhausted parse is a failed parse unless
+you're trying advanced wizardry.
+Failed parses are usually addressed by fixing the grammar or the
+input.
+
+The alternative to offline mode is online mode, which is bleeding-edge.
+In online mode there is no obvious "end of input".
+Online mode is not well tested, and
+Marpa doesn't yet provide a lot of tools for working with it.
+It's up to the user to determine where to look for parses,
+perhaps using her specific knowledge of the grammar and the problem
+space.
+The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
+documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
+is a prototype of the methods that will be needed in online mode.
+
+=head2 Parse::Marpa::Parser::next(I<parse>)
+
+Takes a parse object as its only argument,
+and performs the next iteration through its values.
+The iteration must have been initialized with
+C<Parse::Marpa::Parser::initial()>.
+Returns 1 if there was a next iteration.
+Returns undefined when there are no more iterations.
+Other failures are exceptions.
+
+Parses are iterated from rightmost to leftmost, but their order
+may be manipulated by assigning priorities to the rules and
+terminals.
+
+=head2 Parse::Marpa::Parser::value(I<parse>)
+
+Takes a parse object, which has been set up with
+C<Parse::Marpa::Parser::initial()>
+and may have been iterated with
+C<Parse::Marpa::Parser::next()>.
+Returns a reference to its current value.
+Failures are thrown as exceptions.
+
+Defaults, nulling rules, and non-existent optional items
+all have as their value a Perl 5 undefined.
+These undefineds count as "node values"
+and C<value()> returns them as a reference to an undefined.
+
+In unusual cases,
+(probably be the result of advanced wizardry gone wrong),
+Marpa will not find a node value and
+the return value will be undefined instead of a pointer to undefined.
+This is considered a Marpa "no node value".
+Returns of "no node value" should not occur
+if you are in offline mode and 
+use the default end parse location in your call to the C<initial()> method.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut

@@ -331,7 +331,7 @@ to an at-sign.
 
 =head2 Default Lex Prefix Definition
 
-Terminals can be specified as patterns which the C<Parse::Marpa::Recce::text()>
+Terminals can be specified as patterns which the C<Parse::Marpa::Recognizer::text()>
 method will automatically search for.
 Terminals are allowed to have
 a "prefix", another pattern which is to be checked for
@@ -805,4 +805,4 @@ C<My symbol> and C<MY_SYMBOL> is, in canonical form, C<my-symbol>.
 
 Given an MDL symbol name as its one argument,
 C<Parse::Marpa::MDL::get_symbol()> will return the symbol's "cookie".
-Symbol cookies are needed to use the C<Parse::Marpa::Recce::earleme()> method.
+Symbol cookies are needed to use the C<Parse::Marpa::Recognizer::earleme()> method.

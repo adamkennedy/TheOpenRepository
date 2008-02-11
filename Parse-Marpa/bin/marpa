@@ -79,7 +79,7 @@ sub do_parse {
     if (defined $compiled_grammar_file) {
 	open(GRAMMAR, "<", $compiled_grammar_file);
 	my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
-	$grammar = Parse::Marpa::decompile();
+	$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
     }
     elsif (defined $grammar_file) {
 	open(GRAMMAR, "<", $grammar_file);
@@ -152,7 +152,7 @@ sub do_parse {
        }
     }
 
-    my $parse = new Parse::Marpa::Recce(
+    my $parse = new Parse::Marpa::Recognizer(
         grammar => $grammar,
     );
     if (not defined $text_to_parse) {

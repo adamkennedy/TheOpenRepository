@@ -564,15 +564,15 @@ sub Parse::Marpa::Recognizer::new {
         given ($state) {
             when (Parse::Marpa::Internal::Grammar::PERL_RULES) {
                 my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::decompile($compiled_grammar, $trace_fh);
+                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
             }
             when (Parse::Marpa::Internal::Grammar::SOURCE_RULES) {
                 my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::decompile($compiled_grammar, $trace_fh);
+                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
             }
             when (Parse::Marpa::Internal::Grammar::PRECOMPUTED) {
                 my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::decompile($compiled_grammar, $trace_fh);
+                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
             }
             when (Parse::Marpa::Internal::Grammar::COMPILED) {
                 eval_grammar( $parse, $grammar );
@@ -1332,3 +1332,85 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
 }
 
 1;
+
+=pod
+
+=head1 NAME
+
+Parse::Marpa::Recognizer - A Marpa Recognizer Object
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head1 METHODS
+
+=head2 new Parse::Marpa::Recognizer(I<option> => I<value>...)
+
+C<Parse::Marpa::Recognizer::new> takes as its arguments a series of I<option>, I<value> pairs which
+are treated as a hash.  It returns a new parse object or throws an exception.
+The C<grammar> option must be specified,
+and its value must be a grammar object with rules defined in it.
+For valid options see the L<Parse::Marpa|/"Method Options">.
+
+=head2 Parse::Marpa::Recognizer::text(I<parse>, I<text_to_parse>)
+
+Extends the parse in the 
+I<parse> object using the input I<text_to_parse>, a B<reference> to a string.
+Returns -1 if the parse is still active after the I<text_to_parse>
+has been processed.  Otherwise the offset of the character where the parse was exhausted
+is returned.
+Failures, other than exhausted parses,
+are thrown as exceptions.
+
+The text is parsed using the one-earleme-per-character model.
+Terminals are recognized using the lexers that were specified in the source file
+or with the raw interface.
+
+The character offset where the parse was exhausted
+is reported in characters from
+the start of C<text_to_parse>.
+The first character is at offset zero.
+This means that a zero return from C<text()> indicates
+that the parse was exhausted at the first character.
+
+A parse is "exhausted" at a point in the input
+where a successful parse becomes impossible.
+In most cases,
+an exhausted parse is a failed parse.
+
+=head2 Parse::Marpa::Recognizer::earleme(I<parse>, I<token_list>)
+
+Extends the parse one earleme using as the input at that earleme, I<token_list>,
+a reference to a list of token alternatives.
+Each token alternative is a reference to a three element array.
+The first element is a "cookie" for the token's symbol,
+as returned by the C<Parse::Marpa::get_symbol()> method.
+The second element is the token's value in the parse.
+The third is the token's length in earlemes.
+
+Returns 1 on success.
+Returns 0 if the parse was exhausted at that earleme.
+Throws an exception on other failures.
+
+This is the low-level token input method, and allows maximum
+control over the context and form of tokens.
+No model of the relationship between the input and the earlemes is assumed,
+and the user is free to invent her own.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut

@@ -57,7 +57,7 @@ has example outputs from these methods and outlines how to read them.
 These are options to the
 C<Parse::Marpa::new()>,
 C<Parse::Marpa::set()>,
-and C<Parse::Marpa::Recce::new()>
+and C<Parse::Marpa::Recognizer::new()>
 methods.
 All trace output goes to the trace file handle.
 
@@ -81,7 +81,7 @@ Little or no knowledge of Marpa internals required.
 Traces each Earley set as it is completed.
 I find it better to wait until parse evaluation time,
 when there's more information
-and then use C<Parse::Marpa::Recce::show_status()>.
+and then use C<Parse::Marpa::Recognizer::show_status()>.
 Requires knowledge of Marpa internals.
 
 =item trace_evaluation_choices
@@ -277,7 +277,7 @@ turning on the warnings option.
 
 =over 4
 
-=item Parse::Marpa::Recce::show(I<parse>)
+=item Parse::Marpa::Recognizer::show(I<parse>)
 
 Takes a parse object as its argument and "shows the parse,"
 that is,
@@ -285,7 +285,7 @@ shows the derivation of the last parse made from a parse object.
 Very useful.  Basic use requires no Marpa internals.
 It also reports the Earley item and SDFA state at each line of the derivation.
 
-=item Parse::Marpa::Recce::show_status(I<parse>)
+=item Parse::Marpa::Recognizer::show_status(I<parse>)
 
 This is the central tool for debugging a parse
 using Marpa internals.
@@ -302,15 +302,15 @@ and listings of the symbols, the rules,
 and the SDFA states (see C<show_SDFA()>),
 will usually be everything you need.
 
-=item Parse::Marpa::Recce::find_complete_rule(I<parse>, I<start_earleme>, I<_symbol>, I<end_earleme>)
+=item Parse::Marpa::Recognizer::find_complete_rule(I<parse>, I<start_earleme>, I<_symbol>, I<end_earleme>)
 
-The C<Parse::Marpa::Recce::find_complete_rule()> method takes a parse object as its one required argument.
+The C<Parse::Marpa::Recognizer::find_complete_rule()> method takes a parse object as its one required argument.
 Arguments which specify a I<start_earleme>, I<symbol> and I<end_earleme> are optional.
 If the start earleme is not specified, it defaults to earleme 0.
 If the end earleme is not specified,
 its default wll be the default parse end earleme,
 that is, the default location
-that C<Parse::Marpa::Recce::initial()> would use for the end of parsing.
+that C<Parse::Marpa::Recognizer::initial()> would use for the end of parsing.
 The symbol argument, if specified, must be the raw interface name of a symbol.
 
 The end earleme argument must be at or before the default parse end earleme.
