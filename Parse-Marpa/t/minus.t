@@ -20,7 +20,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "E",
     rules => [
 	[ "E", [qw/E Minus E/],
@@ -73,11 +73,11 @@ EOCODE
      return $Parse::Marpa::Read_Only::v->[0] if $v_count == 1;
      "(" . join(";", @$Parse::Marpa::Read_Only::v) . ")";
 EOCODE
-);
+});
 
-my $recce = new Parse::Marpa::Recognizer(
+my $recce = new Parse::Marpa::Recognizer({
     grammar => $g,
-);
+});
 
 is( $g->show_rules(), <<'END_RULES', "Minuses Equation Rules" );
 0: E -> E Minus E

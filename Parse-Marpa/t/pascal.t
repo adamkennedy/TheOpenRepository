@@ -16,7 +16,7 @@ BEGIN {
 sub ah_extended {
      my $n = shift;
 
-    my $g = new Parse::Marpa::Grammar(
+    my $g = new Parse::Marpa::Grammar({
         start => "S",
         rules => [
             [ "S", [("A")x$n] ],
@@ -30,9 +30,9 @@ sub ah_extended {
         volatile => 1,
         # no warnings for $n equals zero
         warnings => ($n ? 1 : 0),
-    );
+    });
 
-    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
     my $a = $g->get_symbol("a");
     for (0 .. $n) { $recce->earleme([$a, "a", 1]); }

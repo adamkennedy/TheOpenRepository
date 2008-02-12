@@ -12,7 +12,7 @@ BEGIN {
     use_ok('Parse::Marpa');
 }
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "S'",
     rules => [  
         [ "S'", [qw/S/] ],
@@ -22,13 +22,14 @@ my $g = new Parse::Marpa::Grammar(
         [ "E" ],
     ],
     academic => 1,
-);
 
-$g->set(
+});
+
+$g->set({
     terminals => [
         [ "a" => { regex => "a" } ],
     ],
-);
+});
 
 $g->precompute();
 

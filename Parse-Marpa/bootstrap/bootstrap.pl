@@ -683,7 +683,7 @@ for my $rule (@$rules) {
     }
 }
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => Parse::Marpa::MDL::canonical_symbol_name("grammar"),
     rules => $rules,
     terminals => $terminals,
@@ -693,10 +693,10 @@ my $g = new Parse::Marpa::Grammar(
     # trace_rules => 1,
     preamble => $preamble,
     warnings => 0,
-);
+});
 
 my $recce = new Parse::Marpa::Recognizer(
-   grammar=> $g,
+   { grammar=> $g }
 );
 
 sub binary_search {

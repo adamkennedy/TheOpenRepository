@@ -21,11 +21,11 @@ BEGIN {
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     source => \$source,
-);
+});
 
-my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
 my $op = Parse::Marpa::MDL::get_symbol($g, "Op");
 my $number = Parse::Marpa::MDL::get_symbol($g, "Number");

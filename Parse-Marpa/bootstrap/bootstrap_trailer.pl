@@ -8,24 +8,24 @@ croak("Version requested is ", $new_version, "\nVersion must match ", $Parse::Ma
 croak("Semantics are ", $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq "perl5";
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => $new_start_symbol,
     rules => $new_rules,
     terminals => $new_terminals,
     warnings => 1,
-);
+});
 
-$g->set(default_lex_prefix => $new_default_lex_prefix)
+$g->set({default_lex_prefix => $new_default_lex_prefix})
     if defined $new_default_lex_prefix;
-$g->set(default_action => $new_default_action)
+$g->set({default_action => $new_default_action})
     if defined $new_default_action;
-$g->set(default_null_value => $new_default_null_value)
+$g->set({default_null_value => $new_default_null_value})
     if defined $new_default_null_value;
 
-my $recce = new Parse::Marpa::Recognizer(
+my $recce = new Parse::Marpa::Recognizer({
    grammar=> $g,
    preamble => $new_preamble,
-);
+});
 
 sub locator {
     my $earleme = shift;

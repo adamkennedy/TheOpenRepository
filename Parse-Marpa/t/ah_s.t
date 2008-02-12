@@ -17,16 +17,16 @@ BEGIN {
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     warnings => 1,
     code_lines => -1,
-);
+});
 
-$g->set( source => \$source);
+$g->set({ source => \$source});
 
 $g->precompute();
 
-my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
 my $lc_a = Parse::Marpa::MDL::get_symbol($g, "lowercase a");
 $recce->earleme([$lc_a, "lowercase a", 1]);

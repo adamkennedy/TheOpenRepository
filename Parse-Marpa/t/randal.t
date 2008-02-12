@@ -25,17 +25,17 @@ EO_TESTS
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     warnings => 1,
     code_lines => -1,
-);
+});
 
-$g->set( source => \$source);
+$g->set({ source => \$source });
 
 $g->precompute();
 
 TEST: while (my $test = pop @tests) {
-    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
     $recce->text(\$test);
     my $parser = new Parse::Marpa::Parser($recce);
     my @parses;

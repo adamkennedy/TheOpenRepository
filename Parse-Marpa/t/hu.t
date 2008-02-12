@@ -14,7 +14,7 @@ BEGIN {
 # (Addison-Wesley, Reading, Massachusetts: 1979),
 # pp. 248, 250.
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "S'",
     rules => [
         [ "S'", [qw/S c/] ],
@@ -24,15 +24,15 @@ my $g = new Parse::Marpa::Grammar(
         [ "A",  [qw/a b/] ],
     ],
     academic => 1,
-);
+});
 
-$g->set(
+$g->set({
     terminals => [
         [ "a" => { regex => qr/a/ } ],
         [ "b" => { regex => qr/b/ } ],
         [ "c" => { regex => qr/c/ } ],
     ],
-);
+});
 
 $g->precompute();
 

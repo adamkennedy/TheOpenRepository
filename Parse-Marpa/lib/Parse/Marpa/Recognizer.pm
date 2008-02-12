@@ -519,7 +519,7 @@ sub Parse::Marpa::Recognizer::new {
     my $ambiguous_lex;
     my $preamble;
 
-    my $args = {@_};
+    my ($args) = @_;
     my $grammar = $args->{grammar};
     croak("No grammar specified") unless defined $grammar;
     delete $args->{grammar};
@@ -529,7 +529,7 @@ sub Parse::Marpa::Recognizer::new {
         "${class}::new() grammar arg has wrong class: $grammar_class")
         unless $grammar_class eq "Parse::Marpa::Grammar";
 
-    Parse::Marpa::Grammar::set($grammar, %{$args});
+    Parse::Marpa::Grammar::set($grammar, $args);
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING ];
 
     # We always get the trace file handle, because we often need it to pass to

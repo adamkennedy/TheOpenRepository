@@ -13,7 +13,7 @@ BEGIN {
 	use_ok( 'Parse::Marpa' );
 }
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "S",
     rules => [
         [ "S", [qw/A A A A/] ],
@@ -29,13 +29,13 @@ my $g = new Parse::Marpa::Grammar(
      return $Parse::Marpa::Read_Only::v->[0] if $v_count == 1;
      "(" . join(";", @$Parse::Marpa::Read_Only::v) . ")";
 EOCODE
-);
+});
 
-$g->set(
+$g->set({
     terminals => [
         [ "a" => { regex => "a" } ],
     ],
-);
+});
 
 $g->precompute();
 
@@ -240,7 +240,7 @@ St14: 8
 S ::= A[] S[R0:1][x6] .
 EOS
 
-my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
 my $set0_new = <<'EOS';
 Earley Set 0

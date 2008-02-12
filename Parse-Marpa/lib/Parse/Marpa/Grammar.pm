@@ -321,7 +321,7 @@ package Parse::Marpa::Internal::Grammar;
 
 sub Parse::Marpa::Grammar::new {
     my $class = shift;
-    my %args  = @_;
+    my ($args) = @_;
 
     my $grammar = [];
     bless( $grammar, $class );
@@ -358,7 +358,7 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES ] = -1;
     $grammar->[Parse::Marpa::Internal::Grammar::ONLINE ] = 0;
 
-    $grammar->set(%args);
+    $grammar->set($args);
 }
 
 sub Parse::Marpa::show_source_grammar_status {
@@ -480,8 +480,7 @@ sub source_grammar {
     $source_options //= {};
     use integer;
     my $recce = new Parse::Marpa::Recognizer(
-        grammar => $source_grammar,
-        %{$source_options}
+        { grammar => $source_grammar, %{$source_options} }
     );
 
     my $failed_at_earleme = $recce->text($source);
@@ -496,7 +495,7 @@ sub source_grammar {
 
 sub Parse::Marpa::Grammar::set {
     my $grammar = shift;
-    my %args    = @_;
+    my ($args)    = @_;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
@@ -514,7 +513,7 @@ sub Parse::Marpa::Grammar::set {
     }
 
     # value of source needs to be a *REF* to a string
-    my $source = $args{"source"};
+    my $source = $args->{"source"};
     if ( defined $source ) {
         croak("Cannot source grammar with some rules already defined")
             if $state ne Parse::Marpa::Internal::Grammar::NEW;
@@ -522,10 +521,10 @@ sub Parse::Marpa::Grammar::set {
             unless ref $source eq "SCALAR";
         croak("Source for grammar undefined")
             if not defined $$source;
-        source_grammar( $grammar, $source, $args{"source_options"} );
+        source_grammar( $grammar, $source, $args->{"source_options"} );
     }
 
-    while ( my ( $option, $value ) = each %args ) {
+    while ( my ( $option, $value ) = each %$args ) {
         given ($option) {
             when ("source") {;}    # already dealt with
             when ("source_options") {;}    # already dealt with

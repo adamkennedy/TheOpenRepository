@@ -12,7 +12,7 @@ BEGIN {
 # A grammar from Grune & Jacobs, Parsing Techniques: A Practical Guide, pp 206-207.
 # The book is available on the web.
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "S'",
     rules => [
         [ "S'", [qw/S $/] ],
@@ -23,9 +23,9 @@ my $g = new Parse::Marpa::Grammar(
         [ "T",  [qw/( E )/] ],
     ],
     academic => 1,
-);
+});
 
-$g->set(
+$g->set({
     terminals => [
         [ 'n' => { regex => qr/n/ } ],
         [ '$' => { regex => qr/\$/ } ],
@@ -33,7 +33,7 @@ $g->set(
         [ '(' => { regex => qr/\(/ } ],
         [ '-' => { regex => qr/\-/ } ],
     ],
-);
+});
 
 $g->precompute();
 

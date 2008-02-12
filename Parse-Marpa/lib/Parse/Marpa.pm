@@ -117,10 +117,9 @@ sub Parse::Marpa::marpa {
         unless $ref eq "HASH";
 
     my $g = new Parse::Marpa::Grammar(
-        source => $grammar,
-        %{$options}
+        { source => $grammar, %{$options} }
     );
-    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
     my $failed_at_earleme = $recce->text($text);
     if ($failed_at_earleme >= 0) {

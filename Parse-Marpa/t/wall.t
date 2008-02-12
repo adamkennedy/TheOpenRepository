@@ -25,7 +25,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar(
+my $g = new Parse::Marpa::Grammar({
     start => "E",
     volatile => 0,
     rules => [
@@ -78,13 +78,13 @@ EOCODE
      return $Parse::Marpa::Read_Only::v->[0] if $v_count == 1;
      "(" . join(";", @$Parse::Marpa::Read_Only::v) . ")";
 EOCODE
-);
+});
 
 my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
 for my $n (1 .. 12) {
 
-    my $recce = new Parse::Marpa::Recognizer(grammar => $g);
+    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
     my $minus = $g->get_symbol("Minus");
     my $number = $g->get_symbol("Number");
     $recce->earleme([$number, 6, 1]);
