@@ -1,0 +1,25 @@
+=over 4
+
+=item * Test that max_parses works, then document
+
+=item * Ensure Parse::Marpa::Internal::This::grammar set wherever appropriate.
+
+=item * Test right and left evaluation in rules
+
+=item * Test proper and perl5 separation
+
+=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
+
+=item * Test (or remove?) lexing suffixes.
+
+=item * Allow alternation?
+
+=item * Inplace option for grammars?
+
+=item * Add to test set
+
+   - basic test for all branches of counted rules: matrix is
+     keep/no-keep, separated yes/no, right/left,
+     0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, 5-*
+
+=back
