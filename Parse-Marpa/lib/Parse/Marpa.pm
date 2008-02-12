@@ -293,6 +293,300 @@ Marpa's only high-level interface.
 Of Marpa's current documents,
 it is the most tutorial in approach.
 
+=head1 GRAMMAR INTERFACES
+
+A grammar is specified to Marpa through a B<grammar interface>,
+which may itself be described by a Marpa grammar.
+Right now there are only two grammar interfaces:
+the B<Marpa Demonstration Language>
+and the B<raw grammar interface>.
+
+=head2 The Raw Grammar Interface
+
+The B<raw grammar interface> is a set of options available
+through the constructor for
+Marpa grammar objects, C<Parse::Marpa::new()>
+as well as the C<Parse::Marpa::set()> method.
+The other grammar interfaces also use the raw grammar interface,
+but indirectly.
+The raw grammar interface is efficient,
+but users will usually want something higher level.
+The documentation for the raw grammar interface
+is L<Parse::Marpa::Doc::Raw>.
+
+=head2 The Marpa Demonstration Language
+
+In Marpa's eyes all
+higher level grammar interfaces will
+be equal.
+I call the one that I am delivering with 
+Marpa the B<Marpa Demonstration Language> instead
+of the "Marpa Language" to emphasize it's lack of
+special status.
+Its documentation is at L<Parse::Marpa::Doc::MDL>.
+
+=head2 Your Grammar Interface Here
+
+Users are encouraged to design their own
+high-level Marpa interfaces.
+
+=head1 TOKENS AND EARLEMES
+
+As a reminder,
+in parsing a input text,
+it is standard to proceed by
+first breaking that input text up into tokens.
+Typically, regular expressions or something similar is used for that purpose.
+The actual parsing is then done on the sequence of tokens.
+In conventional parsing, it's required that the token sequence be deterministic --
+that is, that there be only one sequence of tokens and that that sequence can be found
+by the lexer more or less on its own.
+
+Marpa allows ambiguous tokens.
+Specifically, Marpa tokens allows recognition, at a single location,
+of several different tokens which may vary in length.
+How a "location" is defined and
+how locations relate to each other is almost completely up to the user.
+Nothing, for example, prevents tokens from overlapping each other.
+
+From here on, I'll call the "locations" earlemes.
+Here are only two restrictions:
+
+=over 4
+
+=item 1
+
+Tokens must be scanned in earleme order.
+That is, all the tokens at earleme C<N>
+must be recognized before any token at earleme C<N+1>.
+
+=item 2
+
+Tokens cannot be zero or negative in earleme length.
+
+=back
+
+A parse is said to start at earleme 0, and "earleme I<N>" means the location I<N> earlemes
+after earleme 0.
+(Note for experts:
+The implementation uses one Earley set for each earleme.)
+B<Length> in earlemes probably means what you expect it does.
+The length from earleme 3 to earleme 6,
+for instance, is 3 earlemes.
+
+The conventional parsing model of dividing text into tokens before parsing
+corresponds to a B<one-earleme-per-token> model in Marpa.
+Marpa's C<Parse::Marpa::Recognizer::text()> method uses a model where
+there's B<one earleme per character>.
+
+C<Parse::Marpa::Recognizer::text()> is the routine used most commonly to provide input
+for a Marpa grammar to parse.
+It lexes an input string for the user, using the regexes or lexing actions supplied
+by the user.
+The tokens C<text()> recognizes are fed to the Marpa parse engine.
+The earleme length of each token is
+set using the tokens's earleme length.
+(If a token has a "lex prefix",
+the length of the lex prefix counts as part of the token length.)
+
+In conventional Earley parsing,
+any "location" without a token means the parse is exhausted.
+This is not the case in Marpa.
+Because tokens can span many earlemes,
+a parse remains viable as long as some token
+has been recognized which ends at or after the current earleme.
+Only when there is no token at the current location, and no token reaches to the current
+location or past it, is the parse exhausted.
+Marpa parses often contain many stretches
+of empty earlemes, and some of these stretches can be quite long.
+(Note to experts: an "empty earleme" corresponds to an Earley set with no Earley items.)
+
+Users of Marpa are not restricted to either the one-token-per-earleme or the one-character-per-earleme
+scheme.
+Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Recognizer::earleme()> method
+and a user may supply earleme lengths according to any rules he finds useful, subject to
+the two restrictions above.
+
+=head1 THE STEPS OF MARPA PARSING
+
+In parsing a text,
+Marpa follows a strict sequence,
+some or all of which is usually invisible to the user.
+For example, when a parse object is created from a grammar
+which has not been precomputed, the parse object constructor
+will silently perform not just the precomputation of the grammar,
+but also a deep copy of it.
+If the C<Parse::Marpa::marpa()> routine is used,
+lower level methods to perform all the steps
+will be called for you as necessary.
+ 
+With each step below, I've documented the low level methods which perform it.
+These low level methods are available to the user, but
+using them is never the easiest and rarely the best approach.
+See the main L<Parse::Marpa> documentation page for
+pointers to easier interfaces,
+as well as instructions on how to exercise step-by-step control when that is what you want.
+
+=head1 SEMANTICS
+
+In Marpa,
+a user specifies a parse's semantics with semantic actions.
+The user can specify lex actions (or lexers),
+null symbol values,
+rule actions,
+and a preamble.
+Lex actions, rule actions and the preamble run in,
+and null symbol values are calculated in,
+a special namespace set aside for that purpose.
+The preamble is run before any other semantic action,
+and can be used to initialize the namespace.
+
+Semantics can be specified as the grammar is being built,
+and when the parse object is created.
+They are finalized at parse object creation time.
+
+Semantic actions must be use the current type of semantics.
+Right now, the only semantics available is Perl 5 code.
+Marpa is targeted to Perl 6, and Perl 6 code is intended to be
+the default semantics.
+
+=head1 NULL VALUES
+
+A "null value" is a symbol's value when it matches the empty string in a parse.
+By default, the null value is a Perl undefined, which usually is what makes sense.
+If you want something else,
+the default null value is a predefined (C<default_null_value>) and can be reset.
+
+A symbol can match the empty string directly, if it is on the left hand side of an empty rule.
+It can also match indirectly, through a series of other rules, only some of which need to be empty rules.
+
+Each symbol can have its own null symbol value.
+The null symbol value for any symbol is calculated using the action
+specified for the empty rule which has that symbol as its left hand side.
+The null symbol action is B<not> a rule action.
+It's a property of the symbol, and applies whenever the symbol is nulled,
+even when the symbol's empty rule is not involved.
+
+For example, in MDL, the following says that whenever C<A> matches the empty
+string, it should evaluate to an string.
+
+    A: . q{ 'Oops!  Where did I go!' }.
+
+Null symbol actions are different from rule actions in another important way.
+Null symbol actions are run at parse creation time and the value of the result
+becomes fixed as the null symbol value.
+This is different from rule actions.
+During the creation of the parse object,
+rule actions are B<compiled into closures>.
+These rule closures are run during parse evaluation,
+whenever a node for that rule needs its value recalculated,
+and may produce different values every time they are run.
+
+I treat null symbol actions differently for efficiency.
+They have no child values,
+and a fixed value is usually what is wanted.
+If you want to calculate a symbol's null value with a closure run at parse evaluation time,
+the null symbol action can return a reference to a closure.
+The parent rules with that nullable symbol on their right hand side
+can then be set up so they run the closure returned as the value of null symbol.
+
+As mentioned,
+null symbol values are properties of the symbol, not of the rule.
+A null value is used whenever the corresponding symbol is a "highest null value"
+in a derivation,
+whether or not that happened directly through that symbol's empty rule.
+
+For instance, suppose a grammar has these rules
+
+    S: A, Z. # call me the start rule, or rule 0
+
+    A: . q{!}. # call me rule 1
+
+    A: B, C. q{"I'm sometime null and sometimes not"} # call me rule 2
+
+    B: . q{'No B'}. # call me rule 3
+
+    C: . q{'No C'}. # call me rule 4
+
+    C: Z.  # call me rule 5
+
+    Z: /Z/. q{'Zorro was here'}. # call me rule 6
+
+If the input is the string "C<Z>",
+both C<B> and C<C> will match the empty string.
+So will the symbol C<A>.
+Since C<A> produces both C<B> and C<C> in the derivation,
+and since the rule that produces C<A> is not an empty rule,
+C<A> is a "highest null symbol",
+Therefore, C<A>'s
+null value,
+the string "C<!>",
+which is computed from the action for "rule 1",
+is the value of the derivation.
+
+Note carefully several things about this example.
+First, "rule 1" is not actually in the derivation of C<A>:
+
+      A -> B C   (rule 2)
+      -> C       (rule 3)
+      ->         (rule 4)
+
+Second, in the above derivation, C<B> and C<C> also have null values,
+which play no role in the result.
+Third, rule 2 has a proper rule action,
+and it plays no role in the result either.
+
+Here is the set of principles on which Marpa's thinking in these matters is based:
+
+=over 4
+
+=item 1
+
+Rules which produce nothing don't count.
+
+=item 2
+
+Rules which produce something do count.
+
+=item 3
+
+A symbol counts when it appears in a rule that counts.
+
+=item 4
+
+A symbol does not count when it appears in a rule that does not count.
+
+=item 5
+
+Regardless of rules 1 through 4, the start symbol always counts.
+
+=back
+
+In evaluating a derivation, Marpa uses the semantics of rules and symbols which "count",
+and ignores those rules and symbols which "don't count."
+The value of an empty string, for Marpa, is always the null value of a "highest null symbol".
+A "highest null symbol" will always appear in a rule which "counts",
+or speaking more carefully, in a non-empty rule.
+
+There's one special case:
+when the whole grammar takes the empty string as input,
+and recognizes that it has parsed it successfully.
+That's called a "null parse".
+Whether or not a null parse is possible depends on the grammar.
+In a "null parse", the entire grammar "results in nothing".
+Null parses are the reason for Principle 5, above.
+The value of a null parse is null value of the start symbol.
+
+If you think some of the rules or symbols that Marpa believes "don't count"
+are important in your grammar,
+Marpa can probably accommodate your ideas.
+First, determine what your null semantics mean for every nullable symbol when it is
+a "highest null symbol".
+Then put those semantics into the each nullable symbol's null actions.
+If fixing the null value at parse creation time is not possible in your semantics,
+have your null actions return a reference to a closure and run that
+closure in a parent node.
+
 =head1 METHODS
 
 =head2 marpa(I<grammar>, I<text_to_parse>, I<option_hash>)
@@ -320,93 +614,20 @@ with methods used primarily to debug grammars and parses.
 
 =head1 OPTIONS
 
-This section documents
-the options recognized by the
-C<Parse::Marpa::Grammar::new>,
-C<Parse::Marpa::Recognizer::new>,
-and C<Parse::Marpa::Grammar::set> methods.
-When the same option is specified in two different method calls,
-the most recent overrides any previous setting, unless
-stated otherwise in the description of the option.
-
-Most options set Marpa's predefined variables,
-which can also be set using the high-level grammar interfaces.
-A few options don't deal with Marpa's predefined variables
-and are special to the C<new()> and C<set()> methods.
-These "method only" options are documented in this section.
-
-The options which set Marpa's predefined variables are documented in
-L<the section on predefineds|/"PREDEFINEDS"> below,
-except for those primarily used to
-debug and trace grammars and parses.
+Marpa allows a variety of options for controlling its behavior.
+These may be set when Parse::Marpa::Grammar and Parse::Marpa::Recognziser
+objects are created,
+with the C<Parse::Marpa::Grammar::set> method, or
+indirectly through one of
+Marpa's high-level grammar interfaces.
 Options for debugging and tracing are dealt with in
 L<the separate document on diagnostics|Parse::Marpa::Doc::Diagnostics>.
 
-=over 4
-
-=item grammar
-
-Takes as its value a grammar object.
-Only valid as an option to
-C<Parse::Marpa::Recognizer::new()>,
-where it's required.
-
-=item source
-
-This takes as its value a B<reference> to a string containing a description of
-the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::Doc::MDL>.
-It must be specified before any rules are added,
-and may be specified at most once in the life of a grammar object.
-
-=back
-
-=head1 PREDEFINEDS
-
-This section documents Marpa's predefined variables.
-There are two ways to set these.
-The most basic is as
-B<method options>:
-options of the 
-C<Parse::Marpa::new()>,
-C<Parse::Marpa::Recognizer::new()>,
-and C<Parse::Marpa::set()> methods.
-The other way to set them is as
-B<high-level interface options>:
-indirectly through one of
-Marpa's high-level grammar interfaces.
-
-This section discusses those semantics of Marpa's predefineds
-which are the same across all interfaces;
-as well as considerations specific to setting predefineds as
-method options.
-The canonical name of a Marpa predefined variable
-is the same as the option name of its method option.
-
-High level grammar interfaces are free to use
-their own conventions
-for dealing with Marpa's predefined variables.
+High level grammar interfaces use their own conventions
+for Marpa options.
 The documentation of MDL describes,
 and the documentation of every high level interface should describe,
-which predefineds can be set through that interface,
-how they are set,
-and any special considerations that apply when using that high-level
-interface.
-
-Unless documented otherwise,
-a predefined can be specified more than once.
-The most recent setting always applies, again unless
-documented otherwise.
-
-A special case is when the same predefined is set twice in
-the same method call,
-once in high-level source provided as the value of C<source> method option,
-and once directly through the predefined's own method option.
-In that circumstance,
-the method option's setting is always considered to be "more recent".
-This mean that,
-if the Marpa predefined variable has the default behavior,
-which is for a "more recent" setting to override a "less recent" one,
-the method option will override any settings in the high-level source.
+which options can be set and how.
 
 =over 4
 
@@ -607,6 +828,7 @@ In the following namespaces,
 users should use only documented methods:
 
     Parse::Marpa
+    Parse::Marpa::Grammar
     Parse::Marpa::Lex
     Parse::Marpa::MDL
     Parse::Marpa::Recognizer
@@ -617,7 +839,7 @@ users should used only documented variables,
 and those on a read-only basis.
 (Staying read-only can be tricky when dealing with Perl 5 arrays.
 Be careful about auto-vivification!)
-If a Marpa namespaces is not mentioned in this section,
+If a Marpa namespace is not mentioned in this section,
 users should not rely on or modify anything in it.
 
 =head2 String References
@@ -775,25 +997,11 @@ God Proof (it's in his I<Collected Works>, Vol. 3, pp. 403-404).
 B<The God Proof> is available at Amazon:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
-=head1 BUGS AND MISFEATURES
+=head1 TO DO
 
-=head2 A More Exhaustive Test Suite
+See L<Parse::Marpa::To_Do>.
 
-Testing has been intensive, but not exhaustive.
-The parse engine has been very well exercised, but many combinations
-of options and features have yet to be tried.
-To get an idea for what's been well tested,
-look in the C<t>, or test, directory of the distribution.
-Any feature not tested there can be assumed
-to have been only lightly exercized.
-
-=head2 Options Code Poorly Organized
-
-Most options are only valid at certain points in the parsing,
-but this is haphazardly enforced and poorly documented.
-There may be some just plain ol' bugs.
-The options code needs to be cleaned up,
-and the documentation tightened up.
+=head1 BUGS
 
 =head2 Priority Conflicts
 
@@ -879,16 +1087,6 @@ occurs where a rule is subject to CHAF rewriting,
 and CHAF rewrites are only done to rules with more than two nullables on the right hand side.
 It is always possible to break up a
 rule into other rules such that at most two nullables occur on the right hand side.
-
-=head2 Priorities Cannot Be Set in MDL for Terminals
-
-Priorities cannot be set in MDL for terminals.
-Fix this before going beta.
-
-Workaround:
-Add extra rules with the terminals you want to prioritize on their right hand side,
-and assign 
-priorities to the rules.
 
 =head2 What!  You Found Even More Bugs!
 

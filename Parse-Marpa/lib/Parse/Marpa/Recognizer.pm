@@ -1343,15 +1343,96 @@ Parse::Marpa::Recognizer - A Marpa Recognizer Object
 
 =head1 DESCRIPTION
 
+=head2 TOKENS AND EARLEMES
+
+As a reminder,
+in parsing a input text,
+it is standard to proceed by
+first breaking that input text up into tokens.
+Typically, regular expressions or something similar is used for that purpose.
+The actual parsing is then done on the sequence of tokens.
+In conventional parsing, it's required that the token sequence be deterministic --
+that is, that there be only one sequence of tokens and that that sequence can be found
+by the lexer more or less on its own.
+
+Marpa allows ambiguous tokens.
+Specifically, Marpa tokens allows recognition, at a single location,
+of several different tokens which may vary in length.
+How a "location" is defined and
+how locations relate to each other is almost completely up to the user.
+Nothing, for example, prevents tokens from overlapping each other.
+
+From here on, I'll call the "locations" earlemes.
+Here are only two restrictions:
+
+=over 4
+
+=item 1
+
+Tokens must be scanned in earleme order.
+That is, all the tokens at earleme C<N>
+must be recognized before any token at earleme C<N+1>.
+
+=item 2
+
+Tokens cannot be zero or negative in earleme length.
+
+=back
+
+A parse is said to start at earleme 0, and "earleme I<N>" means the location I<N> earlemes
+after earleme 0.
+(Note for experts:
+The implementation uses one Earley set for each earleme.)
+B<Length> in earlemes probably means what you expect it does.
+The length from earleme 3 to earleme 6,
+for instance, is 3 earlemes.
+
+The conventional parsing model of dividing text into tokens before parsing
+corresponds to a B<one-earleme-per-token> model in Marpa.
+Marpa's C<Parse::Marpa::Recognizer::text()> method uses a model where
+there's B<one earleme per character>.
+
+C<Parse::Marpa::Recognizer::text()> is the routine used most commonly to provide input
+for a Marpa grammar to parse.
+It lexes an input string for the user, using the regexes or lexing actions supplied
+by the user.
+The tokens C<text()> recognizes are fed to the Marpa parse engine.
+The earleme length of each token is
+set using the tokens's earleme length.
+(If a token has a "lex prefix",
+the length of the lex prefix counts as part of the token length.)
+
+In conventional Earley parsing,
+any "location" without a token means the parse is exhausted.
+This is not the case in Marpa.
+Because tokens can span many earlemes,
+a parse remains viable as long as some token
+has been recognized which ends at or after the current earleme.
+Only when there is no token at the current location, and no token reaches to the current
+location or past it, is the parse exhausted.
+Marpa parses often contain many stretches
+of empty earlemes, and some of these stretches can be quite long.
+(Note to experts: an "empty earleme" corresponds to an Earley set with no Earley items.)
+
+Users of Marpa are not restricted to either the one-token-per-earleme or the one-character-per-earleme
+scheme.
+Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Recognizer::earleme()> method
+and a user may supply earleme lengths according to any rules he finds useful, subject to
+the two restrictions above.
+
+
 =head1 METHODS
 
 =head2 new Parse::Marpa::Recognizer(I<option> => I<value>...)
 
-C<Parse::Marpa::Recognizer::new> takes as its arguments a series of I<option>, I<value> pairs which
-are treated as a hash.  It returns a new parse object or throws an exception.
+C<Parse::Marpa::Recognizer::new> takes as its arguments a hash reference containing named
+arguments.
+It returns a new parse object or throws an exception.
 The C<grammar> option must be specified,
-and its value must be a grammar object with rules defined in it.
-For valid options see the L<Parse::Marpa|/"Method Options">.
+and its value must be a grammar object which has rules defined.
+
+The other valid named arguments are Marpa options.
+For these, see the L<Parse::Marpa|/OPTIONS>.
 
 =head2 Parse::Marpa::Recognizer::text(I<parse>, I<text_to_parse>)
 

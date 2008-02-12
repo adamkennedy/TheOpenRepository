@@ -1,0 +1,71 @@
+=head1 NAME
+
+Parse::Marpa::Doc::To_Do - Marpa's To Do List
+
+=head1 DESCRIPTION
+
+=head2 Priorities Cannot Be Set in MDL for Terminals
+
+Priorities cannot be set in MDL for terminals.
+Fix this before going beta.
+
+Workaround:
+Add extra rules with the terminals you want to prioritize on their right hand side,
+and assign 
+priorities to the rules.
+
+=head2 A More Exhaustive Test Suite
+
+Testing has been intensive, but not exhaustive.
+The parse engine has been very well exercised, but many combinations
+of options and features have yet to be tried.
+To get an idea for what's been well tested,
+look in the C<t>, or test, directory of the distribution.
+Any feature not tested there can be assumed
+to have been only lightly exercized.
+
+=head2 Options Code Poorly Organized
+
+Most options are only valid at certain points in the parsing,
+but this is haphazardly enforced and poorly documented.
+There may be some just plain ol' bugs.
+The options code needs to be cleaned up,
+and the documentation tightened up.
+
+=head2 Other things to do
+
+=over 4
+
+=item * Test that max_parses works, then document
+
+=item * Ensure Parse::Marpa::Internal::This::grammar set wherever appropriate.
+
+=item * Test right and left evaluation in rules
+
+=item * Test proper and perl5 separation
+
+=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
+
+=item * Test (or remove?) lexing suffixes.
+
+=item * Allow alternation?
+
+=item * Inplace option for grammars?
+
+=item * Add to test set
+
+   - basic test for all branches of counted rules: matrix is
+     keep/no-keep, separated yes/no, right/left,
+     0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, 5-*
+
+=back
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2007-2008 Jeffrey Kegler, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+

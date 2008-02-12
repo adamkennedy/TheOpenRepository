@@ -3334,13 +3334,90 @@ Parse::Marpa::Grammar - A Marpa Grammar Object
 
 =head1 DESCRIPTION
 
+=head2 Phases in the Life of a Grammar
+
+=over 4
+
+=item * Creation of a grammar object
+
+A grammar object is created with C<Parse::Marpa::new()>,
+although it may called indirectly.
+
+=item * Adding rules to the grammar object
+
+Rules must added to the grammar object.
+This is done using the interfaces, and the raw
+interface is always involved.
+The raw interface may be called directly,
+or it may be hidden behind a higher level interface.
+At the lowest level, rules are added with the
+C<Parse::Marpa::new()> and the C<Parse::Marpa::set()> methods.
+
+=item * Precomputing the grammar object
+
+Before a parse object can be created,
+Marpa must do a series of precomputations on the grammar.
+This step rarely needs to be performed explicitly, but when that is
+necessary, the method call is C<Parse::Marpa::precompute()>.
+
+=item * Deep copying the grammar
+
+Marpa parse objects work with a copy of the grammar, so that
+multiple parses from a single grammar can be performed at the same 
+time without interfering with each other.
+The deep copy is done in two subphases.
+First, the grammar is written out with C<Data::Dumper>.
+Second, the string from the first subphase
+is C<eval>'ed and then tweaked back
+into a properly set-up grammar object.
+
+The two subphases are available to the user as
+C<Parse::Marpa::Grammar::compile> and C<Parse::Marpa::Grammar::decompile>.
+The result of C<compile> is a string, which may be written into a file.
+A subsequent Marpa process can read this file and continue the parse.
+See the descriptions of
+C<Parse::Marpa::Grammar::compile> and C<Parse::Marpa::Grammar::decompile> for
+details.
+
+=back
+
 =head1 METHODS
 
 =head2 new(I<option> => I<value> ...)
 
-C<Parse::Marpa::Recognizer::new()> takes as its arguments a series of I<option>, I<value> pairs which
-are treated as a hash.  It returns a new grammar object or throws an exception.
-For valid options see the L<Parse::Marpa|/"Method Options">.
+C<Parse::Marpa::Recognizer::new> has one, required, argument --
+a reference to a hash of named arguments.
+It returns a new grammar object or throws an exception.
+
+Named arguments can be Marpa options.
+For these see L<Parse::Marpa/OPTIONS>.
+In addition, the C<source> named argument and the raw interface named arguments are allowed.
+For details of the raw interface and its named arguments, see L<Parse::Marpa::Doc::Raw>.
+
+The C<source> named arguments takes as its value a B<reference> to a string containing a description of
+the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::Doc::MDL>.
+It must be specified before any rules are added,
+and may be specified at most once in the life of a grammar object.
+
+A Marpa option might be specified both as a named argument to the C<new> method, and indirectly,
+via the grammar description supplied with the C<source> argument.
+When that happens, the C<source> argument is applied first, and the named argument to the
+C<new> method is applied after the grammar description is processed.
+This fits the usual intent, which is for named arguments to the method
+to override the grammar description.
+But it also means trace settings won't be effective until after the grammar description is
+processed, which can defeat the purpose.
+
+=head2 set
+
+The C<set> method allows Marpa options, raw interface arguments and the C<source> named argument
+to be specified for an already existing grammar object.
+It can be used when it is useful to control the order in which the named arguments are applied.
+
+It's particularly useful for setting tracing options prior to specifying the grammar.
+To do this, a grammar object can be created with trace options set, but no grammar specification.
+Then the C<set> method can be used with the C<source> named arguments or the raw interface named
+arguments to set up the grammar with tracing in effect.
 
 =head2 compile
 
@@ -3349,7 +3426,7 @@ that is, writes it out as a string, using L<Data::Dumper>.
 It returns a reference to the compiled
 grammar, or throws an exception.
 
-=item decompile(I<compiled_grammar>, [I<trace_file_handle>])
+=head2 decompile(I<compiled_grammar>, [I<trace_file_handle>])
 
 The C<decompile> static method takes a reference to a compiled grammar as its first
 argument.
@@ -3373,7 +3450,7 @@ Internally, the deep copy processing phase saves the trace file handle of the or
 to a temporary, then
 restores it using the trace file handle argument of C<decompile()>.
 
-=item precompute
+=head2 precompute
 
 Takes as its only argument a grammar object and
 performs the precomputation phase on it.  It returns the grammar

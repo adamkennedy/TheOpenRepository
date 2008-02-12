@@ -940,6 +940,77 @@ Parse::Marpa::Parser - A Marpa Parser Object
 
 =head1 DESCRIPTION
 
+=head2 VOLATILITY AND PARSES
+
+If you accept Marpa's default behavior, you can safely
+ignore this section.
+By default, Marpa marks all its parses volatile,
+and that is always a safe choice.
+Non-volatile parses, however, can be optimized by
+memoizing node values as they are calculated.
+If multiple parses are evaluated in a parse with expensive rule actions,
+the boost in efficiency from node value memoization can be major.
+
+Both grammars and parses can be marked volatile.
+A parse inherits the volatility marking of the grammar it is created from,
+if there was one.
+
+It is up to the the user to make sure the semantics of an Marpa object
+is safe for memoization if she decides to
+decides to mark the object non-volatile.
+Node memoization follows the same principles as function memoization.
+Parses with ordinary, textbook semantics typically are non-volatile.
+But many things can make a parse volatile.
+
+A parse is non-volatile,
+and node values can be memoized,
+only if all rule actions produce the same results
+whenever they have the same child node values as inputs;
+and only if none of the rule actions have side effects.
+Output of any kind is among the things that make a parse volatile.
+Output is a side effect.
+If your rule action logs a message every time it is invoked,
+memoization is likely to cause missing log messages.
+
+Formally, your actions are safe for memoization if they are referentially transparent,
+that is,
+if replacing your actions with the value they return does not change the semantics of your program.
+If you're not sure whether your grammar is volatile or not,
+accept Marpa's default behavior.
+It is also always safe to mark a grammar or a parse volatile yourself.
+
+Marpa will sometimes mark grammars volatile on its own.
+Marpa often optimizes the evaluation of sequence productions
+by passing a reference to an array among the nodes of the sequence.
+This elminates the need to repeatedly copy the array of sequence values
+as it is built.
+That's a big saving,
+especially if the sequence is long,
+but the reference to the array is shared data,
+and any changes to it are side effects.
+
+Because of this Marpa marks the grammar volatile.
+
+You may ask why Marpa gives optimization of sequences priority
+over memoization of node values.
+Node value memoization has no payoff unless multiple parses are evaluated
+from a single parse object, which is not the usual case.
+Optimization of sequence evaluation almost always pays off nicely.
+
+Once an object has been marked volatile, whether by Marpa itself
+or the user, Marpa throws an exception if there is attempt to mark it non-volatile.
+Resetting a grammar to non-volatile will almost always be an oversight,
+and one that would be very hard to debug.
+The inconvenience of not allowing the user to change his mind seems minor
+by comparison.
+
+It's possible that adding the ability to 
+label only particular rules volatile might be helpful.
+But it also may be best to keep the interface simple.
+If a grammar writer is really looking for speed,
+she can let the grammar default to volatile,
+and use side effects and her own, targeted memoizations.
+
 =head1 METHODS
 
 =head2 Parse::Marpa::Parser::new(I<recognizer>, I<parse_end>)
