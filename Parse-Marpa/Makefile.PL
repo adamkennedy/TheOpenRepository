@@ -26,8 +26,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Raw.pod',
 	'lib/Parse/Marpa/Doc/MDL.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/MDL.pod',
-	'lib/Parse/Marpa/Doc/Concepts.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Concepts.pod',
+	'lib/Parse/Marpa/Doc/To_Do.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/To_Do.pod',
 	'lib/Parse/Marpa/Lex.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Lex.pm',
 	'lib/Parse/Marpa/MDL.pm'

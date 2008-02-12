@@ -3,7 +3,6 @@ MANIFEST
 META.yml # Will be created by "make dist"
 Makefile.PL
 README
-TODO
 bin/marpa
 bootstrap/Makefile
 bootstrap/bootstrap.pl
@@ -14,11 +13,11 @@ example/synopsis.pl
 lib/Parse/Marpa.pm
 lib/Parse/Marpa/Doc/Algorithm.pod
 lib/Parse/Marpa/Doc/Bibliography.pod
-lib/Parse/Marpa/Doc/Concepts.pod
 lib/Parse/Marpa/Doc/Diagnostics.pod
 lib/Parse/Marpa/Doc/Internals.pod
 lib/Parse/Marpa/Doc/MDL.pod
 lib/Parse/Marpa/Doc/Raw.pod
+lib/Parse/Marpa/Doc/To_Do.pod
 lib/Parse/Marpa/Doc/Tutorial.pod
 lib/Parse/Marpa/Doc/Why_Call_It_Marpa.pod
 lib/Parse/Marpa/Lex.pm
