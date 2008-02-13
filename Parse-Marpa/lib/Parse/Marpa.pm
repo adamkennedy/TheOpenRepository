@@ -195,54 +195,70 @@ mission-critical or with a serious deadline.
 
 =head1 DESCRIPTION
 
-C<Parse::Marpa> parses any cycle-free context-free grammar.
+=head2 Capabilities
 
-=over 4
+Marpa parses any cycle-free context-free grammar, that is,
+any grammar which can be specified in BNF free of infinite loops.
+Recursion is not banned, far from it.
+Recursion is useful, and
+Marpa cheerfully parses grammars which are left-recursive, right-recursive, middle-recursive or all three.
 
-=item *
-
-Marpa parses any grammar which can be specified in cycle-free BNF.
-(A cycle is a case where A produces A -- the BNF version of an infinite loop.)
-
-=item *
-
-The ban on cycles is B<not> a ban on recursion.
-Marpa cheerfully parses left-recursive, right-recursive
-and any other kind of recursive grammar, so long as it is cycle-free.
-Recursion is useful.  Cycles (which are essentially recursion without change)
-seem to always be pathological.
-
-=item *
+Cycles seem to always be pathological.
+For those not familiar with the distinction between cycles and recursion,
+A cycle is a case in the BNF where a symbol C<X> produces, directly or indirectly,
+a string containing nothing but itself.
+A cycle is recursion without change.
 
 Marpa parses grammars with empty productions.
-Empty productions are often important in specifying semantics.
+An empty production is one where a symbol C<X> produces the empty string.
+Empty productions are
+are often essential for specifying semantics.
 
-=item *
+Marpa parses ambiguous grammars.
+An ambiguous grammar is a grammar which might parse a string in more than one way.
+If fact, ambiguous grammars are a Marpa specialty.
 
-Ambiguous grammars are a Marpa specialty.
-They are useful even if you only want one parse.
+Ambiguity are useful even when you are only interested in one parse.
 An ambiguous grammar is often
 the easiest and most sensible way to express a language.
 Human languages are ambiguous.
 We listen and pull out the parse that makes most sense.
+
 Marpa allows the user to prioritize rules
 so that a preferred parse comes up first.
-
-=item *
-
-Marpa can also return all the parses of an ambiguous grammar.
-
-=item *
+Marpa can also return all the parses of an ambiguous grammar, if that's what the
+user prefers.
 
 Marpa incorporates the latest academic research on Earley's algorithm,
 combining it with LR(0) precomputation.
-
-=item *
-
 Marpa's own innovations
 include predictive and ambiguous lexing.
 
-=back
+=head2 The Easy Way
+
+Most of Marpa's capabilities are availble through a single, static method: C<Parse::Marpa::marpa>,
+L<described below|/marpa>.
+You supply a grammar description in MDL (the Marpa Description Language) and the string to be parsed,
+the string is parsed and evaluated according to your specifications, and the result from evaluating
+the first parse is returned.
+In list context, all results are returned.
+
+=head2 Reading these Documents
+
+L<Parse::Marpa::Doc::Concepts> should be read before
+using Marpa, in fact probably before your first careful reading of this document.
+The "concepts" in it are all practical
+-- the theoretical discussions went
+into L<Parse::Marpa::Doc::Algorithm>.
+Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
+because,
+as one example,
+the availability of ambiguous lexing has unusual implications for term I<token>.
+
+L<Parse::Marpa::Doc::MDL> documents what is currently
+Marpa's only high-level interface.
+Of Marpa's current documents,
+it is the most tutorial in approach.
 
 =head2 The Status of this Module
 
@@ -274,23 +290,6 @@ on an exact match with Marpa's version number.
 That's a hassle, but so is alpha software.
 The version number regime will become less harsh before Marpa
 leaves beta.
-
-=head2 Reading these Documents
-
-L<Parse::Marpa::Doc::Concepts> should be read before
-using Marpa, in fact probably before your first careful reading of this document.
-The "concepts" in it are all practical
--- the theoretical discussions went
-into L<Parse::Marpa::Doc::Algorithm>.
-Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
-because,
-as one example,
-the availability of ambiguous lexing has unusual implications for term I<token>.
-
-L<Parse::Marpa::Doc::MDL> documents what is currently
-Marpa's only high-level interface.
-Of Marpa's current documents,
-it is the most tutorial in approach.
 
 =head1 GRAMMAR INTERFACES
 
@@ -588,7 +587,23 @@ closure in a parent node.
 
 =head1 METHODS
 
-=head2 marpa(I<grammar>, I<text_to_parse>, I<option_hash>)
+=head2 marpa
+
+     # Parse a string and return the result
+     # Be sure to specify both input and grammar as REFERENCES to strings
+     $first_result = Parse::Marpa::marpa(\$grammar_description, \$string_to_parse);
+
+     # if the parse is ambiguous and you want more than the first result,
+     # return the value in array context
+     @all_results = Parse::Marpa::marpa(\$grammar_description, \$string_to_parse);
+
+     # You can set Marpa's options as named arguments, by specifying
+     # a hash reference of them as the optional third argument
+     $first_result = Parse::Marpa::marpa(
+         \$grammar_description,
+         \$string_to_parse,
+         { warnings => 0 }
+     );
 
 The C<marpa> method takes three arguments:
 a B<reference> to a string containing a Marpa source description of the grammar in
@@ -957,7 +972,7 @@ are probably also best off with more mature and stable alternatives to Marpa.
 
 Jeffrey Kegler
 
-=head2 Why is the Module named "Marpa"?
+=head2 Why is it Called "Marpa"?
 
 Marpa is the name of the greatest of the Tibetan "translators".  In
 that time (we're talking the 11th century AD) Indian Buddhism was
