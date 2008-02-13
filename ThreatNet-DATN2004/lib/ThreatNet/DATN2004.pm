@@ -1,5 +1,6 @@
 package ThreatNet::DATN2004;
 
+use 5.005;
 use strict;
 use vars qw{$VERSION};
 BEGIN {
