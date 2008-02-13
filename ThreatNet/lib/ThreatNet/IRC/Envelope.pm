@@ -46,7 +46,7 @@ use strict;
 use Params::Util '_INSTANCE';
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.20';
 }
 
 

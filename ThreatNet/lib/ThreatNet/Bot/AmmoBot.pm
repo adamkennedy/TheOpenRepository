@@ -45,7 +45,7 @@ use ThreatNet::Filter::ThreatCache ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.20';
 }
 
 

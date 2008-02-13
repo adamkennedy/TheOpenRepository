@@ -120,7 +120,7 @@ use ThreatNet::Message::IPv4 ();
 
 use vars qw{$VERSION %KEYWORD};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.20';
 
 	# Expandable network keywords
 	%KEYWORD = ();
