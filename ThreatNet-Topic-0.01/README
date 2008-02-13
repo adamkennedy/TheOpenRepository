@@ -1,0 +1,61 @@
+NAME
+    ThreatNet::Topic - An object representation of a ThreatNet channel topic
+
+DESCRIPTION
+    ThreatNet is an evolving idea. This standalone module defines a topic
+    format and an object to hold it. ThreatNet itself is not yet available.
+
+    A proposal generally defining what it might be is available at:
+
+    <http://ali.as/devel/threatnetwork.html>
+
+METHODS
+  new $topic
+    The "new" constructor takes a new ThreatNet topic string and creates an
+    object that represents it.
+
+    A ThreatNet topic should look like the following
+
+      threatnet://host/path configuration
+
+    That is, it should start with a 'threatnet' URI identifier in the same
+    style as XML namespace URIs, containing at least the host and path
+    components, following an arbitrary string most likely representing the
+    configuration and rules of the channel, with a format defined by the
+    protocol.
+
+    Returns a new ThreatNet::Topic object or "undef" if the string is not a
+    valid ThreatNet topic string.
+
+  topic
+    Accessor method that returns the Topic as a topic string.
+
+  URI
+    Accessor method that returns the protocol identifier as a URI object
+
+  config
+    Accessor method that returns the non-required protocol-specific part of
+    the topic, which is assumed to hold the channel configuration.
+
+SUPPORT
+    All bugs should be filed via the bug tracker at
+
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ThreatNet%3A%3ATopic>
+
+    For other issues, or commercial enhancement and support, contact the
+    author
+
+AUTHORS
+    Adam Kennedy (Maintainer), <http://ali.as/>, cpan@ali.as
+
+SEE ALSO
+    <http://ali.as/devel/threatnetwork.html>
+
+COPYRIGHT
+    Copyright (c) 2004 Adam Kennedy. All rights reserved. This program is
+    free software; you can redistribute it and/or modify it under the same
+    terms as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+

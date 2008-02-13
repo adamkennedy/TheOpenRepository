@@ -1,0 +1,13 @@
+Revision history for Perl extension ThreatNet::Message
+
+0.04 Sun May  1 2005
+	- Added the ->created and ->event_time methods
+
+0.03 Sat Apr 30 2005
+	- Adding ThreatNet::Message::IPv4
+
+0.02 Sun Apr 17 2005
+	- Incrementing to fix POD bug
+
+0.01 Fri Dec 10 2004
+	- Created the initial version of the file
