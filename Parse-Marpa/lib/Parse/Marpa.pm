@@ -197,35 +197,36 @@ mission-critical or with a serious deadline.
 
 =head2 Capabilities
 
-Marpa parses any cycle-free context-free grammar, that is,
-any grammar which can be specified in BNF free of infinite loops.
-Recursion is not banned, far from it.
-Recursion is useful, and
-Marpa cheerfully parses grammars which are left-recursive, right-recursive, middle-recursive or all three.
+Marpa parses any language and grammar which can be expressed in BNF without infinite loops.
+In formal terms, Marpa parses any cycle-free context-free grammar.
+Marpa parses all "proper" context-free grammars, as well as those with empty
+productions.
+Marpa also accepts grammars with useless productions.
 
-Cycles seem to always be pathological.
-For those not familiar with the distinction between cycles and recursion,
-A cycle is a case in the BNF where a symbol C<X> produces, directly or indirectly,
-a string containing nothing but itself.
-A cycle is recursion without change.
+Marpa cheerfully parses recursive grammars.
+Grammars may be left-recursive, right-recursive, middle-recursive or all three,
+so long as the recursion does not involve a cycle.
 
+A cycle occurs when a BNF symbol can produce, directly or indirectly,
+a string consisting of nothing but the original symbol.
+Essentially, a cycle is recursion without change.
+Unlike recursion, which is highly useful, cycles seem to be always pathological.
+
+Empty productions are those where a symbol produces an empty string.
 Marpa parses grammars with empty productions.
-An empty production is one where a symbol C<X> produces the empty string.
-Empty productions are
-are often essential for specifying semantics.
+In many useful languages,
+empty productions are often essential for expressing the semantics clearly.
 
-Marpa parses ambiguous grammars.
 An ambiguous grammar is a grammar which might parse a string in more than one way.
-If fact, ambiguous grammars are a Marpa specialty.
-
-Ambiguity are useful even when you are only interested in one parse.
+Ambiguous grammars are a Marpa specialty.
+Ambiguity is useful even when you are only interested in one parse.
 An ambiguous grammar is often
 the easiest and most sensible way to express a language.
 Human languages are ambiguous.
-We listen and pull out the parse that makes most sense.
+Humans listen and pull out the parse that makes most sense.
 
 Marpa allows the user to prioritize rules
-so that a preferred parse comes up first.
+so that a preferred parse is returned first.
 Marpa can also return all the parses of an ambiguous grammar, if that's what the
 user prefers.
 
@@ -236,99 +237,62 @@ include predictive and ambiguous lexing.
 
 =head2 The Easy Way
 
-Most of Marpa's capabilities are availble through a single, static method: C<Parse::Marpa::marpa>,
-L<described below|/marpa>.
-You supply a grammar description in MDL (the Marpa Description Language) and the string to be parsed,
-the string is parsed and evaluated according to your specifications, and the result from evaluating
-the first parse is returned.
+Most of Marpa's capabilities are availble through a single, static method:
+L<C<Parse::Marpa::marpa>|/marpa>.
+You supply a grammar description in MDL (the Marpa Description Language) and a string.
+The string is parsed and evaluated according to the description.
+In scalar context, the result from evaluating the first parse is returned.
 In list context, all results are returned.
 
-=head2 Reading these Documents
+=head2 Semantic Actions
 
-L<Parse::Marpa::Doc::Concepts> should be read before
-using Marpa, in fact probably before your first careful reading of this document.
-The "concepts" in it are all practical
--- the theoretical discussions went
-into L<Parse::Marpa::Doc::Algorithm>.
-Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
-because,
-as one example,
-the availability of ambiguous lexing has unusual implications for term I<token>.
+The semantics in Marpa,
+are specified as Perl 5 code strings, called B<actions>.
+Actions can be specified in the lexing phase,
+or associated with rules and null symbols.
+In addition, some actions can be specified as running
+before the others, in a preamble.
 
-L<Parse::Marpa::Doc::MDL> documents what is currently
-Marpa's only high-level interface.
-Of Marpa's current documents,
-it is the most tutorial in approach.
+Actions are calculated in
+a special namespace set aside for that purpose.
+The preamble and can be used to initialize the namespace.
 
-=head2 The Status of this Module
+Marpa is targeted to Perl 6,
+and when Perl 6 is ready,
+Perl 6 code will be its default semantics.
 
-This is an alpha release.
-See the warnings L<above|"VERSION">.
-Since this is alpha software, users with immediate needs must
-look elsewhere.
-I've no personal experience with them, but
-C<Parse::Yapp> and C<Parse::RecDescent> are
-alternatives to this module which are well reviewed and
-much more mature and stable.
+=head2 The Semantics of Null Values
 
-There will be bugs and misfeatures when I go alpha,
-but all known bugs will be documented
-have workarounds.
-The documentation follows the industry convention of telling the
-user how Marpa should work.
-If there's a known difference between that and how Marpa actually works,
-it's in L<the Bugs section|/"BUGS AND MISFEATURES">.
-You'll want to at least skim that section
-before using Marpa.
+As mentioned, Marpa parses grammars with empty productions.
+This means certain symbols in the grammar can result in nothing,
+or more formally, can produce the empty string.
+What should be the semantics of the emtpy string?
 
-While Marpa is in alpha,
-you may not want to automatically upgrade
-as new versions come out.
-Versions will often be incompatible.
-MDL emphasizes this by requiring the C<version> option, and insisting
-on an exact match with Marpa's version number.
-That's a hassle, but so is alpha software.
-The version number regime will become less harsh before Marpa
-leaves beta.
+Marpa handles the semantics of empty string by assigning values to
+null symbols.
+A B<null symbol> is a symbol which produces the empty string.
+When a symbol produced the empty string it is said to be B<nulled>.
 
-=head1 GRAMMAR INTERFACES
+Even within a single parse, the same symbol may be nulled in some locations
+and produce non-empty strings in other locations.
+A symbol may be nulled because is the right hand side of an empty production.
+It may also be nulled indirectly, because it produces other symbols, all of
+which are eventually nulled.
 
-A grammar is specified to Marpa through a B<grammar interface>,
-which may itself be described by a Marpa grammar.
-Right now there are only two grammar interfaces:
-the B<Marpa Demonstration Language>
-and the B<raw grammar interface>.
+Every symbol which can be nulled has a B<null symbol value>,
+or more briefly B<null value>.
+The default null value is a Marpa option (C<default_null_value>).
+If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 
-=head2 The Raw Grammar Interface
+Every symbol can have its own null symbol value.
+The null symbol value for any symbol is calculated using the action
+specified for the empty rule which has that symbol as its left hand side.
+For more details, including examples and a description of how null values are
+calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Parser/"Null Symbol Values">.
 
-The B<raw grammar interface> is a set of options available
-through the constructor for
-Marpa grammar objects, C<Parse::Marpa::new()>
-as well as the C<Parse::Marpa::set()> method.
-The other grammar interfaces also use the raw grammar interface,
-but indirectly.
-The raw grammar interface is efficient,
-but users will usually want something higher level.
-The documentation for the raw grammar interface
-is L<Parse::Marpa::Doc::Raw>.
+=head2 Tokens and Earlemes
 
-=head2 The Marpa Demonstration Language
-
-In Marpa's eyes all
-higher level grammar interfaces will
-be equal.
-I call the one that I am delivering with 
-Marpa the B<Marpa Demonstration Language> instead
-of the "Marpa Language" to emphasize it's lack of
-special status.
-Its documentation is at L<Parse::Marpa::Doc::MDL>.
-
-=head2 Your Grammar Interface Here
-
-Users are encouraged to design their own
-high-level Marpa interfaces.
-
-=head1 TOKENS AND EARLEMES
+   Summarize this section, focusing on text().
 
 As a reminder,
 in parsing a input text,
@@ -405,7 +369,24 @@ Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Recognizer::e
 and a user may supply earleme lengths according to any rules he finds useful, subject to
 the two restrictions above.
 
-=head1 THE STEPS OF MARPA PARSING
+=head2 Reading these Documents
+
+L<Parse::Marpa::Doc::Concepts> should be read before
+using Marpa, in fact probably before your first careful reading of this document.
+The "concepts" in it are all practical
+-- the theoretical discussions went
+into L<Parse::Marpa::Doc::Algorithm>.
+Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
+because,
+as one example,
+the availability of ambiguous lexing has unusual implications for term I<token>.
+
+L<Parse::Marpa::Doc::MDL> documents what is currently
+Marpa's only high-level interface.
+Of Marpa's current documents,
+it is the most tutorial in approach.
+
+=head2 Phases
 
 In parsing a text,
 Marpa follows a strict sequence,
@@ -414,7 +395,7 @@ For example, when a parse object is created from a grammar
 which has not been precomputed, the parse object constructor
 will silently perform not just the precomputation of the grammar,
 but also a deep copy of it.
-If the C<Parse::Marpa::marpa()> routine is used,
+If the C<Parse::Marpa::marpa> method is used,
 lower level methods to perform all the steps
 will be called for you as necessary.
  
@@ -425,165 +406,73 @@ See the main L<Parse::Marpa> documentation page for
 pointers to easier interfaces,
 as well as instructions on how to exercise step-by-step control when that is what you want.
 
-=head1 SEMANTICS
+=head2 The Status of this Module
 
-In Marpa,
-a user specifies a parse's semantics with semantic actions.
-The user can specify lex actions (or lexers),
-null symbol values,
-rule actions,
-and a preamble.
-Lex actions, rule actions and the preamble run in,
-and null symbol values are calculated in,
-a special namespace set aside for that purpose.
-The preamble is run before any other semantic action,
-and can be used to initialize the namespace.
+This is an alpha release.
+See the warnings L<above|"VERSION">.
+Since this is alpha software, users with immediate needs must
+look elsewhere.
+I've no personal experience with them, but
+C<Parse::Yapp> and C<Parse::RecDescent> are
+alternatives to this module which are well reviewed and
+much more mature and stable.
 
-Semantics can be specified as the grammar is being built,
-and when the parse object is created.
-They are finalized at parse object creation time.
+There will be bugs and misfeatures when I go alpha,
+but all known bugs will be documented
+have workarounds.
+The documentation follows the industry convention of telling the
+user how Marpa should work.
+If there's a known difference between that and how Marpa actually works,
+it's in L<the Bugs section|/"BUGS AND MISFEATURES">.
+You'll want to at least skim that section
+before using Marpa.
 
-Semantic actions must be use the current type of semantics.
-Right now, the only semantics available is Perl 5 code.
-Marpa is targeted to Perl 6, and Perl 6 code is intended to be
-the default semantics.
+While Marpa is in alpha,
+you may not want to automatically upgrade
+as new versions come out.
+Versions will often be incompatible.
+MDL emphasizes this by requiring the C<version> option, and insisting
+on an exact match with Marpa's version number.
+That's a hassle, but so is alpha software.
+The version number regime will become less harsh before Marpa
+leaves beta.
 
-=head1 NULL VALUES
+=head2 Grammar Interfaces
 
-A "null value" is a symbol's value when it matches the empty string in a parse.
-By default, the null value is a Perl undefined, which usually is what makes sense.
-If you want something else,
-the default null value is a predefined (C<default_null_value>) and can be reset.
+A grammar is specified to Marpa through a B<grammar interface>,
+which may itself be described by a Marpa grammar.
+Right now there are only two grammar interfaces:
+the B<Marpa Demonstration Language>
+and the B<raw grammar interface>.
 
-A symbol can match the empty string directly, if it is on the left hand side of an empty rule.
-It can also match indirectly, through a series of other rules, only some of which need to be empty rules.
+=head3 The Raw Grammar Interface
 
-Each symbol can have its own null symbol value.
-The null symbol value for any symbol is calculated using the action
-specified for the empty rule which has that symbol as its left hand side.
-The null symbol action is B<not> a rule action.
-It's a property of the symbol, and applies whenever the symbol is nulled,
-even when the symbol's empty rule is not involved.
+The B<raw grammar interface> is a set of options available
+through the constructor for
+Marpa grammar objects, C<Parse::Marpa::new()>
+as well as the C<Parse::Marpa::set()> method.
+The other grammar interfaces also use the raw grammar interface,
+but indirectly.
+The raw grammar interface is efficient,
+but users will usually want something higher level.
+The documentation for the raw grammar interface
+is L<Parse::Marpa::Doc::Raw>.
 
-For example, in MDL, the following says that whenever C<A> matches the empty
-string, it should evaluate to an string.
+=head3 The Marpa Demonstration Language
 
-    A: . q{ 'Oops!  Where did I go!' }.
+In Marpa's eyes all
+higher level grammar interfaces will
+be equal.
+I call the one that I am delivering with 
+Marpa the B<Marpa Demonstration Language> instead
+of the "Marpa Language" to emphasize it's lack of
+special status.
+Its documentation is at L<Parse::Marpa::Doc::MDL>.
 
-Null symbol actions are different from rule actions in another important way.
-Null symbol actions are run at parse creation time and the value of the result
-becomes fixed as the null symbol value.
-This is different from rule actions.
-During the creation of the parse object,
-rule actions are B<compiled into closures>.
-These rule closures are run during parse evaluation,
-whenever a node for that rule needs its value recalculated,
-and may produce different values every time they are run.
+=head3 Your Grammar Interface Here
 
-I treat null symbol actions differently for efficiency.
-They have no child values,
-and a fixed value is usually what is wanted.
-If you want to calculate a symbol's null value with a closure run at parse evaluation time,
-the null symbol action can return a reference to a closure.
-The parent rules with that nullable symbol on their right hand side
-can then be set up so they run the closure returned as the value of null symbol.
-
-As mentioned,
-null symbol values are properties of the symbol, not of the rule.
-A null value is used whenever the corresponding symbol is a "highest null value"
-in a derivation,
-whether or not that happened directly through that symbol's empty rule.
-
-For instance, suppose a grammar has these rules
-
-    S: A, Z. # call me the start rule, or rule 0
-
-    A: . q{!}. # call me rule 1
-
-    A: B, C. q{"I'm sometime null and sometimes not"} # call me rule 2
-
-    B: . q{'No B'}. # call me rule 3
-
-    C: . q{'No C'}. # call me rule 4
-
-    C: Z.  # call me rule 5
-
-    Z: /Z/. q{'Zorro was here'}. # call me rule 6
-
-If the input is the string "C<Z>",
-both C<B> and C<C> will match the empty string.
-So will the symbol C<A>.
-Since C<A> produces both C<B> and C<C> in the derivation,
-and since the rule that produces C<A> is not an empty rule,
-C<A> is a "highest null symbol",
-Therefore, C<A>'s
-null value,
-the string "C<!>",
-which is computed from the action for "rule 1",
-is the value of the derivation.
-
-Note carefully several things about this example.
-First, "rule 1" is not actually in the derivation of C<A>:
-
-      A -> B C   (rule 2)
-      -> C       (rule 3)
-      ->         (rule 4)
-
-Second, in the above derivation, C<B> and C<C> also have null values,
-which play no role in the result.
-Third, rule 2 has a proper rule action,
-and it plays no role in the result either.
-
-Here is the set of principles on which Marpa's thinking in these matters is based:
-
-=over 4
-
-=item 1
-
-Rules which produce nothing don't count.
-
-=item 2
-
-Rules which produce something do count.
-
-=item 3
-
-A symbol counts when it appears in a rule that counts.
-
-=item 4
-
-A symbol does not count when it appears in a rule that does not count.
-
-=item 5
-
-Regardless of rules 1 through 4, the start symbol always counts.
-
-=back
-
-In evaluating a derivation, Marpa uses the semantics of rules and symbols which "count",
-and ignores those rules and symbols which "don't count."
-The value of an empty string, for Marpa, is always the null value of a "highest null symbol".
-A "highest null symbol" will always appear in a rule which "counts",
-or speaking more carefully, in a non-empty rule.
-
-There's one special case:
-when the whole grammar takes the empty string as input,
-and recognizes that it has parsed it successfully.
-That's called a "null parse".
-Whether or not a null parse is possible depends on the grammar.
-In a "null parse", the entire grammar "results in nothing".
-Null parses are the reason for Principle 5, above.
-The value of a null parse is null value of the start symbol.
-
-If you think some of the rules or symbols that Marpa believes "don't count"
-are important in your grammar,
-Marpa can probably accommodate your ideas.
-First, determine what your null semantics mean for every nullable symbol when it is
-a "highest null symbol".
-Then put those semantics into the each nullable symbol's null actions.
-If fixing the null value at parse creation time is not possible in your semantics,
-have your null actions return a reference to a closure and run that
-closure in a parent node.
+Users are encouraged to design their own
+high-level Marpa interfaces.
 
 =head1 METHODS
 
@@ -611,9 +500,9 @@ one of the high-level interfaces;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
 
-In scalar context,  C<marpa()> returns the value of the first parse if there was one,
+In scalar context,  C<marpa> returns the value of the first parse if there was one,
 and undefined if there were no parses.
-In list context, C<marpa()> returns a list of references to the values of the parses.
+In list context, C<marpa> returns a list of references to the values of the parses.
 This is the empty list if there were no parses.
 
 The description referenced by the I<grammar> argument must use
@@ -808,7 +697,7 @@ The "volatility unsetting exception" will be thrown even
 if Marpa marked the grammar volatile internally.
 Marpa often does this when a grammar has sequence productions.
 For more details,
-see L<Parse::Marpa::Doc::Concepts>.
+see L<Parse::Marpa::Parser/"Volatility">.
 
 =item warnings
 
@@ -916,10 +805,10 @@ that grammar can be precompiled.
 Subsequent runs from the precompiled grammar won't incur the overhead of either
 MDL parsing or precomputation.
 
-=head3 Parsers and Speed, in general
+=head3 Comparison with other Parsers
 
 In thinking about speed, it's helpful to be 
-keep in mind Marpa's position in the hierarchy of parsers.
+keep in mind Marpa's position in the parsing food chain.
 Marpa parses many grammars which bison, yacc, L<Parse::Yapp>,
 and L<Parse::RecDescent>
 cannot.

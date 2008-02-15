@@ -940,7 +940,7 @@ Parse::Marpa::Parser - A Marpa Parser Object
 
 =head1 DESCRIPTION
 
-=head2 VOLATILITY AND PARSES
+=head2 Volatility
 
 If you accept Marpa's default behavior, you can safely
 ignore this section.
@@ -1010,6 +1010,144 @@ But it also may be best to keep the interface simple.
 If a grammar writer is really looking for speed,
 she can let the grammar default to volatile,
 and use side effects and her own, targeted memoizations.
+
+=head2 The Semantics of Null Values
+
+A "null value" is a symbol's value when it matches the empty string in a parse.
+By default, the null value is a Perl undefined, which usually is what makes sense.
+If you want something else,
+the default null value is a predefined (C<default_null_value>) and can be reset.
+
+A symbol can match the empty string directly, if it is on the left hand side of an empty rule.
+It can also match indirectly, through a series of other rules, only some of which need to be empty rules.
+
+Each symbol can have its own null symbol value.
+The null symbol value for any symbol is calculated using the action
+specified for the empty rule which has that symbol as its left hand side.
+The null symbol action is B<not> a rule action.
+It's a property of the symbol, and applies whenever the symbol is nulled,
+even when the symbol's empty rule is not involved.
+
+For example, in MDL, the following says that whenever C<A> matches the empty
+string, it should evaluate to an string.
+
+    A: . q{ 'Oops!  Where did I go!' }.
+
+Null symbol actions are different from rule actions in another important way.
+Null symbol actions are run at parse creation time and the value of the result
+becomes fixed as the null symbol value.
+This is different from rule actions.
+During the creation of the parse object,
+rule actions are B<compiled into closures>.
+These rule closures are run during parse evaluation,
+whenever a node for that rule needs its value recalculated,
+and may produce different values every time they are run.
+
+I treat null symbol actions differently for efficiency.
+They have no child values,
+and a fixed value is usually what is wanted.
+If you want to calculate a symbol's null value with a closure run at parse evaluation time,
+the null symbol action can return a reference to a closure.
+The parent rules with that nullable symbol on their right hand side
+can then be set up so they run the closure returned as the value of null symbol.
+
+As mentioned,
+null symbol values are properties of the symbol, not of the rule.
+A null value is used whenever the corresponding symbol is a "highest null value"
+in a derivation,
+whether or not that happened directly through that symbol's empty rule.
+
+For instance, suppose a grammar has these rules
+
+    S: A, Z. # Call me the start rule, or Rule 0
+
+    A: . q{!}. # Call me Rule 1
+
+    A: B, C. q{"I'm sometime null and sometimes not"} # Call me Rule 2
+
+    B: . q{'No B'}. # Call me Rule 3
+
+    C: . q{'No C'}. # Call me Rule 4
+
+    C: Z.  # Call me Rule 5
+
+    Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
+
+If the input is the string "C<Z>",
+both C<B> and C<C> will match the empty string.
+So will the symbol C<A>.
+Since C<A> produces both C<B> and C<C> in the derivation,
+and since the rule that produces C<A> is not an empty rule,
+C<A> is a "highest null symbol",
+Therefore, C<A>'s
+null value,
+the string "C<!>",
+which is computed from the action for Rule 1,
+is the value of the derivation.
+
+Note carefully several things about this example.
+First, Rule 1 is not actually in the derivation of C<A>:
+
+      A -> B C   (Rule 2)
+      -> C       (Rule 3)
+      ->         (Rule 4)
+
+Second, in the above derivation, C<B> and C<C> also have null values,
+which play no role in the result.
+Third, Rule 2 has a proper rule action,
+and it plays no role in the result either.
+
+Here is the set of principles on which Marpa's thinking in these matters is based:
+
+=over 4
+
+=item 1
+
+Rules which produce nothing don't count.
+
+=item 2
+
+Rules which produce something do count.
+
+=item 3
+
+A symbol counts when it appears in a rule that counts.
+
+=item 4
+
+A symbol does not count when it appears in a rule that does not count.
+
+=item 5
+
+Regardless of Principles 1 through 4, the start symbol always counts.
+
+=back
+
+In evaluating a derivation, Marpa uses the semantics of rules and symbols which "count",
+and ignores those rules and symbols which "don't count."
+The value of an empty string, for Marpa, is always the null value of a "highest null symbol".
+A "highest null symbol" will always appear in a rule which "counts",
+or speaking more carefully, in a non-empty rule.
+
+There's one special case:
+when the whole grammar takes the empty string as input,
+and recognizes that it has parsed it successfully.
+That's called a "null parse".
+Whether or not a null parse is possible depends on the grammar.
+In a "null parse", the entire grammar "results in nothing".
+Null parses are the reason for Principle 5, above.
+The value of a null parse is null value of the start symbol.
+
+If you think some of the rules or symbols that Marpa believes "don't count"
+are important in your grammar,
+Marpa can probably accommodate your ideas.
+First, determine what your null semantics mean for every nullable symbol when it is
+a "highest null symbol".
+Then put those semantics into the each nullable symbol's null actions.
+If fixing the null value at parse creation time is not possible in your semantics,
+have your null actions return a reference to a closure and run that
+closure in a parent node.
+
 
 =head1 METHODS
 
