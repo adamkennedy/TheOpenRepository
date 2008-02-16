@@ -98,26 +98,26 @@ package Parse::Marpa::Internal;
 # Returns failure if no parses.
 # On success, returns first parse in scalar context,
 # all of them in list context.
-sub Parse::Marpa::marpa {
+sub Parse::Marpa::mdl {
     my $grammar = shift;
     my $text = shift;
     my $options = shift;
 
     my $ref = ref $grammar;
-    croak(qq{grammar arg to marpa() was ref type "$ref", must be string ref})
+    croak(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq "SCALAR";
 
     $ref = ref $text;
-    croak(qq{text arg to marpa() was ref type "$ref", must be string ref})
+    croak(qq{text arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq "SCALAR";
 
     $options //= {};
     $ref = ref $options;
-    croak(qq{text arg to marpa() was ref type "$ref", must be hash ref})
+    croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
         unless $ref eq "HASH";
 
     my $g = new Parse::Marpa::Grammar(
-        { source => $grammar, %{$options} }
+        { mdl_source => $grammar, %{$options} }
     );
     my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
@@ -174,7 +174,7 @@ mission-critical or with a serious deadline.
     use Parse::Marpa;
 
     # remember to use refs to strings
-    my $value = Parse::Marpa::marpa(
+    my $value = Parse::Marpa::mdl(
         (do { local($RS) = undef; my $source = <DATA>; \$source; }),
         \("2+2*3")
     );
@@ -238,7 +238,7 @@ include predictive and ambiguous lexing.
 =head2 The Easy Way
 
 Most of Marpa's capabilities are availble through a single, static method:
-L<C<Parse::Marpa::marpa>|/marpa>.
+L<C<Parse::Marpa::mdl>|/mdl>.
 You supply a grammar description in MDL (the Marpa Description Language) and a string.
 The string is parsed and evaluated according to the description.
 In scalar context, the result from evaluating the first parse is returned.
@@ -395,7 +395,7 @@ For example, when a parse object is created from a grammar
 which has not been precomputed, the parse object constructor
 will silently perform not just the precomputation of the grammar,
 but also a deep copy of it.
-If the C<Parse::Marpa::marpa> method is used,
+If the C<Parse::Marpa::mdl> method is used,
 lower level methods to perform all the steps
 will be called for you as necessary.
  
@@ -476,33 +476,33 @@ high-level Marpa interfaces.
 
 =head1 METHODS
 
-=head2 marpa
+=head2 mdl
 
      # Parse a string and return the result
      # Be sure to specify both input and grammar as REFERENCES to strings
-     $first_result = Parse::Marpa::marpa(\$grammar_description, \$string_to_parse);
+     $first_result = Parse::Marpa::mdl(\$grammar_description, \$string_to_parse);
 
      # if the parse is ambiguous and you want more than the first result,
      # return the value in array context
-     @all_results = Parse::Marpa::marpa(\$grammar_description, \$string_to_parse);
+     @all_results = Parse::Marpa::mdl(\$grammar_description, \$string_to_parse);
 
      # You can set Marpa's options as named arguments, by specifying
      # a hash reference of them as the optional third argument
-     $first_result = Parse::Marpa::marpa(
+     $first_result = Parse::Marpa::mdl(
          \$grammar_description,
          \$string_to_parse,
          { warnings => 0 }
      );
 
-The C<marpa> method takes three arguments:
+The C<mdl> method takes three arguments:
 a B<reference> to a string containing a Marpa source description of the grammar in
 one of the high-level interfaces;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
 
-In scalar context,  C<marpa> returns the value of the first parse if there was one,
+In scalar context,  C<mdl> returns the value of the first parse if there was one,
 and undefined if there were no parses.
-In list context, C<marpa> returns a list of references to the values of the parses.
+In list context, C<mdl> returns a list of references to the values of the parses.
 This is the empty list if there were no parses.
 
 The description referenced by the I<grammar> argument must use

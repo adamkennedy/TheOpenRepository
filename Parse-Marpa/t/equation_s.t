@@ -22,7 +22,7 @@ BEGIN {
 my $source; { local($RS) = undef; $source = <DATA> };
 
 my $g = new Parse::Marpa::Grammar({
-    source => \$source,
+    mdl_source => \$source,
 });
 
 my $recce = new Parse::Marpa::Recognizer({grammar => $g});

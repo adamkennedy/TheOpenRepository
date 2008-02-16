@@ -18,7 +18,7 @@ my $grammar_source; { local($RS) = undef; $grammar_source = <DATA> };
 
 my $text = "6-----1";
 
-my @values = Parse::Marpa::marpa(\$grammar_source, \$text, { max_parses => 30 });
+my @values = Parse::Marpa::mdl(\$grammar_source, \$text, { max_parses => 30 });
 
 my @expected = (
     '(((6--)--)-1)==5',

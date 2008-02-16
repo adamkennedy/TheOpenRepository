@@ -30,7 +30,7 @@ my $g = new Parse::Marpa::Grammar({
     code_lines => -1,
 });
 
-$g->set({ source => \$source });
+$g->set({ mdl_source => \$source });
 
 $g->precompute();
 

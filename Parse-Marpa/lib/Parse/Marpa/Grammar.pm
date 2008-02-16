@@ -513,7 +513,7 @@ sub Parse::Marpa::Grammar::set {
     }
 
     # value of source needs to be a *REF* to a string
-    my $source = $args->{"source"};
+    my $source = $args->{"mdl_source"};
     if ( defined $source ) {
         croak("Cannot source grammar with some rules already defined")
             if $state ne Parse::Marpa::Internal::Grammar::NEW;
@@ -526,7 +526,7 @@ sub Parse::Marpa::Grammar::set {
 
     while ( my ( $option, $value ) = each %$args ) {
         given ($option) {
-            when ("source") {;}    # already dealt with
+            when ("mdl_source") {;}    # already dealt with
             when ("source_options") {;}    # already dealt with
             when ("rules") {
                 croak("Perl rules not allowed with sourced grammar")
@@ -3390,17 +3390,17 @@ It returns a new grammar object or throws an exception.
 
 Named arguments can be Marpa options.
 For these see L<Parse::Marpa/OPTIONS>.
-In addition, the C<source> named argument and the raw interface named arguments are allowed.
+In addition, the C<mdl_source> named argument and the raw interface named arguments are allowed.
 For details of the raw interface and its named arguments, see L<Parse::Marpa::Doc::Raw>.
 
-The C<source> named arguments takes as its value a B<reference> to a string containing a description of
+The C<mdl_source> named arguments takes as its value a B<reference> to a string containing a description of
 the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::Doc::MDL>.
 It must be specified before any rules are added,
 and may be specified at most once in the life of a grammar object.
 
 A Marpa option might be specified both as a named argument to the C<new> method, and indirectly,
-via the grammar description supplied with the C<source> argument.
-When that happens, the C<source> argument is applied first, and the named argument to the
+via the grammar description supplied with the C<mdl_source> argument.
+When that happens, the C<mdl_source> argument is applied first, and the named argument to the
 C<new> method is applied after the grammar description is processed.
 This fits the usual intent, which is for named arguments to the method
 to override the grammar description.
@@ -3409,13 +3409,13 @@ processed, which can defeat the purpose.
 
 =head2 set
 
-The C<set> method allows Marpa options, raw interface arguments and the C<source> named argument
+The C<set> method allows Marpa options, raw interface arguments and the C<mdl_source> named argument
 to be specified for an already existing grammar object.
 It can be used when it is useful to control the order in which the named arguments are applied.
 
 It's particularly useful for setting tracing options prior to specifying the grammar.
 To do this, a grammar object can be created with trace options set, but no grammar specification.
-Then the C<set> method can be used with the C<source> named arguments or the raw interface named
+Then the C<set> method can be used with the C<mdl_source> named arguments or the raw interface named
 arguments to set up the grammar with tracing in effect.
 
 =head2 compile

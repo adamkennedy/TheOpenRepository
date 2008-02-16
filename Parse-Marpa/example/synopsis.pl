@@ -5,7 +5,7 @@ use English;
 use Parse::Marpa;
 
 # remember to use refs to strings
-my $value = Parse::Marpa::marpa(
+my $value = Parse::Marpa::mdl(
     (do { local($RS) = undef; my $source = <DATA>; \$source; }),
     \("2+2*3")
 );

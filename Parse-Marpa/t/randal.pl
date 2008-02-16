@@ -14,7 +14,7 @@ EO_TESTS
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa( source => \$source);
+my $g = new Parse::Marpa( mdl_source => \$source);
 
 TEST: while (my $test = pop @tests) {
     say "Here's what I'm parsing: ", $test;

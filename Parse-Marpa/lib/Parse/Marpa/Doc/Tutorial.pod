@@ -76,7 +76,7 @@ the defaults are fine.
 So the only option specified is the source string for the
 grammar.
 
-    my $g = new Parse::Marpa( source => \$source);
+    my $g = new Parse::Marpa( mdl_source => \$source);
 
 Now that we have our grammar, we are ready to loop over
 our test lines:

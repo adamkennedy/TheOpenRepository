@@ -64,7 +64,7 @@ sub do_compile {
     my $grammar_source; { local($RS) = undef; $grammar_source = <STDIN>; }
 
     my $grammar = new Parse::Marpa(
-	 source => \$grammar_source,
+	 mdl_source => \$grammar_source,
 	 %options
     );
 
@@ -89,7 +89,7 @@ sub do_parse {
 		%options,
 	    );
 	    $grammar->set(
-		source => \$grammar_source,
+		mdl_source => \$grammar_source,
 		source_options => \%source_options,
 	    );
 	};
