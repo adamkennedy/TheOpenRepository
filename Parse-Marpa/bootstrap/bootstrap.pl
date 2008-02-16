@@ -26,9 +26,9 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 my $discard = undef;
 
 my $concatenate_lines = q{
-    my $v_count = scalar @$Parse::Marpa::Read_Only::v;
+    my $v_count = scalar @$_;
     return undef if $v_count <= 0;
-    join("\n", grep { $_ } @$Parse::Marpa::Read_Only::v);
+    join("\n", grep { $_ } @$_);
 };
 
 our $whitespace = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/;
@@ -79,12 +79,12 @@ my $rules = [
 	 "non structural production sentences",
 	],
         q{
-            my $action = $Parse::Marpa::Read_Only::v->[3];
-            my $other_key_value = join(",\n", map { $_ // "" } @{$Parse::Marpa::Read_Only::v}[0,2,4]);
+            my $action = $_->[3];
+            my $other_key_value = join(",\n", map { $_ // "" } @{$_}[0,2,4]);
 	    my $result =
                 'push(@$new_rules, '
                 . "{\n"
-                . $Parse::Marpa::Read_Only::v->[1] . ",\n"
+                . $_->[1] . ",\n"
                 . (defined $action ? ($action . ",\n") : "")
                 . $other_key_value
                 . "\n});"
@@ -117,7 +117,7 @@ my $rules = [
     {
        lhs => "non structural production sentence",
        rhs => [ "priority keyword", "integer", "period" ],
-       action => q{ q{ priority => } . $Parse::Marpa::Read_Only::v->[1] },
+       action => q{ q{ priority => } . $_->[1] },
     },
     {
        lhs => "optional action sentence",
@@ -136,7 +136,7 @@ my $rules = [
 	],
 	q{
            "    action => "
-           . $Parse::Marpa::Read_Only::v->[3]
+           . $_->[3]
         }
     ],
     [ "action sentence",
@@ -146,7 +146,7 @@ my $rules = [
 	],
 	q{
            "    action => "
-           . $Parse::Marpa::Read_Only::v->[0]
+           . $_->[0]
         }
     ],
     [ "action specifier", [ "string specifier" ], $concatenate_lines ],
@@ -155,7 +155,7 @@ my $rules = [
     [
         "definition",
         [ "setting", "period" ],
-        q{ $Parse::Marpa::Read_Only::v->[0] }
+        q{ $_->[0] }
     ],
     [ "definition", [ "comment sentence", ] ],
     [ "definition", [ "bracketed comment", ] ],
@@ -175,7 +175,7 @@ my $rules = [
 	],
         q{
             q{$new_semantics = '}
-            . $Parse::Marpa::Read_Only::v->[3]
+            . $_->[3]
             . qq{';\n}
         }
     ],
@@ -188,7 +188,7 @@ my $rules = [
 	],
         q{
             q{$new_semantics = '}
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{';\n}
         }
     ],
@@ -201,7 +201,7 @@ my $rules = [
 	],
         q{
             q{$new_version = '}
-            . Parse::Marpa::MDL::canonical_version($Parse::Marpa::Read_Only::v->[3])
+            . Parse::Marpa::MDL::canonical_version($_->[3])
             . qq{';\n}
         }
     ],
@@ -214,7 +214,7 @@ my $rules = [
 	],
         q{
             q{$new_version = '}
-            . Parse::Marpa::MDL::canonical_version($Parse::Marpa::Read_Only::v->[0])
+            . Parse::Marpa::MDL::canonical_version($_->[0])
             . qq{';\n}
         }
     ],
@@ -228,7 +228,7 @@ my $rules = [
 	],
         q{
             q{$new_start_symbol = "}
-            . $Parse::Marpa::Read_Only::v->[4]
+            . $_->[4]
             . qq{";\n}
         }
     ],
@@ -242,7 +242,7 @@ my $rules = [
 	],
         q{
             q{$new_start_symbol = }
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{;\n}
         }
     ],
@@ -257,7 +257,7 @@ my $rules = [
 	],
         q{
             q{$new_default_lex_prefix = }
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{;\n}
         }
     ],
@@ -272,7 +272,7 @@ my $rules = [
 	],
         q{
             q{$new_default_lex_prefix = }
-            . $Parse::Marpa::Read_Only::v->[5]
+            . $_->[5]
             . qq{;\n}
         }
     ],
@@ -284,9 +284,9 @@ my $rules = [
         ],
         q{
             '$strings{"'
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . '"} = '
-            . $Parse::Marpa::Read_Only::v->[2]
+            . $_->[2]
             . qq{;\n}
         }
     ],
@@ -295,7 +295,7 @@ my $rules = [
         [ "a keyword", "preamble keyword", "is keyword", "string specifier", "period" ],
         q{
             q{$new_preamble .= }
-            . $Parse::Marpa::Read_Only::v->[3]
+            . $_->[3]
             . qq{;\n}
         }
     ],
@@ -310,7 +310,7 @@ my $rules = [
 	],
         q{
             q{$new_default_action = }
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{;\n}
         }
     ],
@@ -332,7 +332,7 @@ my $rules = [
     [
         "literal string",
         [ "q string" ],
-        q{ $Parse::Marpa::Read_Only::v->[0] }
+        q{ $_->[0] }
     ],
     [ "literal string", [ "double quoted string" ], $concatenate_lines, ],
     [ "literal string", [ "single quoted string" ], $concatenate_lines, ],
@@ -353,12 +353,12 @@ my $rules = [
     {
 	lhs => "production sentence",
 	rhs => [ "lhs", "colon", "rhs", "period" ],
-        # join(",\n", @{$Parse::Marpa::Read_Only::v}[0,2])
+        # join(",\n", @{$_}[0,2])
 	action => q{
-	    $Parse::Marpa::Read_Only::v->[0]
+	    $_->[0]
             .  ",\n"
             . (
-                $Parse::Marpa::Read_Only::v->[2] //
+                $_->[2] //
                 "rhs => []"
             )
 	},
@@ -366,13 +366,13 @@ my $rules = [
     {
 	lhs => "symbol phrase",
 	rhs => [ "symbol word" ],
-	action => q{ Parse::Marpa::MDL::canonical_symbol_name(join("-", @$Parse::Marpa::Read_Only::v)) },
+	action => q{ Parse::Marpa::MDL::canonical_symbol_name(join("-", @$_)) },
 	min => 1,
     },
     {
         lhs => "lhs",
 	rhs => [ "symbol phrase" ],
-	action => q{ '    lhs => "' . $Parse::Marpa::Read_Only::v->[0] . q{"} },
+	action => q{ '    lhs => "' . $_->[0] . q{"} },
     },
     {
         lhs => "rhs",
@@ -382,7 +382,7 @@ my $rules = [
     {
         lhs => "rhs",
 	rhs => [ "rhs element" ],
-	action => q{ "    rhs => [" . join(", ", @$Parse::Marpa::Read_Only::v) . "]" },
+	action => q{ "    rhs => [" . join(", ", @$_) . "]" },
 	min => 1,
 	separator => "comma",
     },
@@ -392,7 +392,7 @@ my $rules = [
         priority => 1000,
         action => q{
             q{rhs => ["}
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{"],\n}
             . qq{min => 1,\n}
         }
@@ -403,7 +403,7 @@ my $rules = [
         priority => 2000,
         action => q{
             q{rhs => ["}
-            . $Parse::Marpa::Read_Only::v->[1]
+            . $_->[1]
             . qq{"],\n}
             . qq{min => 0,\n}
         }
@@ -414,10 +414,10 @@ my $rules = [
         priority => 2000,
         action => q{
             q{rhs => ["}
-            . $Parse::Marpa::Read_Only::v->[2]
+            . $_->[2]
             . qq{"],\n}
             . q{separator => "}
-            . $Parse::Marpa::Read_Only::v->[0]
+            . $_->[0]
             . qq{",\n}
             . qq{min => 1,\n}
         }
@@ -432,10 +432,10 @@ my $rules = [
         priority => 3000,
         action => q{
             q{rhs => ["}
-            . $Parse::Marpa::Read_Only::v->[3]
+            . $_->[3]
             . qq{"],\n}
             . q{separator => "}
-            . $Parse::Marpa::Read_Only::v->[1]
+            . $_->[1]
             . qq{",\n}
             . qq{min => 0,\n}
         }
@@ -453,13 +453,13 @@ my $rules = [
     {
         lhs => "mandatory rhs element",
 	rhs => [ "rhs symbol specifier" ],
-        action => q{ q{"} . $Parse::Marpa::Read_Only::v->[0] . q{"} },
+        action => q{ q{"} . $_->[0] . q{"} },
     },
     {
         lhs => "optional rhs element",
 	rhs => [ "optional keyword", "rhs symbol specifier" ],
 	action => q{
-            my $symbol_phrase = $Parse::Marpa::Read_Only::v->[1];
+            my $symbol_phrase = $_->[1];
             my $optional_symbol_phrase = $symbol_phrase . ":optional";
             our %implicit_rules;
             if (not defined $implicit_rules{$optional_symbol_phrase}) {
@@ -472,7 +472,7 @@ my $rules = [
                     . q{
                             min => 0,
                             max => 1,
-                            action => q{ $Parse::Marpa::Read_Only::v->[0] }
+                            action => q{ $_->[0] }
                     }
                 );
             }
@@ -482,14 +482,14 @@ my $rules = [
     {
         lhs => "rhs symbol specifier",
 	rhs => [ "symbol phrase" ],
-	action => q{ $Parse::Marpa::Read_Only::v->[0] },
+	action => q{ $_->[0] },
     },
     {
         lhs => "rhs symbol specifier",
 	rhs => [ "regex", ],
 	action => q{
             our $regex_data;
-            my $regex = $Parse::Marpa::Read_Only::v->[0];
+            my $regex = $_->[0];
             my ($symbol, $new) = Parse::Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
             our @implicit_terminals;
             if ($new) {
@@ -530,10 +530,10 @@ my $rules = [
 	rhs => [ "symbol phrase", "matches keyword", "regex", "period" ],
 	action => q{
 	    q{push(@$new_terminals, [ "}
-	    . $Parse::Marpa::Read_Only::v->[0]
+	    . $_->[0]
 	    . q{" => }
             . "{ regex => "
-	    . $Parse::Marpa::Read_Only::v->[2]
+	    . $_->[2]
             . " }"
             . qq{ ] );\n}
 	}
@@ -543,10 +543,10 @@ my $rules = [
 	rhs => [ "match keyword", "symbol phrase", "using keyword", "string specifier", "period" ],
 	action => q{
 	    q{push(@$new_terminals, [ "}
-	    . $Parse::Marpa::Read_Only::v->[1]
+	    . $_->[1]
 	    . q{" => }
             . "{ action => "
-	    . $Parse::Marpa::Read_Only::v->[3]
+	    . $_->[3]
             . " }"
             . qq{ ] );\n}
 	}
@@ -557,7 +557,7 @@ my $rules = [
         [ "symbol phrase" ],
         q{
             '$strings{ "'
-	    . $Parse::Marpa::Read_Only::v->[0]
+	    . $_->[0]
             . '" }'
         }
     ],

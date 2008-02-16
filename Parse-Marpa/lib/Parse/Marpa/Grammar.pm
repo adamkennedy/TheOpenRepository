@@ -1552,11 +1552,11 @@ sub add_rules_from_hash {
                 }
             }
 
-            # no change to @Parse::Marpa::Read_Only::v needed for action
+            # no change to @_ needed for action
             if ( defined $separator_name and not $keep_separation ) {
-                $action = q{ $Parse::Marpa::Read_Only::v = [
-                        @{$Parse::Marpa::Read_Only:v}[
-                           grep { !($_ % 2) } (0 .. $#$Parse::Marpa::Read_Only::v)
+                $action = q{ $_ = [
+                        @{$_}[
+                           grep { !($_ % 2) } (0 .. $#$_)
                         ]
                     }
                     . $action;
@@ -1595,7 +1595,7 @@ sub add_rules_from_hash {
         given ($action) {
             when (undef) { $rule_action = undef }
             default {
-                $rule_action = q{ $Parse::Marpa::Read_Only::v = []; } . $action;
+                $rule_action = q{ $_ = []; } . $action;
             }
         }
         add_user_rule( $grammar, $lhs_name, [], $rule_action, $priority );
@@ -1660,18 +1660,18 @@ sub add_rules_from_hash {
                 # more efficient way to do this?
                 $rule_action = q{
                     HEAD: for (;;) {
-                        my $head = shift @$Parse::Marpa::Read_Only::v;
+                        my $head = shift @$_;
                         last HEAD unless scalar @$head;
-                        unshift(@$Parse::Marpa::Read_Only::v, @$head);
+                        unshift(@$_, @$head);
                     }
                 }
             }
             else {
                 $rule_action = q{
                     TAIL: for (;;) {
-                        my $tail = pop @$Parse::Marpa::Read_Only::v;
+                        my $tail = pop @$_;
                         last TAIL unless scalar @$tail;
-                        push(@$Parse::Marpa::Read_Only::v, @$tail);
+                        push(@$_, @$tail);
                     }
                 }
             }
@@ -1681,7 +1681,7 @@ sub add_rules_from_hash {
     add_rule( $grammar, $lhs, [$sequence], $rule_action, $priority, );
     if ( defined $separator and not $proper_separation ) {
         unless ($keep_separation) {
-            $rule_action = q{ pop @$Parse::Marpa::Read_Only::v; } . ($rule_action // "") ;
+            $rule_action = q{ pop @$_; } . ($rule_action // "") ;
         }
         add_rule( $grammar, $lhs, [ $sequence, $separator, ],
             $rule_action, $priority, );
@@ -1698,16 +1698,16 @@ sub add_rules_from_hash {
             $rule_action = q{
                 [
                     [],
-                    @{$Parse::Marpa::Read_Only::v}[
-                        grep { !($_ % 2) } (0 .. $#$Parse::Marpa::Read_Only::v)
+                    @{$_}[
+                        grep { !($_ % 2) } (0 .. $#$_)
                     ]
                 ]
             }
         }
         else {
             $rule_action = q{
-                unshift(@$Parse::Marpa::Read_Only::v, []);
-                $Parse::Marpa::Read_Only::v 
+                unshift(@$_, []);
+                $_ 
             }
         }
     }
@@ -1715,8 +1715,8 @@ sub add_rules_from_hash {
         if ( defined $separator and not $keep_separation ) {
             $rule_action = q{
                 [
-                    @{$Parse::Marpa::Read_Only::v}[
-                        grep { !($_ % 2) } (0 .. $#$Parse::Marpa::Read_Only::v)
+                    @{$_}[
+                        grep { !($_ % 2) } (0 .. $#$_)
                     ],
                     []
                 ]
@@ -1724,8 +1724,8 @@ sub add_rules_from_hash {
         }
         else {
             $rule_action = q{
-                push(@$Parse::Marpa::Read_Only::v, []);
-                $Parse::Marpa::Read_Only::v 
+                push(@$_, []);
+                $_ 
             }
         }
     }
@@ -1736,13 +1736,13 @@ sub add_rules_from_hash {
     $rule_action = ( defined $separator and not $keep_separation )
         ? q{
             [
-                @{$Parse::Marpa::Read_Only::v}[
-                   grep { !($_ % 2) } (0 .. $#$Parse::Marpa::Read_Only::v)
+                @{$_}[
+                   grep { !($_ % 2) } (0 .. $#$_)
                 ],
             ]
         }
         : q{
-            $Parse::Marpa::Read_Only::v
+            $_
         };
     my @iterating_rhs = ( @separated_rhs, $sequence );
     if ($left_associative) {
@@ -3299,7 +3299,7 @@ sub rewrite_as_CHAF {
         Parse::Marpa::Internal::Rule::USEFUL,
         Parse::Marpa::Internal::Rule::ACTION,
         ]
-        = ( $productive, 1, 1, q{ $Parse::Marpa::Read_Only::v->[0] } );
+        = ( $productive, 1, 1, q{ $_->[0] } );
 
     # If we created a null alias for the original start symbol, we need
     # to create a nulling start rule

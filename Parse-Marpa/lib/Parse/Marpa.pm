@@ -184,14 +184,14 @@ mission-critical or with a serious deadline.
     semantics are perl5.  version is 0.205.0.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
-        $Parse::Marpa::Read_Only::v->[0] * $Parse::Marpa::Read_Only::v->[2]
+        $_->[0] * $_->[2]
     }.
 
     Expression: Expression, /[+]/, Expression.  priority 100.  q{
-        $Parse::Marpa::Read_Only::v->[0] + $Parse::Marpa::Read_Only::v->[2]
+        $_->[0] + $_->[2]
     }.
 
-    Expression: /\d+/.  q{ $Parse::Marpa::Read_Only::v->[0] }.
+    Expression: /\d+/.  q{ $_->[0] }.
 
 =head1 DESCRIPTION
 

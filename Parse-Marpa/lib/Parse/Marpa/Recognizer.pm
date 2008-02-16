@@ -8,7 +8,6 @@ use integer;
 package Parse::Marpa::Read_Only;
 
 our $rule;
-our $v;
 
 package Parse::Marpa::Internal::Earley_item;
 
@@ -132,8 +131,7 @@ sub set_null_values {
             my $nulling_alias = $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS];
             next rule unless defined $nulling_alias;
 
-            local ($Parse::Marpa::Read_Only::v) = [];
-            my $code = "package " . $package . ";\n" . $action;
+            my $code = "package $package;\nlocal(" . '$_' . ")=[]; $action"; 
             my @warnings;
             local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
             my $null_value = eval($code);
@@ -230,7 +228,7 @@ sub set_actions {
             last ACTION unless $has_chaf_lhs or $has_chaf_rhs;
 
             if ( $has_chaf_rhs and $has_chaf_lhs ) {
-                $action = q{ $Parse::Marpa::Read_Only::v };
+                $action = q{ $_; };
                 last ACTION;
             }
 
@@ -238,8 +236,8 @@ sub set_actions {
             if ($has_chaf_lhs) {
 
                 $action = q{
-                        push(@$Parse::Marpa::Read_Only::v, []);
-                        $Parse::Marpa::Read_Only::v;
+                        push(@$_, []);
+                        $_;
                     };
                 last ACTION;
 
@@ -252,9 +250,9 @@ sub set_actions {
 
             $action = q{
                 TAIL: for (;;) {
-                    my $tail = pop @$Parse::Marpa::Read_Only::v;
+                    my $tail = pop @$_;
                     last TAIL unless scalar @$tail;
-                    push(@$Parse::Marpa::Read_Only::v, @$tail);
+                    push(@$_, @$tail);
                 }
             }    # q string
                 . $action;

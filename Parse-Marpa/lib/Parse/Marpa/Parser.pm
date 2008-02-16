@@ -5,47 +5,6 @@ no warnings "recursion";
 use strict;
 use integer;
 
-# sub Parse::Marpa::Internal::Earley_item::EFFECT();
-# sub Parse::Marpa::Internal::Earley_item::LHS();
-# sub Parse::Marpa::Internal::Earley_item::LINKS();
-# sub Parse::Marpa::Internal::Earley_item::LINK_CHOICE();
-# sub Parse::Marpa::Internal::Earley_item::PARENT();
-# sub Parse::Marpa::Internal::Earley_item::POINTER();
-# sub Parse::Marpa::Internal::Earley_item::PREDECESSOR();
-# sub Parse::Marpa::Internal::Earley_item::RULES();
-# sub Parse::Marpa::Internal::Earley_item::RULE_CHOICE();
-# sub Parse::Marpa::Internal::Earley_item::SET();
-# sub Parse::Marpa::Internal::Earley_item::STATE();
-# sub Parse::Marpa::Internal::Earley_item::SUCCESSOR();
-# sub Parse::Marpa::Internal::Earley_item::TOKENS();
-# sub Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE();
-# sub Parse::Marpa::Internal::Earley_item::VALUE();
-# sub Parse::Marpa::Internal::Grammar::MAX_PARSES();
-# sub Parse::Marpa::Internal::Grammar::ONLINE();
-# sub Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES();
-# sub Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE();
-# sub Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES();
-# sub Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES();
-# sub Parse::Marpa::Internal::Grammar::TRACE_VALUES();
-# sub Parse::Marpa::Internal::Grammar::TRACING();
-# sub Parse::Marpa::Internal::Grammar::VOLATILE();
-# sub Parse::Marpa::Internal::Recognizer::CURRENT_PARSE_SET();
-# sub Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET();
-# sub Parse::Marpa::Internal::Recognizer::EARLEY_SETS();
-# sub Parse::Marpa::Internal::Recognizer::GRAMMAR();
-# sub Parse::Marpa::Internal::Recognizer::PARSE_COUNT();
-# sub Parse::Marpa::Internal::Recognizer::START_ITEM();
-# sub Parse::Marpa::Internal::Rule::ACTION();
-# sub Parse::Marpa::Internal::Rule::CLOSURE();
-# sub Parse::Marpa::Internal::Rule::LHS();
-# sub Parse::Marpa::Internal::Rule::RHS();
-# sub Parse::Marpa::Internal::SDFA::COMPLETE_RULES();
-# sub Parse::Marpa::Internal::SDFA::START_RULE();
-# sub Parse::Marpa::Internal::Symbol::ID();
-# sub Parse::Marpa::Internal::Symbol::NAME();
-# sub Parse::Marpa::Internal::Symbol::NULLING();
-# sub Parse::Marpa::Internal::Symbol::NULL_VALUE();
-
 package Parse::Marpa::Read_Only;
 
 our $rule;
@@ -298,7 +257,7 @@ sub initialize_children {
     local ($Parse::Marpa::Read_Only::rule) = $rule;
     my ($rhs) = @{$rule}[Parse::Marpa::Internal::Rule::RHS];
 
-    local ($Parse::Marpa::Read_Only::v) = [];    # to store values in
+    my $values = [];    # to store values in
 
     my @work_entries;
 
@@ -312,7 +271,7 @@ sub initialize_children {
         if ($nulling) {
             my $null_value
                 = $child_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
-            $Parse::Marpa::Read_Only::v->[$child_number] = $null_value;
+            $values->[$child_number] = $null_value;
 
             if ($trace_values) {
                 my $value_description =
@@ -338,7 +297,7 @@ sub initialize_children {
             ];
 
         if ( defined $previous_value ) {
-            $Parse::Marpa::Read_Only::v->[$child_number] = $$previous_value;
+            $values->[$child_number] = $$previous_value;
             $item = $previous_predecessor;
 
             if ($trace_values) {
@@ -405,7 +364,7 @@ sub initialize_children {
                     " at ", $predecessor_set, "-", $item_set, " to ",
                     Dumper($value);
             }
-            $Parse::Marpa::Read_Only::v->[$child_number] = $value;
+            $values->[$child_number] = $value;
             weaken(
                 $predecessor->[Parse::Marpa::Internal::Earley_item::SUCCESSOR]
                     = $item );
@@ -474,7 +433,7 @@ sub initialize_children {
         my ( $predecessor_item, $effect_item, $rhs_index, $cause,
             $child_symbol, )
             = @$work_entry;
-        my $value = $Parse::Marpa::Read_Only::v->[$rhs_index] =
+        my $value = $values->[$rhs_index] =
             initialize_children( $cause, $child_symbol );
         $effect_item->[Parse::Marpa::Internal::Earley_item::VALUE] = \$value;
         if ($trace_iteration_searches) {
@@ -498,7 +457,10 @@ sub initialize_children {
     {
         my @warnings;
         local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
-        $result = eval { $closure->() };
+        $result = eval {
+	    local($_) = $values;
+	    $closure->()
+	};
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
             Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,

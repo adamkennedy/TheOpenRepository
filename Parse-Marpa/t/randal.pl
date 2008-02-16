@@ -51,19 +51,19 @@ the default lex prefix is qr/\s*/.
 
 perl line: perl statements, optional comment.
 q{
-    my $result = $Parse::Marpa::Read_Only::v->[0];
+    my $result = $_->[0];
     $result .= ", comment"
-	if defined $Parse::Marpa::Read_Only::v->[1];
+	if defined $_->[1];
     $result
 }.
 
 perl statements: semicolon separated perl statement sequence.
-q{ join(", ", @{$Parse::Marpa::Read_Only::v}) }.
+q{ join(", ", @{$_}) }.
 
 perl statement: division. q{ "division" }.
 
 perl statement: function call.
-q{ $Parse::Marpa::Read_Only::v->[0] }.
+q{ $_->[0] }.
 
 perl statement: empty statement.  q{ "empty statement" }.
 
@@ -76,10 +76,10 @@ expr: function call.
 expr: number.
 
 function call: unary function name, argument.
-q{ $Parse::Marpa::Read_Only::v->[0] . " function call" }.
+q{ $_->[0] . " function call" }.
 
 function call: nullary function name.
-q{ $Parse::Marpa::Read_Only::v->[0] . " function call" }.
+q{ $_->[0] . " function call" }.
 
 argument: pattern match.
 

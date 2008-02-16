@@ -491,7 +491,7 @@ and C<optional X sequence> would be C<X*>.
 
 The value of the child symbols in a sequence sentence is available
 to semantic actions in the
-array referenced by C<$Parse::Marpa::Read_Only::v>,
+array referenced by C<$_>,
 just as in a BNF sentence.
 Unlike in a BNF sentence,
 in a sequence sentence
@@ -502,8 +502,8 @@ by using operations like C<join> or C<map> which work
 on the entire array.
 You can also obtain a count of the symbols on the right side
 in the usual way,
-with C<scalar @{$Parse::Marpa::Read_Only::v}>.
-The index of the last symbol is available as C<$#$Parse::Marpa::Read_Only::v>.
+with C<scalar @{$_}>.
+The index of the last symbol is available as C<$#$_>.
 Sequence sentences work best where the semantics really is that of a sequence
 of semantically equivalent items.
 
@@ -582,7 +582,7 @@ A priority sentence is the keyword C<priority> followed by an integer value, whi
 may be negative.  The default priority is 0.
 
     definition: predefined setting, period.
-    q{ $Parse::Marpa::Read_Only::v->[0] }.
+    q{ $_->[0] }.
     priority 1000.
 
 In the example above,

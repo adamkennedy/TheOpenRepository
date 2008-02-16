@@ -32,9 +32,9 @@ my $g = new Parse::Marpa::Grammar({
         [ "E", [qw/E Minus E/],
 <<'EOCODE'
     my ($right_string, $right_value)
-        = ($Parse::Marpa::Read_Only::v->[2] =~ /^(.*)==(.*)$/);
+        = ($_->[2] =~ /^(.*)==(.*)$/);
     my ($left_string, $left_value)
-        = ($Parse::Marpa::Read_Only::v->[0] =~ /^(.*)==(.*)$/);
+        = ($_->[0] =~ /^(.*)==(.*)$/);
     my $value = $left_value - $right_value;
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 EOCODE
@@ -42,27 +42,27 @@ EOCODE
         [ "E", [qw/E Minus Minus/],
 <<'EOCODE'
     my ($string, $value)
-        = ($Parse::Marpa::Read_Only::v->[0] =~ /^(.*)==(.*)$/);
+        = ($_->[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 EOCODE
         ],
         [ "E", [qw/Minus Minus E/],
 <<'EOCODE'
     my ($string, $value)
-        = ($Parse::Marpa::Read_Only::v->[2] =~ /^(.*)==(.*)$/);
+        = ($_->[2] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 EOCODE
         ],
         [ "E", [qw/Minus E/],
 <<'EOCODE'
     my ($string, $value)
-        = ($Parse::Marpa::Read_Only::v->[1] =~ /^(.*)==(.*)$/);
+        = ($_->[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
 EOCODE
         ],
         [ "E", [qw/Number/],
 <<'EOCODE'
-            my $value = $Parse::Marpa::Read_Only::v->[0];
+            my $value = $_->[0];
             "$value==$value";
 EOCODE
         ],
@@ -73,10 +73,10 @@ EOCODE
     ],
     default_action =>
 <<'EOCODE'
-     my $v_count = scalar @$Parse::Marpa::Read_Only::v;
+     my $v_count = scalar @$_;
      return "" if $v_count <= 0;
-     return $Parse::Marpa::Read_Only::v->[0] if $v_count == 1;
-     "(" . join(";", @$Parse::Marpa::Read_Only::v) . ")";
+     return $_->[0] if $v_count == 1;
+     "(" . join(";", @$_) . ")";
 EOCODE
 });
 

@@ -24,10 +24,10 @@ my $g = new Parse::Marpa::Grammar({
 	[ "E", [qw/E Op E/],
 <<'EOCODE'
             my ($right_string, $right_value)
-                = ($Parse::Marpa::Read_Only::v->[2] =~ /^(.*)==(.*)$/);
+                = ($_->[2] =~ /^(.*)==(.*)$/);
             my ($left_string, $left_value)
-                = ($Parse::Marpa::Read_Only::v->[0] =~ /^(.*)==(.*)$/);
-            my $op = $Parse::Marpa::Read_Only::v->[1];
+                = ($_->[0] =~ /^(.*)==(.*)$/);
+            my $op = $_->[1];
             my $value;
             if ($op eq "+") {
                $value = $left_value + $right_value;
@@ -43,7 +43,7 @@ EOCODE
         ],
 	[ "E", [qw/Number/],
 <<'EOCODE'
-           my $v0 = pop @$Parse::Marpa::Read_Only::v;
+           my $v0 = pop @$_;
            $v0 . "==" . $v0;
 EOCODE
         ],
@@ -53,10 +53,10 @@ EOCODE
 	[ "Op" => { regex => qr/[-+*]/ } ],
     ],
     default_action => q{
-         my $v_count = scalar @$Parse::Marpa::Read_Only::v;
+         my $v_count = scalar @$_;
          return "" if $v_count <= 0;
-         return $Parse::Marpa::Read_Only::v->[0] if $v_count == 1;
-         "(" . join(";", @$Parse::Marpa::Read_Only::v) . ")";
+         return $_->[0] if $v_count == 1;
+         "(" . join(";", @$_) . ")";
     },
 });
 
