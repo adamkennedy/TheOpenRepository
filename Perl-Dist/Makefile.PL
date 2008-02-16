@@ -22,6 +22,7 @@ requires       'Object::Tiny'          => '1.02';
 requires       'Tie::File'             => 0;
 requires       'YAML::Tiny'            => '1.12';
 requires       'Module::CoreList'      => '2.13';
+requires       'Params::Util'          => '0.25';
 requires       'CPAN'                  => 0;
 requires       'PAR::Dist'             => '0.29';
 requires       'Process'               => '0.20';
