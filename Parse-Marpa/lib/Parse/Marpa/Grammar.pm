@@ -3514,26 +3514,6 @@ themselves on a "just in time" basis.
 But it can be useful in debugging and tracing
 to control when precomputation takes place.
 
-=head2 get_symbol
-
-    my $minus = $grammar->get_symbol("minus");
-
-    my $number
-	= Parse::Marpa::Grammar::get_symbol($grammar, "number");
-
-Given a symbol's raw interface name, returns the symbol's "cookie".
-Returns undefined if a symbol with that name doesn't exist.
-
-If you are using MDL to define your grammar, you probably
-don't want to use this method.
-You probably want to use C<Parse::Marpa::MDL::get_symbol> instead, so that
-the conversion from MDL name to raw interface name is handled for you.
-
-Symbol cookies are used primarily
-for calling of the C<Parse::Marpa::Recognizer::earleme> method.
-To get the cookie for a symbol using a high-level interface symbol name,
-see the documentation for the individual high level interface.
-
 =head1 SUPPORT
 
 See the L<support section|Parse::Marpa/SUPPORT> in the main module.

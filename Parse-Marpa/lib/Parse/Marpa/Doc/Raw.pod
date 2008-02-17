@@ -19,6 +19,28 @@ with a minor exception as described below.
 Marpa throws an exception if the user attempts to build the same grammar using
 both kinds of interface.
 
+=head1 METHODS
+
+=head2 get_symbol
+
+    my $minus = $grammar->get_symbol("minus");
+
+    my $number
+	= Parse::Marpa::Grammar::get_symbol($grammar, "number");
+
+This C<Parse::Marpa::Grammar> method, Given a symbol's raw interface name,
+returns the symbol's "cookie".
+It returns undefined if a symbol with that name doesn't exist.
+
+Symbol cookies are used primarily
+for calling of the C<Parse::Marpa::Recognizer::earleme> method.
+To get the cookie for a symbol using a high-level interface symbol name,
+see the documentation for the individual high level interface.
+
+If you are using MDL to define your grammar, you probably
+want to use C<Parse::Marpa::MDL::get_symbol> instead, so that
+the conversion from MDL name to raw interface name is handled for you.
+
 =head1 RAW INTERFACE SYMBOL NAMES
 
 Each interface has its own rules for symbol names.

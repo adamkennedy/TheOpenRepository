@@ -1339,6 +1339,27 @@ Parse::Marpa::Recognizer - A Marpa Recognizer Object
 
 =head1 SYNOPSIS
 
+    my $recce = new Parse::Marpa::Recognizer({
+	grammar => $grammar,
+    });
+
+    my $fail_offset = $recce->text(\("2-0*3+1"));
+    if ($fail_offset >= 0) {
+       die("Parse failed at offset $fail_offset");
+    }
+
+    my $recce2 = Parse::Marpa::Recognizer::new({grammar => $grammar});
+
+    my $op = $grammar->get_symbol("op");
+    my $number = $grammar->get_symbol("number");
+    $recce2->earleme([$number, 2, 1]);
+    $recce2->earleme([$op, "-", 1]);
+    $recce2->earleme([$number, 0, 1]);
+    $recce2->earleme([$op, "*", 1]);
+    $recce2->earleme([$number, 3, 1]);
+    $recce2->earleme([$op, "+", 1]);
+    $recce2->earleme([$number, 1, 1]);
+
 =head1 DESCRIPTION
 
 =head2 TOKENS AND EARLEMES
@@ -1477,9 +1498,11 @@ control over the context and form of tokens.
 No model of the relationship between the input and the earlemes is assumed,
 and the user is free to invent her own.
 
-=item Parse::Marpa::Recognizer::find_complete_rule(I<parse>, I<start_earleme>, I<_symbol>, I<end_earleme>)
+=head2 find_complete_rule
 
-The C<Parse::Marpa::Recognizer::find_complete_rule()> method takes a parse object as its one required argument.
+     my ($end_earleme, $symbol_names) = $recce->find_complete_rule();
+
+The C<find_complete_rule> method was an experiment, and will be replaced.
 Arguments which specify a I<start_earleme>, I<symbol> and I<end_earleme> are optional.
 If the start earleme is not specified, it defaults to earleme 0.
 If the end earleme is not specified,
@@ -1538,7 +1561,6 @@ be able to return all completed and expected symbols.
 Information about their start and end earleme should be available with the completed
 symbols.
 For the expected symbols, the earleme at which they were expected should given.
-
 
 =head1 SUPPORT
 
