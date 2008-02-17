@@ -695,6 +695,23 @@ sub run {
 	return 1;
 }
 
+=pod
+
+=head2 install_c_toolchain
+
+The C<install_c_toolchain> method is used by C<run> to install various
+binary packages to provide a working C development environment.
+
+By default, the C toolchain consists of dmake, gcc (C/C++), binutils,
+pexports, the mingw runtime environment, and the win32api C package.
+
+Although dmake is the "standard" make for Perl::Dist distributions,
+it will also install...
+
+TO BE CONTINUED
+
+=cut
+
 # Install the required toolchain elements.
 # We use separate methods for each tool to make
 # it easier for individual distributions to customize
