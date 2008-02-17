@@ -3329,35 +3329,30 @@ sub rewrite_as_CHAF {
 
 Parse::Marpa::Grammar - A Marpa Grammar Object
 
-=head1 SYNOPSIS
-
 =head1 DESCRIPTION
 
 In Marpa, grammar objects are created with the C<new> constructor.
 Rules and options may be specified when the grammar is created, or later using
 the C<set> method.
 
-Rules are most conveniently added using an MDL grammar description file and the C<mdl_source>
-named argument.
+Rules are most conveniently added with the C<mdl_source> named argument, which
+takes an MDL grammar description file as its value.
 MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::MDL>.
-When MDL is used as the high-level grammar interface, Marpa parses the MDL source file
-and uses its B<raw interface> to set up the grammar.
 
 Users who want the more control and efficiency can use the 
 raw interface directly,
-but will lose a lot of convenience and maintainability.
-For this reason, the parser for MDL itself is created from an MDL file.
-Those who really need the ultimate in efficiency can create a grammar using
-MDL, and compile it, as L<show below|"compile">.
+but they will lose a lot of convenience and maintainability.
+The MDL parser itself is created from an MDL file.
+Those who need the ultimate in efficiency can get the best of both worlds by
+creating a grammar using MDL and compiling it, as L<described below|"compile">.
 The raw interface is detailed in L<a document of its own|Parse::Marpa::RAW>.
 
-Marpa does extensive precompution on its grammars.
-This precomputation is required before a grammar can be used for
-recognition or parsing, but the user rarely needs to perform it explicitly.
-Those Marpa methods which require a precomputed grammar
+Marpa does extensive precompution on its grammars
+before using them used for recognition or parsing,
+but the user rarely needs to perform the precomputation explicitly.
+The Marpa methods which require precomputed grammars
 (C<compile> and C<Parse::Marpa::Recognizer::new>),
-if they are passed a grammar that has not been precomputed,
-do the precomputation themselves.
+will do the precomputation themselves when needed.
 
 For situations where the user needs to control the state of the grammar precisely,
 such as debugging or tracing,
@@ -3366,18 +3361,16 @@ Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
 In particular, no more rules may be added to a precomputed grammar.
 
-Other Marpa objects (recognizers and parsers) work with a deep copy of the grammar,
-so that multiple parses from a single grammar do not
-interfere with each other.
-The deep copy is one by B<compiling> the grammar and B<decompiling> it.
+Marpa recognizers and parsers make their own deep copies of the grammars used to create them.
+The deep copying is done by B<compiling> the grammar and B<decompiling> it.
 
 Grammar compilation in Marpa simply means turning it into a string with
 Marpa's C<compile> method.
+Since a compiled grammar is simply a string, it can be handled as one.
+It can, for instance, be written to a file.
+
 Marpa's C<decompile> static method takes this string,
 C<eval>'s it and tweaks it a bit to create a properly set-up grammar object.
-
-A compile grammar is simply a string, and can be handled as one.
-It can, for instance, be written to a file.
 A subsequent Marpa process can read this file, C<decompile> the string,
 and continue the parse.
 This would eliminate the overhead both of parsing MDL and of precomputation.
@@ -3443,6 +3436,23 @@ To do this, an empty grammar object can be created with trace options set, but n
 Then the C<set> method can be used with the C<mdl_source> named arguments or the raw interface named
 arguments to set up the grammar with tracing in effect.
 
+=head2 precompute
+
+    $grammar->precompute();
+
+    Parse::Marpa::Grammar::precompute($grammar);
+
+The C<precompute> method performs Marpa's precomputations on its grammar.
+It returns the grammar object or throws an exception.
+
+It is usually not necessary for the user to call C<precompute>.
+The methods which require a precomputed grammar
+(C<compile> and C<Parse::Marpa::Recognizer::new>),
+if passed a grammar on which the precomputations have not been done,
+will perform the precomputation themselves on a "just in time" basis.
+But it can be useful in debugging and tracing
+to control precisely when precomputation takes place.
+
 =head2 compile
 
     my $compiled_grammar = $grammar->compile();
@@ -3496,23 +3506,6 @@ When the user creates a recognizer from a grammar she has decompiled, it is up t
 to ensure that no two recognizers are using the same grammar.
 One way to do this is for her to decompile the same compiled grammar multiple times,
 once for each recognizer she creates.
-
-=head2 precompute
-
-    $grammar->precompute();
-
-    Parse::Marpa::Grammar::precompute($grammar);
-
-C<precompute> as its only argument a grammar object and
-performs the precomputation phase on it.  It returns the grammar
-object or throws an exception.
-
-Usually it is not necessary for the user to call C<precompute>, since the methods
-which require a precomputed grammar
-(C<compile> and C<Parse::Marpa::Recognizer::new>) will perform the precomputation
-themselves on a "just in time" basis.
-But it can be useful in debugging and tracing
-to control when precomputation takes place.
 
 =head1 SUPPORT
 
