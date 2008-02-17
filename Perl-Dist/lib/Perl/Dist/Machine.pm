@@ -1,5 +1,26 @@
 package Perl::Dist::Machine;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::Machine - Generate an entire set of related distributions
+
+=head1 DESCRIPTION
+
+Perl::Dist::Machine is a Perl::Dist multiplexor.
+
+It provides the functionality required to generate several
+variations of a distribution at the same time.
+
+Please note the API is still evolving, and as such will remain
+undocumented for now.
+
+However, if you are adventurous and happy to read the source code,
+it should be pretty clear.
+
+=cut
+
 use 5.005;
 use strict;
 use Carp         'croak';
@@ -173,7 +194,38 @@ sub next {
 # Execution Methods
 
 sub run {
-
+	my $self = shift;
+	while ( my $dist = $self->next ) {
+		$dist->prepare;
+		$dist->run;
+	}
+	return 1;
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
