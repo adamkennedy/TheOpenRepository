@@ -1477,6 +1477,69 @@ control over the context and form of tokens.
 No model of the relationship between the input and the earlemes is assumed,
 and the user is free to invent her own.
 
+=item Parse::Marpa::Recognizer::find_complete_rule(I<parse>, I<start_earleme>, I<_symbol>, I<end_earleme>)
+
+The C<Parse::Marpa::Recognizer::find_complete_rule()> method takes a parse object as its one required argument.
+Arguments which specify a I<start_earleme>, I<symbol> and I<end_earleme> are optional.
+If the start earleme is not specified, it defaults to earleme 0.
+If the end earleme is not specified,
+its default wll be the default parse end earleme,
+that is, the default location
+that C<Parse::Marpa::Recognizer::initial()> would use for the end of parsing.
+The symbol argument, if specified, must be the raw interface name of a symbol.
+
+The end earleme argument must be at or before the default parse end earleme.
+If you specify an end earleme after the default parse end earleme,
+it is ignored and the default parse end earleme is used as the end earleme.
+
+C<find_complete_rule()> looks for parses of complete rules,
+that is, rules whose right hand side has been completely matched.
+Only parses which start at the start earleme are considered.
+
+C<find_complete_rule()> looks first for any parses which end at the end earleme.
+If it finds none,
+it looks for shorter and shorter parses
+until it reaches the start earleme and is looking at null parses.
+
+While the parses C<find_complete_rule()> find are always for complete rules,
+they can be subparses in the sense that they are not parses from the grammar's start symbol.
+Complete parses starting from any symbol are considered,
+unless a start symbol was specified as an argument.
+In that case only parses starting from that symbol are considered.
+
+On failure to find a rule matching the criteria,
+a zero length array is returned.
+On success, the return value is an array of two elements.
+The first element of the array is the earleme at which the complete parse ends.
+The second element is a pointer to an array of symbol names
+which are start symbols of parses in the span from start earleme to end earleme.
+Symbol names will be raw interface names.
+
+Multiple start symbols may be returned, because 
+several different rules may have been completed in the span from start
+earleme to end earleme,
+and some of these rules may have different left hand sides.
+If a start symbol argument was specified,
+it will be one of the list of symbols in the return value.
+
+In the case where no start symbol is specified,
+C<find_complete_rule()> is probably useless.
+It returns only information from the first Earley item which matches other criteria.
+Other Earley items may contain complete rules for the same span,
+but their left hand sides may not be included in the return value's list
+of start symbols.
+
+I<find_complete_rule()> was an experiment
+in methods for improved diagnostics, online mode,
+and advanced wizardry with grammars.
+It is probably going to be replaced.
+The replacement method or methods should, given an end earleme or a range of end earlemes,
+be able to return all completed and expected symbols.
+Information about their start and end earleme should be available with the completed
+symbols.
+For the expected symbols, the earleme at which they were expected should given.
+
+
 =head1 SUPPORT
 
 See the L<support section|Parse::Marpa/SUPPORT> in the main module.

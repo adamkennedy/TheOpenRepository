@@ -197,7 +197,7 @@ mission-critical or with a serious deadline.
 
 =head2 Capabilities
 
-Marpa parses any language and grammar which can be expressed in BNF without infinite loops.
+Marpa parses any language which can be expressed in BNF without infinite loops.
 In formal terms, Marpa parses any cycle-free context-free grammar.
 Marpa parses all "proper" context-free grammars, as well as those with empty
 productions.
@@ -210,25 +210,26 @@ so long as the recursion does not involve a cycle.
 A cycle occurs when a BNF symbol can produce, directly or indirectly,
 a string consisting of nothing but the original symbol.
 Essentially, a cycle is recursion without change.
-Unlike recursion, which is highly useful, cycles seem to be always pathological.
+Unlike recursion, which is highly useful, cycles always seem to be pathological.
 
-Empty productions are those where a symbol produces an empty string.
+Empty productions are those with an empty right hand side.
+Many useful languages
+need empty productions to express their semantics clearly.
 Marpa parses grammars with empty productions.
-In many useful languages,
-empty productions are often essential for expressing the semantics clearly.
 
 An ambiguous grammar is a grammar which might parse a string in more than one way.
 Ambiguous grammars are a Marpa specialty.
 Ambiguity is useful even when you are only interested in one parse.
 An ambiguous grammar is often
 the easiest and most sensible way to express a language.
-Human languages are ambiguous.
-Humans listen and pull out the parse that makes most sense.
 
+Human languages are ambiguous.
+English sentences often can mean more than one thing,
+but human listeners hear the parse that makes most sense.
 Marpa allows the user to prioritize rules
 so that a preferred parse is returned first.
-Marpa can also return all the parses of an ambiguous grammar, if that's what the
-user prefers.
+Marpa can also return all the parses of an ambiguous grammar,
+if that's what the user prefers.
 
 Marpa incorporates the latest academic research on Earley's algorithm,
 combining it with LR(0) precomputation.
@@ -237,36 +238,32 @@ include predictive and ambiguous lexing.
 
 =head2 The Easy Way
 
-Most of Marpa's capabilities are availble through a single, static method:
+Most of Marpa's capabilities are availble through a single method:
 L<C<Parse::Marpa::mdl>|/mdl>.
-You supply a grammar description in MDL (the Marpa Description Language) and a string.
-The string is parsed and evaluated according to the description.
-In scalar context, the result from evaluating the first parse is returned.
-In list context, all results are returned.
+The C<mdl> static method requires a grammar description in MDL (the Marpa Description Language) and a string.
+C<mdl> parses the string according to the MDL description.
+C<mdl> returns the result from evaluating the first parse in scalar context.
+In list context, it returns all the results.
 
 =head2 Semantic Actions
 
-The semantics in Marpa,
-are specified as Perl 5 code strings, called B<actions>.
-Actions can be specified in the lexing phase,
-or associated with rules and null symbols.
-In addition, some actions can be specified as running
-before the others, in a preamble.
+Marpa's semantics
+are specified using Perl 5 code strings, called B<actions>.
+Marpa allows lexing actions, a preamble action, rule actions and null symbol actions.
 
 Actions are calculated in
 a special namespace set aside for that purpose.
-The preamble and can be used to initialize the namespace.
+The preamble action is always run first
+and can be used to initialize that namespace.
 
-Marpa is targeted to Perl 6,
-and when Perl 6 is ready,
-Perl 6 code will be its default semantics.
+Marpa is targeted to Perl 6.
+When Perl 6 is ready, Perl 6 code will become its default semantics.
 
 =head2 The Semantics of Null Values
 
 As mentioned, Marpa parses grammars with empty productions.
 This means certain symbols in the grammar can result in nothing,
 or more formally, can produce the empty string.
-What should be the semantics of the emtpy string?
 
 Marpa handles the semantics of empty string by assigning values to
 null symbols.
@@ -276,8 +273,8 @@ When a symbol produced the empty string it is said to be B<nulled>.
 Even within a single parse, the same symbol may be nulled in some locations
 and produce non-empty strings in other locations.
 A symbol may be nulled because is the right hand side of an empty production.
-It may also be nulled indirectly, because it produces other symbols, all of
-which are eventually nulled.
+It may also be nulled indirectly if it produces other symbols,
+all of which are eventually nulled.
 
 Every symbol which can be nulled has a B<null symbol value>,
 or more briefly B<null value>.
@@ -285,7 +282,7 @@ The default null value is a Marpa option (C<default_null_value>).
 If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 
 Every symbol can have its own null symbol value.
-The null symbol value for any symbol is calculated using the action
+The null symbol value for any symbol is calculated by running the action
 specified for the empty rule which has that symbol as its left hand side.
 For more details, including examples and a description of how null values are
 calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Parser/"Null Symbol Values">.
@@ -294,122 +291,153 @@ calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Parser/"Null 
 
    Summarize this section, focusing on text().
 
-As a reminder,
-in parsing a input text,
+In parsing a input text,
 it is standard to proceed by
-first breaking that input text up into tokens.
-Typically, regular expressions or something similar is used for that purpose.
-The actual parsing is then done on the sequence of tokens.
-In conventional parsing, it's required that the token sequence be deterministic --
-that is, that there be only one sequence of tokens and that that sequence can be found
-by the lexer more or less on its own.
+first breaking that input text up into B<tokens>.
+This process is called B<lexing>.
+The parser is then run on the sequence of tokens.
+Tokens are have a value and are associated with one of the symbols
+in the grammar, called a B<terminal>.
+Most parsers do not allow a symbol to be used both on the left hand side of
+a rule, and and a a terminal, but Marpa has no problem with this.
 
-Marpa allows ambiguous tokens.
-Specifically, Marpa tokens allows recognition, at a single location,
-of several different tokens which may vary in length.
-How a "location" is defined and
-how locations relate to each other is almost completely up to the user.
-Nothing, for example, prevents tokens from overlapping each other.
+Typically, regular expressions or something similar is used to do the C<lexing>.
+MDL allows the user to specify lexers as Perl 5 regexes or as Perl 5 code.
+Most parsers require that the token sequence be deterministic.
+In other words,
+that there be only one possible sequence of tokens
+and the lexer has to be able to determine that sequence more or less on its own.
 
-From here on, I'll call the "locations" earlemes.
-Here are only two restrictions:
+Marpa does not require deterministic lexing.
+It allows ambiguous tokens.
+Marpa can recognize at every point in the parse,
+several different tokens and these can vary in length.
+Nothing prevents Marpa tokens from overlapping each other.
 
-=over 4
+Most parsers treat the input as a deterministic sequence of tokens.
+"Locations" in the parse are positions in the token stream.
+Since Marpa is much more flexible, it needs a more flexible idea
+of "location" in a parse.
 
-=item 1
+I call Marpa's idea of parse location, B<earlemes>.
+The earlemes are numbered.
+The first is earleme 0.
 
-Tokens must be scanned in earleme order.
-That is, all the tokens at earleme C<N>
-must be recognized before any token at earleme C<N+1>.
+The easiest way to do lexing in Marpa is to specify the Perl 5 regexes and lexing actions
+with the terminals in MDL.
+When this is done, a one-character-per-earleme model is enforced.
 
-=item 2
+A lex prefix can be specified.
+The lex prefix is a pattern which matched before each terminal
+and discarded.
+It is useful for dealing with whitespace.
 
-Tokens cannot be zero or negative in earleme length.
+Marpa is not restricted to the one-character-per-earleme model.
+It can also imitate conventional lexing with one-token-per-earleme model.
+Advanced users could use Marpa
+to implement models of the input,
+customized to special applications.
+For details see L<Parse::Marpa::Grammar/"Tokens and Earlemes">.
 
-=back
+=head2 Creating a Marpa Parser
 
-A parse is said to start at earleme 0, and "earleme I<N>" means the location I<N> earlemes
-after earleme 0.
-(Note for experts:
-The implementation uses one Earley set for each earleme.)
-B<Length> in earlemes probably means what you expect it does.
-The length from earleme 3 to earleme 6,
-for instance, is 3 earlemes.
-
-The conventional parsing model of dividing text into tokens before parsing
-corresponds to a B<one-earleme-per-token> model in Marpa.
-Marpa's C<Parse::Marpa::Recognizer::text()> method uses a model where
-there's B<one earleme per character>.
-
-C<Parse::Marpa::Recognizer::text()> is the routine used most commonly to provide input
-for a Marpa grammar to parse.
-It lexes an input string for the user, using the regexes or lexing actions supplied
-by the user.
-The tokens C<text()> recognizes are fed to the Marpa parse engine.
-The earleme length of each token is
-set using the tokens's earleme length.
-(If a token has a "lex prefix",
-the length of the lex prefix counts as part of the token length.)
-
-In conventional Earley parsing,
-any "location" without a token means the parse is exhausted.
-This is not the case in Marpa.
-Because tokens can span many earlemes,
-a parse remains viable as long as some token
-has been recognized which ends at or after the current earleme.
-Only when there is no token at the current location, and no token reaches to the current
-location or past it, is the parse exhausted.
-Marpa parses often contain many stretches
-of empty earlemes, and some of these stretches can be quite long.
-(Note to experts: an "empty earleme" corresponds to an Earley set with no Earley items.)
-
-Users of Marpa are not restricted to either the one-token-per-earleme or the one-character-per-earleme
-scheme.
-Input tokens may be fed directly to Marpa with the C<Parse::Marpa::Recognizer::earleme()> method
-and a user may supply earleme lengths according to any rules he finds useful, subject to
-the two restrictions above.
-
-=head2 Reading these Documents
-
-L<Parse::Marpa::Doc::Concepts> should be read before
-using Marpa, in fact probably before your first careful reading of this document.
-The "concepts" in it are all practical
--- the theoretical discussions went
-into L<Parse::Marpa::Doc::Algorithm>.
-Even experts in Earley parsing will want to skim L<Parse::Marpa::Doc::Concepts>
-because,
-as one example,
-the availability of ambiguous lexing has unusual implications for term I<token>.
-
-L<Parse::Marpa::Doc::MDL> documents what is currently
-Marpa's only high-level interface.
-Of Marpa's current documents,
-it is the most tutorial in approach.
+When you're ready to create your first Marpa parser,
+or curious about how that's done,
+you should read the
+L<Parse::Marpa::Doc::MDL> document, which
+has the details on how to create an MDL grammar description.
+That, and this document, should be enough to get started.
 
 =head2 Phases
 
-In parsing a text,
-Marpa follows a strict sequence,
-some or all of which is usually invisible to the user.
-For example, when a parse object is created from a grammar
-which has not been precomputed, the parse object constructor
-will silently perform not just the precomputation of the grammar,
-but also a deep copy of it.
-If the C<Parse::Marpa::mdl> method is used,
-lower level methods to perform all the steps
-will be called for you as necessary.
- 
-With each step below, I've documented the low level methods which perform it.
-These low level methods are available to the user, but
-using them is never the easiest and rarely the best approach.
-See the main L<Parse::Marpa> documentation page for
-pointers to easier interfaces,
-as well as instructions on how to exercise step-by-step control when that is what you want.
+The C<mdl> method hides Marpa's parsing phases from the user,
+calling Marpa's object methods as necessary.
+For advanced applications and diagnostics, it useful to know
+about the phases of Marpa parsing.
+Marpa uses three object types: grammars, recognizers and parsers.
+
+A grammar object (C<Parse::Marpa::Grammar>) must be created first,
+and rules must be added to it.
+Extensive precomputations are done on the grammar in this phase.
+Details of grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
+
+A few parsers both recognize and parse at the same time, and for these
+the distinction is pedantic.
+In most practical applications,
+the distinction between parsing and recognition is present, though
+users may not realize it.
+
+Formally, recognizing an input is merely answering "yes" or "no" to the question
+of whether an input belongs to the language described by the grammar.
+Parsing an input means finding the structure of the string as described by
+the grammar.
+
+Regular expressions, for example, do B<not> parse.
+They only recognize.
+Perl 5 regexes are regular expressions with some extensions,
+such as captures,
+which can return some limited information about the structure of the input.
+Most conventional parsers, such as C<yacc>, C<Parse::Yapp> or Perl 5's own parser,
+have a separate lexing phase.
+This lexing phase is primarily doing recognition,
+and leaving the parsing for later.
+
+Marpa parsing, like Earley parsing in general,
+has a separate recognition phase,
+in which the input is accepted.
+In the process of the recognizing the input, Marpa builds
+tables which contain most of the information needed for the parsing phase.
+
+To create a Marpa recognizer object (<C<Parse::Marpa::Recognizer>),
+a Marpa grammar object is required.
+Once a recognizer object has been created, it can accept input.
+Multiple recognizers can work with a single grammar object simultaneously.
+For more details on recognizer objects and methods,
+see L<Parse::Marpa::Recognizer>.
+
+Marpa recognizes input in streaming or "online" fashion.
+It could also parse streamed inputs,
+but the methods to do so don't yet exist.
+Currently, Marpa parsing begins once input is complete,
+with the creation of a Marpa parser object.
+
+Once a parser object (C<Parse::Marpa::Parser>) has been created from
+a recognizer, a parses can be derived, its semantics run,
+and its value returned.
+In the case of an ambiguous grammar, there can be many parses, each
+with its own value.
+For more details on parser objects and methods,
+see L<Parse::Marpa::Parser>.
+
+=head2 Grammar Interfaces
+
+A grammar is specified to Marpa through a B<grammar interface>.
+Right now there are only two grammar interfaces:
+the B<Marpa Demonstration Language>
+and the B<raw grammar interface>.
+
+The B<raw grammar interface> is a set of options available
+through the constructor for
+Marpa grammar objects, C<Parse::Marpa::Grammar::new>
+as well as the C<Parse::Marpa::Grammar::set> method.
+The other grammar interfaces also use the raw grammar interface,
+but indirectly.
+The raw grammar interface is efficient,
+but users will usually want something higher level.
+The documentation for the raw grammar interface
+is L<Parse::Marpa::Doc::Raw>.
+
+In Marpa's eyes all higher level grammar interfaces will be equal.
+I call the one that I am delivering with 
+Marpa the B<Marpa Demonstration Language> instead
+of the "Marpa Language" to emphasize it's lack of
+special status.
+The documentation for MDL can be found at L<Parse::Marpa::Doc::MDL>.
+Users are encouraged to design their own
+high-level Marpa interfaces.
 
 =head2 The Status of this Module
 
-This is an alpha release.
-See the warnings L<above|"VERSION">.
 Since this is alpha software, users with immediate needs must
 look elsewhere.
 I've no personal experience with them, but
@@ -427,52 +455,11 @@ it's in L<the Bugs section|/"BUGS AND MISFEATURES">.
 You'll want to at least skim that section
 before using Marpa.
 
-While Marpa is in alpha,
-you may not want to automatically upgrade
-as new versions come out.
-Versions will often be incompatible.
-MDL emphasizes this by requiring the C<version> option, and insisting
-on an exact match with Marpa's version number.
-That's a hassle, but so is alpha software.
-The version number regime will become less harsh before Marpa
-leaves beta.
-
-=head2 Grammar Interfaces
-
-A grammar is specified to Marpa through a B<grammar interface>,
-which may itself be described by a Marpa grammar.
-Right now there are only two grammar interfaces:
-the B<Marpa Demonstration Language>
-and the B<raw grammar interface>.
-
-=head3 The Raw Grammar Interface
-
-The B<raw grammar interface> is a set of options available
-through the constructor for
-Marpa grammar objects, C<Parse::Marpa::new()>
-as well as the C<Parse::Marpa::set()> method.
-The other grammar interfaces also use the raw grammar interface,
-but indirectly.
-The raw grammar interface is efficient,
-but users will usually want something higher level.
-The documentation for the raw grammar interface
-is L<Parse::Marpa::Doc::Raw>.
-
-=head3 The Marpa Demonstration Language
-
-In Marpa's eyes all
-higher level grammar interfaces will
-be equal.
-I call the one that I am delivering with 
-Marpa the B<Marpa Demonstration Language> instead
-of the "Marpa Language" to emphasize it's lack of
-special status.
-Its documentation is at L<Parse::Marpa::Doc::MDL>.
-
-=head3 Your Grammar Interface Here
-
-Users are encouraged to design their own
-high-level Marpa interfaces.
+Alpha versions may not be backward compatible.
+MDL protects users by requiring the version to be specified,
+and insisting on an exact match with Marpa's version number.
+This strict version regime is the same as that being considered for Perl 6.
+Nonetheless, Marpa's version matching may become less strict once it goes beta.
 
 =head1 METHODS
 
@@ -494,8 +481,8 @@ high-level Marpa interfaces.
          { warnings => 0 }
      );
 
-The C<mdl> method takes three arguments:
-a B<reference> to a string containing a Marpa source description of the grammar in
+The C<mdl> static method takes three arguments:
+a B<reference> to a string containing an MDL description of the grammar in
 one of the high-level interfaces;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
@@ -505,20 +492,16 @@ and undefined if there were no parses.
 In list context, C<mdl> returns a list of references to the values of the parses.
 This is the empty list if there were no parses.
 
-The description referenced by the I<grammar> argument must use
-one of the high-level Marpa grammar interfaces.
-Currently the default (and only) high-level grammar interface is the
-L<Marpa Demonstration Language|Parse::Marpa::Doc::MDL>.
-
 =head2 Diagnostic Methods
 
 L<The separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
-with methods used primarily to debug grammars and parses.
+with methods used primarily for debugging grammars and parses.
 
 =head1 OPTIONS
 
-Marpa allows a variety of options for controlling its behavior.
-These may be set when Parse::Marpa::Grammar and Parse::Marpa::Recognziser
+Marpa has options which control its behavior.
+These may be set when C<Parse::Marpa::Grammar>
+and C<Parse::Marpa::Recognizer>
 objects are created,
 with the C<Parse::Marpa::Grammar::set> method, or
 indirectly through one of
@@ -559,14 +542,15 @@ they set their lex patterns
 up in such a way that every valid input can be lexed in one and only one way.
 
 Marpa offers users who opt for unambiguous lexing a second alternative.
-The order in which terminals are tested can be manipulated by setting their priorities.
+Terminals are tested in order of priority, and the priorities can be set
+by the user.
 
 =item code_lines
 
 If there is a problem with user supplied code,
 Marpa prints the error message and a description of where the code is being used.
-Marpa will display the code itself as well.
-The value of this option tells Marpa how many lines to print before truncating the
+Marpa also displays the code.
+The value of C<code_lines> tells Marpa how many lines to print before truncating the
 code.
 If it's zero, no code is displayed.
 If it's negative, all the code is displayed, no matter how long it is.
@@ -577,10 +561,10 @@ The default is 30 lines.
 Takes as its value a string, which is expected to be code in the current
 semantics.
 (Right now Perl 5 is the only semantics available.)
-For rules which don't have an explicitly specified action,
-the default is to return a Perl 5 undefined.
-This default is usually adequate, but it
-can be changed by setting the C<default_action> predefined.
+The value is used as the action for rules with no
+explicitly specified action.
+If C<default_action> is not set,
+the default action is to return a Perl 5 undefined.
 
 =item default_lex_prefix
 
@@ -589,47 +573,51 @@ The value must be a regex in the current semantics.
 The lexers allow every terminal to specify a B<lex prefix>,
 a pattern to be matched and discarded before the pattern for
 the terminal itself is matched.
-This is typically used to handle leading whitespace.
+This is often used to handle leading whitespace.
 
-The default is no lex prefix.
-But whitespace processing is often wanted, and when it is,
-the same whitespace processing is usually wanted for most or all terminals.
-This can be done conveniently by changing the default lex prefix.
+If a terminal has no lex prefix set, C<default_lex_prefix> is used.
+When C<default_lex_prefix> is not set,
+there is no default lex prefix or, stated more carefully,
+the default lex prefix is equivalent to a pattern which always matches the empty string.
 
 =item default_null_value
 
-The value must be a string containing code in the current semantics.
+The value must be an action, that is, a string containing code in the current semantics.
 (Right now Perl 5 is the only semantics available.)
 The null value of a symbol is its value when it matches the empty string in a parse.
-By default, that value is a Perl 5 undefined.
-Resetting the C<default_null_value> Marpa predefined resets that default.
-There's more about null values in
-L<the Concepts document|Parse::Marpa::Doc::Concepts>.
+
+For symbols which do not have have a null symbol value set explicitly,
+the null symbol value is taken from the result of running the C<default_null_value>
+action.
+If C<default_null_value> is not set, the default null value is a Perl 5 undefined.
+There's more about null values L<above|"Null Symbol Values"> and in
+L<Parse::Marpa::Parser/"Null Symbol Values">.
 
 =item online
 
 A boolean.
-If true, the parser runs in B<online> mode.
-If false, the parser runs in B<offline> mode.
+If true, the parser runs in online mode.
+If false, the parser runs in offline mode.
 
-In offline mode, which is the default,
+In B<offline> mode, which is the default,
 Marpa assumes the input has ended when the first parse is requested.
 It does some final bookkeeping,
 refuses to accept any more input,
 and sets its default parse to be a parse of the entire input,
 from beginning to end.
 
-In online mode,
+In B<online> mode,
 which is under construction and poorly tested,
 new tokens may still be added,
 and final bookkeeping is never done.
 Marpa's default idea is still to parse the entire input up to the current earleme,
-but in online mode that is often not be what the user wants.
+but in online mode that often may not be what the user wants.
 If it's not, it up to her
 to determine the right places to look for complete parses,
 based on her knowledge of the structure of the grammar and the input.
-The method C<Parse::Marpa::Recognizer::find_complete_rule()>,
-documented L<as a diagnostic method|Parse::Marpa::DIAGNOSTIC>, may help.
+The experimentail method
+L<Parse::Marpa::Recognizer::find_complete_rule|Parse::Marpa::Recognizer/find_complete_rule>
+may help.
 
 =item preamble
 
@@ -639,10 +627,11 @@ The preamble is run in a namespace special to the parse object.
 Rule actions and lex actions also run in this namespace.
 The preamble is run first, and may be used to set up globals.
 
-If multiple preambles are specified as method options, the most
-recent replaces any previous ones.
-This is consistent with the behavior of other method options,
-but different from the MDL, in which preambles are concatenated.
+If multiple preambles are specified as named arguments,
+the more recent preambles replace any earlier ones.
+This is consistent with the behavior of other named arguments,
+but it differs from the behavior in MDL,
+which creates preamble by concatenating the code strings.
 
 =item semantics
 
@@ -1068,6 +1057,8 @@ In writing the Pure Perl version of Marpa, I benefited from studying
 the work of Francois Desarmenien (C<Parse::Yapp>), 
 Damian Conway (C<Parse::RecDescent>) and
 Graham Barr (C<Scalar::Util>).
+Adam Kennedy patiently corrected me on the finer points of module writing,
+as well as on some issues where I really should have know better.
 
 =head1 COPYRIGHT & LICENSE
 

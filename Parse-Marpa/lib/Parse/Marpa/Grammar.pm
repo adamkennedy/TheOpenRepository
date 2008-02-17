@@ -3333,56 +3333,69 @@ Parse::Marpa::Grammar - A Marpa Grammar Object
 
 =head1 DESCRIPTION
 
-=head2 Phases in the Life of a Grammar
+In Marpa, grammar objects are created with the C<new> constructor.
+Rules and options may be specified when the grammar is created, or later using
+the C<set> method.
 
-=over 4
+Rules are most conveniently added using an MDL grammar description file and the C<mdl_source>
+named argument.
+MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::MDL>.
+When MDL is used as the high-level grammar interface, Marpa parses the MDL source file
+and uses its B<raw interface> to set up the grammar.
 
-=item * Creation of a grammar object
+Users who want the more control and efficiency can use the 
+raw interface directly,
+but will lose a lot of convenience and maintainability.
+For this reason, the parser for MDL itself is created from an MDL file.
+Those who really need the ultimate in efficiency can create a grammar using
+MDL, and compile it, as L<show below|"compile">.
+The raw interface is detailed in L<a document of its own|Parse::Marpa::RAW>.
 
-A grammar object is created with C<Parse::Marpa::new()>,
-although it may called indirectly.
+Marpa does extensive precompution on its grammars.
+This precomputation is required before a grammar can be used for
+recognition or parsing, but the user rarely needs to perform it explicitly.
+Those Marpa methods which require a precomputed grammar
+(C<compile> and C<Parse::Marpa::Recognizer::new>),
+if they are passed a grammar that has not been precomputed,
+do the precomputation themselves.
 
-=item * Adding rules to the grammar object
+For situations where the user needs to control the state of the grammar precisely,
+such as debugging or tracing,
+there is a method that explicitly precomputes a grammar: C<precompute>.
+Once a grammar has been precomputed, it is frozen against many kinds of
+changes.
+In particular, no more rules may be added to a precomputed grammar.
 
-Rules must added to the grammar object.
-This is done using the interfaces, and the raw
-interface is always involved.
-The raw interface may be called directly,
-or it may be hidden behind a higher level interface.
-At the lowest level, rules are added with the
-C<Parse::Marpa::new()> and the C<Parse::Marpa::set()> methods.
+Other Marpa objects (recognizers and parsers) work with a deep copy of the grammar,
+so that multiple parses from a single grammar do not
+interfere with each other.
+The deep copy is one by B<compiling> the grammar and B<decompiling> it.
 
-=item * Precomputing the grammar object
+Grammar compilation in Marpa simply means turning it into a string with
+Marpa's C<compile> method.
+Marpa's C<decompile> static method takes this string,
+C<eval>'s it and tweaks it a bit to create a properly set-up grammar object.
 
-Before a parse object can be created,
-Marpa must do a series of precomputations on the grammar.
-This step rarely needs to be performed explicitly, but when that is
-necessary, the method call is C<Parse::Marpa::precompute()>.
-
-=item * Deep copying the grammar
-
-Marpa parse objects work with a copy of the grammar, so that
-multiple parses from a single grammar can be performed at the same 
-time without interfering with each other.
-The deep copy is done in two subphases.
-First, the grammar is written out with C<Data::Dumper>.
-Second, the string from the first subphase
-is C<eval>'ed and then tweaked back
-into a properly set-up grammar object.
-
-The two subphases are available to the user as
-C<Parse::Marpa::Grammar::compile> and C<Parse::Marpa::Grammar::decompile>.
-The result of C<compile> is a string, which may be written into a file.
-A subsequent Marpa process can read this file and continue the parse.
-See the descriptions of
-C<Parse::Marpa::Grammar::compile> and C<Parse::Marpa::Grammar::decompile> for
-details.
-
-=back
+A compile grammar is simply a string, and can be handled as one.
+It can, for instance, be written to a file.
+A subsequent Marpa process can read this file, C<decompile> the string,
+and continue the parse.
+This would eliminate the overhead both of parsing MDL and of precomputation.
+As mentioned above, where efficiency is a major consideration, this may be
+a wiser choice than the raw interface.
 
 =head1 METHODS
 
-=head2 new(I<option> => I<value> ...)
+=head2 new
+
+    my $grammar = Parse::Marpa::Grammar::new({ trace_lex => 1 });
+
+    my $grammar = new Parse::Marpa::Grammar({});
+
+    my $grammar = new Parse::Marpa::Grammar({
+	mdl_source => \$mdl_source,
+	ambiguous_lex => 0
+    });
 
 C<Parse::Marpa::Recognizer::new> has one, required, argument --
 a reference to a hash of named arguments.
@@ -3390,78 +3403,134 @@ It returns a new grammar object or throws an exception.
 
 Named arguments can be Marpa options.
 For these see L<Parse::Marpa/OPTIONS>.
-In addition, the C<mdl_source> named argument and the raw interface named arguments are allowed.
+In addition to the Marpa options,
+the C<mdl_source> named argument
+and the raw interface named arguments are allowed.
 For details of the raw interface and its named arguments, see L<Parse::Marpa::Doc::Raw>.
 
-The C<mdl_source> named arguments takes as its value a B<reference> to a string containing a description of
-the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::Doc::MDL>.
-It must be specified before any rules are added,
-and may be specified at most once in the life of a grammar object.
+The value of C<mdl_source> named arguments should be
+a B<reference> to a string containing a description of
+the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::MDL>.
+Either the C<mdl_source> named argument or the raw interface arguments may be used
+to build a grammar,
+but both cannot be used in the same grammar object.
 
-A Marpa option might be specified both as a named argument to the C<new> method, and indirectly,
+In the C<new> method,
+a Marpa option might be specified both as a named argument to the C<new> method, and indirectly,
 via the grammar description supplied with the C<mdl_source> argument.
-When that happens, the C<mdl_source> argument is applied first, and the named argument to the
-C<new> method is applied after the grammar description is processed.
-This fits the usual intent, which is for named arguments to the method
-to override the grammar description.
-But it also means trace settings won't be effective until after the grammar description is
-processed, which can defeat the purpose.
+When that happens, the value supplied in the MDL source is applied first,
+and the named argument to the C<new> method is applied after the MDL is processed.
+This fits the usual intent, which is for the C<new> method's named arguments to
+override the MDL settings.
+However, this
+does means that trace settings won't be effective until after the grammar description is
+processed, which can defeat their purpose.
+For a way around this, see L<the C<set> method|"set">.
 
 =head2 set
 
-The C<set> method allows Marpa options, raw interface arguments and the C<mdl_source> named argument
+    Parse::Marpa::Grammar::set($grammar, { trace_lex => 1 });
+
+    $g->set({ mdl_source => \$source });
+
+The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
+It allows Marpa options, raw interface arguments and the C<mdl_source> named argument
 to be specified for an already existing grammar object.
 It can be used when it is useful to control the order in which the named arguments are applied.
 
-It's particularly useful for setting tracing options prior to specifying the grammar.
-To do this, a grammar object can be created with trace options set, but no grammar specification.
+This is particularly useful for setting tracing options prior to specifying the grammar.
+To do this, an empty grammar object can be created with trace options set, but no grammar specification.
 Then the C<set> method can be used with the C<mdl_source> named arguments or the raw interface named
 arguments to set up the grammar with tracing in effect.
 
 =head2 compile
 
-The C<compile> method takes as its single argument a grammar object, and "compiles" it,
-that is, writes it out as a string, using L<Data::Dumper>.
-It returns a reference to the compiled
-grammar, or throws an exception.
+    my $compiled_grammar = $grammar->compile();
 
-=head2 decompile(I<compiled_grammar>, [I<trace_file_handle>])
+    my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
+
+The C<compile> method takes as its single argument a grammar object, and "compiles" it.
+It returns a reference to the compiled grammar.
+The compiled grammar is a string which was created 
+using L<Data::Dumper>.
+On failure, C<compile> throws an exception.
+
+=head2 decompile
+
+    $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
+
+    $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
 
 The C<decompile> static method takes a reference to a compiled grammar as its first
 argument.
-The second, optional, argument is a file handle.  It is used both to override the
-compiled grammar's trace file handle, and for any trace messages produced by
-C<decompile()> itself.
-C<decompile()> returns the decompiled grammar object unless it throws an
+The second, optional, argument is a file handle.
+The file handle argument will be used both as the decompiled grammar's trace file handle,
+and for any trace messages produced by C<decompile> itself.
+C<decompile> returns the decompiled grammar object unless it throws an
 exception.
 
-If the trace file handle argument is omitted, it defaults to STDERR
-and the new grammar's trace file handle reverts to the default for a new
+If the trace file handle argument is omitted,
+it defaults to STDERR
+and the decompiled grammar's trace file handle reverts to the default for a new
 grammar, which is also STDERR.
-The trace file handle argument is needed because in the course of compilation,
+
+The trace file handle argument is necessary because in the course of compilation,
 the grammar's original trace file handle may have been lost.
 For example, a compiled grammar can be written to a file and emailed.
 Marpa cannot rely on finding the original trace file handle available and open
-when the compiled grammar is decompiled.
+when a compiled grammar is decompiled.
 
-Marpa compiles and decompiles a grammar as part of its deep copy processing phase.
-Internally, the deep copy processing phase saves the trace file handle of the original grammar
-to a temporary, then
-restores it using the trace file handle argument of C<decompile()>.
+When Marpa compiles and decompiles a grammar as part to do a deep copy,
+it saves the trace file handle of the original grammar to a temporary, then
+restores it using the trace file handle argument of C<decompile>.
+
+One caution:
+Marpa ensures that multiple simultaneous recognizers can use a single grammar safely
+by checking to see if the grammar has been deep copied.
+If the grammar supplied to C<Parse::Marpa::Recognizer::new> is not the result of a C<decompile>,
+the recognizer compiles and decompiles it so that it has its own private copy.
+Once a grammar has been decompiled, Marpa
+C<Parse::Marpa::Recognizer::new> assumes that it is a private copy and safe to work with.
+
+When the user creates a recognizer from a grammar she has decompiled, it is up to her
+to ensure that no two recognizers are using the same grammar.
+One way to do this is for her to decompile the same compiled grammar multiple times,
+once for each recognizer she creates.
 
 =head2 precompute
 
-Takes as its only argument a grammar object and
+    $grammar->precompute();
+
+    Parse::Marpa::Grammar::precompute($grammar);
+
+C<precompute> as its only argument a grammar object and
 performs the precomputation phase on it.  It returns the grammar
 object or throws an exception.
 
-=head2 get_symbol(I<symbol_name>)
+Usually it is not necessary for the user to call C<precompute>, since the methods
+which require a precomputed grammar
+(C<compile> and C<Parse::Marpa::Recognizer::new>) will perform the precomputation
+themselves on a "just in time" basis.
+But it can be useful in debugging and tracing
+to control when precomputation takes place.
+
+=head2 get_symbol
+
+    my $minus = $grammar->get_symbol("minus");
+
+    my $number
+	= Parse::Marpa::Grammar::get_symbol($grammar, "number");
 
 Given a symbol's raw interface name, returns the symbol's "cookie".
 Returns undefined if a symbol with that name doesn't exist.
 
-The primary use of symbol cookies is with the C<Parse::Marpa::Recognizer::earleme>
-method.
+If you are using MDL to define your grammar, you probably
+don't want to use this method.
+You probably want to use C<Parse::Marpa::MDL::get_symbol> instead, so that
+the conversion from MDL name to raw interface name is handled for you.
+
+Symbol cookies are used primarily
+for calling of the C<Parse::Marpa::Recognizer::earleme> method.
 To get the cookie for a symbol using a high-level interface symbol name,
 see the documentation for the individual high level interface.
 
