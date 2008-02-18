@@ -3507,32 +3507,18 @@ C<decompile> returns the decompiled grammar object unless it throws an
 exception.
 
 If the trace file handle argument is omitted,
-it defaults to STDERR
+it defaults to C<STDERR>
 and the decompiled grammar's trace file handle reverts to the default for a new
-grammar, which is also STDERR.
-
+grammar, which is also C<STDERR>.
 The trace file handle argument is necessary because in the course of compilation,
 the grammar's original trace file handle may have been lost.
 For example, a compiled grammar can be written to a file and emailed.
 Marpa cannot rely on finding the original trace file handle available and open
 when a compiled grammar is decompiled.
 
-When Marpa compiles and decompiles a grammar as part to do a deep copy,
-it saves the trace file handle of the original grammar to a temporary, then
-restores it using the trace file handle argument of C<decompile>.
-
-One caution:
-Marpa ensures that multiple simultaneous recognizers can use a single grammar safely
-by checking to see if the grammar has been deep copied.
-If the grammar supplied to C<Parse::Marpa::Recognizer::new> is not the result of a C<decompile>,
-the recognizer compiles and decompiles it so that it has its own private copy.
-Once a grammar has been decompiled, Marpa
-C<Parse::Marpa::Recognizer::new> assumes that it is a private copy and safe to work with.
-
-When the user creates a recognizer from a grammar she has decompiled, it is up to her
-to ensure that no two recognizers are using the same grammar.
-One way to do this is for her to decompile the same compiled grammar multiple times,
-once for each recognizer she creates.
+When Marpa deep copies grammars internally, it uses the C<compile> and C<decompile> methods.
+To preserve the trace file handle of the original grammar, Marpa first copies it to a temporary,
+then restores it using the trace file handle argument of C<decompile>.
 
 =head1 SUPPORT
 

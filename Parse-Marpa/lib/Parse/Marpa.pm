@@ -238,9 +238,9 @@ include predictive and ambiguous lexing.
 
 =head2 The Easy Way
 
-Most of Marpa's capabilities are availble through a single method:
+Most of Marpa's capabilities are available using a single static method:
 L<C<Parse::Marpa::mdl>|/mdl>.
-The C<mdl> static method requires a grammar description in MDL (the Marpa Description Language) and a string.
+The C<mdl> method requires a grammar description in MDL (the Marpa Description Language) and a string.
 C<mdl> parses the string according to the MDL description.
 C<mdl> returns the result from evaluating the first parse in scalar context.
 In list context, it returns all the results.
@@ -262,22 +262,22 @@ When Perl 6 is ready, Perl 6 code will become its default semantics.
 =head2 The Semantics of Null Values
 
 As mentioned, Marpa parses grammars with empty productions.
-This means certain symbols in the grammar can result in nothing,
-or more formally, can produce the empty string.
+This means certain symbols in the grammar can result in nothing
+or, saying it more formally, can produce the empty string.
 
-Marpa handles the semantics of empty string by assigning values to
+Marpa assigns the semantics to empty strings by based on values assigned to
 null symbols.
 A B<null symbol> is a symbol which produces the empty string.
-When a symbol produced the empty string it is said to be B<nulled>.
+When a symbol produces the empty string it is said to be B<nulled>.
 
-Even within a single parse, the same symbol may be nulled in some locations
-and produce non-empty strings in other locations.
+Even within a single parse, the same symbol may be nulled in some positions
+and produce non-empty strings in other positions.
 A symbol may be nulled because is the right hand side of an empty production.
 It may also be nulled indirectly if it produces other symbols,
 all of which are eventually nulled.
 
 Every symbol which can be nulled has a B<null symbol value>,
-or more briefly B<null value>.
+or more briefly, B<null value>.
 The default null value is a Marpa option (C<default_null_value>).
 If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 
@@ -289,7 +289,7 @@ calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Parser/"Null 
 
 =head2 Tokens and Earlemes
 
-   Summarize this section, focusing on text().
+   Summarize this section, focusing on mdl().
 
 In parsing a input text,
 it is standard to proceed by
@@ -351,44 +351,40 @@ That, and this document, should be enough to get started.
 =head2 Phases
 
 The C<mdl> method hides Marpa's parsing phases from the user,
-calling Marpa's object methods as necessary.
-For advanced applications and diagnostics, it useful to know
+calling Marpa's object methods as it needs to.
+For advanced applications and for diagnostics, it useful to know
 about the phases of Marpa parsing.
-Marpa uses three object types: grammars, recognizers and parsers.
+
+Marpa uses three types of object: grammars, recognizers and parsers.
+Recognizers are created from grammars and
+parsers are created from recognizers.
 
 A grammar object (C<Parse::Marpa::Grammar>) must be created first,
-and rules must be added to it.
-Extensive precomputations are done on the grammar in this phase.
-Details of grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
+and rules added to it.
+Once all the rules have been added,
+extensive precomputations are done on the grammar.
+Details on grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
 
-A few parsers both recognize and parse at the same time, and for these
-the distinction is pedantic.
-In most practical applications,
-the distinction between parsing and recognition is present, though
-users may not realize it.
-
-Formally, recognizing an input is merely answering "yes" or "no" to the question
-of whether an input belongs to the language described by the grammar.
-Parsing an input means finding the structure of the string as described by
+In a strict sense, recognizing an input based on a grammar
+and parsing an input based on that grammar are two different things.
+Recognizing an input is merely answering "yes" or "no" to the question:
+Does this input belong to the language described by the grammar?
+Parsing that input means finding the structure of the string according to
 the grammar.
 
 Regular expressions, for example, do B<not> parse.
 They only recognize.
 Perl 5 regexes are regular expressions with some extensions,
 such as captures,
-which can return some limited information about the structure of the input.
+which can provide limited information about the structure of the input.
 Most conventional parsers, such as C<yacc>, C<Parse::Yapp> or Perl 5's own parser,
-have a separate lexing phase.
-This lexing phase is primarily doing recognition,
-and leaving the parsing for later.
+have a separate lexing phase primarily devoted to recognition.
 
-Marpa parsing, like Earley parsing in general,
-has a separate recognition phase,
-in which the input is accepted.
-In the process of the recognizing the input, Marpa builds
-tables which contain most of the information needed for the parsing phase.
+Marpa parsing has a separate recognition phase.
+As a byproduct of recognizing the input, Marpa builds tables.
+Marpa's parsing phase uses these tables.
 
-To create a Marpa recognizer object (<C<Parse::Marpa::Recognizer>),
+To create a Marpa recognizer object (C<Parse::Marpa::Recognizer>),
 a Marpa grammar object is required.
 Once a recognizer object has been created, it can accept input.
 Multiple recognizers can work with a single grammar object simultaneously.
@@ -397,16 +393,16 @@ see L<Parse::Marpa::Recognizer>.
 
 Marpa recognizes input in streaming or "online" fashion.
 It could also parse streamed inputs,
-but the methods to do so don't yet exist.
+but the methods to adequately support this don't yet exist.
 Currently, Marpa parsing begins once input is complete,
 with the creation of a Marpa parser object.
 
 Once a parser object (C<Parse::Marpa::Parser>) has been created from
-a recognizer, a parses can be derived, its semantics run,
+a recognizer, a parse can be derived, its semantics run,
 and its value returned.
 In the case of an ambiguous grammar, there can be many parses, each
 with its own value.
-For more details on parser objects and methods,
+For details on parser objects and methods,
 see L<Parse::Marpa::Parser>.
 
 =head2 Grammar Interfaces
@@ -416,18 +412,18 @@ Right now there are only two grammar interfaces:
 the B<Marpa Demonstration Language>
 and the B<raw grammar interface>.
 
-The B<raw grammar interface> is a set of options available
-through the constructor for
-Marpa grammar objects, C<Parse::Marpa::Grammar::new>
-as well as the C<Parse::Marpa::Grammar::set> method.
-The other grammar interfaces also use the raw grammar interface,
-but indirectly.
+The B<raw grammar interface> is a set of named arguments to
+the C<new> and C<set> methods of
+Marpa grammar objects.
+All other grammar interfaces use the raw grammar interface indirectly.
 The raw grammar interface is efficient,
-but users will usually want something higher level.
+but higher-level interfaces are easier to read, write and maintain,
+and even users seeking efficiency are usually better off
+working at the higher level.
 The documentation for the raw grammar interface
 is L<Parse::Marpa::Doc::Raw>.
 
-In Marpa's eyes all higher level grammar interfaces will be equal.
+In Marpa's eyes all higher level grammar interfaces are equal.
 I call the one that I am delivering with 
 Marpa the B<Marpa Demonstration Language> instead
 of the "Marpa Language" to emphasize it's lack of
@@ -435,6 +431,37 @@ special status.
 The documentation for MDL can be found at L<Parse::Marpa::Doc::MDL>.
 Users are encouraged to design their own
 high-level Marpa interfaces.
+
+=head2 Namespaces
+
+For semantic actions and lexing closures,
+there is a special namespace for each parse object,
+which is entirely the user's.
+In the following namespaces,
+users should use only documented methods:
+
+    Parse::Marpa
+    Parse::Marpa::Grammar
+    Parse::Marpa::Lex
+    Parse::Marpa::MDL
+    Parse::Marpa::Recognizer
+    Parse::Marpa::Parser
+    Parse::Marpa::Read_Only
+
+Users should use the C<$_> variable and variables in the
+the C<Parse::Marpa::Read_Only> namespace on a read-only basis.
+Staying read-only can be tricky when dealing with Perl 5 arrays.
+Be careful about auto-vivification!
+If a Marpa namespace was not mentioned in this section,
+users should not rely on or modify anything in it.
+
+=head2 Returns and Exceptions
+
+Most Marpa methods return only if successful.
+On failure they throw an exception using C<croak()>.
+If you don't want the exception to be fatal, catch it using C<eval>.
+A few failures are considered "non-exceptional" and returned.
+Non-exceptional failures are described in the documentation for the method which returns them.
 
 =head2 The Status of this Module
 
@@ -457,7 +484,7 @@ before using Marpa.
 
 Alpha versions may not be backward compatible.
 MDL protects users by requiring the version to be specified,
-and insisting on an exact match with Marpa's version number.
+and by insisting on an exact match with Marpa's version number.
 This strict version regime is the same as that being considered for Perl 6.
 Nonetheless, Marpa's version matching may become less strict once it goes beta.
 
@@ -487,15 +514,15 @@ one of the high-level interfaces;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
 
-In scalar context,  C<mdl> returns the value of the first parse if there was one,
-and undefined if there were no parses.
+In scalar context,  C<mdl> returns a reference to the value of the first parse.
 In list context, C<mdl> returns a list of references to the values of the parses.
-This is the empty list if there were no parses.
+If there are no parses, C<mdl> returns undefined in scalar context and
+the empty list in list context.
 
 =head2 Diagnostic Methods
 
-L<The separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
-with methods used primarily for debugging grammars and parses.
+L<A separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
+with methods for debugging grammars and parses.
 
 =head1 OPTIONS
 
@@ -526,7 +553,7 @@ the search for other terminals at that location continues.
 If multiple terminals match,
 all the tokens found are considered for use in the parse.
 If the parse is ambiguous,
-they may all end up actually being used.
+it is possible that all the tokens will actually be used.
 Ambiguous lexing is the default.
 
 If false,
@@ -561,7 +588,7 @@ The default is 30 lines.
 Takes as its value a string, which is expected to be code in the current
 semantics.
 (Right now Perl 5 is the only semantics available.)
-The value is used as the action for rules with no
+This value is used as the action for rules which have no
 explicitly specified action.
 If C<default_action> is not set,
 the default action is to return a Perl 5 undefined.
@@ -577,14 +604,14 @@ This is often used to handle leading whitespace.
 
 If a terminal has no lex prefix set, C<default_lex_prefix> is used.
 When C<default_lex_prefix> is not set,
-there is no default lex prefix or, stated more carefully,
-the default lex prefix is equivalent to a pattern which always matches the empty string.
+the default lex prefix is equivalent to a regex which always matches the empty string
+and only matches the empty string.
 
 =item default_null_value
 
 The value must be an action, that is, a string containing code in the current semantics.
 (Right now Perl 5 is the only semantics available.)
-The null value of a symbol is its value when it matches the empty string in a parse.
+The null value of a symbol is the symbol's value when it matches the empty string in a parse.
 
 For symbols which do not have have a null symbol value set explicitly,
 the null symbol value is taken from the result of running the C<default_null_value>
@@ -611,11 +638,11 @@ which is under construction and poorly tested,
 new tokens may still be added,
 and final bookkeeping is never done.
 Marpa's default idea is still to parse the entire input up to the current earleme,
-but in online mode that often may not be what the user wants.
+but in online mode that may not often be what the user wants.
 If it's not, it up to her
-to determine the right places to look for complete parses,
+to determine where to look for complete parses,
 based on her knowledge of the structure of the grammar and the input.
-The experimentail method
+The experimental method
 L<Parse::Marpa::Recognizer::find_complete_rule|Parse::Marpa::Recognizer/find_complete_rule>
 may help.
 
@@ -631,7 +658,7 @@ If multiple preambles are specified as named arguments,
 the more recent preambles replace any earlier ones.
 This is consistent with the behavior of other named arguments,
 but it differs from the behavior in MDL,
-which creates preamble by concatenating the code strings.
+which creates a preamble by concatenating the code strings.
 
 =item semantics
 
@@ -642,7 +669,7 @@ The only available semantics at this writing is C<perl5>.
 
 The value is a file handle.
 Warnings and trace output go to the trace file handle.
-By default it's STDERR.
+By default it's C<STDERR>.
 
 =item version
 
@@ -650,12 +677,7 @@ If present, the C<version> option must match the current
 Marpa version B<exactly>.
 This is because while Marpa is in alpha,
 features may change dramatically from version
-to version and
-little effort will be devoted
-to keeping the evolving versions compatible with
-each other.
-This version regime will be relaxed
-by the time Marpa leaves beta.
+to version.
 
 =item volatile
 
@@ -667,8 +689,9 @@ A value of 1 marks the object volatile.
 A value of 0 marks it non-volatile.
 Parses inherit the volatility marking, if any, of the
 grammar they are created from.
-If a parse is created from a grammar without a volatility marking,
-and none is specified when the parse is created,
+If a parse is created
+from a grammar without a volatility marking,
+and no volatility marking is specified when the parse is created,
 the parse is marked volatile.
 
 When a parse object is marked non-volatile,
@@ -676,15 +699,16 @@ an optimization called "node value memoization" is enabled.
 Parses should only marked non-volatile only if
 a parse object's semantic actions can be safely memoized.
 
-If an object is ever marked volatile,
-unsetting it back to non-volatile is almost certainly a dangerous oversight.
-Marpa throws an exception if you do that.
-For this purpose a grammar and the parse created from it are considered
-to be the same object.
+If an object is marked volatile at any point in its history,
+its volatility marking cannot be changed.
+If the user tries to, he is probably making a dangerous mistake,
+and Marpa throws an exception.
+This exception is thrown even if the object was marked volatile by inheritance
+from another object,
+or by internal action on Marpa's part.
 
-The "volatility unsetting exception" will be thrown even
-if Marpa marked the grammar volatile internally.
-Marpa often does this when a grammar has sequence productions.
+Marpa internally marks a grammar volatile, for example,
+when it has certain kinds of sequence productions.
 For more details,
 see L<Parse::Marpa::Parser/"Volatility">.
 
@@ -698,43 +722,18 @@ By default, warnings are on.
 
 Inaccessible rules are those which can never be produced by the start symbol.
 Unproductive rules are those which no possible input could ever match.
-Marpa is capable of simply ignoring these, if the remaining rules
-specify a useable grammar.
+Marpa ignores these, and if the remaining rules
+specify a useable grammar will happily parse it.
 
 Inaccessible and unproductive rules sometimes indicate errors in the grammar
 design.
 But a user may have plans for them,
 may wish to keep them as notes,
-or may simply wish to look at them at another time.
+or may simply wish to deal with them later.
 
 =back
 
 =head1 IMPLEMENTATION NOTES
-
-=head2 Namespaces
-
-For semantic actions and lexing closures,
-there is a special namespace for each parse object,
-which is entirely the user's.
-In the following namespaces,
-users should use only documented methods:
-
-    Parse::Marpa
-    Parse::Marpa::Grammar
-    Parse::Marpa::Lex
-    Parse::Marpa::MDL
-    Parse::Marpa::Recognizer
-    Parse::Marpa::Parser
-
-In the C<Parse::Marpa::Read_Only> namespace,
-users should used only documented variables,
-and those on a read-only basis.
-(Staying read-only can be tricky when dealing with Perl 5 arrays.
-Be careful about auto-vivification!)
-If a Marpa namespace is not mentioned in this section,
-users should not rely on or modify anything in it.
-
-=head2 String References
 
 Those experienced in Perl say that passing
 string refs instead of strings is a pointless
@@ -743,19 +742,9 @@ I agree, but C<Marpa> is an exception.
 Marpa expects to process and output entire files,
 some of which might be very long.
 
-=head2 Object Orientation
-
 Use of object orientation in Marpa is superficial.
 Only grammars and parses are objects, and they are not
 designed to be inherited.
-
-=head2 Returns and Exceptions
-
-Most Marpa methods return only if successful.
-On failure they throw an exception using C<croak()>.
-If you don't want the exception to be fatal, catch it using C<eval>.
-A few failures are considered "non-exceptional" and returned.
-Non-exceptional failures are described in the documentation for the method which returns them.
 
 =head2 Speed
 
@@ -771,7 +760,7 @@ Right now when Marpa tries to lex multiple regexes at a single location, it does
 so using an individual Perl 5 regex match for each terminal, one after another.
 
 There may be
-a more efficient way to use Perl 5 regexes to find all matches in
+a more efficient way to find all the matches in
 a set of alternatives.
 A complication is that
 Marpa does predictive lexing, so that the list of lexables is
@@ -787,8 +776,7 @@ written to show off a wide range of Marpa's capabilities.
 A high-level grammar interface written without this agenda
 might easily run faster.
 
-As a reminder,
-if the MDL's parsing speed
+If MDL's parsing speed
 becomes an issue with a particular grammar,
 that grammar can be precompiled.
 Subsequent runs from the precompiled grammar won't incur the overhead of either
@@ -796,8 +784,8 @@ MDL parsing or precomputation.
 
 =head3 Comparison with other Parsers
 
-In thinking about speed, it's helpful to be 
-keep in mind Marpa's position in the parsing food chain.
+In thinking about speed, it is helpful to
+keep in mind Marpa's place in the parsing food chain.
 Marpa parses many grammars which bison, yacc, L<Parse::Yapp>,
 and L<Parse::RecDescent>
 cannot.
@@ -825,7 +813,7 @@ about as close to unreadable as anything in the world of programming gets,
 and fragile in the face of change to boot.
 
 If you know you will be writing an LALR grammar or a regular one,
-it is a good reason B<not> to use Marpa.
+that is a good reason B<not> to use Marpa.
 When a grammar is LALR or regular,
 Marpa takes advantage of this and runs faster.
 But such a grammar will run faster yet on a parser designed
@@ -861,13 +849,14 @@ Lotsawa: "Marpa the Translator".
 
 In the 11th century, translation was not a job for the indoors type.
 A translator needed to study with the teachers who had the
-texts and could explain them.  That meant going to India.  Marpa's
-home was in the Lhotrak Valley.
-The route from the Lhotrak to India was via the three-mile high Khala Chela Pass,
-two hundred difficult and lawless miles away.
+texts and could explain them.  That meant going to India.
+Getting to India from Marpa's home in the Lhotrak Valley
+meant crossing two hundred difficult and lawless miles to
+Khala Chela Pass,
+and scaling its three-mile high summit.
 
 From Khala Chela to the great Buddhist center of Nalanda
-University was four hundred miles downhill,
+University was four hundred miles and downhill,
 but Tibetans would stop off for years or months in Nepal,
 getting used to the low altitudes.
 Tibetans had learned
@@ -899,13 +888,13 @@ See L<Parse::Marpa::To_Do>.
 
 If non-default priorities are given to rules, it's possible two rules
 with different priorities could wind up in the same SDFA state.
-I won't explain the details of SDFA's here,
-(see the L<internals document|Parse::Marpa::Doc::Internals>),
-but Marpa can't proceed when that happens.
+Marpa can't proceed when that happens.
+(See the L<internals document|Parse::Marpa::Doc::Internals> if you're
+interested in the details about SDFA's.)
 
 I've actually never seen this happen, and one reason the problem is
-not fixed is that I need to contrive a case where the problem occurs
-before I make a fix.  Otherwise, I can't test the fix.
+not fixed is that I will need to contrive a case where the problem occurs.
+Otherwise, I can't test the fix.
 But if you're the unlucky first person to encounter this, here are
 the workarounds.
 
@@ -922,15 +911,14 @@ until you get the one you want.
 
 Workaround 3:
 Make a small change in the grammar.
-Be aware that the code which creates the SDFA is smart enough so that you'll
+Be aware that the code which creates the SDFA is smart enough that you'll
 probably need to make some sort of 
 real change to the target language.
 Simply writing different rules with the same effect probably won't make
 the problem go away.
 
 I believe there's a fix to this problem,
-but it will require not only concocting a way to make the problem occur,
-but at least a bit of mathematics.
+but it will require some mathematics.
 Here's what I think is the fix:
 Change the SDFA to be a little more non-deterministic,
 so that there are different SDFA nodes for the different priorities,
@@ -951,22 +939,22 @@ This problem occurs when
 
 =item * An ambiguous production has more than two nullable symbols on the right hand side; and
 
-=item * The semantics are such that order of the parses in that production matters.
+=item * The semantics are such that order of the parses for that production matters.
 
 =back
 
 This doesn't happen in any practical grammars I've tried.
 Perhaps it's a unnatural way to set up the semantics.
-But it certainly happens in textbook grammars.
+But it certainly does happen in textbook grammars.
 
-There is a very straightforward workaround, described below.
+A very straightforward workaround is described below.
 But the problem needs to be fixed, certainly before Marpa goes beta.
 
 Details: The problem occurs because these productions are rewritten internally by CHAF.
 A rightmost parse comes first as I have documented,
 but it is a rightmost parse for the grammar B<as rewritten by CHAF>.
 This is a bug for pendantic reasons, because
-CHAF rewritting is supposed to be invisible.
+CHAF rewriting is supposed to be invisible.
 It's a bug for practical reasons because the CHAF-driven order is not intuitive,
 and I can't picture it ever being the desired first choice.
 Priorities are B<not> a workaround, because priorites cannot be set for rules
@@ -1058,7 +1046,7 @@ the work of Francois Desarmenien (C<Parse::Yapp>),
 Damian Conway (C<Parse::RecDescent>) and
 Graham Barr (C<Scalar::Util>).
 Adam Kennedy patiently corrected me on the finer points of module writing,
-as well as on some issues where I really should have know better.
+as well as about some issues where I really should have know better.
 
 =head1 COPYRIGHT & LICENSE
 
