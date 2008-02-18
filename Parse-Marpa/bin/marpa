@@ -77,9 +77,10 @@ sub do_parse {
 
     my $grammar;
     if (defined $compiled_grammar_file) {
-	open(GRAMMAR, "<", $compiled_grammar_file);
-	my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
-	$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
+	croak("Compiled grammars not implemented");
+	# open(GRAMMAR, "<", $compiled_grammar_file);
+	# my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
+	# $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
     }
     elsif (defined $grammar_file) {
 	open(GRAMMAR, "<", $grammar_file);

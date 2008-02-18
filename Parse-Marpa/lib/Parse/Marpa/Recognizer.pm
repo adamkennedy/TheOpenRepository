@@ -1444,6 +1444,8 @@ It returns a new parse object or throws an exception.
 The C<grammar> option must be specified,
 and its value must be a grammar object which has rules defined.
 
+    Document compiled_grammar option
+
 The other valid named arguments are Marpa options.
 For these, see the L<Parse::Marpa|/OPTIONS>.
 

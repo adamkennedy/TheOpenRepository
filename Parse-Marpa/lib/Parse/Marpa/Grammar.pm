@@ -481,9 +481,9 @@ sub Parse::Marpa::create_compiled_source_grammar {
     $raw_source_grammar->compile();
 }
 
-# First arg is the current grammar, that is, the one being
-# built.
-# Second arg is ref to string containing Marpa source
+# Build a grammar from an MDL description.
+# First arg is the grammar being built.
+# Second arg is ref to string containing the MDL description.
 sub source_grammar {
     my $grammar = shift;
     my $source  = shift;
@@ -501,20 +501,22 @@ sub source_grammar {
             croak("No compiled source grammar:\n", $eval_error);
         }
     }
-    my $source_grammar = Parse::Marpa::Grammar::decompile(
-        $Parse::Marpa::Internal::compiled_source_grammar,
-        $trace_fh
-    );
 
-    my $grammar_version = $source_grammar->[ Parse::Marpa::Internal::Grammar::VERSION ];
-    no integer;
-    if ($Parse::Marpa::VERSION != $grammar_version) {
-        croak("Version mismatch between Marpa ($Parse::Marpa::VERSION) and its source grammar ($grammar_version)");
-    }
+    # my $grammar_version = $source_grammar->[ Parse::Marpa::Internal::Grammar::VERSION ];
+    # no integer;
+    # if ($Parse::Marpa::VERSION != $grammar_version) {
+        # croak("Version mismatch between Marpa ($Parse::Marpa::VERSION) and its source grammar ($grammar_version)");
+    # }
+    # use integer;
+
     $source_options //= {};
-    use integer;
+
     my $recce = new Parse::Marpa::Recognizer(
-        { grammar => $source_grammar, %{$source_options} }
+        {
+	    compiled_grammar => $Parse::Marpa::Internal::compiled_source_grammar,
+	    trace_file_handle => $trace_fh,
+	    %{$source_options}
+	}
     );
 
     my $failed_at_earleme = $recce->text($source);
