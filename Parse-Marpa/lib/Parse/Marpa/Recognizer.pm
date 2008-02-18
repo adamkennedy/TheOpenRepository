@@ -504,8 +504,8 @@ sub eval_grammar {
     @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
         set_actions( $grammar, $package );
     $parse->[PRIORITIES] = set_priorities($grammar);
-    $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-        Parse::Marpa::Internal::Grammar::EVALED;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::EVALED;
 
 }
 
@@ -516,23 +516,30 @@ sub Parse::Marpa::Recognizer::new {
     my $parse = [];
     my $ambiguous_lex;
     my $preamble;
+    # do we have a private copy of the grammar?
+    my $private_grammar = 0;
 
     my ($args) = @_;
+    my $arg_trace_fh = $args->{trace_file_handle};
+
     my $grammar = $args->{grammar};
-    croak("No grammar specified") unless defined $grammar;
-    delete $args->{grammar};
+    if (not defined $grammar) {
+	my $compiled_grammar = $args->{compiled_grammar};
+	croak("No grammar specified") unless defined $compiled_grammar;
+	delete $args->{compiled_grammar};
+	my $trace_fh = $arg_trace_fh // (*STDERR);
+	$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
+	$private_grammar = 1;
+    } else {
+	delete $args->{grammar};
+    }
 
     my $grammar_class = ref $grammar;
     croak(
         "${class}::new() grammar arg has wrong class: $grammar_class")
         unless $grammar_class eq "Parse::Marpa::Grammar";
 
-    Parse::Marpa::Grammar::set($grammar, $args);
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING ];
-
-    # We always get the trace file handle, because we often need it to pass to
-    # decompile, below.
-    my $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -550,48 +557,35 @@ sub Parse::Marpa::Recognizer::new {
         );
     }
 
+    my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    if ($phase < Parse::Marpa::Internal::Phase::RULES
+         or $phase >= Parse::Marpa::Internal::Phase::EVALED)
+    {
+	croak(
+	    "Attempt to parse grammar in inappropriate phase ",
+	    Parse::Marpa::Internal::Phase::description($phase)
+	);
+    }
+
+    if ($phase < Parse::Marpa::Internal::Phase::PRECOMPUTED
+	    or not $private_grammar) {
+	my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
+	my $trace_fh
+	    = $arg_trace_fh
+	    // $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+	$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
+    }
+
+    Parse::Marpa::Grammar::set($grammar, $args);
+
     # Finalize the value of volatile
     # undef means volatile (boolean true, or 1)
     $grammar->[ Parse::Marpa::Internal::Grammar::VOLATILE ] //= 1;
 
-    # allow the user to use a grammar "in place"?
-    STATE:
-    while ( my $state = $grammar->[Parse::Marpa::Internal::Grammar::STATE] )
-    {
-        last STATE if $state eq Parse::Marpa::Internal::Grammar::EVALED;
-        given ($state) {
-            when (Parse::Marpa::Internal::Grammar::PERL_RULES) {
-                my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
-            }
-            when (Parse::Marpa::Internal::Grammar::SOURCE_RULES) {
-                my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
-            }
-            when (Parse::Marpa::Internal::Grammar::PRECOMPUTED) {
-                my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
-                $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
-            }
-            when (Parse::Marpa::Internal::Grammar::COMPILED) {
-                eval_grammar( $parse, $grammar );
-            }
-            when (Parse::Marpa::Internal::Grammar::IN_USE) {
-                croak("Attempt to parse grammar already in use");
-            }
-            when (Parse::Marpa::Internal::Grammar::NEW) {
-                croak("Attempt to parse grammar without rules");
-            }
-            default {
-                croak(
-                    "Attempt to parse grammar in inappropriate state\nAttempt to parse ",
-                    $state
-                );
-            }
-        }
-    }    # while ne EVALED
+    eval_grammar( $parse, $grammar );
 
-    $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-        Parse::Marpa::Internal::Grammar::IN_USE;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::IN_USE;
 
     my $earley_hash;
     my $earley_set;

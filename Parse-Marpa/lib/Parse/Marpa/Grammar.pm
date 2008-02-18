@@ -121,7 +121,6 @@ use constant LOCATION_CALLBACK  => 19; # default callback for showing location
 use constant VOLATILE           => 20; # default for volatility
 use constant PROBLEMS           => 21; # fatal problems
 use constant PREAMBLE           => 22; # default preamble
-use constant STATE              => 23; # the grammar's state
 use constant WARNINGS           => 24; # print warnings about grammar?
 use constant VERSION            => 25; # Marpa version this grammar was compiled from
 use constant CODE_LINES         => 26; # max lines to display on failure
@@ -142,15 +141,48 @@ use constant TRACE_VALUES             => 39;
 use constant MAX_PARSES               => 40;
 use constant ONLINE                   => 41;
 use constant ALLOW_RAW_SOURCE         => 42;
+use constant PHASE                    => 43; # the grammar's phase
+use constant INTERFACE                => 44; # the grammar's interface
 
-# values for state
-use constant NEW          => "grammar without rules";
-use constant SOURCE_RULES => "grammar with rules entered from source";
-use constant PERL_RULES   => "grammar with rules entered from Perl";
-use constant PRECOMPUTED  => "precomputed grammar";
-use constant COMPILED     => "compiled grammar";
-use constant EVALED       => "evaled grammar";
-use constant IN_USE       => "in use grammar";
+package Parse::Marpa::Internal::Interface;
+
+# values for grammar interfaces
+use constant RAW => 0;
+use constant MDL => 1;
+
+sub description {
+  my $interface = shift;
+  given($interface) {
+      when (RAW) { return "raw interface" }
+      when (MDL) { return "Marpa Description Language interface" }
+      default { "unknown interface" }
+  }
+};
+
+package Parse::Marpa::Internal::Phase;
+
+# values for grammar phases
+use constant NEW          => 0;
+use constant RULES        => 1;
+use constant PRECOMPUTED  => 2;
+use constant COMPILED     => 3;
+use constant EVALED       => 4;
+use constant IN_USE       => 5;
+
+sub description {
+  my $phase = shift;
+  given($phase) {
+      when (NEW) { return "grammar without rules" }
+      when (RULES) { return "grammar with rules entered" }
+      when (PRECOMPUTED) { return "precomputed grammar" }
+      when (COMPILED) { return "compiled grammar" }
+      when (EVALED) { return "evaled grammar" }
+      when (IN_USE) { return "in use grammar" }
+      default { "unknown phase" }
+  }
+};
+
+package Parse::Marpa::Internal::Grammar;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -312,8 +344,10 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
      Parse::Marpa::Internal::Grammar::add_user_rules($grammar, $new_rules);
      Parse::Marpa::Internal::Grammar::add_user_terminals($grammar, $new_terminals);
 
-     $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-         Parse::Marpa::Internal::Grammar::PERL_RULES;
+     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+         Parse::Marpa::Internal::Phase::RULES;
+     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE] = 
+         Parse::Marpa::Internal::Interface::RAW;
 
 }
 
@@ -348,8 +382,8 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = 30;
-    $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-        Parse::Marpa::Internal::Grammar::NEW;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::NEW;
     $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS]      = [];
     $grammar->[Parse::Marpa::Internal::Grammar::SYMBOL_HASH]  = {};
     $grammar->[Parse::Marpa::Internal::Grammar::RULES]        = [];
@@ -504,19 +538,14 @@ sub Parse::Marpa::Grammar::set {
         $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
 
-    my $precomputed = 1;
-    my $state = $grammar->[Parse::Marpa::Internal::Grammar::STATE];
-    given ($state) {
-        when (Parse::Marpa::Internal::Grammar::NEW)          {$precomputed = 0}
-        when (Parse::Marpa::Internal::Grammar::PERL_RULES)   {$precomputed = 0}
-        when (Parse::Marpa::Internal::Grammar::SOURCE_RULES) {$precomputed = 0}
-    }
+    my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
 
     # value of source needs to be a *REF* to a string
     my $source = $args->{"mdl_source"};
     if ( defined $source ) {
         croak("Cannot source grammar with some rules already defined")
-            if $state ne Parse::Marpa::Internal::Grammar::NEW;
+            if $phase != Parse::Marpa::Internal::Phase::NEW;
         croak("Source for grammar must be specified as string ref")
             unless ref $source eq "SCALAR";
         croak("Source for grammar undefined")
@@ -529,35 +558,37 @@ sub Parse::Marpa::Grammar::set {
             when ("mdl_source") {;}    # already dealt with
             when ("source_options") {;}    # already dealt with
             when ("rules") {
-                croak("Perl rules not allowed with sourced grammar")
-                    if $state eq
-                        Parse::Marpa::Internal::Grammar::SOURCE_RULES;
+		$grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
+		    //= Parse::Marpa::Internal::Interface::RAW;
+		my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
+                croak("rules option not allowed with " . interface_description($interface))
+                    if $interface ne Parse::Marpa::Internal::Interface::RAW;
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_rules( $grammar, $value );
-                $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-                    Parse::Marpa::Internal::Grammar::PERL_RULES;
+                $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+                    Parse::Marpa::Internal::Phase::RULES;
             }
             when ("terminals") {
-                croak("Perl terminals not allowed with sourced grammar")
-                    if $state eq
-                        Parse::Marpa::Internal::Grammar::SOURCE_RULES;
+		$grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
+		    //= Parse::Marpa::Internal::Interface::RAW;
+		my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
+                croak("terminals option not allowed with " . interface_description($interface))
+                    if $interface ne Parse::Marpa::Internal::Interface::RAW;
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_terminals( $grammar, $value );
-                $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-                    Parse::Marpa::Internal::Grammar::PERL_RULES;
+                $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+                    Parse::Marpa::Internal::Phase::RULES;
             }
             when ("start") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::START] = $value;
-                $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-                    Parse::Marpa::Internal::Grammar::PERL_RULES;
             }
             when ("academic") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::ACADEMIC] =
                     $value;
             }
@@ -572,21 +603,21 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("default_lex_prefix") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar
                     ->[Parse::Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] =
                     $value;
             }
             when ("default_lex_suffix") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar
                     ->[Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX] =
                     $value;
             }
             when ("ambiguous_lex") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::AMBIGUOUS_LEX] =
                     $value;
             }
@@ -684,7 +715,7 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("warnings") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] =
                     $value;
             }
@@ -706,13 +737,13 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("version") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[ Parse::Marpa::Internal::Grammar::VERSION ] =
                     $value;
             }
             when ("semantics") {
                 croak("$option option not allowed after grammar is precomputed")
-                    if $precomputed;
+                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[ Parse::Marpa::Internal::Grammar::SEMANTICS ] =
                     $value;
             }
@@ -764,19 +795,12 @@ sub Parse::Marpa::Grammar::precompute {
         $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
 
-    my $state = $grammar->[ Parse::Marpa::Internal::Grammar::STATE ];
-    given ($state) {
-        when (Parse::Marpa::Internal::Grammar::PERL_RULES) { ; }
-        when (Parse::Marpa::Internal::Grammar::SOURCE_RULES) { ; }
-        when (Parse::Marpa::Internal::Grammar::PRECOMPUTED) {
-            return $grammar; # if already done, just return
-        }
-        default {
-            croak(
-                "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
-                $state
-            );
-        }
+    my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
+    if ($phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED) {
+	croak(
+	    "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
+	    Parse::Marpa::Internal::Phase::description($phase)
+	);
     }
 
     nulling($grammar);
@@ -809,8 +833,8 @@ sub Parse::Marpa::Grammar::precompute {
         }
     }
 
-    $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-        Parse::Marpa::Internal::Grammar::PRECOMPUTED;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::PRECOMPUTED;
     $grammar;
 }
 
@@ -839,17 +863,18 @@ sub Parse::Marpa::Grammar::compile {
         $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
 
-    my $state = $grammar->[ Parse::Marpa::Internal::Grammar::STATE ];
-    given ($state) {
-        when (Parse::Marpa::Internal::Grammar::PERL_RULES) { Parse::Marpa::Grammar::precompute($grammar); }
-        when (Parse::Marpa::Internal::Grammar::SOURCE_RULES) { Parse::Marpa::Grammar::precompute($grammar); }
-        when (Parse::Marpa::Internal::Grammar::PRECOMPUTED) { ; }
-        default {
-            croak(
-                "Attempt to compile grammar in inappropriate state\nAttempt to compile ",
-                $state
-            );
-        }
+    my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
+    if ($phase > Parse::Marpa::Internal::Phase::COMPILED
+	    or $phase < Parse::Marpa::Internal::Phase::RULES)
+    {
+	croak(
+	    "Attempt to compile grammar in inappropriate state\nAttempt to compile ",
+	    Parse::Marpa::Internal::Phase::description($phase)
+	);
+    }
+
+    if ($phase == Parse::Marpa::Internal::Phase::RULES) {
+        Parse::Marpa::Grammar::precompute($grammar);
     }
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
@@ -912,8 +937,8 @@ sub Parse::Marpa::Grammar::decompile {
         $symbol->[Parse::Marpa::Internal::Symbol::LHS] = undef;
         $symbol->[Parse::Marpa::Internal::Symbol::RHS] = undef;
     }
-    $grammar->[Parse::Marpa::Internal::Grammar::STATE] =
-        Parse::Marpa::Internal::Grammar::COMPILED;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::COMPILED;
     $grammar;
 
 }
