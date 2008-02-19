@@ -24,14 +24,6 @@ look in the C<t>, or test, directory of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
 
-=head2 Options Code Poorly Organized
-
-Most options are only valid at certain points in the parsing,
-but this is haphazardly enforced and poorly documented.
-There may be some just plain ol' bugs.
-The options code needs to be cleaned up,
-and the documentation tightened up.
-
 =head2 Other things to do
 
 =over 4
@@ -49,8 +41,6 @@ and the documentation tightened up.
 =item * Test (or remove?) lexing suffixes.
 
 =item * Allow alternation?
-
-=item * Inplace option for grammars?
 
 =item * Add to test set
 

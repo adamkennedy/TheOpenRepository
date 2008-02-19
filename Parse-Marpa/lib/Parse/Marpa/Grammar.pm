@@ -553,12 +553,12 @@ sub Parse::Marpa::Grammar::set {
         croak("Source for grammar undefined")
             if not defined $$source;
         source_grammar( $grammar, $source, $args->{"source_options"} );
+	delete $args->{"mdl_source"};
+        delete $args->{"source_options"};
     }
 
     while ( my ( $option, $value ) = each %$args ) {
         given ($option) {
-            when ("mdl_source") {;}    # already dealt with
-            when ("source_options") {;}    # already dealt with
             when ("rules") {
 		$grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
 		    //= Parse::Marpa::Internal::Interface::RAW;
@@ -595,11 +595,19 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ("default_null_value") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar
                     ->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
                     $value;
             }
             when ("default_action") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION] =
                     $value;
             }
@@ -630,79 +638,141 @@ sub Parse::Marpa::Grammar::set {
             when ("trace_actions") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ACTIONS ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    say $trace_fh "Warning: setting $option option after semantics were finalized"
+			if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_lex") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_TRIES ]
                     = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES ]
                     = $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_lex_tries") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_TRIES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_lex_matches") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_values") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_VALUES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_rules") {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_RULES] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+		    my $rule_count = @$rules;
+		    say $trace_fh "Setting $option";
+		    say $trace_fh "Warning: Setting $option when $rule_count rules already exist"
+		       if $rule_count;
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		}
             }
             when ("trace_strings") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_STRINGS ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+		    my $rule_count = @$rules;
+		    say $trace_fh "Setting $option";
+		    say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
+		       if $rule_count;
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		}
             }
             when ("trace_predefineds") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PREDEFINEDS ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+		    my $rule_count = @$rules;
+		    say $trace_fh "Setting $option";
+		    say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
+		       if $rule_count;
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		}
             }
             when ("trace_evaluation_choices") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_iterations") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ]
                     = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ]
                     = $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_iteration_searches") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_iteration_changes") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("trace_priorities") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option";
+		    say $trace_fh "Warning: Setting $option after semantics were finalized"
+			if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		}
             }
             when ("trace_completions") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_COMPLETIONS ] =
                     $value;
-                $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+		if ($value) {
+		    say $trace_fh "Setting $option option";
+		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+		}
             }
             when ("location_callback") {
                 croak("location callback not yet implemented");
             }
             when ("volatile") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 given ($value) {
                     when (1) { $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = 1; }
                     when (0) {
@@ -716,12 +786,16 @@ sub Parse::Marpa::Grammar::set {
                 } 
             }
             when ("warnings") {
-                croak("$option option not allowed after grammar is precomputed")
-                    if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                say $trace_fh qq{"warnings" option is useless after grammar is precomputed}
+                    if $value && $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] =
                     $value;
             }
             when ("online") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::ONLINE] =
                     $value;
             }
@@ -730,6 +804,10 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ("allow_raw_source") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::RULES;
                 $grammar->[Parse::Marpa::Internal::Grammar::ALLOW_RAW_SOURCE ] =
                     $value;
             }
@@ -750,6 +828,10 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ("preamble") {
+                croak(
+		    "$option option not allowed in ",
+		    Parse::Marpa::Internal::Phase::description($phase)
+		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }
