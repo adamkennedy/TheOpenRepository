@@ -519,13 +519,12 @@ Nonetheless, Marpa's version matching may become less strict once it goes beta.
      );
 
 The C<mdl> static method takes three arguments:
-a B<reference> to a string containing an MDL description of the grammar in
-one of the high-level interfaces;
+a B<reference> to a string containing an MDL description of the grammar;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
 
-In scalar context,  C<mdl> returns a reference to the value of the first parse.
-In list context, C<mdl> returns a list of references to the values of the parses.
+In scalar context,  C<mdl> returns a B<reference> to the value of the first parse.
+In list context, C<mdl> returns a list of B<references> to the values of the parses.
 If there are no parses, C<mdl> returns undefined in scalar context and
 the empty list in list context.
 
@@ -537,20 +536,20 @@ with methods for debugging grammars and parses.
 =head1 OPTIONS
 
 Marpa has options which control its behavior.
-These may be set when C<Parse::Marpa::Grammar>
+These may be set using named arguments when C<Parse::Marpa::Grammar>
 and C<Parse::Marpa::Recognizer>
 objects are created,
-with the C<Parse::Marpa::Grammar::set> method, or
-indirectly through one of
-Marpa's high-level grammar interfaces.
+with the C<Parse::Marpa::Grammar::set> method.
+
+Ordinary Marpa options are listed and described below by argument name.
 Options for debugging and tracing are dealt with in
 L<the separate document on diagnostics|Parse::Marpa::Doc::Diagnostics>.
 
-High level grammar interfaces use their own conventions
+High level grammar interfaces have their own conventions
 for Marpa options.
 The documentation of MDL describes,
 and the documentation of every high level interface should describe,
-which options can be set and how.
+which options can be set through that interface, and how.
 
 =over 4
 
@@ -558,7 +557,7 @@ which options can be set and how.
 
 Treats its value as a boolean. 
 If true, ambiguous lexing is used.
-This means that even if a terminal is matched by a closure or a regex,
+Ambiguous lexing means that even if a terminal is matched by a closure or a regex,
 the search for other terminals at that location continues.
 If multiple terminals match,
 all the tokens found are considered for use in the parse.
@@ -610,11 +609,11 @@ The value must be a regex in the current semantics.
 The lexers allow every terminal to specify a B<lex prefix>,
 a pattern to be matched and discarded before the pattern for
 the terminal itself is matched.
-This is often used to handle leading whitespace.
+Lex prefixes are often used to handle leading whitespace.
 
 If a terminal has no lex prefix set, C<default_lex_prefix> is used.
 When C<default_lex_prefix> is not set,
-the default lex prefix is equivalent to a regex which always matches the empty string
+the default lex prefix is equivalent to a regex which always
 and only matches the empty string.
 
 =item default_null_value
@@ -624,7 +623,8 @@ The value must be an action, that is, a string containing code in the current se
 The null value of a symbol is the symbol's value when it matches the empty string in a parse.
 
 For symbols which do not have have a null symbol value set explicitly,
-the null symbol value is taken from the result of running the C<default_null_value>
+the null symbol value is calculated by
+running the C<default_null_value>
 action.
 If C<default_null_value> is not set, the default null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
@@ -667,13 +667,13 @@ The preamble is run first, and may be used to set up globals.
 If multiple preambles are specified as named arguments,
 the more recent preambles replace any earlier ones.
 This is consistent with the behavior of other named arguments,
-but it differs from the behavior in MDL,
+but it differs from the behavior of MDL,
 which creates a preamble by concatenating the code strings.
 
 =item semantics
 
 The value is a string specifying the type of semantics used in the semantic actions.
-The only available semantics at this writing is C<perl5>.
+The current default, and the only available semantics at this writing, is C<perl5>.
 
 =item trace_file_handle
 
@@ -716,9 +716,8 @@ and Marpa throws an exception.
 This exception is thrown even if the object was marked volatile by inheritance
 from another object,
 or by internal action on Marpa's part.
-
 Marpa internally marks a grammar volatile, for example,
-when it has certain kinds of sequence productions.
+when the grammar uses certain kinds of sequence productions.
 For more details,
 see L<Parse::Marpa::Parser/"Volatility">.
 
@@ -748,12 +747,12 @@ or may simply wish to deal with them later.
 Those experienced in Perl say that passing
 string refs instead of strings is a pointless
 and even counter-productive optimization.
-I agree, but C<Marpa> is an exception.
+I agree, but Marpa is an exception.
 Marpa expects to process and output entire files,
 some of which might be very long.
 
 Use of object orientation in Marpa is superficial.
-Only grammars and parses are objects, and they are not
+Only grammars, recognizers and parsers are objects, and they are not
 designed to be inherited.
 
 =head2 Speed
@@ -796,10 +795,10 @@ MDL parsing or precomputation.
 
 In thinking about speed, it is helpful to
 keep in mind Marpa's place in the parsing food chain.
-Marpa parses many grammars which bison, yacc, L<Parse::Yapp>,
+Marpa parses many grammars that bison, yacc, L<Parse::Yapp>,
 and L<Parse::RecDescent>
-cannot.
-For these, it's clearly faster.  When it comes to time efficiency,
+cannot parse.
+For these, Marpa is clearly faster.  When it comes to time efficiency,
 never is not hard to beat.
 
 Marpa allows grammars to be expressed in their most natural form.
@@ -817,8 +816,8 @@ Backtracking is a gamble,
 and one you often find you've made against the odds.
 
 Some grammars have constructs to control backtracking.
-To my mind this control comes at a very high price.
-Solutions with these controls built into them are
+To my mind this control comes at a high price.
+Solutions with these constructs built into them are
 about as close to unreadable as anything in the world of programming gets,
 and fragile in the face of change to boot.
 
@@ -831,7 +830,7 @@ for it:
 bison, yacc and L<Parse::Yapp> for LALR; regexes
 for regular grammars.
 
-Finally, there are the many situations when we need to do some parsing as a one-shot
+Finally, there are the many situations when we want to do some parsing as a one-shot
 and don't want to have to care what subcategory our grammar falls in.
 We want to write some quick BNF,
 do the parsing,
@@ -852,8 +851,8 @@ Jeffrey Kegler
 
 Marpa is the name of the greatest of the Tibetan "translators".  In
 that time (we're talking the 11th century AD) Indian Buddhism was
-at its height.  A generation of Tibetan translators were devoting
-themselves to producing Tibetan versions of Buddhism's Sanskrit scriptures.
+at its height.  A generation of scholars was devoting
+itself to producing Tibetan versions of Buddhism's Sanskrit scriptures.
 Marpa was their major figure, and today he is known simply as Marpa
 Lotsawa: "Marpa the Translator".
 
@@ -867,16 +866,17 @@ and scaling its three-mile high summit.
 
 From Khala Chela to the great Buddhist center of Nalanda
 University was four hundred miles and downhill,
-but Tibetans would stop off for years or months in Nepal,
-getting used to the low altitudes.
+but Tibetans would stop off for years or months in Nepal.
 Tibetans had learned
-not to go straight to Nalanda the hard way.
+the hard way
+to take some time to get used to low altitude
+instead of going straight to Nalanda.
+Whole expeditions had
+died from disease within weeks of arrival on the hot plains.
 Almost no germs live in the cold,
 thin air of Tibet,
 and Tibetans arriving
 directly in the lowlands had no immunities.
-Whole expeditions had
-died from disease within weeks of arrival on the hot plains.
 
 =head2 Blatant Plug
 
@@ -885,7 +885,9 @@ his studies, travels and adventures are a major subplot.  B<The God
 Proof> centers around Kurt GE<ouml>del's proof of God's existence.
 Yes, I<that> Kurt GE<ouml>del, and yes, he really did work out a
 God Proof (it's in his I<Collected Works>, Vol. 3, pp. 403-404).
-B<The God Proof> is available at Amazon:
+B<The God Proof> is available
+as a free download L<http://www.lulu.com/content/933192>,
+and in print form at Amazon.com:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
 =head1 TO DO
