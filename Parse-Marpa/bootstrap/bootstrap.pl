@@ -761,7 +761,7 @@ our $TRAILER; # to silence spurious warning
 my $trailer;
 { open(TRAILER, "<", $trailer_file_name); local($RS) = undef; $trailer = <TRAILER>; }
 
-my $value = $parser->value();
+my $value = $parser->next();
 print $header, $$value, $trailer;
 
 # Local Variables:

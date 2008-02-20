@@ -12,6 +12,7 @@ our $rule;
 package Parse::Marpa::Internal::Parser;
 
 use constant RECOGNIZER => 0;
+use constant PARSE_COUNT => 1;   # number of parses in an ambiguous parse
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -89,7 +90,7 @@ sub Parse::Marpa::Parser::new {
     }
     my $default_parse_set = $recognizer->[ Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET ];
 
-    $recognizer->[ Parse::Marpa::Internal::Recognizer::PARSE_COUNT ] = 0;
+    $self->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ] = 0;
     clear_notations($self);
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
@@ -486,10 +487,11 @@ sub Parse::Marpa::Parser::value {
     my $parser = shift;
     my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
 
+    croak("Not yet converted");
     my $start_item = $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
     return unless defined $start_item;
     my $value_ref = $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
-    croak("No value defined") unless defined $value_ref;
+    # croak("No value defined") unless defined $value_ref;
     return $value_ref;
 }
 
@@ -513,15 +515,23 @@ sub Parse::Marpa::Parser::next {
 
     # TODO: Is this check enough be sure that this is an evaluated parse?
     croak("Parse not initialized: no start item") unless defined $start_item;
-    my $start_value =
-        $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
-    croak("Parse not initialized: no start value")
-        unless defined $start_value;
 
     my $max_parses = $grammar->[ Parse::Marpa::Internal::Grammar::MAX_PARSES ];
-    if ($max_parses > 0 && $parser->[ Parse::Marpa::Internal::Recognizer::PARSE_COUNT ]++ > $max_parses) {
+    my $parse_count = $parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ];
+    if ($max_parses > 0 && $parse_count > $max_parses) {
         croak("Maximum parse count ($max_parses) exceeded");
     }
+
+    if ($parse_count <= 0) {
+	$parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ] = 1;
+	# Allow semipredication
+	my $start_value =
+	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+	return \(undef) if not defined $start_value;
+	return $start_value;
+    }
+
+    $parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ]++;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
@@ -802,7 +812,12 @@ sub Parse::Marpa::Parser::next {
 
         # Rejected evaluations are not yet implemented.
         # Therefore this evaluation pass succeeded.
-        return 1;
+ 
+	my $start_value =
+	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+	# Semipredication allowed
+	return \(undef) if not defined $start_value;
+	return $start_value;
 
     }    # EVALUATION
 

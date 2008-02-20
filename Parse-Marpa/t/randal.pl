@@ -14,23 +14,23 @@ EO_TESTS
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa( mdl_source => \$source);
+my $g = new Parse::Marpa::Grammar( { mdl_source => \$source });
 
 TEST: while (my $test = pop @tests) {
     say "Here's what I'm parsing: ", $test;
-    my $parse = new Parse::Marpa::Recognizer(grammar => $g);
-    my $exhaustion_location = $parse->text(\$test);
+    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $exhaustion_location = $recce->text(\$test);
     if ($exhaustion_location >= 0) {
         die("Parse exhausted at location $exhaustion_location in line: $test\n");
     }
-    unless ($parse->initial())
+    my $parser = new Parse::Marpa::Parser($recce);
+    unless ($parser)
     {
         die("No parse for line: $test\n");
     }
     my @parses;
-    push(@parses, $parse->value());
-    while ($parse->next) {
-        push(@parses, $parse->value());
+    while (defined(my $value = $parser->next)) {
+        push(@parses, $value);
     }
     if (scalar @parses == 1) {
        say "Things look good, I've got just one parse:";
@@ -46,7 +46,7 @@ TEST: while (my $test = pop @tests) {
 }
 
 __DATA__
-semantics are perl5.  version is 0.204.0.  the start symbol is perl line.
+semantics are perl5.  version is 0.205.0.  the start symbol is perl line.
 the default lex prefix is qr/\s*/.
 
 perl line: perl statements, optional comment.

@@ -75,6 +75,6 @@ my $trailer;
 { local($RS) = undef; open(TRAILER, "<", $trailer_file_name); $trailer = <TRAILER>; }
 
 say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa::VERSION;
-my $value = $parser->value();
+my $value = $parser->next();
 print $header, $$value, "\n", $trailer;
 

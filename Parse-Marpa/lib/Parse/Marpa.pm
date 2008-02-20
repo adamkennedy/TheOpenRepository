@@ -130,10 +130,11 @@ sub Parse::Marpa::mdl {
     if (not defined $parser) {
         die_with_parse_failure($text, length($text));
     }
+    return $parser->next if not wantarray;
     my @values;
-    push(@values, $parser->value());
-    return $values[0] unless wantarray;
-    push(@values, $parser->value()) while $parser->next();
+    while (defined(my $value = $parser->next())) {
+        push(@values, $value);
+    }
     @values;
 }
 

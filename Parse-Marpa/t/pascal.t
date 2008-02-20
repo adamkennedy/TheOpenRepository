@@ -18,6 +18,11 @@ sub ah_extended {
 
     my $g = new Parse::Marpa::Grammar({
         start => "S",
+
+        # An arbitrary maximum is put on the number of parses -- this is for
+        # debugging, and infinite loops happen.
+        max_parses => 999,
+
         rules => [
             [ "S", [("A")x$n] ],
             [ "A", [qw/a/] ],
@@ -42,13 +47,7 @@ sub ah_extended {
         my $parse_number = 0;
         my $parser = new Parse::Marpa::Parser($recce, $loc);
         die("Cannot initialize parse at location $loc") unless $parser;
-
-        # An arbitrary maximum is put on the number of parses -- this is for
-        # debugging, and infinite loops happen.
-        PARSE: for my $parse_number (1 .. 999) {
-           $parse_counts[$loc]++;
-           last PARSE unless $parser->next();
-        }
+        while ($parser->next()) { $parse_counts[$loc]++ }
     }
     join(" ", @parse_counts);
 }

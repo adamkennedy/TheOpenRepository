@@ -67,7 +67,6 @@ use constant LEXABLES_BY_STATE => 23;    # an array, indexed by SDFA state id,
 use constant PRIORITIES        => 24;    # an array, indexed by SDFA state id,
                                          # of its priority
 use constant LAST_COMPLETED_SET => 26;   # last earley set completed
-use constant PARSE_COUNT        => 27;   # number of parses in an ambiguous parse
 
 # Given symbol, returns null value, calculating it
 # if necessary.

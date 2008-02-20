@@ -39,9 +39,8 @@ TEST: while (my $test = pop @tests) {
     $recce->text(\$test);
     my $parser = new Parse::Marpa::Parser($recce);
     my @parses;
-    push(@parses, $parser->value());
-    while ($parser->next()) {
-        push(@parses, $parser->value());
+    while (defined(my $value = $parser->next)) {
+        push(@parses, $value);
     }
     my @expected_parses;
     my ($test_name) = ($test =~ /^([a-z]+) /);

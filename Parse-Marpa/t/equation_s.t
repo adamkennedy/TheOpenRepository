@@ -22,6 +22,11 @@ BEGIN {
 my $source; { local($RS) = undef; $source = <DATA> };
 
 my $g = new Parse::Marpa::Grammar({
+
+    # Set max at 10 in case there's an infinite loop.
+    # This is for debugging, after all
+    max_parses => 10,
+
     mdl_source => \$source,
 });
 
@@ -47,16 +52,12 @@ my @expected = (
 my $parser = new Parse::Marpa::Parser($recce);
 die("Parse failed") unless $parser;
 
-# Set max at 10 just in case there's an infinite loop.
-# This is for debugging, after all
-PARSE: for my $i (0 .. 10) {
-    my $value = $parser->value();
+for (my $i = 0; defined(my $value = $parser->next()); $i++) {
     if ($i > $#expected) {
        fail("Ambiguous equation has extra value: " . $$value . "\n");
     } else {
         is($$value, $expected[$i], "Ambiguous Equation Value $i");
     }
-    last PARSE unless $parser->next();
 }
 
 # Local Variables:

@@ -28,6 +28,11 @@ BEGIN {
 my $g = new Parse::Marpa::Grammar({
     start => "E",
     volatile => 0,
+
+    # Set max_parses just in case there's an infinite loop.
+    # This is for debugging, after all
+    max_parses => 300,
+
     rules => [
         [ "E", [qw/E Minus E/],
 <<'EOCODE'
@@ -96,14 +101,7 @@ for my $n (1 .. 12) {
     my $parser = new Parse::Marpa::Parser($recce);
 
     my $parse_count = 0;
-    # Set max at 20 just in case there's an infinite loop.
-    # This is for debugging, after all
-    PARSE: for (my $i = 0;  1; $i++) {
-        my $value = $parser->value();
-        $parse_count++;
-        last PARSE unless $parser->next();
-    }
-
+    while ($parser->next()) { $parse_count++; }
     is($expected[$n], $parse_count, "Wall Series Number $n");
 
 }

@@ -75,7 +75,7 @@ my @answer = (
 PERMUTATION: for (;;) {
     for my $i (@a) {
         my $parser = new Parse::Marpa::Parser($recce, $i);
-        my $result = $parser->value();
+        my $result = $parser->next();
         $total_count++;
         if ($answer[$i] ne $$result) {
             diag( "got "

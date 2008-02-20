@@ -525,7 +525,7 @@ sub source_grammar {
     }
     my $parser = new Parse::Marpa::Parser($recce);
     return unless defined $parser;
-    my $value = $parser->value();
+    my $value = $parser->next();
     raw_grammar_eval($grammar, $value);
 }
 
