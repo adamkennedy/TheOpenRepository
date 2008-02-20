@@ -947,29 +947,23 @@ sub install_perl_588_bin {
 	return 1;
 }
 
-sub find_588_toolchain {
-	my $self = shift;
+sub install_perl_588_toolchain {
+	my $self      = shift;
 
 	# Resolve the distribution list at startup time
-	my $toolchain588 = Perl::Dist::Util::Toolchain->new(
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 	);
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
-	# any permanent CPAN.pm locks (for now).
-	$toolchain588->delegate;
-	if ( $toolchain588->{errstr} ) {
+	# any permanent CPAN.pm locks.
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
 		die "Failed to generate toolchain distributions";
 	}
 
-	return $toolchain588;
-}
-
-sub install_perl_588_toolchain {
-	my $self      = shift;
-	my $toolchain = $self->find_588_toolchain;
-
+	# Install the toolchain dists
 	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $automated_testing = 0;
 		my $force             = $self->force;
@@ -1010,6 +1004,21 @@ sub install_perl_588_toolchain {
 #####################################################################
 # Perl 5.10.0 Support
 
+=pod
+
+=head2 install_perl_5100
+
+The C<install_perl_5100> method provides a simplified way to install
+Perl 5.10.0 into the distribution.
+
+It takes care of calling C<install_perl_5100_bin> with the standard
+params, and then calls C<install_perl_5100_toolchain> to set up the
+Perl 5.10.0 CPAN toolchain.
+
+Returns true, or throws an exception on error.
+
+=cut
+
 sub install_perl_5100 {
 	my $self = shift;
 
@@ -1031,6 +1040,43 @@ sub install_perl_5100 {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_perl_5100_bin
+
+  $self->install_perl_5100_bin(
+      name       => 'perl',
+      dist       => 'RGARCIA/perl-5.10.0.tar.gz',
+      unpack_to  => 'perl',
+      license    => {
+          'perl-5.10.0/Readme'   => 'perl/Readme',
+          'perl-5.10.0/Artistic' => 'perl/Artistic',
+          'perl-5.10.0/Copying'  => 'perl/Copying',
+      },
+      install_to => 'perl',
+  );
+
+The C<install_perl_5100_bin> method takes care of the detailed process
+of building the Perl 5.10.0 binary and installing it into the
+distribution.
+
+A short summary of the process would be that it downloads or otherwise
+fetches the named package, unpacks it, copies out any license files from
+the source code, then tweaks the Win32 makefile to point to the specific
+build directory, and then runs make/make test/make install. It also
+registers some environment variables for addition to the Inno Setup
+script.
+
+It is normally called directly by C<install_perl_5100> rather than
+directly from the API, but is documented for completeness.
+
+It takes a number of parameters that are sufficiently detailed above.
+
+Returns true (after 20 minutes or so) or throws an exception on
+error.
+
+=cut
 
 sub install_perl_5100_bin {
 	my $self = shift;
@@ -1139,29 +1185,23 @@ sub install_perl_5100_bin {
 	return 1;
 }
 
-sub find_5100_toolchain {
+sub install_perl_5100_toolchain {
 	my $self = shift;
 
 	# Resolve the distribution list at startup time
-	my $toolchain5100 = Perl::Dist::Util::Toolchain->new(
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 	);
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
-	# any permanent CPAN.pm locks (for now).
-	$toolchain5100->delegate;
-	if ( $toolchain5100->{errstr} ) {
+	# any permanent CPAN.pm locks.
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
 		die "Failed to generate toolchain distributions";
 	}
 
-	return $toolchain5100;
-}
-
-sub install_perl_5100_toolchain {
-	my $self      = shift;
-	my $toolchain = $self->find_5100_toolchain;
-
+	# Install the toolchain dists
 	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $automated_testing = 0;
 		my $force             = $self->force;
