@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.94';
+$VERSION = '1.95';
 
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-
@@ -313,7 +313,7 @@ Fin:
 # 
 sub _AddToList {
 	my ($me,$pcurrfile,$pattrib) =@_;
-	return if ($#$pattrib < 0);
+	return if ($#$pattrib < 12); #fixed #33459
 	return if ($pattrib->[6] =~ /d/i);
 	$me->{list} =() if (!defined $me->{list});
 	if ($pattrib->[3] =~ /(^<->$)|(^<--$)/) {
@@ -397,6 +397,7 @@ sub PrintList {
 	return if (!defined $me->{list} || ref($me->{list}) ne 'ARRAY' || ref($me->{list}->[0]) ne 'HASH');
 	$fh =\*STDOUT if (IsEmpty($fh));
 	print $fh <<EOD;
+
 +-------------------------------------------------+----------+----------+------+
 |                    File                         |   Size   |  Packed  | Gain |
 +-------------------------------------------------+----------+----------+------+

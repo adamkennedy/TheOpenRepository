@@ -1,4 +1,7 @@
 
+Version 1.95: 2008-02-20  steffen mueller <smueller@cpan.org>
+	* Fix RT #33459. (Francesco Rotondella)
+
 Version 1.94: 2008-02-03  steffen mueller <smueller@cpan.org>
 	* Upgrade to newest Module::Install again.
 	* Big patch from Francesco Rotondella:
