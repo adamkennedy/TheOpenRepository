@@ -1,9 +1,10 @@
 package File::Remove;
 
+use 5.005;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '0.39';
+	$VERSION   = '1.39_01';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 
@@ -20,7 +21,7 @@ use File::Path ();
 use File::Glob ();
 
 sub expand (@) {
-	map { File::Glob::bsd_glob($_) } @_;
+	map { -e $_ ? $_ : File::Glob::bsd_glob($_) } @_;
 }
 
 # $debug variable must be set before loading File::Remove.
@@ -276,7 +277,7 @@ to port it to L<File::Spec> and add tests.
 
 Original copyright: (c) 1998 by Gabor Egressy, E<lt>gabor@vmunix.comE<gt>.
 
-All rights reserved.  All wrongs reversed.  This program is free software;
-you can redistribute and/or modify it under the same terms as Perl itself.
+This program is free software; you can redistribute and/or modify it under
+the same terms as Perl itself.
 
 =cut

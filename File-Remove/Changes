@@ -1,5 +1,15 @@
 Revision history for Perl extension File::Remove.
 
+1.39_01 Wed 20 Feb 2008 (Adam Kennedy)
+	- Fixed rt.cpan.org #30251 "removing dirs enclosed by curly braces"
+	- remove now ignores globbing if -e is true BEFORE globbing
+	  (This should fix numerous possible failures where people are trying
+	   delete strangely named files, but globbing is kicking in and
+	   expanding the names incorrectly)
+	- Moving to a production-grade version to indicate module stability
+	- Adding explicit 5.005 dependency
+	  (Primarily for the benefit of automated quality/anaylsis tools)
+
 0.39 Mon 12 Nov 2007  (Adam Kennedy)
 	- No functional changes
 	- Updating to Module::Install 0.68
