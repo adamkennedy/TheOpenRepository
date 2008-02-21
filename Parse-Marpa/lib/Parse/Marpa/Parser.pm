@@ -9,7 +9,7 @@ package Parse::Marpa::Read_Only;
 
 our $rule;
 
-package Parse::Marpa::Internal::Parser;
+package Parse::Marpa::Internal::Evaluator;
 
 use constant RECOGNIZER => 0;
 use constant PARSE_COUNT => 1;   # number of parses in an ambiguous parse
@@ -19,10 +19,10 @@ use Data::Dumper;
 use Carp;
 
 sub clear_notations {
-    my $parser = shift;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+    my $evaler = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    my ($earley_set_list) = @{$parser}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
+    my ($earley_set_list) = @{$evaler}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
     for my $earley_set (@$earley_set_list) {
         for my $earley_item (@$earley_set) {
             @{$earley_item}[
@@ -43,8 +43,8 @@ sub clear_notations {
 }
 
 sub clear_values {
-    my $parser = shift;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+    my $evaler = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     my ($earley_set_list) = @{$recognizer}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
     for my $earley_set (@$earley_set_list) {
@@ -55,7 +55,7 @@ sub clear_values {
 }
 
 # returns 1 if it starts OK, undef otherwise
-sub Parse::Marpa::Parser::new {
+sub Parse::Marpa::Evaluator::new {
     my $class = shift;
     my $recognizer    = shift;
     my $parse_set_arg = shift;
@@ -90,7 +90,7 @@ sub Parse::Marpa::Parser::new {
     }
     my $default_parse_set = $recognizer->[ Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET ];
 
-    $self->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ] = 0;
+    $self->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ] = 0;
     clear_notations($self);
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
@@ -121,7 +121,7 @@ sub Parse::Marpa::Parser::new {
         ]
         = ( $start_item, $current_parse_set );
 
-     $self->[Parse::Marpa::Internal::Parser::RECOGNIZER] = $recognizer;
+     $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
      finish_evaluation($self);
 
@@ -129,8 +129,8 @@ sub Parse::Marpa::Parser::new {
 }
 
 sub finish_evaluation {
-    my $parser = shift;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+    my $evaler = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     # mark start items with LHS?
     my $start_item = $recognizer->[ Parse::Marpa::Internal::Recognizer::START_ITEM ];
@@ -483,9 +483,9 @@ sub initialize_children {
 
 }
 
-sub Parse::Marpa::Parser::value {
-    my $parser = shift;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+sub Parse::Marpa::Evaluator::value {
+    my $evaler = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     croak("Not yet converted");
     my $start_item = $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
@@ -495,16 +495,16 @@ sub Parse::Marpa::Parser::value {
     return $value_ref;
 }
 
-sub Parse::Marpa::Parser::next {
-    my $parser = shift;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+sub Parse::Marpa::Evaluator::next {
+    my $evaler = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    croak("No parse supplied") unless defined $parser;
-    my $parser_class = ref $parser;
-    my $right_class = "Parse::Marpa::Parser";
+    croak("No parse supplied") unless defined $evaler;
+    my $evaler_class = ref $evaler;
+    my $right_class = "Parse::Marpa::Evaluator";
     croak(
-        "Don't parse argument is class: $parser_class; should be: $right_class"
-    ) unless $parser_class eq $right_class;
+        "Don't parse argument is class: $evaler_class; should be: $right_class"
+    ) unless $evaler_class eq $right_class;
 
     my ( $grammar, $start_item, $current_parse_set, )
         = @{$recognizer}[
@@ -517,13 +517,13 @@ sub Parse::Marpa::Parser::next {
     croak("Parse not initialized: no start item") unless defined $start_item;
 
     my $max_parses = $grammar->[ Parse::Marpa::Internal::Grammar::MAX_PARSES ];
-    my $parse_count = $parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ];
+    my $parse_count = $evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ];
     if ($max_parses > 0 && $parse_count > $max_parses) {
         croak("Maximum parse count ($max_parses) exceeded");
     }
 
     if ($parse_count <= 0) {
-	$parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ] = 1;
+	$evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ] = 1;
 	# Allow semipredication
 	my $start_value =
 	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
@@ -531,7 +531,7 @@ sub Parse::Marpa::Parser::next {
 	return $start_value;
     }
 
-    $parser->[ Parse::Marpa::Internal::Parser::PARSE_COUNT ]++;
+    $evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ]++;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
@@ -547,7 +547,7 @@ sub Parse::Marpa::Parser::next {
     local ($Data::Dumper::Terse) = 1;
 
     my $volatile = $grammar->[ Parse::Marpa::Internal::Grammar::VOLATILE ];
-    clear_values($parser) if $volatile;
+    clear_values($evaler) if $volatile;
 
     # find the "bottom left corner item", by following predecessors,
     # and causes when there is no predecessor
@@ -808,7 +808,7 @@ sub Parse::Marpa::Parser::next {
         }    # STEP_UP_TREE
 
         # Initialize everything else left unvalued.
-        finish_evaluation( $parser );
+        finish_evaluation( $evaler );
 
         # Rejected evaluations are not yet implemented.
         # Therefore this evaluation pass succeeded.
@@ -825,12 +825,12 @@ sub Parse::Marpa::Parser::next {
 
 }
 
-sub Parse::Marpa::Parser::show {
-    my $parser = shift;
+sub Parse::Marpa::Evaluator::show {
+    my $evaler = shift;
     my $text  = "";
 
-    croak("No parse supplied") unless defined $parser;
-    my $recognizer = $parser->[Parse::Marpa::Internal::Parser::RECOGNIZER];
+    croak("No parse supplied") unless defined $evaler;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     my $start_item = $recognizer->[
         Parse::Marpa::Internal::Recognizer::START_ITEM,
@@ -911,7 +911,7 @@ sub show_derivation {
 
 =head1 NAME
 
-Parse::Marpa::Parser - A Marpa Parser Object
+Parse::Marpa::Evaluator - A Marpa Evaluator Object
 
 =head1 SYNOPSIS
 
@@ -1128,12 +1128,12 @@ closure in a parent node.
 
 =head1 METHODS
 
-=head2 Parse::Marpa::Parser::new(I<recognizer>, I<parse_end>)
+=head2 Parse::Marpa::Evaluator::new(I<recognizer>, I<parse_end>)
 
-Creates a parser object and finds the first parse.
-On succes, returns the parser object.
-The user may get the value of the first parse with C<Parse::Marpa::Parser::value()>. 
-She may iterate through the other parses with C<Parse::Marpa::Parser::next()>.
+Creates an evaluator object and finds the first parse.
+On success, returns the evaluator object.
+The user may get the value of the first parse with C<Parse::Marpa::Evaluator::value()>. 
+She may iterate through the other parses with C<Parse::Marpa::Evaluator::next()>.
 
 If no parse is found, returns undefined.
 Other failures are thrown as exceptions.
@@ -1169,12 +1169,12 @@ The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
 documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
 is a prototype of the methods that will be needed in online mode.
 
-=head2 Parse::Marpa::Parser::next(I<parse>)
+=head2 Parse::Marpa::Evaluator::next(I<parse>)
 
 Takes a parse object as its only argument,
 and performs the next iteration through its values.
 The iteration must have been initialized with
-C<Parse::Marpa::Parser::initial()>.
+C<Parse::Marpa::Evaluator::initial()>.
 Returns 1 if there was a next iteration.
 Returns undefined when there are no more iterations.
 Other failures are exceptions.
@@ -1183,12 +1183,12 @@ Parses are iterated from rightmost to leftmost, but their order
 may be manipulated by assigning priorities to the rules and
 terminals.
 
-=head2 Parse::Marpa::Parser::value(I<parse>)
+=head2 Parse::Marpa::Evaluator::value(I<parse>)
 
 Takes a parse object, which has been set up with
-C<Parse::Marpa::Parser::initial()>
+C<Parse::Marpa::Evaluator::initial()>
 and may have been iterated with
-C<Parse::Marpa::Parser::next()>.
+C<Parse::Marpa::Evaluator::next()>.
 Returns a reference to its current value.
 Failures are thrown as exceptions.
 
