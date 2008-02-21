@@ -98,10 +98,10 @@ for my $n (1 .. 12) {
     }
     $recce->earleme([$number, 1, 1]);
 
-    my $parser = new Parse::Marpa::Parser($recce);
+    my $evaler = new Parse::Marpa::Evaluator($recce);
 
     my $parse_count = 0;
-    while ($parser->next()) { $parse_count++; }
+    while ($evaler->next()) { $parse_count++; }
     is($expected[$n], $parse_count, "Wall Series Number $n");
 
 }

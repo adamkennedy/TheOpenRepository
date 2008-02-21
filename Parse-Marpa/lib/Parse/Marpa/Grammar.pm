@@ -523,9 +523,9 @@ sub source_grammar {
     if ($failed_at_earleme >= 0) {
         die_with_parse_failure($source, $failed_at_earleme);
     }
-    my $parser = new Parse::Marpa::Parser($recce);
-    return unless defined $parser;
-    my $value = $parser->next();
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+    return unless defined $evaler;
+    my $value = $evaler->next();
     raw_grammar_eval($grammar, $value);
 }
 
@@ -3470,8 +3470,9 @@ Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
 In particular, no more rules may be added to a precomputed grammar.
 
-Marpa recognizers and parsers make their own deep copies of the grammars used to create them.
-The deep copying is done by B<compiling> the grammar and B<decompiling> it.
+Every Marpa recognizers makes a deep copy of the grammar used to create it,
+for that recognizer's own private use.
+The deep copying is done by B<compiling>, then B<decompiling> the grammar.
 
 Grammar compilation in Marpa simply means turning it into a string with
 Marpa's C<compile> method.

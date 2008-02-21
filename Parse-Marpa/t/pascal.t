@@ -45,9 +45,9 @@ sub ah_extended {
     my @parse_counts;
     for my $loc (0 .. $n) {
         my $parse_number = 0;
-        my $parser = new Parse::Marpa::Parser($recce, $loc);
-        die("Cannot initialize parse at location $loc") unless $parser;
-        while ($parser->next()) { $parse_counts[$loc]++ }
+        my $evaler = new Parse::Marpa::Evaluator($recce, $loc);
+        die("Cannot initialize parse at location $loc") unless $evaler;
+        while ($evaler->next()) { $parse_counts[$loc]++ }
     }
     join(" ", @parse_counts);
 }

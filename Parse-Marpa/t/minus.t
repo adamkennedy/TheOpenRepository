@@ -155,10 +155,10 @@ if ($fail_offset >= 0) {
    die("Parse failed at offset $fail_offset");
 }
 
-my $parser = new Parse::Marpa::Parser($recce);
-die("Could not initialize parse") unless $parser;
+my $evaler = new Parse::Marpa::Evaluator($recce);
+die("Could not initialize parse") unless $evaler;
 
-for (my $i = 0; defined(my $value = $parser->next()); $i++) {
+for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
     if ($i > $#expected) {
        fail("Minuses equation has extra value: " . $$value . "\n");
     } else {

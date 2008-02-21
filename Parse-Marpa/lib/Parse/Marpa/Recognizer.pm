@@ -1382,9 +1382,9 @@ Several Marpa tokens can start at a single parsing location.
 Marpa tokens can be of various lengths.
 Marpa tokens can even overlap.
 
-Most parser's idea position is location in a token stream.
-Marpa, with its more flexibile handling of tokens, needs a more
-flexible idea of location.
+For most parsers, their idea of position is a location in a token stream.
+To deal with variable-length and overlapping tokens,
+Marpa needs a more flexible idea of location.
 This flexibility is provide by tracking parse position in B<earlemes>,
 which are named in honor of Jay Earley, the inventor of the algorithm
 on which Marpa is based.

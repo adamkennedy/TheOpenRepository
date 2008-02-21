@@ -23,13 +23,13 @@ TEST: while (my $test = pop @tests) {
     if ($exhaustion_location >= 0) {
         die("Parse exhausted at location $exhaustion_location in line: $test\n");
     }
-    my $parser = new Parse::Marpa::Parser($recce);
-    unless ($parser)
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+    unless ($evaler)
     {
         die("No parse for line: $test\n");
     }
     my @parses;
-    while (defined(my $value = $parser->next)) {
+    while (defined(my $value = $evaler->next)) {
         push(@parses, $value);
     }
     if (scalar @parses == 1) {

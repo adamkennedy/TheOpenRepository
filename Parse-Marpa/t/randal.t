@@ -37,9 +37,9 @@ $g->precompute();
 TEST: while (my $test = pop @tests) {
     my $recce = new Parse::Marpa::Recognizer({grammar => $g});
     $recce->text(\$test);
-    my $parser = new Parse::Marpa::Parser($recce);
+    my $evaler = new Parse::Marpa::Evaluator($recce);
     my @parses;
-    while (defined(my $value = $parser->next)) {
+    while (defined(my $value = $evaler->next)) {
         push(@parses, $value);
     }
     my @expected_parses;

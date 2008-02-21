@@ -63,8 +63,8 @@ my $spec;
     }
 }
 
-my $parser = new Parse::Marpa::Parser($recce);
-die("No parse") unless $parser;
+my $evaler = new Parse::Marpa::Evaluator($recce);
+die("No parse") unless $evaler;
 
 our $HEADER;
 my $header;
@@ -75,6 +75,6 @@ my $trailer;
 { local($RS) = undef; open(TRAILER, "<", $trailer_file_name); $trailer = <TRAILER>; }
 
 say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa::VERSION;
-my $value = $parser->next();
+my $value = $evaler->next();
 print $header, $$value, "\n", $trailer;
 

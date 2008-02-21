@@ -115,9 +115,9 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-my $parser = new Parse::Marpa::Parser($recce);
+my $evaler = new Parse::Marpa::Evaluator($recce);
 
-for (my $i = 0; defined(my $value = $parser->next()); $i++) {
+for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
     if ($i > $#expected) {
        fail("Ambiguous equation has extra value: " . $$value . "\n");
     } else {

@@ -35,10 +35,10 @@ my $test = sub {
     $recce->earleme([$a, "a", 1]);
     $recce->earleme([$a, "a", 1]);
     $recce->end_input();
-    my $parser = new Parse::Marpa::Parser($recce);
-    die("No parse found") unless $parser;
-    $parser->next();
-    [ $g, $recce, $parser ];
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+    die("No parse found") unless $evaler;
+    $evaler->next();
+    [ $g, $recce, $evaler ];
 };
 
 my ($weak_count, $strong_count, $unfreed_weak, $unfreed_strong)

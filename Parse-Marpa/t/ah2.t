@@ -410,8 +410,8 @@ my @answer = ("", qw[(a;;;) (a;a;;) (;a;a;a) (a;a;a;a)]);
 
 PERMUTATION: for (;;) {
     for my $i (@a) {
-        my $parser = new Parse::Marpa::Parser($recce, $i);
-        my $result = $parser->next();
+        my $evaler = new Parse::Marpa::Evaluator($recce, $i);
+        my $result = $evaler->next();
         $total_count++;
         if ($answer[$i] ne $$result) {
             diag(

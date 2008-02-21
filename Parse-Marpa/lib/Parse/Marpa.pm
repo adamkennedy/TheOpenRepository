@@ -16,7 +16,7 @@ use integer;
 
 use Parse::Marpa::Grammar;
 use Parse::Marpa::Recognizer;
-use Parse::Marpa::Parser;
+use Parse::Marpa::Evaluator;
 use Parse::Marpa::Lex;
 
 # Maybe it'll be optional someday, but not today
@@ -126,13 +126,13 @@ sub Parse::Marpa::mdl {
         die_with_parse_failure($text, $failed_at_earleme);
     }
 
-    my $parser = new Parse::Marpa::Parser($recce);
-    if (not defined $parser) {
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+    if (not defined $evaler) {
         die_with_parse_failure($text, length($text));
     }
-    return $parser->next if not wantarray;
+    return $evaler->next if not wantarray;
     my @values;
-    while (defined(my $value = $parser->next())) {
+    while (defined(my $value = $evaler->next())) {
         push(@values, $value);
     }
     @values;
@@ -300,7 +300,7 @@ Every symbol can have its own null symbol value.
 The null symbol value for any symbol is calculated by running the action
 specified for the empty rule which has that symbol as its left hand side.
 For more details, including examples and a description of how null values are
-calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Parser/"Null Symbol Values">.
+calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
 =head2 Tokens and Earlemes
 
@@ -373,9 +373,9 @@ grammar creation,
 input recognition
 and parsing proper.
 Corresponding to the three phases
-Marpa has three kinds of object: grammars, recognizers and parsers.
+Marpa has three kinds of object: grammars, recognizers and evaluators.
 Recognizers are created from grammars and
-parsers are created from recognizers.
+evaluators are created from recognizers.
 
 Grammar objects (C<Parse::Marpa::Grammar>) are created first.
 They may be created with rules or rules may be added to them.
@@ -414,17 +414,18 @@ Currently, Marpa fully supports only non-streaming or "offline" input.
 Marpa can also parse streamed inputs,
 but the methods to help finding completed parses in a streamed input 
 are still very experimental.
-In offline parsing, the parsing phase begins
-with the creation of a Marpa parser object,
-after input is complete.
+In offline parsing,
+a Marpa evaluator object is not created,
+and the evaluation phase does not begin
+until after input is complete.
 
-Once a parser object (C<Parse::Marpa::Parser>) has been created from
+Once an evaluator object (C<Parse::Marpa::Evaluator>) has been created from
 a recognizer, a parse can be derived, its semantics run,
 and its value returned.
 In the case of an ambiguous grammar, there can be many parses, each
 with its own value.
-For details on parser objects and methods,
-see L<Parse::Marpa::Parser>.
+For details on evaluator objects and methods,
+see L<Parse::Marpa::Evaluator>.
 
 =head2 Grammar Interfaces
 
@@ -466,7 +467,7 @@ users should use only documented methods:
     Parse::Marpa::Lex
     Parse::Marpa::MDL
     Parse::Marpa::Recognizer
-    Parse::Marpa::Parser
+    Parse::Marpa::Evaluator
     Parse::Marpa::Read_Only
 
 Users should use the C<$_> variable and variables in the
@@ -541,6 +542,10 @@ These may be set using named arguments when C<Parse::Marpa::Grammar>
 and C<Parse::Marpa::Recognizer>
 objects are created,
 with the C<Parse::Marpa::Grammar::set> method.
+Except as noted, recognizer objects inherit the Marpa option settings
+of the grammar from which they were created,
+and evaluator objects inherit the Marpa option settings
+of the recognizer from which they were created.
 
 Ordinary Marpa options are listed and described below by argument name.
 Options for debugging and tracing are dealt with in
@@ -629,13 +634,13 @@ running the C<default_null_value>
 action.
 If C<default_null_value> is not set, the default null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
-L<Parse::Marpa::Parser/"Null Symbol Values">.
+L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
 =item online
 
 A boolean.
-If true, the parser runs in online mode.
-If false, the parser runs in offline mode.
+If true, Marpa runs in online mode.
+If false, Marpa runs in offline mode.
 
 In B<offline> mode, which is the default,
 Marpa assumes the input has ended when the first parse is requested.
@@ -720,7 +725,7 @@ or by internal action on Marpa's part.
 Marpa internally marks a grammar volatile, for example,
 when the grammar uses certain kinds of sequence productions.
 For more details,
-see L<Parse::Marpa::Parser/"Volatility">.
+see L<Parse::Marpa::Evaluator/"Volatility">.
 
 =item warnings
 
@@ -753,7 +758,7 @@ Marpa expects to process and output entire files,
 some of which might be very long.
 
 Use of object orientation in Marpa is superficial.
-Only grammars, recognizers and parsers are objects, and they are not
+Only grammars, recognizers and evaluators are objects, and they are not
 designed to be inherited.
 
 =head2 Speed

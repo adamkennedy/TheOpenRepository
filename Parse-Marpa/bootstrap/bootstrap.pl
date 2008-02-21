@@ -750,8 +750,8 @@ my $spec;
     }
 }
 
-my $parser = new Parse::Marpa::Parser($recce);
-die("No parse") unless $parser;
+my $evaler = new Parse::Marpa::Evaluator($recce);
+die("No parse") unless $evaler;
 
 our $HEADER; # to silence spurious warning
 my $header;
@@ -761,7 +761,7 @@ our $TRAILER; # to silence spurious warning
 my $trailer;
 { open(TRAILER, "<", $trailer_file_name); local($RS) = undef; $trailer = <TRAILER>; }
 
-my $value = $parser->next();
+my $value = $evaler->next();
 print $header, $$value, $trailer;
 
 # Local Variables:
