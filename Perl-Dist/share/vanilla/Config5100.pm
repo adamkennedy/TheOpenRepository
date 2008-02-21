@@ -88,10 +88,10 @@ unless ( $prefix ne $bin and -d $prefix ) {
     die('Failed to auto-discover $Config{prefix}');
 }
 
-# Derive the distroot from $Config{prefix}
-our $distroot = $prefix;
-$distroot =~ s/(?:\\\\?|\/)perl$//;
-unless ( $distroot ne $prefix and -d $distroot ) {
+# Derive the root from $Config{prefix}
+our $root = $prefix;
+$root =~ s/(?:\\\\?|\/)perl$//;
+unless ( $root ne $prefix and -d $root ) {
     die('Failed to auto-discover the distribution root');
 }
 
@@ -108,7 +108,7 @@ tie %Config, 'Config', {
     inc_version_list => '',
     intsize => '4',
     ldlibpthname => '',
-    libpth => $distroot . '\\c\\lib',
+    libpth => $root . '\\c\\lib',
     osname => 'MSWin32',
     osvers => '5.1',
     path_sep => ';',
