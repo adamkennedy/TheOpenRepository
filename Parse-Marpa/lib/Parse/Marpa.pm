@@ -256,9 +256,8 @@ a special namespace set aside for that purpose.
 The preamble action is always run first
 and can be used to initialize that namespace.
 
-The result of an action is the result of Perl 5 code string.
-For example,
-from L<the synopsis/"SYNOPSIS">, here's a rule for an expression that does addition:
+The result of an action is the result from running its Perl 5 code string.
+From L<the synopsis|"SYNOPSIS">, here's a rule for an expression that does addition:
 
     Expression: Expression, /[+]/, Expression.
 
@@ -280,10 +279,6 @@ or, saying the same thing more formally, can produce the empty string.
 
 A B<null symbol> is a symbol which produces the empty string.
 When a symbol produces the empty string it is said to be B<nulled>.
-The value Marpa
-assigns to an empty string is based
-on the nulled symbol.
-
 Even within a single parse, the same symbol may be nulled in some positions
 but produce non-empty strings in other positions.
 A symbol may be nulled directly, that is,
@@ -291,63 +286,47 @@ because is the right hand side of an empty production.
 A symbol may be nulled indirectly if it produces other symbols,
 but all of these are eventually nulled.
 
+The value Marpa
+assigns to an empty string is based
+on the symbol that was nulled.
 Every symbol which can be nulled has a B<null symbol value>,
-or more briefly, B<null value>.
+or more briefly, a B<null value>.
 The default null value is a Marpa option (C<default_null_value>).
 If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 
 Every symbol can have its own null symbol value.
-The null symbol value for any symbol is calculated by running the action
-specified for the empty rule which has that symbol as its left hand side.
 For more details, including examples and a description of how null values are
 calculated when a symbol is nulled indirectly, see L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
 =head2 Tokens and Earlemes
 
-   Summarize this section, focusing on mdl().
-
 MDL is the easiest way to set up lexing in Marpa.
-If you specify Perl 5 regexes for the terminals in your MDL source,
-The Right Thing happens automatically.
-Used this way, Marpa is easier than most parser generators.
-Most parser generators can fail if tokens overlap,
-or if your regexes allow more than one possible token stream.
-Marpa allows ambiguous lexing by default.
-Any multiple choices are passed up to its Earley-based parse engine
+Symbols which can be recognized directly in the input
+are called B<terminal symbols>, or B<terminals> for short.
+MDL allows you to specify specify Perl 5 regexes for terminals.
+If you do this, The Right Thing happens automatically.
+
+In this respect, Marpa is easier than most parser generators.
+Many parser generators allow patterns to be specified for terminals,
+but require the user to make sure that the patterns produce a
+deterministic lexer.
+If tokens overlap,
+or if the regexes allow more than one possible token stream,
+lexing can fail.
+
+Marpa allows ambiguous, non-deterministic lexing by default.
+Terminals can fall into any pattern you like.
+If your terminal patterns generate
+multiple choices, they are passed up to Marpa's parse engine,
 which is totally undaunted in the face of ambiguity.
 
-Even if you wind up tracing the lexing,
-Marpa's way of looking at the input is in some respects more natural than
-conventional parsers.
-Most parsers work with a token stream -- the lexer breaks the input string
-into tokens and the parser works with tokens, not characters.
+Another Marpa convenience is that terminals can appear on the left hand side of rules.
+Most parsers have a problem with this, but Marpa does not.
+
 MDL lexing, because it must deal with variable length and potentially
-overlapping tokens, keeps track of positions in the character stream.
-
-Another convenience is that terminals can appear on the left hand side of rules without
-causing Marpa any problems.
-Most parsers have a problem with this.
-
+overlapping tokens, tracks parse position as position in the character stream.
 While MDL's lexing works in terms of character positions,
 Marpa is not restricted to this model.
-Far from it.
-Marpa's idea of parse position uses an abstraction I call an B<earleme>,
-in recognition of Jay Earley.
-Parsing starts at earleme zero, and proceeds upward through earleme 1, 2, etc.
-B<Distance> or B<length> in earlemes are what they sound like.
-The distance between earleme 10 and earleme 13 is 3 earlemes.
-An token which begins at earleme 10 and ends at earleme 20 is 10 earlemes long.
-
-Tokens cannot have a zero or negative length in earlemes.
-Also, tokens have to be passed to the recognizer in increasing earleme order,
-based on their start position.
-Users are free to implement any input model that obeys these two
-restrictions.
-
-As mentioned, if you specify your lexing patterns with MDL, you will use a
-one-character-per-earleme model.
-You can feed Marpa an token stream, and use a one-token-per-earleme model to
-imitate conventional parsing.
 Advanced users can invent new models of the input,
 customized to their own applications.
 For more detail see L<Parse::Marpa::Grammar/"Tokens and Earlemes">.
