@@ -4,7 +4,7 @@ use 5.005;
 use strict;
 use vars qw(@EXPORT_OK @ISA $VERSION $debug $unlink $rmdir);
 BEGIN {
-	$VERSION   = '1.39_01';
+	$VERSION   = '1.40';
 	@ISA       = qw(Exporter);
 	@EXPORT_OK = qw(remove rm trash); # nothing by default :)
 
