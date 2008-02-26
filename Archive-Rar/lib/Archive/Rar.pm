@@ -311,11 +311,9 @@ sub Add {
     $res =
       $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
-    goto Fin if ( $res != 0 );
-    if ( !IsEmpty($retour) ) {
+    if ( $res == 0 and !IsEmpty($retour) ) {
         return $self->SetError( 257, $retour ) if ( !chdir($retour) );
     }
-  Fin:
     return $res;
 }
 
@@ -337,11 +335,9 @@ sub Extract {
     $res =
       $self->Execute( "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
-    goto Fin if ( $res != 0 );
-    if ( !IsEmpty($retour) ) {
+    if ( $res == 0 and !IsEmpty($retour) ) {
         return $self->SetError( 257, $retour ) if ( !chdir($retour) );
     }
-  Fin:
     return $res;
 }
 
@@ -425,11 +421,9 @@ sub List {
         }
     }
     $self->_AddToList( \%currfile, \@attrib );
-    goto Fin if ( $res != 0 );
-    if ( !IsEmpty($retour) ) {
+    if ( $res == 0 and !IsEmpty($retour) ) {
         return $self->SetError( 257, $retour ) if ( !chdir($retour) );
     }
-  Fin:
     return $res;
 }
 
@@ -507,59 +501,37 @@ sub SetError {
     $self->{err} = shift;
 
     # For the rar command.
-    if ( $self->{err} == 0 ) { $self->{errstr} = ''; goto Fin; }
-    if ( $self->{err} == 1 ) {
-        $self->{errstr} = "$self->{err} : WARNING : Non fatal error(s) occurred.";
-        goto Fin;
+    my %errors = (
+      0 => '',
+      1 => "WARNING : Non fatal error(s) occurred.",
+      2 => "FATAL ERROR : A fatal error occurred.",
+      3 => "CRC ERROR : A CRC error occurred when unpacking.",
+      4 => "LOCKED ARCHIVE : Attempt to modify an archive previously locked by the 'k' command.",
+      5 => "WRITE ERROR : Write to disk error.",
+      6 => "OPEN ERROR : Open file error.",
+      7 => "USER ERROR : Command line option error.",
+      8 => "MEMORY ERROR : Not enough memory for operation.",
+      255 => "USER BREAK : User stopped the process.",
+      256 => sub {"CHDIR ERROR : '" . $_[0] . "' inaccessible : " . $! . "."},
+      257 => sub {"CHDIR ERROR : '" . $_[0] . "' inaccessible : " . $! . "."},
+    );
+    my $error = $errors{ $self->{'err'} };
+    if (not defined $error) {
+      $error = sprintf( "%s : UNKNOWN ERROR %08X.", $self->{err}, $self->{err} );
     }
-    if ( $self->{err} == 2 ) {
-        $self->{errstr} = "$self->{err} : FATAL ERROR : A fatal error occurred.";
-        goto Fin;
+    elsif (not $error) {
+      $error = '';
     }
-    if ( $self->{err} == 3 ) {
-        $self->{errstr} = "$self->{err} : CRC ERROR : A CRC error occurred when unpacking.";
-        goto Fin;
+    elsif (ref($error) eq 'CODE') {
+      $error = $error->(@_);
     }
-    if ( $self->{err} == 4 ) {
-        $self->{errstr} =
-          "$self->{err} : LOCKED ARCHIVE : Attempt to modify an archive previously locked by the 'k' command.";
-        goto Fin;
+    else {
+      $error = $self->{'err'} . " : " . $error;
     }
-    if ( $self->{err} == 5 ) {
-        $self->{errstr} = "$self->{err} : WRITE ERROR : Write to disk error.";
-        goto Fin;
-    }
-    if ( $self->{err} == 6 ) {
-        $self->{errstr} = "$self->{err} : OPEN ERROR : Open file error.";
-        goto Fin;
-    }
-    if ( $self->{err} == 7 ) {
-        $self->{errstr} = "$self->{err} : USER ERROR : Command line option error.";
-        goto Fin;
-    }
-    if ( $self->{err} == 8 ) {
-        $self->{errstr} = "$self->{err} : MEMORY ERROR : Not enough memory for operation.";
-        goto Fin;
-    }
-    if ( $self->{err} == 255 ) {
-        $self->{errstr} = "$self->{err} : USER BREAK : User stopped the process.";
-        goto Fin;
-    }
+    $self->{errstr} = $error;
 
-    # For the module.
-    if ( $self->{err} == 256 ) {
-        $self->{errstr} = "$self->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!.";
-        goto Fin;
-    }
-    if ( $self->{err} == 257 ) {
-        $self->{errstr} = "$self->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!.";
-        goto Fin;
-    }
-
-    $self->{errstr} = sprintf( "%s : UNKNOWN ERROR %08X.", $self->{err}, $self->{err} );
-
-  Fin:
-    print "$self->{errstr}\n" if ( !IsEmpty( $self->{args}->{'-verbose'} ) );
+    print "$self->{errstr}\n"
+      if !IsEmpty( $self->{args}->{'-verbose'} );
     return $self->{err};
 }
 
