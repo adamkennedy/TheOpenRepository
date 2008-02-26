@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.95';
+$VERSION = '1.96';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
@@ -45,7 +45,7 @@ my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 # --
 # --
 sub IsEmpty {
-    return 1 if ( $#_ < 0 || !defined $_[0] || $_[0] eq '' );
+    return 1 if @_ == 0 or not defined $_[0] or $_[0] eq '';
     return undef;
 }
 
@@ -77,13 +77,10 @@ sub new {
 sub WarnOutput {
     my $self = shift;
 
-    return if ( $self->{silent} || !$self->{dissert} );
-    my $fh;
-    if   ( !defined $self->{stderr} ) { $fh = \*STDERR; }
-    else                            { $fh = $self->{stderr}; }
-    foreach (@_) {
-        print $fh "$_\n";
-    }
+    return if $self->{silent} or not $self->{dissert};
+    my $fh = (defined $self->{stderr} ? $self->{stderr} : \*STDERR);
+
+    print $fh "$_\n" foreach @_;
 }
 
 # ---------------------------------------------------------------------------
@@ -92,8 +89,9 @@ sub WarnOutput {
 my $unique_instance;
 
 sub self_or_default {
-    return @_ if defined( $_[0] ) && ( !ref( $_[0] ) ) && ( $_[0] eq __PACKAGE__ );
-    unless ( defined( $_[0] ) && ref( $_[0] ) eq __PACKAGE__ ) {
+    return @_
+      if defined($_[0]) and !ref($_[0]) and $_[0] eq __PACKAGE__;
+    unless ( defined($_[0]) and ref( $_[0] ) eq __PACKAGE__ ) {
         print caller(1);
         $unique_instance = __PACKAGE__->new() unless defined($unique_instance);
         unshift( @_, $unique_instance );
@@ -111,12 +109,8 @@ sub TestExe {
     # $redirect =' > NUL:' if $IsWindows;
     # print "--" . system("$cmd $redirect") . "--\n";
     my @r = qx/$cmd/;
-    return 1 if ( $#r > 10 );
+    return 1 if $#r > 10;
     return undef;
-    print "$#r \n";
-
-    # foreach (@r) { print "-- $_"; };
-
 }
 
 # ----------------------------------------------------------------
@@ -429,10 +423,10 @@ sub PrintList {
     my ( $self, $fh ) = @_;
 
     return
-      if (!defined $self->{list}
-        || ref( $self->{list} ) ne 'ARRAY'
-        || ref( $self->{list}->[0] ) ne 'HASH' );
-    $fh = \*STDOUT if ( IsEmpty($fh) );
+      if not defined $self->{list}
+        or ref( $self->{list} ) ne 'ARRAY'
+        or ref( $self->{list}->[0] ) ne 'HASH';
+    $fh = \*STDOUT if IsEmpty($fh);
     print $fh <<EOD;
 
 +-------------------------------------------------+----------+----------+------+
@@ -456,8 +450,8 @@ EOD
 sub GetHelp {
     my ( $self, %args, $res );
     $self                 = shift;
-    $args{'-verbose'}   = 1;
-    $args{'-getoutput'} = 1;
+    $args{'-verbose'}     = 1;
+    $args{'-getoutput'}   = 1;
     $self->{current}      = \%args;
     $self->{options}      = '-?';
     $self->{command}      = '?';
