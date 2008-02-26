@@ -15,6 +15,8 @@ use File::Path;
 
 $VERSION = '1.95';
 
+my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
+
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-
 # Objet Archive::Rar.
@@ -51,10 +53,10 @@ sub IsEmpty {
 #
 #
 sub CleanDir {
-    $_[0] =~ s|\\|/|g   if ( $^O eq 'MSWin32' );
+    $_[0] =~ s|\\|/|g   if $IsWindows;
     $_[0] =~ s|/+|/|g;
     $_[0] =~ s|/$||g;
-    $_[0] =~ s|:$|:/\.| if ( $^O eq 'MSWin32' );
+    $_[0] =~ s|:$|:/\.| if $IsWindows;
     $_[0];
 }
 
@@ -106,7 +108,7 @@ sub TestExe {
     my ( $self, $cmd ) = @_;
     my $redirect = '';
 
-    # $redirect =' > NUL:' if ($self->{sys} eq 'w');
+    # $redirect =' > NUL:' if $IsWindows;
     # print "--" . system("$cmd $redirect") . "--\n";
     my @r = qx/$cmd/;
     return 1 if ( $#r > 10 );
@@ -124,14 +126,14 @@ sub SearchExe {
     my $self  = shift;
     my $cmd = 'rar';
 
-    if ( $self->{sys} eq 'w' ) {
+    if ( $IsWindows ) {
         my ( $clef, $type, $value );
 
         # on essaie de piquer le chemin d'install par la clef d'execution.
         if (
             $::HKEY_LOCAL_MACHINE->Open(
                 'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef )
-            && $clef->QueryValueEx( "path", $type, $value )
+            and $clef->QueryValueEx( "path", $type, $value )
           )
         {
             $value =~ s/\\/\//g;
@@ -143,32 +145,32 @@ sub SearchExe {
         if (
             $::HKEY_LOCAL_MACHINE->Open(
                 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef )
-            && $clef->QueryValueEx( "UninstallString", $type, $value )
+            and $clef->QueryValueEx( "UninstallString", $type, $value )
           )
         {
             $value =~ s/\\/\//g;
             $value =~ s/\/uninstall.exe$//i;
             $cmd = $value . '/rar.exe';
-            goto Good if ( -e $cmd );
+            goto Good if -e $cmd;
         }
 
         # on tente le chemin 'normal'.
         $cmd = 'c:/program files/winrar/rar.exe';
-        goto Good if ( -e $cmd );
+        goto Good if -e $cmd;
 
         # alors une execution direct.
         $cmd = 'rar';
-        goto Good if ( $self->TestExe($cmd) );
+        goto Good if $self->TestExe($cmd);
 
         # en dernier recourt...
         $cmd = 'rar32';
-        goto Good if ( $self->TestExe($cmd) );
+        goto Good if $self->TestExe($cmd);
     }
     else {
         $cmd = 'rar';
-        goto Good if ( $self->TestExe($cmd) );
+        goto Good if $self->TestExe($cmd);
         $cmd = './rar';
-        goto Good if ( $self->TestExe($cmd) );
+        goto Good if $self->TestExe($cmd);
     }
   Bad:
     print "ERROR : Can't find rar binary.\n" if $self->{dbg};
@@ -184,32 +186,25 @@ sub SearchExe {
 #
 #
 sub initialize {
-    my ( $self, %params, %args, $clef, $valeur );
-    $self     = shift;
-    %params = @_;
-    %args   = (
+    my $self     = shift;
+    my %params = @_;
+    my %args   = (
         -yes     => 1,
         -recurse => 1,
         -mode    => 5,
         -volume  => 1,
         -alldata => 1,
     );
+
+    my ( $clef, $valeur );
     while ( ( $clef, $valeur ) = each(%params) ) {
         $args{$clef} = $valeur;
     }
     $self->{args} = \%args;
 
-    if ( $^O eq 'MSWin32' ) {
-
-        # use Win32::Registry;
-        eval("use Win32::Registry");
-        if ( $@ ne '' ) {
-            die "Cannot load module Win32::Registry";
-        }
-        $self->{sys} = 'w';
-    }
-    else {
-        $self->{sys} = '';
+    if ( $IsWindows ) {
+        require Win32::Registry;
+        Win32::Registry->import();
     }
     return $self->SearchExe();
 }
@@ -262,9 +257,9 @@ sub SetOptions {
     $self->{nice} = '';
     if ( $command =~ /^[x]/i ) {
         $self->{nice} .= 'nice'
-          if ( !IsEmpty( $args{'-lowprio'} )
-            && $args{'-lowprio'}
-            && ( $self->{sys} ne 'w' ) );
+          if !IsEmpty($args{'-lowprio'})
+            and $args{'-lowprio'}
+            and $IsWindows;
     }
     if ( $command =~ /^[a]/i ) {
         $self->{options} .= ' -sfx' if ( defined $args{'-sfx'} && $args{'-sfx'} );
