@@ -4,16 +4,16 @@ require 5.002;
 
 use strict;
 require Exporter;
-use vars ('@ISA', '@EXPORT', '$VERSION');
+use vars ( '@ISA', '@EXPORT', '$VERSION' );
 
-@ISA = qw(Exporter);
+@ISA    = qw(Exporter);
 @EXPORT = qw( );
 
 use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.95';
+$VERSION = '1.96';
 
 # #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 # #-
@@ -35,444 +35,575 @@ $VERSION = '1.95';
 #       1   WARNING          Non fatal error(s) occurred
 #       0   SUCCESS          Successful operation (User exit)
 
-
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ++ fonctions r‚cup‚r‚es dans CHKPROJECT.pm pour en ‚viter l'inclusion.
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 # -----------------------------------------------------------------------
-# -- 
-# -- 
+# --
+# --
 sub IsEmpty {
-	return 1 if ($#_ < 0 || !defined $_[0] || $_[0] eq '');
-	return undef;
-}
-# -----------------------------------------------------------------------
-#  
-# 
-sub CleanDir {
-	$_[0] =~ s|\\|/|g  if ($^O eq 'MSWin32');
-	$_[0] =~ s|/+|/|g;
-	$_[0] =~ s|/$||g;
-	$_[0] =~s|:$|:/\.| if ($^O eq 'MSWin32');
-	$_[0];
+    return 1 if ( $#_ < 0 || !defined $_[0] || $_[0] eq '' );
+    return undef;
 }
 
+# -----------------------------------------------------------------------
+#
+#
+sub CleanDir {
+    $_[0] =~ s|\\|/|g   if ( $^O eq 'MSWin32' );
+    $_[0] =~ s|/+|/|g;
+    $_[0] =~ s|/$||g;
+    $_[0] =~ s|:$|:/\.| if ( $^O eq 'MSWin32' );
+    $_[0];
+}
 
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub new {
-	my $name = shift;
-	
-	my $me = bless {
-	}, $name;
-	return undef if (!defined $me->initialize(@_));
-	return $me;
+    my $name = shift;
+
+    my $self = bless {}, $name;
+    return undef if not defined $self->initialize(@_);
+    return $self;
 }
 
 # ---------------------------------------------------------------------------
-# --  
-# -- 
+# --
+# --
 sub WarnOutput {
-	my $me =shift;
-	
-	return if ($me->{silent} || !$me->{dissert});
+    my $self = shift;
+
+    return if ( $self->{silent} || !$self->{dissert} );
     my $fh;
-    if (!defined $me->{stderr}) {$fh=\*STDERR;} else {$fh=$me->{stderr};}
-	foreach (@_) {
-		 print $fh "$_\n";
-	}
+    if ( !defined $self->{stderr} ) {
+        $fh = \*STDERR;
+    }
+    else {
+        $fh = $self->{stderr};
+    }
+    foreach (@_) {
+        print $fh "$_\n";
+    }
 }
+
 # ---------------------------------------------------------------------------
-# --  
-# -- 
+# --
+# --
 my $unique_instance;
+
 sub self_or_default {
-    return @_ if defined($_[0]) && (!ref($_[0])) &&($_[0] eq __PACKAGE__);
-	unless (defined($_[0]) && ref($_[0]) eq __PACKAGE__) {
-		print caller(1);
-		$unique_instance = __PACKAGE__->new() unless defined($unique_instance);
-		unshift(@_,$unique_instance);
-	}
+    return @_ if defined $_[0] and !ref( $_[0] ) and $_[0] eq __PACKAGE__;
+    unless ( defined( $_[0] ) and ref( $_[0] ) eq __PACKAGE__ ) {
+        print caller(1);
+        $unique_instance = __PACKAGE__->new() unless defined($unique_instance);
+        unshift( @_, $unique_instance );
+    }
     return @_;
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub TestExe {
-	my ($me,$cmd) =@_;
-	my $redirect ='';
-	# $redirect =' > NUL:' if ($me->{sys} eq 'w');
-	# print "--" . system("$cmd $redirect") . "--\n";
-	my @r =qx/$cmd/;
-	return 1 if ($#r > 10);
-	return undef;
-	print "$#r \n";
-	# foreach (@r) { print "-- $_"; };
-	
+    my ( $self, $cmd ) = @_;
+    my $redirect = '';
+
+    # $redirect =' > NUL:' if ($self->{sys} eq 'w');
+    # print "--" . system("$cmd $redirect") . "--\n";
+    my @r = qx/$cmd/;
+    return 1 if ( $#r > 10 );
+    return undef;
+    print "$#r \n";
+
+    # foreach (@r) { print "-- $_"; };
+
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub SearchExe {
-	my $me =shift;
-	my $cmd ='rar';
-	
-    if ($me->{sys} eq 'w') {
-    	my ($clef,$type,$value);
-    	# on essaie de piquer le chemin d'install par la clef d'execution.
-    	if ($::HKEY_LOCAL_MACHINE->Open('SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef)
-    		&& $clef->QueryValueEx("path", $type, $value)) {
-		    $value =~ s/\\/\//g;
-		    $cmd =$value . '/rar.exe';
-		    goto Good if (-e $cmd);
-    	}
-    	# ou alors par le desinstalleur.
-    	if ($::HKEY_LOCAL_MACHINE->Open('SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef)
-    		&& $clef->QueryValueEx("UninstallString", $type, $value)) {
-		    $value =~ s/\\/\//g;
-		    $value =~ s/\/uninstall.exe$//i;
-		    $cmd =$value . '/rar.exe';
-		    goto Good if (-e $cmd);
-    	}
-    	# on tente le chemin 'normal'.
-	    $cmd ='c:/program files/winrar/rar.exe';
-	    goto Good if (-e $cmd);
-    	# alors une execution direct.
-		$cmd ='rar';
-		goto Good if ($me->TestExe($cmd));
-    	# en dernier recourt...
-		$cmd ='rar32';
-		goto Good if ($me->TestExe($cmd));
-   } else {
-		$cmd ='rar';
-		goto Good if ($me->TestExe($cmd));
-		$cmd ='./rar';
-		goto Good if ($me->TestExe($cmd));
-   }
-Bad:
-	print "ERROR : Can't find rar binary.\n" if $me->{dbg};
-	return undef;
-Good:
-	$me->{rar} =qq["$cmd"];
-	# print "GOOD : '$me->{rar}'\n";
-	return $me->{rar};
-}
-# ----------------------------------------------------------------
-#  
-# 
-sub initialize {
-	my ($me,%params,%args,$clef,$valeur);
-	$me =shift;
-	%params =@_;
-	%args =(
-		-yes =>1,
-		-recurse =>1,
-		-mode => 5,
-		-volume => 1,
-		-alldata => 1,
-		);
-	while ( ($clef,$valeur) =each(%params)) {
-		$args{$clef} =$valeur;
-	}
-	$me->{args} =\%args;
-		
-    if ($^O eq 'MSWin32') {
-    	# use Win32::Registry;
-		eval("use Win32::Registry");
-		if ($@ ne '') {
-			die "Cannot load module Win32::Registry";
-		}
-    	$me->{sys} ='w';
-    } else {
-    	$me->{sys} ='';
+    my $self = shift;
+    my $cmd  = 'rar';
+
+    if ( $self->{sys} eq 'w' ) {
+        my ( $clef, $type, $value );
+
+        # on essaie de piquer le chemin d'install par la clef d'execution.
+        if (
+            $::HKEY_LOCAL_MACHINE->Open(
+                'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef )
+            && $clef->QueryValueEx( "path", $type, $value )
+          )
+        {
+            $value =~ s/\\/\//g;
+            $cmd = $value . '/rar.exe';
+            goto Good if ( -e $cmd );
+        }
+
+        # ou alors par le desinstalleur.
+        if (
+            $::HKEY_LOCAL_MACHINE->Open(
+                'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef )
+            && $clef->QueryValueEx( "UninstallString", $type, $value )
+          )
+        {
+            $value =~ s/\\/\//g;
+            $value =~ s/\/uninstall.exe$//i;
+            $cmd = $value . '/rar.exe';
+            goto Good if ( -e $cmd );
+        }
+
+        # on tente le chemin 'normal'.
+        $cmd = 'c:/program files/winrar/rar.exe';
+        goto Good if ( -e $cmd );
+
+        # alors une execution direct.
+        $cmd = 'rar';
+        goto Good if ( $self->TestExe($cmd) );
+
+        # en dernier recourt...
+        $cmd = 'rar32';
+        goto Good if ( $self->TestExe($cmd) );
     }
-    return $me->SearchExe();
+    else {
+        $cmd = 'rar';
+        goto Good if ( $self->TestExe($cmd) );
+        $cmd = './rar';
+        goto Good if ( $self->TestExe($cmd) );
+    }
+  Bad:
+    print "ERROR : Can't find rar binary.\n" if $self->{dbg};
+    return undef;
+  Good:
+    $self->{rar} = qq["$cmd"];
+
+    # print "GOOD : '$self->{rar}'\n";
+    return $self->{rar};
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
+sub initialize {
+    my $self   = shift;
+    my %params = @_;
+    my %args   = (
+        -yes     => 1,
+        -recurse => 1,
+        -mode    => 5,
+        -volume  => 1,
+        -alldata => 1,
+    );
+    my ( $clef, $valeur );
+    while ( ( $clef, $valeur ) = each(%params) ) {
+        $args{$clef} = $valeur;
+    }
+    $self->{args} = \%args;
+
+    if ( $^O eq 'MSWin32' ) {
+
+        # use Win32::Registry;
+        eval("use Win32::Registry");
+        if ( $@ ne '' ) {
+            die "Cannot load module Win32::Registry";
+        }
+        $self->{sys} = 'w';
+    }
+    else {
+        $self->{sys} = '';
+    }
+    return $self->SearchExe();
+}
+
+# ----------------------------------------------------------------
+#
+#
 sub SetOptions {
-	my (%args,$me,$command,%opts,$s,@exclude,%params,$clef,$valeur);
-	$me =shift;
-	$command =shift;
-	%args =%{ $me->{args} };
-	%params =@_;
-	while (($clef,$valeur) =each(%params)) {
-		$args{$clef} =$valeur;
-	}
-	$me->{current} =\%args;
+    my ( %args, $self, $command, %opts, $s, @exclude, %params, $clef, $valeur );
+    $self    = shift;
+    $command = shift;
+    %args    = %{ $self->{args} };
+    %params  = @_;
+    while ( ( $clef, $valeur ) = each(%params) ) {
+        $args{$clef} = $valeur;
+    }
+    $self->{current} = \%args;
 
-    $args{'-files'} =$command eq 'vt' ? [] : '.' if (IsEmpty($args{'-files'}));
-	$args{'-files'} =[ $args{'-files'} ] if (ref($args{'-files'}) eq '');
+    $args{'-files'} = $command eq 'vt' ? [] : '.'
+      if ( IsEmpty( $args{'-files'} ) );
+    $args{'-files'} = [$args{'-files'}] if ( ref( $args{'-files'} ) eq '' );
 
-	$me->{archive} =$args{'-archive'} if (!IsEmpty($args{'-archive'}));
-	# print "ARCHIVE='$me->{archive}' '$args->{-archive}'\n";
-	if (defined $me->{archive} && $me->{archive} ne '') {
-		# goto Suite if ($command =~ /^[levx]/i && -f $me->{archive});
+    $self->{archive} = $args{'-archive'} if ( !IsEmpty( $args{'-archive'} ) );
+
+    # print "ARCHIVE='$self->{archive}' '$args->{-archive}'\n";
+    if ( defined $self->{archive} && $self->{archive} ne '' ) {
+
+        # goto Suite if ($command =~ /^[levx]/i && -f $self->{archive});
         # fixed #32090
-        $me->{archive} =~ /\.(\w+)$/;
-		my $ext =".$1";
-		$ext =($^O eq 'MSWin32') ? '.exe' : '.sfx' if (defined $args{'-sfx'} && $args{'-sfx'});
-		$me->{archive} =~ s/\.\w+$/$ext/;
-		$me->{archive} =CleanDir($me->{archive});
-		my $expr =($^O eq 'MSWin32') ? '^([a-z_A-Z]:)?\/': '^\/';
-		if ($me->{archive} !~ /$expr/) {
-			$me->{archive} =getcwd() . '/' . $me->{archive};
-		}
-		$me->{archive} =CleanDir($me->{archive});
-	}
-Suite:
-	$me->{archive} =~ s|/|\\|g  if ($^O eq 'MSWin32');
-	# print "ARCHIVE='$me->{archive}'\n";
+        $self->{archive} =~ /\.(\w+)$/;
+        my $ext = ".$1";
+        $ext = ( $^O eq 'MSWin32' ) ? '.exe' : '.sfx'
+          if ( defined $args{'-sfx'} && $args{'-sfx'} );
+        $self->{archive} =~ s/\.\w+$/$ext/;
+        $self->{archive} = CleanDir( $self->{archive} );
+        my $expr = ( $^O eq 'MSWin32' ) ? '^([a-z_A-Z]:)?\/' : '^\/';
+        if ( $self->{archive} !~ /$expr/ ) {
+            $self->{archive} = getcwd() . '/' . $self->{archive};
+        }
+        $self->{archive} = CleanDir( $self->{archive} );
+    }
+  Suite:
+    $self->{archive} =~ s|/|\\|g if ( $^O eq 'MSWin32' );
+
+    # print "ARCHIVE='$self->{archive}'\n";
 
     # fixed #31835
-    $me->{archive} = "\"$me->{archive}\"";
-    $me->{options} ='';
+    $self->{archive} = "\"$self->{archive}\"";
+    $self->{options} = {};
 
     # new feature for using with nice
-    $me->{nice} ='';
-	if ($command =~ /^[x]/i) {
-		$me->{nice} .='nice' if (!IsEmpty($args{'-lowprio'}) &&
-                                 $args{'-lowprio'} &&
-                                 ($me->{sys} ne 'w'));
+    $self->{nice} = '';
+    if ( $command =~ /^[x]/i ) {
+        $self->{nice} .= 'nice'
+          if ( !IsEmpty( $args{'-lowprio'} )
+            && $args{'-lowprio'}
+            && ( $self->{sys} ne 'w' ) );
     }
-	if ($command =~ /^[a]/i) {
-		$me->{options} .=' -sfx' if (defined $args{'-sfx'} && $args{'-sfx'});
-		$me->{options} .=' -r' if (!IsEmpty($args{'-recurse'}));
-		$me->{options} .=' -m' . $args{'-mode'} if (!IsEmpty($args{'-mode'}));
-		$me->{options} .=' -v' . $args{'-size'} if (!IsEmpty($args{'-size'}));
-	}
-	if ($command =~ /^[levx]/i) {
-		$me->{options} .=' -v' if (!IsEmpty($args{'-volume'}));
-	}
+    if ( $command =~ /^[a]/i ) {
+        $self->{options}{'-sfx'} = undef
+          if defined $args{'-sfx'} and $args{'-sfx'};
+        $self->{options}{'-r'} = undef
+          if not IsEmpty( $args{'-recurse'} );
+        $self->{options}{'-m'} = $args{'-mode'}
+          if not IsEmpty( $args{'-mode'} );
+        $self->{options}{'-v'} = $args{'-size'}
+          if not IsEmpty( $args{'-size'} );
+    }
+    if ( $command =~ /^[levx]/i ) {
+        $self->{options}{'-v'} = undef
+          if !IsEmpty( $args{'-volume'} );
+    }
 
     # fixed #32196
-	$me->{options} .=' -ep' if (!IsEmpty($args{'-excludepaths'}));
-	$me->{options} .=' -inul' if (!IsEmpty($args{'-quiet'}));
-	$me->{options} .=' -y' if (!IsEmpty($args{'-yes'}));
+    $self->{options}{'-ep'} = undef
+      if not IsEmpty( $args{'-excludepaths'} );
+    $self->{options}{-inul} = undef
+      if not IsEmpty( $args{'-quiet'} );
+    $self->{options}{-y} = undef
+      if not IsEmpty( $args{'-yes'} );
+
     # fixed #32623
-	$me->{options} .=' -o-' if (!IsEmpty($args{'-donotoverwrite'}) && $args{'-donotoverwrite'});
-	
-	if (!IsEmpty($me->{args}->{'-verbose'}) && $me->{args}->{'-verbose'} > 9) {
-		print "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
-		print Dumper $me;
-		print "\n'$me->{options}'\n";
-		print "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
-	}
-	return 0;
+    $self->{options}{'-o'} = '-'
+      if not IsEmpty( $args{'-donotoverwrite'} )
+          and $args{'-donotoverwrite'};
+
+    if ( not IsEmpty( $self->{args}->{'-verbose'} )
+        and $self->{args}->{'-verbose'} > 9 )
+    {
+        print "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
+        print Dumper $self;
+        print "\n'" . $self->OptionsToString() . "'\n";
+        print "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n";
+    }
+    return 0;
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
+sub OptionsToString {
+    my $self = shift;
+    my $opt  = $self->{options};
+    return "" if not ref($opt) eq 'HASH';    # legacy?
+    return
+      join ' ', map { defined $opt->{$_} ? $_ . $opt->{$_} : $_ }
+      keys %$opt;
+}
+
+# ----------------------------------------------------------------
+#
+#
+sub OptionsToArray {
+    my $self = shift;
+    my $opt  = $self->{options};
+    return () if not ref($opt) eq 'HASH';    # legacy?
+    return map { defined $opt->{$_} ? $_ . $opt->{$_} : $_ }
+      keys %$opt;
+}
+
+# ----------------------------------------------------------------
+#
+#
 sub Add {
-	my ($me,$args,$retour,$res);
-	$me =shift;
-	$me->{command} ='a';
-	$me->SetOptions($me->{command},@_);
-	
-	$args =$me->{current};
-	if (!IsEmpty($args->{'-initial'})) {
-		return $me->SetError(256,$args->{'-initial'}) if (!chdir($args->{'-initial'}));
-		$retour =getcwd;
-	}
-	$res =$me->Execute("$me->{rar} $me->{command} $me->{options} $me->{archive} " . join(' ',@{$args->{'-files'}}));
-	goto Fin if ($res != 0);
-	if (!IsEmpty($retour)) {
-		return $me->SetError(257,$retour) if (!chdir($retour));
-	}
-Fin:
-	return $res;
+    my ( $self, $args, $retour, $res );
+    $self = shift;
+    $self->{command} = 'a';
+    $self->SetOptions( $self->{command}, @_ );
+
+    $args = $self->{current};
+    if ( !IsEmpty( $args->{'-initial'} ) ) {
+        return $self->SetError( 256, $args->{'-initial'} )
+          if ( !chdir( $args->{'-initial'} ) );
+        $retour = getcwd;
+    }
+    $res =
+      $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
+          . join( ' ', @{ $args->{'-files'} } ) );
+    goto Fin if ( $res != 0 );
+    if ( !IsEmpty($retour) ) {
+        return $self->SetError( 257, $retour ) if ( !chdir($retour) );
+    }
+  Fin:
+    return $res;
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub Extract {
-	my ($me,$args,$retour,$res);
-	$me =shift;
-	$me->{command} ='x';
-	$me->SetOptions($me->{command},@_);
-	
-	$args =$me->{current};
-	if (!IsEmpty($args->{'-initial'})) {
-		mkpath($args->{'-initial'});
-		return $me->SetError(256,$args->{'-initial'}) if (!chdir($args->{'-initial'}));
-		$retour =getcwd;
-	}
-	$res =$me->Execute("$me->{nice} $me->{rar} $me->{command} $me->{options} $me->{archive} " . join(' ',@{$args->{'-files'}}));
-	goto Fin if ($res != 0);
-	if (!IsEmpty($retour)) {
-		return $me->SetError(257,$retour) if (!chdir($retour));
-	}
-Fin:
-	return $res;
+    my ( $self, $args, $retour, $res );
+    $self = shift;
+    $self->{command} = 'x';
+    $self->SetOptions( $self->{command}, @_ );
+
+    $args = $self->{current};
+    if ( !IsEmpty( $args->{'-initial'} ) ) {
+        mkpath( $args->{'-initial'} );
+        return $self->SetError( 256, $args->{'-initial'} )
+          if ( !chdir( $args->{'-initial'} ) );
+        $retour = getcwd;
+    }
+    $res = $self->Execute(
+        "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} "
+          . join( ' ', @{ $args->{'-files'} } ) );
+    goto Fin if ( $res != 0 );
+    if ( !IsEmpty($retour) ) {
+        return $self->SetError( 257, $retour ) if ( !chdir($retour) );
+    }
+  Fin:
+    return $res;
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub _AddToList {
-	my ($me,$pcurrfile,$pattrib) =@_;
-	return if ($#$pattrib < 12); #fixed #33459
-	return if ($pattrib->[6] =~ /d/i);
-	$me->{list} =() if (!defined $me->{list});
-	if ($pattrib->[3] =~ /(^<->$)|(^<--$)/) {
-		$pcurrfile->{packed} +=$pattrib->[2];
-		$pcurrfile->{parts}++;
-	} else {
-		%$pcurrfile =();
-		$pcurrfile->{name} =$pattrib->[0];
-		$pcurrfile->{size} =$pattrib->[1];
-		$pcurrfile->{packed} =$pattrib->[2];
-		$pcurrfile->{ratio} =$pattrib->[3];
-		$pcurrfile->{date} =$pattrib->[4];
-		$pcurrfile->{hour} =$pattrib->[5];
-		$pcurrfile->{attr} =$pattrib->[6];
-		$pcurrfile->{crc} =$pattrib->[7];
-		$pcurrfile->{meth} =$pattrib->[8];
-		$pcurrfile->{version} =$pattrib->[9];
-		$pcurrfile->{parts} =1;
-	}
-	return if ($pattrib->[3] =~ /^[<-]->$/);
-	if ($pcurrfile->{parts} > 1) {
-		$pcurrfile->{crc} =undef;
-		$pcurrfile->{ratio} =sprintf("%2.0d%%",$pcurrfile->{packed}/$pcurrfile->{size}*100);
-	}
-	$pcurrfile->{ratio} =~ s/%$//;
-	# print Dumper $pcurrfile;
-	$me->{list} =() if (!defined $me->{list});
-	if (!IsEmpty($me->{current}->{'-alldata'})) {
-		push @{$me->{list}}, { %$pcurrfile };
-	} else {
-		push @{$me->{list}},$pcurrfile->{name};
-	}
+    my ( $self, $pcurrfile, $pattrib ) = @_;
+    return if ( $#$pattrib < 12 );         #fixed #33459
+    return if ( $pattrib->[6] =~ /d/i );
+    $self->{list} = () if ( !defined $self->{list} );
+    if ( $pattrib->[3] =~ /(^<->$)|(^<--$)/ ) {
+        $pcurrfile->{packed} += $pattrib->[2];
+        $pcurrfile->{parts}++;
+    }
+    else {
+        %$pcurrfile           = ();
+        $pcurrfile->{name}    = $pattrib->[0];
+        $pcurrfile->{size}    = $pattrib->[1];
+        $pcurrfile->{packed}  = $pattrib->[2];
+        $pcurrfile->{ratio}   = $pattrib->[3];
+        $pcurrfile->{date}    = $pattrib->[4];
+        $pcurrfile->{hour}    = $pattrib->[5];
+        $pcurrfile->{attr}    = $pattrib->[6];
+        $pcurrfile->{crc}     = $pattrib->[7];
+        $pcurrfile->{meth}    = $pattrib->[8];
+        $pcurrfile->{version} = $pattrib->[9];
+        $pcurrfile->{parts}   = 1;
+    }
+    return if ( $pattrib->[3] =~ /^[<-]->$/ );
+    if ( $pcurrfile->{parts} > 1 ) {
+        $pcurrfile->{crc} = undef;
+        $pcurrfile->{ratio} = sprintf( "%2.0d%%", $pcurrfile->{packed} / $pcurrfile->{size} * 100 );
+    }
+    $pcurrfile->{ratio} =~ s/%$//;
+
+    # print Dumper $pcurrfile;
+    $self->{list} = () if ( !defined $self->{list} );
+    if ( !IsEmpty( $self->{current}->{'-alldata'} ) ) {
+        push @{ $self->{list} }, {%$pcurrfile};
+    }
+    else {
+        push @{ $self->{list} }, $pcurrfile->{name};
+    }
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub List {
-	my ($me,$args,$retour,$res,$in,%currfile,@attrib,$file);
-	$me =shift;
-	$me->{list} =undef;
-	$me->{command} ='vt';
-	$me->SetOptions($me->{command},@_);
-	
-	$args =$me->{current};
-	$args->{'-getoutput'} =1 if (!defined $args->{'-getoutput'});
-	if (!IsEmpty($args->{'-initial'})) {
-		return $me->SetError(256,$args->{'-initial'}) if (!chdir($args->{'-initial'}));
-		$retour =getcwd;
-	}
-	$res =$me->Execute("$me->{rar} $me->{command} $me->{options} $me->{archive} " . join(' ',@{$args->{'-files'}}));
-	$in =0;
+    my ( $self, $args, $retour, $res, $in, %currfile, @attrib, $file );
+    $self            = shift;
+    $self->{list}    = undef;
+    $self->{command} = 'vt';
+    $self->SetOptions( $self->{command}, @_ );
+
+    $args = $self->{current};
+    $args->{'-getoutput'} = 1 if ( !defined $args->{'-getoutput'} );
+    if ( !IsEmpty( $args->{'-initial'} ) ) {
+        return $self->SetError( 256, $args->{'-initial'} )
+          if ( !chdir( $args->{'-initial'} ) );
+        $retour = getcwd;
+    }
+    $res =
+      $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
+          . join( ' ', @{ $args->{'-files'} } ) );
+    $in = 0;
     my $first;
-	foreach (@{$me->{output}}) {
-		s/[\s\n\r]+$//;
-		next if ($_ eq '');
-		if (/^-----/) {	$first =0; $in =!$in; next;}
-		next if (!$in);
-		if (/^ [^\s]/) {
-			s/(^\s+)|(\s+$)//;
-			$me->_AddToList(\%currfile,\@attrib);
-			@attrib = ();
-			push @attrib,$_;
-		} else {
-			push @attrib,split;
-		}
-	}
-	$me->_AddToList(\%currfile,\@attrib);
-	goto Fin if ($res != 0);
-	if (!IsEmpty($retour)) {
-		return $me->SetError(257,$retour) if (!chdir($retour));
-	}
-Fin:
-	return $res;
+    foreach ( @{ $self->{output} } ) {
+        s/[\s\n\r]+$//;
+        next if ( $_ eq '' );
+        if (/^-----/) { $first = 0; $in = !$in; next; }
+        next if ( !$in );
+        if (/^ [^\s]/) {
+            s/(^\s+)|(\s+$)//;
+            $self->_AddToList( \%currfile, \@attrib );
+            @attrib = ();
+            push @attrib, $_;
+        }
+        else {
+            push @attrib, split;
+        }
+    }
+    $self->_AddToList( \%currfile, \@attrib );
+    goto Fin if ( $res != 0 );
+    if ( !IsEmpty($retour) ) {
+        return $self->SetError( 257, $retour ) if ( !chdir($retour) );
+    }
+  Fin:
+    return $res;
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub PrintList {
-	my ($me,$fh) =@_;
-	
-	return if (!defined $me->{list} || ref($me->{list}) ne 'ARRAY' || ref($me->{list}->[0]) ne 'HASH');
-	$fh =\*STDOUT if (IsEmpty($fh));
-	print $fh <<EOD;
+    my ( $self, $fh ) = @_;
+
+    return
+      if (!defined $self->{list}
+        || ref( $self->{list} ) ne 'ARRAY'
+        || ref( $self->{list}->[0] ) ne 'HASH' );
+    $fh = \*STDOUT if ( IsEmpty($fh) );
+    print $fh <<EOD;
 
 +-------------------------------------------------+----------+----------+------+
 |                    File                         |   Size   |  Packed  | Gain |
 +-------------------------------------------------+----------+----------+------+
 EOD
-	foreach my $p (@{$me->{list}}) {
-		printf $fh ("| %-47.47s | %8.8s | %8.8s | %3.3s%% |\n",$p->{name},$p->{size},$p->{packed},100-$p->{ratio});
-	}
-	print $fh <<EOD;
+    foreach my $p ( @{ $self->{list} } ) {
+        printf $fh (
+            "| %-47.47s | %8.8s | %8.8s | %3.3s%% |\n",
+            $p->{name}, $p->{size}, $p->{packed}, 100 - $p->{ratio}
+        );
+    }
+    print $fh <<EOD;
 +-------------------------------------------------+----------+----------+------+
 EOD
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub GetHelp {
-	my ($me,%args,$res);
-	$me =shift;
-	$args{'-verbose'} =1;
-	$args{'-getoutput'} =1;
-	$me->{current} =\%args;
-	$me->{options} ='-?';
-	$me->{command} ='?';
-	
-	$res =$me->Execute("$me->{rar} $me->{options}");
-	
-	return join('',@{$me->{output}});
+    my ( $self, %args, $res );
+    $self                  = shift;
+    $args{'-verbose'}      = 1;
+    $args{'-getoutput'}    = 1;
+    $self->{current}       = \%args;
+    $self->{options}{'-?'} = undef;
+    $self->{command}       = '?';
+
+    $res = $self->Execute("$self->{rar} $self->{options}");
+
+    return join( '', @{ $self->{output} } );
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub Execute {
-	my $me =shift;
-	$me->{cmd} =shift if ($#_ > -1);
-	print "$me->{cmd}\n" if (!IsEmpty($me->{current}->{'-verbose'}));
-	return 0 if (!IsEmpty($me->{current}->{'-noexec'}));
+    my $self = shift;
+    $self->{cmd} = shift if @_;
+    print "$self->{cmd}\n" if ( !IsEmpty( $self->{current}->{'-verbose'} ) );
+    return 0 if ( !IsEmpty( $self->{current}->{'-noexec'} ) );
 
-	$me->{output} =undef;
-	if (!IsEmpty($me->{current}->{'-getoutput'})) {
-		my @res =();
-		@res =qx/$me->{cmd}/;
-		# print @res;
-		$me->{output} =\@res;
-		return $me->SetError($? >> 8);	
-	}
-	return $me->SetError(system($me->{cmd}) >> 8);
+    $self->{output} = undef;
+    if ( !IsEmpty( $self->{current}->{'-getoutput'} ) ) {
+        my @res = ();
+        @res = qx/$self->{cmd}/;
+
+        # print @res;
+        $self->{output} = \@res;
+        return $self->SetError( $? >> 8 );
+    }
+    return $self->SetError( system( $self->{cmd} ) >> 8 );
 }
+
 # ----------------------------------------------------------------
-#  
-# 
+#
+#
 sub SetError {
-	my $me =shift;
-	$me->{err} =shift;
+    my $self = shift;
+    $self->{err} = shift;
 
-	# For the rar command.
-	if($me->{err}==0){$me->{errstr}=''; goto Fin;}
-	if($me->{err}==1){$me->{errstr}="$me->{err} : WARNING : Non fatal error(s) occurred."; goto Fin;}
-	if($me->{err}==2){$me->{errstr}="$me->{err} : FATAL ERROR : A fatal error occurred."; goto Fin;}
-	if($me->{err}==3){$me->{errstr}="$me->{err} : CRC ERROR : A CRC error occurred when unpacking."; goto Fin;}
-	if($me->{err}==4){$me->{errstr}="$me->{err} : LOCKED ARCHIVE : Attempt to modify an archive previously locked by the 'k' command."; goto Fin;}
-	if($me->{err}==5){$me->{errstr}="$me->{err} : WRITE ERROR : Write to disk error."; goto Fin;}
-	if($me->{err}==6){$me->{errstr}="$me->{err} : OPEN ERROR : Open file error."; goto Fin;}
-	if($me->{err}==7){$me->{errstr}="$me->{err} : USER ERROR : Command line option error."; goto Fin;}
-	if($me->{err}==8){$me->{errstr}="$me->{err} : MEMORY ERROR : Not enough memory for operation."; goto Fin;}
-	if($me->{err}==255) {$me->{errstr}="$me->{err} : USER BREAK : User stopped the process."; goto Fin;}
+    # For the rar command.
+    if ( $self->{err} == 0 ) { $self->{errstr} = ''; goto Fin; }
+    if ( $self->{err} == 1 ) {
+        $self->{errstr} = "$self->{err} : WARNING : Non fatal error(s) occurred.";
+        goto Fin;
+    }
+    if ( $self->{err} == 2 ) {
+        $self->{errstr} = "$self->{err} : FATAL ERROR : A fatal error occurred.";
+        goto Fin;
+    }
+    if ( $self->{err} == 3 ) {
+        $self->{errstr} = "$self->{err} : CRC ERROR : A CRC error occurred when unpacking.";
+        goto Fin;
+    }
+    if ( $self->{err} == 4 ) {
+        $self->{errstr} =
+          "$self->{err} : LOCKED ARCHIVE : Attempt to modify an archive previously locked by the 'k' command.";
+        goto Fin;
+    }
+    if ( $self->{err} == 5 ) {
+        $self->{errstr} = "$self->{err} : WRITE ERROR : Write to disk error.";
+        goto Fin;
+    }
+    if ( $self->{err} == 6 ) {
+        $self->{errstr} = "$self->{err} : OPEN ERROR : Open file error.";
+        goto Fin;
+    }
+    if ( $self->{err} == 7 ) {
+        $self->{errstr} = "$self->{err} : USER ERROR : Command line option error.";
+        goto Fin;
+    }
+    if ( $self->{err} == 8 ) {
+        $self->{errstr} = "$self->{err} : MEMORY ERROR : Not enough memory for operation.";
+        goto Fin;
+    }
+    if ( $self->{err} == 255 ) {
+        $self->{errstr} = "$self->{err} : USER BREAK : User stopped the process.";
+        goto Fin;
+    }
 
-	# For the module.
-	if($me->{err}==256) {$me->{errstr}="$me->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!."; goto Fin;}
-	if($me->{err}==257) {$me->{errstr}="$me->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!."; goto Fin;}
+    # For the module.
+    if ( $self->{err} == 256 ) {
+        $self->{errstr} = "$self->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!.";
+        goto Fin;
+    }
+    if ( $self->{err} == 257 ) {
+        $self->{errstr} = "$self->{err} : CHDIR ERROR : '$_[0]' inaccessible : $!.";
+        goto Fin;
+    }
 
+    $self->{errstr} = sprintf( "%s : UNKNOWN ERROR %08X.", $self->{err}, $self->{err} );
 
-	$me->{errstr} =sprintf("%s : UNKNOWN ERROR %08X.",$me->{err},$me->{err});
-	
-Fin:
-	print "$me->{errstr}\n" if (!IsEmpty($me->{args}->{'-verbose'}));
-	return $me->{err};
+  Fin:
+    print "$self->{errstr}\n" if ( !IsEmpty( $self->{args}->{'-verbose'} ) );
+    return $self->{err};
 }
 
 1;
@@ -499,17 +630,17 @@ Linux
 =head1 SYNOPSIS
 
  use Archive::Rar;
- my $rar =new Archive::Rar();
+ my $rar =Archive::Rar->new();
  $rar->Add(
-	-size => $size_of_parts,
-	-archive => $archive_filename,
-	-files => \@list_of_files,
+  -size => $size_of_parts,
+  -archive => $archive_filename,
+  -files => \@list_of_files,
  );
 
 To extract files from archive:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  $rar->List( );
  my $res = $rar->Extract( );
  print "Error $res in extracting from $archive\n" if ( $res );
@@ -517,14 +648,14 @@ To extract files from archive:
 To list archived files:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  $rar->List( );
  $rar->PrintList( );
 
 Using further options:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  my $res = $rar->Extract(-donotoverwrite => 1, -quiet => 1 );
  print "Error $res in extracting from $archive\n" if ( $res );
 
@@ -549,7 +680,7 @@ Add file to an archive.
 
 =item C<Extract(%options)>
 
-Extract the contains of an archive.
+Extract the contents of an archive.
 
 =item C<List(%options)>
 
