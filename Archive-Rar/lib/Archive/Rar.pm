@@ -1,6 +1,6 @@
 package Archive::Rar;
 
-require 5.002;
+require 5.004;
 
 use strict;
 require Exporter;
@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.96';
+$VERSION = '1.96_01';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
@@ -64,10 +64,10 @@ sub CleanDir {
 #
 #
 sub new {
-    my $name = shift;
+    my $class = shift;
 
-    my $self = bless {}, $name;
-    return undef if ( !defined $self->initialize(@_) );
+    my $self = bless {}, $class;
+    return undef if not defined $self->initialize(@_);
     return $self;
 }
 
@@ -220,10 +220,10 @@ sub SetOptions {
     $args{'-files'} = $command eq 'vt' ? [] : '.' if ( IsEmpty( $args{'-files'} ) );
     $args{'-files'} = [$args{'-files'}] if ( ref( $args{'-files'} ) eq '' );
 
-    $self->{archive} = $args{'-archive'} if ( !IsEmpty( $args{'-archive'} ) );
+    $self->{archive} = $args{'-archive'} if !IsEmpty($args{'-archive'});
 
     # print "ARCHIVE='$self->{archive}' '$args->{-archive}'\n";
-    if ( defined $self->{archive} && $self->{archive} ne '' ) {
+    if ( defined $self->{archive} && $self->{archive} ne '') {
 
         # goto Suite if ($command =~ /^[levx]/i && -f $self->{archive});
         # fixed #32090
@@ -238,7 +238,8 @@ sub SetOptions {
         }
         $self->{archive} = CleanDir( $self->{archive} );
     }
-  Suite:
+
+  #Suite:
     $self->{archive} =~ s|/|\\|g if ( $^O eq 'MSWin32' );
 
     # print "ARCHIVE='$self->{archive}'\n";
@@ -668,6 +669,9 @@ jean-marc boulade E<lt>jmbperl@hotmail.comE<gt>
 Copyright (c) 2002-2006 jean-marc boulade. All rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
+
+Modified by Steffen Mueller in 2007-2008.
+The changes carry the same license as stated above.
 
 =cut
 
