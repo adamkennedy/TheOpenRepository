@@ -377,22 +377,23 @@ sub _AddToList {
 #
 #
 sub List {
-    my ( $self, $args, $retour, $res, $in, %currfile, @attrib, $file );
-    $self            = shift;
+    my ( $retour, %currfile, @attrib );
+    my $self         = shift;
     $self->{list}    = undef;
     $self->{command} = 'vt';
     $self->SetOptions( $self->{command}, @_ );
 
-    $args = $self->{current};
-    $args->{'-getoutput'} = 1 if ( !defined $args->{'-getoutput'} );
+    my $args = $self->{current};
+    $args->{'-getoutput'} = 1 if not defined $args->{'-getoutput'};
     if ( !IsEmpty( $args->{'-initial'} ) ) {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
-    $res =
-      $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
-          . join( ' ', @{ $args->{'-files'} } ) );
-    $in = 0;
+    my $res = $self->Execute(
+      "$self->{rar} $self->{command} $self->{options} $self->{archive} "
+      . join( ' ', @{ $args->{'-files'} } )
+    );
+    my $in = 0;
     my $first;
     foreach ( @{ $self->{output} } ) {
         s/[\s\n\r]+$//;
@@ -603,6 +604,11 @@ Extract the contains of an archive.
 =item C<List(%options)>
 
 Fill the 'list' variable of the object whith the index of an archive.
+Returns 0 on success or a numerical error code.
+
+=item C<PrintList(%options)>
+
+Prints the file contents list that was previously generated using C<List()> to STDOUT.
 
 =back
 
@@ -650,6 +656,8 @@ For Unix-like systems only, this options runs the extraction with low scheduling
 
 =head1 KNOWN BUGS
 
+As of the current version, the system commands calling 'rar' are assembled as a string.
+This means that some parameters which take a string may have problems with shell quoting.
 
 =head1 AUTHORS
 
