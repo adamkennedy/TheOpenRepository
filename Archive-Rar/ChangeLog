@@ -1,4 +1,11 @@
 
+Version 1.96_01: 2008-02-28  steffen mueller <smueller@cpan.org>
+	* Add rudimentary test suite.
+	* Remove some goto()'s. Yes you read that right.
+	* General code cleanup in preparation of bigger changes.
+	* Slightly more documentation.
+	* Depend on having Perl 5.004 at least.
+
 Version 1.95: 2008-02-20  steffen mueller <smueller@cpan.org>
 	* Fix RT #33459. (Francesco Rotondella)
 
