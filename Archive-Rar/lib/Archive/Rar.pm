@@ -550,7 +550,7 @@ Linux
 =head1 SYNOPSIS
 
  use Archive::Rar;
- my $rar =new Archive::Rar();
+ my $rar = Archive::Rar->new();
  $rar->Add(
 	-size => $size_of_parts,
 	-archive => $archive_filename,
@@ -560,7 +560,7 @@ Linux
 To extract files from archive:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  $rar->List( );
  my $res = $rar->Extract( );
  print "Error $res in extracting from $archive\n" if ( $res );
@@ -568,14 +568,14 @@ To extract files from archive:
 To list archived files:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  $rar->List( );
  $rar->PrintList( );
 
 Using further options:
 
  use Archive::Rar;
- my $rar = new Archive::Rar( -archive => $archive );
+ my $rar = Archive::Rar->new( -archive => $archive );
  my $res = $rar->Extract(-donotoverwrite => 1, -quiet => 1 );
  print "Error $res in extracting from $archive\n" if ( $res );
 
