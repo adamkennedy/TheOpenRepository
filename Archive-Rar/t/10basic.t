@@ -1,17 +1,25 @@
 use strict;
-use Test::Simple tests => 4;
+use Test::More tests => 3;
+use Cwd;
+use File::Spec;
 
-eval "use Archive::Rar";
-ok(!$@, "use Archive::Rar");
+BEGIN {
+  use_ok('Archive::Rar');
+}
 
-#$^W=1;
+my $rar = Archive::Rar->new();
+diag("The following test fails if the 'rar' command isn't found.");
+isa_ok($rar, 'Archive::Rar');
 
-my $t1 = Archive::Rar->new();
-ok($t1, "new Archive::Rar");
+my $datadir = File::Spec->catdir("t", "data");
+my $datafile = File::Spec->catfile($datadir, 'test.rar');
+if (not -f $datafile) {
+  $datadir = 'data';
+  $datafile = File::Spec->catfile($datadir, 'test.rar');
+}
+ok(-f $datafile, "Test archive found");
 
-ok($t1->isa('Archive::Rar'), "object is a Archive::Rar");
-my $help = $t1->GetHelp;
-ok($help =~ /rar/i, "help contains 'rar'");
-#print $t1->GetHelp;
+
+
 
 1;
