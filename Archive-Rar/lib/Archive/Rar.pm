@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.96_01';
+$VERSION = '2.00_01';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 

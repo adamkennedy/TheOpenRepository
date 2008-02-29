@@ -5,7 +5,7 @@ require 5.004;
 use strict;
 
 use vars qw/$VERSION/;
-$VERSION = '1.96_02';
+$VERSION = '2.00_01';
 
 use ExtUtils::MakeMaker;
 use Config ();

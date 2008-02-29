@@ -1,4 +1,14 @@
 
+Version 2.00_01: 2008-02-29  steffen mueller <smueller@cpan.org>
+	* Add more tests.
+	* Add Archive::Rar::Passthrough: A minimal 'rar' wrapper
+	  which tries to much more portable and safe.
+	* Eventually Archive::Rar might become a wrapper of said
+	  module...
+	* More Archive::Rar code cleanup
+	* Depend on IPC::Cmd and IPC::Run.
+	* Cool, a leap year! :)
+
 Version 1.96_01: 2008-02-28  steffen mueller <smueller@cpan.org>
 	* Add rudimentary test suite.
 	* Remove some goto()'s. Yes you read that right.
