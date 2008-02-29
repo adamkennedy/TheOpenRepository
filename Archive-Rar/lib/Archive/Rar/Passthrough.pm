@@ -36,7 +36,7 @@ sub new {
   $self->{rar} = $args{rar} if exists $args{rar}; 
 
   bless $self => $class;
-  return() if not $self->_findbin();
+  return() if not $self->{rar} = $self->_findbin();
   
   return $self;
 }
@@ -64,31 +64,22 @@ sub _findbin {
     my %RegHash;
     Win32::TieRegistry->import( TiedHash => \%RegHash );
     
-
-    my ( $clef, $type, $value );
+    my $path;
 
     # try to find the installation path
-    if (
-        $::HKEY_LOCAL_MACHINE->Open(
-          'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef )
-        and $clef->QueryValueEx( "path", $type, $value )
-       )
-    {
-      $value =~ s/\\/\//g;
-      $cmd = File::Spec->catfile($value, 'rar.exe');
+    $path = $RegHash{'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\WinRAR.exe\\path'};
+    if (defined $path and not ref($path)) {
+      $path =~ s/\\/\//g;
+      $cmd = File::Spec->catfile($path, 'rar.exe');
       return $cmd if -e $cmd;
     }
 
     # or then via the uninstaller
-    if (
-        $::HKEY_LOCAL_MACHINE->Open(
-          'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef )
-        and $clef->QueryValueEx( "UninstallString", $type, $value )
-       )
-    {
-      $value =~ s/\\/\//g;
-      $value =~ s/\/uninstall.exe$//i;
-      $cmd = File::Spec->catfile($value, 'rar.exe');
+    $path = $RegHash{'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\WinRAR archiver\\UninstallString'};
+    if (defined $path and not ref($path)) {
+      $path =~ s/\\/\//g;
+      $path =~ s/\/uninstall.exe$//i;
+      $cmd = File::Spec->catfile($path, 'rar.exe');
       return $cmd if -e $cmd;
     }
 
