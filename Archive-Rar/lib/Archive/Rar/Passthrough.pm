@@ -3,12 +3,22 @@ package Archive::Rar::Passthrough;
 require 5.004;
 
 use strict;
-use ExtUtils::MakeMaker;
-use Config ();
-use File::Spec;
 
 use vars qw/$VERSION/;
 $VERSION = '1.96_02';
+
+use ExtUtils::MakeMaker;
+use Config ();
+use File::Spec;
+use Carp qw/croak/;
+use IPC::Run ();
+use IPC::Cmd ();
+
+BEGIN {
+  if (not IPC::Cmd->can_capture_buffer()) {
+    die "IPC::Cmd needs to be able to capture buffers for Archive::Rar::Passthrough to work. However, it doesn't. Check the IPC::Cmd documentation for details";
+  }
+}
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
@@ -18,9 +28,9 @@ sub new {
   my %args = @_;
 
   my $self = {
-    rar => 'rar',
-    stdout => undef,
-    stderr => undef,
+    rar    => 'rar',
+    stdout => '',
+    stderr => '',
     ( ref($proto) ? %$proto : () ),
   };
   $self->{rar} = $args{rar} if exists $args{rar}; 
@@ -33,6 +43,10 @@ sub new {
 
 sub get_binary { $_[0]->{rar} }
 sub set_binary { $_[0]->{rar} = $_[1] if defined $_[1]; 1; }
+
+sub get_stdout { $_[0]->{stdout} }
+sub get_stderr { $_[0]->{stderr} }
+sub clear_buffers { $_[0]->{stderr} = $_[0]->{stdout} = ''; 1; }
 
 # searches the rar binary.
 sub _findbin {
@@ -138,6 +152,49 @@ sub _module_install_can_run {
   }
 }
 
+
+sub run {
+  my $self = shift;
+
+  my %args = @_;
+
+  my $rar = $self->get_binary();
+  
+  my $cmd = $args{command};
+  croak("You need to specify a rar *command* as argument to " . __PACKAGE__ . "->run()")
+    if not defined $cmd;
+
+  my $archive  = $args{archive};
+  croak("You need to specify a rar *archive* as argument to " . __PACKAGE__ . "->run()")
+    if not defined $archive;
+
+  my $switches = $args{switches} || [];
+  croak("The 'switches' argument to " . __PACKAGE__ . "->run() must be an array reference")
+    if not ref($switches) eq 'ARRAY';
+  
+  my $files = $args{files} || [];
+  croak("The 'files' argument to " . __PACKAGE__ . "->run() must be an array reference")
+    if not ref($files) eq 'ARRAY';
+
+  my $filelist_files = $args{filelist_files} || [];
+  croak("The 'files' argument to " . __PACKAGE__ . "->run() must be an array reference")
+    if not ref($filelist_files) eq 'ARRAY';
+
+  #Usage:     rar <command> -<switch 1> -<switch N> <archive> <files...>
+  #             <@listfiles...> <path_to_extract\>
+  my $command = [
+    $rar, $cmd, @$switches, $archive, @$files,
+    @$filelist_files, (defined($args{path}) ? $args{path}: ())
+  ];
+
+  my ($ok, $errorcode, undef, $out_buffer, $err_buffer) = IPC::Cmd::run(command => $command);
+  $self->{stdout} = join "\n", @{$out_buffer || []};
+  $self->{stderr} = join "\n", @{$err_buffer || []};
+
+  return($ok ? 0 : $errorcode);
+}
+
+
 1;
 
 __END__
@@ -145,18 +202,6 @@ __END__
 =head1 NAME
 
 Archive::Rar::Passthrough - Thinnest possible wrapper around 'rar'
-
-=head1 SUPPORTED PLATFORMS
-
-=over 4
-
-=item *
-Windows
-
-=item *
-Linux
-
-=back
 
 =head1 SYNOPSIS
 
@@ -167,17 +212,21 @@ Linux
    print "Could not find your 'rar' command'.\n";
  }
  
- my $retval = $rar->run(
+ my $errorcode = $rar->run(
    command => 'a',
-   switches => ['-cl'],
+   switches => ['-cl'], # optional
    archive => 'my.rar',
    filelist_files => [ 'some_text_file_with_file_names' ],
    files => ['file1.txt', 'file2.txt'],
-   path => 'some_path_for_extraction',
+   path => 'some_path_for_extraction', # optional
  );
  
- if ($retval) {
+ if ($errorcode) {
    print "There was an error running 'rar': " . $rar->explain_error($retval) . "\n";
+   my $output = $rar->get_stdout();
+   my $errors = $rar->get_stderr();
+   print "The 'rar' command said (if anything):\n" . $output
+         . "\nAnd spammed on STDERR:\n" . $errors . "\n";
  }
 
 =head1 DESCRIPTION
@@ -213,6 +262,8 @@ The constructor returns a new C<Archive::Rar::Passthrough> object if
 it found a rar binary to use. Takes a single named, optional parameter:
 C<rar => 'path/to/rar'>.
 
+You can also use C<$obj->new()> to clone an C<Archive::Rar::Passthrough> object.
+
 =head2 run
 
 =head2 explain_error
@@ -228,6 +279,19 @@ Returns the path of the rar binary that's being used.
 =head2 set_binary
 
 Set the path of the rar binary to use.
+
+=head2 get_stdout
+
+Returns the output (STDOUT) of the previous invocation of C<rar>.
+
+=head2 get_stderr
+
+Returns the error output (STDERR) of the previous invocation of C<rar>.
+
+=head2 clear_buffers
+
+Clears the STDOUT and STDERR buffers of the object.
+You really only need to call this if you're paranoid about memery usage.
 
 =head1 RAR RETURN CODES
 
