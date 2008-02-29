@@ -582,6 +582,10 @@ This is a module for the handling of rar archives.
 Locates the rar command (from PATH or from regedit for Win32) and encapsulate it to
 create, extract and list rar archives.
 
+I<Note:> There are a few things that have gone awry. Have a look at the L<Archive::Rar::Passthrough>
+module that is part of this distribution. It is a lower-level interface to the C<rar> command,
+but it does some things in a safer way than this module (namely shell escaping or lack thereof).
+
 At the moment these methods are implemented:
 
 =over 4
