@@ -168,7 +168,7 @@ sub run {
   croak("You need to specify a rar *archive* as argument to " . __PACKAGE__ . "->run()")
     if not defined $archive;
 
-  my $switches = $args{switches} || [];
+  my $switches = $args{switches} || ['-y'];
   croak("The 'switches' argument to " . __PACKAGE__ . "->run() must be an array reference")
     if not ref($switches) eq 'ARRAY';
   
@@ -265,6 +265,30 @@ C<rar => 'path/to/rar'>.
 You can also use C<$obj->new()> to clone an C<Archive::Rar::Passthrough> object.
 
 =head2 run
+
+Runs the C<rar> binary. Takes named arguments which correspond to the C<rar> usage: (from RAR 3.70)
+
+  Usage:     rar <command> -<switch 1> -<switch N> <archive> <files...>
+                 <@listfiles...> <path_to_extract\>
+
+Mandatory arguments:
+
+  command: string indicating the command (example 'e' for extraction)
+  archive: string indicating the RAR archive file to operate on
+
+Optional arguments:
+
+  switches: array reference to array of command line options.
+            Defaults to ['-y'].
+  files: list of files to add/whatever. Array reference
+  filelist_files: list of files to use as file list input.
+                  Array reference
+  path: path to extract to
+
+Please note that by default, the C<-y> switch is passed to C<rar>. That means all
+interactive questions from C<rar> are answered with I<yes> as there is no way to
+for the user to communicate with C<rar>. However, this also means that files will
+be overwritten by default!
 
 =head2 explain_error
 
