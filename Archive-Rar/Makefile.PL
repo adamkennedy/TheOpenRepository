@@ -17,6 +17,10 @@ if ($iswindows) {
 build_requires 'Test::Simple'     => '0';
 build_requires 'Test::More'       => '0';
 
-requires_external_bin 'rar';
+if (not $iswindows) {
+  requires_external_bin 'rar';
+} else {
+  warn "We cannot check at this time that there is a 'rar' command when running on Windows. Please make sure that you have RAR or WinRAR installed before proceeding.";
+}
 
 WriteAll;

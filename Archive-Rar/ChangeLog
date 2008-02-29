@@ -1,4 +1,8 @@
 
+Version 2.00_02: 2008-02-29  steffen mueller <smueller@cpan.org>
+	* Fix A::R::Passthrough's Win32.
+	* Skip searching for 'rar' during Makefile.PL on win32.
+
 Version 2.00_01: 2008-02-29  steffen mueller <smueller@cpan.org>
 	* Add more tests.
 	* Add Archive::Rar::Passthrough: A minimal 'rar' wrapper
