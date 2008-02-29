@@ -8,6 +8,7 @@ all_from       'lib/Archive/Rar.pm';
 
 requires       'Data::Dumper'     => '0';
 requires       'IPC::Cmd'         => '0';
+requires       'IPC::Run'         => '0';
 
 if ($iswindows) {
     requires 'Win32::Registry'    => '0';
