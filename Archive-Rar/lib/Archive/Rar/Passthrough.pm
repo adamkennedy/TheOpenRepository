@@ -1,18 +1,13 @@
-package Archive::Rar;
+package Archive::Rar::Passthrough;
 
 require 5.004;
 
 use strict;
-require Exporter;
-use vars ( '@ISA', '@EXPORT', '$VERSION' );
+use ExtUtils::MakeMaker;
+use Config ();
+use File::Spec;
 
-@ISA    = qw(Exporter);
-@EXPORT = qw( );
-
-use Data::Dumper;
-use Cwd;
-use File::Path;
-
+use vars qw/$VERSION/;
 $VERSION = '1.96_02';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
@@ -23,7 +18,7 @@ sub new {
   my %args = @_;
 
   my $self = {
-    rar => undef,
+    rar => 'rar',
     stdout => undef,
     stderr => undef,
     ( ref($proto) ? %$proto : () ),
@@ -37,6 +32,7 @@ sub new {
 }
 
 sub get_binary { $_[0]->{rar} }
+sub set_binary { $_[0]->{rar} = $_[1] if defined $_[1]; 1; }
 
 # searches the rar binary.
 sub _findbin {
@@ -103,9 +99,6 @@ sub _findbin {
 # lifted and modified from Module::Install::Can ((c) Brian Ingerson, Audrey Tang, Adam Kennedy, et al)
 sub _module_install_can_run {
   my $cmd = shift;
-  require ExtUtils::MakeMaker;
-  require Config;
-  require File::Spec;
   my $_cmd = $cmd;
   
   return $_cmd
@@ -136,6 +129,7 @@ sub _module_install_can_run {
    2   => 'A fatal error occurred',
    1   => 'Non-fatal error(s) occurred',
   );
+
   sub explain_error {
     my $self = shift;
     my $error = shift;
@@ -209,7 +203,31 @@ if the rar binary was not found.
 
 The object returned from C<new()> has very little state. It does not remember things
 like the previous archive it worked on. It only knows what 'rar' binary to use
-and the output of the previous invocation 'rar'.
+and the output (STDOUT and STDERR) of the previous invocation 'rar'.
+
+=head1 METHODS
+
+=head2 new
+
+The constructor returns a new C<Archive::Rar::Passthrough> object if
+it found a rar binary to use. Takes a single named, optional parameter:
+C<rar => 'path/to/rar'>.
+
+=head2 run
+
+=head2 explain_error
+
+Given an error code / number as return by the C<run()> method, this
+method will return an explanation of the error. It's the same text as
+that in the L<RAR RETURN CODES> section below.
+
+=head2 get_binary
+
+Returns the path of the rar binary that's being used.
+
+=head2 set_binary
+
+Set the path of the rar binary to use.
 
 =head1 RAR RETURN CODES
 
