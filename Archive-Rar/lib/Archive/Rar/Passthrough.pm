@@ -13,7 +13,7 @@ use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '1.96_01';
+$VERSION = '1.96_02';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
@@ -38,6 +38,7 @@ sub new {
 
 sub get_binary { $_[0]->{rar} }
 
+# searches the rar binary.
 sub _findbin {
   my $self = shift;
   my $bin = $self->get_binary();
@@ -56,7 +57,7 @@ sub _findbin {
 
     my ( $clef, $type, $value );
 
-# on essaie de piquer le chemin d'install par la clef d'execution.
+    # try to find the installation path
     if (
         $::HKEY_LOCAL_MACHINE->Open(
           'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef )
@@ -64,11 +65,11 @@ sub _findbin {
        )
     {
       $value =~ s/\\/\//g;
-      $cmd = $value . '/rar.exe';
-      goto Good if ( -e $cmd );
+      $cmd = File::Spec->catfile($value, 'rar.exe');
+      return $cmd if -e $cmd;
     }
 
-# ou alors par le desinstalleur.
+    # or then via the uninstaller
     if (
         $::HKEY_LOCAL_MACHINE->Open(
           'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef )
@@ -77,22 +78,25 @@ sub _findbin {
     {
       $value =~ s/\\/\//g;
       $value =~ s/\/uninstall.exe$//i;
-      $cmd = $value . '/rar.exe';
-      goto Good if -e $cmd;
+      $cmd = File::Spec->catfile($value, 'rar.exe');
+      return $cmd if -e $cmd;
     }
 
-# on tente le chemin 'normal'.
+    # try the normal path
+    # yuck!
     $cmd = 'c:/program files/winrar/rar.exe';
-    goto Good if -e $cmd;
+    return $cmd if -e $cmd;
 
-# alors une execution direct.
-    $cmd = 'rar';
-    goto Good if $self->TestExe($cmd);
+    # direct execution
+    # Update: Don't try. _module_install_can_run does this better.
+    #$cmd = 'rar';
+    #return $cmd if $self->TestExe($cmd);
 
-# en dernier recourt...
-    $cmd = 'rar32';
-    goto Good if $self->TestExe($cmd);
+    # last resort
+    return _module_install_can_run('rar32');
   }
+
+  return();
 }
 
 
@@ -235,7 +239,7 @@ The explanations above can be accessed by your code through the C<explain_error(
 
 =head1 AUTHORS
 
-Steffen Mueller R<lt>smueller@cpan.orgE<gt>
+Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 
 The code for finding a rar instance in the Windows registry stems from
 Archive::Rar, written by jean-marc boulade E<lt>jmbperl@hotmail.comE<gt>.
