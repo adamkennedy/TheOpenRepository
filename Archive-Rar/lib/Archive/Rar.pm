@@ -3,17 +3,13 @@ package Archive::Rar;
 require 5.004;
 
 use strict;
-require Exporter;
-use vars ( '@ISA', '@EXPORT', '$VERSION' );
-
-@ISA    = qw(Exporter);
-@EXPORT = qw( );
+use vars ('$VERSION');
+$VERSION = '2.00_02';
 
 use Data::Dumper;
 use Cwd;
 use File::Path;
 
-$VERSION = '2.00_01';
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
