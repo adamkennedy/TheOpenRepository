@@ -35,7 +35,7 @@ SCOPE: {
 	my @packages1 = Devel::Leak::Module::all_packages();
 	my @modules1  = Devel::Leak::Module::all_modules();
 
-	# There should be around 70+ namespaces, with 50 packages, and around 20 modules
+	# There should be around 70+ namespaces, with 50 packages, and around 15 modules
 	ok( scalar(@names1)    > 40, 'Found enough namespaces' );
 	unless ( scalar(@names1) > 40 ) {
 		diag("Found " . scalar(@names1) . " namespaces");
@@ -44,8 +44,8 @@ SCOPE: {
 	unless ( scalar(@packages1) > 20 ) {
 		diag("Found " . scalar(@packages1) . " namespaces");
 	}
-	ok( scalar(@modules1)  > 15, 'Found enough modules'    );
-	unless ( scalar(@modules1) > 15 ) {
+	ok( scalar(@modules1)  > 10, 'Found enough modules'    );
+	unless ( scalar(@modules1) > 10 ) {
 		diag("Found " . scalar(@modules1) . " modules");
 	}
 	ok( scalar(@packages1) < scalar(@names1),    'Less packages than namespaces' );
