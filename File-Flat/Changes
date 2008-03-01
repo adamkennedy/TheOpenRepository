@@ -1,5 +1,9 @@
 Revision history for Perl extension File::Flat.
 
+1.03 Sat  1 Mar 20078
+	- Incremental release to clear out some CPAN Testers failures
+	- No need to upgrade
+
 1.02 Tue 11 Dec 2007
 	- Cygwin is clearly insane, skip root and win32 test sets
 	- More aggressive dependencies, particularly on Win32
