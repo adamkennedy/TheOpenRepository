@@ -202,7 +202,7 @@ sub find {
 	while ( scalar $$image_string =~ /$pattern_regexp/gs ) {
 		my $p = $-[0];
 		push @match, Imager::Search::Match->from_position($self, $p / $bpp);
-		pos $big = $p + 1;
+		pos $image_string = $p + 1;
 	}
 	return @match;
 }
