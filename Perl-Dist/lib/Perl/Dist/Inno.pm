@@ -2003,7 +2003,9 @@ sub _copy {
 	my $basedir = File::Basename::dirname( $to );
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace("Copying $from to $to\n");
+	my $ro = !! ( -f $to and ! -w $to );
 	File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+	chmod( 0444 ) if $ro;
 }
 
 sub _move {
