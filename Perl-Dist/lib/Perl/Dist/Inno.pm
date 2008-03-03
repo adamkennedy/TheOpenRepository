@@ -2003,10 +2003,16 @@ sub _copy {
 	my $basedir = File::Basename::dirname( $to );
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace("Copying $from to $to\n");
-	my $ro = !! ( -f $to and ! -w $to );
-	chmod( 0666 ) if $ro;
-	File::Copy::Recursive::rcopy( $from, $to ) or die $!;
-	chmod( 0444 ) if $ro;
+	if ( -f $to and ! -w $to ) {
+		require Win32::File;
+		my $attr;
+		Win32::File::GetAttributes( $to, $attr );
+		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+		Win32::File::SetAttributes( $to, $attr );
+	} else {
+		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+	}
+	return 1;
 }
 
 sub _move {
