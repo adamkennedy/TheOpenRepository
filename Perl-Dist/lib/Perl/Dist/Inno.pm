@@ -2004,6 +2004,7 @@ sub _copy {
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace("Copying $from to $to\n");
 	my $ro = !! ( -f $to and ! -w $to );
+	chmod( 0666 ) if $ro;
 	File::Copy::Recursive::rcopy( $from, $to ) or die $!;
 	chmod( 0444 ) if $ro;
 }
