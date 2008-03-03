@@ -2005,10 +2005,13 @@ sub _copy {
 	$self->trace("Copying $from to $to\n");
 	if ( -f $to and ! -w $to ) {
 		require Win32::File;
-		my $attr;
-		Win32::File::GetAttributes( $to, $attr );
+		my ($ro, $rw);
+		Win32::File::GetAttributes( $to, $ro )     or die $!;
+		my $not_readonly = Win32::File::READONLY ^ 1;
+		$rw = $ro | $not_readonly;
+		Win32::File::SetAttributes( $to, $rw )     or die $!;
 		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
-		Win32::File::SetAttributes( $to, $attr );
+		Win32::File::SetAttributes( $to, $ro )     or die $!;
 	} else {
 		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
 	}
