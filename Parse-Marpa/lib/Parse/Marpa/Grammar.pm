@@ -3440,47 +3440,50 @@ Parse::Marpa::Grammar - A Marpa Grammar Object
 
 =head1 DESCRIPTION
 
-In Marpa, grammar objects are created with the C<new> constructor.
+Grammar objects are created with the C<new> constructor.
 Rules and options may be specified when the grammar is created, or later using
 the C<set> method.
 
 Rules are most conveniently added with the C<mdl_source> named argument, which
-takes an MDL grammar description file as its value.
+takes a reference to a string containing an MDL grammar description as its value.
 MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::MDL>.
 
-Users who want the more control and efficiency can use the 
-raw interface directly,
+MDL indirectly uses another interface, called the B<raw interface>.
+Users who want the last word in control can use the raw interface directly,
 but they will lose a lot of convenience and maintainability.
 The MDL parser itself is created from an MDL file.
 Those who need the ultimate in efficiency can get the best of both worlds by
-creating a grammar using MDL and compiling it, as L<described below|"compile">.
-The raw interface is detailed in L<a document of its own|Parse::Marpa::RAW>.
+using MDL to create a grammar,
+then compiling that grammar,
+as L<described below|"compile">.
+The raw interface is described in L<a document of its own|Parse::Marpa::RAW>.
 
-Marpa does extensive precompution on its grammars
-before using them used for recognition or parsing,
-but the user rarely needs to perform the precomputation explicitly.
+Marpa needs to do extensive precompution on grammars
+before they can be passed on to a recognizer or an evaluator.
+The user rarely needs to perform this precomputation explicitly.
 The Marpa methods which require precomputed grammars
 (C<compile> and C<Parse::Marpa::Recognizer::new>),
-will do the precomputation themselves when needed.
+do the precomputation themselves on a just-in-time basis.
 
 For situations where the user needs to control the state of the grammar precisely,
 such as debugging or tracing,
 there is a method that explicitly precomputes a grammar: C<precompute>.
 Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
-In particular, no more rules may be added to a precomputed grammar.
+For example, no more rules may be added to a precomputed grammar.
 
-Every Marpa recognizers makes a deep copy of the grammar used to create it,
-for that recognizer's own private use.
-The deep copying is done by B<compiling>, then B<decompiling> the grammar.
+Marpa recognizers deep copy the grammar used to create them
+to create a grammar for their private use.
+The deep copy is done by B<compiling> the grammar, then B<decompiling> the grammar.
 
-Grammar compilation in Marpa simply means turning it into a string with
+Grammar compilation in Marpa means turning it into a string with
 Marpa's C<compile> method.
-Since a compiled grammar is simply a string, it can be handled as one.
+Since a compiled grammar is a string, it can be handled as one.
 It can, for instance, be written to a file.
 
 Marpa's C<decompile> static method takes this string,
-C<eval>'s it and tweaks it a bit to create a properly set-up grammar object.
+C<eval>'s it,
+then tweaks it a bit to create a properly set-up grammar object.
 A subsequent Marpa process can read this file, C<decompile> the string,
 and continue the parse.
 This would eliminate the overhead both of parsing MDL and of precomputation.
@@ -3491,7 +3494,7 @@ a wiser choice than the raw interface.
 
 =head2 new
 
-    my $grammar = Parse::Marpa::Grammar::new({ trace_lex => 1 });
+    my $grammar = Parse::Marpa::Grammar::new({ trace_rules => 1 });
 
     my $grammar = new Parse::Marpa::Grammar({});
 
@@ -3518,16 +3521,16 @@ Either the C<mdl_source> named argument or the raw interface arguments may be us
 to build a grammar,
 but both cannot be used in the same grammar object.
 
-In the C<new> method,
-a Marpa option might be specified both as a named argument to the C<new> method, and indirectly,
-via the grammar description supplied with the C<mdl_source> argument.
-When that happens, the value supplied in the MDL source is applied first,
-and the named argument to the C<new> method is applied after the MDL is processed.
-This fits the usual intent, which is for the C<new> method's named arguments to
+In the C<new> and C<set> methods,
+a Marpa option can be specified both as a named argument to the method, and indirectly,
+in the MDL grammar description supplied as the value of an C<mdl_source> argument.
+When that happens, the value supplied in the MDL description is applied first,
+and the named argument to the method is applied after the MDL is processed.
+This fits the usual intent, which is for a method's named arguments to
 override the MDL settings.
 However, this
 does means that trace settings won't be effective until after the grammar description is
-processed, which can defeat their purpose.
+processed, which can be too late for some of the traces.
 For a way around this, see L<the C<set> method|"set">.
 
 =head2 set
@@ -3539,12 +3542,18 @@ For a way around this, see L<the C<set> method|"set">.
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
 It allows Marpa options, raw interface arguments and the C<mdl_source> named argument
 to be specified for an already existing grammar object.
-It can be used when it is useful to control the order in which the named arguments are applied.
+It can be used to control the order in which the named arguments are applied.
 
-This is particularly useful for setting tracing options prior to specifying the grammar.
-To do this, an empty grammar object can be created with trace options set, but no grammar specification.
-Then the C<set> method can be used with the C<mdl_source> named arguments or the raw interface named
-arguments to set up the grammar with tracing in effect.
+It is often useful to control the order in which tracing options
+are applied, relative to other options.
+In particular, some
+setting tracing options made need to be set prior to specifying the grammar.
+To do this, an new grammar object can be created with the trace options set,
+but without a grammar specification.
+At this point, tracing will be in effect,
+and the C<set> method can be used to specify the grammar,
+using either the C<mdl_source> named argument or the raw interface named
+arguments.
 
 =head2 precompute
 
@@ -3559,9 +3568,9 @@ It is usually not necessary for the user to call C<precompute>.
 The methods which require a precomputed grammar
 (C<compile> and C<Parse::Marpa::Recognizer::new>),
 if passed a grammar on which the precomputations have not been done,
-will perform the precomputation themselves on a "just in time" basis.
-But it can be useful in debugging and tracing
-to control precisely when precomputation takes place.
+perform the precomputation themselves on a "just in time" basis.
+But C<precompute> can be useful in debugging and tracing,
+as a way to control precisely when precomputation takes place.
 
 =head2 compile
 
@@ -3583,7 +3592,7 @@ On failure, C<compile> throws an exception.
 
 The C<decompile> static method takes a reference to a compiled grammar as its first
 argument.
-The second, optional, argument is a file handle.
+Its second, optional, argument is a file handle.
 The file handle argument will be used both as the decompiled grammar's trace file handle,
 and for any trace messages produced by C<decompile> itself.
 C<decompile> returns the decompiled grammar object unless it throws an
@@ -3600,8 +3609,9 @@ Marpa cannot rely on finding the original trace file handle available and open
 when a compiled grammar is decompiled.
 
 When Marpa deep copies grammars internally, it uses the C<compile> and C<decompile> methods.
-To preserve the trace file handle of the original grammar, Marpa first copies it to a temporary,
-then restores it using the trace file handle argument of C<decompile>.
+To preserve the trace file handle of the original grammar,
+Marpa first copies the handle to a temporary,
+then restores the handle using the C<trace_file_handle> argument of C<decompile>.
 
 =head1 SUPPORT
 

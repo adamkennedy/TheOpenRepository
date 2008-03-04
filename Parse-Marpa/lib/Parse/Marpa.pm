@@ -847,21 +847,24 @@ texts and could explain them.  That meant going to India.
 Getting to India from Marpa's home in the Lhotrak Valley
 meant crossing two hundred difficult and lawless miles to
 Khala Chela Pass,
-and scaling its three-mile high summit.
+then scaling its three-mile high summit.
 
-From Khala Chela to the great Buddhist center of Nalanda
-University was four hundred miles and downhill,
-but Tibetans would stop off for years or months in Nepal.
+The next four hundred miles,
+from Khala Chela to the great Buddhist center of Nalanda,
+was downhill.
+But 
 Tibetans had learned
 the hard way
-to take some time to get used to low altitude
-instead of going straight to Nalanda.
-Whole expeditions had
-died from disease within weeks of arrival on the hot plains.
+that they needed to
+stop off for years or months in Nepal,
+getting used to the low altitude
+and building up their immunities.
 Almost no germs live in the cold,
-thin air of Tibet,
-and Tibetans arriving
-directly in the lowlands had no immunities.
+thin air of Tibet.
+The first expeditions had gone straight to Nalanda
+and had suffered heavily from the
+diseases of the hot plains.
+In several of them, every single member was dead within weeks of arrival.
 
 =head2 Blatant Plug
 
@@ -887,13 +890,13 @@ If non-default priorities are given to rules, it's possible two rules
 with different priorities could wind up in the same SDFA state.
 Marpa can't proceed when that happens.
 (See the L<internals document|Parse::Marpa::Doc::Internals> if you're
-interested in the details about SDFA's.)
+interested in details about SDFA's.)
 
 I've actually never seen this happen, and one reason the problem is
-not fixed is that I will need to contrive a case where the problem occurs.
-Otherwise, I can't test the fix.
-But if you're the unlucky first person to encounter this, here are
-the workarounds.
+not fixed is that I will need to contrive a case where the problem occurs
+before I test the fix.
+But if you're the unlucky first person to encounter this issue,
+here are the workarounds.
 
 Workaround 1:
 Marpa will report the rules which caused the conflict.
@@ -908,14 +911,14 @@ until you get the one you want.
 
 Workaround 3:
 Make a small change in the grammar.
-Be aware that the code which creates the SDFA is smart enough that you'll
-probably need to make some sort of 
+Be aware that the code which creates the SDFA is smart enough that it will
+probably need to be a
 real change to the target language.
 Simply writing different rules with the same effect probably won't make
 the problem go away.
 
 I believe there's a fix to this problem,
-but it will require some mathematics.
+but I need to do the math.
 Here's what I think is the fix:
 Change the SDFA to be a little more non-deterministic,
 so that there are different SDFA nodes for the different priorities,
@@ -936,7 +939,7 @@ This problem occurs when
 
 =item * An ambiguous production has more than two nullable symbols on the right hand side; and
 
-=item * The semantics are such that order of the parses for that production matters.
+=item * The order of the parses for that production matters.
 
 =back
 
@@ -945,10 +948,10 @@ Perhaps it's a unnatural way to set up the semantics.
 But it certainly does happen in textbook grammars.
 
 A very straightforward workaround is described below.
-But the problem needs to be fixed, certainly before Marpa goes beta.
+But the problem needs to be fixed before Marpa goes beta.
 
 Details: The problem occurs because these productions are rewritten internally by CHAF.
-A rightmost parse comes first as I have documented,
+A rightmost parse comes first, as I have documented,
 but it is a rightmost parse for the grammar B<as rewritten by CHAF>.
 This is a bug for pendantic reasons, because
 CHAF rewriting is supposed to be invisible.
@@ -1016,7 +1019,7 @@ I'm grateful to Randal Schwartz for his encouragement over the years that
 I've been working on Marpa.  My one conversation
 with Larry Wall
 about Marpa
-was brief and long ago, but his openness to the idea is a major
+was brief and long ago, but his openness to the idea was a major
 encouragement,
 and his insights into how humans do programming,
 how they do languages,
