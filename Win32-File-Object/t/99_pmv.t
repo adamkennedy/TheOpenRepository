@@ -20,7 +20,7 @@ unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 eval "use $MODULE";
 if ( $@ ) {
 	$ENV{RELEASE_TESTING}
-	? die( "Failed to load required release-testing module $MODULE" );
+	? die( "Failed to load required release-testing module $MODULE" )
 	: plan( skip_all => "$MODULE not available for testing" );
 }
 

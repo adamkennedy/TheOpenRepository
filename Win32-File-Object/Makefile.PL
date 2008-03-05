@@ -11,6 +11,7 @@ unless ( $^O eq 'MSWin32' or $^O eq 'cygwin' ) {
 WriteMakefile(
 	'NAME'         => 'Win32::File::Object',
 	'VERSION_FROM' => 'lib/Win32/File/Object.pm', # finds $VERSION
+	'NO_META'      => 1,
 	'PREREQ_PM'    => {
 		'Win32::File'  => '0.05',
 		'File::Spec'   => '0.80',
