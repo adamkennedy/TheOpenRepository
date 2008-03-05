@@ -15,7 +15,6 @@ Creating a custom distribution
   use strict;
   use base 'Perl::Dist::Strawberry';
   
-  
   1;
 
 Building that distribution...
@@ -2004,14 +2003,18 @@ sub _copy {
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace("Copying $from to $to\n");
 	if ( -f $to and ! -w $to ) {
-		require Win32::File;
-		my ($ro, $rw);
-		Win32::File::GetAttributes( $to, $ro )     or die $!;
-		my $not_readonly = Win32::File::READONLY ^ 1;
-		$rw = $ro | $not_readonly;
-		Win32::File::SetAttributes( $to, $rw )     or die $!;
+		require Win32::File::Object;
+
+		# Make sure it isn't readonly
+		my $file     = Win32::File::Object->new( $to, 1 );
+		my $readonly = $file->readonly;
+		$file->readonly(0);
+
+		# Do the actual copy
 		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
-		Win32::File::SetAttributes( $to, $ro )     or die $!;
+
+		# Set it back to what it was
+		$file->readonly($readonly);
 	} else {
 		File::Copy::Recursive::rcopy( $from, $to ) or die $!;
 	}
