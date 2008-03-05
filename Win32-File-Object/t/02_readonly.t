@@ -1,15 +1,18 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 2;
-use Win32::File::Object;
+use Test::More tests => 12;
+use File::Spec::Functions ':ALL';
+use File::Remove          ();
+use Win32::File::Object   ();
 
 # Test file name
 my $path = catfile(qw{ t readonly.txt });
-if ( -e $path ) {
-	File::Remove::remove( \1, $path );
-}
+File::Remove::remove( \1, $path ) if -e $path;
 ok ( ! -e $path, 'The test file does not exist' );
+END {
+	File::Remove::remove( \1, $path ) if -e $path;
+}
 
 
 
@@ -24,15 +27,35 @@ print FILE "This is a temporary test file\n";
 close( FILE ) or die "close: $!";
 ok( -f $path, 'Created file ok' );
 
-# Readonly should be false
-my $file1 = Win32::File::Object->new( $path );
-isa_ok( $file1, 'Win32::File::Object' );
-is( $file1->readonly, 0, '->readonly is false' );
+SCOPE: {
+	# Readonly should be false
+	my $file = Win32::File::Object->new( $path );
+	isa_ok( $file, 'Win32::File::Object' );
+	is( $file->readonly, 0, '->readonly is false' );
 
-# Set readonly to true
-is( $file1->readonly(2), 1, 'Set readonly ok' );
-is( Win32::File::Object->new($path)->readonly, 0, '->readonly(value) does not autowrite' );
+	# Set readonly to true
+	is( $file->readonly(2), 1, 'Set readonly ok' );
+	is( Win32::File::Object->new($path)->readonly, 0, '->readonly(true) does not autowrite' );
 
-# Write the file
-is( $file1->write, 1, '->write ok' );
-is( Win32::File::Object->new($path)->readonly, 1, '->write worked' );
+	# Write the file
+	is( $file->write, 1, '->write ok' );
+	is( Win32::File::Object->new($path)->readonly, 1, '->write worked' );
+}
+
+
+
+
+
+#####################################################################
+# Autowrite Test
+
+SCOPE: {
+	# Readonly should be true
+	my $file = Win32::File::Object->new( $path, 1 );
+	isa_ok( $file, 'Win32::File::Object' );
+	is( $file->readonly, 1, '->readonly is false' );
+
+	# Set readonly to true
+	is( $file->readonly(undef), 0, 'Set readonly ok' );
+	is( Win32::File::Object->new($path)->readonly, 0, '->readonly(false) does autowrite' );
+}
