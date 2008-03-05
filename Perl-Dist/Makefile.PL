@@ -29,16 +29,14 @@ requires       'Process'               => '0.20';
 requires       'Process::Storable'     => 0;
 requires       'Process::Delegatable'  => 0;
 requires       'IO::Capture'           => '0.05';
-if ( $^O eq 'MSWin32' ) {
-requires       'Win32::File'           => 0;
-}
+requires       'Win32::File::Object'   => '0.01' if $^O eq 'MSWin32';
 build_requires 'Test::More'            => '0.42';
 build_requires 'Test::Script'          => '1.02';
 build_requires 'Test::LongString'      => 0;
 build_requires 'Probe::Perl'           => '0.01';
 install_script 'script/perldist';
+no_index       'directory'             => 'share';
 install_share;
-no_index( directory => 'share' );
 
 WriteAll;
 
