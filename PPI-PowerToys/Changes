@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.11 Thu  6 Mar 2008
+	- Adding increment support
+
 0.10 Sun 16 Nov 2007
 	- VERSION detection supports fully referenced variables
 	  (now in the change command as well)

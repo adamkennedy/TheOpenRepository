@@ -2,6 +2,7 @@ package PPI::App::Version;
 
 use 5.005;
 use strict;
+use version;
 use File::Spec             ();
 use PPI::Document          ();
 use File::Find::Rule       ();
@@ -9,7 +10,7 @@ use File::Find::Rule::Perl ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.10';
+        $VERSION = '0.11';
 }
 
 sub FFR () { 'File::Find::Rule' }
@@ -149,8 +150,60 @@ sub change {
 
 
 
+
 #####################################################################
 # Support Functions
+
+sub _file_version {
+	my $file = shift;
+	my $doc  = PPI::Document->new( $file );
+	unless ( $doc ) {
+		return "failed to parse file";
+	}
+
+	# Does the document contain a simple version number
+	my $elements = $doc->find( sub {
+		# Find a $VERSION symbol
+		$_[1]->isa('PPI::Token::Symbol')           or return '';
+		$_[1]->content =~ m/^\$(?:\w+::)*VERSION$/ or return '';
+
+		# It is the first thing in the statement
+		$_[1]->sprevious_sibling                  and return '';
+
+		# Followed by an "equals"
+		my $equals = $_[1]->snext_sibling          or return '';
+		$equals->isa('PPI::Token::Operator')       or return '';
+		$equals->content eq '='                    or return '';
+
+		# Followed by a quote
+		my $quote = $equals->snext_sibling         or return '';
+		$quote->isa('PPI::Token::Quote')           or return '';
+
+		# ... which is EITHER the end of the statement
+		my $next = $quote->snext_sibling           or return 1;
+
+		# ... or is a statement terminator
+		$next->isa('PPI::Token::Structure')        or return '';
+		$next->content eq ';'                      or return '';
+
+		return 1;
+	} );
+
+	unless ( $elements ) {
+		return "no version";
+	}
+	if ( @$elements > 1 ) {
+		error("$file contains more than one \$VERSION = 'something';");
+	}
+	my $element = $elements->[0];
+	my $version = $element->snext_sibling->snext_sibling;
+	my $version_string = $version->string;
+	unless ( defined $version_string ) {
+		error("Failed to get version string");
+	}
+
+	return version->new($version_string);
+}
 
 sub changefile {
 	my ($file, $from, $to) = @_;

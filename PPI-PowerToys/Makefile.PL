@@ -3,6 +3,7 @@ use inc::Module::Install;
 
 name           'PPI-PowerToys';
 all_from       'lib/PPI/PowerToys.pm';
+requires       'version'                => '0.74';
 requires       'File::Spec'             => '0.80';
 requires       'File::Find::Rule'       => 0;
 requires       'File::Find::Rule::Perl' => '0.03';
