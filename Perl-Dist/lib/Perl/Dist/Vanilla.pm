@@ -138,6 +138,8 @@ sub install_perl_modules {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Perl::Dist::Vanilla - Vanilla Perl for Win32
