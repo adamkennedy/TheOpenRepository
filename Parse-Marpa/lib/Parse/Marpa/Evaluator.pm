@@ -915,6 +915,14 @@ Parse::Marpa::Evaluator - A Marpa Evaluator Object
 
 =head1 SYNOPSIS
 
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+
+    for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
+        croak("Ambiguous parse has extra value: ", $$value, "\n")
+	    if $i > $expected;
+	say "Ambiguous Equation Value $i: ", $$value;
+    }
+
 =head1 DESCRIPTION
 
 =head2 Volatility
@@ -1128,7 +1136,11 @@ closure in a parent node.
 
 =head1 METHODS
 
-=head2 Parse::Marpa::Evaluator::new(I<recognizer>, I<parse_end>)
+=head2 new
+
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+
+    my $evaler = new Parse::Marpa::Evaluator($recce, $location);
 
 Creates an evaluator object and finds the first parse.
 On success, returns the evaluator object.
@@ -1169,7 +1181,9 @@ The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
 documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
 is a prototype of the methods that will be needed in online mode.
 
-=head2 Parse::Marpa::Evaluator::next(I<parse>)
+=head2 next
+
+    my $value = $evaler->next();
 
 Takes a parse object as its only argument,
 and performs the next iteration through its values.
@@ -1183,28 +1197,38 @@ Parses are iterated from rightmost to leftmost, but their order
 may be manipulated by assigning priorities to the rules and
 terminals.
 
-=head2 Parse::Marpa::Evaluator::value(I<parse>)
+=head2 value
 
-Takes a parse object, which has been set up with
-C<Parse::Marpa::Evaluator::initial()>
-and may have been iterated with
-C<Parse::Marpa::Evaluator::next()>.
-Returns a reference to its current value.
+Given an evaluator object whose value has been calculated with
+C<next>,
+returns a reference to its current value.
+It returns undefined in the case of a Marpa "no value".
 Failures are thrown as exceptions.
 
-Defaults, nulling rules, and non-existent optional items
-all have as their value a Perl 5 undefined.
-These undefineds count as "node values"
-and C<value()> returns them as a reference to an undefined.
+Since the C<next> method returns a reference to the value of the parse,
+this method is rarely needed.
+Its main use is for the unusual case where both a Perl
+undefined and a Marpa "no value" may be the value of a parse,
+and it is necessary to distinguish between them.
+In both these circumstances, the return value of the
+C<next> method would be a reference to an undefined.
 
-In unusual cases,
-(probably be the result of advanced wizardry gone wrong),
-Marpa will not find a node value and
-the return value will be undefined instead of a pointer to undefined.
+A Marpa "no value" is the result of asking for the value of the
+parse at a node where no value was ever calculated.
+A Marpa "no value" is B<not> ever a default value,
+the result of a nulling rule,
+and or the result of a non-existent optional item.
+All of these have as their value a Perl 5 undefined.
+These undefineds count as "node values"
+and the C<value> method returns them as a reference to an undefined.
+
+Marpa "no values" will not occur as long as you use the defaults:
+offline mode and the default end parse location.
+If you don't stick to the defaults,
+then, in some cases,
+which will usually be the result of advanced wizardry gone wrong,
+Marpa will not find a node value.
 This is considered a Marpa "no node value".
-Returns of "no node value" should not occur
-if you are in offline mode and 
-use the default end parse location in your call to the C<initial()> method.
 
 =head1 SUPPORT
 

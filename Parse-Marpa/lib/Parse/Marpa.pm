@@ -325,7 +325,7 @@ Most parsers have a problem with this, but Marpa does not.
 
 MDL lexing, because it must deal with variable length and potentially
 overlapping tokens, tracks parse position as position in the character stream.
-While MDL's lexing works in terms of character positions,
+While MDL's default lexing works in terms of character positions,
 Marpa is not restricted to this model.
 Advanced users can invent new models of the input,
 customized to their own applications.
