@@ -1,4 +1,7 @@
 
+Version 2.02: 2008-03-06  steffen mueller <smueller@cpan.org>
+	* Remove debugging statements from last release.
+
 Version 2.01: 2008-03-06  steffen mueller <smueller@cpan.org>
 	* Patch from Francesco Rotondella:
 	  --> Add GetBareList() method.

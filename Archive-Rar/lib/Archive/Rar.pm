@@ -4,7 +4,7 @@ require 5.004;
 
 use strict;
 use vars ('$VERSION');
-$VERSION = '2.01';
+$VERSION = '2.02';
 
 use Data::Dumper;
 use Cwd;
@@ -88,7 +88,7 @@ sub self_or_default {
     return @_
       if defined($_[0]) and !ref($_[0]) and $_[0] eq __PACKAGE__;
     unless ( defined($_[0]) and ref( $_[0] ) eq __PACKAGE__ ) {
-        print caller(1);
+        #print caller(1); # FIXME
         $unique_instance = __PACKAGE__->new() unless defined($unique_instance);
         unshift( @_, $unique_instance );
     }
@@ -290,7 +290,7 @@ sub Add {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
-    print STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
+    #print STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
     $res =
       $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
@@ -315,7 +315,7 @@ sub Extract {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
-    print STDOUT ( __LINE__ . "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
+    #print STDOUT ( __LINE__ . "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
     $res =
       $self->Execute( "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
@@ -384,7 +384,7 @@ sub List {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
-    printf STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} ". join( ' ', @{ $args->{'-files'} } ));
+    #printf STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} ". join( ' ', @{ $args->{'-files'} } ));
     my $res = $self->Execute(
       "$self->{rar} $self->{command} $self->{options} $self->{archive} "
       . join( ' ', @{ $args->{'-files'} } )
@@ -482,7 +482,7 @@ sub GetHelp {
     $self->{options}      = '"-?"';
     $self->{command}      = '"?"';
 
-    printf STDOUT ( __LINE__ . "$self->{rar} $self->{options}\n");
+    #printf STDOUT ( __LINE__ . "$self->{rar} $self->{options}\n");
     $res = $self->Execute("$self->{rar} $self->{options}");
 
     return join( '', @{ $self->{output} } );
