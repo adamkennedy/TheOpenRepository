@@ -1,4 +1,10 @@
 
+Version 2.01: 2008-03-06  steffen mueller <smueller@cpan.org>
+	* Patch from Francesco Rotondella:
+	  --> Add GetBareList() method.
+	  --> Better shell escaping.
+	  --> Some more cosmetics.
+
 Version 2.00_02: 2008-02-29  steffen mueller <smueller@cpan.org>
 	* Fix A::R::Passthrough's Win32.
 	* Skip searching for 'rar' during Makefile.PL on win32.

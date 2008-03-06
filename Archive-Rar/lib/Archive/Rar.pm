@@ -4,12 +4,12 @@ require 5.004;
 
 use strict;
 use vars ('$VERSION');
-$VERSION = '2.00_02';
+$VERSION = '2.01';
 
 use Data::Dumper;
 use Cwd;
 use File::Path;
-
+use File::Basename;
 
 my $IsWindows = ($^O =~ /win32/i ? 1 : 0);
 
@@ -117,13 +117,13 @@ sub SearchExe {
     my $cmd = 'rar';
 
     if ( $IsWindows ) {
-        my ( $clef, $type, $value );
+        my ( $key, $type, $value );
 
-        # on essaie de piquer le chemin d'install par la clef d'execution.
+        # we try to catch the running path through the key
         if (
             $::HKEY_LOCAL_MACHINE->Open(
-                'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $clef )
-            and $clef->QueryValueEx( "path", $type, $value )
+                'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe', $key )
+            and $key->QueryValueEx( "path", $type, $value )
           )
         {
             $value =~ s/\\/\//g;
@@ -131,11 +131,11 @@ sub SearchExe {
             goto Good if ( -e $cmd );
         }
 
-        # ou alors par le desinstalleur.
+        # or through the uninstaller
         if (
             $::HKEY_LOCAL_MACHINE->Open(
-                'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $clef )
-            and $clef->QueryValueEx( "UninstallString", $type, $value )
+                'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WinRAR archiver', $key )
+            and $key->QueryValueEx( "UninstallString", $type, $value )
           )
         {
             $value =~ s/\\/\//g;
@@ -144,15 +144,11 @@ sub SearchExe {
             goto Good if -e $cmd;
         }
 
-        # on tente le chemin 'normal'.
-        $cmd = 'c:/program files/winrar/rar.exe';
-        goto Good if -e $cmd;
-
-        # alors une execution direct.
+        # or the direct execution
         $cmd = 'rar';
         goto Good if $self->TestExe($cmd);
 
-        # en dernier recourt...
+        # a last resort...
         $cmd = 'rar32';
         goto Good if $self->TestExe($cmd);
     }
@@ -163,7 +159,7 @@ sub SearchExe {
         goto Good if $self->TestExe($cmd);
     }
   Bad:
-    print "ERROR : Can't find rar binary.\n" if $self->{dbg};
+    warn "ERROR: Can't find rar binary.\n" if $self->{dbg};
     return undef;
   Good:
     $self->{rar} = qq["$cmd"];
@@ -186,9 +182,9 @@ sub initialize {
         -alldata => 1,
     );
 
-    my ( $clef, $valeur );
-    while ( ( $clef, $valeur ) = each(%params) ) {
-        $args{$clef} = $valeur;
+    my ( $key, $value );
+    while ( ( $key, $value ) = each(%params) ) {
+        $args{$key} = $value;
     }
     $self->{args} = \%args;
 
@@ -203,17 +199,17 @@ sub initialize {
 #
 #
 sub SetOptions {
-    my ( %args, $self, $command, %opts, $s, @exclude, %params, $clef, $valeur );
+    my ( %args, $self, $command, %opts, $s, @exclude, %params, $key, $value );
     $self      = shift;
     $command = shift;
     %args    = %{ $self->{args} };
     %params  = @_;
-    while ( ( $clef, $valeur ) = each(%params) ) {
-        $args{$clef} = $valeur;
+    while ( ( $key, $value ) = each(%params) ) {
+        $args{$key} = $value;
     }
     $self->{current} = \%args;
 
-    $args{'-files'} = $command eq 'vt' ? [] : '.' if ( IsEmpty( $args{'-files'} ) );
+    $args{'-files'} = $command eq '"vt"' ? [] : '.' if ( IsEmpty( $args{'-files'} ) );
     $args{'-files'} = [$args{'-files'}] if ( ref( $args{'-files'} ) eq '' );
 
     $self->{archive} = $args{'-archive'} if !IsEmpty($args{'-archive'});
@@ -225,10 +221,10 @@ sub SetOptions {
         # fixed #32090
         $self->{archive} =~ /\.(\w+)$/;
         my $ext = ".$1";
-        $ext = ( $^O eq 'MSWin32' ) ? '.exe' : '.sfx' if ( defined $args{'-sfx'} && $args{'-sfx'} );
+        $ext = $IsWindows ? '.exe' : '.sfx' if ( defined $args{'-sfx'} && $args{'-sfx'} );
         $self->{archive} =~ s/\.\w+$/$ext/;
         $self->{archive} = CleanDir( $self->{archive} );
-        my $expr = ( $^O eq 'MSWin32' ) ? '^([a-z_A-Z]:)?\/' : '^\/';
+        my $expr = $IsWindows ? '^([a-z_A-Z]:)?\/' : '^\/';
         if ( $self->{archive} !~ /$expr/ ) {
             $self->{archive} = getcwd() . '/' . $self->{archive};
         }
@@ -236,7 +232,7 @@ sub SetOptions {
     }
 
   #Suite:
-    $self->{archive} =~ s|/|\\|g if ( $^O eq 'MSWin32' );
+    $self->{archive} =~ s|/|\\|g if $IsWindows;
 
     # print "ARCHIVE='$self->{archive}'\n";
 
@@ -247,28 +243,28 @@ sub SetOptions {
     # new feature for using with nice
     $self->{nice} = '';
     if ( $command =~ /^[x]/i ) {
-        $self->{nice} .= 'nice'
+        $self->{nice} .= '"nice"'
           if !IsEmpty($args{'-lowprio'})
             and $args{'-lowprio'}
             and $IsWindows;
     }
     if ( $command =~ /^[a]/i ) {
-        $self->{options} .= ' -sfx' if ( defined $args{'-sfx'} && $args{'-sfx'} );
-        $self->{options} .= ' -r' if ( !IsEmpty( $args{'-recurse'} ) );
-        $self->{options} .= ' -m' . $args{'-mode'} if ( !IsEmpty( $args{'-mode'} ) );
-        $self->{options} .= ' -v' . $args{'-size'} if ( !IsEmpty( $args{'-size'} ) );
+        $self->{options} .= ' "-sfx"' if ( defined $args{'-sfx'} && $args{'-sfx'} );
+        $self->{options} .= ' "-r"' if ( !IsEmpty( $args{'-recurse'} ) );
+        $self->{options} .= ' "-m"' . $args{'-mode'} if ( !IsEmpty( $args{'-mode'} ) );
+        $self->{options} .= ' "-v"' . $args{'-size'} if ( !IsEmpty( $args{'-size'} ) );
     }
     if ( $command =~ /^[levx]/i ) {
-        $self->{options} .= ' -v' if ( !IsEmpty( $args{'-volume'} ) );
+        $self->{options} .= ' "-v"' if ( !IsEmpty( $args{'-volume'} ) );
     }
 
     # fixed #32196
-    $self->{options} .= ' -ep'   if ( !IsEmpty( $args{'-excludepaths'} ) );
-    $self->{options} .= ' -inul' if ( !IsEmpty( $args{'-quiet'} ) );
-    $self->{options} .= ' -y'    if ( !IsEmpty( $args{'-yes'} ) );
+    $self->{options} .= ' "-ep"'   if ( !IsEmpty( $args{'-excludepaths'} ) );
+    $self->{options} .= ' "-inul"' if ( !IsEmpty( $args{'-quiet'} ) );
+    $self->{options} .= ' "-y"'    if ( !IsEmpty( $args{'-yes'} ) );
 
     # fixed #32623
-    $self->{options} .= ' -o-'
+    $self->{options} .= ' "-o-"'
       if ( !IsEmpty( $args{'-donotoverwrite'} ) && $args{'-donotoverwrite'} );
 
     if ( !IsEmpty( $self->{args}->{'-verbose'} ) && $self->{args}->{'-verbose'} > 9 ) {
@@ -286,7 +282,7 @@ sub SetOptions {
 sub Add {
     my ( $self, $args, $retour, $res );
     $self = shift;
-    $self->{command} = 'a';
+    $self->{command} = '"a"';
     $self->SetOptions( $self->{command}, @_ );
 
     $args = $self->{current};
@@ -294,6 +290,7 @@ sub Add {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
+    print STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
     $res =
       $self->Execute( "$self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
@@ -309,7 +306,7 @@ sub Add {
 sub Extract {
     my ( $self, $args, $retour, $res );
     $self = shift;
-    $self->{command} = 'x';
+    $self->{command} = '"x"';
     $self->SetOptions( $self->{command}, @_ );
 
     $args = $self->{current};
@@ -318,6 +315,7 @@ sub Extract {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
+    print STDOUT ( __LINE__ . "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} \n" );
     $res =
       $self->Execute( "$self->{nice} $self->{rar} $self->{command} $self->{options} $self->{archive} "
           . join( ' ', @{ $args->{'-files'} } ) );
@@ -377,7 +375,7 @@ sub List {
     my ( $retour, %currfile, @attrib );
     my $self         = shift;
     $self->{list}    = undef;
-    $self->{command} = 'vt';
+    $self->{command} = '"vt"';
     $self->SetOptions( $self->{command}, @_ );
 
     my $args = $self->{current};
@@ -386,6 +384,7 @@ sub List {
         return $self->SetError( 256, $args->{'-initial'} ) if ( !chdir( $args->{'-initial'} ) );
         $retour = getcwd;
     }
+    printf STDOUT ( __LINE__ . "$self->{rar} $self->{command} $self->{options} $self->{archive} ". join( ' ', @{ $args->{'-files'} } ));
     my $res = $self->Execute(
       "$self->{rar} $self->{command} $self->{options} $self->{archive} "
       . join( ' ', @{ $args->{'-files'} } )
@@ -445,15 +444,45 @@ EOD
 # ----------------------------------------------------------------
 #
 #
+sub GetBareList {
+    my $self = shift;
+    my %param = @_;
+    my %args = %{ $self->{args} };
+    my ($key, $value);
+    my @ret = ();
+
+    while ( ($key, $value) = each %param ) {
+      $args{$key} = $value;
+    }
+
+    return if (!defined $self->{list}
+               || ref( $self->{list} ) ne 'ARRAY'
+               || ref( $self->{list}->[0] ) ne 'HASH');
+
+    foreach my $p ( @{ $self->{list} } ) {
+        if ( $args{'-excludepaths'} && $args{'-excludepaths'}) {
+            push @ret, basename($p->{name});
+        } else {
+            push @ret, $p->{name};
+        }
+    }
+
+    return @ret;
+}
+
+# ----------------------------------------------------------------
+#
+#
 sub GetHelp {
     my ( $self, %args, $res );
     $self                 = shift;
     $args{'-verbose'}     = 1;
     $args{'-getoutput'}   = 1;
     $self->{current}      = \%args;
-    $self->{options}      = '-?';
-    $self->{command}      = '?';
+    $self->{options}      = '"-?"';
+    $self->{command}      = '"?"';
 
+    printf STDOUT ( __LINE__ . "$self->{rar} $self->{options}\n");
     $res = $self->Execute("$self->{rar} $self->{options}");
 
     return join( '', @{ $self->{output} } );
@@ -610,6 +639,12 @@ Returns 0 on success or a numerical error code.
 =item C<PrintList(%options)>
 
 Prints the file contents list that was previously generated using C<List()> to STDOUT.
+
+=item C<GetBareList(%options)>
+
+Returns an array with the file contents list that was previously generated using C<List()>.
+Adding the -excludepaths option and setting it to true, the pathnames will be excluded
+and a simple basename of the listed files will be returned.
 
 =back
 
