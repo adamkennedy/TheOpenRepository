@@ -1653,7 +1653,7 @@ sub install_module {
 	# Generate the CPAN installation script
 	my $env_lib     = $self->get_env_lib;
 	my $env_include = $self->get_env_include;
-	my $cpan_str    = <<"END_PERL";
+	my $cpan_string = <<"END_PERL";
 print "Installing $name from CPAN...\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
@@ -1661,12 +1661,12 @@ if ( \$module->uptodate ) {
 	print "$name is up to date\n";
 	exit(0);
 }
-print "\\\$ENV{PATH}    = '\$ENV{PATH}'\n";
-print "\\\$ENV{LIB}     = '\$ENV{LIB}'\n";
-print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'\n";
+print "\\\$ENV{PATH}    = '\$ENV{PATH}'";
+print "\\\$ENV{LIB}     = '\$ENV{LIB}'";
+print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'";
 if ( $force ) {
-	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
-	\$module->force("install");
+	\$module->force;
+	\$module->install;
 	\$CPAN::DEBUG=1;
 	unless ( \$module->uptodate ) {
 		die "Forced installation of $name appears to have failed";
@@ -1682,9 +1682,18 @@ if ( $force ) {
 exit(0);
 END_PERL
 
-	# Execute the CPAN installation script
+	# Dump the CPAN script to a temp file and execute
 	$self->trace("Running install of $name\n");
-	$self->_run3( $self->bin_perl, "-MCPAN", "-e", $cpan_str )
+	my $cpan_file = File::Spec->catfile(
+		$self->build_dir,
+		'cpan_string.pl',
+	);
+	SCOPE: {
+		open( CPAN_FILE, '>', $cpan_file ) or die "open: $!";
+		print CPAN_FILE $cpan_string       or die "print: $!";
+		close( CPAN_FILE )                 or die "close: $!";
+	}
+	$self->_run3( $self->bin_perl, "-MCPAN", $cpan_file )
 		or die "perl -MCPAN -e failed";
 	die "Failure detected installing $name, stopping" if $?;
 

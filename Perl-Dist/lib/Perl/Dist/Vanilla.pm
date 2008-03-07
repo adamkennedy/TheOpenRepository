@@ -121,8 +121,13 @@ sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
 
-	$self->install_module( name => 'Win32::File' );
-	$self->install_module( name => 'Win32::API'  );
+	$self->install_module(
+		name  => 'Win32::File',
+		force => 1,
+	);
+	$self->install_module(
+		name => 'Win32::API',
+	);
 
 	# We want expat as well
 	$self->install_expat;

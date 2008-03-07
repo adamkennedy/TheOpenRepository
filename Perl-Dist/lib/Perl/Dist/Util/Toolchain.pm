@@ -56,6 +56,11 @@ my %MODULES = (
 		Term::Cap
 		CPAN
 		Term::ReadLine::Perl
+
+		URI
+		HTML::Tagset
+		HTML::Parser
+		LWP::UserAgent
 	} ],
 );
 $MODULES{'5.010000'} = $MODULES{'5.008008'};
