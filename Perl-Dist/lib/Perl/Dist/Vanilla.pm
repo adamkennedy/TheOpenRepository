@@ -96,13 +96,19 @@ sub install_expat {
 	return 1;
 }
 
-sub install_perl_5100 {
-	my $self = shift;
-	$self->SUPER::install_perl_5100(@_);
+sub install_perl_5100_bin {
+	my $self  = shift;
+	$self->SUPER::install_perl_5100_bin(@_);
 
-	# Overwrite the default stub CPAN config with a Vanilla one.
-	# This is just there so that we at least have a working CPAN
-	# mirror setup by default.
+	# Overwrite the CPAN config to be relocatable
+	$self->install_file(
+		share      => 'Perl-Dist vanilla/Config5100.pm',
+		install_to => 'perl/lib/Config.pm',
+	);
+	$self->install_file(
+		share      => 'Perl-Dist vanilla/Config_heavy5100.pl',
+		install_to => 'perl/lib/Config_heavy.pl',
+	);
 	$self->install_file(
 		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
@@ -114,6 +120,9 @@ sub install_perl_5100 {
 sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
+
+	$self->install_module( name => 'Win32::File' );
+	$self->install_module( name => 'Win32::API'  );
 
 	# We want expat as well
 	$self->install_expat;

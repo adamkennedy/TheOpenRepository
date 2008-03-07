@@ -947,7 +947,7 @@ sub install_perl_588_bin {
 }
 
 sub install_perl_588_toolchain {
-	my $self      = shift;
+	my $self = shift;
 
 	# Resolve the distribution list at startup time
 	my $toolchain = Perl::Dist::Util::Toolchain->new(
@@ -1234,6 +1234,23 @@ sub install_perl_5100_toolchain {
 #####################################################################
 # Installing C Toolchain and Library Packages
 
+=pod
+
+=head2 install_dmake
+
+  $dist->install_dmake
+
+The C<install_dmake> method installs the B<dmake> make tool into the
+distribution, and is typically installed during "C toolchain" build
+phase.
+
+It provides the approproate arguments to C<install_binary> and then
+validates that the binary was installed correctly.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_dmake {
 	my $self = shift;
 
@@ -1260,6 +1277,24 @@ sub install_dmake {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_gcc
+
+  $dist->install_gcc
+
+The C<install_gcc> method installs the B<GNU C Compiler> into the
+distribution, and is typically installed during "C toolchain" build
+phase.
+
+It provides the appropriate arguments to several C<install_binary>
+calls. The default C<install_gcc> method installs two binary
+packages, the core compiler 'gcc-core' and the C++ compiler 'gcc-c++'.
+
+Returns true or throws an exception on error.
+
+=cut
 
 sub install_gcc {
 	my $self = shift;
