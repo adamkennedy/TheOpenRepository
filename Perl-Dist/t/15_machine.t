@@ -19,9 +19,6 @@ use Perl::Dist::Machine ();
 
 SCOPE: {
 	package My::TestPackage;
-	
-	use vars qw{$VERSION};
-	$VERSION = '0.01';
 
 	sub new {
 		bless [ @_ ], 'My::TestPackage';
