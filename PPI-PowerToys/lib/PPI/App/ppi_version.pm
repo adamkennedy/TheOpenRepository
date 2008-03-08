@@ -1,4 +1,4 @@
-package PPI::App::Version;
+package PPI::App::ppi_version;
 
 use 5.005;
 use strict;
