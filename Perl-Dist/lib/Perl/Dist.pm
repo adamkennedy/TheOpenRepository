@@ -120,7 +120,7 @@ David A. Golden <dagolden@cpan.org>
 
 =head1 COPYRIGHT
 
-Cyopright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 Copyright 2006 David A. Golden.
 
