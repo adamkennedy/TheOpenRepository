@@ -67,6 +67,12 @@ sub Parse::Marpa::Evaluator::new {
         "Don't parse argument is class: $recognizer_class; should be: $right_class"
     ) unless $recognizer_class eq $right_class;
 
+    croak("Recognizer already in use by evaluator")
+        if defined $recognizer->[ Parse::Marpa::Internal::Recognizer::EVALUATOR ];
+    weaken(
+        $recognizer->[ Parse::Marpa::Internal::Recognizer::EVALUATOR ] = $self
+    );
+
     my ($grammar,                 $earley_sets,
         )
         = @{$recognizer}[
@@ -483,6 +489,8 @@ sub initialize_children {
 
 }
 
+# Undocumented.  It's main purpose was to allow the user to differentiate 
+# between an unevaluated node and a node whose value was a Perl 5 undefined.
 sub Parse::Marpa::Evaluator::value {
     my $evaler = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
@@ -816,7 +824,7 @@ sub Parse::Marpa::Evaluator::next {
 	my $start_value =
 	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
 	# Semipredication allowed
-	return \(undef) if not defined $start_value;
+	croak("Parse not evaluated") if not defined $start_value;
 	return $start_value;
 
     }    # EVALUATION

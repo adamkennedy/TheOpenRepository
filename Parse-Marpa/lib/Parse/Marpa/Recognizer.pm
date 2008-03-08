@@ -45,7 +45,7 @@ use Carp;
 
 my $parse_number = 0;
 
-# Elements of the PARSE structure
+# Elements of the RECOGNIZER structure
 use constant GRAMMAR       => 0;    # the grammar used
 use constant CURRENT_SET   => 1;    # index of the first incomplete Earley set
 use constant EARLEY_SETS   => 2;    # the array of the Earley sets
@@ -59,6 +59,7 @@ use constant START_ITEM => 5;    # the start item for the current evaluation
 use constant FURTHEST_EARLEME         => 7;    # last earley set with a token
 use constant EXHAUSTED                => 8;    # parse can't continue?
 use constant DEFAULT_PARSE_SET        => 14;
+use constant EVALUATOR                => 15;  # the current evaluator for this recognizer
 use constant PACKAGE       => 17;              # special "safe" namespace
 use constant LEXERS            => 22;    # an array, indexed by symbol id,
                                          # of the lexer for each symbol
