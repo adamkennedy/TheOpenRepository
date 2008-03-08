@@ -28,7 +28,7 @@ use Params::Util qw{ _STRING _IDENTIFIER _ARRAY _HASH _DRIVER };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.90_02';
+	$VERSION = '0.90_03';
 }
 
 use Object::Tiny qw{
