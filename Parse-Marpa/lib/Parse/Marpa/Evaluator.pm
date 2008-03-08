@@ -1020,7 +1020,7 @@ It's a property of the symbol, and applies whenever the symbol is nulled,
 even when the symbol's empty rule is not involved.
 
 For example, in MDL, the following says that whenever C<A> matches the empty
-string, it should evaluate to an string.
+string, it should evaluate to a string which expresses its surprise.
 
     A: . q{ 'Oops!  Where did I go!' }.
 
@@ -1048,48 +1048,6 @@ null symbol values are properties of the symbol, not of the rule.
 A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
 whether or not that happened directly through that symbol's empty rule.
-
-=head3 Detailed Example
-
-Suppose a grammar has these rules
-
-    S: A, Z. # Call me the start rule, or Rule 0
-
-    A: . q{!}. # Call me Rule 1
-
-    A: B, C. q{"I'm sometime null and sometimes not"} # Call me Rule 2
-
-    B: . q{'No B'}. # Call me Rule 3
-
-    C: . q{'No C'}. # Call me Rule 4
-
-    C: Z.  # Call me Rule 5
-
-    Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
-
-If the input is the string "C<Z>",
-both C<B> and C<C> will match the empty string.
-So will the symbol C<A>.
-Since C<A> produces both C<B> and C<C> in the derivation,
-and since the rule that produces C<A> is not an empty rule,
-C<A> is a "highest null symbol",
-Therefore, C<A>'s
-null value,
-the string "C<!>",
-which is computed from the action for Rule 1,
-is the value of the derivation.
-
-Note carefully several things about this example.
-First, Rule 1 is not actually in the derivation of C<A>:
-
-      A -> B C   (Rule 2)
-      -> C       (Rule 3)
-      ->         (Rule 4)
-
-Second, in the above derivation, C<B> and C<C> also have null values,
-which play no role in the result.
-Third, Rule 2 has a proper rule action,
-and it plays no role in the result either.
 
 =head3 Principles
 
@@ -1137,13 +1095,55 @@ The value of a null parse is null value of the start symbol.
 If you think some of the rules or symbols that Marpa believes "don't count"
 are important in your grammar,
 Marpa can probably accommodate your ideas.
-First, determine what your null semantics mean for every nullable symbol when it is
-a "highest null symbol".
-Then put those semantics into the each nullable symbol's null actions.
-If fixing the null value at parse creation time is not possible in your semantics,
-have your null actions return a reference to a closure and run that
-closure in a parent node.
+First, determine the value which your null semantics produces for every nullable symbol,
+when it is a "highest null symbol".
+Second, put those semantics into the each nullable symbol's null actions.
+In the cases where your null semantics does not result in a fixed value at recognizer
+creation time,
+have your null actions return a reference to a closure and arrange to have that
+closure run by a parent node.
 
+=head3 Detailed Example
+
+Suppose a grammar has these rules
+
+    S: A, Z. # Call me the start rule, or Rule 0
+
+    A: . q{!}. # Call me Rule 1
+
+    A: B, C. q{"I'm sometime null and sometimes not"} # Call me Rule 2
+
+    B: . q{'No B'}. # Call me Rule 3
+
+    C: . q{'No C'}. # Call me Rule 4
+
+    C: Z.  # Call me Rule 5
+
+    Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
+
+If the input is the string "C<Z>",
+both C<B> and C<C> will match the empty string.
+So will the symbol C<A>.
+Since C<A> produces both C<B> and C<C> in the derivation,
+and since the rule that produces C<A> is not an empty rule,
+C<A> is a "highest null symbol",
+Therefore, C<A>'s
+null value,
+the string "C<!>",
+which is computed from the action for Rule 1,
+is the value of the derivation.
+
+Note carefully several things about this example.
+First, Rule 1 is not actually in the derivation of C<A>:
+
+      A -> B C   (Rule 2)
+      -> C       (Rule 3)
+      ->         (Rule 4)
+
+Second, in the above derivation, C<B> and C<C> also have null values,
+which play no role in the result.
+Third, Rule 2 has a proper rule action,
+and it plays no role in the result either.
 
 =head1 METHODS
 
@@ -1153,31 +1153,26 @@ closure in a parent node.
 
     my $evaler = new Parse::Marpa::Evaluator($recce, $location);
 
-Creates an evaluator object and finds the first parse.
+Creates an evaluator object.
 On success, returns the evaluator object.
-The user may get the value of the first parse with C<Parse::Marpa::Evaluator::value()>. 
-She may iterate through the other parses with C<Parse::Marpa::Evaluator::next()>.
-
-If no parse is found, returns undefined.
 Other failures are thrown as exceptions.
 
 The I<parse_end> argument is optional.
-If provided, it must be the number of the earleme at which
-the parse ends.
-In the case of a still active parse in offline mode,
-the default is to parse to the end of the input.
+If provided, it must be parse end earleme, that is,
+the number of the earleme at which the parse ends.
+If there is no parse end earleme argument,
+and the recognizer is active (that is, the parse was not exhausted) and in offline mode,
+the parse end earleme is the end of the input.
+In terms of tokens,
+the end of the input is the highest numbered earleme at which a token ends.
+Offline mode is the default.
 
-C<initial()> may be run as often as you like on the same parse,
-with or without changing the arguments to C<initial()>.
-Each call to C<initial()> resets the iteration of the parse's values to the beginning.
-
-In case of an exhausted parse,
-the default is to end the parse
-at the point at which the parse was exhausted.
-This default isn't very helpful, frankly, and if I
-think of anything better I'll change it.
-An exhausted parse is a failed parse unless
-you're trying advanced wizardry.
+If the parse was exhausted in the recognizer,
+the default parse end earleme is the one at which the parse was exhausted.
+Frankly, that won't often be very helpful,
+but in the case of an exhausted parse it's hard to think of anything that
+would be helpful.
+An exhausted parse is typically a failed parse.
 Failed parses are usually addressed by fixing the grammar or the
 input.
 
@@ -1190,56 +1185,21 @@ perhaps using her specific knowledge of the grammar and the problem
 space.
 The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
 documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
-is a prototype of the methods that will be needed in online mode.
+is a prototype of the methods that will be needed for online mode.
 
 =head2 next
 
     my $value = $evaler->next();
 
-Takes a parse object as its only argument,
-and performs the next iteration through its values.
-The iteration must have been initialized with
-C<Parse::Marpa::Evaluator::initial()>.
-Returns 1 if there was a next iteration.
-Returns undefined when there are no more iterations.
-Other failures are exceptions.
-
-Parses are iterated from rightmost to leftmost, but their order
-may be manipulated by assigning priorities to the rules and
-terminals.
-
-=head2 value
-
-Given an evaluator object whose value has been calculated with
-C<next>,
-returns a reference to its current value.
-It returns undefined in the case of a Marpa "no value".
+Iterates the evaluator object, returning a reference to the value of the next parse.
+If there are no more parses, returns undefined.
+Successful parses may evaluate to a Perl 5 undefined,
+which the C<next> method will return as a reference to an undefined.
 Failures are thrown as exceptions.
 
-Since the C<next> method returns a reference to the value of the parse,
-this method is rarely needed.
-Its main use is for the unusual case where both a Perl
-undefined and a Marpa "no value" may be the value of a parse,
-and it is necessary to distinguish between them.
-In both these circumstances, the return value of the
-C<next> method would be a reference to an undefined.
-
-A Marpa "no value" is the result of asking for the value of the
-parse at a node where no value was ever calculated.
-A Marpa "no value" is B<not> ever a default value,
-the result of a nulling rule,
-and or the result of a non-existent optional item.
-All of these have as their value a Perl 5 undefined.
-These undefineds count as "node values"
-and the C<value> method returns them as a reference to an undefined.
-
-Marpa "no values" will not occur as long as you use the defaults:
-offline mode and the default end parse location.
-If you don't stick to the defaults,
-then, in some cases,
-which will usually be the result of advanced wizardry gone wrong,
-Marpa will not find a node value.
-This is considered a Marpa "no node value".
+Parses are iterated from rightmost to leftmost.
+The parse order may be manipulated by assigning priorities to the rules and
+terminals.
 
 =head1 IMPLEMENTATION
 
@@ -1247,16 +1207,16 @@ Marpa, if a grammar optimizes sequences by returning references,
 marks the grammar volatile.
 Marpa gives optimization of sequences priority
 over memoization of node values because
-node value memoization has no payoff unless multiple parses are evaluated
-from a single parse object, which is not the usual case.
-Optimization of sequence evaluation almost always pays off handsomely.
+node value memoization has no payoff unless multiple parses are evaluated,
+which is not the usual case.
+Optimization of sequence evaluation almost always pays off quickly and handsomely.
 
 A possible future extension is to add the ability to 
 label only particular rules volatile.
 But there's something to be said for keeping interfaces simple.
 If a grammar writer is really looking for speed,
 she can let the grammar default to volatile,
-then use side effects and her own, targeted caching and memoizations.
+then use side effects and targeted caching and memoization.
 
 =head1 SUPPORT
 

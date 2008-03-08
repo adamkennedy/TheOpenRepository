@@ -3446,22 +3446,22 @@ the C<set> method.
 
 Rules are most conveniently added with the C<mdl_source> named argument, which
 takes a reference to a string containing an MDL grammar description as its value.
-MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::MDL>.
+MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::Doc::MDL>.
 
-MDL indirectly uses another interface, called the B<raw interface>.
-Users who want the last word in control can use the raw interface directly,
+MDL indirectly uses another interface, its B<plumbing interface>.
+Users who want the last word in control can use the plumbing directly,
 but they will lose a lot of convenience and maintainability.
 The MDL parser itself is created from an MDL file.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
 then compiling that grammar,
 as L<described below|"compile">.
-The raw interface is described in L<a document of its own|Parse::Marpa::RAW>.
+The plumbing is described in L<a document of its own|Parse::Marpa::Doc::Plumbing>.
 
 Marpa needs to do extensive precompution on grammars
 before they can be passed on to a recognizer or an evaluator.
 The user rarely needs to perform this precomputation explicitly.
-The Marpa methods which require precomputed grammars
+The methods which require precomputed grammars
 (C<compile> and C<Parse::Marpa::Recognizer::new>),
 do the precomputation themselves on a just-in-time basis.
 
@@ -3470,7 +3470,7 @@ such as debugging or tracing,
 there is a method that explicitly precomputes a grammar: C<precompute>.
 Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
-For example, no more rules may be added to a precomputed grammar.
+For example, you cannot add rules to a precomputed grammar.
 
 Marpa recognizers deep copy the grammar used to create them
 to create a grammar for their private use.
@@ -3487,8 +3487,9 @@ then tweaks it a bit to create a properly set-up grammar object.
 A subsequent Marpa process can read this file, C<decompile> the string,
 and continue the parse.
 This would eliminate the overhead both of parsing MDL and of precomputation.
-As mentioned above, where efficiency is a major consideration, this may be
-a wiser choice than the raw interface.
+As mentioned above, where efficiency is a major consideration, this will
+usually be better than using the
+plumbing interface.
 
 =head1 METHODS
 
@@ -3515,26 +3516,27 @@ Named arguments can be Marpa options.
 For these see L<Parse::Marpa/OPTIONS>.
 In addition to the Marpa options,
 the C<mdl_source> named argument
-and the raw interface named arguments are allowed.
-For details of the raw interface and its named arguments, see L<Parse::Marpa::Doc::Raw>.
+and the named arguments of the plumbing interface are allowed.
+For details of the plumbing and its named arguments, see L<Parse::Marpa::Doc::Plumbing>.
 
 The value of C<mdl_source> named arguments should be
 a B<reference> to a string containing a description of
-the grammar in the L<Marpa Demonstartion Language|Parse::Marpa::MDL>.
-Either the C<mdl_source> named argument or the raw interface arguments may be used
+the grammar in the L<Marpa Demonstration Language|Parse::Marpa::MDL>.
+Either the C<mdl_source> named argument or the plumbing arguments may be used
 to build a grammar,
 but both cannot be used in the same grammar object.
 
 In the C<new> and C<set> methods,
-a Marpa option can be specified both as a named argument to the method, and indirectly,
+a Marpa option can be specified both directly,
+as a named argument to the method,
+and indirectly,
 in the MDL grammar description supplied as the value of an C<mdl_source> argument.
-When that happens, the value supplied in the MDL description is applied first,
-and the named argument to the method is applied after the MDL is processed.
-This fits the usual intent, which is for a method's named arguments to
-override the MDL settings.
-However, this
-does means that trace settings won't be effective until after the grammar description is
-processed, which can be too late for some of the traces.
+When that happens, the value in the MDL description is applied first,
+and value supplied with the method's named argument is applied after the MDL is processed.
+This fits the usual intent, which is for named arguments to override MDL settings.
+However, this also
+means that trace settings won't be in effect until after the grammar description is
+processed, and that can be too late for some of the traces.
 For a way around this, see L<the C<set> method|"set">.
 
 =head2 set
@@ -3548,8 +3550,6 @@ It allows Marpa options, raw interface arguments and the C<mdl_source> named arg
 to be specified for an already existing grammar object.
 It can be used to control the order in which the named arguments are applied.
 
-It is often useful to control the order in which tracing options
-are applied, relative to other options.
 In particular, some
 setting tracing options made need to be set prior to specifying the grammar.
 To do this, an new grammar object can be created with the trace options set,
@@ -3565,7 +3565,7 @@ arguments.
 
     Parse::Marpa::Grammar::precompute($grammar);
 
-The C<precompute> method performs Marpa's precomputations on its grammar.
+The C<precompute> method performs Marpa's precomputations on a grammar.
 It returns the grammar object or throws an exception.
 
 It is usually not necessary for the user to call C<precompute>.

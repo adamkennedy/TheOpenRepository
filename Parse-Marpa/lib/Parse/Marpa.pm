@@ -206,7 +206,6 @@ In formal terms, Marpa parses any cycle-free context-free grammar.
 Marpa cheerfully parses recursive grammars.
 Grammars may be left-recursive, right-recursive, middle-recursive or all three,
 so long as the recursion does not involve a cycle.
-
 A cycle occurs when a BNF symbol can produce, directly or indirectly,
 a string consisting of nothing but the original symbol.
 Essentially, a cycle is recursion without change.
@@ -231,10 +230,82 @@ so that a preferred parse is returned first.
 Marpa can also return all the parses of an ambiguous grammar,
 if that's what the user prefers.
 
-Marpa incorporates the latest academic research on Earley's algorithm,
+Marpa incorporates recent research which has made major improvements to Earley's algorithm,
 combining it with LR(0) precomputation.
-Marpa's own innovations
-include predictive and ambiguous lexing.
+Marpa also introduces its own innovations,
+including predictive and ambiguous lexing.
+
+=head2 Grammar Terminology
+
+These documents assume some familiarity with parsing and its terminology.
+This section is to serve as a quick reminder.
+Readers who feel familiar with the standard terminology may skip it.
+Readers unfamiliar with grammars and parsing
+may find this section too terse,
+and should look at an introduction.
+L<Mark Jason Dominus's chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">
+is excellent.
+Online,
+L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
+
+A B<parser> is a program which takes a sequence of input symbols and adds structure to them.
+A B<parser> is described with a B<grammar>, which consists of B<symbols> grouped into
+B<productions>.
+B<productions> are often called B<rules>.
+
+The standard way of described a grammar is Backus-Naur Form, or B<BNF>.  In one way of
+writing BNF, a production looks like this.
+
+    Expression ::= Term Factor
+
+The equivalent in Marpa's MDL language looks like this:
+
+    Expression: Term, Factor.
+
+A production consists of a B<left hand side> and a B<right hand side>.
+Left hand side and right hand side are often abbreviated as B<rhs> and B<lhs>.
+In context-free grammars like those
+Marpa parses, the left hand side will always be a single B<symbol>.
+The right hand side may be zero or more symbols.
+If the rhs of a production has no symbols, it is called an <empty production>.
+
+A parser parses a series of input symbols.
+Any symbol which can be found in the input is called a B<terminal> symbol.
+A string of symbols in a grammar is called B<sententional form>.
+The rhs of a production is a sententional form.
+If the symbols in a sententional form are all terminals,
+that sententional form may also be called a B<sentence>.
+
+For each production in a grammar,
+we say that
+the lhs symbol B<produces>
+the rhs.
+A symbol can also produce a sententional form indirectly.
+A symbol produces a sententional form indirectly if that sententional
+form results from a series of
+replacements of lhs symbols by the corresponding rhs symbols,
+according to the rules of the grammar.
+
+When we say that a symbol produces a sententional form,
+we are taking a top-down point of view.
+We sometimes take a bottom-up point of view,
+and say that the sententional form and the symbol B<match>.
+
+In any parse, one symbol is distinguished as the B<start symbol>.
+The parse of an input is successful
+if and only if the start symbol produces the string
+of input symbols according to the grammar.
+Another way to say this is the parse is successful
+if and only if the input matches the start symbol.
+
+In real life, the structure of a parse is usually only a means to an end.
+What the user actually wants is to B<evaluate> the parse.
+The B<value> of a parse is the value of its start symbol.
+Values are computed recursively, bottom-up.
+Terminals are associated with a value on input.
+Each production has a B<semantics> associated with it, and this
+semantics allows the value of the lhs to be calculated,
+usually using the values of one or more of the rhs symbols.
 
 =head2 The Easy Way
 
@@ -274,11 +345,11 @@ When Perl 6 is ready, Perl 6 code will become its default semantics.
 =head2 Null Symbol Values
 
 As mentioned, Marpa parses grammars with empty productions.
-This means certain symbols in the grammar can result in nothing
+This means some symbols in the grammar can result in nothing
 or, saying the same thing more formally, can produce the empty string.
 
-A B<null symbol> is a symbol which produces the empty string.
-When a symbol produces the empty string it is said to be B<nulled>.
+A symbol which produces the empty string is called A B<null symbol>.
+When a symbol produces the empty string it may also be said to be B<nulled>.
 Even within a single parse, the same symbol may be nulled in some positions
 but produce non-empty strings in other positions.
 A symbol may be nulled directly, that is,
@@ -406,7 +477,7 @@ with its own value.
 For details on evaluator objects and methods,
 see L<Parse::Marpa::Evaluator>.
 
-=head2 Grammar Interfaces
+=head2 Plumbing and Procelain
 
 A grammar is specified to Marpa through a B<grammar interface>.
 Right now there are only two grammar interfaces:
