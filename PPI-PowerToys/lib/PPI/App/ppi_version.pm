@@ -106,11 +106,11 @@ sub show {
 }
 
 sub change {
-	my $from = shift @ARGV;
+	my $from = shift @_;
 	unless ( $from and $from =~ /^[\d\._]+$/ ) {
 		error("From is not a number");
 	}
-	my $to = shift @ARGV;
+	my $to = shift @_;
 	unless ( $to and $to =~ /^[\d\._]+$/ ) {
 		error("To is not a number");
 	}
