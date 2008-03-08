@@ -38,6 +38,19 @@ the easiest approach to the Aycock and Horspool paper,
 though I can't promise you there won't be leaps of
 insight required at several points.
 
+=head1 Dominus 2005
+
+Although my approach to parsing is not heavily influenced
+by Mark Jason Dominus's I<Higher Order Perl>,
+just about every page of the rest of the book opened
+my eyes to new ideas.
+I wish I'd gotten his book earlier in my coding.
+
+Both the Perl and the English are examples of good
+writing, and the book is dense with ideas.
+Mark's discussion on memoization in Chapter 3 is the
+best I've seen.
+
 =head1 Earley 1970
 
 Jay Earley's most accessible paper on his algorithm

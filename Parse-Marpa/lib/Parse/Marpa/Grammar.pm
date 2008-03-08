@@ -3496,7 +3496,11 @@ a wiser choice than the raw interface.
 
     my $grammar = Parse::Marpa::Grammar::new({ trace_rules => 1 });
 
+Z<>
+
     my $grammar = new Parse::Marpa::Grammar({});
+
+Z<>
 
     my $grammar = new Parse::Marpa::Grammar({
 	mdl_source => \$mdl_source,

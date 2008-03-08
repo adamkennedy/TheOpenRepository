@@ -28,6 +28,9 @@ to have been only lightly exercized.
 
 =over 4
 
+=item * Allow multiple evaluators for each recognizer, or at least create a method
+to safe deep copy recognizers.
+
 =item * Ensure Parse::Marpa::Internal::This::grammar set wherever appropriate.
 
 =item * Test right and left evaluation in rules

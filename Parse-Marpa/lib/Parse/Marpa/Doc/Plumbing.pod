@@ -1,12 +1,12 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Raw - Marpa's Raw Grammar Interface
+Parse::Marpa::Doc::Plumbing - Marpa's Plumbing Interface
 
 =head1 OVERVIEW
 
-This document describes Marpa's Raw Grammar Interface.
+This document describes Marpa's Plumbing Interface.
 It is the low-level interface used by all others.
-The Raw Grammar Interface can be used
+The Plumbing can be used
 directly.
 It is a short list of method options to the
 C<Parse::Marpa::new()>,

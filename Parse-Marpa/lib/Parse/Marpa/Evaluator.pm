@@ -915,6 +915,11 @@ Parse::Marpa::Evaluator - A Marpa Evaluator Object
 
 =head1 SYNOPSIS
 
+    my $grammar = new Parse::Marpa::Grammar({ mdl_source => \$mdl });
+    my $recce = new Parse::Marpa::Recognizer({ grammar => $grammar });
+    my $fail_offset = $recce->text(\("2-0*3+1"));
+    croak("Parse failed at offset $fail_offset") if $fail_offset >= 0;
+
     my $evaler = new Parse::Marpa::Evaluator($recce);
 
     for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
@@ -924,6 +929,21 @@ Parse::Marpa::Evaluator - A Marpa Evaluator Object
     }
 
 =head1 DESCRIPTION
+
+Parses are found and evaluated by Marpa's evaluator objects.
+Marpa evaluator objects are created with the C<new> constructor,
+which requires a Marpa recognizer object.
+
+Marpa allows ambiguous parses, so Marpa's parse evaluator objects are iterators.
+Iteration is performed with the C<next> method,
+which finds the next parse and returns its value.
+If, as is usual, only one parse is wanted, the C<next> method can be called only once.
+
+Each Marpa recognizer should have only one evaluator using it at any one time.
+For efficiency,
+parses are actually calculated and evaluated in tables kept in the recognizer object.
+If one or more evaluators were using the same recognizer at the same time,
+they could interfere and produce unpredictable results.
 
 =head2 Volatility
 
@@ -940,29 +960,22 @@ Both grammars and parses can be marked volatile.
 A parse inherits the volatility marking of the grammar it is created from,
 if there was one.
 
-It is up to the the user to make sure the semantics of an Marpa object
-is safe for memoization if she decides to
+If a user decides to
 decides to mark the object non-volatile.
-Node memoization follows the same principles as function memoization.
-Parses with ordinary, textbook semantics typically are non-volatile.
-But many things can make a parse volatile.
+It is up to her to make sure the semantics of an Marpa object
+are safe for memoization.
+Node values are computed by a function,
+and memoization follows the same principles as function memoization.
+Nodes may be memoized if they are "pure", that is,
+if their return values depend completely on their arguments,
+if they have no side effects,
+and if their return value is not a reference.
+There's an excellent discussion of memoization
+in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 
-A parse is non-volatile,
-and node values can be memoized,
-only if all rule actions produce the same results
-whenever they have the same child node values as inputs;
-and only if none of the rule actions have side effects.
-Output of any kind is among the things that make a parse volatile.
-Output is a side effect.
-If your rule action logs a message every time it is invoked,
-memoization is likely to cause missing log messages.
-
-Formally, your actions are safe for memoization if they are referentially transparent,
-that is,
-if replacing your actions with the value they return does not change the semantics of your program.
 If you're not sure whether your grammar is volatile or not,
-accept Marpa's default behavior.
-It is also always safe to mark a grammar or a parse volatile yourself.
+just accept Marpa's default behavior.
+Also, it is always safe to mark a grammar or a parse volatile yourself.
 
 Marpa will sometimes mark grammars volatile on its own.
 Marpa often optimizes the evaluation of sequence productions
@@ -974,14 +987,6 @@ especially if the sequence is long,
 but the reference to the array is shared data,
 and any changes to it are side effects.
 
-Because of this Marpa marks the grammar volatile.
-
-You may ask why Marpa gives optimization of sequences priority
-over memoization of node values.
-Node value memoization has no payoff unless multiple parses are evaluated
-from a single parse object, which is not the usual case.
-Optimization of sequence evaluation almost always pays off nicely.
-
 Once an object has been marked volatile, whether by Marpa itself
 or the user, Marpa throws an exception if there is attempt to mark it non-volatile.
 Resetting a grammar to non-volatile will almost always be an oversight,
@@ -989,14 +994,7 @@ and one that would be very hard to debug.
 The inconvenience of not allowing the user to change his mind seems minor
 by comparison.
 
-It's possible that adding the ability to 
-label only particular rules volatile might be helpful.
-But it also may be best to keep the interface simple.
-If a grammar writer is really looking for speed,
-she can let the grammar default to volatile,
-and use side effects and her own, targeted memoizations.
-
-=head2 The Semantics of Null Values
+=head2 Null Values
 
 A "null value" is a symbol's value when it matches the empty string in a parse.
 By default, the null value is a Perl undefined, which usually is what makes sense.
@@ -1019,10 +1017,11 @@ string, it should evaluate to an string.
     A: . q{ 'Oops!  Where did I go!' }.
 
 Null symbol actions are different from rule actions in another important way.
-Null symbol actions are run at parse creation time and the value of the result
+Null symbol actions are run at recognizer creation time and the value of the result
+at that point
 becomes fixed as the null symbol value.
 This is different from rule actions.
-During the creation of the parse object,
+During the creation of the recognizer object,
 rule actions are B<compiled into closures>.
 These rule closures are run during parse evaluation,
 whenever a node for that rule needs its value recalculated,
@@ -1042,7 +1041,9 @@ A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
 whether or not that happened directly through that symbol's empty rule.
 
-For instance, suppose a grammar has these rules
+=head3 Detailed Example
+
+Suppose a grammar has these rules
 
     S: A, Z. # Call me the start rule, or Rule 0
 
@@ -1082,7 +1083,9 @@ which play no role in the result.
 Third, Rule 2 has a proper rule action,
 and it plays no role in the result either.
 
-Here is the set of principles on which Marpa's thinking in these matters is based:
+=head3 Principles
+
+Marpa's determines null symbol values follows these principles:
 
 =over 4
 
@@ -1229,6 +1232,23 @@ then, in some cases,
 which will usually be the result of advanced wizardry gone wrong,
 Marpa will not find a node value.
 This is considered a Marpa "no node value".
+
+=head1 IMPLEMENTATION
+
+Marpa, if a grammar optimizes sequences by returning references,
+marks the grammar volatile.
+Marpa gives optimization of sequences priority
+over memoization of node values because
+node value memoization has no payoff unless multiple parses are evaluated
+from a single parse object, which is not the usual case.
+Optimization of sequence evaluation almost always pays off handsomely.
+
+A possible future extension is to add the ability to 
+label only particular rules volatile.
+But there's something to be said for keeping interfaces simple.
+If a grammar writer is really looking for speed,
+she can let the grammar default to volatile,
+then use side effects and her own, targeted caching and memoizations.
 
 =head1 SUPPORT
 

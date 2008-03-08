@@ -1343,6 +1343,8 @@ Parse::Marpa::Recognizer - A Marpa Recognizer Object
        die("Parse failed at offset $fail_offset");
     }
 
+Z<>
+
     my $recce2 = Parse::Marpa::Recognizer::new({grammar => $grammar});
 
     my $op = $grammar->get_symbol("op");
