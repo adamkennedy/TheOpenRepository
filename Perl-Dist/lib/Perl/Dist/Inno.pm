@@ -130,26 +130,27 @@ which details how to sub-class the distribution.
 use 5.006;
 use strict;
 use warnings;
-use Carp                  'croak';
-use Archive::Tar          ();
-use Archive::Zip          ();
-use File::Spec            ();
-use File::Spec::Unix      ();
-use File::Spec::Win32     ();
-use File::Copy            ();
-use File::Copy::Recursive ();
-use File::Path            ();
-use File::pushd           ();
-use File::Remove          ();
-use File::Basename        ();
-use IPC::Run3             ();
-use Params::Util          qw{ _STRING _HASH _INSTANCE };
-use HTTP::Status          ();
-use LWP::UserAgent        ();
-use LWP::Online           ();
-use Module::CoreList      ();
-use Tie::File             ();
-use PAR::Dist             ();
+use Carp                       'croak';
+use Archive::Tar               ();
+use Archive::Zip               ();
+use File::Spec                 ();
+use File::Spec::Unix           ();
+use File::Spec::Win32          ();
+use File::Copy                 ();
+use File::Copy::Recursive      ();
+use File::Path                 ();
+use File::pushd                ();
+use File::Remove               ();
+use File::Basename             ();
+use IPC::Run3                  ();
+use Params::Util               qw{ _STRING _HASH _INSTANCE };
+use HTTP::Status               ();
+use LWP::UserAgent             ();
+use LWP::UserAgent::Determined ();
+use LWP::Online                ();
+use Module::CoreList           ();
+use Tie::File                  ();
+use PAR::Dist                  ();
 
 use base 'Perl::Dist::Inno::Script';
 
@@ -947,12 +948,8 @@ sub install_perl_588_bin {
 }
 
 sub install_perl_588_toolchain {
-	my $self = shift;
-
-	# Resolve the distribution list at startup time
-	my $toolchain = Perl::Dist::Util::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-	);
+	my $self      = shift;
+	my $toolchain = $self->install_perl_588_toolchain_object;
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
@@ -994,6 +991,12 @@ sub install_perl_588_toolchain {
 	);
 
 	return 1;
+}
+
+sub install_perl_588_toolchain_object {
+	Perl::Dist::Util::Toolchain->new(
+		perl_version => $_[0]->perl_version_literal,
+	);
 }
 
 
@@ -1185,12 +1188,8 @@ sub install_perl_5100_bin {
 }
 
 sub install_perl_5100_toolchain {
-	my $self = shift;
-
-	# Resolve the distribution list at startup time
-	my $toolchain = Perl::Dist::Util::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-	);
+	my $self      = shift;
+	my $toolchain = $self->install_perl_5100_toolchain_object;
 
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
@@ -1225,6 +1224,12 @@ sub install_perl_5100_toolchain {
 	}
 
 	return 1;
+}
+
+sub install_perl_5100_toolchain_object {
+	Perl::Dist::Util::Toolchain->new(
+		perl_version => $_[0]->perl_version_literal,
+	);
 }
 
 
@@ -2028,7 +2033,7 @@ sub _mirror {
 	$| = 1;
 
 	$self->trace("Downloading $url...\n");
-	my $ua = LWP::UserAgent->new;
+	my $ua = LWP::UserAgent::Determined->new;
 	my $r  = $ua->mirror( $url, $target );
 	if ( $r->is_error ) {
 		$self->trace("    Error getting $url:\n" . $r->as_string . "\n");

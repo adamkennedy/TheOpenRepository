@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 32;
+use Test::More tests => 43;
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
 use Probe::Perl ();
@@ -52,6 +52,21 @@ SCOPE: {
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
 	check_simple_object( $toolchain );
+}
+
+# Test the force option
+SCOPE: {
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+		perl_version => '5.008008',
+		modules      => [ 'File::Spec' ],
+		force        => {
+			'File::Spec' => 'PathTools-forced',
+		},
+	);
+	ok( $toolchain->prepare, '->prepare ok' );
+	ok( $toolchain->run,     '->run ok'     );
+	check_simple_object( $toolchain );
+	is( ($toolchain->dists)[0], 'PathTools-forced', 'Force option works' );
 }
 
 # Test via a delegation

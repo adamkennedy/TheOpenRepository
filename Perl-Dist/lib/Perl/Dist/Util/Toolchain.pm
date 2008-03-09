@@ -55,7 +55,10 @@ my %MODULES = (
 		Module::Build
 		Term::Cap
 		CPAN
+		Term::ReadKey
 		Term::ReadLine::Perl
+		Text::Glob
+		Data::Dumper
 
 		URI
 		HTML::Tagset
@@ -94,6 +97,11 @@ sub new {
 	                 || $Module::CoreList::version{$self->perl_version+0};
 	unless ( _HASH($self->{corelist}) ) {
 		croak("Failed to find module core versions for Perl " . $self->perl_version);
+	}
+
+	# Check forced dists, if applicable
+	if ( $self->{force} and ! _HASH($self->{force}) ) {
+		croak("The force param must be a HASH reference");
 	}
 
 	# Create the distribution array
@@ -152,9 +160,15 @@ sub run {
 	$stderr->start;
 	
 	# Find the module
-	my %seen = ();
 	my $core = delete $self->{corelist};
 	foreach my $name ( @{$self->{modules}} ) {
+		# Shortcut if forced
+		if ( $self->{force}->{$name} ) {
+			push @{$self->{dists}}, $self->{force}->{$name};
+			next;
+		}
+
+		# Get the CPAN object for the module
 		my $module = CPAN::Shell->expand('Module', $name);
 		unless ( $module ) {
 			$self->{errstr} = "Failed to find '$name'";
@@ -180,10 +194,12 @@ sub run {
 		# Filter out already seen dists
 		my $file = $module->cpan_file;
 		$file =~ s/^[A-Z]\/[A-Z][A-Z]\///;
-		next if $seen{$file}++;
-
 		push @{$self->{dists}}, $file;
 	}
+
+	# Remove duplicates
+	my %seen = ();
+	@{$self->{dists}} = grep { ! $seen{$_}++ } @{$self->{dists}};
 
 	# Free up stdout/stderr for normal output again
 	$stdout->stop;
