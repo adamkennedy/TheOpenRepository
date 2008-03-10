@@ -118,7 +118,7 @@ use constant AMBIGUOUS_LEX      => 16; # lex ambiguously?
 use constant TRACE_RULES        => 17;
 use constant TRACE_FILE_HANDLE  => 18;
 use constant LOCATION_CALLBACK  => 19; # default callback for showing location
-use constant VOLATILE           => 20; # default for volatility
+use constant OPAQUE             => 20; # default for opacity
 use constant PROBLEMS           => 21; # fatal problems
 use constant PREAMBLE           => 22; # default preamble
 use constant WARNINGS           => 24; # print warnings about grammar?
@@ -379,7 +379,7 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::TRACE_RULES]        = 0;
     $grammar->[Parse::Marpa::Internal::Grammar::LOCATION_CALLBACK] =
         q{ "Earleme " . $earleme };
-    $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = undef;
+    $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = 30;
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
@@ -768,21 +768,21 @@ sub Parse::Marpa::Grammar::set {
             when ("location_callback") {
                 croak("location callback not yet implemented");
             }
-            when ("volatile") {
+            when ("opaque") {
                 croak(
 		    "$option option not allowed in ",
 		    Parse::Marpa::Internal::Phase::description($phase)
 		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 given ($value) {
-                    when (1) { $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = 1; }
+                    when (1) { $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = 1; }
                     when (0) {
-                        my $old_volatile = $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE];
-                        if (defined $old_volatile and $old_volatile) {
-                            croak("volatile cannot be unset once it has be set");
+                        my $old_opaque = $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE];
+                        if (defined $old_opaque and $old_opaque) {
+                            croak("opaque cannot be unset once it has been set");
                         }
-                        $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = 0;
+                        $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = 0;
                     }
-                    default { croak("volatile must be set to either 0 or 1"); }
+                    default { croak("opaque must be set to either 0 or 1"); }
                 } 
             }
             when ("warnings") {
@@ -1757,8 +1757,8 @@ sub add_rules_from_hash {
         $rule_hash->{$rule_key} = 1;
     }
 
-    # The following rules make evaluations volatile
-    $grammar->[Parse::Marpa::Internal::Grammar::VOLATILE] = 1;
+    # The following rules make evaluations opaque
+    $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = 1;
 
     my $rule_action;
     given ($action) {

@@ -554,8 +554,8 @@ sub Parse::Marpa::Evaluator::next {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $volatile = $grammar->[ Parse::Marpa::Internal::Grammar::VOLATILE ];
-    clear_values($evaler) if $volatile;
+    my $opaque = $grammar->[ Parse::Marpa::Internal::Grammar::OPAQUE ];
+    clear_values($evaler) if $opaque;
 
     # find the "bottom left corner item", by following predecessors,
     # and causes when there is no predecessor
@@ -953,23 +953,23 @@ parses are actually calculated and evaluated in tables kept in the recognizer ob
 If one or more evaluators were using the same recognizer at the same time,
 they could interfere and produce unpredictable results.
 
-=head2 Volatility
+=head2 Opacity
 
 If you accept Marpa's default behavior, you can safely
 ignore this section.
-By default, Marpa marks all its parses volatile,
+By default, Marpa marks all its parses opaque,
 and that is always a safe choice.
-Non-volatile parses, however, can be optimized by
+Transparent parses, however, can be optimized by
 memoizing node values as they are calculated.
 If multiple parses are evaluated in a parse with expensive rule actions,
 the boost in efficiency from node value memoization can be major.
 
-Both grammars and parses can be marked volatile.
-A parse inherits the volatility marking of the grammar it is created from,
+Both grammars and parses can be marked opaque.
+A parse inherits the opacity marking of the grammar it is created from,
 if there was one.
 
 If a user decides to
-decides to mark the object non-volatile.
+decides to mark the object transparent.
 It is up to her to make sure the semantics of an Marpa object
 are safe for memoization.
 Node values are computed by a function,
@@ -981,11 +981,11 @@ and if their return value is not a reference.
 There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 
-If you're not sure whether your grammar is volatile or not,
+If you're not sure whether your grammar is opaque or not,
 just accept Marpa's default behavior.
-Also, it is always safe to mark a grammar or a parse volatile yourself.
+Also, it is always safe to mark a grammar or a parse opaque yourself.
 
-Marpa will sometimes mark grammars volatile on its own.
+Marpa will sometimes mark grammars opaque on its own.
 Marpa often optimizes the evaluation of sequence productions
 by passing a reference to an array among the nodes of the sequence.
 This elminates the need to repeatedly copy the array of sequence values
@@ -995,9 +995,9 @@ especially if the sequence is long,
 but the reference to the array is shared data,
 and any changes to it are side effects.
 
-Once an object has been marked volatile, whether by Marpa itself
-or the user, Marpa throws an exception if there is attempt to mark it non-volatile.
-Resetting a grammar to non-volatile will almost always be an oversight,
+Once an object has been marked opaque, whether by Marpa itself
+or the user, Marpa throws an exception if there is attempt to mark it transparent.
+Resetting a grammar to transparent will almost always be an oversight,
 and one that would be very hard to debug.
 The inconvenience of not allowing the user to change his mind seems minor
 by comparison.
@@ -1204,7 +1204,7 @@ terminals.
 =head1 IMPLEMENTATION
 
 Marpa, if a grammar optimizes sequences by returning references,
-marks the grammar volatile.
+marks the grammar opaque.
 Marpa gives optimization of sequences priority
 over memoization of node values because
 node value memoization has no payoff unless multiple parses are evaluated,
@@ -1212,10 +1212,10 @@ which is not the usual case.
 Optimization of sequence evaluation almost always pays off quickly and handsomely.
 
 A possible future extension is to add the ability to 
-label only particular rules volatile.
+label only particular rules opaque.
 But there's something to be said for keeping interfaces simple.
 If a grammar writer is really looking for speed,
-she can let the grammar default to volatile,
+she can let the grammar default to opaque,
 then use side effects and targeted caching and memoization.
 
 =head1 SUPPORT

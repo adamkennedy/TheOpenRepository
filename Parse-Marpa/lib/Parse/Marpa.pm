@@ -850,36 +850,36 @@ features may change dramatically from version
 to version.
 The version cannot be changed after the grammar is precomputed.
 
-=item volatile
+=item opaque
 
-The C<volatile> option is used to mark
-an object as volatile or non-volatile.
-A value of 1 marks the object volatile.
-A value of 0 marks it non-volatile.
+The C<opaque> option is used to mark
+an object as opaque or transparent.
+A value of 1 marks the object opaque.
+A value of 0 marks it transparent.
 Not specifying this option and accepting the default behavior is always safe.
-Once an object has been marked volatile,
-its volatility setting cannot be changed.
+Once an object has been marked opaque,
+its opacity setting cannot be changed.
 
-A recognizer created from a volatile grammar is marked volatile.
-A recognizer created from a grammar marked non-volatile is marked non-volatile,
-unless a C<volatile> named argument supplied at recognizer creation time
+A recognizer created from a opaque grammar is marked opaque.
+A recognizer created from a grammar marked transparent is marked transparent,
+unless a C<opaque> named argument supplied at recognizer creation time
 overrides that marking.
-A recognizer created from a grammar without a volatility marking is marked volatile,
-unless a C<volatile> named argument supplied at recognizer creation time
+A recognizer created from a grammar without a opacity marking is marked opaque,
+unless a C<opaque> named argument supplied at recognizer creation time
 overrides that marking.
-The volatility setting of a recognizer object cannot be changed,
+The opacity setting of a recognizer object cannot be changed,
 once it has been created.
-Evaluators inherit the volatility marking of the recognizer used to create them.
+Evaluators inherit the opacity marking of the recognizer used to create them.
 
-When a evaluator object is marked non-volatile,
+When a evaluator object is marked transparent,
 an optimization called "node value memoization" is enabled.
-Evaluators should be marked non-volatile only if
+Evaluators should be marked transparent only if
 the evaluator's semantic actions can be safely memoized.
 
-Marpa marks a grammar volatile internally,
+Marpa marks a grammar opaque internally,
 if the grammar uses certain kinds of sequence productions.
 For more details,
-see L<Parse::Marpa::Evaluator/"Volatility">.
+see L<Parse::Marpa::Evaluator/"Opacity">.
 
 =item warnings
 
