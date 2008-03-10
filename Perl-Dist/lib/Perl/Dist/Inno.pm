@@ -1283,6 +1283,22 @@ sub install_dmake {
 	return 1;
 }
 
+sub install_expat {
+	my $self = shift;
+
+	#$self->install_binary(
+	#	name => 'expat',
+	#);
+
+	# Install the PAR version of libexpat
+	$self->install_par(
+		name  => 'libexpat',
+		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
+	);
+
+	return 1;
+}
+
 =pod
 
 =head2 install_gcc
@@ -1659,27 +1675,27 @@ sub install_module {
 	my $env_lib     = $self->get_env_lib;
 	my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
-print "Installing $name from CPAN...\n";
+use CPAN;
+print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
 if ( \$module->uptodate ) {
-	print "$name is up to date\n";
+	print "$name is up to date\\n";
 	exit(0);
 }
-print "\\\$ENV{PATH}    = '\$ENV{PATH}'";
-print "\\\$ENV{LIB}     = '\$ENV{LIB}'";
-print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'";
+print "\\\$ENV{PATH}    = '\$ENV{PATH}'\\n";
+print "\\\$ENV{LIB}     = '\$ENV{LIB}'\\n";
+print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'\\n";
 if ( $force ) {
-	\$module->force;
-	\$module->install;
-	\$CPAN::DEBUG=1;
+	CPAN::Shell->install('$name');
+	\$CPAN::DEBUG = 1;
 	unless ( \$module->uptodate ) {
 		die "Forced installation of $name appears to have failed";
 	}
 } else {
 	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 	CPAN::Shell->install('$name');
-	print "Completed install of $name\n";
+	print "Completed install of $name\\n";
 	unless ( \$module->uptodate ) {
 		die "Installation of $name appears to have failed";
 	}
@@ -1698,8 +1714,8 @@ END_PERL
 		print CPAN_FILE $cpan_string       or die "print: $!";
 		close( CPAN_FILE )                 or die "close: $!";
 	}
-	$self->_run3( $self->bin_perl, "-MCPAN", $cpan_file )
-		or die "perl -MCPAN -e failed";
+	$self->_run3( $self->bin_perl, $cpan_file )
+		or die "perl failed";
 	die "Failure detected installing $name, stopping" if $?;
 
 	return 1;

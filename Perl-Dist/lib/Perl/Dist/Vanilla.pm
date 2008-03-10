@@ -73,29 +73,6 @@ sub output_base_filename {
 #####################################################################
 # Installation Script
 
-sub install_c_libraries {
-	my $self = shift;
-	$self->SUPER::install_c_libraries(@_);
-
-	return 1;
-}
-
-sub install_expat {
-	my $self = shift;
-
-	#$self->install_binary(
-	#	name => 'expat',
-	#);
-
-	# Install the PAR version of libexpat
-	$self->install_par(
-		name  => 'libexpat',
-		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
-	);
-
-	return 1;
-}
-
 sub install_perl_5100_bin {
 	my $self  = shift;
 	$self->SUPER::install_perl_5100_bin(@_);
