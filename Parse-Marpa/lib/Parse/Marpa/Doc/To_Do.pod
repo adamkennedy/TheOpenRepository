@@ -28,6 +28,8 @@ to have been only lightly exercized.
 
 =over 4
 
+=item * Finalize semantics later, when evaluator is created.
+
 =item * Allow multiple evaluators for each recognizer, or at least create a method
 to safe deep copy recognizers.
 

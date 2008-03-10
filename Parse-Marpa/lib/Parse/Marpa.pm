@@ -161,7 +161,7 @@ This is an Alpha release.
 It's intended to let people look Marpa over and try it out.
 Uses beyond that are risky.
 While Marpa is in alpha,
-you certainly don't want to use it for anything
+you don't want to use it for anything
 mission-critical or with a serious deadline.
 I've no personal experience with them, but
 C<Parse::Yapp> and C<Parse::RecDescent> are
@@ -205,19 +205,20 @@ more mature and stable.
 This section is to serve as a handy reminder of standard parsing terminology.
 Readers who feel comfortable with parsing may skim it or skip it completely.
 Newcomers to parsing should look at an introduction to the subject
--- this summary of the vocabulary will be very terse.
-L<Mark Jason Dominus's chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">
-is excellent.
-Online,
-L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
+-- what follows is just a terse summary of the vocabulary for those who are
+mostly familiar with it already.
 
-A B<parser> is a program which takes a sequence of input symbols and adds structure to them.
-A B<parser> is described with a B<grammar>, which consists of B<symbols> grouped into
-B<productions>.
-B<productions> are often called B<rules>.
+As an introduction, I reccommend
+L<Mark Jason Dominus's
+excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
+Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
 
-The standard way of described a grammar is Backus-Naur Form, or B<BNF>.  In one way of
-writing BNF, a production looks like this.
+A B<parser> is a program which takes a sequence of B<symbols> as B<input>
+and finds the structure of the input according to the B<rules> of a B<grammar>.
+The rules of a grammar are more often called B<productions>.
+
+A standard way of describing rules is Backus-Naur Form, or B<BNF>.
+In one common way of writing BNF, a production looks like this.
 
     Expression ::= Term Factor
 
@@ -225,36 +226,48 @@ The equivalent in Marpa's MDL language looks like this:
 
     Expression: Term, Factor.
 
-A production consists of a B<left hand side> and a B<right hand side>.
-Left hand side and right hand side are often abbreviated as B<rhs> and B<lhs>.
-In context-free grammars like the ones Marpa parses,
-the left hand side will always be a single B<symbol>.
-The right hand side may be zero or more symbols.
-If the rhs of a production has no symbols, it is called an <empty production>.
-
 In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
-C<Expression> is the rhs, and 
+A production consists of a B<left hand side> and a B<right hand side>.
+In the example, C<Expression> is the right hand side, and 
 C<Term> and C<Factor> are left hand side symbols.
 
-A parser parses a series of input symbols.
+Left hand side and right hand side are often abbreviated as B<rhs> and B<lhs>.
+In context-free grammars,
+like the ones Marpa parses,
+the left hand side will always be a single B<symbol>.
+The right hand side may be zero or more symbols.
+If the rhs of a production has no symbols, it is called an B<empty production>.
+
 Any symbol which can be found in the input is called a B<terminal> symbol.
 A string of symbols in a grammar is called a B<sentential form>.
+The right hand side of a production is a sentential form.
 If the symbols in a sentential form are all terminals,
-that sentential form may also be called a B<sentence>.
+that sentential form is also called a B<sentence>.
+The input to a successful parse must be a sentence,
+but just because the input is a sentence does not mean that it will parse successfully.
 
-The rhs of a production is a sentential form.
-For each production in a grammar,
-we say that
-the lhs symbol B<produces>
-the rhs.
-A symbol can also produce a sentential form indirectly.
-A symbol produces a sentential form indirectly if you
-can create that sentential form from a sentential form the symbol directly produces
-by one or more applications of productions in the grammar.
-You apply a production to a sentential form by replacing an instance of the lhs symbol
-in the sentential fomr with the symbols of production's rhs.
+A sentential form B<directly derives> a second sentential form if,
+for any production in the grammar,
+replacing any one occurrence of the lhs symbol in the first sentential form
+with the rhs symbols of that production,
+results in the second sentential form.
+A lhs always B<directly derives> its right hand side.
 
-When we say that a symbol produces a sentential form,
+If there is a sequence of direct derivations, starting with one sentential form
+and ending with another, the first sentential form B<derives> all other sentential forms
+in the series.
+Where one sentential form derives another, but does not do so directly,
+the first sentential form is said to B<indirectly derives> the second one.
+
+If one sentential form derives another,
+and the first sentential form consists of a single symbol,
+we often say that the symbol produces the second sentential form.
+The lhs symbol of a production directly produces its right hand side.
+If a lhs symbol produces a sentential form, but
+does not do so directly,
+then the lhs symbol indirectly produces the sentential form.
+
+When we say that a symbol produces or derives a sentential form,
 we are taking a top-down point of view.
 We sometimes take a bottom-up point of view,
 and say that the sentential form and the symbol B<match>.
@@ -266,9 +279,9 @@ of input symbols according to the grammar.
 Another way to say this is that the parse is successful
 if and only if the input matches the start symbol.
 
-In real life, the structure of a parse is usually only a means to an end.
+In real life, the structure of a parse is usually a means to an end.
 What the user actually wants is to B<evaluate> the parse.
-A parse being evaluated is often described as a B<tree>,
+A parse being evaluated is often described as a B<tree>
 where each symbol in the parse corresponds to a B<node>.
 For every non-empty production used in the parse,
 the lhs corresponds to a B<parent>
