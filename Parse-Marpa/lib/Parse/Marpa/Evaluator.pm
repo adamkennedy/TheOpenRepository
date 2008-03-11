@@ -903,7 +903,7 @@ sub show_derivation {
 
         if ( $link_choice <= $#$links ) {
             my ( $predecessor, $cause ) = @{ $links->[$link_choice] };
-            $text .= Parse::Marpa::show_derivation($cause);
+            $text .= show_derivation($cause);
             $item = $predecessor;
         }
 

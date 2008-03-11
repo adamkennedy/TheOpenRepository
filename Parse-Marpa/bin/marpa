@@ -63,10 +63,10 @@ given ($command) {
 sub do_compile {
     my $grammar_source; { local($RS) = undef; $grammar_source = <STDIN>; }
 
-    my $grammar = new Parse::Marpa(
-	 mdl_source => \$grammar_source,
+    my $grammar = new Parse::Marpa({
+	mdl_source => \$grammar_source,
 	 %options
-    );
+    });
 
     $grammar->precompute();
     my $compiled_grammar = $grammar->compile();
@@ -86,13 +86,13 @@ sub do_parse {
 	open(GRAMMAR, "<", $grammar_file);
 	my $grammar_source; { local($RS) = undef; $grammar_source = <GRAMMAR>; }
 	eval {
-	    $grammar = new Parse::Marpa(
-		%options,
+	    $grammar = new Parse::Marpa::Grammar(
+		{ %options }
 	    );
-	    $grammar->set(
+	    $grammar->set({
 		mdl_source => \$grammar_source,
 		source_options => \%source_options,
-	    );
+	    });
 	};
 	if ($@) {
 	    die("Parse of $grammar_file failed:\n", $@);
@@ -153,29 +153,30 @@ sub do_parse {
        }
     }
 
-    my $parse = new Parse::Marpa::Recognizer(
+    my $recce = new Parse::Marpa::Recognizer({
         grammar => $grammar,
-    );
+    });
     if (not defined $text_to_parse) {
 	local($RS) = undef; $text_to_parse = <STDIN>;
     }
 
-    if ((my $fail_location = $parse->text(\$text_to_parse)) >= 0) {
+    if ((my $fail_location = $recce->text(\$text_to_parse)) >= 0) {
         print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
 	exit 1;
     }
 
-    if (!$parse->initial()) {
-        croak("No parse")
-    }
+    my $evaler = new Parse::Marpa::Evaluator($recce);
+    croak("Could not create evaler") unless $evaler;
 
+    my $parse_count = 0;
     PARSE: while (1) {
 
-	my $value = $parse->value();
+	my $value = $evaler->next();
 	if (not defined $value) {
-	    say 'Marpa returned a "Marpa No Value"';
+	    croak 'No parse' unless $parse_count > 1;
 	    return;
 	}
+	$parse_count++;
 
 	given ($$value) {
 	    when (undef) { say 'Marpa returned an undefined' }
@@ -183,14 +184,14 @@ sub do_parse {
 	}
 
 	if ($show_status) {
-	    print $parse->show_status();
+	    print $evaler->show_status();
 	}
 
 	if ($show_derivation) {
-	    print $parse->show();
+	    print $evaler->show();
 	}
 
-	last PARSE unless $all_parses and $parse->next();
+	last PARSE unless $all_parses;
 
     } # while (1)
 
