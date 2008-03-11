@@ -994,7 +994,7 @@ sub Parse::Marpa::Grammar::decompile {
         eval $$compiled_grammar;
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
-            die_on_problems(
+            Parse::Marpa::Internal::die_on_problems(
                 $fatal_error,
                 \@warnings,
                 "decompiling gramar",

@@ -4,9 +4,8 @@ use warnings;
 use lib "../lib";
 use English;
 use Config;
-# use Fatal qw(open close);
 
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 unless ($Config{"d_pipe"}) {
     plan skip_all => "Pipes required to test examples";
@@ -17,9 +16,12 @@ my $example_dir = $0 =~ m{t/} ? "example" : "../example";
 chdir($example_dir);
 
 my $this_perl = $^X; 
-our $PIPE;
+local($RS) = undef;
+
 open(PIPE, "-|", $this_perl, "-I../lib", "synopsis.pl")
     or die("Cannot open pipe: $!");
-local($RS) = undef;
-my $result = <PIPE>;
-is($result, "12\n", "synopsis example");
+is(<PIPE>, "12\n", "synopsis example");
+
+open(PIPE, "-|", $this_perl, "-I../lib", "null_value.pl")
+    or die("Cannot open pipe: $!");
+is(<PIPE>, "A is missing, but Zorro was here\n", "null value example");

@@ -129,7 +129,7 @@ sub set_null_values {
         if (defined $action and @$rhs <= 0) {
             my $lhs = $rule->[Parse::Marpa::Internal::Rule::LHS];
             my $nulling_alias = $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS];
-            next rule unless defined $nulling_alias;
+            next RULE unless defined $nulling_alias;
 
             my $code = "package $package;\nlocal(" . '$_' . ")=[]; $action"; 
             my @warnings;
@@ -137,7 +137,7 @@ sub set_null_values {
             my $null_value = eval($code);
             my $fatal_error = $@;
             if ($fatal_error or @warnings) {
-                die_on_problems($fatal_error, \@warnings,
+                Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
                     "evaluating null value",
                     "evaluating null value for "
                         . $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],

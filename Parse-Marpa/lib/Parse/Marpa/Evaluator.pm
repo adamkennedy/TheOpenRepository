@@ -945,45 +945,63 @@ which requires a Marpa recognizer object.
 Marpa allows ambiguous parses, so Marpa's parse evaluator objects are iterators.
 Iteration is performed with the C<next> method,
 which finds the next parse and returns its value.
-If, as is usual, only one parse is wanted, the C<next> method can be called only once.
+Often only one parse is needed, in which case the C<next> method is called only once.
 
 Each Marpa recognizer should have only one evaluator using it at any one time.
 For efficiency,
-parses are actually calculated and evaluated in tables kept in the recognizer object.
-If one or more evaluators were using the same recognizer at the same time,
-they could interfere and produce unpredictable results.
+the evaluator does its work in tables kept
+in the recognizer object.
+If multiple evaluators
+use the same recognizer at the same time,
+they may produce incorrect results.
 
-=head2 Opacity
+=head2 Node Memoization
 
-If you accept Marpa's default behavior, you can safely
-ignore this section.
-By default, Marpa marks all its parses opaque,
-and that is always a safe choice.
-Transparent parses, however, can be optimized by
-memoizing node values as they are calculated.
-If multiple parses are evaluated in a parse with expensive rule actions,
+If you accept Marpa's default behavior,
+there will be no node memoization and
+you can safely
+ignore the question of opacity.
+But when multiple parses are evaluated in a parse with expensive rule actions,
 the boost in efficiency from node value memoization can be major.
 
-Both grammars and parses can be marked opaque.
-A parse inherits the opacity marking of the grammar it is created from,
-if there was one.
+If the defaults are used, Marpa will mark all its evaluators opaque.
+That is always a safe choice, if not always the most efficient one.
 
-If a user decides to
-decides to mark the object transparent.
-It is up to her to make sure the semantics of an Marpa object
-are safe for memoization.
-Node values are computed by a function,
-and memoization follows the same principles as function memoization.
-Nodes may be memoized if they are "pure", that is,
-if their return values depend completely on their arguments,
-if they have no side effects,
-and if their return value is not a reference.
+Both grammars and recognizers can be marked opaque.
+A recognizer created from a opaque grammar is marked opaque.
+A recognizer created from a grammar marked transparent is marked transparent,
+unless a C<opaque> named argument supplied at recognizer creation time
+overrides that marking.
+A recognizer created from a grammar without a opacity marking is marked opaque,
+unless a C<opaque> named argument supplied at recognizer creation time
+overrides that marking.
+Once a a recognizer object has been created,
+its opacity setting cannot be changed.
+
+If a user decides to mark an object transparent,
+it is up to her to make sure all the
+evaluators created from that object are safe for memoization.
+An evaluator is safe for memoization if all its nodes are
+safe for memoization.
+Node values are computed by Perl 5 code,
+and node memoization follows the same principles as function memoization.
+For a node to be safe for memoization, it must be transparent.
+A node is transparent only
+if it is always safe to substitute a constant value for the node's action.
+
+Here are some hints for making actions transparent:
+The code must have no side effects.
+Its return value should not be a reference.
+Its return value must depend completely on the return values of the child nodes.
+All child nodes must be transparent as well.
+Any subroutines or functions must be transparent.
+Exceptions to these rules can be made, but you have to know what you're doing.
 There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 
-If you're not sure whether your grammar is opaque or not,
+If you're not sure whether your semantics are opaque or not,
 just accept Marpa's default behavior.
-Also, it is always safe to mark a grammar or a parse opaque yourself.
+Also, it is always safe to mark a grammar or a recognizer opaque yourself.
 
 Marpa will sometimes mark grammars opaque on its own.
 Marpa often optimizes the evaluation of sequence productions
@@ -1009,8 +1027,8 @@ By default, the null value is a Perl undefined, which usually is what makes sens
 If you want something else,
 the default null value is a predefined (C<default_null_value>) and can be reset.
 
-A symbol can match the empty string directly, if it is on the left hand side of an empty rule.
-It can also match indirectly, through a series of other rules, only some of which need to be empty rules.
+A symbol can produce the empty string directly, if it is the left hand side of an empty rule.
+It can also produce the empty string indirectly.
 
 Each symbol can have its own null symbol value.
 The null symbol value for any symbol is calculated using the action
@@ -1019,8 +1037,9 @@ The null symbol action is B<not> a rule action.
 It's a property of the symbol, and applies whenever the symbol is nulled,
 even when the symbol's empty rule is not involved.
 
-For example, in MDL, the following says that whenever C<A> matches the empty
-string, it should evaluate to a string which expresses its surprise.
+For example, in MDL,
+the following says that whenever the symbol C<A> matches the empty string,
+it should evaluate to a string which expresses surprise.
 
     A: . q{ 'Oops!  Where did I go!' }.
 
@@ -1031,9 +1050,11 @@ becomes fixed as the null symbol value.
 This is different from rule actions.
 During the creation of the recognizer object,
 rule actions are B<compiled into closures>.
-These rule closures are run during parse evaluation,
+During parse evaluation,
 whenever a node for that rule needs its value recalculated,
-and may produce different values every time they are run.
+the compiled rule closure is run.
+The compiled rule closure may be opaque,
+that is, it may produce different values every time it is run.
 
 I treat null symbol actions differently for efficiency.
 They have no child values,
@@ -1041,10 +1062,10 @@ and a fixed value is usually what is wanted.
 If you want to calculate a symbol's null value with a closure run at parse evaluation time,
 the null symbol action can return a reference to a closure.
 The parent rules with that nullable symbol on their right hand side
-can then be set up so they run the closure returned as the value of null symbol.
+can then be set up so they run that closure.
 
 As mentioned,
-null symbol values are properties of the symbol, not of the rule.
+null symbol values are properties of a symbol, not of a rule.
 A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
 whether or not that happened directly through that symbol's empty rule.
@@ -1085,7 +1106,7 @@ or speaking more carefully, in a non-empty rule.
 
 There's one special case:
 when the whole grammar takes the empty string as input,
-and recognizes that it has parsed it successfully.
+and parses it successfully.
 That's called a "null parse".
 Whether or not a null parse is possible depends on the grammar.
 In a "null parse", the entire grammar "results in nothing".
@@ -1095,43 +1116,47 @@ The value of a null parse is null value of the start symbol.
 If you think some of the rules or symbols that Marpa believes "don't count"
 are important in your grammar,
 Marpa can probably accommodate your ideas.
-First, determine the value which your null semantics produces for every nullable symbol,
-when it is a "highest null symbol".
-Second, put those semantics into the each nullable symbol's null actions.
-In the cases where your null semantics does not result in a fixed value at recognizer
-creation time,
-have your null actions return a reference to a closure and arrange to have that
-closure run by a parent node.
+First,
+for every nullable symbol,
+determine how to calculate the value which your null semantics produces
+when that nullable symbol is a "highest null symbol".
+If it's a constant, write a null action for that symbol which returns it.
+If your null semantics do not produce a constant value by recognizer creation time,
+write a null action which returns a reference to a closure
+and arrange to have that closure run by a parent node.
 
 =head3 Detailed Example
 
 Suppose a grammar has these rules
 
-    S: A, Z. # Call me the start rule, or Rule 0
+    S: A, Z. q{ $_->[0] . ", but " . $_->[1] }. # Call me the start rule
+    note: you can also call me Rule 0.
 
-    A: . q{!}. # Call me Rule 1
+    A: . q{'A is missing'}. # Call me Rule 1
 
-    A: B, C. q{"I'm sometime null and sometimes not"} # Call me Rule 2
+    A: B, C. q{"I'm sometimes null and sometimes not"}. # Call me Rule 2
 
-    B: . q{'No B'}. # Call me Rule 3
+    B: . q{'B is missing'}. # Call me Rule 3
 
-    C: . q{'No C'}. # Call me Rule 4
+    C: . q{'C is missing'}. # Call me Rule 4
 
-    C: Z.  # Call me Rule 5
+    C: Z.  q{'C matches Z'}. # Call me Rule 5
 
     Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
 
 If the input is the string "C<Z>",
-both C<B> and C<C> will match the empty string.
-So will the symbol C<A>.
+this is the derivation
+
+   Use marpa utility to get this 
+
+symbols C<A>, C<B>, and C<C> will all match the empty string.
 Since C<A> produces both C<B> and C<C> in the derivation,
 and since the rule that produces C<A> is not an empty rule,
 C<A> is a "highest null symbol",
 Therefore, C<A>'s
 null value,
-the string "C<!>",
-which is computed from the action for Rule 1,
-is the value of the derivation.
+the string "C<A is missing>",
+is the value of C<A> in the parse.
 
 Note carefully several things about this example.
 First, Rule 1 is not actually in the derivation of C<A>:
@@ -1150,6 +1175,8 @@ and it plays no role in the result either.
 =head2 new
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
+
+Z<>
 
     my $evaler = new Parse::Marpa::Evaluator($recce, $location);
 

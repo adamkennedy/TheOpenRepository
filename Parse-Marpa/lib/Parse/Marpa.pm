@@ -860,18 +860,14 @@ Not specifying this option and accepting the default behavior is always safe.
 Once an object has been marked opaque,
 its opacity setting cannot be changed.
 
-A recognizer created from a opaque grammar is marked opaque.
-A recognizer created from a grammar marked transparent is marked transparent,
-unless a C<opaque> named argument supplied at recognizer creation time
-overrides that marking.
-A recognizer created from a grammar without a opacity marking is marked opaque,
-unless a C<opaque> named argument supplied at recognizer creation time
-overrides that marking.
-The opacity setting of a recognizer object cannot be changed,
-once it has been created.
+Recognizers inherit the opacity marking of the grammar used to create them,
+if there was one.
+If a recognizer is created from a grammar without an opacity marking,
+and no C<opaque> option is specified,
+the recognizer is marked opaque.
 Evaluators inherit the opacity marking of the recognizer used to create them.
 
-When a evaluator object is marked transparent,
+If a evaluator object is marked transparent,
 an optimization called "node value memoization" is enabled.
 Evaluators should be marked transparent only if
 the evaluator's semantic actions can be safely memoized.
@@ -879,7 +875,7 @@ the evaluator's semantic actions can be safely memoized.
 Marpa marks a grammar opaque internally,
 if the grammar uses certain kinds of sequence productions.
 For more details,
-see L<Parse::Marpa::Evaluator/"Opacity">.
+see L<Parse::Marpa::Evaluator/"Node Memoization">.
 
 =item warnings
 
@@ -1135,6 +1131,11 @@ occurs where a rule is subject to CHAF rewriting,
 and CHAF rewrites are only done to rules with more than two nullables on the right hand side.
 It is always possible to break up a
 rule into other rules such that at most two nullables occur on the right hand side.
+
+=head2 Miscellaneous Small Bugs
+
+A Perl style end of line comment cannot be last thing in MDL source.  Workaround:
+Add a blank line.
 
 =head2 What!  You Found Even More Bugs!
 
