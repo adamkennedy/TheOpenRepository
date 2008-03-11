@@ -217,6 +217,7 @@ my %PACKAGES = (
 	'libiconv-dep'  => 'libiconv-1.9.2-1-dep.zip',
 	'libiconv-lib'  => 'libiconv-1.9.2-1-lib.zip',
 	'libiconv-bin'  => 'libiconv-1.9.2-1-bin.zip',
+	'gmp'           => 'gmp-4.2.1-vanilla.zip',
 );
 
 sub binary_file {
@@ -744,7 +745,11 @@ sub install_c_toolchain {
 
 # No additional modules by default
 sub install_c_libraries {
-	shift->trace("install_c_libraries: Nothing to do\n");
+	my $class = shift;
+	if ( $class eq __PACKAGE__ ) {
+		$class->trace("install_c_libraries: Nothing to do\n");
+	}
+	return 1;
 }
 
 # Install Perl 5.10.0 by default.
@@ -760,7 +765,11 @@ sub install_perl {
 
 # No additional modules by default
 sub install_perl_modules {
-	shift->trace("install_perl_modules: Nothing to do\n");
+	my $class = shift;
+	if ( $class eq __PACKAGE__ ) {
+		$class->trace("install_perl_modules: Nothing to do\n");
+	}
+	return 1;
 }
 
 # Install links and launchers and so on
@@ -775,12 +784,10 @@ sub install_win32_extras {
 		name => 'CPAN Client',
 		bin  => 'cpan',
 	);
-
 	$self->install_website(
 		name => 'Perl Documentation',
 		url  => 'http://perldoc.perl.org/',
 	);
-
 	$self->install_website(
 		name => 'Win32 Perl Wiki',
 		url  => 'http://win32.perl.org/',
@@ -792,17 +799,21 @@ sub install_win32_extras {
 # Delete various stuff we won't be needing
 sub remove_waste {
 	my $self = shift;
+
 	$self->trace("Removing doc, man, info and html documentation...\n");
 	File::Remove::remove( \1, $self->_dir('perl', 'man')     );
 	File::Remove::remove( \1, $self->_dir('perl', 'html')    );
 	File::Remove::remove( \1, $self->_dir('c',    'man')     );
 	File::Remove::remove( \1, $self->_dir('c',    'doc')     );
 	File::Remove::remove( \1, $self->_dir('c',    'info')    );
+
 	$self->trace("Removing C library manifests...\n");
 	File::Remove::remove( \1, $self->_dir('c', 'manifest')   );
+
 	$self->trace("Removing CPAN build directories and download caches...\n");
 	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
 	File::Remove::remove( \1, $self->_dir('cpan', 'build')   );
+
 	return 1;
 }
 
@@ -1283,22 +1294,6 @@ sub install_dmake {
 	return 1;
 }
 
-sub install_expat {
-	my $self = shift;
-
-	#$self->install_binary(
-	#	name => 'expat',
-	#);
-
-	# Install the PAR version of libexpat
-	$self->install_par(
-		name  => 'libexpat',
-		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
-	);
-
-	return 1;
-}
-
 =pod
 
 =head2 install_gcc
@@ -1336,38 +1331,22 @@ sub install_gcc {
 	return 1;
 }
 
-sub install_zlib {
-	my $self = shift;
+=pod
 
-	# Zlib is a pexport-based lib-install
-	$self->install_library(
-		name       => 'zlib',
-		url        => $self->binary_url('zlib-1.2.3.win32.zip'),
-		unpack_to  => 'zlib',
-		build_a    => {
-			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
-			'def'    => 'zlib-1.2.3.win32/bin/zlib1.def',
-			'a'      => 'zlib-1.2.3.win32/lib/zlib1.a',
-		},
-		install_to => {
-			'zlib-1.2.3.win32/bin'     => 'c/bin',
-			'zlib-1.2.3.win32/lib'     => 'c/lib',
-			'zlib-1.2.3.win32/include' => 'c/include',
-		},
-	);
+=head2 install_binutils
 
-	return 1;
-}
+  $dist->install_binutils
 
-sub install_mingw_make {
-	my $self = shift;
+The C<install_binutils> method installs the C<GNU binutils> package into
+the distribution.
 
-	$self->install_binary(
-		name => 'mingw-make',
-	);
+The most important of these is C<dlltool.exe>, which is used to extract
+static library files from .dll files. This is needed by some libraries
+to let the Perl interfaces build against them correctly.
 
-	return 1;
-}
+Returns true or throws an exception on error.
+
+=cut
 
 sub install_binutils {
 	my $self = shift;
@@ -1388,6 +1367,22 @@ sub install_binutils {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_pexports
+
+  $dist->install_pexports
+
+The C<install_pexports> method installs the C<MinGW pexports> package
+into the distribution.
+
+This is needed by some libraries to let the Perl interfaces build against
+them correctly.
+
+Returns true or throws an exception on error.
+
+=cut
 
 sub install_pexports {
 	my $self = shift;
@@ -1412,6 +1407,20 @@ sub install_pexports {
 	return 1;
 }
 
+=pod
+
+=head2 install_mingw_runtime
+
+  $dist->install_mingw_runtime
+
+The C<install_mingw_runtime> method installs the MinGW runtime package
+into the distribution, which is basically the MinGW version of libc and
+some other very low level libs.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_mingw_runtime {
 	my $self = shift;
 
@@ -1426,6 +1435,60 @@ sub install_mingw_runtime {
 	return 1;
 }
 
+=pod
+
+=head2 install_zlib
+
+  $dist->install_zlib
+
+The C<install_zlib> method installs the B<GNU zlib> compression library
+into the distribution, and is typically installed during "C toolchain"
+build phase.
+
+It provides the appropriate arguments to a C<install_library> call that
+will extract the standard zlib win32 package, and generate the additional
+files that Perl needs.
+
+Returns true or throws an exception on error.
+
+=cut
+
+sub install_zlib {
+	my $self = shift;
+
+	# Zlib is a pexport-based lib-install
+	$self->install_library(
+		name       => 'zlib',
+		url        => $self->binary_url('zlib-1.2.3.win32.zip'),
+		unpack_to  => 'zlib',
+		build_a    => {
+			'dll'    => 'zlib-1.2.3.win32/bin/zlib1.dll',
+			'def'    => 'zlib-1.2.3.win32/bin/zlib1.def',
+			'a'      => 'zlib-1.2.3.win32/lib/zlib1.a',
+		},
+		install_to => {
+			'zlib-1.2.3.win32/bin'     => 'c/bin',
+			'zlib-1.2.3.win32/lib'     => 'c/lib',
+			'zlib-1.2.3.win32/include' => 'c/include',
+		},
+	);
+
+	return 1;
+}
+
+=pod
+
+=head2 install_win32api
+
+  $dist->install_win32api
+
+The C<install_win32api> method installs C<MinGW win32api> layer, to
+allow C code to compile against native Win32 APIs.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_win32api {
 	my $self = shift;
 
@@ -1435,6 +1498,47 @@ sub install_win32api {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_mingw_make
+
+  $dist->install_mingw_make
+
+The C<install_mingw_make> method installs the MinGW build of the B<GNU make>
+build tool.
+
+While GNU make is not used by Perl itself, some C libraries can't be built
+using the normal C<dmake> tool and explicitly need GNU make. So we install
+it as mingw-make and certain Alien:: modules will use it by that name.
+
+Returns true or throws an exception on error.
+
+=cut
+
+sub install_mingw_make {
+	my $self = shift;
+
+	$self->install_binary(
+		name => 'mingw-make',
+	);
+
+	return 1;
+}
+
+=pod
+
+=head2 install_libiconv
+
+  $dist->install_libiconv
+
+The C<install_libiconv> method installs the C<GNU libiconv> library,
+which is used for various character encoding tasks, and is needed for
+other libraries such as C<libxml>.
+
+Returns true or throws an exception on error.
+
+=cut
 
 sub install_libiconv {
 	my $self = shift;
@@ -1460,6 +1564,20 @@ sub install_libiconv {
 	return 1;
 }
 
+=pod
+
+=head2 install_libxml
+
+  $dist->install_libxml
+
+The C<install_libxml> method installs the C<Gnome libxml> library,
+which is a fast, reliable, XML parsing library, and the new standard
+library for XML parsing.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_libxml {
 	my $self = shift;
 
@@ -1483,12 +1601,77 @@ sub install_libxml {
 	return 1;
 }
 
+=pod
+
+=head2 install_expat
+
+  $dist->install_expat
+
+The C<install_expat> method installs the C<Expat> XML library,
+which was the first popular C XML parser. Many Perl XML libraries
+are based on Expat.
+
+Returns true or throws an exception on error.
+
+=cut
+
+sub install_expat {
+	my $self = shift;
+
+	# Install the PAR version of libexpat
+	$self->install_par(
+		name  => 'libexpat',
+		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
+	);
+
+	return 1;
+}
+
+=pod
+
+=head2 install_gmp
+
+  $dist->install_gmp
+
+The C<install_gmp> method installs the C<GNU Multiple Precision Arithmetic
+Library>, which is used for fast and robust bignum support.
+
+Returns true or throws an exception on error.
+
+=cut
+
+sub install_gmp {
+	my $self = shift;
+
+	# Comes as a single prepackaged vanilla-specific zip file
+	$self->install_binary(
+		name => 'gmp',
+	);
+
+	return 1;
+}
 
 
 
 
 #####################################################################
 # General Installation Methods
+
+=pod
+
+=head2 install_binary
+
+  $self->install_binary(
+      name => 'gmp',
+  );
+
+The C<install_gmp> method is used by library-specific methods to
+install pre-compiled and un-modified tar.gz or zip archives into
+the distribution.
+
+Returns true or throws an exception on error.
+
+=cut
 
 sub install_binary {
 	my $self   = shift;
