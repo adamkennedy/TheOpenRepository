@@ -9,7 +9,7 @@ bootstrap/bootstrap.pl
 bootstrap/bootstrap_header.pl
 bootstrap/bootstrap_trailer.pl
 bootstrap/self.marpa
-example/null_value.pl
+example/null_value.marpa
 example/synopsis.pl
 lib/Parse/Marpa.pm
 lib/Parse/Marpa/Doc/Algorithm.pod
