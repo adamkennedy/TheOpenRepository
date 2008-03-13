@@ -3443,20 +3443,19 @@ Parse::Marpa::Grammar - A Marpa Grammar Object
 Grammar objects are created with the C<new> constructor.
 Rules and options may be specified when the grammar is created, or later using
 the C<set> method.
-
 Rules are most conveniently added with the C<mdl_source> named argument, which
 takes a reference to a string containing an MDL grammar description as its value.
 MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::Doc::MDL>.
 
-MDL indirectly uses another interface, its B<plumbing interface>.
+MDL indirectly uses another interface, the B<plumbing interface>.
 Users who want the last word in control can use the plumbing directly,
 but they will lose a lot of convenience and maintainability.
-The MDL parser itself is created from an MDL file.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
 then compiling that grammar,
 as L<described below|"compile">.
 The plumbing is described in L<a document of its own|Parse::Marpa::Doc::Plumbing>.
+The MDL parser itself uses a compiled MDL file.
 
 Marpa needs to do extensive precompution on grammars
 before they can be passed on to a recognizer or an evaluator.
@@ -3472,22 +3471,22 @@ Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
 For example, you cannot add rules to a precomputed grammar.
 
-Marpa recognizers deep copy the grammar used to create them
-to create a grammar for their private use.
+For their private use,
+Marpa recognizers make a deep copy of the the grammar used to create them.
 The deep copy is done by B<compiling> the grammar, then B<decompiling> the grammar.
 
-Grammar compilation in Marpa means turning it into a string with
+Grammar compilation in Marpa means turning the grammar into a string with
 Marpa's C<compile> method.
 Since a compiled grammar is a string, it can be handled as one.
 It can, for instance, be written to a file.
 
-Marpa's C<decompile> static method takes this string,
+Marpa's C<decompile> static method takes a compiled grammar,
 C<eval>'s it,
 then tweaks it a bit to create a properly set-up grammar object.
 A subsequent Marpa process can read this file, C<decompile> the string,
 and continue the parse.
 This would eliminate the overhead both of parsing MDL and of precomputation.
-As mentioned above, where efficiency is a major consideration, this will
+As mentioned, where efficiency is a major consideration, this will
 usually be better than using the
 plumbing interface.
 
@@ -3519,12 +3518,12 @@ the C<mdl_source> named argument
 and the named arguments of the plumbing interface are allowed.
 For details of the plumbing and its named arguments, see L<Parse::Marpa::Doc::Plumbing>.
 
-The value of C<mdl_source> named arguments should be
+The value of the C<mdl_source> named argument should be
 a B<reference> to a string containing a description of
 the grammar in the L<Marpa Demonstration Language|Parse::Marpa::MDL>.
 Either the C<mdl_source> named argument or the plumbing arguments may be used
 to build a grammar,
-but both cannot be used in the same grammar object.
+but both cannot be used to build the same grammar object.
 
 In the C<new> and C<set> methods,
 a Marpa option can be specified both directly,
@@ -3546,17 +3545,17 @@ For a way around this, see L<the C<set> method|"set">.
     $g->set({ mdl_source => \$source });
 
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
-It allows Marpa options, raw interface arguments and the C<mdl_source> named argument
+It allows Marpa options, plumbing arguments and the C<mdl_source> named argument
 to be specified for an already existing grammar object.
 It can be used to control the order in which the named arguments are applied.
 
 In particular, some
-setting tracing options made need to be set prior to specifying the grammar.
+tracing options need to be turned on prior to specifying the grammar.
 To do this, an new grammar object can be created with the trace options set,
 but without a grammar specification.
 At this point, tracing will be in effect,
 and the C<set> method can be used to specify the grammar,
-using either the C<mdl_source> named argument or the raw interface named
+using either the C<mdl_source> named argument or the plumbing
 arguments.
 
 =head2 precompute

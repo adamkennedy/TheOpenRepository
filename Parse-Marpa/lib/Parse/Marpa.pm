@@ -252,40 +252,42 @@ The right hand side may be zero or more symbols.
 If the rhs of a production has no symbols, it is called an B<empty production>.
 
 A symbol which is allowed in the input is called a B<terminal> symbol.
-A string of zero or more of the symbols in a grammar is called a B<sentential form>.
-The right hand side of a production is a sentential form.
-If the symbols in a sentential form are all terminals,
-that sentential form is also called a B<sentence>.
+A string of zero or more of the symbols in a grammar will be called a B<symbol string>,
+to distinguish it from a Perl 5 string,
+unless the context it clear which is meant.
+The right hand side of a production is a symbol string.
+If the symbols in a symbol string are all terminals,
+that symbol string is also called a B<sentence>.
 The input to a successful parse must be a sentence,
 but just because the input is a sentence does not mean that it will parse successfully.
 
-A sentential form B<directly derives> a second sentential form if,
-for an occurrence of a symbol in the first sentential form,
+A symbol string B<directly derives> a second symbol string if,
+for an occurrence of a symbol in the first symbol string,
 and for some production in the grammar with that symbol on its lhs,
 the result of replacing that symbol's occurrence
-in the first sentential form
+in the first symbol string
 with the rhs symbols of that production is
-the second sentential form.
+the second symbol string.
 A lhs always B<directly derives> its right hand side.
 
-If there is a sequence of direct derivations, starting with one sentential form
-and ending with another, the first sentential form B<derives> all other sentential forms
+If there is a sequence of direct derivations, starting with one symbol string
+and ending with another, the first symbol string B<derives> all other symbol string
 in the series.
-Where one sentential form derives another, but does not do so directly,
-the first sentential form is said to B<indirectly derive> the second one.
+Where one symbol string derives another, but does not do so directly,
+the first symbol string is said to B<indirectly derive> the second one.
 
-If one sentential form derives another,
-and the first sentential form consists of a single symbol,
-we often say that that symbol B<produces> the second sentential form.
+If one symbol string derives another,
+and the first symbol string consists of a single symbol,
+we often say that that symbol B<produces> the second symbol string.
 The lhs symbol of a production B<directly produces> its right hand side.
-If a lhs symbol produces a sentential form, but
+If a lhs symbol produces a symbol string, but
 does not do so directly,
-then the lhs symbol B<indirectly produces> the sentential form.
+then the lhs symbol B<indirectly produces> the symbol string.
 
-When we say that a symbol produces or derives a sentential form,
+When we say that a symbol produces or derives a symbol string,
 we are taking a top-down point of view.
 We sometimes take a bottom-up point of view,
-and say that the sentential form and the symbol B<match>.
+and say that the symbol string and the symbol B<match>.
 
 In any parse, one symbol is distinguished as the B<start symbol>.
 The parse of an input is successful
@@ -319,7 +321,7 @@ The B<value> of a parse is the value of its start symbol.
 =head2 Capabilities
 
 Marpa parses any language which can be expressed in cycle-free BNF.
-A cycle occurs when a symbol produces the sentential form consisting
+A cycle occurs when a symbol produces the symbol string consisting
 of that symbol and only of that symbol.
 Essentially, a cycle is recursion without change.
 Recursion is highly useful, but cycles always seem to be pathological.
