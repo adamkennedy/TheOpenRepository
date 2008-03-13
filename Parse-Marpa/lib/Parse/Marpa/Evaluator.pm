@@ -1145,30 +1145,56 @@ Suppose a grammar has these rules
     Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
 
 If the input is the string "C<Z>",
-this is the derivation
+the grammar derives it as follows:
 
-   Use marpa utility to get this 
+   S -> A Z        (Rule 0)
+     -> A "Z"      (Rule 6)
+     -> B C "Z"    (Rule 2)
+     -> B "Z"      (Rule 4)
+     -> "Z"        (Rule 3)
 
-symbols C<A>, C<B>, and C<C> will all match the empty string.
-Since C<A> produces both C<B> and C<C> in the derivation,
-and since the rule that produces C<A> is not an empty rule,
-C<A> is a "highest null symbol",
-Therefore, C<A>'s
-null value,
-the string "C<A is missing>",
-is the value of C<A> in the parse.
+In this derivation, symbols C<B>, and C<C> are nulled by Rules 3 and 4.
+Rules 3 and 4 therefore do not "count".
+Symbol C<A> is nulled by Rule 2, so Rule 2 also does not "count".
+Symbol C<S> is not nulled by Rule 0 -- it derives the string "C<Z>".
+Also, symbol C<Z> is not nulled by Rule 6.
+It also derives the string "C<Z>".
+Rules 0 and 6 therefore "count".
 
-Note carefully several things about this example.
-First, Rule 1 is not actually in the derivation of C<A>:
+Where the rules count, the symbols directly produced by them also count.
+Rule 0 directly produces C<A> and C<Z>, so both those symbols counts.
+Rule 6 is a terminal rule, so no additional symbols count because of it.
 
-      A -> B C   (Rule 2)
-      -> C       (Rule 3)
-      ->         (Rule 4)
+Another way of looking at this is that C<A> is the "highest null symbol"
+in a null derivation, so that it is the only nulled symbol to count in
+that derivation.
+C<Z> is not nulled, and any symbol which is not nulled, counts.
 
-Second, in the above derivation, C<B> and C<C> also have null values,
-which play no role in the result.
-Third, Rule 2 has a proper rule action,
-and it plays no role in the result either.
+Since the symbol C<Z> is not nulled,
+it is evaluated normally, using Rule 6.
+This makes its value, "C<Zorro was here>".
+Since the symbols C<B> and C<C> are nulled and do not "count",
+nothing about them plays any role in calculating the value of the parse.
+
+The symbol C<A> is nulled, but it "counts" by virtue of its appearance in
+a rule whose lhs is not nulled, making it the "highest null symbol".
+C<A> returns its null symbol value, which comes from the empty rule
+with C<A> as its lhs, Rule 1.
+According to Rule 1, C<A>'s value is "C<A is missing>".
+
+It is worth noting that Rule 1 is not actually used in the derivation.
+Rule 1 is used because
+the C<A> is nulled, but "counts" and
+Rule 1 defines the null symbol value for C<A>.
+
+The other rule which counts is Rule 0, the start rule.
+Its value is calculated from its action and the values of the symbols
+on its rhs.
+That value is "C<A is missing, but Zorro was here>",
+This becomes the value of C<S>, Rule 0's lhs.
+A parse has the value of its start symbol,
+so "C<A is missing, but Zorro was here>" is also
+the value of the parse.
 
 =head1 METHODS
 
@@ -1184,26 +1210,29 @@ Creates an evaluator object.
 On success, returns the evaluator object.
 Other failures are thrown as exceptions.
 
-The I<parse_end> argument is optional.
-If provided, it must be parse end earleme, that is,
-the number of the earleme at which the parse ends.
-If there is no parse end earleme argument,
-and the recognizer is active (that is, the parse was not exhausted) and in offline mode,
-the parse end earleme is the end of the input.
-In terms of tokens,
-the end of the input is the highest numbered earleme at which a token ends.
-Offline mode is the default.
+The first, required, argument is a recognizer object.
+The second, optional, argument 
+will be used as the number of the earleme at which to end parsing.
+Where parsing ends if no second argument is provided depends on the state
+of the recognizer.
+The usual circumstances are that
+parsing is in offline mode
+and the parse in the recognizer is still active, that is,
+it has not been exhausted.
+In this case parsing ends at the end of the input,
+or in other words,
+at the last earleme at which a token ends.
 
 If the parse was exhausted in the recognizer,
-the default parse end earleme is the one at which the parse was exhausted.
-Frankly, that won't often be very helpful,
-but in the case of an exhausted parse it's hard to think of anything that
-would be helpful.
-An exhausted parse is typically a failed parse.
+the default is for parsing to end with the earleme
+at which the parse was exhausted.
+Usually that won't be very helpful,
+since an exhausted parse is typically a failed parse.
 Failed parses are usually addressed by fixing the grammar or the
 input.
 
-The alternative to offline mode is online mode, which is bleeding-edge.
+The alternative to offline mode is online or streaming mode,
+which is bleeding-edge.
 In online mode there is no obvious "end of input".
 Online mode is not well tested, and
 Marpa doesn't yet provide a lot of tools for working with it.
