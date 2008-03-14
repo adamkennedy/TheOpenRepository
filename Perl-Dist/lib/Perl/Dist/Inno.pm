@@ -207,7 +207,7 @@ use Perl::Dist::Util::Toolchain     ();
 sub binary_root { 'http://strawberryperl.com/package' }
 
 my %PACKAGES = (
-	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+	'dmake'         => 'dmake-4.11-20080107-SHAY.zip',
 	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
 	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
 	'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
@@ -217,6 +217,7 @@ my %PACKAGES = (
 	'libiconv-dep'  => 'libiconv-1.9.2-1-dep.zip',
 	'libiconv-lib'  => 'libiconv-1.9.2-1-lib.zip',
 	'libiconv-bin'  => 'libiconv-1.9.2-1-bin.zip',
+	'expat'         => 'expat-2.0.1-vanilla.zip',
 	'gmp'           => 'gmp-4.2.1-vanilla.zip',
 );
 

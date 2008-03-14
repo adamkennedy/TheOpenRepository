@@ -21,26 +21,51 @@ BEGIN {
 # Apply some default paths
 sub new {
 	shift->SUPER::new(
-		perl_version         => '588',
+		app_id               => 'bootperl',
 		app_name             => 'Bootstrap Perl',
-		app_ver_name         => 'Bootstrap Perl Beta 2',
-		output_base_filename => 'bootstrap-perl-5.8.8-beta-2',
 		image_dir            => 'C:\\bootperl',
 		@_,
 	);
 }
 
-sub install_perl {
-	my $self = shift;
-	$self->SUPER::install_perl(@_);
+# Lazily default the full name
+sub app_ver_name {
+	$_[0]->{app_ver_name} or
+	$_[0]->app_name . ' ' . $_[0]->perl_version_human;
+}
 
-	# Install the bootperl CPAN::Config
+# Lazily default the file name
+sub output_base_filename {
+	$_[0]->{output_base_filename} or
+	'bootstrap-perl-' . $_[0]->perl_version_human;
+}
+
+
+
+
+
+#####################################################################
+# Installation Methods
+
+sub install_perl_5100_bin {
+	my $self = shift;
+	$self->SUPER::install_perl_5100_bin(@_);
+
 	$self->install_file(
-		share      => 'Perl-Dist bootperl/CPAN_Config.pm',
+		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
 	return 1;
+}
+
+sub install_perl_5100_toolchain_object {
+	Perl::Dist::Util::Toolchain->new(
+		perl_version => $_[0]->perl_version_literal,
+		force        => {
+			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+		},
+	);
 }
 
 # Install various additional modules
@@ -53,9 +78,9 @@ sub install_perl_modules {
 	);
 
 	# Install various developer tools
-	$self->install_module(
-		name => 'Bundle::CPAN',
-	);
+	#$self->install_module(
+	#	name => 'Bundle::CPAN',
+	#);
 	$self->install_module(
 		name => 'pler',
 	);
@@ -83,6 +108,8 @@ sub install_perl_modules {
 1;
 
 __END__
+
+=pod
 
 =head1 NAME
 
