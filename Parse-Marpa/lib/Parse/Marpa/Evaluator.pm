@@ -948,8 +948,7 @@ which finds the next parse and returns its value.
 Often only one parse is needed, in which case the C<next> method is called only once.
 
 Each Marpa recognizer should have only one evaluator using it at any one time.
-For efficiency,
-the evaluator does its work in tables kept
+The evaluator does its work in tables kept
 in the recognizer object.
 If multiple evaluators
 use the same recognizer at the same time,
@@ -968,20 +967,20 @@ If the defaults are used, Marpa will mark all its evaluators opaque.
 That is always a safe choice, if not always the most efficient one.
 
 Both grammars and recognizers can be marked opaque.
-A recognizer created from a opaque grammar is marked opaque.
+A recognizer created from an opaque grammar is marked opaque.
 A recognizer created from a grammar marked transparent is marked transparent,
-unless a C<opaque> named argument supplied at recognizer creation time
+unless an C<opaque> named argument supplied at recognizer creation time
 overrides that marking.
 A recognizer created from a grammar without a opacity marking is marked opaque,
 unless a C<opaque> named argument supplied at recognizer creation time
 overrides that marking.
-Once a a recognizer object has been created,
+Once a recognizer object has been created,
 its opacity setting cannot be changed.
 
 If a user decides to mark an object transparent,
 it is up to her to make sure all the
-evaluators created from that object are safe for memoization.
-An evaluator is safe for memoization if all its nodes are
+evaluators created from that object are safe for node memoization.
+An evaluator is safe for node memoization only if allo of its nodes are
 safe for memoization.
 Node values are computed by Perl 5 code,
 and node memoization follows the same principles as function memoization.
@@ -991,27 +990,27 @@ if it is always safe to substitute a constant value for the node's action.
 
 Here are some hints for making actions transparent:
 The code must have no side effects.
-Its return value should not be a reference.
-Its return value must depend completely on the return values of the child nodes.
+The return value should not be a reference.
+The return value must depend completely on the return values of the child nodes.
 All child nodes must be transparent as well.
 Any subroutines or functions must be transparent.
+
 Exceptions to these rules can be made, but you have to know what you're doing.
 There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
-
 If you're not sure whether your semantics are opaque or not,
 just accept Marpa's default behavior.
 Also, it is always safe to mark a grammar or a recognizer opaque yourself.
 
 Marpa will sometimes mark grammars opaque on its own.
 Marpa often optimizes the evaluation of sequence productions
-by passing a reference to an array among the nodes of the sequence.
+by passing a reference to an array between the nodes of the sequence.
 This elminates the need to repeatedly copy the array of sequence values
 as it is built.
 That's a big saving,
 especially if the sequence is long,
 but the reference to the array is shared data,
-and any changes to it are side effects.
+and the changes to it are side effects.
 
 Once an object has been marked opaque, whether by Marpa itself
 or the user, Marpa throws an exception if there is attempt to mark it transparent.
@@ -1022,13 +1021,10 @@ by comparison.
 
 =head2 Null Values
 
-A "null value" is a symbol's value when it matches the empty string in a parse.
-By default, the null value is a Perl undefined, which usually is what makes sense.
+A "null value" is the value used for a symbol's value when it is nulled in a parse.
+By default, the null value is a Perl undefined.
 If you want something else,
 the default null value is a predefined (C<default_null_value>) and can be reset.
-
-A symbol can produce the empty string directly, if it is the left hand side of an empty rule.
-It can also produce the empty string indirectly.
 
 Each symbol can have its own null symbol value.
 The null symbol value for any symbol is calculated using the action
@@ -1053,22 +1049,22 @@ rule actions are B<compiled into closures>.
 During parse evaluation,
 whenever a node for that rule needs its value recalculated,
 the compiled rule closure is run.
-The compiled rule closure may be opaque,
-that is, it may produce different values every time it is run.
+A compiled rule closure
+can produce a different value every time it runs.
 
 I treat null symbol actions differently for efficiency.
 They have no child values,
 and a fixed value is usually what is wanted.
 If you want to calculate a symbol's null value with a closure run at parse evaluation time,
 the null symbol action can return a reference to a closure.
-The parent rules with that nullable symbol on their right hand side
+Rules with that nullable symbol in their right hand side
 can then be set up so they run that closure.
 
 As mentioned,
 null symbol values are properties of a symbol, not of a rule.
 A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
-whether or not that happened directly through that symbol's empty rule.
+whether or not that happens directly through that symbol's empty rule.
 
 =head3 Principles
 
@@ -1078,52 +1074,49 @@ Marpa's determines null symbol values follows these principles:
 
 =item 1
 
-Rules which produce nothing don't count.
+Nodes which derive the empty string don't count.
 
 =item 2
 
-Rules which produce something do count.
+Nodes which derive a non-empty sentence do count.
 
 =item 3
 
-A symbol counts when it appears in a rule that counts.
+The start symbol counts.
 
 =item 4
 
-A symbol does not count when it appears in a rule that does not count.
+If a node counts, all the symbols on both the lhs and rhs of the corresponding rule count.
 
 =item 5
 
-Regardless of Principles 1 through 4, the start symbol always counts.
+No other symbols count.
 
 =back
 
-In evaluating a derivation, Marpa uses the semantics of rules and symbols which "count",
-and ignores those rules and symbols which "don't count."
+In evaluating a derivation, Marpa uses the semantics of nodes and symbols which count,
+and ignores those rules and symbols which don't count.
 The value of an empty string, for Marpa, is always the null value of a "highest null symbol".
-A "highest null symbol" will always appear in a rule which "counts",
-or speaking more carefully, in a non-empty rule.
+Except in the special case of a null parse,
+the "highest null symbol" will always appear in a rule which counts,
+in other words, in a non-empty rule.
 
-There's one special case:
-when the whole grammar takes the empty string as input,
-and parses it successfully.
-That's called a "null parse".
+A null parse, the case where the start symbol produces the empty string, is special.
 Whether or not a null parse is possible depends on the grammar.
-In a "null parse", the entire grammar "results in nothing".
-Null parses are the reason for Principle 5, above.
+Null parses are the reason for Principle 3.
 The value of a null parse is null value of the start symbol.
 
-If you think some of the rules or symbols that Marpa believes "don't count"
+If you think some of the rules or symbols that Marpa believes don't count
 are important in your grammar,
 Marpa can probably accommodate your ideas.
 First,
 for every nullable symbol,
 determine how to calculate the value which your null semantics produces
 when that nullable symbol is a "highest null symbol".
-If it's a constant, write a null action for that symbol which returns it.
+If it's a constant, write a null action for that symbol which returns that constant.
 If your null semantics do not produce a constant value by recognizer creation time,
 write a null action which returns a reference to a closure
-and arrange to have that closure run by a parent node.
+and arrange to have that closure run by the parent node.
 
 =head3 Detailed Example
 
@@ -1147,48 +1140,70 @@ Suppose a grammar has these rules
 If the input is the string "C<Z>",
 the grammar derives it as follows:
 
-   S -> A Z        (Rule 0)
-     -> A "Z"      (Rule 6)
-     -> B C "Z"    (Rule 2)
-     -> B "Z"      (Rule 4)
-     -> "Z"        (Rule 3)
+    S -> A Z        (Rule 0)
+      -> A "Z"      (Z produces "Z", by Rule 6)
+      -> B C "Z"    (A produces B C, by Rule 2)
+      -> B "Z"      (C produces the empty string, by Rule 4)
+      -> "Z"        (B produces the empty string, by Rule 3)
 
-In this derivation, symbols C<B>, and C<C> are nulled by Rules 3 and 4.
-Rules 3 and 4 therefore do not "count".
-Symbol C<A> is nulled by Rule 2, so Rule 2 also does not "count".
-Symbol C<S> is not nulled by Rule 0 -- it derives the string "C<Z>".
-Also, symbol C<Z> is not nulled by Rule 6.
-It also derives the string "C<Z>".
-Rules 0 and 6 therefore "count".
+The parse tree can be described as follows:
 
-Where the rules count, the symbols directly produced by them also count.
-Rule 0 directly produces C<A> and C<Z>, so both those symbols counts.
-Rule 6 is a terminal rule, so no additional symbols count because of it.
+    Node 0 (root): S (2 children, nodes 1 and 4)
+        Node 1: A (2 children, nodes 2 and 3)
+	    Node 2: B (matches empty string)
+	    Node 3: C (matches empty string)
+	Node 4: Z (matches "Z")
+
+Here's the sentence each node derives and what it evaluates to
+
+                      Symbol      Sentence     Value
+                                  Derived
+
+    Node 0:              S           Z         "A is missing, but Zorro is here"
+        Node 1:          A         Empty       "A is missing"
+	    Node 2:      B         Empty       No value
+	    Node 3:      C         Empty       No value
+	Node 4:          Z           Z         "Zorro was here"
+
+In this derivation, symbols C<B>, and C<C> are nulled.
+Nodes 2 and 3 therefore do not count.
+Symbol C<A> is nulled, so Node 1 also does not count.
+
+Two symbols are not nulled.
+The symbol C<S> derives the string "C<Z>".
+Symbol C<Z> also derives the string "C<Z>".
+Therefore, nodes 0 and 4 count.
+
+Where nodes count, symbols in the corresponding rules count.
+Rule 6 is a terminal rule, and its only symbol is C<Z>.
+Rules 0 has the symbol C<S> on its lhs, and
+C<A> and C<Z> on its rhs, so all these count.
 
 Another way of looking at this is that C<A> is the "highest null symbol"
-in a null derivation, so that it is the only nulled symbol to count in
-that derivation.
+in a null derivation,
+so that it is the only nulled symbol to count in that derivation.
+C<S> is that start symbol, which always counts.
 C<Z> is not nulled, and any symbol which is not nulled, counts.
 
 Since the symbol C<Z> is not nulled,
 it is evaluated normally, using Rule 6.
 This makes its value, "C<Zorro was here>".
-Since the symbols C<B> and C<C> are nulled and do not "count",
+Since the symbols C<B> and C<C> are nulled and do not count,
 nothing about them plays any role in calculating the value of the parse.
 
-The symbol C<A> is nulled, but it "counts" by virtue of its appearance in
-a rule whose lhs is not nulled, making it the "highest null symbol".
+The symbol C<A> is nulled, but it counts by virtue of its appearance in
+a rule whose lhs is not nulled,
+making it the "highest null symbol".
 C<A> returns its null symbol value, which comes from the empty rule
 with C<A> as its lhs, Rule 1.
 According to Rule 1, C<A>'s value is "C<A is missing>".
 
-It is worth noting that Rule 1 is not actually used in the derivation.
-Rule 1 is used because
-the C<A> is nulled, but "counts" and
-Rule 1 defines the null symbol value for C<A>.
+It is important to note that Rule 1 is not actually used in the derivation.
+Rule 1 is used because it
+defines the null symbol value for C<A>.
 
 The other rule which counts is Rule 0, the start rule.
-Its value is calculated from its action and the values of the symbols
+Its value is calculated from its action and the values for the symbols
 on its rhs.
 That value is "C<A is missing, but Zorro was here>",
 This becomes the value of C<S>, Rule 0's lhs.
@@ -1208,7 +1223,7 @@ Z<>
 
 Creates an evaluator object.
 On success, returns the evaluator object.
-Other failures are thrown as exceptions.
+Failures are thrown as exceptions.
 
 The first, required, argument is a recognizer object.
 The second, optional, argument 
@@ -1217,8 +1232,8 @@ Where parsing ends if no second argument is provided depends on the state
 of the recognizer.
 The usual circumstances are that
 parsing is in offline mode
-and the parse in the recognizer is still active, that is,
-it has not been exhausted.
+and the parse in the recognizer is still active or, in other words,
+the parse has not been exhausted.
 In this case parsing ends at the end of the input,
 or in other words,
 at the last earleme at which a token ends.
@@ -1234,8 +1249,7 @@ input.
 The alternative to offline mode is online or streaming mode,
 which is bleeding-edge.
 In online mode there is no obvious "end of input".
-Online mode is not well tested, and
-Marpa doesn't yet provide a lot of tools for working with it.
+Marpa doesn't yet provide a lot of tools for working with online mode.
 It's up to the user to determine where to look for parses,
 perhaps using her specific knowledge of the grammar and the problem
 space.
@@ -1256,6 +1270,12 @@ Failures are thrown as exceptions.
 Parses are iterated from rightmost to leftmost.
 The parse order may be manipulated by assigning priorities to the rules and
 terminals.
+
+A failed parse does not always show up as an exhausted parse in the recognizer.
+Just because the recognizer was actively parsing when it was used to create
+the evaluator, does not mean that the input matches the grammar.
+If it does not, there will be no parses and the C<next> method will
+return undefined the first time it is called.
 
 =head1 IMPLEMENTATION
 

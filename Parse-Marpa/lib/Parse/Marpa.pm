@@ -202,24 +202,30 @@ more mature and stable.
 
 =head2 Parsing Terminology
 
-This section is to serve as a handy reminder of standard parsing terminology.
-Readers who feel comfortable with parsing may skim it or skip it completely.
-Newcomers to parsing should look at an introduction to the subject
--- what follows is just a terse summary of the vocabulary for those who are
-mostly familiar with it already.
+The Marpa documents assume you know standard parsing concepts and terms.
+This section is intended to be read quickly to serve as a reminder.
+I put B<defining uses> of terms in boldface, for easy skimming.
+If you are familiar with parsing terminology, you can skip this
+section entirely.
 
+If you don't know parsing, it's probably not a good idea to try
+to learn it by studying this section, which is a 
+terse summary of the vocabulary aimed at those who are
+mostly familiar with it already.
 As an introduction, I reccommend
 L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
 Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
 
 A B<grammar> is a set of rules.
-The rules describe a set of strings of B<symbols>.
-A B<recognizer> is a program that determines whether its B<input>
-is one of the strings in the set described by the rules of a B<grammar>.
-A B<parser> is a program which finds the structure of the input
-according to the B<rules> of a B<grammar>.
+The B<rules> describe a set of strings of B<symbols>.
+A string of symbols is often called a B<symbol string>.
 The rules of a grammar are often called B<productions>.
+
+A B<recognizer> is a program that determines whether its B<input>
+is one of the symbols strings in the set described by the rules of a grammar.
+A B<parser> is a program which finds the structure of the input
+according to the rules of a grammar.
 
 The term B<parsing> is used in a strict and a loose sense.
 B<Parsing> in the loose sense means the entire process of finding a grammar's structure,
@@ -249,7 +255,8 @@ In context-free grammars,
 like the ones Marpa parses,
 the left hand side will always be a single B<symbol>.
 The right hand side may be zero or more symbols.
-If the rhs of a production has no symbols, it is called an B<empty production>.
+If the rhs of a production has no symbols, it is called an B<empty production>
+or an B<empty rule>.
 
 A symbol which is allowed in the input is called a B<terminal> symbol.
 A string of zero or more of the symbols in a grammar will be called a B<symbol string>,
@@ -261,85 +268,147 @@ that symbol string is also called a B<sentence>.
 The input to a successful parse must be a sentence,
 but just because the input is a sentence does not mean that it will parse successfully.
 
-A symbol string B<directly derives> a second symbol string if,
-for an occurrence of a symbol in the first symbol string,
-and for some production in the grammar with that symbol on its lhs,
-the result of replacing that symbol's occurrence
-in the first symbol string
-with the rhs symbols of that production is
-the second symbol string.
-A lhs always B<directly derives> its right hand side.
+A B<step> of a derivation, or a B<derivation step> is make by taking one symbol string,
+and any production in the grammar whose lhs occurs in that first symbol string,
+and replacing an occurrence of the lhs symbol in the first symbol string with the
+rhs of the production.  For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
+and
+    X: B, C.
 
-If there is a sequence of direct derivations, starting with one symbol string
-and ending with another, the first symbol string B<derives> all other symbol string
-in the series.
-Where one symbol string derives another, but does not do so directly,
-the first symbol string is said to B<indirectly derive> the second one.
+is a production, then
 
-If one symbol string derives another,
-and the first symbol string consists of a single symbol,
-we often say that that symbol B<produces> the second symbol string.
-The lhs symbol of a production B<directly produces> its right hand side.
-If a lhs symbol produces a symbol string, but
-does not do so directly,
-then the lhs symbol B<indirectly produces> the symbol string.
+    A X D -> A B C D
+
+is a derivation step, with "C<A X D>" as its start and "C<A B C D>" as its result.
+We say that the string "C<A X D>"
+B<directly derives> the string
+"C<A B C D>".
+
+A B<derivation> is a sequence of derivation steps.
+The B<length> of a derivation is its length in steps.  A symbol string directly
+derives another if and only if there is a derivation of length on from the first symbol
+string to the second.  A symbol string is considered to derive itself in a derivation
+of length 0.  A zero length derivation is a B<trivial derivation>.
+
+If a derivation is not trivial or direct, that is, if it has more than one step,
+then it is an B<indirect> derivation.  A derviation which is not trivial, that is,
+which has more than zero steps, is a B<non-trivial> derivation.
+
+Where the first symbol string of a derivation consists of a single symbol,
+we often say that symbol B<produces> the symbol string which results from the derivation.
+We say that the first symbol trivially, non-trivially, directly or indirectly produces
+the symbol string if the length of the derivation is 0, greater than 0, 1, or greater than 1,
+just as we do when we say a symbol string derives another symbol string.
+
+The B<length> of a symbol string is the number of symbols in it.
+The zero length symbol string is called the B<empty string>.
+The empty string can be considered to be a sentence, in which
+case it is the B<empty sentence>.
+A string of one or more symbols is B<non-empty>.
+A derivation which produces the empty string is a B<null derivation>.
+A derivation from the start symbol which produces the empty string
+is a B<null parse>.
+
+If in a particular grammar, a symbol has a null derivation,
+it is a B<nullable symbol>.
+If, in a particular grammar,
+the only sentence produced by a symbol is the empty sentence,
+it is a B<nulling symbol>.
+All nulling symbols are nullable symbols.
+In any instance where a symbol produces the empty string,
+it is said to be B<nulled>,
+or to be a B<null symbol>.
+
+In any parse, one symbol is distinguished as the B<start symbol>.
+The parse of an input is successful
+if and only if the start symbol produces the string
+of input symbols according to the grammar.
+
+The structure of a parse can be represented by as a series of derivation steps from
+the start symbol to the input.
+If a rule can never be reached from the start symbol, that is, if no derivation
+from the start symbol ever uses that rule,
+that rule is called B<unreachable>.
+Some rules can never be used in any valid derivation of any input.
+Such a rule is called B<unproductive>.
+A simple case of an unproductive rule is one whose rhs contains a symbol which is not
+a terminal and not on the lhs of any other rule.
+A B<useless> rule is one which is unreaachable or unproductive.
 
 When we say that a symbol produces or derives a symbol string,
 we are taking a top-down point of view.
 We sometimes take a bottom-up point of view,
 and say that the symbol string and the symbol B<match>.
 
-In any parse, one symbol is distinguished as the B<start symbol>.
-The parse of an input is successful
-if and only if the start symbol produces the string
-of input symbols according to the grammar.
-Another way to say this is that the parse is successful
-if and only if the input matches the start symbol.
+If any symbol in the grammar non-trivially produces a symbol string containing itself,
+the grammar is said to be B<recursive>.
+If a symbol non-trivially produces a symbol string with itself on the left,
+the grammar is said to be B<left-recursive>.
+If a symbol non-trivially produces a symbol string with itself on the right,
+the grammar is said to be B<right-recursive>.
+A case where a symbol non-trivially produces a symbol string which contains
+itself and is length 1, is a B<cycle>.
+A grammar which contains no cycles is B<cycle-free>.
 
-In real life, the structure of a parse is usually a means to an end.
-What the user actually wants is to B<evaluate> the parse.
-A parse being evaluated is often described as a B<tree>
-where each symbol in the parse corresponds to a B<node>.
-For every non-empty production used in the parse,
-the lhs corresponds to a B<parent>
-node, and the rhs symbols are its B<child> nodes.
-The start symbol is the root of the tree.
+A derivation is one way to represent the structure of a parse.
+If, for a particular grammar, more than one derivation is possible for an input,
+that input is said to have an B<ambiguous> parse.
+An B<ambiguous> grammar is one which for which there is some input
+that has an ambiguous parse.
+
+A B<parse tree> is another.
+Every symbol used in the parse is
+represented by a B<node> of the parse tree.
+Wherever a production is used in the parse,
+its lhs is represented by a B<parent node>
+and the rhs symbols are represented by B<child nodes>.
+The start symbol is the B<root> of the tree.
 Terminals and symbols on the
-left hand side of empty productions are leaves.
-A node closer to the root node are said to be B<higher>
+left hand side of empty productions are B<leaf nodes>.
+If a node is not a B<leaf node>, it is an B<inner node>.
+
+The node at the root of the tree is the B<start node>.
+Any node with a symbol being used as a terminal is a B<terminal node>.
+A node closer to the root node is said to be B<higher>
 than a node further away.
 
-The B<value> of every node is the value of its symbol.
-Terminal symbols are associated with a value on input.
-Parent nodes have a B<semantics> associated with them,
-which comes from the corresponding production.
-The semantics describe how the value of the lhs symbol (parent node)
-is calculated, usually using one or more of the rhs symbols (child nodes).
+The tree representation is especially useful when B<evaluating> a parse.
+In real life, the structure of a parse is usually a means to an end.
+Grammars usually have a B<semantics> associated with them,
+and what the user actually wants is the B<value> of the parse
+according to the semantics.
+
+Every leaf node which represents a terminal symbol
+has a value associated with it on input.
+Leaf nodes which represent nulled symbols are treated specially in Marpa,
+as described elsewhere.
+Inner nodes 
+take their semantics from the production whose lhs they represent.
+The semantics for a production
+describe how to calculate the value of the node which represents the lhs
+(the parent node)
+from the values of one or more of the nodes which represent the rhs symbols
+(child nodes).
 Values are computed recursively, bottom-up.
-The B<value> of a parse is the value of its start symbol.
+The value of a parse is the value of its start symbol.
 
 =head2 Capabilities
 
 Marpa parses any language which can be expressed in cycle-free BNF.
-A cycle occurs when a symbol produces the symbol string consisting
-of that symbol and only of that symbol.
+(A cycle occurs when a symbol non-trivially produces a symbol string consisting
+only of itself.)
 Essentially, a cycle is recursion without change.
 Recursion is highly useful, but cycles always seem to be pathological.
-
-As long as they are cycle-free,
-Marpa cheerfully parses recursive grammars.
-Grammars may be left-recursive, right-recursive, middle-recursive or all three.
+Marpa will parse recursive grammars, including left-recursive and right-recursive ones,
+as long as they are cycle-free.
 
 In formal terms, Marpa parses any cycle-free context-free grammar.
-The grammars that Marpa can parse include all the "proper" context-free grammars,
-plus those with empty productions and useless productions.
-Often the only natural way to express a language is with
-empty productions.
-The "useless" productions are those which can never be used in a parse, either
-because no possible input can match them (unproductive rules),
-or because they cannot be reached from the start symbol (inaccessible rules).
-Useless these productions might be,
-but they cause no major harm,
+Marpa can parse grammars
+with empty productions and useless productions.
+Often you cannot
+express the semantics of a grammar in a natural way without 
+using empty productions.
+Useless productions cause no major harm,
 and Marpa is happy to tolerate them.
 
 Ambiguous grammars are a Marpa specialty.
@@ -356,9 +425,9 @@ so that a preferred parse is returned first.
 Marpa can also return all the parses of an ambiguous grammar,
 if that's what the user prefers.
 
-Marpa incorporates made major improvements from recent research on Earley's algorithm,
-in particular, combining it with LR(0) precomputation.
-Marpa also introduces its own innovations,
+Marpa incorporates major improvements from recent research into Earley's algorithm.
+In particular, it combining Earley's with LR(0) precomputation.
+Marpa also has innovations of its own,
 including predictive and ambiguous lexing.
 
 =head2 The Easy Way
@@ -369,6 +438,7 @@ The C<mdl> method requires a grammar description in MDL (the Marpa Description L
 C<mdl> parses the string according to the MDL description.
 In scalar context, C<mdl> returns the value of the first parse.
 In list context, it returns all the value of all the parses.
+See L<below/"mdl"> for more detail about the C<mdl> static method.
 
 =head2 Semantic Actions
 
@@ -398,18 +468,6 @@ When Perl 6 is ready, Perl 6 code will become its default semantics.
 
 =head2 Null Symbol Values
 
-As mentioned, Marpa parses grammars with empty productions.
-This means some symbols in the grammar can produce the empty string.
-
-A symbol which produces the empty string is called A B<null symbol>.
-When a symbol produces the empty string it may also be said to be B<nulled>.
-Within a single parse, the same symbol may be nulled in some locations
-and not in others.
-A symbol may be nulled directly, that is,
-because is the right hand side of an empty production.
-A symbol may be nulled indirectly if it produces other symbols,
-but all of these are eventually nulled.
-
 Every symbol has a B<null symbol value>,
 or more briefly, a B<null value>,
 and this is used as the value of the symbol when it is nulled.
@@ -423,17 +481,17 @@ For more details, and examples, see L<Parse::Marpa::Evaluator/"Null Symbol Value
 
 =head2 Lexing
 
-MDL allows terminals to be associated with Perl 5 regexes,
+MDL allows terminals to be defined with Perl 5 regexes,
 and this is the easiest way to do lexing in Marpa.
 Unlike most parser generators,
-Marpa does not require that the patterns result in a deterministic lexer.
+Marpa does not require that the regular expressions result in a deterministic lexer.
 It is OK with Marpa if more than one token is possible at a location,
 or if possible tokens overlap.
 Ambiguities encountered in lexing are passed up to Marpa's parse engine,
 and dealt with there.
-
 For cases where Perl 5 regexes are insufficient,
-MDL allows terminals to be associated with lex actions (Perl 5 code strings).
+MDL allows terminals to be defined using lex actions,
+which are Perl 5 code strings.
 
 Marpa allows terminals to appear on the left hand side of rules.
 Most parsers have a problem with this, but Marpa does not.
@@ -466,9 +524,9 @@ the
 L<Parse::Marpa::Grammar>,
 L<Parse::Marpa::Recognizer>,
 and L<Parse::Marpa::Evaluator> documents
-describe methods which allow you more control over each phase
+describe methods which allow you control over the individual phases
 of the parse,
-and deal with advanced topics associated with each phase.
+and discuss advanced topics associated with each phase.
 
 L<Parse::Marpa::Doc::Plumbing> documents Marpa's plumbing interface.
 L<Parse::Marpa::Lex> documents some lex actions which are used
@@ -476,9 +534,7 @@ by MDL, and which are available to users for their own lexing.
 
 The L<diagnostics|Parse::Marpa::Doc::Diagnostics> document
 describes techniques, named arguments and methods available for debugging
-and tracing
-parses and grammars.
-L<Parse::Marpa::Doc::Diagnostics> indicates how easy each technique is to apply and interpret.
+and tracing.
 For the more advanced diagnostics,
 it can be useful or necessary to understand Marpa's internals.
 These are described in 
@@ -486,23 +542,25 @@ L<Parse::Marpa::Doc::Internals>.
 Also, those interested in reading the code should read
 L<Parse::Marpa::Doc::Internals> first.
 
-Details about sources (books and articles) referred to in these documents
+Details about sources (books, web pages and articles) referred to in these documents
 or used in the writing of Marpa
 are collected in
 L<Parse::Marpa::Doc::Bibliography>.
-For those interested in the theory of these things,
+For those interested in theory,
 L<Parse::Marpa::Doc::Algorithm> describes Marpa's algorithm,
-explaining how Marpa would not have been possible without the
+explains how Marpa would not have been possible without the
 the work of others,
-and detailing what is new with Marpa.
+and details what is new with Marpa.
 L<Parse::Marpa::Doc::To_Do> is Marpa's list of things to do.
 
 =head2 Phases
 
-The C<mdl> method hides Marpa's parsing phases from the user,
-calling Marpa's object methods as it needs to.
-But for advanced applications and for tracing and diagnostics,
-it is useful to know how Marpa parses.
+The C<mdl> method
+hides the process of creating Marpa's objects
+and using Marpa's object methods from the user.
+But for advanced applications,
+and for tracing and diagnostics,
+it is useful to know how Marpa works in detail.
 
 Marpa parsing take place in three phases:
 B<grammar creation>,
@@ -529,8 +587,8 @@ Details on grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
 To create a Marpa recognizer object (C<Parse::Marpa::Recognizer>),
 a Marpa grammar object is required.
 Once a recognizer object has been created, it can accept input.
-Multiple recognizers can be created from a single grammar,
-and they can safely be run simultaneously.
+You can create multiple recognizers from a single grammar,
+and safely run them simultaneously.
 
 Recognizing an input is answering the "yes" or "no" question:
 Does the input match the grammar?
@@ -544,7 +602,7 @@ see L<Parse::Marpa::Recognizer>.
 
 Currently, Marpa fully supports only non-streaming or "offline" input.
 Marpa can also parse streamed inputs,
-but the methods to help finding completed parses in a streamed input 
+but the methods to find completed parses in a streamed input 
 are still experimental.
 
 In offline mode, once input is completed,
@@ -563,10 +621,10 @@ see L<Parse::Marpa::Evaluator>.
 A grammar is specified to Marpa through a B<grammar interface>.
 There are two kinds of grammar interfaces,
 B<porcelain> and B<plumbing>.
-There is only one B<plumbing interface>,
-and as of the moment there is also only one
+There is only one B<plumbing interface>.
+As of the moment there is also only one
 B<porcelain interface>,
-the B<Marpa Demonstration Language>
+the B<Marpa Demonstration Language>.
 
 The B<plumbing> is a set of named arguments to
 the C<new> and C<set> methods of
@@ -580,10 +638,10 @@ The documentation for the plumbing
 is L<Parse::Marpa::Doc::Plumbing>.
 
 There can be other porcelain interfaces.
-In Marpa's eyes all porcelain interfaces will be equal.
+In Marpa's eyes all porcelain will be equal.
 Users are encouraged to design their own porcelain.
 I call the porcelain that I am delivering with 
-Marpa the B<Marpa Demonstration Language> instead
+Marpa the Marpa Demonstration Language instead
 of the "Marpa Language" to emphasize its lack of special status.
 The documentation for MDL can be found at L<Parse::Marpa::Doc::MDL>.
 
@@ -592,11 +650,6 @@ The documentation for MDL can be found at L<Parse::Marpa::Doc::MDL>.
 For semantic actions and lexing closures,
 there is a special namespace for each parse object.
 This special namespace belongs entirely to the user.
-
-The C<$_> variable is made available to the rule actions,
-and the C<$STRING> and C<$START> variables to the lex actions.
-They are available on a read-only basis,
-except as described in the documentation.
 
 In the following namespaces,
 users should use only documented methods:
@@ -614,6 +667,10 @@ the C<Parse::Marpa::Read_Only> namespace on a read-only basis.
 Marpa namespaces and variables not mentioned in this section,
 should not be relied on or modified.
 
+The C<$_> variable is made available to the rule actions,
+and the C<$STRING> and C<$START> variables to the lex actions,
+on a read-only basis,
+except as described in the documentation.
 Staying read-only can be tricky when dealing with Perl 5 arrays and hashes.
 Be careful about auto-vivification!
 
@@ -629,20 +686,14 @@ Non-exceptional failures are described in the documentation for the method which
 
 =head2 mdl
 
-     # Parse a string and return the result
-     # Be sure to specify both input and grammar as REFERENCES to strings
      $first_result = Parse::Marpa::mdl(\$grammar_description, \$string_to_parse);
 
 Z<>
 
-     # if the parse is ambiguous and you want more than the first result,
-     # return the value in array context
      @all_results = Parse::Marpa::mdl(\$grammar_description, \$string_to_parse);
 
 Z<>
 
-     # You can set Marpa's options as named arguments, by specifying
-     # a hash reference of them as the optional third argument
      $first_result = Parse::Marpa::mdl(
          \$grammar_description,
          \$string_to_parse,
@@ -732,7 +783,7 @@ The C<code_lines> option can be changed at any point in a parse.
 
 =item default_action
 
-Takes as its value a string, which is expected to be code in the current
+Takes as its value a string, which must be code in the current
 semantics.
 (Right now Perl 5 is the only semantics available.)
 This value is used as the action for rules which have no
@@ -753,8 +804,8 @@ C<default_lex_prefix> cannot be changed once a grammar is precomputed.
 
 If a terminal has no lex prefix set, C<default_lex_prefix> is used.
 When C<default_lex_prefix> is not set,
-the default lex prefix is equivalent to a regex which always
-and only matches the empty string.
+the default lex prefix is equivalent to a regex which matches
+only the empty string.
 
 =item default_null_value
 
@@ -764,13 +815,14 @@ The null value of a symbol is the symbol's value when it matches the empty strin
 Null symbol values are calculated when a recognizer object is created.
 C<default_null_value> cannot be changed after that point.
 
-Symbols which have an explicitly set null symbol value use that value.
+Symbols with an explicitly set null action
+use the value returned by that explicitly set action.
 Otherwise,
 if there is a C<default_null_value> action, that 
 action is run when the recognizer is created,
 and the result becomes that symbol's null value.
-If a symbol has no explicitly set null symbol value,
-and there is no C<default_null_value> action,
+If there is no C<default_null_value> action,
+and a symbol has no explicitly set null action,
 that symbol's null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
 L<Parse::Marpa::Evaluator/"Null Symbol Values">.
@@ -789,16 +841,20 @@ C<max_parses> can be changed at any point in the parse.
 =item online
 
 A boolean.
-If true, Marpa runs in online mode.
+If true, Marpa runs in online or streaming mode.
 If false, Marpa runs in offline mode.
 The C<online> option cannot be changed after a recognizer is created.
+Offline mode is the default.
+As of this release,
+online mode is experimental.
 
-In B<offline> mode, which is the default,
-Marpa assumes that input to a recognizer has ended when the first evaluator is created from it.
-It does some final bookkeeping,
+In B<offline> mode,
+when the first evaluator is created from a recognizer,
+Marpa assumes that input to the recognizer has ended.
+The recognizer does some final bookkeeping,
 refuses to accept any more input,
-and sets its default parse to be a parse of the entire input,
-from beginning to end.
+and sets the default parse to be a parse of the entire input,
+from earleme 0 to the last earleme at which a token ends.
 
 In B<online> mode,
 which is under construction,
@@ -817,8 +873,9 @@ may help.
 
 The preamble is a string which contains code in the current semantics.
 (Right now Perl 5 is the only semantics available.)
-The preamble is run in a namespace special to the recognizer object,
+The preamble is run
 when the recognizer object is created,
+in a namespace special to the recognizer object.
 Rule actions and lex actions also run in this namespace.
 A preamble may be used to set up globals.
 The preamble of a recognizer object cannot be changed
@@ -834,7 +891,7 @@ which creates a preamble by concatenating code strings.
 
 The value is a string specifying the type of semantics used in the semantic actions.
 The current default, and the only available semantics at this writing, is C<perl5>.
-The semantics cannot be changed after the grammar is precomputed.
+The C<semantics> option cannot be changed after the grammar is precomputed.
 
 =item trace_file_handle
 
@@ -850,16 +907,15 @@ Marpa version B<exactly>.
 This is because while Marpa is in alpha,
 features may change dramatically from version
 to version.
-The version cannot be changed after the grammar is precomputed.
+The C<version> option cannot be changed after the grammar is precomputed.
 
 =item opaque
 
-The C<opaque> option is used to mark
-an object as opaque or transparent.
+The C<opaque> option is used to set the opacity of an object.
 A value of 1 marks the object opaque.
-A value of 0 marks it transparent.
+A value of 0 is the default, and marks it transparent.
 Not specifying this option and accepting the default behavior is always safe.
-Once an object has been marked opaque,
+If an object is been marked opaque,
 its opacity setting cannot be changed.
 
 Recognizers inherit the opacity marking of the grammar used to create them,
@@ -869,7 +925,7 @@ and no C<opaque> option is specified,
 the recognizer is marked opaque.
 Evaluators inherit the opacity marking of the recognizer used to create them.
 
-If a evaluator object is marked transparent,
+If an evaluator object is marked transparent,
 an optimization called "node value memoization" is enabled.
 Evaluators should be marked transparent only if
 the evaluator's semantic actions can be safely memoized.
@@ -889,11 +945,6 @@ By default, warnings are on.
 Turning warnings on
 after grammar precomputation is useless,
 and itself results in a warning.
-
-Inaccessible rules are those which can never be produced by the start symbol.
-Unproductive rules are those which no possible input could ever match.
-Marpa ignores these, and if the remaining rules
-specify a useable grammar will happily parse it.
 
 Inaccessible and unproductive rules sometimes indicate errors in the grammar
 design.
@@ -939,13 +990,13 @@ in order to demonstrate Marpa's capabilities.
 A porcelain interface which doesn't use ambiguous lexing could easily run
 faster.
 
-If the Marpa Demonstration Language's parsing speed
+If MDL's parsing speed
 becomes an issue with a particular grammar,
 that grammar can be precompiled.
 Subsequent runs of the precompiled grammar don't incur the overhead of either
 MDL parsing or precomputation.
-Marpa's parses the MDL sources provided by users
-using a grammar precompiled from an self-describing MDL original.
+Marpa parses the user's MDL
+using a grammar precompiled from an self-describing grammar written in MDL.
 
 =head3 Comparison with other Parsers
 
@@ -1204,7 +1255,8 @@ but if so, they were too polite to say so.
 
 Many at perlmonks.org answered questions for me.
 I used answers from
-chromatic, dragonchild, samtregar and Juerd,
+chromatic, Corion, dragonchild,
+jdporter, samtregar and Juerd,
 among others,
 in writing this module.
 I'm just as grateful to those whose answers I didn't use.
