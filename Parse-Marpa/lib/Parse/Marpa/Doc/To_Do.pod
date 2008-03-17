@@ -33,6 +33,8 @@ to have been only lightly exercized.
 =item * Allow multiple evaluators for each recognizer, or at least create a method
 to safe deep copy recognizers.
 
+=item * If recognizer did not recognize the input, don't allow evaluator to be created.
+
 =item * Ensure Parse::Marpa::Internal::This::grammar set wherever appropriate.
 
 =item * Test right and left evaluation in rules

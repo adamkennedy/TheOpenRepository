@@ -1251,7 +1251,7 @@ More recently,
 Allison Randal and Patrick Michaud have been generous with their
 very valuable time.
 They might have preferred that I volunteered as a Parrot cage-cleaner,
-but if so, they were too polite to say so.
+but if so, they were too polite to say.
 
 Many at perlmonks.org answered questions for me.
 I used answers from
