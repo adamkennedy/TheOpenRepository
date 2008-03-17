@@ -939,17 +939,17 @@ Parse::Marpa::Evaluator - A Marpa Evaluator Object
 =head1 DESCRIPTION
 
 Parses are found and evaluated by Marpa's evaluator objects.
-Marpa evaluator objects are created with the C<new> constructor,
+Evaluators are created with the C<new> constructor,
 which requires a Marpa recognizer object.
 
-Marpa allows ambiguous parses, so Marpa's parse evaluator objects are iterators.
+Marpa allows ambiguous parses, so evaluator objects are iterators.
 Iteration is performed with the C<next> method,
 which finds the next parse and returns its value.
 Often only one parse is needed, in which case the C<next> method is called only once.
 
-Each Marpa recognizer should have only one evaluator using it at any one time.
 The evaluator does its work in tables kept
 in the recognizer object.
+Each Marpa recognizer should have only one evaluator using it at any one time.
 If multiple evaluators
 use the same recognizer at the same time,
 they may produce incorrect results.
@@ -964,9 +964,9 @@ But when multiple parses are evaluated in a parse with expensive rule actions,
 the boost in efficiency from node value memoization can be major.
 
 If the defaults are used, Marpa will mark all its evaluators opaque.
-That is always a safe choice, if not always the most efficient one.
+That is always a safe choice.
 
-Both grammars and recognizers can be marked opaque.
+Grammars and recognizers can be marked opaque.
 A recognizer created from an opaque grammar is marked opaque.
 A recognizer created from a grammar marked transparent is marked transparent,
 unless an C<opaque> named argument supplied at recognizer creation time
@@ -980,7 +980,7 @@ its opacity setting cannot be changed.
 If a user decides to mark an object transparent,
 it is up to her to make sure all the
 evaluators created from that object are safe for node memoization.
-An evaluator is safe for node memoization only if allo of its nodes are
+An evaluator is safe for node memoization only if all of its nodes are
 safe for memoization.
 Node values are computed by Perl 5 code,
 and node memoization follows the same principles as function memoization.
@@ -1000,7 +1000,7 @@ There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 If you're not sure whether your semantics are opaque or not,
 just accept Marpa's default behavior.
-Also, it is always safe to mark a grammar or a recognizer opaque yourself.
+Also, it is always safe to mark a grammar or a recognizer opaque.
 
 Marpa will sometimes mark grammars opaque on its own.
 Marpa often optimizes the evaluation of sequence productions
@@ -1010,14 +1010,12 @@ as it is built.
 That's a big saving,
 especially if the sequence is long,
 but the reference to the array is shared data,
-and the changes to it are side effects.
+and the changes to the array are side effects.
 
 Once an object has been marked opaque, whether by Marpa itself
-or the user, Marpa throws an exception if there is attempt to mark it transparent.
+or the user, Marpa throws an exception if there is an attempt to mark it transparent.
 Resetting a grammar to transparent will almost always be an oversight,
 and one that would be very hard to debug.
-The inconvenience of not allowing the user to change his mind seems minor
-by comparison.
 
 =head2 Null Values
 
@@ -1068,7 +1066,7 @@ whether or not that happens directly through that symbol's empty rule.
 
 =head3 Principles
 
-Marpa's determines null symbol values follows these principles:
+Marpa's determines null symbol values following these principles:
 
 =over 4
 
@@ -1078,7 +1076,7 @@ Nodes which derive the empty string don't count.
 
 =item 2
 
-Nodes which derive a non-empty sentence do count.
+All the other nodes do count.
 
 =item 3
 
@@ -1090,7 +1088,7 @@ If a node counts, all the symbols on both the lhs and rhs of the corresponding r
 
 =item 5
 
-No other symbols count.
+Other symbols don't count.
 
 =back
 
@@ -1165,9 +1163,9 @@ Here's the sentence each node derives and what it evaluates to
 	    Node 3:      C         Empty       No value
 	Node 4:          Z           Z         "Zorro was here"
 
-In this derivation, symbols C<B>, and C<C> are nulled.
+In this derivation, symbols C<B> and C<C> are nulled.
 Nodes 2 and 3 therefore do not count.
-Symbol C<A> is nulled, so Node 1 also does not count.
+Symbol C<A> is also nulled, so Node 1 also does not count.
 
 Two symbols are not nulled.
 The symbol C<S> derives the string "C<Z>".
@@ -1182,8 +1180,11 @@ C<A> and C<Z> on its rhs, so all these count.
 Another way of looking at this is that C<A> is the "highest null symbol"
 in a null derivation,
 so that it is the only nulled symbol to count in that derivation.
-C<S> is that start symbol, which always counts.
-C<Z> is not nulled, and any symbol which is not nulled, counts.
+C<S> is the start symbol, which always counts.
+Symbol C<Z> is not nulled.
+Symbols which are not nulled always wind up counting
+because no node can be nulled unless its symbol is.
+Therefore, symbol C<Z> counts.
 
 Since the symbol C<Z> is not nulled,
 it is evaluated normally, using Rule 6.
@@ -1192,18 +1193,19 @@ Since the symbols C<B> and C<C> are nulled and do not count,
 nothing about them plays any role in calculating the value of the parse.
 
 The symbol C<A> is nulled, but it counts by virtue of its appearance in
-a rule whose lhs is not nulled,
+a node which is not nulled,
 making it the "highest null symbol".
-C<A> returns its null symbol value, which comes from the empty rule
-with C<A> as its lhs, Rule 1.
-According to Rule 1, C<A>'s value is "C<A is missing>".
+C<A> returns its null symbol value.
+C<A>'s null symbol value is calculated by running the action
+for the empty rule which has C<A> as its lhs, which is Rule 1.
+C<A>'s value is "C<A is missing>".
 
 It is important to note that Rule 1 is not actually used in the derivation.
 Rule 1 is used because it
 defines the null symbol value for C<A>.
 
 The other rule which counts is Rule 0, the start rule.
-Its value is calculated from its action and the values for the symbols
+Its value is calculated using its action and the values for the symbols
 on its rhs.
 That value is "C<A is missing, but Zorro was here>",
 This becomes the value of C<S>, Rule 0's lhs.
@@ -1274,7 +1276,7 @@ terminals.
 A failed parse does not always show up as an exhausted parse in the recognizer.
 Just because the recognizer was actively parsing when it was used to create
 the evaluator, does not mean that the input matches the grammar.
-If it does not, there will be no parses and the C<next> method will
+If it does not match, there will be no parses and the C<next> method will
 return undefined the first time it is called.
 
 =head1 IMPLEMENTATION
@@ -1287,9 +1289,10 @@ node value memoization has no payoff unless multiple parses are evaluated,
 which is not the usual case.
 Optimization of sequence evaluation almost always pays off quickly and handsomely.
 
-A possible future extension is to add the ability to 
-label only particular rules opaque.
-But there's something to be said for keeping interfaces simple.
+A possible future extension is to enable the user to 
+label only particular rules opaque, and to allow node memoization
+on a rule by rule basis.
+But there's something to be said for keeping things simple.
 If a grammar writer is really looking for speed,
 she can let the grammar default to opaque,
 then use side effects and targeted caching and memoization.
