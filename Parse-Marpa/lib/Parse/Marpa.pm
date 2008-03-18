@@ -202,20 +202,24 @@ more mature and stable.
 
 =head2 Parsing Terminology
 
-The Marpa documents assume you know standard parsing concepts and terms.
+The Marpa documents assume that you know
+the standard concepts and terminology of parsing.
 This section is intended to be read quickly to serve as a reminder.
 I put B<defining uses> of terms in boldface, for easy skimming.
-If you are familiar with parsing terminology, you can skip this
-section entirely.
+If you are already comfortable with parsing terminology,
+you could skip this section entirely.
 
 If you don't know parsing, it's probably not a good idea to try
-to learn it by studying this section, which is a 
-terse summary of the vocabulary aimed at those who are
+to learn it from this
+terse summary of the vocabulary.
+This summary is aimed at those who are
 mostly familiar with it already.
 As an introduction, I reccommend
 L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
 Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
+
+=head3 Basic terms
 
 A B<grammar> is a set of rules.
 The B<rules> describe a set of strings of B<symbols>.
@@ -223,7 +227,7 @@ A string of symbols is often called a B<symbol string>.
 The rules of a grammar are often called B<productions>.
 
 A B<recognizer> is a program that determines whether its B<input>
-is one of the symbols strings in the set described by the rules of a grammar.
+is one of the symbol strings in the set described by the rules of a grammar.
 A B<parser> is a program which finds the structure of the input
 according to the rules of a grammar.
 
@@ -236,6 +240,8 @@ When this document intends the term B<parsing> in its strict sense, it will
 speak explicitly of "parsing in the strict sense".
 Otherwise, the term B<parsing> will mean parsing in the loose sense.
 
+=head3 Productions
+
 A standard way of describing rules is Backus-Naur Form, or B<BNF>.
 In one common way of writing BNF, a production looks like this.
 
@@ -247,6 +253,11 @@ The equivalent in Marpa's MDL language looks like this:
 
 In the production above, C<Expression>, C<Term> and C<Factor> are symbols.
 A production consists of a B<left hand side> and a B<right hand side>.
+The right hand side of a production is a symbol string of zero or more symbols.
+In context-free grammars,
+like those Marpa parses,
+the left hand side of a production 
+is a symbol string of exactly one symbol.
 In the example, C<Expression> is the left hand side, and 
 C<Term> and C<Factor> are right hand side symbols.
 
@@ -255,50 +266,62 @@ In context-free grammars,
 like the ones Marpa parses,
 the left hand side will always be a single B<symbol>.
 The right hand side may be zero or more symbols.
-If the rhs of a production has no symbols, it is called an B<empty production>
+If the rhs of a production has no symbols,
+the production is called an B<empty production>
 or an B<empty rule>.
 
 A symbol which is allowed in the input is called a B<terminal> symbol.
-A string of zero or more of the symbols in a grammar will be called a B<symbol string>,
-to distinguish it from a Perl 5 string,
-unless the context it clear which is meant.
-The right hand side of a production is a symbol string.
 If the symbols in a symbol string are all terminals,
 that symbol string is also called a B<sentence>.
 The input to a successful parse must be a sentence,
 but just because the input is a sentence does not mean that it will parse successfully.
 
-A B<step> of a derivation, or a B<derivation step> is make by taking one symbol string,
+=head3 Derivations
+
+A B<step> of a derivation, or a B<derivation step> is made by taking a symbol string
 and any production in the grammar whose lhs occurs in that first symbol string,
 and replacing an occurrence of the lhs symbol in the first symbol string with the
 rhs of the production.  For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
 and
+
     X: B, C.
 
 is a production, then
 
     A X D -> A B C D
 
-is a derivation step, with "C<A X D>" as its start and "C<A B C D>" as its result.
+is a derivation step, with "C<A X D>" as its B<beginning> and "C<A B C D>" as its B<end> or B<result>.
 We say that the string "C<A X D>"
-B<directly derives> the string
+B<derives> the string
 "C<A B C D>".
 
 A B<derivation> is a sequence of derivation steps.
-The B<length> of a derivation is its length in steps.  A symbol string directly
-derives another if and only if there is a derivation of length on from the first symbol
-string to the second.  A symbol string is considered to derive itself in a derivation
-of length 0.  A zero length derivation is a B<trivial derivation>.
+The B<length> of a derivation is its length in steps.  A symbol string B<directly
+derives> another if and only if there is a derivation of length 1 from the first symbol
+string to the result.  A symbol string is said to derive itself in a derivation
+of length 0.  Such a zero length derivation is a B<trivial derivation>.
 
 If a derivation is not trivial or direct, that is, if it has more than one step,
 then it is an B<indirect> derivation.  A derviation which is not trivial, that is,
-which has more than zero steps, is a B<non-trivial> derivation.
+one which has one or more steps, is a B<non-trivial> derivation.
 
-Where the first symbol string of a derivation consists of a single symbol,
+Where the symbol string beginning a derivation consists of a single symbol,
 we often say that symbol B<produces> the symbol string which results from the derivation.
-We say that the first symbol trivially, non-trivially, directly or indirectly produces
+We say that the beginning symbol trivially, non-trivially, directly or indirectly produces
 the symbol string if the length of the derivation is 0, greater than 0, 1, or greater than 1,
 just as we do when we say a symbol string derives another symbol string.
+
+When we say that a symbol produces or derives a symbol string,
+we are taking a top-down point of view.
+We sometimes take a bottom-up point of view,
+and say that the symbol B<matches> the symbol string,
+or that the symbol string B<matches> the symbol.
+
+In any parse, one symbol is distinguished as the B<start symbol>.
+The parse of an input is successful
+if and only if the start symbol produces the input according to the grammar.
+
+=head3 Nulling
 
 The B<length> of a symbol string is the number of symbols in it.
 The zero length symbol string is called the B<empty string>.
@@ -319,44 +342,38 @@ In any instance where a symbol produces the empty string,
 it is said to be B<nulled>,
 or to be a B<null symbol>.
 
-In any parse, one symbol is distinguished as the B<start symbol>.
-The parse of an input is successful
-if and only if the start symbol produces the string
-of input symbols according to the grammar.
+=head3 Other Special Cases
 
-The structure of a parse can be represented by as a series of derivation steps from
-the start symbol to the input.
-If a rule can never be reached from the start symbol, that is, if no derivation
-from the start symbol ever uses that rule,
-that rule is called B<unreachable>.
-Some rules can never be used in any valid derivation of any input.
-Such a rule is called B<unproductive>.
+If any derivation from the start symbol uses a rule,
+that rule is called B<reachable> or B<accessible>.
+A rule is not accessible
+is called B<unreachable> or B<inaccessbile>.
+If any derivation which results in a sentence uses a rule,
+that rule is said to be B<productive>.
+A rule that is not productive is called B<unproductive>.
 A simple case of an unproductive rule is one whose rhs contains a symbol which is not
 a terminal and not on the lhs of any other rule.
-A B<useless> rule is one which is unreaachable or unproductive.
-
-When we say that a symbol produces or derives a symbol string,
-we are taking a top-down point of view.
-We sometimes take a bottom-up point of view,
-and say that the symbol string and the symbol B<match>.
+A B<useless> rule is one which is inaccessible or unproductive.
 
 If any symbol in the grammar non-trivially produces a symbol string containing itself,
 the grammar is said to be B<recursive>.
-If a symbol non-trivially produces a symbol string with itself on the left,
+If any symbol non-trivially produces a symbol string with itself on the left,
 the grammar is said to be B<left-recursive>.
-If a symbol non-trivially produces a symbol string with itself on the right,
+If any symbol non-trivially produces a symbol string with itself on the right,
 the grammar is said to be B<right-recursive>.
-A case where a symbol non-trivially produces a symbol string which contains
-itself and is length 1, is a B<cycle>.
+A non-trivial derivation of a symbol string from itself is a B<cycle>.
 A grammar which contains no cycles is B<cycle-free>.
 
-A derivation is one way to represent the structure of a parse.
+=head3 Structure
+
+The structure of a parse can be represented by as a series of derivation steps from
+the start symbol to the input.
 If, for a particular grammar, more than one derivation is possible for an input,
 that input is said to have an B<ambiguous> parse.
 An B<ambiguous> grammar is one which for which there is some input
 that has an ambiguous parse.
 
-A B<parse tree> is another.
+Another way to represent structure is as a B<parse tree>.
 Every symbol used in the parse is
 represented by a B<node> of the parse tree.
 Wherever a production is used in the parse,
@@ -371,6 +388,8 @@ The node at the root of the tree is the B<start node>.
 Any node with a symbol being used as a terminal is a B<terminal node>.
 A node closer to the root node is said to be B<higher>
 than a node further away.
+
+=head3 Semantics
 
 The tree representation is especially useful when B<evaluating> a parse.
 In real life, the structure of a parse is usually a means to an end.
@@ -387,7 +406,7 @@ take their semantics from the production whose lhs they represent.
 The semantics for a production
 describe how to calculate the value of the node which represents the lhs
 (the parent node)
-from the values of one or more of the nodes which represent the rhs symbols
+from the values of zero or more of the nodes which represent the rhs symbols
 (child nodes).
 Values are computed recursively, bottom-up.
 The value of a parse is the value of its start symbol.
@@ -395,8 +414,7 @@ The value of a parse is the value of its start symbol.
 =head2 Capabilities
 
 Marpa parses any language which can be expressed in cycle-free BNF.
-(A cycle occurs when a symbol non-trivially produces a symbol string consisting
-only of itself.)
+(A cycle occurs when a symbol string, after one or more derivation steps, reproduces itself exactly.)
 Essentially, a cycle is recursion without change.
 Recursion is highly useful, but cycles always seem to be pathological.
 Marpa will parse recursive grammars, including left-recursive and right-recursive ones,
@@ -412,7 +430,7 @@ Useless productions cause no major harm,
 and Marpa is happy to tolerate them.
 
 Ambiguous grammars are a Marpa specialty.
-An ambiguous grammar is a grammar which might parse an input in more than one way.
+(An ambiguous grammar is a grammar which might can parse an input in more than one way.)
 Ambiguity is often useful even if you are only interested in one parse.
 An ambiguous grammar is often
 the easiest and most sensible way to express a language.
@@ -437,7 +455,7 @@ L<C<Parse::Marpa::mdl>|/mdl>.
 The C<mdl> method requires a grammar description in MDL (the Marpa Description Language) and a string.
 C<mdl> parses the string according to the MDL description.
 In scalar context, C<mdl> returns the value of the first parse.
-In list context, it returns all the value of all the parses.
+In list context, it returns the values of all parses.
 See L<below/"mdl"> for more detail about the C<mdl> static method.
 
 =head2 Semantic Actions

@@ -1357,26 +1357,15 @@ Z<>
     $recce2->earleme([$number, 3, 1]);
     $recce2->earleme([$op, "+", 1]);
     $recce2->earleme([$number, 1, 1]);
+    $recce2->end_input();
 
 =head1 DESCRIPTION
 
-Marpa parsing takes place in three major phases: grammar building, input recognition
-and parsing proper.
-Recognizing an input means deciding whether it belongs to the language of a grammar.
-Parsing proper, that ism parsing in the strictest sense, means determining the structure
-of an input based on a grammar.
-
-The distinction between parsing and recognition may seem pedantic, but in fact the
-distinction is observed in most real-life parsing techniques.
-Regular expressions only recognize -- they do not parse in the strict sense.
-Perl 5 regexes are extended regular expressions, and some extensions, like
-captures, can return limited information about structure.
-Other parsers such as L<Parse::Yapp>, C<bison> and the Perl 5 parser, has
-a separate lexing phase, before their parsing phase, which focuses on recognition.
-
+Marpa parsing takes place in three major phases: grammar creation, input recognition
+and parse evaluation.
 Once a grammar has rules and is precomputed, a recognizer can be created from it.
-A Marpa recognizer accepts input.
-It can then be used to create a Marpa parser.
+The recognizer accepts input and
+can be used to create a Marpa evaluator object.
 
 =head2 Tokens and Earlemes
 
@@ -1485,6 +1474,8 @@ C<Parse::Marpa::Recognizer::new> takes as its arguments a hash reference contain
 arguments.
 It returns a new parse object or throws an exception.
 Either the C<compiled_grammar> or the C<grammar> option must be specified, but not both.
+A recognizer is created with the default end of parsing set to earleme 0,
+which is before any input.
 
 If the C<grammar> option is specified, 
 its value must be a grammar object with rules defined.
@@ -1496,7 +1487,8 @@ its value must be a Perl 5 string containing a compiled Marpa grammar,
 as produced by L<C<Parse::Marpa::Grammar::compile>|Parse::Marpa::Grammar/"compile">.
 It will be decompiled for use in the recognizer.
 
-All other valid named arguments are Marpa options.
+Marpa options are also
+valid named arguments.
 For these, see L<Parse::Marpa/OPTIONS>.
 
 =head2 text
@@ -1508,42 +1500,54 @@ For these, see L<Parse::Marpa/OPTIONS>.
        die("Parse failed at offset $fail_offset");
     }
 
-Extends the parse in the 
-I<parse> object using the input I<text_to_parse>, a B<reference> to a string.
-Returns -1 if the parse is still active after the I<text_to_parse>
-has been processed.  Otherwise the offset of the character where the parse was exhausted
-is returned.
-Failures, other than exhausted parses,
-are thrown as exceptions.
+Extends the parse in the one-character-per-earleme model.
+The one, required, argument must be
+a B<reference> to a string containing the text to be parsed.
+If the parse is active after the text has been processed,
+the default end of parsing is set to the end of the text,
+and -1 is returned.
 
-The text is parsed using the one-earleme-per-character model.
-Terminals are recognized using the lexers that were specified in the source file
+If the parse is exhausted by the input, that is if processing reaches
+a point where no successful parse is possible,
+the default end of parsing is set to the earleme at which the parse was
+exhausted,
+and the character offset at which the parse was exhausted is returned.
+A zero return means that the parse was exhausted at character offset zero.
+Failures, other than exhausted parses, are thrown as exceptions.
+
+Earlemes correspond one-to-one with characters,
+and the earleme number is always one more than the character offset
+from the start of text.
+The first character is at earleme one and offset zero.
+Terminals are recognized in the text
+using the lexers that were specified in the source file
 or with the raw interface.
-
-The character offset where the parse was exhausted
-is reported in characters from
-the start of C<text_to_parse>.
-The first character is at offset zero.
-This means that a zero return from C<text()> indicates
-that the parse was exhausted at the first character.
-
-A parse is "exhausted" at a point in the input
-where a successful parse becomes impossible.
-In most cases,
-an exhausted parse is a failed parse.
 
 =head2 earleme
 
     my $op = $grammar->get_symbol("op");
     $recce2->earleme([$op, "-", 1]);
 
-Extends the parse one earleme using as the input at that earleme, I<token_list>,
-a reference to a list of token alternatives.
+The C<earleme> method adds tokens at the current earleme.
+The arguments to are zero or more token alternatives.
+There may be more than one token added at an earleme, because
+ambiguous parsing is allowed.
+
 Each token alternative is a reference to a three element array.
 The first element is a "cookie" for the token's symbol,
-as returned by the C<Parse::Marpa::get_symbol()> method.
+as returned by the C<Parse::Marpa::get_symbol> method.
 The second element is the token's value in the parse.
 The third is the token's length in earlemes.
+
+Every call to the C<earleme> method must add all the alternative tokens
+for the current earleme.
+The first call time the C<earleme> method the current earleme is the first
+earleme, or earleme 0.
+Every time the C<earleme> method is called thereafter, the current
+earleme is advanced by one.
+Every call to the C<earleme> method sets the default end of parsing to the current earleme.
+If the C<earleme> method is called with no arguments, it advances
+the parse one earleme, without adding any new tokens.
 
 Returns 1 on success.
 Returns 0 if the parse was exhausted at that earleme.
@@ -1551,8 +1555,18 @@ Throws an exception on other failures.
 
 This is the low-level token input method, and allows maximum
 control over the context and form of tokens.
-No model of the relationship between the input and the earlemes is assumed,
-and the user is free to invent her own.
+No model of the relationship between the input and the earlemes is assumed.
+The user is free to invent her own.
+
+=head2 end_input
+
+    $recce2->end_input();
+
+This method takes no arguments.
+It is used with the C<earleme> method in offline mode, to signal
+the end of input.
+The input is processed to the last earleme at which a token
+ends, and the default end of parsing is set to that earleme.
 
 =head2 find_complete_rule
 

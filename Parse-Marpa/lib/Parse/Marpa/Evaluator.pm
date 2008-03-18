@@ -1230,34 +1230,8 @@ Failures are thrown as exceptions.
 The first, required, argument is a recognizer object.
 The second, optional, argument 
 will be used as the number of the earleme at which to end parsing.
-Where parsing ends if no second argument is provided depends on the state
-of the recognizer.
-The usual circumstances are that
-parsing is in offline mode
-and the parse in the recognizer is still active or, in other words,
-the parse has not been exhausted.
-In this case parsing ends at the end of the input,
-or in other words,
-at the last earleme at which a token ends.
-
-If the parse was exhausted in the recognizer,
-the default is for parsing to end with the earleme
-at which the parse was exhausted.
-Usually that won't be very helpful,
-since an exhausted parse is typically a failed parse.
-Failed parses are usually addressed by fixing the grammar or the
-input.
-
-The alternative to offline mode is online or streaming mode,
-which is bleeding-edge.
-In online mode there is no obvious "end of input".
-Marpa doesn't yet provide a lot of tools for working with online mode.
-It's up to the user to determine where to look for parses,
-perhaps using her specific knowledge of the grammar and the problem
-space.
-The C<Parse::Marpa::Recognizer::find_complete_rule()> method,
-documented in L<the diagnostics document|Parse::Marpa::DIAGNOSTIC>,
-is a prototype of the methods that will be needed for online mode.
+If there is no second argument, parsing ends at the default end
+of parsing that was set by the recognizer.
 
 =head2 next
 
