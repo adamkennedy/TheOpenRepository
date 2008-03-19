@@ -95,7 +95,7 @@ by Dick Grune
 Ceriel Jacobs,
 (Ellis Horwood Limited: Chichester, West Sussex, England,
 1990).
-This book is L<available on the Web|http://www.cs.vu.nl/~dick/PTAPG.html>
+This book is available on the Web: L<http://www.cs.vu.nl/~dick/PTAPG.html>
 
 =head1 Grune and Jacobs 2008
 

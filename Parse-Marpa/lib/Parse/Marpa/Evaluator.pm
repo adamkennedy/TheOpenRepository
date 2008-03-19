@@ -966,7 +966,7 @@ the boost in efficiency from node value memoization can be major.
 If the defaults are used, Marpa will mark all its evaluators opaque.
 That is always a safe choice.
 
-Grammars and recognizers can be marked opaque.
+Grammars and recognizers can be marked opaque or transparent.
 A recognizer created from an opaque grammar is marked opaque.
 A recognizer created from a grammar marked transparent is marked transparent,
 unless an C<opaque> named argument supplied at recognizer creation time
@@ -1064,47 +1064,55 @@ A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
 whether or not that happens directly through that symbol's empty rule.
 
-=head3 Principles
+=head3 Valued and Unvalued Nodes
 
-Marpa's determines null symbol values following these principles:
+If there are null symbols in a parse, some nodes may have no value.
+If a node has a value, it is said to be B<valued>.
+If a node has no value, it is said to be B<unvalued>.
+The first step in evaluating a parse is to determine which nodes
+are valued and which are unvalued.
+
+A Marpa "no value" is B<not> a Perl 5 undefined.
+A Perl 5 undefined is a legitimate value.
+A Marpa "no value" means that no value calculation was done for
+that node.
+
+Marpa's determines which nodes to value, following these principles.
 
 =over 4
 
 =item 1
 
-Nodes which derive the empty string don't count.
+The start node is valued.
 
 =item 2
 
-All the other nodes do count.
+All terminal nodes are valued.
 
 =item 3
 
-The start symbol counts.
+A node with one or more valued child nodes is valued.
 
 =item 4
 
-If a node counts, all the symbols on both the lhs and rhs of the corresponding rule count.
-
-=item 5
-
-Other symbols don't count.
+A nulled node is
+unvalued unless it is the start node.
 
 =back
 
-In evaluating a derivation, Marpa uses the semantics of nodes and symbols which count,
-and ignores those rules and symbols which don't count.
-The value of an empty string, for Marpa, is always the null value of a "highest null symbol".
-Except in the special case of a null parse,
-the "highest null symbol" will always appear in a rule which counts,
-in other words, in a non-empty rule.
+In evaluating a derivation, Marpa uses only valued nodes.
+Unvalued nodes are ignored.
+A consequence of the above principles is that
+the value of null derivation is the value of the "highest null symbol" in it.
 
 A null parse, the case where the start symbol produces the empty string, is special.
-Whether or not a null parse is possible depends on the grammar.
-Null parses are the reason for Principle 3.
-The value of a null parse is null value of the start symbol.
+Null parses are the reason for Principle 1.
+The value of a null parse is the null value of the start symbol.
+This is consistent with the "highest null symbol" rule, because the start symbol
+is the highest symbol in a parse, and will certainly be the highest null
+symbol in a null parse.
 
-If you think some of the rules or symbols that Marpa believes don't count
+If you think some of the rules or symbols represented by unvalued nodes
 are important in your grammar,
 Marpa can probably accommodate your ideas.
 First,
@@ -1116,11 +1124,11 @@ If your null semantics do not produce a constant value by recognizer creation ti
 write a null action which returns a reference to a closure
 and arrange to have that closure run by the parent node.
 
-=head3 Detailed Example
+=head3 Example
 
 Suppose a grammar has these rules
 
-    S: A, Z. q{ $_->[0] . ", but " . $_->[1] }. # Call me the start rule
+    S: A, Y. q{ $_->[0] . ", but " . $_->[1] }. # Call me the start rule
     note: you can also call me Rule 0.
 
     A: . q{'A is missing'}. # Call me Rule 1
@@ -1131,18 +1139,25 @@ Suppose a grammar has these rules
 
     C: . q{'C is missing'}. # Call me Rule 4
 
-    C: Z.  q{'C matches Z'}. # Call me Rule 5
+    C: Y.  q{'C matches Y'}. # Call me Rule 5
 
-    Z: /Z/. q{'Zorro was here'}. # Call me Rule 6
+    Y: /Z/. q{'Zorro was here'}. # Call me Rule 6
 
-If the input is the string "C<Z>",
-the grammar derives it as follows:
+In the above MDL, the Perl 5 regex "C</Z/>" occurs on the rhs of Rule 6.
+Where a regex is on the rhs of a rule, MDL internally creates a terminal symbol
+which is defined as matching that regex in the input text.
+In this example, the MDL internal terminal symbol that
+matches input text using the regex
+C</Z/> will be called C<Z>.
 
-    S -> A Z        (Rule 0)
-      -> A "Z"      (Z produces "Z", by Rule 6)
-      -> B C "Z"    (A produces B C, by Rule 2)
-      -> B "Z"      (C produces the empty string, by Rule 4)
-      -> "Z"        (B produces the empty string, by Rule 3)
+If the input text is the Perl 5 string "C<Z>",
+the derivation is as follows:
+
+    S -> A Y        (Rule 0)
+      -> A Z      (Y produces Z, by Rule 6)
+      -> B C Z    (A produces B C, by Rule 2)
+      -> B Z      (C produces the empty string, by Rule 4)
+      -> Z        (B produces the empty string, by Rule 3)
 
 The parse tree can be described as follows:
 
@@ -1150,65 +1165,86 @@ The parse tree can be described as follows:
         Node 1: A (2 children, nodes 2 and 3)
 	    Node 2: B (matches empty string)
 	    Node 3: C (matches empty string)
-	Node 4: Z (matches "Z")
+	Node 4: Y (1 child, node 5)
+	Node 5: Z (terminal node)
 
 Here's the sentence each node derives and what it evaluates to
 
                       Symbol      Sentence     Value
                                   Derived
 
-    Node 0:              S           Z         "A is missing, but Zorro is here"
-        Node 1:          A         Empty       "A is missing"
-	    Node 2:      B         Empty       No value
-	    Node 3:      C         Empty       No value
-	Node 4:          Z           Z         "Zorro was here"
+    Node 0:              S         Z           "A is missing, but Zorro is here"
+        Node 1:          A         none        "A is missing"
+	    Node 2:      B         none        No value
+	    Node 3:      C         none        No value
+	Node 4:          Y         Z           "Zorro was here"
+	Node 5:          Z         Z           "Z"
 
-In this derivation, symbols C<B> and C<C> are nulled.
-Nodes 2 and 3 therefore do not count.
-Symbol C<A> is also nulled, so Node 1 also does not count.
+In this derivation,
+nodes 2 and 3 are nulled.
+They aren't the start node,
+and have no child nodes,
+so they remain unvalued.
 
-Two symbols are not nulled.
-The symbol C<S> derives the string "C<Z>".
-Symbol C<Z> also derives the string "C<Z>".
-Therefore, nodes 0 and 4 count.
+Node 1 is also nulled.
+Node 1 has two child nodes, but both are also nulled,
+so Node 1 will remain unvalued.
 
-Where nodes count, symbols in the corresponding rules count.
-Rule 6 is a terminal rule, and its only symbol is C<Z>.
-Rules 0 has the symbol C<S> on its lhs, and
-C<A> and C<Z> on its rhs, so all these count.
+Node 5 represents the terminal symbol C<Z>, so it will be valued.
+Node 4 has a valued child node, node 5, so it will be valued.
+Node 0 also has a valued child node, node 4, so it will be valued.
+Node 0 is the start node, so it would be valued in any case.
 
-Another way of looking at this is that C<A> is the "highest null symbol"
-in a null derivation,
-so that it is the only nulled symbol to count in that derivation.
-C<S> is the start symbol, which always counts.
-Symbol C<Z> is not nulled.
-Symbols which are not nulled always wind up counting
-because no node can be nulled unless its symbol is.
-Therefore, symbol C<Z> counts.
+Since node 5 is a terminal node, it's value comes from the lexer.
+Where the lexing is done with a Perl 5 regex,
+the value will be the Perl 5 string that the regex matched.
+In this case it's the string "C<Z>".
 
-Since the symbol C<Z> is not nulled,
-it is evaluated normally, using Rule 6.
-This makes its value, "C<Zorro was here>".
-Since the symbols C<B> and C<C> are nulled and do not count,
-nothing about them plays any role in calculating the value of the parse.
+Node 4 is not nulled,
+so it is evaluated normally, using the rule it represents.
+That is rule 6.
+The action for rule 6 returns "C<Zorro was here>", so that
+is the value of node 4.
+Node 4 has a child node, node 5, but rule 6's action pays no
+attention to child values.
+The action for each rule is free to use or not use child values.
 
-The symbol C<A> is nulled, but it counts by virtue of its appearance in
-a node which is not nulled,
-making it the "highest null symbol".
-C<A> returns its null symbol value.
-C<A>'s null symbol value is calculated by running the action
-for the empty rule which has C<A> as its lhs, which is Rule 1.
-C<A>'s value is "C<A is missing>".
+Nodes 1, 2 and 3 will all remain unvalued.
+The only rule left to be evaluated is
+is node 0, the start node.
+It is not nulled, so
+its value is calculated using the action for the rule it
+represents (rule 0).
 
-It is important to note that Rule 1 is not actually used in the derivation.
-Rule 1 is used because it
-defines the null symbol value for C<A>.
+Rule 0's action uses the values of its child nodes.
+There are two child nodes and their values are
+elements 0 and 1 in the C<@$_> array of the action.
+The child value represented by the symbol C<Y>,
+C<< $_->[1] >>, comes from node 4.
+From above, we can see that that value was 
+"C<Zorro was here>".
 
-The other rule which counts is Rule 0, the start rule.
-Its value is calculated using its action and the values for the symbols
-on its rhs.
+The first child value is represented by the symbol C<A>,
+which is nulled.
+For nulled symbols, we must use the null symbol value.
+Null symbol values for each symbol can be explicitly set
+by specifying an rule action for an empty rule with that symbol
+as its lhs.
+This was done for symbol C<A>, in
+Rule 1.
+Rule 1's action evaluates to the Perl 5 string
+"C<A is missing>".
+
+Even though rule 1's action plays a role in calculating the value of the parse,
+rule 1 is not actually used in the derivation.
+No node in the derivation represents rule 1.
+Rule 1 is used because it defines the null symbol value for
+the symbol C<A>.
+
+Now that we have both child values, we can use rule 0's action
+to calculate the value of node 0.
 That value is "C<A is missing, but Zorro was here>",
-This becomes the value of C<S>, Rule 0's lhs.
+This becomes the value of C<S>, rule 0's lhs.
 A parse has the value of its start symbol,
 so "C<A is missing, but Zorro was here>" is also
 the value of the parse.
@@ -1231,7 +1267,7 @@ The first, required, argument is a recognizer object.
 The second, optional, argument 
 will be used as the number of the earleme at which to end parsing.
 If there is no second argument, parsing ends at the default end
-of parsing that was set by the recognizer.
+of parsing, which was set by the recognizer.
 
 =head2 next
 

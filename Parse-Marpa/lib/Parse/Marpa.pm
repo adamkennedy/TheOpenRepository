@@ -454,7 +454,7 @@ The C<mdl> method requires a grammar description in MDL (the Marpa Description L
 C<mdl> parses the string according to the MDL description.
 In scalar context, C<mdl> returns a reference to the value of the first parse.
 In list context, it returns references to the values of all parses.
-See L<below/"mdl"> for more detail about the C<mdl> static method.
+See L<below|/"mdl"> for more detail about the C<mdl> static method.
 
 =head2 Semantic Actions
 
@@ -1290,7 +1290,7 @@ as well as about some issues where I really should have know better.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007 Jeffrey Kegler, all rights reserved.
+Copyright 2007-2008 Jeffrey Kegler, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
