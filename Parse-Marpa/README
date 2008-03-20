@@ -1,44 +1,15 @@
 Parse::Marpa
 
-FIRST THE CAVEATS ...
+WARNING -- THIS IS A DEVELOPER'S RELEASE, NOT FOR USE BY NON-DEVELOPERS.
+I use these releases to avail myself of the cpantesters results,
+and to test the release process itself.
 
-This is an Alpha release.
+Of course, it's open source, and you're entitled to appoint yourself
+a developer if you insist on it.  But that will usually not be a
+reasonable thing to do.
 
-It's intended to let people look Marpa over and try it out. Uses
-beyond that are risky. While Marpa is in alpha, you certainly don't
-want to use it for anything mission-critical or with a serious
-deadline.
-
-... THEN THE HYPE
-
-* Parse::Marpa parses any cycle-free context-free grammar.
-
-* Marpa parses any grammar which can be specified in cycle-free
-BNF. (A cycle is a case where A produces A -- the BNF version of
-an infinite loop.)
-
-* The ban on cycles is not a ban on recursion. Marpa cheerfully
-parses left-recursive, right-recursive and any other kind of recursive
-grammar, so long as it is cycle-free. Recursion is useful. Cycles
-(which are essentially recursion without change) seem to always be
-pathological.
-
-* Marpa parses grammars with empty productions. Empty productions
-are often important in specifying semantics.
-
-* Ambiguous grammars are a Marpa specialty. They are useful even
-if you only want one parse. An ambiguous grammar is often the easiest
-and most sensible way to express a language. Human languages are
-ambiguous. We listen and pull out the parse that makes most sense.
-Marpa allows the user to prioritize rules so that a preferred parse
-comes up first.
-
-* Marpa can also return all the parses of an ambiguous grammar.
-
-* Marpa incorporates the latest academic research on Earley's
-algorithm, combining it with LR(0) precomputation.
-
-* Marpa's own innovations include predictive and ambiguous lexing.
+Right now the documentation in this release is half-converted from
+one interface to another, so it's incomplete and inconsistent.
 
 INSTALLATION
 
@@ -58,7 +29,7 @@ After installing, you can find documentation for this module with the perldoc co
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007 Jeffrey Kegler
+Copyright (C) 2007-2008 Jeffrey Kegler
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

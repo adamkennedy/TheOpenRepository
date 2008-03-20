@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION = '0.205000';
+    our $VERSION = '0.205_000';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
@@ -157,16 +157,33 @@ Parse::Marpa - (Alpha) Earley's algorithm with LR(0) precomputation
 
 =head1 VERSION
 
-This is an Alpha release.
-It's intended to let people look Marpa over and try it out.
-Uses beyond that are risky.
-While Marpa is in alpha,
-you don't want to use it for anything
-mission-critical or with a serious deadline.
-I've no personal experience with them, but
-C<Parse::Yapp> and C<Parse::RecDescent> are
-alternatives to this module which are well reviewed and
-more mature and stable.
+WARNING -- THIS IS A DEVELOPER'S RELEASE, NOT FOR USE BY NON-DEVELOPERS.
+I use these releases to avail myself of the cpantesters results,
+and to test the release process itself.
+
+Of course, it's open source, and you're entitled to appoint yourself
+a developer if you insist on it.  But that will usually not be a reasonable
+thing to do.
+
+Right now the documentation in this release is half-converted from one interface
+to another, so it's incomplete and inconsistent.
+
+=begin commented_out:
+
+    When I do my next alpha release, this text will be included:
+
+    This is an Alpha release.
+    It's intended to let people look Marpa over and try it out.
+    Uses beyond that are risky.
+    While Marpa is in alpha,
+    you don't want to use it for anything
+    mission-critical or with a serious deadline.
+    I've no personal experience with them, but
+    C<Parse::Yapp> and C<Parse::RecDescent> are
+    alternatives to this module which are well reviewed and
+    more mature and stable.
+
+=end commented_out:
 
 =cut
 
