@@ -19,8 +19,6 @@ lib/Parse/Marpa/Doc/Internals.pod
 lib/Parse/Marpa/Doc/MDL.pod
 lib/Parse/Marpa/Doc/Plumbing.pod
 lib/Parse/Marpa/Doc/To_Do.pod
-lib/Parse/Marpa/Doc/Tutorial.pod
-lib/Parse/Marpa/Doc/Why_Call_It_Marpa.pod
 lib/Parse/Marpa/Lex.pm
 lib/Parse/Marpa/MDL.pm
 lib/Parse/Marpa/Grammar.pm

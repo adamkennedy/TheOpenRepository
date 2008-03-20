@@ -24,8 +24,8 @@ open(PIPE, "-|", $this_perl, "-I../lib", "synopsis.pl")
 is(<PIPE>, "12\n", "synopsis example");
 close(PIPE);
 
-$ENV{PERL5LIB} .= ":../lib";
-my $pid = open2(\*PIPE, \*TEXT, "../bin/marpa", "parse", "-grammar", "../example/null_value.marpa");
+$ENV{PERL5LIB} = "../lib:" . $ENV{PERL5LIB};
+my $pid = open2(\*PIPE, \*TEXT, $this_perl, "../bin/marpa", "parse", "-grammar", "../example/null_value.marpa");
 say TEXT "Z";
 close(TEXT);
 is(<PIPE>, "A is missing, but Zorro was here\n", "null value example");
