@@ -1377,7 +1377,7 @@ Marpa tokens can even overlap.
 For most parsers, their idea of position is a location in a token stream.
 To deal with variable-length and overlapping tokens,
 Marpa needs a more flexible idea of location.
-This flexibility is provide by tracking parse position in B<earlemes>,
+This flexibility is provided by tracking parse position in B<earlemes>,
 which are named in honor of Jay Earley, the inventor of the algorithm
 on which Marpa is based.
 
@@ -1395,7 +1395,7 @@ You could, for example, create a token stream and use a one-token-per-earleme mo
 and this would be equivalent to the standard way of doing things.
 You can also structure your input in other, special ways to suit your application.
 
-In creating an earleme model of your input, there are only two restrictions:
+There are only two restrictions in mapping tokens to earlemes:
 
 =over 4
 
@@ -1417,9 +1417,9 @@ B<Length> in earlemes probably means what you expect it does.
 The length from earleme 3 to earleme 6,
 for instance, is 3 earlemes.
 
-The tokens C<text()> recognizes are fed to the Marpa parse engine.
+The tokens C<text> recognizes are fed to the Marpa parse engine.
 The earleme length of each token is
-set using the tokens's earleme length.
+set using the token's earleme length.
 (If a token has a "lex prefix",
 the length of the lex prefix counts as part of the token length.)
 
@@ -1430,11 +1430,11 @@ a parse is exhausted as soon as the parser reaches a "location"
 without a token.
 Because Marpa parses in terms of earlemes
 and tokens can span many earlemes,
-parses in Marpa remain viable even if they reach an "empty earleme".
+parses in Marpa remain active even if they reach an "empty earleme".
 In fact, Marpa parses often contain many stretches
 of empty earlemes, and some of these stretches can be quite long.
 
-In Marpa, a parse remains viable if some token
+In Marpa, a parse remains active if some token
 has been recognized which B<ends> at or after the current earleme.
 A Marpa parse is not exhausted until
 
@@ -1507,7 +1507,7 @@ If the parse is active after the text has been processed,
 the default end of parsing is set to the end of the text,
 and -1 is returned.
 
-If the parse is exhausted by the input, that is if processing reaches
+If the parse is exhausted by the input, that is, if processing reaches
 a point where no successful parse is possible,
 the default end of parsing is set to the earleme at which the parse was
 exhausted,
@@ -1515,47 +1515,59 @@ and the character offset at which the parse was exhausted is returned.
 A zero return means that the parse was exhausted at character offset zero.
 Failures, other than exhausted parses, are thrown as exceptions.
 
-Earlemes correspond one-to-one with characters,
-and the earleme number is always one more than the character offset
+When you use the C<text> method for input,
+earlemes correspond one-to-one to characters in the text.
+The earleme number is always one more than the character offset
 from the start of text.
 The first character is at earleme one and offset zero.
 Terminals are recognized in the text
-using the lexers that were specified in the source file
-or with the raw interface.
+using the lexers that were specified in the porcelain
+or the plumbing.
 
 =head2 earleme
 
     my $op = $grammar->get_symbol("op");
     $recce2->earleme([$op, "-", 1]);
 
-The C<earleme> method adds tokens at the current earleme.
-The arguments to are zero or more token alternatives.
-There may be more than one token added at an earleme, because
-ambiguous parsing is allowed.
+The C<earleme> method takes zero or more arguments.
+Each argument is a token which starts at the B<current earleme>.
+Every call to the C<earleme> method moves the current earleme forward by one earleme.
 
-Each token alternative is a reference to a three element array.
+More than one token may be added at an each earleme,
+because ambiguous lexing is allowed.
+Each token is a reference to a three element array.
 The first element is a "cookie" for the token's symbol,
-as returned by the C<Parse::Marpa::get_symbol> method.
+as returned by the C<Parse::Marpa::get_symbol> method,
+or the C<get_symbol> method of a porcelain interface.
 The second element is the token's value in the parse.
 The third is the token's length in earlemes.
 
-Every call to the C<earleme> method must add all the alternative tokens
-for the current earleme.
-The first call time the C<earleme> method the current earleme is the first
-earleme, or earleme 0.
-Every time the C<earleme> method is called thereafter, the current
-earleme is advanced by one.
-Every call to the C<earleme> method sets the default end of parsing to the current earleme.
-If the C<earleme> method is called with no arguments, it advances
-the parse one earleme, without adding any new tokens.
+The C<earleme> method first checks to see if the parse is still B<active>,
+that is,
+if it is still possible for the parse to succeed.
+If the parse is active,
+the tokens are added.
+The default end of parsing is set to the current earleme,
+after which the current earleme is advanced by one.
+If the C<earleme> method is called without any arguments,
+both the current earleme and the default end of parsing will be incremented one earleme,
+but no new tokens are added.
 
-Returns 1 on success.
-Returns 0 if the parse was exhausted at that earleme.
-Throws an exception on other failures.
+An earleme remains the current earleme during only one call of the C<earleme> method.
+All tokens starting at that earleme must be added in that call.
+The first time that the C<earleme> method is called in a recognizer,
+the current earleme is at earleme 0.
+
+If no parses are possible, the parse is said to be B<exhausted>.
+If the B<earleme> method is called on an exhausted parse,
+it returns 0.
+The default end of parse remains where it was,
+at the last earleme at which the parse was active.
+The C<earleme> method throws an exception on other failures.
 
 This is the low-level token input method, and allows maximum
-control over the context and form of tokens.
-No model of the relationship between the input and the earlemes is assumed.
+control over the form and interrelationship of tokens.
+No model of the relationship between the tokens and the earlemes is assumed.
 The user is free to invent her own.
 
 =head2 end_input
@@ -1565,70 +1577,86 @@ The user is free to invent her own.
 This method takes no arguments.
 It is used with the C<earleme> method in offline mode, to signal
 the end of input.
-The input is processed to the last earleme at which a token
-ends, and the default end of parsing is set to that earleme.
+The input is processed out to the last earleme at which a token ends,
+and the default end of parsing is set to that earleme.
 
 =head2 find_complete_rule
 
      my ($end_earleme, $symbol_names) = $recce->find_complete_rule();
 
 The C<find_complete_rule> method was an experiment, and will be replaced.
-Arguments which specify a I<start_earleme>, I<symbol> and I<end_earleme> are optional.
-If the start earleme is not specified, it defaults to earleme 0.
+It takes 3 arguments:
+a B<first earleme>, a B<top symbol> and an B<end earleme>.
+All are optional.
+If the first earleme is not specified, it defaults to earleme 0.
 If the end earleme is not specified,
-its default wll be the default parse end earleme,
-that is, the default location
-that C<Parse::Marpa::Recognizer::initial()> would use for the end of parsing.
-The symbol argument, if specified, must be the raw interface name of a symbol.
+its default wll be the default parse end earleme.
+The top symbol, if specified, must be the plumbing name of the symbol.
 
-The end earleme argument must be at or before the default parse end earleme.
+This description should be considered an very advanced Marpa topic.
+It will refer to Marpa internals,
+which are described in L<their own document|Parse::Marpa::Doc::Internals>.
+The internals document, for its part, is intended to be read after
+all the other Marpa documents.
+
+The end earleme must be at or before the default parse end earleme.
 If you specify an end earleme after the default parse end earleme,
 it is ignored and the default parse end earleme is used as the end earleme.
 
-C<find_complete_rule()> looks for parses of complete rules,
+C<find_complete_rule> looks for derivations of complete rules,
 that is, rules whose right hand side has been completely matched.
-Only parses which start at the start earleme are considered.
+Only derivations which begin at the first earleme are considered.
 
-C<find_complete_rule()> looks first for any parses which end at the end earleme.
+C<find_complete_rule> looks first for any derivations which end at the end earleme.
 If it finds none,
-it looks for shorter and shorter parses
-until it reaches the start earleme and is looking at null parses.
+it looks for shorter and shorter derivations
+until the last earleme of the derivation is the same as the first earleme
+and C<find_complete_rule> is looking for a null derivation.
 
-While the parses C<find_complete_rule()> find are always for complete rules,
-they can be subparses in the sense that they are not parses from the grammar's start symbol.
-Complete parses starting from any symbol are considered,
-unless a start symbol was specified as an argument.
-In that case only parses starting from that symbol are considered.
+The derivations C<find_complete_rule> finds are always for completed rules.
+They are not necessarily derivations from the grammar's start symbol.
+Complete derivations from any symbol are considered,
+unless a top symbol was specified as an argument.
+In that case only derivations from the specified top symbol are considered.
 
 On failure to find a rule matching the criteria,
 a zero length array is returned.
-On success, the return value is an array of two elements.
-The first element of the array is the earleme at which the complete parse ends.
+On success, the return value reports the derivations it found
+as an array of two elements.
+The first element of the array is the last earleme of the derivations.
 The second element is a pointer to an array of symbol names
-which are start symbols of parses in the span from start earleme to end earleme.
-Symbol names will be raw interface names.
+which are the top symbols of derivations which start with the first earleme and 
+which end with the reported last earleme.
+The symbol names will be their plumbing names.
 
-Multiple start symbols may be returned, because 
-several different rules may have been completed in the span from start
-earleme to end earleme,
+Multiple top symbols may be returned, because 
+several different rules may have been completed in the span from first
+earleme to last earleme,
 and some of these rules may have different left hand sides.
-If a start symbol argument was specified,
-it will be one of the list of symbols in the return value.
+If a top symbol argument was specified as an argument,
+it will be one of the top symbols in the reported derivations.
 
-In the case where no start symbol is specified,
-C<find_complete_rule()> is probably useless.
-It returns only information from the first Earley item which matches other criteria.
-Other Earley items may contain complete rules for the same span,
-but their left hand sides may not be included in the return value's list
-of start symbols.
+In the case where no top symbol is specified,
+C<find_complete_rule>
+reports derivations from the first Earley item which matches based on
+the first and end earlemes,
+and will ignore Earley items after the first one.
+(See the internals for an explanation of what an Earley item is.)
+The ignored Earley items may contain derivations for the same span as the reported derivations,
+but their top symbols won't be reported in the return value's list.
+This can be considered a misfeature if you're the kind sort,
+and a bug if you are not.
+Either way, calls of the C<find_complete_rule> method which do not specify a top symbol
+are probably useless.
 
-I<find_complete_rule()> was an experiment
+This problem is one of several reasons that
+I<find_complete_rule> is probably going to be replaced.
+I<find_complete_rule> was an experiment
 in methods for improved diagnostics, online mode,
 and advanced wizardry with grammars.
-It is probably going to be replaced.
 The replacement method or methods should, given an end earleme or a range of end earlemes,
 be able to return all completed and expected symbols.
-Information about their start and end earleme should be available with the completed
+Information about their start and last earleme should be available with the completed
 symbols.
 For the expected symbols, the earleme at which they were expected should given.
 
