@@ -1363,7 +1363,7 @@ Z<>
 
 Marpa parsing takes place in three major phases: grammar creation, input recognition
 and parse evaluation.
-Once a grammar has rules and is precomputed, a recognizer can be created from it.
+Once a grammar has rules, a recognizer can be created from it.
 The recognizer accepts input and
 can be used to create a Marpa evaluator object.
 
@@ -1374,92 +1374,71 @@ Several Marpa tokens can start at a single parsing location.
 Marpa tokens can be of various lengths.
 Marpa tokens can even overlap.
 
-For most parsers, their idea of position is a location in a token stream.
+For most parsers, position is location in a token stream.
 To deal with variable-length and overlapping tokens,
 Marpa needs a more flexible idea of location.
-This flexibility is provided by tracking parse position in B<earlemes>,
-which are named in honor of Jay Earley, the inventor of the algorithm
-on which Marpa is based.
+This flexibility is provided by tracking parse position in B<earlemes>.
+Earlemes are named after Jay Earley, the inventor of the first algorithm
+in Marpa's lineage.
 
-If you do your lexing with the C<text> method, you will use a
+If you do your lexing with the C<text> method,
+you will use a
 one-character-per-earleme model.
-That is, input will be treated as a string,
-and, each earleme will be a character location in that string.
-If you set up your terminals using MDL,
-Marpa assumes that you will be using the C<text> method and one-character-per-earleme
-matching.
+C<text>'s raw input is a Perl 5 string,
+and each earleme is a character location in that string.
 
 Marpa is not restricted to the one-character-per-earleme model.
 With the C<earleme> method, you can structure your input in almost any way you like.
-You could, for example, create a token stream and use a one-token-per-earleme model,
+You can, for example, create a token stream and use a one-token-per-earleme model,
 and this would be equivalent to the standard way of doing things.
 You can also structure your input in other, special ways to suit your application.
 
-There are only two restrictions in mapping tokens to earlemes:
+There are three restrictions in mapping tokens to earlemes:
 
 =over 4
 
 =item 1
 
+Scanning always starts at earleme 0.
+
+=item 2
+
 Tokens must be scanned in earleme order.
 That is, all the tokens at earleme C<N>
 must be recognized before any token at earleme C<N+1>.
 
-=item 2
+=item 3
 
 Tokens cannot be zero or negative in earleme length.
 
 =back
 
-A parse is said to start at earleme 0, and "earleme I<N>" means the location I<N> earlemes
+"Earleme I<N>" means the location I<N> earlemes
 after earleme 0.
 B<Length> in earlemes probably means what you expect it does.
 The length from earleme 3 to earleme 6,
 for instance, is 3 earlemes.
 
-The tokens C<text> recognizes are fed to the Marpa parse engine.
-The earleme length of each token is
-set using the token's earleme length.
-(If a token has a "lex prefix",
-the length of the lex prefix counts as part of the token length.)
+When a token is scanned, the start of the token is always at the B<current earleme>.
+Where the token ends depends on its length, which must be greater than zero.
+The B<default end of parsing> is tracked by each recognizer.
+If the user does not explicitly specify where parsing should end,
+an evaluator uses the default end of parsing that it inherited from the recognizer.
 
-=head3 Parse Exhaustion
+=head2 Parse Exhaustion
 
-In conventional Earley parsing,
-a parse is exhausted as soon as the parser reaches a "location"
-without a token.
-Because Marpa parses in terms of earlemes
-and tokens can span many earlemes,
-parses in Marpa remain active even if they reach an "empty earleme".
-In fact, Marpa parses often contain many stretches
-of empty earlemes, and some of these stretches can be quite long.
+In recognizing input,
+a point may come where it is clear that a
+successful parse is no longer possible.
+At this point, both the parse and the recognizer are said to
+be B<exhausted>.
+A parse or a recognizer is B<active>, if and only if it is not exhausted.
 
-In Marpa, a parse remains active if some token
-has been recognized which B<ends> at or after the current earleme.
-A Marpa parse is not exhausted until
-
-=over 4
-
-=item * No token starts at the current earleme, and
-
-=item * No token ends at or after the current earleme.
-
-=back
-
-=head3 Note to Experts
-
-Those of you already familiar with Earley parsing
-and its standard
-terminology
-may find the following helpful:
-
-=over
-
-=item * Each "earleme" correspond to an Earley set in the usual terminology.
-
-=item * In the usual terminology, an "empty earleme" would be an Earley set with no Earley items.
-
-=back
+Because tokens can span earlemes,
+parses in Marpa can remain active even if
+no token either ends or begins at the current earleme.
+In fact, Marpa parses often contain long stretches of earlemes with no
+token boundaries.
 
 =head1 METHODS
 
@@ -1470,12 +1449,14 @@ may find the following helpful:
        preamble => $new_preamble,
     });
 
-C<Parse::Marpa::Recognizer::new> takes as its arguments a hash reference containing named
+The C<new> method's one, required, argument is a hash reference of named
 arguments.
-It returns a new parse object or throws an exception.
-Either the C<compiled_grammar> or the C<grammar> option must be specified, but not both.
-A recognizer is created with the default end of parsing set to earleme 0,
-which is before any input.
+The C<new> method either returns a new parse object or throws an exception.
+Either the C<compiled_grammar> or the C<grammar> named argument must be specified, but not both.
+A recognizer is created with
+the current earleme and
+the default end of parsing
+both set to earleme 0.
 
 If the C<grammar> option is specified, 
 its value must be a grammar object with rules defined.
@@ -1487,8 +1468,8 @@ its value must be a Perl 5 string containing a compiled Marpa grammar,
 as produced by L<C<Parse::Marpa::Grammar::compile>|Parse::Marpa::Grammar/"compile">.
 It will be decompiled for use in the recognizer.
 
-Marpa options are also
-valid named arguments.
+Marpa options can also
+be named arguments to C<new>.
 For these, see L<Parse::Marpa/OPTIONS>.
 
 =head2 text
@@ -1500,17 +1481,17 @@ For these, see L<Parse::Marpa/OPTIONS>.
        die("Parse failed at offset $fail_offset");
     }
 
-Extends the parse in the one-character-per-earleme model.
+Extends the parse using the one-character-per-earleme model.
 The one, required, argument must be
-a B<reference> to a string containing the text to be parsed.
+a B<reference> to a string containing text to be parsed.
 If the parse is active after the text has been processed,
 the default end of parsing is set to the end of the text,
+the current earleme is set to the earleme just after the end of text,
 and -1 is returned.
 
-If the parse is exhausted by the input, that is, if processing reaches
-a point where no successful parse is possible,
-the default end of parsing is set to the earleme at which the parse was
-exhausted,
+If the parse is exhausted by the input,
+the default end of parsing is set to the last earleme at which the parse was
+active,
 and the character offset at which the parse was exhausted is returned.
 A zero return means that the parse was exhausted at character offset zero.
 Failures, other than exhausted parses, are thrown as exceptions.
@@ -1520,26 +1501,34 @@ earlemes correspond one-to-one to characters in the text.
 The earleme number is always one more than the character offset
 from the start of text.
 The first character is at earleme one and offset zero.
+
 Terminals are recognized in the text
 using the lexers that were specified in the porcelain
 or the plumbing.
+The earleme length of each token is
+set using the token length in characters.
+(If a token has a "lex prefix",
+the length of the lex prefix counts as part of the token length.)
 
 =head2 earleme
 
     my $op = $grammar->get_symbol("op");
     $recce2->earleme([$op, "-", 1]);
 
+The C<earleme> method adds tokens at the current earleme.
+Every call to the C<earleme> method moves the current earleme forward by one earleme.
+Unlike C<text>, the C<earleme> method assumes no particular model of the input.
+
 The C<earleme> method takes zero or more arguments.
 Each argument is a token which starts at the B<current earleme>.
-Every call to the C<earleme> method moves the current earleme forward by one earleme.
-
 More than one token may be added at an each earleme,
 because ambiguous lexing is allowed.
-Each token is a reference to a three element array.
+Each token argument is a reference to a three element array.
 The first element is a "cookie" for the token's symbol,
-as returned by the C<Parse::Marpa::get_symbol> method,
+as returned by the C<Parse::Marpa::get_symbol> method
 or the C<get_symbol> method of a porcelain interface.
-The second element is the token's value in the parse.
+The second element is the token's value in the parse,
+and may be any value legal in Perl 5, including undefined.
 The third is the token's length in earlemes.
 
 The C<earleme> method first checks to see if the parse is still B<active>,
@@ -1550,35 +1539,37 @@ the tokens are added.
 The default end of parsing is set to the current earleme,
 after which the current earleme is advanced by one.
 If the C<earleme> method is called without any arguments,
-both the current earleme and the default end of parsing will be incremented one earleme,
+both the current earleme and the default end of parsing will be incremented by one earleme,
 but no new tokens are added.
 
-An earleme remains the current earleme during only one call of the C<earleme> method.
+An earleme remains the current earleme only during one call of the C<earleme> method.
 All tokens starting at that earleme must be added in that call.
 The first time that the C<earleme> method is called in a recognizer,
 the current earleme is at earleme 0.
 
-If no parses are possible, the parse is said to be B<exhausted>.
-If the B<earleme> method is called on an exhausted parse,
+If the B<earleme> method results in an exhausted parse,
 it returns 0.
-The default end of parse remains where it was,
+The default end of parsing remains
 at the last earleme at which the parse was active.
 The C<earleme> method throws an exception on other failures.
 
 This is the low-level token input method, and allows maximum
 control over the form and interrelationship of tokens.
-No model of the relationship between the tokens and the earlemes is assumed.
-The user is free to invent her own.
+No model of the input,
+or of the relationship between the tokens and the earlemes,
+is assumed.  The user is free to invent her own.
 
 =head2 end_input
 
     $recce2->end_input();
 
 This method takes no arguments.
-It is used with the C<earleme> method in offline mode, to signal
+It is used with the C<earleme> method in offline mode, to indicate
 the end of input.
 The input is processed out to the last earleme at which a token ends,
 and the default end of parsing is set to that earleme.
+The current earleme is then set to the earleme after the default end of
+parsing.
 
 =head1 SUPPORT
 
