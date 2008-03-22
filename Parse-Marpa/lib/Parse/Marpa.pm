@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION = '0.205_001';
+    our $VERSION = '0.205_002';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
@@ -882,26 +882,14 @@ A boolean.
 If true, Marpa runs in online or streaming mode.
 If false, Marpa runs in offline mode.
 The C<online> option cannot be changed after a recognizer is created.
-Offline mode is the default.
-As of this release,
-online mode is experimental.
+Offline mode is the default, and the only mode available
+in this release.
 
 In B<offline> mode,
 when the first evaluator is created from a recognizer,
 Marpa assumes that input to the recognizer has ended.
 The recognizer does some final bookkeeping,
 and refuses to accept any more input.
-
-In B<online> mode,
-which is under construction,
-new tokens can always be added,
-and final bookkeeping is never done.
-It is currently up to the user
-to determine where to look for complete parses,
-based on her knowledge of the structure of the grammar and the input.
-The experimental method
-L<Parse::Marpa::Recognizer::find_complete_rule|Parse::Marpa::Recognizer/find_complete_rule>
-may help.
 
 =item opaque
 

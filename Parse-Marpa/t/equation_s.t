@@ -68,7 +68,7 @@ for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
 # vim: expandtab shiftwidth=4:
 
 __DATA__
-semantics are perl5.  version is 0.205.1.
+semantics are perl5.  version is 0.205.2.
 
 start symbol is E.
 

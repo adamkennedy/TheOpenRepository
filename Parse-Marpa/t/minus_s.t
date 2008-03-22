@@ -55,7 +55,7 @@ for (my $i = 0; $i <= $#expected; $i++) {
 # a start symbol that appears repeatedly on the RHS.
 
 __DATA__
-semantics are perl5.  version is 0.205.1.
+semantics are perl5.  version is 0.205.2.
 
 the start symbol is E.
 

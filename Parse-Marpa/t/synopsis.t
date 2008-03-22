@@ -8,8 +8,8 @@ use IPC::Open2;
 
 use Test::More tests => 2;
 
-unless ($Config{"d_pipe"}) {
-    plan skip_all => "Pipes required to test examples";
+unless ($Config{"d_fork"}) {
+    plan skip_all => "Fork required to test examples";
     exit 0;
 }
 

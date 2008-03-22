@@ -944,7 +944,7 @@ which requires a Marpa recognizer object.
 
 Marpa allows ambiguous parses, so evaluator objects are iterators.
 Iteration is performed with the C<next> method,
-which finds the next parse and returns its value.
+which returns a reference to the value of the next parse.
 Often only one parse is needed, in which case the C<next> method is called only once.
 
 The evaluator does its work in tables kept
@@ -965,15 +965,15 @@ the boost in efficiency from node value memoization can be major.
 
 If the defaults are used, Marpa will mark all its evaluators opaque.
 That is always a safe choice.
-
 Grammars and recognizers can be marked opaque or transparent.
+
 A recognizer created from an opaque grammar is marked opaque.
 A recognizer created from a grammar marked transparent is marked transparent,
 unless an C<opaque> named argument supplied at recognizer creation time
 overrides that marking.
 A recognizer created from a grammar without a opacity marking is marked opaque,
-unless a C<opaque> named argument supplied at recognizer creation time
-overrides that marking.
+unless the C<opaque> named argument is used to mark the recognizer transparent
+at creation time.
 Once a recognizer object has been created,
 its opacity setting cannot be changed.
 
@@ -988,14 +988,14 @@ For a node to be safe for memoization, it must be transparent.
 A node is transparent only
 if it is always safe to substitute a constant value for the node's action.
 
-Here are some hints for making actions transparent:
+Here are guidelines for making actions transparent:
 The code must have no side effects.
 The return value should not be a reference.
 The return value must depend completely on the return values of the child nodes.
 All child nodes must be transparent as well.
 Any subroutines or functions must be transparent.
 
-Exceptions to these rules can be made, but you have to know what you're doing.
+Exceptions to these guidelines can work, but you have to know what you're doing.
 There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 If you're not sure whether your semantics are opaque or not,
@@ -1022,7 +1022,7 @@ and one that would be very hard to debug.
 A "null value" is the value used for a symbol's value when it is nulled in a parse.
 By default, the null value is a Perl undefined.
 If you want something else,
-the default null value is a predefined (C<default_null_value>) and can be reset.
+the default null value is a Marpa option (C<default_null_value>) and can be reset.
 
 Each symbol can have its own null symbol value.
 The null symbol value for any symbol is calculated using the action
@@ -1032,8 +1032,8 @@ It's a property of the symbol, and applies whenever the symbol is nulled,
 even when the symbol's empty rule is not involved.
 
 For example, in MDL,
-the following says that whenever the symbol C<A> matches the empty string,
-it should evaluate to a string which expresses surprise.
+the following says that whenever the symbol C<A> is nulled,
+its value should be a string which expresses surprise.
 
     A: . q{ 'Oops!  Where did I go!' }.
 
@@ -1056,7 +1056,7 @@ and a fixed value is usually what is wanted.
 If you want to calculate a symbol's null value with a closure run at parse evaluation time,
 the null symbol action can return a reference to a closure.
 Rules with that nullable symbol in their right hand side
-can then be set up so they run that closure.
+can then be set up so that they run that closure.
 
 As mentioned,
 null symbol values are properties of a symbol, not of a rule.
@@ -1064,53 +1064,65 @@ A null value is used whenever the corresponding symbol is a "highest null value"
 in a derivation,
 whether or not that happens directly through that symbol's empty rule.
 
-=head3 Valued and Unvalued Nodes
+=head3 Evaluating Null Derivations
 
-If there are null symbols in a parse, some nodes may have no value.
-If a node has a value, it is said to be B<valued>.
-If a node has no value, it is said to be B<unvalued>.
+A null derivation may consist of many steps and may contain many symbols.
+Marpa's rule is that the value of a null derivation is
+the null symbol value of the B<highest null symbol> in that
+derivation.
+This section describes in detail how a parse is evaluated,
+focusing on what happens when nulled symbols are involved.
+
 The first step in evaluating a parse is to determine which nodes
-are valued and which are unvalued.
-
-A Marpa "no value" is B<not> a Perl 5 undefined.
-A Perl 5 undefined is a legitimate value.
-A Marpa "no value" means that no value calculation was done for
-that node.
-
-Marpa's determines which nodes to value, following these principles.
+B<count> for the purpose of evaluation, and which do not.
+Marpa follows these principles:
 
 =over 4
 
 =item 1
 
-The start node is valued.
+The start node always counts.
 
 =item 2
 
-All terminal nodes are valued.
+Nodes count if they derive a non-empty sentence.
 
 =item 3
 
-A node with one or more valued child nodes is valued.
+All other nodes do not count.
 
 =item 4
 
-A nulled node is
-unvalued unless it is the start node.
+In evaluating a derivation, Marpa uses only nodes that count.
 
 =back
 
-In evaluating a derivation, Marpa uses only valued nodes.
-Unvalued nodes are ignored.
-A consequence of the above principles is that
-the value of null derivation is the value of the "highest null symbol" in it.
+These are all consequences of the principles above:
 
-A null parse, the case where the start symbol produces the empty string, is special.
-Null parses are the reason for Principle 1.
+=over 4
+
+=item 1
+
+The value of null derivation is the value of the highest null symbol in it.
+
+=item 2
+
+A nulled node counts only if it is start node.
+
+=item 3
+
+If a node derives a non-empty sentence, it always counts.
+
+=item 4
+
 The value of a null parse is the null value of the start symbol.
+(A null parse is the special case where the start symbol produces the empty string.)
+Null parses are the reason for Principle 1.
 This is consistent with the "highest null symbol" rule, because the start symbol
 is the highest symbol in a parse, and will certainly be the highest null
 symbol in a null parse.
+
+=back
 
 If you think some of the rules or symbols represented by unvalued nodes
 are important in your grammar,
@@ -1145,7 +1157,7 @@ Suppose a grammar has these rules
 
 In the above MDL, the Perl 5 regex "C</Z/>" occurs on the rhs of Rule 6.
 Where a regex is on the rhs of a rule, MDL internally creates a terminal symbol
-which is defined as matching that regex in the input text.
+to match that regex in the input text.
 In this example, the MDL internal terminal symbol that
 matches input text using the regex
 C</Z/> will be called C<Z>.
@@ -1168,31 +1180,25 @@ The parse tree can be described as follows:
 	Node 4: Y (1 child, node 5)
 	Node 5: Z (terminal node)
 
-Here's the sentence each node derives and what it evaluates to
+Here's a table showing, for each node, its lhs symbol,
+the sentence it derives and
+its value.
 
                       Symbol      Sentence     Value
                                   Derived
 
     Node 0:              S         Z           "A is missing, but Zorro is here"
-        Node 1:          A         none        "A is missing"
-	    Node 2:      B         none        No value
-	    Node 3:      C         none        No value
+        Node 1:          A         empty       "A is missing"
+	    Node 2:      B         empty       No value
+	    Node 3:      C         empty       No value
 	Node 4:          Y         Z           "Zorro was here"
 	Node 5:          Z         Z           "Z"
 
 In this derivation,
-nodes 2 and 3 are nulled.
-They aren't the start node,
-and have no child nodes,
-so they remain unvalued.
+nodes 1, 2 and 3 derive the empty sentence.
+None of them are the start node so they don't count.
 
-Node 1 is also nulled.
-Node 1 has two child nodes, but both are also nulled,
-so Node 1 will remain unvalued.
-
-Node 5 represents the terminal symbol C<Z>, so it will be valued.
-Node 4 has a valued child node, node 5, so it will be valued.
-Node 0 also has a valued child node, node 4, so it will be valued.
+Nodes 0, 4 and 5 all derive the same sentence, C<Z>, so they will all be valued.
 Node 0 is the start node, so it would be valued in any case.
 
 Since node 5 is a terminal node, it's value comes from the lexer.
@@ -1210,7 +1216,7 @@ attention to child values.
 The action for each rule is free to use or not use child values.
 
 Nodes 1, 2 and 3 will all remain unvalued.
-The only rule left to be evaluated is
+The only rule left to be evaluated
 is node 0, the start node.
 It is not nulled, so
 its value is calculated using the action for the rule it
@@ -1230,8 +1236,8 @@ For nulled symbols, we must use the null symbol value.
 Null symbol values for each symbol can be explicitly set
 by specifying an rule action for an empty rule with that symbol
 as its lhs.
-This was done for symbol C<A>, in
-Rule 1.
+For symbol C<A>,
+this was done in Rule 1.
 Rule 1's action evaluates to the Perl 5 string
 "C<A is missing>".
 
@@ -1244,7 +1250,8 @@ the symbol C<A>.
 Now that we have both child values, we can use rule 0's action
 to calculate the value of node 0.
 That value is "C<A is missing, but Zorro was here>",
-This becomes the value of C<S>, rule 0's lhs.
+This becomes the value of C<S>, rule 0's left hand side symbol and
+the start symbol of the grammar.
 A parse has the value of its start symbol,
 so "C<A is missing, but Zorro was here>" is also
 the value of the parse.
@@ -1267,7 +1274,7 @@ The first, required, argument is a recognizer object.
 The second, optional, argument 
 will be used as the number of the earleme at which to end parsing.
 If there is no second argument, parsing ends at the default end
-of parsing, which was set by the recognizer.
+of parsing, which was set in the recognizer.
 
 =head2 next
 
@@ -1300,8 +1307,8 @@ which is not the usual case.
 Optimization of sequence evaluation almost always pays off quickly and handsomely.
 
 A possible future extension is to enable the user to 
-label only particular rules opaque, and to allow node memoization
-on a rule by rule basis.
+label only particular rules opaque, so that node memoization
+can take place on a rule by rule basis.
 But there's something to be said for keeping things simple.
 If a grammar writer is really looking for speed,
 she can let the grammar default to opaque,
