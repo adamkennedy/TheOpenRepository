@@ -6,9 +6,11 @@ use English;
 use Config;
 use IPC::Open2;
 
-use Test::More tests => 2;
+use Test::More;
 
-unless ($Config{"d_fork"}) {
+if ($Config{"d_fork"}) {
+    plan tests => 2;
+} else {
     plan skip_all => "Fork required to test examples";
     exit 0;
 }

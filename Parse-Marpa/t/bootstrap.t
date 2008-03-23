@@ -1,17 +1,15 @@
 use 5.010_000;
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More;
 use Fatal qw(close chdir);
 use Carp;
 use English;
 use Config;
 
-BEGIN {
-	use_ok( 'Parse::Marpa' );
-}
-
-unless ($Config{"d_fork"}) {
+if ($Config{"d_fork"}) {
+    plan tests => 4;
+} else {
     plan skip_all => "Fork required to test examples";
     exit 0;
 }
