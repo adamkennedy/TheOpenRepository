@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Internals - Marpa Internals
+Internals - Marpa Internals
 
 =head1 OVERVIEW
 

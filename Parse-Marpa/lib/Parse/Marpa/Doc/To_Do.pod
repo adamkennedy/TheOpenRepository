@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::To_Do - Marpa's To Do List
+To_Do - Marpa's To Do List
 
 =head1 DESCRIPTION
 

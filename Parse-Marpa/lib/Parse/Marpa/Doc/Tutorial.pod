@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Tutorial - A Marpa Tutorial
+Tutorial - A Marpa Tutorial
 
 =head1 OVERVIEW
 
