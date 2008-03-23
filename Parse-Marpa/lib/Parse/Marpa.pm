@@ -573,19 +573,20 @@ and L<Parse::Marpa::Evaluator> documents
 describe methods which allow you control over the individual phases
 of the parse,
 and discuss advanced topics associated with each phase.
+L<Parse::Marpa::Doc::Diagnostics>
+describes techniques, named arguments and methods available for debugging
+and tracing.
 
-L<Parse::Marpa::Doc::Plumbing> documents Marpa's plumbing interface.
+L<Parse::Marpa::Doc::Plumbing> documents Marpa's plumbing.
+L<Parse::Marpa::MDL> documents utilities for converting MDL symbol
+names to plumbing interface names.
 L<Parse::Marpa::Lex> documents some lex actions which are used
 by MDL, and which are available to users for their own lexing.
 
-The L<diagnostics|Parse::Marpa::Doc::Diagnostics> document
-describes techniques, named arguments and methods available for debugging
-and tracing.
-For more advanced diagnostics,
-it can be useful or necessary to understand Marpa's internals.
+For advanced diagnostics
+or for reading Marpa's code,
+it is necessary to understand Marpa's internals.
 These are described in 
-L<Parse::Marpa::Doc::Internals>.
-Those interested in reading the code should also read
 L<Parse::Marpa::Doc::Internals>.
 
 Details about sources (books, web pages and articles) referred to in these documents
