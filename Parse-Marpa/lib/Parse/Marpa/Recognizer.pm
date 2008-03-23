@@ -1393,7 +1393,7 @@ You can, for example, create a token stream and use a one-token-per-earleme mode
 and this would be equivalent to the standard way of doing things.
 You can also structure your input in other, special ways to suit your application.
 
-There are three restrictions in mapping tokens to earlemes:
+There are three restrictions on mapping tokens to earlemes:
 
 =over 4
 
@@ -1405,7 +1405,7 @@ Scanning always starts at earleme 0.
 
 Tokens must be scanned in earleme order.
 That is, all the tokens at earleme C<N>
-must be recognized before any token at earleme C<N+1>.
+must be scanned before any token at earleme C<N+1>.
 
 =item 3
 
@@ -1419,11 +1419,11 @@ B<Length> in earlemes probably means what you expect it does.
 The length from earleme 3 to earleme 6,
 for instance, is 3 earlemes.
 
-When a token is scanned, the start of the token is always at the B<current earleme>.
+When a token is scanned, the start of the token is put at the B<current earleme>.
 Where the token ends depends on its length, which must be greater than zero.
 The B<default end of parsing> is tracked by each recognizer.
-If the user does not explicitly specify where parsing should end,
-an evaluator uses the default end of parsing that it inherited from the recognizer.
+If the user does not explicitly specify where an evaluator should end its parse,
+the evaluator uses the default end of parsing that it inherited from the recognizer.
 
 =head2 Parse Exhaustion
 
@@ -1456,7 +1456,7 @@ Either the C<compiled_grammar> or the C<grammar> named argument must be specifie
 A recognizer is created with
 the current earleme and
 the default end of parsing
-both set to earleme 0.
+both set at earleme 0.
 
 If the C<grammar> option is specified, 
 its value must be a grammar object with rules defined.
@@ -1490,7 +1490,7 @@ the current earleme is set to the earleme just after the end of text,
 and -1 is returned.
 
 If the parse is exhausted by the input,
-the default end of parsing is set to the last earleme at which the parse was
+the default end of parsing remains at the last earleme at which the parse was
 active,
 and the character offset at which the parse was exhausted is returned.
 A zero return means that the parse was exhausted at character offset zero.
@@ -1506,7 +1506,7 @@ Terminals are recognized in the text
 using the lexers that were specified in the porcelain
 or the plumbing.
 The earleme length of each token is
-set using the token length in characters.
+set to the length of the token in characters.
 (If a token has a "lex prefix",
 the length of the lex prefix counts as part of the token length.)
 
@@ -1525,27 +1525,29 @@ More than one token may be added at an each earleme,
 because ambiguous lexing is allowed.
 Each token argument is a reference to a three element array.
 The first element is a "cookie" for the token's symbol,
-as returned by the C<Parse::Marpa::get_symbol> method
+as returned by the C<Parse::Marpa::Grammar::get_symbol> method
 or the C<get_symbol> method of a porcelain interface.
 The second element is the token's value in the parse,
 and may be any value legal in Perl 5, including undefined.
 The third is the token's length in earlemes.
 
-The C<earleme> method first checks to see if the parse is still B<active>,
-that is,
-if it is still possible for the parse to succeed.
-If the parse is active,
-the tokens are added.
-The default end of parsing is set to the current earleme,
-after which the current earleme is advanced by one.
-If the C<earleme> method is called without any arguments,
-both the current earleme and the default end of parsing will be incremented by one earleme,
-but no new tokens are added.
+The C<earleme> method first
+adds the tokens in the arguments, if there were any.
+If, after all tokens have been added,
+the parse is still B<active>,
+the default end of parsing is set to the current earleme.
+The current earleme is then advanced by one
+and the C<earleme> method returns 1,
+indicating that the parse is still active.
 
-An earleme remains the current earleme only during one call of the C<earleme> method.
-All tokens starting at that earleme must be added in that call.
-The first time that the C<earleme> method is called in a recognizer,
-the current earleme is at earleme 0.
+The C<earleme> method may be called without any arguments,
+and if tokens span multiple earlemes,
+as is often the case when the C<text> method is being used,
+the parse might well remain active
+after such a call.
+Whether or not any tokens were added in a call to the C<earleme> method,
+if the parse remains active,
+both the current earleme and the default end of parsing are incremented by one.
 
 If the B<earleme> method results in an exhausted parse,
 it returns 0.
@@ -1553,8 +1555,13 @@ The default end of parsing remains
 at the last earleme at which the parse was active.
 The C<earleme> method throws an exception on other failures.
 
+An earleme remains the current earleme during only one call of the C<earleme> method.
+All tokens starting at that earleme must be added in that call.
+The first time that the C<earleme> method is called in a recognizer,
+the current earleme is at earleme 0.
+
 This is the low-level token input method, and allows maximum
-control over the form and interrelationship of tokens.
+control over scanning.
 No model of the input,
 or of the relationship between the tokens and the earlemes,
 is assumed.  The user is free to invent her own.

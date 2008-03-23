@@ -243,6 +243,8 @@ The B<rules> describe a set of strings of B<symbols>.
 A string of symbols is often called a B<symbol string>.
 The rules of a grammar are often called B<productions>.
 
+=head3 Stages of Parsing
+
 A B<recognizer> is a program that determines whether its B<input>
 is one of the symbol strings in the set described by the rules of a grammar.
 A B<parser> is a program which finds the structure of the input
@@ -256,6 +258,18 @@ B<parsing in the strict sense> refers to the phase that finds the structure of t
 When this document intends the term B<parsing> in its strict sense, it will
 speak explicitly of "parsing in the strict sense".
 Otherwise, the term B<parsing> will mean parsing in the loose sense.
+
+Parsers often use a
+B<lexical analyzer> to convert B<raw input>,
+usually B<input text>,
+into a series of B<tokens>.
+Each token represents a B<symbol> of the grammar and has a B<value>.
+The series of symbols represented by the series of tokens
+becomes the B<symbol string input>
+seen by the recognizer.
+The B<symbol string input> is also called the B<input sentence>.
+A lexical analyzer is often called a B<lexer> or a B<scanner>,
+and B<lexical analysis> is often called B<lexing> or B<scanning>.
 
 =head3 Productions
 
@@ -283,11 +297,10 @@ If the rhs of a production has no symbols,
 the production is called an B<empty production>
 or an B<empty rule>.
 
-A symbol which is allowed in the input is called a B<terminal> symbol.
+Any symbol which is allowed to occur
+in the symbol string input is called a B<terminal> symbol.
 If the symbols in a symbol string are all terminals,
 that symbol string is also called a B<sentence>.
-The input to a successful parse must be a sentence,
-but just because the input is a sentence does not mean that it will parse successfully.
 
 =head3 Derivations
 

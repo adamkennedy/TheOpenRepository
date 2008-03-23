@@ -969,11 +969,13 @@ Grammars and recognizers can be marked opaque or transparent.
 
 A recognizer created from an opaque grammar is marked opaque.
 A recognizer created from a grammar marked transparent is marked transparent,
-unless an C<opaque> named argument supplied at recognizer creation time
-overrides that marking.
+unless an C<opaque> named argument
+marks the recognizer opaque
+at recognizer creation time.
 A recognizer created from a grammar without a opacity marking is marked opaque,
-unless the C<opaque> named argument is used to mark the recognizer transparent
-at creation time.
+unless an C<opaque> named argument
+marks the recognizer transparent
+at recognizer creation time.
 Once a recognizer object has been created,
 its opacity setting cannot be changed.
 
@@ -995,7 +997,7 @@ The return value must depend completely on the return values of the child nodes.
 All child nodes must be transparent as well.
 Any subroutines or functions must be transparent.
 
-Exceptions to these guidelines can work, but you have to know what you're doing.
+Exceptions to these guidelines can be made, but you have to know what you're doing.
 There's an excellent discussion of memoization
 in L<Mark Jason Dominus's I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/Dominus 2005>.
 If you're not sure whether your semantics are opaque or not,
@@ -1058,12 +1060,6 @@ the null symbol action can return a reference to a closure.
 Rules with that nullable symbol in their right hand side
 can then be set up so that they run that closure.
 
-As mentioned,
-null symbol values are properties of a symbol, not of a rule.
-A null value is used whenever the corresponding symbol is a "highest null value"
-in a derivation,
-whether or not that happens directly through that symbol's empty rule.
-
 =head3 Evaluating Null Derivations
 
 A null derivation may consist of many steps and may contain many symbols.
@@ -1093,7 +1089,7 @@ All other nodes do not count.
 
 =item 4
 
-In evaluating a derivation, Marpa uses only nodes that count.
+In evaluating a parse, Marpa uses only nodes that count.
 
 =back
 
@@ -1111,28 +1107,19 @@ A nulled node counts only if it is start node.
 
 =item 3
 
-If a node derives a non-empty sentence, it always counts.
-
-=item 4
-
 The value of a null parse is the null value of the start symbol.
-(A null parse is the special case where the start symbol produces the empty string.)
-Null parses are the reason for Principle 1.
-This is consistent with the "highest null symbol" rule, because the start symbol
-is the highest symbol in a parse, and will certainly be the highest null
-symbol in a null parse.
 
 =back
 
-If you think some of the rules or symbols represented by unvalued nodes
+If you think some of the rules or symbols represented by nodes that don't count
 are important in your grammar,
 Marpa can probably accommodate your ideas.
 First,
 for every nullable symbol,
-determine how to calculate the value which your null semantics produces
+determine how to calculate the value which your semantics produces
 when that nullable symbol is a "highest null symbol".
 If it's a constant, write a null action for that symbol which returns that constant.
-If your null semantics do not produce a constant value by recognizer creation time,
+If your semantics do not produce a constant value by recognizer creation time,
 write a null action which returns a reference to a closure
 and arrange to have that closure run by the parent node.
 
@@ -1178,10 +1165,10 @@ The parse tree can be described as follows:
 	    Node 2: B (matches empty string)
 	    Node 3: C (matches empty string)
 	Node 4: Y (1 child, node 5)
-	Node 5: Z (terminal node)
+	    Node 5: Z (terminal node)
 
 Here's a table showing, for each node, its lhs symbol,
-the sentence it derives and
+the sentence it derives, and
 its value.
 
                       Symbol      Sentence     Value
@@ -1192,14 +1179,15 @@ its value.
 	    Node 2:      B         empty       No value
 	    Node 3:      C         empty       No value
 	Node 4:          Y         Z           "Zorro was here"
-	Node 5:          Z         Z           "Z"
+	    Node 5:      Z         Z           "Z"
 
 In this derivation,
 nodes 1, 2 and 3 derive the empty sentence.
-None of them are the start node so they don't count.
+None of them are the start node so that none of them count.
 
-Nodes 0, 4 and 5 all derive the same sentence, C<Z>, so they will all be valued.
-Node 0 is the start node, so it would be valued in any case.
+Nodes 0, 4 and 5 all derive the same non-empty sentence, C<Z>,
+so they all count.
+Node 0 is the start node, so it would have counted in any case.
 
 Since node 5 is a terminal node, it's value comes from the lexer.
 Where the lexing is done with a Perl 5 regex,
@@ -1215,7 +1203,7 @@ Node 4 has a child node, node 5, but rule 6's action pays no
 attention to child values.
 The action for each rule is free to use or not use child values.
 
-Nodes 1, 2 and 3 will all remain unvalued.
+Nodes 1, 2 and 3 don't count and will all remain unevaluated.
 The only rule left to be evaluated
 is node 0, the start node.
 It is not nulled, so
@@ -1227,7 +1215,7 @@ There are two child nodes and their values are
 elements 0 and 1 in the C<@$_> array of the action.
 The child value represented by the symbol C<Y>,
 C<< $_->[1] >>, comes from node 4.
-From above, we can see that that value was 
+From the table above, we can see that that value was 
 "C<Zorro was here>".
 
 The first child value is represented by the symbol C<A>,
@@ -1241,7 +1229,7 @@ this was done in Rule 1.
 Rule 1's action evaluates to the Perl 5 string
 "C<A is missing>".
 
-Even though rule 1's action plays a role in calculating the value of the parse,
+Even though rule 1's action plays a role in calculating the value of this parse,
 rule 1 is not actually used in the derivation.
 No node in the derivation represents rule 1.
 Rule 1 is used because it defines the null symbol value for
@@ -1291,7 +1279,7 @@ The parse order may be manipulated by assigning priorities to the rules and
 terminals.
 
 A failed parse does not always show up as an exhausted parse in the recognizer.
-Just because the recognizer was actively parsing when it was used to create
+Just because the recognizer was active when it was used to create
 the evaluator, does not mean that the input matches the grammar.
 If it does not match, there will be no parses and the C<next> method will
 return undefined the first time it is called.
