@@ -3436,7 +3436,7 @@ sub rewrite_as_CHAF {
 
 =head1 NAME
 
-Parse::Marpa::Grammar - A Marpa Grammar Object
+Parse::Marpa::Grammar - Marpa Grammar Objects
 
 =head1 DESCRIPTION
 

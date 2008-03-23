@@ -1,3 +1,4 @@
+META.yml
 ./bin/test.marpa
 ./bootstrap/self.marpa
 ./example/null_value.marpa

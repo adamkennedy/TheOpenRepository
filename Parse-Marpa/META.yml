@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Parse-Marpa
-version:             0.205_002
+version:             0.205_003
 abstract:            (Alpha) Earley's algorithm with LR(0) precomputation
 author:              
     - Jeffrey Kegler

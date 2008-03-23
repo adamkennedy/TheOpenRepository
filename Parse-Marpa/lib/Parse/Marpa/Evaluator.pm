@@ -919,7 +919,7 @@ sub show_derivation {
 
 =head1 NAME
 
-Parse::Marpa::Evaluator - A Marpa Evaluator Object
+Parse::Marpa::Evaluator - Marpa Evaluator Objects
 
 =head1 SYNOPSIS
 

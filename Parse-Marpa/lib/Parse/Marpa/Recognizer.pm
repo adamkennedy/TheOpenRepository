@@ -1331,7 +1331,7 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
 
 =head1 NAME
 
-Parse::Marpa::Recognizer - A Marpa Recognizer Object
+Parse::Marpa::Recognizer - Marpa Recognizer Objects
 
 =head1 SYNOPSIS
 
