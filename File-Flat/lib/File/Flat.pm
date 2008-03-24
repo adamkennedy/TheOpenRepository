@@ -11,7 +11,6 @@ use strict;
 use Cwd        ();
 use File::Spec ();
 use IO::File   ();
-use prefork    'File::Slurp';
 use prefork    'File::Temp';
 use prefork    'File::Copy';
 use prefork    'File::Copy::Recursive';
@@ -179,10 +178,19 @@ sub slurp {
 	$class->canOpen( $file )
 		or return $class->_error( "Unable to open file '$file'" );
 
-	# Hand off to File::Slurp
-	require File::Slurp;
-	File::Slurp::read_file( $file, scalar_ref => 1 )
-		or $class->_error( "Error opening file '$file'", $! );
+	# Use idiomatic slurp instead of File::Slurp
+	_slurp($file) or $class->_error( "Error opening file '$file'", $! );
+}
+
+# Provide a simple _slurp implementation
+sub _slurp {
+	my $file = shift;
+	local $/ = undef;
+	local *SLURP;
+	open( SLURP, "<$file" ) or return undef;
+	my $source = <SLURP>;
+	close( SLURP ) or return undef;
+	\$source;
 }
 
 # read reads in an entire file, returning it as an array or a reference to it.
@@ -198,10 +206,15 @@ sub read {
 		return;
 	}
 
-	# Hand off to File::Slurp
-	require File::Slurp;
-	my @content = File::Slurp::read_file( $file );
+	# Load the file
+	unless ( open(FILE, $file) ) {
+		$class->_error( "Unable to open file '$file'" );
+		return;
+	}
+	my @content = <FILE>;
 	chomp @content;
+	close(FILE);
+
 	wantarray ? @content : \@content;
 }
 

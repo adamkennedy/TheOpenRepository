@@ -13,7 +13,6 @@ requires       'prefork'               => '0.02';
 requires       'File::Spec'            => ($WIN32 ? '3.24' : '0.85');    
 requires       'File::Copy'            => 0;
 requires       'File::Copy::Recursive' => '0.35';
-requires       'File::Slurp'           => '9999.10';
 requires       'File::Remove'          => '0.38';
 requires       'File::Temp'            => '0.17';   
 requires       'IO::File'              => 0;
