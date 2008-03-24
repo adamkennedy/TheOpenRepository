@@ -6,7 +6,7 @@ Parse::Marpa::Doc::Algorithm - The Marpa Algorithm
 
 Marpa is based on and derived from
 the parser
-L<described by John Aycock and R.  Nigel Horspool|Parse::Marpa::Bibliography/"Aycock and Horspool 2002">.
+L<described by John Aycock and R.  Nigel Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 This combines LR(0)
 precomputation
 with the general parsing algorithm

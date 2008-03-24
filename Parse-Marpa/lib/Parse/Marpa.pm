@@ -1133,10 +1133,6 @@ as a free download L<http://www.lulu.com/content/933192>,
 and in print form at Amazon.com:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
-=head1 TO DO
-
-See L<Parse::Marpa::To_Do>.
-
 =head1 BUGS
 
 =head2 Priority Conflicts
