@@ -46,6 +46,10 @@ sub new {
 		app_publisher     => 'Vanilla Perl Project',
 		app_publisher_url => 'http://vanillaperl.org/',
 		image_dir         => 'C:\\vanilla',
+
+		# Always generate both forms
+		exe               => 1,
+		zip               => 1,
 		@_,
 	);
 
