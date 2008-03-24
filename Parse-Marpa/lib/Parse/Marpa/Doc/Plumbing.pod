@@ -1,6 +1,6 @@
 =head1 NAME
 
-Plumbing - Marpa's Plumbing Interface
+Parse::Marpa::Doc::Plumbing - Marpa's Plumbing Interface
 
 =head1 OVERVIEW
 

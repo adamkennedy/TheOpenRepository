@@ -1,6 +1,6 @@
 =head1 NAME
 
-MDL - The Marpa Demonstration Language
+Parse::Marpa::Doc::MDL - The Marpa Demonstration Language
 
 =head1 OVERVIEW
 

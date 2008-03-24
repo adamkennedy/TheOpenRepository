@@ -1,6 +1,6 @@
 =head1 NAME
 
-Bibliography - A Marpa Bibliography
+Parse::Marpa::Doc::Bibliography - A Marpa Bibliography
 
 =head1 Aho and Ullman 1972
 
