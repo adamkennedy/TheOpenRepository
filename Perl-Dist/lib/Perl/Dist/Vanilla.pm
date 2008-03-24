@@ -7,7 +7,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '15';
+	$VERSION = '16';
 }
 
 

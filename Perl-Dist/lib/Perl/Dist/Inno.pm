@@ -2105,6 +2105,8 @@ directory that the file be installed below, using its source file name.
 
 Returns true or throws an exception on error.
 
+=cut
+
 sub install_file {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::File->new(
