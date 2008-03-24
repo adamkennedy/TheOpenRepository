@@ -210,7 +210,7 @@ sub save {
 sub resolve {
 	my $self = shift;
 	my $path = shift;
-	if ( $self->type == REG_EXPAND_SZ ) {
+	if ( $self->type == Win32::TieRegistry::REG_EXPAND_SZ() ) {
 		$path =~ s/\%(\w+)\%/$ENV{uc("$1")}/g;
 	}
 	return lc $path;

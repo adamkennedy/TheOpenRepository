@@ -6,7 +6,7 @@ BEGIN {
 	$| = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 6;
 use Win32::Env::Path;
 
 
@@ -22,7 +22,7 @@ SCOPE: {
 	is( $path->name, 'PATH', '->name ok' );
 	is( $path->autosave, 1, '->autosave is true by default' );
 	is( $path->user,   ! 1, '->user is false by default' );
-	ok( defined($path->string), '->string exists' );
+	ok( defined($path->value), '->string exists' );
 	is( ref($path->array), 'ARRAY', '->array exists' );
 
 	# Check the real path of something
@@ -31,7 +31,5 @@ SCOPE: {
 	# Clean the path
 	$path->clean;
 }
-
-Win32::Env::Path->clean_three;
 
 1;
