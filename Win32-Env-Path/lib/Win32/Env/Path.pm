@@ -28,6 +28,12 @@ the installation and removal of software applications, and was
 originally written for use in the the Strawberry Perl installer
 and other L<Perl::Dist>-derived Perl distribution installers.
 
+=head1 METHODS
+
+For the moment, the specifics of this class are remaining undocumentated.
+
+Please read the code for more information, API is subject to change.
+
 =cut
 
 use 5.008;
