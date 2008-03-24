@@ -172,7 +172,7 @@ sub getReadWriteHandle { $_[0]->open( '+<', $_[1] ) }
 # Returns undef on error.
 sub slurp {
 	my $class = shift;
-	my $file = shift or return undef;
+	my $file  = shift or return undef;
 
 	# Check the file
 	$class->canOpen( $file )
@@ -198,7 +198,7 @@ sub _slurp {
 # the calling context.
 sub read {
 	my $class = shift;
-	my $file = shift or return;
+	my $file  = shift or return;
 
 	# Check the file
 	unless ( $class->canOpen( $file ) ) {
@@ -207,13 +207,13 @@ sub read {
 	}
 
 	# Load the file
-	unless ( open(FILE, $file) ) {
+	unless ( CORE::open(FILE, $file) ) {
 		$class->_error( "Unable to open file '$file'" );
 		return;
 	}
 	my @content = <FILE>;
 	chomp @content;
-	close(FILE);
+	CORE::close(FILE);
 
 	wantarray ? @content : \@content;
 }
