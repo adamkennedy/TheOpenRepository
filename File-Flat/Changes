@@ -1,6 +1,9 @@
 Revision history for Perl extension File::Flat.
 
-1.03 Sat  1 Mar 20078
+1.04 Mon 24 Mar 2008
+	- Removing dependency on File::Slurp
+
+1.03 Sat  1 Mar 2008
 	- Incremental release to clear out some CPAN Testers failures
 	- No need to upgrade
 
