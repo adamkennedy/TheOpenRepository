@@ -185,7 +185,9 @@ sub new {
 
         # Use a default local path if none provided
         unless ( defined $params{local} ) {
-                my $local = File::HomeDir
+                my $local = File::Spec->catdir(
+			File::HomeDir->my_data, 'minicpan',
+		);
         }
 
         # Call our superclass to create the object

@@ -16,5 +16,3 @@ ok( $] >= 5.005, "Your perl is new enough" );
 
 # Does the module load
 use_ok('CPAN::Mini::Extract');
-
-exit(0);

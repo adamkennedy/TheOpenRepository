@@ -26,16 +26,19 @@ my $test_extract = catdir( 't', 'extract' );
 # Test creation
 
 # Create the most trivial object
-clear_test_dirs();
-my $trivial = CPAN::Mini::Extract->new(
-	trace          => 0, # Just in case
-	remote         => $test_remote,
-	local          => $test_local,
-	extract        => $test_extract,
-	);
-isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
-ok( -d $test_local,   'Constructor creates local dir'      );
-ok( -d $test_extract, 'Constructor creates extraction dir' );
+SKIP: {
+	skip("Skipping network-dependant tests", 5) if LWP::Online::offline();
+	clear_test_dirs();
+	my $trivial = CPAN::Mini::Extract->new(
+		trace          => 0, # Just in case
+		remote         => $test_remote,
+		local          => $test_local,
+		extract        => $test_extract,
+		);
+	isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+	ok( -d $test_local,   'Constructor creates local dir'      );
+	ok( -d $test_extract, 'Constructor creates extraction dir' );
+}
 
 # A more complex object
 clear_test_dirs();
@@ -48,7 +51,7 @@ my $worse = CPAN::Mini::Extract->new(
 	extract_force  => 1,
 	extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
 	);
-isa_ok( $trivial, 'CPAN::Mini', 'CPAN::Mini::Extract' );
+isa_ok( $worse, 'CPAN::Mini', 'CPAN::Mini::Extract' );
 ok( -d $test_local,   'Constructor creates local dir'      );
 ok( -d $test_extract, 'Constructor creates extraction dir' );
 
