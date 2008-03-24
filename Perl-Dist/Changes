@@ -1,4 +1,15 @@
-Revision history for Perl module Perl::Dist
+Revision history for Perl module Perl-Dist
+
+0.90_04 Mon 24 Mar 2008
+	- Adding Perl::Dist::Inno::System for [Run] and [UninstallRun]
+	  block support.
+	  This is needed for more sophisticated install and uninstall
+	  functionality.
+	- Completing documentation for all the major install_foo methods.
+	- Merging some idiosyncracies into the Perl::Dist::Inno core.
+	- Converting force in install_module to use notest under the covers,
+	  so that there are no errors to propogate upwards.
+	- Added support for generating both zip and exe files simultaneously.
 
 0.90_03 Fri  4 Jan 2008
 	- Perl::Dist::Download was a bad idea, I wanted the ability to

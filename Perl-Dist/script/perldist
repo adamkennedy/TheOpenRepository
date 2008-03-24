@@ -31,10 +31,12 @@ unless ( @ARGV ) {
 
 my $PERL_VERSION = undef;
 my $CPAN         = undef;
+my $BINARY_ROOT  = undef;
 my $FORCE        = undef;
 my $result       = GetOptions(
 	"perl_version=s" => \$PERL_VERSION,
 	"cpan=s"         => \$CPAN,
+	"binary_root=s"  => \$BINARY_ROOT,
 	"force"          => \$FORCE,
 );
 
@@ -69,6 +71,9 @@ if ( defined $PERL_VERSION ) {
 }
 if ( defined $CPAN ) {
 	$options{cpan} = URI->new( $CPAN );
+}
+if ( defined $BINARY_ROOT ) {
+	$options{binary_root} = $BINARY_ROOT;
 }
 if ( defined $FORCE ) {
 	$options{force} = 1;

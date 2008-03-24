@@ -19,15 +19,9 @@ Creating a custom distribution
 
 Building that distribution...
 
-  > perldist My::Perl::Dist "file://c|/minicpan/"
+  > perldist --cpan "file://c|/minicpan/" Strawberry
 
 =head1 DESCRIPTION
-
-B<ATTENTION: THE API OF THIS MODULES IS BEING HEAVILY REFACTORED.>
-
-B<SUBCLASSING IS ENCOURAGED BUT MAY NEED TO BE CHANGED WITH FUTURE RELEASES.>
-
-B<YOU HAVE BEEN WARNED!>
 
 B<Perl::Dist::Inno> is a Win32 Perl distribution builder that targets
 the Inno Setup 5 installer creation program.
@@ -44,7 +38,7 @@ final distribution .exe installer.
 Alternatively, B<Perl::Dist::Inno> can generate a .zip file for
 the distribution without the installer.
 
-Because the API for Perl::Dist::Inno is extremely rich and fairly
+Because the API for B<Perl::Dist::Inno> is extremely rich and fairly
 complex (and a moving target) the documentation is unfortunately
 a bit less complete than it should be.
 
@@ -160,6 +154,7 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	binary_root
 	offline
 	download_dir
 	image_dir
@@ -182,6 +177,8 @@ use Object::Tiny qw{
 	debug_stderr
 	output_file
 	force
+	exe
+	zip
 };
 
 use Perl::Dist::Inno                ();
@@ -203,8 +200,6 @@ use Perl::Dist::Util::Toolchain     ();
 
 #####################################################################
 # Upstream Binary Packages (Mirrored)
-
-sub binary_root { 'http://strawberryperl.com/package' }
 
 my %PACKAGES = (
 	'dmake'         => 'dmake-4.11-20080107-SHAY.zip',
@@ -326,6 +321,9 @@ sub new {
 	my %params = @_;
 
 	# Apply some defaults
+	unless ( defined $params{binary_root} ) {
+		$params{binary_root} = 'http://strawberryperl.com/package';
+	}
 	if ( defined $params{image_dir} and ! defined $params{default_dir_name} ) {
 		$params{default_dir_name} = $params{image_dir};
 	}
@@ -416,11 +414,19 @@ sub new {
 	unless ( defined $self->offline ) {
 		$self->{offline} = LWP::Online::offline();
 	}
+	unless ( defined $self->exe ) {
+		$self->{exe} = 1;
+	}
+	unless ( defined $self->zip ) {
+		$self->{zip} = 0;
+	}
 
 	# Normalize some params
 	$self->{offline}      = !! $self->offline;
 	$self->{trace}        = !! $self->{trace};
 	$self->{force}        = !! $self->force;
+	$self->{exe}          = !! $self->exe;
+	$self->{zip}          = !! $self->zip;
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
@@ -463,6 +469,12 @@ sub new {
 		$self->{iss_file} = File::Spec->catfile(
 			$self->output_dir, $self->app_id . '.iss'
 		);
+	}
+	unless ( defined $self->exe ) {
+		$self->{exe} = 1;
+	}
+	unless ( defined $self->zip ) {
+		$self->{zip} = 1;
 	}
 
 	# Clear the previous build
@@ -692,7 +704,9 @@ sub run {
 
 	# Finished
 	$self->trace("Distribution generation completed in " . (time - $start) . " seconds\n");
-	$self->trace("Distribution created at " . $self->output_file . "\n");
+	foreach my $file ( @{$self->output_file} ) {
+		$self->trace("Created distribution $file\n");
+	}
 
 	return 1;
 }
@@ -815,13 +829,6 @@ sub remove_waste {
 	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
 	File::Remove::remove( \1, $self->_dir('cpan', 'build')   );
 
-	return 1;
-}
-
-# By default, create an .exe installer
-sub write {
-	my $self = shift;
-	$self->{output_file} = $self->write_exe(@_);
 	return 1;
 }
 
@@ -1008,6 +1015,9 @@ sub install_perl_588_toolchain {
 sub install_perl_588_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
+		force        => {
+			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+		},
 	);
 }
 
@@ -1241,6 +1251,9 @@ sub install_perl_5100_toolchain {
 sub install_perl_5100_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
+		force        => {
+			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+		},
 	);
 }
 
@@ -1780,6 +1793,49 @@ sub install_library {
 	return 1;
 }
 
+=pod
+
+=head2 install_distribution
+
+  $self->install_distribution(
+      name              => 'ADAMK/File-HomeDir-0.69.tar.gz,
+      force             => 1,
+      automated_testing => 1,
+      makefilepl_param  => [
+          'LIBDIR=' . File::Spec->catdir(
+              $self->image_dir, 'c', 'lib',
+          ),
+      ],
+  );
+
+The C<install_distribution> method is used to install a single
+CPAN or non-CPAN distribution directly, without installing any of the
+dependencies for that distribution.
+
+It is used primarily during CPAN bootstrapping, to allow the
+installation of the toolchain modules, with the distribution install
+order precomputed or hard-coded.
+
+It takes a compulsory 'name' param, which should be the AUTHOR/file
+path within the CPAN mirror.
+
+The optional 'force' param allows the installation of distributions
+with spuriously failing test suites.
+
+The optional 'automated_testing' param allows for installation
+with the C<AUTOMATED_TESTING> environment flag enabled, which is
+used to either run more-intensive testing, or to convince certain
+Makefile.PL that insists on prompting that there is no human around
+and they REALLY need to just go with the default options.
+
+The optional 'makefilepl_param' param should be a reference to an
+array of additional params that should be passwd to the
+C<perl Makefile.PL>. This can help with distributions that insist
+on taking additional options via Makefile.PL.
+
+Returns true of throws an exception on error.
+
+=cut
 
 sub install_distribution {
 	my $self = shift;
@@ -1842,6 +1898,34 @@ sub install_distribution {
 	return 1;
 }
 
+=pod
+
+=head2 install_module
+
+  $self->install_module(
+      name => 'DBI',
+  );
+
+The C<install_module> method is a high level installation method that can
+be used during the C<install_perl_modules> phase, once the CPAN toolchain
+has been been initialized.
+
+It makes the installation call using the CPAN client directly, allowing
+the CPAN client to both do the installation and fulfill all of the
+dependencies for the module, identically to if it was installed from
+the CPAN shell via an "install Module::Name" command.
+
+The compulsory 'name' param should be the class name of the module to
+be installed.
+
+The optional 'force' param can be used to force the install of module.
+This does not, however, force the installation of the dependencies of
+the module.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_module {
 	my $self   = shift;
 	my $module = Perl::Dist::Asset::Module->new(
@@ -1859,7 +1943,9 @@ sub install_module {
 	my $env_lib     = $self->get_env_lib;
 	my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
+print "Loading CPAN...\\n";
 use CPAN;
+CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
@@ -1870,19 +1956,15 @@ if ( \$module->uptodate ) {
 print "\\\$ENV{PATH}    = '\$ENV{PATH}'\\n";
 print "\\\$ENV{LIB}     = '\$ENV{LIB}'\\n";
 print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'\\n";
+local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 if ( $force ) {
-	CPAN::Shell->install('$name');
-	\$CPAN::DEBUG = 1;
-	unless ( \$module->uptodate ) {
-		die "Forced installation of $name appears to have failed";
-	}
+	CPAN::Shell->notest('install', '$name');
 } else {
-	local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 	CPAN::Shell->install('$name');
-	print "Completed install of $name\\n";
-	unless ( \$module->uptodate ) {
-		die "Installation of $name appears to have failed";
-	}
+}
+print "Completed install of $name\\n";
+unless ( \$module->uptodate ) {
+	die "Installation of $name appears to have failed";
 }
 exit(0);
 END_PERL
@@ -1904,6 +1986,23 @@ END_PERL
 
 	return 1;
 }
+
+=pod
+
+=head2 install_par
+
+The C<install_par> method extends the available installation options to
+allow for the install of pre-compiled modules and pre-compiled C libraries
+via "PAR" packages.
+
+The compulsory 'name' param should be a simple identifying name, and does
+not have any functional use.
+
+The compulsory 'uri' param should be a URL string to the PAR package.
+
+Returns true on success or throws an exception on error.
+
+=cut
 
 sub install_par {
 	my $self = shift;
@@ -1956,6 +2055,56 @@ sub install_par {
 	return 1;
 }
 
+=pod
+
+=head2 install_file
+
+  # Overwrite the CPAN::Config
+  $self->install_file(
+      share      => 'Perl-Dist CPAN_Config.pm',
+      install_to => 'perl/lib/CPAN/Config.pm',
+  );
+  
+  # Install a custom icon file
+  $self->install_file(
+      name       => 'Strawberry Perl Website Icon',
+      url        => 'http://strawberryperl.com/favicon.ico',
+      install_to => 'Strawberry Perl Website.ico',
+  );
+
+The C<install_file> method is used to install a single specific file from
+various sources into the distribution.
+
+It is generally used to overwrite modules with distribution-specific
+customisations, or to install licenses, README files, or other
+miscellaneous data files which don't need to be compiled or modified.
+
+It takes a variety of different params.
+
+The optional 'name' param provides an optional plain name for the file.
+It does not have any functional purpose or meaning for this method.
+
+One of several alternative source methods must be provided.
+
+The 'url' method is used to provide a fully-resolved path to the
+source file and should be a fully-resolved URL.
+
+The 'file' method is used to provide a local path to the source file
+on the local system, and should be a fully-resolved filesystem path.
+
+The 'share' method is used to provide a path to a file installed as
+part of a CPAN distribution, and accessed via L<File::ShareDir>.
+
+It should be a string containing two space-seperated value, the first
+of which is the distribution name, and the second is the path within
+the share dir of that distribution.
+
+The final compulsory method is the 'install_to' method, which provides
+either a destination file path, or alternatively a path to an existing
+directory that the file be installed below, using its source file name.
+
+Returns true or throws an exception on error.
+
 sub install_file {
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::File->new(
@@ -1980,6 +2129,33 @@ sub install_file {
 	return 1;
 }
 
+=pod
+
+=head2 install_launcher
+
+  $self->install_launcher(
+      name => 'CPAN Client',
+      bin  => 'cpan',
+  );
+
+The C<install_launcher> method is used to describe a binary program
+launcher that will be added to the Windows "Start" menu when the
+distribution is installed.
+
+It takes two compulsory param.
+
+The compulsory 'name' param is the name of the launcher, and the text
+that label will be displayed in the start menu (Currently this only
+supports ASCII, and is not language-aware in any way).
+
+The compulsory 'bin' param should be the name of a .bat script launcher
+in the Perl bin directory. The program itself MUST be installed before
+trying to add the launcher.
+
+Returns true or throws an exception on error.
+
+=cut
+
 sub install_launcher {
 	my $self     = shift;
 	my $launcher = Perl::Dist::Asset::Launcher->new(
@@ -2001,6 +2177,36 @@ sub install_launcher {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_website
+
+  $self->install_website(
+      name       => 'Strawberry Perl Website',
+      url        => 'http://strawberryperl.com/',
+      icon_file  => 'Strawberry Perl Website.ico',
+      icon_index => 1,
+  );
+
+The C<install_website> param is used to install a "Start" menu entry
+that will load a website using the default system browser.
+
+The compulsory 'name' param should be the name of the website, and will
+be the labelled displayed in the "Start" menu.
+
+The compulsory 'url' param is the fully resolved URL for the website.
+
+The optional 'icon_file' param should be the path to a file that contains the
+icon for the website.
+
+The optional 'icon_index' param should be the icon index within the icon file.
+This param is optional even if the 'icon_file' param has been provided, by
+default the first icon in the file will be used.
+
+Returns true on success, or throws an exception on error.
+
+=cut
 
 sub install_website {
 	my $self    = shift;
@@ -2035,6 +2241,38 @@ sub install_website {
 
 #####################################################################
 # Package Generation
+
+sub write {
+	my $self = shift;
+	$self->{output_file} ||= [];
+	if ( $self->zip ) {
+		push @{ $self->{output_file} }, $self->write_zip;
+	}
+	if ( $self->exe ) {
+		push @{ $self->{output_file} }, $self->write_exe;
+	}
+	return 1;
+}
+
+=pod
+
+=head2 write_exe
+
+  $self->write_exe;
+
+The C<write_exe> method is used to generate the compiled installer
+executable. It creates the entire installation file tree, and then
+executes InnoSetup to create the final executable.
+
+This method should only be called after all installation phases have
+been completed and all of the files for the distribution are in place.
+
+The executable file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
 
 sub write_exe {
 	my $self = shift;
@@ -2071,6 +2309,22 @@ sub write_exe {
 	$self->SUPER::write_exe(@_);
 }
 
+=pod
+
+=head2 write_zip
+
+The C<write_zip> method is used to generate a standalone .zip file
+containing the entire distribution, for situations in which a full
+installer executable is not wanted (such as for "Portable Perl"
+type installations).
+
+The executable file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
 sub write_zip {
 	my $self = shift;
 	my $file = File::Spec->catfile(
@@ -2090,16 +2344,6 @@ sub write_zip {
 	return $file;
 }
 
-sub write_iss {
-	my $self = shift;
-	my $file = $self->iss_file;
-	my $iss  = $self->as_string;
-	open( ISS, ">$file" ) or croak("Failed to open ISS file to write");
-	print ISS $iss;
-	close ISS;
-	return $file;
-}
-
 
 
 
@@ -2115,6 +2359,33 @@ sub add_icon {
 		$params{filename} = "{app}\\$params{filename}";
 	}
 	$self->SUPER::add_icon(%params);
+}
+
+sub add_system {
+	my $self   = shift;
+	my %params = @_;
+	unless ( $params{filename} =~ /^\{/ ) {
+		$params{filename} = "{app}\\$params{filename}";
+	}
+	$self->SUPER::add_system(%params);
+}
+
+sub add_run {
+	my $self   = shift;
+	my %params = @_;
+	unless ( $params{filename} =~ /^\{/ ) {
+		$params{filename} = "{app}\\$params{filename}";
+	}
+	$self->SUPER::add_run(%params);
+}
+
+sub add_uninstallrun {
+	my $self   = shift;
+	my %params = @_;
+	unless ( $params{filename} =~ /^\{/ ) {
+		$params{filename} = "{app}\\$params{filename}";
+	}
+	$self->SUPER::add_uninstallrun(%params);
 }
 
 sub add_env_path {

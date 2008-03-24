@@ -11,6 +11,7 @@ use Params::Util               qw{ _STRING _IDENTIFIER };
 use Perl::Dist::Inno::File     ();
 use Perl::Dist::Inno::Icon     ();
 use Perl::Dist::Inno::Registry ();
+use Perl::Dist::Inno::System   ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -87,13 +88,14 @@ sub new {
 	$self->{files}    = [];
 	$self->{icons}    = [];
 	$self->{registry} = [];
+	$self->{system}   = [];
 
 	# Find the compil32 program
 	unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
 		die("Failed to find the Program Files directory\n");
 	}
-	my $innosetup_dir  = File::Spec->catdir( $ENV{PROGRAMFILES}, "Inno Setup 5" );
-	my $innosetup_file = File::Spec->catfile( $innosetup_dir, 'Compil32.exe' );
+	my $innosetup_dir  = File::Spec->catdir(  $ENV{PROGRAMFILES}, "Inno Setup 5" );
+	my $innosetup_file = File::Spec->catfile( $innosetup_dir,     'Compil32.exe' );
 	unless ( -f $innosetup_file ) {
 		die("Failed to find the Inno Setup Compil32.exe program");
 	}
@@ -131,6 +133,11 @@ sub icons {
 sub registry {
 	return @{ $_[0]->{registry} };
 }
+
+sub system {
+	return @{ $_[0]->{system} };
+}
+
 
 
 
@@ -225,6 +232,27 @@ sub add_env {
 	return 1;
 }
 
+sub add_system {
+	my $self   = shift;
+	my $system = Perl::Dist::Inno::System->new(@_);
+	push @{$self->{system}}, $system;
+	return 1;
+}
+
+sub add_run {
+	my $self   = shift;
+	my $system = Perl::Dist::Inno::System->run(@_);
+	push @{$self->{system}}, $system;
+	return 1;
+}
+
+sub add_uninstallrun {
+	my $self   = shift;
+	my $system = Perl::Dist::Inno::System->uninstallrun(@_);
+	push @{$self->{system}}, $system;
+	return 1;
+}
+
 
 
 
@@ -307,6 +335,26 @@ sub as_string {
 		push @lines, $registry->as_string;
 	}
 	push @lines, '';
+
+	# Add any (optional) entries for [Run]
+	my @run = grep { $_->section eq 'Run' } $self->system;
+	if ( @run ) {
+		push @lines, '[Run]';
+		foreach my $system ( @run ) {
+			push @lines, $system->as_string;
+		}
+		push @lines, '';
+	}
+
+	# Add any (optional) entries for [UninstallRun]
+	my @uninstall = grep { $_->section eq 'UninstallRun' } $self->system;
+	if ( @uninstall ) {
+		push @lines, '[UninstallRun]';
+		foreach my $system ( @uninstall ) {
+			push @lines, $system->as_string;
+		}
+		push @lines, '';
+	}
 
 	# Combine it all
 	return join "\n", @lines;
