@@ -187,9 +187,9 @@ sub _slurp {
 	my $file = shift;
 	local $/ = undef;
 	local *SLURP;
-	open( SLURP, "<$file" ) or return undef;
+	CORE::open( SLURP, "<$file" ) or return undef;
 	my $source = <SLURP>;
-	close( SLURP ) or return undef;
+	CORE::close( SLURP ) or return undef;
 	\$source;
 }
 
