@@ -166,7 +166,7 @@ sub do_parse {
     }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    croak("Could not create evaler") unless $evaler;
+    croak("Input not recognized by grammar") unless $evaler;
 
     my $parse_count = 0;
     PARSE: while (1) {

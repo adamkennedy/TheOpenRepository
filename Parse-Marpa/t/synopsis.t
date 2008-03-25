@@ -15,7 +15,7 @@ if ($Config{"d_fork"}) {
     exit 0;
 }
 
-my $example_dir = $0 =~ m{t/} ? "example" : "../example";
+my $example_dir = $PROGRAM_NAME =~ m{t/} ? "example" : "../example";
 chdir($example_dir);
 
 my $this_perl = $^X; 

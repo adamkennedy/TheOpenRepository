@@ -10,6 +10,7 @@ bootstrap/bootstrap_header.pl
 bootstrap/bootstrap_trailer.pl
 bootstrap/self.marpa
 example/null_value.marpa
+example/equation.marpa
 example/synopsis.pl
 lib/Parse/Marpa.pm
 lib/Parse/Marpa/Doc/Algorithm.pod
@@ -33,6 +34,7 @@ t/ah.t
 t/ah2.t
 t/ah_s.t
 t/bootstrap.t
+t/doc.t
 t/equation.t
 t/equation_s.t
 t/gj.t

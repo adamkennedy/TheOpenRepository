@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use lib "../lib";
 use English;
+use Fatal qw(open close chdir);
 
 use Test::More tests => 6;
 
@@ -19,7 +20,14 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $source; { local($RS) = undef; $source = <DATA> };
+my $example_dir = "example";
+$example_dir = "../example" unless -d $example_dir;
+chdir($example_dir);
+
+our $GRAMMAR;
+open(GRAMMAR, '<', 'equation.marpa');
+my $source; { local($RS) = undef; $source = <GRAMMAR> };
+close(GRAMMAR);
 
 my $g = new Parse::Marpa::Grammar({
 
@@ -66,45 +74,3 @@ for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
 #   fill-column: 100
 # End:
 # vim: expandtab shiftwidth=4:
-
-__DATA__
-semantics are perl5.  version is 0.205.5.
-
-start symbol is E.
-
-	E: E, Op, E.
-q{
-            my ($right_string, $right_value)
-                = ($_->[2] =~ /^(.*)==(.*)$/);
-            my ($left_string, $left_value)
-                = ($_->[0] =~ /^(.*)==(.*)$/);
-            my $op = $_->[1];
-            my $value;
-            if ($op eq "+") {
-               $value = $left_value + $right_value;
-            } elsif ($op eq "*") {
-               $value = $left_value * $right_value;
-            } elsif ($op eq "-") {
-               $value = $left_value - $right_value;
-            } else {
-               croak("Unknown op: $op");
-            }
-            "(" . $left_string . $op . $right_string . ")==" . $value;
-}.
-
-E: Number.
-q{
-           my $v0 = pop @$_;
-           $v0 . "==" . $v0;
-}.
-
-Number matches qr/\d+/.
-
-Op matches qr/[-+*]/.
- 
-the default action is q{
-         my $v_count = scalar @$_;
-         return "" if $v_count <= 0;
-         return $_->[0] if $v_count == 1;
-         "(" . join(";", @$_) . ")";
-    }.
