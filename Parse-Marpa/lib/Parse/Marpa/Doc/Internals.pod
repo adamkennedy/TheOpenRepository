@@ -125,7 +125,7 @@ and parse initialization.
 Scanning adds Earley items when it finds tokens.
 Suppose the Earley item S1@2-2 (mentioned above) is present at earleme 2.
 Marpa knows to instruct the lexer to look for a C<number> because
-there is a transtion from S1 to S4 on C<number>.
+there is a transition from S1 to S4 on C<number>.
 
 If the lexer finds a C<number> with a length (in earlemes) of 1 at earleme 2,
 a new Earley item S4@2-3 is added at earleme 3.
@@ -197,7 +197,7 @@ is the B<effect>.
 Let's look at one example of a rule completion "cause and effect".
 We'll use as the cause in our example, S4@2-3,
 the Earley item in our example of a scanned item.
-It's state was SDFA state 4.
+Its state was SDFA state 4.
 SDFA state 4 contained the LR(0) item 
 
     e -> number .
@@ -214,7 +214,8 @@ S5@0-2 is such a rule.  SDFA state 5 looks like this:
      <e> => S6 (4)
 
 This says that in SDFA state 5, when you see an C<e>, you transition to
-SDFA state 6.  Here's S6@0-3, the item which is the effect:
+SDFA state 6.
+Here's S6@0-3, the item which is the effect of the rule completion:
 
     S6@0-3  predecessor: S5@0-2  effect: S2@0-3
       pointer: e; lhs: e
@@ -233,8 +234,7 @@ S6@0-3 is the B<successor> of
 S5@0-2.
 
 The same Earley item can be added to the same Earley set for several different reasons.
-In Marpa,
-a rule can be added
+A rule can be added
 because of one or more token scans;
 because of one or more rule completions;
 or because of any combination of these.
@@ -401,7 +401,8 @@ Marpa rewrites its grammar to eliminate proper nullables.
 It does this by turning the original properly nullable symbol into
 a non-nullable symbol,
 and creating a second symbol to serve as the original symbol's nullable variant.
-The non-nullable version of the original symbol is not allowed to appear in places
+The non-nullable variant of the original symbol keeps the original name,
+but is no longer allowed to appear in places
 where the symbol might be nulled.
 In places where the original symbol was nulled,
 the nulling variant is substituted.
@@ -417,7 +418,7 @@ More difficult is the problem of dealing with the cases where the original
 properly nullable symbols appeared on the right hand side of rules.
 These rules have to be replaced with
 new rules covering every possible combination of
-the non-nulling symbols and their non-nulling variants.
+the non-nulling symbols and their nulling variants.
 That rewrite is described in the next section.
 
 =head2 CHAF Rewriting
@@ -459,7 +460,7 @@ proper nullables and
 C<non structural production sentences>
 appears three times.
 
-Here's is the output from C<show_rules()>, showing what Marpa did with this rule:
+Here's is the output from C<show_rules>, showing what Marpa did with this rule:
 
     12: production-paragraph
 	    -> non-structural-production-sentences
@@ -570,7 +571,7 @@ If you want to investigate internals more on your own,
 here are two "self-tutorials",
 which should make you pretty much an expert.
 
-First, go through the C<show_status()> output in the appendix.
+First, go through the C<show_status> output in the appendix.
 For each
 Earley item in it,
 reason out how it
@@ -580,7 +581,7 @@ Second, take
 the grammar used in the example and run it on the input text C<2+2*3>.
 While the parse in this document was not ambiguous, the grammar is.
 The grammar's ambiguity reveals itself when there is more than one operation in the input string.
-Get the C<show_status()> output from any one of the ambiguous parses and reason out how
+Get the C<show_status> output from any one of the ambiguous parses and reason out how
 all of its Earley items came to be.
 
 =head1 APPENDIX: DATA FOR THE EXAMPLE
@@ -632,7 +633,7 @@ The input text was C<2+2>.
 	     "(" . join(";", @$_) . ")";
 	}.
 
-=head2 The C<show_SDFA()> Output
+=head2 The C<show_SDFA> Output
 
     S0: 7
     e['] ::= . e
@@ -657,7 +658,7 @@ The input text was C<2+2>.
     S6: 4
     e ::= e op e .
 
-=head2 The C<show_status()> Output
+=head2 The C<show_status> Output
 
     Current Earley Set: 4; Furthest: 3
     Earley Set 0
