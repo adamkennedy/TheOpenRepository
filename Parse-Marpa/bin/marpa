@@ -1,5 +1,7 @@
 #!/usr/local/ActivePerl-5.10/bin/perl
 use 5.010_000;
+use strict;
+use warnings;
 
 use Carp;
 use Getopt::Long;
@@ -9,9 +11,8 @@ use Fatal qw(open close);
 
 my $command = shift;
 my $grammar_file;
+my $compiled_grammar_file;
 my $text_to_parse;
-my $SDFA;
-my $NFA;
 my $inaccessible_symbols;
 my $accessible_symbols;
 my $nullable_symbols;
@@ -23,8 +24,11 @@ my $show_problems;
 my $show_symbols;
 my $show_derivation;
 my $show_status;
+my $show_NFA;
+my $show_SDFA;
 my $all_parses;
 my %options;
+my %source_options;
 
 given ($command) {
     when ('compile') {
@@ -36,8 +40,8 @@ given ($command) {
 	    "grammar=s" => \$grammar_file,
 	    "compiled_grammar=s" => \$compiled_grammar_file,
 	    "text=s" => \$text_to_parse,
-	    "SDFA" => \$SDFA,
-	    "NFA" => \$NFA,
+	    "SDFA" => \$show_SDFA,
+	    "NFA" => \$show_NFA,
 	    "inaccessible_symbols" => \$inaccessible_symbols,
 	    "accessible_symbols" => \$accessible_symbols,
 	    "nullable_symbols" => \$nullable_symbols,
@@ -83,6 +87,7 @@ sub do_parse {
 	# $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
     }
     elsif (defined $grammar_file) {
+	our $GRAMMAR;
 	open(GRAMMAR, "<", $grammar_file);
 	my $grammar_source; { local($RS) = undef; $grammar_source = <GRAMMAR>; }
 	eval {
@@ -121,7 +126,7 @@ sub do_parse {
        print $grammar->show_NFA();
     }
 
-    if ($SDFA) {
+    if ($show_SDFA) {
        print $grammar->show_SDFA();
     }
 
@@ -160,7 +165,13 @@ sub do_parse {
 	local($RS) = undef; $text_to_parse = <STDIN>;
     }
 
-    if ((my $fail_location = $recce->text(\$text_to_parse)) >= 0) {
+    my $fail_location = $recce->text(\$text_to_parse);
+
+    if ($show_status) {
+	print $recce->show_status();
+    }
+
+    if ($fail_location >= 0) {
         print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
 	exit 1;
     }
@@ -181,10 +192,6 @@ sub do_parse {
 	given ($$value) {
 	    when (undef) { say 'Marpa returned an undefined' }
 	    default { say $$value }
-	}
-
-	if ($show_status) {
-	    print $evaler->show_status();
 	}
 
 	if ($show_derivation) {
