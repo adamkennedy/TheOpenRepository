@@ -36,6 +36,9 @@ to have been only lightly exercized.
 
 =over 4
 
+=item * Parse::Marpa::Grammar::new options should be defaults, not
+overrides -- that is they should take effect before the MDL script.
+
 =item * Finalize semantics later, when evaluator is created.
 
 =item * Allow multiple evaluators for each recognizer, or at least create a method
