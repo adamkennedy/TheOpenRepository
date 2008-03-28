@@ -1,5 +1,6 @@
-lib/Parse/Marpa/Doc/MDL.pod
-lib/Parse/Marpa/Grammar.pm
-lib/Parse/Marpa/Evaluator.pm
-lib/Parse/Marpa/Recognizer.pm
 lib/Parse/Marpa.pm
+lib/Parse/Marpa/Doc/Diagnostics.pod
+lib/Parse/Marpa/Doc/MDL.pod
+lib/Parse/Marpa/Evaluator.pm
+lib/Parse/Marpa/Grammar.pm
+lib/Parse/Marpa/Recognizer.pm
