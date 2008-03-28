@@ -2340,6 +2340,12 @@ sub write_zip {
 	# Add the image directory to the root
 	$zip->addTree( $self->image_dir, '' );
 
+	# Set max compression for all members
+	foreach my $member ( $zip->members ) {
+		next if $member->isDirectory;
+		$member->desiredCompressionLevel( 9 );
+	}
+
 	# Write out the file name
 	$zip->writeToFileNamed( $file );
 
