@@ -5,7 +5,7 @@ require 5.004;
 use strict;
 
 use vars qw/$VERSION/;
-$VERSION = '2.00_02';
+$VERSION = '2.00_03';
 
 use ExtUtils::MakeMaker;
 use Config ();
@@ -251,7 +251,7 @@ and the output (STDOUT and STDERR) of the previous invocation 'rar'.
 
 The constructor returns a new C<Archive::Rar::Passthrough> object if
 it found a rar binary to use. Takes a single named, optional parameter:
-C<rar => 'path/to/rar'>.
+C<rar =E<gt> 'path/to/rar'>.
 
 You can also use C<$obj->new()> to clone an C<Archive::Rar::Passthrough> object.
 
