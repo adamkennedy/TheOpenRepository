@@ -5,55 +5,47 @@ Parse::Marpa::Doc::Internals - Marpa Internals
 =head1 OVERVIEW
 
 Knowledge of Marpa internals is not necessary to use Marpa.
-From one point of view, in fact, it should be useless --
-in principle, parsing problems are solvable from inspection of the grammar
-and the input.
-
-In practice, however, you may not be able to figure out
-from a quick desk check why your grammar is not parsing the
-way you want.
-Even in these cases,
-it's best to make your first investigations
-without getting deep
-into the Earley items.
-See L<the diagnostics document|Parse::Marpa::Doc::Diagnostics> for hints.
-
-But every once in a while,
-the "gun and camera" approach makes sense for debugging.
-And understanding how Marpa works can make you a better grammar writer
+But understanding how Marpa works can make you a better grammar writer
 and language designer.
 This document assumes the reader already has a general knowledge of parsing,
 or at least has worked with another parser generator.
+The reader should also have read the other Marpa documentation.
 
 =head1 EARLEY SETS AND EARLEY ITEMS
 
 To speak pedantically, the algorithm in
 L<Earley's 1970 parsing article|Parse::Marpa::Doc::Bibliography/"Earley 1970">
-does not actually parse it's input.
+does not actually parse its input.
 It is a recognizer, not a parser.
 It builts a series of Earley sets.
 If an "Earley item" of the correct form is in the right place in these sets,
 the input is in the language described by the grammar.
 
-Once the recognition phase is done, and the Earley sets have been built,
-the parse can be found in them.
-In Marpa, recognition is done and the Earley sets are built as tokens are input.
+Once the recognition phase is done,
+the parse can be found in the Earley sets.
+In Marpa, the Earley sets are built as tokens are recognized.
 
-Each Marpa "earleme" corresponds one-to-one to an Earley set.
-An Earley set is a set of Earley items.
-Here's a representation of an Earley item, as you might see it in
-debugging output from Marpa: C<S5@6-7>.
-What C<S5@6-7> says is that SDFA state 5 (that the "C<S5>" part) starts at earleme
-6 and ends at earleme 7.
-The number of the end earleme is the same as the Earley set that contains the item.
+Each Marpa B<earleme> corresponds one-to-one to an Earley set.
+An B<Earley> set is a set of Earley items.
+Each Earley item has an B<SDFA state>, an B<origin earleme> and an B<dot earleme>.
+An Earley item's dot earleme is also called its B<current earleme>.
+Here's a representation of an B<Earley item>, as you might see it in
+debugging output from Marpa:
+
+    C<S5@6-7>
+
+This Earley item is for SDFA state 5 (that is the "C<S5>" part).
+The Earley item originates at earleme 6 and is currently at earleme 7 (that's the "C<@6-7>" part).
+The number of an Earley item's dot earleme is always
+the same as number of the Earley set that contains the item.
 
 (Note to experts:
-Those familiar with Earley parsing will note that C<S5@6-7> looks different from
+Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
 SDFA states were invented by Aycock and Horspool.
 Also, in the traditional terminology,
-the start earleme is confusingly called the "parent",
-and the end earleme corresponds to the earley set of the item.)
+the origin earleme is confusingly called the "parent",
+and the dot earleme corresponds to the earley set of the item.)
 
 =head1 SDFA STATES
 
@@ -70,7 +62,7 @@ Let's start with an example of another Earley item:
 
     S1@2-2
 
-This states that SDFA state 1 starts at earleme 2 and ends at earleme 2.
+This states that SDFA state 1 originates at earleme 2 and is currently at earleme 2.
 We can get a description of the SDFA states from the C<show_SDFA> method.
 Here's what it says about SDFA state 1:
 
@@ -83,7 +75,15 @@ Here's what it says about SDFA state 1:
 The two numbers after the "C<S1:>" label on the first line 
 are the numbers of the NFA states that were combined into this SDFA state.
 The next two lines are B<LR(0) items> -- rules with a dot added to indicate
-position.
+how far recognition has proceeded into the rule.
+A dot at the beginning indicates that the rule is only predicted -- none
+of its symbols have yet been recognized.
+A dot at the end indicates that the rule is complete -- all
+of its symbols have been recognized.
+A dot between two symbols indicates that all symbols before the dot
+have been recognized in the input,
+but none of the symbols after the dot have been recognzied.
+The location of the dot is called the B<dot position>.
 
 The last two lines are transitions.
 The first line says that, on seeing an C<e>, you transition to SDFA state 3.
@@ -101,33 +101,32 @@ Marpa combines LR(0) items into SDFA states,
 based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
 Each SDFA state is a statement about possible parses.
-The presence of an SDFA state in an Earley set means that the parses in its LR(0) items
-are possible at that earleme.
-The position of the end earleme is represented in the LR(0) items by a dot.
-The start of the rules in the LR(0) items corresponds to
-the position of the start earleme.
+The presence of an SDFA state in an Earley item means that the parses in its LR(0) items
+are possible at its current earleme.
+The dot position of every LR(0) item in the SDFA state
+corresponds to the current earleme of the Earley item.
+The origin of every LR(0) item is the origin earleme of the Earley item.
 
 In our example,
 the dots in all the LR(0) items in S1 (SDFA state 1)
-are at the beginning of the rule.
-This means the start and end earlemes must be the same, and from the "C<2-2>"
-in description of the Earley item C<S1@2-2>,
-you can see that this is the case.
+are at the beginning of their rules.
+This means the origin and dot earlemes must be the same, and from the "C<2-2>"
+in the description of the Earley item C<S1@2-2>,
+you can see that that is the case.
 
 =head1 HOW EARLEY SETS ARE BUILT
 
 New items come onto the Earley sets in four ways:
-token scanning, rule completion, rule prediction,
-and parse initialization.
+scanning, completion, prediction, and initialization.
 
-=head2 Token Scanning
+=head2 Scanning
 
-Scanning adds Earley items when it finds tokens.
+Scanning adds Earley items as tokens are recognized.
 Suppose the Earley item S1@2-2 (mentioned above) is present at earleme 2.
-Marpa knows to instruct the lexer to look for a C<number> because
+Marpa knows to instruct the lexer to look for a C<number> token because
 there is a transition from S1 to S4 on C<number>.
 
-If the lexer finds a C<number> with a length (in earlemes) of 1 at earleme 2,
+If the lexer finds a C<number> token with a length (in earlemes) of 1 at earleme 2,
 a new Earley item S4@2-3 is added at earleme 3.
 Here (again from C<show_SDFA>) is the description of SDFA state 4.
 
@@ -135,7 +134,7 @@ Here (again from C<show_SDFA>) is the description of SDFA state 4.
     e ::= number .
 
 We can see that there is only one LR(0) item in SDFA state 4,
-and that it has the dot pointer at its end.
+and that it has the dot pointer at the end of its rule.
 A rule with the dot pointer at the end in an LR(0) item is called
 a B<completed rule>.
 
@@ -164,7 +163,7 @@ The C<effect> item will be explained later.
 C<pointer> is the name of the symbol before the dot pointer in the current choice of
 rule (remember there may be more than one rule in an Earley item) and C<lhs> is the
 symbol on the left hand side of the current rule.
-If Earley item has had a value computed, that is also shown.
+If the Earley item has had a value computed, that is also shown.
 In this case,
 the value came from the token and is "2".
 
@@ -173,29 +172,30 @@ They show the choices Marpa is making.
 This parse is not ambiguous.
 In this Earley item,
 there is only one possible token and only one choice of rule,
-so there are no real choices.
+so there are no non-trivial choices.
 
 Each token choice may have a different predecessor.
-Token choices are shown as a C<[p=>I<predecessor>C<; t=>I<token_value>C<]> pairs.
+Token choices are shown as C<[p=>I<predecessor>C<; t=>I<token_value>C<]> pairs.
 In the above example, the token choice
 C<[p=S1@2-2; t=2]>
-indicates that the token has a value of "2", and its
-predecessor was S1@2-2.
+indicates that the token has a value of "2",
+and that its predecessor was S1@2-2.
 
 Rule choices are also shown in brackets.
 In the rule choice C<< [ 1: e -> number ] >>,
 "C<1>" is the rule number and 
 "C<< e -> number >>" is the rule.
 
-=head2 Rule Completion
+=head2 Completion
 
 Whenever a rule is completed in an Earley set, new rules may be added
 to that Earley set as a result.
 The item with the completed rule is called the B<cause>, and the new item added as a result
 is the B<effect>.
 
-Let's look at one example of a rule completion "cause and effect".
-We'll use as the cause in our example, S4@2-3,
+Let's look at one example of a completion "cause and effect".
+As the cause in our example,
+we'll use S4@2-3,
 the Earley item in our example of a scanned item.
 Its state was SDFA state 4.
 SDFA state 4 contained the LR(0) item 
@@ -215,7 +215,7 @@ S5@0-2 is such a rule.  SDFA state 5 looks like this:
 
 This says that in SDFA state 5, when you see an C<e>, you transition to
 SDFA state 6.
-Here's S6@0-3, the item which is the effect of the rule completion:
+Here's S6@0-3, the item which is the effect of the completion:
 
     S6@0-3  predecessor: S5@0-2  effect: S2@0-3
       pointer: e; lhs: e
@@ -228,28 +228,29 @@ as noted on the first line.)
 The meanings of the terms predecessor and successor
 are similar to what they are in token scanning.
 Since S6@0-3 comes from moving the dot forward in
-a rule for S5@0-2, we say S5@0-2 is the B<predecessor> of S6@0-3,
+a rule in S5@0-2, we say S5@0-2 is the B<predecessor> of S6@0-3,
 and that 
 S6@0-3 is the B<successor> of
 S5@0-2.
 
-The same Earley item can be added to the same Earley set for several different reasons.
+The same Earley item can be added to the same Earley set for multiple reasons.
 A rule can be added
-because of one or more token scans;
-because of one or more rule completions;
+because of one or more scanned tokens;
+because of one or more completions;
 or because of any combination of these.
 
 Traditionally in Earley's algorithm,
-the same item is not added twice,
-and where an item comes from is not important in recognition.
-But the reason why an Earley item was put into an Earley set is essential for parsing.
-Marpa (again following a suggestion from
+the same item is not added twice.
+Where an item comes from is not important in recognition.
+But parsing in the strict sense is determining the structure of the input,
+and that requires us to know why an Earley item was added to an Earley set.
+Marpa (again following the lead of
 L<Aycock and Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">)
 tracks the reasons Earley items were added to the Earley sets using B<links>.
 
 We've already seen a link in the scanning example.
-S6@0-3 has another example of a link: C<[p=S5@0-2; c=S4@2-3]>.
-This says that one reason for S6@0-3 to exist was a rule completion,
+Earley item S6@0-3 has another example of a link: C<[p=S5@0-2; c=S4@2-3]>.
+This says that one reason for S6@0-3 to exist was a completion,
 with S4@2-3 as the cause and S5@0-2 the predecessor.
 Since there are no other links, this is the only reason for S6@0-3 to be in the
 Earley sets.
@@ -258,9 +259,9 @@ The parse in this example is unambiguous.  If it were ambiguous,
 you would see multiple links
 in some of the rules.
 
-=head2 Rule Prediction
+=head2 Prediction
 
-A third source of Earley items is rule prediction.
+A third source of Earley items is prediction.
 Whenever an Earley item is expecting to see an C<e>,
 for example, it can also expect to see any symbols that are at
 the start of any rules that have an C<e> on their left hand side.
@@ -278,7 +279,7 @@ This means that the rules
     e ::= . e op e
     e ::= . number
 
-can also be expected to start at this earleme.
+can also be expected to originate at this earleme.
 Marpa is smart about grouping rules into SDFA states
 and both these rules are in SDFA state 1:
 
@@ -294,27 +295,26 @@ and we do:
 
     S1@2-2  successor: S4@2-3
 
-A number of things are special about predicted items.
-First, all the rules in them will have the dot at the beginning.
-Second, the start and end earlemes will always be the same.
+Every rule in a predicted item will have the dot at the beginning.
+That means the origin and dot earlemes will always be the same.
 
-Third, predicted items are always the result of empty transitions.
+Predicted items are always the result of empty transitions.
+An B<empty transition> is one that always occurs, without any input being necessary.
 Remember this transition from SDFA state 5?
 
      empty => S1 (1,5)
 
-An B<empty transition> is one that always occurs, without any input being necessary.
-
+The descriptions of predicted items are often short.
 The description of S1@2-2 in our output was one line, the shortest
 description of an Earley item that we've seen.
 That's typical.
 Prediction items are
-essential to get rules started (note S1@2-2 does have a successor),
-but, since they are not actually needed
+essential to get rules started (note that S1@2-2 does have a successor).
+But, since they are not actually needed
 for parsing and evaluation,
 they don't need to have links or a lot of the data that the other items have.
 
-=head2 The Initial Earley Item
+=head2 Initialization
 
 One Earley item is always put into Earley set 0 to start things off.
 In our example it is
@@ -328,30 +328,34 @@ Only Earley set 0 will contain an Earley item for SDFA state 0.
 
 As mentioned, what's usually called Earley's algorithm is just a recognizer,
 an algorithm to build the Earley sets.
-The input parses successfully if, in the last earleme, there is a
-a completed start rule Earley item.
-A B<completed start rule Earley item> is an Earley item for a complete start rule state.
+The input is recognized successfully if, in the last earleme, there is a
+an Earley item for a completed start rule state.
 A B<completed start rule state> is an SDFA state containing a completed start rule.
-For the special case of a successful null parse, SDFA state 0,
-the initial earley item
-will also be a completed start rule item.
 
-Marpa always adds a special start rule,
-so the completed start rule state
+At most two of the SDFA states can be completed start rule states.
+One is a special case.
+In a null parse, the start state, SDFA state 0,
+is also a completed start rule state.
+
+The other completed start rule state
 is not hard to spot.
-It contains the LR(0) item with Marpa's new start symbol on the left hand side,
-the user's start symbol as the only symbol on the right hand side,
-and the dot pointer at the end of the rule.
-Here's the one in our example:
+Marpa always adds its own, new, internal, start rule,
+with a special internal start symbol as its lhs,
+and the original start symbol as its rhs.
+The completed start rule state for non-null parses
+contains the LR(0) item which has Marpa's internal start rule
+and has the dot pointer at the end of that rule.
+The completed start rule state in our example is SDFA state 2:
 
     S2: 8
     e['] ::= e .
 
 A parse is successful at earleme I<N> it
-contains an complete start rule Earley item
-with a start earleme of 0 and an
-end earleme of I<N>.
-Here's the complete start rule Earley item which makes the parse in our example successful at earleme 3:
+contains an Earley item
+for a completed start rule state
+with a origin earleme of 0 and
+a dot earleme of I<N>.
+Here's the Earley item which makes the parse in our example successful at earleme 3:
 
     S2@0-3  predecessor: S0@0-0
       pointer: e; lhs: e[']
@@ -384,18 +388,17 @@ start symbol, with "C<[]>" suffixed.
 
 Nulling symbols are those which always produce the empty sentence.
 Nullable symbols are those which can produce the empty sentence.
-Non-nullable symbols are those which always produce a non-empty sentence.
+Non-nullable symbols are those which never produce the empty sentence.
 
 Pedantically, nulling symbols are also nullable symbols.
-A "proper nullable" is a symbol which, in the grammar of interest,
+A B<proper nullable> is a symbol which, in the grammar of interest,
 can produce either the empty sentence or a non-empty sentence.
 In other words, a proper nullable is any nullable symbol which is not a nulling symbol.
 
 Nullable symbols have been a headache for previous versions of Earley parsers.
 L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">,
-outlined a new approach for dealing with them,
-and I followed that,
-with some changes of my own.
+outlined a new approach for dealing with them.
+I used their ideas and added a few of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.
 It does this by turning the original properly nullable symbol into
@@ -414,16 +417,16 @@ Marpa marks nulling symbols internally and
 recognizes them directly,
 so it does not need to add empty rules for the nulling symbols it creates.
 
-More difficult is the problem of dealing with the cases where the original
-properly nullable symbols appeared on the right hand side of rules.
+More difficult is the problem of dealing with the cases where the
+proper nullables appeared on the right hand side of rules.
 These rules have to be replaced with
 new rules covering every possible combination of
-the non-nulling symbols and their nulling variants.
+the non-nulling and nulling variants of the proper nullables.
 That rewrite is described in the next section.
 
 =head2 CHAF Rewriting
 
-To deal with the splitting of proper nullable symbols into two symbols,
+To deal with the splitting of proper nullables into two symbols,
 one non-nullable and one nullable,
 Aycock and Horspool simply created new rules for all possible combinations
 on the right hand side.
@@ -431,7 +434,7 @@ This "factoring" is exponential in the worst case.
 I don't like leaving exponential explosions in an algorithm, even unlikely ones.
 That old Theory of Computation course still haunts me after all these years.
 And I felt the generation of all possible combinations
-of an arbitrarily long right hand side might be inefficient
+for an arbitrarily long right hand side might be inefficient
 in practice.
 
 A result due to Chomsky shows that any grammar can be rewritten
@@ -445,11 +448,11 @@ own self-grammar.
 First, the rule:
 
     production paragraph:
-	non structural production sentencesnon structural production sentences,
-	production sentence,
-	non structural production sentences,
-	optional action sentence,
-	non structural production sentences.
+        non structural production sentences,
+        production sentence,
+        non structural production sentences,
+        optional action sentence,
+        non structural production sentences.
 
 This rule contains four proper nullables, reinforcing my fear
 that grammars written as test cases won't be the only ones with
@@ -515,7 +518,7 @@ New symbols are introduced to be the left hand sides of the pieces.
 The tag "C<[R12:3]>" indicates that this
 symbol is the left hand side for the piece of Rule 12 which begins at right hand symbol 3
 (the first symbol is symbol 0).
-The tags beginning with an "C<x>", like "C<[x5d]>" are arbitrary unique hex values,
+The tags beginning with an "C<x>", like "C<[x5d]>", are arbitrary unique hex values,
 inserted to guarantee that the new symbols are unique.
 
 This rule is a worst case for CHAF, because the last three symbols of the right hand side are all
@@ -705,3 +708,26 @@ The input text was C<2+2>.
     S3@0-3
       link choice 0 [p=S1@0-0; c=S6@0-3]
 
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
