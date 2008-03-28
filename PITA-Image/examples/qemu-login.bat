@@ -1,5 +1,4 @@
 REM Start qemu on windows.
-@ECHO OFF
 
 REM SDL_VIDEODRIVER=directx is faster than windib. But keyboard cannot work well.
 SET SDL_VIDEODRIVER=windib
@@ -18,4 +17,4 @@ REM ISA-based PC         : -M isapc
 REM -M isapc is added for NE2000 ISA card.
 
 cd C:\\devel\\qemu
-qemu.exe -L . -m 128 -hda C:\\devel\\images\\x86-linux-debian-sarge-pita\\hda.img -soundhw all -localtime -M pc
+qemu.exe -L . -m 128 -snapshot -hda C:\\devel\\images\\x86-linux-debian-sarge-pita\\hda.img -soundhw all -localtime -M pc

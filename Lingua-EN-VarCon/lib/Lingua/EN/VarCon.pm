@@ -179,7 +179,6 @@ purpose. It is provided "as is" without express or implied warranty.
 The original words lists come from the Ispell distribution:
 
 Copyright 1993, Geoff Kuenning, Granada Hills, CA
-All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

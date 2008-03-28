@@ -45,7 +45,7 @@ use Params::Util       '_STRING';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 my $USER_ENV   = 'HKEY_CURRENT_USER\\Environment';
@@ -67,6 +67,7 @@ sub new {
 	# Check params and provide defaults
 	$self->{name}   ||= 'PATH';
 	$self->{autosave} = defined $self->{autosave} ? !! $self->{autosave} : 1;
+	$self->{autoset}  = defined $self->{autoset}  ? !! $self->{autoset}  : 0;
 	$self->{user}     = !! $self->{user};
 	$self->{env}      = $self->user ? $Registry->{$USER_ENV} : $Registry->{$SYSTEM_ENV};
 	($self->{value},$self->{type}) = $self->env->GetValue($self->name);

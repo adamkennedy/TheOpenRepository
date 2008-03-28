@@ -1,4 +1,4 @@
-Changes for Perl extension CGI-Record
+Changes for Perl extension Devel-Leak-Object
 
-0.01 2007-07-14
-	- Creating initial version
+0.01 Wed 19 Sep 2007
+	- Initial implementation

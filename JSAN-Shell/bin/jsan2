@@ -29,7 +29,7 @@ jsan2 - The JavaScript Archive Network (JSAN) Shell
   adam@red:~$ jsan2
   
   jsan shell -- JSAN exploration and library installation (v2.00_04)
-             -- Copyright 2005 Adam Kennedy. All rights reserved.
+             -- Copyright 2005 - 2007 Adam Kennedy.
              -- Type 'help' for a summary of available commands.
   
   jsan> help

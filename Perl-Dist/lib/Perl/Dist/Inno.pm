@@ -2225,13 +2225,13 @@ sub install_website {
 	# Add the file to the files section of the inno script
 	$self->add_file(
 		source   => $website->file,
-		dest_dir => '{app}',
+		dest_dir => '{app}\\win32',
 	);
 
 	# Add the file to the icons section of the inno script
 	$self->add_icon(
 		name     => $website->name,
-		filename => '{app}\\' . $website->file,
+		filename => '{app}\\win32' . $website->file,
 	);
 
 	return 1;

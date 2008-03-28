@@ -12,7 +12,7 @@ use Win32::Env::Path ();
 use vars qw{$VERSION};
 BEGIN {
 	$|       = 1;
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 exit( main(@ARGV) );
@@ -26,10 +26,10 @@ exit( main(@ARGV) );
 
 sub main {
 	my $cmd = shift @_;
-	return usage(@_)  unless defined $cmd;
-	return clean(@_)  if $cmd eq 'clean';
-	return push(@_)   if $cmd eq 'push';
-	return remove(@_) if $cmd eq 'remove';
+	return usage(@_)    unless defined $cmd;
+	return clean(@_)    if $cmd eq 'clean';
+	return add_push(@_) if $cmd eq 'push';
+	return remove(@_)   if $cmd eq 'remove';
 	return error("Unknown command '$cmd'");
 }
 
@@ -52,7 +52,7 @@ sub clean {
 	return 0;
 }
 
-sub push {
+sub add_push {
 	my $path = path(shift);
 	my $name = $path->name;
 	my $dir  = shift;

@@ -23,8 +23,10 @@ it should be pretty clear.
 
 use 5.005;
 use strict;
-use Carp         'croak';
-use Params::Util qw{ _STRING _IDENTIFIER _ARRAY _HASH _DRIVER };
+use Carp          'croak';
+use File::Copy    ();
+use Params::Util  qw{ _STRING _IDENTIFIER _ARRAY _HASH _DRIVER };
+use File::HomeDir ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -59,11 +61,15 @@ sub new {
 	unless ( _DRIVER($self->class, 'Perl::Dist::Inno') ) {
 		croak("Missing or invalid class param");
 	}
+	unless ( defined $self->output ) {
+		$self->{output} = File::HomeDir->my_desktop;
+	}
 	unless ( _STRING($self->output) ) {
 		croak("Missing or invalid output param");
 	}
 	unless ( -d $self->output and -w $self->output ) {
-		croak("The output directory does not exist, or is not writable");
+		my $output = $self->output;
+		croak("The output directory '$output' does not exist, or is not writable");
 	}
 	if ( _HASH($self->{common}) ) {
 		$self->{common} = [ %{ $self->{common} } ];
@@ -198,6 +204,12 @@ sub run {
 	while ( my $dist = $self->next ) {
 		$dist->prepare;
 		$dist->run;
+
+		# Copy the output products for this run to the
+		# main output area.
+		foreach my $file ( @{$self->output_file} ) {
+			File::Copy::move( $file, $self->output );
+		}
 	}
 	return 1;
 }
