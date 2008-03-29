@@ -4,14 +4,16 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =head1 DESCRIPTION
 
-=head2 Overview
-
 This document contains the to do list, and the documentation of features
-either not ready for prime time,
-or of the really-seemed-like-a-good-idea-at-the-time kind.
+where are either not ready for prime time,
+or were of the
+"really seemed like a good idea at the time"
+kind.
 A feature, a method or an option with a description here remains
 B<undocumented> in the sense the word is used in the rest of the
 Marpa documents.
+
+=head1 MAJOR PRIORITIES
 
 =head2 Priorities Cannot Be Set in MDL for Terminals
 
@@ -33,7 +35,7 @@ look in the C<t>, or test, directory of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
 
-=head2 Other things to do
+=head1 LOWER PRIORITIES
 
 =over 4
 
@@ -71,7 +73,7 @@ to safe deep copy recognizers.
 
 =back
 
-=head1 UNDER CONSTRUCTION
+=head1 FRAGMENTS OF DOCUMENTATION
 
 These are fragments of documentation which,
 usually along with the features described,

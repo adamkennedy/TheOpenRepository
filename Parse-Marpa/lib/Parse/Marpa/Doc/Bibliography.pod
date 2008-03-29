@@ -2,7 +2,9 @@
 
 Parse::Marpa::Doc::Bibliography - A Marpa Bibliography
 
-=head1 Aho and Ullman 1972
+=head1 BIBLIOGRAPHY
+
+=head2 Aho and Ullman 1972
 
 I<The Theory of Parsing, Translation and Compiling, Volume I: Parsing>
 by Alfred Aho and Jeffrey Ullman
@@ -12,7 +14,7 @@ standard source for Earley's algorithm for decades.
 It certainly was B<my> standard source.
 The account of Earley's algorithm is on pages 320-330.
 
-=head1 Aycock and Horspool 2002
+=head2 Aycock and Horspool 2002
 
 Marpa is based on and derived from
 the parser described in John Aycock and R.
@@ -38,7 +40,7 @@ the easiest approach to the Aycock and Horspool paper,
 though I can't promise you there won't be leaps of
 insight required at several points.
 
-=head1 Dominus 2005
+=head2 Dominus 2005
 
 Although my approach to parsing is not heavily influenced
 by Mark Jason Dominus's I<Higher Order Perl>,
@@ -51,7 +53,7 @@ writing, and the book is dense with ideas.
 Mark's discussion on memoization in Chapter 3 is the
 best I've seen.
 
-=head1 Earley 1970
+=head2 Earley 1970
 
 Jay Earley's most accessible paper on his algorithm
 is "An efficient context-free parsing algorithm",
@@ -88,7 +90,7 @@ from L<Aycock and Horspool|/"Aycock and Horspool 2002">,
 or been of my own device,
 so I am taking Tomita's word on this one.
 
-=head1 Grune and Jacobs 1990
+=head2 Grune and Jacobs 1990
 
 I<Parsing Techniques: A Practical Guide>,
 by Dick Grune 
@@ -97,7 +99,7 @@ Ceriel Jacobs,
 1990).
 This book is available on the Web: L<http://www.cs.vu.nl/~dick/PTAPG.html>
 
-=head1 Grune and Jacobs 2008
+=head2 Grune and Jacobs 2008
 
 I<Parsing Techniques: A Practical Guide>,
 by Dick Grune 
@@ -109,7 +111,7 @@ This is L<Grune and Jacobs 1990> updated.
 The bibliography for this book is available in enlarged form
 on the web: L<ftp://ftp.cs.vu.nl/pub/dick/PTAPG_2nd_Edition/CompleteList.pdf>.
 
-=head1 Wikipedia
+=head2 Wikipedia
 
 Wikipedia's article on Backus-Naur form is
 L<http://en.wikipedia.org/wiki/Backus-Naur_form>.
@@ -122,3 +124,27 @@ The grammarian Panini
 gave a precise description of Sanskirt
 more than 23 centuries earlier in India
 using a similar notation.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:

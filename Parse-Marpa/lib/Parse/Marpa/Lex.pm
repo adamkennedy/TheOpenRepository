@@ -178,23 +178,25 @@ They are documented here to make them available for general use.
 
 =over 4
 
-=item Parse::Marpa::Lex::lex_regex(C<$string_ref>, I<start_earleme>)
+=item lex_regex
 
-Takes as its first argument a string reference of the string containing a regex.
-The regex must start in the position pointed to by C<pos $$string>.
+Takes two required arguents, a I<string reference> and a I<start earleme>.
+The string reference must be to a string that may contain a regex.
+The regex will be expected to start in the position pointed to by C<pos $$string>.
 
-I<start_earleme> must contain the start earleme of the regex for lexing purposes.
+I<start_earleme> must be the start earleme of the regex for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard
 prefixes.
 If a prefix was removed
-prior to the call to C<lex_regex()>,
+prior to the call to C<lex_regex>,
 I<start_earleme>
 should be the location where the prefix started.
-If no prefix was removed, I<start_earleme> should be the same as C<pos $$string>.
+If no prefix was removed, I<start_earleme> will be the same as C<pos $$string>.
 
-How C<lex_regex()> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
-C<lex_regex()> returns the null array on failure.
-On success, it returns an array of two elements.
+How C<lex_regex> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
+C<lex_regex> returns the null array if no regex was found.
+If a regex was found,
+C<lex_regex> returns an array of two elements.
 The first element is a string containing the regex,
 its delimiters,
 any postfix modifiers it had,
@@ -202,23 +204,26 @@ and its C<qr-> "operator" if there was one.
 The second is the regex's length for lexing purposes,
 which will include the length of any discarded prefix.
 
-=item Parse::Marpa::Lex::lex_q_quote(C<$string_ref>, I<start_earleme>)
+=item lex_q_quote
 
-Takes as its first argument a string reference of the string containing a C<q-> or C<qq->quoted string.
-The C<q-> or C<qq->quoted string must start at the position pointed to by C<pos $$string>.
+Takes two required arguents, a I<string reference> and a I<start earleme>.
+The string reference must be to a string that may contain a C<q-> or C<qq->quoted string.
+The C<q-> or C<qq->quoted string will be expected
+to start at the position pointed to by C<pos $$string>.
 
 I<start_earleme> must contain the start earleme of the quoted string for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard
 prefixes.
 If a prefix was removed
-prior to the call to C<lex_regex()>,
+prior to the call to C<lex_regex>,
 I<start_earleme>
 should be the location where the prefix started.
 If no prefix was removed, I<start_earleme> should be the same as C<pos $$string>.
 
-How C<lex_q_quote()> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
-C<lex_q_quote()> returns the null array on failure.
-On success, it returns an array of two elements.
+How C<lex_q_quote> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
+C<lex_q_quote> returns the null array if no string was found.
+If a string was found,
+C<lex_q_quote> returns an array of two elements.
 The first element is a string containing the C<q-> or C<qq->quoted string,
 including the C<q-> or C<qq-> "operator" and the delimiters.
 The second is the quoted string's length for lexing purposes,

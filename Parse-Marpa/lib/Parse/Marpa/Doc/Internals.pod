@@ -48,7 +48,8 @@ they were invented by Aycock and Horspool.
 In the traditional terminology,
 the Earley set corresponding to the
 the origin earleme is rather confusingly called the "parent".
-And in the traditional notation for an Earley item the dot earleme is not
+And in the traditional notation for an Earley item,
+the dot earleme is not
 included at all -- the context is supposed to be sufficient to tell you
 which Earley set each Earley item is in.)
 
@@ -536,16 +537,23 @@ inserted to guarantee that the new symbols are unique.
 
 This rule is a worst case for CHAF, because the last three symbols of the right hand side are all
 proper nullables.
-That means that both of the newly created left hand sides are also proper nullables,
-count against the maximum of two proper nullables per rule,
-and need to be split into nulling and non-nulling
-variants and factored, just as the original proper nullables must be.
+That means that the last two pieces of the original rule can be either empty or non-empty,
+and therefore that both of the newly created lhs symbols are also proper nullables.
+There are a total of 6 proper nullables:
+the original 4 plus the 2 symbols newly created to serve as left hand sides.
+This is why, in order to have only 2 proper nullables per piece, the original rule
+had to be divided into 3 pieces.
+The newly created lhs symbols, if they are proper nullables,
+need to be split into nulling and non-nulling
+variants and factored,
+just like the proper nullables in the original rule.
+
 Nonetheless this factoring can be done with 10 rules in CHAF,
 while the original Aycock-Horspool factoring (NNF)
 required 16.
 After more than 4 proper nullables, the advantage of CHAF becomes overwhelming.
 With 5 proper nullables, there would be 13 rules for CHAF versus 32 for NNF.
-With 6, 16 versus 64.
+With 6 proper nullables, 16 versus 64.
 
 The user's semantics are preserved, because Marpa, while splitting the rule into
 pieces and factoring the pieces,
@@ -555,7 +563,7 @@ to the user's actions as if no CHAF rewrite had occurred.
 
 =head2 Converting Sequence Productions to BNF
 
-Marpa converts productions specified as sequences into BNF productions.
+Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,
 
     paragraphs: empty line separated paragraph sequence.

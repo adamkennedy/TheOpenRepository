@@ -2,7 +2,7 @@
 
 Parse::Marpa::Doc::Algorithm - The Marpa Algorithm
 
-=head1 OVERVIEW
+=head1 DESCRIPTION
 
 Marpa is based on and derived from
 the parser
@@ -33,9 +33,9 @@ Also, as readers familiar with the academic literature will know,
 if I claim combining A and B is original,
 I should B<not> be read as claiming to be the inventor of either A or B.
 
-=head1 A NEW EARLEY PARSE ENGINE, AND PREDICTIVE LEXING
+=head2 A New Earley Recognition Engine, and Predictive Lexing
 
-Marpa takes the parse engine as
+Marpa takes the recognition engine as
 described by Horspool and Aycock
 and turns it inside out and upside down.
 In the Horspool and Aycock version of Earley's,
@@ -63,7 +63,7 @@ Now that Hayspool and Aycock have sped up Earley's algorithm,
 the time spent lexing is a significant factor in overall speed.
 Predictive lexing can reduce lexing time to a fraction of the original.
 
-=head1 EARLEMES
+=head2 Earlemes
 
 Marpa allows ambiguous lexing,
 including recognition of lexemes of different lengths starting at the
@@ -104,7 +104,7 @@ An implementation may also mimic traditional lexing by defining
 the earleme to be the same as the distance in a token stream,
 measured in tokens.
 
-=head1 CHOMSKY-HORSPOOL-AYCOCK FORM
+=head2 Chomsky-Horspool-Aycock Form
 
 Marpa's third significant change to the Aycock and Horspool algorithm is
 in internal rewriting
@@ -141,7 +141,7 @@ With CHAF, the theoretical worst
 behavior is linear, and in those difficult cases likely to arise
 in practice the multiplier is much smaller.
 
-=head1 ITERATING PARSES IN THE HORSPOOL-AYCOCK-EARLEY ITEMS
+=head2 Iterating Parses in the Earley Items
 
 Aycock and Horspool give an algorithm for constructing a rightmost derivation
 from their version of the Earley sets.
@@ -152,7 +152,7 @@ in their algorithm.
 But they give no algorithm to do that iteration.
 Marpa's solution is new, as far as I know.
 
-=head1 PRECEDENCE PARSING AND EARLEY PARSING
+=head2 Precedence Parsing and Earley Parsing
 
 In order to iterate through the parses,
 Marpa stores, with most of the Earley items,
@@ -172,3 +172,27 @@ In effect,
 Marpa's rule and terminal priorities turn ambiguous parsing
 into a convenient form of precedence parsing.
 I don't believe Earley parsing and precedence parsing have been combined before.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
