@@ -7,7 +7,8 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 =head2 Overview
 
 This document contains the to do list, and the documentation of features
-which are not ready for prime time.
+either not ready for prime time,
+or of the really-seemed-like-a-good-idea-at-the-time kind.
 A feature, a method or an option with a description here remains
 B<undocumented> in the sense the word is used in the rest of the
 Marpa documents.
@@ -55,6 +56,8 @@ to safe deep copy recognizers.
 =item * Test proper and perl5 separation
 
 =item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
+
+=item * Add a SYNOPSIS to the Plumbing document.
 
 =item * Test (or remove?) lexing suffixes.
 

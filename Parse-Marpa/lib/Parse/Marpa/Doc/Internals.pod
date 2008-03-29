@@ -11,41 +11,46 @@ This document assumes the reader already has a general knowledge of parsing,
 or at least has worked with another parser generator.
 The reader should also have read the other Marpa documentation.
 
-=head1 EARLEY SETS AND EARLEY ITEMS
+=head1 EARLEY SETS
 
 To speak pedantically, the algorithm in
 L<Earley's 1970 parsing article|Parse::Marpa::Doc::Bibliography/"Earley 1970">
-does not actually parse its input.
+does not actually parse in the strict sense.
 It is a recognizer, not a parser.
-It builts a series of Earley sets.
-If an "Earley item" of the correct form is in the right place in these sets,
-the input is in the language described by the grammar.
 
+In Marpa, B<Earley sets> are built as tokens are recognized.
+If an B<Earley item> of the correct form is in the right place in these sets
+after input is finished,
+the input is recognized as one of those described by the grammar.
 Once the recognition phase is done,
 the parse can be found in the Earley sets.
-In Marpa, the Earley sets are built as tokens are recognized.
 
-Each Marpa B<earleme> corresponds one-to-one to an Earley set.
-An B<Earley> set is a set of Earley items.
+Each of Marpa's B<earlemes> corresponds one-to-one to an Earley set.
+An Earley set is a set of Earley items.
 Each Earley item has an B<SDFA state>, an B<origin earleme> and an B<dot earleme>.
 An Earley item's dot earleme is also called its B<current earleme>.
-Here's a representation of an B<Earley item>, as you might see it in
+Here's a representation of an Earley item, as you might see it in
 debugging output from Marpa:
 
-    C<S5@6-7>
+    S5@6-7
 
-This Earley item is for SDFA state 5 (that is the "C<S5>" part).
-The Earley item originates at earleme 6 and is currently at earleme 7 (that's the "C<@6-7>" part).
-The number of an Earley item's dot earleme is always
+This Earley item is for SDFA state 5 (that is the "C<S5>" part),
+The "C<@6-7>" part says that this Earley item
+originates at earleme 6, and is current at earleme 7.
+The number of an Earley item's current, or dot, earleme is always
 the same as number of the Earley set that contains the item.
 
 (Note to experts:
 Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
-SDFA states were invented by Aycock and Horspool.
-Also, in the traditional terminology,
-the origin earleme is confusingly called the "parent",
-and the dot earleme corresponds to the earley set of the item.)
+SDFA states are not traditional --
+they were invented by Aycock and Horspool.
+In the traditional terminology,
+the Earley set corresponding to the
+the origin earleme is rather confusingly called the "parent".
+And in the traditional notation for an Earley item the dot earleme is not
+included at all -- the context is supposed to be sufficient to tell you
+which Earley set each Earley item is in.)
 
 =head1 SDFA STATES
 
@@ -62,7 +67,9 @@ Let's start with an example of another Earley item:
 
     S1@2-2
 
-This states that SDFA state 1 originates at earleme 2 and is currently at earleme 2.
+This states that this item is for SDFA state 1,
+that it originates at earleme 2,
+and that it is currently at earleme 2.
 We can get a description of the SDFA states from the C<show_SDFA> method.
 Here's what it says about SDFA state 1:
 
@@ -73,38 +80,40 @@ Here's what it says about SDFA state 1:
      <number> => S4 (6)
 
 The two numbers after the "C<S1:>" label on the first line 
-are the numbers of the NFA states that were combined into this SDFA state.
-The next two lines are B<LR(0) items> -- rules with a dot added to indicate
+may be ignored.
+They are the numbers of the NFA states that were combined into this SDFA state.
+Marpa uses SDFA states to track the parse.
+Every SDFA state has one or more B<LR(0) items>.
+The second and third lines in the display represent the LR(0) items.
+They are rules with a dot added to indicate
 how far recognition has proceeded into the rule.
-A dot at the beginning indicates that the rule is only predicted -- none
-of its symbols have yet been recognized.
-A dot at the end indicates that the rule is complete -- all
-of its symbols have been recognized.
+
 A dot between two symbols indicates that all symbols before the dot
 have been recognized in the input,
-but none of the symbols after the dot have been recognzied.
+but that none of the symbols after the dot have been recognized.
+A dot at the beginning of an LR(0) item indicates that the rule is only predicted
+-- none of its symbols have yet been recognized.
+A dot at the end indicates that the rule is complete
+-- all of its symbols have been recognized.
 The location of the dot is called the B<dot position>.
 
-The last two lines are transitions.
+The last two lines in the display show transitions.
 The first line says that, on seeing an C<e>, you transition to SDFA state 3.
 The second states that, on seeing a C<number>, you transition to SDFA state 4.
 (The numbers in parentheses are NFA states and may be ignored.)
 
-Marpa uses SDFA states to track the parse.
-Every SDFA state has one or more LR(0) items.
-
 It's important to not confuse Earley items with LR(0) items.
-Earley items are built from LR(0) items.
+Earley items are built from one or more LR(0) items.
 In traditional Earley parsing, each Earley item contained one and only one LR(0) item.
 This made the internals simpler, but was not as efficient.
-Marpa combines LR(0) items into SDFA states,
+Marpa combines LR(0) items into SDFA states
 based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
 Each SDFA state is a statement about possible parses.
 The presence of an SDFA state in an Earley item means that the parses in its LR(0) items
-are possible at its current earleme.
+are possible at its dot earleme.
 The dot position of every LR(0) item in the SDFA state
-corresponds to the current earleme of the Earley item.
+corresponds to the dot earleme of the Earley item.
 The origin of every LR(0) item is the origin earleme of the Earley item.
 
 In our example,
@@ -146,7 +155,7 @@ from a predecessor,
 is called that predecessor's B<successor>.
 In this example, S4@2-3 is the successor of S1@2-2.
 
-=head2 A Close Look at a Scanned Earley Item
+=head3 An Example
 
 Here's what S4@2-3 looks like in the Earley sets, after a successful
 scan of the input C<"2+2">.
@@ -160,9 +169,10 @@ scan of the input C<"2+2">.
 In the first line we see that, as mentioned, S1@2-2 is the predecessor of S4@2-3.
 It has no successor.
 The C<effect> item will be explained later.
-C<pointer> is the name of the symbol before the dot pointer in the current choice of
-rule (remember there may be more than one rule in an Earley item) and C<lhs> is the
-symbol on the left hand side of the current rule.
+C<pointer> is the name of the symbol B<before> the dot pointer in the current choice of
+rule.
+(Remember that there may be more than one rule in an Earley item.)
+C<lhs> is the symbol on the left hand side of the current rule.
 If the Earley item has had a value computed, that is also shown.
 In this case,
 the value came from the token and is "2".
@@ -257,7 +267,7 @@ Earley sets.
 
 The parse in this example is unambiguous.  If it were ambiguous,
 you would see multiple links
-in some of the rules.
+in some of the Earley items.
 
 =head2 Prediction
 
@@ -331,6 +341,8 @@ an algorithm to build the Earley sets.
 The input is recognized successfully if, in the last earleme, there is a
 an Earley item for a completed start rule state.
 A B<completed start rule state> is an SDFA state containing a completed start rule.
+A B<completed start rule> is the LR(0) item for a start rule that has its
+dot position at the end.
 
 At most two of the SDFA states can be completed start rule states.
 One is a special case.
@@ -365,11 +377,12 @@ Here's the Earley item which makes the parse in our example successful at earlem
       
 =head1 GRAMMAR REWRITING
 
-Marpa rewrites grammars and adds internal symbols in the process.
+Marpa rewrites grammars,
+adding internal symbols and rules in the process.
 This rewriting does not affect the semantics,
 but it does show up when you examine the internals.
 
-Marpa's internal symbols have "tags" at the end,
+Marpa's internal symbols have B<tags> at the end,
 enclosed in square brackets.
 This means all Marpa's internal symbols end in a right square bracket.
 
@@ -396,21 +409,21 @@ can produce either the empty sentence or a non-empty sentence.
 In other words, a proper nullable is any nullable symbol which is not a nulling symbol.
 
 Nullable symbols have been a headache for previous versions of Earley parsers.
-L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">,
+L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
 outlined a new approach for dealing with them.
 I used their ideas and added a few of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.
-It does this by turning the original properly nullable symbol into
+It does this by turning the original proper nullable into
 a non-nullable symbol,
 and creating a second symbol to serve as the original symbol's nullable variant.
 The non-nullable variant of the original symbol keeps the original name,
 but is no longer allowed to appear in places
-where the symbol might be nulled.
+where it might be nulled.
 In places where the original symbol was nulled,
 the nulling variant is substituted.
 The name of the nulling variant
-is that of the original symbol with the nulling tag "C<[]>" suffixed.
+is that of the original symbol with the nulling tag ("C<[]>") suffixed.
 
 The newly introduced nulling symbols will not appear on any left hand sides.
 Marpa marks nulling symbols internally and
@@ -421,7 +434,7 @@ More difficult is the problem of dealing with the cases where the
 proper nullables appeared on the right hand side of rules.
 These rules have to be replaced with
 new rules covering every possible combination of
-the non-nulling and nulling variants of the proper nullables.
+the non-nulling and nulling variants.
 That rewrite is described in the next section.
 
 =head2 CHAF Rewriting
@@ -430,7 +443,7 @@ To deal with the splitting of proper nullables into two symbols,
 one non-nullable and one nullable,
 Aycock and Horspool simply created new rules for all possible combinations
 on the right hand side.
-This "factoring" is exponential in the worst case.
+This B<factoring> is exponential in the worst case.
 I don't like leaving exponential explosions in an algorithm, even unlikely ones.
 That old Theory of Computation course still haunts me after all these years.
 And I felt the generation of all possible combinations
@@ -513,7 +526,7 @@ Rules 94 to 97 are the first piece, with the first two symbols from Rule 12.
 Rules 98 to 100 are the second, with the 3rd symbol.
 Rules 101 to 103 are the third, with the 4th and 5th symbols from Rule 12.
 
-Each piece is "factored", so that every combination of nulling and non-nulling symbols is included.
+Each piece is B<factored>, so that every combination of nulling and non-nulling symbols is included.
 New symbols are introduced to be the left hand sides of the pieces.
 The tag "C<[R12:3]>" indicates that this
 symbol is the left hand side for the piece of Rule 12 which begins at right hand symbol 3
@@ -525,7 +538,8 @@ This rule is a worst case for CHAF, because the last three symbols of the right 
 proper nullables.
 That means that both of the newly created left hand sides are also proper nullables,
 count against the maximum of two proper nullables per rule,
-and need to be "factored" just as the original proper nullables must be.
+and need to be split into nulling and non-nulling
+variants and factored, just as the original proper nullables must be.
 Nonetheless this factoring can be done with 10 rules in CHAF,
 while the original Aycock-Horspool factoring (NNF)
 required 16.
@@ -533,10 +547,11 @@ After more than 4 proper nullables, the advantage of CHAF becomes overwhelming.
 With 5 proper nullables, there would be 13 rules for CHAF versus 32 for NNF.
 With 6, 16 versus 64.
 
-The user's semantics are preserved, because Marpa, while splitting and factoring the rules, inserts
-logic to gather and preserve the values of child nodes,
-presenting them to the user's actions as if no
-CHAF rewriting had occurred.
+The user's semantics are preserved, because Marpa, while splitting the rule into
+pieces and factoring the pieces,
+inserts logic to gather and preserve the values of child nodes.
+These values are presented
+to the user's actions as if no CHAF rewrite had occurred.
 
 =head2 Converting Sequence Productions to BNF
 
@@ -581,8 +596,8 @@ reason out how it
 came to be there.
 
 Second, take 
-the grammar used in the example and run it on the input text C<2+2*3>.
-While the parse in this document was not ambiguous, the grammar is.
+the grammar used in the example and run it on the input text "C<2+2*3>".
+While the parse in this document was not ambiguous, the grammar was.
 The grammar's ambiguity reveals itself when there is more than one operation in the input string.
 Get the C<show_status> output from any one of the ambiguous parses and reason out how
 all of its Earley items came to be.
@@ -591,7 +606,7 @@ all of its Earley items came to be.
 
 Below are the MDL grammar and outputs for the example used in this
 document.
-The input text was C<2+2>.
+The input text was "C<2+2>".
 
 =head2 The MDL Grammar
 

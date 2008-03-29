@@ -5,25 +5,24 @@ Parse::Marpa::Doc::Plumbing - The Plumbing Interface
 =head1 DESCRIPTION
 
 This document describes Marpa's plumbing Interface.
-It is the low-level interface used by all the porcelain interfaces.
+The plumbing is the low-level interface used by all the porcelain interfaces.
 The plumbing can be used directly.
 It is a short list of named arguments to the
 C<Parse::Marpa::Grammar::new()>,
 C<Parse::Marpa::Grammar::set()>,
 and C<Parse::Marpa::Recognizer::new()> methods.
 
-Marpa does not allow use of both the plumbing and a porcelain interface
-to build the same grammar,
-with a minor exception as described below.
-Marpa throws an exception if the user attempts to build the same grammar using
-both kinds of interface.
+The plumbing and porcelain interfaces may not be used 
+to build the same grammar.
+Marpa throws an exception if the user attempts to use
+a porcelain interface with any of the plumbing's named
+arguments, other than the C<start> argument.
 
 =head2 Plumbing Symbol Names
 
 Each interface has its own rules for symbol names.
 The plumbing's conventions are
-designed to allow flexibility for the porcelain interfaces.
-
+designed to allow flexibility for the porcelain.
 Any valid Perl string not ending in a right square bracket is an acceptable
 plumbing symbol name.
 Plumbing symbol names which end in right square brackets are reserved for Marpa internal use.
@@ -66,8 +65,8 @@ New rules may be added until the grammar is precomputed.
 
 The value of the C<rules> named argument must be a reference to an array,
 and each element of the array must be a reference to a description of a rule.
-Rule descriptions can be either arrays (the short form)
-or hashes (the long form).
+Rule descriptions can be either arrays (the B<short form>)
+or hashes (the B<long form>).
 
 =head3 Short Form
 
@@ -106,9 +105,9 @@ are as described above for the corresponding elements of the short form.
 
 =item C<min> and C<max>
 
-The values of the C<min> and C<max> rule options must be non-negative integers.
-C<max> may be undefined,
-or both C<min> and C<max> may be undefined.
+If defined, C<min> must be a non-negative integer.
+If defined, C<max> must be an integer greater than zero,
+and greater than or equal to C<min>.
 
 =over 4
 
@@ -135,10 +134,6 @@ The rule is an ordinary B<BNF production>.
 =item * C<min> and C<max> both defined, but not both equal to 1
 
 The rule is a B<counted sequence production>.
-C<min> must be greater than or equal to zero.
-C<max> must be greater than zero.
-In addition, C<max> must be greater than or equal to C<min>.
-
 Only one symbol is allowed on the right hand side.
 It is not allowed be a nullable symbol.
 It may be repeated anywhere from C<min> to C<max> times.
