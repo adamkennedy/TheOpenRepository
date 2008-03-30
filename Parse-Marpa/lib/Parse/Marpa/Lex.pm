@@ -158,31 +158,25 @@ sub lex_regex {
 
 =head1 NAME
 
-Parse::Marpa::Lex.pm -- Utility Methods for Lexing
+Parse::Marpa::Lex -- Utility Methods for Lexing
 
-=head1 OVERVIEW
+=head1 DESCRIPTION
 
 These routines are used internally by MDL to implement lexing of regexes
 and of C<q-> and C<qq->quoted strings.
-They are documented here to make them available for general use.
+They are documented here to make them available for general use within
+Marpa.
 
-=head1 SYNOPSIS
+=head1 METHODS
+
+=head2 lex_regex
 
     my ($regex, $token_length)
         = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start)
 
-    my ($string, $token_length)
-        = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start)
-
-=head1 DESCRIPTION
-
-=over 4
-
-=item lex_regex
-
 Takes two required arguents, a I<string reference> and a I<start earleme>.
-The string reference must be to a string that may contain a regex.
-The regex will be expected to start in the position pointed to by C<pos $$string>.
+The I<string reference> must be to a string that may contain a regex.
+The regex will be expected to start at the position pointed to by C<pos $$string>.
 
 I<start_earleme> must be the start earleme of the regex for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard
@@ -204,10 +198,13 @@ and its C<qr-> "operator" if there was one.
 The second is the regex's length for lexing purposes,
 which will include the length of any discarded prefix.
 
-=item lex_q_quote
+=head2 lex_q_quote
+
+    my ($string, $token_length)
+        = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start)
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
-The string reference must be to a string that may contain a C<q-> or C<qq->quoted string.
+The I<string reference> must be to a string that may contain a C<q-> or C<qq->quoted string.
 The C<q-> or C<qq->quoted string will be expected
 to start at the position pointed to by C<pos $$string>.
 
@@ -228,8 +225,6 @@ The first element is a string containing the C<q-> or C<qq->quoted string,
 including the C<q-> or C<qq-> "operator" and the delimiters.
 The second is the quoted string's length for lexing purposes,
 which will include the length of any discarded prefix.
-
-=back
 
 =head1 SUPPORT
 

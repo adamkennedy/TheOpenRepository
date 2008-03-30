@@ -58,15 +58,16 @@ Parse::Marpa::MDL -- Utility Methods for MDL
 =head1 DESCRIPTION
 
 These routines handle the conversion of MDL symbol names
-to plumbing names.
-MDL symbol names behave differently from those in the plumbing.
-MDL symbol names are allowed to vary in capitalization and separation,
-while in the plumbing,
+to plumbing symbol names.
+MDL symbol names behave differently from the plumbing names.
+MDL symbol names are allowed to vary in capitalization and separation while,
+in the plumbing,
 every slight variation of capitalization or separation produces a new,
 unique name.
 
-MDL symbol names have a canonical form, which MDL uses with
-the plumbing.
+MDL symbol names have a canonical form.
+MDL uses the canonical form of its symbol names as
+their plumbing names.
 B<Canonical MDL names> are all lowercase,
 with hyphens for separation.
 For example,
@@ -84,17 +85,17 @@ MDL symbol name to its canonical form.
         start => Parse::Marpa::MDL::canonical_symbol_name("Document")
     } );
 
-Takes as its one argument an MDL symbol
+This static method takes as its one argument an MDL symbol
 name.
-Returns the canonical MDL name, which is also
+It returns the canonical MDL name, which is also
 the symbol's plumbing name.
 
 =head2 get_symbol
 
     my $op = Parse::Marpa::MDL::get_symbol($grammar, "Op");
 
-Takes a Marpa grammar object as the first argument and an MDL symbol name as the second.
-Returns the symbol's "cookie".
+This static method takes a Marpa grammar object as its first argument and an MDL symbol name as its second.
+It returns the symbol's "cookie".
 Symbol cookies are needed to use the C<Parse::Marpa::Recognizer::earleme> method.
 
 =head1 SUPPORT

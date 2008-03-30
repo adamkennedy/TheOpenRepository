@@ -4,36 +4,34 @@ Parse::Marpa::Doc::Algorithm - The Marpa Algorithm
 
 =head1 DESCRIPTION
 
-Marpa is based on and derived from
+Marpa is derived from
 the parser
 L<described by John Aycock and R.  Nigel Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
-This combines LR(0)
+Aycock and Horspool combined LR(0)
 precomputation
 with the general parsing algorithm
 L<described by Jay
 Earley in 1970|Parse::Marpa::Doc::Bibliography/"Earley 1970">.
 
-Someday I'd like to set forth the whole algorithm,
-including the contributions of Aycock, Horspool and Earley,
-at a level that
-someone who has not taken a course in parsing could understand.
 Marpa combines many parsing techniques,
 and a full description would be a small textbook.
 For now, I have to content myself
-with briefly describing the more significant ideas new with Marpa,
-and I have to assume that the reader is familiar with parsing in general,
+with briefly describing the more significant ideas new with Marpa.
+In this document
+I assume that the reader is familiar with parsing in general,
 and that he understands terms like Earley set and Earley item.
 It will be helpful to have read the other Marpa documents,
-especially L<Parse::Marpa::Doc::Internals>.
+up to and including L<Parse::Marpa::Doc::Internals>.
 
 All claims of originality are limited by my ignorance.
 The parsing literature is large, and I may have been preceded by someone whose
 work I'm not aware of.
 Also, as readers familiar with the academic literature will know,
-if I claim combining A and B is original,
-I should B<not> be read as claiming to be the inventor of either A or B.
+a claim that combining A with B is original with Marpa,
+is B<not> to be read as a claim to be that either A or B
+is original with Marpa.
 
-=head2 A New Earley Recognition Engine, and Predictive Lexing
+=head2 A New Recognition Engine
 
 Marpa takes the recognition engine as
 described by Horspool and Aycock
@@ -46,6 +44,8 @@ Marpa turns this into two separate loops over the
 Earley items,
 the first of which completes the current earley set,
 and the second of which scans for tokens.
+
+=head3 Predictive Lexing and Earley Parsing
 
 The advantage of this double inversion is that the lexical analysis
 can be put between the two loops
@@ -70,7 +70,7 @@ including recognition of lexemes of different lengths starting at the
 same lexical position,
 and recognition of overlapping lexemes.
 To facilitate this,
-Marpa introduces the "earleme" (named after Jay Earley).
+Marpa introduces the B<earleme> (named after Jay Earley).
 Previous
 implementations required the Earley parser's input to be broken
 up into tokens, usually by lexical analysis of the input using
@@ -83,18 +83,25 @@ be performed by a DFA hobbles a general parser like Earley's.
 Marpa allows the scanning phase of
 Earley's algorithm to add items not just to the
 next Earley set, but to any later one.
-Several
-alternative scans of the input can be put into the Earley sets, and
+Alternative scans of the input can be put into the Earley sets, and
 the power of Earley's algorithm harnessed to deal with the
 indeterminism.
 
 Marpa does this by allowing
-each scanned item to have a length in "earlemes",
-call it I<L>.
+each scanned item to have a length in earlemes.
+Call that length I<L>.
 If the current Earley set is I<I>, a newly scanned
 Earley item is added to Earley set I<I+L>.
-In other words, the B<earleme> is a unit of distance
+From this point of view,
+the B<earleme> is a unit of distance
 measured in Earley sets.
+In the same way that distances in miles can be seen as locations
+when they are associated with milestones,
+the individual Earley sets can also be seen as earleme milestones.
+The first Earley set is earleme zero.
+Subsequent Earley sets are called earleme 1, earleme 2, etc.,
+based on their distance in earlemes from earleme 0.
+
 An implementation can sync
 earlemes up with any measure that's convenient.
 For example, the
@@ -107,12 +114,15 @@ measured in tokens.
 =head2 Chomsky-Horspool-Aycock Form
 
 Marpa's third significant change to the Aycock and Horspool algorithm is
-in internal rewriting
-of the grammar.  Aycock and Horspool call their rewriting
-NNF (Nihilist Normal Form).  Earley's original
+its internal rewriting
+of the grammar.
+Aycock and Horspool rewrote their grammars internally into what they
+called NNF (Nihilist Normal Form).
+Earley's original
 algorithm had serious issues with nullable symbols and productions,
-and NNF fixes almost all of them.  (A nullable symbol or production is
-one which could eventually parse out to the empty string.) Importantly,
+and the NNF rewrite fixes almost all of them.
+(A nullable symbol or production is
+one which derives the empty sentence.) Importantly,
 NNF also allows complete and easy mapping of the semantics of the
 original grammar to its NNF rewrite, so that NNF and the whole
 rewrite process can be made invisible to the user.
@@ -120,12 +130,12 @@ rewrite process can be made invisible to the user.
 My problem with NNF is that the rewritten grammar is
 exponentially larger than the original in the theoretical worst
 case, and I just don't like exponential explosion, even as a
-theoretical possibility in pre-processing.  I also think
-that there are cases likely to arise in practice
-where the size explosion, if not exponential,
-is linear with a very large multiplier.
-One such case might be a
-Perl 6 rule where whitespace was significant but optional.
+theoretical possibility in pre-processing.
+I also think
+cases can arise in practice
+where the NNF size explosion is a real problem.
+One such case might be
+Perl 6 rules in which whitespace is significant but optional.
 
 My solution is Chomsky-Horspool-Aycock Form (CHAF).
 This is
@@ -141,7 +151,7 @@ With CHAF, the theoretical worst
 behavior is linear, and in those difficult cases likely to arise
 in practice the multiplier is much smaller.
 
-=head2 Iterating Parses in the Earley Items
+=head2 Iterating Aycock-Horspool Parses
 
 Aycock and Horspool give an algorithm for constructing a rightmost derivation
 from their version of the Earley sets.

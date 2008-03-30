@@ -4,18 +4,20 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =head1 DESCRIPTION
 
-This document contains the to do list, and the documentation of features
+This document contains the "to do" list.
+It also contains the documentation of features
 where are either not ready for prime time,
-or were of the
+or which were of the
 "really seemed like a good idea at the time"
 kind.
-A feature, a method or an option with a description here remains
-B<undocumented> in the sense the word is used in the rest of the
+A feature, a method or an option with a description here
+does not count as
+"documented" in the sense that word is used in the rest of the
 Marpa documents.
 
-=head1 MAJOR PRIORITIES
+=head2 High Priority
 
-=head2 Priorities Cannot Be Set in MDL for Terminals
+=head3 Terminal Priorities Cannot Be Set in MDL
 
 Priorities cannot be set in MDL for terminals.
 Fix this before going beta.
@@ -25,33 +27,35 @@ Add extra rules with the terminals you want to prioritize on their right hand si
 and assign 
 priorities to the rules.
 
-=head2 A More Exhaustive Test Suite
+=head3 A More Exhaustive Test Suite
 
 Testing has been intensive, but not exhaustive.
-The parse engine has been very well exercised, but many combinations
+The recognition engine has been very well exercised, but many combinations
 of options and features have yet to be tried.
 To get an idea for what's been well tested,
-look in the C<t>, or test, directory of the distribution.
+look in the C<t> (test)
+and C<example> (example)
+directories of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
 
-=head1 LOWER PRIORITIES
+=head2 Lower Priority
 
 =over 4
 
-=item * Parse::Marpa::Grammar::new options should be defaults, not
+=item * C<Parse::Marpa::Grammar::new> options should be defaults, not
 overrides -- that is they should take effect before the MDL script.
 
 =item * Finalize semantics later, when evaluator is created.
 
 =item * Allow multiple evaluators for each recognizer, or at least create a method
-to safe deep copy recognizers.
+to safely deep copy recognizers.
 
 =item * If recognizer did not recognize the input, don't allow evaluator to be created.
 
 =item * Add C<{}> and C<[]> syntax to MDL production statements.
 
-=item * Ensure Parse::Marpa::Internal::This::grammar set wherever appropriate.
+=item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
 
 =item * Test right and left evaluation in rules
 
@@ -65,15 +69,13 @@ to safe deep copy recognizers.
 
 =item * Allow alternation?
 
-=item * Add to test set
-
-   - basic test for all branches of counted rules: matrix is
-     keep/no-keep, separated yes/no, right/left,
-     0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, 5-*
+=item * Add to test set: A basic test for all branches of counted rules.
+The matrix is keep vs. no-keep; separated yes vs. no; right vs. left;
+and 0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, versus 5-*.
 
 =back
 
-=head1 FRAGMENTS OF DOCUMENTATION
+=head2 Fragments of Documentation
 
 These are fragments of documentation which,
 usually along with the features described,
@@ -81,10 +83,10 @@ are untested, broken, experimental or unfinished.
 Presence of a description here does not make a
 feature, method or option,
 B<documented>
-in the sense the term
+in the sense that term
 is used in the other Marpa documents.
 
-=head2 Marpa "No Values"
+=head3 Marpa "No Values"
 
 Nodes in Marpa may have no value.
 Right now offline mode is the only one; online mode is not documented;
@@ -100,7 +102,7 @@ A Perl 5 undefined is a legitimate value.
 A Marpa "no value" means that no value calculation was done for
 that node.
 
-=head2 Parse::Marpa::Recognizer::find_complete_rule
+=head3 Parse::Marpa::Recognizer::find_complete_rule
 
      my ($end_earleme, $symbol_names) = $recce->find_complete_rule();
 

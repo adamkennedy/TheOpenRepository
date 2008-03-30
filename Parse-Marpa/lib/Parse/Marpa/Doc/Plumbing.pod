@@ -187,7 +187,7 @@ and option values as hash values.
 The value of the C<regex> terminal option must be a regular expression.
 It will be used to match the terminal in the input text.
 Only one of the C<regex> and C<action> terminal options may be specified.
-See L<the MDL document|Parse::Marpa::Language> for details on writing terminal regexes.
+See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing terminal regexes.
 
 =item C<action>
 
@@ -196,7 +196,7 @@ Right now the only available semantics is Perl 5.
 The code will be interpreted as a lex action, which
 will be used to match the terminal in the input text.
 Only one of the C<regex> and C<action> terminal options may be specified.
-See L<the MDL document|Parse::Marpa::Language> for details on writing lex actions.
+See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing lex actions.
 
 =item C<prefix>
 
