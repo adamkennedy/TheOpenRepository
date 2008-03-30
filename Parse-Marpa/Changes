@@ -16,8 +16,7 @@ Revision history for Parse::Marpa
 
 0.204.0 Thu Jan 17 17:01:25 EST 2008
 
-        First "Hard" Alpha Release
-	Added Tutorial
+        Second Alpha Release
 
 0.205_000 Sat Mar 22 10:31:32 EDT 2008
 
@@ -27,3 +26,6 @@ Revision history for Parse::Marpa
 0.205_006 Fri Mar 28 20:34:44 EDT 2008
         The tutorial added in 0.204.0 is now hopelessly out of date,
 	and has been removed.
+
+0.206.000 Sun Mar 30 19:06:10 EDT 2008
+        Third Alpha Release
