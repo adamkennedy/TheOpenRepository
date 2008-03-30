@@ -57,6 +57,11 @@ Parse::Marpa::MDL -- Utility Methods for MDL
 
 =head1 DESCRIPTION
 
+If you are looking for the document that describes the Marpa Demonstration
+Language, this is not it -- you want L<Parse::Marpa::Doc::MDL>.
+This document describes some utility routines that come with
+C<Parse::Marpa::MDL>.
+
 These routines handle the conversion of MDL symbol names
 to plumbing symbol names.
 MDL symbol names behave differently from the plumbing names.
