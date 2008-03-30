@@ -1,0 +1,12 @@
+
+WARNING -- THIS IS A DEVELOPER'S RELEASE, NOT FOR USE BY NON-DEVELOPERS.
+I use these releases to avail myself of the cpantesters results,
+and to test the release process itself.
+
+Of course, it's open source, and you're entitled to appoint yourself
+a developer if you insist on it.  But that will usually not be a
+reasonable thing to do.
+
+Right now the documentation in this release is half-converted from
+one interface to another, so it's incomplete and inconsistent.
+
