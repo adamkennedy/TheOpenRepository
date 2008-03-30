@@ -7,7 +7,7 @@ use base 'Perl::Dist';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '16';
+	$VERSION = '17';
 }
 
 
@@ -96,32 +96,28 @@ sub install_perl_5100_bin {
 	return 1;
 }
 
+sub install_perl_5100_toolchain_object {
+	Perl::Dist::Util::Toolchain->new(
+		perl_version => $_[0]->perl_version_literal,
+		force        => {
+			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+			'CPAN'               => 'ANDK/CPAN-1.92_60.tar.gz',
+		},
+	);
+}
+
 sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
 
+	# Upgrade to the latest version
 	$self->install_module(
-		name  => 'Win32::File',
-		force => 1,
-	);
-	$self->install_module(
-		name => 'Win32::API',
+		name => 'CGI',
 	);
 
-	# We want expat as well
-	$self->install_expat;
-
-	# Install XML::Parser
-	$self->install_distribution(
-		name             => 'MSERGEANT/XML-Parser-2.36.tar.gz',
-		makefilepl_param => [
-			'EXPATLIBPATH=' . File::Spec->catdir(
-				$self->image_dir, 'c', 'lib',
-			),
-			'EXPATINCPATH=' . File::Spec->catdir(
-				$self->image_dir, 'c', 'include',
-			),
-		],
+	# Install Wx as preparation for Chocolate
+	$self->install_module(
+		name => 'Wx',
 	);
 
 	return 1;
