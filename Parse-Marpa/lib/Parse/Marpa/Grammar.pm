@@ -76,16 +76,17 @@ use constant TRANSITION => 3;          # the transitions, as a hash
 
 package Parse::Marpa::Internal::SDFA;
 
-use constant ID             => 0;
-use constant NAME           => 1;
-use constant NFA_STATES     => 2;   # in an SDFA: an array of NFA states
-use constant TRANSITION     => 3;   # the transitions, as a hash
+use constant ID                => 0;
+use constant NAME              => 1;
+use constant NFA_STATES        => 2;   # in an SDFA: an array of NFA states
+use constant TRANSITION        => 3;   # the transitions, as a hash
                                     # from symbol name to SDFA states
-use constant COMPLETE_LHS   => 4;   # an array of the lhs's of complete rules
-use constant COMPLETE_RULES => 5;   # an array of lists of the complete rules,
+use constant COMPLETE_LHS      => 4;   # an array of the lhs's of complete rules
+use constant COMPLETE_RULES    => 5;   # an array of lists of the complete rules,
                                     # indexed by lhs
-use constant START_RULE     => 6;   # the start rule
-use constant TAG            => 7;   # implementation-independant tag
+use constant START_RULE        => 6;   # the start rule
+use constant TAG               => 7;   # implementation-independant tag
+use constant EMPTY_TRANSITION  => 8;   # an array of the empty transitions
 
 package Parse::Marpa::Internal::LR0_item;
 
@@ -1246,7 +1247,7 @@ sub Parse::Marpa::show_SDFA_state {
     my $tags  = shift;
 
     my $text = "";
-    my ( $id, $name, $NFA_states, $transition, $tag, $lexables, ) = @{$state}[
+    my ( $id, $name, $NFA_states, $transition, $tag ) = @{$state}[
         Parse::Marpa::Internal::SDFA::ID,
         Parse::Marpa::Internal::SDFA::NAME,
         Parse::Marpa::Internal::SDFA::NFA_STATES,
@@ -1261,18 +1262,30 @@ sub Parse::Marpa::show_SDFA_state {
         $text .= Parse::Marpa::show_item($item) . "\n";
     }
 
+    for my $sdfa ( @{ $state->[ Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION ] } ) {
+        my ( $to_id, $to_name ) = @{ $sdfa }[
+            Parse::Marpa::Internal::SDFA::ID,
+            Parse::Marpa::Internal::SDFA::NAME
+        ];
+        $text
+            .= ' empty => '
+            . ( defined $tags ? "St" . $tags->[$to_id] : "S" . $to_id ) . " ("
+            . $to_name . ")\n";
+    }
+
     for my $symbol_name ( sort keys %$transition ) {
         my ( $to_id, $to_name ) = @{ $transition->{$symbol_name} }[
             Parse::Marpa::Internal::SDFA::ID,
             Parse::Marpa::Internal::SDFA::NAME
         ];
         $text
-            .= " "
-            . ( $symbol_name eq "" ? "empty" : "<" . $symbol_name . ">" )
-            . " => "
+            .= ' <'
+	    . $symbol_name
+	    . '> => '
             . ( defined $tags ? "St" . $tags->[$to_id] : "S" . $to_id ) . " ("
             . $to_name . ")\n";
     }
+
     $text;
 }
 
@@ -2895,8 +2908,8 @@ sub assign_SDFA_kernel_state {
     }
 
     # add the empty transition from kernel SDFA state to prediction SDFA state
-    $kernel_SDFA_state->[Parse::Marpa::Internal::SDFA::TRANSITION]->{""} =
-        $prediction_SDFA_state;
+    $kernel_SDFA_state->[Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION]
+	= [ $prediction_SDFA_state ];
 
     # return the kernel SDFA state
     $kernel_SDFA_state;

@@ -1,13 +1,21 @@
 Parse::Marpa
 
-THIS IS AN ALPHA RELEASE.
+WARNING -- THIS IS A DEVELOPER'S RELEASE, NOT FOR USE BY NON-DEVELOPERS.
+I use these releases to avail myself of the cpantesters results,
+and to test the release process itself.
 
-It's intended to let people look Marpa over and try it out.  Uses
-beyond that are risky.  While Marpa is in alpha, you don't want to
-use it for anything mission-critical or with a serious deadline.
-I've no personal experience with them, but Parse::Yapp and
-Parse::RecDescent are alternatives to this module which are well
-reviewed and more mature and stable.
+Of course, it's open source, and you're entitled to appoint yourself
+a developer if you insist on it.  But that will usually not be a
+reasonable thing to do.
+
+GUVF VF NA NYCUN ERYRNFR.
+
+Vg'f vagraqrq gb yrg crbcyr ybbx Znecn bire naq gel vg bhg.  Hfrf
+orlbaq gung ner evfxl.  Juvyr Znecn vf va nycun, lbh qba'g jnag gb
+hfr vg sbe nalguvat zvffvba-pevgvpny be jvgu n frevbhf qrnqyvar.
+V'ir ab crefbany rkcrevrapr jvgu gurz, ohg Cnefr::Lncc naq
+Cnefr::ErpQrfprag ner nygreangvirf gb guvf zbqhyr juvpu ner jryy
+erivrjrq naq zber zngher naq fgnoyr.
 
 INSTALLATION
 

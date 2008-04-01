@@ -373,7 +373,6 @@ sub set_actions {
                 map {
                 $symbol_hash->{$_}->[Parse::Marpa::Internal::Symbol::ID]
                 }
-                grep { $_ ne "" }
                 keys %$transition
         ];
     }
@@ -611,9 +610,8 @@ sub Parse::Marpa::Recognizer::new {
     push( @$earley_set, $item );
     $earley_hash->{$key} = $item;
 
-    my $resetting_state =
-        $SDFA0->[Parse::Marpa::Internal::SDFA::TRANSITION]->{""};
-    if ( defined $resetting_state ) {
+    for my $resetting_state (@{ $SDFA0->[Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION] })
+    {
         $key = pack( "JJ", $resetting_state, 0 );
         undef $item;
         @{$item}[
@@ -626,7 +624,7 @@ sub Parse::Marpa::Recognizer::new {
             = ( $resetting_state, 0, [], [], 0 );
         push( @$earley_set, $item );
         $earley_hash->{$key} = $item;
-    }
+    } # for my $resetting_state
 
     @{$parse}[
         DEFAULT_PARSE_SET, CURRENT_SET,       FURTHEST_EARLEME,
@@ -1043,7 +1041,7 @@ sub scan_set {
             # compute goto(kernel_state, token_name)
             my $kernel_state =
                 $SDFA->[ $state->[Parse::Marpa::Internal::SDFA::ID] ]
-                ->[Parse::Marpa::Internal::SDFA::TRANSITION]
+                ->[ Parse::Marpa::Internal::SDFA::TRANSITION ]
                 ->{ $token->[Parse::Marpa::Internal::Symbol::NAME] };
             next ALTERNATIVE unless $kernel_state;
 
@@ -1079,27 +1077,26 @@ sub scan_set {
                 [ $earley_item, $value ]
             );
 
-            my $resetting_state =
-                $kernel_state->[Parse::Marpa::Internal::SDFA::TRANSITION]
-                ->{""};
-            next ALTERNATIVE unless defined $resetting_state;
-            $key = pack( "JJ", $resetting_state, $target_ix );
-            unless ( exists $target_earley_hash->{$key} ) {
-                my $new_earley_item;
-                @{$new_earley_item}[
-                    Parse::Marpa::Internal::Earley_item::STATE,
-                    Parse::Marpa::Internal::Earley_item::PARENT,
-                    Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
-                    Parse::Marpa::Internal::Earley_item::LINKS,
-                    Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
-                    Parse::Marpa::Internal::Earley_item::TOKENS,
-                    Parse::Marpa::Internal::Earley_item::SET
-                    ]
-                    = ( $resetting_state, $target_ix, 0, [], 0, [],
-                    $target_ix );
-                $target_earley_hash->{$key} = $new_earley_item;
-                push( @$target_earley_set, $new_earley_item );
-            }
+            RESETTING_STATE: for my $resetting_state (
+		@{ $kernel_state->[Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION] } )
+	    {
+		my $key = pack( "JJ", $resetting_state, $target_ix );
+		next RESETTING_STATE if exists $target_earley_hash->{$key};
+		my $new_earley_item;
+		@{$new_earley_item}[
+		    Parse::Marpa::Internal::Earley_item::STATE,
+		    Parse::Marpa::Internal::Earley_item::PARENT,
+		    Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
+		    Parse::Marpa::Internal::Earley_item::LINKS,
+		    Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
+		    Parse::Marpa::Internal::Earley_item::TOKENS,
+		    Parse::Marpa::Internal::Earley_item::SET
+		    ]
+		    = ( $resetting_state, $target_ix, 0, [], 0, [],
+		    $target_ix );
+		$target_earley_hash->{$key} = $new_earley_item;
+		push( @$target_earley_set, $new_earley_item );
+	    } # RESETTING_STATE
 
         }    # ALTERNATIVE
 
@@ -1206,29 +1203,28 @@ sub complete_set {
                     [ $parent_item, $earley_item ]
                 );
 
-                my $resetting_state =
-                    $kernel_state->[Parse::Marpa::Internal::SDFA::TRANSITION]
-                    ->{""};
-                next PARENT_ITEM unless defined $resetting_state;
-                $key = pack( "JJ", $resetting_state, $current_set );
-                unless ( defined $earley_hash->{$key} ) {
-                    my $new_earley_item;
-                    @{$new_earley_item}[
-                        Parse::Marpa::Internal::Earley_item::STATE,
-                        Parse::Marpa::Internal::Earley_item::PARENT,
-                        Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
-                        Parse::Marpa::Internal::Earley_item::LINKS,
-                        Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
-                        Parse::Marpa::Internal::Earley_item::TOKENS,
-                        Parse::Marpa::Internal::Earley_item::SET
-                        ]
-                        = (
-                        $resetting_state, $current_set, 0, [], 0, [],
-                        $current_set
-                        );
-                    $earley_hash->{$key} = $new_earley_item;
-                    push( @$earley_set, $new_earley_item );
-                }
+                RESETTING_STATE: for my $resetting_state (
+		    @{ $kernel_state->[Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION] } )
+		{
+		    $key = pack( "JJ", $resetting_state, $current_set );
+		    next RESETTING_STATE if defined $earley_hash->{$key};
+		    my $new_earley_item;
+		    @{$new_earley_item}[
+			Parse::Marpa::Internal::Earley_item::STATE,
+			Parse::Marpa::Internal::Earley_item::PARENT,
+			Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
+			Parse::Marpa::Internal::Earley_item::LINKS,
+			Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
+			Parse::Marpa::Internal::Earley_item::TOKENS,
+			Parse::Marpa::Internal::Earley_item::SET
+			]
+			= (
+			$resetting_state, $current_set, 0, [], 0, [],
+			$current_set
+			);
+		    $earley_hash->{$key} = $new_earley_item;
+		    push( @$earley_set, $new_earley_item );
+		} # RESETTING_STATE
 
             }    # PARENT_ITEM
 
