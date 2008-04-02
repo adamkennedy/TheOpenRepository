@@ -865,7 +865,8 @@ extra "information" would only get in the way.
 The downside is that in a few uncommon cases, a user relying entirely
 on the Marpa warnings to clean up his grammar will have to go through
 more than a single pass of the diagnostics.  I think even those
-users will prefer simpler diagnostics, and I'm sure most users will.
+users will prefer less cluttered diagnostics, and I'm sure most
+users will.
 
 =end Implementation:
 
@@ -2742,6 +2743,7 @@ sub assign_SDFA_kernel_state {
     $#$kernel_NFA_state_seen = $#$prediction_NFA_state_seen = @$NFA_states;
 
     # lists of NFA states to followed up on for the closure
+    # (Note that NFA states might be duplicated in the arguments)
     my $kernel_work_list = [
         grep {
             not $kernel_NFA_state_seen
@@ -2772,6 +2774,8 @@ sub assign_SDFA_kernel_state {
                 );
             }
 
+	    # Scan past all nullables, adding them to the kernel
+	    # work list
             SYMBOL:
             for my $nullable_symbol (
                 @{  $grammar
@@ -2939,11 +2943,17 @@ sub create_SDFA {
     my $initial_NFA_states =
         $NFA_s0->[Parse::Marpa::Internal::NFA::TRANSITION]->{""};
     if ( not defined $initial_NFA_states ) {
-        say $trace_fh "Empty NFA, cannot create SDFA";
+        croak( "Empty NFA, cannot create SDFA" );
         return;
     }
     assign_SDFA_kernel_state( $grammar, $initial_NFA_states );
 
+    # assign_SDFA_kernel_state extends this array, which we are
+    # simultaneously going through and adding transitions.
+    # There is no problem with the process of adding transitions
+    # overtaking assign_SDFA_kernel_state: if we reach a point where
+    # all transitions have been added, and we are at the end of @$SDFA
+    # we are finished.
     while ( $next_state_id < scalar @$SDFA ) {
 
         # compute the SDFA state transitions from the transitions
