@@ -1,5 +1,3 @@
-AutoXS.h
-AutoXS.xs
 Changes
 lib/AutoXS.pm
 lib/AutoXS/Accessor.pm
