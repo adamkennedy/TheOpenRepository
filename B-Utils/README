@@ -1,0 +1,228 @@
+NAME
+    B::Utils - Helper functions for op tree manipulation
+
+VERSION
+    0.05_05 - This is a dev version and is part of an effort to add tests,
+    functionality, and merge a fork from Module::Info.
+
+SYNOPSIS
+      use B::Utils;
+
+OP METHODS
+    "$op->oldname"
+        Returns the name of the op, even if it is currently optimized to
+        null. This helps you understand the stucture of the op tree.
+
+    "$op->kids"
+        Returns an array of all this op's non-null children, in order.
+
+    "$op->parent"
+        Returns the parent node in the op tree, if possible. Currently
+        "possible" means "if the tree has already been optimized"; that is,
+        if we're during a "CHECK" block. (and hence, if we have valid "next"
+        pointers.)
+
+        In the future, it may be possible to search for the parent before we
+        have the "next" pointers in place, but it'll take me a while to
+        figure out how to do that.
+
+    "$op->ancestors"
+        Returns all parents of this node, recursively. The list is ordered
+        from younger/closer parents to older/farther parents.
+
+    "$op->descendants"
+        Returns all children of this node, recursively. The list is
+        unordered.
+
+    "$op->siblings"
+        Returns all younger siblings of this node. The list is ordered from
+        younger/closer siblings to older/farther siblings.
+
+    "$op->previous"
+        Like " $op->next ", but not quite.
+
+    "$op->stringify"
+        Returns a nice stringification of an opcode.
+
+EXPORTABLE FUNCTIONS
+    "all_starts"
+    "all_roots"
+        Returns a hash of all of the starting ops or root ops of optrees,
+        keyed to subroutine name; the optree for main program is simply
+        keyed to "__MAIN__".
+
+        Note: Certain "dangerous" stashes are not scanned for subroutines:
+        the list of such stashes can be found in @B::Utils::bad_stashes.
+        Feel free to examine and/or modify this to suit your needs. The
+        intention is that a simple program which uses no modules other than
+        "B" and "B::Utils" would show no addition symbols.
+
+        This does not return the details of ops in anonymous subroutines
+        compiled at compile time. For instance, given
+
+            $a = sub { ... };
+
+        the subroutine will not appear in the hash. This is just as well,
+        since they're anonymous... If you want to get at them, use...
+
+    "anon_subs"
+        This returns an array of hash references. Each element has the keys
+        "start" and "root". These are the starting and root ops of all of
+        the anonymous subroutines in the program.
+
+    "recalc_sub_cache"
+        If PL_sub_generation has changed or you have some other reason to
+        want to force the re-examination of the optrees, everywhere, call
+        this function.
+
+    "walkoptree_simple($op, \&callback, [$data])"
+        The "B" module provides various functions to walk the op tree, but
+        they're all rather difficult to use, requiring you to inject methods
+        into the "B::OP" class. This is a very simple op tree walker with
+        more expected semantics.
+
+        All the "walk" functions set $B::Utils::file, $B::Utils::line, and
+        $B::Utils::sub to the appropriate values of file, line number, and
+        sub name in the program being examined.
+
+    "walkoptree_filtered($op, \&filter, \&callback, [$data])"
+        This is much the same as "walkoptree_simple", but will only call the
+        callback if the "filter" returns true. The "filter" is passed the op
+        in question as a parameter; the "opgrep" function is fantastic for
+        building your own filters.
+
+    "walkallops_simple(\&callback, [$data])"
+        This combines "walkoptree_simple" with "all_roots" and "anon_subs"
+        to examine every op in the program. $B::Utils::sub is set to the
+        subroutine name if you're in a subroutine, "__MAIN__" if you're in
+        the main program and "__ANON__" if you're in an anonymous
+        subroutine.
+
+    "walkallops_filtered(\&filter, \&callback, [$data])"
+        Same as above, but filtered.
+
+    "opgrep(\%conditions, @ops)"
+        Returns the ops which meet the given conditions. The conditions
+        should be specified like this:
+
+            @barewords = opgrep(
+                                { name => "const", private => OPpCONST_BARE },
+                                @ops
+                               );
+
+        You can specify alternation by giving an arrayref of values:
+
+            @svs = opgrep ( { name => ["padsv", "gvsv"] }, @ops)
+
+        And you can specify inversion by making the first element of the
+        arrayref a "!". (Hint: if you want to say "anything", say "not
+        nothing": "["!"]")
+
+        You may also specify the conditions to be matched in nearby ops.
+
+            walkallops_filtered(
+                sub { opgrep( {name => "exec",
+                               next => {
+                                         name    => "nextstate",
+                                         sibling => { name => [qw(! exit warn die)] }
+                                       }
+                              }, @_)},
+                sub {
+                      carp("Statement unlikely to be reached");
+                      carp("\t(Maybe you meant system() when you said exec()?)\n");
+                }
+            )
+
+        Get that?
+
+        Here are the things that can be tested in this way:
+
+                name targ type seq flags private pmflags pmpermflags
+                first other last sibling next pmreplroot pmreplstart pmnext
+
+        Additionally, you can use the "kids" keyword with an array reference
+        to match the result of a call to "$op->kids()". An example use is
+        given in the documentation for "op_or" below.
+
+        For debugging, you can have many properties of an op that is
+        currently being matched against a given condition dumped to STDERR
+        by specifying "dump =" 1> in the condition's hash reference.
+
+    "opgrep( \@conditions, @ops )"
+        Same as sbove, except that you don't have to chain the conditions
+        yourself. If you pass an array-ref, opgrep will chain the conditions
+        for you. The conditions can either be strings (taken as op-names),
+        or hash-refs, with the same testable conditions as given above.
+
+    "op_or( @conditions )"
+        Unlike the chaining of conditions done by "opgrep" itself if there
+        are multiple conditions, this function creates a disjunction
+        ("$cond1 || $cond2 || ...") of the conditions and returns a
+        structure (hash reference) that can be passed to opgrep as a single
+        condition.
+
+        Example:
+
+          my $sub_structure = {
+            name => 'helem',
+            first => { name => 'rv2hv', },
+            'last' => { name => 'const', },
+          };
+  
+          my @ops = opgrep( {
+              name => 'leavesub',
+              first => {
+                name => 'lineseq',
+                kids => [,
+                  { name => 'nextstate', },
+                  op_or(
+                    {
+                      name => 'return',
+                      first => { name => 'pushmark' },
+                      last => $sub_structure,
+                    },
+                    $sub_structure,
+                  ),
+                ],
+              },
+          }, $op_obj );
+
+        This example matches the code in a typical simplest-possible
+        accessor method (albeit not down to the last bit):
+
+          sub get_foo { $_[0]->{foo} }
+
+        But by adding an alternation we can also match optional op layers.
+        In this case, we optionally match a return statement, so the
+        following implementation is also recognized:
+
+          sub get_foo { return $_[0]->{foo} }
+
+        Essentially, this is syntactic sugar for the following structure
+        recognized by "opgrep()":
+
+          { disjunction => [@conditions] }
+
+    "carp(@args)"
+    "croak(@args)"
+        Warn and die, respectively, from the perspective of the position of
+        the op in the program. Sounds complicated, but it's exactly the kind
+        of error reporting you expect when you're grovelling through an op
+        tree.
+
+  EXPORT
+    None by default.
+
+AUTHOR
+    Originally written by Simon Cozens, "simon@cpan.org" Maintained by
+    Joshua ben Jore, "jjore@cpan.org"
+
+    Contributions from Mattia Barbon, Jim Cromie, and Steffen Mueller.
+
+LICENSE
+    This module is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+SEE ALSO
+    B, B::Generate.
+
