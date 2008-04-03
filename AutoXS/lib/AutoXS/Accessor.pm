@@ -6,13 +6,14 @@ use warnings;
 
 require Exporter;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 BEGIN { require AutoXS; }
 use base 'AutoXS';
 
 use B qw( svref_2object );
 use B::Utils qw( opgrep op_or );
+use Class::XSAccessor;
 
 CHECK {
   warn "Running AutoXS scanner of " . __PACKAGE__ if $AutoXS::Debug;
@@ -181,7 +182,10 @@ sub scan_package_accessor {
     if ($AutoXS::Debug) {
       warn "Replacing $function with XS accessor for key '$key'.\n";
     }
-    newxs_accessor($function, $key);
+    Class::XSAccessor->import(
+      replace => 1,
+      getters => { $function => $key },
+    );
   }
 
 }
@@ -257,6 +261,8 @@ Also please realize that this is B<not a source filter>.
 =head1 SEE ALSO
 
 L<AutoXS>
+
+L<Class::XSAccessor>
 
 =head1 AUTHOR
 

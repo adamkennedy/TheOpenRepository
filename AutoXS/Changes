@@ -1,5 +1,10 @@
 Revision history for Perl extension AutoXS and AutoXS::Accessor.
 
+0.02  Thu Apr  3 17:09 2008
+        - Move all the XS code to a separate module since the
+          code may be useful without the funny scanning features.
+          (See Class::XSAccessor)
+
 0.01  Mon Mar 31 17:09 2008
 	- original version as uploaded to CPAN.
 

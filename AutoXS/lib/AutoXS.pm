@@ -4,10 +4,10 @@ use 5.008;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-require XSLoader;
-XSLoader::load('AutoXS', $VERSION);
+#require XSLoader;
+#XSLoader::load('AutoXS', $VERSION);
 
 use vars qw/%ScanClasses $Debug/;
 
