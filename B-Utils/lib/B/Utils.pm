@@ -14,7 +14,8 @@ use subs (
     qw( croak carp )
 );
 
-use Scalar::Util qw( weaken );
+use Scalar::Util qw( weaken blessed );
+use Data::Compare ();
 
 =head1 NAME
 
@@ -22,14 +23,14 @@ B::Utils - Helper functions for op tree manipulation
 
 =head1 VERSION
 
-0.05_06 - This is a dev version and
+0.05_07 - This is a dev version and
   is part of an effort to add tests,
   functionality, and merge a fork
   from Module::Info.
 
 =cut
 
-$VERSION = '0.05_06';
+$VERSION = '0.05_07';
 
 =head1 SYNOPSIS
 
@@ -742,6 +743,41 @@ For debugging, you can have many properties of an op that is currently being
 matched against a given condition dumped to STDERR
 by specifying C<dump => 1> in the condition's hash reference.
 
+If you match a complex condition against an op tree, you may want to extract
+a specific piece of information from the tree if the condition matches.
+This normally entails manually walking the tree a second time down to
+the op you wish to extract, investigate or modify. Since this is tedious
+duplication of code and information, you can specify a special property
+in the pattern of the op you wish to extract to capture the sub-op
+of interest. Example:
+
+  my ($result) = opgrep(
+    { name => "exec",
+      next => { name    => "nextstate",
+                sibling => { name => [qw(! exit warn die)]
+                             capture => "notreached",
+                           },
+              }
+    },
+    $root_op
+  );
+  
+  if ($result) {
+    my $name = $result->{notreached}->name; # result is *not* the root op
+    carp("Statement unlikely to be reached (op name: $name)");
+    carp("\t(Maybe you meant system() when you said exec()?)\n");
+  }
+  
+While the above is a terribly contrived example, consider the win for a
+deeply nested pattern or worse yet, a pattern with many disjunctions.
+If a C<capture> property is found anywhere in
+the op pattern, C<opgrep()> returns an unblessed hash reference on success
+instead of the tested op. You can tell them apart using L<Scalar::Util>'s
+C<blessed()>. That hash reference contains all captured ops plus the
+tested root up as the hash entry C<$result-E<gt>{op}>. Note that you cannot
+use this feature with C<walkoptree_filtered> since that function was
+specifically documented to pass the tested op itself to the callback.
+
 =item C<opgrep( \@conditions, @ops )>
 
 Same as above, except that you don't have to chain the conditions
@@ -772,13 +808,27 @@ OP:
         # be several
 CONDITION:
         foreach my $condition (@conditions) {
+            # structure to hold captured information
+            my $capture = {};
+
             # Debugging aid
             if (exists $condition->{'dump'}) {
-              ($op->can($_)
-              or next)
-              and warn "$_: " . $op->$_ . "\n"
-              for
-              qw( first other last pmreplroot pmreplstart pmnext pmflags pmpermflags name targ type seq flags private kids);
+                ($op->can($_)
+                or next)
+                and warn "$_: " . $op->$_ . "\n"
+                for
+                qw( first other last pmreplroot pmreplstart pmnext pmflags pmpermflags name targ type seq flags private kids);
+            }
+
+            # special disjunction case. undef in a disjunction => (child) does not exist
+            if (not defined $condition) {
+                return TRUE if not defined $op and not wantarray();
+                return();
+            }
+
+            # save the op if the user wants flat access to it
+            if ($condition->{capture}) {
+                $capture->{ $condition->{capture} } = $op;
             }
 
             # First, let's skim off ops of the wrong type. If they require
@@ -844,24 +894,45 @@ CONDITION:
             # We know it ->can because that was tested above. It is an
             # error to have anything in this list of tests that isn't
             # tested for ->can above.
-            exists $condition->{$_}
-                and not( opgrep( $condition->{$_}, $op->$_ ) )
-                and next CONDITION
-                for
-                qw( first other last sibling next pmreplroot pmreplstart pmnext );
+            foreach (
+              qw( first other last sibling next pmreplroot pmreplstart pmnext )
+              ) {
+                next unless exists $condition->{$_};
+                my ($result) = opgrep( $condition->{$_}, $op->$_ );
+                next CONDITION if not $result;
+
+                if (not blessed($result)) {
+                    # copy over the captured data/ops from the recursion
+                    $capture->{$_} = $result->{$_} foreach keys %$result;
+                }
+            }
   
             # Apply all kids conditions. We $op->can(kids) (see above).
             if (exists $condition->{kids}) {
                 my $kidno = 0;
                 my $kidconditions = $condition->{kids};
-                not( opgrep( $kidconditions->[$kidno++], $_ ) )
-                    and next CONDITION
-                    for $op->kids();
+                foreach my $kid($op->kids()) {
+                    my ($result) = opgrep( $kidconditions->[$kidno++], $kid );
+                    next CONDITION if not $result;
+                    
+                    if (not blessed($result)) {
+                        # copy over the captured data/ops from the recursion
+                        $capture->{$_} = $result->{$_} foreach keys %$result;
+                    }
+                }
             }
 
             # Attempt to quit early if possible.
             if (wantarray) {
-                push @grep_ops, $_;
+                if (keys %$capture) {
+                    # save all captured information and the main op
+                    $capture->{op} = $op;
+                    push @grep_ops, $capture;
+                }
+                else {
+                    # save main op
+                    push @grep_ops, $op;
+                }
                 last;
             }
             elsif ( defined wantarray ) {
