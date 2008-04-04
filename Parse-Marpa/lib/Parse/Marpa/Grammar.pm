@@ -80,13 +80,15 @@ use constant ID                => 0;
 use constant NAME              => 1;
 use constant NFA_STATES        => 2;   # in an SDFA: an array of NFA states
 use constant TRANSITION        => 3;   # the transitions, as a hash
-                                    # from symbol name to SDFA states
+                                       # from symbol name to references to arrays
+				       # of SDFA states
 use constant COMPLETE_LHS      => 4;   # an array of the lhs's of complete rules
 use constant COMPLETE_RULES    => 5;   # an array of lists of the complete rules,
                                     # indexed by lhs
 use constant START_RULE        => 6;   # the start rule
 use constant TAG               => 7;   # implementation-independant tag
-use constant EMPTY_TRANSITION  => 8;   # an array of the empty transitions
+use constant RESET_ORIGIN      => 9;   # reset origin for this state?
+use constant PRIORITY          => 10;  # priority of this state
 
 package Parse::Marpa::Internal::LR0_item;
 
@@ -144,6 +146,8 @@ use constant ONLINE                   => 41;
 use constant ALLOW_RAW_SOURCE         => 42;
 use constant PHASE                    => 43; # the grammar's phase
 use constant INTERFACE                => 44; # the grammar's interface
+use constant START_STATES             => 45; # ref to array of the start states
+use constant SDFA_SET_BY_NAME         => 46; # hash from SDFA set name to SDFA set reference
 
 package Parse::Marpa::Internal::Interface;
 
@@ -390,6 +394,7 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::RULES]        = [];
     $grammar->[Parse::Marpa::Internal::Grammar::RULE_HASH]    = {};
     $grammar->[Parse::Marpa::Internal::Grammar::SDFA_BY_NAME] = {};
+    $grammar->[Parse::Marpa::Internal::Grammar::SDFA_SET_BY_NAME] = {};
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES ] = -1;
     $grammar->[Parse::Marpa::Internal::Grammar::ONLINE ] = 0;
 
@@ -536,10 +541,8 @@ sub Parse::Marpa::Grammar::set {
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
-    my $trace_fh;
-    if ($tracing) {
-        $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    }
+    # set trace_fh even if no tracing, because we may turn it on in this method
+    my $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
@@ -1243,48 +1246,43 @@ sub Parse::Marpa::Grammar::show_NFA {
     $text;
 }
 
+sub Parse::Marpa::brief_SDFA_state {
+    my $state = shift;
+    my $tags  = shift;
+    return 'St' . $state->[ Parse::Marpa::Internal::SDFA::TAG ] if defined $tags;
+    'S' . $state->[ Parse::Marpa::Internal::SDFA::ID ];
+}
+
 sub Parse::Marpa::show_SDFA_state {
     my $state = shift;
     my $tags  = shift;
 
     my $text = "";
-    my ( $id, $name, $NFA_states, $transition, $tag ) = @{$state}[
-        Parse::Marpa::Internal::SDFA::ID,
+    my ( $name, $NFA_states, $transition ) = @{$state}[
         Parse::Marpa::Internal::SDFA::NAME,
         Parse::Marpa::Internal::SDFA::NFA_STATES,
         Parse::Marpa::Internal::SDFA::TRANSITION,
-        Parse::Marpa::Internal::SDFA::TAG,
     ];
 
-    $text .= defined $tags ? "St" . $tag : "S" . $id;
+    $text .= Parse::Marpa::brief_SDFA_state($state, $tags);
     $text .= ": " . $name . "\n";
     for my $NFA_state (@$NFA_states) {
         my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
         $text .= Parse::Marpa::show_item($item) . "\n";
     }
 
-    for my $sdfa ( @{ $state->[ Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION ] } ) {
-        my ( $to_id, $to_name ) = @{ $sdfa }[
-            Parse::Marpa::Internal::SDFA::ID,
-            Parse::Marpa::Internal::SDFA::NAME
-        ];
-        $text
-            .= ' empty => '
-            . ( defined $tags ? "St" . $tags->[$to_id] : "S" . $to_id ) . " ("
-            . $to_name . ")\n";
-    }
-
     for my $symbol_name ( sort keys %$transition ) {
-        my ( $to_id, $to_name ) = @{ $transition->{$symbol_name} }[
-            Parse::Marpa::Internal::SDFA::ID,
-            Parse::Marpa::Internal::SDFA::NAME
-        ];
-        $text
-            .= ' <'
-	    . $symbol_name
-	    . '> => '
-            . ( defined $tags ? "St" . $tags->[$to_id] : "S" . $to_id ) . " ("
-            . $to_name . ")\n";
+	$text .= ' <' . $symbol_name . '> => ';
+	my @sdfa_labels;
+	for my $to_state (@{ $transition->{$symbol_name} }) {
+	    my $to_name = $to_state->[ Parse::Marpa::Internal::SDFA::NAME ];
+	    push(
+		@sdfa_labels,
+		Parse::Marpa::brief_SDFA_state($to_state, $tags) . ' (' . $to_name . ')'
+	    );
+        } # for my $to_state
+	$text .= join('; ', @sdfa_labels);
+	$text .= "\n";
     }
 
     $text;
@@ -1308,15 +1306,21 @@ sub tag_SDFA {
 
 sub Parse::Marpa::Grammar::show_SDFA {
     my $grammar = shift;
+    my $tags = shift;
+
     my $text    = "";
     my $SDFA    = $grammar->[Parse::Marpa::Internal::Grammar::SDFA];
-    for my $state (@$SDFA) { $text .= Parse::Marpa::show_SDFA_state($state); }
+    my $start_states  = $grammar->[Parse::Marpa::Internal::Grammar::START_STATES];
+    $text .= 'Start States: ';
+    $text .= join('; ', map { Parse::Marpa::brief_SDFA_state($_, $tags) } @$start_states);
+    $text .= "\n";
+    for my $state (@$SDFA) { $text .= Parse::Marpa::show_SDFA_state($state, $tags); }
     $text;
 }
 
 sub Parse::Marpa::Grammar::show_ii_SDFA {
     my $grammar = shift;
-    my $text    = "";
+    my $text    = '';
     my $SDFA    = $grammar->[Parse::Marpa::Internal::Grammar::SDFA];
     my $tags;
     tag_SDFA($grammar);
@@ -1325,11 +1329,15 @@ sub Parse::Marpa::Grammar::show_ii_SDFA {
         $tags->[ $state->[Parse::Marpa::Internal::SDFA::ID] ] =
             $state->[Parse::Marpa::Internal::SDFA::TAG];
     }
+    my $start_states  = $grammar->[Parse::Marpa::Internal::Grammar::START_STATES];
+    $text .= 'Start States: ';
+    $text .= join('; ', map { Parse::Marpa::brief_SDFA_state($_, $tags) } @$start_states);
+    $text .= "\n";
     for my $state (
         map  { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
         map  { [ $_, $_->[Parse::Marpa::Internal::SDFA::TAG] ] } @$SDFA
-        )
+    )
     {
         $text .= Parse::Marpa::show_SDFA_state( $state, $tags );
     }
@@ -2721,13 +2729,17 @@ sub create_NFA {
 # as necessary.  The build is complete, except for the non-empty transitions, which are
 # left to be set elsewhere.
 #
-
-sub assign_SDFA_kernel_state {
+sub assign_SDFA_state_set {
     my $grammar       = shift;
     my $kernel_states = shift;
-    my ( $NFA_states, $SDFA_by_name, $SDFA ) = @{$grammar}[
+    my ( $NFA_states,
+	$SDFA_by_name,
+	$SDFA_set_by_name,
+	$SDFA
+    ) = @{$grammar}[
         Parse::Marpa::Internal::Grammar::NFA,
         Parse::Marpa::Internal::Grammar::SDFA_BY_NAME,
+        Parse::Marpa::Internal::Grammar::SDFA_SET_BY_NAME,
         Parse::Marpa::Internal::Grammar::SDFA
     ];
 
@@ -2750,6 +2762,17 @@ sub assign_SDFA_kernel_state {
                 ->[ $_->[Parse::Marpa::Internal::NFA::ID] ]++
             } @$kernel_states
     ];
+
+    my $NFA_ids = [];
+    NFA_ID: for ( my $NFA_id = 0; $NFA_id <= $#$NFA_states; $NFA_id++ ) {
+        next NFA_ID unless $kernel_NFA_state_seen->[$NFA_id];
+        push( @$NFA_ids, $NFA_id );
+    }
+
+    my $state_set_key = join(',', @$NFA_ids);
+    my $state_set = $SDFA_set_by_name->{ $state_set_key };
+    return $state_set if defined $state_set;
+
     my $prediction_work_list = [];
 
     # create the kernel SDFA state
@@ -2801,7 +2824,7 @@ sub assign_SDFA_kernel_state {
         $kernel_work_list = $next_work_list;
     }    # kernel WORK_LIST
 
-    my $NFA_ids = [];
+    $NFA_ids = [];
     NFA_ID: for ( my $NFA_id = 0; $NFA_id <= $#$NFA_states; $NFA_id++ ) {
         next NFA_ID unless $kernel_NFA_state_seen->[$NFA_id];
         my $LR0_item =
@@ -2824,21 +2847,30 @@ sub assign_SDFA_kernel_state {
 
     # if we already built the kernel SDFA state, we have also already built any necessary prediction SDFA
     # state and linked it, so we're done
-    return $kernel_SDFA_state if defined $kernel_SDFA_state;
+    croak("Shouldn't get here") if defined $kernel_SDFA_state;
 
     # build the kernel state except for the transitions.
     @{$kernel_SDFA_state}[
         Parse::Marpa::Internal::SDFA::ID,
         Parse::Marpa::Internal::SDFA::NAME,
-        Parse::Marpa::Internal::SDFA::NFA_STATES
+        Parse::Marpa::Internal::SDFA::NFA_STATES,
+        Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
+        Parse::Marpa::Internal::SDFA::PRIORITY,
         ]
-        = ( scalar @$SDFA, $kernel_SDFA_name, [ @{$NFA_states}[@$NFA_ids] ],
+        = (
+	    scalar @$SDFA,
+	    $kernel_SDFA_name,
+	    [ @{$NFA_states}[@$NFA_ids] ],
+	    0,
+	    0,
         );
     push( @$SDFA, $kernel_SDFA_state );
     $SDFA_by_name->{$kernel_SDFA_name} = $kernel_SDFA_state;
 
     # if there is no prediction half of the split DFA state, we are done.
-    return $kernel_SDFA_state unless @$prediction_work_list;
+    unless (@$prediction_work_list) {
+        return $SDFA_set_by_name->{$state_set_key} = [ $kernel_SDFA_state ];
+    }
 
     # there is a prediction state, so find its canonical name
     WORK_LIST: while (@$prediction_work_list) {
@@ -2900,23 +2932,24 @@ sub assign_SDFA_kernel_state {
         @{$prediction_SDFA_state}[
             Parse::Marpa::Internal::SDFA::ID,
             Parse::Marpa::Internal::SDFA::NAME,
-            Parse::Marpa::Internal::SDFA::NFA_STATES
+            Parse::Marpa::Internal::SDFA::NFA_STATES,
+            Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
+            Parse::Marpa::Internal::SDFA::PRIORITY,
             ]
             = (
             scalar @$SDFA,
-            $prediction_SDFA_name, [ @{$NFA_states}[@$NFA_ids] ],
+            $prediction_SDFA_name,
+	    [ @{$NFA_states}[@$NFA_ids] ],
+	    1,
+	    0
             );
         push( @$SDFA, $prediction_SDFA_state );
         $SDFA_by_name->{$prediction_SDFA_name} = $prediction_SDFA_state;
 
     }
 
-    # add the empty transition from kernel SDFA state to prediction SDFA state
-    $kernel_SDFA_state->[Parse::Marpa::Internal::SDFA::EMPTY_TRANSITION]
-	= [ $prediction_SDFA_state ];
-
-    # return the kernel SDFA state
-    $kernel_SDFA_state;
+    # return the SDFA states
+    $SDFA_set_by_name->{$state_set_key} = [ $kernel_SDFA_state, $prediction_SDFA_state ];
 }
 
 sub create_SDFA {
@@ -2946,12 +2979,13 @@ sub create_SDFA {
         croak( "Empty NFA, cannot create SDFA" );
         return;
     }
-    assign_SDFA_kernel_state( $grammar, $initial_NFA_states );
+    $grammar->[ Parse::Marpa::Internal::Grammar::START_STATES ]
+         = assign_SDFA_state_set( $grammar, $initial_NFA_states );
 
-    # assign_SDFA_kernel_state extends this array, which we are
+    # assign_SDFA_state_set extends this array, which we are
     # simultaneously going through and adding transitions.
     # There is no problem with the process of adding transitions
-    # overtaking assign_SDFA_kernel_state: if we reach a point where
+    # overtaking assign_SDFA_state_set: if we reach a point where
     # all transitions have been added, and we are at the end of @$SDFA
     # we are finished.
     while ( $next_state_id < scalar @$SDFA ) {
@@ -2979,9 +3013,8 @@ sub create_SDFA {
         # for each transition symbol, create the transition to the SDFA kernel state
         while ( my ( $symbol, $to_states ) = each(%$NFA_to_states_by_symbol) )
         {
-            $SDFA_state->[Parse::Marpa::Internal::SDFA::TRANSITION]
-                ->{$symbol} =
-                assign_SDFA_kernel_state( $grammar, $to_states );
+            $SDFA_state->[Parse::Marpa::Internal::SDFA::TRANSITION] ->{$symbol}
+		= assign_SDFA_state_set( $grammar, $to_states );
         }
     }
 

@@ -69,13 +69,21 @@ my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 
 my $op = $g->get_symbol("Op");
 my $number = $g->get_symbol("Number");
-$recce->earleme([$number, 2, 1]);
-$recce->earleme([$op, "-", 1]);
-$recce->earleme([$number, 0, 1]);
-$recce->earleme([$op, "*", 1]);
-$recce->earleme([$number, 3, 1]);
-$recce->earleme([$op, "+", 1]);
-$recce->earleme([$number, 1, 1]);
+
+my @tokens = (
+    [$number, 2, 1],
+    [$op, "-", 1],
+    [$number, 0, 1],
+    [$op, "*", 1],
+    [$number, 3, 1],
+    [$op, "+", 1],
+    [$number, 1, 1],
+);
+
+TOKEN: for my $token (@tokens) {
+    next TOKEN if $recce->earleme($token);
+    die("Parse exhausted at character: ", $token->[1]);
+}
 
 is( $g->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
 0: E -> E Op E
