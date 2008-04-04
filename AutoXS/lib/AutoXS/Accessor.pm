@@ -6,7 +6,7 @@ use warnings;
 
 require Exporter;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 BEGIN { require AutoXS; }
 use base 'AutoXS';
@@ -53,13 +53,11 @@ sub scan_package_accessor {
         first => {
           name => 'rv2hv',
           first => op_or(
-            {
-              name => 'aelem',
+            { name => 'aelem',
               first => $glob_array_dereference,
               'last' => { name => 'const', },
             },
-            {
-              name => 'shift',
+            { name => 'shift',
               first => $glob_array_dereference,
             },
           ),
@@ -71,8 +69,7 @@ sub scan_package_accessor {
         kids => [
           { name => 'nextstate', },
           op_or(
-            {
-              name => 'return',
+            { name => 'return',
               first => {name => 'pushmark'},
               'last' => $array_hash_access_or_shift,
             },
@@ -86,15 +83,17 @@ sub scan_package_accessor {
           name => 'rv2hv',
           first => { name => 'padsv' },              
         },
-        last => { name => 'const' },
+        last => {
+          name => 'const',
+          capture => 'hash_key',
+        },
       };
 
       my $self_shift_structure = {
         name => 'lineseq',
         kids => [
           { name => 'nextstate', },
-          {
-            name => 'sassign',
+          { name => 'sassign', # optionally match my $self = shift and friends
             first => {
               name => 'shift',
               first => $glob_array_dereference,
@@ -102,8 +101,7 @@ sub scan_package_accessor {
           },
           { name => 'nextstate', },
           op_or(
-            {
-              name => 'return',
+            { name => 'return',
               first => {name => 'pushmark'},
               'last' => $hash_access_pad,
             },
@@ -116,24 +114,20 @@ sub scan_package_accessor {
         name => 'lineseq',
         kids => [
           { name => 'nextstate', },
-          {
-            name => 'aassign',
+          { name => 'aassign',
             kids => [
-              {
-                name => 'null',
+              { name => 'null',
                 first => {
                   name => 'pushmark',
                   sibling => op_or(
                     $glob_array_dereference,
-                    {
-                      name => 'shift',
+                    { name => 'shift',
                       first => $glob_array_dereference,
                     },
                   ),
                 },
               },
-              {
-                name => 'null',
+              { name => 'null',
                 first => {
                   name => 'pushmark',
                   sibling => {name => 'padsv'}
@@ -143,8 +137,7 @@ sub scan_package_accessor {
           },
           { name => 'nextstate', },
           op_or(
-            {
-              name => 'return',
+            { name => 'return',
               first => {name => 'pushmark'},
               'last' => $hash_access_pad,
             },
@@ -165,12 +158,13 @@ sub scan_package_accessor {
         sub {
           my $op = shift;
           #print $op->name." " .$op->type." " .$op->first->name. "\n";
-          my $inner = $op->first->last;
-          $inner = $inner->last if $inner->name eq 'return';
-          $inner = $inner->last;
-          my $key = $inner->sv->PV;
+          #my $inner = $op->first->last;
+          #$inner = $inner->last if $inner->name eq 'return';
+          #$inner = $inner->last;
+          #my $key_string = $inner->sv->PV;
+          my $key_string = $op->{hash_key}->sv->PV;
           #warn $key;
-          push @to_be_replaced, ["${edit_pkg}::$function", $key];
+          push @to_be_replaced, ["${edit_pkg}::$function", $key_string];
         },
       );
     }
