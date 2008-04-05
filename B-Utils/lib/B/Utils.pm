@@ -15,7 +15,6 @@ use subs (
 );
 
 use Scalar::Util qw( weaken blessed );
-use Data::Compare ();
 
 =head1 NAME
 
@@ -23,14 +22,14 @@ B::Utils - Helper functions for op tree manipulation
 
 =head1 VERSION
 
-0.05_07 - This is a dev version and
+0.05_08 - This is a dev version and
   is part of an effort to add tests,
   functionality, and merge a fork
   from Module::Info.
 
 =cut
 
-$VERSION = '0.05_07';
+$VERSION = '0.05_08';
 
 =head1 SYNOPSIS
 
@@ -1016,6 +1015,16 @@ recognized by C<opgrep()>:
 sub op_or {
   my @conditions = @_;
   return({ disjunction => [@conditions] });
+}
+
+sub op_pattern_match {
+  my $op = shift;
+  my $pattern = shift;
+
+  my $ret = {};
+
+  
+  return $ret;
 }
 
 =item C<carp(@args)>
