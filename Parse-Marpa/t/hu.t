@@ -96,43 +96,43 @@ is( $g->show_ii_SDFA(), <<'EOS', "Hopcroft/Ullman SDFA");
 Start States: St0; St7
 St0: 1
 S' ::= . S c
- <S> => St5 (2)
+ <S> => St5
 St1: 10,14
 A ::= a . S b
 A ::= a . b
- <S> => St2 (11)
- <b> => St4 (15)
+ <S> => St2
+ <b> => St4
 St2: 11
 A ::= a S . b
- <b> => St3 (12)
+ <b> => St3
 St3: 12
 A ::= a S b .
 St4: 15
 A ::= a b .
 St5: 2
 S' ::= S . c
- <c> => St6 (3)
+ <c> => St6
 St6: 3
 S' ::= S c .
-St7: 4,7,9,13
+St7: predict; 4,7,9,13
 S ::= . S A
 S ::= . A
 A ::= . a S b
 A ::= . a b
- <A> => St10 (8)
- <S> => St8 (5); St11 (9,13)
- <a> => St1 (10,14); St7 (4,7,9,13)
+ <A> => St10
+ <S> => St11; St8
+ <a> => St1; St7
 St8: 5
 S ::= S . A
- <A> => St9 (6)
+ <A> => St9
 St9: 6
 S ::= S A .
 St10: 8
 S ::= A .
-St11: 9,13
+St11: predict; 9,13
 A ::= . a S b
 A ::= . a b
- <a> => St1 (10,14); St7 (4,7,9,13)
+ <a> => St1; St7
 EOS
 
 # Local Variables:

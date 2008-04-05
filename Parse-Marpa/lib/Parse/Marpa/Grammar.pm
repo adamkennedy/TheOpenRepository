@@ -1257,15 +1257,21 @@ sub Parse::Marpa::show_SDFA_state {
     my $state = shift;
     my $tags  = shift;
 
-    my $text = "";
-    my ( $name, $NFA_states, $transition ) = @{$state}[
+    my $text = '';
+    my ( $name, $NFA_states, $transition, $predict, $priority )
+    = @{$state}[
         Parse::Marpa::Internal::SDFA::NAME,
         Parse::Marpa::Internal::SDFA::NFA_STATES,
         Parse::Marpa::Internal::SDFA::TRANSITION,
+        Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
+        Parse::Marpa::Internal::SDFA::PRIORITY,
     ];
 
-    $text .= Parse::Marpa::brief_SDFA_state($state, $tags);
-    $text .= ": " . $name . "\n";
+    $text .= Parse::Marpa::brief_SDFA_state($state, $tags)
+	. ': ';
+    $text .= 'predict; ' if $predict;
+    $text .= 'pri=' . $priority . '; ' if $priority;
+    $text .= $name . "\n";
     for my $NFA_state (@$NFA_states) {
         my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
         $text .= Parse::Marpa::show_item($item) . "\n";
@@ -1278,10 +1284,10 @@ sub Parse::Marpa::show_SDFA_state {
 	    my $to_name = $to_state->[ Parse::Marpa::Internal::SDFA::NAME ];
 	    push(
 		@sdfa_labels,
-		Parse::Marpa::brief_SDFA_state($to_state, $tags) . ' (' . $to_name . ')'
+		Parse::Marpa::brief_SDFA_state($to_state, $tags)
 	    );
         } # for my $to_state
-	$text .= join('; ', @sdfa_labels);
+	$text .= join('; ', sort @sdfa_labels);
 	$text .= "\n";
     }
 

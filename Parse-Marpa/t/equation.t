@@ -93,24 +93,24 @@ END_RULES
 
 is( $g->show_ii_SDFA(), <<'END_SDFA', "Ambiguous Equation SDFA" );
 Start States: St5; St0
-St0: 1,5
+St0: predict; 1,5
 E ::= . E Op E
 E ::= . Number
- <E> => St1 (2)
- <Number> => St4 (6)
+ <E> => St1
+ <Number> => St4
 St1: 2
 E ::= E . Op E
- <Op> => St2 (3); St0 (1,5)
+ <Op> => St0; St2
 St2: 3
 E ::= E Op . E
- <E> => St3 (4)
+ <E> => St3
 St3: 4
 E ::= E Op E .
 St4: 6
 E ::= Number .
 St5: 7
 E['] ::= . E
- <E> => St6 (8)
+ <E> => St6
 St6: 8
 E['] ::= E .
 END_SDFA

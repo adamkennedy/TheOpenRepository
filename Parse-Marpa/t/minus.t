@@ -95,45 +95,45 @@ END_RULES
 
 is( $g->show_ii_SDFA(), <<'END_SDFA', "Minuses Equation SDFA" );
 Start States: St5; St0
-St0: 1,5,8,11,14
+St0: predict; 1,5,8,11,14
 E ::= . E Minus E
 E ::= . E MinusMinus
 E ::= . MinusMinus E
 E ::= . Minus E
 E ::= . Number
- <E> => St7 (2,6)
- <Minus> => St2 (12); St0 (1,5,8,11,14)
- <MinusMinus> => St11 (9); St0 (1,5,8,11,14)
- <Number> => St4 (15)
+ <E> => St7
+ <Minus> => St0; St2
+ <MinusMinus> => St0; St11
+ <Number> => St4
 St1: 10
 E ::= MinusMinus E .
 St2: 12
 E ::= Minus . E
- <E> => St3 (13)
+ <E> => St3
 St3: 13
 E ::= Minus E .
 St4: 15
 E ::= Number .
 St5: 16
 E['] ::= . E
- <E> => St6 (17)
+ <E> => St6
 St6: 17
 E['] ::= E .
 St7: 2,6
 E ::= E . Minus E
 E ::= E . MinusMinus
- <Minus> => St8 (3); St0 (1,5,8,11,14)
- <MinusMinus> => St10 (7)
+ <Minus> => St0; St8
+ <MinusMinus> => St10
 St8: 3
 E ::= E Minus . E
- <E> => St9 (4)
+ <E> => St9
 St9: 4
 E ::= E Minus E .
 St10: 7
 E ::= E MinusMinus .
 St11: 9
 E ::= MinusMinus . E
- <E> => St1 (10)
+ <E> => St1
 END_SDFA
 
 my @expected = (

@@ -92,10 +92,10 @@ Start States: St0; St2
 St0: 1,2
 S' ::= . S
 S' ::= S .
- <S> => St1 (2)
+ <S> => St1
 St1: 2
 S' ::= S .
-St2: 3,4,5,6,7,8,11,12
+St2: predict; 3,4,5,6,7,8,11,12
 S ::= . A A A A
 S ::= A . A A A
 S ::= A A . A A
@@ -104,30 +104,30 @@ S ::= A A A A .
 A ::= . a
 A ::= E .
 E ::= .
- <A> => St3 (4,5,6,7); St7 (8,11,12)
- <a> => St8 (9)
+ <A> => St3; St7
+ <a> => St8
 St3: 4,5,6,7
 S ::= A . A A A
 S ::= A A . A A
 S ::= A A A . A
 S ::= A A A A .
- <A> => St4 (5,6,7); St7 (8,11,12)
+ <A> => St4; St7
 St4: 5,6,7
 S ::= A A . A A
 S ::= A A A . A
 S ::= A A A A .
- <A> => St5 (6,7); St7 (8,11,12)
+ <A> => St5; St7
 St5: 6,7
 S ::= A A A . A
 S ::= A A A A .
- <A> => St6 (7)
+ <A> => St6
 St6: 7
 S ::= A A A A .
-St7: 8,11,12
+St7: predict; 8,11,12
 A ::= . a
 A ::= E .
 E ::= .
- <a> => St8 (9)
+ <a> => St8
 St8: 9
 A ::= a .
 EOS
