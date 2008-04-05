@@ -88,10 +88,10 @@ S12: E ::= .
 EOS
 
 is( $g->show_ii_SDFA(), <<'EOS', , "Aycock/Horspool SDFA" );
+Start States: St0; St2
 St0: 1,2
 S' ::= . S
 S' ::= S .
- empty => St2 (3,4,5,6,7,8,11,12)
  <S> => St1 (2)
 St1: 2
 S' ::= S .
@@ -104,25 +104,22 @@ S ::= A A A A .
 A ::= . a
 A ::= E .
 E ::= .
- <A> => St3 (4,5,6,7)
+ <A> => St3 (4,5,6,7); St7 (8,11,12)
  <a> => St8 (9)
 St3: 4,5,6,7
 S ::= A . A A A
 S ::= A A . A A
 S ::= A A A . A
 S ::= A A A A .
- empty => St7 (8,11,12)
- <A> => St4 (5,6,7)
+ <A> => St4 (5,6,7); St7 (8,11,12)
 St4: 5,6,7
 S ::= A A . A A
 S ::= A A A . A
 S ::= A A A A .
- empty => St7 (8,11,12)
- <A> => St5 (6,7)
+ <A> => St5 (6,7); St7 (8,11,12)
 St5: 6,7
 S ::= A A A . A
 S ::= A A A A .
- empty => St7 (8,11,12)
  <A> => St6 (7)
 St6: 7
 S ::= A A A A .

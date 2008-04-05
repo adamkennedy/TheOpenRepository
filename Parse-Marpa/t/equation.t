@@ -92,6 +92,7 @@ is( $g->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
 END_RULES
 
 is( $g->show_ii_SDFA(), <<'END_SDFA', "Ambiguous Equation SDFA" );
+Start States: St5; St0
 St0: 1,5
 E ::= . E Op E
 E ::= . Number
@@ -99,10 +100,9 @@ E ::= . Number
  <Number> => St4 (6)
 St1: 2
 E ::= E . Op E
- <Op> => St2 (3)
+ <Op> => St2 (3); St0 (1,5)
 St2: 3
 E ::= E Op . E
- empty => St0 (1,5)
  <E> => St3 (4)
 St3: 4
 E ::= E Op E .
@@ -110,7 +110,6 @@ St4: 6
 E ::= Number .
 St5: 7
 E['] ::= . E
- empty => St0 (1,5)
  <E> => St6 (8)
 St6: 8
 E['] ::= E .
