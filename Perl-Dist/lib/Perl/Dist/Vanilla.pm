@@ -123,6 +123,26 @@ sub install_perl_modules {
 	return 1;
 }
 
+# Delete from additional compiler stuff for non-Microsoft platforms
+sub remove_waste {
+	my $self = shift;
+	$self->SUPER::remove_waste(@_);
+
+	$self->trace("Removing unneeded compiler templates...\n");
+	foreach my $dir (
+		[ qw{ c bin startup mac            } ],
+		[ qw{ c bin startup os2            } ],
+		[ qw{ c bin startup unix           } ],
+		[ qw{ c bin startup templates mac  } ],
+		[ qw{ c bin startup templates os2  } ],
+		[ qw{ c bin startup templates unix } ],
+	) {
+		File::Remove::remove( \1, $self->_dir(@$dir) );
+	}
+
+	return 1;
+}
+
 1;
 
 __END__

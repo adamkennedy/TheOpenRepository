@@ -35,7 +35,7 @@ build_requires 'Test::More'                 => '0.42';
 build_requires 'Test::Script'               => '1.02';
 build_requires 'Test::LongString'           => 0;
 build_requires 'Probe::Perl'                => '0.01';
-install_script 'script/perldist';
+install_script 'perldist';
 no_index       'directory'                  => 'share';
 install_share;
 

@@ -154,7 +154,7 @@ sub new {
 	return $self;
 }
 
-sub url { $_[0]->{name} }
+sub url { $_[0]->{url} || $_[0]->{name} }
 
 
 
@@ -165,10 +165,20 @@ sub url { $_[0]->{name} }
 
 sub abs_uri {
 	my $self = shift;
-	my $cpan = _INSTANCE(shift, 'URI')
-		or croak("Did not pass a cpan URI");
 
-	# Generate the full root-relative path
+	# Get the base path
+	my $cpan = _INSTANCE(shift, 'URI');
+	unless ( $cpan ) {
+		croak("Did not pass a cpan URI");
+	}
+
+	# If we have an explicit absolute URI use it directly.
+	my $new_abs = URI->new_abs($self->url, $cpan);
+	if ( $new_abs eq $self->url ) {
+		return $new_abs;
+	}
+
+	# Generate the full relative path
 	my $name = $self->name;
 	my $path = File::Spec::Unix->catfile( 'authors', 'id',
 		substr($name, 0, 1),
@@ -176,7 +186,7 @@ sub abs_uri {
 		$name,
 	);
 
-	return URI->new_abs( $path, $cpan );
+	URI->new_abs( $path, $cpan );
 }
 
 

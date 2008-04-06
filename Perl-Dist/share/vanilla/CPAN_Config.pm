@@ -78,7 +78,7 @@ $CPAN::Config = {
   test_report                   => q[0],
   unzip                         => q[],
   urllist                       => [
-      q[http://mirrors.kernel.org/CPAN/],
+      q[http://cpan.pair.com/],
       -d $minicpan ? ($minicpan) : (),
   ],
   use_sqlite                    => q[1],

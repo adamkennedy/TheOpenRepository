@@ -648,6 +648,8 @@ sub perl_version_human {
 #####################################################################
 # Top Level Process Methods
 
+sub prepare { 1 }
+
 =pod
 
 =head1 run
