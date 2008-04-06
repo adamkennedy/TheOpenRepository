@@ -22,14 +22,14 @@ B::Utils - Helper functions for op tree manipulation
 
 =head1 VERSION
 
-0.05_08 - This is a dev version and
+0.05_09 - This is a dev version and
   is part of an effort to add tests,
   functionality, and merge a fork
   from Module::Info.
 
 =cut
 
-$VERSION = '0.05_08';
+$VERSION = '0.05_09';
 
 =head1 SYNOPSIS
 
@@ -777,6 +777,8 @@ tested root up as the hash entry C<$result-E<gt>{op}>. Note that you cannot
 use this feature with C<walkoptree_filtered> since that function was
 specifically documented to pass the tested op itself to the callback.
 
+You cannot capture disjunctions, but that doesn't really make sense anyway.
+
 =item C<opgrep( \@conditions, @ops )>
 
 Same as above, except that you don't have to chain the conditions
@@ -807,6 +809,14 @@ OP:
         # be several
 CONDITION:
         foreach my $condition (@conditions) {
+            # nested disjunctions? naughty user!
+            # $foo or ($bar or $baz) is $foo or $bar or $baz!
+            # ==> flatten
+            if (exists($condition->{disjunction})) {
+              push @conditions, @{$condition->{disjunction}};
+              next CONDITION;
+            }
+
             # structure to hold captured information
             my $capture = {};
 
@@ -910,7 +920,13 @@ CONDITION:
             if (exists $condition->{kids}) {
                 my $kidno = 0;
                 my $kidconditions = $condition->{kids};
-                foreach my $kid($op->kids()) {
+
+                next CONDITION if not @{$kidconditions} == @{$condition->{kids}};
+
+                foreach my $kid ($op->kids()) {
+                    # if you put undef in your kid conditions list, we skip one kid
+                    next if not defined $kidconditions->[$kidno];
+
                     my ($result) = opgrep( $kidconditions->[$kidno++], $kid );
                     next CONDITION if not $result;
                     
