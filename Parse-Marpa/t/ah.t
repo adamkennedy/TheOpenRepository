@@ -61,19 +61,24 @@ is( $g->show_NFA(), <<'EOS', "Aycock/Horspool NFA" );
 S0: /* empty */
  empty => S1
 S1: S' ::= . S
+at_nullable
  empty => S3
  <S> => S2
 S2: S' ::= S .
 S3: S ::= . A A A A
+at_nullable
  empty => S8 S10
  <A> => S4
 S4: S ::= A . A A A
+at_nullable
  empty => S8 S10
  <A> => S5
 S5: S ::= A A . A A
+at_nullable
  empty => S8 S10
  <A> => S6
 S6: S ::= A A A . A
+at_nullable
  empty => S8 S10
  <A> => S7
 S7: S ::= A A A A .
@@ -81,6 +86,7 @@ S8: A ::= . a
  <a> => S9
 S9: A ::= a .
 S10: A ::= . E
+at_nullable
  empty => S12
  <E> => S11
 S11: A ::= E .

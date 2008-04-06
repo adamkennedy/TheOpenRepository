@@ -73,6 +73,7 @@ use constant NAME       => 1;
 use constant ITEM       => 2;          # an LR(0) item
 use constant TRANSITION => 3;          # the transitions, as a hash
                                        # from symbol name to NFA states
+use constant AT_NULLABLE => 4;  # dot just before a nullable symbol?
 
 package Parse::Marpa::Internal::SDFA;
 
@@ -1216,12 +1217,15 @@ sub Parse::Marpa::show_item {
 
 sub Parse::Marpa::show_NFA_state {
     my $state = shift;
-    my ( $name, $item, $transition ) = @{$state}[
+    my ( $name, $item, $transition, $at_nullable ) = @{$state}[
         Parse::Marpa::Internal::NFA::NAME,
         Parse::Marpa::Internal::NFA::ITEM,
-        Parse::Marpa::Internal::NFA::TRANSITION
+        Parse::Marpa::Internal::NFA::TRANSITION,
+        Parse::Marpa::Internal::NFA::AT_NULLABLE,
     ];
-    my $text .= $name . ": " . Parse::Marpa::show_item($item) . "\n";
+    my $text = $name . ': ';
+    $text .= Parse::Marpa::show_item($item) . "\n";
+    $text .= "at_nullable\n" if $at_nullable;
     for my $symbol_name ( sort keys %$transition ) {
         my $transition_states = $transition->{$symbol_name};
         $text
@@ -2657,9 +2661,12 @@ sub create_NFA {
     STATE: for my $state (@$NFA) {
         my ( $id, $name, $item, $transition ) = @$state;
 
-        # transitions from state 0:
-        # for every rule with the start symbol on its LHS, the item [ rule, 0 ]
+        # First, deal with transitions from state 0.
+	# S0 is the state with no LR(0) item
         if ( not defined $item ) {
+
+	    # start rules are rules with the start symbol
+	    # or with the start alias on the LHS.
             my @start_rules =
                 @{ $start->[Parse::Marpa::Internal::Symbol::LHS] };
             my $start_alias =
@@ -2672,6 +2679,9 @@ sub create_NFA {
                 );
             }
 
+	    # From S0, add an empty transition to the every NFA state
+	    # corresponding to a start rule with the dot at the beginning
+	    # of the RHS.
             RULE: for my $start_rule (@start_rules) {
                 my ( $start_rule_id, $useful ) = @{$start_rule}[
                     Parse::Marpa::Internal::Rule::ID,
@@ -2698,6 +2708,9 @@ sub create_NFA {
 
         # no transitions if position is after the end of the RHS
         if ( not defined $next_symbol ) { next STATE; }
+
+	$state->[ Parse::Marpa::Internal::NFA::AT_NULLABLE ] = 1
+	    if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLABLE ];
 
         # the scanning transition: the transition if the position is at symbol X
         # in the RHS, via symbol X, to the state corresponding to the same
