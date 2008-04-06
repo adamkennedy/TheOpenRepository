@@ -11,7 +11,7 @@ our $VERSION = '0.03';
 
 use vars qw/%ScanClasses $Debug/;
 
-use B;
+use B qw(svref_2object);
 use B::Utils ();
 use B::Generate;
 
@@ -85,6 +85,34 @@ sub get_symbol {
   my $sym = \%{$edit_pkg."::"};
 
   return $sym;
+}
+
+sub scan_package_callback {
+  my $selfclass = shift;
+  my $edit_pkg = shift;
+  my $callback = shift;
+
+  warn "Scanning package '$edit_pkg'" if $AutoXS::Debug;
+
+  my $sym = $selfclass->get_symbol($edit_pkg);
+
+  my @matching;
+  foreach my $function (sort keys %$sym) {
+    next if $function =~ /^BEGIN|END|CHECK|UNITCHECK|INIT|import$/;
+    warn "Scanning function '${edit_pkg}::$function'" if $AutoXS::Debug;
+
+    local *symbol = $sym->{$function};
+    my $coderef = *symbol{CODE} or next;
+
+    my $codeobj = svref_2object($coderef);
+    next unless ref $codeobj eq 'B::CV';
+    next if $codeobj->XSUB;
+
+    my ($matches) = $callback->($selfclass, "${edit_pkg}::$function", $codeobj);
+    push @matching, $matches if $matches;
+  }
+
+  return @matching;
 }
 
 1;
