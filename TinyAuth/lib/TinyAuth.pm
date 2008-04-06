@@ -8,7 +8,7 @@ TinyAuth - Extremely light-weight web-based authentication manager
 
 =head1 STATUS
 
-TinyAuth is currently currently feature-complete and undergoing polishing
+TinyAuth is currently feature-complete and undergoing polishing
 and testing. Part of this process focuses on naming ("TinyAuth" is just
 a working codename), reduction of dependencies, improvements to the
 installer, and other similar tasks.
