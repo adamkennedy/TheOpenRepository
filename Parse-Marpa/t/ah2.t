@@ -99,7 +99,7 @@ S4: S ::= A . S[R0:1][x6]
  <S[R0:1][x6]> => S5
 S5: S ::= A S[R0:1][x6] .
 S6: S ::= . A[] S[R0:1][x6]
-at_nullable
+at_nulling
  <A[]> => S7
 S7: S ::= A[] . S[R0:1][x6]
  empty => S12 S15 S18
@@ -109,7 +109,7 @@ S9: S ::= . A S[R0:1][x6][]
  empty => S1
  <A> => S10
 S10: S ::= A . S[R0:1][x6][]
-at_nullable
+at_nulling
  <S[R0:1][x6][]> => S11
 S11: S ::= A S[R0:1][x6][] .
 S12: S[R0:1][x6] ::= . A S[R0:2][x8]
@@ -120,7 +120,7 @@ S13: S[R0:1][x6] ::= A . S[R0:2][x8]
  <S[R0:2][x8]> => S14
 S14: S[R0:1][x6] ::= A S[R0:2][x8] .
 S15: S[R0:1][x6] ::= . A[] S[R0:2][x8]
-at_nullable
+at_nulling
  <A[]> => S16
 S16: S[R0:1][x6] ::= A[] . S[R0:2][x8]
  empty => S21 S24 S27
@@ -130,7 +130,7 @@ S18: S[R0:1][x6] ::= . A S[R0:2][x8][]
  empty => S1
  <A> => S19
 S19: S[R0:1][x6] ::= A . S[R0:2][x8][]
-at_nullable
+at_nulling
  <S[R0:2][x8][]> => S20
 S20: S[R0:1][x6] ::= A S[R0:2][x8][] .
 S21: S[R0:2][x8] ::= . A A
@@ -141,7 +141,7 @@ S22: S[R0:2][x8] ::= A . A
  <A> => S23
 S23: S[R0:2][x8] ::= A A .
 S24: S[R0:2][x8] ::= . A[] A
-at_nullable
+at_nulling
  <A[]> => S25
 S25: S[R0:2][x8] ::= A[] . A
  empty => S1
@@ -151,7 +151,7 @@ S27: S[R0:2][x8] ::= . A A[]
  empty => S1
  <A> => S28
 S28: S[R0:2][x8] ::= A . A[]
-at_nullable
+at_nulling
  <A[]> => S29
 S29: S[R0:2][x8] ::= A A[] .
 S30: S['] ::= . S

@@ -686,7 +686,7 @@ sub Parse::Marpa::show_earley_item {
         if defined $effect;
     my @symbols;
     push( @symbols,
-        "pointer: " . $pointer->[Parse::Marpa::Internal::Symbol::NAME] )
+        "pre-dot: " . $pointer->[Parse::Marpa::Internal::Symbol::NAME] )
         if defined $pointer;
     push( @symbols, "lhs: " . $lhs->[Parse::Marpa::Internal::Symbol::NAME] )
         if defined $lhs;

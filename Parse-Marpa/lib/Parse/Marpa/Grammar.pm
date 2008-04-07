@@ -73,7 +73,7 @@ use constant NAME       => 1;
 use constant ITEM       => 2;          # an LR(0) item
 use constant TRANSITION => 3;          # the transitions, as a hash
                                        # from symbol name to NFA states
-use constant AT_NULLABLE => 4;  # dot just before a nullable symbol?
+use constant AT_NULLING => 4;  # dot just before a nullable symbol?
 
 package Parse::Marpa::Internal::SDFA;
 
@@ -148,7 +148,6 @@ use constant ALLOW_RAW_SOURCE         => 42;
 use constant PHASE                    => 43; # the grammar's phase
 use constant INTERFACE                => 44; # the grammar's interface
 use constant START_STATES             => 45; # ref to array of the start states
-use constant SDFA_SET_BY_NAME         => 46; # hash from SDFA set name to SDFA set reference
 
 package Parse::Marpa::Internal::Interface;
 
@@ -395,7 +394,6 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::RULES]        = [];
     $grammar->[Parse::Marpa::Internal::Grammar::RULE_HASH]    = {};
     $grammar->[Parse::Marpa::Internal::Grammar::SDFA_BY_NAME] = {};
-    $grammar->[Parse::Marpa::Internal::Grammar::SDFA_SET_BY_NAME] = {};
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES ] = -1;
     $grammar->[Parse::Marpa::Internal::Grammar::ONLINE ] = 0;
 
@@ -1217,15 +1215,15 @@ sub Parse::Marpa::show_item {
 
 sub Parse::Marpa::show_NFA_state {
     my $state = shift;
-    my ( $name, $item, $transition, $at_nullable ) = @{$state}[
+    my ( $name, $item, $transition, $at_nulling ) = @{$state}[
         Parse::Marpa::Internal::NFA::NAME,
         Parse::Marpa::Internal::NFA::ITEM,
         Parse::Marpa::Internal::NFA::TRANSITION,
-        Parse::Marpa::Internal::NFA::AT_NULLABLE,
+        Parse::Marpa::Internal::NFA::AT_NULLING,
     ];
     my $text = $name . ': ';
     $text .= Parse::Marpa::show_item($item) . "\n";
-    $text .= "at_nullable\n" if $at_nullable;
+    $text .= "at_nulling\n" if $at_nulling;
     for my $symbol_name ( sort keys %$transition ) {
         my $transition_states = $transition->{$symbol_name};
         $text
@@ -1274,7 +1272,7 @@ sub Parse::Marpa::show_SDFA_state {
     $text .= Parse::Marpa::brief_SDFA_state($state, $tags)
 	. ': ';
     $text .= 'predict; ' if $predict;
-    $text .= 'pri=' . $priority . '; ' if $priority;
+    $text .= 'pri=' . $priority . '; ' if defined $priority and $priority;
     $text .= $name . "\n";
     for my $NFA_state (@$NFA_states) {
         my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
@@ -2709,8 +2707,8 @@ sub create_NFA {
         # no transitions if position is after the end of the RHS
         if ( not defined $next_symbol ) { next STATE; }
 
-	$state->[ Parse::Marpa::Internal::NFA::AT_NULLABLE ] = 1
-	    if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLABLE ];
+	$state->[ Parse::Marpa::Internal::NFA::AT_NULLING ] = 1
+	    if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLING ];
 
         # the scanning transition: the transition if the position is at symbol X
         # in the RHS, via symbol X, to the state corresponding to the same
@@ -2753,222 +2751,93 @@ sub assign_SDFA_state_set {
     my $kernel_states = shift;
     my ( $NFA_states,
 	$SDFA_by_name,
-	$SDFA_set_by_name,
 	$SDFA
     ) = @{$grammar}[
         Parse::Marpa::Internal::Grammar::NFA,
         Parse::Marpa::Internal::Grammar::SDFA_BY_NAME,
-        Parse::Marpa::Internal::Grammar::SDFA_SET_BY_NAME,
         Parse::Marpa::Internal::Grammar::SDFA
     ];
 
-    my $kernel_NFA_state_seen     = [];
-    my $prediction_NFA_state_seen = [];
-
-    # the two split DFA states which we are to find or create.  The kernel SDFA state is the
-    # return value.
-    my $kernel_SDFA_state;
-    my $prediction_SDFA_state;
+    # the a hash by key of the states which we are to find or create.
+    my $result_states;
 
     # pre-allocate the arrays that track whether we've already used an NFA state
-    $#$kernel_NFA_state_seen = $#$prediction_NFA_state_seen = @$NFA_states;
+    my @NFA_state_seen;
+    $#NFA_state_seen = @$NFA_states;
 
-    # lists of NFA states to followed up on for the closure
-    # (Note that NFA states might be duplicated in the arguments)
-    my $kernel_work_list = [
-        grep {
-            not $kernel_NFA_state_seen
-                ->[ $_->[Parse::Marpa::Internal::NFA::ID] ]++
-            } @$kernel_states
-    ];
+    # The work list is an array of work items.  Each work item
+    # is an NFA state, following by an optional prediction flag.
+    my @work_list = map { [ $_, 0 ] } @$kernel_states;
 
-    my $NFA_ids = [];
-    NFA_ID: for ( my $NFA_id = 0; $NFA_id <= $#$NFA_states; $NFA_id++ ) {
-        next NFA_ID unless $kernel_NFA_state_seen->[$NFA_id];
-        push( @$NFA_ids, $NFA_id );
+    # Use index because we extend this list while processing it.
+    WORK_ITEM: for (my $i = 0; $i < @work_list; $i++) {
+
+	my ($NFA_state, $reset) = @{$work_list[$i]};
+
+	my $NFA_id = $NFA_state->[Parse::Marpa::Internal::NFA::ID];
+	next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
+	$NFA_state_seen[$NFA_id] = 1;
+
+	my $transition = $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION];
+
+	# if we are at a nulling symbol, this NFA states does NOT go into the
+	# result, but all transitions go into the work list.  There should be
+	# empty transition.
+	if ($NFA_state->[ Parse::Marpa::Internal::NFA::AT_NULLING ]) {
+	     push(@work_list,
+	          map { [ $_, $reset ] }
+		  map { @$_ }
+		  values %$transition
+	     );
+	     next WORK_ITEM;
+	}
+
+	# If we are here, were have an NFA state NOT at a nulling symbol.
+	# This NFA state goes into the result, and the empty transitions
+	# go into the worklist as reset items.
+	my $empty_transitions = $transition->{""};
+	if ($empty_transitions) {
+	     push(@work_list,
+	          map { [ $_, 1 ] }
+		  @$empty_transitions
+	     );
+	}
+
+	my $key = pack('j', $reset);
+	push(@{$result_states->{$key}}, $NFA_id);
+
+    } # WORK_ITEM
+
+    my @result_states;
+
+    QDFA_STATE: while (my ($key, $NFA_ids) = each %$result_states) {
+	my @NFA_seen;
+	$#NFA_seen = @$NFA_states;
+	my @NFA_ids = sort { $a <=> $b } grep { not $NFA_seen[$_]++ } @$NFA_ids;
+	my $name = join( ",", @NFA_ids);
+	my $QDFA_state = $SDFA_by_name->{$name};
+	unless (defined $QDFA_state) {
+	    my $reset = unpack('j', $key);
+	    @{$QDFA_state}[
+		Parse::Marpa::Internal::SDFA::ID,
+		Parse::Marpa::Internal::SDFA::NAME,
+		Parse::Marpa::Internal::SDFA::NFA_STATES,
+		Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
+		Parse::Marpa::Internal::SDFA::PRIORITY,
+	    ] = (
+		scalar @$SDFA,
+		$name,
+		[ @{ $NFA_states }[@NFA_ids] ],
+		$reset,
+		0,
+	    );
+	    push( @$SDFA, $QDFA_state );
+	    $SDFA_by_name->{$name} = $QDFA_state;
+	}
+	push(@result_states, $QDFA_state);
     }
 
-    my $state_set_key = join(',', @$NFA_ids);
-    my $state_set = $SDFA_set_by_name->{ $state_set_key };
-    return $state_set if defined $state_set;
-
-    my $prediction_work_list = [];
-
-    # create the kernel SDFA state
-    WORK_LIST: while (@$kernel_work_list) {
-        my $next_work_list = [];
-
-        NFA_STATE: for my $NFA_state (@$kernel_work_list) {
-
-            my $to_states =
-                $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION]->{""};
-
-            # First the empty transitions.  These will all be predictions,
-            # and need to go into the
-            # work list for the prediction SDFA state
-            if ( defined $to_states ) {
-                push(
-                    @$prediction_work_list,
-                    grep {
-                        not $prediction_NFA_state_seen
-                            ->[ $_->[Parse::Marpa::Internal::NFA::ID] ]++
-                        } @$to_states
-                );
-            }
-
-	    # Scan past all nullables, adding them to the kernel
-	    # work list
-            SYMBOL:
-            for my $nullable_symbol (
-                @{  $grammar
-                        ->[Parse::Marpa::Internal::Grammar::NULLABLE_SYMBOL]
-                }
-                )
-            {
-                $to_states =
-                    $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION]
-                    ->{ $nullable_symbol
-                        ->[Parse::Marpa::Internal::Symbol::NAME] };
-                next SYMBOL unless defined $to_states;
-                push(
-                    @$next_work_list,
-                    grep {
-                        not $kernel_NFA_state_seen
-                            ->[ $_->[Parse::Marpa::Internal::NFA::ID] ]++
-                        } @$to_states
-                );
-            }
-        }
-
-        $kernel_work_list = $next_work_list;
-    }    # kernel WORK_LIST
-
-    $NFA_ids = [];
-    NFA_ID: for ( my $NFA_id = 0; $NFA_id <= $#$NFA_states; $NFA_id++ ) {
-        next NFA_ID unless $kernel_NFA_state_seen->[$NFA_id];
-        my $LR0_item =
-            $NFA_states->[$NFA_id]->[Parse::Marpa::Internal::NFA::ITEM];
-        my ( $rule, $position ) = @{$LR0_item}[
-            Parse::Marpa::Internal::LR0_item::RULE,
-            Parse::Marpa::Internal::LR0_item::POSITION
-        ];
-        my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
-        if ( $position < @$rhs ) {
-            my $next_symbol = $rhs->[$position];
-            next NFA_ID
-                if $next_symbol->[Parse::Marpa::Internal::Symbol::NULLING];
-        }
-        push( @$NFA_ids, $NFA_id );
-    }
-    my $kernel_SDFA_name = join( ",", @$NFA_ids );
-
-    $kernel_SDFA_state = $SDFA_by_name->{$kernel_SDFA_name};
-
-    # if we already built the kernel SDFA state, we have also already built any necessary prediction SDFA
-    # state and linked it, so we're done
-    croak("Shouldn't get here") if defined $kernel_SDFA_state;
-
-    # build the kernel state except for the transitions.
-    @{$kernel_SDFA_state}[
-        Parse::Marpa::Internal::SDFA::ID,
-        Parse::Marpa::Internal::SDFA::NAME,
-        Parse::Marpa::Internal::SDFA::NFA_STATES,
-        Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
-        Parse::Marpa::Internal::SDFA::PRIORITY,
-        ]
-        = (
-	    scalar @$SDFA,
-	    $kernel_SDFA_name,
-	    [ @{$NFA_states}[@$NFA_ids] ],
-	    0,
-	    0,
-        );
-    push( @$SDFA, $kernel_SDFA_state );
-    $SDFA_by_name->{$kernel_SDFA_name} = $kernel_SDFA_state;
-
-    # if there is no prediction half of the split DFA state, we are done.
-    unless (@$prediction_work_list) {
-        return $SDFA_set_by_name->{$state_set_key} = [ $kernel_SDFA_state ];
-    }
-
-    # there is a prediction state, so find its canonical name
-    WORK_LIST: while (@$prediction_work_list) {
-        my $next_work_list = [];
-
-        NFA_STATE: for my $NFA_state (@$prediction_work_list) {
-
-            SYMBOL:
-            for my $symbol_name (
-                "",
-                map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{
-                    $grammar
-                        ->[Parse::Marpa::Internal::Grammar::NULLABLE_SYMBOL]
-                }
-                )
-            {
-                my $to_states =
-                    $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION]
-                    ->{$symbol_name};
-                next SYMBOL unless defined $to_states;
-                push(
-                    @$next_work_list,
-                    grep {
-                        not $prediction_NFA_state_seen
-                            ->[ $_->[Parse::Marpa::Internal::NFA::ID] ]++
-                        } @$to_states
-                );
-            }
-        }
-
-        $prediction_work_list = $next_work_list;
-    }    # kernel WORK_LIST
-
-    $NFA_ids = [];
-    NFA_ID: for ( my $NFA_id = 0; $NFA_id <= $#$NFA_states; $NFA_id++ ) {
-        next NFA_ID unless $prediction_NFA_state_seen->[$NFA_id];
-        my $LR0_item =
-            $NFA_states->[$NFA_id]->[Parse::Marpa::Internal::NFA::ITEM];
-        my ( $rule, $position ) = @{$LR0_item}[
-            Parse::Marpa::Internal::LR0_item::RULE,
-            Parse::Marpa::Internal::LR0_item::POSITION
-        ];
-        my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
-        if ( $position < @$rhs ) {
-            my $next_symbol = $rhs->[$position];
-            next NFA_ID
-                if $next_symbol->[Parse::Marpa::Internal::Symbol::NULLING];
-        }
-        push( @$NFA_ids, $NFA_id );
-    }
-    my $prediction_SDFA_name = join( ",", @$NFA_ids );
-
-    $prediction_SDFA_state = $SDFA_by_name->{$prediction_SDFA_name};
-
-    # if we have not already built the prediction SDFA state, build it
-    if ( not defined $prediction_SDFA_state ) {
-
-        # build the prediction state except for the transitions.
-        @{$prediction_SDFA_state}[
-            Parse::Marpa::Internal::SDFA::ID,
-            Parse::Marpa::Internal::SDFA::NAME,
-            Parse::Marpa::Internal::SDFA::NFA_STATES,
-            Parse::Marpa::Internal::SDFA::RESET_ORIGIN,
-            Parse::Marpa::Internal::SDFA::PRIORITY,
-            ]
-            = (
-            scalar @$SDFA,
-            $prediction_SDFA_name,
-	    [ @{$NFA_states}[@$NFA_ids] ],
-	    1,
-	    0
-            );
-        push( @$SDFA, $prediction_SDFA_state );
-        $SDFA_by_name->{$prediction_SDFA_name} = $prediction_SDFA_state;
-
-    }
-
-    # return the SDFA states
-    $SDFA_set_by_name->{$state_set_key} = [ $kernel_SDFA_state, $prediction_SDFA_state ];
+    \@result_states;
 }
 
 sub create_SDFA {
