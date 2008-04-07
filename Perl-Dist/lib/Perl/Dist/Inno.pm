@@ -202,7 +202,7 @@ use Perl::Dist::Util::Toolchain     ();
 # Upstream Binary Packages (Mirrored)
 
 my %PACKAGES = (
-	'dmake'         => 'dmake-4.11-20080107-SHAY.zip',
+	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
 	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
 	'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
@@ -1053,6 +1053,10 @@ sub install_perl_5100 {
 		name       => 'perl',
                 dist       => 'RGARCIA/perl-5.10.0.tar.gz',
 		unpack_to  => 'perl',
+		patch      => {
+			'ExtUtils_Command5100.pm' => 'lib\ExtUtils\Command.pm',
+#			'eu_command5100.t'        => 'lib\ExtUtils\t\eu_command.t',
+		},
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
 			'perl-5.10.0/Artistic' => 'perl/Artistic',

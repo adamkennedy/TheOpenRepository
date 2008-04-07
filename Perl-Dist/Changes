@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.00    Mon  7 Apr 2008
+	- Release to match Strawberry Perl 5.10.0.1 April 2008
+
 0.90_04 Mon 24 Mar 2008
 	- Adding Perl::Dist::Inno::System for [Run] and [UninstallRun]
 	  block support.
