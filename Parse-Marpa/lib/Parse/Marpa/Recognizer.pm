@@ -12,10 +12,10 @@ our $rule;
 package Parse::Marpa::Internal::Earley_item;
 
 # Elements of the EARLEY ITEM structure
-# Note that these are Earley items as modified by Aycock & Horspool, with SDFA states instead of
+# Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
 # LR(0) items.
 #
-use constant STATE => 0;    # the SDFA state
+use constant STATE => 0;    # the QDFA state
 use constant PARENT =>
     1;    # the number of the Earley set with the parent item(s)
 use constant TOKENS => 2;    # a list of the links from token scanning
@@ -63,9 +63,9 @@ use constant EVALUATOR                => 15;  # the current evaluator for this r
 use constant PACKAGE       => 17;              # special "safe" namespace
 use constant LEXERS            => 22;    # an array, indexed by symbol id,
                                          # of the lexer for each symbol
-use constant LEXABLES_BY_STATE => 23;    # an array, indexed by SDFA state id,
+use constant LEXABLES_BY_STATE => 23;    # an array, indexed by QDFA state id,
                                          # of the lexables belonging in it
-use constant PRIORITIES        => 24;    # an array, indexed by SDFA state id,
+use constant PRIORITIES        => 24;    # an array, indexed by QDFA state id,
                                          # of its priority
 use constant LAST_COMPLETED_SET => 26;   # last earley set completed
 
@@ -185,7 +185,7 @@ sub set_actions {
     my $package        = shift;
 
     my (
-        $rules, $symbols, $symbol_hash, $SDFA, $tracing,
+        $rules, $symbols, $symbol_hash, $QDFA, $tracing,
         $default_prefix,
         $default_suffix,
         $default_action,
@@ -193,7 +193,7 @@ sub set_actions {
         Parse::Marpa::Internal::Grammar::RULES,
         Parse::Marpa::Internal::Grammar::SYMBOLS,
         Parse::Marpa::Internal::Grammar::SYMBOL_HASH,
-        Parse::Marpa::Internal::Grammar::SDFA,
+        Parse::Marpa::Internal::Grammar::QDFA,
         Parse::Marpa::Internal::Grammar::TRACING,
         Parse::Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
         Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
@@ -361,12 +361,12 @@ sub set_actions {
     }    # SYMBOL
 
     my @lexables_by_state;
-    $#lexables_by_state = $#$SDFA;
+    $#lexables_by_state = $#$QDFA;
 
-    for my $state (@$SDFA) {
+    for my $state (@$QDFA) {
         my ( $id, $transition ) = @{$state}[
-            Parse::Marpa::Internal::SDFA::ID,
-            Parse::Marpa::Internal::SDFA::TRANSITION,
+            Parse::Marpa::Internal::QDFA::ID,
+            Parse::Marpa::Internal::QDFA::TRANSITION,
         ];
         $lexables_by_state[$id] = [
             grep { $lexers[$_] }
@@ -421,15 +421,15 @@ sub set_priorities {
         $trace_fh = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
         $trace_priorities = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES ];
     }
-    my $SDFA = $grammar->[Parse::Marpa::Internal::Grammar::SDFA];
-    $#$priorities = $#$SDFA;
+    my $QDFA = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
+    $#$priorities = $#$QDFA;
 
-    for my $state (@$SDFA) {
+    for my $state (@$QDFA) {
         my $priority;
         my $priority_conflict = 0;
         my ( $id, $complete_rules_by_lhs ) = @{$state}[
-            Parse::Marpa::Internal::SDFA::ID,
-            Parse::Marpa::Internal::SDFA::COMPLETE_RULES,
+            Parse::Marpa::Internal::QDFA::ID,
+            Parse::Marpa::Internal::QDFA::COMPLETE_RULES,
         ];
         my @complete_rules;
         LHS: for my $lhs_id ( 0 .. $#$complete_rules_by_lhs ) {
@@ -447,12 +447,12 @@ sub set_priorities {
         }
         if ($priority_conflict) {
             $problem++;
-            carp( "Priority conflict in SDFA ", $id );
+            carp( "Priority conflict in QDFA ", $id );
             COMPLETE_RULE: for my $complete_rule (@complete_rules) {
                 my $rule_priority =
                     $complete_rule->[Parse::Marpa::Internal::Rule::PRIORITY];
                 carp(
-                    "SDFA ", $id, ": ",
+                    "QDFA ", $id, ": ",
                     Parse::Marpa::brief_rule($complete_rule),
                     "has priority ",
                     $rule_priority
@@ -463,7 +463,7 @@ sub set_priorities {
         if ($trace_priorities) {
             say $trace_fh "Priority for state $id: ", $priorities->[$id];
         }
-    }    # for each SDFA state
+    }    # for each QDFA state
     if ($problem) {
         croak( "Marpa cannot continue: ", $problem, " priority conflicts" );
     }
@@ -632,8 +632,8 @@ sub Parse::Marpa::brief_earley_item {
         Parse::Marpa::Internal::Earley_item::SET
     ];
     my ( $id, $tag ) = @{$state}[
-        Parse::Marpa::Internal::SDFA::ID,
-        Parse::Marpa::Internal::SDFA::TAG
+        Parse::Marpa::Internal::QDFA::ID,
+        Parse::Marpa::Internal::QDFA::TAG
     ];
     my $text = ( $ii and defined $tag ) ? ( "St" . $tag ) : ( "S" . $id );
     $text .= '@' . $parent . '-' . $set;
@@ -973,7 +973,7 @@ sub scan_set {
         FURTHEST_EARLEME, EXHAUSTED
         ];
     croak("Attempt to scan tokens on an exhausted parse") if $exhausted;
-    my $SDFA = $grammar->[Parse::Marpa::Internal::Grammar::SDFA];
+    my $QDFA = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
 
     my $earley_set = $earley_set_list->[$current_set];
 
@@ -1021,8 +1021,8 @@ sub scan_set {
 
             # compute goto(state, token_name)
             my $states =
-                $SDFA->[ $state->[Parse::Marpa::Internal::SDFA::ID] ]
-                ->[ Parse::Marpa::Internal::SDFA::TRANSITION ]
+                $QDFA->[ $state->[Parse::Marpa::Internal::QDFA::ID] ]
+                ->[ Parse::Marpa::Internal::QDFA::TRANSITION ]
                 ->{ $token->[Parse::Marpa::Internal::Symbol::NAME] };
             next ALTERNATIVE unless $states;
 
@@ -1036,7 +1036,7 @@ sub scan_set {
                     $furthest_earleme = $target_ix;
             }
 	    STATE: for my $state (@$states) {
-	        my $reset = $state->[ Parse::Marpa::Internal::SDFA::RESET_ORIGIN ];
+	        my $reset = $state->[ Parse::Marpa::Internal::QDFA::RESET_ORIGIN ];
 		my $origin = $reset ?  $target_ix : $parent;
 		my $key = pack( "JJ", $state, $origin );
 		my $target_item = $target_hash->{$key};
@@ -1096,8 +1096,8 @@ sub complete_set {
 
     $earley_set ||= [];
 
-    my ( $SDFA, $symbols, $tracing ) = @{$grammar}[
-        Parse::Marpa::Internal::Grammar::SDFA,
+    my ( $QDFA, $symbols, $tracing ) = @{$grammar}[
+        Parse::Marpa::Internal::Grammar::QDFA,
         Parse::Marpa::Internal::Grammar::SYMBOLS,
         Parse::Marpa::Internal::Grammar::TRACING,
     ];
@@ -1119,7 +1119,7 @@ sub complete_set {
             Parse::Marpa::Internal::Earley_item::STATE,
             Parse::Marpa::Internal::Earley_item::PARENT
         ];
-        my $state_id = $state->[Parse::Marpa::Internal::SDFA::ID];
+        my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
 
         for my $lexable ( @{ $lexables_by_state->[$state_id] } ) {
             $lexable_seen->[$lexable] = 1;
@@ -1129,7 +1129,7 @@ sub complete_set {
 
         COMPLETE_RULE:
         for my $complete_symbol_name (
-            @{ $state->[Parse::Marpa::Internal::SDFA::COMPLETE_LHS] } )
+            @{ $state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS] } )
         {
             PARENT_ITEM:
             for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
@@ -1138,14 +1138,14 @@ sub complete_set {
                     Parse::Marpa::Internal::Earley_item::PARENT
                 ];
                 my $states =
-                    $SDFA->[ $parent_state->[Parse::Marpa::Internal::SDFA::ID]
-                    ]->[Parse::Marpa::Internal::SDFA::TRANSITION]
+                    $QDFA->[ $parent_state->[Parse::Marpa::Internal::QDFA::ID]
+                    ]->[Parse::Marpa::Internal::QDFA::TRANSITION]
                     ->{$complete_symbol_name};
                 next PARENT_ITEM unless defined $states;
 
 		STATE: for my $state (@$states)
 		{
-		    my $reset = $state->[ Parse::Marpa::Internal::SDFA::RESET_ORIGIN ];
+		    my $reset = $state->[ Parse::Marpa::Internal::QDFA::RESET_ORIGIN ];
 		    my $origin = $reset ?  $current_set : $grandparent;
 		    my $key = pack( "JJ", $state, $origin );
 		    my $target_item = $earley_hash->{$key};
@@ -1193,7 +1193,7 @@ sub complete_set {
             [   $_,
                 $priorities->[
                     $_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
-                    ->[Parse::Marpa::Internal::SDFA::ID]
+                    ->[Parse::Marpa::Internal::QDFA::ID]
                 ]
             ]
             } @$links;
@@ -1259,12 +1259,12 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
             next ITEM unless $parent == $start_earleme;
             if ( defined $symbol ) {
                 my $complete_rules =
-                    $state->[Parse::Marpa::Internal::SDFA::COMPLETE_RULES]
+                    $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES]
                     ->{$symbol};
                 next ITEM unless $complete_rules;
             }
             my $complete_lhs =
-                $state->[Parse::Marpa::Internal::SDFA::COMPLETE_LHS];
+                $state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS];
             next ITEM unless scalar @$complete_lhs;
             return ( $earleme, $complete_lhs );
         }    # ITEM

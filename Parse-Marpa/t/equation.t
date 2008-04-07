@@ -73,8 +73,8 @@ is( $g->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
 2: E['] -> E
 END_RULES
 
-is( $g->show_ii_SDFA(), <<'END_SDFA', "Ambiguous Equation SDFA" );
-Start States: St5; St0
+is( $g->show_ii_QDFA(), <<'END_QDFA', "Ambiguous Equation QDFA" );
+Start States: St0; St5
 St0: predict; 1,5
 E ::= . E Op E
 E ::= . Number
@@ -95,7 +95,7 @@ E['] ::= . E
  <E> => St6
 St6: 8
 E['] ::= E .
-END_SDFA
+END_QDFA
 
 my $recce = new Parse::Marpa::Recognizer({grammar => $g});
 

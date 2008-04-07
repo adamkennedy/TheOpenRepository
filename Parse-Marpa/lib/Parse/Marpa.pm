@@ -1164,10 +1164,10 @@ L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 =head2 Priority Conflicts
 
 If non-default priorities are given to rules, it's possible two rules
-with different priorities could wind up in the same SDFA state.
+with different priorities could wind up in the same QDFA state.
 Marpa can't proceed when that happens.
 (See the L<internals document|Parse::Marpa::Doc::Internals> if you're
-interested in details about SDFA's.)
+interested in details about QDFA's.)
 
 I've actually never seen this happen, and one reason the problem is
 not fixed is that I will need to contrive a case where the problem occurs
@@ -1188,20 +1188,20 @@ until you get the one you want.
 
 Workaround 3:
 Make a small change in the grammar.
-Be aware that the code which creates the SDFA is smart enough that it will
+Be aware that the code which creates the QDFA is smart enough that it will
 probably need to be a
 real change to the language.
 Simply writing different rules with the same effect probably won't make
 the problem go away.
 
 Here's what I think is the fix:
-Change the SDFA to be a little more non-deterministic,
-so that there are different SDFA nodes for the different priorities,
+Change the QDFA to be a little more non-deterministic,
+so that there are different QDFA nodes for the different priorities,
 with empty transitions between them.
 (Aren't you sorry you asked?)
 With a fix of this kind,
 testing examples (even if they were easier to find) is not sufficient to show correctness.
-I'll need to show that the current and the fixed SDFA's are "equivalent".
+I'll need to show that the current and the fixed QDFA's are "equivalent".
 That demonstration may need to be a mathematical proof.
 For now, there's the comfort that the problem seems to be quite rare.
 

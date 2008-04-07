@@ -161,7 +161,7 @@ S31: S['] ::= S .
 S32: S['][] ::= .
 EOS
 
-is( $g->show_ii_SDFA(), <<'EOS', "Aycock/Horspool SDFA" );
+is( $g->show_ii_QDFA(), <<'EOS', "Aycock/Horspool QDFA" );
 Start States: St10; St3
 St0: predict; 1
 A ::= . a

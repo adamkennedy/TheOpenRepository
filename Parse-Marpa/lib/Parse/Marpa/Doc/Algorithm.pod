@@ -183,6 +183,30 @@ Marpa's rule and terminal priorities turn ambiguous parsing
 into a convenient form of precedence parsing.
 I don't believe Earley parsing and precedence parsing have been combined before.
 
+=head2 Quasi-Deterministic Finite Automata (QDFA's)
+
+Aycock and Horspool's precomputation uses what they call
+a split LR(0) E<epsilon>-DFA.
+Not exactly the most transparent name,
+but a brilliant concept:
+if you left in some of the non-determinism
+when you transformed an NFA to LR(0) DFA,
+you could use it to guide the Earley recognizer.
+
+While the concept gave me an essential insight that I could
+never have come up on my own,
+I found the split LR(0) E<epsilon>-DFA awkward to program.
+A point came when I wanted to add some more non-determinism,
+and then I realized
+that not only would an ordinary NFA allow my change,
+but it would make the code shorter and better.
+
+What Marpa does, therefore, is to transform the original NFA into a second NFA.
+The second NFA keeps the form of an NFA, but has most of the
+non-determinism taken out of it.
+It is almost an LR(0) DFA, so I call it a quasi-deterministic finite
+automaton, or QDFA.
+
 =head1 SUPPORT
 
 See the L<support section|Parse::Marpa/SUPPORT> in the main module.

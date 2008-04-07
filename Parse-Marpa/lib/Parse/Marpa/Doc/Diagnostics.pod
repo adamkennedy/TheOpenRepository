@@ -61,7 +61,7 @@ do the following:
 
 =item * Run C<show_rules> on the precomputed grammar.
 
-=item * Run C<show_SDFA> on the precomputed grammar.
+=item * Run C<show_QDFA> on the precomputed grammar.
 
 =item * Turn on C<trace_lex> before input.
 
@@ -75,7 +75,7 @@ Note that when the input text to the grammar is of any length,
 the output from C<show_status> and C<trace_lex> can be large.
 You'll want to work with short inputs if at all possible.
 The L<internals document|Parse::Marpa::Doc::Internals>
-has example outputs from the C<show_SDFA> and C<show_status> methods,
+has example outputs from the C<show_QDFA> and C<show_status> methods,
 and explains how to read them.
 
 =head1 OPTIONS
@@ -192,7 +192,7 @@ set after input is complete.
 
 =item trace_priorities
 
-Traces the priority setting of each SDFA state.
+Traces the priority setting of each QDFA state.
 Requires knowledge of Marpa internals.
 These priorities are set when the recognizer is created.
 A trace message warns the user if he sets
@@ -280,13 +280,13 @@ Not useful before the grammar is precomputed.
 Not really helpful for debugging grammars
 and requires very deep knowledge of Marpa internals.
 
-=head3 show_SDFA
+=head3 show_QDFA
 
     $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
     $grammar->precompute();
-    print $grammar->show_SDFA();
+    print $grammar->show_QDFA();
 
-Returns a multi-line string listing the states of the SDFA
+Returns a multi-line string listing the states of the QDFA
 with the LR(0) items, NFA states, and transitions for each.
 Not useful before the grammar is precomputed.
 Very useful in debugging, but requires knowledge of Marpa internals.
@@ -450,7 +450,7 @@ If the evaluator is unvalued, an exception is thrown.
 
 Very useful.  Basic use requires no Marpa internals.
 For those who are delving into the internals,
-the corresponding Earley item and SDFA state are reported
+the corresponding Earley item and QDFA state are reported
 with each line of the derivation.
 
 =head1 SUPPORT

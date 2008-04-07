@@ -27,14 +27,14 @@ the parse can be found in the Earley sets.
 
 Each of Marpa's B<earlemes> corresponds one-to-one to an Earley set.
 An Earley set is a set of Earley items.
-Each Earley item has an B<SDFA state>, an B<origin earleme> and an B<dot earleme>.
+Each Earley item has an B<QDFA state>, an B<origin earleme> and an B<dot earleme>.
 An Earley item's dot earleme is also called its B<current earleme>.
 Here's a representation of an Earley item, as you might see it in
 debugging output from Marpa:
 
     S5@6-7
 
-This Earley item is for SDFA state 5 (that is the "C<S5>" part),
+This Earley item is for QDFA state 5 (that is the "C<S5>" part),
 The "C<@6-7>" part says that this Earley item
 originates at earleme 6, and is current at earleme 7.
 The number of an Earley item's current, or dot, earleme is always
@@ -43,8 +43,8 @@ the same as number of the Earley set that contains the item.
 (Note to experts:
 Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
-SDFA states are not traditional --
-they were invented by Aycock and Horspool.
+QDFA states are not traditional --
+they are my elaboration of an invented by Aycock and Horspool.
 In the traditional terminology,
 the Earley set corresponding to the
 the origin earleme is rather confusingly called the "parent".
@@ -53,26 +53,26 @@ the dot earleme is not
 included at all -- the context is supposed to be sufficient to tell you
 which Earley set each Earley item is in.)
 
-=head1 SDFA STATES
+=head1 QDFA STATES
 
-I will mention SDFA's (semi-deterministic finite automata) frequently
+I will mention QDFA's (quasi-deterministic finite automata) frequently
 and NFA's (non-deterministic finite automata) sometimes.
 All you need to know about NFA's,
 unless you are hacking Marpa's precomputation code,
-is that the SDFA's are built from them.
+is that the QDFA's are built from them.
 For the developers'
 convenience, NFA state numbers sometimes appear in the diagnostic outputs.
 
-About SDFA's, it will be necessary to know a bit more.
+About QDFA's, it will be necessary to know a bit more.
 Let's start with an example of another Earley item:
 
     S1@2-2
 
-This states that this item is for SDFA state 1,
+This states that this item is for QDFA state 1,
 that it originates at earleme 2,
 and that it is currently at earleme 2.
-We can get a description of the SDFA states from the C<show_SDFA> method.
-Here's what it says about SDFA state 1:
+We can get a description of the QDFA states from the C<show_QDFA> method.
+Here's what it says about QDFA state 1:
 
     S1: 1,5
     e ::= . e op e
@@ -82,9 +82,9 @@ Here's what it says about SDFA state 1:
 
 The two numbers after the "C<S1:>" label on the first line 
 may be ignored.
-They are the numbers of the NFA states that were combined into this SDFA state.
-Marpa uses SDFA states to track the parse.
-Every SDFA state has one or more B<LR(0) items>.
+They are the numbers of the NFA states that were combined into this QDFA state.
+Marpa uses QDFA states to track the parse.
+Every QDFA state has one or more B<LR(0) items>.
 The second and third lines in the display represent the LR(0) items.
 They are rules with a dot added to indicate
 how far recognition has proceeded into the rule.
@@ -99,26 +99,26 @@ A dot at the end indicates that the rule is complete
 The location of the dot is called the B<dot position>.
 
 The last two lines in the display show transitions.
-The first line says that, on seeing an C<e>, you transition to SDFA state 3.
-The second states that, on seeing a C<number>, you transition to SDFA state 4.
+The first line says that, on seeing an C<e>, you transition to QDFA state 3.
+The second states that, on seeing a C<number>, you transition to QDFA state 4.
 (The numbers in parentheses are NFA states and may be ignored.)
 
 It's important to not confuse Earley items with LR(0) items.
 Earley items are built from one or more LR(0) items.
 In traditional Earley parsing, each Earley item contained one and only one LR(0) item.
 This made the internals simpler, but was not as efficient.
-Marpa combines LR(0) items into SDFA states
+Marpa combines LR(0) items into QDFA states
 based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
-Each SDFA state is a statement about possible parses.
-The presence of an SDFA state in an Earley item means that the parses in its LR(0) items
+Each QDFA state is a statement about possible parses.
+The presence of an QDFA state in an Earley item means that the parses in its LR(0) items
 are possible at its dot earleme.
-The dot position of every LR(0) item in the SDFA state
+The dot position of every LR(0) item in the QDFA state
 corresponds to the dot earleme of the Earley item.
 The origin of every LR(0) item is the origin earleme of the Earley item.
 
 In our example,
-the dots in all the LR(0) items in S1 (SDFA state 1)
+the dots in all the LR(0) items in S1 (QDFA state 1)
 are at the beginning of their rules.
 This means the origin and dot earlemes must be the same, and from the "C<2-2>"
 in the description of the Earley item C<S1@2-2>,
@@ -138,12 +138,12 @@ there is a transition from S1 to S4 on C<number>.
 
 If the lexer finds a C<number> token with a length (in earlemes) of 1 at earleme 2,
 a new Earley item S4@2-3 is added at earleme 3.
-Here (again from C<show_SDFA>) is the description of SDFA state 4.
+Here (again from C<show_QDFA>) is the description of QDFA state 4.
 
     S4: 6
     e ::= number .
 
-We can see that there is only one LR(0) item in SDFA state 4,
+We can see that there is only one LR(0) item in QDFA state 4,
 and that it has the dot pointer at the end of its rule.
 A rule with the dot pointer at the end in an LR(0) item is called
 a B<completed rule>.
@@ -151,7 +151,7 @@ a B<completed rule>.
 Marpa calls the item that was looking for the scanned symbol
 the B<predecessor> of the item added by the scan.
 In this example, S1@2-2 is the predecessor of S4@2-3.
-Any item which is added to an Earley set based on an SDFA state transition
+Any item which is added to an Earley set based on an QDFA state transition
 from a predecessor,
 is called that predecessor's B<successor>.
 In this example, S4@2-3 is the successor of S1@2-2.
@@ -208,8 +208,8 @@ Let's look at one example of a completion "cause and effect".
 As the cause in our example,
 we'll use S4@2-3,
 the Earley item in our example of a scanned item.
-Its state was SDFA state 4.
-SDFA state 4 contained the LR(0) item 
+Its state was QDFA state 4.
+QDFA state 4 contained the LR(0) item 
 
     e -> number .
 
@@ -217,15 +217,15 @@ The dot is at the far right, so it's a completed rule whose the left hand side i
 
 S4@2-3 begins at earleme 2 and has a complete rule with C<e> as its lhs,
 and therefore any Earley item at earleme 2 which is looking for an C<e> is in luck.
-S5@0-2 is such a rule.  SDFA state 5 looks like this:
+S5@0-2 is such a rule.  QDFA state 5 looks like this:
 
     S5: 3
     e ::= e op . e
      empty => S1 (1,5)
      <e> => S6 (4)
 
-This says that in SDFA state 5, when you see an C<e>, you transition to
-SDFA state 6.
+This says that in QDFA state 5, when you see an C<e>, you transition to
+QDFA state 6.
 Here's S6@0-3, the item which is the effect of the completion:
 
     S6@0-3  predecessor: S5@0-2  effect: S2@0-3
@@ -277,22 +277,22 @@ Whenever an Earley item is expecting to see an C<e>,
 for example, it can also expect to see any symbols that are at
 the start of any rules that have an C<e> on their left hand side.
 
-Recall SDFA state 5
+Recall QDFA state 5
 
     S5: 3
     e ::= e op . e
      empty => S1 (1,5)
      <e> => S6 (4)
 
-SDFA state 5 is expecting an C<e>.
+QDFA state 5 is expecting an C<e>.
 This means that the rules 
 
     e ::= . e op e
     e ::= . number
 
 can also be expected to originate at this earleme.
-Marpa is smart about grouping rules into SDFA states
-and both these rules are in SDFA state 1:
+Marpa is smart about grouping rules into QDFA states
+and both these rules are in QDFA state 1:
 
     S1: 1,5
     e ::= . e op e
@@ -301,7 +301,7 @@ and both these rules are in SDFA state 1:
      <number> => S4 (6)
 
 This means that since S5@0-2 is at earleme 2, we should also expect to see an item
-for SDFA state 1 at earleme 2,
+for QDFA state 1 at earleme 2,
 and we do:
 
     S1@2-2  successor: S4@2-3
@@ -311,7 +311,7 @@ That means the origin and dot earlemes will always be the same.
 
 Predicted items are always the result of empty transitions.
 An B<empty transition> is one that always occurs, without any input being necessary.
-Remember this transition from SDFA state 5?
+Remember this transition from QDFA state 5?
 
      empty => S1 (1,5)
 
@@ -332,8 +332,8 @@ In our example it is
 
     S0@0-0  successor: S2@0-3
 
-SDFA state 0 contains the start rules, with the dot pointer at the beginning.
-Only Earley set 0 will contain an Earley item for SDFA state 0.
+QDFA state 0 contains the start rules, with the dot pointer at the beginning.
+Only Earley set 0 will contain an Earley item for QDFA state 0.
 
 =head1 HOW RECOGNITION WORKS
 
@@ -341,13 +341,13 @@ As mentioned, what's usually called Earley's algorithm is just a recognizer,
 an algorithm to build the Earley sets.
 The input is recognized successfully if, in the last earleme, there is a
 an Earley item for a completed start rule state.
-A B<completed start rule state> is an SDFA state containing a completed start rule.
+A B<completed start rule state> is an QDFA state containing a completed start rule.
 A B<completed start rule> is the LR(0) item for a start rule that has its
 dot position at the end.
 
-At most two of the SDFA states can be completed start rule states.
+At most two of the QDFA states can be completed start rule states.
 One is a special case.
-In a null parse, the start state, SDFA state 0,
+In a null parse, the start state, QDFA state 0,
 is also a completed start rule state.
 
 The other completed start rule state
@@ -358,7 +358,7 @@ and the original start symbol as its rhs.
 The completed start rule state for non-null parses
 contains the LR(0) item which has Marpa's internal start rule
 and has the dot pointer at the end of that rule.
-The completed start rule state in our example is SDFA state 2:
+The completed start rule state in our example is QDFA state 2:
 
     S2: 8
     e['] ::= e .
@@ -659,7 +659,7 @@ The input text was "C<2+2>".
 	     "(" . join(";", @$_) . ")";
 	}.
 
-=head2 The C<show_SDFA> Output
+=head2 The C<show_QDFA> Output
 
     S0: 7
     e['] ::= . e

@@ -115,7 +115,7 @@ sub Parse::Marpa::Evaluator::new {
     EARLEY_ITEM: for ( my $ix = 0; $ix <= $#$earley_set; $ix++ ) {
         $start_item = $earley_set->[$ix];
         my $state = $start_item->[Parse::Marpa::Internal::Earley_item::STATE];
-        $start_rule = $state->[Parse::Marpa::Internal::SDFA::START_RULE];
+        $start_rule = $state->[Parse::Marpa::Internal::QDFA::START_RULE];
         last EARLEY_ITEM if $start_rule;
     }
 
@@ -147,7 +147,7 @@ sub finish_evaluation {
     return 1 if $previous_value;
 
     my $state = $start_item->[Parse::Marpa::Internal::Earley_item::STATE];
-    my $start_rule = $state->[Parse::Marpa::Internal::SDFA::START_RULE];
+    my $start_rule = $state->[Parse::Marpa::Internal::QDFA::START_RULE];
 
     my $lhs = $start_rule->[Parse::Marpa::Internal::Rule::LHS];
     my ( $nulling, $null_value ) = @{$lhs}[
@@ -242,7 +242,7 @@ sub initialize_children {
         $child_rule_choice = 0;
     }
     my $child_rules =
-        $state->[Parse::Marpa::Internal::SDFA::COMPLETE_RULES]
+        $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES]
         ->[$lhs_symbol_id];
     my $rule = $child_rules->[$child_rule_choice];
     if ( $trace_evaluation_choices and scalar @$child_rules > 1 )

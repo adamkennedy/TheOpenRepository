@@ -101,7 +101,7 @@ S16: T ::= ( E . )
 S17: T ::= ( E ) .
 EOS
 
-is( $g->show_ii_SDFA(), <<'EOS', "Grune/Jacobs SDFA");
+is( $g->show_ii_QDFA(), <<'EOS', "Grune/Jacobs QDFA");
 Start States: St0; St9
 St0: 1
 S' ::= . S $

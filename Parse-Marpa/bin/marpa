@@ -25,7 +25,7 @@ my $show_symbols;
 my $show_derivation;
 my $show_status;
 my $show_NFA;
-my $show_SDFA;
+my $show_QDFA;
 my $all_parses;
 my %options;
 my %source_options;
@@ -40,7 +40,7 @@ given ($command) {
 	    "grammar=s" => \$grammar_file,
 	    "compiled_grammar=s" => \$compiled_grammar_file,
 	    "text=s" => \$text_to_parse,
-	    "SDFA" => \$show_SDFA,
+	    "QDFA" => \$show_QDFA,
 	    "NFA" => \$show_NFA,
 	    "inaccessible_symbols" => \$inaccessible_symbols,
 	    "accessible_symbols" => \$accessible_symbols,
@@ -126,8 +126,8 @@ sub do_parse {
        print $grammar->show_NFA();
     }
 
-    if ($show_SDFA) {
-       print $grammar->show_SDFA();
+    if ($show_QDFA) {
+       print $grammar->show_QDFA();
     }
 
     if ($accessible_symbols) {

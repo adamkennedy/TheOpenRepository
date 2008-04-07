@@ -93,8 +93,8 @@ is( $g->show_rules(), <<'END_RULES', "Minuses Equation Rules" );
 5: E['] -> E
 END_RULES
 
-is( $g->show_ii_SDFA(), <<'END_SDFA', "Minuses Equation SDFA" );
-Start States: St5; St0
+is( $g->show_ii_QDFA(), <<'END_QDFA', "Minuses Equation QDFA" );
+Start States: St0; St5
 St0: predict; 1,5,8,11,14
 E ::= . E Minus E
 E ::= . E MinusMinus
@@ -134,7 +134,7 @@ E ::= E MinusMinus .
 St11: 9
 E ::= MinusMinus . E
  <E> => St1
-END_SDFA
+END_QDFA
 
 my @expected = (
     '(((6--)--)-1)==5',

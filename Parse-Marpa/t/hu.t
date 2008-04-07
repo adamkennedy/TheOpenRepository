@@ -92,7 +92,7 @@ S14: A ::= a . b
 S15: A ::= a b .
 EOS
 
-is( $g->show_ii_SDFA(), <<'EOS', "Hopcroft/Ullman SDFA");
+is( $g->show_ii_QDFA(), <<'EOS', "Hopcroft/Ullman QDFA");
 Start States: St0; St7
 St0: 1
 S' ::= . S c
