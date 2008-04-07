@@ -13,7 +13,7 @@ use base 'Process::Delegatable',
 
 use vars qw{$VERSION @DELEGATE};
 BEGIN {
-	$VERSION  = '0.90_03';
+	$VERSION  = '1.00';
 	@DELEGATE = ();
 }
 

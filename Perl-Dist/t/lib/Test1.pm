@@ -5,7 +5,7 @@ use base 'Perl::Dist::Inno';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.90_03';
+	$VERSION = '1.00';
 }
 
 
