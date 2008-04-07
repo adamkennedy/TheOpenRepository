@@ -74,6 +74,8 @@ use constant ITEM       => 2;          # an LR(0) item
 use constant TRANSITION => 3;          # the transitions, as a hash
                                        # from symbol name to NFA states
 use constant AT_NULLING => 4;  # dot just before a nullable symbol?
+use constant COMPLETE   => 5;          # rule is complete?
+use constant PRIORITY   => 6;          # rule priority
 
 package Parse::Marpa::Internal::QDFA;
 
@@ -2702,10 +2704,15 @@ sub create_NFA {
         ];
         my $rule_id = $rule->[Parse::Marpa::Internal::Rule::ID];
         my $next_symbol =
-            $rule->[Parse::Marpa::Internal::Rule::RHS]->[$position];
+            $rule->[ Parse::Marpa::Internal::Rule::RHS ]->[$position];
 
         # no transitions if position is after the end of the RHS
-        if ( not defined $next_symbol ) { next STATE; }
+        if ( not defined $next_symbol ) {
+	    next STATE;
+	    $state->[ Parse::Marpa::Internal::NFA::COMPLETE ] = 1;
+	    $state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
+		= $rule->[ Parse::Marpa::Internal::Rule::PRIORITY ];
+	}
 
 	$state->[ Parse::Marpa::Internal::NFA::AT_NULLING ] = 1
 	    if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLING ];
