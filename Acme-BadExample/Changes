@@ -1,5 +1,8 @@
 Revision history for Perl extension Acme::BadExample
 
+1.01_01 Sun  6 Apr 2008
+	- Testing a new evil trick
+
 1.00 Tue  6 Jun 2006
 	- Moved from old CVS to new SVN repository
 	- Upgraded to Module::Install 0.62

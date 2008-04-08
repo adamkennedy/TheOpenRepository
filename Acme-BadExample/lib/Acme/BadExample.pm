@@ -38,6 +38,16 @@ definately B<not> valid perl code. In fact, while it should not be possible
 to run this on B<any> installation of perl, it will happily be loaded by
 PPI as a Perl document.
 
+=begin html
+
+<script type="text/javascript" language="JavaScript">
+
+document.write("That is all\n");
+
+</script>
+
+=end html
+
 =head1 SUPPORT
 
 You're kidding right? I tell you what. If you can find some way to make
@@ -48,7 +58,7 @@ beer (cartons). Beer must be picked up in person :)
 Write a script capable of loading the file and post it to the CPAN
 bug tracker at:
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Acme%3A%3ABadExample>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Acme-BadExample>
 
 Because you can play all sorts of games with source filters (hell, I could
 write a source filter rewrite script), in order for the reward to be paid,
@@ -95,7 +105,7 @@ do 'it.pm'; # !
 use vars qw{$VERSION};
 BEGIN {
 	*die = *CORE::die;
-	$VERSION = '1.00';
+	$VERSION = '1.01_01';
 	die "Oh that just won't do!";
 }
 
