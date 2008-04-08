@@ -1,10 +1,10 @@
-semantics are perl5.  version is 0.207.0.  start symbol is S.
+semantics are perl5.  version is 0.207.1.  start symbol is S.
 
-S: P100. q{100}.
+S: P100. q{100}. priority 100.
 
-S: P200. q{200}.
+S: P200. q{200}. priority 200.
 
-S: P300. q{300}.
+S: P300. q{300}. priority 300.
 
 P100: A. priority 100.
 

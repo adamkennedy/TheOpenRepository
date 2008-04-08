@@ -1161,50 +1161,6 @@ L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
 =head1 BUGS
 
-=head2 Priority Conflicts
-
-If non-default priorities are given to rules, it's possible two rules
-with different priorities could wind up in the same QDFA state.
-Marpa can't proceed when that happens.
-(See the L<internals document|Parse::Marpa::Doc::Internals> if you're
-interested in details about QDFA's.)
-
-I've actually never seen this happen, and one reason the problem is
-not fixed is that I will need to contrive a case where the problem occurs
-before I test the fix.
-But if you're the unlucky first person to encounter this issue,
-here are the workarounds.
-
-Workaround 1:
-Marpa will report the rules which caused the conflict.
-If they can be changed to have the same priority, the problem is
-solved.
-
-Workaround 2:
-Instead of using priorities, use multiple parses.
-That is, instead of using priorities to make the desired parse first
-in order, allow the "natural" order and iterate through the parses
-until you get the one you want.
-
-Workaround 3:
-Make a small change in the grammar.
-Be aware that the code which creates the QDFA is smart enough that it will
-probably need to be a
-real change to the language.
-Simply writing different rules with the same effect probably won't make
-the problem go away.
-
-Here's what I think is the fix:
-Change the QDFA to be a little more non-deterministic,
-so that there are different QDFA nodes for the different priorities,
-with empty transitions between them.
-(Aren't you sorry you asked?)
-With a fix of this kind,
-testing examples (even if they were easier to find) is not sufficient to show correctness.
-I'll need to show that the current and the fixed QDFA's are "equivalent".
-That demonstration may need to be a mathematical proof.
-For now, there's the comfort that the problem seems to be quite rare.
-
 =head2 Non-intuitive Parse Order in Unusual Cases
 
 This problem occurs when

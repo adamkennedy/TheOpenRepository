@@ -65,8 +65,6 @@ use constant LEXERS            => 22;    # an array, indexed by symbol id,
                                          # of the lexer for each symbol
 use constant LEXABLES_BY_STATE => 23;    # an array, indexed by QDFA state id,
                                          # of the lexables belonging in it
-use constant PRIORITIES        => 24;    # an array, indexed by QDFA state id,
-                                         # of its priority
 use constant LAST_COMPLETED_SET => 26;   # last earley set completed
 
 # Given symbol, returns null value, calculating it
@@ -411,67 +409,6 @@ sub compile_regexes {
 
 }
 
-sub set_priorities {
-    my $grammar    = shift;
-    my $priorities = [];
-    my $problem    = 0;
-
-    my ($trace_fh, $trace_priorities);
-    if ($grammar->[ Parse::Marpa::Internal::Grammar::TRACING ]) {
-        $trace_fh = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
-        $trace_priorities = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES ];
-    }
-    my $QDFA = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
-    $#$priorities = $#$QDFA;
-
-    for my $state (@$QDFA) {
-        my $priority;
-        my $priority_conflict = 0;
-        my ( $id, $complete_rules_by_lhs ) = @{$state}[
-            Parse::Marpa::Internal::QDFA::ID,
-            Parse::Marpa::Internal::QDFA::COMPLETE_RULES,
-        ];
-        my @complete_rules;
-        LHS: for my $lhs_id ( 0 .. $#$complete_rules_by_lhs ) {
-            my $rules = $complete_rules_by_lhs->[$lhs_id];
-            next LHS unless defined $rules;
-            push( @complete_rules, @$rules );
-        }
-        COMPLETE_RULE: for my $complete_rule (@complete_rules) {
-            my $rule_priority =
-                $complete_rule->[Parse::Marpa::Internal::Rule::PRIORITY];
-            given ($priority) {
-                when (undef) { $priority = $rule_priority }
-                when ( $rule_priority != $_ ) { $priority_conflict++; }
-            }
-        }
-        if ($priority_conflict) {
-            $problem++;
-            carp( "Priority conflict in QDFA ", $id );
-            COMPLETE_RULE: for my $complete_rule (@complete_rules) {
-                my $rule_priority =
-                    $complete_rule->[Parse::Marpa::Internal::Rule::PRIORITY];
-                carp(
-                    "QDFA ", $id, ": ",
-                    Parse::Marpa::brief_rule($complete_rule),
-                    "has priority ",
-                    $rule_priority
-                );
-            }
-        }
-        $priorities->[$id] = $priority // 0;
-        if ($trace_priorities) {
-            say $trace_fh "Priority for state $id: ", $priorities->[$id];
-        }
-    }    # for each QDFA state
-    if ($problem) {
-        croak( "Marpa cannot continue: ", $problem, " priority conflicts" );
-    }
-
-    $priorities;
-
-}    # sub set_priorities
-
 sub eval_grammar {
     my $parse          = shift;
     my $grammar        = shift;
@@ -502,7 +439,6 @@ sub eval_grammar {
     set_null_values( $grammar, $package );
     @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
         set_actions( $grammar, $package );
-    $parse->[PRIORITIES] = set_priorities($grammar);
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::EVALED;
 
@@ -1079,14 +1015,13 @@ sub complete_set {
 
     my ($earley_set_list,   $earley_hash_list,  $grammar,
         $current_set,       $furthest_earleme,  $exhausted,
-        $lexables_by_state, $priorities,
+        $lexables_by_state
         )
         = @{$parse}[
         EARLEY_SETS,       EARLEY_HASHES,
         GRAMMAR,           CURRENT_SET,
         FURTHEST_EARLEME,  EXHAUSTED,
         LEXABLES_BY_STATE,
-        PRIORITIES,
         ];
     croak("Attempt to complete another earley set in an exhausted parse")
         if $exhausted;
@@ -1191,10 +1126,8 @@ sub complete_set {
             sort { $b->[1] <=> $a->[1] }
             map {
             [   $_,
-                $priorities->[
-                    $_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
-                    ->[Parse::Marpa::Internal::QDFA::ID]
-                ]
+		$_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
+		->[Parse::Marpa::Internal::QDFA::PRIORITY]
             ]
             } @$links;
         $earley_item->[Parse::Marpa::Internal::Earley_item::LINKS] =

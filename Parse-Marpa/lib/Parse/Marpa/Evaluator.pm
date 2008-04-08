@@ -395,12 +395,12 @@ sub initialize_children {
             ];
             say $trace_fh "Choose link 0 of ",
                 ( scalar @$links ), " at earlemes ", $parent, "-", $set, ": ",
-                show_link_choice( $links->[0] );
+                Parse::Marpa::Internal::Recognizer::show_link_choice( $links->[0] );
             for ( my $ix = 1; $ix <= $#$links; $ix++ ) {
                 my $choice = $links->[$ix];
                 say $trace_fh
                     "Alternative link choice $ix at $parent-$set: ",
-                    show_link_choice( $links->[$ix] );
+                    Parse::Marpa::Internal::Recognizer::show_link_choice( $links->[$ix] );
             }
         }
 

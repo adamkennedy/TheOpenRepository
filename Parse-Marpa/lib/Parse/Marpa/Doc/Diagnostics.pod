@@ -194,7 +194,7 @@ set after input is complete.
 
 Traces the priority setting of each QDFA state.
 Requires knowledge of Marpa internals.
-These priorities are set when the recognizer is created.
+These priorities are set during precomputation.
 A trace message warns the user if he sets
 C<trace_priorities> after that point.
 

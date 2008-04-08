@@ -20,6 +20,7 @@ my $nulling_symbols;
 my $unproductive_symbols;
 my $productive_symbols;
 my $show_rules;
+my $trace_priorities;
 my $show_problems;
 my $show_symbols;
 my $show_derivation;
@@ -48,6 +49,7 @@ given ($command) {
 	    "nulling_symbols" => \$nulling_symbols,
 	    "unproductive_symbols" => \$unproductive_symbols,
 	    "productive_symbols" => \$productive_symbols,
+	    "trace_priorities" => \$trace_priorities,
 	    "show_rules" => \$show_rules,
 	    "show_problems" => \$show_problems,
 	    "show_symbols" => \$show_symbols,
@@ -62,6 +64,10 @@ given ($command) {
     default {
         croak("Unimplemented marpa command: $command");
     }
+}
+
+if ($trace_priorities) {
+    $options{trace_priorities} = 1;
 }
 
 sub do_compile {
