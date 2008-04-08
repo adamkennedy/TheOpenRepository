@@ -1516,6 +1516,15 @@ sub add_rule {
     my $nulling    = @$rhs ? undef : 1;
     $priority //= 0;
 
+    my $max_priority = int(0x7FFFFFFF/10)-1;
+    if ($priority > $max_priority) {
+        croak("Rule priority ($priority) greater than maximum ($max_priority)");
+    }
+    my $min_priority = int(0x80000000/10)+1;
+    if ($priority < $min_priority) {
+        croak("Rule priority ($priority) greater than maximum ($min_priority)");
+    }
+
     @{$new_rule}[
         Parse::Marpa::Internal::Rule::ID,
         Parse::Marpa::Internal::Rule::NAME,
@@ -2752,7 +2761,6 @@ sub create_NFA {
 # a reference to an array of the fully built quasi-DFA (QDFA) states.
 # as necessary.  The build is complete, except for transitions, which are
 # left to be set up later.
-#
 sub assign_QDFA_state_set {
     my $grammar       = shift;
     my $kernel_states = shift;
@@ -2765,10 +2773,7 @@ sub assign_QDFA_state_set {
         Parse::Marpa::Internal::Grammar::QDFA
     ];
 
-    # the data for the NFA states to be used in the result:
-    # An array (indexed by reset flag) of references to arrays
-    # of NFA states
-    my @result_NFA_states = ([], []);
+    my $highest_priority;
 
     # pre-allocate the arrays that track whether we've already used an NFA state
     my @NFA_state_seen;
@@ -2785,7 +2790,7 @@ sub assign_QDFA_state_set {
 
 	my $NFA_id = $NFA_state->[Parse::Marpa::Internal::NFA::ID];
 	next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
-	$NFA_state_seen[$NFA_id] = 1;
+	my $seen = $NFA_state_seen[$NFA_id] = [];
 
 	my $transition = $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION];
 
@@ -2813,42 +2818,88 @@ sub assign_QDFA_state_set {
 	}
 
 	$reset //= 0;
-	push(@{$result_NFA_states[$reset]}, $NFA_id);
+	my $priority = $NFA_state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
+	    if $NFA_state->[ Parse::Marpa::Internal::NFA::COMPLETE ];
+	$highest_priority = $priority if defined $priority and $priority > $highest_priority;
+	push(@$seen, $reset, $priority, $NFA_id);
 
     } # WORK_ITEM
 
-    my @result_states;
+    $highest_priority //= 0;
 
-    QDFA_STATE: for my $reset (0, 1) {
-	my @NFA_seen;
-	$#NFA_seen = @$NFA_states;
-	my $NFA_state_set = $result_NFA_states[$reset];
-	next unless @$NFA_state_set;
-	my @NFA_ids
-	    = sort { $a <=> $b }
-		grep { not $NFA_seen[$_]++ }
-		@$NFA_state_set;
-	my $name = join( ",", @NFA_ids);
-	my $QDFA_state = $QDFA_by_name->{$name};
-	unless (defined $QDFA_state) {
-	    @{$QDFA_state}[
-		Parse::Marpa::Internal::QDFA::ID,
-		Parse::Marpa::Internal::QDFA::NAME,
-		Parse::Marpa::Internal::QDFA::NFA_STATES,
-		Parse::Marpa::Internal::QDFA::RESET_ORIGIN,
-		Parse::Marpa::Internal::QDFA::PRIORITY,
-	    ] = (
-		scalar @$QDFA,
-		$name,
-		[ @{ $NFA_states }[@NFA_ids] ],
-		$reset,
-		0,
-	    );
-	    push( @$QDFA, $QDFA_state );
-	    $QDFA_by_name->{$name} = $QDFA_state;
+    my @result_data
+        = map { $_->[0] }
+	    sort { $a->[1] cmp $b->[1] }
+	    map {
+		$_->[1] //= $highest_priority;
+		[ $_, pack('NN', $_->[0], $_->[1]) ]
+	    } grep { defined $_ and scalar @$_ }
+	    @NFA_state_seen;
+
+    # this is a fake record with an 
+    # "impossible" value for priority to force a
+    # control break at the last record
+    push(@result_data, [ -1 ] ); # -1 is an 
+
+    # this will hold the QDFA state set,
+    # which is the result
+    my @result_states = ();
+
+    # Below is "control break logic", which was big in the days of tape sorts
+    # (yes, I'm that old).  Anyway, it's fast in Perl, will be really fast in
+    # C and I think actually easier to figure out than the alternative --
+    # which is something like references to arrays of hash of references.
+
+    my $old_reset = -2; # -2 is an "impossible" value
+    my $old_priority;
+    my @NFA_ids = ();
+
+    # result data is an array of the "records"
+    DATUM: for my $result_data (@result_data) {
+
+        my ($reset, $priority, $NFA_id)
+	    = @$result_data;
+
+	# if no "control break"
+	if ($old_reset == $reset and $old_priority == $priority) {
+	    push(@NFA_ids, $NFA_id);
+	    next DATUM;
 	}
-	push(@result_states, $QDFA_state);
-    }
+
+	# here what's called the "control break", where the record key changes
+	if (@NFA_ids) {
+	     my $name = join(',', @NFA_ids);
+	     my $QDFA_state = $QDFA_by_name->{$name};
+
+	     # this is a new QDFA state -- create it
+	     unless ($QDFA_state) {
+	         @{$QDFA_state}[
+		    Parse::Marpa::Internal::QDFA::ID,
+		    Parse::Marpa::Internal::QDFA::NAME,
+		    Parse::Marpa::Internal::QDFA::NFA_STATES,
+		    Parse::Marpa::Internal::QDFA::RESET_ORIGIN,
+		    Parse::Marpa::Internal::QDFA::PRIORITY,
+		] = (
+		    scalar @$QDFA,
+		    $name,
+		    [ @{ $NFA_states }[@NFA_ids] ],
+		    $old_reset,
+		    $old_priority,
+		);
+		push( @$QDFA, $QDFA_state );
+		$QDFA_by_name->{$name} = $QDFA_state;
+	    } # unless $QDFA_state
+
+	    push(@result_states, $QDFA_state);
+
+	}
+
+	# reset everything for the next control break
+	@NFA_ids = ($NFA_id);
+	$old_reset = $reset;
+	$old_priority = $priority;
+
+    } # DATUM
 
     \@result_states;
 }
