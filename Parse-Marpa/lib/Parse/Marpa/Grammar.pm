@@ -1520,13 +1520,13 @@ sub add_rule {
     my $nulling    = @$rhs ? undef : 1;
     $priority //= 0;
 
-    my $max_priority = int(0x7FFFFFFF/10)-1;
+    my $max_priority = 1_000_000;
     if ($priority > $max_priority) {
         croak("Rule priority ($priority) greater than maximum ($max_priority)");
     }
-    my $min_priority = int(0x80000000/10)+1;
+    my $min_priority = -1_000_000;
     if ($priority < $min_priority) {
-        croak("Rule priority ($priority) greater than maximum ($min_priority)");
+        croak("Rule priority ($priority) less than minimum ($min_priority)");
     }
 
     @{$new_rule}[

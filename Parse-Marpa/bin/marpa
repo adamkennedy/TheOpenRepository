@@ -173,17 +173,21 @@ sub do_parse {
 
     my $fail_location = $recce->text(\$text_to_parse);
 
-    if ($show_status) {
-	print $recce->show_status();
-    }
-
     if ($fail_location >= 0) {
+	if ($show_status) {
+	    print $recce->show_status();
+	}
         print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
 	exit 1;
     }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    croak("Input not recognized by grammar") unless $evaler;
+    unless ($evaler) {
+	if ($show_status) {
+	    print $recce->show_status();
+	}
+	croak("Input not recognized by grammar") unless $evaler;
+    }
 
     my $parse_count = 0;
     PARSE: while (1) {
@@ -198,6 +202,10 @@ sub do_parse {
 	given ($$value) {
 	    when (undef) { say 'Marpa returned an undefined' }
 	    default { say $$value }
+	}
+
+	if ($show_status) {
+	    print $recce->show_status();
 	}
 
 	if ($show_derivation) {

@@ -27,6 +27,10 @@ Add extra rules with the terminals you want to prioritize on their right hand si
 and assign 
 priorities to the rules.
 
+=head3 Describe ambiguous transitions in Internals doc
+
+Add a graf about ambiguous transitions in the Internals document.
+
 =head3 A More Exhaustive Test Suite
 
 Testing has been intensive, but not exhaustive.
@@ -38,6 +42,10 @@ and C<example> (example)
 directories of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
+
+=head3 QDFA START_RULE, COMPLETE_RULES, COMPLETE_LHS fields
+
+Change so these are calculated from NFA fields.
 
 =head2 Lower Priority
 
@@ -72,6 +80,8 @@ to safely deep copy recognizers.
 =item * Add to test set: A basic test for all branches of counted rules.
 The matrix is keep vs. no-keep; separated yes vs. no; right vs. left;
 and 0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, versus 5-*.
+
+=item * Downgrade version conflict or semantics mismatch to warning?
 
 =back
 

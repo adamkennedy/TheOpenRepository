@@ -5,11 +5,14 @@ Parse::Marpa::Doc::Internals - Marpa Internals
 =head1 OVERVIEW
 
 Knowledge of Marpa internals is not necessary to use Marpa.
-But understanding how Marpa works can make you a better grammar writer
-and language designer.
-This document assumes the reader already has a general knowledge of parsing,
-or at least has worked with another parser generator.
-The reader should also have read the other Marpa documentation.
+But you can make better use
+of Marpa if you
+understand how it works.
+This document assumes you
+have read the other Marpa documentation,
+and that you
+have a general knowledge of parsing,
+or at least have worked with another parser generator.
 
 =head1 EARLEY SETS
 
@@ -44,24 +47,24 @@ the same as number of the Earley set that contains the item.
 Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
 QDFA states are not traditional --
-they are my elaboration of an invented by Aycock and Horspool.
+they are my elaboration of an invention by Aycock and Horspool.
 In the traditional terminology,
 the Earley set corresponding to the
-the origin earleme is rather confusingly called the "parent".
+origin earleme is confusingly called the "parent".
 And in the traditional notation for an Earley item,
 the dot earleme is not
-included at all -- the context is supposed to be sufficient to tell you
-which Earley set each Earley item is in.)
+included at all --
+you're required to figure out from context
+which Earley set an Earley item belongs to.)
 
 =head1 QDFA STATES
 
 I will mention QDFA's (quasi-deterministic finite automata) frequently
 and NFA's (non-deterministic finite automata) sometimes.
-All you need to know about NFA's,
-unless you are hacking Marpa's precomputation code,
+All you need to know about NFA's
 is that the QDFA's are built from them.
-For the developers'
-convenience, NFA state numbers sometimes appear in the diagnostic outputs.
+NFA state numbers sometimes appear in the diagnostic outputs.
+They can be ignored.
 
 About QDFA's, it will be necessary to know a bit more.
 Let's start with an example of another Earley item:
@@ -74,13 +77,19 @@ and that it is currently at earleme 2.
 We can get a description of the QDFA states from the C<show_QDFA> method.
 Here's what it says about QDFA state 1:
 
-    S1: 1,5
+    S1: predict; 1,5
     e ::= . e op e
     e ::= . number
-     <e> => S3 (2)
-     <number> => S4 (6)
+     <e> => S3
+     <number> => S4
 
-The two numbers after the "C<S1:>" label on the first line 
+The first line begins with the QDFA state's label: C<S1>.
+After it comes the C<predict> tag.
+That indicates this item was created by a prediction.
+That's one of the four ways an Earley item can be created.
+There's more on that below.
+
+The two numbers after the "C<predict>" tag on the first line 
 may be ignored.
 They are the numbers of the NFA states that were combined into this QDFA state.
 Marpa uses QDFA states to track the parse.
@@ -89,10 +98,11 @@ The second and third lines in the display represent the LR(0) items.
 They are rules with a dot added to indicate
 how far recognition has proceeded into the rule.
 
-A dot between two symbols indicates that all symbols before the dot
-have been recognized in the input,
+A dot between two symbols indicates that all symbols
+before the dot
+have been recognized,
 but that none of the symbols after the dot have been recognized.
-A dot at the beginning of an LR(0) item indicates that the rule is only predicted
+A dot at the beginning of an LR(0) item indicates that the rule is a prediction
 -- none of its symbols have yet been recognized.
 A dot at the end indicates that the rule is complete
 -- all of its symbols have been recognized.
@@ -101,7 +111,6 @@ The location of the dot is called the B<dot position>.
 The last two lines in the display show transitions.
 The first line says that, on seeing an C<e>, you transition to QDFA state 3.
 The second states that, on seeing a C<number>, you transition to QDFA state 4.
-(The numbers in parentheses are NFA states and may be ignored.)
 
 It's important to not confuse Earley items with LR(0) items.
 Earley items are built from one or more LR(0) items.
@@ -131,13 +140,15 @@ scanning, completion, prediction, and initialization.
 
 =head2 Scanning
 
-Scanning adds Earley items as tokens are recognized.
+Scanning adds Earley items to indicate that tokens have been recognized.
 Suppose the Earley item S1@2-2 (mentioned above) is present at earleme 2.
 Marpa knows to instruct the lexer to look for a C<number> token because
 there is a transition from S1 to S4 on C<number>.
 
-If the lexer finds a C<number> token with a length (in earlemes) of 1 at earleme 2,
+If the lexer finds a C<number> token with a length
+(in earlemes) of 1 at earleme 2,
 a new Earley item S4@2-3 is added at earleme 3.
+(Earleme 3 because 3 is 2+1, the current token plus the token length.)
 Here (again from C<show_QDFA>) is the description of QDFA state 4.
 
     S4: 6
@@ -162,7 +173,7 @@ Here's what S4@2-3 looks like in the Earley sets, after a successful
 scan of the input C<"2+2">.
 
     S4@2-3  predecessor: S1@2-2  effect: S6@0-3
-      pointer: number; lhs: e
+      pre-dot: number; lhs: e
       value: 2
       token choice 0 [p=S1@2-2; t=2]
       rule choice 0 [ 1: e -> number ]
@@ -170,7 +181,7 @@ scan of the input C<"2+2">.
 In the first line we see that, as mentioned, S1@2-2 is the predecessor of S4@2-3.
 It has no successor.
 The C<effect> item will be explained later.
-C<pointer> is the name of the symbol B<before> the dot pointer in the current choice of
+C<pre-dot> is the name of the symbol B<before> the dot pointer in the current choice of
 rule.
 (Remember that there may be more than one rule in an Earley item.)
 C<lhs> is the symbol on the left hand side of the current rule.
@@ -221,21 +232,22 @@ S5@0-2 is such a rule.  QDFA state 5 looks like this:
 
     S5: 3
     e ::= e op . e
-     empty => S1 (1,5)
-     <e> => S6 (4)
+     <e> => S6
 
 This says that in QDFA state 5, when you see an C<e>, you transition to
 QDFA state 6.
 Here's S6@0-3, the item which is the effect of the completion:
 
     S6@0-3  predecessor: S5@0-2  effect: S2@0-3
-      pointer: e; lhs: e
+      pre-dot: e; lhs: e
       value: 2==2
       link choice 0 [p=S5@0-2; c=S4@2-3]
       rule choice 0 [ 0: e -> e op e ]
 
-(You'll notice that S6@0-3 is not just an effect, but is in turn a cause of item S2@0-3,
-as noted on the first line.)
+(You'll notice that S6@0-3 is not just an effect,
+but also has its own effect.
+As noted on the first line,
+it is the cause of item S2@0-3.)
 The meanings of the terms predecessor and successor
 are similar to what they are in token scanning.
 Since S6@0-3 comes from moving the dot forward in
@@ -253,7 +265,7 @@ or because of any combination of these.
 Traditionally in Earley's algorithm,
 the same item is not added twice.
 Where an item comes from is not important in recognition.
-But parsing in the strict sense is determining the structure of the input,
+But parsing in the strict sense means determining the structure of the input,
 and that requires us to know why an Earley item was added to an Earley set.
 Marpa (again following the lead of
 L<Aycock and Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">)
@@ -281,8 +293,7 @@ Recall QDFA state 5
 
     S5: 3
     e ::= e op . e
-     empty => S1 (1,5)
-     <e> => S6 (4)
+     <e> => S6
 
 QDFA state 5 is expecting an C<e>.
 This means that the rules 
@@ -294,7 +305,7 @@ can also be expected to originate at this earleme.
 Marpa is smart about grouping rules into QDFA states
 and both these rules are in QDFA state 1:
 
-    S1: 1,5
+    S1: predict; 1,5
     e ::= . e op e
     e ::= . number
      <e> => S3 (2)
@@ -309,12 +320,6 @@ and we do:
 Every rule in a predicted item will have the dot at the beginning.
 That means the origin and dot earlemes will always be the same.
 
-Predicted items are always the result of empty transitions.
-An B<empty transition> is one that always occurs, without any input being necessary.
-Remember this transition from QDFA state 5?
-
-     empty => S1 (1,5)
-
 The descriptions of predicted items are often short.
 The description of S1@2-2 in our output was one line, the shortest
 description of an Earley item that we've seen.
@@ -327,13 +332,15 @@ they don't need to have links or a lot of the data that the other items have.
 
 =head2 Initialization
 
-One Earley item is always put into Earley set 0 to start things off.
-In our example it is
+Some Earley items are put into Earley set 0 to start things off.
+In our example they are
 
     S0@0-0  successor: S2@0-3
+    S1@0-0  successor: S4@0-1
 
 QDFA state 0 contains the start rules, with the dot pointer at the beginning.
 Only Earley set 0 will contain an Earley item for QDFA state 0.
+In our example, S1@0-0 contains rules predicted by S0@0-0.
 
 =head1 HOW RECOGNITION WORKS
 
@@ -371,7 +378,7 @@ a dot earleme of I<N>.
 Here's the Earley item which makes the parse in our example successful at earleme 3:
 
     S2@0-3  predecessor: S0@0-0
-      pointer: e; lhs: e[']
+      pre-dot: e; lhs: e[']
       value: (2+2)==4
       link choice 0 [p=S0@0-0; c=S6@0-3]
       rule choice 0 [ 2: e['] -> e ]
@@ -412,7 +419,7 @@ In other words, a proper nullable is any nullable symbol which is not a nulling 
 Nullable symbols have been a headache for previous versions of Earley parsers.
 L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
 outlined a new approach for dealing with them.
-I used their ideas and added a few of my own.
+I use their ideas and add a few of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.
 It does this by turning the original proper nullable into
@@ -429,7 +436,7 @@ is that of the original symbol with the nulling tag ("C<[]>") suffixed.
 The newly introduced nulling symbols will not appear on any left hand sides.
 Marpa marks nulling symbols internally and
 recognizes them directly,
-so it does not need to add empty rules for the nulling symbols it creates.
+so it does not need empty rules for nulling symbols.
 
 More difficult is the problem of dealing with the cases where the
 proper nullables appeared on the right hand side of rules.
@@ -453,7 +460,8 @@ in practice.
 
 A result due to Chomsky shows that any grammar can be rewritten
 as a grammar with at most two symbols on the right hand side.
-Relaxing this to limit right hand sides to at most two non-nullables,
+Relaxing Chomsky's rewrite to allow right hand sides with any number of symbols,
+but at most two proper nullables,
 produces a rewrite I call CHAF (Chomsky-Horspool-Aycock Form).
 
 CHAF changes the worst case to linear, and in practical cases lowers
@@ -539,11 +547,13 @@ This rule is a worst case for CHAF, because the last three symbols of the right 
 proper nullables.
 That means that the last two pieces of the original rule can be either empty or non-empty,
 and therefore that both of the newly created lhs symbols are also proper nullables.
-There are a total of 6 proper nullables:
+
+There are now a total of 6 proper nullables:
 the original 4 plus the 2 symbols newly created to serve as left hand sides.
-This is why, in order to have only 2 proper nullables per piece, the original rule
-had to be divided into 3 pieces.
-The newly created lhs symbols, if they are proper nullables,
+This is why, in order to have only 2 proper nullables per piece,
+the original rule
+needed to be divided into 3 pieces.
+The newly created lhs symbols, because they are proper nullables,
 need to be split into nulling and non-nulling
 variants and factored,
 just like the proper nullables in the original rule.
@@ -661,35 +671,43 @@ The input text was "C<2+2>".
 
 =begin make:
 
-perl -I../../.. ../../../../bin/marpa parse 
-ls ../../../../
+echo 2+2 |
+    perl -I../../.. ../../../../bin/marpa parse -grammar \
+    ../../../../example/equation.marpa --QDFA
 
 =end make:
 
 =head2 The C<show_QDFA> Output
 
+    Start States: S0; S1
     S0: 7
     e['] ::= . e
-     empty => S1 (1,5)
-     <e> => S2 (8)
-    S1: 1,5
+     <e> => S2
+    S1: predict; 1,5
     e ::= . e op e
     e ::= . number
-     <e> => S3 (2)
-     <number> => S4 (6)
+     <e> => S3
+     <number> => S4
     S2: 8
     e['] ::= e .
     S3: 2
     e ::= e . op e
-     <op> => S5 (3)
+     <op> => S1; S5
     S4: 6
     e ::= number .
     S5: 3
     e ::= e op . e
-     empty => S1 (1,5)
-     <e> => S6 (4)
+     <e> => S6
     S6: 4
     e ::= e op e .
+
+=begin make:
+
+echo 2+2 |
+    perl -I../../.. ../../../../bin/marpa parse -grammar \
+    ../../../../example/equation.marpa --show_status
+
+=end make:
 
 =head2 The C<show_status> Output
 
@@ -699,39 +717,39 @@ ls ../../../../
     S1@0-0  successor: S4@0-1
     Earley Set 1
     S4@0-1  predecessor: S1@0-0  effect: S3@0-1
-      pointer: number; lhs: e
+      pre-dot: number; lhs: e
       value: 2
       token choice 0 [p=S1@0-0; t=2]
       rule choice 0 [ 1: e -> number ]
     S2@0-1
       link choice 0 [p=S0@0-0; c=S4@0-1]
     S3@0-1  predecessor: S1@0-0  successor: S5@0-2
-      pointer: e
+      pre-dot: e
       value: 2==2
       link choice 0 [p=S1@0-0; c=S4@0-1]
       rule choice 0 [ 0: e -> e op e ]
     Earley Set 2
     S5@0-2  predecessor: S3@0-1  successor: S6@0-3
-      pointer: op
+      pre-dot: op
       value: +
       token choice 0 [p=S3@0-1; t=+]
       rule choice 0 [ 0: e -> e op e ]
     S1@2-2  successor: S4@2-3
     Earley Set 3
     S4@2-3  predecessor: S1@2-2  effect: S6@0-3
-      pointer: number; lhs: e
+      pre-dot: number; lhs: e
       value: 2
       token choice 0 [p=S1@2-2; t=2]
       rule choice 0 [ 1: e -> number ]
     S6@0-3  predecessor: S5@0-2  effect: S2@0-3
-      pointer: e; lhs: e
+      pre-dot: e; lhs: e
       value: 2==2
       link choice 0 [p=S5@0-2; c=S4@2-3]
       rule choice 0 [ 0: e -> e op e ]
     S3@2-3
       link choice 0 [p=S1@2-2; c=S4@2-3]
     S2@0-3  predecessor: S0@0-0
-      pointer: e; lhs: e[']
+      pre-dot: e; lhs: e[']
       value: (2+2)==4
       link choice 0 [p=S0@0-0; c=S6@0-3]
       rule choice 0 [ 2: e['] -> e ]

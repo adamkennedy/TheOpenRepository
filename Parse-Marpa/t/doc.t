@@ -19,7 +19,7 @@ our $DOC;
 open(DOC, "<", "../lib/Parse/Marpa/Doc/Internals.pod");
 my $doc; { local($RS) = undef; $doc = <DOC>; }
 $doc =~ s/\A.*^=head2[ ]The[ ]MDL[ ]Grammar\n$//xms;
-$doc =~ s/^=head2.*\z//xms;
+$doc =~ s/^=.*\z//xms;
 $doc =~ s/^\s*$//xmsg;
 $doc =~ s/^\s+//xmsg;
 
