@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION = '0.207_002';
+    our $VERSION = '0.207_003';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
