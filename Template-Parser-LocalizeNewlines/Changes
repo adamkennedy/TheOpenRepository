@@ -1,5 +1,9 @@
 Revision history for Perl extension Template::Parser::LocalizeNewlines
 
+1.03 Wed  9 2008
+	- No functional changes
+	- More tweaks for CPANTS
+
 1.02 Fri 14 Nov 2007
 	- No functional changes
 	- Minor tweaks to address CPANTS failures

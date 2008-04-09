@@ -15,7 +15,7 @@ WriteMakefile(
 		File::Spec  => '0.82',
 	},
 	($] >= 5.005) ? (
-		'AUTHOR'    => 'Adam Kennedy<cpan@ali.as>',
+		'AUTHOR'    => 'Adam Kennedy <adamk@cpan.org>',
 		'ABSTRACT'  => 'Drop-in replacement Template::Parser that fixes bad newlines',
 	) : (),
 );

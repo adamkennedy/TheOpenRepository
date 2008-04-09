@@ -32,7 +32,7 @@ use base 'Template::Parser';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.02';
+	$VERSION = '1.03';
 }
 
 # The only method we need to change
@@ -65,11 +65,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2004, 2007 Adam Kennedy.
+Copyright 2004, 2007, 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
