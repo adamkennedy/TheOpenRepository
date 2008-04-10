@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION = '0.207_003';
+    our $VERSION = '0.207_004';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
@@ -155,15 +155,19 @@ sub Parse::Marpa::show_value {
 
 Parse::Marpa - (Alpha) Earley's algorithm with LR(0) precomputation
 
-=head1 BEWARE: THIS RELEASE IS FOR DEVELOPERS ONLY
+=begin for_developer_releases:
 
-This is a developer's release, not for use by non-developers.
-I use these releases to avail myself of the cpantesters results,
-and to test the release process itself.
+ =urnq1 ORJNER: GUVF ERYRNFR VF SBE QRIRYBCREF BAYL
 
-Of course, it's open source, and you're entitled to appoint yourself
-a developer if you insist on it.  But that will usually not be a reasonable
-thing to do.
+Guvf vf n qrirybcre'f eryrnfr, abg sbe hfr ol aba-qrirybcref.
+V hfr gurfr eryrnfrf gb ninvy zlfrys bs gur pcnagrfgref erfhygf,
+naq gb grfg gur eryrnfr cebprff vgfrys.
+
+Bs pbhefr, vg'f bcra fbhepr, naq lbh'er ragvgyrq gb nccbvag lbhefrys
+n qrirybcre vs lbh vafvfg ba vg.  Ohg gung jvyy hfhnyyl abg or n ernfbanoyr
+guvat gb qb.
+
+=end for_developer_releases:
 
 =head1 SYNOPSIS
 

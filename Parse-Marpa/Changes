@@ -23,6 +23,11 @@ Revision history for Parse::Marpa
         First in a Series of Developer's Releases
 	Please do not use, unless you're developing Marpa.
 
+	As of this point, I adopted a system where odd minor
+	releases (0.205, 0.207, etc.) are developer-only releases
+	and even minor releases (0.204, 0.206, etc.) are
+	general releases.
+
 0.205_006 Fri Mar 28 20:34:44 EDT 2008
         The tutorial added in 0.204.0 is now hopelessly out of date,
 	and has been removed.
