@@ -62,9 +62,9 @@ sub content {
 sub write {
 	my $self = shift;
 	my $to   = shift;
-	open( WEBSITE, ">$to" ) or die "open($to): $!";
-	print WEBSITE $self->content;
-	close WEBSITE;
+	open( WEBSITE, ">$to" )      or die "open($to): $!";
+	print WEBSITE $self->content or die "print($to): $!";
+	close WEBSITE                or die "close($to): $!";
 	return 1;
 }
 
