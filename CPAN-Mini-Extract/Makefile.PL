@@ -18,6 +18,6 @@ requires       'Params::Util'     => '0.20';
 requires       'CPAN::Mini'       => '0.550';
 requires       'URI'              => 0;
 requires       'LWP::Online'      => '0.03';
-build_requires 'Test::More'       => '0.47';
+test_requires 'Test::More'       => '0.47';
 
 WriteAll;

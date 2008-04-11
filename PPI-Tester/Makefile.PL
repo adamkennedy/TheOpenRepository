@@ -5,9 +5,9 @@ name           'PPI-Tester';
 all_from       'lib/PPI/Tester.pm';
 requires       'PPI'          => '1.201';
 requires       'Wx'           => '0.54';
-build_requires 'File::Spec'   => '0.80';
-build_requires 'Test::More'   => '0.47';
-build_requires 'Test::Script' => '1.02';
+test_requires 'File::Spec'   => '0.80';
+test_requires 'Test::More'   => '0.47';
+test_requires 'Test::Script' => '1.02';
 install_script 'bin/ppitester';
 
 WriteAll;

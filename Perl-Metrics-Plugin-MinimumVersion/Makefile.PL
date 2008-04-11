@@ -12,7 +12,7 @@ requires       ( 'Carp'                    => 0       );
 requires       ( 'version'                 => '0.48'  );
 requires       ( 'Perl::Metrics'           => '0.03'  );
 requires       ( 'Perl::MinimumVersion'    => '0.10'  );
-build_requires ( 'Test::More'              => '0.47'  );
-build_requires ( 'File::Spec'              => '0.80'  );
+test_requires ( 'Test::More'              => '0.47'  );
+test_requires ( 'File::Spec'              => '0.80'  );
 
 &WriteAll;

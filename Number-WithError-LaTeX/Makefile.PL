@@ -8,7 +8,7 @@ requires       'Math::BigFloat'          => '0';
 requires       'Number::WithError'       => '0.08';
 requires       'TeX::Encode'             => '0.4';
 
-build_requires 'Test::More'              => '0.47';
-build_requires 'Test::LectroTest'        => '0';
+test_requires 'Test::More'              => '0.47';
+test_requires 'Test::LectroTest'        => '0';
 
 WriteAll();

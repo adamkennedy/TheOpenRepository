@@ -15,10 +15,10 @@ requires       'Email::MIME'              => '1.859';
 requires       'Email::MIME::Creator'     => '1.453';
 requires       'Email::Send'              => '2.182';
 requires       'Module::CGI::Install'     => '0.04';
-build_requires 'Test::More'               => '0.42';
-build_requires 'IPC::Run3'                => '0.034';
-build_requires 'File::Copy'               => 0;
-build_requires 'File::Remove'             => '0.37';
+test_requires 'Test::More'               => '0.42';
+test_requires 'IPC::Run3'                => '0.034';
+test_requires 'File::Copy'               => 0;
+test_requires 'File::Remove'             => '0.37';
 install_script 'script/tinyauth.pl';
 
 # Generate the script

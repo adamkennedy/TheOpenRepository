@@ -12,8 +12,8 @@ requires       'List::Util'            => '1.11';
 requires       'HTML::Location'        => '1.00';
 requires       'Digest::TransformPath' => '0.01';
 requires       'Params::Coerce'        => '0.13';
-build_requires 'Test::More'            => '0.47';
-build_requires 'Test::ClassAPI'        => '1.04';
-build_requires 'IO::File'              => 0;
+test_requires 'Test::More'            => '0.47';
+test_requires 'Test::ClassAPI'        => '1.04';
+test_requires 'IO::File'              => 0;
 
 WriteAll;

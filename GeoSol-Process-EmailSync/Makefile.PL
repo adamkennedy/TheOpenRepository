@@ -32,6 +32,6 @@ requires       'LVAS'           => '0.01';
 requires       'GeoSol::Config' => 0;
 requires       'GeoSol'         => 0;
 
-build_requires 'Test::More'     => '0.47';
+test_requires 'Test::More'     => '0.47';
 
 WriteAll;

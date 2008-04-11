@@ -9,7 +9,7 @@ requires       'Class::Inspector' => '1.07';
 requires       'Params::Util'     => '0.21';
 requires       'Params::Coerce'   => '0.06';
 requires       'File::ShareDir'   => '0.05';
-build_requires 'Test::More'       => '0.47';
+test_requires 'Test::More'       => '0.47';
 install_share;
 
 WriteAll;

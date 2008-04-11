@@ -3,7 +3,7 @@ use inc::Module::Install;
 
 name           'Array-Window';
 all_from       'lib/Array/Window.pm';
-build_requires 'File::Spec' => '0.80';
-build_requires 'Test::More' => '0.47';
+test_requires 'File::Spec' => '0.80';
+test_requires 'Test::More' => '0.47';
 
 WriteAll;

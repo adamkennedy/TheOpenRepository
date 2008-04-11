@@ -8,7 +8,7 @@ requires       'URI'          => '1.28';
 requires       'Time::HiRes'  => 0;
 requires       'Time::Local'  => '1.13';
 requires       'LWP::Simple'  => 0;
-build_requires 'Test::More'   => '0.42';
-build_requires 'LWP::Online'  => '0.03';
+test_requires 'Test::More'   => '0.42';
+test_requires 'LWP::Online'  => '0.03';
 
 WriteAll;

@@ -7,6 +7,6 @@ requires       'URI'                   => '1.33';
 requires       'Clone'                 => '0.21';
 requires       'Algorithm::Dependency' => '1.02';
 requires       'Params::Coerce'        => '0.06';
-build_requires 'Test::More'            => '0.47';
+test_requires 'Test::More'            => '0.47';
 
 WriteAll;

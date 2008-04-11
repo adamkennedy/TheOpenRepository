@@ -11,8 +11,8 @@ requires              'Params::Util'     => '0.10';
 requires              'PITA'             => '0.40';
 requires              'Filesys::MakeISO' => 0;
 requires_external_bin 'qemu'             => 0;
-build_requires        'File::Spec'       => '0.80';
-build_requires        'Test::More'       => '0.47';
+test_requires        'File::Spec'       => '0.80';
+test_requires        'Test::More'       => '0.47';
 
 # What osname's do we know that mkisofs runs on
 my @mkisofs_platforms = qw{
@@ -38,7 +38,7 @@ if ( can_run('mkisofs') or grep { $^O eq $_ } @mkisofs_platforms ) {
 # Are we going to need the test image
 if ( $ENV{AUTOMATED_TESTING} ) {
 	# Always install the test image during automated testing
-	build_requires        'PITA::Test::Image::Qemu';
+	test_requires        'PITA::Test::Image::Qemu';
 }
 
 WriteAll;

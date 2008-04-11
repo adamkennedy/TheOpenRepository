@@ -7,9 +7,9 @@ requires       'Carp'         => 0;
 requires       'Storable'     => '2.11';
 requires       'IO::Scalar'   => '2.110';
 requires       'YAML::Tiny'   => '1.21';
-build_requires 'File::Spec'   => '0.80';
-build_requires 'Test::More'   => '0.47';
-build_requires 'Test::Script' => '1.02';
+test_requires 'File::Spec'   => '0.80';
+test_requires 'Test::More'   => '0.47';
+test_requires 'Test::Script' => '1.02';
 install_script 'script/cgicapture';
 
 WriteAll;

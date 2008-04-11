@@ -7,6 +7,6 @@ use inc::Module::Install;
 name           'Package-Util';
 all_from       'lib/Package/Util.pm';
 requires       'Carp'       => 0;
-build_requires 'Test::More' => '0.47';
+test_requires 'Test::More' => '0.47';
 
 WriteAll;

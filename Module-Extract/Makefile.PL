@@ -7,7 +7,7 @@ requires       'Carp'             => 0;
 requires       'File::Path'       => '1.06';
 requires       'File::Temp'       => '0.17';
 requires       'Archive::Extract' => '0.12';
-build_requires 'File::Spec'       => '0.80';
-build_requires 'Test::More'       => '0.42';
+test_requires 'File::Spec'       => '0.80';
+test_requires 'Test::More'       => '0.42';
 
 WriteAll;

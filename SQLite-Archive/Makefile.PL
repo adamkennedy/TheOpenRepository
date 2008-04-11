@@ -12,7 +12,7 @@ requires       'Parse::CSV'       => '1.00';
 requires       'SQL::Script'      => '0.03';
 requires       'DBI'              => '1.53';
 requires       'DBD::SQLite'      => '1.09';
-build_requires 'Test::More'       => '0.42';
-build_requires 'File::Spec'       => '0.80';
+test_requires 'Test::More'       => '0.42';
+test_requires 'File::Spec'       => '0.80';
 
 WriteAll;

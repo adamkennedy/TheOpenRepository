@@ -12,9 +12,9 @@ requires       'Scalar::Util'     => '1.15';
 requires       'Archive::Builder' => '1.04';
 requires       'Params::Coerce'   => '0.05';
 requires       'Params::Util'     => '0.06';
-build_requires 'Test::More'       => '0.47';
-build_requires 'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
-build_requires 'Test::ClassAPI'   => '1.02';
+test_requires 'Test::More'       => '0.47';
+test_requires 'Class::Inspector' => '1.11'; # Needed by Test::ClassAPI
+test_requires 'Test::ClassAPI'   => '1.02';
 include        'Test::ClassAPI';
 
 WriteAll;

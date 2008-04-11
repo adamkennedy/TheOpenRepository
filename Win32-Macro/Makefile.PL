@@ -10,7 +10,7 @@ requires       'Carp'               => 0;
 requires       'Exporter'           => 0;
 requires       'Imager'             => 0;
 requires       'Win32API::Registry' => 0;
-build_requires 'Test::More'   => 0;
+test_requires 'Test::More'   => 0;
 cc_files       'lib/Win32/Macro/Internals.c';
 
 require ExtUtils::Constant;

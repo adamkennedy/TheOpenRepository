@@ -20,7 +20,7 @@ requires       'Archive::Tar'          => '1.30';
 requires       'Archive::Zip'          => '1.18';
 requires       'YAML'                  => '0.39';
 requires       'Algorithm::Dependency' => '1.101';
-build_requires 'Test::More'            => '0.47';
-build_requires 'File::Remove'          => '0.34';
+test_requires 'Test::More'            => '0.47';
+test_requires 'File::Remove'          => '0.34';
 
 WriteAll;

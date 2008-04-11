@@ -9,7 +9,7 @@ requires       'Params::Util'        => '0.26';
 requires       'Object::Tiny'        => '1.01';
 requires       'File::Slurp'         => '9999.12';
 requires       'Imager'              => '0.59';
-build_requires 'Test::More'          => '0.42';
-build_requires 'Test::File::Cleaner' => 0;
+test_requires 'Test::More'          => '0.42';
+test_requires 'Test::File::Cleaner' => 0;
 
 WriteAll;

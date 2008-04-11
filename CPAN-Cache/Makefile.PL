@@ -10,7 +10,7 @@ requires       'File::HomeDir'  => '0.54';
 requires       'Params::Util'   => '0.10';
 requires       'URI::ToDisk'    => '1.09';
 requires       'LWP::Simple'    => 0;
-build_requires 'Test::More'     => '0.47';
-build_requires 'File::Spec'     => '0.80';
+test_requires 'Test::More'     => '0.47';
+test_requires 'File::Spec'     => '0.80';
 
 WriteAll;

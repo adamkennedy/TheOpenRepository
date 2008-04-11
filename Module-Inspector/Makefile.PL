@@ -15,6 +15,6 @@ requires       'PPI'                    => '1.118';
 requires       'Module::Extract'        => '0.01';
 requires       'Module::Manifest'       => '0.01';
 requires       'Module::Math::Depends'  => '0.01';
-build_requires 'Test::More'             => '0.47';
+test_requires 'Test::More'             => '0.47';
 
 WriteAll;

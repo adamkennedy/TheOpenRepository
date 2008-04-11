@@ -16,10 +16,10 @@ requires       'File::Copy::Recursive' => '0.35';
 requires       'File::Remove'          => '0.38';
 requires       'File::Temp'            => '0.17';   
 requires       'IO::File'              => 0;
-build_requires 'Test::More'            => '0.47';
-build_requires 'Test::ClassAPI'        => '1.04';
+test_requires 'Test::More'            => '0.47';
+test_requires 'Test::ClassAPI'        => '1.04';
 
 # Avoid use of system chmod -R in test script
-build_requires 'File::Find'            => 0;
+test_requires 'File::Find'            => 0;
 
 WriteAll;

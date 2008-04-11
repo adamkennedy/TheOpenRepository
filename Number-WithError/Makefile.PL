@@ -6,7 +6,7 @@ requires       'Params::Util'            => '0.10';
 requires       'prefork'                 => '1.00';
 requires       'Math::BigFloat'          => '0';
 
-build_requires 'Test::More'              => '0.47';
-build_requires 'Test::LectroTest'        => '0';
+test_requires 'Test::More'              => '0.47';
+test_requires 'Test::LectroTest'        => '0';
 
 WriteAll();

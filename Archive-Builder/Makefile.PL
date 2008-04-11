@@ -11,8 +11,8 @@ requires        'Class::Inspector' => '1.12';
 requires        'IO::String'       => '1.08';
 requires        'IO::Zlib'         => 0;
 requires        'Params::Util'     => '0.22';
-build_requires  'Test::More'       => '0.47';
-build_requires  'Test::ClassAPI'   => '1.02';
+test_requires  'Test::More'       => '0.47';
+test_requires  'Test::ClassAPI'   => '1.02';
 
 # Tar and Zip archives are support by default
 requires        'Archive::Zip'     => '1.18';

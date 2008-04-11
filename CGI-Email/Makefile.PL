@@ -6,6 +6,6 @@ all_from       'lib/CGI/Email.pm';
 requires       'CGI'          => '3.00';
 requires       'Email::Send'  => '2.183';
 requires       'CGI::Install' => 0;
-build_requires 'Test::More'   => '0.42';
+test_requires 'Test::More'   => '0.42';
 
 WriteAll;

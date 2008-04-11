@@ -13,8 +13,8 @@ requires       'Params::Util' => '0.10';
 requires       'File::Temp'   => 0;
 requires       'IPC::Run3'    => '0.034';
 requires       'Probe::Perl'  => '0.01';
-build_requires 'File::Spec'   => '0.80';
-build_requires 'File::Remove' => '0.34';
-build_requires 'Test::More'   => '0.47';
+test_requires 'File::Spec'   => '0.80';
+test_requires 'File::Remove' => '0.34';
+test_requires 'Test::More'   => '0.47';
 
 WriteAll;

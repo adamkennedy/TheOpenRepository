@@ -9,8 +9,8 @@ requires       'Carp'                    => 0;
 requires       'IO::Handle'              => 0;
 requires       'IO::File'                => 0;
 requires       'Params::Util'            => '0.10';
-build_requires 'File::Spec'              => '0.80';
-build_requires 'Test::More'              => '0.47';
+test_requires 'File::Spec'              => '0.80';
+test_requires 'Test::More'              => '0.47';
 
 # The additional logic required to handle the weird
 # digest dependencies.

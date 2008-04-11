@@ -8,6 +8,6 @@ requires       'Params::Util'     => '0.17';
 requires       'Class::Inspector' => '1.12';
 requires       'IO::File'         => 0;
 requires       'POE'              => '0.3601';
-build_requires 'Test::More'       => '0.47';
+test_requires 'Test::More'       => '0.47';
 
 WriteAll;

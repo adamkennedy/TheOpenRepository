@@ -13,7 +13,7 @@ requires       'Object::Tiny'      => '1.00';
 requires       'WWW::Mechanize'    => '1.22';
 requires       'HTML::Tree'        => '3.23';
 requires       'Object::Destroyer' => '2.00';
-build_requires 'Test::More'        => '0.42';
-build_requires 'LWP::Online'       => '0.02';
+test_requires 'Test::More'        => '0.42';
+test_requires 'LWP::Online'       => '0.02';
 
 WriteAll;

@@ -15,6 +15,6 @@ requires       'PITA::XML'        => '0.40';
 requires       'PITA::Scheme'     => '0.40';
 requires       'URI'              => 0;
 requires       'LWP'              => '5.69';
-build_requires 'Test::More'       => '0.47';
+test_requires 'Test::More'       => '0.47';
 
 WriteAll;

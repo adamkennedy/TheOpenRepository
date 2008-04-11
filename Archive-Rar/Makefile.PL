@@ -14,8 +14,8 @@ if ($iswindows) {
     requires 'Win32::Registry'    => '0';
 }
 
-build_requires 'Test::Simple'     => '0';
-build_requires 'Test::More'       => '0';
+test_requires 'Test::Simple'     => '0';
+test_requires 'Test::More'       => '0';
 
 if (not $iswindows) {
   requires_external_bin 'rar';

@@ -19,10 +19,10 @@ requires       'URI::ToDisk'         => '1.09';
 requires       'LWP::Simple'         => '1.41';
 requires       'CGI::Capture'        => '1.08';
 requires       'Object::Tiny'        => '1.02';
-build_requires 'Test::More'          => '0.42';
-build_requires 'Test::Script'        => '1.02';
-build_requires 'Test::File::Cleaner' => '0.03';
-build_requires 'URI'                 => '1.35';
+test_requires 'Test::More'          => '0.42';
+test_requires 'Test::Script'        => '1.02';
+test_requires 'Test::File::Cleaner' => '0.03';
+test_requires 'URI'                 => '1.35';
 install_script 'script/cgi_install';
 
 WriteAll;

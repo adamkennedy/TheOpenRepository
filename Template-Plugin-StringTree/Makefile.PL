@@ -7,6 +7,6 @@ requires       'File::Spec'   => '0.80';
 requires       'List::Util'   => '1.11';
 requires       'Scalar::Util' => 0;
 requires       'Template'     => 0;
-build_requires 'Test::More'   => '0.42';
+test_requires 'Test::More'   => '0.42';
 
 WriteAll;

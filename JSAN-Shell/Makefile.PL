@@ -11,8 +11,8 @@ requires       'File::ShareDir'       => '0.05';
 requires       'LWP::Online'          => '0.02';
 requires       'Mirror::YAML'         => '0.02';
 requires       'JSAN::Client'         => '0.16';
-build_requires 'File::Spec'           => '0.80';
-build_requires 'Test::More'           => '0.47';
+test_requires 'File::Spec'           => '0.80';
+test_requires 'Test::More'           => '0.47';
 install_script 'bin/jsan2';
 install_share;
 

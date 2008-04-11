@@ -16,8 +16,8 @@ requires       'POE::Component::IRC::Plugin::Connector' => 0;
 requires       'ThreatNet::Filter'                      => '0.03';
 requires       'Net::IP'                                => 0;
 requires       'Net::IP::Match::XS'                     => '0.03';
-build_requires 'Test::More'                             => '0.47';
-build_requires 'File::Spec'                             => '0.82';
+test_requires 'Test::More'                             => '0.47';
+test_requires 'File::Spec'                             => '0.82';
 install_script 'script/ammobot';
 
 WriteAll;

@@ -24,9 +24,9 @@ requires       'Params::Util'   => '0.21';
 requires       'URI'            => 0;
 requires       'LWP::Simple'    => 0;
 requires       'PAR::Dist'      => '0.25';
-build_requires 'Test::More'     => '0.42';
-build_requires 'Test::Script'   => '1.02';
-build_requires 'LWP::Online'    => '0.02';
+test_requires 'Test::More'     => '0.42';
+test_requires 'Test::Script'   => '1.02';
+test_requires 'LWP::Online'    => '0.02';
 install_script 'script/pip';
 
 # Required for p5z creation and extraction
