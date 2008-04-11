@@ -71,11 +71,11 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
 
 =head1 SEE ALSO
 
-L<PPI|PPI>, L<PPI::Manual|PPI::Manual>
+L<PPI>, L<PPI::Manual>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Adam Kennedy.
+Copyright 2004 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
