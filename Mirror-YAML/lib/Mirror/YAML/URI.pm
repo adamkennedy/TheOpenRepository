@@ -1,5 +1,6 @@
 package Mirror::YAML::URI;
 
+use 5.005;
 use strict;
 use URI          ();
 use Params::Util qw{ _STRING _INSTANCE };
@@ -7,7 +8,7 @@ use LWP::Simple  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
