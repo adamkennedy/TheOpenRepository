@@ -2,6 +2,7 @@ Changes for Perl extension Win32-Env-Path
 
 0.02 Wed 26 Mar 2008
 	- Fixed bad use of push in win32envpath
+	- Adding the push and unshift functionality
 
 0.01 Mon 24 Mar 2008
 	- Created initial release

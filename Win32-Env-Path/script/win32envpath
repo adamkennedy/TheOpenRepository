@@ -26,10 +26,12 @@ exit( main(@ARGV) );
 
 sub main {
 	my $cmd = shift @_;
-	return usage(@_)    unless defined $cmd;
-	return clean(@_)    if $cmd eq 'clean';
-	return add_push(@_) if $cmd eq 'push';
-	return remove(@_)   if $cmd eq 'remove';
+	return usage(@_)       unless defined $cmd;
+	return clean(@_)       if $cmd eq 'clean';
+	return add(@_)         if $cmd eq 'add';
+	return add_push(@_)    if $cmd eq 'push';
+	return add_unshift(@_) if $cmd eq 'unshift';
+	return remove(@_)      if $cmd eq 'remove';
 	return error("Unknown command '$cmd'");
 }
 
@@ -52,6 +54,19 @@ sub clean {
 	return 0;
 }
 
+sub add {
+	my $path = path(shift);
+	my $name = $path->name;
+	my $dir  = shift;
+	unless ( defined $dir and -d $dir ) {
+		error("Missing or invalid directory to add to '$name'");
+	}
+	unless ( $path->add($name) ) {
+		error("Failed to push directory onto '$name'");
+	}
+	return 0;
+}
+
 sub add_push {
 	my $path = path(shift);
 	my $name = $path->name;
@@ -59,7 +74,20 @@ sub add_push {
 	unless ( defined $dir and -d $dir ) {
 		error("Missing or invalid directory to add to '$name'");
 	}
-	unless ( 0 ) {
+	unless ( $path->push($name) ) {
+		error("Failed to push directory onto '$name'");
+	}
+	return 0;
+}
+
+sub add_unshift {
+	my $path = path(shift);
+	my $name = $path->name;
+	my $dir  = shift;
+	unless ( defined $dir and -d $dir ) {
+		error("Missing or invalid directory to add to '$name'");
+	}
+	unless ( $path->unshift($name) ) {
 		error("Failed to push directory onto '$name'");
 	}
 	return 0;

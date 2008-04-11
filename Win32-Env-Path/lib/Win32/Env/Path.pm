@@ -123,6 +123,33 @@ sub elements {
 #####################################################################
 # Main Interface Methods
 
+sub add {
+	my $self = shift;
+	my $path = shift;
+	unless ( defined _STRING($path) ) {
+		croak("Did not provide a path to ->add");
+	}
+	die "CODE INCOMPLETE";
+}
+
+sub push {
+	my $self = shift;
+	my $path = shift;
+	unless ( defined _STRING($path) ) {
+		croak("Did not provide a path to ->push");
+	}
+	die "CODE INCOMPLETE";
+}
+
+sub unshift {
+	my $self = shift;
+	my $path = shift;
+	unless ( defined _STRING($path) ) {
+		croak("Did not provide a path to ->unshift");
+	}
+	die "CODE INCOMPLETE";
+}
+
 sub remove {
 	my $self = shift;
 	my $path = shift;
@@ -159,7 +186,7 @@ sub clean {
 		my $full = $self->resolve($array->[$path]);
 		next if $seen{$full}++;
 		next unless -d $full;
-		push @$new, $array->[$path];
+		CORE::push @$new, $array->[$path];
 	}
 
 	# Did we make any changes?
@@ -168,16 +195,6 @@ sub clean {
 	# Store and sync
 	@$array = @$new;
 	$self->sync;
-}
-
-sub clean_three {
-	my $class = shift;
-	foreach my $name ( qw{ PATH LIB INCLUDE } ) {
-		Win32::Env::Path->new(
-			name => $name,
-		)->clean;
-	}
-	return 1;
 }
 
 sub sync {
