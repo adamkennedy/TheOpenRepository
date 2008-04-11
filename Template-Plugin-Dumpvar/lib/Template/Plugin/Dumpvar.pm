@@ -33,13 +33,14 @@ object at a time.
 
 =cut
 
+use 5.005;
 use strict;
 use Devel::Dumpvar ();
 use base 'Template::Plugin';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '1.03';
 }
 
 
@@ -53,7 +54,7 @@ sub new {
 	my $class = ref $_[0] || $_[0];
 	bless {
 		Dumpvar => Devel::Dumpvar->new( to => 'return' ),
-		}, $class;
+	}, $class;
 }
 
 =pod
@@ -65,8 +66,7 @@ Dumps a single structure via L<Devel::Dumpvar>. Does not escape for HTML.
 =cut
 
 sub dump {
-	my $self = shift;
-	$self->{Dumpvar}->dump( shift );
+	$_[0]->{Dumpvar}->dump( $_[1] );
 }
 
 =pod
@@ -78,8 +78,7 @@ As above, but also escapes and formats for HTML
 =cut
 
 sub dump_html {
-	my $self = shift;
-	$_ = $self->dump(shift) or return $_;
+	$_ = $_[0]->dump($_[1]) or return $_;
 
 	# Escape for HTML
 	s/&/&amp;/g;
@@ -98,21 +97,18 @@ sub dump_html {
 
 Bugs should be submitted via the CPAN bug tracker, located at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template%3A%3APlugin%3A%3ADumpvar>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Plugin-Dumpvar>
 
-For other issues, or commercial enhancement or support, contact the author..
+For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Thank you to Phase N Australia (L<http://phase-n.com/>) for permitting the
-open sourcing and release of this distribution as a spin-off from a
-commercial project.
+Copyright 2004 - 2008 Adam Kennedy.
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
