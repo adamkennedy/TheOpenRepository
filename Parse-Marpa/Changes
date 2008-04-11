@@ -38,3 +38,7 @@ Revision history for Parse::Marpa
 0.207_000 Tue Apr  1 12:38:02 EDT 2008
         First in a new series of developer's releases.
 	Please do not use, unless you're developing Marpa.
+
+0.208.000 Fri Apr 11 11:05:37 EDT 2008
+        Fourth Alpha Release.
+	Eliminates problem of priority conflicts.
