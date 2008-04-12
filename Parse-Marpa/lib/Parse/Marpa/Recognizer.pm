@@ -82,8 +82,18 @@ sub set_null_symbol_value {
         return $null_value;
     }
 
-    $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]
-        = [ (map { set_null_symbol_value($_) } @$chaf_nulling), [] ];
+    # it is a CHAF nulling symbol, but needs its null value calculated.
+    my @null_values = ();
+    for my $rhs_symbol (@$chaf_nulling) {
+         my $nulling_symbol
+            = $rhs_symbol->[Parse::Marpa::Internal::Symbol::NULL_ALIAS]
+		// $rhs_symbol;
+	 my $value = set_null_symbol_value($nulling_symbol);
+	 push(@null_values, $value);
+    }
+    push(@null_values, []);
+
+    $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] = \@null_values;
 
 } # null symbol value
 
@@ -131,7 +141,11 @@ sub set_null_values {
 
             my $code = "package $package;\nlocal(" . '$_' . ")=[]; $action"; 
             my @warnings;
-            local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	    my @caller_return;
+            local $SIG{__WARN__} = sub {
+		push(@warnings, $_[0]);
+		@caller_return = caller 0;
+	    };
             my $null_value = eval($code);
             my $fatal_error = $@;
             if ($fatal_error or @warnings) {
@@ -139,7 +153,8 @@ sub set_null_values {
                     "evaluating null value",
                     "evaluating null value for "
                         . $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],
-                    \$action
+                    \$action,
+		    \@caller_return
                 );
             }
             $nulling_alias->[Parse::Marpa::Internal::Symbol::NULL_VALUE] = $null_value;
@@ -270,15 +285,20 @@ sub set_actions {
         my $closure;
         {
             my @warnings;
-            local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	    my @caller_return;
+            local $SIG{__WARN__} = sub {
+		push(@warnings, $_[0]);
+		@caller_return = caller 0;
+	    };
             $closure = eval $code;
             my $fatal_error = $@;
             if ($fatal_error or @warnings) {
                 Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                     "compiling action",
                     "compiling action for "
-                        . Parse::Marpa::brief_original_rule($rule),,
-                    \$code
+                        . Parse::Marpa::brief_original_rule($rule),
+                    \$code,
+		    \@caller_return
                 );
             }
         }
@@ -338,14 +358,19 @@ sub set_actions {
                 my $closure;
                 {
                     my @warnings;
-                    local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+		    my @caller_return;
+                    local $SIG{__WARN__} = sub {
+			push(@warnings, $_[0]);
+			@caller_return = caller 0;
+		    };
                     $closure = eval $code;
                     my $fatal_error = $@;
                     if ($fatal_error or @warnings) {
                         Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                             "compiling action",
                             "compiling action for $name",
-                            \$code
+                            \$code,
+			    \@caller_return
                         );
                     }
                 }
@@ -423,14 +448,19 @@ sub eval_grammar {
 
     if ( defined $preamble ) {
         my @warnings;
-        local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	my @caller_return;
+        local $SIG{__WARN__} = sub {
+	    push(@warnings, $_[0]);
+	    @caller_return = caller 0;
+	};
         eval( "package " . $package . ";\n" . $preamble );
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
             Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                 "evaluating preamble",
                 "evaluating preamble",
-                \$preamble
+                \$preamble,
+		\@caller_return
             );
         }
     }
@@ -815,7 +845,11 @@ sub Parse::Marpa::Recognizer::text {
             my ( $match, $length );
             {
                 my @warnings;
-                local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+		my @caller_return;
+                local $SIG{__WARN__} = sub {
+		    push(@warnings, $_[0]);
+		    @caller_return = caller 0;
+		};
                 eval { ($match, $length) = $lex_closure->($input_ref, $pos); };
                 my $fatal_error = $@;
                 if ($fatal_error or @warnings) {
@@ -825,7 +859,8 @@ sub Parse::Marpa::Recognizer::text {
                         "user supplied lexer for "
                             . $lexable->[Parse::Marpa::Internal::Symbol::NAME]
                             .  " at $pos",
-                        \($lexable->[Parse::Marpa::Internal::Symbol::ACTION])
+                        \($lexable->[Parse::Marpa::Internal::Symbol::ACTION]),
+			\@caller_return
                     );
                 }
             }

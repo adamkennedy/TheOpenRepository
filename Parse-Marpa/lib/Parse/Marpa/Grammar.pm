@@ -341,7 +341,11 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
 
      {
          my @warnings;
-         local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	 my @caller_return;
+         local $SIG{__WARN__} = sub {
+	     push(@warnings, $_[0]);
+	     @caller_return = caller 0;
+	 };
          eval $$raw_grammar;
          my $fatal_error = $@;
          if ($fatal_error or @warnings) {
@@ -351,6 +355,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
                   "evaluating gramar",
                   "evaluating gramar",
                   $raw_grammar,
+		  \@caller_return
               );
          }
      }
@@ -1060,7 +1065,11 @@ sub Parse::Marpa::Grammar::decompile {
     my $grammar;
     {
         my @warnings;
-        local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	my @caller_return;
+        local $SIG{__WARN__} = sub {
+	    push(@warnings, $_[0]);
+	    @caller_return = caller 0;
+	};
         eval $$compiled_grammar;
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
@@ -1070,6 +1079,7 @@ sub Parse::Marpa::Grammar::decompile {
                 "decompiling gramar",
                 "decompiling gramar",
                 $compiled_grammar,
+		\@caller_return
             );
         }
     }
