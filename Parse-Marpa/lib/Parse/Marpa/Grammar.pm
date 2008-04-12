@@ -195,45 +195,109 @@ use Scalar::Util qw(weaken);
 use Data::Dumper;
 use Carp;
 
-sub Parse::Marpa::Internal::die_on_problems {
+sub Parse::Marpa::Internal::code_problems {
     my $fatal_error = shift;
     my $warnings = shift;
     my $where = shift;
     my $long_where = shift;
     my $code = shift;
+    my $caller_return = shift;
+    my ($package, $filename, $problem_line) = @$caller_return;
 
     $long_where //= $where;
     my $grammar = $Parse::Marpa::Internal::This::grammar;
-    my $code_lines = 30;
-    $code_lines = $grammar->[ Parse::Marpa::Internal::Grammar::CODE_LINES ]
-        if defined $grammar;
     my @msg;
-    if (defined $code and defined $$code and $code_lines) {
-        my $position = 0;
-        if ($code_lines >= 0) {
-            LINE: for (my $line = $code_lines; $line > 0; $line--) {
-                $position = index($$code, "\n", $position);
-                last LINE if $position < 0;
-                $position++;
-            }
-        } else {
-            $position = -1;
-        }
-        my $code_piece = $code;
-        if ($position > 0) {
-            $code_piece = \(
-                substr($$code, 0, $position+1)
-                . "[ Code truncated after $code_lines lines ]"
-            )
-        }
+    my $code_lines;
+    if (defined $grammar) {
+	$code_lines = $grammar->[ Parse::Marpa::Internal::Grammar::CODE_LINES ];
+    } else {
+	push(@msg, "Marpa bug: Grammar not set");
+    }
+
+    # if we have code
+    my $code_to_print;
+
+    # block to look for the code to print
+    CODE_TO_PRINT: {
+	
+	last CODE_TO_PRINT unless defined $code;
+	last CODE_TO_PRINT unless defined $$code;
+
+	$code_lines //= 3;
+
+	# if code_lines < 0, print all lines
+	if ($code_lines < 0) {
+	    $code_to_print = $code;
+	    last CODE_TO_PRINT;
+	}
+
+        # which lines to print?
+	my $first_line;
+	my $max_line;
+
+	# else if we know the problem line, print code_lines
+	# worth of context
+	if (defined $problem_line) {
+	    $first_line = $problem_line - $code_lines;
+	    $first_line = 1 if $first_line < 1;
+	    $max_line = $problem_line + $code_lines;
+
+	# else print the first 2*code_lines+1 lines
+	} else {
+	    $first_line = 1;
+	    $max_line = $code_lines*2 + 1;
+	}
+
+        # go up to start of first line
+	my $position = 0;
+	# remember that lines are numbered starting at 1
+	my $line = 1;
+	LINE: while ($line < $first_line) {
+	    $position = index($$code, "\n", $position);
+	    $position++;
+	    $line++;
+	}
+
+	# now create an array of the lines to print
+	my @lines;
+	LINE: while ($line <= $max_line) {
+	    my $start = $position;
+	    $position = index($$code, "\n", $start);
+	    if ($position < 0) {
+	        if ($start < length $$code) {
+		    push(@lines, substr($$code, $start, 72));
+		}
+		last LINE;
+	    }
+	    $position++;
+	    push(@lines, substr($$code, $start, ($position-$start)));
+	    $line++;
+	}
+
+	my $line_labeled_code = '';
+	LINE: for my $i (0 .. $#lines) {
+	     my $line_number = $first_line + $i;
+	     $line_labeled_code
+		 .= ($problem_line == $line_number ? '*' : '')
+		 . $line_number
+		 . ': '
+		 . $lines[$i];
+	}
+	$code_to_print = \$line_labeled_code;
+    }
+
+    # If we have a section of code to print
+    if (defined $code_to_print) {
+	chomp $$code_to_print;
         push(@msg,
             "Problems in "
             . $long_where
             . ", code:\n"
-            . $$code_piece
-            . "\n"
+            . $$code_to_print
+	    . "\n"
         );
     }
+
     my $warnings_count = @$warnings;
     if ($warnings_count) {
         push(@msg, "Warnings ($warnings_count) in $where:\n", @$warnings);
@@ -281,7 +345,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
          eval $$raw_grammar;
          my $fatal_error = $@;
          if ($fatal_error or @warnings) {
-              Parse::Marpa::Internal::die_on_problems(
+              Parse::Marpa::Internal::code_problems(
                   $fatal_error,
                   \@warnings,
                   "evaluating gramar",
@@ -388,7 +452,7 @@ sub Parse::Marpa::Grammar::new {
         q{ "Earleme " . $earleme };
     $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] = 1;
-    $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = 30;
+    $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::NEW;
     $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS]      = [];
@@ -1000,7 +1064,7 @@ sub Parse::Marpa::Grammar::decompile {
         eval $$compiled_grammar;
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
-            Parse::Marpa::Internal::die_on_problems(
+            Parse::Marpa::Internal::code_problems(
                 $fatal_error,
                 \@warnings,
                 "decompiling gramar",

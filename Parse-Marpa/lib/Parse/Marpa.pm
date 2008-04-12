@@ -847,12 +847,13 @@ by the user.
 If there is a problem with user supplied code,
 Marpa prints the error message and a description of where the code is being used.
 Marpa also displays the code.
-The value of C<code_lines> tells Marpa how many lines to print before truncating the
-code.
-If it's zero, no code is displayed.
+The value of C<code_lines> tells Marpa how many lines of context to print.
 If it's negative, all the code is displayed, no matter how long it is.
-The default is 30 lines.
+The default is 3 lines.
 The C<code_lines> option can be changed at any point in a parse.
+
+If the line with the problem cannot be determined, the first lines
+of code are printed, up to a maximum of twice C<code_lines>, plus one.
 
 =item default_action
 

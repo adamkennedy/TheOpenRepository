@@ -135,7 +135,7 @@ sub set_null_values {
             my $null_value = eval($code);
             my $fatal_error = $@;
             if ($fatal_error or @warnings) {
-                Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
+                Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                     "evaluating null value",
                     "evaluating null value for "
                         . $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],
@@ -274,7 +274,7 @@ sub set_actions {
             $closure = eval $code;
             my $fatal_error = $@;
             if ($fatal_error or @warnings) {
-                Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
+                Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                     "compiling action",
                     "compiling action for "
                         . Parse::Marpa::brief_original_rule($rule),,
@@ -342,7 +342,7 @@ sub set_actions {
                     $closure = eval $code;
                     my $fatal_error = $@;
                     if ($fatal_error or @warnings) {
-                        Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
+                        Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                             "compiling action",
                             "compiling action for $name",
                             \$code
@@ -427,7 +427,7 @@ sub eval_grammar {
         eval( "package " . $package . ";\n" . $preamble );
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
-            Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
+            Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                 "evaluating preamble",
                 "evaluating preamble",
                 \$preamble
@@ -819,7 +819,7 @@ sub Parse::Marpa::Recognizer::text {
                 eval { ($match, $length) = $lex_closure->($input_ref, $pos); };
                 my $fatal_error = $@;
                 if ($fatal_error or @warnings) {
-                    Parse::Marpa::Internal::die_on_problems(
+                    Parse::Marpa::Internal::code_problems(
                         $fatal_error, \@warnings,
                         "user supplied lexer",
                         "user supplied lexer for "

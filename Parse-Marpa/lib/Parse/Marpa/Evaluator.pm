@@ -463,18 +463,23 @@ sub initialize_children {
     my $result;
     {
         my @warnings;
-        local $SIG{__WARN__} = sub { push(@warnings, $_[0]) };
+	my @caller_return;
+        local $SIG{__WARN__} = sub {
+	    push(@warnings, $_[0]);
+	    @caller_return = caller 0;
+	};
         $result = eval {
 	    local($_) = $values;
 	    $closure->()
 	};
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
-            Parse::Marpa::Internal::die_on_problems($fatal_error, \@warnings,
+            Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
                 "computing value",
                 "computing value for rule: "
                     . Parse::Marpa::brief_original_rule($rule),
-                \($rule->[Parse::Marpa::Internal::Rule::ACTION])
+                \($rule->[Parse::Marpa::Internal::Rule::ACTION]),
+		\@caller_return
             );
         }
     }
