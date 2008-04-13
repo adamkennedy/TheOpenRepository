@@ -54,7 +54,6 @@ sub clear_values {
     }
 }
 
-# returns 1 if it starts OK, undef otherwise
 sub Parse::Marpa::Evaluator::new {
     my $class = shift;
     my $recognizer    = shift;
@@ -912,7 +911,7 @@ sub show_derivation {
             $item = $predecessor;
         }
 
-    }
+    } # RHS_SYMBOL
 
     $text;
 

@@ -1,5 +1,13 @@
 Parse::Marpa
 
+WARNING -- THIS IS A DEVELOPER'S RELEASE, NOT FOR USE BY NON-DEVELOPERS.
+I use these releases to avail myself of the cpantesters results,
+and to test the release process itself.
+
+Of course, it's open source, and you're entitled to appoint yourself
+a developer if you insist on it.  But that will usually not be a
+reasonable thing to do.
+
 THIS IS AN ALPHA RELEASE.
 
 It's intended to let people look Marpa over and try it out.  Uses

@@ -43,16 +43,13 @@ directories of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
 
-=head3 QDFA START_RULE, COMPLETE_RULES, COMPLETE_LHS fields
-
-Change so these are calculated from NFA fields.
-
 =head2 Lower Priority
 
 =over 4
 
-=item * C<Parse::Marpa::Grammar::new> options should be defaults, not
-overrides -- that is they should take effect before the MDL script.
+=item * Should C<Parse::Marpa::Grammar::new> options be defaults or
+overrides? -- that is they should take effect before the MDL script
+or after.
 
 =item * Finalize semantics later, when evaluator is created.
 

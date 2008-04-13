@@ -84,7 +84,7 @@ use constant NAME              => 1;
 use constant NFA_STATES        => 2;   # in an QDFA: an array of NFA states
 use constant TRANSITION        => 3;   # the transitions, as a hash
                                        # from symbol name to references to arrays
-				       # of QDFA states
+                       # of QDFA states
 use constant COMPLETE_LHS      => 4;   # an array of the lhs's of complete rules
 use constant COMPLETE_RULES    => 5;   # an array of lists of the complete rules,
                                     # indexed by lhs
@@ -209,9 +209,9 @@ sub Parse::Marpa::Internal::code_problems {
     my @msg;
     my $code_lines;
     if (defined $grammar) {
-	$code_lines = $grammar->[ Parse::Marpa::Internal::Grammar::CODE_LINES ];
+    $code_lines = $grammar->[ Parse::Marpa::Internal::Grammar::CODE_LINES ];
     } else {
-	push(@msg, "Marpa bug: Grammar not set");
+    push(@msg, "Marpa bug: Grammar not set");
     }
 
     # if we have code
@@ -219,82 +219,82 @@ sub Parse::Marpa::Internal::code_problems {
 
     # block to look for the code to print
     CODE_TO_PRINT: {
-	
-	last CODE_TO_PRINT unless defined $code;
-	last CODE_TO_PRINT unless defined $$code;
+    
+    last CODE_TO_PRINT unless defined $code;
+    last CODE_TO_PRINT unless defined $$code;
 
-	$code_lines //= 3;
+    $code_lines //= 3;
 
-	# if code_lines < 0, print all lines
-	if ($code_lines < 0) {
-	    $code_to_print = $code;
-	    last CODE_TO_PRINT;
-	}
+    # if code_lines < 0, print all lines
+    if ($code_lines < 0) {
+        $code_to_print = $code;
+        last CODE_TO_PRINT;
+    }
 
         # which lines to print?
-	my $first_line;
-	my $max_line;
+    my $first_line;
+    my $max_line;
 
-	# else if we know the problem line, print code_lines
-	# worth of context
-	if (defined $problem_line) {
-	    $first_line = $problem_line - $code_lines;
-	    $first_line = 1 if $first_line < 1;
-	    $max_line = $problem_line + $code_lines;
+    # else if we know the problem line, print code_lines
+    # worth of context
+    if (defined $problem_line) {
+        $first_line = $problem_line - $code_lines;
+        $first_line = 1 if $first_line < 1;
+        $max_line = $problem_line + $code_lines;
 
-	# else print the first 2*code_lines+1 lines
-	} else {
-	    $first_line = 1;
-	    $max_line = $code_lines*2 + 1;
-	}
+    # else print the first 2*code_lines+1 lines
+    } else {
+        $first_line = 1;
+        $max_line = $code_lines*2 + 1;
+    }
 
         # go up to start of first line
-	my $position = 0;
-	# remember that lines are numbered starting at 1
-	my $line = 1;
-	LINE: while ($line < $first_line) {
-	    $position = index($$code, "\n", $position);
-	    $position++;
-	    $line++;
-	}
+    my $position = 0;
+    # remember that lines are numbered starting at 1
+    my $line = 1;
+    LINE: while ($line < $first_line) {
+        $position = index($$code, "\n", $position);
+        $position++;
+        $line++;
+    }
 
-	# now create an array of the lines to print
-	my @lines;
-	LINE: while ($line <= $max_line) {
-	    my $start = $position;
-	    $position = index($$code, "\n", $start);
-	    if ($position < 0) {
-	        if ($start < length $$code) {
-		    push(@lines, substr($$code, $start, 72));
-		}
-		last LINE;
-	    }
-	    $position++;
-	    push(@lines, substr($$code, $start, ($position-$start)));
-	    $line++;
-	}
+    # now create an array of the lines to print
+    my @lines;
+    LINE: while ($line <= $max_line) {
+        my $start = $position;
+        $position = index($$code, "\n", $start);
+        if ($position < 0) {
+            if ($start < length $$code) {
+            push(@lines, substr($$code, $start, 72));
+        }
+        last LINE;
+        }
+        $position++;
+        push(@lines, substr($$code, $start, ($position-$start)));
+        $line++;
+    }
 
-	my $line_labeled_code = '';
-	LINE: for my $i (0 .. $#lines) {
-	     my $line_number = $first_line + $i;
-	     $line_labeled_code
-		 .= ($problem_line == $line_number ? '*' : '')
-		 . $line_number
-		 . ': '
-		 . $lines[$i];
-	}
-	$code_to_print = \$line_labeled_code;
+    my $line_labeled_code = '';
+    LINE: for my $i (0 .. $#lines) {
+         my $line_number = $first_line + $i;
+         $line_labeled_code
+         .= ($problem_line == $line_number ? '*' : '')
+         . $line_number
+         . ': '
+         . $lines[$i];
+    }
+    $code_to_print = \$line_labeled_code;
     }
 
     # If we have a section of code to print
     if (defined $code_to_print) {
-	chomp $$code_to_print;
+    chomp $$code_to_print;
         push(@msg,
             "Problems in "
             . $long_where
             . ", code:\n"
             . $$code_to_print
-	    . "\n"
+        . "\n"
         );
     }
 
@@ -341,11 +341,11 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
 
      {
          my @warnings;
-	 my @caller_return;
+     my @caller_return;
          local $SIG{__WARN__} = sub {
-	     push(@warnings, $_[0]);
-	     @caller_return = caller 0;
-	 };
+         push(@warnings, $_[0]);
+         @caller_return = caller 0;
+     };
          eval $$raw_grammar;
          my $fatal_error = $@;
          if ($fatal_error or @warnings) {
@@ -355,7 +355,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
                   "evaluating gramar",
                   "evaluating gramar",
                   $raw_grammar,
-		  \@caller_return
+          \@caller_return
               );
          }
      }
@@ -485,12 +485,12 @@ sub binary_search {
     my ($lower, $upper) = (0, $#$data); 
     my $i;                       
     while ($lower <= $upper) {
-	my $i = int(($lower + $upper)/2);
-	given ($data->[$i]) {
-	    when ($_ < $target) { $lower = $i; }
-	    when ($_ > $target) { $upper = $i; }
-	    default { return $i }
-	} 
+    my $i = int(($lower + $upper)/2);
+    given ($data->[$i]) {
+        when ($_ < $target) { $lower = $i; }
+        when ($_ > $target) { $upper = $i; }
+        default { return $i }
+    } 
     }
     $lower
 }
@@ -503,9 +503,9 @@ sub locator {
     $lines //= [0];
     my $pos = pos $$string = 0;
     NL: while ($$string =~ /\n/g) {
-	$pos = pos $$string;
+    $pos = pos $$string;
         push(@$lines, $pos);
-	last NL if $pos > $earleme;
+    last NL if $pos > $earleme;
     }
     my $line = (@$lines) - ($pos > $earleme ? 2 : 1);
     my $line_start = $lines->[$line];
@@ -589,10 +589,10 @@ sub source_grammar {
 
     my $recce = new Parse::Marpa::Recognizer(
         {
-	    compiled_grammar => $Parse::Marpa::Internal::compiled_source_grammar,
-	    trace_file_handle => $trace_fh,
-	    %{$source_options}
-	}
+        compiled_grammar => $Parse::Marpa::Internal::compiled_source_grammar,
+        trace_file_handle => $trace_fh,
+        %{$source_options}
+    }
     );
 
     my $failed_at_earleme = $recce->text($source);
@@ -627,16 +627,16 @@ sub Parse::Marpa::Grammar::set {
         croak("Source for grammar undefined")
             if not defined $$source;
         source_grammar( $grammar, $source, $args->{"source_options"} );
-	delete $args->{"mdl_source"};
+    delete $args->{"mdl_source"};
         delete $args->{"source_options"};
     }
 
     while ( my ( $option, $value ) = each %$args ) {
         given ($option) {
             when ("rules") {
-		$grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
-		    //= Parse::Marpa::Internal::Interface::RAW;
-		my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
+        $grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
+            //= Parse::Marpa::Internal::Interface::RAW;
+        my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
                 croak("rules option not allowed with " . interface_description($interface))
                     if $interface ne Parse::Marpa::Internal::Interface::RAW;
                 croak("$option option not allowed after grammar is precomputed")
@@ -646,9 +646,9 @@ sub Parse::Marpa::Grammar::set {
                     Parse::Marpa::Internal::Phase::RULES;
             }
             when ("terminals") {
-		$grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
-		    //= Parse::Marpa::Internal::Interface::RAW;
-		my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
+        $grammar-> [Parse::Marpa::Internal::Grammar::INTERFACE]
+            //= Parse::Marpa::Internal::Interface::RAW;
+        my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
                 croak("terminals option not allowed with " . interface_description($interface))
                     if $interface ne Parse::Marpa::Internal::Interface::RAW;
                 croak("$option option not allowed after grammar is precomputed")
@@ -670,18 +670,18 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("default_null_value") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar
                     ->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
                     $value;
             }
             when ("default_action") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION] =
                     $value;
             }
@@ -712,141 +712,141 @@ sub Parse::Marpa::Grammar::set {
             when ("trace_actions") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ACTIONS ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    say $trace_fh "Warning: setting $option option after semantics were finalized"
-			if $phase >= Parse::Marpa::Internal::Phase::EVALED;
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            say $trace_fh "Warning: setting $option option after semantics were finalized"
+            if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_lex") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_TRIES ]
                     = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES ]
                     = $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_lex_tries") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_TRIES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_lex_matches") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_values") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_VALUES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_rules") {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_RULES] =
                     $value;
-		if ($value) {
-		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
-		    my $rule_count = @$rules;
-		    say $trace_fh "Setting $option";
-		    say $trace_fh "Warning: Setting $option when $rule_count rules already exist"
-		       if $rule_count;
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
-		}
+        if ($value) {
+            my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+            my $rule_count = @$rules;
+            say $trace_fh "Setting $option";
+            say $trace_fh "Warning: Setting $option when $rule_count rules already exist"
+               if $rule_count;
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+        }
             }
             when ("trace_strings") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_STRINGS ] =
                     $value;
-		if ($value) {
-		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
-		    my $rule_count = @$rules;
-		    say $trace_fh "Setting $option";
-		    say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
-		       if $rule_count;
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
-		}
+        if ($value) {
+            my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+            my $rule_count = @$rules;
+            say $trace_fh "Setting $option";
+            say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
+               if $rule_count;
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+        }
             }
             when ("trace_predefineds") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PREDEFINEDS ] =
                     $value;
-		if ($value) {
-		    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
-		    my $rule_count = @$rules;
-		    say $trace_fh "Setting $option";
-		    say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
-		       if $rule_count;
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
-		}
+        if ($value) {
+            my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+            my $rule_count = @$rules;
+            say $trace_fh "Setting $option";
+            say $trace_fh "Warning: Setting $option after $rule_count rules have been defined"
+               if $rule_count;
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+        }
             }
             when ("trace_evaluation_choices") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_iterations") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ]
                     = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ]
                     = $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_iteration_searches") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_iteration_changes") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("trace_priorities") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option";
-		    say $trace_fh "Warning: Setting $option after semantics were finalized"
-			if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option";
+            say $trace_fh "Warning: Setting $option after semantics were finalized"
+            if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING  ] = 1;
+        }
             }
             when ("trace_completions") {
                 $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_COMPLETIONS ] =
                     $value;
-		if ($value) {
-		    say $trace_fh "Setting $option option";
-		    $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
-		}
+        if ($value) {
+            say $trace_fh "Setting $option option";
+            $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ] = 1;
+        }
             }
             when ("location_callback") {
                 croak("location callback not yet implemented");
             }
             when ("opaque") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 given ($value) {
                     when (1) { $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = 1; }
                     when (0) {
@@ -867,9 +867,9 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("online") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::ONLINE] =
                     $value;
             }
@@ -879,9 +879,9 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("allow_raw_source") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::RULES;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::RULES;
                 $grammar->[Parse::Marpa::Internal::Grammar::ALLOW_RAW_SOURCE ] =
                     $value;
             }
@@ -903,9 +903,9 @@ sub Parse::Marpa::Grammar::set {
             }
             when ("preamble") {
                 croak(
-		    "$option option not allowed in ",
-		    Parse::Marpa::Internal::Phase::description($phase)
-		) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+            "$option option not allowed in ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        ) if $phase >= Parse::Marpa::Internal::Phase::EVALED;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }
@@ -956,10 +956,10 @@ sub Parse::Marpa::Grammar::precompute {
 
     my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
     if ($phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED) {
-	croak(
-	    "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
-	    Parse::Marpa::Internal::Phase::description($phase)
-	);
+    croak(
+        "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
+        Parse::Marpa::Internal::Phase::description($phase)
+    );
     }
 
     nulling($grammar);
@@ -1024,12 +1024,12 @@ sub Parse::Marpa::Grammar::compile {
 
     my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
     if ($phase > Parse::Marpa::Internal::Phase::COMPILED
-	    or $phase < Parse::Marpa::Internal::Phase::RULES)
+        or $phase < Parse::Marpa::Internal::Phase::RULES)
     {
-	croak(
-	    "Attempt to compile grammar in inappropriate state\nAttempt to compile ",
-	    Parse::Marpa::Internal::Phase::description($phase)
-	);
+    croak(
+        "Attempt to compile grammar in inappropriate state\nAttempt to compile ",
+        Parse::Marpa::Internal::Phase::description($phase)
+    );
     }
 
     if ($phase == Parse::Marpa::Internal::Phase::RULES) {
@@ -1065,11 +1065,11 @@ sub Parse::Marpa::Grammar::decompile {
     my $grammar;
     {
         my @warnings;
-	my @caller_return;
+    my @caller_return;
         local $SIG{__WARN__} = sub {
-	    push(@warnings, $_[0]);
-	    @caller_return = caller 0;
-	};
+        push(@warnings, $_[0]);
+        @caller_return = caller 0;
+    };
         eval $$compiled_grammar;
         my $fatal_error = $@;
         if ($fatal_error or @warnings) {
@@ -1079,7 +1079,7 @@ sub Parse::Marpa::Grammar::decompile {
                 "decompiling gramar",
                 "decompiling gramar",
                 $compiled_grammar,
-		\@caller_return
+        \@caller_return
             );
         }
     }
@@ -1248,7 +1248,7 @@ sub Parse::Marpa::show_rule {
     if ($nulling)               { push( @comment, "nulling" ); }
     if ( not $useful )          { push( @comment, "!useful" ); }
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
-    if ($priority_string_ref)              { push( @comment, 'priority=', $$priority_string_ref ); }
+    if ($priority_string_ref)              { push( @comment, 'priority=' . $$priority_string_ref ); }
     if (@comment) {
         $text .= " " . join( " ", "/*", @comment, "*/" );
     }
@@ -1365,7 +1365,7 @@ sub Parse::Marpa::show_QDFA_state {
     ];
 
     $text .= Parse::Marpa::brief_QDFA_state($state, $tags)
-	. ': ';
+    . ': ';
     $text .= 'predict; ' if $predict;
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
     $text .= 'pri=' . $$priority_string_ref . '; ' if defined $priority_string_ref;
@@ -1376,17 +1376,17 @@ sub Parse::Marpa::show_QDFA_state {
     }
 
     for my $symbol_name ( sort keys %$transition ) {
-	$text .= ' <' . $symbol_name . '> => ';
-	my @qdfa_labels;
-	for my $to_state (@{ $transition->{$symbol_name} }) {
-	    my $to_name = $to_state->[ Parse::Marpa::Internal::QDFA::NAME ];
-	    push(
-		@qdfa_labels,
-		Parse::Marpa::brief_QDFA_state($to_state, $tags)
-	    );
+    $text .= ' <' . $symbol_name . '> => ';
+    my @qdfa_labels;
+    for my $to_state (@{ $transition->{$symbol_name} }) {
+        my $to_name = $to_state->[ Parse::Marpa::Internal::QDFA::NAME ];
+        push(
+        @qdfa_labels,
+        Parse::Marpa::brief_QDFA_state($to_state, $tags)
+        );
         } # for my $to_state
-	$text .= join('; ', sort @qdfa_labels);
-	$text .= "\n";
+    $text .= join('; ', sort @qdfa_labels);
+    $text .= "\n";
     }
 
     $text;
@@ -1503,8 +1503,8 @@ sub add_terminal {
             Parse::Marpa::Internal::Symbol::PRIORITY,
             ]
             = ( 1, 0, $regex, $prefix, $suffix, $action, 1,
-		pack('NN', $user_priority, 0)
-	    );
+        pack('NN', $user_priority, 0)
+        );
 
         return;
     }
@@ -1525,9 +1525,9 @@ sub add_terminal {
         Parse::Marpa::Internal::Symbol::PRIORITY,
         ]
         = (
-	    $symbol_count, $name, [], [], 0, 1, 0, $regex,
-	    $action, 1,
-	    pack('NN', $user_priority, 0)
+        $symbol_count, $name, [], [], 0, 1, 0, $regex,
+        $action, 1,
+        pack('NN', $user_priority, 0)
         );
 
     push( @$symbols, $new_symbol );
@@ -1602,8 +1602,8 @@ sub add_user_rule {
     }
 
     add_rule(
-	$grammar, $lhs_symbol, $rhs_symbols, $action,
-	pack('NN', $user_priority, 0)
+    $grammar, $lhs_symbol, $rhs_symbols, $action,
+    pack('NN', $user_priority, 0)
     );
 }
 
@@ -1641,7 +1641,7 @@ sub add_rule {
         $lhs,        $rhs,
         $nulling, $nulling, $nulling,
         $action,
-	$priority,
+    $priority,
     );
 
     push( @$rules, $new_rule );
@@ -1928,8 +1928,8 @@ sub add_rules_from_hash {
         }
     }
     add_rule(
-	$grammar, $lhs, [$sequence], $rule_action,
-	pack('NN', $user_priority, 0)
+    $grammar, $lhs, [$sequence], $rule_action,
+    pack('NN', $user_priority, 0)
     );
     if ( defined $separator and not $proper_separation ) {
         unless ($keep_separation) {
@@ -1937,8 +1937,8 @@ sub add_rules_from_hash {
         }
         add_rule( $grammar, $lhs, [ $sequence, $separator, ],
             $rule_action,
-	    pack('NN', $user_priority, 0)
-	);
+        pack('NN', $user_priority, 0)
+    );
     }
 
     my @separated_rhs = ($rhs);
@@ -1985,7 +1985,7 @@ sub add_rules_from_hash {
     }
 
     add_rule( $grammar, $sequence, $counted_rhs, $rule_action,
-	    pack('NN', $user_priority, 0)
+        pack('NN', $user_priority, 0)
     );
 
     # iterating sequence rule
@@ -2006,7 +2006,7 @@ sub add_rules_from_hash {
     }
     add_rule( $grammar, $sequence, ( \@iterating_rhs ),
         $rule_action,
-	pack('NN', $user_priority, 0)
+    pack('NN', $user_priority, 0)
     );
 
 }    # sub add_rules_from_hash
@@ -2779,11 +2779,11 @@ sub create_NFA {
         my ( $id, $name, $item, $transition ) = @$state;
 
         # First, deal with transitions from state 0.
-	# S0 is the state with no LR(0) item
+    # S0 is the state with no LR(0) item
         if ( not defined $item ) {
 
-	    # start rules are rules with the start symbol
-	    # or with the start alias on the LHS.
+        # start rules are rules with the start symbol
+        # or with the start alias on the LHS.
             my @start_rules =
                 @{ $start->[Parse::Marpa::Internal::Symbol::LHS] };
             my $start_alias =
@@ -2796,9 +2796,9 @@ sub create_NFA {
                 );
             }
 
-	    # From S0, add an empty transition to the every NFA state
-	    # corresponding to a start rule with the dot at the beginning
-	    # of the RHS.
+        # From S0, add an empty transition to the every NFA state
+        # corresponding to a start rule with the dot at the beginning
+        # of the RHS.
             RULE: for my $start_rule (@start_rules) {
                 my ( $start_rule_id, $useful ) = @{$start_rule}[
                     Parse::Marpa::Internal::Rule::ID,
@@ -2825,14 +2825,14 @@ sub create_NFA {
 
         # no transitions if position is after the end of the RHS
         if ( not defined $next_symbol ) {
-	    $state->[ Parse::Marpa::Internal::NFA::COMPLETE ] = 1;
-	    $state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
-		= $rule->[ Parse::Marpa::Internal::Rule::PRIORITY ];
-	    next STATE;
-	}
+        $state->[ Parse::Marpa::Internal::NFA::COMPLETE ] = 1;
+        $state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
+        = $rule->[ Parse::Marpa::Internal::Rule::PRIORITY ];
+        next STATE;
+    }
 
-	$state->[ Parse::Marpa::Internal::NFA::AT_NULLING ] = 1
-	    if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLING ];
+    $state->[ Parse::Marpa::Internal::NFA::AT_NULLING ] = 1
+        if $next_symbol->[ Parse::Marpa::Internal::Symbol::NULLING ];
 
         # the scanning transition: the transition if the position is at symbol X
         # in the RHS, via symbol X, to the state corresponding to the same
@@ -2880,10 +2880,13 @@ sub assign_QDFA_state_set {
         $trace_priorities = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES ];
     }
 
-    my ( $NFA_states,
+    my (
+	$symbols,
+	$NFA_states,
 	$QDFA_by_name,
 	$QDFA
     ) = @{$grammar}[
+        Parse::Marpa::Internal::Grammar::SYMBOLS,
         Parse::Marpa::Internal::Grammar::NFA,
         Parse::Marpa::Internal::Grammar::QDFA_BY_NAME,
         Parse::Marpa::Internal::Grammar::QDFA
@@ -2908,45 +2911,45 @@ sub assign_QDFA_state_set {
     # Use index because we extend this list while processing it.
     WORK_ITEM: for (my $i = 0; $i < @work_list; $i++) {
 
-	my ($NFA_state, $reset) = @{$work_list[$i]};
+    my ($NFA_state, $reset) = @{$work_list[$i]};
 
-	my $NFA_id = $NFA_state->[Parse::Marpa::Internal::NFA::ID];
-	next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
-	my $seen = $NFA_state_seen[$NFA_id] = [];
+    my $NFA_id = $NFA_state->[Parse::Marpa::Internal::NFA::ID];
+    next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
+    my $seen = $NFA_state_seen[$NFA_id] = [];
 
-	my $transition = $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION];
+    my $transition = $NFA_state->[Parse::Marpa::Internal::NFA::TRANSITION];
 
-	# if we are at a nulling symbol, this NFA states does NOT go into the
-	# result, but all transitions go into the work list.  There should be
-	# empty transition.
-	if ($NFA_state->[ Parse::Marpa::Internal::NFA::AT_NULLING ]) {
-	     push(@work_list,
-	          map { [ $_, $reset ] }
-		  map { @$_ }
-		  values %$transition
-	     );
-	     next WORK_ITEM;
-	}
+    # if we are at a nulling symbol, this NFA states does NOT go into the
+    # result, but all transitions go into the work list.  There should be
+    # empty transition.
+    if ($NFA_state->[ Parse::Marpa::Internal::NFA::AT_NULLING ]) {
+         push(@work_list,
+              map { [ $_, $reset ] }
+          map { @$_ }
+          values %$transition
+         );
+         next WORK_ITEM;
+    }
 
-	# If we are here, were have an NFA state NOT at a nulling symbol.
-	# This NFA state goes into the result, and the empty transitions
-	# go into the worklist as reset items.
-	my $empty_transitions = $transition->{""};
-	if ($empty_transitions) {
-	     push(@work_list,
-	          map { [ $_, 1 ] }
-		  @$empty_transitions
-	     );
-	}
+    # If we are here, were have an NFA state NOT at a nulling symbol.
+    # This NFA state goes into the result, and the empty transitions
+    # go into the worklist as reset items.
+    my $empty_transitions = $transition->{""};
+    if ($empty_transitions) {
+         push(@work_list,
+              map { [ $_, 1 ] }
+          @$empty_transitions
+         );
+    }
 
-	$reset //= 0;
-	my $priority = $NFA_state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
-	    if $NFA_state->[ Parse::Marpa::Internal::NFA::COMPLETE ];
-	if (defined $priority) {
-	    $highest_priority = $priority
-		if not defined $highest_priority or $priority gt $highest_priority;
-	}
-	push(@$seen, $reset, $priority, $NFA_id);
+    $reset //= 0;
+    my $priority = $NFA_state->[ Parse::Marpa::Internal::NFA::PRIORITY ]
+        if $NFA_state->[ Parse::Marpa::Internal::NFA::COMPLETE ];
+    if (defined $priority) {
+        $highest_priority = $priority
+        if not defined $highest_priority or $priority gt $highest_priority;
+    }
+    push(@$seen, $reset, $priority, $NFA_id);
 
     } # WORK_ITEM
 
@@ -2954,12 +2957,12 @@ sub assign_QDFA_state_set {
 
     my @result_data
         = map { $_->[0] }
-	    sort { $a->[1] cmp $b->[1] }
-	    map {
-		$_->[1] //= $highest_priority;
-		[ $_, ( pack('N', $_->[0]) . $_->[1] ) ]
-	    } grep { defined $_ and scalar @$_ }
-	    @NFA_state_seen;
+        sort { $a->[1] cmp $b->[1] }
+        map {
+        $_->[1] //= $highest_priority;
+        [ $_, ( pack('N', $_->[0]) . $_->[1] ) ]
+        } grep { defined $_ and scalar @$_ }
+        @NFA_state_seen;
 
     # this is a fake record with an 
     # "impossible" value for the reset flag to force a
@@ -2983,53 +2986,84 @@ sub assign_QDFA_state_set {
     DATUM: for my $result_data (@result_data) {
 
         my ($reset, $priority, $NFA_id)
-	    = @$result_data;
+        = @$result_data;
 
-	# if no "control break"
-	if ($old_reset == $reset and $old_priority eq $priority) {
-	    push(@NFA_ids, $NFA_id);
-	    next DATUM;
-	}
+    # if no "control break"
+    if ($old_reset == $reset and $old_priority eq $priority) {
+        push(@NFA_ids, $NFA_id);
+        next DATUM;
+    }
 
-	# here what's called the "control break", where the record key changes
-	if (@NFA_ids) {
-	     my $name = join(',', @NFA_ids);
-	     my $QDFA_state = $QDFA_by_name->{$name};
+    # here what's called the "control break", where the record key changes
+    if (@NFA_ids) {
+         my $name = join(',', @NFA_ids);
+         my $QDFA_state = $QDFA_by_name->{$name};
 
-	     # this is a new QDFA state -- create it
-	     unless ($QDFA_state) {
-		 my $id = scalar @$QDFA;
-	         @{$QDFA_state}[
-		    Parse::Marpa::Internal::QDFA::ID,
-		    Parse::Marpa::Internal::QDFA::NAME,
-		    Parse::Marpa::Internal::QDFA::NFA_STATES,
-		    Parse::Marpa::Internal::QDFA::RESET_ORIGIN,
-		    Parse::Marpa::Internal::QDFA::PRIORITY,
-		] = (
-		    $id,
-		    $name,
-		    [ @{ $NFA_states }[@NFA_ids] ],
-		    $old_reset,
-		    $old_priority,
-		);
-		if ($trace_priorities) {
-		    my $string_ref = Parse::Marpa::show_priority($old_priority);
-		    say $trace_fh
-			"Priority for QDFA state $id: ",
-			$string_ref ? 'undef' : $$string_ref;
-		}
-		push( @$QDFA, $QDFA_state );
-		$QDFA_by_name->{$name} = $QDFA_state;
-	    } # unless $QDFA_state
+         # this is a new QDFA state -- create it
+         unless ($QDFA_state) {
+         my $id = scalar @$QDFA;
 
-	    push(@result_states, $QDFA_state);
+	 my $start_rule;
+         my $lhs_list       = [];
+         my $complete_rules = [];
+	 my $QDFA_complete = 0;
+         my $NFA_state_list = [ @{ $NFA_states }[@NFA_ids] ];
+         NFA_STATE: for my $NFA_state (@$NFA_state_list) {
+              next NFA_STATE unless $NFA_state->[ Parse::Marpa::Internal::NFA::COMPLETE ];
+	      $QDFA_complete = 1;
+              my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
+              my $rule = $item->[ Parse::Marpa::Internal::LR0_item::RULE ];
+              my $lhs = $rule->[ Parse::Marpa::Internal::Rule::LHS ];
+              my ( $lhs_id, $lhs_is_start ) = @{$lhs}[
+		  Parse::Marpa::Internal::Symbol::ID,
+		  Parse::Marpa::Internal::Symbol::START
+              ];
+              $lhs_list->[$lhs_id] = 1;
+              push( @{ $complete_rules->[$lhs_id] }, $rule );
+	      $start_rule = $rule if $lhs_is_start;
+         }
+	 my $new_priority = $QDFA_complete ? $old_priority : pack('NN', 0, 0);
+         @{$QDFA_state}[
+            Parse::Marpa::Internal::QDFA::ID,
+            Parse::Marpa::Internal::QDFA::NAME,
+            Parse::Marpa::Internal::QDFA::NFA_STATES,
+            Parse::Marpa::Internal::QDFA::RESET_ORIGIN,
+            Parse::Marpa::Internal::QDFA::PRIORITY,
+            Parse::Marpa::Internal::QDFA::START_RULE,
+        ] = (
+            $id,
+            $name,
+            $NFA_state_list,
+            $old_reset,
+            $new_priority,
+	    $start_rule,
+        );
+        $QDFA_state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES] =
+            $complete_rules;
+        $QDFA_state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS] =
+            [ map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
+                @{$symbols}[
+		    grep { $lhs_list->[$_] } ( 0 .. $#$lhs_list )
+		]
+	    ];
+        if ($trace_priorities) {
+            my $string_ref = Parse::Marpa::show_priority($new_priority);
+            say $trace_fh
+            "Priority for QDFA state $id: ",
+            $string_ref ? 'undef' : $$string_ref;
+        }
+        push( @$QDFA, $QDFA_state );
+        $QDFA_by_name->{$name} = $QDFA_state;
+        } # unless $QDFA_state
 
-	}
+        push(@result_states, $QDFA_state);
 
-	# reset everything for the next control break
-	@NFA_ids = ($NFA_id);
-	$old_reset = $reset;
-	$old_priority = $priority;
+    }
+
+    # reset everything for the next control break
+    @NFA_ids = ($NFA_id);
+    $old_reset = $reset;
+    $old_priority = $priority;
 
     } # DATUM
 
@@ -3098,48 +3132,10 @@ sub create_QDFA {
         while ( my ( $symbol, $to_states ) = each(%$NFA_to_states_by_symbol) )
         {
             $QDFA_state->[Parse::Marpa::Internal::QDFA::TRANSITION] ->{$symbol}
-		= assign_QDFA_state_set( $grammar, $to_states );
+        = assign_QDFA_state_set( $grammar, $to_states );
         }
     }
 
-    # For the parse phase, pre-compute the list of names of the lhs's of
-    # complete items, the list of complete items, and the start rule (should
-    # be maximum one per state)
-    STATE: for my $state (@$QDFA) {
-        my $lhs_list       = [];
-        my $complete_rules = [];
-        my $start_rule     = undef;
-        $#$lhs_list = @$symbols;
-        my $NFA_states = $state->[Parse::Marpa::Internal::QDFA::NFA_STATES];
-        for my $NFA_state (@$NFA_states) {
-            my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
-            my ( $rule, $position ) = @{$item}[
-                Parse::Marpa::Internal::LR0_item::RULE,
-                Parse::Marpa::Internal::LR0_item::POSITION
-            ];
-            my ( $lhs, $rhs ) = @{$rule}[
-                Parse::Marpa::Internal::Rule::LHS,
-                Parse::Marpa::Internal::Rule::RHS
-            ];
-            if ( $position >= @$rhs ) {
-                my ( $lhs_id, $lhs_is_start ) = @{$lhs}[
-                    Parse::Marpa::Internal::Symbol::ID,
-                    Parse::Marpa::Internal::Symbol::START
-                ];
-                $lhs_list->[$lhs_id] = 1;
-                push( @{ $complete_rules->[$lhs_id] }, $rule );
-                $start_rule = $rule if $lhs_is_start;
-            }
-        }    # NFA_state
-        $state->[Parse::Marpa::Internal::QDFA::START_RULE] = $start_rule;
-        $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES] =
-            $complete_rules;
-        $state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS] =
-            [ map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
-                @{$symbols}[ grep { $lhs_list->[$_] } ( 0 .. $#$lhs_list ) ]
-            ];
-
-    }    # STATE
 }
 
 sub setup_academic_grammar {
@@ -3263,6 +3259,7 @@ sub rewrite_as_CHAF {
             Parse::Marpa::Internal::Rule::NULLABLE,
             Parse::Marpa::Internal::Rule::PRIORITY,
             ];
+    my ($user_priority, $internal_priority) = unpack('NN', $priority);
 
         # unreachable and nulling rules are useless
         next RULE unless $productive;
@@ -3489,10 +3486,15 @@ sub rewrite_as_CHAF {
                 # factors of more than two.
                 my $has_chaf_rhs = $next_subp_lhs;
 
+        # Add new rule.   In assigning internal priority:
+        # The first factored production is
+        # highest, last is lowest, but middle two are
+        # reversed.
                 my $new_rule =
                     add_rule( $grammar, $subp_lhs, $factor_rhs, undef,
-			$priority,
-		    );
+            pack('NN', $user_priority, @{[qw(3 1 2 0)]}[$ix])
+            );
+
                 @{$new_rule}[
                     Parse::Marpa::Internal::Rule::USEFUL,
                     Parse::Marpa::Internal::Rule::ACCESSIBLE,
@@ -3645,8 +3647,8 @@ Z<>
 Z<>
 
     my $grammar = new Parse::Marpa::Grammar({
-	mdl_source => \$mdl_source,
-	ambiguous_lex => 0
+    mdl_source => \$mdl_source,
+    ambiguous_lex => 0
     });
 
 C<Parse::Marpa::Recognizer::new> has one, required, argument --

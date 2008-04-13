@@ -194,7 +194,7 @@ sub do_parse {
 
 	my $value = $evaler->next();
 	if (not defined $value) {
-	    croak 'No parse' unless $parse_count > 1;
+	    croak 'No parse' unless $parse_count > 0;
 	    return;
 	}
 	$parse_count++;

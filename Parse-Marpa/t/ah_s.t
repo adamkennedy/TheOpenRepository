@@ -68,7 +68,7 @@ my @answer = (
     "",
     "(lowercase a;;;)",
     "(lowercase a;lowercase a;;)",
-    "(;lowercase a;lowercase a;lowercase a)",
+    "(lowercase a;lowercase a;lowercase a;)",
     "(lowercase a;lowercase a;lowercase a;lowercase a)",
 );
 
