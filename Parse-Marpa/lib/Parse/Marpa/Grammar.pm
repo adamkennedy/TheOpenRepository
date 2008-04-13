@@ -34,7 +34,7 @@ use constant REGEX           => 7;     # regex, for terminals; undef otherwise
 use constant NULLING         => 8;     # always is null?
 use constant NULLABLE        => 9;     # can match null?
 use constant NULL_VALUE      => 10;    # value when null
-use constant NULL_ALIAS      => 11;    # for a non-nulling symbol,
+use constant NULL_ALIAS      => 11;    # for a non-nullable symbol,
                                        # ref of a its nulling alias,
                                        # if there is one
                                        # otherwise undef
@@ -1247,11 +1247,25 @@ sub Parse::Marpa::show_rule {
     if ($nullable)              { push( @comment, "nullable" ); }
     if ($nulling)               { push( @comment, "nulling" ); }
     if ( not $useful )          { push( @comment, "!useful" ); }
-    if ($priority)              { push( @comment, "priority=$priority" ); }
+    my $priority_string_ref = Parse::Marpa::show_priority($priority);
+    if ($priority_string_ref)              { push( @comment, 'priority=', $$priority_string_ref ); }
     if (@comment) {
         $text .= " " . join( " ", "/*", @comment, "*/" );
     }
     $text .= "\n";
+}
+
+# For displaying priorities.
+# Returns undefined if priority undefined or zero.
+# Returns ref to a string showing dotted priority otherwise.
+# A true second arg, means create a string even if priority is zero.
+sub Parse::Marpa::show_priority {
+    my $priority = shift;
+    return unless defined $priority;
+    my $defined_if_zero = shift;
+    my ($pri1, $pri2) = unpack('NN', $priority);
+    return unless $defined_if_zero or $pri1 or $pri2;
+    \($pri1 . '.' . $pri2);
 }
 
 sub Parse::Marpa::Grammar::show_rules {
@@ -1302,7 +1316,8 @@ sub Parse::Marpa::show_NFA_state {
     $text .= Parse::Marpa::show_item($item) . "\n";
     my @properties = ();
     push(@properties, 'at_nulling') if $at_nulling;
-    push(@properties, "priority=$priority") if defined $priority and $priority;
+    my $priority_string_ref = Parse::Marpa::show_priority($priority);
+    push(@properties, 'priority=' . $$priority_string_ref) if defined $priority_string_ref;
     $text .= join(' ', @properties) . "\n" if @properties;
     for my $symbol_name ( sort keys %$transition ) {
         my $transition_states = $transition->{$symbol_name};
@@ -1352,7 +1367,8 @@ sub Parse::Marpa::show_QDFA_state {
     $text .= Parse::Marpa::brief_QDFA_state($state, $tags)
 	. ': ';
     $text .= 'predict; ' if $predict;
-    $text .= 'pri=' . $priority . '; ' if defined $priority and $priority;
+    my $priority_string_ref = Parse::Marpa::show_priority($priority);
+    $text .= 'pri=' . $$priority_string_ref . '; ' if defined $priority_string_ref;
     $text .= $name . "\n";
     for my $NFA_state (@$NFA_states) {
         my $item = $NFA_state->[Parse::Marpa::Internal::NFA::ITEM];
@@ -1446,11 +1462,11 @@ sub add_terminal {
     my $options    = shift;
     my ( $regex, $prefix, $suffix );
     my $action;
-    my $priority = 0;
+    my $user_priority = 0;
 
     while (my ($key, $value) = each %{$options}) {
         given ($key) {
-           when ("priority") { $priority = $value; }
+           when ("priority") { $user_priority = $value; }
            when ("action") { $action = $value; }
            when ("prefix") { $prefix = $value; }
            when ("suffix") { $suffix = $value; }
@@ -1486,7 +1502,9 @@ sub add_terminal {
             Parse::Marpa::Internal::Symbol::TERMINAL,
             Parse::Marpa::Internal::Symbol::PRIORITY,
             ]
-            = ( 1, 0, $regex, $prefix, $suffix, $action, 1, $priority, );
+            = ( 1, 0, $regex, $prefix, $suffix, $action, 1,
+		pack('NN', $user_priority, 0)
+	    );
 
         return;
     }
@@ -1507,8 +1525,9 @@ sub add_terminal {
         Parse::Marpa::Internal::Symbol::PRIORITY,
         ]
         = (
-        $symbol_count, $name, [], [], 0, 1, 0, $regex,
-        $action, 1, $priority,
+	    $symbol_count, $name, [], [], 0, 1, 0, $regex,
+	    $action, 1,
+	    pack('NN', $user_priority, 0)
         );
 
     push( @$symbols, $new_symbol );
@@ -1553,7 +1572,7 @@ sub add_user_rule {
     my $lhs_name  = shift;
     my $rhs_names = shift;
     my $action    = shift;
-    my $priority  = shift;
+    my $user_priority  = shift;
 
     my ($rule_hash) = @{$grammar}[Parse::Marpa::Internal::Grammar::RULE_HASH];
 
@@ -1572,7 +1591,20 @@ sub add_user_rule {
 
     $rule_hash->{$rule_key} = 1;
 
-    add_rule( $grammar, $lhs_symbol, $rhs_symbols, $action, $priority );
+    $user_priority //= 0;
+    my $max_priority = 1_000_000;
+    if ($user_priority > $max_priority) {
+        croak("Rule priority ($user_priority) greater than maximum ($max_priority)");
+    }
+    my $min_priority = -1_000_000;
+    if ($user_priority < $min_priority) {
+        croak("Rule priority ($user_priority) less than minimum ($min_priority)");
+    }
+
+    add_rule(
+	$grammar, $lhs_symbol, $rhs_symbols, $action,
+	pack('NN', $user_priority, 0)
+    );
 }
 
 sub add_rule {
@@ -1592,16 +1624,7 @@ sub add_rule {
     my $rule_count = @$rules;
     my $new_rule   = [];
     my $nulling    = @$rhs ? undef : 1;
-    $priority //= 0;
-
-    my $max_priority = 1_000_000;
-    if ($priority > $max_priority) {
-        croak("Rule priority ($priority) greater than maximum ($max_priority)");
-    }
-    my $min_priority = -1_000_000;
-    if ($priority < $min_priority) {
-        croak("Rule priority ($priority) less than minimum ($min_priority)");
-    }
+    $priority //= pack('NN', 0, 0);
 
     @{$new_rule}[
         Parse::Marpa::Internal::Rule::ID,
@@ -1618,7 +1641,7 @@ sub add_rule {
         $lhs,        $rhs,
         $nulling, $nulling, $nulling,
         $action,
-        $priority,
+	$priority,
     );
 
     push( @$rules, $new_rule );
@@ -1663,8 +1686,6 @@ sub add_user_rules {
             when ("ARRAY") {
                 my $arg_count = @$rule;
 
-                # This warning can be removed if this interface remains
-                # internal
                 if ( $arg_count > 4 or $arg_count < 1 ) {
                     croak(
                         "Rule has $arg_count arguments: "
@@ -1674,8 +1695,8 @@ sub add_user_rules {
                             . "Rule must have from 1 to 3 arguments"
                     );
                 }
-                my ( $lhs, $rhs, $action, $priority ) = @$rule;
-                add_user_rule( $grammar, $lhs, $rhs, $action, $priority );
+                my ( $lhs, $rhs, $action, $user_priority ) = @$rule;
+                add_user_rule( $grammar, $lhs, $rhs, $action, $user_priority );
 
             }
             when ("HASH") {
@@ -1699,7 +1720,7 @@ sub add_rules_from_hash {
     my $proper_separation = 0;
     my $keep_separation   = 0;
     my $left_associative  = 1;
-    my $priority          = 0;
+    my $user_priority          = 0;
 
     while ( my ( $option, $value ) = each(%$options) ) {
         given ($option) {
@@ -1713,14 +1734,14 @@ sub add_rules_from_hash {
             when ("keep_separation")   { $keep_separation   = $value }
             when ("left_associative")  { $left_associative  = $value }
             when ("right_associative") { $left_associative  = !$value }
-            when ("priority")          { $priority          = $value }
+            when ("priority")          { $user_priority          = $value }
             default { croak("Unknown option in counted rule: $option") };
         }
     }
 
     # Take care of nulling rules
     if ( scalar @$rhs_names == 0 ) {
-        add_user_rule( $grammar, $lhs_name, $rhs_names, $action, $priority );
+        add_user_rule( $grammar, $lhs_name, $rhs_names, $action, $user_priority );
         return;
     }
 
@@ -1748,7 +1769,7 @@ sub add_rules_from_hash {
         if ( $max <= 1 and defined $separator_name ) {
             croak("separator defined for rule without repetitions");
         }
-        add_user_rule( $grammar, $lhs_name, $rhs_names, $action, $priority );
+        add_user_rule( $grammar, $lhs_name, $rhs_names, $action, $user_priority );
         return;
     }
 
@@ -1791,10 +1812,10 @@ sub add_rules_from_hash {
             }
             $new_rule =
                 add_user_rule( $grammar, $lhs_name, $proper_counted_rhs,
-                $action, $priority );
+                $action, $user_priority );
             if ($separator_terminated_rhs) {
                 add_user_rule( $grammar, $lhs_name, $separator_terminated_rhs,
-                    $action, $priority );
+                    $action, $user_priority );
             }
         }
 
@@ -1826,7 +1847,7 @@ sub add_rules_from_hash {
                 $rule_action = q{ $_ = []; } . $action;
             }
         }
-        add_user_rule( $grammar, $lhs_name, [], $rule_action, $priority );
+        add_user_rule( $grammar, $lhs_name, [], $rule_action, $user_priority );
         $min = 1;
     }
 
@@ -1906,13 +1927,18 @@ sub add_rules_from_hash {
             $rule_action .= $action;
         }
     }
-    add_rule( $grammar, $lhs, [$sequence], $rule_action, $priority, );
+    add_rule(
+	$grammar, $lhs, [$sequence], $rule_action,
+	pack('NN', $user_priority, 0)
+    );
     if ( defined $separator and not $proper_separation ) {
         unless ($keep_separation) {
             $rule_action = q{ pop @$_; } . ($rule_action // "") ;
         }
         add_rule( $grammar, $lhs, [ $sequence, $separator, ],
-            $rule_action, $priority, );
+            $rule_action,
+	    pack('NN', $user_priority, 0)
+	);
     }
 
     my @separated_rhs = ($rhs);
@@ -1958,7 +1984,9 @@ sub add_rules_from_hash {
         }
     }
 
-    add_rule( $grammar, $sequence, $counted_rhs, $rule_action, $priority, );
+    add_rule( $grammar, $sequence, $counted_rhs, $rule_action,
+	    pack('NN', $user_priority, 0)
+    );
 
     # iterating sequence rule
     $rule_action = ( defined $separator and not $keep_separation )
@@ -1977,7 +2005,9 @@ sub add_rules_from_hash {
         @iterating_rhs = reverse @iterating_rhs;
     }
     add_rule( $grammar, $sequence, ( \@iterating_rhs ),
-        $rule_action, $priority, );
+        $rule_action,
+	pack('NN', $user_priority, 0)
+    );
 
 }    # sub add_rules_from_hash
 
@@ -2862,8 +2892,13 @@ sub assign_QDFA_state_set {
 
     my $highest_priority;
 
-    # pre-allocate the arrays that track whether we've already used an NFA state
+    # Track if a state has been seen.
+    # Undefined if never seen.
+    # Ref to an empty array if seen, but not a result
+    # Ref to an array of reset origin flag, priority
+    # and NFA ID, if seen and to go into result
     my @NFA_state_seen;
+    # pre-allocate the array
     $#NFA_state_seen = @$NFA_states;
 
     # The work list is an array of work items.  Each work item
@@ -2909,27 +2944,27 @@ sub assign_QDFA_state_set {
 	    if $NFA_state->[ Parse::Marpa::Internal::NFA::COMPLETE ];
 	if (defined $priority) {
 	    $highest_priority = $priority
-		if not defined $highest_priority or $priority > $highest_priority;
+		if not defined $highest_priority or $priority gt $highest_priority;
 	}
 	push(@$seen, $reset, $priority, $NFA_id);
 
     } # WORK_ITEM
 
-    $highest_priority //= 0;
+    $highest_priority //= pack('NN', 0, 0);
 
     my @result_data
         = map { $_->[0] }
 	    sort { $a->[1] cmp $b->[1] }
 	    map {
 		$_->[1] //= $highest_priority;
-		[ $_, pack('NN', $_->[0], $_->[1]) ]
+		[ $_, ( pack('N', $_->[0]) . $_->[1] ) ]
 	    } grep { defined $_ and scalar @$_ }
 	    @NFA_state_seen;
 
     # this is a fake record with an 
-    # "impossible" value for priority to force a
+    # "impossible" value for the reset flag to force a
     # control break at the last record
-    push(@result_data, [ -1 ] ); # -1 is an 
+    push(@result_data, [ -1 ] );
 
     # this will hold the QDFA state set,
     # which is the result
@@ -2951,7 +2986,7 @@ sub assign_QDFA_state_set {
 	    = @$result_data;
 
 	# if no "control break"
-	if ($old_reset == $reset and $old_priority == $priority) {
+	if ($old_reset == $reset and $old_priority eq $priority) {
 	    push(@NFA_ids, $NFA_id);
 	    next DATUM;
 	}
@@ -2978,7 +3013,10 @@ sub assign_QDFA_state_set {
 		    $old_priority,
 		);
 		if ($trace_priorities) {
-		    say $trace_fh "Priority for QDFA state $id: ", $old_priority;
+		    my $string_ref = Parse::Marpa::show_priority($old_priority);
+		    say $trace_fh
+			"Priority for QDFA state $id: ",
+			$string_ref ? 'undef' : $$string_ref;
 		}
 		push( @$QDFA, $QDFA_state );
 		$QDFA_by_name->{$name} = $QDFA_state;
@@ -3452,7 +3490,9 @@ sub rewrite_as_CHAF {
                 my $has_chaf_rhs = $next_subp_lhs;
 
                 my $new_rule =
-                    add_rule( $grammar, $subp_lhs, $factor_rhs, undef, $priority );
+                    add_rule( $grammar, $subp_lhs, $factor_rhs, undef,
+			$priority,
+		    );
                 @{$new_rule}[
                     Parse::Marpa::Internal::Rule::USEFUL,
                     Parse::Marpa::Internal::Rule::ACCESSIBLE,

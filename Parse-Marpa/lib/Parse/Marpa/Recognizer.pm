@@ -1158,7 +1158,7 @@ sub complete_set {
             $earley_item->[Parse::Marpa::Internal::Earley_item::LINKS];
         my @sorted_links =
             map  { $_->[0] }
-            sort { $b->[1] <=> $a->[1] }
+            sort { $b->[1] cmp $a->[1] }
             map {
             [   $_,
 		$_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
@@ -1185,7 +1185,7 @@ sub complete_set {
     my $lexables = [
         sort {
             $a->[Parse::Marpa::Internal::Symbol::PRIORITY]
-                <=> $b->[Parse::Marpa::Internal::Symbol::PRIORITY]
+                cmp $b->[Parse::Marpa::Internal::Symbol::PRIORITY]
             }
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#$symbols )

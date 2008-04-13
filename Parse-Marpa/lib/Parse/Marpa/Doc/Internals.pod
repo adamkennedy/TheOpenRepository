@@ -442,7 +442,7 @@ More difficult is the problem of dealing with the cases where the
 proper nullables appeared on the right hand side of rules.
 These rules have to be replaced with
 new rules covering every possible combination of
-the non-nulling and nulling variants.
+the non-nullable and nulling variants.
 That rewrite is described in the next section.
 
 =head2 CHAF Rewriting
@@ -535,7 +535,7 @@ Rules 94 to 97 are the first piece, with the first two symbols from Rule 12.
 Rules 98 to 100 are the second, with the 3rd symbol.
 Rules 101 to 103 are the third, with the 4th and 5th symbols from Rule 12.
 
-Each piece is B<factored>, so that every combination of nulling and non-nulling symbols is included.
+Each piece is B<factored>, so that every combination of nulling and non-nullable symbols is included.
 New symbols are introduced to be the left hand sides of the pieces.
 The tag "C<[R12:3]>" indicates that this
 symbol is the left hand side for the piece of Rule 12 which begins at right hand symbol 3
@@ -554,7 +554,7 @@ This is why, in order to have only 2 proper nullables per piece,
 the original rule
 needed to be divided into 3 pieces.
 The newly created lhs symbols, because they are proper nullables,
-need to be split into nulling and non-nulling
+need to be split into nulling and non-nullable
 variants and factored,
 just like the proper nullables in the original rule.
 
