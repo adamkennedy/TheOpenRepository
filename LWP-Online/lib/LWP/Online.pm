@@ -99,16 +99,19 @@ to show you other bad pages.
 use 5.005;
 use strict;
 use Carp 'croak';
-use LWP::Simple;
+use LWP::Simple qw{ get $ua };
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 
 	# We are an Exporter
 	require Exporter;
 	@ISA       = qw{ Exporter };
 	@EXPORT_OK = qw{ online offline };
+
+	# Set the useragent timeout
+	$ua->timeout(30);
 }
 
 # Set up configuration data
