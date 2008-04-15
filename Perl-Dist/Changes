@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.01    Tue 15 Apr 2008
+	- Refactored a bit to use install_modules
+
 1.00    Mon  7 Apr 2008
 	- Release to match Strawberry Perl 5.10.0.1 April 2008
 
