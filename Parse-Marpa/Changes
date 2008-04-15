@@ -1,11 +1,15 @@
 Revision history for Parse::Marpa
 
+0.211_000 Tue Apr 15 18:37:35 EDT 2008
+        First in a series of developer's releases.
+	Please do not use, unless you're developing Marpa.
+
 0.210.000 Mon Apr 14 18:42:46 EDT 2008
         Alpha Release.
 	Fixed a problem with parse order.
 
 0.209_000 Fri Apr 11 18:16:13 EDT 2008
-        First in a new series of developer's releases.
+        First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.
 
 0.208.000 Fri Apr 11 11:05:37 EDT 2008
@@ -13,7 +17,7 @@ Revision history for Parse::Marpa
 	Eliminates problem of priority conflicts.
 
 0.207_000 Tue Apr  1 12:38:02 EDT 2008
-        First in a new series of developer's releases.
+        First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.
 
 0.206.000 Sun Mar 30 19:06:10 EDT 2008
@@ -22,13 +26,12 @@ Revision history for Parse::Marpa
 	and has been removed.
 
 0.205_000 Sat Mar 22 10:31:32 EDT 2008
-
         First in a Series of Developer's Releases
 	Please do not use, unless you're developing Marpa.
 
-	As of this point, I adopted a system where odd minor
+	As of 0.205_000, I adopted a system where odd minor
 	releases (0.205, 0.207, etc.) are developer-only releases
-	and even minor releases (0.204, 0.206, etc.) are
+	and even-numbered minor releases (0.202, 0.206, etc.) are
 	general releases.
 
 0.202.0 Thu Jan 17 17:01:25 EST 2008
