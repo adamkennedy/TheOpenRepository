@@ -2237,7 +2237,7 @@ sub install_website {
 	# Add the file to the icons section of the inno script
 	$self->add_icon(
 		name     => $website->name,
-		filename => '{app}\\win32' . $website->file,
+		filename => '{app}\\win32\\' . $website->file,
 	);
 
 	return 1;

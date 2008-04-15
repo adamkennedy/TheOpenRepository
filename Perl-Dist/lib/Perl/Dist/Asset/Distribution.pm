@@ -64,6 +64,7 @@ BEGIN {
 
 use Object::Tiny qw{
 	name
+	inject
 	force
 	automated_testing
 	makefilepl_param
