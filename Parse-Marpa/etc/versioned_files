@@ -9,4 +9,3 @@ META.yml
 ./t/ah_s.t
 ./t/minus_s.t
 ./t/randal.t
-./etc/priority.marpa
