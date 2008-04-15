@@ -111,7 +111,7 @@ sub install_perl_modules {
 	$self->SUPER::install_perl_modules(@_);
 
 	# Upgrade to the latest version
-	$self->install_module(
+	$self->install_modules qw{(
 		name => 'CGI',
 	);
 

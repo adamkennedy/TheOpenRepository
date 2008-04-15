@@ -1995,6 +1995,34 @@ END_PERL
 
 =pod
 
+=head2 install_modules
+
+  $self->install_modules( qw{
+      Foo::Bar
+      This::That
+      One::Two
+  } );
+
+The C<install_modules> method is a convenience shorthand that makes it
+trivial to install a series of modules via C<install_module>.
+
+As a convenience, it does not support any additional params to the
+underlying C<install_module> call other than the name.
+
+=cut
+
+sub install_modules {
+	my $self = shift;
+	foreach my $name ( @_ ) {
+		$self->install_module(
+			name => $name,
+		);
+	}
+	return 1;
+}
+
+=pod
+
 =head2 install_par
 
 The C<install_par> method extends the available installation options to
