@@ -27,56 +27,69 @@ my $show_derivation;
 my $show_status;
 my $show_NFA;
 my $show_QDFA;
+my $stdout;
 my $all_parses;
 my %options;
 my %source_options;
 
 given ($command) {
     when ('compile') {
-        croak unless GetOptions("option=s" => \%options);
-	do_compile();
+        croak unless GetOptions( "option=s" => \%options );
+        do_compile();
     }
     when ('parse') {
-        croak unless GetOptions(
-	    "grammar=s" => \$grammar_file,
-	    "compiled_grammar=s" => \$compiled_grammar_file,
-	    "text=s" => \$text_to_parse,
-	    "QDFA" => \$show_QDFA,
-	    "NFA" => \$show_NFA,
-	    "inaccessible_symbols" => \$inaccessible_symbols,
-	    "accessible_symbols" => \$accessible_symbols,
-	    "nullable_symbols" => \$nullable_symbols,
-	    "nulling_symbols" => \$nulling_symbols,
-	    "unproductive_symbols" => \$unproductive_symbols,
-	    "productive_symbols" => \$productive_symbols,
-	    "trace_priorities" => \$trace_priorities,
-	    "show_rules" => \$show_rules,
-	    "show_problems" => \$show_problems,
-	    "show_symbols" => \$show_symbols,
-	    "show_status" => \$show_status,
-	    "show_derivation" => \$show_derivation,
-	    "source_option=s" => \%source_options,
-	    "all_parses" => \$all_parses,
-	    "option=s" => \%options,
-	);
-	do_parse();
+        croak
+            unless GetOptions(
+            "grammar=s"            => \$grammar_file,
+            "compiled_grammar=s"   => \$compiled_grammar_file,
+            "text=s"               => \$text_to_parse,
+            "QDFA"                 => \$show_QDFA,
+            "NFA"                  => \$show_NFA,
+            "inaccessible_symbols" => \$inaccessible_symbols,
+            "accessible_symbols"   => \$accessible_symbols,
+            "nullable_symbols"     => \$nullable_symbols,
+            "nulling_symbols"      => \$nulling_symbols,
+            "unproductive_symbols" => \$unproductive_symbols,
+            "productive_symbols"   => \$productive_symbols,
+            "trace_priorities"     => \$trace_priorities,
+            "show_rules"           => \$show_rules,
+            "show_problems"        => \$show_problems,
+            "show_symbols"         => \$show_symbols,
+            "show_status"          => \$show_status,
+            "show_derivation"      => \$show_derivation,
+            "source_option=s"      => \%source_options,
+	    "stdout"               => \$stdout,
+            "all_parses"           => \$all_parses,
+            "option=s"             => \%options,
+            );
+
+	if ($trace_priorities) {
+	    $options{trace_priorities} = 1;
+	}
+
+	# should I set it up so that it takes effect before other
+	# traces are set?
+	if ($stdout) {
+	    $options{trace_file_handle} = \*STDOUT;
+	}
+
+        do_parse();
+
     }
     default {
         croak("Unimplemented marpa command: $command");
     }
 }
 
-if ($trace_priorities) {
-    $options{trace_priorities} = 1;
-}
-
 sub do_compile {
-    my $grammar_source; { local($RS) = undef; $grammar_source = <STDIN>; }
+    my $grammar_source;
+    { local ($RS) = undef; $grammar_source = <STDIN>; }
 
-    my $grammar = new Parse::Marpa({
-	mdl_source => \$grammar_source,
-	 %options
-    });
+    my $grammar = new Parse::Marpa(
+        {   mdl_source => \$grammar_source,
+            %options
+        }
+    );
 
     $grammar->precompute();
     my $compiled_grammar = $grammar->compile();
@@ -86,29 +99,30 @@ sub do_compile {
 sub do_parse {
 
     my $grammar;
-    if (defined $compiled_grammar_file) {
-	croak("Compiled grammars not implemented");
-	# open(GRAMMAR, "<", $compiled_grammar_file);
-	# my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
-	# $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
+    if ( defined $compiled_grammar_file ) {
+        croak("Compiled grammars not implemented");
+
+        # open(GRAMMAR, "<", $compiled_grammar_file);
+        # my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
+        # $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
     }
-    elsif (defined $grammar_file) {
-	our $GRAMMAR;
-	open(GRAMMAR, "<", $grammar_file);
-	my $grammar_source; { local($RS) = undef; $grammar_source = <GRAMMAR>; }
-	eval {
-	    $grammar = new Parse::Marpa::Grammar(
-		{ %options }
-	    );
-	    $grammar->set({
-		mdl_source => \$grammar_source,
-		source_options => \%source_options,
-	    });
-	};
-	if ($@) {
-	    die("Parse of $grammar_file failed:\n", $@);
-	}
-	%options = ();
+    elsif ( defined $grammar_file ) {
+        our $GRAMMAR;
+        open( GRAMMAR, "<", $grammar_file );
+        my $grammar_source;
+        { local ($RS) = undef; $grammar_source = <GRAMMAR>; }
+        eval {
+            $grammar = new Parse::Marpa::Grammar( {%options} );
+            $grammar->set(
+                {   mdl_source     => \$grammar_source,
+                    source_options => \%source_options,
+                }
+            );
+        };
+        if ($@) {
+            die( "Parse of $grammar_file failed:\n", $@ );
+        }
+        %options = ();
     }
     else {
         croak("No grammar specified");
@@ -117,103 +131,103 @@ sub do_parse {
     $grammar->precompute();
 
     if ($show_symbols) {
-       print $grammar->show_symbols();
+        print $grammar->show_symbols();
     }
 
     if ($show_rules) {
-       print $grammar->show_rules();
+        print $grammar->show_rules();
     }
 
     if ($show_problems) {
-       print $grammar->show_problems();
+        print $grammar->show_problems();
     }
 
     if ($show_NFA) {
-       print $grammar->show_NFA();
+        print $grammar->show_NFA();
     }
 
     if ($show_QDFA) {
-       print $grammar->show_QDFA();
+        print $grammar->show_QDFA();
     }
 
     if ($accessible_symbols) {
-       say "Accessible symbols: ", $grammar->show_accessible_symbols();
+        say "Accessible symbols: ", $grammar->show_accessible_symbols();
     }
 
     if ($inaccessible_symbols) {
-       for my $symbol (@{$grammar->inaccessible_symbols()}) {
-	   say "Inaccessible symbol: ", $symbol;
-       }
+        for my $symbol ( @{ $grammar->inaccessible_symbols() } ) {
+            say "Inaccessible symbol: ", $symbol;
+        }
     }
 
     if ($nullable_symbols) {
-       say "Nullable symbols: ", $grammar->show_nullable_symbols();
+        say "Nullable symbols: ", $grammar->show_nullable_symbols();
     }
 
     if ($nulling_symbols) {
-       say "Nulling symbols: ", $grammar->show_nulling_symbols();
+        say "Nulling symbols: ", $grammar->show_nulling_symbols();
     }
 
     if ($productive_symbols) {
-       say "Productive symbols: ", $grammar->show_productive_symbols();
+        say "Productive symbols: ", $grammar->show_productive_symbols();
     }
 
     if ($unproductive_symbols) {
-       for my $symbol (@{$grammar->unproductive_symbols()}) {
-	   say "Unproductive symbol: ", $symbol;
-       }
+        for my $symbol ( @{ $grammar->unproductive_symbols() } ) {
+            say "Unproductive symbol: ", $symbol;
+        }
     }
 
-    my $recce = new Parse::Marpa::Recognizer({
-        grammar => $grammar,
-    });
-    if (not defined $text_to_parse) {
-	local($RS) = undef; $text_to_parse = <STDIN>;
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar, } );
+    if ( not defined $text_to_parse ) {
+        local ($RS) = undef;
+        $text_to_parse = <STDIN>;
     }
 
-    my $fail_location = $recce->text(\$text_to_parse);
+    my $fail_location = $recce->text( \$text_to_parse );
 
-    if ($fail_location >= 0) {
-	if ($show_status) {
-	    print $recce->show_status();
-	}
-        print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
-	exit 1;
+    if ( $fail_location >= 0 ) {
+        if ($show_status) {
+            print $recce->show_status();
+        }
+        print STDERR Parse::Marpa::show_location( "Parse failed",
+            \$text_to_parse, $fail_location );
+        exit 1;
     }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
     unless ($evaler) {
-	if ($show_status) {
-	    print $recce->show_status();
-	}
-	croak("Input not recognized by grammar") unless $evaler;
+        if ($show_status) {
+            print $recce->show_status();
+        }
+        croak("Input not recognized by grammar") unless $evaler;
     }
 
     my $parse_count = 0;
     PARSE: while (1) {
 
-	my $value = $evaler->next();
-	if (not defined $value) {
-	    croak 'No parse' unless $parse_count > 0;
-	    return;
-	}
-	$parse_count++;
+        my $value = $evaler->next();
+        if ( not defined $value ) {
+            croak 'No parse' unless $parse_count > 0;
+            return;
+        }
+        $parse_count++;
 
-	given ($$value) {
-	    when (undef) { say 'Marpa returned an undefined' }
-	    default { say $$value }
-	}
+        given ($$value) {
+            when (undef) { say 'Marpa returned an undefined' }
+            default      { say $$value };
+        }
 
-	if ($show_status) {
-	    print $recce->show_status();
-	}
+        if ($show_status) {
+            print $recce->show_status();
+        }
 
-	if ($show_derivation) {
-	    print $evaler->show();
-	}
+        if ($show_derivation) {
+            print $evaler->show();
+        }
 
-	last PARSE unless $all_parses;
+        last PARSE unless $all_parses;
 
-    } # while (1)
+    }    # while (1)
 
 }

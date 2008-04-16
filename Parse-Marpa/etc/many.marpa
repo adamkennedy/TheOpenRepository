@@ -1,0 +1,10 @@
+semantics are perl5.  version is 0.211.0.  start symbol is many.
+
+many: one. q{ $_->[0] }.
+
+many: many, many. q{
+    '(' . $_->[0] . $_->[1] . ')'
+}.
+
+one: /a/. q{'a'}.
+
