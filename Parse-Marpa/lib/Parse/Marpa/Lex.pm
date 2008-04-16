@@ -13,7 +13,7 @@ package Parse::Marpa::Lex;
 
 # \x{5c} is backslash
 sub gen_bracket_regex {
-    my ($left, $right) = @_;
+    my ( $left, $right ) = @_;
     qr/
         \G
         [^\Q$left$right\E\x{5c}]*
@@ -28,10 +28,10 @@ sub gen_bracket_regex {
 }
 
 my %regex_data = (
-    '{' => ['}', gen_bracket_regex('{', '}') ],
-    '<' => ['>', gen_bracket_regex('<', '>') ],
-    '[' => [']', gen_bracket_regex('[', ']') ],
-    '(' => [')', gen_bracket_regex('(', ')') ],
+    '{' => [ '}', gen_bracket_regex( '{', '}' ) ],
+    '<' => [ '>', gen_bracket_regex( '<', '>' ) ],
+    '[' => [ ']', gen_bracket_regex( '[', ']' ) ],
+    '(' => [ ')', gen_bracket_regex( '(', ')' ) ],
 );
 
 # This is POSIX "punct" character class, except for backslash,
@@ -41,16 +41,16 @@ my $punct = qr'[!"#$%&\x{27}(*+,-./:;<=?\x{5b}^_`{|~@]';
 
 sub lex_q_quote {
     my $string = shift;
-    my $start = shift;
+    my $start  = shift;
     $$string =~ m/\Gqq?($punct)/ogc;
     my $left = $1;
     return unless defined $left;
 
     my $regex_data = $regex_data{$1};
-    if (not defined $regex_data) {
+    if ( not defined $regex_data ) {
+
         # \x{5c} is backslash
-	my $regex
-            = qr/
+        my $regex = qr/
                 \G
                 [^\Q$left\E\x{5c}]*
                 (
@@ -59,52 +59,53 @@ sub lex_q_quote {
                     |\x{5c}
                 )
             /xms;
-	$regex_data{$left} = $regex_data = [undef, $regex];
+        $regex_data{$left} = $regex_data = [ undef, $regex ];
     }
-    my ($right, $regex) = @$regex_data;
+    my ( $right, $regex ) = @$regex_data;
+
     # unbracketed quote
-    if (not defined $right) {
-	MATCH: while ($$string =~ /$regex/gc) {
-	    next MATCH unless defined $1;
-	    if ($1 eq $left) {
-		my $length = (pos $$string) - $start;
-		return (substr($$string, $start, $length), $length);
-	    }
-	}
-	return;
+    if ( not defined $right ) {
+        MATCH: while ( $$string =~ /$regex/gc ) {
+            next MATCH unless defined $1;
+            if ( $1 eq $left ) {
+                my $length = ( pos $$string ) - $start;
+                return ( substr( $$string, $start, $length ), $length );
+            }
+        }
+        return;
     }
 
     # bracketed quote
-    my $depth=1;
-    MATCH: while ($$string =~ /$regex/g) {
-	given ($1) {
-           when (undef) { return }
-	   when ($left) { $depth++; }
-	   when ($right) { $depth--; }
-	}
-	if ($depth <= 0) {
-	    my $length = (pos $$string) - $start;
-	    return (substr($$string, $start, $length), $length);
-	}
+    my $depth = 1;
+    MATCH: while ( $$string =~ /$regex/g ) {
+        given ($1) {
+            when (undef)  {return}
+            when ($left)  { $depth++; }
+            when ($right) { $depth--; }
+        }
+        if ( $depth <= 0 ) {
+            my $length = ( pos $$string ) - $start;
+            return ( substr( $$string, $start, $length ), $length );
+        }
     }
     return;
 }
 
 sub lex_regex {
-    my $string = shift;
+    my $string       = shift;
     my $lexeme_start = shift;
-    my $value_start = pos $$string;
+    my $value_start  = pos $$string;
     $$string =~ m{\G(qr$punct|/)}ogc;
     my $left_side = $1;
     return unless defined $left_side;
-    my $left = substr($left_side, -1);
-    my $prefix = ($left_side =~ /^qr/) ? "" : "qr";
+    my $left = substr( $left_side, -1 );
+    my $prefix = ( $left_side =~ /^qr/ ) ? "" : "qr";
 
     my $regex_data = $regex_data{$left};
-    if (not defined $regex_data) {
+    if ( not defined $regex_data ) {
+
         # \x{5c} is backslash
-	my $regex
-            = qr/
+        my $regex = qr/
                 \G
                 [^\Q$left\E\x{5c}]*
                 (
@@ -113,43 +114,49 @@ sub lex_regex {
                     |\x{5c}
                 )
             /xms;
-	$regex_data{$left} = $regex_data = [undef, $regex];
+        $regex_data{$left} = $regex_data = [ undef, $regex ];
     }
-    my ($right, $regex) = @$regex_data;
+    my ( $right, $regex ) = @$regex_data;
+
     # unbracketed quote
-    if (not defined $right) {
-	MATCH: while ($$string =~ /$regex/gc) {
-	    next MATCH unless defined $1;
-	    if ($1 eq $left) {
+    if ( not defined $right ) {
+        MATCH: while ( $$string =~ /$regex/gc ) {
+            next MATCH unless defined $1;
+            if ( $1 eq $left ) {
+
                 # also take in trailing options
                 $$string =~ /\G[msixpo]*/g;
                 my $pos = pos $$string;
                 return (
-                    $prefix . substr($$string, $value_start, $pos - $value_start),
+                    $prefix
+                        . substr( $$string, $value_start,
+                        $pos - $value_start ),
                     $pos - $lexeme_start
                 );
-	    }
-	}
-	return;
+            }
+        }
+        return;
     }
 
     # bracketed quote
-    my $depth=1;
-    MATCH: while ($$string =~ /$regex/g) {
-	given ($1) {
-           when (undef) { return }
-	   when ($left) { $depth++; }
-	   when ($right) { $depth--; }
-	}
-	if ($depth <= 0) {
+    my $depth = 1;
+    MATCH: while ( $$string =~ /$regex/g ) {
+        given ($1) {
+            when (undef)  {return}
+            when ($left)  { $depth++; }
+            when ($right) { $depth--; }
+        }
+        if ( $depth <= 0 ) {
+
             # also take in trailing options
             $$string =~ /\G[msixpo]*/g;
             my $pos = pos $$string;
             return (
-                $prefix . substr($$string, $value_start, $pos - $value_start),
+                $prefix
+                    . substr( $$string, $value_start, $pos - $value_start ),
                 $pos - $lexeme_start
             );
-	}
+        }
     }
     return;
 }

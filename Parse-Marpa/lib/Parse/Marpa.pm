@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION = '0.211_000';
+    our $VERSION        = '0.211_000';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
@@ -75,6 +75,7 @@ package Parse::Marpa::Internal;
 use Carp;
 
 our $compiled_eval_error;
+
 BEGIN {
     eval "use Parse::Marpa::Source $Parse::Marpa::STRING_VERSION";
     $compiled_eval_error = $@;
@@ -100,7 +101,7 @@ package Parse::Marpa::Internal;
 # all of them in list context.
 sub Parse::Marpa::mdl {
     my $grammar = shift;
-    my $text = shift;
+    my $text    = shift;
     my $options = shift;
 
     my $ref = ref $grammar;
@@ -116,24 +117,23 @@ sub Parse::Marpa::mdl {
     croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
         unless $ref eq "HASH";
 
-    my $g = new Parse::Marpa::Grammar(
-        { mdl_source => $grammar, %{$options} }
-    );
-    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $g =
+        new Parse::Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $g } );
 
     my $failed_at_earleme = $recce->text($text);
-    if ($failed_at_earleme >= 0) {
-        die_with_parse_failure($text, $failed_at_earleme);
+    if ( $failed_at_earleme >= 0 ) {
+        die_with_parse_failure( $text, $failed_at_earleme );
     }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    if (not defined $evaler) {
-        die_with_parse_failure($text, length($text));
+    if ( not defined $evaler ) {
+        die_with_parse_failure( $text, length($text) );
     }
     return $evaler->next if not wantarray;
     my @values;
-    while (defined(my $value = $evaler->next())) {
-        push(@values, $value);
+    while ( defined( my $value = $evaler->next() ) ) {
+        push( @values, $value );
     }
     @values;
 }

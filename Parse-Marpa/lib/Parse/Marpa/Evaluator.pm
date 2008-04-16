@@ -11,18 +11,19 @@ our $rule;
 
 package Parse::Marpa::Internal::Evaluator;
 
-use constant RECOGNIZER => 0;
-use constant PARSE_COUNT => 1;   # number of parses in an ambiguous parse
+use constant RECOGNIZER  => 0;
+use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
 use Carp;
 
 sub clear_notations {
-    my $evaler = shift;
+    my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    my ($earley_set_list) = @{$evaler}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
+    my ($earley_set_list) =
+        @{$evaler}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
     for my $earley_set (@$earley_set_list) {
         for my $earley_item (@$earley_set) {
             @{$earley_item}[
@@ -37,65 +38,70 @@ sub clear_notations {
                 Parse::Marpa::Internal::Earley_item::EFFECT,
                 Parse::Marpa::Internal::Earley_item::LHS,
                 ]
-                = ( undef, undef, 0, 0, 0, undef, undef, undef, undef, undef, );
+                = ( undef, undef, 0, 0, 0, undef, undef, undef, undef, undef,
+                );
         }
     }
 }
 
 sub clear_values {
-    my $evaler = shift;
+    my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    my ($earley_set_list) = @{$recognizer}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
+    my ($earley_set_list) =
+        @{$recognizer}[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
     for my $earley_set (@$earley_set_list) {
         for my $earley_item (@$earley_set) {
-            $earley_item->[ Parse::Marpa::Internal::Earley_item::VALUE ] = undef;
+            $earley_item->[Parse::Marpa::Internal::Earley_item::VALUE] =
+                undef;
         }
     }
 }
 
 sub Parse::Marpa::Evaluator::new {
-    my $class = shift;
+    my $class         = shift;
     my $recognizer    = shift;
     my $parse_set_arg = shift;
-    my $self = bless [], $class;
+    my $self          = bless [], $class;
 
     my $recognizer_class = ref $recognizer;
-    my $right_class = "Parse::Marpa::Recognizer";
+    my $right_class      = "Parse::Marpa::Recognizer";
     croak(
         "Don't parse argument is class: $recognizer_class; should be: $right_class"
     ) unless $recognizer_class eq $right_class;
 
     croak("Recognizer already in use by evaluator")
-        if defined $recognizer->[ Parse::Marpa::Internal::Recognizer::EVALUATOR ];
-    weaken(
-        $recognizer->[ Parse::Marpa::Internal::Recognizer::EVALUATOR ] = $self
-    );
+        if
+        defined $recognizer->[Parse::Marpa::Internal::Recognizer::EVALUATOR];
+    weaken( $recognizer->[Parse::Marpa::Internal::Recognizer::EVALUATOR] =
+            $self );
 
-    my ($grammar,                 $earley_sets,
-        )
-        = @{$recognizer}[
+    my ( $grammar, $earley_sets, ) = @{$recognizer}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
         Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
-        ];
+    ];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
-    my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iteration_changes;
+
     if ($tracing) {
-        $trace_fh = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
-        $trace_iteration_changes = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ];
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_iteration_changes = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
     }
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $online = $grammar->[ Parse::Marpa::Internal::Grammar::ONLINE ];
-    if (not $online) {
-         Parse::Marpa::Recognizer::end_input($recognizer);
+    my $online = $grammar->[Parse::Marpa::Internal::Grammar::ONLINE];
+    if ( not $online ) {
+        Parse::Marpa::Recognizer::end_input($recognizer);
     }
-    my $default_parse_set = $recognizer->[ Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET ];
+    my $default_parse_set =
+        $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 
-    $self->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ] = 0;
+    $self->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     clear_notations($self);
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
@@ -126,20 +132,21 @@ sub Parse::Marpa::Evaluator::new {
         ]
         = ( $start_item, $current_parse_set );
 
-     $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recognizer;
+    $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
-     finish_evaluation($self);
+    finish_evaluation($self);
 
-     $self;
+    $self;
 }
 
 sub finish_evaluation {
-    my $evaler = shift;
+    my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     # mark start items with LHS?
-    my $start_item = $recognizer->[ Parse::Marpa::Internal::Recognizer::START_ITEM ];
-    my $grammar = $recognizer->[ Parse::Marpa::Internal::Recognizer::GRAMMAR ];
+    my $start_item =
+        $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
+    my $grammar = $recognizer->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
 
     my $previous_value =
         $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
@@ -154,13 +161,14 @@ sub finish_evaluation {
         Parse::Marpa::Internal::Symbol::NULL_VALUE
     ];
 
-    my $tracing
-        = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iteration_changes;
     if ($tracing) {
-        $trace_fh = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
-        $trace_iteration_changes = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ];
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_iteration_changes = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
     }
 
     if ($nulling) {
@@ -173,7 +181,7 @@ sub finish_evaluation {
             Parse::Marpa::Internal::Earley_item::LHS,
             ]
             = ( \$null_value, 0, 0, 0, [$start_rule], $lhs, );
-        if ($tracing && $trace_iteration_changes) {
+        if ( $tracing && $trace_iteration_changes ) {
             print $trace_fh
                 "Setting nulling start value of ",
                 Parse::Marpa::brief_earley_item($start_item), ", ",
@@ -193,7 +201,7 @@ sub finish_evaluation {
         Parse::Marpa::Internal::Earley_item::LHS,
         ]
         = ( \$value, 0, 0, 0, [$start_rule], $lhs, );
-    if ($tracing && $trace_iteration_changes) {
+    if ( $tracing && $trace_iteration_changes ) {
         print $trace_fh "Setting start value of ",
             Parse::Marpa::brief_earley_item($start_item), ", ",
             $lhs->[Parse::Marpa::Internal::Symbol::NAME], " to ",
@@ -209,24 +217,24 @@ sub initialize_children {
     my $lhs_symbol = shift;
 
     my $grammar = $Parse::Marpa::Internal::This::grammar;
-    my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_evaluation_choices;
     my $trace_iteration_changes;
     my $trace_iteration_searches;
     my $trace_values;
- 
+
     if ($tracing) {
-        $trace_fh
-            = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
-        $trace_evaluation_choices
-            = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES ];
-        $trace_iteration_changes
-            = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ];
-        $trace_iteration_searches
-            = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ];
-        $trace_values
-            = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_VALUES ];
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_evaluation_choices = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES];
+        $trace_iteration_changes = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
+        $trace_iteration_searches = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES];
+        $trace_values =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES];
     }
 
     $item->[Parse::Marpa::Internal::Earley_item::LHS] = $lhs_symbol;
@@ -244,8 +252,7 @@ sub initialize_children {
         $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES]
         ->[$lhs_symbol_id];
     my $rule = $child_rules->[$child_rule_choice];
-    if ( $trace_evaluation_choices and scalar @$child_rules > 1 )
-    {
+    if ( $trace_evaluation_choices and scalar @$child_rules > 1 ) {
         my ( $set, $parent ) = @{$item}[
             Parse::Marpa::Internal::Earley_item::SET,
             Parse::Marpa::Internal::Earley_item::PARENT,
@@ -275,16 +282,16 @@ sub initialize_children {
             $child_symbol->[Parse::Marpa::Internal::Symbol::NULLING];
 
         if ($nulling) {
-            my $null_value
-                = $child_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
+            my $null_value =
+                $child_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
             $values->[$child_number] = $null_value;
 
             if ($trace_values) {
                 my $value_description =
-                    (not defined $null_value) ?  "undefined" : $null_value;
+                    ( not defined $null_value ) ? "undefined" : $null_value;
                 say $trace_fh
                     "Using null value for ",
-                    $child_symbol->[ Parse::Marpa::Internal::Symbol::NAME ],
+                    $child_symbol->[Parse::Marpa::Internal::Symbol::NAME],
                     ": ",
                     $value_description;
             }
@@ -308,11 +315,12 @@ sub initialize_children {
 
             if ($trace_values) {
                 my $value_description =
-                    (not defined $$previous_value) ? "undefined" :
-                    $$previous_value;
+                    ( not defined $$previous_value )
+                    ? "undefined"
+                    : $$previous_value;
                 say $trace_fh
                     "Using previous value for ",
-                    $child_symbol->[ Parse::Marpa::Internal::Symbol::NAME ],
+                    $child_symbol->[Parse::Marpa::Internal::Symbol::NAME],
                     ": ",
                     $value_description;
             }
@@ -394,12 +402,14 @@ sub initialize_children {
             ];
             say $trace_fh "Choose link 0 of ",
                 ( scalar @$links ), " at earlemes ", $parent, "-", $set, ": ",
-                Parse::Marpa::Internal::Recognizer::show_link_choice( $links->[0] );
+                Parse::Marpa::Internal::Recognizer::show_link_choice(
+                $links->[0] );
             for ( my $ix = 1; $ix <= $#$links; $ix++ ) {
                 my $choice = $links->[$ix];
                 say $trace_fh
                     "Alternative link choice $ix at $parent-$set: ",
-                    Parse::Marpa::Internal::Recognizer::show_link_choice( $links->[$ix] );
+                    Parse::Marpa::Internal::Recognizer::show_link_choice(
+                    $links->[$ix] );
             }
         }
 
@@ -462,103 +472,112 @@ sub initialize_children {
     my $result;
     {
         my @warnings;
-	my @caller_return;
+        my @caller_return;
         local $SIG{__WARN__} = sub {
-	    push(@warnings, $_[0]);
-	    @caller_return = caller 0;
-	};
+            push( @warnings, $_[0] );
+            @caller_return = caller 0;
+        };
         $result = eval {
-	    local($_) = $values;
-	    $closure->()
-	};
+            local ($_) = $values;
+            $closure->();
+        };
         my $fatal_error = $@;
-        if ($fatal_error or @warnings) {
-            Parse::Marpa::Internal::code_problems($fatal_error, \@warnings,
+        if ( $fatal_error or @warnings ) {
+            Parse::Marpa::Internal::code_problems(
+                $fatal_error,
+                \@warnings,
                 "computing value",
                 "computing value for rule: "
                     . Parse::Marpa::brief_original_rule($rule),
-                \($rule->[Parse::Marpa::Internal::Rule::ACTION]),
-		\@caller_return
+                \( $rule->[Parse::Marpa::Internal::Rule::ACTION] ),
+                \@caller_return
             );
         }
     }
 
     if ($trace_values) {
         my $result_description =
-            (not defined $result) ?  "undefined" : $result;
-        say $trace_fh "Rule ", Parse::Marpa::brief_rule($rule), "; value: ", $result_description;
+            ( not defined $result ) ? "undefined" : $result;
+        say $trace_fh "Rule ", Parse::Marpa::brief_rule($rule), "; value: ",
+            $result_description;
     }
 
     $result;
 
 }
 
-# Undocumented.  It's main purpose was to allow the user to differentiate 
+# Undocumented.  It's main purpose was to allow the user to differentiate
 # between an unevaluated node and a node whose value was a Perl 5 undefined.
 sub Parse::Marpa::Evaluator::value {
-    my $evaler = shift;
+    my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     croak("Not yet converted");
-    my $start_item = $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
+    my $start_item =
+        $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
     return unless defined $start_item;
     my $value_ref = $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+
     # croak("No value defined") unless defined $value_ref;
     return $value_ref;
 }
 
 sub Parse::Marpa::Evaluator::next {
-    my $evaler = shift;
+    my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     croak("No parse supplied") unless defined $evaler;
     my $evaler_class = ref $evaler;
-    my $right_class = "Parse::Marpa::Evaluator";
+    my $right_class  = "Parse::Marpa::Evaluator";
     croak(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
-    my ( $grammar, $start_item, $current_parse_set, )
-        = @{$recognizer}[
+    my ( $grammar, $start_item, $current_parse_set, ) = @{$recognizer}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
         Parse::Marpa::Internal::Recognizer::START_ITEM,
         Parse::Marpa::Internal::Recognizer::CURRENT_PARSE_SET,
-        ];
+    ];
 
     # TODO: Is this check enough be sure that this is an evaluated parse?
     croak("Parse not initialized: no start item") unless defined $start_item;
 
-    my $max_parses = $grammar->[ Parse::Marpa::Internal::Grammar::MAX_PARSES ];
-    my $parse_count = $evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ];
-    if ($max_parses > 0 && $parse_count > $max_parses) {
+    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
+    my $parse_count =
+        $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT];
+    if ( $max_parses > 0 && $parse_count > $max_parses ) {
         croak("Maximum parse count ($max_parses) exceeded");
     }
 
-    if ($parse_count <= 0) {
-	$evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ] = 1;
-	# Allow semipredication
-	my $start_value =
-	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
-	return \(undef) if not defined $start_value;
-	return $start_value;
+    if ( $parse_count <= 0 ) {
+        $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 1;
+
+        # Allow semipredication
+        my $start_value =
+            $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+        return \(undef) if not defined $start_value;
+        return $start_value;
     }
 
-    $evaler->[ Parse::Marpa::Internal::Evaluator::PARSE_COUNT ]++;
+    $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
-    my $tracing = $grammar->[ Parse::Marpa::Internal::Grammar::TRACING ];
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iteration_changes;
     my $trace_iteration_searches;
     if ($tracing) {
-        $trace_fh = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
-        $trace_iteration_changes = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES ];
-        $trace_iteration_searches = $grammar->[ Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES ];
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_iteration_changes = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
+        $trace_iteration_searches = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES];
     }
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $opaque = $grammar->[ Parse::Marpa::Internal::Grammar::OPAQUE ];
+    my $opaque = $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE];
     clear_values($evaler) if $opaque;
 
     # find the "bottom left corner item", by following predecessors,
@@ -820,16 +839,17 @@ sub Parse::Marpa::Evaluator::next {
         }    # STEP_UP_TREE
 
         # Initialize everything else left unvalued.
-        finish_evaluation( $evaler );
+        finish_evaluation($evaler);
 
         # Rejected evaluations are not yet implemented.
         # Therefore this evaluation pass succeeded.
- 
-	my $start_value =
-	    $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
-	# Semipredication allowed
-	croak("Parse not evaluated") if not defined $start_value;
-	return $start_value;
+
+        my $start_value =
+            $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+
+        # Semipredication allowed
+        croak("Parse not evaluated") if not defined $start_value;
+        return $start_value;
 
     }    # EVALUATION
 
@@ -839,16 +859,15 @@ sub Parse::Marpa::Evaluator::next {
 
 sub Parse::Marpa::Evaluator::show {
     my $evaler = shift;
-    my $text  = "";
+    my $text   = "";
 
     croak("No parse supplied") unless defined $evaler;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    my $start_item = $recognizer->[
-        Parse::Marpa::Internal::Recognizer::START_ITEM,
-    ];
+    my $start_item =
+        $recognizer->[ Parse::Marpa::Internal::Recognizer::START_ITEM, ];
 
-    local ($Data::Dumper::Terse)       = 1;
+    local ($Data::Dumper::Terse) = 1;
 
     my $value = $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
     croak("Parse not evaluated") unless defined $value;
@@ -911,7 +930,7 @@ sub show_derivation {
             $item = $predecessor;
         }
 
-    } # RHS_SYMBOL
+    }    # RHS_SYMBOL
 
     $text;
 
