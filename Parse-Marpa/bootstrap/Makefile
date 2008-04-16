@@ -18,7 +18,7 @@ source_raw.pl: bootcopy2.pl self.marpa
 test: bootcopy1.pl bootcopy2.pl
 	diff bootcopy1.pl bootcopy2.pl
 
-install: install_compiled install_raw
+install: test install_compiled install_raw
 
 install_compiled: ../lib/Parse/Marpa/Source.pm
 

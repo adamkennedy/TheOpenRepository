@@ -541,6 +541,7 @@ sub Parse::Marpa::Recognizer::new {
 	$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
     }
 
+    local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
     # options are not set until *AFTER* the grammar is deep copied
     Parse::Marpa::Grammar::set($grammar, $args);
