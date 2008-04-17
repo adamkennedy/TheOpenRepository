@@ -48,9 +48,6 @@ Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
 QDFA states are not traditional --
 they are my elaboration of an invention by Aycock and Horspool.
-In the traditional terminology,
-the Earley set corresponding to the
-origin earleme is confusingly called the "parent".
 And in the traditional notation for an Earley item,
 the dot earleme is not
 included at all --

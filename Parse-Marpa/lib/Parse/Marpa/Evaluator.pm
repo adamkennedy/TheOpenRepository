@@ -281,6 +281,9 @@ sub initialize_children {
         my $nulling =
             $child_symbol->[Parse::Marpa::Internal::Symbol::NULLING];
 
+	# Nulling?  Is so, use the null symbol value.
+	# There are no items for null values, so current item does not
+	# change.
         if ($nulling) {
             my $null_value =
                 $child_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
@@ -299,6 +302,8 @@ sub initialize_children {
             next CHILD;
         }
 
+	# If there is already a value, use it, and set the next item
+	# to be predecessor, which we saved.
         my ( $tokens, $links, $previous_value, $previous_predecessor,
             $item_set, )
             = @{$item}[
@@ -629,8 +634,6 @@ sub Parse::Marpa::Evaluator::next {
 
             # We have our candidate, now try to iterate it,
             # exhausting the rule choice if necessary
-
-            # TODO: is this block necessary ?
 
             my ($token_choice, $tokens,      $link_choice,
                 $links,        $rule_choice, $rules,
