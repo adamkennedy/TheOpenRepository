@@ -10,7 +10,7 @@ use Params::Util qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 
 use vars qw{$VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 	$errstr  = '';
 
 	# Attempt to define a single, all encompasing,
@@ -410,7 +410,7 @@ L<JSON>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2003 - 2006 Adam Kennedy.
+Copyright 2003 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

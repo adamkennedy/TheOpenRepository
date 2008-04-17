@@ -1,6 +1,10 @@
 Revision history for Perl extension Data::JavaScript::Anon
 
-1.00  Sun 17 Jun 2006
+1.01 Thu 17 Apr 2008
+	- Incremental release to flush out an index bug (PUDGE)
+	- Upgrading Module::Install and bundled tests
+
+1.00 Sun 17 Jun 2006
 	- Patch from ARC@cpan.org to fix a variety of small bugs including
 	  CPAN #19915
 
