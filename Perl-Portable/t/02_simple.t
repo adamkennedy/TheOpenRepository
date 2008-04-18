@@ -6,6 +6,15 @@ BEGIN {
 	$^W = 1;
 }
 
-ok( $] >= 5.005, 'Perl version is new enough' );
+use Test::More tests => 1;
+use File::Spec::Functions ':ALL';
+use Perl::Portable ();
 
-use_ok( 'Perl::Portable' );
+# Override the perl path for testing purposes
+$Perl::Portable::FAKE_PERL = rel2abs(catfile(qw{
+	t data perl bin perl.exe
+}));
+
+# Create an object
+my $perl = Perl::Portable->find;
+isa_ok( $perl, 'Perl::Portable' );

@@ -4,7 +4,7 @@ package Perl::Portable;
 
 =head1 NAME
 
-Perl::Portable - Support class for "Perl on a Stick" distribtions
+Perl::Portable - Support code for "Perl on a Stick" distribtions
 
 =head1 DESCRIPTION
 
@@ -34,7 +34,7 @@ be built to be platform-agnostic.
 
 =cut
 
-use 5.010;
+use 5.008;
 use strict;
 use Carp             'croak';
 use List::Util       ();
@@ -58,6 +58,23 @@ use Object::Tiny qw{
 	dist_root
 	abs_conf
 	abs_perl
+	abs_perl_bin
+	abs_perl_lib
+	abs_perl_sitelib
+	abs_cpan
+	abs_c_bin
+	abs_c_lib
+	abs_c_include
+};
+
+use constant RESOURCES => qw{
+		perl_bin
+		perl_lib
+		perl_sitelib
+		cpan
+		c_bin
+		c_lib
+		c_include
 };
 
 
@@ -69,7 +86,7 @@ use Object::Tiny qw{
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = $class->SUPER::new( @_ );
 
 	# Param checking
 	unless ( _STRING($self->dist_volume) ) {
@@ -85,23 +102,31 @@ sub new {
 		croak('Missing or invalid portable param');
 	}
 	unless ( _HASH($self->{portable}->{ENV}) ) {
-		croak('Missing or invalid ENV key in portable.conf');
+		croak('Missing or invalid ENV key in portable.perl');
 	}
 	unless ( _ARRAY($self->{portable}->{ENV}->{PATH}) ) {
-		croak('Missing or invalid ENV.PATH key in portable.conf');
+		croak('Missing or invalid ENV.PATH key in portable.perl');
 	}
 	unless ( _ARRAY($self->{portable}->{ENV}->{LIB}) ) {
-		croak('Missing or invalid ENV.LIB key in portable.conf');
+		croak('Missing or invalid ENV.LIB key in portable.perl');
 	}
 	unless ( _ARRAY($self->{portable}->{ENV}->{INCLUDE}) ) {
-		croak('Missing or invalid ENV.INCLUDE key in portable.conf');
+		croak('Missing or invalid ENV.INCLUDE key in portable.perl');
 	}
 
-	# Derive some absolute paths
-	$self->{abs_end_path} = [
-		map { $self->_dir($_) }
-		@{$self->portable
-	];
+	# Check the portable path are defined
+	foreach ( RESOURCES ) {
+		my $portable = "portable_$_";
+		my $absolute = "abs_$_";
+		unless ( $self->$portable() ) {
+			croak("Missing $_ key in portable.perl");
+		}
+		$self->{$absolute} = File::Spec->catdir(
+			$self->dist_root, $self->$portable(),
+		);
+		next if -d $self->$absolute();
+		croak("Invalid $_ key in portable.perl");
+	}
 
 	return $self;
 }
@@ -113,28 +138,28 @@ sub find {
 	# The path to Perl has a localized path.
 	# G:\\strawberry\\perl\\bin\\perl.exe
 	# Split it up, and search upwards to try and locate the
-	# portable.conf file in the distribution root.
-	my ($dist_volume, $d, $f) = File::Spec->splitpath($abs_path);
+	# portable.perl file in the distribution root.
+	my ($dist_volume, $d, $f) = File::Spec->splitpath($abs_perl);
 	my @d = File::Spec->splitdir($d);
 	pop @d if $d[-1] eq '';
 	my $dist_dirs = List::Util::first {
-			File::Spec->catpath( $v, $_, $class->portable_conf )
+			-f File::Spec->catpath( $dist_volume, $_, $class->portable_conf )
 		}
 		map {
 			File::Spec->catdir(@d[0 .. $_])
-		} ( 0 .. $#d );
+		} reverse ( 0 .. $#d );
 	unless ( defined $dist_dirs ) {
-		croak("Failed to find the portable.conf file");
+		croak("Failed to find the portable.perl file");
 	}
 
 	# Derive the main paths from the plain dirs
-	my $dist_root = File::Spec->catpath($v, $dist_dirs);
-	my $abs_conf  = File::Spec->catpath($v, $dist_dirs, $class->portable_conf );
+	my $dist_root = File::Spec->catpath($dist_volume, $dist_dirs, '');
+	my $abs_conf  = File::Spec->catpath($dist_volume, $dist_dirs, $class->portable_conf);
 
 	# Load the YAML file
 	my $portable = YAML::Tiny::LoadFile( $abs_conf );
 	unless ( _HASH($portable) ) {
-		croak("Missing or invalid portable.conf file");
+		croak("Missing or invalid portable.perl file");
 	}
 
 	# Hand off to the main constructor
@@ -156,7 +181,35 @@ sub find {
 # Configuration Accessors
 
 sub portable_conf {
-	'portable.conf';
+	'portable.perl';
+}
+
+sub portable_perl_bin {
+	$_[0]->{portable}->{perl_bin};
+}
+
+sub portable_perl_lib {
+	$_[0]->{portable}->{perl_lib};
+}
+
+sub portable_perl_sitelib {
+	$_[0]->{portable}->{perl_sitelib};
+}
+
+sub portable_cpan {
+	$_[0]->{portable}->{cpan};
+}
+
+sub portable_c_bin {
+	$_[0]->{portable}->{c_bin};
+}
+
+sub portable_c_lib {
+	$_[0]->{portable}->{c_lib};
+}
+
+sub portable_c_include {
+	$_[0]->{portable}->{c_include};
 }
 
 sub portable_env_path {
