@@ -41,7 +41,7 @@ use strict;
 use Carp             'croak';
 use File::Spec       ();
 use List::Util       ();
-use Params::Util     qw{ _STRING _STRING0 _HASH _ARRAY };
+use Params::Util     qw{ _STRING _HASH _ARRAY };
 use YAML::Tiny       ();
 
 use vars qw{$VERSION $FAKE_PERL};
@@ -90,7 +90,7 @@ sub new {
 	my $self  = $class->SUPER::new( @_ );
 
 	# Param checking
-	unless ( _STRING0($self->dist_volume) ) {
+	unless ( defined _STRING($self->dist_volume) ) {
 		croak('Missing or invalid dist_volume param');
 	}
 	unless ( _STRING($self->dist_dirs) ) {
