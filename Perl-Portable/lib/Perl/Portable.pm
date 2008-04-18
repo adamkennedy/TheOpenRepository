@@ -39,11 +39,10 @@ For now, see the code for more...
 use 5.008;
 use strict;
 use Carp             'croak';
+use File::Spec       ();
 use List::Util       ();
 use Params::Util     qw{ _STRING _HASH _ARRAY };
-use File::Spec       ();
 use YAML::Tiny       ();
-use Win32::Env::Path ();
 
 use vars qw{$VERSION $FAKE_PERL};
 BEGIN {
