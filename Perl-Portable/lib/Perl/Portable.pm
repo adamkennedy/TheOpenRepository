@@ -68,13 +68,13 @@ use Object::Tiny qw{
 };
 
 use constant RESOURCES => qw{
-		perl_bin
-		perl_lib
-		perl_sitelib
-		cpan
-		c_bin
-		c_lib
-		c_include
+	perl_bin
+	perl_lib
+	perl_sitelib
+	cpan
+	c_bin
+	c_lib
+	c_include
 };
 
 
