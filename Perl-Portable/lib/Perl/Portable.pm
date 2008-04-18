@@ -90,7 +90,7 @@ sub new {
 	my $self  = $class->SUPER::new( @_ );
 
 	# Param checking
-	unless ( defined _STRING($self->dist_volume) ) {
+	unless ( exists $self->{dist_volume} ) {
 		croak('Missing or invalid dist_volume param');
 	}
 	unless ( _STRING($self->dist_dirs) ) {
