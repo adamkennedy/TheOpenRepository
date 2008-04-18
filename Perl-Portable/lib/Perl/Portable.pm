@@ -32,6 +32,8 @@ the creating of  "Portable Perl" distributions. While this will initially
 be focused on a Windows implementation, wherever possible the module will
 be built to be platform-agnostic.
 
+For now, see the code for more...
+
 =cut
 
 use 5.008;
