@@ -185,6 +185,10 @@ sub portable_conf {
 	'portable.perl';
 }
 
+sub portable_perl {
+	$_[0]->{portable}->{perl};
+}
+
 sub portable_perl_bin {
 	$_[0]->{portable}->{perl_bin};
 }
@@ -230,28 +234,38 @@ sub portable_env_include {
 
 
 #####################################################################
-# Support Methods
+# Generate values for Config.pm
 
-# Convert a portable path into a relative path
-sub _dir {
-	my $self = shift;
-	my $unix = shift;
-	my @dir  = File::Spec::Unix->splitdir($unix);
-	File::Spec->catdir( $self->dist_root, @dir );
+sub configpm_archlibexp {
+	$_[0]->abs_perl_bin;
 }
 
-sub _file {
-	my $self = shift;
-	my $unix = shift;
-	my ($v,$d,$f) = File::Spec::Unix->splitpath($unix);
-	$d = File::Spec->catdir( $self->dist_root, $d );
-	File::Spec->catfile(
-		File::Spec->catdir(
-			$self->dist_root,
-			$d,
-		),
-		$f,
-	);
+sub configpm_bin {
+	$_[0]->abs_perl_bin;
+}
+
+sub configpm_libpth {
+	$_[0]->abs_c_lib;
+}
+
+sub configpm_perlpath {
+	$^X;
+}
+
+sub configpm_privlibexp {
+	$_[0]->abs_perl_lib;
+}
+
+sub configpm_scriptdir {
+	$_[0]->abs_perl_bin;
+}
+
+sub configpm_sitearchexp {
+	$_[0]->abs_perl_sitelib;
+}
+
+sub configpm_sitelibexp {
+	$_[0]->abs_perl_sitelib;
 }
 
 1;
