@@ -1,5 +1,9 @@
 Revision history for Perl extension JSAN::Client
 
+0.17 Wed 16 Apr 2008
+	- Incremental release to upgrade Module::Install and tests
+	- Fixing a dependency bug
+
 0.16 Mon 22 Jan 2007
 	- Updating dependencies and copyright
 

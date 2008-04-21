@@ -12,7 +12,7 @@ use Test::More tests => 22;
 use JSAN::Transport ();
 use LWP::Online     ();
 
-my $sqlindex = 'index.sqlite';
+my $yamlindex = 'index.yaml';
 
 # Are we online
 my $online = LWP::Online::online();
@@ -37,18 +37,18 @@ SKIP: {
 	skip( "Skipping online tests", 15 ) unless $online;
 
 	# Pull the index as a test
-	my $location = JSAN::Transport->file_location($sqlindex);
+	my $location = JSAN::Transport->file_location($yamlindex);
 	isa_ok( $location, 'URI::ToDisk' );
-	my $qm_sqlindex = quotemeta $sqlindex;
+	my $qm_sqlindex = quotemeta $yamlindex;
 	ok( $location->uri =~ /$qm_sqlindex$/, '->file_location actually appends filename' );
-	my $rv = JSAN::Transport->file_get($sqlindex);
+	my $rv = JSAN::Transport->file_get($yamlindex);
 	isa_ok( $rv, 'URI::ToDisk' );
 	is_deeply( $location, $rv, '->file_get returns URI::ToDisk as expected' );
 	ok( -f $rv->path, '->file_get actually gets the file to the expected location' );
 	is( JSAN::Transport->file_get('nosuchfile'), '', "->file_get(nosuchfile) returns ''" );
 
 	# Pull again via mirror
-	$rv = JSAN::Transport->file_mirror($sqlindex);
+	$rv = JSAN::Transport->file_mirror($yamlindex);
 	isa_ok( $rv, 'URI::ToDisk' );
 	is_deeply( $location, $rv, '->file_mirror returns URI::ToDisk as expected' );
 	ok( -f $rv->path, '->file_mirror actually gets the file to the expected location' );
