@@ -103,8 +103,8 @@ sub new {
 	}
 
 	# Ignore errors
-	eval { require 'Config_heavy.pl' };
-}
+	eval { require 'Config_heavy.pl'; };
+
 	# Localize up the config entries
 	my $config  = $self->{config} = {};
 	my $pconfig = $self->{portable}->{config};
