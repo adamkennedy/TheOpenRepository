@@ -50,7 +50,7 @@ use YAML::Tiny       ();
 
 use vars qw{$VERSION $FAKE_PERL};
 BEGIN {
-	$VERSION   = '0.01';
+	$VERSION   = '0.02';
 
 	# This variable is provided exclusively for the
 	# use of test scripts.
