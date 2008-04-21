@@ -38,6 +38,10 @@ For now, see the code for more...
 
 use 5.008;
 use strict;
+use Config           ();
+BEGIN {
+	require 'Config_heavy.pl';
+}
 use Carp             'croak';
 use File::Spec       ();
 use List::Util       ();
@@ -59,9 +63,6 @@ use Object::Tiny qw{
 	dist_root
 	abs_conf
 	abs_perl
-	abs_perl_bin
-	abs_perl_lib
-	abs_perl_sitelib
 	abs_cpan
 	abs_c_bin
 	abs_c_lib
@@ -69,9 +70,6 @@ use Object::Tiny qw{
 };
 
 use constant RESOURCES => qw{
-	perl_bin
-	perl_lib
-	perl_sitelib
 	cpan
 	c_bin
 	c_lib
@@ -132,8 +130,12 @@ sub new {
 	return $self;
 }
 
-sub find {
-	my $class    = shift;
+my $DEFAULT = undef;
+
+sub default {
+	return $DEFAULT if $DEFAULT;
+
+	# Get the perl executable location
 	my $abs_perl = ($ENV{HARNESS_ACTIVE} and $FAKE_PERL) ? $FAKE_PERL : $^X;
 
 	# The path to Perl has a localized path.
@@ -164,7 +166,7 @@ sub find {
 	}
 
 	# Hand off to the main constructor
-	$class->new(
+	$DEFAULT = __PACKAGE__->new(
 		dist_volume => $dist_volume,
 		dist_dirs   => $dist_dirs,
 		dist_root   => $dist_root,
@@ -172,6 +174,8 @@ sub find {
 		abs_perl    => $abs_perl,
 		portable    => $portable,
 	);
+
+	return $DEFAULT;
 }
 
 
@@ -183,22 +187,6 @@ sub find {
 
 sub portable_conf {
 	'portable.perl';
-}
-
-sub portable_perl {
-	$_[0]->{portable}->{perl};
-}
-
-sub portable_perl_bin {
-	$_[0]->{portable}->{perl_bin};
-}
-
-sub portable_perl_lib {
-	$_[0]->{portable}->{perl_lib};
-}
-
-sub portable_perl_sitelib {
-	$_[0]->{portable}->{perl_sitelib};
 }
 
 sub portable_cpan {
@@ -215,6 +203,14 @@ sub portable_c_lib {
 
 sub portable_c_include {
 	$_[0]->{portable}->{c_include};
+}
+
+sub portable_config {
+	$_[0]->{portable}->{config};
+}
+
+sub portable_env {
+	$_[0]->{portable}->{ENV};
 }
 
 sub portable_env_path {
@@ -234,38 +230,11 @@ sub portable_env_include {
 
 
 #####################################################################
-# Generate values for Config.pm
+# Main Interface
 
-sub configpm_archlibexp {
-	$_[0]->abs_perl_bin;
-}
-
-sub configpm_bin {
-	$_[0]->abs_perl_bin;
-}
-
-sub configpm_libpth {
-	$_[0]->abs_c_lib;
-}
-
-sub configpm_perlpath {
-	$^X;
-}
-
-sub configpm_privlibexp {
-	$_[0]->abs_perl_lib;
-}
-
-sub configpm_scriptdir {
-	$_[0]->abs_perl_bin;
-}
-
-sub configpm_sitearchexp {
-	$_[0]->abs_perl_sitelib;
-}
-
-sub configpm_sitelibexp {
-	$_[0]->abs_perl_sitelib;
+sub config {
+	my $config = default()->{config};
+	exists $config->{$_[0]} ? $config->{$_[0]} : $_[1];
 }
 
 1;
