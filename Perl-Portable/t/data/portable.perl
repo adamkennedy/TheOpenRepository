@@ -1,9 +1,15 @@
 ---
-class: Perl::Portable
-c_bin: c/bin
-c_lib: c/lib
-c_include: c/include
-cpan: cpan
+class: Portable
+cpan:
+  build_dir: cpan/build
+  cpan_home: cpan
+  histfile: cpan/histfile
+  keep_source_where: cpan/sources
+  make: c/bin/dmake.exe
+  makepl_arg: 'LIBS=-L$libpth INC=-I$incpath'
+  prefs_dir: cpan/prefs
+minicpan:
+  local: minicpan
 config:
   archlib: perl/lib
   archlibexp: perl/lib

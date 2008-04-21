@@ -7,14 +7,16 @@ BEGIN {
 }
 
 use Test::More tests => 1;
-use File::Spec::Functions ':ALL';
-use Perl::Portable ();
+use File::Spec ();
+use Portable   ();
 
 # Override the perl path for testing purposes
-$Perl::Portable::FAKE_PERL = rel2abs(catfile(qw{
-	t data perl bin perl.exe
-}));
+$Portable::FAKE_PERL = File::Spec->rel2abs(
+	File::Spec->catfile( qw{
+		t data perl bin perl.exe
+	} )
+);
 
 # Create an object
-my $perl = Perl::Portable->default;
-isa_ok( $perl, 'Perl::Portable' );
+my $perl = Portable->_default;
+isa_ok( $perl, 'Portable' );
