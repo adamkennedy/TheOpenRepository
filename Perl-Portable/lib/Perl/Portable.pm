@@ -38,12 +38,7 @@ For now, see the code for more...
 
 use 5.008;
 use strict;
-use Config           ();
-BEGIN {
-	eval { # Ignore errors
-		require 'Config_heavy.pl';
-	};
-}
+use Config ();
 use Carp             'croak';
 use File::Spec       ();
 use List::Util       ();
@@ -107,6 +102,9 @@ sub new {
 		croak('Missing or invalid config key in portable.perl');
 	}
 
+	# Ignore errors
+	eval { require 'Config_heavy.pl' };
+}
 	# Localize up the config entries
 	my $config  = $self->{config} = {};
 	my $pconfig = $self->{portable}->{config};
