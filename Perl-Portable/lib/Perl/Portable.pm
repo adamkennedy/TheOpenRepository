@@ -40,7 +40,9 @@ use 5.008;
 use strict;
 use Config           ();
 BEGIN {
-	require 'Config_heavy.pl';
+	eval { # Ignore errors
+		require 'Config_heavy.pl';
+	};
 }
 use Carp             'croak';
 use File::Spec       ();
