@@ -238,7 +238,8 @@ Inaccessible rules and unproductive rules aren't useful, but they cause no
 real harm.
 
 Ambiguous grammars are a Marpa specialty.
-(An ambiguous grammar is a grammar which might can parse an input in more than one way.)
+(An ambiguous grammar is one for which there is some input
+which has more than one parse tree.)
 Ambiguity is often useful even if you are only interested in one parse.
 An ambiguous grammar is often
 the easiest and most sensible way to express a language.
@@ -448,11 +449,6 @@ cycle-free and has no useless rules or empty productions.
 
 The structure of a parse can be represented by as a series of derivation steps from
 the start symbol to the input.
-If, for a particular grammar, more than one derivation is possible for an input,
-that input is said to have an B<ambiguous> parse.
-An B<ambiguous> grammar is one which for which there is some input
-that has an ambiguous parse.
-
 Another way to represent structure is as a B<parse tree>.
 Every symbol used in the parse is
 represented by a B<node> of the parse tree.
@@ -464,6 +460,12 @@ Terminals and symbols on the
 left hand side of empty productions are B<leaf nodes>.
 If a node is not a B<leaf node>, it is an B<inner node>.
 A B<nulled node> is one that represents a nulled symbol.
+
+If, for a given grammar and a given input,
+more than one derivation tree is possible,
+we say that parse is B<ambiguous>.
+Any grammar with an ambiguous parse
+is an B<ambiguous> grammar.
 
 The node at the root of the tree is the B<start node>.
 Any node with a symbol being used as a terminal is a B<terminal node>.
