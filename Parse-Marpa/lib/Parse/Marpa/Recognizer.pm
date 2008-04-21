@@ -15,24 +15,24 @@ package Parse::Marpa::Internal::Earley_item;
 # Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
 # LR(0) items.
 #
-use constant STATE => 0;    # the QDFA state
-use constant PARENT =>
-    1;    # the number of the Earley set with the parent item(s)
-use constant TOKENS => 2;    # a list of the links from token scanning
-use constant LINKS  => 3;    # a list of the links from the completer step
-use constant SET    => 4;    # the set this item is in, for debugging
+use constant NAME => 0;    # unique string describing Earley item
+use constant STATE => 1;    # the QDFA state
+use constant PARENT => 2;    # the number of the Earley set with the parent item(s)
+use constant TOKENS => 3;    # a list of the links from token scanning
+use constant LINKS  => 4;    # a list of the links from the completer step
+use constant SET    => 5;    # the set this item is in, for debugging
      # these next elements are "notations" for iterating over the parses
-use constant POINTER      => 5;     # symbol just before pointer
-use constant RULES        => 6;     # current list of rules
-use constant RULE_CHOICE  => 7;     # current choice of rule
-use constant LINK_CHOICE  => 8;     # current choice of link
-use constant TOKEN_CHOICE => 9;     # current choice of token
-use constant VALUE        => 10;    # value of pointer symbol
-use constant PREDECESSOR  => 11;    # the predecessor link, if we have a value
-use constant SUCCESSOR    => 12;    # the predecessor link, in reverse
-use constant EFFECT       => 13;    # the cause link, in reverse
+use constant POINTER      => 6;     # symbol just before pointer
+use constant RULES        => 7;     # current list of rules
+use constant RULE_CHOICE  => 8;     # current choice of rule
+use constant LINK_CHOICE  => 9;     # current choice of link
+use constant TOKEN_CHOICE => 10;     # current choice of token
+use constant VALUE        => 11;    # value of pointer symbol
+use constant PREDECESSOR  => 12;    # the predecessor link, if we have a value
+use constant SUCCESSOR    => 13;    # the predecessor link, in reverse
+use constant EFFECT       => 14;    # the cause link, in reverse
                                     # or the "parent" item
-use constant LHS          => 14;    # LHS symbol
+use constant LHS          => 15;    # LHS symbol
 
 # Note that (at least right now) items either have a SUCCESSOR
 # or an EFFECT, never both.
@@ -49,7 +49,7 @@ my $parse_number = 0;
 use constant GRAMMAR       => 0;    # the grammar used
 use constant CURRENT_SET   => 1;    # index of the first incomplete Earley set
 use constant EARLEY_SETS   => 2;    # the array of the Earley sets
-use constant EARLEY_HASHES => 3;    # the array of hashes used
+use constant EARLEY_HASH   => 3;    # hash of the Earley items
                                     # to build the Earley sets
 use constant CURRENT_PARSE_SET => 4;   # the set being taken as the end of
                                        # parse for an evaluation
@@ -582,26 +582,27 @@ sub Parse::Marpa::Recognizer::new {
         $grammar->[Parse::Marpa::Internal::Grammar::START_STATES];
 
     for my $state (@$start_states) {
-        my $key = pack( "JJ", $state + 0, 0 );
+        my $name = sprintf('S%d@%d-%d', $state+0, 0, 0);
         my $item;
         @{$item}[
+            Parse::Marpa::Internal::Earley_item::NAME,
             Parse::Marpa::Internal::Earley_item::STATE,
             Parse::Marpa::Internal::Earley_item::PARENT,
             Parse::Marpa::Internal::Earley_item::TOKENS,
             Parse::Marpa::Internal::Earley_item::LINKS,
             Parse::Marpa::Internal::Earley_item::SET
             ]
-            = ( $state, 0, [], [], 0 );
+            = ( $name, $state, 0, [], [], 0 );
         push( @$earley_set, $item );
-        $earley_hash->{$key} = $item;
+        $earley_hash->{$name} = $item;
     }
 
     @{$parse}[
         DEFAULT_PARSE_SET, CURRENT_SET, FURTHEST_EARLEME,
-        EARLEY_HASHES,     GRAMMAR,     EARLEY_SETS,
+        EARLEY_HASH,     GRAMMAR,     EARLEY_SETS,
         LAST_COMPLETED_SET,
         ]
-        = ( 0, 0, 0, [$earley_hash], $grammar, [$earley_set], -1, );
+        = ( 0, 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
 
     bless $parse, $class;
 }
@@ -611,6 +612,7 @@ sub Parse::Marpa::Recognizer::new {
 sub Parse::Marpa::brief_earley_item {
     my $item = shift;
     my $ii   = shift;
+    return $item->[Parse::Marpa::Internal::Earley_item::NAME] unless $ii;
     my ( $state, $parent, $set ) = @{$item}[
         Parse::Marpa::Internal::Earley_item::STATE,
         Parse::Marpa::Internal::Earley_item::PARENT,
@@ -620,7 +622,7 @@ sub Parse::Marpa::brief_earley_item {
         Parse::Marpa::Internal::QDFA::ID,
         Parse::Marpa::Internal::QDFA::TAG
     ];
-    my $text = ( $ii and defined $tag ) ? ( "St" . $tag ) : ( "S" . $id );
+    my $text = defined $tag ? ( "St" . $tag ) : ( "S" . $id );
     $text .= '@' . $parent . '-' . $set;
 }
 
@@ -957,10 +959,10 @@ earlemes.
 sub scan_set {
     my $parse = shift;
 
-    my ( $earley_set_list, $earley_hash_list, $grammar, $current_set,
+    my ( $earley_set_list, $earley_hash, $grammar, $current_set,
         $furthest_earleme, $exhausted, )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASHES, GRAMMAR, CURRENT_SET,
+        EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
         FURTHEST_EARLEME, EXHAUSTED
         ];
     croak("Attempt to scan tokens on an exhausted parse") if $exhausted;
@@ -1019,7 +1021,6 @@ sub scan_set {
 
             # Create the kernel item and its link.
             my $target_ix   = $current_set + $length;
-            my $target_hash = ( $earley_hash_list->[$target_ix] //= {} );
             my $target_set  = ( $earley_set_list->[$target_ix] //= [] );
             if ( $target_ix > $furthest_earleme ) {
                 $parse->[Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME]
@@ -1029,11 +1030,12 @@ sub scan_set {
                 my $reset =
                     $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                 my $origin = $reset ? $target_ix : $parent;
-                my $key = pack( "JJ", $state, $origin );
-                my $target_item = $target_hash->{$key};
+		my $name = sprintf('S%d@%d-%d', $state, $origin, $target_ix );
+                my $target_item = $earley_hash->{$name};
                 unless ( defined $target_item ) {
                     $target_item = [];
                     @{$target_item}[
+                        Parse::Marpa::Internal::Earley_item::NAME,
                         Parse::Marpa::Internal::Earley_item::STATE,
                         Parse::Marpa::Internal::Earley_item::PARENT,
                         Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
@@ -1042,8 +1044,8 @@ sub scan_set {
                         Parse::Marpa::Internal::Earley_item::TOKENS,
                         Parse::Marpa::Internal::Earley_item::SET
                         ]
-                        = ( $state, $origin, 0, [], 0, [], $target_ix );
-                    $target_hash->{$key} = $target_item;
+                        = ( $name, $state, $origin, 0, [], 0, [], $target_ix );
+                    $earley_hash->{$name} = $target_item;
                     push( @$target_set, $target_item );
                 }
                 next STATE if $reset;
@@ -1068,17 +1070,16 @@ sub scan_set {
 sub complete_set {
     my $parse = shift;
 
-    my ( $earley_set_list, $earley_hash_list, $grammar, $current_set,
+    my ( $earley_set_list, $earley_hash, $grammar, $current_set,
         $furthest_earleme, $exhausted, $lexables_by_state )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASHES, GRAMMAR, CURRENT_SET,
+        EARLEY_SETS,      EARLEY_HASH,   GRAMMAR, CURRENT_SET,
         FURTHEST_EARLEME, EXHAUSTED,     LEXABLES_BY_STATE,
         ];
     croak("Attempt to complete another earley set in an exhausted parse")
         if $exhausted;
 
     my $earley_set  = $earley_set_list->[$current_set];
-    my $earley_hash = $earley_hash_list->[$current_set];
 
     $earley_set ||= [];
 
@@ -1134,11 +1135,12 @@ sub complete_set {
                     my $reset =
                         $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
-                    my $key = pack( "JJ", $state, $origin );
-                    my $target_item = $earley_hash->{$key};
+		    my $name = sprintf('S%d@%d-%d', $state, $origin, $current_set );
+                    my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];
                         @{$target_item}[
+                            Parse::Marpa::Internal::Earley_item::NAME,
                             Parse::Marpa::Internal::Earley_item::STATE,
                             Parse::Marpa::Internal::Earley_item::PARENT,
                             Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
@@ -1147,8 +1149,8 @@ sub complete_set {
                             Parse::Marpa::Internal::Earley_item::TOKENS,
                             Parse::Marpa::Internal::Earley_item::SET
                             ]
-                            = ( $state, $origin, 0, [], 0, [], $current_set );
-                        $earley_hash->{$key} = $target_item;
+                            = ( $name, $state, $origin, 0, [], 0, [], $current_set );
+                        $earley_hash->{$name} = $target_item;
                         push( @$earley_set, $target_item );
                     }    # unless defined $target_item
                     next STATE if $reset;
@@ -1183,9 +1185,6 @@ sub complete_set {
     }
 
     # TODO: Prove that the completion links are UNIQUE
-
-    # Free memory for the hash
-    $earley_hash_list->[$current_set] = undef;
 
     $parse->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET] =
         $current_set;
