@@ -16,5 +16,5 @@ $Perl::Portable::FAKE_PERL = rel2abs(catfile(qw{
 }));
 
 # Create an object
-my $perl = Perl::Portable->find;
+my $perl = Perl::Portable->default;
 isa_ok( $perl, 'Perl::Portable' );
