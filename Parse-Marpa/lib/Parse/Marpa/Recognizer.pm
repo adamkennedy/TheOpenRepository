@@ -582,7 +582,8 @@ sub Parse::Marpa::Recognizer::new {
         $grammar->[Parse::Marpa::Internal::Grammar::START_STATES];
 
     for my $state (@$start_states) {
-        my $name = sprintf('S%d@%d-%d', $state+0, 0, 0);
+	my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
+        my $name = sprintf('S%d@%d-%d', $state_id, 0, 0);
         my $item;
         @{$item}[
             Parse::Marpa::Internal::Earley_item::NAME,
@@ -1030,7 +1031,8 @@ sub scan_set {
                 my $reset =
                     $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                 my $origin = $reset ? $target_ix : $parent;
-		my $name = sprintf('S%d@%d-%d', $state, $origin, $target_ix );
+		my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
+		my $name = sprintf('S%d@%d-%d', $state_id, $origin, $target_ix );
                 my $target_item = $earley_hash->{$name};
                 unless ( defined $target_item ) {
                     $target_item = [];
@@ -1135,7 +1137,8 @@ sub complete_set {
                     my $reset =
                         $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
-		    my $name = sprintf('S%d@%d-%d', $state, $origin, $current_set );
+		    my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
+		    my $name = sprintf('S%d@%d-%d', $state_id, $origin, $current_set );
                     my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];
