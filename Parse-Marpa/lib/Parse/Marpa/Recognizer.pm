@@ -93,11 +93,11 @@ sub set_null_symbol_value {
             $rhs_symbol->[Parse::Marpa::Internal::Symbol::NULL_ALIAS]
             // $rhs_symbol;
         my $value = set_null_symbol_value($nulling_symbol);
-        push( @null_values, $value );
+        push @null_values, $value;
     }
-    push( @null_values, [] );
+    push @null_values, [];
 
-    $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] = \@null_values;
+    return ($symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] = \@null_values);
 
 }    # null symbol value
 
@@ -149,7 +149,7 @@ sub set_null_values {
             my @warnings;
             my @caller_return;
             local $SIG{__WARN__} = sub {
-                push( @warnings, $_[0] );
+                push @warnings, $_[0];
                 @caller_return = caller 0;
             };
             my $null_value  = eval($code);
@@ -158,8 +158,8 @@ sub set_null_values {
                 Parse::Marpa::Internal::code_problems(
                     $fatal_error,
                     \@warnings,
-                    "evaluating null value",
-                    "evaluating null value for "
+                    'evaluating null value',
+                    'evaluating null value for '
                         . $nulling_alias
                         ->[Parse::Marpa::Internal::Symbol::NAME],
                     \$action,
@@ -170,12 +170,14 @@ sub set_null_values {
                 $null_value;
 
             if ($trace_actions) {
-                print $trace_fh "Setting null value for symbol ",
+                print {$trace_fh} 'Setting null value for symbol ',
                     $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],
                     " from\n", $code, "\n",
-                    " to ",
+                    ' to ',
                     Parse::Marpa::show_value( \$null_value ),
-                    "\n";
+                    "\n"
+		or croak('Could not print to trace file');
+		    ;
             }
 
         }
@@ -195,14 +197,16 @@ sub set_null_values {
                 unless
                 $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
 
-            print $trace_fh "Setting null value for CHAF symbol ",
+            print {$trace_fh} 'Setting null value for CHAF symbol ',
                 $symbol->[Parse::Marpa::Internal::Symbol::NAME],
-                " to ",
+                ' to ',
                 Dumper(
                 $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] ),
-                ;
+	    or croak('Could not print to trace file');
         }
     }
+
+    return;
 
 }    # set_null_values
 
@@ -262,7 +266,7 @@ sub set_actions {
             if ($has_chaf_lhs) {
 
                 $action = q{
-                        push(@$_, []);
+                        push @$_, [];
                         $_;
                     };
                 last ACTION;
@@ -278,7 +282,7 @@ sub set_actions {
                 TAIL: for (;;) {
                     my $tail = pop @$_;
                     last TAIL unless scalar @$tail;
-                    push(@$_, @$tail);
+                    push @$_, @$tail;
                 }
             }    # q string
                 . $action;
@@ -288,11 +292,12 @@ sub set_actions {
         next RULE unless defined $action;
 
         my $code =
-            "sub {\n" . "    package " . $package . ";\n" . $action . "\n}";
+            "sub {\n" . '    package ' . $package . ";\n" . $action . "\n}";
 
         if ($trace_actions) {
-            print $trace_fh "Setting action for rule ",
-                Parse::Marpa::brief_rule($rule), " to\n", $code, "\n";
+            print {$trace_fh} 'Setting action for rule ',
+                Parse::Marpa::brief_rule($rule), " to\n", $code, "\n"
+	    or croak('Could not print to trace file');
         }
 
         my $closure;
@@ -300,7 +305,7 @@ sub set_actions {
             my @warnings;
             my @caller_return;
             local $SIG{__WARN__} = sub {
-                push( @warnings, $_[0] );
+                push @warnings, $_[0];
                 @caller_return = caller 0;
             };
             $closure = eval $code;
@@ -309,8 +314,8 @@ sub set_actions {
                 Parse::Marpa::Internal::code_problems(
                     $fatal_error,
                     \@warnings,
-                    "compiling action",
-                    "compiling action for "
+                    'compiling action',
+                    'compiling action for '
                         . Parse::Marpa::brief_original_rule($rule),
                     \$code,
                     \@caller_return
@@ -344,33 +349,34 @@ sub set_actions {
         }
 
         my $prefix = $symbol_prefix // $default_prefix;
-        $prefix = qr/$prefix/ if defined $prefix;
+        $prefix = qr/$prefix/xms if defined $prefix;
         my $suffix = $symbol_suffix // $default_suffix;
-        $suffix = qr/$suffix/ if defined $suffix;
+        $suffix = qr/$suffix/xms if defined $suffix;
 
         given ($action) {
             when (undef) {;}    # do nothing
                                 # Right now do nothing but find lex_q_quote
-            when ("lex_q_quote") {
+            when ('lex_q_quote') {
                 $lexers[$ix] =
                     [ \&Parse::Marpa::Lex::lex_q_quote, $prefix, $suffix ];
             }
-            when ("lex_regex") {
+            when ('lex_regex') {
                 $lexers[$ix] =
                     [ \&Parse::Marpa::Lex::lex_regex, $prefix, $suffix ];
             }
             default {
-                my $code = q'
+                my $code = q[
                         sub {
                             my $STRING = shift;
                             my $START = shift;
-                     '
-                    . "package " . $package . ";\n" . $action . "; return\n}";
+                     ]
+                    . 'package ' . $package . ";\n" . $action . "; return\n}";
 
                 if ($trace_actions) {
-                    print $trace_fh "Setting action for terminal ", $name,
+                    print {$trace_fh} 'Setting action for terminal ', $name,
                         " to\n", $code,
-                        "\n";
+                        "\n"
+		    or croak('Could not print to trace file');
                 }
 
                 my $closure;
@@ -378,7 +384,7 @@ sub set_actions {
                     my @warnings;
                     my @caller_return;
                     local $SIG{__WARN__} = sub {
-                        push( @warnings, $_[0] );
+                        push @warnings, $_[0];
                         @caller_return = caller 0;
                     };
                     $closure = eval $code;
@@ -387,7 +393,7 @@ sub set_actions {
                         Parse::Marpa::Internal::code_problems(
                             $fatal_error,
                             \@warnings,
-                            "compiling action",
+                            'compiling action',
                             "compiling action for $name",
                             \$code,
                             \@caller_return
@@ -435,20 +441,20 @@ sub compile_regexes {
     SYMBOL: for my $symbol (@$symbols) {
         my $regex = $symbol->[Parse::Marpa::Internal::Symbol::REGEX];
         next SYMBOL unless defined $regex;
-        if ( "" =~ $regex ) {
+        if ( q{} =~ $regex ) {
             my $name = $symbol->[Parse::Marpa::Internal::Symbol::NAME];
-            croak( "Attempt to add nullable terminal: ", $name );
+            croak( 'Attempt to add nullable terminal: ', $name );
         }
         my $prefix = $symbol->[Parse::Marpa::Internal::Symbol::PREFIX]
             // $default_lex_prefix;
         my $suffix = $symbol->[Parse::Marpa::Internal::Symbol::SUFFIX]
             // $default_lex_suffix;
-        my $compiled_regex = qr/
+        my $compiled_regex = qr{
             \G
             (?<mArPa_prefix>$prefix)
             (?<mArPa_match>$regex)
             (?<mArPa_suffix>$suffix)
-        /xms;
+        }xms;
         $symbol->[Parse::Marpa::Internal::Symbol::REGEX] = $compiled_regex;
     }    # SYMBOL
 
@@ -460,7 +466,7 @@ sub eval_grammar {
 
     local ($Data::Dumper::Terse) = 1;
     my $package = $parse->[Parse::Marpa::Internal::Recognizer::PACKAGE] =
-        sprintf( "Parse::Marpa::P_%x", $parse_number++ );
+        sprintf 'Parse::Marpa::P_%x', $parse_number++;
 
     my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
     my $default_action =
@@ -472,16 +478,16 @@ sub eval_grammar {
         my @warnings;
         my @caller_return;
         local $SIG{__WARN__} = sub {
-            push( @warnings, $_[0] );
+            push @warnings, $_[0];
             @caller_return = caller 0;
         };
-        eval( "package " . $package . ";\n" . $preamble );
+        eval( 'package ' . $package . ";\n" . $preamble );
         my $fatal_error = $@;
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
-                "evaluating preamble",
-                "evaluating preamble",
+                'evaluating preamble',
+                'evaluating preamble',
                 \$preamble, \@caller_return
             );
         }
@@ -513,7 +519,7 @@ sub Parse::Marpa::Recognizer::new {
     my $grammar = $args->{grammar};
     if ( not defined $grammar ) {
         my $compiled_grammar = $args->{compiled_grammar};
-        croak("No grammar specified") unless defined $compiled_grammar;
+        croak('No grammar specified') unless defined $compiled_grammar;
         delete $args->{compiled_grammar};
         my $trace_fh = $arg_trace_fh // (*STDERR);
         $grammar =
@@ -526,7 +532,7 @@ sub Parse::Marpa::Recognizer::new {
 
     my $grammar_class = ref $grammar;
     croak("${class}::new() grammar arg has wrong class: $grammar_class")
-        unless $grammar_class eq "Parse::Marpa::Grammar";
+        unless $grammar_class eq 'Parse::Marpa::Grammar';
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
 
@@ -586,7 +592,7 @@ sub Parse::Marpa::Recognizer::new {
 
     for my $state (@$start_states) {
 	my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
-        my $name = sprintf('S%d@%d-%d', $state_id, 0, 0);
+        my $name = sprintf 'S%d@%d-%d', $state_id, 0, 0;
         my $item;
         @{$item}[
             Parse::Marpa::Internal::Earley_item::NAME,
@@ -597,7 +603,7 @@ sub Parse::Marpa::Recognizer::new {
             Parse::Marpa::Internal::Earley_item::SET
             ]
             = ( $name, $state, 0, [], [], 0 );
-        push( @$earley_set, $item );
+        push @$earley_set, $item;
         $earley_hash->{$name} = $item;
     }
 
@@ -627,13 +633,14 @@ sub Parse::Marpa::brief_earley_item {
         Parse::Marpa::Internal::QDFA::TAG
     ];
     my $text = defined $tag ? ( 'St' . $tag ) : ( 'S' . $id );
-    $text .= '@' . $parent . '-' . $set;
+    $text .= q{@} . $parent . q{-} . $set;
+    return $text;
 }
 
 sub show_token_choice {
     my $token = shift;
     my $ii    = shift;
-    '[p='
+    return '[p='
         . Parse::Marpa::brief_earley_item( $token->[0], $ii ) . '; t='
         . $token->[1] . ']';
 }
@@ -641,9 +648,9 @@ sub show_token_choice {
 sub show_link_choice {
     my $link = shift;
     my $ii   = shift;
-    "[p="
-        . Parse::Marpa::brief_earley_item( $link->[0], $ii ) . "; c="
-        . Parse::Marpa::brief_earley_item( $link->[1], $ii ) . "]";
+    return '[p='
+        . Parse::Marpa::brief_earley_item( $link->[0], $ii ) . '; c='
+        . Parse::Marpa::brief_earley_item( $link->[1], $ii ) . ']';
 }
 
 sub Parse::Marpa::show_earley_item {
@@ -676,10 +683,10 @@ sub Parse::Marpa::show_earley_item {
     $text .= '  effect: ' . Parse::Marpa::brief_earley_item($effect)
         if defined $effect;
     my @symbols;
-    push( @symbols,
-        'pre-dot: ' . $pointer->[Parse::Marpa::Internal::Symbol::NAME] )
+    push @symbols,
+        'pre-dot: ' . $pointer->[Parse::Marpa::Internal::Symbol::NAME]
         if defined $pointer;
-    push( @symbols, 'lhs: ' . $lhs->[Parse::Marpa::Internal::Symbol::NAME] )
+    push @symbols, 'lhs: ' . $lhs->[Parse::Marpa::Internal::Symbol::NAME]
         if defined $lhs;
     $text .= "\n  " . join( '; ', @symbols ) if @symbols;
     $text .= "\n  value: " . Parse::Marpa::show_value( $value, $ii )
@@ -703,7 +710,7 @@ sub Parse::Marpa::show_earley_item {
             $text .= ' [ ' . Parse::Marpa::brief_rule($rule) . ' ]';
         }
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::show_earley_set {
@@ -713,13 +720,13 @@ sub Parse::Marpa::show_earley_set {
     for my $earley_item (@$earley_set) {
         $text .= Parse::Marpa::show_earley_item( $earley_item, $ii ) . "\n";
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::show_earley_set_list {
     my $earley_set_list  = shift;
     my $ii               = shift;
-    my $text             = "";
+    my $text             = q{};
     my $earley_set_count = @$earley_set_list;
     LIST: for my $ix ( 0 .. $earley_set_count-1 ) {
         my $set = $earley_set_list->[$ix];
@@ -727,7 +734,7 @@ sub Parse::Marpa::show_earley_set_list {
         $text .= "Earley Set $ix\n"
             . Parse::Marpa::show_earley_set( $set, $ii );
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::Recognizer::show_status {
@@ -736,11 +743,12 @@ sub Parse::Marpa::Recognizer::show_status {
     my ( $current_set, $furthest_earleme, $earley_set_list ) =
         @{$parse}[ CURRENT_SET, FURTHEST_EARLEME, EARLEY_SETS ];
     my $text =
-          "Current Earley Set: "
+          'Current Earley Set: '
         . $current_set
-        . "; Furthest: "
+        . '; Furthest: '
         . $furthest_earleme . "\n";
     $text .= Parse::Marpa::show_earley_set_list( $earley_set_list, $ii );
+    return $text;
 }
 
 # check class of parse?
@@ -766,12 +774,12 @@ sub Parse::Marpa::Recognizer::text {
     my $input_ref = shift;
     my $length    = shift;
     croak(
-        "Parse::Marpa::Recognizer::text() third argument not yet implemented")
+        'Parse::Marpa::Recognizer::text() third argument not yet implemented')
         if defined $length;
 
     croak(
-        "text argument to Parse::Marpa::Recognizer::text() must be string ref"
-    ) unless ref $input_ref eq "SCALAR";
+        'text argument to Parse::Marpa::Recognizer::text() must be string ref'
+    ) unless ref $input_ref eq 'SCALAR';
 
     my ( $grammar, $earley_sets, $current_set, $lexers, ) = @{$parse}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
@@ -813,26 +821,27 @@ sub Parse::Marpa::Recognizer::text {
         if ( $trace_lex_tries and scalar @$lexables ) {
             my $string_to_match = substr( $$input_ref, $pos, 20 );
             $string_to_match
-                =~ s/([\x00-\x1F\x7F-\xFF])/sprintf("{%#.2x}", ord($1))/ge;
+                =~ s/([\x00-\x1F\x7F-\xFF])/sprintf('{%#.2x}', ord($1))/ge;
             say $trace_fh "Match target at $pos: ", $string_to_match;
         }
 
         LEXABLE: for my $lexable (@$lexables) {
             my ($symbol_id) = @{$lexable}[Parse::Marpa::Internal::Symbol::ID];
             if ($trace_lex_tries) {
-                print $trace_fh "Trying to match ",
+                print {$trace_fh} 'Trying to match ',
                     $lexable->[Parse::Marpa::Internal::Symbol::NAME],
-                    " at $pos\n";
+                    " at $pos\n"
+		or croak('Could not print to trace file');
             }
 
             my $lexer      = $lexers->[$symbol_id];
             my $lexer_type = ref $lexer;
-            croak("Illegal type for lexer: undefined")
+            croak('Illegal type for lexer: undefined')
                 unless defined $lexer_type;
 
             pos $$input_ref = $pos;
 
-            if ( $lexer_type eq "Regexp" ) {
+            if ( $lexer_type eq 'Regexp' ) {
                 if ( $$input_ref =~ /$lexer/g ) {
                     my $match = $+{mArPa_match};
 
@@ -841,14 +850,15 @@ sub Parse::Marpa::Recognizer::text {
                     # my $length = length(${^MATCH});
                     my $length = ( pos $$input_ref ) - $pos;
                     croak(
-                        "Internal error, zero length token -- this is a Marpa bug"
+                        'Internal error, zero length token -- this is a Marpa bug'
                     ) unless $length;
-                    push( @alternatives, [ $lexable, $match, $length ] );
+                    push @alternatives, [ $lexable, $match, $length ];
                     if ($trace_lex_matches) {
-                        print $trace_fh
-                            "Matched regex for ",
+                        print {$trace_fh}
+                            'Matched regex for ',
                             $lexable->[Parse::Marpa::Internal::Symbol::NAME],
-                            " at $pos: ", $match, "\n";
+                            " at $pos: ", $match, "\n"
+			or croak('Could not print to trace file');
                     }
                     last LEXABLE unless $ambiguous_lex;
                 }    # if match
@@ -898,12 +908,13 @@ sub Parse::Marpa::Recognizer::text {
 
             $length //= length $match;
 
-            push( @alternatives, [ $lexable, $match, $length ] );
+            push @alternatives, [ $lexable, $match, $length ];
             if ($trace_lex_matches) {
-                print $trace_fh
+                print {$trace_fh}
                     'Matched Closure for ',
                     $lexable->[Parse::Marpa::Internal::Symbol::NAME],
-                    " at $pos: ", $match, "\n";
+                    " at $pos: ", $match, "\n"
+		or croak('Could not print to trace file');
             }
 
             last LEXABLE unless $ambiguous_lex;
@@ -940,6 +951,8 @@ sub Parse::Marpa::Recognizer::end_input {
         $parse->[Parse::Marpa::Internal::Recognizer::CURRENT_SET] =
             $current_set;
     }
+
+    return;
 }
 
 =begin Apolegetic:
@@ -1000,9 +1013,9 @@ sub scan_set {
             my ( $token, $value, $length ) = @$alternative;
 
             if ( $length <= 0 ) {
-                croak(    "Token "
+                croak(    'Token '
                         . $token->[Parse::Marpa::Internal::Symbol::NAME]
-                        . " with bad length "
+                        . ' with bad length '
                         . $length );
             }
 
@@ -1011,9 +1024,9 @@ sub scan_set {
             # nulling symbols are never terminals
             unless ( $token->[Parse::Marpa::Internal::Symbol::TERMINAL] ) {
                 my $name = $token->[Parse::Marpa::Internal::Symbol::NAME];
-                croak(    "Non-terminal "
-                        . ( defined $name ? "$name " : "" )
-                        . "supplied as token" );
+                croak(    'Non-terminal '
+                        . ( defined $name ? "$name " : q{} )
+                        . 'supplied as token' );
             }
 
             # compute goto(state, token_name)
@@ -1035,7 +1048,7 @@ sub scan_set {
                     $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                 my $origin = $reset ? $target_ix : $parent;
 		my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
-		my $name = sprintf('S%d@%d-%d', $state_id, $origin, $target_ix );
+		my $name = sprintf 'S%d@%d-%d', $state_id, $origin, $target_ix;
                 my $target_item = $earley_hash->{$name};
                 unless ( defined $target_item ) {
                     $target_item = [];
@@ -1051,15 +1064,15 @@ sub scan_set {
                         ]
                         = ( $name, $state, $origin, 0, [], 0, [], $target_ix );
                     $earley_hash->{$name} = $target_item;
-                    push( @$target_set, $target_item );
+                    push @$target_set, $target_item;
                 }
                 next STATE if $reset;
-                push(
+                push
                     @{  $target_item
                             ->[Parse::Marpa::Internal::Earley_item::TOKENS]
                         },
                     [ $earley_item, $value ]
-                );
+                ;
             }    # for my $state
 
         }    # ALTERNATIVE
@@ -1081,7 +1094,7 @@ sub complete_set {
         EARLEY_SETS,      EARLEY_HASH,   GRAMMAR, CURRENT_SET,
         FURTHEST_EARLEME, EXHAUSTED,     LEXABLES_BY_STATE,
         ];
-    croak("Attempt to complete another earley set in an exhausted parse")
+    croak('Attempt to complete another earley set in an exhausted parse')
         if $exhausted;
 
     my $earley_set  = $earley_set_list->[$current_set];
@@ -1141,7 +1154,7 @@ sub complete_set {
                         $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
 		    my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
-		    my $name = sprintf('S%d@%d-%d', $state_id, $origin, $current_set );
+		    my $name = sprintf 'S%d@%d-%d', $state_id, $origin, $current_set;
                     my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];
@@ -1157,15 +1170,15 @@ sub complete_set {
                             ]
                             = ( $name, $state, $origin, 0, [], 0, [], $current_set );
                         $earley_hash->{$name} = $target_item;
-                        push( @$earley_set, $target_item );
+                        push @$earley_set, $target_item;
                     }    # unless defined $target_item
                     next STATE if $reset;
-                    push(
+                    push
                         @{  $target_item
                                 ->[Parse::Marpa::Internal::Earley_item::LINKS]
                             },
                         [ $parent_item, $earley_item ]
-                    );
+                    ;
                 }    # for my $state
 
             }    # PARENT_ITEM
@@ -1198,7 +1211,8 @@ sub complete_set {
         $current_set;
 
     if ($trace_completions) {
-        print $trace_fh Parse::Marpa::show_earley_set($earley_set);
+        print {$trace_fh} Parse::Marpa::show_earley_set($earley_set)
+	  or croak('Cannot print to trace file');
     }
 
     # Dream up some efficiency hack here.  Memoize sorted lexables by state?
@@ -1278,7 +1292,7 @@ Parse::Marpa::Recognizer - Marpa Recognizer Objects
 	grammar => $grammar,
     });
 
-    my $fail_offset = $recce->text(\("2-0*3+1"));
+    my $fail_offset = $recce->text(\('2-0*3+1'));
     if ($fail_offset >= 0) {
        die("Parse failed at offset $fail_offset");
     }
@@ -1287,14 +1301,14 @@ Z<>
 
     my $recce2 = Parse::Marpa::Recognizer::new({grammar => $grammar});
 
-    my $op = $grammar->get_symbol("op");
-    my $number = $grammar->get_symbol("number");
+    my $op = $grammar->get_symbol('op');
+    my $number = $grammar->get_symbol('number');
     $recce2->earleme([$number, 2, 1]);
-    $recce2->earleme([$op, "-", 1]);
+    $recce2->earleme([$op, '-', 1]);
     $recce2->earleme([$number, 0, 1]);
-    $recce2->earleme([$op, "*", 1]);
+    $recce2->earleme([$op, '*', 1]);
     $recce2->earleme([$number, 3, 1]);
-    $recce2->earleme([$op, "+", 1]);
+    $recce2->earleme([$op, '+', 1]);
     $recce2->earleme([$number, 1, 1]);
     $recce2->end_input();
 

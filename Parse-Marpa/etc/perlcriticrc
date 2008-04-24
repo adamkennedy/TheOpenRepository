@@ -53,7 +53,10 @@ script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
 [InputOutput::RequireBriefOpen]
 [InputOutput::RequireCheckedClose]
 [InputOutput::RequireCheckedOpen]
+
 [InputOutput::RequireCheckedSyscalls]
+functions = :builtins
+
 [Miscellanea::ProhibitFormats]
 [Miscellanea::ProhibitTies]
 [-Miscellanea::RequireRcsKeywords]
@@ -67,7 +70,11 @@ script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
 [Modules::RequireFilenameMatchesPackage]
 [Modules::RequireNoMatchVarsWithUseEnglish]
 [-Modules::RequireVersionVar]
+
 [NamingConventions::ProhibitAmbiguousNames]
+forbid = last left right no abstract contract record second close
+# set is OK -- as in earley set
+
 [NamingConventions::ProhibitMixedCaseSubs]
 [NamingConventions::ProhibitMixedCaseVars]
 [References::ProhibitDoubleSigils]
