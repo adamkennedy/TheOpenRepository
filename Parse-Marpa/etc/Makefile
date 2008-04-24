@@ -7,3 +7,8 @@ build:
 	(cd ..;make)
 	(cd ..;make test)
 	(cd ..;make disttest)
+
+perlcritic:
+	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Bocage.pm
+	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Recognizer.pm
+

@@ -1,7 +1,10 @@
 use 5.010_000;
+package Parse::Marpa::Internal::Recognizer;
 
 use warnings;
+## no critic
 no warnings "recursion";
+## use critic
 use strict;
 use integer;
 
@@ -323,7 +326,7 @@ sub set_actions {
     my @lexers;
     $#lexers = $#$symbols;
 
-    SYMBOL: for ( my $ix = 0; $ix <= $#lexers; $ix++ ) {
+    SYMBOL: for my $ix ( 0 .. $#lexers ) {
 
         my $symbol = $symbols->[$ix];
         my ( $name, $regex, $action, $symbol_prefix, $symbol_suffix ) =
@@ -532,13 +535,13 @@ sub Parse::Marpa::Recognizer::new {
         croak(
             Parse::Marpa::Grammar::show_problems($grammar),
             "Attempt to parse grammar with fatal problems\n",
-            "Marpa cannot proceed",
+            'Marpa cannot proceed',
         );
     }
 
     if ( $grammar->[Parse::Marpa::Internal::Grammar::ACADEMIC] ) {
         croak( "Attempt to parse grammar marked academic\n",
-            "Marpa cannot proceed" );
+            'Marpa cannot proceed' );
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
@@ -546,7 +549,7 @@ sub Parse::Marpa::Recognizer::new {
         or $phase >= Parse::Marpa::Internal::Phase::EVALED )
     {
         croak(
-            "Attempt to parse grammar in inappropriate phase ",
+            'Attempt to parse grammar in inappropriate phase ',
             Parse::Marpa::Internal::Phase::description($phase)
         );
     }
@@ -623,16 +626,16 @@ sub Parse::Marpa::brief_earley_item {
         Parse::Marpa::Internal::QDFA::ID,
         Parse::Marpa::Internal::QDFA::TAG
     ];
-    my $text = defined $tag ? ( "St" . $tag ) : ( "S" . $id );
+    my $text = defined $tag ? ( 'St' . $tag ) : ( 'S' . $id );
     $text .= '@' . $parent . '-' . $set;
 }
 
 sub show_token_choice {
     my $token = shift;
     my $ii    = shift;
-    "[p="
-        . Parse::Marpa::brief_earley_item( $token->[0], $ii ) . "; t="
-        . $token->[1] . "]";
+    '[p='
+        . Parse::Marpa::brief_earley_item( $token->[0], $ii ) . '; t='
+        . $token->[1] . ']';
 }
 
 sub show_link_choice {
@@ -666,38 +669,38 @@ sub Parse::Marpa::show_earley_item {
         ];
 
     my $text = Parse::Marpa::brief_earley_item( $item, $ii );
-    $text .= "  predecessor: " . Parse::Marpa::brief_earley_item($predecessor)
+    $text .= '  predecessor: ' . Parse::Marpa::brief_earley_item($predecessor)
         if defined $predecessor;
-    $text .= "  successor: " . Parse::Marpa::brief_earley_item($successor)
+    $text .= '  successor: ' . Parse::Marpa::brief_earley_item($successor)
         if defined $successor;
-    $text .= "  effect: " . Parse::Marpa::brief_earley_item($effect)
+    $text .= '  effect: ' . Parse::Marpa::brief_earley_item($effect)
         if defined $effect;
     my @symbols;
     push( @symbols,
-        "pre-dot: " . $pointer->[Parse::Marpa::Internal::Symbol::NAME] )
+        'pre-dot: ' . $pointer->[Parse::Marpa::Internal::Symbol::NAME] )
         if defined $pointer;
-    push( @symbols, "lhs: " . $lhs->[Parse::Marpa::Internal::Symbol::NAME] )
+    push( @symbols, 'lhs: ' . $lhs->[Parse::Marpa::Internal::Symbol::NAME] )
         if defined $lhs;
-    $text .= "\n  " . join( "; ", @symbols ) if @symbols;
+    $text .= "\n  " . join( '; ', @symbols ) if @symbols;
     $text .= "\n  value: " . Parse::Marpa::show_value( $value, $ii )
         if defined $value;
 
     if ( defined $tokens and @$tokens ) {
         $text .= "\n  token choice " . $token_choice;
         for my $token (@$tokens) {
-            $text .= " " . show_token_choice( $token, $ii );
+            $text .= q{ } . show_token_choice( $token, $ii );
         }
     }
     if ( defined $links and @$links ) {
         $text .= "\n  link choice " . $link_choice;
         for my $link (@$links) {
-            $text .= " " . show_link_choice( $link, $ii );
+            $text .= q{ } . show_link_choice( $link, $ii );
         }
     }
     if ( defined $rules and @$rules ) {
         $text .= "\n  rule choice " . $rule_choice;
         for my $rule (@$rules) {
-            $text .= " [ " . Parse::Marpa::brief_rule($rule) . " ]";
+            $text .= ' [ ' . Parse::Marpa::brief_rule($rule) . ' ]';
         }
     }
     $text;
@@ -706,7 +709,7 @@ sub Parse::Marpa::show_earley_item {
 sub Parse::Marpa::show_earley_set {
     my $earley_set = shift;
     my $ii         = shift;
-    my $text       = "";
+    my $text       = q{};
     for my $earley_item (@$earley_set) {
         $text .= Parse::Marpa::show_earley_item( $earley_item, $ii ) . "\n";
     }
@@ -718,7 +721,7 @@ sub Parse::Marpa::show_earley_set_list {
     my $ii               = shift;
     my $text             = "";
     my $earley_set_count = @$earley_set_list;
-    LIST: for ( my $ix = 0; $ix < $earley_set_count; $ix++ ) {
+    LIST: for my $ix ( 0 .. $earley_set_count-1 ) {
         my $set = $earley_set_list->[$ix];
         next LIST unless defined $set;
         $text .= "Earley Set $ix\n"
@@ -798,7 +801,7 @@ sub Parse::Marpa::Recognizer::text {
 
     $length = length $$input_ref unless defined $length;
 
-    POS: for ( my $pos = ( pos $$input_ref // 0 ); $pos < $length; $pos++ ) {
+    POS: for my $pos ( ( pos $$input_ref // 0 ) .. ($length - 1) ) {
         my @alternatives;
 
         # NOTE: Often the number of the earley set, and the idea of
@@ -857,7 +860,7 @@ sub Parse::Marpa::Recognizer::text {
             # If it's a lexable and a regex was not defined, there must be a
             # closure
             croak("Illegal type for lexer: $lexer_type")
-                unless $lexer_type eq "ARRAY";
+                unless $lexer_type eq 'ARRAY';
 
             my ( $lex_closure, $prefix, $suffix ) = @$lexer;
             if ( defined $prefix ) {
@@ -869,7 +872,7 @@ sub Parse::Marpa::Recognizer::text {
                 my @warnings;
                 my @caller_return;
                 local $SIG{__WARN__} = sub {
-                    push( @warnings, $_[0] );
+                    push @warnings, $_[0];
                     @caller_return = caller 0;
                 };
                 eval {
@@ -880,8 +883,8 @@ sub Parse::Marpa::Recognizer::text {
                     Parse::Marpa::Internal::code_problems(
                         $fatal_error,
                         \@warnings,
-                        "user supplied lexer",
-                        "user supplied lexer for "
+                        'user supplied lexer',
+                        'user supplied lexer for '
                             . $lexable->[Parse::Marpa::Internal::Symbol::NAME]
                             . " at $pos",
                         \(  $lexable->[Parse::Marpa::Internal::Symbol::ACTION]
@@ -898,7 +901,7 @@ sub Parse::Marpa::Recognizer::text {
             push( @alternatives, [ $lexable, $match, $length ] );
             if ($trace_lex_matches) {
                 print $trace_fh
-                    "Matched Closure for ",
+                    'Matched Closure for ',
                     $lexable->[Parse::Marpa::Internal::Symbol::NAME],
                     " at $pos: ", $match, "\n";
             }
@@ -966,7 +969,7 @@ sub scan_set {
         EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
         FURTHEST_EARLEME, EXHAUSTED
         ];
-    croak("Attempt to scan tokens on an exhausted parse") if $exhausted;
+    croak('Attempt to scan tokens on an exhausted parse') if $exhausted;
     my $QDFA = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
 
     my $earley_set = $earley_set_list->[$current_set];
@@ -983,7 +986,7 @@ sub scan_set {
         return !$exhausted;
     }
 
-    EARLEY_ITEM: for ( my $ix = 0; $ix < @$earley_set; $ix++ ) {
+    EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
 
         my $earley_item = $earley_set->[$ix];
         my ( $state, $parent ) = @{$earley_item}[
@@ -1102,7 +1105,7 @@ sub complete_set {
     my $lexable_seen = [];
     $#$lexable_seen = $#$symbols;
 
-    EARLEY_ITEM: for ( my $ix = 0; $ix < @$earley_set; $ix++ ) {
+    EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
 
         my $earley_item = $earley_set->[$ix];
         my ( $state, $parent ) = @{$earley_item}[
@@ -1228,11 +1231,13 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
     $last_earleme = $default_parse_set if $last_earleme > $default_parse_set;
 
     EARLEME:
+    ## no critic (ProhibitCStyleForLoops)
     for (
         my $earleme = $last_earleme;
         $earleme >= $start_earleme;
         $earleme--
         )
+    ## use critic
     {
         my $earley_set = $earley_sets->[$earleme];
 
@@ -1258,6 +1263,8 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
 }
 
 1;
+
+__END__
 
 =pod
 
@@ -1518,7 +1525,7 @@ See the L<support section|Parse::Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007 - 2008 Jeffrey Kegler
 

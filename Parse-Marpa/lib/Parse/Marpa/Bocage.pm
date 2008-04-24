@@ -24,7 +24,8 @@ use constant CLOSURE     => 3;
 
 package Parse::Marpa::Internal::Tangle;
 
-use constant BRANCHES => 0;
+use constant NAME => 0;
+use constant BRANCHES => 1;
 
 package Parse::Marpa::Internal::Bocage;
 
@@ -131,6 +132,8 @@ sub Parse::Marpa::Bocage::new {
             $start_symbol->[Parse::Marpa::Internal::Rule::CLOSURE];
 
         my $tangle = [];
+	$tangle->[Parse::Marpa::Internal::Tangle::NAME] =
+            $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
         $tangle->[Parse::Marpa::Internal::Tangle::BRANCHES] = [$branch];
 
         $self->[TANGLES] = [$tangle];
@@ -321,6 +324,21 @@ sub Parse::Marpa::Bocage::new {
 
     return $self;
 
+}
+
+sub Parse::Marpa::show_bocage {
+     my $bocage = shift;
+     my $text = q{};
+
+     for my $tangle (@{$bocage->[TANGLES]}) {
+
+         for my $branch (@{$tangle->[Parse::Marpa::Internal::Tangle::BRANCHES]}) {
+
+	 } # for my $branch;
+
+     } # for my $tangle
+
+     return $text;
 }
 
 # Undocumented.  It's main purpose was to allow the user to differentiate
