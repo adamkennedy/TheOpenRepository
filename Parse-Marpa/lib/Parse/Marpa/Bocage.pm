@@ -248,8 +248,9 @@ sub Parse::Marpa::Bocage::new {
 
                 if ( $position > 0 ) {
 
-                    $predecessor_name =
-                        $item_name . 'R' . $rule_id . q{:} . ( $position - 1 );
+                    $predecessor_name
+			= $predecessor->[Parse::Marpa::Internal::Earley_item::NAME]
+                        . 'R' . $rule_id . q{:} . ( $position - 1 );
 
                     unless ( $predecessor_name ~~ %sapling_by_name ) {
 
@@ -264,7 +265,7 @@ sub Parse::Marpa::Bocage::new {
                             ]
                             = (
 				$predecessor_name,
-				$rule, $position - 1, $item,
+				$rule, $position - 1, $predecessor,
 			    );
 
                         push @saplings, $sapling;
@@ -280,7 +281,9 @@ sub Parse::Marpa::Bocage::new {
                     my $symbol_id =
                         $symbol->[Parse::Marpa::Internal::Symbol::ID];
 
-                    $cause_name = $item_name . 'L' . $symbol_id;
+                    $cause_name
+			= $cause->[Parse::Marpa::Internal::Earley_item::NAME]
+			. 'L' . $symbol_id;
 
                     unless ( $cause_name ~~ %sapling_by_name ) {
 
@@ -292,7 +295,7 @@ sub Parse::Marpa::Bocage::new {
                             Parse::Marpa::Internal::Sapling::SYMBOL,
                             Parse::Marpa::Internal::Sapling::ITEM,
                             ]
-                            = ( $cause_name, $symbol, $item );
+                            = ( $cause_name, $symbol, $cause );
 
                         push @saplings, $sapling;
 
@@ -368,7 +371,9 @@ sub Parse::Marpa::Bocage::show_bocage {
 
 	     my $value = $branch->[Parse::Marpa::Internal::Branch::VALUE];
 	     if ($value) {
-	         push @rhs, Dumper($value);
+		 my $value_as_string = Dumper($value);
+	         chomp $value_as_string;
+	         push @rhs, $value_as_string;
 	     } # value
 
 	     $text .= $lhs . ' ::= ' . join(q{ }, @rhs) . "\n";

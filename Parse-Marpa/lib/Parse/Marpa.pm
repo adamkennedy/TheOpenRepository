@@ -932,33 +932,6 @@ Marpa assumes that input to the recognizer has ended.
 The recognizer does some final bookkeeping,
 and refuses to accept any more input.
 
-=item opaque
-
-The C<opaque> option is used to set the opacity of an object.
-Not specifying this option and accepting the default behavior is always safe.
-A value of 1 marks the object opaque, which is the default, and which is also
-always safe.
-
-A value of 0 marks an object transparent.
-If an evaluator object is marked transparent,
-an optimization called "node value memoization" is enabled.
-An evaluator should be marked transparent only if
-its semantic actions can be safely memoized.
-
-Recognizers inherit the opacity marking of the grammar used to create them,
-if there was one.
-If a recognizer is created from a grammar without an opacity marking,
-and no C<opaque> option is specified,
-the recognizer is marked opaque.
-Evaluators inherit the opacity marking of the recognizer used to create them.
-Once an object has been marked opaque,
-its opacity setting cannot be changed.
-
-Marpa marks a grammar opaque internally,
-if the grammar uses certain kinds of sequence productions.
-For more details,
-see L<Parse::Marpa::Evaluator/"Node Memoization">.
-
 =item preamble
 
 The value must be a string which contains code in the current semantics.

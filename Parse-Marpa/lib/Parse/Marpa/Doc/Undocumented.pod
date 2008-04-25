@@ -1,0 +1,157 @@
+=head1 NAME
+
+Parse::Marpa::Doc::Undocumented - Fragments Describing Undocumented Features
+
+=head1 DESCRIPTION
+
+This contains the documentation of features
+which are experimental,
+planned for the future,
+or which are being phased out.
+Something documented in this file
+does not count as
+"documented" in the sense that word is used in the rest of the
+Marpa documents.
+
+=head2 Marpa "No Values"
+
+Nodes in Marpa may have no value.
+Right now offline mode is the only one; online mode is not documented;
+and special options to create evaluators of derivation with user specified
+spans in the earleme stream and user specified top symbols are undocumented
+or do not exist.
+This means that Marpa "no values" will not be encountered by the user.
+
+Once the user can attempt to evaluate subparses, he may encounter
+nodes for which Marpa has not calculated a value.
+A Marpa "no value" is B<not> a Perl 5 undefined.
+A Perl 5 undefined is a legitimate value.
+A Marpa "no value" means that no value calculation was done for
+that node.
+
+=head2 Parse::Marpa::Recognizer::find_complete_rule
+
+     my ($end_earleme, $symbol_names) = $recce->find_complete_rule();
+
+The C<find_complete_rule> method was an experiment, and will be replaced.
+It takes 3 arguments:
+a B<first earleme>, a B<top symbol> and an B<maximum earleme>.
+All are optional.
+If the first earleme is not specified, it defaults to earleme 0.
+If the maximum earleme is not specified,
+its default wll be the default parse end earleme.
+The top symbol, if specified, must be the plumbing name of the symbol.
+
+This description should be considered an very advanced Marpa topic.
+It will refer to Marpa internals,
+which are described in L<their own document|Parse::Marpa::Doc::Internals>.
+The internals document, for its part, is intended to be read after
+all the other Marpa documents.
+
+The maximum earleme must be at or before the default parse end earleme.
+If you specify an maximum earleme argument greater than the default parse end earleme,
+it is ignored and the default parse end earleme is used as the maximum earleme.
+
+C<find_complete_rule> looks for derivations of completed rules.
+(Completed rules whose right hand side has been completely matched.)
+Only derivations which begin at the first earleme are considered.
+
+C<find_complete_rule> looks first for any derivations which end at the maximum earleme.
+If it finds none,
+it looks for shorter and shorter derivations
+until the last earleme of the derivation is the same as the first earleme
+and C<find_complete_rule> is looking for a null derivation.
+
+The derivations that C<find_complete_rule> finds are always for completed rules.
+Complete derivations from any symbol are considered,
+unless a top symbol was specified as an argument.
+In that case only derivations from the specified top symbol are considered.
+
+On failure to find a rule matching the criteria,
+a zero length array is returned.
+On success, the return value is
+an array of two elements.
+The first element of the array is the last earleme of the derivations
+being reported.
+The second element is a pointer to an array of symbol names
+which are the top symbols of derivations which start with the first earleme and 
+which end with the reported last earleme.
+The symbol names will be their plumbing names.
+
+Multiple top symbols may be returned, because 
+several different rules may have been completed in the span from first
+earleme to last earleme,
+and some of these rules may have different left hand sides.
+If a top symbol argument was specified as an argument,
+it will be one of the top symbols in the reported derivations.
+
+In the case where no top symbol is specified,
+C<find_complete_rule>
+reports derivations from the first Earley item which matches based on
+the first and last earlemes,
+and will ignore Earley items after the first one.
+(See the internals for an explanation of what an Earley item is.)
+The ignored Earley items may contain derivations for the same span as the reported derivations,
+but their top symbols won't be reported in the return value's list.
+This can be considered a misfeature if you're a kind person,
+and a bug if you are not.
+Either way, calls of the C<find_complete_rule> method which do not specify a top symbol
+are probably useless.
+
+This problem is one of several reasons that
+I<find_complete_rule> is probably going to be replaced.
+I<find_complete_rule> was an experiment
+in methods for improved diagnostics, online mode,
+and advanced wizardry with grammars.
+The replacement method or methods should, given a last earleme or a range of last earlemes,
+be able to return all completed and expected symbols.
+Information about their start and last earleme should be available with the completed
+symbols.
+For the expected symbols, the earleme at which they were expected should given.
+
+=head2 The C<opaque> Marpa option
+
+B<This option has been removed.>
+
+The C<opaque> option is used to set the opacity of an object.
+Not specifying this option and accepting the default behavior is always safe.
+A value of 1 marks the object opaque, which is the default, and which is also
+always safe.
+
+A value of 0 marks an object transparent.
+If an evaluator object is marked transparent,
+an optimization called "node value memoization" is enabled.
+An evaluator should be marked transparent only if
+its semantic actions can be safely memoized.
+
+Recognizers inherit the opacity marking of the grammar used to create them,
+if there was one.
+If a recognizer is created from a grammar without an opacity marking,
+and no C<opaque> option is specified,
+the recognizer is marked opaque.
+Evaluators inherit the opacity marking of the recognizer used to create them.
+Once an object has been marked opaque,
+its opacity setting cannot be changed.
+
+Marpa marks a grammar opaque internally,
+if the grammar uses certain kinds of sequence productions.
+For more details,
+see L<Parse::Marpa::Evaluator/"Node Memoization">.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut
+
