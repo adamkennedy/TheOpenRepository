@@ -8,12 +8,13 @@ no warnings "recursion";
 use strict;
 use integer;
 
-package Parse::Marpa::Internal::Twig;
+package Parse::Marpa::Internal::Sapling;
 
-use constant ITEM     => 0;
-use constant RULE     => 1;
-use constant POSITION => 2;
-use constant SYMBOL   => 3;
+use constant NAME     => 0;
+use constant ITEM     => 1;
+use constant RULE     => 2;
+use constant POSITION => 3;
+use constant SYMBOL   => 4;
 
 package Parse::Marpa::Internal::Branch;
 
@@ -22,7 +23,7 @@ use constant CAUSE       => 1;
 use constant VALUE       => 2;
 use constant CLOSURE     => 3;
 
-package Parse::Marpa::Internal::Tangle;
+package Parse::Marpa::Internal::Shrub;
 
 use constant NAME => 0;
 use constant BRANCHES => 1;
@@ -31,7 +32,7 @@ package Parse::Marpa::Internal::Bocage;
 
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
-use constant TANGLES     => 2;    # number of parses in an ambiguous parse
+use constant SHRUBS      => 2;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -86,7 +87,7 @@ sub Parse::Marpa::Bocage::new {
         $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 
     $self->[Parse::Marpa::Internal::Bocage::PARSE_COUNT] = 0;
-    $self->[Parse::Marpa::Internal::Bocage::TANGLES] = [];
+    $self->[Parse::Marpa::Internal::Bocage::SHRUBS] = [];
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
 
@@ -131,35 +132,45 @@ sub Parse::Marpa::Bocage::new {
         $branch->[Parse::Marpa::Internal::Branch::CLOSURE] =
             $start_symbol->[Parse::Marpa::Internal::Rule::CLOSURE];
 
-        my $tangle = [];
-	$tangle->[Parse::Marpa::Internal::Tangle::NAME] =
+        my $shrub = [];
+	$shrub->[Parse::Marpa::Internal::Shrub::NAME] =
             $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
-        $tangle->[Parse::Marpa::Internal::Tangle::BRANCHES] = [$branch];
+        $shrub->[Parse::Marpa::Internal::Shrub::BRANCHES] = [$branch];
 
-        $self->[TANGLES] = [$tangle];
+        $self->[SHRUBS] = [$shrub];
 
         return $self;
 
     }    # if $nulling
 
-    my @twigs;
-    my %twig_by_name;
-    my $start_twig = [];
-    $start_twig->[Parse::Marpa::Internal::Twig::ITEM]   = $start_item;
-    $start_twig->[Parse::Marpa::Internal::Twig::SYMBOL] = $start_symbol;
-    push @twigs, $start_twig;
+    my @saplings;
+    my %sapling_by_name;
+    my $start_sapling = [];
+    {
+	my $name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
+	my $symbol_id = $start_symbol->[Parse::Marpa::Internal::Symbol::ID];
+	$name .= 'L' . $symbol_id;
+	$start_sapling->[Parse::Marpa::Internal::Sapling::NAME]   = $name;
+    }
+    $start_sapling->[Parse::Marpa::Internal::Sapling::ITEM]   = $start_item;
+    $start_sapling->[Parse::Marpa::Internal::Sapling::SYMBOL] = $start_symbol;
+    push @saplings, $start_sapling;
 
     my $i = 0;
-    TWIG: while (1) {
+    SAPLING: while (1) {
 
-        my ( $item, $symbol, $rule, $position ) = @{ $twigs[ $i++ ] }[
-            Parse::Marpa::Internal::Twig::ITEM,
-            Parse::Marpa::Internal::Twig::SYMBOL,
-            Parse::Marpa::Internal::Twig::RULE,
-            Parse::Marpa::Internal::Twig::POSITION,
+        my (
+	    $sapling_name,
+	    $item, $symbol, $rule, $position
+	) = @{ $saplings[ $i++ ] }[
+            Parse::Marpa::Internal::Sapling::NAME,
+            Parse::Marpa::Internal::Sapling::ITEM,
+            Parse::Marpa::Internal::Sapling::SYMBOL,
+            Parse::Marpa::Internal::Sapling::RULE,
+            Parse::Marpa::Internal::Sapling::POSITION,
         ];
 
-        last TWIG unless defined $item;
+        last SAPLING unless defined $item;
 
 	# If we don't have a current rule, we need to get one or
 	# more rules, and deduce the position and a new symbol from
@@ -240,21 +251,25 @@ sub Parse::Marpa::Bocage::new {
                     $predecessor_name =
                         $item_name . 'R' . $rule_id . q{:} . ( $position - 1 );
 
-                    unless ( $predecessor_name ~~ %twig_by_name ) {
+                    unless ( $predecessor_name ~~ %sapling_by_name ) {
 
-                        $twig_by_name{$predecessor_name} = [];
+                        $sapling_by_name{$predecessor_name} = [];
 
-                        my $twig = [];
-                        @{$twig}[
-                            Parse::Marpa::Internal::Twig::RULE,
-                            Parse::Marpa::Internal::Twig::POSITION,
-                            Parse::Marpa::Internal::Twig::ITEM,
+                        my $sapling = [];
+                        @{$sapling}[
+                            Parse::Marpa::Internal::Sapling::NAME,
+                            Parse::Marpa::Internal::Sapling::RULE,
+                            Parse::Marpa::Internal::Sapling::POSITION,
+                            Parse::Marpa::Internal::Sapling::ITEM,
                             ]
-                            = ( $rule, $position - 1, $item );
+                            = (
+				$predecessor_name,
+				$rule, $position - 1, $item,
+			    );
 
-                        push @twigs, $twig;
+                        push @saplings, $sapling;
 
-                    }    # $predecessor_name ~~ %twig_by_name
+                    }    # $predecessor_name ~~ %sapling_by_name
 
                 }    # if position > 0
 
@@ -267,20 +282,21 @@ sub Parse::Marpa::Bocage::new {
 
                     $cause_name = $item_name . 'L' . $symbol_id;
 
-                    unless ( $cause_name ~~ %twig_by_name ) {
+                    unless ( $cause_name ~~ %sapling_by_name ) {
 
-                        $twig_by_name{$cause_name} = [];
+                        $sapling_by_name{$cause_name} = [];
 
-                        my $twig = [];
-                        @{$twig}[
-                            Parse::Marpa::Internal::Twig::SYMBOL,
-                            Parse::Marpa::Internal::Twig::ITEM,
+                        my $sapling = [];
+                        @{$sapling}[
+                            Parse::Marpa::Internal::Sapling::NAME,
+                            Parse::Marpa::Internal::Sapling::SYMBOL,
+                            Parse::Marpa::Internal::Sapling::ITEM,
                             ]
-                            = ( $symbol, $item );
+                            = ( $cause_name, $symbol, $item );
 
-                        push @twigs, $twig;
+                        push @saplings, $sapling;
 
-                    }    # $cause_name ~~ %twig_by_name
+                    }    # $cause_name ~~ %sapling_by_name
 
                 }    # if cause
 
@@ -299,16 +315,18 @@ sub Parse::Marpa::Bocage::new {
 
         }    # RULE
 
-	my $tangle = [];
-	$tangle->[Parse::Marpa::Internal::Tangle::BRANCHES] = \@branches;
-	push @{$self->[TANGLES]}, $tangle;
+	my $shrub = [];
+	$shrub->[Parse::Marpa::Internal::Shrub::NAME] = $sapling_name;
+	$shrub->[Parse::Marpa::Internal::Shrub::BRANCHES] = \@branches;
+	push @{$self->[SHRUBS]}, $shrub;
+	$sapling_by_name{$sapling_name} = $shrub;
 
-    }    # TWIG
+    }    # SAPLING
 
     # resolve links in the bocage
     for my $branch (
-        map { @{ $_->[Parse::Marpa::Internal::Tangle::BRANCHES] } }
-        $self->[TANGLES] )
+        map { @{ $_->[Parse::Marpa::Internal::Shrub::BRANCHES] } }
+        @{$self->[SHRUBS]} )
     {
         FIELD: for my $field (
             Parse::Marpa::Internal::Branch::PREDECESSOR,
@@ -317,7 +335,7 @@ sub Parse::Marpa::Bocage::new {
         {
             my $name = $branch->[$field];
             next FIELD unless defined $name;
-            $branch->[$field] = $twig_by_name{$name};
+            $branch->[$field] = $sapling_by_name{$name};
         }
 
     }
@@ -326,17 +344,38 @@ sub Parse::Marpa::Bocage::new {
 
 }
 
-sub Parse::Marpa::show_bocage {
+sub Parse::Marpa::Bocage::show_bocage {
      my $bocage = shift;
      my $text = q{};
 
-     for my $tangle (@{$bocage->[TANGLES]}) {
+     for my $shrub (@{$bocage->[SHRUBS]}) {
 
-         for my $branch (@{$tangle->[Parse::Marpa::Internal::Tangle::BRANCHES]}) {
+	 my $lhs = $shrub->[Parse::Marpa::Internal::Shrub::NAME];
+
+         for my $branch (@{$shrub->[Parse::Marpa::Internal::Shrub::BRANCHES]}) {
+
+	     my @rhs = ();
+
+	     my $predecessor = $branch->[Parse::Marpa::Internal::Branch::PREDECESSOR];
+	     if ($predecessor) {
+	         push @rhs, $predecessor->[Parse::Marpa::Internal::Shrub::NAME];
+	     } # predecessor
+
+	     my $cause = $branch->[Parse::Marpa::Internal::Branch::CAUSE];
+	     if ($cause) {
+	         push @rhs, $cause->[Parse::Marpa::Internal::Shrub::NAME];
+	     } # cause
+
+	     my $value = $branch->[Parse::Marpa::Internal::Branch::VALUE];
+	     if ($value) {
+	         push @rhs, Dumper($value);
+	     } # value
+
+	     $text .= $lhs . ' ::= ' . join(q{ }, @rhs) . "\n";
 
 	 } # for my $branch;
 
-     } # for my $tangle
+     } # for my $shrub
 
      return $text;
 }

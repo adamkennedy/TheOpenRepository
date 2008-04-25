@@ -27,7 +27,6 @@ BEGIN {
 
 my $g = new Parse::Marpa::Grammar({
     start => "E",
-    opaque => 0,
 
     # Set max_parses just in case there's an infinite loop.
     # This is for debugging, after all

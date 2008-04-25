@@ -25,6 +25,7 @@ color = 0
 [CodeLayout::ProhibitTrailingWhitespace]
 [CodeLayout::RequireConsistentNewlines]
 [CodeLayout::RequireTrailingCommas]
+[CodeLayout::RequireTidyCode]
 [ControlStructures::ProhibitCStyleForLoops]
 [ControlStructures::ProhibitCascadingIfElse]
 [ControlStructures::ProhibitDeepNests]

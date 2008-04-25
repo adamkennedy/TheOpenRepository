@@ -10,5 +10,6 @@ build:
 
 perlcritic:
 	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Bocage.pm
+	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Grammar.pm
 	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Recognizer.pm
 

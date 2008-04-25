@@ -32,7 +32,6 @@ sub ah_extended {
         terminals => [
             [ "a" => { regex => qr/a/ } ],
         ],
-        opaque => 1,
         # no warnings for $n equals zero
         warnings => ($n ? 1 : 0),
     });
