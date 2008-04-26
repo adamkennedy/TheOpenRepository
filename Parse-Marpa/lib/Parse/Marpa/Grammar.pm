@@ -162,8 +162,8 @@ sub description {
     given ($interface) {
         when (RAW) { return 'raw interface' }
         when (MDL) { return 'Marpa Description Language interface' }
-        default    {'unknown interface'};
     }
+    return 'unknown interface';
 }
 
 package Parse::Marpa::Internal::Phase;
@@ -185,8 +185,8 @@ sub description {
         when (COMPILED)    { return 'compiled grammar' }
         when (EVALED)      { return 'evaled grammar' }
         when (IN_USE)      { return 'in use grammar' }
-        default            {'unknown phase'};
     }
+    return 'unknown phase';
 }
 
 package Parse::Marpa::Internal::Grammar;
@@ -222,7 +222,7 @@ sub Parse::Marpa::Internal::code_problems {
     CODE_TO_PRINT: {
 
         last CODE_TO_PRINT unless defined $code;
-        last CODE_TO_PRINT unless defined $$code;
+        last CODE_TO_PRINT unless defined ${$code};
 
         $code_lines //= 3;
 
@@ -256,7 +256,7 @@ sub Parse::Marpa::Internal::code_problems {
         # remember that lines are numbered starting at 1
         my $line = 1;
         LINE: while ( $line < $first_line ) {
-            $position = index( $$code, "\n", $position );
+            $position = index( ${$code}, "\n", $position );
             $position++;
             $line++;
         }
@@ -265,15 +265,15 @@ sub Parse::Marpa::Internal::code_problems {
         my @lines;
         LINE: while ( $line <= $max_line ) {
             my $start = $position;
-            $position = index( $$code, "\n", $start );
+            $position = index( ${$code}, "\n", $start );
             if ( $position < 0 ) {
-                if ( $start < length $$code ) {
-                    push( @lines, substr( $$code, $start, 72 ) );
+                if ( $start < length ${$code} ) {
+                    push @lines, substr( ${$code}, $start, 72 );
                 }
                 last LINE;
             }
             $position++;
-            push( @lines, substr( $$code, $start, ( $position - $start ) ) );
+            push @lines, substr( ${$code}, $start, ( $position - $start ) );
             $line++;
         }
 
@@ -290,12 +290,12 @@ sub Parse::Marpa::Internal::code_problems {
 
     # If we have a section of code to print
     if ( defined $code_to_print ) {
-        chomp $$code_to_print;
+        chomp ${$code_to_print};
         push( @msg,
                   'Problems in '
                 . $long_where
                 . ", code:\n"
-                . $$code_to_print
+                . ${$code_to_print}
                 . "\n" );
     }
 
@@ -344,7 +344,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
             push( @warnings, $_[0] );
             @caller_return = caller 0;
         };
-        eval $$raw_grammar;
+        eval ${$raw_grammar};
         my $fatal_error = $@;
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
@@ -429,6 +429,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE] =
         Parse::Marpa::Internal::Interface::RAW;
 
+    return;
 }
 
 package Parse::Marpa::Internal::Grammar;
@@ -471,7 +472,7 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES]   = -1;
     $grammar->[Parse::Marpa::Internal::Grammar::ONLINE]       = 0;
 
-    $grammar->set($args);
+    return $grammar->set($args);
 }
 
 sub Parse::Marpa::show_source_grammar_status {
@@ -481,7 +482,7 @@ sub Parse::Marpa::show_source_grammar_status {
         $status .= "\nCompiled source had error:\n"
             . $Parse::Marpa::Internal::compiled_eval_error;
     }
-    $status;
+    return $status;
 }
 
 # For use some day to make locator() more efficient on repeated calls
@@ -497,7 +498,7 @@ sub binary_search {
             default               { return $i };
         }
     }
-    $lower;
+    return $lower;
 }
 
 sub locator {
@@ -506,9 +507,9 @@ sub locator {
 
     my $lines;
     $lines //= [0];
-    my $pos = pos $$string = 0;
-    NL: while ( $$string =~ /\n/g ) {
-        $pos = pos $$string;
+    my $pos = pos ${$string} = 0;
+    NL: while ( ${$string} =~ /\n/g ) {
+        $pos = pos ${$string};
         push( @{$lines}, $pos );
         last NL if $pos > $earleme;
     }
@@ -524,14 +525,14 @@ sub Parse::Marpa::show_location {
 
     my ( $line, $line_start ) = locator( $earleme, $source );
     my @msg = ( $msg, ' at line ', $line + 1, ", earleme $earleme\n" );
-    given ( index( $$source, "\n", $line_start ) ) {
-        when (undef) { push( @msg, substr( $$source, $line_start ), "\n" ) }
+    given ( index( ${$source}, "\n", $line_start ) ) {
+        when (undef) { push( @msg, substr( ${$source}, $line_start ), "\n" ) }
         default {
             push( @msg,
-                substr( $$source, $line_start, $_ - $line_start ), "\n" );
+                substr( ${$source}, $line_start, $_ - $line_start ), "\n" );
         }
     }
-    join( q{}, @msg, ( q{ } x ( $earleme - $line_start ) ), "^\n" );
+    return join( q{}, @msg, ( q{ } x ( $earleme - $line_start ) ), "^\n" );
 }
 
 sub die_with_parse_failure {
@@ -562,7 +563,7 @@ sub Parse::Marpa::create_compiled_source_grammar {
         );
     }
     $raw_source_grammar->precompute();
-    $raw_source_grammar->compile();
+    return $raw_source_grammar->compile();
 }
 
 # Build a grammar from an MDL description.
@@ -614,6 +615,7 @@ sub source_grammar {
     return unless defined $evaler;
     my $value = $evaler->next();
     raw_grammar_eval( $grammar, $value );
+    return;
 }
 
 sub Parse::Marpa::Grammar::set {
@@ -638,7 +640,7 @@ sub Parse::Marpa::Grammar::set {
         croak('Source for grammar must be specified as string ref')
             unless ref $source eq 'SCALAR';
         croak('Source for grammar undefined')
-            if not defined $$source;
+            if not defined ${$source};
         source_grammar( $grammar, $source, $args->{'source_options'} );
         delete $args->{'mdl_source'};
         delete $args->{'source_options'};
@@ -959,7 +961,7 @@ sub Parse::Marpa::Grammar::set {
         }
     }
 
-    $grammar;
+    return $grammar;
 }
 
 =begin Implementation:
@@ -1056,7 +1058,7 @@ sub Parse::Marpa::Grammar::show_problems {
             "Grammar has $problem_count problems:\n"
             . join( "\n", @{$problems} ) . "\n";
     }
-    "Grammar has no problems\n";
+    return "Grammar has no problems\n";
 }
 
 # Deep Copy Grammar
@@ -1121,7 +1123,7 @@ sub Parse::Marpa::Grammar::decompile {
             push( @warnings, $_[0] );
             @caller_return = caller 0;
         };
-        eval $$compiled_grammar;
+        eval ${$compiled_grammar};
         my $fatal_error = $@;
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
@@ -1153,7 +1155,8 @@ sub Parse::Marpa::Grammar::decompile {
     }
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::COMPILED;
-    $grammar;
+
+    return $grammar;
 
 }
 
@@ -1184,7 +1187,7 @@ sub Parse::Marpa::show_symbol {
     if ( $symbol->[Parse::Marpa::Internal::Symbol::TERMINAL] ) {
         $text .= ' terminal';
     }
-    $text .= "\n";
+    return $text .= "\n";
 }
 
 sub Parse::Marpa::Grammar::show_symbols {
@@ -1194,13 +1197,13 @@ sub Parse::Marpa::Grammar::show_symbols {
     for my $symbol_ref (@{$symbols}) {
         $text .= Parse::Marpa::show_symbol($symbol_ref);
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::Grammar::show_nulling_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
-    join( q{ },
+    return join( q{ },
         sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
             grep { $_->[Parse::Marpa::Internal::Symbol::NULLING] }
             @{$symbols} );
@@ -1210,14 +1213,14 @@ sub Parse::Marpa::Grammar::show_nullable_symbols {
     my $grammar = shift;
     my $symbols =
         $grammar->[Parse::Marpa::Internal::Grammar::NULLABLE_SYMBOL];
-    join( q{ },
+    return join( q{ },
         sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$symbols} );
 }
 
 sub Parse::Marpa::Grammar::show_productive_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
-    join( q{ },
+    return join( q{ },
         sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
             grep { $_->[Parse::Marpa::Internal::Symbol::PRODUCTIVE] }
             @{$symbols} );
@@ -1226,7 +1229,7 @@ sub Parse::Marpa::Grammar::show_productive_symbols {
 sub Parse::Marpa::Grammar::show_accessible_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
-    join( q{ },
+    return join( q{ },
         sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
             grep { $_->[Parse::Marpa::Internal::Symbol::ACCESSIBLE] }
             @{$symbols} );
@@ -1235,7 +1238,7 @@ sub Parse::Marpa::Grammar::show_accessible_symbols {
 sub Parse::Marpa::Grammar::inaccessible_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
-    [   sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
+    return [   sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
             grep { !$_->[Parse::Marpa::Internal::Symbol::ACCESSIBLE] }
             @{$symbols}
     ];
@@ -1244,7 +1247,7 @@ sub Parse::Marpa::Grammar::inaccessible_symbols {
 sub Parse::Marpa::Grammar::unproductive_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
-    [   sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
+    return [   sort map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
             grep { !$_->[Parse::Marpa::Internal::Symbol::PRODUCTIVE] }
             @{$symbols}
     ];
@@ -1264,14 +1267,14 @@ sub Parse::Marpa::brief_rule {
             . join( q{ },
             map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$rhs} );
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::brief_original_rule {
     my $rule          = shift;
     my $original_rule = $rule->[Parse::Marpa::Internal::Rule::ORIGINAL_RULE]
         // $rule;
-    Parse::Marpa::brief_rule($original_rule);
+    return Parse::Marpa::brief_rule($original_rule);
 }
 
 sub Parse::Marpa::show_rule {
@@ -1299,12 +1302,12 @@ sub Parse::Marpa::show_rule {
     if ( not $useful )     { push( @comment, '!useful' ); }
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
     if ($priority_string_ref) {
-        push( @comment, 'priority=' . $$priority_string_ref );
+        push( @comment, 'priority=' . ${$priority_string_ref} );
     }
     if (@comment) {
         $text .= ' ' . join( ' ', '/*', @comment, '*/' );
     }
-    $text .= "\n";
+    return $text .= "\n";
 }
 
 # For displaying priorities.
@@ -1317,7 +1320,7 @@ sub Parse::Marpa::show_priority {
     my $defined_if_zero = shift;
     my ( $pri1, $pri2 ) = unpack( 'NN', $priority );
     return unless $defined_if_zero or $pri1 or $pri2;
-    \( $pri1 . '.' . $pri2 );
+    return \( $pri1 . '.' . $pri2 );
 }
 
 sub Parse::Marpa::Grammar::show_rules {
@@ -1328,7 +1331,7 @@ sub Parse::Marpa::Grammar::show_rules {
     for my $rule (@{$rules}) {
         $text .= Parse::Marpa::show_rule($rule);
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::show_item {
@@ -1352,7 +1355,7 @@ sub Parse::Marpa::show_item {
         splice( @names, 1,             0, '::=' );
         $text .= join( q{ }, @names );
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::show_NFA_state {
@@ -1369,7 +1372,7 @@ sub Parse::Marpa::show_NFA_state {
     my @properties = ();
     push( @properties, 'at_nulling' ) if $at_nulling;
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
-    push( @properties, 'priority=' . $$priority_string_ref )
+    push( @properties, 'priority=' . ${$priority_string_ref} )
         if defined $priority_string_ref;
     $text .= join( ' ', @properties ) . "\n" if @properties;
 
@@ -1384,7 +1387,7 @@ sub Parse::Marpa::show_NFA_state {
                 @{$transition_states} )
             . "\n";
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::Grammar::show_NFA {
@@ -1394,7 +1397,7 @@ sub Parse::Marpa::Grammar::show_NFA {
     for my $state (@{$NFA}) {
         $text .= Parse::Marpa::show_NFA_state($state);
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::brief_QDFA_state {
@@ -1402,7 +1405,7 @@ sub Parse::Marpa::brief_QDFA_state {
     my $tags  = shift;
     return 'St' . $state->[Parse::Marpa::Internal::QDFA::TAG]
         if defined $tags;
-    'S' . $state->[Parse::Marpa::Internal::QDFA::ID];
+    return 'S' . $state->[Parse::Marpa::Internal::QDFA::ID];
 }
 
 sub Parse::Marpa::show_QDFA_state {
@@ -1421,7 +1424,7 @@ sub Parse::Marpa::show_QDFA_state {
     $text .= Parse::Marpa::brief_QDFA_state( $state, $tags ) . ': ';
     $text .= 'predict; ' if $predict;
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
-    $text .= 'pri=' . $$priority_string_ref . '; '
+    $text .= 'pri=' . ${$priority_string_ref} . '; '
         if defined $priority_string_ref;
     $text .= $name . "\n";
     for my $NFA_state (@{$NFA_states}) {
@@ -1441,7 +1444,7 @@ sub Parse::Marpa::show_QDFA_state {
         $text .= "\n";
     }
 
-    $text;
+    return $text;
 }
 
 sub tag_QDFA {
@@ -1458,6 +1461,7 @@ sub tag_QDFA {
     {
         $state->[Parse::Marpa::Internal::QDFA::TAG] = $tag++;
     }
+    return;
 }
 
 sub Parse::Marpa::Grammar::show_QDFA {
@@ -1477,7 +1481,7 @@ sub Parse::Marpa::Grammar::show_QDFA {
     for my $state (@{$QDFA}) {
         $text .= Parse::Marpa::show_QDFA_state( $state, $tags );
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::Grammar::show_ii_QDFA {
@@ -1506,7 +1510,7 @@ sub Parse::Marpa::Grammar::show_ii_QDFA {
     {
         $text .= Parse::Marpa::show_QDFA_state( $state, $tags );
     }
-    $text;
+    return $text;
 }
 
 sub Parse::Marpa::Grammar::get_symbol {
@@ -1514,7 +1518,7 @@ sub Parse::Marpa::Grammar::get_symbol {
     my $name    = shift;
     my $symbol_hash =
         $grammar->[Parse::Marpa::Internal::Grammar::SYMBOL_HASH];
-    defined $symbol_hash ? $symbol_hash->{$name} : undef;
+    return defined $symbol_hash ? $symbol_hash->{$name} : undef;
 }
 
 sub add_terminal {
@@ -1594,7 +1598,7 @@ sub add_terminal {
         );
 
     push( @{$symbols}, $new_symbol );
-    weaken( $symbol_hash->{$name} = $new_symbol );
+    return weaken( $symbol_hash->{$name} = $new_symbol );
 }
 
 sub assign_symbol {
@@ -1667,7 +1671,7 @@ sub add_user_rule {
         );
     }
 
-    add_rule( $grammar, $lhs_symbol, $rhs_symbols, $action,
+    return add_rule( $grammar, $lhs_symbol, $rhs_symbols, $action,
         pack( 'NN', $user_priority, 0 ) );
 }
 
@@ -1735,7 +1739,7 @@ sub add_rule {
             map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$rhs} ),
             "\n";
     }
-    $new_rule;
+    return $new_rule;
 }
 
 # add one or more rules
@@ -1772,6 +1776,8 @@ sub add_user_rules {
         }
 
     }    # RULE
+
+    return;
 
 }
 
@@ -2084,6 +2090,7 @@ sub add_user_terminals {
         my ( $lhs_name, $options ) = @{$terminal};
         add_user_terminal( $grammar, $lhs_name, $options );
     }
+    return;
 }
 
 sub add_user_terminal {
@@ -2094,6 +2101,7 @@ sub add_user_terminal {
     croak("Symbol name $name ends in ']': that's not allowed")
         if $name =~ /_$/;
     add_terminal( $grammar, $name, $options );
+    return;
 }
 
 sub set_start {
@@ -3098,13 +3106,13 @@ sub assign_QDFA_state_set {
                     my $string_ref =
                         Parse::Marpa::show_priority($new_priority);
                     say $trace_fh "Priority for QDFA state $id: ",
-                        $string_ref ? 'undef' : $$string_ref;
+                        $string_ref ? 'undef' : ${$string_ref};
                 }
                 push( @{$QDFA}, $QDFA_state );
                 $QDFA_by_name->{$name} = $QDFA_state;
             }    # unless $QDFA_state
 
-            push( @result_states, $QDFA_state );
+            push @result_states, $QDFA_state;
 
         }
 
@@ -3115,7 +3123,7 @@ sub assign_QDFA_state_set {
 
     }    # DATUM
 
-    \@result_states;
+    return \@result_states;
 }
 
 sub create_QDFA {
@@ -3185,6 +3193,8 @@ sub create_QDFA {
         }
     }
 
+    return;
+
 }
 
 sub setup_academic_grammar {
@@ -3195,6 +3205,8 @@ sub setup_academic_grammar {
     for my $rule (@{$rules}) {
         $rule->[Parse::Marpa::Internal::Rule::USEFUL] = 1;
     }
+
+    return;
 }
 
 # given a nullable symbol, create a nulling alias and make the first symbol non-nullable
@@ -3242,7 +3254,7 @@ sub alias_symbol {
         Parse::Marpa::Internal::Symbol::NULL_ALIAS
         ]
         = ( 0, $alias );
-    $alias;
+    return $alias;
 }
 
 # For efficiency, steps in the CHAF evaluation
@@ -3618,6 +3630,7 @@ sub rewrite_as_CHAF {
             = ( $productive, 1, 1, );
     }
     $grammar->[Parse::Marpa::Internal::Grammar::START] = $new_start_symbol;
+    return;
 }
 
 1;
