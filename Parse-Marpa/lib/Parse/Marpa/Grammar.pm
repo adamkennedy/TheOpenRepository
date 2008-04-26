@@ -488,7 +488,7 @@ sub Parse::Marpa::show_source_grammar_status {
 # For use some day to make locator() more efficient on repeated calls
 sub binary_search {
     my ( $target, $data ) = @_;
-    my ( $lower, $upper ) = ( 0, $#$data );
+    my ( $lower, $upper ) = ( 0, $#{$data} );
     my $i;
     while ( $lower <= $upper ) {
         my $i = int( ( $lower + $upper ) / 2 );
@@ -1733,7 +1733,7 @@ sub add_rule {
         }
     }
     if ($trace_rules) {
-        print $trace_fh 'Added rule #', $#$rules, ': ',
+        print $trace_fh 'Added rule #', $#{$rules}, ': ',
             $lhs->[Parse::Marpa::Internal::Symbol::NAME], ' -> ',
             join( ' ',
             map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$rhs} ),
@@ -1877,7 +1877,7 @@ sub add_rules_from_hash {
             if ( defined $separator_name and not $keep_separation ) {
                 $action = q{ $_ = [
                         @{$_}[
-                           grep { !($_ % 2) } (0 .. $#$_)
+                           grep { !($_ % 2) } (0 .. $#{$_})
                         ]
                     }
                     . $action;
@@ -2023,7 +2023,7 @@ sub add_rules_from_hash {
                 [
                     [],
                     @{$_}[
-                        grep { !($_ % 2) } (0 .. $#$_)
+                        grep { !($_ % 2) } (0 .. $#{$_})
                     ]
                 ]
             }
@@ -2040,7 +2040,7 @@ sub add_rules_from_hash {
             $rule_action = q{
                 [
                     @{$_}[
-                        grep { !($_ % 2) } (0 .. $#$_)
+                        grep { !($_ % 2) } (0 .. $#{$_})
                     ],
                     []
                 ]
@@ -2062,7 +2062,7 @@ sub add_rules_from_hash {
         ? q{
             [
                 @{$_}[
-                   grep { !($_ % 2) } (0 .. $#$_)
+                   grep { !($_ % 2) } (0 .. $#{$_})
                 ],
             ]
         }
@@ -2236,15 +2236,15 @@ sub productive {
     }
 
     my $symbol_work_set = [];
-    $#$symbol_work_set = $#$symbols;
+    $#{$symbol_work_set} = $#{$symbols};
     my $rule_work_set = [];
-    $#$rule_work_set = $#$rules;
+    $#{$rule_work_set} = $#{$rules};
 
     for my $symbol_id (
         grep {
             defined $symbols->[$_]
                 ->[Parse::Marpa::Internal::Symbol::PRODUCTIVE]
-        } ( 0 .. $#$symbols )
+        } ( 0 .. $#{$symbols} )
         )
     {
         $symbol_work_set->[$symbol_id] = 1;
@@ -2252,7 +2252,7 @@ sub productive {
     for my $rule_id (
         grep {
             defined $rules->[$_]->[Parse::Marpa::Internal::Rule::PRODUCTIVE]
-        } ( 0 .. $#$rules )
+        } ( 0 .. $#{$rules} )
         )
     {
         $rule_work_set->[$rule_id] = 1;
@@ -2264,7 +2264,7 @@ sub productive {
 
         SYMBOL_PASS:
         for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#$symbol_work_set ) )
+            ( 0 .. $#{$symbol_work_set} ) )
         {
             my $work_symbol = $symbols->[$symbol_id];
             $symbol_work_set->[$symbol_id] = 0;
@@ -2318,7 +2318,7 @@ sub productive {
 
         RULE:
         for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#$rule_work_set ) )
+            ( 0 .. $#{$rule_work_set} ) )
         {
             my $work_rule = $rules->[$rule_id];
             $rule_work_set->[$rule_id] = 0;
@@ -2379,9 +2379,9 @@ sub nulling {
     ];
 
     my $symbol_work_set = [];
-    $#$symbol_work_set = $#$symbols;
+    $#{$symbol_work_set} = $#{$symbols};
     my $rule_work_set = [];
-    $#$rule_work_set = $#$rules;
+    $#{$rule_work_set} = $#{$rules};
 
     for my $rule_id (
         map  { $_->[Parse::Marpa::Internal::Rule::ID] }
@@ -2406,7 +2406,7 @@ sub nulling {
 
         RULE:
         for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#$rule_work_set ) )
+            ( 0 .. $#{$rule_work_set} ) )
         {
             my $work_rule = $rules->[$rule_id];
             $rule_work_set->[$rule_id] = 0;
@@ -2459,7 +2459,7 @@ sub nulling {
 
         SYMBOL_PASS:
         for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#$symbol_work_set ) )
+            ( 0 .. $#{$symbol_work_set} ) )
         {
             my $work_symbol = $symbols->[$symbol_id];
             $symbol_work_set->[$symbol_id] = 0;
@@ -2532,9 +2532,9 @@ sub nullable {
     my $work_to_do = 1;
 
     my $symbol_work_set = [];
-    $#$symbol_work_set = @{$symbols};
+    $#{$symbol_work_set} = @{$symbols};
     my $rule_work_set = [];
-    $#$rule_work_set = @{$rules};
+    $#{$rule_work_set} = @{$rules};
 
     for my $symbol_id (
         map { $_->[Parse::Marpa::Internal::Symbol::ID] }
@@ -2559,7 +2559,7 @@ sub nullable {
 
         SYMBOL_PASS:
         for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#$symbol_work_set ) )
+            ( 0 .. $#{$symbol_work_set} ) )
         {
             my $work_symbol = $symbols->[$symbol_id];
             $symbol_work_set->[$symbol_id] = 0;
@@ -2612,7 +2612,7 @@ sub nullable {
 
         RULE:
         for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#$rule_work_set ) )
+            ( 0 .. $#{$rule_work_set} ) )
         {
             my $work_rule  = $rules->[$rule_id];
             my $lhs_symbol = $work_rule->[Parse::Marpa::Internal::Rule::LHS];
@@ -2753,12 +2753,12 @@ sub detect_cycle {
 
         my $current_count = 0;
         my @lhs_ids =
-            grep { exists $unit_derivation[$_] } ( 0 .. $#$symbols );
+            grep { exists $unit_derivation[$_] } ( 0 .. $#{$symbols} );
         for my $lhs_id (@lhs_ids) {
 
             my $rhs_vector = $unit_derivation[$lhs_id];
             my @rhs_ids =
-                grep { exists $rhs_vector->[$_] } ( 0 .. $#$symbols );
+                grep { exists $rhs_vector->[$_] } ( 0 .. $#{$symbols} );
             $current_count += scalar @rhs_ids;
             my @new_rhs_ids;
             for my $rhs_id (@rhs_ids) {
@@ -2773,7 +2773,7 @@ sub detect_cycle {
                 next unless exists $unit_derivation[$rhs_id];
                 my $new_rhs_vector = $unit_derivation[$rhs_id];
                 my @new_rhs_ids =
-                    grep { exists $new_rhs_vector->[$_] } ( 0 .. $#$symbols );
+                    grep { exists $new_rhs_vector->[$_] } ( 0 .. $#{$symbols} );
                 for my $new_rhs_id (@new_rhs_ids) {
                     $unit_derivation[$lhs_id][$new_rhs_id] = 1;
                 }
@@ -3101,7 +3101,7 @@ sub assign_QDFA_state_set {
                 $QDFA_state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS] =
                     [ map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
                         @{$symbols}[ grep { $lhs_list->[$_] }
-                        ( 0 .. $#$lhs_list ) ] ];
+                        ( 0 .. $#{$lhs_list} ) ] ];
                 if ($trace_priorities) {
                     my $string_ref =
                         Parse::Marpa::show_priority($new_priority);
@@ -3348,7 +3348,7 @@ sub rewrite_as_CHAF {
 
         my $last_nonnullable = -1;
         my $proper_nullables = [];
-        RHS_SYMBOL: for ( my $ix = 0; $ix <= $#$rhs; $ix++ ) {
+        RHS_SYMBOL: for ( my $ix = 0; $ix <= $#{$rhs}; $ix++ ) {
             my $symbol = $rhs->[$ix];
             my ( $null_alias, $nulling, $null_value ) = @{$symbol}[
                 Parse::Marpa::Internal::Symbol::NULL_ALIAS,
@@ -3390,7 +3390,7 @@ sub rewrite_as_CHAF {
             SETUP_SUBPRODUCTION: {
 
                 if ( @{$proper_nullables} == 1 ) {
-                    $subp_end = $#$rhs;
+                    $subp_end = $#{$rhs};
                     $subp_factor0_rhs =
                         [ @{$rhs}[ $subp_start .. $subp_end ] ];
                     $proper_nullables = [];
@@ -3401,7 +3401,7 @@ sub rewrite_as_CHAF {
                 $subp_proper_nullable1 = $proper_nullable1 - $subp_start;
 
                 if ( @{$proper_nullables} == 2 ) {
-                    $subp_end = $#$rhs;
+                    $subp_end = $#{$rhs};
                     $subp_factor0_rhs =
                         [ @{$rhs}[ $subp_start .. $subp_end ] ];
                     $proper_nullables = [];
@@ -3466,19 +3466,12 @@ sub rewrite_as_CHAF {
                     Parse::Marpa::Internal::Symbol::NULLING,
 
                     # Parse::Marpa::Internal::Symbol::NULL_VALUE,
-                    ] = (
-                    1, 1, 1, 0,
-
-                    # [   @{$rhs_null_value}
-                    # [ ( $subp_end + 1 ) .. $#$rhs_null_value ],
-                    # []
-                    # ],
-                    );
+                    ] = ( 1, 1, 1, 0, );
                 my $nulling_subp_lhs =
                     alias_symbol( $grammar, $next_subp_lhs );
                 $nulling_subp_lhs
                     ->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING] =
-                    [ @{$rhs}[ ( $subp_end + 1 ) .. $#$rhs ] ];
+                    [ @{$rhs}[ ( $subp_end + 1 ) .. $#{$rhs} ] ];
                 $subp_factor0_rhs =
                     [ @{$rhs}[ $subp_start .. $subp_end ], $next_subp_lhs ];
 
@@ -3529,7 +3522,7 @@ sub rewrite_as_CHAF {
 
             }    # FACTOR
 
-            for ( my $ix = 0; $ix <= $#$factored_rhs; $ix++ ) {
+            for ( my $ix = 0; $ix <= $#{$factored_rhs}; $ix++ ) {
                 my $factor_rhs = $factored_rhs->[$ix];
 
                 # No need to bother putting together values
