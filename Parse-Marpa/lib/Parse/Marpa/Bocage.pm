@@ -8,6 +8,26 @@ no warnings "recursion";
 use strict;
 use integer;
 
+# The bocage is Marpa's structure for keeping multiple parses.
+# "Parse forests" are conventional for this, but Marpa's
+# parses can be cyclical, so the structure must contain
+# not just parse trees, but parse graphs.  I also restrict
+# the and-nodes to be binary.  So it's not really a parse
+# forest.  I call it a "parse bocage".  Bocages are
+# the hedgerow forests of Brittany
+# and Normandy, deliberately cultivated for centuries
+# to be as tangled as possible in order to act
+# as obstacles to wandering cattle and armies.
+
+# A parse bocage is a list of or-nodes, whose child
+# and-nodes must be (at most) binary.
+# I keep the and-nodes binary, because they emerge that way
+# from the Aycock-Horspool Earley items, they store the parses
+# efficiently, and they are easy for doing tree
+# traversals.
+
+# Saplings become or-nodes when they grow up.
+
 package Parse::Marpa::Internal::Sapling;
 
 use constant NAME     => 0;
@@ -16,23 +36,23 @@ use constant RULE     => 2;
 use constant POSITION => 3;
 use constant SYMBOL   => 4;
 
-package Parse::Marpa::Internal::Branch;
+package Parse::Marpa::Internal::And_Node;
 
 use constant PREDECESSOR => 0;
 use constant CAUSE       => 1;
 use constant VALUE       => 2;
 use constant CLOSURE     => 3;
 
-package Parse::Marpa::Internal::Shrub;
+package Parse::Marpa::Internal::Or_Node;
 
 use constant NAME => 0;
-use constant BRANCHES => 1;
+use constant AND_NODES => 1;
 
 package Parse::Marpa::Internal::Bocage;
 
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
-use constant SHRUBS      => 2;
+use constant OR_NODES    => 2;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -87,7 +107,7 @@ sub Parse::Marpa::Bocage::new {
         $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 
     $self->[Parse::Marpa::Internal::Bocage::PARSE_COUNT] = 0;
-    $self->[Parse::Marpa::Internal::Bocage::SHRUBS] = [];
+    $self->[Parse::Marpa::Internal::Bocage::OR_NODES] = [];
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
 
@@ -126,25 +146,25 @@ sub Parse::Marpa::Bocage::new {
 
     # deal with a null parse as a special case
     if ($nulling) {
-        my $branch = [];
-        $branch->[Parse::Marpa::Internal::Branch::VALUE] =
+        my $and_node = [];
+        $and_node->[Parse::Marpa::Internal::And_Node::VALUE] =
             $start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
-        $branch->[Parse::Marpa::Internal::Branch::CLOSURE] =
+        $and_node->[Parse::Marpa::Internal::And_Node::CLOSURE] =
             $start_symbol->[Parse::Marpa::Internal::Rule::CLOSURE];
 
-        my $shrub = [];
-	$shrub->[Parse::Marpa::Internal::Shrub::NAME] =
+        my $or_node = [];
+	$or_node->[Parse::Marpa::Internal::Or_Node::NAME] =
             $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
-        $shrub->[Parse::Marpa::Internal::Shrub::BRANCHES] = [$branch];
+        $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = [$and_node];
 
-        $self->[SHRUBS] = [$shrub];
+        $self->[OR_NODES] = [$or_node];
 
         return $self;
 
     }    # if $nulling
 
     my @saplings;
-    my %sapling_by_name;
+    my %or_node_by_name;
     my $start_sapling = [];
     {
 	my $name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
@@ -206,7 +226,7 @@ sub Parse::Marpa::Bocage::new {
 
         } # not defined $position
 
-        my @branches;
+        my @and_nodes;
 
         my $item_name = $item->[Parse::Marpa::Internal::Earley_item::NAME];
 
@@ -252,9 +272,9 @@ sub Parse::Marpa::Bocage::new {
 			= $predecessor->[Parse::Marpa::Internal::Earley_item::NAME]
                         . 'R' . $rule_id . q{:} . ( $position - 1 );
 
-                    unless ( $predecessor_name ~~ %sapling_by_name ) {
+                    unless ( $predecessor_name ~~ %or_node_by_name ) {
 
-                        $sapling_by_name{$predecessor_name} = [];
+                        $or_node_by_name{$predecessor_name} = [];
 
                         my $sapling = [];
                         @{$sapling}[
@@ -270,7 +290,7 @@ sub Parse::Marpa::Bocage::new {
 
                         push @saplings, $sapling;
 
-                    }    # $predecessor_name ~~ %sapling_by_name
+                    }    # $predecessor_name ~~ %or_node_by_name
 
                 }    # if position > 0
 
@@ -285,9 +305,9 @@ sub Parse::Marpa::Bocage::new {
 			= $cause->[Parse::Marpa::Internal::Earley_item::NAME]
 			. 'L' . $symbol_id;
 
-                    unless ( $cause_name ~~ %sapling_by_name ) {
+                    unless ( $cause_name ~~ %or_node_by_name ) {
 
-                        $sapling_by_name{$cause_name} = [];
+                        $or_node_by_name{$cause_name} = [];
 
                         my $sapling = [];
                         @{$sapling}[
@@ -299,46 +319,46 @@ sub Parse::Marpa::Bocage::new {
 
                         push @saplings, $sapling;
 
-                    }    # $cause_name ~~ %sapling_by_name
+                    }    # $cause_name ~~ %or_node_by_name
 
                 }    # if cause
 
-                my $branch = [];
-                @{$branch}[
-                    Parse::Marpa::Internal::Branch::PREDECESSOR,
-                    Parse::Marpa::Internal::Branch::CAUSE,
-                    Parse::Marpa::Internal::Branch::VALUE,
-                    Parse::Marpa::Internal::Branch::CLOSURE,
+                my $and_node = [];
+                @{$and_node}[
+                    Parse::Marpa::Internal::And_Node::PREDECESSOR,
+                    Parse::Marpa::Internal::And_Node::CAUSE,
+                    Parse::Marpa::Internal::And_Node::VALUE,
+                    Parse::Marpa::Internal::And_Node::CLOSURE,
                     ]
                     = ( $predecessor_name, $cause_name, $value, $closure );
 
-                push @branches, $branch;
+                push @and_nodes, $and_node;
 
             }    # for work_item
 
         }    # RULE
 
-	my $shrub = [];
-	$shrub->[Parse::Marpa::Internal::Shrub::NAME] = $sapling_name;
-	$shrub->[Parse::Marpa::Internal::Shrub::BRANCHES] = \@branches;
-	push @{$self->[SHRUBS]}, $shrub;
-	$sapling_by_name{$sapling_name} = $shrub;
+	my $or_node = [];
+	$or_node->[Parse::Marpa::Internal::Or_Node::NAME] = $sapling_name;
+	$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
+	push @{$self->[OR_NODES]}, $or_node;
+	$or_node_by_name{$sapling_name} = $or_node;
 
     }    # SAPLING
 
     # resolve links in the bocage
-    for my $branch (
-        map { @{ $_->[Parse::Marpa::Internal::Shrub::BRANCHES] } }
-        @{$self->[SHRUBS]} )
+    for my $and_node (
+        map { @{ $_->[Parse::Marpa::Internal::Or_Node::AND_NODES] } }
+        @{$self->[OR_NODES]} )
     {
         FIELD: for my $field (
-            Parse::Marpa::Internal::Branch::PREDECESSOR,
-            Parse::Marpa::Internal::Branch::CAUSE,
+            Parse::Marpa::Internal::And_Node::PREDECESSOR,
+            Parse::Marpa::Internal::And_Node::CAUSE,
             )
         {
-            my $name = $branch->[$field];
+            my $name = $and_node->[$field];
             next FIELD unless defined $name;
-            $branch->[$field] = $sapling_by_name{$name};
+            $and_node->[$field] = $or_node_by_name{$name};
         }
 
     }
@@ -351,25 +371,25 @@ sub Parse::Marpa::Bocage::show_bocage {
      my $bocage = shift;
      my $text = q{};
 
-     for my $shrub (@{$bocage->[SHRUBS]}) {
+     for my $or_node (@{$bocage->[OR_NODES]}) {
 
-	 my $lhs = $shrub->[Parse::Marpa::Internal::Shrub::NAME];
+	 my $lhs = $or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 
-         for my $branch (@{$shrub->[Parse::Marpa::Internal::Shrub::BRANCHES]}) {
+         for my $and_node (@{$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES]}) {
 
 	     my @rhs = ();
 
-	     my $predecessor = $branch->[Parse::Marpa::Internal::Branch::PREDECESSOR];
+	     my $predecessor = $and_node->[Parse::Marpa::Internal::And_Node::PREDECESSOR];
 	     if ($predecessor) {
-	         push @rhs, $predecessor->[Parse::Marpa::Internal::Shrub::NAME];
+	         push @rhs, $predecessor->[Parse::Marpa::Internal::Or_Node::NAME];
 	     } # predecessor
 
-	     my $cause = $branch->[Parse::Marpa::Internal::Branch::CAUSE];
+	     my $cause = $and_node->[Parse::Marpa::Internal::And_Node::CAUSE];
 	     if ($cause) {
-	         push @rhs, $cause->[Parse::Marpa::Internal::Shrub::NAME];
+	         push @rhs, $cause->[Parse::Marpa::Internal::Or_Node::NAME];
 	     } # cause
 
-	     my $value = $branch->[Parse::Marpa::Internal::Branch::VALUE];
+	     my $value = $and_node->[Parse::Marpa::Internal::And_Node::VALUE];
 	     if ($value) {
 		 my $value_as_string = Dumper($value);
 	         chomp $value_as_string;
@@ -378,9 +398,9 @@ sub Parse::Marpa::Bocage::show_bocage {
 
 	     $text .= $lhs . ' ::= ' . join(q{ }, @rhs) . "\n";
 
-	 } # for my $branch;
+	 } # for my $and_node;
 
-     } # for my $shrub
+     } # for my $or_node
 
      return $text;
 }
@@ -412,33 +432,9 @@ sub Parse::Marpa::Bocage::next {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
-    my ( $grammar, $start_item, $current_parse_set, ) = @{$recognizer}[
+    my ( $grammar, ) = @{$recognizer}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
-        Parse::Marpa::Internal::Recognizer::START_ITEM,
-        Parse::Marpa::Internal::Recognizer::CURRENT_PARSE_SET,
     ];
-
-    # TODO: Is this check enough be sure that this is an evaluated parse?
-    croak('Parse not initialized: no start item') unless defined $start_item;
-
-    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
-    my $parse_count =
-        $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT];
-    if ( $max_parses > 0 && $parse_count > $max_parses ) {
-        croak("Maximum parse count ($max_parses) exceeded");
-    }
-
-    if ( $parse_count <= 0 ) {
-        $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT] = 1;
-
-        # Allow semipredication
-        my $start_value =
-            $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
-        return \(undef) if not defined $start_value;
-        return $start_value;
-    }
-
-    $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
 
     ## no critic ( Variables::ProhibitPackageVars )
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
@@ -458,6 +454,35 @@ sub Parse::Marpa::Bocage::next {
     }
 
     local ($Data::Dumper::Terse) = 1;
+
+    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
+    my ($parse_count, $bocage)
+	= @{$evaler}[
+	    Parse::Marpa::Internal::Bocage::PARSE_COUNT,
+	    Parse::Marpa::Internal::Bocage::OR_NODES,
+	];
+    $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
+
+    croak('Multiple parses not yet implemented') if $parse_count;
+
+    my @tree;
+
+    # A preorder traversal, to build the tree
+    # Start with the first or_node of the bocage.
+    my @traversal_stack = ($bocage->[0]);
+    OR_NODE: while (@traversal_stack) {
+
+	my $or_node = pop @traversal_stack;
+	push(@tree, $or_node);
+	my ($predecessor, $cause)
+	    = @{$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES]->[0]};
+	push @traversal_stack, $cause if defined $cause;
+	push @traversal_stack, $predecessor if defined $predecessor;
+
+    } # OR_NODE
+
+    # return something real someday
+    return \(1);
 
 }
 
