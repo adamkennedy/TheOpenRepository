@@ -48,11 +48,21 @@ package Parse::Marpa::Internal::Or_Node;
 use constant NAME => 0;
 use constant AND_NODES => 1;
 
+package Parse::Marpa::Internal::Tree_Node;
+
+use constant OR_NODE     => 0;
+use constant CHOICE      => 1;
+use constant PREDECESSOR => 2;
+use constant CAUSE       => 3;
+use constant SUCCESSOR   => 4;
+use constant EFFECT      => 5;
+
 package Parse::Marpa::Internal::Bocage;
 
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
 use constant OR_NODES    => 2;
+
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -468,16 +478,51 @@ sub Parse::Marpa::Bocage::next {
     my @tree;
 
     # A preorder traversal, to build the tree
-    # Start with the first or_node of the bocage.
-    my @traversal_stack = ($bocage->[0]);
+    # Start with the first or-node of the bocage.
+    # The code below assumes the or-node is the first field of the tree node.
+    my @traversal_stack = ([$bocage->[0]]);
     OR_NODE: while (@traversal_stack) {
 
-	my $or_node = pop @traversal_stack;
-	push(@tree, $or_node);
-	my ($predecessor, $cause)
-	    = @{$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES]->[0]};
-	push @traversal_stack, $cause if defined $cause;
-	push @traversal_stack, $predecessor if defined $predecessor;
+	my $tree_ur_node = pop @traversal_stack;
+	my ($predecessor_or_node, $cause_or_node)
+	    = @{$tree_ur_node
+		->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		->[Parse::Marpa::Internal::Or_Node::AND_NODES]
+		->[0]};
+
+	my $predecessor_tree_node;
+	if (defined $predecessor_or_node) {
+	    @{$predecessor_tree_node}[
+		Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		Parse::Marpa::Internal::Tree_Node::SUCCESSOR,
+	    ] = (
+		$predecessor_or_node,
+		$tree_ur_node,
+	    );
+	}
+
+	my $cause_tree_node;
+	if (defined $cause_or_node) {
+	    @{$cause_tree_node}[
+		Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		Parse::Marpa::Internal::Tree_Node::EFFECT,
+	    ] = (
+		$cause_or_node,
+		$tree_ur_node,
+	    );
+	}
+
+	@{$tree_ur_node}[
+	    Parse::Marpa::Internal::Tree_Node::CHOICE,
+	    Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
+	    Parse::Marpa::Internal::Tree_Node::CAUSE,
+	] = (
+	    0,
+	    $predecessor_tree_node,
+	    $cause_tree_node,
+	);
+	push @tree, $tree_ur_node;
+	push @traversal_stack, grep { defined $_ } ($cause_tree_node, $predecessor_tree_node);
 
     } # OR_NODE
 
