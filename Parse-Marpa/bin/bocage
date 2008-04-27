@@ -217,9 +217,9 @@ sub do_parse {
         }
         $parse_count++;
 
-        given ($$value) {
+        given (${$value}) {
             when (undef) { say 'Marpa returned an undefined' }
-            default      { say $$value };
+            default      { say $_ };
         }
 
         if ($show_status) {

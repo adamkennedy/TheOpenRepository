@@ -40,7 +40,7 @@ package Parse::Marpa::Internal::And_Node;
 
 use constant PREDECESSOR => 0;
 use constant CAUSE       => 1;
-use constant VALUE       => 2;
+use constant VALUE_REF   => 2;
 use constant CLOSURE     => 3;
 
 package Parse::Marpa::Internal::Or_Node;
@@ -62,6 +62,7 @@ package Parse::Marpa::Internal::Bocage;
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
 use constant OR_NODES    => 2;
+use constant TREE        => 3;    # current evaluation tree
 
 
 use Scalar::Util qw(weaken);
@@ -157,8 +158,8 @@ sub Parse::Marpa::Bocage::new {
     # deal with a null parse as a special case
     if ($nulling) {
         my $and_node = [];
-        $and_node->[Parse::Marpa::Internal::And_Node::VALUE] =
-            $start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE];
+        $and_node->[Parse::Marpa::Internal::And_Node::VALUE_REF] =
+            \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]);
         $and_node->[Parse::Marpa::Internal::And_Node::CLOSURE] =
             $start_symbol->[Parse::Marpa::Internal::Rule::CLOSURE];
 
@@ -251,13 +252,13 @@ sub Parse::Marpa::Bocage::new {
                 @work_list = (
                     [   $item,
                         undef,
-                        $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]
+                        \($symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE])
                     ]
                 );
             }
             else {
                 @work_list = (
-                    (map { [ $_->[0], undef, $_->[1] ] } @{
+                    (map { [ $_->[0], undef, \($_->[1]) ] } @{
 			$item
 			    ->[Parse::Marpa::Internal::Earley_item::TOKENS
 			    ]
@@ -272,7 +273,7 @@ sub Parse::Marpa::Bocage::new {
 
             for my $work_item (@work_list) {
 
-                my ( $predecessor, $cause, $value ) = @{$work_item};
+                my ( $predecessor, $cause, $value_ref ) = @{$work_item};
 
                 my $predecessor_name;
 
@@ -337,10 +338,10 @@ sub Parse::Marpa::Bocage::new {
                 @{$and_node}[
                     Parse::Marpa::Internal::And_Node::PREDECESSOR,
                     Parse::Marpa::Internal::And_Node::CAUSE,
-                    Parse::Marpa::Internal::And_Node::VALUE,
+                    Parse::Marpa::Internal::And_Node::VALUE_REF,
                     Parse::Marpa::Internal::And_Node::CLOSURE,
                     ]
-                    = ( $predecessor_name, $cause_name, $value, $closure );
+                    = ( $predecessor_name, $cause_name, $value_ref, $closure );
 
                 push @and_nodes, $and_node;
 
@@ -399,9 +400,9 @@ sub Parse::Marpa::Bocage::show_bocage {
 	         push @rhs, $cause->[Parse::Marpa::Internal::Or_Node::NAME];
 	     } # cause
 
-	     my $value = $and_node->[Parse::Marpa::Internal::And_Node::VALUE];
-	     if ($value) {
-		 my $value_as_string = Dumper($value);
+	     my $value_ref = $and_node->[Parse::Marpa::Internal::And_Node::VALUE_REF];
+	     if (defined $value_ref) {
+		 my $value_as_string = Dumper(${$value_ref});
 	         chomp $value_as_string;
 	         push @rhs, $value_as_string;
 	     } # value
@@ -415,20 +416,46 @@ sub Parse::Marpa::Bocage::show_bocage {
      return $text;
 }
 
-# Undocumented.  It's main purpose was to allow the user to differentiate
-# between an unevaluated node and a node whose value was a Perl 5 undefined.
-sub Parse::Marpa::Bocage::value {
-    my $evaler     = shift;
-    my $recognizer = $evaler->[Parse::Marpa::Internal::Bocage::RECOGNIZER];
+sub test_closure {
+    my $tree_node = shift;
 
-    croak('Not yet converted');
-    my $start_item =
-        $recognizer->[Parse::Marpa::Internal::Recognizer::START_ITEM];
-    return unless defined $start_item;
-    my $value_ref = $start_item->[Parse::Marpa::Internal::Earley_item::VALUE];
+    my @tree_nodes = ($tree_node);
 
-    # croak("No value defined") unless defined $value_ref;
-    return $value_ref;
+    while (
+	$tree_node
+	= $tree_node->[Parse::Marpa::Internal::Tree_Node::PREDECESSOR]
+    ) {
+        push @tree_nodes, $tree_node;
+    }  # while ($tree_node)
+
+    my @value;
+
+    TREE_NODE: for my $tree_node (reverse @tree_nodes) {
+
+        my $cause = $tree_node
+	    ->[Parse::Marpa::Internal::Tree_Node::CAUSE];
+
+	if ($cause) {
+	    push @value, test_closure($cause);
+	    next TREE_NODE;
+	} # $cause
+
+	my ($or_node, $choice) = @{$tree_node}[
+	    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+	    Parse::Marpa::Internal::Tree_Node::CHOICE,
+	];
+
+	my $value_ref = $or_node
+	    ->[Parse::Marpa::Internal::Or_Node::AND_NODES]
+	    ->[$choice]
+	    ->[Parse::Marpa::Internal::And_Node::VALUE_REF];
+	push @value, ${$value_ref};
+
+    }  # TREE_NODE
+
+    return $value[0] if @value <= 1;
+    return '(' . (join q{;}, @value) . ')';
+
 }
 
 sub Parse::Marpa::Bocage::next {
@@ -466,68 +493,80 @@ sub Parse::Marpa::Bocage::next {
     local ($Data::Dumper::Terse) = 1;
 
     my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
-    my ($parse_count, $bocage)
+    my ($parse_count, $bocage, $tree)
 	= @{$evaler}[
 	    Parse::Marpa::Internal::Bocage::PARSE_COUNT,
 	    Parse::Marpa::Internal::Bocage::OR_NODES,
+	    Parse::Marpa::Internal::Bocage::TREE,
 	];
     $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
 
-    croak('Multiple parses not yet implemented') if $parse_count;
+    TREE: while (1) {
 
-    my @tree;
+	croak('Multiple parses not yet implemented') if defined $tree;
 
-    # A preorder traversal, to build the tree
-    # Start with the first or-node of the bocage.
-    # The code below assumes the or-node is the first field of the tree node.
-    my @traversal_stack = ([$bocage->[0]]);
-    OR_NODE: while (@traversal_stack) {
+	my $initial_ur_node;
 
-	my $tree_ur_node = pop @traversal_stack;
-	my ($predecessor_or_node, $cause_or_node)
-	    = @{$tree_ur_node
-		->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
-		->[Parse::Marpa::Internal::Or_Node::AND_NODES]
-		->[0]};
+	if (not defined $initial_ur_node) {
 
-	my $predecessor_tree_node;
-	if (defined $predecessor_or_node) {
-	    @{$predecessor_tree_node}[
-		Parse::Marpa::Internal::Tree_Node::OR_NODE,
-		Parse::Marpa::Internal::Tree_Node::SUCCESSOR,
-	    ] = (
-		$predecessor_or_node,
-		$tree_ur_node,
-	    );
+	     $evaler->[Parse::Marpa::Internal::Bocage::TREE]
+		 = $tree = [];
+	     $initial_ur_node = [$bocage->[0]];
+
 	}
 
-	my $cause_tree_node;
-	if (defined $cause_or_node) {
-	    @{$cause_tree_node}[
-		Parse::Marpa::Internal::Tree_Node::OR_NODE,
-		Parse::Marpa::Internal::Tree_Node::EFFECT,
+	# A preorder traversal, to build the tree
+	# Start with the first or-node of the bocage.
+	# The code below assumes the or-node is the first field of the tree node.
+	my @traversal_stack = ($initial_ur_node);
+	OR_NODE: while (@traversal_stack) {
+
+	    my $tree_ur_node = pop @traversal_stack;
+	    my ($predecessor_or_node, $cause_or_node)
+		= @{$tree_ur_node
+		    ->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		    ->[Parse::Marpa::Internal::Or_Node::AND_NODES]
+		    ->[0]};
+
+	    my $predecessor_tree_node;
+	    if (defined $predecessor_or_node) {
+		$predecessor_tree_node->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		    = $predecessor_or_node;
+		weaken(
+		    $predecessor_tree_node->[Parse::Marpa::Internal::Tree_Node::SUCCESSOR]
+			= $tree_ur_node
+		);
+	    }
+
+	    my $cause_tree_node;
+	    if (defined $cause_or_node) {
+		$cause_tree_node->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		    = $cause_or_node;
+		weaken(
+		    $cause_tree_node->[Parse::Marpa::Internal::Tree_Node::EFFECT]
+			= $tree_ur_node
+		);
+	    }
+
+	    @{$tree_ur_node}[
+		Parse::Marpa::Internal::Tree_Node::CHOICE,
+		Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
+		Parse::Marpa::Internal::Tree_Node::CAUSE,
 	    ] = (
-		$cause_or_node,
-		$tree_ur_node,
+		0,
+		$predecessor_tree_node,
+		$cause_tree_node,
 	    );
-	}
+	    push @{$tree}, $tree_ur_node;
+	    push @traversal_stack, grep { defined $_ } ($cause_tree_node, $predecessor_tree_node);
 
-	@{$tree_ur_node}[
-	    Parse::Marpa::Internal::Tree_Node::CHOICE,
-	    Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
-	    Parse::Marpa::Internal::Tree_Node::CAUSE,
-	] = (
-	    0,
-	    $predecessor_tree_node,
-	    $cause_tree_node,
-	);
-	push @tree, $tree_ur_node;
-	push @traversal_stack, grep { defined $_ } ($cause_tree_node, $predecessor_tree_node);
+	} # OR_NODE
 
-    } # OR_NODE
+	return \test_closure($tree->[0]);
 
-    # return something real someday
-    return \(1);
+    } # TREE
+
+    return;
 
 }
 
