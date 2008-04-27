@@ -625,7 +625,7 @@ The input text was "C<2+2>".
 
 =head2 The MDL Grammar
 
-    semantics are perl5.  version is 0.211.1.
+    semantics are perl5.  version is 0.211.2.
 
     start symbol is E.
 
