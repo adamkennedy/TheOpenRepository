@@ -36,6 +36,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/MDL.pm',
 	'lib/Parse/Marpa/Grammar.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Grammar.pm',
+	'lib/Parse/Marpa/Bocage.pm'
+	    => '$(INST_LIB)/Parse/Marpa/Bocage.pm',
 	'lib/Parse/Marpa/Recognizer.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
 	'lib/Parse/Marpa/Evaluator.pm'
@@ -53,6 +55,7 @@ WriteMakefile(
     },
     EXE_FILES => [
                            'bin/marpa',
+                           'bin/bocage',
     ],
     PREREQ_PM => {
         'Test::More' => 0,
