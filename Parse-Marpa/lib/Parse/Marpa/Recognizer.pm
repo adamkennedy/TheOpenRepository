@@ -1,12 +1,13 @@
-use 5.010_000;
 package Parse::Marpa::Internal::Recognizer;
+use 5.010_000;
 
 use warnings;
+use strict;
+use integer;
+
 ## no critic
 no warnings "recursion";
 ## use critic
-use strict;
-use integer;
 
 package Parse::Marpa::Read_Only;
 
@@ -88,7 +89,7 @@ sub set_null_symbol_value {
 
     # it is a CHAF nulling symbol, but needs its null value calculated.
     my @null_values = ();
-    for my $rhs_symbol (@$chaf_nulling) {
+    for my $rhs_symbol (@{$chaf_nulling}) {
         my $nulling_symbol =
             $rhs_symbol->[Parse::Marpa::Internal::Symbol::NULL_ALIAS]
             // $rhs_symbol;
@@ -121,7 +122,7 @@ sub set_null_values {
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
     }
 
-    SYMBOL: for my $symbol (@$symbols) {
+    SYMBOL: for my $symbol (@{$symbols}) {
         next SYMBOL
             if $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
         $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] =
@@ -130,7 +131,7 @@ sub set_null_values {
 
     # Before tackling the CHAF symbols, set null values specified in
     # empty rules.
-    RULE: for my $rule (@$rules) {
+    RULE: for my $rule (@{$rules}) {
 
         my $action = $rule->[Parse::Marpa::Internal::Rule::ACTION];
 
@@ -139,7 +140,7 @@ sub set_null_values {
         my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
 
         # Empty rule with action?
-        if ( defined $action and @$rhs <= 0 ) {
+        if ( defined $action and @{$rhs} <= 0 ) {
             my $lhs = $rule->[Parse::Marpa::Internal::Rule::LHS];
             my $nulling_alias =
                 $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS];
@@ -184,7 +185,7 @@ sub set_null_values {
 
     }    # RULE
 
-    SYMBOL: for my $symbol (@$symbols) {
+    SYMBOL: for my $symbol (@{$symbols}) {
         next SYMBOL
             unless $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
         $symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE] =
@@ -192,7 +193,7 @@ sub set_null_values {
     }
 
     if ($trace_actions) {
-        SYMBOL: for my $symbol (@$symbols) {
+        SYMBOL: for my $symbol (@{$symbols}) {
             next SYMBOL
                 unless
                 $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
@@ -237,7 +238,7 @@ sub set_actions {
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
     }
 
-    RULE: for my $rule (@$rules) {
+    RULE: for my $rule (@{$rules}) {
 
         next RULE unless $rule->[Parse::Marpa::Internal::Rule::USEFUL];
 
@@ -266,7 +267,7 @@ sub set_actions {
             if ($has_chaf_lhs) {
 
                 $action = q{
-                        push @$_, [];
+                        push @{$_}, [];
                         $_;
                     };
                 last ACTION;
@@ -280,9 +281,9 @@ sub set_actions {
 
             $action = q{
                 TAIL: for (;;) {
-                    my $tail = pop @$_;
-                    last TAIL unless scalar @$tail;
-                    push @$_, @$tail;
+                    my $tail = pop @{$_};
+                    last TAIL unless scalar @{$tail};
+                    push @{$_}, @{$tail};
                 }
             }    # q string
                 . $action;
@@ -329,7 +330,7 @@ sub set_actions {
     }    # RULE
 
     my @lexers;
-    $#lexers = $#$symbols;
+    $#lexers = $#{$symbols};
 
     SYMBOL: for my $ix ( 0 .. $#lexers ) {
 
@@ -410,9 +411,9 @@ sub set_actions {
     }    # SYMBOL
 
     my @lexables_by_state;
-    $#lexables_by_state = $#$QDFA;
+    $#lexables_by_state = $#{$QDFA};
 
-    for my $state (@$QDFA) {
+    for my $state (@{$QDFA}) {
         my ( $id, $transition ) = @{$state}[
             Parse::Marpa::Internal::QDFA::ID,
             Parse::Marpa::Internal::QDFA::TRANSITION,
@@ -422,7 +423,7 @@ sub set_actions {
                 map {
                 $symbol_hash->{$_}->[Parse::Marpa::Internal::Symbol::ID]
                 }
-                keys %$transition
+                keys %{$transition}
         ];
     }
 
@@ -438,7 +439,7 @@ sub compile_regexes {
         Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
     ];
 
-    SYMBOL: for my $symbol (@$symbols) {
+    SYMBOL: for my $symbol (@{$symbols}) {
         my $regex = $symbol->[Parse::Marpa::Internal::Symbol::REGEX];
         next SYMBOL unless defined $regex;
         if ( q{} =~ $regex ) {
@@ -590,7 +591,7 @@ sub Parse::Marpa::Recognizer::new {
     my $start_states =
         $grammar->[Parse::Marpa::Internal::Grammar::START_STATES];
 
-    for my $state (@$start_states) {
+    for my $state (@{$start_states}) {
 	my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
         my $name = sprintf 'S%d@%d-%d', $state_id, 0, 0;
         my $item;
@@ -603,7 +604,7 @@ sub Parse::Marpa::Recognizer::new {
             Parse::Marpa::Internal::Earley_item::SET
             ]
             = ( $name, $state, 0, [], [], 0 );
-        push @$earley_set, $item;
+        push @{$earley_set}, $item;
         $earley_hash->{$name} = $item;
     }
 
@@ -692,21 +693,21 @@ sub Parse::Marpa::show_earley_item {
     $text .= "\n  value: " . Parse::Marpa::show_value( $value, $ii )
         if defined $value;
 
-    if ( defined $tokens and @$tokens ) {
+    if ( defined $tokens and @{$tokens} ) {
         $text .= "\n  token choice " . $token_choice;
-        for my $token (@$tokens) {
+        for my $token (@{$tokens}) {
             $text .= q{ } . show_token_choice( $token, $ii );
         }
     }
-    if ( defined $links and @$links ) {
+    if ( defined $links and @{$links} ) {
         $text .= "\n  link choice " . $link_choice;
-        for my $link (@$links) {
+        for my $link (@{$links}) {
             $text .= q{ } . show_link_choice( $link, $ii );
         }
     }
-    if ( defined $rules and @$rules ) {
+    if ( defined $rules and @{$rules} ) {
         $text .= "\n  rule choice " . $rule_choice;
-        for my $rule (@$rules) {
+        for my $rule (@{$rules}) {
             $text .= ' [ ' . Parse::Marpa::brief_rule($rule) . ' ]';
         }
     }
@@ -717,7 +718,7 @@ sub Parse::Marpa::show_earley_set {
     my $earley_set = shift;
     my $ii         = shift;
     my $text       = q{};
-    for my $earley_item (@$earley_set) {
+    for my $earley_item (@{$earley_set}) {
         $text .= Parse::Marpa::show_earley_item( $earley_item, $ii ) . "\n";
     }
     return $text;
@@ -727,7 +728,7 @@ sub Parse::Marpa::show_earley_set_list {
     my $earley_set_list  = shift;
     my $ii               = shift;
     my $text             = q{};
-    my $earley_set_count = @$earley_set_list;
+    my $earley_set_count = @{$earley_set_list};
     LIST: for my $ix ( 0 .. $earley_set_count-1 ) {
         my $set = $earley_set_list->[$ix];
         next LIST unless defined $set;
@@ -818,14 +819,14 @@ sub Parse::Marpa::Recognizer::text {
 
         my $lexables = complete_set($parse);
 
-        if ( $trace_lex_tries and scalar @$lexables ) {
-            my $string_to_match = substr( $$input_ref, $pos, 20 );
+        if ( $trace_lex_tries and scalar @{$lexables} ) {
+            my $string_to_match = substr ${$input_ref}, $pos, 20;
             $string_to_match
                 =~ s/([\x00-\x1F\x7F-\xFF])/sprintf('{%#.2x}', ord($1))/ge;
             say $trace_fh "Match target at $pos: ", $string_to_match;
         }
 
-        LEXABLE: for my $lexable (@$lexables) {
+        LEXABLE: for my $lexable (@{$lexables}) {
             my ($symbol_id) = @{$lexable}[Parse::Marpa::Internal::Symbol::ID];
             if ($trace_lex_tries) {
                 print {$trace_fh} 'Trying to match ',
@@ -872,7 +873,7 @@ sub Parse::Marpa::Recognizer::text {
             croak("Illegal type for lexer: $lexer_type")
                 unless $lexer_type eq 'ARRAY';
 
-            my ( $lex_closure, $prefix, $suffix ) = @$lexer;
+            my ( $lex_closure, $prefix, $suffix ) = @{$lexer};
             if ( defined $prefix ) {
                 $$input_ref =~ /\G$prefix/g;
             }
@@ -1010,7 +1011,7 @@ sub scan_set {
         # I allow ambigious tokenization.
         # Loop through the alternative tokens.
         ALTERNATIVE: for my $alternative (@_) {
-            my ( $token, $value, $length ) = @$alternative;
+            my ( $token, $value, $length ) = @{$alternative};
 
             if ( $length <= 0 ) {
                 croak(    'Token '
@@ -1043,7 +1044,7 @@ sub scan_set {
                 $parse->[Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME]
                     = $furthest_earleme = $target_ix;
             }
-            STATE: for my $state (@$states) {
+            STATE: for my $state (@{$states}) {
                 my $reset =
                     $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                 my $origin = $reset ? $target_ix : $parent;
@@ -1064,7 +1065,7 @@ sub scan_set {
                         ]
                         = ( $name, $state, $origin, 0, [], 0, [], $target_ix );
                     $earley_hash->{$name} = $target_item;
-                    push @$target_set, $target_item;
+                    push @{$target_set}, $target_item;
                 }
                 next STATE if $reset;
                 push
@@ -1116,7 +1117,7 @@ sub complete_set {
     }
 
     my $lexable_seen = [];
-    $#$lexable_seen = $#$symbols;
+    $#{$lexable_seen} = $#{$symbols};
 
     EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
 
@@ -1149,7 +1150,7 @@ sub complete_set {
                     ->{$complete_symbol_name};
                 next PARENT_ITEM unless defined $states;
 
-                STATE: for my $state (@$states) {
+                STATE: for my $state (@{$states}) {
                     my $reset =
                         $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
@@ -1170,7 +1171,7 @@ sub complete_set {
                             ]
                             = ( $name, $state, $origin, 0, [], 0, [], $current_set );
                         $earley_hash->{$name} = $target_item;
-                        push @$earley_set, $target_item;
+                        push @{$earley_set}, $target_item;
                     }    # unless defined $target_item
                     next STATE if $reset;
                     push
@@ -1187,7 +1188,7 @@ sub complete_set {
 
     }    # EARLEY_ITEM
 
-    EARLEY_ITEM: for my $earley_item (@$earley_set) {
+    EARLEY_ITEM: for my $earley_item (@{$earley_set}) {
         my $links =
             $earley_item->[Parse::Marpa::Internal::Earley_item::LINKS];
         my @sorted_links =
@@ -1198,7 +1199,7 @@ sub complete_set {
                 $_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
                     ->[Parse::Marpa::Internal::QDFA::PRIORITY]
             ]
-            } @$links;
+            } @{$links};
         $earley_item->[Parse::Marpa::Internal::Earley_item::LINKS] =
             \@sorted_links;
     }
@@ -1222,7 +1223,7 @@ sub complete_set {
                 cmp $b->[Parse::Marpa::Internal::Symbol::PRIORITY]
             }
             map { $symbols->[$_] }
-            grep { $lexable_seen->[$_] } ( 0 .. $#$symbols )
+            grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
     ];
     return $lexables;
 
@@ -1255,7 +1256,7 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
     {
         my $earley_set = $earley_sets->[$earleme];
 
-        ITEM: for my $earley_item (@$earley_set) {
+        ITEM: for my $earley_item (@{$earley_set}) {
             my ( $state, $parent ) = @{$earley_item}[
                 Parse::Marpa::Internal::Earley_item::STATE,
                 Parse::Marpa::Internal::Earley_item::PARENT,
@@ -1269,7 +1270,7 @@ sub Parse::Marpa::Recognizer::find_complete_rule {
             }
             my $complete_lhs =
                 $state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS];
-            next ITEM unless scalar @$complete_lhs;
+            next ITEM unless scalar @{$complete_lhs};
             return ( $earleme, $complete_lhs );
         }    # ITEM
     }    # EARLEME
