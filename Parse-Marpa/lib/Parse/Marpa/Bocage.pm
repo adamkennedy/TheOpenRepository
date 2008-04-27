@@ -42,6 +42,8 @@ use constant PREDECESSOR => 0;
 use constant CAUSE       => 1;
 use constant VALUE_REF   => 2;
 use constant CLOSURE     => 3;
+use constant ARGC        => 4;
+use constant RULE        => 5;
 
 package Parse::Marpa::Internal::Or_Node;
 
@@ -56,6 +58,10 @@ use constant PREDECESSOR => 2;
 use constant CAUSE       => 3;
 use constant SUCCESSOR   => 4;
 use constant EFFECT      => 5;
+use constant CLOSURE     => 6;
+use constant ARGC        => 7;
+use constant VALUE_REF   => 8;
+use constant RULE        => 9;
 
 package Parse::Marpa::Internal::Bocage;
 
@@ -158,10 +164,17 @@ sub Parse::Marpa::Bocage::new {
     # deal with a null parse as a special case
     if ($nulling) {
         my $and_node = [];
-        $and_node->[Parse::Marpa::Internal::And_Node::VALUE_REF] =
-            \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]);
-        $and_node->[Parse::Marpa::Internal::And_Node::CLOSURE] =
-            $start_symbol->[Parse::Marpa::Internal::Rule::CLOSURE];
+        @{$and_node}[
+	    Parse::Marpa::Internal::And_Node::VALUE_REF,
+	    Parse::Marpa::Internal::And_Node::CLOSURE,
+	    Parse::Marpa::Internal::And_Node::ARGC,
+	    Parse::Marpa::Internal::And_Node::RULE,
+	] = (
+            \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]),
+            $start_rule->[Parse::Marpa::Internal::Rule::CLOSURE],
+	    @{$start_rule->[Parse::Marpa::Internal::Rule::RHS]},
+	    $start_rule,
+	);
 
         my $or_node = [];
 	$or_node->[Parse::Marpa::Internal::Or_Node::NAME] =
@@ -245,7 +258,11 @@ sub Parse::Marpa::Bocage::new {
 
             my ( $rule, $position, $symbol, $closure ) = @{$rule_data};
 
-            my $rule_id = $rule->[Parse::Marpa::Internal::Rule::ID];
+            my ($rule_id, $rhs) = @{$rule}[
+		Parse::Marpa::Internal::Rule::ID,
+		Parse::Marpa::Internal::Rule::RHS
+	    ];
+	    my $rule_length = @{$rhs};
 
             my @work_list;
             if ( $symbol->[Parse::Marpa::Internal::Symbol::NULLING] ) {
@@ -340,8 +357,13 @@ sub Parse::Marpa::Bocage::new {
                     Parse::Marpa::Internal::And_Node::CAUSE,
                     Parse::Marpa::Internal::And_Node::VALUE_REF,
                     Parse::Marpa::Internal::And_Node::CLOSURE,
+                    Parse::Marpa::Internal::And_Node::ARGC,
+                    Parse::Marpa::Internal::And_Node::RULE,
                     ]
-                    = ( $predecessor_name, $cause_name, $value_ref, $closure );
+                    = (
+			$predecessor_name, $cause_name, $value_ref, $closure,
+			$rule_length, $rule,
+		    );
 
                 push @and_nodes, $and_node;
 
@@ -458,6 +480,12 @@ sub test_closure {
 
 }
 
+sub test_closure2 {
+    my @value = @_;
+    return $value[0] if @value <= 1;
+    return '(' . (join q{;}, @value) . ')';
+}
+
 sub Parse::Marpa::Bocage::next {
     my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Bocage::RECOGNIZER];
@@ -479,11 +507,14 @@ sub Parse::Marpa::Bocage::next {
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
+    my $trace_values;
     my $trace_iteration_changes;
     my $trace_iteration_searches;
     if ($tracing) {
         $trace_fh =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_values = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iteration_changes = $grammar
             ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
         $trace_iteration_searches = $grammar
@@ -522,11 +553,25 @@ sub Parse::Marpa::Bocage::next {
 	OR_NODE: while (@traversal_stack) {
 
 	    my $tree_ur_node = pop @traversal_stack;
-	    my ($predecessor_or_node, $cause_or_node)
-		= @{$tree_ur_node
-		    ->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+	    my $or_node
+		= $tree_ur_node
+		    ->[Parse::Marpa::Internal::Tree_Node::OR_NODE];
+	    my $and_node
+		= $or_node
 		    ->[Parse::Marpa::Internal::Or_Node::AND_NODES]
-		    ->[0]};
+		    ->[0];
+	    my (
+		$predecessor_or_node, $cause_or_node,
+		$closure, $argc, $value_ref,
+		$rule,
+	    ) = @{$and_node}[
+		Parse::Marpa::Internal::And_Node::PREDECESSOR,
+		Parse::Marpa::Internal::And_Node::CAUSE,
+		Parse::Marpa::Internal::And_Node::CLOSURE,
+		Parse::Marpa::Internal::And_Node::ARGC,
+		Parse::Marpa::Internal::And_Node::VALUE_REF,
+		Parse::Marpa::Internal::And_Node::RULE,
+	    ];
 
 	    my $predecessor_tree_node;
 	    if (defined $predecessor_or_node) {
@@ -552,17 +597,77 @@ sub Parse::Marpa::Bocage::next {
 		Parse::Marpa::Internal::Tree_Node::CHOICE,
 		Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
 		Parse::Marpa::Internal::Tree_Node::CAUSE,
+		Parse::Marpa::Internal::Tree_Node::CLOSURE,
+		Parse::Marpa::Internal::Tree_Node::ARGC,
+		Parse::Marpa::Internal::Tree_Node::RULE,
+		Parse::Marpa::Internal::Tree_Node::VALUE_REF,
 	    ] = (
 		0,
 		$predecessor_tree_node,
 		$cause_tree_node,
+		$closure,
+		$argc,
+		$rule,
+		$value_ref,
 	    );
+	    if ($trace_iteration_changes) {
+		my $value_description = "\n";
+		$value_description = '; value='
+		    .  Dumper(${$value_ref})
+		    if defined $value_ref;
+	        print {$trace_fh} 'Pushing tree node; or-node=',
+		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    $value_description
+		    or croak('print to trace handle failed');
+	    }
 	    push @{$tree}, $tree_ur_node;
 	    push @traversal_stack, grep { defined $_ } ($cause_tree_node, $predecessor_tree_node);
 
 	} # OR_NODE
 
-	return \test_closure($tree->[0]);
+	my @evaluation_stack;
+
+	TREE_NODE: for my $node (reverse @{$tree}) {
+
+	    my ($closure, $value_ref, $argc) = @{$node}[
+	        Parse::Marpa::Internal::Tree_Node::CLOSURE,
+	        Parse::Marpa::Internal::Tree_Node::VALUE_REF,
+	        Parse::Marpa::Internal::Tree_Node::ARGC,
+	    ];
+
+	    if (defined $value_ref) {
+
+		push @evaluation_stack, $value_ref;
+
+		if ($trace_values) {
+		    print {$trace_fh} 'Pushed value: ', Dumper(${$value_ref})
+			or croak('print to trace handle failed');
+		}
+
+	    } # defined $value_ref
+
+
+	    if (defined $closure) {
+
+		if ($trace_values) {
+		    my $rule = $node->[Parse::Marpa::Internal::Tree_Node::RULE];
+		    say {$trace_fh} 'Popping ', $argc, ' values to evaluate rule: ',
+			 Parse::Marpa::brief_rule($rule);
+		}
+
+		my $result = \ (test_closure2(map { ${$_} } (splice @evaluation_stack, -$argc)));
+
+		if ($trace_values) {
+		    print {$trace_fh} 'Calculated and pushed value: ', Dumper(${$result})
+			or croak('print to trace handle failed');
+		}
+
+		push @evaluation_stack, $result;
+	    }
+
+	} # TREE_NODE
+
+	return pop @evaluation_stack;
 
     } # TREE
 
