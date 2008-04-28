@@ -2,29 +2,28 @@ package Parse::Marpa::Internal::Bocage;
 use 5.010_000;
 
 use warnings;
-## no critic
-no warnings "recursion";
-## use critic
+no warnings 'recursion';
 use strict;
 use integer;
 
 # The bocage is Marpa's structure for keeping multiple parses.
-# "Parse forests" are conventional for this, but Marpa's
-# parses can be cyclical, so the structure must contain
-# not just parse trees, but parse graphs.  I also restrict
-# the and-nodes to be binary.  So it's not really a parse
-# forest.  I call it a "parse bocage".  Bocages are
-# the hedgerow forests of Brittany
-# and Normandy, deliberately cultivated for centuries
-# to be as tangled as possible in order to act
-# as obstacles to wandering cattle and armies.
-
 # A parse bocage is a list of or-nodes, whose child
 # and-nodes must be (at most) binary.
-# I keep the and-nodes binary, because they emerge that way
-# from the Aycock-Horspool Earley items, they store the parses
-# efficiently, and they are easy for doing tree
-# traversals.
+
+# "Parse forests" are conventional for this, but Marpa
+# can't use them because
+# Marpa allows cyclical parses, and 
+# it breaks the RHS of productions into
+# and-nodes of a most two symbols.
+# And-nodes start in binary form
+# in the Aycock-Horspool Earley items, and because
+# binary and-nodes store the parses
+# compactly, and allow easier tree
+# traversals, I keep them that way.
+
+# Bocage is a special type of forest,
+# consisting of hedgerows deliberately cultivated
+# as obstacles to cattle and armies.
 
 # Saplings become or-nodes when they grow up.
 
@@ -99,9 +98,7 @@ sub Parse::Marpa::Bocage::new {
         Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
     ];
 
-    ## no critic ( Variables::ProhibitPackageVars )
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
-    ## use critic
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
@@ -487,6 +484,7 @@ sub test_closure2 {
 }
 
 sub Parse::Marpa::Bocage::next {
+
     my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Bocage::RECOGNIZER];
 
@@ -501,9 +499,7 @@ sub Parse::Marpa::Bocage::next {
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
     ];
 
-    ## no critic ( Variables::ProhibitPackageVars )
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
-    ## use critic
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
@@ -532,34 +528,93 @@ sub Parse::Marpa::Bocage::next {
 	];
     $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
 
+    # Keep returning 
+    given ($parse_count) {
+
+	# When called the first time, create the tree
+        when (0) {
+	    $evaler->[ Parse::Marpa::Internal::Bocage::TREE ]
+		= $tree
+		= [];
+	}
+
+	# If we are called with empty tree, we've
+	# already returned all the parses.  Patiently keep
+	# returning failure.
+	default { return if @{$tree} == 0; }
+
+    } # given $tree
+
     TREE: while (1) {
 
-	croak('Multiple parses not yet implemented') if defined $tree;
+	# croak('Multiple parses not yet implemented') if defined $parse_count > 1;
 
-	my $initial_ur_node;
+	my $new_tree_node;
 
-	if (not defined $initial_ur_node) {
+	POP_TREE_NODE: while (my $node = pop @{$tree}) {
 
-	     $evaler->[Parse::Marpa::Internal::Bocage::TREE]
-		 = $tree = [];
-	     $initial_ur_node = [$bocage->[0]];
+	    my ($choice, $or_node) = @{$node}[
+	        Parse::Marpa::Internal::Tree_Node::CHOICE,
+	        Parse::Marpa::Internal::Tree_Node::OR_NODE,
+	    ];
 
+	    my $and_nodes
+		= $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
+
+	    next POP_TREE_NODE if ++$choice >= @{$and_nodes};
+
+	    if ($trace_iteration_changes) {
+	        say {$trace_fh}
+		    'Iteration ',
+		    $choice,
+		    ' tree node ',
+		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    or croak('print to trace handle failed');
+	    }
+
+	    @{$new_tree_node}[
+	        Parse::Marpa::Internal::Tree_Node::CHOICE,
+	        Parse::Marpa::Internal::Tree_Node::OR_NODE,
+	    ] = ($choice, $or_node);
+
+	    last POP_TREE_NODE;
+
+	} # POP_TREE_NODE
+
+	# First time through, there will be an empty tree,
+	# nothing to iterate, and therefore no new_tree_node.
+	# So get things going with an initial node.
+	if ($parse_count <= 0) {
+	    $new_tree_node->[
+	        Parse::Marpa::Internal::Tree_Node::OR_NODE
+	    ] = $bocage->[0];
 	}
+
+	# If there is no new tree node and the tree is empty,
+	# we're done
+	return if
+	    not defined $new_tree_node
+	    and @{$tree} <= 0;
 
 	# A preorder traversal, to build the tree
 	# Start with the first or-node of the bocage.
 	# The code below assumes the or-node is the first field of the tree node.
-	my @traversal_stack = ($initial_ur_node);
-	OR_NODE: while (@traversal_stack) {
+	my @traversal_stack;
+	OR_NODE: while (defined $new_tree_node or @traversal_stack) {
 
-	    my $tree_ur_node = pop @traversal_stack;
-	    my $or_node
-		= $tree_ur_node
-		    ->[Parse::Marpa::Internal::Tree_Node::OR_NODE];
+	    $new_tree_node //= pop @traversal_stack;
+
+	    my ($or_node, $choice) = @{$new_tree_node}[
+		Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		Parse::Marpa::Internal::Tree_Node::CHOICE,
+	    ];
+	    $choice //= 0;
+
 	    my $and_node
 		= $or_node
 		    ->[Parse::Marpa::Internal::Or_Node::AND_NODES]
-		    ->[0];
+		    ->[$choice];
+
 	    my (
 		$predecessor_or_node, $cause_or_node,
 		$closure, $argc, $value_ref,
@@ -575,25 +630,17 @@ sub Parse::Marpa::Bocage::next {
 
 	    my $predecessor_tree_node;
 	    if (defined $predecessor_or_node) {
-		$predecessor_tree_node->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		@{$predecessor_tree_node}[Parse::Marpa::Internal::Tree_Node::OR_NODE]
 		    = $predecessor_or_node;
-		weaken(
-		    $predecessor_tree_node->[Parse::Marpa::Internal::Tree_Node::SUCCESSOR]
-			= $tree_ur_node
-		);
 	    }
 
 	    my $cause_tree_node;
 	    if (defined $cause_or_node) {
 		$cause_tree_node->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
 		    = $cause_or_node;
-		weaken(
-		    $cause_tree_node->[Parse::Marpa::Internal::Tree_Node::EFFECT]
-			= $tree_ur_node
-		);
 	    }
 
-	    @{$tree_ur_node}[
+	    @{$new_tree_node}[
 		Parse::Marpa::Internal::Tree_Node::CHOICE,
 		Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
 		Parse::Marpa::Internal::Tree_Node::CAUSE,
@@ -602,7 +649,7 @@ sub Parse::Marpa::Bocage::next {
 		Parse::Marpa::Internal::Tree_Node::RULE,
 		Parse::Marpa::Internal::Tree_Node::VALUE_REF,
 	    ] = (
-		0,
+		$choice,
 		$predecessor_tree_node,
 		$cause_tree_node,
 		$closure,
@@ -610,17 +657,23 @@ sub Parse::Marpa::Bocage::next {
 		$rule,
 		$value_ref,
 	    );
+
 	    if ($trace_iteration_changes) {
 		my $value_description = "\n";
 		$value_description = '; value='
 		    .  Dumper(${$value_ref})
 		    if defined $value_ref;
-	        print {$trace_fh} 'Pushing tree node; or-node=',
+	        print {$trace_fh}
+		    'Pushing tree node ',
 		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    ': ',
+		    Parse::Marpa::brief_rule($rule),
 		    $value_description
 		    or croak('print to trace handle failed');
 	    }
-	    push @{$tree}, $tree_ur_node;
+
+	    push @{$tree}, $new_tree_node;
+	    undef $new_tree_node;
 	    push @traversal_stack, grep { defined $_ } ($cause_tree_node, $predecessor_tree_node);
 
 	} # OR_NODE
@@ -650,9 +703,17 @@ sub Parse::Marpa::Bocage::next {
 	    if (defined $closure) {
 
 		if ($trace_values) {
-		    my $rule = $node->[Parse::Marpa::Internal::Tree_Node::RULE];
-		    say {$trace_fh} 'Popping ', $argc, ' values to evaluate rule: ',
-			 Parse::Marpa::brief_rule($rule);
+		    my ($or_node, $rule) = @{$node}[
+			Parse::Marpa::Internal::Tree_Node::OR_NODE,
+			Parse::Marpa::Internal::Tree_Node::RULE,
+		    ];
+		    say {$trace_fh}
+			'Popping ',
+			$argc,
+			' values to evaluate ',
+			$or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+			', rule: ',
+			Parse::Marpa::brief_rule($rule);
 		}
 
 		my $result = \ (test_closure2(map { ${$_} } (splice @evaluation_stack, -$argc)));

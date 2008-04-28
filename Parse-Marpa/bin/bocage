@@ -207,6 +207,10 @@ sub do_parse {
         croak("Input not recognized by grammar") unless $evaler;
     }
 
+    if ($show_bocage) {
+	print $evaler->show_bocage();
+    }
+
     my $parse_count = 0;
     PARSE: while (1) {
 
@@ -228,10 +232,6 @@ sub do_parse {
 
         if ($show_derivation) {
             print $evaler->show();
-        }
-
-        if ($show_bocage) {
-            print $evaler->show_bocage();
         }
 
         last PARSE unless $all_parses;
