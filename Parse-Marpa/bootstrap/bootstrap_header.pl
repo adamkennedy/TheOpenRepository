@@ -4,7 +4,7 @@ use warnings;
 use Parse::Marpa;
 use Parse::Marpa::MDL;
 use Carp;
-use English;
+use English qw( -no_match_vars ) ;
 
 my %regex;
 

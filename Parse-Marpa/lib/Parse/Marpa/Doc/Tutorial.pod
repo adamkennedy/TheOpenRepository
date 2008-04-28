@@ -51,7 +51,7 @@ We start with a pretty standard preamble:
     use 5.010_000;
     use strict;
     use warnings;
-    use English;
+    use English qw( -no_match_vars ) ;
     use Parse::Marpa;
 
 Then we create an array of Perl lines for test data.

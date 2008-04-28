@@ -6,7 +6,7 @@ use 5.010_000;
 use strict;
 use warnings;
 use lib "../lib";
-use English;
+use English qw( -no_match_vars ) ;
 
 use Test::More tests => 10;
 

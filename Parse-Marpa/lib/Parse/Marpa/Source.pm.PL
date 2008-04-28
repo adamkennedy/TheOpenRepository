@@ -2,7 +2,7 @@ use 5.010_000;
 use strict;
 use warnings;
 use Fatal qw(chdir open);
-use English;
+use English qw( -no_match_vars ) ;
 use lib "lib";
 use Parse::Marpa;
 use Parse::Marpa::Raw_Source;
@@ -32,7 +32,7 @@ print <<'END_OF_PREAMBLE_CODE';
 
 package Parse::Marpa::Internal::Source;
 
-use English;
+use English qw( -no_match_vars ) ;
 {
     local($RS) = undef;
     $Parse::Marpa::Internal::compiled_source_grammar = \(<DATA>);

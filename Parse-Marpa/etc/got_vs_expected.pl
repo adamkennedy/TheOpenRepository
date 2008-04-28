@@ -1,7 +1,7 @@
 use 5.010;
 use strict;
 use warnings;
-use English;
+use English qw( -no_match_vars ) ;
 use Text::Diff;
 
 local($RS);

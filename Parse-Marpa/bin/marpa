@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use Getopt::Long;
 use Parse::Marpa;
-use English;
+use English qw( -no_match_vars ) ;
 use Fatal qw(open close);
 
 my $command = shift;

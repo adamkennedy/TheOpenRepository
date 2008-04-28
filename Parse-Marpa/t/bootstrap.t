@@ -4,7 +4,7 @@ use warnings;
 use Test::More;
 use Fatal qw(close chdir);
 use Carp;
-use English;
+use English qw( -no_match_vars ) ;
 use Config;
 
 if ($Config{"d_fork"}) {
