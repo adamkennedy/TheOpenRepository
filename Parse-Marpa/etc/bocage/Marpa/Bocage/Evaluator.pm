@@ -525,14 +525,17 @@ sub Marpa::Bocage::Evaluator::next {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
     my ($bocage, $tree)
 	= @{$evaler}[
 	    Marpa::Bocage::Internal::Evaluator::OR_NODES,
 	    Marpa::Bocage::Internal::Evaluator::TREE,
 	];
+
+    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
     my $parse_count = $evaler->[Marpa::Bocage::Internal::Evaluator::PARSE_COUNT]++;
-    return if defined $max_parses and $parse_count >= $max_parses;
+    if ( $max_parses > 0 && $parse_count >= $max_parses ) {
+	croak("Maximum parse count ($max_parses) exceeded");
+    }
 
     # Keep returning 
     given ($parse_count) {
