@@ -3,8 +3,7 @@ MANIFEST
 META.yml # Will be created by "make dist"
 Makefile.PL
 README
-bin/marpa
-bin/bocage
+bin/mdl
 bootstrap/Makefile
 bootstrap/bootstrap.pl
 bootstrap/bootstrap_header.pl
@@ -24,7 +23,7 @@ lib/Parse/Marpa/Doc/To_Do.pod
 lib/Parse/Marpa/Doc/Undocumented.pod
 lib/Parse/Marpa/Lex.pm
 lib/Parse/Marpa/MDL.pm
-lib/Parse/Marpa/Bocage.pm
+etc/bocage/Marpa/Bocage/Evaluator.pm
 lib/Parse/Marpa/Grammar.pm
 lib/Parse/Marpa/Evaluator.pm
 lib/Parse/Marpa/Recognizer.pm
