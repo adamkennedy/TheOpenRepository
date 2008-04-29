@@ -8,6 +8,7 @@ use Getopt::Long;
 use Parse::Marpa;
 use English qw( -no_match_vars ) ;
 use Fatal qw(open close);
+use Marpa::Bocage::Evaluator;
 
 my $command = shift;
 my $grammar_file;
@@ -28,6 +29,7 @@ my $show_status;
 my $show_NFA;
 my $show_QDFA;
 my $show_bocage;
+my $use_bocage;
 my $stdout;
 my $all_parses;
 my %options;
@@ -47,6 +49,7 @@ given ($command) {
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
             "bocage"               => \$show_bocage,
+            "use_bocage"           => \$use_bocage,
             "inaccessible_symbols" => \$inaccessible_symbols,
             "accessible_symbols"   => \$accessible_symbols,
             "nullable_symbols"     => \$nullable_symbols,
@@ -198,7 +201,12 @@ sub do_parse {
         exit 1;
     }
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    my $evaler;
+    if ($show_bocage or $use_bocage) {
+	$evaler = new Marpa::Bocage::Evaluator($recce);
+    } else {
+	$evaler = new Parse::Marpa::Evaluator($recce);
+    }
     unless ($evaler) {
         if ($show_status) {
             print $recce->show_status();

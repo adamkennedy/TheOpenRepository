@@ -165,10 +165,10 @@ sub Marpa::Bocage::Evaluator::new {
     if ($nulling) {
         my $and_node = [];
         @{$and_node}[
-	    Parse::Marpa::Internal::And_Node::VALUE_REF,
-	    Parse::Marpa::Internal::And_Node::CLOSURE,
-	    Parse::Marpa::Internal::And_Node::ARGC,
-	    Parse::Marpa::Internal::And_Node::RULE,
+	    Marpa::Bocage::Internal::And_Node::VALUE_REF,
+	    Marpa::Bocage::Internal::And_Node::CLOSURE,
+	    Marpa::Bocage::Internal::And_Node::ARGC,
+	    Marpa::Bocage::Internal::And_Node::RULE,
 	] = (
             \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]),
             $start_rule->[Parse::Marpa::Internal::Rule::CLOSURE],
@@ -177,9 +177,9 @@ sub Marpa::Bocage::Evaluator::new {
 	);
 
         my $or_node = [];
-	$or_node->[Parse::Marpa::Internal::Or_Node::NAME] =
+	$or_node->[Marpa::Bocage::Internal::Or_Node::NAME] =
             $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
-        $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = [$and_node];
+        $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES] = [$and_node];
 
         $self->[OR_NODES] = [$or_node];
 
@@ -194,10 +194,10 @@ sub Marpa::Bocage::Evaluator::new {
 	my $name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
 	my $symbol_id = $start_symbol->[Parse::Marpa::Internal::Symbol::ID];
 	$name .= 'L' . $symbol_id;
-	$start_sapling->[Parse::Marpa::Internal::Sapling::NAME]   = $name;
+	$start_sapling->[Marpa::Bocage::Internal::Sapling::NAME]   = $name;
     }
-    $start_sapling->[Parse::Marpa::Internal::Sapling::ITEM]   = $start_item;
-    $start_sapling->[Parse::Marpa::Internal::Sapling::SYMBOL] = $start_symbol;
+    $start_sapling->[Marpa::Bocage::Internal::Sapling::ITEM]   = $start_item;
+    $start_sapling->[Marpa::Bocage::Internal::Sapling::SYMBOL] = $start_symbol;
     push @saplings, $start_sapling;
 
     my $i = 0;
@@ -207,11 +207,11 @@ sub Marpa::Bocage::Evaluator::new {
 	    $sapling_name,
 	    $item, $symbol, $rule, $position
 	) = @{ $saplings[ $i++ ] }[
-            Parse::Marpa::Internal::Sapling::NAME,
-            Parse::Marpa::Internal::Sapling::ITEM,
-            Parse::Marpa::Internal::Sapling::SYMBOL,
-            Parse::Marpa::Internal::Sapling::RULE,
-            Parse::Marpa::Internal::Sapling::POSITION,
+            Marpa::Bocage::Internal::Sapling::NAME,
+            Marpa::Bocage::Internal::Sapling::ITEM,
+            Marpa::Bocage::Internal::Sapling::SYMBOL,
+            Marpa::Bocage::Internal::Sapling::RULE,
+            Marpa::Bocage::Internal::Sapling::POSITION,
         ];
 
         last SAPLING unless defined $item;
@@ -306,10 +306,10 @@ sub Marpa::Bocage::Evaluator::new {
 
                         my $sapling = [];
                         @{$sapling}[
-                            Parse::Marpa::Internal::Sapling::NAME,
-                            Parse::Marpa::Internal::Sapling::RULE,
-                            Parse::Marpa::Internal::Sapling::POSITION,
-                            Parse::Marpa::Internal::Sapling::ITEM,
+                            Marpa::Bocage::Internal::Sapling::NAME,
+                            Marpa::Bocage::Internal::Sapling::RULE,
+                            Marpa::Bocage::Internal::Sapling::POSITION,
+                            Marpa::Bocage::Internal::Sapling::ITEM,
                             ]
                             = (
 				$predecessor_name,
@@ -339,9 +339,9 @@ sub Marpa::Bocage::Evaluator::new {
 
                         my $sapling = [];
                         @{$sapling}[
-                            Parse::Marpa::Internal::Sapling::NAME,
-                            Parse::Marpa::Internal::Sapling::SYMBOL,
-                            Parse::Marpa::Internal::Sapling::ITEM,
+                            Marpa::Bocage::Internal::Sapling::NAME,
+                            Marpa::Bocage::Internal::Sapling::SYMBOL,
+                            Marpa::Bocage::Internal::Sapling::ITEM,
                             ]
                             = ( $cause_name, $symbol, $cause );
 
@@ -353,12 +353,12 @@ sub Marpa::Bocage::Evaluator::new {
 
                 my $and_node = [];
                 @{$and_node}[
-                    Parse::Marpa::Internal::And_Node::PREDECESSOR,
-                    Parse::Marpa::Internal::And_Node::CAUSE,
-                    Parse::Marpa::Internal::And_Node::VALUE_REF,
-                    Parse::Marpa::Internal::And_Node::CLOSURE,
-                    Parse::Marpa::Internal::And_Node::ARGC,
-                    Parse::Marpa::Internal::And_Node::RULE,
+                    Marpa::Bocage::Internal::And_Node::PREDECESSOR,
+                    Marpa::Bocage::Internal::And_Node::CAUSE,
+                    Marpa::Bocage::Internal::And_Node::VALUE_REF,
+                    Marpa::Bocage::Internal::And_Node::CLOSURE,
+                    Marpa::Bocage::Internal::And_Node::ARGC,
+                    Marpa::Bocage::Internal::And_Node::RULE,
                     ]
                     = (
 			$predecessor_name, $cause_name, $value_ref, $closure,
@@ -372,8 +372,8 @@ sub Marpa::Bocage::Evaluator::new {
         }    # RULE
 
 	my $or_node = [];
-	$or_node->[Parse::Marpa::Internal::Or_Node::NAME] = $sapling_name;
-	$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
+	$or_node->[Marpa::Bocage::Internal::Or_Node::NAME] = $sapling_name;
+	$or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES] = \@and_nodes;
 	push @{$self->[OR_NODES]}, $or_node;
 	$or_node_by_name{$sapling_name} = $or_node;
 
@@ -381,12 +381,12 @@ sub Marpa::Bocage::Evaluator::new {
 
     # resolve links in the bocage
     for my $and_node (
-        map { @{ $_->[Parse::Marpa::Internal::Or_Node::AND_NODES] } }
+        map { @{ $_->[Marpa::Bocage::Internal::Or_Node::AND_NODES] } }
         @{$self->[OR_NODES]} )
     {
         FIELD: for my $field (
-            Parse::Marpa::Internal::And_Node::PREDECESSOR,
-            Parse::Marpa::Internal::And_Node::CAUSE,
+            Marpa::Bocage::Internal::And_Node::PREDECESSOR,
+            Marpa::Bocage::Internal::And_Node::CAUSE,
             )
         {
             my $name = $and_node->[$field];
