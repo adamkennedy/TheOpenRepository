@@ -7,6 +7,8 @@ use strict;
 use integer;
 use List::Util qw(max);
 
+say STDERR 'USING BOCAGE EVALUATOR';
+
 # The bocage is Marpa's structure for keeping multiple parses.
 # A parse bocage is a list of or-nodes, whose child
 # and-nodes must be (at most) binary.
