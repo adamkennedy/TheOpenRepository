@@ -49,6 +49,10 @@ to safely deep copy recognizers.
 
 =item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
 
+=item * Combine trace_iteration_search and
+trace_iteration_changes into
+trace_iterations
+
 =item * Test right and left evaluation in rules
 
 =item * Test proper and perl5 separation

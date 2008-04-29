@@ -5,6 +5,7 @@ use warnings;
 no warnings 'recursion';
 use strict;
 use integer;
+use List::Util qw(max);
 
 # The bocage is Marpa's structure for keeping multiple parses.
 # A parse bocage is a list of or-nodes, whose child
@@ -55,8 +56,7 @@ use constant OR_NODE     => 0;
 use constant CHOICE      => 1;
 use constant PREDECESSOR => 2;
 use constant CAUSE       => 3;
-use constant SUCCESSOR   => 4;
-use constant EFFECT      => 5;
+use constant DEPTH       => 4;
 use constant CLOSURE     => 6;
 use constant ARGC        => 7;
 use constant VALUE_REF   => 8;
@@ -483,7 +483,10 @@ sub test_closure2 {
     return '(' . (join q{;}, @value) . ')';
 }
 
+# Apparently perlcritic has a bug and doesn't see the final return
+## no critic (Subroutines::RequireFinalReturn)
 sub Parse::Marpa::Bocage::next {
+## use critic
 
     my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Bocage::RECOGNIZER];
@@ -520,13 +523,13 @@ sub Parse::Marpa::Bocage::next {
     local ($Data::Dumper::Terse) = 1;
 
     my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
-    my ($parse_count, $bocage, $tree)
+    my ($bocage, $tree)
 	= @{$evaler}[
-	    Parse::Marpa::Internal::Bocage::PARSE_COUNT,
 	    Parse::Marpa::Internal::Bocage::OR_NODES,
 	    Parse::Marpa::Internal::Bocage::TREE,
 	];
-    $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
+    my $parse_count = $evaler->[Parse::Marpa::Internal::Bocage::PARSE_COUNT]++;
+    return if $parse_count >= $max_parses;
 
     # Keep returning 
     given ($parse_count) {
@@ -547,21 +550,37 @@ sub Parse::Marpa::Bocage::next {
 
     TREE: while (1) {
 
-	# croak('Multiple parses not yet implemented') if defined $parse_count > 1;
+	my @traversal_stack;
 
-	my $new_tree_node;
+	# trace position in tree starting at top of stack (end of array)
+	# will be used (negated) as argument to splice.
+	my $tree_position = 0;
+	my @last_position_by_depth;
+	my @uniterated_leaf_side = ();
 
-	POP_TREE_NODE: while (my $node = pop @{$tree}) {
+	# Did we iterated the tree?
+	my $tree_was_iterated = 0;
 
-	    my ($choice, $or_node) = @{$node}[
+	POP_TREE_NODE: for my $node (reverse @{$tree})
+	{
+
+	    $tree_position++;
+
+	    my ($choice, $or_node, $depth) = @{$node}[
 	        Parse::Marpa::Internal::Tree_Node::CHOICE,
 	        Parse::Marpa::Internal::Tree_Node::OR_NODE,
+	        Parse::Marpa::Internal::Tree_Node::DEPTH,
 	    ];
 
 	    my $and_nodes
 		= $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
 
-	    next POP_TREE_NODE if ++$choice >= @{$and_nodes};
+	    $choice++;
+
+	    if ($choice >= @{$and_nodes}) {
+		$last_position_by_depth[$depth] = $tree_position;
+		next POP_TREE_NODE;
+	    }
 
 	    if ($trace_iteration_changes) {
 	        say {$trace_fh}
@@ -572,42 +591,82 @@ sub Parse::Marpa::Bocage::next {
 		    or croak('print to trace handle failed');
 	    }
 
+	    my $new_tree_node;
 	    @{$new_tree_node}[
 	        Parse::Marpa::Internal::Tree_Node::CHOICE,
 	        Parse::Marpa::Internal::Tree_Node::OR_NODE,
-	    ] = ($choice, $or_node);
+	        Parse::Marpa::Internal::Tree_Node::DEPTH,
+	    ] = (
+	         $choice, $or_node, $depth,
+	    );
+	    push @traversal_stack, $new_tree_node;
+
+	    # The iterated part of the tree will have 
+	    # uniterated parts on the root and leaf side.
+	    # The root side will be left on the stack,
+	    # when the old nodes are splice'd off.
+	    # The leaf side is copied and saved here.
+	    my $leaf_side_start_position
+		= max(grep { defined $_ } splice @last_position_by_depth, 0, $depth);
+	    my $nodes_iterated = $tree_position;
+	    if (defined $leaf_side_start_position) {
+		@uniterated_leaf_side = splice @{$tree}, -$leaf_side_start_position;
+		$nodes_iterated -= $leaf_side_start_position;
+	    }
+	    splice @{$tree}, -$nodes_iterated;
+
+	    if ($trace_iteration_changes) {
+	        say {$trace_fh}
+		    'Nodes iterated: ', $nodes_iterated,
+		    '; not iterated on root side: ', scalar @{$tree},
+		    '; not iterated on leaf side: ', scalar @uniterated_leaf_side
+		    or croak('print to trace handle failed');
+	    }
+
+	    $tree_was_iterated++;
 
 	    last POP_TREE_NODE;
 
 	} # POP_TREE_NODE
 
+
 	# First time through, there will be an empty tree,
 	# nothing to iterate, and therefore no new_tree_node.
 	# So get things going with an initial node.
 	if ($parse_count <= 0) {
-	    $new_tree_node->[
-	        Parse::Marpa::Internal::Tree_Node::OR_NODE
-	    ] = $bocage->[0];
-	}
 
-	# If there is no new tree node and the tree is empty,
-	# we're done
-	return if
-	    not defined $new_tree_node
-	    and @{$tree} <= 0;
+	    my $new_tree_node;
+	    @{$new_tree_node}[
+	        Parse::Marpa::Internal::Tree_Node::OR_NODE,
+	        Parse::Marpa::Internal::Tree_Node::DEPTH,
+	    ] = (
+		$bocage->[0],
+		0,
+	    );
+	    @traversal_stack = ( $new_tree_node );
+
+	} elsif (not $tree_was_iterated) {
+
+	     # set the tree to empty
+	     # and return failure
+	     $tree = [];
+	     return;
+
+	} # not $tree_was_iterated
 
 	# A preorder traversal, to build the tree
 	# Start with the first or-node of the bocage.
 	# The code below assumes the or-node is the first field of the tree node.
-	my @traversal_stack;
-	OR_NODE: while (defined $new_tree_node or @traversal_stack) {
+	OR_NODE: while (@traversal_stack) {
 
-	    $new_tree_node //= pop @traversal_stack;
+	    my $new_tree_node = pop @traversal_stack;
 
-	    my ($or_node, $choice) = @{$new_tree_node}[
-		Parse::Marpa::Internal::Tree_Node::OR_NODE,
-		Parse::Marpa::Internal::Tree_Node::CHOICE,
-	    ];
+	    my ($or_node, $choice, $depth)
+		= @{$new_tree_node}[
+		    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		    Parse::Marpa::Internal::Tree_Node::CHOICE,
+		    Parse::Marpa::Internal::Tree_Node::DEPTH,
+		];
 	    $choice //= 0;
 
 	    my $and_node
@@ -630,14 +689,24 @@ sub Parse::Marpa::Bocage::next {
 
 	    my $predecessor_tree_node;
 	    if (defined $predecessor_or_node) {
-		@{$predecessor_tree_node}[Parse::Marpa::Internal::Tree_Node::OR_NODE]
-		    = $predecessor_or_node;
+		@{$predecessor_tree_node}[
+		    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		    Parse::Marpa::Internal::Tree_Node::DEPTH
+		] = (
+		    $predecessor_or_node,
+		    $depth+1,
+		);
 	    }
 
 	    my $cause_tree_node;
 	    if (defined $cause_or_node) {
-		$cause_tree_node->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
-		    = $cause_or_node;
+		@{$cause_tree_node}[
+		    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		    Parse::Marpa::Internal::Tree_Node::DEPTH
+		] = (
+		    $cause_or_node,
+		    $depth+1,
+		);
 	    }
 
 	    @{$new_tree_node}[
@@ -678,6 +747,9 @@ sub Parse::Marpa::Bocage::next {
 
 	} # OR_NODE
 
+	# Put the uniterated leaf side of the tree back on the stack.
+	push @{$tree}, @uniterated_leaf_side;
+
 	my @evaluation_stack;
 
 	TREE_NODE: for my $node (reverse @{$tree}) {
@@ -716,7 +788,7 @@ sub Parse::Marpa::Bocage::next {
 			Parse::Marpa::brief_rule($rule);
 		}
 
-		my $result = \ (test_closure2(map { ${$_} } (splice @evaluation_stack, -$argc)));
+		my $result = \ (test_closure2(map { ${$_} } (reverse splice @evaluation_stack, -$argc)));
 
 		if ($trace_values) {
 		    print {$trace_fh} 'Calculated and pushed value: ', Dumper(${$result})
