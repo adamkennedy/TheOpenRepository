@@ -174,7 +174,7 @@ sub set_null_values {
                     'evaluating null value for '
                         . $nulling_alias
                         ->[Parse::Marpa::Internal::Symbol::NAME],
-                    \$action,
+                    \$code,
                     \@caller_return
                 );
             }
@@ -341,7 +341,7 @@ sub set_actions {
             }
         }
 
-        $rule->[Parse::Marpa::Internal::Rule::ACTION]  = $code;
+        $rule->[Parse::Marpa::Internal::Rule::CODE]  = $code;
         $rule->[Parse::Marpa::Internal::Rule::CLOSURE] = $closure;
 
     }    # RULE

@@ -60,11 +60,13 @@ use constant PRODUCTIVE    => 6;       # reachable from input symbol?
 use constant NULLING       => 7;       # always matches null?
 use constant USEFUL        => 8;       # use this rule in NFA?
 use constant ACTION        => 9;       # action for this rule
+                                       # as specified by user
 use constant CLOSURE       => 10;      # closure for evaluating this rule
 use constant ORIGINAL_RULE => 11;      # for a rewritten rule, the original
 use constant HAS_CHAF_LHS  => 13;      # has CHAF internal symbol as lhs?
 use constant HAS_CHAF_RHS  => 14;      # has CHAF internal symbol on rhs?
 use constant PRIORITY      => 15;      # rule priority
+use constant CODE          => 16;      # code used to create closure
 
 package Parse::Marpa::Internal::NFA;
 

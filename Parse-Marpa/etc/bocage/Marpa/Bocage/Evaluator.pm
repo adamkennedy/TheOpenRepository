@@ -438,48 +438,6 @@ sub Marpa::Bocage::Evaluator::show_bocage {
      return $text;
 }
 
-sub test_closure {
-    my $tree_node = shift;
-
-    my @tree_nodes = ($tree_node);
-
-    while (
-	$tree_node
-	= $tree_node->[Marpa::Bocage::Internal::Tree_Node::PREDECESSOR]
-    ) {
-        push @tree_nodes, $tree_node;
-    }  # while ($tree_node)
-
-    my @value;
-
-    TREE_NODE: for my $tree_node (reverse @tree_nodes) {
-
-        my $cause = $tree_node
-	    ->[Marpa::Bocage::Internal::Tree_Node::CAUSE];
-
-	if ($cause) {
-	    push @value, test_closure($cause);
-	    next TREE_NODE;
-	} # $cause
-
-	my ($or_node, $choice) = @{$tree_node}[
-	    Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-	    Marpa::Bocage::Internal::Tree_Node::CHOICE,
-	];
-
-	my $value_ref = $or_node
-	    ->[Marpa::Bocage::Internal::Or_Node::AND_NODES]
-	    ->[$choice]
-	    ->[Marpa::Bocage::Internal::And_Node::VALUE_REF];
-	push @value, ${$value_ref};
-
-    }  # TREE_NODE
-
-    return $value[0] if @value <= 1;
-    return '(' . (join q{;}, @value) . ')';
-
-}
-
 sub test_closure2 {
     my @value = @_;
     return $value[0] if @value <= 1;

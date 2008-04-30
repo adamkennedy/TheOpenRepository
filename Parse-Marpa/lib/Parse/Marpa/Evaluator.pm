@@ -494,7 +494,7 @@ sub initialize_children {
                 "computing value",
                 "computing value for rule: "
                     . Parse::Marpa::brief_original_rule($rule),
-                \( $rule->[Parse::Marpa::Internal::Rule::ACTION] ),
+                \( $rule->[Parse::Marpa::Internal::Rule::CODE] ),
                 \@caller_return
             );
         }

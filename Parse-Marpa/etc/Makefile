@@ -13,3 +13,6 @@ perlcritic:
 	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Grammar.pm
 	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Recognizer.pm
 
+bocage_counts:
+	prove -Ibocage .
+
