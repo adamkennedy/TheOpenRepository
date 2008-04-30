@@ -104,12 +104,18 @@ sub set_actions {
         Marpa::Bocage::Internal::Evaluator::Rule::CODE,
         Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE,
     ] = (
-        '# dummy -- no code',
+        '# no code',
+
 	sub {
-	    my @value = @_;
-	    return $value[0] if @value <= 1;
-	    return '(' . (join q{;}, @value) . ')';
+	    given (scalar @_)
+	    {
+	       when (0) { return q{} }
+	       when (1) { return $_[0] }
+	       default { return '(' . (join q{;}, map { $_ // '-' } @_) . ')' }
+	    }
+	    return;
 	}
+
     );
 
     for my $ix (0 .. $#{$rule_data}) {
@@ -200,8 +206,9 @@ sub Marpa::Bocage::Evaluator::new {
     $self->[Marpa::Bocage::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
     state $parse_number = 0;
-    my $package = $self->[Marpa::Bocage::Internal::Evaluator::PACKAGE] =
-        sprintf 'Parse::Marpa::E_%x', $parse_number++;
+    my $package
+	= $self->[Marpa::Bocage::Internal::Evaluator::PACKAGE]
+	= sprintf 'Parse::Marpa::E_%x', $parse_number++;
     my $rule_data
         = $self->[Marpa::Bocage::Internal::Evaluator::RULE_DATA]
 	= set_actions($grammar, $package);
@@ -228,7 +235,7 @@ sub Marpa::Bocage::Evaluator::new {
 	] = (
             \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]),
             $closure,
-	    @{$start_rule->[Parse::Marpa::Internal::Rule::RHS]},
+	    (scalar @{$start_rule->[Parse::Marpa::Internal::Rule::RHS]}),
 	    $start_rule,
 	);
 
@@ -459,9 +466,24 @@ sub Marpa::Bocage::Evaluator::new {
 
 }
 
-sub Marpa::Bocage::Evaluator::show_bocage {
-     my $bocage = shift;
-     my $text = q{};
+sub Parse::Marpa::show_bocage {
+    my $bocage = shift;
+    my $verbose = shift;
+
+    my (
+	$parse_count, $or_nodes, $package,
+    ) = @{$bocage}[
+        Marpa::Bocage::Internal::Evaluator::PARSE_COUNT,
+        Marpa::Bocage::Internal::Evaluator::OR_NODES,
+        Marpa::Bocage::Internal::Evaluator::PACKAGE,
+    ];
+
+     my $text
+	 = 'package: '
+	 . $package
+	 . '; parse count: '
+	 . $parse_count
+	 . "\n";
 
      for my $or_node (@{$bocage->[OR_NODES]}) {
 
@@ -469,19 +491,29 @@ sub Marpa::Bocage::Evaluator::show_bocage {
 
          for my $and_node (@{$or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES]}) {
 
+	    my (
+		$predecessor, $cause,
+		$value_ref, $closure,
+		$argc, $rule,
+	    ) = @{$and_node}[
+		 Marpa::Bocage::Internal::And_Node::PREDECESSOR,
+		 Marpa::Bocage::Internal::And_Node::CAUSE,
+		 Marpa::Bocage::Internal::And_Node::VALUE_REF,
+		 Marpa::Bocage::Internal::And_Node::CLOSURE,
+		 Marpa::Bocage::Internal::And_Node::ARGC,
+		 Marpa::Bocage::Internal::And_Node::RULE,
+	    ];
+
 	     my @rhs = ();
 
-	     my $predecessor = $and_node->[Marpa::Bocage::Internal::And_Node::PREDECESSOR];
 	     if ($predecessor) {
 	         push @rhs, $predecessor->[Marpa::Bocage::Internal::Or_Node::NAME];
 	     } # predecessor
 
-	     my $cause = $and_node->[Marpa::Bocage::Internal::And_Node::CAUSE];
 	     if ($cause) {
 	         push @rhs, $cause->[Marpa::Bocage::Internal::Or_Node::NAME];
 	     } # cause
 
-	     my $value_ref = $and_node->[Marpa::Bocage::Internal::And_Node::VALUE_REF];
 	     if (defined $value_ref) {
 		 my $value_as_string = Dumper(${$value_ref});
 	         chomp $value_as_string;
@@ -489,6 +521,14 @@ sub Marpa::Bocage::Evaluator::show_bocage {
 	     } # value
 
 	     $text .= $lhs . ' ::= ' . join(q{ }, @rhs) . "\n";
+
+	     if ($verbose) {
+	         $text .= '    rule=' .  Parse::Marpa::brief_rule($rule) . "\n";
+	         $text .= '    argc=' .  $argc;
+	         $text .= '; closure=' .  Dumper($closure)
+		     if defined $closure;
+		 $text .= "\n";
+	     }
 
 	 } # for my $and_node;
 
@@ -499,8 +539,13 @@ sub Marpa::Bocage::Evaluator::show_bocage {
 
 sub test_closure2 {
     my @value = @_;
-    return $value[0] if @value <= 1;
-    return '(' . (join q{;}, @value) . ')';
+    given (scalar @value)
+    {
+       when (0) { return q{} }
+       when (1) { return $value[0] }
+       default { return '(' . (join q{;}, @value) . ')' }
+    }
+    return;
 }
 
 # Apparently perlcritic has a bug and doesn't see the final return
@@ -581,7 +626,7 @@ sub Marpa::Bocage::Evaluator::next {
 	my @last_position_by_depth;
 	my @uniterated_leaf_side = ();
 
-	# Did we iterated the tree?
+	# Did we iterate the tree?
 	my $tree_was_iterated = 0;
 
 	POP_TREE_NODE: for my $node (reverse @{$tree})
