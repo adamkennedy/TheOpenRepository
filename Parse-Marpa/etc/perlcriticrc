@@ -371,7 +371,6 @@ severity=5
 
 [Variables::ProhibitPunctuationVars]
 severity=5
-allow = %+
 
 [Variables::ProtectPrivateVars]
 severity=5

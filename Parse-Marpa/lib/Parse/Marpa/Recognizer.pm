@@ -227,18 +227,13 @@ sub set_actions {
     my $grammar = shift;
     my $package = shift;
 
-    my ( $rules, $symbols, $symbol_hash, $QDFA, $tracing, $default_prefix,
-        $default_suffix, $default_action, )
-        = @{$grammar}[
+    my (
+	$rules, $tracing, $default_action,
+    ) = @{$grammar}[
         Parse::Marpa::Internal::Grammar::RULES,
-        Parse::Marpa::Internal::Grammar::SYMBOLS,
-        Parse::Marpa::Internal::Grammar::SYMBOL_HASH,
-        Parse::Marpa::Internal::Grammar::QDFA,
         Parse::Marpa::Internal::Grammar::TRACING,
-        Parse::Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
-        Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
         Parse::Marpa::Internal::Grammar::DEFAULT_ACTION,
-        ];
+    ];
 
     my $trace_fh;
     my $trace_actions;
@@ -346,6 +341,39 @@ sub set_actions {
 
     }    # RULE
 
+    return;
+
+} # set_actions
+
+sub set_lexers {
+
+    my $grammar = shift;
+    my $package = shift;
+
+    my (
+	$symbols,
+	$symbol_hash,
+	$QDFA,
+	$tracing, $default_prefix,
+        $default_suffix
+    ) = @{$grammar}[
+        Parse::Marpa::Internal::Grammar::SYMBOLS,
+        Parse::Marpa::Internal::Grammar::SYMBOL_HASH,
+        Parse::Marpa::Internal::Grammar::QDFA,
+        Parse::Marpa::Internal::Grammar::TRACING,
+        Parse::Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
+        Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
+    ];
+
+    my $trace_fh;
+    my $trace_actions;
+    if ($tracing) {
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_actions =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
+    }
+
     my @lexers;
     $#lexers = $#{$symbols};
 
@@ -452,7 +480,7 @@ sub set_actions {
 
     return ( \@lexers, \@lexables_by_state, );
 
-}    # sub set_actions
+} # sub set_lexers
 
 sub compile_regexes {
     my $grammar = shift;
@@ -527,8 +555,9 @@ sub eval_grammar {
 
     compile_regexes($grammar);
     set_null_values( $grammar, $package );
+    set_actions( $grammar, $package );
     @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
-        set_actions( $grammar, $package );
+        set_lexers( $grammar, $package );
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::EVALED;
 
@@ -886,11 +915,14 @@ sub Parse::Marpa::Recognizer::text {
                 if ( ${$input_ref} =~ /$lexer/g ) {
 		## use critic
 
+		    ## no critic (Variables::ProhibitPunctuationVars)
                     my $match = $+{mArPa_match};
+		    ## use critic
 
                     # my $prefix = $+{mArPa_prefix};
                     # my $suffix = $+{mArPa_suffix};
                     # my $length = length(${^MATCH});
+
                     my $length = ( pos ${$input_ref} ) - $pos;
                     croak(
                         'Internal error, zero length token -- this is a Marpa bug'

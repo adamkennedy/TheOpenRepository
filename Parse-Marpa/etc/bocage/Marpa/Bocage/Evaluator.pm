@@ -6,6 +6,7 @@ no warnings 'recursion';
 use strict;
 use integer;
 use List::Util qw(max);
+use English qw( -no_match_vars );
 
 say STDERR 'Using Bocage Evaluator';
 
@@ -13,7 +14,8 @@ say STDERR 'Using Bocage Evaluator';
 # A parse bocage is a list of or-nodes, whose child
 # and-nodes must be (at most) binary.
 
-# "Parse forests" are conventional for this, but Marpa
+# "Parse forests" are the structures used to keep multiple
+# parses in many parsers, but Marpa
 # can't use them because
 # Marpa allows cyclical parses, and 
 # it breaks the RHS of productions into
@@ -64,17 +66,59 @@ use constant ARGC        => 7;
 use constant VALUE_REF   => 8;
 use constant RULE        => 9;
 
+package Marpa::Bocage::Internal::Evaluator::Rule;
+
+use constant CODE        => 0;
+use constant CLOSURE     => 1;
+
 package Marpa::Bocage::Internal::Evaluator;
 
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
 use constant OR_NODES    => 2;
 use constant TREE        => 3;    # current evaluation tree
-
+use constant RULE_DATA   => 4;
+use constant PACKAGE     => 5;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
 use Carp;
+
+sub set_actions {
+    my $grammar = shift;
+    my $package = shift;
+
+    my (
+	$rules, $tracing, $default_action,
+    ) = @{$grammar}[
+        Parse::Marpa::Internal::Grammar::RULES,
+        Parse::Marpa::Internal::Grammar::TRACING,
+        Parse::Marpa::Internal::Grammar::DEFAULT_ACTION,
+    ];
+
+    my $rule_data = [];
+    $#{$rule_data} = $#{$rules};
+    
+    my $rule_datum;
+    @{$rule_datum}[
+        Marpa::Bocage::Internal::Evaluator::Rule::CODE,
+        Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE,
+    ] = (
+        '# dummy -- no code',
+	sub {
+	    my @value = @_;
+	    return $value[0] if @value <= 1;
+	    return '(' . (join q{;}, @value) . ')';
+	}
+    );
+
+    for my $ix (0 .. $#{$rule_data}) {
+        $rule_data->[$ix] = $rule_datum;
+    }
+
+    return $rule_data;
+
+} # set_actions
 
 sub Marpa::Bocage::Evaluator::new {
     my $class         = shift;
@@ -155,6 +199,13 @@ sub Marpa::Bocage::Evaluator::new {
 
     $self->[Marpa::Bocage::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
+    state $parse_number = 0;
+    my $package = $self->[Marpa::Bocage::Internal::Evaluator::PACKAGE] =
+        sprintf 'Parse::Marpa::E_%x', $parse_number++;
+    my $rule_data
+        = $self->[Marpa::Bocage::Internal::Evaluator::RULE_DATA]
+	= set_actions($grammar, $package);
+
     my $start_symbol = $start_rule->[Parse::Marpa::Internal::Rule::LHS];
     my ( $nulling, $null_value ) = @{$start_symbol}[
         Parse::Marpa::Internal::Symbol::NULLING,
@@ -164,6 +215,11 @@ sub Marpa::Bocage::Evaluator::new {
     # deal with a null parse as a special case
     if ($nulling) {
         my $and_node = [];
+
+	my $closure = 
+            $rule_data->[$start_rule->[Parse::Marpa::Internal::Rule::ID]]
+	       ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
+
         @{$and_node}[
 	    Marpa::Bocage::Internal::And_Node::VALUE_REF,
 	    Marpa::Bocage::Internal::And_Node::CLOSURE,
@@ -171,7 +227,7 @@ sub Marpa::Bocage::Evaluator::new {
 	    Marpa::Bocage::Internal::And_Node::RULE,
 	] = (
             \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]),
-            $start_rule->[Parse::Marpa::Internal::Rule::CLOSURE],
+            $closure,
 	    @{$start_rule->[Parse::Marpa::Internal::Rule::RHS]},
 	    $start_rule,
 	);
@@ -219,14 +275,14 @@ sub Marpa::Bocage::Evaluator::new {
 	# If we don't have a current rule, we need to get one or
 	# more rules, and deduce the position and a new symbol from
 	# them.
-        my @rule_data;
+        my @rule_work_list;
 
         # If we have a rule and a position, get the current symbol
         if ( defined $position ) {
 
             my $symbol =
                 $rule->[Parse::Marpa::Internal::Rule::RHS]->[$position];
-            push @rule_data, [ $rule, $position, $symbol ];
+            push @rule_work_list, [ $rule, $position, $symbol ];
 
         }
         else { # if not defined $position
@@ -241,9 +297,12 @@ sub Marpa::Bocage::Evaluator::new {
             {
 
                 my $rhs     = $rule->[Parse::Marpa::Internal::Rule::RHS];
-                my $closure = $rule->[Parse::Marpa::Internal::Rule::CLOSURE];
+		my $closure = 
+		    $rule_data->[$rule->[Parse::Marpa::Internal::Rule::ID]]
+		       ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
+
                 my $last_position = $#{$rhs};
-                push @rule_data,
+                push @rule_work_list,
 		    [ $rule, $last_position, $rhs->[$last_position], $closure ];
 
             }    # for my $rule
@@ -254,9 +313,9 @@ sub Marpa::Bocage::Evaluator::new {
 
         my $item_name = $item->[Parse::Marpa::Internal::Earley_item::NAME];
 
-        RULE: for my $rule_data (@rule_data) {
+        RULE: for my $rule_work_item (@rule_work_list) {
 
-            my ( $rule, $position, $symbol, $closure ) = @{$rule_data};
+            my ( $rule, $position, $symbol, $closure ) = @{$rule_work_item};
 
             my ($rule_id, $rhs) = @{$rule}[
 		Parse::Marpa::Internal::Rule::ID,
@@ -752,14 +811,46 @@ sub Marpa::Bocage::Evaluator::next {
 			Parse::Marpa::brief_rule($rule);
 		}
 
-		my $result = \ (test_closure2(map { ${$_} } (reverse splice @evaluation_stack, -$argc)));
+		my $args = [map { ${$_} } (reverse splice @evaluation_stack, -$argc)];
+		# my $closure = \&test_closure2;
+
+		my $result;
+		{
+		    my @warnings;
+		    my @caller_return;
+		    local $SIG{__WARN__} = sub {
+			push @warnings, $_[0];
+			@caller_return = caller 0;
+		    };
+
+		    $result = eval {
+			local ($_) = $args;
+			$closure->(@{$args});
+		    };
+
+		    my $fatal_error = $EVAL_ERROR;
+		    if ( $fatal_error or @warnings ) {
+			my $rule = $node->[
+			    Marpa::Bocage::Internal::Tree_Node::RULE,
+			];
+			Parse::Marpa::Internal::code_problems(
+			    $fatal_error,
+			    \@warnings,
+			    'computing value',
+			    'computing value for rule: '
+				. Parse::Marpa::brief_original_rule($rule),
+			    \( $rule->[Parse::Marpa::Internal::Rule::CODE] ),
+			    \@caller_return
+			);
+		    }
+		}
 
 		if ($trace_values) {
-		    print {$trace_fh} 'Calculated and pushed value: ', Dumper(${$result})
+		    print {$trace_fh} 'Calculated and pushed value: ', Dumper($result)
 			or croak('print to trace handle failed');
 		}
 
-		push @evaluation_stack, $result;
+		push @evaluation_stack, \$result;
 	    }
 
 	} # TREE_NODE
@@ -1090,7 +1181,7 @@ See the L<support section|Parse::Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007 - 2008 Jeffrey Kegler
 
