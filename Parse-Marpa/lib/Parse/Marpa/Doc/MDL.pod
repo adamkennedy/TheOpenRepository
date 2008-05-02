@@ -350,9 +350,8 @@ Here's one from C<self.marpa>:
 
 =head2 Preamble Definition
 
-Lex actions and rule actions
-are evaluated in a special namespace dedicated to running actions.
-Every call to the C<mdl> static method has its own separate namespace for actions.
+Rule actions and null values
+are run in a special per-evaluator namespace.
 It's sometimes useful to have globals in this namespace initialized before any
 actions are run.
 Preamble definition sentences may be used for this purpose.
@@ -360,11 +359,30 @@ Values in the preamble definitions are strings.
 
 If there is more than one preamble definition in MDL, the strings are concatenated.
 This differs from most definitions in MDL, where any new value overwrites the old one.
-Also, the article to be used before the name of the predefined it must be
+Also, the article to be used before the name of the predefined must be
 C<a> and not C<the>.  As with other definitions, the article may be omitted.
-This is the C<self.marpa> preamble:
+This is an example of a preamble:
 
     a preamble is q{
+	our $symbol_hash = {};
+    }.
+
+=head2 Lex Preamble Definition
+
+Lex actions are run in a special per-recognizer namespace.
+It's sometimes useful to have globals in this namespace initialized before any
+actions are run.
+Lex preamble definition sentences may be used for this purpose.
+Values in the lex preamble definitions are strings.
+
+If there is more than one lex preamble definition in MDL,
+the strings are concatenated.
+This differs from most definitions in MDL, where any new value overwrites the old one.
+Also, the article to be used before the name of the predefined must be
+C<a> and not C<the>.  As with other definitions, the article may be omitted.
+This was a C<self.marpa> lex preamble in one version:
+
+    a lex preamble is q{
 	our $regex_data = [];
     }.
 
@@ -731,8 +749,8 @@ in characters.
 =item * Zero-length tokens will totally mess Marpa up.
 Token lengths must be B<greater than> zero.
 
-=item * Lex closures run in the same namespace as rule actions, and
-therefore also see any globals set up in the preamble.
+=item * Lex closures run in a special per-recognizer namespace.
+Globals may be initialize in a lex preamble.
 C<use strict>, C<use integer> and all warnings except recursion are in effect.
 
 =item * The token length returned must include the length of any prefix removed.

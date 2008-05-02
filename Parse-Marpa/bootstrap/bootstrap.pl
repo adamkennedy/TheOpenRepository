@@ -699,21 +699,6 @@ my $recce = new Parse::Marpa::Recognizer(
    { grammar=> $g }
 );
 
-sub binary_search {
-    my ($target, $data) = @_;  
-    my ($lower, $upper) = (0, $#$data); 
-    my $i;                       
-    while ($lower <= $upper) {
-	my $i = int(($lower + $upper)/2);
-	given ($data->[$i]) {
-	    when ($_ < $target) { $lower = $i; }
-	    when ($_ > $target) { $upper = $i; }
-	    default { return $i }
-	} 
-    }
-    $lower
-}
-
 sub locator {
     my $earleme = shift;
     my $string = shift;

@@ -505,11 +505,18 @@ See L<below|/"mdl"> for more detail about the C<mdl> static method.
 
 Marpa's semantics
 are specified with Perl 5 code strings, called B<actions>.
-Marpa allows lexing actions, a preamble action, rule actions and null symbol actions.
+Marpa allows
+rule actions, null symbol actions
+and a preamble action.
+It also allows lexing actions and a separate lex preamble action.
 
-Actions are calculated in
+Rule and null symbol actions are calculated in
 a special namespace set aside for that purpose.
 The preamble action is always run first
+and can be used to initialize that namespace.
+
+Lex actions are run in a special namespace devoted to lex actions.
+The special lex preamble action
 and can be used to initialize that namespace.
 
 The result of an action is the result from running its Perl 5 code string.
@@ -899,6 +906,23 @@ that symbol's null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
 L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
+=item lex preamble
+
+The value must be a string which contains code in the current semantics.
+(Right now Perl 5 is the only semantics available.)
+The lex preamble is run
+when the recognizer object is created,
+in a namespace special to the recognizer object.
+A lex preamble may be used to set up globals.
+The lex preamble of a recognizer object cannot be changed
+after the recognizer object has been created.
+
+If multiple lex preambles are specified as named arguments,
+the most recent lex preamble replaces any earlier one.
+This is consistent with the behavior of other named arguments,
+but it differs from the behavior of MDL,
+which creates a lex preamble by concatenating code strings.
+
 =item max_parses
 
 The value must be an integer.
@@ -933,9 +957,9 @@ and refuses to accept any more input.
 The value must be a string which contains code in the current semantics.
 (Right now Perl 5 is the only semantics available.)
 The preamble is run
-when the recognizer object is created,
-in a namespace special to the recognizer object.
-Rule actions and lex actions also run in this namespace.
+when the evaluator object is created,
+in a namespace special to the evaluator object.
+Rule actions and null symbol actions also run in this namespace.
 A preamble may be used to set up globals.
 The preamble of a recognizer object cannot be changed
 after the recognizer object has been created.

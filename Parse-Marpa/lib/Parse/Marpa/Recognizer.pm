@@ -522,13 +522,13 @@ sub eval_grammar {
     my $package = $parse->[Parse::Marpa::Internal::Recognizer::PACKAGE] =
         sprintf 'Parse::Marpa::P_%x', $parse_number++;
 
-    my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
+    my $lex_preamble = $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE];
     my $default_action =
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION];
     my $default_null_value =
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
-    if ( defined $preamble ) {
+    if ( defined $lex_preamble ) {
         my @warnings;
         my @caller_return;
         local $SIG{__WARN__} = sub {
@@ -539,16 +539,16 @@ sub eval_grammar {
 	## no critic (BuiltinFunctions::ProhibitStringyEval)
         eval
 	    'package ' . $package . ";\n"
-	    . $preamble;
+	    . $lex_preamble;
 	## use critic
 
         my $fatal_error = $EVAL_ERROR;
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
-                'evaluating preamble',
-                'evaluating preamble',
-                \$preamble, \@caller_return
+                'evaluating lex preamble',
+                'evaluating lex preamble',
+                \$lex_preamble, \@caller_return
             );
         }
     }
@@ -574,7 +574,7 @@ sub Parse::Marpa::Recognizer::new {
 
     my $parse = [];
     my $ambiguous_lex;
-    my $preamble;
+    my $lex_preamble;
 
     # do we have a private copy of the grammar?
     my $private_grammar = 0;
@@ -1481,7 +1481,7 @@ token boundaries.
 
     my $recce = new Parse::Marpa::Recognizer({
        grammar=> $g,
-       preamble => $new_preamble,
+       lex_preamble => $new_lex_preamble,
     });
 
 The C<new> method's one, required, argument is a hash reference of named

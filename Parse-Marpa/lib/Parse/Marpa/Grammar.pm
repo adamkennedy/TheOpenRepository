@@ -128,7 +128,8 @@ use constant TRACE_FILE_HANDLE  => 18;
 use constant LOCATION_CALLBACK  => 19; # default callback for showing location
 use constant OPAQUE             => 20; # default for opacity
 use constant PROBLEMS           => 21; # fatal problems
-use constant PREAMBLE           => 22; # default preamble
+use constant PREAMBLE           => 22; # evaluation preamble
+use constant LEX_PREAMBLE       => 23; # lex preamble
 use constant WARNINGS           => 24; # print warnings about grammar?
 use constant VERSION    => 25; # Marpa version this grammar was compiled from
 use constant CODE_LINES => 26; # max lines to display on failure
@@ -332,6 +333,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     my $new_semantics;
     my $new_version;
     my $new_preamble;
+    my $new_lex_preamble;
     my $new_default_lex_prefix;
     my $new_default_action;
     my $new_default_null_value;
@@ -393,6 +395,12 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     $grammar->[Parse::Marpa::Internal::Grammar::VERSION] = $new_version;
     say $trace_fh 'Version set to ', $new_version
         if $trace_predefineds;
+
+    if ( defined $new_lex_preamble ) {
+        $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] = $new_lex_preamble;
+        say $trace_fh q{Lex preamble set to '}, $new_lex_preamble, q{'}
+            if defined $trace_predefineds;
+    }
 
     if ( defined $new_preamble ) {
         $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] = $new_preamble;
@@ -488,13 +496,13 @@ sub Parse::Marpa::show_source_grammar_status {
     return $status;
 }
 
-# For use some day to make locator() more efficient on repeated calls
+# may use this someday
 sub binary_search {
     my ( $target, $data ) = @_;
     my ( $lower, $upper ) = ( 0, $#{$data} );
     my $i;
     while ( $lower <= $upper ) {
-        my $i = int +(( $lower + $upper ) / 2);
+        my $i = int +( ( $lower + $upper ) / 2 );
         given ( $data->[$i] ) {
             when ( $_ < $target ) { $lower = $i; }
             when ( $_ > $target ) { $upper = $i; }
@@ -951,10 +959,19 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::SEMANTICS] =
                     $value;
             }
+            when ('lex_preamble') {
+                croak( "$option option not allowed in ",
+                    Parse::Marpa::Internal::Phase::description($phase) )
+                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] =
+                    $value;
+            }
             when ('preamble') {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] //=
+                    $value;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }
