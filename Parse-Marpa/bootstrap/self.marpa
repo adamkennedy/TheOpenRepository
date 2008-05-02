@@ -109,6 +109,8 @@ predefined setting: default null value setting.  concatenate lines.
 
 predefined setting: preamble setting.  concatenate lines.
 
+predefined setting: lex preamble setting.  concatenate lines.
+
 predefined setting: semantics setting.  concatenate lines.
 
 predefined setting: version setting.  concatenate lines.
@@ -209,6 +211,22 @@ q{
     . qq{;\n}
 }.
  
+lex preamble setting: /a/, /lex/, /preamble/, /is/, string specifier.
+priority 1000.
+q{
+    q{$new_lex_preamble .= }
+    . $_->[3]
+    . qq{;\n}
+}.
+ 
+preamble setting: string specifier, /is/, /a/, /lex/, /preamble/ .
+priority 1000.
+q{
+    q{$new_lex_preamble .= }
+    . $_->[0]
+    . qq{;\n}
+}.
+ 
 copula: /is/.
 
 copula: /are/.
@@ -249,12 +267,16 @@ literal string: double quoted string.  concatenate_lines.
 
 literal string: single quoted string.  concatenate_lines.
 
-production sentence: lhs, /:/, rhs, period.
+production sentence: lhs, production copula, rhs, period.
 q{
     $_->[0]
     . "\n,"
     . $_->[2]
 }.
+
+production copula: /:/.
+
+production copula: /::=/.
 
 symbol phrase: symbol word sequence.
 q{ Parse::Marpa::MDL::canonical_symbol_name(join("-", @$_)) }.

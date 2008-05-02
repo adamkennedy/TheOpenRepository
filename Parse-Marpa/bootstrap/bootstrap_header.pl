@@ -12,7 +12,8 @@ my %regex;
 
 my $new_terminals = [];
 my $new_rules = [];
-my $new_preamble = "";
+my $new_preamble;
+my $new_lex_preamble;
 my $new_start_symbol;
 my $new_semantics;
 my $new_version;

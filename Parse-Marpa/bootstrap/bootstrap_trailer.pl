@@ -27,6 +27,7 @@ $g->set({default_null_value => $new_default_null_value})
 my $recce = new Parse::Marpa::Recognizer({
    grammar=> $g,
    preamble => $new_preamble,
+   lex_preamble => $new_lex_preamble,
 });
 
 sub locator {
