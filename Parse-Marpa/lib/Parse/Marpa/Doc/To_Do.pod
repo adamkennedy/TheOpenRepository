@@ -30,6 +30,8 @@ directories of the distribution.
 Any feature not tested there can be assumed
 to have been only lightly exercized.
 
+=head2 Rename Evaluator::next method to Evaluator::value
+
 =head1 LOWER PRIORITY
 
 =over 4

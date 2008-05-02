@@ -17,7 +17,7 @@ say STDERR 'Using Bocage Evaluator';
 # "Parse forests" are the structures used to keep multiple
 # parses in many parsers, but Marpa
 # can't use them because
-# Marpa allows cyclical parses, and 
+# Marpa allows cyclical parses, and
 # it breaks the RHS of productions into
 # and-nodes of a most two symbols.
 # And-nodes start in binary form
@@ -79,10 +79,197 @@ use constant OR_NODES    => 2;
 use constant TREE        => 3;    # current evaluation tree
 use constant RULE_DATA   => 4;
 use constant PACKAGE     => 5;
+use constant NULL_VALUES => 6;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
 use Carp;
+
+sub run_preamble {
+    my $preamble = shift;
+    my $package = shift;
+
+    my @warnings;
+    my @caller_return;
+    local $SIG{__WARN__} = sub {
+	push @warnings, $_[0];
+	@caller_return = caller 0;
+    };
+
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    eval
+	'package ' . $package . ";\n"
+	. $preamble;
+    ## use critic
+
+    my $fatal_error = $EVAL_ERROR;
+    if ( $fatal_error or @warnings ) {
+	Parse::Marpa::Internal::code_problems(
+	    $fatal_error, \@warnings,
+	    'evaluating preamble',
+	    'evaluating preamble',
+	    \$preamble, \@caller_return
+	);
+    }
+
+    return;
+
+} # run_preamble
+
+# Given symbol, returns null value, calculating it
+# if necessary.
+#
+# Assumes all but CHAF values have already been set
+sub set_null_symbol_value {
+    my $null_values = shift;
+    my $symbol = shift;
+
+    # if it's not a CHAF nulling symbol,
+    # or the value is already set, use what we have
+    my $chaf_nulling =
+        $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
+    my $symbol_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
+    my $null_value = $null_values->[$symbol_id];
+    if ( not $chaf_nulling or defined $null_value ) {
+        return $null_value;
+    }
+
+    # it is a CHAF nulling symbol, but needs its null value calculated.
+    my @chaf_null_values = ();
+    for my $rhs_symbol (@{$chaf_nulling}) {
+        my $nulling_symbol =
+            $rhs_symbol->[Parse::Marpa::Internal::Symbol::NULL_ALIAS]
+            // $rhs_symbol;
+        my $value = set_null_symbol_value($null_values, $nulling_symbol);
+        push @chaf_null_values, $value;
+    }
+    push @chaf_null_values, [];
+
+    return ($null_values->[$symbol_id] = \@chaf_null_values);
+
+}    # null symbol value
+
+sub set_null_values {
+    my $grammar = shift;
+    my $package = shift;
+
+    my ( $rules, $symbols, $tracing, $default_null_value ) = @{$grammar}[
+        Parse::Marpa::Internal::Grammar::RULES,
+        Parse::Marpa::Internal::Grammar::SYMBOLS,
+        Parse::Marpa::Internal::Grammar::TRACING,
+        Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE,
+    ];
+
+    my $null_values;
+    $#{$null_values} = $#{$symbols};
+
+    my $trace_fh;
+    my $trace_actions;
+    if ($tracing) {
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_actions =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
+    }
+
+    SYMBOL: for my $symbol (@{$symbols}) {
+        next SYMBOL
+            if $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
+        my $id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
+        $null_values->[$id] = $default_null_value;
+    }
+
+    # Before tackling the CHAF symbols, set null values specified in
+    # empty rules.
+    RULE: for my $rule (@{$rules}) {
+
+        my $action = $rule->[Parse::Marpa::Internal::Rule::ACTION];
+
+        # Set the null value of symbols from the action for their
+        # empty rules
+        my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
+
+        # Empty rule with action?
+        if ( defined $action and @{$rhs} <= 0 ) {
+            my $lhs = $rule->[Parse::Marpa::Internal::Rule::LHS];
+            my $nulling_alias =
+                $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS];
+            next RULE unless defined $nulling_alias;
+
+            my $code
+		= "package $package;\n"
+		. 'local(@_)=[];' . "\n"
+		. $action ;
+            my @warnings;
+            my @caller_return;
+            local $SIG{__WARN__} = sub {
+                push @warnings, $_[0];
+                @caller_return = caller 0;
+            };
+
+	    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+            my $null_value  = eval $code;
+	    ## use critic
+
+            my $fatal_error = $EVAL_ERROR;
+            if ( $fatal_error or @warnings ) {
+                Parse::Marpa::Internal::code_problems(
+                    $fatal_error,
+                    \@warnings,
+                    'evaluating null value',
+                    'evaluating null value for '
+                        . $nulling_alias
+                        ->[Parse::Marpa::Internal::Symbol::NAME],
+                    \$code,
+                    \@caller_return
+                );
+            }
+            my $nulling_alias_id = $nulling_alias->[Parse::Marpa::Internal::Symbol::ID];
+	    $null_values->[$nulling_alias_id] = $null_value;
+
+            if ($trace_actions) {
+                print {$trace_fh} 'Setting null value for symbol ',
+                    $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],
+                    " from\n", $code, "\n",
+                    ' to ',
+                    Parse::Marpa::show_value( \$null_value ),
+                    "\n"
+		or croak('Could not print to trace file');
+		    ;
+            }
+
+        }
+
+    }    # RULE
+
+    SYMBOL: for my $symbol (@{$symbols}) {
+        next SYMBOL
+            unless $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
+	set_null_symbol_value($null_values, $symbol);
+    }
+
+    if ($trace_actions) {
+        SYMBOL: for my $symbol (@{$symbols}) {
+            next SYMBOL
+                unless
+                $symbol->[Parse::Marpa::Internal::Symbol::IS_CHAF_NULLING];
+
+	    my ($name, $id) = @{$symbol}[
+                Parse::Marpa::Internal::Symbol::NAME,
+                Parse::Marpa::Internal::Symbol::ID,
+	    ];
+            print {$trace_fh}
+		'Setting null value for CHAF symbol ',
+                $name,
+                ' to ',
+                Dumper( $null_values->[$id] ),
+	    or croak('Could not print to trace file');
+        }
+    }
+
+    return;
+
+}    # set_null_values
 
 sub set_actions {
     my $grammar = shift;
@@ -96,31 +283,117 @@ sub set_actions {
         Parse::Marpa::Internal::Grammar::DEFAULT_ACTION,
     ];
 
+    my $trace_fh;
+    my $trace_actions;
+    if ($tracing) {
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_actions =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
+    }
+
     my $rule_data = [];
     $#{$rule_data} = $#{$rules};
-    
-    my $rule_datum;
-    @{$rule_datum}[
-        Marpa::Bocage::Internal::Evaluator::Rule::CODE,
-        Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE,
-    ] = (
-        '# no code',
 
-	sub {
-	    given (scalar @_)
-	    {
-	       when (0) { return q{} }
-	       when (1) { return $_[0] }
-	       default { return '(' . (join q{;}, map { $_ // '-' } @_) . ')' }
-	    }
-	    return;
-	}
+    RULE: for my $rule (@{$rules}) {
 
-    );
+        next RULE unless $rule->[Parse::Marpa::Internal::Rule::USEFUL];
 
-    for my $ix (0 .. $#{$rule_data}) {
-        $rule_data->[$ix] = $rule_datum;
-    }
+        my $action = $rule->[Parse::Marpa::Internal::Rule::ACTION];
+
+        ACTION: {
+
+            $action //= $default_action;
+            last ACTION unless defined $action;
+
+            # HAS_CHAF_RHS and HAS_CHAF_LHS would work well as a bit
+            # mask in a C implementation
+            my $has_chaf_lhs =
+                $rule->[Parse::Marpa::Internal::Rule::HAS_CHAF_LHS];
+            my $has_chaf_rhs =
+                $rule->[Parse::Marpa::Internal::Rule::HAS_CHAF_RHS];
+
+            last ACTION unless $has_chaf_lhs or $has_chaf_rhs;
+
+            if ( $has_chaf_rhs and $has_chaf_lhs ) {
+                $action = q{ $_; };
+                last ACTION;
+            }
+
+            # At this point has chaf rhs or lhs but not both
+            if ($has_chaf_lhs) {
+
+                $action
+		    = q{push @{$_}, [];} . "\n"
+		    . q{$_} . "\n";
+                last ACTION;
+
+            }
+
+            # at this point must have chaf rhs and not a chaf lhs
+
+	    # Is this really the best way to do pass the rule?
+            my $original_rule = $Parse::Marpa::Read_Only::rule
+                ->[Parse::Marpa::Internal::Rule::ORIGINAL_RULE];
+
+            $action
+		= "TAIL: for (;;) {\n"
+		. q<    my $tail = pop @{$_};> . "\n"
+		. q<    last TAIL unless scalar @{$tail};> . "\n"
+		. q<    push @{$_}, @{$tail};> . "\n"
+		. "}\n"
+                . $action;
+
+        }    # ACTION
+
+        next RULE unless defined $action;
+
+        my $code
+	    = "sub {\n"
+	    . '    package ' . $package . ";\n"
+	    . $action . "\n"
+	    . '}';
+
+        if ($trace_actions) {
+            print {$trace_fh} 'Setting action for rule ',
+                Parse::Marpa::brief_rule($rule), " to\n", $code, "\n"
+	    or croak('Could not print to trace file');
+        }
+
+        my $closure;
+        {
+            my @warnings;
+            my @caller_return;
+            local $SIG{__WARN__} = sub {
+                push @warnings, $_[0];
+                @caller_return = caller 0;
+            };
+
+	    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+            $closure = eval $code;
+	    ## use critic
+
+            my $fatal_error = $EVAL_ERROR;
+            if ( $fatal_error or @warnings ) {
+                Parse::Marpa::Internal::code_problems(
+                    $fatal_error,
+                    \@warnings,
+                    'compiling action',
+                    'compiling action for '
+                        . Parse::Marpa::brief_original_rule($rule),
+                    \$code,
+                    \@caller_return
+                );
+            }
+        }
+
+	my $rule_datum;
+        $rule_datum->[Parse::Marpa::Internal::Rule::CODE]  = $code;
+        $rule_datum->[Parse::Marpa::Internal::Rule::CLOSURE] = $closure;
+
+	push @{$rule_data}, $rule_datum;
+
+    }    # RULE
 
     return $rule_data;
 
@@ -209,21 +482,27 @@ sub Marpa::Bocage::Evaluator::new {
     my $package
 	= $self->[Marpa::Bocage::Internal::Evaluator::PACKAGE]
 	= sprintf 'Parse::Marpa::E_%x', $parse_number++;
+    my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
+    defined $preamble and run_preamble($preamble, $package);
+    my $null_values
+        = $self->[Marpa::Bocage::Internal::Evaluator::NULL_VALUES]
+	= set_null_values($grammar, $package);
     my $rule_data
         = $self->[Marpa::Bocage::Internal::Evaluator::RULE_DATA]
 	= set_actions($grammar, $package);
 
     my $start_symbol = $start_rule->[Parse::Marpa::Internal::Rule::LHS];
-    my ( $nulling, $null_value ) = @{$start_symbol}[
+    my ( $nulling, $symbol_id ) = @{$start_symbol}[
         Parse::Marpa::Internal::Symbol::NULLING,
-        Parse::Marpa::Internal::Symbol::NULL_VALUE
+        Parse::Marpa::Internal::Symbol::ID,
     ];
+    my $start_null_value = $null_values->[$symbol_id];
 
     # deal with a null parse as a special case
     if ($nulling) {
         my $and_node = [];
 
-	my $closure = 
+	my $closure =
             $rule_data->[$start_rule->[Parse::Marpa::Internal::Rule::ID]]
 	       ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
 
@@ -233,7 +512,7 @@ sub Marpa::Bocage::Evaluator::new {
 	    Marpa::Bocage::Internal::And_Node::ARGC,
 	    Marpa::Bocage::Internal::And_Node::RULE,
 	] = (
-            \($start_symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE]),
+            \$start_null_value,
             $closure,
 	    (scalar @{$start_rule->[Parse::Marpa::Internal::Rule::RHS]}),
 	    $start_rule,
@@ -304,7 +583,7 @@ sub Marpa::Bocage::Evaluator::new {
             {
 
                 my $rhs     = $rule->[Parse::Marpa::Internal::Rule::RHS];
-		my $closure = 
+		my $closure =
 		    $rule_data->[$rule->[Parse::Marpa::Internal::Rule::ID]]
 		       ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
 
@@ -332,10 +611,12 @@ sub Marpa::Bocage::Evaluator::new {
 
             my @work_list;
             if ( $symbol->[Parse::Marpa::Internal::Symbol::NULLING] ) {
+		my $symbol_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
+		my $null_value = $null_values->[$symbol_id];
                 @work_list = (
                     [   $item,
                         undef,
-                        \($symbol->[Parse::Marpa::Internal::Symbol::NULL_VALUE])
+                        \$null_value,
                     ]
                 );
             }
@@ -587,10 +868,12 @@ sub Marpa::Bocage::Evaluator::next {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my ($bocage, $tree)
+    my ($bocage, $tree, $rule_data, $null_values)
 	= @{$evaler}[
 	    Marpa::Bocage::Internal::Evaluator::OR_NODES,
 	    Marpa::Bocage::Internal::Evaluator::TREE,
+	    Marpa::Bocage::Internal::Evaluator::RULE_DATA,
+	    Marpa::Bocage::Internal::Evaluator::NULL_VALUES,
 	];
 
     my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
@@ -599,7 +882,7 @@ sub Marpa::Bocage::Evaluator::next {
 	croak("Maximum parse count ($max_parses) exceeded");
     }
 
-    # Keep returning 
+    # Keep returning
     given ($parse_count) {
 
 	# When called the first time, create the tree
@@ -669,7 +952,7 @@ sub Marpa::Bocage::Evaluator::next {
 	    );
 	    push @traversal_stack, $new_tree_node;
 
-	    # The iterated part of the tree will have 
+	    # The iterated part of the tree will have
 	    # uniterated parts on the root and leaf side.
 	    # The root side will be left on the stack,
 	    # when the old nodes are splice'd off.
@@ -878,13 +1161,16 @@ sub Marpa::Bocage::Evaluator::next {
 			my $rule = $node->[
 			    Marpa::Bocage::Internal::Tree_Node::RULE,
 			];
+			my $code = $rule_data
+			   ->[ $rule->[Parse::Marpa::Internal::Rule::ID ] ]
+			   ->[ Marpa::Bocage::Internal::Evaluator::Rule::CODE ];
 			Parse::Marpa::Internal::code_problems(
 			    $fatal_error,
 			    \@warnings,
 			    'computing value',
 			    'computing value for rule: '
 				. Parse::Marpa::brief_original_rule($rule),
-			    \( $rule->[Parse::Marpa::Internal::Rule::CODE] ),
+			    \$code,
 			    \@caller_return
 			);
 		    }
@@ -1145,7 +1431,7 @@ There are two child nodes and their values are
 elements 0 and 1 in the C<@$_> array of the action.
 The child value represented by the symbol C<Y>,
 C<< $_->[1] >>, comes from node 4.
-From the table above, we can see that that value was 
+From the table above, we can see that that value was
 "C<Zorro was here>".
 
 The first child value is represented by the symbol C<A>,
@@ -1189,7 +1475,7 @@ On success, returns the evaluator object.
 Failures are thrown as exceptions.
 
 The first, required, argument is a recognizer object.
-The second, optional, argument 
+The second, optional, argument
 will be used as the number of the earleme at which to end parsing.
 If there is no second argument, parsing ends at the default end
 of parsing, which was set in the recognizer.
