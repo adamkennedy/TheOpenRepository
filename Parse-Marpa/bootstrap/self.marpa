@@ -133,14 +133,14 @@ q{
 
 version setting: optional /the/, /version/, copula, version number.
 q{
-    q{ $new_version = '}
+    q{$new_version = '}
     . Parse::Marpa::MDL::canonical_version($_->[3])
     . qq{';\n}
 }.
 
 version setting: /version number/, copula, optional /the/, /version/.
 q{
-    q{ $new_version = '}
+    q{$new_version = '}
     . Parse::Marpa::MDL::canonical_version($_->[0])
     . qq{';\n}
 }.

@@ -496,7 +496,7 @@ sub Parse::Marpa::show_source_grammar_status {
     return $status;
 }
 
-# may use this someday
+# For use some day to make locator() more efficient on repeated calls
 sub binary_search {
     my ( $target, $data ) = @_;
     my ( $lower, $upper ) = ( 0, $#{$data} );

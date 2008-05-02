@@ -1,3 +1,5 @@
+# This is the beginning of bootstrap_trailer.pl
+
 $new_start_symbol //= "(undefined start symbol)";
 $new_semantics //= "not defined";
 $new_version //= -1;
@@ -78,3 +80,4 @@ say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa
 my $value = $evaler->next();
 print $header, $$value, "\n", $trailer;
 
+# This is the end of bootstrap_trailer.pl
