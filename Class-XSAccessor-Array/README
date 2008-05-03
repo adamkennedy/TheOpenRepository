@@ -1,0 +1,64 @@
+NAME
+    Class::XSAccessor::Array - Generate fast XS accessors without runtime
+    compilation
+
+SYNOPSIS
+      package MyClassUsingArraysAsInternalStorage;
+      use Class::XSAccessor::Array
+        getters => {
+          get_foo => 'foo', # 'foo' is the hash key to access
+          get_bar => 'bar',
+        },
+        setters => {
+          set_foo => 'foo',
+          set_bar => 'bar',
+        };
+      # The imported methods are implemented in fast XS.
+  
+      # normal class code here.
+
+DESCRIPTION
+    The module implements fast XS accessors both for getting at and setting
+    an object attribute. The module works only with objects that are
+    implement as arrays. Refer to Class::XSAccessor for an implementation
+    that works with hash-based objects.
+
+    A simple benchmark showed more than a factor of two performance
+    advantage over writing accessors in Perl.
+
+    While generally more obscure than hash-based objects, objects using
+    blessed arrays as internal representation are a bit faster as its
+    somewhat faster to access arrays than hashes. Accordingly, this module
+    is slightly faster (~10-15%) than Class::XSAccessor, which works on
+    hash-based objects.
+
+    The method names may be fully qualified. In the example of the synopsis,
+    you could have written "MyClass::get_foo" instead of "get_foo".
+
+CAVEATS
+    Probably wouldn't work if your objects are *tied*. But that's a strange
+    thing to do anyway.
+
+    Scary code exploiting strange XS features.
+
+    If you think writing an accessor in XS should be a laughably simple
+    exercise, then please contemplate how you could instantiate a new XS
+    accessor for a new hash key or array index that's only known at
+    run-time. Note that compiling C code at run-time a la Inline::C is a no
+    go.
+
+SEE ALSO
+    Class::XSAccessor
+
+    AutoXS
+
+AUTHOR
+    Steffen Mueller, <smueller@cpan.org>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2008 by Steffen Mueller
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.8 or, at your
+    option, any later version of Perl 5 you may have available.
+
