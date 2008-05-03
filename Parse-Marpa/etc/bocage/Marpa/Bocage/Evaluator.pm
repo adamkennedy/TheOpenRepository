@@ -259,7 +259,7 @@ sub set_null_values {
         }
     }
 
-    return;
+    return $null_values;
 
 }    # set_null_values
 
@@ -273,11 +273,11 @@ sub set_actions {
         Parse::Marpa::Internal::Grammar::DEFAULT_ACTION,
     ];
 
-    my $trace_fh;
+    # need trace_fh for code problems here, even if not tracing
+    my $trace_fh
+         = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_actions;
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $trace_actions =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS];
     }
@@ -319,15 +319,12 @@ sub set_actions {
 
             # at this point must have chaf rhs and not a chaf lhs
 
-            # Is this really the best way to do pass the rule?
-            my $original_rule = $Parse::Marpa::Read_Only::rule
-                ->[Parse::Marpa::Internal::Rule::ORIGINAL_RULE];
-
             $action =
-                  "TAIL: for (;;) {\n"
-                . q<    my $tail = pop @{$_};> . "\n"
-                . q<    last TAIL unless scalar @{$tail};> . "\n"
-                . q<    push @{$_}, @{$tail};> . "\n" . "}\n"
+                  "    TAIL: for (;;) {\n"
+                . q<        my $tail = pop @{$_};> . "\n"
+                . q<        last TAIL unless scalar @{$tail};> . "\n"
+                . q<        push @{$_}, @{$tail};> . "\n"
+		. "    } # TAIL\n"
                 . $action;
 
         }    # ACTION
@@ -361,12 +358,15 @@ sub set_actions {
 
             my $fatal_error = $EVAL_ERROR;
             if ( $fatal_error or @warnings ) {
+		say {$trace_fh}
+		    'Problems compiling action for original rule: ',
+		    Parse::Marpa::brief_original_rule($rule);
                 Parse::Marpa::Internal::code_problems(
                     $fatal_error,
                     \@warnings,
                     'compiling action',
                     'compiling action for '
-                        . Parse::Marpa::brief_original_rule($rule),
+                        . Parse::Marpa::brief_rule($rule),
                     \$code,
                     \@caller_return
                 );
@@ -378,7 +378,8 @@ sub set_actions {
         $rule_datum->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE] =
             $closure;
 
-        push @{$rule_data}, $rule_datum;
+        my $id = $rule->[Parse::Marpa::Internal::Rule::ID];
+	$rule_data->[$id] = $rule_datum;
 
     }    # RULE
 
@@ -894,13 +895,12 @@ sub Marpa::Bocage::Evaluator::next {
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
+    my $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_values;
     my $trace_iteration_changes;
     my $trace_iteration_searches;
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $trace_values =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iteration_changes = $grammar
@@ -1195,12 +1195,15 @@ sub Marpa::Bocage::Evaluator::next {
                             ->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
                             ->[Marpa::Bocage::Internal::Evaluator::Rule::CODE
                             ];
+			say {$trace_fh}
+			    'Problems computing value for original rule: ',
+			    Parse::Marpa::brief_original_rule($rule);
                         Parse::Marpa::Internal::code_problems(
                             $fatal_error,
                             \@warnings,
                             'computing value',
                             'computing value for rule: '
-                                . Parse::Marpa::brief_original_rule($rule),
+                                . Parse::Marpa::brief_rule($rule),
                             \$code,
                             \@caller_return
                         );

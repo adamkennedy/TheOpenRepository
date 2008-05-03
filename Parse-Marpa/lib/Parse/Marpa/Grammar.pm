@@ -283,10 +283,10 @@ sub Parse::Marpa::Internal::code_problems {
         my $line_labeled_code = '';
         LINE: for my $i ( 0 .. $#lines ) {
             my $line_number = $first_line + $i;
-            $line_labeled_code
-                .= ( $problem_line == $line_number ? '*' : '' )
-                . $line_number . ': '
-                . $lines[$i];
+	    my $marker = q{};
+	    $marker = "*"
+		if defined $problem_line and $problem_line == $line_number;
+            $line_labeled_code .= "$marker$line_number: " . $lines[$i];
         }
         $code_to_print = \$line_labeled_code;
     }
