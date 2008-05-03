@@ -1,5 +1,6 @@
 META.yml
 ./lib/Parse/Marpa.pm
+../bootstrap/bootstrap.pl
 ./bin/test.marpa
 ./bootstrap/self.marpa
 ./example/null_value.marpa
