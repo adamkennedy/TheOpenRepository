@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoXS::Header.
 
+0.02  Sat May  3 19:00 2008
+        - integer storage for Class::XSAccessor::Array.
+
 0.01  Mon Mar 31 23:34 2008
 	- original version as uploaded to CPAN
 
