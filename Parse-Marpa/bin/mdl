@@ -8,7 +8,6 @@ use Getopt::Long;
 use Parse::Marpa;
 use English qw( -no_match_vars ) ;
 use Fatal qw(open close);
-use Marpa::Bocage::Evaluator;
 
 my $command = shift;
 my $grammar_file;
@@ -21,7 +20,9 @@ my $nulling_symbols;
 my $unproductive_symbols;
 my $productive_symbols;
 my $show_rules;
+my $trace_actions;
 my $trace_priorities;
+my $trace_values;
 my $show_problems;
 my $show_symbols;
 my $show_derivation;
@@ -29,7 +30,6 @@ my $show_status;
 my $show_NFA;
 my $show_QDFA;
 my $show_bocage;
-my $use_bocage;
 my $stdout;
 my $all_parses;
 my %options;
@@ -49,13 +49,14 @@ given ($command) {
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
             "bocage"               => \$show_bocage,
-            "use_bocage"           => \$use_bocage,
             "inaccessible_symbols" => \$inaccessible_symbols,
             "accessible_symbols"   => \$accessible_symbols,
             "nullable_symbols"     => \$nullable_symbols,
             "nulling_symbols"      => \$nulling_symbols,
             "unproductive_symbols" => \$unproductive_symbols,
             "productive_symbols"   => \$productive_symbols,
+            "trace_actions"        => \$trace_actions,
+            "trace_values"         => \$trace_values,
             "trace_priorities"     => \$trace_priorities,
             "rules"                => \$show_rules,
             "problems"             => \$show_problems,
@@ -69,8 +70,16 @@ given ($command) {
             "option=s"             => \%options,
             );
 
+	if ($trace_actions) {
+	    $options{trace_actions} = 1;
+	}
+
 	if ($trace_priorities) {
 	    $options{trace_priorities} = 1;
+	}
+
+	if ($trace_values) {
+	    $options{trace_values} = 1;
 	}
 
 	# should I set it up so that it takes effect before other
@@ -201,12 +210,7 @@ sub do_parse {
         exit 1;
     }
 
-    my $evaler;
-    if ($show_bocage or $use_bocage) {
-	$evaler = new Marpa::Bocage::Evaluator($recce);
-    } else {
-	$evaler = new Parse::Marpa::Evaluator($recce);
-    }
+    my $evaler = new Parse::Marpa::Evaluator($recce);
     unless ($evaler) {
         if ($show_status) {
             print $recce->show_status();

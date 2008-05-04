@@ -970,8 +970,6 @@ sub Parse::Marpa::Grammar::set {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::EVALED;
-                $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] //=
-                    $value;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }
@@ -1355,6 +1353,19 @@ sub Parse::Marpa::Grammar::show_rules {
     return $text;
 }
 
+sub Parse::Marpa::show_dotted_rule {
+    my $rule = shift;
+    my $position = shift;
+
+    my @names = 
+	map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
+	    $rule->[Parse::Marpa::Internal::Rule::LHS],
+	    @{ $rule->[Parse::Marpa::Internal::Rule::RHS] };
+    splice @names, $position + 1, 0, q{.};
+    splice @names, 1,             0, '::=';
+    return join q{ }, @names;
+}
+
 sub Parse::Marpa::show_item {
     my $item = shift;
     my $text = q{};
@@ -1362,19 +1373,12 @@ sub Parse::Marpa::show_item {
         $text .= '/* empty */';
     }
     else {
-        my ( $rule, $position ) = @{$item}[
-            Parse::Marpa::Internal::LR0_item::RULE,
-            Parse::Marpa::Internal::LR0_item::POSITION
-        ];
-        my @names =
-            ( $rule->[Parse::Marpa::Internal::Rule::LHS]
-                ->[Parse::Marpa::Internal::Symbol::NAME] );
-        push @names,
-            map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
-                @{ $rule->[Parse::Marpa::Internal::Rule::RHS] };
-        splice @names, $position + 1, 0, q{.};
-        splice @names, 1,             0, '::=';
-        $text .= join q{ }, @names;
+	$text .= Parse::Marpa::show_dotted_rule(
+	     @{$item}[
+		Parse::Marpa::Internal::LR0_item::RULE,
+		Parse::Marpa::Internal::LR0_item::POSITION
+	    ]
+	);
     }
     return $text;
 }

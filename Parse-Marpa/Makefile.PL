@@ -36,10 +36,6 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/MDL.pm',
 	'lib/Parse/Marpa/Grammar.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Grammar.pm',
-
-	'etc/bocage/Marpa/Bocage/Evaluator.pm'
-	    => '$(INST_LIB)/Marpa/Bocage/Evaluator.pm',
-
 	'lib/Parse/Marpa/Recognizer.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
 	'lib/Parse/Marpa/Evaluator.pm'

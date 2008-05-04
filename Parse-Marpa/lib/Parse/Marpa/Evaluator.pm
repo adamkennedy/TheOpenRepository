@@ -1,4 +1,4 @@
-package Marpa::Bocage::Internal::Evaluator;
+package Parse::Marpa::Internal::Evaluator;
 use 5.010_000;
 
 use warnings;
@@ -7,8 +7,6 @@ use strict;
 use integer;
 use List::Util qw(max);
 use English qw( -no_match_vars );
-
-say STDERR 'Using Bocage Evaluator';
 
 # The bocage is Marpa's structure for keeping multiple parses.
 # A parse bocage is a list of or-nodes, whose child
@@ -32,7 +30,7 @@ say STDERR 'Using Bocage Evaluator';
 
 # Saplings become or-nodes when they grow up.
 
-package Marpa::Bocage::Internal::Sapling;
+package Parse::Marpa::Internal::Sapling;
 
 use constant NAME     => 0;
 use constant ITEM     => 1;
@@ -40,7 +38,7 @@ use constant RULE     => 2;
 use constant POSITION => 3;
 use constant SYMBOL   => 4;
 
-package Marpa::Bocage::Internal::And_Node;
+package Parse::Marpa::Internal::And_Node;
 
 use constant PREDECESSOR => 0;
 use constant CAUSE       => 1;
@@ -48,13 +46,14 @@ use constant VALUE_REF   => 2;
 use constant CLOSURE     => 3;
 use constant ARGC        => 4;
 use constant RULE        => 5;
+use constant POSITION    => 6;
 
-package Marpa::Bocage::Internal::Or_Node;
+package Parse::Marpa::Internal::Or_Node;
 
 use constant NAME      => 0;
 use constant AND_NODES => 1;
 
-package Marpa::Bocage::Internal::Tree_Node;
+package Parse::Marpa::Internal::Tree_Node;
 
 use constant OR_NODE     => 0;
 use constant CHOICE      => 1;
@@ -65,13 +64,14 @@ use constant CLOSURE     => 6;
 use constant ARGC        => 7;
 use constant VALUE_REF   => 8;
 use constant RULE        => 9;
+use constant POSITION    => 10;
 
-package Marpa::Bocage::Internal::Evaluator::Rule;
+package Parse::Marpa::Internal::Evaluator::Rule;
 
 use constant CODE    => 0;
 use constant CLOSURE => 1;
 
-package Marpa::Bocage::Internal::Evaluator;
+package Parse::Marpa::Internal::Evaluator;
 
 use constant RECOGNIZER  => 0;
 use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
@@ -374,8 +374,8 @@ sub set_actions {
         }
 
         my $rule_datum;
-        $rule_datum->[Marpa::Bocage::Internal::Evaluator::Rule::CODE] = $code;
-        $rule_datum->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE] =
+        $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CODE] = $code;
+        $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE] =
             $closure;
 
         my $id = $rule->[Parse::Marpa::Internal::Rule::ID];
@@ -387,7 +387,7 @@ sub set_actions {
 
 }    # set_actions
 
-sub Marpa::Bocage::Evaluator::new {
+sub Parse::Marpa::Evaluator::new {
     my $class         = shift;
     my $recognizer    = shift;
     my $parse_set_arg = shift;
@@ -432,8 +432,8 @@ sub Marpa::Bocage::Evaluator::new {
     my $default_parse_set =
         $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 
-    $self->[Marpa::Bocage::Internal::Evaluator::PARSE_COUNT] = 0;
-    $self->[Marpa::Bocage::Internal::Evaluator::OR_NODES]    = [];
+    $self->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
+    $self->[Parse::Marpa::Internal::Evaluator::OR_NODES]    = [];
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
 
@@ -461,17 +461,17 @@ sub Marpa::Bocage::Evaluator::new {
         ]
         = ( $start_item, $current_parse_set );
 
-    $self->[Marpa::Bocage::Internal::Evaluator::RECOGNIZER] = $recognizer;
+    $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
     state $parse_number = 0;
-    my $package = $self->[Marpa::Bocage::Internal::Evaluator::PACKAGE] =
+    my $package = $self->[Parse::Marpa::Internal::Evaluator::PACKAGE] =
         sprintf 'Parse::Marpa::E_%x', $parse_number++;
     my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
     defined $preamble and run_preamble( $preamble, $package );
     my $null_values =
-        $self->[Marpa::Bocage::Internal::Evaluator::NULL_VALUES] =
+        $self->[Parse::Marpa::Internal::Evaluator::NULL_VALUES] =
         set_null_values( $grammar, $package );
-    my $rule_data = $self->[Marpa::Bocage::Internal::Evaluator::RULE_DATA] =
+    my $rule_data = $self->[Parse::Marpa::Internal::Evaluator::RULE_DATA] =
         set_actions( $grammar, $package );
 
     my $start_symbol = $start_rule->[Parse::Marpa::Internal::Rule::LHS];
@@ -487,25 +487,27 @@ sub Marpa::Bocage::Evaluator::new {
 
         my $closure =
             $rule_data->[ $start_rule->[Parse::Marpa::Internal::Rule::ID] ]
-            ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
+            ->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE];
 
         @{$and_node}[
-            Marpa::Bocage::Internal::And_Node::VALUE_REF,
-            Marpa::Bocage::Internal::And_Node::CLOSURE,
-            Marpa::Bocage::Internal::And_Node::ARGC,
-            Marpa::Bocage::Internal::And_Node::RULE,
+            Parse::Marpa::Internal::And_Node::VALUE_REF,
+            Parse::Marpa::Internal::And_Node::CLOSURE,
+            Parse::Marpa::Internal::And_Node::ARGC,
+            Parse::Marpa::Internal::And_Node::RULE,
+            Parse::Marpa::Internal::And_Node::POSITION,
             ]
             = (
             \$start_null_value,
             $closure,
             ( scalar @{ $start_rule->[Parse::Marpa::Internal::Rule::RHS] } ),
             $start_rule,
+	    0,
             );
 
         my $or_node = [];
-        $or_node->[Marpa::Bocage::Internal::Or_Node::NAME] =
+        $or_node->[Parse::Marpa::Internal::Or_Node::NAME] =
             $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
-        $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES] = [$and_node];
+        $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = [$and_node];
 
         $self->[OR_NODES] = [$or_node];
 
@@ -520,10 +522,10 @@ sub Marpa::Bocage::Evaluator::new {
         my $name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
         my $symbol_id = $start_symbol->[Parse::Marpa::Internal::Symbol::ID];
         $name .= 'L' . $symbol_id;
-        $start_sapling->[Marpa::Bocage::Internal::Sapling::NAME] = $name;
+        $start_sapling->[Parse::Marpa::Internal::Sapling::NAME] = $name;
     }
-    $start_sapling->[Marpa::Bocage::Internal::Sapling::ITEM] = $start_item;
-    $start_sapling->[Marpa::Bocage::Internal::Sapling::SYMBOL] =
+    $start_sapling->[Parse::Marpa::Internal::Sapling::ITEM] = $start_item;
+    $start_sapling->[Parse::Marpa::Internal::Sapling::SYMBOL] =
         $start_symbol;
     push @saplings, $start_sapling;
 
@@ -532,11 +534,11 @@ sub Marpa::Bocage::Evaluator::new {
 
         my ( $sapling_name, $item, $symbol, $rule, $position ) =
             @{ $saplings[ $i++ ] }[
-            Marpa::Bocage::Internal::Sapling::NAME,
-            Marpa::Bocage::Internal::Sapling::ITEM,
-            Marpa::Bocage::Internal::Sapling::SYMBOL,
-            Marpa::Bocage::Internal::Sapling::RULE,
-            Marpa::Bocage::Internal::Sapling::POSITION,
+            Parse::Marpa::Internal::Sapling::NAME,
+            Parse::Marpa::Internal::Sapling::ITEM,
+            Parse::Marpa::Internal::Sapling::SYMBOL,
+            Parse::Marpa::Internal::Sapling::RULE,
+            Parse::Marpa::Internal::Sapling::POSITION,
             ];
 
         last SAPLING unless defined $item;
@@ -568,7 +570,7 @@ sub Marpa::Bocage::Evaluator::new {
                 my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
                 my $closure =
                     $rule_data->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
-                    ->[Marpa::Bocage::Internal::Evaluator::Rule::CLOSURE];
+                    ->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE];
 
                 my $last_position = $#{$rhs};
                 push @rule_work_list,
@@ -637,10 +639,10 @@ sub Marpa::Bocage::Evaluator::new {
 
                         my $sapling = [];
                         @{$sapling}[
-                            Marpa::Bocage::Internal::Sapling::NAME,
-                            Marpa::Bocage::Internal::Sapling::RULE,
-                            Marpa::Bocage::Internal::Sapling::POSITION,
-                            Marpa::Bocage::Internal::Sapling::ITEM,
+                            Parse::Marpa::Internal::Sapling::NAME,
+                            Parse::Marpa::Internal::Sapling::RULE,
+                            Parse::Marpa::Internal::Sapling::POSITION,
+                            Parse::Marpa::Internal::Sapling::ITEM,
                             ]
                             = (
                             $predecessor_name, $rule, $position - 1,
@@ -671,11 +673,11 @@ sub Marpa::Bocage::Evaluator::new {
 
                         my $sapling = [];
                         @{$sapling}[
-                            Marpa::Bocage::Internal::Sapling::NAME,
-                            Marpa::Bocage::Internal::Sapling::SYMBOL,
-                            Marpa::Bocage::Internal::Sapling::ITEM,
+                            Parse::Marpa::Internal::Sapling::NAME,
+                            Parse::Marpa::Internal::Sapling::SYMBOL,
+                            Parse::Marpa::Internal::Sapling::ITEM,
                             ]
-                            = ( $cause_name, $symbol, $cause );
+                            = ( $cause_name, $symbol, $cause, );
 
                         push @saplings, $sapling;
 
@@ -685,16 +687,17 @@ sub Marpa::Bocage::Evaluator::new {
 
                 my $and_node = [];
                 @{$and_node}[
-                    Marpa::Bocage::Internal::And_Node::PREDECESSOR,
-                    Marpa::Bocage::Internal::And_Node::CAUSE,
-                    Marpa::Bocage::Internal::And_Node::VALUE_REF,
-                    Marpa::Bocage::Internal::And_Node::CLOSURE,
-                    Marpa::Bocage::Internal::And_Node::ARGC,
-                    Marpa::Bocage::Internal::And_Node::RULE,
+                    Parse::Marpa::Internal::And_Node::PREDECESSOR,
+                    Parse::Marpa::Internal::And_Node::CAUSE,
+                    Parse::Marpa::Internal::And_Node::VALUE_REF,
+                    Parse::Marpa::Internal::And_Node::CLOSURE,
+                    Parse::Marpa::Internal::And_Node::ARGC,
+                    Parse::Marpa::Internal::And_Node::RULE,
+                    Parse::Marpa::Internal::And_Node::POSITION,
                     ]
                     = (
                     $predecessor_name, $cause_name, $value_ref, $closure,
-                    $rule_length, $rule,
+                    $rule_length, $rule, $position,
                     );
 
                 push @and_nodes, $and_node;
@@ -704,8 +707,8 @@ sub Marpa::Bocage::Evaluator::new {
         }    # RULE
 
         my $or_node = [];
-        $or_node->[Marpa::Bocage::Internal::Or_Node::NAME] = $sapling_name;
-        $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES] = \@and_nodes;
+        $or_node->[Parse::Marpa::Internal::Or_Node::NAME] = $sapling_name;
+        $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
         push @{ $self->[OR_NODES] }, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
 
@@ -713,13 +716,13 @@ sub Marpa::Bocage::Evaluator::new {
 
     # resolve links in the bocage
     for my $and_node (
-        map { @{ $_->[Marpa::Bocage::Internal::Or_Node::AND_NODES] } }
+        map { @{ $_->[Parse::Marpa::Internal::Or_Node::AND_NODES] } }
         @{ $self->[OR_NODES] } )
     {
         FIELD:
         for my $field (
-            Marpa::Bocage::Internal::And_Node::PREDECESSOR,
-            Marpa::Bocage::Internal::And_Node::CAUSE,
+            Parse::Marpa::Internal::And_Node::PREDECESSOR,
+            Parse::Marpa::Internal::And_Node::CAUSE,
             )
         {
             my $name = $and_node->[$field];
@@ -738,9 +741,9 @@ sub Parse::Marpa::show_bocage {
     my $verbose = shift;
 
     my ( $parse_count, $or_nodes, $package, ) = @{$evaler}[
-        Marpa::Bocage::Internal::Evaluator::PARSE_COUNT,
-        Marpa::Bocage::Internal::Evaluator::OR_NODES,
-        Marpa::Bocage::Internal::Evaluator::PACKAGE,
+        Parse::Marpa::Internal::Evaluator::PARSE_COUNT,
+        Parse::Marpa::Internal::Evaluator::OR_NODES,
+        Parse::Marpa::Internal::Evaluator::PACKAGE,
     ];
 
     local $Data::Dumper::Terse = 1;
@@ -750,31 +753,31 @@ sub Parse::Marpa::show_bocage {
 
     for my $or_node ( @{ $evaler->[OR_NODES] } ) {
 
-        my $lhs = $or_node->[Marpa::Bocage::Internal::Or_Node::NAME];
+        my $lhs = $or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 
         for my $and_node (
-            @{ $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES] } )
+            @{ $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] } )
         {
 
             my ( $predecessor, $cause, $value_ref, $closure, $argc, $rule, ) =
                 @{$and_node}[
-                Marpa::Bocage::Internal::And_Node::PREDECESSOR,
-                Marpa::Bocage::Internal::And_Node::CAUSE,
-                Marpa::Bocage::Internal::And_Node::VALUE_REF,
-                Marpa::Bocage::Internal::And_Node::CLOSURE,
-                Marpa::Bocage::Internal::And_Node::ARGC,
-                Marpa::Bocage::Internal::And_Node::RULE,
+                Parse::Marpa::Internal::And_Node::PREDECESSOR,
+                Parse::Marpa::Internal::And_Node::CAUSE,
+                Parse::Marpa::Internal::And_Node::VALUE_REF,
+                Parse::Marpa::Internal::And_Node::CLOSURE,
+                Parse::Marpa::Internal::And_Node::ARGC,
+                Parse::Marpa::Internal::And_Node::RULE,
                 ];
 
             my @rhs = ();
 
             if ($predecessor) {
                 push @rhs,
-                    $predecessor->[Marpa::Bocage::Internal::Or_Node::NAME];
+                    $predecessor->[Parse::Marpa::Internal::Or_Node::NAME];
             }    # predecessor
 
             if ($cause) {
-                push @rhs, $cause->[Marpa::Bocage::Internal::Or_Node::NAME];
+                push @rhs, $cause->[Parse::Marpa::Internal::Or_Node::NAME];
             }    # cause
 
             if ( defined $value_ref ) {
@@ -807,7 +810,7 @@ sub Parse::Marpa::show_tree {
     my $evaler  = shift;
     my $verbose = shift;
 
-    my ( $tree, ) = @{$evaler}[ Marpa::Bocage::Internal::Evaluator::TREE, ];
+    my ( $tree, ) = @{$evaler}[ Parse::Marpa::Internal::Evaluator::TREE, ];
 
     local $Data::Dumper::Terse = 1;
 
@@ -817,38 +820,38 @@ sub Parse::Marpa::show_tree {
 
         my ($or_node, $choice,    $predecessor,
             $cause,   $depth,     $closure,
-            $argc,    $value_ref, $rule
-            )
-            = @{$tree_node}[
-            Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-            Marpa::Bocage::Internal::Tree_Node::CHOICE,
-            Marpa::Bocage::Internal::Tree_Node::PREDECESSOR,
-            Marpa::Bocage::Internal::Tree_Node::CAUSE,
-            Marpa::Bocage::Internal::Tree_Node::DEPTH,
-            Marpa::Bocage::Internal::Tree_Node::CLOSURE,
-            Marpa::Bocage::Internal::Tree_Node::ARGC,
-            Marpa::Bocage::Internal::Tree_Node::VALUE_REF,
-            Marpa::Bocage::Internal::Tree_Node::RULE,
-            ];
+            $argc,    $value_ref, $rule,
+	    $position,
+	) = @{$tree_node}[
+            Parse::Marpa::Internal::Tree_Node::OR_NODE,
+            Parse::Marpa::Internal::Tree_Node::CHOICE,
+            Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
+            Parse::Marpa::Internal::Tree_Node::CAUSE,
+            Parse::Marpa::Internal::Tree_Node::DEPTH,
+            Parse::Marpa::Internal::Tree_Node::CLOSURE,
+            Parse::Marpa::Internal::Tree_Node::ARGC,
+            Parse::Marpa::Internal::Tree_Node::VALUE_REF,
+            Parse::Marpa::Internal::Tree_Node::RULE,
+            Parse::Marpa::Internal::Tree_Node::POSITION,
+	];
 
         $text
             .= 'Tree Node: '
-            . $or_node->[Marpa::Bocage::Internal::Or_Node::NAME]
-            . "[$choice]\n";
+            . $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
+            . "[$choice]"
+            . "; Depth=$depth; Argc=$argc\n";
         $text
             .= '    Rule: '
-            . Parse::Marpa::brief_rule($rule)
-            . "; Depth=$depth; Argc=$argc\n";
-
+            . Parse::Marpa::show_dotted_rule($rule, $position);
         $text
             .= '    Predecessor: '
-            . $predecessor->[Marpa::Bocage::Internal::Tree_Node::OR_NODE]
-		->[Marpa::Bocage::Internal::Or_Node::NAME] . "\n"
+            . $predecessor->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $predecessor;
         $text
             .= '    Cause: '
-            . $cause->[Marpa::Bocage::Internal::Tree_Node::OR_NODE]
-		->[Marpa::Bocage::Internal::Or_Node::NAME] . "\n"
+            . $cause->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
+		->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $cause;
         if ( $verbose and defined $value_ref ) {
             $text .= '    Value: ' . Dumper( ${$value_ref} );
@@ -875,16 +878,16 @@ sub test_closure2 {
 
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
-sub Marpa::Bocage::Evaluator::next {
+sub Parse::Marpa::Evaluator::next {
 ## use critic
 
     my $evaler = shift;
     my $recognizer =
-        $evaler->[Marpa::Bocage::Internal::Evaluator::RECOGNIZER];
+        $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
     croak('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
-    my $right_class  = 'Marpa::Bocage::Evaluator';
+    my $right_class  = 'Parse::Marpa::Evaluator';
     croak(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
@@ -912,15 +915,15 @@ sub Marpa::Bocage::Evaluator::next {
     local ($Data::Dumper::Terse) = 1;
 
     my ( $bocage, $tree, $rule_data, $null_values ) = @{$evaler}[
-        Marpa::Bocage::Internal::Evaluator::OR_NODES,
-        Marpa::Bocage::Internal::Evaluator::TREE,
-        Marpa::Bocage::Internal::Evaluator::RULE_DATA,
-        Marpa::Bocage::Internal::Evaluator::NULL_VALUES,
+        Parse::Marpa::Internal::Evaluator::OR_NODES,
+        Parse::Marpa::Internal::Evaluator::TREE,
+        Parse::Marpa::Internal::Evaluator::RULE_DATA,
+        Parse::Marpa::Internal::Evaluator::NULL_VALUES,
     ];
 
     my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
     my $parse_count =
-        $evaler->[Marpa::Bocage::Internal::Evaluator::PARSE_COUNT]++;
+        $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
         croak("Maximum parse count ($max_parses) exceeded");
     }
@@ -930,7 +933,7 @@ sub Marpa::Bocage::Evaluator::next {
 
         # When called the first time, create the tree
         when (0) {
-            $evaler->[Marpa::Bocage::Internal::Evaluator::TREE] = $tree = [];
+            $evaler->[Parse::Marpa::Internal::Evaluator::TREE] = $tree = [];
         }
 
         # If we are called with empty tree, we've
@@ -958,13 +961,13 @@ sub Marpa::Bocage::Evaluator::next {
             $tree_position++;
 
             my ( $choice, $or_node, $depth ) = @{$node}[
-                Marpa::Bocage::Internal::Tree_Node::CHOICE,
-                Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                Marpa::Bocage::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::CHOICE,
+                Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                Parse::Marpa::Internal::Tree_Node::DEPTH,
             ];
 
             my $and_nodes =
-                $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES];
+                $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
 
             $choice++;
 
@@ -978,15 +981,15 @@ sub Marpa::Bocage::Evaluator::next {
                     'Iteration ',
                     $choice,
                     ' tree node ',
-                    $or_node->[Marpa::Bocage::Internal::Or_Node::NAME],
+                    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
                     or croak('print to trace handle failed');
             }
 
             my $new_tree_node;
             @{$new_tree_node}[
-                Marpa::Bocage::Internal::Tree_Node::CHOICE,
-                Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                Marpa::Bocage::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::CHOICE,
+                Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                Parse::Marpa::Internal::Tree_Node::DEPTH,
                 ]
                 = ( $choice, $or_node, $depth, );
             push @traversal_stack, $new_tree_node;
@@ -1029,8 +1032,8 @@ sub Marpa::Bocage::Evaluator::next {
 
             my $new_tree_node;
             @{$new_tree_node}[
-                Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                Marpa::Bocage::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                Parse::Marpa::Internal::Tree_Node::DEPTH,
                 ]
                 = ( $bocage->[0], 0, );
             @traversal_stack = ($new_tree_node);
@@ -1053,32 +1056,33 @@ sub Marpa::Bocage::Evaluator::next {
             my $new_tree_node = pop @traversal_stack;
 
             my ( $or_node, $choice, $depth ) = @{$new_tree_node}[
-                Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                Marpa::Bocage::Internal::Tree_Node::CHOICE,
-                Marpa::Bocage::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                Parse::Marpa::Internal::Tree_Node::CHOICE,
+                Parse::Marpa::Internal::Tree_Node::DEPTH,
             ];
             $choice //= 0;
 
             my $and_node =
-                $or_node->[Marpa::Bocage::Internal::Or_Node::AND_NODES]
+                $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES]
                 ->[$choice];
 
             my ( $predecessor_or_node, $cause_or_node, $closure, $argc,
-                $value_ref, $rule, )
+                $value_ref, $rule, $position, )
                 = @{$and_node}[
-                Marpa::Bocage::Internal::And_Node::PREDECESSOR,
-                Marpa::Bocage::Internal::And_Node::CAUSE,
-                Marpa::Bocage::Internal::And_Node::CLOSURE,
-                Marpa::Bocage::Internal::And_Node::ARGC,
-                Marpa::Bocage::Internal::And_Node::VALUE_REF,
-                Marpa::Bocage::Internal::And_Node::RULE,
+                Parse::Marpa::Internal::And_Node::PREDECESSOR,
+                Parse::Marpa::Internal::And_Node::CAUSE,
+                Parse::Marpa::Internal::And_Node::CLOSURE,
+                Parse::Marpa::Internal::And_Node::ARGC,
+                Parse::Marpa::Internal::And_Node::VALUE_REF,
+                Parse::Marpa::Internal::And_Node::RULE,
+                Parse::Marpa::Internal::And_Node::POSITION,
                 ];
 
             my $predecessor_tree_node;
             if ( defined $predecessor_or_node ) {
                 @{$predecessor_tree_node}[
-                    Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                    Marpa::Bocage::Internal::Tree_Node::DEPTH
+                    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                    Parse::Marpa::Internal::Tree_Node::DEPTH
                     ]
                     = ( $predecessor_or_node, $depth + 1, );
             }
@@ -1086,24 +1090,25 @@ sub Marpa::Bocage::Evaluator::next {
             my $cause_tree_node;
             if ( defined $cause_or_node ) {
                 @{$cause_tree_node}[
-                    Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                    Marpa::Bocage::Internal::Tree_Node::DEPTH
+                    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                    Parse::Marpa::Internal::Tree_Node::DEPTH
                     ]
                     = ( $cause_or_node, $depth + 1, );
             }
 
             @{$new_tree_node}[
-                Marpa::Bocage::Internal::Tree_Node::CHOICE,
-                Marpa::Bocage::Internal::Tree_Node::PREDECESSOR,
-                Marpa::Bocage::Internal::Tree_Node::CAUSE,
-                Marpa::Bocage::Internal::Tree_Node::CLOSURE,
-                Marpa::Bocage::Internal::Tree_Node::ARGC,
-                Marpa::Bocage::Internal::Tree_Node::RULE,
-                Marpa::Bocage::Internal::Tree_Node::VALUE_REF,
+                Parse::Marpa::Internal::Tree_Node::CHOICE,
+                Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
+                Parse::Marpa::Internal::Tree_Node::CAUSE,
+                Parse::Marpa::Internal::Tree_Node::CLOSURE,
+                Parse::Marpa::Internal::Tree_Node::ARGC,
+                Parse::Marpa::Internal::Tree_Node::RULE,
+                Parse::Marpa::Internal::Tree_Node::VALUE_REF,
+                Parse::Marpa::Internal::Tree_Node::POSITION,
                 ]
                 = (
                 $choice, $predecessor_tree_node, $cause_tree_node, $closure,
-                $argc, $rule, $value_ref,
+                $argc, $rule, $value_ref, $position,
                 );
 
             if ($trace_iteration_changes) {
@@ -1112,8 +1117,10 @@ sub Marpa::Bocage::Evaluator::next {
                     if defined $value_ref;
                 print {$trace_fh}
                     'Pushing tree node ',
-                    $or_node->[Marpa::Bocage::Internal::Or_Node::NAME],
-                    ': ', Parse::Marpa::brief_rule($rule), $value_description
+                    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    "[$choice]: ",
+                    Parse::Marpa::show_dotted_rule($rule, $position),
+		    $value_description
                     or croak('print to trace handle failed');
             }
 
@@ -1133,9 +1140,9 @@ sub Marpa::Bocage::Evaluator::next {
         TREE_NODE: for my $node ( reverse @{$tree} ) {
 
             my ( $closure, $value_ref, $argc ) = @{$node}[
-                Marpa::Bocage::Internal::Tree_Node::CLOSURE,
-                Marpa::Bocage::Internal::Tree_Node::VALUE_REF,
-                Marpa::Bocage::Internal::Tree_Node::ARGC,
+                Parse::Marpa::Internal::Tree_Node::CLOSURE,
+                Parse::Marpa::Internal::Tree_Node::VALUE_REF,
+                Parse::Marpa::Internal::Tree_Node::ARGC,
             ];
 
             if ( defined $value_ref ) {
@@ -1154,14 +1161,14 @@ sub Marpa::Bocage::Evaluator::next {
 
                 if ($trace_values) {
                     my ( $or_node, $rule ) = @{$node}[
-                        Marpa::Bocage::Internal::Tree_Node::OR_NODE,
-                        Marpa::Bocage::Internal::Tree_Node::RULE,
+                        Parse::Marpa::Internal::Tree_Node::OR_NODE,
+                        Parse::Marpa::Internal::Tree_Node::RULE,
                     ];
                     say {$trace_fh}
                         'Popping ',
                         $argc,
                         ' values to evaluate ',
-                        $or_node->[Marpa::Bocage::Internal::Or_Node::NAME],
+                        $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
                         ', rule: ',
                         Parse::Marpa::brief_rule($rule);
                 }
@@ -1188,12 +1195,12 @@ sub Marpa::Bocage::Evaluator::next {
                     my $fatal_error = $EVAL_ERROR;
                     if ( $fatal_error or @warnings ) {
                         my $rule =
-                            $node->[ Marpa::Bocage::Internal::Tree_Node::RULE,
+                            $node->[ Parse::Marpa::Internal::Tree_Node::RULE,
                             ];
                         my $code =
                             $rule_data
                             ->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
-                            ->[Marpa::Bocage::Internal::Evaluator::Rule::CODE
+                            ->[Parse::Marpa::Internal::Evaluator::Rule::CODE
                             ];
 			say {$trace_fh}
 			    'Problems computing value for original rule: ',
@@ -1237,7 +1244,7 @@ __END__
 
 =head1 NAME
 
-Marpa::Bocage::Evaluator - Marpa Evaluator Objects
+Parse::Marpa::Evaluator - Marpa Evaluator Objects
 
 =head1 SYNOPSIS
 
@@ -1246,7 +1253,7 @@ Marpa::Bocage::Evaluator - Marpa Evaluator Objects
     my $fail_offset = $recce->text(\("2-0*3+1"));
     croak("Parse failed at offset $fail_offset") if $fail_offset >= 0;
 
-    my $evaler = new Marpa::Bocage::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator($recce);
 
     for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
         croak("Ambiguous parse has extra value: ", $$value, "\n")
@@ -1499,11 +1506,11 @@ the value of the parse.
 
 =head2 new
 
-    my $evaler = new Marpa::Bocage::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator($recce);
 
 Z<>
 
-    my $evaler = new Marpa::Bocage::Evaluator($recce, $location);
+    my $evaler = new Parse::Marpa::Evaluator($recce, $location);
 
 Creates an evaluator object.
 On success, returns the evaluator object.

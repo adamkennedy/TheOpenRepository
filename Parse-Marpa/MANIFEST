@@ -23,7 +23,6 @@ lib/Parse/Marpa/Doc/To_Do.pod
 lib/Parse/Marpa/Doc/Undocumented.pod
 lib/Parse/Marpa/Lex.pm
 lib/Parse/Marpa/MDL.pm
-etc/bocage/Marpa/Bocage/Evaluator.pm
 lib/Parse/Marpa/Grammar.pm
 lib/Parse/Marpa/Evaluator.pm
 lib/Parse/Marpa/Recognizer.pm
