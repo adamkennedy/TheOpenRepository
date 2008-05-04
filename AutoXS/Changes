@@ -1,13 +1,13 @@
 Revision history for Perl extension AutoXS and AutoXS::Accessor.
 
-0.05  Sun May  5 20:31 2008
-        - Add missing dependency on B::Generate. (Thanks Vincent Pit)
-
-0.04  Fri Apr  4 17:09 2008
+0.05  Sun May  5 21:00 2008
         - Package scanning now part of AutoXS module.
         - Tests.
         - Split Accessor.pm into Getter.pm and Setter.pm.
         - Accessor.pm is now a proxy for loading both modules.
+
+0.04  Sun May  5 20:31 2008
+        - Add missing dependency on B::Generate. (Thanks Vincent Pit)
 
 0.03  Fri Apr  4 17:09 2008
         - Depend on B::Utils 0.05_06.
