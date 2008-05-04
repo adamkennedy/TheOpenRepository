@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoXS::Header.
 
+0.04  Sun May  4 19:01 2008
+        - Doh. Make Synopsis work anywhere at all.
+
 0.03  Sun May  4 19:00 2008
         - Change Synopsis to work on win32.
 

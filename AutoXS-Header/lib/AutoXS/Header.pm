@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 sub WriteAutoXSHeader {
   my $filename = shift;
@@ -78,7 +78,7 @@ AutoXS::Header - Container for the AutoXS header files
     # Write header as AutoXS.h in current directory
     return <<'MAKE_FRAG';
   linkext ::
-          $(PERL) -MAutoXS::Header -e AutoXS::Header::WriteAutoXSHeader()
+          $(PERL) -MAutoXS::Header -e AutoXS::Header::WriteAutoXSHeader
   # note the tab character in the previous line!
 
   MAKE_FRAG
