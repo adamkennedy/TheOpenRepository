@@ -329,7 +329,22 @@ sub set_actions {
 
         }    # ACTION
 
-        next RULE unless defined $action;
+        my $rule_id = $rule->[Parse::Marpa::Internal::Rule::ID];
+
+	if (not defined $action) {
+
+	    if ($trace_actions) {
+		print {$trace_fh} 'Setting action for rule ',
+		    Parse::Marpa::brief_rule($rule), " to undef by default\n"
+		    or croak('Could not print to trace file');
+	    }
+
+	    my $rule_datum;
+	    $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CODE] = "default to undef";
+	    $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE] = \undef;
+	    $rule_data->[$rule_id] = $rule_datum;
+	    next RULE;
+	}
 
         my $code =
               "sub {\n"
@@ -378,8 +393,7 @@ sub set_actions {
         $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE] =
             $closure;
 
-        my $id = $rule->[Parse::Marpa::Internal::Rule::ID];
-	$rule_data->[$id] = $rule_datum;
+	$rule_data->[$rule_id] = $rule_datum;
 
     }    # RULE
 
@@ -868,16 +882,6 @@ sub Parse::Marpa::show_tree {
 
 }
 
-sub test_closure2 {
-    my @value = @_;
-    given ( scalar @value ) {
-        when (0) { return q{} }
-        when (1) { return $value[0] }
-        default { return '(' . ( join q{;}, @value ) . ')' };
-    }
-    return;
-}
-
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
 sub Parse::Marpa::Evaluator::next {
@@ -1159,28 +1163,31 @@ sub Parse::Marpa::Evaluator::next {
 
             }    # defined $value_ref
 
-            if ( defined $closure ) {
+	    next TREE_NODE unless defined $closure;
 
-                if ($trace_values) {
-                    my ( $or_node, $rule ) = @{$node}[
-                        Parse::Marpa::Internal::Tree_Node::OR_NODE,
-                        Parse::Marpa::Internal::Tree_Node::RULE,
-                    ];
-                    say {$trace_fh}
-                        'Popping ',
-                        $argc,
-                        ' values to evaluate ',
-                        $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
-                        ', rule: ',
-                        Parse::Marpa::brief_rule($rule);
-                }
+	    if ($trace_values) {
+		my ( $or_node, $rule ) = @{$node}[
+		    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		    Parse::Marpa::Internal::Tree_Node::RULE,
+		];
+		say {$trace_fh}
+		    'Popping ',
+		    $argc,
+		    ' values to evaluate ',
+		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    ', rule: ',
+		    Parse::Marpa::brief_rule($rule);
+	    }
 
-                my $args =
-                    [ map { ${$_} } ( splice @evaluation_stack, -$argc ) ];
+	    my $args =
+		[ map { ${$_} } ( splice @evaluation_stack, -$argc ) ];
 
-                # my $closure = \&test_closure2;
+	    my $result;
 
-                my $result;
+	    my $closure_type = ref $closure;
+
+	    if ($closure_type eq 'CODE') {
+
                 {
                     my @warnings;
                     my @caller_return;
@@ -1219,14 +1226,26 @@ sub Parse::Marpa::Evaluator::next {
                     }
                 }
 
-                if ($trace_values) {
-                    print {$trace_fh} 'Calculated and pushed value: ',
-                        Dumper($result)
-                        or croak('print to trace handle failed');
-                }
+            } # when CODE
 
-                push @evaluation_stack, \$result;
-            }
+	    # don't document this behavior -- I'll probably want to
+	    # use non-reference "closure" values for special hacks
+	    # in the future.
+	    elsif ($closure_type eq q{}) { # when not reference
+	        $result = $closure;
+	    } # when not reference
+
+	    else { # when non-code reference
+	        $result = ${$closure};
+	    } # when non-code reference
+
+	    if ($trace_values) {
+		print {$trace_fh} 'Calculated and pushed value: ',
+		    Dumper($result)
+		    or croak('print to trace handle failed');
+	    }
+
+	    push @evaluation_stack, \$result;
 
         }    # TREE_NODE
 
