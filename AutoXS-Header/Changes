@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoXS::Header.
 
+0.03  Sun May  4 19:00 2008
+        - Change Synopsis to work on win32.
+
 0.02  Sat May  3 19:00 2008
         - integer storage for Class::XSAccessor::Array.
 
