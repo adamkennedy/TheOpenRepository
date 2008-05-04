@@ -7,6 +7,7 @@ WriteMakefile(
     VERSION_FROM      => 'lib/AutoXS.pm', # finds $VERSION
     PREREQ_PM         => {
       'B::Utils' => '0.05_09',
+      'B::Generate' => '0',
       'Class::XSAccessor' => '0.02',
     }, # e.g., Module::Name => 1.1
     LICENSE => 'perl',
