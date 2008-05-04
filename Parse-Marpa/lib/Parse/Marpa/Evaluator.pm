@@ -552,7 +552,7 @@ sub Parse::Marpa::Evaluator::new {
         if ( defined $position ) {
 
             my $symbol =
-                $rule->[Parse::Marpa::Internal::Rule::RHS]->[$position];
+                $rule->[Parse::Marpa::Internal::Rule::RHS]->[$position-1];
             push @rule_work_list, [ $rule, $position, $symbol ];
 
         }
@@ -572,11 +572,11 @@ sub Parse::Marpa::Evaluator::new {
                     $rule_data->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
                     ->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE];
 
-                my $last_position = $#{$rhs};
+                my $last_position = @{$rhs};
                 push @rule_work_list,
                     [
                     $rule,                  $last_position,
-                    $rhs->[$last_position], $closure
+                    $rhs->[$last_position-1], $closure
                     ];
 
             }    # for my $rule
@@ -625,13 +625,12 @@ sub Parse::Marpa::Evaluator::new {
 
                 my $predecessor_name;
 
-                if ( $position > 0 ) {
+                if ( $position > 1 ) {
 
                     $predecessor_name =
                         $predecessor
-                        ->[Parse::Marpa::Internal::Earley_item::NAME] . 'R'
-                        . $rule_id . q{:}
-                        . ( $position - 1 );
+                        ->[Parse::Marpa::Internal::Earley_item::NAME]
+			. "R$rule_id:$position";
 
                     unless ( $predecessor_name ~~ %or_node_by_name ) {
 
@@ -759,15 +758,17 @@ sub Parse::Marpa::show_bocage {
             @{ $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] } )
         {
 
-            my ( $predecessor, $cause, $value_ref, $closure, $argc, $rule, ) =
-                @{$and_node}[
+            my ( $predecessor, $cause, $value_ref, $closure,
+		$argc, $rule, $position,
+	    ) = @{$and_node}[
                 Parse::Marpa::Internal::And_Node::PREDECESSOR,
                 Parse::Marpa::Internal::And_Node::CAUSE,
                 Parse::Marpa::Internal::And_Node::VALUE_REF,
                 Parse::Marpa::Internal::And_Node::CLOSURE,
                 Parse::Marpa::Internal::And_Node::ARGC,
                 Parse::Marpa::Internal::And_Node::RULE,
-                ];
+                Parse::Marpa::Internal::And_Node::POSITION,
+	    ];
 
             my @rhs = ();
 
@@ -789,7 +790,7 @@ sub Parse::Marpa::show_bocage {
             $text .= $lhs . ' ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
-                $text .= '    rule=' . Parse::Marpa::brief_rule($rule) . "\n";
+                $text .= '    rule=' . Parse::Marpa::show_dotted_rule($rule, $position) . "\n";
                 $text .= '    argc=' . $argc;
                 if ( defined $closure ) {
                     $text .= '; closure=' . Dumper($closure);
@@ -842,7 +843,8 @@ sub Parse::Marpa::show_tree {
             . "; Depth=$depth; Argc=$argc\n";
         $text
             .= '    Rule: '
-            . Parse::Marpa::show_dotted_rule($rule, $position);
+            . Parse::Marpa::show_dotted_rule($rule, $position)
+	    . "\n";
         $text
             .= '    Predecessor: '
             . $predecessor->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
