@@ -1,8 +1,11 @@
 Revision history for Perl extension Module::Manifest
 
+0.03 Mon  5 May 2008
+	- Upgrading Module::Install
+	- Fixing a broken META.yml
+
 0.02 Mon 25 Sep 2006
 	- Fixing a major POD bug (got the name wrong) :(
-	- Upgrading to Module::Install 0.72
 
 0.01 Sun 24 Sep 2006
 	- original version
