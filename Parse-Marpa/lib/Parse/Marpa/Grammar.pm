@@ -1901,13 +1901,9 @@ sub add_rules_from_hash {
                 }
             }
 
-            # no change to @_ needed for action
             if ( defined $separator_name and not $keep_separation ) {
-                $action = q{ $_ = [
-                        @{$_}[
-                           grep { !($_ % 2) } (0 .. $#{$_})
-                        ]
-                    }
+                $action = q{ @_ = ( @_[ grep { !($_ % 2) } (0 .. $#_) ) }
+		    . 'local $_ = \@_;'
                     . $action;
             }
             $new_rule =
@@ -1944,7 +1940,7 @@ sub add_rules_from_hash {
         given ($action) {
             when (undef) { $rule_action = undef }
             default {
-                $rule_action = q{ $_ = []; } . $action;
+                $rule_action = q{ @_ = (); local $_ = \@_; } . $action;
             }
         }
         add_user_rule( $grammar, $lhs_name, [], $rule_action,
@@ -2011,10 +2007,11 @@ sub add_rules_from_hash {
                 # more efficient way to do this?
                 $rule_action = q{
                     HEAD: for (;;) {
-                        my $head = shift @{$_};
+                        my $head = shift @_;
                         last HEAD unless scalar @{$head};
-                        unshift(@{$_}, @{$head});
+                        unshift(@_, @{$head});
                     }
+		    local $_ = \@_;
                 }
             }
             else {
@@ -2027,7 +2024,7 @@ sub add_rules_from_hash {
         (pack 'NN', $user_priority, 0 ) );
     if ( defined $separator and not $proper_separation ) {
         unless ($keep_separation) {
-            $rule_action = q{ pop @{$_}; } . ( $rule_action // q{} );
+            $rule_action = q{ pop @_; } . ( $rule_action // q{} );
         }
         add_rule( $grammar, $lhs, [ $sequence, $separator, ],
             $rule_action, (pack 'NN', $user_priority, 0 ) );
@@ -2044,16 +2041,16 @@ sub add_rules_from_hash {
             $rule_action = q{
                 [
                     [],
-                    @{$_}[
-                        grep { !($_ % 2) } (0 .. $#{$_})
+                    @_[
+                        grep { !($_ % 2) } (0 .. $#_)
                     ]
                 ]
             }
         }
         else {
             $rule_action = q{
-                unshift(@{$_}, []);
-                $_ 
+                unshift(@_, []);
+                \@_
             }
         }
     }
@@ -2068,13 +2065,13 @@ sub add_rules_from_hash {
     $rule_action = ( defined $separator and not $keep_separation )
         ? q{
             [
-                @{$_}[
-                   grep { !($_ % 2) } (0 .. $#{$_})
+                @_[
+                   grep { !($_ % 2) } (0 .. $#_)
                 ],
             ]
         }
         : q{
-            $_
+            \@_
         };
     my @iterating_rhs = ( @separated_rhs, $sequence );
     if ($left_associative) {
