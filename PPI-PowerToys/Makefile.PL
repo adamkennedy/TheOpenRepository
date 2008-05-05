@@ -10,6 +10,6 @@ requires       'File::Find::Rule::Perl' => '0.03';
 requires       'PPI'                    => '1.201';
 test_requires 'Test::More'             => '0.47';
 test_requires 'Test::Script'           => '1.02';
-install_script 'script/ppi_version';
+install_script 'ppi_version';
 
 WriteAll;

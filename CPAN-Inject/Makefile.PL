@@ -1,4 +1,3 @@
-use strict;
 use inc::Module::Install;
 
 name           'CPAN-Inject';
@@ -17,6 +16,6 @@ test_requires 'Test::Script'    => '1.02';
 test_requires 'File::Remove'    => ($^O eq 'MSWin32')
 	? '0.38'  # 0.36 had lots of Win32 fixes
 	: '0.34'; # No need to be aggressive otherwise
-install_script 'script/cpaninject';
+install_script 'cpaninject';
 
 WriteAll;

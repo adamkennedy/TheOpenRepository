@@ -1,7 +1,6 @@
-
+use strict;
 use ExtUtils::MakeMaker;
 WriteMakefile(
-		NAME	=> 'Hook::LexWrap',
-		VERSION => '0.20',
-
-	     );
+	NAME	=> 'Hook::LexWrap::Compat',
+	VERSION => '0.01',
+);

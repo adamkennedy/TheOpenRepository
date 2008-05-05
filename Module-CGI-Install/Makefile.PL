@@ -23,6 +23,6 @@ test_requires 'Test::More'          => '0.42';
 test_requires 'Test::Script'        => '1.02';
 test_requires 'Test::File::Cleaner' => '0.03';
 test_requires 'URI'                 => '1.35';
-install_script 'script/cgi_install';
+install_script 'cgi_install';
 
 WriteAll;

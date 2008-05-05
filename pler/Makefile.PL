@@ -1,6 +1,5 @@
 use inc::Module::Install;
 
-name           'pler';
 all_from       'lib/pler.pm';
 requires       'Carp'             => 0;
 requires       'blib'             => 0;

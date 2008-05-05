@@ -18,6 +18,6 @@ requires       'Net::IP'                                => 0;
 requires       'Net::IP::Match::XS'                     => '0.03';
 test_requires 'Test::More'                             => '0.47';
 test_requires 'File::Spec'                             => '0.82';
-install_script 'script/ammobot';
+install_script 'ammobot';
 
 WriteAll;

@@ -19,12 +19,12 @@ test_requires 'Test::More'               => '0.42';
 test_requires 'IPC::Run3'                => '0.034';
 test_requires 'File::Copy'               => 0;
 test_requires 'File::Remove'             => '0.37';
-install_script 'script/tinyauth.pl';
+install_script 'tinyauth.pl';
 
 # Generate the script
 print "Generating script/tinyauth...\n";
 if ( generate_tinyauth() ) {
-	install_script 'script/tinyauth';
+	install_script 'tinyauth';
 }
 
 WriteAll;

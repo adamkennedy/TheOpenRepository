@@ -1,4 +1,3 @@
-use strict;
 use inc::Module::Install;
 
 # Because many filesystem modules are buggier

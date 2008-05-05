@@ -1,4 +1,3 @@
-use strict;
 use inc::Module::Install;
 
 my $WIN32 = !! ( $^O eq 'MSWin32' );
@@ -27,7 +26,7 @@ requires       'PAR::Dist'      => '0.25';
 test_requires 'Test::More'     => '0.42';
 test_requires 'Test::Script'   => '1.02';
 test_requires 'LWP::Online'    => '0.02';
-install_script 'script/pip';
+install_script 'pip';
 
 # Required for p5z creation and extraction
 requires       'IO::Zlib'       => 0;
