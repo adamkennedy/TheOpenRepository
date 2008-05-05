@@ -1,5 +1,10 @@
 Revision history for Perl extension CPAN::Mini::Extract
 
+1.18 Mon  5 May 2008
+	- Upgrade CPAN::Mini dependency to get reliable offline mode.
+	- Massive speed improvements from BOTH the faster piplined
+	  HTTP fetch AND hugely faster decompression. 200-300% faster!
+
 1.17 Tue 15 May 2007
 	- Integrating LWP::Online to auto-detect the internet
         - When in offline mode, provide a fake remote param to

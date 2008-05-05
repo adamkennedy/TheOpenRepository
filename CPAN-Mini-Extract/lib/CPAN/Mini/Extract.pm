@@ -53,28 +53,27 @@ maintainer while doing so.
 use 5.006;
 use strict;
 use base 'CPAN::Mini';
-use Carp             ();
-use File::Spec       ();
-use File::Basename   ();
-use File::Path       ();
-use File::Remove     ();
-use List::Util       ();
-use File::HomeDir    ();
-use File::Temp       ();
-use URI::file        ();
-use IO::File         ();
-use IO::Zlib         (); # Needed by Archive::Tar
-use Archive::Tar     ();
-use Params::Util     '_CODELIKE',
-                     '_INSTANCE',
-                     '_ARRAY0';
-use LWP::Online      ();
-use File::Find::Rule ();
+use Carp                   ();
+use File::Spec             ();
+use File::Basename         ();
+use File::Path             ();
+use File::Remove           ();
+use List::Util             ();
+use File::HomeDir          ();
+use File::Temp             ();
+use URI::file              ();
+use IO::File               ();
+use IO::Uncompress::Gunzip ();
+use Archive::Tar           ();
+use Params::Util           qw{ _CODELIKE _INSTANCE _ARRAY0 };
+use LWP::Online            ();
+use File::Find::Rule       ();
+
 use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-        $VERSION = '1.17';
+        $VERSION = '1.18';
 }
 
 
@@ -157,6 +156,12 @@ Once the mirror update has been completed, the C<extract_check> keyword
 forces the processor to go back over every tarball in the mirror and
 double check that it has a corrosponding extracted directory.
 
+=item extract_force
+
+For cases in which the filter has been changed, the C<extract_flush>
+boolean flag can be used to forcefully delete and re-extract every
+extracted directory.
+
 =back
 
 Returns a new C<CPAN::Mini::Extract> object, or dies on error.
@@ -177,7 +182,7 @@ sub new {
 
         # Fake a remote URI if CPAN::Mini can't handle offline mode
         my %fake = ();
-        if ( $params{offline} and $CPAN::Mini::VERSION <= 0.552 ) {
+        if ( $params{offline} and $CPAN::Mini::VERSION < 0.570 ) {
                 my $tempdir   = File::Temp::tempdir();
                 my $tempuri   = URI::file->new( $tempdir )->as_string;
                 $fake{remote} = $tempuri;
@@ -209,10 +214,18 @@ sub new {
 	}
 
 	# Set defaults and apply rules
-	$self->{extract_check} = 1 if $self->{extract_force};
+	unless ( defined $self->{extract_check} ) {
+		$self->{extract_check} = 1;
+	}
+	if ( $self->{extract_force} ) {
+		$self->{extract_check} = 1;
+	}
 
 	# Compile file_filters if needed
 	$self->_compile_filter('extract_filter');
+
+	# We'll need a temp directory for expansions
+	$self->{tempdir} = File::Temp::tempdir( CLEANUP => 1 );
 
 	$self;
 }
@@ -261,10 +274,10 @@ sub run {
 	}
 
 	# Update the CPAN::Mini local mirror
-	if ( $self->{offline} ) {
-		$self->trace("Skipping MiniCPAN update (offline mode enabled)\n");
+	if ( $self->{offline} and $CPAN::Mini::VERSION < 0.570 ) {
+		$self->trace("Skipping minicpan update (offline mode enabled)\n");
 	} else {
-		$self->trace("Updating MiniCPAN local mirror...\n");
+		$self->trace("Updating minicpan local mirror...\n");
 		$self->update_mirror;
 	}
 
@@ -285,7 +298,7 @@ sub run {
 		if ( @files ) {
 			$self->trace("Scheduling " . scalar(@files) . " tarballs for expansion\n");
 		} else {
-			$self->trace("No tarballs need to be extracted");
+			$self->trace("No tarballs need to be extracted\n");
 		}
 
 		# Expand each of the tarballs
@@ -424,56 +437,58 @@ sub _compile_filter {
 
 # Encapsulate the actual extraction mechanism
 sub _extract_archive {
-	my ($self, $archive, $to) = @_;
+	my ($self, $gz, $to) = @_;
 
-	my @contents;
-	SCOPE: {
-		local $Archive::Tar::WARN = 0;
-		@contents = eval {
-			Archive::Tar->list_archive( $archive, undef, [ 'name', 'size' ] );
-			};
+	# Do a one-shot separate decompression because for some reason
+	# the default on-the-fly decompression is horridly memory
+	# innefficientm, allocating and freeing massive blocks of memory
+	# for every single block that gets read in.
+	my $archive = $self->_extract_gz( $gz );
+
+	# IO::Zlib::tell will cause problems and Archive::Tar
+	# tries to use it by default, so invoke it with a
+	# file handle to MAKE it do the right thing.
+	my $io = IO::File->new( $archive, "r" )
+		or die "Failed to open $archive";
+
+	# Some hints to Archive::Tar to make it behave to make it
+	# work better on Win32, and to ignore the ownership crap
+	# that we don't care about.
+	local $Archive::Tar::WARN  = 0;
+	local $Archive::Tar::CHOWN = 0;
+	local $Archive::Tar::CHMOD = 0;
+
+	# Load the archive
+	my $tar = eval {
+		Archive::Tar->new( $io );
+	};
+	if ( $@ or ! $tar ) {
+		return $self->_tar_error("Loading of $archive failed");
 	}
-	if ( $@ or ! @contents ) {
-		return $self->_tar_error("Expansion of $archive failed");
-	}
+
+	# Get the complete list of files
+	my @files = eval {
+		$tar->list_files( [ 'name', 'size' ] )
+	};
+	return $self->_tar_error("Loading of $archive failed") if $@;
 
 	# Filter to get just the ones we want
-	@contents = map { $_->{name} } grep { $_->{size} } @contents;
+	@files = map { $_->{name} } grep { $_->{size} } @files;
 	if ( $self->{extract_filter} ) {
-		@contents = grep &{$self->{extract_filter}}, @contents;
-	}
-
-	unless ( @contents ) {
-		# Create an empty directory so it isn't checked over and over
-		File::Path::mkpath( $to, $self->{trace}, $self->{dirmode} );
-		return 1;
-	}
-
-	# Extract the needed files
-	my $tar;
-	SCOPE: {
-		local $Archive::Tar::WARN = 0;
-		$tar = eval {
-			Archive::Tar->new( $archive );
-			};
-	}
-	if ( $@ or ! $tar ) {
-		return $self->_tar_error;
+		@files = grep &{$self->{extract_filter}}, @files;
 	}
 
 	# Iterate and extract each file
-	foreach my $wanted ( @contents ) {
+	File::Path::mkpath( $to, $self->{trace}, $self->{dirmode} );
+	foreach my $wanted ( @files ) {
 		# Where to extract to
 		my $to_file = File::Spec->catfile( $to, $wanted );
 		my $to_dir  = File::Basename::dirname( $to_file );
 		File::Path::mkpath( $to_dir, $self->{trace}, $self->{dirmode} );
-		$self->trace("    $wanted");
+		$self->trace("write $to_file\n");
 
 		my $rv;
 		SCOPE: {
-			local $Archive::Tar::WARN  = 0;
-			local $Archive::Tar::CHOWN = 0;
-			local $Archive::Tar::CHMOD = 0;
 			$rv = eval {
 				$tar->extract_file( $wanted, $to_file );
 			};
@@ -487,14 +502,29 @@ sub _extract_archive {
 			}
 			return 1;
 		}
-
-		# Extraction successful
-		$self->trace(" ... extracted\n");
 	}
 
+	# Clean up
 	$tar->clear;
+	undef $tar;
+	$io->close;
+	File::Remove::remove( $archive );
 
-	1;	
+	return 1;
+}
+
+# Extract a gz-compressed file to a temp file
+my $counter = 0;
+sub _extract_gz {
+	my $self = shift;
+	my $gz   = shift;
+	my $tar  = ++$counter . '.tar';
+	my $file = File::Spec->catfile(
+		$self->{tempdir}, $tar,
+	);
+	IO::Uncompress::Gunzip::gunzip( $gz => $file )
+		or die "Failed to uncompress $gz";
+	return $file;
 }
 
 sub _tar_error {
