@@ -1,5 +1,8 @@
 Revision history for Perl extension CPAN::Mini::Extract
 
+1.19 Mon  5 May 2008
+	- Include .tgz in the files to be extracted (RSAVAGE)
+
 1.18 Mon  5 May 2008
 	- Upgrade CPAN::Mini dependency to get reliable offline mode.
 	- Massive speed improvements from BOTH the faster piplined

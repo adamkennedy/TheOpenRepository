@@ -73,7 +73,7 @@ use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
-        $VERSION = '1.18';
+        $VERSION = '1.19';
 }
 
 
@@ -288,7 +288,7 @@ sub run {
 		$self->trace("Tarball expansion checking enabled\n");
 		my @files = FFR->new
 		               ->file
-		               ->name('*.tar.gz')
+		               ->name('*.tar.gz', '*.tgz')
 		               ->relative
 		               ->in( $self->{local} );
 
@@ -343,7 +343,7 @@ sub mirror_extract {
 	my ($self, $file) = @_;
 
 	# Don't try to extract anything other than normal tarballs for now.
-	return 1 unless $file =~ /\.tar\.gz$/;
+	return 1 unless $file =~ /\.t(ar\.)?gz$/;
 
 	# Extract the new file to the matching directory in
 	# the processor source directory.
