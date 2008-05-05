@@ -305,14 +305,14 @@ sub set_actions {
             last ACTION unless $has_chaf_lhs or $has_chaf_rhs;
 
             if ( $has_chaf_rhs and $has_chaf_lhs ) {
-                $action = q{ $_; };
+                $action = q{ \@_; };
                 last ACTION;
             }
 
             # At this point has chaf rhs or lhs but not both
             if ($has_chaf_lhs) {
 
-                $action = q{push @{$_}, [];} . "\n" . q{$_} . "\n";
+                $action = q{push @_, [];} . "\n" . q{\@_} . "\n";
                 last ACTION;
 
             }
@@ -321,10 +321,11 @@ sub set_actions {
 
             $action =
                   "    TAIL: for (;;) {\n"
-                . q<        my $tail = pop @{$_};> . "\n"
+                . q<        my $tail = pop @_;> . "\n"
                 . q<        last TAIL unless scalar @{$tail};> . "\n"
-                . q<        push @{$_}, @{$tail};> . "\n"
+                . q<        push @_, @{$tail};> . "\n"
 		. "    } # TAIL\n"
+		. 'local $_ = \@_;'
                 . $action;
 
         }    # ACTION

@@ -2018,13 +2018,7 @@ sub add_rules_from_hash {
                 }
             }
             else {
-                $rule_action = q{
-                    TAIL: for (;;) {
-                        my $tail = pop @{$_};
-                        last TAIL unless scalar @{$tail};
-                        push @{$_}, @{$tail};
-                    }
-                }
+		croak('Only left associative sequences available')
             }
             $rule_action .= $action;
         }
@@ -2064,22 +2058,7 @@ sub add_rules_from_hash {
         }
     }
     else {
-        if ( defined $separator and not $keep_separation ) {
-            $rule_action = q{
-                [
-                    @{$_}[
-                        grep { !($_ % 2) } (0 .. $#{$_})
-                    ],
-                    []
-                ]
-            }
-        }
-        else {
-            $rule_action = q{
-                push @{$_}, [];
-                $_ 
-            }
-        }
+	croak('Only left associative sequences available')
     }
 
     add_rule( $grammar, $sequence, $counted_rhs, $rule_action,
