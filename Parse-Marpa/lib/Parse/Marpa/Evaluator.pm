@@ -1198,7 +1198,7 @@ sub Parse::Marpa::Evaluator::next {
                     };
 
                     $result = eval {
-                        local ($_) = $args;
+                        # local ($_) = $args;
                         $closure->( @{$args} );
                     };
 

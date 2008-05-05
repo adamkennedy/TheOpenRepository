@@ -3581,7 +3581,7 @@ sub rewrite_as_CHAF {
         Parse::Marpa::Internal::Rule::USEFUL,
         Parse::Marpa::Internal::Rule::ACTION,
         ]
-        = ( $productive, 1, 1, q{ $_->[0] } );
+        = ( $productive, 1, 1, q{ $_[0] } );
 
     # If we created a null alias for the original start symbol, we need
     # to create a nulling start rule
