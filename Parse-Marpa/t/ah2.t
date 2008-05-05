@@ -24,10 +24,10 @@ my $g = new Parse::Marpa::Grammar({
     default_null_value => "",
     default_action =>
 <<'EOCODE'
-     my $v_count = scalar @$_;
+     my $v_count = scalar @_;
      return "" if $v_count <= 0;
-     return $_->[0] if $v_count == 1;
-     "(" . join(";", @$_) . ")";
+     return $_[0] if $v_count == 1;
+     "(" . join(";", @_) . ")";
 EOCODE
 });
 

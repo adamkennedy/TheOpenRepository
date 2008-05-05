@@ -62,9 +62,9 @@ the start symbol is E.
 E: E, Minus, E.
 q{
     my ($right_string, $right_value)
-        = ($_->[2] =~ /^(.*)==(.*)$/);
+        = ($_[2] =~ /^(.*)==(.*)$/);
     my ($left_string, $left_value)
-        = ($_->[0] =~ /^(.*)==(.*)$/);
+        = ($_[0] =~ /^(.*)==(.*)$/);
     my $value = $left_value - $right_value;
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 }.
@@ -72,27 +72,27 @@ q{
 E: E, Minus Minus.
 q{
     my ($string, $value)
-        = ($_->[0] =~ /^(.*)==(.*)$/);
+        = ($_[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 }.
 
 E: Minus Minus, E.
 q{
     my ($string, $value)
-        = ($_->[1] =~ /^(.*)==(.*)$/);
+        = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 }.
 
 E: Minus, E.
 q{
     my ($string, $value)
-        = ($_->[1] =~ /^(.*)==(.*)$/);
+        = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
 }.
 
 E: Number.
 q{
-    my $value = $_->[0];
+    my $value = $_[0];
     "$value==$value";
 }.
 
@@ -103,8 +103,8 @@ Minus matches qr/[-]/.
 Minus Minus matches qr/[-][-]/.
 
 the default action is q{
-     my $v_count = scalar @$_;
+     my $v_count = scalar @_;
      return "" if $v_count <= 0;
-     return $_->[0] if $v_count == 1;
-     "(" . join(";", @$_) . ")";
+     return $_[0] if $v_count == 1;
+     "(" . join(";", @_) . ")";
 }.

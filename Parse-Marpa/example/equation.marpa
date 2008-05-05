@@ -5,10 +5,10 @@ start symbol is E.
 	E: E, Op, E.
 q{
             my ($right_string, $right_value)
-                = ($_->[2] =~ /^(.*)==(.*)$/);
+                = ($_[2] =~ /^(.*)==(.*)$/);
             my ($left_string, $left_value)
-                = ($_->[0] =~ /^(.*)==(.*)$/);
-            my $op = $_->[1];
+                = ($_[0] =~ /^(.*)==(.*)$/);
+            my $op = $_[1];
             my $value;
             if ($op eq "+") {
                $value = $left_value + $right_value;
@@ -24,7 +24,7 @@ q{
 
 E: Number.
 q{
-           my $v0 = pop @$_;
+           my $v0 = pop @_;
            $v0 . "==" . $v0;
 }.
 
@@ -33,8 +33,8 @@ Number matches qr/\d+/.
 Op matches qr/[-+*]/.
  
 the default action is q{
-         my $v_count = scalar @$_;
+         my $v_count = scalar @_;
          return "" if $v_count <= 0;
-         return $_->[0] if $v_count == 1;
-         "(" . join(";", @$_) . ")";
+         return $_[0] if $v_count == 1;
+         "(" . join(";", @_) . ")";
     }.
