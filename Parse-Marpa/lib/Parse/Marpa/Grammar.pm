@@ -1834,6 +1834,9 @@ sub add_rules_from_hash {
         }
     }
 
+    croak('Only left associative sequences available')
+        unless $left_associative;
+
     # Take care of nulling rules
     if ( scalar @{$rhs_names} == 0 ) {
         add_user_rule( $grammar, $lhs_name, $rhs_names, $action,
