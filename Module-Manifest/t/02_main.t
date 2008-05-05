@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Main testing for Module::Manifest
 
@@ -22,5 +22,3 @@ SCOPE: {
 	my $manifest = Module::Manifest->new('MANIFEST');
 	isa_ok( $manifest, 'Module::Manifest' );
 }
-
-exit(0);
