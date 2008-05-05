@@ -111,7 +111,7 @@ For other comments, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+Adam Kennedy <adamk@cpan.org>
 
 =head1 SEE ALSO
 
