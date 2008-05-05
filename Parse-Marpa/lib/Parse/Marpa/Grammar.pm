@@ -1902,7 +1902,7 @@ sub add_rules_from_hash {
             }
 
             if ( defined $separator_name and not $keep_separation ) {
-                $action = q{ @_ = ( @_[ grep { !($_ % 2) } (0 .. $#_) ) }
+                $action = q{ @_ = @_[ grep { !($_ % 2) } (0 .. $#_) ]; }
 		    . 'local $_ = \@_;'
                     . $action;
             }
@@ -1930,9 +1930,7 @@ sub add_rules_from_hash {
     }    # min and max both defined
 
     # At this point we know that max is undefined, and that min must be
-
-    # Right now we're doing this right associative.  Add option later to be
-    # left associative?
+    # defined.
 
     # nulling rule is special case
     if ( $min == 0 ) {

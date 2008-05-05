@@ -195,7 +195,7 @@ sub set_null_values {
             next RULE unless defined $nulling_alias;
 
             my $code =
-                "package $package;\n" . 'local(@_)=[];' . "\n" . $action;
+                "package $package;\n" . '@_=();' . "\n" . $action;
             my @warnings;
             my @caller_return;
             local $SIG{__WARN__} = sub {
