@@ -325,7 +325,6 @@ sub set_actions {
                 . q<        last TAIL unless scalar @{$tail};> . "\n"
                 . q<        push @_, @{$tail};> . "\n"
 		. "    } # TAIL\n"
-		. 'local $_ = \@_;'
                 . $action;
 
         }    # ACTION
@@ -1198,7 +1197,6 @@ sub Parse::Marpa::Evaluator::next {
                     };
 
                     $result = eval {
-                        # local ($_) = $args;
                         $closure->( @{$args} );
                     };
 

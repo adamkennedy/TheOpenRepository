@@ -1903,7 +1903,6 @@ sub add_rules_from_hash {
 
             if ( defined $separator_name and not $keep_separation ) {
                 $action = q{ @_ = @_[ grep { !($_ % 2) } (0 .. $#_) ]; }
-		    . 'local $_ = \@_;'
                     . $action;
             }
             $new_rule =
@@ -1938,7 +1937,7 @@ sub add_rules_from_hash {
         given ($action) {
             when (undef) { $rule_action = undef }
             default {
-                $rule_action = q{ @_ = (); local $_ = \@_; } . $action;
+                $rule_action = q{ @_ = (); } . $action;
             }
         }
         add_user_rule( $grammar, $lhs_name, [], $rule_action,
@@ -2009,7 +2008,6 @@ sub add_rules_from_hash {
                         last HEAD unless scalar @{$head};
                         unshift(@_, @{$head});
                     }
-		    local $_ = \@_;
                 }
             }
             else {
