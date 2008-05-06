@@ -428,13 +428,13 @@ sub Parse::Marpa::Evaluator::new {
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
-    my $trace_iteration_changes;
+    my $trace_iterations;
 
     if ($tracing) {
         $trace_fh =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_iteration_changes = $grammar
-            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
+        $trace_iterations = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS];
     }
 
     local ($Data::Dumper::Terse) = 1;
@@ -804,7 +804,7 @@ sub Parse::Marpa::show_bocage {
             $text .= $lhs . ' ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
-                $text .= '    rule=' . Parse::Marpa::show_dotted_rule($rule, $position) . "\n";
+                $text .= '    item: ' . Parse::Marpa::show_dotted_rule($rule, $position) . "\n";
                 $text .= '    argc=' . $argc;
                 if ( defined $closure ) {
                     $text .= '; closure=' . Dumper($closure);
@@ -907,15 +907,12 @@ sub Parse::Marpa::Evaluator::next {
     my $trace_fh =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_values;
-    my $trace_iteration_changes;
-    my $trace_iteration_searches;
+    my $trace_iterations;
     if ($tracing) {
         $trace_values =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES];
-        $trace_iteration_changes = $grammar
-            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES];
-        $trace_iteration_searches = $grammar
-            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES];
+        $trace_iterations = $grammar
+            ->[Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS];
     }
 
     local ($Data::Dumper::Terse) = 1;
@@ -982,7 +979,7 @@ sub Parse::Marpa::Evaluator::next {
                 next POP_TREE_NODE;
             }
 
-            if ($trace_iteration_changes) {
+            if ($trace_iterations) {
                 say {$trace_fh}
                     'Iteration ',
                     $choice,
@@ -1017,7 +1014,7 @@ sub Parse::Marpa::Evaluator::next {
             }
             splice @{$tree}, -$nodes_iterated;
 
-            if ($trace_iteration_changes) {
+            if ($trace_iterations) {
                 say {$trace_fh} 'Nodes iterated: ', $nodes_iterated,
                     '; not iterated on root side: ', scalar @{$tree},
                     '; not iterated on leaf side: ',
@@ -1117,7 +1114,7 @@ sub Parse::Marpa::Evaluator::next {
                 $argc, $rule, $value_ref, $position,
                 );
 
-            if ($trace_iteration_changes) {
+            if ($trace_iterations) {
                 my $value_description = "\n";
                 $value_description = '; value=' . Dumper( ${$value_ref} )
                     if defined $value_ref;

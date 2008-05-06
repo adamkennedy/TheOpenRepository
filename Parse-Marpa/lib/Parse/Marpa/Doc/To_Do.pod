@@ -18,29 +18,33 @@ priorities to the rules.
 
 Add a graf about ambiguous transitions in the Internals document.
 
-=head2 A More Exhaustive Test Suite
-
-Testing has been intensive, but not exhaustive.
-The recognition engine has been very well exercised, but many combinations
-of options and features have yet to be tried.
-To get an idea for what's been well tested,
-look in the C<t> (test)
-and C<example> (example)
-directories of the distribution.
-Any feature not tested there can be assumed
-to have been only lightly exercized.
-
 =head2 Rename Evaluator::next method to Evaluator::value
 
 =head1 LOWER PRIORITY
 
 =over 4
 
+=item * Prune structures in Grammar.pm, and Recognizer.pm.
+Earley_item structure in particular contains much that is no
+longer used.
+
+=item * Make code clean under perlcritic.
+
+=item * Better evaluation of sequences -- just push onto an array via
+a ref, reversing at the end if necessary.  All that code could use
+better comments.
+
 =item * Should C<Parse::Marpa::Grammar::new> options be defaults or
 overrides? -- that is they should take effect before the MDL script
 or after.
 
-=item * Finalize semantics later, when evaluator is created.
+=item * Allow setting Marpa options in evaluator,
+and during life of recognizer?
+Will require changes in internal tracking of phases.
+
+=item * Add a trace_choices option.  There was an option to trace
+non-trivial evaluation choices in the old evaluator, and the new trace_iterations
+doesn't entirely replace it.
 
 =item * Allow multiple evaluators for each recognizer, or at least create a method
 to safely deep copy recognizers.
@@ -51,11 +55,7 @@ to safely deep copy recognizers.
 
 =item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
 
-=item * Combine trace_iteration_search and
-trace_iteration_changes into
-trace_iterations
-
-=item * Test right and left evaluation in rules
+=item * Add option for left-to-right evaluation by rules
 
 =item * Test proper and perl5 separation
 
@@ -63,13 +63,14 @@ trace_iterations
 
 =item * Add a SYNOPSIS to the Plumbing document.
 
-=item * Test (or remove?) lexing suffixes.
+=item * Test lexing suffixes.
 
 =item * Allow alternation?
 
-=item * Add to test set: A basic test for all branches of counted rules.
-The matrix is keep vs. no-keep; separated yes vs. no; right vs. left;
+=item * Add to test set: Basic tests of all types of counted rules.
+The matrix is separated yes vs. no;
 and 0-1, 1-1, 0-2, 0-5, 1-2, 1-5, 0-*, 1-*, 2-*, versus 5-*.
+Eliminate keep vs. no-keep, right vs. left.
 
 =item * Downgrade version conflict or semantics mismatch to warning?
 

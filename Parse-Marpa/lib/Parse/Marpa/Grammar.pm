@@ -141,9 +141,7 @@ use constant TRACE_PREDEFINEDS => 30; # trace predefineds in marpa grammar
 use constant TRACE_PRIORITIES  => 31;
 use constant TRACE_LEX_TRIES   => 32;
 use constant TRACE_LEX_MATCHES => 33;
-use constant TRACE_ITERATION_SEARCHES => 34;
-use constant TRACE_ITERATION_CHANGES  => 35;
-use constant TRACE_EVALUATION_CHOICES => 36;
+use constant TRACE_ITERATIONS  => 35;
 use constant TRACE_COMPLETIONS        => 37;
 use constant TRACE_ACTIONS            => 38;
 use constant TRACE_VALUES             => 39;
@@ -831,38 +829,9 @@ sub Parse::Marpa::Grammar::set {
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
-            when ('trace_evaluation_choices') {
-                $grammar->[
-                    Parse::Marpa::Internal::Grammar::TRACE_EVALUATION_CHOICES]
-                    = $value;
-                if ($value) {
-                    say $trace_fh "Setting $option option";
-                    $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
-                }
-            }
             when ('trace_iterations') {
                 $grammar->[
-                    Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES]
-                    = $grammar->[
-                    Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES]
-                    = $value;
-                if ($value) {
-                    say $trace_fh "Setting $option option";
-                    $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
-                }
-            }
-            when ('trace_iteration_searches') {
-                $grammar->[
-                    Parse::Marpa::Internal::Grammar::TRACE_ITERATION_SEARCHES]
-                    = $value;
-                if ($value) {
-                    say $trace_fh "Setting $option option";
-                    $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
-                }
-            }
-            when ('trace_iteration_changes') {
-                $grammar->[
-                    Parse::Marpa::Internal::Grammar::TRACE_ITERATION_CHANGES]
+                    Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]
                     = $value;
                 if ($value) {
                     say $trace_fh "Setting $option option";
