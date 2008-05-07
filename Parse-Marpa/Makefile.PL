@@ -22,6 +22,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Diagnostics.pod',
 	'lib/Parse/Marpa/Doc/Internals.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Internals.pod',
+	'lib/Parse/Marpa/Doc/Parse_Terms.pod'
+	    => '$(INST_LIB)/Parse/Marpa/Doc/Parse_Terms.pod',
 	'lib/Parse/Marpa/Doc/Plumbing.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/Plumbing.pod',
 	'lib/Parse/Marpa/Doc/MDL.pod'

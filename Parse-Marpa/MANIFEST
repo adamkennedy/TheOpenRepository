@@ -18,6 +18,7 @@ lib/Parse/Marpa/Doc/Bibliography.pod
 lib/Parse/Marpa/Doc/Diagnostics.pod
 lib/Parse/Marpa/Doc/Internals.pod
 lib/Parse/Marpa/Doc/MDL.pod
+lib/Parse/Marpa/Doc/Parse_Terms.pod
 lib/Parse/Marpa/Doc/Plumbing.pod
 lib/Parse/Marpa/Doc/To_Do.pod
 lib/Parse/Marpa/Doc/Undocumented.pod

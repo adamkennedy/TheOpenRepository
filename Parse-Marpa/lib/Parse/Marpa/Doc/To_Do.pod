@@ -74,6 +74,9 @@ Eliminate keep vs. no-keep, right vs. left.
 
 =item * Downgrade version conflict or semantics mismatch to warning?
 
+=item * There are now no Parse::Marpa::Read_Only variables.  Eliminate
+the namespace, and the references to it in the documentation?
+
 =back
 
 =head1 SUPPORT
