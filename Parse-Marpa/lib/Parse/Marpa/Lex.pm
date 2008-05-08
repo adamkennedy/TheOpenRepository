@@ -181,18 +181,19 @@ Marpa.
     my ($regex, $token_length)
         = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start)
 
-Takes two required arguents, a I<string reference> and a I<start earleme>.
-The I<string reference> must be to a string that may contain a regex.
+Takes two required arguments.
+C<$string>
+must be a reference to a string that might contain a regex.
 The regex will be expected to start at the position pointed to by C<pos $$string>.
 
-I<start_earleme> must be the start earleme of the regex for lexing purposes.
+C<$lexeme_start> must be the start earleme of the regex for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard
 prefixes.
 If a prefix was removed
 prior to the call to C<lex_regex>,
-I<start_earleme>
+C<$lexeme_start>
 should be the location where the prefix started.
-If no prefix was removed, I<start_earleme> will be the same as C<pos $$string>.
+If no prefix was removed, C<$lexeme_start> will be the same as C<pos $$string>.
 
 How C<lex_regex> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
 C<lex_regex> returns the null array if no regex was found.
@@ -211,18 +212,18 @@ which will include the length of any discarded prefix.
         = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start)
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
-The I<string reference> must be to a string that may contain a C<q-> or C<qq->quoted string.
+The I<string reference> must be to a string that might contain a C<q-> or C<qq->quoted string.
 The C<q-> or C<qq->quoted string will be expected
 to start at the position pointed to by C<pos $$string>.
 
-I<start_earleme> must contain the start earleme of the quoted string for lexing purposes.
+C<$lexeme_start> must contain the start earleme of the quoted string for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard
 prefixes.
 If a prefix was removed
 prior to the call to C<lex_regex>,
-I<start_earleme>
+C<$lexeme_start>
 should be the location where the prefix started.
-If no prefix was removed, I<start_earleme> should be the same as C<pos $$string>.
+If no prefix was removed, C<$lexeme_start> should be the same as C<pos $$string>.
 
 How C<lex_q_quote> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
 C<lex_q_quote> returns the null array if no string was found.

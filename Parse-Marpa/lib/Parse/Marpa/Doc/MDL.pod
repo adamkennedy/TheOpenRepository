@@ -2,6 +2,13 @@
 
 Parse::Marpa::Doc::MDL - The Marpa Demonstration Language
 
+=begin Parse::Marpa::test_document:
+
+## default
+in_self_marpa($_)
+
+=end Parse::Marpa::test_document:
+
 =head1 OVERVIEW
 
 The Marpa Demonstration Language (MDL) is a language for decribing grammars
@@ -31,15 +38,14 @@ is created from it,
 using the same grammar interface and with the same methods available to the user.
 I go to some trouble to make sure this claim is really true.
 
-True, an initial bootstrap is needed to create a first generation MDL parser in order to
-get around chicken-and-egg issues.
-But the first generation MDL parser then parses C<self.marpa> a second time
-to eliminate all traces of the initial bootstrap.
-The second generation MDL parser then runs C<self.marpa> into a third generation.
+An initial bootstrap is used to create a second generation MDL bootstrap parser.
+The initial bootstrap is mainly Marpa-generated,
+but when Marpa changes it may be modified by hand to get around chicken-and-egg issues.
+To ensure that Marpa can indeed parse itself,
+the second generation parser is run on the grammar again to produce a third
+generation.
 Only if the second and third generation parsing code are exactly identical
-is the Marpa parser considered to be fully self-generated,
-and only then is it incorporated
-into a Marpa distribution.
+is the Marpa parser considered to be fully self-parsing,
 
 Most of the examples below are
 from C<self.marpa> or previous versions of it.
@@ -111,7 +117,7 @@ and if C<optional> were lower case in this example,
 the Marpa's preferred parse would result in the above sentence
 being interpreted as a rule which states
 that a C<rhs element> can consist either of itself or nothing.
-(Cycles are not allowed in Marpa, so this would cause Marpa to
+(Cycles are not allowed in Marpa, so this will cause Marpa to
 fail with an error message.)
 
 However, since C<Optional> begins with a capital letter, it must
@@ -167,7 +173,7 @@ nesting level as the opening bracket.
 MDL's literal strings are often Perl 5 code,
 and it must be remembered that MDL does B<not> understand Perl 5 syntax.
 This means that in complex cases, such as when an end delimiter appears in a Perl 5
-character class, or within a string inside code,
+character class or within a string,
 MDL's idea of where the closing delimiter is may not
 correspond to Perl 5's.
 Users should choose,
@@ -179,7 +185,7 @@ and delimited in the same way that it was in MDL.
 For example, if you
 use double quotes in the MDL source file,
 you can expect Perl 5's interpretation of
-that string literal to follow the same rules as if you'd 
+that string literal to follow the same rules as if you had 
 specified that string directly to Perl 5.
 
 =head2 Literal Regexes
@@ -235,7 +241,7 @@ The following sentences all define the semantics of the grammar to be Perl 5.
 
 Note that C<is> or C<are> always works.
 MDL can't be bothered figuring out
-whether semantics is (are?) really singular or plural,
+whether C<semantics> is (are?) really singular or plural,
 and I don't blame it.
 MDL is similarly nonchalant about C<is> versus C<are> for all names, whether they are MDL
 predefineds or user-specified.
@@ -261,7 +267,7 @@ Currently, the only available semantics is C<perl5>.
 All MDL source requires a line explicitly stating
 that its semantics are Perl 5, in order to limit
 problems with old MDL files
-once Perl 6 becomes available and the default.
+once Perl 6 becomes the default.
 
 =head2 Version Definition
 
@@ -272,8 +278,6 @@ and as long as Marpa is in alpha, the version has to match B<exactly>.
 While Marpa is in alpha,
 versions will change frequently,
 and features will be volatile.
-There will be no attempt to maintain compatibility from version to version
-until Marpa goes beta.
 
 =head2 Start Symbol Definition
 
@@ -318,7 +322,7 @@ and an action is given for it,
 that action is used to calculate
 the null value of the symbol on the left hand side of that rule.
 The null value of a symbol is its value whenever it is nulled,
-whether directly as a result of its own empty rule,
+whether directly as a result of the symbol's own empty rule,
 or indirectly through a series of other rules.
 
 When a null symbol value is not set explicitly in an empty rule,
@@ -327,7 +331,7 @@ This default can be changed.
 For example, the following changes the default null symbol value
 to an at-sign.
 
-    the default null value is q{@}.
+    the default null value is q{'@'}.
 
 =head2 Default Lex Prefix Definition
 
@@ -457,27 +461,22 @@ MDL provides four special forms of the production sentence for dealing with thes
 
     definition paragraph: definition sequence.
     
+Z<>
+
     non structural production sentences:
     optional non structural production sentence sequence.
 
+Z<>
+
     paragraphs: empty line separated paragraph sequence.
+
+Z<>
 
     rhs: optional comma separated rhs element sequence.
 
 In sequence sentences, the right hand side of the production is
 a sequence description.  Only one sequence description is allowed on a right
 hand side, and it must be the only thing on the right hand side.
-
-This restriction of sequences to sequence productions and of
-sequence productions to a single sequence
-is not the result of any limit of the Marpa parse engine.
-It would not be hard to allow many sequences and optional sequences on the right hand
-side of any BNF production.
-What's hard is figuring out how to conveniently specify their semantics.
-As the right hand side of a production grows more complex,
-the semantics becomes
-more complex to write, more bug-prone, and harder to debug.
-(I'm open to revisiting this issue and lifting the restriction.)
 
 The right hand side of a sequence production can be either a B<simple sequence>
 or a B<separated sequence>.
@@ -500,7 +499,7 @@ sequence may be omitted.
 
 The value of the child symbols in a sequence sentence is available
 to semantic actions in the
-array referenced by C<$_>,
+C<@_> array,
 just as in a BNF sentence.
 Unlike in a BNF sentence,
 in a sequence sentence
@@ -511,8 +510,8 @@ by using operations like C<join> or C<map> which work
 on the entire array.
 You can also obtain a count of the symbols on the right side
 in the usual way,
-with C<scalar @{$_}>.
-The index of the last symbol is available as C<$#$_>.
+with C<scalar @_>.
+The index of the last symbol is available as C<$#_>.
 Sequence sentences work best where the semantics really is that of a sequence
 of semantically equivalent items.
 
@@ -565,13 +564,17 @@ Otherwise, the action is a rule action.
 
 As a reminder, strings are delimited as MDL strings, not as Perl 5 code, even
 when they are destined to be compiled as Perl 5 code.
-Many constructs which "escape" the delimiters in Perl 5 code will not
+Many constructs that "escape" the delimiters in Perl 5 code will not
 do so in an MDL string.
 
-The last value computed in the action will be the value returned by the
+The value of the last expression evaluated
+in the action will be the value returned by the
 production.
-Values from child productions are available through C<$Parse::Marpa::Read_only::v>,
-a reference to an array of them.
+B<Do not> use the C<return> builtin.
+Actions may not be implemented as subroutines.
+
+Values from child productions are available through
+the C<@_> array, as if they were arguments to a subroutine.
 The array contains the values of the symbols on the right hand side, in order.
 In both the examples above, a string is prepended to the value of the
 C<action specifier>,
@@ -579,9 +582,9 @@ and that becomes the value of C<action sentence> in any parent production.
 
 All actions start with
 C<use integer> and C<use strict> in effect.
-All Perl 5 warnings are also in effect except those in the "recursion" category.
-The code is run in a special namespace special to each recognizer,
-but common to all the user code run within the recognizer.
+All Perl 5 warnings are also in effect except those in the C<recursion> category.
+The code is run in a special per-recognizer namespace shared by all the rule actions
+and null symbols actions evaluated in a recognizer.
 Globals in that namespace may be initialized in
 preamble definitions.
 
@@ -641,7 +644,8 @@ of whitespace-separated "comment words".  Comment words
 may contain anything except whitespace or a period.
 The comment tags are C<to do>, C<note> and C<comment>.
 
-    note: I may look like a production sentence; but MDL knows the difference.
+    note: I may look like a production sentence; but MDL
+    knows the difference.
 
 To force MDL to treat something that looks like a comment sentence as a production,
 capitalize any letter in the comment tag.
@@ -658,8 +662,10 @@ Terminal sentences come in two forms, the regex form and the closure form.
 
 =head2 Regex Form of Terminal Sentence
 
-The regex form of a terminal sentence is a symbol name, the keyword C<matches>,
-and a regex literal.  For example,
+The regex form of a terminal sentence is a symbol name,
+followed by the keyword C<matches>
+and a regex literal.
+For example,
 
     comma matches qr/\,/.
 
@@ -693,7 +699,10 @@ For example,
 		my $end_pos = pos $$STRING;
 		my $match_length = $end_pos - $match_start;
 		my $lex_length = $end_pos - $START;
-		return (substr($$STRING, $match_start, $match_length), $lex_length);
+		return (
+                    substr($$STRING, $match_start, $match_length),
+                    $lex_length
+                );
 	    }
 	}
 	return;
@@ -710,8 +719,8 @@ This means the terminal paragraph for the C<regex> terminal can be very simple:
 
     match regex using "lex_regex".
 
-Lexing closures finds the string to be matched as a C<pos> offset within
-B<the string referred to> by C<$STRING>.
+Lexing closures find the string to be matched as a C<pos> offset within
+the string B<referred to> by C<$STRING>.
 (See L<perlre> for details on setting and using C<pos>.)
 
 In writing a lexing closure, keep the following in mind:
@@ -753,8 +762,11 @@ Token lengths must be B<greater than> zero.
 Globals may be initialize in a lex preamble.
 C<use strict>, C<use integer> and all warnings except recursion are in effect.
 
+=item * C<$START> is set to the position at the start of the prefix.
+If there was no prefix (or, more pedantically, if the prefix was zero
+length), C<$START> will be set to the position of the matched string.
+
 =item * The token length returned must include the length of any prefix removed.
-C<$START> is set to the position before the prefix.
 If a non-empty prefix was removed,
 returning just the length of the matched string
 will usually cause lexing to get out of sync and parsing to fail.

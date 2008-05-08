@@ -79,6 +79,22 @@ the namespace, and the references to it in the documentation?
 
 =back
 
+=head1 MAYBE, MAYBE NOT
+
+=head2 Lifting Restrictions on Sequence Productions
+
+The restriction of sequences to sequence productions and of
+sequence productions to a single sequence
+is not the result of any limit of the Marpa parse engine.
+It would not be hard to allow any number of
+sequences and optional sequences on the right hand
+side of any BNF production.
+What's hard is figuring out how to conveniently specify their semantics.
+As the right hand side of a production grows more complex,
+the semantics becomes
+more complex to write, more bug-prone, and harder to debug.
+I'm open to revisiting this issue and lifting the restriction.
+
 =head1 SUPPORT
 
 See the L<support section|Parse::Marpa/SUPPORT> in the main module.

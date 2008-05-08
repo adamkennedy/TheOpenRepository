@@ -2,6 +2,12 @@
 
 Parse::Marpa::Doc::Internals - Marpa Internals
 
+=begin Parse::Marpa::test_document:
+
+hi
+
+=end Parse::Marpa::test_document:
+
 =head1 OVERVIEW
 
 Knowledge of Marpa internals is not necessary to use Marpa.

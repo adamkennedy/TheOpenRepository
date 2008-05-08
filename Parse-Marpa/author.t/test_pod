@@ -1,24 +1,142 @@
 use 5.010000;
 use Pod::Parser;
+use warnings;
+use strict;
+use English qw( -no_match_vars );
+use Fatal qw(open close);
+
+our $preamble = q{};
+our $in_command = 0;
+our @display;
+our $default_code = q{ no_code_defined($_) };
+our $current_code = $default_code;
+our $command_countdown = 0;
+our $current_file = '!!! NO CURRENT FILE !!!';
+our $display_skip = 0;
+
+sub no_code_defined {
+    my $display = shift;
+    say STDERR 'No code defined to test display:';
+    say STDERR $display;
+}
+
+my $self_marpa;
+{
+    open(SELF_MARPA, '<', '../bootstrap/self.marpa');
+    local($RS) = undef;
+    $self_marpa = <SELF_MARPA>;
+    $self_marpa =~ s/\A\s*//xms;
+    $self_marpa =~ s/\s*\z//xms;
+    $self_marpa =~ s/\s+/ /gxms;
+};
+
+sub in_self_marpa {
+    my $display = shift;
+    $display =~ s/\A\s*//xms;
+    $display =~ s/\s*\z//xms;
+    $display =~ s/\s+/ /gxms;
+    my $location = index($self_marpa, $display);
+    return 1 if $location >= 0;
+    say "DISPLAY NOT FOUND:\n$display";
+    return;
+}
 
 package MyParser;
-@ISA = qw(Pod::Parser);
+@MyParser::ISA = qw(Pod::Parser);
+use Carp;
 
 sub verbatim { 
     my ($parser, $paragraph, $line_num) = @_;
-    ## Format verbatim paragraph; sample actions might be:
-    my $out_fh = $parser->output_handle();
-    print $out_fh $paragraph;
+    
+    push @::display, {
+        'display' => $paragraph,
+	'code' => $::current_code,
+	'file' => $::current_file,
+	'line' => $line_num,
+    } if not $::display_skip;
+    $::command_countdown--;
+    if ($::command_countdown <= 0)
+    {
+	$::current_code = $::default_code;
+	$::display_skip = 0;
+    }
 }
 
-sub textblock {} # throw it away
+sub textblock {
+     return unless $in_command;
+     my ($parser, $paragraph, $line_num) = @_;
+
+     ## Translate/Format this block of text; sample actions might be:
+
+     my @lines = split /\n/, $paragraph;
+     my $instruction;
+     LINE: while (my $line = shift @lines) {
+         next LINE if $line =~ /^\s*$/xms; # skip whitespace
+	 croak(
+	     "File: $::current_file  Line: $line_num\n",
+	     "test block doesn't begin with ## instruction\n$paragraph"
+	 ) unless $line =~ /^[#][#]/xms;
+	 $line =~ s/^[#][#]\s*//;
+	 $instruction = $line;
+	 last LINE;
+     }
+     $instruction =~ s/\s$//; # eliminate trailing whitespace
+     $instruction =~ s/\s/ /g; # normalize whitespace
+     given ($instruction) {
+     when (/^next display$/) {
+	 $::command_countdown = 1;
+	 $::current_code = join("\n", @lines)
+     }
+     when (/^next (\d+) display(s)$/) {
+	 $::command_countdown = $1;
+	 croak(
+	     "File: $::current_file  Line: $line_num\n",
+	     "  'next $::command_countdown display' has countdown less than one\n"
+	 ) unless $::command_countdown >= 1;
+	 $::current_code = join("\n", @lines)
+     }
+     when (/^default$/) {
+	 $::default_code = join("\n", @lines);
+	 say "Setting default code:", $::default_code;
+     }
+     when (/^preamble$/) {
+         $::preamble .= join("\n", @lines)
+     }
+     when (/^skip display$/) {
+	 $::command_countdown = 1;
+	 $::display_skip++;
+     }
+     when (/^skip (\d+) display(s)$/) {
+	 $::command_countdown = $1;
+	 croak(
+	     "File: $::current_file  Line: $line_num\n",
+	     "  'display $::command_countdown skip' has countdown less than one\n"
+	 ) unless $::command_countdown >= 1;
+	 $::display_skip++;
+     }
+     default {
+	 croak(
+	     "File: $::current_file  Line: $line_num\n",
+	     "  unrecognized instruction: $_\n"
+	 );
+     }
+     } # given
+
+}
+
 sub interior_sequence {}
 
 sub command { 
 
         my ($parser, $command, $paragraph) = @_;
-	say 'command=', $command;
-	say 'text=', $paragraph;
+	given ($command) {
+	when ('begin') {
+	    $in_command++ if $paragraph =~ /^Parse::Marpa::test_document:\n/;
+	    $in_command++ if $paragraph =~ /^make:\n/;
+	}
+	when ('end') { $in_command = 0; }
+	default {;}
+	}
 
 }
 
@@ -27,6 +145,22 @@ package main;
 
 ## Create a parser object and have it parse file whose name was
 ## given on the command-line (use STDIN if no files were given).
-$parser = new MyParser();
-$parser->parse_from_filehandle(\*STDIN)  if (@ARGV == 0);
-for (@ARGV) { $parser->parse_from_file($_); }
+my $parser = new MyParser();
+if (@ARGV == 0) {
+    $current_file = '\\*STDIN';
+    $parser->parse_from_filehandle(\*STDIN)
+}
+for (@ARGV) {
+    $current_file = $_;
+    $parser->parse_from_file($_);
+}
+
+eval $preamble;
+croak($EVAL_ERROR) if $EVAL_ERROR;
+say scalar @::display, " display blocks to test";
+for my $display_test (@::display) {
+    my ($display, $code, $file, $line) = @{$display_test}{qw(display code file line)};
+    local $_ = $display;
+    say $code ;
+    eval $code;
+} # $display_test
