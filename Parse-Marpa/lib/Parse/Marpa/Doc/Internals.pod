@@ -2,12 +2,6 @@
 
 Parse::Marpa::Doc::Internals - Marpa Internals
 
-=begin Parse::Marpa::test_document:
-
-hi
-
-=end Parse::Marpa::test_document:
-
 =head1 OVERVIEW
 
 Knowledge of Marpa internals is not necessary to use Marpa.
@@ -631,6 +625,14 @@ The input text was "C<2+2>".
 
 =head2 The MDL Grammar
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_grammar($_);
+
+=end Parse::Marpa::test_document:
+
+
     semantics are perl5.  version is 0.211.7.
 
     start symbol is E.
@@ -672,13 +674,12 @@ The input text was "C<2+2>".
 	     "(" . join(";", @_) . ")";
 	}.
 
-=begin make:
+=begin Parse::Marpa::test_document:
 
-echo 2+2 |
-    perl -I../../.. ../../../../bin/marpa parse -grammar \
-    ../../../../example/equation.marpa --QDFA
+## next display
+is_equation_show_QDFA($_);
 
-=end make:
+=end Parse::Marpa::test_document:
 
 =head2 The C<show_QDFA> Output
 
@@ -704,15 +705,14 @@ echo 2+2 |
     S6: 4
     e ::= e op e .
 
-=begin make:
+=head2 The C<show_earley_sets> Output
 
-echo 2+2 |
-    perl -I../../.. ../../../../bin/marpa parse -grammar \
-    ../../../../example/equation.marpa --show_status
+=begin Parse::Marpa::test_document:
 
-=end make:
+## next display
+is_equation_show_earley_sets($_);
 
-=head2 The C<show_status> Output
+=end Parse::Marpa::test_document:
 
     Current Earley Set: 4; Furthest: 3
     Earley Set 0

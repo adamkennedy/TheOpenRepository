@@ -476,11 +476,11 @@ sub Parse::Marpa::show_earley_set_list {
     return $text;
 }
 
-sub Parse::Marpa::Recognizer::show_status {
-    my $parse = shift;
+sub Parse::Marpa::show_earley_sets {
+    my $recce = shift;
     my $ii    = shift;
     my ( $current_set, $furthest_earleme, $earley_set_list ) =
-        @{$parse}[ CURRENT_SET, FURTHEST_EARLEME, EARLEY_SETS ];
+        @{$recce}[ CURRENT_SET, FURTHEST_EARLEME, EARLEY_SETS ];
     my $text =
           'Current Earley Set: '
         . $current_set

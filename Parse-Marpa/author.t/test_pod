@@ -16,8 +16,7 @@ our $display_skip = 0;
 
 sub no_code_defined {
     my $display = shift;
-    say STDERR 'No code defined to test display:';
-    say STDERR $display;
+    return 'No code defined to test display:';
 }
 
 sub normalize_whitespace {
@@ -34,31 +33,55 @@ sub slurp {
     return <$fh>;
 }
 
-my $MDL_displays = normalize_whitespace(
-    slurp('MDL_displays.marpa')
-);
-my $self_marpa = normalize_whitespace(
-    slurp('../bootstrap/self.marpa')
-);
-
 sub in_file {
     my $display = shift;
     my $file = shift;
     $display = normalize_whitespace($display);
     my $location = index($file, $display);
-    return 1 if $location >= 0;
-    say "DISPLAY NOT IN file:\n$display";
-    return;
+    return $location >= 0 ? "" : "Display not in $::current_file";
 }
 
+sub is_file {
+    my $display = shift;
+    my $file = shift;
+    $display = normalize_whitespace($display);
+    return $file eq $display ? "" : 'Display not in $::current_file';
+}
+
+my $self_marpa = normalize_whitespace(
+    slurp('../bootstrap/self.marpa')
+);
 sub in_self_marpa {
     return in_file(shift, $self_marpa);
 }
 
+my $MDL_displays = normalize_whitespace(
+    slurp('MDL_displays.marpa')
+);
 sub in_MDL_displays {
     return in_file(shift, $MDL_displays);
 }
 
+my $equation_grammar = normalize_whitespace(
+    slurp('../example/equation.marpa')
+);
+sub in_equation_grammar {
+    return in_file(shift, $equation_grammar);
+}
+
+my $equation_show_QDFA = normalize_whitespace(
+    slurp('equation_show_QDFA.out')
+);
+sub is_equation_show_QDFA {
+    return is_file(shift, $equation_show_QDFA);
+}
+
+my $equation_show_earley_sets = normalize_whitespace(
+    slurp('equation_show_earley_sets.out')
+);
+sub is_equation_show_earley_sets {
+    return is_file(shift, $equation_show_earley_sets);
+}
 
 package MyParser;
 @MyParser::ISA = qw(Pod::Parser);
@@ -162,23 +185,49 @@ sub command {
 
 package main;
 
-## Create a parser object and have it parse file whose name was
-## given on the command-line (use STDIN if no files were given).
-my $parser = new MyParser();
-if (@ARGV == 0) {
-    $current_file = '\\*STDIN';
-    $parser->parse_from_filehandle(\*STDIN)
-}
-for (@ARGV) {
-    $current_file = $_;
-    $parser->parse_from_file($_);
-}
+my @files = qw(
+../lib/Parse/Marpa/Doc/Algorithm.pod
+../lib/Parse/Marpa/Doc/Bibliography.pod
+../lib/Parse/Marpa/Doc/Diagnostics.pod
+../lib/Parse/Marpa/Doc/Internals.pod
+../lib/Parse/Marpa/Doc/MDL.pod
+../lib/Parse/Marpa/Doc/Parse_Terms.pod
+../lib/Parse/Marpa/Doc/Plumbing.pod
+../lib/Parse/Marpa/Doc/To_Do.pod
+../lib/Parse/Marpa/Evaluator.pm
+../lib/Parse/Marpa/Grammar.pm
+../lib/Parse/Marpa/Lex.pm
+../lib/Parse/Marpa/MDL.pm
+../lib/Parse/Marpa/Recognizer.pm
+../lib/Parse/Marpa.pm
+);
 
-eval $preamble;
-croak($EVAL_ERROR) if $EVAL_ERROR;
-say scalar @::display, " display blocks to test";
-for my $display_test (@::display) {
-    my ($display, $code, $file, $line) = @{$display_test}{qw(display code file line)};
-    local $_ = $display;
-    eval $code;
-} # $display_test
+my $parser = new MyParser();
+
+for my $file (@files) {
+
+    $::current_file = $file;
+    @::display = ();
+    @::current_command = ();
+    $::default_code = q{ no_code_defined($_) };
+    $::current_code = $default_code;
+    $::command_countdown = 0;
+    $::display_skip = 0;
+    my $problems = 0;
+
+    $parser->parse_from_file($file);
+    eval $preamble;
+    croak($EVAL_ERROR) if $EVAL_ERROR;
+    say scalar @::display, " display blocks to test in $file";
+    for my $display_test (@::display) {
+	my ($display, $code, $file, $line) = @{$display_test}{qw(display code file line)};
+	local $_ = $display;
+	my $message = eval $code;
+	croak($EVAL_ERROR) if $EVAL_ERROR;
+	if ($message) {
+	    print "=== $message\n$display";
+	    $problems++;
+	}
+    } # $display_test
+    say $problems, " display blocks with problems in $file";
+}

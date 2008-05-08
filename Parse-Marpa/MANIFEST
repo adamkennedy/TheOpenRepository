@@ -36,7 +36,6 @@ t/ah.t
 t/ah2.t
 t/ah_s.t
 t/bootstrap.t
-t/doc.t
 t/equation.t
 t/equation_s.t
 t/gj.t
@@ -49,3 +48,6 @@ t/randal.t
 t/synopsis.t
 t/wall.t
 t/weaken.t
+author.t/MDL_displays.marpa
+author.t/Makefile
+author.t/test_pod

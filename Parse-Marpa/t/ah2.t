@@ -328,38 +328,38 @@ my $sets_at_2 = $sets_at_1 . $set2_at_2 . $set3_at_2;
 my $sets_at_3 = $sets_at_2 . $set3_at_3 . $set4_at_3;
 my $sets_at_4 = $sets_at_3 . $set4_at_4;
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 0; Furthest: 0\n" .  $sets_new,
     "Aycock/Horspool Parse Status before parse" );
 
 my $a = $g->get_symbol("a");
 $recce->earleme([$a, "a", 1]);
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 1; Furthest: 1\n" .  $sets_at_0,
     "Aycock/Horspool Parse Status at 0" );
 
 $recce->earleme([$a, "a", 1]);
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 2; Furthest: 2\n" .  $sets_at_1,
     "Aycock/Horspool Parse Status at 1" );
 
 $recce->earleme([$a, "a", 1]);
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 3; Furthest: 3\n" .  $sets_at_2,
     "Aycock/Horspool Parse Status at 2" );
 
 $recce->earleme([$a, "a", 1]);
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 4; Furthest: 4\n" .  $sets_at_3,
     "Aycock/Horspool Parse Status at 3" );
 
 $recce->end_input();
 
-is( $recce->show_status(1),
+is( Parse::Marpa::show_earley_sets($recce, 1),
     "Current Earley Set: 5; Furthest: 4\n" .  $sets_at_4,
     "Aycock/Horspool Parse Status at 4" );
 
