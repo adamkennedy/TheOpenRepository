@@ -20,26 +20,45 @@ sub no_code_defined {
     say STDERR $display;
 }
 
-my $self_marpa;
-{
-    open(SELF_MARPA, '<', '../bootstrap/self.marpa');
-    local($RS) = undef;
-    $self_marpa = <SELF_MARPA>;
-    $self_marpa =~ s/\A\s*//xms;
-    $self_marpa =~ s/\s*\z//xms;
-    $self_marpa =~ s/\s+/ /gxms;
-};
+sub normalize_whitespace {
+    my $text = shift;
+    $text =~ s/\A\s*//xms;
+    $text =~ s/\s*\z//xms;
+    $text =~ s/\s+/ /gxms;
+    $text;
+}
 
-sub in_self_marpa {
+sub slurp {
+    open(my $fh, '<', shift);
+    local($RS) = undef;
+    return <$fh>;
+}
+
+my $MDL_displays = normalize_whitespace(
+    slurp('MDL_displays.marpa')
+);
+my $self_marpa = normalize_whitespace(
+    slurp('../bootstrap/self.marpa')
+);
+
+sub in_file {
     my $display = shift;
-    $display =~ s/\A\s*//xms;
-    $display =~ s/\s*\z//xms;
-    $display =~ s/\s+/ /gxms;
-    my $location = index($self_marpa, $display);
+    my $file = shift;
+    $display = normalize_whitespace($display);
+    my $location = index($file, $display);
     return 1 if $location >= 0;
-    say "DISPLAY NOT FOUND:\n$display";
+    say "DISPLAY NOT IN file:\n$display";
     return;
 }
+
+sub in_self_marpa {
+    return in_file(shift, $self_marpa);
+}
+
+sub in_MDL_displays {
+    return in_file(shift, $MDL_displays);
+}
+
 
 package MyParser;
 @MyParser::ISA = qw(Pod::Parser);
@@ -97,7 +116,7 @@ sub textblock {
      }
      when (/^default$/) {
 	 $::default_code = join("\n", @lines);
-	 say "Setting default code:", $::default_code;
+	 $::current_code = $::default_code if $::command_countdown <= 0;
      }
      when (/^preamble$/) {
          $::preamble .= join("\n", @lines)
@@ -161,6 +180,5 @@ say scalar @::display, " display blocks to test";
 for my $display_test (@::display) {
     my ($display, $code, $file, $line) = @{$display_test}{qw(display code file line)};
     local $_ = $display;
-    say $code ;
     eval $code;
 } # $display_test

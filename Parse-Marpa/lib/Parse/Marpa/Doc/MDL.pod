@@ -64,7 +64,7 @@ Paragraphs contain sentences, which must end in a period.
 There are definition paragraphs, production paragraphs and terminal paragraphs.
 Here's an example of a definition paragraph:
 
-    semantics are perl5.  version is 0.1.59.  the start symbol is
+    semantics are perl5.  version is 0.211.7.  the start symbol is
     grammar.
 
 =head2 MDL Keywords
@@ -233,6 +233,13 @@ by C<the>.
 
 The following sentences all define the semantics of the grammar to be Perl 5.
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
+
     semantics are perl5.
     perl5 is the semantics.
     perl5 is semantics.
@@ -271,7 +278,7 @@ once Perl 6 becomes the default.
 
 =head2 Version Definition
 
-    version is 0.1.59.
+    version is 0.211.7.
 
 The version definition is also not optional,
 and as long as Marpa is in alpha, the version has to match B<exactly>.
@@ -297,9 +304,9 @@ In Marpa, semantic actions are specified by strings with Perl 5 code in them.
 Here's an example of a string definition:
 
     concatenate lines is q{
-        my $v_count = scalar @$Parse::Marpa::Read_only::v;
+        my $v_count = scalar @_;
         return undef if $v_count <= 0;
-        join("\n", grep { $_ } @$Parse::Marpa::Read_only::v);
+        join("\n", grep { $_ } @_);
     }.
 
 =head2 Default Action Definition
@@ -308,6 +315,13 @@ You can specify a "default action", that is, an action to be used in rules which
 not explicitly specify an action.  By default, rules return undefined.
 The current version of C<self.marpa> uses this default.
 Here's the specification of a default action from an earlier version:
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
 
     concatenate lines is the default action. 
 
@@ -330,6 +344,13 @@ it defaults to a Perl undefined.
 This default can be changed.
 For example, the following changes the default null symbol value
 to an at-sign.
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
 
     the default null value is q{'@'}.
 
@@ -368,7 +389,7 @@ C<a> and not C<the>.  As with other definitions, the article may be omitted.
 This is an example of a preamble:
 
     a preamble is q{
-	our $symbol_hash = {};
+        our $regex_data = [];
     }.
 
 =head2 Lex Preamble Definition
@@ -385,6 +406,13 @@ This differs from most definitions in MDL, where any new value overwrites the ol
 Also, the article to be used before the name of the predefined must be
 C<a> and not C<the>.  As with other definitions, the article may be omitted.
 This was a C<self.marpa> lex preamble in one version:
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
 
     a lex preamble is q{
 	our $regex_data = [];
@@ -418,7 +446,7 @@ Production sentences come in two forms: BNF sentences and sequence sentences.
 
 Let's start with another self-description:
 
-    production sentence: lhs, /:/, rhs, period.
+    production sentence: lhs, production copula, rhs, period.
 
 The usual form of a production sentence is 
 a BNF production.
@@ -437,6 +465,13 @@ We've already seen several examples of those, but here's another:
     optional /the/, /default/, /action/, /is/, action specifier.
 
 In this case the regex C</the/> is optional, so that the sentences
+
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
 
     the default action is do whatever.
 
@@ -470,9 +505,14 @@ Z<>
 
     paragraphs: empty line separated paragraph sequence.
 
-Z<>
+=begin Parse::Marpa::test_document:
 
-    rhs: optional comma separated rhs element sequence.
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
+
+    frobitz: optional comma separated whatchamacallit sequence.
 
 In sequence sentences, the right hand side of the production is
 a sequence description.  Only one sequence description is allowed on a right
@@ -492,6 +532,14 @@ sequence of C<rhs element>'s.
 Both of the following would parse as valid C<rhs>'s:
 
     optional /the/, /default/, /action/, /is/, action specifier
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
+
     optional /the/, /default/, /action/, /is/, action specifier,
 
 Preceding any sequence with the keyword C<optional> means that the entire
@@ -543,18 +591,12 @@ For example, in C<self.marpa>:
 
     action sentence:
     optional /the/, /action/, /is/, action specifier, period.
-    q{
-	"    action => "
-	. $Parse::Marpa::Read_only::v->[3]
-    }.
+    q{ "    action => " . $_[3] }.
 
 the last four lines are an action sentence.  You can also be more verbose.
 
     action sentence: action specifier, period.
-    the action is q{
-	"    action => "
-	. $Parse::Marpa::Read_only::v->[0]
-    }.
+    the action is q{ "    action => " . $_[0] }.
 
 The action can be either a rule action or a null symbol action.
 Which it is depends on the production sentence in the paragraph.
@@ -594,7 +636,7 @@ A priority sentence is the keyword C<priority> followed by an integer value, whi
 may be negative.  The default priority is 0.
 
     definition: predefined setting, period.
-    q{ $_->[0] }.
+    q{ $_[0] }.
     priority 1000.
 
 In the example above,
@@ -604,7 +646,7 @@ Priorities are used to affect the order in which ambiguous parses are returned,
 and they are a very important tool in Marpa.
 The priority setting in the above example directly affects the parsing of this sentence:
 
-    a preamble is q{ our $var; }.
+    a preamble is q{ our $regex_data = []; }.
 
 This sentence has two parses in C<self.marpa>.
 It could be parsed as a string definition,
@@ -643,6 +685,13 @@ They consist of a comment tag, followed by a colon and a series
 of whitespace-separated "comment words".  Comment words
 may contain anything except whitespace or a period.
 The comment tags are C<to do>, C<note> and C<comment>.
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_MDL_displays($_)
+
+=end Parse::Marpa::test_document:
 
     note: I may look like a production sentence; but MDL
     knows the difference.

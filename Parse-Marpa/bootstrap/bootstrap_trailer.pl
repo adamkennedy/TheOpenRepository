@@ -69,16 +69,15 @@ my $spec;
 my $evaler = new Parse::Marpa::Evaluator($recce);
 die("No parse") unless $evaler;
 
-our $HEADER;
-my $header;
-{ local($RS) = undef; open(HEADER, "<", $header_file_name); $header = <HEADER>; }
+sub slurp { open(my $fh, '<', shift); local($RS); <$fh>; }
 
-our $TRAILER;
-my $trailer;
-{ local($RS) = undef; open(TRAILER, "<", $trailer_file_name); $trailer = <TRAILER>; }
+my $header = slurp($header_file_name) if $header_file_name;
+my $trailer = slurp($trailer_file_name) if $trailer_file_name;
 
 say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa::VERSION;
 my $value = $evaler->next();
-print $header, $$value, "\n", $trailer;
+print $header if defined $header;
+say $$value;
+print $trailer if defined $trailer;
 
 # This is the end of bootstrap_trailer.pl

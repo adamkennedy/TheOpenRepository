@@ -4,7 +4,7 @@
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
 
-# This file was automatically generated using Parse::Marpa 0.211005
+# This file was automatically generated using Parse::Marpa 0.211007
 # This is the beginning of bootstrap_header.pl
 
 use 5.010_000;
@@ -48,7 +48,7 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '0.211006';
+$new_version = '0.211007';
 
 $new_start_symbol = "grammar";
 
@@ -222,8 +222,7 @@ push(@$new_rules,
 push(@$new_rules, {
     lhs => "action-sentence"
 ,    rhs => ["action-specifier", "period"],
-    action => 
-q{
+    action =>  q{
     "    action => "
     . $_[0]
 },
@@ -1010,7 +1009,10 @@ push(@$new_terminals, [ "single-quoted-string" => { action =>  q{
             my $end_pos = pos $$STRING;
             my $match_length = $end_pos - $match_start;
             my $lex_length = $end_pos - $START;
-            return (substr($$STRING, $match_start, $match_length), $lex_length);
+            return (
+                substr($$STRING, $match_start, $match_length),
+                $lex_length
+            );
         }
     }
     return;
@@ -1027,7 +1029,10 @@ push(@$new_terminals, [ "double-quoted-string" => { action =>  q{
             my $end_pos = pos $$STRING;
             my $match_length = $end_pos - $match_start;
             my $lex_length = $end_pos - $START;
-            return (substr($$STRING, $match_start, $match_length), $lex_length);
+            return (
+                substr($$STRING, $match_start, $match_length),
+                $lex_length
+            );
         }
     }
     return;

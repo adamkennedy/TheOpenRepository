@@ -29,21 +29,6 @@ use constant PARENT => 2;    # the number of the Earley set with the parent item
 use constant TOKENS => 3;    # a list of the links from token scanning
 use constant LINKS  => 4;    # a list of the links from the completer step
 use constant SET    => 5;    # the set this item is in, for debugging
-     # these next elements are "notations" for iterating over the parses
-use constant POINTER      => 6;     # symbol just before pointer
-use constant RULES        => 7;     # current list of rules
-use constant RULE_CHOICE  => 8;     # current choice of rule
-use constant LINK_CHOICE  => 9;     # current choice of link
-use constant TOKEN_CHOICE => 10;     # current choice of token
-use constant VALUE        => 11;    # value of pointer symbol
-use constant PREDECESSOR  => 12;    # the predecessor link, if we have a value
-use constant SUCCESSOR    => 13;    # the predecessor link, in reverse
-use constant EFFECT       => 14;    # the cause link, in reverse
-                                    # or the "parent" item
-use constant LHS          => 15;    # LHS symbol
-
-# Note that (at least right now) items either have a SUCCESSOR
-# or an EFFECT, never both.
 
 package Parse::Marpa::Internal::Recognizer;
 
@@ -447,58 +432,21 @@ sub show_link_choice {
 sub Parse::Marpa::show_earley_item {
     my $item = shift;
     my $ii   = shift;
-    my ($tokens,      $links,        $rules,     $rule_choice,
-        $link_choice, $token_choice, $value,     $pointer,
-        $lhs,         $predecessor,  $successor, $effect,
-        )
-        = @{$item}[
+    my ($tokens,      $links) = @{$item}[
         Parse::Marpa::Internal::Earley_item::TOKENS,
         Parse::Marpa::Internal::Earley_item::LINKS,
-        Parse::Marpa::Internal::Earley_item::RULES,
-        Parse::Marpa::Internal::Earley_item::RULE_CHOICE,
-        Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
-        Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
-        Parse::Marpa::Internal::Earley_item::VALUE,
-        Parse::Marpa::Internal::Earley_item::POINTER,
-        Parse::Marpa::Internal::Earley_item::LHS,
-        Parse::Marpa::Internal::Earley_item::PREDECESSOR,
-        Parse::Marpa::Internal::Earley_item::SUCCESSOR,
-        Parse::Marpa::Internal::Earley_item::EFFECT,
-        ];
+    ];
 
     my $text = Parse::Marpa::brief_earley_item( $item, $ii );
-    $text .= '  predecessor: ' . Parse::Marpa::brief_earley_item($predecessor)
-        if defined $predecessor;
-    $text .= '  successor: ' . Parse::Marpa::brief_earley_item($successor)
-        if defined $successor;
-    $text .= '  effect: ' . Parse::Marpa::brief_earley_item($effect)
-        if defined $effect;
-    my @symbols;
-    push @symbols,
-        'pre-dot: ' . $pointer->[Parse::Marpa::Internal::Symbol::NAME]
-        if defined $pointer;
-    push @symbols, 'lhs: ' . $lhs->[Parse::Marpa::Internal::Symbol::NAME]
-        if defined $lhs;
-    $text .= "\n  " . (join q{; }, @symbols) if @symbols;
-    $text .= "\n  value: " . Parse::Marpa::show_value( $value, $ii )
-        if defined $value;
 
     if ( defined $tokens and @{$tokens} ) {
-        $text .= "\n  token choice " . $token_choice;
         for my $token (@{$tokens}) {
             $text .= q{ } . show_token_choice( $token, $ii );
         }
     }
     if ( defined $links and @{$links} ) {
-        $text .= "\n  link choice " . $link_choice;
         for my $link (@{$links}) {
             $text .= q{ } . show_link_choice( $link, $ii );
-        }
-    }
-    if ( defined $rules and @{$rules} ) {
-        $text .= "\n  rule choice " . $rule_choice;
-        for my $rule (@{$rules}) {
-            $text .= ' [ ' . Parse::Marpa::brief_rule($rule) . ' ]';
         }
     }
     return $text;
@@ -865,13 +813,11 @@ sub scan_set {
                         Parse::Marpa::Internal::Earley_item::NAME,
                         Parse::Marpa::Internal::Earley_item::STATE,
                         Parse::Marpa::Internal::Earley_item::PARENT,
-                        Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
                         Parse::Marpa::Internal::Earley_item::LINKS,
-                        Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
                         Parse::Marpa::Internal::Earley_item::TOKENS,
                         Parse::Marpa::Internal::Earley_item::SET
                         ]
-                        = ( $name, $state, $origin, 0, [], 0, [], $target_ix );
+                        = ( $name, $state, $origin, [], [], $target_ix );
                     $earley_hash->{$name} = $target_item;
                     push @{$target_set}, $target_item;
                 }
@@ -972,13 +918,11 @@ sub complete_set {
                             Parse::Marpa::Internal::Earley_item::NAME,
                             Parse::Marpa::Internal::Earley_item::STATE,
                             Parse::Marpa::Internal::Earley_item::PARENT,
-                            Parse::Marpa::Internal::Earley_item::LINK_CHOICE,
                             Parse::Marpa::Internal::Earley_item::LINKS,
-                            Parse::Marpa::Internal::Earley_item::TOKEN_CHOICE,
                             Parse::Marpa::Internal::Earley_item::TOKENS,
                             Parse::Marpa::Internal::Earley_item::SET
                             ]
-                            = ( $name, $state, $origin, 0, [], 0, [], $current_set );
+                            = ( $name, $state, $origin, [], [], $current_set );
                         $earley_hash->{$name} = $target_item;
                         push @{$earley_set}, $target_item;
                     }    # unless defined $target_item

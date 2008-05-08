@@ -2085,10 +2085,7 @@ sub set_start {
     my $start = $symbol_hash->{$start_name};
 
     if ( not defined $start ) {
-        my $problem = 'Start symbol: ' . $start_name . ' not defined';
-        push @{ $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS] },
-            $problem;
-        $success = 0;
+        croak( 'Start symbol: ' . $start_name . ' not defined' )
     }
 
     my ( $lhs, $rhs, $terminal, $productive ) = @{$start}[

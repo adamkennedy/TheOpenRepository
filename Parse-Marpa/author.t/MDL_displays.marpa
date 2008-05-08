@@ -1,0 +1,23 @@
+semantics are perl5. perl5 is the semantics. perl5 is semantics. the semantics are perl5. the semantics is perl5.
+version is 0.211.7.
+
+start symbol is frobitz.
+
+concatenate lines is the default action.
+
+the default null value is q{'@'}.
+
+a lex preamble is q{ our $regex_data = []; }.
+
+note: I may look like a production sentence; but MDL knows the difference.
+
+do whatever is q{}.
+
+the default action is do whatever.
+
+default action is do whatever.
+
+frobitz: optional comma separated whatchamacallit sequence.
+
+whatchamacillit: optional /the/, /default/, /action/, /is/, action specifier, .
+

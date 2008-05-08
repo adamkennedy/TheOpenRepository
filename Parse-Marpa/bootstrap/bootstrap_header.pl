@@ -6,6 +6,7 @@ use warnings;
 use Parse::Marpa;
 use Parse::Marpa::MDL;
 use Carp;
+use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
 
 my %regex;
@@ -32,8 +33,6 @@ usage() unless $argc >= 1 and $argc <= 3;
 my $grammar_file_name = shift @ARGV;
 my $header_file_name = shift @ARGV;
 my $trailer_file_name = shift @ARGV;
-$header_file_name //= "bootstrap_header.pl";
-$trailer_file_name //= "bootstrap_trailer.pl";
 
 our $GRAMMAR;
 open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $!");
