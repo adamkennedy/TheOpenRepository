@@ -79,12 +79,31 @@ my $equation_show_QDFA = slurp('equation_show_QDFA.out');
 sub is_equation_show_QDFA {
     return is_file(shift, $equation_show_QDFA);
 }
+sub in_equation_show_QDFA {
+    return in_file(shift, $equation_show_QDFA);
+}
 
-my $equation_show_earley_sets = normalize_whitespace(
-    slurp('equation_show_earley_sets.out')
-);
+my $equation_show_earley_sets = slurp('equation_show_earley_sets.out');
 sub is_equation_show_earley_sets {
     return is_file(shift, $equation_show_earley_sets);
+}
+sub in_equation_show_earley_sets {
+    return in_file(shift, $equation_show_earley_sets);
+}
+
+my $equation_show_bocage = slurp('equation_show_bocage.out');
+sub is_equation_show_bocage {
+    return is_file(shift, $equation_show_bocage);
+}
+
+my $equation_show_tree = slurp('equation_show_tree.out');
+sub is_equation_show_tree {
+    return is_file(shift, $equation_show_tree);
+}
+
+my $self_show_rules = slurp('self_show_rules.out');
+sub in_self_show_rules {
+    return in_file(shift, $self_show_rules);
 }
 
 package MyParser;
@@ -256,7 +275,7 @@ for my $file (@files) {
     $parser->parse_from_file($file);
     eval $preamble;
     croak($EVAL_ERROR) if $EVAL_ERROR;
-    say scalar @::display, " display blocks to test in $file";
+    # say scalar @::display, " display blocks to test in $file";
     for my $display_test (@::display) {
 	my ($display, $code, $file, $line) = @{$display_test}{qw(display code file line)};
 	local $_ = $display;
@@ -267,5 +286,6 @@ for my $file (@files) {
 	    $problems++;
 	}
     } # $display_test
-    say $problems, " display blocks with problems in $file";
+    say $problems, " display blocks with problems in $file"
+       if $problems > 0;
 }

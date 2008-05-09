@@ -8,11 +8,11 @@ Knowledge of Marpa internals is not necessary to use Marpa.
 But you can make better use
 of Marpa if you
 understand how it works.
-This document assumes you
+This document assumes that you
 have read the other Marpa documentation,
 and that you
-have a general knowledge of parsing,
-or at least have worked with another parser generator.
+have worked with another parser generator,
+or have a general knowledge of parsing.
 
 =head1 EARLEY SETS
 
@@ -26,7 +26,8 @@ If an B<Earley item> of the correct form is in the right place in these sets
 after input is finished,
 the input is recognized as one of those described by the grammar.
 Once the recognition phase is done,
-the parse can be found in the Earley sets.
+the phase that does parsing in the strict sense uses
+the Earley sets as its input.
 
 Each of Marpa's B<earlemes> corresponds one-to-one to an Earley set.
 An Earley set is a set of Earley items.
@@ -34,6 +35,12 @@ Each Earley item has an B<QDFA state>, an B<origin earleme> and an B<dot earleme
 An Earley item's dot earleme is also called its B<current earleme>.
 Here's a representation of an Earley item, as you might see it in
 debugging output from Marpa:
+
+=begin Parse::Marpa::test_document:
+
+## skip display
+
+=end Parse::Marpa::test_document:
 
     S5@6-7
 
@@ -66,6 +73,12 @@ They can be ignored.
 About QDFA's, it will be necessary to know a bit more.
 Let's start with an example of another Earley item:
 
+=begin Parse::Marpa::test_document:
+
+## skip display
+
+=end Parse::Marpa::test_document:
+
     S1@2-2
 
 This states that this item is for QDFA state 1,
@@ -73,6 +86,13 @@ that it originates at earleme 2,
 and that it is currently at earleme 2.
 We can get a description of the QDFA states from the C<show_QDFA> method.
 Here's what it says about QDFA state 1:
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
 
     S1: predict; 1,5
     e ::= . e op e
@@ -118,10 +138,11 @@ based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Ay
 
 Each QDFA state is a statement about possible parses.
 The presence of an QDFA state in an Earley item means that the parses in its LR(0) items
-are possible at its dot earleme.
+are possible at the Earley item's dot earleme.
 The dot position of every LR(0) item in the QDFA state
 corresponds to the dot earleme of the Earley item.
-The origin of every LR(0) item is the origin earleme of the Earley item.
+Also, the origin of every LR(0) item
+is at the origin earleme of the Earley item.
 
 In our example,
 the dots in all the LR(0) items in S1 (QDFA state 1)
@@ -137,7 +158,8 @@ scanning, completion, prediction, and initialization.
 
 =head2 Scanning
 
-Scanning adds Earley items to indicate that tokens have been recognized.
+Scanning adds Earley items to indicate which tokens have been seen in the
+input, and where.
 Suppose the Earley item S1@2-2 (mentioned above) is present at earleme 2.
 Marpa knows to instruct the lexer to look for a C<number> token because
 there is a transition from S1 to S4 on C<number>.
@@ -148,12 +170,19 @@ a new Earley item S4@2-3 is added at earleme 3.
 (Earleme 3 because 3 is 2+1, the current token plus the token length.)
 Here (again from C<show_QDFA>) is the description of QDFA state 4.
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
+
     S4: 6
     e ::= number .
 
 We can see that there is only one LR(0) item in QDFA state 4,
 and that it has the dot pointer at the end of its rule.
-A rule with the dot pointer at the end in an LR(0) item is called
+A rule with the dot pointer at the end in an LR(0) item is
 a B<completed rule>.
 
 Marpa calls the item that was looking for the scanned symbol
@@ -169,11 +198,14 @@ In this example, S4@2-3 is the successor of S1@2-2.
 Here's what S4@2-3 looks like in the Earley sets, after a successful
 scan of the input C<"2+2">.
 
-    S4@2-3  predecessor: S1@2-2  effect: S6@0-3
-      pre-dot: number; lhs: e
-      value: 2
-      token choice 0 [p=S1@2-2; t=2]
-      rule choice 0 [ 1: e -> number ]
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_earley_sets($_);
+
+=end Parse::Marpa::test_document:
+
+    S4@2-3  [p=S1@2-2; t=2]
 
 In the first line we see that, as mentioned, S1@2-2 is the predecessor of S4@2-3.
 It has no successor.
@@ -219,13 +251,27 @@ the Earley item in our example of a scanned item.
 Its state was QDFA state 4.
 QDFA state 4 contained the LR(0) item 
 
-    e -> number .
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
+
+    e ::= number .
 
 The dot is at the far right, so it's a completed rule whose the left hand side is C<e>.
 
 S4@2-3 begins at earleme 2 and has a complete rule with C<e> as its lhs,
 and therefore any Earley item at earleme 2 which is looking for an C<e> is in luck.
 S5@0-2 is such a rule.  QDFA state 5 looks like this:
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
 
     S5: 3
     e ::= e op . e
@@ -235,11 +281,14 @@ This says that in QDFA state 5, when you see an C<e>, you transition to
 QDFA state 6.
 Here's S6@0-3, the item which is the effect of the completion:
 
-    S6@0-3  predecessor: S5@0-2  effect: S2@0-3
-      pre-dot: e; lhs: e
-      value: 2==2
-      link choice 0 [p=S5@0-2; c=S4@2-3]
-      rule choice 0 [ 0: e -> e op e ]
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_earley_sets($_);
+
+=end Parse::Marpa::test_document:
+
+    S6@0-3 [p=S5@0-2; c=S4@2-3]
 
 (You'll notice that S6@0-3 is not just an effect,
 but also has its own effect.
@@ -288,12 +337,26 @@ the start of any rules that have an C<e> on their left hand side.
 
 Recall QDFA state 5
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
+
     S5: 3
     e ::= e op . e
      <e> => S6
 
 QDFA state 5 is expecting an C<e>.
 This means that the rules 
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
 
     e ::= . e op e
     e ::= . number
@@ -302,17 +365,31 @@ can also be expected to originate at this earleme.
 Marpa is smart about grouping rules into QDFA states
 and both these rules are in QDFA state 1:
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
+
     S1: predict; 1,5
     e ::= . e op e
     e ::= . number
-     <e> => S3 (2)
-     <number> => S4 (6)
+     <e> => S3
+     <number> => S4
 
 This means that since S5@0-2 is at earleme 2, we should also expect to see an item
 for QDFA state 1 at earleme 2,
 and we do:
 
-    S1@2-2  successor: S4@2-3
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_earley_sets($_);
+
+=end Parse::Marpa::test_document:
+
+    S1@2-2
 
 Every rule in a predicted item will have the dot at the beginning.
 That means the origin and dot earlemes will always be the same.
@@ -332,8 +409,15 @@ they don't need to have links or a lot of the data that the other items have.
 Some Earley items are put into Earley set 0 to start things off.
 In our example they are
 
-    S0@0-0  successor: S2@0-3
-    S1@0-0  successor: S4@0-1
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_earley_sets($_);
+
+=end Parse::Marpa::test_document:
+
+    S0@0-0
+    S1@0-0
 
 QDFA state 0 contains the start rules, with the dot pointer at the beginning.
 Only Earley set 0 will contain an Earley item for QDFA state 0.
@@ -364,6 +448,13 @@ contains the LR(0) item which has Marpa's internal start rule
 and has the dot pointer at the end of that rule.
 The completed start rule state in our example is QDFA state 2:
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
+
     S2: 8
     e['] ::= e .
 
@@ -374,11 +465,14 @@ with a origin earleme of 0 and
 a dot earleme of I<N>.
 Here's the Earley item which makes the parse in our example successful at earleme 3:
 
-    S2@0-3  predecessor: S0@0-0
-      pre-dot: e; lhs: e[']
-      value: (2+2)==4
-      link choice 0 [p=S0@0-0; c=S6@0-3]
-      rule choice 0 [ 2: e['] -> e ]
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_show_earley_sets($_);
+
+=end Parse::Marpa::test_document:
+
+    S2@0-3 [p=S0@0-0; c=S6@0-3]
       
 =head1 GRAMMAR REWRITING
 
@@ -466,6 +560,13 @@ the multiplier.  Here's an example of a CHAF rewrite from Marpa's
 own self-grammar.
 First, the rule:
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_self_marpa($_);
+
+=end Parse::Marpa::test_document:
+
     production paragraph:
         non structural production sentences,
         production sentence,
@@ -484,53 +585,72 @@ appears three times.
 
 Here's is the output from C<show_rules>, showing what Marpa did with this rule:
 
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_self_show_rules($_);
+
+=end Parse::Marpa::test_document:
+
     12: production-paragraph
 	    -> non-structural-production-sentences
 	    production-sentence
 	    non-structural-production-sentences
 	    action-sentence:optional
 	    non-structural-production-sentences /* !useful */
-    94: production-paragraph
-	    -> non-structural-production-sentences
-	    production-sentence
-	    production-paragraph[R12:2][x5b]
-    95: production-paragraph
-	    -> non-structural-production-sentences[]
-	    production-sentence
-	    production-paragraph[R12:2][x5b]
-    96: production-paragraph
-	    -> non-structural-production-sentences
-	    production-sentence
-	    production-paragraph[R12:2][x5b][]
-    97: production-paragraph
-	    -> non-structural-production-sentences[]
-	    production-sentence
-	    production-paragraph[R12:2][x5b][]
-    98: production-paragraph[R12:2][x5b]
-	    -> non-structural-production-sentences
-	    production-paragraph[R12:3][x5d]
-    99: production-paragraph[R12:2][x5b]
-	    -> non-structural-production-sentences[]
-	    production-paragraph[R12:3][x5d]
-    100: production-paragraph[R12:2][x5b]
-	    -> non-structural-production-sentences
-	    production-paragraph[R12:3][x5d][]
-    101: production-paragraph[R12:3][x5d]
-	    -> action-sentence:optional
-	    non-structural-production-sentences
-    102: production-paragraph[R12:3][x5d]
-	    -> action-sentence:optional[]
-	    non-structural-production-sentences
-    103: production-paragraph[R12:3][x5d]
-	    -> action-sentence:optional
-	    non-structural-production-sentences[]
+
+Z<>
+
+    99: production-paragraph ->
+        non-structural-production-sentences
+        production-sentence
+        production-paragraph[R12:2][x5e]
+        /* priority=0.3 */
+    100: production-paragraph ->
+        non-structural-production-sentences[]
+        production-sentence
+        production-paragraph[R12:2][x5e]
+        /* priority=0.1 */
+    101: production-paragraph ->
+        non-structural-production-sentences
+        production-sentence
+        production-paragraph[R12:2][x5e][]
+        /* priority=0.2 */
+    102: production-paragraph ->
+        non-structural-production-sentences[]
+        production-sentence
+        production-paragraph[R12:2][x5e][]
+    103: production-paragraph[R12:2][x5e] ->
+        non-structural-production-sentences
+        production-paragraph[R12:3][x60]
+        /* priority=0.3 */
+    104: production-paragraph[R12:2][x5e] ->
+        non-structural-production-sentences[]
+        production-paragraph[R12:3][x60]
+        /* priority=0.1 */
+    105: production-paragraph[R12:2][x5e] ->
+        non-structural-production-sentences
+        production-paragraph[R12:3][x60][]
+        /* priority=0.2 */
+    106: production-paragraph[R12:3][x60] ->
+        action-sentence:optional
+        non-structural-production-sentences
+        /* priority=0.3 */
+    107: production-paragraph[R12:3][x60] ->
+        action-sentence:optional[]
+        non-structural-production-sentences
+        /* priority=0.1 */
+    108: production-paragraph[R12:3][x60] ->
+        action-sentence:optional
+        non-structural-production-sentences[]
+        /* priority=0.2 */
 
 Rule 12 is the original rule.  Because Marpa has rewritten it,
 the rule is marked C<!useful>, telling later stages in the precomputation to ignore it.
 Marpa breaks Rule 12 up into three pieces, each with no more than two proper nullables.
-Rules 94 to 97 are the first piece, with the first two symbols from Rule 12.
-Rules 98 to 100 are the second, with the 3rd symbol.
-Rules 101 to 103 are the third, with the 4th and 5th symbols from Rule 12.
+Rules 99 to 102 are the first piece, with the first two symbols from Rule 12.
+Rules 103 to 105 are the second, with the 3rd symbol.
+Rules 106 to 108 are the third, with the 4th and 5th symbols from Rule 12.
 
 Each piece is B<factored>, so that every combination of nulling and non-nullable symbols is included.
 New symbols are introduced to be the left hand sides of the pieces.
@@ -573,9 +693,23 @@ to the user's actions as if no CHAF rewrite had occurred.
 Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_self_marpa($_);
+
+=end Parse::Marpa::test_document:
+
     paragraphs: empty line separated paragraph sequence.
 
 becomes
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_self_show_rules($_);
+
+=end Parse::Marpa::test_document:
 
     2: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5]
     3: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5] empty-line
@@ -590,9 +724,23 @@ C<empty_line> separated.
 
 Here's another example, this time of a sequence without a separator:
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_self_marpa($_);
+
+=end Parse::Marpa::test_document:
+
     definition paragraph: definition sequence. concatenate lines.
 
 is written as the following BNF:
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_self_show_rules($_);
+
+=end Parse::Marpa::test_document:
 
     9: definition-paragraph -> definition[Seq:1-*][xa]
     10: definition[Seq:1-*][xa] -> definition
@@ -734,6 +882,50 @@ is_equation_show_earley_sets($_);
     S3@2-3 [p=S1@2-2; c=S4@2-3]
     S2@0-3 [p=S0@0-0; c=S6@0-3]
     S3@0-3 [p=S1@0-0; c=S6@0-3]
+
+=head2 The C<show_bocage> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_show_bocage($_);
+
+=end Parse::Marpa::test_document:
+
+    package: Parse::Marpa::E_1; parse count: 0
+    S2@0-3L3 ::= S6@0-3L0
+    S6@0-3L0 ::= S5@0-2R0:3 S4@2-3L0
+    S5@0-2R0:3 ::= S3@0-1R0:2 '+'
+    S4@2-3L0 ::= '2'
+    S3@0-1R0:2 ::= S4@0-1L0
+    S4@0-1L0 ::= '2'
+
+=head2 The C<show_tree> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_show_tree($_);
+
+=end Parse::Marpa::test_document:
+
+    Tree Node: S2@0-3L3[0]; Depth=0; Argc=1
+        Rule: e['] ::= e .
+        Cause: S6@0-3L0
+    Tree Node: S6@0-3L0[0]; Depth=1; Argc=3
+        Rule: e ::= e op e .
+        Predecessor: S5@0-2R0:3
+        Cause: S4@2-3L0
+    Tree Node: S4@2-3L0[0]; Depth=2; Argc=1
+        Rule: e ::= number .
+    Tree Node: S5@0-2R0:3[0]; Depth=2; Argc=3
+        Rule: e ::= e op . e
+        Predecessor: S3@0-1R0:2
+    Tree Node: S3@0-1R0:2[0]; Depth=3; Argc=3
+        Rule: e ::= e . op e
+        Cause: S4@0-1L0
+    Tree Node: S4@0-1L0[0]; Depth=4; Argc=1
+        Rule: e ::= number .
 
 =head1 SUPPORT
 

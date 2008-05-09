@@ -3,7 +3,9 @@ all: \
     equation_show_QDFA.out \
     equation_show_earley_sets.out \
     equation_show_bocage.out \
-    equation_show_tree.out
+    equation_show_tree.out \
+    self_show_rules.out \
+    MDL_displays.errs
 
 equation_show_QDFA.out:
 	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
@@ -24,6 +26,10 @@ equation_show_tree.out:
 	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
         ../example/equation.marpa --tree | \
 	sed -e '/(2+2)==4/d' > $@
+
+self_show_rules.out:
+	cat minimal.marpa | \
+	perl -I../lib ../bin/mdl parse -grammar ../bootstrap/self.marpa -rules > $@
 
 MDL_displays.errs:
 	echo | perl -I../lib ../bin/mdl parse \
