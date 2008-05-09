@@ -105,9 +105,12 @@ are as described above for the corresponding elements of the short form.
 
 =item C<min> and C<max>
 
-If defined, C<min> must be a non-negative integer.
-If defined, C<max> must be an integer greater than zero,
-and greater than or equal to C<min>.
+C<max> must be undefined or 1.
+If C<max> is undefined, C<min> may be undefined.
+0 or 1,
+If C<max> is 1, C<min> may be 0 or 1.
+For any other combination of values,
+an exception is thrown.
 
 =over 4
 
@@ -115,28 +118,24 @@ and greater than or equal to C<min>.
 
 The rule is an ordinary B<BNF production>.
 
-=item * C<min> defined, but C<max> undefined
+=item * C<min> 0 or 1, and C<max> undefined
 
 The rule is a B<sequence production>.
 Only one symbol is allowed on the right hand side.
-It is not allowed be a nullable symbol.
-The rhs must be repeated at least C<min> times
+The right hand side symbol may not be a nullable symbol.
+The rhs symbol must be repeated at least C<min> times
 and may be repeated an unlimited number of times.
 
-=item * C<min> undefined, but C<max> defined
-
-The rule is not valid.  An exception is thrown.
-
-=item * C<min> and C<max> both defined and both equal to 1
+=item * C<min> and C<max> both 1
 
 The rule is an ordinary B<BNF production>.
 
-=item * C<min> and C<max> both defined, but not both equal to 1
+=item * C<min> 0 and C<max> 1
 
-The rule is a B<counted sequence production>.
-Only one symbol is allowed on the right hand side.
+Only one symbol is allowed on the right hand side,
+and it is optional --
+that is, it may be present once or not at all.
 It is not allowed be a nullable symbol.
-It may be repeated anywhere from C<min> to C<max> times.
 
 =back
 
@@ -237,12 +236,12 @@ See the L<support section|Parse::Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007 - 2008 Jeffrey Kegler
 
 This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+it and/or modify it under the same terms as Perl 5.10.0.
 
 =cut
 

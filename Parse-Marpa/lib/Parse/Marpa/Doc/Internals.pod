@@ -628,7 +628,8 @@ The input text was "C<2+2>".
 =begin Parse::Marpa::test_document:
 
 ## next display
-in_equation_grammar($_);
+## start display
+is_equation_grammar($_);
 
 =end Parse::Marpa::test_document:
 
@@ -674,8 +675,10 @@ in_equation_grammar($_);
 	     "(" . join(";", @_) . ")";
 	}.
 
+
 =begin Parse::Marpa::test_document:
 
+## end display
 ## next display
 is_equation_show_QDFA($_);
 
@@ -716,48 +719,21 @@ is_equation_show_earley_sets($_);
 
     Current Earley Set: 4; Furthest: 3
     Earley Set 0
-    S0@0-0  successor: S2@0-3
-    S1@0-0  successor: S4@0-1
+    S0@0-0
+    S1@0-0
     Earley Set 1
-    S4@0-1  predecessor: S1@0-0  effect: S3@0-1
-      pre-dot: number; lhs: e
-      value: 2
-      token choice 0 [p=S1@0-0; t=2]
-      rule choice 0 [ 1: e -> number ]
-    S2@0-1
-      link choice 0 [p=S0@0-0; c=S4@0-1]
-    S3@0-1  predecessor: S1@0-0  successor: S5@0-2
-      pre-dot: e
-      value: 2==2
-      link choice 0 [p=S1@0-0; c=S4@0-1]
-      rule choice 0 [ 0: e -> e op e ]
+    S4@0-1 [p=S1@0-0; t=2]
+    S2@0-1 [p=S0@0-0; c=S4@0-1]
+    S3@0-1 [p=S1@0-0; c=S4@0-1]
     Earley Set 2
-    S5@0-2  predecessor: S3@0-1  successor: S6@0-3
-      pre-dot: op
-      value: +
-      token choice 0 [p=S3@0-1; t=+]
-      rule choice 0 [ 0: e -> e op e ]
-    S1@2-2  successor: S4@2-3
+    S5@0-2 [p=S3@0-1; t=+]
+    S1@2-2
     Earley Set 3
-    S4@2-3  predecessor: S1@2-2  effect: S6@0-3
-      pre-dot: number; lhs: e
-      value: 2
-      token choice 0 [p=S1@2-2; t=2]
-      rule choice 0 [ 1: e -> number ]
-    S6@0-3  predecessor: S5@0-2  effect: S2@0-3
-      pre-dot: e; lhs: e
-      value: 2==2
-      link choice 0 [p=S5@0-2; c=S4@2-3]
-      rule choice 0 [ 0: e -> e op e ]
-    S3@2-3
-      link choice 0 [p=S1@2-2; c=S4@2-3]
-    S2@0-3  predecessor: S0@0-0
-      pre-dot: e; lhs: e[']
-      value: (2+2)==4
-      link choice 0 [p=S0@0-0; c=S6@0-3]
-      rule choice 0 [ 2: e['] -> e ]
-    S3@0-3
-      link choice 0 [p=S1@0-0; c=S6@0-3]
+    S4@2-3 [p=S1@2-2; t=2]
+    S6@0-3 [p=S5@0-2; c=S4@2-3]
+    S3@2-3 [p=S1@2-2; c=S4@2-3]
+    S2@0-3 [p=S0@0-0; c=S6@0-3]
+    S3@0-3 [p=S1@0-0; c=S6@0-3]
 
 =head1 SUPPORT
 
@@ -767,12 +743,12 @@ See the L<support section|Parse::Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007 - 2008 Jeffrey Kegler
 
 This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+it and/or modify it under the same terms as Perl 5.10.0.
 
 =cut
 

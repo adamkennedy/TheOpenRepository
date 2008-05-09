@@ -4,12 +4,15 @@ use warnings;
 use strict;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
+use Text::Diff;
 
 our $preamble = q{};
 our $in_command = 0;
 our @display;
 our $default_code = q{ no_code_defined($_) };
 our $current_code = $default_code;
+our $collecting_from_line_num = -1;
+our $collected_display;
 our $command_countdown = 0;
 our $current_file = '!!! NO CURRENT FILE !!!';
 our $display_skip = 0;
@@ -37,6 +40,7 @@ sub in_file {
     my $display = shift;
     my $file = shift;
     $display = normalize_whitespace($display);
+    $file = normalize_whitespace($file);
     my $location = index($file, $display);
     return $location >= 0 ? "" : "Display not in $::current_file";
 }
@@ -45,33 +49,33 @@ sub is_file {
     my $display = shift;
     my $file = shift;
     $display = normalize_whitespace($display);
-    return $file eq $display ? "" : 'Display not in $::current_file';
+    $file = normalize_whitespace($file);
+    return $file eq $display ? "" : "Display not equal to $::current_file";
 }
 
-my $self_marpa = normalize_whitespace(
-    slurp('../bootstrap/self.marpa')
-);
+my $self_marpa = slurp('../bootstrap/self.marpa');
 sub in_self_marpa {
     return in_file(shift, $self_marpa);
 }
 
-my $MDL_displays = normalize_whitespace(
-    slurp('MDL_displays.marpa')
-);
+my $MDL_displays = slurp('MDL_displays.marpa');
 sub in_MDL_displays {
     return in_file(shift, $MDL_displays);
 }
 
-my $equation_grammar = normalize_whitespace(
-    slurp('../example/equation.marpa')
-);
-sub in_equation_grammar {
-    return in_file(shift, $equation_grammar);
+my $equation_grammar = slurp('../example/equation.marpa');
+sub is_equation_grammar {
+    my $display_grammar = shift;
+    my $result = is_file(
+	$display_grammar,
+	$equation_grammar
+    );
+    return $result unless $result;
+    return "$result\n" .
+        diff(\$display_grammar, \$equation_grammar);
 }
 
-my $equation_show_QDFA = normalize_whitespace(
-    slurp('equation_show_QDFA.out')
-);
+my $equation_show_QDFA = slurp('equation_show_QDFA.out');
 sub is_equation_show_QDFA {
     return is_file(shift, $equation_show_QDFA);
 }
@@ -87,11 +91,11 @@ package MyParser;
 @MyParser::ISA = qw(Pod::Parser);
 use Carp;
 
-sub verbatim { 
-    my ($parser, $paragraph, $line_num) = @_;
-    
+sub queue_display {
+    my $display = shift;
+    my $line_num = shift;
     push @::display, {
-        'display' => $paragraph,
+        'display' => $display,
 	'code' => $::current_code,
 	'file' => $::current_file,
 	'line' => $line_num,
@@ -104,51 +108,49 @@ sub verbatim {
     }
 }
 
-sub textblock {
-     return unless $in_command;
-     my ($parser, $paragraph, $line_num) = @_;
+sub verbatim {
+    my ($parser, $paragraph, $line_num) = @_;
+    
+    if (defined $::collected_display) {
+       $::collected_display .=  $paragraph;
+       $::collecting_from_line_num //= $line_num;
+       return;
+    }
+    queue_display($paragraph, $line_num);
+}
 
-     ## Translate/Format this block of text; sample actions might be:
+sub process_instruction {
+    my $instruction = shift;
+    my $code = shift;
+    my $line_num = shift;
 
-     my @lines = split /\n/, $paragraph;
-     my $instruction;
-     LINE: while (my $line = shift @lines) {
-         next LINE if $line =~ /^\s*$/xms; # skip whitespace
-	 croak(
-	     "File: $::current_file  Line: $line_num\n",
-	     "test block doesn't begin with ## instruction\n$paragraph"
-	 ) unless $line =~ /^[#][#]/xms;
-	 $line =~ s/^[#][#]\s*//;
-	 $instruction = $line;
-	 last LINE;
-     }
      $instruction =~ s/\s$//; # eliminate trailing whitespace
      $instruction =~ s/\s/ /g; # normalize whitespace
      given ($instruction) {
      when (/^next display$/) {
 	 $::command_countdown = 1;
-	 $::current_code = join("\n", @lines)
+	 $::current_code = join("\n", @{$code})
      }
-     when (/^next (\d+) display(s)$/) {
+     when (/^next\s+(\d+)\s+display(s)?$/) {
 	 $::command_countdown = $1;
 	 croak(
 	     "File: $::current_file  Line: $line_num\n",
 	     "  'next $::command_countdown display' has countdown less than one\n"
 	 ) unless $::command_countdown >= 1;
-	 $::current_code = join("\n", @lines)
+	 $::current_code = join("\n", @{$code})
      }
      when (/^default$/) {
-	 $::default_code = join("\n", @lines);
+	 $::default_code = join("\n", @{$code});
 	 $::current_code = $::default_code if $::command_countdown <= 0;
      }
      when (/^preamble$/) {
-         $::preamble .= join("\n", @lines)
+         $::preamble .= join("\n", @{$code})
      }
      when (/^skip display$/) {
 	 $::command_countdown = 1;
 	 $::display_skip++;
      }
-     when (/^skip (\d+) display(s)$/) {
+     when (/^skip (\d+) display(s)?$/) {
 	 $::command_countdown = $1;
 	 croak(
 	     "File: $::current_file  Line: $line_num\n",
@@ -156,13 +158,48 @@ sub textblock {
 	 ) unless $::command_countdown >= 1;
 	 $::display_skip++;
      }
+     when (/^start\s+display$/) {
+         $::collected_display = q{};
+	 # line num will be set when first part of display is found
+     }
+     when (/^end\s+display$/) {
+	 queue_display($::collected_display, $::collecting_from_line_num);
+         $::collected_display = undef;
+	 $::collecting_from_line_num = -1;
+     }
      default {
 	 croak(
 	     "File: $::current_file  Line: $line_num\n",
-	     "  unrecognized instruction: $_\n"
+	     "  unrecognized instruction: '$_'\n"
 	 );
      }
      } # given
+}
+
+sub textblock {
+     return unless $in_command;
+     my ($parser, $paragraph, $line_num) = @_;
+
+     ## Translate/Format this block of text; sample actions might be:
+
+     my @lines = split /\n/, $paragraph;
+     my $found_instruction = 0;
+     LINE: while (my $line = shift @lines) {
+	 next LINE if $line =~ /^\s*$/xms;  # skip whitespace
+	 if ($line =~  /^[#][#]/xms) {
+	     $line =~ s/^[#][#]\s*//;
+	     process_instruction( $line, \@lines, $line_num );
+	     $found_instruction = 1;
+	     next LINE;
+	 }
+	 croak(
+	     "File: $::current_file  Line: $line_num\n",
+	     "test block doesn't begin with ## instruction\n$paragraph"
+	 ) if not $found_instruction;
+	 last LINE;
+     }
+
+     return;
 
 }
 
@@ -185,7 +222,7 @@ sub command {
 
 package main;
 
-my @files = qw(
+my @default_files = qw(
 ../lib/Parse/Marpa/Doc/Algorithm.pod
 ../lib/Parse/Marpa/Doc/Bibliography.pod
 ../lib/Parse/Marpa/Doc/Diagnostics.pod
@@ -204,11 +241,12 @@ my @files = qw(
 
 my $parser = new MyParser();
 
+my @files = @ARGV ? @ARGV : @default_files;
+
 for my $file (@files) {
 
     $::current_file = $file;
     @::display = ();
-    @::current_command = ();
     $::default_code = q{ no_code_defined($_) };
     $::current_code = $default_code;
     $::command_countdown = 0;

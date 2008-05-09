@@ -1803,6 +1803,8 @@ sub add_rules_from_hash {
         }
     }
 
+    croak('Keep separation not available')
+        if $keep_separation;
     croak('Only left associative sequences available')
         unless $left_associative;
 
@@ -1813,92 +1815,50 @@ sub add_rules_from_hash {
         return;
     }
 
-    # Take of obviously bad min, max values
-    if ( defined $max and $max <= 0 ) {
-        croak("rule max count is $max, not greater than zero");
-    }
-    if ( defined $min and $min < 0 ) {
-        croak("rule min count is $min, less than zero");
-    }
-
-    # Ensure min is correctly defined
-    if ( not defined $min ) {
-        given ($max) {
-            when (undef) { $min = $max = 1; }
-            default {
-                croak("rule max count is defined ($max), but no rule minium");
-            }
-        }
+    given ([$min, $max]) {
+	when ([undef, undef]) { $min = $max = 1; }
+	when ([0, undef]) { ; }
+	when ([1, undef]) { ; }
+	when ([0, 1]) { ; }
+	when ([1, 1]) { ; }
+	default {
+	    croak(
+	       'bad rule counts: min=', ($min // 'undef'),
+	       '; max=', ($max // 'undef')
+	    );
+	}
     }
 
-    # This is an ordinary, non-counted rule,
-    # which we'll take care of first as a special case
-    if ( defined $max and $max == 1 and $min == 1 ) {
-        if ( $max <= 1 and defined $separator_name ) {
+    if (defined $max) {
+
+	# If we are here, we have $max == 1
+
+        if (defined $separator_name ) {
             croak('separator defined for rule without repetitions');
-        }
-        add_user_rule( $grammar, $lhs_name, $rhs_names, $action,
-            $user_priority );
-        return;
-    }
+	}
 
-    if ( defined $max ) {
-        croak("rule max count ($max) count is less than minium ($min)")
-            if $max < $min;
-        croak('Too many symbols on rhs for counted rule')
-            if scalar @{$rhs_names} != 1;
-        my $rhs_name = pop @{$rhs_names};
+	# This is an ordinary, non-counted rule,
+	# which we'll take care of first as a special case
+	my $ordinary_rule =
+	    add_user_rule( $grammar, $lhs_name, $rhs_names, $action,
+		$user_priority );
 
-        # specifically counted rules
-        my $new_rule;
-        for my $count ( $min .. $max ) {
-            my $proper_counted_rhs;
-            my $separator_terminated_rhs;
-            my @separated_rhs = ($rhs_name);
-            push @separated_rhs, $separator_name
-                if defined $separator_name;
-            given ($count) {
-                when (0) { $proper_counted_rhs = [] }
-                default {
-                    $proper_counted_rhs =
-                        [ (@separated_rhs) x ( $count - 1 ), $rhs_name ];
-                    if ( not $proper_separation and defined $separator_name )
-                    {
-                        $separator_terminated_rhs =
-                            [ (@separated_rhs) x ($count) ];
-                    }
-                }
-            }
+	return if $min > 0;
 
-            if ( defined $separator_name and not $keep_separation ) {
-                $action = q{ @_ = @_[ grep { !($_ % 2) } (0 .. $#_) ]; }
-                    . $action;
-            }
-            $new_rule =
-                add_user_rule( $grammar, $lhs_name, $proper_counted_rhs,
-                $action, $user_priority );
-            if ($separator_terminated_rhs) {
-                add_user_rule( $grammar, $lhs_name, $separator_terminated_rhs,
-                    $action, $user_priority );
-            }
-        }
+	# If we are here, we have $min == 0, $max == 1
 
-        # There will be at least one rhs symbol since we take the last rule created
-        # and max >= 1
-        my $rhs = $new_rule->[Parse::Marpa::Internal::Rule::RHS]->[0];
+	# Add the null rule
+	add_user_rule( $grammar, $lhs_name, [], $action, $user_priority );
+
+	# Mark the rhs as having been used in a counted rule
+        my $rhs = $ordinary_rule->[Parse::Marpa::Internal::Rule::RHS]->[0];
         $rhs->[Parse::Marpa::Internal::Symbol::COUNTED] = 1;
-        if ( defined $separator_name ) {
-            my $separator =
-                $new_rule->[Parse::Marpa::Internal::Rule::RHS]->[1];
-            $separator->[Parse::Marpa::Internal::Symbol::COUNTED] = 1;
-        }
 
         return;
 
-    }    # min and max both defined
+    }    # min == 0, max == 1
 
-    # At this point we know that max is undefined, and that min must be
-    # defined.
+    # At this point we know that max is undefined, and that min must be 0 or 1
 
     # nulling rule is special case
     if ( $min == 0 ) {
@@ -3763,11 +3723,11 @@ See the L<support section|Parse::Marpa/SUPPORT> in the main module.
 
 Jeffrey Kegler
 
-=head1 COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2007 - 2008 Jeffrey Kegler
 
 This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+it and/or modify it under the same terms as Perl 5.10.0.
 
 =cut

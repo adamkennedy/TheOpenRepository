@@ -1298,6 +1298,6 @@ Jeffrey Kegler
 Copyright 2007 - 2008 Jeffrey Kegler
 
 This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
+it and/or modify it under the same terms as Perl 5.10.0.
 
 =cut
