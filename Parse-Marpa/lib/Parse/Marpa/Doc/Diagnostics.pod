@@ -34,13 +34,6 @@ C<show_rules> and C<show_symbols>,
 to check if anything there is
 clearly not right or not what you expected.
 
-If you're getting far enough to be able to return parse values from
-C<Parse::Marpa::Evaluator::value> method,
-but something is still wrong,
-it can help to run the
-C<Parse::Marpa::show_tree> static method after the call to C<next>.
-The C<show> method returns the parse derivation.
-
 =head2 Advanced Techniques
 
 Next, depending on where in the process you're having problems,

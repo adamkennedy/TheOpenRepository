@@ -36,6 +36,11 @@ or after.
 and during life of recognizer?
 Will require changes in internal tracking of phases.
 
+=item * Create a show_derivation method to show the derivation
+once we have a tree?
+
+=item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
+
 =item * Add a trace_choices option.  There was an option to trace
 non-trivial evaluation choices in the old evaluator, and the new trace_iterations
 doesn't entirely replace it.
