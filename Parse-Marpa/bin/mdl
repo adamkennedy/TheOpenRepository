@@ -48,7 +48,7 @@ given ($command) {
             "text=s"               => \$text_to_parse,
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
-            "bocage"               => \$show_bocage,
+            "bocage:i"             => \$show_bocage,
             "inaccessible_symbols" => \$inaccessible_symbols,
             "accessible_symbols"   => \$accessible_symbols,
             "nullable_symbols"     => \$nullable_symbols,
@@ -62,7 +62,7 @@ given ($command) {
             "problems"             => \$show_problems,
             "symbols"              => \$show_symbols,
             "earley_sets"          => \$show_earley_sets,
-            "tree"                 => \$show_tree,
+            "tree:i"               => \$show_tree,
             "source_option=s"      => \%source_options,
 	    "stdout"               => \$stdout,
             "all_parses"           => \$all_parses,
@@ -192,7 +192,7 @@ sub do_parse {
         }
     }
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar, } );
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
     if ( not defined $text_to_parse ) {
         local ($RS) = undef;
         $text_to_parse = <STDIN>;
@@ -215,8 +215,8 @@ sub do_parse {
         croak("Input not recognized by grammar") unless $evaler;
     }
 
-    if ($show_bocage) {
-	print Parse::Marpa::show_bocage($evaler);
+    if (defined $show_bocage) {
+	print Parse::Marpa::show_bocage($evaler, $show_bocage);
     }
 
     my $parse_count = 0;
@@ -234,8 +234,8 @@ sub do_parse {
             default      { say $_ };
         }
 
-        if ($show_tree) {
-            print Parse::Marpa::show_tree($evaler);
+        if (defined $show_tree) {
+            print Parse::Marpa::show_tree($evaler, $show_tree);
         }
 
         last PARSE unless $all_parses;

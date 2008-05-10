@@ -167,6 +167,14 @@ thing to do.
 
 =head1 SYNOPSIS
 
+=begin Parse::Marpa::test_document:
+
+## start display
+## next display
+is_synopsis_pl($_)
+
+=end Parse::Marpa::test_document:
+
     use 5.010_000;
     use strict;
     use warnings;
@@ -181,17 +189,23 @@ thing to do.
     say $$value;
 
     __DATA__
-    semantics are perl5.  version is 0.205.0.  start symbol is Expression.
+    semantics are perl5.  version is 0.211.8.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
-        $_->[0] * $_->[2]
+        $_[0] * $_[2]
     }.
 
     Expression: Expression, /[+]/, Expression.  priority 100.  q{
-        $_->[0] + $_->[2]
+        $_[0] + $_[2]
     }.
 
-    Expression: /\d+/.  q{ $_->[0] }.
+    Expression: /\d+/.  q{ $_[0] }.
+
+=begin Parse::Marpa::test_document:
+
+## end display
+
+=end Parse::Marpa::test_document:
 
 =head1 DESCRIPTION
 
@@ -318,11 +332,18 @@ and can be used to initialize that namespace.
 The result of an action is the result of running its Perl 5 code string.
 From L<the synopsis|"SYNOPSIS">, here's a rule for an expression that does addition:
 
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_synopsis_pl($_)
+
+=end Parse::Marpa::test_document:
+
     Expression: Expression, /[+]/, Expression.
 
 and here's its action:
 
-    $_->[0] + $_->[2]
+    $_[0] + $_[2]
 
 In rule actions, C<@_> is an array containing the values of the symbols
 on the left hand side of the rule, as if they had been passed as arguments
@@ -549,6 +570,12 @@ These special namespaces belong entirely to the user.
 
 In the following namespaces,
 users should use only documented methods:
+
+=begin Parse::Marpa::test_document:
+
+## skip display
+
+=end Parse::Marpa::test_document:
 
     Parse::Marpa
     Parse::Marpa::Grammar
@@ -1006,6 +1033,12 @@ your bug as I make changes.
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
+
+=begin Parse::Marpa::test_document:
+
+## skip display
+
+=end Parse::Marpa::test_document:
 
     perldoc Parse::Marpa
     

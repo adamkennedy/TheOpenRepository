@@ -106,6 +106,24 @@ sub in_self_show_rules {
     return in_file(shift, $self_show_rules);
 }
 
+my $bin_mdl = slurp('../bin/mdl');
+sub in_bin_mdl {
+    return in_file(shift, $bin_mdl);
+}
+
+my $null_value_grammar = slurp('../example/null_value.marpa');
+sub in_null_value_grammar {
+    return in_file(shift, $null_value_grammar);
+}
+
+my $synopsis_pl = slurp('../example/synopsis.pl');
+sub is_synopsis_pl {
+    return is_file(shift, $synopsis_pl);
+}
+sub in_synopsis_pl {
+    return in_file(shift, $synopsis_pl);
+}
+
 package MyParser;
 @MyParser::ISA = qw(Pod::Parser);
 use Carp;

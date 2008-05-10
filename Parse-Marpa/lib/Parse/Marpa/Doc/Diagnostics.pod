@@ -40,9 +40,11 @@ Next, depending on where in the process you're having problems,
 you might want to
 turn on some of the more helpful traces.
 C<trace_actions> will show you the actions as they are being finalized.
-In an ambiguous parse,
-C<trace_evaluation_choices> shows the choices Marpa is making.
-C<trace_iteration_changes> and C<trace_rules> traces the initialization of, and changes in, node values.
+C<trace_iterations> traces the initialization of, and the interation of,
+the parse tree.
+C<trace_values> traces the values of the nodes as they are pushed on, and 
+popped off, the evaluation stack.
+After an evaluation, C<show_tree> will show the entire tree.
 
 The above should be enough to enable you to spot any problem in writing a grammar.
 But if you are interested in doing a complete investigation of a parse,
@@ -62,13 +64,17 @@ do the following:
 
 =item * Run C<show_bocage> and C<show_tree> on the evaluator.
 
+=item * Turn on C<trace_values> so you can see the values as they pushed onto
+the evaluation stack, popped off it, calculated and pushed back on.
+
 =back
 
 Note that when the input text to the grammar is of any length,
 the output from each of C<show_earley_sets>,
 C<show_bocage>,
 C<show_tree>,
-and C<trace_lex> can be lengthy.
+and the outputs of C<trace_lex> and C<trace_values>
+can be lengthy.
 You'll want to work with short inputs if at all possible.
 The L<internals document|Parse::Marpa::Doc::Internals>
 has example outputs from the C<show_QDFA>,
@@ -99,8 +105,9 @@ Trace output goes to the trace file handle.
 
 The academic option turns off all grammar rewriting.
 The resulting grammar is useless for recognition and parsing.
-The purpose of the C<academic> argument is allow testing that Marpa's precomputations
-can accurately duplicate examples from textbooks.
+The purpose of the C<academic> argument is allow the
+testing of Marpa's precomputations
+against examples from textbooks.
 This is handy for testing the internals.
 An exception is thrown if the user attempts to create
 a recognizer from a grammar marked academic.
@@ -130,36 +137,11 @@ Setting it after that point will result in a warning.
 
 =end undocumented:
 
-=item trace_evaluation_choices
-
-This option traces the non-trivial choices Marpa makes
-among rules, among links, or among tokens.
-A choice is non-trivial when there is more than one alternative.
-Non-trivial choices only occur if the grammar is ambiguous.
-Knowledge of Marpa internals probably needed.
-May usefully be set at any point in the parse.
-
-=item trace_iteration_changes
-
-Traces setting of, and changes in, node values
-during parse evaluation.
-Knowledge of Marpa internals very useful.
-May usefully be set at any point in the parse.
-
-=item trace_iteration_searches
-
-Traces Marpa's search through the Earley items
-during parse evaluation.
-Requires knowledge of Marpa internals.
-May usefully be set at any point in the parse,
-but probably only useful in combination with C<trace_iteration_changes>.
-C<trace_iterations> turns on both.
-
 =item trace_iterations
 
-A short hand for setting both 
-C<trace_iteration_changes> and
-C<trace_iteration_searches>.
+Traces creation of, and iteration of,
+the parse tree.
+Knowledge of Marpa internals very useful.
 May usefully be set at any point in the parse.
 
 =item trace_lex
@@ -216,8 +198,11 @@ in a method call prior to the one with the C<source> option.
 
 =item trace_values
 
-As each node value is set, prints a trace of the rule and the value.
-Very helpful and does not require knowledge of Marpa internals.
+Traces values as they are pushed onto
+the evaluation stack, popped off it, calculated and pushed back on.
+Very helpful.
+Knowledge of Marpa internals is helpful,
+but not required.
 May usefully be set at any point.
 
 =back
@@ -228,12 +213,22 @@ May usefully be set at any point.
 
 =head3 show_location
 
-   my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
-    if ( ( my $fail_location = $recce->text( \$text_to_parse ) ) >= 0 ) {
+=begin Parse::Marpa::test_document:
+
+## next 3 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+
+    my $fail_location = $recce->text( \$text_to_parse );
+
+    if ( $fail_location >= 0 ) {
         print STDERR Parse::Marpa::show_location( "Parse failed",
             \$text_to_parse, $fail_location );
-        exit 1;             
-    }                       
+        exit 1;
+    }
 
 A utility routine helpful in formatting messages about problems parsing
 user supplied text.
@@ -253,10 +248,17 @@ ASCII "caret" symbol to point to the exact offset.
 
 =head3 inaccessible_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    for my $symbol (@{$grammar->inaccessible_symbols()}) {
-       say "Inaccessible symbol: ", $symbol;
+
+    for my $symbol ( @{ $grammar->inaccessible_symbols() } ) {
+	say "Inaccessible symbol: ", $symbol;
     }
 
 Returns the
@@ -270,8 +272,15 @@ way to obtain the same information.
 
 =head3 show_NFA
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
+
     print $grammar->show_NFA();
 
 Returns a multi-line string listing the states of the NFA
@@ -282,8 +291,15 @@ and requires very deep knowledge of Marpa internals.
 
 =head3 show_QDFA
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
+
     print $grammar->show_QDFA();
 
 Returns a multi-line string listing the states of the QDFA
@@ -293,9 +309,17 @@ Very useful in debugging, but requires knowledge of Marpa internals.
 
 =head3 show_accessible_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    say "Accessible symbols: ", $grammar->show_accessible_symbols();
+
+    say "Accessible symbols: ",
+        $grammar->show_accessible_symbols();
 
 Returns a one-line string with the plumbing names
 of the accessible symbols of the grammar,
@@ -306,9 +330,17 @@ Not very useful for debugging.
 
 =head3 show_nullable_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    say "Nullable symbols: ", $grammar->show_nullable_symbols();
+
+    say "Nullable symbols: ",
+        $grammar->show_nullable_symbols();
 
 Returns a one-line string with the plumbing names
 of the nullable symbols of the grammar,
@@ -319,9 +351,17 @@ Not very useful for debugging.
 
 =head3 show_nulling_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    say "Nulling symbols: ", $grammar->show_nulling_symbols();
+
+    say "Nulling symbols: ",
+        $grammar->show_nulling_symbols();
 
 Returns a one-line string with the plumbing names
 of the nulling symbols of the grammar,
@@ -332,8 +372,15 @@ Not very useful for debugging.
 
 =head3 show_problems
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
+
     print $grammar->show_problems();
 
 Returns a string describing the problems a grammar had in the precomputation phase.
@@ -354,9 +401,17 @@ error message.
 
 =head3 show_productive_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    say "Productive symbols: ", $grammar->show_productive_symbols();
+
+    say "Productive symbols: ",
+        $grammar->show_productive_symbols();
 
 Returns a one-line string with the plumbing names
 of the productive symbols of the grammar,
@@ -367,7 +422,15 @@ Not very useful for debugging.
 
 =head3 show_rules
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
+    $grammar->precompute();
+
     print $grammar->show_rules();
 
 Returns a string listing the rules, each commented as to whether it
@@ -385,7 +448,15 @@ but also any rule which is replaced by one of Marpa's grammar rewrites.
 
 =head3 show_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
+    $grammar->precompute();
+
     print $grammar->show_symbols();
 
 Returns a string listing the symbols, along with whether they were
@@ -397,12 +468,17 @@ the Marpa internals to interpret.
 
 =head3 unproductive_symbols
 
-    $grammar = new Parse::Marpa::Grammar( { mdl_source => \$grammar_source } );
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
     $grammar->precompute();
-    if ($unproductive_symbols) {
-       for my $symbol (@{$grammar->unproductive_symbols()}) {
-	   say "Unproductive symbol: ", $symbol;
-       }
+
+    for my $symbol ( @{ $grammar->unproductive_symbols() } ) {
+        say "Unproductive symbol: ", $symbol;
     }
 
 Given a precomputed grammar, returns the
@@ -418,40 +494,27 @@ way to obtain the same information.
 
 =head3 show_earley_sets
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
-    my $fail_location = $recce->text(\$text_to_parse);
-    print $recce->show_earley_sets();
-    if ($fail_location >= 0) {
-        print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
-        exit 1;
-    }
+=begin Parse::Marpa::test_document:
 
-This is the central tool for debugging a parse
-using Marpa internals.
+## next 3 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
+
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+
+    my $fail_location = $recce->text( \$text_to_parse );
+
+    print Parse::Marpa::show_earley_sets($recce);
+
 Returns a multi-line string
 listing every Earley item in every Earley set.
-For each Earley item,
-any current successor, predecessor, effect, cause, pointer or value is shown.
-Also shown are lists of all the links and rules in each Earley item,
-indicating which link or rule is the current choice.
 
 =head2 Evaluator Method
 
-=head3 show
+=head3 show_tree
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
-    croak("Input not recognized by grammar") unless $evaler;
-    print $evaler->show();
-
-If the evaluator has a value
-the C<show> method returns the parse derivation used to produce that value.
-Evaluators have values after successful calls of their C<next> method.
-If the evaluator is unvalued, an exception is thrown.
-
-Very useful.  Basic use requires no Marpa internals.
-For those who are delving into the internals,
-the corresponding Earley item and QDFA state are reported
-with each line of the derivation.
+=head3 show_bocage
 
 =head1 SUPPORT
 

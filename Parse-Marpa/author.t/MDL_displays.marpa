@@ -1,7 +1,11 @@
 semantics are perl5. perl5 is the semantics. perl5 is semantics. the semantics are perl5. the semantics is perl5.
-version is 0.211.7.
+version is 0.211.8.
 
-start symbol is frobitz.
+start symbol is S.
+
+S: frobitz.
+
+S: whatchamacallit.
 
 concatenate lines is the default action.
 
@@ -19,5 +23,11 @@ default action is do whatever.
 
 frobitz: optional comma separated whatchamacallit sequence.
 
-whatchamacillit: optional /the/, /default/, /action/, /is/, action specifier, .
+whatchamacallit: optional /the/, /default/, /action/, /is/, action specifier, .
+
+comma: /,/.
+
+whatchamacallit: /./ms.
+
+action specifier: /./ms.
 
