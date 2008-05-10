@@ -18,15 +18,9 @@ priorities to the rules.
 
 Add a graf about ambiguous transitions in the Internals document.
 
-=head2 Rename Evaluator::next method to Evaluator::value
-
 =head1 LOWER PRIORITY
 
 =over 4
-
-=item * Prune structures in Grammar.pm, and Recognizer.pm.
-Earley_item structure in particular contains much that is no
-longer used.
 
 =item * Make code clean under perlcritic.
 
@@ -69,14 +63,15 @@ to safely deep copy recognizers.
 
 =item * Add to test set: Basic tests of all types of counted rules.
 Eliminate maximums and minimums higher than 1.
-The matrix is separated yes vs. no;
+The matrix is separated yes versus no;
+perl5 versus proper separation;
 and 0-1, 1-1, 0-*, versus 1-*.
 Eliminate keep vs. no-keep, right vs. left.
 
 =item * Downgrade version conflict or semantics mismatch to warning?
 
 =item * There are now no Parse::Marpa::Read_Only variables.  Eliminate
-the namespace, and the references to it in the documentation?
+the namespace, and all the references to it in the documentation?
 
 =back
 

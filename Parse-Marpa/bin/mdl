@@ -201,7 +201,7 @@ sub do_parse {
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ($show_earley_sets) {
-	print $recce->show_earley_sets();
+	print Parse::Marpa::show_earley_sets($recce);
     }
 
     if ( $fail_location >= 0 ) {
@@ -222,7 +222,7 @@ sub do_parse {
     my $parse_count = 0;
     PARSE: while (1) {
 
-        my $value = $evaler->next();
+        my $value = $evaler->value();
         if ( not defined $value ) {
             croak 'No parse' unless $parse_count > 0;
             return;

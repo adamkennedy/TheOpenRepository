@@ -39,7 +39,7 @@ TEST: while (my $test = pop @tests) {
     $recce->text(\$test);
     my $evaler = new Parse::Marpa::Evaluator($recce);
     my @parses;
-    while (defined(my $value = $evaler->next)) {
+    while (defined(my $value = $evaler->value)) {
         push(@parses, $value);
     }
     my @expected_parses;

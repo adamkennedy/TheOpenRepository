@@ -40,7 +40,7 @@ my $test = sub {
     $recce->end_input();
     my $evaler = new Parse::Marpa::Evaluator($recce);
     die("No parse found") unless $evaler;
-    $evaler->next();
+    $evaler->value();
     [ $g, $recce, $evaler ];
 };
 

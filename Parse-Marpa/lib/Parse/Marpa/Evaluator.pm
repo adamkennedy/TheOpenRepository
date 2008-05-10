@@ -884,7 +884,7 @@ sub Parse::Marpa::show_tree {
 
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
-sub Parse::Marpa::Evaluator::next {
+sub Parse::Marpa::Evaluator::value {
 ## use critic
 
     my $evaler = shift;
@@ -1272,7 +1272,7 @@ Parse::Marpa::Evaluator - Marpa Evaluator Objects
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
 
-    for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
+    for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
         croak("Ambiguous parse has extra value: ", $$value, "\n")
 	    if $i > $expected;
 	say "Ambiguous Equation Value $i: ", $$value;
@@ -1541,7 +1541,7 @@ of parsing, which was set in the recognizer.
 
 =head2 next
 
-    my $value = $evaler->next();
+    my $value = $evaler->value();
 
 Iterates the evaluator object, returning a reference to the value of the next parse.
 If there are no more parses, returns undefined.

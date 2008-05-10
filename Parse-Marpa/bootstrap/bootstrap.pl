@@ -13,6 +13,7 @@ use warnings;
 use Parse::Marpa;
 use Parse::Marpa::MDL;
 use Carp;
+use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
 
 my %regex;
@@ -39,8 +40,6 @@ usage() unless $argc >= 1 and $argc <= 3;
 my $grammar_file_name = shift @ARGV;
 my $header_file_name = shift @ARGV;
 my $trailer_file_name = shift @ARGV;
-$header_file_name //= "bootstrap_header.pl";
-$trailer_file_name //= "bootstrap_trailer.pl";
 
 our $GRAMMAR;
 open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $!");
@@ -544,7 +543,7 @@ push(@$new_rules, {
     action => 
 q{
     q{$new_lex_preamble .= }
-    . $_[3]
+    . $_[4]
     . qq{;\n}
 },
 ,
@@ -1125,16 +1124,15 @@ my $spec;
 my $evaler = new Parse::Marpa::Evaluator($recce);
 die("No parse") unless $evaler;
 
-our $HEADER;
-my $header;
-{ local($RS) = undef; open(HEADER, "<", $header_file_name); $header = <HEADER>; }
+sub slurp { open(my $fh, '<', shift); local($RS); <$fh>; }
 
-our $TRAILER;
-my $trailer;
-{ local($RS) = undef; open(TRAILER, "<", $trailer_file_name); $trailer = <TRAILER>; }
+my $header = slurp($header_file_name) if $header_file_name;
+my $trailer = slurp($trailer_file_name) if $trailer_file_name;
 
 say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa::VERSION;
-my $value = $evaler->next();
-print $header, $$value, "\n", $trailer;
+my $value = $evaler->value();
+print $header if defined $header;
+say $$value;
+print $trailer if defined $trailer;
 
 # This is the end of bootstrap_trailer.pl

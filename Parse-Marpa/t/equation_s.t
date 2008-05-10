@@ -60,7 +60,7 @@ my @expected = (
 my $evaler = new Parse::Marpa::Evaluator($recce);
 die("Parse failed") unless $evaler;
 
-for (my $i = 0; defined(my $value = $evaler->next()); $i++) {
+for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
     if ($i > $#expected) {
        fail("Ambiguous equation has extra value: " . $$value . "\n");
     } else {

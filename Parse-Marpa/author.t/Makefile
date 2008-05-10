@@ -5,7 +5,9 @@ all: \
     equation_show_bocage.out \
     equation_show_tree.out \
     self_show_rules.out \
-    MDL_displays.errs
+    MDL_displays.errs \
+    test_pod.out
+
 
 equation_show_QDFA.out:
 	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
@@ -34,3 +36,6 @@ self_show_rules.out:
 MDL_displays.errs:
 	echo | perl -I../lib ../bin/mdl parse \
 	    -grammar MDL_displays.marpa 2>&1 | tee $@
+
+test_pod.out:
+	perl -I../lib test_pod > $@

@@ -75,7 +75,7 @@ my $header = slurp($header_file_name) if $header_file_name;
 my $trailer = slurp($trailer_file_name) if $trailer_file_name;
 
 say "# This file was automatically generated using Parse::Marpa ", $Parse::Marpa::VERSION;
-my $value = $evaler->next();
+my $value = $evaler->value();
 print $header if defined $header;
 say $$value;
 print $trailer if defined $trailer;

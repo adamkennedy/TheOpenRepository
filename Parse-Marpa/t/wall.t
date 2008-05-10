@@ -100,7 +100,7 @@ for my $n (1 .. 12) {
     my $evaler = new Parse::Marpa::Evaluator($recce);
 
     my $parse_count = 0;
-    while ($evaler->next()) { $parse_count++; }
+    while ($evaler->value()) { $parse_count++; }
     is($expected[$n], $parse_count, "Wall Series Number $n");
 
 }

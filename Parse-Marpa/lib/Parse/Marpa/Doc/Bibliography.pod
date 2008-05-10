@@ -40,22 +40,27 @@ up to and including L<Parse::Marpa::Doc::Internals>, first.
 
 =head2 Dominus 2005
 
-Although my approach to parsing is not heavily influenced
+Although my approach to parsing is not influenced
 by Mark Jason Dominus's I<Higher Order Perl>,
-his treatment of parsing is an excellent introduction to parsing,
+Mark's treatment of parsing is an excellent introduction to parsing,
 especially in a Perl context.
+His focus on just about every other technique B<except>
+general parsing is pretty much standard, and
+will help a beginner understand how unconventional
+Marpa's approach is.
 
-Outside of parsing,
-Mark's book has opened my eyes to many new ideas.
+Mark's book opened my eyes to many new ideas.
 Both Mark's Perl and his English are examples of good writing,
 and the book is dense with insights.
 Mark's discussion on memoization in Chapter 3 is the
 best I've seen.
-I wish I'd gotten his book earlier in my coding.
+I wish I'd bought his book earlier in my coding.
 
 =head2 Earley 1970
 
-Jay Earley's most accessible paper on his algorithm
+Of 
+Jay Earley's papers on his general parsing algorithm,
+the most readily available
 is "An efficient context-free parsing algorithm",
 I<Communications of the Association for Computing Machinery>,
 13:2:94-102, 1970.
@@ -64,12 +69,14 @@ Ordinarily, I'd not bother pointing out 35-year old nits
 in a brilliant and historically important article.
 But more than a few people treat this article as not just the first word in Earley
 parsing, but the last as well.
-They need to be aware of two issues.
+Many implementations of Earley's algorithm come, directly and
+unaltered, from his paper.
+These implementers and their users need to be aware of two issues.
 
 First, the recognition engine itself, as described, has a serious bug.
 There's an easy fix, but one that greatly slows down an algorithm
 whose main problem, in its original form, was speed.
-The whole matter is well laid out by
+This issue is well laid out by
 Aycock and Horspool
 L<in their article|"Aycock and Horspool 2002">.
 

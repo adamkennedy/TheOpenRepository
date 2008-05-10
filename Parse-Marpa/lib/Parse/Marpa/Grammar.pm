@@ -622,7 +622,7 @@ sub source_grammar {
     }
     my $evaler = new Parse::Marpa::Evaluator($recce);
     return unless defined $evaler;
-    my $value = $evaler->next();
+    my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
     return;
 }

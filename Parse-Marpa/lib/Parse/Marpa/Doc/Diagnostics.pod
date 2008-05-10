@@ -5,7 +5,7 @@ Parse::Marpa::Doc::Diagnostics - Diagnostics
 =head1 DESCRIPTION
 
 This document describes the techniques for debugging Marpa parses and grammars
-and describes the Marpa methods and options whose main use is
+and describes those Marpa methods and options whose main use is
 tracing and debugging.
 
 =head2 Basic Debugging Techniques
@@ -13,7 +13,7 @@ tracing and debugging.
 First look at the place where the parse was exhausted.
 That, along with inspection of the input and the grammar,
 is often enough to spot the problem.
-Typically you'll have tried that already before consulting this
+Typically you'll have tried that before consulting this
 document.
 You probably also already have
 Marpa's C<warnings> option turned on (it's on by default),
@@ -35,10 +35,10 @@ to check if anything there is
 clearly not right or not what you expected.
 
 If you're getting far enough to be able to return parse values from
-C<Parse::Marpa::Evaluator::next> method,
+C<Parse::Marpa::Evaluator::value> method,
 but something is still wrong,
 it can help to run the
-C<Parse::Marpa::Evaluator::show> method after the call to C<next>.
+C<Parse::Marpa::show_tree> static method after the call to C<next>.
 The C<show> method returns the parse derivation.
 
 =head2 Advanced Techniques
@@ -65,24 +65,31 @@ do the following:
 
 =item * Turn on C<trace_lex> before input.
 
-=item * Run C<show_status> on the recognizer.
+=item * Run C<show_earley_sets> on the recognizer.
 
-=item * Run C<show> on the evaluator.
+=item * Run C<show_bocage> and C<show_tree> on the evaluator.
 
 =back
 
 Note that when the input text to the grammar is of any length,
-the output from C<show_status> and C<trace_lex> can be large.
+the output from each of C<show_earley_sets>,
+C<show_bocage>,
+C<show_tree>,
+and C<trace_lex> can be lengthy.
 You'll want to work with short inputs if at all possible.
 The L<internals document|Parse::Marpa::Doc::Internals>
-has example outputs from the C<show_QDFA> and C<show_status> methods,
+has example outputs from the C<show_QDFA>,
+C<show_earley_sets>,
+C<show_bocage>,
+and
+C<show_tree> methods,
 and explains how to read them.
 
 =head1 OPTIONS
 
 These are Marpa options.
 Unless otherwise stated,
-these Marpa options are valid
+the Marpa options are valid
 for all methods which accept Marpa options as named arguments
 (
 C<Parse::Marpa::mdl>,
@@ -416,11 +423,11 @@ way to obtain the same information.
 
 =head2 Recognizer Method
 
-=head3 show_status
+=head3 show_earley_sets
 
     my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
     my $fail_location = $recce->text(\$text_to_parse);
-    print $recce->show_status();
+    print $recce->show_earley_sets();
     if ($fail_location >= 0) {
         print STDERR Parse::Marpa::show_location("Parse failed", \$text_to_parse, $fail_location);
         exit 1;

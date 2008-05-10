@@ -72,7 +72,7 @@ my @answer = (
 
 for my $i (0 .. 4) {
     my $evaler = new Parse::Marpa::Evaluator($recce, $i);
-    my $result = $evaler->next();
+    my $result = $evaler->value();
     $total_count++;
     if ($answer[$i] ne ${$result}) {
         diag(
