@@ -24,12 +24,12 @@ my $trace_priorities;
 my $trace_values;
 my $show_NFA;
 my $show_QDFA;
-my $show_bocage;
+my $show_bocage_flag;
 my $show_earley_sets;
 my $show_problems;
 my $show_rules;
 my $show_symbols;
-my $show_tree;
+my $show_tree_flag;
 my $stdout;
 my $all_parses;
 my %options;
@@ -48,7 +48,7 @@ given ($command) {
             "text=s"               => \$text_to_parse,
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
-            "bocage:i"             => \$show_bocage,
+            "bocage:i"             => \$show_bocage_flag,
             "inaccessible_symbols" => \$inaccessible_symbols,
             "accessible_symbols"   => \$accessible_symbols,
             "nullable_symbols"     => \$nullable_symbols,
@@ -62,7 +62,7 @@ given ($command) {
             "problems"             => \$show_problems,
             "symbols"              => \$show_symbols,
             "earley_sets"          => \$show_earley_sets,
-            "tree:i"               => \$show_tree,
+            "tree:i"               => \$show_tree_flag,
             "source_option=s"      => \%source_options,
 	    "stdout"               => \$stdout,
             "all_parses"           => \$all_parses,
@@ -201,7 +201,7 @@ sub do_parse {
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ($show_earley_sets) {
-	print Parse::Marpa::show_earley_sets($recce);
+	print $recce->show_earley_sets;
     }
 
     if ( $fail_location >= 0 ) {
@@ -215,8 +215,8 @@ sub do_parse {
         croak("Input not recognized by grammar") unless $evaler;
     }
 
-    if (defined $show_bocage) {
-	print Parse::Marpa::show_bocage($evaler, $show_bocage);
+    if (defined $show_bocage_flag) {
+	print $evaler->show_bocage($show_bocage_flag);
     }
 
     my $parse_count = 0;
@@ -234,8 +234,8 @@ sub do_parse {
             default      { say $_ };
         }
 
-        if (defined $show_tree) {
-            print Parse::Marpa::show_tree($evaler, $show_tree);
+        if (defined $show_tree_flag) {
+            print $evaler->show_tree($show_tree_flag);
         }
 
         last PARSE unless $all_parses;

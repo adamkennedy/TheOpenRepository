@@ -476,7 +476,7 @@ sub Parse::Marpa::show_earley_set_list {
     return $text;
 }
 
-sub Parse::Marpa::show_earley_sets {
+sub Parse::Marpa::Recognizer::show_earley_sets {
     my $recce = shift;
     my $ii    = shift;
     my ( $current_set, $furthest_earleme, $earley_set_list ) =

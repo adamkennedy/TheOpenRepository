@@ -188,41 +188,60 @@ A parse tree is generated from a parse forest
 by traversing the forest and selecting one child node
 at every or-node.
 
-Marpa needed to adapt parse forests for two reasons.
-First, Marpa parses may contain cycles, and for that reason, strictly
-speaking, it is not a set of parse trees which needs to be represented
-in the parse bocage,
-but a set of parse graphs.
+Marpa uses a modified form of parse forest,
+which I will call a B<parse bocage>.
+Marpa could not use standard parse forests for two reasons.
+First, parse forests not only contain trees,
+but they themselves form a tree.
+However, the data produced by Marpa's recognizer may contain cycles.
+Therefore, the data structure Marpa needs is not a tree,
+strictly speaking, but a graph.
 
-Second, the productions of the grammar are not repesented intact in the
-Earley items.  Instead each production is broken up, symbol by symbol.
-Aycock and Horspool used a system of links to allow a parse structure to
-constructed from the Earley items.
-Each Earley item has available one link to point to a child symbol,
-and one to point to an adjacent symbol in its production.
-Marpa's recognizer takes it system of links between Earley items
-from Aycock and Horspool.
+Second, the productions of the grammar are not repesented intact
+when the Marpa evaluator finds them in the Earley items.
+Instead,
+each production is broken up,
+and represented as links between Earley items.
+This system of links comes from
+Aycock and Horspool.
 
-In effect, Aycock and Horspool's system of links transforms the grammar
-into a variant of CNF (Chomsky Normal Form), where every rhs has at most
-two symbols.
-The CNF grammar can be represented as a binary tree.
+In the Aycock-Horspool version of Earley items,
+each Earley item has available two links,
+one to a child item (its cause), and another to sibling item
+(its predecessor).
+Either of these may be unused.
+In effect, the grammar is rewritten in the Earley items
+into productions with at most two symbols on the
+right hand side.
+This is basically Chomsky Normal Form (CNF).
 
-Marpa could have restored the original structure of the grammar when
+A CNF grammar can be represented
+conveniently as a binary tree.
+Marpa could have restored the original,
+non-binary structure of the grammar when
 it created the parse bocage from the Earley items.
-But the binary representation
-in the Earley sets is more compact than a conventional
+But, for two reasons, that doesn't make sense.
+
+First,
+combining 
+CNF with QDFA states
+produces a representation
+even more compact than a conventional
 parse forest.
-More importantly,
-binary trees can be traversed, modified and evaluated more simply and efficiently
-than ordinary trees.
-It made sense to leave the grammar in a form close to that
-in which it appears in the Earley items.
+Secondly,
+the code to traverse, iterate and evaluate binary trees
+can be considerably simpler than code which needs to deal
+with nodes which can have an arbitrary number of child nodes.
+Rather than rewrite the grammar into a form that's harder
+to process,
+it makes sense to leave the grammar the way it is found
+in the Earley items.
 
 For this reason,
 the and-nodes in parse bocages do not directly represent productions
 of the grammar. 
-Instead every and-node has at most two children.
+Instead productions are broken up,
+so that every and-node has at most two children.
 
 The bocage forests of Normandy and Brittany are
 networks of dense hedgerows cultivated over centuries
@@ -230,38 +249,50 @@ as obstacles to livestock and armies.
 These hedges are impressive obstacles even
 to modern infantry, and the Norman bocage played a major role in World War II.
 The term "parse bocage" seemed appropriate for
-the strategically crafted tangle which
+the strategic thicket that
 Marpa uses to store parses.
 
 =head3 Iterating the Parse Trees
 
-To find the next the parse tree in an ambiguous parse,
-Marpa scans the last parse tree it generated,
+To find the next parse tree in an ambiguous parse,
+Marpa scans the current parse tree,
 comparing it to the parse bocage.
-The parse tree, which is kept in pre-order in an array,
-is treated as a stack, and scanned from the end, looking
-for a node to iterate.
+The current parse tree is kept in pre-order in an array.
+To iterate the parse tree, Marpa treats the array like
+a stack.
+It starts at the end of the array/stack,
+and pops node after node,
+looking for a node to iterate.
 
-Because the pre-order array is scanned from the end,
-the nodes of the parse tree are examined in post-order.
-As each node is encountered, it is compared with the parse bocage.
+Because the pre-order array is scanned from the end
+to the beginning,
+the nodes of the parse tree are popped in post-order.
+As each node is popped, it is compared with the parse bocage.
 Every node in the parse tree corresponds both to an or-node,
 and to a current choice of and-node from that or-node.
 If all the choices of and-node for a parse tree node
 have already been tried,
-the parse tree node is "popped" from the "parse tree stack".
+the popped node is temporarily set aside
+and the next node on the parse tree array/stack
+is popped.
 
-When a parse tree node is reached
-which has another choice of and-node available,
-that parse tree node is selected as the interation node.
-The next choice of and-node is made,
-and a modified iteration node is pushed back onto the parse tree.
-The child nodes of the iteration node are generated and pushed on
-the parse tree "stack".
-Finally, those nodes at the "top" of the original "stack" which were not
-descendants of the iteration node,
-and which therefore are unchanged,
-are pushed back onto the parse tree "stack".
+If the node just popped from the parse tree
+has another choice of and-node available,
+that just-popped node is selected as the interation node.
+The iteration node is modified to reflect the new choice
+of and-node.
+The modified iteration node is then pushed back onto the parse tree array/stack.
+
+Next,
+the child nodes of the new iteration node are generated and pushed on
+the parse tree array/stack.
+Finally,
+there may have been some parse tree nodes,
+which were popped from the array/stack,
+but which don't change and which shouldn't be removed from the parse tree.
+The parse tree nodes which were popped,
+but turned out not to be descendents of the iterated node,
+are pushed back onto the parse tree array/stack.
 
 =head2 Precedence Parsing and Earley Parsing
 

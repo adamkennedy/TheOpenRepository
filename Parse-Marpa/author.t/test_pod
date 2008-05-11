@@ -98,7 +98,11 @@ sub is_equation_show_bocage {
 
 my $equation_show_tree = slurp('equation_show_tree.out');
 sub is_equation_show_tree {
-    return is_file(shift, $equation_show_tree);
+    my $display = shift;
+    $display =~ s/CODE [(] 0x \p{IsXDigit}+ [)]/CODE/gxms;
+    my $file = $equation_show_tree;
+    $file =~ s/CODE [(] 0x \p{IsXDigit}+ [)]/CODE/gxms;
+    return is_file($display, $file);
 }
 
 my $self_show_rules = slurp('self_show_rules.out');

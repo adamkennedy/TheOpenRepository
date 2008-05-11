@@ -749,7 +749,7 @@ sub Parse::Marpa::Evaluator::new {
 
 }
 
-sub Parse::Marpa::show_bocage {
+sub Parse::Marpa::Evaluator::show_bocage {
     my $evaler  = shift;
     my $verbose = shift;
 
@@ -821,7 +821,7 @@ sub Parse::Marpa::show_bocage {
     return $text;
 }
 
-sub Parse::Marpa::show_tree {
+sub Parse::Marpa::Evaluator::show_tree {
     my $evaler  = shift;
     my $verbose = shift;
 

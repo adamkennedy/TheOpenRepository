@@ -892,25 +892,25 @@ is_equation_show_bocage($_);
 
 =end Parse::Marpa::test_document:
 
-package: Parse::Marpa::E_1; parse count: 0
-S2@0-3L3 ::= S6@0-3L0
-    item: e['] ::= e .
-    argc=1; closure=sub { "DUMMY" }
-S6@0-3L0 ::= S5@0-2R0:3 S4@2-3L0
-    item: e ::= e op e .
-    argc=3; closure=sub { "DUMMY" }
-S5@0-2R0:3 ::= S3@0-1R0:2 '+'
-    item: e ::= e op . e
-    argc=3
-S4@2-3L0 ::= '2'
-    item: e ::= number .
-    argc=1; closure=sub { "DUMMY" }
-S3@0-1R0:2 ::= S4@0-1L0
-    item: e ::= e . op e
-    argc=3
-S4@0-1L0 ::= '2'
-    item: e ::= number .
-    argc=1; closure=sub { "DUMMY" }
+    package: Parse::Marpa::E_1; parse count: 0
+    S2@0-3L3 ::= S6@0-3L0
+        item: e['] ::= e .
+        argc=1; closure=sub { "DUMMY" }
+    S6@0-3L0 ::= S5@0-2R0:3 S4@2-3L0
+        item: e ::= e op e .
+        argc=3; closure=sub { "DUMMY" }
+    S5@0-2R0:3 ::= S3@0-1R0:2 '+'
+        item: e ::= e op . e
+        argc=3
+    S4@2-3L0 ::= '2'
+        item: e ::= number .
+        argc=1; closure=sub { "DUMMY" }
+    S3@0-1R0:2 ::= S4@0-1L0
+        item: e ::= e . op e
+        argc=3
+    S4@0-1L0 ::= '2'
+        item: e ::= number .
+        argc=1; closure=sub { "DUMMY" }
 
 =head2 The C<show_tree> Output
 
@@ -921,30 +921,30 @@ is_equation_show_tree($_);
 
 =end Parse::Marpa::test_document:
 
-Tree Node: S2@0-3L3[0]; Depth=0; Argc=1
-    Rule: e['] ::= e .
-    Cause: S6@0-3L0
-    Closure: CODE(0x5a462a0)
-Tree Node: S6@0-3L0[0]; Depth=1; Argc=3
-    Rule: e ::= e op e .
-    Predecessor: S5@0-2R0:3
-    Cause: S4@2-3L0
-    Closure: CODE(0x5a46520)
-Tree Node: S4@2-3L0[0]; Depth=2; Argc=1
-    Rule: e ::= number .
-    Value: '2'
-    Closure: CODE(0x5a46fa0)
-Tree Node: S5@0-2R0:3[0]; Depth=2; Argc=3
-    Rule: e ::= e op . e
-    Predecessor: S3@0-1R0:2
-    Value: '+'
-Tree Node: S3@0-1R0:2[0]; Depth=3; Argc=3
-    Rule: e ::= e . op e
-    Cause: S4@0-1L0
-Tree Node: S4@0-1L0[0]; Depth=4; Argc=1
-    Rule: e ::= number .
-    Value: '2'
-    Closure: CODE(0x5a46fa0)
+    Tree Node: S2@0-3L3[0]; Depth=0; Argc=1
+        Rule: e['] ::= e .
+        Cause: S6@0-3L0
+        Closure: CODE(0x5a462a0)
+    Tree Node: S6@0-3L0[0]; Depth=1; Argc=3
+        Rule: e ::= e op e .
+        Predecessor: S5@0-2R0:3
+        Cause: S4@2-3L0
+        Closure: CODE(0x5a46520)
+    Tree Node: S4@2-3L0[0]; Depth=2; Argc=1
+        Rule: e ::= number .
+        Value: '2'
+        Closure: CODE(0x5a46fa0)
+    Tree Node: S5@0-2R0:3[0]; Depth=2; Argc=3
+        Rule: e ::= e op . e
+        Predecessor: S3@0-1R0:2
+        Value: '+'
+    Tree Node: S3@0-1R0:2[0]; Depth=3; Argc=3
+        Rule: e ::= e . op e
+        Cause: S4@0-1L0
+    Tree Node: S4@0-1L0[0]; Depth=4; Argc=1
+        Rule: e ::= number .
+        Value: '2'
+        Closure: CODE(0x5a46fa0)
 
 =head1 SUPPORT
 

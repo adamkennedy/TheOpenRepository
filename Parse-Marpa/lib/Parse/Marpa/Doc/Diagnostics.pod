@@ -505,7 +505,7 @@ in_bin_mdl($_);
 
     my $fail_location = $recce->text( \$text_to_parse );
 
-    print Parse::Marpa::show_earley_sets($recce);
+    print $recce->show_earley_sets;
 
 Returns a multi-line string
 listing every Earley item in every Earley set.
