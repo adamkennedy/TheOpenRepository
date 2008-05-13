@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoLoader
 
+5.65  Tue May 13 11:53 2008
+  - Remove AutoLoader::can.
+
 5.64  Wed Dec 26 16:08 2007
   - Include AutoSplit in the distribution.
 
