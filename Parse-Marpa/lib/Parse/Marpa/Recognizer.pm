@@ -1042,29 +1042,50 @@ Parse::Marpa::Recognizer - Marpa Recognizer Objects
 
 =head1 SYNOPSIS
 
-    my $recce = new Parse::Marpa::Recognizer({
-	grammar => $grammar,
-    });
+=begin Parse::Marpa::test_document:
 
-    my $fail_offset = $recce->text(\('2-0*3+1'));
-    if ($fail_offset >= 0) {
-       die("Parse failed at offset $fail_offset");
+## next 2 displays
+in_equation_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+
+    my $fail_offset = $recce->text( \('2-0*3+1') );
+    if ( $fail_offset >= 0 ) {
+        die("Parse failed at offset $fail_offset");
     }
 
 Z<>
 
-    my $recce2 = Parse::Marpa::Recognizer::new({grammar => $grammar});
+=begin Parse::Marpa::test_document:
 
-    my $op = $grammar->get_symbol('op');
-    my $number = $grammar->get_symbol('number');
-    $recce2->earleme([$number, 2, 1]);
-    $recce2->earleme([$op, '-', 1]);
-    $recce2->earleme([$number, 0, 1]);
-    $recce2->earleme([$op, '*', 1]);
-    $recce2->earleme([$number, 3, 1]);
-    $recce2->earleme([$op, '+', 1]);
-    $recce2->earleme([$number, 1, 1]);
-    $recce2->end_input();
+## next 5 displays
+in_equation_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+
+    my $op = $grammar->get_symbol("Op");
+    my $number = $grammar->get_symbol("Number");
+
+    my @tokens = (
+	[$number, 2, 1],
+	[$op, "-", 1],
+	[$number, 0, 1],
+	[$op, "*", 1],
+	[$number, 3, 1],
+	[$op, "+", 1],
+	[$number, 1, 1],
+    );
+
+    TOKEN: for my $token (@tokens) {
+	next TOKEN if $recce->earleme($token);
+	die("Parse exhausted at character: ", $token->[1]);
+    }
+
+    $recce->end_input();
 
 =head1 DESCRIPTION
 
@@ -1152,7 +1173,7 @@ token boundaries.
 =head2 new
 
     my $recce = new Parse::Marpa::Recognizer({
-       grammar=> $g,
+       grammar=> $grammar,
        lex_preamble => $new_lex_preamble,
     });
 
@@ -1181,11 +1202,16 @@ For these, see L<Parse::Marpa/OPTIONS>.
 
 =head2 text
 
-    local($RS) = undef;
-    my $spec = <FH>;
-    my $fail_offset = $recce->text(\$spec);
-    if ($fail_offset >= 0) {
-       die("Parse failed at offset $fail_offset");
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $fail_offset = $recce->text( \('2-0*3+1') );
+    if ( $fail_offset >= 0 ) {
+        die("Parse failed at offset $fail_offset");
     }
 
 Extends the parse using the one-character-per-earleme model.
@@ -1219,8 +1245,15 @@ the length of the lex prefix counts as part of the token length.)
 
 =head2 earleme
 
-    my $op = $grammar->get_symbol("op");
-    $recce2->earleme([$op, "-", 1]);
+=begin Parse::Marpa::test_document:
+
+## next display
+in_ah2_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $a = $grammar->get_symbol("a");
+    $recce->earleme([$a, "a", 1]) or die("Parse exhausted");
 
 The C<earleme> method adds tokens at the current earleme.
 Every call to the C<earleme> method moves the current earleme forward by one earleme.
@@ -1275,7 +1308,14 @@ is assumed.  The user is free to invent her own.
 
 =head2 end_input
 
-    $recce2->end_input();
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_t($_)
+
+=end Parse::Marpa::test_document:
+
+    $recce->end_input();
 
 This method takes no arguments.
 It is used with the C<earleme> method in offline mode, to indicate

@@ -55,10 +55,12 @@ Those familiar with Earley parsing will note that C<S5@6-7> does not look like
 a traditional Earley item.
 QDFA states are not traditional --
 they are my elaboration of an invention by Aycock and Horspool.
-And in the traditional notation for an Earley item,
+The use of the at-sign as punctuation follows
+L<Grune and Jacobs|Parse::Marpa::Doc::Bibliography/"Grune and Jacobs 2008">.
+Finally, in the traditional notation for an Earley item,
 the dot earleme is not
 included at all --
-you're required to figure out from context
+you're supposed to figure out from the context
 which Earley set an Earley item belongs to.)
 
 =head1 QDFA STATES
@@ -70,7 +72,7 @@ is that the QDFA's are built from them.
 NFA state numbers sometimes appear in the diagnostic outputs.
 They can be ignored.
 
-About QDFA's, it will be necessary to know a bit more.
+About QDFA's, it will be necessary to know more.
 Let's start with an example of another Earley item:
 
 =begin Parse::Marpa::test_document:
@@ -81,10 +83,12 @@ Let's start with an example of another Earley item:
 
     S1@2-2
 
-This states that this item is for QDFA state 1,
-that it originates at earleme 2,
-and that it is currently at earleme 2.
-We can get a description of the QDFA states from the C<show_QDFA> method.
+This states that this item is for QDFA state 1;
+that it originates at earleme 2;
+and that it is currently at
+(or has its dot position at)
+earleme 2.
+We can get a description of the QDFA states with the C<show_QDFA> method.
 Here's what it says about QDFA state 1:
 
 =begin Parse::Marpa::test_document:
@@ -100,7 +104,13 @@ in_equation_show_QDFA($_);
      <e> => S3
      <number> => S4
 
-The first line begins with the QDFA state's label: C<S1>.
+For those who like the big picture or simply like to skim
+ahead, the entire C<show_QDFA> output, along with the other
+trace and debugging outputs for this example,
+is in the appendices.
+
+The first line of C<show_QDFA>'s description
+of QDFA state 1 begins with its name: C<S1>.
 After it comes the C<predict> tag.
 That indicates this item was created by a prediction.
 That's one of the four ways an Earley item can be created.
@@ -121,7 +131,7 @@ have been recognized,
 but that none of the symbols after the dot have been recognized.
 A dot at the beginning of an LR(0) item indicates that the rule is a prediction
 -- none of its symbols have yet been recognized.
-A dot at the end indicates that the rule is complete
+A dot at the end indicates that the rule is B<complete>
 -- all of its symbols have been recognized.
 The location of the dot is called the B<dot position>.
 
@@ -129,7 +139,7 @@ The last two lines in the display show transitions.
 The first line says that, on seeing an C<e>, you transition to QDFA state 3.
 The second states that, on seeing a C<number>, you transition to QDFA state 4.
 
-It's important to not confuse Earley items with LR(0) items.
+It's important not to confuse Earley items with LR(0) items.
 Earley items are built from one or more LR(0) items.
 In traditional Earley parsing, each Earley item contained one and only one LR(0) item.
 This made the internals simpler, but was not as efficient.
@@ -149,7 +159,7 @@ the dots in all the LR(0) items in S1 (QDFA state 1)
 are at the beginning of their rules.
 This means the origin and dot earlemes must be the same, and from the "C<2-2>"
 in the description of the Earley item C<S1@2-2>,
-you can see that that is the case.
+we can see that that is the case.
 
 =head1 HOW EARLEY SETS ARE BUILT
 
@@ -182,7 +192,8 @@ in_equation_show_QDFA($_);
 
 We can see that there is only one LR(0) item in QDFA state 4,
 and that it has the dot pointer at the end of its rule.
-A rule with the dot pointer at the end in an LR(0) item is
+An LR(0) item with
+the dot pointer at the end of its rule is
 a B<completed rule>.
 
 Marpa calls the item that was looking for the scanned symbol
@@ -207,42 +218,32 @@ in_equation_show_earley_sets($_);
 
     S4@2-3  [p=S1@2-2; t=2]
 
-In the first line we see that, as mentioned, S1@2-2 is the predecessor of S4@2-3.
-It has no successor.
-The C<effect> item will be explained later.
-C<pre-dot> is the name of the symbol B<before> the dot pointer in the current choice of
-rule.
-(Remember that there may be more than one rule in an Earley item.)
-C<lhs> is the symbol on the left hand side of the current rule.
-If the Earley item has had a value computed, that is also shown.
-In this case,
-the value came from the token and is "2".
+After the name of the Earley item is a
+B<link choice> entry, shown in brackets.
+For brevity, and when the context makes the
+meaning clear, a B<link choice> of an 
+Earley item may simply
+be called a B<choice>.
+This parse is not ambiguous,
+so all Earley items have at most one link choice entry.
 
-The last two lines are very significant.
-They show the choices Marpa is making.
-This parse is not ambiguous.
-In this Earley item,
-there is only one possible token and only one choice of rule,
-so there are no non-trivial choices.
-
-Each token choice may have a different predecessor.
+In this case the link choice entry is for a B<token choice>.
 Token choices are shown as C<[p=>I<predecessor>C<; t=>I<token_value>C<]> pairs.
 In the above example, the token choice
 C<[p=S1@2-2; t=2]>
 indicates that the token has a value of "2",
-and that its predecessor was S1@2-2.
-
-Rule choices are also shown in brackets.
-In the rule choice C<< [ 1: e -> number ] >>,
-"C<1>" is the rule number and 
-"C<< e -> number >>" is the rule.
+and that, when this token choice is selected,
+the predecessor of S4@2-3 is S1@2-2.
+Of course,
+since there's only one link choice,
+the predecessor of S4@2-3 is always S1@2-2.
 
 =head2 Completion
 
-Whenever a rule is completed in an Earley set, new rules may be added
-to that Earley set as a result.
-The item with the completed rule is called the B<cause>, and the new item added as a result
-is the B<effect>.
+Whenever an Earley item with a completed rule is added to an Earley set,
+other Earley items may be added to that Earley set as a result.
+The item with the completed rule is called the B<cause>, and any new item added as a result
+is called an B<effect>.
 
 Let's look at one example of a completion "cause and effect".
 As the cause in our example,
@@ -290,12 +291,11 @@ in_equation_show_earley_sets($_);
 
     S6@0-3 [p=S5@0-2; c=S4@2-3]
 
-(You'll notice that S6@0-3 is not just an effect,
-but also has its own effect.
-As noted on the first line,
-it is the cause of item S2@0-3.)
-The meanings of the terms predecessor and successor
-are similar to what they are in token scanning.
+Like scanning items,
+completion Earley items can have predecessors and successors,
+and the terms predecessor and successor
+mean pretty much 
+what they did in token scanning.
 Since S6@0-3 comes from moving the dot forward in
 a rule in S5@0-2, we say S5@0-2 is the B<predecessor> of S6@0-3,
 and that 
@@ -313,20 +313,24 @@ the same item is not added twice.
 Where an item comes from is not important in recognition.
 But parsing in the strict sense means determining the structure of the input,
 and that requires us to know why an Earley item was added to an Earley set.
-Marpa (again following the lead of
-L<Aycock and Horspool|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">)
-tracks the reasons Earley items were added to the Earley sets using B<links>.
+Every different reason for the existence of an Earley item in an Earley set
+is an alternative that can be followed when it comes time
+to create a parse structure.
 
-We've already seen a link in the scanning example.
-Earley item S6@0-3 has another example of a link: C<[p=S5@0-2; c=S4@2-3]>.
-This says that one reason for S6@0-3 to exist was a completion,
+Marpa uses the link choices to track the reasons why Earley items were added.
+Aycock and Horspool don't call them link choices,
+but the method is basically the one they give in
+L<their 2002 article|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
+
+We've already seen a token link choice in the scanning example.
+Earley item S6@0-3 has another example of a link choice: C<[p=S5@0-2; c=S4@2-3]>.
+This is another kind of link choice, a completion link choice.
+This link choice says that one reason for S6@0-3 to exist was a completion,
 with S4@2-3 as the cause and S5@0-2 the predecessor.
-Since there are no other links, this is the only reason for S6@0-3 to be in the
+Since this parse in unambiguous,
+there will be no other links,
+and this will remain the only reason for S6@0-3 to be in the
 Earley sets.
-
-The parse in this example is unambiguous.  If it were ambiguous,
-you would see multiple links
-in some of the Earley items.
 
 =head2 Prediction
 
@@ -394,15 +398,13 @@ in_equation_show_earley_sets($_);
 Every rule in a predicted item will have the dot at the beginning.
 That means the origin and dot earlemes will always be the same.
 
-The descriptions of predicted items are often short.
-The description of S1@2-2 in our output was one line, the shortest
-description of an Earley item that we've seen.
-That's typical.
+Link choices are not recorded for predicted items.
 Prediction items are
-essential to get rules started (note that S1@2-2 does have a successor).
-But, since they are not actually needed
-for parsing and evaluation,
-they don't need to have links or a lot of the data that the other items have.
+essential to get rules started
+in the Earley sets.
+But they are not actually needed
+when the time comes for parsing and evaluation.
+That means they don't need link choice entries.
 
 =head2 Initialization
 
@@ -423,7 +425,7 @@ QDFA state 0 contains the start rules, with the dot pointer at the beginning.
 Only Earley set 0 will contain an Earley item for QDFA state 0.
 In our example, S1@0-0 contains rules predicted by S0@0-0.
 
-=head1 HOW RECOGNITION WORKS
+=head1 HOW A SUCCESSFUL PARSE IS RECOGNIZED
 
 As mentioned, what's usually called Earley's algorithm is just a recognizer,
 an algorithm to build the Earley sets.
@@ -474,6 +476,155 @@ in_equation_show_earley_sets($_);
 
     S2@0-3 [p=S0@0-0; c=S6@0-3]
       
+=head1 THE PARSE BOCAGE
+
+After a successful parse has been recognized,
+it can be evaluated.
+The main data structure of a Marpa evaluator is
+a parse bocage.
+
+Each Marpa evaluator starts with parse criteria:
+the start and end earlemes of the parse,
+and its top symbol.
+Most often these are the default.
+The default start earleme is earleme 0.
+The default end earleme in offline mode
+is the furthest earleme reached by any token in
+the parse.
+The default top symbol of the parse is the start
+symbol of the grammar.
+
+The parse bocage stores all possible parses meeting the
+evaluator's parse criteria.
+Marpa's parse bocages are adaptations of parse forests.
+Parse bocages, unlike parse forests, are graphs, meaning
+that they may contain not just parse trees, but also
+parses which contain cycles and are therefore infinitely
+ambiguous.
+
+Parse bocages, like parse forests, consist of and-nodes
+and or-nodes.
+As in parse forests, the or-nodes represent choices between
+pieces of parse trees.
+In parse forests, the and-nodes represent productions of
+the original grammar.
+In Marpa's parse bocages, the and-nodes are binary --
+they have at most two children.
+Marpa's and-nodes represents pieces
+of the productions of the original
+grammar.
+The form in which productions are found in the parse
+bocages and-nodes is very similar to Chomsky Normal
+Form (CNF).
+
+Marpa uses the binary, CNF-like version of the original
+grammar for four reasons.
+First, that's how it find it in the Earley items.
+Every link choices contains at most two links,
+and so each Earley item corresponds to a production
+with at most two symbols on the right hand side.
+Second, the form in which the grammar occurs in the
+Earley sets is even more compact than a parse forest.
+Third, unlike the parse forest, it can handle parses
+with cycles.
+
+Fourth, while Marpa could rewrite the grammar back into
+its original form at any point,
+binary trees are easier and faster
+to traverse and manipulate.
+If Marpa were to rewrite the parse data from the Earley
+sets back into the productions of the original grammar,
+it would be spending effort to create and slower and
+more cumbersome data structure.
+
+Every and-node represents either a production of the original grammar,
+or a piece of one.
+In a parse bocage, and-nodes and or-nodes alternate.
+Every and-nodes has or-nodes as children,
+and every or-node has and-nodes for children.
+This means that many or-nodes are trivial -- they
+have only one and-node as a child,
+and represent a choice from a list containing
+only a single alternative.
+
+=head2 Names of Parse Bocage Nodes
+
+An or-node correspond to an Earley item,
+and some selection criteria which guide and
+limit the choices which can be made from that
+Earley item.
+The name of an or-node consists of the name of
+an Earley item, followed by a label indicating
+the selection criteria.
+If an Earley item was reached
+through a predecessor link,
+the selection criteria are the rule currently being
+derived,
+and the current position in that rule.
+
+For example, the or-node named S3@0-1R0:2 corresponds
+to Earley item S3@0-1.  That Earley item was reached
+at position 2 in a derivation of rule 0 (e -> e . op e)
+
+    Note: is naming correct?  Should this be position  1?
+
+The current position in an or-node does not necessary
+correspond to the dot position of the Earley items.
+Nulled symbols may have been skipped over.
+No Earley items represent nulled symbols,
+but every nulled symbol is represented by a node
+in the parse bocage.
+
+Or-nodes which aren't reached through predecessor links are
+reached via cause links, or are the top symbol.
+In this case the selection criterion is a single symbol,
+either the completed symbol corresponding to the cause link,
+or whatever was chosen as the top symbol.
+An example of a non-predecessor or-node is S6@0-3L0.
+In this case the Earley item was S6@0-3,
+and the predecessor symbol was symbol 0 (e).
+Where a symbol is the selection criterion,
+only LR(0) items with that symbol on their left
+hand side are valid choices.
+
+    What about tokens?
+
+=head2 The Parse Bocage Grammar
+
+Marpa typically displays a parse bocage as a B<parse bocage grammar>.
+This is a grammar where each production contains an and-node as its left
+hand side,
+and one or two symbols on the right hand side.
+The right hand side of a parse bocage productions
+can be either one or two or-nodes,
+an or-node and a token value,
+or just a token value.
+
+     Check this.
+
+It may seem pointless to take a grammar, and come this far in the
+parsing, only to write out another grammar.
+But there is a big difference between the original grammar and
+the parse bocage grammar.
+The original grammar describes all parses which are allowed to
+occur in B<any possible input>.
+The parse bocage grammar describes only parses which actually did
+occur with the specific input which was accepted by the recognizer.
+In the parse bocage grammar, the work of parsing has actually been done.
+
+=head2 Examples of Parse Bocage Nodes
+
+     Discuss examples of Parse Bocage Nodes, Including:
+     At least one with a token value
+     At least one with cause link on the rhs
+     At least one with predecessor link on the rhs
+     At least one with a predecessor lhs (Sn@a-bRx.y)
+     At least one with a non-predecessor lhs (Sn@a-bLx)
+
+=head1 THE PARSE TREES
+
+=head1 THE EVALUATION STACK
+
 =head1 GRAMMAR REWRITING
 
 Marpa rewrites grammars,
@@ -494,7 +645,7 @@ Marpa is no exception.
 The new start symbol is the old one with "C<[']>" suffixed.
 We saw a Marpa internal start symbol above: C<e[']>.
 If the grammar allows a null parse, there will also be a nulling
-start symbol, with "C<[]>" suffixed.
+start symbol, with "C<['][]>" suffixed.
 
 =head2 Elminating Proper Nullable Symbols
 
@@ -503,14 +654,14 @@ Nullable symbols are those which can produce the empty sentence.
 Non-nullable symbols are those which never produce the empty sentence.
 
 Pedantically, nulling symbols are also nullable symbols.
-A B<proper nullable> is a symbol which, in the grammar of interest,
+A B<proper nullable> is a symbol that, in the grammar of interest,
 can produce either the empty sentence or a non-empty sentence.
 In other words, a proper nullable is any nullable symbol which is not a nulling symbol.
 
 Nullable symbols have been a headache for previous versions of Earley parsers.
 L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
 outlined a new approach for dealing with them.
-I use their ideas and add a few of my own.
+I use their ideas with modifications of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.
 It does this by turning the original proper nullable into
@@ -526,11 +677,13 @@ is that of the original symbol with the nulling tag ("C<[]>") suffixed.
 
 The newly introduced nulling symbols will not appear on any left hand sides.
 Marpa marks nulling symbols internally and
-recognizes them directly,
-so it does not need empty rules for nulling symbols.
+recognizes them directly.
+It does not need empty rules.
 
-More difficult is the problem of dealing with the cases where the
-proper nullables appeared on the right hand side of rules.
+More difficult than dealing with proper nullables which appeared at the left hand side
+of rules,
+is the case where
+proper nullables appear in the right hand side.
 These rules have to be replaced with
 new rules covering every possible combination of
 the non-nullable and nulling variants.
@@ -538,13 +691,12 @@ That rewrite is described in the next section.
 
 =head2 CHAF Rewriting
 
-To deal with the splitting of proper nullables into two symbols,
-one non-nullable and one nullable,
+To deal with the splitting of rhs proper nullables into two symbols,
+one non-nullable and one nulling,
 Aycock and Horspool simply created new rules for all possible combinations
 on the right hand side.
 This B<factoring> is exponential in the worst case.
 I don't like leaving exponential explosions in an algorithm, even unlikely ones.
-That old Theory of Computation course still haunts me after all these years.
 And I felt the generation of all possible combinations
 for an arbitrarily long right hand side might be inefficient
 in practice.
@@ -587,7 +739,7 @@ Here's is the output from C<show_rules>, showing what Marpa did with this rule:
 
 =begin Parse::Marpa::test_document:
 
-## next 2 displays
+## next 4 displays
 in_self_show_rules($_);
 
 =end Parse::Marpa::test_document:
@@ -620,6 +772,9 @@ Z<>
         non-structural-production-sentences[]
         production-sentence
         production-paragraph[R12:2][x5e][]
+
+Z<>
+
     103: production-paragraph[R12:2][x5e] ->
         non-structural-production-sentences
         production-paragraph[R12:3][x60]
@@ -632,6 +787,9 @@ Z<>
         non-structural-production-sentences
         production-paragraph[R12:3][x60][]
         /* priority=0.2 */
+
+Z<>
+
     106: production-paragraph[R12:3][x60] ->
         action-sentence:optional
         non-structural-production-sentences
@@ -752,7 +910,7 @@ If you want to investigate internals more on your own,
 here are two "self-tutorials",
 which should make you pretty much an expert.
 
-First, go through the C<show_status> output in the appendix.
+First, go through the C<show_earley_sets> output in the appendix.
 For each
 Earley item in it,
 reason out how it
@@ -762,7 +920,7 @@ Second, take
 the grammar used in the example and run it on the input text "C<2+2*3>".
 While the parse in this document was not ambiguous, the grammar was.
 The grammar's ambiguity reveals itself when there is more than one operation in the input string.
-Get the C<show_status> output from any one of the ambiguous parses and reason out how
+Get the C<show_earley_sets> output from any one of the ambiguous parses and reason out how
 all of its Earley items came to be.
 
 =head1 APPENDIX: DATA FOR THE EXAMPLE
@@ -782,7 +940,7 @@ is_equation_grammar($_);
 =end Parse::Marpa::test_document:
 
 
-    semantics are perl5.  version is 0.211.8.
+    semantics are perl5.  version is 0.211.9.
 
     start symbol is E.
 
@@ -832,7 +990,41 @@ is_equation_show_QDFA($_);
 
 =end Parse::Marpa::test_document:
 
+=head2 The C<show_symbols> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_show_symbols($_);
+
+=end Parse::Marpa::test_document:
+
+    0: e, lhs=[0 1], rhs=[0 2]
+    1: op, lhs=[], rhs=[0] terminal
+    2: number, lhs=[], rhs=[1] terminal
+    3: e['], lhs=[2], rhs=[]
+
+=head2 The C<show_rules> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_show_rules($_);
+
+=end Parse::Marpa::test_document:
+
+    0: e -> e op e
+    1: e -> number
+    2: e['] -> e
+
 =head2 The C<show_QDFA> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_show_QDFA($_);
+
+=end Parse::Marpa::test_document:
 
     Start States: S0; S1
     S0: 7
@@ -893,22 +1085,22 @@ is_equation_show_bocage($_);
 =end Parse::Marpa::test_document:
 
     package: Parse::Marpa::E_1; parse count: 0
-    S2@0-3L3 ::= S6@0-3L0
+    S2@0-3L3[0] ::= S6@0-3L0
         item: e['] ::= e .
         argc=1; closure=sub { "DUMMY" }
-    S6@0-3L0 ::= S5@0-2R0:3 S4@2-3L0
+    S6@0-3L0[0] ::= S5@0-2R0:3 S4@2-3L0
         item: e ::= e op e .
         argc=3; closure=sub { "DUMMY" }
-    S5@0-2R0:3 ::= S3@0-1R0:2 '+'
+    S5@0-2R0:3[0] ::= S3@0-1R0:2 '+'
         item: e ::= e op . e
         argc=3
-    S4@2-3L0 ::= '2'
+    S4@2-3L0[0] ::= '2'
         item: e ::= number .
         argc=1; closure=sub { "DUMMY" }
-    S3@0-1R0:2 ::= S4@0-1L0
+    S3@0-1R0:2[0] ::= S4@0-1L0
         item: e ::= e . op e
         argc=3
-    S4@0-1L0 ::= '2'
+    S4@0-1L0[0] ::= '2'
         item: e ::= number .
         argc=1; closure=sub { "DUMMY" }
 
@@ -945,6 +1137,28 @@ is_equation_show_tree($_);
         Rule: e ::= number .
         Value: '2'
         Closure: CODE(0x5a46fa0)
+
+=head2 The C<trace_values> Output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+is_equation_trace_values($_);
+
+=end Parse::Marpa::test_document:
+
+    Pushed value: '2'
+    Popping 1 values to evaluate S4@0-1L0, rule: 1: e -> number
+    Calculated and pushed value: '2==2'
+    Pushed value: '+'
+    Pushed value: '2'
+    Popping 1 values to evaluate S4@2-3L0, rule: 1: e -> number
+    Calculated and pushed value: '2==2'
+    Popping 3 values to evaluate S6@0-3L0, rule: 0: e -> e op e
+    Calculated and pushed value: '(2+2)==4'
+    Popping 1 values to evaluate S2@0-3L3, rule: 2: e['] -> e
+    Calculated and pushed value: '(2+2)==4'
+    (2+2)==4
 
 =head1 SUPPORT
 

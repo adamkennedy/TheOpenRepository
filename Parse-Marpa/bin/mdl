@@ -211,9 +211,7 @@ sub do_parse {
     }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    unless ($evaler) {
-        croak("Input not recognized by grammar") unless $evaler;
-    }
+    croak("Input not recognized by grammar") unless $evaler;
 
     if (defined $show_bocage_flag) {
 	print $evaler->show_bocage($show_bocage_flag);

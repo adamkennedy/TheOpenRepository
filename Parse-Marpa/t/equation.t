@@ -18,7 +18,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar({
+my $grammar = new Parse::Marpa::Grammar({
     start => "E",
 
     # Set max at 10 just in case there's an infinite loop.
@@ -65,15 +65,15 @@ EOCODE
     },
 });
 
-$g->precompute();
+$grammar->precompute();
 
-is( $g->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
+is( $grammar->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
 0: E -> E Op E
 1: E -> Number
 2: E['] -> E
 END_RULES
 
-is( $g->show_ii_QDFA(), <<'END_QDFA', "Ambiguous Equation QDFA" );
+is( $grammar->show_ii_QDFA(), <<'END_QDFA', "Ambiguous Equation QDFA" );
 Start States: St0; St5
 St0: predict; 1,5
 E ::= . E Op E
@@ -97,10 +97,10 @@ St6: 8
 E['] ::= E .
 END_QDFA
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
-my $op = $g->get_symbol("Op");
-my $number = $g->get_symbol("Number");
+my $op = $grammar->get_symbol("Op");
+my $number = $grammar->get_symbol("Number");
 
 my @tokens = (
     [$number, 2, 1],
@@ -116,6 +116,8 @@ TOKEN: for my $token (@tokens) {
     next TOKEN if $recce->earleme($token);
     die("Parse exhausted at character: ", $token->[1]);
 }
+
+$recce->end_input();
 
 my @expected = (
     '(((2-0)*3)+1)==7',

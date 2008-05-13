@@ -12,11 +12,16 @@ C<Parse::Marpa::Grammar::new()>,
 C<Parse::Marpa::Grammar::set()>,
 and C<Parse::Marpa::Recognizer::new()> methods.
 
-The plumbing and porcelain interfaces may not be used 
+The C<start> argument may be used in combination
+with a porcelain interface,
+subject to the symbol name conversion requirements
+described below.
+Other than that,
+plumbing and porcelain interfaces cannot be used 
 to build the same grammar.
 Marpa throws an exception if the user attempts to use
-a porcelain interface with any of the plumbing's named
-arguments, other than the C<start> argument.
+any of the plumbing's other named
+arguments with a porcelain interface.
 
 =head2 Plumbing Symbol Names
 
@@ -36,20 +41,22 @@ means a plumbing symbol name.
 
 =head2 Parse::Marpa::Grammar::get_symbol
 
-    my $minus = $grammar->get_symbol("minus");
+=begin Parse::Marpa::test_document:
 
-Z<>
+## next display
+in_ah2_t($_)
 
-    my $number
-	= Parse::Marpa::Grammar::get_symbol($grammar, "number");
+=end Parse::Marpa::test_document:
 
-Given a symbol's plumbing name, returns the symbol's B<cookie>.
+    my $a = $grammar->get_symbol("a");
+
+Given a symbol's plumbing name, returns the symbol's cookie.
 It returns undefined if a symbol with that name doesn't exist.
 If you are using MDL to define your grammar,
 you want to use C<Parse::Marpa::MDL::get_symbol> instead.
 
 Symbol cookies are used primarily
-when calling the C<Parse::Marpa::Recognizer::earleme> method.
+in calls to the C<Parse::Marpa::Recognizer::earleme> method.
 To get the cookie for a symbol using its porcelain name,
 see the documentation for the individual porcelain interface.
 
@@ -103,43 +110,19 @@ The available rule options are:
 The values of the C<lhs>, C<rhs>, C<action>, and C<priority> rule options
 are as described above for the corresponding elements of the short form.
 
-=item C<min> and C<max>
+=item C<min>
 
-C<max> must be undefined or 1.
-If C<max> is undefined, C<min> may be undefined.
-0 or 1,
-If C<max> is 1, C<min> may be 0 or 1.
-For any other combination of values,
-an exception is thrown.
+C<min> must be undefined, 0 or 1.
+If C<min> is 0 or 1, 
+the rule is a B<sequence production>.
+If C<min> is undefined, the rule is an ordinary, B<BNF production>.
 
-=over 4
-
-=item * C<min> and C<max> both undefined
-
-The rule is an ordinary B<BNF production>.
-
-=item * C<min> 0 or 1, and C<max> undefined
-
-The rule is a B<sequence production>.
-Only one symbol is allowed on the right hand side.
-The right hand side symbol may not be a nullable symbol.
+Only one symbol is allowed on the right hand side of a sequence production,
+and the right hand side symbol may not be a nullable symbol.
 The rhs symbol must be repeated at least C<min> times
 and may be repeated an unlimited number of times.
-
-=item * C<min> and C<max> both 1
-
-The rule is an ordinary B<BNF production>.
-
-=item * C<min> 0 and C<max> 1
-
-Only one symbol is allowed on the right hand side,
-and it is optional --
-that is, it may be present once or not at all.
-It is not allowed be a nullable symbol.
-
-=back
-
-For an introduction to sequence productions, see the L<MDL document|Parse::Marpa::Doc::MDL>.
+For an introduction to sequence productions,
+see the L<MDL document|Parse::Marpa::Doc::MDL>.
 
 =item C<separator>
 
@@ -206,7 +189,7 @@ The most common use is to discard leading whitespace.
 
 =item C<priority>
 
-The value of the priority terminal option must be an integer.
+The value of the C<priority> terminal option must be an integer.
 It can be negative.
 It will control the order in which terminal matches are attempted.
 
@@ -226,7 +209,7 @@ the choice of, the start symbol in the porcelain.
 If you use the C<start> named argument to specify a porcelain symbol,
 you must be careful to use the plumbing symbol name.
 The documentation for the porcelain should describe how
-its symbol names can be converted to plumbing symbol names.
+to convert porcelain symbol names to plumbing symbol names.
 
 =head1 SUPPORT
 

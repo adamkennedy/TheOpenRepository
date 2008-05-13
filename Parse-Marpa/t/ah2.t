@@ -13,7 +13,7 @@ BEGIN {
 	use_ok( 'Parse::Marpa' );
 }
 
-my $g = new Parse::Marpa::Grammar({
+my $grammar = new Parse::Marpa::Grammar({
     start => "S",
     rules => [
         [ "S", [qw/A A A A/] ],
@@ -31,15 +31,15 @@ my $g = new Parse::Marpa::Grammar({
 EOCODE
 });
 
-$g->set({
+$grammar->set({
     terminals => [
         [ "a" => { regex => "a" } ],
     ],
 });
 
-$g->precompute();
+$grammar->precompute();
 
-is( $g->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
+is( $grammar->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
 0: S -> A A A A /* nullable !useful */
 1: A -> a
 2: A -> E /* nullable nulling !useful */
@@ -57,7 +57,7 @@ is( $g->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
 14: S['][] -> /* empty nullable nulling */
 EOS
 
-is( $g->show_symbols(), <<'EOS', "Aycock/Horspool Symbols" );
+is( $grammar->show_symbols(), <<'EOS', "Aycock/Horspool Symbols" );
 0: S, lhs=[0 4 5 6], rhs=[13]
 1: A, lhs=[1 2], rhs=[0 4 6 7 9 10 11 12]
 2: a, lhs=[], rhs=[1] terminal
@@ -72,20 +72,20 @@ is( $g->show_symbols(), <<'EOS', "Aycock/Horspool Symbols" );
 11: S['][], lhs=[14], rhs=[] nullable nulling
 EOS
 
-is( $g->show_nullable_symbols(),
+is( $grammar->show_nullable_symbols(),
     "A[] E S['][] S[R0:1][x6][] S[R0:2][x8][] S[]",
     "Aycock/Horspool Nullable Symbols");
-is( $g->show_nulling_symbols(),
+is( $grammar->show_nulling_symbols(),
     "A[] E S['][] S[R0:1][x6][] S[R0:2][x8][] S[]",
     "Aycock/Horspool Nulling Symbols");
-is( $g->show_productive_symbols(),
+is( $grammar->show_productive_symbols(),
     "A A[] E S S['] S['][] S[R0:1][x6] S[R0:1][x6][] S[R0:2][x8] S[R0:2][x8][] S[] a",
     "Aycock/Horspool Productive Symbols" );
-is( $g->show_accessible_symbols(),
+is( $grammar->show_accessible_symbols(),
     "A A[] E S S['] S['][] S[R0:1][x6] S[R0:1][x6][] S[R0:2][x8] S[R0:2][x8][] S[] a",
     "Aycock/Horspool Accessible Symbols" );
 
-is( $g->show_NFA(), <<'EOS', "Aycock/Horspool NFA" );
+is( $grammar->show_NFA(), <<'EOS', "Aycock/Horspool NFA" );
 S0: /* empty */
  empty => S30 S32
 S1: A ::= . a
@@ -170,7 +170,7 @@ S31: S['] ::= S .
 S32: S['][] ::= .
 EOS
 
-is( $g->show_ii_QDFA(), <<'EOS', "Aycock/Horspool QDFA" );
+is( $grammar->show_ii_QDFA(), <<'EOS', "Aycock/Horspool QDFA" );
 Start States: St11; St3
 St0: predict; 1
 A ::= . a
@@ -251,7 +251,7 @@ St15: pri=0.1; 8
 S ::= A[] S[R0:1][x6] .
 EOS
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
 my $set0_new = <<'EOS';
 Earley Set 0
@@ -332,26 +332,26 @@ is( $recce->show_earley_sets(1),
     "Current Earley Set: 0; Furthest: 0\n" .  $sets_new,
     "Aycock/Horspool Parse Status before parse" );
 
-my $a = $g->get_symbol("a");
-$recce->earleme([$a, "a", 1]);
+my $a = $grammar->get_symbol("a");
+$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 1; Furthest: 1\n" .  $sets_at_0,
     "Aycock/Horspool Parse Status at 0" );
 
-$recce->earleme([$a, "a", 1]);
+$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 2; Furthest: 2\n" .  $sets_at_1,
     "Aycock/Horspool Parse Status at 1" );
 
-$recce->earleme([$a, "a", 1]);
+$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 3; Furthest: 3\n" .  $sets_at_2,
     "Aycock/Horspool Parse Status at 2" );
 
-$recce->earleme([$a, "a", 1]);
+$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 4; Furthest: 4\n" .  $sets_at_3,

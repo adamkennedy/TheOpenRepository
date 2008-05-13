@@ -75,6 +75,16 @@ sub is_equation_grammar {
         diff(\$display_grammar, \$equation_grammar);
 }
 
+my $equation_show_symbols = slurp('equation_show_symbols.out');
+sub is_equation_show_symbols {
+    return is_file(shift, $equation_show_symbols);
+}
+
+my $equation_show_rules = slurp('equation_show_rules.out');
+sub is_equation_show_rules {
+    return is_file(shift, $equation_show_rules);
+}
+
 my $equation_show_QDFA = slurp('equation_show_QDFA.out');
 sub is_equation_show_QDFA {
     return is_file(shift, $equation_show_QDFA);
@@ -105,6 +115,11 @@ sub is_equation_show_tree {
     return is_file($display, $file);
 }
 
+my $equation_trace_values = slurp('equation_trace_values.out');
+sub is_equation_trace_values {
+    return is_file(shift, $equation_trace_values);
+}
+
 my $self_show_rules = slurp('self_show_rules.out');
 sub in_self_show_rules {
     return in_file(shift, $self_show_rules);
@@ -126,6 +141,26 @@ sub is_synopsis_pl {
 }
 sub in_synopsis_pl {
     return in_file(shift, $synopsis_pl);
+}
+
+my $ah2_t = slurp('../t/ah2.t');
+sub in_ah2_t {
+    return in_file(shift, $ah2_t);
+}
+
+my $ah_s_t = slurp('../t/ah_s.t');
+sub in_ah_s_t {
+    return in_file(shift, $ah_s_t);
+}
+
+my $equation_s_t = slurp('../t/equation_s.t');
+sub in_equation_s_t {
+    return in_file(shift, $equation_s_t);
+}
+
+my $equation_t = slurp('../t/equation.t');
+sub in_equation_t {
+    return in_file(shift, $equation_t);
 }
 
 package MyParser;

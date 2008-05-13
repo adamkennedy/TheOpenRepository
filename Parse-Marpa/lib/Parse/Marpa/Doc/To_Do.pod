@@ -28,6 +28,10 @@ Add a graf about ambiguous transitions in the Internals document.
 a ref, reversing at the end if necessary.  All that code could use
 better comments.
 
+=item * C<show_tree> before first call to C<value>?  Should
+it cause an error message?  How about after unsuccessful
+call to C<value>?
+
 =item * Should C<Parse::Marpa::Grammar::new> options be defaults or
 overrides? -- that is they should take effect before the MDL script
 or after.
@@ -36,14 +40,13 @@ or after.
 and during life of recognizer?
 Will require changes in internal tracking of phases.
 
-=item * Create a show_derivation method to show the derivation
-once we have a tree?
-
 =item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
 
 =item * Add a trace_choices option.  There was an option to trace
 non-trivial evaluation choices in the old evaluator, and the new trace_iterations
 doesn't entirely replace it.
+
+=item * Add a show_derivation option.
 
 =item * Allow multiple evaluators for each recognizer, or at least create a method
 to safely deep copy recognizers.
@@ -54,7 +57,7 @@ to safely deep copy recognizers.
 
 =item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
 
-=item * Add option for left-to-right evaluation by rules
+=item * Add option for left-to-right evaluation of rules
 
 =item * Test proper and perl5 separation
 
@@ -66,11 +69,9 @@ to safely deep copy recognizers.
 
 =item * Allow alternation?
 
-=item * Add to test set: Basic tests of all types of counted rules.
-Eliminate maximums and minimums higher than 1.
-The matrix is separated yes versus no;
-perl5 versus proper separation;
-and 0-1, 1-1, 0-*, versus 1-*.
+=item * Add to test set: Basic tests of sequences.
+The matrix is separation (none/perl5/proper)
+and minimium count (0 or 1).
 Eliminate keep vs. no-keep, right vs. left.
 
 =item * Downgrade version conflict or semantics mismatch to warning?

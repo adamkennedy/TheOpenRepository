@@ -4,7 +4,7 @@
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
 
-# This file was automatically generated using Parse::Marpa 0.211007
+# This file was automatically generated using Parse::Marpa 0.211008
 # This is the beginning of bootstrap_header.pl
 
 use 5.010_000;
@@ -47,7 +47,7 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '0.211008';
+$new_version = '0.211009';
 
 $new_start_symbol = "grammar";
 
@@ -162,11 +162,8 @@ push(@$new_rules, {
 
 });
 push(@$new_rules, 
-    { lhs => "action-sentence:optional",  rhs => [ "action-sentence" ], 
-                     min => 0,
-                     max => 1,
-                     action => q{ scalar @_ ? $_[0] : undef }
-             },
+    { lhs => "action-sentence:optional",  rhs => [ "action-sentence" ],  action => q{ $_[0] } },
+    { lhs => "action-sentence:optional",  rhs => [],  action => q{ undef } },
  );
 
 push(@$new_rules, {
@@ -211,11 +208,8 @@ push(@$new_terminals,
 );
 
 push(@$new_rules, 
-    { lhs => "the:k1:optional",  rhs => [ "the:k1" ], 
-                     min => 0,
-                     max => 1,
-                     action => q{ scalar @_ ? $_[0] : undef }
-             },
+    { lhs => "the:k1:optional",  rhs => [ "the:k1" ],  action => q{ $_[0] } },
+    { lhs => "the:k1:optional",  rhs => [],  action => q{ undef } },
  );
 
 push(@$new_rules, {
@@ -852,11 +846,13 @@ q{
              @implicit_rules,
              q{ lhs => "} . $optional_symbol_phrase . q{", }
              . q{ rhs => [ "} . $symbol_phrase . qq{" ], }
-             . q{
-                     min => 0,
-                     max => 1,
-                     action => q{ scalar @_ ? $_[0] : undef }
-             }
+             . q{ action => q{ $_[0] } }
+         );
+         push(
+             @implicit_rules,
+             q{ lhs => "} . $optional_symbol_phrase . q{", }
+             . q{ rhs => [], }
+             . q{ action => q{ undef } }
          );
      }
      q{"} . $optional_symbol_phrase . q{"};

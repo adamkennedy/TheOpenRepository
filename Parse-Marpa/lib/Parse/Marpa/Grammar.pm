@@ -1792,10 +1792,8 @@ sub add_rules_from_hash {
             when ('lhs')               { $lhs_name          = $value }
             when ('action')            { $action            = $value }
             when ('min')               { $min               = $value }
-            when ('max')               { $max               = $value }
             when ('separator')         { $separator_name    = $value }
             when ('proper_separation') { $proper_separation = $value }
-            when ('keep_separation')   { $keep_separation   = $value }
             when ('left_associative')  { $left_associative  = $value }
             when ('right_associative') { $left_associative  = !$value }
             when ('priority')          { $user_priority     = $value }
@@ -1803,35 +1801,17 @@ sub add_rules_from_hash {
         }
     }
 
-    croak('Keep separation not available')
-        if $keep_separation;
     croak('Only left associative sequences available')
         unless $left_associative;
-
-    # Take care of nulling rules
-    if ( scalar @{$rhs_names} == 0 ) {
-        add_user_rule( $grammar, $lhs_name, $rhs_names, $action,
-            $user_priority );
-        return;
-    }
-
-    given ([$min, $max]) {
-	when ([undef, undef]) { $min = $max = 1; }
-	when ([0, undef]) { ; }
-	when ([1, undef]) { ; }
-	when ([0, 1]) { ; }
-	when ([1, 1]) { ; }
+    given ($min) {
+	when (undef) {;}
+	when ([0, 1]) {;}
 	default {
-	    croak(
-	       'bad rule counts: min=', ($min // 'undef'),
-	       '; max=', ($max // 'undef')
-	    );
+	    croak('If min is defined for a rule, it must be 0 or 1')
 	}
     }
 
-    if (defined $max) {
-
-	# If we are here, we have $max == 1
+    if ( scalar @{$rhs_names} == 0 or not defined $min) {
 
         if (defined $separator_name ) {
             croak('separator defined for rule without repetitions');
@@ -1843,22 +1823,12 @@ sub add_rules_from_hash {
 	    add_user_rule( $grammar, $lhs_name, $rhs_names, $action,
 		$user_priority );
 
-	return if $min > 0;
-
-	# If we are here, we have $min == 0, $max == 1
-
-	# Add the null rule
-	add_user_rule( $grammar, $lhs_name, [], $action, $user_priority );
-
-	# Mark the rhs as having been used in a counted rule
-        my $rhs = $ordinary_rule->[Parse::Marpa::Internal::Rule::RHS]->[0];
-        $rhs->[Parse::Marpa::Internal::Symbol::COUNTED] = 1;
-
         return;
 
-    }    # min == 0, max == 1
+    }  # not defined $min
 
-    # At this point we know that max is undefined, and that min must be 0 or 1
+    # At this point we know that min must be 0 or 1
+    # and that there is at least one symbol on the rhs
 
     # nulling rule is special case
     if ( $min == 0 ) {
@@ -2004,6 +1974,8 @@ sub add_rules_from_hash {
     }
     add_rule( $grammar, $sequence, ( \@iterating_rhs ),
         $rule_action, (pack 'NN', $user_priority, 0 ) );
+
+     return;
 
 }    # sub add_rules_from_hash
 
@@ -3593,18 +3565,19 @@ plumbing interface.
 
 =head2 new
 
-    my $grammar = Parse::Marpa::Grammar::new({ trace_rules => 1 });
-
-Z<>
-
     my $grammar = new Parse::Marpa::Grammar({});
 
 Z<>
 
-    my $grammar = new Parse::Marpa::Grammar({
-    mdl_source => \$mdl_source,
-    ambiguous_lex => 0
-    });
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $grammar = new Parse::Marpa::Grammar(
+	{ max_parses => 10, mdl_source => \$source, } );
 
 C<Parse::Marpa::Recognizer::new> has one, required, argument --
 a reference to a hash of named arguments.
@@ -3639,9 +3612,14 @@ For a way around this, see L<the C<set> method|"set">.
 
 =head2 set
 
-    Parse::Marpa::Grammar::set($grammar, { trace_lex => 1 });
+=begin Parse::Marpa::test_document:
 
-    $g->set({ mdl_source => \$source });
+## next display
+in_ah_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    $grammar->set( { mdl_source => \$source } );
 
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
 It allows Marpa options, plumbing arguments and the C<mdl_source> named argument
@@ -3659,9 +3637,14 @@ arguments.
 
 =head2 precompute
 
-    $grammar->precompute();
+=begin Parse::Marpa::test_document:
 
-    Parse::Marpa::Grammar::precompute($grammar);
+## next display
+in_ah_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    $grammar->precompute();
 
 The C<precompute> method performs Marpa's precomputations on a grammar.
 It returns the grammar object or throws an exception.
@@ -3676,9 +3659,14 @@ as a way to control precisely when precomputation takes place.
 
 =head2 compile
 
-    my $compiled_grammar = $grammar->compile();
+=begin Parse::Marpa::test_document:
 
-    my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
+## next display
+in_bin_mdl($_)
+
+=end Parse::Marpa::test_document:
+
+    my $compiled_grammar = $grammar->compile();
 
 The C<compile> method takes as its single argument a grammar object, and "compiles" it.
 It returns a reference to the compiled grammar.

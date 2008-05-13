@@ -768,9 +768,11 @@ sub Parse::Marpa::Evaluator::show_bocage {
 
         my $lhs = $or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 
+	my $index = -1;
         for my $and_node (
             @{ $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] } )
         {
+	    $index++;
 
             my ( $predecessor, $cause, $value_ref, $closure,
 		$argc, $rule, $position,
@@ -801,7 +803,7 @@ sub Parse::Marpa::Evaluator::show_bocage {
                 push @rhs, $value_as_string;
             }    # value
 
-            $text .= $lhs . ' ::= ' . join( q{ }, @rhs ) . "\n";
+            $text .= $lhs . '[' . $index . '] ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
                 $text .= '    item: ' . Parse::Marpa::show_dotted_rule($rule, $position) . "\n";
@@ -1265,17 +1267,28 @@ Parse::Marpa::Evaluator - Marpa Evaluator Objects
 
 =head1 SYNOPSIS
 
-    my $grammar = new Parse::Marpa::Grammar({ mdl_source => \$mdl });
-    my $recce = new Parse::Marpa::Recognizer({ grammar => $grammar });
-    my $fail_offset = $recce->text(\("2-0*3+1"));
-    croak("Parse failed at offset $fail_offset") if $fail_offset >= 0;
+=begin Parse::Marpa::test_document:
+
+## next 3 displays
+in_equation_s_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $fail_offset = $recce->text( \('2-0*3+1') );
+    if ( $fail_offset >= 0 ) {
+        die("Parse failed at offset $fail_offset");
+    }
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
+    die("Parse failed") unless $evaler;
 
-    for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
-        croak("Ambiguous parse has extra value: ", $$value, "\n")
-	    if $i > $expected;
-	say "Ambiguous Equation Value $i: ", $$value;
+    for ( my $i = 0; defined( my $value = $evaler->value() ); $i++ ) {
+        if ( $i > $#expected ) {
+            fail( "Ambiguous equation has extra value: " . $$value . "\n" );
+        }
+        else {
+            is( $$value, $expected[$i], "Ambiguous Equation Value $i" );
+        }
     }
 
 =head1 DESCRIPTION
@@ -1558,6 +1571,13 @@ the value of the parse.
 
 =head2 new
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_equation_s_t($_)
+
+=end Parse::Marpa::test_document:
+
     my $evaler = new Parse::Marpa::Evaluator($recce);
 
 Z<>
@@ -1576,7 +1596,14 @@ of parsing, which was set in the recognizer.
 
 =head2 next
 
-    my $value = $evaler->value();
+=begin Parse::Marpa::test_document:
+
+## next display
+in_ah2_t($_)
+
+=end Parse::Marpa::test_document:
+
+    my $result = $evaler->value();
 
 Iterates the evaluator object, returning a reference to the value of the next parse.
 If there are no more parses, returns undefined.

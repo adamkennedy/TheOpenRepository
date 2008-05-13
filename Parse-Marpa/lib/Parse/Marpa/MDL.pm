@@ -53,7 +53,6 @@ sub get_symbol {
 
 Parse::Marpa::MDL -- Utility Methods for MDL
 
-
 =head1 DESCRIPTION
 
 If you are looking for the document that describes the Marpa Demonstration

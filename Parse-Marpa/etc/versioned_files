@@ -7,6 +7,9 @@ META.yml
 ./example/equation.marpa
 ./example/synopsis.pl
 ./lib/Parse/Marpa/Doc/Internals.pod
+./lib/Parse/Marpa/MDL.pm
 ./t/ah_s.t
 ./t/minus_s.t
 ./t/randal.t
+./author.t/MDL_displays.marpa
+./author.t/minimal.marpa

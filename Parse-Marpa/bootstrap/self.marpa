@@ -1,4 +1,4 @@
-semantics are perl5.  version is 0.211.8.  the start symbol is
+semantics are perl5.  version is 0.211.9.  the start symbol is
 grammar.
 
 the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
@@ -351,11 +351,13 @@ q{
              @implicit_rules,
              q{ lhs => "} . $optional_symbol_phrase . q{", }
              . q{ rhs => [ "} . $symbol_phrase . qq{" ], }
-             . q{
-                     min => 0,
-                     max => 1,
-                     action => q{ scalar @_ ? $_[0] : undef }
-             }
+             . q{ action => q{ $_[0] } }
+         );
+         push(
+             @implicit_rules,
+             q{ lhs => "} . $optional_symbol_phrase . q{", }
+             . q{ rhs => [], }
+             . q{ action => q{ undef } }
          );
      }
      q{"} . $optional_symbol_phrase . q{"};
