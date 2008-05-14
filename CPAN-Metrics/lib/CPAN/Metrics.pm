@@ -8,24 +8,21 @@ CPAN::Metrics - Create and maintain a Perl::Metrics database for all of CPAN
 
 =head1 SYNOPSIS
 
-  # Prepare a CPAN::Metrics run
+  # Do a CPAN::Metrics run
   my $metrics = CPAN::Metrics->new(
       remote  => 'http://mirrors.kernel.org/cpan/',
       local   => '/home/adam/.minicpan',
       extract => '/home/adam/.cpanmetrics',
       metrics => '/home/adam/.cpanmetrics/metrics.sqlite',
-      );
-  
-  # Launch the run
-  $metrics->run;
+  )->run;
 
 =head1 DESCRIPTION
 
 C<CPAN::Metrics> is a combination of L<CPAN::Mini> and L<Perl::Metrics>.
 
-In short, it lets you pull out all of CPAN (for various definitions of
-"all") and run L<Perl::Metrics> on it to generate massive amounts of
-metrics data on the 16,000,000 lines of code in CPAN.
+It lets you pull out all of CPAN (for various definitions of "all") and
+run L<Perl::Metrics> on it to generate massive amounts of metrics data
+on the 16,000,000 lines of code in CPAN.
 
 =head2 Resource Usage
 
@@ -53,7 +50,7 @@ use Perl::Metrics ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.08';
 }
 
 
@@ -93,16 +90,19 @@ sub new {
 		skip_perl      => 1,
 		extract_check  => 1,
 		path_filters   => [
-			qr/\bAcme\b/,
-			qr/\bPDF\-API2\b/,
+			qr/\bAcme\b/i,
+			qr/\bPDF\-API2\b/i,
+			qr/\bPerl6\b/i,
 			],
 		# Remove some known troublemakers
 		module_filters => [
-			qr/^Acme::/,
-			qr/^Meta::/,
+			qr/^Acme::/i,
+			qr/^Meta::/i,
+			qr/\bPerl6\b/i,
 			],
 	        extract_filter =>
 	        	sub {
+				return 0 if /\:/;
 	        		return 0 if /\binc\b/;
 	        		return 1 if /\.pl$/;
 				return 0 if /\bexamples?\b/;
@@ -143,16 +143,19 @@ Oh, and return true. Any errors will cause an exception (i.e. die)
 
 sub run {
 	my $self = shift;
+	$self->SUPER::run( @_ );
+	$self->process_index;
+}
 
-	# Do the superclass functionality
-	my $changes = $self->SUPER::run( @_ );
+sub process_index {
+	my $self = shift;
 
 	# Process the extraction directory
 	local $Perl::Metrics::TRACE = 1;
 	$self->trace("Indexing and processing documents in $self->{extract}...\n");
-	Perl::Metrics->process_directory( $self->{extract} );
+	Perl::Metrics->process_index( $self->{extract} );
 
-	1;
+	return 1;
 }
 
 1;

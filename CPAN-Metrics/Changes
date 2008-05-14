@@ -1,5 +1,9 @@
 Revision history for Perl extension CPAN::Metrics
 
+0.06 Sun 11 May 2008
+	- Updating to Module::Install 0.73
+	- Updating Perl::Metrics dependency to 0.08
+
 0.05 Sun 10 Feb 2008
 	- Incremental release to get rid of Module::Install auto_install
 	- Updating to Module::Install 0.68
