@@ -1,5 +1,15 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
+1.04 Sat 10 May 2008
+	- Support ->ignore_vcs() for ignoring all supported VCS
+	- Change all methods to check file name before checking
+	  it is a directory or file.
+	  This should provide a *massive* reduction in the number
+	  of filesystem -f or -d calls that get made.
+
+1.03 Sat 22 Mar 2008
+	- Adding support for Bazaar
+
 1.02 Fri 22 Sep 2006
         - Making ->ignore_vcs('') a nullop, as a convenience
 
