@@ -4,6 +4,7 @@ Revision history for Perl extension Perl::Metrics
 	- Updated to Module::Install 0.73
 	- Updated test scripts and bundled author tests
 	- Canonicalise paths so Win32 works properly
+	- Some optimisations to use CPAN::Mini::Extract better
 
 0.07 Sun 10 Feb 2008
 	- Updated to Module::Install 0.68
