@@ -1,6 +1,6 @@
 Revision history for Perl extension CPAN::Metrics
 
-0.06 Sun 11 May 2008
+0.08 Sun 11 May 2008
 	- Updating to Module::Install 0.73
 	- Updating Perl::Metrics dependency to 0.08
 
