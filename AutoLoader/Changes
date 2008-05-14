@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoLoader
 
+5.66  Wed May 14 18:29 2008
+  - Fix broken distribution.
+
 5.65  Tue May 13 11:53 2008
   - Remove AutoLoader::can.
 
