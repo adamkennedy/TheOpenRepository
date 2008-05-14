@@ -67,30 +67,22 @@ all.
 
 use 5.005;
 use strict;
-use Carp             ();
-use DBI              ();
-use File::Spec       ();
-use PPI::Util        ();
-use File::Find::Rule ();
-use constant FFR => 'File::Find::Rule';
+use Carp                   ();
+use DBI                    ();
+use File::Spec             ();
+use PPI::Util              ();
+use File::Find::Rule       ();
+use File::Find::Rule::Perl ();
 use Module::Pluggable;
 
 use vars qw{$VERSION $TRACE};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 	
 	# Enable the trace flag to show trace messages during the
 	# main processing loops in this class
-	$TRACE   = 0 unless defined $TRACE;
+	$TRACE = 0 unless defined $TRACE;
 }
-
-# Perl file searcher
-my $FIND_PERL = FFR->file
-	->or(
-		FFR->name( qr/\.(?:pm|pl|t)$/i ),
-		FFR->name( qr/^[^\.]$/, qr/\.cgi/ )
-		   ->grep( qr/^#!.*\bperl/, [ sub { 1 } ] )
-	);
 
 # The database structure
 my $SQLITE_CREATE = <<'END_SQL';
@@ -183,7 +175,7 @@ sub index_file {
 	my $class = shift;
 
 	# Get and check the filename
-	my $path = shift;
+	my $path = File::Spec->canonpath(shift);
 	unless ( defined $path and ! ref $path and $path ne '' ) {
 		Carp::croak("Did not pass a file name to index_file");
 	}
@@ -260,7 +252,7 @@ sub index_directory {
 
 	# Search for all the applicable files in the directory
 	$class->_trace("Search for files in $path...\n");
-	my @files = $FIND_PERL->in( $path );
+	my @files = File::Find::Rule->perl_file->in( $path );
 	$class->_trace("Found " . scalar(@files) . " file(s).\n");
 
 	# Sort the files so we index in deterministic order

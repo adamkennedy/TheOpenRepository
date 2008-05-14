@@ -13,7 +13,7 @@ use DBD::SQLite ();
 
 use vars qw{$VERSION $DSN};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 	$DSN     = undef;
 }
 

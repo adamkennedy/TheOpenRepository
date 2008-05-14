@@ -1,5 +1,10 @@
 Revision history for Perl extension Perl::Metrics
 
+0.08 Sat 10 May 2008
+	- Updated to Module::Install 0.73
+	- Updated test scripts and bundled author tests
+	- Canonicalise paths so Win32 works properly
+
 0.07 Sun 10 Feb 2008
 	- Updated to Module::Install 0.68
 
