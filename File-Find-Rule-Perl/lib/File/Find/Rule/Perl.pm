@@ -37,7 +37,7 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
 
@@ -61,8 +61,8 @@ included primarily for completeness.
 =cut
 
 sub File::Find::Rule::perl_module {
-	my $self = shift()->_force_object;
-	$self->file->name( '*.pm' );
+	my $find = $_[0]->_force_object;
+	return $find->name('*.pm')->file;
 }
 
 =pod
@@ -78,8 +78,8 @@ included primarily for completeness.
 =cut
 
 sub File::Find::Rule::perl_test {
-	my $self = shift()->_force_object;
-	$self->file->name( '*.t' );
+	my $find = $_[0]->_force_object;
+	return $find->name('*.t')->file;
 }
 
 =pod
@@ -93,7 +93,7 @@ it locates C<Makefile.PL> and C<Build.PL> files.
 
 sub File::Find::Rule::perl_installer {
 	my $self = shift()->_force_object;
-	$self->file->name( 'Makefile.PL', 'Build.PL' );
+	return $self->file->name( 'Makefile.PL', 'Build.PL' );
 }
 
 =pod

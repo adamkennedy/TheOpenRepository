@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Find::Rule::Perl
 
+1.04 Sat 10 May 2008
+	- Switching to a production version.
+	- Move ->name before ->file to significantly reduce the IO load
+	  when running a search.
+
 0.03 Mon 16 Oct 2006
 	- Adding support for empty files
 
