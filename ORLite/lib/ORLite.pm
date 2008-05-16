@@ -13,7 +13,7 @@ ORLite - Extremely light weight SQLite-specific ORM
   use strict;
   use ORLite 'data/sqlite.db';
   
-  my @adams = ORLite::Person->select('where first_name = ?', 'Adam');
+  my @adams = Foo::Person->select('where first_name = ?', 'Adam');
 
   1;
 
