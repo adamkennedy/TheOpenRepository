@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 8;
 use DBI;
 use ORLite ();
 

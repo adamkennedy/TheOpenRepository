@@ -179,7 +179,7 @@ sub select {
 		shift->select_sql . ' ' . shift,
 		\@_,
 	);
-	bless( \$_, \$subpkg ) foreach \@\$rows;
+	bless( \$_, '$subpkg' ) foreach \@\$rows;
 	wantarray ? \@\$rows : \$rows;
 }
 
