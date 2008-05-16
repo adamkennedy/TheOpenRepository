@@ -1,5 +1,53 @@
 package ORLite;
 
+=pod
+
+=head1 NAME
+
+ORLite - Extremely light weight SQLite-specific ORM
+
+=head1 SYNOPSIS
+
+  package Foo;
+
+  use strict;
+  use ORLite 'data/sqlite.db';
+  
+  my @adams = ORLite::Person->select('where first_name = ?', 'Adam');
+
+  1;
+
+=head1 DESCRIPTION
+
+B<THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE>
+
+B<YOU HAVE BEEN WARNED!>
+
+L<SQLite> is a light weight single file SQL database that provides an excellent platform
+for embedded storage of structured data.
+
+However, while it is superficially similar to a regular server-side SQL database, SQLite
+has some significant attributes that make using it like a traditional database difficult.
+
+For example, SQLite is extremely fast to connect to compared to server databases (1000
+connections per second is not unknown) and is particularly bad at concurrency, as it can
+only lock transactions at a database-wide level.
+
+This role as a superfast internal data store can clash with the roles and designs of
+traditional object-relational modules like L<Class::DBI> or L<DBIx::Class>.
+
+What this situation would seem to need is an object-relation system that is designed
+specifically for SQLite and is aligned with its idiosyncracies.
+
+ORLite is an object-relation system specifically for SQLite that follows many of the
+same principles as the ::Tiny series of modules and has a design that aligns directly
+to the capabilities of SQLite.
+
+Further documentation will be available at a later time, but the synopsis gives a
+pretty good idea of how it will work.
+
+=cut
+
 use 5.006;
 use strict;
 use Carp ();
@@ -144,3 +192,34 @@ END_PERL
 }
 
 1;
+
+=pod
+
+=head1 TO DO
+
+- Add the functionality for modifying databases, not just read from them
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Metrics>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
+

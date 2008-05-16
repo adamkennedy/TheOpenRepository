@@ -1,10 +1,8 @@
 use inc::Module::Install;
 
-license       'perl';
-author        'Adam Kennedy <adamk@cpan.org';
 all_from      'lib/ORLite.pm';
-requires      'DBI'         => 0;
-requires      'DBD::SQLite' => '1.13';
-test_requires 'Test::More'  => '0.42';
+requires      'DBI'         => '1.58';
+requires      'DBD::SQLite' => '1.14';
+test_requires 'Test::More'  => '0.47';
 
 WriteAll;

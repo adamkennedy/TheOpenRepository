@@ -1,0 +1,6 @@
+Changes for Perl extension ORLite
+
+0.01 Fri 16 May 2008
+	- Creating an initial experimental support with only ->select
+
+
