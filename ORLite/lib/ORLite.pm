@@ -50,8 +50,10 @@ pretty good idea of how it will work.
 
 use 5.006;
 use strict;
-use Carp ();
-use DBI  ();
+use Carp       ();
+use File::Spec ();
+use File::Temp ();
+use DBI        ();
 BEGIN {
 	# DBD::SQLite has a bug that generates a false warning,
 	# so we need to temporarily disable them.
@@ -60,9 +62,10 @@ BEGIN {
 	require DBD::SQLite;
 }
 
-use vars qw{$VERSION %DBH};
+use vars qw{$VERSION %DSN %DBH};
 BEGIN {
 	$VERSION = '0.01';
+	%DSN     = ();
 	%DBH     = ();
 }
 
@@ -76,37 +79,47 @@ BEGIN {
 sub import {
 	return unless $_[0] eq __PACKAGE__;
 	my $class = shift;
-	my $file  = shift;
+	my $file  = File::Spec->rel2abs(shift);
+	my $pkg   = caller;
 
-	# Set up the ability to connect
-	my $pkg  = caller;
-	my $dsn  = "dbi:SQLite:$file";
+	# Store the dsn
+	$DSN{$pkg} = "dbi:SQLite:$file";
+
+	# Set up the base package
 	my $code = <<"END_PERL";
 package $pkg;
 
+sub dsn {
+	\$ORLite::DSN{'$pkg'};
+}
+
 sub dbh {
-	   \$ORLite::DBH{'$pkg'}
-	or DBI->connect('$dsn')
-	or Carp::croak("connect: \$DBI::errstr");
+	\$ORLite::DBH{'$pkg'} or
+	DBI->connect(\$ORLite::DSN{'$pkg'}) or
+	Carp::croak("connect: \$DBI::errstr");
 }
 
 sub begin {
-	   \$ORLite::DBH{'$pkg'}
-	or \$ORLite::DBH{'$pkg'} = DBI->connect('$dsn')
-	or Carp::croak("connect: \$DBI::errstr");
+	\$ORLite::DBH{'$pkg'} or
+	\$ORLite::DBH{'$pkg'} = DBI->connect(\$ORLite::DSN{'$pkg'}) or
+	Carp::croak("connect: \$DBI::errstr");
 	\$ORLite::DBH{'$pkg'}->begin_work;
 }
 
 sub commit {
-	\$ORLite::DBH{'$pkg'}
-	and delete(\$ORLite::DBH{'$pkg'})->commit
-	or Carp::croak("commit: \$DBI::errstr");
+	\$ORLite::DBH{'$pkg'} or return 1;
+	\$ORLite::DBH{'$pkg'}->commit;
+	\$ORLite::DBH{'$pkg'}->disconnect;
+	delete \$ORLite::DBH{'$pkg'};
+	return 1;
 }
 
 sub rollback {
-	\$ORLite::DBH{'$pkg'}
-	and delete(\$ORLite::DBH{'$pkg'})->rollback
-	or Carp::croak("rollback: \$DBI::errstr");
+	\$ORLite::DBH{'$pkg'} or return 1;
+	\$ORLite::DBH{'$pkg'}->rollback;
+	\$ORLite::DBH{'$pkg'}->disconnect;
+	delete \$ORLite::DBH{'$pkg'};
+	return 1;
 }
 
 sub do {
@@ -142,53 +155,125 @@ sub prepare {
 }
 
 END_PERL
-	eval( $code );
-	Carp::croak("$pkg: Codegen failed") if $@;
 
 	# Get the table list
-	my $tables = $pkg->selectall_arrayref(
+	my $dbh    = DBI->connect($DSN{$pkg});
+	my $tables = $dbh->selectall_arrayref(
 		'select * from sqlite_master',
 		{ Slice => {} },
 	);
 
 	# Generate a package for each table
 	foreach my $table ( grep { lc $_->{type} eq 'table' } @$tables ) {
-		my $columns = $pkg->selectall_arrayref(
+		my $columns = $dbh->selectall_arrayref(
 			"pragma table_info('$table->{name}')",
 			 { Slice => {} },
 		);
+		my @names = map { $_->{name} } @$columns;
 
-		# Generate the elements of the package
-		my $subpkg = ucfirst lc $table->{name};
-		$subpkg =~ s/_([a-z])/uc($1)/ge;
-		$subpkg = $pkg . '::' . $subpkg;
-		my $select_sql = join ', ', map { $_->{name} } @$columns;
+		# Enhance the table hash
+		$table->{pk}    = List::Util::first { $_->{pk} } @$columns;
+		$table->{pk}    = $table->{pk}->{name} if $table->{pk};
+		$table->{class} = ucfirst lc $table->{name};
+		$table->{class} =~ s/_([a-z])/uc($1)/ge;
+		$table->{class} = "${pkg}::$table->{class}";
+		my $sql = $table->{sql} = { create => $table->{sql} };
+		$sql->{cols}    = join ', ', @names;
+		$sql->{vals}    = join ', ', ('?') x scalar @$columns;
+		$sql->{select}  = "select $table->{sql}->{cols} from $table->{name}";
+		$sql->{count}   = "select count(*) from $table->{name}";
+		$sql->{insert}  = join ' ',
+			"insert into $table->{name}" .
+			"( $table->{sql}->{cols} )"  .
+			" values ( $table->{sql}->{vals} )";
 
-		# Generate the package
-		my $code = <<"END_PERL";
-package $subpkg;
-
-\@${subpkg}::ISA = '$class';
-
-sub select_sql {
-	'select * from $table->{name}';
+		# Generate the accessors
+		my $accessors = join "\n\n", map { <<"END_PERL" } @$columns;
+sub $_->{name} {
+	\$_[0]->{$_->{name}};
 }
+END_PERL
+
+		# Generate the elements in all packages
+		$code .= <<"END_PERL";
+package $table->{class};
+
+\@$table->{class}::ISA = '$class';
+
+$accessors
 
 sub select {
-	my \$rows = $pkg->selectall_arrayref(
-		shift->select_sql . ' ' . shift,
-		\@_,
-	);
-	bless( \$_, '$subpkg' ) foreach \@\$rows;
+	my \$class = shift;
+	my \$sql   = '$sql->{select} ';
+	   \$sql  .= shift if \@_;
+	my \$rows  = $pkg->selectall_arrayref( \$sql, { Slice => {} }, \@_ );
+	bless( \$_, '$table->{class}' ) foreach \@\$rows;
 	wantarray ? \@\$rows : \$rows;
 }
 
-END_PERL
-		eval($code);
-		die("$pkg: Codegen failed") if $@;
-	}
+sub count {
+	my \$class = shift;
+	my \$sql   = '$sql->{count} ';
+	   \$sql  .= shift if \@_;
+	$pkg->selectrow_array( \$sql, {}, \@_ );
+}
 
-	1;
+END_PERL
+
+		# Generate the elements for tables with primary keys
+		if ( defined $table->{pk} ) {
+			my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
+			my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
+			$code .= <<"END_PERL";
+
+sub new {
+	my \$class = shift;
+	my \%attr  = \@_;
+	bless {
+$nattr
+	}, \$class;
+}
+
+sub create {
+	shift->new(\@_)->insert;
+}
+
+sub insert {
+	my \$self = shift;
+	my \$dbh  = $pkg->dbh;
+	\$dbh->do('$sql->{insert}', {},
+$iattr
+	);
+	\$self->{$table->{pk}} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}};
+	return \$self;
+}
+
+sub delete {
+	my \$self = shift;
+	return $pkg->do(
+		'delete from $table->{name} where $table->{pk} = ?',
+		{}, \$self->{$table->{pk}},
+	) if ref \$self;
+	Carp::croak("Must use truncate to delete all rows") unless \@_;
+	return $pkg->do(
+		'delete from $table->{name} ' . shift,
+		{}, \@_,
+	);
+}
+
+END_PERL
+		}
+	}
+	$dbh->disconnect;
+
+	# Compile the combined code via a temp file
+	my ($fh, $filename) = File::Temp::tempfile();
+	$fh->print("$code\n\n1;\n");
+	close $fh;
+	require $filename;
+	unlink $filename;
+
+	return 1;
 }
 
 1;
@@ -222,4 +307,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
