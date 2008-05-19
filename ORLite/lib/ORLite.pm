@@ -64,7 +64,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	%DSN     = ();
 	%DBH     = ();
 }

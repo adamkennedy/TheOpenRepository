@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+0.02 Mon 19 May 2008
+	- Adding class and instance ->delete
+	- Adding ->new
+	- Adding ->insert
+	- Adding ->create
+
 0.01 Fri 16 May 2008
 	- Creating an initial experimental support with only ->select
 
