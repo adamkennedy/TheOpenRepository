@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# Tests the basic functionality of SQLite.
+
+use strict;
+
 BEGIN {
 	$|  = 1;
 	$^W = 1;
@@ -7,28 +11,25 @@ BEGIN {
 
 use Test::More tests => 46;
 use File::Spec::Functions ':ALL';
-use DBI;
-use ORLite ();
+use t::lib::Test;
 
-my $file = catfile(qw{ t simple.db });
-      unlink( $file ) if -f $file;
-END { unlink( $file ) if -f $file; }
+SCOPE: {
+	# Test file
+	my $file = test_db();
 
-# Connect
-my %DBH = ();
-$DBH{foo} = DBI->connect("dbi:SQLite:$file");
-isa_ok( $DBH{foo}, 'DBI::db' );
-$DBH{foo}->begin_work;
-$DBH{foo}->rollback;
+	# Connect
+	my $dbh = connect_ok("dbi:SQLite:$file");
+	$dbh->begin_work;
+	$dbh->rollback;
+	ok( $dbh->disconnect, 'disconnect' );
+}
 
-# Set up
-ok( $DBH{foo}->do(<<'END_SQL'), 'create ok' );
-create table table_one (
-	col1 integer not null primary key,
-	col2 string
-)
-END_SQL
-ok( $DBH{foo}->disconnect, 'disconnect' );
+# Set up again
+my $file = test_db();
+my $dbh  = create_ok(
+	catfile(qw{ t 02_basics.sql }),
+	"dbi:SQLite:$file",
+);
 
 # Create the test package
 eval <<"END_PERL"; die $@ if $@;
