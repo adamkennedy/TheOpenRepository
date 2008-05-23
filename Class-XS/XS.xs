@@ -4,28 +4,41 @@
 
 #include "ppport.h"
 
+/* This represents an instance of any class
+ * that was built using Class::XS */
 typedef struct {
   U32 noElems;
   SV** contents;
 } class_xs_obj;
 
+/* This represents a class that was registered as Class::XS-managed */
 typedef struct {
   U32 noElems;
 } class_xs_classDef;
 
+/* This represents an attribute of a Class::XS-managed class */
 typedef struct {
   char* className;
   U32 index;
 } class_xs_attrDef;
 
+/* Global index of Class::XS-managed classes.
+ * Associates class-name with its class_xs_obj struct
+ * which is saved as a char* in the PV slot of the value SV
+ * */
 HV* class_xs_classDefs   = NULL;
+/* Counter to keep track of the number of Class::XS-managed classes */
 U32 class_xs_noClasses   = 0;
+/* Associate class number with its name */
 char** class_xs_classIndex = NULL;
 
+/* Counter to keep track of the total number of attributes
+ * of all Class::XS-managed classes */
 U32 class_xs_noAttributes = 0;
+/* Global storage of all attribute definitions */
 class_xs_attrDef* class_xs_attrDefs = NULL;
 
-/* extend the global attribute storage */
+/* extend the global attribute storage by one */
 void extend_attrDefs () {
   class_xs_attrDef* newAttrDefs = (class_xs_attrDef*) malloc( (class_xs_noAttributes+1) * sizeof(class_xs_attrDef) );
   if (class_xs_noAttributes != 0) {
@@ -40,7 +53,7 @@ void extend_attrDefs () {
   class_xs_noAttributes++;
 }
 
-/* extend the global class storage */
+/* extend the global class storage by one */
 void extend_classIndex () {
   char** newClassIndex = (char**) malloc( (class_xs_noClasses+1) * sizeof(char*) );
   if (class_xs_noClasses != 0) {
@@ -68,7 +81,7 @@ void _registerClass(char* class) {
     class_xs_classIndex[class_xs_noClasses-1] = class;
 
     char* file = __FILE__;
-    //_create_destroyer(class, length, file, class_xs_noClasses-1);a
+    //_create_destroyer(class, length, file, class_xs_noClasses-1);
     {
       dSP;
       ENTER;
@@ -83,6 +96,9 @@ void _registerClass(char* class) {
       FREETMPS;
       LEAVE;
     }
+  }
+  else {
+    croak("This class has been registered with Class::XS before!");
   }
 }
 
