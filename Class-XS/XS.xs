@@ -4,6 +4,8 @@
 
 #include "ppport.h"
 
+#define CLASS_XS_DEBUG 0
+
 /* The different scopes the accessors for attributes can have */
 enum attributeScopes {
   ATTR_PRIVATE,
@@ -126,6 +128,9 @@ void _registerClass(char* class) {
       FREETMPS;
       LEAVE;
     }
+#if CLASS_XS_DEBUG
+    printf("Registered class '%s' with global id '%u'.\n", class, class_xs_noClasses-1);
+#endif
   }
   else
     croak("This class has been registered with Class::XS before!");
@@ -134,12 +139,13 @@ void _registerClass(char* class) {
 
 /* add new attribute to global storage and to class def */
 U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
-    const U32 length = strlen(class);
-    if ( !hv_exists(class_xs_classDefs, class, length) )
+    const U32 classLength = strlen(class);
+    const U32 nameLength = strlen(name);
+    if ( !hv_exists(class_xs_classDefs, class, classLength) )
       _registerClass(class);
     
     SV** classDefScalar = NULL;
-    if (classDefScalar = hv_fetch(class_xs_classDefs, class, length, 0)) {
+    if (classDefScalar = hv_fetch(class_xs_classDefs, class, classLength, 0)) {
       class_xs_classDef* classDef = (class_xs_classDef*) SvPV_nolen(classDefScalar[0]);
       const U32 oldNoElems = classDef->noElems++;
 
@@ -147,7 +153,9 @@ U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
       extend_attrDefs();
       const U32 thisAttrNo = class_xs_noAttributes-1;
       class_xs_attrDef* thisAttr = &class_xs_attrDefs[thisAttrNo];
-      thisAttr->name      = name;
+      char* nameCopy = (char*) malloc((nameLength+1)*sizeof(char));
+      strcpy(nameCopy, name);
+      thisAttr->name      = nameCopy;
       thisAttr->className = class;
       thisAttr->index     = oldNoElems;
       thisAttr->scope     = scope;
@@ -155,7 +163,9 @@ U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
       /* add new attribute number to the attribute list of the current class def */
       classDef->attributes = extend_classAttributeList(classDef->attributes, oldNoElems);
       classDef->attributes[oldNoElems] = thisAttrNo;
-      
+#if CLASS_XS_DEBUG
+      printf("Created new attribute with name '%s' with local index '%u' and global index '%u' in class '%s'\n", name, oldNoElems, thisAttrNo, class);
+#endif
       return thisAttrNo;
     }
     else
@@ -228,6 +238,9 @@ _getListOfAttributes(class)
             croak("Class::XS: Unknown attribute scope!");
             break;
         }
+#if CLASS_XS_DEBUG
+        printf("Reading attribute '%u' of class '%s'. It has global id '%u' and name '%s'.\n", attrNo, class, globalAttrID, attrName);
+#endif
         hv_store(assignHash, attrName, strlen(attrName), newSViv(globalAttrID), 0);
       } /* end for attributes */
       RETVAL = newRV((SV*)scopeArray);
