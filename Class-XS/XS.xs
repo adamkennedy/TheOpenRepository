@@ -186,7 +186,7 @@ _newAttribute(name, class, scope)
     char* class;
     enum attributeScopes scope;
 
-void
+SV*
 _getListOfAttributes(class)
     char* class;
   INIT:
@@ -194,18 +194,48 @@ _getListOfAttributes(class)
     class_xs_attrDef* attrDef;
     SV** classDefScalar = NULL;
     U32 attrNo;
-  PPCODE:
+    HV* privateAttrs   = (HV *)sv_2mortal((SV *)newHV());
+    HV* protectedAttrs = (HV *)sv_2mortal((SV *)newHV());
+    HV* publicAttrs    = (HV *)sv_2mortal((SV *)newHV());
+    AV* scopeArray     = (AV *)sv_2mortal((SV *)newAV());
+    HV* assignHash;
+  CODE:
     const U32 length = strlen(class);
     if (classDefScalar = hv_fetch(class_xs_classDefs, class, length, 0)) {
       classDef = (class_xs_classDef*) SvPV_nolen(classDefScalar[0]);
+      
+      /* push inner (scope) hashes into the outer array */
+      av_push(scopeArray, newRV((SV*)privateAttrs));
+      av_push(scopeArray, newRV((SV*)protectedAttrs));
+      av_push(scopeArray, newRV((SV*)publicAttrs));
+      /* put the attribute names and numbers into the inner hashes */
       const U32 noAttributes = classDef->noElems;
       for (attrNo = 0; attrNo < noAttributes; attrNo++) {
         const U32 globalAttrID = classDef->attributes[attrNo];
         attrDef = &class_xs_attrDefs[globalAttrID];
-      }
+        const char* attrName = attrDef->name;
+        switch(attrDef->scope) {
+          case ATTR_PRIVATE:
+            assignHash = privateAttrs;
+            break;
+          case ATTR_PROTECTED:
+            assignHash = protectedAttrs;
+            break;
+          case ATTR_PUBLIC:
+            assignHash = publicAttrs;
+            break;
+          default:
+            croak("Class::XS: Unknown attribute scope!");
+            break;
+        }
+        hv_store(assignHash, attrName, strlen(attrName), newSViv(globalAttrID), 0);
+      } /* end for attributes */
+      RETVAL = newRV((SV*)scopeArray);
     }
     else
-      XSRETURN_UNDEF;
+      RETVAL = &PL_sv_undef;
+    OUTPUT:
+      RETVAL
 
 
 void
