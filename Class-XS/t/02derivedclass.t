@@ -4,6 +4,18 @@ use warnings;
 use Test::More tests => 35;
 BEGIN { use_ok('Class::XS') };
 
+#
+#   Animal    KnowsMeaningOfLifeMixin    FourLegged
+#     ^        ^                           ^
+#   Canine--- / --------------------------/
+#     ^     /                           /
+#     |   /                           /
+#     | /                           /
+#     Dog --------------------------
+#
+#  (both Dog and Canine are FourLegged. You wouldn't do that in reality, but this is worst-case testing...)
+#
+
 package Animal;
 use Class::XS
   public_attributes => [qw(
@@ -23,10 +35,17 @@ sub set_length_pp {
   return $self->get_length();
 }
 
+package FourLegged;
+use Class::XS
+  public_attributes => [qw(
+    leg_length
+  )];
+
 package Canine;
 use Class::XS
   derive => [qw(
     Animal
+    FourLegged
   )],
   public_attributes => [qw(
     gender
@@ -38,13 +57,8 @@ sub meaning_of_life {
   return 42;
 }
 
-package FourLegged;
-use Class::XS
-  public_attributes => [qw(
-    leg_length
-  )];
-
 package Dog;
+# class Canine is already FourLegged, but I'm including it here as an additional complication
 use Class::XS
   derive => [qw(
     Canine
