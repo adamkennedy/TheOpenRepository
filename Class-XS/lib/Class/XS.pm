@@ -45,13 +45,32 @@ sub import {
   _registerClass($class);
 
   newxs_new($class . '::new');
+  foreach my $baseClass (@{$opts{derive}||[]}) {
+    # set up inheritance for pure-Perl methods
+    {
+      no strict;
+      push @{"${class}::ISA"}, $baseClass;
+    }
+    # set up attributes of base class
+    my $attributeList = _getListOfAttributes($baseClass);
+    _registerPublicAttributes(
+      $class, [ keys %{$attributeList->[ATTR_PUBLIC]} ]
+    );
+  }
 
-  foreach my $attrName (@{$opts{public_attributes}||[]}) {
+  _registerPublicAttributes($class, $opts{public_attributes});
+}
+
+sub _registerPublicAttributes {
+  my $class = shift;
+  my $attrs = shift;
+  foreach my $attrName (@{$attrs||[]}) {
     my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC);
     newxs_getter($class . '::get_' . $attrName, $attrIndex);
     newxs_setter($class . '::set_' . $attrName, $attrIndex);
   }
 }
+
 
 1;
 __END__
