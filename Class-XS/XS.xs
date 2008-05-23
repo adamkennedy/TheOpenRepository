@@ -158,9 +158,8 @@ U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
       
       return thisAttrNo;
     }
-    else {
+    else
       croak("Class::XS: THIS SHOULD NEVER HAPPEN!");
-    }
 }
 
 
@@ -205,9 +204,8 @@ _getListOfAttributes(class)
         attrDef = &class_xs_attrDefs[globalAttrID];
       }
     }
-    else {
+    else
       XSRETURN_UNDEF;
-    }
 
 
 void
