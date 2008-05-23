@@ -98,15 +98,23 @@ Class::XS - Simple and fast classes
       length mass name
     )];
   
+  package Dog;
+  use Class::XS
+    derive ['Animal'],
+    public_attributes => [qw(
+      leg_length
+    )];
+  
   # elsewhere
   package main;
-  my $animal = Animal->new();
-  $animal->set_length(150);
-  $animal->set_mass(60);
-  $animal->set_name("foo");
+  my $dog = Dog->new();
+  $dog->set_length(80);
+  $dog->set_mass(30);
+  $dog->set_name("foo");
+  $dog->set_leg_length(30);
   # ...
-  my $length = $animal->get_length();
-  my $mass   = $animal->get_mass();
+  my $length = $dog->get_length();
+  my $mass   = $dog->get_mass();
   # ...
 
 =head1 DESCRIPTION
@@ -116,6 +124,13 @@ and fast accessors.
 
 B<THIS IS AN EARLY RELEASE. LIKELY, THERE ARE SERIOUS BUGS!
 USE AT YOUR OWN RISK!>
+
+=head2 Usage
+
+To construct a class with C<Class::XS>, you just put a
+C<use Class::XS ...;> in your code and supply the specification of the class
+as arguments to that call. Note that you cannot use C<Class::XS> to
+generate B<the same class> twice. This is by design.
 
 =head1 PERFORMANCE
 
