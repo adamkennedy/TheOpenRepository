@@ -12,6 +12,26 @@ XSLoader::load('Class::XS', $VERSION);
 
 Class::XS::_init();
 
+sub ATTR_PRIVATE;
+sub ATTR_PROTECTED;
+sub ATTR_PUBLIC;
+
+sub AUTOLOAD {
+  # This AUTOLOAD is used to 'autoload' constants from the constant()
+  # XS function.
+  my $constname;
+  our $AUTOLOAD;
+  ($constname = $AUTOLOAD) =~ s/.*:://;
+  croak "&Class::XS::constant not defined" if $constname eq 'constant';
+  my ($error, $val) = constant($constname);
+  if ($error) { croak $error; }
+  {
+   no strict 'refs';
+   *$AUTOLOAD = sub { $val };
+  }
+  goto &$AUTOLOAD;
+}
+
 sub import {
   my $own_class = shift;
   my ($caller_pkg) = caller();
@@ -27,7 +47,7 @@ sub import {
   newxs_new($class . '::new');
 
   foreach my $attrName (@{$opts{public_attributes}||[]}) {
-    my $attrIndex = _newAttribute($class);
+    my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC);
     newxs_getter($class . '::get_' . $attrName, $attrIndex);
     newxs_setter($class . '::set_' . $attrName, $attrIndex);
   }
