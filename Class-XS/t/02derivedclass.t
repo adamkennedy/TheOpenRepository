@@ -11,8 +11,10 @@ use Class::XS
   )];
 
 package Dog;
-use vars qw/@ISA/;
-@ISA=qw(Animal);
+use Class::XS
+  derive => [qw(
+    Animal
+  )];
 
 package main;
 my $dog = Dog->new();
