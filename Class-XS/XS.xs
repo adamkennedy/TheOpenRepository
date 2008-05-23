@@ -4,6 +4,16 @@
 
 #include "ppport.h"
 
+/* The different scopes the accessors for attributes can have */
+enum attributeScopes {
+  ATTR_PRIVATE,
+  ATTR_PROTECTED,
+  ATTR_PUBLIC
+};
+
+/* for having those pesky enums exported to Perl-land */
+#include "const-c.inc"
+
 /* This represents an instance of any class
  * that was built using Class::XS */
 typedef struct {
@@ -19,8 +29,10 @@ typedef struct {
 
 /* This represents an attribute of a Class::XS-managed class */
 typedef struct {
+  char* name;
   char* className;
   U32 index;
+  enum attributeScopes scope;
 } class_xs_attrDef;
 
 /* Global index of Class::XS-managed classes.
@@ -48,7 +60,9 @@ void extend_attrDefs () {
   }
   /* Not strictly necessary...
    * newAttrDefs[class_xs_noAttributes].className=NULL;
+   * newAttrDefs[class_xs_noAttributes].name=NULL;
    * newAttrDefs[class_xs_noAttributes].index=0;
+   * newAttrDefs[class_xs_noAttributes].scope=ATTR_PUBLIC;
    */
 
   class_xs_attrDefs = newAttrDefs;
@@ -119,11 +133,11 @@ void _registerClass(char* class) {
 
 
 /* add new attribute to global storage and to class def */
-U32 _newAttribute(char* class) {
+U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
     const U32 length = strlen(class);
-    if ( !hv_exists(class_xs_classDefs, class, length) ) {
+    if ( !hv_exists(class_xs_classDefs, class, length) )
       _registerClass(class);
-    }
+    
     SV** classDefScalar = NULL;
     if (classDefScalar = hv_fetch(class_xs_classDefs, class, length, 0)) {
       class_xs_classDef* classDef = (class_xs_classDef*) SvPV_nolen(classDefScalar[0]);
@@ -132,8 +146,11 @@ U32 _newAttribute(char* class) {
       /* add new attribute definition to the global storage */
       extend_attrDefs();
       const U32 thisAttrNo = class_xs_noAttributes-1;
-      class_xs_attrDefs[thisAttrNo].className = class;
-      class_xs_attrDefs[thisAttrNo].index     = oldNoElems;
+      class_xs_attrDef* thisAttr = &class_xs_attrDefs[thisAttrNo];
+      thisAttr->name      = name;
+      thisAttr->className = class;
+      thisAttr->index     = oldNoElems;
+      thisAttr->scope     = scope;
 
       /* add new attribute number to the attribute list of the current class def */
       classDef->attributes = extend_classAttributeList(classDef->attributes, oldNoElems);
@@ -146,7 +163,12 @@ U32 _newAttribute(char* class) {
     }
 }
 
+
+
+
 MODULE = Class::XS		PACKAGE = Class::XS
+
+INCLUDE: const-xs.inc
 
 void
 _init()
@@ -157,11 +179,35 @@ _init()
 
 void
 _registerClass(class)
-  char* class;
+    char* class;
 
 U32
-_newAttribute(class)
-  char* class;
+_newAttribute(name, class, scope)
+    char* name;
+    char* class;
+    enum attributeScopes scope;
+
+void
+_getListOfAttributes(class)
+    char* class;
+  INIT:
+    class_xs_classDef* classDef;
+    class_xs_attrDef* attrDef;
+    SV** classDefScalar = NULL;
+    U32 attrNo;
+  PPCODE:
+    const U32 length = strlen(class);
+    if (classDefScalar = hv_fetch(class_xs_classDefs, class, length, 0)) {
+      classDef = (class_xs_classDef*) SvPV_nolen(classDefScalar[0]);
+      const U32 noAttributes = classDef->noElems;
+      for (attrNo = 0; attrNo < noAttributes; attrNo++) {
+        const U32 globalAttrID = classDef->attributes[attrNo];
+        attrDef = &class_xs_attrDefs[globalAttrID];
+      }
+    }
+    else {
+      XSRETURN_UNDEF;
+    }
 
 
 void
