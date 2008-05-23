@@ -189,6 +189,7 @@ client_setter(self, value)
     SvREFCNT_dec(storage[index]);
     SvREFCNT_inc(value);
     storage[index] = value;
+    XPUSHs(value);
 
 
 void
