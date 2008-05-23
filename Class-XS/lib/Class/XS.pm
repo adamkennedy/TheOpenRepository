@@ -64,6 +64,9 @@ Class::XS - Simple and fast classes
 Simple and fast creation of classes with guaranteed encapsulated storage
 and fast accessors.
 
+B<THIS IS AN EARLY RELEASE. LIKELY, THERE ARE SERIOUS BUGS!
+USE AT YOUR OWN RISK!>
+
 =head1 PERFORMANCE
 
 Take the values with a grain of salt. Simple benchmarks.
