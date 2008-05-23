@@ -12,6 +12,7 @@ XSLoader::load('Class::XS', $VERSION);
 
 Class::XS::_init();
 
+sub CLASS_XS_DEBUG;
 sub ATTR_PRIVATE;
 sub ATTR_PROTECTED;
 sub ATTR_PUBLIC;
@@ -36,6 +37,8 @@ sub import {
   my $own_class = shift;
   my ($caller_pkg) = caller();
 
+  return if not @_;
+
   my %opts = @_;
   my $class = defined($opts{class}) ? $opts{class} : $caller_pkg;
 
@@ -44,8 +47,10 @@ sub import {
   # instantiates DESTROY, too.
   _registerClass($class);
 
+  warn "\nCREATING CLASS $class\n" if CLASS_XS_DEBUG;
   newxs_new($class . '::new');
   foreach my $baseClass (@{$opts{derive}||[]}) {
+    warn "$class --> $baseClass" if CLASS_XS_DEBUG;
     # set up inheritance for pure-Perl methods
     {
       no strict;
@@ -53,19 +58,25 @@ sub import {
     }
     # set up attributes of base class
     my $attributeList = _getListOfAttributes($baseClass);
+    eval 'use Data::Dumper; warn Dumper $attributeList' if CLASS_XS_DEBUG;
     _registerPublicAttributes(
       $class, [ keys %{$attributeList->[ATTR_PUBLIC]} ]
     );
   }
 
   _registerPublicAttributes($class, $opts{public_attributes});
+
+  warn "The attributes for class $class are:\n" if CLASS_XS_DEBUG;
+  my $attributeList = _getListOfAttributes($class);
 }
 
 sub _registerPublicAttributes {
   my $class = shift;
+  warn "CREATING ATTRIBUTES FOR CLASS $class\n" if CLASS_XS_DEBUG;
   my $attrs = shift;
   foreach my $attrName (@{$attrs||[]}) {
     my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC);
+    warn "This is Class/XS.pm. Created attribute with name '$attrName' and global index '$attrIndex'\n" if CLASS_XS_DEBUG;
     newxs_getter($class . '::get_' . $attrName, $attrIndex);
     newxs_setter($class . '::set_' . $attrName, $attrIndex);
   }
