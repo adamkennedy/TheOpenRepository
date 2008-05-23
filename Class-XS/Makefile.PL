@@ -24,6 +24,7 @@ WriteMakefile(
 my @names;
 push @names, { name => $_, type => 'IV', macro => 1 }
   foreach qw(ATTR_PRIVATE ATTR_PROTECTED ATTR_PUBLIC);
+push @names, { qw(name CLASS_XS_DEBUG type IV) };
 
 ExtUtils::Constant::WriteConstants(
   NAME => 'Class::XS',
