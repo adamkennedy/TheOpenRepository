@@ -14,6 +14,7 @@ typedef struct {
 /* This represents a class that was registered as Class::XS-managed */
 typedef struct {
   U32 noElems;
+  U32* attributes;
 } class_xs_classDef;
 
 /* This represents an attribute of a Class::XS-managed class */
@@ -45,8 +46,10 @@ void extend_attrDefs () {
     memcpy(newAttrDefs, class_xs_attrDefs, class_xs_noAttributes*sizeof(class_xs_attrDef));
     free(class_xs_attrDefs);
   }
-  newAttrDefs[class_xs_noAttributes].className=NULL;
-  newAttrDefs[class_xs_noAttributes].index=0;
+  /* Not strictly necessary...
+   * newAttrDefs[class_xs_noAttributes].className=NULL;
+   * newAttrDefs[class_xs_noAttributes].index=0;
+   */
 
   class_xs_attrDefs = newAttrDefs;
 
@@ -67,12 +70,24 @@ void extend_classIndex () {
   class_xs_noClasses++;
 }
 
+/* extend the attribute list of a single class definition by one */
+U32* extend_classAttributeList (U32* oldAttrList, const U32 oldLength) {
+  const U32 newLength = oldLength + 1;
+  U32* newAttrList = (U32*) malloc( newLength * sizeof(U32) );
+  if (oldLength != 0) {
+    memcpy(newAttrList, oldAttrList, oldLength * sizeof(U32));
+    free(oldAttrList);
+  }
+  return newAttrList;
+}
+
 /* add new class struct to global storage */
 void _registerClass(char* class) {
   const U32 length = strlen(class);
   if ( !hv_exists(class_xs_classDefs, class, length) ) {
     class_xs_classDef* classDef = (class_xs_classDef*) malloc( sizeof(class_xs_classDef) );
     classDef->noElems = 0;
+    classDef->attributes = NULL;
     
     SV* classDefScalar = newSVpvn((char*)classDef, sizeof(class_xs_classDef));
     hv_store(class_xs_classDefs, class, length, classDefScalar, 0);
@@ -81,7 +96,8 @@ void _registerClass(char* class) {
     class_xs_classIndex[class_xs_noClasses-1] = class;
 
     char* file = __FILE__;
-    //_create_destroyer(class, length, file, class_xs_noClasses-1);
+    /* Call the _create_destroyer XS function from Perl space */
+    /*_create_destroyer(class, length, file, class_xs_noClasses-1);*/
     {
       dSP;
       ENTER;
@@ -97,9 +113,8 @@ void _registerClass(char* class) {
       LEAVE;
     }
   }
-  else {
+  else
     croak("This class has been registered with Class::XS before!");
-  }
 }
 
 
@@ -119,6 +134,10 @@ U32 _newAttribute(char* class) {
       const U32 thisAttrNo = class_xs_noAttributes-1;
       class_xs_attrDefs[thisAttrNo].className = class;
       class_xs_attrDefs[thisAttrNo].index     = oldNoElems;
+
+      /* add new attribute number to the attribute list of the current class def */
+      classDef->attributes = extend_classAttributeList(classDef->attributes, oldNoElems);
+      classDef->attributes[oldNoElems] = thisAttrNo;
       
       return thisAttrNo;
     }
@@ -298,6 +317,5 @@ _create_destroyer(className, length, file, classIndex)
       croak("ARG! SOMETHING WENT REALLY WRONG!");
     XSANY.any_i32 = classIndex;
     free(name);
-
 
 
