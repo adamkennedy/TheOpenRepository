@@ -40,6 +40,7 @@ else {
   }
   $expand_config_vars = 1;
 HERE
+  $expand_config_vars = 0 if $@;
 }
 
 if ($expand_config_vars) {
