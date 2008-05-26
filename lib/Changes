@@ -1,0 +1,9 @@
+Revision history for Perl extension lib
+
+0.57  Mon May 26 16:22 2008
+  - First release to CPAN. Previously available in core perl.
+  - Released to CPAN in order to backport a fix for
+    "use lib 'foo.par'" which should not warn about
+    foo.par being a file. (Any files with other extensions
+    still trigger warnings as appropriate.)
+

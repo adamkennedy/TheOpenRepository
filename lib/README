@@ -1,0 +1,156 @@
+NAME
+    lib - manipulate @INC at compile time
+
+SYNOPSIS
+        use lib LIST;
+
+        no lib LIST;
+
+DESCRIPTION
+    This is a small simple module which simplifies the manipulation of @INC
+    at compile time.
+
+    It is typically used to add extra directories to perl's search path so
+    that later "use" or "require" statements will find modules which are not
+    located on perl's default search path.
+
+  Adding directories to @INC
+    The parameters to "use lib" are added to the start of the perl search
+    path. Saying
+
+        use lib LIST;
+
+    is *almost* the same as saying
+
+        BEGIN { unshift(@INC, LIST) }
+
+    For each directory in LIST (called $dir here) the lib module also checks
+    to see if a directory called $dir/$archname/auto exists. If so the
+    $dir/$archname directory is assumed to be a corresponding architecture
+    specific directory and is added to @INC in front of $dir.
+
+    The current value of $archname can be found with this command:
+
+        perl -V:archname
+
+    To avoid memory leaks, all trailing duplicate entries in @INC are
+    removed.
+
+  Deleting directories from @INC
+    You should normally only add directories to @INC. If you need to delete
+    directories from @INC take care to only delete those which you added
+    yourself or which you are certain are not needed by other modules in
+    your script. Other modules may have added directories which they need
+    for correct operation.
+
+    The "no lib" statement deletes all instances of each named directory
+    from @INC.
+
+    For each directory in LIST (called $dir here) the lib module also checks
+    to see if a directory called $dir/$archname/auto exists. If so the
+    $dir/$archname directory is assumed to be a corresponding architecture
+    specific directory and is also deleted from @INC.
+
+  Restoring original @INC
+    When the lib module is first loaded it records the current value of @INC
+    in an array @lib::ORIG_INC. To restore @INC to that value you can say
+
+        @INC = @lib::ORIG_INC;
+
+CAVEATS
+    In order to keep lib.pm small and simple, it only works with Unix
+    filepaths. This doesn't mean it only works on Unix, but non-Unix users
+    must first translate their file paths to Unix conventions.
+
+        # VMS users wanting to put [.stuff.moo] into 
+        # their @INC would write
+        use lib 'stuff/moo';
+
+NOTES
+    In the future, this module will likely use File::Spec for determining
+    paths, as it does now for Mac OS (where Unix-style or Mac-style paths
+    work, and Unix-style paths are converted properly to Mac-style paths
+    before being added to @INC).
+
+    If you try to add a file to @INC as follows:
+
+      use lib 'this_is_a_file.txt';
+
+    "lib" will warn about this. The sole exceptions are files with the
+    ".par" extension which are intended to be used as libraries.
+
+SEE ALSO
+    FindBin - optional module which deals with paths relative to the source
+    file.
+
+    PAR - optional module which can treat ".par" files as Perl libraries.
+
+AUTHOR
+    Tim Bunce, 2nd June 1995.
+
+    "lib" is maintained by the perl5-porters. Please direct any questions to
+    the canonical mailing list. Anything that is applicable to the CPAN
+    release can be sent to its maintainer, though.
+
+    Maintainer: The Perl5-Porters <perl5-porters@perl.org>
+
+    Maintainer of the CPAN release: Steffen Mueller <smueller@cpan.org>
+
+COPYRIGHT AND LICENSE
+    This package has been part of the perl core since perl 5.001. It has
+    been released separately to CPAN so older installations can benefit from
+    bug fixes.
+
+    This package has the same copyright and license as the perl core:
+
+                 Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+            2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+            by Larry Wall and others
+        
+                            All rights reserved.
+        
+    This program is free software; you can redistribute it and/or modify
+        it under the terms of either:
+        
+        a) the GNU General Public License as published by the Free
+            Software Foundation; either version 1, or (at your option) any
+            later version, or
+        
+        b) the "Artistic License" which comes with this Kit.
+        
+    This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See either
+        the GNU General Public License or the Artistic License for more details.
+        
+    You should have received a copy of the Artistic License with this
+        Kit, in the file named "Artistic".  If not, I'll be glad to provide one.
+        
+    You should also have received a copy of the GNU General Public License
+        along with this program in the file named "Copying". If not, write to the 
+        Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
+        02111-1307, USA or visit their web page on the internet at
+        http://www.gnu.org/copyleft/gpl.html.
+        
+    For those of you that choose to use the GNU General Public License,
+        my interpretation of the GNU General Public License is that no Perl
+        script falls under the terms of the GPL unless you explicitly put
+        said script under the terms of the GPL yourself.  Furthermore, any
+        object code linked with perl does not automatically fall under the
+        terms of the GPL, provided such object code only adds definitions
+        of subroutines and variables, and does not otherwise impair the
+        resulting interpreter from executing any standard Perl script.  I
+        consider linking in C subroutines in this manner to be the moral
+        equivalent of defining subroutines in the Perl language itself.  You
+        may sell such an object file as proprietary provided that you provide
+        or offer to provide the Perl source, as specified by the GNU General
+        Public License.  (This is merely an alternate way of specifying input
+        to the program.)  You may also sell a binary produced by the dumping of
+        a running Perl script that belongs to you, provided that you provide or
+        offer to provide the Perl source as specified by the GPL.  (The
+        fact that a Perl interpreter and your code are in the same binary file
+        is, in this case, a form of mere aggregation.)  This is my interpretation
+        of the GPL.  If you still have concerns or difficulties understanding
+        my intent, feel free to contact me.  Of course, the Artistic License
+        spells all this out for your protection, so you may prefer to use that.
+
