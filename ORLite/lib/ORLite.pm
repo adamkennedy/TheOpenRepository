@@ -19,7 +19,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -63,7 +63,7 @@ sub import {
 
 	# Capture the raw schema information
 	my $file     = File::Spec->rel2abs($params{file});
-	my $pkg      = caller;
+	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
 	$DSN{$pkg}   = "dbi:SQLite:$file";
 	$DBH{$pkg}   = undef;
