@@ -53,7 +53,7 @@ sub import {
 		Carp::croak("Missing or invalid file param");	
 	}
 	unless ( defined $params{readonly} ) {
-		$params{readonly} = !! -w $params{file};
+		$params{readonly} = ! -w $params{file};
 	}
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
