@@ -63,7 +63,7 @@ sub import {
 	}
 
 	# Capture the raw schema information
-	my $file     = File::Spec->rel2abs();
+	my $file     = File::Spec->rel2abs($params{file});
 	my $pkg      = caller;
 	my $readonly = $params{readonly};
 	$DSN{$pkg}   = "dbi:SQLite:$file";
