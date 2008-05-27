@@ -1,5 +1,12 @@
 Changes for Perl extension ORLite
 
+0.04 Tue 27 May 2008
+	- Added ->import( \%hash ) support.
+	- Added support for custom passing of the target package.
+	- Added support for readonly database loading
+	  (We need this for doing mirrored remote db support)
+	- Autodetect readonly SQLite files
+
 0.03 Thu 22 May 2008
 	- Added initial foreign key support
 	- Added the POD documentation for ORLite root packages

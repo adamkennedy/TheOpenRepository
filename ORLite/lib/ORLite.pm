@@ -4,10 +4,11 @@ package ORLite;
 
 use 5.006;
 use strict;
-use Carp       ();
-use File::Spec ();
-use File::Temp ();
-use DBI        ();
+use Carp         ();
+use File::Spec   ();
+use File::Temp   ();
+use Params::Util qw{ _STRING _CLASS _HASH };
+use DBI          ();
 BEGIN {
 	# DBD::SQLite has a bug that generates a false warning,
 	# so we need to temporarily disable them.
@@ -18,7 +19,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -31,16 +32,44 @@ BEGIN {
 # Code Generation
 
 sub import {
-	return unless $_[0] eq __PACKAGE__;
-	my $class  = shift;
-	my $file   = File::Spec->rel2abs(shift);
-	my $pkg    = caller;
-	$DSN{$pkg} = "dbi:SQLite:$file";
-	$DBH{$pkg} = undef;
+	# Prevent invalid uses of import
+	my $class = $_[0] eq __PACKAGE__ ? shift : return;
+
+	# Support the short form "use ORLite 'db.sqlite'"
+	my $params = shift;
+	if ( defined _STRING($params) ) {
+		$params = {
+			file     => $params,
+			readonly => undef, # Automatic
+			package  => undef, # Automatic,
+		};
+	}
+
+	# Check params and apply defaults
+	unless ( _HASH($params) ) {
+		Carp::croak("Missing, empty or invalid params HASH");
+	}
+	unless ( defined _STRING($params{file} and -f $params{file} ) ) {
+		Carp::croak("Missing or invalid file param");	
+	}
+	unless ( defined $params{readonly} ) {
+		$params{readonly} = !! -w $params{file};
+	}
+	unless ( defined $params{package} ) {
+		$params{package} = scalar caller;
+	}
+	unless ( _CLASS($params{package} ) {
+		Carp::croak("Missing or invalid package class");
+	}
 
 	# Capture the raw schema information
-	my $dbh    = DBI->connect($DSN{$pkg});
-	my $tables = $dbh->selectall_arrayref(
+	my $file     = File::Spec->rel2abs();
+	my $pkg      = caller;
+	my $readonly = $params{readonly};
+	$DSN{$pkg}   = "dbi:SQLite:$file";
+	$DBH{$pkg}   = undef;
+	my $dbh      = DBI->connect($DSN{$pkg});
+	my $tables   = $dbh->selectall_arrayref(
 		'select * from sqlite_master where type = ?',
 		{ Slice => {} }, 'table',
 	);
@@ -211,7 +240,7 @@ sub count {
 END_PERL
 
 		# Generate the elements for tables with primary keys
-		if ( defined $table->{pk} ) {
+		if ( defined $table->{pk} and ! $readonly ) {
 			my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
 			my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
 			$code .= <<"END_PERL";
