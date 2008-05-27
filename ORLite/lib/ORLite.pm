@@ -49,7 +49,7 @@ sub import {
 	unless ( _HASH($params) ) {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
-	unless ( defined _STRING($params{file} and -f $params{file} ) ) {
+	unless ( defined _STRING($params{file}) and -f $params{file} ) {
 		Carp::croak("Missing or invalid file param");	
 	}
 	unless ( defined $params{readonly} ) {
