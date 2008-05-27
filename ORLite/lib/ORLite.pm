@@ -40,7 +40,7 @@ sub import {
 	if ( defined _STRING($_[0]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
 		%params = (
-			file     => $params,
+			file     => shift,
 			readonly => undef, # Automatic
 			package  => undef, # Automatic,
 		);
