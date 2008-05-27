@@ -35,18 +35,18 @@ sub import {
 	# Prevent invalid uses of import
 	my $class = $_[0] eq __PACKAGE__ ? shift : return;
 
-	# Support the short form "use ORLite 'db.sqlite'"
-	my $params = shift;
-	if ( defined _STRING($params) ) {
-		$params = {
+	# Check params and apply defaults
+	my %params;
+	if ( defined _STRING($_[0]) ) {
+		# Support the short form "use ORLite 'db.sqlite'"
+		%params = (
 			file     => $params,
 			readonly => undef, # Automatic
 			package  => undef, # Automatic,
-		};
-	}
-
-	# Check params and apply defaults
-	unless ( _HASH($params) ) {
+		);
+	} elsif ( _HASH($_[0]) ) {
+		%params = %{ %_[0] };
+	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
 	unless ( defined _STRING($params{file}) and -f $params{file} ) {
