@@ -19,7 +19,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -41,7 +41,7 @@ sub import {
 		%params = (
 			file     => $_[1],
 			readonly => undef, # Automatic
-			package  => undef, # Automatic,
+			package  => undef, # Automatic
 		);
 	} elsif ( _HASH($_[1]) ) {
 		%params = %{ $_[1] };
@@ -141,29 +141,6 @@ sub dbh {
 	Carp::croak("connect: \$DBI::errstr");
 }
 
-sub begin {
-	\$ORLite::DBH{'$pkg'} or
-	\$ORLite::DBH{'$pkg'} = DBI->connect(\$ORLite::DSN{'$pkg'}) or
-	Carp::croak("connect: \$DBI::errstr");
-	\$ORLite::DBH{'$pkg'}->begin_work;
-}
-
-sub commit {
-	\$ORLite::DBH{'$pkg'} or return 1;
-	\$ORLite::DBH{'$pkg'}->commit;
-	\$ORLite::DBH{'$pkg'}->disconnect;
-	delete \$ORLite::DBH{'$pkg'};
-	return 1;
-}
-
-sub rollback {
-	\$ORLite::DBH{'$pkg'} or return 1;
-	\$ORLite::DBH{'$pkg'}->rollback;
-	\$ORLite::DBH{'$pkg'}->disconnect;
-	delete \$ORLite::DBH{'$pkg'};
-	return 1;
-}
-
 sub do {
 	shift->dbh->do(\@_);
 }
@@ -194,6 +171,33 @@ sub selectrow_hashref {
 
 sub prepare {
 	shift->dbh->prepare(\@_);
+}
+
+END_PERL
+
+	# Add transaction support if not readonly
+	$code .= <<"END_PERL" unless $readonly;
+sub begin {
+	\$ORLite::DBH{'$pkg'} or
+	\$ORLite::DBH{'$pkg'} = DBI->connect(\$ORLite::DSN{'$pkg'}) or
+	Carp::croak("connect: \$DBI::errstr");
+	\$ORLite::DBH{'$pkg'}->begin_work;
+}
+
+sub commit {
+	\$ORLite::DBH{'$pkg'} or return 1;
+	\$ORLite::DBH{'$pkg'}->commit;
+	\$ORLite::DBH{'$pkg'}->disconnect;
+	delete \$ORLite::DBH{'$pkg'};
+	return 1;
+}
+
+sub rollback {
+	\$ORLite::DBH{'$pkg'} or return 1;
+	\$ORLite::DBH{'$pkg'}->rollback;
+	\$ORLite::DBH{'$pkg'}->disconnect;
+	delete \$ORLite::DBH{'$pkg'};
+	return 1;
 }
 
 END_PERL

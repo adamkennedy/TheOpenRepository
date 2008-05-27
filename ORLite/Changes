@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+0.06 Wed 28 May 2008
+	- Don't add transaction support if we are readonly
+
 0.05 Tue 27 May 2008
 	- Minor bug fixes in the ->import method
 	- Correcting the RT link in the POD.
