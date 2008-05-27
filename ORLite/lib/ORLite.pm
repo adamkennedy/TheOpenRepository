@@ -58,7 +58,7 @@ sub import {
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
 	}
-	unless ( _CLASS($params{package} ) {
+	unless ( _CLASS($params{package}) ) {
 		Carp::croak("Missing or invalid package class");
 	}
 
