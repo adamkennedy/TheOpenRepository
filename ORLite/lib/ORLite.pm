@@ -40,12 +40,12 @@ sub import {
 	if ( defined _STRING($_[0]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
 		%params = (
-			file     => shift,
+			file     => $_[0],
 			readonly => undef, # Automatic
 			package  => undef, # Automatic,
 		);
 	} elsif ( _HASH($_[0]) ) {
-		%params = %{ %_[0] };
+		%params = %{ $_[0] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
