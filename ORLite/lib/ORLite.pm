@@ -19,7 +19,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -32,20 +32,19 @@ BEGIN {
 # Code Generation
 
 sub import {
-	# Prevent invalid uses of import
-	my $class = $_[0] eq __PACKAGE__ ? shift : return;
+	my $class = ref($_[0]) || $_[0];
 
 	# Check params and apply defaults
 	my %params;
-	if ( defined _STRING($_[0]) ) {
+	if ( defined _STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
 		%params = (
-			file     => $_[0],
+			file     => $_[1],
 			readonly => undef, # Automatic
 			package  => undef, # Automatic,
 		);
-	} elsif ( _HASH($_[0]) ) {
-		%params = %{ $_[0] };
+	} elsif ( _HASH($_[1]) ) {
+		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
@@ -554,7 +553,7 @@ B<TO BE COMPLETED>
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Metrics>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite>
 
 For other issues, contact the author.
 

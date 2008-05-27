@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+0.05 Tue 27 May 2008
+	- Minor bug fixes in the ->import method
+	- Correcting the RT link in the POD.
+
 0.04 Tue 27 May 2008
 	- Added ->import( \%hash ) support.
 	- Added support for custom passing of the target package.
