@@ -14,7 +14,7 @@ use ORLite                 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@ISA     = qw{ ORLite };
 }
 
@@ -84,10 +84,12 @@ sub import {
 	my $zipped = $path;
 	if ( $path =~ /\.gz$/ ) {
 		$path =~ s/\.gz$//;
-		IO::Uncompress::Gunzip::gunzip(
-			$zipped    => $path,
-			BinModeOut => 1,
-		) or Carp::croak("Failed to unzip $zipped");
+		unless ( $response->code == 304 and -f $path ) {
+			IO::Uncompress::Gunzip::gunzip(
+				$zipped    => $path,
+				BinModeOut => 1,
+			) or Carp::croak("Failed to unzip $zipped");
+		}
 	}
 
 	# Mirrored databases are always readonly.

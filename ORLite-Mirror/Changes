@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Mirror
 
+0.04 Thu 29 May 2008
+	- If a compressed database gets 304 Not Modified, don't decompress
+	  the old version (if the uncompressed one exists at all).
+
 0.03 Thu 29 May 2008
 	- Apparently LWP doesn't consider a HTTP 304 Not Modified response
 	  to be "a successful response".

@@ -12,4 +12,12 @@ use ORLite::Mirror {
 	package => 'CPANTS',
 };
 
+# Run some queries on the data
+
+my $count = CPANTS::Author->count;
+print "CPANTS currently tracks $count authors\n";
+
+my $authors = CPANTS::Author->select('where pauseid = ?', 'ADAMK');
+print "ADAMK is " . $authors->[0]->name . "\n";
+
 1;
