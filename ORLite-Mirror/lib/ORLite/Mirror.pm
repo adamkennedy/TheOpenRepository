@@ -108,18 +108,29 @@ ORLite::Mirror - Extend ORLite to support remote SQLite databases
 
 =head1 SYNOPSIS
 
-  # Regular ORLite on a readonly file
+  # Regular ORLite on a readonly SQLite database
   use ORLite 'path/mydb.sqlite';
   
-  # The equivalent for a remote file
+  # The equivalent for a remote SQLite database
   use ORLite::Mirror 'http://myserver/path/mydb.sqlite';
+  
+  # You can read compressed SQLite databases as well
+  use ORLite::Mirror 'http://myserver/path/mydb.sqlite.gz';
 
 =head1 DESCRIPTION
 
-L<ORLite> provides a readonly ORM API when it loads a readonly SQLite database.
+L<ORLite> provides a readonly ORM API when it loads a readonly SQLite
+database from your local system.
 
-In essense, it lets you define a complete readonly ORM on top of any arbitrary
-published SQLite database in only one line of code.
+By combining this capability with L<LWP>, L<ORLite::Mirror> goes one step
+better and allows you to load a SQLite database from any arbitrary URI in
+readonly form as well.
+
+As demonstrated in the synopsis above, you using L<ORLite::Mirror> in the
+same way, but provide a URL instead of a file name.
+
+If the URL explicitly ends with a '.gz' then L<ORLite::Mirror> will
+decompress the file before loading it.
 
 =head1 SUPPORT
 
