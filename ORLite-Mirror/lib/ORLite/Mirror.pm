@@ -14,7 +14,7 @@ use ORLite                 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = qw{ ORLite };
 }
 
@@ -76,7 +76,7 @@ sub import {
 		$path .= '.gz';
 	}
 	my $response = $useragent->mirror( $url => $path );
-	unless ( $response->is_success ) {
+	unless ( $response->is_success or $response->code == 304 ) {
 		Carp::croak("Error: Failed to fetch $url");
 	}
 

@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Mirror
 
+0.03 Thu 29 May 2008
+	- Apparently LWP doesn't consider a HTTP 304 Not Modified response
+	  to be "a successful response".
+
 0.02 Thu 29 May 2008
 	- Support for loading compressed remote databases
 
