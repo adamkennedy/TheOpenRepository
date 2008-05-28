@@ -1,4 +1,7 @@
 Changes for Perl extension ORLite-Mirror
 
-0.01 
+0.02 Thu 29 May 2008
+	- Support for loading compressed remote databases
+
+0.01 Wed 28 May 2008
 	- Created initial package

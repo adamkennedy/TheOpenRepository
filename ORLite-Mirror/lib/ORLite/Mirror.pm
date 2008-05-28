@@ -2,17 +2,19 @@ package ORLite::Mirror;
 
 use 5.006;
 use strict;
-use Carp           ();
-use File::Spec     ();
-use File::Path     ();
-use File::HomeDir  ();
-use LWP::UserAgent ();
-use Params::Util   qw{ _STRING _HASH };
-use ORLite         ();
+use Carp                   ();
+use File::Spec             ();
+use File::Path             ();
+use File::Remove           ();
+use File::HomeDir          ();
+use LWP::UserAgent         ();
+use Params::Util           qw{ _STRING _HASH };
+use IO::Uncompress::Gunzip ();
+use ORLite                 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = qw{ ORLite };
 }
 
@@ -70,9 +72,22 @@ sub import {
 
 	# Attempt to update the mirror
 	my $url      = delete $params{url};
+	if ( $url =~ /\.gz$/ ) {
+		$path .= '.gz';
+	}
 	my $response = $useragent->mirror( $url => $path );
 	unless ( $response->is_success ) {
 		Carp::croak("Error: Failed to fetch $url");
+	}
+
+	# Decompress if needed
+	my $zipped = $path;
+	if ( $path =~ /\.gz$/ ) {
+		$path =~ s/\.gz$//;
+		IO::Uncompress::Gunzip::gunzip(
+			$zipped    => $path,
+			BinModeOut => 1,
+		) or Carp::croak("Failed to unzip $zipped");
 	}
 
 	# Mirrored databases are always readonly.

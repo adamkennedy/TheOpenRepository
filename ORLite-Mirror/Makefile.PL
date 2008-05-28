@@ -1,13 +1,15 @@
 use inc::Module::Install 0.75;
 
 all_from      'lib/ORLite/Mirror.pm';
-requires      'File::Spec'       => winlike() ? '3.2701' : '0.80';
-requires      'File::Path'       => '2.04';
-requires      'File::HomeDir'    => '0.69';
-requires      'Params::Util'     => '0.33';
-requires      'URI'              => '1.35';
-requires      'LWP'              => '5.806';
-requires      'ORLite'           => '0.07';
-test_requires 'Test::More'       => '0.47';
+requires      'File::Spec'             => winlike() ? '3.2701' : '0.80';
+requires      'File::Path'             => '2.04';
+requires      'File::HomeDir'          => '0.69';
+requires      'Params::Util'           => '0.33';
+requires      'URI'                    => '1.35';
+requires      'LWP'                    => '5.806';
+requires      'ORLite'                 => '0.07';
+requires      'IO::Uncompress::Gunzip' => '2.006';
+test_requires 'Test::More'             => '0.47';
+test_requires 'IO::Compress::Gzip'     => '2.006';
 
 WriteAll;

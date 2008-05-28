@@ -8,7 +8,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.02';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ test_db connect_ok create_ok };
 }
@@ -29,7 +29,9 @@ END {
 
 sub test_db {
 	my $file = catfile( @_ ? @_ : 't', 'sqlite.db' );
-	unlink $file if -f $file;
+	if ( $file ) {
+		File::Remove::remove( $file );
+	}
 	$to_delete{$file} = 1;
 	return $file;
 }
