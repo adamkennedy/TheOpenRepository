@@ -1,7 +1,12 @@
 Revision history for Perl extension Math::ConvexHull.
 
+1.03  Thu May 29 14:24 2008
+        - Document that you can actually break the implementation
+          by passing in randomly ordered data with duplicates.
+          Don't do that! (Thanks to Anton Berezin!)
+
 1.02  Thu Sep 06 11:39 2007
-        - Fixed bug with duplicate points. (Thanks to John Harvey!
+        - Fixed bug with duplicate points. (Thanks to John Harvey!)
 
 1.01  Fri Jun 30 21:25 2006
 	- Distribution upgrade:

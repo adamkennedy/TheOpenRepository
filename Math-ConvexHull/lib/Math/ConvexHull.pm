@@ -16,7 +16,7 @@ use vars qw/@ISA %EXPORT_TAGS @EXPORT_OK $VERSION/;
 
 @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 
 
@@ -161,6 +161,13 @@ known method of finding the convex hull of an arbitrary set of points.
 There are some methods of eliminating points that cannot be part of the
 convex hull. These may or may not be implemented in a future version.
 
+The implementation cannot deal with duplicate points. Therefore, points
+which are very, very close (think floating point close) to the
+previous point are dropped since version 1.02 of the module.
+However, if you pass in randomly ordered data which contains duplicate points,
+this safety measure might not help you. In that case, you will have to
+remove duplicates yourself.
+
 =head2 EXPORT
 
 None by default, but you may choose to have the convex_hull() subroutine
@@ -208,7 +215,7 @@ Steffen Mueller, E<lt>smueller at cpan dot orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2007 by Steffen Mueller
+Copyright (C) 2003-2008 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
