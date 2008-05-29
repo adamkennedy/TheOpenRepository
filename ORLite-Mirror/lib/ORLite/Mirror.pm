@@ -2,19 +2,20 @@ package ORLite::Mirror;
 
 use 5.006;
 use strict;
-use Carp                   ();
-use File::Spec             ();
-use File::Path             ();
-use File::Remove           ();
-use File::HomeDir          ();
-use LWP::UserAgent         ();
-use Params::Util           qw{ _STRING _HASH };
-use IO::Uncompress::Gunzip ();
-use ORLite                 ();
+use Carp                    ();
+use File::Spec              ();
+use File::Path              ();
+use File::Remove            ();
+use File::HomeDir           ();
+use LWP::UserAgent          ();
+use Params::Util            qw{ _STRING _HASH };
+use IO::Uncompress::Gunzip  ();
+use IO::Uncompress::Bunzip2 ();
+use ORLite                  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	@ISA     = qw{ ORLite };
 }
 
@@ -70,25 +71,35 @@ sub import {
 		);
 	}
 
-	# Attempt to update the mirror
-	my $url      = delete $params{url};
-	if ( $url =~ /\.gz$/ ) {
-		$path .= '.gz';
+	# Download compressed files with their extention first
+	my $url = delete $params{url};
+	if ( $url =~ /(\.gz|\.bz2)$/ ) {
+		$path .= $1;
 	}
+
+	# Fetch the archive
 	my $response = $useragent->mirror( $url => $path );
 	unless ( $response->is_success or $response->code == 304 ) {
 		Carp::croak("Error: Failed to fetch $url");
 	}
 
-	# Decompress if needed
-	my $zipped = $path;
+	# Decompress if we pulled an archive
+	my $archive = $path;
 	if ( $path =~ /\.gz$/ ) {
 		$path =~ s/\.gz$//;
 		unless ( $response->code == 304 and -f $path ) {
 			IO::Uncompress::Gunzip::gunzip(
-				$zipped    => $path,
+				$archive   => $path,
 				BinModeOut => 1,
-			) or Carp::croak("Failed to unzip $zipped");
+			) or Carp::croak("gunzip($archive) failed");
+		}
+	} elsif ( $path =~ /\.bz2$/ ) {
+		$path =~ s/\.bz2$//;
+		unless ( $response->code == 304 and -f $path ) {
+			IO::Uncompress::Bunzip2::bunzip2(
+				$archive   => $path,
+				BinModeOut => 1,
+			) or Carp::croak("bunzip2($archive) failed");
 		}
 	}
 
@@ -118,6 +129,9 @@ ORLite::Mirror - Extend ORLite to support remote SQLite databases
   
   # You can read compressed SQLite databases as well
   use ORLite::Mirror 'http://myserver/path/mydb.sqlite.gz';
+  use ORLite::Mirror 'http://myserver/path/mydb.sqlite.bz2';
+  
+  (Of course you can only do one of the above)
 
 =head1 DESCRIPTION
 
@@ -131,8 +145,8 @@ readonly form as well.
 As demonstrated in the synopsis above, you using L<ORLite::Mirror> in the
 same way, but provide a URL instead of a file name.
 
-If the URL explicitly ends with a '.gz' then L<ORLite::Mirror> will
-decompress the file before loading it.
+If the URL explicitly ends with a '.gz' or '.bz2' then L<ORLite::Mirror>
+will decompress the file before loading it.
 
 =head1 SUPPORT
 
