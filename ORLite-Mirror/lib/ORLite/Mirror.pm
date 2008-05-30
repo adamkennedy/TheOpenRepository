@@ -15,7 +15,7 @@ use ORLite                  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 	@ISA     = qw{ ORLite };
 }
 

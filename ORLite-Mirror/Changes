@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+0.06 Sat 31 May 2008
+	- Adding missing File::Remove dependency
+
 0.05 Thu 29 May 2008
 	- Adding support for Bzip2 so that we can load CPAN Testers data.
 
