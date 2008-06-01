@@ -269,13 +269,21 @@ up-to-date bug listing.
 
 =head1 AUTHOR
 
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Some parts copyright 2006 - 2008 Adam Kennedy.
+
 Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt>, to fix the
 "deep readonly files" bug, and do some more cleaning up.
+
+Some parts copyright 2004 - 2005 Richard Soderberg.
 
 Taken over by Richard Soderberg E<lt>perl@crystalflame.netE<gt>, so as
 to port it to L<File::Spec> and add tests.
 
-Original copyright: (c) 1998 by Gabor Egressy, E<lt>gabor@vmunix.comE<gt>.
+Original copyright: 1998 by Gabor Egressy, E<lt>gabor@vmunix.comE<gt>.
 
 This program is free software; you can redistribute and/or modify it under
 the same terms as Perl itself.
