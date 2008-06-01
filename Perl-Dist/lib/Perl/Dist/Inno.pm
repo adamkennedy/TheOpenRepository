@@ -154,6 +154,14 @@ BEGIN {
 }
 
 use Object::Tiny qw{
+	perl_version
+	portable
+	archlib
+	exe
+	zip
+
+
+
 	binary_root
 	offline
 	download_dir
@@ -163,9 +171,6 @@ use Object::Tiny qw{
 	build_dir
 	iss_file
 	user_agent
-	perl_version
-	perl_version_corelist
-	cpan
 	bin_perl
 	bin_make
 	bin_pexports
@@ -176,9 +181,9 @@ use Object::Tiny qw{
 	debug_stdout
 	debug_stderr
 	output_file
+	perl_version_corelist
+	cpan
 	force
-	exe
-	zip
 };
 
 use Perl::Dist::Inno                ();
@@ -307,12 +312,26 @@ If you are online and no C<cpan> param is provided, the value will
 default to the L<http://cpan.strawberryperl.com> repository as a
 convenience.
 
+=item portable
+
+The optional boolean C<portable> param is used to indicate that the
+distribution is intended for installation on a portable storable
+device.
+
+=item exe
+
+The optional boolean C<zip> param is used to indicate that a zip
+distribution package should be created.
+
+=item zip
+
+The optional boolean C<exe> param is used to indicate that an
+InnoSetup executable installer should be created.
+
 =back
 
 The C<new> constructor returns a B<Perl::Dist> object, which you
 should then call C<run> on to generate the distribution.
-
-TO BE CONTINUED
 
 =cut
 
@@ -425,8 +444,10 @@ sub new {
 	$self->{offline}      = !! $self->offline;
 	$self->{trace}        = !! $self->{trace};
 	$self->{force}        = !! $self->force;
+	$self->{portable}     = !! $self->portable;
 	$self->{exe}          = !! $self->exe;
 	$self->{zip}          = !! $self->zip;
+	$self->{archlib}      = !! $self->archlib;
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
@@ -818,22 +839,41 @@ sub remove_waste {
 	my $self = shift;
 
 	$self->trace("Removing doc, man, info and html documentation...\n");
-	File::Remove::remove( \1, $self->_dir('perl', 'man')     );
-	File::Remove::remove( \1, $self->_dir('perl', 'html')    );
-	File::Remove::remove( \1, $self->_dir('c',    'man')     );
-	File::Remove::remove( \1, $self->_dir('c',    'doc')     );
-	File::Remove::remove( \1, $self->_dir('c',    'info')    );
+	$self->remove_dir(qw{ perl man     });
+	$self->remove_dir(qw{ perl html    });
+	$self->remove_dir(qw{ c    man     });
+	$self->remove_dir(qw{ c    doc     });
+	$self->remove_dir(qw{ c    info    });
+	$self->remove_dir(qw{ c    contrib });
 
 	$self->trace("Removing C library manifests...\n");
-	File::Remove::remove( \1, $self->_dir('c', 'manifest')   );
+	$self->remove_dir(qw{ c manifest });
+
+	$self->trace("Removing redundant license files...\n");
+	$self->remove_file(qw{ c COPYING     });
+	$self->remove_file(qw{ c COPYING.LIB });
 
 	$self->trace("Removing CPAN build directories and download caches...\n");
-	File::Remove::remove( \1, $self->_dir('cpan', 'sources') );
-	File::Remove::remove( \1, $self->_dir('cpan', 'build')   );
+	$self->remove_dir(qw{ cpan sources });
+	$self->remove_dir(qw{ cpan build   });
 
 	return 1;
 }
 
+sub remove_dir {
+	my $self = shift;
+	my $dir  = $self->_dir( @_ );
+	File::Remove::remove( \1, $dir ) if -e $dir;
+	return 1;
+}
+
+sub remove_file {
+	my $self = shift;
+	my $file = $self->_file( @_ );
+	File::Remove::remove( \1, $file ) if -e $file;
+	return 1;
+}
+		
 
 
 
@@ -928,9 +968,10 @@ sub install_perl_588_bin {
 		$self->trace("Patching makefile.mk\n");
 		tie my @makefile, 'Tie::File', 'makefile.mk'
 			or die "Couldn't read makefile.mk";
-		for ( @makefile ) {
+		foreach ( @makefile ) {
 			if ( m{\AINST_TOP\s+\*=\s+} ) {
-				s{\\perl}{$short_install}; # short has the leading \
+				# short has a leading \
+				s{\\perl}{$short_install};
 
 			} elsif ( m{\ACCHOME\s+\*=} ) {
 				s{c:\\mingw}{$image_dir\\c}i;
@@ -2526,8 +2567,12 @@ sub trace {
 	return 1;
 }
 
-sub _dir {
+sub dir {
 	File::Spec->catdir( shift->image_dir, @_ );
+}
+
+sub file {
+	File::Spec->catfile( shift->image_dir, @_ );
 }
 
 sub _mirror {
