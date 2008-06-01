@@ -2,8 +2,7 @@ Revision history for Perl extension File::Remove.
 
 1.41 Mon  2 Jun 2008
 	- No functional changes
-	- Upgrading to Module::Install 0.75
-	  (which fixes the location of the author tests)
+	- Updating location of author tests
 
 1.40 Sat 23 Feb 2008
 	- Dev release looks good, changing to production release
