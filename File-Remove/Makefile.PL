@@ -1,17 +1,10 @@
-use strict;
-use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
-WriteMakefile(
-    NAME              => 'File::Remove',
-    VERSION_FROM      => 'lib/File/Remove.pm', # finds $VERSION
-    PREREQ_PM         => {
-        'File::Spec' => '0.84',
-	'File::Copy' => 0,
-	'File::Path' => 0,
-	'File::Glob' => 0,
-    }, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/File/Remove.pm', # retrieve abstract from module
-       AUTHOR         => 'Richard Soderberg <rs@localdomain>') : ()),
-);
+use inc::Module::Install 0.75;
+
+all_from      'lib/File/Remove.pm';
+requires      'File::Spec' => '0.84';
+requires      'File::Copy' => 0;
+requires      'File::Path' => 0;
+requires      'File::Glob' => 0;
+test_requires 'Test::More' => '0.42';
+
+WriteAll;
