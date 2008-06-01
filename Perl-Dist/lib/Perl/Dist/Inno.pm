@@ -208,8 +208,8 @@ use Perl::Dist::Util::Toolchain     ();
 
 my %PACKAGES = (
 	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-	'gcc-core'      => 'gcc-core-3.4.5-20060117-1.tar.gz',
-	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-1.tar.gz',
+	'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
+	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
 	'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
 	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
 	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
