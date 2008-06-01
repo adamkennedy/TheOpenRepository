@@ -13,6 +13,9 @@ WriteMakefile(
   'ABSTRACT_FROM' => 'lib_pm.PL',
   'AUTHOR' => 'Steffen Mueller <smueller@cpan.org>',
   'INSTALLDIRS' => 'perl',
+  'PL_FILES' => {'lib_pm.PL' => 'lib.pm'},
+  'PM' => {'lib.pm' => '$(INST_LIBDIR)/lib.pm'},
   'clean' => {FILES => 'lib.pm'},
 );
+
 
