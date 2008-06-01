@@ -264,7 +264,7 @@ will be called with the filenames that are to be deleted.
 
 =head1 BUGS
 
-See http://rt.cpan.org/NoAuth/Bugs.html?Dist=File-Remove for the
+See L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=File-Remove> for the
 up-to-date bug listing.
 
 =head1 AUTHOR
