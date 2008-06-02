@@ -1,21 +1,7 @@
-use strict;
-BEGIN {
-	require 5.000;
-}
-use ExtUtils::MakeMaker;
-WriteMakefile(
-	'NAME'         => 'Template::Parser::LocalizeNewlines',
-	'VERSION_FROM' => 'lib/Template/Parser/LocalizeNewlines.pm',
-	'PREREQ_PM'    => {
-		# Application dependencies
-		'Template'    => '2.00',
+use inc::Module::Install 0.75;
 
-		# Test dependencies
-		'Test::More'  => '0.47',
-		'File::Spec'  => '0.82',
-	},
-	($] >= 5.005) ? (
-		'AUTHOR'    => 'Adam Kennedy <adamk@cpan.org>',
-		'ABSTRACT'  => 'Drop-in replacement Template::Parser that fixes bad newlines',
-	) : (),
-);
+all_from      'lib/Template/Parser/LocalizeNewlines.pm';
+requires      'Template' => '2.00';
+test_requires 'Test::More' => '0.47';
+
+WriteAll;

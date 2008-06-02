@@ -1,6 +1,10 @@
 Revision history for Perl extension Template::Parser::LocalizeNewlines
 
-1.03 Wed  9 2008
+1.04 Mon  2 Jun 2008
+	- No functional changes
+	- Moving Makefile.PL to Module::Install
+
+1.03 Wed  9 Sep 2008
 	- No functional changes
 	- More tweaks for CPANTS
 
