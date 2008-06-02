@@ -32,7 +32,7 @@ use base 'Template::Parser';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 # The only method we need to change
