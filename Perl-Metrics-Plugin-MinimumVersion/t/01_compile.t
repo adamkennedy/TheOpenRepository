@@ -1,30 +1,16 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load test the Perl::Metrics module
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-
-
-
-
-
-# Does everything load?
 use Test::More tests => 5;
 
-ok( $] >= 5.005, 'Your perl is new enough' );
+ok( $] >= 5.006, 'Your perl is new enough' );
 
 # Load Perl::Metrics. Can it be found in the plugin list?
 require_ok( 'Perl::Metrics' );
@@ -35,5 +21,3 @@ ok( scalar(grep { $_ eq 'Perl::Metrics::Plugin::MinimumVersion' } @plugins),
 
 # Load the plugin itself
 use_ok( 'Perl::Metrics::Plugin::MinimumVersion' );
-
-1;

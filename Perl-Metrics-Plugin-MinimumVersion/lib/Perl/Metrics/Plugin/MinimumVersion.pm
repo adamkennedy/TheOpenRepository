@@ -26,6 +26,7 @@ appropriate metric versions based on the version of L<Perl::MinimumVersion>.
 
 =cut
 
+use 5.006;
 use strict;
 use Carp                 ();
 use version              ();
@@ -34,7 +35,7 @@ use base 'Perl::Metrics::Plugin';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # The metrics are versioned, using the version of P:MV.
@@ -102,7 +103,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -111,7 +112,7 @@ L<PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

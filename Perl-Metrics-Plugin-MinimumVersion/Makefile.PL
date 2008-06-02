@@ -1,13 +1,9 @@
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
-name          'Perl-Metrics-Plugin-MinimumVersion';
 all_from      'lib/Perl/Metrics/Plugin/MinimumVersion.pm';
-# Version 0.48 gets rid of the XS bugs at least
-# We need a newer version to deal with the qv() bug
-requires      'version'              => '0.48';
+requires      'version'              => '0.74';
 requires      'Perl::Metrics'        => '0.03';
-requires      'Perl::MinimumVersion' => '0.10';
+requires      'Perl::MinimumVersion' => '0.15';
 test_requires 'Test::More'           => '0.47';
-test_requires 'File::Spec'           => '0.80';
 
 WriteAll;
