@@ -6,6 +6,7 @@ Revision history for Perl extension File::BLOB
 	- Upgrading to Module::Install 0.75
 	- Bumping dependencies to take into account
 	  potentially-relevant bug fixes.
+	- Implemented the first half of save/read (undocumented)
 
 0.05 Sun 10 Feb 2008
 	- No functional changes
