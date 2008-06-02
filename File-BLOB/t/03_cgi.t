@@ -5,7 +5,7 @@
 use strict;
 BEGIN {
 	$|  = 1;
-	$^@ = 1;
+	$^W = 1;
 }
 
 use constant T => 11;

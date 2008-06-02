@@ -515,8 +515,8 @@ sub read {
 	}
 
 	# Check class
-	unless ( $self{class} eq $class ) {
-		Carp::croak("Serialized class mismatch. Expected $class, got $self{$class}");
+	unless ( $headers{class} eq $class ) {
+		Carp::croak("Serialized class mismatch. Expected $class, got $headers{$class}");
 	}
 
 	return $class->new( $handle, %headers );
