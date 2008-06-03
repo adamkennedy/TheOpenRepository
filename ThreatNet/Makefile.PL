@@ -1,7 +1,5 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
-name           'ThreatNet';
 all_from       'lib/ThreatNet.pm';
 requires       'Fcntl'                                  => 0;
 requires       'Params::Util'                           => '0.05';
@@ -16,8 +14,8 @@ requires       'POE::Component::IRC::Plugin::Connector' => 0;
 requires       'ThreatNet::Filter'                      => '0.03';
 requires       'Net::IP'                                => 0;
 requires       'Net::IP::Match::XS'                     => '0.03';
-test_requires 'Test::More'                             => '0.47';
-test_requires 'File::Spec'                             => '0.82';
+test_requires  'Test::More'                             => '0.47';
+test_requires  'File::Spec'                             => '0.82';
 install_script 'ammobot';
 
 WriteAll;

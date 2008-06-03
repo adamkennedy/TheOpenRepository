@@ -147,7 +147,7 @@ For other issues, or commercial enhancement and support, contact the author
 
 =head1 AUTHORS
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 

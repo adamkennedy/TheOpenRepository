@@ -6,7 +6,7 @@ Revision history for Perl extension ThreatNet::Bot::AmmoBot
 	  big distribution.
 	- Updated test and Makefile.PL to current style
 	- Added a ThreatNet.pm loader
-	- Updated to Module::Install 0.68
+	- Updated to Module::Install 0.75
 	- Stop the use of auto_install();
 
 0.10 Thu Jun 23 2005

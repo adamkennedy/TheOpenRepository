@@ -119,13 +119,13 @@ sub config { $_[0]->{config} }
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ThreatNet%3A%3ATopic>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ThreatNet-Topic>
 
 For other issues, or commercial enhancement and support, contact the author
 
 =head1 AUTHORS
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
