@@ -375,9 +375,7 @@ implementations of the reference implementation described above.
 
 =head1 AUTHOR
 
-This paper and the ThreatNet concept were both created by
-
-  Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -385,7 +383,7 @@ L<ThreatNet>, L<ThreatNet::Message>, L<ThreatNet::Topic>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2005 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
 
 All ThreatNet modules on CPAN are generally free software;
 you can redistribute them and/or modify them under the same
