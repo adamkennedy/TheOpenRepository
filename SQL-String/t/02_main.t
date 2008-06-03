@@ -1,18 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # SQL::String basic functionality tests
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 
@@ -20,8 +13,9 @@ BEGIN {
 
 
 # Does everything load?
-use Test::More 'tests' => 78;
+use Test::More tests => 78;
 use SQL::String ();
+
 
 
 
@@ -199,5 +193,3 @@ $SQL2 = SQL::String->new('bar = ?', 3); isa_ok( $SQL2, 'SQL::String' );
 $SQL3 = "update table set $SQL, $SQL2 where this = that";
 is( $SQL3, 'update table set foo = ?, bar = ? where this = that',
 	'SQL is correct after interpolation' );
-
-1;

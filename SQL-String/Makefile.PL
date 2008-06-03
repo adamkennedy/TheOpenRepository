@@ -1,16 +1,7 @@
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
-name          ( 'SQL-String'           );
-abstract      ( 'An object representation of a chunk of SQL' );
-author        ( 'Adam Kennedy<cpan@ali.as>'         );
-version_from  ( 'lib/SQL/String.pm'    );
-license       ( 'perl'                              );
+all_from      'lib/SQL/String.pm';
+requires      'Carp'       => 0;
+test_requires 'Test::More' => '0.47';
 
-requires      ( 'perl'                 => '5.005'   );
-
-build_requires( 'Test::More'           => '0.47'    );
-build_requires( 'File::Spec'           => '0.82'    );
-
-auto_install();
-
-&WriteAll;
+WriteAll;

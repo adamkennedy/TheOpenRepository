@@ -1,4 +1,9 @@
-Revision history for Perl extension SQL::String
+Revision history for Perl extension SQL-String
+
+0.02 Tue  3 Jun 2008
+	- Upgrading to Module::Install 0.75
+	- Updating tests to current style
+	- Removing File::Spec dependency
 
 0.01 Wed Nov 24 2004
 	- Code written, tested and documented

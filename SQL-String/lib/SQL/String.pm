@@ -81,8 +81,8 @@ acceleration that have not been resolved.
 
 =cut
 
+use 5.005;
 use strict;
-use UNIVERSAL 'isa';
 use Carp ();
 use overload 'bool' => sub () { 1 },
              'eq'   => sub { $_[0]->[0] eq $_[1] },
@@ -93,7 +93,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -306,6 +306,10 @@ sub _concat {
 
 - Write a faster XS version?
 
+- Change param handling to Params::Util
+
+- Make use of bytes and potentially unicode
+
 - Test to see if if would be better to include the params in their own
 ARRAY reference.
 
@@ -313,20 +317,21 @@ ARRAY reference.
 
 Bugs should be submitted via the CPAN bug tracker, located at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SQL%3A%3AString>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SQL-String>
 
 For other issues, contact the author
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Thank you to Phase N Australia (L<http://phase-n.com/>) for permitting the
 open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
