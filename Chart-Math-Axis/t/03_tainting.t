@@ -47,5 +47,3 @@ Test::Taint::tainted_ok_deeply(\@data, 'Data is now tainted' );
 my $foo = Chart::Math::Axis->new(@data);
 Test::More::isa_ok( $foo, 'Chart::Math::Axis' );
 Test::Taint::untainted_ok_deeply( $foo, 'Data is now tainted' );
-
-1;

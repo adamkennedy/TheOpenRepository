@@ -16,7 +16,7 @@ use Params::Util   qw( _INSTANCE );
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 
@@ -439,19 +439,23 @@ yourself.
 
 =head1 SUPPORT
 
-Contact the author
+Bugs should be reported via the CPAN bug tracker
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Chart-Math-Axis>
+
+For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<GD::Graph>
+L<GD::Graph>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2006 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
