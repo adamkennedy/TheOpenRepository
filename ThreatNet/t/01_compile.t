@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 12;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
@@ -21,7 +21,7 @@ my @modules = qw{
 	IRC
 	IRC::Envelope
 	Message
-	Message::IPV4
+	Message::IPv4
 	Topic
 	Bot::AmmoBot
 };

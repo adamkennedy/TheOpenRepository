@@ -11,7 +11,6 @@ requires       'POE'                                    => 0;
 requires       'POE::Wheel::FollowTail'                 => 0;
 requires       'POE::Component::IRC'                    => 0;
 requires       'POE::Component::IRC::Plugin::Connector' => 0;
-requires       'ThreatNet::Filter'                      => '0.03';
 requires       'Net::IP'                                => 0;
 requires       'Net::IP::Match::XS'                     => '0.03';
 test_requires  'Test::More'                             => '0.47';
