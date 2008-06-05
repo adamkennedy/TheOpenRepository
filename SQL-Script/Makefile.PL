@@ -1,9 +1,8 @@
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
-name           'SQL-Script';
-all_from       'lib/SQL/Script.pm';
-requires       'Carp'         => 0;
-requires       'Params::Util' => '0.10';
+all_from      'lib/SQL/Script.pm';
+requires      'Carp';
+requires      'Params::Util' => '0.10';
 test_requires 'Test::More'   => '0.42';
 test_requires 'File::Spec'   => '0.80';
 

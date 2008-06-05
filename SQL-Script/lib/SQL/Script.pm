@@ -40,12 +40,12 @@ quite of format-specific SQL splitters.
 
 use 5.006;
 use strict;
-use Carp         'croak';
-use Params::Util '_STRING', '_SCALAR', '_INSTANCE';
+use Carp         ();
+use Params::Util qw{ _STRING _SCALAR _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.04';
+	$VERSION = '1.05';
 }
 
 
@@ -78,18 +78,18 @@ Returns a new B<SQL::String> object, or throws an exception on error.
 =cut
   
 sub new {
-    my $class = shift;
-    my $self  = bless { @_, statements => [] }, $class;
+	my $class = shift;
+	my $self  = bless { @_, statements => [] }, $class;
 
-    # Check and apply default params
-    unless ( $self->split_by ) {
-        $self->{split_by} = ";\n";
-    }
-    unless ( _STRING($self->split_by) or ref($self->split_by) eq 'Regexp' ) {
-        croak("Missing or invalid split_by param");
-    }
+	# Check and apply default params
+	unless ( $self->split_by ) {
+		$self->{split_by} = ";\n";
+	}
+	unless ( _STRING($self->split_by) or ref($self->split_by) eq 'Regexp' ) {
+		Carp::croak("Missing or invalid split_by param");
+	}
 
-    return $self;
+	return $self;
 }
 
 =pod
@@ -113,10 +113,10 @@ Returns true on success, or throw an exception on error.
 =cut
 
 sub read {
-    my $self  = shift;
-    my $input = _INPUT_SCALAR(shift) or croak("Missing or invalid param to read");
-    $self->{statements} = $self->split_sql( $input );
-    return 1;
+	my $self  = shift;
+	my $input = _INPUT_SCALAR(shift) or Carp::croak("Missing or invalid param to read");
+	$self->{statements} = $self->split_sql( $input );
+	return 1;
 }
 
 =pod
@@ -129,7 +129,7 @@ split the SQL into statements.
 =cut
 
 sub split_by {
-    $_[0]->{split_by};
+	$_[0]->{split_by};
 }
 
 =pod
@@ -144,11 +144,11 @@ In scalar context, it returns the number of statements.
 =cut
 
 sub statements {
-    if ( wantarray ) {
-        return @{$_[0]->{statements}};
-    } else {
-        return scalar @{$_[0]->{statements}};
-    }
+	if ( wantarray ) {
+		return @{$_[0]->{statements}};
+	} else {
+		return scalar @{$_[0]->{statements}};
+	}
 }
 
 
@@ -172,28 +172,28 @@ appropriate parsing rules.
 =cut
 
 sub split_sql {
-    my $self   = shift;
-    my $sql    = _SCALAR(shift) or croak("Did not pass a SCALAR ref to split_sql");
+	my $self = shift;
+	my $sql  = _SCALAR(shift) or Carp::croak("Did not pass a SCALAR ref to split_sql");
 
-    # Find the regex to split by
-    my $regexp;
-    if ( _STRING($self->split_by) ) {
-        $regexp = quotemeta $self->split_by;
-        $regexp = qr/$regexp/;
-    } elsif ( ref($self->split_by) eq 'Regexp' ) {
-        $regexp = $self->split_by;
-    } else {
-        croak("Unknown or unsupported split_by value");
-    }
+	# Find the regex to split by
+	my $regexp;
+	if ( _STRING($self->split_by) ) {
+		$regexp = quotemeta $self->split_by;
+		$regexp = qr/$regexp/;
+	} elsif ( ref($self->split_by) eq 'Regexp' ) {
+		$regexp = $self->split_by;
+	} else {
+		Carp::croak("Unknown or unsupported split_by value");
+	}
 
-    # Split the sql, clean up and remove empty ones
-    my @statements = grep { /\S/ } split( $regexp, $$sql );
-    foreach ( @statements ) {
-        s/^\s+//;
-        s/\s+$//;
-    }
+	# Split the sql, clean up and remove empty ones
+	my @statements = grep { /\S/ } split( $regexp, $$sql );
+	foreach ( @statements ) {
+		s/^\s+//;
+		s/\s+$//;
+	}
 
-    return \@statements;
+	return \@statements;
 }
 
 =pod
@@ -212,7 +212,7 @@ exception on error)
 
 sub run {
 	my $self = shift;
-	my $dbh  = _INSTANCE(shift, 'DBI::db') or croak("Did not provide DBI handle to run");
+	my $dbh  = _INSTANCE(shift, 'DBI::db') or Carp::croak("Did not provide DBI handle to run");
 
 	# Execute each of the statements
 	foreach my $sql ( $self->statements ) {
@@ -229,28 +229,28 @@ sub run {
 # Support Functions
 
 sub _INPUT_SCALAR {
-    unless ( defined $_[0] ) {
-        return undef;
-    }
-    unless ( ref $_[0] ) {
-        unless ( -f $_[0] and -r _ ) {
-            return undef;
-        }
-        local $/ = undef;
-        open( FILE, $_[0] ) or return undef;
-        defined(my $buffer = <FILE>) or return undef;
-        close FILE          or return undef;
-        return \$buffer;
-    }
-    if ( _SCALAR($_[0]) ) {
-        return shift;
-    }
-    if ( _HANDLE($_[0]) ) {
-        local $/ = undef;
-        my $buffer = <$_[0]>;
-        return \$buffer;
-    }
-    return undef;
+	unless ( defined $_[0] ) {
+		return undef;
+	}
+	unless ( ref $_[0] ) {
+		unless ( -f $_[0] and -r _ ) {
+			return undef;
+		}
+		local $/ = undef;
+		open( FILE, $_[0] )          or return undef;
+		defined(my $buffer = <FILE>) or return undef;
+		close( FILE )                or return undef;
+		return \$buffer;
+	}
+	if ( _SCALAR($_[0]) ) {
+		return shift;
+	}
+	if ( _HANDLE($_[0]) ) {
+		local $/ = undef;
+		my $buffer = <$_[0]>;
+		return \$buffer;
+	}
+	return undef;
 }
 
 1;
@@ -271,7 +271,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

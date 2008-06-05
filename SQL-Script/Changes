@@ -1,5 +1,9 @@
 Changes for Perl extension SQL-Script
 
+1.05 Thu  5 Jun 2008
+	- No functional changes
+	- Updating to Module::Install 0.75
+
 0.04 Mon 10 Sep 2006
 	- Do some trimming and filtering to remove useless stuff
 
