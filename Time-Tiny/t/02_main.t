@@ -34,5 +34,3 @@ SCOPE: {
 		Time::Tiny->from_string( $tiny->as_string ),
 		$tiny, '->from_string ok' );
 }
-
-exit(0);

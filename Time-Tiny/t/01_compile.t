@@ -10,7 +10,6 @@ BEGIN {
 
 use Test::More tests => 2;
 
-ok( $] >= 5.005, "Your perl is new enough" );
-use_ok( 'Time::Tiny' );
+ok( $] >= 5.004, "Your perl is new enough" );
 
-exit(0);
+use_ok( 'Time::Tiny' );
