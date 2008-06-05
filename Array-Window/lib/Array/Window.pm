@@ -2,10 +2,11 @@ package Array::Window;
 
 use 5.005;
 use strict;
+use Params::Util '_ARRAYLIKE';
 
 use vars qw{$VERSION};
 BEGIN { 
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 # A description of the properties
@@ -21,7 +22,7 @@ BEGIN {
 # next_start            - The index number of window_start for the "Next" window
 
 sub new {
-	my $class = shift;
+	my $class   = shift;
 	my %options = @_;
 
 	# Create the new object
@@ -39,9 +40,7 @@ sub new {
 
 	# Check for a specific source
 	if ( $options{source} ) {
-		unless ( ref $options{source} eq 'ARRAY' ) {
-			return undef;
-		}
+		_ARRAYLIKE($options{source}) or return undef;
 		$self->{source_start}  = 0;
 		$self->{source_end}    = $#{$options{source}};
 		$self->{source_length} = $self->{source_end} + 1;
@@ -97,7 +96,8 @@ sub new {
 
 	# Do the math
 	$self->_calculate;
-	$self;
+
+	return $self;
 }
 
 # Do the calculations to set things as required.
@@ -149,7 +149,7 @@ sub _calculate {
 		}
 	}
 
-	1;
+	return 1;
 }
 
 # Smaller calculation componants
@@ -190,25 +190,25 @@ sub next_start            { $_[0]->{next_start}            }
 # Get an object representing the first window.
 # Returns 0 if we are currently the first window
 sub first {
-	my $self = shift;
+	my $self  = shift;
 	my $class = ref $self;
 
 	# If the window_start is equal to the source_start, return false
 	return '' if $self->{source_start} == $self->{window_start};
 
 	# Create the first window
-	$class->new(
+	return $class->new(
 		source_start  => $self->{source_start},
 		source_end    => $self->{source_end},
 		window_length => $self->{window_length_desired},
 		window_start  => $self->{source_start},
-		);
+	);
 }
 
 # Get an object representing the last window.
 # Returns false if we are already the last window.
 sub last {
-	my $self = shift;
+	my $self  = shift;
 	my $class = ref $self;
 
 	# If the window_end is equal to the source_end, return false
@@ -216,46 +216,46 @@ sub last {
 
 	# Create the last window
 	my $window_start = $self->{source_end} - $self->{window_length_desired} + 1;
-	$class->new(
+	return $class->new(
 		source_start  => $self->{source_start},
 		source_end    => $self->{source_end},
 		window_start  => $window_start,
 		window_end    => $self->{source_end},
-		);
+	);
 }
 
 # Get an object representing the next window.
 # Returns 0 if there is no next window.
 sub next {
-	my $self = shift;
+	my $self  = shift;
 	my $class = ref $self;
 
 	# If there is no next, return false
 	return '' unless defined $self->{next_start};
 
 	# Create the next window	
-	$class->new( 
+	return $class->new( 
 		source_start  => $self->{source_start},
 		source_end    => $self->{source_end},
 		window_length => $self->{window_length_desired},
 		window_start  => $self->{next_start},
-		);
+	);
 }
 
 sub previous {
-	my $self = shift;
+	my $self  = shift;
 	my $class = ref $self;
 
 	# If there is no previou, return false
 	return '' unless defined $self->{previous_start};
 
 	# Create the previous window
-	$class->new(
+	return $class->new(
 		source_start  => $self->{source_start},
 		source_end    => $self->{source_end},
 		window_length => $self->{window_length_desired},
 		window_start  => $self->{previous_start},
-		);
+	);
 }
 
 # Method to determine if we need to do windowing.
@@ -265,7 +265,7 @@ sub required {
 	my $self = shift;
 	return 1 unless $self->{source_start} == $self->{window_start};
 	return 1 unless $self->{source_end}   == $self->{window_end};
-	'';
+	return '';
 }
 
 # $window->extract( \@array );
@@ -286,7 +286,7 @@ sub extract {
 	@subarray = @{$arrayref}[$self->window_start .. $self->window_end];
 
 	# Return a reference to the sub array
-	\@subarray;
+	return \@subarray;
 }
 	
 1;
@@ -306,23 +306,23 @@ Array::Window - Calculate windows/subsets/pages of arrays.
   my $results = SomeSearch->find( 'blah' );
   
   # We want to display 20 results at a time
-  my $Window = Array::Window->new( 
+  my $window = Array::Window->new( 
   	source        => $results,
   	window_start  => 0,
   	window_length => 20,
   	);
   
   # Do we need to split into pages at all?
-  my $show_pages = $Window->required;
+  my $show_pages = $window->required;
   
   # Extract the subset from the array
-  my $subset = $Window->extract( $results );
+  my $subset = $window->extract( $results );
   
-  # Are there 'First', 'Last', 'Next' or 'Previous' windows?
-  my $First    = $Window->first;
-  my $Last     = $Window->last;
-  my $Next     = $Window->next;
-  my $Previous = $Window->previous;
+  # Are there 'first', 'last', 'next' or 'previous' windows?
+  my $first    = $window->first;
+  my $last     = $window->last;
+  my $next     = $window->next;
+  my $previous = $window->previous;
 
 =head1 DESCRIPTION
 
@@ -345,9 +345,9 @@ starting at 0 and going up to 9.
 The normal methods for this class return computer orientated values. If you
 want to generate values for human messages, you should instead use the following.
 
-  print 'Displaying Widgets ' . $Window->human_window_start
-  	. ' to ' . $Window->human_window_end
-  	. ' of ' . $Window->human_source_end;
+  print 'Displaying Widgets ' . $window->human_window_start
+  	. ' to ' . $window->human_window_end
+  	. ' of ' . $window->human_source_end;
 
 =head1 METHODS
 
@@ -499,7 +499,7 @@ L<Set::Window>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2007 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

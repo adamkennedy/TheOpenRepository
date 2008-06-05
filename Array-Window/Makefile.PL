@@ -1,9 +1,7 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
-name           'Array-Window';
-all_from       'lib/Array/Window.pm';
-test_requires 'File::Spec' => '0.80';
-test_requires 'Test::More' => '0.47';
+all_from      'lib/Array/Window.pm';
+requires      'Params::Util' => '0.12';
+test_requires 'Test::More'   => '0.47';
 
 WriteAll;

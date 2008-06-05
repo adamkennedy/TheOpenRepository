@@ -1,4 +1,8 @@
-Revision history for Perl extension Array::Window
+Revision history for Perl extension Array-Window
+
+1.02 Thu  5 Jun 2008
+	- No functional changes
+	- Upgrading to Module::Install 0.75
 
 1.01 Thu 28 Jun 2007
 	- No functional changes
