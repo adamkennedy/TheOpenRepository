@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Main unit tests for Template::Plugin::NakedBody module
+# Main unit tests for Template::Plugin::Body module
 
 use strict;
 BEGIN {
@@ -13,9 +13,9 @@ BEGIN {
 
 
 use Test::More tests => 5;
-use Template::Plugin::NakedBody;
+use Template::Plugin::Body;
 
-my $coderef = Template::Plugin::NakedBody->coderef;
+my $coderef = Template::Plugin::Body->coderef;
 is( ref($coderef), 'CODE', '->coderef returns a CODE reference' );
 
 

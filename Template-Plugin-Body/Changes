@@ -1,4 +1,7 @@
-Revision history for Perl extension Template::Plugin::NakedBody
+Revision history for Perl extension Template-Plugin-Body
+
+1.04 Thu  5 Jun 2008
+	- Renaming to the more corporate-friendly Template::Plugin::Body
 
 1.03 Thu  5 Jun 2008
 	- Re-importing to the repository from CPAN

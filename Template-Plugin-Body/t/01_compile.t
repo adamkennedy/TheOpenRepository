@@ -8,8 +8,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More 'tests' => 2;
+use Test::More tests => 2;
 
 ok( $] >= 5.005, 'Your perl is new enough' );
 
-use_ok( 'Template::Plugin::NakedBody' );
+use_ok( 'Template::Plugin::Body' );
