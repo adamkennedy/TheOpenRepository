@@ -1,10 +1,10 @@
-package Template::Plugin::NakedBody;
+package Template::Plugin::Body;
 
 =pod
 
 =head1 NAME
 
-Template::Plugin::NakedBody - Strip HTML to just keep the body content
+Template::Plugin::Body - Strip HTML to just keep the body content
 
 =head1 SYNOPSIS
 
@@ -19,14 +19,14 @@ Template::Plugin::NakedBody - Strip HTML to just keep the body content
   </html>
   
   # mypage.html
-  [% USE NakedBody %]
+  [% USE Body %]
   <html>
   <head>
     <style ...>
   </head>
   <body>
   Some content
-  [% INCLUDE _included.html | NakedBody %]
+  [% INCLUDE _included.html | Body %]
   Some more content
   </body>
   </html>
@@ -37,7 +37,7 @@ The things we do to support designers...
 
 When you are including a big chunk of HTML into a page via an include, you
 can have problems editing it in WYSIWYG editors because it won't have the
-stylesheets and javascript libs that the main document does.
+stylesheets, meta tags and javascript libs that the main document does.
 
 So for the sake of designers, the best solution is to provide the includes
 with full HTML headers, including proper styles and so on. They can do what
@@ -67,7 +67,7 @@ BEGIN {
 
 sub init {
 	my $self = shift;
-	my $name = $self->{_CONFIG}->{name} || 'NakedBody';
+	my $name = $self->{_CONFIG}->{name} || 'Body';
 	$self->install_filter($name);
 	$self;
 }
@@ -99,7 +99,7 @@ sub _filter {
 
 Bugs should be submitted via the CPAN bug tracker, located at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Plugin-NakedBody>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Plugin-Body>
 
 For other issues, or commercial enhancement or support, contact the author.
 
