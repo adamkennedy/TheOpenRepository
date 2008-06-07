@@ -803,10 +803,14 @@ sub Parse::Marpa::Evaluator::show_bocage {
                 push @rhs, $value_as_string;
             }    # value
 
+	    if ($verbose) {
+		$text .= $lhs . ' ::= ' .  $lhs . '[' . $index . ']' . "\n";
+	    }
+
             $text .= $lhs . '[' . $index . '] ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
-                $text .= '    item: ' . Parse::Marpa::show_dotted_rule($rule, $position) . "\n";
+                $text .= '    item: ' . Parse::Marpa::show_dotted_rule($rule, $position+1) . "\n";
                 $text .= '    argc=' . $argc;
                 if ( defined $closure ) {
                     $text .= '; closure=' . Dumper($closure);
@@ -859,7 +863,7 @@ sub Parse::Marpa::Evaluator::show_tree {
             . "; Depth=$depth; Argc=$argc\n";
         $text
             .= '    Rule: '
-            . Parse::Marpa::show_dotted_rule($rule, $position)
+            . Parse::Marpa::show_dotted_rule($rule, $position+1)
 	    . "\n";
         $text
             .= '    Predecessor: '
@@ -1124,7 +1128,7 @@ sub Parse::Marpa::Evaluator::value {
                     'Pushing tree node ',
                     $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
 		    "[$choice]: ",
-                    Parse::Marpa::show_dotted_rule($rule, $position),
+                    Parse::Marpa::show_dotted_rule($rule, $position+1),
 		    $value_description
                     or croak('print to trace handle failed');
             }

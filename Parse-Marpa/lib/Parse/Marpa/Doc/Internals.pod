@@ -132,8 +132,7 @@ before the dot
 have been recognized,
 but that none of the symbols after the dot have been recognized.
 A dot at the beginning of an LR(0) item
-indicates that the rule is a B<prediction>
--- none of its symbols have yet been recognized.
+indicates that none of its symbols have yet been recognized.
 A dot at the end indicates that the rule is B<complete>
 -- all of its symbols have been recognized.
 The location of the dot is called the B<dot position>.
@@ -398,14 +397,10 @@ in_equation_show_earley_sets($_);
 
     S1@2-2
 
-Z<>
-
-        I think the following is wrong.
-        What is the rule starts with nullables?
-        Test.
-
-Every rule in a predicted item will have the dot at the beginning.
-That means the origin and dot earlemes will always be the same.
+In predicted items,
+either the dot is at the beginning of the rule,
+or all the symbols to the left of the dot are nulling symbols.
+In either case, the origin and dot earlemes are always the same.
 
 Link choices are not recorded for predicted items.
 Prediction items are
@@ -576,38 +571,39 @@ which can be made from that Earley item.
 The name of an or-node consists of the name of
 an Earley item, followed by a label describing
 the selection criteria.
-If an Earley item was reached
-through a predecessor link,
+If an Earley item was created by following
+a predecessor link,
 the selection criteria are the rule currently being
 derived,
 and the current position in that rule.
 
-For example, the or-node named S3@0-1R0:2 corresponds
+For example, the or-node named S3@0-1R0:1 corresponds
 to Earley item S3@0-1.  That Earley item was reached
-at position 2 in a derivation of rule 0 (e -> e . op e)
+at position 1 in a derivation of rule 0 (C<< e -> e . op e >>)
 
-    Note: is naming correct?  Should this be position  1?
-
-The current position in an or-node does not necessary
+The current position in an or-node does not necessarily
 correspond to the dot position of the Earley items.
 Nulled symbols may have been skipped over.
 No Earley items represent nulled symbols,
 but every nulled symbol is represented by a node
 in the parse bocage.
 
-Or-nodes which aren't reached through predecessor links are
-reached via cause links, or are the top symbol.
-In this case the selection criterion is a single symbol,
-either the completed symbol corresponding to the cause link,
-or whatever was chosen as the top symbol.
+Following predecessor links is one of the three ways of
+creating or-nodes.
+Other or-nodes are created by following cause links.
+And one or-node is created from the start item to initialize
+the parse bocage.
+If a node was not created by following a predecessor link,
+it is called a B<non-predecessor or-node>.
+
+For non-predecessor or-nodes,
+the selection criterion is a single symbol.
 An example of a non-predecessor or-node is S6@0-3L0.
 In this case the Earley item was S6@0-3,
-and the predecessor symbol was symbol 0 (e).
+and the predecessor symbol was symbol 0 (C<e>).
 Where a symbol is the selection criterion,
 only LR(0) items with that symbol on their left
 hand side are valid choices.
-
-    What about tokens?
 
 =head2 The Parse Bocage Grammar
 
@@ -620,26 +616,77 @@ can be either one or two or-nodes,
 an or-node and a token value,
 or just a token value.
 
-     Check this.
-
-It may seem pointless to take a grammar, and come this far in the
+It may seem pointless to have come this far in the
 parsing, only to write out another grammar.
 But there is a big difference between the original grammar and
 the parse bocage grammar.
-The original grammar describes all parses which are allowed to
-occur in B<any possible input>.
-The parse bocage grammar describes only parses which actually did
-occur with the specific input which was accepted by the recognizer.
-In the parse bocage grammar, the work of parsing has actually been done.
+The original grammar describes all parses which are possible for
+I<any input>.
+The parse bocage grammar describes only those parses which are possible
+with I<the specific input> which was accepted by the recognizer.
+In the parse bocage grammar,
+the work of parsing a specific input
+has actually been done.
 
 =head2 Examples of Parse Bocage Nodes
 
-     Discuss examples of Parse Bocage Nodes, Including:
-     At least one with a token value
-     At least one with cause link on the rhs
-     At least one with predecessor link on the rhs
-     At least one with a predecessor lhs (Sn@a-bRx.y)
-     At least one with a non-predecessor lhs (Sn@a-bLx)
+=begin Parse::Marpa::test_document:
+
+## next display
+## start display
+in_equation_show_bocage($_);
+
+=end Parse::Marpa::test_document:
+
+    S2@0-3L3 ::= S2@0-3L3[0]
+
+Z<>
+
+    Note that productions with or-nodes on the lhs only appear in verbose output
+
+=begin Parse::Marpa::test_document:
+
+## next display
+## start display
+in_equation_show_bocage($_);
+
+=end Parse::Marpa::test_document:
+
+Z<>
+
+    S2@0-3L3[0] ::= S6@0-3L0
+        item: e['] ::= e .
+        argc=1; closure=sub { "DUMMY" }
+
+=begin Parse::Marpa::test_document:
+
+## next display
+## start display
+in_equation_show_bocage($_);
+
+=end Parse::Marpa::test_document:
+
+Z<>
+
+    S5@0-2R0:2 ::= S5@0-2R0:2[0]
+    S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
+        item: e ::= e op . e
+        argc=3
+
+=begin Parse::Marpa::test_document:
+
+## next display
+## start display
+in_equation_show_bocage($_);
+
+=end Parse::Marpa::test_document:
+
+Z<>
+
+    S4@0-1L0 ::= S4@0-1L0[0]
+    S4@0-1L0[0] ::= '2'
+        item: e ::= number .
+        argc=1; closure=sub { "DUMMY" }
 
 =head1 THE PARSE TREES
 
@@ -1105,23 +1152,29 @@ is_equation_show_bocage($_);
 =end Parse::Marpa::test_document:
 
     package: Parse::Marpa::E_1; parse count: 0
+    S2@0-3L3 ::= S2@0-3L3[0]
     S2@0-3L3[0] ::= S6@0-3L0
-        item: e['] ::= . e
+        item: e['] ::= e .
         argc=1; closure=sub { "DUMMY" }
+    S6@0-3L0 ::= S6@0-3L0[0]
     S6@0-3L0[0] ::= S5@0-2R0:2 S4@2-3L0
-        item: e ::= e op . e
+        item: e ::= e op e .
         argc=3; closure=sub { "DUMMY" }
+    S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
+        item: e ::= e op . e
+        argc=3
+    S4@2-3L0 ::= S4@2-3L0[0]
+    S4@2-3L0[0] ::= '2'
+        item: e ::= number .
+        argc=1; closure=sub { "DUMMY" }
+    S3@0-1R0:1 ::= S3@0-1R0:1[0]
+    S3@0-1R0:1[0] ::= S4@0-1L0
         item: e ::= e . op e
         argc=3
-    S4@2-3L0[0] ::= '2'
-        item: e ::= . number
-        argc=1; closure=sub { "DUMMY" }
-    S3@0-1R0:1[0] ::= S4@0-1L0
-        item: e ::= . e op e
-        argc=3
+    S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
-        item: e ::= . number
+        item: e ::= number .
         argc=1; closure=sub { "DUMMY" }
 
 =head2 C<show_tree> Output
@@ -1134,27 +1187,27 @@ is_equation_show_tree($_);
 =end Parse::Marpa::test_document:
 
     Tree Node: S2@0-3L3[0]; Depth=0; Argc=1
-        Rule: e['] ::= . e
+        Rule: e['] ::= e .
         Cause: S6@0-3L0
         Closure: CODE(0x5250d40)
     Tree Node: S6@0-3L0[0]; Depth=1; Argc=3
-        Rule: e ::= e op . e
+        Rule: e ::= e op e .
         Predecessor: S5@0-2R0:2
         Cause: S4@2-3L0
         Closure: CODE(0x52504c0)
     Tree Node: S4@2-3L0[0]; Depth=2; Argc=1
-        Rule: e ::= . number
+        Rule: e ::= number .
         Value: '2'
         Closure: CODE(0x5250940)
     Tree Node: S5@0-2R0:2[0]; Depth=2; Argc=3
-        Rule: e ::= e . op e
+        Rule: e ::= e op . e
         Predecessor: S3@0-1R0:1
         Value: '+'
     Tree Node: S3@0-1R0:1[0]; Depth=3; Argc=3
-        Rule: e ::= . e op e
+        Rule: e ::= e . op e
         Cause: S4@0-1L0
     Tree Node: S4@0-1L0[0]; Depth=4; Argc=1
-        Rule: e ::= . number
+        Rule: e ::= number .
         Value: '2'
         Closure: CODE(0x5250940)
 

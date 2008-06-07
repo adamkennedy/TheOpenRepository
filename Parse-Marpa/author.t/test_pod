@@ -105,6 +105,9 @@ my $equation_show_bocage = slurp('equation_show_bocage.out');
 sub is_equation_show_bocage {
     return is_file(shift, $equation_show_bocage);
 }
+sub in_equation_show_bocage {
+    return in_file(shift, $equation_show_bocage);
+}
 
 my $equation_show_tree = slurp('equation_show_tree.out');
 sub is_equation_show_tree {
