@@ -4,26 +4,11 @@ use warnings;
 use Test::More tests => 13;
 BEGIN { use_ok('Class::XS') };
 
-package Animal;
-use Class::XS
-  public_attributes => [qw(
-      length mass name
-  )];
+use lib 't/testclasses';
+use lib 'testclasses';
 
-sub other_method_reading {
-  my $self = shift;
-  return $self->get_length();
-}
+use Animal;
 
-sub other_method_writing {
-  my $self = shift;
-  my $value = shift;
-
-  $self->set_length($value);
-  return $self->get_length();
-}
-
-package main;
 my $animal = Animal->new();
 isa_ok($animal, 'Animal');
 
@@ -35,8 +20,8 @@ ok(!defined($animal->get_mass()), 'other attribute also initialized as undef');
 is($animal->set_mass(60), 60, 'other setter returns new value');
 is($animal->get_mass(), 60, 'other getter returns new value');
 
-is($animal->other_method_reading(), 150, 'additional pure-Perl method can call getter');
-is($animal->other_method_writing(120), 120, 'additional pure-Perl method can call setter');
+is($animal->get_length_pp(), 150, 'additional pure-Perl method can call getter');
+is($animal->set_length_pp(120), 120, 'additional pure-Perl method can call setter');
 
 my $animal2 = Animal->new();
 ok(!defined($animal2->get_length()), 'a second object does not retain the attributes of the first...');
