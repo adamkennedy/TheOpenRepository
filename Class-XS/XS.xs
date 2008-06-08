@@ -267,9 +267,8 @@ client_new(class)
       unsigned int i;
       for (i = 0; i < classDef->noElems; i++)
         internals[i] = &PL_sv_undef;
-      IV tmp = (IV) internals;
       SV* obj = sv_newmortal();
-      sv_setref_pv(obj, class, internals);
+      sv_setref_iv(obj, class, PTR2IV(internals));
       XPUSHs( obj );
     }
     else {
@@ -288,8 +287,7 @@ client_getter(self)
     const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
   PPCODE:
     /* FIXME check class here! */
-    IV tmp = SvIV(SvRV(self));
-    storage = (SV**) tmp;
+    storage = INT2PTR(SV**, SvIV(SvRV(self)));
     XPUSHs( storage[attrDef->index] );
 
 
@@ -305,8 +303,7 @@ client_setter(self, value)
     SV** storage;
   PPCODE:
     /* FIXME check class here! */
-    IV tmp = SvIV(SvRV(self));
-    storage = (SV**) tmp;
+    storage = INT2PTR(SV**, SvIV(SvRV(self)));
     const U32 index = attrDef->index;
     SvREFCNT_dec(storage[index]);
     SvREFCNT_inc(value);
@@ -328,8 +325,7 @@ client_destroy(self)
     class_xs_classDef* classDef;
     if (storage = hv_fetch(class_xs_classDefs, class, length, 0)) {
       classDef = (class_xs_classDef*) SvPV_nolen(storage[0]);
-      IV tmp = SvIV(SvRV(self));
-      storage = (SV**) tmp;
+      storage = INT2PTR(SV**, SvIV(SvRV(self)));
       unsigned int i;
       for (i = 0; i < classDef->noElems; i++)
         SvREFCNT_dec(storage[i]);
