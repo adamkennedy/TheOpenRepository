@@ -810,14 +810,12 @@ sub Parse::Marpa::Evaluator::show_bocage {
             $text .= $lhs . '[' . $index . '] ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
-                $text .= '    item: ' . Parse::Marpa::show_dotted_rule($rule, $position+1) . "\n";
-                $text .= '    argc=' . $argc;
+                $text .= '    rule: ' . Parse::Marpa::show_dotted_rule($rule, $position+1) . "\n";
+		$text .= "    rhs length = $argc";
                 if ( defined $closure ) {
-                    $text .= '; closure=' . Dumper($closure);
+		    $text .= "; closure = $closure"
                 }
-                else {
-                    $text .= "\n";
-                }
+		$text .= "\n";
             }
 
         }    # for my $and_node;
@@ -860,7 +858,7 @@ sub Parse::Marpa::Evaluator::show_tree {
             .= 'Tree Node: '
             . $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
             . "[$choice]"
-            . "; Depth=$depth; Argc=$argc\n";
+            . "; Depth = $depth; Rhs Length = $argc\n";
         $text
             .= '    Rule: '
             . Parse::Marpa::show_dotted_rule($rule, $position+1)

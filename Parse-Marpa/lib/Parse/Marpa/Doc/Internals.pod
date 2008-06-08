@@ -494,10 +494,10 @@ Each Marpa evaluator is created with parse criteria.
 The parse criteria are
 the start and end earlemes of the parse,
 and the parse's top symbol.
-Often these parse criteria have
-their default values.
+Often these parse criteria take
+default values.
 The default start earleme is earleme 0.
-The default end earleme in offline mode
+The default end earleme
 is the furthest earleme reached by any token in
 the parse.
 The default top symbol is the start
@@ -534,7 +534,7 @@ Form (CNF).
 I will call the form the grammar takes in Marpa's
 parse bocage, B<Marpa Bocage Form> (B<MBF>).
 
-Marpa evaluates the grammar in MBF form for
+Marpa evaluates the grammar in Marpa Bocage Form for
 four reasons.
 First, MBF is essentially the form in which the grammar
 is found in the Earley items.
@@ -563,7 +563,7 @@ A trivial or-node represents
 a choice from a list containing
 only a single alternative.
 
-=head2 Names of Parse Bocage Nodes
+=head2 Naming Predecessor Or-Nodes
 
 An or-node corresponds to an Earley item with selection criteria.
 The selection criteria limit the choices
@@ -581,17 +581,41 @@ For example, the or-node named S3@0-1R0:1 corresponds
 to Earley item S3@0-1.  That Earley item was reached
 at position 1 in a derivation of rule 0 (C<< e -> e . op e >>)
 
-The current position in an or-node does not necessarily
-correspond to the dot position of the Earley items.
-Nulled symbols may have been skipped over.
+The current position of an or-node will correspond exactly
+to the current position of the Earley item,
+and to the dot position of one or more of that Earley item's
+LR(0) items,
+unless the current position is at a nulled symbol.
 No Earley items represent nulled symbols,
-but every nulled symbol is represented by a node
-in the parse bocage.
+and Marpa's LR(0) items never have a nulled symbol at the dot position
+unless they are completed rules.
+
+But
+in the parse bocage
+every symbol is represented by a node,
+including those nulled symbols which are not the last symbol in a rule.
+When Marpa follows a predecessor link,
+and there are nulled symbols between the predecessor Earley item
+and its successor,
+Marpa creates an or-node for each of the nulled symbols.
+The position of these "nulled or-nodes" is set at their nulled symbol.
+
+Since no Earley item corresponds to these nulled symbols,
+so "nulled or-nodes" use the name of the successor Earley item
+unless and until Marpa reaches a
+non-nulled symbol.
+For these "nulled or-nodes",
+the current position of the or-node will be
+before the current position of the or-node's corresponding Earley item
+and before the dot position of the corresponding
+LR(0) items in that Earley item.
+
+=head2 Naming Other Or-Nodes
 
 Following predecessor links is one of the three ways of
 creating or-nodes.
 Other or-nodes are created by following cause links.
-And one or-node is created from the start item to initialize
+Also, one or-node is created from the start item to initialize
 the parse bocage.
 If a node was not created by following a predecessor link,
 it is called a B<non-predecessor or-node>.
@@ -633,7 +657,6 @@ has actually been done.
 =begin Parse::Marpa::test_document:
 
 ## next display
-## start display
 in_equation_show_bocage($_);
 
 =end Parse::Marpa::test_document:
@@ -644,49 +667,46 @@ Z<>
 
     Note that productions with or-nodes on the lhs only appear in verbose output
 
+Z<>
+
 =begin Parse::Marpa::test_document:
 
 ## next display
-## start display
 in_equation_show_bocage($_);
 
 =end Parse::Marpa::test_document:
-
-Z<>
 
     S2@0-3L3[0] ::= S6@0-3L0
-        item: e['] ::= e .
-        argc=1; closure=sub { "DUMMY" }
+        rule: e['] ::= e .
+        rhs length = 1; closure = CODE(0x5251550)
+
+Z<>
 
 =begin Parse::Marpa::test_document:
 
 ## next display
-## start display
 in_equation_show_bocage($_);
 
 =end Parse::Marpa::test_document:
-
-Z<>
 
     S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
-        item: e ::= e op . e
-        argc=3
+        rule: e ::= e op . e
+        rhs length = 3
+
+Z<>
 
 =begin Parse::Marpa::test_document:
 
 ## next display
-## start display
 in_equation_show_bocage($_);
 
 =end Parse::Marpa::test_document:
 
-Z<>
-
     S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
-        item: e ::= number .
-        argc=1; closure=sub { "DUMMY" }
+        rule: e ::= number .
+        rhs length = 1; closure = CODE(0x52513e0)
 
 =head1 THE PARSE TREES
 
@@ -1154,28 +1174,28 @@ is_equation_show_bocage($_);
     package: Parse::Marpa::E_1; parse count: 0
     S2@0-3L3 ::= S2@0-3L3[0]
     S2@0-3L3[0] ::= S6@0-3L0
-        item: e['] ::= e .
-        argc=1; closure=sub { "DUMMY" }
+        rule: e['] ::= e .
+        rhs length = 1; closure = CODE(0x5251550)
     S6@0-3L0 ::= S6@0-3L0[0]
     S6@0-3L0[0] ::= S5@0-2R0:2 S4@2-3L0
-        item: e ::= e op e .
-        argc=3; closure=sub { "DUMMY" }
+        rule: e ::= e op e .
+        rhs length = 3; closure = CODE(0x5252cc0)
     S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
-        item: e ::= e op . e
-        argc=3
+        rule: e ::= e op . e
+        rhs length = 3
     S4@2-3L0 ::= S4@2-3L0[0]
     S4@2-3L0[0] ::= '2'
-        item: e ::= number .
-        argc=1; closure=sub { "DUMMY" }
+        rule: e ::= number .
+        rhs length = 1; closure = CODE(0x52513e0)
     S3@0-1R0:1 ::= S3@0-1R0:1[0]
     S3@0-1R0:1[0] ::= S4@0-1L0
-        item: e ::= e . op e
-        argc=3
+        rule: e ::= e . op e
+        rhs length = 3
     S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
-        item: e ::= number .
-        argc=1; closure=sub { "DUMMY" }
+        rule: e ::= number .
+        rhs length = 1; closure = CODE(0x52513e0)
 
 =head2 C<show_tree> Output
 
@@ -1186,27 +1206,27 @@ is_equation_show_tree($_);
 
 =end Parse::Marpa::test_document:
 
-    Tree Node: S2@0-3L3[0]; Depth=0; Argc=1
+    Tree Node: S2@0-3L3[0]; Depth = 0; Rhs Length = 1
         Rule: e['] ::= e .
         Cause: S6@0-3L0
         Closure: CODE(0x5250d40)
-    Tree Node: S6@0-3L0[0]; Depth=1; Argc=3
+    Tree Node: S6@0-3L0[0]; Depth = 1; Rhs Length = 3
         Rule: e ::= e op e .
         Predecessor: S5@0-2R0:2
         Cause: S4@2-3L0
         Closure: CODE(0x52504c0)
-    Tree Node: S4@2-3L0[0]; Depth=2; Argc=1
+    Tree Node: S4@2-3L0[0]; Depth = 2; Rhs Length = 1
         Rule: e ::= number .
         Value: '2'
         Closure: CODE(0x5250940)
-    Tree Node: S5@0-2R0:2[0]; Depth=2; Argc=3
+    Tree Node: S5@0-2R0:2[0]; Depth = 2; Rhs Length = 3
         Rule: e ::= e op . e
         Predecessor: S3@0-1R0:1
         Value: '+'
-    Tree Node: S3@0-1R0:1[0]; Depth=3; Argc=3
+    Tree Node: S3@0-1R0:1[0]; Depth = 3; Rhs Length = 3
         Rule: e ::= e . op e
         Cause: S4@0-1L0
-    Tree Node: S4@0-1L0[0]; Depth=4; Argc=1
+    Tree Node: S4@0-1L0[0]; Depth = 4; Rhs Length = 1
         Rule: e ::= number .
         Value: '2'
         Closure: CODE(0x5250940)
