@@ -28,6 +28,7 @@ foreach (1..1000) {
     push @obj, Bar->new();
   }
 }
+@obj = ();
 
 print "Has the memory usage increased significantly? Then there may be a leak. Hit <ENTER> to quit.\n";
 $t = <STDIN>;
