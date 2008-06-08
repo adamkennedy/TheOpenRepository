@@ -27,6 +27,8 @@ typedef struct {
 typedef struct {
   U32 noElems;
   U32* attributes;
+  U32 noDestructors;
+  SV** destructors;
 } class_xs_classDef;
 
 /* This represents an attribute of a Class::XS-managed class */
@@ -104,6 +106,8 @@ void _registerClass(char* class) {
     class_xs_classDef* classDef = (class_xs_classDef*) malloc( sizeof(class_xs_classDef) );
     classDef->noElems = 0;
     classDef->attributes = NULL;
+    classDef->noDestructors = 0;
+    classDef->destructors = NULL;
     
     SV* classDefScalar = newSVpvn((char*)classDef, sizeof(class_xs_classDef));
     hv_store(class_xs_classDefs, class, length, classDefScalar, 0);
@@ -124,7 +128,7 @@ void _registerClass(char* class) {
       XPUSHs(sv_2mortal(newSVpv(file, 0)));
       XPUSHs(sv_2mortal(newSViv(class_xs_noClasses-1)));
       PUTBACK;
-      perl_call_pv("Class::XS::_create_destroyer", G_DISCARD);
+      call_pv("Class::XS::_create_destroyer", G_DISCARD);
       FREETMPS;
       LEAVE;
     }
@@ -320,11 +324,31 @@ client_destroy(self)
      * We uses it to identify the currently running alias of the accessor. Gollum! */
     const char* class = class_xs_classIndex[ix];
     SV** storage;
+    unsigned int destrNo;
   PPCODE:
     const U32 length = strlen(class);
     class_xs_classDef* classDef;
     if (storage = hv_fetch(class_xs_classDefs, class, length, 0)) {
       classDef = (class_xs_classDef*) SvPV_nolen(storage[0]);
+      /* run the user's destructors */
+      if (classDef->noDestructors != 0) {
+        SV** destructors = classDef->destructors;
+        for (destrNo = 0; destrNo < classDef->noDestructors; destrNo++) {
+          SV* destructor = destructors[destrNo];
+          {
+            dSP;
+            ENTER;
+            SAVETMPS;
+            PUSHMARK(SP);
+            XPUSHs(sv_2mortal(newSVsv(self)));
+            PUTBACK;
+            call_sv(destructor, G_DISCARD);
+            FREETMPS;
+            LEAVE;
+          }
+        }
+      }
+      /* now destroy the internals */
       storage = INT2PTR(SV**, SvIV(SvRV(self)));
       unsigned int i;
       for (i = 0; i < classDef->noElems; i++)
@@ -400,5 +424,30 @@ _create_destroyer(className, length, file, classIndex)
       croak("ARG! SOMETHING WENT REALLY WRONG!");
     XSANY.any_i32 = classIndex;
     free(name);
+
+
+void
+_register_user_destructor(className, length, destructor)
+  char* className;
+  U32 length;
+  SV* destructor;
+  INIT:
+    SV** storage;
+  PPCODE:
+    class_xs_classDef* classDef;
+    if (storage = hv_fetch(class_xs_classDefs, className, length, 0)) {
+      classDef = (class_xs_classDef*) SvPV_nolen(storage[0]);
+      U32 noDestructors = classDef->noDestructors;
+      /* Extend list of destructors */
+      SV** newDestructorList = (SV**) malloc( (noDestructors+1) * sizeof(SV*) );
+      if (noDestructors != 0) {
+        memcpy(newDestructorList, classDef->destructors, noDestructors*sizeof(SV*));
+        free(classDef->destructors);
+      }
+      classDef->destructors = newDestructorList;
+      classDef->destructors[noDestructors] = destructor;
+      SvREFCNT_inc(destructor);
+      classDef->noDestructors++;
+    }
 
 
