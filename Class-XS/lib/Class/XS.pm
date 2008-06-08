@@ -75,6 +75,15 @@ sub import {
   my $public = $opts{public} || {};
   my $public_attrs = $public->{attributes} || [];
   _registerPublicAttributes($class, $public_attrs);
+
+  my $destructors = $opts{destructors} || [];
+  push @$destructors, $opts{destructor} if ref($opts{destructor}) eq 'CODE';
+  foreach my $sub (@$destructors) {
+    if (not ref($sub) eq 'CODE') {
+      croak("Destructors must be code references!");
+    }
+    _register_user_destructor($class, length($class), $sub);
+  }
 }
 
 sub _registerPublicAttributes {
@@ -110,9 +119,11 @@ Class::XS - Simple and fast classes
   package Dog;
   use Class::XS
     derive ['Animal'],
-    public_attributes => [qw(
-      leg_length
-    )];
+    public => {
+      attributes => [qw(
+        leg_length
+      )]
+    };
   
   # elsewhere
   package main;
@@ -141,6 +152,63 @@ C<use Class::XS ...;> in your code and supply the specification of the class
 as arguments to that call. Note that you cannot use C<Class::XS> to
 generate B<the same class> twice. This is by design.
 
+=head1 CLASS SPECIFICATIONS
+
+First, take a quick look at the C<SYNOPSIS> above. What you see there
+should be reasonably self-explanatory. If not, write me an email.
+
+Now, for the nitty gritty. The following are all the options that you can
+pass to the C<use Class::XS> statement:
+
+=head2 derive
+
+You can specify other C<Class::XS> based classes as parent classes
+with the C<derive> keyword. Multiple inheritance is supported.
+If you want to inherit from normal Perl classes, the you'll have
+to use the ordinary C<use base 'FooClass';> syntax for that.
+The good news is: Mixing Perl and C<Class::XS> parent classes
+is supported. (But see L<CAVEATS>.)
+
+All attributes are inherited.
+
+Syntax: C<derive =E<gt> ['parent1', 'parent2', ...]>.
+
+=head2 public
+
+This option is a container for attribute/method specifications.
+By wrapping them in C<public =E<gt> { ... }>, they are 
+marked as public attributes or methods. The corresponding
+attribute getters and setters will be created as public
+methods.
+ 
+Currently, C<public> accepts only the C<attributes> option.
+
+Syntax: C<public =E<gt> { attributes =E<gt> [...] }>
+
+=head2 attributes
+
+Only valid within a C<public =E<gt> { ... }> block!
+
+Specifies the attributes of the class. Getter and
+setter methods for each attribute will be generated
+as C<get_attributename()> and C<set_attributename()>.
+
+Syntax: C<public =E<gt> { attributes =E<gt> [ 'color', 'size' ] }>
+
+=head2 destructors
+
+With C<Class::XS> based classes, you cannot normally declare
+destructors with C<sub DESTROY { ...}> because C<Class::XS>
+uses a destructor of its own. So you can either do something
+fragile and replace the DESTROY method which C<Class::XS>
+placed in your class and call it from your own hook later,
+or you just use the facilities of C<Class::XS>:
+
+This option lets you define subroutines which will be run 
+on object destruction just like a normal C<DESTROY> hook.
+
+Syntax: C<destructors =E<gt> [ sub { my $self = shift; ... }, sub { ... } ]>
+
 =head1 PERFORMANCE
 
 Take the values with a grain of salt. Simple benchmarks.
@@ -164,13 +232,46 @@ in all cases slower than the object destruction.
 
 =head1 CAVEATS
 
+=over 2
+
+=item
+
 More documentation to come.
 
-Do not call object methods as class methods. You won't like the results.
+=item
 
 Alpha code. Ugly code.
 
+=item
+
+Cannot inherit destructors!
+
+=item
+
+Cannot inherit attributes and/or accessors from non-Class::XS-based classes. This fails:
+
+  package Foo;
+  sub get_something { my $self = shift; return $self->{something}; }
+
+  package Bar;
+  use base 'Foo';
+  use Class::XS
+    public => {
+      attributes => ['some_attribute']
+    };
+
+This will fail because a C<Class::XS> based class/object is not a hash. Therefore,
+the superclass Foo's method C<get_something()> will trigger a C<"not a hashref"> warning.
+
+=item
+
+Do not call object methods as class methods. You won't like the results.
+
+=item
+
 Object destruction currently not so fast.
+
+=back
 
 =head1 SEE ALSO
 
