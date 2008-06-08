@@ -44,13 +44,21 @@ sub import {
 
   # todo: check attribute names for funny stuff!
 
+  warn "\nCREATING CLASS $class\n" if CLASS_XS_DEBUG;
   # instantiates DESTROY, too.
   _registerClass($class);
-
-  warn "\nCREATING CLASS $class\n" if CLASS_XS_DEBUG;
   newxs_new($class . '::new');
+
   foreach my $baseClass (@{$opts{derive}||[]}) {
     warn "$class --> $baseClass" if CLASS_XS_DEBUG;
+
+    my $file = $baseClass.".pm";
+    $file =~ s/::/\//;
+    if (not exists $INC{$file}) {
+      eval "require $baseClass;";
+      croak("Cannot load base class $baseClass of class $class.") if $@;
+    }
+
     # set up inheritance for pure-Perl methods
     {
       no strict;
@@ -64,10 +72,9 @@ sub import {
     );
   }
 
-  _registerPublicAttributes($class, $opts{public_attributes});
-
-  warn "The attributes for class $class are:\n" if CLASS_XS_DEBUG;
-  my $attributeList = _getListOfAttributes($class);
+  my $public = $opts{public} || {};
+  my $public_attrs = $public->{attributes} || [];
+  _registerPublicAttributes($class, $public_attrs);
 }
 
 sub _registerPublicAttributes {
@@ -94,9 +101,11 @@ Class::XS - Simple and fast classes
   
   package Animal;
   use Class::XS
-    public_attributes => [qw(
-      length mass name
-    )];
+    public => {
+      attributes => [qw(
+        length mass name
+      )],
+    };
   
   package Dog;
   use Class::XS
