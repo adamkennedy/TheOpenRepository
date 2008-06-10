@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile testing for asa
 
@@ -6,7 +6,6 @@ use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	# $DB::single = 1;
 }
 
 use Test::More tests => 24;
@@ -126,5 +125,3 @@ SCOPE: {
 	isa_ok( $meta->attr('MyParam'), 'POE::Declare::Meta::Param' );
 	isa_ok( $meta->attr('foo'), 'POE::Declare::Meta::Attribute' );
 }
-
-exit(0);

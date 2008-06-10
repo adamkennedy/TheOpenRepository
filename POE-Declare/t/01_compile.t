@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile testing for POE::Declare
 
@@ -26,5 +26,3 @@ ok( POE::Declare::Meta::Attribute->isa('POE::Declare::Meta::Slot'), 'Attribute i
 ok( POE::Declare::Meta::Param->isa('POE::Declare::Meta::Slot'),     'Param isa Slot'     );
 ok( POE::Declare::Meta::Message->isa('POE::Declare::Meta::Slot'),   'Message isa Slot'   );
 ok( POE::Declare::Meta::Event->isa('POE::Declare::Meta::Slot'),     'Event isa Slot'     );
-
-exit(0);

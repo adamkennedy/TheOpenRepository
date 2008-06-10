@@ -4,68 +4,21 @@ package POE::Declare::Object;
 
 =head1 NAME
 
-POE::Thing - A POE abstraction layer for conciseness and simplicity
+POE::Declare::Object - Base object for POE::Declare classes
 
 =head1 DESCRIPTION
 
-L<POE> is a very powerful and flexible system for doing asynchronous
-programming.
+L<POE::Declare::Object> provides the base package that delivers the core
+functionality for all instantiated L<POE::Declare> objects.
 
-But personally, I find it confusing and tricky to use at times.
-
-It is flexible to the point of having too much choice, has a terminology
-that is sometimes confusing, a tendency towards very verbose programming,
-and POE components aren't as easy to reuse as I would like.
-
-To be fair, a lot of these issues are done for the sake of speed,
-dependency minimisation and Perl version compatibility, but sometimes speed
-doesn't matter so much, you can be sure of a modern Perl version, and you
-are more interested in expressiveness and development time.
-
-B<POE::Thing> is an abstraction layer implemented on a number of principles.
-
-=head2 Object Orientation is Worth It
-
-Although POE emphasises speed, for general usage the additional development
-time and flexibility gained by using OO methods is worth it for most general
-uses.
-
-=head2 The Use of Modern Techniques
-
-Techniques such as subroutines attributes can be used to make POE development
-much more declarative and expressive.
-
-These techniques, and other setup-time abstractions, can also allow us to
-check the configuration of the objects and catch user mistakes early,
-reducing the number of bugs, and reducing the total code size.
-
-=head2 Early Checking
-
-POE can be somewhat confusing about what it does or does not allow.
-
-It is perfectly happy to let you spell an event name incorrectly, and yet
-will not allow you to load POE but not run a kernel (it throws a warning
-instead).
-
-Where possible, L<POE::Thing> adds additional checking at compile time, and
-at constructor time (before the POE kernel is started) to catch any mistakes
-you make.
-
-=head2 Conciseness
-
-Using POE can lead to duplication, particular for cases like having to
-specify all your event name to subroutine bindings seperately.
-
-As part of the simplification, L<POE::Thing> tries to reduce the amount of
-typing you need to do to interact with POE directly. Ideally, you should
-never have to touch POE directly, and most of the nitty gritty will be
-hidden away.
+Functionality and methods defined here are available in all L<POE::Declare>
+objects.
 
 =head1 METHODS
 
 =cut
 
-use 5.008005;
+use 5.008007;
 use strict;
 use attributes   ();
 use Carp         ();
@@ -577,11 +530,11 @@ Adam Kennedy E<lt>adamk@cpan.orgE<lt>
 
 =head1 SEE ALSO
 
-L<POE>, L<http://ali.as/>
+L<POE>, L<POE::Declare>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
