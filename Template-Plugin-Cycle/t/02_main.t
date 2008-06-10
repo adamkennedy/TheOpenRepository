@@ -1,28 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Main functional unit tests for Template::Plugin::Cycle module
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
-
-
-
-
-# Does everything load?
-use Test::More 'tests' => 76;
+use Test::More tests => 76;
 use Template::Plugin::Cycle ();
-use constant TPC => 'Template::Plugin::Cycle';
 
 
 
@@ -30,21 +17,21 @@ use constant TPC => 'Template::Plugin::Cycle';
 
 # Basic API test
 foreach ( qw{new init reset next value list elements} ) {
-	ok( TPC->can( $_ ), "Template::Plugin::Cycle method '$_' exists" );
+	ok( Template::Plugin::Cycle->can( $_ ), "Template::Plugin::Cycle method '$_' exists" );
 }
 
 
 
 
 # Check that we can pass a context as the first argument
-{
-my $Cycle1 = Template::Plugin::Cycle->new( 'foo', 'bar' );
-isa_ok( $Cycle1, 'Template::Plugin::Cycle' );
-my $Context = bless {}, 'Template::Context';
-isa_ok( $Context, 'Template::Context' );
-my $Cycle2 = Template::Plugin::Cycle->new( $Context, 'foo', 'bar' );
-isa_ok( $Cycle2, 'Template::Plugin::Cycle' );
-is( $Cycle1->elements, $Cycle2->elements, 'Context argument is correctly ignored' );
+SCOPE: {
+	my $Cycle1 = Template::Plugin::Cycle->new( 'foo', 'bar' );
+	isa_ok( $Cycle1, 'Template::Plugin::Cycle' );
+	my $Context = bless {}, 'Template::Context';
+	isa_ok( $Context, 'Template::Context' );
+	my $Cycle2 = Template::Plugin::Cycle->new( $Context, 'foo', 'bar' );
+	isa_ok( $Cycle2, 'Template::Plugin::Cycle' );
+	is( $Cycle1->elements, $Cycle2->elements, 'Context argument is correctly ignored' );
 }
 
 
@@ -64,8 +51,8 @@ my @Cycles = map { Template::Plugin::Cycle->new( @{$_->[0]} ) } @test_data;
 ok( @Cycles == 4, "Four test items in test array" );
 
 # Do some specific tests on the null form
-my $Null = Template::Plugin::Cycle->new();
-isa_ok( $Null, TPC );
+my $Null = Template::Plugin::Cycle->new;
+isa_ok( $Null, 'Template::Plugin::Cycle' );
 my @nulllist = $Cycles[0]->list;
 is_deeply( \@nulllist, [], '->list for null Cycle returns a null list' );
 is( $Null->next, '', "->next returns '' for null list" );
@@ -81,9 +68,9 @@ is( $Null->reset, '', "->reset returns '' for null list" );
 # Do some basic tests on each cycle
 foreach my $data ( @test_data ) {
 	my $params = $data->[0];
-	my $Cycle = Template::Plugin::Cycle->new( @$params );
+	my $Cycle  = Template::Plugin::Cycle->new( @$params );
 	ok( $Cycle, 'A cycle object is boolean true' );
-	isa_ok( $Cycle, TPC );
+	isa_ok( $Cycle, 'Template::Plugin::Cycle' );
 	my $Cycle2 = Template::Plugin::Cycle->new();
 	$Cycle2->init( @$params );
 

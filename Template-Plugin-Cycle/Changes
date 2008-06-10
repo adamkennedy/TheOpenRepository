@@ -1,5 +1,8 @@
 Revision history for Perl extension Template::Plugin::StringTree;
 
+0.05 Tue 10 Jun 2008
+	- Switched from isa to Params::Util::_INSTANCE
+
 0.04 Tue Feb 15 2005
 	- Removing braindead Build.PL
 

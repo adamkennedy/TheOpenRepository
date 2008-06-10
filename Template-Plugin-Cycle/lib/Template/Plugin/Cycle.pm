@@ -107,15 +107,17 @@ situations where it is implicitly available in every page.
 
 =cut
 
+use 5.005;
 use strict;
-use UNIVERSAL 'isa';
-use base 'Template::Plugin';
-use overload 'bool' => sub () { 1 },
-             '""'   => 'next';
+use Params::Util     '_INSTANCE';
+use Template::Plugin ();
+use overload         'bool' => sub () { 1 },
+                     '""'   => 'next';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
+	@ISA     = 'Template::Plugin';
 }
 
 
@@ -144,7 +146,7 @@ sub new {
 	my $self = bless [ 0, () ], shift;
 
 	# Ignore any Template::Context param
-	shift if isa($_[0], 'Template::Context');
+	shift if _INSTANCE($_[0], 'Template::Context');
 
 	$self->init( @_ ) if @_;
 
@@ -282,13 +284,13 @@ sub reset {
 
 Bugs should be submitted via the CPAN bug tracker, located at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template%3A%3APlugin%3A%3ACycle>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Plugin-Cycle>
 
 For other issues, or commercial enhancement or support, contact the author..
 
 =head1 AUTHOR
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Thank you to Phase N Australia (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution as a spin-off from a
@@ -296,7 +298,8 @@ commercial project.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
