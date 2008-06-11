@@ -1,0 +1,12 @@
+Revision history for Perl extension Template::Plugin::NakedBody
+
+0.03 Fri  9 May 2008
+	- Importing into the new repository
+	- Upgrading to newer Module::Install
+	- Upgrading author tests
+
+0.02 Tue May 24 2005
+	- Making the filter a bit more flexible to use
+
+0.01 Tue May 24 2005
+	- Created the initial version of the file
