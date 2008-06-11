@@ -12,6 +12,7 @@ XSLoader::load('Class::XS', $VERSION);
 
 Class::XS::_init();
 
+# "forward declarations" for the XS constants
 sub CLASS_XS_DEBUG;
 sub ATTR_PRIVATE;
 sub ATTR_PROTECTED;
@@ -45,6 +46,9 @@ sub import {
   # todo: check attribute names for funny stuff!
 
   warn "\nCREATING CLASS $class\n" if CLASS_XS_DEBUG;
+
+  _check_DESTROY_existance($class);
+
   # instantiates DESTROY, too.
   _registerClass($class);
   newxs_new($class . '::new');
@@ -56,7 +60,7 @@ sub import {
     $file =~ s/::/\//;
     if (not exists $INC{$file}) {
       eval "require $baseClass;";
-      croak("Cannot load base class $baseClass of class $class.") if $@;
+      croak("Cannot load base class $baseClass of class $class. Reason: $@") if $@;
     }
 
     # set up inheritance for pure-Perl methods
@@ -76,6 +80,7 @@ sub import {
   my $public_attrs = $public->{attributes} || [];
   _registerPublicAttributes($class, $public_attrs);
 
+  # install user defined destructors
   my $destructors = $opts{destructors} || [];
   push @$destructors, $opts{destructor} if ref($opts{destructor}) eq 'CODE';
   foreach my $sub (@$destructors) {
@@ -98,6 +103,24 @@ sub _registerPublicAttributes {
   }
 }
 
+
+# check whether a user class has a DESTROY sub already. For now,
+# we'll just croak about it.
+# TODO: Contemplate whether it makes sense to *include* that existing
+# DESTROY in the list of user destructors. That might be DWIM but it
+# also might be the opposite...
+sub _check_DESTROY_existance {
+  my $class = shift;
+  no strict 'refs';
+  my $table = \%{$class."::"};
+  return if not exists $table->{"DESTROY"};
+  local *symbol = $table->{"DESTROY"};
+  my $destroy = *symbol{CODE};
+
+  if (defined $destroy) {
+    croak("Class '$class' has a DESTROY subroutine/destructor but uses Class::XS. This is a problem. Check the 'destructors' option to Class::XS.");
+  }
+}
 
 1;
 __END__

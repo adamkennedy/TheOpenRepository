@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 BEGIN { use_ok('Class::XS') };
 
 use lib 't/testclasses';
@@ -25,7 +25,14 @@ use AnimalDestructor;
   is($animal->set_length_pp(120), 120, 'additional pure-Perl method can call setter');
 }
 
-my $animal2 = AnimalDestructor->new();
-ok(!defined($animal2->get_length()), 'a second object does not retain the attributes of the first...');
-is($animal2->set_length(110), 110, 'a second object has working setters');
+{
+  my $animal2 = AnimalDestructor->new();
+  ok(!defined($animal2->get_length()), 'a second object does not retain the attributes of the first...');
+  is($animal2->set_length(110), 110, 'a second object has working setters');
+}
+
+eval <<'HERE';
+use AnimalDestructorClash;
+HERE
+ok($@, "using Class::XS from a class which already has DESTROY fails");
 

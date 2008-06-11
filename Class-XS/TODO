@@ -1,4 +1,3 @@
-- check on class creation that there's no DESTROY method in the class already.
 - inheritance of destructors
 - scopes
 
