@@ -839,23 +839,25 @@ sub remove_waste {
 	my $self = shift;
 
 	$self->trace("Removing doc, man, info and html documentation...\n");
-	$self->remove_dir(qw{ perl man     });
-	$self->remove_dir(qw{ perl html    });
-	$self->remove_dir(qw{ c    man     });
-	$self->remove_dir(qw{ c    doc     });
-	$self->remove_dir(qw{ c    info    });
-	$self->remove_dir(qw{ c    contrib });
+	$self->remove_dir(qw{ perl man       });
+	$self->remove_dir(qw{ perl html      });
+	$self->remove_dir(qw{ c    man       });
+	$self->remove_dir(qw{ c    doc       });
+	$self->remove_dir(qw{ c    info      });
+	$self->remove_dir(qw{ c    contrib   });
+	$self->remove_dir(qw{ c    html      });
 
-	$self->trace("Removing C library manifests...\n");
-	$self->remove_dir(qw{ c manifest });
+	$self->trace("Removing C examples, manifests...\n");
+	$self->remove_dir(qw{ c    examples  });
+	$self->remove_dir(qw{ c    manifest  });
 
 	$self->trace("Removing redundant license files...\n");
 	$self->remove_file(qw{ c COPYING     });
 	$self->remove_file(qw{ c COPYING.LIB });
 
 	$self->trace("Removing CPAN build directories and download caches...\n");
-	$self->remove_dir(qw{ cpan sources });
-	$self->remove_dir(qw{ cpan build   });
+	$self->remove_dir(qw{ cpan sources  });
+	$self->remove_dir(qw{ cpan build    });
 
 	return 1;
 }
