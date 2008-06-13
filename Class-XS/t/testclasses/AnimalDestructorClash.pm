@@ -8,7 +8,7 @@ sub DESTROY {
 
 use Class::XS
   public => {
-    attributes => [qw(
+    get_set => [qw(
       length
     )],
   };

@@ -7,10 +7,10 @@
 #define CLASS_XS_DEBUG 0
 
 /* The different scopes the accessors for attributes can have */
-enum attributeScopes {
+enum accessorScopes {
   ATTR_PRIVATE,
   ATTR_PROTECTED,
-  ATTR_PUBLIC
+  ATTR_PUBLIC,
 };
 
 /* for having those pesky enums exported to Perl-land */
@@ -36,7 +36,9 @@ typedef struct {
   char* name;
   char* className;
   U32 index;
-  enum attributeScopes scope;
+  enum accessorScopes getScope;
+  enum accessorScopes setScope;
+  char* originalClassName;
 } class_xs_attrDef;
 
 /* Global index of Class::XS-managed classes.
@@ -66,7 +68,8 @@ void extend_attrDefs () {
    * newAttrDefs[class_xs_noAttributes].className=NULL;
    * newAttrDefs[class_xs_noAttributes].name=NULL;
    * newAttrDefs[class_xs_noAttributes].index=0;
-   * newAttrDefs[class_xs_noAttributes].scope=ATTR_PUBLIC;
+   * newAttrDefs[class_xs_noAttributes].getScope=ATTR_PUBLIC;
+   * newAttrDefs[class_xs_noAttributes].setScope=ATTR_PUBLIC;
    */
 
   class_xs_attrDefs = newAttrDefs;
@@ -109,6 +112,7 @@ void _registerClass(char* class) {
     classDef->noDestructors = 0;
     classDef->destructors = NULL;
     
+    /* FIXME, store a pointer here! */
     SV* classDefScalar = newSVpvn((char*)classDef, sizeof(class_xs_classDef));
     hv_store(class_xs_classDefs, class, length, classDefScalar, 0);
 
@@ -142,7 +146,7 @@ void _registerClass(char* class) {
 
 
 /* add new attribute to global storage and to class def */
-U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
+U32 _newAttribute(char* name, char* class, enum accessorScopes getScope, enum accessorScopes setScope, char* originalClass) {
     const U32 classLength = strlen(class);
     const U32 nameLength = strlen(name);
     if ( !hv_exists(class_xs_classDefs, class, classLength) )
@@ -157,12 +161,20 @@ U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
       extend_attrDefs();
       const U32 thisAttrNo = class_xs_noAttributes-1;
       class_xs_attrDef* thisAttr = &class_xs_attrDefs[thisAttrNo];
+
       char* nameCopy = (char*) malloc((nameLength+1)*sizeof(char));
       strcpy(nameCopy, name);
-      thisAttr->name      = nameCopy;
-      thisAttr->className = class;
-      thisAttr->index     = oldNoElems;
-      thisAttr->scope     = scope;
+      char* classCopy = (char*) malloc((strlen(class)+1)*sizeof(char));
+      strcpy(classCopy, class);
+      char* origClassCopy = (char*) malloc((strlen(originalClass)+1)*sizeof(char));
+      strcpy(origClassCopy, originalClass);
+
+      thisAttr->name              = nameCopy;
+      thisAttr->className         = classCopy;
+      thisAttr->index             = oldNoElems;
+      thisAttr->getScope          = getScope;
+      thisAttr->setScope          = setScope;
+      thisAttr->originalClassName = origClassCopy;
 
       /* add new attribute number to the attribute list of the current class def */
       classDef->attributes = extend_classAttributeList(classDef->attributes, oldNoElems);
@@ -178,10 +190,77 @@ U32 _newAttribute(char* name, char* class, enum attributeScopes scope) {
 
 
 
+const char*
+my_private_caller() {
+  /* I think this is just wrong. You know, the conceptual,
+   * fundamental type of wrong. But seriously, I'll pretend I don't know any better. */
+  return CopSTASHPV(PL_curcop);
+}
+
+/* Don't ask me. I'm faking a call to the CALLER op or something.
+ * Gives me a pounding headache. */
+/*SV*
+my_private_caller() {
+  dVAR; dSP;
+  I32 ax;
+  int index;
+  UNOP dmy_op;
+  OP* old_op = PL_op;
+  memzero((char*)(&dmy_op), sizeof(UNOP));
+  dmy_op.op_flags |= OPf_WANT_LIST;
+  dmy_op.op_flags |= OPf_SPECIAL;
+  PL_op = (OP*)&dmy_op;
+  (void)*(PL_ppaddr[OP_CALLER])(aTHX);
+
+  SPAGAIN;
+  SP -= 3;
+  ax = (SP - PL_stack_base) + 1;
+
+  SV* pkg = ST(0);
+  printf("%s -- %s -- %s\n", SvPV_nolen(ST(0)), SvPV_nolen(ST(1)), SvPV_nolen(ST(2)));
+  PL_op = old_op;
+  return pkg;
+}*/
+
+
+/* This is essentially an XSUB that does caller() */
+/*void
+myCaller()
+  INIT:
+  CODE:
+    {
+      int index;
+      struct op dmy_op;
+      struct op *old_op = PL_op;
+      memzero((char*)(&dmy_op), sizeof(struct op));
+      PL_op = &dmy_op;
+      (void)*(PL_ppaddr[OP_CALLER])(aTHX);
+      PUTBACK;
+      PL_op = old_op;
+      XSRETURN(1);
+    }
+*/
+
+void _dumpAttribute(class_xs_attrDef* attr) {
+  printf(
+    "  Attribute: %s\n    class:         %s\n    originalClass: %s\n    getScope: %u\n    setScope: %u\n    index:    %u\n",
+    attr->name, attr->className, attr->originalClassName, attr->getScope, attr->setScope, attr->index
+  );
+}
+
+void _dumpAttributes() {
+  unsigned int i;
+  for (i = 0; i < class_xs_noAttributes; i++) { 
+    _dumpAttribute(&class_xs_attrDefs[i]);
+  }
+}
 
 MODULE = Class::XS		PACKAGE = Class::XS
 
 INCLUDE: const-xs.inc
+
+void
+_dumpAttributes()
 
 void
 _init()
@@ -195,10 +274,12 @@ _registerClass(class)
     char* class;
 
 U32
-_newAttribute(name, class, scope)
+_newAttribute(name, class, getScope, setScope, originalClass)
     char* name;
     char* class;
-    enum attributeScopes scope;
+    enum accessorScopes getScope;
+    enum accessorScopes setScope;
+    char* originalClass;
 
 SV*
 _getListOfAttributes(class)
@@ -208,10 +289,16 @@ _getListOfAttributes(class)
     class_xs_attrDef* attrDef;
     SV** classDefScalar = NULL;
     U32 attrNo;
-    HV* privateAttrs   = (HV *)sv_2mortal((SV *)newHV());
-    HV* protectedAttrs = (HV *)sv_2mortal((SV *)newHV());
-    HV* publicAttrs    = (HV *)sv_2mortal((SV *)newHV());
-    AV* scopeArray     = (AV *)sv_2mortal((SV *)newAV());
+    HV* privateGetters   = (HV *)sv_2mortal((SV *)newHV());
+    HV* protectedGetters = (HV *)sv_2mortal((SV *)newHV());
+    HV* publicGetters    = (HV *)sv_2mortal((SV *)newHV());
+    HV* privateSetters   = (HV *)sv_2mortal((SV *)newHV());
+    HV* protectedSetters = (HV *)sv_2mortal((SV *)newHV());
+    HV* publicSetters    = (HV *)sv_2mortal((SV *)newHV());
+    AV* getterScopeArray = (AV *)sv_2mortal((SV *)newAV());
+    AV* setterScopeArray = (AV *)sv_2mortal((SV *)newAV());
+    HV* origClassHash    = (HV *)sv_2mortal((SV *)newHV());
+    HV* getterSetterHash = (HV *)sv_2mortal((SV *)newHV());
     HV* assignHash;
   CODE:
     const U32 length = strlen(class);
@@ -219,36 +306,63 @@ _getListOfAttributes(class)
       classDef = (class_xs_classDef*) SvPV_nolen(classDefScalar[0]);
       
       /* push inner (scope) hashes into the outer array */
-      av_push(scopeArray, newRV((SV*)privateAttrs));
-      av_push(scopeArray, newRV((SV*)protectedAttrs));
-      av_push(scopeArray, newRV((SV*)publicAttrs));
+      av_push(getterScopeArray, newRV((SV*)privateGetters));
+      av_push(getterScopeArray, newRV((SV*)protectedGetters));
+      av_push(getterScopeArray, newRV((SV*)publicGetters));
+      av_push(setterScopeArray, newRV((SV*)privateSetters));
+      av_push(setterScopeArray, newRV((SV*)protectedSetters));
+      av_push(setterScopeArray, newRV((SV*)publicSetters));
+
       /* put the attribute names and numbers into the inner hashes */
       const U32 noAttributes = classDef->noElems;
       for (attrNo = 0; attrNo < noAttributes; attrNo++) {
         const U32 globalAttrID = classDef->attributes[attrNo];
         attrDef = &class_xs_attrDefs[globalAttrID];
         const char* attrName = attrDef->name;
-        switch(attrDef->scope) {
+        const U32 attrNameLength = strlen(attrName);
+
+        switch(attrDef->getScope) {
           case ATTR_PRIVATE:
-            assignHash = privateAttrs;
+            assignHash = privateGetters;
             break;
           case ATTR_PROTECTED:
-            assignHash = protectedAttrs;
+            assignHash = protectedGetters;
             break;
           case ATTR_PUBLIC:
-            assignHash = publicAttrs;
+            assignHash = publicGetters;
             break;
           default:
-            croak("Class::XS: Unknown attribute scope!");
+            croak("Class::XS: Unknown getter scope!");
             break;
         }
-#if CLASS_XS_DEBUG
-        printf("Reading attribute '%u' of class '%s'. It has global id '%u' and name '%s'.\n", attrNo, class, globalAttrID, attrName);
-#endif
-        hv_store(assignHash, attrName, strlen(attrName), newSViv(globalAttrID), 0);
+        hv_store(assignHash, attrName, attrNameLength, newSViv(globalAttrID), 0);
+
+        switch(attrDef->setScope) {
+          case ATTR_PRIVATE:
+            assignHash = privateSetters;
+            break;
+          case ATTR_PROTECTED:
+            assignHash = protectedSetters;
+            break;
+          case ATTR_PUBLIC:
+            assignHash = publicSetters;
+            break;
+          default:
+            croak("Class::XS: Unknown setter scope!");
+            break;
+        }
+        hv_store(assignHash, attrName, attrNameLength, newSViv(globalAttrID), 0);
+
+        if (attrDef->originalClassName != NULL)
+          hv_store(origClassHash, attrName, attrNameLength, newSVpvn(attrDef->originalClassName, strlen(attrDef->originalClassName)), 0);
       } /* end for attributes */
-      RETVAL = newRV((SV*)scopeArray);
-    }
+
+      hv_store(getterSetterHash, "set", 3, newRV((SV*)setterScopeArray), 0);
+      hv_store(getterSetterHash, "get", 3, newRV((SV*)getterScopeArray), 0);
+      hv_store(getterSetterHash, "originalClass", 13, newRV((SV*)origClassHash), 0);
+
+      RETVAL = newRV((SV*)getterSetterHash);
+    } /* end if class exists */
     else
       RETVAL = &PL_sv_undef;
     OUTPUT:
@@ -280,6 +394,7 @@ client_new(class)
     }
 
 
+
 void
 client_getter(self)
     SV* self;
@@ -287,12 +402,70 @@ client_getter(self)
   INIT:
     /* ix is the magic integer variable that is set by the perl guts for us.
      * We uses it to identify the currently running alias of the accessor. Gollum! */
-    SV** storage;
     const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
+    SV** storage;
   PPCODE:
-    /* FIXME check class here! */
-    storage = INT2PTR(SV**, SvIV(SvRV(self)));
-    XPUSHs( storage[attrDef->index] );
+    if ( sv_isa(self, attrDef->className) ) {
+      storage = INT2PTR(SV**, SvIV(SvRV(self)));
+      XPUSHs( storage[attrDef->index] );
+    }
+    else {
+      croak("Getter for attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
+
+void
+client_getter_private(self)
+    SV* self;
+  ALIAS:
+  INIT:
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
+    SV** storage;
+  PPCODE:
+    if ( sv_isa(self, attrDef->className) ) {
+      const char* callerPackage = my_private_caller();
+      if ( !strcmp(callerPackage, attrDef->className) ) {
+        storage = INT2PTR(SV**, SvIV(SvRV(self)));
+        XPUSHs( storage[attrDef->index] );
+      }
+      else {
+        croak("Getter for private attribute '%s' of class '%s' called from a different class '%s'", attrDef->name, attrDef->className, callerPackage);
+      }
+    }
+    else {
+      croak("Getter for private attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
+
+
+
+void
+client_getter_protected(self)
+    SV* self;
+  ALIAS:
+  INIT:
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
+    SV** storage;
+  PPCODE:
+    if ( sv_isa(self, attrDef->className) ) {
+      const char* callerPackage = my_private_caller();
+      if ( sv_derived_from(self, callerPackage) ) {
+        storage = INT2PTR(SV**, SvIV(SvRV(self)));
+        XPUSHs( storage[attrDef->index] );
+      }
+      else {
+        croak("Getter for protected attribute '%s' of class '%s' called from a different class '%s'", attrDef->name, attrDef->className, callerPackage);
+      }
+    }
+    else {
+      croak("Getter for protected attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
+
 
 
 void
@@ -306,13 +479,80 @@ client_setter(self, value)
     const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
     SV** storage;
   PPCODE:
-    /* FIXME check class here! */
-    storage = INT2PTR(SV**, SvIV(SvRV(self)));
-    const U32 index = attrDef->index;
-    SvREFCNT_dec(storage[index]);
-    SvREFCNT_inc(value);
-    storage[index] = value;
-    XPUSHs(value);
+    if ( sv_isa(self, attrDef->className) ) {
+      storage = INT2PTR(SV**, SvIV(SvRV(self)));
+      const U32 index = attrDef->index;
+      SvREFCNT_dec(storage[index]);
+      SvREFCNT_inc(value);
+      storage[index] = value;
+      XPUSHs(value);
+    }
+    else {
+      croak("Setter for attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
+
+
+void
+client_setter_private(self, value)
+    SV* self;
+    SV* value;
+  ALIAS:
+  INIT:
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
+    SV** storage;
+  PPCODE:
+    if ( sv_isa(self, attrDef->className) ) {
+      const char* callerPackage = my_private_caller();
+      if ( !strcmp(callerPackage, attrDef->className) ) {
+        storage = INT2PTR(SV**, SvIV(SvRV(self)));
+        const U32 index = attrDef->index;
+        SvREFCNT_dec(storage[index]);
+        SvREFCNT_inc(value);
+        storage[index] = value;
+        XPUSHs(value);
+      }
+      else {
+        croak("Setter for private attribute '%s' of class '%s' called from a different class '%s'", attrDef->name, attrDef->className, callerPackage);
+      }
+    }
+    else {
+      croak("Setter for private attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
+
+
+void
+client_setter_protected(self, value)
+    SV* self;
+    SV* value;
+  ALIAS:
+  INIT:
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const class_xs_attrDef* attrDef = &class_xs_attrDefs[ix];
+    SV** storage;
+  PPCODE:
+    if ( sv_isa(self, attrDef->className) ) {
+      const char* callerPackage = my_private_caller();
+      if ( sv_derived_from(self, callerPackage) ) {
+        storage = INT2PTR(SV**, SvIV(SvRV(self)));
+        const U32 index = attrDef->index;
+        SvREFCNT_dec(storage[index]);
+        SvREFCNT_inc(value);
+        storage[index] = value;
+        XPUSHs(value);
+      }
+      else {
+        croak("Setter for protected attribute '%s' of class '%s' called from a different class '%s'", attrDef->name, attrDef->className, callerPackage);
+      }
+    }
+    else {
+      croak("Setter for protected attribute '%s' of class '%s' called on non-object or object of a different class", attrDef->name, attrDef->className);
+    }
+
 
 
 void
@@ -360,16 +600,27 @@ client_destroy(self)
 
 
 void
-newxs_getter(name, index)
+newxs_getter(name, index, scope)
   char* name;
   U32 index;
+  enum accessorScopes scope;
   PPCODE:
     char* file = __FILE__;
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
        * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
-      cv = newXS(name, XS_Class__XS_client_getter, file);
+      switch (scope) {
+        case ATTR_PRIVATE:
+          cv = newXS(name, XS_Class__XS_client_getter_private, file);
+          break;
+        case ATTR_PROTECTED:
+          cv = newXS(name, XS_Class__XS_client_getter_protected, file);
+          break;
+        case ATTR_PUBLIC:
+          cv = newXS(name, XS_Class__XS_client_getter, file);
+          break;
+      };
       if (cv == NULL)
         croak("ARG! SOMETHING WENT REALLY WRONG!");
       XSANY.any_i32 = index;
@@ -393,16 +644,27 @@ newxs_new(name)
 
 
 void
-newxs_setter(name, index)
+newxs_setter(name, index, scope)
   char* name;
   U32 index;
+  enum accessorScopes scope;
   PPCODE:
     char* file = __FILE__;
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
        * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
-      cv = newXS(name, XS_Class__XS_client_setter, file);
+      switch (scope) {
+        case ATTR_PRIVATE:
+          cv = newXS(name, XS_Class__XS_client_setter_private, file);
+          break;
+        case ATTR_PROTECTED:
+          cv = newXS(name, XS_Class__XS_client_setter_protected, file);
+          break;
+        case ATTR_PUBLIC:
+          cv = newXS(name, XS_Class__XS_client_setter, file);
+          break;
+      };
       if (cv == NULL)
         croak("ARG! SOMETHING WENT REALLY WRONG!");
       XSANY.any_i32 = index;

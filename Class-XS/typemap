@@ -1,4 +1,4 @@
 TYPEMAP
 
-enum attributeScopes	T_UV
+enum accessorScopes	T_UV
 

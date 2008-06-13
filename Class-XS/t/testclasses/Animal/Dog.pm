@@ -8,7 +8,7 @@ use Class::XS
     Animal::Canine
   )],
   public => {
-    attributes => [qw(
+    get_set => [qw(
       barking_sound
     )],
   };

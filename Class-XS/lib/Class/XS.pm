@@ -28,12 +28,13 @@ sub AUTOLOAD {
   my ($error, $val) = constant($constname);
   if ($error) { croak $error; }
   {
-   no strict 'refs';
-   *$AUTOLOAD = sub { $val };
+    no strict 'refs';
+    *$AUTOLOAD = sub { $val };
   }
   goto &$AUTOLOAD;
 }
 
+# FIXME This whole thing is horrible spaghetti code...
 sub import {
   my $own_class = shift;
   my ($caller_pkg) = caller();
@@ -53,6 +54,17 @@ sub import {
   _registerClass($class);
   newxs_new($class . '::new');
 
+  # for iteration over the scopes
+  my %scopeMap = (
+    public => ATTR_PUBLIC,
+    protected => ATTR_PROTECTED,
+    private => ATTR_PRIVATE,
+  );
+  # this will hold a hash of the following:
+  # attrname => { get => GETSCOPE, set => SETSCOPE, originalClass => FROMWHICHCLASS }
+  my $attrs = {};
+
+  # import the attributes (etc) from potential base classes
   foreach my $baseClass (@{$opts{derive}||[]}) {
     warn "$class --> $baseClass" if CLASS_XS_DEBUG;
 
@@ -71,14 +83,72 @@ sub import {
     # set up attributes of base class
     my $attributeList = _getListOfAttributes($baseClass);
     eval 'use Data::Dumper; warn Dumper $attributeList' if CLASS_XS_DEBUG;
-    _registerPublicAttributes(
-      $class, [ keys %{$attributeList->[ATTR_PUBLIC]} ]
-    );
-  }
 
-  my $public = $opts{public} || {};
-  my $public_attrs = $public->{attributes} || [];
-  _registerPublicAttributes($class, $public_attrs);
+    my $originalClasses = $attributeList->{originalClass};
+    foreach my $accessorType (qw(get set)) {
+      foreach my $scope (keys %scopeMap) {
+        my $scopeID = $scopeMap{$scope};
+
+        foreach my $attrName (keys %{ $attributeList->{$accessorType}[$scopeID] }) {
+          my $attr = ($attrs->{$attrName} ||= {});
+          if (defined $attr->{$accessorType} and $attr->{$accessorType} != $scopeID) {
+            croak("Multiple definition of ${accessorType}ter for attribute '$attrName' with conflicting scope");
+          }
+          $attr->{$accessorType} = $scopeID;
+          $attr->{originalClass} = $originalClasses->{$attrName};
+        }
+      } # end foreach scope
+    } # end foreach accessorType
+  } # end foreach base class
+
+  # process this class' object attributes
+  foreach my $scope (keys %scopeMap) {
+    my $scopeOpts = $opts{$scope} || {};
+    # process "get" attributes
+    foreach my $attrName (@{$scopeOpts->{get}||[]}) {
+      my $attr = ($attrs->{$attrName} ||= {});
+      if (defined $attr->{get}) {
+        croak("Multiple definition of getter for attribute '$attrName' or redefinition in subclass");
+      }
+      $attr->{get} = $scopeMap{$scope};
+      $attr->{originalClass} = $class;
+    }
+    # process "set" attributes
+    foreach my $attrName (@{$scopeOpts->{set}||[]}) {
+      my $attr = ($attrs->{$attrName} ||= {});
+      if (defined $attr->{set}) {
+        croak("Multiple definition of getter for attribute '$attrName' or redefinition in subclass");
+      }
+      $attr->{set} = $scopeMap{$scope};
+      $attr->{originalClass} = $class;
+    }
+    # process "get_set" attributes
+    foreach my $attrName (@{$scopeOpts->{get_set}||[]}) {
+      my $attr = ($attrs->{$attrName} ||= {});
+      if (defined $attr->{set}) {
+        croak("Multiple definition of getter for attribute '$attrName' or redefinition in subclass");
+      }
+      if (defined $attr->{get}) {
+        croak("Multiple definition of getter for attribute '$attrName' or redefinition in subclass");
+      }
+      $attr->{set} = $scopeMap{$scope};
+      $attr->{get} = $scopeMap{$scope};
+      $attr->{originalClass} = $class;
+    }
+  } # end foreach scope
+
+  # check that scopes were defined for both setter and getter,
+  # then install the new attribute
+  foreach my $attrName (keys %$attrs) {
+    my $scopeHash = $attrs->{$attrName};
+    if (not exists $scopeHash->{set}) {
+      croak("Missing getter declaration for attribute '$attrName'");
+    }
+    if (not exists $scopeHash->{set}) {
+      croak("Missing setter definition for attribute '$attrName'");
+    }
+    _registerAttribute($class, $attrName, $scopeHash->{get}, $scopeHash->{set}, $scopeHash->{originalClass});
+  }
 
   # install user defined destructors
   my $destructors = $opts{destructors} || [];
@@ -91,15 +161,28 @@ sub import {
   }
 }
 
+sub _registerAttribute {
+  my $class = shift;
+  my $attrName = shift;
+  my $getScope = shift;
+  my $setScope = shift;
+  my $originalClass = shift;
+
+  my $attrIndex = _newAttribute($attrName, $class, $getScope, $setScope, $originalClass);
+  warn "This is Class/XS.pm. Created attribute with name '$attrName' and global index '$attrIndex'\n" if CLASS_XS_DEBUG;
+  newxs_getter($class . '::get_' . $attrName, $attrIndex, $getScope);
+  newxs_setter($class . '::set_' . $attrName, $attrIndex, $setScope);
+}
+
 sub _registerPublicAttributes {
   my $class = shift;
   warn "CREATING ATTRIBUTES FOR CLASS $class\n" if CLASS_XS_DEBUG;
   my $attrs = shift;
   foreach my $attrName (@{$attrs||[]}) {
-    my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC);
+    my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC, ATTR_PUBLIC);
     warn "This is Class/XS.pm. Created attribute with name '$attrName' and global index '$attrIndex'\n" if CLASS_XS_DEBUG;
-    newxs_getter($class . '::get_' . $attrName, $attrIndex);
-    newxs_setter($class . '::set_' . $attrName, $attrIndex);
+    newxs_getter($class . '::get_' . $attrName, $attrIndex, ATTR_PUBLIC);
+    newxs_setter($class . '::set_' . $attrName, $attrIndex, ATTR_PUBLIC);
   }
 }
 
@@ -134,7 +217,10 @@ Class::XS - Simple and fast classes
   package Animal;
   use Class::XS
     public => {
-      attributes => [qw(
+      get_set => [qw(
+        length mass name
+      )],
+      get => [qw(
         length mass name
       )],
     };

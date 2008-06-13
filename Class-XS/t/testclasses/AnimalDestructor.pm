@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Class::XS
   public => {
-    attributes => [qw(
+    get_set=> [qw(
       length mass name
     )],
   },

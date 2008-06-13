@@ -1,10 +1,15 @@
-package Animal;
+package AnimalPrivate;
 use strict;
 use warnings;
 use Class::XS
   public => {
     get_set => [qw(
-      length mass name
+      mass name
+    )]
+  },
+  private => {
+    get_set => [qw(
+      length
     )]
   };
 

@@ -7,7 +7,7 @@ use Class::XS
     Animal::FourLegged
   )],
   public => {
-    attributes => [qw(
+    get_set => [qw(
     gender
     )]
   };
