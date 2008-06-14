@@ -629,30 +629,32 @@ Where a symbol is the selection criterion,
 only LR(0) items with that symbol on their left
 hand side are valid choices.
 
+=head2 Naming And-Nodes
+
+An and-node is always one of the children of an or-node.
+The name of an and-node is made up of the parent or-node's name,
+followed by a numerical index in brackets.
+For example, S6@0-3L0[0] is the first choice of and-node from
+the children of the or-node named S6@0-3L0.
+(Choices are numbered starting at 0.)
+
 =head2 The Parse Bocage Grammar
 
-Marpa typically displays a parse bocage as a B<parse bocage grammar>.
-This is a grammar where each production contains an and-node as its left
-hand side,
-and one or two symbols on the right hand side.
-The right hand side of a parse bocage productions
-can be either one or two or-nodes,
-an or-node and a token value,
-or just a token value.
-
+Marpa typically displays a parse bocage as a B<parse bocage grammar>
+(B<PBG>).
 It may seem pointless to have come this far in the
 parsing, only to write out another grammar.
 But there is a big difference between the original grammar and
 the parse bocage grammar.
 The original grammar describes all parses which are possible for
 I<any input>.
-The parse bocage grammar describes only those parses which are possible
-with I<the specific input> which was accepted by the recognizer.
+The PBG describes only those parses which are possible
+for I<the specific input> which was accepted by the recognizer.
 In the parse bocage grammar,
 the work of parsing a specific input
 has actually been done.
 
-=head2 Examples of Parse Bocage Nodes
+=head2 Examples of Parse Bocage Productions
 
 =begin Parse::Marpa::test_document:
 
@@ -663,9 +665,46 @@ in_equation_show_bocage($_);
 
     S2@0-3L3 ::= S2@0-3L3[0]
 
-Z<>
+The above is the start production of the parse bocage.
+The left hand side is an or-node which corresponds to
+a start rule completion item.
+A PBG always starts with an or-node.
 
-    Note that productions with or-nodes on the lhs only appear in verbose output
+Or-nodes appear in the PBG as one or more productions,
+each of
+which has the name of an or-node at its lhs,
+and each of which had the name of one of
+the or-node's child and-nodes
+as the only symbol on its rhs.
+In the example above, the rhs and-node is the first child
+of the lhs or-node.
+
+In many cases, the or-nodes are trivial -- they have
+exactly one child.
+Trivial or-nodes have only one production in the PBG.
+In an unambiguous parse, like the parse of our example,
+I<all> the or-nodes are trivial.
+
+Or-nodes are not show unless C<show_bocage> is called
+with the verbose option.
+The or-node productions are necessary for the PBG to be a real
+BNF grammar,
+but they convey no information not easily deducted from
+the the and-nodes.
+
+For example, the and-node on the rhs of this production
+is S2@0-3L3[0].
+That's enough to deduce the contents of this or-node production.
+The name of the parent or-node of an and-node will always be 
+the name of the and-node, minus its bracketed index.
+In this case, the parent of 
+S2@0-3L3[0] will be
+S2@0-3L3.
+Whenever, there is an and-node in the PBG,
+there is always an or-node production with the
+unbracketed name of the and-node node on it lhs
+and the and-node itself as the
+only rhs symbol.
 
 Z<>
 
@@ -680,7 +719,26 @@ in_equation_show_bocage($_);
         rule: e['] ::= e .
         rhs length = 1; closure = CODE(0x5251550)
 
-Z<>
+Above is the production for the and-node which was the only
+child of the or-node whose production was the previous example.
+Parse bocage and-nodes always have one or two rhs symbols.
+A token or a cause or-node may be on the right hand side.
+One or the other is always present, but never both.
+Additionally, there may be a 
+predecessor or-node.
+If a predecessor or-node is present,
+it is always the first symbol.
+
+In this example, the only symbol on the rhs is
+a cause or-node: S6@0-3L0.
+The next line contains a dotted rule showing the rule
+and position within the rule for this and-node.
+The last line is not very informative -- it tells
+us the length of the rule's rhs, and that there is
+a closure corresponding to this rule.
+
+    Corresponds to the rule?  Check.
+    Change diagnostics so they print rule numbers in parse bocage.
 
 =begin Parse::Marpa::test_document:
 
