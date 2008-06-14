@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.01';
+our $VERSION = '0.01_01';
 
 require XSLoader;
 XSLoader::load('Class::XS', $VERSION);
@@ -172,18 +172,6 @@ sub _registerAttribute {
   warn "This is Class/XS.pm. Created attribute with name '$attrName' and global index '$attrIndex'\n" if CLASS_XS_DEBUG;
   newxs_getter($class . '::get_' . $attrName, $attrIndex, $getScope);
   newxs_setter($class . '::set_' . $attrName, $attrIndex, $setScope);
-}
-
-sub _registerPublicAttributes {
-  my $class = shift;
-  warn "CREATING ATTRIBUTES FOR CLASS $class\n" if CLASS_XS_DEBUG;
-  my $attrs = shift;
-  foreach my $attrName (@{$attrs||[]}) {
-    my $attrIndex = _newAttribute($attrName, $class, ATTR_PUBLIC, ATTR_PUBLIC);
-    warn "This is Class/XS.pm. Created attribute with name '$attrName' and global index '$attrIndex'\n" if CLASS_XS_DEBUG;
-    newxs_getter($class . '::get_' . $attrName, $attrIndex, ATTR_PUBLIC);
-    newxs_setter($class . '::set_' . $attrName, $attrIndex, ATTR_PUBLIC);
-  }
 }
 
 
