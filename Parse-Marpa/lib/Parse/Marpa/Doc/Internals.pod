@@ -222,15 +222,14 @@ in_equation_show_earley_sets($_);
     S4@2-3  [p=S1@2-2; t=2]
 
 After the name of the Earley item is a
-B<link choice> entry, shown in brackets.
-For brevity, and when the context makes the
-meaning clear, a B<link choice> of an 
-Earley item may simply
-be called a B<choice>.
+B<Earley item source choice> entry, shown in brackets.
+When the context makes the
+meaning clear, an B<Earley item source choice>
+may be called a B<source> or a B<source choice>.
 This parse is not ambiguous,
-so all Earley items have at most one link choice entry.
+so all Earley items have at most one source choice entry.
 
-In this case the link choice entry is for a B<token choice>.
+In this case the source choice entry is for a B<token choice>.
 Token choices are shown as C<[p=>I<predecessor>C<; t=>I<token_value>C<]> pairs.
 In the above example, the token choice
 C<[p=S1@2-2; t=2]>
@@ -238,7 +237,7 @@ indicates that the token has a value of "2",
 and that, when this token choice is selected,
 the predecessor of S4@2-3 is S1@2-2.
 Of course,
-since there's only one link choice,
+since there's only one source choice,
 the predecessor of S4@2-3 is always S1@2-2.
 
 =head2 Completion
@@ -319,18 +318,20 @@ Every different reason for the existence of an Earley item in an Earley set
 is an alternative that can be followed when it comes time
 to create a parse structure.
 
-Marpa uses the link choices to track the reasons why Earley items were added.
-Aycock and Horspool don't call them link choices,
-but Marpa's method is basically the one they give in
+Marpa uses the Earley item source choices
+to track the reasons why Earley items were added.
+Aycock and Horspool don't call them source choices.
+The term "source choice" is new with Marpa,
+but Marpa's method is based on the one Aycock and Horspool outline in
 L<their 2002 article|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
-We've already seen a token link choice in the scanning example.
-Earley item S6@0-3 has another example of a link choice: C<[p=S5@0-2; c=S4@2-3]>.
-This is another kind of link choice, a completion link choice.
-This link choice says that one reason for S6@0-3 to exist was a completion,
+We've already seen a token source choice in the scanning example.
+Earley item S6@0-3 has another example of a source choice: C<[p=S5@0-2; c=S4@2-3]>.
+This is another kind of source choice, a completion source choice.
+This source choice says that one reason for S6@0-3 to exist was a completion,
 with S4@2-3 as the cause and S5@0-2 the predecessor.
 Since this parse in unambiguous,
-there will be no other links,
+there will be no other source choices,
 and this will remain the only reason for S6@0-3 to be in the
 Earley sets.
 
@@ -402,13 +403,13 @@ either the dot is at the beginning of the rule,
 or all the symbols to the left of the dot are nulling symbols.
 In either case, the origin and dot earlemes are always the same.
 
-Link choices are not recorded for predicted items.
+Source choices are not recorded for predicted items.
 Prediction items are
 essential to get rules started
 in the Earley sets.
 But they are not actually needed
 when the time comes for parsing and evaluation.
-That means they don't need link choice entries.
+That means they don't need source choice entries.
 
 =head2 Initialization
 
@@ -446,16 +447,15 @@ is also a completed start rule state.
 
 The other completed start rule state
 is not hard to spot.
-Marpa always adds its own, internal, start rule,
+A completed start rule state for non-null parses
+contains the LR(0) item which has Marpa's internal start rule
+with the dot pointer at the end of the rule.
 The lhs of the internal start rule is
 a special internal start symbol.
 The rhs of the internal start rule is
 the grammar's original start symbol.
-
-A completed start rule state for non-null parses
-contains the LR(0) item which has Marpa's internal start rule
-with the dot pointer at the end of the rule.
-The completed start rule state in our example is QDFA state 2:
+QDFA state 2 is the completed start rule state
+for our example parse:
 
 =begin Parse::Marpa::test_document:
 
@@ -505,40 +505,37 @@ symbol of the grammar.
 
 The parse bocage stores all parses meeting the
 evaluator's parse criteria.
-Marpa's parse bocages are adaptations of parse forests.
-Parse forests only store parse trees, and parse trees cannot contain cycles.
-A parse bocage can store parse graphs as well as parse trees.
-Parse graphs can contain cycles.
-The ability to store parse graphs means that parse bocages can
-represent parses which are infinitely
-ambiguous.
+In the parsing literature,
+a parse forest has been used to store ambiguous parses,
+and Marpa's parse bocage is an adaptation of the parse forest.
+Parse bocages differ from parse forests in three ways:
+parse bocages may contain cycles;
+and-nodes and or-nodes strictly alternate in parse bocages;
+and parse bocage and-nodes are limited to two rhs symbols.
 
-Parse bocages, like parse forests, consist of and-nodes
-and or-nodes.
-As in parse forests,
-the or-nodes of a parse bocage
-represent choices between
-pieces of parse trees.
+Both parse forests and parse bocages,
+consist of and-nodes and or-nodes.
+In both parse forests and parse bocages,
+and-nodes contain pieces of parse trees,
+while or-nodes represent choices among the pieces.
+
 In parse forests, the and-nodes represent productions of
 the original grammar.
 In Marpa's parse bocages, the and-nodes are binary --
 they have at most two children.
-
 If a production of the original grammar has more
 than two symbols on its right hand side,
 Marpa's and-nodes represent it in pieces.
-Marpa's transformation of the grammar into productions
+In transforming the grammar into productions
 whose rhs is at most length two,
+B<Marpa Bocage Form> (B<MBF>).
 is very similar to Chomsky Normal
 Form (CNF).
-I will call the form the grammar takes in Marpa's
-parse bocage, B<Marpa Bocage Form> (B<MBF>).
 
-Marpa evaluates the grammar in Marpa Bocage Form for
-four reasons.
+Marpa uses MBF for four reasons.
 First, MBF is essentially the form in which the grammar
 is found in the Earley items.
-Every link choice of an Earley item contains at most two links.
+Every source choice of an Earley item contains at most two links.
 So each Earley item corresponds to a production
 with at most two symbols on the right hand side.
 Second, MBF is more compact than a parse forest.
@@ -547,21 +544,22 @@ Third, MBF can handle parses with cycles.
 Fourth, MBF easily produces binary trees.
 Binary trees are fast and easy
 to traverse and manipulate.
-If Marpa were to rewrite the parse data found in the Earley
-sets back into the productions of the original grammar,
-it would be spending effort to create a slower and
-more cumbersome data structure.
+The effort spent to rewrite the parse data found in the Earley
+sets back into the productions of the original grammar
+would be counter-productive.
+The result would be a slower and more cumbersome data structure.
 
 Every and-node represents either a production of the original grammar,
 or a piece of one.
 In a parse bocage, and-nodes and or-nodes strictly alternate.
 Every child of an and-node is an or-node.
 Every child of an or-node is an and-node.
-As a result, many or-nodes are trivial -- they
-have only one and-node as a child.
+An or-node is B<trivial> if it has
+only one child and-node.
 A trivial or-node represents
 a choice from a list containing
 only a single alternative.
+Marpa or-nodes are often trivial.
 
 =head2 Naming Predecessor Or-Nodes
 
@@ -685,7 +683,7 @@ Trivial or-nodes have only one production in the PBG.
 In an unambiguous parse, like the parse of our example,
 I<all> the or-nodes are trivial.
 
-Or-nodes are not show unless C<show_bocage> is called
+Or-nodes are not shown unless C<show_bocage> is called
 with the verbose option.
 The or-node productions are necessary for the PBG to be a real
 BNF grammar,
