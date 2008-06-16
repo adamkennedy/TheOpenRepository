@@ -446,6 +446,7 @@ package Parse::Marpa::Internal::Grammar;
 sub Parse::Marpa::Grammar::new {
     my $class = shift;
     my ($args) = @_;
+    $args //= {};
 
     my $grammar = [];
     bless $grammar, $class;
@@ -630,6 +631,7 @@ sub source_grammar {
 sub Parse::Marpa::Grammar::set {
     my $grammar = shift;
     my ($args) = @_;
+    $args //= {};
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
@@ -3565,7 +3567,7 @@ plumbing interface.
 
 =head2 new
 
-    my $grammar = new Parse::Marpa::Grammar({});
+    my $grammar = new Parse::Marpa::Grammar();
 
 Z<>
 
@@ -3579,7 +3581,7 @@ in_equation_s_t($_)
     my $grammar = new Parse::Marpa::Grammar(
 	{ max_parses => 10, mdl_source => \$source, } );
 
-C<Parse::Marpa::Recognizer::new> has one, required, argument --
+C<Parse::Marpa::Recognizer::new> has one, optional, argument --
 a reference to a hash of named arguments.
 It returns a new grammar object or throws an exception.
 
@@ -3624,7 +3626,7 @@ in_ah_s_t($_)
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
 It allows Marpa options, plumbing arguments and the C<mdl_source> named argument
 to be specified for an already existing grammar object.
-It can be used to control the order in which the named arguments are applied.
+It can be used to control the order in which named arguments are applied.
 
 In particular, some
 tracing options need to be turned on prior to specifying the grammar.
@@ -3652,7 +3654,7 @@ It returns the grammar object or throws an exception.
 It is usually not necessary for the user to call C<precompute>.
 The methods which require a precomputed grammar
 (C<compile> and C<Parse::Marpa::Recognizer::new>),
-if passed a grammar on which the precomputations have not been done,
+if passed a grammar on which the precomputation has not been done,
 perform the precomputation themselves on a "just in time" basis.
 But C<precompute> can be useful in debugging and tracing,
 as a way to control precisely when precomputation takes place.

@@ -147,9 +147,13 @@ my @expected = (
     '(6-(-(--(-1))))==4',
 );
 
-my $fail_offset = $recce->text(\("6-----1"));
-if ($fail_offset >= 0) {
-   die("Parse failed at offset $fail_offset");
+# test multiple text calls
+for my $string_piece ('6', '-----', '1')
+{
+    my $fail_offset = $recce->text($string_piece);
+    if ($fail_offset >= 0) {
+       die("Parse failed at offset $fail_offset");
+    }
 }
 
 my $evaler = new Parse::Marpa::Evaluator($recce);
