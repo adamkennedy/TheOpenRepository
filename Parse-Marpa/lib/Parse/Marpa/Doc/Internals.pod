@@ -561,7 +561,7 @@ a choice from a list containing
 only a single alternative.
 Marpa or-nodes are often trivial.
 
-=head2 Naming Predecessor Or-Nodes
+=head2 Types of Or-Nodes
 
 An or-node corresponds to an Earley item with selection criteria.
 The selection criteria limit the choices
@@ -569,29 +569,76 @@ which can be made from that Earley item.
 The name of an or-node consists of the name of
 an Earley item, followed by a label describing
 the selection criteria.
-If an Earley item was created by following
-a predecessor link,
-the selection criteria are the rule currently being
-derived,
-and the current position in that rule.
 
-For example, the or-node named S3@0-1R0:1 corresponds
-to Earley item S3@0-1.  That Earley item was reached
+A B<predecessor or-node> is created
+when a predecessor link is followed.
+A B<completion or-node> is created
+when a cause link is followed.
+The B<start or-node> is created to initialize
+the parse bocage.
+
+Regardless of kind, each or-node has a corresponding
+Earley item.
+For predecessor and completion or-nodes it's the Earley item
+in the link used in creating item.
+For start or-nodes, the corresponding Earley item is
+the start item for the parse.
+
+Each kind of or-node also has B<selection criteria> --
+specific criteria which limit the choices of LR(0) item
+from the corresponding Earley item.
+For predecessor or-nodes,
+the selection criteria are the current rule
+and the current position in that rule.
+For completion or-nodes,
+the selection criterion
+is the symbol at the current position
+of the current rule.
+For the start or-node,
+the selection criterion is the start symbol for the parse.
+Together, completion and start or-nodes are referred to
+as B<symbol or-nodes>.
+For symbol or-nodes,
+the symbol in the selection criterion
+must appear on the lhs of any LR(0) item chosen
+to be the basis of one of its child and-nodes.
+
+=head2 Naming Predecessor Or-Nodes
+
+The name of a predecessor or-node is the name of its
+corresponding Earley item,
+followed by a label describing its selection criteria.
+For predecessor or-nodes, the label is the letter "R",
+followed by the rule number and position,
+separated from each other by a colon.
+The "R" in the predecessor or-node's label is a mnemonic
+for "rule".
+
+For example,
+the predecessor or-node named S3@0-1R0:1 corresponds
+to Earley item S3@0-1.
+That Earley item was reached
 at position 1 in a derivation of rule 0 (C<< e -> e . op e >>)
 
-The current position of an or-node will correspond exactly
-to the current position of the Earley item,
-and to the dot position of one or more of that Earley item's
-LR(0) items,
-unless the current position is at a nulled symbol.
-No Earley items represent nulled symbols,
-and Marpa's LR(0) items never have a nulled symbol at the dot position
+Whenever the current position is at the end of a rule,
+or at a non-nulled symbol,
+there is a corresponding Earley item.
+In these cases,
+the current position of an or-node corresponds exactly
+to the current position of the Earley item.
+Also, in those cases,
+the current position of the or-nodes also corresponds exactly
+to the dot position of one or more of that Earley item's
+LR(0) items.
+
+No Earley items represent non-final nulled symbols.
+Similarly,
+Marpa's LR(0) items never have a nulled symbol at the dot position
 unless they are completed rules.
 
-But
-in the parse bocage
+In the parse bocage
 every symbol is represented by a node,
-including those nulled symbols which are not the last symbol in a rule.
+including those nulled symbols which are not the final symbol in a rule.
 When Marpa follows a predecessor link,
 and there are nulled symbols between the predecessor Earley item
 and its successor,
@@ -599,30 +646,32 @@ Marpa creates an or-node for each of the nulled symbols.
 The position of these "nulled or-nodes" is set at their nulled symbol.
 
 Since no Earley item corresponds to these nulled symbols,
-so "nulled or-nodes" use the name of the successor Earley item
-unless and until Marpa reaches a
-non-nulled symbol.
-For these "nulled or-nodes",
-the current position of the or-node will be
-before the current position of the or-node's corresponding Earley item
-and before the dot position of the corresponding
-LR(0) items in that Earley item.
+B<nulled or-nodes> continue to use the same Earley item in their name,
+unless and until Marpa reaches a non-nulled symbol.
+The current position of a nulled or-node,
+is always before the current position of the Earley item
+in the or-node's name.
+The current position of a nulled or-node,
+does not corresponds to
+the dot position of any
+LR(0) items in the Earley item
+after which the or-node is named.
 
-=head2 Naming Other Or-Nodes
+=head2 Naming Symbol Or-Nodes
 
-Following predecessor links is one of the three ways of
-creating or-nodes.
-Other or-nodes are created by following cause links.
-Also, one or-node is created from the start item to initialize
-the parse bocage.
-If a node was not created by following a predecessor link,
-it is called a B<non-predecessor or-node>.
+For symbol or-nodes, the selection criteria label is the
+letter "L", followed by the symbol number.
+The "L" in the symbol or-node's label is a mnemonic
+for "left hand side".
 
-For non-predecessor or-nodes,
-the selection criterion is a single symbol.
-An example of a non-predecessor or-node is S6@0-3L0.
+An example of a symbol or-node is S6@0-3L0,
+which is a completion or-node.
 In this case the Earley item was S6@0-3,
-and the predecessor symbol was symbol 0 (C<e>).
+and the cause was the completion of the symbol
+(C<e>), which was symbol 0 (C<e>).
+(Symbol numbers for all symbols
+may be found in the appendix,
+in the C<show_symbols> output.)
 Where a symbol is the selection criterion,
 only LR(0) items with that symbol on their left
 hand side are valid choices.
@@ -630,7 +679,7 @@ hand side are valid choices.
 =head2 Naming And-Nodes
 
 An and-node is always one of the children of an or-node.
-The name of an and-node is made up of the parent or-node's name,
+The name of an and-node is the name of the parent or-node,
 followed by a numerical index in brackets.
 For example, S6@0-3L0[0] is the first choice of and-node from
 the children of the or-node named S6@0-3L0.
@@ -666,43 +715,51 @@ in_equation_show_bocage($_);
 The above is the start production of the parse bocage.
 The left hand side is an or-node which corresponds to
 a start rule completion item.
-A PBG always starts with an or-node.
+The completion start rule state in our example is
+QDFA state 2 and the input in our example was
+3 earlemes long.
+So the start Earley item is S2@0-3.
+The start symbol is C<e[']>,
+which is symbol number 3.
+So the selection criterion label is "L3".
 
-Or-nodes appear in the PBG as one or more productions,
-each of
-which has the name of an or-node at its lhs,
-and each of which had the name of one of
-the or-node's child and-nodes
+The rhs of the start or-production is the and-node
+which is its first and only child,
+It has index 0.
+Start or-productions are always trivial.
+
+A PBG always starts with an or-node.
+Or-nodes appear in the PBG as one or more or-productions.
+Each or-production has the name of an or-node at its lhs.
+Also, each or-production has the name 
+of one of the or-node's child and-nodes
 as the only symbol on its rhs.
-In the example above, the rhs and-node is the first child
+In the example above,
+the rhs and-node is the first child
 of the lhs or-node.
 
 In many cases, the or-nodes are trivial -- they have
 exactly one child.
-Trivial or-nodes have only one production in the PBG.
+Trivial or-nodes have only one or-production in the PBG.
 In an unambiguous parse, like the parse of our example,
 I<all> the or-nodes are trivial.
 
-Or-nodes are not shown unless C<show_bocage> is called
-with the verbose option.
-The or-node productions are necessary for the PBG to be a real
+Even when non-trivial, or-productions contain little information,
+and C<show_bocage> does not show or-productions
+unless called with the verbose option.
+Or-productions are necessary for the PBG to be a real
 BNF grammar,
-but they convey no information not easily deducted from
-the the and-nodes.
+but the information in them is easily deduced from
+the names of the and-nodes on the lhs of the and-productions.
+For every and-node on the lhs of an and-production,
+there will be always be an or-production with the
+unbracketed name of the and-node node as or-production's lhs,
+and with the and-node itself as or-production's only rhs symbol.
+For example, from the name of the and-node S2@0-3L3[0],
+we can deduce existence of the or-production in the example above.
 
-For example, the and-node on the rhs of this production
-is S2@0-3L3[0].
-That's enough to deduce the contents of this or-node production.
-The name of the parent or-node of an and-node will always be 
-the name of the and-node, minus its bracketed index.
-In this case, the parent of 
-S2@0-3L3[0] will be
-S2@0-3L3.
-Whenever, there is an and-node in the PBG,
-there is always an or-node production with the
-unbracketed name of the and-node node on it lhs
-and the and-node itself as the
-only rhs symbol.
+The start or-node is always trivial.
+Here is the and-production which is its only child:
 
 Z<>
 
@@ -717,25 +774,25 @@ in_equation_show_bocage($_);
         rule: e['] ::= e .
         rhs length = 1; closure = CODE(0x5251550)
 
-Above is the production for the and-node which was the only
-child of the or-node whose production was the previous example.
 Parse bocage and-nodes always have one or two rhs symbols.
-A token or a cause or-node may be on the right hand side.
-One or the other is always present, but never both.
+A token or a completion or-node may be on the right hand side.
+One or the other will always be present, but never both.
 Additionally, there may be a 
 predecessor or-node.
 If a predecessor or-node is present,
-it is always the first symbol.
+its name is always the first symbol on the rhs.
 
 In this example, the only symbol on the rhs is
-a cause or-node: S6@0-3L0.
+a completion or-node: S6@0-3L0.
 The next line contains a dotted rule showing the rule
 and position within the rule for this and-node.
-The last line is not very informative -- it tells
+    
+     More here?
+
+The last line tells
 us the length of the rule's rhs, and that there is
 a closure corresponding to this rule.
 
-    Corresponds to the rule?  Check.
     Change diagnostics so they print rule numbers in parse bocage.
 
 =begin Parse::Marpa::test_document:
