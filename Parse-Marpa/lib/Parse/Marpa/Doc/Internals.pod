@@ -771,8 +771,8 @@ in_equation_show_bocage($_);
 =end Parse::Marpa::test_document:
 
     S2@0-3L3[0] ::= S6@0-3L0
-        rule: e['] ::= e .
-        rhs length = 1; closure = CODE(0x5251550)
+        rule 2: e['] ::= e .
+        rhs length = 1; closure
 
 Parse bocage and-nodes always have one or two rhs symbols.
 A token or a completion or-node may be on the right hand side.
@@ -793,8 +793,6 @@ The last line tells
 us the length of the rule's rhs, and that there is
 a closure corresponding to this rule.
 
-    Change diagnostics so they print rule numbers in parse bocage.
-
 =begin Parse::Marpa::test_document:
 
 ## next display
@@ -804,7 +802,7 @@ in_equation_show_bocage($_);
 
     S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
-        rule: e ::= e op . e
+        rule 0: e ::= e op . e
         rhs length = 3
 
 Z<>
@@ -818,8 +816,8 @@ in_equation_show_bocage($_);
 
     S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
-        rule: e ::= number .
-        rhs length = 1; closure = CODE(0x52513e0)
+        rule 1: e ::= number .
+        rhs length = 1; closure
 
 =head1 THE PARSE TREES
 
@@ -1287,28 +1285,28 @@ is_equation_show_bocage($_);
     package: Parse::Marpa::E_1; parse count: 0
     S2@0-3L3 ::= S2@0-3L3[0]
     S2@0-3L3[0] ::= S6@0-3L0
-        rule: e['] ::= e .
-        rhs length = 1; closure = CODE(0x5251550)
+        rule 2: e['] ::= e .
+        rhs length = 1; closure
     S6@0-3L0 ::= S6@0-3L0[0]
     S6@0-3L0[0] ::= S5@0-2R0:2 S4@2-3L0
-        rule: e ::= e op e .
-        rhs length = 3; closure = CODE(0x5252cc0)
+        rule 0: e ::= e op e .
+        rhs length = 3; closure
     S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
-        rule: e ::= e op . e
+        rule 0: e ::= e op . e
         rhs length = 3
     S4@2-3L0 ::= S4@2-3L0[0]
     S4@2-3L0[0] ::= '2'
-        rule: e ::= number .
-        rhs length = 1; closure = CODE(0x52513e0)
+        rule 1: e ::= number .
+        rhs length = 1; closure
     S3@0-1R0:1 ::= S3@0-1R0:1[0]
     S3@0-1R0:1[0] ::= S4@0-1L0
-        rule: e ::= e . op e
+        rule 0: e ::= e . op e
         rhs length = 3
     S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
-        rule: e ::= number .
-        rhs length = 1; closure = CODE(0x52513e0)
+        rule 1: e ::= number .
+        rhs length = 1; closure
 
 =head2 C<show_tree> Output
 
@@ -1322,27 +1320,26 @@ is_equation_show_tree($_);
     Tree Node: S2@0-3L3[0]; Depth = 0; Rhs Length = 1
         Rule: e['] ::= e .
         Cause: S6@0-3L0
-        Closure: CODE(0x5250d40)
+        Closure: Y
     Tree Node: S6@0-3L0[0]; Depth = 1; Rhs Length = 3
         Rule: e ::= e op e .
         Predecessor: S5@0-2R0:2
         Cause: S4@2-3L0
-        Closure: CODE(0x52504c0)
+        Closure: Y
     Tree Node: S4@2-3L0[0]; Depth = 2; Rhs Length = 1
         Rule: e ::= number .
-        Value: '2'
-        Closure: CODE(0x5250940)
+        Closure: Y; Value: '2'
     Tree Node: S5@0-2R0:2[0]; Depth = 2; Rhs Length = 3
         Rule: e ::= e op . e
         Predecessor: S3@0-1R0:1
-        Value: '+'
+        Closure: N; Value: '+'
     Tree Node: S3@0-1R0:1[0]; Depth = 3; Rhs Length = 3
         Rule: e ::= e . op e
         Cause: S4@0-1L0
+        Closure: N
     Tree Node: S4@0-1L0[0]; Depth = 4; Rhs Length = 1
         Rule: e ::= number .
-        Value: '2'
-        Closure: CODE(0x5250940)
+        Closure: Y; Value: '2'
 
 =head2 C<trace_values> Output
 

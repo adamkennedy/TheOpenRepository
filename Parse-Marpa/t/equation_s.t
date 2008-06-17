@@ -38,7 +38,7 @@ my $grammar = new Parse::Marpa::Grammar(
 
 my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
 
-my $fail_offset = $recce->text( \('2-0*3+1') );
+my $fail_offset = $recce->text( '2-0*3+1' );
 if ( $fail_offset >= 0 ) {
     die("Parse failed at offset $fail_offset");
 }

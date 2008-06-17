@@ -622,7 +622,7 @@ sub source_grammar {
         die_with_parse_failure( $source, $failed_at_earleme );
     }
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    return unless defined $evaler;
+    croak("Marpa Internal error: failed to create evaluator for MDL") unless defined $evaler;
     my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
     return;
@@ -1103,6 +1103,9 @@ sub Parse::Marpa::Grammar::decompile {
     my $compiled_grammar = shift;
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
+
+    croak("Attempt to decompile undefined grammar")
+        unless defined $compiled_grammar;
 
     my $grammar;
     {
@@ -3567,6 +3570,13 @@ plumbing interface.
 
 =head2 new
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
     my $grammar = new Parse::Marpa::Grammar();
 
 Z<>
@@ -3677,6 +3687,13 @@ using L<Data::Dumper>.
 On failure, C<compile> throws an exception.
 
 =head2 decompile
+
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
 
     $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
 

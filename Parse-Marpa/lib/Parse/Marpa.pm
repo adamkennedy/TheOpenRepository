@@ -608,6 +608,13 @@ Non-exceptional failures are described in the documentation for the method which
 
 =head2 mdl
 
+=begin Parse::Marpa::test_document:
+
+## next 3 displays
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
     $first_result =
         Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
 

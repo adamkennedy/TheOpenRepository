@@ -178,8 +178,15 @@ Marpa.
 
 =head2 lex_regex
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
     my ($regex, $token_length)
-        = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start)
+        = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start);
 
 Takes two required arguments.
 C<$string>
@@ -208,8 +215,15 @@ which will include the length of any discarded prefix.
 
 =head2 lex_q_quote
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
     my ($string, $token_length)
-        = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start)
+        = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start);
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
 The I<string reference> must be to a string that might contain a C<q-> or C<qq->quoted string.

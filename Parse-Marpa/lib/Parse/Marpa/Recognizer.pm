@@ -1059,7 +1059,7 @@ in_equation_s_t($_)
 
     my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
 
-    my $fail_offset = $recce->text( \('2-0*3+1') );
+    my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
         die("Parse failed at offset $fail_offset");
     }
@@ -1191,6 +1191,13 @@ token either begins or ends.
 =head1 METHODS
 
 =head2 new
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
 
     my $recce = new Parse::Marpa::Recognizer({
        grammar=> $grammar,

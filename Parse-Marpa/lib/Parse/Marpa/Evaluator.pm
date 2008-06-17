@@ -466,7 +466,7 @@ sub Parse::Marpa::Evaluator::new {
         last EARLEY_ITEM;
     }
 
-    return unless $start_rule;
+    croak("No start rule in evaluator") unless $start_rule;
 
     @{$recognizer}[
         Parse::Marpa::Internal::Recognizer::START_ITEM,
@@ -810,10 +810,14 @@ sub Parse::Marpa::Evaluator::show_bocage {
             $text .= $lhs . '[' . $index . '] ::= ' . join( q{ }, @rhs ) . "\n";
 
             if ($verbose) {
-                $text .= '    rule: ' . Parse::Marpa::show_dotted_rule($rule, $position+1) . "\n";
+                $text .= '    rule '
+		    . $rule->[Parse::Marpa::Internal::Rule::ID]
+		    . ': '
+		    . Parse::Marpa::show_dotted_rule($rule, $position+1)
+		    . "\n";
 		$text .= "    rhs length = $argc";
                 if ( defined $closure ) {
-		    $text .= "; closure = $closure"
+		    $text .= "; closure"
                 }
 		$text .= "\n";
             }
@@ -873,11 +877,13 @@ sub Parse::Marpa::Evaluator::show_tree {
             . $cause->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
 		->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $cause;
-        if ( $verbose and defined $value_ref ) {
-            $text .= '    Value: ' . Dumper( ${$value_ref} );
-        }
-        if ( $verbose and defined $closure ) {
-            $text .= "    Closure: $closure\n";
+        if ( $verbose ) {
+            $text .= "    Closure: " . (defined $closure ? 'Y' : 'N');
+	    if (defined $value_ref) {
+		$text .= '; Value: ' . Dumper( ${$value_ref} )
+	    } else {
+		$text .= "\n"
+	    }
         }
 
     }    # $tree_node
@@ -1276,7 +1282,7 @@ in_equation_s_t($_)
 
 =end Parse::Marpa::test_document:
 
-    my $fail_offset = $recce->text( \('2-0*3+1') );
+    my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
         die("Parse failed at offset $fail_offset");
     }
@@ -1583,6 +1589,13 @@ in_equation_s_t($_)
     my $evaler = new Parse::Marpa::Evaluator($recce);
 
 Z<>
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
 
     my $evaler = new Parse::Marpa::Evaluator($recce, $location);
 

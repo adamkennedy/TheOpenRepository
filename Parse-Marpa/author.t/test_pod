@@ -58,6 +58,11 @@ sub in_self_marpa {
     return in_file(shift, $self_marpa);
 }
 
+my $misc_pl = slurp('misc.pl');
+sub in_misc_pl {
+    return in_file(shift, $misc_pl);
+}
+
 my $MDL_displays = slurp('MDL_displays.marpa');
 sub in_MDL_displays {
     return in_file(shift, $MDL_displays);

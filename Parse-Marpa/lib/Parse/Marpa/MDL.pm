@@ -84,6 +84,13 @@ MDL symbol name to its canonical form.
 
 =head2 canonical_name
 
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
     $g->set( {
         start => Parse::Marpa::MDL::canonical_symbol_name("Document")
     } );
@@ -94,6 +101,13 @@ It returns the canonical MDL name, which is also
 the symbol's plumbing name.
 
 =head2 get_symbol
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
 
     my $op = Parse::Marpa::MDL::get_symbol($grammar, "Op");
 
