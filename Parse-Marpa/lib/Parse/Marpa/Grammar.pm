@@ -579,7 +579,7 @@ sub Parse::Marpa::create_compiled_source_grammar {
 # Build a grammar from an MDL description.
 # First arg is the grammar being built.
 # Second arg is ref to string containing the MDL description.
-sub source_grammar {
+sub parse_source_grammar {
     my $grammar        = shift;
     my $source         = shift;
     my $source_options = shift;
@@ -652,7 +652,7 @@ sub Parse::Marpa::Grammar::set {
             unless ref $source eq 'SCALAR';
         croak('Source for grammar undefined')
             if not defined ${$source};
-        source_grammar( $grammar, $source, $args->{'source_options'} );
+        parse_source_grammar( $grammar, $source, $args->{'source_options'} );
         delete $args->{'mdl_source'};
         delete $args->{'source_options'};
     }

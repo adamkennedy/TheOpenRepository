@@ -560,7 +560,8 @@ sub Parse::Marpa::Recognizer::text {
 
     $length = length ${$input_ref} unless defined $length;
 
-    POS: for my $pos ( ( pos ${$input_ref} // 0 ) .. ($length - 1) ) {
+    pos ${$input_ref} = 0;
+    POS: for (my $pos = 0; $pos < $length; $pos++) {
         my @alternatives;
 
         # NOTE: Often the number of the earley set, and the idea of
