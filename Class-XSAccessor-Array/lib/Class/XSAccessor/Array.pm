@@ -97,7 +97,7 @@ Class::XSAccessor::Array - Generate fast XS accessors without runtime compilatio
 
 The module implements fast XS accessors both for getting at and
 setting an object attribute. The module works only with objects
-that are implement as B<arrays>. Refer to L<Class::XSAccessor> for
+that are implemented as B<arrays>. Refer to L<Class::XSAccessor> for
 an implementation that works with hash-based objects.
 
 A simple benchmark showed more than a factor of two performance
