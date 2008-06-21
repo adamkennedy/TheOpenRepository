@@ -1,11 +1,14 @@
 package HTTP::Client::Parallel;
+
+use 5.006;
 use strict;
 use warnings;
-use POE qw(Component::Client::HTTP);
+use POE qw{Component::Client::HTTP);
 use HTTP::Request;
 use Scalar::Util qw(blessed);
 use IO::File;
 use Exporter 'import';
+
 our @EXPORT_OK;
 @EXPORT_OK = qw(mirror get);
 
