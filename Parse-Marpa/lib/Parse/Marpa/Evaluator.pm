@@ -601,7 +601,7 @@ sub Parse::Marpa::Evaluator::new {
 
         my $item_name = $item->[Parse::Marpa::Internal::Earley_item::NAME];
 
-        RULE: for my $and_sapling (@and_saplings) {
+        for my $and_sapling (@and_saplings) {
 
             my ( $rule, $position, $symbol, $closure ) = @{$and_sapling};
 
@@ -715,9 +715,9 @@ sub Parse::Marpa::Evaluator::new {
 
                 push @and_nodes, $and_node;
 
-            }    # for work_item
+            }    # for my $or_bud
 
-        }    # RULE
+        } # for my $and_sapling
 
         my $or_node = [];
         $or_node->[Parse::Marpa::Internal::Or_Node::NAME] = $sapling_name;
@@ -868,19 +868,19 @@ sub Parse::Marpa::Evaluator::show_tree {
             . Parse::Marpa::show_dotted_rule($rule, $position+1)
 	    . "\n";
         $text
-            .= '    Predecessor: '
+            .= '    Kernel: '
             . $predecessor->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
 		->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $predecessor;
         $text
-            .= '    Cause: '
+            .= '    Closure: '
             . $cause->[Parse::Marpa::Internal::Tree_Node::OR_NODE]
 		->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $cause;
         if ( $verbose ) {
-            $text .= "    Closure: " . (defined $closure ? 'Y' : 'N');
+            $text .= "    Perl Closure: " . (defined $closure ? 'Y' : 'N');
 	    if (defined $value_ref) {
-		$text .= '; Value: ' . Dumper( ${$value_ref} )
+		$text .= '; Token: ' . Dumper( ${$value_ref} )
 	    } else {
 		$text .= "\n"
 	    }
