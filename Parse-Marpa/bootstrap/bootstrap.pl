@@ -47,7 +47,7 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '0.211009';
+$new_version = '0.211010';
 
 $new_start_symbol = "grammar";
 
