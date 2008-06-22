@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 require XSLoader;
 XSLoader::load('Class::XSAccessor::Array', $VERSION);
@@ -20,23 +20,35 @@ sub import {
 
   my $read_subs = $opts{getters} || {};
   my $set_subs = $opts{setters} || {};
+  my $acc_subs = $opts{accessors} || {};
+  my $pred_subs = $opts{predicates} || {};
 
   foreach my $subname (keys %$read_subs) {
-    my $hashkey = $read_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $hashkey, $replace, "getter");
+    my $arrayIndex = $read_subs->{$subname};
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "getter");
   }
 
   foreach my $subname (keys %$set_subs) {
-    my $hashkey = $set_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $hashkey, $replace, "setter");
+    my $arrayIndex = $set_subs->{$subname};
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "setter");
+  }
+
+  foreach my $subname (keys %$acc_subs) {
+    my $arrayIndex = $acc_subs->{$subname};
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "accessor");
+  }
+
+  foreach my $subname (keys %$pred_subs) {
+    my $arrayIndex = $pred_subs->{$subname};
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "predicate");
   }
 }
 
 sub _generate_accessor {
-  my ($caller_pkg, $subname, $hashkey, $replace, $type) = @_;
+  my ($caller_pkg, $subname, $arrayIndex, $replace, $type) = @_;
 
-  if (not defined $hashkey) {
-    croak("Cannot use undef as a hash key for generating an XS $type accessor. (Sub: $subname)");
+  if (not defined $arrayIndex) {
+    croak("Cannot use undef as a array index for generating an XS $type accessor. (Sub: $subname)");
   }
 
   if ($subname !~ /::/) {
@@ -57,15 +69,21 @@ sub _generate_accessor {
     local *s = $sym->{$bare_subname};
     my $coderef = *s{CODE};
     if ($coderef) {
-      croak("Cannot replace existing subroutine '$bare_subname' in package '$sub_package' with XS $type accessor. If you wish to force a replacement, add the 'replace => 1' parameter to the arguments of 'use ".__PACKAGE__."'.");
+      croak("Cannot replace existing subroutine '$bare_subname' in package '$sub_package' with XS method of type '$type'. If you wish to force a replacement, add the 'replace => 1' parameter to the arguments of 'use ".__PACKAGE__."'.");
     }
   }
 
   if ($type eq 'getter') {
-    newxs_getter($subname, $hashkey);
+    newxs_getter($subname, $arrayIndex);
+  }
+  elsif ($type eq 'setter') {
+    newxs_setter($subname, $arrayIndex);
+  }
+  elsif ($type eq 'predicate') {
+    newxs_predicate($subname, $arrayIndex);
   }
   else {
-    newxs_setter($subname, $hashkey);
+    newxs_accessor($subname, $arrayIndex);
   }
 }
 
@@ -82,12 +100,18 @@ Class::XSAccessor::Array - Generate fast XS accessors without runtime compilatio
   package MyClassUsingArraysAsInternalStorage;
   use Class::XSAccessor::Array
     getters => {
-      get_foo => 'foo', # 'foo' is the hash key to access
-      get_bar => 'bar',
+      get_foo => 0, # 0 is the array index to access
+      get_bar => 1,
     },
     setters => {
-      set_foo => 'foo',
-      set_bar => 'bar',
+      set_foo => 0,
+      set_bar => 1,
+    },
+    accessors => { # a mutator
+      buz => 2,
+    },
+    predicates => { # test for definedness
+      has_buz => 2,
     };
   # The imported methods are implemented in fast XS.
   
@@ -96,8 +120,12 @@ Class::XSAccessor::Array - Generate fast XS accessors without runtime compilatio
 =head1 DESCRIPTION
 
 The module implements fast XS accessors both for getting at and
-setting an object attribute. The module works only with objects
-that are implemented as B<arrays>. Refer to L<Class::XSAccessor> for
+setting an object attribute. Additionally, the module supports
+mutators and simple predicates (C<has_foo()> like tests for definedness
+of an attributes).
+The module works only with objects
+that are implemented as B<arrays>. Using it on hash-based objects is
+bound to make your life miserable. Refer to L<Class::XSAccessor> for
 an implementation that works with hash-based objects.
 
 A simple benchmark showed more than a factor of two performance

@@ -19,14 +19,10 @@ getter(self)
     const I32 index = AutoXS_arrayindices[ix];
     SV** elem;
   PPCODE:
-    /*if (he = hv_fetch_ent((HV *)SvRV(self), readfrom.key, 0, 0)) {*/
-    if (elem = av_fetch((AV *)SvRV(self), index, 1)) {
+    if (elem = av_fetch((AV *)SvRV(self), index, 1))
       XPUSHs(elem[0]);
-    }
-    else {
+    else
       XSRETURN_UNDEF;
-    }
-
 
 
 void
@@ -44,7 +40,50 @@ setter(self, newvalue)
     if (NULL ==  av_store((AV*)SvRV(self), index, newvalue)) {
       croak("Failed to write new value to array.");
     }
-    XSRETURN_UNDEF;
+    XPUSHs(newvalue);
+
+
+void
+accessor(self, ...)
+    SV* self;
+  ALIAS:
+  INIT:
+    /* Get the array index from the global storage */
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const I32 index = AutoXS_arrayindices[ix];
+    SV** elem;
+  PPCODE:
+    if (items > 1) {
+      SV* newvalue = ST(1);
+      SvREFCNT_inc(newvalue);
+      if (NULL ==  av_store((AV*)SvRV(self), index, newvalue))
+        croak("Failed to write new value to array.");
+      XPUSHs(newvalue);
+    }
+    else {
+      if (elem = av_fetch((AV *)SvRV(self), index, 1))
+        XPUSHs(elem[0]);
+      else
+        XSRETURN_UNDEF;
+    }
+
+
+void
+predicate(self)
+    SV* self;
+  ALIAS:
+  INIT:
+    /* Get the array index from the global storage */
+    /* ix is the magic integer variable that is set by the perl guts for us.
+     * We uses it to identify the currently running alias of the accessor. Gollum! */
+    const I32 index = AutoXS_arrayindices[ix];
+    SV** elem;
+  PPCODE:
+    if (elem = av_fetch((AV *)SvRV(self), index, 1)) {
+      SvOK( elem[0] ) ? XSRETURN_YES : XSRETURN_NO;}
+    else
+      XSRETURN_NO;
 
 
 void
@@ -79,6 +118,46 @@ newxs_setter(name, index)
       /* This code is very similar to what you get from using the ALIAS XS syntax.
        * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
       cv = newXS(name, XS_Class__XSAccessor__Array_setter, file);
+      if (cv == NULL)
+        croak("ARG! SOMETHING WENT REALLY WRONG!");
+      XSANY.any_i32 = functionIndex;
+
+      AutoXS_arrayindices[functionIndex] = index;
+    }
+
+
+void
+newxs_accessor(name, index)
+  char* name;
+  unsigned int index;
+  PPCODE:
+    char* file = __FILE__;
+    const unsigned int functionIndex = get_next_arrayindex();
+    {
+      CV * cv;
+      /* This code is very similar to what you get from using the ALIAS XS syntax.
+       * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
+      cv = newXS(name, XS_Class__XSAccessor__Array_accessor, file);
+      if (cv == NULL)
+        croak("ARG! SOMETHING WENT REALLY WRONG!");
+      XSANY.any_i32 = functionIndex;
+
+      AutoXS_arrayindices[functionIndex] = index;
+    }
+
+
+void
+newxs_predicate(name, index)
+  char* name;
+  unsigned int index;
+  PPCODE:
+    char* file = __FILE__;
+    const unsigned int functionIndex = get_next_arrayindex();
+    {
+      CV * cv;
+      /* This code is very similar to what you get from using the ALIAS XS syntax.
+       * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
+      cv = newXS(name, XS_Class__XSAccessor__Array_predicate, file);
       if (cv == NULL)
         croak("ARG! SOMETHING WENT REALLY WRONG!");
       XSANY.any_i32 = functionIndex;
