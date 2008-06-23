@@ -1,5 +1,5 @@
-App-ErrorCalculator version 1.01
-================================
+App-ErrorCalculator
+===================
 
 "errorcalculator" and its implementing Perl module "App::ErrorCalculator"
 is a Gtk2 tool that lets you do calculations with automatic error
@@ -51,7 +51,7 @@ modules at steffen-mueller dot net
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2006 by Steffen Mueller
+Copyright (C) 2006-2008 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6.1 or,

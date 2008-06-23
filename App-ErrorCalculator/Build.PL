@@ -12,6 +12,7 @@ my $b = Module::Build->new
 				'Number::WithError' => 0.03,
 				'Gtk2' => 0,
 				'Gtk2::Ex::Dialogs' => 0,
+                                'Spreadsheet::Read' => 0,
                },
    recommends => {
                   'Test::Pod' => '1.0',
@@ -21,7 +22,6 @@ my $b = Module::Build->new
                       'Test::More' => 0,
                      },
    create_makefile_pl => 'traditional',
-   sign => 1,
 #   conflicts => {},
    script_files => ['bin/errorcalculator'],
   );
