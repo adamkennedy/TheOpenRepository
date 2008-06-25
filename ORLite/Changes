@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+0.08 Tue 24 Jun 2008
+	- Adding an experimental -DEBUG option
+
 0.07 Wed 28 May 2008
 	- Actually trust the package param
 

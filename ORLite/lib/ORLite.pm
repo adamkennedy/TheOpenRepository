@@ -9,9 +9,10 @@ use File::Spec   ();
 use File::Temp   ();
 use Params::Util qw{ _STRING _CLASS _HASH };
 use DBI          ();
+# use DBD::SQLite ();
 BEGIN {
-	# DBD::SQLite has a bug that generates a false warning,
-	# so we need to temporarily disable them.
+	# DBD::SQLite has a bug that generates a spurious warning
+	# at compile time, so we need to temporarily disable them.
 	# Remove this hack once DBD::SQLite fixes the bug.
 	local $^W = 0;
 	require DBD::SQLite;
@@ -19,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -33,6 +34,13 @@ BEGIN {
 
 sub import {
 	my $class = ref($_[0]) || $_[0];
+
+	# Check for debug mode
+	my $DEBUG = 0;
+	if ( defined _STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
+		$DEBUG = 1;
+		pop @_;
+	}
 
 	# Check params and apply defaults
 	my %params;
@@ -126,7 +134,7 @@ sub import {
 	}
 
 	# Generate the support package code
-	my $code = <<"END_PERL";
+	my $code  = <<"END_PERL";
 package $pkg;
 
 use strict;
@@ -208,21 +216,10 @@ END_PERL
 		my $sql       = $table->{sql};
 		my @columns   = @{ $table->{columns} };
 		my @names     = map { $_->{name} } @columns;
-		my $accessors = join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
-sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk} = ?', \$_[0]->{$_->{name}}))[0];
-}
-END_DIRECT
-sub $_->{name} {
-	\$_[0]->{$_->{name}};
-}
-END_ACCESSOR
 
 		# Generate the elements in all packages
 		$code .= <<"END_PERL";
 package $table->{class};
-
-$accessors
 
 sub select {
 	my \$class = shift;
@@ -284,6 +281,18 @@ sub delete {
 }
 
 END_PERL
+
+		# Generate the accessors
+		$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
+sub $_->{name} {
+	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk} = ?', \$_[0]->{$_->{name}}))[0];
+}
+END_DIRECT
+sub $_->{name} {
+	\$_[0]->{$_->{name}};
+}
+END_ACCESSOR
+
 		}
 	}
 
@@ -292,7 +301,20 @@ END_PERL
 	$fh->print("$code\n\n1;\n");
 	close $fh;
 	require $filename;
-	unlink $filename;
+	unlink $filename unless $DEBUG;
+
+	# Generate and print the debugging output
+	if ( $DEBUG ) {
+		my @trace = map {
+			s/\s*[{;]$//;
+			s/^s/  s/;
+			s/^p/\np/;
+			"$_\n"
+		} grep {
+			/^(?:package|sub)\b/
+		} split /\n/, $code;
+		print STDERR @trace, "\n$pkg code saved as $filename\n\n";
+	}
 
 	return 1;
 }
