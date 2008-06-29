@@ -86,7 +86,7 @@ my \@inc_version_list = $Config_inc_version_list;
 print OUT <<'!NO!SUBS!';
 
 our @ORIG_INC = @INC;	# take a handy copy of 'original' value
-our $VERSION = '0.58';
+our $VERSION = '0.59';
 my $Is_MacOS = $^O eq 'MacOS';
 my $Mac_FS;
 if ($Is_MacOS) {
@@ -223,10 +223,16 @@ For each directory in LIST (called $dir here) the lib module also
 checks to see if a directory called $dir/$archname/auto exists.
 If so the $dir/$archname directory is assumed to be a corresponding
 architecture specific directory and is added to @INC in front of $dir.
+lib.pm also checks if directories called $dir/$version and $dir/$version/$archname
+exist and adds these directories to @INC.
 
 The current value of C<$archname> can be found with this command:
 
     perl -V:archname
+
+The corresponding command to get the current value of C<$version> is:
+
+    perl -V:version
 
 To avoid memory leaks, all trailing duplicate entries in @INC are
 removed.

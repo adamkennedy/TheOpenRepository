@@ -7,7 +7,7 @@ use strict;
 use ExtUtils::MakeMaker;
 WriteMakefile(
   'NAME' => 'lib',
-  'VERSION' => '0.58',
+  'VERSION' => '0.59',
   'LICENSE' => 'perl',
   'PREREQ_PM' => {},
   'ABSTRACT_FROM' => 'lib_pm.PL',
@@ -21,7 +21,7 @@ WriteMakefile(
 provides:
   lib:
     file: lib_pm.PL
-    version: 0.58
+    version: 0.59
 EMETA
     ) : ()),
 );

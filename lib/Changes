@@ -1,5 +1,11 @@
 Revision history for Perl extension lib
 
+0.59  Sun Jun 29 10:38 2008
+  - Merge changes from blead, documentation fixes.
+
+0.58  Thu Jun 12 10:00 2008
+  - Repaired distribution, now indexable by PAUSE.
+
 0.57  Mon May 26 16:22 2008
   - First release to CPAN. Previously available in core perl.
   - Released to CPAN in order to backport a fix for
