@@ -3,14 +3,14 @@ package HTTP::Client::Parallel;
 use 5.006;
 use strict;
 use warnings;
-use POE qw{Component::Client::HTTP);
+use POE qw(Component::Client::HTTP);
 use HTTP::Request;
 use Scalar::Util qw(blessed);
 use IO::File;
 use Exporter 'import';
 
 our @EXPORT_OK;
-@EXPORT_OK = qw(mirror get);
+@EXPORT_OK = qw(mirror getstore get);
 
 sub new {
     my $class = shift;
@@ -72,6 +72,29 @@ sub mirror {
 
     my %args = @_;
 
+    #if (-e $file) {
+        #my ($mtime) = (stat($file))[9];
+        #if( $mtime ) {
+            #$request->header('If-Modified-Since' =>
+                    #HTTP::Date::time2str($mtime));
+        #}
+    #}
+
+    #my $tmpfile = "$file-$$";
+}
+
+sub getstore {
+    my $self; 
+
+    if( blessed($_[0]) and $_[0]->isa('HTTP::Client::Parallel') ) {
+        $self = shift;
+    }
+    else {
+        $self = __PACKAGE__->new();
+    }
+
+    my %args = @_;
+
     $self->queue( uri => $_ ) for (keys %args);
     $self->fetch;
 
@@ -81,13 +104,13 @@ sub mirror {
 
         next unless $args{$result};
 
-        if( my $file = IO::File->new( $args{$result}, 'w') ) {
+        my $response = $self->{results}
+                            ->{$result}
+                            ->{response};
 
-            my $response = $self->{results}
-                                ->{$result}
-                                ->{response};
+        $results->{$result} = $response->code;
 
-            $results->{$result} = $response->code;
+        if( $response->is_success and my $file = IO::File->new( $args{$result}, 'w') ) {
             print $file $response->content;
             $file->close;
         }

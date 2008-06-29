@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
+use Test::More 'no_plan';
 BEGIN {
 	$|  = 1;
 	$^W = 1;
