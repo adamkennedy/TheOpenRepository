@@ -71,7 +71,7 @@ use File::Find::Rule       ();
 
 our $VERSION;
 BEGIN {
-        $VERSION = '1.19';
+        $VERSION = '1.20';
 }
 
 
