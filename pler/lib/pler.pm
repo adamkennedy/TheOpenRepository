@@ -302,7 +302,7 @@ sub main {
 
         } else {
 		# Get the list of possible tests
-		my @possible = FFR->file->name('*.t')->in( 't' );
+		my @possible = FFR->name('*.t')->file->in('t');
 
 		# Look for a naive string match
 		my $pattern = quotemeta $script;
