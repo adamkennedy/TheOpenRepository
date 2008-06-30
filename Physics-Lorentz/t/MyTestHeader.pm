@@ -7,8 +7,9 @@ use File::Spec;
 use PDL;
 use Params::Util qw/_INSTANCE/;
 
-use vars qw/$Regfile $Trials @EXPORT/;
-use base 'Exporter';
+use vars qw/$Regfile $Trials @ISA @EXPORT/;
+use Exporter ();
+@ISA = 'Exporter';
 @EXPORT = qw(
     pdl_approx_equiv
     myisa
