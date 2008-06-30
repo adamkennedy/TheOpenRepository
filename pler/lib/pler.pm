@@ -13,12 +13,9 @@ use File::Find::Rule      ();
 use Getopt::Long          ();
 use Probe::Perl           ();
 
-# Convenience constants
-use constant FFR     => 'File::Find::Rule';
-
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.33';
+        $VERSION = '0.34';
 }
 
 # Does exec work on this platform
@@ -302,7 +299,7 @@ sub main {
 
         } else {
 		# Get the list of possible tests
-		my @possible = FFR->name('*.t')->file->in('t');
+		my @possible = File::Find::Rule->name('*.t')->file->in('t');
 
 		# Look for a naive string match
 		my $pattern = quotemeta $script;

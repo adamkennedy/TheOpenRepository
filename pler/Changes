@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+0.34 Mon 30 Jun 2008
+	- Optimising file search to half the number of stat
+	  calls that need to be made to the system.
+
 0.33 Fri 18 Apr 2008
 	- Enable HARNESS_ACTIVE when calling scripts
 
