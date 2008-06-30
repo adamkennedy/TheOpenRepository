@@ -16,7 +16,7 @@ CPAN::Mini::Extract - Create CPAN::Mini mirrors with the archives extracted
       extract        => '/home/adam/.cpanextracted',
       extract_filter => sub { /\.pm$/ and ! /\b(inc|t)\b/ },
       extract_check  => 1,
-      );
+  );
   
   # Run the minicpan process
   my $changes = $cpan->run;
@@ -68,8 +68,6 @@ use Archive::Tar           ();
 use Params::Util           qw{ _CODELIKE _INSTANCE _ARRAY0 };
 use LWP::Online            ();
 use File::Find::Rule       ();
-
-use constant FFR  => 'File::Find::Rule';
 
 our $VERSION;
 BEGIN {
@@ -170,33 +168,33 @@ Returns a new C<CPAN::Mini::Extract> object, or dies on error.
 
 sub new {
 	my $class = shift;
-	my %params = @_;
 
-        # Look for a user-config
-        my %config = CPAN::Mini->read_config;
+        # Use the CPAN::Mini settings as defaults, and add any
+	# additional explicit params.
+        my %config = ( CPAN::Mini->read_config, @_ );
 
         # Unless provided auto-detect offline mode
-	unless ( defined $params{offline} ) {
-		$params{offline} = LWP::Online::offline();
+	unless ( defined $config{offline} ) {
+		$config{offline} = LWP::Online::offline();
 	}
 
         # Fake a remote URI if CPAN::Mini can't handle offline mode
         my %fake = ();
-        if ( $params{offline} and $CPAN::Mini::VERSION < 0.570 ) {
+        if ( $config{offline} and $CPAN::Mini::VERSION < 0.570 ) {
                 my $tempdir   = File::Temp::tempdir();
                 my $tempuri   = URI::file->new( $tempdir )->as_string;
                 $fake{remote} = $tempuri;
         }
 
         # Use a default local path if none provided
-        unless ( defined $params{local} ) {
+        unless ( defined $config{local} ) {
                 my $local = File::Spec->catdir(
 			File::HomeDir->my_data, 'minicpan',
 		);
         }
 
         # Call our superclass to create the object
-        my $self = $class->SUPER::new( %params, %fake );
+        my $self = $class->SUPER::new( %config, %fake );
 
 	# Check the extract param
 	$self->{extract} or Carp::croak(
@@ -286,11 +284,11 @@ sub run {
 		# Expansion checking is enabled, and we didn't do a normal
 		# forced check, so find the full list of files to check.
 		$self->trace("Tarball expansion checking enabled\n");
-		my @files = FFR->new
-		               ->file
-		               ->name('*.tar.gz', '*.tgz')
-		               ->relative
-		               ->in( $self->{local} );
+		my @files = File::Find::Rule->new
+		                            ->name('*.tar.gz')
+		                            ->file
+		                            ->relative
+		                            ->in( $self->{local} );
 
 		# Filter to just those we need to extract
 		$self->trace("Checking " . scalar(@files) . " tarballs\n");
@@ -480,7 +478,7 @@ sub _extract_archive {
 
 	# Iterate and extract each file
 	File::Path::mkpath( $to, $self->{trace}, $self->{dirmode} );
-	foreach my $wanted ( @files ) {
+	foreach my $wanted ( sort @files ) {
 		# Where to extract to
 		my $to_file = File::Spec->catfile( $to, $wanted );
 		my $to_dir  = File::Basename::dirname( $to_file );
