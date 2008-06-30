@@ -14,7 +14,7 @@ use CPAN::Mini::Extract   ();
 use File::Remove          ();
 
 # Prepare the test directories
-my $test_remote  = 'http://mirrors.kernel.org/cpan/';
+my $test_remote  = 'http://www.perl.org/CPAN/';
 my $test_local   = catdir( 't', 'local'   );
 my $test_extract = catdir( 't', 'extract' );
 

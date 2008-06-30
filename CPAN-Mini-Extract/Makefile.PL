@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
 all_from      'lib/CPAN/Mini/Extract.pm';
 requires      'File::Spec'             => '0.80';
