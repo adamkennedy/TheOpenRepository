@@ -1303,12 +1303,14 @@ in_equation_s_t($_)
 
 Parses are found and evaluated by Marpa's evaluator objects.
 Evaluators are created with the C<new> constructor,
-which requires a Marpa recognizer object.
+which requires a Marpa recognizer object
+as an argument.
 
 Marpa allows ambiguous parses, so evaluator objects are iterators.
-Iteration is performed with the C<next> method,
+Iteration is performed with the C<value> method,
 which returns a reference to the value of the next parse.
-Often only one parse is needed, in which case the C<next> method is called only once.
+Often only the first parse is needed,
+in which case the C<value> method can be called just once.
 
 Each Marpa recognizer should have only one evaluator using it at any one time.
 If multiple evaluators
@@ -1317,14 +1319,14 @@ they may produce incorrect results.
 
 =head2 Null Values
 
-A "null value" is the value used for a symbol's value when it is nulled in a parse.
+A "null value" is the value used for a symbol when it is nulled in a parse.
 By default, the null value is a Perl undefined.
-If you want something else,
-the default null value is a Marpa option (C<default_null_value>) and can be reset.
+The default null value is a Marpa option (C<default_null_value>) and can be reset.
 
 Each symbol can have its own null symbol value.
-The null symbol value for any symbol is calculated using the action
-specified for the empty rule which has that symbol as its left hand side.
+The null symbol value for any symbol is calculated using the null symbol action.
+The B<null symbol action> for a symbol is the action
+specified for the empty rule with that symbol on its left hand side.
 The null symbol action is B<not> a rule action.
 It's a property of the symbol, and applies whenever the symbol is nulled,
 even when the symbol's empty rule is not involved.
@@ -1343,11 +1345,11 @@ in_null_value_grammar($_)
     A: . q{'A is missing'}.
 
 Null symbol actions are different from rule actions in another important way.
-Null symbol actions are run at recognizer creation time and the value of the result
+Null symbol actions are run at evaluator creation time and the value of the result
 at that point
 becomes fixed as the null symbol value.
 This is different from rule actions.
-During the creation of the recognizer object,
+During the creation of the evaluator object,
 rule actions are B<compiled into closures>.
 During parse evaluation,
 whenever a node for that rule needs its value recalculated,
@@ -1361,7 +1363,7 @@ and a fixed value is usually what is wanted.
 If you want to calculate a symbol's null value with a closure run at parse evaluation time,
 the null symbol action can return a reference to a closure.
 Rules with that nullable symbol in their right hand side
-can then be set up so that they run that closure.
+can then be set up to run that closure.
 
 =head3 Evaluating Null Derivations
 
@@ -1406,7 +1408,7 @@ The value of null derivation is the value of the highest null symbol in it.
 
 =item 2
 
-A nulled node counts only if it is start node.
+A nulled node counts only if it is the start node.
 
 =item 3
 
@@ -1422,7 +1424,7 @@ for every nullable symbol,
 determine how to calculate the value which your semantics produces
 when that nullable symbol is a "highest null symbol".
 If it's a constant, write a null action for that symbol which returns that constant.
-If your semantics do not produce a constant value by recognizer creation time,
+If your semantics do not produce a constant value by evaluator creation time,
 write a null action which returns a reference to a closure
 and arrange to have that closure run by the parent node.
 
@@ -1477,7 +1479,7 @@ the derivation is as follows:
 
 =end Parse::Marpa::test_document:
 
-    S -> A Y        (Rule 0)
+    S -> A Y      (Rule 0)
       -> A Z      (Y produces Z, by Rule 6)
       -> B C Z    (A produces B C, by Rule 2)
       -> B Z      (C produces the empty string, by Rule 4)
@@ -1545,7 +1547,7 @@ Rule 0's action uses the values of its child nodes.
 There are two child nodes and their values are
 elements 0 and 1 in the C<@$_> array of the action.
 The child value represented by the symbol C<Y>,
-C<< $_->[1] >>, comes from node 4.
+C<< $_[1] >>, comes from node 4.
 From the table above, we can see that that value was
 "C<Zorro was here>".
 
@@ -1563,7 +1565,7 @@ Rule 1's action evaluates to the Perl 5 string
 Even though rule 1's action plays a role in calculating the value of this parse,
 rule 1 is not actually used in the derivation.
 No node in the derivation represents rule 1.
-Rule 1 is used because it defines the null symbol value for
+Rule 1's action is used because it is the null symbol action for
 the symbol C<A>.
 
 Now that we have both child values, we can use rule 0's action
@@ -1609,7 +1611,7 @@ will be used as the number of the earleme at which to end parsing.
 If there is no second argument, parsing ends at the default end
 of parsing, which was set in the recognizer.
 
-=head2 next
+=head2 value
 
 =begin Parse::Marpa::test_document:
 
@@ -1623,21 +1625,20 @@ in_ah2_t($_)
 Iterates the evaluator object, returning a reference to the value of the next parse.
 If there are no more parses, returns undefined.
 Successful parses may evaluate to a Perl 5 undefined,
-which the C<next> method will return as a reference to an undefined.
+which the C<value> method will return as a reference to an undefined.
 Failures are thrown as exceptions.
 
-Parses are iterated in postorder.
-If a symbol can both match a token and derive a rule,
-the token match takes priority.
-Other alternatives are taken in implementation dependent order.
-When the order is important, it
-may be manipulated by assigning priorities to the rules and
+When the order of parses is important,
+it may be manipulated by assigning priorities to the rules and
 terminals.
+If a symbol can both match a token and derive a rule,
+the token match alway takes priority.
+Otherwise the parse order is implementation dependent.
 
 A failed parse does not always show up as an exhausted parse in the recognizer.
 Just because the recognizer was active when it was used to create
 the evaluator, does not mean that the input matches the grammar.
-If it does not match, there will be no parses and the C<next> method will
+If it does not match, there will be no parses and the C<value> method will
 return undefined the first time it is called.
 
 =head1 SUPPORT
