@@ -11,6 +11,7 @@ BEGIN {
 }
 
 use Test::More tests => 5;
+use File::Spec::Functions ':ALL';
 use PPI       ();
 use Perl::SAX ();
 
