@@ -8,6 +8,7 @@ BEGIN {
 
 use Test::More tests => 2;
 use File::Spec::Functions ':ALL';
+use Parse::CPAN::MirroredBy;
 
 # Locate the test file
 my $file = catfile( 't', 'data', 'MIRRORED.BY' );

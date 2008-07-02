@@ -1,12 +1,26 @@
 package Parse::CPAN::MirroredBy;
 
+=pod
+
+=head1 NAME
+
+Parse::CPAN::MirroredBy - Parse MIRRORED.BY
+
+=head1 DESCRIPTION
+
+Like the other members of the Parse::CPAN family B<Parse::CPAN::MirroredBy>
+parses and processes the CPAN meta data file F<MIRRORED.BY>.
+
+=head1 METHODS
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
 use Carp         'croak';
+use IO::File     ();
 use Params::Util qw{ _CODELIKE _HANDLE };
-
-my $DOMAIN = qr/(?-xism:(?: |(?:[A-Za-z](?:(?:[-A-Za-z0-9]){0,61}[A-Za-z0-9])?(?:\.[A-Za-z](?:(?:[-A-Za-z0-9]){0,61}[A-Za-z0-9])?)*)))/;
 
 
 
@@ -74,25 +88,26 @@ sub parse {
 	while ( 1 ) {
 		# Next line
 		my $string = <$handle>;
-		last if ! $string;
+		last if ! defined $string;
 		$line = $line + 1;
 
 		# Remove the useless lines
+		chomp( $string );
 		next if $string =~ /^\s*$/;
 		next if $string =~ /^\s*#/;
 
 		# Hostname or property?
 		if ( $string =~ /^\s/ ) {
 			# Property
-			unless ( $string =~ /^\s+(\w+)\s+=\s+\"(.+)\"$/ ) {
-				croak("Invalid propery on line $line");
+			unless ( $string =~ /^\s+(\w+)\s+=\s+\"(.*)\"$/ ) {
+				croak("Invalid property on line $line");
 			}
 			$mirror ||= {};
 			$mirror->{"$1"} = "$2";
 
 		} else {
 			# Hostname
-			unless ( $string =~ /^($DOMAIN)\:\s*$/ ) {
+			unless ( $string =~ /^([\w\.-]+)\:\s*$/ ) {
 				croak("Invalid host name on line $line");
 			}
 			my $current = $mirror;
@@ -111,7 +126,7 @@ sub parse {
 sub _process {
 	my $self   = shift;
 	my @mirror = shift;
-	foreach my $op ( @{$self->{filters} ) {
+	foreach my $op ( @{$self->{filters}} ) {
 		my $name = $op->[0];
 		my $code = $op->[1];
 		if ( $name eq 'grep' ) {
@@ -124,3 +139,32 @@ sub _process {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Parse-CPAN-MirroredBy>
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Parse::CPAN::Authors>, L<Parse::CPAN::Packages>,
+L<Parse::CPAN::Modlist>, L<Parse::CPAN::Meta>
+
+=head1 COPYRIGHT
+
+Copyright 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
