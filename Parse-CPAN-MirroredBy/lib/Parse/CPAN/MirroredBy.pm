@@ -22,6 +22,11 @@ use Carp         'croak';
 use IO::File     ();
 use Params::Util qw{ _CODELIKE _HANDLE };
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
 
 
 
