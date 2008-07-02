@@ -122,9 +122,9 @@ The two numbers after the "C<predict>" tag on the first line
 may be ignored.
 They are the numbers of the NFA states that were combined into this QDFA state.
 Marpa uses QDFA states to track the parse.
-Every QDFA state has one or more B<LR(0) items>.
+Every QDFA state has one or more LR(0) items.
 In this example, the second and third lines are LR(0) items.
-They are rules with a dot added to indicate
+B<LR(0) items> are rules with a dot added to indicate
 how far recognition has proceeded into the rule.
 
 A dot between two symbols indicates that all symbols
@@ -157,7 +157,8 @@ location of the Earley item --
 in other words, the dot position of each LR(0) item corresponds
 to the dot location of the Earley item.
 The start of the string of recognized symbols,
-which is also the start of the rule,
+which is also the start of the rules
+in the LR(0) items,
 will be the at origin of the Earley item.
 
 Some LR(0) items are predictions --
@@ -168,7 +169,7 @@ no symbols have been recognized, and
 the origin and the dot location will be the same.
 Our example is a prediction -- both
 origin and dot location are at earleme 2.
-we can see that that is the case
+We can see that that is the case
 from the "C<2-2>" in the description of Earley item C<S1@2-2>.
 
 =head1 HOW EARLEY SETS ARE BUILT
@@ -243,9 +244,6 @@ C<[p=S1@2-2; t=2]>
 indicates that the token has a value of "2",
 and that, when this token choice is selected,
 the predecessor of S4@2-3 is S1@2-2.
-Of course,
-since there's only one source choice,
-the predecessor of S4@2-3 is always S1@2-2.
 
 =head2 Completion
 
@@ -274,7 +272,8 @@ in_equation_show_QDFA($_);
 The dot is at the far right, so it's a completed rule whose the left hand side is C<e>.
 
 S4@2-3 begins at earleme 2 and has a complete rule with C<e> as its lhs,
-and therefore any Earley item at earleme 2 which is looking for an C<e> is in luck.
+and therefore any Earley item which is looking for an C<e>
+beginning at earleme 2 is in luck.
 S5@0-2 is such a rule.  QDFA state 5 looks like this:
 
 =begin Parse::Marpa::test_document:
@@ -395,9 +394,9 @@ in_equation_show_QDFA($_);
      <number> => S4
 
 Since S5@0-2 is at earleme 2,
-and it is expecting the symbols on the lhs of the items
+and it is expecting the rules which originate
 in QDFA state 1,
-there will also be an Earley item for QDFA state 1 at earleme 2:
+there will be an Earley item for QDFA state 1 at earleme 2:
 
 =begin Parse::Marpa::test_document:
 
@@ -452,12 +451,11 @@ dot position at the end of that rule.
 
 At most two of the QDFA states can be completed start rule states.
 One is a special case.
-In a null parse, the start state, QDFA state 0,
+In grammars which allow a null parse,
+the start state, QDFA state 0,
 is also a completed start rule state.
 
 The other completed start rule state
-is not hard to spot.
-A completed start rule state for non-null parses
 contains the LR(0) item which has Marpa's internal start rule
 with the dot pointer at the end of the rule.
 The lhs of the internal start rule is
@@ -504,8 +502,8 @@ Each Marpa evaluator is created with parse criteria.
 The parse criteria are
 the start and end earlemes of the parse,
 and the parse's top symbol.
-Often these parse criteria take
-default values.
+Default values
+are often used for these parse criteria.
 The default start earleme is earleme 0.
 The default end earleme
 is the furthest earleme reached by any token in
@@ -516,12 +514,14 @@ symbol of the grammar.
 The parse bocage stores all parses meeting the
 evaluator's parse criteria.
 In other general parsers,
-a parse forest is been used to store ambiguous parses.
+a parse forest has been used to store ambiguous parses.
 Marpa's parse bocage is an adaptation of a parse forest.
 Parse bocages differ from parse forests in three ways:
 parse bocages may contain cycles;
 and-nodes and or-nodes strictly alternate in a parse bocage;
-and and-nodes are limited to two rhs symbols in parse bocages.
+and
+in parse bocages
+and-nodes are limited to two rhs symbols.
 
 Parse forests and parse bocages both 
 consist of and-nodes and or-nodes.
@@ -533,15 +533,14 @@ In parse forests, the and-nodes directly
 represent productions of
 the original grammar.
 Marpa's parse bocages, on the other hand,
-often must represent the original grammar's
+must often represent the original grammar's
 production in pieces.
-Marpa needs to represent
+B<Marpa Bocage Form> (B<MBF>)
+represents
 the original's grammars productions
 in pieces
-in order to ensure that no more than two symbols are on any rhs.
-I call Marpa's piecemeal representation
-of the original productions,
-B<Marpa Bocage Form> (B<MBF>).
+with at most
+two symbols on the rhs.
 In restricting the rhs to at most two symbols,
 MBF is very similar to Chomsky Normal Form (CNF).
 
@@ -549,9 +548,9 @@ Marpa uses MBF for four reasons.
 First, MBF is essentially the form in which the grammar
 is found in the Earley items.
 Every source choice of an Earley item contains at most two links.
-The links correspond to symbols on the rhs of a production.
+These links can be treated as symbols on the rhs of a production.
 So the original grammar is found in the Earley items in
-a forma that has at most two symbols on the right hand side.
+a form that has at most two symbols on the right hand side.
 
 Second, MBF is more compact than a parse forest.
 Third, MBF can handle parses with cycles.
@@ -560,8 +559,8 @@ Binary trees are fast and easy
 to traverse and manipulate.
 The effort spent to rewrite the parse data found in the Earley
 sets back into the productions of the original grammar
-would be counter-productive.
-The result would be a slower and more cumbersome data structure.
+would
+result in a slower and more cumbersome data structure.
 
 Every and-node represents either a production of the original grammar,
 or a piece of one.
@@ -584,7 +583,7 @@ Based on its rule and position,
 each or-node also corresponds to a symbol.
 
 Based on its rule, rule position, and earleme location
-an or-node also corresponds to an Earley item.
+an or-node is matched with an Earley item.
 An or-node with its rule position
 at the end of the rule,
 or just before a non-nulled symbol,
@@ -593,10 +592,9 @@ The Earley item corresponding to a brick or-node
 has an earleme location which exactly matches the earleme location
 of the brick or-node and
 has a QDFA state which contains an LR(0) item
-which exactly matches the brick or-node's rule and rule position
-are the same as those of the or-node.
+which exactly matches the brick or-node's rule and rule position.
 
-This is an or-node for every symbol of any possible parse.
+There is an or-node for every symbol of any possible parse.
 This means there are or-nodes which have rule positions in front
 of nulled symbols.
 These or-nodes
@@ -607,7 +605,7 @@ No Earley items correspond exactly to mortar or-nodes.
 This is because Marpa has no LR(0) items with dot positions before nulled
 symbols.
 
-The corresponding Earley item for a mortar or-node is the Earley item
+The Earley item used in the name of a mortar or-node is the Earley item
 which exactly matches the rule and the earleme location of the mortar or-node,
 and which contains the "next" LR(0) item for the or-node's rule.
 The "next" LR(0) item is the one with its rule position in front of the first non-nulled
@@ -615,11 +613,11 @@ symbol after the mortar or-node's rule position.
 If there is no non-nulled symbol in the rule after the or-node's rule position,
 the "next" LR(0) item is the one with its rule position at the end of the rule.
 
-Or-nodes with their positions at the end of rules are B<closure or-nodes>.
+Or-nodes with their rule position at the end of the rule are B<closure or-nodes>.
 All other or-nodes are B<kernel or-nodes>.
 
 Or-nodes names consist of the name of the corresponding Earley item,
-followed by a label indicating the selection criteria.
+followed by a label indicating their B<selection criteria>.
 The selection criteria depend on whether the or-node is a kernel
 or a closure or-node.
 
@@ -631,8 +629,9 @@ In an Earley item,
 several completed LR(0) items may have the same lhs.
 
 The selection criteria for a kernel or-node is
-a rule, and a position in that rule.
-For a brick or-node, exactly one LR(0) item will match.
+a rule, and a rule position.
+For a brick or-node,
+exactly one LR(0) item will match the selection criteria,
 and the child and-nodes will use that LR(0) item.
 For a mortar or-node,
 no LR(0) items will match,
@@ -718,20 +717,17 @@ The start symbol is C<e[']>,
 which is symbol number 3.
 So the selection criterion label is "L3".
 
-The rhs of the start or-production is the and-node
-which is its first and only child,
-It has index 0.
 Start or-productions are always trivial.
+The rhs of the start or-production is the and-node
+which is its first and only child.
+It has index 0.
+A PBG always starts with the start or-production.
 
-A PBG always starts with an or-node.
 Or-nodes appear in the PBG as one or more or-productions.
-Each or-production has the name of an or-node at its lhs.
+Each or-production has the name of an or-node as its lhs.
 Also, each or-production has the name 
 of one of the or-node's child and-nodes
 as the only symbol on its rhs.
-In the example above,
-the rhs and-node is the first child
-of the lhs or-node.
 
 In many cases, the or-nodes are trivial -- they have
 exactly one child.
@@ -752,10 +748,9 @@ there will be always be an or-production with the
 unbracketed name of the and-node node as the or-production's lhs,
 and with the and-node itself as or-production's only rhs symbol.
 For example, from the name of the and-node S2@0-3L3[0],
-we can deduce existence of the or-production in the example above.
+we can deduce the existence of the or-production in the example above.
 
-The start or-node is always trivial.
-Here is the and-production which is its only child:
+Here is the and-production which is the start or-node's only child:
 
 Z<>
 
@@ -787,9 +782,11 @@ The last line tells
 us the length of the rule's rhs, and that there is
 a Perl closure corresponding to this rule.
 Perl closures and closure or-nodes are not to be confused.
-The word "closure" in "closure or-node" refers to the 
-fact that it corresponds to the closing-out of a rule,
-and has nothing to do with whether it might have a
+The word "closure" in "closure or-node" refers to
+its being the last in a rule --
+that is, it "closes" the rule.
+Whether or not an or-node is a closure or-node
+has nothing to do with whether or not it has a
 corresponding Perl closure.
 
 =begin Parse::Marpa::test_document:
@@ -813,7 +810,7 @@ and shown by its selection criteria label ("C<R0:2>")
 and in the dotted rule on the third line.
 The symbol before the dot ("C<op>") matched the token
 ("C<+>").
-The kernel or-node will contains information for
+The kernel or-node contains information for
 deriving the first symbol of rule 0 ("C<e>").
 
 =begin Parse::Marpa::test_document:
@@ -844,7 +841,7 @@ and will be a completed rule with
 symbol number 0 on its lhs.
 Symbol number 0 is C<e>.
 There is, as it happens, only one
-LR(0) in QDFA state 4,
+LR(0) item in QDFA state 4,
 but it is, as required, a completed rule
 with C<e> as its lhs.
 
@@ -853,13 +850,13 @@ with C<e> as its lhs.
 The parse tree for our example parse is shown in an
 appendix.
 Every node in a Marpa parse tree corresponds
-in an and-node
+to an and-node
 in the parse bocage.
 
 A parse bocage contains all possible parses,
 but a parse tree is for a specific parse.
 Only those and-nodes actually used in the specific
-parse be correspond to nodes of the parse tree.
+parse become nodes in the parse tree.
 In the case of an unambiguous parse,
 every parse bocage and-node corresponds to a tree node.
 If the parse bocage contains an ambiguous parse,
@@ -888,7 +885,7 @@ of the tree.
 
 Marpa's parse trees are kept in pre-order.
 They can be traversed as a tree, starting from the root.
-But they can also be traversed from the end.
+They can also be traversed from the end.
 Marpa does this when it evaluates a parse.
 
 As Marpa evaluates tree nodes,
@@ -1110,7 +1107,7 @@ New symbols are introduced to be the left hand sides of the pieces.
 The tag "C<[R12:3]>" indicates that this
 symbol is the left hand side for the piece of Rule 12 which begins at right hand symbol 3
 (the first symbol is symbol 0).
-The tags beginning with an "C<x>", like "C<[x5d]>", are arbitrary unique hex values,
+The tags beginning with an "C<x>", like "C<[x5d]>", are arbitrary hex values,
 inserted to guarantee that the new symbols are unique.
 
 This rule is a worst case for CHAF, because the last three symbols of the right hand side are all
