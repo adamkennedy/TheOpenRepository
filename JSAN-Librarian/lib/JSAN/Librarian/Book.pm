@@ -3,11 +3,13 @@ package JSAN::Librarian::Book;
 # Implements a JavaScript::Librarian::Book. In our case, the id IS the path
 
 use strict;
-use base 'JavaScript::Librarian::Book';
+use Params::Util '_HASH0';
+use JavaScript::Librarian::Book;
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
+	@ISA     = 'JavaScript::Librarian::Book';
 }
 
 
@@ -20,12 +22,12 @@ BEGIN {
 sub new {
 	my $class = shift;
 	my $path  = shift or return undef;
-	my %deps  = ref $_[0] eq 'HASH' ? %{shift()} : return undef;
+	my $deps  = _HASH0(shift) or return undef;
 
 	# Create the object
 	my $self = bless {
 		id      => $path,
-		depends => [ keys %deps ],
+		depends => [ keys %$deps ],
 		}, $class;
 
 	$self;

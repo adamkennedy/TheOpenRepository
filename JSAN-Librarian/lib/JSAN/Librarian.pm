@@ -18,21 +18,22 @@ L<JavaScript::Librarian::Library> object for a L<JSAN> installation.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp                     ();
 use File::Spec               ();
 use File::Path               ();
 use Config::Tiny             ();
+use Params::Util             ();
 use File::Basename           ();
 use File::Find::Rule         ();
 use JSAN::Parse::FileDeps    ();
 use JSAN::Librarian::Book    ();
 use JSAN::Librarian::Library ();
-use constant 'FFR' => 'File::Find::Rule';
 
 use vars qw{$VERSION $VERBOSE @DEFAULT};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	# Silent by default
 	$VERBOSE ||= 0;
@@ -42,7 +43,7 @@ BEGIN {
 	@DEFAULT = qw{
 		openjsan.deps
 		.openjsan.deps
-		};
+	};
 }
 
 
@@ -70,20 +71,19 @@ as being relative to the root path passed as the first param.
 Note: As long as the root path exists, a new C<JSAN::Librarian> object
 will be created whether index file exists or not.
 
-Returns a new C<JSAN::Librarian> object, or C<undef> if the directory
+Returns a new C<JSAN::Librarian> object, or undef if the directory
 does not exist.
 
 =cut
 
 sub new {
 	my $class      = shift;
-	my $root       = (defined $_[0] and -d $_[0]) ? shift : return undef;
+	my $root       = (defined _STRING($_[0]) and -d $_[0]) ? shift : return undef;
 
 	# Create the object
 	my $self = bless {
-		root       => $root,
-		# index_file => $index_file,
-		}, $class;
+		root => $root,
+	}, $class;
 
 	# Check passed index file or use a default
 	$self->{index_file} = @_
@@ -91,14 +91,14 @@ sub new {
 		: $self->_new_default
 		or return undef;
 
-	$self;
+	return $self;
 }
 
 # Check index file param
 sub _new_param {
 	my $self  = shift;
 	my $param = shift or return undef;
-	"$param";
+	return "$param";
 }
 
 # Determine default
@@ -117,7 +117,7 @@ sub _new_default {
 	# It doesn't exist, but use the primary default
 	my $path = File::Spec->catfile( $root, $DEFAULT[0] );
 	$self->_print("Using default path $DEFAULT[0]");
-	$path;
+	return $path;
 }
 
 =pod
@@ -128,7 +128,9 @@ The C<root> accessor returns the root path of the installed JSAN library.
 
 =cut
 
-sub root { $_[0]->{root} }
+sub root {
+	$_[0]->{root};
+}
 
 =pod
 
@@ -140,7 +142,9 @@ relative to the root.
 
 =cut
 
-sub index_file { $_[0]->{index_file} }
+sub index_file {
+	$_[0]->{index_file};
+}
 
 
 
@@ -162,7 +166,7 @@ relative to the root.
 sub index_path {
 	my $self = shift;
 	my $file = $self->index_file;
-	File::Spec->file_name_is_absolute($file)
+	return File::Spec->file_name_is_absolute($file)
 		? $file
 		: File::Spec->catfile( $self->root, $file );
 }
@@ -178,8 +182,7 @@ Returns true if the index file exists, or false if not.
 =cut
 
 sub index_exists {
-	my $self = shift;
-	-f $self->index_path;
+	return -f $_[0]->index_path;
 }
 
 =pod
@@ -195,26 +198,26 @@ Returns a L<Config::Tiny> object, or throws an exception on error.
 
 sub build_index {
 	my $self   = shift;
-	my $Config = Config::Tiny->new;
+	my $config = Config::Tiny->new;
 
 	# Find all the files
 	$self->_print("Searching $root for .js files...);
-	my @files = FFR->relative
-	               ->file
-	               ->name('*.js')
-	               ->not_name(qr/_deps\.js$/)
-	               ->in( $root );
+	my @files = File::Find::Rule->name('*.js')
+	                            ->not_name(qr/_deps\.js$/)
+	                            ->file
+                                    ->relative
+	                            ->in( $root );
 	foreach my $js ( @files ) {
-		$Config->{$js} = {};
+		$config->{$js} = {};
 		my $path = File::Spec->catfile( $root, $js );
 		$self->_print("Scanning $js");
 		my @deps = JSAN::Parse::FileDeps->file_deps( $path );
 		foreach ( @deps ) {
-			$Config->{$js}->{$_} = 1;
+			$config->{$js}->{$_} = 1;
 		}
 	}
 
-	$Config;
+	return $config;
 }
 
 =pod
@@ -247,13 +250,13 @@ sub make_index {
 	}
 
 	# Generate the Config::Tiny object
-	my $Config = $class->build_index( $root );
+	my $config = $class->build_index( $root );
 
 	# Save the index file
 	$self->_print("Saving $path");
-	$Config->write( $path ) or Carp::croak(
+	$config->write( $path ) or Carp::croak(
 		"Failed to write JSAN::Librarian index file '$path'"
-		);
+	);
 }
 
 =pod
@@ -278,7 +281,7 @@ sub library {
 	my $from = $self->index_exists
 		? $self->index_path
 		: $self->build_index;
-	JSAN::Librarian::Library->new( $from );
+	return JSAN::Librarian::Library->new( $from );
 }
 
 
@@ -316,15 +319,15 @@ Bugs should always be submitted via the CPAN bug tracker
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=JSAN-Librarian>
 
-For other issues, contact the maintainer
+For other issues, contact the maintainer.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

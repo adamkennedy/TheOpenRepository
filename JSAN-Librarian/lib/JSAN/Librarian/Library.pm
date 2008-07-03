@@ -5,12 +5,14 @@ package JSAN::Librarian::Library;
 
 use strict;
 use Config::Tiny          ();
+use Params::Util          '_INSTANCE';
 use JSAN::Librarian::Book ();
-use base 'JavaScript::Librarian::Library';
+use JavaScript::Librarian::Library;
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
+	@ISA     = 'JavaScript::Librarian::Library';
 }
 
 
@@ -22,31 +24,32 @@ BEGIN {
 
 sub new {
 	my $class  = shift;
-	my $Config = undef;
-	if ( UNIVERSAL::isa(ref $_[0], 'Config::Tiny') ) {
-		$Config = shift;
-	} elsif ( defined $_[0] ) {
-		$Config = Config::Tiny->read( $_[0] ) or return undef;
+	my $config = undef;
+	if ( _INSTANCE($_[0], 'Config::Tiny') ) {
+		$config = shift;
+	} elsif ( defined _STRING($_[0]) ) {
+		$config = Config::Tiny->read($_[0]) or return undef;
 	} else {
 		return undef;
 	}
 
 	# Remove any root entries
-	delete $Config->{_};
+	delete $config->{_};
 
 	# Create the object
 	my $self = bless {
-		Config => $Config,
-		}, $class;
+		config => $config,
+	}, $class;
 
 	$self;
 }
 
 sub _load_item_list {
-	my $self  = shift;
-	my @books = ();
-	foreach my $book ( keys %{$self->{Config}} ) {
-		push @books, JSAN::Librarian::Book->new( $book, $self->{Config}->{$book} );
+	my $self   = shift;
+	my @books  = ();
+	my $config = $self->{config};
+	foreach my $book ( keys %$config ) {
+		push @books, JSAN::Librarian::Book->new( $book, $config->{$book} );
 	}
 	return \@books;
 }
