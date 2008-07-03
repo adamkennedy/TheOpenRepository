@@ -20,6 +20,9 @@ packages. It is intended that the library should be extremely flexible,
 highly extendible, support locales in some form, and be heavily unit tested
 to ensure that packages built on top of Data::Vitals have a reliable base.
 
+Data::Vitals measurement objects are useful for both male and female
+measurements.
+
 =head2 Implementation Style
 
 As is generally the case with complex and twisty subjects (such as
@@ -37,8 +40,6 @@ values (although they can be input in various forms). This is for forward
 compability with the long term worldwide trend towards metrification. For
 now, locales that use imperial values should explicitly call the various
 C<< ->as_imperial >> methods.
-
-Full support for locales and i18n will be added in a later version.
 
 =head2 Class List
 
@@ -83,7 +84,6 @@ version.
 
 use 5.005;
 use strict;
-use UNIVERSAL 'isa';
 
 # Load the entire distribution
 use Data::Vitals::Util          ();
@@ -97,7 +97,7 @@ use Data::Vitals::Underarm      ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.06';
 }
 
 
@@ -262,20 +262,26 @@ special cases.
 
 Bugs should always be reported via the CPAN bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data%3A%3AVitals>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-Vitals>
 
 For other issues, contact the maintainer.
 
+As the author is no longer working in the fashion/modelling industry,
+volunteers for taking over maintenance would be gratefully accepted.
+
 =head1 AUTHORS
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 ACKNOWLEGEMENTS
 
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

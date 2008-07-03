@@ -1,6 +1,5 @@
 use inc::Module::Install;
 
-name          'Data-Vitals';
 all_from      'lib/Data/Vitals.pm';
 test_requires 'Test::More'     => '0.47';
 test_requires 'Test::ClassAPI' => '1.02';

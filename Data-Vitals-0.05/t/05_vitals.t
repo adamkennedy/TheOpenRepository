@@ -1,18 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Unit testing for Data::Vitals
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 28;
@@ -52,5 +45,3 @@ foreach my $test (
 	my $imperial = $test->[2];
 	is( $Measurement->as_imperial, $imperial, '->as_imperial returns the expected value' );
 }
-
-exit(0);

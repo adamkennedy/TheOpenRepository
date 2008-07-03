@@ -56,20 +56,23 @@ BEGIN {
 
 Bugs should always be reported via the CPAN bug tracker
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data%3A%3AVitals>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-Vitals>
 
 For other issues, contact the maintainer.
 
 =head1 AUTHORS
 
-Adam Kennedy (Maintainer), L<http://ali.as/>, cpan@ali.as
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 ACKNOWLEGEMENTS
 
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

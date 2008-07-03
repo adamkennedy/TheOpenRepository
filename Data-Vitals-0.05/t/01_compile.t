@@ -1,18 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for Data::Vitals
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir( updir(), updir(), 'modules') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 9;
@@ -27,5 +20,3 @@ use_ok('Data::Vitals::Waist'        );
 use_ok('Data::Vitals::Frame'        );
 use_ok('Data::Vitals::Chest'        );
 use_ok('Data::Vitals::Underarm'     );
-
-exit(0);
