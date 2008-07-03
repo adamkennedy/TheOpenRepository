@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.75;
 
 all_from      'lib/Data/Vitals.pm';
 test_requires 'Test::More'     => '0.47';

@@ -1,7 +1,7 @@
 Changes for Perl extension Data::Vitals
 
 1.06 Sat 10 May 2008
-	- Updating to Module::Install 0.73
+	- Updating to Module::Install 0.75
 	- Updating to new author tests and cleaning Makefile.PL
 	- Cleaning up some POD issues
 
