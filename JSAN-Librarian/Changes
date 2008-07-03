@@ -1,0 +1,11 @@
+Revision history for Perl extension JSAN::Librarian
+
+0.02 Tue Jul 26 2005
+	- Added JSAN::Librarian::Library and JSAN::Librarian::Book
+	- Added missing Changes
+	- Caught a bunch of errors in JavaScript::Librarian now we can test it
+	- Tested that the whole thing works
+
+0.01 Tue Jul 26 2005
+	- original version
+	- Doesn't contain any usable ::Library classes yet
