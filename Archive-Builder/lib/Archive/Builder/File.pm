@@ -35,7 +35,7 @@ sub new {
 
 	# Create the File object
 	bless {
-		path => $path,
+		path      => $path,
 		generator => $generator,
 		arguments => @_ ? [ @_ ] : 0,
 		}, $class;
