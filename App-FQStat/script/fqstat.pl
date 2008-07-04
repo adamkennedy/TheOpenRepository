@@ -98,8 +98,14 @@ our $DisplayOffset : shared = 0;        # Offset of the first displayed job
 our $SortField : shared;                # may hold name of sort field
 
 our $Interval : shared;                 # Effective data refreshing interval. Do not change. Is set to $UserInterval below
-our $HighlightUser = undef;
+our $HighlightUser;
 our $HighlightUserColor = color("black on yellow");
+{
+  my $curuser = $ENV{USER};
+  if (defined $curuser) {
+    $HighlightUser = quotemeta($curuser);
+  }
+}
 
 # menu globals
 our $MenuMode        = 0; # in menu or not

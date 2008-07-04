@@ -5,7 +5,7 @@ package App::FQStat;
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
-our $VERSION = '5.6';
+our $VERSION = '5.7';
 
 use strict;
 use warnings;
