@@ -1,5 +1,9 @@
 Revision history for Perl extension App::FQStat.
 
+5.6  Fri Jul  4 11:24 2008
+  - Fix bug wrt display offset when going from 
+    a display with many jobs to an empty display.
+
 5.5  Wed May 14 11:00 2008
   - Add support for four-chars wide statuses.
 

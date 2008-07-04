@@ -139,6 +139,7 @@ sub draw_job_display {
   my $mark      = shift || {};
 
   my $jobs = $::Records;
+  check_display_offset();
   lock($::DisplayOffset);
 
   my $drawUpperScrollbar = need_upper_scrollbar();
@@ -290,6 +291,15 @@ sub show_warning {
   print RESET;
   sleep 2;
   return;
+}
+
+sub check_display_offset {
+  lock($::DisplayOffset);
+  return if not $::DisplayOffset;
+  if (@$::Records <= $::DisplayOffset) {
+    $::DisplayOffset = $#{$::Records};
+  }
+  $::DisplayOffset = 0 if $::DisplayOffset < 0;
 }
 
 1;
