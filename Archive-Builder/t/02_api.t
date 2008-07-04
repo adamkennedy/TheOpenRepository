@@ -12,7 +12,7 @@ BEGIN {
 use Archive::Builder ();
 
 # Execute the tests
-use Test::More 'tests' => 72;
+use Test::More tests => 72;
 use Test::ClassAPI;
 
 # Ignore imported functions
@@ -20,7 +20,6 @@ $Test::ClassAPI::IGNORE{refaddr} = 1;
 
 # Execute the tests
 Test::ClassAPI->execute('complete', 'collisions');
-exit(0);
 
 __DATA__
 

@@ -134,7 +134,7 @@ sub numbers {
 
 
 END {
-	File::Flat->remove( 'first' );
-	File::Flat->remove( 'second' );
-	File::Flat->remove( 'third' );
+	File::Flat->remove('first');
+	File::Flat->remove('second');
+	File::Flat->remove('third');
 }

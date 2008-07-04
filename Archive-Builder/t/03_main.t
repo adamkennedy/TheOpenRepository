@@ -321,5 +321,3 @@ sub generator {
 	my $value = 'trivial';
 	return \$value;
 }
-
-1;

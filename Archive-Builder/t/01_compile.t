@@ -11,9 +11,7 @@ BEGIN {
 use Test::More tests => 6;
 
 # Check their perl version
-BEGIN {
-	ok( $] >= 5.005, 'Your perl is new enough' );
-}
+ok( $] >= 5.005, 'Your perl is new enough' );
 
 # Load all of the classes
 use_ok( 'Archive::Builder'             );
@@ -21,5 +19,3 @@ use_ok( 'Archive::Builder::Section'    );
 use_ok( 'Archive::Builder::File'       );
 use_ok( 'Archive::Builder::Generators' );
 use_ok( 'Archive::Builder::Archive'    );
-
-exit(0);

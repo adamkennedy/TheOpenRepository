@@ -1,7 +1,12 @@
-Revision history for Perl extension Archive::Builder
+Revision history for Perl extension Archive-Builder
+
+1.14 Thu  3 Jul 2008
+	- No functional changes.
+	- Updating to Module::Install 0.76.
+	- Fixing CPANTS complaint about broken META.yml.
 
 1.13 Mon 22 Oct 2007
-	- No functional changes. No need to upgrade.
+	- No functional changes.
 	- Incremental release to get a newer set of AUTOMATED_TESTING tests
 
 1.12 Fri  3 Aug 2007

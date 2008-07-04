@@ -43,10 +43,10 @@ ok( $rv, 'Builder using default generators returns true' );
 
 #Test the file contents
 my $files = {
-	'./first/one/one' => 'filecontents',
-	'./first/one/two' => 'trivial',
+	'./first/one/one'   => 'filecontents',
+	'./first/one/two'   => 'trivial',
 	'./first/one/three' => "test file",
-	'./first/one/four' => 'test file',
+	'./first/one/four'  => 'test file',
 	};
 foreach ( keys %$files ) {
 	ok( File::Flat->exists( $_ ), "File '$_' exists" );
@@ -68,10 +68,6 @@ sub file_contains {
 		or return ok( undef, 'Error while slurping file' );
 	return is( $$contents, $contains, "File $filename contents match expected value" );
 }
-
-
-
-
 
 END {
 	File::Flat->remove( 'first' );
