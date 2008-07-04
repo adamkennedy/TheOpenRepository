@@ -1,8 +1,14 @@
 Release history for Perl module LWP::Online
 
+1.05 Fri  4 Jul 2008
+	- Switching to a stable version number
+	- Updating to Module::Install 0.76
+	- Localising $@ during evals
+	- Adding missing dependency on URI.pm
+
 0.04 Mon 14 Apr 2008
-	- Adding a 30 second timeout per connection
 	- Updating to Module::Install 0.71
+	- Adding a 30 second timeout per connection
 
 0.03 Tue 15 May 2007
         - Adding the offline convenience function

@@ -103,7 +103,7 @@ use LWP::Simple qw{ get $ua };
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '1.05';
 
 	# We are an Exporter
 	require Exporter;
@@ -125,10 +125,10 @@ BEGIN {
 		# These are some initial trivial checks.
 		# The regex are case-sensitive to at least
 		# deal with the "couldn't get site.com case".
-		'http://google.com/' => sub { /About Google/ },
-		'http://yahoo.com/'  => sub { /Yahoo!/  },
+		'http://google.com/' => sub { /About Google/      },
+		'http://yahoo.com/'  => sub { /Yahoo!/            },
 		'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
-		'http://cnn.com/'    => sub { /CNN/    },
+		'http://cnn.com/'    => sub { /CNN/               },
 	);
 }
 
@@ -240,11 +240,14 @@ sub http_online {
 		my $check = shift @reliable;
 
 		# Try to fetch the site
-		my $content = eval { get($site) };
-		if ( $@ ) {
-			# An exception is a simple failure
-			$bad++;
-			next;
+		SCOPE: {
+			local $@;
+			my $content = eval { get($site) };
+			if ( $@ ) {
+				# An exception is a simple failure
+				$bad++;
+				next;
+			}
 		}
 		unless ( defined $content ) {
 			# get() returns undef on failure
