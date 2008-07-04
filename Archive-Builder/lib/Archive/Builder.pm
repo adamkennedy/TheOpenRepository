@@ -693,7 +693,11 @@ Better control over caching, more archive types, pre-generation testing.
 
 =head1 SUPPORT
 
-Contact the author
+Bugs should always be submitted via the CPAN bug tracker.
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Archive-Builder>
+
+For other issues, contact the maintainer.
 
 =head1 AUTHOR
 

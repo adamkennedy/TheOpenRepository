@@ -241,7 +241,11 @@ Some more interesting default generators, as needed or requested.
 
 =head1 SUPPORT
 
-Contact the author
+Bugs should always be submitted via the CPAN bug tracker.
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Archive-Builder>
+
+For other issues, contact the maintainer.
 
 =head1 AUTHOR
 
