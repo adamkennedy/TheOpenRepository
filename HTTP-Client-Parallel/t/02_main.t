@@ -7,11 +7,11 @@ BEGIN {
 }
 
 use Test::More 'no_plan';
-use File::Spec ();
+use File::Spec::Functions ':ALL';
 use Data::Dumper;
 use HTTP::Client::Parallel qw{ mirror get };
 
-my $mirror_dir = File::Spec->catdir( 't', 'test-download' );
+my $mirror_dir = catdir( 't', 'test-download' );
 ok( -d $mirror_dir, 'Found mirror directory' );
 
 my $client = HTTP::Client::Parallel->new;
@@ -30,11 +30,11 @@ if ( 0 ) {
 
 # mirror
 my $responses = $client->mirror(
-	'http://www.google.com' => "$mirror_dir/google.html",
+	'http://www.google.com' => catfile($mirror_dir, "google.html"),
 );
 
 $responses = mirror(
-	'http://www.google.com' => "$mirror_dir/google.html",
+	'http://www.google.com' => catfile($mirror_dir, "google.html"),
 );
 
-warn Dumper( $responses );
+# warn Dumper( $responses );
