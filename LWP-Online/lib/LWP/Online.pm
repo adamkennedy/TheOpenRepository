@@ -240,9 +240,10 @@ sub http_online {
 		my $check = shift @reliable;
 
 		# Try to fetch the site
+		my $content;
 		SCOPE: {
 			local $@;
-			my $content = eval { get($site) };
+			$content = eval { get($site) };
 			if ( $@ ) {
 				# An exception is a simple failure
 				$bad++;
