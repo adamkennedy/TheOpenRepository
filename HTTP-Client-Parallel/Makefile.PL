@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.76;
 
 all_from 'lib/HTTP/Client/Parallel.pm';
 requires 'Exporter'                     => 0;

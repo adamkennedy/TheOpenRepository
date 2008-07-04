@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More 'no_plan';
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
+use Test::More 'no_plan';
 use File::Spec ();
 use Data::Dumper;
 use HTTP::Client::Parallel qw{ mirror get };
