@@ -84,8 +84,12 @@ use constant HCP                    => __PACKAGE__;
 use constant DEFAULT_REDIRECT_DEPTH => 2;
 use constant DEFAULT_TIMEOUT        => 60;
 
-our @EXPORT_OK;
-@EXPORT_OK = qw(mirror getstore get);
+use vars qw{$VERSION @ISA @EXPORT_OK};
+BEGIN {
+	$VERSION   = '0.01';
+	@ISA       = 'Exporter';
+	@EXPORT_OK = qw{ mirror getstore get };
+}
 
 sub new {
     my ( $class, %args )  = @_;
