@@ -17,6 +17,11 @@ LWP::Online - Does your process have access to the web
   unless ( online('http') ) {
       die "No basic http access to the web";
   }
+  
+  # Special syntax for use in test scripts that need
+  # "real" access to the internet. Scripts will automatically
+  # skip if connection fails.
+  use LWP::Online ':skip_all';
 
 =head1 DESCRIPTION
 
@@ -92,6 +97,26 @@ of any kind, it is quite possible that some malicious person might proxy
 fake versions of sites that pass our content checks and then proceed
 to show you other bad pages.
 
+=head2 Test Mode
+
+  use LWP::Online ':skip_all';
+
+As a convenience when writing tests scripts base on L<Test::More>, the
+special ':skip_all' param can be provided when loading B<LWP::Online>.
+
+This implements the functional equivalent of the following.
+
+  BEGIN {
+    require Test::More;
+    unless ( LWP::Online::online() ) {
+      Test::More->import(
+        skip_all => 'Test requires a working internet connection'
+      );
+    }
+  }
+
+The :skip_all special import flag can be mixed with regular imports.
+
 =head1 FUNCTIONS
 
 =cut
@@ -103,7 +128,7 @@ use LWP::Simple qw{ get $ua };
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 
 	# We are an Exporter
 	require Exporter;
@@ -130,6 +155,22 @@ BEGIN {
 		'http://amazon.com/' => sub { /Amazon/ and /Cart/ },
 		'http://cnn.com/'    => sub { /CNN/               },
 	);
+}
+
+sub import {
+	my $class = shift;
+
+	# Handle the :skip_all special case
+	my @functions = grep { $_ ne ':skip_all' } @_;
+	if ( @functions != @_ ) {
+		require Test::More;
+		unless ( online() ) {
+			Test::More->import( skip_all => 'Test requires a working internet connection' );
+		}
+	}
+
+	# Hand the rest of the params off to Exporter
+	return $class->SUPER::import( @functions );
 }
 
 

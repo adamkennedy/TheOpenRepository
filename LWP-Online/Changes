@@ -1,5 +1,9 @@
 Release history for Perl module LWP::Online
 
+1.06 Fri  4 Jul 2008
+	- Adding the :skip_all import flag
+	- Used a newer Module::Install 0.76 pre-release
+
 1.05 Fri  4 Jul 2008
 	- Switching to a stable version number
 	- Updating to Module::Install 0.76
