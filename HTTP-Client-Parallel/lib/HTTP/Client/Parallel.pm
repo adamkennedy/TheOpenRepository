@@ -71,13 +71,16 @@ little work.
 use 5.006;
 use strict;
 use warnings;
-use POE qw(Component::Client::HTTP);
+use Exporter     ();
+use IO::File     ();
+use Params::Util '_INSTANCE';
+use HTTP::Date   ();
 use HTTP::Request;
-use HTTP::Date qw(time2str);
-use Scalar::Util qw(blessed);
-use IO::File;
-use Exporter 'import';
+use POE;
+use POE::Session;
+use POE::Component::Client::HTTP;
 
+use constant HCP                    => __PACKAGE__;
 use constant DEFAULT_REDIRECT_DEPTH => 2;
 use constant DEFAULT_TIMEOUT        => 60;
 
@@ -86,31 +89,15 @@ our @EXPORT_OK;
 
 sub new {
     my ( $class, %args )  = @_;
-
-    my $self = {
+    return  bless {
         requests       => {},
         results        => {},
         count          => 0,
-        debug          => $args{debug} || 0,
-        http_alias     => $args{http_alias} || 'ua',
-        timeout        => $args{timeout} || DEFAULT_TIMEOUT,
+        debug          => $args{debug}          || 0,
+        http_alias     => $args{http_alias}     || 'ua',
+        timeout        => $args{timeout}        || DEFAULT_TIMEOUT,
         redirect_depth => $args{redirect_depth} || DEFAULT_REDIRECT_DEPTH,
-    };
-
-    bless $self, $class;
-
-    return $self;
-}
-
-sub _init_self {
-    my $self;
-    if ( blessed( $_[0] ) and $_[0]->isa('HTTP::Client::Parallel') ) {
-        $self = shift;
-    }
-    else {
-        $self = __PACKAGE__->new();
-    }
-    return ( $self, @_ );
+    }, $class;
 }
 
 sub urls {
@@ -125,15 +112,16 @@ sub _set_urls {
 }
 
 sub get {
-    my ( $self, @urls ) = _init_self(@_);
-    $self->_set_urls(@urls);
+    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
+    $self->_set_urls(@_);
     $self->poe_loop;
     my @responses = map { $self->{responses}{$_} } $self->urls;   
     return wantarray ? @responses : \@responses
 }
 
 sub getstore {
-    my ( $self, %url_file_map ) = _init_self(@_);
+    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
+    my %url_file_map = @_;
     $self->_set_urls( keys %url_file_map );
     $self->{local_files} = \%url_file_map;
     $self->poe_loop;
@@ -147,13 +135,14 @@ sub _build_modified_since {
         my $file = $url_file_map->{$url};
         if ( -e $file ) {
             my ($mtime) = ( stat($file) )[9];
-            $self->{modified_since}{$url} = time2str($mtime) if $mtime;
+            $self->{modified_since}{$url} = HTTP::Date::time2str($mtime) if $mtime;
         }
     }
 }
 
 sub mirror {
-    my ( $self, %url_file_map ) = _init_self(@_);
+    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
+    my %url_file_map = @_;
     $self->_set_urls( keys %url_file_map );
     $self->{local_files} = \%url_file_map;
     $self->_build_modified_since( \%url_file_map );
@@ -204,7 +193,7 @@ sub poe_loop {
     $self->{count} = 0;
 
     POE::Component::Client::HTTP->spawn(
-        Alias => $self->{http_alias} || 'ua',
+        Alias           => $self->{http_alias} || 'ua',
         Timeout         => $self->{timeout},
         FollowRedirects => $self->{redirect_depth},
     );
@@ -217,6 +206,7 @@ sub poe_loop {
 
     return;
 }
+
 sub _start {
     my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
     $kernel->alias_set("$self");
@@ -303,11 +293,13 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=HTTP-Client-Parallel>
 
 For other issues, contact the author.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Marlon Bailey E<lt>mbaily@cpan.orgE<gt>
+Jeff Bisbee E<lt>jbisbee@cpan.orgE<gt>
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+Marlon Bailey E<lt>mbaily@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -315,7 +307,7 @@ L<LWP::Simple>, L<POE>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Marlon Bailey and Adam Kennedy.
+Copyright 2008 Jeff Bisbee, Adam Kennedy and Marlon Bailey.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

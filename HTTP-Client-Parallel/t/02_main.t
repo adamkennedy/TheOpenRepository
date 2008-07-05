@@ -6,13 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More 'no_plan';
+use LWP::Online ':skip_all';
+use Test::More tests => 1;
 use File::Spec::Functions ':ALL';
-use Data::Dumper;
 use HTTP::Client::Parallel qw{ mirror get };
-
-my $mirror_dir = catdir( 't', 'test-download' );
-ok( -d $mirror_dir, 'Found mirror directory' );
 
 my $client = HTTP::Client::Parallel->new;
 isa_ok( $client, 'HTTP::Client::Parallel' );
@@ -25,16 +22,19 @@ if ( 0 ) {
 		'http://www.yahoo.com',
 	);
 
-	#warn Dumper( $responses );
+	warn Dumper( $responses );
 }
 
-# mirror
-my $responses = $client->mirror(
-	'http://www.google.com' => catfile($mirror_dir, "google.html"),
-);
+# Regular fetching via the object
+SCOPE: {
+	my $responses = $client->get(
+		'http://www.google.com/',
+	);
+}
 
-$responses = mirror(
-	'http://www.google.com' => catfile($mirror_dir, "google.html"),
-);
-
-# warn Dumper( $responses );
+# Shorthand version
+SCOPE: {
+	my $responses = get(
+		'http://www.google.com/',
+	);
+}
