@@ -170,7 +170,7 @@ sub import {
 	}
 
 	# Hand the rest of the params off to Exporter
-	return $class->SUPER::import( @functions );
+	return $class->export_to_level( 1, $class, @functions );
 }
 
 

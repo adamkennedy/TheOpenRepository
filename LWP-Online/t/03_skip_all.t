@@ -10,6 +10,7 @@ BEGIN {
 
 use LWP::Online ':skip_all';
 
-# This should never run, so we throw an error
+# This should only ever run if we are online
 use Test::More tests => 1;
-ok( 0, 'Failed to properly :skip_all' );
+my $online = LWP::Online::online();
+ok( $online, 'Confirmed tests only run if online' );
