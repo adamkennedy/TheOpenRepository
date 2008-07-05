@@ -6,6 +6,7 @@ requires      'IO::File'                     => 0;
 requires      'Scalar::Util'                 => 0;
 requires      'File::Spec'                   => '0.80';
 requires      'HTTP::Request'                => 0;
+requires      'Params::Util'                 => '0.24';
 requires      'POE'                          => '1.000';
 requires      'POE::Component::Client::HTTP' => 0;
 test_requires 'Test::More'                   => '0.42';

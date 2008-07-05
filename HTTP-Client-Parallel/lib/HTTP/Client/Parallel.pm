@@ -1,12 +1,85 @@
 package HTTP::Client::Parallel;
+
+=pod
+
+=head1 NAME
+
+HTTP::Client::Parallel - A HTTP client that fetchs all URIs in parallel
+
+=head1 SYNOPSIS
+
+  # Create the parallising client
+  my $client = HTTP::Client::Parallel->new;
+  
+  # Simple fetching
+  my $pages = $client->get(
+    'http://www.google.com/',
+    'http://www.yapc.org/',
+    'http://www.yahoo.com/',
+  );
+  
+  # Mirroring to disk
+  my $responses = $client->mirror(
+    'http://www.google.com/' => 'mirrors/google.html',
+    'http://www.yapc.org/'   => 'mirrors/yapc.html',
+    'http://www.yahoo.com/'  => 'mirrors/yahoo.html',
+  );
+
+=head1 DESCRIPTION
+
+Fetching a URI is a very common network-bound task in many types of
+programming. Fetching more than one URI is also very common, but unless
+the fetches are capable of entirely saturating a connection, typically
+time is wasted because there is often no logical reason why multiple
+requests cannot be made in parallel.
+
+Executing IO-bound and network-bound tasks is extremely easy in any
+event-based programming model such as L<POE>, but these event-based
+systems normally require complete control of the application and
+that the program be written in a very different way.
+
+Thus, the biggest problem preventing running HTTP requests in
+parallel is not that it isn't possible, but that mixing procedural
+and event programming is difficult.
+
+The few existing mechanisms generally rely on forking or other
+platform-specific methods.
+
+B<HTTP::Client::Parallel> is designed to bridge the gap between
+typical cross-platform procedural code and typical cross-platform
+event-based code.
+
+It allows you to set up a series of HTTP tasks (fetching to memory,
+fetching to disk, and mirroring to disk) and then issue a single
+method call which will block and execute all of them in parallel.
+
+Behind the scenes HTTP::Client::Parallel will B<temporarily> hand
+over control of the process to L<POE> to execute the HTTP tasks.
+
+Once all of the HTTP tasks are completed (using the standard
+L<POE::Component::HTTP::Client> module, the POE kernel will shut
+down and hand control of the application back to the normal
+procedural code, and thus back to your code.
+
+As a result, a developer with no knowledge of L<POE> or event-based
+programming can still take advantage of the capabilities of POE and
+gain major speed increases in HTTP-based programs with relatively
+little work.
+
+=head1 METHODS
+
+TO BE COMPLETED
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
-use Exporter ();
-use IO::File ();
-use Params::Util '_INSTANCE';
-use HTTP::Date ();
-use HTTP::Request;
+use Exporter      ();
+use IO::File      ();
+use Params::Util  '_INSTANCE';
+use HTTP::Date    ();
+use HTTP::Request ();
 use POE;
 use POE::Session;
 use POE::Component::Client::HTTP;
@@ -17,14 +90,14 @@ use constant DEFAULT_TIMEOUT        => 60;
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-    $VERSION   = '0.01';
+    $VERSION   = '0.02';
     @ISA       = 'Exporter';
     @EXPORT_OK = qw{ mirror getstore get };
 }
 
 sub new {
     my ( $class, %args )  = @_;
-    return  bless {
+    return bless {
         requests       => {},
         results        => {},
         count          => 0,
@@ -233,71 +306,7 @@ sub _stop {
 
 1;
 
-__END__
-
-=head1 NAME
-
-HTTP::Client::Parallel - A HTTP client that fetchs all URIs in parallel
-
-=head1 SYNOPSIS
-
-  # Create the parallising client
-  my $client = HTTP::Client::Parallel->new;
-  
-  # Simple fetching
-  my $pages = $client->get(
-    'http://www.google.com/',
-    'http://www.yapc.org/',
-    'http://www.yahoo.com/',
-  );
-  
-  # Mirroring to disk
-  my $responses = $client->mirror(
-    'http://www.google.com/' => 'mirrors/google.html',
-    'http://www.yapc.org/'   => 'mirrors/yapc.html',
-    'http://www.yahoo.com/'  => 'mirrors/yahoo.html',
-  );
-
-=head1 DESCRIPTION
-
-Fetching a URI is a very common network-bound task in many types of
-programming. Fetching more than one URI is also very common, but unless
-the fetches are capable of entirely saturating a connection, typically
-time is wasted because there is often no logical reason why multiple
-requests cannot be made in parallel.
-
-Executing IO-bound and network-bound tasks is extremely easy in any
-event-based programming model such as L<POE>, but these event-based
-systems normally require complete control of the application and
-that the program be written in a very different way.
-
-Thus, the biggest problem preventing running HTTP requests in
-parallel is not that it isn't possible, but that mixing procedural
-and event programming is difficult.
-
-The few existing mechanisms generally rely on forking or other
-platform-specific methods.
-
-B<HTTP::Client::Parallel> is designed to bridge the gap between
-typical cross-platform procedural code and typical cross-platform
-event-based code.
-
-It allows you to set up a series of HTTP tasks (fetching to memory,
-fetching to disk, and mirroring to disk) and then issue a single
-method call which will block and execute all of them in parallel.
-
-Behind the scenes HTTP::Client::Parallel will B<temporarily> hand
-over control of the process to L<POE> to execute the HTTP tasks.
-
-Once all of the HTTP tasks are completed (using the standard
-L<POE::Component::HTTP::Client> module, the POE kernel will shut
-down and hand control of the application back to the normal
-procedural code, and thus back to your code.
-
-As a result, a developer with no knowledge of L<POE> or event-based
-programming can still take advantage of the capabilities of POE and
-gain major speed increases in HTTP-based programs with relatively
-little work.
+=pod
 
 =head1 SUPPORT
 
@@ -313,10 +322,7 @@ Marlon Bailey E<lt>mbailey@cpan.orgE<gt>
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-=head1 ACKNOWLEDGEMENTS
-
-Jeff Bisbee, for the bit about passing the request as an argument to the
-response and for also working out the "If-Modified" details in mirror context.
+Jeff Bisbee E<lt>jbisbee@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -324,7 +330,7 @@ L<LWP::Simple>, L<POE>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Marlon Bailey and Adam Kennedy.
+Copyright 2008 Marlon Bailey, Adam Kennedy and Jess Bisbee.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
