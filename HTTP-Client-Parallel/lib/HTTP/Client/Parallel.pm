@@ -330,7 +330,7 @@ L<LWP::Simple>, L<POE>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Marlon Bailey, Adam Kennedy and Jess Bisbee.
+Copyright 2008 Marlon Bailey, Adam Kennedy and Jeff Bisbee.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
