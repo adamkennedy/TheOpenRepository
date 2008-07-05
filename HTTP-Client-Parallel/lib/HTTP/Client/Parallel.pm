@@ -71,187 +71,224 @@ little work.
 use 5.006;
 use strict;
 use warnings;
-use Exporter     'import';
-use Scalar::Util 'blessed';
-use Params::Util '_INSTANCE';
-use IO::File;
+use POE qw(Component::Client::HTTP);
 use HTTP::Request;
-use POE qw{
-    Component::Client::HTTP
-};
+use HTTP::Date qw(time2str);
+use Scalar::Util qw(blessed);
+use IO::File;
+use Exporter 'import';
 
-use vars qw{ $VERSION @EXPORT_OK };
-BEGIN {
-    $VERSION   = '0.01';
-    @EXPORT_OK = qw{ mirror getstore get }
-}
+use constant DEFAULT_REDIRECT_DEPTH => 2;
+use constant DEFAULT_TIMEOUT        => 60;
 
-use constant HCP => 'HTTP::Client::Parallel';
-
-
-
-
-
-#####################################################################
-# Constructor
+our @EXPORT_OK;
+@EXPORT_OK = qw(mirror getstore get);
 
 sub new {
-    my $class = shift;
-    my %args  = @_;
+    my ( $class, %args )  = @_;
 
-    # Create the client object
-    my $self  = bless {
-        requests  => {}, 
-        results   => {},
-        count     => 0,
-    }, $class;
+    my $self = {
+        requests       => {},
+        results        => {},
+        count          => 0,
+        debug          => $args{debug} || 0,
+        http_alias     => $args{http_alias} || 'ua',
+        timeout        => $args{timeout} || DEFAULT_TIMEOUT,
+        redirect_depth => $args{redirect_depth} || DEFAULT_REDIRECT_DEPTH,
+    };
 
-    $self->{sid} = POE::Session->create(
-        object_states => [
-            $self => {
-                _start    => '_start',
-                _stop     => '_stop',
-                aggregate => 'aggregate',
-                execute   => '_execute',
-            },
-         ]
-    )->ID;
+    bless $self, $class;
 
     return $self;
 }
 
-# Non POE
-sub fetch {
-    POE::Kernel->run;
+sub _init_self {
+    my $self;
+    if ( blessed( $_[0] ) and $_[0]->isa('HTTP::Client::Parallel') ) {
+        $self = shift;
+    }
+    else {
+        $self = __PACKAGE__->new();
+    }
+    return ( $self, @_ );
+}
+
+sub urls {
+    return wantarray ? @{ $_[0]->{urls} } : $_[0]->{urls};
+}
+
+sub _set_urls {
+    my ( $self, @urls ) = @_;
+    $self->{urls} = \@urls;
+    $self->{url_count} = @urls;
+    return;
 }
 
 sub get {
-    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
-    foreach ( @_ ) {
-        $self->queue( uri => $_ );
-        $self->fetch;
-    }
-    return $self->{results};
-}
-
-sub mirror {
-    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
-    my %args = @_;
-
-    #if (-e $file) {
-        #my ($mtime) = (stat($file))[9];
-        #if( $mtime ) {
-            #$request->header('If-Modified-Since' =>
-                    #HTTP::Date::time2str($mtime));
-        #}
-    #}
-
-    #my $tmpfile = "$file-$$";
+    my ( $self, @urls ) = _init_self(@_);
+    $self->_set_urls(@urls);
+    $self->poe_loop;
+    my @responses = map { $self->{responses}{$_} } $self->urls;   
+    return wantarray ? @responses : \@responses
 }
 
 sub getstore {
-    my $self = _INSTANCE($_[0], HCP) ? shift : HCP->new;
-    my %args = @_;
-    foreach ( keys %args ) {
-        $self->queue( uri => $_ );
+    my ( $self, %url_file_map ) = _init_self(@_);
+    $self->_set_urls( keys %url_file_map );
+    $self->{local_files} = \%url_file_map;
+    $self->poe_loop;
+    my @responses = values %{ $self->{responses} };
+    return wantarray ? @responses : \@responses;
+}
+
+sub _build_modified_since {
+    my ( $self, $url_file_map ) = @_;
+    for my $url ( keys %$url_file_map ) {
+        my $file = $url_file_map->{$url};
+        if ( -e $file ) {
+            my ($mtime) = ( stat($file) )[9];
+            $self->{modified_since}{$url} = time2str($mtime) if $mtime;
+        }
     }
-    $self->fetch;
+}
 
-    my $results = {};
-    foreach my $result ( keys %{$self->{results}} ) {
-        next unless $args{$result};
-        my $response = $self->{results}->{$result}->{response};
-        $results->{$result} = $response->code;
-        if( $response->is_success and my $file = IO::File->new( $args{$result}, 'w') ) {
-            print $file $response->content;
-            $file->close;
+sub mirror {
+    my ( $self, %url_file_map ) = _init_self(@_);
+    $self->_set_urls( keys %url_file_map );
+    $self->{local_files} = \%url_file_map;
+    $self->_build_modified_since( \%url_file_map );
+    $self->poe_loop;
+    my @responses = values %{ $self->{responses} };
+    return wantarray ? @responses : \@responses
+}
 
-        } else {
-            warn "Could not save file: $args{$result} for uri: $result because: $!\n";
+sub _store_local_file {
+    my ( $self, $response, $file ) = @_;
 
+    my $tmpfile = "$file-$$";
+
+    open my $tmp_fh, ">", $tmpfile or die "Can't open temp file $tmpfile for writing: $!";
+    print $tmp_fh $response->content;
+    close $tmp_fh;
+
+    my $file_length = ( stat($tmpfile) )[7];
+    my ($content_length) = $response->header('Content-length');
+
+    if ( defined $content_length and $file_length < $content_length ) {
+        unlink($tmpfile);
+        die "Transfer truncated: only $file_length out of $content_length bytes received\n";
+    }
+    elsif ( defined $content_length and $file_length > $content_length ) {
+        unlink($tmpfile);
+        die "Content-length mismatch: expected $content_length bytes, got $file_length\n";
+    }
+    else {    # OK
+        if ( -e $file ) {
+            chmod 0777, $file;    # Some dosish systems fail to rename if the target exists
+            unlink $file;
+        }
+        rename( $tmpfile, $file ) or die "Cannot rename '$tmpfile' to '$file': $!\n";
+
+        if ( my $lm = $response->last_modified ) {
+            utime $lm, $lm, $file;    # make sure the file has the same last modification time
         }
     }
 
-    return $results;
-}
-
-sub queue {
-    my $self = shift;
-    my %args = @_;
-    return unless $args{uri};
-
-    if ( _INSTANCE($args{uri}, 'HTTP::Request') ) {
-        $self->{requests}->{$args{uri}->as_string} = $args{uri};
-        $self->{count}++;
-
-    } elsif ( _INSTANCE($args{uri}, 'URI') or ! ref $args{uri} ) {
-        $self->{requests}->{"$args{uri}"} = HTTP::Request->new( GET => $args{uri} );
-        $self->{count}++;
-    }
-
-    return 1;
+    return;
 }
 
 # POE 
+sub poe_loop {
+    my $self = shift;
+
+    $self->{count} = 0;
+
+    POE::Component::Client::HTTP->spawn(
+        Alias => $self->{http_alias} || 'ua',
+        Timeout         => $self->{timeout},
+        FollowRedirects => $self->{redirect_depth},
+    );
+
+    POE::Session->create( object_states => [ 
+        $self => [qw( _start _request _response shutdown _stop)] 
+    ]);
+
+    POE::Kernel->run;
+
+    return;
+}
 sub _start {
-    my $self = $_[OBJECT];
-    POE::Kernel->alias_set("$self");
-    POE::Kernel->yield('execute');
+    my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
+    $kernel->alias_set("$self");
+    $kernel->yield( _request => $_ ) for @{ $self->{urls} };;
+    return;
+}
+
+sub _build_request {
+    my ( $self, $url ) = @_;
+    
+    my $request;
+    if ( blessed $url and $url->isa('HTTP::Request') ) {
+        $request = $url;
+    }
+    elsif ( ( blessed $url and $url->isa('URI') ) or !ref $url ) {
+        $request = HTTP::Request->new( GET => $url );
+    }
+    else {
+       die "[!!] invalid URI, HTTP::Request or url string: $url\n";
+    }
+
+    if ( $self->{modified_since} && $self->{modified_since}{$url} ) {
+        $request->header( 'If-Modified-Since' => $self->{modified_since}{$url} );
+    }
+
+    return $request;
+}
+
+sub _request {
+    my ( $self, $kernel, $url ) = @_[ OBJECT, KERNEL, ARG0 ];
+
+    my $request = $self->_build_request($url);
+    warn '[' . $request->uri . '] Attempting to fetch' . "\n" if $self->{debug};
+    $kernel->post( $self->{http_alias}, 'request', '_response', $request );
+
+    return;
+}
+
+sub _response {
+    my ( $self, $kernel, $request_packet, $response_packet ) = @_[ OBJECT, KERNEL, ARG0, ARG1 ];
+
+    my $request  = $request_packet->[0];
+    my $response = $response_packet->[0];
+    $self->{responses}{ $request->uri } = $response;
+    $self->{count}++;
+
+    if ( $response->is_success ) {
+        warn '[' . $request->uri . "] Fetched\n" if $self->{debug};
+        if ( my $local_file = $self->{local_files}{ $request->uri } ) {
+            $self->_store_local_file( $response, $local_file );
+        }
+    }
+    elsif ( $response->code == 304 ) {
+        warn '[' . $request->uri . "] Not Modified\n" if $self->{debug};
+    }
+    else {
+        warn '[' . $request->uri . "] HTTP Response Code: " . $response->code . "\n" if $self->{debug};
+    }
+
+    $kernel->call( ua => 'shutdown' ) if $self->{url_count} == $self->{count};
+
+    return;
+}
+
+sub shutdown {
+    my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
+    $kernel->alias_remove( $self->{http_alias} );
+    return;
 }
 
 sub _stop {
     my $self = $_[OBJECT];
-}
-
-sub _execute {
-    my $self  = $_[OBJECT];
-    my $class = ref $self;
-
-    POE::Component::Client::HTTP->spawn(
-        Agent     => "$class/$VERSION",
-        Alias     => "ua$self",               # defaults to 'weeble'
-        # From      => 'spiffster@perl.org',  # defaults to undef (no header)
-        # Protocol  => 'HTTP/0.9',            # defaults to 'HTTP/1.1'
-        # Timeout   => 60,                    # defaults to 180 seconds
-        # MaxSize   => 16384,                 # defaults to entire response
-        # Streaming => 4096,                  # defaults to 0 (off)
-        FollowRedirects => 2                  # defaults to 0 (off)
-        # Proxy     => "http://localhost:80", # defaults to HTTP_PROXY env. variable
-        # BindAddr  => "12.34.56.78",         # defaults to INADDR_ANY
-    );
-    
-    foreach ( keys %{$self->{requests}} ) {
-        POE::Kernel->post(
-            "ua$self",               # posts to the 'ua' alias
-            'request',               # posts to ua's 'request' state
-            'aggregate',             # which of our states will receive the response
-            $self->{requests}->{$_}, # an HTTP::Request object
-        );
-    }
-}
-
-sub aggregate {
-    my $self = $_[OBJECT];
-    my ($request_packet, $response_packet) = @_[ARG0, ARG1];
-    $self->{count}--;
-
-    # HTTP::Request
-    my $request_object  = $request_packet->[0];
-
-    # HTTP::Response
-    my $response_object = $response_packet->[0];
-
-    my $string;
-    foreach my $uri_string ( keys %{$self->{requests}} ) {
-        if ( "$self->{requests}->{$uri_string}" eq "$request_object" ) {
-            $self->{results}->{$uri_string} = {
-                original_req => $request_object, 
-                response     => $response_object,
-            };
-        }
-    }
-
-    POE::Kernel->call( "ua$self" => 'shutdown' ) unless $self->{count};
 }
 
 1;
