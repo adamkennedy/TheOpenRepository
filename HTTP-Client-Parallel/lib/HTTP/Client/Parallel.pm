@@ -222,10 +222,10 @@ sub _build_request {
     my ( $self, $url ) = @_;
     
     my $request;
-    if ( blessed $url and $url->isa('HTTP::Request') ) {
+    if ( Scalar::Util::blessed($url) and $url->isa('HTTP::Request') ) {
         $request = $url;
     }
-    elsif ( ( blessed $url and $url->isa('URI') ) or !ref $url ) {
+    elsif ( ( Scalar::Util::blessed($url) and $url->isa('URI') ) or !ref $url ) {
         $request = HTTP::Request->new( GET => $url );
     }
     else {

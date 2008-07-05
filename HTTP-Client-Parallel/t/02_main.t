@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use LWP::Online ':skip_all';
-use Test::More tests => 1;
+use Test::More tests => 7;
 use File::Spec::Functions ':ALL';
 use HTTP::Client::Parallel qw{ mirror get };
 
@@ -30,6 +30,9 @@ SCOPE: {
 	my $responses = $client->get(
 		'http://www.google.com/',
 	);
+	is( ref($responses), 'ARRAY', 'Got an array ref' );
+	is( scalar(@$responses), 1, 'Got a single element' );
+	isa_ok( $responses->[0], 'HTTP::Response' );
 }
 
 # Shorthand version
@@ -37,4 +40,7 @@ SCOPE: {
 	my $responses = get(
 		'http://www.google.com/',
 	);
+	is( ref($responses), 'ARRAY', 'Got an array ref' );
+	is( scalar(@$responses), 1, 'Got a single element' );
+	isa_ok( $responses->[0], 'HTTP::Response' );
 }
