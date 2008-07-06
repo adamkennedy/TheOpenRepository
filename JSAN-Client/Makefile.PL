@@ -1,6 +1,5 @@
 use inc::Module::Install;
 
-name          'JSAN-Client';
 all_from      'lib/JSAN/Client.pm';
 requires      'Scalar::Util'          => '1.11';
 requires      'Params::Util'          => '0.14';
@@ -17,7 +16,6 @@ requires      'Class::DBI'            => '3.0.17';
 requires      'DBD::SQLite'           => '1.08';
 requires      'Archive::Tar'          => '1.30';
 requires      'Archive::Zip'          => '1.18';
-requires      'YAML'                  => '0.39';
 requires      'Algorithm::Dependency' => '1.106';
 test_requires 'Test::More'            => '0.47';
 test_requires 'File::Remove'          => '1.40';
