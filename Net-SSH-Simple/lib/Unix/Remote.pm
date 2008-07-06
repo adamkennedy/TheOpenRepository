@@ -22,11 +22,11 @@ use vars qw{$VERSION %REMOTE};
 BEGIN {
 	$VERSION = '0.01';
 	%REMOTE  = (
-		bin_sh    => '/bin/sh',
-		bin_true  => '/bin/true',
-		bin_echo  => '/bin/echo',
-		perl_root => '/opt/perl',
-		perl_bin  => '/opt/perl/bin/perl',
+		bin_sh   => '/bin/sh',
+		bin_true => '/bin/true',
+		bin_echo => '/bin/echo',
+		perl_bin => '/use/bin',
+		perl_exe => '/usr/bin/perl',
 	);
 }
 
@@ -186,7 +186,7 @@ sub ssh_run {
 # Execute a Perl script via STDIN and capture the results
 sub ssh_perl {
 	my $self = shift;
-	my $perl = $self->file_path('perl_bin');
+	my $perl = $self->file_path('perl_exe');
 	my $code = _STRING(shift)
 		or croak("Did not pass a string to ssh_perl");
 
@@ -320,7 +320,7 @@ sub perl_ok {
 # Does the Perl we need exist?
 sub perl_exists {
 	my $self = shift;
-	my $perl = $self->file_path('perl_bin');
+	my $perl = $self->file_path('perl_exe');
 	return $self->file_exists($perl);
 }
 
@@ -352,7 +352,7 @@ sub script_path {
 
 	# Join it to the perl bin path
 	return File::Spec::Unix->catfile(
-		$self->file_path('perl_root'), 'bin', $script,
+		$self->file_path('perl_bin'), $script,
 		);
 }
 
