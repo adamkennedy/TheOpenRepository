@@ -128,7 +128,7 @@ use LWP::Simple qw{ get $ua };
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 
 	# We are an Exporter
 	require Exporter;

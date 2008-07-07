@@ -1,5 +1,9 @@
 Release history for Perl module LWP::Online
 
+1.07 Mon  7 Jul 2008
+	- More diag in 01_compile.t to catch what I think is a CPAN
+	  Testers with broken setups.
+
 1.06 Fri  4 Jul 2008
 	- Adding the :skip_all import flag
 	- Used a newer Module::Install 0.76 pre-release
