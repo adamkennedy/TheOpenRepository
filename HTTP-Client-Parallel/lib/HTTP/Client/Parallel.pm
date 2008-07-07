@@ -68,8 +68,6 @@ little work.
 
 =head1 METHODS
 
-TO BE COMPLETED
-
 =cut
 
 use 5.006;
@@ -94,6 +92,32 @@ BEGIN {
     @ISA       = 'Exporter';
     @EXPORT_OK = qw{ mirror getstore get };
 }
+
+=pod
+
+=head2 new
+
+  my $client = HTTP::Client::Parallel->new(
+    timeout        => 60,
+    redirect_depth => 2,
+  );
+
+For non-trivial uses, the C<new> constructor creates a new parellising
+client object than can be used and reused many times.
+
+All parameters are optional.
+
+The C<timeout> param allows a per-request timeout to be set. Again, note
+that this timeout is only applied for each request. While currently all
+requests are done in parellel this may change in the future.
+
+The C<redirect_depth> param is similar to the param you can provide
+to L<LWP> style requests. It dictates the maximum number of HTTP
+redirects that the HTTP client will follow before aborting.
+
+Returns a new L<HTTP::Client::Parallel> object, or dies on error.
+
+=cut
 
 sub new {
     my ( $class, %args )  = @_;
