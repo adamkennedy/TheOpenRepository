@@ -85,6 +85,8 @@ use POE::Component::Client::HTTP;
 use constant HCP                    => __PACKAGE__;
 use constant DEFAULT_REDIRECT_DEPTH => 2;
 use constant DEFAULT_TIMEOUT        => 60;
+use constant DEFAULT_KEEP_ALIVE     => 15;
+use constant DEFAULT_MAX_PER_HOST   => 4;    # Interweb says 2...
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
@@ -129,11 +131,18 @@ sub new {
         http_alias     => $args{http_alias}     || 'ua',
         timeout        => $args{timeout}        || DEFAULT_TIMEOUT,
         redirect_depth => $args{redirect_depth} || DEFAULT_REDIRECT_DEPTH,
+        keep_alive     => $args{keep_alive}     || DEFAULT_KEEP_ALIVE,
+        max_per_host   => $args{max_per_host}   || DEFAULT_MAX_PER_HOST,
+        max_open       => $args{max_open},
     }, $class;
 }
 
 sub urls {
     return wantarray ? @{ $_[0]->{urls} } : $_[0]->{urls};
+}
+
+sub num_urls {
+    return scalar @{ $_[0]->{urls} };
 }
 
 sub get {
@@ -238,10 +247,18 @@ sub _store_local_file {
 sub poe_loop {
     my $self = shift;
 
+    my $pool = POE::Component::Client::Keepalive->new(
+        max_open      => $self->{max_open} || $self->num_urls,
+        keep_alive    => $self->{keep_alive},
+        max_per_host  => $self->{max_per_host},
+        timeout       => $self->{timeout},
+    );
+
     POE::Component::Client::HTTP->spawn(
-        Alias           => $self->{http_alias} || 'ua',
-        Timeout         => $self->{timeout},
-        FollowRedirects => $self->{redirect_depth},
+        Alias             => $self->{http_alias} || 'ua',
+        Timeout           => $self->{timeout},
+        FollowRedirects   => $self->{redirect_depth},
+        ConnectionManager => $pool,
     );
 
     POE::Session->create( object_states => [ 
