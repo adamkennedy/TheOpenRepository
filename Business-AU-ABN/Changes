@@ -1,4 +1,8 @@
-Revision history for Perl extension Business::AU::ABN
+Revision history for Perl extension Business-AU-ABN
+
+1.08 Sat 10 May 2008
+	- Removing the use of "use base 'Exporter';"
+	- Upgraded to Module::Install 0.76
 
 1.07 Thu 29 Jun 2007
 	- No functional changes

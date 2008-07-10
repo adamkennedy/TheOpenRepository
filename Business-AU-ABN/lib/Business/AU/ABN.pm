@@ -7,19 +7,19 @@ package Business::AU::ABN;
 
 use 5.005;
 use strict;
-use base 'Exporter';
+use Exporter     ();
 use List::Util   ();
-use Params::Util '_INSTANCE',
-                 '_CLASS';
-use overload     '""'   => 'to_string',
-                 'bool' => sub () { 1 };
+use Params::Util qw{ _INSTANCE _CLASS };
+use overload '""'   => 'to_string',
+             'bool' => sub () { 1 };
 
 # The set of digit weightings, taken from the documentation.
 use constant WEIGHT => qw{10 1 3 5 7 9 11 13 15 17 19};
 
-use vars qw{$VERSION @EXPORT_OK $errstr};
+use vars qw{$VERSION @ISA @EXPORT_OK $errstr};
 BEGIN {
-	$VERSION   = '1.07';
+	$VERSION   = '1.08';
+	@ISA       = 'Exporter';
 	@EXPORT_OK = 'validate_abn';
 	$errstr    = '';
 }
@@ -49,7 +49,7 @@ sub validate_abn {
 	}
 
 	# Class method
-	if ( _CLASS($_[0]) and $_[0]->isa('Business::AU::ABN') ) {
+	if ( _CLASSISA($_[0], 'Business::AU::ABN') ) {
 		return $_[0]->_validate_abn($_[1]);
 	}
 
@@ -128,6 +128,7 @@ sub errstr { $errstr }
 sub _string {
 	!! (defined $_[1] and ! ref $_[1] and length $_[1] and $_[1] =~ /\S/);
 }
+
 sub _error {
 	$errstr = (defined $_[1] and $_[1]) ? "$_[1]" : 'Unknown error while validating ABN';
 	''; # False
@@ -229,7 +230,7 @@ for completeness sake.
 Returns the correctly formatted ABN (which is also 'true' in boolean context)
 if the ABN is valid, or false if not.
 
-=head2 Business::AU::ABN->validate_abn $string
+=head2 Business::AU::ABN-E<gt>validate_abn $string
 
 When called as a static method, C<validate_abn> takes a string as an argument and
 attempts to validate it as an ABN.
@@ -294,11 +295,16 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 - 2005 Adam Kennedy.
+Copyright 2003 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
