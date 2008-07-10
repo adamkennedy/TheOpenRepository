@@ -16,7 +16,7 @@ __END__
 
 =head1 NAME
 
-Task:: - The successor to Bundle:: for installing sets of modules
+Task - The successor to Bundle:: for installing sets of modules
 
 =head1 SYNOPSIS
 
