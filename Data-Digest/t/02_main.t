@@ -9,6 +9,7 @@ BEGIN {
 }
 
 use Test::More tests => 25;
+use File::Spec::Functions ':ALL';
 use Data::Digest;
 
 # Find the test file
