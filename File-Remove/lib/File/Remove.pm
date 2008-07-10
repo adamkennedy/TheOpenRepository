@@ -47,7 +47,7 @@ use constant IS_WIN32 => !! ( $^O =~ /^MSWin/ or $^O eq 'cygwin' );
 
 my @END_DELETE = ();
 
-sub clear(@) {
+sub clear (@) {
 	my @files = expand( @_ );
 
 	# Do the initial deletion
