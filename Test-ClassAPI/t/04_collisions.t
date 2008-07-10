@@ -24,7 +24,7 @@ exit(0);
 #####################################################################
 # Package to test inheritance
 
-{
+SCOPE: {
 	package My::Config;
 	sub new          {1}
 	sub read         {1}

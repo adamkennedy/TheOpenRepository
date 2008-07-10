@@ -23,7 +23,7 @@ exit(0);
 #####################################################################
 # Package to test inheritance
 
-{
+SCOPE: {
 	package My::Config;	
 	use base 'Config::Tiny';
 	sub foo { 1 }
