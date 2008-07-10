@@ -2,12 +2,16 @@ package MyBackgroundProcess;
 
 use strict;
 use File::Remove ();
-use base 'Process::Backgroundable',
-         'Process';
+use Process::Backgroundable ();
+use Process ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = qw{
+		Process::Backgroundable
+		Process
+	};
 }
 
 sub new {
