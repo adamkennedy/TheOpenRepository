@@ -12,7 +12,7 @@ use Test::More tests => 46;
 use FileHandle             ();
 use File::Spec::Functions  ':ALL';
 use File::Slurp            ();
-use File::Remove           'remove';
+use File::Remove           'clear';
 use File::Find::Rule       ();
 use File::LocalizeNewlines ();
 use constant FLN => 'File::LocalizeNewlines';
