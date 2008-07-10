@@ -1,6 +1,5 @@
-use inc::Module::Install;
+use inc::Module::Install 0.76;
 
-name     'Task';
 all_from 'lib/Task.pm';
 
 WriteAll;

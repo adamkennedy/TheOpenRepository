@@ -1,9 +1,11 @@
 package Task;
 
+use 5.005;
 use strict;
+
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 1;
@@ -21,21 +23,20 @@ Task:: - The successor to Bundle:: for installing sets of modules
   ### In Makefile.PL
   use inc::Module::Install;
   
-  name         ( 'Task-Foo'                   );
-  abstract     ( 'Install the most common Foo modules' );
-  author       ( 'Adam Kennedy <cpan@ali.as>' );
-  version_from ( 'lib/Task/Foo.pm'            );
-  license      ( 'perl'                       );
-  auto_install (                              );
-
-  # All the things we need for Foo
-  requires     ( 'perl'            => '5.005' );
-  requires     ( 'Carp'            => 0       );
-  requires     ( 'File::Basename'  => 0       );
-  requires     ( 'Storable'        => 0       );
-  requires     ( 'Params::Util'    => '0.06'  );
+  name         'Task-Foo';
+  abstract     'Install the most common Foo modules';
+  author       'Adam Kennedy <adamk@cpan.org>';
+  version_from 'lib/Task/Foo.pm';
+  license      'perl';
   
-  &WriteAll;
+  # All the things we need for Foo
+  requires     'perl'           => '5.005';
+  requires     'Carp'           => 0;
+  requires     'File::Basename' => 0;
+  requires     'Storable'       => 0;
+  requires     'Params::Util'   => '0.06';
+  
+  WriteAll;
   
   
   
@@ -160,11 +161,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
