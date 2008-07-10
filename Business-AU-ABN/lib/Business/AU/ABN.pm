@@ -9,7 +9,7 @@ use 5.005;
 use strict;
 use Exporter     ();
 use List::Util   ();
-use Params::Util qw{ _INSTANCE _CLASS };
+use Params::Util qw{ _INSTANCE _CLASSISA };
 use overload '""'   => 'to_string',
              'bool' => sub () { 1 };
 
