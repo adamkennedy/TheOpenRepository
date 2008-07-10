@@ -1,5 +1,9 @@
 Revision history for Perl extension Image::Math::Constrain
 
+1.02 Thu 10 Jul 2008
+	- No functional changes
+	- Upgrading to Module::Install 0.76
+
 1.01 Sun Feb  5 2006
 	- Upgrading installer to Module::Install 0.55
 	- No other module changes

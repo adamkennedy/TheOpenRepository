@@ -1,10 +1,7 @@
-use inc::Module::Install;
+use inc::Module::Install 0.76;
 
-name           'Image-Math-Constrain';
-all_from       'lib/Image/Math/Constrain.pm';
+all_from      'lib/Image/Math/Constrain.pm';
+test_requires 'Test::More' => '0.47';
+test_requires 'File::Spec' => '0.82';
 
-build_requires 'Test::More'       => '0.47';
-build_requires 'File::Spec'       => '0.82';
-
-auto_install;
 WriteAll;

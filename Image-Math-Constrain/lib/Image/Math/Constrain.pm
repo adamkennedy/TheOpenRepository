@@ -12,40 +12,40 @@ as thumbnails)
   use Image::Math::Constrain;
   
   # Create the math object
-  my $Math = Image::Math::Constrain->new(64, 48);
+  my $math = Image::Math::Constrain->new(64, 48);
   
   # Get the scaling values for an arbitrary image
   my $Image = My::Image->load("myimage.jpg");
-  my $scaling = $Math->constrain($Image->width, $Image->height);
+  my $scaling = $math->constrain($Image->width, $Image->height);
   die "Don't need to scale" if $scaling->{scale} == 1;
   
   # Returns the three values as a list when called in array contect
-  my ($width, $height, $scale) = $Math->constrain(800, 600);
+  my ($width, $height, $scale) = $math->constrain(800, 600);
 
   # There are lots of different ways to specify the constrain
   
   # Constrain based on width only
-  $Math = Image::Math::Constrain->new(100, 0);
+  $math = Image::Math::Constrain->new(100, 0);
   
   # Constrain based on height only
-  $Math = Image::Math::Constrain->new(0, 100);
+  $math = Image::Math::Constrain->new(0, 100);
 
   # Or you can provide the two values by ARRAY ref
-  $Math = Image::Math::Constrain->new( [ 64, 48 ] );
+  $math = Image::Math::Constrain->new( [ 64, 48 ] );
   
   # Constrain height and width by the same value
-  $Math = Image::Math::Constrain->new(100);
+  $math = Image::Math::Constrain->new(100);
   
   # Various string forms to do the same thing
-  $Math = Image::Math::Constrain->new('constrain(800x600)');
-  $Math = Image::Math::Constrain->new('300x200');
-  $Math = Image::Math::Constrain->new('300w200h');
-  $Math = Image::Math::Constrain->new('100w');
-  $Math = Image::Math::Constrain->new('100h');
+  $math = Image::Math::Constrain->new('constrain(800x600)');
+  $math = Image::Math::Constrain->new('300x200');
+  $math = Image::Math::Constrain->new('300w200h');
+  $math = Image::Math::Constrain->new('100w');
+  $math = Image::Math::Constrain->new('100h');
   
   # Serialises back to 'constrain(800x600)'.
   # You can use this to store the object if you wish.
-  my $string = $Math->as_string;
+  my $string = $math->as_string;
 
 =head1 DESCRIPTION
 
@@ -74,7 +74,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 
@@ -158,8 +158,6 @@ sub new {
 	$self;
 }
 
-###------------------------------------------------------------------
-
 =pod
 
 =head2 width
@@ -172,8 +170,6 @@ Returns a positive integer, or zero if there is no width constraint.
 
 sub width  { $_[0]->{width} }
 
-###------------------------------------------------------------------
-
 =pod
 
 =head2 height
@@ -185,8 +181,6 @@ Returns a positive integer, or zero if there is no height constraint.
 =cut
 
 sub height { $_[0]->{height} }
-
-###------------------------------------------------------------------
 
 =pod
 
@@ -206,8 +200,6 @@ sub as_string {
 	"constrain($_[0]->{width}x$_[0]->{height})";
 }
 
-###------------------------------------------------------------------
-
 =pod
 
 =head2 constrain $width, $height
@@ -223,12 +215,12 @@ the same aspect ratio) and will never be larger than the original.
 When called in array context, returns the new dimensions and scaling value
 as a list, as in the following.
 
-  my ($width, $height, $scale) = $Math->constrain(800, 600);
+  my ($width, $height, $scale) = $math->constrain(800, 600);
 
 When called in scalar context, it returns a reference to a hash containing
 the keys 'width', 'height', and 'scale'.
 
-  my $hash = $Math->constrain(800, 600);
+  my $hash = $math->constrain(800, 600);
   
   print "New Width  : $hash->{width}\n";
   print "New Height : $hash->{height}\n";
@@ -317,14 +309,14 @@ For other issues, contact the maintainer
 
 =head1 AUTHORS
 
-Adam Kennedy E<lt>cpan@ali.asE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Thank you to Phase N (L<http://phase-n.com/>) for permitting
 the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004 - 2006 Adam Kennedy. All rights reserved.
+Copyright 2004 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
