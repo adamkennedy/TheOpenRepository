@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 25;
+use Test::More tests => 24;
 use File::Spec::Functions ':ALL';
 use Data::Digest;
 
