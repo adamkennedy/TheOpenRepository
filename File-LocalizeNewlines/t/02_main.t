@@ -23,17 +23,12 @@ my $local_file = catfile( 't', 'data', 'local.txt' );
 my $simple_dir = catfile( 't', 'data', 'simple' );
 my $not_file   = catfile( 't', 'data', 'simple', 'both.txt' );
 my $not_file2  = catfile( 't', 'data', 'simple', 'both.pm' );
+clear( $local_file, $not_file, $not_file2 );
 File::Slurp::write_file( $local_file, "foo\nbar\n" );
 File::Slurp::write_file( $not_file,   "foo\015\012bar\015baz" );
 File::Slurp::write_file( $not_file2,  "foo\015\012bar\015baz" );
 is( length(File::Slurp::read_file( $not_file )),  12, 'both.txt is the right length' );
 is( length(File::Slurp::read_file( $not_file2 )), 12, 'both.pm is the right length' );
-
-END {
-	remove($local_file) if -e $local_file;
-	remove($not_file)   if -e $not_file;
-	remove($not_file2)  if -e $not_file2;
-}
 
 
 
