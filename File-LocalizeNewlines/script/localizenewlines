@@ -2,6 +2,7 @@
 
 # Script to localize newlines
 
+use 5.005;
 use strict;
 use File::Spec;
 use Getopt::Long;
@@ -10,7 +11,7 @@ use File::LocalizeNewlines;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.09';
 }
 
 # Create the filter
@@ -30,7 +31,7 @@ unless ( -e $target ) {
 # Create the localizer
 if ( $SKIPSVN ) {
 	$filter = File::Find::Rule->or(
-		File::Find::Rule->directory->name('.svn')->discard->prune,
+		File::Find::Rule->name('.svn')->directory->discard->prune,
 		$filter,
 		);
 }
@@ -56,4 +57,3 @@ sub bail ($) {
 	print "$_[0]\n";
 	exit(255);
 }
-	

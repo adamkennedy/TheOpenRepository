@@ -29,15 +29,16 @@ the local platform's newline style.
 
 use 5.005;
 use strict;
-use base 'Class::Default';
+use Class::Default   ();
 use File::Find::Rule ();
 use File::Slurp      ();
 use FileHandle       ();
 use Params::Util     '_INSTANCE';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.09';
+	@ISA     = 'Class::Default';
 }
 
 
@@ -92,8 +93,7 @@ sub new {
 	my %args  = @_;
 
 	# Create the basic object
-	my $self = bless {
-		}, $class;
+	my $self = bless { }, $class;
 
 	# Check the file filter
 	if ( _INSTANCE($args{filter}, 'File::Find::Rule') ) {
@@ -316,7 +316,7 @@ L<FileHandle> support added by David Dick E<lt>ddick@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2007 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
