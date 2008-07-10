@@ -10,11 +10,11 @@ Data::Digest - Objects that represent a digest values
 
   $digest = Data::Digest->new(
       'MD5.d41d8cd98f00b204e9800998ecf8427e'
-      );
+  );
   
   $digest = Data::Digest->new(
       'SHA-256' => '47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU',
-      );
+  );
   
   $digest->matches( \$data );
   $digest->matches( $filename );
@@ -38,6 +38,7 @@ digest.
 
 =cut
 
+use 5.005;
 use strict;
 use Carp         ();
 use Digest       ();
@@ -46,7 +47,7 @@ use Params::Util qw{_STRING _SCALAR0 _INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 }
 
 # For all supported digest types, provide the expected lengths of the digest
@@ -94,12 +95,12 @@ my %DIGEST = (
   # Two-argument digest constructor
   $digest = Data::Digest->new(
       'SHA-256' => '47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU',
-      );
+  );
   
   # One-argument digest constructor
   $digest = Data::Digest->new(
       'MD5.d41d8cd98f00b204e9800998ecf8427e'
-      );
+  );
 
 The C<new> constructor takes one or two strings parameters, and creates
 a new digest object, that can be stored or used to compared the digest
@@ -161,7 +162,7 @@ sub new {
 		driver => $driver,
 		digest => $digest,
 		method => $method,
-		}, $class;
+	}, $class;
 
 	return $self;
 }
@@ -290,6 +291,7 @@ sub _digest {
 
 1;
 
+=pod
 
 =head1 SUPPORT
 
@@ -301,7 +303,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -309,7 +311,7 @@ L<Digest>, L<Digest::MD5>, L<Digest::SHA>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

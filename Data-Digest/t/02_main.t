@@ -1,29 +1,15 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile-testing for Data::Digest
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'arch'),
-			catdir('blib', 'lib' ),
-			catdir('lib'),
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 25;
-
-BEGIN {
-	use_ok( 'Data::Digest' );
-}
+use Data::Digest;
 
 # Find the test file
 my $test_file = catfile('t', 'pandas.jpg');
@@ -88,5 +74,3 @@ foreach ( qw{MD5 SHA-1 SHA-256 SHA-512} ) {
 	my $d = Digest->new($_);
 	isa_ok( $d, 'Digest::base' );
 }
-
-exit(0);
