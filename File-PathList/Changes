@@ -1,5 +1,9 @@
 Revision history for Perl extension File::PathList
 
+1.04 Thu 10 Jul 2008
+	- No functional changes
+	- Upgrading to Module::Install 0.76
+
 0.03 Thu 29 Jun 2007
 	- No functional changes.
 	- Upgrading to Module::Install 0.65

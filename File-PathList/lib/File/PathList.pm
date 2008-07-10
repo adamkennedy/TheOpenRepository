@@ -61,7 +61,7 @@ use Params::Util     qw{_ARRAY _CODE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 }
 
 
@@ -236,7 +236,7 @@ the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005 - 2006 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
