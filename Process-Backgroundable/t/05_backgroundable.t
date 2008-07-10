@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use lib catdir('t', 'lib');
 
