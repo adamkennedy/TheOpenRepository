@@ -2,14 +2,15 @@ package Process::Backgroundable;
 
 use 5.005;
 use strict;
-use base 'Process::Storable';
-use Storable   ();
-use File::Temp ();
-use IPC::Run3  ();
+use Storable          ();
+use File::Temp        ();
+use IPC::Run3         ();
+use Process::Storable ();
 
-use vars qw{$VERSION @PERLCMD};
+use vars qw{$VERSION @ISA @PERLCMD};
 BEGIN {
-	$VERSION = '0.20';
+	$VERSION = '0.21';
+	@ISA     = 'Process::Storable';
 
 	# Contains the command to use to launch perl
 	# Should be the path to the perl current running.
@@ -32,7 +33,7 @@ sub background {
 	# Fire the command
 	IPC::Run3::run3( $cmd, $stdin, \undef, \undef );
 
-	1;
+	return 1;
 }
 
 1;
@@ -97,17 +98,17 @@ to move to L<Proc::Background> for more robustness later on.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Process>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Process-Backgroundable>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2007 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

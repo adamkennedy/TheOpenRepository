@@ -12,11 +12,8 @@ use Test::More tests => 3;
 use File::Spec::Functions ':ALL';
 use lib catdir('t', 'lib');
 
-BEGIN {
-	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
-	use_ok( 'Process::Backgroundable' );
-}
+ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+
+use_ok( 'Process::Backgroundable' );
 
 use_ok( 'MyBackgroundProcess'  );
-
-exit(0);

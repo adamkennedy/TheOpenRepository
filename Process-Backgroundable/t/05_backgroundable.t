@@ -33,8 +33,7 @@ unless ( -f $background ) {
 	print FILE "Test content\n";
 	close FILE;
 }
-ok( -f $background, 'Background test file exists' );
-END { if ( -f $background ) { File::Remove::remove($background) } }
+File::Remove::clear($background);
 
 use MyBackgroundProcess ();
 SCOPE: {
@@ -66,5 +65,3 @@ SCOPE: {
 	# Check the file is gone now
 	ok( ! -f $background, 'Test file is removed correctly' );
 }
-
-exit(0);
