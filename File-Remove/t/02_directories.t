@@ -6,10 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More qw(no_plan); # tests => 2;
-BEGIN {
-	use_ok('File::Remove' => qw(remove trash))
-};
+use Test::More   qw(no_plan); # tests => 2;
+use File::Remove qw{ remove trash };
 
 
 

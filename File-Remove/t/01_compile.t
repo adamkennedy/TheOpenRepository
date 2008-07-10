@@ -11,6 +11,5 @@ BEGIN {
 use Test::More tests => 2;
 
 ok( $] >= 5.005, "Your perl is new enough" );
-use_ok( 'File::Remove' );
 
-exit(0);
+use_ok( 'File::Remove' );

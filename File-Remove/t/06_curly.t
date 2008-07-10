@@ -11,12 +11,12 @@ BEGIN {
 }
 
 use Test::More tests => 6;
-use File::Spec   ();
+use File::Spec::Functions ':ALL';
 use File::Remove ();
 
 # Create the test directory
 my $dir  = '{1234}';
-my $path = File::Spec->catdir( 't', '{1234}' );
+my $path = catdir( 't', '{1234}' );
 unless ( -e $path ) {
 	mkdir( $path );
 }

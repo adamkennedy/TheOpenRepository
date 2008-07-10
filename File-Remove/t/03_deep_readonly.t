@@ -9,9 +9,9 @@ BEGIN {
 }
 
 use Test::More qw(no_plan);
-use File::Spec ();
-use File::Copy ();
-use_ok( 'File::Remove' );
+use File::Spec::Functions ':ALL';
+use File::Copy   ();
+use File::Remove ();
 
 
 
@@ -20,11 +20,11 @@ use_ok( 'File::Remove' );
 #####################################################################
 # Set up for the test
 
-my $in = File::Spec->catdir( File::Spec->curdir, 't' );
+my $in = catdir( curdir(), 't' );
 ok( -d $in, 'Found t dir' );
-my $d1 = File::Spec->catdir( $in, 'd1' );
-my $d2 = File::Spec->catdir( $d1, 'd2' );
-my $f3 = File::Spec->catfile( $d2, 'f3.txt' );
+my $d1 = catdir( $in, 'd1' );
+my $d2 = catdir( $d1, 'd2' );
+my $f3 = catfile( $d2, 'f3.txt' );
 
 sub create_directory {
 	mkdir $d1 or die "Failed to create $d1";
