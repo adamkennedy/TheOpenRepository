@@ -28,12 +28,10 @@ BEGIN {
 # Create the test file
 use File::Remove ();
 my $background = catfile('t', 'background_file.txt');
-unless ( -f $background ) {
-	open( FILE, '>', $background ) or die "Failed to open test file to write";
-	print FILE "Test content\n";
-	close FILE;
-}
 File::Remove::clear($background);
+open( FILE, '>', $background ) or die "Failed to open test file to write";
+print FILE "Test content\n";
+close FILE;
 
 use MyBackgroundProcess ();
 SCOPE: {
