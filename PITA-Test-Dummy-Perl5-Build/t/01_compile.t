@@ -17,5 +17,3 @@ if ( length($@) ) {
 } else {
 	print "ok 2 - PITA::Test::Dummy::Perl5::Build loads ok\n";
 }
-
-exit(0);

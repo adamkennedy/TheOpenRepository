@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 }
 
 sub dummy { 'Brian' }
@@ -56,11 +56,11 @@ Sigh... no his head was NOT meant to come off like that.
 
 =head1 SEE ALSO
 
-L<PITA>, L<PITA::Scheme::Perl5::Build>, L<http://ali.as/pita/>
+L<PITA>, L<PITA::Scheme::Perl5::Build>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT
 
-Copyright 2006 - 2007 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
