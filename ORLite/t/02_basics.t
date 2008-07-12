@@ -45,7 +45,7 @@ Foo::Bar->begin;
 Foo::Bar->rollback;
 
 # Check the schema version
-is( Foo::Bar->user_version, 0, '->user_version ok' );
+is( Foo::Bar->pragma('user_version'), 0, '->user_version ok' );
 
 # Populate the test table
 ok(
