@@ -47,7 +47,7 @@ use ORLite {
 END_PERL
 
 # Check the user_version value
-is( Foo::Bar->user_version, 10, '->user_version ok' );
+is( Foo::Bar->pragma('user_version'), 10, '->user_version ok' );
 
 # Check the ->count method
 is( Foo::Bar::TableOne->count, 0, 'Found 0 rows' );
