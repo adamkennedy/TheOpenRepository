@@ -47,7 +47,7 @@ API_CHANGE
 WriteMakefile(
 	NAME         => 'Pod-Tests',
 	VERSION_FROM => 'lib/Pod/Tests.pm',
-	EXE_FILES    => [ 'bin/pod2test' ],
+	EXE_FILES    => [ 'script/pod2test' ],
 	PREREQ_PM    => {
 		'Test::More'    => 0.33,
 		'Test::Harness' => 1.22,
@@ -86,8 +86,8 @@ WriteMakefile(
 
 # Generating pod2test's tests.
 print "Running pod2test.\n";
-system(qq{$^X "-Ilib" bin/pod2test t/02_tests.t t/03_pod2test.t});
+system(qq{$^X "-Ilib" script/pod2test t/02_tests.t t/03_pod2test.t});
 
 # Test that pod2test generates no file when given something that has no
 # tests.
-system(qq{$^X "-Ilib" bin/pod2test MANIFEST t/i_should_not_be_written.t});
+system(qq{$^X "-Ilib" script/pod2test MANIFEST t/i_should_not_be_written.t});

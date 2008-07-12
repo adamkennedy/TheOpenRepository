@@ -54,7 +54,7 @@ use 5.004;
 use strict;
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.18';
+	$VERSION = '1.19';
 }
 
 
@@ -479,6 +479,8 @@ CODE
 	return @code;
 }
 
+1;
+
 =pod
 
 =head1 EXAMPLES
@@ -533,7 +535,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Pod-Tests>
 
 Michael G Schwern E<lt>schwern@pobox.comE<gt>
 
-Repackaged by Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -548,9 +550,9 @@ Similar schemes can be found in L<SelfTest> and L<Test::Unit>.
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2003 Michael G Schwern. All rights reserved.
+Copyright 2001 - 2005 Michael G Schwern.
 
-Some parts copyright 2005 Adam Kennedy. All rights reserved.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -559,5 +561,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
-1;
