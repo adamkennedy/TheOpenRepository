@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -69,13 +69,21 @@ sub import {
 		Carp::croak("Missing or invalid package class");
 	}
 
-	# Capture the raw schema information
+	# Connect to the database
 	my $file     = File::Spec->rel2abs($params{file});
 	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
 	$DSN{$pkg}   = "dbi:SQLite:$file";
 	$DBH{$pkg}   = undef;
 	my $dbh      = DBI->connect($DSN{$pkg});
+
+	# Check the schema version before generating
+	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	if ( exists $params{user_version} and $version != $params{user_version} ) {
+		die "Schema user_version mismatch (got $version, wanted $params{user_version})";
+	}
+
+	# Capture the raw schema information
 	my $tables   = $dbh->selectall_arrayref(
 		'select * from sqlite_master where type = ?',
 		{ Slice => {} }, 'table',
@@ -86,6 +94,8 @@ sub import {
 			 { Slice => {} },
 		);
 	}
+	$dbh->disconnect;
+
 
 	# Generate the main additional table level metadata
 	my %tindex = map { $_->{name} => $_ } @$tables;
@@ -179,6 +189,10 @@ sub selectrow_hashref {
 
 sub prepare {
 	shift->dbh->prepare(\@_);
+}
+
+sub pragma {
+	shift->selectrow_arrayref('pragma ' . shift)->[0];
 }
 
 END_PERL
@@ -336,9 +350,10 @@ ORLite - Extremely light weight SQLite-specific ORM
   use strict;
   use ORLite 'data/sqlite.db';
   
-  my @cool_kids = Foo::Person->select('where first_name = ?', 'Adam');
-  
-  1;
+  my @awesome = Foo::Person->select(
+     'where first_name = ?',
+     'Adam',
+  );
 
 =head1 DESCRIPTION
 
@@ -564,6 +579,14 @@ behaviour.
 In general though, you should try to avoid the use of your own prepared
 statements if possible, although this is only a recommendation and by
 no means prohibited.
+
+=head2 pragma
+
+  # Get the user_version for the schema
+  my $version = Foo::Bar->pragma('schema_version');
+
+The C<pragma> method provides a convenient method for fetching a pragma
+for a datase. See the SQLite documentation for more details.
 
 =head1 TABLE PACKAGE METHODS
 

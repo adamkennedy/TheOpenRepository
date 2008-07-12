@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+0.09 Fri 11 Jul 2008
+	- Adding pragma method to the top package
+	- Adding user_version import param to provide the ability
+	  to lock the Perl code against a known-good schema.
+
 0.08 Tue 24 Jun 2008
 	- Adding an experimental -DEBUG option
 

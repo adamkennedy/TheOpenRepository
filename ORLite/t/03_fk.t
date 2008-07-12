@@ -21,8 +21,8 @@ use t::lib::Test;
 # Connect
 my $file = test_db();
 my $dbh  = create_ok(
-	catfile(qw{ t 03_fk.sql }),
-	"dbi:SQLite:$file",
+	file    => catfile(qw{ t 03_fk.sql }),
+	connect => [ "dbi:SQLite:$file" ],
 );
 
 # Create the test package

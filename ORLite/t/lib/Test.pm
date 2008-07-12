@@ -8,7 +8,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.09';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ test_db connect_ok create_ok };
 }
@@ -41,8 +41,10 @@ sub connect_ok {
 }
 
 sub create_ok {
+	my %param = @_;
+
 	# Read the create script
-	my $file = shift;
+	my $file = $param{file};
 	local *FILE;
 	local $/ = undef;
 	open( FILE, $file )          or die "open: $!";
@@ -50,13 +52,18 @@ sub create_ok {
 	close( FILE )                or die "close: $!";
 
 	# Get a database connection
-	my $dbh = connect_ok(@_);
+	my $dbh = connect_ok( @{$param{connect}} );
 
 	# Create the tables
 	my @statements = split( /\s*;\s*/, $buffer );
 	foreach my $statement ( @statements ) {
 		# Test::More::diag( "\n$statement" );
 		$dbh->do($statement);
+	}
+
+	# Set the user_version if needed
+	if ( $param{user_version} ) {
+		$dbh->do("pragma user_version = $param{user_version}");
 	}
 
 	return $dbh;

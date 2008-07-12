@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 46;
+use Test::More tests => 47;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -27,8 +27,8 @@ SCOPE: {
 # Set up again
 my $file = test_db();
 my $dbh  = create_ok(
-	catfile(qw{ t 02_basics.sql }),
-	"dbi:SQLite:$file",
+	file    => catfile(qw{ t 02_basics.sql }),
+	connect => [ "dbi:SQLite:$file" ],
 );
 
 # Create the test package
@@ -43,6 +43,9 @@ END_PERL
 
 Foo::Bar->begin;
 Foo::Bar->rollback;
+
+# Check the schema version
+is( Foo::Bar->user_version, 0, '->user_version ok' );
 
 # Populate the test table
 ok(
