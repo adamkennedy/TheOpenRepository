@@ -1,10 +1,13 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 use Test::More 'no_plan';
-
-BEGIN { use_ok 'Pod::Tests'; }
-
+use Pod::Tests;
 
 my $p = Pod::Tests->new;
 $p->parse_fh(*DATA);
@@ -17,12 +20,12 @@ is( @examples,  7,                      'saw examples' );
 
 is( $tests[0]{code},    <<'POD',        'saw =for testing' );
 ok(2+2 == 4);
-is( __LINE__, 93 );
+is( __LINE__, 96 );
 POD
 
 is( $tests[1]{code},    <<'POD',        'saw testing block' );
 
-my $foo = 0;  is( __LINE__, 105 );
+my $foo = 0;  is( __LINE__, 108 );
 ok( !$foo,      'foo is false' );
 ok( $foo == 0,  'foo is zero'  );
 
@@ -53,7 +56,7 @@ is( $examples[2]{code}, <<'POD',        'example with tests' );
 POD
 is( $examples[2]{testing}, <<'POD',     q{  and there's the tests});
   ok( $result == 4,         'addition works' );
-  is( __LINE__, 139 );
+  is( __LINE__, 142 );
 POD
 
 
@@ -90,7 +93,7 @@ Dummy testing file for Pod::Tests
 
 =for testing
 ok(2+2 == 4);
-is( __LINE__, 93 );
+is( __LINE__, 96 );
 
 This is not a test
 
@@ -102,7 +105,7 @@ code and stuff
 
 =begin testing
 
-my $foo = 0;  is( __LINE__, 105 );
+my $foo = 0;  is( __LINE__, 108 );
 ok( !$foo,      'foo is false' );
 ok( $foo == 0,  'foo is zero'  );
 
@@ -136,7 +139,7 @@ And an example_testing block
 
 =for example_testing
   ok( $result == 4,         'addition works' );
-  is( __LINE__, 139 );
+  is( __LINE__, 142 );
 
 And the special $_STDOUT_ and $_STDERR_ variables..
 
@@ -155,7 +158,7 @@ Beware the Ides of March!
 Really, we mean it
 OUT
   is( $_STDOUT_, "Hello, world!\n",                   '$_STDOUT_' );
-  is( __LINE__, 158 );
+  is( __LINE__, 161 );
 
 =for example begin
 
@@ -182,11 +185,11 @@ foo
   is( $Original_File, File::Spec->catfile(qw(t 02_tests.t)) );
 
 =for testing
-  is( __LINE__, 185, 'line in =for testing' );
+  is( __LINE__, 188, 'line in =for testing' );
 
 =begin testing
 
-  is( __LINE__, 189, 'line in =begin/end testing' );
+  is( __LINE__, 192, 'line in =begin/end testing' );
 
 =end testing
 
@@ -197,5 +200,3 @@ foo
 =for example end
 
 =cut
-
-1;

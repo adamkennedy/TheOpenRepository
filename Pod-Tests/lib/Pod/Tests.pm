@@ -50,7 +50,7 @@ embarking on this.
 
 =cut
 
-use 5.004;
+use 5.005;
 use strict;
 use vars qw($VERSION);
 BEGIN {
@@ -76,15 +76,15 @@ out of a POD document.
 =cut
 
 sub new {
-    my ($proto) = shift;
-    my ($class) = ref $proto || $proto;
+	my ($proto) = shift;
+	my ($class) = ref $proto || $proto;
 
-    my $self = bless {}, $class;
-    $self->_init;
-    $self->{example} = [];
-    $self->{testing} = [];
+	my $self = bless {}, $class;
+	$self->_init;
+	$self->{example} = [];
+	$self->{testing} = [];
 
-    return $self;
+	return $self;
 }
 
 
@@ -182,7 +182,7 @@ sub _init {
 		example         => [],
 		testing         => [],
 		example_testing => [],
-		};
+	};
 }
 
 sub _sawsomethingelse {
@@ -224,27 +224,28 @@ sub _endfor {
 		code => $self->{_currpod},
 		# Skip over the "=for" line
 		line => $self->{_forstart} + 1,
-		};
+	};
 
-		if ( $self->{_infor} ) {
-			$self->_example_testing($pod)
-				if $self->{_infor} eq 'example_testing';
-	
-			if ( $self->{_infor} eq $self->{_lasttype}) {
-				my $last_for = ${$self->{_for}{$self->{_infor}}}[-1];
-				$last_for->{code} .= "\n" x ($pod->{line} - 
-					($last_for->{line} + 
-					$last_for->{code} =~ tr/\n//)
-					);
-				$last_for->{code} .= $self->{_currpod};
-			
-			} else {
-				push @{$self->{_for}{$self->{_infor}}}, $pod;
-			}
+	if ( $self->{_infor} ) {
+		if ( $self->{_infor} eq 'example_testing' ) {
+			$self->_example_testing($pod);
 		}
+
+		if ( $self->{_infor} eq $self->{_lasttype}) {
+			my $last_for = ${$self->{_for}{$self->{_infor}}}[-1];
+			$last_for->{code} .= "\n" x ($pod->{line} - 
+				($last_for->{line} + 
+				$last_for->{code} =~ tr/\n//)
+				);
+			$last_for->{code} .= $self->{_currpod};
+		
+		} else {
+			push @{$self->{_for}{$self->{_infor}}}, $pod;
+		}
+	}
 	
-		$self->{_lasttype} = $self->{_infor};
-		$self->{_infor} = 0;
+	$self->{_lasttype} = $self->{_infor};
+	$self->{_infor} = 0;
 }
 
 #=head2 _beginblock
@@ -273,11 +274,12 @@ sub _endblock {
 		code => $self->{_currpod},
 		# Skip over the "=begin"
 		line => $self->{_blockstart} + 1,
-		};
+	};
 
 	if ( $self->{_inblock} ) {
-		$self->_example_testing($self->{_currpod})
-			if $self->{_inblock} eq 'example_testing';
+		if ( $self->{_inblock} eq 'example_testing' ) {
+			$self->_example_testing($self->{_currpod});
+		}
 
 		if ( $self->{_inblock} eq $self->{_lasttype}) {
 			my $last_for = ${$self->{_for}{$self->{_inblock}}}[-1];
@@ -550,9 +552,9 @@ Similar schemes can be found in L<SelfTest> and L<Test::Unit>.
 
 =head1 COPYRIGHT
 
-Copyright 2001 - 2005 Michael G Schwern.
-
 Copyright 2005 - 2008 Adam Kennedy.
+
+Copyright 2001 - 2003 Michael G Schwern.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

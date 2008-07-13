@@ -30,11 +30,11 @@ specified with -M. B<UNIMPLEMENTED>
 
 =cut
 
-use 5.004;
+use 5.005;
 use strict;
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.17_01';
+	$VERSION = '1.19';
 }
 
 use File::Spec ();
@@ -151,7 +151,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Pod-Tests>
 
 Michael G Schwern E<lt>schwern@pobox.comE<gt>
 
-Repackaged by Adam Kennedy E<lt>cpan@ali.asE<gt>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -159,9 +159,9 @@ L<Pod::Tests>, L<Test::Inline>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2003 Michael G Schwern. All rights reserved.
+Copyright 2005 - 2008 Adam Kennedy.
 
-Some parts copyright 2005 Adam Kennedy. All rights reserved.
+Copyright 2001 - 2003 Michael G Schwern.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -170,5 +170,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
-1;
