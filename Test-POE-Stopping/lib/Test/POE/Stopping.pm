@@ -4,7 +4,7 @@ package Test::POE::Stopping;
 
 =head1 NAME
 
-Test::POE::Stopped - Test if a POE process has nothing left to do
+Test::POE::Stopping - Test if a POE process has nothing left to do
 
 =head1 DESCRIPTION
 
