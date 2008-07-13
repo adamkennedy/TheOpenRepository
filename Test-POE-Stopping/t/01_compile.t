@@ -19,5 +19,3 @@ ok(
 	defined(&poe_stopping),
 	'Exports pod_stopping by default',
 );
-
-exit(0);

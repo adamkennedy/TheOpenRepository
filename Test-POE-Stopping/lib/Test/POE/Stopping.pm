@@ -42,6 +42,7 @@ fail result and then do a hard-stop of the POE kernel.
 
 =cut
 
+use 5.005;
 use strict;
 use Test::Builder  ();
 use POE            ('Session');
@@ -50,7 +51,7 @@ use POE::API::Peek ();
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
@@ -143,7 +144,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

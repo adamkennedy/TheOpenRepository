@@ -36,8 +36,8 @@ pass( 'POE Stopped' );
 # Events
 
 sub _start {
-	$poe_kernel->delay_set( 'is_stopping'   => 1 );
-	$poe_kernel->delay_set( 'pending_alarm' => 5 );
+	$poe_kernel->delay_set( is_stopping   => 1 );
+	$poe_kernel->delay_set( pending_alarm => 5 );
 	return;
 }
 
@@ -48,5 +48,3 @@ sub is_stopping {
 sub pending_alarm {
 	die "This should never run";
 }
-
-exit(0);

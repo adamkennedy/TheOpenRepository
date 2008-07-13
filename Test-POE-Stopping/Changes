@@ -1,0 +1,6 @@
+Changes for Perl extension Test-POE-Stopping
+
+0.02 Sun 12 Jul 2008
+	- No functional changes
+	- Added the missing Changes file
+	- Updated to Module::Install 0.75
