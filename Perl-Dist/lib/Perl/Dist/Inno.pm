@@ -144,13 +144,14 @@ use LWP::UserAgent::Determined ();
 use LWP::Online                ();
 use Module::CoreList           ();
 use Tie::File                  ();
+use Tie::Slurp                 ();
 use PAR::Dist                  ();
+use Perl::Dist::Inno::Script   ();
 
-use base 'Perl::Dist::Inno::Script';
-
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
         $VERSION  = '1.01';
+	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
 use Object::Tiny qw{
@@ -159,8 +160,6 @@ use Object::Tiny qw{
 	archlib
 	exe
 	zip
-
-
 
 	binary_root
 	offline
@@ -864,14 +863,14 @@ sub remove_waste {
 
 sub remove_dir {
 	my $self = shift;
-	my $dir  = $self->_dir( @_ );
+	my $dir  = $self->dir( @_ );
 	File::Remove::remove( \1, $dir ) if -e $dir;
 	return 1;
 }
 
 sub remove_file {
 	my $self = shift;
-	my $file = $self->_file( @_ );
+	my $file = $self->file( @_ );
 	File::Remove::remove( \1, $file ) if -e $file;
 	return 1;
 }
@@ -943,7 +942,7 @@ sub install_perl_588_bin {
 	my $patch = $perl->patch;
 	if ( $patch ) {
 		foreach my $f ( sort keys %$patch ) {
-			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $from = File::ShareDir::dist_file( 'Perl-Dist', $f );
 			my $to   = File::Spec->catfile(
 				$unpack_to, $perlsrc, $patch->{$f},
 			);
@@ -967,22 +966,13 @@ sub install_perl_588_bin {
 		my $image_dir    = $self->image_dir;
 		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
 		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+
 		$self->trace("Patching makefile.mk\n");
-		tie my @makefile, 'Tie::File', 'makefile.mk'
+		tie my $makefile, 'Tie::Slurp', 'makefile.mk'
 			or die "Couldn't read makefile.mk";
-		foreach ( @makefile ) {
-			if ( m{\AINST_TOP\s+\*=\s+} ) {
-				# short has a leading \
-				s{\\perl}{$short_install};
-
-			} elsif ( m{\ACCHOME\s+\*=} ) {
-				s{c:\\mingw}{$image_dir\\c}i;
-
-			} else {
-				next;
-			}
-		}
-		untie @makefile;
+		$makefile =~ s/(\nINST_TOP\s+\*=\s+.+?)\\perl\b/$1$short_install/;
+		$makefile =~ s/(\nCCHOME\s+\*=\s+)C\:\\MinGW\b/$1$image_dir\\c/;
+		untie $makefile;
 
 		$self->trace("Building perl...\n");
 		$self->_make;
@@ -1185,7 +1175,7 @@ sub install_perl_5100_bin {
 	my $patch = $perl->patch;
 	if ( $patch ) {
 		foreach my $f ( sort keys %$patch ) {
-			my $from = File::ShareDir::module_file( 'Perl::Dist', $f );
+			my $from = File::ShareDir::dist_file( 'Perl-Dist', $f );
 			my $to   = File::Spec->catfile(
 				$unpack_to, $perlsrc, $patch->{$f},
 			);
@@ -1301,7 +1291,7 @@ sub install_perl_5100_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
 		force        => {
-			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+			'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
 		},
 	);
 }
@@ -2825,3 +2815,33 @@ sub _dll_to_a {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

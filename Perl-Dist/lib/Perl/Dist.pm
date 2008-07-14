@@ -112,7 +112,7 @@ Better uninstall support and upgradability.
 
 =back
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Adam Kennedy <adamk@cpan.org>
 
