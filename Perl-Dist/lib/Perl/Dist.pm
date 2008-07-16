@@ -2,11 +2,12 @@ package Perl::Dist;
 
 use 5.006;
 use strict;
-use base 'Perl::Dist::Inno';
+use Perl::Dist::Inno ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
         $VERSION = '1.02';
+	@ISA     = 'Perl::Dist::Inno';
 }
 
 1;
