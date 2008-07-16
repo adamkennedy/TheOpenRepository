@@ -113,6 +113,12 @@ Better uninstall support and upgradability.
 
 =back
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+
 =head1 AUTHORS
 
 Adam Kennedy <adamk@cpan.org>
