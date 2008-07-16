@@ -1,4 +1,4 @@
-File::Stream version 2.10
+File::Stream version 2.20
 =========================
 
 Perl filehandles are streams, but sometimes they just aren't powerful enough.
@@ -54,7 +54,7 @@ module which made my life much easier.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2003-2005 Steffen MÅller
+Copyright (C) 2003-2008 Steffen MÅller
 Author can be reached at stream-module at steffen-mueller dot net.
 
 This library is free software; you can redistribute it and/or modify

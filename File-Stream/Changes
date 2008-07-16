@@ -1,5 +1,9 @@
 Revision history for Perl extension File::Stream.
 
+2.20  Wed Jul 16 12:24:21 2008
+        - supply die_on_anchors option to constructor to suppress the
+          fatal error thrown for anchors in regexes.
+
 2.10  Mon Dec 19 16:11:42 2005
 	- Added an implementation of SEEK and TELL. Idea and implementation were
 	  kindly supplied by Phil Whineray.

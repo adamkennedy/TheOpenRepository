@@ -68,7 +68,7 @@ use Carp;
 use YAPE::Regex;
 
 use vars qw/$End_Of_String/;
-our $VERSION = '2.10';
+our $VERSION = '2.20';
 
 =head2 new
 
@@ -94,6 +94,15 @@ String will be interpreted as literal strings, not regular expressions.
 Defaults to 1024 bytes. Sets the number of bytes to read into the internal
 buffer at once. Large values may speed up searching considerably, but
 increase memory usage.
+
+=item die_on_anchors
+
+Defaults to true. If set, any call to C<find()> will die on
+regular expressions which contain anchors (C<^ and $>). Usually, those
+do not make much sense in regular expressions applied to streams.
+If, however, you're using the C<//m> option, these anchors match
+the start and end of each line respectively. In that case, you can suppress
+the fatal error by setting C<die_on_anchors =E<gt> 0>.
 
 =back
 
@@ -167,7 +176,7 @@ sub find {
 	my $token;
 	while ($token = $yp->next()) {
 		my $tstr = $token->string();
-		if ($tstr eq '^' or $tstr eq '$') {
+		if ($self->{die_on_anchors} and $tstr eq '^' or $tstr eq '$') {
 			croak "Invalid use of anchors (here: '$tstr') in a ",
 				"regular expression that will be\n",
 				"applied to a stream";
@@ -243,6 +252,7 @@ sub TIEHANDLE {
         read_length => 1024,
         separator   => undef,
         buffer      => '',
+        die_on_anchors => 1,
         @_
     };
     bless $self => $class;
@@ -357,7 +367,7 @@ Since version 1.10, the buffer is extended whenever the regex reaches its end.
 That means it has to tokenize the regex and insert weird constructs in many
 places. This is a rather slow and fragile process.
 
-=head1 AUTHOR
+=head1 AUTHOR 
 
 Steffen Mueller, E<lt>stream-module at steffen-mueller dot netE<gt>
 
