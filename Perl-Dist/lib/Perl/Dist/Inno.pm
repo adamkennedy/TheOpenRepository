@@ -150,7 +150,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.01';
+        $VERSION  = '1.02';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -1703,6 +1703,27 @@ sub install_gmp {
 
 	return 1;
 }
+
+=pod
+
+=head2 install_pari
+
+  $dist->install_pari
+
+The C<install_pari> method install (via a PAR package) libpari and the
+L<Math::Pari> module into the distribution.
+
+This method should only be called at during the install_modules phase.
+
+=cut
+
+sub install_pari {
+	$_[0]->install_par(
+		name => 'pari',
+		url  => 'http://strawberryperl.com/package/Math-Pari-2.010800.par',
+	);
+}
+
 
 
 

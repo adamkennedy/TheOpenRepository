@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.76;
 
 all_from       'lib/Perl/Dist.pm';
 requires       'Archive::Tar'               => '1.34'; 
