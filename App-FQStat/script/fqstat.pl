@@ -99,7 +99,7 @@ our $SortField : shared;                # may hold name of sort field
 
 our $Interval : shared;                 # Effective data refreshing interval. Do not change. Is set to $UserInterval below
 our $HighlightUser;
-our $HighlightUserColor = color("black on yellow");
+our $HighlightUserColor = color("bold white on blue");
 {
   my $curuser = $ENV{USER};
   if (defined $curuser) {
