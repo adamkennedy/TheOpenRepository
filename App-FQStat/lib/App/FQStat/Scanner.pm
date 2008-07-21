@@ -1,6 +1,6 @@
 
 package App::FQStat::Scanner;
-# App::FQStat is (c) 2007-2008-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2008 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -152,7 +152,7 @@ sub sort_current {
           sort { $a->[1] <=> $b->[1] }
           map {
             my $s = $_->[::F_status];
-            if    ($s =~ /E/) { $s = 0 }
+            if    ($s =~ /[Ed]/) { $s = 0 }
             elsif ($s =~ /r/) { $s = 1 }
             elsif ($s =~ /t/) { $s = 2 }
             elsif ($s =~ /w/) { $s = 3 }

@@ -190,8 +190,8 @@ sub draw_job_display {
 
     # Print STATUS
     my $status = $job->[::F_status];
-    if ($status =~ /^r|t$/)         { color("black on green") }
-    elsif ($status =~ /E/)          { color("black on red") }
+    if ($status =~ /^[rt]$/)        { color("black on green") }
+    elsif ($status =~ /(?:^d|E)/)   { color("black on red") }
     elsif ($status =~ /h(?:qw|r)/)  { color("black on yellow") }
     elsif ($status =~ /w/)          { color("blue on white") }
     else                            { color("black on yellow") }
