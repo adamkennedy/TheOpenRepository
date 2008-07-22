@@ -1,6 +1,7 @@
 Revision history for Perl extension Perl-PowerToys
 
 0.11 Thu  6 Mar 2008
+	- Upgrading to Module::Install 0.76
 	- Adding increment support
 	- Bug fixes
 
