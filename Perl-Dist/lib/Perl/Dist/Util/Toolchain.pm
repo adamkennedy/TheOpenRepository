@@ -140,14 +140,15 @@ sub prepare {
 	CPAN->import();
 
 	# Load the latest index
-	SCOPE: {
+	eval {
 		local $SIG{__WARN__} = sub { 1 };
 		CPAN::Index->reload;
-	}
+	};
 
 	$stdout->stop;
 	$stderr->stop;
-	return 1;
+
+	return $@ ? '' : 1;
 }
 
 sub run {
