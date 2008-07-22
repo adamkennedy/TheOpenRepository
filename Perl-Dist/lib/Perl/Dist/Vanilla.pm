@@ -139,20 +139,6 @@ sub remove_waste {
 	return 1;
 }
 
-
-
-
-
-#####################################################################
-# Additional Custom Methods
-
-sub install_perl {
-	my $self = shift;
-	$self->SUPER::install_perl(@_);
-	$self->install_pari;
-	return 1;
-}
-
 1;
 
 __END__

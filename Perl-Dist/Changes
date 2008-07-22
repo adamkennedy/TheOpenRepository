@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.03 Tue 22 Jul 2008
+	- Minor cleanups to support the July Strawberry release
+
 1.02 Tue 15 Jul 2008
 	- Updating to a Vista-capable mingw.
 	- Adding install_pari for Math::Pari support

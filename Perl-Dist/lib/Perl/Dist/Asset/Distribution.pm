@@ -59,7 +59,7 @@ use URI::file;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.02';
+	$VERSION = '1.03';
 }
 
 use Object::Tiny qw{
