@@ -150,7 +150,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.03';
+        $VERSION  = '1.04';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -1030,12 +1030,22 @@ sub install_perl_588_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
+		if ( $dist =~ /libwww/ ) {
+			# Tests break behind a proxy, so force them
+			$force = 1;
+		}
 		$self->install_distribution(
 			name              => $dist,
 			force             => $force,
 			automated_testing => $automated_testing,
 		);
 	}
+
+	# Patch MakeMaker to avoid a bug with explicit dmake
+	$self->install_file(
+		share      => 'Perl-Dist MM_Win32_644.pm',
+		install_to => 'perl/lib/ExtUtils/MM_Win32.pm',
+	);
 
 	# With the toolchain we need in place, install the default
 	# configuation.
@@ -1276,6 +1286,10 @@ sub install_perl_5100_toolchain {
 			# Does evil things when testing, and
 			# so testing cannot be automated.
 			$automated_testing = 1;
+		}
+		if ( $dist =~ /libwww/ ) {
+			# Tests break behind a proxy, so force them
+			$force = 1;
 		}
 		$self->install_distribution(
 			name              => $dist,
