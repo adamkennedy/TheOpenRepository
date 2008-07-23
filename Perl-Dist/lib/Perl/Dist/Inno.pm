@@ -1298,6 +1298,12 @@ sub install_perl_5100_toolchain {
 		);
 	}
 
+	# Patch MakeMaker to avoid a bug with explicit dmake
+	$self->install_file(
+		share      => 'Perl-Dist MM_Win32_644.pm',
+		install_to => 'perl/lib/ExtUtils/MM_Win32.pm',
+	);
+
 	return 1;
 }
 
