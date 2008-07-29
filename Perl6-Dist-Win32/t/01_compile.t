@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
-ok( $] <= 5.008, 'Perl version is new enough' );
+ok( $] >= 5.008, 'Perl version is new enough' );
 
+use_ok( 'Perl6::Dist::Asset::Parrot' );
 use_ok( 'Perl6::Dist::Win32' );
