@@ -287,11 +287,11 @@ Object::Tiny has a minimum Perl dependency of 5.004.
 
 B<Object::Tiny has no module dependencies whatsoever>
 
-Object::Tiny does not load ANYTHING at all outside of it's own single .pm file.
+Object::Tiny does not load ANYTHING at all outside of its own single .pm file.
 
 So Object::Tiny will never get confused in odd situations due to old or weird
 versions of other modules (Class::Accessor::Fast has a dependency on base.pm,
-which has some caveats of it's own).
+which has some caveats of its own).
 
 =head1 SUPPORT
 

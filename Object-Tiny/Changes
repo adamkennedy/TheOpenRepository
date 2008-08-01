@@ -1,5 +1,7 @@
 Revision history for Perl extension Object-Tiny
 
+    - Fixed two "it's" into "its" in the documentation. (SHLOMIF)
+
 1.05 Thu  1 Nov 2007
 	- No functional changes
 	- Converted Makefile.PL from Module::Install to EU:MM
