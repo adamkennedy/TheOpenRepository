@@ -630,14 +630,12 @@ several completed LR(0) items may have the same lhs.
 
 The selection criteria for a kernel or-node is
 a rule, and a rule position.
-For a brick or-node,
+If the position is at a non-nulling symbol,
 exactly one LR(0) item will match the selection criteria,
 and the child and-nodes will use that LR(0) item.
-For a mortar or-node,
-no LR(0) items will match,
-and a child and-node will be created using
-the null value of the symbol corresponding to
-the mortar or-node.
+If the position is at a nulling symbol,
+a child and-node will be created using
+the null value of the symbol.
 
 =head2 Naming Or-Nodes
 
