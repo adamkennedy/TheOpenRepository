@@ -1,5 +1,9 @@
 Revision history for Perl extension SelfLoader
 
+1.16     Sat Aug  2 17:29 2008
+  - Report the location of warnings and errors. (perl ticket #5298,
+    Marc Gauthier)
+
 1.15     Thu Jan 17 17:43 2008
   - Fix non-critical warning in the test suite. (Jerry D. Hedden)
 
