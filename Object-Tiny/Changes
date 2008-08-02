@@ -1,6 +1,10 @@
 Revision history for Perl extension Object-Tiny
 
-    - Fixed two "it's" into "its" in the documentation. (SHLOMIF)
+1.06 Fri  4 Jul 2008
+	- No functional changes
+	- Using strict.pm all the time
+	- Fixing META.yml
+	- Fixed two "it's" into "its" in the documentation. (SHLOMIF)
 
 1.05 Thu  1 Nov 2007
 	- No functional changes

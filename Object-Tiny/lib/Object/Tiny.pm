@@ -1,6 +1,6 @@
 package Object::Tiny;
 
-# use strict; # Enable during dev and testing
+use strict;
 BEGIN {
 	require 5.004;
 	$Object::Tiny::VERSION = '1.05';
