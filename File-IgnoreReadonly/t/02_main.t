@@ -33,7 +33,10 @@ if ( File::IgnoreReadonly::WIN32 ) {
 }
 ok(   -f $file, 'Test file exists'          );
 ok(   -r $file, 'Test file is readable'     );
-ok( ! -w $file, 'Test file is not writable' );
+unless ( File::IgnoreReadonly::WIN32 or ($< and $>) ) {
+	skip( "Skipping test known to fail for root", 1 );
+	ok( ! -w $file, 'Test file is not writable' );
+}
 
 
 
@@ -61,7 +64,10 @@ SCOPE: {
 # Destroy should have been fired.
 ok(   -f $file, 'Test file exists'          );
 ok(   -r $file, 'Test file is readable'     );
-ok( ! -w $file, 'Test file is not writable' );
+unless ( File::IgnoreReadonly::WIN32 or ($< and $>) ) {
+	skip( "Skipping test known to fail for root", 1 );
+	ok( ! -w $file, 'Test file is not writable' );
+}
 
 # File contents should be different
 open( FILE, $file ) or die "open: $!";
