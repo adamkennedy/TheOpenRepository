@@ -19,6 +19,10 @@ L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
 Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
 
+These definitions will be consistent with textbook definitions,
+but will not be intended to replace them.
+The intention here is to focus on the meaning of the term as it applies to Marpa.
+
 =head2 Basic terms
 
 A B<grammar> is a set of rules.

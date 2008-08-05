@@ -158,8 +158,9 @@ Parse::Marpa - Earley's algorithm with LR(0) precomputation
 =head1 BEWARE: THIS RELEASE IS FOR DEVELOPERS ONLY
 
 This is a developer's release, not for use by non-developers.
-I use these releases to avail myself of the cpantesters results,
-and to test the release process itself.
+I use these releases because I want to see
+results from the cpantesters,
+and because I want to test the release process itself.
 
 Of course, it's open source, and you're entitled to appoint yourself
 a developer if you insist on it.  But that will usually not be a reasonable
@@ -232,20 +233,22 @@ inaccessble rules and unproductive rules.
 Marpa parses left- and right-recursive grammars and ambiguous grammars.
 
 Marpa's one restriction is that it won't parse infinitely ambiguous grammars.
-Since nobody ever really wants a program to go into an infinite loop,
-trying to produce an infinite
-number of parse trees, that is not exactly a big restriction.
-This only happens in grammars with cycles --
+Since a user seldom wants a program to loop forever
+in an attempt to produce an infinite
+number of parse trees,
+that is not a big restriction.
+Infinite ambiguity only happens in grammars with cycles --
 cases where a symbol string non-trivially derives exactly
-the symbol string, resulting in a never-ending string
-of derivation.
+the same symbol string.
+A cycle in a grammar creates a situation where the same
+derivation steps might be repeated over and over again without end.
 
 Empty productions are often necessary to express a language in a natural way.
 Inaccessible rules and unproductive rules aren't useful, but they cause no
 real harm.
 
 So long as they are not infinitely ambiguous,
-ambiguous grammars are actually a Marpa specialty.
+ambiguous grammars are a Marpa specialty.
 (An ambiguous grammar is one for which there is some input
 which has more than one parse tree.)
 Ambiguity is often useful even if you are only interested in one parse.
@@ -286,30 +289,28 @@ See L<below|/"mdl"> for more detail about the C<mdl> static method.
 
 =head2 Parsing Terminology
 
-Peppered through these documents are a lot of parsing terms.
-These are are all either explained in these documents
+The parsing terms in
+these documents
+are either explained in these documents
 or are in standard use.
-
-But just because a term is in standard use in the parsing
-literature doesn't mean it will be familiar, or that
-you remember exactly what it meant.
-So to server as a reminder,
-I give all these standard terms I use in L<Parse::Marpa::Doc::Parse_Terms>,
-with definitions for them as they apply in the Marpa context.
-The <parse terms document|Parse::Marpa::Doc::Parse_Terms> is
+However, just because a parsing term is in "standard use"
+doesn't mean it will be familiar.
+Even if you've studied parsing,
+you might not have run across that particular term,
+or might not remember exactly what it meant.
+I define all the terms I treat as "standard" in L<Parse::Marpa::Doc::Parse_Terms>.
+The L<parse terms document|Parse::Marpa::Doc::Parse_Terms> is
 designed for skimming:
 the B<defining uses> of the terms are all in boldface.
-If you are already comfortable with parsing terminology,
-you can skip it entirely.
 
 If you want an
-an introduction to parsing concepts,
+introduction to parsing concepts,
 the chapter on parsing in
 L<Mark Jason Dominus's
 I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/"Dominus 2005">
 is an excellent description of them in the Perl context.
 Online,
-L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
+L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is a good place to start.
 
 =head2 Semantic Actions
 
@@ -327,7 +328,7 @@ and can be used to initialize that namespace.
 
 Lex actions are run in a special namespace devoted to lex actions.
 The special lex preamble action
-and can be used to initialize that namespace.
+can be used to initialize that namespace.
 
 The result of an action is the result of running its Perl 5 code string.
 From L<the synopsis|"SYNOPSIS">, here's a rule for an expression that does addition:
@@ -365,7 +366,7 @@ If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 Every symbol can have its own null symbol value.
 In cases where a null symbol derives other null symbols,
 only the value of the symbol highest in the null derivation is used.
-For more details, and examples, see L<Parse::Marpa::Evaluator/"Null Symbol Values">.
+For details and examples, see L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
 =head2 Lexing
 
@@ -406,36 +407,34 @@ Here's all you should need to get started:
 
 =over 4
 
-=item * Read the MDL document.
+=item * Read this document up to this point.
 
-=item * Read this document to this point.
+=item * Read
+L<the MDL document|Parse::Marpa::Doc::MDL>.
 
-=item * Read the L</"METHODS"> section of this document.
+=item * Read the L</"METHODS">
+and the
+L</"LICENSE AND COPYRIGHT">
+sections of this document.
 
-=item * Skim the L</"OPTIONS"> of this document for anything relevant to your application.
-
-=item * Skim the L</"BUGS"> of this document for anything relevant to your application.
-
-=item * Look over the legalese and administrivia at the end, as appropriate.
+=item * Skim the L</"OPTIONS"> and
+L</"BUGS"> sections of this document for anything relevant to your application.
 
 =item * Remember that the L<Parse::Marpa::Doc::Parse_Terms> document is there, in case
 the parsing vocabulary gets a bit thick.
 
 =item * If you want help debugging a grammar, want to get into advanced uses,
 or just are curious to learn more,
-look at L<the next section|/"Reading the Other Documents">.
+look at
+L<Parse::Marpa::Doc::Diagnostics>.
 
 =back
 
-=head2 Reading the Other Documents
-
-L<Parse::Marpa::Doc::Diagnostics>
-describes techniques for tracing and debugging grammars and actions,
-including the Marpa options and methods available.
+=head2 What is in the Other Documents
 
 As you get into advanced applications of Marpa,
 the first places to look will be the
-the documents for the various phases of Marpa parsing:
+documents for the various phases of Marpa parsing:
 L<Parse::Marpa::Grammar>,
 L<Parse::Marpa::Recognizer>,
 and L<Parse::Marpa::Evaluator>.
@@ -463,7 +462,7 @@ Details about sources (books, web pages and articles) referred to in these docum
 or used in the writing of Marpa
 are collected in
 L<Parse::Marpa::Doc::Bibliography>.
-L<Parse::Marpa::Doc::To_Do> is the list of things that will or might be done to
+L<Parse::Marpa::Doc::To_Do> is the list of things that might be done to
 Marpa in the future.
 
 =head2 Phases
@@ -493,7 +492,7 @@ evaluators are created from recognizers.
 
 Grammar objects (C<Parse::Marpa::Grammar>) are created first.
 They may be created with rules or empty.
-Rules may be added to them after they have been created.
+Rules may be added to grammar objects after they have been created.
 After all the rules have been added, but before it is used to create a recognizer,
 a grammar must be precomputed.
 Details on grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
@@ -519,7 +518,7 @@ see L<Parse::Marpa::Recognizer>.
 Currently, Marpa fully supports only non-streaming or "offline" input.
 Marpa will also parse streamed inputs,
 but the methods to find completed parses in a streamed input 
-are still experimental.
+are still under construction.
 
 =head3 Evaluators
 

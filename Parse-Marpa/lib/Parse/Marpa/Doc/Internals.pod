@@ -27,7 +27,7 @@ after input is finished,
 the input is recognized as one of those described by the grammar.
 Once the recognition phase is done,
 the phase that does parsing in the strict sense uses
-the Earley sets as its input.
+the Earley sets as input.
 
 Each of Marpa's B<earlemes> corresponds one-to-one with an Earley set.
 An Earley set is a set of Earley items.
@@ -60,7 +60,7 @@ L<Grune and Jacobs|Parse::Marpa::Doc::Bibliography/"Grune and Jacobs 2008">.
 Finally, in the traditional notation for an Earley item,
 the dot earleme is not
 included at all --
-you're supposed to figure out from the context
+you were supposed to figure out from the context
 which Earley set an Earley item belongs to.)
 
 =head1 QDFA STATES
@@ -156,10 +156,8 @@ The string of recognized symbols ends at the dot
 location of the Earley item --
 in other words, the dot position of each LR(0) item corresponds
 to the dot location of the Earley item.
-The start of the string of recognized symbols,
-which is also the start of the rules
-in the LR(0) items,
-will be the at origin of the Earley item.
+The start of the rules in the LR(0) items
+is the origin of the Earley item.
 
 Some LR(0) items are predictions --
 statements that their rules could start
@@ -207,7 +205,7 @@ An LR(0) item with
 the dot pointer at the end of its rule is
 a B<completed rule>.
 
-Marpa calls the item that was looking for the scanned symbol
+Marpa calls the item that was looking for the scanned symbol,
 the B<predecessor> of the item added by the scan.
 In this example, S1@2-2 is the predecessor of S4@2-3.
 Any item which is added to an Earley set based on a QDFA state transition
@@ -322,7 +320,7 @@ Where an item comes from is not important in recognition.
 But parsing in the strict sense means determining the structure of the input,
 and that requires us to know why an Earley item was added to an Earley set.
 Each reason for the existence of an Earley item in an Earley set
-is an different choice that can be made when it comes time
+is a different choice that can be made when it comes time
 to create a parse structure.
 
 Marpa uses the Earley item source choices
@@ -338,9 +336,7 @@ This source choice says that one reason for S6@0-3 to exist
 was the completion in S4@2-3,
 with S5@0-2 as the predecessor.
 Since this parse in unambiguous,
-there will be no other source choices,
-and this will remain the only reason for S6@0-3 to be in the
-Earley sets.
+there are no other source choices.
 
 =head2 Prediction
 
@@ -413,7 +409,7 @@ or else all the symbols to the left of the dot are nulling symbols.
 Either way, the origin and dot earlemes will always be the same.
 
 Source choices are not recorded for predicted items.
-Prediction items are
+Predicted items are
 essential to get rules started
 in the Earley sets.
 But they are not actually needed
@@ -443,7 +439,7 @@ S1@0-0 contains the rules predicted by S0@0-0.
 
 As mentioned, what's usually called Earley's algorithm is just a recognizer,
 an algorithm to build the Earley sets.
-The input is recognized successfully if, at the last earleme, there is a
+The input is recognized successfully if, at the last earleme, there is
 an Earley item for a completed start rule state.
 A B<completed start rule state> is a QDFA state containing a completed start rule.
 A B<completed start rule> is the LR(0) item for a start rule that has its
@@ -532,12 +528,11 @@ while or-nodes represent choices among the pieces.
 In parse forests, the and-nodes directly
 represent productions of
 the original grammar.
-Marpa's parse bocages, on the other hand,
-must often represent the original grammar's
-production in pieces.
-B<Marpa Bocage Form> (B<MBF>)
-represents
-the original's grammars productions
+Marpa's parse bocages contain
+the original grammar in
+B<Marpa Bocage Form> (B<MBF>),
+which represents
+the original grammar's productions
 in pieces
 with at most
 two symbols on the rhs.
@@ -549,8 +544,8 @@ First, MBF is essentially the form in which the grammar
 is found in the Earley items.
 Every source choice of an Earley item contains at most two links.
 These links can be treated as symbols on the rhs of a production.
-So the original grammar is found in the Earley items in
-a form that has at most two symbols on the right hand side.
+So the parse as found in the Earley items is
+in a form with at most two symbols on the right hand side.
 
 Second, MBF is more compact than a parse forest.
 Third, MBF can handle parses with cycles.
@@ -562,11 +557,13 @@ sets back into the productions of the original grammar
 would
 result in a slower and more cumbersome data structure.
 
-Every and-node represents either a production of the original grammar,
+In MBF,
+every and-node represents either a production of the original grammar,
 or a piece of one.
-In a parse bocage, and-nodes and or-nodes strictly alternate.
+And-nodes and or-nodes strictly alternate in MBF.
 Every child of an and-node is an or-node.
 Every child of an or-node is an and-node.
+
 An or-node is B<trivial> if it has
 only one child and-node.
 A trivial or-node represents
@@ -582,13 +579,14 @@ and an earleme location.
 Based on its rule and position,
 each or-node also corresponds to a symbol.
 
-Based on its rule, rule position, and earleme location
+Based on its rule, rule position, and earleme location,
 an or-node is matched with an Earley item.
 An or-node with its rule position
 at the end of the rule,
 or just before a non-nulled symbol,
 is called a B<brick or-node>.
-The Earley item corresponding to a brick or-node
+Every brick or-node is in an exact match with one Earley item.
+The Earley item which matches a brick or-node
 has an earleme location which exactly matches the earleme location
 of the brick or-node and
 has a QDFA state which contains an LR(0) item
@@ -622,17 +620,17 @@ The selection criteria depend on whether the or-node is a kernel
 or a closure or-node.
 
 The selection criterion for a closure or-node is a symbol.
-All LR(0) items selected for and-node children of a closure or-node
+All LR(0) items used to create and-node children of a closure or-node
 must be completed rules
-with the selection criterion symbol on their lhs.
+where the symbol in the selection criterion is the lhs of the rule.
 In an Earley item,
-several completed LR(0) items may have the same lhs.
+several completed rules may have the same lhs.
 
 The selection criteria for a kernel or-node is
 a rule, and a rule position.
-If the position is at a non-nulling symbol,
+If the position is at a non-nullable symbol,
 exactly one LR(0) item will match the selection criteria,
-and the child and-nodes will use that LR(0) item.
+and the child and-nodes will be created using that LR(0) item.
 If the position is at a nulling symbol,
 a child and-node will be created using
 the null value of the symbol.
@@ -783,9 +781,9 @@ Perl closures and closure or-nodes are not to be confused.
 The word "closure" in "closure or-node" refers to
 its being the last in a rule --
 that is, it "closes" the rule.
-Whether or not an or-node is a closure or-node
-has nothing to do with whether or not it has a
-corresponding Perl closure.
+A closure or-node
+may or may not have
+a corresponding Perl closure.
 
 =begin Parse::Marpa::test_document:
 
@@ -804,12 +802,16 @@ Z<>
 This example shows an and-node with a kernel or-node
 and a token on the rhs of its rule.
 The and-node is at position 2 of rule 0,
-and shown by its selection criteria label ("C<R0:2>")
+as shown by its selection criteria label ("C<R0:2>")
 and in the dotted rule on the third line.
-The symbol before the dot ("C<op>") matched the token
+The dot symbol ("C<op>") matched the token
 ("C<+>").
-The kernel or-node contains information for
-deriving the first symbol of rule 0 ("C<e>").
+The kernel or-node (S3@0-1R0:1)
+contains information for
+deriving the symbols in rule 0 before the dot symbol.
+In this case there is only one symbol
+("C<e>")
+before the dot symbol.
 
 =begin Parse::Marpa::test_document:
 
