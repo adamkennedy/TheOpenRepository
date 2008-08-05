@@ -46,6 +46,13 @@ object was created.
 =cut
 
 use 5.006;
+use strict;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+# Deal with platform issues
 use constant WIN32 => $^O eq 'MSWin32';
 BEGIN {
 	if ( WIN32 ) {
