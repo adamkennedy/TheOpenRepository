@@ -10,7 +10,7 @@ use URI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 # Show usage
@@ -33,11 +33,13 @@ my $PERL_VERSION = undef;
 my $CPAN         = undef;
 my $BINARY_ROOT  = undef;
 my $FORCE        = undef;
+my $PORTABLE     = undef;
 my $result       = GetOptions(
 	"perl_version=s" => \$PERL_VERSION,
 	"cpan=s"         => \$CPAN,
 	"binary_root=s"  => \$BINARY_ROOT,
 	"force"          => \$FORCE,
+	"portable"       => \$PORTABLE,
 );
 
 # Did we get a valid file as the first param?
@@ -77,6 +79,9 @@ if ( defined $BINARY_ROOT ) {
 }
 if ( defined $FORCE ) {
 	$options{force} = 1;
+}
+if ( defined $PORTABLE ) {
+	$options{portable} = 1;
 }
 
 # Run the build

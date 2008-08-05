@@ -29,6 +29,7 @@ requires       'Process::Storable'          => 0;
 requires       'Process::Delegatable'       => 0;
 requires       'IO::Capture'                => '0.05';
 requires       'Win32::File::Object'        => '0.01' if $^O eq 'MSWin32';
+requires       'Portable::Dist'             => '0.02';
 test_requires  'Test::More'                 => '0.42';
 test_requires  'Test::Script'               => '1.02';
 test_requires  'Test::LongString'           => 0;

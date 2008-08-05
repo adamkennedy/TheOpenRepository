@@ -15,7 +15,7 @@ use Perl::Dist::Inno::System   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 use Object::Tiny qw{
@@ -118,7 +118,7 @@ sub output_base_filename {
 
 # Convenience method
 sub output_date_string {
-	my @t = scalar localtime;
+	my @t = localtime;
 	return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
 }
 
