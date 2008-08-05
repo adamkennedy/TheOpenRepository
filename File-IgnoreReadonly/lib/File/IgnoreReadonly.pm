@@ -4,7 +4,7 @@ package File::IgnoreReadonly;
 
 =head1 NAME
 
-File::LexWrite - Temporarily ensure a file is writable, even if it is readonly
+File::IgnoreReadonly - Temporarily ensure a file is writable, even if it is readonly
 
 =head1 SYNOPSIS
 
@@ -69,8 +69,24 @@ BEGIN {
 #####################################################################
 # Constructor
 
+=pod
+
+=head2 new
+
+The C<new> method is a simple constructor that takes a single parameter.
+
+It will set the file to writable if needed, and return a guard object.
+
+When the guard object is DESTROYed, the file will be set back to the
+original file mode.
+
+Returns a new B<File::IgnoreReadonly> object, or throws an exception (dies)
+on error.
+
+=cut
+
 sub new {
-	my ($class, $file) = @_;
+	my ( $class, $file ) = @_;
 	unless ( defined $file and ! ref $file and length $file and -f $file ) {
 		Carp::croak("Missing or invalid file name");
 	}
