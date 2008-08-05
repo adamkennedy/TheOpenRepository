@@ -36,8 +36,8 @@ ok(   -r $file, 'Test file is readable'     );
 SKIP: {
 	unless ( File::IgnoreReadonly::WIN32 or ($< and $>) ) {
 		skip( "Skipping test known to fail for root", 1 );
-		ok( ! -w $file, 'Test file is not writable' );
 	}
+	ok( ! -w $file, 'Test file is not writable' );
 }
 
 
@@ -69,8 +69,8 @@ ok(   -r $file, 'Test file is readable'     );
 SKIP: {
 	unless ( File::IgnoreReadonly::WIN32 or ($< and $>) ) {
 		skip( "Skipping test known to fail for root", 1 );
-		ok( ! -w $file, 'Test file is not writable' );
 	}
+	ok( ! -w $file, 'Test file is not writable' );
 }
 
 # File contents should be different
