@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -115,7 +115,7 @@ sub import {
 
 		# Generate various SQL fragments
 		my $sql = $table->{sql} = { create => $table->{sql} };
-		$sql->{cols}     = join ', ', @names;
+		$sql->{cols}     = join ', ', map { '"' . $_ . '"' } @names;
 		$sql->{vals}     = join ', ', ('?') x scalar @columns;
 		$sql->{select}   = "select $table->{sql}->{cols} from $table->{name}";
 		$sql->{count}    = "select count(*) from $table->{name}";

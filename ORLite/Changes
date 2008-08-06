@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+0.10 Wed  6 Aug 2008
+        - Quote all column names for explicitness
+
 0.09 Fri 11 Jul 2008
 	- Adding pragma method to the top package
 	- Adding user_version import param to provide the ability
