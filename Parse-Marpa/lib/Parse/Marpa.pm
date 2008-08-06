@@ -654,10 +654,11 @@ and C<Parse::Marpa::Recognizer>
 objects are created,
 with the C<Parse::Marpa::Grammar::set> method, and
 with the C<Parse::Marpa::mdl> static method.
-Except as noted, recognizer objects inherit the Marpa option settings
-of the grammar from which they were created,
-and evaluator objects inherit the Marpa option settings
-of the recognizer from which they were created.
+Except as noted,
+a recognizer object inherits the Marpa option settings
+of the grammar from which it was created,
+and an evaluator object inherits the Marpa option settings
+of the recognizer from which it was created.
 
 Options for debugging and tracing are described in
 L<a separate document on diagnostics|Parse::Marpa::Doc::Diagnostics>.
@@ -860,7 +861,7 @@ and itself results in a warning.
 
 Inaccessible and unproductive rules sometimes indicate errors in the grammar
 design.
-But a user may have plans for them,
+But a user may have plans for these rules,
 may wish to keep them as notes,
 or may simply wish to deal with them later.
 
@@ -871,7 +872,7 @@ or may simply wish to deal with them later.
 =head2 Exports and Object Orientation
 
 Marpa exports nothing by default,
-and allow no optional exports.
+and allows no optional exports.
 Use of object orientation in Marpa is superficial.
 Only grammars, recognizers and evaluators are objects,
 and they are not designed to be inherited.
@@ -879,7 +880,7 @@ and they are not designed to be inherited.
 =head2 Speed
 
 Speed seems very good for an Earley's implementation.
-In fact, current performance limits are more often a function of the lexing
+Current performance limits are more often a function of the lexing
 than of the Marpa parse engine.
 
 =head3 Ambiguous Lexing
@@ -931,20 +932,19 @@ Marpa allows grammars to be expressed in their most natural form.
 It's ideal where programmer time is important relative to running time.
 Right now, special-purpose needs are often addressed with regexes.
 This works wonderfully if the grammar involved is regular, but
-I suspect that by now,
-many thousands of man-years have been spent trying to shoehorn non-regular
+thousands of man-years have been spent trying to shoehorn non-regular
 grammars into Perl 5 regexes.
 
 Marpa is a good alternative to
 parsers that backtrack.
 Marpa finds every possible parse the first time through.
 Backtracking is a gamble,
-and one you often find you've made against the odds.
+and one often made against the odds.
 
 Some grammars have constructs to control backtracking.
 This control comes at a high price.
 Solutions with these constructs built into them are
-as unreadable as anything in the world of programming gets,
+as unreadable as anything in the world of programming,
 and fragile in the face of change to boot.
 
 If you know your grammar will be LALR or regular,
@@ -981,29 +981,29 @@ In his time (the 11th century AD) Indian Buddhism was
 at its height.  A generation of scholars was devoting
 itself to producing Tibetan versions of Buddhism's Sanskrit scriptures.
 Marpa became the greatest of them,
-and today he is known simply as Marpa Lotsawa: "Marpa the Translator".
+and today is known as Marpa Lotsawa: "Marpa the Translator".
 
 Translation in the 11th century was not a job for the indoors type.
 A translator needed to study in India,
 with the teachers who had the
 texts and could explain them.
-The easiest way to get to India
-from Marpa's home in Tibet's
-Lhotrak Valley
-ran across two hundred difficult and lawless miles of Tibet to
-the three-mile high Khala Chela Pass
-and up to its summit.
-
-Once atop Khala Chela,
-Nalanda University was still four hundred miles away,
-but it was all downhill.
+From Marpa's home in Tibet's
+Lhotrak Valley,
+the best way across the Himalayas to India was over
+the Khala Chela Pass.
+To reach the Khala Chela's
+three-mile high summit,
+Marpa had to cross two hundred lawless miles of Tibet.
+Once a pilgrim crested the Himalayas,
+the road to Nalanda University was all downhill.
 Eager to reach their destination,
-early travelers from Tibet had descended straight to the hot plains.
-But this last part of the journey had turned out to be by far
+the first travelers from Tibet had descended the four hundred miles straight to the hot plains.
+
+The last part of the journey had turned out to be by far
 the most deadly.
 Almost no germs live in the cold,
-thin air of Tibet,
-and pilgrims who didn't stop to acclimatize themselves
+thin air of Tibet.
+Pilgrims who didn't stop to acclimatize themselves
 reached the great Buddhist center
 with no immunity to India's diseases.
 Several large expeditions reached Nalanda
@@ -1012,7 +1012,7 @@ only to have every single member die within weeks.
 =head2 Blatant Plug
 
 There's more about Marpa in my novel, B<The God Proof>, in which
-his studies, travels and adventures are a major subplot.  B<The God
+his studies, travels and adventures are a subplot.  B<The God
 Proof> centers around Kurt GE<ouml>del's proof of God's existence.
 Yes, I<that> Kurt GE<ouml>del, and yes, he really did work out a
 God Proof (it's in his I<Collected Works>, Vol. 3, pp. 403-404).
@@ -1113,8 +1113,10 @@ In writing the Pure Perl version of Marpa, I benefited from studying
 the work of Francois Desarmenien (C<Parse::Yapp>), 
 Damian Conway (C<Parse::RecDescent>) and
 Graham Barr (C<Scalar::Util>).
-Adam Kennedy patiently corrected me on the finer points of module writing,
-as well as about some issues where I really should have know better.
+Adam Kennedy patiently instructed me
+in module writing,
+both on the finer points and
+on issues about which I really should have know better.
 
 =head1 LICENSE AND COPYRIGHT
 
