@@ -7,7 +7,7 @@ use Perl::Dist;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '17';
+	$VERSION = '18';
 	@ISA     = 'Perl::Dist';
 }
 
@@ -60,13 +60,19 @@ sub new {
 # Lazily default the full name
 sub app_ver_name {
 	$_[0]->{app_ver_name} or
-	$_[0]->app_name . ' ' . $_[0]->perl_version_human . ' ' . $_[0]->VERSION;
+	$_[0]->app_name
+		. ($_[0]->portable ? ' Portable' : '')
+		. ' ' . $_[0]->perl_version_human
+		. ' Build ' . $_[0]->VERSION;
 }
 
 # Lazily default the file name
 sub output_base_filename {
 	$_[0]->{output_base_filename} or
-	'vanilla-perl-' . $_[0]->perl_version_human . '-build-' . $_[0]->VERSION;
+	'vanilla-perl'
+		. ($_[0]->portable ? '-portable' : '')
+		. '-' . $_[0]->perl_version_human
+		. '-build-' . $_[0]->VERSION;
 }
 
 
