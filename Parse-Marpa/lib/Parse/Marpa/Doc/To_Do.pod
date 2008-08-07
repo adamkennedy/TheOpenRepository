@@ -18,6 +18,11 @@ priorities to the rules.
 
 Add a graf about ambiguous transitions in the Internals document.
 
+=head2 Rewrite Marpa.pm
+
+Move some of the stuff prior to the "Getting Started" section
+elsewhere.
+
 =head1 LOWER PRIORITY
 
 =over 4

@@ -56,7 +56,7 @@ my $spec;
 	# for the editors, line numbering starts at 1
 	# do something about this?
 	my ($line, $line_start) = locator($earleme, \$spec);
-	say STDERR "Parse exhausted at line ", $line+1, ", earleme $earleme";
+	say STDERR "Parsing exhausted at line ", $line+1, ", earleme $earleme";
 	given (index($spec, "\n", $line_start)) {
 	    when (undef) { say STDERR substr($spec, $line_start) }
 	    default { say STDERR substr($spec, $line_start, $_-$line_start) }

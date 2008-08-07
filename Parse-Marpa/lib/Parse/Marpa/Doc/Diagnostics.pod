@@ -10,7 +10,7 @@ tracing and debugging.
 
 =head2 Basic Debugging Techniques
 
-First look at the place where the parse was exhausted.
+First look at the place where parsing was exhausted.
 That, along with inspection of the input and the grammar,
 is often enough to spot the problem.
 Typically you'll have tried that before consulting this

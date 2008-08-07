@@ -333,25 +333,25 @@ is( $recce->show_earley_sets(1),
     "Aycock/Horspool Parse Status before parse" );
 
 my $a = $grammar->get_symbol("a");
-$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
+$recce->earleme([$a, "a", 1]) or die("Parsing exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 1; Furthest: 1\n" .  $sets_at_0,
     "Aycock/Horspool Parse Status at 0" );
 
-$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
+$recce->earleme([$a, "a", 1]) or die("Parsing exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 2; Furthest: 2\n" .  $sets_at_1,
     "Aycock/Horspool Parse Status at 1" );
 
-$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
+$recce->earleme([$a, "a", 1]) or die("Parsing exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 3; Furthest: 3\n" .  $sets_at_2,
     "Aycock/Horspool Parse Status at 2" );
 
-$recce->earleme([$a, "a", 1]) or die("Parse exhausted");
+$recce->earleme([$a, "a", 1]) or die("Parsing exhausted");
 
 is( $recce->show_earley_sets(1),
     "Current Earley Set: 4; Furthest: 4\n" .  $sets_at_3,

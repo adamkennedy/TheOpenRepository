@@ -105,14 +105,14 @@ This is consistent with Damian Conway's guideline X.
 However, failed parses are not "exceptional" -- they're common and should be handled
 in the normal course of processing.
 If the input to C<text()> did not match the grammar,
-text returns the number of the character where all possibilities of a successful parse were "exhausted".
-This is the point where Marpa realizes a parse just ain't gonna happen.
+text returns the number of the character where parsing was "exhausted".
+This is the point where Marpa realizes no more successful parses will be found.
 
 In this example, there is a known, fixed grammar and an array of known, fixed outputs,
 this will not happen, but error checking is good practice.
 Who knows but I'll want to change this example someday?
 
-C<text()> returns -1 on success.  That's non-standard, but a parse can be exhausted at the very
+C<text()> returns -1 on success.  That's non-standard, but parsing can be exhausted at the very
 first character of input,
 so a return value of zero has to be reserved for parse exhaustion at character 0.
 

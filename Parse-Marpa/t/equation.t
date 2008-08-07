@@ -114,7 +114,7 @@ my @tokens = (
 
 TOKEN: for my $token (@tokens) {
     next TOKEN if $recce->earleme($token);
-    die("Parse exhausted at character: ", $token->[1]);
+    die("Parsing exhausted at character: ", $token->[1]);
 }
 
 $recce->end_input();
