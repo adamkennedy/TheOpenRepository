@@ -1344,11 +1344,11 @@ in_null_value_grammar($_)
 
     A: . q{'A is missing'}.
 
-Null symbol actions are different from rule actions in another important way.
+Null symbol actions are evaluated differently from rule actions.
 Null symbol actions are run at evaluator creation time and the value of the result
 at that point
 becomes fixed as the null symbol value.
-This is different from rule actions.
+This is not the case with rule actions.
 During the creation of the evaluator object,
 rule actions are B<compiled into closures>.
 During parse evaluation,
@@ -1480,10 +1480,10 @@ the derivation is as follows:
 =end Parse::Marpa::test_document:
 
     S -> A Y      (Rule 0)
-      -> A Z      (Y produces Z, by Rule 6)
-      -> B C Z    (A produces B C, by Rule 2)
-      -> B Z      (C produces the empty string, by Rule 4)
-      -> Z        (B produces the empty string, by Rule 3)
+      -> A "Z"    (Y produces "Z", by Rule 6)
+      -> B C "Z"  (A produces B C, by Rule 2)
+      -> B "Z"    (C produces the empty string, by Rule 4)
+      -> "Z"      (B produces the empty string, by Rule 3)
 
 The parse tree can be described as follows:
 
@@ -1492,7 +1492,7 @@ The parse tree can be described as follows:
 	    Node 2: B (matches empty string)
 	    Node 3: C (matches empty string)
 	Node 4: Y (1 child, node 5)
-	    Node 5: Z (terminal node)
+	    Node 5: "Z" (terminal node)
 
 Here's a table showing, for each node, its lhs symbol,
 the sentence it derives, and
@@ -1504,15 +1504,15 @@ its value.
 
 =end Parse::Marpa::test_document:
 
-                      Symbol      Sentence     Value
-                                  Derived
+                        Symbol      Sentence     Value
+                                    Derived
 
-    Node 0:              S         Z           "A is missing, but Zorro is here"
-        Node 1:          A         empty       "A is missing"
-	    Node 2:      B         empty       No value
-	    Node 3:      C         empty       No value
-	Node 4:          Y         Z           "Zorro was here"
-	    Node 5:      Z         Z           "Z"
+    Node 0:                S         "Z"         "A is missing, but Zorro is here"
+        Node 1:            A         empty       "A is missing"
+	    Node 2:        B         empty       No value
+	    Node 3:        C         empty       No value
+	Node 4:            Y         "Z"         "Zorro was here"
+	    Node 5:        -         "Z"         "Z"
 
 In this derivation,
 nodes 1, 2 and 3 derive the empty sentence.
@@ -1545,7 +1545,7 @@ represents (rule 0).
 
 Rule 0's action uses the values of its child nodes.
 There are two child nodes and their values are
-elements 0 and 1 in the C<@$_> array of the action.
+elements 0 and 1 in the C<@_> array of the action.
 The child value represented by the symbol C<Y>,
 C<< $_[1] >>, comes from node 4.
 From the table above, we can see that that value was
@@ -1632,7 +1632,7 @@ When the order of parses is important,
 it may be manipulated by assigning priorities to the rules and
 terminals.
 If a symbol can both match a token and derive a rule,
-the token match alway takes priority.
+the token match always takes priority.
 Otherwise the parse order is implementation dependent.
 
 A failed parse does not always show up as an exhausted parse in the recognizer.

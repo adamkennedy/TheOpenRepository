@@ -3524,13 +3524,13 @@ takes a reference to a string containing an MDL grammar description as its value
 MDL (the Marpa Description Language) is detailed in L<another document|Parse::Marpa::Doc::MDL>.
 
 MDL indirectly uses another interface, the B<plumbing interface>.
+The plumbing is described in L<a document of its own|Parse::Marpa::Doc::Plumbing>.
 Users who want the last word in control can use the plumbing directly,
 but they will lose a lot of convenience and maintainability.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
 then compiling that grammar,
 as L<described below|"compile">.
-The plumbing is described in L<a document of its own|Parse::Marpa::Doc::Plumbing>.
 The MDL parser itself uses a compiled MDL file.
 
 Marpa needs to do extensive precompution on grammars
@@ -3640,7 +3640,7 @@ It can be used to control the order in which named arguments are applied.
 
 In particular, some
 tracing options need to be turned on prior to specifying the grammar.
-To do this, an new grammar object can be created with the trace options set,
+To do this, a new grammar object can be created with the trace options set,
 but without a grammar specification.
 At this point, tracing will be in effect,
 and the C<set> method can be used to specify the grammar,
