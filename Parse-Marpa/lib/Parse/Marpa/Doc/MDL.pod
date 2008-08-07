@@ -11,7 +11,7 @@ in_self_marpa($_)
 
 =head1 OVERVIEW
 
-The Marpa Demonstration Language (MDL) is a language for decribing grammars
+The Marpa Demonstration Language (MDL) is a language for describing grammars
 to Marpa.  It's porcelain -- as of this
 writing, the only porcelain grammar interface.
 
@@ -23,7 +23,6 @@ It would be easy to write an interface faster than the MDL.
 (Hint: Use a custom lexer.)
 You can also write one that's more powerful.
 (Just think of some cool feature and add it.)
-
 There are better language designers than me out there.
 Maybe you're one of them.
 If so, Marpa was written to empower you.
@@ -44,7 +43,9 @@ but when Marpa changes it may be modified by hand to get around chicken-and-egg 
 To ensure that Marpa can indeed parse itself,
 the second generation parser is run on the grammar again to produce a third
 generation.
-Only if the second and third generation parsing code are exactly identical
+Production of the second and third generations of the grammar is fully automated,
+with no manual editing.
+Only if the code in these last two generations is exactly identical
 is the Marpa parser considered to be fully self-parsing,
 
 Most of the examples below are
@@ -128,7 +129,7 @@ And in fact, an C<Optional rhs element> is defined later as
 
 As will be explained in more detail below, this states that
 an C<optional rhs element> is not an optional element at all.
-It a non-nullable and non-optional element,
+It is a non-nullable and non-optional element,
 composed of the keyword
 C<optional> followed by a C<rhs symbol specifier>.
 
@@ -294,7 +295,7 @@ Pedantically speaking, the start symbol is optional,
 in the sense that it may be specified later
 using L<the raw interface|Parse::Marpa::Doc::Plumbing>.
 But if no start symbol has been specified by precomputation time,
-Marpa will fail.
+Marpa will throw an exception.
 
 =head2 String Definitions
 
@@ -358,16 +359,15 @@ in_MDL_displays($_)
 
 Terminals can be specified as Perl 5 regexes.
 Terminals are allowed to have
-a "prefix", another regex which is to be checked for
-and discarded before the main pattern.
+a "prefix" before the main pattern.
+By default, this prefix is discarded.
 A common use for lex prefixes is the elimination of leading whitespace.
 
 The plumbing allows a separate lex prefix to be set for each terminal,
 and this ability will be added to the MDL.
 By default, there is no lex prefix for a terminal.
 (Saying the same thing more pedantically,
-the default lex prefix is
-a regular expression which matches the empty string and only the empty string.)
+the default lex prefix is the empty string.)
 This default can be reset with a default lex prefix definition sentence.
 Here's one from C<self.marpa>:
 
@@ -380,7 +380,7 @@ are run in a special per-evaluator namespace.
 It's sometimes useful to have globals in this namespace initialized before any
 actions are run.
 Preamble definition sentences may be used for this purpose.
-Values in the preamble definitions are strings.
+Values in the preamble definitions are strings containing Perl code.
 
 If there is more than one preamble definition in MDL, the strings are concatenated.
 This differs from most definitions in MDL, where any new value overwrites the old one.
@@ -398,7 +398,7 @@ Lex actions are run in a special per-recognizer namespace.
 It's sometimes useful to have globals in this namespace initialized before any
 actions are run.
 Lex preamble definition sentences may be used for this purpose.
-Values in the lex preamble definitions are strings.
+Values in the lex preamble definitions are strings containing Perl code.
 
 If there is more than one lex preamble definition in MDL,
 the strings are concatenated.
@@ -564,7 +564,7 @@ Sequence sentences work best where the semantics really is that of a sequence
 of semantically equivalent items.
 
 Sequences can always be written as BNF.
-In fact, most parser generators don't have explicit sequence constructors
+Most parser generators don't have explicit sequence constructors
 and force you
 to write your sequences out in BNF form.
 
@@ -574,7 +574,7 @@ If you define an C<X> as a string of one or more non-nullable C<Y>'s,
 Marpa can recognize a single parse for the string C<"YY">.
 Now suppose C<Y> is nullable.
 How many null C<Y>'s are there in C<"YY">, and where are they?
-A nullable in a sequence is almost always an error in grammar design.
+A nullable in a sequence is probably an error in grammar design.
 
 But not always.
 Marpa's most basic test case is exactly that:
@@ -593,7 +593,7 @@ For example, in C<self.marpa>:
     optional /the/, /action/, /is/, action specifier, period.
     q{ "    action => " . $_[3] }.
 
-the last four lines are an action sentence.  You can also be more verbose.
+the last line is an action sentence.  You can also be more verbose.
 
     action sentence: action specifier, period.
     the action is q{ "    action => " . $_[0] }.
@@ -670,13 +670,14 @@ string definitions get the default priority,
 which is zero.
 
 That means that if a sentence in a definition paragraph
-can be interpreted both as a setting and a string definition,
-the setting's definition will be the first parse.
-Only if a definition sentence cannot be interpreted as a setting,
-will the string definition become the first parse.
-In most applications,
+can be parsed both as the definition of the setting for a predefined, and as the definition of a string,
+the first parse will be the one that treats the sentence as setting a predefined.
+Only if a definition sentence cannot be interpreted as a predefined setting,
+will the string definition be the first parse.
+In MDL's parsing of itself,
+as in most applications,
 only one parse is used.
-The first parse is the only parse.
+That means that the first parse is the only parse.
 
 =head2 Comment Sentences
 
@@ -787,7 +788,9 @@ The string may be many megabytes long.  Don't use any construct that copies it,
 unless you feel sure it's OK to limit use of your grammar to applications where efficiency is
 not an issue.
 
-=item * Don't change C<$$STRING>, or C<$STRING>.  Please.
+=item * Don't change C<$$STRING>, or C<$STRING>.
+Changing either of these causes results which are unpredictable,
+but usually bad.
 
 =item * Changes to C<pos $$STRING> are OK.
 You do B<not> need to worry about where your code leaves the C<pos>
@@ -808,12 +811,12 @@ in characters.
 Token lengths must be B<greater than> zero.
 
 =item * Lex closures run in a special per-recognizer namespace.
-Globals may be initialize in a lex preamble.
-C<use strict>, C<use integer> and all warnings except recursion are in effect.
+Globals may be initialized in a lex preamble.
+C<use strict>, C<use integer> and all warnings except C<recursion> are in effect.
 
 =item * C<$START> is set to the position at the start of the prefix.
 If there was no prefix (or, more pedantically, if the prefix was zero
-length), C<$START> will be set to the position of the matched string.
+length), C<$START> will be set to C<pos $$STRING>.
 
 =item * The token length returned must include the length of any prefix removed.
 If a non-empty prefix was removed,
