@@ -88,19 +88,14 @@ the power of Earley's algorithm harnessed to deal with the
 indeterminism.
 
 Marpa does this by allowing
-each scanned item to have a length in earlemes.
-Call that length I<L>.
-If the current Earley set is I<I>, a newly scanned
-Earley item is added to Earley set I<I+L>.
-From this point of view,
-the B<earleme> is a unit of distance
+each scanned token to have a length in earlemes.
+The B<earleme> is a unit of distance
 measured in Earley sets.
-In the same way that distances in miles can be seen as locations
-when they are associated with milestones,
-the individual Earley sets can also be seen as earleme milestones.
-The first Earley set is earleme zero.
-Subsequent Earley sets are called earleme 1, earleme 2, etc.,
-based on their distance in earlemes from earleme 0.
+The first Earley set at earleme 0.
+Subsequent Earley sets are at earleme 1, 2, etc.
+If the length of a scanned token is I<L>,
+and the current Earley set is I<I>,
+a newly scanned Earley item is added to Earley set I<I+L>.
 
 An implementation can sync
 earlemes up with any measure that's convenient.
