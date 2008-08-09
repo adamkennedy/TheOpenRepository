@@ -561,8 +561,9 @@ sub Parse::Marpa::Evaluator::new {
         # them.
         my @and_saplings;
 
-        # If we have a rule and a position, get the current symbol
         if ( defined $position ) {
+	    # Kernel or-node: We have a rule and a position.
+	    # get the current symbol
 
 	    $position--;
             my $symbol =
@@ -570,7 +571,8 @@ sub Parse::Marpa::Evaluator::new {
             push @and_saplings, [ $rule, $position, $symbol ];
 
         }
-        else {    # if not defined $position
+        else {
+	    # Closure or-node.
 
             my $lhs_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
             my $state  = $item->[Parse::Marpa::Internal::Earley_item::STATE];
@@ -589,13 +591,13 @@ sub Parse::Marpa::Evaluator::new {
                 my $last_position = @{$rhs}-1;
                 push @and_saplings,
                     [
-                    $rule,                  $last_position,
-                    $rhs->[$last_position], $closure
+			$rule,                  $last_position,
+			$rhs->[$last_position], $closure
                     ];
 
             }    # for my $rule
 
-        }    # not defined $position
+        }    # closure or-node
 
         my @and_nodes;
 

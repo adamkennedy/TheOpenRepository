@@ -20,22 +20,23 @@ L<Earley's 1970 parsing article|Parse::Marpa::Doc::Bibliography/"Earley 1970">
 does not actually parse in the strict sense.
 It is a recognizer, not a parser.
 
-B<Earley sets> are built as tokens are recognized.
-If an B<Earley item> of the correct form is in the right Earley set
-after input is finished,
-the input is recognized as one of those described by the grammar.
+B<Earley items> are built as tokens are recognized.
+If an Earley item of the correct form is built when
+all of an input has been processed,
+that input is recognized as one of those described by the grammar.
 Once the recognition phase is done,
 the phase that does parsing in the strict sense uses
-the Earley sets as input.
+the Earley items as input.
 
-Each Earley set corresponds to an earleme location.
-Earley set 0 is at the beginning of input, before any tokens are recognized.
-Earley set 1 is after the first earleme (earleme 0), but before the second (earleme 1).
-Earley set I<N> is after earleme I<N-1>, but before earleme I<N>.
+Every Earley item has a B<current earleme>.
+An Earley item's current earleme is also called its B<dot earleme>,
+its current location, or its dot location.
+The set of all the Earley items with the same dot location,
+is called an B<Earley set>.
 
-An Earley set is a set of Earley items.
-Each Earley item has a B<QDFA state>, an B<origin> and a B<current earleme>.
-An Earley item's dot earleme is also called its B<current earleme>.
+In addition to its B<current earleme>,
+each Earley item has a B<QDFA state>, and an B<origin>.
+The origin of an Earley item can also be called its B<start location>.
 Here's a representation of an Earley item, as you might see it in
 debugging output from Marpa:
 
@@ -151,15 +152,12 @@ This made the internals simpler, but was not as efficient.
 Marpa combines LR(0) items into QDFA states
 based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
-Every LR(0) item is a statement about the recognition of a rule,
-or of part of a rule.
-Presence of the LR(0) item
-in the QDFA state of an Earley item
-indicates that the rule has been
-recognized as far as the dot position.
-If the dot is at the beginning of the rule in an LR(0) item,
-the part of a rule recognized is zero length,
-and the LR(0) item is a prediction.
+Every LR(0) item is a statement that a rule
+has been recognized as far as the dot position.
+The dot can be at the beginning of the rule in an LR(0) item,
+indicating that the part of the rule recognized so far is zero length.
+An LR(0) item with the dot at the beginning of the rule is a prediction
+that the rule might be recognized.
 
 Every QDFA state contain one or more LR(0) items
 and is therefore a set of statements about rule recognition.
@@ -611,32 +609,38 @@ so every or-node has an or-node symbol.
 
 Based on its rule, dot position, and earleme location,
 an or-node is matched with an Earley item.
-An or-node with its dot position
-at the end of the rule,
-or just before a non-nullable symbol,
-is called a B<brick or-node>.
-Every brick or-node is in an exact match with an Earley item.
-The Earley item which matches a brick or-node
-has a dot location which exactly matches the earleme location
-of the brick or-node and
-has a QDFA state which contains an LR(0) item
-which exactly matches the brick or-node's rule and dot position.
+All or-nodes,
+except those with a nulling post-dot symbol,
+exactly match an Earley item.
+Saying that an or-node
+exactly matches an Earley item
+means that
+the or-node's earleme location exactly matches the current location
+of the Earley item;
+and the or-node's rule and dot position
+exactly match the rule and the dot position
+in one of the LR(0) items
+in the Earley item's QDFA state.
 
-There is an or-node for every symbol of any possible parse.
-This means there are or-nodes which have nulling post-dot symbols.
-Because they fill the cracks in between brick or-nodes,
-these or-nodes are called B<mortar or-nodes>.
+If an or-node matches an Earley item exactly,
+it is called B<brick or-node>.
+Or-nodes which do not match an LR(0) item in any
+Earley node are called B<mortar or-nodes>,
+the idea being that
+they fill the cracks in between brick or-nodes.
+Mortar or-nodes exist,
+because Marpa has no LR(0) items with nulling post-dot symbols.
+Mortar or-nodes are necessary so that there can be an or-node
+for every symbol in every rule used in any possible parse.
+Mortar or-nodes are not an exact match to any Earley item.
 
-No Earley items correspond exactly to mortar or-nodes.
-This is because Marpa has no LR(0) items with dot positions before nulling
-symbols.
-
+Mortar or-nodes, like brick or-nodes, are named after Earley items.
 The Earley item used in the name of a mortar or-node is the Earley item
 which exactly matches the rule and the earleme location of the mortar or-node,
 and which contains the "next" LR(0) item for the or-node's rule.
-The "next" LR(0) item is the one with its rule position in front of the first non-nullable
+The "next" LR(0) item is the one whose post-dot symbol is the first non-nullable
 symbol after the mortar or-node's dot position.
-If every symbol in the rule after the or-node's dot position is a nulling symbol,
+If there is no non-nullable symbol after the mortar or-node's dot position,
 the "next" LR(0) item is the one with its dot position at the end of the rule.
 
 Or-nodes with their dot position at the end of the rule are B<closure or-nodes>.
@@ -649,10 +653,12 @@ or a closure or-node.
 
 The selection criterion for a closure or-node is a symbol,
 called its B<selection symbol>.
-Note that, in addition to a selection symbol,
+Remember that, in addition to a selection symbol,
 a closure or-node has a pre-dot symbol,
 sometimes called simply the or-node's symbol,
-and this will usually not be the same as its B<selection symbol>.
+and this will usually not be the same as the or-nodes's B<selection symbol>.
+
+   Check.  Fix?
 
 The selection symbol
 is used to restrict the rules that will be used
@@ -662,19 +668,17 @@ are and-nodes,
 and every and-node represents a rule,
 or a piece of a rule,
 of the original grammar.
-An and-node may only be the child of a closure or-node,
-if the rule it represents
-has the selection symbol as its lhs.
+For an and-node to be the child of a closure or-node,
+the rule it represents must have the selection symbol as its lhs.
 In the Earley item corresponding to the closure or-node,
 several completed rules may have the same lhs,
 and all these rules will meet
 the or-node's selection criteria.
 
 The selection criteria for a kernel or-node is
-a rule, and a rule position.
-If the position is at a non-nullable symbol,
-exactly one LR(0) item will match the selection criteria,
-and the child and-nodes will be created using that LR(0) item.
+a rule, and a dot position.
+If the pre-dot symbol is non-nullable,
+the child and-nodes will be created from the source choices.
 If the position is at a nulling symbol,
 a child and-node will be created using
 the null value of the symbol.
@@ -687,14 +691,14 @@ followed by a label describing its LR(0) item selection criteria.
 The label consists of
 the letter "R",
 and the number of the or-node's rule
-and its rule position,
+and its dot position,
 colon-separated.
 The "R" in the label is a mnemonic for "rule".
 
 For example,
 the kernel or-node named S3@0-1R0:1 corresponds
 to Earley item S3@0-1.
-The selection criteria are rule 0 at position 1
+The selection criteria are rule 0 at dot position 1
 (C<< e -> e . op e >>).
 
 For closure or-nodes, the selection criteria label is the
@@ -706,7 +710,7 @@ An example of a closure or-node is S6@0-3L0.
 In this case the Earley item was S6@0-3,
 and it was the effect of completing the symbol
 (C<e>), which was symbol 0.
-(Symbol numbers for all symbols
+(Symbol numbers for the example
 may be found in the appendix,
 in the C<show_symbols> output.)
 
