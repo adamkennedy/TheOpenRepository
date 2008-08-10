@@ -585,14 +585,14 @@ And-nodes and or-nodes strictly alternate in MBF.
 Every child of an and-node is an or-node.
 Every child of an or-node is an and-node.
 
+=head2 Types of Or-Nodes
+
 An or-node is B<trivial> if it has
 only one child and-node.
 A trivial or-node represents
 a choice from a list containing
 only a single alternative.
 Marpa or-nodes are often trivial.
-
-=head2 Types of Or-Nodes
 
 Each or-node corresponds to a rule,
 a dot position in that rule,
@@ -607,88 +607,139 @@ Or-nodes are not created for dot positions
 at the beginning of rules,
 so every or-node has an or-node symbol.
 
-Based on its rule, dot position, and earleme location,
-an or-node is matched with an Earley item.
-All or-nodes,
-except those with a nulling post-dot symbol,
-exactly match an Earley item.
-Saying that an or-node
-exactly matches an Earley item
-means that
-the or-node's earleme location exactly matches the current location
-of the Earley item;
-and the or-node's rule and dot position
-exactly match the rule and the dot position
-in one of the LR(0) items
-in the Earley item's QDFA state.
+An or-node whose dot position is at the end
+of its rule is a B<closure or-node>.
+Any other or-node is a B<kernel or-node>.
+If the post-dot symbol of a kernel or-node is
+nulling, it is a B<mortar or-node>.
+Any other kernel or-node,
+and every closure or-node,
+is a B<brick or-node>.
 
-If an or-node matches an Earley item exactly,
-it is called B<brick or-node>.
-Or-nodes which do not match an LR(0) item in any
-Earley node are called B<mortar or-nodes>,
-the idea being that
+The idea behind mortar or-nodes is that
 they fill the cracks in between brick or-nodes.
 Mortar or-nodes exist,
 because Marpa has no LR(0) items with nulling post-dot symbols.
-Mortar or-nodes are necessary so that there can be an or-node
+Mortar or-nodes are needed because there must be an or-node
 for every symbol in every rule used in any possible parse.
-Mortar or-nodes are not an exact match to any Earley item.
+No Earley item exactly matches a mortar or-node.
 
-Mortar or-nodes, like brick or-nodes, are named after Earley items.
-The Earley item used in the name of a mortar or-node is the Earley item
-which exactly matches the rule and the earleme location of the mortar or-node,
-and which contains the "next" LR(0) item for the or-node's rule.
-The "next" LR(0) item is the one whose post-dot symbol is the first non-nullable
-symbol after the mortar or-node's dot position.
-If there is no non-nullable symbol after the mortar or-node's dot position,
-the "next" LR(0) item is the one with its dot position at the end of the rule.
+=head2 Matching Or-nodes and Earley Items
 
-Or-nodes with their dot position at the end of the rule are B<closure or-nodes>.
-All other or-nodes are B<kernel or-nodes>.
+Every brick or-node exactly matches an Earley item,
+based on its rule, dot position, and earleme location.
+An Earley item is said to B<exactly match> an or-node if
+the current location of the Earley item
+is the same as
+the or-node's earleme location;
+and for one of the LR(0) items
+in the Earley item's QDFA state,
+the rule and the dot position
+are the same as the rule and dot position
+of the or-node.
 
-Or-nodes names consist of the name of the corresponding Earley item,
-followed by a label indicating their B<selection criteria>.
-The selection criteria depend on whether the or-node is a kernel
-or a closure or-node.
+Marpa LR(0) items cannot have the dot position before
+a nulling symbol,
+so that mortar or-nodes don't exactly match any Earley items.
+An Earley item is the B<nearest match> to an or-node
+if everything else about it is a match,
+and the dot position of an LR(0) item in the Earley item's
+QDFA state is
+at or before
+the or-node's dot position
+and as close as possible.
 
-The selection criterion for a closure or-node is a symbol,
-called its B<selection symbol>.
-Remember that, in addition to a selection symbol,
-a closure or-node has a pre-dot symbol,
-sometimes called simply the or-node's symbol,
-and this will usually not be the same as the or-nodes's B<selection symbol>.
+To say the same thing more precisely,
+let's call an LR(0) item B<Aycock-Horspool-correct>
+if its dot position is not in front of a nulling symbol.
+Call one LR(0) item earlier than, later than, or the same as another LR(0)
+item with the same rule,
+according to whether the first LR(0) item's dot position is earlier than,
+later than, or the same as the second LR(0) item's dot position.
+Let the distance between two LR(0) items with the same rule be
+the distance, counted in symbols, between their dot positions.
+An Earley item is the nearest match to an or-node if
+the current location of the Earley item
+is the same as
+the earleme location of the or-node;
+and the QDFA state of Earley item contains the
+least distant Aycock-Horspool-correct LR(0) item
+that is earlier than or the same as the or-node's LR(0) item.
+By these definitions, if an Earley item exactly matches an or-node,
+it is also the nearest match.
 
-   Check.  Fix?
+=head2 Child Criteria and Child Nodes
 
-The selection symbol
-is used to restrict the rules that will be used
-in the child nodes of the closure or-node.
-As mentioned, in a parse bocage, all children of or-nodes 
-are and-nodes,
-and every and-node represents a rule,
-or a piece of a rule,
-of the original grammar.
-For an and-node to be the child of a closure or-node,
-the rule it represents must have the selection symbol as its lhs.
-In the Earley item corresponding to the closure or-node,
-several completed rules may have the same lhs,
-and all these rules will meet
-the or-node's selection criteria.
+Every or-node is a parent of one or more and-nodes.
+Every and-node is also a parent.
+Children of and-nodes can be either tokens or or-nodes.
 
-The selection criteria for a kernel or-node is
+Every or-node has child criteria, which are used,
+along with the or-node symbol,
+to create the or-node's children.
+The child criterion for a closure or-node is a symbol,
+called its B<child lhs symbol>.
+The child criteria for a kernel or-node are
 a rule, and a dot position.
-If the pre-dot symbol is non-nullable,
-the child and-nodes will be created from the source choices.
-If the position is at a nulling symbol,
-a child and-node will be created using
+
+In turn,
+each and-node either has just one child, called a B<cause>,
+or two children, a B<predecessor> and a B<cause>.
+The predecessor, if present, always comes first.
+The cause is always last.
+When the cause is the only child it is,
+of course, also first.
+
+A cause can be either a closure or-node or a token.
+If the parent or-node's symbol is nulling,
+there will be only one child and-node,
+and the and-node's cause will be a token created from
 the null value of the symbol.
+If the parent or-node's symbol is non-nullable,
+child and-nodes are created from
+the source choices of the nearest matching Earley item.
+Where the source choice is a token source choice, the and-node's cause will be
+a token.
+Where the source choice is a completion source choice, the and-node's cause will be
+a closure or-node.
+
+For every or-node,
+there is a set of productions which are used to create
+the or-node's and-node children,
+and the cause and predecessor grandchildren.
+The productions in this set are called the B<applicable rules>.
+In creating and-nodes,
+Marpa uses every pairing of an applicable rule with a source choice.
+
+Where the parent or-node is a kernel or-node,
+the rule in the child criteria is
+the only applicable rule.
+For closure or-nodes,
+there may be more than one applicable rule.
+Where the parent or-node is a closure or-node,
+every rule in the LR(0) items of the QDFA state of
+the exactly matching Earley item whose lhs is the
+same as the child lhs symbol
+is an applicable rule.
+
+If there are any symbols before a parent or-node's pre-dot symbol,
+its child and-node will have a predecessor child.
+This predecessor will be a kernel or-node.
+As its rule, the predecessor will have one of the applicable rules.
+If the predecessor's grandparent or-node was a closure or-node,
+the predecessor or-node's dot position will be in front of the last symbol of the rule.
+If the predecessor's grandparent or-node was a kernel or-node,
+the predecessor or-node's dot position will be one less than its grandparent's dot position.
+That means that the pre-dot symbol of the grandparent or-node will be the post-dot symbol
+of the predecessor or-node.
 
 =head2 Naming Or-Nodes
 
-The name of a kernel or-node is the name of its
-corresponding Earley item,
+The name of an or-node is the name of its
+nearest matching Earley item,
 followed by a label describing its LR(0) item selection criteria.
-The label consists of
+For a kernel or-node,
+the label consists of
 the letter "R",
 and the number of the or-node's rule
 and its dot position,
@@ -696,20 +747,20 @@ colon-separated.
 The "R" in the label is a mnemonic for "rule".
 
 For example,
-the kernel or-node named S3@0-1R0:1 corresponds
-to Earley item S3@0-1.
+S3@0-1R0:1 is the name of a kernel or-node.
+The nearest matching Earley item is S3@0-1.
 The selection criteria are rule 0 at dot position 1
 (C<< e -> e . op e >>).
 
-For closure or-nodes, the selection criteria label is the
-letter "L", followed by a symbol number.
+For closure or-nodes,
+the selection criteria label is the
+letter "L", followed by the number of the child lhs symbol.
 The "L" in the symbol or-node's label is a mnemonic
 for "left hand side".
-
 An example of a closure or-node is S6@0-3L0.
-In this case the Earley item was S6@0-3,
-and it was the effect of completing the symbol
-(C<e>), which was symbol 0.
+In this case the exactly matching Earley item is S6@0-3,
+and the child lhs symbol is
+C<e>, which was symbol 0.
 (Symbol numbers for the example
 may be found in the appendix,
 in the C<show_symbols> output.)
