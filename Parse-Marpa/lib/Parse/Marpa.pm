@@ -19,6 +19,38 @@ use Parse::Marpa::Recognizer;
 use Parse::Marpa::Evaluator;
 use Parse::Marpa::Lex;
 
+use Carp;
+our @CARP_NOT = qw(
+Parse::Marpa
+Parse::Marpa::Evaluator
+Parse::Marpa::Grammar
+Parse::Marpa::Internal
+Parse::Marpa::Internal::And_Node
+Parse::Marpa::Internal::Earley_item
+Parse::Marpa::Internal::Evaluator
+Parse::Marpa::Internal::Evaluator::Rule
+Parse::Marpa::Internal::Grammar
+Parse::Marpa::Internal::Interface
+Parse::Marpa::Internal::LR0_item
+Parse::Marpa::Internal::Lex
+Parse::Marpa::Internal::NFA
+Parse::Marpa::Internal::Or_Node
+Parse::Marpa::Internal::Or_Sapling
+Parse::Marpa::Internal::Phase
+Parse::Marpa::Internal::QDFA
+Parse::Marpa::Internal::Recognizer
+Parse::Marpa::Internal::Rule
+Parse::Marpa::Internal::Source_Eval
+Parse::Marpa::Internal::Source_Raw
+Parse::Marpa::Internal::Symbol
+Parse::Marpa::Internal::This
+Parse::Marpa::Internal::Tree_Node
+Parse::Marpa::Lex
+Parse::Marpa::MDL
+Parse::Marpa::Read_Only
+Parse::Marpa::Recognizer
+);
+
 # Maybe MDL will be optional someday, but not today
 use Parse::Marpa::MDL;
 

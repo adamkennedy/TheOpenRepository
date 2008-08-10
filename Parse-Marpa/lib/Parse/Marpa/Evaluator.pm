@@ -400,6 +400,7 @@ sub set_actions {
 
 }    # set_actions
 
+# Returns false if no parse
 sub Parse::Marpa::Evaluator::new {
     my $class         = shift;
     my $recognizer    = shift;
@@ -466,7 +467,7 @@ sub Parse::Marpa::Evaluator::new {
         last EARLEY_ITEM;
     }
 
-    croak("No start rule in evaluator") unless $start_rule;
+    return unless $start_rule;
 
     @{$recognizer}[
         Parse::Marpa::Internal::Recognizer::START_ITEM,
