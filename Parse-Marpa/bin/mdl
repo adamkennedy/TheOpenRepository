@@ -205,7 +205,7 @@ sub do_parse {
     }
 
     if ( $fail_location >= 0 ) {
-        print STDERR Parse::Marpa::show_location( "Parse failed",
+        print STDERR Parse::Marpa::show_location( "Parsing failed",
             \$text_to_parse, $fail_location );
         exit 1;
     }

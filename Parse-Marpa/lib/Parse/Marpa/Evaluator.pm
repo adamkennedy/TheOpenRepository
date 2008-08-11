@@ -35,7 +35,7 @@ use constant NAME     => 0;
 use constant ITEM     => 1;
 use constant RULE     => 2;
 use constant POSITION => 3;
-use constant SYMBOL   => 4;
+use constant CHILD_LHS_SYMBOL   => 4;
 
 package Parse::Marpa::Internal::And_Node;
 
@@ -539,18 +539,18 @@ sub Parse::Marpa::Evaluator::new {
         $start_sapling->[Parse::Marpa::Internal::Or_Sapling::NAME] = $name;
     }
     $start_sapling->[Parse::Marpa::Internal::Or_Sapling::ITEM] = $start_item;
-    $start_sapling->[Parse::Marpa::Internal::Or_Sapling::SYMBOL] =
+    $start_sapling->[Parse::Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL] =
         $start_symbol;
     push @or_saplings, $start_sapling;
 
     my $i = 0;
     OR_SAPLING: while (1) {
 
-        my ( $sapling_name, $item, $symbol, $rule, $position ) =
+        my ( $sapling_name, $item, $child_lhs_symbol, $rule, $position ) =
             @{ $or_saplings[ $i++ ] }[
             Parse::Marpa::Internal::Or_Sapling::NAME,
             Parse::Marpa::Internal::Or_Sapling::ITEM,
-            Parse::Marpa::Internal::Or_Sapling::SYMBOL,
+            Parse::Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL,
             Parse::Marpa::Internal::Or_Sapling::RULE,
             Parse::Marpa::Internal::Or_Sapling::POSITION,
             ];
@@ -575,11 +575,11 @@ sub Parse::Marpa::Evaluator::new {
         else {
 	    # Closure or-node.
 
-            my $lhs_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
+            my $child_lhs_id = $child_lhs_symbol->[Parse::Marpa::Internal::Symbol::ID];
             my $state  = $item->[Parse::Marpa::Internal::Earley_item::STATE];
             for my $rule (
                 @{  $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES]
-                        ->[$lhs_id];
+                        ->[$child_lhs_id];
                 }
                 )
             {
@@ -690,7 +690,7 @@ sub Parse::Marpa::Evaluator::new {
                         my $sapling = [];
                         @{$sapling}[
                             Parse::Marpa::Internal::Or_Sapling::NAME,
-                            Parse::Marpa::Internal::Or_Sapling::SYMBOL,
+                            Parse::Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL,
                             Parse::Marpa::Internal::Or_Sapling::ITEM,
                             ]
                             = ( $cause_name, $symbol, $cause, );
