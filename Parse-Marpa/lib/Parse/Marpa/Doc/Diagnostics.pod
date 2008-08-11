@@ -4,20 +4,22 @@ Parse::Marpa::Doc::Diagnostics - Diagnostics
 
 =head1 DESCRIPTION
 
-This document describes the techniques for debugging Marpa parses and grammars
-and describes those Marpa methods and options whose main use is
+This document describes techniques for debugging Marpa parses and grammars.
+It also lists those Marpa methods and Marpa options whose main use is in
 tracing and debugging.
 
 =head2 Basic Debugging Techniques
 
-First look at the place where parsing was exhausted.
+If parsing failed before or at the end of input,
+first look at the place in the input where parsing was exhausted.
 That, along with inspection of the input and the grammar,
 is often enough to spot the problem.
-Typically you'll have tried that before consulting this
-document.
-You probably also already have
-Marpa's C<warnings> option turned on (it's on by default),
-but if not, you probably should.
+But, typically,
+you'll have already tried that before consulting this document.
+Next, you should make sure that 
+Marpa's C<warnings> option is turned on.
+It's on by default,
+so you probably have already done that, too.
 
 When a problem is not obvious,
 the first thing I do is turn on the C<trace_lex> option.
@@ -26,8 +28,7 @@ If the problem is in lexing, C<trace_lex> tells you the whole story.
 Even if the problem is in the grammar,
 which tokens the lexer is looking for is a clue to what the recognizer is doing.
 That is because Marpa uses predictive lexing
-and only looks for tokens that will result in a successful parse according
-to the grammar.
+and only looks for tokens that could result in a successful parse.
 
 It sometimes helps to look carefully at the output of
 C<show_rules> and C<show_symbols>,
@@ -72,10 +73,11 @@ the evaluation stack, popped off it, calculated and pushed back on.
 =back
 
 Note that when the input text to the grammar is of any length,
-the output from each of C<show_earley_sets>,
+the outputs from C<show_earley_sets>,
 C<show_bocage>,
 C<show_tree>,
-and the outputs of C<trace_lex> and C<trace_values>
+C<trace_lex>,
+and C<trace_values>
 can be lengthy.
 You'll want to work with short inputs if at all possible.
 The L<internals document|Parse::Marpa::Doc::Internals>
@@ -148,7 +150,7 @@ May usefully be set at any point in the parse.
 
 =item trace_lex
 
-A short hand for setting both 
+A shorthand for setting both 
 C<trace_lex_matches> and
 C<trace_lex_tries>.
 Very useful, and can be interpreted with limited knowledge of Marpa internals.
@@ -178,7 +180,7 @@ set after input is complete.
 
 Traces the priority setting of each QDFA state.
 Requires knowledge of Marpa internals.
-These priorities are set during precomputation.
+The priorities are set during precomputation.
 A trace message warns the user if he sets
 C<trace_priorities> after that point.
 
@@ -201,7 +203,7 @@ in a method call prior to the one with the C<source> option.
 =item trace_values
 
 Traces values as they are pushed onto
-the evaluation stack, popped off it, calculated and pushed back on.
+the evaluation stack, popped off it, and calculated.
 Very helpful.
 Knowledge of Marpa internals is helpful,
 but not required.
@@ -227,7 +229,7 @@ in_bin_mdl($_);
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ( $fail_location >= 0 ) {
-        print STDERR Parse::Marpa::show_location( "Parse failed",
+        print STDERR Parse::Marpa::show_location( "Parsing failed",
             \$text_to_parse, $fail_location );
         exit 1;
     }
@@ -272,7 +274,7 @@ inaccessible symbols.
 Not useful before the grammar is precomputed.
 Used for test scripts.
 For debugging and tracing,
-the warnings option is usually the most convenient
+the C<warnings> option is usually the most convenient
 way to obtain the same information.
 
 =head3 show_NFA
@@ -398,7 +400,7 @@ If there were no problems, returns a string saying so.
 
 This method is not useful before precomputation.
 An exception is thrown
-when the user attempts to compile,
+if the user attempts to compile,
 or to create a parse from,
 a grammar with problems.
 The string returned by C<show_problems> will be part of the exception's
@@ -492,7 +494,7 @@ unproductive symbols.
 Not useful before the grammar is precomputed.
 Used in test scripts.
 For debugging and tracing,
-the warnings option is usually the most convenient
+the C<warnings> option is usually a more convenient
 way to obtain the same information.
 
 =head2 Recognizer Method
@@ -537,29 +539,26 @@ the bocage.
 The bocage follows.
 
 The bocage is given in pre-order,
-in the form of a grammar,
-after the manner of parse forest grammars.
-Each production of the parse bocage grammar
-corresponds to an and-node,
-a possible production of a parse tree.
-The lhs is the name of an or-node
-and rhs symbols are either or-nodes or the
-value of tokens.
-
-Every or-node in the parse bocage will appear one or
-more times on the lhs of a production.
-Where an or-node appears more than once
-on the lhs of a production in a parse bocage grammar,
-those productions represent different ways
-in which a parse tree may be derived at that or-node.
+in the form of a grammar.
+Parse bocage grammars are similar to
+parse forest grammars.
+In the L<internals document|Parse::Marpa::Doc::Internals>,
+parse bocage grammars are described at length, using
+an example output from C<show_bocage>.
 
 The optional I<flag> argument, if a true value,
 requests verbose output.
-Verbose output shows, for each parse bocage
-production,
-the LR(0) item corresponding to its and-node,
-the closure pointer (if there is a closure)
-and the and-node's argument count (or rule length).
+Verbose output,
+for each parse bocage and-production,
+shows the LR(0) item corresponding to its and-node,
+indicates if there is a Perl closure for the and-node,
+and gives the and-node's argument count (or rule length).
+
+In addition to and-productions,
+parse bocages grammars contain or-productions.
+The information in or-productions is redundant --
+all of it is evident from the and-productions.
+Or-productions are shown only if verbose output is requested.
 
 =head3 show_tree
 
@@ -591,8 +590,8 @@ causes verbose output.
 In verbose output,
 the value of the node is given,
 when the tree node has a value.
-Also in verbose output, when the node tree has a closure,
-the value of its pointer is given.
+Also in verbose output, if the node tree has a Perl closure,
+that is indicated.
 
 If the C<value> method was never called,
 or if the last call to C<value> returned failure,
