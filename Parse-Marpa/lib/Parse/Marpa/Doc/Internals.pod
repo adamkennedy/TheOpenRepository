@@ -26,7 +26,7 @@ all of an input has been processed,
 that input is recognized as one of those described by the grammar.
 Once the recognition phase is done,
 the phase that does parsing in the strict sense uses
-the Earley items as input.
+the Earley items.
 
 Every Earley item has a B<current earleme>.
 An Earley item's current earleme is also called its B<dot earleme>,
@@ -347,7 +347,7 @@ L<their 2002 article|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
 
 We've already seen a token source choice in the scanning example.
 Earley item S6@0-3 has another example of a source choice: C<[p=S5@0-2; c=S4@2-3]>.
-This is another kind of source choice, a completion source choice.
+This is another kind of source choice, a B<completion source choice>.
 This source choice says that one reason for S6@0-3 to exist
 was the completion in S4@2-3,
 with S5@0-2 as the predecessor.
@@ -460,7 +460,7 @@ at the earleme location designated as the end of parsing,
 there is
 an Earley item for a completed start rule state.
 A B<completed start rule state> is a QDFA state containing a completed start rule.
-A B<completed start rule> is the LR(0) item for a start rule that has its
+A B<completed start rule> is the LR(0) item for the start rule that has its
 dot position at the end of that rule.
 
 At most two of the QDFA states can be completed start rule states.
@@ -489,12 +489,14 @@ in_equation_show_QDFA($_);
     S2: 8
     e['] ::= e .
 
-A parse is successful at earleme I<N> if it
+A parse starting at earleme I<S> is successful at earleme I<N> if it
 contains an Earley item
 for a completed start rule state
-with a origin earleme of 0 and
+with a origin earleme of I<S> and
 a dot earleme of I<N>.
-Here's the Earley item which makes the parse in our example successful at earleme 3:
+Here's the Earley item which makes the parse in our example,
+which started at earleme 0,
+successful at earleme 3:
 
 =begin Parse::Marpa::test_document:
 
@@ -622,13 +624,13 @@ Mortar or-nodes exist,
 because Marpa has no LR(0) items with nulling post-dot symbols.
 Mortar or-nodes are needed because there must be an or-node
 for every symbol in every rule used in any possible parse.
-No Earley item exactly matches a mortar or-node.
+No Earley item matches a mortar or-node.
 
-=head2 Matching Or-nodes and Earley Items
+=head2 Matching and Nearest Earley Items
 
-Every brick or-node exactly matches an Earley item,
+Every brick or-node matches an Earley item,
 based on its rule, dot position, and earleme location.
-An Earley item is said to B<exactly match> an or-node if
+An or-node is said to B<match> an Earley item if
 the current location of the Earley item
 is the same as
 the or-node's earleme location;
@@ -640,33 +642,21 @@ of the or-node.
 
 Marpa LR(0) items cannot have the dot position before
 a nulling symbol,
-so that mortar or-nodes don't exactly match any Earley items.
-An Earley item is the B<nearest match> to an or-node
-if everything else about it is a match,
-and the dot position of an LR(0) item in the Earley item's
-QDFA state is
-at or before
-the or-node's dot position
-and as close as possible.
-
-To say the same thing more precisely,
-let's call an LR(0) item B<Aycock-Horspool-correct>
-if its dot position is not in front of a nulling symbol.
-Call one LR(0) item earlier than, later than, or the same as another LR(0)
-item with the same rule,
-according to whether the first LR(0) item's dot position is earlier than,
-later than, or the same as the second LR(0) item's dot position.
-Let the distance between two LR(0) items with the same rule be
-the distance, counted in symbols, between their dot positions.
-An Earley item is the nearest match to an or-node if
-the current location of the Earley item
+so that mortar or-nodes don't match any Earley items.
+An Earley item is the B<nearest> to an or-node if
+its current location
 is the same as
 the earleme location of the or-node;
-and the QDFA state of Earley item contains the
-least distant Aycock-Horspool-correct LR(0) item
-that is earlier than or the same as the or-node's LR(0) item.
-By these definitions, if an Earley item exactly matches an or-node,
-it is also the nearest match.
+and its QDFA state contains the
+nearest Marpa LR(0) item to the or-node.
+The nearest Marpa LR(0) item to an or-node is the one with the same
+rule as the or-node and the nearest Marpa-correct dot position
+at or after the or-node's dot position.
+A dot position is Marpa-correct if it is
+not in front of a nulling symbol.
+If there is an Earley item which matches an or-node,
+that Earley item is also the one
+nearest to the or-node.
 
 =head2 Child Criteria and Child Nodes
 
@@ -675,7 +665,7 @@ Every and-node is also a parent.
 Children of and-nodes can be either tokens or or-nodes.
 
 Every or-node has child criteria, which are used,
-along with the or-node symbol,
+along with the or-node's nearest Earley item,
 to create the or-node's children.
 The child criterion for a closure or-node is a symbol,
 called its B<child lhs symbol>.
@@ -697,7 +687,7 @@ and the and-node's cause will be a token created from
 the null value of the symbol.
 If the parent or-node's symbol is non-nullable,
 child and-nodes are created from
-the source choices of the nearest matching Earley item.
+the source choices of the nearest Earley item.
 Where the source choice is a token source choice, the and-node's cause will be
 a token.
 Where the source choice is a completion source choice, the and-node's cause will be
@@ -707,9 +697,9 @@ For every or-node,
 there is a set of productions which are used to create
 the or-node's and-node children,
 and the cause and predecessor grandchildren.
-The productions in this set are called the B<applicable rules>.
-In creating and-nodes,
-Marpa uses every pairing of an applicable rule with a source choice.
+The productions in this set are the B<applicable rules>.
+When creating and-nodes,
+Marpa considers every pairing of an applicable rule and a source choice.
 
 Where the parent or-node is a kernel or-node,
 the rule in the child criteria is
@@ -717,8 +707,8 @@ the only applicable rule.
 For closure or-nodes,
 there may be more than one applicable rule.
 Where the parent or-node is a closure or-node,
-every rule in the LR(0) items of the QDFA state of
-the exactly matching Earley item whose lhs is the
+every completed rule in the QDFA state of
+the matching Earley item whose lhs is the
 same as the child lhs symbol
 is an applicable rule.
 
@@ -736,8 +726,8 @@ of the predecessor or-node.
 =head2 Naming Or-Nodes
 
 The name of an or-node is the name of its
-nearest matching Earley item,
-followed by a label describing its LR(0) item selection criteria.
+nearest Earley item,
+followed by a label describing its child criteria.
 For a kernel or-node,
 the label consists of
 the letter "R",
@@ -748,17 +738,17 @@ The "R" in the label is a mnemonic for "rule".
 
 For example,
 S3@0-1R0:1 is the name of a kernel or-node.
-The nearest matching Earley item is S3@0-1.
-The selection criteria are rule 0 at dot position 1
+The nearest Earley item is S3@0-1.
+The child criteria are rule 0 at dot position 1
 (C<< e -> e . op e >>).
 
 For closure or-nodes,
-the selection criteria label is the
+the child criteria label is the
 letter "L", followed by the number of the child lhs symbol.
 The "L" in the symbol or-node's label is a mnemonic
 for "left hand side".
 An example of a closure or-node is S6@0-3L0.
-In this case the exactly matching Earley item is S6@0-3,
+In this case the matching Earley item is S6@0-3,
 and the child lhs symbol is
 C<e>, which was symbol 0.
 (Symbol numbers for the example
@@ -769,7 +759,7 @@ in the C<show_symbols> output.)
 
 An and-node is always a child of an or-node.
 The name of an and-node is the name of the parent or-node,
-followed by a numerical index in brackets.
+followed by a numerical index in square brackets.
 The child and-nodes are numbered starting at 0.
 For example, S6@0-3L0[0] is the first child
 of the or-node named S6@0-3L0.
@@ -787,8 +777,8 @@ I<any input>.
 The PBG describes only those parses which are possible
 for I<the specific input> which was accepted by the recognizer.
 In the parse bocage grammar,
-the work of parsing a specific input
-has actually been done.
+much of the work of parsing a specific input
+has been done.
 
 =head2 Examples of Parse Bocage Productions
 
@@ -801,8 +791,9 @@ in_equation_show_bocage($_);
 
     S2@0-3L3 ::= S2@0-3L3[0]
 
-The above is the start production of the parse bocage.
-The left hand side is an or-node which corresponds to
+A parse bocage grammar always starts with the start or-production.
+The above is the start production for our example.
+The left hand side is an or-node which matches
 a start rule completion item.
 The completion start rule state in our example is
 QDFA state 2 and the input in our example was
@@ -810,13 +801,12 @@ QDFA state 2 and the input in our example was
 So the start Earley item is S2@0-3.
 The start symbol is C<e[']>,
 which is symbol number 3.
-So the selection criterion label is "L3".
+So the child criterion label is "L3".
 
 Start or-productions are always trivial.
 The rhs of the start or-production is the and-node
 which is its first and only child.
 It has index 0.
-A PBG always starts with the start or-production.
 
 Or-nodes appear in the PBG as one or more or-productions.
 Each or-production has the name of an or-node as its lhs.
@@ -838,6 +828,7 @@ Or-productions are necessary for the PBG to be a real
 BNF grammar,
 but the information in them is easily deduced from
 the names of the and-nodes on the lhs of the and-productions.
+
 For every and-node on the lhs of an and-production,
 there will be always be an or-production with the
 unbracketed name of the and-node node as the or-production's lhs,
@@ -901,7 +892,7 @@ Z<>
 This example shows an and-node with a kernel or-node
 and a token on the rhs of its rule.
 The and-node is at position 2 of rule 0,
-as shown by its selection criteria label ("C<R0:2>")
+as shown by its child criteria label ("C<R0:2>")
 and in the dotted rule on the third line.
 The pre-dot symbol ("C<op>") matched the token
 ("C<+>").
@@ -929,17 +920,14 @@ There is no kernel or-node, because the current
 symbol for this and-production is the first one of
 its rule -- in fact, it is the only symbol in its rule.
 
-S4@0-1L0 is a closure or-node with "C<L0>" as its selection
+S4@0-1L0 is a closure or-node with "C<L0>" as its child
 criteria.
-Since the current symbol is final,
-this is a brick or-node,
-and there will be
-a corresponding LR(0) item.
-The LR(0) item will be in QDFA state 4,
-and will be a completed rule with
-symbol number 0 on its lhs.
+Applicable rules
+will be found in QDFA state 4,
+and must be completed rules with
+symbol number 0 on the lhs.
 Symbol number 0 is C<e>.
-There is, as it happens, only one
+There is only one
 LR(0) item in QDFA state 4,
 but it is, as required, a completed rule
 with C<e> as its lhs.
@@ -948,8 +936,8 @@ with C<e> as its lhs.
 
 The parse tree for our example parse is shown in an
 appendix.
-Every node in a Marpa parse tree corresponds
-to an and-node
+Every node in a Marpa parse tree comes from
+an and-node
 in the parse bocage.
 
 A parse bocage contains all possible parses,
@@ -957,9 +945,9 @@ but a parse tree is for a specific parse.
 Only those and-nodes actually used in the specific
 parse become nodes in the parse tree.
 In the case of an unambiguous parse,
-every parse bocage and-node corresponds to a tree node.
-If the parse bocage contains an ambiguous parse,
-some and-nodes will not have corresponding tree nodes.
+every parse bocage and-node becomes a tree node.
+In the case of an ambiguous parse,
+some and-nodes will not be used in the parse tree.
 
 =begin Parse::Marpa::test_document:
 
@@ -987,16 +975,17 @@ They can be traversed as a tree, starting from the root.
 They can also be traversed from the end,
 which is what Marpa does when it evaluates a parse.
 
-As Marpa evaluates tree nodes,
-it computes values and pushes them onto an evaluation
-stack.
-When a tree node needs values for its computation,
-perhaps because a Perl closure requires them as arguments,
-they are popped from the evaluation stack.
-The result is pushed back onto the stack.
-When Marpa computes the value for the root tree-node,
-the result will be the only value left on the stack,
-and will be the value of the parse.
+Marpa evaluates a parse tree using an evaluation stack,
+which is initialized to empty.
+Every time Marpa evaluates a tree node,
+it pushes the result onto the evaluation stack.
+If a tree node needs values as input,
+perhaps because a Perl closure requires arguments,
+the values are popped from the evaluation stack.
+When Marpa reaches the root tree-node,
+computes its value and pushes it onto the stack,
+that value will be the only item on the stack.
+That one remaining stack item becomes the value of the parse.
 
 The evaluation process can be followed by setting the C<trace_values>
 option.
@@ -1044,9 +1033,9 @@ Nullable symbols are those which I<sometimes> produce the empty sentence.
 Non-nullable symbols are those which I<never> produce the empty sentence.
 
 Pedantically, all nulling symbols are also nullable symbols.
-A proper nullable is any nullable symbol which is not a nulling symbol.
+A B<proper nullable> is any nullable symbol which is not a nulling symbol.
 In other words,
-a B<proper nullable> is a symbol that
+a proper nullable is a symbol that
 can produce either the empty sentence or a non-empty sentence.
 
 Nullable symbols were a problem in previous versions of Earley parsers.
@@ -1055,25 +1044,21 @@ outlined a new approach for dealing with them.
 I use their ideas with modifications of my own.
 
 Marpa rewrites its grammar to eliminate proper nullables.
-It does this by turning the original proper nullable into
-a non-nullable symbol,
-and creating a second symbol to serve as the original symbol's nulling variant.
-The non-nullable variant of the original symbol keeps the original name,
+It does this by turning every proper nullable into two symbols:
+a non-nullable variant and a nulling variant.
+The non-nullable variant keeps the original symbol's name,
 but is no longer allowed to appear in places
 where it might be nulled.
-In places where the original symbol was nulled,
-the nulling variant is substituted.
 The name of the nulling variant
 is that of the original symbol with the nulling tag ("C<[]>") suffixed.
+When the nulling variant is used,
+it must be nulled.
 
 The newly introduced nulling symbols will not appear on any left hand sides.
 Marpa marks nulling symbols internally and
 recognizes them directly.
 It does not need empty rules.
 
-Getting rid of proper nullables on the right hand side
-is more difficult than getting rid of them
-on the left hand side.
 Rules with proper nullables on the rhs
 have to be replaced with
 new rules covering every possible combination of
