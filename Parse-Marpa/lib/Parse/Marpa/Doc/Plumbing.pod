@@ -119,8 +119,9 @@ If C<min> is undefined, the rule is an ordinary, B<BNF production>.
 
 Only one symbol is allowed on the right hand side of a sequence production,
 and the right hand side symbol may not be a nullable symbol.
-The rhs symbol must be repeated at least C<min> times
-and may be repeated an unlimited number of times.
+The input will be required to match
+the rhs symbol at least C<min> times
+and will be allowed to match an unlimited number of times.
 For an introduction to sequence productions,
 see the L<MDL document|Parse::Marpa::Doc::MDL>.
 
@@ -139,17 +140,9 @@ Marpa throws an exception if a duplicate rule is added.
 For BNF productions, a rule is considered a duplicate if it has the
 same left hand side symbol,
 and the same symbols in the same order on the right hand side.
-
 For sequences, a rule is considered a duplicate if it has the same
 left hand symbol, the same right hand side symbol,
 and the same separator.
-It's possible that some of the sequences banned by this rule
-are not pathological,
-but this restriction can be worked around by writing them
-as BNF productions.
-Even if the banned sequences are not pathological,
-their semantics are probably tricky,
-and writing them as BNF productions may be for the best.
 
 =head2 The C<terminals> Named Argument
 
@@ -197,7 +190,7 @@ It will control the order in which terminal matches are attempted.
 
 =head2 The C<start> Named Argument
 
-The value of the start named argument must be a plumbing symbol name.
+The value of the C<start> named argument must be a plumbing symbol name.
 It will be used as the start symbol for the grammar.
 Most of the plumbing named arguments
 may not be used
