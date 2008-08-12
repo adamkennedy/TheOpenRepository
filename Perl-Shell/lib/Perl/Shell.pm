@@ -20,7 +20,7 @@ BEGIN {
 
 sub shell {
 	my @buffer = ();
-	while ( 1 ) {    
+	foreach ( 1 .. 10 ) {    
 		# Read in a line
 		my $line = term_readline(@buffer ? '...' : '>>>');
 		unless ( defined $line ) {
@@ -37,7 +37,8 @@ sub shell {
 		print "ERROR: $@" if $@;
 		print "\n";
 
-		
+		# Clean up for the next command
+		@buffer = ();
 	}
 }
 
