@@ -4,24 +4,27 @@ Parse::Marpa::Doc::Parse_Terms - Standard Parsing Terms used in the Marpa Docume
 
 =head1 DESCRIPTION
 
-This section is document is intended
-to be read quickly to serve as a reminder to those
-who have previously encountered the basic concepts
-of parsing.
+This document is intended
+as a reminder of
+the standard vocabulary of parsing.
 I put B<defining uses> of terms in boldface, for easy skimming.
-If you feel comfortable with parsing terminology,
-you may want to skip this document entirely.
+A reader who feels comfortable with parsing terminology,
+can skip this document entirely.
+
+All the definitions here are consistent with
+at least some of the textbook definitions,
+and are in that sense standard.
+But no effort is made to
+cover the full range of standard meaning,
+or even to give the most common meaning.
+The focus is on the meaning of the terms as used in the Marpa documentation.
 
 If you've never looked into parsing before,
-you'll probably find this document a little too terse.
+you'll probably find this document too terse.
 As an introduction, I reccommend
 L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
 Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
-
-These definitions will be consistent with textbook definitions,
-but will not be intended to replace them.
-The intention here is to focus on the meaning of the term as it applies to Marpa.
 
 =head2 Basic terms
 
@@ -42,7 +45,7 @@ B<Parsing> in the loose sense means all the phases of finding a grammar's struct
 including a separate recognition phase if the parser has one.  (Marpa does.)
 If a parser has phases,
 B<parsing in the strict sense> refers specifically to the phase that finds the structure of the input.
-When this document uses the term B<parsing> in its strict sense, it will
+When the Marpa documents use the term B<parsing> in its strict sense, they will
 speak explicitly of "parsing in the strict sense".
 Otherwise, B<parsing> will mean parsing in the loose sense.
 
@@ -133,7 +136,7 @@ string to the second string.  Every symbol string is said to derive itself in a 
 of length 0.  Such a zero length derivation is a B<trivial derivation>.
 
 If a derivation is not trivial or direct, that is, if it has more than one step,
-then it is an B<indirect> derivation.  A derviation which is not trivial, that is,
+then it is an B<indirect> derivation.  A derivation which is not trivial, that is,
 one which has one or more steps, is a B<non-trivial> derivation.
 
 Where the symbol string beginning a derivation consists of a single symbol,
@@ -144,11 +147,8 @@ produces
 the symbol string if the length of the derivation is respectively,
 0, greater than 0, 1, or greater than 1,
 just as we do when we say a symbol string derives another symbol string.
-
-When we say that a symbol produces or derives a symbol string,
-we are taking a top-down point of view.
-We sometimes take a bottom-up point of view,
-and say that the symbol B<matches> the symbol string,
+When a symbol produces or derives a symbol string,
+we also say that the symbol B<matches> the symbol string,
 or that the symbol string B<matches> the symbol.
 
 In any parse, one symbol is distinguished as the B<start symbol>.
@@ -207,8 +207,12 @@ If any symbol non-trivially produces a symbol string with itself on the left,
 the grammar is said to be B<left-recursive>.
 If any symbol non-trivially produces a symbol string with itself on the right,
 the grammar is said to be B<right-recursive>.
-A non-trivial derivation of a symbol string from itself is a B<cycle>.
 
+A non-trivial derivation from any symbol to the symbol string of length
+one containing the original symbol is a cycle.
+Put less formally, any non-trivial derivation, which starts from a symbol
+and ends with a symbol string containing nothing but the same symbol, 
+completely unchanged, is a cycle.
 A grammar which contains no cycles is B<cycle-free>.
 A B<proper context-free grammar> in one which is
 cycle-free and has no useless rules or empty productions.
@@ -232,8 +236,8 @@ A B<nulled node> is one that represents a nulled symbol.
 If, for a given grammar and a given input,
 more than one derivation tree is possible,
 we say that parse is B<ambiguous>.
-Any grammar with an ambiguous parse
-is an B<ambiguous> grammar.
+If any parse from a grammar is ambiguous,
+the grammar is B<ambiguous>.
 
 The node at the root of the tree is the B<start node>.
 Any node with a symbol being used as a terminal is a B<terminal node>.
@@ -241,8 +245,8 @@ The B<depth> of a node is its distance from the root.
 The root node is at depth 0.
 If a parent node is at depth C<n>,
 its children are at depth C<n+1>.
-As in dealing with bodies of water, the concepts of B<higher> and B<lower>
-have the sense opposite to that of the numerical depth values.
+As with depths in bodies of water, the concepts of B<higher> and B<lower>
+have the sense opposite to that of the numerical values.
 The node at depth 0 is higher than any other node.
 Parent nodes are higher than their children.
 
@@ -254,13 +258,13 @@ and what the user actually wants is the B<value> of the parse
 according to the semantics.
 The tree representation is especially useful when evaluating a parse.
 
-Nulled nodes are treated specially in Marpa, as described
-L<below|"Null Symbol Values">.
-Nodes which are not nulled are evaluated in standard ways.
-Every non-null leaf node which represents a terminal symbol
+Every node which represents a terminal symbol
 has a value associated with it on input.
 Non-null inner nodes 
 take their semantics from the production whose lhs they represent.
+Nulled nodes are often deal with in special ways.
+Their handling in Marpa is described L<elsewhere|Parse::Marpa/"Null Symbol Values">.
+
 The semantics for a production
 describe how to calculate the value of the node which represents the lhs
 (the parent node)
