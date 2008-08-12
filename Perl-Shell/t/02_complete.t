@@ -15,18 +15,19 @@ sub is_complete {
 	my $string = shift;
 	my $name   = shift || "Document is complete";
 	ok(
-		Perl::Shell->complete($string),
+		Perl::Shell::_is_complete($string),
 		$name,
 	);
 }
 
-sub not_complete {
+sub no_complete {
 	my $string = shift;
 	my $name   = shift || "Document is not complete";
 	ok(
-		! Perl::Shell->complete($string),
+		! Perl::Shell::_is_complete($string),
 		$name,
 	);
 }
 
-complete("print 'Hello World!';");
+is_complete("print 'Hello World!';");
+no_complete("print 'Hello World!'");
