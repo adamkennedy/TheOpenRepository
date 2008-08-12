@@ -188,10 +188,11 @@ sub set_null_values {
 
         # Empty rule with action?
         if ( defined $action and @{$rhs} <= 0 ) {
+
             my $lhs = $rule->[Parse::Marpa::Internal::Rule::LHS];
-            my $nulling_alias =
-                $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS];
-            next RULE unless defined $nulling_alias;
+            my $nulling_symbol
+		= $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS]
+		// $lhs;
 
             my $code =
                 "package $package;\n" . '@_=();' . "\n" . $action;
@@ -213,19 +214,19 @@ sub set_null_values {
                     \@warnings,
                     'evaluating null value',
                     'evaluating null value for '
-                        . $nulling_alias
+                        . $nulling_symbol
                         ->[Parse::Marpa::Internal::Symbol::NAME],
                     \$code,
                     \@caller_return
                 );
             }
-            my $nulling_alias_id =
-                $nulling_alias->[Parse::Marpa::Internal::Symbol::ID];
-            $null_values->[$nulling_alias_id] = $null_value;
+            my $nulling_symbol_id =
+                $nulling_symbol->[Parse::Marpa::Internal::Symbol::ID];
+            $null_values->[$nulling_symbol_id] = $null_value;
 
             if ($trace_actions) {
                 print {$trace_fh} 'Setting null value for symbol ',
-                    $nulling_alias->[Parse::Marpa::Internal::Symbol::NAME],
+                    $nulling_symbol->[Parse::Marpa::Internal::Symbol::NAME],
                     " from\n", $code, "\n",
                     ' to ', Parse::Marpa::show_value( \$null_value ), "\n"
                     or croak('Could not print to trace file');
