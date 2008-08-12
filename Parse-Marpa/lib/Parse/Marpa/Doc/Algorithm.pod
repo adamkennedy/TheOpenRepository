@@ -26,10 +26,9 @@ up to and including L<Parse::Marpa::Doc::Internals>.
 All claims of originality are limited by my ignorance.
 The parsing literature is large, and I may have been preceded by someone whose
 work I'm not aware of.
-Also, as readers familiar with the academic literature will know,
-a claim that combining A with B is original with Marpa,
-is B<not> to be read as a claim to be that either A or B
-is original with Marpa.
+Readers familiar with scholarly literature will know that
+a claim of originality in combining A and B,
+is B<not> to be read as a claim of originality in either A or B.
 
 =head2 A New Recognition Engine
 
@@ -94,8 +93,8 @@ measured in Earley sets.
 The first Earley set at earleme 0.
 Subsequent Earley sets are at earleme 1, 2, etc.
 If the length of a scanned token is I<L>,
-and the current Earley set is I<I>,
-a newly scanned Earley item is added to Earley set I<I+L>.
+and the current Earley set is I<C>,
+a newly scanned Earley item is added to Earley set I<C+L>.
 
 An implementation can sync
 earlemes up with any measure that's convenient.
@@ -200,12 +199,25 @@ and represented as links between Earley items.
 This system of links comes from
 Aycock and Horspool.
 
-In the Aycock-Horspool version of Earley items,
-each Earley item has available two links,
-one to a child item (its cause), and another to sibling item
-(its predecessor).
-Either of these may be unused.
-In effect, the grammar is rewritten in the Earley items
+In Marpa's elaboration of the Aycock-Horspool scheme,
+each Earley item has a list of sources.
+Each source can have two elements: a predecessor and a cause.
+
+The predecessor is optional.
+If present, it is a link to an Earley item.
+It's a predecessor link in the sense that both the linking and the
+linked Earley item are pieces of the same production,
+and the linked Earley item is an earlier piece.
+
+The cause element of the source is always present.
+It can be a token or a link to a child Earley item.
+The Earley item linked by the cause element is a child in the sense
+that if the productions from the two Earley items were represented in a parse tree,
+the production from the linking Earley item would be the parent,
+and the production from the linked Earley item would be the child.
+
+In effect, the sources in the Earley items
+contain the original grammar rewritten
 into productions with at most two symbols on the
 right hand side.
 This is basically Chomsky Normal Form (CNF).
@@ -293,17 +305,14 @@ are pushed back onto the parse tree array/stack.
 
 In order to iterate through the parses,
 Marpa stores, with most of the Earley items,
-information about why it was
+a list of sources --
+information about why the Earley items were
 added.
-Marpa uses lists of "links" and tokens for this,
-expanding on ideas from Aycock and Horspool.
-The order of these lists
-controls the order of the parses,
-and realized that the order of those lists could be changed to anything useful.
-The order of the link and token lists might,
-in fact, be based on priorities assigned by the user to the rules and tokens of the grammar.
-These user-assigned priorities could then force the most desirable parse,
-to be first in parsing order.
+The order of the sources in these lists
+controls the parse order.
+I realized that the sources could be sorted
+based on priorities assigned to the rules and tokens of the grammar.
+These priorities could be user-assigned and used to put the most desirable parse first.
 
 In effect,
 Marpa's rule and terminal priorities turn ambiguous parsing
