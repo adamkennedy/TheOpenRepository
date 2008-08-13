@@ -17,7 +17,7 @@ Marpa documents.
 
 Nodes in Marpa may have no value.
 Right now offline mode is the only one; online mode is not documented;
-and special options to create evaluators of derivation with user specified
+and special options to create evaluators of user specified
 spans in the earleme stream and user specified top symbols are undocumented
 or do not exist.
 This means that Marpa "no values" will not be encountered by the user.
@@ -135,8 +135,6 @@ its opacity setting cannot be changed.
 
 Marpa marks a grammar opaque internally,
 if the grammar uses certain kinds of sequence productions.
-For more details,
-see L<Parse::Marpa::Evaluator/"Node Memoization">.
 
 =head1 SUPPORT
 

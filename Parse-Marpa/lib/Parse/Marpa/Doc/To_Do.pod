@@ -56,8 +56,6 @@ doesn't entirely replace it.
 =item * Allow multiple evaluators for each recognizer, or at least create a method
 to safely deep copy recognizers.
 
-=item * If recognizer did not recognize the input, don't allow evaluator to be created.
-
 =item * Add C<{}> and C<[]> syntax to MDL production statements.
 
 =item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
@@ -96,11 +94,12 @@ is not the result of any limit of the Marpa parse engine.
 It would not be hard to allow any number of
 sequences and optional sequences on the right hand
 side of any BNF production.
-What's hard is figuring out how to conveniently specify their semantics.
+I'm open to revisiting this issue and lifting the restriction.
+
+The problem is figuring out how to conveniently specify their semantics.
 As the right hand side of a production grows more complex,
 the semantics becomes
 more complex to write, more bug-prone, and harder to debug.
-I'm open to revisiting this issue and lifting the restriction.
 
 =head1 SUPPORT
 

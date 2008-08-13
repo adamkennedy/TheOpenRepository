@@ -8,18 +8,19 @@ use HTML::LinkExtor;
 my $url_base = "http://search.cpan.org/~jkegl/Parse-Marpa-0.211_011/lib/Parse/";
 my @url = qw(
     Marpa.pm
-    Marpa/Evaluator.pm
-    Marpa/Grammar.pm
-    Marpa/Lex.pm
-    Marpa/MDL.pm
-    Marpa/Recognizer.pm
     Marpa/Doc/Algorithm.pod
     Marpa/Doc/Bibliography.pod
     Marpa/Doc/Diagnostics.pod
     Marpa/Doc/Internals.pod
     Marpa/Doc/MDL.pod
+    Marpa/Doc/Parse_Terms.pod
     Marpa/Doc/Plumbing.pod
     Marpa/Doc/To_Do.pod
+    Marpa/Evaluator.pm
+    Marpa/Grammar.pm
+    Marpa/Lex.pm
+    Marpa/MDL.pm
+    Marpa/Recognizer.pm
 );
 
 my %link;

@@ -30,8 +30,6 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/Doc/MDL.pod',
 	'lib/Parse/Marpa/Doc/To_Do.pod'
 	    => '$(INST_LIB)/Parse/Marpa/Doc/To_Do.pod',
-	'lib/Parse/Marpa/Doc/Undocumented.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Undocumented.pod',
 	'lib/Parse/Marpa/Lex.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Lex.pm',
 	'lib/Parse/Marpa/MDL.pm'
