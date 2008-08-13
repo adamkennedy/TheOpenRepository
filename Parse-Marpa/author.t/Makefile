@@ -59,3 +59,4 @@ misc_pl.errs:
 
 test_pod.out:
 	perl -I../lib test_pod > $@
+	wc -l $@
