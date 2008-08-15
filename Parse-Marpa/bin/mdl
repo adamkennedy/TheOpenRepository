@@ -20,6 +20,7 @@ my $nulling_symbols;
 my $unproductive_symbols;
 my $productive_symbols;
 my $trace_actions;
+my $trace_lex;
 my $trace_priorities;
 my $trace_values;
 my $show_NFA;
@@ -58,6 +59,7 @@ given ($command) {
             "trace_actions"        => \$trace_actions,
             "trace_values"         => \$trace_values,
             "trace_priorities"     => \$trace_priorities,
+            "trace_lex"            => \$trace_lex,
             "rules"                => \$show_rules,
             "problems"             => \$show_problems,
             "symbols"              => \$show_symbols,
@@ -71,6 +73,10 @@ given ($command) {
 
 	if ($trace_actions) {
 	    $options{trace_actions} = 1;
+	}
+
+	if ($trace_lex) {
+	    $options{trace_lex} = 1;
 	}
 
 	if ($trace_priorities) {
@@ -201,6 +207,8 @@ sub do_parse {
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ($show_earley_sets) {
+	# end_input() not yet run
+	# do that here?
 	print $recce->show_earley_sets;
     }
 

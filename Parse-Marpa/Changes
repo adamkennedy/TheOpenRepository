@@ -1,5 +1,14 @@
 Revision history for Parse::Marpa
 
+0.214.000 Fri Aug 15 09:27:56 PDT 2008
+        Alpha release.
+	Fixed bug with trailing whitespace in MDL.
+
+0.212.000 Thu Aug 14 10:05:11 PDT 2008
+        Alpha release.
+	Fixed a problem with some long iterations of
+   	all parses.
+
 0.211_000 Tue Apr 15 18:37:35 EDT 2008
         First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.

@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION        = '0.212000';
+    our $VERSION        = '0.214000';
     our $STRING_VERSION = $VERSION;
     $VERSION = eval $VERSION;
 }
@@ -211,7 +211,7 @@ is_synopsis_pl($_)
     say $$value;
 
     __DATA__
-    semantics are perl5.  version is 0.212.0.  start symbol is Expression.
+    semantics are perl5.  version is 0.214.0.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
         $_[0] * $_[2]
@@ -1043,13 +1043,6 @@ and in print form at Amazon.com:
 L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
 =head1 BUGS
-
-=head2 End of Line Comment Cannot be Last in MDL Source
-
-A Perl style end of line comment cannot be last thing in MDL source.  Workaround:
-Add a blank line.
-
-=head2 What!  You Found More Bugs!
 
 Please report any bugs or feature requests to
 C<bug-parse-marpa at rt.cpan.org>, or through the web interface at

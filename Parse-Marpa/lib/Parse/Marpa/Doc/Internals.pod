@@ -1120,7 +1120,7 @@ in_self_show_rules($_);
 
 =end Parse::Marpa::test_document:
 
-    12: production-paragraph
+    11: production-paragraph
 	    -> non-structural-production-sentences
 	    production-sentence
 	    non-structural-production-sentences
@@ -1129,69 +1129,69 @@ in_self_show_rules($_);
 
 Z<>
 
-    99: production-paragraph ->
-        non-structural-production-sentences
-        production-sentence
-        production-paragraph[R12:2][x5e]
-        /* priority=0.3 */
     100: production-paragraph ->
-        non-structural-production-sentences[]
-        production-sentence
-        production-paragraph[R12:2][x5e]
-        /* priority=0.1 */
-    101: production-paragraph ->
         non-structural-production-sentences
         production-sentence
-        production-paragraph[R12:2][x5e][]
-        /* priority=0.2 */
-    102: production-paragraph ->
-        non-structural-production-sentences[]
-        production-sentence
-        production-paragraph[R12:2][x5e][]
-
-Z<>
-
-    103: production-paragraph[R12:2][x5e] ->
-        non-structural-production-sentences
-        production-paragraph[R12:3][x60]
+        production-paragraph[R11:2][x5f]
         /* priority=0.3 */
-    104: production-paragraph[R12:2][x5e] ->
+    101: production-paragraph ->
         non-structural-production-sentences[]
-        production-paragraph[R12:3][x60]
+        production-sentence
+        production-paragraph[R11:2][x5f]
         /* priority=0.1 */
-    105: production-paragraph[R12:2][x5e] ->
+    102: production-paragraph ->
         non-structural-production-sentences
-        production-paragraph[R12:3][x60][]
+        production-sentence
+        production-paragraph[R11:2][x5f][]
+        /* priority=0.2 */
+    103: production-paragraph ->
+        non-structural-production-sentences[]
+        production-sentence
+        production-paragraph[R11:2][x5f][]
+
+Z<>
+
+    104: production-paragraph[R11:2][x5f] ->
+        non-structural-production-sentences
+        production-paragraph[R11:3][x61]
+        /* priority=0.3 */
+    105: production-paragraph[R11:2][x5f] ->
+        non-structural-production-sentences[]
+        production-paragraph[R11:3][x61]
+        /* priority=0.1 */
+    106: production-paragraph[R11:2][x5f] ->
+        non-structural-production-sentences
+        production-paragraph[R11:3][x61][]
         /* priority=0.2 */
 
 Z<>
 
-    106: production-paragraph[R12:3][x60] ->
+    107: production-paragraph[R11:3][x61] ->
         action-sentence:optional
         non-structural-production-sentences
         /* priority=0.3 */
-    107: production-paragraph[R12:3][x60] ->
+    108: production-paragraph[R11:3][x61] ->
         action-sentence:optional[]
         non-structural-production-sentences
         /* priority=0.1 */
-    108: production-paragraph[R12:3][x60] ->
+    109: production-paragraph[R11:3][x61] ->
         action-sentence:optional
         non-structural-production-sentences[]
         /* priority=0.2 */
 
-Rule 12 is the original rule.  Because Marpa has rewritten it,
+Rule 11 is the original rule.  Because Marpa has rewritten it,
 the rule is marked C<!useful>, telling later stages in the precomputation to ignore it.
-Marpa breaks Rule 12 up into three pieces, each with no more than two proper nullables.
-Rules 99 to 102 are the first piece, with the first two symbols from Rule 12.
-Rules 103 to 105 are the second, with the 3rd symbol.
-Rules 106 to 108 are the third, with the 4th and 5th symbols from Rule 12.
+Marpa breaks Rule 11 up into three pieces, each with no more than two proper nullables.
+Rules 100 to 103 are the first piece, with the first two symbols from Rule 11.
+Rules 104 to 106 are the second, with the 3rd symbol.
+Rules 107 to 109 are the third, with the 4th and 5th symbols from Rule 11.
 
 Each piece is B<factored>, so that every combination of nulling and non-nullable symbols is included.
 New symbols are introduced to be the left hand sides of the pieces.
-The tag "C<[R12:3]>" indicates that this
-symbol is the left hand side for the piece of Rule 12 which begins at right hand symbol 3
+The tag "C<[R11:3]>" indicates that this
+symbol is the left hand side for the piece of Rule 11 which begins at right hand symbol 3
 (the first symbol is symbol 0).
-The tags beginning with an "C<x>", like "C<[x5d]>", are arbitrary hex values,
+The tags beginning with an "C<x>", like "C<[x5f]>", are arbitrary hex values,
 inserted to guarantee that the new symbols are unique.
 
 This rule is a worst case for CHAF, because the last three symbols of the right hand side are all
@@ -1246,10 +1246,10 @@ in_self_show_rules($_);
 
 =end Parse::Marpa::test_document:
 
-    2: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5]
-    3: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5] empty-line
-    4: paragraph[Seq:1-*][Sep:empty_line][x5] -> paragraph
-    5: paragraph[Seq:1-*][Sep:empty_line][x5] ->
+    1: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5]
+    2: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5] empty-line
+    3: paragraph[Seq:1-*][Sep:empty_line][x5] -> paragraph
+    4: paragraph[Seq:1-*][Sep:empty_line][x5] ->
 	paragraph[Seq:1-*][Sep:empty_line][x5] empty-line paragraph
 
 In the added symbol, the tag "C<[Seq:1-*]>" indicates this is a symbol for a sequence
@@ -1277,9 +1277,9 @@ in_self_show_rules($_);
 
 =end Parse::Marpa::test_document:
 
-    9: definition-paragraph -> definition[Seq:1-*][xa]
-    10: definition[Seq:1-*][xa] -> definition
-    11: definition[Seq:1-*][xa] -> definition[Seq:1-*][xa] definition
+    8: definition-paragraph -> definition[Seq:1-*][xa]
+    9: definition[Seq:1-*][xa] -> definition
+    10: definition[Seq:1-*][xa] -> definition[Seq:1-*][xa] definition
 
 =head1 SELF-TUTORIALS
 
@@ -1317,7 +1317,7 @@ is_equation_grammar($_);
 =end Parse::Marpa::test_document:
 
 
-    semantics are perl5.  version is 0.212.0.
+    semantics are perl5.  version is 0.214.0.
 
     start symbol is E.
 

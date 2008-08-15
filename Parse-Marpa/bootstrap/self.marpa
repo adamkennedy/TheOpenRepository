@@ -1,4 +1,4 @@
-semantics are perl5.  version is 0.212.0.  the start symbol is
+semantics are perl5.  version is 0.214.0.  the start symbol is
 grammar.
 
 the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
@@ -13,9 +13,7 @@ a preamble is q{
     our $regex_data = [];
 }.
 
-grammar: paragraphs.  q{ $_[0] }.
-
-grammar: paragraphs, whitespace lines.  q{ $_[0] }.
+grammar: paragraphs, trailing matter.  q{ $_[0] }.
 
 paragraphs: empty line separated paragraph sequence.  concatenate lines.
 
@@ -26,8 +24,6 @@ paragraph: definition paragraph.  concatenate lines.
 paragraph: production paragraph.  concatenate lines.
 
 paragraph: terminal paragraph.  concatenate lines.
-
-note: (not used) empty paragraph: whitespace.
 
 [ comment paragraph: comment sequence.  concatenate lines. ]
 
@@ -423,13 +419,32 @@ q{
     . '" }'
 }.
 
-whitespace lines: whitespace line sequence.
-
 match q string using "lex_q_quote".
 
 match regex using "lex_regex".
 
-empty line matches qr/^[ \t]*\n/m.
+empty line matches qr/^\h*\n/m.
+
+# Some hackery here: The lex prefix will take care of most
+# trailing whitespace, but since it is a *PREFIX*, in some
+# cases it needs something to look for.  So I provide for
+# a single final whitespace, or a single final comment, and
+# let the lex prefix do the rest.
+#
+# A Marpa terminal is not allowed if it matches the null
+# string, and that causes some of the complexity here.
+trailing matter: final comment.
+
+trailing matter: final whitespace.
+
+trailing matter: .
+
+# a final comment in the document, without or without a proper
+# end of line.
+final comment matches qr/\#[^\n]*\Z/xms.
+
+# a final character of whitespace.
+final whitespace matches qr/\s\z/xms.
 
 bracketed comment matches qr/\x{5b}[^\x{5d}]*\x{5d}/.
 
@@ -483,8 +498,6 @@ match double quoted string using q{
 
 version number matches qr/(\d+\.)*\d+/.
 
-[ NOT USED: comment matches qr/#.*\n/. ]
-
 symbol word matches qr/[a-zA-Z_][a-zA-Z0-9_-]*/.
 
 period matches qr/\./.
@@ -498,8 +511,6 @@ comment tag matches qr/(to\s+do|note|comment)/.
 comment word matches qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/.
 
 comma matches qr/\,/.
-
-whitespace line matches qr/^[ \t]*(?:\#[^\n]*)?\n/m.
 
 # Local Variables:
 #   mode: cperl

@@ -4,7 +4,7 @@
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
 
-# This file was automatically generated using Parse::Marpa 0.211008
+# This file was automatically generated using Parse::Marpa 0.214
 # This is the beginning of bootstrap_header.pl
 
 use 5.010_000;
@@ -47,7 +47,7 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '0.212000';
+$new_version = '0.214000';
 
 $new_start_symbol = "grammar";
 
@@ -65,15 +65,7 @@ $new_preamble .=  q{
 
 push(@$new_rules, {
     lhs => "grammar"
-,    rhs => ["paragraphs"],
-    action =>   q{ $_[0] },
-,
-,
-
-});
-push(@$new_rules, {
-    lhs => "grammar"
-,    rhs => ["paragraphs", "whitespace-lines"],
+,    rhs => ["paragraphs", "trailing-matter"],
     action =>   q{ $_[0] },
 ,
 ,
@@ -976,20 +968,36 @@ q{
 ,
 
 });
-push(@$new_rules, {
-    lhs => "whitespace-lines"
-,rhs => ["whitespace-line"],
-min => 1,
-,
-,
-,
-
-});
 push(@$new_terminals, [ "q-string" => { action => "lex_q_quote"} ] );
 
 push(@$new_terminals, [ "regex" => { action => "lex_regex"} ] );
 
-push(@$new_terminals, [ "empty-line" => { regex => qr/^[ \t]*\n/m} ] );
+push(@$new_terminals, [ "empty-line" => { regex => qr/^\h*\n/m} ] );
+
+push(@$new_rules, {
+    lhs => "trailing-matter"
+,    rhs => ["final-comment"],
+,
+,
+
+});
+push(@$new_rules, {
+    lhs => "trailing-matter"
+,    rhs => ["final-whitespace"],
+,
+,
+
+});
+push(@$new_rules, {
+    lhs => "trailing-matter"
+,    rhs => [],
+,
+,
+
+});
+push(@$new_terminals, [ "final-comment" => { regex => qr/\#[^\n]*\Z/xms} ] );
+
+push(@$new_terminals, [ "final-whitespace" => { regex => qr/\s\z/xms} ] );
 
 push(@$new_terminals, [ "bracketed-comment" => { regex => qr/\x{5b}[^\x{5d}]*\x{5d}/} ] );
 
@@ -1046,8 +1054,6 @@ push(@$new_terminals, [ "comment-tag" => { regex => qr/(to\s+do|note|comment)/} 
 push(@$new_terminals, [ "comment-word" => { regex => qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/} ] );
 
 push(@$new_terminals, [ "comma" => { regex => qr/\,/} ] );
-
-push(@$new_terminals, [ "whitespace-line" => { regex => qr/^[ \t]*(?:\#[^\n]*)?\n/m} ] );
 
 # This is the beginning of bootstrap_trailer.pl
 
