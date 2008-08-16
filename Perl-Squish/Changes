@@ -1,5 +1,9 @@
 Revision history for Perl extension Perl::Squish
 
+1.04 Sat 16 Aug 2008
+	- No functional changes
+	- Upgrading to Module::Install 0.77
+
 0.03 Thu 29 Jun 2007
 	- No functional changes
 	- Upgrading to Module::Install 0.65

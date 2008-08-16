@@ -1,18 +1,8 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.77;
 
-name           'Perl-Squish';
-abstract       'Reduce Perl code to as few charactes as possible';
-author         'Adam Kennedy <cpan@ali.as>';
-version_from   'lib/Perl/Squish.pm';
-license        'perl';
-requires       'perl'            => '5.005';
-requires       'PPI'             => '0.992';
-test_requires 'Test::More'      => '0.47';
-test_requires 'File::Spec'      => '0.82';
-
-# Our test data might contain valid-looking modules.
-# Don't index anything in the test data directory.
-no_index       directory         => 't.data';
+all_from      'lib/Perl/Squish.pm';
+requires      'PPI'        => '1.200';
+test_requires 'Test::More' => '0.47';
+test_requires 'File::Spec' => '0.82';
 
 WriteAll;

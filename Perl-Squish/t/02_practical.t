@@ -1,20 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compare a large number of specific constructs
 # with the expected Lexer dumps.
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 # Files to clean up
@@ -40,11 +32,12 @@ sub new_ok {
 # Prepare
 
 use Test::More tests => 17;
+use File::Spec::Functions ':ALL';
 use Perl::Squish;
 use Scalar::Util 'refaddr';
 use File::Copy;
 
-my $testdir = 't.data';
+my $testdir = catdir('t', 'data');
 
 # Does the test directory exist?
 ok( (-e $testdir and -d $testdir and -r $testdir), "Test directory $testdir found" );
