@@ -92,13 +92,14 @@ TO BE COMPLETED
 
 use 5.005;
 use strict;
-use base 'Template::Plugin';
 use Scalar::Util              ();
+use Template::Plugin          ();
 use HTML::Tooltip::Javascript ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '1.08';
+	@ISA     = 'Template::Plugin';
 }
 
 # Inlined copy of Params::Util::_INSTANCE
@@ -170,13 +171,13 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 ACKOWLEDGEMENTS
 
-Thank you to Phase N Australia (L<http://phase-n.com/>) for permitting the
-open sourcing and release of this distribution as a spin-off from a
-commercial project.
+Thank you to Phase N Australia for permitting the open sourcing and release
+of this distribution as a spin-off from a commercial project.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2004-2006 Adam Kennedy.
+Copyright 2004 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
