@@ -1,6 +1,6 @@
 package Object::Tiny;
 
-use strict;
+use strict 'vars', 'subs';
 BEGIN {
 	require 5.004;
 	$Object::Tiny::VERSION = '1.06';
