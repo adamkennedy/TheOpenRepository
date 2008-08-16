@@ -1,5 +1,4 @@
-
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
 use File::Spec::Functions ':ALL';
@@ -8,7 +7,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 31;
+use Test::More tests => 32;
 use Module::Inspector;
 
 my $tarball = catfile( 't', 'dists', 'Config-Tiny-2.09.tar.gz' );
@@ -29,7 +28,7 @@ SCOPE: {
 	is( $mod->dist_type, 'tgz', '->dist_type ok' );
 	ok( -d $mod->dist_dir, '->dist_dir exists' );
 	is( $mod->version_control, '', '->version_control is null' );
-	my @docs = grep { ! /^inc\b/ } $mod->documents;
+	my @docs = grep { ! /^t\/9/ } grep { ! /^inc\b/ } $mod->documents;
 	is_deeply( \@docs, [qw{
 		MANIFEST
 		META.yml
@@ -37,7 +36,6 @@ SCOPE: {
 		lib/Config/Tiny.pm
 		t/00_compile.t
 		t/01_main.t
-		t/99_pod.t
 		}], '->documents ok' );
 
 	# Check support for various document types
@@ -59,8 +57,9 @@ SCOPE: {
 	is( $mod->dist_name, 'Config-Tiny', '->dist_name ok' );
 	my $dist_version = $mod->dist_version;
 	isa_ok( $dist_version, 'version' );
-	is( "$dist_version", '2.090', '->dist_version ok' );
-	is( "$dist_version"+0, 2.09,    '->dist_version ok' );
+	is( "$dist_version",          '2.09',  '->dist_version ok' );
+	is( $dist_version->stringify, '2.09',  '->dist_version ok' );
+	is( $dist_version->numify,    '2.090', '->dist_version ok' );
 
 	# Dependencies
 	isa_ok( $mod->dist_requires,       'Module::Math::Depends' );

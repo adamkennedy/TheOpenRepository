@@ -58,7 +58,7 @@ use YAML::Tiny             ();
 
 use vars qw{$VERSION %SPECIAL};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 	%SPECIAL = (
 		'MANIFEST' => 'Module::Manifest',
 		'META.yml' => 'YAML::Tiny',
@@ -435,7 +435,7 @@ For other issues, for commercial enhancement or support, or to have your
 write access enabled for the repository, contact the author at the email
 address above.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
