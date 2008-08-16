@@ -24,7 +24,7 @@ use Params::Util qw{_CLASS _HASH _INSTANCE};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for Module::Math::Depends
 
@@ -15,5 +15,3 @@ ok( $] >= 5.005, "Your perl is new enough" );
 
 # Load the module
 use_ok( 'Module::Math::Depends' );
-
-exit(0);

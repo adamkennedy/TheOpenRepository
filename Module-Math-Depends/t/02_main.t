@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Main tests for Module::Math::Depends
 
@@ -34,7 +34,5 @@ SCOPE: {
 	is( scalar(keys %$deps), 2, '->from_hash works' );
 	isa_ok( $deps->{Foo}, 'version' );
 	isa_ok( $deps->{Bar}, 'version' );
-	is( "$deps->{Foo}", '1.000', 'Foo has ok dep' );
+	is( $deps->{Foo}->numify, '1.000', 'Foo has ok dep' );
 }
-
-exit(0);
