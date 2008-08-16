@@ -58,7 +58,7 @@ use YAML::Tiny             ();
 
 use vars qw{$VERSION %SPECIAL};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.05';
 	%SPECIAL = (
 		'MANIFEST' => 'Module::Manifest',
 		'META.yml' => 'YAML::Tiny',
