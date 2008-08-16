@@ -35,12 +35,13 @@ implemented as a subclass of L<Config::Tiny>.
 =cut
 
 use strict;
-use base 'Config::Tiny';
+use Config::Tiny    ();
 use Perl::Signature ();
 
-use vars qw{$VERSION $errstr};
+use vars qw{$VERSION @ISA $errstr};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '1.09';
+	@ISA     = 'Config::Tiny';
 	$errstr  = '';
 }
 
@@ -228,7 +229,7 @@ sub read_string {
 		$files->{$file} = bless {
 			file      => $file,
 			signature => $signature,
-			}, 'Perl::Signature';
+		}, 'Perl::Signature';
 	}
 
 	$self;
@@ -272,7 +273,7 @@ L<http://ali.as/>, L<PPI>, L<Perl::Signature>, L<Perl::Compare>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005 - 2006 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

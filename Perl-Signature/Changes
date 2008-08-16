@@ -1,5 +1,9 @@
 Revision history for Perl extension Perl::Signature
 
+1.09 Sat Aug 16 2008
+	- No functional changes
+	- Upgraded to Module::Install 0.77
+
 0.08 Sat Apr 22 2006
 	- No functional changes
 	- Moved from SourceForge CVS to new collaborative SVN
