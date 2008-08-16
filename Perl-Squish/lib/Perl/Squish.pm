@@ -33,7 +33,7 @@ use PPI::Transform ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 	@ISA     = 'PPI::Transform';
 }
 
