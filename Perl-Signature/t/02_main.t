@@ -9,6 +9,7 @@ BEGIN {
 }
 
 use Test::More tests => 79;
+use File::Spec::Functions ':ALL';
 use File::Copy;
 use Perl::Signature;
 use Perl::Signature::Set;

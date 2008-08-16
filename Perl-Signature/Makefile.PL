@@ -1,6 +1,5 @@
-use inc::Module::Install 077
+use inc::Module::Install 0.77;
 
-name          'Perl-Signature';
 all_from      'lib/Perl/Signature.pm';
 requires      'Storable'      => '2.11';
 requires      'Digest::MD5'   => '2.30';
