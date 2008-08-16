@@ -26,13 +26,15 @@ module's documentation for more information.
 
 =cut
 
+use 5.005;
 use strict;
-use Params::Util '_INSTANCE';
-use base 'PPI::Transform';
+use Params::Util   '_INSTANCE';
+use PPI::Transform ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.03';
+	@ISA     = 'PPI::Transform';
 }
 
 
