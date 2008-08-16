@@ -3171,9 +3171,10 @@ sub alias_symbol {
     # turn the original symbol into a non-nullable with a reference to the new alias
     @{$nullable_symbol}[
         Parse::Marpa::Internal::Symbol::NULLABLE,
+        Parse::Marpa::Internal::Symbol::NULLING,
         Parse::Marpa::Internal::Symbol::NULL_ALIAS
         ]
-        = ( 0, $alias );
+        = ( 0, 0, $alias );
     return $alias;
 }
 

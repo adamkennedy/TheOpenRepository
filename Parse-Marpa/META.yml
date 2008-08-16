@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:                Parse-Marpa
-version:             0.214.000
-abstract:            (Alpha) Earley's algorithm with LR(0) precomputation
+version:             0.215.001
+abstract:            General BNF parsing (alpha)
 author:              
     - Jeffrey Kegler
-generated_by:        ExtUtils::MakeMaker version 6.42_01
+generated_by:        Jeffrey Kegler
 distribution_type:   module
 no_index:
     directory:

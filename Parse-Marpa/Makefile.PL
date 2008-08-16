@@ -4,6 +4,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
+    NO_META             => 1,
     NAME                => 'Parse::Marpa',
     AUTHOR              => 'Jeffrey Kegler',
     VERSION_FROM        => 'lib/Parse/Marpa.pm',
