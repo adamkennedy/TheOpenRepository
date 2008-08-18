@@ -727,6 +727,7 @@ sub Parse::Marpa::Recognizer::text {
 
 }    # sub text
 
+# Always returns success
 sub Parse::Marpa::Recognizer::end_input {
     my $parse = shift;
 
@@ -739,7 +740,7 @@ sub Parse::Marpa::Recognizer::end_input {
         ];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
-    return if $last_completed_set >= $furthest_earleme;
+    return  1 if $last_completed_set >= $furthest_earleme;
 
     EARLEY_SET: while ( $current_set <= $furthest_earleme ) {
         Parse::Marpa::Internal::Recognizer::complete_set($parse);
@@ -748,7 +749,7 @@ sub Parse::Marpa::Recognizer::end_input {
             $current_set;
     }
 
-    return;
+    return 1;
 }
 
 
@@ -1412,17 +1413,31 @@ in_equation_t($_)
 
     $recce->end_input();
 
-This method takes no arguments.
-It is used with the C<earleme> method in offline mode, to indicate
-the end of input.
-The input is processed out to the furthest earleme.
-The default end of parsing is set to the furthest earleme.
+Used with either the
+C<earleme> or C<text> methods,
+to indicate the end of input.
+When an evaluator is created from a recognizer,
+C<end_input> is called automatically.
+This means that
+it is usually not necessary for the user to
+call C<end_input> directly.
 
-The current earleme will be advanced to one earleme past the 
-furthest earleme.
-This will exhaust the recognizer,
-so that any further calls to C<earleme> will cause an
+C<end_input> takes no arguments.
+C<end_input> processes the input
+out to the furthest earleme;
+sets the default end of parsing to the furthest earleme;
+and advances
+the current earleme to one earleme past the furthest earleme.
+If it does not throw an exception,
+C<end_input> returns a true value.
+
+Since positioning the current earleme past the furthest
+earleme leaves the recognizer exhausted,
+any further calls to C<text> or C<earleme> will throw an
 exception.
+C<end_input> itself is idempotent.
+If called more than once, on subsequent calls,
+C<end_input> will do nothing, successfully.
 
 =head1 SUPPORT
 

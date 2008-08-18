@@ -207,8 +207,7 @@ sub do_parse {
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ($show_earley_sets) {
-	# end_input() not yet run
-	# do that here?
+	$recce->end_input();
 	print $recce->show_earley_sets;
     }
 

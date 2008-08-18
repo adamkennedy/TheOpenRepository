@@ -1054,10 +1054,14 @@ is that of the original symbol with the nulling tag ("C<[]>") suffixed.
 When the nulling variant is used,
 it must be nulled.
 
-The newly introduced nulling symbols will not appear on any left hand sides.
+The newly introduced nulling symbols will not appear on any left hand sides,
+with one exception:
+grammars that allow a null parse
+will have a nulling start rule.
+Except for the nulling start symbol,
 Marpa marks nulling symbols internally and
-recognizes them directly.
-It does not need empty rules.
+recognizes them directly,
+without the need of empty rules.
 
 Rules with proper nullables on the rhs
 have to be replaced with
