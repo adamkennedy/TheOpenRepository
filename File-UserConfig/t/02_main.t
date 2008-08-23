@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 27;
 use File::Spec::Functions ':ALL';
 use File::UserConfig ();
-use File::Remove 'clear';
+use File::Remove 'clear', 'remove';
 
 my $testfrom = catdir( 't', 'testfrom' );
 my $testto   = catdir( 't', 'testto'   );
