@@ -35,19 +35,19 @@ of pre-packaged colour schemes being created for L<PPI::HTML>.
 
 =cut
 
+use 5.006;
 use strict;
 use warnings;
-
 use PPI;
 use PPI::HTML;
 use CGI;
 use Apache2::RequestRec ();
-use Apache2::RequestIO ();
+use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( OK SERVER_ERROR );
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub handler {
@@ -105,13 +105,13 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Written by Pete Sergeant (in about 3 minutes) :)
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Documented and wrapped for release by Adam Kennedy
+Written by Pete Sergeant (in about 3 minutes) :)
 
 =head1 COPYRIGHT
 
-Copyright 2005 Pete Sergeant, Adam Kennedy. All rights reserved.
+Copyright 2005 - 2008 Pete Sergeant, Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
