@@ -83,11 +83,12 @@ And that's all there is to do. The module will take care of the rest.
 
 use 5.006;
 use strict;
+use Config     ();
 use File::Spec ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 }
 
 sub import {
@@ -97,13 +98,13 @@ sub import {
 
 	# The quick way is to use the xvfb-run script
 	print "# No DISPLAY. Looking for xvfb-run...\n";
-	my @PATHS = split /:/, $ENV{PATH};
+	my @PATHS = split $Config::Config{path_sep}, $ENV{PATH};
 	foreach my $path ( @PATHS ) {
 		my $xvfb_run = File::Spec->catfile( $path, 'xvfb-run' );
 		next unless -e $xvfb_run;
 		next unless -x $xvfb_run;
 		print "# Restarting with xvfb-run...\n";
-		exec "$xvfb_run $^X $0";
+		exec( $xvfb_run, $^X, $0 );
 	}
 
 	print "# Failed to find xvfb-run.\n";
@@ -122,17 +123,17 @@ sub import {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/Dist/Display.html?Queue=Test-NeedsDisplay>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-NeedsDisplay>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2006 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
