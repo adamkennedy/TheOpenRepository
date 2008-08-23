@@ -52,7 +52,7 @@ use ExtUtils::Packlist ();
 
 use vars qw{$VERSION $CGICAPTURE};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 $CGICAPTURE ||= __PACKAGE__->_find_script('CGI::Capture', 'cgicapture');
@@ -512,7 +512,7 @@ sub _find_script {
 	my @dirs   = grep { -e } ( $Config{archlibexp}, $Config{sitearchexp} );
 	my $file   = File::Spec->catfile(
 		'auto', split( /::/, $module), '.packlist',
-		);
+	);
 
 	foreach my $dir ( @dirs ) {
 		my $path = File::Spec->catfile( $dir, $file );
@@ -524,14 +524,10 @@ sub _find_script {
 			die "Failed to load .packlist file for $module";
 		}
 
-		my $script_name = quotemeta $script;
-		my @script = sort grep { /\b$script_name$/ } keys %$packlist;
-		if ( @script > 1 ) {
-			die "Unexpectedly found more than one $script file";
-		}
-		if ( @script == 0 ) {
-			die "Failed to find $script script";
-		}
+		my $regex  = quotemeta $script;
+		my @script = sort grep { /\b$regex$/ } keys %$packlist;
+		die "Unexpectedly found more than one $script file" if @script > 1;
+		die "Failed to find $script script" unless @script;
 		return $script[0];
 	}
 	die "Failed to locate .packfile for $module";
@@ -559,7 +555,7 @@ L<http://ali.as/>, L<CGI::Capture>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

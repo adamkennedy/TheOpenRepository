@@ -1,7 +1,5 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.77;
 
-name           'Module-CGI-Install';
 all_from       'lib/Module/CGI/Install.pm';
 requires       'Carp'                => 0;
 requires       'Config'              => 0;
@@ -19,10 +17,10 @@ requires       'URI::ToDisk'         => '1.09';
 requires       'LWP::Simple'         => '1.41';
 requires       'CGI::Capture'        => '1.08';
 requires       'Object::Tiny'        => '1.02';
-test_requires 'Test::More'          => '0.42';
-test_requires 'Test::Script'        => '1.02';
-test_requires 'Test::File::Cleaner' => '0.03';
-test_requires 'URI'                 => '1.35';
+test_requires  'Test::More'          => '0.42';
+test_requires  'Test::Script'        => '1.02';
+test_requires  'Test::File::Cleaner' => '0.03';
+test_requires  'URI'                 => '1.35';
 install_script 'cgi_install';
 
 WriteAll;
