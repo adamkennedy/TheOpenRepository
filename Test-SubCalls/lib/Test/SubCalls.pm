@@ -27,7 +27,7 @@ Test::SubCalls - Track the number of times subs are called
 
 =head1 DESCRIPTION
 
-There are a number of different situations (like testing cacheing code)
+There are a number of different situations (like testing caching code)
 where you want to want to do a number of tests, and then verify that
 some underlying subroutine deep within the code was called a specific
 number of times.
@@ -41,7 +41,7 @@ In the nature of test modules, all functions are exported by default.
 
 =cut
 
-use 5.006; # Only because of Lex::HookWrap. Otherwise 5.005
+use 5.006; # Only because of Hook::LexWrap. Otherwise 5.005
 use strict;
 use Test::Builder ();
 use Hook::LexWrap ();
@@ -49,7 +49,7 @@ use Exporter      ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{sub_track sub_calls sub_reset sub_reset_all};
 }
@@ -81,7 +81,8 @@ Returns true if added, or dies on error.
 sub sub_track {
 	# Check the sub name is valid
 	my $subname = shift;
-	{ no strict 'refs';
+	SCOPE: {
+		no strict 'refs';
 		unless ( defined *{"$subname"}{CODE} ) {
 			die "Test::SubCalls::sub_track : The sub '$subname' does not exist";
 		}
@@ -94,9 +95,10 @@ sub sub_track {
 	$CALLS{$subname} = 0;
 
 	# Lexwrap the subroutine
-	Hook::LexWrap::wrap( $subname,
+	Hook::LexWrap::wrap(
+		$subname,
 		pre => sub { $CALLS{$subname}++ },
-		);
+	);
 
 	1;
 }
@@ -134,9 +136,7 @@ sub sub_calls {
 	}
 
 	# Get the message, applying default if needed
-	my $message = shift
-		|| "$subname was called $count times";
-
+	my $message = shift || "$subname was called $count times";
 	$Test->is_num( $CALLS{$subname}, $count, $message );
 }
 
@@ -204,7 +204,8 @@ L<http://ali.as/>, L<Test::Builder>, L<Test::More>, L<Hook::LexWrap>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2005, 2006 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
+
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 

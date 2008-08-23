@@ -18,5 +18,3 @@ ok( defined(&sub_track),     'Imported sub_track'     );
 ok( defined(&sub_calls),     'Imported sub_calls'     );
 ok( defined(&sub_reset),     'Imported sub_reset'     );
 ok( defined(&sub_reset_all), 'Imported sub_reset_all' );
-
-1;

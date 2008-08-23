@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::SubCalls
 
+1.08 Fri 22 Aug 2008
+	- No functional changes
+	- Upgrading to Module::Install 0.77
+	- Minor tweaky refactorings
+
 1.07 Fri 16 Nov 2007
 	- No functional changes
 	- Upgrading to Module::Install 0.68
