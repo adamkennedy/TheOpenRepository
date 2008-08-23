@@ -23,10 +23,10 @@ my $cleaner = Test::File::Cleaner->new('t');
 #####################################################################
 # Configuration variables
 
-my $static_path = catdir( 't', 'data', 'static_path' );
-ok( -d $static_path, 'The static_path exists' );
+my $static_dir = catdir( 't', 'data', 'static_dir' );
+ok( -d $static_dir, 'The static_dir exists' );
 
-my $static_uri = URI::file->new( rel2abs($static_path) );
+my $static_uri = URI::file->new( rel2abs($static_dir) );
 isa_ok( $static_uri, 'URI::file' );
 
 
@@ -42,7 +42,7 @@ SCOPE: {
 		interactive    => 0,
 		install_cgi    => 0,
 		install_static => 1,
-		static_path    => $static_path,
+		static_dir     => $static_dir,
 		static_uri     => $static_uri->as_string,
 	);
 	isa_ok( $cgi, 'Module::CGI::Install' );
@@ -51,11 +51,11 @@ SCOPE: {
 	is( $cgi->interactive,    '',           '->interactive ok'    );
 	is( $cgi->install_cgi,    '',           '->install_cgi ok'    );
 	is( $cgi->install_static, 1,            '->install_static ok' );
-	is( $cgi->cgi_path,       undef,        '->cgi_path undef'    );
+	is( $cgi->cgi_dir,        undef,        '->cgi_dir undef'    );
 	is( $cgi->cgi_uri,        undef,        '->cgi_uri undef'     );
 	is( $cgi->cgi_map,        undef,        '->cgi_map undef'     );
 	is( $cgi->cgi_capture,    undef,        '->cgi_capture undef' );
-	is( $cgi->static_path,    $static_path, '->static_path ok'    );
+	is( $cgi->static_dir,     $static_dir,  '->static_dir ok'     );
 	is( $cgi->static_uri,     $static_uri,  '->statuc_uri ok'     );
 	isa_ok( $cgi->static_map,  'URI::ToDisk' );
 

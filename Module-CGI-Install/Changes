@@ -1,8 +1,8 @@
 Changes for Perl extension Module-CGI-Install
 
 0.07 Sat 23 Aug 2008
-	- No functional changes
 	- Updated to Module::Install 0.77
+	- Changing _path params to _dir
 
 0.06 Sat  7 Jul 2007
 	- Set executable permissions for scripts

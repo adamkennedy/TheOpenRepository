@@ -279,11 +279,11 @@ sub run {
 			$name,
 		);
 		if (
-			_INSTANCE($config, 'YAML::Tiny')
+			_INSTANCE($from, 'YAML::Tiny')
 			or
-			_INSTANCE($config, 'Config::Tiny')
+			_INSTANCE($from, 'Config::Tiny')
 		) {
-			unless ( $config->write($to) ) {
+			unless ( $from->write($to) ) {
 				die "Failed to write to config file '$name'";
 			}
 		}
