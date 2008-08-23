@@ -541,7 +541,7 @@ sub _find_script {
 
 All bugs should be filed via the bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI-Install>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-CGI-Install>
 
 For other issues, or commercial enhancement or support, contact the author.
 
