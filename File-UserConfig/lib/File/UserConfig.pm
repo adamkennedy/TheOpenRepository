@@ -163,7 +163,7 @@ sub new {
 	# If we don't have a sharedir, get it
 	# from the dist.
 	unless ( $self->sharedir ) {
-		$self->{sharedir} = File::ShareDir::module_dir($self->module);
+		$self->{sharedir} = File::ShareDir::dist_dir($self->dist);
 	}
 
 	# If we don't have a directory name, derive one
