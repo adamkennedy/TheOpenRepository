@@ -199,9 +199,10 @@ Returns a L<Config::Tiny> object, or throws an exception on error.
 sub build_index {
 	my $self   = shift;
 	my $config = Config::Tiny->new;
+	my $root   = $self->root;
 
 	# Find all the files
-	$self->_print("Searching $root for .js files...);
+	$self->_print("Searching $root for .js files...");
 	my @files = File::Find::Rule->name('*.js')
 	                            ->not_name(qr/_deps\.js$/)
 	                            ->file
@@ -250,7 +251,7 @@ sub make_index {
 	}
 
 	# Generate the Config::Tiny object
-	my $config = $class->build_index( $root );
+	my $config = $self->build_index( $self->root );
 
 	# Save the index file
 	$self->_print("Saving $path");

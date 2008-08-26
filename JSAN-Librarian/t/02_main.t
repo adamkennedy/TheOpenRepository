@@ -9,11 +9,12 @@ BEGIN {
 }
 
 use Test::More tests => 14;
-use URI             ();
-use Config::Tiny    ();
-use File::Remove    'remove';
-use JSAN::Librarian ();
+use URI                   ();
+use Config::Tiny          ();
+use File::Remove          'remove';
+use JSAN::Librarian       ();
 use JavaScript::Librarian ();
+use File::Spec::Functions ':ALL';
 
 # Set paths
 my $lib_path      = catdir(  't', 'data' );
@@ -38,7 +39,7 @@ remove($default_index) if -e $default_index;
 END {
 	remove($default_index) if -e $default_index;
 }
-	
+
 # Build first to check the scanning logic
 my $config = JSAN::Librarian->build_index( $lib_path );
 isa_ok( $config, 'Config::Tiny' );
