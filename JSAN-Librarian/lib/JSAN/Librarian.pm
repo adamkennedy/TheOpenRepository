@@ -18,7 +18,7 @@ L<JavaScript::Librarian::Library> object for a L<JSAN> installation.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp                     ();
 use File::Spec               ();
