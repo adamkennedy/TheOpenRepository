@@ -56,7 +56,7 @@ Returns the dummy's name, in this case 'Milton'
 
 =head1 AUTHOR
 
-Adam Kennedy, C<< <cpan at ali.as> >>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SUPPORT
 
@@ -66,11 +66,11 @@ His head is meant to come off ONLY when called as F<Makefile.PL> :)
 
 =head1 SEE ALSO
 
-L<Module::Install>, L<PITA>, L<http://ali.as/pita/>
+L<Module::Install>, L<PITA>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
