@@ -70,7 +70,7 @@ sub image_string {
 	my $height     = $image->getheight;
 	foreach my $row ( 0 .. $height - 1 ) {
 		# Get the string for the row
-		$$scalar_ref = join('',
+		$$scalar_ref .= join('',
 			map { sprintf("#%02X%02X%02X", ($_->rgba)[0..2]) }
 			$image->getscanline( y => $row )
 			);

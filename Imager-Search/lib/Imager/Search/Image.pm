@@ -3,7 +3,7 @@ package Imager::Search::Image;
 # Generic Interface for a target image
 
 use strict;
-use Params::Util '_POSINT';
+use Params::Util qw{ _POSINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -74,22 +74,20 @@ L<Imager::Match::Occurance> object.
 =cut
 
 sub find {
-	my $self  = shift;
+	my $self = shift;
 
-	# Load the strings.
-	# Do it by reference entirely for performance reasons.
-	# This avoids copying some potentially very large string.
-	my $small = '';
-	my $big   = '';
-	$self->_small_string( \$small );
-	$self->_big_string( \$big );
+	# Get the search expression
+        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
+	or die "Did not pass a Pattern object to find";
+	my $regexp  = $pattern->regexp( $self );
 
 	# Run the search
 	my @match = ();
-	my $bpp   = $self->bytes_per_pixel;
-	while ( scalar $ =~ /$small/gs ) {
+	my $big   = $self->string;
+	my $bpp   = $self->driver->bytes_per_pixel;
+	while ( scalar $$big =~ /$regexp/gs ) {
 		my $p = $-[0];
-		push @match, Imager::Search::Match->from_position($self, $p / $bpp);
+		push @match, Imager::Search::Match->from_position($self, $pattern, $p / $bpp);
 		pos $big = $p + 1;
 	}
 	return @match;

@@ -3,7 +3,7 @@ package Imager::Search::Match;
 use 5.005;
 use strict;
 use Carp         ();
-use Params::Util qw{ _POSINT _INSTANCE };
+use Params::Util qw{ _POSINT _NONNEGINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -39,18 +39,22 @@ sub new {
 
 sub from_position {
 	my $class    = shift;
-	my $search   = _INSTANCE(shift, 'Imager::Search')
-		or Carp::croak("Failed to provide Imager::Search param");
-	my $position = _POSINT(shift)
-		or Carp::croak("Failed to provide position");
+	my $image    = _INSTANCE(shift, 'Imager::Search::Image')
+		or Carp::croak("Failed to provide Imager::Search::Image param");
+	my $pattern  = _INSTANCE(shift, 'Imager::Search::Pattern')
+		or Carp::croak("Failed to provide Imager::Search::Pattern param");
+	my $position = _NONNEGINT(shift);
+	unless ( defined $position ) {
+		Carp::croak("Failed to provide position");
+	}
 
 	# Determine the position elements
-	my $width  = $search->small->getwidth;
-	my $height = $search->small->getheight;
-	my $top    = int($position / $width);
-	my $left   = $position % $width;
-	my $bottom = $top + $height - 1;
-	my $right  = $left + $width - 1;
+	my $width    = $pattern->width;
+	my $height   = $pattern->height;
+	my $top      = int($position / $image->width);
+	my $left     = $position % $image->width;
+	my $bottom   = $top + $height - 1;
+	my $right    = $left + $width - 1;
 	my $center_x = int(($left + $right)  / 2);
 	my $center_y = int(($top  + $bottom) / 2);
 
@@ -141,7 +145,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

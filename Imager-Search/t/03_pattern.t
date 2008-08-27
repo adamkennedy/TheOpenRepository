@@ -23,7 +23,7 @@ use Imager::Search        ();
 my $cleaner = Test::File::Cleaner->new('t');
 
 # Testing is done with bmp files, since that doesn't need external libs
-my $small_file = catfile( 't', 'data', 'basic', 'small.bmp' );
+my $small_file = catfile( 't', 'data', 'basic', 'small2.bmp' );
 ok( -f $small_file, 'Found small file' );
 
 my $small = Imager->new;

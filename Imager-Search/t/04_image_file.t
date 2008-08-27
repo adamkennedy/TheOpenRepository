@@ -10,7 +10,7 @@ use Test::More tests => 2;
 use File::Spec::Functions ':ALL';
 use Imager::Search::Image::File;
 
-my $file1 = catfile( 't', 'data', 'basic', 'big.bmp');
+my $file1 = catfile( 't', 'data', 'basic', 'big2.bmp');
 ok( -f $file1, 'Test file 1 exists' );
 
 

@@ -46,6 +46,7 @@ BEGIN {
 use Object::Tiny qw{
 	name
 	driver
+	cache
 	file
 	image
 	height
@@ -67,6 +68,7 @@ use Object::Tiny qw{
   $pattern = Imager::Search::Pattern->new(
       driver => 'Imager::Search::Driver::HTML8',
       file   => 'search/image.gif',
+      cache  => 1,
   );
 
 =cut
@@ -105,6 +107,12 @@ sub new {
 	}
 	unless ( _ARRAY($self->lines) ) {
 		Carp::croak("Did not provide an ARRAY of line patterns");
+	}
+
+	# Normalise caching behaviour
+	$self->{cache} = !! $self->cache;
+	if ( $self->cache ) {
+		$self->{regexp} = {};
 	}
 
 	return $self;
@@ -161,14 +169,21 @@ sub regexp {
 	my $width = undef;
 	if ( _INSTANCE($_[0], 'Imager') ) {
 		$width = $_[0]->getwidth;
+	} elsif ( _INSTANCE($_[0], 'Imager::Search::Image') ) {
+		$width = $_[0]->width;
 	} elsif ( _POSINT($_[0]) ) {
 		$width = $_[0];
 	} else {
 		Carp::croak("Did not provide a width to Imager::Search::Pattern::regexp");
 	}
 
+	# Return the cached version if possible
+	if ( $self->cache and $self->{regexp}->{$width} ) {
+		return $self->{regexp}->{$width};
+	}
+
 	# Get the newline pattern
-	my $newline_pixels   = $width = $self->width;
+	my $newline_pixels   = $width - $self->width;
 	my $newline_function = $self->driver->newline_transform;
 	my $newline_regexp   = &$newline_function( $newline_pixels );
 
@@ -176,12 +191,17 @@ sub regexp {
 	my $string = '';
 	my $lines  = $self->lines;
 	foreach my $i ( 0 .. $#$lines ) {
-		$string .= $newline_regexp unless $string;
+		$string .= $newline_regexp if $string;
 		$string .= $lines->[$i];
 	}
 
-	# Return the Regexp object
-	return qr/$string/si;
+	# Cache the regexp if needed
+	my $regexp = qr/$string/si;
+	if ( $self->cache ) {
+		$self->{regexp}->{$width} = $regexp;
+	}
+
+	return $regexp;
 }
 
 1;
@@ -198,7 +218,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

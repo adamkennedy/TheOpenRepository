@@ -36,7 +36,7 @@ sub new {
 		$self->{height} = $self->image->getheight;
 		$self->{width}  = $self->image->getwidth;
 		my $string = '';
-		$self->{string} = $self->driver->image_string(\$string, $self->image);		
+		$self->{string} = $self->driver->image_string(\$string, $self->image);
 	}
 
 	return $class->SUPER::new( %$self );
