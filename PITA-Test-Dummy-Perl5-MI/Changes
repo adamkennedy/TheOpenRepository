@@ -1,5 +1,8 @@
 Revision history for PITA-Test-Dummy-Perl5-MI
 
+0.77   Thu 28 Aug 2008
+	- Moving to Module::Install 0.77
+
 0.65   Sun  1 Jul 2007
 	- Upgrading to the final version of 0.65
 

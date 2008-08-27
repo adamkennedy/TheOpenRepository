@@ -1,5 +1,4 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.77;
 
 # Instrumentation for exercising the Module::Install::With commands
 sub yn { $_[0] ? 'Yes' : 'No' }
@@ -26,7 +25,6 @@ print <<"END_MESSAGE";
 END_MESSAGE
 
 # The regular MI installation stuff
-name     'PITA-Test-Dummy-Perl5-MI';
 all_from 'lib/PITA/Test/Dummy/Perl5/MI.pm';
 
 WriteAll;
