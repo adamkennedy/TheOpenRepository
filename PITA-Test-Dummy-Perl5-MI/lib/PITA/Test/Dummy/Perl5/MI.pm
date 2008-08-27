@@ -1,6 +1,6 @@
 package PITA::Test::Dummy::Perl5::MI;
 
-use 5.004;
+use 5.005;
 use strict;
 
 use vars qw{$VERSION};
