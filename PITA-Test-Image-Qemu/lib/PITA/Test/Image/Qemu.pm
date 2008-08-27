@@ -20,13 +20,13 @@ It verifies that the driver is using the F<qemu> binary properly.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use File::ShareDir ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.40';
+	$VERSION = '0.41';
 }
 
 1;
@@ -57,7 +57,7 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -67,7 +67,7 @@ L<PITA>, L<PITA::Guest::Driver::Qemu>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
