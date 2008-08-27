@@ -24,7 +24,7 @@ use Carp                     ();
 use File::Spec               ();
 use File::Path               ();
 use Config::Tiny             ();
-use Params::Util             ();
+use Params::Util             qw{ _STRING };
 use File::Basename           ();
 use File::Find::Rule         ();
 use JSAN::Parse::FileDeps    ();
@@ -107,17 +107,17 @@ sub _new_default {
 	my $root = $self->root;
 
 	# Does it have an existing index
-	foreach ( @DEFAULT ) {
-		my $path = File::Spec->catfile( $root, $_ );
+	foreach my $file ( @DEFAULT ) {
+		my $path = File::Spec->catfile( $root, $file );
 		next unless -f $path;
 		$self->_print("Found index at $path");
-		return $path;
+		return $file;
 	}
 
 	# It doesn't exist, but use the primary default
 	my $path = File::Spec->catfile( $root, $DEFAULT[0] );
 	$self->_print("Using default path $DEFAULT[0]");
-	return $path;
+	return $DEFAULT[0];
 }
 
 =pod

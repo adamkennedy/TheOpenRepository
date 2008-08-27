@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 use URI                   ();
 use Config::Tiny          ();
 use File::Remove          'remove';
@@ -18,13 +18,13 @@ use File::Spec::Functions ':ALL';
 
 # Set paths
 my $lib_path      = catdir(  't', 'data' );
-my $default_index = catfile( 't', 'data', '.openjsan.deps' );
+my $default_index = catfile( 't', 'data', 'openjsan.deps' );
 
 # Build the example copnfig to compare things to
 my $expected = Config::Tiny->new;
 $expected->{'Foo.js'} = {};
 $expected->{'Bar.js'} = { 'Foo.js' => 1 };
-$expected->{catfile('Foo', 'Bar.js')} = { 'Foo.js' => 1, 'Bar.js' => 1 };
+$expected->{'Foo/Bar.js'} = { 'Foo.js' => 1, 'Bar.js' => 1 };
 
 
 
@@ -41,7 +41,9 @@ END {
 }
 
 # Build first to check the scanning logic
-my $config = JSAN::Librarian->build_index( $lib_path );
+my $new = JSAN::Librarian->new( $lib_path );
+isa_ok( $new, 'JSAN::Librarian' );
+my $config = $new->build_index( $lib_path );
 isa_ok( $config, 'Config::Tiny' );
 is_deeply(
 	$config,
@@ -50,7 +52,7 @@ is_deeply(
 );
 
 # Check that make_index writes as expected
-ok( JSAN::Librarian->make_index( $lib_path ), '->make_index returns true' );
+ok( $new->make_index( $lib_path ), '->make_index returns true' );
 ok( -e $default_index, '->make_index created index file' );
 $config = Config::Tiny->read( $default_index );
 isa_ok( $config, 'Config::Tiny' );
