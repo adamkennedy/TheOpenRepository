@@ -2,7 +2,7 @@
 
 print "1..3\n";
 
-if ( $] >= 5.004 ) {
+if ( $] >= 5.005 ) {
 	print "ok 1 - PITA does not support perl prior to 5.004\n";
 } else {
 	print "not ok 1 - PITA does not support perl prior to 5.004\n";
@@ -19,7 +19,7 @@ if ( length($@) ) {
 }
 
 my $v = $PITA::Test::Dummy::Perl5::MI::VERSION;
-my $e = '0.66';
+my $e = '0.77';
 if ( $v eq $e ) {
 	print "ok 3 - PITA::Test::Dummy::Perl5::MI has correct version ( '$v' eq '$e' )\n";
 } else {
