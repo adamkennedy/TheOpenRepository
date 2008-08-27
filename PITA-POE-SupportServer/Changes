@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::POE::SupportServer
 
+0.41 Thu 28 Aug 2008
+	- Updating to Module::Install 0.77
+	- No functional changes
+
 0.40 Sun  1 Jul 2007
 	- Updating to Module::Install 0.65
 	- Adding various logging
