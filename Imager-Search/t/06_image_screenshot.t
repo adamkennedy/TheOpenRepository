@@ -6,7 +6,12 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More;
+unless ( $^O eq 'MSWin32' or $ENV{DISPLAY} ) {
+	Test::More->import( skip_all => 'No display' );
+} else {
+	Test::More->import( tests => 2 );
+}
 use File::Spec::Functions ':ALL';
 use Imager::Search::Image::Screenshot;
 
