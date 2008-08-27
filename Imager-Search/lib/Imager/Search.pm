@@ -38,7 +38,11 @@ use Imager::Search::Match   ();
 
 =head1 SUPPORT
 
-No support is available for this module
+No support is available for this module.
+
+However, bug reports may be filed at the following URI.
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Imager-Search>
 
 =head1 AUTHOR
 
