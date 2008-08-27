@@ -410,7 +410,7 @@ L<PITA>, L<POE>, L<Process>, L<http://ali.as/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006 David Davis.
+Copyright 2006 - 2008 David Davis.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
