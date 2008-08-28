@@ -36,10 +36,8 @@ setter(self, newvalue)
      * We uses it to identify the currently running alias of the accessor. Gollum! */
     const I32 index = AutoXS_arrayindices[ix];
   PPCODE:
-    SvREFCNT_inc(newvalue);
-    if (NULL ==  av_store((AV*)SvRV(self), index, newvalue)) {
+    if (NULL == av_store((AV*)SvRV(self), index, newSVsv(newvalue)))
       croak("Failed to write new value to array.");
-    }
     XPUSHs(newvalue);
 
 
@@ -56,8 +54,7 @@ accessor(self, ...)
   PPCODE:
     if (items > 1) {
       SV* newvalue = ST(1);
-      SvREFCNT_inc(newvalue);
-      if (NULL ==  av_store((AV*)SvRV(self), index, newvalue))
+      if (NULL == av_store((AV*)SvRV(self), index, newSVsv(newvalue)))
         croak("Failed to write new value to array.");
       XPUSHs(newvalue);
     }
