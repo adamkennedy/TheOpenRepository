@@ -1,5 +1,8 @@
 Revision history for Perl extension Class::XSAccessor::Array.
 
+0.04  Thu Aug 28 12:29 2008
+        - Now copying scalars on write accesses (RT #38573).
+
 0.03  Sun Jun 22 10:48 2008
         - Accessors and predicates, update docs.
 
