@@ -17,35 +17,36 @@ sub import {
   my %opts = @_;
 
   my $replace = $opts{replace} || 0;
+  my $chained = $opts{chained} || 0;
 
   my $read_subs = $opts{getters} || {};
-  my $set_subs = $opts{setters} || {};
-  my $acc_subs = $opts{accessors} || {};
+  my $set_subs  = $opts{setters} || {};
+  my $acc_subs  = $opts{accessors} || {};
   my $pred_subs = $opts{predicates} || {};
 
   foreach my $subname (keys %$read_subs) {
     my $arrayIndex = $read_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "getter");
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "getter");
   }
 
   foreach my $subname (keys %$set_subs) {
     my $arrayIndex = $set_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "setter");
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "setter");
   }
 
   foreach my $subname (keys %$acc_subs) {
     my $arrayIndex = $acc_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "accessor");
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "accessor");
   }
 
   foreach my $subname (keys %$pred_subs) {
     my $arrayIndex = $pred_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, "predicate");
+    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "predicate");
   }
 }
 
 sub _generate_accessor {
-  my ($caller_pkg, $subname, $arrayIndex, $replace, $type) = @_;
+  my ($caller_pkg, $subname, $arrayIndex, $replace, $chained, $type) = @_;
 
   if (not defined $arrayIndex) {
     croak("Cannot use undef as a array index for generating an XS $type accessor. (Sub: $subname)");
@@ -77,13 +78,13 @@ sub _generate_accessor {
     newxs_getter($subname, $arrayIndex);
   }
   elsif ($type eq 'setter') {
-    newxs_setter($subname, $arrayIndex);
+    newxs_setter($subname, $arrayIndex, $chained);
   }
   elsif ($type eq 'predicate') {
     newxs_predicate($subname, $arrayIndex);
   }
   else {
-    newxs_accessor($subname, $arrayIndex);
+    newxs_accessor($subname, $arrayIndex, $chained);
   }
 }
 
