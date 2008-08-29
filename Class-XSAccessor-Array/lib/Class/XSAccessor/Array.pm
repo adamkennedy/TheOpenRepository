@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 require XSLoader;
 XSLoader::load('Class::XSAccessor::Array', $VERSION);
@@ -141,6 +141,36 @@ L<Class::XSAccessor>, which works on hash-based objects.
 The method names may be fully qualified. In the example of the
 synopsis, you could have written C<MyClass::get_foo> instead
 of C<get_foo>.
+
+=head1 OPTIONS
+
+In addition to specifying the types and names of accessors, you can add options
+which modify behaviour. The options are specified as key/value pairs just as the
+accessor declaration. Example:
+
+  use Class::XSAccessor::Array
+    getters => {
+      get_foo => 0,
+    },
+    replace => 1;
+
+The list of available options is:
+
+=head2 replace
+
+Set this to a true value to prevent C<Class::XSAccessor::Array> from
+complaining about replacing existing subroutines.
+
+=head2 chained
+
+Set this to a true value to change the return value of setters
+and mutators (when called with an argument).
+If C<chained> is enabled, the setters and accessors/mutators will
+return the object. Mutators called without an argument still
+return the value of the associated attribute.
+
+As with the other options, C<chained> affects all methods generated
+in the same C<use Class::XSAccessor::Array ...> statement.
 
 =head1 CAVEATS
 

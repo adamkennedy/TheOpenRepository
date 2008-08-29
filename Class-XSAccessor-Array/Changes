@@ -1,5 +1,10 @@
 Revision history for Perl extension Class::XSAccessor::Array.
 
+0.05  Thu Aug 29 14:27 2008
+        - More tests!
+        - "chained" option for chained accessors and setters.
+        - Document the "replace" option.
+
 0.04  Thu Aug 28 12:29 2008
         - Now copying scalars on write accesses (RT #38573).
 
