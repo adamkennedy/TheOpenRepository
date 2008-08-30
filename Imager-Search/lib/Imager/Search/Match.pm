@@ -7,7 +7,7 @@ use Params::Util qw{ _POSINT _NONNEGINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use Object::Tiny qw{
@@ -31,8 +31,18 @@ use Object::Tiny qw{
 sub new {
 	my $self = shift->SUPER::new(@_);
 
-	# Checking params
-	
+	# Temporary checks for the basic geometry
+	defined(_NONNEGINT($self->top))    or die "Missing or invalid top value";
+	defined(_NONNEGINT($self->left))   or die "Missing or invalid left value";
+	defined(_NONNEGINT($self->height)) or die "Missing or invalid height value";
+	defined(_NONNEGINT($self->width))  or die "Missing or invalid width value";
+
+	# Assume that we've been provided the basic (top/left/height/width)
+	# geometry, and from that derive the rest.
+	$self->{bottom}   = $self->top  + $self->height - 1;
+	$self->{right}    = $self->left + $self->width  - 1;
+	$self->{centre_x} = int( ($self->left + $self->right ) / 2 );
+	$self->{centre_y} = int( ($self->top  + $self->bottom) / 2 );
 
 	return $self;
 }

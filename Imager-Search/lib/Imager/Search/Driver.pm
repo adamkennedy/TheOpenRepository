@@ -49,7 +49,7 @@ use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 
@@ -84,14 +84,14 @@ sub new {
 	my $self = bless { @_ }, $class;
 
 	# Get the transforms
-	unless ( _CODELIKE($self->pattern_transform) ) {
+	unless ( _CODELIKE($self->transform_pattern_line) ) {
 		Carp::croak("The small_transform param was not a CODE reference");
 	}
-	unless ( _CODELIKE($self->image_transform) ) {
+	unless ( _CODELIKE($self->transform_image_line) ) {
 		Carp::croak("The big_transform param was not a CODE reference");
 	}
-	unless ( _CODELIKE($self->newline_transform) ) {
-		Carp::croak("The newline_transform param was not a CODE reference");
+	unless ( _CODELIKE($self->transform_pattern_newline) ) {
+		Carp::croak("The transform_pattern_newline param was not a CODE reference");
 	}
 
 	return $self;
@@ -101,7 +101,7 @@ sub new {
 
 
 #####################################################################
-# Support Methods
+# Driver API Methods
 
 sub pattern_lines {
 	my $self   = shift;
@@ -120,7 +120,7 @@ sub pattern_scanline {
 	# Get the colour array
 	my $col  = -1;
 	my $line = '';
-	my $func = $self->pattern_transform;
+	my $func = $self->transform_pattern_line;
 	my $this = '';
 	my $more = 1;
 	foreach my $color ( $image->getscanline( y => $row ) ) {
@@ -147,96 +147,18 @@ sub image_string {
 	my $scalar_ref = shift;
 	my $image      = shift;
 	my $height     = $image->getheight;
-	my $func       = $self->image_transform;
+	my $func       = $self->transform_image_line;
 	foreach my $row ( 0 .. $height - 1 ) {
 		# Get the string for the row
 		$$scalar_ref = join('',
 			map { &$func( $_ ) }
 			$image->getscanline( y => $row )
-			);
+		);
 	}
 
 	# Return the scalar reference as a convenience
 	return $scalar_ref;
 }
-
-
-
-
-
-#####################################################################
-# Search Methods
-
-
-=pod
-
-=head2 find
-
-The C<find> method compiles the search and target images in memory, and
-executes a single search, returning the position of the first match as a
-L<Imager::Match::Occurance> object.
-
-=cut
-
-sub find {
-	my $self    = shift;
-	my $image   = _INSTANCE(shift, 'Imager::Search::Image')
-		or Carp::croak("Did not provide an image");
-	my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
-		or Carp::croak("Did not provide a pattern");
-
-	# Load the strings.
-	# Do it by reference entirely for performance reasons.
-	# This avoids copying some potentially very large string.
-	if ( _INSTANCE($_[0], 'Imager::Search::Image') ) {
-		$image = shift->transformed;
-	} else {
-		die "CODE INCOMPLETE";
-	}
-	my $image_string   = $image->transformed;
-	my $pattern_regexp = $pattern->regexp;
-
-	# Run the search
-	my @match = ();
-	my $bpp   = $self->bytes_per_pixel;
-	while ( scalar $$image_string =~ /$pattern_regexp/gs ) {
-		my $p = $-[0];
-		push @match, Imager::Search::Match->from_position($self, $p / $bpp);
-		pos $image_string = $p + 1;
-	}
-	return @match;
-}
-
-=pod
-
-=head2 find_first
-
-The C<find_first> compiles the search and target images in memory, and
-executes a single search, returning the position of the first match as a
-L<Imager::Match::Occurance> object.
-
-=cut
-
-sub find_first {
-	my $self  = shift;
-
-	# Load the strings.
-	# Do it by reference entirely for performance reasons.
-	# This avoids copying some potentially very large string.
-	my $small = '';
-	my $big   = '';
-	$self->_small_string( \$small );
-	$self->_big_string( \$big );
-
-	# Run the search
-	my $bpp = $self->bytes_per_pixel;
-	while ( scalar $big =~ /$small/gs ) {
-		my $p = $-[0];
-		return Imager::Search::Match->from_position($self, $p / $bpp);
-	}
-	return undef;
-}
-
 
 1;
 
@@ -244,7 +166,7 @@ sub find_first {
 
 =head1 SUPPORT
 
-No support is available for this module
+See the SUPPORT section of the main L<Imager::Search> module.
 
 =head1 AUTHOR
 

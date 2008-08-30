@@ -40,7 +40,7 @@ use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use Object::Tiny qw{
@@ -81,7 +81,9 @@ sub new {
 		$self->{driver} = "Imager::Search::Driver::" . $self->driver;
 	}
 	if ( _DRIVER($self->driver, 'Imager::Search::Driver') ) {
-		$self->{driver} = $self->driver->new;
+		unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
+			$self->{driver} = $self->driver->new;
+		}
 	}
 	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 		Carp::croak("Did not provide a valid driver");
@@ -182,20 +184,13 @@ sub regexp {
 		return $self->{regexp}->{$width};
 	}
 
-	# Get the newline pattern
-	my $newline_pixels   = $width - $self->width;
-	my $newline_function = $self->driver->newline_transform;
-	my $newline_regexp   = &$newline_function( $newline_pixels );
+	# Assemble the regular expression
+	my $pixels  = $width - $self->width;
+	my $newline = $self->driver->pattern_newline( $pixels );
+	my $lines   = $self->lines;
+	my $string  = join( $newline, @$lines );
 
-	# Merge into the final string
-	my $string = '';
-	my $lines  = $self->lines;
-	foreach my $i ( 0 .. $#$lines ) {
-		$string .= $newline_regexp if $string;
-		$string .= $lines->[$i];
-	}
-
-	# Cache the regexp if needed
+	# Cache if needed
 	my $regexp = qr/$string/si;
 	if ( $self->cache ) {
 		$self->{regexp}->{$width} = $regexp;

@@ -1,6 +1,11 @@
 Changes for Perl extension Imager-Search
 
-0.10 Wed  1 Aug 2007
+0.11 Sat 30 Aug 2008
+	- Wrote new documentation for the main Imager::Search module
+	- Refactoring the driver API to get closer to adding
+	  support for the native BMP24 driver.
+
+0.10 Wed 27 Aug 2008
 	- Redesigned the API from scratch to be more scalable
 	- This is a first basic attempt, things will get more
 	  maintainable in future releases.

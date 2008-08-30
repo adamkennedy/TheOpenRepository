@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 7;
 use File::Spec::Functions ':ALL';
 use Imager::Search                ();
 use Imager::Search::Pattern       ();
@@ -39,6 +39,8 @@ my $target = Imager::Search::Image::File->new(
 isa_ok( $target, 'Imager::Search::Image::File' );
 
 my @matches = $target->find( $pattern );
+my $first   = $target->find_first( $pattern );
+my $boolean = $target->find_any( $pattern );
 
 
 
@@ -48,3 +50,5 @@ my @matches = $target->find( $pattern );
 # Check the results
 
 is( scalar(@matches), 2, 'Found 2 matches' );
+is_deeply( $first, $matches[0], 'find_first ok' );
+is( $boolean, 1, 'find_any ok' );

@@ -1,13 +1,23 @@
 package Imager::Search::Image;
 
-# Generic Interface for a target image
+=pod
+
+=head1 NAME
+
+Imager::Search::Image - Generic interface for a searchable image
+
+=head1 DESCRIPTION
+
+TO BE COMPLETED
+
+=cut
 
 use strict;
 use Params::Util qw{ _POSINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 sub new {
@@ -78,17 +88,16 @@ sub find {
 
 	# Get the search expression
         my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
-	or die "Did not pass a Pattern object to find";
+		or die "Did not pass a Pattern object to find";
 	my $regexp  = $pattern->regexp( $self );
 
 	# Run the search
 	my @match = ();
-	my $big   = $self->string;
-	my $bpp   = $self->driver->bytes_per_pixel;
-	while ( scalar $$big =~ /$regexp/gs ) {
+	my $string   = $self->string;
+	while ( scalar $$string =~ /$regexp/gs ) {
 		my $p = $-[0];
-		push @match, Imager::Search::Match->from_position($self, $pattern, $p / $bpp);
-		pos $big = $p + 1;
+		push @match, $self->driver->match_object( $self, $pattern, $p );
+		pos $string = $p + 1;
 	}
 	return @match;
 }
@@ -104,23 +113,54 @@ L<Imager::Match::Occurance> object.
 =cut
 
 sub find_first {
-	my $self  = shift;
+	my $self = shift;
 
-	# Load the strings.
-	# Do it by reference entirely for performance reasons.
-	# This avoids copying some potentially very large string.
-	my $small = '';
-	my $big   = '';
-	$self->_small_string( \$small );
-	$self->_big_string( \$big );
+	# Get the search expression
+        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
+		or die "Did not pass a Pattern object to find";
+	my $regexp  = $pattern->regexp( $self );
 
 	# Run the search
-	my $bpp = $self->bytes_per_pixel;
-	while ( scalar $big =~ /$small/gs ) {
-		my $p = $-[0];
-		return Imager::Search::Match->from_position($self, $p / $bpp);
+	my $string = $self->string;
+	while ( scalar $$string =~ /$regexp/gs ) {
+		my $p     = $-[0];
+		my $match = $self->driver->match_object( $self, $pattern, $p );
+		unless ( defined $match ) {
+			# False positive
+			pos $string = $p + 1;
+			next;
+		}
+		return $match;
 	}
-	return undef;
+	return;
+}
+
+# Derived from find_first, but always return a scalar boolean
+sub find_any {
+	my $self  = shift;
+	return !! $self->find_first( @_ );
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+See the SUPPORT section of the main L<Imager::Search> module.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

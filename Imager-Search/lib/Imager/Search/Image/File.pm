@@ -7,7 +7,7 @@ use Params::Util '_IDENTIFIER', '_INSTANCE', '_DRIVER';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 sub new {
