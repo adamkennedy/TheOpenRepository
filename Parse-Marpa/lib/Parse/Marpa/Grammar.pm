@@ -2668,7 +2668,7 @@ sub detect_cycle {
 	next RULE unless scalar @{$rhs};
 
         for my $rhs_symbol (@{$rhs}) {
-            if ( not $rhs->[Parse::Marpa::Internal::Symbol::NULLABLE] ) {
+            if ( not $rhs_symbol->[Parse::Marpa::Internal::Symbol::NULLABLE] ) {
 
                 # if we have two non-nullables on the RHS in this rule,
                 # it can never amount to a unit rule and we can ignore it

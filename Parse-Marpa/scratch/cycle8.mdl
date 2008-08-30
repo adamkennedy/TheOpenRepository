@@ -1,6 +1,6 @@
 semantics are perl5.  version is 0.215.1.
 start symbol is S.
-default_action is q{join(" ", @_)}.
+default action is q{join(" ", @_)}.
 
 S: A.
 
@@ -18,11 +18,21 @@ E matches /./.
 
 T matches /./.
 
+T: .
+
 U matches /./.
+
+U: .
 
 V matches /./.
 
+V: .
+
 W matches /./.
 
+W: .
+
 X matches /./.
+
+X: .
 

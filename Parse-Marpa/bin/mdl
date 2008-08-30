@@ -21,6 +21,7 @@ my $unproductive_symbols;
 my $productive_symbols;
 my $trace_actions;
 my $trace_lex;
+my $trace_predefineds;
 my $trace_priorities;
 my $trace_values;
 my $show_NFA;
@@ -57,6 +58,7 @@ given ($command) {
             "unproductive_symbols" => \$unproductive_symbols,
             "productive_symbols"   => \$productive_symbols,
             "trace_actions"        => \$trace_actions,
+            "trace_predefineds"    => \$trace_predefineds,
             "trace_values"         => \$trace_values,
             "trace_priorities"     => \$trace_priorities,
             "trace_lex"            => \$trace_lex,
@@ -77,6 +79,10 @@ given ($command) {
 
 	if ($trace_lex) {
 	    $options{trace_lex} = 1;
+	}
+
+	if ($trace_predefineds) {
+	    $options{trace_predefineds} = 1;
 	}
 
 	if ($trace_priorities) {

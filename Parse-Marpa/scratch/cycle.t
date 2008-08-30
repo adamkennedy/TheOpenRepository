@@ -7,7 +7,7 @@ use lib "../lib";
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 BEGIN {
     use_ok('Parse::Marpa');
@@ -20,7 +20,7 @@ chdir($example_dir);
 my $mdl_header = <<'EOF';
 semantics are perl5.  version is 0.215.1.
 start symbol is S.
-default_action is q{join(q{ }, @_)}.
+default action is q{join(q{ }, @_)}.
 
 EOF
 
@@ -32,8 +32,6 @@ S matches /./.
 EOF
 
 my $cycle2_mdl = $mdl_header . <<'EOF';
-S: S.
-
 S: A.
 
 A: S.
@@ -59,13 +57,23 @@ E matches /./.
 
 T matches /./.
 
+T: .
+
 U matches /./.
+
+U: .
 
 V matches /./.
 
+V: .
+
 W matches /./.
 
+W: .
+
 X matches /./.
+
+X: .
 
 EOF
 
@@ -83,9 +91,8 @@ EOS
       \('1'),
       '1',
       <<'EOS'
-Cycle found involving rule: 2: a -> s
-Cycle found involving rule: 1: s -> a
-Cycle found involving rule: 0: s -> s
+Cycle found involving rule: 1: a -> s
+Cycle found involving rule: 0: s -> a
 EOS
   ],
   [
@@ -93,7 +100,12 @@ EOS
       \('123456'),
       '1 2 3 4 5 6',
       <<'EOS'
-to do
+Cycle found involving rule: 3: c -> w d x /* !useful */
+Cycle found involving rule: 2: b -> v c /* !useful */
+Cycle found involving rule: 1: a -> b t u /* !useful */
+Cycle found involving rule: 5: e -> s
+Cycle found involving rule: 4: d -> e
+Cycle found involving rule: 0: s -> a
 EOS
     ],
 ) {
