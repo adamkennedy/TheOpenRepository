@@ -2678,10 +2678,11 @@ sub detect_cycle {
             }
         }    # for $rhs_symbol
 
-	# In CHAF, all rules have at least one non-nullable on the the RHS,
-	# and above we've eliminated all rules with two or more non-nullables
-	# on the RHS.  So here we have a rule with exactly one non-nullable
+	# Above we've eliminated all rules with two or more non-nullables
+	# on the RHS.  So here we have a rule with at most one non-nullable
 	# on the RHS.
+
+	next RULE unless defined $non_nullable_symbol;
 
         my $start_id =
             $rule->[Parse::Marpa::Internal::Rule::LHS]

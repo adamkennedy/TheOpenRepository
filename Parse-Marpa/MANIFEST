@@ -35,6 +35,7 @@ t/ah.t
 t/ah2.t
 t/ah_s.t
 t/bootstrap.t
+t/cycle.t
 t/equation.t
 t/equation_s.t
 t/gj.t
