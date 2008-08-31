@@ -1,4 +1,4 @@
-package Imager::Search::Driver::HTML8;
+package Imager::Search::Driver::HTML24;
 
 # Basic search driver implemented in terms of 8-bit
 # HTML-style strings ( #003399 )
@@ -91,11 +91,11 @@ __END__
 
 =head1 NAME
 
-Imager::Search::Driver::HTML8 - Simple driver using HTML #RRBBGG strings
+Imager::Search::Driver::HTML24 - Simple driver using HTML #RRBBGG strings
 
 =head1 DESCRIPTION
 
-B<Imager::Search::Driver::HTML8> is a simple reference driver for
+B<Imager::Search::Driver::HTML24> is a simple reference driver for
 L<Imager::Search>.
 
 It uses a HTML color string like #0033FF for each pixel, providing both a
@@ -104,7 +104,7 @@ simple text expression of the colour, as well as a hash pixel separator.
 Search patterns are compressed, so that a horizontal stream of identical
 pixels are represented as a single match group.
 
-Color-wise, an HTML8 search is considered to be 3-channel 8-bit.
+Color-wise, an HTML24 search is considered to be 3-channel 8-bit.
 
 =head1 SUPPORT
 

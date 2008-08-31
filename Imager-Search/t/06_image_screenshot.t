@@ -22,7 +22,7 @@ use Imager::Search::Image::Screenshot;
 #####################################################################
 # Trivial Test Files
 
-my $image1 = Imager::Search::Image::Screenshot->new( driver => 'HTML8' );
+my $image1 = Imager::Search::Image::Screenshot->new( driver => 'HTML24' );
 isa_ok( $image1, 'Imager::Search::Image::Screenshot' );
 
 # Confirm the string is the expected size

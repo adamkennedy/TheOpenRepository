@@ -21,7 +21,7 @@ ok( -f $file1, 'Test file 1 exists' );
 # Trivial Test Files
 
 my $image1 = Imager::Search::Image::File->new(
-	driver => 'HTML8',
+	driver => 'HTML24',
 	file   => $file1,
 );
 isa_ok( $image1, 'Imager::Search::Image::File' );

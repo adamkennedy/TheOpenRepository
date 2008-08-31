@@ -47,12 +47,12 @@ ok( ! -f $cache, 'Cache file does not exist' );
 my $lines1 = undef;
 SCOPE: {
 	my $pattern = Imager::Search::Pattern->new(
-		driver => 'Imager::Search::Driver::HTML8',
+		driver => 'Imager::Search::Driver::HTML24',
 		image  => $small,
 	);
 	isa_ok( $pattern, 'Imager::Search::Pattern' );
 	isa_ok( $pattern->driver, 'Imager::Search::Driver' );
-	isa_ok( $pattern->driver, 'Imager::Search::Driver::HTML8' );
+	isa_ok( $pattern->driver, 'Imager::Search::Driver::HTML24' );
 	is( $pattern->file, undef, '->file returns null' );
 	isa_ok( $pattern->image,  'Imager' );
 	is( $pattern->height, 13, '->height ok' );
@@ -66,12 +66,12 @@ SCOPE: {
 my $lines2 = undef;
 SCOPE: {
 	my $pattern = Imager::Search::Pattern->new(
-		driver => 'HTML8',
+		driver => 'HTML24',
 		file   => $small_file,
 	);
 	isa_ok( $pattern, 'Imager::Search::Pattern' );
 	isa_ok( $pattern->driver, 'Imager::Search::Driver' );
-	isa_ok( $pattern->driver, 'Imager::Search::Driver::HTML8' );
+	isa_ok( $pattern->driver, 'Imager::Search::Driver::HTML24' );
 	is( $pattern->file, $small_file, '->file returns null' );
 	isa_ok( $pattern->image,  'Imager' );
 	is( $pattern->height, 13, '->height ok' );
@@ -86,7 +86,7 @@ is_deeply( $lines1, $lines2, '->lines match' );
 # Create and write to a cache file
 SCOPE: {
 	my $pattern = Imager::Search::Pattern->new(
-		driver => 'HTML8',
+		driver => 'HTML24',
 		file   => $small_file,
 	);
 	isa_ok( $pattern, 'Imager::Search::Pattern' );

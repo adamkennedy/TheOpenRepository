@@ -11,7 +11,7 @@ use File::Spec::Functions ':ALL';
 use Imager::Search                ();
 use Imager::Search::Pattern       ();
 use Imager::Search::Image::File   ();
-use Imager::Search::Driver::HTML8 ();
+use Imager::Search::Driver::HTML24 ();
 
 my $small = catfile( 't', 'data', 'basic', 'small1.bmp' );
 ok( -f $small, 'Found small file' );

@@ -9,7 +9,7 @@ Imager::Search::Pattern - Search object for an image
 =head1 SYNOPSIS
 
   my $pattern = Imager::Search::Pattern->new(
-          driver => 'Imager::Search::Driver::HTML8',
+          driver => 'Imager::Search::Driver::HTML24',
           image  => $Imager,
   );
   
@@ -66,7 +66,7 @@ use Object::Tiny qw{
 =head2 new
 
   $pattern = Imager::Search::Pattern->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
       file   => 'search/image.gif',
       cache  => 1,
   );

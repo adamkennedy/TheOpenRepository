@@ -12,13 +12,13 @@ Imager::Search - Locate images inside other images
   
   # Load the pattern to search for
   my $pattern = Imager::Search::Pattern->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
       file   => 'pattern.bmp',
   );
   
   # Load the image to search in
   my $image = Imager::Search::Image::File->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
       file   => 'target.bmp',
   );
   
@@ -106,9 +106,9 @@ by not imposing a single solution, but instead defining a driver API for
 the transforms, so that a number of different implementations can be used
 with the same API in various situations.
 
-=head2 The HTML8 Driver
+=head2 The HTML24 Driver
 
-A default "HTML8" implementation is provided with the module. This is a
+A default "HTML24" implementation is provided with the module. This is a
 reference driver that encodes each pixel as a HTML "#RRGGBB" colour code.
 
 This driver demonstrates fast search times and a simple results transform,
@@ -131,14 +131,14 @@ The typical usage pattern consists of the following steps...
   # An image loaded from a file
   use Imager::Search::Image::File ();
   my $image = Imager::Search::Image::File->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
       file   => 'target.bmp',
   );
   
   # An image captured from a screenshot
   use Imager::Search::Image::Screenshot ();
   my $screen = Imager::Search::Image::Screenshot->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
   );
 
 =head2 2. Load the Search Pattern
@@ -146,7 +146,7 @@ The typical usage pattern consists of the following steps...
   # A pattern loaded from a file
   use Imager::Search::Pattern ();
   my $pattern = Imager::Search::Pattern->new(
-      driver => 'Imager::Search::Driver::HTML8',
+      driver => 'Imager::Search::Driver::HTML24',
       file   => 'pattern.bmp',
   );
 
@@ -178,9 +178,9 @@ L<Imager::Search::Driver> is the abstract driver interface. It cannot
 be instantiated directly, but it describes (in both code and documentation)
 what any driver needs to implement.
 
-=head2 Imager::Search::Driver::HTML8
+=head2 Imager::Search::Driver::HTML24
 
-L<Imager::Search::Driver::HTML8> is an 8-bit reference driver that uses
+L<Imager::Search::Driver::HTML24> is an 8-bit reference driver that uses
 HTML colour codes (#RRGGBB) to represent each pixel.
 
 =head2 Imager::Search::Image

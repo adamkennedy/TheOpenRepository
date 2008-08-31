@@ -1,5 +1,5 @@
 class: Imager::Search::Image::Cached
-driver: Imager::Search::Driver::HTML8
+driver: Imager::Search::Driver::HTML24
 height: 4
 width: 4
 

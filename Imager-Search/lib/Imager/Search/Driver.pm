@@ -10,7 +10,7 @@ Imager::Search::Driver - Abstract imlementation of a Imager::Search driver
 
   # Create the search
   my $search = Imager::Search::Driver->new(
-      driver => 'HTML8',
+      driver => 'HTML24',
       big    => $large_imager_object,
       small  => $small_imager_object,
   );
@@ -74,8 +74,8 @@ sub new {
 
 	# Apply the default driver
 	if ( $class eq 'Imager::Search::Driver' ) {
-		require Imager::Search::Driver::HTML8;
-		return  Imager::Search::Driver::HTML8->new(@_);
+		require Imager::Search::Driver::HTML24;
+		return  Imager::Search::Driver::HTML24->new(@_);
 	}
 
 	# Create the object

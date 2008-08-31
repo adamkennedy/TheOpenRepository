@@ -148,7 +148,7 @@ simple text expression of the colour, as well as a hash pixel separator.
 Search patterns are compressed, so that a horizontal stream of identical
 pixels are represented as a single match group.
 
-Color-wise, an HTML8 search is considered to be 3-channel 8-bit.
+Color-wise, an HTML24 search is considered to be 3-channel 8-bit.
 
 Support for 1-bit alpha transparency (ala "transparent gifs") is not
 currently supported but is likely be implemented in the future.
