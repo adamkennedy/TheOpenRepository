@@ -20,7 +20,7 @@ use base 'Imager::Search::Image::File';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -49,7 +49,7 @@ sub new {
 
 =head1 SUPPORT
 
-No support is available for this module
+See the SUPPORT section of the main L<Imager::Search> module.
 
 =head1 AUTHOR
 

@@ -31,7 +31,7 @@ applied to many different sizes of target images.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp         ();
 use IO::File     ();
@@ -40,7 +40,7 @@ use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 use Object::Tiny qw{
@@ -184,14 +184,10 @@ sub regexp {
 		return $self->{regexp}->{$width};
 	}
 
-	# Assemble the regular expression
-	my $pixels  = $width - $self->width;
-	my $newline = $self->driver->pattern_newline( $pixels );
-	my $lines   = $self->lines;
-	my $string  = join( $newline, @$lines );
+	# Hand off to the driver to build the regexp
+	my $regexp = $self->driver->pattern_regexp( $self, $width );
 
 	# Cache if needed
-	my $regexp = qr/$string/si;
 	if ( $self->cache ) {
 		$self->{regexp}->{$width} = $regexp;
 	}
@@ -205,7 +201,7 @@ sub regexp {
 
 =head1 SUPPORT
 
-No support is available for this module
+See the SUPPORT section of the main L<Imager::Search> module.
 
 =head1 AUTHOR
 

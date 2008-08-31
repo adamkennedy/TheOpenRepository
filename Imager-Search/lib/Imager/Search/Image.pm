@@ -17,7 +17,7 @@ use Params::Util qw{ _POSINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 sub new {
@@ -59,11 +59,6 @@ sub width {
 
 sub string {
 	$_[0]->{string};
-}
-
-sub transformed {
-	my $self = shift;
-	die "The transformed_string method must be implemented by a child class";
 }
 
 

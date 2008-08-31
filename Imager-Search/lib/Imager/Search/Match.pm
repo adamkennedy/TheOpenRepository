@@ -1,13 +1,13 @@
 package Imager::Search::Match;
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp         ();
 use Params::Util qw{ _POSINT _NONNEGINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 use Object::Tiny qw{
@@ -147,7 +147,7 @@ vertical pixels, the value will be rounded to the top.
 
 =head1 SUPPORT
 
-No support is available for this module
+See the SUPPORT section of the main L<Imager::Search> module.
 
 =head1 AUTHOR
 
