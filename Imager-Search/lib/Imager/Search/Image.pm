@@ -92,9 +92,9 @@ sub find {
 	while ( scalar $$string =~ /$regexp/gs ) {
 		my $p = $-[0];
 		push @match, $self->driver->match_object( $self, $pattern, $p );
-		pos $string = $p + 1;
+		pos $$string = $p + 1;
 	}
-	return @match;
+	return sort { $a->top <=> $b->top } @match;
 }
 
 =pod
@@ -133,7 +133,24 @@ sub find_first {
 # Derived from find_first, but always return a scalar boolean
 sub find_any {
 	my $self  = shift;
-	return !! $self->find_first( @_ );
+
+	# Get the search expression
+        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
+		or die "Did not pass a Pattern object to find";
+	my $regexp  = $pattern->regexp( $self );
+
+	# Run the search
+	my $string = $self->string;
+	while ( scalar $$string =~ /$regexp/gs ) {
+		my $p = $-[0];
+		if ( defined $self->driver->match_object( $self, $pattern, $p ) ) {
+			return 1;
+		}
+
+		# False positive
+		pos $$string = $p + 1;
+	}
+	return '';
 }
 
 1;

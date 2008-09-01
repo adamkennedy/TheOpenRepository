@@ -13,6 +13,8 @@ BEGIN {
 	$VERSION = '0.12';
 }
 
+use constant HEADER => 54;
+
 
 
 
@@ -20,88 +22,99 @@ BEGIN {
 #####################################################################
 # Imager::Search::Driver Methods
 
+sub pattern_regexp {
+	my $self    = shift;
+	my $pattern = shift;
+	my $width   = shift;
+
+	# Each BMP scan line comes in groups of 4-byte dwords.
+	# As a result, each line contains an amount of useless extra
+	# bytes needed to round it up to a multiple of 4 bytes.
+	my $junk    =  ($width * -3) % 4;
+	my $pixels  = $width - $pattern->width;
+	my $newline = '.{' . ($pixels * 3 + $junk) . '}';
+
+	# Assemble the regexp
+	my $lines   = $pattern->lines;
+	my $string  = join( $newline, @$lines );
+
+	return qr/$string/s;
+}
+
+sub pattern_lines {
+	my $self   = shift;
+	my $image  = shift;
+
+	# Generate the raw bmp data for the pattern image
+	my $data = '';
+	$image->write( data => \$data, type => 'bmp' )
+		or die "Failed to generate bmp image";
+
+	# The bmp will contain the raw scanline data we want in
+	# a series of byte ranges. Capture each range and quotemeta
+	# the raw bytes.
+	my $pixels = $image->getwidth;
+	my $range  = $pixels * 3;
+	my $width  = $range + (-$range % 4);
+	return [
+		map { quotemeta substr( $data, $_, $range ) }
+		map { HEADER + $_ * $width }
+		( 0 .. $image->getheight - 1 )
+	];
+}
+
 sub match_object {
-	my $self      = shift;
-	my $image     = shift;
-	my $pattern   = shift;
-	my $character = shift;
+	my $self    = shift;
+	my $image   = shift;
+	my $pattern = shift;
+	my $byte    = shift;
 
-	# Derive the pixel position from the character position
-	my $pixel = $self->match_pixel( $image, $pattern, $character );
+	# Remove the delta from the header
+	$byte -= HEADER;
 
-	# If the pixel position isn't an integer we matched
-	# at a position that is not a pixel boundary, and thus
-	# this match is a false positive. Shortcut to fail.
-	unless ( $pixel == int($pixel) ) {
+	# If we accidentally matched somewhere in header, we need
+	# to discard the match. Shortcut to fail.
+	unless ( $byte >= 0 ) {
 		return; # undef or null list
 	}
 
-	# Calculate the basic geometry of the match
-	my $top    = int( $pixel / $image->width );
-	my $left   = $pixel % $image->width;
+	# The bytewidth of a line is pixel width
+	# multiplied by three, plus one for the newline.
+	my $pixel_width = $image->width;
+	my $byte_junk   = ($pixel_width * -3) % 4;
+	my $byte_width  = $pixel_width * 3 + $byte_junk;
 
-	# If the match overlaps the newline boundary or falls off the bottom
-	# of the image, this is also a false positive. Shortcut to fail.
-	if ( $left > $image->width - $pattern->width ) {
+	# Find the column for the match.
+	# If the column isn't an integer we matched at a position that is
+	# not a pixel boundary, and thus this match is a false positive.
+	# Shortcut to fail.
+	my $pixel_left  = ($byte % $byte_width) / 3;
+	unless ( $pixel_left == int($pixel_left) ) {
 		return; # undef or null list
 	}
-	if ( $top > $image->height - $pattern->height ) {
+
+	# If the match overlaps the newline boundary this is also a
+	# false positive. Shortcut to fail.
+	if ( $pixel_left > $image->width - $pattern->width ) {
+		return; # undef or null list
+	}
+
+	# The match position represents the bottom row.
+	# If the match falls off the top of the image this is also
+	# a false positive. Shortcut to fail.
+	my $pixel_bottom = $image->height - int($byte / $byte_width) - 1;
+	if ( $pixel_bottom < $pattern->height - 1 ) {
 		return; # undef or null list
 	}
 
 	# This is a legitimate match.
 	# Convert to a match object and return.
 	return Imager::Search::Match->new(
-		top    => $top,
-		left   => $left,
+		top    => $pixel_bottom - $pattern->height + 1,
+		left   => $pixel_left,
 		height => $pattern->height,
 		width  => $pattern->width,
 	);
-}
-
-sub match_pixel {
-	my ($self, $image, $pattern, $character) = @_;
-
-	# The character width of a line is pixel width
-	# multiplied by three, plus one for the newline.
-	my $width = $image->width * 3 + 1;
-
-	# Remove the 54-byte BMP file header
-	my $pixel = $character - 54;
-
-	# Remove one byte per line for the newline byte
-	$pixel -= $pixel % $width;
-
-	# There by the three characters per pixel
-	return( $pixel / 3 );
-}
-
-sub pattern_newline {
-	__transform_pattern_newline($_[1]);
-}
-
-sub transform_pattern_newline {
-	return \&__transform_pattern_newline;
-}
-
-sub transform_pattern_line {
-	return \&__transform_pattern_line;
-}
-
-
-
-
-
-#####################################################################
-# Transform Functions
-
-sub __transform_pattern_line ($) {
-	my ($r, $g, $b, undef) = $_[0]->rgba;
-	return sprintf("#%02X%02X%02X", $r, $g, $b);
-}
-
-sub __transform_pattern_newline ($) {
-	return '.{' . ($_[0] * 3 + 1) . '}';
 }
 
 
@@ -112,20 +125,12 @@ sub __transform_pattern_newline ($) {
 # Imager::Search::Driver Methods
 
 sub image_string {
-	my $self       = shift;
-	my $scalar_ref = shift;
-	my $image      = shift;
-	my $height     = $image->getheight;
-	foreach my $row ( 0 .. $height - 1 ) {
-		# Get the string for the row
-		$$scalar_ref .= join('',
-			map { sprintf("#%02X%02X%02X", ($_->rgba)[0..2]) }
-			$image->getscanline( y => $row )
-		);
-	}
-
-	# Return the scalar reference as a convenience
-	return $scalar_ref;
+	my $self  = shift;
+	my $data  = shift;
+	my $image = shift;
+	$image->write( data => $data, type => 'bmp' )
+		or die "Failed to generate search string";
+	return $data;
 }
 
 1;
@@ -142,16 +147,12 @@ Imager::Search::Driver::BMP24 - Imager::Search driver based on 24-bit BMP
 
 B<Imager::Search::Driver::BMP24> is a simple default driver for L<Imager::Search>.
 
-It uses a HTML color string like #0033FF for each pixel, providing both a
-simple text expression of the colour, as well as a hash pixel separator.
+It generates a search regular expression that can scan a Windows BMP
+directly, taking advantage of fast underlying C code that generates these
+files.
 
-Search patterns are compressed, so that a horizontal stream of identical
-pixels are represented as a single match group.
-
-Color-wise, an HTML24 search is considered to be 3-channel 8-bit.
-
-Support for 1-bit alpha transparency (ala "transparent gifs") is not
-currently supported but is likely be implemented in the future.
+For a 1024x768 screen grab, the result is that the BMP24 driver is around
+80-100 times faster to generate a search image compated to the HTML24 driver.
 
 =head1 SUPPORT
 
@@ -163,7 +164,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

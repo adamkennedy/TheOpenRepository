@@ -9,5 +9,6 @@ requires      'Imager'              => '0.65';
 requires      'Imager::Screenshot'  => '0.007';
 test_requires 'Test::More'          => '0.42';
 test_requires 'Test::File::Cleaner' => '0.03';
+test_requires 'File::Remove'        => '1.42';
 
 WriteAll;

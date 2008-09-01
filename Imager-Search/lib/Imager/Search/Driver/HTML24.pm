@@ -20,12 +20,43 @@ BEGIN {
 #####################################################################
 # Imager::Search::Driver Methods
 
-sub match_pixel {
-	$_[3] / 7;
-}
+sub match_object {
+	my $self      = shift;
+	my $image     = shift;
+	my $pattern   = shift;
+	my $character = shift;
 
-sub pattern_newline {
-	__transform_pattern_newline($_[1]);
+	# Derive the pixel position from the character position
+	my $pixel = $character / 7;
+
+	# If the pixel position isn't an integer we matched
+	# at a position that is not a pixel boundary, and thus
+	# this match is a false positive. Shortcut to fail.
+	unless ( $pixel == int($pixel) ) {
+		return; # undef or null list
+	}
+
+	# Calculate the basic geometry of the match
+	my $top    = int( $pixel / $image->width );
+	my $left   = $pixel % $image->width;
+
+	# If the match overlaps the newline boundary or falls off the bottom
+	# of the image, this is also a false positive. Shortcut to fail.
+	if ( $left > $image->width - $pattern->width ) {
+		return; # undef or null list
+	}
+	if ( $top > $image->height - $pattern->height ) {
+		return; # undef or null list
+	}
+
+	# This is a legitimate match.
+	# Convert to a match object and return.
+	return Imager::Search::Match->new(
+		top    => $top,
+		left   => $left,
+		height => $pattern->height,
+		width  => $pattern->width,
+	);
 }
 
 sub transform_pattern_newline {
@@ -43,11 +74,17 @@ sub pattern_regexp {
 
 	# Assemble the regular expression
 	my $pixels  = $width - $pattern->width;
-	my $newline = $self->pattern_newline( $pixels );
+	my $newline = '.{' . ($pixels * 7) . '}';
 	my $lines   = $pattern->lines;
 	my $string  = join( $newline, @$lines );
 
 	return qr/$string/si;
+}
+
+sub pattern_newline {
+	my $self = shift;
+	
+	__transform_pattern_newline($_[1]);
 }
 
 sub image_string {

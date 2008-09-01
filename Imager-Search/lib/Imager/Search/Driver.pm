@@ -81,16 +81,9 @@ sub new {
 	# Create the object
 	my $self = bless { @_ }, $class;
 
-	# Get the transforms
-	unless ( _CODELIKE($self->transform_pattern_line) ) {
-		Carp::croak("The small_transform param was not a CODE reference");
-	}
-	unless ( _CODELIKE($self->transform_pattern_newline) ) {
-		Carp::croak("The transform_pattern_newline param was not a CODE reference");
-	}
-
 	return $self;
 }
+
 
 
 
@@ -155,6 +148,12 @@ sub match_object {
 
 	# Derive the pixel position from the character position
 	my $pixel   = $self->match_pixel( $image, $pattern, $character );
+
+	# Some drivers might return a match in some junk header
+	# information, before the beginning of the pixels.
+	unless ( $pixel >= 0 ) {
+		return; # undef or null list
+	}
 
 	# If the pixel position isn't an integer we matched
 	# at a position that is not a pixel boundary, and thus
