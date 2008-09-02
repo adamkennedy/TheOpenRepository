@@ -7,6 +7,8 @@ WriteMakefile(
 	VERSION       => '1.05',
 	ABSTRACT      => 'CPAN Test Dummy for PITA Makefile.PL installs',
 	PL_FILES      => {},
+	PREREQ_PM     => {
+	},
 	( $ExtUtils::MakeMaker::VERSION ge '6.30_00' ? (
 		LICENSE => 'perl',
 	) : () ),
