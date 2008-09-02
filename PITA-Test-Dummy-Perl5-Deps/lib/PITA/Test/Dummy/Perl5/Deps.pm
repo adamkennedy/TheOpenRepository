@@ -8,7 +8,7 @@ use PITA::Test::Dummy::Perl5::MI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.02';
+	$VERSION = '1.03';
 }
 
 sub dummy { 'Darren' }

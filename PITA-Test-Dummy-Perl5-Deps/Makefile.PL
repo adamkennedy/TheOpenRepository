@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME          => 'PITA::Test::Dummy::Perl5::Deps',
     AUTHOR        => 'Adam Kennedy <adamk@cpan.org>',
-    VERSION       => '1.02',
+    VERSION       => '1.03',
     ABSTRACT      => 'CPAN Test Dummy for PITA Makefile.PL installs',
     PL_FILES      => {},
     PREREQ_PM     => {
