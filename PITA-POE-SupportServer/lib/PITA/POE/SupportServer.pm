@@ -357,7 +357,7 @@ __END__
 
 =head1 NAME
 
-PITA::POE::SupportServer
+PITA::POE::SupportServer - Support server for PITA virtual machines
 
 =head1 SYNOPSIS
 
@@ -390,11 +390,16 @@ PITA::POE::SupportServer
   my $result_file = $server->http_result('/result.xml')
           or die "Guest Image execution failed";
 
-=head1 ABSTRACT
-
 =head1 DESCRIPTION
 
-=head1 METHODS
+TO BE COMPLETED
+
+=head1 SUPPORT 
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PITA-POE-SupportServer>
+
+For other issues, contact the author.
 
 =head1 AUTHORS
 
