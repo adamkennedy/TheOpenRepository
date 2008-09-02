@@ -84,7 +84,7 @@ And it should do the rest.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'Process';
 use Carp                  ();
@@ -102,7 +102,7 @@ use PITA::Image::Test     ();
 
 use vars qw{$VERSION $NOSERVER};
 BEGIN {
-	$VERSION = '0.40';
+	$VERSION = '0.41';
 }
 
 

@@ -1,5 +1,9 @@
 Revision history for Perl distribution PITA-Image
 
+0.41 Tue  2 Sep 2008
+	- Incremental release to fix some Kwalitee issues
+	- Upgrading to Module::Install 0.77
+
 0.40 Sun  1 Jul 2007
 	- Tweaks to be compatible with PITA-POE-SupportServer
 	- Upgrading to Module::Install 0.65

@@ -17,4 +17,4 @@ REM ISA-based PC         : -M isapc
 REM -M isapc is added for NE2000 ISA card.
 
 cd C:\\devel\\qemu
-qemu.exe -L . -m 128 -snapshot -hda C:\\devel\\images\\x86-linux-debian-sarge-pita\\hda.img -soundhw all -localtime -M pc
+qemu.exe -L . -m 256 --snapshot -hda C:\\devel\\images\\x86-linux-debian-sarge-pita\\hda.img -cdrom C:\\devel\\images\\x86-linux-debian-sarge-pita\\minicpan3.iso -soundhw all -localtime -M pc
