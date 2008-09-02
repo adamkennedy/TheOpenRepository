@@ -7,10 +7,11 @@ use Params::Util qw{ _POSINT _NONNEGINT _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
 }
 
 use Object::Tiny qw{
+	name
 	top
 	bottom
 	left
@@ -49,16 +50,22 @@ sub new {
 
 sub from_position {
 	my $class    = shift;
-	my $image    = _INSTANCE(shift, 'Imager::Search::Image')
-		or Carp::croak("Failed to provide Imager::Search::Image param");
-	my $pattern  = _INSTANCE(shift, 'Imager::Search::Pattern')
-		or Carp::croak("Failed to provide Imager::Search::Pattern param");
+	my $image    = _INSTANCE(shift, 'Imager::Search::Image');
+	my $pattern  = _INSTANCE(shift, 'Imager::Search::Pattern');
 	my $position = _NONNEGINT(shift);
+
+	# Check params
+	unless ( $image ) {
+		Carp::croak("Failed to provide Imager::Search::Image param");
+	}
+	unless ( $pattern ) {
+		Carp::croak("Failed to provide Imager::Search::Pattern param");
+	}
 	unless ( defined $position ) {
 		Carp::croak("Failed to provide position");
 	}
 
-	# Determine the position elements
+	# Derive additional values from the basic values
 	my $width    = $pattern->width;
 	my $height   = $pattern->height;
 	my $top      = int($position / $image->width);
@@ -102,6 +109,14 @@ B<Imager::Search::Match> objects are self-contained and anonymous, they do
 not retain a connection to the original search context.
 
 =head1 METHODS
+
+=head2 name
+
+If the L<Imager::Search::Pattern> that was used to generate the match object
+had a name, then the match will inherit that name as well.
+
+Returns the pattern name as a string, or C<undef> if the pattern was
+anonymous.
 
 =head2 top
 

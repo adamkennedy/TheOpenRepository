@@ -5,12 +5,13 @@ package Imager::Search::Driver::BMP24;
 
 use 5.006;
 use strict;
-use Imager::Search::Match ();
-use base 'Imager::Search::Driver';
+use Imager::Search::Match  ();
+use Imager::Search::Driver ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
+	@ISA     = 'Imager::Search::Driver';
 }
 
 use constant HEADER => 54;
@@ -22,6 +23,39 @@ use constant HEADER => 54;
 #####################################################################
 # Imager::Search::Driver Methods
 
+sub image_string {
+	my $self   = shift;
+	my $imager = shift;
+	my $data   = '';
+	$imager->write(
+		data => \$data,
+		type => 'bmp',
+	) or die "Failed to generate image string";
+	return \$data;
+}
+
+sub pattern_lines {
+	my $self   = shift;
+	my $imager = shift;
+	my $data   = '';
+	$imager->write(
+		data => \$data,
+		type => 'bmp',
+	) or die "Failed to generate bmp image";
+
+	# The bmp will contain the raw scanline data we want in
+	# a series of byte ranges. Capture each range and quotemeta
+	# the raw bytes.
+	my $pixels = $imager->getwidth;
+	my $range  = $pixels * 3;
+	my $width  = $range + (-$range % 4);
+	return [
+		map { quotemeta substr( $data, $_, $range ) }
+		map { HEADER + $_ * $width }
+		( 0 .. $imager->getheight - 1 )
+	];
+}
+
 sub pattern_regexp {
 	my $self    = shift;
 	my $pattern = shift;
@@ -30,7 +64,7 @@ sub pattern_regexp {
 	# Each BMP scan line comes in groups of 4-byte dwords.
 	# As a result, each line contains an amount of useless extra
 	# bytes needed to round it up to a multiple of 4 bytes.
-	my $junk    =  ($width * -3) % 4;
+	my $junk    = ($width * -3) % 4;
 	my $pixels  = $width - $pattern->width;
 	my $newline = '.{' . ($pixels * 3 + $junk) . '}';
 
@@ -39,28 +73,6 @@ sub pattern_regexp {
 	my $string  = join( $newline, @$lines );
 
 	return qr/$string/s;
-}
-
-sub pattern_lines {
-	my $self   = shift;
-	my $image  = shift;
-
-	# Generate the raw bmp data for the pattern image
-	my $data = '';
-	$image->write( data => \$data, type => 'bmp' )
-		or die "Failed to generate bmp image";
-
-	# The bmp will contain the raw scanline data we want in
-	# a series of byte ranges. Capture each range and quotemeta
-	# the raw bytes.
-	my $pixels = $image->getwidth;
-	my $range  = $pixels * 3;
-	my $width  = $range + (-$range % 4);
-	return [
-		map { quotemeta substr( $data, $_, $range ) }
-		map { HEADER + $_ * $width }
-		( 0 .. $image->getheight - 1 )
-	];
 }
 
 sub match_object {
@@ -88,7 +100,7 @@ sub match_object {
 	# If the column isn't an integer we matched at a position that is
 	# not a pixel boundary, and thus this match is a false positive.
 	# Shortcut to fail.
-	my $pixel_left  = ($byte % $byte_width) / 3;
+	my $pixel_left = ($byte % $byte_width) / 3;
 	unless ( $pixel_left == int($pixel_left) ) {
 		return; # undef or null list
 	}
@@ -110,6 +122,7 @@ sub match_object {
 	# This is a legitimate match.
 	# Convert to a match object and return.
 	return Imager::Search::Match->new(
+		name   => $pattern->name,
 		top    => $pixel_bottom - $pattern->height + 1,
 		left   => $pixel_left,
 		height => $pattern->height,
@@ -117,25 +130,7 @@ sub match_object {
 	);
 }
 
-
-
-
-
-#####################################################################
-# Imager::Search::Driver Methods
-
-sub image_string {
-	my $self  = shift;
-	my $data  = shift;
-	my $image = shift;
-	$image->write( data => $data, type => 'bmp' )
-		or die "Failed to generate search string";
-	return $data;
-}
-
 1;
-
-__END__
 
 =pod
 
@@ -151,8 +146,8 @@ It generates a search regular expression that can scan a Windows BMP
 directly, taking advantage of fast underlying C code that generates these
 files.
 
-For a 1024x768 screen grab, the result is that the BMP24 driver is around
-80-100 times faster to generate a search image compated to the HTML24 driver.
+For a 1024x768 screen grab, the result is that the BMP24 driver is 50-100
+times faster to generate a search image compated to the HTML24 driver.
 
 =head1 SUPPORT
 

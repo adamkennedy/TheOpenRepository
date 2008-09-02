@@ -8,45 +8,73 @@ Imager::Search::Image - Generic interface for a searchable image
 
 =head1 DESCRIPTION
 
-TO BE COMPLETED
+L<Imager::Search::Image> is an abstract base class for objects that
+implement an image to be searched.
+
+=head1 METHODS
 
 =cut
 
+use 5.006;
 use strict;
-use Params::Util qw{ _POSINT _INSTANCE };
+use Params::Util qw{ _IDENTIFIER _POSINT _INSTANCE _DRIVER };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
 }
 
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
-	# Check params
+	# Check the driver
+	if ( _IDENTIFIER($self->driver) ) {
+		$self->{driver} = "Imager::Search::Driver::" . $self->driver;
+	}
+	if ( _DRIVER($self->driver, 'Imager::Search::Driver') ) {
+		$self->{driver} = $self->driver->new;
+	}
+	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
+		Carp::croak("Did not provide a valid driver");
+	}
+	if ( defined $self->file and not defined $self->image ) {
+		# Load the image from a file
+		$self->{image} = Imager->new;
+		$self->{image}->read( file => $self->file );
+	}
+	if ( defined $self->image ) {
+		unless( _INSTANCE($self->image, 'Imager') ) {
+			Carp::croak("Did not provide a valid image");
+		}
+		$self->{height} = $self->image->getheight;
+		$self->{width}  = $self->image->getwidth;
+		$self->{string} = $self->driver->image_string($self->image);
+	}
 	unless ( _POSINT($self->height) ) {
-		Carp::croak("Missing or invalid height param");
+		Carp::croak("Invalid or missing image height");
 	}
 	unless ( _POSINT($self->width) ) {
-		Carp::croak("Missing or invalid width param");
-	}
-	unless ( defined $self->string ) {
-		Carp::croak("Missing or invalid string param");
-	}
-	if ( $self->{class} ) {
-		if ( $self->{class} eq $class ) {
-			delete $self->{class};
-		} else {
-			Carp::croak("Image class mismatch");
-		}
+		Carp::croak("Invalid or missing image width");
 	}
 
 	return $self;
 }
 
+sub name {
+	$_[0]->{name};
+}
+
 sub driver {
 	$_[0]->{driver};
+}
+
+sub file {
+	$_[0]->{file};
+}
+
+sub image {
+	$_[0]->{image};
 }
 
 sub height {
@@ -74,80 +102,45 @@ sub string {
 
 The C<find> method compiles the search and target images in memory, and
 executes a single search, returning the position of the first match as a
-L<Imager::Match::Occurance> object.
+L<Imager::Search::Match> object.
 
 =cut
 
 sub find {
-	my $self = shift;
-
-	# Get the search expression
-        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
-		or die "Did not pass a Pattern object to find";
-	my $regexp  = $pattern->regexp( $self );
+	my $self    = shift;
+        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern');
+	unless ( $pattern ) {
+		die "Did not pass a Pattern object to find";
+	}
 
 	# Run the search
-	my @match = ();
-	my $string   = $self->string;
-	while ( scalar $$string =~ /$regexp/gs ) {
+	my @match  = ();
+	my $string = $self->string;
+	my $regexp = $pattern->regexp( $self );
+	while ( scalar $$string =~ /$regexp/g ) {
 		my $p = $-[0];
 		push @match, $self->driver->match_object( $self, $pattern, $p );
 		pos $$string = $p + 1;
 	}
-	return sort { $a->top <=> $b->top } @match;
+
+	return @match;
 }
 
-=pod
-
-=head2 find_first
-
-The C<find_first> compiles the search and target images in memory, and
-executes a single search, returning the position of the first match as a
-L<Imager::Match::Occurance> object.
-
-=cut
-
-sub find_first {
-	my $self = shift;
-
-	# Get the search expression
-        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
-		or die "Did not pass a Pattern object to find";
-	my $regexp  = $pattern->regexp( $self );
-
-	# Run the search
-	my $string = $self->string;
-	while ( scalar $$string =~ /$regexp/gs ) {
-		my $p     = $-[0];
-		my $match = $self->driver->match_object( $self, $pattern, $p );
-		unless ( defined $match ) {
-			# False positive
-			pos $string = $p + 1;
-			next;
-		}
-		return $match;
-	}
-	return;
-}
-
-# Derived from find_first, but always return a scalar boolean
 sub find_any {
-	my $self  = shift;
-
-	# Get the search expression
-        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern')
-		or die "Did not pass a Pattern object to find";
-	my $regexp  = $pattern->regexp( $self );
+	my $self    = shift;
+        my $pattern = _INSTANCE(shift, 'Imager::Search::Pattern');
+	unless ( $pattern ) {
+		die "Did not pass a Pattern object to find";
+	}
 
 	# Run the search
 	my $string = $self->string;
+	my $regexp = $pattern->regexp( $self );
 	while ( scalar $$string =~ /$regexp/gs ) {
 		my $p = $-[0];
 		if ( defined $self->driver->match_object( $self, $pattern, $p ) ) {
 			return 1;
 		}
-
-		# False positive
 		pos $$string = $p + 1;
 	}
 	return '';

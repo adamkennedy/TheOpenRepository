@@ -40,7 +40,7 @@ use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
 }
 
 use Object::Tiny qw{
@@ -88,7 +88,7 @@ sub new {
 	unless ( _INSTANCE($self->driver, 'Imager::Search::Driver') ) {
 		Carp::croak("Did not provide a valid driver");
 	}
-	if ( defined $self->file and ! defined $self->image ) {
+	if ( defined $self->file and not defined $self->image ) {
 		# Load the image from a file
 		$self->{image} = Imager->new;
 		$self->{image}->read( file => $self->file );

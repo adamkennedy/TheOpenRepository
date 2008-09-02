@@ -13,7 +13,7 @@ unless ( $^O eq 'MSWin32' or $ENV{DISPLAY} ) {
 	Test::More->import( tests => 2 );
 }
 use File::Spec::Functions ':ALL';
-use Imager::Search::Image::Screenshot;
+use Imager::Search::Screenshot;
 
 
 
@@ -22,8 +22,8 @@ use Imager::Search::Image::Screenshot;
 #####################################################################
 # Trivial Test Files
 
-my $image1 = Imager::Search::Image::Screenshot->new( driver => 'BMP24' );
-isa_ok( $image1, 'Imager::Search::Image::Screenshot' );
+my $image1 = Imager::Search::Screenshot->new( driver => 'BMP24' );
+isa_ok( $image1, 'Imager::Search::Screenshot' );
 
 # Confirm the string is the expected size
 my $str_ref  = $image1->string;

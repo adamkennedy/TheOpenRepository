@@ -8,9 +8,9 @@ BEGIN {
 
 use Test::More tests => 6;
 use File::Spec::Functions ':ALL';
-use Imager::Search                ();
-use Imager::Search::Pattern       ();
-use Imager::Search::Image::File   ();
+use Imager::Search                 ();
+use Imager::Search::Image          ();
+use Imager::Search::Pattern        ();
 use Imager::Search::Driver::HTML24 ();
 
 my $small = catfile( 't', 'data', 'basic', 'small2.bmp' );
@@ -32,11 +32,11 @@ my $pattern = Imager::Search::Pattern->new(
 );
 isa_ok( $pattern, 'Imager::Search::Pattern' );
 
-my $target = Imager::Search::Image::File->new(
+my $target = Imager::Search::Image->new(
 	driver => 'Imager::Search::Driver::HTML24',
 	file   => $big,
 );
-isa_ok( $target, 'Imager::Search::Image::File' );
+isa_ok( $target, 'Imager::Search::Image' );
 
 my @matches = $target->find( $pattern );
 my $boolean = $target->find_any( $pattern );

@@ -1,5 +1,13 @@
 Changes for Perl extension Imager-Search
 
+1.00 Mon  1 Sep 2008
+	- Further cleaning up of the driver codebase
+	- Documented the driver API
+	- Refactored away Imager::Search::Image::File
+	- Removed Imager::Search::Image::Cached
+	- Renamed Imager::Search::Screenshot
+	- Completed the main documentation
+
 0.12 Sun 31 Aug 2008
 	- Implemented the AWESOME BMP24 backend
 	- Cleaned up some of the documentation

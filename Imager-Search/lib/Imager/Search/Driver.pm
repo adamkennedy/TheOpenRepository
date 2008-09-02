@@ -45,7 +45,7 @@ use Imager       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
 }
 
 use Imager::Search::Match ();
@@ -91,103 +91,80 @@ sub new {
 #####################################################################
 # Driver API Methods
 
+=pod
+
+=head2 image_string
+
+The C<image_string> method takes a L<Imager::Search::Image> object, and
+generates the search string for the image.
+
+Returns a reference to a scalar, or dies on error.
+
+=cut
+
+sub image_string {
+	my $class = ref($_[0]) || $_[0];
+	die "Illegal driver $class does not implement image_string";
+}
+
+=pod
+
+=head2 pattern_lines
+
+Because of the way the regular expression spans scanlines, it requires
+the width of the target image in order to be fully generated. However,
+the sub-regexp for each scanline can be (and are) generated in advance.
+
+When a L<Imager::Search::Pattern> object is created, the driver method
+C<pattern_lines> is called to generate the scanline regexp for the
+search pattern.
+
+Returns a reference to an ARRAY containing the regexp in string form,
+or dies on error.
+
+=cut
+
+sub pattern_lines {
+	my $class = ref($_[0]) || $_[0];
+	die "Illegal driver $class does not implement pattern_lines";
+}
+
+=pod
+
+=head2 pattern_regexp
+
+The C<pattern_regexp> method takes a pattern and an image is retruns a
+fully-generated search regexp for the pattern, when used on that image.
+
+Returns a Regexp object, or dies on error.
+
+=cut
+
 sub pattern_regexp {
 	my $class = ref($_[0] || $_[0]);
 	die "Illegal driver $class does not implement pattern_regexp";
 }
 
-sub pattern_lines {
-	my $self   = shift;
-	my $image  = shift;
-	my $height = $image->getheight;	
-	my @lines  = ();
-	foreach my $row ( 0 .. $height - 1 ) {
-		$lines[$row] = $self->pattern_line($image, $row);
-	}
-	return \@lines;
-}
+=pod
 
-sub pattern_line {
-	my ($self, $image, $row) = @_;
+=head2 match_object
 
-	# Get the colour array
-	my $col  = -1;
-	my $line = '';
-	my $func = $self->transform_pattern_line;
-	my $this = '';
-	my $more = 1;
-	foreach my $color ( $image->getscanline( y => $row ) ) {
-		$col++;
-		my $string = &$func( $color );
-		unless ( _STRING($string) ) {
-			Carp::croak("Did not generate a search string for cell $row,$col");
-		}
-		if ( $this eq $string ) {
-			$more++;
-			next;
-		}
-		$line .= ($more > 1) ? "(?:$this){$more}" : $this; # if $this; (conveniently works without the if) :)
-		$more  = 1;
-		$this  = $string;
-	}
-	$line .= ($more > 1) ? "(?:$this){$more}" : $this;
+Once the regexp engine has located a potential match, the pattern, image
+and character position are provided to the C<match_object> method.
 
-	return $line;
-}
+The C<match_object> will take the raw character position, validate that
+the character position is at a legimate pixel position, and then return
+the fully-described match.
 
-sub image_string {
-	my $class = ref($_[0] || $_[0]);
-	die "Illegal driver $class does not implement image_string";
-}
+Returns a L<Imager::Search::Match> object if the position is valid, or
+false (undef in scalar context or a null string in list context) if the
+position is not valid.
+
+=cut
 
 sub match_object {
-	my $self      = shift;
-	my $image     = shift;
-	my $pattern   = shift;
-	my $character = shift;
-
-	# Derive the pixel position from the character position
-	my $pixel   = $self->match_pixel( $image, $pattern, $character );
-
-	# Some drivers might return a match in some junk header
-	# information, before the beginning of the pixels.
-	unless ( $pixel >= 0 ) {
-		return; # undef or null list
-	}
-
-	# If the pixel position isn't an integer we matched
-	# at a position that is not a pixel boundary, and thus
-	# this match is a false positive. Shortcut to fail.
-	unless ( $pixel == int($pixel) ) {
-		return; # undef or null list
-	}
-
-	# Calculate the basic geometry of the match
-	my $top    = int( $pixel / $image->width );
-	my $left   = $pixel % $image->width;
-
-	# If the match overlaps the newline boundary or falls off the bottom
-	# of the image, this is also a false positive. Shortcut to fail.
-	if ( $left > $image->width - $pattern->width ) {
-		return; # undef or null list
-	}
-	if ( $top > $image->height - $pattern->height ) {
-		return; # undef or null list
-	}
-
-	# This is a legitimate match.
-	# Convert to a match object and return.
-	return Imager::Search::Match->new(
-		top    => $top,
-		left   => $left,
-		height => $pattern->height,
-		width  => $pattern->width,
-	);
-}
-
-sub match_pixel {
 	my $class = ref($_[0] || $_[0]);
-	die "Illegal driver $class does not implement match_pixel";
+	die "Illegal driver $class does not implement match_object";
 }
 
 1;

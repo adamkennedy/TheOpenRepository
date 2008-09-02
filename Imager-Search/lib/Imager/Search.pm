@@ -17,7 +17,7 @@ Imager::Search - Find images within other images
   );
   
   # Load the image to search in
-  my $image = Imager::Search::Image::File->new(
+  my $image = Imager::Search::Image->new(
       driver => 'Imager::Search::Driver::HTML24',
       file   => 'target.bmp',
   );
@@ -131,15 +131,15 @@ continue to work for a while...
 =head2 1. Load the Search Image
 
   # An image loaded from a file
-  use Imager::Search::Image::File ();
-  my $image = Imager::Search::Image::File->new(
+  use Imager::Search::Image ();
+  my $image = Imager::Search::Image->new(
       driver => 'Imager::Search::Driver::HTML24',
       file   => 'target.bmp',
   );
   
   # An image captured from a screenshot
-  use Imager::Search::Image::Screenshot ();
-  my $screen = Imager::Search::Image::Screenshot->new(
+  use Imager::Search::Screenshot ();
+  my $screen = Imager::Search::Screenshot->new(
       driver => 'Imager::Search::Driver::HTML24',
   );
 
@@ -165,6 +165,16 @@ continue to work for a while...
 The following is the complete list of classes provided by the main
 B<Imager-Search> distribution.
 
+=head2 Imager::Search::Image
+
+L<Imager::Search::Image> implements the an image that will be searched
+within.
+
+=head2 Imager::Search::Screenshot
+
+L<Imager::Search::Screenshot> is a L<Imager::Search::Image>
+subclass that captures an image from the currently active window.
+
 =head2 Imager::Search::Pattern
 
 L<Imager::Search::Pattern> provides compiled search pattern objects
@@ -182,35 +192,13 @@ what any driver needs to implement.
 
 =head2 Imager::Search::Driver::HTML24
 
-L<Imager::Search::Driver::HTML24> is an 8-bit reference driver that uses
+L<Imager::Search::Driver::HTML24> is an 24-bit reference driver that uses
 HTML colour codes (#RRGGBB) to represent each pixel.
 
 =head2 Imager::Search::Driver::BMP24
 
-L<Imager::Search::Driver::BMP24> is an experimental 24-bit driver that uses
-the Windows BMP file format natively as it's image string format.
-
-=head2 Imager::Search::Image
-
-L<Imager::Search::Image> describes the abstract interface for a search
-image. This class also provides the main implementations of the core
-search methods.
-
-=head2 Imager::Search::Image::File
-
-L<Imager::Search::Image::File> provides an L<Imager::Search::Image>
-sub-class that allows the loading of search images from local files
-(of any image type supported by your L<Imager> installation).
-
-=head2 Imager::Search::Image::Cached
-
-L<Imager::Search::Image::Cached> is a unsupported and only partially
-implemented attempt at a caching mechanism for compiled Image objects.
-
-=head2 Imager::Search::Image::Screenshot
-
-L<Imager::Search::Image::Screenshot> is a L<Imager::Search::Image>
-subclass that captures an image from the currently active window.
+L<Imager::Search::Driver::BMP24> is a high performance 24-bit driver that
+uses the Windows BMP file format natively for the image string format.
 
 =cut
 
@@ -220,7 +208,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '1.00';
 }
 
 use Imager::Search::Pattern ();
