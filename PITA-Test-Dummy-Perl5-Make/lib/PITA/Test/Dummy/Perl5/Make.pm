@@ -58,9 +58,9 @@ OK OK, yes his head B<is> meant to come off like that
 
 L<PITA>, L<PITA::Scheme::Perl5::Make>, L<http://ali.as/pita/>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT
 
-Copyright 2006 - 2007 Adam Kennedy.
+Copyright 2006 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
