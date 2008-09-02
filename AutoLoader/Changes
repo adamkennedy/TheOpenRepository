@@ -1,5 +1,19 @@
 Revision history for Perl extension AutoLoader
 
+5.66_01  Tue Sep  2 14:40 2008
+  - Fix determination of the autosplit.ix in ugly edge cases.
+    Explanation:
+    If the module file isn't called $Foo.pm, but
+    something random, then the static substitution which
+    tries to determine the location of autosplit.ix fails.
+    Up until now, the substitution would fail, so AutoLoader
+    evaluated the module code again instead of falling back
+    searching the autosplit.ix in @INC. The code was there
+    but not triggered in some circumstances.
+    For an example error in a PAR context, run
+     pp --clean -e 'use Storable; retrieve("foo")'
+    and then ./a.out and which it explode.
+
 5.66  Wed May 14 18:29 2008
   - Fix broken distribution.
 
