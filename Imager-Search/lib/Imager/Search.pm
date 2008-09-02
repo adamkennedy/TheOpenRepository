@@ -40,6 +40,20 @@ The goal of B<Imager::Search> takes the best features from L<Imager> and the
 regular expression engine and combines them to produce a simple pure perl
 image recognition engine for systems in which the images are pixel perfect.
 
+And equally importantly, B<Imager::Search> does it very very fast.
+
+Benchmarking a simple program that continuously monitors a 1024x768 display
+for a single target image on a cheap 1.5Ghtz Windows machine demonstrated
+a monitoring rate of 5 frames per second using the default BMP24 driver.
+
+That is, 0.2 seconds to capture the screenshot, convert it into a searchable
+string, generate a search regexp, execute the regexp and then convert the
+results into match objects.
+
+Finally, B<Imager::Search> itself is pure Perl, and should work quite
+simply on any platform that the L<Imager> module supports, which at time
+of writing includes Windows, Mac OS X and most other forms of Unix.
+
 =head2 Use Cases
 
 L<Imager::Search> is intended to be useful for a range of tasks involving
