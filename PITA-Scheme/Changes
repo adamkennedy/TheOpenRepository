@@ -1,5 +1,11 @@
 Revision history for Perl extension PITA::Scheme
 
+0.41 Tue  2 Sep 2008
+	- No functional changes
+	- Incremental release to fix some Kwalitee issues
+
+0.40  missing
+
 0.30  Fri  9 Mar 2007
 	- Removed perl5.cpan scheme
 	- Upgraded to Module::Install 0.65
