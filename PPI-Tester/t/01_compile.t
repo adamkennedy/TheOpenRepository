@@ -8,11 +8,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use Test::Script;
 
-ok( $] >= 5.005, 'Your perl is new enough' );
+ok( $] >= 5.006, 'Your perl is new enough' );
 
 use_ok( 'PPI::Tester' );
 
-script_compiles_ok( 'bin/ppitester' );
+script_compiles_ok( 'script/ppitester' );

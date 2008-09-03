@@ -2,21 +2,17 @@ package PPI::Tester;
 
 # The PPI Tester application
 
-use 5.005;
+use 5.006;
 use strict;
+use PPI            ();
+use PPI::Dumper    ();
+use Devel::Dumpvar ();
+use Wx;
 
-# The very first version
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.14';
 }
-
-# Load in the PPI classes
-use PPI ();
-use PPI::Dumper ();
-
-# Load the wxWindows library
-use Wx;
 
 sub main {
 	my $class = shift;
@@ -51,11 +47,11 @@ sub OnInit {
 
 	# Create the one and only frame
 	my $Frame = PPI::Tester::Window->new(
-		undef,               # Parent Window
-		-1,                  # Id
-		APPLICATION_NAME,    # Title
-		[-1, -1],             # Default size
-		[-1, -1],             # Default position
+		undef,            # Parent Window
+		-1,               # Id
+		APPLICATION_NAME, # Title
+		[-1, -1],         # Default size
+		[-1, -1],         # Default position
 		);
 	$Frame->CentreOnScreen;
 
@@ -79,11 +75,9 @@ package PPI::Tester::Window;
 # The main window for the application
 
 use base 'Wx::Frame';
-use Wx        qw{:everything};
-use Wx        qw{wxHIDE_READONLY};
-use Wx::Event 'EVT_TOOL',
-              'EVT_TEXT',
-              'EVT_CHECKBOX';
+use Wx        qw{ :everything };
+use Wx        qw{ wxHIDE_READONLY };
+use Wx::Event qw{ EVT_TOOL EVT_TEXT EVT_CHECKBOX };
 
 # wxWindowIDs
 use constant CMD_CLEAR        => 1;
@@ -92,7 +86,7 @@ use constant CMD_DEBUG        => 3;
 use constant CODE_BOX         => 4;
 use constant STRIP_WHITESPACE => 5;
 
-my $initial_code = 'my $code = "here";';
+my $initial_code = '';
 
 sub new {
 	my $class = shift;
@@ -121,8 +115,8 @@ sub new {
 		wxDefaultPosition, # Normal position
 		wxDefaultSize,     # Automatic size
 		);
-	my $Left     = Wx::Panel->new( $Splitter, -1 );
-	my $Right    = Wx::Panel->new( $Splitter, -1 );
+	my $Left  = Wx::Panel->new( $Splitter, -1 );
+	my $Right = Wx::Panel->new( $Splitter, -1 );
 	$Splitter->SplitVertically( $Left, $Right, 0 );
 	$Left->SetSizer(  Wx::BoxSizer->new(wxVERTICAL) );
 	$Right->SetSizer( Wx::BoxSizer->new(wxHORIZONTAL) );
@@ -156,18 +150,17 @@ sub new {
 		1,        # Expands vertically
 		wxEXPAND, # Expands horizontally
 		);
-	
 
 	# Create the resizing output textbox for the right side
 	$Right->GetSizer->Add(
 		$self->{Output} = Wx::TextCtrl->new(
-			$Right,                         # Parent panel,
-			-1,                             # Default ID
-			'',                             # Help new users get a clue
-			wxDefaultPosition,              # Normal position
-			wxDefaultSize,                  # Minimum size
-			wxTE_READONLY                   # Output you can't change
-			| wxTE_MULTILINE                # Textarea
+			$Right,            # Parent panel,
+			-1,                # Default ID
+			'',                # Help new users get a clue
+			wxDefaultPosition, # Normal position
+			wxDefaultSize,     # Minimum size
+			wxTE_READONLY      # Output you can't change
+			| wxTE_MULTILINE   # Textarea
 			| wxHSCROLL,
 			),
 		1,        # Expands horizontally
@@ -186,9 +179,6 @@ sub new {
 	# When the user does just about anything, regenerate
 	EVT_TEXT( $self, CODE_BOX, \&debug );
 	EVT_CHECKBOX( $self, STRIP_WHITESPACE, \&debug);
-
-	# Create the lexing and debugging objects
-	$self->{Lexer} = PPI::Lexer->new;
 
 	$self;
 }
@@ -247,8 +237,23 @@ sub debug {
 		or return $self->_error("Nothing to parse");
 
 	# Parse and dump the content
-	my $Document = $self->{Lexer}->lex_source( $source )
-		or return $self->_error("Error during lex");
+	my $Document = eval { PPI::Document->new( \$source ) };
+	if ( ref $@ ) {
+		# Dump the exception
+		my $dumper = Devel::Dumpvar->new(
+			to => 'return',
+		) or die "Failed to create dumper";
+		my $dumped =  $dumper->dump($@);
+
+		# Chop off the initial "0  " from "0  PPI::Exception"
+		$dumped =~ s/^...//;
+
+		return $self->_error( $dumped );
+	} elsif ( $@ ) {
+		return $self->_error("Uncaught Error!\n  $@");
+	} elsif ( ! $Document ) {
+		return $self->_error("Failed to parse document");
+	}
 
 	# Does the user want to strip whitespace?
 	if ( $self->{Option}->{StripWhitespace}->IsChecked ) {
@@ -325,6 +330,8 @@ For general comments, contact the maintainer.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
+=head1 ACKNOWLEDGMENTS
+
 Load function originally by 'DH' (email suppressed)
 
 =head1 SEE ALSO
@@ -333,7 +340,7 @@ L<PPI::Manual>, L<http://sf.net/parseperl>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2006 Adam Kennedy.
+Copyright 2004 - 2008 Adam Kennedy.
 
 Some parts copyright 2004 'DH'.
 

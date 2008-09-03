@@ -1,5 +1,11 @@
 Revision history for Perl extension PPI::Tester and script ppitester
 
+0.14 Wed  3 Sep 2008
+	- Upgrading to Module::Install 0.77
+
+0.13 Sat 10 May 2008
+	- Upgrading to Module::Install 0.73
+
 0.12 Fri 28 Dec 2007
 	- Upgrading to Module::Install 0.65
 	- Cleaning up the Makefile.PL and test script
