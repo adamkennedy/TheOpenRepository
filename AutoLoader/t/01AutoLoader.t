@@ -18,7 +18,7 @@ BEGIN
     unshift @INC, $dir;
 }
 
-use Test::More tests => 17;
+use Test::More tests => 18;
 
 sub write_file {
     my ($file, $text) = @_;
@@ -152,6 +152,67 @@ $INC{"SomeClass.pm"} = $0; # Prepare possible recursion
     my $p = SomeClass->new();
 } # <-- deep recursion in AUTOLOAD looking for SomeClass::DESTROY?
 ::ok(1, "AutoLoader shouldn't loop forever if \%INC is modified");
+
+# Now test the bug that lead to AutoLoader 0.67:
+# If the module is loaded from a file name different than normal,
+# we could formerly have trouble finding autosplit.ix
+# Contributed by Christoph Lamprecht.
+# Recreate the following file structure:
+# auto/MyAddon/autosplit.ix
+# auto/MyAddon/testsub.al
+# MyModule.pm
+SCOPE: {
+    my $autopath = File::Spec->catdir( $dir, 'auto', 'MyAddon' );
+    mkpath( $autopath ) or die "Can't mkdir '$autopath': $!";
+    my $autosplit_text = <<'EOT';
+# Index created by AutoSplit for MyModule.pm
+#    (file acts as timestamp)
+package MyAddon;
+sub testsub ;
+1;
+EOT
+    write_file( File::Spec->catfile( $autopath, 'autosplit.ix' ), $autosplit_text );
+
+    my $testsub_text = <<'EOT';
+# NOTE: Derived from MyModule.pm.
+# Changes made here will be lost when autosplit is run again.
+# See AutoSplit.pm.
+package MyAddon;
+
+#line 13 "MyModule.pm (autosplit into auto/MyAddon/testsub.al)"
+sub testsub{
+    return "MyAddon";
+}
+
+1;
+# end of MyAddon::testsub
+EOT
+    write_file( File::Spec->catfile( $autopath, 'testsub.al' ), $testsub_text);
+
+    my $mymodule_text = <<'EOT';
+use strict;
+use warnings;
+package MyModule;
+sub testsub{return 'MyModule';}
+
+package MyAddon;
+our @ISA = ('MyModule');
+BEGIN{$INC{'MyAddon.pm'} = __FILE__}
+use AutoLoader 'AUTOLOAD';
+1;
+__END__
+
+sub testsub{
+    return "MyAddon";
+}
+EOT
+    write_file( File::Spec->catfile( $dir, 'MyModule.pm' ), $mymodule_text);
+
+    require MyModule;
+
+    my $res = MyAddon->testsub();
+    ::is ($res , 'MyAddon', 'invoke MyAddon::testsub');
+}
 
 # cleanup
 END {
