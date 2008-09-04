@@ -14,7 +14,7 @@ use File::Path;
 my $dir;
 BEGIN
 {
-	$dir = File::Spec->catdir( "auto-$$" );
+    $dir = File::Spec->catdir( "auto-$$" );
     unshift @INC, $dir;
 }
 
@@ -127,7 +127,7 @@ package Foo;
 AutoLoader->unimport();
 eval { Foo->baz() };
 ::like( $@, qr/locate object method "baz"/,
-	'unimport() should remove imported AUTOLOAD()' );
+        'unimport() should remove imported AUTOLOAD()' );
 
 package Baz;
 
@@ -155,6 +155,7 @@ $INC{"SomeClass.pm"} = $0; # Prepare possible recursion
 
 # cleanup
 END {
-	return unless $dir && -d $dir;
-	rmtree $dir;
+    return unless $dir && -d $dir;
+    rmtree $dir;
 }
+
