@@ -20,45 +20,38 @@ BEGIN
 
 use Test::More tests => 17;
 
+sub write_file {
+    my ($file, $text) = @_;
+    open my $fh, '>', $file
+      or die "Could not open file '$file' for writing: $!";
+    print $fh $text;
+    close $fh;
+}
+
 # First we must set up some autoloader files
 my $fulldir = File::Spec->catdir( $dir, 'auto', 'Foo' );
 mkpath( $fulldir ) or die "Can't mkdir '$fulldir': $!";
 
-open(FOO, '>', File::Spec->catfile( $fulldir, 'foo.al' ))
-	or die "Can't open foo file: $!";
-print FOO <<'EOT';
+write_file( File::Spec->catfile( $fulldir, 'foo.al' ), <<'EOT' );
 package Foo;
 sub foo { shift; shift || "foo" }
 1;
 EOT
-close(FOO);
 
-open(BAZ, '>', File::Spec->catfile( $fulldir, 'bazmarkhian.al' ))
-	or die "Can't open bazmarkhian file: $!";
-print BAZ <<'EOT';
+write_file( File::Spec->catfile( $fulldir, 'bazmarkhian.al' ), <<'EOT' );
 package Foo;
 sub bazmarkhianish { shift; shift || "baz" }
 1;
 EOT
-close(BAZ);
 
-open(BLECH, '>', File::Spec->catfile( $fulldir, 'blechanawilla.al' ))
-       or die "Can't open blech file: $!";
-print BLECH <<'EOT';
+my $blechanawilla_text = <<'EOT';
 package Foo;
 sub blechanawilla { compilation error (
 EOT
-close(BLECH);
-
+write_file( File::Spec->catfile( $fulldir, 'blechanawilla.al' ), $blechanawilla_text );
 # This is just to keep the old SVR3 systems happy; they may fail
 # to find the above file so we duplicate it where they should find it.
-open(BLECH, '>', File::Spec->catfile( $fulldir, 'blechanawil.al' ))
-       or die "Can't open blech file: $!";
-print BLECH <<'EOT';
-package Foo;
-sub blechanawilla { compilation error (
-EOT
-close(BLECH);
+write_file( File::Spec->catfile( $fulldir, 'blechanawil.al' ), $blechanawilla_text );
 
 # Let's define the package
 package Foo;
@@ -111,24 +104,18 @@ eval {
 like( $@, qr/syntax error/i, 'require error propagates' );
 
 # test recursive autoloads
-open(F, '>', File::Spec->catfile( $fulldir, 'a.al'))
-	or die "Cannot make 'a' file: $!";
-print F <<'EOT';
+write_file( File::Spec->catfile( $fulldir, 'a.al' ), <<'EOT' );
 package Foo;
 BEGIN { b() }
 sub a { ::ok( 1, 'adding a new autoloaded method' ); }
 1;
 EOT
-close(F);
-
-open(F, '>', File::Spec->catfile( $fulldir, 'b.al'))
-	or die "Cannot make 'b' file: $!";
-print F <<'EOT';
+write_file( File::Spec->catfile( $fulldir, 'b.al' ), <<'EOT' );
 package Foo;
 sub b { ::ok( 1, 'adding a new autoloaded method' ) }
 1;
 EOT
-close(F);
+
 Foo::a();
 
 package Bar;
