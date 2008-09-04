@@ -1,5 +1,9 @@
 Revision history for Perl extension AutoLoader
 
+5.66_02  Tue Sep  4 11:24 2008
+  - Added a test case for the bug that was fixed in 5.66_01,
+    courtesy of Christoph Lamprecht.
+
 5.66_01  Tue Sep  2 14:40 2008
   - Fix determination of the autosplit.ix in ugly edge cases.
     Explanation:
