@@ -24,7 +24,7 @@ use Params::Util qw{ _CODELIKE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -34,11 +34,37 @@ BEGIN {
 #####################################################################
 # Constructor and Accessors
 
+=pod
+
+=head2 new
+
+Creates a new, simple, parser object.
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $self  = bless { filters => [] }, $class;
 	return $self;
 }
+
+=pod
+
+=head2 add_map
+
+  # Instead of the full hash just read the hostname
+  $parser->add_map( sub { $_[0]->{hostname} } );
+
+The C<add_map> method adds a map stage to the filter pipeline.
+
+A single element is passed into the provided function from the previous
+pipeline phase, and one or more values can be returned which will be
+passed on to the next pipeline phase.
+
+Returns true if added, or throws an exception if a non-CODE reference
+is provided.
+
+=cut
 
 sub add_map {
 	my $self = shift;
@@ -50,6 +76,23 @@ sub add_map {
 	return 1;
 }
 
+=pod
+
+=head2 add_grep
+
+  # We only want the daily mirrors
+  $parser->add_grep( sub { $_[0]->{frequency} eq 'daily' } );
+
+The C<add_grep> method adds a grep phase to the filter pipeline.
+
+A single value is passed into the provided function, and the function
+should return true if the value is to be kept, or false if not.
+
+Returns true if added, or throws an exception if a non-CODE reference
+is provided.
+
+=cut
+
 sub add_grep {
 	my $self = shift;
 	my $code = _CODELIKE(shift);
@@ -59,6 +102,20 @@ sub add_grep {
 	push @{$self->{filters}}, [ 'grep', $code ];
 	return 1;
 }
+
+=pod
+
+=head2 add_bless
+
+  # Bless into whatever objects
+  $parser->add_bless( 'Foo::Whatever' );
+
+For situations in which you wish to convert the pipeline values into
+objects directly, and don't want to do it via a map phase that passes
+values into a contructor, the C<add_bless> method allows you to provide
+a class name that the elements of the pipe will be passed to.
+
+=cut
 
 sub add_bless {
 	my $self  = shift;
@@ -77,11 +134,37 @@ sub add_bless {
 #####################################################################
 # Parsing Methods
 
+=pod
+
+=head2 parse_file
+
+  my @mirrors = $parser->parse_file( 'MIRRORED.BY' );
+
+Once the parser is ready to process the file, the C<parse_file> method
+can be provided a file name to read. It will read the file, passing the
+contents through the filter pipeline, and returning the resulting values
+as a list of results.
+
+=cut
+
 sub parse_file {
 	my $self   = shift;
 	my $handle = IO::File->new( $_[0], 'r' ) or croak("open: $!");
 	return $self->parse( $handle );
 }
+
+=pod
+
+=head2 parse
+
+  my @mirrors = $parser->parse( $file_handle );
+
+Once the parser is ready to process the file, the C<parse> method
+can be provided a file handle to read. It will read from the file handle,
+passing the contents through the filter pipeline, and returning the
+resulting values as a list of results.
+
+=cut
 
 sub parse {
 	my $self   = shift;

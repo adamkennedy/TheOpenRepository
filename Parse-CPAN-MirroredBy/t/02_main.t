@@ -28,5 +28,5 @@ SCOPE: {
 
 	# Parse and check results
 	my @mirrors = $parser->parse_file( $file );
-	
+	1;
 }

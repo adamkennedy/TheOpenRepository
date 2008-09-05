@@ -1,4 +1,4 @@
-use inc::Module::Install 0.75;
+use inc::Module::Install 0.77;
 
 all_from      'lib/Parse/CPAN/MirroredBy.pm';
 requires      'IO::File'     => '1.13';
