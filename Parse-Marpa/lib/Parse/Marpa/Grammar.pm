@@ -500,6 +500,8 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX] = q{};
     $grammar->[Parse::Marpa::Internal::Grammar::AMBIGUOUS_LEX]      = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::TRACE_RULES]        = 0;
+    $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES]       = 0;
+    $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
     $grammar->[Parse::Marpa::Internal::Grammar::LOCATION_CALLBACK] =
         q{ 'Earleme ' . $earleme };
     $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE]     = undef;
@@ -816,10 +818,12 @@ sub Parse::Marpa::Grammar::set {
                 }
             }
             when ('trace_values') {
+		croak("trace_values must be set to a number >= 0")
+		    unless $value =~ /^\d+$/;
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES] =
-                    $value;
+                    $value + 0;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say $trace_fh "Setting $option option to $value";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -866,11 +870,13 @@ sub Parse::Marpa::Grammar::set {
                 }
             }
             when ('trace_iterations') {
+		croak("trace_iterations must be set to a number >= 0")
+		    unless $value =~ /^\d+$/;
                 $grammar->[
                     Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]
-                    = $value;
+                    = $value + 0;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say $trace_fh "Setting $option option to $value";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }

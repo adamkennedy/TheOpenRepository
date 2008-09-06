@@ -202,8 +202,15 @@ in a method call prior to the one with the C<source> option.
 
 =item trace_values
 
-Traces values as they are pushed onto
+Takes as its value an integer zero or greater,
+which sets the debugging level.
+A debugging level of zero means no tracing of values.
+A level of one or more turns on tracing of
+values as they are pushed onto
 the evaluation stack, popped off it, and calculated.
+If the debugging level is 3 or more, the entire evaluation stack
+is dumped at every step in the evaluation.
+
 Very helpful.
 Knowledge of Marpa internals is helpful,
 but not required.
@@ -528,7 +535,7 @@ in_bin_mdl($_);
 
 =end Parse::Marpa::test_document:
 
-    print $evaler->show_bocage($show_bocage_flag);
+    print $evaler->show_bocage($show_bocage_verbosity);
 
 Returns a multi-line string describing the bocage
 for an evaluator.
@@ -546,19 +553,19 @@ In the L<internals document|Parse::Marpa::Doc::Internals>,
 parse bocage grammars are described at length, using
 an example output from C<show_bocage>.
 
-The optional I<flag> argument, if a true value,
-requests verbose output.
-Verbose output,
-for each parse bocage and-production,
-shows the LR(0) item corresponding to its and-node,
-indicates if there is a Perl closure for the and-node,
-and gives the and-node's argument count (or rule length).
+The optional I<verbosity> argument must be an integer greater
+than or equal to zero.
+For each parse bocage and-production,
+if I<verbosity> is set greater than zero,
+the LR(0) item corresponding to the and-production's and-node is shown,
+along with the and-node's argument count (or rule length),
+and an indication of whether or not there is a Perl closure for the and-node.
 
 In addition to and-productions,
 parse bocages grammars contain or-productions.
 The information in or-productions is redundant --
 all of it is evident from the and-productions.
-Or-productions are shown only if verbose output is requested.
+Or-productions are shown only if I<verbosity> is set at 2 or more.
 
 =head3 show_tree
 

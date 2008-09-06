@@ -1533,11 +1533,11 @@ is_equation_trace_values($_);
 
 =end Parse::Marpa::test_document:
 
-    Pushed value: '2'
+    Pushed value from S4@0-1L0: '2'
     Popping 1 values to evaluate S4@0-1L0, rule: 1: e -> number
     Calculated and pushed value: '2==2'
-    Pushed value: '+'
-    Pushed value: '2'
+    Pushed value from S5@0-2R0:2: '+'
+    Pushed value from S4@2-3L0: '2'
     Popping 1 values to evaluate S4@2-3L0, rule: 1: e -> number
     Calculated and pushed value: '2==2'
     Popping 3 values to evaluate S6@0-3L0, rule: 0: e -> e op e

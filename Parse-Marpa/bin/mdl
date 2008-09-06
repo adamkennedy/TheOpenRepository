@@ -26,7 +26,7 @@ my $trace_priorities;
 my $trace_values;
 my $show_NFA;
 my $show_QDFA;
-my $show_bocage_flag;
+my $show_bocage_verbosity;
 my $show_earley_sets;
 my $show_problems;
 my $show_rules;
@@ -50,7 +50,7 @@ given ($command) {
             "text=s"               => \$text_to_parse,
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
-            "bocage:i"             => \$show_bocage_flag,
+            "bocage:i"             => \$show_bocage_verbosity,
             "inaccessible_symbols" => \$inaccessible_symbols,
             "accessible_symbols"   => \$accessible_symbols,
             "nullable_symbols"     => \$nullable_symbols,
@@ -229,8 +229,8 @@ sub do_parse {
 	exit 1;
     }
 
-    if (defined $show_bocage_flag) {
-	print $evaler->show_bocage($show_bocage_flag);
+    if (defined $show_bocage_verbosity) {
+	print $evaler->show_bocage($show_bocage_verbosity);
     }
 
     my $parse_count = 0;

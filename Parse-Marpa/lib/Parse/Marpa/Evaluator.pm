@@ -5,7 +5,7 @@ use warnings;
 no warnings 'recursion';
 use strict;
 use integer;
-use List::Util qw(max);
+use List::Util qw(min);
 use English qw( -no_match_vars );
 
 # The bocage is Marpa's structure for keeping multiple parses.
@@ -808,7 +808,7 @@ sub Parse::Marpa::Evaluator::show_bocage {
                 push @rhs, $value_as_string;
             }    # value
 
-            if ($verbose) {
+            if ($verbose >= 2) {
                 $text .= $lhs . ' ::= ' . $lhs . '[' . $index . ']' . "\n";
             }
 
@@ -845,6 +845,7 @@ sub Parse::Marpa::Evaluator::show_tree {
 
     my $text = q{};
 
+    my $tree_position = 0;
     for my $tree_node ( @{$tree} ) {
 
         my ($or_node, $choice,  $predecessor, $cause,
@@ -865,7 +866,7 @@ sub Parse::Marpa::Evaluator::show_tree {
             ];
 
         $text
-            .= 'Tree Node: '
+            .= "Tree Node #$tree_position: "
             . $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
             . "[$choice]"
             . "; Depth = $depth; Rhs Length = $argc\n";
@@ -890,6 +891,8 @@ sub Parse::Marpa::Evaluator::show_tree {
                 $text .= "\n";
             }
         }
+
+	$tree_position++;
 
     }    # $tree_node
 
@@ -920,8 +923,8 @@ sub Parse::Marpa::Evaluator::value {
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh =
         $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    my $trace_values;
-    my $trace_iterations;
+    my $trace_values = 0;
+    my $trace_iterations = 0;
     if ($tracing) {
         $trace_values =
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES];
@@ -987,7 +990,7 @@ sub Parse::Marpa::Evaluator::value {
 
         if ( defined $node ) {
 
-            if ( $build_node && $build_node <= $tree_position ) {
+            if ( defined $build_node and $build_node <= $tree_position ) {
                 undef $build_node;
             }
 
@@ -1012,7 +1015,8 @@ sub Parse::Marpa::Evaluator::value {
                 say {$trace_fh}
                     'Iteration ',
                     $choice,
-                    ' tree node ',
+                    ' tree node #',
+		    $tree_position, q{ },
                     $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
                     or croak('print to trace handle failed');
             }
@@ -1098,11 +1102,12 @@ sub Parse::Marpa::Evaluator::value {
                 $value_description = '; value=' . Dumper( ${$value_ref} )
                     if defined $value_ref;
                 print {$trace_fh}
-                    'Pushing tree node ',
+                    'Pushing tree node #',
+		    (scalar @{$tree}), q{ },
                     $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
                     "[$choice]: ",
                     Parse::Marpa::show_dotted_rule(
-                    $rule, $rule_position
+			$rule, $rule_position + 1
                     ),
                     $value_description
                     or croak('print to trace handle failed');
@@ -1129,24 +1134,32 @@ sub Parse::Marpa::Evaluator::value {
     my $build_depth =
         $tree->[$build_node]->[Parse::Marpa::Internal::Tree_Node::DEPTH];
     my $leaf_side_start_position =
-        max( grep { defined $_ }
+        min( grep { defined $_ }
             @last_position_by_depth[ 0 .. $build_depth ] );
     my $nodes_built = @$tree - $build_node;
-    $leaf_side_start_position //= @old_tree;
 
     if ($trace_iterations) {
         say {$trace_fh} 'Nodes built: ', $nodes_built,
             '; kept on root side: ', $build_node,
-            '; kept on leaf side: ', @old_tree - $leaf_side_start_position
+            '; kept on leaf side: ',
+	       (defined $leaf_side_start_position ? @old_tree - $leaf_side_start_position : 0)
             or croak('print to trace handle failed');
     }
 
     # Put the uniterated leaf side of the tree back on the stack.
-    push @{$tree}, @old_tree[ $leaf_side_start_position .. $#old_tree ];
+    push @{$tree}, @old_tree[ $leaf_side_start_position .. $#old_tree ]
+        if defined $leaf_side_start_position;
 
-    my @evaluation_stack;
+    my @evaluation_stack = ();
 
     TREE_NODE: for my $node ( reverse @{$tree} ) {
+
+       if ($trace_values >= 3) {
+           for (my $i = $#evaluation_stack; $i >= 0; $i--) {
+	       printf {$trace_fh} 'Stack position %3d:', $i;
+	       print {$trace_fh} ' ', Dumper( $evaluation_stack[$i] );
+	   }
+       }
 
         my ( $closure, $value_ref, $argc ) = @{$node}[
             Parse::Marpa::Internal::Tree_Node::CLOSURE,
@@ -1159,7 +1172,14 @@ sub Parse::Marpa::Evaluator::value {
             push @evaluation_stack, $value_ref;
 
             if ($trace_values) {
-                print {$trace_fh} 'Pushed value: ', Dumper( ${$value_ref} )
+		my ( $or_node, ) = @{$node}[
+		    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+		];
+                print {$trace_fh}
+		    'Pushed value from ',
+		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
+		    ': ',
+		    Dumper( ${$value_ref} )
                     or croak('print to trace handle failed');
             }
 
