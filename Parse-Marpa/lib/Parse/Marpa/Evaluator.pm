@@ -79,6 +79,7 @@ use constant TREE        => 3;    # current evaluation tree
 use constant RULE_DATA   => 4;
 use constant PACKAGE     => 5;
 use constant NULL_VALUES => 6;
+use constant CYCLES      => 7;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
@@ -934,7 +935,7 @@ sub Parse::Marpa::Evaluator::value {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my ( $bocage, $tree, $rule_data, $null_values ) = @{$evaler}[
+    my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
         Parse::Marpa::Internal::Evaluator::OR_NODES,
         Parse::Marpa::Internal::Evaluator::TREE,
         Parse::Marpa::Internal::Evaluator::RULE_DATA,
@@ -990,15 +991,22 @@ sub Parse::Marpa::Evaluator::value {
 
         if ( defined $node ) {
 
-            if ( defined $build_node and $build_node <= $tree_position ) {
-                undef $build_node;
-            }
-
             my ( $choice, $or_node, $depth ) = @{$node}[
                 Parse::Marpa::Internal::Tree_Node::CHOICE,
                 Parse::Marpa::Internal::Tree_Node::OR_NODE,
                 Parse::Marpa::Internal::Tree_Node::DEPTH,
             ];
+
+            if ( defined $build_node ) {
+
+		@traversal_stack
+		    = grep {
+			$_->[ Parse::Marpa::Internal::Tree_Node::DEPTH ] < $depth
+		    } @traversal_stack;
+
+		if ($build_node <= $tree_position ) { undef $build_node }
+
+            }
 
             my $and_nodes =
                 $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
@@ -1048,21 +1056,73 @@ sub Parse::Marpa::Evaluator::value {
             ];
             $choice //= 0;
 
-            my $and_node =
-                $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES]
-                ->[$choice];
+	    my ( $predecessor_or_node, $cause_or_node, $closure, $argc,
+		$value_ref, $rule, $rule_position, );
 
-            my ( $predecessor_or_node, $cause_or_node, $closure, $argc,
-                $value_ref, $rule, $rule_position, )
-                = @{$and_node}[
-                Parse::Marpa::Internal::And_Node::PREDECESSOR,
-                Parse::Marpa::Internal::And_Node::CAUSE,
-                Parse::Marpa::Internal::And_Node::CLOSURE,
-                Parse::Marpa::Internal::And_Node::ARGC,
-                Parse::Marpa::Internal::And_Node::VALUE_REF,
-                Parse::Marpa::Internal::And_Node::RULE,
-                Parse::Marpa::Internal::And_Node::POSITION,
-                ];
+	    my $and_nodes =
+		$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
+
+	    AND_NODE: while (1) {
+
+		my $and_node = $and_nodes->[$choice];
+
+		# if none of the and nodes are useable, this or node is discarded
+		# and we go to the outer loop and pop tree nodes until
+		# we find one which can be iterated.
+		next TREE_NODE unless defined $and_node;
+
+		( $predecessor_or_node, $cause_or_node, $closure, $argc,
+		    $value_ref, $rule, $rule_position, )
+		    = @{$and_node}[
+		    Parse::Marpa::Internal::And_Node::PREDECESSOR,
+		    Parse::Marpa::Internal::And_Node::CAUSE,
+		    Parse::Marpa::Internal::And_Node::CLOSURE,
+		    Parse::Marpa::Internal::And_Node::ARGC,
+		    Parse::Marpa::Internal::And_Node::VALUE_REF,
+		    Parse::Marpa::Internal::And_Node::RULE,
+		    Parse::Marpa::Internal::And_Node::POSITION,
+		    ];
+
+		# if this rule isn't part of a cycle, we can use this and-node
+		if (not $rule->[ Parse::Marpa::Internal::Rule::CYCLE ]) {
+		    last AND_NODE;
+
+		# if this rule is part of a cycle, check to see if we have cycled
+		} else {
+
+		    my $name = 
+			$or_node->[Parse::Marpa::Internal::Or_Node::NAME]
+			. "[$choice]";
+
+		    my $cycles = $evaler->[ Parse::Marpa::Internal::Evaluator::CYCLES ];
+
+		    # if by an initial highball estimate
+		    # we have yet to cycle more than a limit (now hard coded
+		    # to 1), then we can use this and node
+                    last AND_NODE if $cycles->{$name}++ < 1;
+
+		    # compute actual cycles count
+		    $cycles = $evaler->[Parse::Marpa::Internal::Evaluator::CYCLES] = {
+			map {
+			    (   $_->[Parse::Marpa::Internal::Or_Node::NAME] . "[$choice]",
+				0
+				)
+			    }
+			    grep {
+			    $_->[Parse::Marpa::Internal::Tree_Node::RULE]
+				->[Parse::Marpa::Internal::Rule::CYCLE]
+			    } @$tree
+		    };
+
+		    # repeat the test 
+                    last AND_NODE if $cycles->{$name}++ < 1;
+
+		} # else -- rule for this and-node was part of a cycle
+
+		# this and-node was rejected -- try the next
+		$choice++;
+
+	    } # AND_NODE
 
             my $predecessor_tree_node;
             if ( defined $predecessor_or_node ) {
@@ -1114,7 +1174,7 @@ sub Parse::Marpa::Evaluator::value {
             }
 
             push @{$tree}, $new_tree_node;
-            undef $new_tree_node;
+        
             push @traversal_stack,
                 grep { defined $_ }
                 ( $predecessor_tree_node, $cause_tree_node );
