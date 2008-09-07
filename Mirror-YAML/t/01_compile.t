@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Compile testing for Mirror::YAML
+# Compile testing for Mirror::URI
 
 use strict;
 BEGIN {
@@ -8,7 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 ok( $] >= 5.005, "Your perl is new enough" );
-use_ok('Mirror::YAML');
+
+use_ok( 'Mirror::URI'  );
+use_ok( 'Mirror::YAML' );
