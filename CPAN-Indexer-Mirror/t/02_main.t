@@ -51,6 +51,6 @@ is(
 # Check that the URIs are canonicalized
 is(
 	$yamldata->{mirrors}->[0],
-	'http://cpan.mirror.ac.za/Foo',
+	'http://cpan.mirror.ac.za/Foo/',
 	'Mirrors are normalized',
 );

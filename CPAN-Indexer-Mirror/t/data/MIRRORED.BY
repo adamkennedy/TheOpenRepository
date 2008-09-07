@@ -35,7 +35,7 @@
 mirror.ac.za:
   frequency        = "12 Hourly"
   dst_ftp          = "ftp://cpan.mirror.ac.za/"
-  dst_http         = "htTp://cpan.MIRROR.ac.za:80/Foo"
+  dst_http         = "htTp://cpan.MIRROR.ac.za:80/Foo/"
   dst_rsync        = "mirror.ac.za::cpan"
   dst_location     = "Cape Town, South Africa, Africa (33.55 18.27)"
   dst_organisation = "TENET"
