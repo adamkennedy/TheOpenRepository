@@ -153,6 +153,7 @@ use constant PHASE                    => 43;    # the grammar's phase
 use constant INTERFACE                => 44;    # the grammar's interface
 use constant START_STATES => 45;    # ref to array of the start states
 use constant CYCLE_ACTION => 46;    # ref to array of the start states
+use constant CYCLE_DEPTH  => 47;    # depth to which to follow cycles
 
 package Parse::Marpa::Internal::Interface;
 
@@ -506,7 +507,8 @@ sub Parse::Marpa::Grammar::new {
         q{ 'Earleme ' . $earleme };
     $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE]     = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS]   = 1;
-    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION]   = 'fatal';
+    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION]   = 'warn';
+    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH]    = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::NEW;
@@ -934,6 +936,12 @@ sub Parse::Marpa::Grammar::set {
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION] =
+                    $value;
+            }
+            when ('cycle_depth') {
+		croak("cycle_depth must be set to a number >= 0")
+		    unless $value =~ /^\d+$/;
+                $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH] =
                     $value;
             }
             when ('warnings') {
@@ -2653,7 +2661,7 @@ sub detect_cycle {
     my $warn_on_cycle = 1;
     given ($cycle_action) {
 	when ('warn') { $cycle_is_fatal = 0; }
-	when ('ignore') {
+	when ('quiet') {
 	    $cycle_is_fatal = 0;
 	    $warn_on_cycle = 0;
 	}

@@ -449,6 +449,7 @@ sub Parse::Marpa::Evaluator::new {
 
     $self->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     $self->[Parse::Marpa::Internal::Evaluator::OR_NODES]    = [];
+    $self->[Parse::Marpa::Internal::Evaluator::CYCLES]    = {};
 
     my $current_parse_set = $parse_set_arg // $default_parse_set;
 
@@ -916,8 +917,7 @@ sub Parse::Marpa::Evaluator::value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
-    my ( $grammar, ) =
-        @{$recognizer}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
+    my ( $grammar, ) = @{$recognizer}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
@@ -942,7 +942,11 @@ sub Parse::Marpa::Evaluator::value {
         Parse::Marpa::Internal::Evaluator::NULL_VALUES,
     ];
 
-    my $max_parses = $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES];
+    my ($max_parses, $cycle_depth )
+	= @{$grammar}[
+	    Parse::Marpa::Internal::Grammar::MAX_PARSES,
+	    Parse::Marpa::Internal::Grammar::CYCLE_DEPTH,
+	];
     my $parse_count =
         $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
@@ -1099,23 +1103,29 @@ sub Parse::Marpa::Evaluator::value {
 		    # if by an initial highball estimate
 		    # we have yet to cycle more than a limit (now hard coded
 		    # to 1), then we can use this and node
-                    last AND_NODE if $cycles->{$name}++ < 1;
+                    last AND_NODE if $cycles->{$name}++ < $cycle_depth;
 
 		    # compute actual cycles count
-		    $cycles = $evaler->[Parse::Marpa::Internal::Evaluator::CYCLES] = {
-			map {
-			    (   $_->[Parse::Marpa::Internal::Or_Node::NAME] . "[$choice]",
-				0
-				)
-			    }
-			    grep {
+		    $cycles = $evaler->[Parse::Marpa::Internal::Evaluator::CYCLES] = {};
+		    for my $tree_node (
+			grep {
 			    $_->[Parse::Marpa::Internal::Tree_Node::RULE]
 				->[Parse::Marpa::Internal::Rule::CYCLE]
-			    } @$tree
-		    };
+			} @$tree
+			)
+		    {
+			my ($or_node, $choice) = @{$tree_node}[
+			    Parse::Marpa::Internal::Tree_Node::OR_NODE,
+			    Parse::Marpa::Internal::Tree_Node::CHOICE,
+			];
+			$cycles->{
+			    $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
+				. "[$choice]"
+			    }++;
+		    }
 
 		    # repeat the test 
-                    last AND_NODE if $cycles->{$name}++ < 1;
+                    last AND_NODE if $cycles->{$name}++ < $cycle_depth;
 
 		} # else -- rule for this and-node was part of a cycle
 
