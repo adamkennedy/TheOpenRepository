@@ -6,13 +6,27 @@ package CPAN::Indexer::Mirror;
 
 CPAN::Indexer::Mirror - Creates the mirror.yml and mirror.json files
 
+=head1 SYNOPSIS
+
+  use CPAN::Indexer::Mirror ();
+  
+  CPAN::Indexer::Mirror->new(
+      root => '/cpan/root/directory',
+  )->run;
+
 =head1 DESCRIPTION
 
 This module is used to implement a small piece of functionality inside the
 CPAN/PAUSE indexer which generates the mirror.yml and mirror.json files.
 
-These files are used to allow CPAN clients to implement mirror validation
-and automated selection.
+These files are used to allow CPAN clients (via the L<Mirror::YAML> or
+L<Mirror::JSON> modules) to implement mirror validation and automated
+selection.
+
+=head1 METHODS
+
+Anyone who needs to know more detail than the SYNOPSIS should read the
+(fairly straight forward) code.
 
 =cut
 
@@ -22,11 +36,13 @@ use File::Spec              ();
 use File::Remove            ();
 use YAML::Tiny              ();
 use JSON                    ();
+use URI                     ();
+use URI::http               ();
 use Parse::CPAN::MirroredBy ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -38,11 +54,29 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	return bless { @_ }, $class;
+	my $self  = bless { @_ }, $class;
+
+	# Apply defaults
+	$self->{name} ||= 'Comprehensive Perl Archive Network';
+	$self->{master}  ||= 'http://www.cpan.org/';
+
+	return $self;
 }
 
 sub root {
 	$_[0]->{root};
+}
+
+sub name {
+	$_[0]->{name};
+}
+
+sub master {
+	$_[0]->{master};
+}
+
+sub timestamp {
+	$_[0]->{timestamp} || $_[0]->now;
 }
 
 sub mirrored_by {
@@ -65,30 +99,32 @@ sub mirror_json {
 # Process Methods
 
 sub run {
-	my $self    = shift;
+	my $self = ref $_[0] ? shift : shift->new(@_);
 
 	# Generate the data structure for the files
 	my @mirrors = $self->parser->parse_file( $self->mirrored_by );
 	my $data    = {
-		name      => "Comprehensive Perl Archive Network",
-		url       => "http://www.cpan.org/",
-		timestamp => $self->zulu,
+		name      => $self->name,
+		master    => $self->master,
+		timestamp => $self->timestamp,
 		mirrors   => \@mirrors,
 	};
 
 	# Write the mirror.yml file
-	if ( -f $self->mirror_yml ) {
-		File::Remove::remove( $self->mirror_yml );
-	}
-	YAML::Tiny::DumpFile( $self->mirror_yml, $data );
+	my $yml = $self->mirror_yml;
+	File::Remove::remove( $yml ) if -e $yml;
+	YAML::Tiny::DumpFile( $yml, $data );
 
 	# Write the mirror.json file
-	if ( -f $self->mirror_json ) {
-		File::Remove::remove( $self->mirror_json );
+	my $json = $self->mirror_json;
+	File::Remove::remove( $json ) if -e $json;
+	SCOPE: {
+		local $!;
+		local *FILE;
+		open( FILE, '>', $json )                    or die "open: $!";
+		print FILE JSON->new->pretty->encode($data) or die "print: $!";
+		close( FILE )                               or die "close: $!";
 	}
-	open( FILE, '>' . $self->mirror_json ) or die "open: $!";
-	print FILE JSON->new->pretty->encode( $data )  or die "print: $!";
-	close( FILE )                          or die "close: $!";
 
 	return 1;
 }
@@ -96,11 +132,16 @@ sub run {
 sub parser {
 	my $parser = Parse::CPAN::MirroredBy->new;
 	$parser->add_map(  sub { $_[0]->{dst_http} } );
-	$parser->add_grep( sub { defined $_[0] and $_[0] !~ /\s/ } );
+	$parser->add_grep( sub {
+		defined $_[0]
+		and
+		$_[0] =~ /\/$/
+	} );
+	$parser->add_map(  sub { URI->new( $_[0], 'http' )->canonical->as_string } );
 	return $parser;
 }
 
-sub zulu {
+sub now {
 	my @t = gmtime time;
 	return sprintf( "%04u-%02u-%02uT%02u:%02u:%02uZ",
 		$t[5] + 1900,
@@ -110,7 +151,6 @@ sub zulu {
 		$t[1],
 		$t[0],
 	);
-
 }
 
 1;
