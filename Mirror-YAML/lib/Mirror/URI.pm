@@ -36,6 +36,7 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Clean up params
+	$self->{class} = $class;
 	$self->{valid} = !! $self->valid;
 	if ( $self->valid ) {
 		if ( _STRING($self->master) ) {
@@ -58,12 +59,16 @@ sub new {
 	return $self;
 }
 
-sub uri {
-	$_[0]->{uri};
+sub class {
+	$_[0]->{class};
 }
 
-sub valid {
-	$_[0]->{valid};
+sub version {
+	$_[0]->{version};
+}
+
+sub uri {
+	$_[0]->{uri};
 }
 
 sub name {
@@ -74,12 +79,16 @@ sub master {
 	$_[0]->{master};
 }
 
+sub timestamp {
+	$_[0]->{timestamp};
+}
+
 sub mirrors {
 	return ( @{ $_[0]->{mirrors} } );
 }
 
-sub timestamp {
-	$_[0]->{timestamp};
+sub valid {
+	$_[0]->{valid};
 }
 
 sub lastget {
@@ -157,6 +166,37 @@ sub get {
 
 	# Create the object
 	return $class->new( %$hash, %self, valid => 1 );
+}
+
+
+
+
+
+#####################################################################
+# Populate Elements
+
+sub get_master {
+	my $self = shift;
+	if ( _INSTANCE($self->master, 'URI') ) {
+		# Load the master
+		my $master = $self->class->get($self->master);
+		$self->{master} = $master;
+	}
+	return $self->master;
+}
+
+sub get_mirror {
+	my $self = shift;
+	my $i    = shift;
+	my $uri  = $self->{mirrors}->[$i];
+	unless ( defined $uri ) {
+		Carp::croak("No mirror with index $i");
+	}
+	if ( _INSTANCE($uri, 'URI') ) {
+		my $mirror = $self->class->get($uri);
+		$self->{mirrors}->[$i] = $mirror;
+	}
+	return $self->{mirrors}->[$i];
 }
 
 1;
