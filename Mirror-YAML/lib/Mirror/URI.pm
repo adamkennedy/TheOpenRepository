@@ -21,7 +21,7 @@ use constant THIRTY_DAYS => 2592000;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.04_01';
 }
 
 
@@ -51,8 +51,13 @@ sub new {
 			}
 			$self->{timestamp} = Time::Local::timegm( $6, $5, $4, $3, $2 - 1, $1 );
 		}
-		unless ( _ARRAY0($self->{mirrors}) ) {
+		my $mirrors = $self->{mirrors};
+		unless ( _ARRAY0($mirrors) ) {
 			croak("Invalid mirror list");
+		}
+		foreach my $i ( 0 .. $#$mirrors ) {
+			next unless _STRING($mirrors->[$i]);
+			$mirrors->[$i] = URI->new( $mirrors->[$i] );
 		}
 	}
 

@@ -1,4 +1,7 @@
-Revision history for Perl extension Mirror::YAML
+Revision history for Perl extension Mirror-YAML
+
+0.04_01 Mon  8 Sep 2008
+	- Completely refactored the code
 
 0.03 Sat 12 Apr 2008
 	- Added extensive POD documentation

@@ -7,7 +7,7 @@ use Parse::CPAN::Meta ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.04_01';
 	@ISA     = 'Mirror::URI';
 }
 
