@@ -42,15 +42,16 @@ package Parse::Marpa::Internal::And_Node;
 use constant PREDECESSOR => 0;
 use constant CAUSE       => 1;
 use constant VALUE_REF   => 2;
-use constant CLOSURE     => 3;
+use constant PERL_CLOSURE     => 3;
 use constant ARGC        => 4;
 use constant RULE        => 5;
 use constant POSITION    => 6;
 
 package Parse::Marpa::Internal::Or_Node;
 
-use constant NAME      => 0;
-use constant AND_NODES => 1;
+use constant NAME       => 0;
+use constant AND_NODES  => 1;
+use constant IS_CLOSURE => 2; # is this a closure or-node?
 
 package Parse::Marpa::Internal::Tree_Node;
 
@@ -59,16 +60,17 @@ use constant CHOICE      => 1;
 use constant PREDECESSOR => 2;
 use constant CAUSE       => 3;
 use constant DEPTH       => 4;
-use constant CLOSURE     => 6;
+use constant PERL_CLOSURE     => 6;
 use constant ARGC        => 7;
 use constant VALUE_REF   => 8;
 use constant RULE        => 9;
 use constant POSITION    => 10;
+use constant PARENT      => 11;
 
 package Parse::Marpa::Internal::Evaluator::Rule;
 
 use constant CODE    => 0;
-use constant CLOSURE => 1;
+use constant PERL_CLOSURE => 1;
 
 package Parse::Marpa::Internal::Evaluator;
 
@@ -341,7 +343,7 @@ sub set_actions {
             my $rule_datum;
             $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CODE] =
                 "default to undef";
-            $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE] =
+            $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::PERL_CLOSURE] =
                 \undef;
             $rule_data->[$rule_id] = $rule_datum;
             next RULE;
@@ -390,7 +392,7 @@ sub set_actions {
 
         my $rule_datum;
         $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CODE] = $code;
-        $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE] =
+        $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::PERL_CLOSURE] =
             $closure;
 
         $rule_data->[$rule_id] = $rule_datum;
@@ -503,11 +505,11 @@ sub Parse::Marpa::Evaluator::new {
 
         my $closure =
             $rule_data->[ $start_rule->[Parse::Marpa::Internal::Rule::ID] ]
-            ->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE];
+            ->[Parse::Marpa::Internal::Evaluator::Rule::PERL_CLOSURE];
 
         @{$and_node}[
             Parse::Marpa::Internal::And_Node::VALUE_REF,
-            Parse::Marpa::Internal::And_Node::CLOSURE,
+            Parse::Marpa::Internal::And_Node::PERL_CLOSURE,
             Parse::Marpa::Internal::And_Node::ARGC,
             Parse::Marpa::Internal::And_Node::RULE,
             Parse::Marpa::Internal::And_Node::POSITION,
@@ -564,7 +566,9 @@ sub Parse::Marpa::Evaluator::new {
         # them.
         my @and_saplings;
 
-        if ( defined $position ) {
+	my $is_kernel_or_node = defined $position;
+
+        if ( $is_kernel_or_node ) {
 
             # Kernel or-node: We have a rule and a position.
             # get the current symbol
@@ -592,7 +596,7 @@ sub Parse::Marpa::Evaluator::new {
                 my $rhs = $rule->[Parse::Marpa::Internal::Rule::RHS];
                 my $closure =
                     $rule_data->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
-                    ->[Parse::Marpa::Internal::Evaluator::Rule::CLOSURE];
+                    ->[Parse::Marpa::Internal::Evaluator::Rule::PERL_CLOSURE];
 
                 my $last_position = @{$rhs} - 1;
                 push @and_saplings,
@@ -710,7 +714,7 @@ sub Parse::Marpa::Evaluator::new {
                     Parse::Marpa::Internal::And_Node::PREDECESSOR,
                     Parse::Marpa::Internal::And_Node::CAUSE,
                     Parse::Marpa::Internal::And_Node::VALUE_REF,
-                    Parse::Marpa::Internal::And_Node::CLOSURE,
+                    Parse::Marpa::Internal::And_Node::PERL_CLOSURE,
                     Parse::Marpa::Internal::And_Node::ARGC,
                     Parse::Marpa::Internal::And_Node::RULE,
                     Parse::Marpa::Internal::And_Node::POSITION,
@@ -729,6 +733,7 @@ sub Parse::Marpa::Evaluator::new {
         my $or_node = [];
         $or_node->[Parse::Marpa::Internal::Or_Node::NAME] = $sapling_name;
         $or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
+        $or_node->[Parse::Marpa::Internal::Or_Node::IS_CLOSURE] = not $is_kernel_or_node;
         push @{ $self->[OR_NODES] }, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
 
@@ -787,7 +792,7 @@ sub Parse::Marpa::Evaluator::show_bocage {
                 Parse::Marpa::Internal::And_Node::PREDECESSOR,
                 Parse::Marpa::Internal::And_Node::CAUSE,
                 Parse::Marpa::Internal::And_Node::VALUE_REF,
-                Parse::Marpa::Internal::And_Node::CLOSURE,
+                Parse::Marpa::Internal::And_Node::PERL_CLOSURE,
                 Parse::Marpa::Internal::And_Node::ARGC,
                 Parse::Marpa::Internal::And_Node::RULE,
                 Parse::Marpa::Internal::And_Node::POSITION,
@@ -852,7 +857,7 @@ sub Parse::Marpa::Evaluator::show_tree {
 
         my ($or_node, $choice,  $predecessor, $cause,
             $depth,   $closure, $argc,        $value_ref,
-            $rule,    $position,
+            $rule,    $position, $parent
             )
             = @{$tree_node}[
             Parse::Marpa::Internal::Tree_Node::OR_NODE,
@@ -860,18 +865,21 @@ sub Parse::Marpa::Evaluator::show_tree {
             Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
             Parse::Marpa::Internal::Tree_Node::CAUSE,
             Parse::Marpa::Internal::Tree_Node::DEPTH,
-            Parse::Marpa::Internal::Tree_Node::CLOSURE,
+            Parse::Marpa::Internal::Tree_Node::PERL_CLOSURE,
             Parse::Marpa::Internal::Tree_Node::ARGC,
             Parse::Marpa::Internal::Tree_Node::VALUE_REF,
             Parse::Marpa::Internal::Tree_Node::RULE,
             Parse::Marpa::Internal::Tree_Node::POSITION,
+            Parse::Marpa::Internal::Tree_Node::PARENT,
             ];
 
         $text
             .= "Tree Node #$tree_position: "
             . $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
-            . "[$choice]"
-            . "; Depth = $depth; Rhs Length = $argc\n";
+            . "[$choice]";
+	$text .= "; Parent= $parent " if defined $parent;
+	$text .= "; Depth = $depth; Rhs Length = $argc\n";
+
         $text .= '    Rule: '
             . Parse::Marpa::show_dotted_rule( $rule, $position + 1 ) . "\n";
         $text
@@ -995,10 +1003,11 @@ sub Parse::Marpa::Evaluator::value {
 
         if ( defined $node ) {
 
-            my ( $choice, $or_node, $depth ) = @{$node}[
+            my ( $choice, $or_node, $depth, $parent ) = @{$node}[
                 Parse::Marpa::Internal::Tree_Node::CHOICE,
                 Parse::Marpa::Internal::Tree_Node::OR_NODE,
                 Parse::Marpa::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::PARENT,
             ];
 
             if ( defined $build_node ) {
@@ -1038,8 +1047,9 @@ sub Parse::Marpa::Evaluator::value {
                 Parse::Marpa::Internal::Tree_Node::CHOICE,
                 Parse::Marpa::Internal::Tree_Node::OR_NODE,
                 Parse::Marpa::Internal::Tree_Node::DEPTH,
+                Parse::Marpa::Internal::Tree_Node::PARENT,
                 ]
-                = ( $choice, $or_node, $depth, );
+                = ( $choice, $or_node, $depth, $parent);
             push @traversal_stack, $new_tree_node;
 
         }    # defined $node
@@ -1066,6 +1076,9 @@ sub Parse::Marpa::Evaluator::value {
 	    my $and_nodes =
 		$or_node->[Parse::Marpa::Internal::Or_Node::AND_NODES];
 
+	    my $or_node_is_closure =
+		$or_node->[Parse::Marpa::Internal::Or_Node::IS_CLOSURE];
+
 	    AND_NODE: while (1) {
 
 		my $and_node = $and_nodes->[$choice];
@@ -1080,54 +1093,57 @@ sub Parse::Marpa::Evaluator::value {
 		    = @{$and_node}[
 		    Parse::Marpa::Internal::And_Node::PREDECESSOR,
 		    Parse::Marpa::Internal::And_Node::CAUSE,
-		    Parse::Marpa::Internal::And_Node::CLOSURE,
+		    Parse::Marpa::Internal::And_Node::PERL_CLOSURE,
 		    Parse::Marpa::Internal::And_Node::ARGC,
 		    Parse::Marpa::Internal::And_Node::VALUE_REF,
 		    Parse::Marpa::Internal::And_Node::RULE,
 		    Parse::Marpa::Internal::And_Node::POSITION,
 		    ];
 
-		# if this rule isn't part of a cycle, we can use this and-node
-		if (not $rule->[ Parse::Marpa::Internal::Rule::CYCLE ]) {
-		    last AND_NODE;
+		# if this or node is not a closure or-node or
+		# this rule is not part of a cycle, we can use this and-node
+		last AND_NODE unless $or_node_is_closure;
+		last AND_NODE unless $rule->[ Parse::Marpa::Internal::Rule::CYCLE ];
 
-		# if this rule is part of a cycle, check to see if we have cycled
-		} else {
+		# if this rule is part of a cycle,
+		# and this is a closure or-node
+		# check to see if we have cycled
 
-		    my $name = 
-			$or_node->[Parse::Marpa::Internal::Or_Node::NAME]
-			. "[$choice]";
+		my $or_node_name = 
+		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME];
+		my $and_node_name = $or_node_name . "[$choice]";
 
-		    my $cycles = $evaler->[ Parse::Marpa::Internal::Evaluator::CYCLES ];
+		my $cycles = $evaler->[ Parse::Marpa::Internal::Evaluator::CYCLES ];
 
-		    # if by an initial highball estimate
-		    # we have yet to cycle more than a limit (now hard coded
-		    # to 1), then we can use this and node
-                    last AND_NODE if $cycles->{$name}++ < $cycle_depth;
+		# if by an initial highball estimate
+		# we have yet to cycle more than a limit (now hard coded
+		# to 1), then we can use this and node
+		last AND_NODE if $cycles->{$and_node_name}++ < $cycle_depth;
 
-		    # compute actual cycles count
-		    $cycles = $evaler->[Parse::Marpa::Internal::Evaluator::CYCLES] = {};
-		    for my $tree_node (
-			grep {
-			    $_->[Parse::Marpa::Internal::Tree_Node::RULE]
-				->[Parse::Marpa::Internal::Rule::CYCLE]
-			} @$tree
-			)
-		    {
-			my ($or_node, $choice) = @{$tree_node}[
-			    Parse::Marpa::Internal::Tree_Node::OR_NODE,
-			    Parse::Marpa::Internal::Tree_Node::CHOICE,
-			];
-			$cycles->{
-			    $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
-				. "[$choice]"
-			    }++;
-		    }
+		# compute actual cycles count
+		my $parent = $new_tree_node->[ Parse::Marpa::Internal::Tree_Node::PARENT ];
+		my $cycles_count = 0;
 
-		    # repeat the test 
-                    last AND_NODE if $cycles->{$name}++ < $cycle_depth;
+		while (defined $parent) {
+		    my $parent_node = $tree->[$parent];
+		    my ( $or_node, $parent_choice );
+		    ( $or_node, $parent, $parent_choice ) = @{$parent_node}[
+			Parse::Marpa::Internal::Tree_Node::OR_NODE,
+			Parse::Marpa::Internal::Tree_Node::PARENT,
+			Parse::Marpa::Internal::Tree_Node::CHOICE,
+		    ];
+		    my $parent_or_node_name = 
+			$or_node->[Parse::Marpa::Internal::Or_Node::NAME];
+		    $cycles_count++
+			if $or_node_name eq $parent_or_node_name
+			and $choice == $parent_choice;
+		}
 
-		} # else -- rule for this and-node was part of a cycle
+		# replace highball estimate with actual count
+		$cycles->{$and_node_name} = $cycles_count;
+
+		# repeat the test 
+		last AND_NODE if $cycles->{$and_node_name}++ < $cycle_depth;
 
 		# this and-node was rejected -- try the next
 		$choice++;
@@ -1138,25 +1154,27 @@ sub Parse::Marpa::Evaluator::value {
             if ( defined $predecessor_or_node ) {
                 @{$predecessor_tree_node}[
                     Parse::Marpa::Internal::Tree_Node::OR_NODE,
-                    Parse::Marpa::Internal::Tree_Node::DEPTH
+                    Parse::Marpa::Internal::Tree_Node::DEPTH,
+                    Parse::Marpa::Internal::Tree_Node::PARENT
                     ]
-                    = ( $predecessor_or_node, $depth + 1, );
+                    = ( $predecessor_or_node, $depth + 1, scalar @{$tree} );
             }
 
             my $cause_tree_node;
             if ( defined $cause_or_node ) {
                 @{$cause_tree_node}[
                     Parse::Marpa::Internal::Tree_Node::OR_NODE,
-                    Parse::Marpa::Internal::Tree_Node::DEPTH
+                    Parse::Marpa::Internal::Tree_Node::DEPTH,
+                    Parse::Marpa::Internal::Tree_Node::PARENT
                     ]
-                    = ( $cause_or_node, $depth + 1, );
+                    = ( $cause_or_node, $depth + 1, scalar @{$tree} );
             }
 
             @{$new_tree_node}[
                 Parse::Marpa::Internal::Tree_Node::CHOICE,
                 Parse::Marpa::Internal::Tree_Node::PREDECESSOR,
                 Parse::Marpa::Internal::Tree_Node::CAUSE,
-                Parse::Marpa::Internal::Tree_Node::CLOSURE,
+                Parse::Marpa::Internal::Tree_Node::PERL_CLOSURE,
                 Parse::Marpa::Internal::Tree_Node::ARGC,
                 Parse::Marpa::Internal::Tree_Node::RULE,
                 Parse::Marpa::Internal::Tree_Node::VALUE_REF,
@@ -1232,7 +1250,7 @@ sub Parse::Marpa::Evaluator::value {
        }
 
         my ( $closure, $value_ref, $argc ) = @{$node}[
-            Parse::Marpa::Internal::Tree_Node::CLOSURE,
+            Parse::Marpa::Internal::Tree_Node::PERL_CLOSURE,
             Parse::Marpa::Internal::Tree_Node::VALUE_REF,
             Parse::Marpa::Internal::Tree_Node::ARGC,
         ];
