@@ -55,7 +55,7 @@ is(
 
 # Check that the URIs are canonicalized
 is(
-	$yamldata->{mirrors}->[0],
-	'http://cpan.mirror.ac.za/Foo/',
+	scalar( grep { $_ eq 'http://cpan.mirror.ac.za/Foo/' } @{$yamldata->{mirrors}}),
+	1,
 	'Mirrors are normalized',
 );

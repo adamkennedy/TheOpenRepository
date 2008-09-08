@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-Indexer-Mirror
 
+0.04 Mon  8 Sep 2008
+	- Randomise the mirror order each time we generate it
+
 0.03 Mon  8 Sep 2008
 	- Add a version to the format
 
