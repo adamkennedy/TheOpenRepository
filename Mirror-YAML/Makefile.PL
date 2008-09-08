@@ -2,7 +2,7 @@ use inc::Module::Install 0.77;
 
 all_from      'lib/Mirror/YAML.pm';
 requires      'Params::Util'      => '0.25';
-requires      'Parse::CPAN::Meta' => '1.03';
+requires      'Parse::CPAN::Meta' => '0.03';
 requires      'URI'               => '1.28';
 requires      'Time::HiRes'       => 0;
 requires      'Time::Local'       => '1.13';
