@@ -42,7 +42,7 @@ use Parse::CPAN::MirroredBy ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -104,6 +104,7 @@ sub run {
 	# Generate the data structure for the files
 	my @mirrors = $self->parser->parse_file( $self->mirrored_by );
 	my $data    = {
+		version   => '1.0',
 		name      => $self->name,
 		master    => $self->master,
 		timestamp => $self->timestamp,

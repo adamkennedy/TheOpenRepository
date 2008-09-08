@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 use File::Spec::Functions ':ALL';
 use File::Remove 'clear';
 use CPAN::Indexer::Mirror ();
@@ -27,6 +27,11 @@ ok( -f $json, 'Created mirror.json' );
 # Check the contents of the YAML file
 my $yamldata = YAML::Tiny::LoadFile( $yaml );
 is( ref($yamldata), 'HASH', 'File is a hash' );
+is(
+	$yamldata->{version},
+	'1.0',
+	'version: correct',
+);
 is(
 	$yamldata->{name},
 	'Comprehensive Perl Archive Network',
