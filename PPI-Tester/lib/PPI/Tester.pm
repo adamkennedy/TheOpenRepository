@@ -207,7 +207,7 @@ sub load {
 		"Modules(*.pm)|*.pm|perl header(.*ph)|*.ph|*.cgi|*.cgi|perl programs (*.pl)|*.pl|test files (*.t)|*.t|AutoSplit (*.al)|All files (*.*)|*.*",
 
 		# The "Open as Read-Only" means nothing to us (I think)
-		wxOPEN,
+		wxFD_OPEN, # | wxFD_HIDE_READONLY
 		);
 
 	if ( $Dialog->ShowModal == wxID_CANCEL ) {
