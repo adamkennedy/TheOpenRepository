@@ -2,7 +2,7 @@ package Mirror::URI;
 
 # Abstract base module to allow easy extension to other file formats.
 
-use 5.005003;
+use 5.00503;
 use strict;
 use Carp         ();
 use File::Spec   ();
