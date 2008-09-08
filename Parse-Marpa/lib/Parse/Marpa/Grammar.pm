@@ -907,27 +907,6 @@ sub Parse::Marpa::Grammar::set {
             }
             when ('opaque') {
                 croak( 'the opaque option has been removed');
-                # croak( "$option option not allowed in ",
-                    # Parse::Marpa::Internal::Phase::description($phase) )
-                    # if $phase >= Parse::Marpa::Internal::Phase::EVALED;
-                # given ($value) {
-                    # when (1) {
-                        # $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] =
-                            # 1;
-                    # }
-                    # when (0) {
-                        # my $old_opaque = $grammar
-                            # ->[Parse::Marpa::Internal::Grammar::OPAQUE];
-                        # if ( defined $old_opaque and $old_opaque ) {
-                            # croak(
-                                # "opaque cannot be unset once it has been set"
-                            # );
-                        # }
-                        # $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] =
-                            # 0;
-                    # }
-                    # default { croak("opaque must be set to either 0 or 1"); };
-                # }
             }
             when ('cycle_action') {
                 say $trace_fh
@@ -939,8 +918,8 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('cycle_depth') {
-		croak("cycle_depth must be set to a number >= 0")
-		    unless $value =~ /^\d+$/;
+		croak("cycle_depth must be set to a number > 0")
+		    unless $value =~ /^\d+$/ and $value > 0;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH] =
                     $value;
             }

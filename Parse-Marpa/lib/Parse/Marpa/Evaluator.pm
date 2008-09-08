@@ -910,6 +910,14 @@ sub Parse::Marpa::Evaluator::show_tree {
 
 }
 
+sub Parse::Marpa::Evaluator::set {
+    my $evaler     = shift;
+    my $args = shift;
+    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
+    my ( $grammar, ) = @{$recognizer}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
+    Parse::Marpa::Grammar::set( $grammar, $args );
+}
+
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
 sub Parse::Marpa::Evaluator::value {

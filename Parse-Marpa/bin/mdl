@@ -111,7 +111,7 @@ sub do_compile {
     my $grammar_source;
     { local ($RS) = undef; $grammar_source = <STDIN>; }
 
-    my $grammar = new Parse::Marpa(
+    my $grammar = new Parse::Marpa::Grammar(
         {   mdl_source => \$grammar_source,
             %options
         }
