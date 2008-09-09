@@ -3668,7 +3668,7 @@ a reference to a hash of named arguments.
 It returns a new grammar object or throws an exception.
 
 Named arguments can be Marpa options.
-For these see L<Parse::Marpa/OPTIONS>.
+For these see L<Parse::Marpa::Doc::Options>.
 In addition to the Marpa options,
 the C<mdl_source> named argument
 and the named arguments of the plumbing interface are allowed.

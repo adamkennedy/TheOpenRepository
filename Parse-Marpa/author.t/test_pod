@@ -185,6 +185,11 @@ sub in_ah_s_t {
     return in_file( shift, $ah_s_t );
 }
 
+my $cycle2_t = slurp('../t/cycle2.t');
+sub in_cycle2_t {
+    return in_file( shift, $cycle2_t );
+}
+
 my $equation_s_t = slurp('../t/equation_s.t');
 
 sub in_equation_s_t {

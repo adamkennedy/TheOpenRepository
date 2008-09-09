@@ -1712,6 +1712,30 @@ will be used as the number of the earleme at which to end parsing.
 If there is no second argument, parsing ends at the default end
 of parsing, which was set in the recognizer.
 
+=head2 set
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_cycle2_t($_)
+
+=end Parse::Marpa::test_document:
+
+    $evaler->set( { cycle_depth => $depth } );
+
+The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
+It allows Marpa options
+to be specified for an evaler object.
+Relatively few of the Marpa options can be applied at evaluation time,
+but the C<cycle_depth> option is available,
+as are the options to control the tracing done at evaluation time.
+It is important to note that
+as of the current implementation,
+the evaluator object does not copy a recognizer object but uses it directly,
+and that this means that any options changed in an evaluator object
+will also be changed in the underlying recognizer object.
+This may change in a future implementation.
+
 =head2 value
 
 =begin Parse::Marpa::test_document:

@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:                Parse-Marpa
 version:             0.215.001
-abstract:            General BNF parsing (alpha)
+abstract:            Generate Parsers from any BNF grammar
 author:              
     - Jeffrey Kegler
 generated_by:        Jeffrey Kegler

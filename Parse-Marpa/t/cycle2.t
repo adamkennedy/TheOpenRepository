@@ -61,7 +61,7 @@ EOS
 
 my $recce = new Parse::Marpa::Recognizer({
    grammar => $grammar,
-   trace_file_handle => \*STDOUT,
+   trace_file_handle => *STDERR,
 });
 
 my $text = 'a';
@@ -74,7 +74,7 @@ if ( $fail_location >= 0 ) {
 for my $depth (1, 2, 5, 10) {
 
     my $evaler = new Parse::Marpa::Evaluator($recce);
-    $evaler->set({ cycle_depth => $depth });
+    $evaler->set( { cycle_depth => $depth } );
     my $parse_count = 0;
     while (my $value = $evaler->value()) {
         is($$value, $expected_values[$parse_count++]);

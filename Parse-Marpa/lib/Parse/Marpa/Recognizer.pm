@@ -1279,7 +1279,7 @@ It will be decompiled for use in the recognizer.
 
 Marpa options can also
 be named arguments to C<new>.
-For these, see L<Parse::Marpa/OPTIONS>.
+For these, see L<Parse::Marpa::Doc::Options>.
 
 =head2 text
 
