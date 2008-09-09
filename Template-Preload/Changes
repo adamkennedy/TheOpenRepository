@@ -1,5 +1,4 @@
----
-version: 0.10
-date:    Mon Jul 14 09:10:28 PDT 2008
-changes: First release.
+Change for Perl extension Template-Preload
 
+0.01 Tue  9 Sep 2008
+	- Creating initial version
