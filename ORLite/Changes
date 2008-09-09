@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+0.11 Tue  9 Sep 2008
+	- If we aren't debugging we don't need to write the temp file
+
 0.10 Wed  6 Aug 2008
         - Quote all column names for explicitness
 

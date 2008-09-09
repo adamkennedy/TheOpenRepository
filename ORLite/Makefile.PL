@@ -1,4 +1,4 @@
-use inc::Module::Install 0.75;
+use inc::Module::Install 0.77;
 
 all_from      'lib/ORLite.pm';
 requires      'File::Spec'   => winlike() ? '3.2701' : '0.80';

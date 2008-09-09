@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -310,15 +310,16 @@ END_ACCESSOR
 		}
 	}
 
-	# Compile the combined code via a temp file
-	my ($fh, $filename) = File::Temp::tempfile();
-	$fh->print("$code\n\n1;\n");
-	close $fh;
-	require $filename;
-	unlink $filename unless $DEBUG;
-
-	# Generate and print the debugging output
+	# Load the code
 	if ( $DEBUG ) {
+		# Compile the combined code via a temp file
+		my ($fh, $filename) = File::Temp::tempfile();
+		$fh->print("$code\n\n1;\n");
+		close $fh;
+		require $filename;
+		unlink $filename;
+
+		# Print the debugging output
 		my @trace = map {
 			s/\s*[{;]$//;
 			s/^s/  s/;
@@ -328,6 +329,9 @@ END_ACCESSOR
 			/^(?:package|sub)\b/
 		} split /\n/, $code;
 		print STDERR @trace, "\n$pkg code saved as $filename\n\n";
+	} else {
+		eval("$code\n\n1;\n");
+		die $@ if $@;
 	}
 
 	return 1;
