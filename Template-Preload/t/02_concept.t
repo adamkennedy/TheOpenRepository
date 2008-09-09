@@ -9,7 +9,7 @@ use Test::More tests => 9;
 use File::Spec::Functions ':ALL';
 use File::Temp            ();
 use Template              ();
-use Template::Preload     ();
+use Template::Provider::Preload     ();
 use Class::Adapter::Clear ();
 
 my $INCLUDE_PATH = catdir( 't', 'template' );
@@ -18,7 +18,7 @@ ok( -d $INCLUDE_PATH, 'Found template directory' );
 ok( -d $COMPILE_DIR,  'Found compile directory'  );
 
 # Create the preloader
-my $provider = Template::Preload->new(
+my $provider = Template::Provider::Preload->new(
 	DEBUG        => 1,
 	NOSTAT       => 1,
         INCLUDE_PATH => $INCLUDE_PATH,

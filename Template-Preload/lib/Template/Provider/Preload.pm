@@ -1,10 +1,10 @@
-package Template::Preload;
+package Template::Provider::Preload;
 
 =pod
 
 =head1 NAME
 
-Template::Preload - Preload templates to save memory in forking applications
+Template::Provider::Preload - Preload templates to save memory in forking applications
 
 =head1 DESCRIPTION
 
