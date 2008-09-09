@@ -20,7 +20,7 @@ ok( -d $COMPILE_DIR,  'Found compile directory'  );
 # Create the preloader
 my $provider = Template::Provider::Preload->new(
 	DEBUG        => 1,
-	NOSTAT       => 1,
+	STAT_TTL     => 1,
         INCLUDE_PATH => $INCLUDE_PATH,
         COMPILE_DIR  => $COMPILE_DIR,
 );
