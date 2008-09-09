@@ -5,11 +5,12 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 9;
 use File::Spec::Functions ':ALL';
-use File::Temp        ();
-use Template          ();
-use Template::Preload ();
+use File::Temp            ();
+use Template              ();
+use Template::Preload     ();
+use Class::Adapter::Clear ();
 
 my $INCLUDE_PATH = catdir( 't', 'template' );
 my $COMPILE_DIR  = File::Temp::tempdir( CLEANUP => 1 );
@@ -32,19 +33,31 @@ is_deeply( $provider->paths, [ $INCLUDE_PATH ], '->paths ok' );
 $provider->preload;
 $provider->prefetch;
 
-# Create a Template processor
-my $template = Template->new(
-    DEBUG          => 1,
-    LOAD_TEMPLATES => [ $provider ],
-);
-isa_ok( $template, 'Template' );
+# Test the provider subclass
+test_provider( $provider );
 
-# Do a template run
-my $output = '';
-$template->process('a/b/c/hello.tt', {name => 'Ingy'}, \$output)
-    or do {
-        die $template->error;
-    };
-is( $output, "Hello, Ingy.\n", "output is correct" );
+# Create the adapter
+my $adapter = Class::Adapter::Clear->new( $provider );
+isa_ok( $adapter, 'Template::Provider' );
+test_provider( $adapter );
+
+sub test_provider {
+	my $p = shift;
+
+	# Create a Template processor
+	my $template = Template->new(
+		DEBUG          => 1,
+		LOAD_TEMPLATES => [ $provider ],
+	);
+	isa_ok( $template, 'Template' );
+
+	# Do a template run
+	my $output = '';
+	$template->process('a/b/c/hello.tt', { name => 'Ingy' }, \$output )
+		or do {
+			die $template->error;
+		};
+	is( $output, "Hello, Ingy.\n", "output is correct" );
+}
 
 1;
