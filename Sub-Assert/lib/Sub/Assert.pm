@@ -247,7 +247,7 @@ __END__
 
 =head1 NAME
 
-Sub::Assert - Design-by-contract like pre- and postconditions, etc.
+Sub::Assert - Subroutine pre- and postconditions, etc.
 
 =head1 SYNOPSIS
 
@@ -259,8 +259,11 @@ Sub::Assert - Design-by-contract like pre- and postconditions, etc.
   }
   
   assert
-         pre     => '$PARAM[0] >= 1',  # for the sake of simplicity
-         post    => '$VOID or $RETURN <= $PARAM[0]',
+         pre     => {
+            # named assertion:
+           'parameter larger than one' => '$PARAM[0] >= 1',
+         },
+         post    => '$VOID or $RETURN <= $PARAM[0]', # unnamed assertion
          sub     => 'squareroot',
          context => 'novoid',
          action  => 'carp';
@@ -277,20 +280,16 @@ Sub::Assert - Design-by-contract like pre- and postconditions, etc.
   }
 
   assert
-         pre    => '$PARAM[0] >= 1',    # for the sake of simplicity
+         pre    => '$PARAM[0] >= 1',
          post   => '$RETURN <= $PARAM[0]',
          sub    => 'faultysqrt';
   
   print faultysqrt(2), "\n";  # dies with 
                               # "Postcondition 1 for main::squareroot failed."
 
-=head1 ABSTRACT
-
-  Design-by-contract like subroutine pre- and postconditions.
-
 =head1 DESCRIPTION
 
-The Sub::Assert module aims at providing design-by-contract like
+The Sub::Assert module implements
 subroutine pre- and postconditions. Furthermore, it allows restricting
 the subroutine's calling context.
 
@@ -328,8 +327,9 @@ assert() returns the assertion wrapper as a subroutine reference.
 
 This parameter specifies one or more preconditions that the data
 passed to the transformed subroutine must match. The preconditions
-may either be a string in case there's only one precondition or
-an array (reference) of strings.
+may either be a string in case there's only one, unnamed precondition,
+an array (reference) of strings in case there's many unnamed preconditions,
+or a hash reference of name/condition pairs for named preconditions.
 
 There are several special variables in the scope in which these
 preconditions are evaluated. Most importantly, @PARAM will hold
@@ -422,14 +422,14 @@ Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2006 Steffen Mueller
+Copyright (C) 2003-2008 Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
 
 =head1 SEE ALSO
 
-L<perl>.
+L<Sub::Assert::Nothing>
 
 Look for new versions of this module on CPAN or at
 http://steffen-mueller.net
