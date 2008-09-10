@@ -914,6 +914,8 @@ sub Parse::Marpa::Grammar::set {
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+		croak("$option must be 'warn', 'quiet' or 'fatal'")
+		    unless $value =~ /^(warn|quiet|fatal)$/;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION] =
                     $value;
             }
