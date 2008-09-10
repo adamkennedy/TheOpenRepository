@@ -19,7 +19,7 @@ use Carp qw/croak carp/;
 sub assert {
   my %params = @_;
   my $sub    = $params{sub};
-  defined $sub or croak "assert missing the subroutine to work with.";
+  defined $sub or croak("assert missing the subroutine to work with");
 
   my $package;
   my $subref;
@@ -29,8 +29,7 @@ sub assert {
   elsif (ref $sub eq '') {
     ($package, undef, undef) = caller();
     defined $package
-      or croak "assert could not determine " .
-        "caller's package.";
+      or croak("assert could not determine caller package");
     no strict 'refs';
     $subref = *{"${package}::$sub"}{CODE};
     use strict 'refs';
@@ -40,7 +39,7 @@ sub assert {
          "package '$package'.";
   }
   else {
-    croak "Subroutine argument to assert is invalid."
+    croak("Subroutine argument to assert is invalid");
   }
 
   $params{action} = 'croak' unless defined $params{action};
@@ -55,12 +54,12 @@ sub assert {
   }
   elsif (ref($precond) eq 'ARRAY') {
     foreach (@$precond) {
-      croak "Invalid preconditions."
+      croak("Invalid preconditions")
         if ref($_) ne '';
     }
   }
   else {
-    croak "Invalid preconditions.";
+    croak("Invalid preconditions");
   }
 
   my $postcond = $params{post};
@@ -72,12 +71,12 @@ sub assert {
   }
   elsif (ref($postcond) eq 'ARRAY') {
     foreach (@$postcond) {
-      croak "Invalid postconditions."
+      croak("Invalid postconditions")
         if ref($_) ne '';
     }
   }
   else {
-    croak "Invalid postconditions.";
+    croak("Invalid postconditions");
   }
 
   my $context;
@@ -89,7 +88,7 @@ sub assert {
       $params{context} eq 'novoid' ||
       $params{context} eq 'any'
     ) {
-      croak "Invalid context specified for assertion.";
+      croak("Invalid context specified for assertion");
     }
     $context = $params{context};
   }
@@ -195,8 +194,7 @@ HERE
     _generate_assertion_subroutine($subref, $new_sub_text);
   
   if ($error) {
-    croak "Compilation of assertions failed: $error.\n" .
-          "$new_sub_text";
+    croak("Compilation of assertions failed: $error.\n$new_sub_text");
   }
   if (ref($sub) eq 'CODE') {
     return $new_sub_ref;
