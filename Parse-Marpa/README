@@ -1,5 +1,10 @@
 Parse::Marpa
 
+Marpa generates parses from any BNF grammar.  That includes recursive
+grammars, ambiguous grammars, infinitely ambiguous grammars and
+grammars with useless or empty productions.  If you can write it in
+BNF, Marpa parses it.
+
 THIS IS AN ALPHA RELEASE.
 
 It's intended to let people look Marpa over and try it out.  Uses
@@ -8,11 +13,6 @@ use it for anything mission-critical or with a serious deadline.
 I've no personal experience with them, but Parse::Yapp and
 Parse::RecDescent are alternatives to this module which are well
 reviewed and more mature and stable.
-
-Marpa generates parses from any BNF grammar.  That includes recursive
-grammars, ambiguous grammars, infinitely ambiguous grammars and
-grammars with useless or empty productions.  If you can write it in
-BNF, Marpa parses it.
 
 INSTALLATION
 
