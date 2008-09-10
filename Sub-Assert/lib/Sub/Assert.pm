@@ -9,7 +9,7 @@ require Exporter;
 our @ISA = qw(Exporter);
 
 our @EXPORT = qw(
-  &assert
+  assert
 );
 use vars qw/$VERSION/;
 $VERSION = '1.22';
@@ -34,9 +34,7 @@ sub assert {
     $subref = *{"${package}::$sub"}{CODE};
     use strict 'refs';
     defined $subref and ref($subref) eq 'CODE'
-      or croak "assert finds that " .
-         "there is no '$sub' subroutine in " .
-         "package '$package'.";
+      or croak("assert finds that there is no '$sub' subroutine in package '$package'");
   }
   else {
     croak("Subroutine argument to assert is invalid");
@@ -45,39 +43,9 @@ sub assert {
   $params{action} = 'croak' unless defined $params{action};
   my $action = $package . '::' . $params{action};
 
-  my $precond = $params{pre};
-  if (not defined $precond) {
-    $precond = [];
-  }
-  elsif (ref($precond) eq '') {
-    $precond = [$precond];
-  }
-  elsif (ref($precond) eq 'ARRAY') {
-    foreach (@$precond) {
-      croak("Invalid preconditions")
-        if ref($_) ne '';
-    }
-  }
-  else {
-    croak("Invalid preconditions");
-  }
+  my $precond = _normalize_conditions($params{pre}, 'precondition');
 
-  my $postcond = $params{post};
-  if (not defined $postcond) {
-    $postcond = [];
-  }
-  elsif (ref($postcond) eq '') {
-    $postcond = [$postcond];
-  }
-  elsif (ref($postcond) eq 'ARRAY') {
-    foreach (@$postcond) {
-      croak("Invalid postconditions")
-        if ref($_) ne '';
-    }
-  }
-  else {
-    croak("Invalid postconditions");
-  }
+  my $postcond = _normalize_conditions($params{post}, 'postcondition');
 
   my $context;
   if (exists $params{context}) {
@@ -146,16 +114,26 @@ sub assert {
          "}\n";
   }
 
-  my $precond_no = 1;
-  foreach my $pre (@$precond) {
-    $new_sub_text .= "do{\n".$pre."\n}\nor $action(\"Precondition " .
-         "$precond_no " .
-         (ref($sub) eq 'CODE' ?
-           '' :
-           "for ${package}::$sub "
-         ) .
-         "failed.\");\n\n";
-    $precond_no++;
+  foreach my $pre_name (keys %$precond) {
+    if ($pre_name eq '_') {
+      my $pre_array = $precond->{'_'};
+      foreach my $pre_no (1..@$pre_array) {
+        $new_sub_text .= 
+             "do{\n".$pre_array->[$pre_no-1]
+             . "\n}\nor $action(\"Precondition "
+             . "$pre_no "
+             . (ref($sub) eq 'CODE' ? '' : "for ${package}::$sub ")
+             . "failed.\");\n\n";
+      }
+    }
+    else {
+      $new_sub_text .= 
+           "do{\n".$precond->{$pre_name}
+           . "\n}\nor $action(\"Precondition "
+           . "'$pre_name' "
+           . (ref($sub) eq 'CODE' ? '' : "for ${package}::$sub ")
+           . "failed.\");\n\n";
+    }
   }
   $new_sub_text .= <<'HERE';
 my @RETURN;
@@ -174,16 +152,27 @@ else {
   $SUBROUTINEREF->(@PARAM);
 }
 HERE
-  my $postcond_no = 1;
-  foreach my $post (@$postcond) {
-    $new_sub_text .= "do{\n".$post."\n}\nor $action(\"" .
-         "Postcondition $postcond_no " .
-         (ref($sub) eq 'CODE' ?
-           '' :
-           "for ${package}::$sub "
-         ) .
-         "failed.\");\n\n";
-    $postcond_no++;
+
+  foreach my $post_name (keys %$postcond) {
+    if ($post_name eq '_') {
+      my $post_array = $postcond->{'_'};
+      foreach my $post_no (1..@$post_array) {
+        $new_sub_text .= 
+             "do{\n".$post_array->[$post_no-1]
+             . "\n}\nor $action(\"Postcondition "
+             . "$post_no "
+             . (ref($sub) eq 'CODE' ? '' : "for ${package}::$sub ")
+             . "failed.\");\n\n";
+      }
+    }
+    else {
+      $new_sub_text .= 
+           "do{\n".$postcond->{$post_name}
+           . "\n}\nor $action(\"Postcondition "
+           . "'$post_name' "
+           . (ref($sub) eq 'CODE' ? '' : "for ${package}::$sub ")
+           . "failed.\");\n\n";
+    }
   }
   
   $new_sub_text .= ($context eq 'list' ?
@@ -213,6 +202,44 @@ sub _generate_assertion_subroutine {
   local $@;
   my $SUBROUTINEREF = $_[0];
   return eval($_[1]), "$@";
+}
+
+sub _normalize_conditions {
+  my $conditions = shift;
+  my $type = shift;
+
+  if (not defined $conditions) {
+    # no conditions
+    $conditions = {};
+  }
+  elsif (ref($conditions) eq '') {
+    # a single, unnamed condition
+    $conditions = {'_' =>[$conditions]};
+  }
+  elsif (ref($conditions) eq 'ARRAY') {
+    # an array of unnamed conditions
+    my $ary = $conditions;
+    $conditions = {'_' => [@$ary]};
+  }
+  elsif (ref($conditions) eq 'HASH') {}
+  else {
+    croak("Invalid type of $type");
+  }
+
+  foreach my $name (keys %$conditions) {
+    if ($name eq '_') {
+      foreach my $cond (@{$conditions->{'_'}}) {
+        croak("Invalid unnamed $type")
+          if ref($cond) ne '';
+      }
+    }
+    else {
+      croak("Invalid $type '$name'")
+        if ref($conditions->{$name}) ne '';
+    }
+  }
+  
+  return $conditions;
 }
 
 1;
