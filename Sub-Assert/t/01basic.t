@@ -1,4 +1,4 @@
-use Test::More tests => 6;
+use Test::More tests => 8;
 BEGIN { use_ok('Sub::Assert') };
 
 use strict;
@@ -51,4 +51,34 @@ assert
 $err = undef;
 $d = eval "faultysqrt(3)";
 ok(defined($err), "assertion croaked on unmatched postcondition.");
+
+
+sub anotherfunc {
+  my $x = shift;
+  my $y = shift;
+  return abs($x * $y);
+}
+
+
+assert
+       pre    => [
+        '@PARAM == 2',
+       ],
+       post   => [
+        '!$VOID',
+        '$RETURN > 0',
+        '$PARAM[0]*$PARAM[1]-1.e-12 < $RETURN',
+        '$PARAM[0]*$PARAM[1]+1.e-12 > $RETURN',
+       ],
+       sub    => 'anotherfunc',
+       action => 'darnedtestmodule';
+ 
+$err = undef; 
+$d = eval "anotherfunc(3, 2);";
+ok(1, "function passes");
+
+$err = undef; 
+$d = eval "anotherfunc(3, 2, 1);";
+ok($err, "assertion croaked on unmatched precondition.");
+
 
