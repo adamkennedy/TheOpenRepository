@@ -13,6 +13,7 @@ my @url = qw(
     Marpa/Doc/Diagnostics.pod
     Marpa/Doc/Internals.pod
     Marpa/Doc/MDL.pod
+    Marpa/Doc/Options.pod
     Marpa/Doc/Parse_Terms.pod
     Marpa/Doc/Plumbing.pod
     Marpa/Doc/To_Do.pod
