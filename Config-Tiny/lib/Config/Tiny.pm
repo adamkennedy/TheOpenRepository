@@ -222,16 +222,6 @@ Generates the file content for the object and returns it as a string.
 When an error occurs, you can retrieve the error message either from the
 C<$Config::Tiny::errstr> variable, or using the C<errstr()> method.
 
-=head2 property_string
-
-This method is called to produce the string used to represent the property in a
-section.  It is passed the section name and property name.
-
-=head2 set
-
-This is a convenience is called to set a value found in the parsed config string.  It is
-passed the section name, property name, and value.
-
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
