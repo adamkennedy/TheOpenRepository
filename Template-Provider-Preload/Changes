@@ -1,4 +1,7 @@
 Change for Perl extension Template-Provider-Preload
 
+0.02 Wed 10 Sep 2008
+	- Changing from a sub-class to a Class::Adapter implementation
+
 0.01 Tue  9 Sep 2008
 	- Creating initial version

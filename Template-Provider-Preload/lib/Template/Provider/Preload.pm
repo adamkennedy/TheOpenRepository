@@ -28,6 +28,12 @@ Template::Provider::Preload - Preload templates to save memory when forking
 
 =head1 DESCRIPTION
 
+B<THIS MODULE IS CONSIDERED EXPERIMENTAL>
+
+B<FUTURE CHANGES MAY RESULT IN CRITICAL API CHANGES>
+
+B<YOU HAVE BEEN WARNED!>
+
 One of the nicer things that the Template Toolkit modules do in the default
 L<Template::Provider> is provide several different caching features.
 
@@ -51,7 +57,7 @@ B<Template::Provider::Preload> can be used to set caching strategies that
 are more appropriate for various types of heavily forking applications,
 such as large clustered high-traffic mod_perl systems.
 
-While Template::Provider::Preload is useful in other high-forking
+While B<Template::Provider::Preload> is useful in other high-forking
 scenarios, we use the (dominant) example of a forking Apache application
 in all of the following examples. You should be able to exchange all uses
 of terms like "Apache child" with your equivalent interchangably.
@@ -91,6 +97,9 @@ child processes, you can even put yourself in the situation of needing
 to requisition additional web front ends due to memory contraints,
 rather than CPU constraints.
 
+Memory spent on loading templates once means enormous memory savings
+across the collective children.
+
 =head2 Networked-Storage Cluster Use Case
 
 In cluster environments where all front-end servers will use a common
@@ -118,11 +127,27 @@ use warnings;
 use Params::Util       ();
 use Template::Provider ();
 use File::Find::Rule   ();
+use Class::Adapter::Builder 
+	ISA      => 'Template::Provider',
+	AUTOLOAD => 1;
 
-use vars qw{$VERSION @ISA};
+use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
-	@ISA     = 'Template::Provider';
+	$VERSION = '0.02';
+}
+
+
+
+
+
+#####################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	return $class->SUPER::new(
+		Template::Provider->new(@_),
+	);
 }
 
 
@@ -134,23 +159,30 @@ BEGIN {
 
 =pod
 
-=head2 precompile
+=head2 prefetch
 
-  # Load all .tt templates
-  $provider->precompile;
+  # Load all .tt templates into memory
+  $provider->prefetch;
   
-  # Load all .html and .eml templates
-  $provider->precompile('*.html', '*.eml');
+  # Load all .html and .eml templates into memory
+  $provider->prefetch('*.html', '*.eml');
   
-  # Precompile all templates inside a SVN checkout
+  # Load all templates inside a SVN checkout into memory
   use File::Find::Rule;
   use File::Find::Rule::VCS;
-  $provider->precompile(
+  $provider->prefetch(
       File::Find::Rule->ignore_svn->file->readable->ascii
   );
 
-The C<precompile> method is used to specify that a set of template
-files should be immediately compiled and cached.
+The C<prefetch> method is used to specify that a set of template
+files should be immediately compiled (with the compiled templates
+cached if possible) and then the compiled templates are loaded into
+memory.
+
+When used in combination with a very long C<STAT_TTL> parameter (longer than
+the longest possible time between Apache restarts) the C<prefetch> method
+creates a caching strategy where the templates will never be looked at once
+the call to C<prefetch> has completed.
 
 The compilation will be done via the public but undocumented
 L<Template::Provider> method C<load>, so the compilation will be done
@@ -162,35 +194,40 @@ Selection of the files to compile is done via a L<File::Find::Rule> search
 across all C<INCLUDE_PATH> directories. If the same file exists within more
 than one C<INCLUDE_PATH> directory, only the first one will be compiled.
 
+In the canonical usage, the C<prefetch> method takes a single parameter,
+which should be a L<File::Find::Rule> object. The method will call C<file>
+and C<relative> on the filter you pass in, so you should consider the
+C<prefetch> method to be destructive to the filter.
 
+As a convenience, if the method is passed a series of strings, a new
+rule object will be created and the strings will be used to specific the
+required files to compile via a call to the C<name> method.
+
+As a further convenience, if the method is passed no params, a default
+filter will be created for all files ending in .tt.
+
+Returns true on success, or throws an exception (dies) on error.
 
 =cut
 
-sub precompile {
-	my $self  = shift;
-	my @paths = $self->find(@_);
-	foreach my $path ( @paths ) {
-		$self->load($path);
-	}
-	return 1;
-}
-
 sub prefetch {
-	my $self  = shift;
-	my @paths = $self->find(@_);
+	my $self   = shift;
+	my $object = $self->_OBJECT_;
+	my @paths  = $self->_find(@_);
 	foreach my $path ( @paths ) {
-		$self->fetch($path);
+		$object->fetch($path);
 	}
 	return 1;
 }
 
-sub find {
+sub _find {
 	my $self  = shift;
 	my $paths = $self->paths;
-	return $self->filter(@_)->relative->in( @$paths );
+	my %seen  = ();
+	return grep { not $seen{$_}++ } $self->_filter(@_)->relative->file->in( @$paths );
 }
 
-sub filter {
+sub _filter {
 	my $self = shift;
 	unless ( @_ ) {
 		# Default filter
@@ -200,7 +237,7 @@ sub filter {
 		return $_[0];
 	}
 	my @names = grep { defined Params::Util::_STRING($_) } @_;
-	if ( @names ) {
+	if ( @names == @_ ) {
 		return File::Find::Rule->name(@names)->file;
 	}
 	Carp::croak("Invalid filter param");
@@ -210,11 +247,16 @@ sub filter {
 
 =pod
 
+=head1 TO DO
+
+Have the C<prefetch> method prime the cache in a manner that does not
+require the use of the C<STAT_TTL> param at all.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Preload>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Template-Provider-Preload>
 
 For other issues, or commercial enhancement or support, contact the author.
 
