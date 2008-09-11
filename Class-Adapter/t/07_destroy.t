@@ -1,12 +1,12 @@
 #!/usr/bin/perl
 
 BEGIN {
-	$DB::single = 1;
+	$DB::single = $DB::single = 1;
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 1;
+use Test::More tests => 4;
 
 SCOPE: {
 	package Foo;
@@ -44,5 +44,5 @@ SCOPE: {
 my $foo = Foo->new;
 isa_ok( $foo, 'Foo' );
 my $bar = Bar->new;
-isa_ok( $foo, 'Foo' );
-isa_ok( $foo, 'Bar' );
+isa_ok( $bar, 'Foo' );
+isa_ok( $bar, 'Bar' );

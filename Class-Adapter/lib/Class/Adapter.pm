@@ -94,7 +94,7 @@ in an object.
 sub new {
 	my $class  = ref $_[0] ? ref shift : shift;
 	my $object = Scalar::Util::blessed($_[0]) ? shift : return undef;
-	bless { OBJECT => $object }, $class;
+	return bless { OBJECT => $object }, $class;
 }
 
 

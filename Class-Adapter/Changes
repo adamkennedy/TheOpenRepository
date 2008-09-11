@@ -5,6 +5,8 @@ Revision history for Perl extension Class::Adapter
 	- Refactoring the DESTROY method to be more paranoidly correct
 	- Updating the test scripts to newer style
 	- Removing File::Spec dependency
+	- Adding support for wrapping around packages that aren't in their
+	  own module file.
 
 1.04 Wed 14 Nov 2007
 	- No functional changes

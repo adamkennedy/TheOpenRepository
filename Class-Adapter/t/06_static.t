@@ -4,7 +4,7 @@
 
 use strict;
 BEGIN {
-	$DB::single = 1;
+	$DB::single = $DB::single = 1;
 	$|  = 1;
 	$^W = 1;
 }
@@ -35,6 +35,10 @@ SCOPE: {
 		NEW      => 'File::Spec',
 		ISA      => 'File::Spec',
 		AUTOLOAD => 1;
+
+	package Bar;
+
+	sub new { bless {}, $_[0] }
 
 	package Foo::Baz;
 
