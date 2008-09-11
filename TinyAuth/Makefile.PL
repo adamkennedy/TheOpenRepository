@@ -1,30 +1,28 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.76;
 
-name           'TinyAuth';
-all_from       'lib/TinyAuth.pm';
-requires       'Carp'                     => 0;
-requires       'FindBin'                  => 0;
-requires       'File::Spec'               => '0.80';
-requires       'Scalar::Util'             => '1.15';
-requires       'CGI'                      => '3.00';
-requires       'CGI::Cookie'              => 0;
-requires       'YAML::Tiny'               => '1.12';
-requires       'Authen::Htpasswd'         => '0.15';
-requires       'Email::MIME'              => '1.859';
-requires       'Email::MIME::Creator'     => '1.453';
-requires       'Email::Send'              => '2.182';
-requires       'Module::CGI::Install'     => '0.04';
-test_requires 'Test::More'               => '0.42';
-test_requires 'IPC::Run3'                => '0.034';
-test_requires 'File::Copy'               => 0;
-test_requires 'File::Remove'             => '0.37';
-install_script 'tinyauth.pl';
+all_from       'lib/LetMeIn.pm';
+requires       'Carp'                 => 0;
+requires       'FindBin'              => 0;
+requires       'File::Spec'           => '0.80';
+requires       'Scalar::Util'         => '1.15';
+requires       'CGI'                  => '3.00';
+requires       'CGI::Cookie'          => 0;
+requires       'YAML::Tiny'           => '1.12';
+requires       'Authen::Htpasswd'     => '0.15';
+requires       'Email::MIME'          => '1.859';
+requires       'Email::MIME::Creator' => '1.453';
+requires       'Email::Send'          => '2.182';
+requires       'Module::CGI::Install' => '0.04';
+test_requires  'Test::More'           => '0.42';
+test_requires  'IPC::Run3'            => '0.034';
+test_requires  'File::Copy'           => 0;
+test_requires  'File::Remove'         => '0.37';
+install_script 'letmein.pl';
 
 # Generate the script
-print "Generating script/tinyauth...\n";
-if ( generate_tinyauth() ) {
-	install_script 'tinyauth';
+print "Generating script/letmein...\n";
+if ( generate_script() ) {
+	install_script 'letmein';
 }
 
 WriteAll;
@@ -37,13 +35,13 @@ exit(0);
 #####################################################################
 # Support Functions
 
-# Merge tinyauth.pl and TinyAuth.pm to create the final 'tinyauth' script
-sub generate_tinyauth {
+# Merge letmein.pl and LetMeIn.pm to create the final 'letmein' script
+sub generate_letmein {
 	$INC{'File/Spec.pm'} or return 0;
 
-	my $pl  = File::Spec->catfile( 'script', 'tinyauth.pl' );
-	my $pm  = File::Spec->catfile( 'lib',    'TinyAuth.pm' );
-	my $out = File::Spec->catfile( 'script', 'tinyauth'    );
+	my $pl  = File::Spec->catfile( 'script', 'letmein.pl' );
+	my $pm  = File::Spec->catfile( 'lib',    'LetMeIn.pm' );
+	my $out = File::Spec->catfile( 'script', 'letmein'    );
 
 	# Read in the .pl file
 	open( READPL, $pl )   or die "open: $!";
