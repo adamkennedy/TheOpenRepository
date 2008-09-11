@@ -4,7 +4,7 @@ package File::IgnoreReadonly;
 
 =head1 NAME
 
-File::IgnoreReadonly - Temporarily ensure a file is writable, even if it is readonly
+File::IgnoreReadonly - Make all files (even readonly ones) lexically writable
 
 =head1 SYNOPSIS
 
@@ -14,8 +14,8 @@ File::IgnoreReadonly - Temporarily ensure a file is writable, even if it is read
       
       # Change the file
       open( FILE, '>readonly.txt' ) or die "open: $!";
-      print FILE "New Content";
-      close( FILE );
+      print FILE "New Content"      or die "print: $!";
+      close( FILE )                 or die "close: $!";
   }
   
   # File is now readonly again
@@ -47,20 +47,15 @@ object was created.
 
 use 5.006;
 use strict;
+use File::chmod ();
+
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 # Deal with platform issues
 use constant WIN32 => $^O eq 'MSWin32';
-BEGIN {
-	if ( WIN32 ) {
-		require Win32::File::Object;
-	} else {
-		require File::chmod;
-	}
-}
 
 
 
@@ -101,24 +96,25 @@ sub new {
 		return $self;
 	}
 
-	# On Win32, set readonly false and save the handle object
+	# Save the original file mode and set writable
 	if ( WIN32 ) {
-		$self->{win32} = Win32::File::Object->new( $file, 1 );
-		$self->{win32}->readonly(0);
+		$self->{win32} = (File::chmod::getmod( $file ))[0];
+		File::chmod::chmod('u+w', $file);
 	} else {
 		# Otherwise, save the original file mode
 		$self->{unix} = (File::chmod::getmod( $file ))[0];
-		File::chmod::chmod('ug+w', $file );
+		File::chmod::chmod('ug+w', $file);
 	}
 	return $self;
 }
 
 sub DESTROY {
-	if ( $_[0]->{win32} ) {
-		       $_[0]->{win32}->readonly(1);
+	if ( defined $_[0]->{win32} ) {
+		File::chmod::chmod( $_[0]->{win32}, $_[0]->{file} );
 		delete $_[0]->{win32};
-	} elsif ( $_[0]->{unix} ) {
-		chmod( $_[0]->{unix}, $_[0]->{file} );
+
+	} elsif ( defined $_[0]->{unix} ) {
+		File::chmod::chmod( $_[0]->{unix},  $_[0]->{file} );
 		delete $_[0]->{unix};
 	}
 }

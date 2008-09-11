@@ -1,4 +1,9 @@
 Changes for Perl extension File-IgnoreReadonly
 
+0.02 Wed 10 Sep 2008
+	- File::chmod can be used on Win32 (but in a way different to Unix)
+	  so that we can avoid the extra dependency. Win32::File::Object was
+	  overkill for the small task of making a file readonly or not.
+
 0.01 Tue  5 Aug 2008
 	- Creating initial release
