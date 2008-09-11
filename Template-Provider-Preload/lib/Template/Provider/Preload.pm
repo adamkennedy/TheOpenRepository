@@ -127,27 +127,14 @@ use warnings;
 use Params::Util       ();
 use Template::Provider ();
 use File::Find::Rule   ();
-use Class::Adapter::Builder 
+use Class::Adapter::Builder
+	NEW      => 'Template::Provider',
 	ISA      => 'Template::Provider',
 	AUTOLOAD => 1;
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.02';
-}
-
-
-
-
-
-#####################################################################
-# Constructor
-
-sub new {
-	my $class = shift;
-	return $class->SUPER::new(
-		Template::Provider->new(@_),
-	);
 }
 
 

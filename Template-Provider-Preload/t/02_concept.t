@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 6;
 use File::Spec::Functions       ':ALL';
 use File::Temp                  ();
 use Template                    ();
