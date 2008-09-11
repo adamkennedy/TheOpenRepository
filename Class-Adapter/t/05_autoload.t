@@ -1,17 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Test the AUTOLOAD params
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir(updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 22;
@@ -120,7 +114,3 @@ is( $public->foo,      2,     '->foo returns true'            );
 is( $public->bar('a'), 3,     '->bar(good) returns correctly' );
 is( $public->bar('b'), undef, '->bar(bad) returns undef'      );
 dies( sub { $public->_baz } );
-
-exit(0);
-
-1;

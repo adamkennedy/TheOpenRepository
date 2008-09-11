@@ -1,17 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Main testing for Class::Adapter
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir(updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 13;
@@ -36,7 +30,8 @@ foreach my $it ( @evil ) {
 
 # Can we get access to the underlying object?
 isa_ok( $adapter->_OBJECT_, 'Foo' );
-is( refaddr($object), refaddr($adapter->_OBJECT_),
-	'->_OBJECT_ returns the original object' );
-
-exit(0);
+is(
+	refaddr($object),
+	refaddr($adapter->_OBJECT_),
+	'->_OBJECT_ returns the original object',
+);

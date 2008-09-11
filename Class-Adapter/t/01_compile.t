@@ -1,17 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile testing for Class::Adapter
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import( catdir(updir(), 'lib') );
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 6;
@@ -25,8 +19,6 @@ use_ok( 'Scalar::Util' );
 ok( defined(&Scalar::Util::blessed), 'blessed exists in Scalar::Util' );
 
 # Does the module load
-use_ok('Class::Adapter'          );
-use_ok('Class::Adapter::Builder' );
-use_ok('Class::Adapter::Clear'   );
-
-exit(0);
+use_ok( 'Class::Adapter'          );
+use_ok( 'Class::Adapter::Builder' );
+use_ok( 'Class::Adapter::Clear'   );
