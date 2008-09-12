@@ -1,6 +1,6 @@
 Revision history for Perl extension AutoLoader
 
-5.66_02  Tue Sep  4 11:24 2008
+5.67  Tue Sep 12 16:50 2008
   - Added a test case for the bug that was fixed in 5.66_01,
     courtesy of Christoph Lamprecht.
 
