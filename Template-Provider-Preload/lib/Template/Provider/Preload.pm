@@ -156,7 +156,6 @@ use Params::Util       ();
 use Template::Provider ();
 use File::Find::Rule   ();
 use Class::Adapter::Builder
-	NEW      => 'Template::Provider',
 	ISA      => 'Template::Provider',
 	AUTOLOAD => 1;
 
