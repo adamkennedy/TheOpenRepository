@@ -6,5 +6,6 @@ requires      'File::Find::Rule' => '0.30';
 requires      'Class::Adapter'   => '1.05';
 requires      'Template'         => '2.20';
 test_requires 'Test::More'       => '0.47';
+test_requires 'Test::SubCalls'   => '1.07';
 
 WriteAll;
