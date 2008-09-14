@@ -18,7 +18,7 @@ $example_dir = "../example" unless -d $example_dir;
 chdir($example_dir);
 
 my $mdl_header = <<'EOF';
-semantics are perl5.  version is 0.215.2.
+semantics are perl5.  version is 0.216.0.
 start symbol is S.
 default action is q{join(q{ }, @_)}.
 
