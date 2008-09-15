@@ -363,7 +363,7 @@ without removing the .cvs directories.
   # Create the "leave .cvs dirs intact" rule
   my $Rule = File::Find::Rule->new;
   $Rule = $Rule->or(
-  	$Rule->new->directory->name('.cvs')->prune,
+  	$Rule->new->name('.cvs')->directory->prune,
   	$Rule->new->file
   	);
   
