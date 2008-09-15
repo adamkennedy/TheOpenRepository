@@ -109,12 +109,12 @@ less of it.
 use strict;
 BEGIN {
 	require 5.004;
-	$DateTime::Tiny::VERSION = '0.02';
+	$DateTime::Tiny::VERSION = '1.03';
 }
-use overload 'bool' => sub () { 1 };
-use overload '""'   => 'as_string';
-use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
-use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
+use overload 'bool' => sub () { 1 },
+             '""'   => 'as_string',
+             'eq'   => sub { "$_[0]" eq "$_[1]" },
+             'ne'   => sub { "$_[0]" ne "$_[1]" };
 
 
 
@@ -310,7 +310,7 @@ sub from_string {
 		hour   => $4 + 0,
 		minute => $5 + 0,
 		second => $6 + 0,
-		);
+	);
 }
 
 =pod
