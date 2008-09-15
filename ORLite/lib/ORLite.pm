@@ -149,14 +149,21 @@ package $pkg;
 
 use strict;
 
+my $DSN = 'dbi:SQLite:$file';
+my $DBH = undef;
+
 sub dsn {
-	\$ORLite::DSN{'$pkg'};
+	\$DSN;
 }
 
 sub dbh {
-	\$ORLite::DBH{'$pkg'} or
-	DBI->connect(\$ORLite::DSN{'$pkg'}) or
+	\$DBH or
+	\$_[0]->connect or
 	Carp::croak("connect: \$DBI::errstr");
+}
+
+sub connect {
+	DBI->connect(\$_[0]->dsn);
 }
 
 sub do {
@@ -201,7 +208,7 @@ END_PERL
 	$code .= <<"END_PERL" unless $readonly;
 sub begin {
 	\$ORLite::DBH{'$pkg'} or
-	\$ORLite::DBH{'$pkg'} = DBI->connect(\$ORLite::DSN{'$pkg'}) or
+	\$ORLite::DBH{'$pkg'} = \$_[0]->connect or
 	Carp::croak("connect: \$DBI::errstr");
 	\$ORLite::DBH{'$pkg'}->begin_work;
 }
