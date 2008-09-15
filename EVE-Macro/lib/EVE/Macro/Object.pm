@@ -8,11 +8,12 @@ use File::HomeDir      ();
 use Params::Util       qw{ _POSINT _STRING _INSTANCE };
 use Config::Tiny       ();
 use Time::HiRes        ();
-use Imager::Screenshot ();
 use Win32::GuiTest     ();
-use Win32::Process     'STILL_ACTIVE';
+use Win32::Process     qw{ STILL_ACTIVE NORMAL_PRIORITY_CLASS };
 use Win32::Process::List;
 use Win32;
+use Imager::Search ();
+use Imager::Search::Screenshot ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -80,7 +81,7 @@ sub start {
 	$self->attach;
 
 	return $self;
-}	
+}
 
 # Connect to an existing instance of EVE
 sub connect {
@@ -153,15 +154,15 @@ sub attach {
 
 	# Locate the process
 	my $process_list = Win32::Process::List->new;
-	my ($pid, $name) = $process_list->GetProcessPid('ExeFile');
-	unless ( $pid ) {
-		return undef;
-	}
+	my ($name, $pid) = $process_list->GetProcessPid('ExeFile');
+	return undef unless $pid;
 
 	# Create the process handle
 	my $process = undef;
 	Win32::Process::Open(
 		$process,
+	);
+}
 		
 
 
@@ -171,24 +172,18 @@ sub attach {
 # Get Information
 
 # Find the current mouse co-ordinate
-sub mouse_pos {
+sub mouse_xy {
 	my $self    = shift;
 	my ($x, $y) = Win32::GuiTest::GetCursorPos();
 	return [ $x, $y ];
 }
 
-# Find the colour of a specific pixel
-sub pixel_color {
-	my $self  = shift;
-	my $pixel = '';
-}
-
 # Get the screenshot for the window
 sub screenshot {
 	my $self   = shift;
-	my $screen = Imager::Screenshot::screenshot(
-		hwnd => $self->window,
-		);
+	my $screen = Imager::Search::Screenshot->new(
+		[ hwnd => $self->window ],
+	);
 	unless ( _INSTANCE($screen, 'Imager') ) {
 		croak("Failed to capture screen");
 	}
@@ -212,7 +207,7 @@ sub send_keys {
 }
 
 # Move the mouse to a particular position
-sub move_to {
+sub mouse_to {
 	my $self = shift;
 	my $to   = _COORD(@_);
 	Win32::GuiTest::SetForegroundWindow($self->window);
@@ -223,7 +218,7 @@ sub move_to {
 # Clicking the mouse
 sub left_click {
 	my $self = shift;
-	$self->move_to(@_) if @_;
+	$self->mouse_to(@_) if @_;
 	Win32::GuiTest::SendLButtonDown();
 	Win32::GuiTest::SendLButtonUp();
 	return 1;
@@ -231,7 +226,7 @@ sub left_click {
 
 sub right_click {
 	my $self = shift;
-	$self->move_to(@_) if @_;
+	$self->mouse_to(@_) if @_;
 	Win32::GuiTest::SendLButtonDown();
 	Win32::GuiTest::SendLButtonUp();
 	return 1;
