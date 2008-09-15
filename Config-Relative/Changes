@@ -1,0 +1,8 @@
+Changes for Perl extension Config-Relative
+
+0.02 - Mon 16 Apr 2007
+	- Reversing the order of the params to the ->relative methods
+
+0.01 - Mon 16 Apr 2007
+	- Creating initial version
+
