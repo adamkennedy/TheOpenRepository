@@ -42,7 +42,7 @@ BEGIN {
 	$VERSION = '0.02';
 }
 
-my $find_dist = File::Find::Rule->relative->file->name('*.tar.gz');
+my $find_dist = File::Find::Rule->name('*.tar.gz')->file->relative;
 
 
 
