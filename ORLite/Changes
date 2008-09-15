@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+0.12 Mon 15 Sep 2008
+	- Don't store the database values in a shared hash any more
+	  (Makes the classes self-contained and able to run without ORLite)
+
 0.11 Tue  9 Sep 2008
 	- If we aren't debugging we don't need to write the temp file
 

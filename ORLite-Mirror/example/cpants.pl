@@ -19,5 +19,3 @@ print "CPANTS currently tracks $count authors\n";
 
 my $authors = CPANTS::Author->select('where pauseid = ?', 'ADAMK');
 print "ADAMK is " . $authors->[0]->name . "\n";
-
-1;

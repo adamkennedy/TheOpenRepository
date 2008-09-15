@@ -15,7 +15,7 @@ use ORLite                  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	@ISA     = qw{ ORLite };
 }
 
@@ -27,7 +27,7 @@ BEGIN {
 # Code Generation
 
 sub import {
-	my $class = ref($_[0]) || $_[0];
+	my $class = ref $_[0] || $_[0];
 
 	# Check params and apply defaults
 	my %params;
@@ -134,12 +134,11 @@ BEGIN {
 	delete \$$params{package}::{DBH};
 }
 
-
 sub connect {
 	my $class = shift;
 	
 }
-
+END_PERL
 	}
 
 	return $rv;

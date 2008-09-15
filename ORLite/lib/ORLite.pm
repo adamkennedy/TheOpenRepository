@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -149,8 +149,8 @@ package $pkg;
 
 use strict;
 
-my $DSN = 'dbi:SQLite:$file';
-my $DBH = undef;
+my \$DSN = 'dbi:SQLite:$file';
+my \$DBH = undef;
 
 sub dsn {
 	\$DSN;
@@ -207,25 +207,25 @@ END_PERL
 	# Add transaction support if not readonly
 	$code .= <<"END_PERL" unless $readonly;
 sub begin {
-	\$ORLite::DBH{'$pkg'} or
-	\$ORLite::DBH{'$pkg'} = \$_[0]->connect or
+	\$DBH or
+	\$DBH = \$_[0]->connect or
 	Carp::croak("connect: \$DBI::errstr");
-	\$ORLite::DBH{'$pkg'}->begin_work;
+	\$DBH->begin_work;
 }
 
 sub commit {
-	\$ORLite::DBH{'$pkg'} or return 1;
-	\$ORLite::DBH{'$pkg'}->commit;
-	\$ORLite::DBH{'$pkg'}->disconnect;
-	delete \$ORLite::DBH{'$pkg'};
+	\$DBH or return 1;
+	\$DBH->commit;
+	\$DBH->disconnect;
+	undef \$DBH;
 	return 1;
 }
 
 sub rollback {
-	\$ORLite::DBH{'$pkg'} or return 1;
-	\$ORLite::DBH{'$pkg'}->rollback;
-	\$ORLite::DBH{'$pkg'}->disconnect;
-	delete \$ORLite::DBH{'$pkg'};
+	\$DBH or return 1;
+	\$DBH->rollback;
+	\$DBH->disconnect;
+	undef \$DBH;
 	return 1;
 }
 
