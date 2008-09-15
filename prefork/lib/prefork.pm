@@ -373,7 +373,7 @@ For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy, L<http://ali.as/>, cpan@ali.as
+Adam Kennedy <adamk@cpan.org>
 
 =head1 COPYRIGHT
 
