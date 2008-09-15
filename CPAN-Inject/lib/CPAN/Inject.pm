@@ -300,9 +300,14 @@ sub add {
 	my $to_dir  = File::Basename::dirname($to_file);
 
 	# Make the path for the file
-	eval { File::Path::mkpath($to_dir) };
-	if ( my $e = $@ ) {
-		Carp::croak("Failed to create $to_dir: $e");
+	SCOPE: {
+		local $@;
+		eval {
+			File::Path::mkpath($to_dir);
+		};
+		if ( my $e = $@ ) {
+			Carp::croak("Failed to create $to_dir: $e");
+		}
 	}
 
 	# Copy the file to the directory, and ensure writable
@@ -312,9 +317,14 @@ sub add {
 		or Carp::croak("Failed to correct permissions for $to_file");
 
 	# Update the checksums file, and ensure writable
-	eval { CPAN::Checksums::updatedir($to_dir); };
-	if ( my $e = $@ ) {
-		Carp::croak("Failed to update CHECKSUMS after insertion: $e");
+	SCOPE: {
+		local $@;
+		eval {
+			CPAN::Checksums::updatedir($to_dir);
+		};
+		if ( my $e = $@ ) {
+			Carp::croak("Failed to update CHECKSUMS after insertion: $e");
+		}
 	}
 	chmod( 0644, File::Spec->catfile( $to_dir, 'CHECKSUMS' ) )
 		or Carp::croak("Failed to correct permissions for CHECKSUMS");
@@ -353,9 +363,14 @@ sub remove {
 	# Update the checksums file
 	my $to_file = $self->file_path($name);
 	my $to_dir  = File::Basename::dirname($to_file);
-	eval { CPAN::Checksums::updatedir($to_dir); };
-	if ( my $e = $@ ) {
-		Carp::croak("Failed to update CHECKSUMS after removal: $e");
+	SCOPE: {
+		local $@;
+		eval {
+			CPAN::Checksums::updatedir($to_dir);
+		};
+		if ( my $e = $@ ) {
+			Carp::croak("Failed to update CHECKSUMS after removal: $e");
+		}
 	}
 
 	return 1;
