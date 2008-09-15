@@ -16,7 +16,7 @@ use CSS::Tiny;
 
 
 # Test trivial creation
-my $Trivial = CSS::Tiny->new();
+my $Trivial = CSS::Tiny->new;
 isa_ok( $Trivial, 'CSS::Tiny' );
 is( scalar(keys %$Trivial), 0, '->new returns an empty object' );
 
@@ -148,5 +148,3 @@ is( $HTML->xhtml . "\n", <<'END_XHTML', '->xhtml returns correct looking HTML' )
 /* ]]> */
 </style>
 END_XHTML
-
-1;

@@ -112,7 +112,7 @@ reference the key C<$CSS-E<gt>{P}-E<gt>{font-family}>.
 use strict;
 BEGIN {
 	require 5.004;
-	$CSS::Tiny::VERSION = '1.15';
+	$CSS::Tiny::VERSION = '1.16';
 	$CSS::Tiny::errstr  = '';
 }
 
@@ -206,7 +206,7 @@ object.
 
 =cut
 
-BEGIN { eval "use Clone 'clone';"; eval <<'END_PERL' if $@; }
+BEGIN { local $@; eval "use Clone 'clone';"; eval <<'END_PERL' if $@; }
 sub clone {
 	my $self = shift;
 	my $copy = ref($self)->new;
@@ -239,7 +239,7 @@ sub write {
 	print CSS $self->write_string;
 	close( CSS );
 
-	1
+	return 1;
 }
 
 =pod
@@ -266,7 +266,7 @@ sub write_string {
 		$contents .= "}\n";
 	}
 
-	$contents
+	return $contents;
 }
 
 =pod
@@ -280,7 +280,7 @@ so that it can be dropped directly onto a HTML page.
 
 sub html {
 	my $css = $_[0]->write_string or return '';
-	"<style type=\"text/css\">\n<!--\n${css}-->\n</style>";
+	return "<style type=\"text/css\">\n<!--\n${css}-->\n</style>";
 }
 
 =pod
@@ -294,7 +294,7 @@ so that it can be dropped directly onto an XHTML page.
 
 sub xhtml {
 	my $css = $_[0]->write_string or return '';
-	"<style type=\"text/css\">\n/* <![CDATA[ */\n${css}/* ]]> */\n</style>";
+	return "<style type=\"text/css\">\n/* <![CDATA[ */\n${css}/* ]]> */\n</style>";
 }
 
 =pod
@@ -331,7 +331,7 @@ L<CSS>, L<http://www.w3.org/TR/REC-CSS1>, L<Config::Tiny>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2002 - 2007 Adam Kennedy.
+Copyright 2002 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

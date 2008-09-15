@@ -1,4 +1,8 @@
-Revision history for Perl extension CSS::Tiny
+Revision history for Perl extension CSS-Tiny
+
+1.16 Fri  4 Jul 2008
+	- Upgrading to Module::Install 0.76
+	- Localising $@ during evals
 
 1.15 Thu  1 Nov 2007
 	- Moving from Module::Install to the tinier EU:MM
