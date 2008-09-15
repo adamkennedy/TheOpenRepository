@@ -1,5 +1,10 @@
 Revision history for Perl extension Parse::CSV
 
+1.01 Sat 10 May 2008
+	- Methods combine/string/print were infinite looping, fixed
+	- Big CSV_XS dependency increase, *substantial* numbers of
+	  important bugs were fixed in April 2008.
+
 1.00 Tue 17 Oct 2006
 	- Converting to _CODELIKE
 	- Cleaning up the docs

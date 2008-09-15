@@ -107,7 +107,7 @@ use Params::Util qw{ _STRING _ARRAY _HASH0 _CODELIKE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
 
@@ -383,7 +383,7 @@ to the underlying L<Text::CSV_XS> object.
 =cut
 
 sub combine {
-	shift->combine(@_);
+	shift->{csv_xs}->combine(@_);
 }
 
 =pod
@@ -398,7 +398,7 @@ to the underlying L<Text::CSV_XS> object.
 =cut
 
 sub string {
-	shift->string(@_);
+	shift->{csv_xs}->string(@_);
 }
 
 =pod
@@ -413,7 +413,7 @@ to the underlying L<Text::CSV_XS> object.
 =cut
 
 sub print {
-	shift->print(@_);
+	shift->{csv_xs}->print(@_);
 }
 
 =pod
