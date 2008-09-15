@@ -47,21 +47,33 @@ sub import {
 		$params{package} = scalar caller;
 	}
 
-	# Determine the mirror database path
-	my $file = $params{package} . '.sqlite';
-	$file =~ s/::/-/g;
+	# Check when we should update
+	unless ( defined $params{update} ) {
+		$params{update} = 'compile';
+	}
+	unless ( $params{update} =~ /^(?:compile|connect)$/ ) {
+		Carp::croak("Invalid update param '$params{update}'");
+	}
 
-	# Create the directory
+	# Determine the mirror database location
 	my $dir = File::Spec->catdir(
 		File::HomeDir->my_data,
 		'Perl', 'ORLite-Mirror'
 	);
+	my $file = $params{package} . '.sqlite';
+	$file =~ s/::/-/g;
+	my $path = File::Spec->catfile( $dir, $file );
+	unless ( -f $path ) {
+		# If the file doesn't exist, sync at compile time.
+		$params{update} = 'compile';
+	}
+
+	# Create the directory
 	unless ( -e $dir ) {
 		File::Path::mkpath( $dir, { verbose => 0 } );
 	}
 
 	# Create the default useragent
-	my $path      = File::Spec->catfile( $dir, $file );
 	my $useragent = delete $params{useragent};
 	unless ( $useragent ) {
 		my $version = $params{package}->VERSION || 0;
@@ -108,7 +120,29 @@ sub import {
 	$params{readonly} = 1;
 
 	# Hand off to the main ORLite class.
-	$class->SUPER::import( \%params );
+	my $rv = $class->SUPER::import( \%params );
+
+	# If and only if they update at connect-time, replace the
+	# original dbh method with one that syncs the database.
+	if ( $params{update} eq 'connect' ) {
+		my $code = <<"END_PERL";
+package $params{package};
+
+use vars qw{ \$SYNCED };
+BEGIN {
+	\$SYNCED = 0;
+	delete \$$params{package}::{DBH};
+}
+
+
+sub connect {
+	my $class = shift;
+	
+}
+
+	}
+
+	return $rv;
 }
 
 1;
