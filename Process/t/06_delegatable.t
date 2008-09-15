@@ -83,5 +83,3 @@ SCOPE: {
 		'Got error message' );
 
 }
-
-exit(0);

@@ -100,5 +100,3 @@ SCOPE: {
 	# Clean up
 	close( HANDLE );
 }
-
-1;

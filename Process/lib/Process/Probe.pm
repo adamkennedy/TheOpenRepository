@@ -60,5 +60,7 @@ and prevents the use of these objects en-mass as a denial of service.
 
 use strict;
 use base qw{
-	
+	Process::
 };
+
+1;

@@ -14,12 +14,12 @@ use lib catdir('t', 'lib');
 
 BEGIN {
 	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
-	use_ok( 'Process'                 );
-	use_ok( 'Process::Infinite'       );
-	use_ok( 'Process::Serializable'   );
-	use_ok( 'Process::Storable'       );
-	use_ok( 'Process::Delegatable'    );
-	use_ok( 'Process::Launcher'       );
+	use_ok( 'Process'               );
+	use_ok( 'Process::Infinite'     );
+	use_ok( 'Process::Serializable' );
+	use_ok( 'Process::Storable'     );
+	use_ok( 'Process::Delegatable'  );
+	use_ok( 'Process::Launcher'     );
 }
 
 is( $Process::VERSION, $Process::Infinite::VERSION,       '::Process == ::Infinite'       );
@@ -37,5 +37,3 @@ ok( defined(&serialized), 'Process::Launcher exports &serialized' );
 use_ok( 'MySimpleProcess'      );
 use_ok( 'MyStorableProcess'    );
 use_ok( 'MyDelegatableProcess' );
-
-exit(0);

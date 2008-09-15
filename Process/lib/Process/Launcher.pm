@@ -8,7 +8,7 @@ use Params::Util qw{_CLASS _INSTANCE};
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.22';
+	$VERSION = '0.23';
 	@ISA     = qw{Exporter};
 	@EXPORT  = qw{run run3 serialized};
 

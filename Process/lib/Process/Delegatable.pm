@@ -9,7 +9,7 @@ use Probe::Perl ();
 
 use vars qw{$VERSION @PERLCMD};
 BEGIN {
-	$VERSION = '0.22';
+	$VERSION = '0.23';
 
 	# Contains the command to use to launch perl
 	# Should be the path to the perl current running.

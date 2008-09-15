@@ -50,5 +50,3 @@ SCOPE: {
 	is( $object->{prepare}, 1, 'Sets ->{prepare} to 1' );
 	is( $object->{run},     1, 'Sets ->{run} to 1'     );	
 }
-
-exit(0);

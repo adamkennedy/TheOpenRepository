@@ -122,4 +122,3 @@ SCOPE: {
 			'Returned object matches expected' );
 	}
 }
-
