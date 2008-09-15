@@ -226,9 +226,7 @@ sub provides {
 
 		} else {
 			eval "require $p;";
-			if ( $@ ) {
-				next;
-			}
+			next if $@;
 		}
 		if ( $p->isa($want) ) {
 			push @filtered, $p;
