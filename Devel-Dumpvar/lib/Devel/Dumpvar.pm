@@ -230,22 +230,65 @@ sub _dump_child {
 # Get the display string for a scalar value
 sub _scalar {
 	my $self = shift;
-	my $value = shift;
+	my $v    = shift;
 
 	# Shortcuts
-	return 'undef' unless defined $value;
-	return "''" unless length $value;
+	return 'undef' unless defined $v;
+	return "''"    unless length  $v;
 
 	# Is it a number?
-	if ( Scalar::Util::looks_like_number( $value ) ) {
+	if ( Scalar::Util::looks_like_number($v) ) {
 		# Show as-is
-		return $value;
+		return $v;
 	}
 
-	# Escape the scalar
-	### FINISH THIS
+	# Auto-detect the tick to use
+	my $tick = "'";
+	if ( ord('A') == 193 ) {
+		if ( $v =~ /[\000-\011]/ or $v =~ /[\013-\024\31-\037\177]/ ) {
+			$tick = '"';
+		} else {
+			$tick = "'";
+		}
+	} else {
+		if ( $v =~ /[\000-\011\013-\037\177]/ ) {
+			$tick = '"';
+		} else {
+			$tick = "'";
+		}
+	}
 
-	"'" . $value . "'";
+	# Tick-specific escaping
+	if ( $tick eq "'" ) {
+		$v =~ s/([\'\\])/\\$1/g;
+	} else {
+		$v =~ s/([\"\\\$\@])/\\$1/g;
+		$v =~ s/\033/\\e/g;
+		if ( ord('A') == 193 ) { # EBCDIC.
+			$v =~ s/([\000-\037\177])/'\\c'.chr(193)/eg; # Unfinished.
+		} else {
+			$v =~ s/([\000-\037\177])/'\\c'._scalar_ord($1)/eg;
+		}
+	}
+
+	# Unicode and high-bit escaping
+	$v = _scalar_unicode($v);
+	$v =~ s/([\200-\377])/'\\'.sprintf('%3o',ord($1))/eg;
+
+	return "${tick}${v}${tick}";
+}
+
+sub _scalar_ord {
+	my $chr = shift;
+	$chr = chr(ord($chr)^64);
+	$chr =~ s{\\}{\\\\}g;
+	return $chr;
+}
+
+sub _scalar_unicode {
+	join( "",
+	map { $_ > 255 ? sprintf("\\x{%04X}", $_) : chr($_) }
+	unpack("U*", $_[0]));
 }
 
 sub _refstring {

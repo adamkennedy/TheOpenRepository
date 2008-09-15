@@ -4,6 +4,7 @@ Revision history for Perl extension Devel::Dumpvar
 	- Updating to Module::Install 0.68
 	- Updating to new author tests
     	- Remove quotes for hash keys.
+	- Importing the scalar escaping from dumpvar.pl
 
 0.03  Thu Apr 27 2006
 	- Moving from old CVS to new SVN repository
