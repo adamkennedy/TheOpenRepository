@@ -34,25 +34,26 @@ general programmatic client interface.
 
 use 5.005;
 use strict;
-use Params::Util    '_IDENTIFIER',
-                    '_INSTANCE';
-use Term::ReadLine  ();
-use File::HomeDir   ();
-use File::ShareDir  ();
-use Mirror::YAML    ();
-use LWP::Online     ();
-use JSAN::Transport ();
-use JSAN::Index     ();
-use JSAN::Client    ();
+use Params::Util     '_IDENTIFIER',
+                     '_INSTANCE';
+use Term::ReadLine   ();
+use File::HomeDir    ();
+use File::ShareDir   ();
+use File::UserConfig ();
+use Mirror::JSON     ();
+use LWP::Online      ();
+use JSAN::Transport  ();
+use JSAN::Index      ();
+use JSAN::Client     ();
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '2.00_05';
 }
 
-# Locate the starting mirror.yml
+# Locate the starting mirror.json
 use constant MIRROR_INIT => File::ShareDir::module_file(
-	'JSAN::Shell', 'mirror.yml',
+	'JSAN::Shell', 'mirror.json',
 	);
 
 
@@ -97,7 +98,7 @@ sub new {
 	# Locate the best mirror
 	unless ( $self->{config}->{mirror} ) {
 		$self->_print("Locating closest JSAN mirror...");
-		my $mirror_yaml = Mirror::YAML->read( MIRROR_INIT );
+		my $mirror_yaml = Mirror::JSON->read( MIRROR_INIT );
 		$mirror_yaml->check_master;
 		my @mirrors = $mirror_yaml->select_mirrors;
 		my $mirror  = $mirrors[ int rand scalar @mirrors ];
@@ -302,7 +303,7 @@ sub command_dist {
 }
 
 sub help_l       { shift->help_library(@_) }
-sub help_library { <<'END_LIBRARY'         }
+sub help_library { <<'END_HELP'            }
   jsan> library Test.Simple
   
   Library          = Test.Simple
