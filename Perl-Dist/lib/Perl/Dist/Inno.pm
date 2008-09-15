@@ -151,7 +151,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.04';
+        $VERSION  = '1.05';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -721,28 +721,19 @@ sub run {
 	$self->install_win32_extras;
 	$self->trace("Completed install_win32_extras in " . (time - $t) . " seconds\n");
 
+	# Apply portability functionality if wanted
+	if ( $self->portable ) {
+		$self->install_portable;
+	}
+
 	# Remove waste and temporary files
 	$t = time;
 	$self->remove_waste;
 	$self->trace("Completed remove_waste in " . (time - $t) . " seconds\n");
 
-	# Install any extra custom software on top of Perl.
+	# Install any extra custom non-Perl software on top of Perl.
 	# This is primarily added for the benefit of Parrot.
 	$self->install_custom;
-
-	# Apply portability if needed
-	if ( $self->portable ) {
-		# Create the portability object
-		$self->trace("Creating Portable::Dist\n");
-		$self->{portable_dist} = Portable::Dist->new(
-			perl_root => File::Spec->catdir(
-				$self->image_dir => 'perl',
-			),
-		);
-		$self->trace("Running Portable::Dist\n");
-		$self->{portable_dist}->run;
-		$self->trace("Completed Portable::Dist\n");
-	}
 
 	# Write out the distributions
 	$t = time;
@@ -850,10 +841,36 @@ sub install_perl {
 
 # No additional modules by default
 sub install_perl_modules {
-	my $class = shift;
-	if ( $class eq __PACKAGE__ ) {
-		$class->trace("install_perl_modules: Nothing to do\n");
-	}
+	my $self = shift;
+	return 1;
+}
+
+# Portability support must be added after modules
+sub install_portable {
+	my $self = shift;
+
+	# Install the regular parts of Portability
+	$self->install_module(
+		name => 'Portable',
+	);
+
+	# Create the portability object
+	$self->trace("Creating Portable::Dist\n");
+	$self->{portable_dist} = Portable::Dist->new(
+		perl_root => File::Spec->catdir(
+			$self->image_dir => 'perl',
+		),
+	);
+	$self->trace("Running Portable::Dist\n");
+	$self->{portable_dist}->run;
+	$self->trace("Completed Portable::Dist\n");
+
+	# Install the file that turns on Portability last
+	$self->install_file(
+		share      => 'Perl-Dist portable.perl',
+		install_to => 'portable.perl',
+	);
+
 	return 1;
 }
 

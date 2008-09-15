@@ -2,20 +2,13 @@ package Perl::Dist::Chocolate;
 
 use 5.005;
 use strict;
-use base 'Perl::Dist::Strawberry';
+use Perl::Dist::Strawberry ();
 
 use vars qw{VERSION};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = 'Perl::Dist::Strawberry';
 }
-
-
-
-
-
-#####################################################################
-# Constructor and Configuration
-
 
 
 
@@ -83,7 +76,34 @@ sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
 
-	# CODE INCOMPLETE
+	# All of the GUI tools need WxWidgets
+	$self->install_wx;
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Installation Methods
+
+sub install_wx {
+	my $self = shift;
+
+	# The underlying alien package installs quite happily
+	# as a normal module.
+	$self->install_module(
+		name => 'Alien::wxWidgets',
+	);
+
+	# The main distribution has to be installed without being
+	# passed the normal INC/LIBS params.
+	$self->install_distribution(
+		name             => 'MBARBON/Wx-0.84.tar.gz',
+		makefilepl_param => [],
+	);
 
 	return 1;
 }

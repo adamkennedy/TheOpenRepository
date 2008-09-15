@@ -1,0 +1,5 @@
+Changes for Perl extension Perl-Dist-Chocolate
+
+0.01 ?????????
+	- Created as a subclass of Strawberry
+	- Added the install_wx method
