@@ -13,7 +13,7 @@ use t::lib::Test3 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 
