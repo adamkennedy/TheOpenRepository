@@ -41,7 +41,7 @@ In the nature of test modules, all functions are exported by default.
 
 =cut
 
-use 5.006; # Only because of Hook::LexWrap. Otherwise 5.005
+use 5.006;
 use strict;
 use Test::Builder ();
 use Hook::LexWrap ();
