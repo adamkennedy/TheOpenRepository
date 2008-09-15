@@ -1,5 +1,21 @@
 package Debug::Eval;
 
+=pod
+
+=head1 NAME
+
+Debug::Eval - Allows you to debug string evals
+
+=head1 SYNOPSIS
+
+  use Debug::Eval;
+  
+  eval "print 'Hello World!';";
+
+=head1 DESCRIPTION
+
+=cut
+
 use 5.006;
 use strict;
 use Exporter   ();
