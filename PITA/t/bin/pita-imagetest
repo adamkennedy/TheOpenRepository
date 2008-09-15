@@ -3,6 +3,7 @@
 # Binary application for the PITA::Guest::Driver::Image::Test driver
 
 use strict;
+use Probe::Perl    ();
 use Getopt::Long ();
 use PITA::Image  ();
 
@@ -34,7 +35,7 @@ my $manager = PITA::Image->new(
 # For platforms, we support the current Perl only
 $manager->add_platform(
 	scheme => 'perl5',
-	path   => $^X, # Only works on Unix
+	path   => Probe::Perl->find_perl_interpreter,
 	);
 
 # Run the discover tasks
