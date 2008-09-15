@@ -106,8 +106,10 @@ use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12_01';
 }
+
+use CGI::Capture::TieSTDIN ();
 
 
 
@@ -492,8 +494,7 @@ sub _stdin {
 	my $self = shift;
 	my $scalar_ref = ref $_[0] eq 'SCALAR' ? shift
 		: die "SCALAR reference not passed to ->_stdin";
-	tie *MYSTDIN, 'IO::Scalar', $scalar_ref;
-	tied(OUT)->seek(0,0);
+	tie *MYSTDIN, 'CGI::Capture::TieSTDIN', $scalar_ref;
 	*STDIN = *MYSTDIN;
 }
 

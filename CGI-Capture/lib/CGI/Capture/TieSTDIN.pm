@@ -2,16 +2,54 @@ package CGI::Capture::TieSTDIN;
 
 # Small class for replacing STDIN with a provided string
 
+use strict;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.12_01';
+}
+
 sub TIEHANDLE {
-	my $class   = shift;
-	return bless [
-		split /\n/, $_[0],
-	], $class;
+	my $class  = shift;
+	my $string = shift;
+	return bless {
+		string => $string,
+	};
+}
+
+sub READ {
+	my $self   = shift;
+	my $string = shift;
+	unless ( defined $string ) {
+		$_[0] = undef;
+		return 0;
+	}
+	my $offset = $_[2] || 0;
+	my $length = $_[1];
+	my $buffer = substr( $string, $offset, $length );
+	my $rv     = length $buffer;
+	$_[0]      = $buffer;
+	return $rv;
 }
 
 sub READLINE {
-	my $self = shift;
-	return wantarray ? @$self : shift @$self;
+	my $self   = shift;
+	my $string = $self->{string};
+	unless ( defined $$string ) {
+		return undef;
+	}
+	if ( wantarray ) {
+		my @lines = split /(?<=\n)/, $$string;
+		$$string = undef;
+		return @lines;
+	} else {
+		if ( $$string =~ s/^(.+?\n)// ) {
+			return "$1";
+		} else {
+			my $rv = $$string;
+			$$string = undef;
+			return $rv;
+		}
+	}
 }
 
 sub CLOSE {

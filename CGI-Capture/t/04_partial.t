@@ -6,9 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More skip_all => 'Test script incomplete and spuriously failing';
+# use Test::More skip_all => 'Test script incomplete and spuriously failing';
 
-use Test::More tests => 6;
+use Test::More tests => 3;
 use CGI          ();
 use CGI::Capture ();
 
