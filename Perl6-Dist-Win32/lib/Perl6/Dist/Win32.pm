@@ -109,13 +109,55 @@ sub install_parrot {
 			File::Spec->catdir( $unpack_to, $parrotsrc ),
 		);
 
+		my $name = $parrot->name;
 		$self->trace("Configuring $name...\n");
 		$self->_perl( 'Makefile.PL' );
 
 		$self->trace("Building $name...\n");
 		$self->_make;
 
+		unless ( 0 ) {
+		# unless ( $perl->force ) {
+			local $ENV{PERL_SKIP_TTY_TEST} = 1;
+			$self->trace("Testing perl...\n");
+			$self->_make('test');
+		}
+
+		
 	}
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Overloaded Perl::Dist Methods
+
+sub install_perl_588 {
+	my $self = shift;
+	$self->SUPER::install_perl_588(@_);
+
+	# Install the Strawberry CPAN::Config
+	$self->install_file(
+		share      => 'Perl6-Dist-Win32 CPAN_Config_588.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
+	);
+
+	return 1;
+}
+
+sub install_perl_5100 {
+	my $self = shift;
+	$self->SUPER::install_perl_5100(@_);
+
+	# Install the vanilla CPAN::Config
+	$self->install_file(
+		share      => 'Perl6-Dist-Win32 CPAN_Config_5100.pm',
+		install_to => 'perl/lib/CPAN/Config.pm',
+	);
 
 	return 1;
 }
