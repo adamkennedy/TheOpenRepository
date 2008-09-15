@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Load testing for Class::Autouse
+# Compile testing for Class::Autouse
 
 use strict;
 BEGIN {

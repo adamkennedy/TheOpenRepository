@@ -9,7 +9,7 @@ use Class::Autouse ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.99_02';
+	$VERSION = '1.99_03';
 }
 
 # Anti-loop protection.

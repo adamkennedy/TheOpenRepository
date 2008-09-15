@@ -8,16 +8,11 @@
 # as advertised... we hope ;)
 
 use strict;
-use File::Spec ();
+use File::Spec::Functions ':ALL';
+use lib catdir('t', 'lib');
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	require lib;
-	lib->import(
-		File::Spec->catdir(
-			File::Spec->curdir, 't', 'modules',
-		)
-	);
 }
 
 use Test::More tests => 29;

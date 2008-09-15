@@ -1,5 +1,9 @@
 Revision history for Perl extension Class::Autouse
 
+1.99_03 Fri  4 Jul 2008
+	- Upgrading to Module::Install 0.76
+	- Localising $@ during evals
+
 1.99_02 Thu 24 Jan 2008
 	- Fixing some back-compatibility bugs in the new tests
 

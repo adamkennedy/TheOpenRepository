@@ -43,7 +43,7 @@ use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @LOADERS @sugar }; # W
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.99_02';
+	$VERSION = '1.99_03';
 
 	# We play with UNIVERSAL::can at times, so save a backup copy
 	$ORIGINAL_CAN = \&UNIVERSAL::can;
@@ -68,9 +68,9 @@ BEGIN {
 	# Special classes are internal and should be left alone.
 	# Loaded modules are those already loaded by us.
 	# Bad classes are those that are incompatible with us.
-	%SPECIAL = map { $_ => 1 } qw{ CORE main ARRAY HASH SCALAR REF UNIVERSAL };
-	%LOADED  = map { $_ => 1 } qw{ UNIVERSAL Exporter Carp File::Spec        };
-	%BAD     = map { $_ => 1 } qw{ IO::File                                  };
+	%SPECIAL = map { $_ => 1 } qw{ CORE main ARRAY HASH SCALAR REF GLOB UNIVERSAL };
+	%LOADED  = map { $_ => 1 } qw{ UNIVERSAL Exporter Carp File::Spec             };
+	%BAD     = map { $_ => 1 } qw{ IO::File                                       };
 
 	# "Have we tried to autoload a method before?"
 	# Anti-loop protection. Contains fully referenced sub names
@@ -461,6 +461,7 @@ sub _try_loaders {
 				my $file = _class_file($class);
 				next unless grep { -e $_ . '/' . $file } @INC; 
 				local $^W = 0;
+				local $@;
 				eval "use $class";
 				die "Class::Autouse found module $file for class $class matching regex '$loader',"
 					. " but it failed to compile with the following error: $@" if $@;
@@ -580,11 +581,12 @@ sub _preload_class {
 
 	# If needed, load the class and all its dependencies.
 	if ( $load ) {
+		local $@;
 		eval { Class::Autouse->load($class) };
 		die $@ if $@;
 	}
 
-	unless ($LOADED{$class}) {
+	unless ( $LOADED{$class} ) {
 		_try_loaders($class);
 	}
 
@@ -651,9 +653,12 @@ sub _load ($) {
 
 	# Load the file
 	print _call_depth(1) . "  Class::Autouse::load -> Loading in $file\n" if DEBUG;
-	eval {
-		CORE::require($file);
-	};
+	SCOPE: {
+		local $@;
+		eval {
+			CORE::require($file);
+		};
+	}
 	_cry($@) if $@;
 
 	# Give back UNIVERSAL::can/isa if there are no other hooks
@@ -846,6 +851,7 @@ sub _UPDATE_HOOKS () {
 
 BEGIN {
 	# Optional integration with prefork.pm (if installed)
+	local $@;
 	eval { require prefork };
 	if ( $@ ) {
 		# prefork is not installed.
@@ -854,6 +860,7 @@ BEGIN {
 	} else {
 		# Go into devel mode when prefork is enabled
 		$LOADED{prefork} = 1;
+		local $@;
 		eval "prefork::notify( sub { Class::Autouse->devel(1) } )";
 		die $@ if $@;
 	}
