@@ -108,6 +108,23 @@ sub age {
 	$_[0]->{lastget} - $_[0]->{timestamp};
 }
 
+sub as_string {
+	$_[0]->uri->as_string;
+}
+
+sub is_cached {
+	$_[0]->uri->isa('URI::file');
+}
+
+sub is_master {
+	my $self = shift;
+	return (
+		! $self->valid 
+		and
+		$self->as_string eq $self->uri->as_string
+	);
+}
+
 
 
 
@@ -135,7 +152,7 @@ sub read {
 	$uri->path( $uri->path . '/' );
 
 	# Hand off to the URI fetcher
-	return $class->get( $uri, @_ );
+	return $class->get( $uri, dir => $root, @_ );
 }
 
 sub get {
@@ -202,6 +219,59 @@ sub get_mirror {
 		$self->{mirrors}->[$i] = $mirror;
 	}
 	return $self->{mirrors}->[$i];
+}
+
+
+
+
+
+#####################################################################
+# High Level Methods
+
+sub update {
+	my $self = shift;
+
+	# Handle various shortcuts
+	unless ( $self->valid ) {
+		Carp::croak("Cannot update invalid mirror");
+	}
+	if ( $self->is_master ) {
+		return 1;
+	}
+
+	# Pull the master and overwrite ourself with it
+	my $master = $self->get_master;
+	unless ( _INSTANCE($master, $self->class) ) {
+		Carp::croak("Failed to fetch master record");
+	}
+
+	# Overwrite the current version with the master
+	foreach ( qw{
+		version uri name master timestamp
+		mirrors valid lastget lag
+	} ) {
+		$self->{$_} = delete $master->{$_};
+	}
+
+	return 1;
+}
+
+# Get all the mirrors
+sub get_mirrors {
+	my $self    = shift;
+	my $mirrors = $self->{mirrors};
+	foreach ( 0 .. $#$mirrors ) {
+		$self->get_mirror($_);
+	}
+	return 1;
+}
+
+sub select_mirrors {
+	my $self  = shift;
+	my %param = @_;
+
+	# Check params
+	my $want = 
 }
 
 1;

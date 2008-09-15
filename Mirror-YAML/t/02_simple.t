@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 13;
 use File::Spec::Functions ':ALL';
 use Mirror::YAML;
 
@@ -30,3 +30,10 @@ is( $simple_conf->timestamp, 1168895872, '->timestamp ok' );
 like( $simple_conf->lastget, $number,    '->lastget ok'   );
 like( $simple_conf->lag,     $number,    '->lag ok'       );
 like( $simple_conf->age,     $number,    '->age ok'       );
+is(
+	$simple_conf->as_string,
+	$simple_conf->uri->as_string,
+	'->as_string returns as expected',
+);
+ok(   $simple_conf->is_cached, '->is_cached ok' );
+ok( ! $simple_conf->is_master, '->is_master ok' );
