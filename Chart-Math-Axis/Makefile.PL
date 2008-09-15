@@ -1,4 +1,4 @@
-use inc::Module::Install 0.75;
+use inc::Module::Install 0.77;
 
 all_from      'lib/Chart/Math/Axis.pm';
 requires      'Math::BigInt'   => '1.70';

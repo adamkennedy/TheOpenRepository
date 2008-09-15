@@ -1,0 +1,8 @@
+[Bar.js]
+Foo.js=1
+
+[Foo.js]
+
+[Foo/Bar.js]
+Bar.js=1
+Foo.js=1
