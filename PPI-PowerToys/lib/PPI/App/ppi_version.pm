@@ -56,32 +56,7 @@ sub show {
 		}
 
 		# Does the document contain a simple version number
-		my $elements = $Document->find( sub {
-			# Find a $VERSION symbol
-			$_[1]->isa('PPI::Token::Symbol')           or return '';
-			$_[1]->content =~ m/^\$(?:\w+::)*VERSION$/ or return '';
-
-			# It is the first thing in the statement
-			$_[1]->sprevious_sibling                  and return '';
-
-			# Followed by an "equals"
-			my $equals = $_[1]->snext_sibling          or return '';
-			$equals->isa('PPI::Token::Operator')       or return '';
-			$equals->content eq '='                    or return '';
-
-			# Followed by a quote
-			my $quote = $equals->snext_sibling         or return '';
-			$quote->isa('PPI::Token::Quote')           or return '';
-
-			# ... which is EITHER the end of the statement
-			my $next = $quote->snext_sibling           or return 1;
-
-			# ... or is a statement terminator
-			$next->isa('PPI::Token::Structure')        or return '';
-			$next->content eq ';'                      or return '';
-
-			return 1;
-		} );
+		my $elements = $Document->find( \&_find_version );
 
 		unless ( $elements ) {
 			print " no version\n";
@@ -154,6 +129,33 @@ sub change {
 #####################################################################
 # Support Functions
 
+sub _find_version {
+	# Find a $VERSION symbol
+	$_[1]->isa('PPI::Token::Symbol')           or return '';
+	$_[1]->content =~ m/^\$(?:\w+::)*VERSION$/ or return '';
+
+	# It is the first thing in the statement
+	$_[1]->sprevious_sibling                  and return '';
+
+	# Followed by an "equals"
+	my $equals = $_[1]->snext_sibling          or return '';
+	$equals->isa('PPI::Token::Operator')       or return '';
+	$equals->content eq '='                    or return '';
+
+	# Followed by a quote
+	my $quote = $equals->snext_sibling         or return '';
+	$quote->isa('PPI::Token::Quote')           or return '';
+
+	# ... which is EITHER the end of the statement
+	my $next = $quote->snext_sibling           or return 1;
+
+	# ... or is a statement terminator
+	$next->isa('PPI::Token::Structure')        or return '';
+	$next->content eq ';'                      or return '';
+
+	return 1;
+}
+
 sub _file_version {
 	my $file = shift;
 	my $doc  = PPI::Document->new( $file );
@@ -162,33 +164,7 @@ sub _file_version {
 	}
 
 	# Does the document contain a simple version number
-	my $elements = $doc->find( sub {
-		# Find a $VERSION symbol
-		$_[1]->isa('PPI::Token::Symbol')           or return '';
-		$_[1]->content =~ m/^\$(?:\w+::)*VERSION$/ or return '';
-
-		# It is the first thing in the statement
-		$_[1]->sprevious_sibling                  and return '';
-
-		# Followed by an "equals"
-		my $equals = $_[1]->snext_sibling          or return '';
-		$equals->isa('PPI::Token::Operator')       or return '';
-		$equals->content eq '='                    or return '';
-
-		# Followed by a quote
-		my $quote = $equals->snext_sibling         or return '';
-		$quote->isa('PPI::Token::Quote')           or return '';
-
-		# ... which is EITHER the end of the statement
-		my $next = $quote->snext_sibling           or return 1;
-
-		# ... or is a statement terminator
-		$next->isa('PPI::Token::Structure')        or return '';
-		$next->content eq ';'                      or return '';
-
-		return 1;
-	} );
-
+	my $elements = $doc->find( \&_find_version );
 	unless ( $elements ) {
 		return "no version";
 	}
