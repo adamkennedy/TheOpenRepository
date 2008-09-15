@@ -84,11 +84,14 @@ use File::Basename ();
 use Params::Util   qw{ _SCALAR _INSTANCE _IDENTIFIER };
 
 # Optional prefork support
-eval "use prefork 'File::Type';";
+SCOPE: {
+	local $@;
+	eval "use prefork 'File::Type';";
+}
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 
