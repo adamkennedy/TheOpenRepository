@@ -52,12 +52,28 @@ sub MODIFY_CODE_ATTRIBUTES {
 	# Register an event
 	if ( $name eq 'Event' ) {
 		# Add to the coderef event register
-		$POE::Declare::EVENT{refaddr $code} = 1;
+		$POE::Declare::EVENT{refaddr $code} = [];
+		return ();
+	}
+
+
+	# Register a timeout
+	if ( $name =~ /^Timeout$/ ) {
+		unless ( $name =~ /^Timeout\((.+)\)$/ ) {
+			Carp::croak("Missing or invalid timeout");
+		}
+		my $delay = $1;
+		unless ( Params::Util::_POSINT($delay) ) {
+			Carp::croak("Missing or invalid timeout");
+		}
+		$POE::Declare::EVENT{refaddr $code} = [
+			default => $delay,
+		];
 		return ();
 	}
 
 	# Unknown method type
-	Carp::croak("Unknown of unsupported attribute $name");
+	Carp::croak("Unknown or unsupported attribute $name");
 }
 
 sub meta {
@@ -153,7 +169,7 @@ tasks in C<_start> you should always call it first.
 
   sub _start {
       my $self = $_[HEAP];
-      shift()->SUPER::_start(@_);
+      shift->SUPER::_start(@_);
 
       # Additional tasks here
       ...
@@ -185,7 +201,7 @@ SUPER last.
       # Additional tasks here
       ...
 
-      shift()->SUPER::_stop(@_);
+      shift->SUPER::_stop(@_);
   }
 
 =cut
@@ -278,7 +294,7 @@ sub callback {
       my $thing = Other::Class->new(
            ConnectEvent => $self->lookback('it_connected'),
            ConnectError => $self->lookback('it_failed'),
-           );
+      );
   
       ...
   }

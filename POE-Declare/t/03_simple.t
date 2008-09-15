@@ -6,6 +6,7 @@ use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
+	$DB::single = 1;
 }
 
 use Test::More tests => 24;
@@ -37,6 +38,13 @@ SCOPE: {
 		return $self;
 	}
 
+	$Foo::to = 0;
+	sub to : Timeout(30) {
+		my $self = $_[SELF];
+		$Foo::to++;
+	}
+
+	1;
 }
 
 
@@ -58,10 +66,14 @@ SCOPE: {
 	isa_ok( $meta, 'POE::Declare::Meta' );
 	is( $meta->name, 'Foo', '->name is ok' );
 	is( ref($meta->{attr}), 'HASH', '->{attr} is a hash' );
-	isa_ok( $meta->{attr}->{foo}, 'POE::Declare::Meta::Attribute' );
-	isa_ok( $meta->{attr}->{bar}, 'POE::Declare::Meta::Internal'  );
-	is(     $meta->{attr}->{foo}->name, 'foo', 'Attribute foo ->name ok' );
-	is(     $meta->{attr}->{bar}->name, 'bar', 'Attribute bar ->name ok' );
+	isa_ok( $meta->{attr}->{foo},    'POE::Declare::Meta::Attribute' );
+	isa_ok( $meta->{attr}->{bar},    'POE::Declare::Meta::Internal'  );
+	isa_ok( $meta->{attr}->{findme}, 'POE::Declare::Meta::Event'     );
+	isa_ok( $meta->{attr}->{to},     'POE::Declare::Meta::Timeout'   );
+	is( $meta->{attr}->{foo}->name,    'foo',    'Attribute foo ->name ok'    );
+	is( $meta->{attr}->{bar}->name,    'bar',    'Attribute bar ->name ok'    );
+        is( $meta->{attr}->{findme}->name, 'findme', 'Attribute findme ->name ok' );
+	is( $meta->{attr}->{findme}->name, 'to',     'Attribute to ->name ok'     );
 
 	# Create an object
 	my $object = Foo->new( foo => 'foo' );
@@ -70,19 +82,28 @@ SCOPE: {
 	is( $object->Alias, 'Foo.1', 'Pregenerated ->Alias returns as expected' );
 
 	# Check the attr method
-	isa_ok( $meta->attr('foo'), 'POE::Declare::Meta::Attribute' );
-	isa_ok( $meta->attr('bar'), 'POE::Declare::Meta::Internal'  );
-	is(     $meta->attr('foo')->name, 'foo', 'Attribute foo ->name ok' );
-	is(     $meta->attr('bar')->name, 'bar', 'Attribute bar ->name ok' );
+	isa_ok( $meta->attr('foo'),    'POE::Declare::Meta::Attribute' );
+	isa_ok( $meta->attr('bar'),    'POE::Declare::Meta::Internal'  );
+	isa_ok( $meta->attr('findme'), 'POE::Declare::Meta::Event'     );
+	isa_ok( $meta->attr('to'),     'POE::Declare::Meta::Timeout'   );
+	is( $meta->attr('foo')->name,    'foo',    'Attribute foo ->name ok'    );
+	is( $meta->attr('bar')->name,    'bar',    'Attribute bar ->name ok'    );
+	is( $meta->attr('findme')->name, 'findme', 'Attribute findme ->name ok' );
+	is( $meta->attr('to')->name,     'to',     'Attribute to ->name ok'     );
 
 	# Check the package_states method
-	is_deeply( [ $meta->package_states ], [ '_start', '_stop', 'findme' ],
-		'->package_states returns as expected' );
+	is_deeply(
+		[ $meta->package_states ],
+		[ '_start', '_stop', 'findme', 'to' ],
+		'->package_states returns as expected',
+	);
 
 	# Check the behaviour of SELF in methods
 	$object->spawn;
 	my $me = $object->call('findme');
 	is_deeply( $me, $object, 'SELF works in methods' );
+	$object->call('to');
+	is( $Foo::to, 1, 'Timeout method called directly increments to' );
 }
 
 
