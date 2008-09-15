@@ -90,6 +90,7 @@ sub new {
 	my $self = bless {
 		path      => $path,
 		autowrite => $autowrite,
+		rollback  => ! 1,
 	}, $class;
 
 	# Get the attributes
@@ -400,13 +401,19 @@ sub temporary {
 sub _attr {
 	my $self = shift;
 	my $name = shift;
-	if ( @_ ) {
-		my $new = $_[0] ? 1 : 0;
-		if ( $self->{$name} != $new ) {
-			$self->{$name} = $new;
-			$self->write if $self->autowrite;
-		}
+	my $new  = $_[0] ? 1 : 0;
+	return $self->{$name} unless @_;
+	return $self->{$name} if $new == $self->{$name};
+
+	# Set the rollback if needed
+	if ( $self->{rollback} and ! exists $self->{rollback}->{$name} ) {
+		$self->{rollback}->{$name} = $new;
 	}
+
+	# Set the new value
+	$self->{$name} = $new;
+	$self->write if $self->autowrite;
+
 	return $self->{$name};
 }
 
