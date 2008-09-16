@@ -22,6 +22,7 @@ our @EXPORT = @{$EXPORT_TAGS{'all'}};
 
 sub warnline ($) {
   my $msg = shift;
+  chomp($msg);
   my $time = time();
   my ($pkg, $file, $line) = caller();
   ::debug( sprintf("[% 6.2f]", $time - &::STARTTIME()) . " $msg at $file line $line\n" );
