@@ -4,7 +4,7 @@ require Exporter;
 
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(poof);
-our $VERSION   = '0.002005';
+our $VERSION   = '0.002006';
 $VERSION   = eval $VERSION;
 
 use warnings;
@@ -251,7 +251,7 @@ deallocating circular references.
 The C<poof> static method
 takes a closure as its only argument.
 This closure, the B<test object constructor>,
-should build the B<test object>,
+should build the B<test object>
 and create a B<primary test reference> to it.
 The return value of the test object constructor must be
 the primary test reference.
@@ -361,7 +361,7 @@ It follows all weak and strong references, arrays and hashes.
 The test object is explored to unlimited depth.
 Visited references are tracked, and no reference is visited
 twice.
-Two lists of B<test references> into the original data are generated.
+Two lists of test references into the original data are generated.
 One list is of strong test references and the other is of weak test references.
 
 As it recurses,
@@ -371,7 +371,7 @@ The probe references to the strong test references are weakened,
 so that the probe reference will not interfere with normal deallocation of memory.
 
 When all the probe references have been created,
-The primary test reference is set to C<undef>.
+the primary test reference is set to C<undef>.
 Normally, this is expected to cause all
 memory for the test object to be deallocated.
 To check this, C<Test::Weaken> dereferences the probe references.
