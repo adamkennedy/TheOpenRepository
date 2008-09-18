@@ -1,5 +1,8 @@
 Change for Perl extension Template-Provider-Preload
 
+0.04 Thu 18 Sep 2008
+	- Adding missing Params::Util dependency
+
 0.03 Fri 12 Sep 2008
 	- Adding support for the PREFETCH param
 	- Adding an independant preload cache to allow the regular cache
