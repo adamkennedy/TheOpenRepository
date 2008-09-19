@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+0.13 Fri 19 Sep 2008
+	- Fixed critical bug introduced in 0.10 or somewhere around there,
+	  where column accessors were not defined for readonly classes.
+	  (This fatally killed ORLite::Mirror)
+
 0.12 Mon 15 Sep 2008
 	- Don't store the database values in a shared hash any more
 	  (Makes the classes self-contained and able to run without ORLite)

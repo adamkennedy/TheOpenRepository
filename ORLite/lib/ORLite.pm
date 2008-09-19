@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION %DSN %DBH};
 BEGIN {
-	$VERSION = '0.12';
+	$VERSION = '0.13';
 	%DSN     = ();
 	%DBH     = ();
 }
@@ -307,8 +307,10 @@ sub delete {
 
 END_PERL
 
-			# Generate the accessors
-			$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
+			}
+
+		# Generate the accessors
+		$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
 sub $_->{name} {
 	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk} = ?', \$_[0]->{$_->{name}}))[0];
 }
@@ -318,7 +320,6 @@ sub $_->{name} {
 }
 END_ACCESSOR
 
-			}
 		}
 	}
 	$dbh->disconnect;

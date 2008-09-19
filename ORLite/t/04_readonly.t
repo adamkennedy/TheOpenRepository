@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -51,6 +51,9 @@ is( Foo::Bar->pragma('user_version'), 10, '->user_version ok' );
 
 # Check the ->count method
 is( Foo::Bar::TableOne->count, 0, 'Found 0 rows' );
+
+# Make sure we still have the columns defined
+ok( Foo::Bar::TableOne->can('col1'), 'Columns defined' );
 
 # There's some things we shouldn't be able to do
 ok( ! Foo::Bar->can('commit'), 'No transaction support' );
