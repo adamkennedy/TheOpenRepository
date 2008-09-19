@@ -1,18 +1,24 @@
 Revision history for Test-Weaken
 
-0.002003     Mon Sep 15 21:17:37 PDT 2008
+1.000000     Fri Sep 19
+        First official release
+
+0.002006     Mon Sep 15
+        Fixed META.yml
+
+0.002003     Mon Sep 15
         Added a META.yml
         Rewrote documentation.
         No longer change undef's in test data to 42
            -- that was unnecessary
 
-0.002002    Sun Oct 28 19:43:54 EDT 2007
+0.002002    Sun Oct 28
 	Fixed POD
 
-0.002001    Thu Oct 25 08:49:00 EDT 2007
+0.002001    Thu Oct 25
 	First beta version
 
-0.001_nnn   Tue Oct  9 21:41:40 EDT 2007
+0.001_nnn   Tue Oct  9
 	Various, alpha versions,
 	beginning on the above date
 

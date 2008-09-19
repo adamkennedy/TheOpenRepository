@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:         Test-Weaken
-version:             0.002006
+version:             0.100000
 abstract:            Test that freed references are, indeed, freed
 author:              
     - Jeffrey Kegler
@@ -14,7 +14,7 @@ requires:
 provides:
     Test::Weaken:
         file: lib/Test/Weaken.pm
-        version: 0.002006
+        version: 0.100000
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3
