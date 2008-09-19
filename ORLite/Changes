@@ -3,6 +3,8 @@ Changes for Perl extension ORLite
 0.12 Mon 15 Sep 2008
 	- Don't store the database values in a shared hash any more
 	  (Makes the classes self-contained and able to run without ORLite)
+        - Add a tables param to the import, to allow the base database
+          connectivity class to be created without the table classes.
 
 0.11 Tue  9 Sep 2008
 	- If we aren't debugging we don't need to write the temp file
