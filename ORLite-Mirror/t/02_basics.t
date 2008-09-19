@@ -34,9 +34,8 @@ BEGIN {
 	\$VERSION = '1.00';
 }
 use ORLite::Mirror {
-	DEBUG => 1,
 	url   => '$url',
-};
+}, -DEBUG;
 
 1;
 

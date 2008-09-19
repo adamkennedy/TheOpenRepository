@@ -29,6 +29,13 @@ BEGIN {
 sub import {
 	my $class = ref $_[0] || $_[0];
 
+	# Check for debug mode
+	my $DEBUG = 0;
+	if ( defined _STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
+		$DEBUG = 1;
+		pop @_;
+	}
+
 	# Check params and apply defaults
 	my %params;
 	if ( defined _STRING($_[1]) ) {
@@ -120,7 +127,7 @@ sub import {
 	$params{readonly} = 1;
 
 	# Hand off to the main ORLite class.
-	my $rv = $class->SUPER::import( \%params );
+	my $rv = $class->SUPER::import( \%params, $DEBUG ? '-DEBUG' : () );
 
 	# If and only if they update at connect-time, replace the
 	# original dbh method with one that syncs the database.
