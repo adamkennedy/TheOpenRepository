@@ -18,11 +18,9 @@ BEGIN {
 	require DBD::SQLite;
 }
 
-use vars qw{$VERSION %DSN %DBH};
+use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.13';
-	%DSN     = ();
-	%DBH     = ();
+	$VERSION = '0.14';
 }
 
 
@@ -57,11 +55,21 @@ sub import {
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
-	unless ( defined _STRING($params{file}) and -f $params{file} ) {
-		Carp::croak("Missing or invalid file param");	
+	unless ( defined $params{create} ) {
+		$params{create} = 0;
+	}
+	unless (
+		defined _STRING($params{file})
+		and (
+			$params{create}
+			or
+			-f $params{file}
+		)
+	) {
+		Carp::croak("Missing or invalid file param");
 	}
 	unless ( defined $params{readonly} ) {
-		$params{readonly} = ! -w $params{file};
+		$params{readonly} = $params{create} ? 0 : ! -w $params{file};
 	}
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
@@ -77,9 +85,8 @@ sub import {
 	my $file     = File::Spec->rel2abs($params{file});
 	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
-	$DSN{$pkg}   = "dbi:SQLite:$file";
-	$DBH{$pkg}   = undef;
-	my $dbh      = DBI->connect($DSN{$pkg});
+	my $dsn      = "dbi:SQLite:$file";
+	my $dbh      = DBI->connect($dsn);
 
 	# Check the schema version before generating
 	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
@@ -93,7 +100,7 @@ package $pkg;
 
 use strict;
 
-my \$DSN = 'dbi:SQLite:$file';
+my \$DSN = '$dsn';
 my \$DBH = undef;
 
 sub dsn {
@@ -601,7 +608,7 @@ no means prohibited.
 =head2 pragma
 
   # Get the user_version for the schema
-  my $version = Foo::Bar->pragma('schema_version');
+  my $version = Foo::Bar->pragma('user_version');
 
 The C<pragma> method provides a convenient method for fetching a pragma
 for a datase. See the SQLite documentation for more details.
@@ -615,6 +622,8 @@ B<TO BE COMPLETED>
 =head1 TO DO
 
 - Support for intuiting reverse relations from foreign keys
+
+- Document the 'create' and 'table' params
 
 =head1 SUPPORT
 
