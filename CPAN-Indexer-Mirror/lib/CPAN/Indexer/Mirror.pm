@@ -17,7 +17,7 @@ CPAN::Indexer::Mirror - Creates the mirror.yml and mirror.json files
 =head1 DESCRIPTION
 
 This module is used to implement a small piece of functionality inside the
-CPAN/PAUSE indexer which generates the mirror.yml and mirror.json files.
+CPAN/PAUSE indexer which generates F<mirror.yml> and F<mirror.json>.
 
 These files are used to allow CPAN clients (via the L<Mirror::YAML> or
 L<Mirror::JSON> modules) to implement mirror validation and automated
@@ -38,6 +38,7 @@ use YAML::Tiny              ();
 use JSON                    ();
 use URI                     ();
 use URI::http               ();
+use IO::AtomicFile          ();
 use Parse::CPAN::MirroredBy ();
 
 use vars qw{$VERSION};
@@ -116,20 +117,19 @@ sub run {
 		mirrors   => \@mirrors,
 	};
 
-	# Write the mirror.yml file
-	my $yml = $self->mirror_yml;
-	File::Remove::remove( $yml ) if -e $yml;
-	YAML::Tiny::DumpFile( $yml, $data );
-
-	# Write the mirror.json file
-	my $json = $self->mirror_json;
-	File::Remove::remove( $json ) if -e $json;
+	# Write the mirror.yml and mirror.json file.
+	# Make sure the closes (and thus commits) are as close together
+	# as we can possibly get them, minimising race conditions.
 	SCOPE: {
 		local $!;
-		local *FILE;
-		open( FILE, '>', $json )                    or die "open: $!";
-		print FILE JSON->new->pretty->encode($data) or die "print: $!";
-		close( FILE )                               or die "close: $!";
+		my $yaml_file = $self->mirror_yml;
+		my $json_file = $self->mirror_json;
+		my $yaml_fh   = IO::AtomicFile->open($yaml, "w")     or die "open: $!";
+		my $json_fh   = IO::AtomicFile->open($json, "w")     or die "open: $!";
+		$yaml_fh->print( YAML::Tiny::Dump($data) )           or die "print: $!";
+		$json_fh->print(  JSON->new->pretty->encode($data) ) or die "print: $!";
+		$yaml_fh->close                                      or die "close: $!";
+		$json_fh->close                                      or die "close: $!";
 	}
 
 	return 1;
@@ -143,7 +143,7 @@ sub parser {
 		and
 		$_[0] =~ /\/$/
 	} );
-	$parser->add_map(  sub { URI->new( $_[0], 'http' )->canonical->as_string } );
+	$parser->add_map( sub { URI->new( $_[0], 'http' )->canonical->as_string } );
 	return $parser;
 }
 
