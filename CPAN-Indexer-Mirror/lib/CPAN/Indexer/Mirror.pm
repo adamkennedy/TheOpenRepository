@@ -124,8 +124,8 @@ sub run {
 		local $!;
 		my $yaml_file = $self->mirror_yml;
 		my $json_file = $self->mirror_json;
-		my $yaml_fh   = IO::AtomicFile->open($yaml, "w")     or die "open: $!";
-		my $json_fh   = IO::AtomicFile->open($json, "w")     or die "open: $!";
+		my $yaml_fh   = IO::AtomicFile->open($yaml_file, "w")     or die "open: $!";
+		my $json_fh   = IO::AtomicFile->open($json_file, "w")     or die "open: $!";
 		$yaml_fh->print( YAML::Tiny::Dump($data) )           or die "print: $!";
 		$json_fh->print(  JSON->new->pretty->encode($data) ) or die "print: $!";
 		$yaml_fh->close                                      or die "close: $!";
