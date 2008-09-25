@@ -20,7 +20,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 
@@ -100,12 +100,9 @@ package $pkg;
 
 use strict;
 
-my \$DSN = '$dsn';
 my \$DBH = undef;
 
-sub dsn {
-	\$DSN;
-}
+sub dsn { '$dsn' }
 
 sub dbh {
 	\$DBH or
@@ -150,7 +147,8 @@ sub prepare {
 }
 
 sub pragma {
-	shift->selectrow_arrayref('pragma ' . shift)->[0];
+	\$_[0]->do("pragma \$_[1] = \$_[2]") if \@_ > 2;
+	\$_[0]->selectrow_arrayref("pragma \$_[1]")->[0];
 }
 
 END_PERL
@@ -185,7 +183,7 @@ END_PERL
 	# Optionally generate the table classes
 	if ( $params{tables} ) {
 		# Capture the raw schema information
-		my $tables   = $dbh->selectall_arrayref(
+		my $tables = $dbh->selectall_arrayref(
 			'select * from sqlite_master where type = ?',
 			{ Slice => {} }, 'table',
 		);

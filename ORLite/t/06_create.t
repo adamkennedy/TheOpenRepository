@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Tests database creation
+# Tests database creation, pragmas and versions
 
 use strict;
 
@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -32,4 +32,13 @@ END_PERL
 
 ok( Foo::Bar->can('connect'), 'Created read code'  );
 ok( Foo::Bar->can('begin'),   'Created write code' );
-is( Foo::Bar->pragma('user_version'), 0, 'user_version is zero' );
+
+# Test ability to get and set pragmas
+is( Foo::Bar->pragma('schema_version' ), 0, 'schema_version is zero' );
+is( Foo::Bar->pragma('user_version' ), 0, 'user_version is zero' );
+is( Foo::Bar->pragma('user_version', 2 ), 2, 'Set user_version' );
+is( Foo::Bar->pragma('user_version' ), 2, 'Confirm user_version changed' );
+
+# Test that the schema_version is updated as expected
+ok( Foo::Bar->do('create table foo ( bar int )'), 'Created test table' );
+is( Foo::Bar->pragma('schema_version' ), 1, 'schema_version is zero' );

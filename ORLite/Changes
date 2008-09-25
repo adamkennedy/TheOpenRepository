@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+0.15 Wed 24 Sep 2008
+	- Adding support for writable pragmas
+	- Adding tests for pragmas, schema_version and user_version
+
 0.14 Tue 23 Sep 2008
 	- Removed the last remnants of %ORLite::DSN and %ORLite::DBH.
 	- Added support for the "create" param to allow database creation
