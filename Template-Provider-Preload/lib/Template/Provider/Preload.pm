@@ -15,7 +15,12 @@ Template::Provider::Preload - Preload templates to save memory when forking
               PREFETCH     => '*.tt',
               INCLUDE_PATH => 'my/templates',
               COMPILE_DIR  => 'my/cache',
-          ); 
+  
+              # Parser options should go here instead of to the
+              # parent Template constructor.
+              INTERPOLATE  => 1,
+              PRE_CHOMP    => 1,
+          );
       ],
   );
 
@@ -161,7 +166,7 @@ use Class::Adapter::Builder
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -319,10 +324,11 @@ sub prefetch {
 }
 
 sub _find {
-	my $self  = shift;
-	my $paths = $self->paths;
-	my %seen  = ();
-	return grep { not $seen{$_}++ } $self->_filter(@_)->relative->file->in( @$paths );
+	my $self   = shift;
+	my $filter = $self->_filter(@_)->relative->file;
+	my $paths  = $self->paths;
+	my %seen   = ();
+	return grep { not $seen{$_}++ } map { $filter->in($_) } @$paths;
 }
 
 sub _filter {
