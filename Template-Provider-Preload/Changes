@@ -1,5 +1,8 @@
 Change for Perl extension Template-Provider-Preload
 
+0.06 Thu 25 Sep 2008
+	- Forgot to add the additional test scripts in the 0.05 release.
+
 0.05 Thu 25 Sep 2008
 	- Stop File::Find::Rule bitching when a provider has multiple
 	  include paths.
