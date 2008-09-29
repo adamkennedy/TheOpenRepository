@@ -7,10 +7,10 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More;
 
 BEGIN {
-    eval "use Test::Weaken 0.002002";
+    eval "use Test::Weaken 1.000000";
     if ($@) {
         plan skip_all
-            => "Test::Weaken 0.002002 required for testing of memory cycles";
+            => "Test::Weaken 1.000000 required for testing of memory cycles";
         exit 0;
     } else {
         plan tests => 5;

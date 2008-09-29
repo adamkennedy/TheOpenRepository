@@ -99,7 +99,7 @@ ok( !$failure_count,
 # vim: expandtab shiftwidth=4:
 
 __DATA__
-semantics are perl5.  version is 0.216.0.  the start symbol is
+semantics are perl5.  version is 0.218.0.  the start symbol is
 S.  the default null value is q{}.  the default action is q{
      my $v_count = scalar @_;
      return "" if $v_count <= 0;

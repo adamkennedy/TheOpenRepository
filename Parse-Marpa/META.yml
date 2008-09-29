@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Parse-Marpa
-version:             0.216.000
+version:             0.218000
 abstract:            Generate Parsers from any BNF grammar
 author:              
     - Jeffrey Kegler
@@ -8,30 +8,36 @@ generated_by:        Jeffrey Kegler
 distribution_type:   module
 no_index:
     directory:
-    - inc
-    - t
-    - example
-    - bootstrap
-    - author.t
+        - inc
+        - t
+        - example
+        - bootstrap
+        - author.t
     namespace:
-    - Parse::Marpa::Internal
+        - Parse::Marpa::Internal
 requires:     
     Test::More:                    0
 provides:
     Parse::Marpa:
         file: lib/Parse/Marpa.pm
+        version: 0.218000
     Parse::Marpa::Evaluator:
         file: lib/Parse/Marpa/Evaluator.pm
+        version: 0.218000
     Parse::Marpa::Recognizer:
         file: lib/Parse/Marpa/Recognizer.pm
+        version: 0.218000
     Parse::Marpa::Grammar:
         file: lib/Parse/Marpa/Grammar.pm
+        version: 0.218000
     Parse::Marpa::MDL:
         file: lib/Parse/Marpa/MDL.pm
+        version: 0.218000
     Parse::Marpa::Lex:
         file: lib/Parse/Marpa/Lex.pm
+        version: 0.218000
 recommends:
-    Test::Weaken 0.002002
+    Test::Weaken: 1.000000
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3

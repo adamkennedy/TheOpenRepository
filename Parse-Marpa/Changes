@@ -1,40 +1,44 @@
 Revision history for Parse::Marpa
 
-0.214.000 Fri Aug 15 09:27:56 PDT 2008
+0.218.000 Sun Sep 28 
+        META.yml fixes.
+        Use Test::Weaken 1.000000.
+
+0.214.000 Fri Aug 15
         Alpha release.
 	Fixed bug with trailing whitespace in MDL.
 
-0.212.000 Thu Aug 14 10:05:11 PDT 2008
+0.212.000 Thu Aug 14
         Alpha release.
 	Fixed a problem with some long iterations of
    	all parses.
 
-0.211_000 Tue Apr 15 18:37:35 EDT 2008
+0.211_000 Tue Apr 15
         First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.
 
-0.210.000 Mon Apr 14 18:42:46 EDT 2008
+0.210.000 Mon Apr 14
         Alpha Release.
 	Fixed a problem with parse order.
 
-0.209_000 Fri Apr 11 18:16:13 EDT 2008
+0.209_000 Fri Apr 11
         First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.
 
-0.208.000 Fri Apr 11 11:05:37 EDT 2008
+0.208.000 Fri Apr 11
         Alpha Release.
 	Eliminates problem of priority conflicts.
 
-0.207_000 Tue Apr  1 12:38:02 EDT 2008
+0.207_000 Tue Apr  1
         First in a series of developer's releases.
 	Please do not use, unless you're developing Marpa.
 
-0.206.000 Sun Mar 30 19:06:10 EDT 2008
+0.206.000 Sun Mar 30
         Alpha Release.
         The tutorial is now hopelessly out of date,
 	and has been removed.
 
-0.205_000 Sat Mar 22 10:31:32 EDT 2008
+0.205_000 Sat Mar 22
         First in a Series of Developer's Releases
 	Please do not use, unless you're developing Marpa.
 
@@ -43,16 +47,16 @@ Revision history for Parse::Marpa
 	and even-numbered minor releases (0.202, 0.206, etc.) are
 	general releases.
 
-0.202.0 Thu Jan 17 17:01:25 EST 2008
+0.202.0 Thu Jan 17
 
         First Alpha Release
 
-0.200.0 Tue Jan 15 19:17:31 EST 2008
+0.200.0 Tue Jan 15
         First Candidate for Alpha Release
 
 	The big jump in version numbers is because the earliest releases used a different
 	version number format, and are later in ASCII collating sequence.  As of this release,
 	the latest version number is after all others in ASCII collating order.
 
-0.01    Fri Sep 14 12:22:55 EDT 2007
+0.01    Fri Sep 14
         Under development
