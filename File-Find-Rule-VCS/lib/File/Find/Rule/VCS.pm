@@ -69,7 +69,7 @@ BEGIN {
 
 # In some Windows SVN implementations, it uses _svn instead of
 # .svn, so use both on Win32.
-my @svn = ($^O eq 'MSWin32') ? ('.svn', '_svn') ? ('.svn');
+my @svn = ($^O eq 'MSWin32') ? ('.svn', '_svn') : ('.svn');
 
 
 
