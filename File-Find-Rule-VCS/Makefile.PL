@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.77;
 
 all_from      'lib/File/Find/Rule/VCS.pm';
 requires      'File::Find::Rule' => '0.20';

@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
+1.05 Mon 29 Sep 2008
+	- Updated to Module::Install 0.77
+	- Updated tests to new style
+	- Adding support for _svn (closes bug #32030)
+
 1.04 Sat 10 May 2008
 	- Support ->ignore_vcs() for ignoring all supported VCS
 	- Change all methods to check file name before checking

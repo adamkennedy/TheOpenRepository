@@ -54,7 +54,7 @@ ignore methods
 
 =cut
 
-use 5.005;
+use 5.00503;
 use strict;
 use UNIVERSAL;
 use Carp ();
@@ -63,9 +63,13 @@ use constant FFR => 'File::Find::Rule';
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
+
+# In some Windows SVN implementations, it uses _svn instead of
+# .svn, so use both on Win32.
+my @svn = ($^O eq 'MSWin32') ? ('.svn', '_svn') ? ('.svn');
 
 
 
@@ -117,7 +121,7 @@ sub File::Find::Rule::ignore_vcs {
 		# Logically combine all the ignores. This will be much
 		# faster than just calling them all one after the other.
 		return $find->or(
-			FFR->name('.svn', '.bzr', 'CVS')->directory->prune->discard,
+			FFR->name(@svn, '.bzr', 'CVS')->directory->prune->discard,
 			FFR->name(qr/^\.\#/)->file->discard,
 			FFR->new,
 			);
@@ -174,7 +178,7 @@ from your L<File::Find::Rule> search.
 sub File::Find::Rule::ignore_svn {
 	my $find = $_[0]->_force_object;
 	return $find->or(
-		FFR->name('.svn')->directory->prune->discard,
+		FFR->name(@svn)->directory->prune->discard,
 		FFR->new,
 		);
 }
