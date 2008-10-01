@@ -5,6 +5,7 @@ abstract:            Generate Parsers from any BNF grammar
 author:              
     - Jeffrey Kegler
 generated_by:        Jeffrey Kegler
+license: perl
 distribution_type:   module
 no_index:
     directory:
