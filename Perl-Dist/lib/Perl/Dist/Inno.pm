@@ -2678,6 +2678,10 @@ sub patch_template {
 	);
 }
 
+sub patch_perl {
+	my $self = shift;
+	
+}
 
 
 

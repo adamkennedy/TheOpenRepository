@@ -145,6 +145,22 @@ sub remove_waste {
 	return 1;
 }
 
+sub patch_include_path {
+	my $self    = shift;
+	my $include = $self->SUPER::patch_include_path;
+
+	# Add the extra vanilla directory
+	my $perl  = $self->perl_version_human;
+	my $share = File::ShareDir::dist_dir('Perl::Dist');
+	my $path  = File::Spec->catdir(
+		$share, 'vanilla', $perl,
+	);
+	unless ( -d $path ) {
+		die("Directory $path does not exist");
+	}
+	return [ @$include, $path ];
+}
+
 1;
 
 __END__
