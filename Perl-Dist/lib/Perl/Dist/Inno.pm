@@ -124,7 +124,7 @@ which details how to sub-class the distribution.
 use 5.006;
 use strict;
 use warnings;
-use Carp                       'croak';
+use Carp                       ();
 use Archive::Tar               ();
 use Archive::Zip               ();
 use File::Spec                 ();
@@ -137,7 +137,7 @@ use File::pushd                ();
 use File::Remove               ();
 use File::Basename             ();
 use IPC::Run3                  ();
-use Params::Util               qw{ _STRING _HASH _INSTANCE };
+use Params::Util               ();
 use HTTP::Status               ();
 use LWP::UserAgent             ();
 use LWP::UserAgent::Determined ();
@@ -145,6 +145,7 @@ use LWP::Online                ();
 use Module::CoreList           ();
 use Tie::File                  ();
 use Tie::Slurp                 ();
+use Template                   ();
 use PAR::Dist                  ();
 use Portable::Dist             ();
 use Perl::Dist::Inno::Script   ();
@@ -223,7 +224,7 @@ my %PACKAGES = (
 
 sub binary_file {
 	unless ( $PACKAGES{$_[1]} ) {
-		croak("Unknown package '$_[1]'");
+		Carp::croak("Unknown package '$_[1]'");
 	}
 	return $PACKAGES{$_[1]};
 }
@@ -390,17 +391,17 @@ sub new {
 
 	# Check the version of Perl to build
 	unless ( $self->perl_version_literal ) {
-		croak "Failed to resolve perl_version_literal";
+		Carp::croak "Failed to resolve perl_version_literal";
 	}
 	unless ( $self->perl_version_human ) {
-		croak "Failed to resolve perl_version_human";
+		Carp::croak "Failed to resolve perl_version_human";
 	}
 	unless ( $self->can('install_perl_' . $self->perl_version) ) {
-		croak("$class does not support Perl " . $self->perl_version);
+		Carp::croak("$class does not support Perl " . $self->perl_version);
 	}
 	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal+0};
-	unless ( _HASH($self->{perl_version_corelist}) ) {
-		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
+	unless ( Params::Util::_HASH($self->{perl_version_corelist}) ) {
+		Carp::croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
 	}
 
         # Apply more defaults
@@ -462,35 +463,35 @@ sub new {
 	}
 
 	# Check params
-	unless ( _STRING($self->download_dir) ) {
-		croak("Missing or invalid download_dir param");
+	unless ( Params::Util::_STRING($self->download_dir) ) {
+		Carp::croak("Missing or invalid download_dir param");
 	}
 	unless ( defined $self->modules_dir ) {
 		$self->{modules_dir} = File::Spec->catdir( $self->download_dir, 'modules' );
 	}
-	unless ( _STRING($self->modules_dir) ) {
-		croak("Invalid modules_dir param");
+	unless ( Params::Util::_STRING($self->modules_dir) ) {
+		Carp::croak("Invalid modules_dir param");
 	}
-	unless ( _STRING($self->image_dir) ) {
-		croak("Missing or invalid image_dir param");
+	unless ( Params::Util::_STRING($self->image_dir) ) {
+		Carp::croak("Missing or invalid image_dir param");
 	}
 	unless ( defined $self->license_dir ) {
 		$self->{license_dir} = File::Spec->catdir( $self->image_dir, 'licenses' );
 	}
-	unless ( _STRING($self->license_dir) ) {
-		croak("Invalid license_dir param");
+	unless ( Params::Util::_STRING($self->license_dir) ) {
+		Carp::croak("Invalid license_dir param");
 	}
-	unless ( _STRING($self->build_dir) ) {
-		croak("Missing or invalid build_dir param");
+	unless ( Params::Util::_STRING($self->build_dir) ) {
+		Carp::croak("Missing or invalid build_dir param");
 	}
-	unless ( _INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
-		croak("Missing or invalid user_agent param");
+	unless ( Params::Util::_INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
+		Carp::croak("Missing or invalid user_agent param");
 	}
-	unless ( _INSTANCE($self->cpan, 'URI') ) {
-		croak("Missing or invalid cpan param");
+	unless ( Params::Util::_INSTANCE($self->cpan, 'URI') ) {
+		Carp::croak("Missing or invalid cpan param");
 	}
 	unless ( $self->cpan->as_string =~ /\/$/ ) {
-		croak("Missing trailing slash in cpan param");
+		Carp::croak("Missing trailing slash in cpan param");
 	}
 	unless ( defined $self->iss_file ) {
 		$self->{iss_file} = File::Spec->catfile(
@@ -834,7 +835,7 @@ sub install_perl {
 	my $self = shift;
 	my $install_perl_method = "install_perl_" . $self->perl_version;
 	unless ( $self->can($install_perl_method) ) {
-		croak("Cannot generate perl, missing $install_perl_method method in " . ref($self));
+		Carp::croak("Cannot generate perl, missing $install_perl_method method in " . ref($self));
 	}
 	$self->$install_perl_method(@_);
 }
@@ -982,7 +983,7 @@ sub install_perl_588_bin {
 		@_,
 	);
 	unless ( $self->bin_make ) {
-		croak("Cannot build Perl yet, no bin_make defined");
+		Carp::croak("Cannot build Perl yet, no bin_make defined");
 	}
 
 	# Download the file
@@ -1034,7 +1035,7 @@ sub install_perl_588_bin {
 
 		$self->trace("Patching makefile.mk\n");
 		tie my $makefile, 'Tie::Slurp', 'makefile.mk'
-			or die "Couldn't read makefile.mk";
+			or Carp::croak("Couldn't read makefile.mk");
 		$makefile =~ s/(\nINST_TOP\s+\*=\s+.+?)\\perl\b/$1$short_install/;
 		$makefile =~ s/(\nCCHOME\s+\*=\s+)C\:\\MinGW\b/$1$image_dir\\c/;
 		untie $makefile;
@@ -1055,7 +1056,7 @@ sub install_perl_588_bin {
 	# Should now have a perl to use
 	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
 	unless ( -x $self->bin_perl ) {
-		die "Can't execute " . $self->bin_perl;
+		Carp::croak("Can't execute " . $self->bin_perl);
 	}
 
 	# Add to the environment variables
@@ -1075,7 +1076,7 @@ sub install_perl_588_toolchain {
 	# any permanent CPAN.pm locks.
 	$toolchain->delegate;
 	if ( $toolchain->{errstr} ) {
-		die "Failed to generate toolchain distributions";
+		die("Failed to generate toolchain distributions");
 	}
 
 	# Install the toolchain dists
@@ -1224,7 +1225,7 @@ sub install_perl_5100_bin {
 		@_,
 	);
 	unless ( $self->bin_make ) {
-		croak("Cannot build Perl yet, no bin_make defined");
+		die("Cannot build Perl yet, no bin_make defined");
 	}
 	$self->trace("Preparing " . $perl->name . "\n");
 
@@ -1426,7 +1427,7 @@ sub install_dmake {
 		$self->image_dir, 'c', 'bin', 'dmake.exe',
 	);
 	unless ( -x $self->bin_make ) {
-		croak("Can't execute make");
+		Carp::croak("Can't execute make");
 	}
 
 	return 1;
@@ -1894,7 +1895,7 @@ sub install_library {
 	$self->_extract( $tgz => $unpack_to );
 
 	# Build the .a file if needed
-	if ( _HASH($library->build_a) ) {
+	if ( Params::Util::_HASH($library->build_a) ) {
 		# Hand off for the .a generation
 		$self->_dll_to_a(
 			$library->build_a->{source} ?
@@ -1917,7 +1918,7 @@ sub install_library {
 
 	# Copy in the files
 	my $install_to = $library->install_to;
-	if ( _HASH($install_to) ) {
+	if ( Params::Util::_HASH($install_to) ) {
 		foreach my $k ( sort keys %$install_to ) {
 			my $from = File::Spec->catdir(
 				$unpack_to, $k,
@@ -1930,7 +1931,7 @@ sub install_library {
 	}
 
 	# Copy in licenses
-	if ( _HASH($library->license) ) {
+	if ( Params::Util::_HASH($library->license) ) {
 		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
 		$self->_extract_filemap( $tgz, $library->license, $license_dir, 1 );
 	}
@@ -2011,7 +2012,7 @@ sub install_distribution {
 	}
 	$self->_extract( $tgz => $self->build_dir );
 	unless ( -d $unpack_to ) {
-		croak("Failed to extract $unpack_to");
+		Carp::croak("Failed to extract $unpack_to");
 	}
 
 	# Build the module
@@ -2081,7 +2082,7 @@ sub install_module {
 	my $name   = $module->name;
 	my $force  = $module->force;
 	unless ( $self->bin_perl ) {
-		croak("Cannot install CPAN modules yet, perl is not installed");
+		Carp::croak("Cannot install CPAN modules yet, perl is not installed");
 	}
 
 	# Generate the CPAN installation script
@@ -2576,7 +2577,7 @@ sub add_env_path {
 		$self->image_dir, @path,
 	);
 	unless ( -d $dir ) {
-		croak("PATH directory $dir does not exist");
+		Carp::croak("PATH directory $dir does not exist");
 	}
 	push @{$self->{env_path}}, [ @path ];
 	return 1;
@@ -2603,7 +2604,7 @@ sub add_env_lib {
 		$self->image_dir, @path,
 	);
 	unless ( -d $dir ) {
-		croak("INC directory $dir does not exist");
+		Carp::croak("INC directory $dir does not exist");
 	}
 	push @{$self->{env_lib}}, [ @path ];
 	return 1;
@@ -2630,7 +2631,7 @@ sub add_env_include {
 		$self->image_dir, @path,
 	);
 	unless ( -d $dir ) {
-		croak("PATH directory $dir does not exist");
+		Carp::croak("PATH directory $dir does not exist");
 	}
 	push @{$self->{env_include}}, [ @path ];
 	return 1;
@@ -2649,6 +2650,35 @@ sub get_inno_include {
 		File::Spec->catdir( '{app}', @$_ )
 	} @{$self->env_include};
 }
+
+
+
+
+
+#####################################################################
+# Patch Support
+
+# By default only use the default
+sub patch_include_path {
+	my $self  = shift;
+	my $perl  = $self->perl_version_human;
+	my $share = File::ShareDir::dist_dir('Perl::Dist');
+	my $path  = File::Spec->catdir(
+		$share, 'default', $perl,
+	);
+	unless ( -d $path ) {
+		die("Directory $path does not exist");
+	}
+	return [ $path ];
+}
+
+sub patch_template {
+	Template->new(
+		INCLUDE_PATH => $_[0]->patch_include_path,
+	);
+}
+
+
 
 
 
@@ -2858,36 +2888,36 @@ sub _dll_to_a {
 	my $self   = shift;
 	my %params = @_;
 	unless ( $self->bin_dlltool ) {
-		croak("Required method bin_dlltool is not defined");
+		Carp::croak("Required method bin_dlltool is not defined");
 	}
 
 	# Source file
 	my $source = $params{source};
 	if ( $source and ! $source =~ /\.dll$/ ) {
-		croak("Missing or invalid source param");
+		Carp::croak("Missing or invalid source param");
 	}
 
 	# Target .dll file
 	my $dll = $params{dll};
 	unless ( $dll and $dll =~ /\.dll/ ) {
-		croak("Missing or invalid .dll file");
+		Carp::croak("Missing or invalid .dll file");
 	}
 
 	# Target .def file
 	my $def = $params{def};
 	unless ( $def and $def =~ /\.def$/ ) {
-		croak("Missing or invalid .def file");
+		Carp::croak("Missing or invalid .def file");
 	}
 
 	# Target .a file
 	my $_a = $params{a};
 	unless ( $_a and $_a =~ /\.a$/ ) {
-		croak("Missing or invalid .a file");
+		Carp::croak("Missing or invalid .a file");
 	}
 
 	# Step 1 - Copy the source .dll to the target if needed
 	unless ( ($source and -f $source) or -f $dll ) {
-		croak("Need either a source or dll param");
+		Carp::croak("Need either a source or dll param");
 	}
 	if ( $source ) {
 		$self->_move( $source => $dll );
@@ -2897,11 +2927,11 @@ sub _dll_to_a {
 	SCOPE: {
 		my $bin = $self->bin_pexports;
 		unless ( $bin ) {
-			croak("Required method bin_pexports is not defined");
+			Carp::croak("Required method bin_pexports is not defined");
 		}
 		my $ok = ! system("$bin $dll > $def");
 		unless ( $ok and -f $def ) {
-			croak("Failed to generate .def file");
+			Carp::croak("Failed to generate .def file");
 		}
 	}
 
@@ -2909,11 +2939,11 @@ sub _dll_to_a {
 	SCOPE: {
 		my $bin = $self->bin_dlltool;
 		unless ( $bin ) {
-			croak("Required method bin_dlltool is not defined");
+			Carp::croak("Required method bin_dlltool is not defined");
 		}
 		my $ok = ! system("$bin -dllname $dll --def $def --output-lib $_a");
 		unless ( $ok and -f $_a ) {
-			croak("Failed to generate .a file");
+			Carp::croak("Failed to generate .a file");
 		}
 	}
 

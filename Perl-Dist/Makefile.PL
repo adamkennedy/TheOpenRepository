@@ -22,6 +22,7 @@ requires       'Tie::Slurp'                 => '0.03';
 requires       'YAML::Tiny'                 => '1.12';
 requires       'Module::CoreList'           => '2.13';
 requires       'Params::Util'               => '0.25';
+requires       'Template'                   => '2.20';
 requires       'CPAN'                       => '1.9205';
 requires       'PAR::Dist'                  => '0.25';
 requires       'Process'                    => '0.20';
