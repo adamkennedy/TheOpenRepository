@@ -16,6 +16,7 @@ use App::FQStat::Scanner;
 use App::FQStat::Input;
 use App::FQStat::Drawing;
 use App::FQStat::Menu;
+use App::FQStat::PAR;
 use App::FQStat::Debug ();
 
 1;
