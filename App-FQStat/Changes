@@ -1,5 +1,9 @@
 Revision history for Perl extension App::FQStat.
 
+6.1  Mon Oct  6 14:25 2008
+  - Configurable color scheme.
+  - Eliminate various imports to save a grand total of 1MB of memory.
+
 6.0  Mon Oct  6 11:21 2008
   - Restart self after four hours to prevent currently unfixable
     memory leak from making my collegues kill me.
