@@ -138,6 +138,14 @@ sub draw_job_display {
   my $highlight = shift || {};
   my $mark      = shift || {};
 
+  # before there's any jobs, warn the user that the
+  # queue isn't actually empty.
+  if (not $::Initialized) {
+    draw_initializing_sign();
+    locate(1,1);
+    return;
+  }
+
   my $jobs = $::Records;
   check_display_offset();
   lock($::DisplayOffset);
@@ -300,6 +308,23 @@ sub check_display_offset {
     $::DisplayOffset = $#{$::Records};
   }
   $::DisplayOffset = 0 if $::DisplayOffset < 0;
+}
+
+sub draw_initializing_sign {
+  warnenter if ::DEBUG > 1;
+  locate(3,1);
+  my $color = color('black on green');
+  #my $color = color('black on yellow');
+  #my $color = color('bold white on red');
+  print $color, <<'HERE';
+                         
+                         
+   Initial Job Scan...   
+                         
+                         
+HERE
+  print RESET;
+
 }
 
 1;

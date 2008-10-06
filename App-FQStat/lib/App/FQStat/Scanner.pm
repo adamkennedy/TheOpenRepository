@@ -24,6 +24,7 @@ sub run_qstat {
     warnline "Joining scanner thread" if ::DEBUG;
     my $return = $::ScannerThread->join();
     ($::Records, $::NoActiveNodes) = @$return;
+    $::Initialized = 1;
     { lock($::RecordsChanged); $::RecordsChanged = 1; }
     warnline "Joined scanner thread. Creating new scanner thread" if ::DEBUG;
     $::ScannerThread = threads->new(\&App::FQStat::Scanner::scanner_thread);
