@@ -1,6 +1,6 @@
 use inc::Module::Install 0.76;
 
-all_from       'lib/LetMeIn.pm';
+all_from       'lib/TinyAuth.pm';
 requires       'Carp'                 => 0;
 requires       'FindBin'              => 0;
 requires       'File::Spec'           => '0.80';
