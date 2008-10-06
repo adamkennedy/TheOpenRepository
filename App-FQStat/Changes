@@ -1,5 +1,11 @@
 Revision history for Perl extension App::FQStat.
 
+6.0  Mon Oct  6 11:21 2008
+  - Restart self after four hours to prevent currently unfixable
+    memory leak from making my collegues kill me.
+  - Display a friendly "initializing" warning during the initial
+    job scan.
+
 5.9  Mon Jul 21 14:11 2008
   - Jobs-in-deletion should be highlighted as a problem.
 
