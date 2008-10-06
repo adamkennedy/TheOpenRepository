@@ -1,0 +1,46 @@
+package Macropod;
+use vars qw( $VERSION );
+use strict;
+use warnings;
+use YAML;
+use Carp qw( confess ); 
+use File::Path;
+use File::Basename;
+use Data::Dumper;
+use Module::Pluggable;
+ 
+$VERSION = 0.11;
+
+
+=pod
+
+=head1 NAME
+
+Macropod - the bigfoot of documentation monsters
+
+
+=head1 DESCRIPTION
+
+Placeholding the namespace.
+
+=head1 METHODS
+
+=head2 new C<%args>
+
+A new macropod
+
+
+
+
+=cut
+
+
+
+sub new {
+	my ($class,@args) = @_;
+	my %self;
+	return bless \%self, $class;
+}
+
+
+1;
