@@ -14,6 +14,7 @@ use String::ShellQuote ();
 use base 'Exporter';
 our %EXPORT_TAGS = (
   'all' => [qw(
+    exec_local
     run
     run_local
     run_capture
@@ -21,6 +22,12 @@ our %EXPORT_TAGS = (
   )],
 );
 our @EXPORT_OK = @{$EXPORT_TAGS{'all'}};
+
+sub exec_local {
+  warnenter if ::DEBUG;
+  warnline "Switching to running '@_' locally." if ::DEBUG > 1;
+  return exec(@_);
+}
 
 sub run_local {
   warnenter if ::DEBUG;
