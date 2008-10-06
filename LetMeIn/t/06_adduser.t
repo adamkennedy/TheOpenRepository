@@ -14,7 +14,7 @@ use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 
 
@@ -24,7 +24,7 @@ use t::lib::TinyAuth;
 # Try to the actions as a (forbidden) regular user
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "06_adduser1.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "06_adduser1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -36,7 +36,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -49,7 +49,7 @@ END_HTML
 }
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "06_adduser2.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "06_adduser2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -61,7 +61,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -83,7 +83,7 @@ END_HTML
 $ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "06_adduser1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "06_adduser1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -95,7 +95,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -120,7 +120,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "06_adduser2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "06_adduser2.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;
@@ -133,7 +133,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

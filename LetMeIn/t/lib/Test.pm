@@ -1,6 +1,6 @@
 package t::lib::Test;
 
-# Testing stuff for TinyAuth
+# Testing stuff for LetMeIn
 
 use strict;
 use vars qw{@ISA @EXPORT};

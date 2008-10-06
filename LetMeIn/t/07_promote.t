@@ -16,7 +16,7 @@ use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
@@ -28,7 +28,7 @@ $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 # Try to the actions as a (forbidden) regular user
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "07_promote1.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "07_promote1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -40,7 +40,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -53,7 +53,7 @@ END_HTML
 }
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "07_promote2.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "07_promote2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -65,7 +65,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -87,7 +87,7 @@ END_HTML
 $ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "07_promote1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "07_promote1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -99,7 +99,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -126,7 +126,7 @@ END_HTML
 # Promote one person
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "07_promote2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "07_promote2.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;
@@ -139,7 +139,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -164,7 +164,7 @@ END_HTML
 # Promote multiple people
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "07_promote3.cgi" );
+	my $instance = t::lib::LetMeIn->new( "07_promote3.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;
@@ -177,7 +177,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

@@ -13,7 +13,7 @@ use Test::More tests => 16;
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 
 
@@ -23,7 +23,7 @@ use t::lib::TinyAuth;
 # Show the user list as a regular user (i.e. an error)
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "04_list.cgi" );
+	my $instance = t::lib::LetMeIn->new( "04_list.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -35,7 +35,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -56,7 +56,7 @@ END_HTML
 
 SCOPE: {
 	local $ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
-	my $instance = t::lib::TinyAuth->new( "04_list.cgi" );
+	my $instance = t::lib::LetMeIn->new( "04_list.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -68,7 +68,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

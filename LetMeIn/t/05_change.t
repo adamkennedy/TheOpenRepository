@@ -14,7 +14,7 @@ use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 
 
@@ -24,7 +24,7 @@ use t::lib::TinyAuth;
 # Show the "I forgot my password" form
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( '05_change1.cgi' );
+	my $instance = t::lib::LetMeIn->new( '05_change1.cgi' );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -36,7 +36,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -76,7 +76,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "05_change2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "05_change2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -88,7 +88,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

@@ -1,6 +1,6 @@
 use inc::Module::Install 0.76;
 
-all_from       'lib/TinyAuth.pm';
+all_from       'lib/LetMeIn.pm';
 requires       'Carp'                 => 0;
 requires       'FindBin'              => 0;
 requires       'File::Spec'           => '0.80';
@@ -36,7 +36,7 @@ exit(0);
 # Support Functions
 
 # Merge letmein.pl and LetMeIn.pm to create the final 'letmein' script
-sub generate_letmein {
+sub generate_script {
 	$INC{'File/Spec.pm'} or return 0;
 
 	my $pl  = File::Spec->catfile( 'script', 'letmein.pl' );

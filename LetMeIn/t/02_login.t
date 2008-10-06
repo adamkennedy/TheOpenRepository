@@ -13,7 +13,7 @@ use Test::More tests => 45;
 use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
@@ -25,7 +25,7 @@ $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 # Normal Index Page
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "02_login1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "02_login1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -37,7 +37,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -53,7 +53,7 @@ SCOPE: {
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 END_HTML
@@ -67,7 +67,7 @@ END_HTML
 # Login
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "02_login2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "02_login2.cgi" );
 
 	# Was an admin user found and set?
         ok( $instance->user, 'Admin user set' );
@@ -83,7 +83,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -97,7 +97,7 @@ SCOPE: {
 <p><a href="$ENV{SCRIPT_NAME}?a=m">Promote an account</a></p>
 <p><a href="$ENV{SCRIPT_NAME}?a=o">Logout</a></p>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 
@@ -112,7 +112,7 @@ END_HTML
 # Bad Login
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "02_login4.cgi" );
+	my $instance = t::lib::LetMeIn->new( "02_login4.cgi" );
 	is( $instance->user, undef, '->user is not set' );
 
 	# Run the instance
@@ -125,7 +125,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -146,7 +146,7 @@ END_HTML
 
 SCOPE: {
 	$ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
-	my $instance = t::lib::TinyAuth->new( "02_login1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "02_login1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -158,7 +158,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -172,7 +172,7 @@ SCOPE: {
 <p><a href="$ENV{SCRIPT_NAME}?a=m">Promote an account</a></p>
 <p><a href="$ENV{SCRIPT_NAME}?a=o">Logout</a></p>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 END_HTML
@@ -190,7 +190,7 @@ END_HTML
 # Logout
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "02_login3.cgi" );
+	my $instance = t::lib::LetMeIn->new( "02_login3.cgi" );
 
 	# Was an admin user found and set?
 	# (This time via the cookies)
@@ -207,7 +207,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -223,7 +223,7 @@ SCOPE: {
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 END_HTML

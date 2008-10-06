@@ -32,7 +32,7 @@ BEGIN {
 	}
 }
 
-unless ( $ENV{TEST_TINYAUTH} ) {
+unless ( $ENV{TEST_LETMEIN} ) {
 	# Create the configuration
 	my $config_file = File::Spec->catfile( $FindBin::Bin, 'letmein.conf' );
 	unless ( -f $config_file ) {

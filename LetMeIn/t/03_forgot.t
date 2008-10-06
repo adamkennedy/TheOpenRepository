@@ -14,7 +14,7 @@ use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
@@ -26,7 +26,7 @@ $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 # Show the "I forgot my password" form
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "03_forgot1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "03_forgot1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -38,7 +38,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -65,7 +65,7 @@ END_HTML
 # Request a bad password
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "03_forgot2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "03_forgot2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -77,7 +77,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -97,7 +97,7 @@ END_HTML
 # Request a good password
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "03_forgot3.cgi" );
+	my $instance = t::lib::LetMeIn->new( "03_forgot3.cgi" );
 
 	# Run the instance
 	Email::Send::Test->clear;
@@ -110,7 +110,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

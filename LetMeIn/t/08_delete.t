@@ -16,7 +16,7 @@ use File::Spec::Functions ':ALL';
 use YAML::Tiny;
 use Email::Send::Test;
 use t::lib::Test;
-use t::lib::TinyAuth;
+use t::lib::LetMeIn;
 
 $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 
@@ -28,7 +28,7 @@ $ENV{SCRIPT_NAME} = '/cgi-bin/foobar';
 # Try to the actions as a (forbidden) regular user
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "08_delete1.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "08_delete1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -40,7 +40,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -53,7 +53,7 @@ END_HTML
 }
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new(  "08_delete2.cgi" );
+	my $instance = t::lib::LetMeIn->new(  "08_delete2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -65,7 +65,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -90,7 +90,7 @@ END_HTML
 
 SCOPE: {
 	$ENV{HTTP_COOKIE} = 'e=adamk@cpan.org;p=foo';
-	my $instance = t::lib::TinyAuth->new( "08_delete1.cgi" );
+	my $instance = t::lib::LetMeIn->new( "08_delete1.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -102,7 +102,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -129,7 +129,7 @@ END_HTML
 # Delete one user
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "08_delete2.cgi" );
+	my $instance = t::lib::LetMeIn->new( "08_delete2.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -141,7 +141,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>
@@ -161,7 +161,7 @@ END_HTML
 # Delete multiple users
 
 SCOPE: {
-	my $instance = t::lib::TinyAuth->new( "08_delete3.cgi" );
+	my $instance = t::lib::LetMeIn->new( "08_delete3.cgi" );
 
 	# Run the instance
 	is( $instance->run, 1, '->run ok' );
@@ -173,7 +173,7 @@ SCOPE: {
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<title>TinyAuth $VERSION</title>
+<title>LetMeIn $VERSION</title>
 </head>
 
 <body>

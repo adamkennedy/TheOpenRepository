@@ -1,14 +1,14 @@
-package t::lib::TinyAuth;
+package t::lib::LetMeIn;
 
-# Testing subclass of TinyAuth that captures instead of prints
+# Testing subclass of LetMeIn that captures instead of prints
 use strict;
 BEGIN {
-	local $ENV{TEST_TINYAUTH} = 1;
-	my $script = File::Spec->catfile( 'script', 'tinyauth' );
+	local $ENV{TEST_LETMEIN} = 1;
+	my $script = File::Spec->catfile( 'script', 'letmein' );
 	die("Failed to find $script") unless -f $script;
 	require( $script );
 }
-use base 'TinyAuth';
+use base 'LetMeIn';
 use YAML::Tiny   ();
 use t::lib::Test ();
 
@@ -42,8 +42,8 @@ sub new {
 	my $self = $class->SUPER::new(%params);
 
 	# Self-test
-	Test::More::isa_ok( $self, 't::lib::TinyAuth' );
-	Test::More::isa_ok( $self, 'TinyAuth'         );
+	Test::More::isa_ok( $self, 't::lib::LetMeIn' );
+	Test::More::isa_ok( $self, 'LetMeIn'         );
 
 	return $self;
 }

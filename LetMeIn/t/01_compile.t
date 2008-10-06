@@ -15,18 +15,18 @@ use IPC::Run3;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
-local $ENV{TEST_TINYAUTH} = 1;
-my $script = File::Spec->catfile( 'script', 'tinyauth' );
-ok( -f $script, 'script/tinyauth exists' );
+local $ENV{TEST_LETMEIN} = 1;
+my $script = File::Spec->catfile( 'script', 'letmein' );
+ok( -f $script, 'script/letmein exists' );
 require_ok( $script );
 use_ok( 't::lib::Test'      );
-use_ok( 't::lib::TinyAuth'  );
-use_ok( 'TinyAuth::Install' );
+use_ok( 't::lib::LetMeIn'  );
+use_ok( 'LetMeIn::Install' );
 
-script_compiles_ok( 'script/tinyauth'    );
-script_compiles_ok( 'script/tinyauth.pl' );
+script_compiles_ok( 'script/letmein'    );
+script_compiles_ok( 'script/letmein.pl' );
 
-is( $TinyAuth::VERSION, $VERSION, 'Versions match' );
+is( $LetMeIn::VERSION, $VERSION, 'Versions match' );
 
 
 

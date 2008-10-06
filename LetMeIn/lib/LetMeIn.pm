@@ -1,16 +1,15 @@
-package TinyAuth;
+package LetMeIn;
 
 =pod
 
 =head1 NAME
 
-TinyAuth - Extremely light-weight web-based authentication manager
+LetMeIn - Extremely light-weight web-based authentication manager
 
 =head1 STATUS
 
-TinyAuth is currently feature-complete and undergoing polishing
-and testing. Part of this process focuses on naming ("TinyAuth" is just
-a working codename), reduction of dependencies, improvements to the
+LetMeIn is currently feature-complete and undergoing polishing and testing.
+Part of this process focuses reduction of dependencies, improvements to the
 installer, and other similar tasks.
 
 Releases are provided "as is" for the curious, and installation is not
@@ -18,7 +17,7 @@ recommended for production purposes at this time.
 
 =head1 DESCRIPTION
 
-B<TinyAuth> is a light-weight authentication management web application
+B<LetMeIn> is a light-weight authentication management web application
 with a focus on usability.
 
 It was initially created to assist in managing a subversion repository but
@@ -38,17 +37,17 @@ video games and mobile phones.
 The goal is to allow users and be added, removed and fixed from
 anywhere, even without a computer or "regular" internet connection.
 
-=head2 Installing TinyAuth
+=head2 Installing LetMeIn
 
-B<TinyAuth> uses an installation module called L<Module::CGI::Install>.
+B<LetMeIn> uses an installation module called L<Module::CGI::Install>.
 
-The process involves firstly installing the TinyAuth distribution to your
+The process involves firstly installing the LetMeIn distribution to your
 (Unix, CGI-capable) system via the normal CPAN client, and then running a
 "CGI Installer" program, which will install a working instance of the
 application to a specific CGI path.
 
 As well ensuring that the CGI setup is correct, this also means that
-TinyAuth can be installed multiple times on a single host, any each copy
+LetMeIn can be installed multiple times on a single host, any each copy
 can be tweaked or modded as much as you like, without impacting any other
 users.
 
@@ -59,26 +58,26 @@ various alternative installation methods.
 
 B<Step 1>
 
-Install TinyAuth with your CPAN client
+Install LetMeIn with your CPAN client
 
-  adam@svn:~/svn.ali.as$ sudo cpan -i TinyAuth
+  adam@svn:~/svn.ali.as$ sudo cpan -i LetMeIn
 
 B<Step 2>
 
 Run the CGI installation, following the prompts
 
-  adam@svn:~/svn.ali.as$ cgi_install TinyAuth
+  adam@svn:~/svn.ali.as$ cgi_install LetMeIn
   CGI Directory: [default /home/adam/svn.ali.as] cgi-bin
   CGI URI: http://svn.ali.as/cgi-bin
   adam@svn:~/svn.ali.as$
 
 The installation is currently extremely crude, so once installed, you
-currently need to open the tinyauth.conf file created by the installer
+currently need to open the letmein.conf file created by the installer
 and edit it by hand (this will be fixed in a forthcoming release).
 
 The config file is YAML and should look something like this:
 
-  adam@svn:~/svn.ali.as$ cat cgi-bin/tinyauth.conf
+  adam@svn:~/svn.ali.as$ cat cgi-bin/letmein.conf
   ---
   email_from: adamk@cpan.org
   email_driver: SMTP
@@ -196,7 +195,7 @@ sub new {
 	# Set the homepage
 	unless ( $self->homepage ) {
 		$self->{homepage} ||= $self->config->[0]->{homepage};
-		$self->{homepage} ||= 'http://search.cpan.org/perldoc?TinyAuth';
+		$self->{homepage} ||= 'http://search.cpan.org/perldoc?LetMeIn';
 	}
 
 	# Set the CGI object
@@ -486,7 +485,7 @@ sub send_forgot {
 	my ($self, $user) = @_;
 	$self->send_email(
 		to      => $user->username,
-		subject => '[TinyAuth] Forgot Your Password',
+		subject => '[LetMeIn] Forgot Your Password',
 		body    => $self->template(
 			$self->email_forgot,
 		),
@@ -578,7 +577,7 @@ sub send_promote {
 	my ($self, $user) = @_;
 	$self->send_email(
 		to      => $user->username,
-		subject => '[TinyAuth] You have been promoted to admin',
+		subject => '[LetMeIn] You have been promoted to admin',
 		body    => $self->template(
 			$self->email_promote,
 		),
@@ -717,7 +716,7 @@ sub send_new {
 	my ($self, $user) = @_;
 	$self->send_email(
 		to      => $user->username,
-		subject => '[TinyAuth] Created new account',
+		subject => '[LetMeIn] Created new account',
 		body    => $self->template(
 			$self->email_new,
 		),
@@ -922,7 +921,7 @@ sub html_public { <<'END_HTML' }
 <p><input type="submit" name="s" value="Login"></p>
 </form>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 END_HTML
@@ -946,7 +945,7 @@ sub html_index { <<'END_HTML' }
 <p><a href="[% SCRIPT_NAME %]?a=m">Promote an account</a></p>
 <p><a href="[% SCRIPT_NAME %]?a=o">Logout</a></p>
 <hr>
-<p><i>Powered by <a href="http://search.cpan.org/perldoc?TinyAuth">TinyAuth</a></i></p>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
 END_HTML
@@ -1149,7 +1148,7 @@ Hi
 
 Your account ([% email %]) has been promoted to an administrator.
 
-You can now login to TinyAuth to get access to additional functions.
+You can now login to LetMeIn to get access to additional functions.
 
 Have a nice day!
 END_TEXT
