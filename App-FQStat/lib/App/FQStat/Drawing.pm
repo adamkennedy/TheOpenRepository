@@ -8,8 +8,9 @@ package App::FQStat::Drawing;
 use strict;
 use warnings;
 use Time::HiRes qw/sleep time/;
-use Term::ANSIScreen qw/:color :constants :screen :cursor :keyboard/;
+use Term::ANSIScreen qw/RESET locate clline cls/;
 use App::FQStat::Debug;
+use App::FQStat::Config qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (
@@ -37,7 +38,7 @@ sub draw_title_line {
   my $line;
 
   if ($::MenuMode) {
-    print $::MenuColor;
+    print get_color("menu_normal");
     $line = App::FQStat::Menu::get_menu_title_line();
   }
   else {
@@ -46,7 +47,7 @@ sub draw_title_line {
     lock($::User);
 
     # reversed list indicator
-    my $status = color("blue on white").'[';
+    my $status = get_color('reverse_indicator').'[';
     if ($::RecordsReversed) { $status .= 'R' }
     if ($status =~ /\[$/) { $status = '' }
     else { $status .= ']'.RESET.' ' }
@@ -80,11 +81,11 @@ sub draw_header_line {
   locate(2,1);
   my ($line, $width);
 
-  my $high = 'bold white on red';
-  my $norm = 'bold white on black';
+  my $high = get_color("header_highlight");
+  my $norm = get_color("header_normal");
 
-  color($norm);
-  if (exists $highlight{1}) { $line = color($high).'Stat'.color($norm) }
+  print $norm;
+  if (exists $highlight{1}) { $line = $high.'Stat'.$norm }
   else { $line = 'Stat' }
 
   $width = 4;
@@ -95,7 +96,7 @@ sub draw_header_line {
     $line .= (' 'x($::Termsize[0]-$width-1)).'>', last if $width+2+$c->{width} > $::Termsize[0];
     $width += 1+$c->{width};
     $line .= ' ';
-    if (exists $highlight{$colno}) { $line .= color($high).sprintf("\%-".$c->{width}."s", $c->{name}).color($norm) }
+    if (exists $highlight{$colno}) { $line .= $high.sprintf("\%-".$c->{width}."s", $c->{name}).$norm }
     else                           { $line .= sprintf("\%-".$c->{width}."s", $c->{name}) }
   }
   printline($line);
@@ -176,6 +177,15 @@ sub draw_job_display {
   }
 
   my $no = 0;
+  my %status_color = (
+    running  => get_color("status_running"),
+    error    => get_color("status_error"),
+    hold     => get_color("status_hold"),
+    error    => get_color("status_error"),
+    queued   => get_color("status_queued"),
+    fallback => get_color("status_fallback"),
+  );
+
   foreach my $jobIndex  ($::DisplayOffset .. $last) {
     clline();
     my $job = $jobs->[$jobIndex];
@@ -191,18 +201,18 @@ sub draw_job_display {
     my $highlightcolor = $highlight->{$jobIndex};
 
     # highlight selected user name
-    $highlightcolor = $::HighlightUserColor
+    $highlightcolor = get_color("user_highlight")
       if not defined $highlightcolor
          and defined $::HighlightUser
          and $job->[::F_user] =~ $::HighlightUser;
 
     # Print STATUS
     my $status = $job->[::F_status];
-    if ($status =~ /^[rt]$/)        { color("black on green") }
-    elsif ($status =~ /(?:^d|E)/)   { color("black on red") }
-    elsif ($status =~ /h(?:qw|r)/)  { color("black on yellow") }
-    elsif ($status =~ /w/)          { color("blue on white") }
-    else                            { color("black on yellow") }
+    if    ($status =~ /^[rt]$/)     { print $status_color{running} }
+    elsif ($status =~ /(?:^d|E)/)   { print $status_color{error} }
+    elsif ($status =~ /h(?:qw|r)/)  { print $status_color{hold} }
+    elsif ($status =~ /w/)          { print $status_color{queued} }
+    else                            { print $status_color{fallback} }
 
     printf('%-4s', $status);
     print RESET;
@@ -239,11 +249,13 @@ sub draw_job_display {
     else {
       # draw "position bar" if there is enough space
       my $marker;
+      my $bgcolor = get_color("scrollbar_bg");
+      my $fgcolor = get_color("scrollbar_fg");
       if ($no >= $marker_start and $no <= $marker_end) {
-        $marker = colored(" ", "black on white");
+        $marker = $fgcolor . " " . RESET();
       }
       else {
-        $marker = colored(" ", "white on black");
+        $marker = $bgcolor . " " . RESET();
       }
       print $marker;
     }
@@ -294,7 +306,7 @@ sub show_warning {
   my $text = shift;
   # Header Line
   locate(2,1);
-  my $color = color('bold red on black');
+  my $color = get_color('header_warning');
   printline($color.$text);
   print RESET;
   sleep 2;
@@ -313,9 +325,7 @@ sub check_display_offset {
 sub draw_initializing_sign {
   warnenter if ::DEBUG > 1;
   locate(3,1);
-  my $color = color('black on green');
-  #my $color = color('black on yellow');
-  #my $color = color('bold white on red');
+  my $color = get_color('initializing');
   print $color, <<'HERE';
                          
                          

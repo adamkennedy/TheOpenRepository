@@ -8,12 +8,12 @@ package App::FQStat::Actions;
 use strict;
 use warnings;
 use Time::HiRes qw/sleep time/;
-use Term::ANSIScreen qw/:color :constants :screen :cursor :keyboard/;
+use Term::ANSIScreen qw/RESET locate clline cls/;
 
 use App::FQStat::Drawing qw/printline update_display/;
 use App::FQStat::Input qw/poll_user get_input_key select_multiple_jobs select_job/;
 use App::FQStat::Debug;
-use App::FQStat::Config qw/get_config set_config/;
+use App::FQStat::Config qw/get_config set_config get_color/;
 
 
 ####################
@@ -89,7 +89,7 @@ sub select_sort_field {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("selected_cursor");
   print "Select Sort Field:";
   print RESET;
   print " (left/right to select, s/Enter to confirm, n for none, q to cancel)\n";
@@ -136,7 +136,7 @@ sub kill_jobs {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Kill jobs: Select with Space, span with 's', hit 'k' to kill or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -154,14 +154,14 @@ sub kill_jobs {
       my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
       cls();
       locate(3,1);
-      print colored("Killing the following jobs:", "red");
+      print get_color("warning") . "Killing the following jobs:" . RESET();
       print "\n", join("\n", @ids);
       print "\n";
       foreach my $dead (@ids) {
         if ( App::FQStat::System::run(get_config("qdelcmd"), $dead) ) {
             # This branch doesn't seem to be entered because qdel is braindead and doesn't
             # signal failure with exit($POSITIVE_INTEGER)
-            print color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+            print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
             print "\n(Hit Enter to continue)";
             my $tmp = <STDIN>;
             last;
@@ -187,7 +187,7 @@ sub change_priority {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Change priority: Select with Space, span with 's', hit 'p' to set priority or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -206,13 +206,13 @@ sub change_priority {
       my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
       cls();
       locate(3,1);
-      print colored("Setting priority for the following jobs:", "red");
+      print get_color("warning"), "Setting priority for the following jobs:", RESET();
       print "\n", join("\n", @ids);
       print "\n";
 
       foreach my $job (@ids) {
         if ( App::FQStat::System::run(get_config("qaltercmd"), '-p', $integerprio, $job) ) {
-          print "\n", color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+          print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
           print "\n(Hit 'q' to quit or any other key to continue)";
           my $tmp = get_input_key(1e9);
           last if (defined $tmp and $tmp eq 'q');
@@ -240,7 +240,7 @@ sub hold_jobs {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Hold jobs: Select with Space, span with 's', hit 'o' to hold or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -256,13 +256,13 @@ sub hold_jobs {
     my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
     cls();
     locate(3,1);
-    print colored("Setting the following jobs on hold:", "red");
+    print get_color("warning"), "Setting the following jobs on hold:", RESET();
     print "\n", join("\n", @ids);
     print "\n";
 
     foreach my $job (@ids) {
       if ( App::FQStat::System::run(get_config("qaltercmd"), '-h', 'u', $job) ) {
-        print "\n", color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+        print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
         last if (defined $tmp and $tmp eq 'q');
@@ -285,7 +285,7 @@ sub resume_jobs {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Resume jobs: Select with Space, span with 's', hit 'o' or 'O' to resume or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -301,13 +301,13 @@ sub resume_jobs {
     my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
     cls();
     locate(3,1);
-    print colored("Resuming the following jobs:", "red");
+    print get_color("warning"), "Resuming the following jobs:", RESET();
     print "\n", join("\n", @ids);
     print "\n";
 
     foreach my $job (@ids) {
       if ( App::FQStat::System::run(get_config("qaltercmd"), '-h', 'U', $job) ) {
-        print "\n", color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+        print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
         last if (defined $tmp and $tmp eq 'q');
@@ -330,7 +330,7 @@ sub clear_job_error_state {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Clear error state: Select with Space, span with 's', hit 'c' to apply or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -346,13 +346,13 @@ sub clear_job_error_state {
     my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
     cls();
     locate(3,1);
-    print colored("Clearing the error state of the following jobs:", "red");
+    print get_color("warning"), "Clearing the error state of the following jobs:", RESET();
     print "\n", join("\n", @ids);
     print "\n";
 
     foreach my $job (@ids) {
       if ( App::FQStat::System::run(get_config("qmodcmd"), '-cj', $job) ) {
-        print "\n", color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+        print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
         last if (defined $tmp and $tmp eq 'q');
@@ -397,7 +397,7 @@ sub change_dependencies {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Change deps of jobs: Select with Space, span with 's', hit 'd' to confirm or 'q' to cancel.";
   print RESET;
   print "\n";
@@ -411,7 +411,7 @@ sub change_dependencies {
   elsif ($key eq 'd') {
     locate(1,1);
     clline();
-    color("bold red on white");
+    print get_color("user_instructions");
     print "Jobs to depend on: Select with Space, span with 's', hit 'd' to confirm or 'q' to cancel.";
     print RESET;
     print "\n";
@@ -428,13 +428,13 @@ sub change_dependencies {
     my @ids = sort { $a <=> $b } map { $jobs->[$_][::F_id] } @$selected;
     cls();
     locate(3,1);
-    print colored("Changing the dependencies of the following jobs:", "red");
+    print get_color("warning"), "Changing the dependencies of the following jobs:", RESET();
     print "\n", join("\n", @ids);
     print "\n";
 
     foreach my $job (@ids) {
       if ( App::FQStat::System::run(get_config("qaltercmd"), $job, '-hold_jid', $deplist) ) {
-        print "\n", color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+        print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
         last if (defined $tmp and $tmp eq 'q');
@@ -458,7 +458,7 @@ sub show_job_details {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Show job details: Select with Space/Enter, 'q' to cancel.";
   print RESET;
   print "\n";
@@ -475,13 +475,13 @@ sub show_job_details {
     my $qstat = get_config("qstatcmd");
     my $output = App::FQStat::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
     if ($output =~ /^\s*$/ms) {
-      print color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+      print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
       print "\n(Hit Enter to continue)";
       my $tmp = <STDIN>;
       return 1;
     }
     cls();
-    my $color = color("bold red");
+    my $color = get_color("warning");
     my $reset = RESET;
     $output =~ s/^([^:]+:)/$color$1$reset/mg;
     print $output;
@@ -501,7 +501,7 @@ sub show_job_log {
   # print instructions
   locate(1,1);
   clline();
-  color("bold red on white");
+  print get_color("user_instructions");
   print "Show job log: Select with Space/Enter or 'l', 'q' to cancel.";
   print RESET;
   print "\n";
@@ -518,7 +518,7 @@ sub show_job_log {
     my $qstat = get_config("qstatcmd");
     my $output = App::FQStat::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
     if ($output =~ /^\s*$/ms) {
-      print color("red"), "WARNING: Something went wrong. Return value: $!", RESET;
+      print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
       print "\n(Hit Enter to continue)";
       my $tmp = <STDIN>;
       return 1;
@@ -586,8 +586,8 @@ sub show_job_log {
 sub show_manual {
   warnenter if ::DEBUG;
   cls();
-  my $heading = color("bold white on blue");
-  my $h = color("red");
+  my $heading = get_color("menu_normal");
+  my $h = get_color("warning");
   my $r = RESET;
   print <<"HERE";
 ${heading}  fqstat v$App::FQStat::VERSION - Interactive front-end for qstat               $r

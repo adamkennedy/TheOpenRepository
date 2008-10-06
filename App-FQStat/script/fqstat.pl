@@ -11,7 +11,7 @@ use threads::shared;
 
 use IO::Handle;
 use Time::HiRes qw/sleep time/;
-use Term::ANSIScreen qw/:color :constants :screen :cursor :keyboard/;
+use Term::ANSIScreen qw/RESET cls/;
 use Term::ReadKey;
 use Getopt::Long;
 
@@ -100,7 +100,6 @@ our $SortField : shared;                # may hold name of sort field
 
 our $Interval : shared;                 # Effective data refreshing interval. Do not change. Is set to $UserInterval below
 our $HighlightUser;
-our $HighlightUserColor = color("bold white on blue");
 {
   my $curuser = $ENV{USER};
   if (defined $curuser) {
@@ -112,8 +111,6 @@ our $HighlightUserColor = color("bold white on blue");
 our $MenuMode        = 0; # in menu or not
 our $MenuNumber      = 0; # which menu (see @App::FQStat::Menu::Menus)
 our $MenuEntryNumber = 0; # in which entry of that menu
-our $MenuColor       = color("bold white on blue");
-our $MenuSelColor    = color("bold white on red");
 
 # Displayed column descriptions
 our %Columns =  (
@@ -218,7 +215,7 @@ sub thread_cleanup {
 sub cleanup_and_exit {
   warnenter if ::DEBUG;
   print RESET;
-  locate($Termsize[1],1);
+  Term::ANSIScreen::locate($Termsize[1],1);
   thread_cleanup();
   ReadMode 1;
   print "Have a nice day!\n" unless @_;

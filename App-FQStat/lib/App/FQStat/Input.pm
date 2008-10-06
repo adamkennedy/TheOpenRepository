@@ -7,12 +7,13 @@ package App::FQStat::Input;
 
 use strict;
 use warnings;
-use Term::ANSIScreen qw/:color :constants :screen :cursor :keyboard/;
+use Term::ANSIScreen qw/RESET locate :keyboard/;
 use Term::ReadKey;
 
 use App::FQStat::Drawing qw/printline update_display/;
 require App::FQStat::Actions;
 use App::FQStat::Debug;
+use App::FQStat::Config qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (
@@ -31,7 +32,7 @@ sub poll_user {
   warnenter if ::DEBUG > 1;
   my $query = shift;
   locate(2,1);
-  color("bold red on black");
+  print get_color("user_input");
   printline("");
   locate(2,1);
   print $query;
@@ -82,8 +83,8 @@ sub _select_jobs {
   my $mode = shift; # can be "single" or "multiple". Defaults to "multiple".
   my $is_multiple = $mode eq 'single' ? 0 : 1;
   my $keys_toggle_return = shift || ['q'];
-  my $select_color = shift || color('blue on white');
-  my $cursor_color = shift || color('black on red');
+  my $select_color = shift || get_color("selected_job");
+  my $cursor_color = shift || get_color('selected_cursor');
   my $selected_start = shift;
 
   # if one of these keys is found, we return

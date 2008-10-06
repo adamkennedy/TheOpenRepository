@@ -7,8 +7,9 @@ package App::FQStat::Menu;
 
 use strict;
 use warnings;
-use Term::ANSIScreen qw/:color :constants :screen :cursor :keyboard/;
+use Term::ANSIScreen qw/RESET :cursor/;
 use App::FQStat::Debug;
+use App::FQStat::Config qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (
@@ -111,10 +112,14 @@ sub draw_menubox {
   my ($x1, $x2, $title, $entries, $selentry) = @_;
   locate(1, $x1);
   my $width = $x2-$x1;
-  print $::MenuColor . " $title " . (" "x($width - length($title) - 2)) . RESET;
+
+  my $menuColor    = get_color("menu_normal");
+  my $menuSelColor = get_color("menu_selected");
+
+  print $menuColor . " $title " . (" "x($width - length($title) - 2)) . RESET;
   my $y = 2;
   foreach my $entry (@$entries) {
-    my $thiscolor = ($y-2 == $selentry ? $::MenuSelColor : $::MenuColor);
+    my $thiscolor = ($y-2 == $selentry ? $menuSelColor : $menuColor);
     locate($y, $x1);
     my $name = " ".$entry->{name};
     $name .= " "x($width-length($name));

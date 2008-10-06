@@ -11,6 +11,7 @@ use App::FQStat::Debug;
 use YAML::Tiny ();
 use File::HomeDir ();
 use File::Spec;
+use Term::ANSIScreen qw();
 
 
 use base 'Exporter';
@@ -18,6 +19,7 @@ our %EXPORT_TAGS = (
   'all' => [qw(
     get_config
     set_config
+    get_color
   )],
 );
 our @EXPORT_OK = @{$EXPORT_TAGS{'all'}};
@@ -103,18 +105,56 @@ sub reset_configuration {
 
 sub _default_config {
   warnenter if ::DEBUG;
+  my $defaultColors = {
+    initializing         => 'black on green',
+    reverse_indicator    => 'blue on white',
+
+    header_highlight     => 'bold white on red',
+    header_warning       => 'bold red on black',
+    header_normal        => 'bold white on black',
+
+    status_running       => 'black on green',
+    status_error         => 'black on red',
+    status_hold          => 'black on yellow',
+    status_queued        => 'blue on white',
+    status_fallback      => 'black on yellow',
+
+    scrollbar_fg         => 'black on white',
+    scrollbar_bg         => 'white on black',
+
+    user_highlight       => 'bold white on blue',
+    
+    menu_normal          => 'bold white on blue',
+    menu_selected        => 'bold white on red',
+
+    user_input           => "bold red on black",
+    user_instructions    => "bold red on white",
+
+    selected_job         => "blue on white",
+    selected_cursor      => "black on red",
+
+    warning              => "red",
+  };
   my %default = (
+    persistent => 1,
     qstatcmd => 'qstat',
     qdelcmd => 'qdel',
     qaltercmd => 'qalter',
     qmodcmd => 'qmod',
     sshcommand => '',
     version => $App::FQStat::VERSION,
+    colors => $defaultColors,
   );
+
   my %upgrades = (
     old => sub {
       my $cfg = shift;
       %$cfg = %default;
+      save_configuration();
+    },
+    '6.0' => sub {
+      my $cfg = shift;
+      $cfg->{colors} = $defaultColors;
       save_configuration();
     },
   );
@@ -122,12 +162,16 @@ sub _default_config {
   # upgrade old configs 
   my $cfgversion = $Config->{version};
   $upgrades{old}->($Config), $cfgversion = $Config->{version} if not $cfgversion or $cfgversion < 5;
+
   $upgrades{$cfgversion}->($Config) if exists $upgrades{$cfgversion};
+
   $Config->{version} = $App::FQStat::VERSION, save_configuration() if $Config->{version} ne $App::FQStat::VERSION;
 
+  my $add = 0;
   foreach my $key (keys %default) {
-    $Config->{$key} = $default{$key} if not defined $Config->{$key};
+    $add++, $Config->{$key} = $default{$key} if not defined $Config->{$key};
   }
+  save_configuration() if $Config->{persistent} and $add;
 }
 
 sub edit_configuration {
@@ -158,9 +202,20 @@ sub edit_configuration {
     push @$YAMLObject, {} if @$YAMLObject == 0;
     $Config = $YAMLObject->[0];
     _default_config();
+    save_configuration() if $Config->{persistent};
     return 1;
   }
   return();
+}
+
+sub get_color {
+  warnenter if ::DEBUG > 1;
+  my $color = shift;
+  my $colors = get_config('colors') || {};
+  if (not defined $colors->{$color}) {
+    die "Could not determine color scheme for use '$color'.";
+  }
+  return Term::ANSIScreen::color( $colors->{$color} );
 }
 
 
