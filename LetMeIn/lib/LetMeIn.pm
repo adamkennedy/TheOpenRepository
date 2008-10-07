@@ -766,7 +766,8 @@ sub template {
 	my $args = shift || $self->args;
 	# Allow up to 10 levels of recursion
 	foreach ( 0 .. 10 ) {
-		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g;
+		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g
+            or last;
 	}
 	return $html;
 }
