@@ -8,14 +8,19 @@ BEGIN {
 
 # Skip if not on Windows
 use Test::More;
+# use LWP::Online ':skip_all';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	};
-	unless ( $ENV{TEST_PERLDIST_ALL} ) {
-		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
+	unless ( $ENV{RELEASE_TESTING} ) {
+		plan( skip_all => 'No RELEASE_TESTING: Skipping multi-hour test' );
 		exit(0);
+	}
+	if ( -d 'C:\\minicpan' and ! $ENV{TEST_PERLDIST_CPAN} ) {
+		# This is a hack specifically for ADAMK's setup
+		$ENV{TEST_PERLDIST_CPAN} = 'file:///C|/minicpan/';
 	}
 	unless ( $ENV{TEST_PERLDIST_CPAN} ) {
 		plan( skip_all => 'Skipping multi-hour tests that require a live CPAN mirror' );

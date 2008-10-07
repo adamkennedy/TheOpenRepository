@@ -13,8 +13,8 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	}
-	unless ( $ENV{TEST_PERLDIST_ALL} ) {
-		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
+	unless ( $ENV{RELEASE_TESTING} ) {
+		plan( skip_all => 'No RELEASE_TESTING: Skipping multi-hour test' );
 		exit(0);
 	}
 	plan( tests => 11 );
@@ -30,5 +30,5 @@ isa_ok( $dist, 't::lib::Test1' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );
-ok( -f "C:\\tmp\\sp\\image\\dmake\\bin\\dmake.exe", 'Found dmake.exe' );
-ok( -f "C:\\tmp\\sp\\image\\dmake\\bin\\startup\\Makefile.in", 'Found startup' );
+ok( -f "C:\\tmp\\sp\\image\\c\\bin\\dmake.exe", 'Found dmake.exe' );
+ok( -f "C:\\tmp\\sp\\image\\c\\bin\\startup\\Makefile.in", 'Found startup' );

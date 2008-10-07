@@ -10,6 +10,7 @@ requires       'File::pushd'                => '0.32';
 requires       'File::Spec'                 => '3.17';
 requires       'File::Remove'               => '0.37';
 requires       'File::ShareDir'             => '0.99';
+requires       'File::PathList'             => 0;
 requires       'File::Temp'                 => '0.20';
 requires       'HTTP::Status'               => '1.28';
 requires       'IPC::Run3'                  => '0.034';

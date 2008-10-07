@@ -133,6 +133,7 @@ use File::Spec::Win32          ();
 use File::Copy                 ();
 use File::Copy::Recursive      ();
 use File::Path                 ();
+use File::PathList             ();
 use File::pushd                ();
 use File::Remove               ();
 use File::Basename             ();
@@ -148,6 +149,7 @@ use Tie::Slurp                 ();
 use Template                   ();
 use PAR::Dist                  ();
 use Portable::Dist             ();
+use Storable                   ();
 use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
@@ -165,11 +167,13 @@ use Object::Tiny qw{
 
 	binary_root
 	offline
+	temp_dir
 	download_dir
 	image_dir
 	modules_dir
 	license_dir
 	build_dir
+	checkpoint_dir
 	iss_file
 	user_agent
 	bin_perl
@@ -185,6 +189,8 @@ use Object::Tiny qw{
 	perl_version_corelist
 	cpan
 	force
+	checkpoint_before
+	checkpoint_after
 };
 
 use Perl::Dist::Inno                ();
@@ -362,25 +368,16 @@ sub new {
 		$params{build_dir} = File::Spec->catdir(
 			$params{temp_dir}, 'build',
 		);
-		if ( -d $params{build_dir} ) {
-			File::Remove::remove( \1, $params{build_dir} );
-		}
-		File::Path::mkpath($params{build_dir});
+		$class->remake_path( $params{build_dir} );
 	}
 	unless ( defined $params{output_dir} ) {
 		$params{output_dir} = File::Spec->catdir(
 			$params{temp_dir}, 'output',
 		);
-		if ( -d $params{output_dir} ) {
-			File::Remove::remove( \1, $params{output_dir} );
-		}
-		File::Path::mkpath($params{output_dir});
+		$class->remake_path( $params{output_dir} );
 	}
 	if ( defined $params{image_dir} ) {
-		if ( -d $params{image_dir} ) {
-			File::Remove::remove( \1, $params{image_dir} );
-		}
-		File::Path::mkpath($params{image_dir});
+		$class->remake_path( $params{image_dir} );
 	}
 	unless ( defined $params{perl_version} ) {
 		$params{perl_version} = '5100';
@@ -439,6 +436,12 @@ sub new {
 	}
 	unless ( defined $self->zip ) {
 		$self->{zip} = 0;
+	}
+	unless ( defined $self->checkpoint_before ) {
+		$self->{checkpoint_before} = 0;
+	}
+	unless ( defined $self->checkpoint_after ) {
+		$self->{checkpoint_after} = 0;
 	}
 
 	# Normalize some params
@@ -591,6 +594,79 @@ this is likely to break the user's Perl install)
 
 
 #####################################################################
+# Checkpoint Support
+
+sub checkpoint_task {
+	my $self = shift;
+	my $task = shift;
+	my $step = shift;
+
+	# Are we loading at this step?
+	if ( $self->checkpoint_before == $step ) {
+		$self->checkpoint_load;
+	}
+
+	# Skip if we are loading later on
+	unless ( $self->checkpoint_before > $step ) {
+		my $t = time;
+		$self->$task();
+		$self->trace("Completed $task in " . (time - $t) . " seconds\n");
+	}
+
+	# Are we saving at this step
+	if ( $self->checkpoint_after == $step ) {
+		$self->checkpoint_save;
+	}
+
+	return $self;
+}
+
+sub checkpoint_file {
+	File::Spec->catfile( $_[0]->checkpoint_dir, 'self.dat' );
+}
+
+sub checkpoint_self {
+
+}
+
+sub checkpoint_save {
+	my $self = shift;
+	unless ( $self->temp_dir ) {
+		die "Checkpoints require a temp_dir to be set";
+	}
+
+	# Clear out any existing checkpoint
+	$self->trace("Removing old checkpoint\n");
+	$self->{checkpoint_dir} = File::Spec->catfile(
+		$self->temp_dir, 'checkpoint',
+	);
+	$self->remake_path( $self->checkpoint_dir );
+
+	# Copy the paths into the checkpoint directory
+	$self->trace("Copying checkpoint directories...\n");
+	foreach my $dir ( qw{ build_dir download_dir image_dir output_dir } ) {
+		my $from = $self->$dir();
+		my $to   = File::Spec->catdir( $self->checkpoint_dir, $dir );
+		$self->_copy( $from => $to );
+	}
+
+	# Store the main object.
+	# Blank the checkpoint values to prevent load/save loops
+	Storable::nstore( {
+		%$self,
+		checkpoint_before => 0,
+		checkpoint_after  => 0,
+	}, $self->checkpoint_file );
+
+	return 1;
+}
+
+
+
+
+
+
+#####################################################################
 # Perl::Dist::Inno::Script Methods
 
 sub source_dir {
@@ -695,51 +771,34 @@ This method may take an hour or more to run.
 sub run {
 	my $self  = shift;
 	my $start = time;
-	my $t     = undef;
 
 	# Install the core C toolchain
-	$t = time;
-	$self->install_c_toolchain;
-	$self->trace("Completed install_c_toolchain in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( install_c_toolchain  => 1 );
 
 	# Install any additional C libraries
-	$t = time;
-	$self->install_c_libraries;
-	$self->trace("Completed install_c_libraries in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( install_c_libraries  => 2 );
 
 	# Install the Perl binary
-	$t = time;
-	$self->install_perl;
-	$self->trace("Completed install_perl in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( install_perl         => 3 );
 
 	# Install additional Perl modules
-	$t = time;
-	$self->install_perl_modules;
-	$self->trace("Completed install_perl_modules in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( install_perl_modules => 4 );
 
 	# Install the Win32 extras
-	$t = time;
-	$self->install_win32_extras;
-	$self->trace("Completed install_win32_extras in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( install_win32_extras => 5 );
 
-	# Apply portability functionality if wanted
-	if ( $self->portable ) {
-		$self->install_portable;
-	}
+	# Apply optional portability support
+	$self->checkpoint_task( install_portable     => 6 ) if $self->portable;
 
 	# Remove waste and temporary files
-	$t = time;
-	$self->remove_waste;
-	$self->trace("Completed remove_waste in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( remove_waste         => 7 );
 
 	# Install any extra custom non-Perl software on top of Perl.
 	# This is primarily added for the benefit of Parrot.
-	$self->install_custom;
+	$self->checkpoint_task( install_custom       => 8 );
 
 	# Write out the distributions
-	$t = time;
-	my $exe = $self->write;
-	$self->trace("Completed write in " . (time - $t) . " seconds\n");
+	$self->checkpoint_task( write                => 9 );
 
 	# Finished
 	$self->trace("Distribution generation completed in " . (time - $start) . " seconds\n");
@@ -814,8 +873,8 @@ sub install_c_toolchain {
 
 	# Set up the environment variables for the binaries
 	$self->add_env_path(    'c', 'bin'     );
-	$self->add_env_lib(     'c', 'lib'     );
-	$self->add_env_include( 'c', 'include' );
+	# $self->add_env_lib(     'c', 'lib'     );
+	# $self->add_env_include( 'c', 'include' );
 
 	return 1;
 }
@@ -954,13 +1013,13 @@ sub install_perl_588 {
 	# Install the main perl distributions
 	$self->install_perl_588_bin(
 		name       => 'perl',
-		dist       => 'NWCLARK/perl-5.8.8.tar.gz',
+		url        => 'http://strawberryperl.com/package/perl-5.8.8.tar.gz',
 		unpack_to  => 'perl',
-		patch      => {
-			'ExtUtils_Install588.pm'   => 'lib\ExtUtils\Install.pm',
-			'ExtUtils_Installed588.pm' => 'lib\ExtUtils\Installed.pm',
-			'ExtUtils_Packlist588.pm'  => 'lib\ExtUtils\Packlist.pm',
-		},
+		patch      => [
+			'lib/ExtUtils/Install.pm',
+			'lib/ExtUtils/Installed.pm',
+			'lib/ExtUtils/Packlist.pm',
+		],
 		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
 			'perl-5.8.8/Artistic' => 'perl/Artistic',
@@ -1007,12 +1066,9 @@ sub install_perl_588_bin {
 	# Pre-copy updated files over the top of the source
 	my $patch = $perl->patch;
 	if ( $patch ) {
-		foreach my $f ( sort keys %$patch ) {
-			my $from = File::ShareDir::dist_file( 'Perl-Dist', $f );
-			my $to   = File::Spec->catfile(
-				$unpack_to, $perlsrc, $patch->{$f},
-			);
-			$self->_copy( $from => $to );
+		# Overwrite the appropriate files
+		foreach my $file ( @$patch ) {
+			$self->patch_file( "perl-5.8.8/$file" => $unpack_to );
 		}
 	}
 
@@ -1029,16 +1085,16 @@ sub install_perl_588_bin {
 		);
 
 		# Prepare to patch
-		my $image_dir    = $self->image_dir;
-		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-		my (undef,$short_install) = File::Spec->splitpath( $perl_install, 1 );
+		my $image_dir  = $self->image_dir;
+		my $INST_TOP   = File::Spec->catdir( $self->image_dir, $perl->install_to );
+		my ($INST_DRV) = File::Spec->splitpath( $INST_TOP, 1 );
 
 		$self->trace("Patching makefile.mk\n");
-		tie my $makefile, 'Tie::Slurp', 'makefile.mk'
-			or Carp::croak("Couldn't read makefile.mk");
-		$makefile =~ s/(\nINST_TOP\s+\*=\s+.+?)\\perl\b/$1$short_install/;
-		$makefile =~ s/(\nCCHOME\s+\*=\s+)C\:\\MinGW\b/$1$image_dir\\c/;
-		untie $makefile;
+		$self->patch_file( 'perl-5.8.8/win32/makefile.mk' => $unpack_to, {
+			inno     => $self,
+			INST_DRV => $INST_DRV,
+			INST_TOP => $INST_TOP,
+		} );
 
 		$self->trace("Building perl...\n");
 		$self->_make;
@@ -1061,8 +1117,8 @@ sub install_perl_588_bin {
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );
-	$self->add_env_lib(  'perl', 'bin' );
-	$self->add_env_include( 'perl', 'lib', 'CORE' );
+	# $self->add_env_lib(  'perl', 'bin' );
+	# $self->add_env_include( 'perl', 'lib', 'CORE' );
 
 	return 1;
 }
@@ -1126,9 +1182,9 @@ sub install_perl_588_toolchain {
 sub install_perl_588_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
-		force        => {
-			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
-		},
+#		force        => {
+#			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
+#		},
 	);
 }
 
@@ -1160,7 +1216,7 @@ sub install_perl_5100 {
 	# Install the main binary
 	$self->install_perl_5100_bin(
 		name       => 'perl',
-                dist       => 'RGARCIA/perl-5.10.0.tar.gz',
+                url        => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
 		unpack_to  => 'perl',
 		patch      => {
 			'ExtUtils_Command5100.pm' => 'lib\ExtUtils\Command.pm',
@@ -1318,8 +1374,8 @@ sub install_perl_5100_bin {
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );
-	$self->add_env_lib(  'perl', 'bin' );
-	$self->add_env_include( 'perl', 'lib', 'CORE' );
+	# $self->add_env_lib(  'perl', 'bin' );
+	# $self->add_env_include( 'perl', 'lib', 'CORE' );
 
 	return 1;
 }
@@ -2086,8 +2142,8 @@ sub install_module {
 	}
 
 	# Generate the CPAN installation script
-	my $env_lib     = $self->get_env_lib;
-	my $env_include = $self->get_env_include;
+	# my $env_lib     = $self->get_env_lib;
+	# my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -2100,8 +2156,6 @@ if ( \$module->uptodate ) {
 	exit(0);
 }
 print "\\\$ENV{PATH}    = '\$ENV{PATH}'\\n";
-print "\\\$ENV{LIB}     = '\$ENV{LIB}'\\n";
-print "\\\$ENV{INCLUDE} = '\$ENV{INCLUDE}'\\n";
 local \$ENV{PERL_MM_USE_DEFAULT} = 1;
 if ( $force ) {
 	CPAN::Shell->notest('install', '$name');
@@ -2661,10 +2715,9 @@ sub get_inno_include {
 # By default only use the default
 sub patch_include_path {
 	my $self  = shift;
-	my $perl  = $self->perl_version_human;
-	my $share = File::ShareDir::dist_dir('Perl::Dist');
+	my $share = File::ShareDir::dist_dir('Perl-Dist');
 	my $path  = File::Spec->catdir(
-		$share, 'default', $perl,
+		$share, 'default',
 	);
 	unless ( -d $path ) {
 		die("Directory $path does not exist");
@@ -2672,15 +2725,61 @@ sub patch_include_path {
 	return [ $path ];
 }
 
-sub patch_template {
-	Template->new(
-		INCLUDE_PATH => $_[0]->patch_include_path,
+sub patch_pathlist {
+	my $self = shift;
+	return File::PathList->new(
+		paths => $self->patch_include_path,
 	);
 }
 
-sub patch_perl {
-	my $self = shift;
-	
+# Cache this
+sub patch_template {
+	$_[0]->{template_toolkit} or
+	$_[0]->{template_toolkit} = Template->new(
+		INCLUDE_PATH => $_[0]->patch_include_path,
+		ABSOLUTE     => 1,
+	);
+}
+
+sub patch_file {
+	my $self     = shift;
+	my $file     = shift;
+	my $file_tt  = $file . '.tt';
+	my $dir      = shift;
+	my $to       = File::Spec->catfile( $dir, $file );
+	my $pathlist = $self->patch_pathlist;
+
+	# Locate the source file
+	my $from    = $pathlist->find_file( $file );
+	my $from_tt = $pathlist->find_file( $file_tt );;
+	unless ( defined $from and defined $from_tt ) {
+		die "Missing or invalid file $file or $file_tt in pathlist search";
+	}
+
+	if ( $from_tt ne '' ) {
+		# Generate the file
+		my $hash = Params::Util::_HASH(shift) || {};
+		my ($fh, $output) = File::Temp::tempfile();
+		$self->trace("Generating $from_tt into temp file $output\n");
+		$self->patch_template->process(
+			$from_tt,
+			{ %$hash, self => $self },
+			$fh,
+		) or die "Template processing failed for $from_tt";
+
+		# Copy the file to the final location
+		$fh->close;
+		$self->_copy( $output => $to );
+
+	} elsif ( $from ne '' ) {
+		# Simple copy of the regular file to the target location
+		$self->_copy( $from => $to );
+
+	} else {
+		die "Failed to find file $file";
+	}
+
+	return 1;
 }
 
 
@@ -2791,8 +2890,8 @@ sub _run3 {
 
 	# Clean the simple environment keys
 	local $ENV{PERL5LIB} = '';
-	local $ENV{INCLUDE}  = $self->get_env_include;
-	local $ENV{LIB}      = $self->get_env_lib;
+	local $ENV{LIB}      = '';
+	local $ENV{INCLUDE}  = '';
 
 	# Remove any Perl installs from PATH to prevent
 	# "which" discovering stuff it shouldn't.
@@ -2952,6 +3051,35 @@ sub _dll_to_a {
 	}
 
 	return 1;
+}
+
+sub make_path {
+	my $class = shift;
+	my $dir   = File::Spec->rel2abs(
+		File::Spec->catdir(
+			File::Spec->curdir, @_,
+		),
+	);
+	File::Path::mkpath( $dir ) unless -d $dir;
+	unless ( -d $dir ) {
+		Carp::croak("Failed to make_path for $dir");
+	}
+	return $dir;
+}
+
+sub remake_path {
+	my $class = shift;
+	my $dir   = File::Spec->rel2abs(
+		File::Spec->catdir(
+			File::Spec->curdir, @_,
+		),
+	);
+	File::Remove::remove( \1, $dir ) if -d $dir;
+	File::Path::mkpath( $dir );
+	unless ( -d $dir ) {
+		Carp::croak("Failed to make_path for $dir");
+	}
+	return $dir;
 }
 
 1;

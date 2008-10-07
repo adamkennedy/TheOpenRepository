@@ -3,13 +3,14 @@ package Perl::Dist::Asset::Perl;
 # Perl::Dist asset for the Perl source code itself
 
 use strict;
-use Carp         'croak';
-use Params::Util qw{ _STRING _HASH };
-use base 'Perl::Dist::Asset';
+use Carp              ();
+use Params::Util      ();
+use Perl::Dist::Asset ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Asset';
 }
 
 use Object::Tiny qw{
@@ -35,20 +36,20 @@ sub new {
 	$self->{unpack_to} = '' unless defined $self->unpack_to;
 
 	# Check params
-	unless ( _STRING($self->name) ) {
-		croak("Missing or invalid name param");
+	unless ( Params::Util::_STRING($self->name) ) {
+		Carp::croak("Missing or invalid name param");
 	}
-	unless ( _HASH($self->license) ) {
-		croak("Missing or invalid license param");
+	unless ( Params::Util::_HASH($self->license) ) {
+		Carp::croak("Missing or invalid license param");
 	}
 	unless ( defined $self->unpack_to and ! ref $self->unpack_to ) {
-		croak("Missing or invalid unpack_to param");
+		Carp::croak("Missing or invalid unpack_to param");
 	}
-	unless ( _STRING($self->install_to) ) {
-		croak("Missing or invalid install_to param");
+	unless ( Params::Util::_STRING($self->install_to) ) {
+		Carp::croak("Missing or invalid install_to param");
 	}
-	if ( $self->patch and ! _HASH($self->patch) ) {
-		croak("Invalid patch param");
+	if ( $self->patch and ! Params::Util::_ARRAY($self->patch) ) {
+		Carp::croak("Invalid patch param");
 	}
 	$self->{force} = !! $self->force;
 

@@ -66,21 +66,21 @@ sub new1 {
 	my $class = shift;
 	my @paths = $class->paths;
 	my $cpan  = $class->cpan;
-	return t::lib::Test1->new( cpan => $cpan, @paths, @_ );
+	return t::lib::Test1->new( cpan => $cpan, perl_version => 588, @paths, @_ );
 }
 
 sub new2 {
 	my $class = shift;
 	my @paths = $class->paths;
 	my $cpan  = $class->cpan;
-	return t::lib::Test2->new( cpan => $cpan, @paths, @_ );
+	return t::lib::Test2->new( cpan => $cpan, perl_version => 588, @paths, @_ );
 }
 
 sub new3 {
 	my $class = shift;
 	my @paths = $class->paths;
 	my $cpan  = $class->cpan;
-	return t::lib::Test3->new( cpan => $cpan, @paths, @_ );
+	return t::lib::Test3->new( cpan => $cpan, perl_version => 588, @paths, @_ );
 }
 
 1;
