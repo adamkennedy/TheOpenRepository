@@ -25,6 +25,8 @@ if ( generate_script() ) {
 	install_script 'letmein';
 }
 
+clean_files    'script/letmein';
+
 WriteAll;
 exit(0);
 
