@@ -47,6 +47,16 @@ unless ( $ENV{TEST_LETMEIN} ) {
 		error("Failed to load config file at $config_file");
 	}
 
+	if ($config->[0]{use_module}) {
+		eval "require LetMeIn";
+	}
+	else {
+		eval LetMeIn();
+	}
+	if ($@) {
+		error("Can't load inline LetMeIn.pm: $@")
+	}
+
 	# Create the web application
 	my $application = eval {
 		LetMeIn->new(
@@ -69,7 +79,10 @@ unless ( $ENV{TEST_LETMEIN} ) {
 
 
 
-
-$INC{'LetMeIn.pm'} = __FILE__;
+sub LetMeIn {
+    $INC{'LetMeIn.pm'} = __FILE__;
+    return <<'...';
 #####################################################################
 # Inline lib/LetMeIn.pm
+...
+}

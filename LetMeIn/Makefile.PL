@@ -1,4 +1,5 @@
 use inc::Module::Install 0.76;
+use strict;
 
 all_from       'lib/LetMeIn.pm';
 requires       'Carp'                 => 0;
@@ -47,18 +48,21 @@ sub generate_script {
 
 	# Read in the .pl file
 	open( READPL, $pl )   or die "open: $!";
-	my @readpl = <READPL> or die "read: $!";
+	my $readpl = do { local $/; <READPL> } or die "read: $!";
 	close( READPL )       or die "close: $!";
 
 	# Read in the .pm file
 	open( READPM, $pm )   or die "open: $!";
-	my @readpm = <READPM> or die "read: $!";
+	my $readpm = do { local $/; <READPM> } or die "read: $!";
 	close( READPM )       or die "close: $!";
+
+	# Put the .pm file into the .pl file;
+	$readpl =~ s/\n\.\.\.\n/\n$readpm...\n/
+		or die "LetMeIn.pm insertion into script failed";
 
 	# Write out the combined script
 	open( WRITEOUT, ">$out" ) or die "open: $!";
-	print WRITEOUT @readpl    or die "write: #!";
-	print WRITEOUT @readpm    or die "write: #!";
+	print WRITEOUT $readpl    or die "write: #!";
 
 	return 1;
 }
