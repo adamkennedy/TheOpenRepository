@@ -9,32 +9,34 @@
 		Version="[% dist.product_version %]"
 	>
 
-	[%# Upgrade Support %]
-	<Upgrade Id="[% dist.product_upgrade_code %]">
-		<UpgradeVersion
-			Minimum="[% dist.product_version %]"
-			OnlyDetect="yes"
-			Property="NEWERVERSIONDETECTED"
-		/>
-		<UpgradeVersion
-			Minimum="5.0.0.0"
-			IncludeMinimum="yes"
-			Maximum="[% dist.product_version %]"
-			IncludeMaximum="no"
-			Property="OLDERVERSIONBEINGUPGRADED"
-		/>
-	</Upgrade>
-	<InstallExecuteSequence>
-		<RemoveExistingProducts After="InstallInitialize" />
-	</InstallExecuteSequence>
+		[%# Upgrade Support %]
+		<Upgrade Id="[% dist.product_upgrade_code %]">
+			<UpgradeVersion
+				Minimum="[% dist.product_version %]"
+				OnlyDetect="yes"
+				Property="NEWERVERSIONDETECTED"
+			/>
+			<UpgradeVersion
+				Minimum="5.0.0.0"
+				IncludeMinimum="yes"
+				Maximum="[% dist.product_version %]"
+				IncludeMaximum="no"
+				Property="OLDERVERSIONBEINGUPGRADED"
+			/>
+		</Upgrade>
+		<InstallExecuteSequence>
+			<RemoveExistingProducts After="InstallInitialize" />
+		</InstallExecuteSequence>
 
 
 
-
-	[%# Main Content Goes Here %]
-
+		[%# Main Content Goes Here %]
 
 
 
+		<Feature Id='Complete' Level='1'>
+			<ComponentRef Id='...' />
+			...
+		</Feature>
 	</Product>
 </Wix>
