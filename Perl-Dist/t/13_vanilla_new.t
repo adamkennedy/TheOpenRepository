@@ -20,7 +20,7 @@ BEGIN {
 }
 
 use File::Spec::Functions ':ALL';
-use Perl::Dist::vanilla   ();
+use Perl::Dist::Vanilla   ();
 use URI::file             ();
 
 sub cpan_uri {
