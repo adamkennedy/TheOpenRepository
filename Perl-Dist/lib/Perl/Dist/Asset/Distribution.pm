@@ -49,17 +49,18 @@ This class inherits from L<Perl::Dist::Asset> and shares its API.
 =cut
 
 use strict;
-use Carp         'croak';
-use Params::Util qw{ _ARRAY _HASH _INSTANCE };
-use base 'Perl::Dist::Asset';
-use File::Spec;
-use File::Spec::Unix;
-use URI;
-use URI::file;
+use Carp              ();
+use Params::Util      qw{ _ARRAY _INSTANCE };
+use File::Spec        ();
+use File::Spec::Unix  ();
+use URI               ();
+use URI::file         ();
+use Perl::Dist::Asset ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Asset';
 }
 
 use Object::Tiny qw{
@@ -67,6 +68,7 @@ use Object::Tiny qw{
 	inject
 	force
 	automated_testing
+	release_testing
 	makefilepl_param
 };
 
@@ -122,6 +124,19 @@ module should be installed with the B<AUTOMATED_TESTING> environment
 variable set to true, to make the distribution behave properly in an
 automated environment (in cases where it doesn't otherwise).
 
+=item release_testing
+
+Some modules contain release-time only tests, that require even heavier
+additional dependencies compared to even the C<automated_testing> tests.
+
+The optional C<release_testing> param lets you specify that the module
+tests should be run with the additional C<RELEASE_TESTING> environment
+flag set.
+
+By default, C<release_testing> is set to false to squelch any accidental
+execution of release tests when L<Perl::Dist> itself is being tested
+under C<RELEASE_TESTING>.
+
 =item makefilepl_param
 
 Some distributions illegally require you to pass additional non-standard
@@ -141,19 +156,21 @@ sub new {
 	my $self = shift->SUPER::new(@_);
 
 	# Normalize params
-	$self->{force} = !! $self->force;
+	$self->{force}             = !! $self->force;
+	$self->{automated_testing} = !! $self->automated_testing;
+	$self->{release_testing}   = !! $self->release_testing;
 
 	# Check params
 	unless ( _DIST($self->name) ) {
-		croak("Missing or invalid name param");
+		Carp::croak("Missing or invalid name param");
 	}
 	if ( defined $self->inject ) {
 		unless ( _INSTANCE($self->inject, 'URI') ) {
-			croak("The inject param must be a fully resolved URI");
+			Carp::croak("The inject param must be a fully resolved URI");
 		}
 	}
 	if ( defined $self->makefilepl_param and ! _ARRAY($self->makefilepl_param) ) {
-		croak("Invalid makefilepl_param param");
+		Carp::croak("Invalid makefilepl_param param");
 	}
 	$self->{makefilepl_param} ||= [];
 
@@ -175,7 +192,7 @@ sub abs_uri {
 	# Get the base path
 	my $cpan = _INSTANCE(shift, 'URI');
 	unless ( $cpan ) {
-		croak("Did not pass a cpan URI");
+		Carp::croak("Did not pass a cpan URI");
 	}
 
 	# If we have an explicit absolute URI use it directly.

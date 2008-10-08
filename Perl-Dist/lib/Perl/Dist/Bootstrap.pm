@@ -3,12 +3,13 @@ package Perl::Dist::Bootstrap;
 use 5.006;
 use strict;
 use warnings;
-use base 'Perl::Dist::Vanilla';
-use File::Remove ();
+use File::Remove        ();
+use Perl::Dist::Vanilla ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Vanilla';
 }
 
 

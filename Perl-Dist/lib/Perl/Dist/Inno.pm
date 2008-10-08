@@ -478,6 +478,9 @@ sub new {
 	unless ( Params::Util::_STRING($self->image_dir) ) {
 		Carp::croak("Missing or invalid image_dir param");
 	}
+	if ( $self->image_dir =~ /\s/ ) {
+		Carp::croak("Spaces are not allowed in image_dir");
+	}
 	unless ( defined $self->license_dir ) {
 		$self->{license_dir} = File::Spec->catdir( $self->image_dir, 'licenses' );
 	}
@@ -486,6 +489,9 @@ sub new {
 	}
 	unless ( Params::Util::_STRING($self->build_dir) ) {
 		Carp::croak("Missing or invalid build_dir param");
+	}
+	if ( $self->build_dir =~ /\s/ ) {
+		Carp::croak("Spaces are not allowed in build_dir");
 	}
 	unless ( Params::Util::_INSTANCE($self->user_agent, 'LWP::UserAgent') ) {
 		Carp::croak("Missing or invalid user_agent param");
@@ -1019,6 +1025,8 @@ sub install_perl_588 {
 			'lib/ExtUtils/Install.pm',
 			'lib/ExtUtils/Installed.pm',
 			'lib/ExtUtils/Packlist.pm',
+			'lib/ExtUtils/MM_Win32.pm',
+			'lib/CPAN/Config.pm',
 		],
 		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
@@ -1138,13 +1146,10 @@ sub install_perl_588_toolchain {
 	# Install the toolchain dists
 	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $automated_testing = 0;
+		my $release_testing   = 0;
 		my $force             = $self->force;
 		if ( $dist =~ /Scalar-List-Util/ ) {
 			# Does something weird with tainting
-			$force = 1;
-		}
-		if ( $dist =~ /File-Temp/ ) {
-			# Lock tests break
 			$force = 1;
 		}
 		if ( $dist =~ /Term-ReadLine-Perl/ ) {
@@ -1152,29 +1157,13 @@ sub install_perl_588_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		if ( $dist =~ /libwww/ ) {
-			# Tests break behind a proxy, so force them
-			$force = 1;
-		}
 		$self->install_distribution(
 			name              => $dist,
 			force             => $force,
 			automated_testing => $automated_testing,
+			release_testing   => $release_testing,
 		);
 	}
-
-	# Patch MakeMaker to avoid a bug with explicit dmake
-	$self->install_file(
-		share      => 'Perl-Dist MM_Win32_644.pm',
-		install_to => 'perl/lib/ExtUtils/MM_Win32.pm',
-	);
-
-	# With the toolchain we need in place, install the default
-	# configuation.
-	$self->install_file(
-		share      => 'Perl-Dist CPAN_Config.pm',
-		install_to => 'perl/lib/CPAN/Config.pm',
-	);
 
 	return 1;
 }
@@ -1182,9 +1171,6 @@ sub install_perl_588_toolchain {
 sub install_perl_588_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
-#		force        => {
-#			'ExtUtils::CBuilder' => 'KWILLIAMS/ExtUtils-CBuilder-0.21.tar.gz',
-#		},
 	);
 }
 
@@ -2080,7 +2066,11 @@ sub install_distribution {
 		if ( $dist->automated_testing ) {
 			$self->trace("Installing with AUTOMATED_TESTING enabled...\n");
 		}
-		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing ? 1 : '';
+		if ( $dist->release_testing ) {
+			$self->trace("Installing with RELEASE_TESTING enabled...\n");
+		}
+		local $ENV{AUTOMATED_TESTING} = $dist->automated_testing;
+		local $ENV{RELEASE_TESTING}   = $dist->release_testing;
 
 		$self->trace("Configuring $name...\n");
 		$self->_perl( 'Makefile.PL', @{$dist->makefilepl_param} );
@@ -2821,15 +2811,24 @@ sub _mirror {
 	File::Path::mkpath($dir);
 	$| = 1;
 
-	$self->trace("Downloading $url...\n");
-	my $ua = LWP::UserAgent::Determined->new;
-	my $r  = $ua->mirror( $url, $target );
-	if ( $r->is_error ) {
-		$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
-
-	} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
-		$self->trace("(already up to date)\n");
-
+	$self->trace("Downloading file $url...\n");
+	if ( $url =~ m|^file://| ) {
+		# Don't use Determined for files (it generates warnings)
+		my $ua = LWP::UserAgent->new;
+		my $r  = $ua->mirror( $url, $target );
+		if ( $r->is_error ) {
+			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
+		} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
+			$self->trace("(already up to date)\n");
+		}
+	} else {
+		my $ua = LWP::UserAgent::Determined->new;
+		my $r  = $ua->mirror( $url, $target );
+		if ( $r->is_error ) {
+			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
+		} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
+			$self->trace("(already up to date)\n");
+		}
 	}
 
 	return $target;

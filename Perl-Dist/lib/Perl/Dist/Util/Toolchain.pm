@@ -2,18 +2,23 @@ package Perl::Dist::Util::Toolchain;
 
 use 5.005;
 use strict;
-use Carp 'croak';
-use Params::Util '_HASH', '_ARRAY';
-use Module::CoreList    ();
-use IO::Capture::Stdout ();
-use IO::Capture::Stderr ();
-use base 'Process::Delegatable',
-         'Process::Storable',
-         'Process';
+use Carp                 ();
+use Params::Util         qw{ _HASH _ARRAY };
+use Module::CoreList     ();
+use IO::Capture::Stdout  ();
+use IO::Capture::Stderr  ();
+use Process::Delegatable ();
+use Process::Storable    ();
+use Process              ();
 
-use vars qw{$VERSION @DELEGATE};
+use vars qw{$VERSION @ISA @DELEGATE};
 BEGIN {
 	$VERSION  = '1.05';
+	@ISA      = qw{
+		Process::Delegatable
+		Process::Storable
+		Process
+	};
 	@DELEGATE = ();
 }
 
@@ -81,10 +86,10 @@ sub new {
 
 	# Check the Perl version
 	unless ( defined $self->perl_version ) {
-		croak("Did not provide a perl_version param");
+		Carp::croak("Did not provide a perl_version param");
 	}
 	unless ( $MODULES{$self->perl_version} ) {
-		croak("Perl version '" . $self->perl_version . "' is not supported in $class");
+		Carp::croak("Perl version '" . $self->perl_version . "' is not supported in $class");
 	}
 
 	# Populate the modules array if needed
@@ -96,12 +101,12 @@ sub new {
 	$self->{corelist} = $Module::CoreList::version{$self->perl_version}
 	                 || $Module::CoreList::version{$self->perl_version+0};
 	unless ( _HASH($self->{corelist}) ) {
-		croak("Failed to find module core versions for Perl " . $self->perl_version);
+		Carp::croak("Failed to find module core versions for Perl " . $self->perl_version);
 	}
 
 	# Check forced dists, if applicable
 	if ( $self->{force} and ! _HASH($self->{force}) ) {
-		croak("The force param must be a HASH reference");
+		Carp::croak("The force param must be a HASH reference");
 	}
 
 	# Create the distribution array

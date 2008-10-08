@@ -17,18 +17,17 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping multi-hour test' );
 		exit(0);
 	}
-	plan( tests => 11 );
+	plan( tests => 10 );
 }
 
-use File::Path ();
 use File::Spec::Functions ':ALL';
-use_ok( 't::lib::Test' );
+use t::lib::Test;
 
 # Create the dist object
-my $dist = t::lib::Test->new1;
+my $dist = t::lib::Test->new1(10);
 isa_ok( $dist, 't::lib::Test1' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );
-ok( -f "C:\\tmp\\sp\\image\\c\\bin\\dmake.exe", 'Found dmake.exe' );
-ok( -f "C:\\tmp\\sp\\image\\c\\bin\\startup\\Makefile.in", 'Found startup' );
+ok( -f catfile( qw{ t tmp10 image c bin dmake.exe } ), 'Found dmake.exe' );
+ok( -f catfile( qw{ t tmp10 image c bin startup Makefile.in } ), 'Found startup' );

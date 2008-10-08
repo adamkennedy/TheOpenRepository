@@ -1,11 +1,12 @@
 package t::lib::Test1;
 
 use strict;
-use base 'Perl::Dist::Inno';
+use Perl::Dist::Inno;
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Inno';
 }
 
 

@@ -12,7 +12,7 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	}
-	unless ( $ENV{TEST_PERLDIST_ALL} ) {
+	unless ( $ENV{RELEASE_TESTING} ) {
 		plan( skip_all => 'Skipping potentially destructive test' );
 		exit(0);
 	}
@@ -37,10 +37,7 @@ sub cpan_uri {
 #####################################################################
 # Constructor Test
 
-
 my $dist = Perl::Dist::Vanilla->new(
 	cpan => cpan_uri(),
 );
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
-
-1;

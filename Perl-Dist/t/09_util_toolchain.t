@@ -13,7 +13,7 @@ use Probe::Perl ();
 
 my $perl = Probe::Perl->find_perl_interpreter;
 @Perl::Dist::Util::Toolchain::DELEGATE = (
-	$perl, '-I' . File::Spec->catdir('blib', 'lib'),
+	$perl, '-Mblib',
 );
 
 

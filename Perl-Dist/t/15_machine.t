@@ -58,7 +58,7 @@ ok( $machine->add_option( 'baz', bar => 3 ), '->add_option ok' );
 
 # Get the full list of values
 my @all = $machine->all;
-is( scalar(@all), 6, 'Got 2 objects as expected' );
+is( scalar(@all), 6, 'Got 6 objects as expected' );
 foreach ( @all ) {
 	isa_ok( $_, 'My::TestPackage' );
 }

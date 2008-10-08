@@ -1,11 +1,12 @@
 package t::lib::Test3;
 
 use strict;
-use base 'Perl::Dist';
+use Perl::Dist ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist';
 }
 
 

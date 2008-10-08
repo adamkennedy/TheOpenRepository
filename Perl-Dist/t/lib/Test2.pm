@@ -1,11 +1,12 @@
 package t::lib::Test2;
 
 use strict;
-use base 'Perl::Dist';
+use Perl::Dist ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist';
 }
 
 
@@ -41,12 +42,6 @@ sub run {
 	# Install Perl 5.8.8
 	$self->install_perl_588;
 
-	# Install the CPAN configuration
-	$self->install_file(
-		share      => 'Perl-Dist Config.pm',
-		install_to => 'perl/lib/CPAN/Config.pm',
-	);
-
 	# Install a test distro
 	$self->install_distribution(
 		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
@@ -66,6 +61,10 @@ sub install_perl_588_bin {
 }
 
 sub install_perl_588_toolchain {
+	my $perl = Probe::Perl->find_perl_interpreter;
+	local @Perl::Dist::Util::Toolchain::DELEGATE = (
+		$perl, '-Mblib',
+	);
 	return shift->SUPER::install_perl_588_toolchain( @_, trace => sub { 1 } );
 }
 

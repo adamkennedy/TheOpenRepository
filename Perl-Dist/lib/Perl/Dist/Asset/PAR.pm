@@ -1,12 +1,14 @@
 package Perl::Dist::Asset::PAR;
-use strict;
-use Carp           'croak';
-use Params::Util   qw{ _STRING };
-use base 'Perl::Dist::Asset';
 
-use vars qw{$VERSION};
+use strict;
+use Carp              ();
+use Params::Util      qw{ _STRING };
+use Perl::Dist::Asset ();
+
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Asset';
 }
 
 use Object::Tiny qw{
@@ -92,7 +94,7 @@ sub new {
 
 	# Check params
 	unless ( _STRING($self->name) ) {
-		croak("Missing or invalid name param");
+		Carp::croak("Missing or invalid name param");
 	}
 
 	return $self;

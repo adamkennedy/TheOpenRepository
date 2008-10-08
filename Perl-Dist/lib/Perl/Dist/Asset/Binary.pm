@@ -43,13 +43,14 @@ This class inherits from L<Perl::Dist::Asset> and shares its API.
 =cut
 
 use strict;
-use Carp           'croak';
-use Params::Util   qw{ _STRING _HASH };
-use base 'Perl::Dist::Asset';
+use Carp              ();
+use Params::Util      qw{ _STRING _HASH };
+use Perl::Dist::Asset ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Asset';
 }
 
 use Object::Tiny qw{
@@ -123,10 +124,10 @@ sub new {
 
 	# Check params
 	unless ( _STRING($self->name) ) {
-		croak("Missing or invalid name param");
+		Carp::croak("Missing or invalid name param");
 	}
 	unless ( _STRING($self->install_to) or _HASH($self->install_to) ) {
-		croak("Missing or invalid install_to param");
+		Carp::croak("Missing or invalid install_to param");
 	}
 
 	return $self;

@@ -12,7 +12,7 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	}
-	unless ( $ENV{TEST_PERLDIST_ALL} ) {
+	unless ( $ENV{RELEASE_TESTING} ) {
 		plan( skip_all => 'Skipping potentially destructive test' );
 		exit(0);
 	}

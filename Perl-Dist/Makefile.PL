@@ -1,6 +1,7 @@
 use inc::Module::Install 0.76;
 
 all_from       'lib/Perl/Dist.pm';
+requires       'blib'                       => 0;
 requires       'Archive::Tar'               => '1.34'; 
 requires       'Archive::Zip'               => '1.20';
 requires       'File::Copy::Recursive'      => '0.25';

@@ -50,13 +50,14 @@ This class inherits from L<Perl::Dist::Asset> and shares its API.
 =cut
 
 use strict;
-use Carp         'croak';
-use Params::Util qw{ _STRING _HASH };
-use base 'Perl::Dist::Asset';
+use Carp              ();
+use Params::Util      qw{ _STRING _HASH };
+use Perl::Dist::Asset ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.05';
+	@ISA     = 'Perl::Dist::Asset';
 }
 
 use Object::Tiny qw{
@@ -90,19 +91,19 @@ sub new {
 
 	# Check params
 	unless ( _STRING($self->name) ) {
-		croak("Missing or invalid name param");
+		Carp::croak("Missing or invalid name param");
 	}
 	unless ( ! defined $self->license or _HASH($self->license) ) {
-		croak("Missing or invalid license param");
+		Carp::croak("Missing or invalid license param");
 	}
 	unless ( defined $self->unpack_to and ! ref $self->unpack_to ) {
-		croak("Missing or invalid unpack_to param");
+		Carp::croak("Missing or invalid unpack_to param");
 	}
 	unless ( _STRING($self->install_to) or _HASH($self->install_to) ) {
-		croak("Missing or invalid install_to param");
+		Carp::croak("Missing or invalid install_to param");
 	}
 	unless ( _HASH($self->build_a) ) {
-		croak("Missing or invalid build_a param");
+		Carp::croak("Missing or invalid build_a param");
 	}
 
 	return $self;

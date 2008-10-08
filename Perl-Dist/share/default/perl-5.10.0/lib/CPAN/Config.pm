@@ -3,11 +3,12 @@
 # defaults for users, and the values can be changed in a per-user
 # configuration file. The user-config file is being looked for as
 # ~/.cpan/CPAN/MyConfig.pm.
+use File::Spec ();
 
 $CPAN::Config = {
   'cpan_home' => File::Spec->catdir( File::Spec->tmpdir, 'cpan' ),
   'make' => q[], # should autodetect from path
-  'urllist' => [ q[http://mirrors.kernel.org/CPAN/] ],
+  'urllist' => [ q[http://cpan.strawberryperl.com/] ],
   'prerequisites_policy' => q[follow],
   'make_install_arg' => q[UNINST=1],
   'mbuild_install_arg' => q[--uninst 1],
