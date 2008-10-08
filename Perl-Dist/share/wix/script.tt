@@ -28,9 +28,15 @@
 			<RemoveExistingProducts After="InstallInitialize" />
 		</InstallExecuteSequence>
 
+		[%# Main File Set %]
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="_D4EEEA6C854FE3699D3A8CCBF95FD57A" Name="strawberry">
+			</Directory>
+		</Directory>
 
 
-		[%# Main Content Goes Here %]
+
+		[%# Additional Content Here %]
 
 
 

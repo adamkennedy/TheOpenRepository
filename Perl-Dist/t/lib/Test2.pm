@@ -56,6 +56,14 @@ sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );
 }
 
+sub install_distribution {
+	return shift->SUPER::install_distribution( @_, trace => sub { 1 } );
+}
+
+sub install_file {
+	return shift->SUPER::install_file( @_, trace => sub { 1 } );
+}
+
 sub install_perl_588_bin {
 	return shift->SUPER::install_perl_588_bin( @_, trace => sub { 1 } );
 }
@@ -66,14 +74,6 @@ sub install_perl_588_toolchain {
 		$perl, '-Mblib',
 	);
 	return shift->SUPER::install_perl_588_toolchain( @_, trace => sub { 1 } );
-}
-
-sub install_distribution {
-	return shift->SUPER::install_distribution( @_, trace => sub { 1 } );
-}
-
-sub install_file {
-	return shift->SUPER::install_file( @_, trace => sub { 1 } );
 }
 
 1;

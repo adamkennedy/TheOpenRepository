@@ -1021,11 +1021,11 @@ sub install_perl_588 {
 		name       => 'perl',
 		url        => 'http://strawberryperl.com/package/perl-5.8.8.tar.gz',
 		unpack_to  => 'perl',
+		install_to => 'perl',
 		patch      => [
 			'lib/ExtUtils/Install.pm',
 			'lib/ExtUtils/Installed.pm',
 			'lib/ExtUtils/Packlist.pm',
-			'lib/ExtUtils/MM_Win32.pm',
 			'lib/CPAN/Config.pm',
 		],
 		license    => {
@@ -1033,7 +1033,6 @@ sub install_perl_588 {
 			'perl-5.8.8/Artistic' => 'perl/Artistic',
 			'perl-5.8.8/Copying'  => 'perl/Copying',
 		},
-		install_to => 'perl',
 	);
 
 	# Upgrade the toolchain modules
@@ -1165,6 +1164,15 @@ sub install_perl_588_toolchain {
 		);
 	}
 
+	# Patch MakeMaker
+	# $self->patch_file(
+	#	'perl-5.8.8/lib/ExtUtils/MM_Win32.pm',
+	#	File::Spec->catdir(
+	#		$self->image_dir,
+	#		'perl',
+	#	),
+	#);
+
 	return 1;
 }
 
@@ -1204,16 +1212,15 @@ sub install_perl_5100 {
 		name       => 'perl',
                 url        => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
 		unpack_to  => 'perl',
-		patch      => {
-			'ExtUtils_Command5100.pm' => 'lib\ExtUtils\Command.pm',
-#			'eu_command5100.t'        => 'lib\ExtUtils\t\eu_command.t',
-		},
+		install_to => 'perl',
+		patch      => [
+			'lib\ExtUtils\Command.pm',
+		],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
 			'perl-5.10.0/Artistic' => 'perl/Artistic',
 			'perl-5.10.0/Copying'  => 'perl/Copying',
 		},
-		install_to => 'perl',
 	);
 
 	# Install the toolchain
@@ -1292,12 +1299,9 @@ sub install_perl_5100_bin {
 	# Pre-copy updated files over the top of the source
 	my $patch = $perl->patch;
 	if ( $patch ) {
-		foreach my $f ( sort keys %$patch ) {
-			my $from = File::ShareDir::dist_file( 'Perl-Dist', $f );
-			my $to   = File::Spec->catfile(
-				$unpack_to, $perlsrc, $patch->{$f},
-			);
-			$self->_copy( $from => $to );
+		# Overwrite the appropriate files
+		foreach my $file ( @$patch ) {
+			$self->patch_file( "perl-5.10.0/$file" => $unpack_to );
 		}
 	}
 

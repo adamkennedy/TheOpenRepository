@@ -81,8 +81,7 @@ sub new2 {
 sub new3 {
 	my $class = shift;
 	my @paths = $class->paths(@_);
-	my $cpan  = $class->cpan;
-	return t::lib::Test3->new( cpan => $cpan, perl_version => 588, @paths );
+	return t::lib::Test3->new( perl_version => 5100, @paths );
 }
 
 1;

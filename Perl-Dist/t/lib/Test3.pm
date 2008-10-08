@@ -59,21 +59,10 @@ sub run {
 	# Install Perl 5.10.0
 	$self->install_perl_5100;
 
-	# Install the CPAN configuration
-	# $self->install_file(
-	#	share      => 'Perl-Dist Config.pm',
-	#	install_to => 'perl/lib/CPAN/Config.pm',
-	# );
-
 	# Install a test distro
 	$self->install_distribution(
 		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
 	);
-
-	# Generate the exe file
-	my $output = $self->write_exe;
-	print "Generated $output\n";
-	return 1;
 }
 
 sub trace { Test::More::diag($_[1]) }
@@ -95,6 +84,10 @@ sub install_perl_5100_bin {
 }
 
 sub install_perl_5100_toolchain {
+	my $perl = Probe::Perl->find_perl_interpreter;
+	local @Perl::Dist::Util::Toolchain::DELEGATE = (
+		$perl, '-Mblib',
+	);
 	return shift->SUPER::install_perl_5100_toolchain( @_, trace => sub { 1 } );
 }
 

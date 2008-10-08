@@ -8,6 +8,7 @@ BEGIN {
 
 # Skip if not on Windows
 use Test::More;
+use LWP::Online ':skip_all';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -17,21 +18,54 @@ BEGIN {
 		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
 		exit(0);
 	}
-	unless ( $ENV{TEST_PERLDIST_CPAN} ) {
-		plan( skip_all => 'Skipping multi-hour tests that require a live CPAN mirror' );
-		exit(0);
-	}
-	plan( tests => 8 );
+	plan( tests => 13 );
 }
 
-use File::Path ();
 use File::Spec::Functions ':ALL';
-use_ok( 't::lib::Test' );
+use t::lib::Test;
 
 # Create the dist object
-my $dist = t::lib::Test->new3;
+my $dist = t::lib::Test->new3(12);
 isa_ok( $dist, 't::lib::Test3' );
 
 # Run the dist object, and ensure everything we expect was created
 diag( "Building test dist, may take up to an hour... (sorry)" );
 ok( $dist->run, '->run ok' );
+
+# C toolchain files
+ok(
+	-f catfile( qw{ t tmp11 image c bin dmake.exe } ),
+	'Found dmake.exe',
+);
+ok(
+	-f catfile( qw{ t tmp11 image c bin startup Makefile.in } ),
+	'Found startup',
+);
+ok(
+	-f catfile( qw{ t tmp11 image c bin pexports.exe } ),
+	'Found pexports',
+);
+
+# Perl core files
+ok(
+	-f catfile( qw{ t tmp11 image perl bin perl.exe } ),
+	'Found perl.exe',
+);
+
+# Toolchain files
+ok(
+	-f catfile( qw{ t tmp11 image perl site lib LWP.pm } ),
+	'Found LWP.pm',
+);
+
+# Custom installed file
+ok(
+	-f catfile( qw{ t tmp11 image perl site lib Config Tiny.pm } ),
+	'Found Config::Tiny',
+);
+
+# Did we build 5.10.0?
+ok(
+	-f catfile( qw{ t tmp11 image perl bin perl510.dll } ),
+	'Found Perl 5.10.0 DLL',
+);

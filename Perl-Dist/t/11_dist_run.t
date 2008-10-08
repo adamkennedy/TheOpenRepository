@@ -18,7 +18,7 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping (very) long test' );
 		exit(0);
 	}
-	plan( tests => 14 );
+	plan( tests => 13 );
 }
 
 use File::Spec::Functions ':ALL';
@@ -31,6 +31,7 @@ isa_ok( $dist, 't::lib::Test2' );
 # Run the dist object, and ensure everything we expect was created
 diag( "Building test dist, may take up to an hour..." );
 ok( $dist->run, '->run ok' );
+
 # C toolchain files
 ok(
 	-f catfile( qw{ t tmp11 image c bin dmake.exe } ),
@@ -61,4 +62,10 @@ ok(
 ok(
 	-f catfile( qw{ t tmp11 image perl site lib Config Tiny.pm } ),
 	'Found Config::Tiny',
+);
+
+# Did we build 5.8.8?
+ok(
+	-f catfile( qw{ t tmp11 image perl bin perl588.dll } ),
+	'Found Perl 5.8.8 DLL',
 );
