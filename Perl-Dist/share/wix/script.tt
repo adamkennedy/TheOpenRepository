@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product
+		Id="[% dist.product_id %]"
+		Language="1033"
+		Manufacturer="[% dist.product_manufacturer %]"
+		Name="[% dist.product_name %]"
+		UpgradeCode="[% dist.product_upgrade_code %]"
+		Version="[% dist.product_version %]"
+	>
+
+	[%# Upgrade Support %]
+	<Upgrade Id="[% dist.product_upgrade_code %]">
+		<UpgradeVersion
+			Minimum="$(var.ProductVersion)"
+			OnlyDetect="yes"
+			Property="NEWERVERSIONDETECTED"
+		/>
+		<UpgradeVersion
+			Minimum="5.0.0.0"
+			IncludeMinimum="yes"
+			Maximum="$(var.ProductVersion)"
+			IncludeMaximum="no"
+			Property="OLDERVERSIONBEINGUPGRADED"
+		/>
+	</Upgrade>
+	<InstallExecuteSequence>
+		<RemoveExistingProducts After="InstallInitialize" />
+	</InstallExecuteSequence>
+
+
+
+
+	[%# Main Content Goes Here %]
+
+
+
+
+	</Product>
+</Wix>
