@@ -905,6 +905,50 @@ sub install_perl {
 	$self->$install_perl_method(@_);
 }
 
+sub install_perl_toolchain {
+	my $self      = shift;
+	my $toolchain = @_
+		? _INSTANCE($_[0], 'Perl::Dist::Util::Toolchain')
+		: Perl::Dist::Util::Toolchain->new(
+			perl_version => $self->perl_version_literal,
+		);
+	unless ( $toolchain ) {
+		die("Did not provide a toolchain resolver");
+	}
+
+	# Get the regular Perl to generate the list.
+	# Run it in a separate process so we don't hold
+	# any permanent CPAN.pm locks.
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
+		die("Failed to generate toolchain distributions");
+	}
+
+	# Install the toolchain dists
+	foreach my $dist ( @{$toolchain->{dists}} ) {
+		my $automated_testing = 0;
+		my $release_testing   = 0;
+		my $force             = $self->force;
+		if ( $dist =~ /Scalar-List-Util/ ) {
+			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /Term-ReadLine-Perl/ ) {
+			# Does evil things when testing, and
+			# so testing cannot be automated.
+			$automated_testing = 1;
+		}
+		$self->install_distribution(
+			name              => $dist,
+			force             => $force,
+			automated_testing => $automated_testing,
+			release_testing   => $release_testing,
+		);
+	}
+
+	return 1;
+}
+
 # No additional modules by default
 sub install_perl_modules {
 	my $self = shift;
@@ -1036,7 +1080,7 @@ sub install_perl_588 {
 	);
 
 	# Upgrade the toolchain modules
-	$self->install_perl_588_toolchain;
+	$self->install_perl_toolchain;
 
 	return 1;
 }
@@ -1130,58 +1174,6 @@ sub install_perl_588_bin {
 	return 1;
 }
 
-sub install_perl_588_toolchain {
-	my $self      = shift;
-	my $toolchain = $self->install_perl_588_toolchain_object;
-
-	# Get the regular Perl to generate the list.
-	# Run it in a separate process so we don't hold
-	# any permanent CPAN.pm locks.
-	$toolchain->delegate;
-	if ( $toolchain->{errstr} ) {
-		die("Failed to generate toolchain distributions");
-	}
-
-	# Install the toolchain dists
-	foreach my $dist ( @{$toolchain->{dists}} ) {
-		my $automated_testing = 0;
-		my $release_testing   = 0;
-		my $force             = $self->force;
-		if ( $dist =~ /Scalar-List-Util/ ) {
-			# Does something weird with tainting
-			$force = 1;
-		}
-		if ( $dist =~ /Term-ReadLine-Perl/ ) {
-			# Does evil things when testing, and
-			# so testing cannot be automated.
-			$automated_testing = 1;
-		}
-		$self->install_distribution(
-			name              => $dist,
-			force             => $force,
-			automated_testing => $automated_testing,
-			release_testing   => $release_testing,
-		);
-	}
-
-	# Patch MakeMaker
-	# $self->patch_file(
-	#	'perl-5.8.8/lib/ExtUtils/MM_Win32.pm',
-	#	File::Spec->catdir(
-	#		$self->image_dir,
-	#		'perl',
-	#	),
-	#);
-
-	return 1;
-}
-
-sub install_perl_588_toolchain_object {
-	Perl::Dist::Util::Toolchain->new(
-		perl_version => $_[0]->perl_version_literal,
-	);
-}
-
 
 
 
@@ -1214,7 +1206,8 @@ sub install_perl_5100 {
 		unpack_to  => 'perl',
 		install_to => 'perl',
 		patch      => [
-			'lib\ExtUtils\Command.pm',
+			'lib/ExtUtils/Command.pm',
+			'lib/Shell/Command.pm',
 		],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
@@ -1224,7 +1217,14 @@ sub install_perl_5100 {
 	);
 
 	# Install the toolchain
-	$self->install_perl_5100_toolchain;
+	$self->install_perl_toolchain(
+		Perl::Dist::Util::Toolchain->new(
+			perl_version => $_[0]->perl_version_literal,
+			force        => {
+				'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
+			},
+		)
+	);
 
 	return 1;
 }
@@ -1354,64 +1354,6 @@ sub install_perl_5100_bin {
 	# $self->add_env_include( 'perl', 'lib', 'CORE' );
 
 	return 1;
-}
-
-sub install_perl_5100_toolchain {
-	my $self      = shift;
-	my $toolchain = $self->install_perl_5100_toolchain_object;
-
-	# Get the regular Perl to generate the list.
-	# Run it in a separate process so we don't hold
-	# any permanent CPAN.pm locks.
-	$toolchain->delegate;
-	if ( $toolchain->{errstr} ) {
-		die "Failed to generate toolchain distributions";
-	}
-
-	# Install the toolchain dists
-	foreach my $dist ( @{$toolchain->{dists}} ) {
-		my $automated_testing = 0;
-		my $force             = $self->force;
-		if ( $dist =~ /Scalar-List-Util/ ) {
-			# Does something weird with tainting
-			$force = 1;
-		}
-		if ( $dist =~ /File-Temp/ ) {
-			# Lock tests break
-			$force = 1;
-		}
-		if ( $dist =~ /Term-ReadLine-Perl/ ) {
-			# Does evil things when testing, and
-			# so testing cannot be automated.
-			$automated_testing = 1;
-		}
-		if ( $dist =~ /libwww/ ) {
-			# Tests break behind a proxy, so force them
-			$force = 1;
-		}
-		$self->install_distribution(
-			name              => $dist,
-			force             => $force,
-			automated_testing => $automated_testing,
-		);
-	}
-
-	# Patch MakeMaker to avoid a bug with explicit dmake
-	$self->install_file(
-		share      => 'Perl-Dist MM_Win32_644.pm',
-		install_to => 'perl/lib/ExtUtils/MM_Win32.pm',
-	);
-
-	return 1;
-}
-
-sub install_perl_5100_toolchain_object {
-	Perl::Dist::Util::Toolchain->new(
-		perl_version => $_[0]->perl_version_literal,
-		force        => {
-			'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
-		},
-	);
 }
 
 
