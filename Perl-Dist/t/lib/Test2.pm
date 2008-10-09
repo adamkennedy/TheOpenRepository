@@ -69,10 +69,6 @@ sub install_perl_588_bin {
 }
 
 sub install_perl_588_toolchain {
-	my $perl = Probe::Perl->find_perl_interpreter;
-	local @Perl::Dist::Util::Toolchain::DELEGATE = (
-		$perl, '-Mblib',
-	);
 	return shift->SUPER::install_perl_588_toolchain( @_, trace => sub { 1 } );
 }
 

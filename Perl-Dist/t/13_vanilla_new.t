@@ -16,7 +16,7 @@ BEGIN {
 		plan( skip_all => 'Skipping potentially destructive test' );
 		exit(0);
 	}
-	plan( tests => 3 );
+	plan( tests => 5 );
 }
 
 use File::Spec::Functions ':ALL';
@@ -41,3 +41,5 @@ my $dist = Perl::Dist::Vanilla->new(
 	cpan => cpan_uri(),
 );
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
+is( ref($dist->patch_include_path), 'ARRAY', '->patch_include_path ok' );
+is( scalar(@{$dist->patch_include_path}), 2, 'Two include path entries' );

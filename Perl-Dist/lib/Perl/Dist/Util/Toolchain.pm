@@ -20,6 +20,14 @@ BEGIN {
 		Process
 	};
 	@DELEGATE = ();
+
+	# Automatically handle delegation within the test suite
+	if ( $ENV{HARNESS_ACTIVE} ) {
+		require Probe::Perl;
+		@DELEGATE = (
+			Probe::Perl->find_perl_interpreter, '-Mblib',
+		);
+	}
 }
 
 my %MODULES = (

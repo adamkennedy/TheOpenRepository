@@ -196,7 +196,7 @@ CRYPT_SRC	*= fcrypt.c
 .IF "$(CCTYPE)" == "BORLAND"
 CCHOME		*= C:\Borland\BCC55
 .ELIF "$(CCTYPE)" == "GCC"
-CCHOME		*= [% inno.image_dir %]\c
+CCHOME		*= [% dist.image_dir %]\c
 .ELSE
 CCHOME		*= $(MSVCDIR)
 .ENDIF

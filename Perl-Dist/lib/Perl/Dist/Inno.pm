@@ -1098,7 +1098,7 @@ sub install_perl_588_bin {
 
 		$self->trace("Patching makefile.mk\n");
 		$self->patch_file( 'perl-5.8.8/win32/makefile.mk' => $unpack_to, {
-			inno     => $self,
+			dist     => $self,
 			INST_DRV => $INST_DRV,
 			INST_TOP => $INST_TOP,
 		} );
@@ -1318,30 +1318,16 @@ sub install_perl_5100_bin {
 		);
 
 		# Prepare to patch
-		my $image_dir    = $self->image_dir;
-		my $perl_install = File::Spec->catdir( $self->image_dir, $perl->install_to );
-		my ($vol,$short_install) = File::Spec->splitpath( $perl_install, 1 );
-		SCOPE: {
-			$self->trace("Patching makefile.mk\n");
+		my $image_dir  = $self->image_dir;
+		my $INST_TOP   = File::Spec->catdir( $self->image_dir, $perl->install_to );
+		my ($INST_DRV) = File::Spec->splitpath( $INST_TOP, 1 );
 
-			# Read in the makefile
-			local *MAKEFILE;
-			local $/ = undef;
-			open( MAKEFILE, 'makefile.mk' ) or die "open: $!";
-			my $makefile_mk = <MAKEFILE>;
-			close( MAKEFILE ) or die "close: $!";
-			$makefile_mk =~ s/(?:\015{1,2}\012|\015|\012)/\n/sg;
-
-			# Apply the changes
-			$makefile_mk =~ s/^(INST_DRV\s+\*=\s+).+?(\n)/$1$vol$2/m;
-			$makefile_mk =~ s/^(INST_TOP\s+\*=\s+).+?(\n)/$1$perl_install$2/m;
-			$makefile_mk =~ s/C\:\\MinGW/$image_dir\\c/;
-
-			# Write out the makefile
-			open ( MAKEFILE, '>makefile.mk' ) or die "open: $!";
-			print( MAKEFILE $makefile_mk    ) or die "print: $!";
-			close( MAKEFILE                 ) or die "close: $!";
-		}
+		$self->trace("Patching makefile.mk\n");
+		$self->patch_file( 'perl-5.10.0/win32/makefile.mk' => $unpack_to, {
+			dist     => $self,
+			INST_DRV => $INST_DRV,
+			INST_TOP => $INST_TOP,
+		} );
 
 		$self->trace("Building perl...\n");
 		$self->_make;

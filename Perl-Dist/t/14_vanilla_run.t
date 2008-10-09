@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More;
+use LWP::Online ':skip_all';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -16,19 +17,10 @@ BEGIN {
 		plan( skip_all => 'Skipping potentially destructive test' );
 		exit(0);
 	}
-	plan( tests => 3 );
+	plan( tests => 2 );
 }
 
-use File::Spec::Functions ':ALL';
 use Perl::Dist::Vanilla   ();
-use URI::file             ();
-
-sub cpan_uri {
-	my $path  = rel2abs( catdir( 't', 'data', 'cpan' ) );
-	ok( -d $path, 'Found CPAN directory' );
-	ok( -d catdir( $path, 'authors', 'id' ), 'Found id subdirectory' );
-	return URI::file->new($path . '\\');
-}
 
 
 
@@ -37,7 +29,6 @@ sub cpan_uri {
 #####################################################################
 # Constructor Test
 
-my $dist = Perl::Dist::Vanilla->new(
-	cpan => cpan_uri(),
-);
+my $dist = Perl::Dist::Vanilla->new;
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
+ok( $dist->run, '->run ok' );

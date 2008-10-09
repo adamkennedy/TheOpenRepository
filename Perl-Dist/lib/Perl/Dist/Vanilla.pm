@@ -88,15 +88,15 @@ sub install_perl_5100_bin {
 
 	# Overwrite the CPAN config to be relocatable
 	$self->install_file(
-		share      => 'Perl-Dist vanilla/Config5100.pm',
+		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config.pm',
 		install_to => 'perl/lib/Config.pm',
 	);
 	$self->install_file(
-		share      => 'Perl-Dist vanilla/Config_heavy5100.pl',
+		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config_heavy.pl',
 		install_to => 'perl/lib/Config_heavy.pl',
 	);
 	$self->install_file(
-		share      => 'Perl-Dist vanilla/CPAN_Config.pm',
+		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/CPAN/Config.pm',
 		install_to => 'perl/lib/CPAN/Config.pm',
 	);
 
@@ -106,10 +106,10 @@ sub install_perl_5100_bin {
 sub install_perl_5100_toolchain_object {
 	Perl::Dist::Util::Toolchain->new(
 		perl_version => $_[0]->perl_version_literal,
-		force        => {
-			'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
-			# 'CPAN'       => 'ANDK/CPAN-1.92_60.tar.gz',
-		},
+		# force        => {
+		#	'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
+		#	'CPAN'       => 'ANDK/CPAN-1.92_60.tar.gz',
+		# },
 	);
 }
 
@@ -151,9 +151,9 @@ sub patch_include_path {
 
 	# Add the extra vanilla directory
 	my $perl  = $self->perl_version_human;
-	my $share = File::ShareDir::dist_dir('Perl::Dist');
+	my $share = File::ShareDir::dist_dir('Perl-Dist');
 	my $path  = File::Spec->catdir(
-		$share, 'vanilla', $perl,
+		$share, 'vanilla',
 	);
 	unless ( -d $path ) {
 		die("Directory $path does not exist");
@@ -262,18 +262,6 @@ Once installed, you should add to the following environment variables.
     * add directories to PATH
         - C:\vanilla\c\bin
         - C:\vanilla\perl\bin 
-
-    * add directories to LIB
-        - C:\vanilla\c\lib
-        - C:\vanilla\perl\bin
-
-    * add directories to INCLUDE 
-        - C:\vanilla\c\include 
-        - C:\vanilla\perl\lib\CORE 
-
-LIB and INCLUDE changes are likely more than are necessary, but attempt to
-head off potential problems compiling external programs for use with Perl
-and various CPAN modules.
 
 The "cpan" program is pre-configured with a known-good setup, but you may
 wish to reconfigure it.
