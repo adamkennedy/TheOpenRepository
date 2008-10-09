@@ -34,38 +34,38 @@ ok( $dist->run, '->run ok' );
 
 # C toolchain files
 ok(
-	-f catfile( qw{ t tmp11 image c bin dmake.exe } ),
+	-f catfile( qw{ t tmp12 image c bin dmake.exe } ),
 	'Found dmake.exe',
 );
 ok(
-	-f catfile( qw{ t tmp11 image c bin startup Makefile.in } ),
+	-f catfile( qw{ t tmp12 image c bin startup Makefile.in } ),
 	'Found startup',
 );
 ok(
-	-f catfile( qw{ t tmp11 image c bin pexports.exe } ),
+	-f catfile( qw{ t tmp12 image c bin pexports.exe } ),
 	'Found pexports',
 );
 
 # Perl core files
 ok(
-	-f catfile( qw{ t tmp11 image perl bin perl.exe } ),
+	-f catfile( qw{ t tmp12 image perl bin perl.exe } ),
 	'Found perl.exe',
 );
 
 # Toolchain files
 ok(
-	-f catfile( qw{ t tmp11 image perl site lib LWP.pm } ),
+	-f catfile( qw{ t tmp12 image perl site lib LWP.pm } ),
 	'Found LWP.pm',
 );
 
 # Custom installed file
 ok(
-	-f catfile( qw{ t tmp11 image perl site lib Config Tiny.pm } ),
+	-f catfile( qw{ t tmp12 image perl site lib Config Tiny.pm } ),
 	'Found Config::Tiny',
 );
 
 # Did we build 5.10.0?
 ok(
-	-f catfile( qw{ t tmp11 image perl bin perl510.dll } ),
+	-f catfile( qw{ t tmp12 image perl bin perl510.dll } ),
 	'Found Perl 5.10.0 DLL',
 );

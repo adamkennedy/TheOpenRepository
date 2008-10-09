@@ -1066,12 +1066,17 @@ sub install_perl_588 {
 		url        => 'http://strawberryperl.com/package/perl-5.8.8.tar.gz',
 		unpack_to  => 'perl',
 		install_to => 'perl',
-		patch      => [
-			'lib/ExtUtils/Install.pm',
-			'lib/ExtUtils/Installed.pm',
-			'lib/ExtUtils/Packlist.pm',
-			'lib/CPAN/Config.pm',
-		],
+		patch      => [ qw{
+			lib/ExtUtils/Install.pm
+			lib/ExtUtils/Installed.pm
+			lib/ExtUtils/Packlist.pm
+			lib/ExtUtils/t/Install.t
+			lib/ExtUtils/t/Installapi2.t
+			lib/ExtUtils/t/Packlist.t
+			lib/ExtUtils/t/basic.t
+			lib/ExtUtils/t/can_write_dir.t
+			lib/CPAN/Config.pm
+		} ],
 		license    => {
 			'perl-5.8.8/Readme'   => 'perl/Readme',
 			'perl-5.8.8/Artistic' => 'perl/Artistic',
@@ -1206,7 +1211,7 @@ sub install_perl_5100 {
 		unpack_to  => 'perl',
 		install_to => 'perl',
 		patch      => [
-			'lib/ExtUtils/Command.pm',
+			lib/ExtUtils/Command.pm
 		],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
