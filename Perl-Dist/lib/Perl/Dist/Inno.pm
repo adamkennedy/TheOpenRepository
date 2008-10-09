@@ -1207,7 +1207,6 @@ sub install_perl_5100 {
 		install_to => 'perl',
 		patch      => [
 			'lib/ExtUtils/Command.pm',
-			'lib/Shell/Command.pm',
 		],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
@@ -1219,7 +1218,7 @@ sub install_perl_5100 {
 	# Install the toolchain
 	$self->install_perl_toolchain(
 		Perl::Dist::Util::Toolchain->new(
-			perl_version => $_[0]->perl_version_literal,
+			perl_version => $self->perl_version_literal,
 			force        => {
 				'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
 			},
