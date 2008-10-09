@@ -12,7 +12,7 @@ use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION);
 @ISA       = qw(Exporter);
 @EXPORT    = qw(cp rm_f rm_rf mv cat eqtime mkpath touch test_f test_d chmod
                 dos2unix);
-$VERSION = '1.14';
+$VERSION = '1.13';
 
 my $Is_VMS = $^O eq 'VMS';
 
@@ -210,6 +210,9 @@ sub cp {
     my $nok = 0;
     foreach my $src (@src) {
         $nok ||= !copy($src,$dst);
+        my $atime = time;
+	my $mtime = time;
+        utime($atime, $mtime, $dst);
     }
     return $nok;
 }
