@@ -908,7 +908,7 @@ sub install_perl {
 sub install_perl_toolchain {
 	my $self      = shift;
 	my $toolchain = @_
-		? _INSTANCE($_[0], 'Perl::Dist::Util::Toolchain')
+		? Params::Util::_INSTANCE($_[0], 'Perl::Dist::Util::Toolchain')
 		: Perl::Dist::Util::Toolchain->new(
 			perl_version => $self->perl_version_literal,
 		);
