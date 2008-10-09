@@ -13,7 +13,7 @@ use Term::ReadKey;
 use App::FQStat::Drawing qw/printline update_display/;
 require App::FQStat::Actions;
 use App::FQStat::Debug;
-use App::FQStat::Config qw(get_color);
+use App::FQStat::Colors qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (

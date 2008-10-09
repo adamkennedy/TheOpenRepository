@@ -10,7 +10,7 @@ use warnings;
 use Time::HiRes qw/sleep time/;
 use Term::ANSIScreen qw/RESET locate clline cls/;
 use App::FQStat::Debug;
-use App::FQStat::Config qw(get_color);
+use App::FQStat::Colors qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (

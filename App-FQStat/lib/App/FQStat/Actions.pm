@@ -13,7 +13,8 @@ use Term::ANSIScreen qw/RESET locate clline cls/;
 use App::FQStat::Drawing qw/printline update_display/;
 use App::FQStat::Input qw/poll_user get_input_key select_multiple_jobs select_job/;
 use App::FQStat::Debug;
-use App::FQStat::Config qw/get_config set_config get_color/;
+use App::FQStat::Config qw/get_config set_config/;
+use App::FQStat::Colors qw/get_color/;
 
 
 ####################
@@ -581,6 +582,32 @@ sub show_job_log {
   return 1; # doesn't happen
 }
 
+
+sub delete_color_scheme {
+  warnenter if ::DEBUG;
+  my $name = poll_user("Delete which color scheme? ");
+  if ($name =~ /^\s*(\w+)\s*$/i) {
+    my $schemeName = lc($1);
+    return 1 if $schemeName eq 'default';
+    my $schemes = get_config("color_schemes");
+    if (exists($schemes->{$schemeName})) {
+      delete $schemes->{$schemeName};
+    }
+  }
+  return 1;
+}
+
+sub save_color_scheme {
+  warnenter if ::DEBUG;
+  my $name = poll_user("Save as which color scheme? ");
+  if ($name =~ /^\s*(\w+)\s*$/i) {
+    my $schemeName = lc($1);
+    return 1 if $schemeName eq 'default';
+    my $schemes = get_config("color_schemes");
+    $schemes->{$schemeName} = {%{ get_config('colors') }};
+  }
+  return 1;
+}
 
 
 sub show_manual {

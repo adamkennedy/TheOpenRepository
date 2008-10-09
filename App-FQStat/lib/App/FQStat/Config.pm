@@ -19,7 +19,6 @@ our %EXPORT_TAGS = (
   'all' => [qw(
     get_config
     set_config
-    get_color
   )],
 );
 our @EXPORT_OK = @{$EXPORT_TAGS{'all'}};
@@ -105,36 +104,6 @@ sub reset_configuration {
 
 sub _default_config {
   warnenter if ::DEBUG;
-  my $defaultColors = {
-    initializing         => 'black on green',
-    reverse_indicator    => 'blue on white',
-
-    header_highlight     => 'bold white on red',
-    header_warning       => 'bold red on black',
-    header_normal        => 'bold white on black',
-
-    status_running       => 'black on green',
-    status_error         => 'black on red',
-    status_hold          => 'black on yellow',
-    status_queued        => 'blue on white',
-    status_fallback      => 'black on yellow',
-
-    scrollbar_fg         => 'black on white',
-    scrollbar_bg         => 'white on black',
-
-    user_highlight       => 'bold white on blue',
-    
-    menu_normal          => 'bold white on blue',
-    menu_selected        => 'bold white on red',
-
-    user_input           => "bold red on black",
-    user_instructions    => "bold red on white",
-
-    selected_job         => "blue on white",
-    selected_cursor      => "black on red",
-
-    warning              => "red",
-  };
   my %default = (
     persistent => 1,
     qstatcmd => 'qstat',
@@ -143,10 +112,12 @@ sub _default_config {
     qmodcmd => 'qmod',
     sshcommand => '',
     version => $App::FQStat::VERSION,
-    colors => $defaultColors,
+    colors => $App::FQStat::Colors::DefaultColors,
+    color_schemes => $App::FQStat::Colors::DefaultColorSchemes,
   );
 
-  my %upgrades = (
+  my %upgrades;
+  %upgrades = (
     old => sub {
       my $cfg = shift;
       %$cfg = %default;
@@ -154,7 +125,13 @@ sub _default_config {
     },
     '6.0' => sub {
       my $cfg = shift;
-      $cfg->{colors} = $defaultColors;
+      $cfg->{colors} = $App::FQStat::Colors::DefaultColors;
+      $upgrades{6.1}->($cfg);
+      save_configuration();
+    },
+    '6.1' => sub {
+      my $cfg = shift;
+      $cfg->{color_schemes} = $App::FQStat::Colors::DefaultColorSchemes;
       save_configuration();
     },
   );
@@ -207,17 +184,6 @@ sub edit_configuration {
   }
   return();
 }
-
-sub get_color {
-  warnenter if ::DEBUG > 1;
-  my $color = shift;
-  my $colors = get_config('colors') || {};
-  if (not defined $colors->{$color}) {
-    die "Could not determine color scheme for use '$color'.";
-  }
-  return Term::ANSIScreen::color( $colors->{$color} );
-}
-
 
 1;
 

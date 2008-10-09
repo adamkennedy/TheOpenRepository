@@ -9,7 +9,8 @@ use strict;
 use warnings;
 use Term::ANSIScreen qw/RESET :cursor/;
 use App::FQStat::Debug;
-use App::FQStat::Config qw(get_color);
+use App::FQStat::Config qw(get_config);
+use App::FQStat::Colors qw(get_color);
 
 use base 'Exporter';
 our %EXPORT_TAGS = (
@@ -48,6 +49,10 @@ our @Menus = (
       { name => 'Menu',  action => \&App::FQStat::Menu::close_menu, },
       { name => 'Quit',  action => \&main::cleanup_and_exit, },
   ], },
+  {
+    width => 8, name => 'Colors', entries => \&App::FQStat::Colors::get_color_scheme_menu_entries,
+    nEntries => \&App::FQStat::Colors::get_n_color_scheme_entries,
+  },
 );
 
 # Set cumulative width
@@ -101,6 +106,7 @@ sub draw_menu {
 
   my $menu = $Menus[$::MenuNumber];
   my $thisEntries = $menu->{entries};
+  $thisEntries = $thisEntries->() if ref($thisEntries) eq 'CODE';
   my $startx = $menu->{startx};
   draw_menubox($startx, $startx + $menu->{width}+2, $menu->{name}, $thisEntries, $::MenuEntryNumber);
 
@@ -136,7 +142,7 @@ sub menu_up {
   warnenter if ::DEBUG > 1;
   return if not $::MenuMode;
   if ($::MenuEntryNumber == 0) {
-    my $max_entry = @{ $Menus[$::MenuNumber]->{entries} } - 1;
+    my $max_entry = menu_entries() - 1;
     $::MenuEntryNumber = $max_entry;
   }
   else {
@@ -148,7 +154,7 @@ sub menu_up {
 sub menu_down {
   warnenter if ::DEBUG > 1;
   return if not $::MenuMode;
-  my $max_entry = @{ $Menus[$::MenuNumber]->{entries} } - 1;
+  my $max_entry = menu_entries() - 1;
   if ($::MenuEntryNumber == $max_entry) {
     $::MenuEntryNumber = 0;
   }
@@ -193,11 +199,20 @@ sub menu_select {
   return if not $::MenuMode;
 
   my $menu  = $Menus[$::MenuNumber];
-  my $entry = $menu->{entries}[$::MenuEntryNumber];
+  my $entries = $menu->{entries};
+  $entries = $entries->() if ref($entries) eq 'CODE';
+  my $entry = $entries->[$::MenuEntryNumber];
   my $action = $entry->{action};
   $::MenuMode = 0;
   App::FQStat::Drawing::update_display();
-  return $action->();
+  return $action->($entry);
+}
+
+sub menu_entries {
+  return @{ $Menus[$::MenuNumber]->{entries} } if ref($Menus[$::MenuNumber]->{entries}) eq 'ARRAY';
+  my $nentries = $Menus[$::MenuNumber]->{nEntries};
+  $nentries = $nentries->() if defined($nentries) and ref($nentries) eq 'CODE';
+  return $nentries;
 }
 
 1;

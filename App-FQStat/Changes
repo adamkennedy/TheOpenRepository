@@ -1,5 +1,10 @@
 Revision history for Perl extension App::FQStat.
 
+6.2  Mon Oct  9 14:25 2008
+  - Save/load/delete named color schemes.
+  - Two color schemes to choose from by default.
+  - More dynamic menu generation.
+
 6.1  Mon Oct  6 14:25 2008
   - Configurable color scheme.
   - Eliminate various imports to save a grand total of 1MB of memory.
