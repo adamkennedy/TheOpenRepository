@@ -26,7 +26,7 @@ use t::lib::Test;
 # Constructor Test
 
 # Create the dist object
-my $dist = t::lib::Test->new1(10);
+my $dist = t::lib::Test->new1(13);
 isa_ok( $dist, 't::lib::Test1' );
 
 # Run the dist object, and ensure everything we expect was created

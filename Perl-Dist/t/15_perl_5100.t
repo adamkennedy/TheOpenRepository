@@ -31,7 +31,7 @@ use t::lib::Test;
 # Complete Generation Run
 
 # Create the dist object
-my $dist = t::lib::Test->new3(12);
+my $dist = t::lib::Test->new3(15);
 isa_ok( $dist, 't::lib::Test3' );
 
 # Run the dist object, and ensure everything we expect was created
