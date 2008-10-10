@@ -1,5 +1,13 @@
 Revision history for Perl module Perl-Dist
 
+1.05 Thu  9 Oct 2008
+	- Reorganising the test script order
+	- Added separate 5.8.8 and 5.10.0 test scripts
+	- Added a full test of Vanilla ->run
+	- Removing force flags for stuff that now works
+	- Adding a new Template-Toolkit-based patch system
+	- Unified the toolchain install methods
+
 1.04 Wed 23 Jul 2008
 	- This release co-incides with Strawberry August 2008
 	- Tweak to allow libwww-perl to build behind a proxy

@@ -1210,9 +1210,9 @@ sub install_perl_5100 {
                 url        => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
 		unpack_to  => 'perl',
 		install_to => 'perl',
-		patch      => [
+		patch      => [ qw{
 			lib/ExtUtils/Command.pm
-		],
+		} ],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
 			'perl-5.10.0/Artistic' => 'perl/Artistic',

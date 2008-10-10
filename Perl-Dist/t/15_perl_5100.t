@@ -6,7 +6,6 @@ BEGIN {
 	$^W = 1;
 }
 
-# Skip if not on Windows
 use Test::More;
 use LWP::Online ':skip_all';
 BEGIN {
@@ -15,7 +14,7 @@ BEGIN {
 		exit(0);
 	};
 	unless ( $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'Skipping multi-hour tests to avoid breaking CPAN Testers' );
+		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
 	plan( tests => 13 );
@@ -23,6 +22,13 @@ BEGIN {
 
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
+
+
+
+
+
+#####################################################################
+# Complete Generation Run
 
 # Create the dist object
 my $dist = t::lib::Test->new3(12);

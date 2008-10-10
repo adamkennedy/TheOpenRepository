@@ -14,7 +14,7 @@ BEGIN {
 		exit(0);
 	}
 	unless ( $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'Skipping potentially destructive test' );
+		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
 	plan( tests => 2 );
@@ -27,7 +27,7 @@ use Perl::Dist::Vanilla   ();
 
 
 #####################################################################
-# Constructor Test
+# Complete Generation Run
 
 my $dist = Perl::Dist::Vanilla->new;
 isa_ok( $dist, 'Perl::Dist::Vanilla' );

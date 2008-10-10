@@ -1,4 +1,4 @@
-use inc::Module::Install 0.76;
+use inc::Module::Install 0.77;
 
 all_from       'lib/Perl/Dist.pm';
 requires       'blib'                       => 0;

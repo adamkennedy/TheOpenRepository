@@ -39,7 +39,7 @@ sub run {
 	return 1;
 }
 
-sub trace { Test::More::diag($_[1]) }
+sub trace { 1 } # Test::More::diag($_[1]) }
 
 sub install_binary {
 	return shift->SUPER::install_binary( @_, trace => sub { 1 } );

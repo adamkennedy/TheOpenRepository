@@ -6,7 +6,6 @@ BEGIN {
 	$^W = 1;
 }
 
-# Skip if not on Windows
 use Test::More;
 use LWP::Online ':skip_all';
 BEGIN {
@@ -15,7 +14,7 @@ BEGIN {
 		exit(0);
 	};
 	unless ( $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'No RELEASE_TESTING: Skipping (very) long test' );
+		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
 	plan( tests => 13 );
@@ -24,12 +23,19 @@ BEGIN {
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
+
+
+
+
+#####################################################################
+# Complete Generation Run
+
 # Create the dist object
 my $dist = t::lib::Test->new2(11);
 isa_ok( $dist, 't::lib::Test2' );
 
 # Run the dist object, and ensure everything we expect was created
-diag( "Building test dist, may take up to an hour..." );
+diag( "Building test dist, may take up to an hour... (sorry)" );
 ok( $dist->run, '->run ok' );
 
 # C toolchain files

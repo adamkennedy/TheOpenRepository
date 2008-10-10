@@ -6,15 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-# Skip if not on Windows
 use Test::More;
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
-		exit(0);
-	}
-	unless ( $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'No RELEASE_TESTING: Skipping multi-hour test' );
 		exit(0);
 	}
 	plan( tests => 10 );
@@ -22,6 +17,13 @@ BEGIN {
 
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
+
+
+
+
+
+#####################################################################
+# Constructor Test
 
 # Create the dist object
 my $dist = t::lib::Test->new1(10);
