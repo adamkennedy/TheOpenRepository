@@ -71,27 +71,23 @@ Run the CGI installation, following the prompts
   CGI URI: http://svn.ali.as/cgi-bin
   adam@svn:~/svn.ali.as$
 
+=head2 Configuration
+
 The installation is currently extremely crude, so once installed, you
 currently need to open the letmein.conf file created by the installer
 and edit it by hand (this will be fixed in a forthcoming release).
 
 The config file is YAML and should look something like this:
 
-  adam@svn:~/svn.ali.as$ cat cgi-bin/letmein.conf
+  > cat letmein.conf
   ---
-  email_from: adamk@cpan.org
+  htpasswd: /path/to/your/htpasswd
+  email_from: my.address@example.com
   email_driver: SMTP
-  htpasswd: /home/adam/svn.ali.as/cgi-bin/.htpasswd
-  
-  adam@svn:~/svn.ali.as$
 
-(For the security concious amoungst you, yes I know that putting the
-.htpasswd there is a bad idea. No, no real service is actually using
-that file)
-
-The C<email_driver> value is linked to L<Email::Send>. Use either
-"Sendmail" to send via local sendmail, or "SMTP" to send via an SMTP
-server on localhost.
+The C<email_driver> value is linked to L<Email::Send>. Use either "Sendmail"
+(the default) to send via local sendmail, or "SMTP" to send via an SMTP server
+on localhost.
 
 =cut
 
@@ -882,10 +878,25 @@ sub user_checkbox_list {
 # Pages
 
 
+sub fetch_template {
+	my ($self, $template_name, $default_text) = @_;
+	my $directory = $self->config->[0]->{template_directory};
+	return $directory
+	? do {
+		my $path = File::Spec->catfile($directory, $template_name);
+		open TEMPLATE, $path
+			or Carp::croak(
+				"Couldn't fetch '$template_name' in directory '$directory': $!"
+			);
+		my $text = do { local $/; <TEMPLATE> };
+		close TEMPLATE or die "Failed to close file '$path': $!";
+		$text;
+	}
+	: $default_text;
+}
 
 
-
-sub html__doctype { <<'END_HTML' }
+sub html__doctype { $_[0]->fetch_template(html__doctype => <<'END_HTML') }
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 END_HTML
 
@@ -893,7 +904,7 @@ END_HTML
 
 
 
-sub html__head { <<'END_HTML' }
+sub html__head { $_[0]->fetch_template(html__head => <<'END_HTML') }
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>[% TITLE %]</title>
@@ -905,7 +916,7 @@ END_HTML
 
 
 
-sub html_public { <<'END_HTML' }
+sub html_public { $_[0]->fetch_template(html_public => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -931,7 +942,7 @@ END_HTML
 
 
 
-sub html_index { <<'END_HTML' }
+sub html_index { $_[0]->fetch_template(html_index => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -955,7 +966,7 @@ END_HTML
 
 
 
-sub html_forgot { <<'END_HTML' }
+sub html_forgot { $_[0]->fetch_template(html_forgot => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -977,7 +988,7 @@ END_HTML
 
 
 
-sub html_change { <<'END_HTML' }
+sub html_change { $_[0]->fetch_template(html_change => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1012,7 +1023,7 @@ END_HTML
 
 
 
-sub html_list { <<'END_HTML' }
+sub html_list { $_[0]->fetch_template(html_list => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1027,7 +1038,7 @@ END_HTML
 
 
 
-sub html_promote { <<'END_HTML' }
+sub html_promote { $_[0]->fetch_template(html_promote => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1046,7 +1057,7 @@ END_HTML
 
 
 
-sub html_delete { <<'END_HTML' }
+sub html_delete { $_[0]->fetch_template(html_delete => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1065,7 +1076,7 @@ END_HTML
 
 
 
-sub html_new { <<'END_HTML' }
+sub html_new { $_[0]->fetch_template(html_new => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1085,7 +1096,7 @@ END_HTML
 
 
 
-sub html_message { <<'END_HTML' }
+sub html_message { $_[0]->fetch_template(html_message => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1099,8 +1110,7 @@ END_HTML
 
 
 
-
-sub html_error { <<'END_HTML' }
+sub html_error { $_[0]->fetch_template(html_error => <<'END_HTML') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1115,7 +1125,7 @@ END_HTML
 
 
 
-sub email_forgot { <<'END_TEXT' }
+sub email_forgot { $_[0]->fetch_template(email_forgot => <<'END_TEXT') }
 Hi
 
 You forgot your password, so here is a new one
@@ -1129,7 +1139,7 @@ END_TEXT
 
 
 
-sub email_new { <<'END_TEXT' }
+sub email_new { $_[0]->fetch_template(email_new => <<'END_TEXT') }
 Hi
 
 A new account has been created for you
@@ -1144,7 +1154,7 @@ END_TEXT
 
 
 
-sub email_promote { <<'END_TEXT' }
+sub email_promote { $_[0]->fetch_template(email_promote => <<'END_TEXT') }
 Hi
 
 Your account ([% email %]) has been promoted to an administrator.
@@ -1156,6 +1166,8 @@ END_TEXT
 
 1;
 
+=encoding utf8
+
 =pod
 
 =head1 SUPPORT
@@ -1166,13 +1178,15 @@ For all issues, contact the author.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
+Ingy döt Net E<lt>ingy@cpan.orgE<gt>
+
 =head1 SEE ALSO
 
 L<http://ali.as/>, L<CGI::Capture>
 
 =head1 COPYRIGHT
 
-Copyright 2007 Adam Kennedy.
+Copyright 2007, 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

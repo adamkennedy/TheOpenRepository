@@ -1,0 +1,12 @@
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>Select Account(s) to Promote</h2>
+<form name="f" action="[% SCRIPT_NAME %]">
+<input type="hidden" name="a" value="b">
+[% users %]
+<input type="submit" name="s" value="Promote">
+</form>
+</body>
+</html>

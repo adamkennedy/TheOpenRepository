@@ -28,24 +28,64 @@ sub run {
 	# Create the default config file
 	my $to = $self->cgi_map->catfile('letmein.conf')->path;
 	open( CONFIG, ">$to" ) or die "Failed to open letmein.conf";
-	print CONFIG <<'...'   or die "Failed to write letmein.conf";
----
-# The address that LetMeIn emails are from. (required)
-# email_from: adamk@example.com
+	print CONFIG config()  or die "Failed to write letmein.conf";
+	close CONFIG           or die "Failed to close letmein.conf";
 
-# The type of email driver to use. (SMTP or Sendmail) (required)
-# email_driver: SMTP
+	return $rv;
+}
+
+sub config {
+	my $template_directory = default_template_directory();
+
+	return <<"...";
+---
+# NOTE: You need to uncomment and edit the first three settings:
 
 # The path to your htpasswd file. (required)
 # htpasswd: /path/to/your/htpasswd
 
+# The address that LetMeIn emails are from. (required)
+# email_from: my.address\@example.com
+
+# The type of email driver to use. (Sendmail (default) or SMTP) (optional)
+# email_driver: SMTP
+
+
+# NOTE: The following settings are completely OPTIONAL, and are used for more
+# advanced features. You can safely ignore them.
+
+# The directory where your custom templates reside.
+# template_directory: $template_directory
+
+# The type of template syntax to use. ('simple' or 'tt2')
+# template_directory: tt2
+
+# Require a userid (in addition to an email address) from each user.
+# require_userid: 1
+
+# Store extra information in the htpasswd file as JSON. Requires JSON::XS.
+# htpasswd_json: 1
+
 # Set to true if you want to use the system installed LetMeIn.pm
-# instead of the one embedded in the letmein program. (optional; advanced)
+# instead of the one embedded in the letmein program.
 # use_module: 1
 ...
-	close CONFIG           or die "Failed to close letmein.conf";
+}
 
-	return $rv;
+sub default_template_directory {
+	my $default = '/path/to/your/template/directory';
+
+	eval "require File::ShareDir; 1"
+		or return $default;
+
+	my $base = File::ShareDir::dist_dir('LetMeIn')
+		or return $default;
+
+	my $path = File::Spec->catdir($base, 'template');
+
+	return (-e $path)
+	? $path
+	: $default;
 }
 
 1;

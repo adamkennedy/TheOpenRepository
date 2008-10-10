@@ -18,7 +18,9 @@ test_requires  'Test::More'           => '0.42';
 test_requires  'IPC::Run3'            => '0.034';
 test_requires  'File::Copy'           => 0;
 test_requires  'File::Remove'         => '0.37';
+test_requires  'File::ShareDir'       => 0;
 install_script 'letmein.pl';
+install_share  'share';
 
 # Generate the script
 print "Generating script/letmein...\n";

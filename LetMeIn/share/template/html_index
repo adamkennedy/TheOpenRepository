@@ -1,0 +1,17 @@
+[% DOCTYPE %]
+<html>
+[% HEAD %]
+<body>
+<h2>User</h2>
+<p><a href="[% SCRIPT_NAME %]?a=f">I forgot my password</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=c">I want to change my password</a></p>
+<h2>Admin</h2>
+<p><a href="[% SCRIPT_NAME %]?a=n">Add a new account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=l">List all accounts</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=d">Delete an account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=m">Promote an account</a></p>
+<p><a href="[% SCRIPT_NAME %]?a=o">Logout</a></p>
+<hr>
+<p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
+</body>
+</html>
