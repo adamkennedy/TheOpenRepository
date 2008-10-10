@@ -57,8 +57,8 @@ sub config {
 # The directory where your custom templates reside.
 # template_directory: $template_directory
 
-# The type of template syntax to use. ('simple' or 'tt2')
-# template_directory: tt2
+# The type of template syntax to use. ('simple' (default) or 'tt2')
+# template_type: tt2
 
 # Require a userid (in addition to an email address) from each user.
 # require_userid: 1
