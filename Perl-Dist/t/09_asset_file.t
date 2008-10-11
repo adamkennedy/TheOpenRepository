@@ -18,11 +18,11 @@ use Perl::Dist::Asset::File;
 # Main Tests
 
 my $file1 = Perl::Dist::Asset::File->new(
-	share      => 'Perl-Dist CPAN_Config.pm',
+	share      => 'Perl-Dist default/perl-5.8.8/lib/CPAN/Config.pm',
 	install_to => 'CPAN/Config.pm',
 );
 isa_ok( $file1, 'Perl::Dist::Asset::File' );
-is( $file1->share, 'Perl-Dist CPAN_Config.pm', '->share ok' );
+is( $file1->share, 'Perl-Dist default/perl-5.8.8/lib/CPAN/Config.pm', '->share ok' );
 is( $file1->install_to, 'CPAN/Config.pm', '->install_to ok' );
 like( $file1->url, qr/Config.pm$/, '->url' );
-is( $file1->file, 'CPAN_Config.pm', '->file ok' );
+is( $file1->file, 'Config.pm', '->file ok' );

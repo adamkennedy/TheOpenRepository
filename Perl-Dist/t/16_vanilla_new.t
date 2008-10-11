@@ -12,12 +12,13 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	}
-	plan( tests => 5 );
+	plan( tests => 9 );
 }
 
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Vanilla   ();
 use URI::file             ();
+use t::lib::Test          ();
 
 sub cpan_uri {
 	my $path  = rel2abs( catdir( 't', 'data', 'cpan' ) );
@@ -34,7 +35,8 @@ sub cpan_uri {
 # Constructor Test
 
 my $dist = Perl::Dist::Vanilla->new(
-	cpan => cpan_uri(),
+	t::lib::Test->paths(16),
+	cpan     => cpan_uri(),
 );
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
 is( ref($dist->patch_include_path), 'ARRAY', '->patch_include_path ok' );

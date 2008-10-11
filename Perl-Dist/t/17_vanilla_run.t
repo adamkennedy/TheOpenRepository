@@ -17,10 +17,11 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
-	plan( tests => 2 );
+	plan( tests => 6 );
 }
 
 use Perl::Dist::Vanilla   ();
+use t::lib::Test          ();
 
 
 
@@ -29,6 +30,8 @@ use Perl::Dist::Vanilla   ();
 #####################################################################
 # Complete Generation Run
 
-my $dist = Perl::Dist::Vanilla->new;
+my $dist = Perl::Dist::Vanilla->new(
+	t::lib::Test->paths(17),
+);
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
 ok( $dist->run, '->run ok' );

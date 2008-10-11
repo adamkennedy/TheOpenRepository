@@ -31,8 +31,6 @@ is(
 	'->as_string ok',
 );
 
-
-
 my $icon2 = Perl::Dist::Inno::Icon->new(
 	name        => '{group}\Install modules with CPAN.pm',
 	filename    => '{app}\perl\bin\cpan.bat',

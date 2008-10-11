@@ -101,11 +101,13 @@ follows:
 
 =item 5. Install additional CPAN modules
 
-=item 6. Install Win32-specific things such as start menu entries
+=item 6. Optionally install Portability support
 
-=item 7. Remove any files we don't need in the final distribution
+=item 7. Install Win32-specific things such as start menu entries
 
-=item 8. Generate the zip, exe or msi files.
+=item 8. Remove any files we don't need in the final distribution
+
+=item 9. Generate the zip, exe or msi files.
 
 =back
 
@@ -144,8 +146,6 @@ use LWP::UserAgent             ();
 use LWP::UserAgent::Determined ();
 use LWP::Online                ();
 use Module::CoreList           ();
-use Tie::File                  ();
-use Tie::Slurp                 ();
 use Template                   ();
 use PAR::Dist                  ();
 use Portable::Dist             ();
@@ -154,7 +154,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.05_01';
+        $VERSION  = '1.05_02';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -164,7 +164,6 @@ use Object::Tiny qw{
 	archlib
 	exe
 	zip
-
 	binary_root
 	offline
 	temp_dir
@@ -807,7 +806,11 @@ sub run {
 	$self->checkpoint_task( write                => 9 );
 
 	# Finished
-	$self->trace("Distribution generation completed in " . (time - $start) . " seconds\n");
+	$self->trace(
+		"Distribution generation completed in "
+		. (time - $start)
+		. " seconds\n"
+	);
 	foreach my $file ( @{$self->output_file} ) {
 		$self->trace("Created distribution $file\n");
 	}
@@ -2637,7 +2640,7 @@ sub get_inno_include {
 #####################################################################
 # Patch Support
 
-# By default only use the default
+# By default only use the default (as a default...)
 sub patch_include_path {
 	my $self  = shift;
 	my $share = File::ShareDir::dist_dir('Perl-Dist');
@@ -2822,11 +2825,6 @@ sub _perl {
 sub _run3 {
 	my $self = shift;
 
-	# Clean the environment keys
-	local $ENV{PERL5LIB} = '';
-	local $ENV{LIB}      = '';
-	local $ENV{INCLUDE}  = '';
-
 	# Remove any Perl installs from PATH to prevent
 	# "which" discovering stuff it shouldn't.
 	my @path = split /;/, $ENV{PATH};
@@ -2843,7 +2841,12 @@ sub _run3 {
 
 		push @keep, $p;
 	}
-	local $ENV{PATH} = $self->get_env_path . ';' . join( ';', @keep );
+
+	# Reset the environment
+	local $ENV{LIB}      = undef;
+	local $ENV{INCLUDE}  = undef;
+	local $ENV{PERL5LIB} = undef;
+	local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
 
 	# Execute the child process
 	return IPC::Run3::run3( [ @_ ],

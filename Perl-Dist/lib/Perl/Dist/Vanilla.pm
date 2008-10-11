@@ -87,30 +87,22 @@ sub install_perl_5100_bin {
 	$self->SUPER::install_perl_5100_bin(@_);
 
 	# Overwrite the CPAN config to be relocatable
-	$self->install_file(
-		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config.pm',
-		install_to => 'perl/lib/Config.pm',
-	);
-	$self->install_file(
-		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config_heavy.pl',
-		install_to => 'perl/lib/Config_heavy.pl',
-	);
-	$self->install_file(
-		share      => 'Perl-Dist vanilla/perl-5.10.0/lib/CPAN/Config.pm',
-		install_to => 'perl/lib/CPAN/Config.pm',
-	);
+	if ( $self->portable ) {
+		$self->install_file(
+			share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config.pm',
+			install_to => 'perl/lib/Config.pm',
+		);
+		$self->install_file(
+			share      => 'Perl-Dist vanilla/perl-5.10.0/lib/Config_heavy.pl',
+			install_to => 'perl/lib/Config_heavy.pl',
+		);
+		$self->install_file(
+			share      => 'Perl-Dist vanilla/perl-5.10.0/lib/CPAN/Config.pm',
+			install_to => 'perl/lib/CPAN/Config.pm',
+		);
+	}
 
 	return 1;
-}
-
-sub install_perl_5100_toolchain_object {
-	Perl::Dist::Util::Toolchain->new(
-		perl_version => $_[0]->perl_version_literal,
-		# force        => {
-		#	'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
-		#	'CPAN'       => 'ANDK/CPAN-1.92_60.tar.gz',
-		# },
-	);
 }
 
 sub install_perl_modules {
