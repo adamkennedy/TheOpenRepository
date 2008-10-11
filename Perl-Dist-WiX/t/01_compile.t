@@ -6,7 +6,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More;
+BEGIN {
+	if ( $^O eq 'MSWin32' ) {
+		plan tests => 8;
+	} else {
+		plan skip_all => 'Not on Win32';
+	}
+}
 
 ok( $] >= 5.008, 'Perl version is new enough' );
 
