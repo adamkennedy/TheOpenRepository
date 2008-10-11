@@ -10,6 +10,7 @@ use File::Remove  ();
 use t::lib::Test1 ();
 use t::lib::Test2 ();
 use t::lib::Test3 ();
+use t::lib::Test4 ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -67,21 +68,22 @@ sub cpan {
 
 sub new1 {
 	my $class = shift;
-	my @paths = $class->paths(@_);
-	my $cpan  = $class->cpan;
-	return t::lib::Test1->new( cpan => $cpan, perl_version => 588, @paths );
+	return t::lib::Test1->new(
+		cpan => $class->cpan,
+		$class->paths(@_),
+	);
 }
 
 sub new2 {
-	my $class = shift;
-	my @paths = $class->paths(@_);
-	return t::lib::Test2->new( perl_version => 588, @paths );
+	return t::lib::Test2->new( shift->paths(@_) );
 }
 
 sub new3 {
-	my $class = shift;
-	my @paths = $class->paths(@_);
-	return t::lib::Test3->new( perl_version => 5100, @paths );
+	return t::lib::Test3->new( shift->paths(@_) );
+}
+
+sub new4 {
+	return t::lib::Test4->new( shift->paths(@_) );
 }
 
 1;

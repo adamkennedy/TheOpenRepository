@@ -31,5 +31,5 @@ isa_ok( $dist, 't::lib::Test1' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );
-ok( -f catfile( qw{ t tmp10 image c bin dmake.exe } ), 'Found dmake.exe' );
-ok( -f catfile( qw{ t tmp10 image c bin startup Makefile.in } ), 'Found startup' );
+ok( -f catfile( qw{ t tmp13 image c bin dmake.exe } ), 'Found dmake.exe' );
+ok( -f catfile( qw{ t tmp13 image c bin startup Makefile.in } ), 'Found startup' );

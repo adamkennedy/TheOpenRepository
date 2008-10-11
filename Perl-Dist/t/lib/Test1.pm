@@ -30,6 +30,13 @@ sub output_base_filename { 'test-perl-5.8.8-alpha-1' }
 #####################################################################
 # Main Methods
 
+sub new {
+	return shift->SUPER::new(
+		perl_version => 588,
+		@_,
+	);
+}
+
 sub run {
 	my $self = shift;
 

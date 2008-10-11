@@ -1071,6 +1071,7 @@ sub install_perl_588 {
 			lib/ExtUtils/Installed.pm
 			lib/ExtUtils/Packlist.pm
 			lib/ExtUtils/t/Install.t
+			lib/ExtUtils/t/Installed.t
 			lib/ExtUtils/t/Installapi2.t
 			lib/ExtUtils/t/Packlist.t
 			lib/ExtUtils/t/basic.t
@@ -2081,8 +2082,7 @@ if ( \$module->uptodate ) {
 	print "$name is up to date\\n";
 	exit(0);
 }
-print "\\\$ENV{PATH}    = '\$ENV{PATH}'\\n";
-local \$ENV{PERL_MM_USE_DEFAULT} = 1;
+print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
 if ( $force ) {
 	CPAN::Shell->notest('install', '$name');
 } else {
@@ -2102,12 +2102,14 @@ END_PERL
 		'cpan_string.pl',
 	);
 	SCOPE: {
-		open( CPAN_FILE, '>', $cpan_file ) or die "open: $!";
-		print CPAN_FILE $cpan_string       or die "print: $!";
-		close( CPAN_FILE )                 or die "close: $!";
+		open( CPAN_FILE, '>', $cpan_file )  or die "open: $!";
+		print CPAN_FILE $cpan_string        or die "print: $!";
+		close( CPAN_FILE )                  or die "close: $!";
 	}
-	$self->_run3( $self->bin_perl, $cpan_file )
-		or die "perl failed";
+	local $ENV{PERL_MM_USE_DEFAULT} = 1;
+	local $ENV{AUTOMATED_TESTING}   = '';
+	local $ENV{RELEASE_TESTING}     = '';
+	$self->_run3( $self->bin_perl, $cpan_file ) or die "perl failed";
 	die "Failure detected installing $name, stopping" if $?;
 
 	return 1;
@@ -2166,28 +2168,25 @@ sub install_par {
 		#install_to => 'c', # Default to the C dir
 		@_,
 	);
-	my $name = $par->name;
 
 	# Download the file.
-	# Do it here for consistency, instead of letting PAR::Dist do it
-	$self->trace("Preparing $name\n");
+	# Do it here for consistency instead of letting PAR::Dist do it
+	$self->trace("Preparing " . $par->name . "\n");
 	my $file = $self->_mirror( 
 		$par->url,
 		$self->download_dir,
 	);
 
-
-	# set the appropriate installation paths
+	# Set the appropriate installation paths
+	my $no_colon = $par->name;
+	   $no_colon =~ s/::/-/g;
 	my $perldir  = File::Spec->catdir($self->image_dir, 'perl');
-
-	my $libdir = File::Spec->catdir($perldir, 'site', 'lib');
-	my $bindir = File::Spec->catdir($perldir, 'bin');
-	my $no_colon_name = $name;
-	$no_colon_name =~ s/::/-/g;
-	my $packlist = File::Spec->catfile($libdir, $no_colon_name, '.packlist');
+	my $libdir   = File::Spec->catdir($perldir, 'site', 'lib');
+	my $bindir   = File::Spec->catdir($perldir, 'bin');
+	my $packlist = File::Spec->catfile($libdir, $no_colon, '.packlist');
 	my $cdir     = File::Spec->catdir($self->image_dir, 'c');
 
-	# install
+	# Install
 	PAR::Dist::install_par(
 		dist           => $file,
 		inst_lib       => $libdir,
@@ -2823,7 +2822,7 @@ sub _perl {
 sub _run3 {
 	my $self = shift;
 
-	# Clean the simple environment keys
+	# Clean the environment keys
 	local $ENV{PERL5LIB} = '';
 	local $ENV{LIB}      = '';
 	local $ENV{INCLUDE}  = '';

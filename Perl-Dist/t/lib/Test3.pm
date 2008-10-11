@@ -28,40 +28,12 @@ sub output_base_filename { 'test-perl-5.10.0-alpha-1' }
 
 
 #####################################################################
-# Constructor
-
-sub new {
-	my $class = shift;
-	my $self  = $class->SUPER::new(@_);
-
-	# Add links
-	
-
-	return $self;
-}
-
-
-
-
-
-#####################################################################
 # Main Methods
 
-sub run {
-	my $self = shift;
-
-	# Install the core binaries
-	$self->install_c_toolchain;
-
-	# Install the extra libraries
-	$self->install_c_libraries;
-
-	# Install Perl 5.10.0
-	$self->install_perl_5100;
-
-	# Install a test distro
-	$self->install_distribution(
-		name => 'ADAMK/Config-Tiny-2.12.tar.gz',
+sub new {
+	return shift->SUPER::new(
+		perl_version => 5100,
+		@_,
 	);
 }
 
