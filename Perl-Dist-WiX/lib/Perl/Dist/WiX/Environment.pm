@@ -4,10 +4,11 @@ package Perl::Dist::WiX::Environment;
 
 use 5.008;
 use Moose;
+use Moose::Util::TypeConstraints;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 

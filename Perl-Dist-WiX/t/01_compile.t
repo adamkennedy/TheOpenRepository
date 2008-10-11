@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 8;
 
 ok( $] >= 5.008, 'Perl version is new enough' );
 
@@ -23,6 +23,21 @@ ok(
 );
 
 ok(
-	$Perl::Dist::WiX::Script2::VERSION,
-	'Perl::Dist::Script2::WiX loaded ok',
+	$Perl::Dist::WiX::File::VERSION,
+	'Perl::Dist::WiX::File loaded ok',
+);
+
+ok(
+	$Perl::Dist::WiX::Component::VERSION,
+	'Perl::Dist::WiX::Component loaded ok',
+);
+
+ok(
+	$Perl::Dist::WiX::Environment::VERSION,
+	'Perl::Dist::WiX::Environment loaded ok',
+);
+
+ok(
+	$Perl::Dist::WiX::Script::VERSION,
+	'Perl::Dist::WiX::Script loaded ok',
 );

@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::Script2;
+package Perl::Dist::WiX::Script;
 
 use 5.008;
 use Moose;
@@ -8,7 +8,7 @@ use Perl::Dist::WiX::Types ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 sub wix_key {

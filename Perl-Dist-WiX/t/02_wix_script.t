@@ -16,9 +16,9 @@ use Perl::Dist::WiX ();
 #####################################################################
 # Check for the binary application detection support
 
-ok( Perl::Dist::WiX::Script2->wix_key, '->wix_key ok' );
+ok( Perl::Dist::WiX::Script->wix_key, '->wix_key ok' );
 
-my @wix_registry  = Perl::Dist::WiX::Script2->wix_registry;
+my @wix_registry  = Perl::Dist::WiX::Script->wix_registry;
 ok( scalar(@wix_registry), '->wix_registry returns true' );
 
 isa_ok( $wix_registry[0], 'Win32::TieRegistry' );
@@ -29,13 +29,13 @@ isa_ok( $wix_tiedref, 'Win32::TieRegistry' );
 isa_ok( $wix_tiedref->{'3.0/'}, 'Win32::TieRegistry' );
 
 # Get the install root
-my $wix_root = Perl::Dist::WiX::Script2->wix_root;
+my $wix_root = Perl::Dist::WiX::Script->wix_root;
 ok( $wix_root, 'InstallRoot found in the registry' );
 ok( -d $wix_root, 'InstallRoot directory exists' );
 
 # Confirm the executables we need exist
-my $candle = Perl::Dist::WiX::Script2->wix_binary('candle');
-my $light  = Perl::Dist::WiX::Script2->wix_binary('light');
+my $candle = Perl::Dist::WiX::Script->wix_binary('candle');
+my $light  = Perl::Dist::WiX::Script->wix_binary('light');
 ok(    $candle, 'Got candle path' );
 ok( -f $candle, 'Candle exists'   );
 ok(    $light,  'Got light path'  );
@@ -57,8 +57,8 @@ my %params = (
 );
 
 SCOPE: {
-	my $script = Perl::Dist::WiX::Script2->new( %params );
-	isa_ok( $script, 'Perl::Dist::WiX::Script2' );
+	my $script = Perl::Dist::WiX::Script->new( %params );
+	isa_ok( $script, 'Perl::Dist::WiX::Script' );
 	foreach my $key ( keys %params ) {
 		is( $script->$key(), $params{$key}, "->$key ok" );
 	}
@@ -75,10 +75,10 @@ SCOPE: {
 
 SCOPE: {
 	# Repeat with an explicit output_basename
-	my $script = Perl::Dist::WiX::Script2->new(
+	my $script = Perl::Dist::WiX::Script->new(
 		%params,
 		output_basename => 'FooBar-1.2.3.4',
 	);
-	isa_ok( $script, 'Perl::Dist::WiX::Script2' );
+	isa_ok( $script, 'Perl::Dist::WiX::Script' );
 	is( $script->output_basename, 'FooBar-1.2.3.4', '->output_basename ok' );
 }

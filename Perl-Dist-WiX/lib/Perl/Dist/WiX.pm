@@ -25,7 +25,7 @@ use Perl::Dist::WiX::Script      ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 sub dist_dir {

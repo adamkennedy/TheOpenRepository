@@ -7,7 +7,7 @@ use Moose;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 
@@ -41,7 +41,7 @@ has read_only => (
 	is      => 'ro',
 	isa     => 'Bool',
 	default => 0,
-)
+);
 
 __PACKAGE__->meta->make_immutable;
 

@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::Environment;
+package Perl::Dist::WiX::Component;
 
 # Represents an <Component> tag within the Windows Installer XML Schema
 
@@ -7,7 +7,7 @@ use Moose;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.01_01';
 }
 
 
@@ -27,7 +27,6 @@ has guid => (
 	is       => 'ro',
 	isa      => 'WinGuid',
 	required => 1,
-	default  => 
 );
 
 has action => (
