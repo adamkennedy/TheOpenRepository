@@ -814,10 +814,10 @@ sub all_users {
 		}
 		map { [ $_, $_->username, $self->is_user_admin($_) ] }
 		$self->auth->all_users;
-        $self->{args}->{all_users} = [ map {
-                my ($id, $pw, $role) = split /:/, $_;
-                { id => $id, role => ($role) };
-        } @list ];
+		$self->{args}->{all_users} = [ map {
+			my ($id, $pw, $role) = split /:/, $_;
+			{ id => $id, role => ($role) };
+		} @list ];
 	return @list;
 }
 
@@ -884,9 +884,9 @@ sub user_checkbox_list {
 			);
 		} else {
 			$list .= $self->cgi->checkbox(
-				-name     =>  'e',
-				-value    => $user->username,
-				-label    => $user->username,
+				-name  => 'e',
+				-value => $user->username,
+				-label => $user->username,
 			);
 		}
 		$list .= $self->cgi->br . "\n";
