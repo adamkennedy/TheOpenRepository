@@ -8,7 +8,7 @@ use Perl::Dist::Vanilla ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.05_01';
 	@ISA     = 'Perl::Dist::Vanilla';
 }
 

@@ -14,7 +14,7 @@ use t::lib::Test4 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.05_01';
 }
 
 

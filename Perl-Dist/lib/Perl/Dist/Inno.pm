@@ -154,7 +154,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.05';
+        $VERSION  = '1.05_01';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 

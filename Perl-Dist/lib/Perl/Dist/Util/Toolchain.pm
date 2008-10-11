@@ -13,7 +13,7 @@ use Process              ();
 
 use vars qw{$VERSION @ISA @DELEGATE};
 BEGIN {
-	$VERSION  = '1.05';
+	$VERSION  = '1.05_01';
 	@ISA      = qw{
 		Process::Delegatable
 		Process::Storable

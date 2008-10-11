@@ -7,7 +7,7 @@ use Perl::Dist;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '18';
+	$VERSION = '19';
 	@ISA     = 'Perl::Dist';
 }
 
