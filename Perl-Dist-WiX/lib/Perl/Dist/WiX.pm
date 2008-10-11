@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =head1 NAME
 
-4th generation Win32 Perl distribution builder, based on the WiX toolkit
+Experimental 4th generation Win32 Perl distribution builder
 
 =head1 DESCRIPTION
 
