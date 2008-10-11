@@ -60,7 +60,7 @@ has bin_light => (
 
 
 #####################################################################
-# Product Properties
+# WiX <Product> Attributes
 
 has product_id => (
 	is       => 'ro',
