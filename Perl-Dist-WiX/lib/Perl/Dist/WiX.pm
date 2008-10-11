@@ -4,13 +4,15 @@ package Perl::Dist::WiX;
 
 =head1 NAME
 
-Experimental 4th generation Win32 Perl distribution builder
+Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 DESCRIPTION
 
 This package is currently mostly just a placeholder for the eventual
 home namespace of a future upgrade to Perl::Dist based on Windows 
 Install XML technology, instead of Inno Setup.
+
+=head1 METHODS
 
 =cut
 
@@ -27,6 +29,16 @@ use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01_01';
 }
+
+=pod
+
+=head2 dist_dir
+
+Provides a shortcut to location the shared files directory.
+
+Returns a directory as a string or dies on error.
+
+=cut
 
 sub dist_dir {
 	File::ShareDir::dist_dir('Perl-Dist-WiX');
