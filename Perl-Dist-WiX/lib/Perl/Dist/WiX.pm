@@ -16,10 +16,12 @@ Install XML technology, instead of Inno Setup.
 
 use 5.008;
 use strict;
-use Params::Util            ();
-use File::ShareDir          ();
-use Perl::Dist::WiX::File   ();
-use Perl::Dist::WiX::Script ();
+use Params::Util                 ();
+use File::ShareDir               ();
+use Perl::Dist::WiX::File        ();
+use Perl::Dist::WiX::Environment ();
+use Perl::Dist::WiX::Component   ();
+use Perl::Dist::WiX::Script      ();
 
 use vars qw{$VERSION};
 BEGIN {
