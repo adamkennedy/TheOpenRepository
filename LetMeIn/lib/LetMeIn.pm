@@ -758,35 +758,35 @@ sub print {
 
 sub template {
 	my $self = shift;
-        if (($self->config->[0]->{template_type} || '') eq 'tt2') {
-            return $self->template_tt2(@_);
-        }
+	if (($self->config->[0]->{template_type} || '') eq 'tt2') {
+		return $self->template_tt2(@_);
+	}
 	my $html = shift;
 	my $args = shift || $self->args;
 	# Allow up to 10 levels of recursion
 	foreach ( 0 .. 10 ) {
 		$html =~ s/\[\%\s+(\w+)\s+\%\]/$args->{$1}/g
-            or last;
+		or last;
 	}
 	return $html;
 }
 
 sub template_tt2 {
-    my $self = shift;
-    my $template_directory = $self->config->[0]->{template_directory}
-      or Carp::croak("'template_directory' config is required when 'template_type' is set to 'tt2'");
-    my $template = shift;
-    my $args = shift || $self->args;
-    my $data = {
-        %$args,
-        %{$self->config->[0]},
-    };
-    require Template::Toolkit::Simple;
-    Template::Toolkit::Simple
-        ->new
-        ->include_path($template_directory)
-        ->data($data)
-        ->render(\$template);       # \$template);
+	my $self = shift;
+	my $template_directory = $self->config->[0]->{template_directory}
+		or Carp::croak("'template_directory' config is required when 'template_type' is set to 'tt2'");
+	my $template = shift;
+	my $args = shift || $self->args;
+	my $data = {
+		%$args,
+		%{$self->config->[0]},
+	};
+	require Template::Toolkit::Simple;
+	Template::Toolkit::Simple
+		->new
+		->include_path($template_directory)
+		->data($data)
+		->render(\$template);
 }
 
 sub print_template {
@@ -801,7 +801,7 @@ sub is_user_admin {
 	my $self = shift;
 	my $user = shift;
 	my $info = $user->extra_info;
-	return !! ( _ARRAY($info) and $info->[0] eq 'admin' );
+	return ! ! ( _ARRAY($info) and $info->[0] eq 'admin' );
 }
 
 sub all_users {
@@ -814,7 +814,10 @@ sub all_users {
 		}
 		map { [ $_, $_->username, $self->is_user_admin($_) ] }
 		$self->auth->all_users;
-        $self->{args}->{all_users} = [ @list ];
+        $self->{args}->{all_users} = [ map {
+                my ($id, $pw, $role) = split /:/, $_;
+                { id => $id, role => ($role) };
+        } @list ];
 	return @list;
 }
 
@@ -918,27 +921,27 @@ sub fetch_template {
 }
 
 
-sub html__doctype { $_[0]->fetch_template('doctype.html' => <<'...') }
+sub html__doctype { $_[0]->fetch_template('doctype.html' => <<'END') }
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-...
+END
 
 
 
 
 
-sub html__head { $_[0]->fetch_template('head.html' => <<'...') }
+sub html__head { $_[0]->fetch_template('head.html' => <<'END') }
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>[% TITLE %]</title>
 </head>
-...
+END
 
 
 
 
 
 
-sub html_public { $_[0]->fetch_template('public.html' => <<'...') }
+sub html_public { $_[0]->fetch_template('public.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -958,13 +961,13 @@ sub html_public { $_[0]->fetch_template('public.html' => <<'...') }
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_index { $_[0]->fetch_template('index.html' => <<'...') }
+sub html_index { $_[0]->fetch_template('index.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -982,13 +985,13 @@ sub html_index { $_[0]->fetch_template('index.html' => <<'...') }
 <p><i>Powered by <a href="http://search.cpan.org/perldoc?LetMeIn">LetMeIn</a></i></p>
 </body>
 </html>
-.....
+END
 
 
 
 
 
-sub html_forgot { $_[0]->fetch_template('forgot.html' => <<'...') }
+sub html_forgot { $_[0]->fetch_template('forgot.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1004,13 +1007,13 @@ sub html_forgot { $_[0]->fetch_template('forgot.html' => <<'...') }
 </form>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_change { $_[0]->fetch_template('change.html' => <<'...') }
+sub html_change { $_[0]->fetch_template('change.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1039,13 +1042,13 @@ document.f.e.focus();
 </script>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_list { $_[0]->fetch_template('list.html' => <<'...') }
+sub html_list { $_[0]->fetch_template('list.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1054,13 +1057,13 @@ sub html_list { $_[0]->fetch_template('list.html' => <<'...') }
 [% users %]
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_promote { $_[0]->fetch_template('promote.html' => <<'...') }
+sub html_promote { $_[0]->fetch_template('promote.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1073,13 +1076,13 @@ sub html_promote { $_[0]->fetch_template('promote.html' => <<'...') }
 </form>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_delete { $_[0]->fetch_template('delete.html' => <<'...') }
+sub html_delete { $_[0]->fetch_template('delete.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1092,13 +1095,13 @@ sub html_delete { $_[0]->fetch_template('delete.html' => <<'...') }
 </form>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_new { $_[0]->fetch_template('new.html' => <<'...') }
+sub html_new { $_[0]->fetch_template('new.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1112,13 +1115,13 @@ sub html_new { $_[0]->fetch_template('new.html' => <<'...') }
 </form>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub html_message { $_[0]->fetch_template('message.html' => <<'...') }
+sub html_message { $_[0]->fetch_template('message.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1127,12 +1130,12 @@ sub html_message { $_[0]->fetch_template('message.html' => <<'...') }
 <h2>[% message %]</h2>
 </body>
 </html>
-...
+END
 
 
 
 
-sub html_error { $_[0]->fetch_template('error.html' => <<'...') }
+sub html_error { $_[0]->fetch_template('error.html' => <<'END') }
 [% DOCTYPE %]
 <html>
 [% HEAD %]
@@ -1141,13 +1144,13 @@ sub html_error { $_[0]->fetch_template('error.html' => <<'...') }
 <h2>[% error %]</h2>
 </body>
 </html>
-...
+END
 
 
 
 
 
-sub email_forgot { $_[0]->fetch_template('forgot.html' => <<'...') }
+sub email_forgot { $_[0]->fetch_template('forgot.html' => <<'END') }
 Hi
 
 You forgot your password, so here is a new one
@@ -1155,13 +1158,13 @@ You forgot your password, so here is a new one
 Password: [% password %]
 
 Have a nice day!
-...
+END
 
 
 
 
 
-sub email_new { $_[0]->fetch_template('new.html' => <<'...') }
+sub email_new { $_[0]->fetch_template('new.html' => <<'END') }
 Hi
 
 A new account has been created for you
@@ -1170,13 +1173,13 @@ Email:    [% email %]
 Password: [% password %]
 
 Have a nice day!
-...
+END
 
 
 
 
 
-sub email_promote { $_[0]->fetch_template('promote.html' => <<'...') }
+sub email_promote { $_[0]->fetch_template('promote.html' => <<'END') }
 Hi
 
 Your account ([% email %]) has been promoted to an administrator.
@@ -1184,7 +1187,7 @@ Your account ([% email %]) has been promoted to an administrator.
 You can now login to LetMeIn to get access to additional functions.
 
 Have a nice day!
-...
+END
 
 1;
 

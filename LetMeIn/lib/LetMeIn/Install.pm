@@ -47,12 +47,19 @@ sub config {
 # The address that LetMeIn emails are from. (required)
 # email_from: my.address\@example.com
 
-# The type of email driver to use. (Sendmail (default) or SMTP) (optional)
+# The type of email driver to use. (optional)
+# Set to 'Sendmail' or 'SMTP'. 'Sendmail' is the default.
 # email_driver: SMTP
 
 
 # NOTE: The following settings are completely OPTIONAL, and are used for more
 # advanced features. You can safely ignore them.
+
+# Set to true (1) if you want to use the system installed LetMeIn.pm
+# instead of the one embedded in the letmein program. You can also set
+# this to the module name of the LetMeIn subclass you want to use.
+# use_module: 1
+# use_module: LetMeIn::Subclass
 
 # The directory where your custom templates reside.
 # template_directory: $template_directory
@@ -65,27 +72,23 @@ sub config {
 
 # Store extra information in the htpasswd file as JSON. Requires JSON::XS.
 # htpasswd_json: 1
-
-# Set to true if you want to use the system installed LetMeIn.pm
-# instead of the one embedded in the letmein program.
-# use_module: 1
 ...
 }
 
 sub default_template_directory {
-	my $default = '/path/to/your/template/directory';
+        my $default = '/path/to/your/template/directory';
 
-	eval "require File::ShareDir; 1"
-		or return $default;
+        eval "require File::ShareDir; 1"
+                or return $default;
 
-	my $base = File::ShareDir::dist_dir('LetMeIn')
-		or return $default;
+        my $base = File::ShareDir::dist_dir('LetMeIn')
+                or return $default;
 
-	my $path = File::Spec->catdir($base, 'template');
+        my $path = File::Spec->catdir($base, 'template');
 
-	return (-e $path)
-	? $path
-	: $default;
+        return (-e $path)
+        ? $path
+        : $default;
 }
 
 1;

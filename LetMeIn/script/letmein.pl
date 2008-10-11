@@ -47,14 +47,18 @@ unless ( $ENV{TEST_LETMEIN} ) {
 		error("Failed to load config file at $config_file");
 	}
 
-	if ($config->[0]{use_module}) {
-		eval "require LetMeIn";
+	my $module = $config->[0]{use_module};
+	if ($module eq '1') {
+		$module = 'LetMeIn';
+	}
+	if ($module) {
+		eval "require $module";
 	}
 	else {
 		eval LetMeIn();
 	}
 	if ($@) {
-		error("Can't load inline LetMeIn.pm: $@")
+		error("Can't load '$module': $@");
 	}
 
 	# Create the web application
@@ -80,8 +84,8 @@ unless ( $ENV{TEST_LETMEIN} ) {
 
 
 sub LetMeIn {
-    $INC{'LetMeIn.pm'} = __FILE__;
-    return <<'...';
+	$INC{'LetMeIn.pm'} = __FILE__;
+	return <<'...';
 #####################################################################
 # Inline lib/LetMeIn.pm
 ...
