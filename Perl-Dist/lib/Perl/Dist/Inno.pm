@@ -2722,6 +2722,12 @@ sub image_dir_url {
 	URI::file->new( $self->image_dir )->as_string;
 }
 
+# This is a temporary hack
+sub image_dir_quotemeta {
+	my $self = shift;
+	quotemeta $self->image_dir;
+}
+
 
 
 
