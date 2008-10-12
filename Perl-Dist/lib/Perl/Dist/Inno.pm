@@ -2725,7 +2725,9 @@ sub image_dir_url {
 # This is a temporary hack
 sub image_dir_quotemeta {
 	my $self = shift;
-	quotemeta $self->image_dir;
+	my $string = $self->image_dir;
+	$string =~ s/\\/\\\\/g;
+	return $string;
 }
 
 
