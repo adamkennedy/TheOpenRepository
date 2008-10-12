@@ -14,7 +14,7 @@ use t::lib::Test4 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05_02';
+	$VERSION = '1.05_03';
 }
 
 
@@ -43,7 +43,7 @@ sub paths {
 	my $class        = shift;
 	my $subpath      = shift || '';
 	my $basedir      = rel2abs( catdir( 't', "tmp$subpath" ) );
-	# File::Remove::clear( $basedir );
+	File::Remove::clear( $basedir );
 	my $output_dir   = remake_path( catdir( $basedir, 'output'   ) );
 	my $image_dir    = remake_path( catdir( $basedir, 'image'    ) );
 	my $download_dir =   make_path( catdir( $basedir, 'download' ) );

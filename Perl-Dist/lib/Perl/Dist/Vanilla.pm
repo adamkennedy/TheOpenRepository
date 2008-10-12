@@ -105,6 +105,16 @@ sub install_perl_5100_bin {
 	return 1;
 }
 
+sub install_c_libraries {
+	my $self = shift;
+	$self->SUPER::install_c_libraries(@_);
+
+	# Install Expat (which exercises install_par)
+	$self->install_expat;
+
+	return 1;
+}
+
 sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);

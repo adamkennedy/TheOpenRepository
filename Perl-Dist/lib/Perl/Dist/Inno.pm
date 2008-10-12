@@ -150,11 +150,12 @@ use Template                   ();
 use PAR::Dist                  ();
 use Portable::Dist             ();
 use Storable                   ();
+use URI::file                  ();
 use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.05_02';
+        $VERSION  = '1.05_03';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -1216,6 +1217,7 @@ sub install_perl_5100 {
 		install_to => 'perl',
 		patch      => [ qw{
 			lib/ExtUtils/Command.pm
+			lib/CPAN/Config.pm
 		} ],
 		license    => {
 			'perl-5.10.0/Readme'   => 'perl/Readme',
@@ -1741,8 +1743,10 @@ sub install_expat {
 
 	# Install the PAR version of libexpat
 	$self->install_par(
-		name  => 'libexpat',
-		share => 'Perl-Dist vanilla/libexpat-vanilla.par',
+		name         => 'libexpat',
+		share        => 'Perl-Dist vanilla/libexpat-vanilla.par',
+		install_perl => 1,
+		install_c    => 0,
 	);
 
 	return 1;
@@ -2189,17 +2193,20 @@ sub install_par {
 	my $packlist = File::Spec->catfile($libdir, $no_colon, '.packlist');
 	my $cdir     = File::Spec->catdir($self->image_dir, 'c');
 
+	# Suppress warnings for resources that don't exist
+	local $^W = 0;
+
 	# Install
 	PAR::Dist::install_par(
 		dist           => $file,
+		packlist_read  => $packlist,
+		packlist_write => $packlist,
 		inst_lib       => $libdir,
 		inst_archlib   => $libdir,
 		inst_bin       => $bindir,
 		inst_script    => $bindir,
 		inst_man1dir   => undef, # no man pages
-		inst_man3dir   => undef,
-		packlist_read  => $packlist,
-		packlist_write => $packlist,
+		inst_man3dir   => undef, # no man pages
 		custom_targets =>  {
 			'blib/c/lib'     => File::Spec->catdir($cdir, 'lib'),
 			'blib/c/bin'     => File::Spec->catdir($cdir, 'bin'),
@@ -2710,6 +2717,10 @@ sub patch_file {
 	return 1;
 }
 
+sub image_dir_url {
+	my $self = shift;
+	URI::file->new( $self->image_dir )->as_string;
+}
 
 
 
