@@ -1339,8 +1339,11 @@ sub install_perl_5100_bin {
 			INST_TOP => $INST_TOP,
 		} );
 
-		$self->trace("Building perl...\n");
-		$self->_make;
+		SCOPE: {
+			$self->trace("Building perl...\n");
+			my $obs = $ENV{NUMBER_OF_PROCESSORS} || 1;
+			$self->_make("-j${obs}");
+		}
 
 		unless ( $perl->force ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
