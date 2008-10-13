@@ -1,5 +1,9 @@
 Revision history for Perl module Perl-Dist
 
+1.05_03 Mon 13 Oct 2008
+	- Additional tweaks and clean ups
+	- Force the install of CPAN.pm
+
 1.05_02 Sat 11 Oct 2008
 	- Very aggressive dependencies, everything now to maximum
 	- Discovered and fixed a number of dependency bugs
