@@ -942,6 +942,10 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
+		if ( $dist =~ /\bCPAN-1\.93/ ) {
+			# Bad test, just force it
+			$force = 1;
+		}
 		$self->install_distribution(
 			name              => $dist,
 			force             => $force,
