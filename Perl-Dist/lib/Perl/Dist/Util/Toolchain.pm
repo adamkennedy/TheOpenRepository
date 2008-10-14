@@ -60,6 +60,7 @@ my %MODULES = (
 		File::Which
 		Archive::Zip
 		Archive::Tar
+		Parse::CPAN::Meta
 		YAML
 		Net::FTP
 		Digest::MD5
