@@ -942,10 +942,6 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		if ( $dist =~ /\bCPAN-1\.93/ ) {
-			# Bad test, just force it
-			$force = 1;
-		}
 		$self->install_distribution(
 			name              => $dist,
 			force             => $force,
@@ -957,9 +953,54 @@ sub install_perl_toolchain {
 	return 1;
 }
 
+sub install_cpan_upgrades {
+	my $self = shift;
+	unless ( $self->bin_perl ) {
+		Carp::croak("Cannot install CPAN modules yet, perl is not installed");
+	}
+
+	# Generate the CPAN installation script
+	# my $env_lib     = $self->get_env_lib;
+	# my $env_include = $self->get_env_include;
+	my $cpan_string = <<"END_PERL";
+print "Loading CPAN...\\n";
+use CPAN;
+CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
+print "Installing $name from CPAN...\\n";
+print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
+CPAN::Shell->upgrade;
+print "Completed upgrade of all modules\\n";
+exit(0);
+END_PERL
+
+	# Dump the CPAN script to a temp file and execute
+	$self->trace("Running upgrade of all modules\n");
+	my $cpan_file = File::Spec->catfile(
+		$self->build_dir,
+		'cpan_string.pl',
+	);
+	SCOPE: {
+		open( CPAN_FILE, '>', $cpan_file )  or die "open: $!";
+		print CPAN_FILE $cpan_string        or die "print: $!";
+		close( CPAN_FILE )                  or die "close: $!";
+	}
+	local $ENV{PERL_MM_USE_DEFAULT} = 1;
+	local $ENV{AUTOMATED_TESTING}   = '';
+	local $ENV{RELEASE_TESTING}     = '';
+	$self->_run3( $self->bin_perl, $cpan_file ) or die "perl failed";
+	die "Failure detected during cpan upgrade, stopping" if $?;
+
+	return 1;
+}
+
 # No additional modules by default
 sub install_perl_modules {
 	my $self = shift;
+
+	# Upgrade anything out of date,
+	# but don't install anything extra.
+	$self->install_cpan_upgrades;
+
 	return 1;
 }
 

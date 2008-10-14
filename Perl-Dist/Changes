@@ -1,5 +1,11 @@
 Revision history for Perl module Perl-Dist
 
+1.05_05 Wed 15 Oct 2008
+	- Bootstrap Perl is moving to the Strawberry distribution
+	- After the toolchain is installed, run a full CPAN upgrade
+	  to catch anything out of date NOT explicitly listed in the
+	  toolchain list.
+
 1.05_04 Tue 14 Oct 2008
 	- Adding missing dependency on File::HomeDir
 	- Additional minor tweaks and minor bug squashing
