@@ -54,7 +54,7 @@ my @hash_keys = (
 	  desc => q[correctly quotes number+newline] },
 );
 
-plan tests => (@numbers + @not_numbers + @keywords + @hash_keys + 4);
+plan tests => (@numbers + @not_numbers + @keywords + @hash_keys + 6);
 
 foreach ( @numbers ) {
 	ok( Data::JavaScript::Anon->is_a_number( $_ ), "$_ is a number" );
@@ -75,9 +75,14 @@ foreach ( @hash_keys ) {
 	    "anon_hash_key $_->{desc}" );
 }
 
+my $o = Data::JavaScript::Anon->new( quote_char => "'" );
+isa_ok( $o, 'Data::JavaScript::Anon', 'isa Data::JavaScript::Anon object');
+my $rv = $o->anon_dump( [ "a\nb", "a\rb", "a   b", "a\'b", "a\bb" ] );
+is( $rv, '[ \'a\nb\', \'a\rb\', \'a   b\', \'a\\\'b\', \'a\010b\' ]', 'changing default quote character');
 
 # Do a simple test of most of the code in a single go
-my $rv = Data::JavaScript::Anon->anon_dump( [ 'a', 1, { a => { a => 1, } }, \"foo" ] );
+undef $rv;
+$rv = Data::JavaScript::Anon->anon_dump( [ 'a', 1, { a => { a => 1, } }, \"foo" ] );
 is( $rv, '[ "a", 1, { a: { a: 1 } }, "foo" ]',
 	'Generates expected output for simple combination struct' );
 

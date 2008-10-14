@@ -1,5 +1,8 @@
 Revision history for Perl extension Data::JavaScript::Anon
 
+1.02 Tue 14 Oct 2008
+    - Added ability to change default quote character using Class::Default
+
 1.01 Thu 17 Apr 2008
 	- Incremental release to flush out an index bug (PUDGE)
 	- Upgrading Module::Install and bundled tests

@@ -8,9 +8,12 @@ use 5.005;
 use strict;
 use Params::Util qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 
-use vars qw{$VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
+use vars qw{@ISA $VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
 BEGIN {
-	$VERSION = '1.01';
+    use Class::Default;
+    @ISA = qw(Class::Default);
+
+	$VERSION = '1.02';
 	$errstr  = '';
 
 	# Attempt to define a single, all encompasing,
@@ -47,6 +50,31 @@ BEGIN {
 
 #####################################################################
 # Top Level Dumping Methods
+
+sub new {
+    my $proto = shift;
+    my $class = ref $proto || $proto;
+    my $opts = ref $_[0] eq 'HASH' ? shift : { @_ };
+
+    my $self = {
+        quote_char => '"',
+        };
+    bless($self, $class);
+
+    ## change the default quote character
+    if ( defined $$opts{quote_char} && length $$opts{quote_char} ) {
+        $$self{quote_char} = $$opts{quote_char};
+    }
+
+    return $self;
+}
+
+sub _create_default_object {
+    my $class = shift;
+    my $self = $class->new();
+
+    return $self;
+}
 
 sub anon_dump {
 	my $class     = shift;
@@ -170,8 +198,10 @@ sub anon_scalar {
 	# Don't quote if it is numeric
 	return $value if $value =~ /$RE_NUMERIC/;
 
+    my $quote_char = $class->_self->{quote_char};
+
 	# Escape and quote
-	'"' . _escape($value) . '"';
+	$quote_char . $class->_escape($value) . $quote_char;
 }
 
 # Turn a single perl value into a javascript hash key
@@ -179,15 +209,17 @@ sub anon_hash_key {
 	my $class = shift;
 	my $value = defined($_[0]) && !ref($_[0]) ? shift : return undef;
 
+    my $quote_char = $class->_self->{quote_char};
+
 	# Quote if it's a keyword
-	return '"' . $value . '"' if $KEYWORD{$value};
+	return $quote_char . $value . $quote_char if $KEYWORD{$value};
 
 	# Don't quote if it is just a set of word characters or numeric
 	return $value if $value =~ /^[^\W\d]\w*\z/;
 	return $value if $value =~ /$RE_NUMERIC_HASHKEY/;
 
 	# Escape and quote
-	'"' . _escape($value) . '"';
+	$quote_char . $class->_escape($value) . $quote_char;
 }
 
 # Create a JavaScript array given the javascript array name
@@ -222,8 +254,12 @@ sub anon_hash {
 # Utility and Error Methods
 
 sub _escape {
+    my $class = shift;
 	my $text = shift;
-	$text =~ s/(\"|\\)/\\$1/g;                              # Escape quotes and backslashes
+
+    my $quote_char = $class->_self->{quote_char};
+
+	$text =~ s/(\Q$quote_char\E|\\)/\\$1/g;                 # Escape quotes and backslashes
 	$text =~ s/\n/\\n/g;                                    # Escape newlines in a readable way
 	$text =~ s/\r/\\r/g;                                    # Escape CRs in a readable way
 	$text =~ s/\t/\\t/g;                                    # Escape tabs in a readable way
@@ -359,6 +395,16 @@ everything legal in JavaScript, with the one exception of the exotics, such
 as Infinite, -Infinit and NaN.
 
 Returns true is a scalar is numeric, or false otherwise.
+
+You may also access method in using an instantiated object.
+
+=head2 new HASH
+
+This will create a Data::JavaScript::Anon object that will allow you to change
+some of the default behaviors of some methods.
+
+    Options:
+        quote_char  : Set the quote_char for stirng scalars. Default is '"'.
 
 =head1 SECONDARY METHODS
 
