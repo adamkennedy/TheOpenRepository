@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-
+use Cwd qw(cwd realpath);
 use strict;
 BEGIN {
   $|  = 1;
@@ -33,7 +33,18 @@ BEGIN {
   ok(-f $PARFILE, 'PAR was generated');
   require PAR;
   PAR->import($PARFILE);
-  @INC = grep { !/(?:^|\\|\/)blib(?:\\|\/|$)/ } @INC;
+  # remove blib/lib from @INC, but:
+  # - make sure we only remove those in our cwd! (or else CPAN testers fail)
+  # - do not remove the cwd itself or "use t::lib::..." doesn't work any more.
+  my $cwd = quotemeta(realpath(cwd()));
+  @INC = grep {
+    if (!ref($_)) {
+      my $path = realpath($_)||$_;
+      not /^(?:\.\\|\.\/)?blib\b/
+        and
+      not $path =~ /^$cwd(?:\\|\/).+/
+    } else { 1 }
+  } @INC;
 }
 
 END {

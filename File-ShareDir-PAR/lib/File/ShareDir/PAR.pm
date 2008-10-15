@@ -80,7 +80,7 @@ use File::Path       ();
 
 use vars qw{$VERSION @EXPORT_OK %EXPORT_TAGS %CLEANUP_DIRS};
 BEGIN {
-  $VERSION     = '0.01';
+  $VERSION     = '0.02';
   @EXPORT_OK   = qw{dist_dir dist_file module_dir module_file class_file};
   %EXPORT_TAGS = (
     ALL => [ @EXPORT_OK ],

@@ -1,5 +1,9 @@
 Revision history for Perl extension File::ShareDir::PAR
 
+0.02 Wed 15 Oct 2008
+  - Fix 03 tests with par: previously, got spurious fails from
+    cpan testers because @INC was cleaned too eagerly.
+
 0.01 Fri 12 Sep 2008
   - Initial implementation.
 
