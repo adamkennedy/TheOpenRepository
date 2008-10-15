@@ -966,7 +966,7 @@ sub install_cpan_upgrades {
 print "Loading CPAN...\\n";
 use CPAN;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
-print "Installing $name from CPAN...\\n";
+print "Upgrading all out of date CPAN modules...\\n";
 print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
 CPAN::Shell->upgrade;
 print "Completed upgrade of all modules\\n";

@@ -17,7 +17,7 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
-	plan( tests => 6 );
+	plan( tests => 10 );
 }
 
 use File::Spec::Functions ':ALL';
@@ -56,6 +56,6 @@ ok(
 	'Found portable file',
 );
 ok(
-	-f catfile( qw{ t tmp18 image perl lib Portable.pm } ),
+	-f catfile( qw{ t tmp18 image site perl lib Portable.pm } ),
 	'Found Portable.pm',
 );

@@ -59,4 +59,10 @@ sub install_perl_5100_toolchain {
 	return shift->SUPER::install_perl_5100_toolchain( @_, trace => sub { 1 } );
 }
 
+sub install_custom {
+	my $self = shift;
+	$self->install_module( name => 'Config::Tiny' );
+	return 1;
+}
+
 1;

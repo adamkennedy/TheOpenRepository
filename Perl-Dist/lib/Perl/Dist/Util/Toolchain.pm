@@ -59,6 +59,8 @@ my %MODULES = (
 		File::HomeDir
 		File::Which
 		Archive::Zip
+		Package::Constants
+		IO::String
 		Archive::Tar
 		Parse::CPAN::Meta
 		YAML
@@ -73,7 +75,6 @@ my %MODULES = (
 		Term::ReadLine::Perl
 		Text::Glob
 		Data::Dumper
-
 		URI
 		HTML::Tagset
 		HTML::Parser
