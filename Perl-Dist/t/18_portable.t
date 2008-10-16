@@ -56,6 +56,6 @@ ok(
 	'Found portable file',
 );
 ok(
-	-f catfile( qw{ t tmp18 image site perl lib Portable.pm } ),
+	-f catfile( qw{ t tmp18 image perl site lib Portable.pm } ),
 	'Found Portable.pm',
 );
