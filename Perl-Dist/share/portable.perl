@@ -6,7 +6,7 @@ CPAN:
   histfile: cpan/histfile
   keep_source_where: cpan/sources
   make: c/bin/dmake.exe
-  makepl_arg: 'LIBS=-L$libpth INC=-I$incpath'
+  makepl_arg: ''
   patch: c/bin/patch.exe
   prefs_dir: cpan/prefs
 minicpan:
@@ -81,9 +81,3 @@ Env:
   PATH:
     - c/bin
     - perl/bin
-  LIB:
-    - c/lib
-    - perl/bin
-  INCLUDE:
-    - c/include
-    - perl/lib/CORE
