@@ -1,6 +1,8 @@
 Revision history for Perl module Perl-Dist
 
-1.07 
+1.07 Thu 16 Oct 2008
+	- Better linking to Perl Documentation
+
 1.06 Wed 15 Oct 2008
 	- This is expected to be the Perl::Dist used to build
 	  Strawberry Perl October
