@@ -4,7 +4,7 @@ package Perl::Dist::Inno;
 
 =head1 NAME
 
-Perl::Dist::Inno - Inno Setup Builder for Win32 Perl Distributions
+Perl::Dist::Inno - 3rd Generation Distribution Builder using Inno Setup
 
 =head1 SYNOPSIS
 
