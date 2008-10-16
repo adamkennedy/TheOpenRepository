@@ -1,20 +1,25 @@
 Revision history for Perl extension File-Remove
 
-1.42 Thu  3 Jul 2008 (Adam Kennedy)
+1.43 Thu 16 Oct 2008 - Adam Kennedy
+	- Updated to Module::Install 0.77
+	- Added a test to delete directories when the current working
+	  directory is inside the location to delete.
+
+1.42 Thu  3 Jul 2008 - Adam Kennedy
 	- Updated to Module::Install 0.76
 	- Updated bundled author tests
 	- Added the test_remove function
 	- Localising $@ during eval calls
 
-1.41 Mon  2 Jun 2008 (Adam Kennedy)
+1.41 Mon  2 Jun 2008 - Adam Kennedy
 	- No functional changes
 	- Updating location of author tests
 	- Switching to Module::Install again, to generate a better META.yml
 
-1.40 Sat 23 Feb 2008 (Adam Kennedy)
+1.40 Sat 23 Feb 2008 - Adam Kennedy
 	- Dev release looks good, changing to production release
 
-1.39_01 Wed 20 Feb 2008 (Adam Kennedy)
+1.39_01 Wed 20 Feb 2008 - Adam Kennedy
 	- Fixed rt.cpan.org #30251 "removing dirs enclosed by curly braces"
 	- remove now ignores globbing if -e is true BEFORE globbing
 	  (This should fix numerous possible failures where people are trying
@@ -24,21 +29,21 @@ Revision history for Perl extension File-Remove
 	- Adding explicit 5.005 dependency
 	  (Primarily for the benefit of automated quality/anaylsis tools)
 
-0.39 Mon 12 Nov 2007  (Adam Kennedy)
+0.39 Mon 12 Nov 2007  - Adam Kennedy
 	- No functional changes
 	- Updating to Module::Install 0.68
 
-0.38 Mon 15 Oct 2007  (Adam Kennedy)
+0.38 Mon 15 Oct 2007  - Adam Kennedy
 	- Removed an extremely dangerous and reckless test case that tried
 	  to delete a soft link to root and (when it failed) deleted the
 	  actual root directory.
 
-0.37 Sun  8 Jul 2007  (Adam Kennedy)
+0.37 Sun  8 Jul 2007  - Adam Kennedy
 	- Restoring support for broken symlinks (Marek Rouchal)
 	- Adding tests for the broken symlink case (Marek Rouchal)
 	- Tidying up the Changes file a bit
 
-0.36 Fri 30 Jun 2007  (Adam Kennedy)
+0.36 Fri 30 Jun 2007  - Adam Kennedy
 	- Avoid the installation of Mac::Glue.
 	  (It should not be necesary to test voice synthesis to delete a file)
 	- Anyone truly needing "trash" support will need to add a dependency

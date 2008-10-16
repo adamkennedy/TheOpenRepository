@@ -1,12 +1,12 @@
 package File::Remove;
 
-use 5.005;
+use 5.00503;
 use strict;
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 use vars qw{$debug $unlink $rmdir};
 BEGIN {
-	$VERSION   = '1.42';
+	$VERSION   = '1.43';
 	@ISA       = qw{ Exporter};
 	@EXPORT_OK = qw{ remove rm clear trash };
 }
@@ -313,13 +313,13 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 Some parts copyright 2006 - 2008 Adam Kennedy.
 
-Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt>, to fix the
+Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt> to fix the
 "deep readonly files" bug, and do some more cleaning up.
 
 Some parts copyright 2004 - 2005 Richard Soderberg.
 
-Taken over by Richard Soderberg E<lt>perl@crystalflame.netE<gt>, so as
-to port it to L<File::Spec> and add tests.
+Taken over by Richard Soderberg E<lt>perl@crystalflame.netE<gt> to
+port it to L<File::Spec> and add tests.
 
 Original copyright: 1998 by Gabor Egressy, E<lt>gabor@vmunix.comE<gt>.
 

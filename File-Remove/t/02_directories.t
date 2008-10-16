@@ -14,7 +14,6 @@ use File::Remove qw{ remove trash };
 
 
 # Set up the tests
-
 my @dirs = ("$0.tmp", map { "$0.tmp/$_" } qw(a a/b c c/d e e/f g));
 
 for my $path ( reverse @dirs ) {
