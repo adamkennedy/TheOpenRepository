@@ -54,6 +54,7 @@ my %MODULES = (
 		IO::Zlib
 		File::Spec
 		File::Temp
+		Win32::WinError
 		Win32API::Registry
 		Win32::TieRegistry
 		File::HomeDir
