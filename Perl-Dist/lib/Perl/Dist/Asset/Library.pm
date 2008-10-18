@@ -56,7 +56,7 @@ use Perl::Dist::Asset ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 	@ISA     = 'Perl::Dist::Asset';
 }
 

@@ -155,7 +155,7 @@ use Perl::Dist::Inno::Script   ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.07';
+        $VERSION  = '1.08';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -435,7 +435,7 @@ sub new {
 		$self->{exe} = 1;
 	}
 	unless ( defined $self->zip ) {
-		$self->{zip} = 0;
+		$self->{zip} = $self->portable ? 1 : 0;
 	}
 	unless ( defined $self->checkpoint_before ) {
 		$self->{checkpoint_before} = 0;
@@ -455,7 +455,6 @@ sub new {
 
 	# Handle portable special cases
 	if ( $self->portable ) {
-		$self->{zip} = 1;
 		$self->{exe} = 0;
 	}
 
@@ -507,12 +506,6 @@ sub new {
 			$self->output_dir, $self->app_id . '.iss'
 		);
 	}
-	unless ( defined $self->exe ) {
-		$self->{exe} = 1;
-	}
-	unless ( defined $self->zip ) {
-		$self->{zip} = 1;
-	}
 
 	# Clear the previous build
 	if ( -d $self->image_dir ) {
@@ -554,6 +547,9 @@ sub new {
 	# Set some common environment variables
 	$self->add_env( TERM        => 'dumb' );
 	$self->add_env( FTP_PASSIVE => 1      );
+
+	# Initialize the output valuse
+	$self->{output_file} = [];
 
         return $self;
 }
@@ -776,6 +772,11 @@ This method may take an hour or more to run.
 sub run {
 	my $self  = shift;
 	my $start = time;
+
+	unless ( $self->exe or $self->zip ) {
+		$self->trace("No exe or zip target, nothing to do");
+		return 1;
+	}
 
 	# Install the core C toolchain
 	$self->checkpoint_task( install_c_toolchain  => 1 );

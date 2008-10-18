@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.08 Sat 18 Oct 2008
+        - Shortcut run when no zip or exe target
+
 1.07 Thu 16 Oct 2008
 	- Better linking to Perl Documentation
 
