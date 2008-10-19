@@ -33,7 +33,7 @@ use PPI::Transform ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 	@ISA     = 'PPI::Transform';
 }
 
@@ -67,6 +67,7 @@ sub document {
 		return 1;
 		} );
 
+
 	# Lets also do some whitespace cleanup
 	$document->index_locations or return undef;
 	my $whitespace = $document->find('Token::Whitespace');
@@ -77,6 +78,37 @@ sub document {
 			$_->{content} = $_->{content} =~ /\n/ ? "\n" : " ";
 		}
 	}
+	$document->flush_locations;
+
+	# Remove whitespace in qw//
+	$document->find( sub {
+		my $qw = $_[1];
+		$qw->isa('PPI::Token::QuoteLike::Words') or return '';
+		
+		# FIXME this breaks encapsulation. I'd like to
+		# just make a new qw object and replace this one,
+		# but I just can't figure out how from the PPI docs.
+		# --Steffen
+		my $section = $qw->{sections}[0];
+		my $type    = $section->{type};
+		my $d_left  = substr($type, 0, 1);
+		my $d_right = substr($type, 1, 2);
+		
+		my $content = $qw->content();
+		$content =~ s/^\s*qw\s*\Q$d_left\E\s*/qw$d_left/;
+		$content =~ s/\s*\Q$d_right\E\s*$/$d_right/;
+		$content =~ s/\s+/ /g;
+		
+		$qw->set_content($content);
+		
+		$section->{position} = length("qw$d_left");
+		$section->{size} = length($content) - $section->{position} - 1;
+		
+		return '';
+		} );
+
+	die $document->errstr if $document->errstr;
+
 	$document->flush_locations;
 
 	$document;

@@ -61,7 +61,7 @@ foreach my $input ( @files ) {
 	my $copy   = "$input.copy";
 	my $copy2  = "$input.copy2";
 	push @cleanup, $copy;
-	push @cleanup, $copy2;
+	#push @cleanup, $copy2;
 	ok( copy( $input, $copy ), "Copied $input to $copy" );
 
 	my $Original = new_ok( 'PPI::Document' => $input  );
