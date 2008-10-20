@@ -226,7 +226,16 @@ sub run {
 }
 
 sub delegate {
-	return shift->SUPER::delegate( @DELEGATE );
+	my $self = shift;
+	unless ( $self->{delegated} ) {
+		$self->SUPER::delegate( @DELEGATE );
+		$self->{delegated} = 1;
+	}
+	return 1;
+}
+
+sub delegated {
+	$_[0]->{delegated};
 }
 
 1;

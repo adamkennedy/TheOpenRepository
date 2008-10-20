@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 43;
+use Test::More tests => 55;
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
 use Probe::Perl ();
@@ -116,4 +116,28 @@ SCOPE: {
 	ok( scalar(@dists) > 5, 'Got at least 3 distributions' );
 }
 
-1;
+# Test a full set for Perl 5.008008 via delegation
+SCOPE: {
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+		perl_version => '5.008008',
+	);
+	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
+	ok( $toolchain->prepare,  '->prepare ok' );
+	ok( $toolchain->delegate, '->run ok'     );
+	is( $toolchain->errstr, undef, '->errstr is undef' );
+	my @dists = $toolchain->dists;
+	ok( scalar(@dists) > 5, 'Got at least 5 distributions' );
+}
+
+# Test a full set for Perl 5.010000 via delegation
+SCOPE: {
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+		perl_version => '5.010000',
+	);
+	is( $toolchain->perl_version, '5.010000', '->perl_version ok' );
+	ok( $toolchain->prepare,  '->prepare ok' );
+	ok( $toolchain->delegate, '->run ok'     );
+	is( $toolchain->errstr, undef, '->errstr is undef' );
+	my @dists = $toolchain->dists;
+	ok( scalar(@dists) > 5, 'Got at least 3 distributions' );
+}

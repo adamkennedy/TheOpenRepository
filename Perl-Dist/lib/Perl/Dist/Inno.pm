@@ -1115,6 +1115,17 @@ sub remove_file {
 sub install_perl_588 {
 	my $self = shift;
 
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace("Pregenerating toolchain...\n");
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+	) or die("Failed to resolve toolchain modules");
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
+		die("Failed to generate toolchain distributions");
+	}
+
 	# Install the main perl distributions
 	$self->install_perl_588_bin(
 		name       => 'perl',
@@ -1141,7 +1152,7 @@ sub install_perl_588 {
 	);
 
 	# Upgrade the toolchain modules
-	$self->install_perl_toolchain;
+	$self->install_perl_toolchain( $toolchain );
 
 	return 1;
 }
@@ -1258,6 +1269,17 @@ Returns true, or throws an exception on error.
 sub install_perl_5100 {
 	my $self = shift;
 
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace("Pregenerating toolchain...\n");
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+	) or die("Failed to resolve toolchain modules");
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
+		die("Failed to generate toolchain distributions");
+	}
+
 	# Install the main binary
 	$self->install_perl_5100_bin(
 		name       => 'perl',
@@ -1276,14 +1298,7 @@ sub install_perl_5100 {
 	);
 
 	# Install the toolchain
-	$self->install_perl_toolchain(
-		Perl::Dist::Util::Toolchain->new(
-			perl_version => $self->perl_version_literal,
-			force        => {
-				'File::Path' => 'DLAND/File-Path-2.04.tar.gz',
-			},
-		)
-	);
+	$self->install_perl_toolchain( $toolchain );
 
 	return 1;
 }
