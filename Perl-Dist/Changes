@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.09 Mon 20 Oct 2008
+	- This version was used to build Strawberry Perl October 2008
+
 1.08 Sat 18 Oct 2008
         - Shortcut run when no zip or exe target
 
