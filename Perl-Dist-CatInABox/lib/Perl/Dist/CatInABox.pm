@@ -87,7 +87,7 @@ L<Catalyst::Authentication::Credential::HTTP>
 use 5.008;
 use strict;
 use warnings;
-use Perl::Dist::Strawberry 1.07 ()
+use Perl::Dist::Strawberry 1.07 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
