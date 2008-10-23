@@ -1,15 +1,8 @@
-use inc::Module::Install;
+use inc::Module::Install 0.77;
 
-name     'Perl-Dist-CatInABox';
-all_from 'lib/Perl/Dist/CatInABox.pm';
-requires 'Perl::Dist::Strawberry';
-author   'Kieren Diment <zarquon@cpan.org>';
+all_from       'lib/Perl/Dist/CatInABox.pm';
+requires       'Perl::Dist::Strawberry' => '1.07';
+build_requires 'Test::More'             => '0.42';
 install_script 'perldist_catinabox';
 
-
-build_requires 'Test::More';
-
-auto_install;
-
 WriteAll;
-

@@ -1,8 +1,6 @@
 package Perl::Dist::CatInABox;
 
-
-use warnings;
-use strict;
+=pod
 
 =head1 NAME
 
@@ -84,32 +82,80 @@ L<Catalyst::Authentication::Credential::HTTP>
 
 =back
 
-=head1 VERSION
-
-Version 0.01
-
 =cut
 
-our $VERSION = '0.01';
+use 5.008;
+use strict;
+use warnings;
+use Perl::Dist::Strawberry 1.07 ()
 
+use vars qw{$VERSION @ISA};
+BEGIN {
+	$VERSION = '0.01';
+	@ISA     = 'Perl::Dist::Strawberry';
+}
 
+sub new {
+	shift->SUPER::new(
+		app_id            => 'catinabox',
+		app_name          => 'Catalyst In A Box',
+		app_publisher     => 'Vanilla Perl Project',
+		app_publisher_url => 'http://vanillaperl.org/',
+		image_dir         => 'C:\\catinabox',
+
+		# Build both exe and zip versions
+		exe               => 1,
+		zip               => 1,
+
+		@_,
+	);
+}
+
+sub install_perl_modules {
+	my $self = shift;
+	$self->SUPER::install_perl_modules(@_);
+	$self->install_modules(qw{
+		Catalyst::Devel
+		Template
+		DBIx::Class
+		DBIx::Class::EncodedColumn
+		DBIx::Class::Timestamp
+		DBIx::Class::InflateColumn::DateTime
+		DBIx::Class::Schema::Loader
+		Catalyst::View::TT
+		Catalyst::View::JSON
+		Catalyst::Model::DBIC::Schema
+		Catalyst::Model::DBIC::File
+		Catalyst::Plugin::Authentication
+		Catalyst::Authentication::Store::DBIx::Class
+		Catalyst::Authentication::Store::Htpasswd
+		Catalyst::Authentication::Credential::Password
+		Catalyst::Authentication::Credential::HTTP
+	});
+}
+
+1;
+
+=pod
 
 =head1 AUTHOR
 
-Kieren Diment, C<< <zarquon at cpan.org> >>
+Kieren Diment E<lt>zarquon@cpan.orgE<gt>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-perl-dist-catinabox at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-CatInABox>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to
+C<bug-perl-dist-catinabox at rt.cpan.org>, or through
+the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-CatInABox>.
+I will be notified, and then you'll automatically be notified of progress
+on your bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Perl::Dist::CatInABox
-
 
 You can also look for information at:
 
@@ -133,7 +179,6 @@ L<http://search.cpan.org/dist/Perl-Dist-CatInABox>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
 
 Adam Kennedy for his Strawberry Perl project. All the Catalyst
@@ -141,52 +186,9 @@ contributors (L<http://catalystframework.org>).
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Kieren Diment, all rights reserved.
+Copyright 2008 Kieren Diment.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
-
-use base 'Perl::Dist::Strawberry';
-
-sub new {
-	shift->SUPER::new(
-		app_id            => 'catalyinaboxperl',
-		app_name          => 'Catalyst In A Box Perl',
-		app_publisher     => 'Vanilla Perl Project',
-		app_publisher_url => 'http://vanillaperl.org/',
-		image_dir         => 'C:\\strawberry',
-
-		# Build both exe and zip versions
-		exe               => 1,
-		zip               => 1,
-
-		@_,
-	);
-}
-
-sub install_perl_modules {
-    my $self = shift;
-    $self->SUPER::install_perl_modules(@_);
-    $self->install_modules(qw{
-                                 Catalyst::Devel
-                                 Template
-                                 DBIx::Class
-                                 DBIx::Class::EncodedColumn
-                                 DBIx::Class::Timestamp
-                                 DBIx::Class::InflateColumn::DateTime
-                                 DBIx::Class::Schema::Loader
-                                 Catalyst::View::TT
-                                 Catalyst::View::JSON
-                                 Catalyst::Model::DBIC::Schema
-                                 Catalyst::Model::DBIC::File
-                                 Catalyst::Plugin::Authentication
-                                 Catalyst::Authentication::Store::DBIx::Class
-                                 Catalyst::Authentication::Store::Htpasswd
-                                 Catalyst::Authentication::Credential::Password
-                                 Catalyst::Authentication::Credential::HTTP
-                         });
-}
-
-1;
