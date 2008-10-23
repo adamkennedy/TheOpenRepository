@@ -10,11 +10,19 @@ Perl::Dist::Chocolate - Chocolate Perl for Win32
 
 This is the distribution builder used to create Chocolate Perl.
 
+=head1 Building Chocolate Perl
+
+Unlike Strawberry, Chocolate does not have a standalone build script.
+
+To build Chocolate Perl, run the following.
+
+  perldist Chocolate
+
 =cut
 
 use 5.008;
 use strict;
-use Perl::Dist::Strawberry ();
+use Perl::Dist::Strawberry 1.07 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
@@ -75,33 +83,18 @@ sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
 
-	# All of the GUI tools need WxWidgets
-	$self->install_wx;
+	# Current Padre encompasses all the stuff we care about
+	$self->install_module( name => 'Padre' );
 
-	return 1;
-}
-
-
-
-
-
-#####################################################################
-# Installation Methods
-
-sub install_wx {
-	my $self = shift;
-
-	# The underlying alien package installs quite happily
-	# as a normal module.
-	$self->install_module(
-		name => 'Alien::wxWidgets',
-	);
-
-	# The main distribution has to be installed without being
-	# passed the normal INC/LIBS params.
-	$self->install_distribution(
-		name => 'MBARBON/Wx-0.86.tar.gz',
-	);
+	# Install a range of the most popular modules for various tasks
+	$self->install_modules( qw{
+		DateTime
+		Template
+		POE
+		Imager
+		Perl::Critic
+		Perl::Tidy
+	} );
 
 	return 1;
 }

@@ -1,5 +1,5 @@
 Changes for Perl extension Perl-Dist-Chocolate
 
-0.01 ?????????
+1.07 Thu 23 Oct 2008
 	- Created as a subclass of Strawberry
-	- Added the install_wx method
+	- Adding a "splat" of initial probably-good module bloat
