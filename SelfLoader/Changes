@@ -1,5 +1,8 @@
 Revision history for Perl extension SelfLoader
 
+1.17     Thu Oct 23 20:12 2008
+  - Tiny fix in error messages: Use $! instead of $1.
+
 1.16     Sat Aug  2 17:29 2008
   - Report the location of warnings and errors. (perl ticket #5298,
     Marc Gauthier)
