@@ -1,5 +1,8 @@
 Revision history for Perl extension lib
 
+0.60  Thu Oct 23 23:00 2008
+  - No breakage in a month, release stable lib.
+
 0.59_01  Sun Sep 28 11:32 2008
   - Add special case to Makefile.PL for ExtUtils::MakeMaker 6.46 and up.
   * To P5P: This is purely a change to the CPAN distribution. The module code is

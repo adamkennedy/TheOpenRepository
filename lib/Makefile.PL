@@ -10,13 +10,13 @@ my $extra_meta = <<'EMETA';
 provides:
   lib:
     file: lib_pm.PL
-    version: 0.59_01
+    version: 0.60
 EMETA
 my $mm_version = $ExtUtils::MakeMaker::VERSION;
 
 WriteMakefile(
   'NAME' => 'lib',
-  'VERSION' => '0.59_01',
+  'VERSION' => '0.60',
   'LICENSE' => 'perl',
   'PREREQ_PM' => {},
   'ABSTRACT_FROM' => 'lib_pm.PL',
