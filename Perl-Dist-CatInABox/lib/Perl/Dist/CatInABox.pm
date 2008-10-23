@@ -97,16 +97,14 @@ BEGIN {
 
 sub new {
 	shift->SUPER::new(
-		app_id            => 'catinabox',
-		app_name          => 'Catalyst In A Box',
-		app_publisher     => 'Vanilla Perl Project',
-		app_publisher_url => 'http://vanillaperl.org/',
-		image_dir         => 'C:\\catinabox',
-
-		# Build both exe and zip versions
-		exe               => 1,
-		zip               => 1,
-
+		app_id               => 'catinabox',
+		app_name             => 'Catalyst In A Box Beta 1',
+		app_publisher        => 'Kieren Diment',
+		app_publisher_url    => 'http://www.catalystframework.org/',
+		image_dir            => 'C:\\catinabox',
+		output_base_filename => 'catinabox-5.10.0-beta-1',
+		exe                  => 1,
+		zip                  => 1,
 		@_,
 	);
 }
