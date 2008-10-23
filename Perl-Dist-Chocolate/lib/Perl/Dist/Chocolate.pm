@@ -4,7 +4,7 @@ package Perl::Dist::Chocolate;
 
 =head1 NAME
 
-Perl::Dist::Chocolate - Chocolate Perl for Win32
+Perl::Dist::Chocolate - Chocolate Perl for Win32 (EXPERIMENTAL)
 
 =head1 DESCRIPTION
 
