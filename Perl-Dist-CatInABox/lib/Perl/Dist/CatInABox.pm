@@ -91,7 +91,7 @@ use Perl::Dist::Strawberry 1.07 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'Perl::Dist::Strawberry';
 }
 
@@ -112,24 +112,8 @@ sub new {
 sub install_perl_modules {
 	my $self = shift;
 	$self->SUPER::install_perl_modules(@_);
-	$self->install_modules(qw{
-		Catalyst::Devel
-		Template
-		DBIx::Class
-		DBIx::Class::EncodedColumn
-		DBIx::Class::Timestamp
-		DBIx::Class::InflateColumn::DateTime
-		DBIx::Class::Schema::Loader
-		Catalyst::View::TT
-		Catalyst::View::JSON
-		Catalyst::Model::DBIC::Schema
-		Catalyst::Model::DBIC::File
-		Catalyst::Plugin::Authentication
-		Catalyst::Authentication::Store::DBIx::Class
-		Catalyst::Authentication::Store::Htpasswd
-		Catalyst::Authentication::Credential::Password
-		Catalyst::Authentication::Credential::HTTP
-	});
+	$self->install_module( name => 'Task::CatInABox' );
+	return 1;
 }
 
 1;
