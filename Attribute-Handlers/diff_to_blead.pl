@@ -56,10 +56,26 @@ usage() if not defined $bleadpath or not -d $bleadpath;
 
 foreach my $local_file (keys %files) {
   my $blead_file = "$bleadpath/" . $files{$local_file};
+  my @cmd = ($diff, '-u');
   if ($reverse) {
-    system($diff, '-u', $blead_file, $local_file);
+    push @cmd, $blead_file, $local_file;
   }
   else {
-    system($diff, '-u', $local_file, $blead_file);
+    push @cmd, $local_file, $blead_file;
   }
+  my $result = `@cmd`;
+  my $blead_prefix = quotemeta($reverse ? '---' : '+++');
+  my $local_prefix = quotemeta($reverse ? '+++' : '---');
+  $result =~ s/^($blead_prefix\s*)(\S+)/$1.fix_blead_path($2,$bleadpath)/gme;
+  $result =~ s/^($local_prefix\s*)(\S+)/$1.$files{$2}/gme;
+  print $result;
 }
+
+sub fix_blead_path {
+  my $path = shift;
+  my $bleadpath = shift;
+  $path =~ s/^\Q$bleadpath\E//;
+  $path =~ s/^\/+//;
+  return $path;
+}
+
