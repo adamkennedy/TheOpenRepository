@@ -10,7 +10,7 @@ WriteMakefile(
   (ABSTRACT_FROM => 'lib/Filter/Simple.pm',
    'AUTHOR'      => 'Damian Conway') : ()),
   PREREQ_PM     => {
-    'Text::Balanced' => 0,
+    'Text::Balanced' => '1.97',
     'Filter::Util::Call' => 0
   },
 );
