@@ -29,6 +29,8 @@ use Object::Tiny qw{
 	config_file
 	process
 	window
+
+	marketlogs
 };
 
 
@@ -77,6 +79,17 @@ sub new {
 	}
 	unless ( _STRING($self->password) ) {
 		croak("Did not provide a password");
+	}
+
+	# Try to find the market log directory
+	unless ( $self->marketlogs ) {
+		$self->{marketlogs} = File::Spec->catdir(
+			File::HomeDir->my_documents,
+			'EVE', 'logs', 'Marketlogs',
+		);	
+	}
+	unless ( -d $self->marketlogs ) {
+		croak("Missing or invalid marketlogs directory");
 	}
 
 	return $self;
@@ -174,6 +187,10 @@ sub market_search {
 	# Select the first resulting thing
 	$self->left_click( 125, 185 );
 	sleep 5;
+
+	# Export the market data
+	$self->left_click( 450, 775 );
+	sleep 3;
 
 	return 1;
 }
