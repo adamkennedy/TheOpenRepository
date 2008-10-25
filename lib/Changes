@@ -1,5 +1,10 @@
 Revision history for Perl extension lib
 
+0.61  Sat Oct 25 12:05 2008
+  - The Makefile.PL breakage in 0.59_01 and 0.60 wasn't detected
+    for a month, but it was still there!
+  - Fix META_ADD for recent MakeMakers.
+
 0.60  Thu Oct 23 23:00 2008
   - No breakage in a month, release stable lib.
 

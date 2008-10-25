@@ -6,17 +6,27 @@ require 5.006_001;
 use strict;
 use ExtUtils::MakeMaker;
 
-my $extra_meta = <<'EMETA';
+my $lib_version = '0.61';
+
+my $extra_meta = <<"EMETA";
 provides:
   lib:
     file: lib_pm.PL
-    version: 0.60
+    version: $lib_version
 EMETA
+
+my $extra_meta_hash = {
+  provides => {
+    lib => { file => 'lib_pm.PL',
+             version => $lib_version, },
+  },
+};
+
 my $mm_version = $ExtUtils::MakeMaker::VERSION;
 
 WriteMakefile(
   'NAME' => 'lib',
-  'VERSION' => '0.60',
+  'VERSION' => $lib_version,
   'LICENSE' => 'perl',
   'PREREQ_PM' => {},
   'ABSTRACT_FROM' => 'lib_pm.PL',
@@ -27,7 +37,7 @@ WriteMakefile(
   'clean' => {FILES => 'lib.pm'},
   (
     $mm_version >= 6.46
-    ? (META_ADD => $extra_meta)
+    ? (META_ADD => $extra_meta_hash)
     : ( 
         $mm_version >= 6.3002
         ? (EXTRA_META => $extra_meta)
