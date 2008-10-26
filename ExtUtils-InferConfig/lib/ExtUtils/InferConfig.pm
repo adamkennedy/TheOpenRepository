@@ -7,7 +7,7 @@ use IPC::Cmd qw//;
 
 use vars qw/$VERSION/;
 BEGIN {
-    $VERSION = '1.00';
+    $VERSION = '1.01';
 }
 
 use constant ISWIN32 => ($^O =~ /win32/i ? 1 : 0);
@@ -46,6 +46,8 @@ works the same way for C<@INC> entries that are plain paths.
 Requires one named parameter: C<perl>, the path to the perl
 interpreter to query for information.
 
+Optional parameter: C<debug =E<gt> 1> enables the debugging mode.
+
 =cut
 
 sub new {
@@ -59,6 +61,7 @@ sub new {
         perl => undef,
         config => undef,
         inc => undef,
+        ($args{debug} ? (debug => 1) : ()),
     };
     bless $self => $class;
 
@@ -72,6 +75,8 @@ sub new {
             ."It was either not found or it is not executable."
         );
     }
+
+    warn "Using perl '$perl'" if $self->{debug};
 
     $self->{perl} = $perl;
 
@@ -88,7 +93,8 @@ sub _perl_to_file {
 
     # Build up a set of file names (not command names).
     if ($^O ne 'VMS') {
-        $ .= $Config{_exe};
+      $perl .= $Config{_exe}
+        unless $perl =~ m/\Q$Config{_exe}$/i;
     }
 
     return $perl if -f $perl and -x _;
@@ -134,12 +140,18 @@ foreach my $k (keys %Config) {
  print qq{$ek\n$ev\n};
 }
 HERE
+
+    warn "Running the following code:\n---$code\n---" if $self->{debug};
+
     $code =~ s/\n/ /g;
 
+    my @command = (
+      $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
+    );
+    warn "Running the following command: '@command'" if $self->{debug};
+
     my ($success, $error_code, undef, $buffer, $error) = IPC::Cmd::run(
-        command => [
-            $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
-        ],
+        command => \@command,
     );
 
     if (not $success) {
@@ -147,6 +159,9 @@ HERE
             "Could not run the specified perl interpreter to determine \%Config. Error code (if any) was: $error_code. STDERR was (if any): ".join('', @$error)
         );
     }
+
+    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
+    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
 
     my %Config;
     my @data = split /\n/, join '', @$buffer;
@@ -205,12 +220,17 @@ foreach my $inc (@INC) {
   print qq{$i\n};
 }
 HERE
+    warn "Running the following code:\n---$code\n---" if $self->{debug};
+
     $code =~ s/\n/ /g;
 
+    my @command = (
+      $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
+    );
+    warn "Running the following command: '@command'" if $self->{debug};
+
     my ($success, $error_code, undef, $buffer, $error) = IPC::Cmd::run(
-        command => [
-            $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
-        ],
+        command => \@command,
     );
 
     if (not $success) {
@@ -218,6 +238,9 @@ HERE
             "Could not run the specified perl interpreter to determine \@INC. Error code (if any) was: $error_code. STDERR was (if any): ".join('', @$error)
         );
     }
+
+    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
+    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
 
     my @inc;
     my @data = split /\n/, join '', @$buffer;
@@ -256,7 +279,7 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Steffen Mueller
+Copyright (C) 2007-2008 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
