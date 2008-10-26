@@ -23,7 +23,10 @@ window.
 use 5.008;
 use strict;
 use warnings;
-use Padre::Wx;
+use File::Basename ();
+use Padre::Wx      ();
+use Padre          ();
+use Wx             ();
 
 our $VERSION = '0.13';
 
@@ -45,7 +48,7 @@ sub install_string {
 		"pip",
 		'',
 	);
-	if ( $dialog->ShowModel == Wx::wxID_CANCEL ) {
+	if ( $dialog->ShowModal == Wx::wxID_CANCEL ) {
 		return;
 	}
 	my $string = $dialog->GetValue;
@@ -61,11 +64,20 @@ sub install_string {
 	}
 
 	# Execute the command
-	run_command( $string );
+	$DB::single = 1;
+	run_command( $window, $string );
 }
 
 sub run_command {
-	shift->run_command( join ' ', 'pip', @_ );
+	my $window = shift;
+	my $target = shift;
+	my $perl   = Padre->perl_interpreter;
+	my $dir    = File::Basename::dirname( $perl );
+	my $pip    = File::Spec->catfile( $dir, 'pip' );
+	unless ( -f $pip ) {
+		die "pip is unexpectedly not installed";
+	}
+	$window->run_command( join ' ', 'perl', $pip, $target );
 }
 
 1;
