@@ -1,5 +1,8 @@
 Revision history for Perl extension ExtUtils::InferConfig.
 
+1.01  Sun Oct 26 18:12 2008
+        - Fix tests on stupid OS which set $^X to 'perl'.
+
 1.00  Thu Aug 30 14:59 2007
 	- Add IPC::Cmd as a dependency.
         - Should now work as far back as perl 5.004.
