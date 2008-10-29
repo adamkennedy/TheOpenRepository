@@ -6,6 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
+use Test::NeedsDisplay;
 use Test::More tests => 2;
 
 ok( $] >= 5.008, 'Perl version is new enough' );
