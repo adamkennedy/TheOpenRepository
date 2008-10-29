@@ -88,7 +88,7 @@ use File::Spec ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 }
 
 sub import {
@@ -104,7 +104,13 @@ sub import {
 		next unless -e $xvfb_run;
 		next unless -x $xvfb_run;
 		print "# Restarting with xvfb-run...\n";
-		exec( $xvfb_run, $^X, $0 );
+		exec(
+			$xvfb_run,
+			$^X,
+			($INC{'blib.pm'} ? '-Mblib' : ()),
+			($INC{'perl5db.pl'} ? '-d' : ()),
+			$0,
+		);
 	}
 
 	print "# Failed to find xvfb-run.\n";
