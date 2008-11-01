@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl::Metrics
 
+0.09 Sat  1 Nov 2008
+	- Adding a missing dependency on File::Find::Rule::Perl
+
 0.08 Sat 10 May 2008
 	- Updated to Module::Install 0.73
 	- Updated test scripts and bundled author tests
