@@ -1,4 +1,4 @@
-Revision history for Perl extension Perl::Metrics
+Revision history for Perl extension Perl-Metrics
 
 0.09 Sat  1 Nov 2008
 	- Adding a missing dependency on File::Find::Rule::Perl
