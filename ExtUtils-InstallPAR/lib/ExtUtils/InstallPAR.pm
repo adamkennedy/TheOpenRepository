@@ -7,8 +7,9 @@ BEGIN {
 
 use Config;
 use Carp qw/croak/;
-use PAR::Dist ();
+require PAR::Dist;
 require Config;
+require File::Spec;
 require Exporter;
 @ISA = qw(Exporter);
 %EXPORT_TAGS = ('all' => [qw(install)]);
@@ -22,6 +23,14 @@ ExtUtils::InstallPAR - Install .par's into any installed perl
 
   use ExtUtils::InstallPAR;
   
+  # Install into the currently running perl:
+  ExtUtils::InstallPAR::install(
+    par => './Foo-Bar-0.01-MSWin32-multi-thread-5.10.0.par',
+    perl => '/path/to/perl.exe',
+  );
+  
+  # Install into a different perl on the system,
+  # this requires the ExtUtils::Infer module.
   ExtUtils::InstallPAR::install(
     par => './Foo-Bar-0.01-MSWin32-multi-thread-5.10.0.par',
     perl => '/path/to/perl.exe',
@@ -31,7 +40,6 @@ ExtUtils::InstallPAR - Install .par's into any installed perl
   ExtUtils::InstallPAR::install(
     par => 'http://foo.com/Foo-Bar-0.01-MSWin32-multi-thread-5.10.0.par',
   );
-  # the above defaults to the currently running perl
 
 =head1 DESCRIPTION
 
@@ -49,7 +57,20 @@ of any perl interpreter than can be executed by the current user.
 
 =head2 install
 
-FIXME mention that $^X is icky
+Install a PAR archive into any perl on the system. Takes named parameters:
+
+C<par =E<gt> '/path/to/foo.par'> or C<par =E<gt> 'http://URL/to/foo.par'>
+specifies the path to the .par file to install or an URL to fetch it from
+(of LWP::Simple is available). This parameter is mandatory.
+
+The C<perl =E<gt> '/path/to/perl'> parameter can be used to specify
+the perl interpreter to install into. If you omit this option or set
+it to C<undef>, the currently running perl will be used as target.
+If you want to install into different perls, you will need to
+install the C<ExtUtils::InferConfig> module.
+
+C<verbosity =E<gt> $value> can be used to set the verbosity of the
+installation process. Defaults to C<1>.
 
 =cut
 
@@ -78,6 +99,7 @@ sub install {
 
   my $config;
   if (defined $perl) {
+    require ExtUtils::InferConfig;
     my $eic = ExtUtils::InferConfig->new(
       perl => $perl,
     );
@@ -122,6 +144,8 @@ L<ExtUtils::InferConfig> for details on how the installation paths
 are determined.
 
 L<ExtUtils::Install> is used to install the files into the system.
+
+C<PAR::Dist> can use L<LWP::Simple> to fetch from URLs.
 
 =head1 AUTHOR
 
