@@ -2,7 +2,7 @@ package ExtUtils::InstallPAR;
 use strict;
 use vars qw/$VERSION @ISA @EXPORT_OK %EXPORT_TAGS/;
 BEGIN {
-    $VERSION = '0.01';
+    $VERSION = '0.02';
 }
 
 use Config;
@@ -88,7 +88,7 @@ sub install {
   my $name = $par;
   $name =~ s/^\w+:\/\///;
   my @name_elems = PAR::Dist::parse_dist_name($name);
-  if (@name_elems) {
+  if (2 <= grep {defined} @name_elems) {
     $name = join('-', @name_elems);
   }
   else {
