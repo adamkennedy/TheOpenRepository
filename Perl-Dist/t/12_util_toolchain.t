@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 55;
+use Test::More 0.80 tests => 55;
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
 use Probe::Perl ();
@@ -23,13 +23,6 @@ my $perl = Probe::Perl->find_perl_interpreter;
 #####################################################################
 # Create and execute a resolver
 
-sub new_ok {
-	my $class  = shift;
-	my $object = $class->new(@_);
-	isa_ok($object, $class);
-	return $object;
-}
-
 sub check_simple_object {
 	my $toolchain = shift;
 	is( $toolchain->errstr, undef, '->errstr returns false' );
@@ -45,10 +38,10 @@ sub check_simple_object {
 
 # Test the simplest run-mode
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
 		modules      => [ 'File::Spec' ],
-	);
+	] );
 	my $p = $toolchain->prepare;
 	if ( ! $p and $@ =~ /Permission denied/ ) {
 		foreach ( 2 .. 43 ) {
@@ -63,13 +56,13 @@ SCOPE: {
 
 # Test the force option
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
 		modules      => [ 'File::Spec' ],
 		force        => {
 			'File::Spec' => 'PathTools-forced',
 		},
-	);
+	] );
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
 	check_simple_object( $toolchain );
@@ -78,10 +71,10 @@ SCOPE: {
 
 # Test via a delegation
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
 		modules      => [ 'File::Spec' ],
-	);
+	] );
 	isa_ok(
 		$toolchain,
 		'Perl::Dist::Util::Toolchain'
@@ -92,9 +85,9 @@ SCOPE: {
 
 # Test a full set for Perl 5.008008
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
-	);
+	] );
 	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
@@ -105,9 +98,9 @@ SCOPE: {
 
 # Test a full set for Perl 5.010000
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.010000',
-	);
+	] );
 	is( $toolchain->perl_version, '5.010000', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
@@ -118,9 +111,9 @@ SCOPE: {
 
 # Test a full set for Perl 5.008008 via delegation
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
-	);
+	] );
 	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
 	ok( $toolchain->prepare,  '->prepare ok' );
 	ok( $toolchain->delegate, '->run ok'     );
@@ -131,9 +124,9 @@ SCOPE: {
 
 # Test a full set for Perl 5.010000 via delegation
 SCOPE: {
-	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain',
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.010000',
-	);
+	] );
 	is( $toolchain->perl_version, '5.010000', '->perl_version ok' );
 	ok( $toolchain->prepare,  '->prepare ok' );
 	ok( $toolchain->delegate, '->run ok'     );
