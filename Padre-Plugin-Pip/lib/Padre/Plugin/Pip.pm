@@ -28,11 +28,11 @@ use Padre::Wx      ();
 use Padre          ();
 use Wx             ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.16';
 
 sub menu {
 	return (
-		[ "Install Distribution", \&install_string ],
+		[ "Install Distribution ($VERSION)", \&install_string ],
 		# [ "Install Distribution File", \&install_file ],
 		# [ "Install Distribution URI",  \&install_uri  ],
 	);
