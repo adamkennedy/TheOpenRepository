@@ -22,7 +22,7 @@ use Object::Tiny qw{
 };
 
 # Preroll file find rules
-my $RELEASES = File::Find::Rule->name('*.tar.gz', '*.zip')->file;
+my $RELEASES = File::Find::Rule->name('*.tar.gz', '*.zip')->file->relative;
 
 
 
