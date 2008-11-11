@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_SVN} ) {
-	plan( tests => 6 );
+	plan( tests => 7 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_SVN} is not defined' );
 }
@@ -34,7 +34,7 @@ is( $repository->root, $root, '->root ok' );
 
 
 #####################################################################
-# Trivial Methods
+# SVN Methods
 
 my $hash = $repository->svn_info( $repository->root );
 is( ref($hash), 'HASH', '->svn_info' );
@@ -53,3 +53,13 @@ is(
 	'directory',
 	'svn_info: Node Kind ok',
 );
+
+
+
+
+
+#####################################################################
+# Release Methods
+
+my @files = $repository->release_files;
+ok( scalar(@files) > 10, 'Found a bunch of releases' );

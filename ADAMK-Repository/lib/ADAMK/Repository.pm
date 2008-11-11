@@ -69,7 +69,7 @@ sub release_dir {
 	$_[0]->dir('releases');
 }
 	
-sub release_archives {
+sub release_files {
 	$RELEASES->in( $_[0]->release_dir );
 }
 
