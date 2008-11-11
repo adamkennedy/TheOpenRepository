@@ -7,15 +7,15 @@ BEGIN {
 }
 
 use Test::More;
-if ( $ENV{ADAMK_SVN} ) {
-	plan( tests => 7 );
+if ( $ENV{ADAMK_CHECKOUT} ) {
+	plan( tests => 1005 );
 } else {
-	plan( skip_all => '$ENV{ADAMK_SVN} is not defined' );
+	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined' );
 }
 
 use ADAMK::Repository;
 
-my $root = $ENV{ADAMK_SVN};
+my $root = $ENV{ADAMK_CHECKOUT};
 
 
 
@@ -61,5 +61,9 @@ is(
 #####################################################################
 # Release Methods
 
-my @files = $repository->release_files;
-ok( scalar(@files) > 10, 'Found a bunch of releases' );
+my $expected = 998;
+my @releases = $repository->releases;
+ok( scalar(@releases) >= $expected, 'Found a bunch of releases' );
+foreach ( 0 .. $expected - 1 ) {
+	isa_ok( $releases[$_], 'ADAMK::Release', "Release $_" );
+}

@@ -1,6 +1,12 @@
 package ADAMK::Repository;
 
-# Implements a basic convenience model of ADAMK's repository.
+=pod
+
+=head1 NAME
+
+ADAMK::Repository - Repository object model for ADAMK's scn repository
+
+=cut
 
 use 5.008;
 use strict;
@@ -11,6 +17,7 @@ use File::pushd           'pushd';
 use File::Find::Rule      ();
 use File::Find::Rule::VCS ();
 use Params::Util          qw{ _STRING _CODE };
+use ADAMK::Release        ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -23,6 +30,7 @@ use Object::Tiny qw{
 
 # Preroll file find rules
 my $RELEASES = File::Find::Rule->name('*.tar.gz', '*.zip')->file->relative;
+
 
 
 
@@ -73,6 +81,31 @@ sub release_files {
 	$RELEASES->in( $_[0]->release_dir );
 }
 
+sub releases {
+	my $self     = shift;
+	my @files    = $self->release_files;
+	my @releases = ();
+	foreach my $file ( @files ) {
+		unless ( $file =~ /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ ) {
+			croak("Unexpected file name '$file'");
+		}
+		my $distribution = "$1";
+		my $version      = "$2";
+		my $object = ADAMK::Release->new(
+			file         => $file,
+			directory    => 'releases',
+			path         => File::Spec->catfile(
+				$self->release_dir, $file,
+			),
+			repository   => $self,
+			distribution => $distribution,
+			version      => $version,
+		);
+		push @releases, $object;
+	}
+	return @releases;
+}
+
 
 
 
@@ -121,3 +154,25 @@ sub svn_info {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+No support is available for this module
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

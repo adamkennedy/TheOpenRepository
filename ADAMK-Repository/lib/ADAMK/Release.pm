@@ -12,9 +12,9 @@ BEGIN {
 }
 
 use Object::Tiny qw{
-	path
 	file
 	directory
+	path
 	repository
 	distribution
 	version
@@ -32,7 +32,7 @@ sub new {
 	my $self  = $class->SUPER::new(@_);
 
 	# Check params
-	unless ( _INSTANCE($self->repository) ) {
+	unless ( _INSTANCE($self->repository, 'ADAMK::Repository') ) {
 		croak("Did not provide a repository");
 	}
 
