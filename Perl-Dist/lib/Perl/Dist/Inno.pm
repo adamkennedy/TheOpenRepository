@@ -396,7 +396,13 @@ sub new {
 	unless ( $self->can('install_perl_' . $self->perl_version) ) {
 		Carp::croak("$class does not support Perl " . $self->perl_version);
 	}
-	$self->{perl_version_corelist} = $Module::CoreList::version{$self->perl_version_literal+0};
+
+	# Find the core list
+	my $corelist_version = $self->perl_version_literal+0;
+	if ( $corelist_version == 5.008009 ) {
+		$corelist_version = 5.008008;
+	}
+	$self->{perl_version_corelist} = $Module::CoreList::version{$corelist_version};
 	unless ( Params::Util::_HASH($self->{perl_version_corelist}) ) {
 		Carp::croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
 	}
@@ -1326,7 +1332,7 @@ sub install_perl_589_bin {
 	if ( $patch ) {
 		# Overwrite the appropriate files
 		foreach my $file ( @$patch ) {
-			$self->patch_file( "perl-5.8.9/$file" => $unpack_to );
+			$self->patch_file( "perl-5.8.9-RC1/$file" => $unpack_to );
 		}
 	}
 

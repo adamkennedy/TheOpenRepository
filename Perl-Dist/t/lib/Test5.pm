@@ -1,4 +1,4 @@
-package t::lib::Test2;
+package t::lib::Test5;
 
 use strict;
 use Perl::Dist ();
@@ -21,7 +21,7 @@ sub app_ver_name         { 'Test Perl 1 alpha 1'     }
 sub app_publisher        { 'Vanilla Perl Project'    }
 sub app_publisher_url    { 'http://vanillaperl.org'  }
 sub app_id               { 'testperl'                }
-sub output_base_filename { 'test-perl-5.8.8-alpha-1' }
+sub output_base_filename { 'test-perl-5.8.9-alpha-1' }
 
 
 

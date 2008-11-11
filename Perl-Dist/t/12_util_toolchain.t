@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More 0.80 tests => 55;
+use Test::More 0.86 tests => 61;
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
 use Probe::Perl ();
@@ -89,6 +89,19 @@ SCOPE: {
 		perl_version => '5.008008',
 	] );
 	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
+	ok( $toolchain->prepare, '->prepare ok' );
+	ok( $toolchain->run,     '->run ok'     );
+	is( $toolchain->errstr, undef, '->errstr is undef' );
+	my @dists = $toolchain->dists;
+	ok( scalar(@dists) > 5, 'Got at least 5 distributions' );
+}
+
+# Test a full set for Perl 5.008009
+SCOPE: {
+	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
+		perl_version => '5.008009',
+	] );
+	is( $toolchain->perl_version, '5.008009', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
 	is( $toolchain->errstr, undef, '->errstr is undef' );

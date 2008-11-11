@@ -83,6 +83,13 @@ my %MODULES = (
 	} ],
 );
 $MODULES{'5.010000'} = $MODULES{'5.008008'};
+$MODULES{'5.008009'} = $MODULES{'5.008008'};
+
+my %CORELIST = (
+	'5.008008' => '5.008008',
+	'5.008009' => '5.008008',
+	'5.010000' => '5.010000',
+);
 
 
 
@@ -102,6 +109,9 @@ sub new {
 	unless ( $MODULES{$self->perl_version} ) {
 		Carp::croak("Perl version '" . $self->perl_version . "' is not supported in $class");
 	}
+	unless ( $CORELIST{$self->perl_version} ) {
+		Carp::croak("Perl version '" . $self->perl_version . "' is not supported in $class");
+	}
 
 	# Populate the modules array if needed
 	unless ( _ARRAY($self->{modules}) ) {
@@ -109,8 +119,9 @@ sub new {
 	}
 
 	# Confirm we can find the corelist for the Perl version
-	$self->{corelist} = $Module::CoreList::version{$self->perl_version}
-	                 || $Module::CoreList::version{$self->perl_version+0};
+	my $corelist_version = $CORELIST{$self->perl_version};
+	$self->{corelist} = $Module::CoreList::version{$corelist_version}
+	                 || $Module::CoreList::version{$corelist_version+0};
 	unless ( _HASH($self->{corelist}) ) {
 		Carp::croak("Failed to find module core versions for Perl " . $self->perl_version);
 	}
