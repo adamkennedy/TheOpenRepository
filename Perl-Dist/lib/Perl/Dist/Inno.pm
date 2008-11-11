@@ -716,14 +716,15 @@ Thus Perl 5.8.8 will be "588" and Perl 5.10.0 will return "5100".
 The C<perl_version_literal> method returns the literal numeric Perl
 version for the distribution.
 
-For Perl 5.8.8 this will be '5.008008' and for Perl 5.10.0 this will
-be '5.010000'.
+For Perl 5.8.8 this will be '5.008008', Perl 5.8.9 will be '5.008009',
+and for Perl 5.10.0 this will be '5.010000'.
 
 =cut
 
 sub perl_version_literal {
 	return {
 		588  => '5.008008',
+		589  => '5.008009',
 		5100 => '5.010000',
 	}->{$_[0]->perl_version} || 0;
 }
@@ -735,13 +736,14 @@ sub perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either '5.8.8' or '5.10.0'.
+This will be either '5.8.8', '5.8.9' or '5.10.0'.
 
 =cut
 
 sub perl_version_human {
 	return {
 		588  => '5.8.8',
+		589  => '5.8.9',
 		5100 => '5.10.0',
 	}->{$_[0]->perl_version} || 0;
 }
@@ -1049,6 +1051,9 @@ sub install_win32_extras {
 			url  => 'http://perldoc.perl.org/5.8.8/',
 		);
 	}
+	if ( $self->perl_version_human eq '5.8.9' ) {
+		# Don't link to anything
+	}
 	if ( $self->perl_version_human eq '5.10.0' ) {
 		$self->install_website(
 			name => 'Perl 5.10.0 Documentation',
@@ -1244,6 +1249,135 @@ sub install_perl_588_bin {
 	return 1;
 }
 
+
+
+
+
+#####################################################################
+# Perl 5.8.9 Support
+
+sub install_perl_589 {
+	my $self = shift;
+
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace("Pregenerating toolchain...\n");
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+	) or die("Failed to resolve toolchain modules");
+	$toolchain->delegate;
+	if ( $toolchain->{errstr} ) {
+		die("Failed to generate toolchain distributions");
+	}
+
+	# Install the main perl distributions
+	$self->install_perl_589_bin(
+		name       => 'perl',
+		url        => 'http://strawberryperl.com/package/perl-5.8.9-RC1.tar.gz',
+		unpack_to  => 'perl',
+		install_to => 'perl',
+		patch      => [ qw{
+			lib/CPAN/Config.pm
+		} ],
+		license    => {
+			'perl-5.8.9-RC1/Readme'   => 'perl/Readme',
+			'perl-5.8.9-RC1/Artistic' => 'perl/Artistic',
+			'perl-5.8.9-RC1/Copying'  => 'perl/Copying',
+		},
+	);
+
+	# Upgrade the toolchain modules
+	$self->install_perl_toolchain( $toolchain );
+
+	return 1;
+}
+
+sub install_perl_589_bin {
+	my $self = shift;
+	my $perl = Perl::Dist::Asset::Perl->new(
+		parent => $self,
+		force  => $self->force,
+		@_,
+	);
+	unless ( $self->bin_make ) {
+		Carp::croak("Cannot build Perl yet, no bin_make defined");
+	}
+
+	# Download the file
+	my $tgz = $self->_mirror( 
+		$perl->url,
+		$self->download_dir,
+	);
+
+	# Unpack to the build directory
+	my $unpack_to = File::Spec->catdir( $self->build_dir, $perl->unpack_to );
+	if ( -d $unpack_to ) {
+		$self->trace("Removing previous $unpack_to\n");
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $tgz => $unpack_to );
+
+	# Get the versioned name of the directory
+	(my $perlsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
+	$perlsrc = File::Basename::basename($perlsrc);
+
+	# Pre-copy updated files over the top of the source
+	my $patch = $perl->patch;
+	if ( $patch ) {
+		# Overwrite the appropriate files
+		foreach my $file ( @$patch ) {
+			$self->patch_file( "perl-5.8.9/$file" => $unpack_to );
+		}
+	}
+
+	# Copy in licenses
+	if ( ref $perl->license eq 'HASH' ) {
+		my $license_dir = File::Spec->catdir( $self->image_dir, 'licenses' );
+		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
+	}
+
+	# Build win32 perl
+	SCOPE: {
+		my $wd = File::pushd::pushd(
+			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
+		);
+
+		# Prepare to patch
+		my $image_dir  = $self->image_dir;
+		my $INST_TOP   = File::Spec->catdir( $self->image_dir, $perl->install_to );
+		my ($INST_DRV) = File::Spec->splitpath( $INST_TOP, 1 );
+
+		$self->trace("Patching makefile.mk\n");
+		$self->patch_file( 'perl-5.8.9-RC1/win32/makefile.mk' => $unpack_to, {
+			dist     => $self,
+			INST_DRV => $INST_DRV,
+			INST_TOP => $INST_TOP,
+		} );
+
+		$self->trace("Building perl...\n");
+		$self->_make;
+
+		unless ( $perl->force ) {
+			local $ENV{PERL_SKIP_TTY_TEST} = 1;
+			$self->trace("Testing perl...\n");
+			$self->_make('test');
+		}
+
+		$self->trace("Installing perl...\n");
+		$self->_make( qw/install UNINST=1/ );
+	}
+
+	# Should now have a perl to use
+	$self->{bin_perl} = File::Spec->catfile( $self->image_dir, qw/perl bin perl.exe/ );
+	unless ( -x $self->bin_perl ) {
+		Carp::croak("Can't execute " . $self->bin_perl);
+	}
+
+	# Add to the environment variables
+	$self->add_env_path( 'perl', 'bin' );
+
+	return 1;
+}
 
 
 

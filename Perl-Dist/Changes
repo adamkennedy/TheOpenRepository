@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+1.10 Tue 11 Nov 2008
+	- Adding initial support for Perl 5.8.9
+
 1.09 Mon 20 Oct 2008
 	- This version was used to build Strawberry Perl October 2008
 
