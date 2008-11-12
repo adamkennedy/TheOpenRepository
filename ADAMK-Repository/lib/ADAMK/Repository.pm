@@ -30,8 +30,8 @@ use Object::Tiny qw{
 };
 
 # Preroll file find rules
-my $RELEASES = File::Find::Rule->name('*.tar.gz', '*.zip')->file->relative;
-
+my $RELEASES      = File::Find::Rule->name('*.tar.gz', '*.zip')->file->relative;
+my $DISTRIBUTIONS = File::Find::Rule->name(qr/^[A-Z-]+$/i)->directory->relative;
 
 
 
@@ -45,7 +45,7 @@ sub new {
 	my $self  = $class->SUPER::new(@_);
 
 	# Check params
-	unless ( -d $self->svn_dir($self->root) ) {
+	unless ( -d $self->svn_root($self->root) ) {
 		croak("Missing or invalid SVN root directory");
 	}
 	if ( $self->{trace} and not _CODE($self->{trace}) ) {
@@ -72,6 +72,45 @@ sub trace {
 
 
 #####################################################################
+# Distributions
+
+sub distribution_dir {
+	$_[0]->dir('trunk');
+}
+
+sub distribution_directories {
+	my $self   = shift;
+	local *DIR;
+	opendir( DIR, $self->distribution_dir ) or die("opendir: $!");
+	my @files = readdir(DIR);
+	closedir(DIR) or die("closedir: $!");
+	return grep { /^[A-Z-]+$/i } @files;
+}
+
+sub distributions {
+	my $self          = shift;
+	my @directories   = $self->distribution_directories;
+	my @distributions = ();
+	foreach my $directory ( @directories ) {
+		my $object = ADAMK::Distribution->new(
+			name         => $directory,
+			directory    => 'trunk',
+			path         => File::Spec->catfile(
+				$self->distribution_dir, $directory,
+			),
+			repository   => $self,
+			distribution => $directory,
+		);
+		push @distributions, $object;
+	}
+	return @distributions;
+}
+
+
+
+
+
+#####################################################################
 # Releases
 
 sub release_dir {
@@ -79,7 +118,12 @@ sub release_dir {
 }
 	
 sub release_files {
-	$RELEASES->in( $_[0]->release_dir );
+	my $self   = shift;
+	local *DIR;
+	opendir( DIR, $self->release_dir ) or die("opendir: $!");
+	my @files = readdir(DIR);
+	closedir(DIR) or die("closedir: $!");
+	return grep { /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ } @files;
 }
 
 sub releases {
@@ -142,16 +186,32 @@ sub svn_info {
 	return \%hash;
 }
 
+sub svn_root {
+	my $self = shift;
+	my $root  = shift;
+	unless ( defined _STRING($root) ) {
+		return undef;
+	}
+	unless ( -d $root ) {
+		return undef;
+	}
+	unless ( -d File::Spec->catdir($root, '.svn') ) {
+		return undef;
+	}
+	return $root;
+}
+
 sub svn_dir {
 	my $self = shift;
 	my $dir  = shift;
 	unless ( defined _STRING($dir) ) {
 		return undef;
 	}
-	unless ( -d $dir ) {
+	my $path = File::Spec->catfile( $self->root, $dir );
+	unless ( -d $path ) {
 		return undef;
 	}
-	unless ( -d File::Spec->catdir($dir, '.svn') ) {
+	unless ( -d File::Spec->catdir($path, '.svn') ) {
 		return undef;
 	}
 	return $dir;

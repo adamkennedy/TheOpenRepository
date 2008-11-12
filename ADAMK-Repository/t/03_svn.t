@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 107 );
+	plan( tests => 208 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined' );
 }
@@ -53,6 +53,20 @@ is(
 	'directory',
 	'svn_info: Node Kind ok',
 );
+
+
+
+
+
+#####################################################################
+# Distribution Methods
+
+my @distributions = $repository->distributions;
+@distributions = sort { rand() <=> rand() } @distributions;
+foreach my $distribution ( sort @distributions[0 .. 100] ) {
+	my $info = $distribution->svn_info;
+	is( ref($info), 'HASH', $distribution->name . ': ->svn_info ok' );
+}
 
 
 
