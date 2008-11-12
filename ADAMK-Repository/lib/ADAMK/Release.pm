@@ -8,7 +8,7 @@ use Params::Util qw{ _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use Object::Tiny qw{
@@ -37,6 +37,23 @@ sub new {
 	}
 
 	return $self;
+}
+
+
+
+
+
+
+#####################################################################
+# SVN Integration
+
+sub svn_info {
+	$_[0]->repository->svn_file_info(
+		File::Spec->catfile(
+			$_[0]->directory,
+			$_[0]->file,
+		)
+	);
 }
 
 1;
