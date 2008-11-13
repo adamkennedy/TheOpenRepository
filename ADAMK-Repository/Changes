@@ -1,4 +1,8 @@
 Changes for Perl extension ADAMK-Repository
 
+0.02 Thu 13 Nov 2008
+	- Adding distribution loading
+	- Adding preload support
+
 0.01 Mon 10 Nov 2008
 	- Creating initial skeleton
