@@ -1,5 +1,8 @@
 Revision history for Perl extension ExtUtils::InferConfig.
 
+1.02  Fri Nov 14 15:09 2008
+        - Fix strange overzealous code escaping/quoting.
+
 1.01  Sun Oct 26 18:12 2008
         - Fix tests on stupid OS which set $^X to 'perl'.
 

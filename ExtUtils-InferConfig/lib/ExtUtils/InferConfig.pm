@@ -7,10 +7,10 @@ use IPC::Cmd qw//;
 
 use vars qw/$VERSION/;
 BEGIN {
-    $VERSION = '1.01';
+    $VERSION = '1.02';
 }
 
-use constant ISWIN32 => ($^O =~ /win32/i ? 1 : 0);
+#use constant ISWIN32 => ($^O =~ /win32/i ? 1 : 0);
 
 =head1 NAME
 
