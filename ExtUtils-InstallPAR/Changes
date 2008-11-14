@@ -1,5 +1,8 @@
 Revision history for Perl extension ExtUtils::InstallPAR.
 
+0.03  Fri Nov 13 15:13 2008
+  - Fix stupid mistake in SYNOPSIS.
+
 0.02  Sun Nov  2 11:48 2008
   - Better handling of .par's with funny names.
 

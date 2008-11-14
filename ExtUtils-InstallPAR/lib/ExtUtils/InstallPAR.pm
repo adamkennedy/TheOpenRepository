@@ -2,7 +2,7 @@ package ExtUtils::InstallPAR;
 use strict;
 use vars qw/$VERSION @ISA @EXPORT_OK %EXPORT_TAGS/;
 BEGIN {
-    $VERSION = '0.02';
+    $VERSION = '0.03';
 }
 
 use Config;
@@ -26,7 +26,6 @@ ExtUtils::InstallPAR - Install .par's into any installed perl
   # Install into the currently running perl:
   ExtUtils::InstallPAR::install(
     par => './Foo-Bar-0.01-MSWin32-multi-thread-5.10.0.par',
-    perl => '/path/to/perl.exe',
   );
   
   # Install into a different perl on the system,

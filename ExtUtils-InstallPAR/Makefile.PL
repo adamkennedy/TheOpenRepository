@@ -6,7 +6,7 @@ WriteMakefile(
     VERSION_FROM      => 'lib/ExtUtils/InstallPAR.pm', # finds $VERSION
     PREREQ_PM         => {
       'PAR::Dist' => '0.40',
-#      'ExtUtils::InferConfig' => '1.01',
+#      'ExtUtils::InferConfig' => '1.02',
     }, 
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/ExtUtils/InstallPAR.pm', # retrieve abstract from module
