@@ -143,16 +143,20 @@ HERE
 
     warn "Running the following code:\n---$code\n---" if $self->{debug};
 
+    $code =~ s/\s+$//;
     $code =~ s/\n/ /g;
 
     my @command = (
-      $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
+      $perl, '-e', $code
     );
     warn "Running the following command: '@command'" if $self->{debug};
 
     my ($success, $error_code, undef, $buffer, $error) = IPC::Cmd::run(
         command => \@command,
     );
+
+    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
+    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
 
     if (not $success) {
         croak(
@@ -222,10 +226,11 @@ foreach my $inc (@INC) {
 HERE
     warn "Running the following code:\n---$code\n---" if $self->{debug};
 
+    $code =~ s/\s+$//;
     $code =~ s/\n/ /g;
 
     my @command = (
-      $perl, '-e', (ISWIN32 ? "\"$code\"" : "'$code'")
+      $perl, '-e', $code
     );
     warn "Running the following command: '@command'" if $self->{debug};
 
