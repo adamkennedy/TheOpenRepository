@@ -1,5 +1,8 @@
 Revision history for Perl extension File::ShareDir::PAR
 
+0.03 Sat 15 Nov 2008
+  - Fix issue on Win32 wrt path separators.
+
 0.02 Wed 15 Oct 2008
   - Fix 03 tests with par: previously, got spurious fails from
     cpan testers because @INC was cleaned too eagerly.

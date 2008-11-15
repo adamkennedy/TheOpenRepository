@@ -80,7 +80,7 @@ use File::Path       ();
 
 use vars qw{$VERSION @EXPORT_OK %EXPORT_TAGS %CLEANUP_DIRS};
 BEGIN {
-  $VERSION     = '0.02';
+  $VERSION     = '0.03';
   @EXPORT_OK   = qw{dist_dir dist_file module_dir module_file class_file};
   %EXPORT_TAGS = (
     ALL => [ @EXPORT_OK ],
@@ -113,13 +113,14 @@ END {
 
     $file =~ s/\/+$//;
 
-    my @files = (
+    my @files = map {s/\\/\//g; $_} (
       $file, "lib/$file", "arch/$file",
       "$arch/$file", "$ver/$file", "$ver/$arch/$file"
     );
     @files = map {($_, "$_/")} @files;
     #use Data::Dumper; warn Dumper \@files;
     foreach my $zip (@PAR::LibCache) {
+    my @m = $zip->memberNames();
         my $member = PAR::_first_member($zip, @files) or next;
         return($member, $zip);
     }
