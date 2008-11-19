@@ -9,6 +9,7 @@ requires       'File::Find::Rule'      => '0.30';
 requires       'File::Find::Rule::VCS' => '1.05';
 requires       'Object::Tiny'          => '1.06';
 requires       'Params::Util'          => '0.33';
+requires       'CPAN::Version'         => '5.5';
 build_requires 'Test::More'            => '0.80';
 requires_external_bin 'svn';
 
