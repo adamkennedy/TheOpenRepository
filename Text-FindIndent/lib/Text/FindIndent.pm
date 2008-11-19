@@ -6,10 +6,46 @@ package Text::FindIndent;
 
 Text::FindIndent - Heuristically determine the indent style
 
+=head1 SYNOPSIS
+
+  use Text::FindIndent;
+  my $indentation_type = Text::FindIndent->parse($text);
+  if ($indentation_type =~ /^s(\d+)/) {
+    print "Indentation with $1 spaces\n";
+  }
+  elsif ($indentation_type =~ /^t(\d+)/) {
+    print "Indentation with $1 tabs\n";
+  }
+  elsif ($indentation_type =~ /^m(\d+)/) {
+    print "Indentation with $1 characters in tab/space mixed mode\n";
+  }
+  else {
+    print "Indentation style unknown\n";
+  }
+
 =head1 DESCRIPTION
 
 This is an experimental distribution that attempts to intuit the underlying
 indent "policy" for a text file (most likely a source code file).
+
+=head1 METHODS
+
+=head2 parse
+
+The class method C<parse> tries to determine the indentation style of the
+given piece of text (which must start at a new line and can be passed in either
+as a string or as a reference to a scalar containing the string).
+
+Returns a letter followed by a number. If the letter is C<s>, then the
+text is most likely indented with spaces. The number indicates the number
+of spaces used for indentation. A C<t> indicates tabs, a C<u> indicates that the
+indenation style could not be determined.
+
+Finally, an C<m> followed by a number means that this many characters are used
+for each indentation level, but the indentation is an arbitrary number of
+tabs followed by 0-7 spaces. This can happen if your editor is stupid enough
+to do smart indentation/whitespace compression. (I.e. replaces all indentations
+many tabs as possible but leaves the rest as spaces.)
 
 =cut
 
