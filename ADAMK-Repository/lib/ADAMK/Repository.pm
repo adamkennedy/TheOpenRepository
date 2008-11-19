@@ -17,6 +17,7 @@ use File::pushd           'pushd';
 use File::Find::Rule      ();
 use File::Find::Rule::VCS ();
 use Params::Util          qw{ _STRING _CODE };
+use CPAN::Version         ();
 use ADAMK::Release        ();
 use ADAMK::Distribution   ();
 
@@ -28,10 +29,6 @@ BEGIN {
 use Object::Tiny qw{
 	root
 };
-
-# Preroll file find rules
-my $RELEASES      = File::Find::Rule->name('*.tar.gz', '*.zip')->file->relative;
-my $DISTRIBUTIONS = File::Find::Rule->name(qr/^[A-Z-]+$/i)->directory->relative;
 
 
 
@@ -51,6 +48,13 @@ sub new {
 	if ( $self->{trace} and not _CODE($self->{trace}) ) {
 		$self->{trace} = sub { print @_ };
 	}
+	$self->{preload} = !! $self->{preload};
+
+	# Preload if we are into that sort of thing
+	$self->trace("Preloading distributions...");
+	$self->{distributions} = [ $self->distributions ];
+	$self->trace("Preloading releases...");
+	$self->{releases} = [ $self->releases ];
 
 	return $self;
 }
@@ -88,7 +92,13 @@ sub distribution_directories {
 }
 
 sub distributions {
-	my $self          = shift;
+	my $self = shift;
+
+	# Use cache if preloaded
+	if ( $self->{distributions} ) {
+		return @{$self->{distributions}};
+	}
+
 	my @directories   = $self->distribution_directories;
 	my @distributions = ();
 	foreach my $directory ( @directories ) {
@@ -127,7 +137,13 @@ sub release_files {
 }
 
 sub releases {
-	my $self     = shift;
+	my $self = shift;
+
+	# Use cache if preloaded
+	if ( $self->{releases} ) {
+		return @{$self->{releases}};
+	}
+
 	my @files    = $self->release_files;
 	my @releases = ();
 	foreach my $file ( @files ) {
@@ -148,6 +164,21 @@ sub releases {
 		);
 		push @releases, $object;
 	}
+
+	return @releases;
+}
+
+sub distribution_releases {
+	my $self         = shift;
+	my $distribution = shift;
+
+	# Filter by distribution and sort by version
+	my @releases = sort {
+		CPAN::Version->vcmp( $b, $a )
+	} grep {
+		$_->distribution eq $distribution
+	} $self->releases;
+
 	return @releases;
 }
 
