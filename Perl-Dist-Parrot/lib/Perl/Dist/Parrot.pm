@@ -25,6 +25,10 @@ BEGIN {
 	@ISA      = 'Perl::Dist::Vanilla';
 }
 
+use Object::Tiny qw{
+	bin_mingw_make
+};
+
 
 
 
@@ -49,6 +53,28 @@ sub new {
 
 		@_,
 	);
+}
+
+
+
+
+
+#####################################################################
+# C Toolchain
+
+sub install_mingw_make {
+	my $self = shift;
+	$self->SUPER::install_mingw_make(@_);
+
+	# Initialize the MinGW make location
+	$self->{bin_mingw_make} = File::Spec->catfile(
+		$self->image_dir, 'c', 'bin', 'mingw32-make.exe',
+	);
+	unless ( -x $self->bin_mingw_make ) {
+		Carp::croak("Can't execute mingw_make");
+	}
+
+	return 1;
 }
 
 
@@ -140,6 +166,22 @@ sub install_parrot_081_bin {
 		die "CODE INCOMPLETE";
 	}
 
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _mingw_make {
+	my $self   = shift;
+	my @params = @_;
+	$self->trace(join(' ', '>', $self->bin_mingw_make, @params) . "\n");
+	$self->_run3( $self->bin_mingw_make, @params ) or die "mingw_make failed";
+	die "mingw_make failed (OS error)" if ( $? >> 8 );
 	return 1;
 }
 
