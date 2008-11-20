@@ -24,8 +24,8 @@ my %tests = (
   )],
   m4 => [qw(
     mixed4_1.txt
-    mixed4_2.txt
   )],
+    #mixed4_2.txt
 );
 
 my $no_tests = 0;
