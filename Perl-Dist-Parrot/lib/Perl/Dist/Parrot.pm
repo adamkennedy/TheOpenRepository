@@ -75,6 +75,9 @@ sub install_parrot_081 {
 		url        => 'http://strawberryperl.com/package/parrot-0.8.1.tar.gz',
 		unpack_to  => 'parrot',
 		install_to => 'parrot',
+		license    => {
+			'parrot-0.8.1/LICENSE' => 'parrot/LICENSE',
+		},
 	);
 
 	return 1;
