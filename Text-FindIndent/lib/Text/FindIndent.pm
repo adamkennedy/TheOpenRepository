@@ -14,7 +14,7 @@ Text::FindIndent - Heuristically determine the indent style
     print "Indentation with $1 spaces\n";
   }
   elsif ($indentation_type =~ /^t(\d+)/) {
-    print "Indentation with $1 tabs\n";
+    print "Indentation with tabs, a tab should indent by $1 characters\n";
   }
   elsif ($indentation_type =~ /^m(\d+)/) {
     print "Indentation with $1 characters in tab/space mixed mode\n";
@@ -38,14 +38,20 @@ as a string or as a reference to a scalar containing the string).
 
 Returns a letter followed by a number. If the letter is C<s>, then the
 text is most likely indented with spaces. The number indicates the number
-of spaces used for indentation. A C<t> indicates tabs, a C<u> indicates that the
+of spaces used for indentation. A C<t> indicates tabs. The number after the
+C<t> indicates the number characters each level of indentation corresponds to.
+A C<u> indicates that the
 indenation style could not be determined.
-
 Finally, an C<m> followed by a number means that this many characters are used
 for each indentation level, but the indentation is an arbitrary number of
 tabs followed by 0-7 spaces. This can happen if your editor is stupid enough
 to do smart indentation/whitespace compression. (I.e. replaces all indentations
 many tabs as possible but leaves the rest as spaces.)
+
+The function supports parsing of C<vim> I<modelines>. Those settings
+override the heuristics. The modeline's options that are recognized
+are C<sts>/C<softtabstob>, C<et>/C<noet>/C<expandtabs>/C<noexpandtabs>,
+and C<ts>/C<tabstop>.
 
 =cut
 
@@ -54,7 +60,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-  $VERSION = '0.01';
+  $VERSION = '0.02';
 }
 
 sub parse {
@@ -62,14 +68,33 @@ sub parse {
   my $text  = shift;
   my $textref = ref($text) ? $text : \$text; # accept references, too
 
+  my %modeline_settings;
+
   my %indentdiffs;
   my $lines                 = 0;
   my $prev_indent           = undef;
   my $skip                  = 0;
+
   while ($$textref =~ /\G([ \t]*)([^\r\n]*)[\r\n]+/cgs) {
     my $ws = $1;
     my $rest = $2;
     $lines++;
+    
+    # Do we have vim smart comments?
+    $class->_check_vim_modeline("$ws$rest", \%modeline_settings);
+    if (exists $modeline_settings{softtabstop} and exists $modeline_settings{usetabs}) {
+      return(
+        ($modeline_settings{usetabs} ? "m" : "s")
+        . $modeline_settings{softtabstop}
+      );
+    }
+    elsif (exists $modeline_settings{tabstop} and $modeline_settings{usetabs}) {
+      return( "t" . $modeline_settings{tabstop} );
+    }
+    elsif (exists $modeline_settings{tabstop} and exists $modeline_settings{usetabs}) {
+      return( "s" . $modeline_settings{tabstop} );
+    }
+
 
     if ($skip) {
       $skip--;
@@ -106,6 +131,7 @@ sub parse {
       next;
     }
 
+
     # at this point, we're desperate!
     my $prev_spaces = $prev_indent;
     $prev_spaces =~ s/[ ]{0,7}\t/        /g;
@@ -133,9 +159,25 @@ sub parse {
     my $mixedkey = "m" . $1;
     my $mixed = $indentdiffs{$mixedkey};
     if (defined($mixed) and $mixed >= $max * 0.2) {
-      return $mixedkey;
+      $maxkey = $mixedkey;
     }
   }
+
+  if (exists $modeline_settings{softtabstop}) {
+    $maxkey =~ s/\d+/$modeline_settings{softtabstop}/;
+  }
+  elsif (exists $modeline_settings{tabstop}) {
+    $maxkey =~ s/\d+/$modeline_settings{tabstop}/;
+  }
+  if (exists $modeline_settings{usetabs}) {
+    if ($modeline_settings{usetabs}) {
+      $maxkey =~ s/^(.)(\d+)$/$1 eq 'u' ? "t8" : ($2 == 8 ? "t8" : "m$2")/e;
+    }
+    else {
+      $maxkey =~ s/^./m/;
+    }
+  }
+
 
   return $maxkey;
 }
@@ -148,7 +190,7 @@ sub _grok_indent_diff {
     $indentdiffs->{"s" . length($diff)}++;
   }
   elsif ($diff =~ /^\t+$/) {
-    $indentdiffs->{"t" . length($diff)}++;
+    $indentdiffs->{"t8"}++; # we can't infer what a tab means. Or rather, we need smarter code to do it
   }
   else { # mixed!
     $diff =~ s/( +)$//;
@@ -156,6 +198,95 @@ sub _grok_indent_diff {
     $diff =~ s/ +//g; #  assume the spaces are all contained in tabs!
     $indentdiffs->{"m" . (length($diff)*8+length($trailing_spaces))}++;
   }
+}
+
+sub _check_vim_modeline {
+  my $class = shift;
+  my $line = shift;
+  my $settings = shift;
+
+# Quoting the vim docs:
+# There are two forms of modelines.  The first form:
+#	[text]{white}{vi:|vim:|ex:}[white]{options}
+#
+#[text]		any text or empty
+#{white}		at least one blank character (<Space> or <Tab>)
+#{vi:|vim:|ex:}	the string "vi:", "vim:" or "ex:"
+#[white]		optional white space
+#{options}	a list of option settings, separated with white space or ':',
+#		where each part between ':' is the argument for a ":set"
+#		command (can be empty)
+#
+#Example:
+#   vi:noai:sw=3 ts=6 ~
+#   The second form (this is compatible with some versions of Vi):
+#
+#	[text]{white}{vi:|vim:|ex:}[white]se[t] {options}:[text]
+#
+#[text]		any text or empty
+#{white}		at least one blank character (<Space> or <Tab>)
+#{vi:|vim:|ex:}	the string "vi:", "vim:" or "ex:"
+#[white]		optional white space
+#se[t]		the string "set " or "se " (note the space)
+#{options}	a list of options, separated with white space, which is the
+#		argument for a ":set" command
+#:		a colon
+#[text]		any text or empty
+#
+#Example:
+#   /* vim: set ai tw=75: */ ~
+#
+ 
+  my $vimtag = qr/(?:vi(?:m(?:[<=>]\d+)?)?|ex):/;
+  my $option_arg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
+  my $option = qr/
+    \w+(?:=)?$option_arg
+  /x;
+  my $modeline_type_one = qr/
+    \s+
+    $vimtag
+    \s*
+    ($option
+      (?:
+        (?:\s*:\s*|\s+)
+        $option
+      )*
+    )
+    \s*$
+  /x;
+  
+  my $modeline_type_two = qr/
+    \s+
+    $vimtag
+    \s*
+    set?\s+
+    ($option
+      (?:\s+$option)*
+    )
+    \s*
+    :
+  /x;
+
+
+  my @options;
+  if ($line =~ $modeline_type_one) {
+    push @options, split /(?!<\\)[:\s]+/, $1;
+  }
+  elsif ($line =~ $modeline_type_two) {
+    push @options, split /(?!<\\)\s+/, $1;
+  }
+  else {
+    return;
+  }
+
+  return if not @options;
+
+  foreach (@options) {
+    /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, next;
+    /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, next;
+    /((?:no)?)(?:expandtab|et)/i and $settings->{usetabs} = (defined $1 and $1 =~ /no/i ? 1 : 0), next;
+  }
+  return;
 }
 
 1;

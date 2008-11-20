@@ -1,4 +1,7 @@
 Changes for Perl extension Text-FindIndent
 
+0.02 
+	- Rudimentary support for vim modelines.
+
 0.01 
 	- Starting initial implementation
