@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.77;0
 
 name          'Data-JavaScript-Anon';
 all_from      'lib/Data/JavaScript/Anon.pm';
