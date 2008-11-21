@@ -1,7 +1,7 @@
 Revision history for Perl extension Class::XSAccessor::Array.
 
-0.05_01  Fri Nov 21 09:59 2008
-  - Attempt to fix problems on Solaris by replacing a ternary
+0.06  Fri Nov 21 09:59 2008
+  - Fix problems on Solaris with Sun's cc by replacing a ternary
     return. (Reported by Matt Willsher RT#41104, potential
     fix from H. Merijn Brand)
 
