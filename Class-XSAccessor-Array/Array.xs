@@ -119,8 +119,8 @@ predicate(self)
     const I32 index = AutoXS_arrayindices[ix];
     SV** elem;
   PPCODE:
-    if (elem = av_fetch((AV *)SvRV(self), index, 1)) {
-      SvOK( elem[0] ) ? XSRETURN_YES : XSRETURN_NO;}
+    if ( (elem = av_fetch((AV *)SvRV(self), index, 1)) && SvOK(elem[0]) )
+      XSRETURN_YES;
     else
       XSRETURN_NO;
 
