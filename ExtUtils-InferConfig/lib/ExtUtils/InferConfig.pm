@@ -151,9 +151,13 @@ HERE
     );
     warn "Running the following command: '@command'" if $self->{debug};
 
+    my $old_use_run = $IPC::Cmd::USE_IPC_RUN;
+    $IPC::Cmd::USE_IPC_RUN = 1;
     my ($success, $error_code, undef, $buffer, $error) = IPC::Cmd::run(
         command => \@command,
     );
+    $IPC::Cmd::USE_IPC_RUN = $old_use_run;
+    
 
     warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
     warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
@@ -231,9 +235,12 @@ HERE
     );
     warn "Running the following command: '@command'" if $self->{debug};
 
+    my $old_use_run = $IPC::Cmd::USE_IPC_RUN;
+    $IPC::Cmd::USE_IPC_RUN = 1;
     my ($success, $error_code, undef, $buffer, $error) = IPC::Cmd::run(
         command => \@command,
     );
+    $IPC::Cmd::USE_IPC_RUN = $old_use_run;
 
     warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
     warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
