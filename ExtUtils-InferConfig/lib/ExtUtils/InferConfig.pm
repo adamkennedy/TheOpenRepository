@@ -164,9 +164,6 @@ HERE
         );
     }
 
-    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
-    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
-
     my %Config;
     my @data = split /\n/, join '', @$buffer;
     while (@data) {
@@ -238,14 +235,14 @@ HERE
         command => \@command,
     );
 
+    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
+    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
+
     if (not $success) {
         croak(
             "Could not run the specified perl interpreter to determine \@INC. Error code (if any) was: $error_code. STDERR was (if any): ".join('', @$error)
         );
     }
-
-    warn "Returned buffer is:\n---\n".join("\n",@$buffer)."\n---" if $self->{debug};
-    warn "Returned error buffer is:\n---\n".join("\n",@$error)."\n---" if $self->{debug};
 
     my @inc;
     my @data = split /\n/, join '', @$buffer;
