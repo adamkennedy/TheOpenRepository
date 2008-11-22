@@ -7,7 +7,7 @@ use IPC::Cmd qw//;
 
 use vars qw/$VERSION/;
 BEGIN {
-    $VERSION = '1.02';
+    $VERSION = '1.03';
 }
 
 #use constant ISWIN32 => ($^O =~ /win32/i ? 1 : 0);
