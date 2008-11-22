@@ -6,4 +6,8 @@ requires       'Padre'              => '0.13';
 build_requires 'Test::More'         => '0.42';
 build_requires 'Test::NeedsDisplay' => '1.05';
 
+# Means that the author of this module
+# needs Module::Install::PadrePlugin installed:
+is_padre_plugin;
+   
 WriteAll;
