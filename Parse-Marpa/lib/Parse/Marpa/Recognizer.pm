@@ -1,4 +1,4 @@
-package Parse::Marpa::Internal::Recognizer;
+package Parse::Marpa::Internal;
 use 5.010_000;
 
 use warnings;
@@ -17,23 +17,52 @@ package Parse::Marpa::Read_Only;
 our $rule;
 ## use critic
 
-package Parse::Marpa::Internal::Earley_item;
+package Parse::Marpa::Internal;
 
 # Elements of the EARLEY ITEM structure
 # Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
 # LR(0) items.
-#
-use constant NAME => 0;    # unique string describing Earley item
-use constant STATE => 1;    # the QDFA state
-use constant PARENT => 2;    # the number of the Earley set with the parent item(s)
-use constant TOKENS => 3;    # a list of the links from token scanning
-use constant LINKS  => 4;    # a list of the links from the completer step
-use constant SET    => 5;    # the set this item is in, for debugging
+
+use Parse::Marpa::Offset Earley_item =>
+    qw(NAME STATE PARENT TOKENS LINKS SET);
+
+# NAME   - unique string describing Earley item
+# STATE  - the QDFA state
+# PARENT - the number of the Earley set with the parent item(s)
+# TOKENS - a list of the links from token scanning
+# LINKS  - a list of the links from the completer step
+# SET    - the set this item is in, for debugging
+
+# Elements of the RECOGNIZER structure
+use Parse::Marpa::Offset Recognizer =>
+    qw(GRAMMAR CURRENT_SET EARLEY_SETS EARLEY_HASH CURRENT_PARSE_SET START_ITEM FURTHEST_EARLEME
+        EXHAUSTED DEFAULT_PARSE_SET EVALUATOR PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET);
+
+# GRAMMAR            - the grammar used
+# CURRENT_SET        - index of the first incomplete Earley set
+# EARLEY_SETS        - the array of the Earley sets
+# EARLEY_HASH        - hash of the Earley items
+#                      to build the Earley sets
+# CURRENT_PARSE_SET  - the set being taken as the end of
+#                      parse for an evaluation
+#                      only undef if there are no evaluation
+#                      notations in the earley items
+# START_ITEM         - the start item for the current evaluation
+# FURTHEST_EARLEME   - last earley set with a token
+# EXHAUSTED          - parse can't continue?
+# EVALUATOR          - the current evaluator for this recognizer
+# PACKAGE            - special "safe" namespace
+# LEXERS             - an array, indexed by symbol id,
+#                      of the lexer for each symbol
+# LEXABLES_BY_STATE  - an array, indexed by QDFA state id,
+#                      of the lexables belonging in it
+# LAST_COMPLETED_SET - last earley set completed
 
 package Parse::Marpa::Internal::Recognizer;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
+use English qw( -no_match_vars );
 
 use Carp;
 our @CARP_NOT = qw(
@@ -68,28 +97,6 @@ Parse::Marpa::Recognizer
 );
 
 my $parse_number = 0;
-
-# Elements of the RECOGNIZER structure
-use constant GRAMMAR       => 0;    # the grammar used
-use constant CURRENT_SET   => 1;    # index of the first incomplete Earley set
-use constant EARLEY_SETS   => 2;    # the array of the Earley sets
-use constant EARLEY_HASH   => 3;    # hash of the Earley items
-                                    # to build the Earley sets
-use constant CURRENT_PARSE_SET => 4;   # the set being taken as the end of
-                                       # parse for an evaluation
-                                       # only undef if there are no evaluation
-                                       # notations in the earley items
-use constant START_ITEM => 5;    # the start item for the current evaluation
-use constant FURTHEST_EARLEME  => 7;    # last earley set with a token
-use constant EXHAUSTED         => 8;    # parse can't continue?
-use constant DEFAULT_PARSE_SET => 14;
-use constant EVALUATOR => 15;    # the current evaluator for this recognizer
-use constant PACKAGE   => 17;    # special "safe" namespace
-use constant LEXERS    => 22;    # an array, indexed by symbol id,
-                                 # of the lexer for each symbol
-use constant LEXABLES_BY_STATE  => 23;   # an array, indexed by QDFA state id,
-                                         # of the lexables belonging in it
-use constant LAST_COMPLETED_SET => 26;   # last earley set completed
 
 sub set_lexers {
 

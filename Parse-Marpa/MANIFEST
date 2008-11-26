@@ -26,6 +26,7 @@ lib/Parse/Marpa/Lex.pm
 lib/Parse/Marpa/MDL.pm
 lib/Parse/Marpa/Grammar.pm
 lib/Parse/Marpa/Evaluator.pm
+lib/Parse/Marpa/Offset.pm
 lib/Parse/Marpa/Recognizer.pm
 lib/Parse/Marpa/Raw_Source.pm
 lib/Parse/Marpa/Source.pm.PL

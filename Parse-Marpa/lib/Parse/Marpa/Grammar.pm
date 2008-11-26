@@ -1,9 +1,10 @@
+package Parse::Marpa::Internal;
+
 use 5.010_000;
 
 use warnings;
 no warnings "recursion";
 use strict;
-use integer;
 
 =begin Implementation:
 
@@ -19,176 +20,184 @@ what in C would be structures.
 # It's all integers, except for the version number
 use integer;
 
-package Parse::Marpa::Internal::Symbol;
+package Parse::Marpa::Internal;
 
-use constant ID              => 0;
-use constant NAME            => 1;
-use constant LHS             => 2;     # rules with this as the lhs,
-                                       # as a ref to an array of rule refs
-use constant RHS             => 3;     # rules with this in the rhs,
-                                       # as a ref to an array of rule refs
-use constant ACCESSIBLE      => 4;     # reachable from start symbol?
-use constant PRODUCTIVE      => 5;     # reachable from input symbol?
-use constant START           => 6;     # is one of the start symbols?
-use constant REGEX           => 7;     # regex, for terminals; undef otherwise
-use constant NULLING         => 8;     # always is null?
-use constant NULLABLE        => 9;     # can match null?
-use constant NULL_VALUE      => 10;    # value when null
-use constant NULL_ALIAS      => 11;    # for a non-nullable symbol,
-                                       # ref of a its nulling alias,
-                                       # if there is one
-                                       # otherwise undef
-use constant TERMINAL        => 12;    # terminal?
-use constant CLOSURE         => 13;    # closure to do lexing
-use constant PRIORITY        => 14;    # order, for lexing
-use constant COUNTED         => 15;    # used on rhs of counted rule?
-use constant ACTION          => 16;    # lexing action specified by user
-use constant PREFIX          => 17;    # lexing prefix specified by user
-use constant SUFFIX          => 18;    # lexing suffix specified by user
-use constant IS_CHAF_NULLING => 19;    # if CHAF nulling lhs, ref to array
-                                       # of rhs symbols
+use Parse::Marpa::Offset Symbol =>
+    qw(ID NAME LHS RHS ACCESSIBLE PRODUCTIVE START REGEX NULLING NULLABLE NULL_VALUE NULL_ALIAS
+        TERMINAL CLOSURE PRIORITY COUNTED ACTION PREFIX SUFFIX IS_CHAF_NULLING);
 
-package Parse::Marpa::Internal::Rule;
+# LHS             - rules with this as the lhs,
+#                   as a ref to an array of rule refs
+# RHS             - rules with this in the rhs,
+#                   as a ref to an array of rule refs
+# ACCESSIBLE      - reachable from start symbol?
+# PRODUCTIVE      - reachable from input symbol?
+# START           - is one of the start symbols?
+# REGEX           - regex, for terminals; undef otherwise
+# NULLING         - always is null?
+# NULLABLE        - can match null?
+# NULL_VALUE      - value when null
+# NULL_ALIAS      - for a non-nullable symbol,
+#                   ref of a its nulling alias,
+#                   if there is one
+#                   otherwise undef
+# TERMINAL        - terminal?
+# CLOSURE         - closure to do lexing
+# PRIORITY        - order, for lexing
+# COUNTED         - used on rhs of counted rule?
+# ACTION          - lexing action specified by user
+# PREFIX          - lexing prefix specified by user
+# SUFFIX          - lexing suffix specified by user
+# IS_CHAF_NULLING - if CHAF nulling lhs, ref to array
+#                   of rhs symbols
 
-use constant ID            => 0;
-use constant NAME          => 1;
-use constant LHS           => 2;       # ref of the left hand symbol
-use constant RHS           => 3;       # array of symbol refs
-use constant NULLABLE      => 4;       # can match null?
-use constant ACCESSIBLE    => 5;       # reachable from start symbol?
-use constant PRODUCTIVE    => 6;       # reachable from input symbol?
-use constant NULLING       => 7;       # always matches null?
-use constant USEFUL        => 8;       # use this rule in NFA?
-use constant ACTION        => 9;       # action for this rule
-                                       # as specified by user
-use constant CLOSURE       => 10;      # closure for evaluating this rule
-use constant ORIGINAL_RULE => 11;      # for a rewritten rule, the original
-use constant HAS_CHAF_LHS  => 13;      # has CHAF internal symbol as lhs?
-use constant HAS_CHAF_RHS  => 14;      # has CHAF internal symbol on rhs?
-use constant PRIORITY      => 15;      # rule priority
-use constant CODE          => 16;      # code used to create closure
-use constant CYCLE         => 17;      # is this rule part of a cycle?
+use Parse::Marpa::Offset Rule =>
+    qw(ID NAME LHS RHS NULLABLE ACCESSIBLE PRODUCTIVE NULLING USEFUL ACTION
+        CLOSURE ORIGINAL_RULE HAS_CHAF_LHS HAS_CHAF_RHS PRIORITY CODE CYCLE);
 
-package Parse::Marpa::Internal::NFA;
+=begin Implementation:
 
-use constant ID         => 0;
-use constant NAME       => 1;
-use constant ITEM       => 2;          # an LR(0) item
-use constant TRANSITION => 3;          # the transitions, as a hash
-                                       # from symbol name to NFA states
-use constant AT_NULLING => 4;          # dot just before a nullable symbol?
-use constant COMPLETE   => 5;          # rule is complete?
-use constant PRIORITY   => 6;          # rule priority
+LHS - ref of the left hand symbol
+RHS - array of symbol refs
+NULLABLE - can match null?
+ACCESSIBLE - reachable from start symbol?
+PRODUCTIVE - reachable from input symbol?
+NULLING - always matches null?
+USEFUL - use this rule in NFA?
+ACTION - action for this rule as specified by user
+CLOSURE - closure for evaluating this rule
+ORIGINAL_RULE - for a rewritten rule, the original
+HAS_CHAF_LHS  - has CHAF internal symbol as lhs?
+HAS_CHAF_RHS - has CHAF internal symbol on rhs?
+PRIORITY - rule priority
+CODE - code used to create closure
+CYCLE - is this rule part of a cycle?
 
-package Parse::Marpa::Internal::QDFA;
+=end Implementation:
 
-use constant ID             => 0;
-use constant NAME           => 1;
-use constant NFA_STATES     => 2;   # in an QDFA: an array of NFA states
-use constant TRANSITION     => 3;   # the transitions, as a hash
-                                    # from symbol name to references to arrays
-                                    # of QDFA states
-use constant COMPLETE_LHS   => 4;   # an array of the lhs's of complete rules
-use constant COMPLETE_RULES => 5;   # an array of lists of the complete rules,
-                                    # indexed by lhs
-use constant START_RULE     => 6;   # the start rule
-use constant TAG            => 7;   # implementation-independant tag
-use constant RESET_ORIGIN   => 9;   # reset origin for this state?
-use constant PRIORITY       => 10;  # priority of this state
+=cut
 
-package Parse::Marpa::Internal::LR0_item;
+use Parse::Marpa::Offset NFA =>
+    qw(ID NAME ITEM TRANSITION AT_NULLING COMPLETE PRIORITY);
 
-use constant RULE     => 0;
-use constant POSITION => 1;
+=begin Implementation:
 
-package Parse::Marpa::Internal::Grammar;
+ITEM - an LR(0) item
+TRANSITION - the transitions, as a hash from symbol name to NFA states
+AT_NULLING - dot just before a nullable symbol?
+COMPLETE - rule is complete?
+PRIORITY - rule priority
 
-use constant ID   => 0;             # number of this grammar
-use constant NAME => 1;             # namespace special to this grammar
-     # it should only be used BEFORE compilation, because it's not
-     # guaranteed unique after decompilation
-use constant RULES           => 2;    # array of rule refs
-use constant SYMBOLS         => 3;    # array of symbol refs
-use constant RULE_HASH       => 4;    # hash by name of rule refs
-use constant SYMBOL_HASH     => 5;    # hash by name of symbol refs
-use constant START           => 6;    # ref to start symbol
-use constant NFA             => 7;    # array of states
-use constant QDFA            => 8;    # array of states
-use constant QDFA_BY_NAME    => 9;    # hash from QDFA name to QDFA reference
-use constant NULLABLE_SYMBOL => 10;   # array of refs of the nullable symbols
-use constant ACADEMIC        => 11;   # true if this is a textbook grammar,
-                                      # for checking the NFA and QDFA, and NOT
-                                      # for actual Earley parsing
-use constant DEFAULT_NULL_VALUE => 12; # default value for nulling symbols
-use constant DEFAULT_ACTION     => 13; # action for rules without one
-use constant DEFAULT_LEX_PREFIX => 14; # default prefix for lexing
-use constant DEFAULT_LEX_SUFFIX => 15; # default suffix for lexing
-use constant AMBIGUOUS_LEX      => 16; # lex ambiguously?
-use constant TRACE_RULES        => 17;
-use constant TRACE_FILE_HANDLE  => 18;
-use constant LOCATION_CALLBACK  => 19; # default callback for showing location
-use constant OPAQUE             => 20; # default for opacity
-use constant PROBLEMS           => 21; # fatal problems
-use constant PREAMBLE           => 22; # evaluation preamble
-use constant LEX_PREAMBLE       => 23; # lex preamble
-use constant WARNINGS           => 24; # print warnings about grammar?
-use constant VERSION    => 25; # Marpa version this grammar was compiled from
-use constant CODE_LINES => 26; # max lines to display on failure
-use constant SEMANTICS  => 27; # semantics (currently perl5 only)
-use constant TRACING    => 28; # master flag, set if any tracing is being done
-     # (to control overhead for non-tracing processes)
-use constant TRACE_STRINGS     => 29; # trace strings defined in marpa grammar
-use constant TRACE_PREDEFINEDS => 30; # trace predefineds in marpa grammar
-use constant TRACE_PRIORITIES  => 31;
-use constant TRACE_LEX_TRIES   => 32;
-use constant TRACE_LEX_MATCHES => 33;
-use constant TRACE_ITERATIONS  => 35;
-use constant TRACE_COMPLETIONS        => 37;
-use constant TRACE_ACTIONS            => 38;
-use constant TRACE_VALUES             => 39;
-use constant MAX_PARSES               => 40;
-use constant ONLINE                   => 41;
-use constant ALLOW_RAW_SOURCE         => 42;
-use constant PHASE                    => 43;    # the grammar's phase
-use constant INTERFACE                => 44;    # the grammar's interface
-use constant START_STATES => 45;    # ref to array of the start states
-use constant CYCLE_ACTION => 46;    # ref to array of the start states
-use constant CYCLE_DEPTH  => 47;    # depth to which to follow cycles
+=end Implementation:
 
-package Parse::Marpa::Internal::Interface;
+=cut
+
+use Parse::Marpa::Offset QDFA =>
+    qw(ID NAME NFA_STATES TRANSITION COMPLETE_LHS
+        COMPLETE_RULES START_RULE TAG RESET_ORIGIN PRIORITY);
+
+=begin Implementation:
+
+NFA_STATES     - in an QDFA: an array of NFA states
+TRANSITION     - the transitions, as a hash
+               - from symbol name to references to arrays
+               - of QDFA states
+COMPLETE_LHS   - an array of the lhs's of complete rules
+COMPLETE_RULES - an array of lists of the complete rules,
+               - indexed by lhs
+START_RULE     - the start rule
+TAG            - implementation-independant tag
+RESET_ORIGIN   - reset origin for this state?
+PRIORITY       - priority of this state
+
+=end Implementation:
+
+=cut
+
+use Parse::Marpa::Offset LR0_item => qw(RULE POSITION);
+
+use Parse::Marpa::Offset Grammar =>
+    qw(ID NAME RULES SYMBOLS RULE_HASH SYMBOL_HASH
+        START NFA QDFA QDFA_BY_NAME NULLABLE_SYMBOL ACADEMIC DEFAULT_NULL_VALUE
+        DEFAULT_ACTION DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
+        TRACE_RULES TRACE_FILE_HANDLE LOCATION_CALLBACK OPAQUE PROBLEMS
+        PREAMBLE LEX_PREAMBLE WARNINGS VERSION CODE_LINES SEMANTICS
+        TRACING TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES TRACE_LEX_TRIES
+        TRACE_LEX_MATCHES TRACE_ITERATIONS TRACE_COMPLETIONS TRACE_ACTIONS TRACE_VALUES
+        MAX_PARSES ONLINE ALLOW_RAW_SOURCE PHASE INTERFACE START_STATES
+        CYCLE_ACTION CYCLE_DEPTH);
+
+=begin Implementation:
+
+ID                 - number of this grammar
+NAME               - namespace special to this grammar
+                     it should only be used BEFORE compilation, because it's not
+                     guaranteed unique after decompilation
+RULES              - array of rule refs
+SYMBOLS            - array of symbol refs
+RULE_HASH          - hash by name of rule refs
+SYMBOL_HASH        - hash by name of symbol refs
+START              - ref to start symbol
+NFA                - array of states
+QDFA               - array of states
+QDFA_BY_NAME       - hash from QDFA name to QDFA reference
+NULLABLE_SYMBOL    - array of refs of the nullable symbols
+ACADEMIC           - true if this is a textbook grammar,
+                   - for checking the NFA and QDFA, and NOT
+                   - for actual Earley parsing
+DEFAULT_NULL_VALUE - default value for nulling symbols
+DEFAULT_ACTION     - action for rules without one
+DEFAULT_LEX_PREFIX - default prefix for lexing
+DEFAULT_LEX_SUFFIX - default suffix for lexing
+AMBIGUOUS_LEX      - lex ambiguously?
+LOCATION_CALLBACK  - default callback for showing location
+OPAQUE - default for opacity
+PROBLEMS - fatal problems
+PREAMBLE - evaluation preamble
+LEX_PREAMBLE - lex preamble
+WARNINGS - print warnings about grammar?
+VERSION - Marpa version this grammar was compiled from
+CODE_LINES - max lines to display on failure
+SEMANTICS - semantics (currently perl5 only)
+TRACING - master flag, set if any tracing is being done
+    (to control overhead for non-tracing processes)
+TRACE_STRINGS - trace strings defined in marpa grammar
+TRACE_PREDEFINEDS - trace predefineds in marpa grammar
+PHASE - the grammar's phase
+INTERFACE - the grammar's interface
+START_STATES - ref to array of the start states
+CYCLE_ACTION - ref to array of the start states
+CYCLE_DEPTH - depth to which to follow cycles
+
+=end Implementation:
+
+=cut
 
 # values for grammar interfaces
-use constant RAW => 0;
-use constant MDL => 1;
+use Parse::Marpa::Offset Interface => qw(RAW MDL);
 
-sub description {
+sub Parse::Marpa::Internal::Interface::description {
     my $interface = shift;
     given ($interface) {
-        when (RAW) { return 'raw interface' }
-        when (MDL) { return 'Marpa Description Language interface' }
+        when (Parse::Marpa::Internal::Interface::RAW) { return 'raw interface' }
+        when (Parse::Marpa::Internal::Interface::MDL) { return 'Marpa Description Language interface' }
     }
     return 'unknown interface';
 }
 
-package Parse::Marpa::Internal::Phase;
-
 # values for grammar phases
-use constant NEW         => 0;
-use constant RULES       => 1;
-use constant PRECOMPUTED => 2;
-use constant COMPILED    => 3;
-use constant EVALED      => 4;
-use constant IN_USE      => 5;
+use Parse::Marpa::Offset Phase =>
+    qw(NEW RULES PRECOMPUTED COMPILED EVALED IN_USE);
 
-sub description {
+sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
     given ($phase) {
-        when (NEW)         { return 'grammar without rules' }
-        when (RULES)       { return 'grammar with rules entered' }
-        when (PRECOMPUTED) { return 'precomputed grammar' }
-        when (COMPILED)    { return 'compiled grammar' }
-        when (EVALED)      { return 'evaled grammar' }
-        when (IN_USE)      { return 'in use grammar' }
+        when (Parse::Marpa::Internal::Phase::NEW)         { return 'grammar without rules' }
+        when (Parse::Marpa::Internal::Phase::RULES)       { return 'grammar with rules entered' }
+        when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { return 'precomputed grammar' }
+        when (Parse::Marpa::Internal::Phase::COMPILED)    { return 'compiled grammar' }
+        when (Parse::Marpa::Internal::Phase::EVALED)      { return 'evaled grammar' }
+        when (Parse::Marpa::Internal::Phase::IN_USE)      { return 'in use grammar' }
     }
     return 'unknown phase';
 }

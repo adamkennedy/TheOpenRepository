@@ -39,6 +39,8 @@ WriteMakefile(
 	    => '$(INST_LIB)/Parse/Marpa/MDL.pm',
 	'lib/Parse/Marpa/Grammar.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Grammar.pm',
+	'lib/Parse/Marpa/Offset.pm'
+	    => '$(INST_LIB)/Parse/Marpa/Offset.pm',
 	'lib/Parse/Marpa/Recognizer.pm'
 	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
 	'lib/Parse/Marpa/Evaluator.pm'

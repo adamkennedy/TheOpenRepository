@@ -1,6 +1,6 @@
-use 5.010_000;
-
 package Parse::Marpa;
+
+use 5.010_000;
 
 use warnings;
 no warnings "recursion";

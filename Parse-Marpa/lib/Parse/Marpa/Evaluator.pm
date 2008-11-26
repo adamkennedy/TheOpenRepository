@@ -29,59 +29,32 @@ use English qw( -no_match_vars );
 # as obstacles to cattle and armies.
 
 # Saplings which become or-nodes when they grow up.
-package Parse::Marpa::Internal::Or_Sapling;
 
-use constant NAME             => 0;
-use constant ITEM             => 1;
-use constant RULE             => 2;
-use constant POSITION         => 3;
-use constant CHILD_LHS_SYMBOL => 4;
+package Parse::Marpa::Internal;
 
-package Parse::Marpa::Internal::And_Node;
+use Parse::Marpa::Offset Or_Sapling =>
+    qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 
-use constant PREDECESSOR => 0;
-use constant CAUSE       => 1;
-use constant VALUE_REF   => 2;
-use constant PERL_CLOSURE     => 3;
-use constant ARGC        => 4;
-use constant RULE        => 5;
-use constant POSITION    => 6;
+use Parse::Marpa::Offset And_Node =>
+    qw(PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE ARGC RULE POSITION);
 
-package Parse::Marpa::Internal::Or_Node;
+use Parse::Marpa::Offset Or_Node =>
+    qw(NAME AND_NODES IS_CLOSURE);
 
-use constant NAME       => 0;
-use constant AND_NODES  => 1;
-use constant IS_CLOSURE => 2; # is this a closure or-node?
+# IS_CLOSURE - is this a closure or-node?
 
-package Parse::Marpa::Internal::Tree_Node;
+use Parse::Marpa::Offset Tree_Node =>
+    qw(OR_NODE CHOICE PREDECESSOR CAUSE DEPTH PERL_CLOSURE ARGC VALUE_REF RULE POSITION PARENT);
 
-use constant OR_NODE     => 0;
-use constant CHOICE      => 1;
-use constant PREDECESSOR => 2;
-use constant CAUSE       => 3;
-use constant DEPTH       => 4;
-use constant PERL_CLOSURE     => 6;
-use constant ARGC        => 7;
-use constant VALUE_REF   => 8;
-use constant RULE        => 9;
-use constant POSITION    => 10;
-use constant PARENT      => 11;
+use Parse::Marpa::Offset
+    Evaluator => qw(RECOGNIZER PARSE_COUNT OR_NODES TREE RULE_DATA PACKAGE NULL_VALUES CYCLES);
 
-package Parse::Marpa::Internal::Evaluator::Rule;
-
-use constant CODE    => 0;
-use constant PERL_CLOSURE => 1;
+# PARSE_COUNT  number of parses in an ambiguous parse
+# TREE         current evaluation tree
 
 package Parse::Marpa::Internal::Evaluator;
 
-use constant RECOGNIZER  => 0;
-use constant PARSE_COUNT => 1;    # number of parses in an ambiguous parse
-use constant OR_NODES    => 2;
-use constant TREE        => 3;    # current evaluation tree
-use constant RULE_DATA   => 4;
-use constant PACKAGE     => 5;
-use constant NULL_VALUES => 6;
-use constant CYCLES      => 7;
+use Parse::Marpa::Offset Rule => qw(CODE PERL_CLOSURE);
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
