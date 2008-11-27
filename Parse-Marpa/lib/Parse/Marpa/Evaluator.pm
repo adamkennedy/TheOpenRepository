@@ -415,10 +415,8 @@ sub Parse::Marpa::Evaluator::new {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $online = $grammar->[Parse::Marpa::Internal::Grammar::ONLINE];
-    if ( not $online ) {
         Parse::Marpa::Recognizer::end_input($recognizer);
-    }
+
     my $default_parse_set =
         $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 

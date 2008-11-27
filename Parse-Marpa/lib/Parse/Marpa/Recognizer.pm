@@ -24,7 +24,10 @@ package Parse::Marpa::Internal;
 # LR(0) items.
 
 use Parse::Marpa::Offset Earley_item =>
-    qw(NAME STATE PARENT TOKENS LINKS SET);
+    # evaluator data
+    qw(NAME STATE TOKENS LINKS),
+    # temporary data
+    qw(PARENT SET);
 
 # NAME   - unique string describing Earley item
 # STATE  - the QDFA state
@@ -35,8 +38,15 @@ use Parse::Marpa::Offset Earley_item =>
 
 # Elements of the RECOGNIZER structure
 use Parse::Marpa::Offset Recognizer =>
-    qw(GRAMMAR CURRENT_SET EARLEY_SETS EARLEY_HASH CURRENT_PARSE_SET START_ITEM FURTHEST_EARLEME
-        EXHAUSTED DEFAULT_PARSE_SET EVALUATOR PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET);
+    # evaluator data
+    qw(GRAMMAR EVALUATOR EARLEY_SETS START_ITEM
+        CURRENT_PARSE_SET DEFAULT_PARSE_SET),
+    # temporary data
+    qw(
+        CURRENT_SET EARLEY_HASH FURTHEST_EARLEME EXHAUSTED
+        PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
+    );
+
 
 # GRAMMAR            - the grammar used
 # CURRENT_SET        - index of the first incomplete Earley set

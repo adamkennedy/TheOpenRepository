@@ -16,7 +16,7 @@ Marpa documents.
 =head2 Marpa "No Values"
 
 Nodes in Marpa may have no value.
-Right now offline mode is the only one; online mode is not documented;
+Right now offline mode is the only one; online mode is not implemented;
 and special options to create evaluators of user specified
 spans in the earleme stream and user specified top symbols are undocumented
 or do not exist.

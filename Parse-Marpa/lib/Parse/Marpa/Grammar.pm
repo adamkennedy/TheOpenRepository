@@ -23,8 +23,22 @@ use integer;
 package Parse::Marpa::Internal;
 
 use Parse::Marpa::Offset Symbol =>
-    qw(ID NAME LHS RHS ACCESSIBLE PRODUCTIVE START REGEX NULLING NULLABLE NULL_VALUE NULL_ALIAS
-        TERMINAL CLOSURE PRIORITY COUNTED ACTION PREFIX SUFFIX IS_CHAF_NULLING);
+    # basic data
+    qw(ID NAME),
+    # evaluator data
+    qw(IS_CHAF_NULLING NULL_ALIAS NULLING),
+    # recognizer data
+    qw(
+        ACTION PREFIX SUFFIX
+        REGEX PRIORITY TERMINAL
+    ),
+    # temporary data
+    qw(
+        LHS RHS ACCESSIBLE PRODUCTIVE START
+        NULLABLE NULL_VALUE
+        CLOSURE
+        COUNTED
+    );
 
 # LHS             - rules with this as the lhs,
 #                   as a ref to an array of rule refs
@@ -52,8 +66,20 @@ use Parse::Marpa::Offset Symbol =>
 #                   of rhs symbols
 
 use Parse::Marpa::Offset Rule =>
-    qw(ID NAME LHS RHS NULLABLE ACCESSIBLE PRODUCTIVE NULLING USEFUL ACTION
-        CLOSURE ORIGINAL_RULE HAS_CHAF_LHS HAS_CHAF_RHS PRIORITY CODE CYCLE);
+    # basic data
+    qw(ID NAME LHS RHS
+    ),
+    # evaluator data
+    qw(
+        USEFUL ACTION
+        CODE CYCLE
+        HAS_CHAF_LHS HAS_CHAF_RHS
+    ),
+    qw(
+        ORIGINAL_RULE
+        PRIORITY
+        NULLABLE ACCESSIBLE PRODUCTIVE NULLING
+    );
 
 =begin Implementation:
 
@@ -93,8 +119,17 @@ PRIORITY - rule priority
 =cut
 
 use Parse::Marpa::Offset QDFA =>
-    qw(ID NAME NFA_STATES TRANSITION COMPLETE_LHS
-        COMPLETE_RULES START_RULE TAG RESET_ORIGIN PRIORITY);
+    # basic data
+    qw(ID NAME),
+    # evaluator data
+    qw(COMPLETE_RULES START_RULE),
+    # recognizer data
+    qw(TRANSITION COMPLETE_LHS
+        TAG RESET_ORIGIN PRIORITY
+    ),
+    # temporary data
+    qw(NFA_STATES
+    );
 
 =begin Implementation:
 
@@ -129,7 +164,6 @@ use Parse::Marpa::Offset Grammar =>
         TRACE_ITERATIONS
         TRACE_ACTIONS TRACE_VALUES
         MAX_PARSES
-        ONLINE
         PREAMBLE
     ),
     # recognizer data
@@ -553,7 +587,6 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::RULE_HASH]    = {};
     $grammar->[Parse::Marpa::Internal::Grammar::QDFA_BY_NAME] = {};
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES]   = -1;
-    $grammar->[Parse::Marpa::Internal::Grammar::ONLINE]       = 0;
 
     return $grammar->set($args);
 }
@@ -968,12 +1001,6 @@ sub Parse::Marpa::Grammar::set {
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] =
                     $value;
-            }
-            when ('online') {
-                croak( "$option option not allowed in ",
-                    Parse::Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
-                $grammar->[Parse::Marpa::Internal::Grammar::ONLINE] = $value;
             }
             when ('code_lines') {
                 $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] =

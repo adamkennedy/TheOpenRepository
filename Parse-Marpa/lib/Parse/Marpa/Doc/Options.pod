@@ -200,21 +200,6 @@ Grammars for which the number of parses grows exponentially with the length of t
 are common, and easy to create by mistake.
 This option is one way to deal with that.
 
-=item online
-
-A boolean.
-If true, Marpa runs in online or streaming mode.
-If false, Marpa runs in offline mode.
-The C<online> option cannot be changed after a recognizer is created.
-Offline mode is the default, and the only mode supported
-in this release.
-
-In B<offline> mode,
-when the first evaluator is created from a recognizer,
-Marpa assumes that input to the recognizer has ended.
-The recognizer does some final bookkeeping,
-and refuses to accept any more input.
-
 =item preamble
 
 The value must be a string which contains code in the current semantics.
