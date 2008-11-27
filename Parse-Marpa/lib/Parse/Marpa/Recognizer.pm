@@ -389,10 +389,6 @@ sub Parse::Marpa::Recognizer::new {
     # options are not set until *AFTER* the grammar is deep copied
     Parse::Marpa::Grammar::set( $grammar, $args );
 
-    # Finalize the value of opaque
-    # undef means opaque (boolean true, or 1)
-    $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] //= 1;
-
     eval_grammar( $parse, $grammar );
 
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =

@@ -117,15 +117,43 @@ PRIORITY       - priority of this state
 use Parse::Marpa::Offset LR0_item => qw(RULE POSITION);
 
 use Parse::Marpa::Offset Grammar =>
-    qw(ID NAME RULES SYMBOLS RULE_HASH SYMBOL_HASH
-        START NFA QDFA QDFA_BY_NAME NULLABLE_SYMBOL ACADEMIC DEFAULT_NULL_VALUE
-        DEFAULT_ACTION DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
-        TRACE_RULES TRACE_FILE_HANDLE LOCATION_CALLBACK OPAQUE PROBLEMS
-        PREAMBLE LEX_PREAMBLE WARNINGS VERSION CODE_LINES SEMANTICS
-        TRACING TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES TRACE_LEX_TRIES
-        TRACE_LEX_MATCHES TRACE_ITERATIONS TRACE_COMPLETIONS TRACE_ACTIONS TRACE_VALUES
-        MAX_PARSES ONLINE ALLOW_RAW_SOURCE PHASE INTERFACE START_STATES
-        CYCLE_ACTION CYCLE_DEPTH);
+    # basic data
+    qw(
+        ID NAME RULES SYMBOLS PHASE
+        TRACE_FILE_HANDLE TRACING DEFAULT_ACTION
+    ),
+    # evaluator data
+    qw(
+        DEFAULT_NULL_VALUE
+        CYCLE_ACTION CYCLE_DEPTH
+        TRACE_ITERATIONS
+        TRACE_ACTIONS TRACE_VALUES
+        MAX_PARSES
+        ONLINE
+        PREAMBLE
+    ),
+    # recognizer data
+    qw(
+        QDFA
+        PROBLEMS
+        ACADEMIC
+        DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
+        TRACE_LEX_MATCHES TRACE_COMPLETIONS TRACE_LEX_TRIES
+        SYMBOL_HASH
+        START_STATES
+        LEX_PREAMBLE
+    ),
+    # temporary data
+    qw(
+        RULE_HASH
+        START NFA
+        QDFA_BY_NAME NULLABLE_SYMBOL
+        TRACE_RULES
+        LOCATION_CALLBACK
+        WARNINGS VERSION CODE_LINES SEMANTICS
+        TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
+        ALLOW_RAW_SOURCE INTERFACE
+    );
 
 =begin Implementation:
 
@@ -151,7 +179,6 @@ DEFAULT_LEX_PREFIX - default prefix for lexing
 DEFAULT_LEX_SUFFIX - default suffix for lexing
 AMBIGUOUS_LEX      - lex ambiguously?
 LOCATION_CALLBACK  - default callback for showing location
-OPAQUE - default for opacity
 PROBLEMS - fatal problems
 PREAMBLE - evaluation preamble
 LEX_PREAMBLE - lex preamble
@@ -514,7 +541,6 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
     $grammar->[Parse::Marpa::Internal::Grammar::LOCATION_CALLBACK] =
         q{ 'Earleme ' . $earleme };
-    $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE]     = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS]   = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION]   = 'warn';
     $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH]    = 1;
@@ -1947,9 +1973,6 @@ sub add_rules_from_hash {
             if exists $rule_hash->{$rule_key};
         $rule_hash->{$rule_key} = 1;
     }
-
-    # The following rules make evaluations opaque
-    $grammar->[Parse::Marpa::Internal::Grammar::OPAQUE] = 1;
 
     my $rule_action;
     given ($action) {
