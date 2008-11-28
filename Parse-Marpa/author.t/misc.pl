@@ -29,7 +29,14 @@ my $recce = new Parse::Marpa::Recognizer({
    lex_preamble => $new_lex_preamble,
 });
 
-my $evaler = new Parse::Marpa::Evaluator($recce, $location);
+$recce->end_input();
+
+my $evaler = new Parse::Marpa::Evaluator( {
+    recce => $recce,
+    end => $location
+} );
+
+$evaler->set( { cycle_depth => $depth } );
 
 my $string = q{};
 my $lexeme_start = 0;

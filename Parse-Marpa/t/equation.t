@@ -126,7 +126,7 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-my $evaler = new Parse::Marpa::Evaluator($recce);
+my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 
 for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
     if ($i > $#expected) {

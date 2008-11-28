@@ -70,11 +70,11 @@ if ( $fail_location >= 0 ) {
     croak( Parse::Marpa::show_location( "Parsing failed",
         \$text, $fail_location ) );
 }
+$recce->end_input();
 
 for my $depth (1, 2, 5, 10) {
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
-    $evaler->set( { cycle_depth => $depth } );
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, cycle_depth => $depth } );
     my $parse_count = 0;
     while (my $value = $evaler->value()) {
         is($$value, $expected_values[$parse_count++]);

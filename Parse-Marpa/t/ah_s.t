@@ -78,7 +78,10 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = new Parse::Marpa::Evaluator( $recce, $i );
+    my $evaler = new Parse::Marpa::Evaluator( {
+        recce => $recce,
+        end => $i
+    } );
     my $result = $evaler->value();
     $total_count++;
     if ( $answer[$i] ne ${$result} ) {

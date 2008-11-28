@@ -158,7 +158,9 @@ sub Parse::Marpa::mdl {
         die_with_parse_failure( $text, $failed_at_earleme );
     }
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    $recce->end_input();
+
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     if ( not defined $evaler ) {
         die_with_parse_failure( $text, length($text) );
     }

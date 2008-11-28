@@ -277,7 +277,7 @@ sub compile_regexes {
 
 }
 
-sub eval_grammar {
+sub prepare_grammar_for_recognizer {
     my $parse   = shift;
     my $grammar = shift;
 
@@ -319,8 +319,6 @@ sub eval_grammar {
     compile_regexes($grammar);
     @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
         set_lexers( $grammar, $package );
-    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
-        Parse::Marpa::Internal::Phase::EVALED;
 
     return;
 
@@ -376,7 +374,7 @@ sub Parse::Marpa::Recognizer::new {
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if (   $phase < Parse::Marpa::Internal::Phase::RULES
-        or $phase >= Parse::Marpa::Internal::Phase::EVALED )
+        or $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING )
     {
         croak(
             'Attempt to parse grammar in inappropriate phase ',
@@ -399,10 +397,10 @@ sub Parse::Marpa::Recognizer::new {
     # options are not set until *AFTER* the grammar is deep copied
     Parse::Marpa::Grammar::set( $grammar, $args );
 
-    eval_grammar( $parse, $grammar );
+    prepare_grammar_for_recognizer( $parse, $grammar );
 
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
-        Parse::Marpa::Internal::Phase::IN_USE;
+        Parse::Marpa::Internal::Phase::RECOGNIZING;
 
     my $earley_hash;
     my $earley_set;
@@ -752,6 +750,8 @@ sub Parse::Marpa::Recognizer::end_input {
         Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME,
         ];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
+    $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ]
+        = Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     return  1 if $last_completed_set >= $furthest_earleme;
 
@@ -1426,15 +1426,7 @@ in_equation_t($_)
 
     $recce->end_input();
 
-Used with either the
-C<earleme> or C<text> methods,
-to indicate the end of input.
-When an evaluator is created from a recognizer,
-C<end_input> is called automatically.
-This means that
-it is usually not necessary for the user to
-call C<end_input> directly.
-
+Used to indicate the end of input.
 C<end_input> takes no arguments.
 C<end_input> processes the input
 out to the furthest earleme;

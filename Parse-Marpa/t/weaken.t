@@ -38,7 +38,7 @@ my $test = sub {
     $recce->earleme([$a, "a", 1]);
     $recce->earleme([$a, "a", 1]);
     $recce->end_input();
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     die("No parse found") unless $evaler;
     $evaler->value();
     [ $g, $recce, $evaler ];

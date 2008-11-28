@@ -156,7 +156,9 @@ for my $string_piece ('6', '-----', '1')
     }
 }
 
-my $evaler = new Parse::Marpa::Evaluator($recce);
+$recce->end_input();
+
+my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 die("Could not initialize parse") unless $evaler;
 
 for (my $i = 0; defined(my $value = $evaler->value()); $i++) {

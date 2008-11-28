@@ -40,11 +40,15 @@ sub ah_extended {
 
     my $a = $g->get_symbol("a");
     for (0 .. $n) { $recce->earleme([$a, "a", 1]); }
+    $recce->end_input();
 
     my @parse_counts;
     for my $loc (0 .. $n) {
         my $parse_number = 0;
-        my $evaler = new Parse::Marpa::Evaluator($recce, $loc);
+        my $evaler = new Parse::Marpa::Evaluator( {
+            recce => $recce,
+            end => $loc
+        } );
         die("Cannot initialize parse at location $loc") unless $evaler;
         while ($evaler->value()) { $parse_counts[$loc]++ }
     }

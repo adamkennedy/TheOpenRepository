@@ -248,7 +248,7 @@ sub Parse::Marpa::Internal::Interface::description {
 
 # values for grammar phases
 use Parse::Marpa::Offset Phase =>
-    qw(NEW RULES PRECOMPUTED COMPILED EVALED IN_USE);
+    qw(NEW RULES PRECOMPUTED COMPILED RECOGNIZING RECOGNIZED);
 
 sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
@@ -257,8 +257,8 @@ sub Parse::Marpa::Internal::Phase::description {
         when (Parse::Marpa::Internal::Phase::RULES)       { return 'grammar with rules entered' }
         when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { return 'precomputed grammar' }
         when (Parse::Marpa::Internal::Phase::COMPILED)    { return 'compiled grammar' }
-        when (Parse::Marpa::Internal::Phase::EVALED)      { return 'evaled grammar' }
-        when (Parse::Marpa::Internal::Phase::IN_USE)      { return 'in use grammar' }
+        when (Parse::Marpa::Internal::Phase::RECOGNIZING) { return 'grammar being recognized' }
+        when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { return 'recognized grammar' }
     }
     return 'unknown phase';
 }
@@ -727,7 +727,8 @@ sub parse_source_grammar {
     if ( $failed_at_earleme >= 0 ) {
         die_with_parse_failure( $source, $failed_at_earleme );
     }
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    $recce->end_input();
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     croak("Marpa Internal error: failed to create evaluator for MDL") unless defined $evaler;
     my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
@@ -811,7 +812,7 @@ sub Parse::Marpa::Grammar::set {
             when ('default_null_value') {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                    if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar
                     ->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
                     $value;
@@ -819,7 +820,7 @@ sub Parse::Marpa::Grammar::set {
             when ('default_action') {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                    if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION] =
                     $value;
             }
@@ -857,7 +858,7 @@ sub Parse::Marpa::Grammar::set {
                     say $trace_fh "Setting $option option";
                     say $trace_fh
                         "Warning: setting $option option after semantics were finalized"
-                        if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                        if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -1033,14 +1034,14 @@ sub Parse::Marpa::Grammar::set {
             when ('lex_preamble') {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                    if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] =
                     $value;
             }
             when ('preamble') {
                 croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Parse::Marpa::Internal::Phase::EVALED;
+                    if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }

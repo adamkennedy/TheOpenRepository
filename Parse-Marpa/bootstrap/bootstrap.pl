@@ -1123,7 +1123,9 @@ my $spec;
     }
 }
 
-my $evaler = new Parse::Marpa::Evaluator($recce);
+$recce->end_input();
+
+my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 die("No parse") unless $evaler;
 
 sub slurp { open(my $fh, '<', shift); local($RS); <$fh>; }

@@ -223,7 +223,9 @@ sub do_parse {
         exit 1;
     }
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    $recce->end_input();
+
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     if (not $evaler) {
 	say STDERR "Input not recognized by grammar";
 	exit 1;

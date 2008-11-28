@@ -96,8 +96,9 @@ for my $n (1 .. 12) {
         $recce->earleme([$minus, "-", 1]);
     }
     $recce->earleme([$number, 1, 1]);
+    $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 
     my $parse_count = 0;
     while ($evaler->value()) { $parse_count++; }

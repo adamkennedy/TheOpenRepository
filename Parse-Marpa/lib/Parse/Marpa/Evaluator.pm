@@ -379,30 +379,47 @@ sub set_actions {
 # Returns false if no parse
 sub Parse::Marpa::Evaluator::new {
     my $class         = shift;
-    my $recognizer    = shift;
-    my $parse_set_arg = shift;
+    my $args          = shift;
+
     my $self          = bless [], $class;
 
-    my $recognizer_class = ref $recognizer;
-    my $right_class      = 'Parse::Marpa::Recognizer';
-    croak(
-        "Don't parse argument is class: $recognizer_class; should be: $right_class"
-    ) unless $recognizer_class eq $right_class;
+    my $recce;
+    RECCE_ARG_NAME: for my $recce_arg_name (qw(recognizer recce)) {
+        my $arg_value = $args->{$recce_arg_name};
+        next RECCE_ARG_NAME unless defined $arg_value;
+        croak('recognizer specified twice') if defined $recce;
+        $recce = $arg_value;
+        delete $args->{$recce_arg_name};
+    }
+    croak('No recognizer specified') unless defined $recce;
 
-    defined $recognizer->[Parse::Marpa::Internal::Recognizer::EVALUATOR]
+    my $recce_class = ref $recce;
+    croak("${class}::new() recognizer arg has wrong class: $recce_class")
+        unless $recce_class eq 'Parse::Marpa::Recognizer';
+
+    my $parse_set_arg = $args->{end};
+    delete $args->{end} if defined $parse_set_arg;
+
+    defined $recce->[Parse::Marpa::Internal::Recognizer::EVALUATOR]
         and croak('Recognizer already in use by Evaluator');
 
-    weaken( $recognizer->[Parse::Marpa::Internal::Recognizer::EVALUATOR] =
+    weaken( $recce->[Parse::Marpa::Internal::Recognizer::EVALUATOR] =
             $self );
 
-    my ( $grammar, $earley_sets, ) = @{$recognizer}[
+    my ( $grammar, $earley_sets, ) = @{$recce}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
         Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
     ];
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
-    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
+    $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
+
+    # options should not be set until *AFTER* the grammar is cloned
+    $self->set( $args );
+
+    my $tracing
+        = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iterations;
 
@@ -415,10 +432,14 @@ sub Parse::Marpa::Evaluator::new {
 
     local ($Data::Dumper::Terse) = 1;
 
-        Parse::Marpa::Recognizer::end_input($recognizer);
+    my $phase
+        = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+
+    croak("Attempt to evaluate grammar in wrong phase: ", Parse::Marpa::Internal::Phase::description($phase))
+        unless $phase == Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     my $default_parse_set =
-        $recognizer->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
+        $recce->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
 
     $self->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     $self->[Parse::Marpa::Internal::Evaluator::OR_NODES]    = [];
@@ -444,13 +465,11 @@ sub Parse::Marpa::Evaluator::new {
 
     return unless $start_rule;
 
-    @{$recognizer}[
+    @{$recce}[
         Parse::Marpa::Internal::Recognizer::START_ITEM,
         Parse::Marpa::Internal::Recognizer::CURRENT_PARSE_SET,
         ]
         = ( $start_item, $current_parse_set );
-
-    $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recognizer;
 
     state $parse_number = 0;
     my $package = $self->[Parse::Marpa::Internal::Evaluator::PACKAGE] =
@@ -884,8 +903,8 @@ sub Parse::Marpa::Evaluator::show_tree {
 sub Parse::Marpa::Evaluator::set {
     my $evaler     = shift;
     my $args = shift;
-    my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
-    my ( $grammar, ) = @{$recognizer}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
+    my $recce = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
+    my ( $grammar, ) = @{$recce}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
     Parse::Marpa::Grammar::set( $grammar, $args );
 }
 
@@ -1359,7 +1378,7 @@ in_equation_s_t($_)
         die("Parse failed at offset $fail_offset");
     }
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
     die("Parse failed") unless $evaler;
 
     for ( my $i = 0; defined( my $value = $evaler->value() ); $i++ ) {
@@ -1660,7 +1679,9 @@ in_equation_s_t($_)
 
 =end Parse::Marpa::test_document:
 
-    my $evaler = new Parse::Marpa::Evaluator($recce);
+    my $evaler = new Parse::Marpa::Evaluator(
+      { recognizer => $recce }
+    );
 
 Z<>
 
@@ -1671,24 +1692,34 @@ in_misc_pl($_)
 
 =end Parse::Marpa::test_document:
 
-    my $evaler = new Parse::Marpa::Evaluator($recce, $location);
+    my $evaler = new Parse::Marpa::Evaluator( {
+        recce => $recce,
+        end => $location
+    } );
 
-Creates an evaluator object.
-On success, returns the evaluator object.
-Failures are thrown as exceptions.
+The C<new> method's one, required, argument is a hash reference of named
+arguments.
+The C<new> method either returns a new evaluator object or throws an exception.
+The C<recognizer> option is required,
+Its value must be a recognizer object which has finished recognizing a text.
+The C<recce> option is a synonym for the the C<recognizer> option.
 
-The first, required, argument is a recognizer object.
-The second, optional, argument
-will be used as the number of the earleme at which to end parsing.
-If there is no second argument, parsing ends at the default end
-of parsing, which was set in the recognizer.
+By default,
+parsing ends at the default end of parsing,
+which was set in the recognizer.
+If an C<end> option is specified, 
+it will be used as the number of the earleme at which to end parsing.
+
+Marpa options can also
+be named arguments to C<new>.
+For these, see L<Parse::Marpa::Doc::Options>.
 
 =head2 set
 
 =begin Parse::Marpa::test_document:
 
 ## next display
-in_cycle2_t($_)
+in_misc_pl($_)
 
 =end Parse::Marpa::test_document:
 

@@ -43,13 +43,15 @@ if ( $fail_offset >= 0 ) {
     die("Parse failed at offset $fail_offset");
 }
 
+$recce->end_input();
+
 my @expected = (
     '(((2-0)*3)+1)==7', '((2-(0*3))+1)==3',
     '((2-0)*(3+1))==8', '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
 
-my $evaler = new Parse::Marpa::Evaluator($recce);
+my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
 die("Parse failed") unless $evaler;
 
 for ( my $i = 0; defined( my $value = $evaler->value() ); $i++ ) {
