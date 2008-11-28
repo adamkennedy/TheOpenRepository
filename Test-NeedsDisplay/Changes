@@ -1,5 +1,8 @@
 Changes for Perl extension Test-NeedsDisplay
 
+1.xx xxx xx xxx 2008
+	- Don't require xvfb-run if running under wxPerl
+
 1.05 Wed 29 Oct 2008
 	- Adding support for passing through -d and -Mblib
 
