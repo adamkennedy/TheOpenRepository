@@ -24,29 +24,34 @@ sub import {
   my $set_subs  = $opts{setters} || {};
   my $acc_subs  = $opts{accessors} || {};
   my $pred_subs = $opts{predicates} || {};
+  my $construct_subs = $opts{constructors} || [defined($opts{constructor}) ? $opts{constructor} : ()];  
 
   foreach my $subname (keys %$read_subs) {
     my $arrayIndex = $read_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "getter");
+    _generate_method($caller_pkg, $subname, $arrayIndex, $replace, $chained, "getter");
   }
 
   foreach my $subname (keys %$set_subs) {
     my $arrayIndex = $set_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "setter");
+    _generate_method($caller_pkg, $subname, $arrayIndex, $replace, $chained, "setter");
   }
 
   foreach my $subname (keys %$acc_subs) {
     my $arrayIndex = $acc_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "accessor");
+    _generate_method($caller_pkg, $subname, $arrayIndex, $replace, $chained, "accessor");
   }
 
   foreach my $subname (keys %$pred_subs) {
     my $arrayIndex = $pred_subs->{$subname};
-    _generate_accessor($caller_pkg, $subname, $arrayIndex, $replace, $chained, "predicate");
+    _generate_method($caller_pkg, $subname, $arrayIndex, $replace, $chained, "predicate");
+  }
+   
+  foreach my $subname (@$construct_subs) {
+    _generate_method($caller_pkg, $subname, "", $replace, $chained, "constructor");
   }
 }
 
-sub _generate_accessor {
+sub _generate_method {
   my ($caller_pkg, $subname, $arrayIndex, $replace, $chained, $type) = @_;
 
   if (not defined $arrayIndex) {
@@ -84,6 +89,9 @@ sub _generate_accessor {
   elsif ($type eq 'predicate') {
     newxs_predicate($subname, $arrayIndex);
   }
+  elsif ($type eq 'constructor') {
+    newxs_constructor($subname);
+  }
   else {
     newxs_accessor($subname, $arrayIndex, $chained);
   }
@@ -101,6 +109,7 @@ Class::XSAccessor::Array - Generate fast XS accessors without runtime compilatio
   
   package MyClassUsingArraysAsInternalStorage;
   use Class::XSAccessor::Array
+    constructor => 'new',
     getters => {
       get_foo => 0, # 0 is the array index to access
       get_bar => 1,
@@ -133,6 +142,22 @@ an implementation that works with hash-based objects.
 A simple benchmark showed more than a factor of two performance
 advantage over writing accessors in Perl.
 
+Since version 0.10, the module can also generate simple constructors
+(implemented in XS) for you. Simply supply the
+C<constructor =E<gt> 'constructor_name'> option or the
+C<constructors =E<gt> ['new', 'create', 'spawn']> option.
+These constructors do the equivalent of the following perl code:
+
+  sub new {
+    my $class = shift;
+    return bless [], ref($class)||$class;
+  }
+
+That means they can be called on objects and classes but will not
+clone objects entirely. Note that any parameters to new() will be
+discarded! If there is a better idiom for array-based objects, let
+me know.
+
 While generally more obscure than hash-based objects,
 objects using blessed arrays as internal representation
 are a bit faster as its somewhat faster to access arrays than hashes.
@@ -141,7 +166,8 @@ L<Class::XSAccessor>, which works on hash-based objects.
 
 The method names may be fully qualified. In the example of the
 synopsis, you could have written C<MyClass::get_foo> instead
-of C<get_foo>.
+of C<get_foo>. This way, you can install methods in classes other
+than the current class. See also: The C<class> option below.
 
 =head1 OPTIONS
 

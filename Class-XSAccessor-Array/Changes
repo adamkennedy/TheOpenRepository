@@ -1,5 +1,8 @@
 Revision history for Perl extension Class::XSAccessor::Array.
 
+0.10  Sat Nov 29 21:34 2008
+  - Add constructor generation.
+
 0.07  Sat Nov 29 17:40 2008
   - Add class keyword for setting the target class.
 

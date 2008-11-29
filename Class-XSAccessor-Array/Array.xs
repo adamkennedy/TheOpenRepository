@@ -125,6 +125,35 @@ predicate(self)
       XSRETURN_NO;
 
 
+
+void
+constructor(class, ...)
+    SV* class;
+  ALIAS:
+  PREINIT:
+    AV* array;
+    SV* obj;
+    char* classname;
+  PPCODE:
+    if (sv_isobject(class)) {
+      classname = sv_reftype(SvRV(class), 1);
+    }
+    else {
+      if (!SvPOK(class))
+        croak("Need an object or class name as first argument to the constructor.");
+      classname = SvPV_nolen(class);
+    }
+    
+    array = (AV *)sv_2mortal((SV *)newAV());
+    obj = sv_bless( newRV((SV*)array), gv_stashpv(classname, 1) );
+
+    /* we ignore arguments. See Class::XSAccessor's XS code for
+     * how we'd use them in case of bless {@_} => $class.
+     */
+    XPUSHs(sv_2mortal(obj));
+
+
+
 void
 newxs_getter(name, index)
   char* name;
@@ -210,5 +239,20 @@ newxs_predicate(name, index)
       XSANY.any_i32 = functionIndex;
 
       AutoXS_arrayindices[functionIndex] = index;
+    }
+
+
+void
+newxs_constructor(name)
+  char* name;
+  PPCODE:
+    char* file = __FILE__;
+    {
+      CV * cv;
+      /* This code is very similar to what you get from using the ALIAS XS syntax.
+       * Except I took it from the generated C code. Hic sunt dragones, I suppose... */
+      cv = newXS(name, XS_Class__XSAccessor__Array_constructor, file);
+      if (cv == NULL)
+        croak("ARG! SOMETHING WENT REALLY WRONG!");
     }
 

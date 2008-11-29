@@ -5,6 +5,7 @@ NAME
 SYNOPSIS
       package MyClassUsingArraysAsInternalStorage;
       use Class::XSAccessor::Array
+        constructor => 'new',
         getters => {
           get_foo => 0, # 0 is the array index to access
           get_bar => 1,
@@ -35,6 +36,21 @@ DESCRIPTION
     A simple benchmark showed more than a factor of two performance
     advantage over writing accessors in Perl.
 
+    Since version 0.10, the module can also generate simple constructors
+    (implemented in XS) for you. Simply supply the "constructor =>
+    'constructor_name'" option or the "constructors => ['new', 'create',
+    'spawn']" option. These constructors do the equivalent of the following
+    perl code:
+
+      sub new {
+        my $class = shift;
+        return bless [], ref($class)||$class;
+      }
+
+    That means they can be called on objects and classes but will not clone
+    objects entirely. Note that any parameters to new() will be discarded!
+    If there is a better idiom for array-based objects, let me know.
+
     While generally more obscure than hash-based objects, objects using
     blessed arrays as internal representation are a bit faster as its
     somewhat faster to access arrays than hashes. Accordingly, this module
@@ -42,7 +58,9 @@ DESCRIPTION
     hash-based objects.
 
     The method names may be fully qualified. In the example of the synopsis,
-    you could have written "MyClass::get_foo" instead of "get_foo".
+    you could have written "MyClass::get_foo" instead of "get_foo". This
+    way, you can install methods in classes other than the current class.
+    See also: The "class" option below.
 
 OPTIONS
     In addition to specifying the types and names of accessors, you can add
