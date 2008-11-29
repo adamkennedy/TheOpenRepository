@@ -6,12 +6,18 @@ SYNOPSIS
       package MyClassUsingArraysAsInternalStorage;
       use Class::XSAccessor::Array
         getters => {
-          get_foo => 'foo', # 'foo' is the hash key to access
-          get_bar => 'bar',
+          get_foo => 0, # 0 is the array index to access
+          get_bar => 1,
         },
         setters => {
-          set_foo => 'foo',
-          set_bar => 'bar',
+          set_foo => 0,
+          set_bar => 1,
+        },
+        accessors => { # a mutator
+          buz => 2,
+        },
+        predicates => { # test for definedness
+          has_buz => 2,
         };
       # The imported methods are implemented in fast XS.
   
@@ -19,9 +25,12 @@ SYNOPSIS
 
 DESCRIPTION
     The module implements fast XS accessors both for getting at and setting
-    an object attribute. The module works only with objects that are
-    implement as arrays. Refer to Class::XSAccessor for an implementation
-    that works with hash-based objects.
+    an object attribute. Additionally, the module supports mutators and
+    simple predicates ("has_foo()" like tests for definedness of an
+    attributes). The module works only with objects that are implemented as
+    arrays. Using it on hash-based objects is bound to make your life
+    miserable. Refer to Class::XSAccessor for an implementation that works
+    with hash-based objects.
 
     A simple benchmark showed more than a factor of two performance
     advantage over writing accessors in Perl.
@@ -34,6 +43,37 @@ DESCRIPTION
 
     The method names may be fully qualified. In the example of the synopsis,
     you could have written "MyClass::get_foo" instead of "get_foo".
+
+OPTIONS
+    In addition to specifying the types and names of accessors, you can add
+    options which modify behaviour. The options are specified as key/value
+    pairs just as the accessor declaration. Example:
+
+      use Class::XSAccessor::Array
+        getters => {
+          get_foo => 0,
+        },
+        replace => 1;
+
+    The list of available options is:
+
+  replace
+    Set this to a true value to prevent "Class::XSAccessor::Array" from
+    complaining about replacing existing subroutines.
+
+  chained
+    Set this to a true value to change the return value of setters and
+    mutators (when called with an argument). If "chained" is enabled, the
+    setters and accessors/mutators will return the object. Mutators called
+    without an argument still return the value of the associated attribute.
+
+    As with the other options, "chained" affects all methods generated in
+    the same "use Class::XSAccessor::Array ..." statement.
+
+  class
+    By default, the accessors are generated in the calling class. Using the
+    "class" option, you can explicitly specify where the methods are to be
+    generated.
 
 CAVEATS
     Probably wouldn't work if your objects are *tied*. But that's a strange
