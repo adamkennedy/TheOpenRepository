@@ -1,5 +1,4 @@
 package Object::Tiny::XS;
-
 use strict 'vars', 'subs';
 
 BEGIN {
@@ -24,10 +23,8 @@ sub import {
 	return 1;
 }
 
-sub new {
-	my $class = shift;
-	bless { @_ }, $class;
-}
+use Class::XSAccessor
+  constructor => 'new';
 
 1;
 
@@ -57,7 +54,7 @@ Object::Tiny::XS - Class building as simple as it gets and FAST
 =head1 DESCRIPTION
 
 This module does the same that L<Object::Tiny> does, but it uses
-C<Class::XSAccessor> to generate faster accessors.
+C<Class::XSAccessor> to generate faster accessors and constructors.
 
 For details on the little interface there is, please check
 C<Object::Tiny>.
