@@ -3,7 +3,7 @@ use strict 'vars', 'subs';
 
 BEGIN {
 	require 5.004;
-	$Object::Tiny::XS::VERSION = '1.00';
+	$Object::Tiny::XS::VERSION = '1.01';
 }
 
 sub import {
