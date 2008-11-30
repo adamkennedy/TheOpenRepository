@@ -400,16 +400,19 @@ sub Parse::Marpa::Evaluator::new {
     my $parse_set_arg = $args->{end};
     delete $args->{end} if defined $parse_set_arg;
 
-    defined $recce->[Parse::Marpa::Internal::Recognizer::EVALUATOR]
-        and croak('Recognizer already in use by Evaluator');
-
-    weaken( $recce->[Parse::Marpa::Internal::Recognizer::EVALUATOR] =
-            $self );
 
     my ( $grammar, $earley_sets, ) = @{$recce}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
         Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
     ];
+
+    my $phase
+        = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+
+    # croak('Recognizer already in use by Evaluator')
+        # if $phase == Parse::Marpa::Internal::Phase::EVALUATING;
+    croak("Attempt to evaluate grammar in wrong phase: ", Parse::Marpa::Internal::Phase::description($phase))
+        unless $phase >= Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
@@ -417,6 +420,9 @@ sub Parse::Marpa::Evaluator::new {
 
     # options should not be set until *AFTER* the grammar is cloned
     $self->set( $args );
+
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE]
+        = Parse::Marpa::Internal::Phase::EVALUATING;
 
     my $tracing
         = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
@@ -431,12 +437,6 @@ sub Parse::Marpa::Evaluator::new {
     }
 
     local ($Data::Dumper::Terse) = 1;
-
-    my $phase
-        = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
-
-    croak("Attempt to evaluate grammar in wrong phase: ", Parse::Marpa::Internal::Phase::description($phase))
-        unless $phase == Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     my $default_parse_set =
         $recce->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];

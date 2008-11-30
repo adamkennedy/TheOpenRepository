@@ -39,7 +39,7 @@ use Parse::Marpa::Offset Earley_item =>
 # Elements of the RECOGNIZER structure
 use Parse::Marpa::Offset Recognizer =>
     # evaluator data
-    qw(GRAMMAR EVALUATOR EARLEY_SETS START_ITEM
+    qw(GRAMMAR EARLEY_SETS START_ITEM
         CURRENT_PARSE_SET DEFAULT_PARSE_SET),
     # temporary data
     qw(

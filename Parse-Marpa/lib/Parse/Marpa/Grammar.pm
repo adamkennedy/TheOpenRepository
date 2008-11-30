@@ -248,7 +248,7 @@ sub Parse::Marpa::Internal::Interface::description {
 
 # values for grammar phases
 use Parse::Marpa::Offset Phase =>
-    qw(NEW RULES PRECOMPUTED COMPILED RECOGNIZING RECOGNIZED);
+    qw(NEW RULES PRECOMPUTED COMPILED RECOGNIZING RECOGNIZED EVALUATING);
 
 sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
@@ -259,6 +259,7 @@ sub Parse::Marpa::Internal::Phase::description {
         when (Parse::Marpa::Internal::Phase::COMPILED)    { return 'compiled grammar' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZING) { return 'grammar being recognized' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { return 'recognized grammar' }
+        when (Parse::Marpa::Internal::Phase::EVALUATING) { return 'grammar being evaluated' }
     }
     return 'unknown phase';
 }
