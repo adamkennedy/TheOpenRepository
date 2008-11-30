@@ -13,12 +13,13 @@ sub import {
 	eval join "\n",
 		"package $pkg;",
 		($child ? () : "\@${pkg}::ISA = 'Object::Tiny::XS';"),
-                "require Class::XSAccessor;",
-		map {
+                "use Class::XSAccessor getters => {",
+		(map {
 			defined and ! ref and /^[^\W\d]\w*$/s
 			or die "Invalid accessor name '$_'";
-			"Class::XSAccessor->import(getters => {'$_' => '$_'});"
-		} @_;
+			"'$_' => '$_',"
+		} @_),
+                "};";
 	die "Failed to generate $pkg" if $@;
 	return 1;
 }
