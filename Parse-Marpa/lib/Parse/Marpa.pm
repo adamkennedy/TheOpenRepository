@@ -106,13 +106,13 @@ package Parse::Marpa::Internal;
 
 use Carp;
 
-our $compiled_eval_error;
+our $stringified_eval_error;
 
 BEGIN {
     eval "use Parse::Marpa::Source $Parse::Marpa::STRING_VERSION";
-    $compiled_eval_error = $@;
-    undef $Parse::Marpa::Internal::compiled_source_grammar
-        if $compiled_eval_error;
+    $stringified_eval_error = $@;
+    undef $Parse::Marpa::Internal::stringified_source_grammar
+        if $stringified_eval_error;
 }
 
 package Parse::Marpa::Read_Only;
@@ -522,7 +522,7 @@ Porcelain interfaces use the plumbing indirectly.
 The plumbing is efficient,
 but MDL is easier to read, write and maintain.
 Users seeking efficiency are usually better off
-using compiled MDL.
+using stringified MDL.
 The documentation for the plumbing
 is L<Parse::Marpa::Doc::Plumbing>.
 
@@ -662,12 +662,12 @@ One with a customized lexer would be faster yet.
 
 If MDL's parsing speed
 becomes an issue for a particular grammar,
-that grammar can be precompiled.
-Subsequent runs of the precompiled grammar don't incur the overhead of either
+that grammar can be precomputed.
+Subsequent runs of the precomputed grammar don't incur the overhead of either
 MDL parsing or precomputation.
-Marpa uses precompilation internally.
+Marpa uses precomputation internally.
 When you use MDL to specify a grammar to Marpa,
-Marpa uses a precompiled grammar to parse the MDL.
+Marpa uses a precomputed grammar to parse the MDL.
 
 =head3 Comparison with other Parsers
 

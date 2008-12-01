@@ -217,7 +217,7 @@ PROBLEMS - fatal problems
 PREAMBLE - evaluation preamble
 LEX_PREAMBLE - lex preamble
 WARNINGS - print warnings about grammar?
-VERSION - Marpa version this grammar was compiled from
+VERSION - Marpa version this grammar was stringified from
 CODE_LINES - max lines to display on failure
 SEMANTICS - semantics (currently perl5 only)
 TRACING - master flag, set if any tracing is being done
@@ -248,7 +248,7 @@ sub Parse::Marpa::Internal::Interface::description {
 
 # values for grammar phases
 use Parse::Marpa::Offset Phase =>
-    qw(NEW RULES PRECOMPUTED COMPILED RECOGNIZING RECOGNIZED EVALUATING);
+    qw(NEW RULES PRECOMPUTED STRINGIFIED RECOGNIZING RECOGNIZED EVALUATING);
 
 sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
@@ -256,7 +256,7 @@ sub Parse::Marpa::Internal::Phase::description {
         when (Parse::Marpa::Internal::Phase::NEW)         { return 'grammar without rules' }
         when (Parse::Marpa::Internal::Phase::RULES)       { return 'grammar with rules entered' }
         when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { return 'precomputed grammar' }
-        when (Parse::Marpa::Internal::Phase::COMPILED)    { return 'compiled grammar' }
+        when (Parse::Marpa::Internal::Phase::STRINGIFIED) { return 'stringified grammar' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZING) { return 'grammar being recognized' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { return 'recognized grammar' }
         when (Parse::Marpa::Internal::Phase::EVALUATING) { return 'grammar being evaluated' }
@@ -594,10 +594,10 @@ sub Parse::Marpa::Grammar::new {
 
 sub Parse::Marpa::show_source_grammar_status {
     my $status =
-        $Parse::Marpa::Internal::compiled_source_grammar ? 'Compiled' : 'Raw';
-    if ($Parse::Marpa::Internal::compiled_eval_error) {
-        $status .= "\nCompiled source had error:\n"
-            . $Parse::Marpa::Internal::compiled_eval_error;
+        $Parse::Marpa::Internal::stringified_source_grammar ? 'Stringified' : 'Raw';
+    if ($Parse::Marpa::Internal::stringified_eval_error) {
+        $status .= "\nStringified source had error:\n"
+            . $Parse::Marpa::Internal::stringified_eval_error;
     }
     return $status;
 }
@@ -665,9 +665,9 @@ sub die_with_parse_failure {
 # Also, forcing the user to be specific about the fact he's doing bootstrapping,
 # seems like a good idea in itself.
 
-sub Parse::Marpa::create_compiled_source_grammar {
+sub Parse::Marpa::stringify_source_grammar {
 
-    # Overwrite the existing compiled source grammar, if we already have one
+    # Overwrite the existing stringified source grammar, if we already have one
     # This allows us to bootstrap in a new version
 
     my $raw_source_grammar = Parse::Marpa::Internal::raw_source_grammar();
@@ -680,7 +680,7 @@ sub Parse::Marpa::create_compiled_source_grammar {
         );
     }
     $raw_source_grammar->precompute();
-    return $raw_source_grammar->compile();
+    return $raw_source_grammar->stringify();
 }
 
 # Build a grammar from an MDL description.
@@ -695,15 +695,15 @@ sub parse_source_grammar {
         $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $allow_raw_source =
         $grammar->[Parse::Marpa::Internal::Grammar::ALLOW_RAW_SOURCE];
-    if ( not defined $Parse::Marpa::Internal::compiled_source_grammar ) {
+    if ( not defined $Parse::Marpa::Internal::stringified_source_grammar ) {
         if ($allow_raw_source) {
-            $Parse::Marpa::Internal::compiled_source_grammar =
-                Parse::Marpa::create_compiled_source_grammar();
+            $Parse::Marpa::Internal::stringified_source_grammar =
+                Parse::Marpa::stringify_source_grammar();
         }
         else {
-            my $eval_error = $Parse::Marpa::Internal::compiled_eval_error
+            my $eval_error = $Parse::Marpa::Internal::stringified_eval_error
                 // 'no eval error';
-            croak( "No compiled source grammar:\n", $eval_error );
+            croak( "No stringified source grammar:\n", $eval_error );
         }
     }
 
@@ -717,8 +717,8 @@ sub parse_source_grammar {
     $source_options //= {};
 
     my $recce = new Parse::Marpa::Recognizer(
-        {   compiled_grammar =>
-                $Parse::Marpa::Internal::compiled_source_grammar,
+        {   stringified_grammar =>
+                $Parse::Marpa::Internal::stringified_source_grammar,
             trace_file_handle => $trace_fh,
             %{$source_options}
         }
@@ -1155,7 +1155,7 @@ sub Parse::Marpa::Grammar::show_problems {
 # Deep Copy Grammar
 #
 # Note: copying strengthens weak refs
-sub Parse::Marpa::Grammar::compile {
+sub Parse::Marpa::Grammar::stringify {
     my $grammar = shift;
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
@@ -1166,11 +1166,11 @@ sub Parse::Marpa::Grammar::compile {
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
-    if (   $phase > Parse::Marpa::Internal::Phase::COMPILED
+    if (   $phase > Parse::Marpa::Internal::Phase::STRINGIFIED
         or $phase < Parse::Marpa::Internal::Phase::RULES )
     {
         croak(
-            "Attempt to compile grammar in inappropriate state\nAttempt to compile ",
+            "Attempt to stringify grammar in inappropriate state\nAttempt to stringify ",
             Parse::Marpa::Internal::Phase::description($phase)
         );
     }
@@ -1183,7 +1183,7 @@ sub Parse::Marpa::Grammar::compile {
     if ($problems) {
         croak(
             Parse::Marpa::Grammar::show_problems($grammar),
-            "Attempt to compile grammar with fatal problems\n",
+            "Attempt to stringify grammar with fatal problems\n",
             'Marpa cannot proceed'
         );
     }
@@ -1196,18 +1196,18 @@ sub Parse::Marpa::Grammar::compile {
     return \( $d->Dump() );
 }
 
-# First arg is compiled grammar
+# First arg is stringified grammar
 # Second arg (optional) is trace file handle, either saved and restored
 # If not trace file handle supplied, it reverts to the default, STDERR
 #
-# Returns the decompiled grammar
-sub Parse::Marpa::Grammar::decompile {
-    my $compiled_grammar = shift;
+# Returns the unstringified grammar
+sub Parse::Marpa::Grammar::unstringify {
+    my $stringified_grammar = shift;
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
 
-    croak("Attempt to decompile undefined grammar")
-        unless defined $compiled_grammar;
+    croak("Attempt to unstringify undefined grammar")
+        unless defined $stringified_grammar;
 
     my $grammar;
     {
@@ -1218,14 +1218,14 @@ sub Parse::Marpa::Grammar::decompile {
             push @warnings, $warning;
             @caller_return = caller 0;
         };
-        eval ${$compiled_grammar};
+        eval ${$stringified_grammar};
         my $fatal_error = $@;
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
                 'decompiling gramar',
                 'decompiling gramar',
-                $compiled_grammar, \@caller_return
+                $stringified_grammar, \@caller_return
             );
         }
     }
@@ -1249,7 +1249,7 @@ sub Parse::Marpa::Grammar::decompile {
         $symbol->[Parse::Marpa::Internal::Symbol::RHS] = undef;
     }
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
-        Parse::Marpa::Internal::Phase::COMPILED;
+        Parse::Marpa::Internal::Phase::STRINGIFIED;
 
     return $grammar;
 
@@ -3665,14 +3665,14 @@ but they will lose a lot of convenience and maintainability.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
 then compiling that grammar,
-as L<described below|"compile">.
-The MDL parser itself uses a compiled MDL file.
+as L<described below|"stringify">.
+The MDL parser itself uses a stringified MDL file.
 
 Marpa needs to do extensive precompution on grammars
 before they can be passed on to a recognizer or an evaluator.
 The user rarely needs to perform this precomputation explicitly.
 The methods which require precomputed grammars
-(C<compile> and C<Parse::Marpa::Recognizer::new>),
+(C<stringify> and C<Parse::Marpa::Recognizer::new>),
 do the precomputation themselves on a just-in-time basis.
 
 For situations where the user needs to control the state of the grammar precisely,
@@ -3687,14 +3687,14 @@ Marpa recognizers make a deep copy of the the grammar used to create them.
 The deep copy is done by B<compiling> the grammar, then B<decompiling> the grammar.
 
 Grammar compilation in Marpa means turning the grammar into a string with
-Marpa's C<compile> method.
-Since a compiled grammar is a string, it can be handled as one.
-It can, for instance, be written to a file.
+Marpa's C<stringify> method.
+A stringified grammar is a string in every sense and
+can, for instance, be written to a file.
 
-Marpa's C<decompile> static method takes a compiled grammar,
+Marpa's C<unstringify> static method takes a stringified grammar,
 C<eval>'s it,
 then tweaks it a bit to create a properly set-up grammar object.
-A subsequent Marpa process can read this file, C<decompile> the string,
+A subsequent Marpa process can read this file, C<unstringify> the string,
 and continue the parse.
 This would eliminate the overhead both of parsing MDL and of precomputation.
 As mentioned, where efficiency is a major consideration, this will
@@ -3798,13 +3798,13 @@ It returns the grammar object or throws an exception.
 
 It is usually not necessary for the user to call C<precompute>.
 The methods which require a precomputed grammar
-(C<compile> and C<Parse::Marpa::Recognizer::new>),
+(C<stringify> and C<Parse::Marpa::Recognizer::new>),
 if passed a grammar on which the precomputation has not been done,
 perform the precomputation themselves on a "just in time" basis.
 But C<precompute> can be useful in debugging and tracing,
 as a way to control precisely when precomputation takes place.
 
-=head2 compile
+=head2 stringify
 
 =begin Parse::Marpa::test_document:
 
@@ -3813,15 +3813,16 @@ in_bin_mdl($_)
 
 =end Parse::Marpa::test_document:
 
-    my $compiled_grammar = $grammar->compile();
+    my $stringified_grammar = $grammar->stringify();
 
-The C<compile> method takes as its single argument a grammar object, and "compiles" it.
-It returns a reference to the compiled grammar.
-The compiled grammar is a string which was created 
+The C<stringify> method takes as its single argument a grammar object
+and converts it into a string.
+It returns a reference to the string.
+The string is created 
 using L<Data::Dumper>.
-On failure, C<compile> throws an exception.
+On failure, C<stringify> throws an exception.
 
-=head2 decompile
+=head2 unstringify
 
 =begin Parse::Marpa::test_document:
 
@@ -3830,32 +3831,32 @@ in_misc_pl($_)
 
 =end Parse::Marpa::test_document:
 
-    $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
+    $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);
 
-    $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
+    $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar);
 
-The C<decompile> static method takes a reference to a compiled grammar as its first
+The C<unstringify> static method takes a reference to a stringified grammar as its first
 argument.
 Its second, optional, argument is a file handle.
-The file handle argument will be used both as the decompiled grammar's trace file handle,
-and for any trace messages produced by C<decompile> itself.
-C<decompile> returns the decompiled grammar object unless it throws an
+The file handle argument will be used both as the unstringified grammar's trace file handle,
+and for any trace messages produced by C<unstringify> itself.
+C<unstringify> returns the unstringified grammar object unless it throws an
 exception.
 
 If the trace file handle argument is omitted,
 it defaults to C<STDERR>
-and the decompiled grammar's trace file handle reverts to the default for a new
+and the unstringified grammar's trace file handle reverts to the default for a new
 grammar, which is also C<STDERR>.
 The trace file handle argument is necessary because in the course of compilation,
 the grammar's original trace file handle may have been lost.
-For example, a compiled grammar can be written to a file and emailed.
+For example, a stringified grammar can be written to a file and emailed.
 Marpa cannot rely on finding the original trace file handle available and open
-when a compiled grammar is decompiled.
+when a stringified grammar is unstringified.
 
-When Marpa deep copies grammars internally, it uses the C<compile> and C<decompile> methods.
+When Marpa deep copies grammars internally, it uses the C<stringify> and C<unstringify> methods.
 To preserve the trace file handle of the original grammar,
 Marpa first copies the handle to a temporary,
-then restores the handle using the C<trace_file_handle> argument of C<decompile>.
+then restores the handle using the C<trace_file_handle> argument of C<unstringify>.
 
 =head1 SUPPORT
 

@@ -340,12 +340,12 @@ sub Parse::Marpa::Recognizer::new {
 
     my $grammar = $args->{grammar};
     if ( not defined $grammar ) {
-        my $compiled_grammar = $args->{compiled_grammar};
-        croak('No grammar specified') unless defined $compiled_grammar;
-        delete $args->{compiled_grammar};
+        my $stringified_grammar = $args->{stringified_grammar};
+        croak('No grammar specified') unless defined $stringified_grammar;
+        delete $args->{stringified_grammar};
         my $trace_fh = $arg_trace_fh // (*STDERR);
         $grammar =
-            Parse::Marpa::Grammar::decompile( $compiled_grammar, $trace_fh );
+            Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
         $private_grammar = 1;
     }
     else {
@@ -385,11 +385,11 @@ sub Parse::Marpa::Recognizer::new {
     if ( $phase < Parse::Marpa::Internal::Phase::PRECOMPUTED
         or not $private_grammar )
     {
-        my $compiled_grammar = Parse::Marpa::Grammar::compile($grammar);
+        my $stringified_grammar = Parse::Marpa::Grammar::stringify($grammar);
         my $trace_fh         = $arg_trace_fh
             // $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $grammar =
-            Parse::Marpa::Grammar::decompile( $compiled_grammar, $trace_fh );
+            Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
     }
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
@@ -1274,7 +1274,7 @@ in_misc_pl($_)
 The C<new> method's one, required, argument is a hash reference of named
 arguments.
 The C<new> method either returns a new parse object or throws an exception.
-Either the C<compiled_grammar> or the C<grammar> named argument must be specified, but not both.
+Either the C<stringified_grammar> or the C<grammar> named argument must be specified, but not both.
 A recognizer is created with
 the current earleme and
 the default end of parsing
@@ -1285,10 +1285,10 @@ its value must be a grammar object with rules defined.
 If it is not precomputed, C<new> will precompute it.
 A deep copy of the grammar is then made to be used in the recognizer.
 
-If the C<compiled_grammar> option is specified, 
-its value must be a Perl 5 string containing a compiled Marpa grammar,
-as produced by L<C<Parse::Marpa::Grammar::compile>|Parse::Marpa::Grammar/"compile">.
-It will be decompiled for use in the recognizer.
+If the C<stringified_grammar> option is specified, 
+its value must be a Perl 5 string containing a stringified Marpa grammar,
+as produced by L<C<Parse::Marpa::Grammar::stringify>|Parse::Marpa::Grammar/"stringify">.
+It will be unstringified for use in the recognizer.
 
 Marpa options can also
 be named arguments to C<new>.

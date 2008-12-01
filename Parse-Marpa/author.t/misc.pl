@@ -16,11 +16,11 @@ my $grammar = new Parse::Marpa::Grammar();
 
 $grammar->set({mdl_source => \$mdl_source});
 
-my $compiled_grammar = $grammar->compile();
+my $stringified_grammar = $grammar->stringify();
 
-$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar, $trace_fh);
+$grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);
 
-$grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
+$grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar);
 
 my $new_lex_preamble = q{};
 

@@ -11,7 +11,7 @@ use Fatal qw(open close);
 
 my $command = shift;
 my $grammar_file;
-my $compiled_grammar_file;
+my $stringified_grammar_file;
 my $text_to_parse;
 my $inaccessible_symbols;
 my $accessible_symbols;
@@ -38,15 +38,15 @@ my %options;
 my %source_options;
 
 given ($command) {
-    when ('compile') {
+    when ('stringify') {
         croak unless GetOptions( "option=s" => \%options );
-        do_compile();
+        do_stringify();
     }
     when ('parse') {
         croak
             unless GetOptions(
             "grammar=s"            => \$grammar_file,
-            "compiled_grammar=s"   => \$compiled_grammar_file,
+            "stringified_grammar=s"   => \$stringified_grammar_file,
             "text=s"               => \$text_to_parse,
             "QDFA"                 => \$show_QDFA,
             "NFA"                  => \$show_NFA,
@@ -107,7 +107,7 @@ given ($command) {
     }
 }
 
-sub do_compile {
+sub do_stringify {
     my $grammar_source;
     { local ($RS) = undef; $grammar_source = <STDIN>; }
 
@@ -118,19 +118,16 @@ sub do_compile {
     );
 
     $grammar->precompute();
-    my $compiled_grammar = $grammar->compile();
-    print $$compiled_grammar;
+    my $stringified_grammar = $grammar->stringify();
+    print $$stringified_grammar;
 }
 
 sub do_parse {
 
     my $grammar;
-    if ( defined $compiled_grammar_file ) {
-        croak("Compiled grammars not implemented");
+    if ( defined $stringified_grammar_file ) {
+        croak("Stringified grammars not implemented");
 
-        # open(GRAMMAR, "<", $compiled_grammar_file);
-        # my $compiled_grammar; { local($RS) = undef; $compiled_grammar = <GRAMMAR>; }
-        # $grammar = Parse::Marpa::Grammar::decompile($compiled_grammar);
     }
     elsif ( defined $grammar_file ) {
         our $GRAMMAR;

@@ -9,5 +9,4 @@ diag( "Testing Parse::Marpa $Parse::Marpa::VERSION, Perl $], $^X" );
 my $status = Parse::Marpa::show_source_grammar_status();
 my $status_line = "Source Grammar Status: " . $status;
 ok($status, $status_line );
-is($status, "Compiled", "Grammar is compiled");
-# diag( $status_line );
+is($status, "Stringified", "Grammar is stringified");

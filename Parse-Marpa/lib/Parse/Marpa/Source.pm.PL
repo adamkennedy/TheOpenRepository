@@ -35,7 +35,7 @@ package Parse::Marpa::Internal::Source;
 use English qw( -no_match_vars ) ;
 {
     local($RS) = undef;
-    $Parse::Marpa::Internal::compiled_source_grammar = \(<DATA>);
+    $Parse::Marpa::Internal::stringified_source_grammar = \(<DATA>);
 }
 
 1;
@@ -51,5 +51,5 @@ __DATA__
 
 END_OF_PREAMBLE_CODE
 
-print ${Parse::Marpa::create_compiled_source_grammar()};
+print ${Parse::Marpa::stringify_source_grammar()};
 print "\n";

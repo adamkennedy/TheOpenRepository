@@ -1,5 +1,5 @@
 
-.PHONY: all install install_raw install_compiled
+.PHONY: all install install_raw install_stringified
 
 all: test source_raw.pl
 
@@ -15,9 +15,9 @@ source_raw.pl: bootcopy1.pl self.marpa
 test: bootcopy0.pl bootcopy1.pl
 	diff bootcopy0.pl bootcopy1.pl
 
-install: test install_compiled install_raw
+install: test install_stringified install_raw
 
-install_compiled: ../lib/Parse/Marpa/Source.pm
+install_stringified: ../lib/Parse/Marpa/Source.pm
 
 install_raw: ../lib/Parse/Marpa/Raw_Source.pm
 
