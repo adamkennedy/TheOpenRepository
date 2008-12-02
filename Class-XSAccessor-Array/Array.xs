@@ -133,7 +133,7 @@ constructor(class, ...)
   PREINIT:
     AV* array;
     SV* obj;
-    char* classname;
+    const char* classname;
   PPCODE:
     if (sv_isobject(class)) {
       classname = sv_reftype(SvRV(class), 1);
