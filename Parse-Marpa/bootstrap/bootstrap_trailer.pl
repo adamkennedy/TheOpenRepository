@@ -15,14 +15,25 @@ my $g = new Parse::Marpa::Grammar({
     rules => $new_rules,
     terminals => $new_terminals,
     warnings => 1,
+    precompute => 0,
 });
 
-$g->set({default_lex_prefix => $new_default_lex_prefix})
-    if defined $new_default_lex_prefix;
-$g->set({default_action => $new_default_action})
-    if defined $new_default_action;
-$g->set({default_null_value => $new_default_null_value})
-    if defined $new_default_null_value;
+$g->set({
+    default_lex_prefix => $new_default_lex_prefix,
+    precompute => 0,
+}) if defined $new_default_lex_prefix;
+
+$g->set({
+    default_action => $new_default_action,
+    precompute => 0,
+}) if defined $new_default_action;
+
+$g->set({
+    default_null_value => $new_default_null_value,
+    precompute => 0,
+}) if defined $new_default_null_value;
+
+$g->precompute();
 
 my $recce = new Parse::Marpa::Recognizer({
    grammar=> $g,

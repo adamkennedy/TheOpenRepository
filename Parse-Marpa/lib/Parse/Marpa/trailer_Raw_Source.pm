@@ -9,20 +9,26 @@ sub Parse::Marpa::Internal::raw_source_grammar {
             preamble => $new_preamble,
             version => $new_version,
             warnings => 1,
+            precompute => 0,
         }
     );  
         
-    $raw_source_grammar->set(
-        { default_lex_prefix => $new_default_lex_prefix }
-    ) if defined $new_default_lex_prefix;
+    $raw_source_grammar->set( {
+        default_lex_prefix => $new_default_lex_prefix,
+        precompute => 0,
+    }) if defined $new_default_lex_prefix;
 
-    $raw_source_grammar->set(
-        { default_action => $new_default_action }
-    ) if defined $new_default_action;
+    $raw_source_grammar->set( {
+        default_action => $new_default_action,
+        precompute => 0,
+    }) if defined $new_default_action;
 
-    $raw_source_grammar->set(
-        { default_null_value => $new_default_null_value }
-    ) if defined $new_default_null_value;
+    $raw_source_grammar->set( {
+        default_null_value => $new_default_null_value,
+        precompute => 0,
+    }) if defined $new_default_null_value;
+
+    $raw_source_grammar->precompute();
 
     $raw_source_grammar;
 

@@ -22,7 +22,7 @@ my $g = new Parse::Marpa::Grammar({
         [ "E" ],
     ],
     academic => 1,
-
+    precompute => 0
 });
 
 $g->set({
@@ -30,8 +30,6 @@ $g->set({
         [ "a" => { regex => "a" } ],
     ],
 });
-
-$g->precompute();
 
 is( $g->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
 0: S' -> S /* nullable */

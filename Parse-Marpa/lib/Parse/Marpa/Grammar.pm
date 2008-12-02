@@ -773,6 +773,12 @@ sub Parse::Marpa::Grammar::set {
     my $phase     = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     my $interface = $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
 
+    my $precompute = 1;
+    if (exists $args->{precompute}) {
+        $precompute = $args->{precompute};
+        delete $args->{precompute};
+    }
+
     # value of source needs to be a *REF* to a string
     my $source = $args->{'mdl_source'};
     if ( defined $source ) {
@@ -801,7 +807,7 @@ sub Parse::Marpa::Grammar::set {
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_rules( $grammar, $value );
-                $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+                $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
                     Parse::Marpa::Internal::Phase::RULES;
             }
             when ('terminals') {
@@ -816,7 +822,7 @@ sub Parse::Marpa::Grammar::set {
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_terminals( $grammar, $value );
-                $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+                $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
                     Parse::Marpa::Internal::Phase::RULES;
             }
             when ('start') {
@@ -1074,6 +1080,10 @@ sub Parse::Marpa::Grammar::set {
         }
     }
 
+    if ($precompute and $phase == Parse::Marpa::Internal::Phase::RULES) {
+        $grammar->precompute();
+    }
+
     return $grammar;
 }
 
@@ -1115,6 +1125,12 @@ sub Parse::Marpa::Grammar::precompute {
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    # Be idempotent.  If the grammar is already precomputed, just
+    # return success without doing anything.
+    if (  $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED ) {
+        return $grammar;
+    }
+
     if ( $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED ) {
         croak(
             "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",

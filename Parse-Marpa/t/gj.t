@@ -13,6 +13,7 @@ BEGIN {
 # The book is available on the web.
 
 my $g = new Parse::Marpa::Grammar({
+    precompute => 0,
     start => "S'",
     rules => [
         [ "S'", [qw/S $/] ],

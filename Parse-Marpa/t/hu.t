@@ -15,6 +15,7 @@ BEGIN {
 # pp. 248, 250.
 
 my $g = new Parse::Marpa::Grammar({
+    precompute => 0,
     start => "S'",
     rules => [
         [ "S'", [qw/S c/] ],

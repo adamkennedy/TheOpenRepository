@@ -14,6 +14,7 @@ BEGIN {
 }
 
 my $grammar = new Parse::Marpa::Grammar({
+    precompute => 0,
     start => "S",
     rules => [
         [ "S", [qw/A A A A/] ],
