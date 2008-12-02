@@ -1,6 +1,10 @@
 use 5.010;
 use Parse::Marpa;
 
+# This is code to test examples, in order to prove that they do actually
+# compile and execute.  No checking other than for compilation errors
+# or fatal exceptions is done.  This code DOES NOT do anything sensible.
+
 my $mdl_source = <<END;
 semantics are perl5.
 version is 0.219.1.
@@ -31,9 +35,18 @@ my $recce = new Parse::Marpa::Recognizer({
 
 $recce->end_input();
 
+my $stringified_recce = $recce->stringify();
+
+$recce = Parse::Marpa::Recognizer::unstringify($stringified_recce, $trace_fh);
+
+$recce = Parse::Marpa::Recognizer::unstringify($stringified_recce);
+
+my $cloned_recce = $recce->clone();
+
 my $evaler = new Parse::Marpa::Evaluator( {
     recce => $recce,
-    end => $location
+    end => $location,
+    clone => 0,
 } );
 
 my $depth = 1;

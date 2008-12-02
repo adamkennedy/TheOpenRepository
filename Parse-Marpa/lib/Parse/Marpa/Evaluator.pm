@@ -1409,10 +1409,8 @@ which returns a reference to the value of the next parse.
 Often only the first parse is needed,
 in which case the C<value> method can be called just once.
 
-Each Marpa recognizer should have only one evaluator using it at any one time.
-If multiple evaluators
-use the same recognizer at the same time,
-they may produce incorrect results.
+By default, the C<new> constructor clones the recognizer, so that
+multiple evaluators do not interfere with each other.
 
 =head2 Null Values
 
@@ -1674,6 +1672,26 @@ A parse has the value of its start symbol,
 so "C<A is missing, but Zorro was here>" is also
 the value of the parse.
 
+=head2 Cloning
+
+The C<new> constructor requires a recognizer object as its object.
+By default, the C<new> constructor clones the recognizer object.
+This is done so that evaluators do not interfere with each other by
+modifying the same data.
+Cloning is the default behavior, and is always safe.
+
+While safe, cloning does impose an overhead in memory and time.
+This can be avoided by using the C<clone> option with the C<new>
+constructor.
+Not cloning is safe if you know that the recognizer object will not be shared by another evaluator.
+You must also be sure that the
+underlying grammar object is not being shared by multiple recognizers.
+
+It is very common for a Marpa program to have a simple
+sturcture, where no more than one recognizer is created from any grammar,
+and no more than one evaluator is created from any recognizer.
+When this is the case, cloning is unnecessary.
+
 =head1 METHODS
 
 =head2 new
@@ -1700,7 +1718,8 @@ in_misc_pl($_)
 
     my $evaler = new Parse::Marpa::Evaluator( {
         recce => $recce,
-        end => $location
+        end => $location,
+        clone => 0,
     } );
 
 The C<new> method's one, required, argument is a hash reference of named
@@ -1715,6 +1734,14 @@ parsing ends at the default end of parsing,
 which was set in the recognizer.
 If an C<end> option is specified, 
 it will be used as the number of the earleme at which to end parsing.
+
+If the clone argument is set to 1,
+C<new> clones the recognizer object, so that multiple
+evaluators do not interfere with each other's data.
+This is the default and is always safe.
+If C<clone> is set to 0, the evaluator will work directly with
+the recognizer object which was its argument.
+See L<above|/"Cloning"> for more detail.
 
 Marpa options can also
 be named arguments to C<new>.

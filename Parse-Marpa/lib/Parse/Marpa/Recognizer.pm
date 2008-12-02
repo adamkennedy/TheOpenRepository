@@ -515,12 +515,9 @@ sub Parse::Marpa::Recognizer::unstringify {
 
 sub Parse::Marpa::Recognizer::clone {
     my $recce = shift;
-    my $trace_fh = shift;
 
-    unless (defined $trace_fh) {
-        my $grammar = $recce->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
-        $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    }
+    my $grammar = $recce->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
+    my $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $stringified_recce = Parse::Marpa::Recognizer::stringify($recce);
     $recce =
@@ -1564,6 +1561,67 @@ exception.
 C<end_input> itself is idempotent.
 If called more than once, on subsequent calls,
 C<end_input> will do nothing, successfully.
+
+=head2 stringify
+
+=begin Parse::Marpa::test_document:
+
+## next display
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
+    my $stringified_recce = $recce->stringify();
+
+The C<stringify> method takes as its single argument a recognizer object
+and converts it into a string.
+It returns a reference to the string.
+The string is created 
+using L<Data::Dumper>.
+On failure, C<stringify> throws an exception.
+
+=head2 unstringify
+
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
+    $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce, $trace_fh);
+
+    $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce);
+
+The C<unstringify> static method takes a reference to a stringified recognizer as its first
+argument.
+Its second, optional, argument is a file handle.
+The file handle argument will be used both as the unstringified recognizer's trace file handle,
+and for any trace messages produced by C<unstringify> itself.
+C<unstringify> returns the unstringified recognizer object unless it throws an
+exception.
+
+If the trace file handle argument is omitted,
+it defaults to C<STDERR>
+and the unstringified recognizer's trace file handle reverts to the default for a new
+recognizer, which is also C<STDERR>.
+The trace file handle argument is necessary because in the course of stringifying,
+the recognizer's original trace file handle may have been lost.
+
+=head2 clone
+
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
+    my $cloned_recce = $recce->clone();
+
+The <clone> method creates a useable copy of a recognizer object.
+It returns a successfully cloned recognizer object,
+or throws an exception.
 
 =head1 SUPPORT
 

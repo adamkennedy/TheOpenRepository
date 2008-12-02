@@ -3687,7 +3687,7 @@ Users who want the last word in control can use the plumbing directly,
 but they will lose a lot of convenience and maintainability.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
-then compiling that grammar,
+then stringifying it,
 as L<described below|"stringify">.
 The MDL parser itself uses a stringified MDL file.
 
