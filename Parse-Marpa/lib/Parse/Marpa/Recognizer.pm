@@ -1368,6 +1368,26 @@ In the one-character-per-earleme model,
 stretches where no token either begins or ends
 can be many earlemes in length.
 
+=head2 Cloning
+
+The C<new> constructor requires a grammar to be specified in
+one of its arguments.
+By default, the C<new> constructor clones the grammar object.
+This is done so that recongnizers do not interfere with each other by
+modifying the same data.
+Cloning is the default behavior, and is always safe.
+
+While safe, cloning does impose an overhead in memory and time.
+This can be avoided by using the C<clone> option with the C<new>
+constructor.
+Not cloning is safe if you know that the grammar object will not be shared by another recognizer
+or by more than one evaluator.
+
+It is very common for a Marpa program to have a simple
+structure, where no more than one recognizer is created from any grammar,
+and no more than one evaluator is created from any recognizer.
+When this is the case, cloning is unnecessary.
+
 =head1 METHODS
 
 =head2 new
@@ -1401,6 +1421,20 @@ If the C<stringified_grammar> option is specified,
 its value must be a Perl 5 string containing a stringified Marpa grammar,
 as produced by L<C<Parse::Marpa::Grammar::stringify>|Parse::Marpa::Grammar/"stringify">.
 It will be unstringified for use in the recognizer.
+When the C<stringified_grammar> option is specified, 
+the resulting grammar is never cloned,
+regardless of the setting of the C<clone> argument.
+
+If the C<clone> argument is set to 1,
+and the grammar argument is not in stringified form,
+C<new> clones the grammar object.
+This prevents that multiple
+evaluators from interfering with each other's data.
+This is the default and is always safe.
+If C<clone> is set to 0,
+the evaluator will work directly with
+the grammar object which was its argument.
+See L<above|/"Cloning"> for more detail.
 
 Marpa options can also
 be named arguments to C<new>.

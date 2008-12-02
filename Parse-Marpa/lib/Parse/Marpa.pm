@@ -473,6 +473,8 @@ They may be created with rules or empty.
 Rules may be added to grammar objects after they have been created.
 After all the rules have been added, but before it is used to create a recognizer,
 a grammar must be precomputed.
+Precomputation is usually done automatically,
+when rules are added, but this behavior can be fine-tuned.
 Details on grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
 
 =head3 Recognizers
@@ -663,12 +665,14 @@ One with a customized lexer would be faster yet.
 
 If MDL's parsing speed
 becomes an issue for a particular grammar,
-that grammar can be precomputed.
-Subsequent runs of the precomputed grammar don't incur the overhead of either
-MDL parsing or precomputation.
-Marpa uses precomputation internally.
+that grammar can be precomputed and stringified.
+A recognizer can then be created
+from the precomputed string grammar.
+Using a grammar in the form of a precomputed string avoids 
+the overhead of both MDL parsing and precomputation.
+Marpa uses stringified grammars internally.
 When you use MDL to specify a grammar to Marpa,
-Marpa uses a precomputed grammar to parse the MDL.
+Marpa uses a stringified grammar to parse the MDL.
 
 =head3 Comparison with other Parsers
 

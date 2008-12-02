@@ -20,6 +20,8 @@ my $grammar = new Parse::Marpa::Grammar();
 
 $grammar->set({mdl_source => \$mdl_source});
 
+my $cloned_grammar = $grammar->clone();
+
 my $stringified_grammar = $grammar->stringify();
 
 $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);

@@ -1674,7 +1674,7 @@ the value of the parse.
 
 =head2 Cloning
 
-The C<new> constructor requires a recognizer object as its object.
+The C<new> constructor requires a recognizer object to be one of its arguments.
 By default, the C<new> constructor clones the recognizer object.
 This is done so that evaluators do not interfere with each other by
 modifying the same data.
@@ -1688,7 +1688,7 @@ You must also be sure that the
 underlying grammar object is not being shared by multiple recognizers.
 
 It is very common for a Marpa program to have a simple
-sturcture, where no more than one recognizer is created from any grammar,
+structure, where no more than one recognizer is created from any grammar,
 and no more than one evaluator is created from any recognizer.
 When this is the case, cloning is unnecessary.
 
@@ -1735,7 +1735,7 @@ which was set in the recognizer.
 If an C<end> option is specified, 
 it will be used as the number of the earleme at which to end parsing.
 
-If the clone argument is set to 1,
+If the C<clone> argument is set to 1,
 C<new> clones the recognizer object, so that multiple
 evaluators do not interfere with each other's data.
 This is the default and is always safe.

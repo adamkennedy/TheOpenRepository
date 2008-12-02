@@ -3721,28 +3721,40 @@ but they will lose a lot of convenience and maintainability.
 Those who need the ultimate in efficiency can get the best of both worlds by
 using MDL to create a grammar,
 then stringifying it,
-as L<described below|"stringify">.
+as L<described below|"Stringifying">.
 The MDL parser itself uses a stringified MDL file.
+
+=head2 Precomputation
 
 Marpa needs to do extensive precompution on grammars
 before they can be passed on to a recognizer or an evaluator.
-The user rarely needs to perform this precomputation explicitly.
-The methods which require precomputed grammars
-(C<stringify> and C<Parse::Marpa::Recognizer::new>),
-do the precomputation themselves on a just-in-time basis.
+The user usually does not need to perform this precomputation explicitly.
+By default, in any method call that adds rules or terminal to a grammar,
+precomputation is done automatically.
 
-For situations where the user needs to control the state of the grammar precisely,
-such as debugging or tracing,
-there is a method that explicitly precomputes a grammar: C<precompute>.
 Once a grammar has been precomputed, it is frozen against many kinds of
 changes.
 For example, you cannot add rules to a precomputed grammar.
+When the user wishes to build a grammar over several method calls,
+the default behavior of automatic precomputation is undesirable.
+Automatic precomputation can be turned off with the C<precompute> method option.
+There is also a C<precompute> method, which
+explicitly precomputes a grammar.
+With the C<precompute> method option and the C<precompute> method, the user
+can dictate exactly when precomputation takes place.
 
-For their private use,
-Marpa recognizers make a deep copy of the the grammar used to create them.
-The deep copy is done by B<compiling> the grammar, then B<decompiling> the grammar.
+=head2 Cloning
 
-Grammar compilation in Marpa means turning the grammar into a string with
+By default,
+Marpa recognizers make a clone of the the grammar used to create them.
+This allows several recognizers to be created from the same grammar,
+without risk of one recognizer modifying the data in a way that
+interferes with another.
+Cloning can be overriden by using the C<clone> option to the C<new> and C<set> methods.
+
+=head2 Stringifying
+
+Marpa can turn the grammar into a string with
 Marpa's C<stringify> method.
 A stringified grammar is a string in every sense and
 can, for instance, be written to a file.
@@ -3752,7 +3764,7 @@ C<eval>'s it,
 then tweaks it a bit to create a properly set-up grammar object.
 A subsequent Marpa process can read this file, C<unstringify> the string,
 and continue the parse.
-This would eliminate the overhead both of parsing MDL and of precomputation.
+Using a stringified grammar eliminates the overhead both of parsing MDL and of precomputation.
 As mentioned, where efficiency is a major consideration, this will
 usually be better than using the
 plumbing interface.
@@ -3789,8 +3801,9 @@ It returns a new grammar object or throws an exception.
 Named arguments can be Marpa options.
 For these see L<Parse::Marpa::Doc::Options>.
 In addition to the Marpa options,
-the C<mdl_source> named argument
-and the named arguments of the plumbing interface are allowed.
+the C<mdl_source> named argument,
+the C<precompute> named argument,
+and the named arguments of the plumbing interface are also allowed.
 For details of the plumbing and its named arguments, see L<Parse::Marpa::Doc::Plumbing>.
 
 The value of the C<mdl_source> named argument should be
@@ -3799,6 +3812,13 @@ the grammar in the L<Marpa Demonstration Language|Parse::Marpa::MDL>.
 Either the C<mdl_source> named argument or the plumbing arguments may be used
 to build a grammar,
 but both cannot be used to build the same grammar object.
+
+The value of the C<precompute> named argument is interpreted as a Boolean.
+If true, and if any rules or terminals were added to the grammar in the method
+call, then the grammar is precomputed.
+This is the default behavior.
+If, in a C<new> or C<set> method call, the C<precompute> named argument is set to a false value,
+precomputation will not be done by that method call.
 
 In the C<new> and C<set> methods,
 a Marpa option can be specified both directly,
@@ -3825,15 +3845,20 @@ in_ah_s_t($_)
     $grammar->set( { mdl_source => \$source } );
 
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
-It allows Marpa options, plumbing arguments and the C<mdl_source> named argument
+It allows Marpa options,
+the C<precompute> named argument,
+the C<mdl_source> named argument,
+and the plumbing arguments
 to be specified for an already existing grammar object.
-It can be used to control the order in which named arguments are applied.
+The effect of these arguments is as described above
+for L<the C<new> method call|"new">.
 
+The C<set> method call can be used to control the order in which named arguments are applied.
 In particular, some
 tracing options need to be turned on prior to specifying the grammar.
 To do this, a new grammar object can be created with the trace options set,
 but without a grammar specification.
-At this point, tracing will be in effect,
+Once the constructor returns, tracing will be in effect,
 and the C<set> method can be used to specify the grammar,
 using either the C<mdl_source> named argument or the plumbing
 arguments.
@@ -3852,13 +3877,13 @@ in_ah_s_t($_)
 The C<precompute> method performs Marpa's precomputations on a grammar.
 It returns the grammar object or throws an exception.
 
-It is usually not necessary for the user to call C<precompute>.
-The methods which require a precomputed grammar
-(C<stringify> and C<Parse::Marpa::Recognizer::new>),
-if passed a grammar on which the precomputation has not been done,
-perform the precomputation themselves on a "just in time" basis.
-But C<precompute> can be useful in debugging and tracing,
-as a way to control precisely when precomputation takes place.
+It is usually not necessary for the user to call C<precompute> explicitly.
+Precomputation is done automatically by the C<new> and C<set> methods
+when any rule or terminal is added to a grammar.
+The C<precompute> method, along with the C<precompute> option to
+the C<new> and C<set> methods is used to override the default
+behavior.
+For more details, see L<above|"Precomputation">.
 
 =head2 stringify
 
@@ -3913,6 +3938,21 @@ When Marpa deep copies grammars internally, it uses the C<stringify> and C<unstr
 To preserve the trace file handle of the original grammar,
 Marpa first copies the handle to a temporary,
 then restores the handle using the C<trace_file_handle> argument of C<unstringify>.
+
+=head2 clone
+
+=begin Parse::Marpa::test_document:
+
+## next 2 displays
+in_misc_pl($_)
+
+=end Parse::Marpa::test_document:
+
+    my $cloned_grammar = $grammar->clone();
+
+The C<clone> method creates a useable copy of a grammar object.
+It returns a successfully cloned grammar object,
+or throws an exception.
 
 =head1 SUPPORT
 
