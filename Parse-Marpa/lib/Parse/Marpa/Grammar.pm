@@ -270,7 +270,7 @@ sub Parse::Marpa::Internal::Interface::description {
 
 # values for grammar phases
 use Parse::Marpa::Offset Phase =>
-    qw(NEW RULES PRECOMPUTED STRINGIFIED RECOGNIZING RECOGNIZED EVALUATING);
+    qw(NEW RULES PRECOMPUTED RECOGNIZING RECOGNIZED EVALUATING);
 
 sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
@@ -278,7 +278,6 @@ sub Parse::Marpa::Internal::Phase::description {
         when (Parse::Marpa::Internal::Phase::NEW)         { return 'grammar without rules' }
         when (Parse::Marpa::Internal::Phase::RULES)       { return 'grammar with rules entered' }
         when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { return 'precomputed grammar' }
-        when (Parse::Marpa::Internal::Phase::STRINGIFIED) { return 'stringified grammar' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZING) { return 'grammar being recognized' }
         when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { return 'recognized grammar' }
         when (Parse::Marpa::Internal::Phase::EVALUATING) { return 'grammar being evaluated' }
@@ -791,6 +790,8 @@ sub Parse::Marpa::Grammar::set {
         parse_source_grammar( $grammar, $source, $args->{'source_options'} );
         delete $args->{'mdl_source'};
         delete $args->{'source_options'};
+        $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+            Parse::Marpa::Internal::Phase::RULES;
     }
 
     while ( my ( $option, $value ) = each %{$args} ) {
@@ -1174,6 +1175,19 @@ sub Parse::Marpa::Grammar::precompute {
 
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::PRECOMPUTED;
+
+
+    # $#{$grammar} = Parse::Marpa::Internal::Grammar::LAST_RECOGNIZER_FIELD;
+    # for my $symbol (@{$grammar->[ Parse::Marpa::Internal::Grammar::SYMBOLS ]}) {
+    #     $#{$symbol} = Parse::Marpa::Internal::Symbol::LAST_RECOGNIZER_FIELD;
+    # }
+    # for my $rule (@{$grammar->[ Parse::Marpa::Internal::Grammar::RULES ]}) {
+    #     $#{$rule} = Parse::Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
+    # }
+    # for my $QDFA (@{$grammar->[ Parse::Marpa::Internal::Grammar::QDFA ]}) {
+    #     $#{$QDFA} = Parse::Marpa::Internal::QDFA::LAST_RECOGNIZER_FIELD;
+    # }
+
     $grammar;
 }
 
@@ -1205,17 +1219,12 @@ sub Parse::Marpa::Grammar::stringify {
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
-    if (   $phase > Parse::Marpa::Internal::Phase::STRINGIFIED
-        or $phase < Parse::Marpa::Internal::Phase::RULES )
+    if (   $phase != Parse::Marpa::Internal::Phase::PRECOMPUTED )
     {
         croak(
             "Attempt to stringify grammar in inappropriate state\nAttempt to stringify ",
             Parse::Marpa::Internal::Phase::description($phase)
         );
-    }
-
-    if ( $phase == Parse::Marpa::Internal::Phase::RULES ) {
-        Parse::Marpa::Grammar::precompute($grammar);
     }
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
@@ -1287,11 +1296,19 @@ sub Parse::Marpa::Grammar::unstringify {
         $symbol->[Parse::Marpa::Internal::Symbol::LHS] = undef;
         $symbol->[Parse::Marpa::Internal::Symbol::RHS] = undef;
     }
-    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
-        Parse::Marpa::Internal::Phase::STRINGIFIED;
 
     return $grammar;
 
+}
+
+sub Parse::Marpa::Grammar::clone {
+    my $grammar = shift;
+    my $trace_fh = shift;
+
+    my $stringified_grammar = Parse::Marpa::Grammar::stringify($grammar);
+    $trace_fh //= $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    $grammar =
+        Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
 }
 
 sub Parse::Marpa::show_symbol {

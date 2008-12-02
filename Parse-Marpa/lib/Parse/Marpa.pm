@@ -151,7 +151,10 @@ sub Parse::Marpa::mdl {
 
     my $g =
         new Parse::Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $g } );
+    my $recce = new Parse::Marpa::Recognizer( {
+        grammar => $g,
+        clone => 0
+    } );
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {

@@ -226,12 +226,19 @@ May usefully be set at any point.
 
 =begin Parse::Marpa::test_document:
 
-## next 3 display
-in_bin_mdl($_);
+## next display
+in_equation_s_t($_);
 
 =end Parse::Marpa::test_document:
 
     my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
 
     my $fail_location = $recce->text( \$text_to_parse );
 
@@ -510,12 +517,19 @@ way to obtain the same information.
 
 =begin Parse::Marpa::test_document:
 
-## next 3 display
-in_bin_mdl($_);
+## next display
+in_equation_s_t($_);
 
 =end Parse::Marpa::test_document:
 
     my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+
+=begin Parse::Marpa::test_document:
+
+## next 2 display
+in_bin_mdl($_);
+
+=end Parse::Marpa::test_document:
 
     my $fail_location = $recce->text( \$text_to_parse );
 

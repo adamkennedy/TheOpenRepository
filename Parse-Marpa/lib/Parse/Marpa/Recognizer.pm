@@ -341,8 +341,9 @@ sub Parse::Marpa::Recognizer::new {
     my $ambiguous_lex;
     my $lex_preamble;
 
-    # do we have a private copy of the grammar?
-    my $private_grammar = 0;
+    my $clone_arg = $args->{clone};
+    delete $args->{clone};
+    my $clone = $clone_arg // 1;
 
     my $grammar = $args->{grammar};
     if ( not defined $grammar ) {
@@ -352,7 +353,7 @@ sub Parse::Marpa::Recognizer::new {
         my $trace_fh = $arg_trace_fh // (*STDERR);
         $grammar =
             Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
-        $private_grammar = 1;
+        $clone = 0;
     }
     else {
         delete $args->{grammar};
@@ -379,8 +380,7 @@ sub Parse::Marpa::Recognizer::new {
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
-    if (   $phase < Parse::Marpa::Internal::Phase::RULES
-        or $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING )
+    if (   $phase != Parse::Marpa::Internal::Phase::PRECOMPUTED )
     {
         croak(
             'Attempt to parse grammar in inappropriate phase ',
@@ -388,19 +388,14 @@ sub Parse::Marpa::Recognizer::new {
         );
     }
 
-    if ( $phase < Parse::Marpa::Internal::Phase::PRECOMPUTED
-        or not $private_grammar )
-    {
-        my $stringified_grammar = Parse::Marpa::Grammar::stringify($grammar);
-        my $trace_fh         = $arg_trace_fh
-            // $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $grammar =
-            Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
+    if ( $clone) {
+        $grammar = $grammar->clone($arg_trace_fh);
+        delete $args->{trace_file_handle};
     }
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
-    # options are not set until *AFTER* the grammar is deep copied
+    # options are not set until *AFTER* the grammar is cloned
     Parse::Marpa::Grammar::set( $grammar, $args );
 
     prepare_grammar_for_recognizer( $parse, $grammar );
@@ -1400,8 +1395,7 @@ both set at earleme 0.
 
 If the C<grammar> option is specified, 
 its value must be a grammar object with rules defined.
-If it is not precomputed, C<new> will precompute it.
-A deep copy of the grammar is then made to be used in the recognizer.
+By default, the grammar is cloned for use in the recognizer.
 
 If the C<stringified_grammar> option is specified, 
 its value must be a Perl 5 string containing a stringified Marpa grammar,

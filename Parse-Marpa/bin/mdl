@@ -201,7 +201,10 @@ sub do_parse {
         }
     }
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = new Parse::Marpa::Recognizer( {
+        grammar => $grammar,
+        clone => 0
+    } );
     if ( not defined $text_to_parse ) {
         local ($RS) = undef;
         $text_to_parse = <STDIN>;
