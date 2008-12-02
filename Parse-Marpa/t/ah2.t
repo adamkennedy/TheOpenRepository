@@ -360,7 +360,7 @@ is( $recce->show_earley_sets(1),
 $recce->end_input();
 
 is( $recce->show_earley_sets(1),
-    "Current Earley Set: 5; Furthest: 4\n" .  $sets_at_4,
+    "At End of Input\n" .  $sets_at_4,
     "Aycock/Horspool Parse Status at 4" );
 
 my $failure_count = 0;

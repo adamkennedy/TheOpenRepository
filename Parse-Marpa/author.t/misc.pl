@@ -36,6 +36,8 @@ my $evaler = new Parse::Marpa::Evaluator( {
     end => $location
 } );
 
+my $depth = 1;
+
 $evaler->set( { cycle_depth => $depth } );
 
 my $string = q{};

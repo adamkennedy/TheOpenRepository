@@ -29,6 +29,9 @@ use Parse::Marpa::Offset Earley_item =>
     # temporary data
     qw(PARENT SET);
 
+# We don't prune the Earley items because we want PARENT and SET
+# around for debugging
+
 # NAME   - unique string describing Earley item
 # STATE  - the QDFA state
 # PARENT - the number of the Earley set with the parent item(s)
@@ -47,6 +50,9 @@ use Parse::Marpa::Offset Recognizer =>
         PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
     );
 
+package Parse::Marpa::Internal::Recognizer;
+use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET;
+package Parse::Marpa::Internal;
 
 # GRAMMAR            - the grammar used
 # CURRENT_SET        - index of the first incomplete Earley set
@@ -435,8 +441,94 @@ sub Parse::Marpa::Recognizer::new {
     bless $parse, $class;
 }
 
-# Viewing methods, for debugging
+# Convert Recognizer into string form
+#
+sub Parse::Marpa::Recognizer::stringify {
+    my $recce = shift;
+    my $grammar = $recce->[ Parse::Marpa::Internal::Recognizer::GRAMMAR ];
 
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
+    my $trace_fh;
+    if ($tracing) {
+        $trace_fh =
+            $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    }
+
+    my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    if (   $phase != Parse::Marpa::Internal::Phase::RECOGNIZED )
+    {
+        croak(
+            "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
+            Parse::Marpa::Internal::Phase::description($phase)
+        );
+    }
+
+    my $d = Data::Dumper->new( [$recce], ['recce'] );
+    $d->Purity(1);
+    $d->Indent(0);
+
+    # returns a ref -- dumps can be long
+    return \( $d->Dump() );
+}
+
+# First arg is stringified recognizer
+# Second arg (optional) is trace file handle, either saved and restored
+# If not trace file handle supplied, it reverts to the default, STDERR
+#
+# Returns the unstringified recognizer
+sub Parse::Marpa::Recognizer::unstringify {
+    my $stringified_recce = shift;
+    my $trace_fh         = shift;
+    $trace_fh //= *STDERR;
+
+    croak("Attempt to unstringify undefined recognizer")
+        unless defined $stringified_recce;
+
+    my $recce;
+    {
+        my @warnings;
+        my @caller_return;
+        local $SIG{__WARN__} = sub {
+            my $warning = $_[0];
+            push @warnings, $warning;
+            @caller_return = caller 0;
+        };
+        eval ${$stringified_recce};
+        my $fatal_error = $@;
+        if ( $fatal_error or @warnings ) {
+            Parse::Marpa::Internal::code_problems(
+                $fatal_error, \@warnings,
+                'unstringifying recognizer',
+                'unstringifying recognizer',
+                $stringified_recce, \@caller_return
+            );
+        }
+    }
+
+    my $grammar = $recce->[ Parse::Marpa::Internal::Recognizer::GRAMMAR ];
+    $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE] =
+        $trace_fh;
+
+    return $recce;
+
+}
+
+sub Parse::Marpa::Recognizer::clone {
+    my $recce = shift;
+    my $trace_fh = shift;
+
+    unless (defined $trace_fh) {
+        my $grammar = $recce->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
+        $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    }
+
+    my $stringified_recce = Parse::Marpa::Recognizer::stringify($recce);
+    $recce =
+        Parse::Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
+
+}
+
+# Viewing methods, for debugging
 sub Parse::Marpa::brief_earley_item {
     my $item = shift;
     my $ii   = shift;
@@ -521,13 +613,14 @@ sub Parse::Marpa::show_earley_set_list {
 sub Parse::Marpa::Recognizer::show_earley_sets {
     my $recce = shift;
     my $ii    = shift;
-    my ( $current_set, $furthest_earleme, $earley_set_list ) =
-        @{$recce}[ CURRENT_SET, FURTHEST_EARLEME, EARLEY_SETS ];
-    my $text =
-          'Current Earley Set: '
-        . $current_set
-        . '; Furthest: '
-        . $furthest_earleme . "\n";
+    my $current_set = $recce->[ CURRENT_SET ];
+    my $furthest_earleme = $recce->[ FURTHEST_EARLEME ];
+    my $earley_set_list = $recce->[ EARLEY_SETS ];
+
+    my $text = defined $furthest_earleme ?
+          "Current Earley Set: $current_set; Furthest: $furthest_earleme\n" :
+          "At End of Input\n";
+
     $text .= Parse::Marpa::show_earley_set_list( $earley_set_list, $ii );
     return $text;
 }
@@ -542,6 +635,10 @@ sub Parse::Marpa::Recognizer::earleme {
 
     my $grammar = $parse->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
+    my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
+        croak("New earlemes not allowed after end of input");
+    }
 
     # lexables not checked -- don't use prediction here
     # maybe add this as an option?
@@ -582,6 +679,11 @@ sub Parse::Marpa::Recognizer::text {
     ];
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
+    my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
+    if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
+        croak("More text not allowed after end of input");
+    }
+
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_lex_tries;
@@ -740,26 +842,47 @@ sub Parse::Marpa::Recognizer::text {
 
 # Always returns success
 sub Parse::Marpa::Recognizer::end_input {
-    my $parse = shift;
+    my $self = shift;
 
     my ( $grammar, $current_set, $last_completed_set, $furthest_earleme, ) =
-        @{$parse}[
+        @{$self}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
         Parse::Marpa::Internal::Recognizer::CURRENT_SET,
         Parse::Marpa::Internal::Recognizer::LAST_COMPLETED_SET,
         Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME,
         ];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
+
+    # If called repeatedly, just return success,
+    # without complaint.  In other words, be idempotent.
+    my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
+    return 1 if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZED;
+
     $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ]
         = Parse::Marpa::Internal::Phase::RECOGNIZED;
 
-    return  1 if $last_completed_set >= $furthest_earleme;
+     if ($last_completed_set < $furthest_earleme) {
 
-    EARLEY_SET: while ( $current_set <= $furthest_earleme ) {
-        Parse::Marpa::Internal::Recognizer::complete_set($parse);
-        $current_set++;
-        $parse->[Parse::Marpa::Internal::Recognizer::CURRENT_SET] =
-            $current_set;
+         EARLEY_SET: while ( $current_set <= $furthest_earleme ) {
+             Parse::Marpa::Internal::Recognizer::complete_set($self);
+             $current_set++;
+             $self->[Parse::Marpa::Internal::Recognizer::CURRENT_SET] =
+                 $current_set;
+         }
+
+    }
+
+    $#{$self} = Parse::Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
+
+    $#{$grammar} = Parse::Marpa::Internal::Grammar::LAST_EVALUATOR_FIELD;
+    for my $symbol (@{$grammar->[ Parse::Marpa::Internal::Grammar::SYMBOLS ]}) {
+        $#{$symbol} = Parse::Marpa::Internal::Symbol::LAST_EVALUATOR_FIELD;
+    }
+    for my $rule (@{$grammar->[ Parse::Marpa::Internal::Grammar::RULES ]}) {
+        $#{$rule} = Parse::Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
+    }
+    for my $QDFA (@{$grammar->[ Parse::Marpa::Internal::Grammar::QDFA ]}) {
+        $#{$QDFA} = Parse::Marpa::Internal::QDFA::LAST_EVALUATOR_FIELD;
     }
 
     return 1;
@@ -1243,10 +1366,8 @@ or that parsing is exhausted (active).
 In context of a particular parse being worked on,
 we can also speak of a parse being exhausted or active.
 Remember, however, that an exhausted recognizer
-will often contain successful parses prior to the current earleme.
-In fact, successful parsing in offline mode always
-leaves the recognizer exhausted.
-This mechanism is used to prevent further input.
+can contain successful parses prior to the current earleme.
+In fact, successful parsing always leaves the recognizer exhausted.
 
 Because tokens can be more than one earleme in length,
 parses in Marpa can remain active even if

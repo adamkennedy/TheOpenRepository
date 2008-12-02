@@ -407,7 +407,7 @@ If there were no problems, returns a string saying so.
 
 This method is not useful before precomputation.
 An exception is thrown
-if the user attempts to dump,
+if the user attempts to stringify,
 or to create a parse from,
 a grammar with problems.
 The string returned by C<show_problems> will be part of the exception's

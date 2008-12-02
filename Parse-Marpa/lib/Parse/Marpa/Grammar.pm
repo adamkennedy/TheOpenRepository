@@ -40,6 +40,11 @@ use Parse::Marpa::Offset Symbol =>
         COUNTED
     );
 
+package Parse::Marpa::Internal::Symbol;
+use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Symbol::NULLING;
+use constant LAST_RECOGNIZER_FIELD => Parse::Marpa::Internal::Symbol::TERMINAL;
+package Parse::Marpa::Internal;
+
 # LHS             - rules with this as the lhs,
 #                   as a ref to an array of rule refs
 # RHS             - rules with this in the rhs,
@@ -75,11 +80,17 @@ use Parse::Marpa::Offset Rule =>
         CODE CYCLE
         HAS_CHAF_LHS HAS_CHAF_RHS
     ),
+    # temporary data
     qw(
         ORIGINAL_RULE
         PRIORITY
         NULLABLE ACCESSIBLE PRODUCTIVE NULLING
     );
+
+package Parse::Marpa::Internal::Rule;
+use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Rule::HAS_CHAF_RHS;
+use constant LAST_RECOGNIZER_FIELD => Parse::Marpa::Internal::Rule::HAS_CHAF_RHS;
+package Parse::Marpa::Internal;
 
 =begin Implementation:
 
@@ -120,16 +131,21 @@ PRIORITY - rule priority
 
 use Parse::Marpa::Offset QDFA =>
     # basic data
-    qw(ID NAME),
+    qw(ID NAME TAG),
     # evaluator data
     qw(COMPLETE_RULES START_RULE),
     # recognizer data
     qw(TRANSITION COMPLETE_LHS
-        TAG RESET_ORIGIN PRIORITY
+        RESET_ORIGIN PRIORITY
     ),
     # temporary data
     qw(NFA_STATES
     );
+
+package Parse::Marpa::Internal::QDFA;
+use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::QDFA::START_RULE;
+use constant LAST_RECOGNIZER_FIELD => Parse::Marpa::Internal::QDFA::PRIORITY;
+package Parse::Marpa::Internal;
 
 =begin Implementation:
 
@@ -154,8 +170,10 @@ use Parse::Marpa::Offset LR0_item => qw(RULE POSITION);
 use Parse::Marpa::Offset Grammar =>
     # basic data
     qw(
-        ID NAME RULES SYMBOLS PHASE
-        TRACE_FILE_HANDLE TRACING DEFAULT_ACTION
+        ID NAME
+        RULES SYMBOLS QDFA
+        PHASE DEFAULT_ACTION
+        TRACE_FILE_HANDLE TRACING
     ),
     # evaluator data
     qw(
@@ -168,7 +186,6 @@ use Parse::Marpa::Offset Grammar =>
     ),
     # recognizer data
     qw(
-        QDFA
         PROBLEMS
         ACADEMIC
         DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
@@ -188,6 +205,11 @@ use Parse::Marpa::Offset Grammar =>
         TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
         ALLOW_RAW_SOURCE INTERFACE
     );
+
+package Parse::Marpa::Internal::Grammar;
+use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Grammar::PREAMBLE;
+use constant LAST_RECOGNIZER_FIELD => Parse::Marpa::Internal::Grammar::LEX_PREAMBLE;
+package Parse::Marpa::Internal;
 
 =begin Implementation:
 
@@ -991,7 +1013,7 @@ sub Parse::Marpa::Grammar::set {
             }
             when ('cycle_depth') {
 		croak("cycle_depth must be set to a number > 0")
-		    unless $value =~ /^\d+$/ and $value > 0;
+		    unless defined $value and $value =~ /^\d+$/ and $value > 0;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH] =
                     $value;
             }
@@ -1152,9 +1174,10 @@ sub Parse::Marpa::Grammar::show_problems {
     return "Grammar has no problems\n";
 }
 
-# Deep Copy Grammar
+# Convert Grammar into string form
 #
 # Note: copying strengthens weak refs
+#
 sub Parse::Marpa::Grammar::stringify {
     my $grammar = shift;
 
@@ -1223,8 +1246,8 @@ sub Parse::Marpa::Grammar::unstringify {
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
-                'decompiling gramar',
-                'decompiling gramar',
+                'unstringifying grammar',
+                'unstringifying grammar',
                 $stringified_grammar, \@caller_return
             );
         }

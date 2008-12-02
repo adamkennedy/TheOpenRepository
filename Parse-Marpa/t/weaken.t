@@ -7,16 +7,19 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More;
 
 BEGIN {
-    eval "use Test::Weaken 1.000000";
+    eval "use Test::Weaken 0.002003";
     if ($@) {
         plan skip_all
-            => "Test::Weaken 1.000000 required for testing of memory cycles";
+            => "Test::Weaken 0.002003 required for testing of memory cycles";
         exit 0;
     } else {
         plan tests => 5;
     }
     use_ok( 'Parse::Marpa' );
 }
+
+say $INC{'Test/Weaken.pm'};
+say $Test::Weaken::VERSION;
 
 my $test = sub {
     my $g = new Parse::Marpa::Grammar({
@@ -44,8 +47,15 @@ my $test = sub {
     [ $g, $recce, $evaler ];
 };
 
-my ($weak_count, $strong_count, $unfreed_weak, $unfreed_strong)
-    = Test::Weaken::poof($test);
+my $result = Test::Weaken::poof($test);
+say "scalar result: ", $result;
+
+my @result = Test::Weaken::poof($test);
+my $weak_freed = $result[0] - @{$result[2]};
+my $strong_freed = $result[1] - @{$result[3]};
+my ($weak_count, $strong_count, $unfreed_weak, $unfreed_strong) = @result;
+say "Weak, freed: $weak_freed  unfreed: ", @$unfreed_weak+0, "  total: $weak_count";
+say "Strong, freed: $strong_freed  unfreed: ", @$unfreed_strong+0, "  total: $strong_count";
 
 cmp_ok($weak_count, "!=", 0, "Found $weak_count weak refs");
 cmp_ok($strong_count, "!=", 0, "Found $strong_count strong refs");

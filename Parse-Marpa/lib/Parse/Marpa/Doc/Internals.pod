@@ -522,9 +522,8 @@ Default values
 are often used for these parse criteria.
 The default start earleme is earleme 0.
 The default end earleme
-comes from the default end of parsing which,
-in offline mode,
-is usually
+comes from the default end of parsing.
+This will usually be
 the furthest earleme reached by any token in
 the parse.
 The default top symbol is the start
@@ -1438,7 +1437,7 @@ is_equation_show_earley_sets($_);
 
 =end Parse::Marpa::test_document:
 
-    Current Earley Set: 4; Furthest: 3
+    At End of Input
     Earley Set 0
     S0@0-0
     S1@0-0

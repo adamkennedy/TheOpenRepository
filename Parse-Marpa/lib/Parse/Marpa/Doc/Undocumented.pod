@@ -15,9 +15,9 @@ Marpa documents.
 
 =head2 Marpa "No Values"
 
-Nodes in Marpa may have no value.
-Right now offline mode is the only one; online mode is not implemented;
-and special options to create evaluators of user specified
+Someday nodes in Marpa may have no value.
+Right now 
+special options to create evaluators of user specified
 spans in the earleme stream and user specified top symbols are undocumented
 or do not exist.
 This means that Marpa "no values" will not be encountered by the user.
@@ -101,7 +101,7 @@ are probably useless.
 This problem is one of several reasons that
 I<find_complete_rule> is probably going to be replaced.
 I<find_complete_rule> was an experiment
-in methods for improved diagnostics, online mode,
+in methods for improved diagnostics
 and advanced wizardry with grammars.
 The replacement method or methods should, given a last earleme or a range of last earlemes,
 be able to return all completed and expected symbols.

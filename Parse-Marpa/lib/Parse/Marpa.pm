@@ -160,7 +160,10 @@ sub Parse::Marpa::mdl {
 
     $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = new Parse::Marpa::Evaluator( {
+        recce => $recce,
+        clone => 0,
+    } );
     if ( not defined $evaler ) {
         die_with_parse_failure( $text, length($text) );
     }
@@ -487,14 +490,9 @@ that is, its structure according to the grammar has not been determined.
 For more details on recognizer objects and methods,
 see L<Parse::Marpa::Recognizer>.
 
-Currently, Marpa fully supports only non-streaming or "offline" input.
-Marpa will also parse streamed inputs,
-but the methods to find completed parses in a streamed input 
-are still under construction.
-
 =head3 Evaluators
 
-In offline mode, once input is completed,
+Once the end of input is recognized,
 an evaluator object (C<Parse::Marpa::Evaluator>) can be created.
 For each recognizer, only one evaluator object can
 be in use at any one time.

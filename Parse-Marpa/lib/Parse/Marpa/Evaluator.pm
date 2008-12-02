@@ -386,10 +386,10 @@ sub Parse::Marpa::Evaluator::new {
     my $recce;
     RECCE_ARG_NAME: for my $recce_arg_name (qw(recognizer recce)) {
         my $arg_value = $args->{$recce_arg_name};
+        delete $args->{$recce_arg_name};
         next RECCE_ARG_NAME unless defined $arg_value;
         croak('recognizer specified twice') if defined $recce;
         $recce = $arg_value;
-        delete $args->{$recce_arg_name};
     }
     croak('No recognizer specified') unless defined $recce;
 
@@ -398,8 +398,15 @@ sub Parse::Marpa::Evaluator::new {
         unless $recce_class eq 'Parse::Marpa::Recognizer';
 
     my $parse_set_arg = $args->{end};
-    delete $args->{end} if defined $parse_set_arg;
+    delete $args->{end};
 
+    my $clone_arg = $args->{clone};
+    delete $args->{clone};
+    my $clone = $clone_arg // 1;
+
+    if ($clone) {
+        $recce = $recce->clone();
+    }
 
     my ( $grammar, $earley_sets, ) = @{$recce}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
@@ -418,7 +425,6 @@ sub Parse::Marpa::Evaluator::new {
 
     $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
 
-    # options should not be set until *AFTER* the grammar is cloned
     $self->set( $args );
 
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE]
