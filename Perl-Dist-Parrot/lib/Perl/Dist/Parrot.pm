@@ -171,11 +171,21 @@ sub install_parrot_081_bin {
 		$self->trace("Making Parrot...\n");
 		$self->_mingw_make;
 
+		# Make Perl 6
+		$self->trace("Making Perl 6...\n");
+		$self->_mingw_make('perl6');
+
+		# Test it all
 		unless ( $parrot->force ) {
 			$self->trace("Testing perl...\n");
 			$self->_mingw_make('test');
 		}
 
+		# Try to install it
+		$self->trace("Installing Parrot/Perl 6");
+		$self->_mingw_make('install');
+
+		$DB::single = $DB::single = 1;
 		die "CODE INCOMPLETE";
 	}
 
