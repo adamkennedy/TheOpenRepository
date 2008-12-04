@@ -55,6 +55,13 @@ sub new {
 	);
 }
 
+sub parrot_dir {
+	File::Spec->catdir(
+		$_[0]->image_dir,
+		'parrot',
+	);
+}
+
 
 
 
@@ -160,33 +167,31 @@ sub install_parrot_081_bin {
 		);
 
 		# Configure Parrot
+		my $dir = $self->parrot_dir;
 		$self->trace("Configuring Parrot...\n");
-		$self->_perl('Configure.pl');
+		$self->_perl("Configure.pl", "--prefix=$dir");
 
 		# Make Parrot
 		$self->trace("Making Parrot...\n");
-		$self->_mingw_make;
-
-		# Make Parrot
-		$self->trace("Making Parrot...\n");
-		$self->_mingw_make;
+		$self->_mingw_make('world');
 
 		# Make Perl 6
 		$self->trace("Making Perl 6...\n");
 		$self->_mingw_make('perl6');
 
 		# Test it all
-		unless ( $parrot->force ) {
+		unless ( 1 ) {
 			$self->trace("Testing perl...\n");
 			$self->_mingw_make('test');
 		}
 
-		# Try to install it
+		# Install Parrot and Perl 6
 		$self->trace("Installing Parrot/Perl 6");
-		$self->_mingw_make('install');
+		$self->_mingw_make('reallyinstall');
 
-		$DB::single = $DB::single = 1;
-		die "CODE INCOMPLETE";
+		# Flush and reset the PATH environment
+		$self->clean_env_path;
+		$self->add_end_path( 'parrot', 'bin' );
 	}
 
 	return 1;
@@ -198,6 +203,12 @@ sub install_parrot_081_bin {
 
 #####################################################################
 # Support Methods
+
+sub clear_env_path {
+	my $self = shift;
+	$self->{env_path} = [];
+	return 1;
+}
 
 sub _mingw_make {
 	my $self   = shift;
