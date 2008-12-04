@@ -3018,7 +3018,8 @@ sub _mirror {
 			$self->trace("(already up to date)\n");
 		}
 	} else {
-		my $ua = $self->useragent;
+		# my $ua = $self->useragent;
+		my $ua = LWP::UserAgent->new;
 		my $r  = $ua->mirror( $url, $target );
 		if ( $r->is_error ) {
 			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
