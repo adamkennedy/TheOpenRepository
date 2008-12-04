@@ -7,6 +7,7 @@
 #include "AutoXS.h"
 
 MODULE = Class::XSAccessor::Array		PACKAGE = Class::XSAccessor::Array
+PROTOTYPES: DISABLE
 
 void
 getter(self)
