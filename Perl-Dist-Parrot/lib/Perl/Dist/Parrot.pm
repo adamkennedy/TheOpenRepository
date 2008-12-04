@@ -159,9 +159,22 @@ sub install_parrot_081_bin {
 			File::Spec->catdir( $unpack_to, $parrotsrc ),
 		);
 
-		# Configure
+		# Configure Parrot
 		$self->trace("Configuring Parrot...\n");
 		$self->_perl('Configure.pl');
+
+		# Make Parrot
+		$self->trace("Making Parrot...\n");
+		$self->_mingw_make;
+
+		# Make Parrot
+		$self->trace("Making Parrot...\n");
+		$self->_mingw_make;
+
+		unless ( $parrot->force ) {
+			$self->trace("Testing perl...\n");
+			$self->_mingw_make('test');
+		}
 
 		die "CODE INCOMPLETE";
 	}
