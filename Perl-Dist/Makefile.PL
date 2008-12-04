@@ -16,6 +16,7 @@ requires       'File::Temp'                 => '0.20';
 requires       'HTTP::Status'               => '5.817';
 requires       'IPC::Run3'                  => '0.042';
 requires       'LWP::UserAgent'             => '5.817';
+requires       'LWP::UserAgent::WithCache'  => '0.06';
 requires       'LWP::UserAgent::Determined' => '1.03';
 requires       'LWP::Online'                => '1.07';
 requires       'Object::Tiny'               => '1.06';

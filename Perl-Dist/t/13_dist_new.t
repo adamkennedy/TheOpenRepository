@@ -12,7 +12,7 @@ BEGIN {
 		plan( skip_all => 'Not on Win32' );
 		exit(0);
 	}
-	plan( tests => 10 );
+	plan( tests => 11 );
 }
 
 use File::Spec::Functions ':ALL';
@@ -28,6 +28,10 @@ use t::lib::Test;
 # Create the dist object
 my $dist = t::lib::Test->new1(13);
 isa_ok( $dist, 't::lib::Test1' );
+
+# Check useragent method
+my $ua = $dist->useragent;
+isa_ok( $ua, 'LWP::UserAgent::WithCache' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );

@@ -126,36 +126,36 @@ which details how to sub-class the distribution.
 use 5.006;
 use strict;
 use warnings;
-use Carp                       ();
-use Archive::Tar               ();
-use Archive::Zip               ();
-use File::Spec                 ();
-use File::Spec::Unix           ();
-use File::Spec::Win32          ();
-use File::Copy                 ();
-use File::Copy::Recursive      ();
-use File::Path                 ();
-use File::PathList             ();
-use File::pushd                ();
-use File::Remove               ();
-use File::Basename             ();
-use IPC::Run3                  ();
-use Params::Util               ();
-use HTTP::Status               ();
-use LWP::UserAgent             ();
-use LWP::UserAgent::Determined ();
-use LWP::Online                ();
-use Module::CoreList           ();
-use Template                   ();
-use PAR::Dist                  ();
-use Portable::Dist             ();
-use Storable                   ();
-use URI::file                  ();
-use Perl::Dist::Inno::Script   ();
+use Carp                      ();
+use Archive::Tar              ();
+use Archive::Zip              ();
+use File::Spec                ();
+use File::Spec::Unix          ();
+use File::Spec::Win32         ();
+use File::Copy                ();
+use File::Copy::Recursive     ();
+use File::Path                ();
+use File::PathList            ();
+use File::pushd               ();
+use File::Remove              ();
+use File::Basename            ();
+use File::HomeDir             ();
+use IPC::Run3                 ();
+use Params::Util              ();
+use HTTP::Status              ();
+use LWP::UserAgent            ();
+use LWP::Online               ();
+use Module::CoreList          ();
+use Template                  ();
+use PAR::Dist                 ();
+use Portable::Dist            ();
+use Storable                  ();
+use URI::file                 ();
+use Perl::Dist::Inno::Script  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '1.10';
+        $VERSION  = '1.11';
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
@@ -2955,6 +2955,43 @@ sub file {
 	File::Spec->catfile( shift->image_dir, @_ );
 }
 
+sub useragent {
+	my $self = shift;
+	unless ( $self->{useragent} ) {
+		SCOPE: {
+			# Temporarily set $ENV{HOME} to the File::HomeDir
+			# version while loading the module.
+			local $ENV{HOME} ||= File::HomeDir->my_home;
+			require LWP::UserAgent::WithCache;
+		}
+		$self->{useragent} = LWP::UserAgent::WithCache->new( {
+			namespace          => 'perl-dist',
+			cache_root         => $self->useragent_directory,
+			cache_depth        => 0,
+			default_expires_in => 86400 * 30,
+		} );
+	}
+}
+
+sub useragent_directory {
+	my $self = shift;
+	my $path = ref($self);
+	   $path =~ s/::/-/g;
+	my $dir  = File::Spec->catdir(
+		File::HomeDir->my_data,
+		'Perl', $path,
+	);
+	unless ( -d $dir ) {
+		unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
+			die("Failed to create $dir");
+		}
+	}
+	unless ( -w $dir ) {
+		die("No write permissions for LWP::UserAgent cache '$dir'");
+	}
+	return $dir;
+}
+
 sub _mirror {
 	my ($self, $url, $dir) = @_;
 	my $file = $url;
@@ -2972,7 +3009,7 @@ sub _mirror {
 
 	$self->trace("Downloading file $url...\n");
 	if ( $url =~ m|^file://| ) {
-		# Don't use Determined for files (it generates warnings)
+		# Don't use WithCache for files (it generates warnings)
 		my $ua = LWP::UserAgent->new;
 		my $r  = $ua->mirror( $url, $target );
 		if ( $r->is_error ) {
@@ -2981,7 +3018,7 @@ sub _mirror {
 			$self->trace("(already up to date)\n");
 		}
 	} else {
-		my $ua = LWP::UserAgent::Determined->new;
+		my $ua = $self->useragent;
 		my $r  = $ua->mirror( $url, $target );
 		if ( $r->is_error ) {
 			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");

@@ -1,5 +1,9 @@
 Revision history for Perl module Perl-Dist
 
+1.11 Thu  4 Dec 2008
+	- Adding an improved caching useragent
+	- Some minor tweaks to allow Parrot builds
+
 1.10 Tue 11 Nov 2008
 	- Adding initial support for Perl 5.8.9
 

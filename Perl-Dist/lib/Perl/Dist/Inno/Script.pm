@@ -15,7 +15,7 @@ use Perl::Dist::Inno::System   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.10';
+	$VERSION = '1.11';
 }
 
 use Object::Tiny qw{

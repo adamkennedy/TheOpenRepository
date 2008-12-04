@@ -8,7 +8,7 @@ use Params::Util qw{ _IDENTIFIER _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.10';
+	$VERSION = '1.11';
 }
 
 use Object::Tiny qw{
