@@ -49,18 +49,21 @@ sub version {
    }
    my $developer = $minor % 2;
    my $cpan_minor_separator = $developer ? '_' : '.';
-   my $perl_minor_separator = $developer ? '_' : '';
+   my $literal_minor_separator = $developer ? '_' : '';
    my $cpan = $major . '.' . $minor . $cpan_minor_separator . $subminor;
-   my $numeric = $major . '.' . $minor . $perl_minor_separator. $subminor;
+   my $literal = $major . '.' . $minor . $literal_minor_separator. $subminor;
+   my $numeric = $major . '.' . $minor . $subminor;
    my $marpa = join('.', $major+0, $minor+0, $subminor+0);
-   return ($cpan, $numeric, $marpa);
+   return ($cpan, $literal, $numeric, $marpa);
 }
 
-my ($old_cpan, $old_numeric, $old_marpa) = version($old);
-my ($new_cpan, $new_numeric, $new_marpa) = version($new);
+my ($old_cpan, $old_literal, $old_numeric, $old_marpa) = version($old);
+my ($new_cpan, $new_literal, $new_numeric, $new_marpa) = version($new);
 
-say "($old_cpan, $old_numeric, $old_marpa) = version($old)";
-say "($new_cpan, $new_numeric, $new_marpa) = version($new)";
+croak("$old >= $new") if $old_numeric+0 >= $new_numeric+0;
+
+say "($old_cpan, $old_literal, $old_numeric, $old_marpa) = version($old)";
+say "($new_cpan, $new_literal, $new_numeric, $new_marpa) = version($new)";
 
 sub change {
    my $fix = shift;
@@ -68,7 +71,7 @@ sub change {
    for my $file (@files) {
      open(FH, '<', $file);
      my $text = do {local $RS; <FH> };
-     my $backup = $file . ".save";
+     my $backup = "save/$file";
      rename($file, $backup);
      open(ARGVOUT, '>', $file);
      select(ARGVOUT);
@@ -86,7 +89,7 @@ sub fix_META_yml {
 
 sub fix_Marpa_pm {
     my $text_ref = shift;
-    ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old_numeric';/$1$new_numeric';/;
+    ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old_literal';/$1$new_literal';/;
     ${$text_ref} =~ s/(version\s+is\s+)$old_marpa/$1$new_marpa/;
     $text_ref;
 }
