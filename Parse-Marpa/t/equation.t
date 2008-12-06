@@ -3,9 +3,12 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
 
 use Test::More tests => 8;
+
+use lib "lib";
+use lib "t/lib";
+use Marpa::Test;
 
 BEGIN {
 	use_ok( 'Parse::Marpa' );
@@ -67,13 +70,13 @@ EOCODE
 
 $grammar->precompute();
 
-is( $grammar->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
+Marpa::Test::is( $grammar->show_rules(), <<'END_RULES', "Ambiguous Equation Rules" );
 0: E -> E Op E
 1: E -> Number
 2: E['] -> E
 END_RULES
 
-is( $grammar->show_ii_QDFA(), <<'END_QDFA', "Ambiguous Equation QDFA" );
+Marpa::Test::is( $grammar->show_ii_QDFA(), <<'END_QDFA', "Ambiguous Equation QDFA" );
 Start States: St0; St5
 St0: predict; 1,5
 E ::= . E Op E

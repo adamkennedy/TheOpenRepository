@@ -14,8 +14,11 @@ no_index:
         - example
         - bootstrap
         - author.t
+        - save
     namespace:
         - Parse::Marpa::Internal
+    package:
+        - Parse::Marpa::Offset
 requires:     
     Test::More:                    0
 provides:

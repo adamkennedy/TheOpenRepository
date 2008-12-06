@@ -3,11 +3,13 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 7;
+use lib "lib";
+use lib "t/lib";
+use Marpa::Test;
 
 BEGIN {
     use_ok('Parse::Marpa');
@@ -121,8 +123,8 @@ EOS
             trace_file_handle => *MEMORY,
         }
     );
-    is($$value, $expected);
-    is($trace, $expected_trace);
+    Marpa::Test::is($$value, $expected);
+    Marpa::Test::is($trace, $expected_trace);
 }
 
 # Local Variables:

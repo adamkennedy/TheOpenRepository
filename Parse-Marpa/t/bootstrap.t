@@ -14,13 +14,10 @@ if ($Config{"d_fork"}) {
     exit 0;
 }
 
-# program needs to be run either by Makefile or from t directory
-my $bootstrap_dir = $0 =~ m{t/} ? "bootstrap" : "../bootstrap";
-
 my $this_perl = $^X; 
 
 my $script_output = <<`END OF SCRIPT`;
-cd $bootstrap_dir 2>&1
+cd bootstrap 2>&1
 echo Bootstrap 1
 $this_perl -I../lib bootstrap.pl self.marpa bootstrap_header.pl bootstrap_trailer.pl 2>&1 >t_bootcopy0.pl
 echo Bootstrap 2

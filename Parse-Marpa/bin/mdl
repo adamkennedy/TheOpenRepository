@@ -134,6 +134,10 @@ sub do_parse {
         open( GRAMMAR, "<", $grammar_file );
         my $grammar_source;
         { local ($RS) = undef; $grammar_source = <GRAMMAR>; }
+
+        # don't string data needed for debugging
+        $options{strip} = 0 if $show_rules;
+
         eval {
             $grammar = new Parse::Marpa::Grammar( {%options} );
             $grammar->set(

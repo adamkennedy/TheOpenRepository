@@ -1,9 +1,12 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
 
 use Test::More tests => 9;
+
+use lib "lib";
+use lib "t/lib";
+use Marpa::Test;
 
 BEGIN {
 	use_ok( 'Parse::Marpa' );
@@ -38,7 +41,7 @@ $g->set({
 
 $g->precompute();
 
-is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
+Marpa::Test::is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
 0: S' -> S $
 1: S -> E
 2: E -> E - T
@@ -47,7 +50,7 @@ is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
 5: T -> ( E )
 EOS
 
-is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
+Marpa::Test::is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
 0: S', lhs=[0], rhs=[]
 1: S, lhs=[1], rhs=[0]
 2: $, lhs=[], rhs=[0] terminal
@@ -59,11 +62,11 @@ is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
 8: ), lhs=[], rhs=[5] terminal
 EOS
 
-is($g->show_nullable_symbols(), "", "Grune/Jacobs Nullable Symbols");
-is($g->show_nulling_symbols(), "", "Grune/Jacobs Nulling Symbols");
-is($g->show_productive_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Productive Symbols");
-is($g->show_accessible_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Accessible Symbols");
-is($g->show_NFA(), <<'EOS', "Grune/Jacobs NFA");
+Marpa::Test::is($g->show_nullable_symbols(), "", "Grune/Jacobs Nullable Symbols");
+Marpa::Test::is($g->show_nulling_symbols(), "", "Grune/Jacobs Nulling Symbols");
+Marpa::Test::is($g->show_productive_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Productive Symbols");
+Marpa::Test::is($g->show_accessible_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Accessible Symbols");
+Marpa::Test::is($g->show_NFA(), <<'EOS', "Grune/Jacobs NFA");
 S0: /* empty */
  empty => S1
 S1: S' ::= . S $
@@ -102,7 +105,7 @@ S16: T ::= ( E . )
 S17: T ::= ( E ) .
 EOS
 
-is( $g->show_ii_QDFA(), <<'EOS', "Grune/Jacobs QDFA");
+Marpa::Test::is( $g->show_ii_QDFA(), <<'EOS', "Grune/Jacobs QDFA");
 Start States: St0; St9
 St0: 1
 S' ::= . S $

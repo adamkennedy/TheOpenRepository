@@ -845,15 +845,13 @@ sub Parse::Marpa::Recognizer::end_input {
         ];
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
+    my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
+
     # If called repeatedly, just return success,
     # without complaint.  In other words, be idempotent.
-    my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
     return 1 if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZED;
 
-    $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ]
-        = Parse::Marpa::Internal::Phase::RECOGNIZED;
-
-     if ($last_completed_set < $furthest_earleme) {
+    if ($last_completed_set < $furthest_earleme) {
 
          EARLEY_SET: while ( $current_set <= $furthest_earleme ) {
              Parse::Marpa::Internal::Recognizer::complete_set($self);
@@ -864,18 +862,25 @@ sub Parse::Marpa::Recognizer::end_input {
 
     }
 
-    $#{$self} = Parse::Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
+    if ($grammar->[ Parse::Marpa::Internal::Grammar::STRIP ]) {
 
-    $#{$grammar} = Parse::Marpa::Internal::Grammar::LAST_EVALUATOR_FIELD;
-    for my $symbol (@{$grammar->[ Parse::Marpa::Internal::Grammar::SYMBOLS ]}) {
-        $#{$symbol} = Parse::Marpa::Internal::Symbol::LAST_EVALUATOR_FIELD;
+        $#{$self} = Parse::Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
+
+        $#{$grammar} = Parse::Marpa::Internal::Grammar::LAST_EVALUATOR_FIELD;
+        for my $symbol (@{$grammar->[ Parse::Marpa::Internal::Grammar::SYMBOLS ]}) {
+            $#{$symbol} = Parse::Marpa::Internal::Symbol::LAST_EVALUATOR_FIELD;
+        }
+        for my $rule (@{$grammar->[ Parse::Marpa::Internal::Grammar::RULES ]}) {
+            $#{$rule} = Parse::Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
+        }
+        for my $QDFA (@{$grammar->[ Parse::Marpa::Internal::Grammar::QDFA ]}) {
+            $#{$QDFA} = Parse::Marpa::Internal::QDFA::LAST_EVALUATOR_FIELD;
+        }
+
     }
-    for my $rule (@{$grammar->[ Parse::Marpa::Internal::Grammar::RULES ]}) {
-        $#{$rule} = Parse::Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
-    }
-    for my $QDFA (@{$grammar->[ Parse::Marpa::Internal::Grammar::QDFA ]}) {
-        $#{$QDFA} = Parse::Marpa::Internal::QDFA::LAST_EVALUATOR_FIELD;
-    }
+
+    $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ]
+    = Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     return 1;
 }

@@ -1,25 +1,17 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
+use lib "lib";
+use lib "t/lib";
 
 use Scalar::Util qw(refaddr reftype isweak weaken);
-use Test::More;
+use Test::More tests => 5;
+use Test::Weaken;
 
-BEGIN {
-    eval "use Test::Weaken 0.002003";
-    if ($@) {
-        plan skip_all
-            => "Test::Weaken 0.002003 required for testing of memory cycles";
-        exit 0;
-    } else {
-        plan tests => 5;
-    }
-    use_ok( 'Parse::Marpa' );
-}
+BEGIN { use_ok( 'Parse::Marpa' ); }
 
-say $INC{'Test/Weaken.pm'};
-say $Test::Weaken::VERSION;
+# say $INC{'Test/Weaken.pm'};
+# say $Test::Weaken::VERSION;
 
 my $test = sub {
     my $g = new Parse::Marpa::Grammar({

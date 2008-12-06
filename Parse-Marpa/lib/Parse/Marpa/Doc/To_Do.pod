@@ -4,16 +4,6 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =head1 HIGH PRIORITY
 
-=head2 Terminal Priorities Cannot Be Set in MDL
-
-Priorities cannot be set in MDL for terminals.
-Fix this before going beta.
-
-Workaround:
-Add extra rules with the terminals you want to prioritize on their right hand side,
-and assign 
-priorities to the rules.
-
 =head2 Describe ambiguous transitions in Internals doc
 
 Add a graf about ambiguous transitions in the Internals document.
@@ -24,6 +14,20 @@ Move some of the stuff prior to the "Getting Started" section
 elsewhere.
 
 =head1 LOWER PRIORITY
+
+=head2 Terminal Priorities Cannot Be Set in MDL
+
+Priorities cannot be set in MDL for terminals.
+So far there's been no need for this,
+and I don't want to invent an artificial test case.
+Once there is an application, I will use that as the test case.
+
+Workaround:
+Add extra rules with the terminals you want to prioritize on their right hand side,
+and assign 
+priorities to the rules.
+
+=head2 Others
 
 =over 4
 
@@ -37,14 +41,6 @@ better comments.
 it cause an error message?  How about after unsuccessful
 call to C<value>?
 
-=item * Should C<Parse::Marpa::Grammar::new> options be defaults or
-overrides? -- that is they should take effect before the MDL script
-or after.
-
-=item * Allow setting Marpa options in evaluator,
-and during life of recognizer?
-Will require changes in internal tracking of phases.
-
 =item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
 
 =item * Add a trace_choices option.  There was an option to trace
@@ -52,9 +48,6 @@ non-trivial evaluation choices in the old evaluator, and the new trace_iteration
 doesn't entirely replace it.
 
 =item * Add a show_derivation option.
-
-=item * Allow multiple evaluators for each recognizer, or at least create a method
-to safely deep copy recognizers.
 
 =item * Add C<{}> and C<[]> syntax to MDL production statements.
 
