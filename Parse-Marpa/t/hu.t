@@ -20,6 +20,7 @@ BEGIN {
 my $g = new Parse::Marpa::Grammar({
     precompute => 0,
     start => "S'",
+    strip => 0,
     rules => [
         [ "S'", [qw/S c/] ],
         [ "S",  [qw/S A/] ],
@@ -49,12 +50,12 @@ Marpa::Test::is($g->show_rules(), <<'EOS', "Hopcroft/Ullman Rules");
 EOS
 
 Marpa::Test::is($g->show_symbols(), <<'EOS', "Hopcroft/Ullman Symbols");
-0: S', lhs=[0], rhs=[]
-1: S, lhs=[1 2], rhs=[0 1 3]
-2: c, lhs=[], rhs=[0] terminal
-3: A, lhs=[3 4], rhs=[1 2]
-4: a, lhs=[], rhs=[3 4] terminal
-5: b, lhs=[], rhs=[3 4] terminal
+0: S', lhs=[0] rhs=[]
+1: S, lhs=[1 2] rhs=[0 1 3]
+2: c, lhs=[] rhs=[0] terminal
+3: A, lhs=[3 4] rhs=[1 2]
+4: a, lhs=[] rhs=[3 4] terminal
+5: b, lhs=[] rhs=[3 4] terminal
 EOS
 
 Marpa::Test::is($g->show_nullable_symbols(), "", "Hopcroft/Ullman Nullable Symbols");

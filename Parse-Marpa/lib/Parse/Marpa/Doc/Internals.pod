@@ -1379,10 +1379,10 @@ is_equation_show_symbols($_);
 
 =end Parse::Marpa::test_document:
 
-    0: e, lhs=[0 1], rhs=[0 2]
-    1: op, lhs=[], rhs=[0] terminal
-    2: number, lhs=[], rhs=[1] terminal
-    3: e['], lhs=[2], rhs=[]
+    0: e, lhs=[0 1] rhs=[0 2]
+    1: op, lhs=[] rhs=[0] terminal
+    2: number, lhs=[] rhs=[1] terminal
+    3: e['], lhs=[2] rhs=[]
 
 =head2 C<show_rules> Output
 

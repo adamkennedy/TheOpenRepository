@@ -48,9 +48,14 @@ t/minus_s.t
 t/pascal.t
 t/priority.t
 t/randal.t
+t/stripped.t
 t/synopsis.t
 t/wall.t
 t/weaken.t
+t/lib/Test/Weaken.pm
+t/lib/Marpa/Test.pm
 author.t/MDL_displays.marpa
 author.t/Makefile
 author.t/test_pod
+author.t/minimal.marpa
+author.t/misc.pl

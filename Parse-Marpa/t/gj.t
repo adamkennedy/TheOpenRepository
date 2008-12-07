@@ -18,6 +18,7 @@ BEGIN {
 my $g = new Parse::Marpa::Grammar({
     precompute => 0,
     start => "S'",
+    strip => 0,
     rules => [
         [ "S'", [qw/S $/] ],
         [ "S",  [qw/E/] ],
@@ -51,15 +52,15 @@ Marpa::Test::is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
 EOS
 
 Marpa::Test::is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
-0: S', lhs=[0], rhs=[]
-1: S, lhs=[1], rhs=[0]
-2: $, lhs=[], rhs=[0] terminal
-3: E, lhs=[2 3], rhs=[1 2 5]
-4: -, lhs=[], rhs=[2] terminal
-5: T, lhs=[4 5], rhs=[2 3]
-6: n, lhs=[], rhs=[4] terminal
-7: (, lhs=[], rhs=[5] terminal
-8: ), lhs=[], rhs=[5] terminal
+0: S', lhs=[0] rhs=[]
+1: S, lhs=[1] rhs=[0]
+2: $, lhs=[] rhs=[0] terminal
+3: E, lhs=[2 3] rhs=[1 2 5]
+4: -, lhs=[] rhs=[2] terminal
+5: T, lhs=[4 5] rhs=[2 3]
+6: n, lhs=[] rhs=[4] terminal
+7: (, lhs=[] rhs=[5] terminal
+8: ), lhs=[] rhs=[5] terminal
 EOS
 
 Marpa::Test::is($g->show_nullable_symbols(), "", "Grune/Jacobs Nullable Symbols");

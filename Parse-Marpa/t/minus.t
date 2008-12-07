@@ -29,6 +29,7 @@ my $g = new Parse::Marpa::Grammar({
     # Set max_parses to 20 in case there's an infinite loop.
     # This is for debugging, after all
     max_parses => 20,
+    strip => 0,
 
     rules => [
 	[ "E", [qw/E Minus E/],

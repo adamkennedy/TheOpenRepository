@@ -39,43 +39,49 @@ sub slurp {
 sub in_file {
     my $display = shift;
     my $file    = shift;
+    my $comparison = shift;
+    $comparison //= "unknown file";
+
     $display = normalize_whitespace($display);
     $file    = normalize_whitespace($file);
     my $location = index( $file, $display );
-    return $location >= 0 ? "" : "Display not in $::current_file";
+    return $location >= 0 ? "" : "Display in $::current_file not in $comparison";
 }
 
 sub is_file {
     my $display = shift;
     my $file    = shift;
+    my $comparison = shift;
+    $comparison //= "unknown file";
+
     $display = normalize_whitespace($display);
     $file    = normalize_whitespace($file);
-    return $file eq $display ? "" : "Display not equal to $::current_file";
+    return $file eq $display ? "" : "Display in $::current_file not in $comparison";
 }
 
 my $self_marpa = slurp('../bootstrap/self.marpa');
 
 sub in_self_marpa {
-    return in_file( shift, $self_marpa );
+    return in_file( shift, $self_marpa, 'self.marpa' );
 }
 
 my $misc_pl = slurp('misc.pl');
 
 sub in_misc_pl {
-    return in_file( shift, $misc_pl );
+    return in_file( shift, $misc_pl, 'misc.pl' );
 }
 
 my $MDL_displays = slurp('MDL_displays.marpa');
 
 sub in_MDL_displays {
-    return in_file( shift, $MDL_displays );
+    return in_file( shift, $MDL_displays, 'MDL_displays.marpa' );
 }
 
 my $equation_grammar = slurp('../example/equation.marpa');
 
 sub is_equation_grammar {
     my $display_grammar = shift;
-    my $result = is_file( $display_grammar, $equation_grammar );
+    my $result = is_file( $display_grammar, $equation_grammar, 'equation.marpa' );
     return $result unless $result;
     return "$result\n" . diff( \$display_grammar, \$equation_grammar );
 }
@@ -83,43 +89,43 @@ sub is_equation_grammar {
 my $equation_show_symbols = slurp('equation_show_symbols.out');
 
 sub is_equation_show_symbols {
-    return is_file( shift, $equation_show_symbols );
+    return is_file( shift, $equation_show_symbols, 'equation_show_symbols.out' );
 }
 
 my $equation_show_rules = slurp('equation_show_rules.out');
 
 sub is_equation_show_rules {
-    return is_file( shift, $equation_show_rules );
+    return is_file( shift, $equation_show_rules, 'equation_show_rules.out');
 }
 
 my $equation_show_QDFA = slurp('equation_show_QDFA.out');
 
 sub is_equation_show_QDFA {
-    return is_file( shift, $equation_show_QDFA );
+    return is_file( shift, $equation_show_QDFA, 'equation_show_QDFA.out');
 }
 
 sub in_equation_show_QDFA {
-    return in_file( shift, $equation_show_QDFA );
+    return in_file( shift, $equation_show_QDFA, 'equation_show_QDFA.out');
 }
 
 my $equation_show_earley_sets = slurp('equation_show_earley_sets.out');
 
 sub is_equation_show_earley_sets {
-    return is_file( shift, $equation_show_earley_sets );
+    return is_file( shift, $equation_show_earley_sets, 'equation_show_earley_sets.out');
 }
 
 sub in_equation_show_earley_sets {
-    return in_file( shift, $equation_show_earley_sets );
+    return in_file( shift, $equation_show_earley_sets, 'equation_show_earley_sets.out');
 }
 
 my $equation_show_bocage = slurp('equation_show_bocage.out');
 
 sub is_equation_show_bocage {
-    return is_file( shift, $equation_show_bocage );
+    return is_file( shift, $equation_show_bocage, 'equation_show_bocage.out');
 }
 
 sub in_equation_show_bocage {
-    return in_file( shift, $equation_show_bocage );
+    return in_file( shift, $equation_show_bocage, 'equation_show_bocage.out');
 }
 
 sub remove_code_addresses {
@@ -130,76 +136,76 @@ my $equation_show_tree =
     remove_code_addresses( slurp('equation_show_tree.out') );
 
 sub is_equation_show_tree {
-    return is_file( remove_code_addresses(shift), $equation_show_tree );
+    return is_file( remove_code_addresses(shift), $equation_show_tree, 'equation_show_tree.out' );
 }
 
 sub in_equation_show_tree {
-    return in_file( remove_code_addresses(shift), $equation_show_tree );
+    return in_file( remove_code_addresses(shift), $equation_show_tree, 'equation_show_tree.out' );
 }
 
 my $equation_trace_values = slurp('equation_trace_values.out');
 sub is_equation_trace_values {
-    return is_file( shift, $equation_trace_values );
+    return is_file( shift, $equation_trace_values, 'equation_trace_values.out');
 }
 sub in_equation_trace_values {
-    return in_file( shift, $equation_trace_values );
+    return in_file( shift, $equation_trace_values, 'equation_trace_values.out');
 }
 
 my $self_show_rules = slurp('self_show_rules.out');
 
 sub in_self_show_rules {
-    return in_file( shift, $self_show_rules );
+    return in_file( shift, $self_show_rules, 'self_show_rules.out');
 }
 
 my $bin_mdl = slurp('../bin/mdl');
 
 sub in_bin_mdl {
-    return in_file( shift, $bin_mdl );
+    return in_file( shift, $bin_mdl, 'bin/mdl' );
 }
 
 my $null_value_grammar = slurp('../example/null_value.marpa');
 
 sub in_null_value_grammar {
-    return in_file( shift, $null_value_grammar );
+    return in_file( shift, $null_value_grammar, '../example/null_value.marpa');
 }
 
 my $synopsis_pl = slurp('../example/synopsis.pl');
 
 sub is_synopsis_pl {
-    return is_file( shift, $synopsis_pl );
+    return is_file( shift, $synopsis_pl, '../example/synopsis.pl');
 }
 
 sub in_synopsis_pl {
-    return in_file( shift, $synopsis_pl );
+    return in_file( shift, $synopsis_pl, '../example/synopsis.pl');
 }
 
 my $ah2_t = slurp('../t/ah2.t');
 
 sub in_ah2_t {
-    return in_file( shift, $ah2_t );
+    return in_file( shift, $ah2_t, '../t/ah2.t');
 }
 
 my $ah_s_t = slurp('../t/ah_s.t');
 
 sub in_ah_s_t {
-    return in_file( shift, $ah_s_t );
+    return in_file( shift, $ah_s_t, '../t/ah_s.t');
 }
 
 my $cycle2_t = slurp('../t/cycle2.t');
 sub in_cycle2_t {
-    return in_file( shift, $cycle2_t );
+    return in_file( shift, $cycle2_t, '../t/cycle2.t');
 }
 
 my $equation_s_t = slurp('../t/equation_s.t');
 
 sub in_equation_s_t {
-    return in_file( shift, $equation_s_t );
+    return in_file( shift, $equation_s_t, '../t/equation_s.t');
 }
 
 my $equation_t = slurp('../t/equation.t');
 
 sub in_equation_t {
-    return in_file( shift, $equation_t );
+    return in_file( shift, $equation_t, '../t/equation.t');
 }
 
 package MyParser;

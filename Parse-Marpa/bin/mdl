@@ -137,6 +137,8 @@ sub do_parse {
 
         # don't string data needed for debugging
         $options{strip} = 0 if $show_rules;
+        $options{strip} = 0 if $show_symbols;
+        $options{strip} = 0 if $show_QDFA;
 
         eval {
             $grammar = new Parse::Marpa::Grammar( {%options} );

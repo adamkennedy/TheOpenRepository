@@ -102,9 +102,9 @@ EOS
       \('123456'),
       '1 2 3 4 5 6',
       <<'EOS'
-Cycle found involving rule: 3: c -> w d x /* !useful */
-Cycle found involving rule: 2: b -> v c /* !useful */
-Cycle found involving rule: 1: a -> b t u /* !useful */
+Cycle found involving rule: 3: c -> w d x
+Cycle found involving rule: 2: b -> v c
+Cycle found involving rule: 1: a -> b t u
 Cycle found involving rule: 5: e -> s
 Cycle found involving rule: 4: d -> e
 Cycle found involving rule: 0: s -> a

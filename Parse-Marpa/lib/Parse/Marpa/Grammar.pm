@@ -1199,7 +1199,7 @@ sub Parse::Marpa::Grammar::precompute {
         }
 
         for my $rule (@{$grammar->[ Parse::Marpa::Internal::Grammar::RULES ]}) {
-            $#{$rule} = Parse::Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
+            $#{$rule} = Parse::Marpa::Internal::Rule::LAST_RECOGNIZER_FIELD;
         }
 
         for my $QDFA (@{$grammar->[ Parse::Marpa::Internal::Grammar::QDFA ]}) {
@@ -1335,7 +1335,7 @@ sub Parse::Marpa::Grammar::clone {
 sub Parse::Marpa::show_symbol {
     my $symbol = shift;
     my $text   = q{};
-    my $stripped = $#$symbol < Parse::Marpa::Internal::Symbol::LAST_FIELD;
+    my $stripped = $#{$symbol} < Parse::Marpa::Internal::Symbol::LAST_FIELD;
 
     $text .= sprintf '%d: %s,',
         $symbol->[Parse::Marpa::Internal::Symbol::ID],
@@ -1495,6 +1495,7 @@ sub Parse::Marpa::show_rule {
         next ELEMENT unless exists $rule->[ $offset ];
         my $value = $rule->[ $offset ];
         $value = !$value if $reverse;
+        next ELEMENT unless $value;
         push @comment, $comment;
     }
 
@@ -1814,6 +1815,7 @@ sub add_terminal {
 
     my $symbol_count = @{$symbols};
     my $new_symbol   = [];
+    $#{$new_symbol} = Parse::Marpa::Internal::Symbol::LAST_FIELD;
     @{$new_symbol}[
         Parse::Marpa::Internal::Symbol::ID,
         Parse::Marpa::Internal::Symbol::NAME,
@@ -1848,6 +1850,7 @@ sub assign_symbol {
     my $symbol_count = @{$symbols};
     my $symbol       = $symbol_hash->{$name};
     if ( not defined $symbol ) {
+        $#{$symbol} = Parse::Marpa::Internal::Symbol::LAST_FIELD;
         @{$symbol}[
             Parse::Marpa::Internal::Symbol::ID,
             Parse::Marpa::Internal::Symbol::NAME,
@@ -3376,6 +3379,7 @@ sub alias_symbol {
     my $alias_name =
         $nullable_symbol->[Parse::Marpa::Internal::Symbol::NAME] . '[]';
     my $alias = [];
+    $#{$alias} = Parse::Marpa::Internal::Symbol::LAST_FIELD;
     @{$alias}[
         Parse::Marpa::Internal::Symbol::ID,
         Parse::Marpa::Internal::Symbol::NAME,
