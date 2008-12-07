@@ -736,13 +736,6 @@ sub parse_source_grammar {
         }
     }
 
-    # my $grammar_version = $source_grammar->[ Parse::Marpa::Internal::Grammar::VERSION ];
-    # no integer;
-    # if ($Parse::Marpa::VERSION != $grammar_version) {
-    # croak("Version mismatch between Marpa ($Parse::Marpa::VERSION) and its source grammar ($grammar_version)");
-    # }
-    # use integer;
-
     $source_options //= {};
 
     my $recce = new Parse::Marpa::Recognizer(
