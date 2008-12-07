@@ -1,4 +1,4 @@
-semantics are perl5.  version is 0.221.0.  the start symbol is
+semantics are perl5.  version is 0.221_000.  the start symbol is
 grammar.
 
 the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
@@ -132,14 +132,14 @@ q{
 version setting: optional /the/, /version/, copula, version number.
 q{
     q{$new_version = '}
-    . Parse::Marpa::MDL::canonical_version($_[3])
+    . $_[3]
     . qq{';\n}
 }.
 
 version setting: /version number/, copula, optional /the/, /version/.
 q{
     q{$new_version = '}
-    . Parse::Marpa::MDL::canonical_version($_[0])
+    . $_[0]
     . qq{';\n}
 }.
 
@@ -496,7 +496,7 @@ match double quoted string using q{
     return;
 }.
 
-version number matches qr/(\d+\.)*\d+/.
+version number matches qr/\d+\.[\d_.]+\d/.
 
 symbol word matches qr/[a-zA-Z_][a-zA-Z0-9_-]*/.
 

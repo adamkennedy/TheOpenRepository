@@ -30,16 +30,6 @@ sub canonical_symbol_name {
     $symbol;
 }
 
-sub canonical_version {
-    my $version = shift;
-    my @version = split( /\./, $version );
-    my $result  = sprintf( "%d.", ( shift @version ) );
-    for my $subversion (@version) {
-        $result .= sprintf( "%03d", $subversion );
-    }
-    $result;
-}
-
 sub get_symbol {
     my $grammar     = shift;
     my $symbol_name = shift;

@@ -2,10 +2,10 @@
 
 $new_start_symbol //= "(undefined start symbol)";
 $new_semantics //= "not defined";
-$new_version //= -1;
+$new_version //= "not defined";
 
 croak("Version requested is ", $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, " exactly.")
-   unless $new_version == $Parse::Marpa::VERSION;
+   unless $new_version eq $Parse::Marpa::VERSION;
 
 croak("Semantics are ", $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq "perl5";

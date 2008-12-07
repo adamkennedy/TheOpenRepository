@@ -47,7 +47,7 @@ open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '0.221000';
+$new_version = '0.221_000';
 
 $new_start_symbol = "grammar";
 
@@ -370,7 +370,7 @@ push(@$new_rules, {
     action => 
 q{
     q{$new_version = '}
-    . Parse::Marpa::MDL::canonical_version($_[3])
+    . $_[3]
     . qq{';\n}
 },
 ,
@@ -387,7 +387,7 @@ push(@$new_rules, {
     action => 
 q{
     q{$new_version = '}
-    . Parse::Marpa::MDL::canonical_version($_[0])
+    . $_[0]
     . qq{';\n}
 },
 ,
@@ -1041,7 +1041,7 @@ push(@$new_terminals, [ "double-quoted-string" => { action =>  q{
     return;
 }} ] );
 
-push(@$new_terminals, [ "version-number" => { regex => qr/(\d+\.)*\d+/} ] );
+push(@$new_terminals, [ "version-number" => { regex => qr/\d+\.[\d_\.]+\d/} ] );
 
 push(@$new_terminals, [ "symbol-word" => { regex => qr/[a-zA-Z_][a-zA-Z0-9_-]*/} ] );
 
@@ -1062,7 +1062,7 @@ $new_semantics //= "not defined";
 $new_version //= -1;
 
 croak("Version requested is ", $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, " exactly.")
-   unless $new_version == $Parse::Marpa::VERSION;
+   unless $new_version eq $Parse::Marpa::VERSION;
 
 croak("Semantics are ", $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq "perl5";

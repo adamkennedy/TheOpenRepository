@@ -5,7 +5,7 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
+use lib "lib";
 use English qw( -no_match_vars );
 
 use Test::More tests => 2;
@@ -102,7 +102,7 @@ ok( !$failure_count,
 # vim: expandtab shiftwidth=4:
 
 __DATA__
-semantics are perl5.  version is 0.221.0.  the start symbol is
+semantics are perl5.  version is 0.221_000.  the start symbol is
 S.  the default null value is q{}.  the default action is q{
      my $v_count = scalar @_;
      return "" if $v_count <= 0;

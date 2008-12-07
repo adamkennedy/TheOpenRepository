@@ -173,7 +173,7 @@ use Parse::Marpa::Offset LR0_item => qw(RULE POSITION);
 use Parse::Marpa::Offset Grammar =>
     # basic data
     qw(
-        ID NAME
+        ID NAME VERSION
         RULES SYMBOLS QDFA
         PHASE DEFAULT_ACTION
         TRACE_FILE_HANDLE TRACING STRIP
@@ -204,7 +204,7 @@ use Parse::Marpa::Offset Grammar =>
         QDFA_BY_NAME NULLABLE_SYMBOL
         TRACE_RULES
         LOCATION_CALLBACK
-        WARNINGS VERSION CODE_LINES SEMANTICS
+        WARNINGS CODE_LINES SEMANTICS
         TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
         ALLOW_RAW_SOURCE INTERFACE
     );
@@ -518,7 +518,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     Carp::croak(
         "Version in marpa grammar ($new_version) does not match Marpa (",
         $Parse::Marpa::VERSION, ')' )
-        if $new_version != $Parse::Marpa::VERSION;
+        if $new_version ne $Parse::Marpa::VERSION;
     use integer;
 
     $grammar->[Parse::Marpa::Internal::Grammar::VERSION] = $new_version;
@@ -701,7 +701,8 @@ sub Parse::Marpa::stringify_source_grammar {
     my $raw_source_grammar = Parse::Marpa::Internal::raw_source_grammar();
     my $raw_source_version =
         $raw_source_grammar->[Parse::Marpa::Internal::Grammar::VERSION];
-    if ( $raw_source_version != $Parse::Marpa::VERSION ) {
+    $raw_source_version //= "not defined";
+    if ( $raw_source_version ne $Parse::Marpa::VERSION ) {
         croak(
             "raw source grammar version ($raw_source_version) does not match Marpa version (",
             $Parse::Marpa::VERSION, ')'
