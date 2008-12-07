@@ -21,6 +21,18 @@ Marpa's C<warnings> option is turned on.
 It's on by default,
 so you probably have already done that, too.
 
+You should also turn off Marpa's C<strip> option,
+which is on by default.
+When the C<strip> option is on,
+Marpa "strips" its objects of data that is not
+needed for subsequent processing.
+This saves time and memory, but data that is not
+needed for processing
+can be extremely valuable for debugging.
+When the C<strip> option is left on,
+many of Marpa's diagnostics methods will return
+partial information or no information at all.
+
 When a problem is not obvious,
 the first thing I do is turn on the C<trace_lex> option.
 This tells you which tokens the lexer is looking for and which ones it thinks it found.
@@ -51,6 +63,10 @@ For a complete investigation of a parse,
 do the following:
 
 =over 4
+
+=item * Turn off the C<strip> Marpa option.  By default, it is on.
+
+=item * Make sure the C<warnings> option is turned on.  It is on by default.
 
 =item * Run C<show_symbols> on the precomputed grammar.
 
@@ -98,9 +114,12 @@ for all methods which accept Marpa options as named arguments
 C<Parse::Marpa::mdl>,
 C<Parse::Marpa::Grammar::new>,
 C<Parse::Marpa::Grammar::set>,
+C<Parse::Marpa::Recognizer::new>,
+C<Parse::Marpa::Evaluator::new>,
 and
-C<Parse::Marpa::Recognizer::new>),
-and are useful at any point in the parse.
+C<Parse::Marpa::Evaluator::set>).
+All options are useful at any point in the parse,
+unless otherwise stated.
 Trace output goes to the trace file handle.
 
 =over 4
@@ -117,6 +136,25 @@ An exception is thrown if the user attempts to create
 a recognizer from a grammar marked academic.
 The C<academic> option
 cannot be set in the recognizer or after the grammar is precomputed.
+
+=item strip
+
+The value is a Boolean.
+If true, Marpa "strips" its objects when they contain data
+that is not needed for further processing.
+This saves space and time.
+This is the default behavior.
+
+If C<strip> is set to false, all data in Marpa's objects,
+even data no longer needed for processing,
+is left in place for the entire life of the object.
+This leftover data can be very
+important if you're debugging.
+
+Stripping takes place when a grammar in precomputed,
+and when the end of input in recognized.
+Turning C<strip> off after the end of input has been
+recognized will have no effect.
 
 =item trace_actions
 

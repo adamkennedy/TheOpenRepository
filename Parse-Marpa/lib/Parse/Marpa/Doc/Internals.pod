@@ -12,6 +12,10 @@ This document assumes that you
 have read the other Marpa documentation,
 and that you
 have a general knowledge of parsing.
+All the examples of diagnostic output
+in this document
+assume that
+the C<strip> Marpa option has been turned off.
 
 =head1 EARLEY SETS
 
