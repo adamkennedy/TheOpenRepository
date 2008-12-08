@@ -4,33 +4,35 @@ use strict;
 use warnings;
 use PPI;
 use YAML ();
+use Macropod::Document;
 use Macropod::Signature;
 use Macropod::Cache;
-use Carp qw( confess ); 
+use Carp qw( confess carp cluck ); 
 use PPI::Dumper;
 use Data::Dumper;
 use Pod::Simple::Search;
 use File::HomeDir;
+use Module::Pluggable
+	require     => 1,
+	search_path => 'Macropod::Parser' ,
+	sub_name    => 'parsers';
 
+use Module::Pluggable 
+	require     => 1,
+	search_path => 'Macropod::Processor' ,
+	sub_name    => 'processors';
+	
 
-$VERSION = 0.11;
+$VERSION = "0.11_00";
 
 our %doc_cache;
 
 
-use base qw( Class::Accessor );
-__PACKAGE__->mk_accessors(
-	qw( 
-		pod 
-		packages 
-		includes
-
-		inherits
-		requires 
-		
-		macros 
-		ppi output  )
-);
+#use base qw( Class::Accessor );
+#__PACKAGE__->mk_accessors(
+#	qw( 
+# output  )
+#);
 
 
 =pod
@@ -50,9 +52,33 @@ It's not javadoc.
 
 =cut
 
+=pod
+
+=head1 METHODS
+
+=head2 new C< %args >
+
+Create a new macropod parser. 
+
+=head3 OPTIONS
+
+=over
+
+=item cache
+    path to a Macropod::Cache for this parser to use
+    
+=back
+
+=cut
 
 sub new {
 	my ($class,%args) = @_;
+	
+	if (my $cache = delete $args{cache}) { 
+		confess "Cache '$cache' does not exist: $!" unless -f $cache;
+		$args{cache} = Macropod::Cache->new( dbfile=>$cache );
+	}
+	
 	return bless \%args, $class;
 }
 
@@ -63,8 +89,10 @@ sub error {
 sub parse {
 	my ($self,$input) = @_;
 	my $name2path = Pod::Simple::Search->find($input);
-	confess "Cannot resolve input '$input'" unless $name2path;
-	$self->{name} = $input;
+	unless ($name2path) {
+		carp  "Cannot resolve input '$input'" ;
+		return;
+	}
  	return $self->parse_file( $name2path );
 }
 
@@ -74,9 +102,9 @@ sub parse_text {
 		unless ( ref $text eq 'SCALAR' );
 
 	my $ppi = PPI::Document->new( $text );
-	$self->{inputfile} = "$text";
-	$self->{signature} = Macropod::Signature->digest( $text );
-	$self->{ppi} = $ppi;
+#	$self->{inputfile} = "$text";
+#	$self->{signature} = Macropod::Signature->digest( $text );
+#	$self->{ppi} = $ppi;
 
 	return $self->_parse;
 }
@@ -84,69 +112,95 @@ sub parse_text {
 sub parse_file {
 	my ($self,$file) = @_;
 	my $ppi  = PPI::Document->new( $file );
-	$self->{inputfile} = $file;
-	$self->{signature} = Macropod::Signature->digest_file( $file );
-	confess "PPI cannot parse '$file'" 
-		unless $ppi ;
-	$self->{ppi} = $ppi;
+	
+	unless ( $ppi ) {
+		 cluck "PPI cannot parse '$file'";
+		 return;
+	}
 
-	return $self->_parse;
+	
+#	$self->{inputfile} = $file;
+#	$self->{signature} = Macropod::Signature->digest_file( $file );
+#	$self->{ppi} = $ppi;
+
+	return $self->_parse( source=>$file , ppi_doc => $ppi );
 
 }
 
 sub _parse {
-	my ($self) = @_;
+	my ($self,%args) = @_;
+	my $ppi = delete $args{ppi_doc} or confess "_parse requires ppi_doc=>";
 
-	my $ppi = $self->{ppi};
-	$self->{output} = PPI::Document->new( "" );
-	
-	my $pods = $ppi->find( 'PPI::Token::Pod' );
-	$self->{pods} = $pods;
-	my @macros =  grep { $_ =~ /^=macropod/; } @$pods  if $pods;
-	$self->{macros} = \@macros;
+	my $doc = Macropod::Document->create(
+			source => $args{source} ,
+			ppi => $ppi,
+	);
 
-	$self->{packages} = $ppi->find( 'PPI::Statement::Package' );
-	$self->{includes} = $ppi->find( 'PPI::Statement::Include' );
+	my $first_package = $ppi->find_first('PPI::Statement::Package');
+	if ( $first_package ) {
+		my $package = $first_package->child(2)->content;
+		$doc->title( $package );
+	}
+
+    my $pod = $ppi->find( 'PPI::Token::Pod' ) ;
+	$doc->pod( $pod ? @$pod : [] );
+	my $packages = $ppi->find( 'PPI::Statement::Package' );
+	$doc->packages( $packages ? @$packages : [] );
+	my $includes = $ppi->find( 'PPI::Statement::Include' );
+	$doc->includes( $includes ? @$includes : [] );
+	my $subs = $ppi->find( 'PPI::Statement::Sub' );
+	$doc->subs( $subs ? @$subs : [] ); 
+
+
+#	my @parsers = sort { $a->run_after ne $b } $self->parsers;
+my @parsers = $self->parsers;
+	foreach my $plugin ( @parsers ) {
+		warn "PLUGIN ::: $plugin";
+		$plugin->parse( $doc );
+	};
 	
-	$self->{subs} = $ppi->find( 'PPI::Statement::Sub' );
 	# TODO , determine methods vs functions heuristicly  ?
-
-	$self->{inherits} = [] ;
-
-	return $self;
+	#$self->process($doc);
+	return $doc;
 }
 
 sub _chase {
 	my ($self,$package) = @_;
 	my $class = ref $self;
-	if (my $cached = $self->have_cached( $package ) ) {
+	if (my $cached = $self->have_cached( name=>$package ) ) {
 		my ($name,$data) = each %$cached; #FIXME
-		my $doc = YAML::Load( $data );
-		die Dumper $cached;
+		my $doc = eval { my $doc = YAML::Load( $data ) };
+		return $doc;
 	}
-	my $file = Pod::Simple::Search->find( $package );
-	return unless $file;
-	my $dep = $class->new();
-	$dep->parse_file( $file );
-	$self->{depends}{$package} =  $dep  ;
-	return $dep;
+	else {
+		my $file = Pod::Simple::Search->find( $package );
+		return unless $file;
+		my $doc = $self->parse_file( $file );
+		return $doc;
+	}
 }
 
 sub have_cached {
-	my ($self,$package) = @_;
+	my ($self,$type,$package) = @_;
 	return unless exists $self->{cache};
-	#warn __PACKAGE__ . ' try to fetch cached ' . $package;
-	return $self->{cache}->get($package);
+	my $hit =  $self->{cache}->get($type=>$package);
+	#warn "Cache hit for $package - $hit" if $hit;
+	return $hit;
 }
 
 sub init_cache {
-	my ($self) = @_;
-	my $user_dir = File::HomeDir->my_data( 'Macropod' );
+	my ($self,$dbfile) = @_;
+	if ( ! defined $dbfile ) 
+	{
+		my $user_dir = File::HomeDir->my_data( 'Macropod' );
 #warn 'user dir is ' . $user_dir;
-	mkpath( $user_dir ) unless -d $user_dir;
-	my $dbfile = $user_dir . '/macropod_parser.cache.db'; #FIXME File::Spec
-
-	Macropod::Cache->_bootstrap( $dbfile ) unless -f $dbfile;
+		mkpath( $user_dir ) unless -d $user_dir;
+		$dbfile = $user_dir . '/macropod_parser.cache.db'; #FIXME File::Spec
+	}
+	
+	unless ( -f $dbfile ) {
+		Macropod::Cache->_bootstrap( $dbfile );
+	}
 
 	my $cache = Macropod::Cache->new( dbfile=>$dbfile );
 	$self->{cache} = $cache;
@@ -167,17 +221,19 @@ sub to_string {
 
 
 sub process {
-	my ($self) = @_;
+	my ($self,$doc) = @_;
 
-	$self->process_includes;
-	$self->process_inherits;
+	my @processors = $self->processors;
+	foreach my $plugin ( @processors ) {
+		$plugin->process( $doc )
+	}
+	#$self->process_includes($doc);
+	#$self->process_inherits($doc);
+	
 
 	if ( exists $self->{cache} ) {
 		$self->{cache}->store( 
-			$self->{name},
-			$self->{inputfile},
-			$self->{signature},
-			$self->macros
+			$doc
 		);
 	}
 
@@ -185,8 +241,22 @@ sub process {
 
 sub _dequote ($) {
 	my $node = shift;
-	my @strings = grep !/^q(r|q|w)/ , $node->content =~ /([:\w]+)+/g;
-
+		
+	my @strings;
+	if ( UNIVERSAL::isa($node,'PPI::Node') ) {
+		@strings =  grep !/^q(r|q|w)/ , $node->content =~ /([:\w]+)+/g;
+		warn "DEQUOTE NODE: " . $node;
+		warn @strings;
+		
+	}
+	elsif ( ref $node eq 'ARRAY' ) {
+		@strings = @$node;
+		warn @strings;
+	}
+	else {
+		@strings = grep !/^q(r|q|w)/ , $node =~ /([:\w]+)+/g;
+		warn @strings;
+	}
 	return @strings;
 }
 
@@ -197,17 +267,19 @@ sub ppidump ($) {
 
 
 sub expand {
-	my ($self) = @_;
-	$self->process unless exists $self->{processed};
+	my ($self,$doc) = @_;
+	$self->process($doc) unless $doc->processed;
 
 	# TODO insert somewhere nice...
 	my $output;
 
-	if ( $self->{pods} ) {
-		$output .= "$_" for @{ $self->{pods} };
+	if ( $doc->pod ) {
+		$output .= "$_" for @{ $doc->pod };
 	}
 
-$output .= "\n=pod\n\n=begin macropod\n\nsignature: $self->{signature}\n\n=end macropod\n\n";
+	$output .= sprintf 
+		"\n=pod\n\n=begin macropod\n\nsignature: %s\n\n=end macropod\n\n", 
+		$doc->signature;
 
 	$output .= $self->apply_macros( 
 				$self->_dump_items( $_ , $self->{$_} )
@@ -269,81 +341,21 @@ sub _dump_extmethods {
 
 
 
-sub process_includes {
-	my $self = shift;
-	my $uses_packages =  $self->{includes};
-	return unless $uses_packages;
-	foreach my $used ( @$uses_packages ) {
-		my $class = $used->child(2);
-		my $hook = "_uses_" . $class->content;
-		$hook =~ tr/:/_/;
-		if  ( $self->can( $hook ) ) {
-			$self->$hook( $used );	
-		}
-		elsif( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
-			$self->_uses_imports( $class->content, $used );
-		}
-		else {
-			push @{ $self->{requires} }, $class->content;
-			#warn "Uncaught include of " . $class->content;
-			#warn PPI::Dumper->new( $used )->print;
-		}
-		$self->_chase( $class->content );
-	}	
 
-	$uses_packages;
-}
 
 sub process_inherits {
-	my ($self) = @_;
-	my $inherits =  $self->{inherits};
+	my ($self,$doc) = @_;
+	my $inherits =  $doc->inherits;
 
 	foreach my $class ( @$inherits) {
 		my $hook = "_inherits_" . $class;
 		#$hook =~ tr/:/_/;
 		#warn "testing '$hook'";
 		if  ( $self->can( $hook ) ) {
-			$self->$hook( $class );	
+			$self->$hook( $doc , $class );	
 		}
 	}	
 
-
-}
-
-sub _uses_imports {
-	my ($self,$class,$statement) = @_;
-	my $list = $statement->find_first( 'PPI::Token::QuoteLike::Words' );
-	my @imports = map {  {class=>$class, function => $_}  } _dequote $list;
-	push @{ $self->{imports} } , @imports;
-}
-
-sub _uses_base {
-	my $self = shift;
-	my $node = shift;
-	my $imports = $node->find_first( 'PPI::Token::QuoteLike::Words' );
-	my @classes = 
-		grep !/^q(r|q|w)/ , $imports =~ /([+-:\w]+)+/g;
-	push @{ $self->inherits } ,  @classes;
-	
-
-
-}
-
-sub _uses_Exporter {
-	my ($self,$node) = @_;
-	my $export_ok = $self->ppi->find_first(
-		sub { 
-			my $node = $_[1];
-			return unless $node->isa('PPI::Statement');
-			my $sym = $node->find_first('PPI::Token::Symbol') ;
-			return unless $sym;
-			return $sym->content eq '@EXPORT_OK'
-		}
-	);
-	return unless $export_ok;
-    my $words = $export_ok->find_first( 'PPI::Token::QuoteLike::Words' );
- 	my @symbols =  _dequote $words;
-	push @{ $self->{exports} } , @symbols;
 
 }
 
@@ -375,15 +387,6 @@ sub _inherits_Class::Accessor {
 
 }
 
-sub _uses_vars {
-#	warn "use vars uncaught";
-}
-
-sub _uses_constant {
-#	warn "use constant uncaught";
-}
-
-sub _uses_Test::More {};
 
 
 1;

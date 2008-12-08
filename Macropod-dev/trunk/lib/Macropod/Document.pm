@@ -5,28 +5,49 @@ use warnings;
 
 use Carp qw( confess );
 use PPI;
-use YAML ();
+use YAML qw( Dump );
 use PPI::Dumper;
 use Data::Dumper;
 use Pod::Simple::Search;
 
+
 use base qw( Class::Accessor );
-__PACKAGE__->mk_accessors(
+
+__PACKAGE__->mk_accessors( 'foo' );
+
+#$Object::Accessor::FATAL = 1;
+#$Object::Accessor::DEBUG = 1;
+
+sub new {
+  my ($class,@args) = @_;
+  my $obj = $class->SUPER::new();
+
+  $obj->mk_accessors(
 	qw( 
+		ppi
 		title
 		source
-		pod 
+		pod
+		macropod
 		macros 
 		
 		packages 
-		
+		subs
 		includes
+		
+		method
 		inherits
 		requires 
+		imports
+		exports
+		
+		processed
+			
 		
 	)
 );
-
+$obj
+}
 
 
 =pod
@@ -94,16 +115,19 @@ Serialize the current document into YAML
 
 =cut
 
-sub new {
-	confess "Constructors are 'create' and 'open' ";
-}
 
 sub create {
 	my ($class,%args) = @_;
-	my %self;
+	my %self = ( 
 	
-	$self{_created} = 1;
-	return bless %self, ref $class || $class;
+				 );
+	my $self = $class->new;
+        foreach my $attr ( keys %args ) {
+		if ( $self->can($attr) && defined $args{$attr} ) {
+			 $self->$attr( $args{$attr} );
+		}
+	}
+	return $self;
 
 }
 
@@ -113,6 +137,46 @@ sub open {
 }
 
 sub signature {
+	my $self = shift;
+	return Macropod::Signature->digest( $self->yaml );
+}
+
+sub yaml {
+	my ($self) = @_;
+	confess unless ref $self;
+	
+	my %out = (
+		methods  => $self->method,
+		inherits => $self->inherits,
+		requires => $self->requires,
+		exports  => $self->exports,
+		imports  => $self->imports,
+		title  => $self->title,
+		source => $self->source,
+	);
+	return YAML::Dump( \%out );
+}
+
+
+sub add {
+	my ($self,$collect,$key,$meta) = @_;
+	my $collector = $self->$collect;
+	$collector ||= {};
+	#warn "Got " . Dumper $collector . " for $collect";
+	confess "NOMETA $collect=>$key '$meta' " unless $meta;
+	if ( exists $collector->{$key} ) {
+		my $old = $collector->{$key};
+		warn "OLD for '$collect','$key' " . Dumper $old;
+		#confess unless ref $old eq 'HASH';;
+		my %new = ( %$old , %$meta );
+		$collector->{$key} = \%new;
+	}
+	else {
+		$collector->{$key} = $meta;
+	}
+	$self->$collect( $collector );
 
 }
+
+
 1;

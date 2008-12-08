@@ -5,5 +5,5 @@ use Macropod::Parser;
 my $m = Macropod::Parser->new();
 ok( $m ,'instance' );
 
-my $doc = $m->parse( 'Macropod::Parser' );
+my $doc = $m->parse_file( 't/data/Package.pm' );
 ok( $doc );

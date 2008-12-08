@@ -23,7 +23,8 @@ sub new {
 				? delete $args{dbargs} 
 				: {RaiseError=>1,AutoCommit=>0}	
 		) or confess $DBI::errstr;
-
+		$dbh->{HandleError} = sub { confess(shift) };
+		
 		$self{dbh} = $dbh;
 	}
  	else {
@@ -34,29 +35,35 @@ sub new {
 
 }
 sub store {
-	my ($self,$name,$file,$signature,$data) = @_;
+	my ($self,$doc) = @_;
+	my $signature = $doc->signature;
+	if ( $self->get( signature => $signature ) ) {
+		warn "Already stored $signature";
+		return;
+	}
 	my $sth = $self->{dbh}->prepare_cached(
 		q|insert into podcache VALUES(?,?,?,?)|
 	);
 	eval {
-		$sth->execute( $name, $file , $signature, $data );
+		$sth->execute( $doc->title, $doc->source , $doc->signature, $doc->yaml );
 	};
 	
 	if ( $@ ) {
 		warn "Store  of '$name' failed with '$@'";
 		$self->{dbh}->rollback;
-		return undef;
+		$sth->finish;
+		return;
 	}
+	$sth->finish;
 	return $self->{dbh}->commit;
 	
 }
 
 sub get {
-	my ($self,$name) = @_;
+	my ($self,$field,$name) = @_;
 	my $sth = $self->{dbh}->prepare_cached(
-		q|select * from podcache where name = ?|
-	);
-	#warn __PACKAGE__ . ' try to get '. $name;
+		qq|select * from podcache where $field = ?|
+	); # FIXME Bramble - yuk
 
 	my $rc = $sth->execute( $name );
 	if ( $rc ) {
@@ -71,10 +78,12 @@ sub get {
 		while ( my $result = $sth->fetchrow_hashref ) {
 			$results{$result->{signature}} = $result;
 		}
+		$sth->finish;
 		return \%results;
 	}
 	else { 
 		# SQL failed under us. 
+		$sth->finish;
 		cluck "select doc failed '$rc' $DBI::errstr ";
 		return
 	}
@@ -82,6 +91,7 @@ sub get {
 
 sub _bootstrap {
 	my ($class,$file) = @_;
+	warn "Bootstrapping Macropod cache at $file";
 #	confess "Cannot write to $file" unless -w $file;
 	my $dbh = DBI->connect( 'dbi:SQLite:' . $file )
 		or confess $DBI::errstr;
@@ -98,16 +108,17 @@ sub _bootstrap {
 	$dbh->disconnect;
 	undef $dbh;
 	my $cache = $class->new( dbfile=>$file );
-	$cache->store( 'Macropod::Test' , '__FILE__' , '1' , "=pod\n\nhead1 Macropod\n\n=cut\n" );
-	my $result = $cache->get( 'Macropod::Test' );
-	return $result->{1};
+#	$cache->store( 'Macropod::Test' , '__FILE__' , '1' , "=pod\n\nhead1 Macropod\n\n=cut\n" );
+#	my $result = $cache->get( name => 'Macropod::Test' );
+#	return $result->{1};
 
 }
 
 sub DESTROY {
 	my ($self) = @_;
 	if (ref $self->{dbh}) {
-		$self->{dbh}->rollback;
+		#cluck "DESTROYING db handle";
+		#$self->{dbh}->rollback;
 		$self->{dbh}->disconnect;
 	}
 	
