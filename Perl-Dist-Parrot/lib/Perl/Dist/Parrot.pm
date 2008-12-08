@@ -21,7 +21,7 @@ use Perl::Dist::Asset::Parrot ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION  = '0.01';
+	$VERSION  = '0.01';
 	@ISA      = 'Perl::Dist::Vanilla';
 }
 
@@ -38,13 +38,14 @@ use Object::Tiny qw{
 
 sub new {
 	shift->SUPER::new(
-		app_id               => 'parrot',
-		app_name             => 'Vanilla Parrot',
+		app_id               => 'perl6',
+		app_name             => 'Vanilla Perl 6',
 		app_publisher        => 'Vanilla Perl Project',
 		app_publisher_url    => 'http://vanillaperl.org/',
-		app_ver_name         => 'Vanilla Parrot 0.8.1 Alpha 1',
-		output_base_filename => 'vanilla-parrot-0.8.1-alpha-1',
-		image_dir            => 'C:\\parrot',
+		app_ver_name         => 'Vanilla Perl 6 0.8.1 Alpha 1',
+		output_base_filename => 'vanilla-perl6-0.8.1-alpha-1',
+		image_dir            => 'C:\\perl6',
+		build_dir            => 'C:\\build',
 		perl_version         => 588,
 
 		# Build both exe and zip versions
@@ -55,10 +56,10 @@ sub new {
 	);
 }
 
-sub parrot_dir {
+sub perl6_dir {
 	File::Spec->catdir(
 		$_[0]->image_dir,
-		'parrot',
+		'perl6',
 	);
 }
 
@@ -107,7 +108,7 @@ sub install_parrot_081 {
 		name       => 'parrot',
 		url        => 'http://strawberryperl.com/package/parrot-0.8.1.tar.gz',
 		unpack_to  => 'parrot',
-		install_to => 'parrot',
+		install_to => 'perl6',
 		license    => {
 			'parrot-0.8.1/LICENSE' => 'parrot/LICENSE',
 		},
@@ -167,7 +168,7 @@ sub install_parrot_081_bin {
 		);
 
 		# Configure Parrot
-		my $dir = $self->parrot_dir;
+		my $dir = $self->perl6_dir;
 		$self->trace("Configuring Parrot...\n");
 		$self->_perl("Configure.pl", "--prefix=$dir");
 
@@ -190,8 +191,8 @@ sub install_parrot_081_bin {
 		$self->_mingw_make('reallyinstall');
 
 		# Flush and reset the PATH environment
-		$self->clean_env_path;
-		$self->add_end_path( 'parrot', 'bin' );
+		$self->clear_env_path;
+		$self->add_env_path( 'perl6', 'bin' );
 	}
 
 	return 1;
@@ -223,7 +224,7 @@ sub _mingw_make {
 
 =pod
 
-=head1 SUPPOT
+=head1 SUPPORT
 
 There is no support.
 
