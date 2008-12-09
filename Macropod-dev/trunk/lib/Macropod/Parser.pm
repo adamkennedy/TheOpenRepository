@@ -143,7 +143,7 @@ sub _parse {
 	}
 
     my $pod = $ppi->find( 'PPI::Token::Pod' ) ;
-	$doc->pod( $pod ? @$pod : [] );
+	$doc->pod( $pod ? $pod : [] );
 	my $packages = $ppi->find( 'PPI::Statement::Package' );
 	$doc->packages( $packages ? @$packages : [] );
 	my $includes = $ppi->find( 'PPI::Statement::Include' );
