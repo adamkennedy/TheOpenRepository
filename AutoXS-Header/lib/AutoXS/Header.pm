@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 sub WriteAutoXSHeader {
   my $filename = shift;
@@ -74,7 +74,7 @@ AutoXS::Header - Container for the AutoXS header files
 =head1 SYNOPSIS
 
   # potentially in your Makefile.PL
-  sub MY::post_initialize{
+  sub MY::post_constants {
     # Write header as AutoXS.h in current directory
     return <<'MAKE_FRAG';
   linkext ::
