@@ -5,7 +5,6 @@ use warnings;
 require Macropod::Parser::Includes;
 
 
-
 sub parse {
 	my ($class,$doc) = @_;
 	my $inherits =  $doc->inherits;

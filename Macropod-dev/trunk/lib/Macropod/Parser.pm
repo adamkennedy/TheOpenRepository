@@ -155,7 +155,7 @@ sub _parse {
 #	my @parsers = sort { $a->run_after ne $b } $self->parsers;
 my @parsers = $self->parsers;
 	foreach my $plugin ( @parsers ) {
-		warn "PLUGIN ::: $plugin";
+		#warn "PLUGIN ::: $plugin";
 		$plugin->parse( $doc );
 	};
 	
@@ -239,26 +239,6 @@ sub process {
 
 }
 
-sub _dequote ($) {
-	my $node = shift;
-		
-	my @strings;
-	if ( UNIVERSAL::isa($node,'PPI::Node') ) {
-		@strings =  grep !/^q(r|q|w)/ , $node->content =~ /([:\w]+)+/g;
-		warn "DEQUOTE NODE: " . $node;
-		warn @strings;
-		
-	}
-	elsif ( ref $node eq 'ARRAY' ) {
-		@strings = @$node;
-		warn @strings;
-	}
-	else {
-		@strings = grep !/^q(r|q|w)/ , $node =~ /([:\w]+)+/g;
-		warn @strings;
-	}
-	return @strings;
-}
 
 sub ppidump ($) {
 	my $node = shift;

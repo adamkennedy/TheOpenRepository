@@ -3,25 +3,10 @@ use strict;
 use warnings;
 use Carp qw( confess carp );
 use Data::Dumper;
+use Macropod::Util qw( dequote dequote_list ppi_find_list );
 
-#sub _dequote($) {
-#	Macropod::Parser::_dequote( shift )
-#}
 sub run_after {''};
 
-sub dequote($) {
- 	my $s = shift;
- 	my $begin = substr( $s, 0, 3 );
- 	my $end = substr( $s,-1,1 );
- 	my ($term) = grep { $_ eq $end} split //,$begin;
- 	my $cut_in = index( $s,$term,0 ) + 1;
- 	confess "Cannot find quoter" unless $cut_in;
- 	my $dq = substr( $s , $cut_in  );
- 	chop $dq;
- 	carp "Failed '$s'" unless ( $dq || $s eq $dq );
- 	
- 	return split /\s+/ ,$dq;
-}
 
 sub parse {
 	my ($self,$doc) = @_;
@@ -49,16 +34,10 @@ sub parse {
 		#warn "Try to hook $hook";
 			$self->$hook( $doc , $used );	
 		}
-		elsif( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
+		if( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
 			$self->_uses_imports( $doc , $class->content, $used );
 		}
-		else {
-			#warn "Add requires for " . $class->content;
-			$doc->add( requires => $class->content => {});
-			#warn "Uncaught include of " . $class->content;
-			#warn PPI::Dumper->new( $used )->print;
-		}
-		#$self->_chase( $class->content );
+ 		$doc->add( requires => $class->content => {});
 	}	
 
 	$uses_packages;
@@ -75,7 +54,7 @@ sub _uses_imports {
 	#warn "IMPORTS: " , Dumper $list->[0]->content;
 	my %meta;
 	my $str = $list->[0]->content;
-	my @functions  =  dequote $str; # FIXME not all are functions
+	my @functions  =  dequote_list( $str ); # FIXME not all are functions
 	@meta{@functions} = @functions;
 	#confess ;
 	$doc->add( imports => $class => { functions => \%meta } ) ;
@@ -90,7 +69,7 @@ sub _uses_base {
 	#warn "Uses BASE";
 	my $imports = $node->find_first( 'PPI::Token::QuoteLike::Words' );
 
-	my @classes = dequote $imports;
+	my @classes = dequote_list( $imports );
 		#split /(\s|q(r|x|q|w).)/, $imports;
 #		 $imports =~ /([+-:\w]+)+/g;
 #	grep !/^q(r|q|w)/ ,
@@ -116,7 +95,7 @@ sub _uses_Exporter {
 	);
 	return unless $export_ok;
     my $words = $export_ok->find_first( 'PPI::Token::QuoteLike::Words' );
- 	my @symbols =  dequote $words;
+ 	my @symbols =  dequote_list( $words );
  	my %sym;
  	@sym{@symbols} = @symbols;
 	$doc->add( exports =>  symbols => \%sym   );
@@ -124,6 +103,16 @@ sub _uses_Exporter {
 }
 
 sub _uses_vars {
+    my ($self,$doc,$node) = @_;
+    my $imports = $node->find(  ppi_find_list  );
+    my @symbols;
+    foreach my $word ( @$imports ) {
+        my @terms = dequote_list( $word );
+        push @symbols, @terms;
+    }
+    $doc->mk_accessors( 'variables' );
+    $doc->add( 'variables' => $_ => {} ) for @symbols;
+
 #	warn "use vars uncaught";
 }
 

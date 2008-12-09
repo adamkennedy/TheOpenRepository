@@ -14,13 +14,14 @@ requires => {
 		'File::HomeDir' => 0,
 		'DBI' => 0,
             },
-pm_files => {
-	'lib/Macropod/Parser.pm' => 'lib/Macropod/Parser.pm',
-	'lib/Macropod/Document.pm' => 'lib/Macropod/Document.pm',
-	'lib/Macropod/Cache.pm' => 'lib/Macropod/Cache.pm' ,
-	'lib/Macropod/Signature.pm' => 'lib/Macropod/Signature.pm',
 
-}
+#pm_files => {
+#	'lib/Macropod/Parser.pm' => 'lib/Macropod/Parser.pm',
+#	'lib/Macropod/Document.pm' => 'lib/Macropod/Document.pm',
+#	'lib/Macropod/Cache.pm' => 'lib/Macropod/Cache.pm' ,
+#	'lib/Macropod/Signature.pm' => 'lib/Macropod/Signature.pm',
+#}
+
 );
 $build->create_build_script;
 

@@ -133,6 +133,14 @@ sub create {
 
 sub open {
 	my ($class,%args) = @_;
+        if ( defined $args{file} ) {
+            my $data = YAML::LoadFile( $args{file} );
+            my $doc = $class->create( %$data );
+            return $doc;
+        }
+        else {
+            confess "usage: Macropod::Document->open( 'path/to/file.macropod' )";
+        }
 	
 }
 

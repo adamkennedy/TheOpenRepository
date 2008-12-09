@@ -1,0 +1,17 @@
+package: Example
+file:    t/data/Example.pm
+requires: 
+    strict: 
+    warnings:
+    perl: 5.8 
+inherits:
+    Class::Accessor: 
+        methods:
+            - mk_accessors
+            - mk_ro_accessors
+imports:
+    confess: Carp
+    cluck:   Carp
+exports:
+    func_exported: subroutine
+    MAX_ENTROPY:   constant 

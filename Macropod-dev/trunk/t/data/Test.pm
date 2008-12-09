@@ -1,11 +1,8 @@
-package t::data::Package;
-require Exporter;
-@ISA = qw(Exporter);
+package t::data::Test;
 use strict;
 use warnings;
 use Carp qw( confess cluck );
-use vars qw( $VERSION @EXPORT @MacropodInfo );
-@EXPORT = qw( @MacropodInfo );
+use vars '$VERSION', '@EXPORT',  '@MacropodInfo' ;
 
 
 
