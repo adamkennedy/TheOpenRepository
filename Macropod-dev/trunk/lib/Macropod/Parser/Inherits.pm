@@ -1,9 +1,13 @@
 package Macropod::Parser::Inherits;
 use strict;
 use warnings;
+use Macropod::Util qw( dequote_list ppi_find_list );
+use base qw( Macropod::Parser::Plugin );
 
+# force Module::Pluggable to load this first?
 require Macropod::Parser::Includes;
 
+use Data::Dumper;
 
 sub parse {
 	my ($class,$doc) = @_;
@@ -22,7 +26,7 @@ sub parse {
 
 }
 
-sub _inherits_Class__Accessor {
+sub __inherits_Class__Accessor {
 	my ($class,$doc) = @_;
 	my $package_calls = $doc->{ppi}->find(
 		sub { 
@@ -35,18 +39,19 @@ sub _inherits_Class__Accessor {
 				&& $ele->child(1)
 				&& $ele->child(1)->content eq '->'
 				&& $ele->child(2)
-				&& $ele->child(2)->content =~ /^mk_accessor(?:s)?/;
+				&& $ele->child(2)->content =~ /^(mk_accessors|mk_ro_accessors)?/;
 		}
 	);
-	warn $package_calls;
+	warn Dumper $package_calls;
 	return unless $package_calls;
-
+        $doc->mk_accessors( 'accessors' ); # the irony..
 	foreach my $call ( @$package_calls  ) {
 
 		#my $list = $call->find( 'PPI::Token::QuoteLike::Words' ) ;
-		my $list = $call->find_first('PPI::Structure::List' );
-		next unless $list;
-		#warn Dumper $list;
+		my $list = $call->find_first( ppi_find_list );
+                confess $list->content;
+		my @accessors = dequote_list( $list );
+		$doc->add( accessors => $_ => {} ) for @accessors; 
 	}
 
 }

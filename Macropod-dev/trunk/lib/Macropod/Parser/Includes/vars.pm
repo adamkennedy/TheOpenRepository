@@ -2,7 +2,7 @@ package Macropod::Parser::Includes::vars;
 
 use strict;
 use warnings;
-
+use base qw( Macropod::Parser::Plugin );
 use Macropod::Util qw( ppi_find_list dequote_list );
 
 

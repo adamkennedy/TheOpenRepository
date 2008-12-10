@@ -17,8 +17,8 @@ while ( my $file = <STDIN> ) {
 	my $doc = $p->parse_file( $file );
 	next unless $doc;
 	warn $doc->title,$/;
-
-	$p->process($doc);
+	$p->{cache}->store( $doc );
+	#$p->process($doc);
 	#warn $doc->yaml;
 	#print Dumper $doc;
 

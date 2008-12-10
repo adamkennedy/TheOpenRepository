@@ -5,14 +5,36 @@ use strict;
 use warnings;
 use Carp qw( confess cluck );
 use vars qw( $VERSION @EXPORT @MacropodInfo );
+use parent qw( Class::Accessor IO::Socket );
 @EXPORT = qw( @MacropodInfo );
 
+__PACKAGE__->mk_accessors( qw/ hint order / );
+__PACKAGE__->mk_ro_accessors( qw/ help / );
 
+
+=pod
+
+=head1 NAME
+
+t::data::Package
+
+=head1 SYNOPSIS
+
+Provide some examples of Macropod capability in parsing and deriving 
+meaning from perl source.
+
+=head1 METHODS
+
+=head2 funcScalar
+
+twiddle a scalar in dangerous ways
+
+=cut 
 
 
 
 sub funcScalar ($) {
-
+ no strict qw/refs/;
 }
 
 sub funcList (@) {
@@ -20,7 +42,7 @@ sub funcList (@) {
 }
 
 sub funcHash (%) {
-
+ no warnings 'undefined';
 }
 
 sub funcManyProto ($&%) {
@@ -42,7 +64,6 @@ sub method1 {
   }
 
 }
-
 
 
 sub methodOverLoad {

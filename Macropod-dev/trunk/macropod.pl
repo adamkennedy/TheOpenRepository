@@ -4,6 +4,9 @@ use warnings;
 use lib qw( ./lib );
 
 use Macropod::Parser;
+use Macropod::Processor;
+use Pod::POM::View::HTML;
+
 use Data::Dumper;
 #$Data::Dumper::Maxdepth =2;
 my $m = Macropod::Parser->new();
@@ -13,5 +16,7 @@ $doc->source( undef );
 $doc->ppi( undef);
 
 print Dumper $doc;
-print 'Done';
-#$m->render;
+#my $proc = Macropod::Processor->new();
+#my $pod = $proc->process( $doc );
+
+

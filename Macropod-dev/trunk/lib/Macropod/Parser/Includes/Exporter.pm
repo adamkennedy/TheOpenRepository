@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp qw( confess );
 use Macropod::Util qw( dequote_list );
-
+use base qw( Macropod::Parser::Plugin );
 
 sub parse {
     my ($self,$doc,$class,$node) = @_;
@@ -24,7 +24,7 @@ sub parse {
     my %sym;
     @sym{@symbols} = @symbols;
     $doc->add( exports =>  symbols => \%sym   );
-
+    $doc->add( requires=>  Exporter=>{} );
     return 1;
 
 }

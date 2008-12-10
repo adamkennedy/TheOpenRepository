@@ -5,6 +5,7 @@ use warnings;
 use Carp qw( confess carp );
 use Data::Dumper;
 
+use base qw( Macropod::Parser::Plugin );
 
 
 sub parse {
@@ -12,8 +13,8 @@ sub parse {
   my $subs =  $doc->subs;
   return unless $subs;
   unless ('ARRAY' eq ref $subs ) {
-    carp "Passed '$subs' not ARRAY";
-    return;
+    warn "Passed '$subs' not ARRAY";
+    $subs = [ $subs ];
   }
   
   foreach my $sub ( @$subs ) {

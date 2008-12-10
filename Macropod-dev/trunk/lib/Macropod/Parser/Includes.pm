@@ -4,10 +4,12 @@ use warnings;
 use Carp qw( confess carp cluck);
 use Data::Dumper;
 use Macropod::Util qw( dequote dequote_list ppi_find_list );
+use base qw( Macropod::Parser::Plugin );
+
 use Module::Pluggable
-        require     => 1,
-        search_path => 'Macropod::Parser::Includes',
-        only        => qr/Macropod::Parser::Includes::(\w+)$/; 
+        instantiate => 'new',
+        search_path => 'Macropod::Parser::Includes';
+#        only        => qr/Macropod::Parser::Includes::(\w+)$/; 
 
 
 sub parse {
@@ -39,8 +41,16 @@ sub parse {
 
                 my $skip_default = 0;
                 foreach my $plugin ( $self->plugins ) {
-                    $skip_default++
-                      if ($plugin->parse( $doc, $class->content, $used ));
+                    #warn __PACKAGE__ .  " $plugin";
+                    my $success = 
+                      eval { $plugin->parse( $doc, $class->content, $used ) };
+                    if ($@) {
+                      $self->warning( $@ );
+                    }
+
+                    if (defined $success) {
+                      $skip_default++;
+                    }
                 }
 		
 		unless ( $skip_default ) {

@@ -14,8 +14,10 @@ use Pod::Simple::Search;
 use File::HomeDir;
 use Module::Pluggable
 	require     => 1,
+	#instantiate => 'new',
         search_path => 'Macropod::Parser',
 	only => qr/^Macropod::Parser::(\w+)$/ ,
+        except => 'Macropod::Parser::Plugin',
 	sub_name    => 'parsers';
 
 
@@ -80,6 +82,11 @@ sub new {
 
 sub error {
 	warn "->error not implemented";
+}
+
+sub warning {
+  my ($self,$message) = @_;
+  warn __PACKAGE__ . " warning: $message\n";
 }
 
 sub parse {
@@ -150,8 +157,11 @@ sub _parse {
 
 #	my @parsers = sort { $a->run_after ne $b } $self->parsers;
 my @parsers = $self->parsers;
-	foreach my $plugin ( @parsers ) {
+	foreach my $plugin_class ( @parsers ) {
+                my $plugin = $plugin_class->new( parser=>$self );
+                warn "$plugin";
 		my $success = eval { $plugin->parse( $doc ) };
+                warn $@ if $@;
 	};
 	
 	# TODO , determine methods vs functions heuristicly  ?

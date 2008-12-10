@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use Macropod::Util qw( dequote_list ppi_find_list );
+use base qw( Macropod::Parser::Plugin );
+
 use Carp qw( confess carp );
 use Data::Dumper;
 
@@ -12,7 +14,10 @@ our %known_pragmas = (
     attributes => 'get/set subroutine or variable attributes',
     attrs => 'set/get attributes of a subroutine (deprecated)',
     autouse => 'postpone load of modules until a function is used',
-    base => 'Establish an ISA relationship with base classes at compile time',
+
+# see Macropod::Parser::Includes::base
+#    base => 'Establish an ISA relationship with base classes at compile time',
+
     bigint => 'Transparent BigInteger support for Perl',
     bignum => 'Transparent BigNumber support for Perl',
     bigrat => 'Transparent BigNumber/BigRational support for Perl',
