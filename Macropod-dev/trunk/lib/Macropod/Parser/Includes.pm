@@ -39,7 +39,8 @@ sub parse {
 
                 my $skip_default = 0;
                 foreach my $plugin ( $self->plugins ) {
-                    $skip_default += $plugin->parse( $doc, $class->content, $used );
+                    $skip_default++
+                      if ($plugin->parse( $doc, $class->content, $used ));
                 }
 		
 		unless ( $skip_default ) {

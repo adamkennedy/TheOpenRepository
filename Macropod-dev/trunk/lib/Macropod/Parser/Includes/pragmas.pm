@@ -57,8 +57,6 @@ sub parse {
     $doc->mk_accessors( 'pragmas' );
     my $args = $node->find( ppi_find_list );
     my @args  = ($args) ? dequote_list( $args->[0] ) : ();
-warn Dumper $args;
-warn Dumper \@args;
     my $skip = 1;
     if ( $node->child(0) eq 'no' ) {
       $doc->add( 'pragmas' => 'disables' => { $class => \@args } ); 
