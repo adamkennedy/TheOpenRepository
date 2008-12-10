@@ -1,11 +1,13 @@
 package Macropod::Parser::Includes;
 use strict;
 use warnings;
-use Carp qw( confess carp );
+use Carp qw( confess carp cluck);
 use Data::Dumper;
 use Macropod::Util qw( dequote dequote_list ppi_find_list );
-
-sub run_after {''};
+use Module::Pluggable
+        require     => 1,
+        search_path => 'Macropod::Parser::Includes',
+        only        => qr/Macropod::Parser::Includes::(\w+)$/; 
 
 
 sub parse {
@@ -13,8 +15,8 @@ sub parse {
 	my $uses_packages =  $doc->includes;
 	return unless $uses_packages;
     unless ('ARRAY' eq ref $uses_packages ) {
-    	carp "Passed '$uses_packages' not ARRAY";
-    	return;
+    	warn "Passed '$uses_packages' not ARRAY";
+        $uses_packages = [ $doc->includes ];
     }
 	foreach my $used ( @$uses_packages ) {
 		# naive , most of the time 'use Package' but not always
@@ -27,20 +29,27 @@ sub parse {
 			next;
 		}
 		
-		my $hook = "_uses_" . $class->content;
-		$hook =~ tr/:/_/;
+		#my $hook = "_uses_" . $class->content;
+		#$hook =~ tr/:/_/;
 
-		if  ( $self->can( $hook ) ) {
+		#if  ( $self->can( $hook ) ) {
 		#warn "Try to hook $hook";
-			$self->$hook( $doc , $used );	
-		}
-		if( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
+		#	$self->$hook( $doc , $used );	
+		#}
+
+                my $skip_default = 0;
+                foreach my $plugin ( $self->plugins ) {
+                    $skip_default += $plugin->parse( $doc, $class->content, $used );
+                }
+		
+		unless ( $skip_default ) {
+		    if( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
 			$self->_uses_imports( $doc , $class->content, $used );
-		}
- 		$doc->add( requires => $class->content => {});
+		    }
+ 		    $doc->add( requires => $class->content => {});
+                }
 	}	
 
-	$uses_packages;
 }
 
 
@@ -66,17 +75,9 @@ use Data::Dumper;
 
 sub _uses_base {
 	my ($self,$doc,$node) = @_;
-	#warn "Uses BASE";
 	my $imports = $node->find_first( 'PPI::Token::QuoteLike::Words' );
-
 	my @classes = dequote_list( $imports );
-		#split /(\s|q(r|x|q|w).)/, $imports;
-#		 $imports =~ /([+-:\w]+)+/g;
-#	grep !/^q(r|q|w)/ ,
 	$doc->add( inherits =>  $_ => { } ) for @classes ;
-	
-
-
 }
 
 sub _uses_Exporter {

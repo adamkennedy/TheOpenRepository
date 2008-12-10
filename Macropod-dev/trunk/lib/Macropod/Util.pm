@@ -5,7 +5,7 @@ use vars qw( @EXPORT_OK );
 use strict;
 use warnings;
 use Carp qw( confess );
-
+use Scalar::Util qw( blessed );
 
 @EXPORT_OK = qw( 
   dequote
@@ -28,7 +28,14 @@ sub dequote_ppi  {
 
 
 sub dequote {
-  my ($string) = @_;
+  my ($in) = @_;
+  my $string;
+  if ( blessed $in && $in->can( 'content' ) ) {
+    $string = $in->content; 
+  }
+  else {
+    $string = $in;
+  }
   my $quote_char = chop($string);
   if ( exists $quote_companion{ $quote_char } ) {
     $quote_char = $quote_companion{ $quote_char };

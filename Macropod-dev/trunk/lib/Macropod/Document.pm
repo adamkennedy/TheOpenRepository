@@ -161,6 +161,7 @@ sub yaml {
 		imports  => $self->imports,
 		title  => $self->title,
 		source => $self->source,
+                pod    => $self->pod,
 	);
 	return YAML::Dump( \%out );
 }
@@ -174,7 +175,6 @@ sub add {
 	confess "NOMETA $collect=>$key '$meta' " unless $meta;
 	if ( exists $collector->{$key} ) {
 		my $old = $collector->{$key};
-		warn "OLD for '$collect','$key' " . Dumper $old;
 		#confess unless ref $old eq 'HASH';;
 		my %new = ( %$old , %$meta );
 		$collector->{$key} = \%new;

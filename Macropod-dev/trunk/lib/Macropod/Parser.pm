@@ -14,14 +14,10 @@ use Pod::Simple::Search;
 use File::HomeDir;
 use Module::Pluggable
 	require     => 1,
-	search_path => 'Macropod::Parser' ,
+        search_path => 'Macropod::Parser',
+	only => qr/^Macropod::Parser::(\w+)$/ ,
 	sub_name    => 'parsers';
 
-use Module::Pluggable 
-	require     => 1,
-	search_path => 'Macropod::Processor' ,
-	sub_name    => 'processors';
-	
 
 $VERSION = "0.11_00";
 
@@ -106,7 +102,7 @@ sub parse_text {
 #	$self->{signature} = Macropod::Signature->digest( $text );
 #	$self->{ppi} = $ppi;
 
-	return $self->_parse;
+	return $self->_parse( ppi_doc=>$ppi );
 }
 
 sub parse_file {
@@ -155,8 +151,7 @@ sub _parse {
 #	my @parsers = sort { $a->run_after ne $b } $self->parsers;
 my @parsers = $self->parsers;
 	foreach my $plugin ( @parsers ) {
-		#warn "PLUGIN ::: $plugin";
-		$plugin->parse( $doc );
+		my $success = eval { $plugin->parse( $doc ) };
 	};
 	
 	# TODO , determine methods vs functions heuristicly  ?
