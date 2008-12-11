@@ -56,6 +56,12 @@ Mark's discussion on memoization in Chapter 3 is the
 best I've seen.
 I wish I'd bought his book earlier in my coding.
 
+Mark's book is available on-line.
+You can download chapter-by-chapter or the whole thing at once,
+and you can take your pick of his original sources or PDF,
+at L<http://hop.perl.plover.com/book/>.
+A PDF of the parsing chapter is at L<http://hop.perl.plover.com/book/pdf/08Parsing.pdf>.
+
 =head2 Earley 1970
 
 Of 

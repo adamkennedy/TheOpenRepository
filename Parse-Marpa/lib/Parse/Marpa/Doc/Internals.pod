@@ -455,6 +455,31 @@ QDFA state 0 contains the start rules, with the dot pointer at the beginning.
 Only Earley set 0 will contain an Earley item for QDFA state 0.
 S1@0-0 contains the rules predicted by S0@0-0.
 
+=head2 Ambiguous Parsing
+
+If a parse is ambiguous,
+one or more scans,
+one or more completions,
+or a combination of scans and completions,
+will try to add at least one of the Earley items more than once.
+Marpa does not an Earley item more than once.
+Instead of creating a second Earley item with the same QDFA state and
+origin at the current earleme,
+Marpa adds a source choice to the existing Earley item.
+
+When the time comes to produce parses from the Earley item,
+more than one rule may apply.
+This is because 
+Marpa's Earley items correspond to QDFA states instead of to
+a single rule.
+A rule which could apply in creating a parse tree is called
+an applicable rule.
+Every pairing of source choice and applicable rule
+is an alternative that can be selected when the choices are made
+that produce a parse.
+For more detail on how ambiguous parses
+are evaluated, see L<the section on creating the parse bocage, below|"THE PARSE BOCAGE">.
+
 =head1 HOW A SUCCESSFUL PARSE IS RECOGNIZED
 
 As mentioned, what's usually called Earley's algorithm is just a recognizer,
@@ -522,6 +547,7 @@ Each Marpa evaluator is created with parse criteria.
 The parse criteria are
 the start and end earlemes of the parse,
 and the parse's top symbol.
+
 Default values
 are often used for these parse criteria.
 The default start earleme is earleme 0.
@@ -566,16 +592,16 @@ In restricting the rhs to at most two symbols,
 MBF is very similar to Chomsky Normal Form (CNF).
 
 Marpa uses MBF for four reasons.
-First, MBF is essentially the form in which the grammar
+First, MBF can handle parses with cycles.
+
+Second, MBF is essentially the form in which the grammar
 is found in the Earley items.
 Every source choice of an Earley item contains at most two links.
 These links can be treated as symbols on the rhs of a production.
 So the parse as found in the Earley items is
 in a form with at most two symbols on the right hand side.
 
-Second, MBF is more compact than a parse forest.
-Third, MBF can handle parses with cycles.
-Fourth, MBF easily produces binary trees.
+Third, MBF easily produces binary trees.
 Binary trees are fast and easy
 to traverse and manipulate.
 The effort spent to rewrite the parse data found in the Earley
@@ -629,7 +655,7 @@ Mortar or-nodes are needed because there must be an or-node
 for every symbol in every rule used in any possible parse.
 No Earley item matches a mortar or-node.
 
-=head2 Matching and Nearest Earley Items
+=head2 Matching and Equally Complete Earley Items
 
 Every brick or-node matches an Earley item,
 based on its rule, dot position, and earleme location.
@@ -646,20 +672,24 @@ of the or-node.
 Marpa LR(0) items cannot have the dot position before
 a nulling symbol,
 so that mortar or-nodes don't match any Earley items.
-An Earley item is the B<nearest> to an or-node if
-its current location
-is the same as
+The B<equally complete Earley item> to an or-node is
+the Earley item which has a
+current location
+the same as
 the earleme location of the or-node;
-and its QDFA state contains the
-nearest Marpa LR(0) item to the or-node.
-The nearest Marpa LR(0) item to an or-node is the one with the same
-rule as the or-node and the nearest Marpa-correct dot position
-at or after the or-node's dot position.
-A dot position is Marpa-correct if it is
-not in front of a nulling symbol.
-If there is an Earley item which matches an or-node,
-that Earley item is also the one
-nearest to the or-node.
+and which has the QDFA state
+equally complete to the or-node.
+A QDFA state is B<equally complete> to an or-node if
+the QDFA state contains an LR(0) item which is
+equally complete to the or-node.
+A Marpa LR(0) item is B<equally complete>
+to an or-node
+if the LR(0) item has the same rule as the or-node,
+and either the LR(0) item's dot position is the same as the or-node's dot position,
+or the only symbols between the dot position
+of the LR(0) item and the dot position of the or-node are nulling symbols.
+If an Earley item matches an or-node,
+then that Earley item and that or-node are equally complete.
 
 =head2 Child Criteria and Child Nodes
 
@@ -668,7 +698,7 @@ Every and-node is also a parent.
 Children of and-nodes can be either tokens or or-nodes.
 
 Every or-node has child criteria, which are used,
-along with the or-node's nearest Earley item,
+along with the Earley item equally complete to the or-node,
 to create the or-node's children.
 The child criterion for a closure or-node is a symbol,
 called its B<child lhs symbol>.
@@ -681,7 +711,7 @@ or two children, a B<predecessor> and a B<cause>.
 The predecessor, if present, always comes first.
 The cause is always last.
 When the cause is the only child it is,
-of course, also first.
+of course, also the first child.
 
 A cause can be either a closure or-node or a token.
 If the parent or-node's symbol is nulling,
@@ -690,18 +720,28 @@ and the and-node's cause will be a token created from
 the null value of the symbol.
 If the parent or-node's symbol is non-nullable,
 child and-nodes are created from
-the source choices of the nearest Earley item.
+the source choices of the equally complete Earley item.
 Where the source choice is a token source choice, the and-node's cause will be
 a token.
 Where the source choice is a completion source choice, the and-node's cause will be
 a closure or-node.
 
-For every or-node,
+=head2 Creating the Parse Bocage
+
+Each phase of creation of a parse bocage starts with an or-node.
+In this section, we'll call this the parent or-node, or simply the B<parent>.
+For the initial step in creating the parse bocage, the parent is the start or-node.
+In this section, we'll call the and-node children of the parent, the and-node children,
+or where it's clear, simply the B<children>.
+In this section, we'll call the or-node children of the and-node children,
+the B<grandchildren>.
+
+For every or-node parent,
 there is a set of productions which are used to create
-the or-node's and-node children,
+the and-node children,
 and the cause and predecessor grandchildren.
 The productions in this set are the B<applicable rules>.
-When creating and-nodes,
+When creating the and-node children,
 Marpa considers every pairing of an applicable rule and a source choice.
 
 Where the parent or-node is a kernel or-node,
@@ -716,20 +756,20 @@ same as the child lhs symbol
 is an applicable rule.
 
 If there are any symbols before a parent or-node's pre-dot symbol,
-its child and-node will have a predecessor child.
-This predecessor will be a kernel or-node.
-As its rule, the predecessor will have one of the applicable rules.
-If the predecessor's grandparent or-node was a closure or-node,
-the predecessor or-node's dot position will be in front of the last symbol of the rule.
-If the predecessor's grandparent or-node was a kernel or-node,
-the predecessor or-node's dot position will be one less than its grandparent's dot position.
-That means that the pre-dot symbol of the grandparent or-node will be the post-dot symbol
-of the predecessor or-node.
+its and-node children will have predecessor grandchildren.
+These predecessor grandchildren will be kernel or-nodes.
+As its rule, each predecessor grandchild will have one of the applicable rules.
+If the parent or-node was a closure or-node,
+the predecessor grandchild's dot position will be in front of the last symbol of the rule.
+If the parent or-node was a kernel or-node,
+the predecessor grandchild's dot position will be one less than the parent or-node's dot position.
+That means that the pre-dot symbol of the parent or-node will be the post-dot symbol
+of the or-node which is its predecessor grandchild.
 
 =head2 Naming Or-Nodes
 
 The name of an or-node is the name of its
-nearest Earley item,
+equally complete Earley item,
 followed by a label describing its child criteria.
 For a kernel or-node,
 the label consists of
@@ -741,7 +781,7 @@ The "R" in the label is a mnemonic for "rule".
 
 For example,
 S3@0-1R0:1 is the name of a kernel or-node.
-The nearest Earley item is S3@0-1.
+The equally complete Earley item is S3@0-1.
 The child criteria are rule 0 at dot position 1
 (C<< e -> e . op e >>).
 

@@ -24,7 +24,8 @@ you'll probably find this document too terse.
 As an introduction, I reccommend
 L<Mark Jason Dominus's
 excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
-Online, L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is an excellent place to start.
+It's available on-line.
+L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is also an excellent place to start.
 
 =head2 Basic terms
 

@@ -5,9 +5,11 @@ Parse::Marpa::Doc::Options - Options to Marpa Method Calls
 =head1 DESCRIPTION
 
 Marpa has options which control its behavior.
-These may be set using named arguments when C<Parse::Marpa::Grammar>
-and C<Parse::Marpa::Recognizer>
-objects are created,
+These may be set using named arguments when C<Parse::Marpa::Grammar>,
+C<Parse::Marpa::Recognizer>,
+and
+C<Parse::Marpa::Evaluator>,
+objects are created;
 with the C<Parse::Marpa::Grammar::set>
 and the C<Parse::Marpa::Evaluator::set> methods,
 and

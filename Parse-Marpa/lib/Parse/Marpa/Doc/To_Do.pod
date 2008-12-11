@@ -2,18 +2,13 @@
 
 Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
-=head1 HIGH PRIORITY
+=head1 MEDIUM PRIORITY
 
 =head2 Describe ambiguous transitions in Internals doc
 
 Add a graf about ambiguous transitions in the Internals document.
 
-=head2 Rewrite Marpa.pm
-
-Move some of the stuff prior to the "Getting Started" section
-elsewhere.
-
-=head1 LOWER PRIORITY
+=head1 LOW PRIORITY
 
 =head2 Terminal Priorities Cannot Be Set in MDL
 
@@ -37,19 +32,11 @@ priorities to the rules.
 a ref, reversing at the end if necessary.  All that code could use
 better comments.
 
-=item * C<show_tree> before first call to C<value>?  Should
-it cause an error message?  How about after unsuccessful
-call to C<value>?
-
-=item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
-
 =item * Add a trace_choices option.  There was an option to trace
 non-trivial evaluation choices in the old evaluator, and the new trace_iterations
 doesn't entirely replace it.
 
 =item * Add a show_derivation option.
-
-=item * Add C<{}> and C<[]> syntax to MDL production statements.
 
 =item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
 
@@ -57,23 +44,12 @@ doesn't entirely replace it.
 
 =item * Test proper and perl5 separation
 
-=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
-
 =item * Add a SYNOPSIS to the Plumbing document.
-
-=item * Test lexing suffixes.
-
-=item * Allow alternation?
 
 =item * Add to test set: Basic tests of sequences.
 The matrix is separation (none/perl5/proper)
 and minimium count (0 or 1).
 Eliminate keep vs. no-keep, right vs. left.
-
-=item * Downgrade version conflict or semantics mismatch to warning?
-
-=item * There are now no Parse::Marpa::Read_Only variables.  Eliminate
-the namespace, and all the references to it in the documentation?
 
 =back
 
@@ -93,6 +69,31 @@ The problem is figuring out how to conveniently specify their semantics.
 As the right hand side of a production grows more complex,
 the semantics becomes
 more complex to write, more bug-prone, and harder to debug.
+
+=head2 Other things
+
+=over 4
+
+=item * Test lexing suffixes?  Remove them?
+
+=item * Allow alternation?
+
+=item * Downgrade version conflict or semantics mismatch to warning?
+
+=item * Are there any Parse::Marpa::Read_Only variables?  Eliminate
+the namespace, and all the references to it in the documentation?
+
+=item * Add C<{}> and C<[]> syntax to MDL production statements.
+
+=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
+
+=item * C<show_tree> before first call to C<value>?  Should
+it cause an error message?  How about after unsuccessful
+call to C<value>?
+
+=item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
+
+=back
 
 =head1 SUPPORT
 

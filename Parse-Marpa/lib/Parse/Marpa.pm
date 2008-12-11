@@ -247,28 +247,12 @@ is_synopsis_pl($_)
 
 =head1 DESCRIPTION
 
-=head2 Status
-
-B<This is an Alpha release.
-It's intended to let people look Marpa over and try it out.
-Uses beyond that are risky.
-While Marpa is in alpha,
-you don't want to use it for anything
-mission-critical or with a serious deadline.>
-I've no personal experience with them, but
-C<Parse::Yapp> and C<Parse::RecDescent> are
-alternatives to this module which are well reviewed and
-more mature and stable.
-
-=head2 What Marpa can do
-
 If you can write a grammar in BNF, Marpa will generate a parser for it.
 That means Marpa parses
 left- and right-recursive grammars; all ambiguous grammars,
 including infinitely ambiguous ones;
-grammars with empty rules and grammars with useless rules.
-
-=head2 Getting Started
+grammars with empty rules;
+and grammars with useless rules.
 
 Here's all you should need to get started:
 
@@ -287,8 +271,9 @@ anything relevant to your application.
 
 =back
 
-Any special vocabulary for Marpa is explained in these documents as I go along,
-but if the standard parsing vocabulary gets a bit thick,
+The Marpa documents use a lot of parsing terminology.
+For a quick refresher in the
+standard parsing vocabulary,
 there's a L<Parse::Marpa::Doc::Parse_Terms> document.
 B<Defining uses> of terms are in boldface, for easy skimming.
 
@@ -360,9 +345,9 @@ introduction to parsing concepts,
 the chapter on parsing in
 L<Mark Jason Dominus's
 I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/"Dominus 2005">
-is an excellent description of them in the Perl context.
-Online,
-L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is a good place to start.
+is an excellent description in the Perl context.
+It's available online.
+L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is also very useful.
 
 =head2 Semantic Actions
 
