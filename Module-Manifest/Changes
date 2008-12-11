@@ -1,4 +1,8 @@
-Revision history for Perl extension Module::Manifest
+Revision history for Perl extension Module-Manifest
+
+0.04 Thu 11 Dec 2008
+	- Upgrading Module::Install to 0.77
+	- Adding a missing use Carp (Jonathon Yu)
 
 0.03 Mon  5 May 2008
 	- Upgrading Module::Install

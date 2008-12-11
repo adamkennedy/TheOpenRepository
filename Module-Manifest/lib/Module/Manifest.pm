@@ -45,13 +45,14 @@ existing MANFIFEST files, rather than creating new ones.
 
 use 5.005;
 use strict;
+use Carp           ();
 use File::Spec     ();
 use File::Basename ();
 use Params::Util   '_STRING';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 
