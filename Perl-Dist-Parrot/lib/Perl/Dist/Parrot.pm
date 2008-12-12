@@ -90,6 +90,18 @@ sub install_mingw_make {
 
 
 #####################################################################
+# Win32 Entities
+
+# Remove the strawberry menu stuff
+sub install_win32_extras {
+	return 1;
+}
+
+
+
+
+
+#####################################################################
 # Custom Installation
 
 sub install_custom {
