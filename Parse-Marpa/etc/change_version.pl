@@ -60,7 +60,7 @@ sub change {
      rename($file, $backup);
      open(ARGVOUT, '>', $file);
      select(ARGVOUT);
-     print ARGVOUT ${$fix->(\$text)};
+     print ARGVOUT ${$fix->(\$text, $file)};
      select(STDOUT);
      close(FH);
    }
@@ -68,26 +68,39 @@ sub change {
 
 sub fix_META_yml {
     my $text_ref = shift;
-    ${$text_ref} =~ s/(version:\s*)$old/$1$new/g;
+    my $file_name = shift;
+
+    say STDERR "failed to change version from $old to $new in $file_name"
+        unless ${$text_ref} =~ s/(version:\s*)$old/$1$new/g;
     $text_ref;
 }
 
 sub fix_Marpa_pm {
     my $text_ref = shift;
-    ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/;
-    ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/;
+    my $file_name = shift;
+
+    say STDERR "failed to change VERSION from $old to $new in $file_name"
+        unless ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/;
+    say STDERR "failed to change version from $old to $new in $file_name"
+        unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/;
     $text_ref;
 }
 
 sub fix_bootstrap_pl {
     my $text_ref = shift;
-    ${$text_ref} =~ s/(\$new_version\s*=\s*')$old';/$1$new';/;
+    my $file_name = shift;
+
+    say STDERR "failed to change version from $old to $new in $file_name"
+        unless ${$text_ref} =~ s/(\$new_version\s*=\s*')$old';/$1$new';/;
     $text_ref;
 }
 
 sub fix_test_files {
     my $text_ref = shift;
-    ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/g;
+    my $file_name = shift;
+
+    say STDERR "failed to change version from $old to $new in $file_name"
+        unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/g;
     $text_ref;
 }
 
