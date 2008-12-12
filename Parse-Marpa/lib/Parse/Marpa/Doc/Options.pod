@@ -237,9 +237,6 @@ The trace file handle can be changed at any point in a parse.
 
 If present, the C<version> option must match the current
 Marpa version B<exactly>.
-This is because while Marpa is in alpha,
-features may change dramatically from version
-to version.
 The C<version> option cannot be changed after the grammar is precomputed.
 
 =item warnings

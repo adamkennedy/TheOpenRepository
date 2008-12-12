@@ -429,12 +429,10 @@ For more detail see L<Parse::Marpa::Grammar/"Tokens and Earlemes">.
 
 =head2 Lack of Backward Compatibility
 
-While this module is in alpha,
-versions may not be backward compatible.
+Marpa versions may not be backward compatible.
 MDL protects users by requiring the version to be specified,
 and by insisting on an exact match with Marpa's version number.
 This strict version regime is the same as that being considered for Perl 6.
-Nonetheless, Marpa's version matching may become less strict once it goes beta.
 
 =head2 Phases
 
