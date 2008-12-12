@@ -2,12 +2,6 @@
 
 Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
-=head1 MEDIUM PRIORITY
-
-=head2 Describe ambiguous transitions in Internals doc
-
-Add a graf about ambiguous transitions in the Internals document.
-
 =head1 LOW PRIORITY
 
 =head2 Terminal Priorities Cannot Be Set in MDL
@@ -43,6 +37,10 @@ doesn't entirely replace it.
 =item * Add option for left-to-right evaluation of rules
 
 =item * Test proper and perl5 separation
+
+=item * Parse bocage creation can probably be made a bit slightly cleaner.
+At least I think so, based on which I found revising that part of the
+Internals doc.
 
 =item * Add a SYNOPSIS to the Plumbing document.
 

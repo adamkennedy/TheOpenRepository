@@ -143,7 +143,10 @@ A dot at the beginning of an LR(0) item
 indicates that none of its symbols have yet been recognized.
 A dot at the end indicates that the rule is B<complete>
 -- all of its symbols have been recognized.
+
 The location of the dot is called the B<dot position>.
+The symbol before the dot position in an LR(0) item is called the B<pre-dot symbol>.
+The symbol after the dot position in an LR(0) item is called the B<post-dot symbol>.
 
 The last two lines in the display show transitions.
 The first line says that, on seeing an C<e>, you transition to QDFA state 3.
@@ -462,23 +465,23 @@ one or more scans,
 one or more completions,
 or a combination of scans and completions,
 will try to add at least one of the Earley items more than once.
-Marpa does not an Earley item more than once.
+Marpa does not add an Earley item more than once.
 Instead of creating a second Earley item with the same QDFA state and
 origin at the current earleme,
-Marpa adds a source choice to the existing Earley item.
+Marpa adds another source choice to the existing Earley item.
 
 When the time comes to produce parses from the Earley item,
 more than one rule may apply.
 This is because 
 Marpa's Earley items correspond to QDFA states instead of to
 a single rule.
-A rule which could apply in creating a parse tree is called
-an applicable rule.
-Every pairing of source choice and applicable rule
+Every pairing of a source choice with an applicable rule
 is an alternative that can be selected when the choices are made
 that produce a parse.
 For more detail on how ambiguous parses
-are evaluated, see L<the section on creating the parse bocage, below|"THE PARSE BOCAGE">.
+are evaluated,
+including how Marpa determines which rules are applicabile,
+see L<the section on creating the parse bocage, below|"THE PARSE BOCAGE">.
 
 =head1 HOW A SUCCESSFUL PARSE IS RECOGNIZED
 
@@ -609,14 +612,13 @@ sets back into the productions of the original grammar
 would
 result in a slower and more cumbersome data structure.
 
-In MBF,
-every and-node represents either a production of the original grammar,
-or a piece of one.
+=head2 Or-Nodes and And-Nodes
+
 And-nodes and or-nodes strictly alternate in MBF.
 Every child of an and-node is an or-node.
 Every child of an or-node is an and-node.
-
-=head2 Types of Or-Nodes
+An or-node, called the B<start or-node> is always at the top
+of a Marpa bocage.
 
 An or-node is B<trivial> if it has
 only one child and-node.
@@ -625,146 +627,217 @@ a choice from a list containing
 only a single alternative.
 Marpa or-nodes are often trivial.
 
-Each or-node corresponds to a rule,
-a dot position in that rule,
-and an earleme location.
-The symbol before the dot position in a rule
+In MBF, an or-node represents a decision point in the parse,
+even though often it's a trivial decision point.
+There is an or-node for every symbol of every rule that
+might be used in a parse.
+
+Every and-node represents either a production of the original grammar,
+or a piece of a production of the original grammar.
+And-nodes represent specific alternatives.
+
+Every or-node is a parent of one or more and-nodes.
+Every and-node either has a token value or is the parent of a B<cause or-node>.
+Any and-node may also be the parent of a B<predecessor or-node>.
+When there is a predecessor child or-node, it always comes first.
+
+=head2 Or-nodes and Their Child Criteria
+
+Each or-node corresponds to an Earley item
+and child criteria.
+The or-node's corresponding Earley item is determined when the or-node is created.
+The child criteria for the or-node are set at the same time.
+The or-node's child criteria determine which and-nodes can be 
+children of the or-node.
+
+There are two kinds of or-node, each with different child criteria.
+The start or-node, and all cause or-nodes, are B<closure or-nodes>.
+All other or-nodes are B<kernel or-nodes>.
+All kernel or-nodes are predecessor or-nodes, and vice versa.
+
+Closure or-nodes are so called because they represent points at which a
+complete rule or rules have been recognized.
+That is, they represent the "closing" of a rule.
+The child criterion for a closure or-node is a symbol,
+called its B<child lhs symbol>.
+
+Kernel or-nodes represent decision points in the interior of a rule.
+The child criteria for a kernel or-node are a rule and dot position
+in that rule.
+
+No or-nodes represent the beginning of a rule.
+Because Marpa rewrites grammars so that there are no empty rules,
+no closure or-nodes can represent a point at the beginning of a rule.
+And kernel or-nodes are not created for the dot position at the beginning of
+a rule.
+
+The symbol before the dot position in a kernel or-node's rule
 is the or-node's B<pre-dot symbol>.
-The symbol after the dot position in a rule
+The symbol after the dot position in a kernel or-nodes's rule
 is the or-node's B<post-dot symbol>.
+Since kernel or-nodes never have dot positions at the end or
+the beginning of their rules, they always have both a pre-dot
+and post-dot symbol.
 
-The B<or-node symbol> is its pre-dot symbol.
-Or-nodes are not created for dot positions
-at the beginning of rules,
-so every or-node has an or-node symbol.
+=head2 The Relationship between Or-Nodes to Earley Items
 
-An or-node whose dot position is at the end
-of its rule is a B<closure or-node>.
-Any other or-node is a B<kernel or-node>.
 If the post-dot symbol of a kernel or-node is
 nulling, it is a B<mortar or-node>.
-Any other kernel or-node,
+Every other kernel or-node,
 and every closure or-node,
 is a B<brick or-node>.
 
+Marpa has no LR(0) items with nulling post-dot symbols.
+But Marpa requires there to be an or-node
+for every symbol in every rule that might be
+used in any possible parse, including nulling symbols.
+This is why there are mortar or-nodes.
 The idea behind mortar or-nodes is that
 they fill the cracks in between brick or-nodes.
-Mortar or-nodes exist,
-because Marpa has no LR(0) items with nulling post-dot symbols.
-Mortar or-nodes are needed because there must be an or-node
-for every symbol in every rule used in any possible parse.
-No Earley item matches a mortar or-node.
 
-=head2 Matching and Equally Complete Earley Items
+For brick kernel or-nodes
+the QDFA state of the corresponding Earley item will have an
+LR(0) item with a rule and dot position
+which exactly match the rule and dot position of the kernel
+or-node's child criteria.
+For mortar or-nodes,
+the QDFA state of the corresponding Earley item will have an
+LR(0) item with a rule which is the same as the rule
+in the or-node's child criteria,
+and the only symbols between the dot positions
+of the or-node and the dot position of the LR(0) item
+will be nulling symbols.
 
-Every brick or-node matches an Earley item,
-based on its rule, dot position, and earleme location.
-An or-node is said to B<match> an Earley item if
-the current location of the Earley item
-is the same as
-the or-node's earleme location;
-and for one of the LR(0) items
-in the Earley item's QDFA state,
-the rule and the dot position
-are the same as the rule and dot position
-of the or-node.
+=head2 How the Parse Bocage is Built
 
-Marpa LR(0) items cannot have the dot position before
-a nulling symbol,
-so that mortar or-nodes don't match any Earley items.
-The B<equally complete Earley item> to an or-node is
-the Earley item which has a
-current location
-the same as
-the earleme location of the or-node;
-and which has the QDFA state
-equally complete to the or-node.
-A QDFA state is B<equally complete> to an or-node if
-the QDFA state contains an LR(0) item which is
-equally complete to the or-node.
-A Marpa LR(0) item is B<equally complete>
-to an or-node
-if the LR(0) item has the same rule as the or-node,
-and either the LR(0) item's dot position is the same as the or-node's dot position,
-or the only symbols between the dot position
-of the LR(0) item and the dot position of the or-node are nulling symbols.
-If an Earley item matches an or-node,
-then that Earley item and that or-node are equally complete.
+=head3 Initializing the Parse Bocage
 
-=head2 Child Criteria and Child Nodes
+Creation of a parse bocage starts with the creation of the start or-node.
+The start or-node is a closure or-node.
+The child lhs symbol of the start or-node
+will be the top symbol in the parse.
+For the parse to proceed,
+the start or-node's corresponding Earley item needs to contain a
+QDFA state which contains at least one completed rule
+which has the child lhs symbol as its lhs.
+The parse will start at the origin of the Earley item,
+and the parse will end at its current earleme.
 
-Every or-node is a parent of one or more and-nodes.
-Every and-node is also a parent.
-Children of and-nodes can be either tokens or or-nodes.
+In normal use,
+the child lhs symbol of the start or-node is set to the start
+symbol of the grammar,
+and the corresponding Earley item for the start or-node is set to
+be the Earley item which has its current earleme at the end of parsing
+and which has a completed start rule state.
 
-Every or-node has child criteria, which are used,
-along with the Earley item equally complete to the or-node,
-to create the or-node's children.
-The child criterion for a closure or-node is a symbol,
-called its B<child lhs symbol>.
-The child criteria for a kernel or-node are
-a rule, and a dot position.
+The parse bocage is created by processing or-nodes recursively,
+At each step there is a list of or-nodes
+remaining to be processed.
+At the first step, the list of unprocessed or-nodes contains
+only the start or-node.
 
-In turn,
-each and-node either has just one child, called a B<cause>,
-or two children, a B<predecessor> and a B<cause>.
-The predecessor, if present, always comes first.
-The cause is always last.
-When the cause is the only child it is,
-of course, also the first child.
+=head3 Creating the And-node Children for the Parent Or-node
 
-A cause can be either a closure or-node or a token.
-If the parent or-node's symbol is nulling,
-there will be only one child and-node,
-and the and-node's cause will be a token created from
-the null value of the symbol.
-If the parent or-node's symbol is non-nullable,
-child and-nodes are created from
-the source choices of the equally complete Earley item.
-Where the source choice is a token source choice, the and-node's cause will be
-a token.
-Where the source choice is a completion source choice, the and-node's cause will be
-a closure or-node.
+The loop that creates a
+parse bocage repeatedly takes an or-node from a list
+of or-nodes yet to be processed,
+and adds that or-node to the parse bocage.
+It then creates that or-node's and-node children
+and links them into the parse bocage.
+The and-node children will often have
+their own child or-nodes.
+These new cause and predecessor or-nodes must be
+added to the list of or-nodes yet to be processed.
 
-=head2 Creating the Parse Bocage
-
-Each phase of creation of a parse bocage starts with an or-node.
-In this section, we'll call this the parent or-node, or simply the B<parent>.
-For the initial step in creating the parse bocage, the parent is the start or-node.
-In this section, we'll call the and-node children of the parent, the and-node children,
+In describing the construction of the parse bocage,
+we'll call the or-node currently being processed,
+the parent or-node, or simply the B<parent>.
+We'll call the and-node children that are created for this parent, the and-node children,
 or where it's clear, simply the B<children>.
-In this section, we'll call the or-node children of the and-node children,
-the B<grandchildren>.
 
-For every or-node parent,
-there is a set of productions which are used to create
-the and-node children,
-and the cause and predecessor grandchildren.
-The productions in this set are the B<applicable rules>.
-When creating the and-node children,
-Marpa considers every pairing of an applicable rule and a source choice.
+For every or-node there is a set of B<applicable rules>,
+which are determined by the or-node's Earley item and its child criteria.
+For kernel or-nodes there is only one applicable rule, the rule in the child criteria.
+For closure or-nodes, the applicable rules are taken from the QDFA state of the corresponding
+Earley item.
+A rule is applicable if it is the rule in a completed LR(0) item
+in the QDFA state of the corresponding Earley item,
+and if the rule's lhs is the
+same as the child lhs symbol of the or-node's child criteria.
+There is always at least one applicable rule.
 
-Where the parent or-node is a kernel or-node,
-the rule in the child criteria is
-the only applicable rule.
-For closure or-nodes,
-there may be more than one applicable rule.
-Where the parent or-node is a closure or-node,
-every completed rule in the QDFA state of
-the matching Earley item whose lhs is the
-same as the child lhs symbol
-is an applicable rule.
+For a parent or-node,
+an child and-node is created for every pairing of an applicable rule with a source choice
+in the corresponding Earley item.
+This means that the number of and-node children will be the number of applicable rules,
+times the number of source choices.
+There is always at least one and-node child for any parent or-node.
 
-If there are any symbols before a parent or-node's pre-dot symbol,
-its and-node children will have predecessor grandchildren.
-These predecessor grandchildren will be kernel or-nodes.
-As its rule, each predecessor grandchild will have one of the applicable rules.
+In addition to an applicable rule and a source choice,
+every and-node corresponds to a dot position.
+If the parent or-node was a kernel or-node, the dot position will be the
+same as dot position of the parent or-node's child criteria.
 If the parent or-node was a closure or-node,
-the predecessor grandchild's dot position will be in front of the last symbol of the rule.
-If the parent or-node was a kernel or-node,
-the predecessor grandchild's dot position will be one less than the parent or-node's dot position.
-That means that the pre-dot symbol of the parent or-node will be the post-dot symbol
-of the or-node which is its predecessor grandchild.
+the dot position will be at the end of the and-node's rule.
+
+Every and-node has a pre-dot symbol.
+Where the parent or-node is a kernel or-node,
+this is because kernel or-nodes are never positioned at the beginning of rules.
+Where the parent or-node is a closure or-node,
+this is because there are no empty rules after Marpa rewrites its grammar.
+
+If the and-node's pre-dot symbol is nulling,
+an and-node is created with a token whose value is the
+the null value of that symbol.
+The and-node is also created with a predecessor or-node.
+The corresponding Earley item of the predecessor or-node
+will be the Earley item of the parent or-node.
+The child criteria for the predecessor or-node will be
+the and-node's rule,
+with a dot position before the and-node's pre-dot symbol.
+
+If the and-node's pre-dot symbol is non-nulling,
+its token, cause and predecessor are created
+based on its corresponding source choice.
+If it was a token source choice, the and-node will have
+the token value from the source choice.
+If it was a completion source choice, the and-node will have
+a cause or-node.
+The corresponding Earley item for the cause or-node will be
+Earley item which was the cause in the source choice.
+The child lhs symbol for the cause or-node will be the pre-dot
+symbol of the and-node.
+
+If the and-node's pre-dot symbol is non-nulling,
+a predecessor or-node is created as its child
+if and only if its corresponding source choice
+had a predecessor item.
+If a predecessor or-node child is created for an
+and-node,
+its corresponding Earley item will be the predecessor
+item of the and-node's corresponding source choice.
+The child criteria for the predecessor or-node will be
+the and-node's rule,
+with a dot position before the and-node's pre-dot symbol.
+
+=head3 Completing the Parse Bocage
+
+Once an or-node has been processed,
+and its and-nodes created and linked into the parse bocage,
+Marpa checks to see if any more or-nodes remain on the list
+to be processed.
+As the last section showed,
+when Marpa creates and-nodes,
+it often creates, as their children, new predecessor and cause or-nodes.
+These must be added to the list of or-nodes yet to be processed.
+Or-nodes must be pulled from the list and processed until there are no more.
+
+Even when the parse is infinitely ambiguous, Marpa is guaranteed to reach
+a point were there are no more or-nodes on the list of unprocessed or-nodes.
+Token and-nodes without predecessors are called B<leaf and-nodes>.
+Leaf and-nodes do not have any child nodes.
+Eventually every recursion through the Earley sets reaches a leaf and-node.
+At this point, the parse bocage has been successfully created.
 
 =head2 Naming Or-Nodes
 
