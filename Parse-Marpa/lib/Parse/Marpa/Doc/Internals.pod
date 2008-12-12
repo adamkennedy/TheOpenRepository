@@ -480,7 +480,7 @@ is an alternative that can be selected when the choices are made
 that produce a parse.
 For more detail on how ambiguous parses
 are evaluated,
-including how Marpa determines which rules are applicabile,
+including how Marpa determines which rules are applicable,
 see L<the section on creating the parse bocage, below|"THE PARSE BOCAGE">.
 
 =head1 HOW A SUCCESSFUL PARSE IS RECOGNIZED
@@ -614,11 +614,11 @@ result in a slower and more cumbersome data structure.
 
 =head2 Or-Nodes and And-Nodes
 
-And-nodes and or-nodes strictly alternate in MBF.
-Every child of an and-node is an or-node.
-Every child of an or-node is an and-node.
-An or-node, called the B<start or-node> is always at the top
+Or-nodes and and-nodes strictly alternate in MBF.
+An or-node, called the B<start or-node>, is always at the top
 of a Marpa bocage.
+Every child of an or-node is an and-node.
+Every child of an and-node is an or-node.
 
 An or-node is B<trivial> if it has
 only one child and-node.
@@ -639,9 +639,10 @@ And-nodes represent specific alternatives.
 Every or-node is a parent of one or more and-nodes.
 Every and-node either has a token value or is the parent of a B<cause or-node>.
 Any and-node may also be the parent of a B<predecessor or-node>.
-When there is a predecessor child or-node, it always comes first.
+When there is a predecessor child or-node, it always comes first,
+before the token or the cause or-node.
 
-=head2 Or-nodes and Their Child Criteria
+=head2 Or-Nodes and their Child Criteria
 
 Each or-node corresponds to an Earley item
 and child criteria.
@@ -679,7 +680,7 @@ Since kernel or-nodes never have dot positions at the end or
 the beginning of their rules, they always have both a pre-dot
 and post-dot symbol.
 
-=head2 The Relationship between Or-Nodes to Earley Items
+=head2 The Relationship between Or-Nodes and Earley Items
 
 If the post-dot symbol of a kernel or-node is
 nulling, it is a B<mortar or-node>.
@@ -690,7 +691,8 @@ is a B<brick or-node>.
 Marpa has no LR(0) items with nulling post-dot symbols.
 But Marpa requires there to be an or-node
 for every symbol in every rule that might be
-used in any possible parse, including nulling symbols.
+used in any possible parse, including nulling symbols
+and the symbols before nulling symbols.
 This is why there are mortar or-nodes.
 The idea behind mortar or-nodes is that
 they fill the cracks in between brick or-nodes.
@@ -704,8 +706,8 @@ For mortar or-nodes,
 the QDFA state of the corresponding Earley item will have an
 LR(0) item with a rule which is the same as the rule
 in the or-node's child criteria,
-and the only symbols between the dot positions
-of the or-node and the dot position of the LR(0) item
+and the only symbols between the dot position
+of the or-node and the dot position of that LR(0) item
 will be nulling symbols.
 
 =head2 How the Parse Bocage is Built
@@ -721,22 +723,24 @@ the start or-node's corresponding Earley item needs to contain a
 QDFA state which contains at least one completed rule
 which has the child lhs symbol as its lhs.
 The parse will start at the origin of the Earley item,
-and the parse will end at its current earleme.
+and the parse will end at the current earleme
+of the Earley item.
 
 In normal use,
 the child lhs symbol of the start or-node is set to the start
-symbol of the grammar,
-and the corresponding Earley item for the start or-node is set to
-be the Earley item which has its current earleme at the end of parsing
+symbol of the grammar.
+The corresponding Earley item for the start or-node normally is set to
+be the Earley item which has its current earleme at the end of parsing,
+which has its origin at earleme 0,
 and which has a completed start rule state.
 
-The parse bocage is created by processing or-nodes recursively,
+The parse bocage is created by processing or-nodes recursively.
 At each step there is a list of or-nodes
 remaining to be processed.
 At the first step, the list of unprocessed or-nodes contains
 only the start or-node.
 
-=head3 Creating the And-node Children for the Parent Or-node
+=head3 Creating the And-Node Children for a Parent Or-Node
 
 The loop that creates a
 parse bocage repeatedly takes an or-node from a list
@@ -750,17 +754,19 @@ These new cause and predecessor or-nodes must be
 added to the list of or-nodes yet to be processed.
 
 In describing the construction of the parse bocage,
-we'll call the or-node currently being processed,
+I'll call the or-node currently being processed,
 the parent or-node, or simply the B<parent>.
-We'll call the and-node children that are created for this parent, the and-node children,
-or where it's clear, simply the B<children>.
+I'll call any and-node child that is created for this parent, an and-node child,
+or where it's clear, simply a B<child>.
+I'll call an or-node child of an and-node child, a B<grandchild>.
+An and-node child may have a B<predecessor grandchild> and a B<cause grandchild>.
 
 For every or-node there is a set of B<applicable rules>,
 which are determined by the or-node's Earley item and its child criteria.
 For kernel or-nodes there is only one applicable rule, the rule in the child criteria.
 For closure or-nodes, the applicable rules are taken from the QDFA state of the corresponding
 Earley item.
-A rule is applicable if it is the rule in a completed LR(0) item
+A rule is applicable if it is a rule in a completed LR(0) item
 in the QDFA state of the corresponding Earley item,
 and if the rule's lhs is the
 same as the child lhs symbol of the or-node's child criteria.
@@ -768,7 +774,7 @@ There is always at least one applicable rule.
 
 For a parent or-node,
 an child and-node is created for every pairing of an applicable rule with a source choice
-in the corresponding Earley item.
+of the corresponding Earley item.
 This means that the number of and-node children will be the number of applicable rules,
 times the number of source choices.
 There is always at least one and-node child for any parent or-node.
@@ -776,9 +782,10 @@ There is always at least one and-node child for any parent or-node.
 In addition to an applicable rule and a source choice,
 every and-node corresponds to a dot position.
 If the parent or-node was a kernel or-node, the dot position will be the
-same as dot position of the parent or-node's child criteria.
+same as the
+dot position of the parent or-node's child criteria.
 If the parent or-node was a closure or-node,
-the dot position will be at the end of the and-node's rule.
+the dot position will be at the end of the applicable rule.
 
 Every and-node has a pre-dot symbol.
 Where the parent or-node is a kernel or-node,
@@ -787,50 +794,52 @@ Where the parent or-node is a closure or-node,
 this is because there are no empty rules after Marpa rewrites its grammar.
 
 If the and-node's pre-dot symbol is nulling,
-an and-node is created with a token whose value is the
-the null value of that symbol.
-The and-node is also created with a predecessor or-node.
-The corresponding Earley item of the predecessor or-node
+the and-node is created with a token
+and a predecessor grandchild.
+The value of the token is the null value of the pre-dot symbol.
+The predecessor grandchild will be a mortar or-node.
+The corresponding Earley item of the predecessor grandchild
 will be the Earley item of the parent or-node.
-The child criteria for the predecessor or-node will be
+The child criteria for the predecessor grandchild will be
 the and-node's rule,
 with a dot position before the and-node's pre-dot symbol.
 
 If the and-node's pre-dot symbol is non-nulling,
 its token, cause and predecessor are created
-based on its corresponding source choice.
+based on the and-node's corresponding source choice.
 If it was a token source choice, the and-node will have
-the token value from the source choice.
+a token, which will take its value from the source choice token.
 If it was a completion source choice, the and-node will have
-a cause or-node.
-The corresponding Earley item for the cause or-node will be
-Earley item which was the cause in the source choice.
-The child lhs symbol for the cause or-node will be the pre-dot
+a cause grandchild.
+The corresponding Earley item for the cause grandchild will be
+the Earley item which was the cause in the source choice.
+The child lhs symbol for the cause grandchild will be the pre-dot
 symbol of the and-node.
 
 If the and-node's pre-dot symbol is non-nulling,
-a predecessor or-node is created as its child
+a predecessor grandchild or-node is created
 if and only if its corresponding source choice
 had a predecessor item.
-If a predecessor or-node child is created for an
-and-node,
+The predecessor grandchild will be created
+as an or-node child of the and-node child.
+If a predecessor grandchild is created,
 its corresponding Earley item will be the predecessor
-item of the and-node's corresponding source choice.
-The child criteria for the predecessor or-node will be
-the and-node's rule,
-with a dot position before the and-node's pre-dot symbol.
+item of the and-node child's corresponding source choice.
+The child criteria for the predecessor grandchild will be
+the and-node child's rule,
+with a dot position before the and-node child's pre-dot symbol.
 
 =head3 Completing the Parse Bocage
 
 Once an or-node has been processed,
-and its and-nodes created and linked into the parse bocage,
+and its and-node children created and linked into the parse bocage,
 Marpa checks to see if any more or-nodes remain on the list
 to be processed.
 As the last section showed,
-when Marpa creates and-nodes,
-it often creates, as their children, new predecessor and cause or-nodes.
-These must be added to the list of or-nodes yet to be processed.
-Or-nodes must be pulled from the list and processed until there are no more.
+when Marpa creates and-node children,
+it often creates predecessor and cause grandchildren.
+These grandchild or-nodes must be added to the list of or-nodes yet to be processed.
+Or-nodes are pulled from the list and processed until there are no more.
 
 Even when the parse is infinitely ambiguous, Marpa is guaranteed to reach
 a point were there are no more or-nodes on the list of unprocessed or-nodes.
@@ -842,7 +851,7 @@ At this point, the parse bocage has been successfully created.
 =head2 Naming Or-Nodes
 
 The name of an or-node is the name of its
-equally complete Earley item,
+corresponding Earley item,
 followed by a label describing its child criteria.
 For a kernel or-node,
 the label consists of
@@ -854,7 +863,7 @@ The "R" in the label is a mnemonic for "rule".
 
 For example,
 S3@0-1R0:1 is the name of a kernel or-node.
-The equally complete Earley item is S3@0-1.
+The corresponding Earley item is S3@0-1.
 The child criteria are rule 0 at dot position 1
 (C<< e -> e . op e >>).
 
@@ -891,10 +900,8 @@ the parse bocage grammar.
 The original grammar describes all parses which are possible for
 I<any input>.
 The PBG describes only those parses which are possible
-for I<the specific input> which was accepted by the recognizer.
-In the parse bocage grammar,
-much of the work of parsing a specific input
-has been done.
+for I<the specific input>
+that was accepted by the recognizer.
 
 =head2 Examples of Parse Bocage Productions
 
@@ -942,7 +949,7 @@ and C<show_bocage> does not show or-productions
 unless called with the verbose option.
 Or-productions are necessary for the PBG to be a real
 BNF grammar,
-but the information in them is easily deduced from
+but all the information in them is easily deduced from
 the names of the and-nodes on the lhs of the and-productions.
 
 For every and-node on the lhs of an and-production,
@@ -978,15 +985,16 @@ its name is always the first symbol on the rhs.
 In this example, the only symbol on the rhs is
 a closure or-node: S6@0-3L0.
 The next line contains a dotted rule which shows the rule
-and rule position for this and-node.
+and dot position for this and-node.
     
 The last line tells
 us the length of the rule's rhs, and that there is
 a Perl closure corresponding to this rule.
 Perl closures and closure or-nodes are not to be confused.
 The word "closure" in "closure or-node" refers to
-its being the last in a rule --
-that is, it "closes" the rule.
+its being the last in a rule.
+That is to say,
+the or-node "closes" the rule.
 A closure or-node
 may or may not have
 a corresponding Perl closure.
@@ -1013,8 +1021,10 @@ and in the dotted rule on the third line.
 The pre-dot symbol ("C<op>") matched the token
 ("C<+>").
 The kernel or-node (S3@0-1R0:1)
-contains information for
-deriving the symbols in rule 0 before the pre-dot symbol.
+points to the part of the bocage which
+derives the symbols
+before the pre-dot symbol
+in rule 0.
 In this case there is only one symbol
 ("C<e>")
 before the pre-dot symbol.
@@ -1032,7 +1042,7 @@ in_equation_show_bocage($_);
         rhs length = 1; closure
 
 The and-production above has only a token on its rhs.
-There is no kernel or-node, because the current
+There is no kernel or-node, because the pre-dot
 symbol for this and-production is the first one of
 its rule -- in fact, it is the only symbol in its rule.
 
