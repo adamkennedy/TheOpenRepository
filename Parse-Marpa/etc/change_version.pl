@@ -9,10 +9,8 @@ my @test_files = qw(
 ./example/null_value.marpa
 ./example/equation.marpa
 ./example/synopsis.pl
-./lib/Parse/Marpa.pm
 ./lib/Parse/Marpa/Doc/Internals.pod
 ./lib/Parse/Marpa/Doc/MDL.pod
-./lib/Parse/Marpa/MDL.pm
 ./t/ah_s.t
 ./t/cycle.t
 ./t/cycle2.t
@@ -110,7 +108,7 @@ sub update_changes {
 
     my $date_stamp = `date`;
     say STDERR "failed to add $new to $file_name"
-        unless ${$text_ref} =~ s/\ARevision\s+history\s+[^\n]*\n\n/&$new $date_stamp/xms;
+        unless ${$text_ref} =~ s/(\ARevision\s+history\s+[^\n]*\n\n)/$1$new $date_stamp\n/xms;
     $text_ref;
 }
 

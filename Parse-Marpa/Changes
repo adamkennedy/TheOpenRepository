@@ -1,5 +1,8 @@
 Revision history for Parse::Marpa
 
+1.000000 Sat Dec 13 11:27:37 PST 2008
+        First beta release.
+
 0.222.000 Fri Dec 12
         Beta release candidate.
 
@@ -16,34 +19,30 @@ Revision history for Parse::Marpa
 	Fixed a problem with some long iterations of
    	all parses.
 
-0.211_000 Tue Apr 15
-        First in a series of developer's releases.
-	Please do not use, unless you're developing Marpa.
+0.211_nnn Tue Apr 15
+        A series of developer's releases.
 
 0.210.000 Mon Apr 14
         Alpha Release.
 	Fixed a problem with parse order.
 
-0.209_000 Fri Apr 11
-        First in a series of developer's releases.
-	Please do not use, unless you're developing Marpa.
+0.209_nnn Fri Apr 11
+        A series of developer's releases.
 
 0.208.000 Fri Apr 11
         Alpha Release.
 	Eliminates problem of priority conflicts.
 
-0.207_000 Tue Apr  1
-        First in a series of developer's releases.
-	Please do not use, unless you're developing Marpa.
+0.207_nnn Tue Apr  1
+        A series of developer's releases.
 
 0.206.000 Sun Mar 30
         Alpha Release.
         The tutorial is now hopelessly out of date,
 	and has been removed.
 
-0.205_000 Sat Mar 22
-        First in a Series of Developer's Releases
-	Please do not use, unless you're developing Marpa.
+0.205_nnn Sat Mar 22
+        A series of developer's releases.
 
 	As of 0.205_000, I adopted a system where odd minor
 	releases (0.205, 0.207, etc.) are developer-only releases
