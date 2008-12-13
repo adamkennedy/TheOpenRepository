@@ -175,7 +175,6 @@ use Object::Tiny qw{
 	build_dir
 	checkpoint_dir
 	iss_file
-	user_agent
 	bin_perl
 	bin_make
 	bin_pexports
@@ -428,12 +427,6 @@ sub new {
 	}
 
 	# Auto-detect online-ness if needed
-	unless ( defined $self->user_agent ) {
-		$self->{user_agent} = LWP::UserAgent->new(
-			agent   => "$class/" . $VERSION || '0.00',
-			timeout => 30,
-		);
-	}
 	unless ( defined $self->offline ) {
 		$self->{offline} = LWP::Online::offline();
 	}
@@ -659,12 +652,15 @@ sub checkpoint_save {
 	}
 
 	# Store the main object.
-	# Blank the checkpoint values to prevent load/save loops
-	Storable::nstore( {
+	# Blank the checkpoint values to prevent load/save loops, and remove
+	# things we can recreate later.
+	my $copy = {
 		%$self,
 		checkpoint_before => 0,
 		checkpoint_after  => 0,
-	}, $self->checkpoint_file );
+		user_agent        => undef,
+	};
+	Storable::nstore( $copy, $self->checkpoint_file );
 
 	return 1;
 }
@@ -2955,25 +2951,33 @@ sub file {
 	File::Spec->catfile( shift->image_dir, @_ );
 }
 
-sub useragent {
+sub user_agent {
 	my $self = shift;
-	unless ( $self->{useragent} ) {
-		SCOPE: {
-			# Temporarily set $ENV{HOME} to the File::HomeDir
-			# version while loading the module.
-			local $ENV{HOME} ||= File::HomeDir->my_home;
-			require LWP::UserAgent::WithCache;
+	unless ( $self->{user_agent} ) {
+		if ( $self->{user_agent_cache} ) {
+			SCOPE: {
+				# Temporarily set $ENV{HOME} to the File::HomeDir
+				# version while loading the module.
+				local $ENV{HOME} ||= File::HomeDir->my_home;
+				require LWP::UserAgent::WithCache;
+			}
+			$self->{user_agent} = LWP::UserAgent::WithCache->new( {
+				namespace          => 'perl-dist',
+				cache_root         => $self->user_agent_directory,
+				cache_depth        => 0,
+				default_expires_in => 86400 * 30,
+			} );
+		} else {
+			$self->{user_agent} = LWP::UserAgent->new(
+				agent   => "$class/" . $VERSION || '0.00',
+				timeout => 30,
+			);
 		}
-		$self->{useragent} = LWP::UserAgent::WithCache->new( {
-			namespace          => 'perl-dist',
-			cache_root         => $self->useragent_directory,
-			cache_depth        => 0,
-			default_expires_in => 86400 * 30,
-		} );
 	}
+	unless ( $self->{user_agent} ) {
 }
 
-sub useragent_directory {
+sub user_agent_directory {
 	my $self = shift;
 	my $path = ref($self);
 	   $path =~ s/::/-/g;
@@ -3018,7 +3022,7 @@ sub _mirror {
 			$self->trace("(already up to date)\n");
 		}
 	} else {
-		# my $ua = $self->useragent;
+		# my $ua = $self->user_agent;
 		my $ua = LWP::UserAgent->new;
 		my $r  = $ua->mirror( $url, $target );
 		if ( $r->is_error ) {
