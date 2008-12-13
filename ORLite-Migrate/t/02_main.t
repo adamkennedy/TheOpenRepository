@@ -16,9 +16,11 @@ ok( -d $timeline, 'Found timeline' );
 
 # Locate patches
 my $patches = ORLite::Migrate::patches( $timeline );
-is_deeply( $patches, [
-	undef,
-	migrate
+is_deeply(
+	$patches,
+	[ undef, 'migrate-1.pl', 'migrate-02.pl' ],
+	'Found the expected patch set',
+);
 
 # Set up the file
 my $file = test_db();
@@ -36,4 +38,3 @@ use ORLite {
 
 1;
 END_PERL
-
