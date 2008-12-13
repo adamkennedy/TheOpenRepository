@@ -20,30 +20,23 @@ BEGIN {
 #####################################################################
 # Constructor and Accessors
 
-sub new {
-	my $class = shift;
-	my $self  = bless {
-		@_,
-		migrate => [],
-	}, $class;
+sub patches {
+	my $dir = shift;
 
-	# Check params
-	unless (
-		defined $self->{file}
-		and
-		-f $self->{file}
-	) {
-		Carp::croak("Missing or invalid file param");
-	}
-	unless (
-		defined $self->{directory}
-		and
-		-d $self->{directory}
-	) {
-		Carp::croak("Missing or invalid patches param");
+	# Find all files in a directory
+	local *DIR;
+	opendir( DIR, $dir )       or die "opendir: $!";
+	my @files = readdir( DIR ) or die "readdir: $!";
+	closedir( DIR )            or die "closedir: $!";
+
+	# Filter to get the patch set
+	my @patches = ();
+	foreach ( @files ) {
+		next unless /^migrate-(\d+)\.pl$/;
+		$patches["$1"] = $_;
 	}
 
-	return $self;
+	return \@patches;
 }
 
 1;
