@@ -7,7 +7,7 @@ no warnings "recursion";
 use strict;
 
 BEGIN {
-    our $VERSION        = '0.221_001';
+    our $VERSION        = '0.222000';
 }
 
 use integer;
@@ -227,7 +227,7 @@ is_synopsis_pl($_)
     say $$value;
 
     __DATA__
-    semantics are perl5.  version is 0.221_001.  start symbol is Expression.
+    semantics are perl5.  version is 0.222000.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
         $_[0] * $_[2]
@@ -250,7 +250,7 @@ is_synopsis_pl($_)
 If you can write a grammar in BNF, Marpa will generate a parser for it.
 That means Marpa parses
 left- and right-recursive grammars; all ambiguous grammars,
-including infinitely ambiguous ones;
+including infinitely ambiguous grammars;
 grammars with empty rules;
 and grammars with useless rules.
 
