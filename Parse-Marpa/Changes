@@ -1,5 +1,8 @@
 Revision history for Parse::Marpa
 
+0.222.000 Fri Dec 12
+        Beta release candidate.
+
 0.218.000 Sun Sep 28 
         META.yml fixes.
         Use Test::Weaken 1.000000.
