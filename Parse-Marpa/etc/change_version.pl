@@ -104,8 +104,20 @@ sub fix_test_files {
     $text_ref;
 }
 
+sub update_changes {
+    my $text_ref = shift;
+    my $file_name = shift;
+
+    my $date_stamp = `date`;
+    say STDERR "failed to add $new to $file_name"
+        unless ${$text_ref} =~ s/\ARevision\s+history\s+[^\n]*\n\n/&$new $date_stamp/xms;
+    $text_ref;
+}
+
 change(\&fix_META_yml, 'META.yml');
 change(\&fix_Marpa_pm, 'lib/Parse/Marpa.pm');
 change(\&fix_bootstrap_pl, 'bootstrap/bootstrap.pl');
 change(\&fix_test_files, @test_files);
+change(\&update_changes, 'Changes');
 
+say STDERR "REMEMBER TO UPDATE Changes file";
