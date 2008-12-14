@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.16 Sen 14 Dec 2008
+	- The fact that I didn't need to change ORLite for ORLite::Migrate
+	  suggests that it's stable enough for general use (pending 2.0)
+
 0.15 Wed 24 Sep 2008
 	- Adding support for writable pragmas
 	- Adding tests for pragmas, schema_version and user_version

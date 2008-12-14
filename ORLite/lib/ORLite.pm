@@ -9,18 +9,16 @@ use File::Spec   ();
 use File::Temp   ();
 use Params::Util qw{ _STRING _CLASS _HASH };
 use DBI          ();
-# use DBD::SQLite ();
+
+use vars qw{$VERSION};
 BEGIN {
+	$VERSION = '1.16';
+
 	# DBD::SQLite has a bug that generates a spurious warning
 	# at compile time, so we need to temporarily disable them.
 	# Remove this hack once DBD::SQLite fixes the bug.
 	local $^W = 0;
 	require DBD::SQLite;
-}
-
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.15';
 }
 
 
@@ -379,10 +377,6 @@ ORLite - Extremely light weight SQLite-specific ORM
   );
 
 =head1 DESCRIPTION
-
-B<THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE>
-
-B<YOU HAVE BEEN WARNED!>
 
 L<SQLite> is a light weight single file SQL database that provides an
 excellent platform for embedded storage of structured data.
