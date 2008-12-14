@@ -5,12 +5,14 @@ package ORLite::Migrate;
 use 5.006;
 use strict;
 use Carp         ();
-use Params::Util qw{ _STRING _HASH };
+use Params::Util qw{ _STRING _CLASS _HASH };
 use DBI          ();
+use ORLite       ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = 'ORLite';
 }
 
 sub import {
@@ -26,27 +28,93 @@ sub import {
 	# Check params and apply defaults
 	my %params;
 	if ( defined _STRING($_[1]) ) {
-		# Support the short form "use ORLite 'http://.../db.sqlite'"
-		%params = (
-			url      => $_[1],
-			readonly => undef, # Automatic
-			package  => undef, # Automatic
-		);
+		# Migrate needs at least two params
+		Carp::croak("ORLite::Migrate must be invoked in HASH form");
 	} elsif ( _HASH($_[1]) ) {
 		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
+	unless ( defined $params{create} ) {
+		$params{create} = 0;
+	}
+	unless (
+		defined _STRING($params{file})
+		and (
+			$params{create}
+			or
+			-f $params{file}
+		)
+	) {
+		Carp::croak("Missing or invalid file param");
+	}
+	unless ( defined $params{readonly} ) {
+		$params{readonly} = $params{create} ? 0 : ! -w $params{file};
+	}
+	unless ( defined $params{tables} ) {
+		$params{tables} = 1;
+	}
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
 	}
+	unless ( _CLASS($params{package}) ) {
+		Carp::croak("Missing or invalid package class");
+	}
+	unless ( $params{timeline} and -d $params{timeline} and -r $params{timeline} ) {
+		Carp::croak("Missing or invalid timeline directory");
+	}
+
+	# We don't support readonly databases
+	if ( $params{readonly} ) {
+		Carp::croak("ORLite::Migrate does not support readonly databases");
+	}
+
+	# Get the schema version
+	my $file     = File::Spec->rel2abs($params{file});
+	my $dsn      = "dbi:SQLite:$file";
+	my $dbh      = DBI->connect($dsn);
+	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	$dbh->disconnect;
+
+	# Build the migration plan
+	my $timeline = File::Spec->rel2abs($params{timeline});
+	my @plan = plan( $params{timeline}, $version );
+
+	# Execute the migration plan
+	if ( @plan ) {
+		# Does the migration plan reach the required destination
+		my $destination = $version + scalar(@plan);
+		if ( exists $params{user_version} and $destination != $params{user_version} ) {
+			die "Schema migration destination user_version mismatch (got $destination, wanted $params{user_version})";
+		}
+
+		# Load the modules needed for the migration
+		require Probe::Perl;
+		require File::pushd;
+		require IPC::Run3;
+
+		# Execute each script
+		my $perl  = Probe::Perl->find_perl_interpreter;
+		my $pushd = File::pushd::pushd($timeline);
+		foreach my $patch ( @plan ) {
+			my $stdin = "$file\n";
+			if ( $DEBUG ) {
+				print STDERR "Applying schema patch $patch...\n";
+			}
+			my $ok    = IPC::Run3::run3( [ $perl, $patch ], \$stdin, \undef, $DEBUG ? undef : \undef );
+			unless ( $ok ) {
+				Carp::croak("Migration patch $patch failed, database in unknown state");
+			}
+		}
+
+		# Migration complete, set user_version to new state
+		$dbh = DBI->connect($dsn);
+		$dbh->do("pragma user_version = $destination");
+		$dbh->disconnect;
+	}
 
 	# Hand off to the regular constructor
-	my $rv = $class->SUPER::import( \%params, $DEBUG ? '-DEBUG' : () );
-
-	# Erm... do we need to do anything post-load?
-
-	return $rv;
+	return $class->SUPER::import( \%params, $DEBUG ? '-DEBUG' : () );
 }
 
 
@@ -85,8 +153,7 @@ sub plan {
 	# Assemble the plan by integer stepping forwards
 	# until we run out of timeline hits.
 	my @plan = ();
-	while ( $version++ ) {
-		last unless $patches[$version];
+	while ( $patches[++$version] ) {
 		push @plan, $patches[$version];
 	}
 
