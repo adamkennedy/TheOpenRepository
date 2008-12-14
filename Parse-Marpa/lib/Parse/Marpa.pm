@@ -254,7 +254,7 @@ including infinitely ambiguous grammars;
 grammars with empty rules;
 and grammars with useless rules.
 
-Here's all you should need to get started:
+Here's all you need to get started:
 
 =over 4
 
@@ -304,8 +304,8 @@ L<Parse::Marpa::Doc::Internals>.
 For those interesting in the theory behind Marpa and
 the details of its programming,
 L<Parse::Marpa::Doc::Algorithm> describes the algorithms,
-explains how Marpa would not have been possible without the
-the work of others,
+explains how Marpa would not have been possible
+without the work of others,
 and details what is new with Marpa.
 Details about sources (books, web pages and articles) referred to in these documents
 or used in the writing of Marpa
@@ -447,7 +447,7 @@ Marpa parsing take place in three phases:
 B<grammar creation>,
 B<input recognition>
 and B<parse evaluation>.
-For brevity, I'll often speak of the the parse evaluation phase as
+For brevity, I'll often speak of the parse evaluation phase as
 the B<evaluation> phase,
 and the input recognition phase as
 the B<recognition> phase.
