@@ -170,6 +170,45 @@ __END__
 
 ORLite::Migrate - Extremely light weight SQLite-specific schema migration
 
+=head1 SYNOPSIS
+
+  # Build your ORM class using a patch timeline
+  # stored in the shared files directory.
+  use ORLite::Migrate {
+      create       => 1,
+      file         => 'sqlite.db',
+      timeline     => File::Spec->catdir(
+          File::ShareDir::module_dir('My::Module'), 'patches',
+      ),
+      user_version => 8,
+  };
+
+  # migrate-1.pl - A trivial schema patch
+  #!/usr/bin/perl
+  
+  use strict;
+  use DBI ();
+  
+  # Locate the SQLite database
+  my $file = <STDIN>;
+  chomp($file);
+  unless ( -f $file and -w $file ) {
+      die "SQLite file $file does not exist";
+  }
+  
+  # Connect to the SQLite database
+  my $dbh = DBI->connect("dbi:SQLite(RaiseError=>1):$file");
+  unless ( $dbh ) {
+    die "Failed to connect to $file";
+  }
+  
+  $dbh->do( <<'END_SQL' );
+  create table foo (
+      id integer not null primary key,
+      name varchar(32) not null
+  )
+  END_SQL
+
 =head1 DESCRIPTION
 
 B<THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE>
@@ -179,13 +218,53 @@ B<YOU HAVE BEEN WARNED!>
 L<SQLite> is a light weight single file SQL database that provides an
 excellent platform for embedded storage of structured data.
 
-L<ORLite> is a light weight single file Object-Relational Mapper (ORM)
+L<ORLite> is a light weight single class Object-Relational Mapper (ORM)
 system specifically designed for (and limited to only) work with SQLite.
 
-L<ORLite::Migrate> is a light weight single file Database Schema
+L<ORLite::Migrate> is a light weight single class Database Schema
 Migration enhancement for L<ORLite>.
 
+It provides a simple implementation of schema versioning within the
+SQLite database using the built-in C<user_version> pragma (which is
+set to zero by default).
 
+When setting up the ORM class, an additional C<timeline> parameter is
+provided, which should point to a directory containing standalone
+migration scripts.
+
+These patch scripts are named in the form F<migrate-$version.pl>, where
+C<$version> is the schema version to migrate to. A typical timeline directory
+will look something like the following.
+
+  migrate-01.pl
+  migrate-02.pl
+  migrate-03.pl
+  migrate-04.pl
+  migrate-05.pl
+  migrate-06.pl
+  migrate-07.pl
+  migrate-08.pl
+  migrate-09.pl
+  migrate-10.pl
+
+L<ORLite::Migrate> formulates a migration plan, it will start with the
+current database C<user_version>, and then step forwards looking for a
+migration script that has the version C<user_version + 1>.
+
+It will continue stepping forwards until it runs out of patches to
+execute.
+
+If L<ORLite::Migrate> is also invoked with a C<user_version> param 
+(to ensure the schema matches the code correctly) the plan will be
+checked in advance to ensure that the migration will end at the value
+specified by the C<user_version> param.
+
+Because the migration plan can be calculated from any arbitrary starting
+version, it is possible for any user of an older application version to
+install the most current version of an application and be ugraded safely.
+
+The recommended location to store the migration timeline is a shared files
+directory, locatable using one of the functions from L<File::ShareDir>.
 
 =head1 SUPPORT
 
