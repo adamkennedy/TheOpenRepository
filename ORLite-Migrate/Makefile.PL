@@ -8,7 +8,7 @@ requires      'Params::Util' => '0.33';
 requires      'Probe::Perl'  => 0;
 requires      'DBI'          => '1.58';
 requires      'DBD::SQLite'  => '1.14';
-requires      'ORLite'       => '0.15';
+requires      'ORLite'       => '1.16';
 test_requires 'Test::More'   => '0.47';
 
 WriteAll;
