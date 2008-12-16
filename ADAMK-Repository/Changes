@@ -1,5 +1,10 @@
 Changes for Perl extension ADAMK-Repository
 
+0.03 Wed 17 Nov 2008
+	- Adding calculation of the latest release for a distribution
+	- Adding support for extracting a release into a temp directory
+	- Adding diff of svn to most recent release (via Araxis)
+
 0.02 Thu 13 Nov 2008
 	- Adding distribution loading
 	- Adding preload support
