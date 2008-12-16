@@ -17,7 +17,6 @@ use File::pushd           ();
 use File::Find::Rule      ();
 use File::Find::Rule::VCS ();
 use IPC::Run3             ();
-use IPC::System::Simple   ();
 use Params::Util          qw{ _STRING _CODE };
 use CPAN::Version         ();
 use ADAMK::Release        ();
