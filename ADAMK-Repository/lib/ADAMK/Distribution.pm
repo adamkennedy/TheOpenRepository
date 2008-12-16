@@ -6,7 +6,7 @@ use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Object::Tiny qw{

@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 3 );
+	plan( tests => 5 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined' );
 }
@@ -42,5 +42,5 @@ is( ref($repository->{releases}),      'ARRAY', 'Preloaded releases ok'      );
 # Fetch all distributions for a release
 
 my @releases = $repository->distribution_releases('Config-Tiny');
-ok( 10 < scalar(@releases),  'Got correct number of Config::Tiny releases' );
+ok( 5 < scalar(@releases),   'Got correct number of Config::Tiny releases' );
 ok( scalar(@releases) < 100, 'Got correct number of Config::Tiny releases' );

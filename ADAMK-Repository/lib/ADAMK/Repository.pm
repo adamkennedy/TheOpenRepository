@@ -4,7 +4,7 @@ package ADAMK::Repository;
 
 =head1 NAME
 
-ADAMK::Repository - Repository object model for ADAMK's scn repository
+ADAMK::Repository - Repository object model for ADAMK's svn repository
 
 =cut
 
@@ -13,9 +13,11 @@ use strict;
 use warnings;
 use Carp                  'croak';
 use File::Spec            ();
-use File::pushd           'pushd';
+use File::pushd           ();
 use File::Find::Rule      ();
 use File::Find::Rule::VCS ();
+use IPC::Run3             ();
+use IPC::System::Simple   ();
 use Params::Util          qw{ _STRING _CODE };
 use CPAN::Version         ();
 use ADAMK::Release        ();
@@ -23,7 +25,7 @@ use ADAMK::Distribution   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Object::Tiny qw{
@@ -116,6 +118,13 @@ sub distributions {
 	return @distributions;
 }
 
+sub distribution {
+	my @distribution = grep {
+		$_->name eq $_[1]
+	} $_[0]->distributions;
+	return $distribution[0];
+}
+
 
 
 
@@ -126,7 +135,7 @@ sub distributions {
 sub release_dir {
 	$_[0]->dir('releases');
 }
-	
+
 sub release_files {
 	my $self   = shift;
 	local *DIR;
@@ -182,6 +191,61 @@ sub distribution_releases {
 	return @releases;
 }
 
+sub latest_release {
+	my $self     = shift;
+	my @releases = sort {
+		CPAN::Version->vcmp( $b->version, $a->version )
+	} $self->distribution_releases(shift);
+	return $releases[0];
+}
+
+
+
+
+
+#####################################################################
+# Comparison
+
+sub araxis_compare_bin {
+	return 'C:\\Program Files\\Araxis\\Araxis Merge\\Compare.exe';
+}
+
+sub araxis_compare {
+	my $self  = shift;
+	my $left  = shift;
+	my $right = shift;
+	unless ( -d $left ) {
+		croak("Left directory does not exist");
+	}
+	unless ( -d $right ) {
+		croak("Right directory does not exist");
+	}
+	IPC::Run3::run3( [
+		$self->araxis_compare_bin,
+		$left,
+		$right,
+	] );
+}
+
+sub compare_latest {
+	my $self         = shift;
+	my $name         = shift;
+	my $distribution = $self->distribution($name);
+	my $release      = $self->latest_release($name);
+	unless ( $distribution ) {
+		croak("Failed to find distribution $name");
+	}
+	unless ( $release ) {
+		croak("Failed to find latest release for $name");
+	}
+
+	# Launch the comparison
+	$self->araxis_compare(
+		$release->extract,
+		$distribution->path,
+	);	
+}
+
 
 
 
@@ -191,7 +255,7 @@ sub distribution_releases {
 
 sub svn_command {
 	my $self = shift;
-	my $root = pushd( $self->root );
+	my $root = File::pushd::pushd( $self->root );
 	my $cmd  = join( ' ', 'svn', @_ );
 	$self->trace("> $cmd\n");
 	my @rv   = `$cmd`;
