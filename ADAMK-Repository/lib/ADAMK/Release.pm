@@ -11,7 +11,7 @@ use Archive::Extract ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 use Object::Tiny qw{
@@ -43,6 +43,9 @@ sub new {
 	return $self;
 }
 
+sub stable {
+	!! ($_[0]->version !~ /_/);
+}
 
 
 
@@ -58,6 +61,10 @@ sub svn_info {
 			$_[0]->file,
 		)
 	);
+}
+
+sub svn_revision {
+	$_[0]->svn_info->{LastChangedRev};
 }
 
 
@@ -85,8 +92,9 @@ sub extract {
 sub clear {
 	my $self = shift;
 	if ( $self->extracted ) {
-
+		delete $self->{extracted};
 	}
+	return 1;
 }
 
 1;

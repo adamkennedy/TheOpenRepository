@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+use strict;
+use ADAMK::Repository ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.04';
+}
+
+
+
+
+
+#####################################################################
+# Main Script
+
+# Connect to the repository
+my $repository = ADAMK::Repository->new(
+	root => 'D:\cpan',
+) or die 'Failed to locate repository checkout';
+
+# First argv is the command
+my $method = shift @ARGV;
+unless ( $repository->can($method) ) {
+	die "Repository does not have a $method method";
+}
+
+# Execute the command
+$repository->$method(@ARGV);

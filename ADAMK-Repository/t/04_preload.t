@@ -41,6 +41,6 @@ is( ref($repository->{releases}),      'ARRAY', 'Preloaded releases ok'      );
 #####################################################################
 # Fetch all distributions for a release
 
-my @releases = $repository->distribution_releases('Config-Tiny');
+my @releases = $repository->distribution('Config-Tiny')->releases;
 ok( 5 < scalar(@releases),   'Got correct number of Config::Tiny releases' );
 ok( scalar(@releases) < 100, 'Got correct number of Config::Tiny releases' );

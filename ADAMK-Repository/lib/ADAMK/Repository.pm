@@ -24,7 +24,7 @@ use ADAMK::Distribution   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 use Object::Tiny qw{
@@ -176,26 +176,12 @@ sub releases {
 	return @releases;
 }
 
-sub distribution_releases {
-	my $self         = shift;
-	my $distribution = shift;
-
-	# Filter by distribution and sort by version
-	my @releases = sort {
-		CPAN::Version->vcmp( $b, $a )
-	} grep {
-		$_->distribution eq $distribution
-	} $self->releases;
-
-	return @releases;
+sub release_latest {
+	$_[0]->distribution($_[1])->latest;
 }
 
-sub latest_release {
-	my $self     = shift;
-	my @releases = sort {
-		CPAN::Version->vcmp( $b->version, $a->version )
-	} $self->distribution_releases(shift);
-	return $releases[0];
+sub release_version {
+	$_[0]->distribution($_[1])->release($_[2]);
 }
 
 
@@ -226,23 +212,40 @@ sub araxis_compare {
 	] );
 }
 
-sub compare_latest {
+sub compare_tarball_latest {
 	my $self         = shift;
-	my $name         = shift;
-	my $distribution = $self->distribution($name);
-	my $release      = $self->latest_release($name);
+	my $distribution = $self->distribution($_[0]);
+	my $release      = $distribution->latest;
 	unless ( $distribution ) {
-		croak("Failed to find distribution $name");
+		croak("Failed to find distribution $_[0]");
 	}
 	unless ( $release ) {
-		croak("Failed to find latest release for $name");
+		croak("Failed to find latest release for $_[0]");
 	}
 
 	# Launch the comparison
 	$self->araxis_compare(
 		$release->extract,
 		$distribution->path,
-	);	
+	);
+}
+
+sub compare_tarball_stable {
+	my $self         = shift;
+	my $distribution = $self->distribution($_[0]);
+	my $release      = $distribution->stable;
+	unless ( $distribution ) {
+		croak("Failed to find distribution $_[0]");
+	}
+	unless ( $release ) {
+		croak("Failed to find latest release for $_[0]");
+	}
+
+	# Launch the comparison
+	$self->araxis_compare(
+		$release->extract,
+		$distribution->path,
+	);
 }
 
 
