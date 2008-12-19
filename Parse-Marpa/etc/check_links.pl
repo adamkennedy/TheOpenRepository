@@ -5,7 +5,7 @@ use LWP::UserAgent;
 use URI::URL;
 use HTML::LinkExtor;
 
-my $url_base = "http://search.cpan.org/~jkegl/Parse-Marpa-0.219_001/lib/Parse/";
+my $url_base = "http://search.cpan.org/~jkegl/Parse-Marpa-1.000000/lib/Parse/";
 my @url = qw(
     Marpa.pm
     Marpa/Doc/Algorithm.pod
