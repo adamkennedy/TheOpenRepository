@@ -15,7 +15,7 @@ Module::Manifest - Parse and examine a Perl distribution MANIFEST file
 
 =head1 VERSION
 
-Version 0.05 ($Id: DistManifest.pm 4 2008-12-19 03:43:56Z frequency $)
+Version 0.05 ($Id$)
 
 =cut
 

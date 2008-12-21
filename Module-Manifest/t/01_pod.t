@@ -3,7 +3,7 @@
 # t/01_pod.t
 #  Checks that POD commands are correct
 #
-# $Id: 01pod.t 4 2008-12-19 03:43:56Z frequency $
+# $Id$
 
 use strict;
 BEGIN {

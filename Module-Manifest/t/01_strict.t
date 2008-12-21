@@ -3,7 +3,7 @@
 # t/01_strict.t
 #  Check that all modules use the 'strict' and 'warnings' pragmas
 #
-# $Id: Build.PL 10 2007-10-02 02:17:34Z frequency $
+# $Id$
 
 use strict;
 BEGIN {

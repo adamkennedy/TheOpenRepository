@@ -3,7 +3,7 @@
 # t/02_warnings.t
 #  Tests that Module::Manifest emits appropriate warnings
 #
-# $Id: 01meta.t 4 2008-12-19 03:43:56Z frequency $
+# $Id$
 
 use strict;
 BEGIN {

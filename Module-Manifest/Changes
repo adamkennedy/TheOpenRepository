@@ -1,5 +1,7 @@
 Revision history for Perl extension Module-Manifest
 
+$Id$
+
 0.05 Sat 20 Dec 2008
 	- Added option for file-less parsing
 	- Clarified the docs

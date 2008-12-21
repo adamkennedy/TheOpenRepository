@@ -3,7 +3,7 @@
 # t/01_pod-coverage.t
 #  Ensures all subroutines are documented with POD
 #
-# $Id: 01pod-coverage.t 4 2008-12-19 03:43:56Z frequency $
+# $Id$
 
 use strict;
 BEGIN {

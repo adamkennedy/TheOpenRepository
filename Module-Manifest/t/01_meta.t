@@ -3,7 +3,7 @@
 # t/01_meta.t
 #  Tests that the META.yml meets the specification
 #
-# $Id: 01meta.t 4 2008-12-19 03:43:56Z frequency $
+# $Id$
 
 use strict;
 BEGIN {
