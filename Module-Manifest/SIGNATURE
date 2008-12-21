@@ -1,0 +1,46 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 cfd24aa02bd23a984381b0e30ed82beb1158e798 Changes
+SHA1 7552cd2a793228ad3395c406f53eb551d36cb30c MANIFEST
+SHA1 343c0d4d1e5d10ce9de9a76c2f228ad4a9d3cfbb MANIFEST.SKIP
+SHA1 e1b87af38ecb0aeb51594a873a1cd8e9fa582e6f META.yml
+SHA1 dcd66fa73fcf093b1fdc706838e5d577473785bb Makefile.PL
+SHA1 decdaf6329c4cec48bec234b3bf83707331f9f4b Module-Manifest-0.05.tar.gz
+SHA1 14672e72b0a730894a71f8fc2c51fb2265392caa README
+SHA1 9ccd5cd71896a08c4452af712ecac132370213bb inc/Module/Install.pm
+SHA1 c49e512ab6caf6bdfd980b42ed0b3d34901a9198 inc/Module/Install/Base.pm
+SHA1 2ce37a94ac7c7a418b99a839e8a5f1e6ef3efad6 inc/Module/Install/Can.pm
+SHA1 8f91ca53c12bb609d12dd2ce6fc63d4581e390a0 inc/Module/Install/Fetch.pm
+SHA1 5cefb891354bdf6259227c56950272194fd58d1b inc/Module/Install/Makefile.pm
+SHA1 692c7572df94e8304ec61cd8d8e306df477fed0c inc/Module/Install/Metadata.pm
+SHA1 e3acd82e8b4cd43ca62dd2119402a66ad54460f0 inc/Module/Install/Win32.pm
+SHA1 49c8e7f52761eb5869618e065bb4b8e52697de36 inc/Module/Install/WriteAll.pm
+SHA1 c043c6cbe51ad829c404b381230960f53219d80f lib/Module/Manifest.pm
+SHA1 399b5228e249da7fc3e85c300cba12c99533f44b t/01_compile.t
+SHA1 341781afa1c8a909c377590cda6cf517334ef5e8 t/01_kwalitee.t
+SHA1 e39c03272cd59b72d9948c416c75c83a2e230438 t/01_meta.t
+SHA1 8839fd4cb6739e9b509840b20f481b862333b94c t/01_pod-coverage.t
+SHA1 8f8f3797ff6207748ff3b5e0abda4455a50f185c t/01_pod.t
+SHA1 518ea8a6121e3430662c877d43068cf7ddd8a738 t/02_main.t
+SHA1 c7a6e5a1b341e91569c1be850652d1b4202354f4 t/02_warnings.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAklOnx0ACgkQYYN9T93mai/9iwCfSX3ntIFmv2bXMxZhUHrRdaUa
+zmgAnROKa3FkTvurMy+tY6hPefF5G9SA
+=g1R2
+-----END PGP SIGNATURE-----

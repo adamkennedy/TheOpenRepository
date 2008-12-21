@@ -12,6 +12,7 @@ $Id$
 	- Added myself (Jonathan Yu) as a developer
 	- Added a README file made by hand from the perldoc
 	- Added a bunch of test files
+	- Signed the distribution with Module::Signature
 
 0.04 Thu 11 Dec 2008
 	- Upgrading Module::Install to 0.77
