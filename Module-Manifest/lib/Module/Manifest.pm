@@ -1,3 +1,16 @@
+# Module::Manifest
+#  Processes a MANIFEST and/or MANIFEST.SKIP file
+#
+# $Id$
+#
+# Copyright (c) 2006-2008 Adam Kennedy, et al.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the same terms as Perl itself.
+#
+# The full text of the license can be found in the LICENSE file included with
+# this module.
+
 package Module::Manifest;
 
 use 5.005;
@@ -21,12 +34,22 @@ Version 0.05 ($Id$)
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+  $VERSION = '0.05';
 }
 
 =pod
 
 =head1 SYNOPSIS
+
+Open and parse a MANIFEST and MANIFEST.SKIP:
+
+  my $manifest = Module::Manifest->new( 'MANIFEST', 'MANIFEST.SKIP' );
+
+Check if a given file matches any known skip masks:
+
+  print "yes\n" if $manifest->skipped('.svn');
+
+=head1 DESCRIPTION
 
 B<Module::Manifest> is a simple utility module created originally for use in
 L<Module::Inspector>.
@@ -87,19 +110,19 @@ an exception on error.
 =cut
 
 sub new {
-	my ($class, $manifest, $skipfile) = @_;
+  my ($class, $manifest, $skipfile) = @_;
 
-	my $self = {
-		file        => $manifest,
-		skipfile    => $skipfile,
-	};
+  my $self = {
+    file        => $manifest,
+    skipfile    => $skipfile,
+  };
 
-	bless($self, $class);
+  bless $self, $class;
 
-	$self->open(skip     => $skipfile) if _STRING($skipfile);
-	$self->open(manifest => $manifest) if _STRING($manifest);
+  $self->open(skip     => $skipfile) if _STRING($skipfile);
+  $self->open(manifest => $manifest) if _STRING($manifest);
 
-	return $self;
+  return $self;
 }
 
 =pod
@@ -119,26 +142,30 @@ This method doesn't return anything, but may throw an exception on error.
 =cut
 
 sub open {
-	my ($self, $type, $name) = @_;
+  my ($self, $type, $name) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	# Derelativise the file name if needed
-	my $file = File::Spec->rel2abs($name);
-	$self->{dir} = File::Basename::dirname($file);
+  # Derelativise the file name if needed
+  my $file = File::Spec->rel2abs($name);
+  $self->{dir} = File::Basename::dirname($file);
 
-	unless (-f $file and -r _) {
-		Carp::croak('Did not provide a readable file path');
-	}
+  unless (-f $file and -r _) {
+    Carp::croak('Did not provide a readable file path');
+  }
 
-	# Read the file
-	my @file;
-	open(FILE, $file) or Carp::croak('Failed to load ' . $name . ': ' . $!);
-	@file = <FILE>;
-	close FILE;
+  # Read the file
+  my @file;
+  unless (open FILE, $file) {
+    Carp::croak('Failed to load ' . $name . ': ' . $!);
+  }
+  @file = <FILE>;
+  close FILE or Carp::cluck('Failed to close file!');
 
-	# Parse the file
-	$self->parse($type => \@file);
+  # Parse the file
+  $self->parse($type => \@file);
+
+  return;
 }
 
 =pod
@@ -162,31 +189,33 @@ This method doesn't return anything, but may throw an exception on error.
 =cut
 
 sub parse {
-	my ($self, $type, $array) = @_;
+  my ($self, $type, $array) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
-	Carp::croak('Files/masks must be an array reference')
-		unless ref($array) eq 'ARRAY';
+  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('Files/masks must be an array reference')
+    unless ref $array eq 'ARRAY';
 
-	# This hash ensures there are no duplicates
-	my %hash;
-	foreach my $line (@{$array}) {
-		next unless $line =~ /^\s*([^\s#]\S*)/;
-		if ($hash{$1}++) {
-			Carp::cluck('Duplicate file or mask ' . $1);
-		}
-	}
+  # This hash ensures there are no duplicates
+  my %hash;
+  foreach my $line (@{$array}) {
+    next unless $line =~ /^\s*([^\s#]\S*)/;
+    if ($hash{$1}++) {
+      Carp::cluck('Duplicate file or mask ' . $1);
+    }
+  }
 
-	my @masks = sort(keys(%hash));
-	if ($type eq 'skip') {
-		$self->{skiplist} = \@masks;
-	}
-	elsif ($type eq 'manifest') {
-		$self->{manifest} = \@masks;
-	}
-	else {
-		Carp::croak('Available types are: skip, manifest');
-	}
+  my @masks = sort keys %hash;
+  if ($type eq 'skip') {
+    $self->{skiplist} = \@masks;
+  }
+  elsif ($type eq 'manifest') {
+    $self->{manifest} = \@masks;
+  }
+  else {
+    Carp::croak('Available types are: skip, manifest');
+  }
+
+  return;
 }
 
 =pod
@@ -199,17 +228,17 @@ regular expressions provided to either the C<parse> or C<open> methods.
 =cut
 
 sub skipped {
-	my ($self, $file) = @_;
+  my ($self, $file) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	$file = File::Spec->abs2rel($file, $self->{dir});
+  $file = File::Spec->abs2rel($file, $self->{dir});
 
-	# Loop through masks and exit early if there's a match
-	foreach my $mask (@{ $self->{skiplist} }) {
-		return 1 if ($file =~ /$mask/i);
-	}
-	return 0;
+  # Loop through masks and exit early if there's a match
+  foreach my $mask (@{ $self->{skiplist} }) {
+    return 1 if ($file =~ /$mask/i);
+  }
+  return 0;
 }
 
 =pod
@@ -222,11 +251,11 @@ was loaded.
 =cut
 
 sub file {
-	my ($self) = @_;
+  my ($self) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	$self->{file};
+  return $self->{file};
 }
 
 =pod
@@ -239,11 +268,11 @@ that was loaded.
 =cut
 
 sub skipfile {
-	my ($self) = @_;
+  my ($self) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	$self->{skipfile};
+  return $self->{skipfile};
 }
 
 =pod
@@ -256,11 +285,11 @@ MANIFEST or skip file, and thus SHOULD be the root of the distribution.
 =cut
 
 sub dir {
-	my ($self) = @_;
+  my ($self) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	$self->{dir};
+  return $self->{dir};
 }
 
 =head2 $manifest->files
@@ -275,11 +304,11 @@ Example code:
 =cut
 
 sub files {
-	my ($self) = @_;
+  my ($self) = @_;
 
-	Carp::croak('You must call this method as an object') unless ref($self);
+  Carp::croak('You must call this method as an object') unless ref $self;
 
-	return @{ $self->{files} };
+  return @{ $self->{files} };
 }
 
 =pod
@@ -326,9 +355,11 @@ For other issues, for commercial enhancement and support, or to have your
 write access enabled for the repository, contact the author at the email
 address above.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head2 CONTRIBUTORS
 
 Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
@@ -347,5 +378,5 @@ The full text of the license can be found in the LICENSE file included with
 this module.
 
 =cut
- 
+
 1;

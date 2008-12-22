@@ -7,13 +7,12 @@
 
 use strict;
 BEGIN {
-	$^W = 1;
+  $^W = 1;
 }
 
 use Test::More;
 
 eval 'use Test::Pod 1.14';
-
 if ($@) {
   plan skip_all => 'Test::Pod 1.14 required to test POD';
 }

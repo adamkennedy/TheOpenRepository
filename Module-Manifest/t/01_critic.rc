@@ -1,0 +1,58 @@
+# Perl::Critic resource file
+#
+# $Id$
+#
+# Copyright (c) 2006-2008 Adam Kennedy, et al.
+
+severity = brutal
+
+###################################################
+############### CODE SYNTAX
+###################################################
+
+# Lexical filehandles are only available in Perl 5.6+
+[-InputOutput::ProhibitBarewordFileHandles]
+
+# I don't see anything wrong with postfix controls or unless blocks
+[-ControlStructures::ProhibitPostfixControls]
+[-ControlStructures::ProhibitUnlessBlocks]
+
+# We're using 'open' as a method name, not shadowing a subroutine
+[-Subroutines::ProhibitBuiltinHomonyms]
+
+###################################################
+############### CODE FORMATTING
+###################################################
+
+[CodeLayout::ProhibitHardTabs]
+allow_leading_tabs = 0
+
+# I don't like the perltidy style
+[-CodeLayout::RequireTidyCode]
+
+# Not sure why /x and /m should be "required"
+[-RegularExpressions::RequireExtendedFormatting]
+[-RegularExpressions::RequireLineBoundaryMatching]
+
+# I don't think anything's wrong with punctuation variables
+[-Variables::ProhibitPunctuationVars]
+
+# This doesn't really work properly.
+[-InputOutput::RequireBriefOpen]
+
+###################################################
+############### DOCUMENTATION
+###################################################
+
+# Ensure that appropriate POD sections exist
+[Documentation::RequirePodSections]
+lib_sections    = NAME|DESCRIPTION|SYNOPSIS|AUTHOR|COPYRIGHT
+script_sections = NAME|DESCRIPTION|SYNOPSIS|AUTHOR|COPYRIGHT
+
+# This restriction is silly; some measure of performance gain is not worth
+# isolating the documentation from the code it documents.
+[-Documentation::RequirePodAtEnd]
+
+# Ensure that each file is tagged with an Id
+[Miscellanea::RequireRcsKeywords]
+keywords = Id

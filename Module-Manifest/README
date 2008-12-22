@@ -2,36 +2,39 @@ NAME
 
 Module::Manifest - Parse and examine a Perl distribution MANIFEST file
 
+$Id$
+
 SYNOPSIS
 
 Module::Manifest is a simple utility module created originally for use in
 Module::Inspector.
 
 It can load a MANIFEST file that comes in a Perl distribution tarball, examine
-the contents, and perform some simple tasks. It can also load the MANIFEST.SKIP
-file and check that.
+the contents, and perform some simple tasks. It can also load the
+MANIFEST.SKIP file and check that.
 
 Granted, the functionality needed to do this is quite simple, but the Perl
-distribution MANIFEST specification contains a couple of little idiosyncracies,
-such as line comments and space-seperated inline comments.
+distribution MANIFEST specification contains a couple of little
+idiosyncracies, such as line comments and space-seperated inline comments.
 
-The use of this module means that any little nigglies are dealt with behind the
-scenes, and you can concentrate the main task at hand.
+The use of this module means that any little nigglies are dealt with behind
+the scenes, and you can concentrate the main task at hand.
 
 Comparison to ExtUtil::Manifest
 
 This module is quite similar to ExtUtils::Manifest, or is at least similar in
 scope. However, there is a general difference in approach.
 
-ExtUtils::Manifest is imperative, requires the existance of the actual MANIFEST
-file on disk, and requires that your current directory remains the same.
+ExtUtils::Manifest is imperative, requires the existance of the actual
+MANIFEST file on disk, and requires that your current directory remains the
+same.
 
 Module::Manifest treats the MANIFEST file as an object, can load a the file
 from anywhere on disk, and can run some of the same functionality without
 having to change your current directory context.
 
-That said, note that Module::Manifest is aimed at reading and checking existing
-MANFIFEST files, rather than creating new ones.
+That said, note that Module::Manifest is aimed at reading and checking
+existing MANFIFEST files, rather than creating new ones.
 
 COMPATIBILITY
 
@@ -51,8 +54,8 @@ This module is stored in an Open Repository at the following address:
 
 <http://svn.ali.as/cpan/trunk/Module-Manifest>
 
-Write access to the repository is made available automatically to any published
-CPAN author, and to most other volunteers on request.
+Write access to the repository is made available automatically to any
+published CPAN author, and to most other volunteers on request.
 
 If you are able to submit your bug report in the form of new (failing) unit
 tests, or can apply your fix directly instead of submitting a patch, you are

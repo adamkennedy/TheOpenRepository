@@ -7,13 +7,12 @@
 
 use strict;
 BEGIN {
-	$^W = 1;
+  $^W = 1;
 }
 
 use Test::More;
 
 eval 'use Test::YAML::Meta';
-
 if ($@) {
   plan skip_all => 'Test::YAML::Meta required to test META.yml';
 }

@@ -16,7 +16,10 @@ MANIFEST.SKIP
 SIGNATURE
 META.yml
 README
+t/00_signature.t
 t/01_compile.t
+t/01_critic.rc
+t/01_critic.t
 t/01_kwalitee.t
 t/01_meta.t
 t/01_pod-coverage.t
