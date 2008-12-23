@@ -19,9 +19,10 @@ use Object::Tiny qw{
 	directory
 	path
 	repository
-	distribution
+	distname
 	version
 	extracted
+	exported
 };
 
 
@@ -45,6 +46,14 @@ sub new {
 
 sub stable {
 	!! ($_[0]->version !~ /_/);
+}
+
+sub distribution {
+	$_[0]->repository->distribution($_[0]->distname);
+}
+
+sub trunk {
+	!! $_[0]->distribution;
 }
 
 
@@ -74,6 +83,7 @@ sub svn_revision {
 #####################################################################
 # Extraction
 
+# Extracts the actual tarball into a temporary directory
 sub extract {
 	my $self = shift;
 	my $temp = File::Temp::tempdir(@_);
@@ -89,11 +99,22 @@ sub extract {
 	return $self->{extracted};
 }
 
-sub clear {
+# Exports the distribution at the point in time that the
+# release was created.
+sub export {
 	my $self = shift;
-	if ( $self->extracted ) {
-		delete $self->{extracted};
+	unless ( $self->trunk ) {
+		die(
+			"Cannot export non-trunk release " .
+			$self->file
+		);
 	}
+	$self->distribution->export( $self->svn_revision, @_ );
+}
+
+sub clear {
+	delete $_[0]->{extracted} if $_[0]->{extracted};
+	delete $_[0]->{exported}  if $_[0]->{exported};
 	return 1;
 }
 

@@ -37,7 +37,7 @@ isa_ok( $repository, 'ADAMK::Repository' );
 my $release = $repository->release_latest('Config-Tiny');
 isa_ok( $release, 'ADAMK::Release' );
 is( $release->directory, 'releases', '->directory ok' );
-is( $release->distribution, 'Config-Tiny', '->distribution ok' );
+is( $release->distname, 'Config-Tiny', '->distribution ok' );
 is( $release->file, 'Config-Tiny-2.12.tar.gz', '->file ok' );
 ok( -f $release->path, "->path exists at " . $release->path );
 isa_ok( $release->repository, 'ADAMK::Repository' );
@@ -48,5 +48,14 @@ my $extract = $release->extract( CLEANUP => 1 );
 ok( -d $extract, '->extract ok' );
 is( $extract, $release->extracted, '->extracted ok' );
 
-# Run the Araxis comparison
-$repository->compare_tarball_latest('Config-Tiny');
+# Run the Araxis tarball comparison
+SKIP: {
+	skip("Not testing Araxis Merge", 0) unless 0; # $ENV{TEST_ARAXIS};
+	$repository->compare_tarball_latest('Config-Tiny');
+}
+
+# Run the Araxis export comparison
+SKIP: {
+	skip("Not testing Araxis Merge", 0) unless 1; # $ENV{TEST_ARAXIS};
+	$repository->compare_export_latest('Config-Tiny');
+}

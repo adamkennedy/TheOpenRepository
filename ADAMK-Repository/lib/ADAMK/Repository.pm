@@ -84,12 +84,18 @@ sub distribution_dir {
 }
 
 sub distribution_directories {
-	my $self   = shift;
+	my $self = shift;
+
+	# Load the directory
 	local *DIR;
 	opendir( DIR, $self->distribution_dir ) or die("opendir: $!");
 	my @files = readdir(DIR);
 	closedir(DIR) or die("closedir: $!");
-	return grep { /^[A-Z-]+$/i } @files;
+
+	# Filter the directory
+	return grep {
+		/^[A-Z][A-Z0-9]*(?:-[A-Z][A-Z0-9]*)*$/i
+	} @files;
 }
 
 sub distributions {
@@ -104,13 +110,12 @@ sub distributions {
 	my @distributions = ();
 	foreach my $directory ( @directories ) {
 		my $object = ADAMK::Distribution->new(
-			name         => $directory,
-			directory    => 'trunk',
-			path         => File::Spec->catfile(
+			name       => $directory,
+			directory  => 'trunk',
+			repository => $self,
+			path       => File::Spec->catfile(
 				$self->distribution_dir, $directory,
 			),
-			repository   => $self,
-			distribution => $directory,
 		);
 		push @distributions, $object;
 	}
@@ -158,22 +163,27 @@ sub releases {
 		unless ( $file =~ /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ ) {
 			croak("Unexpected file name '$file'");
 		}
-		my $distribution = "$1";
+		my $distname = "$1";
 		my $version      = "$2";
 		my $object = ADAMK::Release->new(
-			file         => $file,
-			directory    => 'releases',
-			path         => File::Spec->catfile(
+			repository => $self,
+			directory  => 'releases',
+			file       => $file,
+			version    => $version,
+			distname   => $distname,
+			path       => File::Spec->catfile(
 				$self->release_dir, $file,
 			),
-			repository   => $self,
-			distribution => $distribution,
-			version      => $version,
 		);
 		push @releases, $object;
 	}
 
 	return @releases;
+}
+
+# Releases for distributions currently on the trunk
+sub releases_trunk {
+	grep { $_->trunk } $_[0]->releases;
 }
 
 sub release_latest {
@@ -244,6 +254,42 @@ sub compare_tarball_stable {
 	# Launch the comparison
 	$self->araxis_compare(
 		$release->extract,
+		$distribution->path,
+	);
+}
+
+sub compare_export_latest {
+	my $self         = shift;
+	my $distribution = $self->distribution($_[0]);
+	my $release      = $distribution->latest;
+	unless ( $distribution ) {
+		croak("Failed to find distribution $_[0]");
+	}
+	unless ( $release ) {
+		croak("Failed to find latest release for $_[0]");
+	}
+
+	# Launch the comparison
+	$self->araxis_compare(
+		$release->export,
+		$distribution->path,
+	);
+}
+
+sub compare_export_stable {
+	my $self         = shift;
+	my $distribution = $self->distribution($_[0]);
+	my $release      = $distribution->stable;
+	unless ( $distribution ) {
+		croak("Failed to find distribution $_[0]");
+	}
+	unless ( $release ) {
+		croak("Failed to find latest release for $_[0]");
+	}
+
+	# Launch the comparison
+	$self->araxis_compare(
+		$release->export,
 		$distribution->path,
 	);
 }
@@ -355,6 +401,20 @@ sub svn_file_info {
 	}
 	my $hash = $self->svn_info($file);
 	return $hash;
+}
+
+sub svn_export {
+	my $self     = shift;
+	my $url      = shift;
+	my $revision = shift;
+	my $path     = shift;
+	my @rv       = $self->svn_command(
+		'export', '--force', '-r', $revision, $url, $path,
+	);
+	unless ( $rv[-1] eq "Exported revision $revision." ) {
+		die "Failed to export $url at revision $revision";
+	}
+	return 1;
 }
 
 1;

@@ -17,7 +17,6 @@ use Object::Tiny qw{
 	directory
 	path
 	repository
-	distribution
 };
 
 
@@ -53,13 +52,23 @@ sub svn_info {
 	);
 }
 
+sub svn_last_changed {
+	$_[0]->svn_info->{LastChangedRev};
+}
+
+sub svn_url {
+	$_[0]->svn_info->{URL};
+}
+
 sub export {
 	my $self     = shift;
 	my $revision = shift;
-
-	# Create a temp directory to export to
-	
+	my $path     = File::Temp::tempdir(@_);
+	my $url      = $self->svn_url;
+	$self->repository->svn_export( $url, $revision, $path );
+	return $path;
 }
+
 
 
 
@@ -72,7 +81,7 @@ sub releases {
 	my @releases = sort {
 		CPAN::Version->vcmp( $b, $a )
 	} grep {
-		$_->distribution eq $self->distribution
+		$_->distname eq $self->name
 	} $self->repository->releases;
 	return @releases;
 }
