@@ -1,5 +1,15 @@
 Changes for Perl extension ADAMK-Repository
 
+0.05 Tue 23 Dec 2008
+	- Adding support for distribution exporting
+	- ADAMK::Release->distribution changed to distname
+	- ADAMK::Release->distribution now points to a ADAMK::Distribution
+	- ADAMK::Release->export works
+	- ADAMK::Repository->compare_export_latest added
+	- ADAMK::Repository->compare_export_stable works
+
+0.04 (missing)
+
 0.03 Wed 17 Nov 2008
 	- Adding calculation of the latest release for a distribution
 	- Adding support for extracting a release into a temp directory
