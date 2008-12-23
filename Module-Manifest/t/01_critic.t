@@ -10,8 +10,12 @@ BEGIN {
   $^W = 1;
 }
 
-use File::Spec;
 use Test::More;
+use File::Spec;
+
+unless ($ENV{TEST_AUTHOR}) {
+  plan(skip_all => 'Set TEST_AUTHOR to enable module author tests');
+}
 
 eval {
   require Test::Perl::Critic;

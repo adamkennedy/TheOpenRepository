@@ -12,6 +12,10 @@ BEGIN {
 
 use Test::More;
 
+unless ($ENV{TEST_AUTHOR}) {
+  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
+}
+
 eval 'use Test::YAML::Meta';
 if ($@) {
   plan skip_all => 'Test::YAML::Meta required to test META.yml';

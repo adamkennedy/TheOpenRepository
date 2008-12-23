@@ -1,0 +1,32 @@
+---
+abstract: 'Parse and examine a Perl distribution MANIFEST file'
+author:
+  - 'Adam Kennedy <adamk@cpan.org>'
+build_requires:
+  Test::Kwalitee: 1.01
+  Test::More: 0.42
+  Test::Perl::Critic: 0
+  Test::Pod: 1.14
+  Test::Pod::Coverage: 1.04
+  Test::Signature: 0
+  Test::Warn: 0
+distribution_type: module
+generated_by: 'Module::Install version 0.76'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Module-Manifest
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Carp: 0
+  File::Basename: 0
+  File::Spec: 0.80
+  Params::Util: 0.10
+  perl: 5.005
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.05

@@ -12,6 +12,10 @@ BEGIN {
 
 use Test::More;
 
+unless ($ENV{TEST_AUTHOR}) {
+  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
+}
+
 eval 'use Test::Pod::Coverage 1.04';
 if ($@) {
   plan skip_all => 'Test::Pod::Coverage required to test POD Coverage';

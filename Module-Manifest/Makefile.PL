@@ -17,3 +17,4 @@ test_requires 'Test::Warn'          => 0;
 test_requires 'Test::Perl::Critic'  => 0;
 
 WriteAll;
+

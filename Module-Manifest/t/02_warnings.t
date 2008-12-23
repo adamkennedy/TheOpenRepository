@@ -10,7 +10,7 @@ BEGIN {
   $^W = 1;
 }
 
-use Test::More tests => 1;
+use Test::More;
 use Module::Manifest ();
 
 # Can't import, because the later redefinition will cause a warning
@@ -20,6 +20,8 @@ eval {
 if ($@) {
   plan skip_all => 'Test::Warn required to test warnings';
 }
+
+plan tests => 1;
 
 # eval'ing use will not bring in the prototype; we have to redefine here
 sub warning_like (&$;$) { Test::Warn::warnings_like(@_) };
