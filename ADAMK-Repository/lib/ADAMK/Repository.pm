@@ -24,7 +24,7 @@ use ADAMK::Distribution   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 use Object::Tiny qw{
