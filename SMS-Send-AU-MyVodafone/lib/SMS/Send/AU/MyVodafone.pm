@@ -63,14 +63,15 @@ Using this driver will cost you money. B<YOU HAVE BEEN WARNED>
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
-use base 'SMS::Send::Driver';
-use WWW::Mechanize ();
+use SMS::Send::Driver ();
+use WWW::Mechanize    ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.04';
+	@ISA     = 'SMS::Send::Driver';
 }
 
 # Starting URI
