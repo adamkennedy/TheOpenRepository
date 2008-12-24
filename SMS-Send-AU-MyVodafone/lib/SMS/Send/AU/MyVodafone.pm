@@ -70,7 +70,7 @@ use WWW::Mechanize ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '1.04';
 }
 
 # Starting URI
