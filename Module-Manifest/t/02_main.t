@@ -7,7 +7,7 @@ BEGIN {
   $^W = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Module::Manifest ();
 
 # Load our own MANIFEST/MANIFEST.SKIP files
@@ -17,6 +17,15 @@ use Module::Manifest ();
 
   is($manifest->file, 'MANIFEST', 'Manifest is set properly');
   is($manifest->skipfile, 'MANIFEST.SKIP', 'Skip file is set properly');
+
+  my $exists = 0;
+  foreach my $file ($manifest->files) {
+    if ($file eq 'MANIFEST') {
+      $exists = 1;
+      last;
+    }
+  }
+  ok($exists, 'MANIFEST exists in parsed input');
 }
 
 # Test that it can parse a skip file appropriately
