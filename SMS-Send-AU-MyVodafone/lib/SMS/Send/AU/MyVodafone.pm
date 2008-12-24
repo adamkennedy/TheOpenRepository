@@ -313,11 +313,11 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 Adam Kennedy.
+Copyright 2005 - 2008 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -329,8 +329,8 @@ Additionally, you are again reminded that this software comes with
 no warranty of any kind, including but not limited to the implied
 warranty of merchantability.
 
-ANY use my result in charges on your phone bill, and you should use this
-software with care. The author takes no responsibility for any such
-charges accrued.
+ANY use of this module may result in charges on your phone bill,
+and you should use this software with care. The author takes no
+responsibility for any such charges accrued.
 
 =cut
