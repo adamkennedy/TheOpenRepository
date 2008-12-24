@@ -4,6 +4,8 @@ Revision history for Perl extension SMS::Send::AU::MyVodafone
 	- Correcting some minor bugs, validating this still works
 	- Upgrading tests to newer style
 	- Updating to Module::Install 0.77
+	- Removed the use of use base
+	- Updated minimum Perl dependency to 5.006
 
 0.03 Wed 14 Nov 2007
 	- No functional changes
