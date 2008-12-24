@@ -308,7 +308,7 @@ sub files {
 
   Carp::croak('You must call this method as an object') unless ref $self;
 
-  return @{ $self->{files} };
+  return @{ $self->{manifest} };
 }
 
 =pod
