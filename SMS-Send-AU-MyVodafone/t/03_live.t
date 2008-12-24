@@ -1,22 +1,24 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Try to make sure the website is actually there
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import('blib', 'lib');
-	}
+	$|  = 1;
+	$^W = 1;
 }
+use Test::More;
+use SMS::Send ();
 
-use Test::More tests => 2;
-use SMS::Send;
+my $login    = $ENV{SMS_LOGIN};
+my $password = $ENV{SMS_PASSWORD};
+my $to       = $ENV{SMS_TO};
+my $text     = $ENV{SMS_TEXT} || "Testing SMS::Send::AU::MyVodafone";
+if ( $login and $password and $to ) {
+	plan( tests => 2 );
+} else {
+	plan( skip_all => "Set environment variables SMS_LOGIN, SMS_PASSWORD and SMS_TO to run a live test" );
+}
 
 sub dies_like {
 	my ($code, $regexp) = (shift, shift);
@@ -31,29 +33,17 @@ sub dies_like {
 #####################################################################
 # Testing an actual working login
 
-my $login    = $ENV{SMS_LOGIN};
-my $password = $ENV{SMS_PASSWORD};
-my $to       = $ENV{SMS_TO};
-my $text     = $ENV{SMS_TEXT} || "Testing SMS::Send::AU::MyVodafone";
+# Create a new sender
+my $sender = SMS::Send->new( 'AU::MyVodafone',
+	_login    => $login,
+	_password => $password,
+	);
+isa_ok( $sender, 'SMS::Send' );
 
-SKIP: {
-	unless ( $login and $password and $to ) {
-		skip("Live testing requires SMS_LOGIN, SMS_PASSWORD and SMS_TO", 2);
-	}
+# Send a real message
+my $rv = $sender->send_sms(
+	text => $text,
+	to   => $to,
+	);
+ok( $rv, '->send_sms sends a live message ok' );
 
-	# Create a new sender
-	my $sender = SMS::Send->new( 'AU::MyVodafone',
-		_login    => $login,
-		_password => $password,
-		);
-	isa_ok( $sender, 'SMS::Send' );
-
-	# Send a real message
-	my $rv = $sender->send_sms(
-		text => $text,
-		to   => $to,
-		);
-	ok( $rv, '->send_sms sends a live message ok' );
-}
-
-exit(0);

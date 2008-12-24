@@ -70,7 +70,7 @@ use WWW::Mechanize ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 # Starting URI
@@ -78,7 +78,7 @@ my $START = 'https://www.myvodafone.com.au/knox/login_handler.jsp';
 my $FORM  = 'https://www.myvodafone.com.au/yrweb2txt/enter.do';
 
 # Detection regexs
-my $RE_BADLOGIN = qr/Sorry you must enter a valid username and password/i;
+my $RE_BADLOGIN = qr/Sorry you have entered an incorrect username or password/;
 
 
 
