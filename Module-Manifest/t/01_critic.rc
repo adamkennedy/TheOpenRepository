@@ -13,6 +13,11 @@ severity = brutal
 # Lexical filehandles are only available in Perl 5.6+
 [-InputOutput::ProhibitBarewordFileHandles]
 
+# I think the opposite; parantheses help keep parameters together and
+# reduce confusion. Removing them is dangerous in expressions like:
+#   open FILE, $filename or die()
+[-CodeLayout::ProhibitParensWithBuiltins]
+
 # I don't see anything wrong with postfix controls or unless blocks
 [-ControlStructures::ProhibitPostfixControls]
 [-ControlStructures::ProhibitUnlessBlocks]

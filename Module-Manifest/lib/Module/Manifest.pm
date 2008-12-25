@@ -112,12 +112,14 @@ an exception on error.
 sub new {
   my ($class, $manifest, $skipfile) = @_;
 
+  Carp::cluck('Return value discarded') unless (defined wantarray);
+
   my $self = {
     file        => $manifest,
     skipfile    => $skipfile,
   };
 
-  bless $self, $class;
+  bless($self, $class);
 
   $self->open(skip     => $skipfile) if _STRING($skipfile);
   $self->open(manifest => $manifest) if _STRING($manifest);
@@ -144,7 +146,7 @@ This method doesn't return anything, but may throw an exception on error.
 sub open {
   my ($self, $type, $name) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
 
   # Derelativise the file name if needed
   my $file = File::Spec->rel2abs($name);
@@ -156,11 +158,11 @@ sub open {
 
   # Read the file
   my @file;
-  unless (open FILE, $file) {
+  unless (open(FILE, $file)) {
     Carp::croak('Failed to load ' . $name . ': ' . $!);
   }
   @file = <FILE>;
-  close FILE or Carp::cluck('Failed to close file!');
+  close(FILE) or Carp::cluck('Failed to close file!');
 
   # Parse the file
   $self->parse($type => \@file);
@@ -191,9 +193,9 @@ This method doesn't return anything, but may throw an exception on error.
 sub parse {
   my ($self, $type, $array) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
-  Carp::croak('Files/masks must be an array reference')
-    unless ref $array eq 'ARRAY';
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::croak('Files or masks must be specified as an array reference')
+    unless (ref $array eq 'ARRAY');
 
   # This hash ensures there are no duplicates
   my %hash;
@@ -230,9 +232,15 @@ regular expressions provided to either the C<parse> or C<open> methods.
 sub skipped {
   my ($self, $file) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::cluck('Return value discarded') unless (defined wantarray);
 
-  $file = File::Spec->abs2rel($file, $self->{dir});
+  if (exists $self->{dir}) {
+    $file = File::Spec->abs2rel($file, $self->{dir});
+  }
+
+  # Quit early if we have no skip list
+  return 0 unless (exists $self->{skiplist});
 
   # Loop through masks and exit early if there's a match
   foreach my $mask (@{ $self->{skiplist} }) {
@@ -253,7 +261,8 @@ was loaded.
 sub file {
   my ($self) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::cluck('Return value discarded') unless (defined wantarray);
 
   return $self->{file};
 }
@@ -270,7 +279,8 @@ that was loaded.
 sub skipfile {
   my ($self) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::cluck('Return value discarded') unless (defined wantarray);
 
   return $self->{skipfile};
 }
@@ -287,7 +297,8 @@ MANIFEST or skip file, and thus SHOULD be the root of the distribution.
 sub dir {
   my ($self) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::cluck('Return value discarded') unless (defined wantarray);
 
   return $self->{dir};
 }
@@ -306,9 +317,13 @@ Example code:
 sub files {
   my ($self) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::cluck('Return value discarded') unless (defined wantarray);
 
-  return @{ $self->{manifest} };
+  if (exists($self->{manifest})) {
+    return @{ $self->{manifest} };
+  }
+  return ();
 }
 
 =pod

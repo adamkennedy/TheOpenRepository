@@ -7,8 +7,11 @@ BEGIN {
   $^W = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Module::Manifest ();
+
+use Cwd 'getcwd';
+my $root = getcwd();
 
 # Load our own MANIFEST/MANIFEST.SKIP files
 {
@@ -26,6 +29,8 @@ use Module::Manifest ();
     }
   }
   ok($exists, 'MANIFEST exists in parsed input');
+
+  is($manifest->dir, $root, 'getcwd matches parsed dir');
 }
 
 # Test that it can parse a skip file appropriately
