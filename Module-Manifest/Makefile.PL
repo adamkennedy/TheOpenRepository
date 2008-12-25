@@ -10,11 +10,12 @@ requires      'Params::Util'   => '0.10';
 
 test_requires 'Test::More'          => '0.42';
 test_requires 'Test::Kwalitee'      => '1.01';
-test_requires 'Test::Signature'     => 0;
+test_requires 'Test::Signature'     => '1.10';
 test_requires 'Test::Pod'           => '1.14';
 test_requires 'Test::Pod::Coverage' => '1.04';
-test_requires 'Test::Warn'          => 0;
-test_requires 'Test::Perl::Critic'  => 0;
+test_requires 'Test::Warn'          => '0.11';
+test_requires 'Test::Perl::Critic'  => '1.01';
+test_requires 'Test::Exception'     => '0.27';
 
 WriteAll;
 
