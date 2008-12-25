@@ -22,7 +22,35 @@ if ($@) {
   plan skip_all => 'Test::Exception required to test exceptions';
 }
 
-plan tests => 10;
+plan tests => 14;
+
+# Fail if open called without a filename
+throws_ok(
+  sub {
+    my $manifest = Module::Manifest->new;
+    $manifest->open('skip');
+  },
+  qr/must pass a filename/,
+  'Enforce filename/path to $manifest->open call'
+);
+throws_ok(
+  sub {
+    my $manifest = Module::Manifest->new;
+    $manifest->open(skip => '');
+  },
+  qr/must pass a filename/,
+  'Enforce filename/path to $manifest->open call'
+);
+
+# Fail unless open called with a readable file
+throws_ok(
+  sub {
+    my $manifest = Module::Manifest->new;
+    $manifest->open(skip => 't');
+  },
+  qr/readable file path/,
+  'Enforce readable file for $manifest->open call'
+);
 
 # Fail when parse called without an array reference
 throws_ok(
@@ -39,6 +67,14 @@ throws_ok(
   sub {
     my $manifest = Module::Manifest->new;
     my $skip = $manifest->skipped;
+  },
+  qr/must pass a filename/,
+  'Enforce filename/path to $manifest->skipped call'
+);
+throws_ok(
+  sub {
+    my $manifest = Module::Manifest->new;
+    my $skip = $manifest->skipped('');
   },
   qr/must pass a filename/,
   'Enforce filename/path to $manifest->skipped call'

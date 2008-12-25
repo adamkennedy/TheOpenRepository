@@ -147,7 +147,8 @@ sub open {
   my ($self, $type, $name) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::croak('You must pass a filename to check') unless (length $name);
+  Carp::croak('You must pass a filename to read and parse')
+    unless (defined $name && length $name);
 
   # Derelativise the file name if needed
   my $file = File::Spec->rel2abs($name);
