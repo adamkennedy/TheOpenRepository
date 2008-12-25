@@ -3,7 +3,7 @@
 # t/02_exceptions.t
 #  Tests that Module::Manifest throws appropriate exceptions
 #
-# $Id: 02_warnings.t 4742 2008-12-23 02:30:18Z FREQUENCY@cpan.org $
+# $Id$
 
 use strict;
 BEGIN {
