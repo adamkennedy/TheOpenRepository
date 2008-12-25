@@ -36,4 +36,4 @@
 \bcover_db\b
 
 # Test::Kwalitee cache files.
-^Debian_CPANTS.txt
+^Debian_CPANTS\.txt

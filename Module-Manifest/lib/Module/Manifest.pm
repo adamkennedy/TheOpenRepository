@@ -147,6 +147,7 @@ sub open {
   my ($self, $type, $name) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
+  Carp::croak('You must pass a filename to check') unless (length $name);
 
   # Derelativise the file name if needed
   my $file = File::Spec->rel2abs($name);
@@ -234,10 +235,10 @@ sub skipped {
 
   Carp::croak('You must call this method as an object') unless (ref $self);
   Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::croak('You must pass a filename or path to check')
+    unless (defined $file && length $file);
 
-  if (exists $self->{dir}) {
-    $file = File::Spec->abs2rel($file, $self->{dir});
-  }
+  $file = File::Spec->abs2rel($file);
 
   # Quit early if we have no skip list
   return 0 unless (exists $self->{skiplist});

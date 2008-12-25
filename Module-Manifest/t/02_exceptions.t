@@ -22,7 +22,7 @@ if ($@) {
   plan skip_all => 'Test::Exception required to test exceptions';
 }
 
-plan tests => 9;
+plan tests => 10;
 
 # Fail when parse called without an array reference
 throws_ok(
@@ -32,6 +32,16 @@ throws_ok(
   },
   qr/specified as an array reference/,
   'Enforce ARRAY ref with parse'
+);
+
+# Fail if skipped called without a filename
+throws_ok(
+  sub {
+    my $manifest = Module::Manifest->new;
+    my $skip = $manifest->skipped;
+  },
+  qr/must pass a filename/,
+  'Enforce filename/path to $manifest->skipped call'
 );
 
 # Fail when parse called with invalid type
@@ -79,7 +89,7 @@ throws_ok(
 
 throws_ok(
   sub {
-    my $skip = Module::Manifest->skipped;
+    my $skip = Module::Manifest->skipped('testmask');
   },
   qr/as an object/,
   'Static Module::Manifest->skipped call'

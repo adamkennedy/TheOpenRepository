@@ -69,7 +69,7 @@ warning_like(
 warning_like(
   sub {
     my $manifest = Module::Manifest->new;
-    $manifest->skipped;
+    $manifest->skipped('testmask');
   },
   qr/discarded/,
   '$manifest->skipped called in void context'
