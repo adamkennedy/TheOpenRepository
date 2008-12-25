@@ -2,8 +2,13 @@ use inc::Module::Install;
 
 name          'Module-Manifest';
 all_from      'lib/Module/Manifest.pm';
+
 requires      'perl'           => '5.005';
+# Pragmas required
 requires      'Carp'           => 0;
+requires      'strict'         => 0;
+
+# Other helper modules required
 requires      'File::Spec'     => '0.80';
 requires      'File::Basename' => 0;
 requires      'Params::Util'   => '0.10';

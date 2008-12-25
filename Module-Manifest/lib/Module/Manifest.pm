@@ -15,7 +15,11 @@ package Module::Manifest;
 
 use 5.005;
 use strict;
-use Carp           ();
+use Carp ();
+BEGIN {
+  $^W = 1;
+};
+
 use File::Spec     ();
 use File::Basename ();
 use Params::Util   '_STRING';
@@ -32,10 +36,7 @@ Version 0.05 ($Id$)
 
 =cut
 
-use vars qw{$VERSION};
-BEGIN {
-  $VERSION = '0.05';
-}
+use vars '$VERSION'; $VERSION = '0.05';
 
 =pod
 
@@ -84,7 +85,7 @@ existing MANFIFEST files, rather than creating new ones.
 
 =head1 COMPATIBILITY
 
-This module should be compatible with Perl 5.5 and above. However, it has
+This module should be compatible with Perl 5.6 and above. However, it has
 only been rigorously tested under Perl 5.10.0 on Linux.
 
 If you encounter any problems on a different version or architecture, please
@@ -112,7 +113,7 @@ an exception on error.
 sub new {
   my ($class, $manifest, $skipfile) = @_;
 
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
 
   my $self = {
     file        => $manifest,
@@ -158,13 +159,14 @@ sub open {
     Carp::croak('Did not provide a readable file path');
   }
 
-  # Read the file
   my @file;
-  unless (open(FILE, $file)) {
+  unless (open(MANFILE, $file)) {
     Carp::croak('Failed to load ' . $name . ': ' . $!);
   }
-  @file = <FILE>;
-  close(FILE) or Carp::cluck('Failed to close file!');
+  @file = <MANFILE>;
+  unless (close MANFILE) {
+    Carp::croak('Failed to close file! This is VERY bad.');
+  }
 
   # Parse the file
   $self->parse($type => \@file);
@@ -204,7 +206,7 @@ sub parse {
   foreach my $line (@{$array}) {
     next unless $line =~ /^\s*([^\s#]\S*)/;
     if ($hash{$1}++) {
-      Carp::cluck('Duplicate file or mask ' . $1);
+      Carp::carp('Duplicate file or mask ' . $1);
     }
   }
 
@@ -235,7 +237,7 @@ sub skipped {
   my ($self, $file) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
   Carp::croak('You must pass a filename or path to check')
     unless (defined $file && length $file);
 
@@ -264,7 +266,7 @@ sub file {
   my ($self) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
 
   return $self->{file};
 }
@@ -282,7 +284,7 @@ sub skipfile {
   my ($self) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
 
   return $self->{skipfile};
 }
@@ -300,7 +302,7 @@ sub dir {
   my ($self) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
 
   return $self->{dir};
 }
@@ -320,7 +322,7 @@ sub files {
   my ($self) = @_;
 
   Carp::croak('You must call this method as an object') unless (ref $self);
-  Carp::cluck('Return value discarded') unless (defined wantarray);
+  Carp::carp('Return value discarded') unless (defined wantarray);
 
   if (exists($self->{manifest})) {
     return @{ $self->{manifest} };
