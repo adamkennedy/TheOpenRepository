@@ -73,7 +73,7 @@ sub _uses_imports {
 	@meta{@functions} = @functions;
 	#confess ;
 	$doc->add( imports => $class => { functions => \%meta } ) if @functions;
-	$doc->add( requires => $class {} );
+	$doc->add( requires => $class => {} );
 }
 
 
