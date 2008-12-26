@@ -6,8 +6,6 @@ use base qw( Padre::Plugin );
 
 use Scalar::Util qw( blessed );
 
-#use lib qw( /home/smee/dev/tmp/Macropod-dev/trunk/lib );
-
 use Padre::Pod::Frame;
 use Padre::Pod::Viewer;
 use Padre::Documents;
@@ -123,7 +121,7 @@ use warnings;
 use base qw( Padre::Pod::Viewer );
 use Scalar::Util qw( blessed );
 our  $parser = Macropod::Parser->new();
-$parser->init_cache;
+#$parser->init_cache;
 
 sub display {
   my ($self,$ref) = @_;
