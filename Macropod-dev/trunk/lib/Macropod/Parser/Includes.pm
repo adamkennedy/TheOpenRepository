@@ -72,11 +72,9 @@ sub _uses_imports {
 	my @functions  =  dequote_list( $str ); # FIXME not all are functions
 	@meta{@functions} = @functions;
 	#confess ;
-	$doc->add( imports => $class => { functions => \%meta } ) ;
+	$doc->add( imports => $class => { functions => \%meta } ) if @functions;
+	$doc->add( requires => $class {} );
 }
-
-use Data::Dumper;
-
 
 
 sub _uses_base {
