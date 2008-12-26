@@ -47,7 +47,7 @@ our %known_pragmas = (
     threads => 'Perl interpreter-based threads',
     'threads::shared' => 'Perl extension for sharing data structures between threads',
     utf8 => 'Perl pragma to enable/disable UTF-8 (or UTF-EBCDIC) in source code',
-    vars => 'Perl pragma to predeclare global variable names (obsolete)',
+    #vars => 'Perl pragma to predeclare global variable names (obsolete)',
     vmsish => 'Perl pragma to control VMS-specific language features',
     warnings => 'Perl pragma to control optional warnings',
     'warnings::register' => 'warnings import function',
@@ -57,9 +57,11 @@ our %known_pragmas = (
 
 sub parse {
     my ($plugin,$doc,$class,$node) = @_;
-    return 0 unless exists ( $known_pragmas{$class} );
-   
+    return unless exists ( $known_pragmas{$class} );
+
+    # mutate the doc :(
     $doc->mk_accessors( 'pragmas' );
+
     my $args = $node->find( ppi_find_list );
     my @args  = ($args) ? dequote_list( $args->[0] ) : ();
     my $skip = 1;

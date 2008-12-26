@@ -2,21 +2,24 @@ package Macropod::Processor;
 
 use strict;
 use warnings;
+
 use Carp qw( confess );
+
 use Data::Dumper;
 use Pod::POM;
 use Pod::POM::View::Pod;
 use Pod::POM::Nodes;
 
-use Module::Pluggable
+use Module::Pluggable (
         require     => 1,
         #instantiate => 'new',
         search_path => 'Macropod::Processor',
         only => qr/^Macropod::Processor::(\w+)$/ ,
         except => 'Macropod::Processor::Plugin',
-        sub_name    => 'processors';
+        sub_name    => 'processors' );
+        
 
-
+# why ?
 local $Pod::POM::DEFAULT_VIEW = 'Pod::POM::View::Pod';
 
 sub new {
@@ -43,7 +46,11 @@ sub _inflate {
   my $parser = $self->{parser};
   my @sections;
   my $wrapper = "=head1 MACROPOD (auto discovered)\n\n";
+  $wrapper .= "    " . $doc->title;
   push @sections , $parser->parse( $wrapper );
+
+  push @sections, $_->process($doc) for 
+    $self->processors;
 
   my $requires = "=head2 REQUIRES\n\n"; 
 if ( $doc->requires ) {
@@ -75,7 +82,7 @@ if ( $doc->imports ) {
     while ( my ($type,$values) = each %$meta ) {
       $imports .= "=over\n\n";
       foreach my $name ( keys %$values ) {
-        $imports .= "=item L<$name|$class/$name>\n\n";
+        $imports .= qq{=item L<$name|$class/"$name">\n\n};
       }
       $imports .= "=back\n\n";
     }

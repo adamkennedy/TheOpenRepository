@@ -17,7 +17,7 @@ sub parse {
 	my $uses_packages =  $doc->includes;
 	return unless $uses_packages;
     unless ('ARRAY' eq ref $uses_packages ) {
-    	warn "Passed '$uses_packages' not ARRAY";
+    	$self->warning( "Passed '$uses_packages' not ARRAY" );
         $uses_packages = [ $doc->includes ];
     }
 	foreach my $used ( @$uses_packages ) {
@@ -26,39 +26,34 @@ sub parse {
 		my $class = $used->child(2); 
 		#warn $doc->title . " uses '$class'";
 		if ( $class =~ /hide/ ) {
-			warn $doc->source . 
-				' hiding from PAUSE ?! Unhandled by' . __PACKAGE__;
+			$self->warning(
+                $doc->source . 
+				' hiding from PAUSE ?! Unhandled by' . __PACKAGE__
+			);
 			next;
 		}
 		
-		#my $hook = "_uses_" . $class->content;
-		#$hook =~ tr/:/_/;
-
-		#if  ( $self->can( $hook ) ) {
-		#warn "Try to hook $hook";
-		#	$self->$hook( $doc , $used );	
-		#}
-
-                my $skip_default = 0;
-                foreach my $plugin ( $self->plugins ) {
-                    #warn __PACKAGE__ .  " $plugin";
-                    my $success = 
-                      eval { $plugin->parse( $doc, $class->content, $used ) };
-                    if ($@) {
-                      $self->warning( $@ );
-                    }
-
-                    if (defined $success) {
-                      $skip_default++;
-                    }
-                }
+		my $skip_default = 0;
+		foreach my $plugin ( $self->plugins ) {
+            my $success = 
+                  eval { $plugin->parse( $doc, $class->content, $used ) };
+            
+            if ($@) {
+                $self->warning( $@ );
+            }
+               
+            if (defined $success) {
+                $skip_default++;
+            }
+        }
 		
 		unless ( $skip_default ) {
 		    if( $used->find_any( 'PPI::Token::QuoteLike::Words' ) ) {
 			$self->_uses_imports( $doc , $class->content, $used );
 		    }
+		    
  		    $doc->add( requires => $class->content => {});
-                }
+        }
 	}	
 
 }

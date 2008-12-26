@@ -9,7 +9,7 @@ use Macropod::Util qw( ppi_find_list dequote_list );
 
 sub parse {
     my ($self,$doc,$class,$node) = @_;
-    return 0 unless $class eq 'vars';
+    return unless $class eq 'vars';
 
     my $imports = $node->find(  ppi_find_list  );
     my @symbols;

@@ -163,9 +163,6 @@ my @parsers = $self->parsers;
                 warn $@ if $@;
 	};
 	
-	# TODO , determine methods vs functions heuristicly  ?
-	#$self->process($doc);
-
 	$self->{cache}->store( $doc ) if exists $self->{cache};
 
 	return $doc;

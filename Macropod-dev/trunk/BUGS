@@ -1,0 +1,5 @@
+ * Parser should split source by package and return multiple docs?
+ * bare import not handled 'use Foo qw();'
+ * anonymous subs appear as methods
+ * many many more
+
