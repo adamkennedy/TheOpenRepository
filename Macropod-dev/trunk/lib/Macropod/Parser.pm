@@ -2,12 +2,14 @@ package Macropod::Parser;
 use vars qw( $VERSION );
 use strict;
 use warnings;
+use Scalar::Util qw( blessed );
 use PPI;
 use YAML ();
 use Macropod::Document;
 use Macropod::Signature;
 use Macropod::Cache;
 use Carp qw( confess carp cluck ); 
+
 use PPI::Dumper;
 use Data::Dumper;
 use Pod::Simple::Search;
@@ -15,66 +17,94 @@ use File::HomeDir;
 use Module::Pluggable
 	require     => 1,
 	#instantiate => 'new',
-        search_path => 'Macropod::Parser',
+    search_path => 'Macropod::Parser',
 	only => qr/^Macropod::Parser::(\w+)$/ ,
-        except => 'Macropod::Parser::Plugin',
+    except => 'Macropod::Parser::Plugin',
 	sub_name    => 'parsers';
 
 
 $VERSION = "0.11_00";
-
-our %doc_cache;
-
-
-#use base qw( Class::Accessor );
-#__PACKAGE__->mk_accessors(
-#	qw( 
-# output  )
-#);
 
 
 =pod
 
 =head1 NAME
 
-Macropod - multilegged documentation monster
+Macropod - the Abominable Snowman to POD
 
 
 =head1 DESCRIPTION
 
-It's not javadoc.
+Attempt to parse perl source (via L<PPI>) and derive meaning from
+it. Including but not limited to 
 
+=over
 
+=item 
 
+required modules
 
+=item 
 
-=cut
+exported symbols
 
-=pod
+=item 
+
+imported symbols
+
+=item 
+ 
+inherited packages
+
+=back
+
 
 =head1 METHODS
 
-=head2 new C< %args >
+=head2 new
 
 Create a new macropod parser. 
+
 
 =head3 OPTIONS
 
 =over
 
 =item cache
-    path to a Macropod::Cache for this parser to use
+
+Accepts a path to a L<Macropod::Cache> for this parser to use. Alternatively
+a prebuilt cache that isa Macropod::Cache
     
 =back
 
+=head2 parse
+
+Accepts a module name or a path. Returns a parsed L<Macropod::Document>
+
+=head2 parse_file
+
+Accepts a path. Returns a parsed L<Macropod::Document>
+
+=head2 parse_text
+
+Accepts a SCALAR reference. Returns a L<Macropod::Document> eg:
+
+    my $doc = $parser->parse_text( \'package Foo;' );
+
 =cut
+
 
 sub new {
 	my ($class,%args) = @_;
 	
 	if (my $cache = delete $args{cache}) { 
-		confess "Cache '$cache' does not exist: $!" unless -f $cache;
-		$args{cache} = Macropod::Cache->new( dbfile=>$cache );
+	    if ( blessed $cache && $cache->isa('Macropod::Cache') ) {
+            $class->warning( 'Using cache ' .  $cache );
+	    }
+	    else {
+            confess "Cache '$cache' does not exist: $!" unless -f $cache;
+            $args{cache} = Macropod::Cache->new( dbfile=>$cache );
+        }
 	}
 	
 	return bless \%args, $class;
@@ -343,35 +373,5 @@ sub process_inherits {
 
 
 }
-
-sub _inherits_Class::Accessor {
-	my ($self) = @_;
-	my $package_calls = $self->{ppi}->find(
-		sub { 
-			my ($doc,$ele) = @_;
-			return
-				$ele->isa( 'PPI::Statement' )
-				&& $ele->child(0)
-				&& $ele->child(0)->isa( 'PPI::Token::Word' )
-				&& $ele->child(0)->content eq '__PACKAGE__'
-				&& $ele->child(1)
-				&& $ele->child(1)->content eq '->'
-				&& $ele->child(2)
-				&& $ele->child(2)->content =~ /^mk_accessor(?:s)?/;
-		}
-	);
-	return unless $package_calls;
-
-	foreach my $call ( @$package_calls  ) {
-
-		#my $list = $call->find( 'PPI::Token::QuoteLike::Words' ) ;
-		my $list = $call->find_first('PPI::Structure::List' );
-		next unless $list;
-		#warn Dumper $list;
-	}
-
-}
-
-
 
 1;

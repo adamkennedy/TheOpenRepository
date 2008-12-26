@@ -12,12 +12,42 @@ use Pod::POM::Nodes;
 
 use Module::Pluggable (
         require     => 1,
-        #instantiate => 'new',
         search_path => 'Macropod::Processor',
         only => qr/^Macropod::Processor::(\w+)$/ ,
         except => 'Macropod::Processor::Plugin',
         sub_name    => 'processors' );
-        
+
+=pod
+
+=head1 NAME
+
+Macropod::Processor
+
+=head1 DESCRIPTION
+
+Process a L<Macropod::Document> into some kind of output. Presently
+only POD.
+
+=head1 SYNOPSIS
+
+  my $processor = Macropod::Processor->new();
+  my $pod = $processor->process( $doc );
+
+=head1 METHODS
+
+=head2 new
+
+Constructor. returns a new Macropod::Processor
+
+=head2 process
+
+Accepts a single L<Macropod::Document> as input. Returns a scalar reference 
+to the output string
+
+
+
+=cut
+
 
 # why ?
 local $Pod::POM::DEFAULT_VIEW = 'Pod::POM::View::Pod';

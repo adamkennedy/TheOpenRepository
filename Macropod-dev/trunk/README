@@ -1,3 +1,11 @@
 This module is unfinished, barely works and passes all tests
 Do not believe the pod
 do not use.
+
+The whole Macropod idea would benefit greatly from a little more design
+and a bit less hackery.
+
+Macropod::Document is very inadequate and poorly defined
+Macropod::Processor is basic at best
+
+
