@@ -10,9 +10,10 @@ requires => {
 		'YAML'		=> 0,
 		'Carp'		=> 0,
 		'Class::Accessor'	=>	0,
-		'Pod::Simple' => 0,
+		'Pod::Simple'   => 0,
 		'File::HomeDir' => 0,
-		'DBI' => 0,
+		'DBI'           => 0,
+                'Module::Pluggable' => 0,
             },
 
 #pm_files => {
