@@ -159,13 +159,15 @@ sub _parse {
 my @parsers = $self->parsers;
 	foreach my $plugin_class ( @parsers ) {
                 my $plugin = $plugin_class->new( parser=>$self );
-                warn "$plugin";
 		my $success = eval { $plugin->parse( $doc ) };
                 warn $@ if $@;
 	};
 	
 	# TODO , determine methods vs functions heuristicly  ?
 	#$self->process($doc);
+
+	$self->{cache}->store( $doc ) if exists $self->{cache};
+
 	return $doc;
 }
 
@@ -198,7 +200,7 @@ sub init_cache {
 	if ( ! defined $dbfile ) 
 	{
 		my $user_dir = File::HomeDir->my_data( 'Macropod' );
-#warn 'user dir is ' . $user_dir;
+warn 'user dir is ' . $user_dir;
 		mkpath( $user_dir ) unless -d $user_dir;
 		$dbfile = $user_dir . '/macropod_parser.cache.db'; #FIXME File::Spec
 	}
@@ -226,6 +228,7 @@ sub to_string {
 
 
 sub process {
+confess "DEPRECATED";
 	my ($self,$doc) = @_;
 
 	my @processors = $self->processors;

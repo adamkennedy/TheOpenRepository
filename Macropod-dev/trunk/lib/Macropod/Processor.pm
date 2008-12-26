@@ -8,6 +8,14 @@ use Pod::POM;
 use Pod::POM::View::Pod;
 use Pod::POM::Nodes;
 
+use Module::Pluggable
+        require     => 1,
+        #instantiate => 'new',
+        search_path => 'Macropod::Processor',
+        only => qr/^Macropod::Processor::(\w+)$/ ,
+        except => 'Macropod::Processor::Plugin',
+        sub_name    => 'processors';
+
 
 local $Pod::POM::DEFAULT_VIEW = 'Pod::POM::View::Pod';
 
@@ -76,12 +84,25 @@ if ( $doc->imports ) {
   push @sections, $parser->parse( $imports );
 }
 
+if ( $doc->exports ) {
+  my $exports = "=head2 EXPORTS (auto discovered)\n\n";
+  my @symbols;
+  while ( my ($key,$value) =  each %{ $doc->exports } ) {
+    $exports .= "=head3 $key\n\n";
+    $exports .= "=over 4\n\n";
+    $exports .= "=item L<$_\n\n" for values %$value; 
+    $exports .= "=back 4\n";
+  }
+  $exports .= "\n";
+  push @sections, $parser->parse( $exports );
+}
+
 if ( $doc->method ) {
   my $methods = "=head2 METHODS (auto discovered)\n\n";
   $methods .= "=over\n\n";
   while ( my ($method,$meta) = each %{ $doc->method } ) {
     # ignore meta for now
-    $methods .= "=item *\n\n$method\n\n";
+    $methods .= "=item $method\n\n";
   }
   $methods .= "=back\n\n";
   push @sections, $parser->parse( $methods );
@@ -93,7 +114,6 @@ if ( $doc->method ) {
   $final .=  eval { $_->content } for ( $pod , @sections );
   $final .= "=cut\n\n";
 
-warn "PROCESSSED::: " . $final;
   return \$final;
 }
 

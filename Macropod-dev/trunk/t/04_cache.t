@@ -7,7 +7,6 @@ use Carp qw( confess );
 my $m = Macropod::Parser->new();
 $m->init_cache();
 my $doc = $m->parse( 'Macropod::Parser' );
-$m->process($doc);
 diag( "Processed and cached 'Macropod::Parser' " );
 $m = undef;
 

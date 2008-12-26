@@ -37,6 +37,7 @@ sub new {
 sub store {
 	my ($self,$doc) = @_;
 	my $signature = $doc->signature;
+#warn "Storing $signature " . $doc->title;
 	if ( $self->get( signature => $signature ) ) {
 		warn "Already stored $signature";
 		return;
