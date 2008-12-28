@@ -1,29 +1,58 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 BEGIN { use_ok('File::PackageIndexer') };
 
 my $indexer = File::PackageIndexer->new();
 isa_ok($indexer, 'File::PackageIndexer');
 
-open my $fh, '<', $INC{"File/PackageIndexer.pm"} or die $!;
-my $code = do {local $/=undef; <$fh>};
-close $fh;
+SCOPE: {
+  open my $fh, '<', $INC{"File/PackageIndexer.pm"} or die $!;
+  my $code = do {local $/=undef; <$fh>};
+  close $fh;
 
-my $res = $indexer->parse($code);
-ok(ref($res) && ref($res) eq 'HASH', "returns hash ref");
+  my $res = $indexer->parse($code);
+  ok(ref($res) && ref($res) eq 'HASH', "returns hash ref");
 
-#use Data::Dumper; warn Dumper $res;
-
-my $cmp = {
-  'File::PackageIndexer' => {
-    subs => {
-      parse => 1,
-      '_lazy_create_pkg' => 1,
+  my $cmp = {
+    'File::PackageIndexer' => {
+      name => 'File::PackageIndexer',
+      subs => {
+        parse => 1,
+        lazy_create_pkg => 1,
+        _handle_includes => 1,
+        default_package => 1,
+        new => 1,
+      },
     },
-  },
-};
+  };
 
-is_deeply($res, $cmp);
+  is_deeply($res, $cmp);
+}
+
+
+SCOPE: {
+  open my $fh, '<', $INC{"File/PackageIndexer/PPI/Util.pm"} or die $!;
+  my $code = do {local $/=undef; <$fh>};
+  close $fh;
+
+  my $res = $indexer->parse($code);
+  ok(ref($res) && ref($res) eq 'HASH', "returns hash ref");
+
+  my $cmp = {
+    'File::PackageIndexer::PPI::Util' => {
+      name => 'File::PackageIndexer::PPI::Util',
+      subs => {
+        constructor_to_structure => 1,
+        _hash_constructor_to_structure => 1,
+        _array_constructor_to_structure => 1,
+        token_to_string => 1,
+        get_keyname => 1,
+      },
+    },
+  };
+
+  is_deeply($res, $cmp);
+}
 

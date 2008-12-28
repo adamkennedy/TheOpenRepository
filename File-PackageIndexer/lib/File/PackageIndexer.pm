@@ -7,6 +7,8 @@ use warnings;
 our $VERSION = '0.01';
 
 use PPI;
+require File::PackageIndexer::PPI::Util;
+require File::PackageIndexer::PPI::ClassXSAccessor;
 
 use Class::XSAccessor
   constructor => 'new',
@@ -30,6 +32,7 @@ sub parse {
 
   # TODO: Accessor generators et al
   # TODO: Inheritance
+  # TODO: package statement scopes
 
   foreach my $token ( $doc->tokens ) {
     my $statement = $token->statement;
@@ -38,31 +41,55 @@ sub parse {
     if ( $statement->class eq 'PPI::Statement::Sub' ) {
       my $subname = $statement->name;
       if (not defined $curpkg) {
-        $curpkg = $self->_lazy_create_pkg($def_pkg, $pkgs);
+        $curpkg = lazy_create_pkg($def_pkg, $pkgs);
       }
       $curpkg->{subs}->{$subname} = 1;
     }
     elsif ( $statement->class eq 'PPI::Statement::Package' ) {
       my $namespace = $statement->namespace;
-      $curpkg = $self->_lazy_create_pkg($namespace, $pkgs);
+      $curpkg = lazy_create_pkg($namespace, $pkgs);
+    }
+    elsif ( $statement->class eq 'PPI::Statement::Include' ) {
+      $self->_handle_includes($statement, $curpkg, $pkgs);
     }
   }
 
   return $pkgs;
 }
 
-sub _lazy_create_pkg {
-  my $self = shift;
+# generate empty, new package struct
+sub lazy_create_pkg {
   my $p_name = shift;
   my $pkgs = shift;
   return $pkgs->{$p_name} if exists $pkgs->{$p_name};
   $pkgs->{$p_name} = {
+    name => $p_name,
     subs => {},
     #isa  => [],
   };
   return $pkgs->{$p_name};
 }
 
+
+# try to deduce info from module loads
+sub _handle_includes {
+  my $self = shift;
+  my $statement = shift;
+  my $curpkg = shift;
+  my $pkgs = shift;
+
+  return
+    if $statement->type ne 'use'
+    or not defined $statement->module;
+
+  my $module = $statement->module;
+
+  if ($module eq 'Class::XSAccessor') {
+    File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($statement, $curpkg, $pkgs);
+  }
+
+  # TODO: handle other generating modules
+}
 
 1;
 
