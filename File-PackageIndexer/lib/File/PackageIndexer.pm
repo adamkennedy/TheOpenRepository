@@ -33,14 +33,32 @@ sub parse {
   my $curpkg;
   my $pkgs = {};
 
-  # TODO: Accessor generators et al
+  # TODO: More accessor generators et al
   # TODO: Inheritance
   # TODO: package statement scopes
 
   foreach my $token ( $doc->tokens ) {
+    # find Class->method and __PACKAGE__->method
+    my ($callee, $methodname) = File::PackageIndexer::PPI::Util::is_class_method_call($token);
+
+    if ($callee and $methodname =~ /^(?:mk_(?:[rw]o_)?accessors)$/) {
+      # resolve __PACKAGE__
+      if ($callee eq '__PACKAGE__') {
+        $callee = defined($curpkg) ? $curpkg->{name} : $def_pkg;
+      }
+
+      my $args = $token->snext_sibling->snext_sibling->snext_sibling; # class->op->method->structure
+      if (defined $args and $args->isa("PPI::Structure::List")) {
+# XXX continue implementation here
+      }
+
+    }
+
+
     my $statement = $token->statement;
     next if not $statement;
 
+    # new sub declaration
     if ( $statement->class eq 'PPI::Statement::Sub' ) {
       my $subname = $statement->name;
       if (not defined $curpkg) {
@@ -48,10 +66,12 @@ sub parse {
       }
       $curpkg->{subs}->{$subname} = 1;
     }
+    # new package statement
     elsif ( $statement->class eq 'PPI::Statement::Package' ) {
       my $namespace = $statement->namespace;
       $curpkg = lazy_create_pkg($namespace, $pkgs);
     }
+    # use()
     elsif ( $statement->class eq 'PPI::Statement::Include' ) {
       $self->_handle_includes($statement, $curpkg, $pkgs);
     }
@@ -87,12 +107,15 @@ sub _handle_includes {
 
   my $module = $statement->module;
 
-  if ($module eq 'Class::XSAccessor') {
+  if ($module =~ /^Class::XSAccessor(?:::Array)?$/) {
     File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($statement, $curpkg, $pkgs);
   }
 
-  # TODO: handle other generating modules
+  # TODO: handle other generating modules loaded via use
 }
+
+
+
 
 1;
 
