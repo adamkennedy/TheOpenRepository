@@ -26,6 +26,9 @@ sub parse {
   if (not ref($doc) or not $doc->isa("PPI::Node")) {
     $doc = PPI::Document->new(\$doc);
   }
+  if (not ref($doc)) {
+    return();
+  }
   
   my $curpkg;
   my $pkgs = {};
