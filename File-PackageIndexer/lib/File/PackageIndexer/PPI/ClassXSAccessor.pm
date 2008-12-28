@@ -14,7 +14,7 @@ sub handle_class_xsaccessor {
   my $pkgs = shift;
 
   my @subs;
-  my $class = $curpkg->{name};
+  my $class = defined($curpkg) ? $curpkg->{name} : 'main';
   my $started = 0;
   my $state = "key";
   my $key;
