@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 BEGIN { use_ok('File::PackageIndexer') };
 
 my $indexer = File::PackageIndexer->new();
@@ -331,6 +331,28 @@ HERE
       Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
       Bar2 => { name => 'Bar2', subs => {foo => 1} },
       Fun => { name => 'Fun', subs => {'new' => 1, spawn => 1} },
+    },
+  },
+  {
+    name => 'xsa(a) predicates',
+    code => <<'HERE',
+package Bar;
+use Class::XSAccessor::Array
+  predicates => { bar => 0,
+  baz => 1},
+  class => 'Bar2',
+  replace => 1;
+
+package Bar2;
+use Class::XSAccessor::Array
+  class => qq{Bar},
+  constructors => ['new', 'spawn'],
+  replace => 1;
+sub foo {}
+HERE
+    'cmp' => {
+      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1} },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1} },
     },
   },
 );
