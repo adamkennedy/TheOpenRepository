@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 26;
 BEGIN { use_ok('File::PackageIndexer') };
 
 my $indexer = File::PackageIndexer->new();
@@ -355,6 +355,28 @@ HERE
       Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1} },
     },
   },
+  {
+    name => 'xsa(a) predicates, qw',
+    code => <<'HERE',
+package Bar;
+use Class::XSAccessor::Array
+  predicates => { qw( bar 0 ), baz => 1},
+  class => 'Bar2',
+  getters => { 'get1', qw( 3 get2 ), 5},
+  replace => 1;
+
+package Bar2;
+use Class::XSAccessor::Array
+  class => qq{Bar},
+  constructors => [qw  !new   spawn !],
+  replace => 1;
+sub foo {}
+HERE
+    'cmp' => {
+      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1} },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1, get1 => 1, get2 => 1} },
+    },
+  },
 );
 
 foreach my $test (@tests) {
@@ -362,6 +384,7 @@ foreach my $test (@tests) {
   my $code = $test->{code};
   my $ref = $test->{"cmp"};
   my $index = $indexer->parse($code);
-  is_deeply($index, $ref, "equivalence test: $name");
+  use Data::Dumper;
+  is_deeply($index, $ref, "equivalence test: $name") or warn Dumper $index;
 }
 

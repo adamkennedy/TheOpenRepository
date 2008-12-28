@@ -24,7 +24,7 @@ sub handle_class_xsaccessor {
   while (@tokens) {
     my $token = shift @tokens;
     next if $token->class eq 'PPI::Token::Whitespace';
-    $started = 1, next if not $started and $token->content eq 'Class::XSAccessor';
+    $started = 1, next if not $started and $token->content =~ /^Class::XSAccessor(?:::Array)?$/;
     next if not $started;
 
     if ($state eq 'key') {
