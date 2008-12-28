@@ -49,6 +49,10 @@ SCOPE: {
         _array_constructor_to_structure => 1,
         token_to_string => 1,
         get_keyname => 1,
+        is_method_call => 1,
+        is_class_method_call => 1,
+        is_instance_method_call => 1,
+        qw_to_list => 1,
       },
     },
   };

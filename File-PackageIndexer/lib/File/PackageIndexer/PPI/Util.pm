@@ -40,6 +40,28 @@ sub _hash_constructor_to_structure {
       next;
     }
 
+    # special case: qw()
+    if ( ($state eq 'key' or $state eq 'value')
+         and $token->isa("PPI::Token::QuoteLike::Words") )
+    {
+      my @values = qw_to_list($token);
+
+      # emulate the state flip flop to end up in a consistent state afterwards
+      foreach my $v (@values) {
+        if ($state eq 'key') {
+          $key = $v;
+          $state = 'value';
+        }
+        else {
+          $struct->{$key} = $v;
+          $key = undef;
+          $state = 'key';
+        }
+      }
+      $state = 'comma';
+      next;
+    } # end special case 'qw'
+
     if ($state eq 'key') {
       my $keyname = get_keyname($token);
       return() if not defined $keyname;
@@ -82,9 +104,15 @@ sub _array_constructor_to_structure {
     }
 
     if ($state eq 'elem') {
-      my $value = token_to_string($token);
-      return() unless defined $value;
-      push @{$struct}, $value;
+      if ($token->isa("PPI::Token::QuoteLike::Words")) {
+        my @values = qw_to_list($token);
+        push @{$struct}, @values;
+      }
+      else {
+        my $value = token_to_string($token);
+        return() unless defined $value;
+        push @{$struct}, $value;
+      }
       $state = 'comma';
     }
     elsif ($state eq 'comma') {
@@ -98,6 +126,18 @@ sub _array_constructor_to_structure {
   }
 
   return($struct);
+}
+
+# best guess at turning a qw() into a real list
+sub qw_to_list {
+  my $token = shift;
+  return() if not $token->isa("PPI::Token::QuoteLike::Words");
+
+  # FIXME This breaks PPI encapsulation, but there seems to be no API!
+  my $string = substr($token->content, $token->{sections}[0]{position}, $token->{sections}[0]{size});
+  $string =~ s/^\s+//;
+  $string =~ s/\s+$//;
+  return split /\s+/, $string;
 }
 
 # best guess at turning a token into the string it represents
@@ -121,6 +161,43 @@ sub get_keyname {
   return $token->content if $token->isa("PPI::Token::Word"); # likely followed by a =>
   return $token->string if $token->isa("PPI::Token::Quote");
   return(); # TODO: what else makes sense here?
+}
+
+sub is_class_method_call {
+  my $token = shift;
+  if ($token->isa("PPI::Token::Word")) {
+    return is_method_call($token);
+  }
+  return();
+}
+
+sub is_instance_method_call {
+  my $token = shift;
+  if ($token->isa("PPI::Token::Symbol")) {
+    return is_method_call($token);
+  }
+  return();
+}
+
+sub is_method_call {
+  my $token = shift;
+  return() unless $token->isa("PPI::Token::Word") or $token->isa("PPI::Token::Symbol");
+
+  my $next = $token->snext_sibling();
+  return()
+    unless $next
+       and $token->content =~ /^[\w:]+$/
+       and $next->isa("PPI::Token::Operator")
+       and $next->content eq '->';
+
+  my $third = $next->snext_sibling();
+  return()
+    unless defined $third;
+
+  if ( $third->isa("PPI::Token::Word") or $third->isa("PPI::Token::Symbol") ) {
+    return($token->content(), $third->content());
+  }
+  return();
 }
 
 
