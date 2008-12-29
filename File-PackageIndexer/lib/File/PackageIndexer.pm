@@ -42,14 +42,18 @@ sub parse {
     my ($callee, $methodname) = File::PackageIndexer::PPI::Util::is_class_method_call($token);
 
     if ($callee and $methodname =~ /^(?:mk_(?:[rw]o_)?accessors)$/) {
-      # resolve __PACKAGE__
+      # resolve __PACKAGE__ to current package
       if ($callee eq '__PACKAGE__') {
         $callee = defined($curpkg) ? $curpkg->{name} : $def_pkg;
       }
 
       my $args = $token->snext_sibling->snext_sibling->snext_sibling; # class->op->method->structure
       if (defined $args and $args->isa("PPI::Structure::List")) {
-# XXX continue implementation here
+        my $list = File::PackageIndexer::PPI::Util::list_structure_to_array($args);
+        if (@$list) {
+          my $pkg = lazy_create_pkg($callee, $pkgs);
+          $pkg->{subs}{$_} = 1 for @$list;
+        }
       }
 
     }
