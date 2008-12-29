@@ -27,7 +27,7 @@ sub constructor_to_structure {
 sub list_structure_to_hash {
   my $token = shift;
   
-  return() unless $token->isa("PPI::Structure::List");
+  #return() unless $token->isa("PPI::Structure::List");
 
   return _hash_constructor_to_structure($token);
   return();
@@ -36,7 +36,7 @@ sub list_structure_to_hash {
 sub list_structure_to_array {
   my $token = shift;
   
-  return() unless $token->isa("PPI::Structure::List");
+  #return() unless $token->isa("PPI::Structure::List");
 
   return _array_constructor_to_structure($token);
   return();
@@ -50,13 +50,30 @@ sub _hash_constructor_to_structure {
   my $state = 'key';
   my $key;
 
-  my @children = $hash->schildren();
-  while (@children) {
-    my $token = shift @children;
+  # either use the children or walk the siblings
+  my $use_siblings = $hash->can('schildren') ? 0 : 1;
+  my @children = $use_siblings ? () : $hash->schildren();
+  my $token = $use_siblings ? $hash : undef;
+  while (1) {
+    if ($use_siblings) {
+      $token = $token->snext_sibling();
+      last if not defined $token;
+    }
+    else {
+      last unless @children;
+      $token = shift @children;
+    }
+
+    # flatten
     if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
       unshift @children, $token->schildren();
       next;
     }
+
+    # semicolon
+    return($struct)
+      if $token->isa("PPI::Token::Structure")
+      and $token->content eq ';';
 
     # special case: qw()
     if ( ($state eq 'key' or $state eq 'value')
@@ -113,13 +130,30 @@ sub _array_constructor_to_structure {
   
   my $state = 'elem';
 
-  my @children = $array->schildren();
-  while (@children) {
-    my $token = shift @children;
+  # either use the children or walk the siblings
+  my $use_siblings = $array->can('schildren') ? 0 : 1;
+  my @children = $use_siblings ? () : $array->schildren();
+  my $token = $use_siblings ? $array : undef;
+  while (1) {
+    if ($use_siblings) {
+      $token = $token->snext_sibling();
+      last if not defined $token;
+    }
+    else {
+      last unless @children;
+      $token = shift @children;
+    }
+
+    # flatten
     if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
       unshift @children, $token->schildren();
       next;
     }
+
+    # semicolon
+    last
+      if $token->isa("PPI::Token::Structure")
+      and $token->content eq ';';
 
     if ($state eq 'elem') {
       if ($token->isa("PPI::Token::QuoteLike::Words")) {
@@ -128,14 +162,14 @@ sub _array_constructor_to_structure {
       }
       else {
         my $value = token_to_string($token);
-        return() unless defined $value;
+        last unless defined $value;
         push @{$struct}, $value;
       }
       $state = 'comma';
     }
     elsif ($state eq 'comma') {
-      return() unless $token->isa("PPI::Token::Operator");
-      return() unless $token->content =~ /^(?:,|=>)$/; # are there other valid comma-likes?
+      last unless $token->isa("PPI::Token::Operator");
+      last unless $token->content =~ /^(?:,|=>)$/; # are there other valid comma-likes?
       $state = 'elem';
     }
     else {
