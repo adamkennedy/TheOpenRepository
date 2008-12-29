@@ -53,6 +53,8 @@ SCOPE: {
         is_class_method_call => 1,
         is_instance_method_call => 1,
         qw_to_list => 1,
+        list_structure_to_array => 1,
+        list_structure_to_hash => 1,
       },
     },
   };

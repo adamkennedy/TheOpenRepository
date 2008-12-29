@@ -24,6 +24,24 @@ sub constructor_to_structure {
   return();
 }
 
+sub list_structure_to_hash {
+  my $token = shift;
+  
+  return() unless $token->isa("PPI::Structure::List");
+
+  return _hash_constructor_to_structure($token);
+  return();
+}
+
+sub list_structure_to_array {
+  my $token = shift;
+  
+  return() unless $token->isa("PPI::Structure::List");
+
+  return _array_constructor_to_structure($token);
+  return();
+}
+
 sub _hash_constructor_to_structure {
   my $hash = shift;
 
