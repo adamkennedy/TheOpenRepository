@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 BEGIN { use_ok('File::PackageIndexer') };
 use Data::Dumper;
 
@@ -76,6 +76,20 @@ HERE
     code => <<'HERE',
 package Foo;
 use base "Bar", qq{Buz};
+package Arg;
+use base q{Baz};
+use base qw(Foo);
+HERE
+    'cmp' => {
+      Foo => { name => 'Foo', subs => {}, isa => ['Bar', 'Buz'], },
+      Arg => { name => 'Arg', subs => {}, isa => ['Baz', 'Foo'], },
+    },
+  },
+  {
+    name => 'multiple, mixed, funny parenthesis',
+    code => <<'HERE',
+package Foo;
+use base ("Bar", qq{Buz});
 package Arg;
 use base q{Baz};
 use base qw(Foo);
