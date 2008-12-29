@@ -92,7 +92,7 @@ sub lazy_create_pkg {
   $pkgs->{$p_name} = {
     name => $p_name,
     subs => {},
-    #isa  => [],
+    isa  => [],
   };
   return $pkgs->{$p_name};
 }
@@ -154,8 +154,8 @@ Parses a piece of Perl code using PPI and tries to find all subs
 and their packages.
 
 Currently, this simply finds package statements and plain subroutine
-declarations. In the future, it should hopefully support various
-accessor generators and similar tools.
+declarations and supports some accessor generators (C<Class::Accessor>
+and C<Class::XSAccessor(::Array)>).
 
 =head1 METHODS
 
@@ -203,9 +203,13 @@ Implemented using L<PPI>.
 
 Dependencies.
 
-Accessor generators.
+Inheritance.
 
-Moose.
+Other accessor generators. Currently supporting
+C<Class::XSAccessor>, C<Class::XSAccessor::Array>, and modules that use the C<Class::Accessor>
+style interface a la C<Class->mk_accessors(qw(foo bar))>.
+
+Moose. This is going to be tough, but mandatory.
 
 =head1 AUTHOR
 

@@ -20,7 +20,7 @@ HERE
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
     },
   },
   {
@@ -31,7 +31,7 @@ use base 'Class::Accessor';
 __PACKAGE__->mk_accessors();
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
     },
   },
   {
@@ -42,7 +42,7 @@ use base 'Class::Accessor';
 __PACKAGE__->mk_accessors("bar");
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -53,7 +53,7 @@ use base 'Class::Accessor';
 main->mk_accessors("bar");
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -64,8 +64,8 @@ use base 'Class::Accessor';
 Foo->mk_accessors("bar");
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
-      Foo  => { name => 'Foo', subs => {bar => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
+      Foo  => { name => 'Foo', subs => {bar => 1}, isa => [], },
     },
   },
   {
@@ -76,7 +76,7 @@ use base 'Class::Accessor';
 main->mk_accessors(qw(bar baz), "buz");
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, buz => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, buz => 1}, isa => [], },
     },
   },
   {
@@ -87,8 +87,8 @@ use base 'Class::Accessor';
 Foo->mk_accessors("bar", qw   ! baz     buz!);
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
-      Foo  => { name => 'Foo', subs => {bar => 1, baz => 1, buz => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
+      Foo  => { name => 'Foo', subs => {bar => 1, baz => 1, buz => 1}, isa => [], },
     },
   },
   {
@@ -101,8 +101,8 @@ Bar->mk_ro_accessors("foo");
 Foo->mk_wo_accessors("bar", qw   ! baz     buz!);
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {bar => 1, foo => 1} },
-      Foo  => { name => 'Foo', subs => {bar => 1, baz => 1, buz => 1} },
+      Bar => { name => 'Bar', subs => {bar => 1, foo => 1}, isa => [], },
+      Foo  => { name => 'Foo', subs => {bar => 1, baz => 1, buz => 1}, isa => [], },
     },
   },
 );

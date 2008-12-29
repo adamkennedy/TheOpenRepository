@@ -25,6 +25,7 @@ SCOPE: {
         default_package => 1,
         new => 1,
       },
+      isa => [],
     },
   };
 
@@ -56,6 +57,7 @@ SCOPE: {
         list_structure_to_array => 1,
         list_structure_to_hash => 1,
       },
+      isa => [],
     },
   };
 

@@ -20,7 +20,7 @@ HERE
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
     },
   },
   {
@@ -30,7 +30,7 @@ sub foo {}
 use Class::XSAccessor;
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
     },
   },
   {
@@ -41,7 +41,7 @@ use Class::XSAccessor
   constructor => 'bar';
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -53,7 +53,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -66,7 +66,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1}, isa => [], },
     },
   },
   {
@@ -80,7 +80,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1}, isa => [], },
     },
   },
   {
@@ -95,7 +95,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -111,7 +111,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -128,7 +128,7 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -149,8 +149,8 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1, 'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -172,9 +172,9 @@ use Class::XSAccessor
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1} },
-      Fun => { name => 'Fun', subs => {'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1}, isa => [], },
+      Fun => { name => 'Fun', subs => {'new' => 1, spawn => 1}, isa => [], },
     },
   },
 
@@ -186,7 +186,7 @@ sub foo {}
 use Class::XSAccessor::Array;
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1} },
+      main => { name => 'main', subs => {foo => 1}, isa => [], },
     },
   },
   {
@@ -197,7 +197,7 @@ use Class::XSAccessor::Array
   constructor => 'bar';
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -209,7 +209,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1}, isa => [], },
     },
   },
   {
@@ -222,7 +222,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1}, isa => [], },
     },
   },
   {
@@ -236,7 +236,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1}, isa => [], },
     },
   },
   {
@@ -251,7 +251,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -267,7 +267,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      main => { name => 'main', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -284,7 +284,7 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {foo => 1, bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -305,8 +305,8 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1, 'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, 'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -328,9 +328,9 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1} },
-      Fun => { name => 'Fun', subs => {'new' => 1, spawn => 1} },
+      Bar => { name => 'Bar', subs => {bar => 1, baz => 1, frob => 1, 'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1}, isa => [], },
+      Fun => { name => 'Fun', subs => {'new' => 1, spawn => 1}, isa => [], },
     },
   },
   {
@@ -351,8 +351,8 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1} },
+      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1}, isa => [], },
     },
   },
   {
@@ -373,8 +373,8 @@ use Class::XSAccessor::Array
 sub foo {}
 HERE
     'cmp' => {
-      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1} },
-      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1, get1 => 1, get2 => 1} },
+      Bar => { name => 'Bar', subs => {'new' => 1, spawn => 1}, isa => [], },
+      Bar2 => { name => 'Bar2', subs => {foo => 1, bar => 1, baz => 1, get1 => 1, get2 => 1}, isa => [], },
     },
   },
 );
