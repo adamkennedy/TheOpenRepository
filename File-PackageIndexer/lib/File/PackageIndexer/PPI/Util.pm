@@ -55,13 +55,15 @@ sub _hash_constructor_to_structure {
   my @children = $use_siblings ? () : $hash->schildren();
   my $token = $use_siblings ? $hash : undef;
   while (1) {
-    if ($use_siblings) {
+    if (@children) {
+      $token = shift @children;
+    }
+    elsif ($use_siblings) {
       $token = $token->snext_sibling();
       last if not defined $token;
     }
     else {
-      last unless @children;
-      $token = shift @children;
+      last;
     }
 
     # flatten
@@ -135,13 +137,15 @@ sub _array_constructor_to_structure {
   my @children = $use_siblings ? () : $array->schildren();
   my $token = $use_siblings ? $array : undef;
   while (1) {
-    if ($use_siblings) {
+    if (@children) {
+      $token = shift @children;
+    }
+    elsif ($use_siblings) {
       $token = $token->snext_sibling();
       last if not defined $token;
     }
     else {
-      last unless @children;
-      $token = shift @children;
+      last;
     }
 
     # flatten
