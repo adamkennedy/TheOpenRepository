@@ -27,6 +27,15 @@ sub handle_class_xsaccessor {
     $started = 1, next if not $started and $token->content =~ /^Class::XSAccessor(?:::Array)?$/;
     next if not $started;
 
+    # handle embedded ()'s
+    if ($token->isa("PPI::Structure::List")) {
+      my @t = $token->schildren;
+      foreach my $t (@t) {
+        unshift @tokens, ($t->isa("PPI::Statement::Expression") ? $t->schildren() : $t);
+      }
+      next;
+    }
+
     if ($state eq 'key') {
       my $keyname = File::PackageIndexer::PPI::Util::get_keyname($token);
       return() if not defined $keyname; # broken usage?
