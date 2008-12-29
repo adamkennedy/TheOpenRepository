@@ -9,12 +9,13 @@ our $VERSION = '0.01';
 
 # The Class::XSAccessor special case
 sub handle_class_xsaccessor {
+  my $indexer = shift;
   my $statement = shift;
   my $curpkg = shift;
   my $pkgs = shift;
 
   my @subs;
-  my $class = defined($curpkg) ? $curpkg->{name} : 'main';
+  my $class = defined($curpkg) ? $curpkg->{name} : $indexer->default_package;
   my $started = 0;
   my $state = "key";
   my $key;
@@ -73,7 +74,7 @@ sub handle_class_xsaccessor {
 
   } # end while tokens
 
-  my $pkg = File::PackageIndexer::lazy_create_pkg($class, $pkgs);
+  my $pkg = $indexer->lazy_create_pkg($class, $pkgs);
   my $subs = $pkg->{subs};
   $pkg->{subs}{$_} = 1 for @subs;
   return();

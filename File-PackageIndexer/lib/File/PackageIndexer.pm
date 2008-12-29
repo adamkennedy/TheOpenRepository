@@ -20,7 +20,8 @@ use Class::XSAccessor
 sub parse {
   my $self = shift;
   my $def_pkg = $self->default_package;
-  $def_pkg = 'main' if not defined $def_pkg;
+  $def_pkg = 'main', $self->default_package('main')
+    if not defined $def_pkg;
 
   my $doc = shift;
   if (not ref($doc) or not $doc->isa("PPI::Node")) {
@@ -51,7 +52,7 @@ sub parse {
       if (defined $args and $args->isa("PPI::Structure::List")) {
         my $list = File::PackageIndexer::PPI::Util::list_structure_to_array($args);
         if (@$list) {
-          my $pkg = lazy_create_pkg($callee, $pkgs);
+          my $pkg = $self->lazy_create_pkg($callee, $pkgs);
           $pkg->{subs}{$_} = 1 for @$list;
         }
       }
@@ -66,14 +67,14 @@ sub parse {
     if ( $statement->class eq 'PPI::Statement::Sub' ) {
       my $subname = $statement->name;
       if (not defined $curpkg) {
-        $curpkg = lazy_create_pkg($def_pkg, $pkgs);
+        $curpkg = $self->lazy_create_pkg($def_pkg, $pkgs);
       }
       $curpkg->{subs}->{$subname} = 1;
     }
     # new package statement
     elsif ( $statement->class eq 'PPI::Statement::Package' ) {
       my $namespace = $statement->namespace;
-      $curpkg = lazy_create_pkg($namespace, $pkgs);
+      $curpkg = $self->lazy_create_pkg($namespace, $pkgs);
     }
     # use()
     elsif ( $statement->class eq 'PPI::Statement::Include' ) {
@@ -94,6 +95,7 @@ sub parse {
 
 # generate empty, new package struct
 sub lazy_create_pkg {
+  my $self = shift;
   my $p_name = shift;
   my $pkgs = shift;
   return $pkgs->{$p_name} if exists $pkgs->{$p_name};
@@ -121,7 +123,10 @@ sub _handle_includes {
   my $module = $statement->module;
 
   if ($module =~ /^Class::XSAccessor(?:::Array)?$/) {
-    File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($statement, $curpkg, $pkgs);
+    File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($self, $statement, $curpkg, $pkgs);
+  }
+  elsif ($module eq 'base') {
+    
   }
 
   # TODO: handle other generating modules loaded via use
