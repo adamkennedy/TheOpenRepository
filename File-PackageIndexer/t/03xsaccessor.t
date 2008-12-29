@@ -391,7 +391,7 @@ use Class::XSAccessor::Array (
 package Bar2;
 use Class::XSAccessor::Array
   class => qq{Bar},
-  (constructors => [qw  !new   spawn !]),
+  (constructors => [(qw  !new   spawn !)]),
   replace => 1;
 sub foo {}
 HERE

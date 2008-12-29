@@ -189,8 +189,8 @@ Get/set default package.
 
 =head2 parse
 
-Parses a piece of code. Alternatively, you may pass in a C<PPI::Node>
-or C<PPI::Document> object.
+Parses a given  piece of code. Alternatively, you may
+pass in a C<PPI::Node> or C<PPI::Document> object.
 
 Returns a simple hash-ref based structure containing the
 packages and subs found in the code. General structure:
@@ -212,9 +212,9 @@ Implemented using L<PPI>.
 
 =head1 TODO
 
-Dependencies.
-
 Inheritance.
+
+Exporting.
 
 Other accessor generators. Currently supporting
 C<Class::XSAccessor>, C<Class::XSAccessor::Array>, and modules that use the C<Class::Accessor>
@@ -223,6 +223,8 @@ style interface a la C<Class->mk_accessors(qw(foo bar))>.
 Moose. This is going to be tough, but mandatory.
 
 C<Class->import(...)> is currently not handled akin to C<use Class ...>.
+
+General dependency resolution.
 
 =head1 AUTHOR
 

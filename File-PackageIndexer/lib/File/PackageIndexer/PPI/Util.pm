@@ -53,7 +53,7 @@ sub _hash_constructor_to_structure {
   my @children = $hash->schildren();
   while (@children) {
     my $token = shift @children;
-    if ($token->isa("PPI::Statement")) {
+    if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
       unshift @children, $token->schildren();
       next;
     }
@@ -116,7 +116,7 @@ sub _array_constructor_to_structure {
   my @children = $array->schildren();
   while (@children) {
     my $token = shift @children;
-    if ($token->isa("PPI::Statement")) {
+    if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
       unshift @children, $token->schildren();
       next;
     }
