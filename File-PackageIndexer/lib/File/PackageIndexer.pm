@@ -81,6 +81,14 @@ sub parse {
     }
   }
 
+  # prepend compile-time declared inheritance to the
+  # run-time ISA.
+  foreach my $pkgname (keys %$pkgs) {
+    my $pkg = $pkgs->{$pkgname};
+    unshift @{$pkg->{isa}}, @{$pkg->{begin_isa}};
+    delete $pkg->{begin_isa};
+  }
+
   return $pkgs;
 }
 
@@ -93,6 +101,7 @@ sub lazy_create_pkg {
     name => $p_name,
     subs => {},
     isa  => [],
+    begin_isa  => [], # temporary storage for compile-time inheritance, will be deleted before returning from parse()
   };
   return $pkgs->{$p_name};
 }
@@ -116,6 +125,8 @@ sub _handle_includes {
   }
 
   # TODO: handle other generating modules loaded via use
+  
+  # TODO: Elsewhere, we need to handle Class->import()!
 }
 
 
@@ -210,6 +221,8 @@ C<Class::XSAccessor>, C<Class::XSAccessor::Array>, and modules that use the C<Cl
 style interface a la C<Class->mk_accessors(qw(foo bar))>.
 
 Moose. This is going to be tough, but mandatory.
+
+C<Class->import(...)> is currently not handled akin to C<use Class ...>.
 
 =head1 AUTHOR
 
