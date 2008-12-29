@@ -9,6 +9,7 @@ our $VERSION = '0.01';
 use PPI;
 require File::PackageIndexer::PPI::Util;
 require File::PackageIndexer::PPI::ClassXSAccessor;
+require File::PackageIndexer::PPI::Inheritance;
 
 use Class::XSAccessor
   constructor => 'new',
@@ -38,6 +39,31 @@ sub parse {
   # TODO: Inheritance
   # TODO: package statement scopes
 
+  $doc->find(
+    sub {
+      return unless $_[1]->isa("PPI::Statement");
+      my $statement = $_[1];
+
+      # new sub declaration
+      if ( $statement->class eq 'PPI::Statement::Sub' ) {
+        my $subname = $statement->name;
+        if (not defined $curpkg) {
+          $curpkg = $self->lazy_create_pkg($def_pkg, $pkgs);
+        }
+        $curpkg->{subs}->{$subname} = 1;
+      }
+      # new package statement
+      elsif ( $statement->class eq 'PPI::Statement::Package' ) {
+        my $namespace = $statement->namespace;
+        $curpkg = $self->lazy_create_pkg($namespace, $pkgs);
+      }
+      # use()
+      elsif ( $statement->class eq 'PPI::Statement::Include' ) {
+        $self->_handle_includes($statement, $curpkg, $pkgs);
+      }
+    }
+  );
+
   foreach my $token ( $doc->tokens ) {
     # find Class->method and __PACKAGE__->method
     my ($callee, $methodname) = File::PackageIndexer::PPI::Util::is_class_method_call($token);
@@ -58,29 +84,8 @@ sub parse {
       }
 
     }
-
-
-    my $statement = $token->statement;
-    next if not $statement;
-
-    # new sub declaration
-    if ( $statement->class eq 'PPI::Statement::Sub' ) {
-      my $subname = $statement->name;
-      if (not defined $curpkg) {
-        $curpkg = $self->lazy_create_pkg($def_pkg, $pkgs);
-      }
-      $curpkg->{subs}->{$subname} = 1;
-    }
-    # new package statement
-    elsif ( $statement->class eq 'PPI::Statement::Package' ) {
-      my $namespace = $statement->namespace;
-      $curpkg = $self->lazy_create_pkg($namespace, $pkgs);
-    }
-    # use()
-    elsif ( $statement->class eq 'PPI::Statement::Include' ) {
-      $self->_handle_includes($statement, $curpkg, $pkgs);
-    }
   }
+
 
   # prepend compile-time declared inheritance to the
   # run-time ISA.
@@ -126,7 +131,7 @@ sub _handle_includes {
     File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($self, $statement, $curpkg, $pkgs);
   }
   elsif ($module eq 'base') {
-    
+    File::PackageIndexer::PPI::Inheritance::handle_base($self, $statement, $curpkg, $pkgs);
   }
 
   # TODO: handle other generating modules loaded via use
