@@ -40,21 +40,17 @@ it. Including but not limited to
 
 =over
 
-=item 
+=item required modules
 
-required modules
 
-=item 
+=item exported symbols
 
-exported symbols
 
-=item 
+=item imported symbols
 
-imported symbols
 
-=item 
- 
-inherited packages
+=item inherited packages
+
 
 =back
 
@@ -65,7 +61,6 @@ inherited packages
 
 Create a new macropod parser. 
 
-
 =head3 OPTIONS
 
 =over
@@ -74,6 +69,7 @@ Create a new macropod parser.
 
 Accepts a path to a L<Macropod::Cache> for this parser to use. Alternatively
 a prebuilt cache that isa Macropod::Cache
+
     
 =back
 
