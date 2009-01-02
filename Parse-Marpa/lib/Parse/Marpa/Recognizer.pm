@@ -706,7 +706,7 @@ sub Parse::Marpa::Recognizer::text {
     $input_length = length ${$input_ref} unless defined $input_length;
 
     pos ${$input_ref} = 0;
-    POS: for (my $pos = 0; $pos < $input_length; $pos++) {
+    POS: for my $pos (0 .. ($input_length-1)) {
         my @alternatives;
 
         # NOTE: Often the number of the earley set, and the idea of
@@ -941,10 +941,13 @@ sub scan_set {
         return !$exhausted;
     }
 
-    # Rewrite this as while loop
-    EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
+    # Important: more earley sets can be added in the loop
+    my $earley_set_ix = -1;
+    EARLEY_ITEM: while (1) {
 
-        my $earley_item = $earley_set->[$ix];
+        my $earley_item = $earley_set->[++$earley_set_ix];
+        last EARLEY_ITEM unless defined $earley_item;
+
         my ( $state, $parent ) = @{$earley_item}[
             Parse::Marpa::Internal::Earley_item::STATE,
             Parse::Marpa::Internal::Earley_item::PARENT
@@ -1059,10 +1062,12 @@ sub complete_set {
     my $lexable_seen = [];
     $#{$lexable_seen} = $#{$symbols};
 
-    # Rewrite this as while loop
-    EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
+    # Important: more earley sets can be added in the loop
+    my $earley_set_ix = -1;
+    EARLEY_ITEM: while (1) {
 
-        my $earley_item = $earley_set->[$ix];
+        my $earley_item = $earley_set->[++$earley_set_ix];
+        last EARLEY_ITEM unless defined $earley_item;
 
         my ( $state, $parent ) = @{$earley_item}[
             Parse::Marpa::Internal::Earley_item::STATE,
