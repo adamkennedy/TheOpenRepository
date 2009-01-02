@@ -60,7 +60,7 @@ sub _hash_constructor_to_structure {
     }
     elsif ($use_siblings) {
       $token = $token->snext_sibling();
-      last if not defined $token;
+      last if not defined $token or not ref($token);
     }
     else {
       last;
@@ -68,7 +68,14 @@ sub _hash_constructor_to_structure {
 
     # flatten
     if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
-      unshift @children, $token->schildren();
+      my @ch = $token->schildren();
+
+      # pop trailing commas
+      while (@ch and $ch[-1]->isa("PPI::Token::Operator") || $ch[-1]->content =~ /^(?:,|=>)$/) {
+        pop(@ch);
+      }
+
+      unshift @children, @ch;
       next;
     }
 
@@ -142,7 +149,7 @@ sub _array_constructor_to_structure {
     }
     elsif ($use_siblings) {
       $token = $token->snext_sibling();
-      last if not defined $token;
+      last if not defined $token or not ref($token);
     }
     else {
       last;
@@ -150,7 +157,14 @@ sub _array_constructor_to_structure {
 
     # flatten
     if ($token->isa("PPI::Statement") or $token->isa("PPI::Structure::List")) {
-      unshift @children, $token->schildren();
+      my @ch = $token->schildren();
+
+      # pop trailing commas
+      while (@ch and $ch[-1]->isa("PPI::Token::Operator") || $ch[-1]->content =~ /^(?:,|=>)$/) {
+        pop(@ch);
+      }
+
+      unshift @children, @ch;
       next;
     }
 
