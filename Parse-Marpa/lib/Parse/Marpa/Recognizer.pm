@@ -476,7 +476,7 @@ sub Parse::Marpa::Recognizer::unstringify {
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
 
-    croak("Attempt to unstringify undefined recognizer")
+    croak('Attempt to unstringify undefined recognizer')
         unless defined $stringified_recce;
 
     my $recce;
@@ -488,8 +488,15 @@ sub Parse::Marpa::Recognizer::unstringify {
             push @warnings, $warning;
             @caller_return = caller 0;
         };
-        eval ${$stringified_recce};
+
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        my $eval_ok = eval ${$stringified_recce};
+        ## use critic
+
         my $fatal_error = $@;
+        if (not $eval_ok and not $fatal_error) {
+           $fatal_error = 'eval returned false';
+        }
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
@@ -1051,6 +1058,7 @@ sub complete_set {
     EARLEY_ITEM: for (my $ix = 0; $ix < @{$earley_set}; $ix++ ) {
 
         my $earley_item = $earley_set->[$ix];
+
         my ( $state, $parent ) = @{$earley_item}[
             Parse::Marpa::Internal::Earley_item::STATE,
             Parse::Marpa::Internal::Earley_item::PARENT
@@ -1079,12 +1087,12 @@ sub complete_set {
                     ->{$complete_symbol_name};
                 next PARENT_ITEM unless defined $states;
 
-                STATE: for my $state (@{$states}) {
+                TRANSITION_STATE: for my $transition_state (@{$states}) {
                     my $reset =
-                        $state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
+                        $transition_state->[Parse::Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
-		    my $state_id = $state->[Parse::Marpa::Internal::QDFA::ID];
-		    my $name = sprintf 'S%d@%d-%d', $state_id, $origin, $current_set;
+		    my $transition_state_id = $transition_state->[Parse::Marpa::Internal::QDFA::ID];
+		    my $name = sprintf 'S%d@%d-%d', $transition_state_id, $origin, $current_set;
                     my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];
@@ -1096,18 +1104,18 @@ sub complete_set {
                             Parse::Marpa::Internal::Earley_item::TOKENS,
                             Parse::Marpa::Internal::Earley_item::SET
                             ]
-                            = ( $name, $state, $origin, [], [], $current_set );
+                            = ( $name, $transition_state, $origin, [], [], $current_set );
                         $earley_hash->{$name} = $target_item;
                         push @{$earley_set}, $target_item;
                     }    # unless defined $target_item
-                    next STATE if $reset;
+                    next TRANSITION_STATE if $reset;
                     push
                         @{  $target_item
                                 ->[Parse::Marpa::Internal::Earley_item::LINKS]
                             },
                         [ $parent_item, $earley_item ]
                     ;
-                }    # for my $state
+                }    # TRANSITION_STATE
 
             }    # PARENT_ITEM
 
@@ -1120,7 +1128,9 @@ sub complete_set {
             $earley_item->[Parse::Marpa::Internal::Earley_item::LINKS];
         my @sorted_links =
             map  { $_->[0] }
+            ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
             sort { $b->[1] cmp $a->[1] }
+            ## use critic
             map {
             [   $_,
                 $_->[1]->[Parse::Marpa::Internal::Earley_item::STATE]
