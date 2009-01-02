@@ -11,7 +11,7 @@ ADAMK::Repository - Repository object model for ADAMK's svn repository
 use 5.008;
 use strict;
 use warnings;
-use Carp                  'croak';
+use Carp                  ();
 use File::Spec            ();
 use File::pushd           ();
 use File::Find::Rule      ();
@@ -24,7 +24,7 @@ use ADAMK::Distribution   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use Object::Tiny qw{
@@ -44,7 +44,7 @@ sub new {
 
 	# Check params
 	unless ( -d $self->svn_root($self->root) ) {
-		croak("Missing or invalid SVN root directory");
+		Carp::croak("Missing or invalid SVN root directory");
 	}
 	if ( $self->{trace} and not _CODE($self->{trace}) ) {
 		$self->{trace} = sub { print @_ };
@@ -161,7 +161,7 @@ sub releases {
 	my @releases = ();
 	foreach my $file ( @files ) {
 		unless ( $file =~ /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ ) {
-			croak("Unexpected file name '$file'");
+			Carp::croak("Unexpected file name '$file'");
 		}
 		my $distname = "$1";
 		my $version      = "$2";
@@ -210,10 +210,10 @@ sub araxis_compare {
 	my $left  = shift;
 	my $right = shift;
 	unless ( -d $left ) {
-		croak("Left directory does not exist");
+		Carp::croak("Left directory does not exist");
 	}
 	unless ( -d $right ) {
-		croak("Right directory does not exist");
+		Carp::croak("Right directory does not exist");
 	}
 	IPC::Run3::run3( [
 		$self->araxis_compare_bin,
@@ -227,10 +227,10 @@ sub compare_tarball_latest {
 	my $distribution = $self->distribution($_[0]);
 	my $release      = $distribution->latest;
 	unless ( $distribution ) {
-		croak("Failed to find distribution $_[0]");
+		Carp::croak("Failed to find distribution $_[0]");
 	}
 	unless ( $release ) {
-		croak("Failed to find latest release for $_[0]");
+		Carp::croak("Failed to find latest release for $_[0]");
 	}
 
 	# Launch the comparison
@@ -245,10 +245,10 @@ sub compare_tarball_stable {
 	my $distribution = $self->distribution($_[0]);
 	my $release      = $distribution->stable;
 	unless ( $distribution ) {
-		croak("Failed to find distribution $_[0]");
+		Carp::croak("Failed to find distribution $_[0]");
 	}
 	unless ( $release ) {
-		croak("Failed to find latest release for $_[0]");
+		Carp::croak("Failed to find latest release for $_[0]");
 	}
 
 	# Launch the comparison
@@ -263,10 +263,10 @@ sub compare_export_latest {
 	my $distribution = $self->distribution($_[0]);
 	my $release      = $distribution->latest;
 	unless ( $distribution ) {
-		croak("Failed to find distribution $_[0]");
+		Carp::croak("Failed to find distribution $_[0]");
 	}
 	unless ( $release ) {
-		croak("Failed to find latest release for $_[0]");
+		Carp::croak("Failed to find latest release for $_[0]");
 	}
 
 	# Launch the comparison
@@ -281,10 +281,10 @@ sub compare_export_stable {
 	my $distribution = $self->distribution($_[0]);
 	my $release      = $distribution->stable;
 	unless ( $distribution ) {
-		croak("Failed to find distribution $_[0]");
+		Carp::croak("Failed to find distribution $_[0]");
 	}
 	unless ( $release ) {
-		croak("Failed to find latest release for $_[0]");
+		Carp::croak("Failed to find latest release for $_[0]");
 	}
 
 	# Launch the comparison

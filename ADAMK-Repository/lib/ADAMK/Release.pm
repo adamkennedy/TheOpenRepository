@@ -3,7 +3,7 @@ package ADAMK::Release;
 use 5.008;
 use strict;
 use warnings;
-use Carp             'croak';
+use Carp             ();
 use File::Temp       ();
 use File::Remove     ();
 use Params::Util     qw{ _INSTANCE };
@@ -11,7 +11,7 @@ use Archive::Extract ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use Object::Tiny qw{
@@ -38,7 +38,7 @@ sub new {
 
 	# Check params
 	unless ( _INSTANCE($self->repository, 'ADAMK::Repository') ) {
-		croak("Did not provide a repository");
+		Carp::croak("Did not provide a repository");
 	}
 
 	return $self;
@@ -91,7 +91,7 @@ sub extract {
 		archive => $self->path,
 	);
 	my $ok   = $ae->extract( to => $temp );
-	croak( 
+	Carp::croak( 
 		"Failed to extract " . $self->path
 		. ": " . $ae->error
 	) unless $ok;

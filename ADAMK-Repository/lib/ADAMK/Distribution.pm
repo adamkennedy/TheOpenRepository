@@ -3,13 +3,15 @@ package ADAMK::Distribution;
 use 5.008;
 use strict;
 use warnings;
-use File::Spec    ();
-use File::Temp    ();
-use CPAN::Version ();
+use File::Spec              ();
+use File::Temp              ();
+use File::pushd             ();
+use CPAN::Version           ();
+use ADAMK::Repository::Util ('shell');
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use Object::Tiny qw{
@@ -69,6 +71,10 @@ sub export {
 	return $path;
 }
 
+sub export_head {
+	$_[0]->export('HEAD');
+}
+
 
 
 
@@ -111,12 +117,17 @@ sub stable {
 
 
 #####################################################################
-# Comparison
+# Testing
 
-sub compare_revision {
-	my $self = shift;
+sub make_test_ok {
+	my $self  = shift;
+	my $path  = $self->export_head;
+	my $pushd = File::pushd::pushd($path);
 
-	# Find the release
+	# Configure the distribution
+	shell( 'perl Makefile.PL', "Configuring $pushd" );
+
+	
 }
 
 1;
