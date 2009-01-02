@@ -30,8 +30,8 @@ my $dist = t::lib::Test->new1(13);
 isa_ok( $dist, 't::lib::Test1' );
 
 # Check useragent method
-my $ua = $dist->useragent;
-isa_ok( $ua, 'LWP::UserAgent::WithCache' );
+my $ua = $dist->user_agent;
+isa_ok( $ua, 'LWP::UserAgent' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );
