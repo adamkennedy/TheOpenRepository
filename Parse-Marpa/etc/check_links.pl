@@ -5,7 +5,9 @@ use LWP::UserAgent;
 use URI::URL;
 use HTML::LinkExtor;
 
-my $url_base = "http://search.cpan.org/~jkegl/Parse-Marpa-1.000000/lib/Parse/";
+my $cpan_base = 'http://search.cpan.org';
+my $marpa_doc_base = $cpan_base . '/~jkegl/Parse-Marpa-1.000000/lib/Parse/';
+
 my @url = qw(
     Marpa.pm
     Marpa/Doc/Algorithm.pod
@@ -34,8 +36,10 @@ sub cb {
     $link{$href} = 1;
 }
 
+my %link_ok;
+
 PAGE: for my $url (@url) {
-    $url = $url_base . $url;
+    $url = $marpa_doc_base . $url;
 
     my $p = HTML::LinkExtor->new(\&cb);
     my $ua = LWP::UserAgent->new;
@@ -47,15 +51,30 @@ PAGE: for my $url (@url) {
 	sub {$p->parse($_[0])}
     );
 
-    say "PAGE: ", $response->status_line, " ", $url;
-    next PAGE if $response->code != 200;
+    my $page_response_status_line = $response->status_line;
+    if ($response->code != 200) {
+        say "PAGE: ", $page_response_status_line, " ", $url;
+        next PAGE;
+    }
 
     LINK: for my $link (keys %link) {
+
 	$link = 'http://search.cpan.org' . $link
 	    if $link =~ m(^/);
+        next LINK if $link_ok{$link};
+
 	my $response = $ua->request(HTTP::Request->new(GET => $link));
-	next LINK if $response->code == 200;
+
+	if ($response->code == 200) {
+            $link_ok{$link} = 1;
+            print ".";
+            next LINK;
+        }
+
 	say "LINK: ", $response->status_line, " ", $link;
+
     }
+
+    say " PAGE: $page_response_status_line: $url";
 
 }
