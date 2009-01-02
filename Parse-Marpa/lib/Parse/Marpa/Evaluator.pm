@@ -315,7 +315,7 @@ sub set_actions {
 
             my $rule_datum;
             $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::CODE] =
-                "default to undef";
+                'default to undef';
             $rule_datum->[Parse::Marpa::Internal::Evaluator::Rule::PERL_CLOSURE] =
                 \undef;
             $rule_data->[$rule_id] = $rule_datum;
@@ -418,8 +418,8 @@ sub Parse::Marpa::Evaluator::new {
 
     # croak('Recognizer already in use by Evaluator')
         # if $phase == Parse::Marpa::Internal::Phase::EVALUATING;
-    croak("Attempt to evaluate grammar in wrong phase: ", Parse::Marpa::Internal::Phase::description($phase))
-        unless $phase >= Parse::Marpa::Internal::Phase::RECOGNIZED;
+    croak('Attempt to evaluate grammar in wrong phase: ', Parse::Marpa::Internal::Phase::description($phase))
+        if $phase < Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
@@ -533,10 +533,10 @@ sub Parse::Marpa::Evaluator::new {
     my %or_node_by_name;
     my $start_sapling = [];
     {
-        my $name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
-        my $symbol_id = $start_symbol->[Parse::Marpa::Internal::Symbol::ID];
-        $name .= 'L' . $symbol_id;
-        $start_sapling->[Parse::Marpa::Internal::Or_Sapling::NAME] = $name;
+        my $start_name = $start_item->[Parse::Marpa::Internal::Earley_item::NAME];
+        my $start_symbol_id = $start_symbol->[Parse::Marpa::Internal::Symbol::ID];
+        $start_name .= 'L' . $start_symbol_id;
+        $start_sapling->[Parse::Marpa::Internal::Or_Sapling::NAME] = $start_name;
     }
     $start_sapling->[Parse::Marpa::Internal::Or_Sapling::ITEM] = $start_item;
     $start_sapling->[Parse::Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL] =
@@ -611,9 +611,9 @@ sub Parse::Marpa::Evaluator::new {
 
         for my $and_sapling (@and_saplings) {
 
-            my ( $rule, $position, $symbol, $closure ) = @{$and_sapling};
+            my ( $sapling_rule, $sapling_position, $symbol, $closure ) = @{$and_sapling};
 
-            my ( $rule_id, $rhs ) = @{$rule}[
+            my ( $rule_id, $rhs ) = @{$sapling_rule}[
                 Parse::Marpa::Internal::Rule::ID,
                 Parse::Marpa::Internal::Rule::RHS
             ];
@@ -621,8 +621,8 @@ sub Parse::Marpa::Evaluator::new {
 
             my @or_bud_list;
             if ( $symbol->[Parse::Marpa::Internal::Symbol::NULLING] ) {
-                my $symbol_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
-                my $null_value = $null_values->[$symbol_id];
+                my $nulling_symbol_id = $symbol->[Parse::Marpa::Internal::Symbol::ID];
+                my $null_value = $null_values->[$nulling_symbol_id];
                 @or_bud_list = ( [ $item, undef, \$null_value, ] );
             }
             else {
@@ -647,12 +647,12 @@ sub Parse::Marpa::Evaluator::new {
 
                 my $predecessor_name;
 
-                if ( $position > 0 ) {
+                if ( $sapling_position > 0 ) {
 
                     $predecessor_name =
                         $predecessor
                         ->[Parse::Marpa::Internal::Earley_item::NAME]
-                        . "R$rule_id:$position";
+                        . "R$rule_id:$sapling_position";
 
                     unless ( $predecessor_name ~~ %or_node_by_name ) {
 
@@ -666,26 +666,26 @@ sub Parse::Marpa::Evaluator::new {
                             Parse::Marpa::Internal::Or_Sapling::ITEM,
                             ]
                             = (
-                            $predecessor_name, $rule, $position, $predecessor,
+                            $predecessor_name, $sapling_rule, $sapling_position, $predecessor,
                             );
 
                         push @or_saplings, $sapling;
 
                     }    # $predecessor_name ~~ %or_node_by_name
 
-                }    # if position > 0
+                }    # if sapling_position > 0
 
                 my $cause_name;
 
                 if ( defined $cause ) {
 
-                    my $symbol_id =
+                    my $cause_symbol_id =
                         $symbol->[Parse::Marpa::Internal::Symbol::ID];
 
                     $cause_name =
                           $cause->[Parse::Marpa::Internal::Earley_item::NAME]
                         . 'L'
-                        . $symbol_id;
+                        . $cause_symbol_id;
 
                     unless ( $cause_name ~~ %or_node_by_name ) {
 
@@ -717,7 +717,7 @@ sub Parse::Marpa::Evaluator::new {
                     ]
                     = (
                     $predecessor_name, $cause_name, $value_ref, $closure,
-                    $rule_length, $rule, $position,
+                    $rule_length, $sapling_rule, $sapling_position,
                     );
 
                 push @and_nodes, $and_node;
@@ -826,7 +826,7 @@ sub Parse::Marpa::Evaluator::show_bocage {
                     . "\n";
                 $text .= "    rhs length = $argc";
                 if ( defined $closure ) {
-                    $text .= "; closure";
+                    $text .= '; closure';
                 }
                 $text .= "\n";
             }
@@ -889,7 +889,7 @@ sub Parse::Marpa::Evaluator::show_tree {
             ->[Parse::Marpa::Internal::Or_Node::NAME] . "\n"
             if defined $cause;
         if ($verbose) {
-            $text .= "    Perl Closure: " . ( defined $closure ? 'Y' : 'N' );
+            $text .= '    Perl Closure: ' . ( defined $closure ? 'Y' : 'N' );
             if ( defined $value_ref ) {
                 $text .= '; Token: ' . Dumper( ${$value_ref} );
             }
@@ -912,6 +912,7 @@ sub Parse::Marpa::Evaluator::set {
     my $recce = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
     my ( $grammar, ) = @{$recce}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
     Parse::Marpa::Grammar::set( $grammar, $args );
+    return 1;
 }
 
 # Apparently perlcritic has a bug and doesn't see the final return
@@ -990,20 +991,20 @@ sub Parse::Marpa::Evaluator::value {
 
     }
 
-    my @old_tree = @$tree;
+    my @old_tree = @{$tree};
     my @last_position_by_depth;
     my $build_node;
 
     TREE_NODE: while (1) {
 
-        my $node = pop @$tree;
+        my $node = pop @{$tree};
 
         # if no more nodes to pop and none on the traversal stack
         # we've exhausted the parse possibilities
         return
             if not defined $node and not scalar @traversal_stack;
 
-        my $tree_position = @$tree;
+        my $tree_position = @{$tree};
 
         if ( defined $node ) {
 
@@ -1113,7 +1114,7 @@ sub Parse::Marpa::Evaluator::value {
 		# and this is a closure or-node
 		# check to see if we have cycled
 
-		my $or_node_name = 
+		my $or_node_name =
 		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 		my $and_node_name = $or_node_name . "[$choice]";
 
@@ -1136,7 +1137,7 @@ sub Parse::Marpa::Evaluator::value {
 			Parse::Marpa::Internal::Tree_Node::PARENT,
 			Parse::Marpa::Internal::Tree_Node::CHOICE,
 		    ];
-		    my $parent_or_node_name = 
+		    my $parent_or_node_name =
 			$or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 		    $cycles_count++
 			if $or_node_name eq $parent_or_node_name
@@ -1228,7 +1229,7 @@ sub Parse::Marpa::Evaluator::value {
     my $leaf_side_start_position =
         min( grep { defined $_ }
             @last_position_by_depth[ 0 .. $build_depth ] );
-    my $nodes_built = @$tree - $build_node;
+    my $nodes_built = @{$tree} - $build_node;
 
     if ($trace_iterations) {
         say {$trace_fh} 'Nodes built: ', $nodes_built,
@@ -1249,7 +1250,7 @@ sub Parse::Marpa::Evaluator::value {
        if ($trace_values >= 3) {
            for (my $i = $#evaluation_stack; $i >= 0; $i--) {
 	       printf {$trace_fh} 'Stack position %3d:', $i;
-	       print {$trace_fh} ' ', Dumper( $evaluation_stack[$i] );
+	       print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] );
 	   }
        }
 
@@ -1764,12 +1765,7 @@ to be specified for an evaler object.
 Relatively few of the Marpa options can be applied at evaluation time,
 but the C<cycle_depth> option is available,
 as are the options to control the tracing done at evaluation time.
-It is important to note that
-as of the current implementation,
-the evaluator object does not copy a recognizer object but uses it directly,
-and that this means that any options changed in an evaluator object
-will also be changed in the underlying recognizer object.
-This may change in a future implementation.
+C<set> either returns true or throws an exception.
 
 =head2 value
 

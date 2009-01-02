@@ -617,7 +617,8 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::QDFA_BY_NAME] = {};
     $grammar->[Parse::Marpa::Internal::Grammar::MAX_PARSES]   = -1;
 
-    return $grammar->set($args);
+    $grammar->set($args);
+    return $grammar;
 }
 
 sub Parse::Marpa::show_source_grammar_status {
@@ -1093,7 +1094,7 @@ sub Parse::Marpa::Grammar::set {
         $grammar->precompute();
     }
 
-    return $grammar;
+    return 1;
 }
 
 =begin Implementation:
@@ -3923,6 +3924,7 @@ and the plumbing arguments
 to be specified for an already existing grammar object.
 The effect of these arguments is as described above
 for L<the C<new> method call|"new">.
+C<set> either returns true or throws an exception.
 
 The C<set> method call can be used to control the order in which named arguments are applied.
 In particular, some
