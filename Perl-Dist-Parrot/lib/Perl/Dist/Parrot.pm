@@ -16,6 +16,7 @@ installer for Parrot (and Rakudo, the Perl 6 implementation) on Windows.
 use 5.008;
 use strict;
 use warnings;
+use File::Copy                ();
 use Perl::Dist::Vanilla       ();
 use Perl::Dist::Asset::Parrot ();
 
@@ -42,8 +43,8 @@ sub new {
 		app_name             => 'Vanilla Perl 6',
 		app_publisher        => 'Vanilla Perl Project',
 		app_publisher_url    => 'http://vanillaperl.org/',
-		app_ver_name         => 'Vanilla Perl 6 0.8.1 Alpha 1',
-		output_base_filename => 'vanilla-perl6-0.8.1-alpha-1',
+		app_ver_name         => 'Vanilla Perl 6 0.8.1 Alpha 2',
+		output_base_filename => 'vanilla-perl6-0.8.1-alpha-2',
 		image_dir            => 'C:\\perl6',
 		build_dir            => 'C:\\build',
 		perl_version         => 588,
@@ -119,7 +120,7 @@ sub install_parrot_081 {
 	$self->install_parrot_081_bin(
 		name       => 'parrot',
 		url        => 'http://strawberryperl.com/package/parrot-0.8.1.tar.gz',
-		unpack_to  => 'parrot',
+		unpack_to  => 'perl6',
 		install_to => 'perl6',
 		license    => {
 			'parrot-0.8.1/LICENSE' => 'parrot/LICENSE',
@@ -147,25 +148,17 @@ sub install_parrot_081_bin {
 	);
 
 	# Unpack to the build directory
-	my $unpack_to = File::Spec->catdir( $self->build_dir, $parrot->unpack_to );
-	if ( -d $unpack_to ) {
-		$self->trace("Removing previous $unpack_to\n");
-		File::Remove::remove( \1, $unpack_to );
-	}
-	$self->_extract( $tgz => $unpack_to );
+	$self->_extract( $tgz => $self->image_dir );
 
 	# Get the versioned name of the directory
 	(my $parrotsrc = $tgz) =~ s{\.tar\.gz\z|\.tgz\z}{};
 	$parrotsrc = File::Basename::basename($parrotsrc);
 
-	# Pre-copy updated files over the top of the source
-	my $patch = $parrot->patch;
-	if ( $patch ) {
-		# Overwrite the appropriate files
-		foreach my $file ( @$patch ) {
-			$self->patch_file( "perl-5.8.8/$file" => $unpack_to );
-		}
-	}
+	# Move it to the correct desired name
+	$self->_move(
+		File::Spec->catdir( $self->image_dir, $parrotsrc ),
+		$self->perl6_dir,
+	);
 
 	# Copy in licenses
 	if ( ref $parrot->license eq 'HASH' ) {
@@ -175,14 +168,11 @@ sub install_parrot_081_bin {
 
 	# Build win32 Parrot
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			File::Spec->catdir( $unpack_to, $parrotsrc ),
-		);
+		my $wd = $self->_pushd($self->perl6_dir);
 
 		# Configure Parrot
-		my $dir = $self->perl6_dir;
 		$self->trace("Configuring Parrot...\n");
-		$self->_perl("Configure.pl", "--prefix=$dir");
+		$self->_perl("Configure.pl --prefix=" . $self->perl6_dir);
 
 		# Make Parrot
 		$self->trace("Making Parrot...\n");
@@ -198,16 +188,31 @@ sub install_parrot_081_bin {
 			$self->_mingw_make('test');
 		}
 
-		# Install Parrot and Perl 6
-		$self->trace("Installing Parrot/Perl 6");
-		$self->_mingw_make('reallyinstall');
-
 		# Flush and reset the PATH environment
 		$self->clear_env_path;
 		$self->add_env_path( 'perl6', 'bin' );
 	}
 
+	$self->add_dir('perl6');
+
 	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Perl::Dist::Inno::Script Methods
+
+sub add_dir {
+	my $self = shift;
+	my $name = shift;
+
+	# Don't package up the perl directory
+	return 1 if $name eq 'perl';
+
+	return $self->SUPER::add_dir($name);
 }
 
 
