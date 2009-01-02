@@ -89,9 +89,9 @@ HERE
     name => 'multiple, mixed, funny parenthesis',
     code => <<'HERE',
 package Foo;
-use base ("Bar", qq{Buz});
+use base (((("Bar")), qq{Buz}),);
 package Arg;
-use base q{Baz};
+use base ((q{Baz},),);
 use base qw(Foo);
 HERE
     'cmp' => {
