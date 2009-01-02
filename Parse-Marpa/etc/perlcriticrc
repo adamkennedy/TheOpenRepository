@@ -210,12 +210,6 @@ severity=5
 forbid = last left right no abstract contract record second close
 # set is OK -- as in earley set
 
-[NamingConventions::ProhibitMixedCaseSubs]
-severity=5
-
-[NamingConventions::ProhibitMixedCaseVars]
-severity=5
-
 [References::ProhibitDoubleSigils]
 severity=5
 

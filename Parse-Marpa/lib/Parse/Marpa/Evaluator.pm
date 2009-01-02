@@ -72,11 +72,14 @@ sub run_preamble {
     };
 
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    eval 'package ' . $package . ";\n" . $preamble;
+    my $eval_return = eval 'package ' . $package . ";\n" . $preamble;
     ## use critic
 
     my $fatal_error = $EVAL_ERROR;
-    if ( $fatal_error or @warnings ) {
+    if ( $fatal_error or @warnings or not $eval_return ) {
+        unless ($fatal_error) {
+           $fatal_error = 'eval returned false';
+        }
         Parse::Marpa::Internal::code_problems(
             $fatal_error, \@warnings,
             'evaluating preamble',
@@ -1131,14 +1134,14 @@ sub Parse::Marpa::Evaluator::value {
 
 		while (defined $parent) {
 		    my $parent_node = $tree->[$parent];
-		    my ( $or_node, $parent_choice );
-		    ( $or_node, $parent, $parent_choice ) = @{$parent_node}[
+		    my ( $tree_or_node, $parent_choice );
+		    ( $tree_or_node, $parent, $parent_choice ) = @{$parent_node}[
 			Parse::Marpa::Internal::Tree_Node::OR_NODE,
 			Parse::Marpa::Internal::Tree_Node::PARENT,
 			Parse::Marpa::Internal::Tree_Node::CHOICE,
 		    ];
 		    my $parent_or_node_name =
-			$or_node->[Parse::Marpa::Internal::Or_Node::NAME];
+			$tree_or_node->[Parse::Marpa::Internal::Or_Node::NAME];
 		    $cycles_count++
 			if $or_node_name eq $parent_or_node_name
 			and $choice == $parent_choice;
@@ -1248,9 +1251,10 @@ sub Parse::Marpa::Evaluator::value {
     TREE_NODE: for my $node ( reverse @{$tree} ) {
 
        if ($trace_values >= 3) {
-           for (my $i = $#evaluation_stack; $i >= 0; $i--) {
+           for my $i (reverse 0 .. $#evaluation_stack) {
 	       printf {$trace_fh} 'Stack position %3d:', $i;
-	       print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] );
+	       print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] )
+                 or croak('print to trace handle failed');
 	   }
        }
 

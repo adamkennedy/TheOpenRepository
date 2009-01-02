@@ -9,9 +9,9 @@ build:
 	(cd ..;make disttest)
 
 perlcritic:
-	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Evaluator.pm
-	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Grammar.pm
-	perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Recognizer.pm
+	-perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Grammar.pm
+	-perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Recognizer.pm
+	-perlcritic -profile perlcriticrc < ../lib/Parse/Marpa/Evaluator.pm
 
 bocage_counts:
 	prove -Ibocage .
