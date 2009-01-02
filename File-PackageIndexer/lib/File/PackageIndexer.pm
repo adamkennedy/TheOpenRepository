@@ -130,7 +130,7 @@ sub _handle_includes {
   if ($module =~ /^Class::XSAccessor(?:::Array)?$/) {
     File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($self, $statement, $curpkg, $pkgs);
   }
-  elsif ($module eq 'base') {
+  elsif ($module =~ /^(?:base|parent)$/) {
     File::PackageIndexer::PPI::Inheritance::handle_base($self, $statement, $curpkg, $pkgs);
   }
 

@@ -20,6 +20,14 @@ sub handle_base {
   my $list_start = $statement->schild(0)->snext_sibling;
   my $classes = File::PackageIndexer::PPI::Util::list_structure_to_array($list_start);
 
+  return
+    if not defined $classes or ref($classes) ne 'ARRAY';
+
+  # remove options if 'parent'
+  if ($list_start->content() eq 'parent') {
+    @$classes = grep $_ !~ /^-/, @$classes;
+  }
+
   push @{$curpkg->{begin_isa}}, @$classes
     if defined $classes and ref($classes) eq 'ARRAY';
 
