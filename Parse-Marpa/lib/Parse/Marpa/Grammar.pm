@@ -2873,10 +2873,10 @@ sub detect_cycle {
 	my $derived_id = $non_nullable_symbol->[Parse::Marpa::Internal::Symbol::ID];
 
 	# Keep track of our unit rules
-	push(@unit_rules, [ $rule, $start_id, $derived_id ]);
+	push @unit_rules, [ $rule, $start_id, $derived_id ];
 
 	$unit_derivation[$start_id][$derived_id] = 1;
-	push(@new_unit_derivations, [ $start_id, $derived_id ]);
+	push @new_unit_derivations, [ $start_id, $derived_id ];
 
     }
 
@@ -2895,7 +2895,7 @@ sub detect_cycle {
 	    next ID if $unit_derivation[$start_id][$id];
 
 	    $unit_derivation[$start_id][$id] = 1;
-	    push(@new_unit_derivations, [$start_id, $id]);
+	    push @new_unit_derivations, [$start_id, $id];
 	}
 
     }
@@ -2929,10 +2929,13 @@ sub detect_cycle {
 	        $warning_rule = $rule;
 	    }
 
-	    print {$trace_fh}
-		    "Cycle found involving rule: ",
-		    Parse::Marpa::brief_rule($warning_rule), "\n"
-	        if $warn_on_cycle and defined $warning_rule;
+            if ($warn_on_cycle and defined $warning_rule)
+            {
+                print {$trace_fh}
+                    'Cycle found involving rule: ',
+                    Parse::Marpa::brief_rule($warning_rule), "\n"
+                or croak('Could not print to trace file');
+            }
 	}
     }
 
@@ -3073,6 +3076,8 @@ sub create_NFA {
                 $NFA_by_item[$predicted_rule_id][0];
         }
     }
+
+    return 1;
 }
 
 # take a list of kernel NFA states, possibly with duplicates, and return
@@ -3116,9 +3121,13 @@ sub assign_QDFA_state_set {
     my @work_list = map { [ $_, 0 ] } @{$kernel_states};
 
     # Use index because we extend this list while processing it.
-    WORK_ITEM: for ( my $i = 0; $i < @work_list; $i++ ) {
+    my $work_list_index = -1;
+    WORK_ITEM: while (1) {
 
-        my ( $NFA_state, $reset ) = @{ $work_list[$i] };
+        my $work_list_entry = $work_list[++$work_list_index];
+        last WORK_ITEM unless defined $work_list_entry;
+
+        my ( $NFA_state, $reset ) = @{ $work_list_entry };
 
         my $NFA_id = $NFA_state->[Parse::Marpa::Internal::NFA::ID];
         next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
@@ -3146,7 +3155,8 @@ sub assign_QDFA_state_set {
         }
 
         $reset //= 0;
-        my $priority = $NFA_state->[Parse::Marpa::Internal::NFA::PRIORITY]
+        my $priority;
+        $priority = $NFA_state->[Parse::Marpa::Internal::NFA::PRIORITY]
             if $NFA_state->[Parse::Marpa::Internal::NFA::COMPLETE];
         if ( defined $priority ) {
             $highest_priority = $priority
@@ -3161,10 +3171,13 @@ sub assign_QDFA_state_set {
 
     my @result_data = map { $_->[0] }
         sort { $a->[1] cmp $b->[1] }
+        ## no critic (BuiltinFunctions::ProhibitComplexMappings)
         map {
-        $_->[1] //= $highest_priority;
-        [ $_, ( (pack 'N', $_->[0] ) . $_->[1] ) ]
-        } grep { defined $_ and scalar @{$_} } @NFA_state_seen;
+            $_->[1] //= $highest_priority;
+            [ $_, ( (pack 'N', $_->[0] ) . $_->[1] ) ]
+        }
+        ## use critic
+        grep { defined $_ and scalar @{$_} } @NFA_state_seen;
 
     # this is a fake record with an
     # "impossible" value for the reset flag to force a
@@ -3197,7 +3210,7 @@ sub assign_QDFA_state_set {
 
         # here what's called the "control break", where the record key changes
         if (@NFA_ids) {
-            my $name = join ',', @NFA_ids;
+            my $name = join q{,}, @NFA_ids;
             my $QDFA_state = $QDFA_by_name->{$name};
 
             # this is a new QDFA state -- create it
@@ -3297,7 +3310,6 @@ sub create_QDFA {
         $NFA_s0->[Parse::Marpa::Internal::NFA::TRANSITION]->{ q{} };
     if ( not defined $initial_NFA_states ) {
         croak('Empty NFA, cannot create QDFA');
-        return;
     }
     $grammar->[Parse::Marpa::Internal::Grammar::START_STATES] =
         assign_QDFA_state_set( $grammar, $initial_NFA_states );
@@ -3389,7 +3401,7 @@ sub alias_symbol {
         = (
         $symbol_count, $alias_name, [], [],
         $accessible, $productive, 1, 1,
-        $null_value
+        $null_value,
         );
     push @{$symbols}, $alias;
     weaken( $symbol->{$alias_name} = $alias );
@@ -3398,9 +3410,9 @@ sub alias_symbol {
     @{$nullable_symbol}[
         Parse::Marpa::Internal::Symbol::NULLABLE,
         Parse::Marpa::Internal::Symbol::NULLING,
-        Parse::Marpa::Internal::Symbol::NULL_ALIAS
+        Parse::Marpa::Internal::Symbol::NULL_ALIAS,
         ]
-        = ( 0, 0, $alias );
+        = ( 0, 0, $alias, );
     return $alias;
 }
 
@@ -3422,7 +3434,7 @@ sub rewrite_as_CHAF {
 
     # add null aliases to symbols which need them
     my $symbol_count = @{$symbols};
-    SYMBOL: for ( my $ix = 0; $ix < $symbol_count; $ix++ ) {
+    SYMBOL: for my $ix ( 0 .. ($symbol_count - 1) ) {
         my $symbol = $symbols->[$ix];
         my ( $productive, $accessible, $nulling, $nullable, $null_alias ) =
             @{$symbol}[
@@ -3453,7 +3465,7 @@ sub rewrite_as_CHAF {
     # get the initial rule count -- new rules will be added and we don't iterate
     # over them
     my $rule_count = @{$rules};
-    RULE: for ( my $rule_id = 0; $rule_id < $rule_count; $rule_id++ ) {
+    RULE: for my $rule_id ( 0 .. ($rule_count - 1) ) {
         my $rule = $rules->[$rule_id];
         my ( $lhs, $rhs, $productive, $accessible, $nulling, $nullable,
             $priority )
@@ -3495,14 +3507,14 @@ sub rewrite_as_CHAF {
 
         my $last_nonnullable = -1;
         my $proper_nullables = [];
-        RHS_SYMBOL: for ( my $ix = 0; $ix <= $#{$rhs}; $ix++ ) {
+        RHS_SYMBOL: for my $ix ( 0 .. $#{$rhs} ) {
             my $symbol = $rhs->[$ix];
-            my ( $null_alias, $nulling, $null_value ) = @{$symbol}[
+            my ( $null_alias, $rhs_symbol_nulling, $null_value ) = @{$symbol}[
                 Parse::Marpa::Internal::Symbol::NULL_ALIAS,
                 Parse::Marpa::Internal::Symbol::NULLING,
                 Parse::Marpa::Internal::Symbol::NULL_VALUE,
             ];
-            next RHS_SYMBOL if $nulling;
+            next RHS_SYMBOL if $rhs_symbol_nulling;
             if ($null_alias) {
                 push @{$proper_nullables}, $ix;
                 next RHS_SYMBOL;
@@ -3524,7 +3536,7 @@ sub rewrite_as_CHAF {
         # break this production into subproductions with a fixed number of proper nullables,
         # then factor out the proper nullables into a set of productions
         # with only non-nullable and nulling symbols.
-        SUBPRODUCTION: for ( ;; ) {
+        SUBPRODUCTION: while (1) {
 
             my $subp_end;
             my $proper_nullable0      = $proper_nullables->[0];
@@ -3569,7 +3581,7 @@ sub rewrite_as_CHAF {
                         );
                     $next_subp_lhs = assign_symbol( $grammar,
                         $lhs->[Parse::Marpa::Internal::Symbol::NAME] . '[R'
-                            . $rule_id . ':'
+                            . $rule_id . q{:}
                             . ( $subp_end + 1 ) . ']'
                             . $unique_name_piece );
                     @{$next_subp_lhs}[
@@ -3599,7 +3611,7 @@ sub rewrite_as_CHAF {
                     );
                 $next_subp_lhs = assign_symbol( $grammar,
                           $lhs->[Parse::Marpa::Internal::Symbol::NAME] . '[R'
-                        . $rule_id . ':'
+                        . $rule_id . q{:}
                         . ( $subp_end + 1 ) . ']'
                         . $unique_name_piece );
                 @{$next_subp_lhs}[
@@ -3665,7 +3677,7 @@ sub rewrite_as_CHAF {
 
             }    # FACTOR
 
-            for ( my $ix = 0; $ix <= $#{$factored_rhs}; $ix++ ) {
+            for my $ix ( 0 .. $#{$factored_rhs} ) {
                 my $factor_rhs = $factored_rhs->[$ix];
 
                 # No need to bother putting together values
@@ -3726,7 +3738,7 @@ sub rewrite_as_CHAF {
     ];
     my $new_start_symbol =
         assign_symbol( $grammar,
-        $old_start_symbol->[Parse::Marpa::Internal::Symbol::NAME] . "[']" );
+        $old_start_symbol->[Parse::Marpa::Internal::Symbol::NAME] . q{[']} );
     @{$new_start_symbol}[
         Parse::Marpa::Internal::Symbol::PRODUCTIVE,
         Parse::Marpa::Internal::Symbol::ACCESSIBLE,
@@ -3754,11 +3766,11 @@ sub rewrite_as_CHAF {
     if ($old_start_alias) {
         my $new_start_alias = alias_symbol( $grammar, $new_start_symbol );
         @{$new_start_alias}[ Parse::Marpa::Internal::Symbol::START, ] = (1);
-        my $new_start_rule =
+        my $new_start_alias_rule =
             add_rule( $grammar, $new_start_alias, [], undef, 0 );
 
         # Nulling rules are not considered useful, but the top-level one is an exception
-        @{$new_start_rule}[
+        @{$new_start_alias_rule}[
             Parse::Marpa::Internal::Rule::PRODUCTIVE,
             Parse::Marpa::Internal::Rule::ACCESSIBLE,
             Parse::Marpa::Internal::Rule::USEFUL,
@@ -3770,6 +3782,8 @@ sub rewrite_as_CHAF {
 }
 
 1;
+
+__END__
 
 =pod
 
