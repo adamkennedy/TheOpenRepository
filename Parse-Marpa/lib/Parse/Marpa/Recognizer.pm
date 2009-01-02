@@ -306,12 +306,15 @@ sub prepare_grammar_for_recognizer {
         };
 
 	## no critic (BuiltinFunctions::ProhibitStringyEval)
-        eval
+        my $eval_ok = eval
 	    'package ' . $package . ";\n"
 	    . $lex_preamble;
 	## use critic
 
         my $fatal_error = $EVAL_ERROR;
+        if (not $eval_ok and not $fatal_error) {
+           $fatal_error = 'eval returned false';
+        }
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
@@ -493,7 +496,7 @@ sub Parse::Marpa::Recognizer::unstringify {
         my $eval_ok = eval ${$stringified_recce};
         ## use critic
 
-        my $fatal_error = $@;
+        my $fatal_error = $EVAL_ERROR;
         if (not $eval_ok and not $fatal_error) {
            $fatal_error = 'eval returned false';
         }
@@ -522,8 +525,7 @@ sub Parse::Marpa::Recognizer::clone {
     my $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $stringified_recce = Parse::Marpa::Recognizer::stringify($recce);
-    $recce =
-        Parse::Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
+    return Parse::Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
 
 }
 
@@ -636,7 +638,7 @@ sub Parse::Marpa::Recognizer::earleme {
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
-        croak("New earlemes not allowed after end of input");
+        croak('New earlemes not allowed after end of input');
     }
 
     # lexables not checked -- don't use prediction here
@@ -653,14 +655,14 @@ sub Parse::Marpa::Recognizer::earleme {
 sub Parse::Marpa::Recognizer::text {
     my $parse     = shift;
     my $input     = shift;
-    my $length    = shift;
+    my $input_length    = shift;
     croak(
         'Parse::Marpa::Recognizer::text() third argument not yet implemented')
-        if defined $length;
+        if defined $input_length;
 
     my $input_ref;
     given (ref $input) {
-    when ('') { $input_ref = \$input; }
+    when (q{}) { $input_ref = \$input; }
     when ('SCALAR') { $input_ref = $input; }
     default {
 	croak(
@@ -680,7 +682,7 @@ sub Parse::Marpa::Recognizer::text {
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
-        croak("More text not allowed after end of input");
+        croak('More text not allowed after end of input');
     }
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
@@ -701,10 +703,10 @@ sub Parse::Marpa::Recognizer::text {
         Parse::Marpa::Internal::Grammar::AMBIGUOUS_LEX,
     ];
 
-    $length = length ${$input_ref} unless defined $length;
+    $input_length = length ${$input_ref} unless defined $input_length;
 
     pos ${$input_ref} = 0;
-    POS: for (my $pos = 0; $pos < $length; $pos++) {
+    POS: for (my $pos = 0; $pos < $input_length; $pos++) {
         my @alternatives;
 
         # NOTE: Often the number of the earley set, and the idea of
@@ -793,10 +795,13 @@ sub Parse::Marpa::Recognizer::text {
                     push @warnings, $_[0];
                     @caller_return = caller 0;
                 };
-                eval {
-                    ( $match, $length ) = $lex_closure->( $input_ref, $pos );
+                my $eval_ok = eval {
+                    ( $match, $length ) = $lex_closure->( $input_ref, $pos ); 1;
                 };
                 my $fatal_error = $EVAL_ERROR;
+                if (not $eval_ok and not $fatal_error) {
+                   $fatal_error = 'eval returned false';
+                }
                 if ( $fatal_error or @warnings ) {
                     Parse::Marpa::Internal::code_problems(
                         $fatal_error,
