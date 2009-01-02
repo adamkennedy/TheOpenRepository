@@ -180,8 +180,6 @@ use Object::Tiny qw{
 	bin_pexports
 	bin_dlltool
 	env_path
-	env_lib
-	env_include
 	debug_stdout
 	debug_stderr
 	output_file
@@ -536,8 +534,6 @@ sub new {
 
 	# Inno-Setup Initialization
 	$self->{env_path}    = [];
-	$self->{env_lib}     = [];
-	$self->{env_include} = [];
 	$self->add_dir('c');
 	$self->add_dir('perl');
 	$self->add_dir('licenses');
@@ -665,6 +661,37 @@ sub checkpoint_save {
 	return 1;
 }
 
+sub checkpoint_load {
+	my $self = shift;
+	unless ( $self->temp_dir ) {
+		die "Checkpoints require a temp_dir to be set";
+	}
+
+	# Does the checkpoint exist
+	$self->trace("Removing old checkpoint\n");
+	$self->{checkpoint_dir} = File::Spec->catfile(
+		$self->temp_dir, 'checkpoint',
+	);
+	unless ( -d $self->checkpoint_dir ) {
+		die "Failed to find checkpoint directory";
+	}
+
+	# Load the stored hash over our object
+	my $stored = Storable::retrieve( $self->checkpoint_file );
+	%$self = %$stored;
+
+	# Pull all the directories out of the storage
+	$self->trace("Restoring checkpoint directories...\n");
+	foreach my $dir ( qw{ build_dir download_dir image_dir output_dir } ) {
+		my $from = File::Spec->catdir( $self->checkpoint_dir, $dir );
+		my $to   = $self->$dir();
+		File::Remove::remove( $to );
+		$self->_copy( $from => $to );
+	}
+
+	return 1;
+}
+
 
 
 
@@ -781,6 +808,9 @@ sub run {
 		$self->trace("No exe or zip target, nothing to do");
 		return 1;
 	}
+
+	# Don't buffer
+	$| = 1;
 
 	# Install the core C toolchain
 	$self->checkpoint_task( install_c_toolchain  => 1 );
@@ -962,8 +992,6 @@ sub install_cpan_upgrades {
 	}
 
 	# Generate the CPAN installation script
-	# my $env_lib     = $self->get_env_lib;
-	# my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -1210,9 +1238,7 @@ sub install_perl_588_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd($unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -1340,9 +1366,7 @@ sub install_perl_589_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd($unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -1523,9 +1547,7 @@ sub install_perl_5100_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			File::Spec->catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd($unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -2201,7 +2223,7 @@ sub install_distribution {
 
 	# Build the module
 	SCOPE: {
-		my $wd = File::pushd::pushd( $unpack_to );
+		my $wd = $self->_pushd($unpack_to);
 
 		# Enable automated_testing mode if needed
 		# Blame Term::ReadLine::Perl for needing this ugly hack.
@@ -2274,8 +2296,6 @@ sub install_module {
 	}
 
 	# Generate the CPAN installation script
-	# my $env_lib     = $self->get_env_lib;
-	# my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -2650,24 +2670,6 @@ sub write_exe {
 		}
 		$self->add_env( PATH => $value );
 	}
-	if ( @{$self->{env_lib}} ) {
-		my $value = "{olddata}";
-		foreach my $array ( @{$self->{env_lib}} ) {
-			$value .= File::Spec::Win32->catdir(
-				';{app}', @$array,
-			);
-		}
-		$self->add_env( LIB => $value );
-	}
-	if ( @{$self->{env_include}} ) {
-		my $value = "{olddata}";
-		foreach my $array ( @{$self->{env_include}} ) {
-			$value .= File::Spec::Win32->catdir(
-				';{app}', @$array,
-			);
-		}
-		$self->add_env( INCLUDE => $value );
-	}
 
 	$self->SUPER::write_exe(@_);
 }
@@ -2966,15 +2968,21 @@ sub user_agent {
 				cache_root         => $self->user_agent_directory,
 				cache_depth        => 0,
 				default_expires_in => 86400 * 30,
+				show_progress      => 1,
 			} );
 		} else {
 			$self->{user_agent} = LWP::UserAgent->new(
-				agent   => "$class/" . $VERSION || '0.00',
-				timeout => 30,
+				agent         => ref($self) . '/' . ($VERSION || '0.00'),
+				timeout       => 30,
+				show_progress => 1,
 			);
 		}
 	}
-	unless ( $self->{user_agent} ) {
+	return $self->{user_agent};
+}
+
+sub user_agent_cache {
+	$_[0]->{user_agent_cache};
 }
 
 sub user_agent_directory {
@@ -3067,6 +3075,13 @@ sub _move {
 	File::Copy::Recursive::rmove( $from, $to ) or die $!;
 }
 
+sub _pushd {
+	my $self = shift;
+	my $dir  = File::Spec->catdir(@_);
+	$self->trace("Lexically changing directory to $dir...\n");
+	return File::pushd::pushd( $dir );
+}
+
 sub _make {
 	my $self   = shift;
 	my @params = @_;
@@ -3122,8 +3137,7 @@ sub _run3 {
 sub _extract {
 	my ( $self, $from, $to ) = @_;
 	File::Path::mkpath($to);
-	my $wd = File::pushd::pushd( $to );
-	$|++;
+	my $wd = $self->_pushd($to);
 	$self->trace("Extracting $from...\n");
 	if ( $from =~ m{\.zip\z} ) {
 		my $zip = Archive::Zip->new( $from );
@@ -3145,7 +3159,7 @@ sub _extract_filemap {
 
 	if ( $archive =~ m{\.zip\z} ) {
 		my $zip = Archive::Zip->new( $archive );
-		my $wd = File::pushd::pushd( $basedir );
+		my $wd  = $self->_pushd($basedir);
 		while ( my ($f, $t) = each %$filemap ) {
 			$self->trace("Extracting $f to $t\n");
 			my $dest = File::Spec->catfile( $basedir, $t );
