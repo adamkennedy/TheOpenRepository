@@ -196,7 +196,7 @@ severity=5
 severity=5
 
 [Modules::RequireFilenameMatchesPackage]
-severity=5
+severity=1
 
 [Modules::RequireNoMatchVarsWithUseEnglish]
 severity=5

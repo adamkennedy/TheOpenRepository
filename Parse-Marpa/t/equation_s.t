@@ -1,9 +1,10 @@
+#!perl
 # An ambiguous equation
 
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
+use lib '../lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
@@ -20,15 +21,13 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $example_dir = "example";
-$example_dir = "../example" unless -d $example_dir;
-chdir($example_dir);
+my $example_dir = 'example';
+chdir $example_dir;
 
-our $GRAMMAR;
-open( GRAMMAR, '<', 'equation.marpa' );
+open my $grammar_fh, q{<}, 'equation.marpa';
 my $source;
-{ local ($RS) = undef; $source = <GRAMMAR> };
-close(GRAMMAR);
+{ local ($RS) = undef; $source = <$grammar_fh> };
+close $grammar_fh;
 
 # Set max_parses to 10 in case there's an infinite loop.
 # This is for debugging, after all
@@ -40,7 +39,7 @@ my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
 
 my $fail_offset = $recce->text( '2-0*3+1' );
 if ( $fail_offset >= 0 ) {
-    die("Parse failed at offset $fail_offset");
+    croak("Parse failed at offset $fail_offset");
 }
 
 $recce->end_input();
@@ -52,14 +51,17 @@ my @expected = (
 );
 
 my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
-die("Parse failed") unless $evaler;
+croak('Parse failed') unless $evaler;
 
-for ( my $i = 0; defined( my $value = $evaler->value() ); $i++ ) {
+my $i = -1;
+while ( defined( my $value = $evaler->value() ) )
+{
+    $i++;
     if ( $i > $#expected ) {
-        fail( "Ambiguous equation has extra value: " . $$value . "\n" );
+        fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
     }
     else {
-        is( $$value, $expected[$i], "Ambiguous Equation Value $i" );
+        is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
     }
 }
 

@@ -341,6 +341,7 @@ sub Parse::Marpa::Internal::code_problems {
     my $long_where;
     my $code;
     my $caller_return;
+    my @msg = ();
 
     while (my ($arg, $value) = each %{$args})
     {
@@ -351,6 +352,7 @@ sub Parse::Marpa::Internal::code_problems {
          when ('long_where') { $long_where = $value }
          when ('code') { $code = $value }
          when ('caller_return') { $caller_return = $value }
+         default { push @msg, "Unknown argument to code_problems: $arg" }
        }
     }
 
@@ -364,7 +366,6 @@ sub Parse::Marpa::Internal::code_problems {
 
     $long_where //= $where;
     my $grammar = $Parse::Marpa::Internal::This::grammar;
-    my @msg;
     my $code_lines;
     if ( defined $grammar ) {
         $code_lines = $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES];
