@@ -260,6 +260,25 @@ sub merge_results {
 }
 
 
+sub clean_results {
+  my @results = @_;
+  shift @results while @results and !ref($results[0]) || ref($results[0]) eq 'File::PackageIndexer';
+
+  return({}) if not @results;
+  my $in = $results[0];
+
+  my $res = {};
+  foreach my $pkgname (keys %{$in}) {
+    my $inpkg = $in->{$pkgname};
+    my $pkg = $res->{$pkgname} = {};
+    $pkg->{subs} = {%{$inpkg->{subs}}};
+    $pkg->{isa} = [@{$inpkg->{isa}}];
+    $pkg->{name} = $inpkg->{name};
+  }
+  
+  return $res;
+}
+
 1;
 
 __END__
@@ -363,6 +382,25 @@ packages and subs found in the code. General structure:
     },
     ... more packages ...
   }
+
+=head2 merge_results
+
+Can be called either as an instance or class method as well as a function.
+Expects an arbitrary number of parse results as argument and merges them
+into one as well as possible. If there are collisions (specifically wrt.
+inheritance), they are resolved in favour of the later results. That is,
+if result set one and two conflict, two takes precedence.
+
+This function/method can only handle results that have not been cleaned up.
+Set the C<clean> option to false to disable cleaning of internal information.
+Use the C<clean_results> function/method to clean up the merged result set.
+
+Returns the merged result set.
+
+=head2 clean_results
+
+Can be called either as an instance or class method as well as a function.
+Expects a result set as argument. Returns the cleaned result set.
 
 =head1 SEE ALSO
 
