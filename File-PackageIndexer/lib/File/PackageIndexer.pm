@@ -194,8 +194,10 @@ sub merge_results {
 
   # check that the user used things right
   foreach my $r (@results) {
-    if (not exists $r->{begin_isa}) {
-      croak("Can't merge results that have been cleaned. Set the 'clean' option of the parser to a false value to disable cleaning of the result structures. Also RTFM.");
+    foreach my $pkg (values %$r) {
+      if (not exists $pkg->{begin_isa}) {
+        croak("Can't merge results that have been cleaned. Set the 'clean' option of the parser to a false value to disable cleaning of the result structures. Also RTFM.");
+      }
     }
   }
 
