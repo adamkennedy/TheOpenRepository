@@ -9,6 +9,7 @@ WriteMakefile(
     'PPI' => '1.203',
     'Class::XSAccessor' => '0.14',
   },
+  LICENSE => 'perl',
   ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
    (ABSTRACT_FROM  => 'lib/File/PackageIndexer.pm', # retrieve abstract from module
     AUTHOR         => 'Steffen Mueller <smueller@cpan.org>') : ()),
