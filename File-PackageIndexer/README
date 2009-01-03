@@ -11,21 +11,33 @@ SYNOPSIS
       # prints something like:
       # {
       #   Some::Package => {
+      #     name => 'Some::Package',
       #     subs => {
       #       new => 1,
       #       foo => 1,
       #     },
+      #     isa => [ 'SuperClass1', 'SuperClass2' ],
       #   },
       #   ... other pkgs ...
       # }
 
 DESCRIPTION
     Parses a piece of Perl code using PPI and tries to find all subs and
-    their packages.
+    their packages as well as the inheritance of the packages.
 
-    Currently, this simply finds package statements and plain subroutine
-    declarations. In the future, it should hopefully support various
-    accessor generators and similar tools.
+    Currently, the following constructs are recognized:
+
+    "package" statements
+    plain subroutine declarations
+    "Class::Accessor"-like accessor generation
+    "Class::XSAccessor" and "Class::XSAccessor::Array"
+    "use base ..." inheritance declaration
+    "use parent ..." inheritance declaration
+    "our @ISA = ..." and "@ISA = ..." inheritance declaration
+    "push @ISA, ..." and "unshift @ISA, ..." inheritance modification
+
+    The inheritance detection (hopefully) correctly recognizes the effect of
+    special blocks such as "BEGIN {...}". "END" blocks are ignored.
 
 METHODS
   new
@@ -39,8 +51,8 @@ METHODS
     Get/set default package.
 
   parse
-    Parses a piece of code. Alternatively, you may pass in a "PPI::Node" or
-    "PPI::Document" object.
+    Parses a given piece of code. Alternatively, you may pass in a
+    "PPI::Node" or "PPI::Document" object.
 
     Returns a simple hash-ref based structure containing the packages and
     subs found in the code. General structure:
@@ -60,11 +72,17 @@ SEE ALSO
     Implemented using PPI.
 
 TODO
-    Dependencies.
+    Maybe other constructs that affect inheritance?
 
-    Accessor generators.
+    Exporting! (yuck)
 
-    Moose.
+    Other accessor generators.
+
+    Moose. This is going to be tough, but mandatory.
+
+    "Class-"import(...)> is currently not handled akin to "use Class ...".
+
+    General dependency resolution.
 
 AUTHOR
     Steffen Mueller, <smueller@cpan.org>
