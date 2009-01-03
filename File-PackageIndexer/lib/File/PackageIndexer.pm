@@ -194,10 +194,12 @@ File::PackageIndexer - Indexing of packages and subs
   # prints something like:
   # {
   #   Some::Package => {
+  #     name => 'Some::Package',
   #     subs => {
   #       new => 1,
   #       foo => 1,
   #     },
+  #     isa => [ 'SuperClass1', 'SuperClass2' ],
   #   },
   #   ... other pkgs ...
   # }
@@ -205,11 +207,32 @@ File::PackageIndexer - Indexing of packages and subs
 =head1 DESCRIPTION
 
 Parses a piece of Perl code using PPI and tries to find all subs
-and their packages.
+and their packages as well as the inheritance of the packages.
 
-Currently, this simply finds package statements and plain subroutine
-declarations and supports some accessor generators (C<Class::Accessor>
-and C<Class::XSAccessor(::Array)>).
+Currently, the following constructs are recognized:
+
+=over 2
+
+=item C<package> statements
+
+=item plain subroutine declarations
+
+=item C<Class::Accessor>-like accessor generation
+
+=item C<Class::XSAccessor> and C<Class::XSAccessor::Array>
+
+=item C<use base ...> inheritance declaration
+
+=item C<use parent ...> inheritance declaration
+
+=item C<our @ISA = ...> and C<@ISA = ...> inheritance declaration
+
+=item C<push @ISA, ...> and C<unshift @ISA, ...> inheritance modification
+
+=back
+
+The inheritance detection (hopefully) correctly recognizes the effect of special
+blocks such as C<BEGIN {...}>. C<END> blocks are ignored.
 
 =head1 METHODS
 
@@ -255,13 +278,11 @@ Implemented using L<PPI>.
 
 =head1 TODO
 
-Inheritance.
+Maybe other constructs that affect inheritance?
 
-Exporting.
+Exporting! (yuck)
 
-Other accessor generators. Currently supporting
-C<Class::XSAccessor>, C<Class::XSAccessor::Array>, and modules that use the C<Class::Accessor>
-style interface a la C<Class->mk_accessors(qw(foo bar))>.
+Other accessor generators.
 
 Moose. This is going to be tough, but mandatory.
 
