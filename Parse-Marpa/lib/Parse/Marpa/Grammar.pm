@@ -493,7 +493,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
 
     if ($trace_strings) {
         for my $string ( keys %strings ) {
-            say $trace_fh qq{String "$string" set to '}, $strings{$string},
+            say {$trace_fh} qq{String "$string" set to '}, $strings{$string},
                 q{'};
         }
     }
@@ -501,7 +501,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     if ( defined $new_start_symbol ) {
         $grammar->[Parse::Marpa::Internal::Grammar::START] =
             $new_start_symbol;
-        say $trace_fh 'Start symbol set to ', $new_start_symbol
+        say {$trace_fh} 'Start symbol set to ', $new_start_symbol
             if $trace_predefineds;
     }
 
@@ -509,7 +509,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
         if not defined $new_semantics
             or $new_semantics ne 'perl5';
     $grammar->[Parse::Marpa::Internal::Grammar::SEMANTICS] = $new_semantics;
-    say $trace_fh 'Semantics set to ', $new_semantics
+    say {$trace_fh} 'Semantics set to ', $new_semantics
         if $trace_predefineds;
 
     Carp::croak('Version must be set in marpa grammar')
@@ -523,25 +523,25 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     use integer;
 
     $grammar->[Parse::Marpa::Internal::Grammar::VERSION] = $new_version;
-    say $trace_fh 'Version set to ', $new_version
+    say {$trace_fh} 'Version set to ', $new_version
         if $trace_predefineds;
 
     if ( defined $new_lex_preamble ) {
         $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] = $new_lex_preamble;
-        say $trace_fh q{Lex preamble set to '}, $new_lex_preamble, q{'}
+        say {$trace_fh} q{Lex preamble set to '}, $new_lex_preamble, q{'}
             if defined $trace_predefineds;
     }
 
     if ( defined $new_preamble ) {
         $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] = $new_preamble;
-        say $trace_fh q{Preamble set to '}, $new_preamble, q{'}
+        say {$trace_fh} q{Preamble set to '}, $new_preamble, q{'}
             if defined $trace_predefineds;
     }
 
     if ( defined $new_default_lex_prefix ) {
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] =
             $new_default_lex_prefix;
-        say $trace_fh q{Default lex prefix set to '}, $new_default_lex_prefix,
+        say {$trace_fh} q{Default lex prefix set to '}, $new_default_lex_prefix,
             q{'}
             if defined $trace_predefineds;
     }
@@ -549,14 +549,14 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     if ( defined $new_default_action ) {
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION] =
             $new_default_action;
-        say $trace_fh q{Default action set to '}, $new_default_action, q{'}
+        say {$trace_fh} q{Default action set to '}, $new_default_action, q{'}
             if $trace_predefineds;
     }
 
     if ( defined $new_default_null_value ) {
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
             $new_default_null_value;
-        say $trace_fh q{Default null_value set to '}, $new_default_null_value,
+        say {$trace_fh} q{Default null_value set to '}, $new_default_null_value,
             q{'}
             if $trace_predefineds;
     }
@@ -669,17 +669,21 @@ sub Parse::Marpa::show_location {
     my $msg     = shift;
     my $source  = shift;
     my $earleme = shift;
+    my $result = q{};
 
     my ( $line, $line_start ) = locator( $earleme, $source );
-    my @msg = ( $msg, ' at line ', $line + 1, ", earleme $earleme\n" );
+    $result .= $msg . ' at line ' . ($line + 1) . ", earleme $earleme\n";
     given ( index ${$source}, "\n", $line_start ) {
-        when (undef) { push @msg, (substr ${$source}, $line_start ), "\n" }
+        when (undef) {
+            $result .= (substr ${$source}, $line_start) . "\n";
+        }
         default {
-            push @msg,
-                (substr ${$source}, $line_start, $_ - $line_start ), "\n";
+            $result .=
+                (substr ${$source}, $line_start, $_ - $line_start ) . "\n";
         }
     }
-    return join q{}, @msg, ( q{ } x ( $earleme - $line_start ) ), "^\n";
+    $result .= ( q{ } x ( $earleme - $line_start ) ) . "^\n";
+    return $result;
 }
 
 sub die_with_parse_failure {
@@ -703,7 +707,7 @@ sub Parse::Marpa::stringify_source_grammar {
     my $raw_source_grammar = Parse::Marpa::Internal::raw_source_grammar();
     my $raw_source_version =
         $raw_source_grammar->[Parse::Marpa::Internal::Grammar::VERSION];
-    $raw_source_version //= "not defined";
+    $raw_source_version //= 'not defined';
     if ( $raw_source_version ne $Parse::Marpa::VERSION ) {
         croak(
             "raw source grammar version ($raw_source_version) does not match Marpa version (",
@@ -754,15 +758,14 @@ sub parse_source_grammar {
     }
     $recce->end_input();
     my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
-    croak("Marpa Internal error: failed to create evaluator for MDL") unless defined $evaler;
+    croak('Marpa Internal error: failed to create evaluator for MDL') unless defined $evaler;
     my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
     return;
 }
 
 sub Parse::Marpa::Grammar::set {
-    my $grammar = shift;
-    my ($args) = @_;
+    my ($grammar, $args) = @_;
     $args //= {};
 
     local ($Parse::Marpa::Internal::This::grammar) = $grammar;
@@ -802,7 +805,7 @@ sub Parse::Marpa::Grammar::set {
             when ('rules') {
                 $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE] //=
                     Parse::Marpa::Internal::Interface::RAW;
-                my $interface =
+                $interface =
                     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
                 croak( 'rules option not allowed with '
                         . interface_description($interface) )
@@ -817,7 +820,7 @@ sub Parse::Marpa::Grammar::set {
             when ('terminals') {
                 $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE] //=
                     Parse::Marpa::Internal::Interface::RAW;
-                my $interface =
+                $interface =
                     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
                 croak( 'terminals option not allowed with '
                         . interface_description($interface) )
@@ -895,8 +898,8 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_ACTIONS] =
                     $value;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
-                    say $trace_fh
+                    say {$trace_fh} "Setting $option option";
+                    say {$trace_fh}
                         "Warning: setting $option option after semantics were finalized"
                         if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
@@ -908,7 +911,7 @@ sub Parse::Marpa::Grammar::set {
                     ->[Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES] =
                     $value;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say {$trace_fh} "Setting $option option";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -916,7 +919,7 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_LEX_TRIES] =
                     $value;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say {$trace_fh} "Setting $option option";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -924,17 +927,17 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_LEX_MATCHES]
                     = $value;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say {$trace_fh} "Setting $option option";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
             when ('trace_values') {
-		croak("trace_values must be set to a number >= 0")
-		    unless $value =~ /^\d+$/;
+		croak('trace_values must be set to a number >= 0')
+		    unless $value =~ /\A\d+\z/xms;
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES] =
                     $value + 0;
                 if ($value) {
-                    say $trace_fh "Setting $option option to $value";
+                    say {$trace_fh} "Setting $option option to $value";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -945,8 +948,8 @@ sub Parse::Marpa::Grammar::set {
                     my $rules =
                         $grammar->[Parse::Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
-                    say $trace_fh "Setting $option";
-                    say $trace_fh
+                    say {$trace_fh} "Setting $option";
+                    say {$trace_fh}
                         "Warning: Setting $option when $rule_count rules already exist"
                         if $rule_count;
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
@@ -959,8 +962,8 @@ sub Parse::Marpa::Grammar::set {
                     my $rules =
                         $grammar->[Parse::Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
-                    say $trace_fh "Setting $option";
-                    say $trace_fh
+                    say {$trace_fh} "Setting $option";
+                    say {$trace_fh}
                         "Warning: Setting $option after $rule_count rules have been defined"
                         if $rule_count;
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
@@ -973,21 +976,21 @@ sub Parse::Marpa::Grammar::set {
                     my $rules =
                         $grammar->[Parse::Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
-                    say $trace_fh "Setting $option";
-                    say $trace_fh
+                    say {$trace_fh} "Setting $option";
+                    say {$trace_fh}
                         "Warning: Setting $option after $rule_count rules have been defined"
                         if $rule_count;
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
             when ('trace_iterations') {
-		croak("trace_iterations must be set to a number >= 0")
-		    unless $value =~ /^\d+$/;
+		croak('trace_iterations must be set to a number >= 0')
+		    unless $value =~ /\A\d+\z/xms;
                 $grammar->[
                     Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]
                     = $value + 0;
                 if ($value) {
-                    say $trace_fh "Setting $option option to $value";
+                    say {$trace_fh} "Setting $option option to $value";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -995,8 +998,8 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_PRIORITIES]
                     = $value;
                 if ($value) {
-                    say $trace_fh "Setting $option";
-                    say $trace_fh
+                    say {$trace_fh} "Setting $option";
+                    say {$trace_fh}
                         "Warning: Setting $option after semantics were finalized"
                         if $phase
                             >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
@@ -1007,7 +1010,7 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_COMPLETIONS]
                     = $value;
                 if ($value) {
-                    say $trace_fh "Setting $option option";
+                    say {$trace_fh} "Setting $option option";
                     $grammar->[Parse::Marpa::Internal::Grammar::TRACING] = 1;
                 }
             }
@@ -1018,25 +1021,27 @@ sub Parse::Marpa::Grammar::set {
                 croak( 'the opaque option has been removed');
             }
             when ('cycle_action') {
-                say $trace_fh
-                    qq{"cycle_action" option is useless after grammar is precomputed}
+                say {$trace_fh}
+                    q{"cycle_action" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
 		croak("$option must be 'warn', 'quiet' or 'fatal'")
-		    unless $value =~ /^(warn|quiet|fatal)$/;
+		    unless $value eq 'warn'
+                        || $value eq 'quiet'
+                        || $value eq 'fatal';
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION] =
                     $value;
             }
             when ('cycle_depth') {
-		croak("cycle_depth must be set to a number > 0")
-		    unless defined $value and $value =~ /^\d+$/ and $value > 0;
+		croak('cycle_depth must be set to a number > 0')
+		    if not defined $value or $value !~ /\A\d+\z/xms or $value <= 0;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH] =
                     $value;
             }
             when ('warnings') {
-                say $trace_fh
-                    qq{"warnings" option is useless after grammar is precomputed}
+                say {$trace_fh}
+                    q{"warnings" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
@@ -1169,17 +1174,17 @@ sub Parse::Marpa::Grammar::precompute {
     create_NFA($grammar);
     create_QDFA($grammar);
     if ( $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] ) {
-        my $trace_fh =
+        $trace_fh //=
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         for my $symbol (
             @{ Parse::Marpa::Grammar::inaccessible_symbols($grammar) } )
         {
-            say $trace_fh "Inaccessible symbol: $symbol";
+            say {$trace_fh} "Inaccessible symbol: $symbol";
         }
         for my $symbol (
             @{ Parse::Marpa::Grammar::unproductive_symbols($grammar) } )
         {
-            say $trace_fh "Unproductive symbol: $symbol";
+            say {$trace_fh} "Unproductive symbol: $symbol";
         }
     }
 
@@ -1204,7 +1209,7 @@ sub Parse::Marpa::Grammar::precompute {
 
     }
 
-    $grammar;
+    return $grammar;
 
 }
 
@@ -1271,7 +1276,7 @@ sub Parse::Marpa::Grammar::unstringify {
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
 
-    croak("Attempt to unstringify undefined grammar")
+    croak('Attempt to unstringify undefined grammar')
         unless defined $stringified_grammar;
 
     my $grammar;
@@ -1283,7 +1288,9 @@ sub Parse::Marpa::Grammar::unstringify {
             push @warnings, $warning;
             @caller_return = caller 0;
         };
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval ${$stringified_grammar};
+        ## use critic
         my $fatal_error = $EVAL_ERROR;
         if (not $eval_ok and not $fatal_error) {
            $fatal_error = 'eval returned false';
@@ -3288,7 +3295,7 @@ sub assign_QDFA_state_set {
                 if ($trace_priorities) {
                     my $string_ref =
                         Parse::Marpa::show_priority($new_priority);
-                    say $trace_fh "Priority for QDFA state $id: ",
+                    say {$trace_fh} "Priority for QDFA state $id: ",
                         $string_ref ? 'undef' : ${$string_ref};
                 }
                 push @{$QDFA}, $QDFA_state;
