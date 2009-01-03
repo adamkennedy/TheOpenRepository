@@ -34,6 +34,7 @@ sub handle_base {
   return 1;
 }
 
+# assumes that the statement contains @ISA somehow!
 sub handle_isa {
   my $indexer = shift;
   my $statement = shift;
@@ -48,19 +49,32 @@ sub handle_isa {
   return
     unless $statement->isa("PPI::Statement");
 
-  if (not defined $curpkg) {
-    $curpkg = $indexer->lazy_create_pkg($indexer->default_package, $pkgs);
-  }
-
   my $child = $statement->schild(0);
   return if not $child;
 
+  # push/unshift @ISA...
   if ($child->isa("PPI::Token::Word") and $child->content =~ /^(?:unshift|push)$/) {
     _handle_extend($indexer, $statement, $curpkg, $pkgs, $in_scheduled_block);
-    return;    
+  }
+  # our @ISA ...
+  elsif ( $statement->isa("PPI::Statement::Variable") ) {
+    if ( $statement->type eq 'our'
+         and $statement->variables
+         and ($statement->variables)[0] eq '@ISA' )
+    {
+      # declare and assign can probably be handled by the same code
+      _handle_assign($indexer, $statement, $curpkg, $pkgs, $in_scheduled_block);
+    }
+    # else: do nothing. my/local shouldn't be used for @ISA!
+  }
+  # @ISA = ...
+  # could this be done more elegantly?
+  elsif (
+    $statement->content =~ /\@ISA\s*\)?\s*=/
+  ) {
+    _handle_assign($indexer, $statement, $curpkg, $pkgs, $in_scheduled_block);
   }
  
-  # TODO, handle assignment 
 }
 
 
@@ -70,6 +84,10 @@ sub _handle_extend {
   my $curpkg = shift;
   my $pkgs = shift;
   my $in_scheduled_block = shift;
+
+  if (not defined $curpkg) {
+    $curpkg = $indexer->lazy_create_pkg($indexer->default_package, $pkgs);
+  }
 
   my $child = $statement->schild(0);
   my $type = $child->content;
@@ -91,6 +109,49 @@ sub _handle_extend {
   }
   else {
     die "Unknown operation on \@ISA: '$type'";
+  }
+
+  return();
+}
+
+
+# either "our @ISA" or "@ISA ="
+sub _handle_assign {
+  my $indexer = shift;
+  my $statement = shift;
+  my $curpkg = shift;
+  my $pkgs = shift;
+  my $in_scheduled_block = shift;
+
+  if (not defined $curpkg) {
+    $curpkg = $indexer->lazy_create_pkg($indexer->default_package, $pkgs);
+  }
+
+  my $child = $statement->schild(0);
+  return unless $child;
+  
+  # skip until =
+  $child = $child->snext_sibling()
+    while $child
+          and not $child->isa("PPI::Token::Operator")
+          and not $child->content eq '=';
+  return unless $child;
+
+  my $arguments = File::PackageIndexer::PPI::Util::list_structure_to_array($child);
+
+  return
+    unless defined $arguments;
+
+  if ($in_scheduled_block and $in_scheduled_block ne 'END') {
+    @{ $curpkg->{begin_isa} } = @$arguments;
+  }
+  elsif(!$in_scheduled_block) {
+    @{ $curpkg->{isa_push} }    = @$arguments;
+    @{ $curpkg->{isa_unshift} } = ();
+    $curpkg->{isa_cleared_at_runtime} = 1;
+  }
+  else {
+    # END, skip
   }
 
   return();
