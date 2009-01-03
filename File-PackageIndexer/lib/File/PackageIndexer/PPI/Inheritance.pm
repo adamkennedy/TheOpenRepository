@@ -34,7 +34,67 @@ sub handle_base {
   return 1;
 }
 
+sub handle_isa {
+  my $indexer = shift;
+  my $statement = shift;
+  my $curpkg = shift;
+  my $pkgs = shift;
+  my $in_scheduled_block = shift;
 
+  # skip if @ISA is modified in END block.
+  return
+    if defined $in_scheduled_block and $in_scheduled_block eq 'END';
+
+  return
+    unless $statement->isa("PPI::Statement");
+
+  if (not defined $curpkg) {
+    $curpkg = $indexer->lazy_create_pkg($indexer->default_package, $pkgs);
+  }
+
+  my $child = $statement->schild(0);
+  return if not $child;
+
+  if ($child->isa("PPI::Token::Word") and $child->content =~ /^(?:unshift|push)$/) {
+    _handle_extend($indexer, $statement, $curpkg, $pkgs, $in_scheduled_block);
+    return;    
+  }
+ 
+  # TODO, handle assignment 
+}
+
+
+sub _handle_extend {
+  my $indexer = shift;
+  my $statement = shift;
+  my $curpkg = shift;
+  my $pkgs = shift;
+  my $in_scheduled_block = shift;
+
+  my $child = $statement->schild(0);
+  my $type = $child->content;
+
+#  $child = $child->snext_sibling;
+#  return unless defined $child;
+  my $arguments = File::PackageIndexer::PPI::Util::list_structure_to_array($child);
+  return
+    unless defined $arguments
+           and @$arguments
+           and $arguments->[0] eq '@ISA';
+  shift @$arguments;
+
+  if ($type eq 'push')  {
+    push @{ $in_scheduled_block eq 'BEGIN' ? $curpkg->{begin_isa} : $curpkg->{isa_push} }, @$arguments;
+  }
+  elsif ($type eq 'unshift') {
+    unshift @{ $in_scheduled_block eq 'BEGIN' ? $curpkg->{begin_isa} : $curpkg->{isa_unshift} }, @$arguments;
+  }
+  else {
+    die "Unknown operation on \@ISA: '$type'";
+  }
+
+  return();
+}
 
 1;
 

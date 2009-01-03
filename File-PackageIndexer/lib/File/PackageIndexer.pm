@@ -36,33 +36,51 @@ sub parse {
   my $pkgs = {};
 
   # TODO: More accessor generators et al
-  # TODO: Inheritance
+  # TODO: More inheritance
   # TODO: package statement scopes
 
-  $doc->find(
-    sub {
-      return unless $_[1]->isa("PPI::Statement");
-      my $statement = $_[1];
+  my $in_scheduled_block = 0;
+  my $finder;
+  use Data::Dumper;
+  $finder = sub {
+    return(0) unless $_[1]->isa("PPI::Statement");
+    my $statement = $_[1];
 
-      # new sub declaration
-      if ( $statement->class eq 'PPI::Statement::Sub' ) {
-        my $subname = $statement->name;
-        if (not defined $curpkg) {
-          $curpkg = $self->lazy_create_pkg($def_pkg, $pkgs);
-        }
-        $curpkg->{subs}->{$subname} = 1;
-      }
-      # new package statement
-      elsif ( $statement->class eq 'PPI::Statement::Package' ) {
-        my $namespace = $statement->namespace;
-        $curpkg = $self->lazy_create_pkg($namespace, $pkgs);
-      }
-      # use()
-      elsif ( $statement->class eq 'PPI::Statement::Include' ) {
-        $self->_handle_includes($statement, $curpkg, $pkgs);
-      }
+    my $class = $statement->class;
+    # BEGIN/CHECK/INIT/UNITCHECK/END:
+    # Recurse and set the block state, then break outer
+    # recursion so we don't process twice
+    if ( $class eq 'PPI::Statement::Scheduled' ) {
+      my $temp_copy = $in_scheduled_block;
+      $in_scheduled_block = $statement->type;
+      $statement->find($finder);
+      $in_scheduled_block = $temp_copy;
+      return undef;
     }
-  );
+    # new sub declaration
+    elsif ( $class eq 'PPI::Statement::Sub' ) {
+      my $subname = $statement->name;
+      if (not defined $curpkg) {
+        $curpkg = $self->lazy_create_pkg($def_pkg, $pkgs);
+      }
+      $curpkg->{subs}->{$subname} = 1;
+    }
+    # new package statement
+    elsif ( $class eq 'PPI::Statement::Package' ) {
+      my $namespace = $statement->namespace;
+      $curpkg = $self->lazy_create_pkg($namespace, $pkgs);
+    }
+    # use()
+    elsif ( $class eq 'PPI::Statement::Include' ) {
+      $self->_handle_includes($statement, $curpkg, $pkgs);
+    }
+    elsif ( $statement->find_any(sub {$_[1]->class eq "PPI::Token::Symbol" and $_[1]->content eq '@ISA'}) ) {
+      File::PackageIndexer::PPI::Inheritance::handle_isa($self, $statement, $curpkg, $pkgs, $in_scheduled_block);
+    }
+  };
+
+  # run it
+  $doc->find($finder);
 
   foreach my $token ( $doc->tokens ) {
     # find Class->method and __PACKAGE__->method
@@ -87,12 +105,21 @@ sub parse {
   }
 
 
-  # prepend compile-time declared inheritance to the
-  # run-time ISA.
+  # prepend unshift()d inheritance to the
+  # compile-time ISA, then append the push()d
+  # inheritance
   foreach my $pkgname (keys %$pkgs) {
     my $pkg = $pkgs->{$pkgname};
-    unshift @{$pkg->{isa}}, @{$pkg->{begin_isa}};
+
+    my $isa = $pkg->{begin_isa};
+    unshift @$isa, @{ $pkg->{isa_unshift} };
+    push    @$isa, @{ $pkg->{isa_push} };
+
     delete $pkg->{begin_isa};
+    delete $pkg->{isa_unshift};
+    delete $pkg->{isa_push};
+
+    $pkg->{isa} = $isa;
   }
 
   return $pkgs;
@@ -107,7 +134,8 @@ sub lazy_create_pkg {
   $pkgs->{$p_name} = {
     name => $p_name,
     subs => {},
-    isa  => [],
+    isa_unshift => [], # usa entries unshifted at run-time
+    isa_push => [], # isa entries pushed at run-time
     begin_isa  => [], # temporary storage for compile-time inheritance, will be deleted before returning from parse()
   };
   return $pkgs->{$p_name};
