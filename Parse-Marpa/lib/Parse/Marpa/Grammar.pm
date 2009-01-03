@@ -294,6 +294,7 @@ package Parse::Marpa::Internal::Grammar;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
+use English;
 
 use Carp;
 our @CARP_NOT = qw(
@@ -1282,8 +1283,11 @@ sub Parse::Marpa::Grammar::unstringify {
             push @warnings, $warning;
             @caller_return = caller 0;
         };
-        eval ${$stringified_grammar};
-        my $fatal_error = $@;
+        my $eval_ok = eval ${$stringified_grammar};
+        my $fatal_error = $EVAL_ERROR;
+        if (not $eval_ok and not $fatal_error) {
+           $fatal_error = 'eval returned false';
+        }
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
@@ -1323,8 +1327,7 @@ sub Parse::Marpa::Grammar::clone {
 
     my $stringified_grammar = Parse::Marpa::Grammar::stringify($grammar);
     $trace_fh //= $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    $grammar =
-        Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
+    return Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
 }
 
 sub Parse::Marpa::show_symbol {
@@ -1338,14 +1341,14 @@ sub Parse::Marpa::show_symbol {
 
     if (exists $symbol->[Parse::Marpa::Internal::Symbol::LHS]) {
         $text .= sprintf ' lhs=[%s]',
-            (join ' ',
+            (join q{ },
             map { $_->[Parse::Marpa::Internal::Rule::ID] }
                 @{ $symbol->[Parse::Marpa::Internal::Symbol::LHS] });
     }
 
     if (exists $symbol->[Parse::Marpa::Internal::Symbol::RHS]) {
         $text .= sprintf ' rhs=[%s]',
-            (join ' ',
+            (join q{ },
             map { $_->[Parse::Marpa::Internal::Rule::ID] }
                 @{ $symbol->[Parse::Marpa::Internal::Symbol::RHS] });
     }
@@ -1359,7 +1362,7 @@ sub Parse::Marpa::show_symbol {
         [ 0, 'nulling', Parse::Marpa::Internal::Symbol::NULLING, ],
         [ 0, 'terminal', Parse::Marpa::Internal::Symbol::TERMINAL, ],
     ) ) {
-        my ($reverse, $comment, $offset) = @$comment_element;
+        my ($reverse, $comment, $offset) = @{$comment_element};
         next ELEMENT unless exists $symbol->[ $offset ];
         my $value = $symbol->[ $offset ];
         $value = !$value if $reverse;
@@ -1486,7 +1489,7 @@ sub Parse::Marpa::show_rule {
         [ 0, 'nullable', Parse::Marpa::Internal::Rule::NULLABLE, ],
         [ 0, 'nulling', Parse::Marpa::Internal::Rule::NULLING, ],
     ) ) {
-        my ($reverse, $comment, $offset) = @$comment_element;
+        my ($reverse, $comment, $offset) = @{$comment_element};
         next ELEMENT unless exists $rule->[ $offset ];
         my $value = $rule->[ $offset ];
         $value = !$value if $reverse;
@@ -1508,7 +1511,7 @@ sub Parse::Marpa::show_rule {
     my $text    = Parse::Marpa::brief_rule($rule);
 
     if (@comment) {
-        $text .= ' ' . (join ' ', '/*', @comment, '*/' );
+        $text .= q{ } . (join q{ }, q{/*}, @comment, q{*/} );
     }
 
     return $text .= "\n";
@@ -1525,7 +1528,7 @@ sub Parse::Marpa::show_priority {
     my $defined_if_zero = shift;
     my ( $pri1, $pri2 ) = unpack 'NN', $priority;
     return unless $defined_if_zero or $pri1 or $pri2;
-    return \( $pri1 . '.' . $pri2 );
+    return \( $pri1 . q{.} . $pri2 );
 }
 
 sub Parse::Marpa::Grammar::show_rules {
@@ -1543,7 +1546,7 @@ sub Parse::Marpa::show_dotted_rule {
     my $rule = shift;
     my $position = shift;
 
-    my @names = 
+    my @names =
 	map { $_->[Parse::Marpa::Internal::Symbol::NAME] }
 	    $rule->[Parse::Marpa::Internal::Rule::LHS],
 	    @{ $rule->[Parse::Marpa::Internal::Rule::RHS] };
@@ -1585,15 +1588,15 @@ sub Parse::Marpa::show_NFA_state {
     my $priority_string_ref = Parse::Marpa::show_priority($priority);
     push @properties, 'priority=' . ${$priority_string_ref}
         if defined $priority_string_ref;
-    $text .= join( ' ', @properties ) . "\n" if @properties;
+    $text .= join( q{ }, @properties ) . "\n" if @properties;
 
     for my $symbol_name ( sort keys %{$transition} ) {
         my $transition_states = $transition->{$symbol_name};
         $text
-            .= ' '
+            .= q{ }
             . ( $symbol_name eq q{} ? 'empty' : '<' . $symbol_name . '>' )
             . ' => '
-            . join( ' ',
+            . join( q{ },
             map { $_->[Parse::Marpa::Internal::NFA::NAME] }
                 @{$transition_states} )
             . "\n";
