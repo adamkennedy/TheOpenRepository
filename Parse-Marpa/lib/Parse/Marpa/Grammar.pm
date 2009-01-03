@@ -409,7 +409,7 @@ sub Parse::Marpa::Internal::code_problems {
             $line++;
         }
 
-        my $line_labeled_code = '';
+        my $line_labeled_code = q{};
         LINE: for my $i ( 0 .. $#lines ) {
             my $line_number = $first_line + $i;
 	    my $marker = q{};
@@ -1591,7 +1591,7 @@ sub Parse::Marpa::show_NFA_state {
         my $transition_states = $transition->{$symbol_name};
         $text
             .= ' '
-            . ( $symbol_name eq '' ? 'empty' : '<' . $symbol_name . '>' )
+            . ( $symbol_name eq q{} ? 'empty' : '<' . $symbol_name . '>' )
             . ' => '
             . join( ' ',
             map { $_->[Parse::Marpa::Internal::NFA::NAME] }
@@ -1603,7 +1603,7 @@ sub Parse::Marpa::show_NFA_state {
 
 sub Parse::Marpa::Grammar::show_NFA {
     my $grammar = shift;
-    my $text    = '';
+    my $text    = q{};
 
     return "stripped\n" unless exists $grammar->[Parse::Marpa::Internal::Grammar::NFA];
 
@@ -1627,8 +1627,8 @@ sub Parse::Marpa::show_QDFA_state {
     my $state = shift;
     my $tags  = shift;
 
-    my $text = '';
-    my $stripped = $#$state < Parse::Marpa::Internal::QDFA::LAST_FIELD;
+    my $text = q{};
+    my $stripped = $#{$state} < Parse::Marpa::Internal::QDFA::LAST_FIELD;
 
     $text .= Parse::Marpa::brief_QDFA_state( $state, $tags ) . ': ';
 
@@ -1712,7 +1712,7 @@ sub Parse::Marpa::Grammar::show_QDFA {
 
 sub Parse::Marpa::Grammar::show_ii_QDFA {
     my $grammar = shift;
-    my $text    = '';
+    my $text    = q{};
     my $QDFA    = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
     my $tags;
     tag_QDFA($grammar);
@@ -1801,8 +1801,8 @@ sub add_terminal {
             Parse::Marpa::Internal::Symbol::PRIORITY,
             ]
             = (
-            1, 0, $regex, $prefix, $suffix, $action, 1,
-            (pack 'NN', $user_priority, 0 )
+                1, 0, $regex, $prefix, $suffix, $action, 1,
+                (pack 'NN', $user_priority, 0 ),
             );
 
         return;
@@ -1825,8 +1825,8 @@ sub add_terminal {
         Parse::Marpa::Internal::Symbol::PRIORITY,
         ]
         = (
-        $symbol_count, $name, [], [], 0, 1, 0, $regex, $action, 1,
-        (pack 'NN', $user_priority, 0 )
+            $symbol_count, $name, [], [], 0, 1, 0, $regex, $action, 1,
+            (pack 'NN', $user_priority, 0),
         );
 
     push @{$symbols}, $new_symbol;
@@ -1856,15 +1856,15 @@ sub assign_symbol {
         push @{$symbols}, $symbol;
         weaken( $symbol_hash->{$name} = $symbol );
     }
-    $symbol;
+    return $symbol;
 }
 
 sub assign_user_symbol {
     my $self = shift;
     my $name = shift;
-    croak("Symbol name $name ends in ']': that's not allowed")
-        if $name =~ /_$/;
-    assign_symbol( $self, $name );
+    croak("Symbol name $name ends in '_': that's not allowed")
+        if $name =~ /_\z/xms;
+    return assign_symbol( $self, $name );
 }
 
 sub add_user_rule {
@@ -1882,10 +1882,10 @@ sub add_user_rule {
         [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
 
     # Don't allow the user to duplicate a rule
-    my $rule_key = join ',',
+    my $rule_key = join q{,},
         map { $_->[Parse::Marpa::Internal::Symbol::ID] }
             ( $lhs_symbol, @{$rhs_symbols} );
-    croak( 'Duplicate rule: ', $lhs_name, ' -> ', (join ' ', @{$rhs_names}) )
+    croak( 'Duplicate rule: ', $lhs_name, ' -> ', (join q{ }, @{$rhs_names}) )
         if exists $rule_hash->{$rule_key};
 
     $rule_hash->{$rule_key} = 1;
@@ -1966,11 +1966,12 @@ sub add_rule {
         }
     }
     if ($trace_rules) {
-        print $trace_fh 'Added rule #', $#{$rules}, ': ',
+        print {$trace_fh} 'Added rule #', $#{$rules}, ': ',
             $lhs->[Parse::Marpa::Internal::Symbol::NAME], ' -> ',
-            join( ' ',
+            join( q{ },
             map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$rhs} ),
-            "\n";
+            "\n"
+        or croak('Could not print to trace file');
     }
     return $new_rule;
 }
@@ -2019,7 +2020,7 @@ sub add_rules_from_hash {
     my $options = shift;
 
     my ( $lhs_name, $rhs_names, $action );
-    my ( $min,      $max,       $separator_name );
+    my ( $min,      $separator_name );
     my $proper_separation = 0;
     my $keep_separation   = 0;
     my $left_associative  = 1;
@@ -2102,7 +2103,7 @@ sub add_rules_from_hash {
     my $sequence_name = $rhs_name . "[Seq:$min-*]";
     if ( defined $separator_name ) {
         my $punctuation_free_separator_name = $separator_name;
-        $punctuation_free_separator_name =~ s/[^[:alnum:]]/_/g;
+        $punctuation_free_separator_name =~ s/[^[:alnum:]]/_/gxms;
         $sequence_name .= '[Sep:' . $punctuation_free_separator_name . ']';
     }
     my $unique_name_piece = sprintf '[x%x]',
@@ -2121,11 +2122,11 @@ sub add_rules_from_hash {
             $grammar->[Parse::Marpa::Internal::Grammar::RULE_HASH];
         my @key_rhs =
             defined $separator ? ( $rhs, $separator, $rhs ) : ($rhs);
-        my $rule_key = join ',',
+        my $rule_key = join q{,},
             map { $_->[Parse::Marpa::Internal::Symbol::ID] }
                 ( $lhs, @key_rhs );
         croak( 'Duplicate rule: ',
-            $lhs_name, ' -> ', (join ',', @{$rhs_names}) )
+            $lhs_name, q{ -> }, (join q{,}, @{$rhs_names}) )
             if exists $rule_hash->{$rule_key};
         $rule_hash->{$rule_key} = 1;
     }
