@@ -12,7 +12,7 @@ use DBI          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.16';
+	$VERSION = '1.17';
 
 	# DBD::SQLite has a bug that generates a spurious warning
 	# at compile time, so we need to temporarily disable them.
@@ -306,6 +306,10 @@ sub delete {
 		'delete from $table->{name} ' . shift,
 		{}, \@_,
 	);
+}
+
+sub truncate {
+	$pkg->do( 'delete from $table->{name}', {} );
 }
 
 END_PERL

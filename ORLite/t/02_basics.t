@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 47;
+use Test::More tests => 49;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -126,4 +126,10 @@ SCOPE: {
 	is( Foo::Bar::TableOne->count, 1, 'One row created' );
 	ok( Foo::Bar->commit, '->commit' );
 	is( Foo::Bar::TableOne->count, 1, 'Commit ok' );
+}
+
+# Truncate
+SCOPE: {
+	ok( Foo::Bar::TableOne->truncate, '->truncate ok' );
+	is( Foo::Bar::TableOne->count, 0, 'Commit ok' );	
 }

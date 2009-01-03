@@ -1,6 +1,9 @@
 Changes for Perl extension ORLite
 
-1.16 Sen 14 Dec 2008
+1.17 Sat  3 Jan 2009
+	- Adding a ->truncate method to each table
+
+1.16 Sat 14 Dec 2008
 	- The fact that I didn't need to change ORLite for ORLite::Migrate
 	  suggests that it's stable enough for general use (pending 2.0)
 
