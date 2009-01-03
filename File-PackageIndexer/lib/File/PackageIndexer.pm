@@ -112,12 +112,17 @@ sub parse {
     my $pkg = $pkgs->{$pkgname};
 
     my $isa = $pkg->{begin_isa};
+    if ($pkg->{isa_cleared_at_runtime}) {
+      $isa = [];
+    }
+
     unshift @$isa, @{ $pkg->{isa_unshift} };
     push    @$isa, @{ $pkg->{isa_push} };
 
     delete $pkg->{begin_isa};
     delete $pkg->{isa_unshift};
     delete $pkg->{isa_push};
+    delete $pkg->{isa_cleared_at_runtime};
 
     $pkg->{isa} = $isa;
   }
