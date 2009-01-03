@@ -294,7 +294,7 @@ package Parse::Marpa::Internal::Grammar;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
-use English;
+use English qw( -no_match_vars );
 
 use Carp;
 our @CARP_NOT = qw(
@@ -414,7 +414,7 @@ sub Parse::Marpa::Internal::code_problems {
         LINE: for my $i ( 0 .. $#lines ) {
             my $line_number = $first_line + $i;
 	    my $marker = q{};
-	    $marker = "*"
+	    $marker = q{*}
 		if defined $problem_line and $problem_line == $line_number;
             $line_labeled_code .= "$marker$line_number: " . $lines[$i];
         }
@@ -444,6 +444,8 @@ sub Parse::Marpa::Internal::code_problems {
 }
 
 package Parse::Marpa::Internal::Source_Eval;
+
+use English qw( -no_match_vars );
 
 sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     my $grammar     = shift;
@@ -479,8 +481,13 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
             push @warnings, $warning;
             @caller_return = caller 0;
         };
-        eval ${$raw_grammar};
-        my $fatal_error = $@;
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        my $eval_ok = eval ${$raw_grammar};
+        ## use critic
+        my $fatal_error = $EVAL_ERROR;
+        if (not $eval_ok and not $fatal_error) {
+           $fatal_error = 'eval returned false';
+        }
         if ( $fatal_error or @warnings ) {
             Parse::Marpa::Internal::code_problems(
                 $fatal_error, \@warnings,
@@ -576,8 +583,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
 package Parse::Marpa::Internal::Grammar;
 
 sub Parse::Marpa::Grammar::new {
-    my $class = shift;
-    my ($args) = @_;
+    my ($class, $args) = @_;
     $args //= {};
 
     my $grammar = [];
@@ -636,7 +642,6 @@ sub Parse::Marpa::show_source_grammar_status {
 sub binary_search {
     my ( $target, $data ) = @_;
     my ( $lower, $upper ) = ( 0, $#{$data} );
-    my $i;
     while ( $lower <= $upper ) {
         my $i = int +( ( $lower + $upper ) / 2 );
         given ( $data->[$i] ) {
@@ -655,7 +660,7 @@ sub locator {
     my $lines;
     $lines //= [0];
     my $pos = pos ${$string} = 0;
-    NL: while ( ${$string} =~ /\n/g ) {
+    NL: while ( ${$string} =~ /\n/gxms ) {
         $pos = pos ${$string};
         push @{$lines}, $pos;
         last NL if $pos > $earleme;
