@@ -144,6 +144,7 @@ sub _handle_assign {
 
   if ($in_scheduled_block and $in_scheduled_block ne 'END') {
     @{ $curpkg->{begin_isa} } = @$arguments;
+    $curpkg->{isa_cleared_at_compiletime} = 1;
   }
   elsif(!$in_scheduled_block) {
     @{ $curpkg->{isa_push} }    = @$arguments;
