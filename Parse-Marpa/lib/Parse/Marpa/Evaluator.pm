@@ -80,12 +80,13 @@ sub run_preamble {
         unless ($fatal_error) {
            $fatal_error = 'eval returned false';
         }
-        Parse::Marpa::Internal::code_problems(
-            $fatal_error, \@warnings,
-            'evaluating preamble',
-            'evaluating preamble',
-            \$preamble, \@caller_return
-        );
+        Parse::Marpa::Internal::code_problems({
+            fatal_error => $fatal_error,
+            warnings => \@warnings,
+            where => 'evaluating preamble',
+            code => \$preamble,
+            caller_return => \@caller_return
+        });
     }
 
     return;
@@ -186,16 +187,16 @@ sub set_null_values {
 
             my $fatal_error = $EVAL_ERROR;
             if ( $fatal_error or @warnings ) {
-                Parse::Marpa::Internal::code_problems(
-                    $fatal_error,
-                    \@warnings,
-                    'evaluating null value',
-                    'evaluating null value for '
+                Parse::Marpa::Internal::code_problems({
+                    fatal_error => $fatal_error,
+                    warnings => \@warnings,
+                    where => 'evaluating null value',
+                    long_where => 'evaluating null value for '
                         . $nulling_symbol
                         ->[Parse::Marpa::Internal::Symbol::NAME],
-                    \$code,
-                    \@caller_return
-                );
+                    code => \$code,
+                    caller_return => \@caller_return
+                });
             }
             my $nulling_symbol_id =
                 $nulling_symbol->[Parse::Marpa::Internal::Symbol::ID];
@@ -355,14 +356,14 @@ sub set_actions {
                 say {$trace_fh}
                     'Problems compiling action for original rule: ',
                     Parse::Marpa::brief_original_rule($rule);
-                Parse::Marpa::Internal::code_problems(
-                    $fatal_error,
-                    \@warnings,
-                    'compiling action',
-                    'compiling action for ' . Parse::Marpa::brief_rule($rule),
-                    \$code,
-                    \@caller_return
-                );
+                Parse::Marpa::Internal::code_problems({
+                    fatal_error => $fatal_error,
+                    warnings => \@warnings,
+                    where => 'compiling action',
+                    long_where => 'compiling action for ' . Parse::Marpa::brief_rule($rule),
+                    code => \$code,
+                    caller_return => \@caller_return
+                });
             }
         }
 
@@ -1328,13 +1329,13 @@ sub Parse::Marpa::Evaluator::value {
                         'Problems computing value for original rule: ',
                         Parse::Marpa::brief_original_rule($rule);
                     Parse::Marpa::Internal::code_problems(
-                        $fatal_error,
-                        \@warnings,
-                        'computing value',
-                        'computing value for rule: '
+                        fatal_error => $fatal_error,
+                        warnings => \@warnings,
+                        where => 'computing value',
+                        long_where => 'computing value for rule: '
                             . Parse::Marpa::brief_rule($rule),
-                        \$code,
-                        \@caller_return
+                        code => \$code,
+                        caller_return => \@caller_return,
                     );
                 }
             }

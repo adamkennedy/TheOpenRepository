@@ -211,14 +211,14 @@ sub set_lexers {
 
                     my $fatal_error = $EVAL_ERROR;
                     if ( $fatal_error or @warnings ) {
-                        Parse::Marpa::Internal::code_problems(
-                            $fatal_error,
-                            \@warnings,
-                            'compiling action',
-                            "compiling action for $name",
-                            \$code,
-                            \@caller_return
-                        );
+                        Parse::Marpa::Internal::code_problems({
+                            fatal_error => $fatal_error,
+                            warnings => \@warnings,
+                            where => 'compiling action',
+                            long_where => "compiling action for $name",
+                            code => \$code,
+                            caller_return => \@caller_return,
+                        });
                     }
                 }
 
@@ -316,12 +316,13 @@ sub prepare_grammar_for_recognizer {
            $fatal_error = 'eval returned false';
         }
         if ( $fatal_error or @warnings ) {
-            Parse::Marpa::Internal::code_problems(
-                $fatal_error, \@warnings,
-                'evaluating lex preamble',
-                'evaluating lex preamble',
-                \$lex_preamble, \@caller_return
-            );
+            Parse::Marpa::Internal::code_problems({
+                fatal_error => $fatal_error,
+                warnings => \@warnings,
+                where => 'evaluating lex preamble',
+                code => \$lex_preamble,
+                caller_return => \@caller_return,
+            });
         }
     }
 
@@ -501,12 +502,13 @@ sub Parse::Marpa::Recognizer::unstringify {
            $fatal_error = 'eval returned false';
         }
         if ( $fatal_error or @warnings ) {
-            Parse::Marpa::Internal::code_problems(
-                $fatal_error, \@warnings,
-                'unstringifying recognizer',
-                'unstringifying recognizer',
-                $stringified_recce, \@caller_return
-            );
+            Parse::Marpa::Internal::code_problems({
+                fatal_error => $fatal_error,
+                warnings => \@warnings,
+                where => 'unstringifying recognizer',
+                code => $stringified_recce,
+                caller_return => \@caller_return,
+            });
         }
     }
 
@@ -803,17 +805,16 @@ sub Parse::Marpa::Recognizer::text {
                    $fatal_error = 'eval returned false';
                 }
                 if ( $fatal_error or @warnings ) {
-                    Parse::Marpa::Internal::code_problems(
-                        $fatal_error,
-                        \@warnings,
-                        'user supplied lexer',
-                        'user supplied lexer for '
+                    Parse::Marpa::Internal::code_problems({
+                        fatal_error => $fatal_error,
+                        warnings => \@warnings,
+                        where => 'user supplied lexer',
+                        long_where => 'user supplied lexer for '
                             . $lexable->[Parse::Marpa::Internal::Symbol::NAME]
                             . " at $pos",
-                        \(  $lexable->[Parse::Marpa::Internal::Symbol::ACTION]
-                        ),
-                        \@caller_return
-                    );
+                        code => \(  $lexable->[Parse::Marpa::Internal::Symbol::ACTION] ),
+                        caller_return => \@caller_return
+                    });
                 }
             }
 

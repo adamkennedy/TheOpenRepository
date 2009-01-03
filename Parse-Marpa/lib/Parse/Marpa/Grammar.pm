@@ -3,7 +3,7 @@ package Parse::Marpa::Internal;
 use 5.010_000;
 
 use warnings;
-no warnings "recursion";
+no warnings 'recursion';
 use strict;
 
 =begin Implementation:
@@ -264,7 +264,10 @@ CYCLE_DEPTH - depth to which to follow cycles
 # values for grammar interfaces
 use Parse::Marpa::Offset Interface => qw(RAW MDL);
 
+# Apparently Perl::Critic has a bug and cannot find the final return here
+## no critic (Subroutines::RequireFinalReturn)
 sub Parse::Marpa::Internal::Interface::description {
+## use critic
     my $interface = shift;
     given ($interface) {
         when (Parse::Marpa::Internal::Interface::RAW) { return 'raw interface' }
@@ -279,15 +282,16 @@ use Parse::Marpa::Offset Phase =>
 
 sub Parse::Marpa::Internal::Phase::description {
     my $phase = shift;
+    my $description = 'unknown phase';
     given ($phase) {
-        when (Parse::Marpa::Internal::Phase::NEW)         { return 'grammar without rules' }
-        when (Parse::Marpa::Internal::Phase::RULES)       { return 'grammar with rules entered' }
-        when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { return 'precomputed grammar' }
-        when (Parse::Marpa::Internal::Phase::RECOGNIZING) { return 'grammar being recognized' }
-        when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { return 'recognized grammar' }
-        when (Parse::Marpa::Internal::Phase::EVALUATING) { return 'grammar being evaluated' }
+        when (Parse::Marpa::Internal::Phase::NEW)         { $description = 'grammar without rules' }
+        when (Parse::Marpa::Internal::Phase::RULES)       { $description = 'grammar with rules entered' }
+        when (Parse::Marpa::Internal::Phase::PRECOMPUTED) { $description = 'precomputed grammar' }
+        when (Parse::Marpa::Internal::Phase::RECOGNIZING) { $description = 'grammar being recognized' }
+        when (Parse::Marpa::Internal::Phase::RECOGNIZED)  { $description = 'recognized grammar' }
+        when (Parse::Marpa::Internal::Phase::EVALUATING) { $description = 'grammar being evaluated' }
     }
-    return 'unknown phase';
+    return $description;
 }
 
 package Parse::Marpa::Internal::Grammar;
@@ -329,13 +333,34 @@ Parse::Marpa::Recognizer
 );
 
 sub Parse::Marpa::Internal::code_problems {
-    my $fatal_error   = shift;
-    my $warnings      = shift;
-    my $where         = shift;
-    my $long_where    = shift;
-    my $code          = shift;
-    my $caller_return = shift;
-    my ( $package, $filename, $problem_line ) = @{$caller_return};
+    my $args = shift;
+
+    my $fatal_error;
+    my $warnings = [];
+    my $where = '?where?';
+    my $long_where;
+    my $code;
+    my $caller_return;
+
+    while (my ($arg, $value) = each %{$args})
+    {
+       given ($arg) {
+         when ('fatal_error') { $fatal_error = $value }
+         when ('warnings') { $warnings = $value }
+         when ('where') { $where = $value }
+         when ('long_where') { $long_where = $value }
+         when ('code') { $code = $value }
+         when ('caller_return') { $caller_return = $value }
+       }
+    }
+
+    my $package = '?package?';
+    my $filename = '?filename?';
+    my $problem_line;
+    if (defined $caller_return)
+    {
+        ( $package, $filename, $problem_line ) = @{$caller_return};
+    }
 
     $long_where //= $where;
     my $grammar = $Parse::Marpa::Internal::This::grammar;
@@ -432,7 +457,7 @@ sub Parse::Marpa::Internal::code_problems {
                 . "\n";
     }
 
-    my $warnings_count = @{$warnings};
+    my $warnings_count = scalar @{$warnings};
     if ($warnings_count) {
         push @msg, "Warnings ($warnings_count) in $where:\n", @{$warnings};
         unless ($fatal_error) {
@@ -489,12 +514,13 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
            $fatal_error = 'eval returned false';
         }
         if ( $fatal_error or @warnings ) {
-            Parse::Marpa::Internal::code_problems(
-                $fatal_error, \@warnings,
-                'evaluating gramar',
-                'evaluating gramar',
-                $raw_grammar, \@caller_return
-            );
+            Parse::Marpa::Internal::code_problems({
+                fatal_error => $fatal_error,
+                warnings => \@warnings,
+                where => 'evaluating gramar',
+                code => $raw_grammar,
+                caller_return => \@caller_return
+            });
         }
     }
 
@@ -1301,12 +1327,13 @@ sub Parse::Marpa::Grammar::unstringify {
            $fatal_error = 'eval returned false';
         }
         if ( $fatal_error or @warnings ) {
-            Parse::Marpa::Internal::code_problems(
-                $fatal_error, \@warnings,
-                'unstringifying grammar',
-                'unstringifying grammar',
-                $stringified_grammar, \@caller_return
-            );
+            Parse::Marpa::Internal::code_problems({
+                fatal_error => $fatal_error,
+                warnings => \@warnings,
+                where => 'unstringifying grammar',
+                code => $stringified_grammar,
+                caller_return => \@caller_return
+            });
         }
     }
 
