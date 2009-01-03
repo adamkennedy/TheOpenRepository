@@ -7,16 +7,25 @@ use warnings;
 our $VERSION = '0.01';
 
 use PPI;
+use Carp;
 require File::PackageIndexer::PPI::Util;
 require File::PackageIndexer::PPI::ClassXSAccessor;
 require File::PackageIndexer::PPI::Inheritance;
 
 use Class::XSAccessor
-  constructor => 'new',
   accessors => {
     default_package => 'default_package',
+    clean => 'clean',
   };
 
+sub new {
+  my $class = shift;
+  my $self = bless {
+    clean => 1,
+    @_
+  } => $class;
+  return $self;
+}
 
 sub parse {
   my $self = shift;
@@ -111,7 +120,7 @@ sub parse {
   foreach my $pkgname (keys %$pkgs) {
     my $pkg = $pkgs->{$pkgname};
 
-    my $isa = $pkg->{begin_isa};
+    my $isa = [ @{$pkg->{begin_isa}} ];
     if ($pkg->{isa_cleared_at_runtime}) {
       $isa = [];
     }
@@ -119,10 +128,13 @@ sub parse {
     unshift @$isa, @{ $pkg->{isa_unshift} };
     push    @$isa, @{ $pkg->{isa_push} };
 
-    delete $pkg->{begin_isa};
-    delete $pkg->{isa_unshift};
-    delete $pkg->{isa_push};
-    delete $pkg->{isa_cleared_at_runtime};
+    if ($self->clean) {
+      delete $pkg->{begin_isa};
+      delete $pkg->{isa_unshift};
+      delete $pkg->{isa_push};
+      delete $pkg->{isa_cleared_at_runtime};
+      delete $pkg->{isa_cleared_at_compiletime};
+    }
 
     $pkg->{isa} = $isa;
   }
@@ -173,6 +185,77 @@ sub _handle_includes {
 }
 
 
+sub merge_results {
+  my @results = @_;
+  shift @results while @results and !ref($results[0]) || ref($results[0]) eq 'File::PackageIndexer';
+
+  return({}) if not @results;
+  return @results if @results == 1;
+
+  # check that the user used things right
+  foreach my $r (@results) {
+    if (not exists $r->{begin_isa}) {
+      croak("Can't merge results that have been cleaned. Set the 'clean' option of the parser to a false value to disable cleaning of the result structures. Also RTFM.");
+    }
+  }
+
+  my $res = {};
+  foreach my $in (@results) {
+
+    foreach my $pkgname (keys %$in) {
+      my $inpkg = $in->{$pkgname};
+      if (not exists $res->{$pkgname}) {
+        $res->{$pkgname} = $inpkg;
+      }
+      # merge!
+      else {
+        my $pkg = $res->{$pkgname};
+
+        # handle compile time isa
+        if ($inpkg->{isa_cleared_at_compiletime}) {
+          $pkg->{begin_isa} = [@{$inpkg->{begin_isa}}];
+          $pkg->{isa_cleared_at_compiletime} = 1;
+        }
+        else {
+          push @{$pkg->{begin_isa}}, @{$inpkg->{begin_isa}};
+        }
+
+        # handle run-time isa
+        if ($inpkg->{isa_cleared_at_runtime}) {
+          $pkg->{isa_unshift} = [@{$inpkg->{isa_unshift}}];
+          $pkg->{isa_push}    = [@{$inpkg->{isa_push}}];
+          $pkg->{isa_cleared_at_runtime} ||= $inpkg->{isa_cleared_at_runtime};
+        }
+        else {
+          unshift @{$pkg->{isa_unshift}}, @{$inpkg->{isa_unshift}};
+          push    @{$pkg->{isa_push}},    @{$inpkg->{isa_push}};
+        }
+
+        # finalize isa
+        my $isa = [];
+        @$isa = @{$pkg->{begin_isa}};
+        if ($pkg->{isa_cleared_at_runtime}) {
+          $isa = [];
+        }
+
+        unshift @$isa, @{ $pkg->{isa_unshift} };
+        push    @$isa, @{ $pkg->{isa_push} };
+
+        $pkg->{isa} = $isa;
+
+        # merge subs
+        my $subs = $pkg->{subs};
+        foreach my $insub (keys %{$inpkg->{subs}}) {
+          $subs->{$insub} = 1;
+        }
+
+      } # end merge
+
+    } #  end foreach packages
+  } # end foreach @results
+  
+  return $res;
+}
 
 
 1;
@@ -187,6 +270,7 @@ File::PackageIndexer - Indexing of packages and subs
 
   use File::PackageIndexer;
   my $indexer = File::PackageIndexer->new();
+  $indexer->clean(1);
   my $pkgs = $indexer->parse( $ppi_document_or_code_string );
   
   use Data::Dumper;
@@ -246,6 +330,12 @@ Creates a new indexer object. Optional parameters:
 
 The default package to assume a subroutine is in if no
 package statement was found beforehand. Defaults to C<main>.
+
+=item clean 
+
+Whether or not the internal result hash keys should be cleaned up or not.
+By default, these are cleaned. Set this to false if you plan to merge
+multiple result sets!
 
 =back
 
