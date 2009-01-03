@@ -2137,13 +2137,16 @@ sub add_rules_from_hash {
             if ($left_associative) {
 
                 # more efficient way to do this?
-                $rule_action = q{
-                    HEAD: for (;;) {
-                        my $head = shift @_;
-                        last HEAD unless scalar @{$head};
-                        unshift(@_, @{$head});
-                    }
-                }
+                $rule_action =
+
+<<'EO_CODE'
+    HEAD: while (1) {
+        my $head = shift @_;
+        last HEAD unless scalar @{$head};
+        unshift(@_, @{$head});
+    }
+EO_CODE
+
             }
             else {
 		croak('Only left associative sequences available')
@@ -2169,20 +2172,22 @@ sub add_rules_from_hash {
 
     if ($left_associative) {
         if ( defined $separator and not $keep_separation ) {
-            $rule_action = q{
-                [
-                    [],
-                    @_[
-                        grep { !($_ % 2) } (0 .. $#_)
-                    ]
-                ]
-            }
+            $rule_action =
+
+<<'EO_CODE'
+    [
+        [],
+        @_[
+            grep { !($_ % 2) } (0 .. $#_)
+        ]
+    ]
+EO_CODE
+
         }
         else {
-            $rule_action = q{
-                unshift(@_, []);
-                \@_
-            }
+            $rule_action =
+                q{ unshift(@_, []); } . "\n"
+                . q{ \@_ } . "\n";
         }
     }
     else {
@@ -2193,17 +2198,25 @@ sub add_rules_from_hash {
         (pack 'NN', $user_priority, 0 ) );
 
     # iterating sequence rule
-    $rule_action = ( defined $separator and not $keep_separation )
-        ? q{
-            [
-                @_[
-                   grep { !($_ % 2) } (0 .. $#_)
-                ],
-            ]
-        }
-        : q{
-            \@_
-        };
+    if ( defined $separator and not $keep_separation )
+    {
+        $rule_action =
+
+<<'EO_CODE'
+    [
+        @_[
+           grep { !($_ % 2) } (0 .. $#_)
+        ],
+    ]
+EO_CODE
+
+    } else {
+
+        $rule_action =
+            "\n"
+            . '\@_' . "\n";
+
+    }
     my @iterating_rhs = ( @separated_rhs, $sequence );
     if ($left_associative) {
         @iterating_rhs = reverse @iterating_rhs;
@@ -2235,8 +2248,8 @@ sub add_user_terminal {
     my $name    = shift;
     my $options = shift;
 
-    croak("Symbol name $name ends in ']': that's not allowed")
-        if $name =~ /_$/;
+    croak("Symbol name $name ends in '_': that's not allowed")
+        if $name =~ /_\z/xms;
     add_terminal( $grammar, $name, $options );
     return;
 }
@@ -2280,7 +2293,7 @@ sub set_start {
 
     $grammar->[Parse::Marpa::Internal::Grammar::START] = $start;
 
-    $success;
+    return $success;
 }
 
 # return list of rules reachable from the start symbol;
@@ -2330,6 +2343,8 @@ sub accessible {
         }    # RULE
 
     }    # work_to_do loop
+
+    return 1;
 
 }
 
@@ -2496,6 +2511,8 @@ sub productive {
 
     }    # work_to_do loop
 
+    return 1;
+
 }
 
 sub nulling {
@@ -2639,6 +2656,8 @@ sub nulling {
         }    # SYMBOL_PASS
 
     }    # work_to_do loop
+
+    return 1;
 
 }
 
@@ -2941,6 +2960,8 @@ sub detect_cycle {
 
     croak( 'Cycle in grammar, fatal error' )
        if $cycle_count and $cycle_is_fatal;
+
+    return 1;
 
 }    # sub detect_cycle
 
