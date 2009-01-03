@@ -29,8 +29,8 @@
 \#$
 \.#
 \.rej$
-^\..*\.swp$
-^\..*\.swo$
+\b\..*\.swp$
+\b\..*\.swo$
 
 # Avoid OS-specific files/dirs
 #   Mac OSX metadata
