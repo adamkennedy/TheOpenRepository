@@ -188,8 +188,13 @@ sub _handle_includes {
 sub merge_results {
   my @results = @_;
   shift @results while @results and !ref($results[0]) || ref($results[0]) eq 'File::PackageIndexer';
+  return merge_results_inplace({}, @results);
+}
 
-  return({}) if not @results;
+sub merge_results_inplace {
+  my @results = @_;
+  shift @results while @results and !ref($results[0]) || ref($results[0]) eq 'File::PackageIndexer';
+
   return @results if @results == 1;
 
   # check that the user used things right
@@ -201,7 +206,7 @@ sub merge_results {
     }
   }
 
-  my $res = {};
+  my $res = shift(@results);
   foreach my $in (@results) {
 
     foreach my $pkgname (keys %$in) {
@@ -413,6 +418,8 @@ Maybe other constructs that affect inheritance?
 Exporting! (yuck)
 
 Other accessor generators.
+
+C<use constant ...> Seems simple but it is not.
 
 Moose. This is going to be tough, but mandatory.
 
