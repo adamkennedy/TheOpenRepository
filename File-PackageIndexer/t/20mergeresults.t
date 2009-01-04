@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 2 + 7*2;
 BEGIN { use_ok('File::PackageIndexer') };
 use Data::Dumper;
 
@@ -258,5 +258,16 @@ foreach my $test (@tests) {
   my $index = $indexer->parse($code);
   $result = File::PackageIndexer->merge_results($result, $index);
   is_deeply($result, $ref, "equivalence test: $name") or warn Dumper $result;
+}
+
+
+$result = {};
+foreach my $test (@tests) {
+  my $name = $test->{name};
+  my $code = $test->{code};
+  my $ref = $test->{"cmp"};
+  my $index = $indexer->parse($code);
+  File::PackageIndexer->merge_results_inplace($result, $index);
+  is_deeply($result, $ref, "equivalence test inplace: $name") or warn Dumper $result;
 }
 
