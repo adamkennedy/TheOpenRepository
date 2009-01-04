@@ -50,7 +50,6 @@ sub parse {
 
   my $in_scheduled_block = 0;
   my $finder;
-  use Data::Dumper;
   $finder = sub {
     return(0) unless $_[1]->isa("PPI::Statement");
     my $statement = $_[1];
