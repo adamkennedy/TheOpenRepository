@@ -4,7 +4,7 @@ use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	$ENV{DISPLAY} = undef if $ENV{DISPLAY};
+	# ENV{DISPLAY} = undef if $ENV{DISPLAY};
 }
 
 use t::lib::Display;
