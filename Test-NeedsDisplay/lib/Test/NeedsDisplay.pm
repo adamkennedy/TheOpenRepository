@@ -85,10 +85,11 @@ use 5.006;
 use strict;
 use Config     ();
 use File::Spec ();
+use Test::More ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 }
 
 sub import {
@@ -111,6 +112,12 @@ sub import {
 			($INC{'perl5db.pl'} ? '-d' : ()),
 			$0,
 		);
+	}
+
+	# If provided with the :skip_all, abort the run
+	if ( $_[0] and $_[0] eq ':skip_all' ) {
+		Test::More::plan( skip_all => 'Test needs a DISPLAY' );
+		exit(0);
 	}
 
 	print "# Failed to find xvfb-run.\n";
@@ -139,7 +146,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
