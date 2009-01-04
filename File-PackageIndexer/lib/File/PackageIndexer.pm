@@ -402,6 +402,13 @@ Use the C<clean_results> function/method to clean up the merged result set.
 
 Returns the merged result set.
 
+I<Note:> Currently, this may do shallow copies of some sub-structures.
+
+=head2 merge_results_inplace
+
+Same as C<merge_results>, but assigns the result to the first result
+set passed in.
+
 =head2 clean_results
 
 Can be called either as an instance or class method as well as a function.
