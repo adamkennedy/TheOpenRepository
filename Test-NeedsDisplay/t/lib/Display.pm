@@ -2,7 +2,7 @@ package t::lib::Display;
 use strict;
 use warnings FATAL => 'all';
 
-our $VERSION = '0.01';
+our $VERSION = '1.07';
 
 use Test::More;
 use Test::NeedsDisplay ':skip_all';

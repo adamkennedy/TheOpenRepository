@@ -89,7 +89,7 @@ use Test::More ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 }
 
 sub import {
@@ -115,7 +115,7 @@ sub import {
 	}
 
 	# If provided with the :skip_all, abort the run
-	if ( $_[0] and $_[0] eq ':skip_all' ) {
+	if ( $_[1] and $_[1] eq ':skip_all' ) {
 		Test::More::plan( skip_all => 'Test needs a DISPLAY' );
 		exit(0);
 	}

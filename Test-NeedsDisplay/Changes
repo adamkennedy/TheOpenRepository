@@ -1,5 +1,9 @@
 Changes for Perl extension Test-NeedsDisplay
 
+1.07 Sun  4 Jan 2009
+	- Fixing a typo bug
+	- More tests thanks to Gabor
+
 1.06 Sun  4 Jan 2009
 	- Don't require xvfb-run if running under wxPerl
 	- Add support for :skip_all
