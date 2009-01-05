@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoLoader
 
+5.68  Mon Jan  5 17:50 2009
+  - VMS fixes for the AutoSplit tests (John Malmberg, RT #42137)
+
 5.67  Tue Sep 12 16:50 2008
   - Added a test case for the bug that was fixed in 5.66_01,
     courtesy of Christoph Lamprecht.
