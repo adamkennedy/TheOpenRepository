@@ -1,5 +1,7 @@
 Change log for the File::PackageIndexer distribution:
 
+  - Support for run-time Class->import(...)
+
 0.02  Sun  4 Jan 2009
   - Add merge_results_inplace
   - Add clean_results
