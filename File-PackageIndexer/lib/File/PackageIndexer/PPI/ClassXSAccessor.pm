@@ -10,23 +10,27 @@ our $VERSION = '0.01';
 # The Class::XSAccessor special case
 sub handle_class_xsaccessor {
   my $indexer = shift;
-  my $statement = shift;
+  my $module = shift;
+  my $head = shift;
   my $curpkg = shift;
   my $pkgs = shift;
 
   my @subs;
   my $class = defined($curpkg) ? $curpkg->{name} : $indexer->default_package;
-  my $started = 0;
   my $state = "key";
   my $key;
-  my @tokens = $statement->schildren();
-  pop @tokens; # remove ;
+  my $token = $head;
+  
+  # may also be import!
+  #return() unless $token->content =~ /^Class::XSAccessor(?:::Array)?$/;
 
-  while (@tokens) {
-    my $token = shift @tokens;
-    next if $token->class eq 'PPI::Token::Whitespace';
-    $started = 1, next if not $started and $token->content =~ /^Class::XSAccessor(?:::Array)?$/;
-    next if not $started;
+  my @tokens;
+  while (1) {
+    last unless @tokens or $token->can('snext_sibling');
+    $token = @tokens ? shift @tokens : $token->snext_sibling();
+    last unless defined $token and ref($token);
+    last if $token->class eq 'PPI::Token::Operator' and $token->content eq ';';
+    next if $token->class eq 'PPI::Token::Operator' and $token->content eq '->';
 
     # handle embedded ()'s
     if ($token->isa("PPI::Structure::List")) {
@@ -44,9 +48,9 @@ sub handle_class_xsaccessor {
       $state = 'comma';
     }
     elsif ($state eq 'comma') {
-      return() unless $token->isa("PPI::Token::Operator");
+      last unless $token->isa("PPI::Token::Operator");
       last if $token->content eq ';';
-      return() unless $token->content =~ /^(?:,|=>)$/; # are there other valid comma-likes?
+      last unless $token->content =~ /^(?:,|=>)$/; # are there other valid comma-likes?
       $state = defined($key) ? 'value' : 'key';
     }
     elsif ($state eq 'value') {
@@ -76,6 +80,7 @@ sub handle_class_xsaccessor {
 
   my $pkg = $indexer->lazy_create_pkg($class, $pkgs);
   my $subs = $pkg->{subs};
+
   $pkg->{subs}{$_} = 1 for @subs;
   return();
 }

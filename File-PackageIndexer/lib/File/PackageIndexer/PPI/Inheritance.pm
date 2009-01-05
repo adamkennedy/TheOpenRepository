@@ -11,13 +11,15 @@ our $VERSION = '0.01';
 sub handle_base {
   my $indexer = shift;
   my $statement = shift;
+  my $runtime = shift;
   my $curpkg = shift;
   my $pkgs = shift;
   if (not defined $curpkg) {
     $curpkg = $indexer->lazy_create_pkg($indexer->default_package, $pkgs);
   }
 
-  my $list_start = $statement->schild(0)->snext_sibling;
+  my $list_start = $statement;
+  
   my $classes = File::PackageIndexer::PPI::Util::list_structure_to_array($list_start);
 
   return
@@ -28,7 +30,7 @@ sub handle_base {
     @$classes = grep $_ !~ /^-/, @$classes;
   }
 
-  push @{$curpkg->{begin_isa}}, @$classes
+  push @{$curpkg->{$runtime ? "isa_push" : "begin_isa"}}, @$classes
     if defined $classes and ref($classes) eq 'ARRAY';
 
   return 1;

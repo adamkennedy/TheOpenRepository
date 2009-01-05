@@ -80,10 +80,25 @@ sub parse {
     }
     # use()
     elsif ( $class eq 'PPI::Statement::Include' ) {
-      $self->_handle_includes($statement, $curpkg, $pkgs);
+      $self->_handle_includes($statement, 0, $curpkg, $pkgs);
     }
     elsif ( $statement->find_any(sub {$_[1]->class eq "PPI::Token::Symbol" and $_[1]->content eq '@ISA'}) ) {
       File::PackageIndexer::PPI::Inheritance::handle_isa($self, $statement, $curpkg, $pkgs, $in_scheduled_block);
+    }
+    # BareWord->...
+    elsif (
+      $statement->find_any( sub {
+                                  my $op = $_[1];
+                                  return() if !$op->class eq "PPI::Token::Operator"
+                                              or $op->content ne '->'
+                                              or !$op->can('snext_sibling');
+                                  my $method = $op->snext_sibling();
+                                  return() if !$method->class eq "PPI::Token::Word"
+                                              or $method->content ne 'import';
+                                  return(1);
+                                } )
+    ) {
+      $self->_handle_includes($statement, 1, $curpkg, $pkgs);
     }
   };
 
@@ -162,20 +177,64 @@ sub lazy_create_pkg {
 sub _handle_includes {
   my $self = shift;
   my $statement = shift;
+  my $runtime = shift;
   my $curpkg = shift;
   my $pkgs = shift;
 
-  return
-    if $statement->type ne 'use'
-    or not defined $statement->module;
-
-  my $module = $statement->module;
+  my $module;
+  my $head;
+  if ($runtime) {
+    # find CLASS->import
+    $module = $statement->find_first(
+      sub {
+        # TODO: This also catches foo->bar->import(...), but sprev_sibling doesn't work...
+        my $word = $_[1];
+        return() if $word->class ne "PPI::Token::Word"
+                    or $word->content !~ /^[\w:']+$/
+                    or !$word->can('snext_sibling');
+        my $op = $word->snext_sibling;
+        return() if $op->class ne "PPI::Token::Operator"
+                    or $op->content ne '->'
+                    or !$op->can('snext_sibling');
+        my $method = $op->snext_sibling();
+        return() if $method->class ne "PPI::Token::Word"
+                    or $method->content ne 'import';
+        return(1);
+      }
+    );
+    return() if not $module;
+  }
+  else {
+    return
+      if $statement->type ne 'use'
+      or not defined $statement->module;
+    
+    $module = $statement->module;
+  }
 
   if ($module =~ /^Class::XSAccessor(?:::Array)?$/) {
-    File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($self, $statement, $curpkg, $pkgs);
+    $head = $statement->find_first(
+      sub {
+        $_[1]->isa('PPI::Token::Word')
+        and $runtime
+            ? $_[1]->content eq 'import'
+            : $_[1]->content =~ /^Class::XSAccessor(?:::Array)?$/
+      }
+    );
+    return() if not defined $head;
+    File::PackageIndexer::PPI::ClassXSAccessor::handle_class_xsaccessor($self, $module, $head, $curpkg, $pkgs);
   }
   elsif ($module =~ /^(?:base|parent)$/) {
-    File::PackageIndexer::PPI::Inheritance::handle_base($self, $statement, $curpkg, $pkgs);
+    $head = $statement->find_first(
+      sub {
+        $_[1]->isa('PPI::Token::Word')
+        and $runtime
+            ? $_[1]->content eq 'import'
+            : $_[1]->content =~ /^(?:base|parent)$/
+      }
+    );
+    return() if not defined $head;
+    File::PackageIndexer::PPI::Inheritance::handle_base($self, $head, $runtime, $curpkg, $pkgs);
   }
 
   # TODO: handle other generating modules loaded via use
