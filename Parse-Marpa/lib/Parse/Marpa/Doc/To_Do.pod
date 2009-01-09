@@ -2,25 +2,28 @@
 
 Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
-=head1 LOW PRIORITY
-
-=head2 Terminal Priorities Cannot Be Set in MDL
-
-Priorities cannot be set in MDL for terminals.
-So far there's been no need for this,
-and I don't want to invent an artificial test case.
-Once there is an application, I will use that as the test case.
-
-Workaround:
-Add extra rules with the terminals you want to prioritize on their right hand side,
-and assign 
-priorities to the rules.
-
-=head2 Others
+=head1 MEDIUM PRIORITY
 
 =over 4
 
 =item * Make code clean under perlcritic.
+
+=item * Allow cloning of unstripped recognizers
+
+=item * Add a SYNOPSIS to the Plumbing document.
+
+=item * Create a new porcelain interface, along the lines of the Parrot Grammar
+Engine and Perl 6 regexes.
+
+=item * Parse bocage creation can probably be made a bit slightly cleaner.
+At least I think so, based on what I found when revising that part of the
+Internals doc.
+
+=back
+
+=head1 LOW PRIORITY
+
+=over 4
 
 =item * Better evaluation of sequences -- just push onto an array via
 a ref, reversing at the end if necessary.  All that code could use
@@ -38,12 +41,6 @@ doesn't entirely replace it.
 
 =item * Test proper and perl5 separation
 
-=item * Parse bocage creation can probably be made a bit slightly cleaner.
-At least I think so, based on which I found revising that part of the
-Internals doc.
-
-=item * Add a SYNOPSIS to the Plumbing document.
-
 =item * Add to test set: Basic tests of sequences.
 The matrix is separation (none/perl5/proper)
 and minimium count (0 or 1).
@@ -52,6 +49,58 @@ Eliminate keep vs. no-keep, right vs. left.
 =back
 
 =head1 MAYBE, MAYBE NOT
+
+=over 4
+
+=item * Test lexing suffixes?  Remove them?
+
+=item * Are there any Parse::Marpa::Read_Only variables?  Eliminate
+the namespace, and all the references to it in the documentation?
+
+=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
+
+=item * C<show_tree> before first call to C<value>?  Should
+it cause an error message?  How about after unsuccessful
+call to C<value>?
+
+=item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
+
+=back
+
+=head1 MDL FROZEN
+
+For the moment, I will do only bug fixes on the Marpa Demonstration Language,
+or features for which there is specific demand from the users.
+I'm currently thinking of creating another interface language, with syntax like
+Perl 6 regexes and the PGE input.
+So for the time being, nothing will happen on any of the items in this
+section.
+
+=head2 Terminal Priorities Cannot Be Set in MDL
+
+Priorities cannot be set in MDL for terminals.
+So far there's been no need for this,
+and I don't want to invent an artificial test case.
+Once there is an application, I will use that as the test case.
+
+Workaround:
+Add extra rules with the terminals you want to prioritize on their right hand side,
+and assign 
+priorities to the rules.
+
+=head2 Other MDL Changes
+
+=over 4
+
+=item * Allow alternation?
+
+=item * Downgrade version conflict or semantics mismatch to warning?
+
+=item * Add C<{}> and C<[]> syntax to MDL production statements.
+
+=back
+
+=head1 OTHER FROZEN
 
 =head2 Lifting Restrictions on Sequence Productions
 
@@ -67,31 +116,6 @@ The problem is figuring out how to conveniently specify their semantics.
 As the right hand side of a production grows more complex,
 the semantics becomes
 more complex to write, more bug-prone, and harder to debug.
-
-=head2 Other things
-
-=over 4
-
-=item * Test lexing suffixes?  Remove them?
-
-=item * Allow alternation?
-
-=item * Downgrade version conflict or semantics mismatch to warning?
-
-=item * Are there any Parse::Marpa::Read_Only variables?  Eliminate
-the namespace, and all the references to it in the documentation?
-
-=item * Add C<{}> and C<[]> syntax to MDL production statements.
-
-=item * Speed-up for pre-computing lexables.  Grammar::LEXABLES, etc.
-
-=item * C<show_tree> before first call to C<value>?  Should
-it cause an error message?  How about after unsuccessful
-call to C<value>?
-
-=item * Do I need Parse::Marpa::show_value?  Won't Dumper do fine?
-
-=back
 
 =head1 SUPPORT
 

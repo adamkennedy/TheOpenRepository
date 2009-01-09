@@ -199,25 +199,23 @@ sub set_lexers {
                 my $closure;
                 {
                     my @warnings;
-                    my @caller_return;
                     local $SIG{__WARN__} = sub {
-                        push @warnings, $_[0];
-                        @caller_return = caller 0;
+                        push @warnings, [ $_[0], (caller 0) ];
                     };
 
 		    ## no critic (BuiltinFunctions::ProhibitStringyEval)
                     $closure = eval $code;
 		    ## use critic
 
-                    my $fatal_error = $EVAL_ERROR;
-                    if ( $fatal_error or @warnings ) {
+                    if ( not $closure or @warnings ) {
+                        my $fatal_error = $EVAL_ERROR;
                         Parse::Marpa::Internal::code_problems({
+                            eval_ok => $closure,
                             fatal_error => $fatal_error,
                             warnings => \@warnings,
                             where => 'compiling action',
                             long_where => "compiling action for $name",
                             code => \$code,
-                            caller_return => \@caller_return,
                         });
                     }
                 }
@@ -299,29 +297,25 @@ sub prepare_grammar_for_recognizer {
 
     if ( defined $lex_preamble ) {
         my @warnings;
-        my @caller_return;
         local $SIG{__WARN__} = sub {
-            push @warnings, $_[0];
-            @caller_return = caller 0;
+            push @warnings, [ $_[0], (caller 0) ];
         };
 
-	## no critic (BuiltinFunctions::ProhibitStringyEval)
-        my $eval_ok = eval
+        my $code =
 	    'package ' . $package . ";\n"
 	    . $lex_preamble;
+	## no critic (BuiltinFunctions::ProhibitStringyEval)
+        my $eval_ok = eval $code;
 	## use critic
 
-        my $fatal_error = $EVAL_ERROR;
-        if (not $eval_ok and not $fatal_error) {
-           $fatal_error = 'eval returned false';
-        }
-        if ( $fatal_error or @warnings ) {
+        if (not $eval_ok or @warnings ) {
+            my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
+                eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
                 warnings => \@warnings,
                 where => 'evaluating lex preamble',
-                code => \$lex_preamble,
-                caller_return => \@caller_return,
+                code => \$code,
             });
         }
     }
@@ -486,28 +480,22 @@ sub Parse::Marpa::Recognizer::unstringify {
     my $recce;
     {
         my @warnings;
-        my @caller_return;
         local $SIG{__WARN__} = sub {
-            my $warning = $_[0];
-            push @warnings, $warning;
-            @caller_return = caller 0;
+            push @warnings, [ $_[0], (caller 0) ];
         };
 
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval ${$stringified_recce};
         ## use critic
 
-        my $fatal_error = $EVAL_ERROR;
-        if (not $eval_ok and not $fatal_error) {
-           $fatal_error = 'eval returned false';
-        }
-        if ( $fatal_error or @warnings ) {
+        if (not $eval_ok or @warnings ) {
+            my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
+                eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
                 warnings => \@warnings,
                 where => 'unstringifying recognizer',
                 code => $stringified_recce,
-                caller_return => \@caller_return,
             });
         }
     }
@@ -526,7 +514,16 @@ sub Parse::Marpa::Recognizer::clone {
     my $grammar = $recce->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
     my $trace_fh = $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
+    if ($#{$recce} > Parse::Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD)
+    {
+       croak(
+           "Cloning of unstripped recognizers not yet implemented\n",
+           "Strip the recognizer or turn off cloning\n"
+        );
+    }
     my $stringified_recce = Parse::Marpa::Recognizer::stringify($recce);
+    # say $$stringified_recce;
+    # exit 0;
     return Parse::Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
 
 }
@@ -792,20 +789,16 @@ sub Parse::Marpa::Recognizer::text {
             my ( $match, $length );
             {
                 my @warnings;
-                my @caller_return;
                 local $SIG{__WARN__} = sub {
-                    push @warnings, $_[0];
-                    @caller_return = caller 0;
+                    push @warnings, [ $_[0], (caller 0) ];
                 };
                 my $eval_ok = eval {
                     ( $match, $length ) = $lex_closure->( $input_ref, $pos ); 1;
                 };
-                my $fatal_error = $EVAL_ERROR;
-                if (not $eval_ok and not $fatal_error) {
-                   $fatal_error = 'eval returned false';
-                }
-                if ( $fatal_error or @warnings ) {
+                if (not $eval_ok or @warnings ) {
+                    my $fatal_error = $EVAL_ERROR;
                     Parse::Marpa::Internal::code_problems({
+                        eval_ok => $eval_ok,
                         fatal_error => $fatal_error,
                         warnings => \@warnings,
                         where => 'user supplied lexer',
@@ -813,7 +806,6 @@ sub Parse::Marpa::Recognizer::text {
                             . $lexable->[Parse::Marpa::Internal::Symbol::NAME]
                             . " at $pos",
                         code => \(  $lexable->[Parse::Marpa::Internal::Symbol::ACTION] ),
-                        caller_return => \@caller_return
                     });
                 }
             }

@@ -256,7 +256,7 @@ St15: pri=0.1; 8
 S ::= A[] S[R0:1][x6] .
 EOS
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+my $recce = new Parse::Marpa::Recognizer({grammar => $grammar, clone => 0 });
 
 my $set0_new = <<'EOS';
 Earley Set 0
@@ -375,7 +375,8 @@ my @answer = ("", qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)]);
 for my $i (0 .. 4) {
     my $evaler = new Parse::Marpa::Evaluator( {
         recce => $recce,
-        end => $i
+        end => $i,
+        clone => 0,
     } );
     my $result = $evaler->value();
     $total_count++;

@@ -25,11 +25,11 @@ BEGIN {
 
 my $g = new Parse::Marpa::Grammar({
     start => "E",
+    strip => 0,
 
     # Set max_parses to 20 in case there's an infinite loop.
     # This is for debugging, after all
     max_parses => 20,
-    strip => 0,
 
     rules => [
 	[ "E", [qw/E Minus E/],
@@ -162,7 +162,7 @@ for my $string_piece ('6', '-----', '1')
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
 die("Could not initialize parse") unless $evaler;
 
 for (my $i = 0; defined(my $value = $evaler->value()); $i++) {

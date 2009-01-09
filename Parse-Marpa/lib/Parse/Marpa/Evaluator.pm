@@ -67,25 +67,22 @@ sub run_preamble {
     my @warnings;
     my @caller_return;
     local $SIG{__WARN__} = sub {
-        push @warnings, $_[0];
-        @caller_return = caller 0;
+        push @warnings, [ $_[0], (caller 0) ];
     };
 
+    my $code = 'package ' . $package . ";\n" . $preamble;
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    my $eval_return = eval 'package ' . $package . ";\n" . $preamble;
+    my $eval_ok = eval $code;
     ## use critic
 
-    my $fatal_error = $EVAL_ERROR;
-    if ( $fatal_error or @warnings or not $eval_return ) {
-        unless ($fatal_error) {
-           $fatal_error = 'eval returned false';
-        }
+    if ( not $eval_ok or @warnings ) {
+        my $fatal_error = $EVAL_ERROR;
         Parse::Marpa::Internal::code_problems({
+            eval_ok => $eval_ok,
             fatal_error => $fatal_error,
             warnings => \@warnings,
             where => 'evaluating preamble',
-            code => \$preamble,
-            caller_return => \@caller_return
+            code => \$code,
         });
     }
 
@@ -175,10 +172,8 @@ sub set_null_values {
 
             my $code = "package $package;\n" . '@_=();' . "\n" . $action;
             my @warnings;
-            my @caller_return;
             local $SIG{__WARN__} = sub {
-                push @warnings, $_[0];
-                @caller_return = caller 0;
+                push @warnings, [ $_[0], (caller 0) ];
             };
 
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
@@ -195,7 +190,6 @@ sub set_null_values {
                         . $nulling_symbol
                         ->[Parse::Marpa::Internal::Symbol::NAME],
                     code => \$code,
-                    caller_return => \@caller_return
                 });
             }
             my $nulling_symbol_id =
@@ -341,10 +335,8 @@ sub set_actions {
         my $closure;
         {
             my @warnings;
-            my @caller_return;
             local $SIG{__WARN__} = sub {
-                push @warnings, $_[0];
-                @caller_return = caller 0;
+                push @warnings, [ $_[0], (caller 0) ];
             };
 
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
@@ -362,7 +354,6 @@ sub set_actions {
                     where => 'compiling action',
                     long_where => 'compiling action for ' . Parse::Marpa::brief_rule($rule),
                     code => \$code,
-                    caller_return => \@caller_return
                 });
             }
         }
@@ -1309,16 +1300,14 @@ sub Parse::Marpa::Evaluator::value {
 
             {
                 my @warnings;
-                my @caller_return;
                 local $SIG{__WARN__} = sub {
-                    push @warnings, $_[0];
-                    @caller_return = caller 0;
+                    push @warnings, [ $_[0], ( caller 0 ) ];
                 };
 
-                $result = eval { $closure->( @{$args} ); };
+                my $eval_ok = eval { $result = $closure->( @{$args} ); 1; };
 
-                my $fatal_error = $EVAL_ERROR;
-                if ( $fatal_error or @warnings ) {
+                if ( not $eval_ok or @warnings ) {
+                    my $fatal_error = $EVAL_ERROR;
                     my $rule =
                         $node->[ Parse::Marpa::Internal::Tree_Node::RULE, ];
                     my $code =
@@ -1328,15 +1317,15 @@ sub Parse::Marpa::Evaluator::value {
                     say {$trace_fh}
                         'Problems computing value for original rule: ',
                         Parse::Marpa::brief_original_rule($rule);
-                    Parse::Marpa::Internal::code_problems(
+                    Parse::Marpa::Internal::code_problems({
                         fatal_error => $fatal_error,
+                        eval_ok => $eval_ok,
                         warnings => \@warnings,
                         where => 'computing value',
                         long_where => 'computing value for rule: '
                             . Parse::Marpa::brief_rule($rule),
                         code => \$code,
-                        caller_return => \@caller_return,
-                    );
+                    });
                 }
             }
 

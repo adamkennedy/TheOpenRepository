@@ -340,8 +340,8 @@ sub Parse::Marpa::Internal::code_problems {
     my $where = '?where?';
     my $long_where;
     my $code;
-    my $caller_return;
     my @msg = ();
+    my $eval_ok;
 
     while (my ($arg, $value) = each %{$args})
     {
@@ -351,17 +351,18 @@ sub Parse::Marpa::Internal::code_problems {
          when ('where') { $where = $value }
          when ('long_where') { $long_where = $value }
          when ('code') { $code = $value }
-         when ('caller_return') { $caller_return = $value }
+         when ('eval_ok') { $eval_ok = $value }
          default { push @msg, "Unknown argument to code_problems: $arg" }
        }
     }
 
-    my $package = '?package?';
-    my $filename = '?filename?';
-    my $problem_line;
-    if (defined $caller_return)
+    my @problem_line = ();
+    my $max_problem_line = -1;
+    for my $warning_data (@{$warnings})
     {
-        ( $package, $filename, $problem_line ) = @{$caller_return};
+        my ( $warning, $package, $filename, $problem_line ) = @{$warning_data};
+        $problem_line[$problem_line] = 1;
+        $max_problem_line = $problem_line if $problem_line > $max_problem_line;
     }
 
     $long_where //= $where;
@@ -397,10 +398,10 @@ sub Parse::Marpa::Internal::code_problems {
 
         # else if we know the problem line, print code_lines
         # worth of context
-        if ( defined $problem_line ) {
-            $first_line = $problem_line - $code_lines;
+        if ( $max_problem_line >= 0) {
+            $first_line = $max_problem_line - $code_lines;
             $first_line = 1 if $first_line < 1;
-            $max_line   = $problem_line + $code_lines;
+            $max_line   = $max_problem_line + $code_lines;
 
             # else print the first 2*code_lines+1 lines
         }
@@ -441,31 +442,60 @@ sub Parse::Marpa::Internal::code_problems {
             my $line_number = $first_line + $i;
 	    my $marker = q{};
 	    $marker = q{*}
-		if defined $problem_line and $problem_line == $line_number;
+		if $problem_line[$line_number];
             $line_labeled_code .= "$marker$line_number: " . $lines[$i];
         }
         $code_to_print = \$line_labeled_code;
     }
 
+    push @msg, 'Fatal problem(s) in ' . $long_where . "\n";
+    my $warnings_count = scalar @{$warnings};
+    {
+       my $msg_line = 'Problems: ';
+       my @problems;
+       if (not $eval_ok and not $fatal_error)
+       {
+           push @problems, 'Code returned False';
+       }
+       push @problems, 'Fatal Error' if $fatal_error;
+       push @problems, "$warnings_count Warning(s)" if $warnings_count;
+       push @msg, (join q{; }, @problems) . "\n";
+       if (not $fatal_error and $eval_ok)
+       {
+           push @msg, "Warning(s) treated as fatal problem\n";
+       }
+    }
+
     # If we have a section of code to print
     if ( defined $code_to_print ) {
         chomp ${$code_to_print};
-        push @msg,
-                  'Problems in '
-                . $long_where
-                . ", code:\n"
-                . ${$code_to_print}
-                . "\n";
+        my $header = 'Problem code begins:';
+        if ($max_problem_line >= 0) {
+            $header = 'Last warning occurred in this code:';
+        }
+        push @msg, "$header\n"
+                . ${$code_to_print} . "\n"
+                . q{======} . "\n";
     }
 
-    my $warnings_count = scalar @{$warnings};
-    if ($warnings_count) {
-        push @msg, "Warnings ($warnings_count) in $where:\n", @{$warnings};
-        unless ($fatal_error) {
-            $fatal_error = 'Marpa will not continue due to warnings';
-        }
+    for my $warning_ix (0 .. ($warnings_count - 1) )
+    {
+        push @msg, "Warning #$warning_ix in $where:\n";
+        my $warning_message = $warnings->[$warning_ix]->[0];
+        $warning_message =~ s/\n*\z/\n/xms;
+        push @msg, $warning_message;
+        push @msg, q{======} . "\n";
     }
-    push @msg, "Fatal problem in $long_where\n", $fatal_error;
+
+    if ($fatal_error)
+    {
+        push @msg, "Error in $where: \n";
+        my $fatal_error_message = $fatal_error;
+        $fatal_error_message =~ s/\n*\z/\n/xms;
+        push @msg, $fatal_error_message;
+        push @msg, q{======} . "\n";
+    }
+
     croak(@msg);
 }
 
@@ -501,26 +531,20 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
 
     {
         my @warnings;
-        my @caller_return;
         local $SIG{__WARN__} = sub {
-	    my $warning = $_[0];
-            push @warnings, $warning;
-            @caller_return = caller 0;
+            push @warnings, [ $_[0], (caller 0) ];
         };
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval ${$raw_grammar};
         ## use critic
-        my $fatal_error = $EVAL_ERROR;
-        if (not $eval_ok and not $fatal_error) {
-           $fatal_error = 'eval returned false';
-        }
-        if ( $fatal_error or @warnings ) {
+        if (not $eval_ok or @warnings) {
+            my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
+                eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
                 warnings => \@warnings,
                 where => 'evaluating gramar',
                 code => $raw_grammar,
-                caller_return => \@caller_return
             });
         }
     }
@@ -1314,26 +1338,20 @@ sub Parse::Marpa::Grammar::unstringify {
     my $grammar;
     {
         my @warnings;
-        my @caller_return;
         local $SIG{__WARN__} = sub {
-            my $warning = $_[0];
-            push @warnings, $warning;
-            @caller_return = caller 0;
+            push @warnings, [ $_[0], (caller 0) ];
         };
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval ${$stringified_grammar};
         ## use critic
-        my $fatal_error = $EVAL_ERROR;
-        if (not $eval_ok and not $fatal_error) {
-           $fatal_error = 'eval returned false';
-        }
-        if ( $fatal_error or @warnings ) {
+        if (not $eval_ok or @warnings ) {
+            my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
+                eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
                 warnings => \@warnings,
                 where => 'unstringifying grammar',
                 code => $stringified_grammar,
-                caller_return => \@caller_return
             });
         }
     }

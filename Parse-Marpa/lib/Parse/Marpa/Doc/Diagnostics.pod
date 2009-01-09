@@ -151,8 +151,8 @@ is left in place for the entire life of the object.
 This leftover data can be very
 important if you're debugging.
 
-Stripping takes place when a grammar in precomputed,
-and when the end of input in recognized.
+A grammar is stripped when it is precomputed.
+A recognizer is stripped when the end of input is recognized.
 Turning C<strip> off after the end of input has been
 recognized will have no effect.
 

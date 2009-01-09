@@ -25,11 +25,11 @@ BEGIN {
 
 my $grammar = new Parse::Marpa::Grammar({
     start => 'E',
+    strip => 0,
 
     # Set max at 10 just in case there's an infinite loop.
     # This is for debugging, after all
     max_parses => 10,
-    strip => 0,
 
     rules => [
 	[ 'E', [qw/E Op E/],
@@ -135,7 +135,7 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
 
 my $i = -1;
 while (defined(my $value = $evaler->value()))
