@@ -1,11 +1,13 @@
+#!perl
+#
 # The example grammar in Aycock/Horspool "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630
 
 use 5.010_000;
 use strict;
 use warnings;
-use lib "lib";
-use lib "t/lib";
+use lib 'lib';
+use lib 't/lib';
 use Test::More tests => 8;
 use Marpa::Test;
 
@@ -14,13 +16,13 @@ BEGIN {
 }
 
 my $g = new Parse::Marpa::Grammar({
-    start => "S'",
-    rules => [  
-        [ "S'", [qw/S/] ],
-        [ "S",  [qw/A A A A/] ],
-        [ "A",  [qw/a/] ],
-        [ "A",  [qw/E/] ],
-        [ "E" ],
+    start => q{S'},
+    rules => [
+        [ q{S'}, [qw/S/] ],
+        [ 'S',  [qw/A A A A/] ],
+        [ 'A',  [qw/a/] ],
+        [ 'A',  [qw/E/] ],
+        [ 'E' ],
     ],
     academic => 1,
     precompute => 0,
@@ -29,11 +31,11 @@ my $g = new Parse::Marpa::Grammar({
 
 $g->set({
     terminals => [
-        [ "a" => { regex => "a" } ],
+        [ 'a' => { regex => 'a' } ],
     ],
 });
 
-Marpa::Test::is( $g->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
+Marpa::Test::is( $g->show_rules(), <<'EOS', 'Aycock/Horspool Rules' );
 0: S' -> S /* nullable */
 1: S -> A A A A /* nullable */
 2: A -> a
@@ -41,7 +43,7 @@ Marpa::Test::is( $g->show_rules(), <<'EOS', "Aycock/Horspool Rules" );
 4: E -> /* empty nullable nulling */
 EOS
 
-Marpa::Test::is( $g->show_symbols(), <<'EOS', "Aycock/Horspool Symbols" );
+Marpa::Test::is( $g->show_symbols(), <<'EOS', 'Aycock/Horspool Symbols' );
 0: S', lhs=[0] rhs=[] nullable
 1: S, lhs=[1] rhs=[0] nullable
 2: A, lhs=[2 3] rhs=[1] nullable
@@ -50,15 +52,15 @@ Marpa::Test::is( $g->show_symbols(), <<'EOS', "Aycock/Horspool Symbols" );
 EOS
 
 Marpa::Test::is( $g->show_nullable_symbols(),
-    "A E S S'", "Aycock/Horspool Nullable Symbols" );
+    q{A E S S'}, 'Aycock/Horspool Nullable Symbols' );
 Marpa::Test::is( $g->show_nulling_symbols(),
-    "E", "Aycock/Horspool Nulling Symbols" );
+    'E', 'Aycock/Horspool Nulling Symbols' );
 Marpa::Test::is( $g->show_productive_symbols(),
-    "A E S S' a", "Aycock/Horspool Productive Symbols" );
+    q{A E S S' a}, 'Aycock/Horspool Productive Symbols' );
 Marpa::Test::is( $g->show_accessible_symbols(),
-    "A E S S' a", "Aycock/Horspool Accessible Symbols" );
+    q{A E S S' a}, 'Aycock/Horspool Accessible Symbols' );
 
-Marpa::Test::is( $g->show_NFA(), <<'EOS', "Aycock/Horspool NFA" );
+Marpa::Test::is( $g->show_NFA(), <<'EOS', 'Aycock/Horspool NFA' );
 S0: /* empty */
  empty => S1
 S1: S' ::= . S
