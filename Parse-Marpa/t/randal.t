@@ -1,21 +1,25 @@
+#!perl
+#
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
+use lib 'lib';
+use lib 't/lib';
 use English qw( -no_match_vars ) ;
 
 use Test::More tests => 5;
+use Marpa::Test;
 
 BEGIN {
     use_ok( 'Parse::Marpa' );
 }
 
-my @tests = split(/\n/, <<'EO_TESTS');
+my @tests = split /\n/xms, <<'EO_TESTS';
 time  / 25 ; # / ; die "this dies!";
 sin  / 25 ; # / ; die "this dies!";
 EO_TESTS
 
-# my @tests = split(/\n/, <<'EO_TESTS');
+# my @tests = split /\n/xms, <<'EO_TESTS';
 # time  / 25 ; # / ; die "this dies!";
 # sin  / 25 ; # / ; die "this dies!";
 # caller  / 25 ; # / ; die "this dies!";
@@ -41,20 +45,20 @@ TEST: while (my $test = pop @tests) {
     my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     my @parses;
     while (defined(my $value = $evaler->value)) {
-        push(@parses, $value);
+        push @parses, $value;
     }
     my @expected_parses;
-    my ($test_name) = ($test =~ /^([a-z]+) /);
+    my ($test_name) = ($test =~ /\A([a-z]+) /xms);
     given($test_name) {
-        when("time") {
+        when('time') {
 	    @expected_parses = (
-		"division, comment"
+		'division, comment'
 	    );
 	}
-        when("sin") {
+        when('sin') {
 	    @expected_parses = (
-		"division, comment",
-		"sin function call, die statement",
+		'division, comment',
+		'sin function call, die statement',
 	    );
 	}
 	default {
@@ -63,14 +67,15 @@ TEST: while (my $test = pop @tests) {
     }
     my $expected_parse_count = scalar @expected_parses;
     my $parse_count = scalar @parses;
-    is($parse_count, $expected_parse_count, "Parse count for $test_name is $parse_count");
+    Marpa::Test::is($parse_count, $expected_parse_count, "Parse count for $test_name is $parse_count");
     my $mismatch_count = 0;
-    for (my $i = 0; $i < $parse_count && $i < $expected_parse_count; $i++) {
+    my $parses_to_check = $parse_count < $expected_parse_count ? $expected_parse_count : $parse_count;
+    for my $i ( 0 .. ($parses_to_check - 1 ) ) {
          if (${$parses[$i]} ne $expected_parses[$i]) {
 	     diag(
 		 "Mismatch on parse $i for test $test_name: "
 		 . ${$parses[$i]}
-		 . " vs. "
+		 . ' vs. '
 		 . $expected_parses[$i]
 	     );
 	     $mismatch_count++;

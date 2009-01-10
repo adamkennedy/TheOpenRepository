@@ -1,3 +1,5 @@
+#!perl
+
 use 5.010_000;
 
 # An ambiguous equation,
@@ -8,8 +10,8 @@ use warnings;
 
 use Test::More tests => 11;
 
-use lib "lib";
-use lib "t/lib";
+use lib 'lib';
+use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
@@ -24,7 +26,7 @@ BEGIN {
 # a start symbol that appears repeatedly on the RHS.
 
 my $g = new Parse::Marpa::Grammar({
-    start => "E",
+    start => 'E',
     strip => 0,
 
     # Set max_parses to 20 in case there's an infinite loop.
@@ -32,7 +34,7 @@ my $g = new Parse::Marpa::Grammar({
     max_parses => 20,
 
     rules => [
-	[ "E", [qw/E Minus E/],
+	[ 'E', [qw/E Minus E/],
 <<'EOCODE'
     my ($right_string, $right_value)
         = ($_[2] =~ /^(.*)==(.*)$/);
@@ -42,28 +44,28 @@ my $g = new Parse::Marpa::Grammar({
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 EOCODE
         ],
-	[ "E", [qw/E MinusMinus/],
+	[ 'E', [qw/E MinusMinus/],
 <<'EOCODE'
     my ($string, $value)
         = ($_[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 EOCODE
         ],
-	[ "E", [qw/MinusMinus E/],
+	[ 'E', [qw/MinusMinus E/],
 <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 EOCODE
         ],
-	[ "E", [qw/Minus E/],
+	[ 'E', [qw/Minus E/],
 <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
 EOCODE
         ],
-	[ "E", [qw/Number/],
+	[ 'E', [qw/Number/],
 <<'EOCODE'
     my $value = $_[0];
     "$value==$value";
@@ -71,9 +73,9 @@ EOCODE
         ],
     ],
     terminals => [
-	[ "Number" => { regex => qr/\d+/ } ],
-	[ "Minus" => { regex => qr/[-]/ } ],
-	[ "MinusMinus" => { regex => qr/[-][-]/ } ],
+	[ 'Number' => { regex => qr/\d+/xms } ],
+	[ 'Minus' => { regex => qr/[-]/xms } ],
+	[ 'MinusMinus' => { regex => qr/[-][-]/xms } ],
     ],
     default_action =>
 <<'EOCODE',
@@ -88,7 +90,7 @@ my $recce = new Parse::Marpa::Recognizer({
     grammar => $g,
 });
 
-Marpa::Test::is( $g->show_rules(), <<'END_RULES', "Minuses Equation Rules" );
+Marpa::Test::is( $g->show_rules(), <<'END_RULES', 'Minuses Equation Rules' );
 0: E -> E Minus E
 1: E -> E MinusMinus
 2: E -> MinusMinus E
@@ -97,7 +99,7 @@ Marpa::Test::is( $g->show_rules(), <<'END_RULES', "Minuses Equation Rules" );
 5: E['] -> E
 END_RULES
 
-Marpa::Test::is( $g->show_ii_QDFA(), <<'END_QDFA', "Minuses Equation QDFA" );
+Marpa::Test::is( $g->show_ii_QDFA(), <<'END_QDFA', 'Minuses Equation QDFA' );
 Start States: St0; St5
 St0: predict; 1,5,8,11,14
 E ::= . E Minus E
@@ -156,20 +158,22 @@ for my $string_piece ('6', '-----', '1')
 {
     my $fail_offset = $recce->text($string_piece);
     if ($fail_offset >= 0) {
-       die("Parse failed at offset $fail_offset");
+       croak("Parse failed at offset $fail_offset");
     }
 }
 
 $recce->end_input();
 
 my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
-die("Could not initialize parse") unless $evaler;
+croak('Could not initialize parse') unless $evaler;
 
-for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
+my $i = -1;
+while ( defined(my $value = $evaler->value()) ) {
+    $i++;
     if ($i > $#expected) {
-       fail("Minuses equation has extra value: " . $$value . "\n");
+       fail('Minuses equation has extra value: ' . ${$value} . "\n");
     } else {
-        is($$value, $expected[$i], "Minuses Equation Value $i");
+        Marpa::Test::is(${$value}, $expected[$i], "Minuses Equation Value $i");
     }
 }
 

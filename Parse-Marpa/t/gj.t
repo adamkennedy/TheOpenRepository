@@ -1,11 +1,13 @@
+#!perl
+
 use 5.010_000;
 use strict;
 use warnings;
 
 use Test::More tests => 9;
 
-use lib "lib";
-use lib "t/lib";
+use lib 'lib';
+use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
@@ -17,32 +19,32 @@ BEGIN {
 
 my $g = new Parse::Marpa::Grammar({
     precompute => 0,
-    start => "S'",
+    start => q{S'},
     strip => 0,
     rules => [
-        [ "S'", [qw/S $/] ],
-        [ "S",  [qw/E/] ],
-        [ "E",  [qw/E - T/] ],
-        [ "E",  [qw/T/] ],
-        [ "T",  [qw/n/] ],
-        [ "T",  [qw/( E )/] ],
+        [ q{S'}, [qw/S $/] ],
+        [ 'S',  [qw/E/] ],
+        [ 'E',  [qw/E - T/] ],
+        [ 'E',  [qw/T/] ],
+        [ 'T',  [qw/n/] ],
+        [ 'T',  [qw/( E )/] ],
     ],
     academic => 1,
 });
 
 $g->set({
     terminals => [
-        [ 'n' => { regex => qr/n/ } ],
-        [ '$' => { regex => qr/\$/ } ],
-        [ ')' => { regex => qr/\)/ } ],
-        [ '(' => { regex => qr/\(/ } ],
-        [ '-' => { regex => qr/\-/ } ],
+        [ 'n' => { regex => qr/n/xms } ],
+        [ q{$} => { regex => qr/\$/xms } ],
+        [ ')' => { regex => qr/\)/xms } ],
+        [ '(' => { regex => qr/\(/xms } ],
+        [ q{-} => { regex => qr/\-/xms } ],
     ],
 });
 
 $g->precompute();
 
-Marpa::Test::is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
+Marpa::Test::is($g->show_rules(), <<'EOS', 'Grune/Jacobs Rules');
 0: S' -> S $
 1: S -> E
 2: E -> E - T
@@ -51,7 +53,7 @@ Marpa::Test::is($g->show_rules(), <<'EOS', "Grune/Jacobs Rules");
 5: T -> ( E )
 EOS
 
-Marpa::Test::is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
+Marpa::Test::is($g->show_symbols(), <<'EOS', 'Grune/Jacobs Symbols');
 0: S', lhs=[0] rhs=[]
 1: S, lhs=[1] rhs=[0]
 2: $, lhs=[] rhs=[0] terminal
@@ -63,11 +65,11 @@ Marpa::Test::is($g->show_symbols(), <<'EOS', "Grune/Jacobs Symbols");
 8: ), lhs=[] rhs=[5] terminal
 EOS
 
-Marpa::Test::is($g->show_nullable_symbols(), "", "Grune/Jacobs Nullable Symbols");
-Marpa::Test::is($g->show_nulling_symbols(), "", "Grune/Jacobs Nulling Symbols");
-Marpa::Test::is($g->show_productive_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Productive Symbols");
-Marpa::Test::is($g->show_accessible_symbols(), '$ ( ) - E S S\' T n', "Grune/Jacobs Accessible Symbols");
-Marpa::Test::is($g->show_NFA(), <<'EOS', "Grune/Jacobs NFA");
+Marpa::Test::is($g->show_nullable_symbols(), q{}, 'Grune/Jacobs Nullable Symbols');
+Marpa::Test::is($g->show_nulling_symbols(), q{}, 'Grune/Jacobs Nulling Symbols');
+Marpa::Test::is($g->show_productive_symbols(), '$ ( ) - E S S\' T n', 'Grune/Jacobs Productive Symbols');
+Marpa::Test::is($g->show_accessible_symbols(), '$ ( ) - E S S\' T n', 'Grune/Jacobs Accessible Symbols');
+Marpa::Test::is($g->show_NFA(), <<'EOS', 'Grune/Jacobs NFA');
 S0: /* empty */
  empty => S1
 S1: S' ::= . S $
@@ -106,7 +108,7 @@ S16: T ::= ( E . )
 S17: T ::= ( E ) .
 EOS
 
-Marpa::Test::is( $g->show_ii_QDFA(), <<'EOS', "Grune/Jacobs QDFA");
+Marpa::Test::is( $g->show_ii_QDFA(), <<'EOS', 'Grune/Jacobs QDFA');
 Start States: St0; St9
 St0: 1
 S' ::= . S $

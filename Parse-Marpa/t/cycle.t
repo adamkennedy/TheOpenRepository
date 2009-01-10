@@ -1,4 +1,5 @@
-# An grammars with cycles
+#!perl
+# A grammar with cycles
 
 use 5.010_000;
 use strict;
@@ -7,17 +8,16 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 7;
-use lib "lib";
-use lib "t/lib";
+use lib 'lib';
+use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
     use_ok('Parse::Marpa');
 }
 
-my $example_dir = "example";
-$example_dir = "../example" unless -d $example_dir;
-chdir($example_dir);
+my $example_dir = 'example';
+chdir $example_dir;
 
 my $mdl_header = <<'EOF';
 semantics are perl5.  version is 1.001_000.
@@ -80,7 +80,7 @@ X: .
 EOF
 
 for my $test_data (
-  [ 
+  [
       \$cycle1_mdl,
       \('1'),
       '1',
@@ -112,18 +112,18 @@ EOS
     ],
 ) {
     my ($grammar, $input, $expected, $expected_trace) = @{$test_data};
-    my $trace;
-    our $MEMORY;
-    open(MEMORY, '>', \$trace);
+    my $trace = q{};
+    open my $MEMORY, '>', \$trace;
     my $value = Parse::Marpa::mdl(
         $grammar,
         $input,
         {
             cycle_action => 'warn',
-            trace_file_handle => *MEMORY,
+            trace_file_handle => $MEMORY,
         }
     );
-    Marpa::Test::is($$value, $expected);
+    close $MEMORY;
+    Marpa::Test::is(${$value}, $expected);
     Marpa::Test::is($trace, $expected_trace);
 }
 

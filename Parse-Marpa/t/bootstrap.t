@@ -2,12 +2,16 @@
 use 5.010_000;
 use strict;
 use warnings;
+use lib 'lib';
+use lib 't/lib';
 use Test::More;
 use Fatal qw(close open waitpid);
 use Carp;
 use English qw( -no_match_vars ) ;
 use Config;
 use IPC::Open3;
+
+use Marpa::Test;
 
 if ($Config{'d_fork'}) {
     plan tests => 2;
@@ -38,11 +42,11 @@ close $wtr;
 waitpid $pid, 0;
 
 my $script_err = do { local($RS) = undef; defined $err ? <$err> : q{} };
-is($script_err, q{},
+Marpa::Test::is($script_err, q{},
     'script stderr empty');
 
 my $script_output = do { local($RS) = undef; <$rdr> };
-is($script_output,
+Marpa::Test::is($script_output,
     "Bootstrap 1\n"
     . "Bootstrap 2\n"
     . "Diff\n"

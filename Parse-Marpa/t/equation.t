@@ -144,7 +144,7 @@ while (defined(my $value = $evaler->value()))
     if ($i > $#expected) {
        fail('Ambiguous equation has extra value: ' . ${$value} . "\n");
     } else {
-        is(${$value}, $expected[$i], "Ambiguous Equation Value $i");
+       Marpa::Test::is(${$value}, $expected[$i], "Ambiguous Equation Value $i");
     }
 }
 

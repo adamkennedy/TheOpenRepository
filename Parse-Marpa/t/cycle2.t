@@ -1,23 +1,25 @@
-# An grammars with cycles
+#!perl
 
+# A grammars with cycles
 use 5.010_000;
 use strict;
 use warnings;
-use lib "../lib";
+use lib 'lib';
+use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
-
 use Test::More tests => 24;
+use Marpa::Test;
 
 BEGIN {
     use_ok('Parse::Marpa');
 }
 
-my $example_dir = "example";
-$example_dir = "../example" unless -d $example_dir;
-chdir($example_dir);
 
-my @expected_values = split("\n", <<'EOS');
+my $example_dir = 'example';
+chdir $example_dir;
+
+my @expected_values = split /\n/xms, <<'EOS';
 a
 A(B(a))
 A(B(A(B(a))))
@@ -46,15 +48,15 @@ B: A. q{ 'B(' . $_[0] . ')' }.
 EOF
 
 my $trace;
-our $MEMORY;
-open(MEMORY, '>', \$trace);
+open my $MEMORY, '>', \$trace;
 my $grammar = new Parse::Marpa::Grammar({
     mdl_source => \$mdl,
-    trace_file_handle => *MEMORY,
+    trace_file_handle => $MEMORY,
 });
 $grammar->precompute();
+close $MEMORY;
 
-is($trace, <<'EOS');
+Marpa::Test::is($trace, <<'EOS', 'cycle detection');
 Cycle found involving rule: 3: b -> a
 Cycle found involving rule: 1: a -> b
 EOS
@@ -67,7 +69,7 @@ my $recce = new Parse::Marpa::Recognizer({
 my $text = 'a';
 my $fail_location = $recce->text( \$text );
 if ( $fail_location >= 0 ) {
-    croak( Parse::Marpa::show_location( "Parsing failed",
+    croak( Parse::Marpa::show_location( 'Parsing failed',
         \$text, $fail_location ) );
 }
 $recce->end_input();
@@ -77,7 +79,7 @@ for my $depth (1, 2, 5, 10) {
     my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, cycle_depth => $depth } );
     my $parse_count = 0;
     while (my $value = $evaler->value()) {
-        is($$value, $expected_values[$parse_count++]);
+        Marpa::Test::is(${$value}, $expected_values[$parse_count++], 'cycle depth test');
     }
 
 }

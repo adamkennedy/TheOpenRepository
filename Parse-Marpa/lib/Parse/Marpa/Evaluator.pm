@@ -65,7 +65,6 @@ sub run_preamble {
     my $package  = shift;
 
     my @warnings;
-    my @caller_return;
     local $SIG{__WARN__} = sub {
         push @warnings, [ $_[0], (caller 0) ];
     };

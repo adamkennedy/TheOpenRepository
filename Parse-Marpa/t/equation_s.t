@@ -4,11 +4,13 @@
 use 5.010_000;
 use strict;
 use warnings;
-use lib '../lib';
+use lib 'lib';
+use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 6;
+use Marpa::Test;
 
 BEGIN {
     use_ok('Parse::Marpa');
@@ -61,7 +63,7 @@ while ( defined( my $value = $evaler->value() ) )
         fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
     }
     else {
-        is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
+        Marpa::Test::is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
     }
 }
 

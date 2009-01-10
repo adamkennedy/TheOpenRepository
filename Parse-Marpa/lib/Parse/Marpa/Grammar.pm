@@ -372,8 +372,9 @@ sub Parse::Marpa::Internal::code_problems {
         $code_lines = $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES];
     }
     else {
-        push @msg, 'Marpa bug: Grammar not set';
+        push @msg, "Grammar not set\n";
     }
+    $code_lines //= 3;
 
     # if we have code
     my $code_to_print;
@@ -383,8 +384,6 @@ sub Parse::Marpa::Internal::code_problems {
 
         last CODE_TO_PRINT unless defined $code;
         last CODE_TO_PRINT unless defined ${$code};
-
-        $code_lines //= 3;
 
         # if code_lines < 0, print all lines
         if ( $code_lines < 0 ) {
@@ -1342,7 +1341,9 @@ sub Parse::Marpa::Grammar::unstringify {
             push @warnings, [ $_[0], (caller 0) ];
         };
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        no strict 'refs';
         my $eval_ok = eval ${$stringified_grammar};
+        use strict 'refs';
         ## use critic
         if (not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;

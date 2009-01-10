@@ -1,3 +1,5 @@
+#!perl
+#
 use 5.010_000;
 use strict;
 use warnings;
@@ -6,9 +8,11 @@ use warnings;
 # Since it's a basic functionality,
 # I bypass MDL.
 
-use lib "../lib";
+use lib 'lib';
+use lib 't/lib';
 
 use Test::More tests => 5;
+use Marpa::Test;
 
 BEGIN {
 	use_ok( 'Parse::Marpa' );
@@ -22,7 +26,7 @@ BEGIN {
 # a start symbol that appears repeatedly on the RHS.
 
 my $g = new Parse::Marpa::Grammar({
-    start => "S",
+    start => 'S',
 
     # Set max_parses to 20 in case there's an infinite loop.
     # This is for debugging, after all
@@ -34,10 +38,10 @@ my $g = new Parse::Marpa::Grammar({
 	[ 'S', ['P100'], '100', 100 ],
     ],
     terminals => [
-	[ 'P200' => { regex => qr/a/ } ],
-	[ 'P400' => { regex => qr/a/ } ],
-	[ 'P100' => { regex => qr/a/ } ],
-	[ 'P300' => { regex => qr/a/ } ],
+	[ 'P200' => { regex => qr/a/xms } ],
+	[ 'P400' => { regex => qr/a/xms } ],
+	[ 'P100' => { regex => qr/a/xms } ],
+	[ 'P300' => { regex => qr/a/xms } ],
     ],
 });
 
@@ -49,19 +53,21 @@ my @expected = qw(400 300 200 100);
 
 my $fail_offset = $recce->text(\('a'));
 if ($fail_offset >= 0) {
-   die("Parse failed at offset $fail_offset");
+   croak("Parse failed at offset $fail_offset");
 }
 
 $recce->end_input();
 
 my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
-die("Could not initialize parse") unless $evaler;
+croak('Could not initialize parse') unless $evaler;
 
-for (my $i = 0; defined(my $value = $evaler->value()); $i++) {
+my $i = -1;
+while ( defined(my $value = $evaler->value()) ) {
+    $i++;
     if ($i > $#expected) {
-       fail("Minuses equation has extra value: " . $$value . "\n");
+       fail('Minuses equation has extra value: ' . ${$value} . "\n");
     } else {
-        is($$value, $expected[$i], "Priority Value $i");
+       Marpa::Test::is(${$value}, $expected[$i], "Priority Value $i");
     }
 }
 
