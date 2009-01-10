@@ -9,6 +9,7 @@ bootstrap/bootstrap.pl
 bootstrap/bootstrap_header.pl
 bootstrap/bootstrap_trailer.pl
 bootstrap/self.marpa
+etc/perlcriticrc
 example/null_value.marpa
 example/equation.marpa
 example/synopsis.pl

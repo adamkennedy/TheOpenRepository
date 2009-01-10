@@ -12,6 +12,7 @@ use Test::More tests => 11;
 
 use lib 'lib';
 use lib 't/lib';
+use Carp;
 use Marpa::Test;
 
 BEGIN {

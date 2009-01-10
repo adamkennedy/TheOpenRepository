@@ -5,6 +5,7 @@ use strict;
 use 5.010_000;
 use lib 't/lib';
 use lib 'lib';
+use Carp;
 use Test::More tests => 3;
 use Marpa::Test;
 

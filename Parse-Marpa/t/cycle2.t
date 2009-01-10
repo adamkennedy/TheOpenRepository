@@ -9,6 +9,7 @@ use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 use Test::More tests => 24;
+use Carp;
 use Marpa::Test;
 
 BEGIN {

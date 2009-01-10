@@ -48,7 +48,7 @@ in_ah2_t($_)
 
 =end Parse::Marpa::test_document:
 
-    my $a = $grammar->get_symbol("a");
+    my $a = $grammar->get_symbol('a');
 
 Given a symbol's plumbing name, returns the symbol's cookie.
 It returns undefined if a symbol with that name doesn't exist.

@@ -1375,18 +1375,21 @@ in_equation_s_t($_)
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        die("Parse failed at offset $fail_offset");
+        croak("Parse failed at offset $fail_offset");
     }
 
     my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
-    die("Parse failed") unless $evaler;
+    croak('Parse failed') unless $evaler;
 
-    for ( my $i = 0; defined( my $value = $evaler->value() ); $i++ ) {
+    my $i = -1;
+    while ( defined( my $value = $evaler->value() ) )
+    {
+        $i++;
         if ( $i > $#expected ) {
-            fail( "Ambiguous equation has extra value: " . $$value . "\n" );
+            fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
         }
         else {
-            is( $$value, $expected[$i], "Ambiguous Equation Value $i" );
+            Marpa::Test::is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
         }
     }
 

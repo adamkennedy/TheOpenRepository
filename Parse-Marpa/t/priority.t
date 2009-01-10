@@ -10,6 +10,7 @@ use warnings;
 
 use lib 'lib';
 use lib 't/lib';
+use Carp;
 
 use Test::More tests => 5;
 use Marpa::Test;

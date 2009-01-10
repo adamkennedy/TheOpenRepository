@@ -9,6 +9,7 @@ use Test::More tests => 9;
 use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
+use Carp;
 
 BEGIN {
 	use_ok( 'Parse::Marpa' );

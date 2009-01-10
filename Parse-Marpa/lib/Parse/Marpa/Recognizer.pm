@@ -1240,7 +1240,7 @@ in_equation_s_t($_)
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        die("Parse failed at offset $fail_offset");
+        croak("Parse failed at offset $fail_offset");
     }
 
 Z<>
@@ -1254,22 +1254,22 @@ in_equation_t($_)
 
     my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
-    my $op = $grammar->get_symbol("Op");
-    my $number = $grammar->get_symbol("Number");
+    my $op = $grammar->get_symbol('Op');
+    my $number = $grammar->get_symbol('Number');
 
     my @tokens = (
 	[$number, 2, 1],
-	[$op, "-", 1],
+	[$op, q{-}, 1],
 	[$number, 0, 1],
-	[$op, "*", 1],
+	[$op, q{*}, 1],
 	[$number, 3, 1],
-	[$op, "+", 1],
+	[$op, q{+}, 1],
 	[$number, 1, 1],
     );
 
     TOKEN: for my $token (@tokens) {
 	next TOKEN if $recce->earleme($token);
-	die("Parsing exhausted at character: ", $token->[1]);
+	croak('Parsing exhausted at character: ', $token->[1]);
     }
 
     $recce->end_input();
@@ -1469,7 +1469,7 @@ in_equation_s_t($_)
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        die("Parse failed at offset $fail_offset");
+        croak("Parse failed at offset $fail_offset");
     }
 
 Extends the parse using the one-character-per-earleme model.
@@ -1529,8 +1529,8 @@ in_ah2_t($_)
 
 =end Parse::Marpa::test_document:
 
-    my $a = $grammar->get_symbol("a");
-    $recce->earleme([$a, "a", 1]) or die("Parsing exhausted");
+    my $a = $grammar->get_symbol('a');
+    $recce->earleme([$a, 'a', 1]) or croak('Parsing exhausted');
 
 The C<earleme> method adds zero or more tokens,
 then moves the current earleme forward by one earleme.

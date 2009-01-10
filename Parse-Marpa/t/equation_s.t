@@ -7,6 +7,7 @@ use warnings;
 use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
+use Carp;
 use Fatal qw(open close chdir);
 
 use Test::More tests => 6;

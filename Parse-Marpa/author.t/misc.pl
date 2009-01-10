@@ -28,7 +28,7 @@ $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);
 
 $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar);
 
-my $new_lex_preamble = q{};
+my $new_lex_preamble = q{1};
 
 my $recce = new Parse::Marpa::Recognizer({
    grammar=> $grammar,

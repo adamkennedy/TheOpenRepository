@@ -10,6 +10,7 @@ use Fatal qw(open close chdir);
 use Test::More tests => 7;
 use lib 'lib';
 use lib 't/lib';
+use Carp;
 use Marpa::Test;
 
 BEGIN {
