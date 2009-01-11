@@ -176,7 +176,8 @@ use Parse::Marpa::Offset Grammar =>
         ID NAME VERSION
         RULES SYMBOLS QDFA
         PHASE DEFAULT_ACTION
-        TRACE_FILE_HANDLE TRACING STRIP
+        TRACE_FILE_HANDLE TRACING
+        STRIP CODE_LINES
     ),
     # evaluator data
     qw(
@@ -204,7 +205,7 @@ use Parse::Marpa::Offset Grammar =>
         QDFA_BY_NAME NULLABLE_SYMBOL
         TRACE_RULES
         LOCATION_CALLBACK
-        WARNINGS CODE_LINES SEMANTICS
+        WARNINGS SEMANTICS
         TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
         ALLOW_RAW_SOURCE INTERFACE
     );
@@ -335,23 +336,29 @@ Parse::Marpa::Recognizer
 sub Parse::Marpa::Internal::code_problems {
     my $args = shift;
 
+    my $grammar;
     my $fatal_error;
     my $warnings = [];
     my $where = '?where?';
     my $long_where;
     my $code;
     my @msg = ();
-    my $eval_ok;
+    my $eval_value;
+    my $eval_given = 0;
 
     while (my ($arg, $value) = each %{$args})
     {
        given ($arg) {
          when ('fatal_error') { $fatal_error = $value }
+         when ('grammar') { $grammar = $value }
          when ('warnings') { $warnings = $value }
          when ('where') { $where = $value }
          when ('long_where') { $long_where = $value }
          when ('code') { $code = $value }
-         when ('eval_ok') { $eval_ok = $value }
+         when ('eval_ok') {
+             $eval_value = $value;
+             $eval_given = 1;
+         }
          default { push @msg, "Unknown argument to code_problems: $arg" }
        }
     }
@@ -366,13 +373,9 @@ sub Parse::Marpa::Internal::code_problems {
     }
 
     $long_where //= $where;
-    my $grammar = $Parse::Marpa::Internal::This::grammar;
     my $code_lines;
     if ( defined $grammar ) {
         $code_lines = $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES];
-    }
-    else {
-        push @msg, "Grammar not set\n";
     }
     $code_lines //= 3;
 
@@ -384,18 +387,21 @@ sub Parse::Marpa::Internal::code_problems {
 
         last CODE_TO_PRINT unless defined $code;
         last CODE_TO_PRINT unless defined ${$code};
+        last CODE_TO_PRINT if $code_lines == 0;
 
-        # if code_lines < 0, print all lines
-        if ( $code_lines < 0 ) {
-            $code_to_print = $code;
-            last CODE_TO_PRINT;
-        }
+        my @lines = split /\n/xms, ${$code};
+        my $code_length = scalar @lines;
 
         # which lines to print?
         my $first_line;
         my $max_line;
 
-        # else if we know the problem line, print code_lines
+        # if code_lines < 0, print all lines
+        if ( $code_lines < 0 ) {
+            $code_lines = $code_length;
+        }
+
+        # if we know the problem line, print code_lines
         # worth of context
         if ( $max_problem_line >= 0) {
             $first_line = $max_problem_line - $code_lines;
@@ -406,45 +412,27 @@ sub Parse::Marpa::Internal::code_problems {
         }
         else {
             $first_line = 1;
-            $max_line   = $code_lines * 2 + 1;
-        }
-
-        # go up to start of first line
-        my $position = 0;
-
-        # remember that lines are numbered starting at 1
-        my $line = 1;
-        LINE: while ( $line < $first_line ) {
-            $position = index ${$code}, "\n", $position;
-            $position++;
-            $line++;
+            $max_line = $code_lines * 2 + 1;
+            $max_line = $code_length if $code_lines > $code_length;
         }
 
         # now create an array of the lines to print
-        my @lines;
-        LINE: while ( $line <= $max_line ) {
-            my $start = $position;
-            $position = index ${$code}, "\n", $start;
-            if ( $position < 0 ) {
-                if ( $start < length ${$code} ) {
-                    push @lines, (substr ${$code}, $start, 72 );
-                }
-                last LINE;
-            }
-            $position++;
-            push @lines, (substr ${$code}, $start, ( $position - $start ) );
-            $line++;
-        }
+        my @lines_to_print = do {
+            my $start_splice = $first_line -1;
+            my $end_splice = $max_line - 1;
+            $end_splice = $#lines if $end_splice > $#lines;
+            @lines[ $start_splice .. $end_splice ];
+        };
 
-        my $line_labeled_code = q{};
-        LINE: for my $i ( 0 .. $#lines ) {
+        my @labeled_lines = ();
+        LINE: for my $i ( 0 .. $#lines_to_print ) {
             my $line_number = $first_line + $i;
 	    my $marker = q{};
 	    $marker = q{*}
 		if $problem_line[$line_number];
-            $line_labeled_code .= "$marker$line_number: " . $lines[$i];
+            push @labeled_lines, "$marker$line_number: " . $lines_to_print[$i];
         }
-        $code_to_print = \$line_labeled_code;
+        $code_to_print = \ ( (join "\n", @labeled_lines) . "\n" );
     }
 
     push @msg, 'Fatal problem(s) in ' . $long_where . "\n";
@@ -452,14 +440,15 @@ sub Parse::Marpa::Internal::code_problems {
     {
        my $msg_line = 'Problems: ';
        my @problems;
-       if (not $eval_ok and not $fatal_error)
+       my $false_eval = $eval_given && !$eval_value && !$fatal_error;
+       if ($false_eval)
        {
            push @problems, 'Code returned False';
        }
        push @problems, 'Fatal Error' if $fatal_error;
        push @problems, "$warnings_count Warning(s)" if $warnings_count;
        push @msg, (join q{; }, @problems) . "\n";
-       if (not $fatal_error and $eval_ok)
+       if ($warnings_count and not $false_eval and not $fatal_error)
        {
            push @msg, "Warning(s) treated as fatal problem\n";
        }
@@ -467,13 +456,12 @@ sub Parse::Marpa::Internal::code_problems {
 
     # If we have a section of code to print
     if ( defined $code_to_print ) {
-        chomp ${$code_to_print};
         my $header = 'Problem code begins:';
         if ($max_problem_line >= 0) {
             $header = 'Last warning occurred in this code:';
         }
         push @msg, "$header\n"
-                . ${$code_to_print} . "\n"
+                . ${$code_to_print}
                 . q{======} . "\n";
     }
 
@@ -488,7 +476,7 @@ sub Parse::Marpa::Internal::code_problems {
 
     if ($fatal_error)
     {
-        push @msg, "Error in $where: \n";
+        push @msg, "Error in $where:\n";
         my $fatal_error_message = $fatal_error;
         $fatal_error_message =~ s/\n*\z/\n/xms;
         push @msg, $fatal_error_message;
@@ -539,6 +527,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
         if (not $eval_ok or @warnings) {
             my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
+                grammar => $grammar,
                 eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
                 warnings => \@warnings,

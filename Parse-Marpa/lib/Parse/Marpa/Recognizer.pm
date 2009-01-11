@@ -212,6 +212,7 @@ sub set_lexers {
                         Parse::Marpa::Internal::code_problems({
                             eval_ok => $closure,
                             fatal_error => $fatal_error,
+                            grammar => $grammar,
                             warnings => \@warnings,
                             where => 'compiling action',
                             long_where => "compiling action for $name",
@@ -313,6 +314,7 @@ sub prepare_grammar_for_recognizer {
             Parse::Marpa::Internal::code_problems({
                 eval_ok => $eval_ok,
                 fatal_error => $fatal_error,
+                grammar => $grammar,
                 warnings => \@warnings,
                 where => 'evaluating lex preamble',
                 code => \$code,
@@ -800,6 +802,7 @@ sub Parse::Marpa::Recognizer::text {
                     Parse::Marpa::Internal::code_problems({
                         eval_ok => $eval_ok,
                         fatal_error => $fatal_error,
+                        grammar => $grammar,
                         warnings => \@warnings,
                         where => 'user supplied lexer',
                         long_where => 'user supplied lexer for '

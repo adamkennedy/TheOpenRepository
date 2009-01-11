@@ -61,8 +61,11 @@ use Data::Dumper;
 use Carp;
 
 sub run_preamble {
-    my $preamble = shift;
+    my $grammar = shift;
     my $package  = shift;
+
+    my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
+    return unless defined $preamble;
 
     my @warnings;
     local $SIG{__WARN__} = sub {
@@ -77,6 +80,7 @@ sub run_preamble {
     if ( not $eval_ok or @warnings ) {
         my $fatal_error = $EVAL_ERROR;
         Parse::Marpa::Internal::code_problems({
+            grammar => $grammar,
             eval_ok => $eval_ok,
             fatal_error => $fatal_error,
             warnings => \@warnings,
@@ -183,6 +187,7 @@ sub set_null_values {
             if ( $fatal_error or @warnings ) {
                 Parse::Marpa::Internal::code_problems({
                     fatal_error => $fatal_error,
+                    grammar => $grammar,
                     warnings => \@warnings,
                     where => 'evaluating null value',
                     long_where => 'evaluating null value for '
@@ -323,7 +328,7 @@ sub set_actions {
               "sub {\n"
             . '    package '
             . $package . ";\n"
-            . $action . "\n" . '}';
+            . $action . '}';
 
         if ($trace_actions) {
             print {$trace_fh} 'Setting action for rule ',
@@ -349,6 +354,7 @@ sub set_actions {
                     Parse::Marpa::brief_original_rule($rule);
                 Parse::Marpa::Internal::code_problems({
                     fatal_error => $fatal_error,
+                    grammar => $grammar,
                     warnings => \@warnings,
                     where => 'compiling action',
                     long_where => 'compiling action for ' . Parse::Marpa::brief_rule($rule),
@@ -474,8 +480,7 @@ sub Parse::Marpa::Evaluator::new {
     state $parse_number = 0;
     my $package = $self->[Parse::Marpa::Internal::Evaluator::PACKAGE] =
         sprintf 'Parse::Marpa::E_%x', $parse_number++;
-    my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
-    defined $preamble and run_preamble( $preamble, $package );
+    run_preamble( $grammar, $package );
     my $null_values =
         $self->[Parse::Marpa::Internal::Evaluator::NULL_VALUES] =
         set_null_values( $grammar, $package );
@@ -1318,6 +1323,7 @@ sub Parse::Marpa::Evaluator::value {
                         Parse::Marpa::brief_original_rule($rule);
                     Parse::Marpa::Internal::code_problems({
                         fatal_error => $fatal_error,
+                        grammar => $grammar,
                         eval_ok => $eval_ok,
                         warnings => \@warnings,
                         where => 'computing value',
