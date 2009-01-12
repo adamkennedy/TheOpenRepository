@@ -5,7 +5,7 @@ use 5.010_000;
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 27;
 
 use lib 'lib';
 use lib 't/lib';
@@ -27,6 +27,7 @@ BEGIN {
 my @features = qw(
     preamble lex_preamble
     e_op_action default_action
+    lexer
 );
 
 my @tests = (
@@ -132,6 +133,7 @@ sub run_test {
     my $preamble = q{1};
     my $lex_preamble = q{1};
     my $default_action = $good_code{default_action};
+    my $text_lexer = 'lex_q_quote';
 
     while (my ($arg, $value) = each %{$args})
     {
@@ -141,6 +143,7 @@ sub run_test {
         when ('default_action') { $default_action = $value }
         when ('lex_preamble') { $lex_preamble = $value }
         when ('preamble') { $preamble = $value }
+        when ('lexer') { $text_lexer = $value }
         default { croak("unknown argument to run_test: $arg"); }
       }
     }
@@ -158,7 +161,7 @@ sub run_test {
         terminals => [
             [ 'Number' => { regex => qr/\d+/xms } ],
             [ 'Op' => { regex => qr/[-+*]/xms } ],
-            [ 'Text' => { action => 'lex_q_quote' } ],
+            [ 'Text' => { action => $text_lexer } ],
         ],
         default_action => $default_action,
         preamble => $preamble,
@@ -193,6 +196,7 @@ my %where = (
     lex_preamble => 'evaluating lex preamble',
     e_op_action => 'compiling action',
     default_action => 'compiling action',
+    lexer => 'compiling lexer',
 );
 
 my %long_where = (
@@ -200,6 +204,7 @@ my %long_where = (
     lex_preamble => 'evaluating lex preamble',
     e_op_action => 'compiling action for 1: E -> E Op E',
     default_action => 'compiling action for 3: optional_trailer -> trailer',
+    lexer => 'compiling lexer for Text',
 );
 
 for my $test (@tests)
@@ -287,6 +292,27 @@ Warning #1 in <WHERE>:
 ======
 __END__
 
+| expected lexer compile phase warning
+Fatal problem(s) in <LONG_WHERE>
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+5:     # this should be a compile phase warning
+6: my $x = 0;
+*7: my $x = 1;
+*8: my $x = 2;
+9: $x++;
+10: 1;
+11: ;
+======
+Warning #0 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 7, <DATA> line 1.
+======
+Warning #1 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 8, <DATA> line 1.
+======
+__END__
+
 | bad code compile phase fatal
 # this should be a compile phase error
 my $x = 0;
@@ -327,6 +353,23 @@ Problem code begins:
 ======
 Error in <WHERE>:
 syntax error at (eval <LINE_NO>) line 5, at EOF
+======
+__END__
+
+| expected lexer compile phase fatal
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: sub {
+2:     my $STRING = shift;
+3:     my $START = shift;
+4:     package Parse::Marpa::<PACKAGE>;
+5:     # this should be a compile phase error
+6: my $x = 0;
+7: $x=;
+======
+Error in <WHERE>:
+syntax error at (eval <LINE_NO>) line 7, at EOF
 ======
 __END__
 
@@ -402,6 +445,27 @@ Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
 ======
 __END__
 
+| expected lexer run phase warning
+Fatal problem(s) in user supplied lexer for Text at 1
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+5:     # this should be a run phase warning
+6: my $x = 0;
+*7: warn "Test Warning 1";
+*8: warn "Test Warning 2";
+9: $x++;
+10: 1;
+11: ;
+======
+Warning #0 in user supplied lexer:
+Test Warning 1 at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
+======
+Warning #1 in user supplied lexer:
+Test Warning 2 at (eval <LINE_NO>) line 8, <DATA> line <LINE_NO>.
+======
+__END__
+
 | bad code run phase error
 # this should be a run phase error
 my $x = 0;
@@ -461,6 +525,23 @@ Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
 __END__
 
+| expected lexer run phase error
+Fatal problem(s) in user supplied lexer for Text at 1
+Fatal Error
+Problem code begins:
+1: sub {
+2:     my $STRING = shift;
+3:     my $START = shift;
+4:     package Parse::Marpa::<PACKAGE>;
+5:     # this should be a run phase error
+6: my $x = 0;
+7: $x = 711/0;
+======
+Error in user supplied lexer:
+Illegal division by zero at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
+======
+__END__
+
 | bad code run phase die
 # this is a call to die()
 my $x = 0;
@@ -517,6 +598,23 @@ Problem code begins:
 ======
 Error in computing value:
 test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected lexer run phase die
+Fatal problem(s) in user supplied lexer for Text at 1
+Fatal Error
+Problem code begins:
+1: sub {
+2:     my $STRING = shift;
+3:     my $START = shift;
+4:     package Parse::Marpa::<PACKAGE>;
+5:     # this is a call to die()
+6: my $x = 0;
+7: die('test call to die');
+======
+Error in user supplied lexer:
+test call to die at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
 ======
 __END__
 

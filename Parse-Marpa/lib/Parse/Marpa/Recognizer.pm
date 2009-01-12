@@ -214,8 +214,8 @@ sub set_lexers {
                             fatal_error => $fatal_error,
                             grammar => $grammar,
                             warnings => \@warnings,
-                            where => 'compiling action',
-                            long_where => "compiling action for $name",
+                            where => 'compiling lexer',
+                            long_where => "compiling lexer for $name",
                             code => \$code,
                         });
                     }

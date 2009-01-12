@@ -179,6 +179,10 @@ The lex preamble is run
 when the recognizer object is created,
 in a namespace special to the recognizer object.
 A lex preamble may be used to set up globals.
+
+The value of the lex preamble is the value of its
+last statement.
+Marpa throws an exception if this is not a true value in Perl 5.
 The lex preamble of a recognizer object cannot be changed
 after the recognizer object has been created.
 
@@ -211,6 +215,10 @@ when the evaluator object is created,
 in a namespace special to the evaluator object.
 Rule actions and null symbol actions also run in this namespace.
 A preamble may be used to set up globals.
+
+The value of the preamble is the value
+of its last statement.
+Marpa throws an exception if this is not a true value in Perl 5.
 The preamble of a recognizer object cannot be changed
 after the recognizer object has been created.
 
