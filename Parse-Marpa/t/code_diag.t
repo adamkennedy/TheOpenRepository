@@ -5,7 +5,7 @@ use 5.010_000;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 22;
 
 use lib 'lib';
 use lib 't/lib';
@@ -110,7 +110,7 @@ sub canonical {
     my $where = shift;
     my $long_where = shift;
     $long_where //= $where;
-    $template =~ s/ \b package \s Parse [:][:] Marpa [:][:] [EP] _ \d+ [;] $
+    $template =~ s/ \b package \s Parse [:][:] Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
         /package Parse::Marpa::<PACKAGE>;/xms;
     $template =~ s/ \s* at \s [^\s]* code_diag[.]t \s line  \s \d+\Z//xms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
@@ -361,8 +361,7 @@ Test Warning 2 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 __END__
 
 | expected e_op_action run phase warning
-| expected default_action run phase warning
-Fatal problem(s) in <LONG_WHERE>
+Fatal problem(s) in computing value for rule: 1: E -> E Op E
 2 Warning(s)
 Warning(s) treated as fatal problem
 Last warning occurred in this code:
@@ -374,10 +373,31 @@ Last warning occurred in this code:
 8: 1;
 9: }
 ======
-Warning #0 in <WHERE>:
+Warning #0 in computing value:
 Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
-Warning #1 in <WHERE>:
+Warning #1 in computing value:
+Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected default_action run phase warning
+Fatal problem(s) in computing value for rule: 5: trailer -> Text
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+3: # this should be a run phase warning
+4: my $x = 0;
+*5: warn "Test Warning 1";
+*6: warn "Test Warning 2";
+7: $x++;
+8: 1;
+9: }
+======
+Warning #0 in computing value:
+Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+Warning #1 in computing value:
 Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
 ======
 __END__
@@ -390,6 +410,57 @@ $x++;
 1;
 __END__
 
+| expected preamble run phase error
+| expected lex_preamble run phase error
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: package Parse::Marpa::<PACKAGE>;
+2: # this should be a run phase error
+3: my $x = 0;
+4: $x = 711/0;
+5: $x++;
+6: 1;
+======
+Error in <WHERE>:
+Illegal division by zero at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected e_op_action run phase error
+Fatal problem(s) in computing value for rule: 1: E -> E Op E
+Fatal Error
+Problem code begins:
+1: sub {
+2:     package Parse::Marpa::<PACKAGE>;
+3: # this should be a run phase error
+4: my $x = 0;
+5: $x = 711/0;
+6: $x++;
+7: 1;
+======
+Error in computing value:
+Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected default_action run phase error
+Fatal problem(s) in computing value for rule: 5: trailer -> Text
+Fatal Error
+Problem code begins:
+1: sub {
+2:     package Parse::Marpa::<PACKAGE>;
+3: # this should be a run phase error
+4: my $x = 0;
+5: $x = 711/0;
+6: $x++;
+7: 1;
+======
+Error in computing value:
+Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
 | bad code run phase die
 # this is a call to die()
 my $x = 0;
@@ -397,6 +468,58 @@ die('test call to die');
 $x++;
 1;
 __END__
+
+| expected preamble run phase die
+| expected lex_preamble run phase die
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: package Parse::Marpa::<PACKAGE>;
+2: # this is a call to die()
+3: my $x = 0;
+4: die('test call to die');
+5: $x++;
+6: 1;
+======
+Error in <WHERE>:
+test call to die at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected e_op_action run phase die
+Fatal problem(s) in computing value for rule: 1: E -> E Op E
+Fatal Error
+Problem code begins:
+1: sub {
+2:     package Parse::Marpa::<PACKAGE>;
+3: # this is a call to die()
+4: my $x = 0;
+5: die('test call to die');
+6: $x++;
+7: 1;
+======
+Error in computing value:
+test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected default_action run phase die
+Fatal problem(s) in computing value for rule: 5: trailer -> Text
+Fatal Error
+Problem code begins:
+1: sub {
+2:     package Parse::Marpa::<PACKAGE>;
+3: # this is a call to die()
+4: my $x = 0;
+5: die('test call to die');
+6: $x++;
+7: 1;
+======
+Error in computing value:
+test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
 
 | good code e_op_action
 my ($right_string, $right_value)

@@ -349,9 +349,6 @@ sub set_actions {
 
             my $fatal_error = $EVAL_ERROR;
             if ( $fatal_error or @warnings ) {
-                say {$trace_fh}
-                    'Problems compiling action for original rule: ',
-                    Parse::Marpa::brief_original_rule($rule);
                 Parse::Marpa::Internal::code_problems({
                     fatal_error => $fatal_error,
                     grammar => $grammar,
@@ -1318,9 +1315,6 @@ sub Parse::Marpa::Evaluator::value {
                         $rule_data
                         ->[ $rule->[Parse::Marpa::Internal::Rule::ID] ]
                         ->[ Parse::Marpa::Internal::Evaluator::Rule::CODE ];
-                    say {$trace_fh}
-                        'Problems computing value for original rule: ',
-                        Parse::Marpa::brief_original_rule($rule);
                     Parse::Marpa::Internal::code_problems({
                         fatal_error => $fatal_error,
                         grammar => $grammar,
