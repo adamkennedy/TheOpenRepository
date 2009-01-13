@@ -12,7 +12,7 @@ use DBI          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.17';
+	$VERSION = '1.18';
 
 	# DBD::SQLite has a bug that generates a spurious warning
 	# at compile time, so we need to temporarily disable them.
@@ -99,6 +99,8 @@ package $pkg;
 use strict;
 
 my \$DBH = undef;
+
+sub orlite { '$VERSION' }
 
 sub dsn { '$dsn' }
 

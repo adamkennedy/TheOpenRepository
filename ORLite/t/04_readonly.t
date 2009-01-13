@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -45,6 +45,8 @@ use ORLite {
 
 1;
 END_PERL
+
+is( Foo::Bar->orlite, $t::lib::Test::VERSION, '->orlite ok' );
 
 # Check the user_version value
 is( Foo::Bar->pragma('user_version'), 10, '->user_version ok' );

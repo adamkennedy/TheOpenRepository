@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.18 Wed 14 Jan 2009
+	- Adding an ->orlite method to return the version number of the
+	  ORLite module that was used to generate the distribution.
+
 1.17 Sat  3 Jan 2009
 	- Adding a ->truncate method to each table
 
