@@ -671,9 +671,9 @@ sub Parse::Marpa::Grammar::new {
 sub Parse::Marpa::show_source_grammar_status {
     my $status =
         $Parse::Marpa::Internal::stringified_source_grammar ? 'Stringified' : 'Raw';
-    if ($Parse::Marpa::Internal::stringified_eval_error) {
+    if ($Parse::Marpa::Internal::STRINGIFIED_EVAL_ERROR) {
         $status .= "\nStringified source had error:\n"
-            . $Parse::Marpa::Internal::stringified_eval_error;
+            . $Parse::Marpa::Internal::STRINGIFIED_EVAL_ERROR;
     }
     return $status;
 }
@@ -781,7 +781,7 @@ sub parse_source_grammar {
                 Parse::Marpa::stringify_source_grammar();
         }
         else {
-            my $eval_error = $Parse::Marpa::Internal::stringified_eval_error
+            my $eval_error = $Parse::Marpa::Internal::STRINGIFIED_EVAL_ERROR
                 // 'no eval error';
             croak( "No stringified source grammar:\n", $eval_error );
         }
@@ -1338,7 +1338,7 @@ sub Parse::Marpa::Grammar::unstringify {
         local $SIG{__WARN__} = sub {
             push @warnings, [ $_[0], (caller 0) ];
         };
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
         no strict 'refs';
         my $eval_ok = eval ${$stringified_grammar};
         use strict 'refs';

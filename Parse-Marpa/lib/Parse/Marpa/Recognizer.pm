@@ -488,8 +488,10 @@ sub Parse::Marpa::Recognizer::unstringify {
             push @warnings, [ $_[0], (caller 0) ];
         };
 
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
+        no strict 'refs';
         my $eval_ok = eval ${$stringified_recce};
+        use strict 'refs';
         ## use critic
 
         if (not $eval_ok or @warnings ) {

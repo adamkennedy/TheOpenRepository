@@ -32,10 +32,17 @@ sub run_critic {
     local($RS) = undef;
     my $critic_output = <$child_out>;
     waitpid $pid, 0;
-    say STDERR "perlcritic returned $CHILD_ERROR" if $CHILD_ERROR;
-    my @newlines = ($critic_output =~ m/\n/xmsg);
-    say STDERR 'Output length: ', scalar @newlines;
-    return \$critic_output;
+    if ($CHILD_ERROR)
+    {
+        my $error = "perlcritic returned $CHILD_ERROR";
+        say STDERR $error;
+        $critic_output .= "$error\n";
+        my @newlines = ($critic_output =~ m/\n/xmsg);
+        say STDERR "$file: ", scalar @newlines, " lines of complaints";
+        return \$critic_output;
+    }
+    say STDERR "$file: clean";
+    return "";
 }
 
 open my $manifest, '<', '../MANIFEST'
@@ -50,7 +57,9 @@ FILE: while (my $file = <$manifest>) {
     $file = '../' . $file;
     next FILE if -d $file;
     croak("No such file: $file") unless -f $file;
-    say "=== $file ===";
-    my $result = run_critic( $file );
-    # say ${$result};
+    if (my $result = run_critic( $file ))
+    {
+        say "=== $file ===";
+        print ${$result};
+    }
 }

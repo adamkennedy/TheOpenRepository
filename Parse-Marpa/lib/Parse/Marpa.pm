@@ -3,7 +3,7 @@ package Parse::Marpa;
 use 5.010_000;
 
 use warnings;
-no warnings "recursion";
+no warnings 'recursion';
 use strict;
 
 BEGIN {
@@ -104,23 +104,22 @@ package Parse::Marpa::Internal;
 
 use Carp;
 
-our $stringified_eval_error;
+our $STRINGIFIED_EVAL_ERROR;
 
 BEGIN {
-    eval "use Parse::Marpa::Source";
-    $stringified_eval_error = $@;
-    if (not $stringified_eval_error)
+    if (not eval ' use Parse::Marpa::Source ')
     {
+        $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
         if ($Parse::Marpa::VERSION ne $Parse::Marpa::Source::VERSION)
         {
-           $stringified_eval_error =
-              "Version mismatch:"
+           $STRINGIFIED_EVAL_ERROR =
+              'Version mismatch:'
               . " Parse::Marpa::VERSION=$Parse::Marpa::VERSION "
               . " Parse::Marpa::Source::VERSION=$Parse::Marpa::Source::VERSION"
         }
     }
     undef $Parse::Marpa::Internal::stringified_source_grammar
-        if $stringified_eval_error;
+        if $STRINGIFIED_EVAL_ERROR;
 }
 
 package Parse::Marpa::Read_Only;
@@ -146,16 +145,16 @@ sub Parse::Marpa::mdl {
 
     my $ref = ref $grammar;
     croak(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
-        unless $ref eq "SCALAR";
+        unless $ref eq 'SCALAR';
 
     $ref = ref $text;
     croak(qq{text arg to mdl() was ref type "$ref", must be string ref})
-        unless $ref eq "SCALAR";
+        unless $ref eq 'SCALAR';
 
     $options //= {};
     $ref = ref $options;
     croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
-        unless $ref eq "HASH";
+        unless $ref eq 'HASH';
 
     my $g =
         new Parse::Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
@@ -189,9 +188,9 @@ sub Parse::Marpa::mdl {
 sub Parse::Marpa::show_value {
     my $value_ref = shift;
     my $ii        = shift;
-    return "none" unless defined $value_ref;
+    return 'none' unless defined $value_ref;
     my $value = $$value_ref;
-    return "undef" unless defined $value;
+    return 'undef' unless defined $value;
     if ($ii) {
         my $type = ref $value;
         return $type if $type;
@@ -213,6 +212,8 @@ is_synopsis_pl($_)
 
 =end Parse::Marpa::test_document:
 
+    #!perl
+    
     use 5.010_000;
     use strict;
     use warnings;
@@ -222,9 +223,9 @@ is_synopsis_pl($_)
     # remember to use refs to strings
     my $value = Parse::Marpa::mdl(
         (do { local($RS) = undef; my $source = <DATA>; \$source; }),
-        \("2+2*3")
+        \('2+2*3')
     );
-    say $$value;
+    say ${$value};
 
     __DATA__
     semantics are perl5.  version is 1.001_003.  start symbol is Expression.

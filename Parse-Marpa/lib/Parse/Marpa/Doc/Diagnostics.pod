@@ -281,8 +281,12 @@ in_bin_mdl($_);
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ( $fail_location >= 0 ) {
-        print STDERR Parse::Marpa::show_location( "Parsing failed",
-            \$text_to_parse, $fail_location );
+        print {*STDERR} Parse::Marpa::show_location(
+            'Parsing failed',
+            \$text_to_parse,
+            $fail_location,
+        )
+        or croak "print to STDERR failed: $OS_ERROR";
         exit 1;
     }
 
@@ -317,7 +321,7 @@ in_bin_mdl($_);
     $grammar->precompute();
 
     for my $symbol ( @{ $grammar->inaccessible_symbols() } ) {
-	say "Inaccessible symbol: ", $symbol;
+	say 'Inaccessible symbol: ', $symbol;
     }
 
 Returns the
@@ -340,7 +344,8 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    print $grammar->show_NFA();
+    print $grammar->show_NFA()
+        or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string listing the states of the NFA
 with the LR(0) items and transitions for each.
@@ -359,7 +364,8 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    print $grammar->show_QDFA();
+    print $grammar->show_QDFA()
+        or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string listing the states of the QDFA
 with the LR(0) items, NFA states, and transitions for each.
@@ -377,7 +383,7 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    say "Accessible symbols: ",
+    say 'Accessible symbols: ',
         $grammar->show_accessible_symbols();
 
 Returns a one-line string with the plumbing names
@@ -398,7 +404,7 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    say "Nullable symbols: ",
+    say 'Nullable symbols: ',
         $grammar->show_nullable_symbols();
 
 Returns a one-line string with the plumbing names
@@ -419,7 +425,7 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    say "Nulling symbols: ",
+    say 'Nulling symbols: ',
         $grammar->show_nulling_symbols();
 
 Returns a one-line string with the plumbing names
@@ -440,7 +446,8 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    print $grammar->show_problems();
+    print $grammar->show_problems()
+        or croak "print failed: $OS_ERROR";
 
 Returns a string describing the problems a grammar had in the precomputation phase.
 For many precomputation problems, Marpa
@@ -469,7 +476,7 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    say "Productive symbols: ",
+    say 'Productive symbols: ',
         $grammar->show_productive_symbols();
 
 Returns a one-line string with the plumbing names
@@ -490,7 +497,8 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    print $grammar->show_rules();
+    print $grammar->show_rules()
+        or croak "print failed: $OS_ERROR";
 
 Returns a string listing the rules, each commented as to whether it
 was nullable, nulling, unproductive, inaccessible, empty or not useful.
@@ -516,7 +524,8 @@ in_bin_mdl($_);
 
     $grammar->precompute();
 
-    print $grammar->show_symbols();
+    print $grammar->show_symbols()
+        or croak "print failed: $OS_ERROR";
 
 Returns a string listing the symbols, along with whether they were
 nulling, nullable, unproductive or inaccessible.
@@ -537,7 +546,7 @@ in_bin_mdl($_);
     $grammar->precompute();
 
     for my $symbol ( @{ $grammar->unproductive_symbols() } ) {
-        say "Unproductive symbol: ", $symbol;
+        say 'Unproductive symbol: ', $symbol;
     }
 
 Given a precomputed grammar, returns the
@@ -571,7 +580,8 @@ in_bin_mdl($_);
 
     my $fail_location = $recce->text( \$text_to_parse );
 
-    print $recce->show_earley_sets;
+    print $recce->show_earley_sets
+        or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string
 listing every Earley item in every Earley set.
@@ -587,7 +597,8 @@ in_bin_mdl($_);
 
 =end Parse::Marpa::test_document:
 
-    print $evaler->show_bocage($show_bocage_verbosity);
+    print $evaler->show_bocage($show_bocage_verbosity)
+        or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string describing the bocage
 for an evaluator.
@@ -628,7 +639,8 @@ in_bin_mdl($_);
 
 =end Parse::Marpa::test_document:
 
-    print $evaler->show_tree($show_tree_flag);
+    print $evaler->show_tree($show_tree_flag)
+        or croak "print failed: $OS_ERROR";
 
 When called after a successful call to the C<value> method,
 C<show_tree>
