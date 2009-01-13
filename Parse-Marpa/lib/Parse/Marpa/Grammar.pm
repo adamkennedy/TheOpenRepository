@@ -201,12 +201,12 @@ use Parse::Marpa::Offset Grammar =>
     # temporary data
     qw(
         RULE_HASH
-        START NFA
-        QDFA_BY_NAME NULLABLE_SYMBOL
-        TRACE_RULES
+        START START_NAME
+        NFA QDFA_BY_NAME
+        NULLABLE_SYMBOL
         LOCATION_CALLBACK
         WARNINGS SEMANTICS
-        TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
+        TRACE_RULES TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
         ALLOW_RAW_SOURCE INTERFACE
     );
 
@@ -227,6 +227,7 @@ SYMBOLS            - array of symbol refs
 RULE_HASH          - hash by name of rule refs
 SYMBOL_HASH        - hash by name of symbol refs
 START              - ref to start symbol
+START_NAME         - name of original symbol
 NFA                - array of states
 QDFA               - array of states
 QDFA_BY_NAME       - hash from QDFA name to QDFA reference
@@ -545,7 +546,7 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     }
 
     if ( defined $new_start_symbol ) {
-        $grammar->[Parse::Marpa::Internal::Grammar::START] =
+        $grammar->[Parse::Marpa::Internal::Grammar::START_NAME] =
             $new_start_symbol;
         say {$trace_fh} 'Start symbol set to ', $new_start_symbol
             if $trace_predefineds;
@@ -880,7 +881,7 @@ sub Parse::Marpa::Grammar::set {
                 croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
-                $grammar->[Parse::Marpa::Internal::Grammar::START] = $value;
+                $grammar->[Parse::Marpa::Internal::Grammar::START_NAME] = $value;
             }
             when ('academic') {
                 croak(
@@ -1184,14 +1185,23 @@ sub Parse::Marpa::Grammar::precompute {
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
 
+    my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
+    if ($problems) {
+        croak(
+            Parse::Marpa::Grammar::show_problems($grammar),
+            "Second attempt to precompute grammar with fatal problems\n",
+            'Marpa cannot proceed'
+        );
+    }
+
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     # Be idempotent.  If the grammar is already precomputed, just
     # return success without doing anything.
-    if (  $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED ) {
+    if (  $phase == Parse::Marpa::Internal::Phase::PRECOMPUTED ) {
         return $grammar;
     }
 
-    if ( $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED ) {
+    if ( $phase != Parse::Marpa::Internal::Phase::RULES ) {
         croak(
             "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
             Parse::Marpa::Internal::Phase::description($phase)
@@ -1202,10 +1212,7 @@ sub Parse::Marpa::Grammar::precompute {
     nullable($grammar) or return $grammar;
     productive($grammar);
 
-    my $start = $grammar->[Parse::Marpa::Internal::Grammar::START];
-    croak('No start symbol specified') unless defined $start;
-
-    set_start( $grammar, $start ) or return $grammar;
+    check_start( $grammar ) or return $grammar;
 
     accessible($grammar);
     if ( $grammar->[Parse::Marpa::Internal::Grammar::ACADEMIC] ) {
@@ -1322,6 +1329,8 @@ sub Parse::Marpa::Grammar::unstringify {
 
     croak('Attempt to unstringify undefined grammar')
         unless defined $stringified_grammar;
+    croak('Arg to unstringify must be ref to SCALAR')
+        if ref $stringified_grammar ne 'SCALAR';
 
     my $grammar;
     {
@@ -2306,13 +2315,16 @@ sub add_user_terminal {
     return;
 }
 
-sub set_start {
+sub check_start {
     my $grammar    = shift;
-    my $start_name = shift;
     my $success    = 1;
 
-    # my $trace_fh =
-    # $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
+    my $start_name = $grammar->[Parse::Marpa::Internal::Grammar::START_NAME];
+    croak('No start symbol specified') unless defined $start_name;
+    if (my $ref_type = ref $start_name) {
+        croak("Start symbol name specified as a ref to $ref_type, it should be a string");
+    }
+
     my $symbol_hash =
         $grammar->[Parse::Marpa::Internal::Grammar::SYMBOL_HASH];
     my $start = $symbol_hash->{$start_name};
@@ -3359,11 +3371,10 @@ sub assign_QDFA_state_set {
 
 sub create_QDFA {
     my $grammar = shift;
-    my ( $symbols, $symbol_hash, $NFA, $start, $tracing ) = @{$grammar}[
+    my ( $symbols, $symbol_hash, $NFA, $tracing ) = @{$grammar}[
         Parse::Marpa::Internal::Grammar::SYMBOLS,
         Parse::Marpa::Internal::Grammar::SYMBOL_HASH,
         Parse::Marpa::Internal::Grammar::NFA,
-        Parse::Marpa::Internal::Grammar::START,
         Parse::Marpa::Internal::Grammar::TRACING,
     ];
 

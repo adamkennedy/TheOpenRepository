@@ -5,7 +5,7 @@ use 5.010_000;
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 42;
 
 use lib 'lib';
 use lib 't/lib';
@@ -17,17 +17,13 @@ BEGIN {
 	use_ok( 'Parse::Marpa' );
 }
 
-# Need also to test null actions
-# and lexing routines
-
-# Errors in evaluation of raw grammars?
-# in unstringifying grammars?
-# in unstringifying recognizers?
-
 my @features = qw(
     preamble lex_preamble
     e_op_action default_action
     lexer
+    null_action
+    unstringify_grammar
+    unstringify_recce
 );
 
 my @tests = (
@@ -134,6 +130,8 @@ sub run_test {
     my $lex_preamble = q{1};
     my $default_action = $good_code{default_action};
     my $text_lexer = 'lex_q_quote';
+    my $null_action = q{ '[null]' };
+    my $default_null_value = q{[default null]};
 
     while (my ($arg, $value) = each %{$args})
     {
@@ -144,6 +142,9 @@ sub run_test {
         when ('lex_preamble') { $lex_preamble = $value }
         when ('preamble') { $preamble = $value }
         when ('lexer') { $text_lexer = $value }
+        when ('null_action') { $null_action = $value }
+        when ('unstringify_grammar') { return Parse::Marpa::Grammar::unstringify(\$value) }
+        when ('unstringify_recce') { return Parse::Marpa::Recognizer::unstringify(\$value) }
         default { croak("unknown argument to run_test: $arg"); }
       }
     }
@@ -151,11 +152,12 @@ sub run_test {
     my $grammar = new Parse::Marpa::Grammar({
         start => 'S',
         rules => [
-            [ 'S', [qw/E trailer optional_trailer/], ],
+            [ 'S', [qw/E trailer optional_trailer1 optional_trailer2/], ],
             [ 'E', [qw/E Op E/], $E_Op_action, ],
             [ 'E', [qw/Number/], $E_Number_action, ],
-            [ 'optional_trailer', [qw/trailer/], ],
-            [ 'optional_trailer', [], ],
+            [ 'optional_trailer1', [qw/trailer/], ],
+            [ 'optional_trailer1', [], ],
+            [ 'optional_trailer2', [], $null_action ],
             [ 'trailer', [qw/Text/], ],
         ],
         terminals => [
@@ -167,9 +169,8 @@ sub run_test {
         preamble => $preamble,
         lex_preamble => $lex_preamble,
         default_lex_prefix => '\s*',
+        default_null_value => $default_null_value,
     });
-
-    $grammar->precompute();
 
     my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
@@ -180,7 +181,7 @@ sub run_test {
 
     $recce->end_input();
 
-    my $expected = '((((2-0)*3)+1)==7; q{trailer};undef)';
+    my $expected = '((((2-0)*3)+1)==7; q{trailer};[default null];[null])';
     my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
     my $value = $evaler->value();
     Marpa::Test::is(${$value}, $expected, 'Ambiguous Equation Value');
@@ -196,15 +197,21 @@ my %where = (
     lex_preamble => 'evaluating lex preamble',
     e_op_action => 'compiling action',
     default_action => 'compiling action',
+    null_action => 'evaluating null value',
     lexer => 'compiling lexer',
+    unstringify_grammar => 'unstringifying grammar',
+    unstringify_recce => 'unstringifying recognizer',
 );
 
 my %long_where = (
     preamble => 'evaluating preamble',
     lex_preamble => 'evaluating lex preamble',
     e_op_action => 'compiling action for 1: E -> E Op E',
-    default_action => 'compiling action for 3: optional_trailer -> trailer',
+    default_action => 'compiling action for 3: optional_trailer1 -> trailer',
+    null_action => 'evaluating null value for optional_trailer2',
     lexer => 'compiling lexer for Text',
+    unstringify_grammar => 'unstringifying grammar',
+    unstringify_recce => 'unstringifying recognizer',
 );
 
 for my $test (@tests)
@@ -270,6 +277,27 @@ Warning #1 in <WHERE>:
 ======
 __END__
 
+| expected unstringify_grammar compile phase warning
+| expected unstringify_recce compile phase warning
+Fatal problem(s) in <LONG_WHERE>
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+1: # this should be a compile phase warning
+2: my $x = 0;
+*3: my $x = 1;
+*4: my $x = 2;
+5: $x++;
+6: 1;
+======
+Warning #0 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 3, <DATA> line 1.
+======
+Warning #1 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 4, <DATA> line 1.
+======
+__END__
+
 | expected e_op_action compile phase warning
 | expected default_action compile phase warning
 Fatal problem(s) in <LONG_WHERE>
@@ -283,6 +311,26 @@ Last warning occurred in this code:
 7: $x++;
 8: 1;
 9: }
+======
+Warning #0 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
+======
+Warning #1 in <WHERE>:
+"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 6, <DATA> line 1.
+======
+__END__
+
+| expected null_action compile phase warning
+Fatal problem(s) in <LONG_WHERE>
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+3: # this should be a compile phase warning
+4: my $x = 0;
+*5: my $x = 1;
+*6: my $x = 2;
+7: $x++;
+8: 1;
 ======
 Warning #0 in <WHERE>:
 "my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
@@ -338,6 +386,22 @@ syntax error at (eval <LINE_NO>) line 4, at EOF
 ======
 __END__
 
+| expected unstringify_grammar compile phase fatal
+| expected unstringify_recce compile phase fatal
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: # this should be a compile phase error
+2: my $x = 0;
+3: $x=;
+4: $x++;
+5: 1;
+======
+Error in <WHERE>:
+syntax error at (eval <LINE_NO>) line 3, at EOF
+======
+__END__
+
 | expected e_op_action compile phase fatal
 | expected default_action compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
@@ -345,6 +409,23 @@ Fatal Error
 Problem code begins:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
+3: # this should be a compile phase error
+4: my $x = 0;
+5: $x=;
+6: $x++;
+7: 1;
+======
+Error in <WHERE>:
+syntax error at (eval <LINE_NO>) line 5, at EOF
+======
+__END__
+
+| expected null_action compile phase fatal
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: package Parse::Marpa::<PACKAGE>;
+2: @_=();
 3: # this should be a compile phase error
 4: my $x = 0;
 5: $x=;
@@ -403,6 +484,27 @@ Test Warning 2 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
 __END__
 
+| expected unstringify_grammar run phase warning
+| expected unstringify_recce run phase warning
+Fatal problem(s) in <LONG_WHERE>
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+1: # this should be a run phase warning
+2: my $x = 0;
+*3: warn "Test Warning 1";
+*4: warn "Test Warning 2";
+5: $x++;
+6: 1;
+======
+Warning #0 in <WHERE>:
+Test Warning 1 at (eval <LINE_NO>) line 3, <DATA> line <LINE_NO>.
+======
+Warning #1 in <WHERE>:
+Test Warning 2 at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
+======
+__END__
+
 | expected e_op_action run phase warning
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 2 Warning(s)
@@ -425,7 +527,7 @@ Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
 __END__
 
 | expected default_action run phase warning
-Fatal problem(s) in computing value for rule: 5: trailer -> Text
+Fatal problem(s) in computing value for rule: 6: trailer -> Text
 2 Warning(s)
 Warning(s) treated as fatal problem
 Last warning occurred in this code:
@@ -441,6 +543,26 @@ Warning #0 in computing value:
 Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
 Warning #1 in computing value:
+Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected null_action run phase warning
+Fatal problem(s) in <LONG_WHERE>
+2 Warning(s)
+Warning(s) treated as fatal problem
+Last warning occurred in this code:
+3: # this should be a run phase warning
+4: my $x = 0;
+*5: warn "Test Warning 1";
+*6: warn "Test Warning 2";
+7: $x++;
+8: 1;
+======
+Warning #0 in <WHERE>:
+Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+Warning #1 in <WHERE>:
 Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
 ======
 __END__
@@ -491,6 +613,22 @@ Illegal division by zero at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
 ======
 __END__
 
+| expected unstringify_grammar run phase error
+| expected unstringify_recce run phase error
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: # this should be a run phase error
+2: my $x = 0;
+3: $x = 711/0;
+4: $x++;
+5: 1;
+======
+Error in <WHERE>:
+Illegal division by zero at (eval <LINE_NO>) line 3, <DATA> line <LINE_NO>.
+======
+__END__
+
 | expected e_op_action run phase error
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
@@ -509,7 +647,7 @@ Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 __END__
 
 | expected default_action run phase error
-Fatal problem(s) in computing value for rule: 5: trailer -> Text
+Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
 Problem code begins:
 1: sub {
@@ -521,6 +659,23 @@ Problem code begins:
 7: 1;
 ======
 Error in computing value:
+Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected null_action run phase error
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: package Parse::Marpa::<PACKAGE>;
+2: @_=();
+3: # this should be a run phase error
+4: my $x = 0;
+5: $x = 711/0;
+6: $x++;
+7: 1;
+======
+Error in <WHERE>:
 Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
 __END__
@@ -567,6 +722,22 @@ test call to die at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
 ======
 __END__
 
+| expected unstringify_grammar run phase die
+| expected unstringify_recce run phase die
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: # this is a call to die()
+2: my $x = 0;
+3: die('test call to die');
+4: $x++;
+5: 1;
+======
+Error in <WHERE>:
+test call to die at (eval <LINE_NO>) line 3, <DATA> line <LINE_NO>.
+======
+__END__
+
 | expected e_op_action run phase die
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
@@ -585,7 +756,7 @@ test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 __END__
 
 | expected default_action run phase die
-Fatal problem(s) in computing value for rule: 5: trailer -> Text
+Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
 Problem code begins:
 1: sub {
@@ -597,6 +768,23 @@ Problem code begins:
 7: 1;
 ======
 Error in computing value:
+test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+======
+__END__
+
+| expected null_action run phase die
+Fatal problem(s) in <LONG_WHERE>
+Fatal Error
+Problem code begins:
+1: package Parse::Marpa::<PACKAGE>;
+2: @_=();
+3: # this is a call to die()
+4: my $x = 0;
+5: die('test call to die');
+6: $x++;
+7: 1;
+======
+Error in <WHERE>:
 test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
 ======
 __END__

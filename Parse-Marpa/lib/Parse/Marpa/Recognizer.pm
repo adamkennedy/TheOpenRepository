@@ -478,6 +478,8 @@ sub Parse::Marpa::Recognizer::unstringify {
 
     croak('Attempt to unstringify undefined recognizer')
         unless defined $stringified_recce;
+    croak('Arg to unstringify must be ref to SCALAR')
+        if ref $stringified_recce ne 'SCALAR';
 
     my $recce;
     {
