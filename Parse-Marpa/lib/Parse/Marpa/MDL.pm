@@ -86,7 +86,7 @@ in_misc_pl($_)
 =end Parse::Marpa::test_document:
 
     $g->set( {
-        start => Parse::Marpa::MDL::canonical_symbol_name("Document")
+        start => Parse::Marpa::MDL::canonical_symbol_name('Document')
     } );
 
 This static method takes as its one argument an MDL symbol
@@ -103,7 +103,7 @@ in_misc_pl($_)
 
 =end Parse::Marpa::test_document:
 
-    my $op = Parse::Marpa::MDL::get_symbol($grammar, "Op");
+    my $op = Parse::Marpa::MDL::get_symbol($grammar, 'Op');
 
 This static method takes a Marpa grammar object as its first argument and an MDL symbol name as its second.
 It returns the symbol's "cookie".

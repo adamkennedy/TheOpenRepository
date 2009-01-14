@@ -6,9 +6,7 @@ use warnings;
 use integer;
 
 sub import {
-    my $class = shift;
-    my $struct_name = shift;
-    my @fields = @_;
+    my ($class, $struct_name, @fields) = @_;
     my $pkg = caller;
     my $prefix = $pkg . q{::} . $struct_name . q{::};
     my $offset = 0;

@@ -188,7 +188,7 @@ in_misc_pl($_)
 =end Parse::Marpa::test_document:
 
     my ($regex, $token_length)
-        = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start);
+        = Parse::Marpa::Lex::lex_regex(\$input_string, $lexeme_start);
 
 Takes two required arguments.
 C<$string>
@@ -202,7 +202,7 @@ If a prefix was removed
 prior to the call to C<lex_regex>,
 C<$lexeme_start>
 should be the location where the prefix started.
-If no prefix was removed, C<$lexeme_start> will be the same as C<pos $$string>.
+If no prefix was removed, C<$lexeme_start> will be the same as C<pos ${$string}>.
 
 How C<lex_regex> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
 C<lex_regex> returns the null array if no regex was found.
@@ -225,12 +225,12 @@ in_misc_pl($_)
 =end Parse::Marpa::test_document:
 
     my ($string, $token_length)
-        = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start);
+        = Parse::Marpa::Lex::lex_q_quote(\$input_string, $lexeme_start);
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
 The I<string reference> must be to a string that might contain a C<q-> or C<qq->quoted string.
 The C<q-> or C<qq->quoted string will be expected
-to start at the position pointed to by C<pos $$string>.
+to start at the position pointed to by C<pos ${$string}>.
 
 C<$lexeme_start> must contain the start earleme of the quoted string for lexing purposes.
 In many cases (such as the removal of leading whitespace), it's useful to discard

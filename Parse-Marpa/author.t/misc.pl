@@ -1,11 +1,15 @@
+#!perl
+
 use 5.010;
+use strict;
+use warnings;
 use Parse::Marpa;
 
 # This is code to test examples, in order to prove that they do actually
 # compile and execute.  No checking other than for compilation errors
 # or fatal exceptions is done.  This code DOES NOT do anything sensible.
 
-my $mdl_source = <<END;
+my $mdl_source = <<'END';
 semantics are perl5.
 version is 1.001_003.
 start symbol is S.
@@ -15,6 +19,11 @@ S: Document.
 Document: .
 
 END
+
+my $trace_fh;
+my $location;
+my $first_result;
+my @all_results;
 
 my $grammar = new Parse::Marpa::Grammar();
 
@@ -55,22 +64,26 @@ my $depth = 1;
 
 $evaler->set( { cycle_depth => $depth } );
 
-my $string = q{};
+my $input_string = q{};
 my $lexeme_start = 0;
 
-my ($regex, $token_length)
-    = Parse::Marpa::Lex::lex_regex(\$string, $lexeme_start);
+{
+    my ($regex, $token_length)
+        = Parse::Marpa::Lex::lex_regex(\$input_string, $lexeme_start);
+}
 
-my ($string, $token_length)
-    = Parse::Marpa::Lex::lex_q_quote(\$string, $lexeme_start);
+{
+    my ($string, $token_length)
+        = Parse::Marpa::Lex::lex_q_quote(\$input_string, $lexeme_start);
+}
 
 my $g = new Parse::Marpa::Grammar();
 
 $g->set( {
-    start => Parse::Marpa::MDL::canonical_symbol_name("Document")
+    start => Parse::Marpa::MDL::canonical_symbol_name('Document')
 } );
 
-my $op = Parse::Marpa::MDL::get_symbol($grammar, "Op");
+my $op = Parse::Marpa::MDL::get_symbol($grammar, 'Op');
 
 my $grammar_description = $mdl_source;
 my $string_to_parse = q{};

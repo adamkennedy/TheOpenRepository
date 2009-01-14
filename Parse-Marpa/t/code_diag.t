@@ -62,14 +62,14 @@ LINE: while (my $line = <DATA>)
         if ($line =~ s/ \A [|] \s+ //xms)
         {
             chomp $line;
-            push(@headers, $line);
+            push @headers, $line;
             next LINE;
         } else {
             $getting_headers = 0;
             $data = q{};
         }
     }
-    
+
     # getting data
 
     if ($line =~ /\A__END__\Z/xms) {
@@ -107,17 +107,17 @@ sub canonical {
     my $where = shift;
     my $long_where = shift;
     $long_where //= $where;
-    $template =~ s/ \b package \s Parse [:][:] Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
-        /package Parse::Marpa::<PACKAGE>;/xms;
+    $template =~ s{ \b package \s Parse [:][:] Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
+        }{package Parse::Marpa::<PACKAGE>;}xms;
     $template =~ s/ \s* at \s [^\s]* code_diag[.]t \s line  \s \d+\Z//xms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
     $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
-    $template =~ s/ \s [<]DATA[>] \s line \s \d+
-            / <DATA> line <LINE_NO>/xmsg;
+    $template =~ s{ \s [<]DATA[>] \s line \s \d+
+            }{ <DATA> line <LINE_NO>}xmsg;
     $template
-        =~ s/
+        =~ s{
             \s at \s [(] eval \s \d+ [)] \s line \s
-            / at (eval <LINE_NO>) line /xmsg;
+            }{ at (eval <LINE_NO>) line }xmsg;
     return $template;
 }
 
