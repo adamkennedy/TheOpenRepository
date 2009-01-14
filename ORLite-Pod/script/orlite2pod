@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+
+# Front end for orlite2pod.
+# Execute from the root directory of a CPAN-compatible distribution as
+#
+# orlite2pod Class::Name
+
+use 5.006;
+use strict;
+use ORLite::Pod ();
+
+unless ( -d 'lib' ) {
+	die("Failed to find lib directory");
+}
+unshift @INC, 'lib';
+
+my $class = shift;
+eval "require $class;";
+die $@ if $@;
+
+print "Creating ORLite::Pod instance...\n";
+my $pod = ORLite::Pod->new(
+	from => $class,
+	to   => 'lib',
+);
+
+print "Starting POD generation run...\n";
+$pod->run;
+
+exit(0);
