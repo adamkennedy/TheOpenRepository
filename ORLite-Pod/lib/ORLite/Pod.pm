@@ -584,6 +584,11 @@ END_POD
 |
 END_POD
 
+	_print( <<"END_POD" ) if $pkg->can('new');
+|=head2 new
+|
+|TO BE COMPLETED
+END_POD
 
 	# Add a footer
 	_print( <<"END_POD" );
