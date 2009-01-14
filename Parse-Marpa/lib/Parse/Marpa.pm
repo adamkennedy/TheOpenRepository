@@ -107,7 +107,9 @@ use Carp;
 our $STRINGIFIED_EVAL_ERROR;
 
 BEGIN {
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
     if (not eval ' use Parse::Marpa::Source ')
+    ## use critic 
     {
         $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
         if ($Parse::Marpa::VERSION ne $Parse::Marpa::Source::VERSION)
@@ -175,21 +177,21 @@ sub Parse::Marpa::mdl {
         clone => 0,
     } );
     if ( not defined $evaler ) {
-        die_with_parse_failure( $text, length($text) );
+        die_with_parse_failure( $text, length $text );
     }
     return $evaler->value if not wantarray;
     my @values;
     while ( defined( my $value = $evaler->value() ) ) {
-        push( @values, $value );
+        push @values, $value;
     }
-    @values;
+    return @values;
 }
 
 sub Parse::Marpa::show_value {
     my $value_ref = shift;
     my $ii        = shift;
     return 'none' unless defined $value_ref;
-    my $value = $$value_ref;
+    my $value = ${$value_ref};
     return 'undef' unless defined $value;
     if ($ii) {
         my $type = ref $value;
@@ -197,6 +199,10 @@ sub Parse::Marpa::show_value {
     }
     return "$value";
 }
+
+1;    # End of Parse::Marpa
+
+__END__
 
 =head1 NAME
 
@@ -867,8 +873,6 @@ This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.
 
 =cut
-
-1;    # End of Parse::Marpa
 
 # Local Variables:
 #   mode: cperl
