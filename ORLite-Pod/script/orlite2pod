@@ -9,6 +9,11 @@ use 5.006;
 use strict;
 use ORLite::Pod ();
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
 unless ( -d 'lib' ) {
 	die("Failed to find lib directory");
 }
