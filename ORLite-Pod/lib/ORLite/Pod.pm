@@ -707,7 +707,7 @@ END_POD
 END_POD
 
 	# Accessor for the primary key
-	print( <<"END_POD" ) if $pkg->can($table->{pk});
+	_print( <<"END_POD" ) if $pkg->can($table->{pk});
 |=head2 $table->{pk}
 |
 |  if ( \$object->$table->{pk} ) {
