@@ -211,10 +211,10 @@ use Parse::Marpa::Offset Grammar =>
     );
 
 package Parse::Marpa::Internal::Grammar;
+
 use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Grammar::PREAMBLE;
 use constant LAST_RECOGNIZER_FIELD => Parse::Marpa::Internal::Grammar::LEX_PREAMBLE;
 use constant LAST_FIELD => Parse::Marpa::Internal::Grammar::INTERFACE;
-package Parse::Marpa::Internal;
 
 =begin Implementation:
 
@@ -262,6 +262,8 @@ CYCLE_DEPTH - depth to which to follow cycles
 =end Implementation:
 
 =cut
+
+package Parse::Marpa::Internal;
 
 # values for grammar interfaces
 use Parse::Marpa::Offset Interface => qw(RAW MDL);
@@ -352,9 +354,9 @@ sub Parse::Marpa::Internal::code_problems {
        given ($arg) {
          when ('fatal_error') { $fatal_error = $value }
          when ('grammar') { $grammar = $value }
-         when ('warnings') { $warnings = $value }
          when ('where') { $where = $value }
          when ('long_where') { $long_where = $value }
+         when ('warnings') { $warnings = $value }
          when ('code') { $code = $value }
          when ('eval_ok') {
              $eval_value = $value;
@@ -382,16 +384,18 @@ sub Parse::Marpa::Internal::code_problems {
 
     # if we have code
     my $code_to_print;
+    my $code_length;
 
     # block to look for the code to print
     CODE_TO_PRINT: {
 
         last CODE_TO_PRINT unless defined $code;
         last CODE_TO_PRINT unless defined ${$code};
-        last CODE_TO_PRINT if $code_lines == 0;
 
         my @lines = split /\n/xms, ${$code};
-        my $code_length = scalar @lines;
+        $code_length = scalar @lines;
+
+        last CODE_TO_PRINT if $code_lines == 0;
 
         # which lines to print?
         my $first_line;
@@ -457,13 +461,15 @@ sub Parse::Marpa::Internal::code_problems {
 
     # If we have a section of code to print
     if ( defined $code_to_print ) {
-        my $header = 'Problem code begins:';
+        my $header = "$code_length lines in problem code, beginning:";
         if ($max_problem_line >= 0) {
-            $header = 'Last warning occurred in this code:';
+            $header = "$code_length lines in problem code, last warning occurred here:";
         }
         push @msg, "$header\n"
                 . ${$code_to_print}
                 . q{======} . "\n";
+    } elsif (defined $code_length) {
+       push @msg, "$code_length lines in problem code, code printing disabled\n";
     }
 
     for my $warning_ix (0 .. ($warnings_count - 1) )
@@ -518,14 +524,17 @@ sub Parse::Marpa::Internal::Grammar::raw_grammar_eval {
     my %strings;
 
     {
+        my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        local $SIG{__WARN__} = sub {
-            push @warnings, [ $_[0], (caller 0) ];
-        };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval ${$raw_grammar};
         ## use critic
-        if (not $eval_ok or @warnings) {
+
+        $SIG{__WARN__} = $old_warn_handler;
+
+        if (not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({
                 grammar => $grammar,
@@ -1334,15 +1343,18 @@ sub Parse::Marpa::Grammar::unstringify {
 
     my $grammar;
     {
+        my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        local $SIG{__WARN__} = sub {
-            push @warnings, [ $_[0], (caller 0) ];
-        };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+
         ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
         no strict 'refs';
         my $eval_ok = eval ${$stringified_grammar};
         use strict 'refs';
         ## use critic
+
+        $SIG{__WARN__} = $old_warn_handler;
+
         if (not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
             Parse::Marpa::Internal::code_problems({

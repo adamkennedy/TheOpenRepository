@@ -38,6 +38,7 @@ t/ah.t
 t/ah2.t
 t/ah_s.t
 t/bootstrap.t
+t/code_diag.t
 t/cycle.t
 t/cycle2.t
 t/equation.t

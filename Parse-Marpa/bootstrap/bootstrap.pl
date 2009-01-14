@@ -54,9 +54,7 @@ $new_start_symbol = "grammar";
 $new_default_lex_prefix = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/;
 
 $strings{"concatenate-lines"} =  q{
-    my $v_count = scalar @_;
-    return undef if $v_count <= 0;
-    join("\n", grep { $_ } @_);
+    (scalar @_) ? (join "\n", (grep { $_ } @_) ) : undef;
 };
 
 $new_preamble .=  q{
@@ -1073,6 +1071,7 @@ my $g = new Parse::Marpa::Grammar({
     terminals => $new_terminals,
     warnings => 1,
     precompute => 0,
+    code_lines => -1,
 });
 
 $g->set({

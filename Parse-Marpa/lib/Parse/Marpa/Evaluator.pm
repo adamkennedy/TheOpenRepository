@@ -67,15 +67,17 @@ sub run_preamble {
     my $preamble = $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE];
     return unless defined $preamble;
 
-    my @warnings;
-    local $SIG{__WARN__} = sub {
-        push @warnings, [ $_[0], (caller 0) ];
-    };
-
     my $code = 'package ' . $package . ";\n" . $preamble;
+    my $eval_ok;
+    my @warnings;
+    my $old_warn_handler = $SIG{__WARN__};
+    $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    my $eval_ok = eval $code;
+    $eval_ok = eval $code;
     ## use critic
+
+    $SIG{__WARN__} = $old_warn_handler;
 
     if ( not $eval_ok or @warnings ) {
         my $fatal_error = $EVAL_ERROR;
@@ -173,19 +175,27 @@ sub set_null_values {
             my $nulling_symbol =
                 $lhs->[Parse::Marpa::Internal::Symbol::NULL_ALIAS] // $lhs;
 
-            my $code = "package $package;\n" . '@_=();' . "\n" . $action;
+            my $null_value;
+            my $code =
+                '$null_value = do {' . "\n"
+                . "    package $package;\n"
+                . $action
+                . "};\n"
+                . "1;\n";
             my @warnings;
-            local $SIG{__WARN__} = sub {
-                push @warnings, [ $_[0], (caller 0) ];
-            };
+            my $old_warn_handler = $SIG{__WARN__};
+            $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
-            my $null_value = eval $code;
+            my $eval_ok = eval $code;
             ## use critic
 
-            my $fatal_error = $EVAL_ERROR;
-            if ( $fatal_error or @warnings ) {
+            $SIG{__WARN__} = $old_warn_handler;
+
+            if ( not $eval_ok or @warnings ) {
+                my $fatal_error = $EVAL_ERROR;
                 Parse::Marpa::Internal::code_problems({
+                    eval_ok => $eval_ok,
                     fatal_error => $fatal_error,
                     grammar => $grammar,
                     warnings => \@warnings,
@@ -338,17 +348,18 @@ sub set_actions {
 
         my $closure;
         {
+            my $old_warn_handler = $SIG{__WARN__};
             my @warnings;
-            local $SIG{__WARN__} = sub {
-                push @warnings, [ $_[0], (caller 0) ];
-            };
+            $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
             $closure = eval $code;
             ## use critic
 
-            my $fatal_error = $EVAL_ERROR;
-            if ( $fatal_error or @warnings ) {
+            $SIG{__WARN__} = $old_warn_handler;
+
+            if ( not $closure or @warnings ) {
+                my $fatal_error = $EVAL_ERROR;
                 Parse::Marpa::Internal::code_problems({
                     fatal_error => $fatal_error,
                     grammar => $grammar,
@@ -1300,12 +1311,13 @@ sub Parse::Marpa::Evaluator::value {
         if ( $closure_type eq 'CODE' ) {
 
             {
+                my $old_warn_handler = $SIG{__WARN__};
                 my @warnings;
-                local $SIG{__WARN__} = sub {
-                    push @warnings, [ $_[0], ( caller 0 ) ];
-                };
+                $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
-                my $eval_ok = eval { $result = $closure->( @{$args} ); 1; };
+                my $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
+
+                $SIG{__WARN__} = $old_warn_handler;
 
                 if ( not $eval_ok or @warnings ) {
                     my $fatal_error = $EVAL_ERROR;

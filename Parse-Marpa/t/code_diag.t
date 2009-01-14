@@ -261,7 +261,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+7 lines in problem code, last warning occurred here:
 2: # this should be a compile phase warning
 3: my $x = 0;
 *4: my $x = 1;
@@ -282,7 +282,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+6 lines in problem code, last warning occurred here:
 1: # this should be a compile phase warning
 2: my $x = 0;
 *3: my $x = 1;
@@ -303,7 +303,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+9 lines in problem code, last warning occurred here:
 3: # this should be a compile phase warning
 4: my $x = 0;
 *5: my $x = 1;
@@ -324,13 +324,14 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+10 lines in problem code, last warning occurred here:
 3: # this should be a compile phase warning
 4: my $x = 0;
 *5: my $x = 1;
 *6: my $x = 2;
 7: $x++;
 8: 1;
+9: };
 ======
 Warning #0 in <WHERE>:
 "my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
@@ -344,7 +345,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+13 lines in problem code, last warning occurred here:
 5:     # this should be a compile phase warning
 6: my $x = 0;
 *7: my $x = 1;
@@ -373,7 +374,7 @@ __END__
 | expected lex_preamble compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+6 lines in problem code, beginning:
 1: package Parse::Marpa::<PACKAGE>;
 2: # this should be a compile phase error
 3: my $x = 0;
@@ -390,7 +391,7 @@ __END__
 | expected unstringify_recce compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+5 lines in problem code, beginning:
 1: # this should be a compile phase error
 2: my $x = 0;
 3: $x=;
@@ -406,7 +407,7 @@ __END__
 | expected default_action compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+8 lines in problem code, beginning:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
 3: # this should be a compile phase error
@@ -423,9 +424,9 @@ __END__
 | expected null_action compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
-1: package Parse::Marpa::<PACKAGE>;
-2: @_=();
+9 lines in problem code, beginning:
+1: $null_value = do {
+2:     package Parse::Marpa::<PACKAGE>;
 3: # this should be a compile phase error
 4: my $x = 0;
 5: $x=;
@@ -440,7 +441,7 @@ __END__
 | expected lexer compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+12 lines in problem code, beginning:
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;
@@ -468,7 +469,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+7 lines in problem code, last warning occurred here:
 2: # this should be a run phase warning
 3: my $x = 0;
 *4: warn "Test Warning 1";
@@ -489,7 +490,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+6 lines in problem code, last warning occurred here:
 1: # this should be a run phase warning
 2: my $x = 0;
 *3: warn "Test Warning 1";
@@ -509,7 +510,7 @@ __END__
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+9 lines in problem code, last warning occurred here:
 3: # this should be a run phase warning
 4: my $x = 0;
 *5: warn "Test Warning 1";
@@ -530,7 +531,7 @@ __END__
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+9 lines in problem code, last warning occurred here:
 3: # this should be a run phase warning
 4: my $x = 0;
 *5: warn "Test Warning 1";
@@ -551,13 +552,14 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+10 lines in problem code, last warning occurred here:
 3: # this should be a run phase warning
 4: my $x = 0;
 *5: warn "Test Warning 1";
 *6: warn "Test Warning 2";
 7: $x++;
 8: 1;
+9: };
 ======
 Warning #0 in <WHERE>:
 Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
@@ -571,7 +573,7 @@ __END__
 Fatal problem(s) in user supplied lexer for Text at 1
 2 Warning(s)
 Warning(s) treated as fatal problem
-Last warning occurred in this code:
+13 lines in problem code, last warning occurred here:
 5:     # this should be a run phase warning
 6: my $x = 0;
 *7: warn "Test Warning 1";
@@ -600,7 +602,7 @@ __END__
 | expected lex_preamble run phase error
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+6 lines in problem code, beginning:
 1: package Parse::Marpa::<PACKAGE>;
 2: # this should be a run phase error
 3: my $x = 0;
@@ -617,7 +619,7 @@ __END__
 | expected unstringify_recce run phase error
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+5 lines in problem code, beginning:
 1: # this should be a run phase error
 2: my $x = 0;
 3: $x = 711/0;
@@ -632,7 +634,7 @@ __END__
 | expected e_op_action run phase error
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
-Problem code begins:
+8 lines in problem code, beginning:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
 3: # this should be a run phase error
@@ -649,7 +651,7 @@ __END__
 | expected default_action run phase error
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
-Problem code begins:
+8 lines in problem code, beginning:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
 3: # this should be a run phase error
@@ -666,9 +668,9 @@ __END__
 | expected null_action run phase error
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
-1: package Parse::Marpa::<PACKAGE>;
-2: @_=();
+9 lines in problem code, beginning:
+1: $null_value = do {
+2:     package Parse::Marpa::<PACKAGE>;
 3: # this should be a run phase error
 4: my $x = 0;
 5: $x = 711/0;
@@ -683,7 +685,7 @@ __END__
 | expected lexer run phase error
 Fatal problem(s) in user supplied lexer for Text at 1
 Fatal Error
-Problem code begins:
+12 lines in problem code, beginning:
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;
@@ -709,7 +711,7 @@ __END__
 | expected lex_preamble run phase die
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+6 lines in problem code, beginning:
 1: package Parse::Marpa::<PACKAGE>;
 2: # this is a call to die()
 3: my $x = 0;
@@ -726,7 +728,7 @@ __END__
 | expected unstringify_recce run phase die
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
+5 lines in problem code, beginning:
 1: # this is a call to die()
 2: my $x = 0;
 3: die('test call to die');
@@ -741,7 +743,7 @@ __END__
 | expected e_op_action run phase die
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
-Problem code begins:
+8 lines in problem code, beginning:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
 3: # this is a call to die()
@@ -758,7 +760,7 @@ __END__
 | expected default_action run phase die
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
-Problem code begins:
+8 lines in problem code, beginning:
 1: sub {
 2:     package Parse::Marpa::<PACKAGE>;
 3: # this is a call to die()
@@ -775,9 +777,9 @@ __END__
 | expected null_action run phase die
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-Problem code begins:
-1: package Parse::Marpa::<PACKAGE>;
-2: @_=();
+9 lines in problem code, beginning:
+1: $null_value = do {
+2:     package Parse::Marpa::<PACKAGE>;
 3: # this is a call to die()
 4: my $x = 0;
 5: die('test call to die');
@@ -792,7 +794,7 @@ __END__
 | expected lexer run phase die
 Fatal problem(s) in user supplied lexer for Text at 1
 Fatal Error
-Problem code begins:
+12 lines in problem code, beginning:
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;

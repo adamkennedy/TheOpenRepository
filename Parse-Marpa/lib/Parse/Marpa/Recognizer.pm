@@ -198,14 +198,15 @@ sub set_lexers {
 
                 my $closure;
                 {
+                    my $old_warn_handler = $SIG{__WARN__};
                     my @warnings;
-                    local $SIG{__WARN__} = sub {
-                        push @warnings, [ $_[0], (caller 0) ];
-                    };
+                    $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
 		    ## no critic (BuiltinFunctions::ProhibitStringyEval)
                     $closure = eval $code;
 		    ## use critic
+
+                    $SIG{__WARN__} = $old_warn_handler;
 
                     if ( not $closure or @warnings ) {
                         my $fatal_error = $EVAL_ERROR;
@@ -297,10 +298,9 @@ sub prepare_grammar_for_recognizer {
         $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     if ( defined $lex_preamble ) {
+        my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        local $SIG{__WARN__} = sub {
-            push @warnings, [ $_[0], (caller 0) ];
-        };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
         my $code =
 	    'package ' . $package . ";\n"
@@ -308,6 +308,8 @@ sub prepare_grammar_for_recognizer {
 	## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval $code;
 	## use critic
+
+        $SIG{__WARN__} = $old_warn_handler;
 
         if (not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
@@ -483,16 +485,17 @@ sub Parse::Marpa::Recognizer::unstringify {
 
     my $recce;
     {
+        my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        local $SIG{__WARN__} = sub {
-            push @warnings, [ $_[0], (caller 0) ];
-        };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
 
         ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
         no strict 'refs';
         my $eval_ok = eval ${$stringified_recce};
         use strict 'refs';
         ## use critic
+
+        $SIG{__WARN__} = $old_warn_handler;
 
         if (not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
@@ -794,13 +797,16 @@ sub Parse::Marpa::Recognizer::text {
 
             my ( $match, $length );
             {
+                my $old_warn_handler = $SIG{__WARN__};
                 my @warnings;
-                local $SIG{__WARN__} = sub {
-                    push @warnings, [ $_[0], (caller 0) ];
-                };
+                $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+
                 my $eval_ok = eval {
                     ( $match, $length ) = $lex_closure->( $input_ref, $pos ); 1;
                 };
+
+                $SIG{__WARN__} = $old_warn_handler;
+
                 if (not $eval_ok or @warnings ) {
                     my $fatal_error = $EVAL_ERROR;
                     Parse::Marpa::Internal::code_problems({
