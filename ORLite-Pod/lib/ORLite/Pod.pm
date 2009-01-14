@@ -594,7 +594,7 @@ END_POD
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite-Pod>
 
 For other issues, contact the author.
 
