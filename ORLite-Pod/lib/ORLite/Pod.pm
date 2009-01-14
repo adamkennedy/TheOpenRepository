@@ -8,13 +8,14 @@ ORLite::Pod - Documentation generator for ORLite
 
 =head1 SYNOPSIS
 
-  orlite2pod Class::Name
+  my $generator = ORLite::Pod->new(
+      from => 'My::Project::DB',
+      to   => 'My-Project/lib',
+  );
+  
+  $generator->run;
 
 =head1 DESCRIPTION
-
-I<This initial release is intended to test whether or not search.cpan.org
-gets confused by the heredoc POD fragments in this file. Use of this
-module is not recommended for any users at this time>
 
 B<THIS MODULE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE.>
 
@@ -50,8 +51,10 @@ use ORLite       ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
+
+my $now = (localtime(time))[5] + 1900;
 
 
 
@@ -82,6 +85,19 @@ sub new {
 	unless ( -w $self->to ) {
 		die("No permission to write to directory '$to'");
 	}
+	unless ( $self->author ) {
+		$self->{author} = "The Author";
+	}
+	unless ( $self->year ) {
+		$self->{year} = $now;
+	}
+
+	# Create the copyright year
+	if ( $self->{year} == $now ) {
+		$self->{copyyear} = $self->{year};
+	} else {
+		$self->{copyyear} = "$self->{year} - $now";
+	}
 
 	return $self;
 }
@@ -92,6 +108,14 @@ sub from {
 
 sub to {
 	$_[0]->{to};
+}
+
+sub author {
+	$_[0]->{author};
+}
+
+sub year {
+	$_[0]->{year};
 }
 
 
@@ -472,11 +496,11 @@ END_POD
 |
 |=head1 AUTHOR
 |
-|Adam Kennedy E<lt>adamk\@cpan.orgE<gt>
+|$self->{author}
 |
 |=head1 COPYRIGHT
 |
-|Copyright 2009 Adam Kennedy.
+|Copyright $self->{copyyear} $self->{author}.
 |
 |This program is free software; you can redistribute
 |it and/or modify it under the same terms as Perl itself.
@@ -548,7 +572,7 @@ END_POD
 |
 |It takes an optional argument of a SQL phrase to be added after the
 |C<FROM $table->{name}> section of the query, followed by variables
-|to be used for any placeholders in the conditions. Any SQL that is
+|to be bound to the placeholders in the SQL phrase. Any SQL that is
 |compatible with SQLite can be used in the parameter.
 |
 |Returns a list of B<$pkg> objects when called in list context, or a
@@ -575,7 +599,7 @@ END_POD
 |
 |It takes an optional argument of a SQL phrase to be added after the
 |C<FROM $table->{name}> section of the query, followed by variables
-|to be used for any placeholders in the conditions. Any SQL that is
+|to be bound to the placeholders in the SQL phrase. Any SQL that is
 |compatible with SQLite can be used in the parameter.
 |
 |Returns the number of objects that match the condition.
@@ -587,10 +611,123 @@ END_POD
 	_print( <<"END_POD" ) if $pkg->can('new');
 |=head2 new
 |
-|TO BE COMPLETED
+|  TO BE COMPLETED
+|
+|The C<new> constructor is used to create a new abstract object that
+|is not (yet) written to the database.
+|
+|Returns a new L<$pkg> object.
+|
 END_POD
 
-	# Add a footer
+	_print( <<"END_POD" ) if $pkg->can('create');
+|=head2 create
+|
+|  TO BE COMPLETED
+|
+|The C<create> constructor is a one-step combination of C<new> and
+|C<insert> that takes the column parameters, creates a new
+|L<$pkg> object, inserts the appropriate row into the L<$table->{name}>
+|table, and then returns the object.
+|
+|If the primary key column C<$table->{pk}> is not provided to the
+|constructor (or it is false) the object returned will have
+|C<$table->{pk}> set to the new unique identifier.
+| 
+|Returns a new L<$table->{name}> object, or throws an exception on error,
+|typically from the L<DBI> layer.
+|
+END_POD
+
+	_print( <<"END_POD" ) if $pkg->can('insert');
+|=head2 insert
+|
+|  $object->insert;
+|
+|The C<insert> method commits a new object (created with the C<new> method)
+|into the database.
+|
+|If a the primary key column C<$table->{pk}> is not provided to the
+|constructor (or it is false) the object returned will have
+|C<$table->{pk}> set to the new unique identifier.
+|
+|Returns the object itself as a convenience, or throws an exception
+|on error, typically from the L<DBI> layer.
+|
+END_POD
+
+	_print( <<"END_POD" ) if $pkg->can('delete');
+|=head2 delete
+|
+|  # Delete a single instantiated object
+|  $object->delete;
+|  
+|  # Delete multiple rows from the $table->{name} table
+|  $pkg->delete('where $table->{pk} > ?', 1000);
+|
+|The C<delete> method can be used in a class form and an instance form.
+|
+|When used on an existing B<$pkg> instance, the C<delete> method
+|removes that specific instance from the C<$table->{name}>, leaving
+|the object ntact for you to deal with post-delete actions as you wish.
+|
+|When used as a class method, it takes a compulsory argument of a SQL
+|phrase to be added after the C<DELETE FROM $table->{name}> section
+|of the query, followed by variables to be bound to the placeholders
+|in the SQL phrase. Any SQL that is compatible with SQLite can be used
+|in the parameter.
+|
+|Returns true on success or throws an exception on error, or if you
+|attempt to call delete without a SQL condition phrase.
+|
+END_POD
+
+	_print( <<"END_POD" ) if $pkg->can('truncate');
+|=head2 truncate
+|
+|  # Delete all records in the $table->{name} table
+|  $pkg->truncate;
+|
+|To prevent the common and extremely dangerous error case where
+|deletion is called accidentally without providing a condition,
+|the use of the C<delete> method without a specific condition
+|is forbidden.
+|
+|Instead, the distinct method C<truncate> is provided to delete
+|all records in a table with specific intent.
+|
+|Returns true, or throws an exception on error.
+|
+END_POD
+
+	# Add the accessors for the class
+        print( <<"END_POD" );
+|=head1 ACCESSORS
+|
+END_POD
+
+	# Accessor for the primary key
+	print( <<"END_POD" ) if $pkg->can($table->{pk});
+|=head2 $table->{pk}
+|
+|  if ( \$object->$table->{pk} ) {
+|      print "Object has been inserted\n";
+|  } else {
+|      print "Object has not been inserted\n";
+|  }
+|
+|Returns true, or throws an exception on error.
+|
+END_POD
+
+	# The rest of the normal accessors
+	_print( <<"END_POD" );
+|
+|REMAINING ACCESSORS TO BE COMPLETED
+|
+END_POD
+
+	# Add a straight forward footer
 	_print( <<"END_POD" );
 |=head1 SUPPORT
 |
@@ -600,11 +737,11 @@ END_POD
 |
 |=head1 AUTHOR
 |
-|Adam Kennedy E<lt>adamk\@cpan.orgE<gt>
+|$self->{author}
 |
 |=head1 COPYRIGHT
 |
-|Copyright 2009 Adam Kennedy.
+|Copyright $self->{copyyear} $self->{author}.
 |
 |This program is free software; you can redistribute
 |it and/or modify it under the same terms as Perl itself.

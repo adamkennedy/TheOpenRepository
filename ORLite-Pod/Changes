@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Pod
 
+0.03 Thu 15 Jan 2009
+	- Adding the bulk of the per-table documeation (first pass)
+
 0.02 Wed 14 Jan 2009
 	- Hiding the HEREDOC stuff behind leading pipes
 

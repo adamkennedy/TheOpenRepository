@@ -1,9 +1,26 @@
 #!/usr/bin/perl
 
-# Front end for orlite2pod.
-# Execute from the root directory of a CPAN-compatible distribution as
-#
-# orlite2pod Class::Name
+=pod
+
+=head1 NAME
+
+orlite2pod - Documentation generator frontend for ORLite
+
+=head1 SYNOPSIS
+
+  orlite2pod Class::Name
+
+=head1 DESCRIPTION
+
+F<orlite2pod> is the command line front-end for L<ORLite::Pod>.
+
+You should run this in the root directory of a distribution,
+and provide it with the class in your distribution that is the
+root of an L<ORLite> ORM.
+
+TO BE COMPLETED
+
+=cut
 
 use 5.006;
 use strict;
@@ -11,7 +28,7 @@ use ORLite::Pod ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 unless ( -d 'lib' ) {
@@ -33,3 +50,29 @@ print "Starting POD generation run...\n";
 $pod->run;
 
 exit(0);
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite-Pod>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
