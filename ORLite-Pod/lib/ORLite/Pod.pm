@@ -642,7 +642,7 @@ END_POD
 	_print( <<"END_POD" ) if $pkg->can('insert');
 |=head2 insert
 |
-|  $object->insert;
+|  \$object->insert;
 |
 |The C<insert> method commits a new object (created with the C<new> method)
 |into the database.
@@ -660,7 +660,7 @@ END_POD
 |=head2 delete
 |
 |  # Delete a single instantiated object
-|  $object->delete;
+|  \$object->delete;
 |  
 |  # Delete multiple rows from the $table->{name} table
 |  $pkg->delete('where $table->{pk} > ?', 1000);
