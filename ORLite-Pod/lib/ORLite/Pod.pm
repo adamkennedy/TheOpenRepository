@@ -4,7 +4,7 @@ package ORLite::Pod;
 
 =head1 NAME
 
-ORLite::Pod 
+ORLite::Pod - Documentation generator for ORLite
 
 =head1 SYNOPSIS
 
