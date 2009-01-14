@@ -701,7 +701,7 @@ END_POD
 END_POD
 
 	# Add the accessors for the class
-        print( <<"END_POD" );
+	_print( <<"END_POD" );
 |=head1 ACCESSORS
 |
 END_POD
