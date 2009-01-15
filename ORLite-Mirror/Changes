@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+0.09 Fri 16 Jan 2009
+	- Critical bug fix
+
 0.08 Thu 15 Jan 2009
 	- Skip the mirroring process if the archive is newer than a certain
 	  age. Initially we hardcode in a 24 hours default.

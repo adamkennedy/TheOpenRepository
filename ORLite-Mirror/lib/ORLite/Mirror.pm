@@ -15,7 +15,7 @@ use ORLite                  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 	@ISA     = qw{ ORLite };
 }
 
@@ -80,16 +80,6 @@ sub import {
 		File::Path::mkpath( $dir, { verbose => 0 } );
 	}
 
-	# Create the default useragent
-	my $useragent = delete $params{useragent};
-	unless ( $useragent ) {
-		my $version = $params{package}->VERSION || 0;
-		$useragent = LWP::UserAgent->new(
-			timeout => 30,
-			agent   => "$params{package}/$version",
-		);
-	}
-
 	# Download compressed files with their extention first
 	my $url = delete $params{url};
 	if ( $url =~ /(\.gz|\.bz2)$/ ) {
@@ -98,7 +88,17 @@ sub import {
 
 	# Don't update if the file is newer than 24 hours
 	my $archive = $path;
-	if ( -f $path and (time - (stat($path))[9]) > 86400 ) {
+	unless ( -f $path and (time - (stat($path))[9]) < 86400 ) {
+		# Create the default useragent
+		my $useragent = delete $params{useragent};
+		unless ( $useragent ) {
+			my $version = $params{package}->VERSION || 0;
+			$useragent = LWP::UserAgent->new(
+				timeout => 30,
+				agent   => "$params{package}/$version",
+			);
+		}
+
 		# Fetch the archive
 		my $response = $useragent->mirror( $url => $path );
 		unless ( $response->is_success or $response->code == 304 ) {
