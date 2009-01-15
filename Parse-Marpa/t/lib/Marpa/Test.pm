@@ -7,11 +7,7 @@ use Carp;
 croak('Test::More not loaded')
     unless defined &Test::More::is;
 
-BEGIN {
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    croak('eval of Test::Differences failed') if not defined eval 'require Test::Differences';
-    ## use critic
-}
+use Test::Differences;
 use Data::Dumper;
 
 ## no critic (Subroutines::RequireArgUnpacking)

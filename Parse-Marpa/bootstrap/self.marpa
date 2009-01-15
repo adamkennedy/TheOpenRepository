@@ -1,7 +1,7 @@
 semantics are perl5.  version is 1.001_003.  the start symbol is
 grammar.
 
-the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
+the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms.
 
 concatenate lines is q{
     (scalar @_) ? (join "\n", (grep { $_ } @_)) : undef;
@@ -35,30 +35,30 @@ production paragraph:
     non structural production sentences.
     q{
         my $action = $_[3];
-        my $other_key_value = join(",\n", map { $_ // "" } @_[0,2,4]);
+        my $other_key_value = join(",\n", map { $_ // q{} } @_[0,2,4]);
         my $result =
-            'push(@$new_rules, '
+            'push @{$new_rules}, '
              . "{\n"
              . $_[1] . ",\n"
-             . (defined $action ? ($action . ",\n") : "")
+             . (defined $action ? ($action . ",\n") : q{})
              . $other_key_value
-             . "\n});"
+             . "\n};"
          ;
          our @implicit_terminals;
          if (@implicit_terminals) {
-             $result .= "\n" . 'push(@$new_terminals,' . "\n";
+             $result .= "\n" . 'push @{$new_terminals},' . "\n";
              while (my $implicit_terminal = shift @implicit_terminals) {
-                 $result .= "    [" . $implicit_terminal . "],\n";
+                 $result .= '    [' . $implicit_terminal . "],\n";
              }
-             $result .= ");\n";
+             $result .= ";\n";
          }
          our @implicit_rules;
          if (@implicit_rules) {
-             $result .= "\n" . 'push(@$new_rules, ' . "\n";
+             $result .= "\n" . 'push @{$new_rules}, ' . "\n";
              while (my $implicit_production = shift @implicit_rules) {
                  $result .= "    {" . $implicit_production . "},\n";
              }
-             $result .= " );\n";
+             $result .= " ;\n";
          }
          $result;
     }.
@@ -73,13 +73,13 @@ q{ q{ priority => } . $_[1] }.
 action sentence:
 optional /the/, /action/, /is/, action specifier, period.
 q{
-    "    action => "
+    "    action =>"
     . $_[3]
 }.
 
 action sentence: action specifier, period.
 the action is q{
-    "    action => "
+    "    action =>"
     . $_[0]
 }.
 
@@ -228,9 +228,9 @@ copula: /are/.
 string definition:
 symbol phrase, /is/, string specifier, period.
 q{
-    '$strings{"'
+    '$strings{' . q{'}
     . $_[0]
-    . '"} = '
+    . q{'} . '}' . q{ = }
     . $_[2]
     . qq{;\n}
 }.
@@ -273,56 +273,56 @@ production copula: /:/.
 production copula: /::=/.
 
 symbol phrase: symbol word sequence.
-q{ Parse::Marpa::MDL::canonical_symbol_name(join("-", @_)) }.
+q{ Parse::Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) }.
 
 lhs: symbol phrase.
-q{ '    lhs => "' . $_[0] . q{"} }.
+q{ '    lhs => ' . q{'} . $_[0] . q{'} }.
 
 rhs: .
-q{ "    rhs => []" }.
+q{ '    rhs => []' }.
 
 rhs: comma separated rhs element sequence.
-q{ "    rhs => [" . join(", ", @_) . "]" }.
+q{ '    rhs => [' . join(q{, }, @_) . ']' }.
 
 rhs: symbol phrase, /sequence/.
 priority 1000.
 q{
-    q{rhs => ["}
+    q{rhs => ['}
     . $_[0]
-    . qq{"],\n}
+    . qq{'],\n}
     . qq{min => 1,\n}
 }.
 
 rhs: /optional/, symbol phrase, /sequence/.
 priority 2000.
 q{
-    q{rhs => ["}
+    q{rhs => ['}
     . $_[1]
-    . qq{"],\n}
+    . qq{'],\n}
     . qq{min => 0,\n}
 }.
 
 rhs: symbol phrase, /separated/, symbol phrase, /sequence/.
 priority 2000.
 q{
-    q{rhs => ["}
+    q{rhs => ['}
     . $_[2]
-    . qq{"],\n}
-    . q{separator => "}
+    . qq{'],\n}
+    . q{separator => '}
     . $_[0]
-    . qq{",\n}
+    . qq{',\n}
     . qq{min => 1,\n}
 }.
 
 rhs: /optional/, symbol phrase, /separated/, symbol phrase, /sequence/.
 priority 3000.
 q{
-    q{rhs => ["}
+    q{rhs => ['}
     . $_[3]
-    . qq{"],\n}
-    . q{separator => "}
+    . qq{'],\n}
+    . q{separator => '}
     . $_[1]
-    . qq{",\n}
+    . qq{',\n}
     . qq{min => 0,\n}
 }.
 
@@ -331,30 +331,30 @@ rhs element: mandatory rhs element.  concatenate lines.
 rhs element: Optional rhs element. concatenate lines.
 
 mandatory rhs element: rhs symbol specifier.
-q{ q{"} . $_[0] . q{"} }.
+q{ q{'} . $_[0] . q{'} }.
 
 optional rhs element: /optional/, rhs symbol specifier.
 q{
      my $symbol_phrase = $_[1];
-     my $optional_symbol_phrase = $symbol_phrase . ":optional";
+     my $optional_symbol_phrase = $symbol_phrase . ':optional';
      our %implicit_rules;
      if (not defined $implicit_rules{$optional_symbol_phrase}) {
          $implicit_rules{$optional_symbol_phrase} = 1;
          our @implicit_rules;
-         push(
+         push
              @implicit_rules,
-             q{ lhs => "} . $optional_symbol_phrase . q{", }
-             . q{ rhs => [ "} . $symbol_phrase . qq{" ], }
+             q{ lhs => '} . $optional_symbol_phrase . q{', }
+             . q{ rhs => [ '} . $symbol_phrase . q{' ], }
              . q{ action => q{ $_[0] } }
-         );
-         push(
+         ;
+         push
              @implicit_rules,
-             q{ lhs => "} . $optional_symbol_phrase . q{", }
+             q{ lhs => '} . $optional_symbol_phrase . q{', }
              . q{ rhs => [], }
              . q{ action => q{ undef } }
-         );
+         ;
      }
-     q{"} . $optional_symbol_phrase . q{"};
+     q{'} . $optional_symbol_phrase . q{'};
 }.
 
 rhs symbol specifier: symbol phrase.
@@ -367,13 +367,13 @@ q{
     my ($symbol, $new) = Parse::Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
     if ($new) {
         our @implicit_terminals;
-        push(@implicit_terminals,
-            q{"}
+        push @implicit_terminals,
+            q{'}
             . $symbol
-            . '" => { regex => '
+            . q{' => } . '{' . q{ regex => }
             . $regex
-            . " }"
-        );
+            . ' }'
+        ;
     }
     $symbol;
 }.
@@ -387,24 +387,24 @@ sequence.  concatenate lines.
 terminal sentence:
 symbol phrase, /matches/, regex, period.
 q{
-    q{push(@$new_terminals, [ "}
+    q{push(@{$new_terminals}, [ '}
     . $_[0]
-    . q{" => }
-    . "{ regex => "
+    . q{' => }
+    . '{ regex => '
     . $_[2]
-    . "}"
+    . '}'
     . qq{ ] );\n}
 }.
 
 terminal sentence:
 /match/, symbol phrase, /using/, string specifier, period.
 q{
-    q{push(@$new_terminals, [ "}
+    q{push(@{$new_terminals}, [ '}
     . $_[1]
-    . q{" => }
-    . "{ action => "
+    . q{' => }
+    . '{ action =>'
     . $_[3]
-    . "}"
+    . '}'
     . qq{ ] );\n}
 }.
 
@@ -412,16 +412,16 @@ string specifier: literal string.  concatenate lines.
 
 string specifier: symbol phrase.
 q{
-    '$strings{ "'
+    '$strings{ ' . q{'}
     . $_[0]
-    . '" }'
+    . q{'} . ' }'
 }.
 
 match q string using "lex_q_quote".
 
 match regex using "lex_regex".
 
-empty line matches qr/^\h*\n/m.
+empty line matches qr/^\h*\n/xms.
 
 # Some hackery here: The lex prefix will take care of most
 # trailing whitespace, but since it is a *PREFIX*, in some
@@ -444,7 +444,7 @@ final comment matches qr/\#[^\n]*\Z/xms.
 # a final character of whitespace.
 final whitespace matches qr/\s\z/xms.
 
-bracketed comment matches qr/\x{5b}[^\x{5d}]*\x{5d}/.
+bracketed comment matches qr/\x{5b}[^\x{5d}]*\x{5d}/xms.
 
 note: change this to use lex_q_quote sometime(?) -- Doing so would
 make this file simpler -- Internalizing the closures used by MDL
@@ -455,11 +455,11 @@ that self-generation I like to test user-specified lex actions --
 If I internalize them all, I'll lose that test.
 
 match single quoted string using q{
-    my $match_start = pos $$STRING;
-    state $prefix_regex = qr/\G'/o;
-    return unless $$STRING =~ /$prefix_regex/g;
-    state $regex = qr/\G[^'\0134]*('|\0134')/;
-    MATCH: while ($$STRING =~ /$regex/gc) {
+    my $match_start = pos ${$STRING};
+    state $prefix_regex = qr/\G'/oxms;
+    return unless ${$STRING} =~ /$prefix_regex/gxms;
+    state $regex = qr/\G[^'\0134]*('|\0134')/xms;
+    MATCH: while (${$STRING} =~ /$regex/gcxms) {
         next MATCH unless defined $1;
         if ($1 eq q{'}) {
             my $end_pos = pos $$STRING;

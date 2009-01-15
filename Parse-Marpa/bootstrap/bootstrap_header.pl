@@ -1,3 +1,4 @@
+#!perl
 # This is the beginning of bootstrap_header.pl
 
 use 5.010_000;
@@ -24,17 +25,17 @@ my $new_default_lex_prefix;
 our %strings;
 
 sub usage {
-   die("usage: $0 grammar-file\n");
+   croak("usage: $0 grammar-file\n");
 }
 
 my $argc = @ARGV;
-usage() unless $argc >= 1 and $argc <= 3;
+usage() if $argc < 1 or $argc > 3;
 
 my $grammar_file_name = shift @ARGV;
 my $header_file_name = shift @ARGV;
 my $trailer_file_name = shift @ARGV;
 
 our $GRAMMAR;
-open(GRAMMAR, "<", $grammar_file_name) or die("Cannot open $grammar_file_name: $!");
+open GRAMMAR, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
 
 # This is the end of bootstrap_header.pl
