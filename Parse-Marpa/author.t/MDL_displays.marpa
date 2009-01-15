@@ -11,7 +11,7 @@ concatenate lines is the default action.
 
 the default null value is q{'@'}.
 
-a lex preamble is q{ our $regex_data = []; }.
+a lex preamble is q{ our $regex_data = []; 1; }.
 
 note: I may look like a production sentence; but MDL knows the difference.
 

@@ -1,6 +1,11 @@
 #!perl
 # This is the beginning of bootstrap_header.pl
 
+## no critic (ValuesAndExpressions::ProhibitImplicitNewlines)
+## no critic (RegularExpressions::RequireExtendedFormatting)
+## no critic (RegularExpressions::RequireLineBoundaryMatching)
+## no critic (RegularExpressions::RequireDotMatchAnything)
+
 use 5.010_000;
 use strict;
 use warnings;
@@ -9,8 +14,6 @@ use Parse::Marpa::MDL;
 use Carp;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
-
-my %regex;
 
 my $new_terminals = [];
 my $new_rules = [];
@@ -22,7 +25,7 @@ my $new_version;
 my $new_default_action;
 my $new_default_null_value;
 my $new_default_lex_prefix;
-our %STRINGS;
+my %strings;
 
 sub usage {
    croak("usage: $0 grammar-file\n");

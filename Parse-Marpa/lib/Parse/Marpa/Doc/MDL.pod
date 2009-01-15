@@ -194,7 +194,7 @@ specified that string directly to Perl 5.
 Literal regexes are delimited either by slashes, or by C<qr>-quoting.
 For example, the definition sentence
 
-    the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
+    the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms.
 
 contains a C<qr>-quoted regex, and
 
@@ -222,7 +222,7 @@ The following modifiers are recognized: C<msixpo>.
 They are passed on to Perl 5 exactly as found and where found.
 Here's an example of the C<m> modifier in use:
 
-    empty line matches qr/^\h*\n/m.
+    empty line matches qr/^\h*\n/xms.
 
 =head1 DEFINITION PARAGRAPHS
 
@@ -367,7 +367,7 @@ the default lex prefix is the empty string.)
 This default can be reset with a default lex prefix definition sentence.
 Here's one from C<self.marpa>:
 
-    the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/.
+    the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms.
 
 =head2 Preamble Definition
 
@@ -386,6 +386,7 @@ This is an example of a preamble:
 
     a preamble is q{
         our $regex_data = [];
+        1;
     }.
 
 =head2 Lex Preamble Definition
@@ -412,6 +413,7 @@ in_MDL_displays($_)
 
     a lex preamble is q{
 	our $regex_data = [];
+        1;
     }.
 
 =head1 PRODUCTION PARAGRAPHS
@@ -587,12 +589,12 @@ For example, in C<self.marpa>:
 
     action sentence:
     optional /the/, /action/, /is/, action specifier, period.
-    q{ "    action => " . $_[3] }.
+    q{ '    action =>' . $_[3] }.
 
 the last line is an action sentence.  You can also be more verbose.
 
     action sentence: action specifier, period.
-    the action is q{ "    action => " . $_[0] }.
+    the action is q{ '    action =>' . $_[0] }.
 
 The action can be either a rule action or a null symbol action.
 Which it is depends on the production sentence in the paragraph.
@@ -642,7 +644,7 @@ Priorities are used to affect the order in which ambiguous parses are returned,
 and they are a very important tool in Marpa.
 The priority setting in the above example directly affects the parsing of this sentence:
 
-    a preamble is q{ our $regex_data = []; }.
+    a preamble is q{ our $regex_data = []; 1; }.
 
 This sentence has two parses in C<self.marpa>.
 It could be parsed as a string definition,
@@ -735,18 +737,18 @@ the keyword C<using>; and finally, a string name or a string literal.
 For example,
 
     match single quoted string using q{
-	my $match_start = pos $$STRING;
-	state $prefix_regex = qr/\G'/o;
-	return unless $$STRING =~ /$prefix_regex/g;
-	state $regex = qr/\G[^'\0134]*('|\0134')/;
-	MATCH: while ($$STRING =~ /$regex/gc) {
+	my $match_start = pos ${$STRING};
+	state $prefix_regex = qr/\G'/oxms;
+	return unless ${$STRING} =~ /$prefix_regex/gxms;
+	state $regex = qr/\G[^'\0134]*('|\0134')/xms;
+	MATCH: while (${$STRING} =~ /$regex/gcxms) {
 	    next MATCH unless defined $1;
 	    if ($1 eq q{'}) {
-		my $end_pos = pos $$STRING;
+		my $end_pos = pos ${$STRING};
 		my $match_length = $end_pos - $match_start;
 		my $lex_length = $end_pos - $START;
 		return (
-                    substr($$STRING, $match_start, $match_length),
+                    substr(${$STRING}, $match_start, $match_length),
                     $lex_length
                 );
 	    }
@@ -763,7 +765,7 @@ If the string is C<lex_regex> Marpa uses as the closure an internal routine
 that implements the rules for literal regexes also described L<above|/"Literal Regexes">.
 This means the terminal paragraph for the C<regex> terminal can be very simple:
 
-    match regex using "lex_regex".
+    match regex using 'lex_regex'.
 
 Lexing closures find the string to be matched as a C<pos> offset within
 the string B<referred to> by C<$STRING>.

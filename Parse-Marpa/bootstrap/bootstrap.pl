@@ -10,6 +10,11 @@
 #!perl
 # This is the beginning of bootstrap_header.pl
 
+## no critic (ValuesAndExpressions::ProhibitImplicitNewlines)
+## no critic (RegularExpressions::RequireExtendedFormatting)
+## no critic (RegularExpressions::RequireLineBoundaryMatching)
+## no critic (RegularExpressions::RequireDotMatchAnything)
+
 use 5.010_000;
 use strict;
 use warnings;
@@ -18,8 +23,6 @@ use Parse::Marpa::MDL;
 use Carp;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
-
-my %regex;
 
 my $new_terminals = [];
 my $new_rules = [];
@@ -31,7 +34,7 @@ my $new_version;
 my $new_default_action;
 my $new_default_null_value;
 my $new_default_lex_prefix;
-our %STRINGS;
+my %strings;
 
 sub usage {
    croak("usage: $0 grammar-file\n");
@@ -53,13 +56,12 @@ $new_start_symbol = 'grammar';
 
 $new_default_lex_prefix = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms;
 
-$STRINGS{'concatenate-lines'} =  q{
+$strings{'concatenate-lines'} =  q{
     (scalar @_) ? (join "\n", (grep { $_ } @_)) : undef;
 };
 
 $new_preamble .=  q{
     our $regex_data = [];
-    our %STRINGS;
     1;
 };
 
@@ -77,7 +79,7 @@ push @{$new_rules}, {
 separator => 'empty-line',
 min => 1,
 ,
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -85,7 +87,7 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['definition-paragraph'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -93,7 +95,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['production-paragraph'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -101,7 +103,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['terminal-paragraph'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -111,7 +113,7 @@ push @{$new_rules}, {
 ,rhs => ['definition'],
 min => 1,
 ,
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -162,7 +164,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-production-sentence'],
 min => 0,
 ,
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -217,7 +219,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'action-specifier'
 ,    rhs => ['string-specifier'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -225,7 +227,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-production-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -233,7 +235,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-terminal-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -263,7 +265,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'definition'
 ,    rhs => ['string-definition'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -271,7 +273,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-action-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -279,7 +281,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-null-value-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -287,7 +289,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['preamble-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -295,7 +297,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['lex-preamble-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -303,7 +305,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['semantics-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -311,7 +313,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['version-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -319,7 +321,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['start-symbol-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -327,7 +329,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-lex-prefix-setting'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -571,7 +573,7 @@ push @{$new_rules}, {
 ,    rhs => ['symbol-phrase', 'is:k3', 'string-specifier', 'period'],
     action =>
 q{
-    '$STRINGS{' . q{'}
+    '$strings{' . q{'}
     . $_[0]
     . q{'} . '}' . q{ = }
     . $_[2]
@@ -638,7 +640,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['double-quoted-string'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -646,7 +648,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['single-quoted-string'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -800,7 +802,7 @@ q{
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['mandatory-rhs-element'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -808,7 +810,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['optional-rhs-element'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -888,7 +890,7 @@ q{
 push @{$new_rules}, {
     lhs => 'terminal-paragraph'
 ,    rhs => ['non-structural-terminal-sentences', 'terminal-sentence', 'non-structural-terminal-sentences'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -898,7 +900,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-terminal-sentence'],
 min => 0,
 ,
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -949,7 +951,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'string-specifier'
 ,    rhs => ['literal-string'],
-    action =>$STRINGS{ 'concatenate-lines' },
+    action =>$strings{ 'concatenate-lines' },
 ,
 ,
 
@@ -959,7 +961,7 @@ push @{$new_rules}, {
 ,    rhs => ['symbol-phrase'],
     action =>
 q{
-    '$STRINGS{ ' . q{'}
+    '$strings{ ' . q{'}
     . $_[0]
     . q{'} . ' }'
 },
@@ -1140,7 +1142,13 @@ $recce->end_input();
 my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 croak('No parse') unless $evaler;
 
-sub slurp { open my $fh, '<', shift; local($RS)=undef; return <$fh>; }
+sub slurp {
+    open my $fh, '<', shift;
+    local($RS)=undef;
+    my $file = <$fh>;
+    close $fh;
+    return $file;
+}
 
 say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
 
@@ -1149,7 +1157,8 @@ if ($header_file_name)
     my $header = slurp($header_file_name);
     if (defined $header)
     {
-        print $header
+        # explicit STDOUT is workaround for perlcritic bug
+        print {*STDOUT} $header
             or croak("print failed: $ERRNO");
     }
 }
@@ -1162,7 +1171,8 @@ if ($trailer_file_name)
     my $trailer = slurp($trailer_file_name);
     if (defined $trailer)
     {
-        print $trailer
+        # explicit STDOUT is workaround for perlcritic bug
+        print {*STDOUT} $trailer
             or croak("print failed: $ERRNO");
     }
 }

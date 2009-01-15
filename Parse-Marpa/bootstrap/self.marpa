@@ -9,7 +9,6 @@ concatenate lines is q{
 
 a preamble is q{
     our $regex_data = [];
-    our %STRINGS;
     1;
 }.
 
@@ -74,13 +73,13 @@ q{ q{ priority => } . $_[1] }.
 action sentence:
 optional /the/, /action/, /is/, action specifier, period.
 q{
-    "    action =>"
+    '    action =>'
     . $_[3]
 }.
 
 action sentence: action specifier, period.
 the action is q{
-    "    action =>"
+    '    action =>'
     . $_[0]
 }.
 
@@ -229,7 +228,7 @@ copula: /are/.
 string definition:
 symbol phrase, /is/, string specifier, period.
 q{
-    '$STRINGS{' . q{'}
+    '$strings{' . q{'}
     . $_[0]
     . q{'} . '}' . q{ = }
     . $_[2]
@@ -413,7 +412,7 @@ string specifier: literal string.  concatenate lines.
 
 string specifier: symbol phrase.
 q{
-    '$STRINGS{ ' . q{'}
+    '$strings{ ' . q{'}
     . $_[0]
     . q{'} . ' }'
 }.
@@ -463,11 +462,11 @@ match single quoted string using q{
     MATCH: while (${$STRING} =~ /$regex/gcxms) {
         next MATCH unless defined $1;
         if ($1 eq q{'}) {
-            my $end_pos = pos $$STRING;
+            my $end_pos = pos ${$STRING};
             my $match_length = $end_pos - $match_start;
             my $lex_length = $end_pos - $START;
             return (
-                substr($$STRING, $match_start, $match_length),
+                substr(${$STRING}, $match_start, $match_length),
                 $lex_length
             );
         }

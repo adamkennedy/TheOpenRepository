@@ -17,5 +17,5 @@ my $new_version;
 my $new_default_action;
 my $new_default_null_value;
 my $new_default_lex_prefix;
-my %STRINGS;
+my %strings;
 

@@ -84,7 +84,13 @@ $recce->end_input();
 my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
 croak('No parse') unless $evaler;
 
-sub slurp { open my $fh, '<', shift; local($RS)=undef; return <$fh>; }
+sub slurp {
+    open my $fh, '<', shift;
+    local($RS)=undef;
+    my $file = <$fh>;
+    close $fh;
+    return $file;
+}
 
 say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
 
@@ -93,7 +99,8 @@ if ($header_file_name)
     my $header = slurp($header_file_name);
     if (defined $header)
     {
-        print $header
+        # explicit STDOUT is workaround for perlcritic bug
+        print {*STDOUT} $header
             or croak("print failed: $ERRNO");
     }
 }
@@ -106,7 +113,8 @@ if ($trailer_file_name)
     my $trailer = slurp($trailer_file_name);
     if (defined $trailer)
     {
-        print $trailer
+        # explicit STDOUT is workaround for perlcritic bug
+        print {*STDOUT} $trailer
             or croak("print failed: $ERRNO");
     }
 }
