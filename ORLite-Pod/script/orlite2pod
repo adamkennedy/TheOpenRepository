@@ -8,7 +8,7 @@ orlite2pod - Documentation generator frontend for ORLite
 
 =head1 SYNOPSIS
 
-  orlite2pod Class::Name
+  orlite2pod --author="Adam Kennedy" Class::Name
 
 =head1 DESCRIPTION
 
@@ -18,18 +18,27 @@ You should run this in the root directory of a distribution,
 and provide it with the class in your distribution that is the
 root of an L<ORLite> ORM.
 
-TO BE COMPLETED
+An additional --author option can be set to set the name of the
+author to be used when generating the POD files.
 
 =cut
 
 use 5.006;
 use strict;
-use ORLite::Pod ();
+use Getopt::Long ();
+use ORLite::Pod  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
+
+my $AUTHOR = undef;
+my $RT     = undef;
+Getopt::Long::GetOptions(
+	'author=s' => \$AUTHOR,
+	'rt'       => \$RT,
+);
 
 unless ( -d 'lib' ) {
 	die("Failed to find lib directory");
@@ -41,10 +50,17 @@ eval "use $class;";
 die $@ if $@;
 
 print "Creating ORLite::Pod instance...\n";
-my $pod = ORLite::Pod->new(
+my %params = (
 	from => $class,
 	to   => 'lib',
 );
+if ( defined $AUTHOR ) {
+	$params{author} = $AUTHOR;
+}
+if ( $RT ) {
+	$params{rt} = 1;
+}
+my $pod = ORLite::Pod->new( %params );
 
 print "Starting POD generation run...\n";
 $pod->run;

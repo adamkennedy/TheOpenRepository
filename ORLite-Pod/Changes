@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Pod
 
+0.06 Thu 15 Jan 2009
+	- Add support for --author to orlite2pod
+	- Add support for --rt to orlite2pod
+
 0.05 Thu 15 Jan 2009
 	- Using the select method instead of new as a "loaded" detector
 

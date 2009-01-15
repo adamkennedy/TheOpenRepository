@@ -9,8 +9,9 @@ ORLite::Pod - Documentation generator for ORLite
 =head1 SYNOPSIS
 
   my $generator = ORLite::Pod->new(
-      from => 'My::Project::DB',
-      to   => 'My-Project/lib',
+      from   => 'My::Project::DB',
+      to     => 'My-Project/lib',
+      author => 'Adam Kennedy',
   );
   
   $generator->run;
@@ -44,16 +45,18 @@ TO BE COMPLETED
 
 use 5.006;
 use strict;
-use Carp            ();
-use File::Spec      ();
-use Params::Util    qw{_CLASS};
+use Carp             ();
+use File::Spec       ();
+use File::Path       ();
+use File::Basename   ();
+use Params::Util     ();
 use Class::Inspector ();
-use ORLite          ();
-use Template        ();
+use ORLite           ();
+use Template         ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 my $now = (localtime(time))[5] + 1900;
@@ -71,7 +74,7 @@ sub new {
 
 	# Check params
 	unless (
-		_CLASS($self->from)
+		Params::Util::_CLASS($self->from)
 		and
 		$self->from->can('orlite')
 	) {
@@ -111,6 +114,12 @@ sub new {
 
 sub from {
 	$_[0]->{from};
+}
+
+sub dist {
+	my $dist = $_[0]->from;
+	$dist =~ s/::/-/g;
+	return $dist;
 }
 
 sub to {
@@ -290,6 +299,11 @@ sub write_table {
 		 split( /::/, $pkg )
 	) . '.pod';
 
+	# Create the parent directory if needed
+	my $dir = File::Basename::dirname($file);
+	unless ( -d $dir ) {
+		File::Path::make_path( $dir, { verbose => 0 } );
+	}
 
 	# Generate and write the file
 	print "Generating $file...\n";
@@ -533,8 +547,16 @@ sub template_db { <<"END_TT" }
 |
 |Documentation created by L<ORLite::Pod> $ORLite::Pod::VERSION.
 |
-|For general support, please see the support section of the main project
-|documentation.
+|[% IF self.rt %]
+|Bugs should be reported via the CPAN bug tracker at
+|
+|L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=[% self.dist %]>
+|
+|For other issues, contact the author.
+|[% ELSE %]
+|For general support please see the support section of the main
+|project documentation.
+|[% END %]
 |
 |=head1 AUTHOR
 |
@@ -542,7 +564,7 @@ sub template_db { <<"END_TT" }
 |
 |=head1 COPYRIGHT
 |
-|Copyright [% self.copyyear %] [% self.author %].
+|Copyright [% self.copyyear %] [%+ self.author %].
 |
 |This program is free software; you can redistribute
 |it and/or modify it under the same terms as Perl itself.
@@ -639,7 +661,11 @@ sub template_table { <<"END_TT" }
 [% IF method.create %]
 |=head2 create
 |
-|  TO BE COMPLETED
+|  my \$object = [% pkg %]->create(
+|[%+ FOREACH column IN table.columns %]
+|      [%+ column.name %] => 'value',
+|[%+ END %]
+|  );
 |
 |The C<create> constructor is a one-step combination of C<new> and
 |C<insert> that takes the column parameters, creates a new
@@ -730,6 +756,13 @@ sub template_table { <<"END_TT" }
 |
 |REMAINING ACCESSORS TO BE COMPLETED
 |
+|=head1 SQL
+|
+|The [% table.name %] table was originally created with the
+|following SQL command.
+|
+|[%+ table.sql.create | indent('  ')%]
+|
 |=head1 SUPPORT
 |
 |[%+ pkg %] is part of the L<[% root %]> API.
@@ -742,7 +775,7 @@ sub template_table { <<"END_TT" }
 |
 |=head1 COPYRIGHT
 |
-|Copyright [% self.copyyear %] [% self.author %].
+|Copyright [% self.copyyear %] [%+ self.author %].
 |
 |This program is free software; you can redistribute
 |it and/or modify it under the same terms as Perl itself.
