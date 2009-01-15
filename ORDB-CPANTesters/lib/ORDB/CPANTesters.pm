@@ -20,39 +20,3 @@ sub import {
 }
 
 1;
-
-__END__
-
-=pod
-
-=head1 NAME
-
-ORDB::CPANTesters - ORM Client for the CPAN Testers database
-
-=head1 DESCRIPTION
-
-TO BE COMPLETED
-
-=head1 SUPPORT
-
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-CPANTesters>
-
-For other issues, contact the author.
-
-=head1 AUTHOR
-
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
-
-=head1 COPYRIGHT
-
-Copyright 2009 Adam Kennedy.
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-The full text of the license can be found in the
-LICENSE file included with this module.
-
-=cut
