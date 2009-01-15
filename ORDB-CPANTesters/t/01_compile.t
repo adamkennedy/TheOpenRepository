@@ -8,4 +8,6 @@ BEGIN {
 
 use Test::More tests => 2;
 
-use_ok( 'ORDB::CPANTesters' );
+ok( $] >= 5.008005, 'Perl version is new enough' );
+
+require_ok( 'ORDB::CPANTesters' );
