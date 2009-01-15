@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Pod
 
+0.04 Thu 15 Jan 2009
+	- Switching from print statements to Template Toolkit
+	- orlite2pod will "use" the class instead of "require"
+
 0.03 Thu 15 Jan 2009
 	- Adding the bulk of the per-table documeation (first pass)
 

@@ -28,7 +28,7 @@ use ORLite::Pod ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 unless ( -d 'lib' ) {
@@ -37,7 +37,7 @@ unless ( -d 'lib' ) {
 unshift @INC, 'lib';
 
 my $class = shift;
-eval "require $class;";
+eval "use $class;";
 die $@ if $@;
 
 print "Creating ORLite::Pod instance...\n";
