@@ -62,7 +62,9 @@ my $spec;
 
 {
     local($RS) = undef;
-    $spec = <GRAMMAR>;
+    open my $grammar, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
+    $spec = <$grammar>;
+    close $grammar;
     if ((my $earleme = $recce->text(\$spec)) >= 0) {
 	# for the editors, line numbering starts at 1
 	# do something about this?
@@ -72,7 +74,7 @@ my $spec;
 	    when (undef) { say STDERR substr $spec, $line_start }
 	    default { say STDERR substr $spec, $line_start, $_-$line_start }
 	}
-	say STDERR +(q{ } x ($earleme-$line_start)), '^';
+	say STDERR +(q{ } x ($earleme-$line_start)), q{^};
 	exit 1;
     }
 }
@@ -84,14 +86,29 @@ croak('No parse') unless $evaler;
 
 sub slurp { open my $fh, '<', shift; local($RS)=undef; return <$fh>; }
 
-my ($header, $trailer);
-$header = slurp($header_file_name) if $header_file_name;
-$trailer = slurp($trailer_file_name) if $trailer_file_name;
-
 say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
+
+if ($header_file_name)
+{
+    my $header = slurp($header_file_name);
+    if (defined $header)
+    {
+        print $header
+            or croak("print failed: $ERRNO");
+    }
+}
+
 my $value = $evaler->value();
-print $header if defined $header;
 say ${$value};
-print $trailer if defined $trailer;
+
+if ($trailer_file_name)
+{
+    my $trailer = slurp($trailer_file_name);
+    if (defined $trailer)
+    {
+        print $trailer
+            or croak("print failed: $ERRNO");
+    }
+}
 
 # This is the end of bootstrap_trailer.pl

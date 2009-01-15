@@ -1,3 +1,5 @@
+#!perl
+#
 # Marpa compiling its own specification language
 # New generations of this file will usually be created by 
 # replacing everything after this comment with bootcopy1.pl,
@@ -29,7 +31,7 @@ my $new_version;
 my $new_default_action;
 my $new_default_null_value;
 my $new_default_lex_prefix;
-our %strings;
+our %STRINGS;
 
 sub usage {
    croak("usage: $0 grammar-file\n");
@@ -42,24 +44,23 @@ my $grammar_file_name = shift @ARGV;
 my $header_file_name = shift @ARGV;
 my $trailer_file_name = shift @ARGV;
 
-our $GRAMMAR;
-open GRAMMAR, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
-
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
 $new_version = '1.001_003';
 
-$new_start_symbol = "grammar";
+$new_start_symbol = 'grammar';
 
 $new_default_lex_prefix = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms;
 
-$strings{'concatenate-lines'} =  q{
+$STRINGS{'concatenate-lines'} =  q{
     (scalar @_) ? (join "\n", (grep { $_ } @_)) : undef;
 };
 
 $new_preamble .=  q{
     our $regex_data = [];
+    our %STRINGS;
+    1;
 };
 
 push @{$new_rules}, {
@@ -76,7 +77,7 @@ push @{$new_rules}, {
 separator => 'empty-line',
 min => 1,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -84,7 +85,7 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['definition-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -92,7 +93,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['production-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -100,7 +101,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['terminal-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -110,7 +111,7 @@ push @{$new_rules}, {
 ,rhs => ['definition'],
 min => 1,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -123,8 +124,7 @@ push @{$new_rules}, {
         my $action = $_[3];
         my $other_key_value = join(",\n", map { $_ // q{} } @_[0,2,4]);
         my $result =
-            'push @{$new_rules}, '
-             . "{\n"
+            'push @{$new_rules}, ' . "{\n"
              . $_[1] . ",\n"
              . (defined $action ? ($action . ",\n") : q{})
              . $other_key_value
@@ -140,7 +140,7 @@ push @{$new_rules}, {
          }
          our @implicit_rules;
          if (@implicit_rules) {
-             $result .= "\n" . 'push @{$new_rules}, ' . "\n";
+             $result .= "\n" . 'push @{$new_rules},' . "\n";
              while (my $implicit_production = shift @implicit_rules) {
                  $result .= "    {" . $implicit_production . "},\n";
              }
@@ -152,7 +152,7 @@ push @{$new_rules}, {
 ,
 
 };
-push @{$new_rules}, 
+push @{$new_rules},
     { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => q{ $_[0] } },
     { lhs => 'action-sentence:optional',  rhs => [],  action => q{ undef } },
  ;
@@ -162,7 +162,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-production-sentence'],
 min => 0,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -198,7 +198,7 @@ push @{$new_terminals},
     ['is:k3' => { regex => qr/is/ }],
 ;
 
-push @{$new_rules}, 
+push @{$new_rules},
     { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => q{ $_[0] } },
     { lhs => 'the:k1:optional',  rhs => [],  action => q{ undef } },
  ;
@@ -217,7 +217,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'action-specifier'
 ,    rhs => ['string-specifier'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -225,7 +225,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-production-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -233,7 +233,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-terminal-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -263,7 +263,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'definition'
 ,    rhs => ['string-definition'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -271,7 +271,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-action-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -279,7 +279,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-null-value-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -287,7 +287,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['preamble-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -295,7 +295,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['lex-preamble-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -303,7 +303,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['semantics-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -311,7 +311,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['version-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -319,7 +319,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['start-symbol-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -327,7 +327,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-lex-prefix-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -402,9 +402,9 @@ push @{$new_rules}, {
 ,    rhs => ['the:k1:optional', 'start:k8', 'symbol:k9', 'copula', 'symbol-phrase'],
     action =>
 q{
-    q{$new_start_symbol = "}
+    q{$new_start_symbol = '}
     . $_[4]
-    . qq{";\n}
+    . qq{';\n}
 },
 ,
 ,
@@ -571,7 +571,7 @@ push @{$new_rules}, {
 ,    rhs => ['symbol-phrase', 'is:k3', 'string-specifier', 'period'],
     action =>
 q{
-    '$strings{' . q{'}
+    '$STRINGS{' . q{'}
     . $_[0]
     . q{'} . '}' . q{ = }
     . $_[2]
@@ -638,7 +638,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['double-quoted-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -646,7 +646,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['single-quoted-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -800,7 +800,7 @@ q{
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['mandatory-rhs-element'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -808,7 +808,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['optional-rhs-element'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -888,7 +888,7 @@ q{
 push @{$new_rules}, {
     lhs => 'terminal-paragraph'
 ,    rhs => ['non-structural-terminal-sentences', 'terminal-sentence', 'non-structural-terminal-sentences'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -898,7 +898,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-terminal-sentence'],
 min => 0,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -908,13 +908,13 @@ push @{$new_rules}, {
 ,    rhs => ['symbol-phrase', 'matches:k17', 'regex', 'period'],
     action =>
 q{
-    q{push(@{$new_terminals}, [ '}
+    q{push @{$new_terminals}, [ '}
     . $_[0]
     . q{' => }
     . '{ regex => '
     . $_[2]
     . '}'
-    . qq{ ] );\n}
+    . qq{ ] ;\n}
 },
 ,
 ,
@@ -929,13 +929,13 @@ push @{$new_rules}, {
 ,    rhs => ['match:k18', 'symbol-phrase', 'using:k19', 'string-specifier', 'period'],
     action =>
 q{
-    q{push(@{$new_terminals}, [ '}
+    q{push @{$new_terminals}, [ '}
     . $_[1]
     . q{' => }
     . '{ action =>'
     . $_[3]
     . '}'
-    . qq{ ] );\n}
+    . qq{ ];\n}
 },
 ,
 ,
@@ -949,7 +949,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'string-specifier'
 ,    rhs => ['literal-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>$STRINGS{ 'concatenate-lines' },
 ,
 ,
 
@@ -959,7 +959,7 @@ push @{$new_rules}, {
 ,    rhs => ['symbol-phrase'],
     action =>
 q{
-    '$strings{ ' . q{'}
+    '$STRINGS{ ' . q{'}
     . $_[0]
     . q{'} . ' }'
 },
@@ -967,11 +967,11 @@ q{
 ,
 
 };
-push(@{$new_terminals}, [ 'q-string' => { action =>"lex_q_quote"} ] );
+push @{$new_terminals}, [ 'q-string' => { action =>'lex_q_quote'} ];
 
-push(@{$new_terminals}, [ 'regex' => { action =>"lex_regex"} ] );
+push @{$new_terminals}, [ 'regex' => { action =>'lex_regex'} ];
 
-push(@{$new_terminals}, [ 'empty-line' => { regex => qr/^\h*\n/xms} ] );
+push @{$new_terminals}, [ 'empty-line' => { regex => qr/^\h*\n/xms} ] ;
 
 push @{$new_rules}, {
     lhs => 'trailing-matter'
@@ -994,13 +994,13 @@ push @{$new_rules}, {
 ,
 
 };
-push(@{$new_terminals}, [ 'final-comment' => { regex => qr/\#[^\n]*\Z/xms} ] );
+push @{$new_terminals}, [ 'final-comment' => { regex => qr/\#[^\n]*\Z/xms} ] ;
 
-push(@{$new_terminals}, [ 'final-whitespace' => { regex => qr/\s\z/xms} ] );
+push @{$new_terminals}, [ 'final-whitespace' => { regex => qr/\s\z/xms} ] ;
 
-push(@{$new_terminals}, [ 'bracketed-comment' => { regex => qr/\x{5b}[^\x{5d}]*\x{5d}/xms} ] );
+push @{$new_terminals}, [ 'bracketed-comment' => { regex => qr/\x{5b}[^\x{5d}]*\x{5d}/xms} ] ;
 
-push(@{$new_terminals}, [ 'single-quoted-string' => { action => q{
+push @{$new_terminals}, [ 'single-quoted-string' => { action => q{
     my $match_start = pos ${$STRING};
     state $prefix_regex = qr/\G'/oxms;
     return unless ${$STRING} =~ /$prefix_regex/gxms;
@@ -1018,9 +1018,9 @@ push(@{$new_terminals}, [ 'single-quoted-string' => { action => q{
         }
     }
     return;
-}} ] );
+}} ];
 
-push(@{$new_terminals}, [ 'double-quoted-string' => { action => q{
+push @{$new_terminals}, [ 'double-quoted-string' => { action => q{
     my $match_start = pos $$STRING;
     state $prefix_regex = qr/\G"/o;
     return unless $$STRING =~ /$prefix_regex/g;
@@ -1038,21 +1038,21 @@ push(@{$new_terminals}, [ 'double-quoted-string' => { action => q{
         }
     }
     return;
-}} ] );
+}} ];
 
-push(@{$new_terminals}, [ 'version-number' => { regex => qr/\d+\.[\d_.]+\d/} ] );
+push @{$new_terminals}, [ 'version-number' => { regex => qr/\d+\.[\d_.]+\d/} ] ;
 
-push(@{$new_terminals}, [ 'symbol-word' => { regex => qr/[a-zA-Z_][a-zA-Z0-9_-]*/} ] );
+push @{$new_terminals}, [ 'symbol-word' => { regex => qr/[a-zA-Z_][a-zA-Z0-9_-]*/} ] ;
 
-push(@{$new_terminals}, [ 'period' => { regex => qr/\./} ] );
+push @{$new_terminals}, [ 'period' => { regex => qr/\./} ] ;
 
-push(@{$new_terminals}, [ 'integer' => { regex => qr/\d+/} ] );
+push @{$new_terminals}, [ 'integer' => { regex => qr/\d+/} ] ;
 
-push(@{$new_terminals}, [ 'comment-tag' => { regex => qr/(to\s+do|note|comment)/} ] );
+push @{$new_terminals}, [ 'comment-tag' => { regex => qr/(to\s+do|note|comment)/} ] ;
 
-push(@{$new_terminals}, [ 'comment-word' => { regex => qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/} ] );
+push @{$new_terminals}, [ 'comment-word' => { regex => qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/} ] ;
 
-push(@{$new_terminals}, [ 'comma' => { regex => qr/\,/} ] );
+push @{$new_terminals}, [ 'comma' => { regex => qr/\,/} ] ;
 
 # This is the beginning of bootstrap_trailer.pl
 
@@ -1118,7 +1118,9 @@ my $spec;
 
 {
     local($RS) = undef;
-    $spec = <GRAMMAR>;
+    open my $grammar, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
+    $spec = <$grammar>;
+    close $grammar;
     if ((my $earleme = $recce->text(\$spec)) >= 0) {
 	# for the editors, line numbering starts at 1
 	# do something about this?
@@ -1128,7 +1130,7 @@ my $spec;
 	    when (undef) { say STDERR substr $spec, $line_start }
 	    default { say STDERR substr $spec, $line_start, $_-$line_start }
 	}
-	say STDERR +(q{ } x ($earleme-$line_start)), '^';
+	say STDERR +(q{ } x ($earleme-$line_start)), q{^};
 	exit 1;
     }
 }
@@ -1140,14 +1142,29 @@ croak('No parse') unless $evaler;
 
 sub slurp { open my $fh, '<', shift; local($RS)=undef; return <$fh>; }
 
-my ($header, $trailer);
-$header = slurp($header_file_name) if $header_file_name;
-$trailer = slurp($trailer_file_name) if $trailer_file_name;
-
 say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
+
+if ($header_file_name)
+{
+    my $header = slurp($header_file_name);
+    if (defined $header)
+    {
+        print $header
+            or croak("print failed: $ERRNO");
+    }
+}
+
 my $value = $evaler->value();
-print $header if defined $header;
 say ${$value};
-print $trailer if defined $trailer;
+
+if ($trailer_file_name)
+{
+    my $trailer = slurp($trailer_file_name);
+    if (defined $trailer)
+    {
+        print $trailer
+            or croak("print failed: $ERRNO");
+    }
+}
 
 # This is the end of bootstrap_trailer.pl

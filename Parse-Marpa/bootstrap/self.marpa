@@ -9,6 +9,8 @@ concatenate lines is q{
 
 a preamble is q{
     our $regex_data = [];
+    our %STRINGS;
+    1;
 }.
 
 grammar: paragraphs, trailing matter.  q{ $_[0] }.
@@ -37,8 +39,7 @@ production paragraph:
         my $action = $_[3];
         my $other_key_value = join(",\n", map { $_ // q{} } @_[0,2,4]);
         my $result =
-            'push @{$new_rules}, '
-             . "{\n"
+            'push @{$new_rules}, ' . "{\n"
              . $_[1] . ",\n"
              . (defined $action ? ($action . ",\n") : q{})
              . $other_key_value
@@ -54,7 +55,7 @@ production paragraph:
          }
          our @implicit_rules;
          if (@implicit_rules) {
-             $result .= "\n" . 'push @{$new_rules}, ' . "\n";
+             $result .= "\n" . 'push @{$new_rules},' . "\n";
              while (my $implicit_production = shift @implicit_rules) {
                  $result .= "    {" . $implicit_production . "},\n";
              }
@@ -144,9 +145,9 @@ q{
 start symbol setting: optional /the/, /start/, /symbol/, copula,
 symbol phrase.
 q{
-    q{$new_start_symbol = "}
+    q{$new_start_symbol = '}
     . $_[4]
-    . qq{";\n}
+    . qq{';\n}
 }.
 
 start symbol setting: symbol phrase, copula, optional /the/, /start/,
@@ -228,7 +229,7 @@ copula: /are/.
 string definition:
 symbol phrase, /is/, string specifier, period.
 q{
-    '$strings{' . q{'}
+    '$STRINGS{' . q{'}
     . $_[0]
     . q{'} . '}' . q{ = }
     . $_[2]
@@ -387,39 +388,39 @@ sequence.  concatenate lines.
 terminal sentence:
 symbol phrase, /matches/, regex, period.
 q{
-    q{push(@{$new_terminals}, [ '}
+    q{push @{$new_terminals}, [ '}
     . $_[0]
     . q{' => }
     . '{ regex => '
     . $_[2]
     . '}'
-    . qq{ ] );\n}
+    . qq{ ] ;\n}
 }.
 
 terminal sentence:
 /match/, symbol phrase, /using/, string specifier, period.
 q{
-    q{push(@{$new_terminals}, [ '}
+    q{push @{$new_terminals}, [ '}
     . $_[1]
     . q{' => }
     . '{ action =>'
     . $_[3]
     . '}'
-    . qq{ ] );\n}
+    . qq{ ];\n}
 }.
 
 string specifier: literal string.  concatenate lines.
 
 string specifier: symbol phrase.
 q{
-    '$strings{ ' . q{'}
+    '$STRINGS{ ' . q{'}
     . $_[0]
     . q{'} . ' }'
 }.
 
-match q string using "lex_q_quote".
+match q string using 'lex_q_quote'.
 
-match regex using "lex_regex".
+match regex using 'lex_regex'.
 
 empty line matches qr/^\h*\n/xms.
 

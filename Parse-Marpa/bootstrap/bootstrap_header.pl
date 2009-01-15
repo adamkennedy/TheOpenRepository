@@ -22,7 +22,7 @@ my $new_version;
 my $new_default_action;
 my $new_default_null_value;
 my $new_default_lex_prefix;
-our %strings;
+our %STRINGS;
 
 sub usage {
    croak("usage: $0 grammar-file\n");
@@ -34,8 +34,5 @@ usage() if $argc < 1 or $argc > 3;
 my $grammar_file_name = shift @ARGV;
 my $header_file_name = shift @ARGV;
 my $trailer_file_name = shift @ARGV;
-
-our $GRAMMAR;
-open GRAMMAR, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
 
 # This is the end of bootstrap_header.pl
