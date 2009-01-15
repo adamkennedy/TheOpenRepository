@@ -1,12 +1,13 @@
-use 5.010_000;
+use 5.010;
 use strict;
 use warnings;
 use LWP::UserAgent;
 use URI::URL;
 use HTML::LinkExtor;
+use English qw( -no_match_vars ) ;
 
 my $cpan_base = 'http://search.cpan.org';
-my $marpa_doc_base = $cpan_base . '/~jkegl/Parse-Marpa-1.000000/lib/Parse/';
+my $marpa_doc_base = $cpan_base . '/~jkegl/Parse-Marpa-1.001_002/lib/Parse/';
 
 my @url = qw(
     Marpa.pm
@@ -37,6 +38,8 @@ sub cb {
 }
 
 my %link_ok;
+
+$OUTPUT_AUTOFLUSH = 1;
 
 PAGE: for my $url (@url) {
     $url = $marpa_doc_base . $url;

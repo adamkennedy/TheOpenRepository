@@ -15,7 +15,7 @@
 ## no critic (RegularExpressions::RequireLineBoundaryMatching)
 ## no critic (RegularExpressions::RequireDotMatchAnything)
 
-use 5.010_000;
+use 5.010;
 use strict;
 use warnings;
 use Parse::Marpa;
@@ -187,7 +187,7 @@ push @{$new_rules}, {
 ,    rhs => ['the:k1:optional', 'action:k2', 'is:k3', 'action-specifier', 'period'],
     action =>
 q{
-    "    action =>"
+    '    action =>'
     . $_[3]
 },
 ,
@@ -209,7 +209,7 @@ push @{$new_rules}, {
     lhs => 'action-sentence'
 ,    rhs => ['action-specifier', 'period'],
     action => q{
-    "    action =>"
+    '    action =>'
     . $_[0]
 },
 ,
@@ -1010,11 +1010,11 @@ push @{$new_terminals}, [ 'single-quoted-string' => { action => q{
     MATCH: while (${$STRING} =~ /$regex/gcxms) {
         next MATCH unless defined $1;
         if ($1 eq q{'}) {
-            my $end_pos = pos $$STRING;
+            my $end_pos = pos ${$STRING};
             my $match_length = $end_pos - $match_start;
             my $lex_length = $end_pos - $START;
             return (
-                substr($$STRING, $match_start, $match_length),
+                substr(${$STRING}, $match_start, $match_length),
                 $lex_length
             );
         }

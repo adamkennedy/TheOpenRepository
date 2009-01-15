@@ -1,6 +1,6 @@
 #!perl
 
-use 5.010_000;
+use 5.010;
 
 # An ambiguous equation,
 # this time using the lexer

@@ -1,6 +1,6 @@
 package Parse::Marpa;
 
-use 5.010_000;
+use 5.010;
 
 use warnings;
 use strict;

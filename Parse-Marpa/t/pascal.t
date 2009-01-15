@@ -1,6 +1,6 @@
 #!perl
 
-use 5.010_000;
+use 5.010;
 # variations on
 # the example grammar in Aycock/Horspool "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,

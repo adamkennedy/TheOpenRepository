@@ -1,6 +1,6 @@
 #!perl
 
-use 5.010_000;
+use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars ) ;

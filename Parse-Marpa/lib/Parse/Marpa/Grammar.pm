@@ -1,6 +1,6 @@
 package Parse::Marpa::Internal;
 
-use 5.010_000;
+use 5.010;
 
 use warnings;
 no warnings 'recursion';

@@ -1,12 +1,15 @@
 #!perl
 
-use 5.010_000;
+use 5.010;
+use strict;
+use warnings;
+
 use Fatal qw( close waitpid );
 use English qw( -no_match_vars );
 use IPC::Open2;
 use POSIX qw(WIFEXITED);
 
-my %exclude = map { $_, 1 } qw(
+my %exclude = map { ($_, 1) } qw(
 Changes
 MANIFEST
 META.yml
@@ -30,8 +33,11 @@ sub run_critic {
     my $pid = open2($child_out, $child_in, @cmd)
         or croak("IPC::Open2 of perlcritic pipe failed: $ERRNO");
     close $child_in;
-    local($RS) = undef;
-    my $critic_output = <$child_out>;
+    my $critic_output = do {
+        local($RS) = undef;
+         <$child_out>;
+    };
+    close $child_out;
     waitpid $pid, 0;
     if (my $child_error = $CHILD_ERROR)
     {
@@ -45,18 +51,19 @@ sub run_critic {
             $critic_output .= "$error_message\n";
         }
         my @newlines = ($critic_output =~ m/\n/xmsg);
-        say STDERR "$file: ", scalar @newlines, " lines of complaints";
+        say STDERR "$file: ", scalar @newlines, ' lines of complaints';
         return \$critic_output;
     }
     say STDERR "$file: clean";
-    return "";
+    return q{};
 }
 
 open my $manifest, '<', '../MANIFEST'
     or croak("open of MANIFEST failed: $ERRNO");
+
 FILE: while (my $file = <$manifest>) {
     chomp $file;
-    $file =~ s/\s*[#].*\z//;
+    $file =~ s/\s*[#].*\z//xms;
     next FILE if $file =~ /.pod\z/xms;
     next FILE if $file =~ /.marpa\z/xms;
     next FILE if $file =~ /\/Makefile\z/xms;
@@ -67,6 +74,8 @@ FILE: while (my $file = <$manifest>) {
     if (my $result = run_critic( $file ))
     {
         say "=== $file ===";
-        print ${$result};
+        print ${$result}
+            or croak("print failed: $ERRNO");
     }
 }
+close $manifest;

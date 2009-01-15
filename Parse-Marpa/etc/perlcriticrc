@@ -152,6 +152,7 @@ severity=5
 
 [InputOutput::RequireBriefOpen]
 severity=5
+lines=99
 
 [InputOutput::RequireCheckedClose]
 severity=5

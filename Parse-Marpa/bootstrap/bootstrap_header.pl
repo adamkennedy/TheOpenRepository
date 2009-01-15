@@ -6,7 +6,7 @@
 ## no critic (RegularExpressions::RequireLineBoundaryMatching)
 ## no critic (RegularExpressions::RequireDotMatchAnything)
 
-use 5.010_000;
+use 5.010;
 use strict;
 use warnings;
 use Parse::Marpa;

@@ -1,7 +1,7 @@
 #!perl
 # Ensure various coding errors are caught
 
-use 5.010_000;
+use 5.010;
 use strict;
 use warnings;
 
