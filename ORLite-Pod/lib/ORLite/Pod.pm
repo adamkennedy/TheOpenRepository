@@ -53,7 +53,7 @@ use Template        ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 my $now = (localtime(time))[5] + 1900;
@@ -206,7 +206,7 @@ sub run {
 	# Generate the table .pod files
 	foreach my $table ( @$tables ) {
 		# Skip tables we aren't modelling
-		next unless $table->{class}->can('new');
+		next unless $table->{class}->can('select');
 
 		# Generate the table-specific file
 		$self->write_table( $tables, $table );

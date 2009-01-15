@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Pod
 
+0.05 Thu 15 Jan 2009
+	- Using the select method instead of new as a "loaded" detector
+
 0.04 Thu 15 Jan 2009
 	- Switching from print statements to Template Toolkit
 	- orlite2pod will "use" the class instead of "require"
