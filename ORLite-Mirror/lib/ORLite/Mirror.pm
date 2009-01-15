@@ -15,7 +15,7 @@ use ORLite                  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 	@ISA     = qw{ ORLite };
 }
 
@@ -96,29 +96,38 @@ sub import {
 		$path .= $1;
 	}
 
-	# Fetch the archive
-	my $response = $useragent->mirror( $url => $path );
-	unless ( $response->is_success or $response->code == 304 ) {
-		Carp::croak("Error: Failed to fetch $url");
-	}
-
-	# Decompress if we pulled an archive
+	# Don't update if the file is newer than 24 hours
 	my $archive = $path;
-	if ( $path =~ /\.gz$/ ) {
-		$path =~ s/\.gz$//;
-		unless ( $response->code == 304 and -f $path ) {
-			IO::Uncompress::Gunzip::gunzip(
-				$archive   => $path,
-				BinModeOut => 1,
-			) or Carp::croak("gunzip($archive) failed");
+	if ( -f $path and (time - (stat($path))[9]) > 86400 ) {
+		# Fetch the archive
+		my $response = $useragent->mirror( $url => $path );
+		unless ( $response->is_success or $response->code == 304 ) {
+			Carp::croak("Error: Failed to fetch $url");
 		}
-	} elsif ( $path =~ /\.bz2$/ ) {
-		$path =~ s/\.bz2$//;
-		unless ( $response->code == 304 and -f $path ) {
-			IO::Uncompress::Bunzip2::bunzip2(
-				$archive   => $path,
-				BinModeOut => 1,
-			) or Carp::croak("bunzip2($archive) failed");
+
+		# Decompress if we pulled an archive
+		if ( $path =~ /\.gz$/ ) {
+			$path =~ s/\.gz$//;
+			unless ( $response->code == 304 and -f $path ) {
+				IO::Uncompress::Gunzip::gunzip(
+					$archive   => $path,
+					BinModeOut => 1,
+				) or Carp::croak("gunzip($archive) failed");
+			}
+		} elsif ( $path =~ /\.bz2$/ ) {
+			$path =~ s/\.bz2$//;
+			unless ( $response->code == 304 and -f $path ) {
+				IO::Uncompress::Bunzip2::bunzip2(
+					$archive   => $path,
+					BinModeOut => 1,
+				) or Carp::croak("bunzip2($archive) failed");
+			}
+		}
+	} else {
+		if ( $path =~ /\.gz$/ ) {
+			$path =~ s/\.gz$//;
+		} elsif ( $path =~ /\.bz2$/ ) {
+			$path =~ s/\.bz2$//;
 		}
 	}
 
