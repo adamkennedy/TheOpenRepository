@@ -4,7 +4,7 @@ use 5.008005;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use ORLite::Mirror ();
 
@@ -27,7 +27,7 @@ __END__
 
 =head1 NAME
 
-ORDB::CPANTesters - An ORLite-based ORM Database API
+ORDB::CPANTesters - An ORM for the published CPAN Testers SQLite database
 
 =head1 SYNOPSIS
 
