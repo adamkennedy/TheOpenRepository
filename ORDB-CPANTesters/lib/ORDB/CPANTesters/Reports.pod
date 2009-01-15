@@ -74,6 +74,22 @@ Returns true, or throws an exception on error.
 
 REMAINING ACCESSORS TO BE COMPLETED
 
+=head1 SQL
+
+The reports table was originally created with the
+following SQL command.
+
+  CREATE TABLE reports (
+    id INTEGER PRIMARY KEY,
+    status TEXT,
+    distribution TEXT,
+    version TEXT,
+    perl TEXT,
+    osname TEXT,
+    osvers TEXT,
+    archname TEXT
+  )
+
 =head1 SUPPORT
 
 ORDB::CPANTesters::Reports is part of the L<ORDB::CPANTesters> API.
@@ -82,11 +98,11 @@ See the documentation for L<ORDB::CPANTesters> for more information.
 
 =head1 AUTHOR
 
-The Author
+Adam Kennedy
 
 =head1 COPYRIGHT
 
-Copyright 2009The Author.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
