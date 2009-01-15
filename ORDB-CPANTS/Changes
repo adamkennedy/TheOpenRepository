@@ -1,0 +1,5 @@
+Changes for Perl extension ORDB-CPANTesters
+
+0.01 Thu 15 Jan 2009
+	- Initial experimental release
+	- Adding ORLite::Pod-generated documentation
