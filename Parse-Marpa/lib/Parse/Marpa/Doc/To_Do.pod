@@ -6,8 +6,6 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
-=item * Make code clean under perlcritic.
-
 =item * Allow cloning of unstripped recognizers
 
 =item * Add a SYNOPSIS to the Plumbing document.
@@ -35,11 +33,7 @@ doesn't entirely replace it.
 
 =item * Add a show_derivation option.
 
-=item * Ensure C<Parse::Marpa::Internal::This::grammar> set wherever appropriate.
-
-=item * Add option for left-to-right evaluation of rules
-
-=item * Test proper and perl5 separation
+=item * Eliminate C<Parse::Marpa::Internal::This::grammar>
 
 =item * Add to test set: Basic tests of sequences.
 The matrix is separation (none/perl5/proper)

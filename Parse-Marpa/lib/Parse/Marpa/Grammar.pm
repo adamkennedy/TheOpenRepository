@@ -637,7 +637,6 @@ sub Parse::Marpa::Grammar::new {
 
     my $grammar = [];
     bless $grammar, $class;
-    local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
     # set the defaults and the default defaults
     $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = *STDERR;
@@ -822,7 +821,6 @@ sub Parse::Marpa::Grammar::set {
     my ($grammar, $args) = @_;
     $args //= {};
 
-    local ($Parse::Marpa::Internal::This::grammar) = $grammar;
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
 
     # set trace_fh even if no tracing, because we may turn it on in this method

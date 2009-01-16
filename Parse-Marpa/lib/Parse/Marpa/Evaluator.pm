@@ -429,8 +429,6 @@ sub Parse::Marpa::Evaluator::new {
     croak('Attempt to evaluate grammar in wrong phase: ', Parse::Marpa::Internal::Phase::description($phase))
         if $phase < Parse::Marpa::Internal::Phase::RECOGNIZED;
 
-    local ($Parse::Marpa::Internal::This::grammar) = $grammar;
-
     $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
 
     $self->set( $args );
@@ -938,8 +936,6 @@ sub Parse::Marpa::Evaluator::value {
     ) unless $evaler_class eq $right_class;
 
     my ( $grammar, ) = @{$recognizer}[ Parse::Marpa::Internal::Recognizer::GRAMMAR, ];
-
-    local ($Parse::Marpa::Internal::This::grammar) = $grammar;
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh =
