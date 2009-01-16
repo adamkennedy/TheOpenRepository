@@ -41,11 +41,9 @@ Parse::Marpa::Internal::Rule
 Parse::Marpa::Internal::Source_Eval
 Parse::Marpa::Internal::Source_Raw
 Parse::Marpa::Internal::Symbol
-Parse::Marpa::Internal::This
 Parse::Marpa::Internal::Tree_Node
 Parse::Marpa::Lex
 Parse::Marpa::MDL
-Parse::Marpa::Read_Only
 Parse::Marpa::Recognizer
 );
 
@@ -124,17 +122,6 @@ BEGIN {
         if $STRINGIFIED_EVAL_ERROR;
 }
 
-package Parse::Marpa::Read_Only;
-
-# Public namespace reserved for dynamic globals, that is local() variables,
-# available to the user on a read only basis.
-# No actual globals should reside here
-
-package Parse::Marpa::Internal::This;
-
-# Internal namespace reserved for dynamic globals, that is local() variables.
-# No actual globals should reside here
-
 package Parse::Marpa::Internal;
 
 # Returns failure if no parses.
@@ -185,19 +172,6 @@ sub Parse::Marpa::mdl {
         push @values, $value;
     }
     return @values;
-}
-
-sub Parse::Marpa::show_value {
-    my $value_ref = shift;
-    my $ii        = shift;
-    return 'none' unless defined $value_ref;
-    my $value = ${$value_ref};
-    return 'undef' unless defined $value;
-    if ($ii) {
-        my $type = ref $value;
-        return $type if $type;
-    }
-    return "$value";
 }
 
 1;    # End of Parse::Marpa
@@ -555,18 +529,13 @@ users should use only documented methods:
     Parse::Marpa::MDL
     Parse::Marpa::Recognizer
     Parse::Marpa::Evaluator
-    Parse::Marpa::Read_Only
 
+The C<$STRING> and C<$START> variables,
+which are made available to the lex actions,
+must be used on a read-only basis,
+except as described in the documentation.
 Marpa namespaces and variables not mentioned in this section,
 should not be relied on or modified.
-Users should use variables in the
-the C<Parse::Marpa::Read_Only> namespace on a read-only basis.
-Staying read-only can be tricky when dealing with Perl 5 arrays and hashes.
-Be careful about auto-vivification!
-
-The C<$STRING> and C<$START> variables are made available to the lex actions.
-They are also on a read-only basis,
-except as described in the documentation.
 
 =head2 Returns and Exceptions
 

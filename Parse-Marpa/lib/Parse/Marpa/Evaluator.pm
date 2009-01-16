@@ -214,7 +214,7 @@ sub set_null_values {
                 print {$trace_fh} 'Setting null value for symbol ',
                     $nulling_symbol->[Parse::Marpa::Internal::Symbol::NAME],
                     " from\n", $code, "\n",
-                    ' to ', Parse::Marpa::show_value( \$null_value ), "\n"
+                    ' to ', Dumper( \$null_value ), "\n"
                     or croak('Could not print to trace file');
             }
 

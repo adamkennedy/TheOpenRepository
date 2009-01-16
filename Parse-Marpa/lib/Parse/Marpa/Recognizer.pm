@@ -7,16 +7,6 @@ use strict;
 use integer;
 use English qw( -no_match_vars );
 
-package Parse::Marpa::Read_Only;
-
-# perhaps a Perl critic bug here -- I can't turn off the
-# complaint for Parse::Marpa::Read_Only package
-# variables
-
-## no critic (Variables::ProhibitPackageVars)
-our $rule;
-## use critic
-
 package Parse::Marpa::Internal;
 
 # Elements of the EARLEY ITEM structure
@@ -104,11 +94,9 @@ Parse::Marpa::Internal::Rule
 Parse::Marpa::Internal::Source_Eval
 Parse::Marpa::Internal::Source_Raw
 Parse::Marpa::Internal::Symbol
-Parse::Marpa::Internal::This
 Parse::Marpa::Internal::Tree_Node
 Parse::Marpa::Lex
 Parse::Marpa::MDL
-Parse::Marpa::Read_Only
 Parse::Marpa::Recognizer
 );
 

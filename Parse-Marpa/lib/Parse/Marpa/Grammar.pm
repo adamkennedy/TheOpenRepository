@@ -328,11 +328,9 @@ Parse::Marpa::Internal::Rule
 Parse::Marpa::Internal::Source_Eval
 Parse::Marpa::Internal::Source_Raw
 Parse::Marpa::Internal::Symbol
-Parse::Marpa::Internal::This
 Parse::Marpa::Internal::Tree_Node
 Parse::Marpa::Lex
 Parse::Marpa::MDL
-Parse::Marpa::Read_Only
 Parse::Marpa::Recognizer
 );
 
