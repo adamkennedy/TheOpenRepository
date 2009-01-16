@@ -1,12 +1,12 @@
 Revision history for Parse::Marpa
 
-1.001_003 Mon Jan 12 21:33:14 PST 2009
+1.001_004 Fri Jan 16 10:22:52 PST 2009
         So far, perlcritic fixes.
-        Improvement to error messages for problems
-            with user code for semantics, etc.
+        Improvement to the error messages to help
+            the user debug code that she supplies.
 
 1.001_nnn Thu Dec 18 21:59:40 PST 2008
-        A series of developer's releases
+        A series of developer's releases.
 
 1.000000 Sat Dec 13 11:27:37 PST 2008
         First beta release.
