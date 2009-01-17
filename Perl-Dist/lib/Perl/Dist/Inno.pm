@@ -3318,7 +3318,7 @@ L<Perl::Dist>, L<vanillaperl.com>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Adam Kennedy.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
