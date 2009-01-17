@@ -1301,7 +1301,7 @@ sub install_perl_589 {
 	# Install the main perl distributions
 	$self->install_perl_589_bin(
 		name       => 'perl',
-		url        => 'http://strawberryperl.com/package/perl-5.8.9-RC1.tar.gz',
+		url        => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
 		unpack_to  => 'perl',
 		install_to => 'perl',
 		patch      => [ qw{
