@@ -116,6 +116,11 @@ foreach my $file (@files) {
 
 Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
+=head1 SUPPORT
+
+For support details, please look at C<perldoc Video::FourCC::Info> and
+use the corresponding support methods.
+
 =head1 LICENSE
 
 Copyleft (C) 2009 by Jonathan Yu <frequency@cpan.org>
