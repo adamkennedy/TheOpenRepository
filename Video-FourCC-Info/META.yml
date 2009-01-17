@@ -1,0 +1,45 @@
+---
+name: Video-FourCC-Info
+version: 1.0
+author:
+  - 'Jonathan Yu <frequency@cpan.org>'
+abstract: |-
+  Find information about codecs specified as Four
+  Character Code
+license: perl
+resources:
+  Ratings: http://cpanratings.perl.org/d/Video-FourCC-Info
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Video-FourCC-Info
+  license: http://dev.perl.org/licenses/
+  repository: http://svn.ali.as/cpan/trunk/Video-FourCC-Info
+requires:
+  Carp: 1.04
+  DBD::SQLite: 0
+  DBI: 0
+  File::Basename: 0
+  File::Spec: 0
+  perl: 5.006
+  strict: 0
+  version: 0
+  warnings: 0
+build_requires:
+  Test::More: 0.62
+  Test::NoWarnings: 0.084
+recommends:
+  DateTime: 0
+  Test::DistManifest: 0
+  Test::Kwalitee: 1.01
+  Test::Perl::Critic: 0
+  Test::Pod: 1.14
+  Test::Pod::Coverage: 1.04
+  Test::Signature: 0
+  Test::YAML::Meta: 0
+dynamic_config: 0
+provides:
+  Video::FourCC::Info:
+    file: lib/Video/FourCC/Info.pm
+    version: 1.0
+generated_by: Module::Build version 0.3
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
