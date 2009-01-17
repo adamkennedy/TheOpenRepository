@@ -1,5 +1,6 @@
 use inc::Module::Install 0.77;
 
+
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'File::ShareDir'  => '1.00';
 requires       'Perl::Dist'      => '1.04';
