@@ -1,4 +1,20 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.11_03 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    - perl, the perl licenses, and the individual 
+      modules of the Perl toolchain are now tested
+      to generate fragments (now 57 fragments, about 
+      800K .wxs source.)
+    - Perl::Dist::WiX::Filelist module added to handle
+      file list arithmetic and operations.
+      
+0.11_02 Thu 15 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    - First actual code:
+      1: Most routines collect file names
+      2: "low-level" routines create strings that 
+         "work up the line" and get assembled.
+      3: Individual portions of the C toolchain are
+         individual wix fragments.
+
 0.01_01 Sun 12 Oct 2008
 	- Creating initial version
