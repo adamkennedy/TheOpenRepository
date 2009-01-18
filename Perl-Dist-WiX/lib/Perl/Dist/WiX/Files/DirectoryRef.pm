@@ -168,4 +168,25 @@ sub as_string {
     return $answer;
 }
 
+sub get_component_array {
+    my $self = shift;
+
+    my @answer;
+    my $count = scalar @{$self->{directories}};
+    
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        push @answer, $self->{directories}->[$i]->get_component_array;
+    }
+    
+    $count = scalar @{$self->{files}};
+    
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        push @answer, $self->{files}->[$i]->id;
+    }
+
+    return @answer;
+}
+
 1;

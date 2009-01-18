@@ -94,7 +94,7 @@ use Perl::Dist::Util::Toolchain     ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.11_04';
+	$VERSION = '0.11_05';
 	@ISA     = 'Perl::Dist::WiX::Installer';
 }
 
@@ -401,7 +401,8 @@ sub new {
     );
 
     $self->{filters} = [];
-    push @{$self->filters}, 
+    push @{$self->filters},
+        $self->temp_dir . q{\\},
         catdir( $self->image_dir, qw{ perl man         }) . q{\\},
         catdir( $self->image_dir, qw{ perl html        }) . q{\\},
         catdir( $self->image_dir, qw{ c    man         }) . q{\\},
@@ -1082,13 +1083,13 @@ sub install_perl_588 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->_insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl-licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->_insert_fragment('perl588', $fl->files);
+    $self->insert_fragment('perl588', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1223,13 +1224,13 @@ sub install_perl_589 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->_insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl-licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->_insert_fragment('perl589', $fl->files);
+    $self->insert_fragment('perl589', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1379,13 +1380,13 @@ sub install_perl_5100 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->_insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl-licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->_insert_fragment('perl5100', $fl->files);
+    $self->insert_fragment('perl5100', $fl->files);
     
 	# Install the toolchain
 	$self->install_perl_toolchain( $toolchain );
@@ -1564,7 +1565,7 @@ sub install_dmake {
 		croak("Can't execute make");
 	}
 
-    $self->_insert_fragment('dmake', $filelist->files);
+    $self->insert_fragment('dmake', $filelist->files);
 
 	return 1;
 }
@@ -1599,13 +1600,13 @@ sub install_gcc {
 		},
 	);
 
-    $self->_insert_fragment('gcc-core', $fl->files);
+    $self->insert_fragment('gcc-core', $fl->files);
 
     $fl = $self->install_binary(
 		name       => 'gcc-g++',
 	);
 
-    $self->_insert_fragment('gcc-gplusplus', $fl->files);
+    $self->insert_fragment('gcc-gplusplus', $fl->files);
     
 	return 1;
 }
@@ -1642,7 +1643,7 @@ sub install_binutils {
 		die "Can't execute dlltool";
 	}
 
-    $self->_insert_fragment('binutils', $filelist->files);
+    $self->insert_fragment('binutils', $filelist->files);
 
 	return 1;
 }
@@ -1681,7 +1682,7 @@ sub install_pexports {
 		die "Can't execute pexports";
 	}
 
-    $self->_insert_fragment('pexports', $filelist->files);
+    $self->insert_fragment('pexports', $filelist->files);
 
 	return 1;
 }
@@ -1711,7 +1712,7 @@ sub install_mingw_runtime {
 		},
 	);
 
-    $self->_insert_fragment('mingw-runtime', $filelist->files);
+    $self->insert_fragment('mingw-runtime', $filelist->files);
 
 	return 1;
 }
@@ -1738,7 +1739,7 @@ sub install_zlib {
 	my $self = shift;
 
 	# Zlib is a pexport-based lib-install
-	$self->install_library(
+	my $filelist = $self->install_library(
 		name       => 'zlib',
 		url        => $self->binary_url('zlib-1.2.3.win32.zip'),
 		unpack_to  => 'zlib',
@@ -1754,6 +1755,8 @@ sub install_zlib {
 		},
 	);
 
+    $self->insert_fragment('zlib', $filelist->files);
+    
 	return 1;
 }
 
@@ -1777,7 +1780,7 @@ sub install_win32api {
 		name => 'w32api',
 	);
 
-    $self->_insert_fragment('w32api', $filelist->files);
+    $self->insert_fragment('w32api', $filelist->files);
 
 	return 1;
 }
@@ -1806,12 +1809,12 @@ sub install_mingw_make {
 		name => 'mingw-make',
 	);
 
-    $self->_insert_fragment('mingw-make', $filelist->files);
+    $self->insert_fragment('mingw-make', $filelist->files);
     
 	return 1;
 }
 
-sub _insert_fragment {
+sub insert_fragment {
     my ($self, $id, $files_ref) = @_;
 
     my $fragment = 
@@ -1868,7 +1871,7 @@ sub install_libiconv {
         $filelist
 	);
 
-    $self->_insert_fragment('libiconv', $filelist->files);
+    $self->insert_fragment('libiconv', $filelist->files);
 
 	return 1;
 }
@@ -1899,7 +1902,7 @@ sub install_libxml {
 	my $self = shift;
 
 	# libxml is a straight forward pexport-based install
-	$self->install_library(
+	my $filelist = $self->install_library(
 		name       => 'libxml2',
 		url        => $self->binary_url('libxml2-2.6.30.win32.zip'),
 		unpack_to  => 'libxml2',
@@ -1915,6 +1918,8 @@ sub install_libxml {
 		},
 	);
 
+    $self->insert_fragment('libxml', $filelist->files);
+    
 	return 1;
 }
 
@@ -1943,7 +1948,7 @@ sub install_expat {
 		install_c    => 0,
 	);
     
-    $self->_insert_fragment('libexpat', $filelist->files);
+    $self->insert_fragment('libexpat', $filelist->files);
     
 	return 1;
 }
@@ -1969,7 +1974,7 @@ sub install_gmp {
 		name => 'gmp',
 	);
 
-    $self->_insert_fragment('gmp', $filelist->files);
+    $self->insert_fragment('gmp', $filelist->files);
 
 	return 1;
 }
@@ -1995,7 +2000,7 @@ sub install_pari {
 		url  => 'http://strawberryperl.com/package/Math-Pari-2.010800.par',
 	);
 
-    $self->_insert_fragment('pari', $filelist->files);
+    $self->insert_fragment('pari', $filelist->files);
 
     return 1;
 }
@@ -2119,7 +2124,8 @@ sub install_library {
 		    $self->_extract_filemap( $tgz, $library->license, $license_dir, 1 );
 	}
 
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@files)->filter(@{$self->filters});
+    my @sorted_files = sort { $a cmp $b } @files;
+    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)->filter($self->filters);
     
 	return $filelist;
 }
@@ -2127,7 +2133,14 @@ sub install_library {
 sub _copy_filesref {
     my ($self, $files_ref, $from, $to) = @_;
     
-    my @files = map { s{\A\Q$from\E}{$to} } @{$files_ref};
+    my @files;
+    
+    foreach my $file (@{$files_ref}) {
+        if ( $file =~ m{\A\Q$from\E} ) {
+            $file =~ s{\A\Q$from\E}{$to};
+        }
+        push @files, $file;
+    }
     
     return @files;
 }
@@ -2258,7 +2271,7 @@ sub install_distribution {
     $mod_id =~ s/::/_/g;
     
     # Insert fragment.
-    $self->_insert_fragment($mod_id, $filelist->files);
+    $self->insert_fragment($mod_id, $filelist->files);
     
 	return $self;
 }
@@ -2486,7 +2499,7 @@ END_PERL
     $mod_id =~ s/::/_/g;
     
     # Insert fragment.
-    $self->_insert_fragment($mod_id, $filelist->files);
+    $self->insert_fragment($mod_id, $filelist->files);
 
     return $self;
 }

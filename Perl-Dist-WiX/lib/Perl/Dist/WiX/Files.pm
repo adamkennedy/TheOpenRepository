@@ -43,7 +43,6 @@ sub new {
 
 sub add_files {
     my ($self, @files) = @_;
-    my $component;
     
     foreach my $file (@files) {
         chomp $file;
@@ -237,6 +236,20 @@ EOF
 </Wix>
 EOF
     return $string;
+}
+
+sub get_component_array {
+    my $self = shift;
+
+    my $count = scalar @{$self->{components}};
+    my @answer;
+    
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        push @answer, $self->{components}->[$i]->get_component_array;
+    }
+    
+    return @answer;
 }
 
 1;
