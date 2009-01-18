@@ -90,11 +90,11 @@ use Perl::Dist::Asset::PAR          ();
 use Perl::Dist::Asset::File         ();
 use Perl::Dist::Asset::Website      ();
 use Perl::Dist::Asset::Launcher     ();
-use Perl::Dist::WiX::Toolchain     ();
+use Perl::Dist::Util::Toolchain     ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.11_03';
+	$VERSION = '0.11_04';
 	@ISA     = 'Perl::Dist::WiX::Installer';
 }
 
@@ -484,41 +484,6 @@ sub dist_dir {
 	File::ShareDir::dist_dir('Perl-Dist-WiX');
 }
 
-=head2 create_string_fragment
-
-Creates a Wix fragment for writing to a .wxs file.
-
-Returns the text to write or dies on error.
-
-=cut
-
-sub create_string_fragment {
-	my ($self, $id, $directoryref, $middle) = @_;
-
-	# Check parameters.
-	unless ( Params::Util::_STRING($id) ) {
-		croak("Invalid id param");
-	}
-	unless ( Params::Util::_STRING($directoryref) ) {
-		croak("Invalid directoryref param");
-	}
-	unless ( Params::Util::_STRING($middle) ) {
-		croak("Invalid middle param");
-	}
-
-	my $mid = $self->indent(6, $middle);
-  
-	return <<"WIX_FRAGMENT_END"
-<?xml version='1.0' encoding='windows-1252'?>
-<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='F_$id'>
-    <DirectoryRef Id='$directoryref'>
-$mid
-    </DirectoryRef>
-  </Fragment>
-</Wix>
-WIX_FRAGMENT_END
-}
 
 #####################################################################
 # Documentation for accessors
@@ -745,13 +710,10 @@ sub run {
 	# Install the Perl binary
 	$self->checkpoint_task( install_perl         => 3 );
 
-=pod
-    
-    # TODO: Continue on.
-    exit;
-
 	# Install additional Perl modules
 	$self->checkpoint_task( install_perl_modules => 4 );
+
+=pod
 
 	# Install the Win32 extras
 	$self->checkpoint_task( install_win32_extras => 5 );
@@ -878,8 +840,8 @@ sub install_perl {
 sub install_perl_toolchain {
 	my $self      = shift;
 	my $toolchain = @_
-		? Params::Util::_INSTANCE($_[0], 'Perl::Dist::WiX::Toolchain')
-		: Perl::Dist::WiX::Toolchain->new(
+		? Params::Util::_INSTANCE($_[0], 'Perl::Dist::Util::Toolchain')
+		: Perl::Dist::Util::Toolchain->new(
 			perl_version => $self->perl_version_literal,
 		);
 	unless ( $toolchain ) {
@@ -893,12 +855,9 @@ sub install_perl_toolchain {
 	if ( $toolchain->{errstr} ) {
 		die("Failed to generate toolchain distributions");
 	}
-
-    my ($dist, $module);
     
 	# Install the toolchain dists
-	foreach my $dist_ref ( @{$toolchain->{dists}} ) {
-        ($dist, $module) = @{$dist_ref};
+	foreach my $dist ( @{$toolchain->{dists}} ) {
 		my $automated_testing = 0;
 		my $release_testing   = 0;
 		my $force             = $self->force;
@@ -913,7 +872,6 @@ sub install_perl_toolchain {
 		}
 		$self->install_distribution(
 			name              => $dist,
-            module            => $module,
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
@@ -1088,7 +1046,7 @@ sub install_perl_588 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace("Pregenerating toolchain...\n");
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 	) or die("Failed to resolve toolchain modules");
 	$toolchain->delegate;
@@ -1096,6 +1054,8 @@ sub install_perl_588 {
 		die("Failed to generate toolchain distributions");
 	}
 
+    my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
+    
 	# Install the main perl distributions
 	$self->install_perl_588_bin(
 		name       => 'perl',
@@ -1120,6 +1080,15 @@ sub install_perl_588 {
 			'perl-5.8.8/Copying'  => 'perl/Copying',
 		},
 	);
+
+    my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
+    $self->_insert_fragment('perl-licenses', $fl_lic->files);
+        
+    my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
+    
+    $fl->subtract($fl2)->filter(@{$self->filters});
+    
+    $self->_insert_fragment('perl588', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1227,13 +1196,15 @@ sub install_perl_589 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace("Pregenerating toolchain...\n");
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 	) or die("Failed to resolve toolchain modules");
 	$toolchain->delegate;
 	if ( $toolchain->{errstr} ) {
 		die("Failed to generate toolchain distributions");
 	}
+
+    my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
 
 	# Install the main perl distributions
 	$self->install_perl_589_bin(
@@ -1250,6 +1221,15 @@ sub install_perl_589 {
 			'perl-5.8.9/Copying'  => 'perl/Copying',
 		},
 	);
+
+    my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
+    $self->_insert_fragment('perl-licenses', $fl_lic->files);
+        
+    my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
+    
+    $fl->subtract($fl2)->filter(@{$self->filters});
+    
+    $self->_insert_fragment('perl589', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1371,7 +1351,7 @@ sub install_perl_5100 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace("Pregenerating toolchain...\n");
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 	) or die("Failed to resolve toolchain modules");
 	$toolchain->delegate;
@@ -1402,11 +1382,10 @@ sub install_perl_5100 {
     $self->_insert_fragment('perl-licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
-    my $fl_tc2 = Perl::Dist::WiX::Filelist->clone($fl);
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->_insert_fragment('perl', $fl->files);
+    $self->_insert_fragment('perl5100', $fl->files);
     
 	# Install the toolchain
 	$self->install_perl_toolchain( $toolchain );
@@ -2207,7 +2186,8 @@ sub install_distribution {
 	my $name = $dist->name;
 
     # If we don't have a packlist file, get an initial filelist to subtract from.
-    my $fl_flag = $self->_need_packlist($dist->{module});
+    my $module = $self->_name_to_module($name);
+    my $fl_flag = $self->_need_packlist($module);
     my $filelist_sub;
     if (not $fl_flag) {
         $filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
@@ -2269,18 +2249,36 @@ sub install_distribution {
     # Making final filelist.
     my $filelist;
     if ($fl_flag) {
-        $filelist = $self->_search_packlist($dist->{module});
+        $filelist = $self->_search_packlist($module);
     } else {
         $filelist = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
         $filelist->subtract($filelist_sub)->filter($self->filters);
     }
-    my $mod_id = $dist->{module};
+    my $mod_id = $module;
     $mod_id =~ s/::/_/g;
     
     # Insert fragment.
     $self->_insert_fragment($mod_id, $filelist->files);
     
 	return $self;
+}
+
+sub _name_to_module {
+    my ($self, $dist) = @_;
+
+    my ($module) = 
+        $dist =~  m{\A          # Start the string...
+                    [A-Za-z/]*  # With a string of letters and slashes
+                    /           # followed by a forward slash. 
+                    (.*?)       # Then capture all characters, non-greedily 
+                    -\d*[.]     # up to a dash, a sequence of digits, and then a period.
+                    }smx ;      # (i.e. starting a version number.
+    
+    $module =~ s{-}{::}g;
+    
+    print "Dist: $dist\nModule: $module\n";
+    
+    return $module;
 }
 
 sub _search_packlist {
@@ -2339,6 +2337,30 @@ sub _need_packlist {
 		Text::Glob
 		HTML::Tagset
 		HTML::Parser
+        CPAN::SQLite
+        DBD::SQLite
+        DBI
+		pler
+		pip
+        PPM
+        PAR::Repository::Client
+        DBM::Deep
+		PAR::Dist::InstallPPD
+		Test::Exception
+		Test::Warn
+		Test::Deep
+        XML::LibXML
+        XML::Parser
+		Math::BigInt
+		Math::BigInt::FastCalc
+		Math::BigRat
+		Math::BigInt::GMP
+		Win32::File
+		Win32::File::Object
+		Win32::API
+		Win32::Env::Path
+		Win32::Exe
+        LWP::Online
     );
     
     return any { $module eq $_ } @mods;    
@@ -2373,8 +2395,6 @@ Returns true or throws an exception on error.
 =cut
 
 sub install_module {
-    confess "Not done yet.";
-
 	my $self   = shift;
 	my $module = Perl::Dist::Asset::Module->new(
 		force  => $self->force,
@@ -2406,7 +2426,7 @@ SCOPE: {
     my \$dist_file = '$dist_file'; 
     open( CPAN_FILE, '>', \$dist_file )      or die "open: $!";
     print CPAN_FILE 
-        $module->distribution()->pretty_id() or die "print: $!";
+        \$module->distribution()->pretty_id() or die "print: $!";
     close( CPAN_FILE )                       or die "close: $!";
 }
 
@@ -2423,6 +2443,12 @@ unless ( \$module->uptodate ) {
 exit(0);
 END_PERL
 
+    my $fl_flag = $self->_need_packlist($module->name);
+    my $filelist_sub;
+    if (not $fl_flag) {
+        $filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
+    }
+
 	# Dump the CPAN script to a temp file and execute
 	$self->trace("Running install of $name\n");
 	my $cpan_file = catfile($self->build_dir, 'cpan_string.pl');
@@ -2435,7 +2461,7 @@ END_PERL
 	local $ENV{AUTOMATED_TESTING}   = '';
 	local $ENV{RELEASE_TESTING}     = '';
 	$self->_run3( $self->bin_perl, $cpan_file ) or die "perl failed";
-	die "Failure detected installing $name, stopping" if $?;
+	die "Failure detected installing $name, stopping [$?]" if $?;
 
     
     # Read in the dist file and return it as $dist_info.
@@ -2447,14 +2473,22 @@ END_PERL
     }
     my $dist_info = <$fh>;
     $fh->close;
-    
-    #TODO: Get .packlist from $dist_info.   
-    
-    my $packlist;
 
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_file($packlist)->filter(@{$self->filters});;
+    # Making final filelist.
+    my $filelist;
+    if ($fl_flag) {
+        $filelist = $self->_search_packlist($module->name);
+    } else {
+        $filelist = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
+        $filelist->subtract($filelist_sub)->filter($self->filters);
+    }
+    my $mod_id = $module->name;
+    $mod_id =~ s/::/_/g;
+    
+    # Insert fragment.
+    $self->_insert_fragment($mod_id, $filelist->files);
 
-	return $packlist;
+    return $self;
 }
 
 =pod
@@ -2478,14 +2512,11 @@ underlying C<install_module> call other than the name.
 sub install_modules {
 	my $self = shift;
     
-    my $filelist = Perl::Dist::WiX::Filelist->new;
-    
 	foreach my $name ( @_ ) {
-		my $fl = $self->install_module(name => $name);
-        $filelist->add($fl);
+		$self->install_module(name => $name);
     }
 
-	return $filelist;
+    return $self;
 }
 
 =pod
@@ -2809,6 +2840,9 @@ sub write_msi {
         $filename_in = catfile($dir, $fragment_name . q{.wxs});
         $filename_out = catfile($dir, $fragment_name . q{.wixout});
         $fh = IO::File->new($filename_in, 'w');
+        if (not defined $fh) {
+            die "Could not open file $filename_in for writing [$!] [$^E]";
+        }
         $fh->print($fragment->as_string);
         $fh->close;
 #        compile_wxs($filename_in, $filename_out);

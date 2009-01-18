@@ -15,7 +15,7 @@ use Object::Tiny                         qw{ directory_tree };
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_03';
+    $VERSION = '0.11_04';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 

@@ -9,7 +9,7 @@ use Perl::Dist::WiX::Directory  qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_03';
+    $VERSION = '0.11_04';
 }
 
 use Object::Tiny qw{

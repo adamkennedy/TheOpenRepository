@@ -1,5 +1,15 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.11_04 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    - Verified generation of fragments up to step 4 
+      (install_perl_modules) now. (84 fragments, 900K)
+    - Removed P::D::W::Toolchain, replaced it with ad-hoc
+      _name_to_module method (I want to affect Perl::Dist 
+      itself as little as possible)
+    - Added more to list of modules that leave .packlist 
+      files to check.
+    - Removed create_string_fragment method (not being used)
+
 0.11_03 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
     - perl, the perl licenses, and the individual 
       modules of the Perl toolchain are now tested
