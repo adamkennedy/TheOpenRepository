@@ -7,7 +7,7 @@ no warnings 'recursion';
 use strict;
 
 BEGIN {
-    our $VERSION        = '1.001_004';
+    our $VERSION        = '1.001_005';
 }
 
 use integer;
@@ -110,12 +110,14 @@ BEGIN {
     ## use critic 
     {
         $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
-        if ($Parse::Marpa::VERSION ne $Parse::Marpa::Source::VERSION)
+        my $marpa_version = $Parse::Marpa::VERSION // 'undef';
+        my $source_version = $Parse::Marpa::Source::VERSION // 'undef';
+        if ($marpa_version ne $source_version)
         {
            $STRINGIFIED_EVAL_ERROR =
-              'Version mismatch:'
-              . " Parse::Marpa::VERSION=$Parse::Marpa::VERSION "
-              . " Parse::Marpa::Source::VERSION=$Parse::Marpa::Source::VERSION"
+              'MDL/Marpa version mismatch:'
+              . " Marpa is version '$marpa_version'; "
+              . " MDL source is for version '$source_version'"
         }
     }
     undef $Parse::Marpa::Internal::stringified_source_grammar
@@ -208,7 +210,7 @@ is_synopsis_pl($_)
     say ${$value};
 
     __DATA__
-    semantics are perl5.  version is 1.001_004.  start symbol is Expression.
+    semantics are perl5.  version is 1.001_005.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
         $_[0] * $_[2]
