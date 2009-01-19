@@ -3,7 +3,7 @@
 # examples/fourcc.pl
 #  Determine information about a given codec
 #
-# $Id: 02manifest.t 5 2008-12-25 23:16:47Z frequency $
+# $Id$
 #
 # This example script is hereby released into the public domain.
 

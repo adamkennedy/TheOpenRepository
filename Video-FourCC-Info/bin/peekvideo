@@ -3,7 +3,7 @@
 # bin/peekvideo
 #  Determine information about a given media file
 #
-# $Id: 02manifest.t 5 2008-12-25 23:16:47Z frequency $
+# $Id$
 #
 # This example script is hereby released into the public domain.
 
@@ -21,7 +21,7 @@ peekvideo - determine a codec used by a given file
 
 =head1 VERSION
 
-Version 1.0 ($Id: DistManifest.pm 11 2008-12-25 23:44:13Z frequency $)
+Version 1.0 ($Id$)
 
 =cut
 

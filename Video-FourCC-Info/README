@@ -3,7 +3,7 @@ NAME
     as it exists, excluding those in your MANIFEST.SKIP
 
 VERSION
-    Version 1.0 ($Id: README 6 2008-12-25 23:38:20Z frequency $)
+    Version 1.0 ($Id$)
 
 EXPORTS
     By default, this module exports the following functions:

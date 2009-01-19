@@ -1,7 +1,7 @@
 # Video::FourCC::Info
 #  Shows information about codecs specified as a Four Character Code
 #
-# $Id: DistManifest.pm 11 2008-12-25 23:44:13Z frequency $
+# $Id$
 #
 # Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
 #
@@ -48,7 +48,7 @@ Character Code
 
 =head1 VERSION
 
-Version 1.0 ($Id: DistManifest.pm 11 2008-12-25 23:44:13Z frequency $)
+Version 1.0 ($Id$)
 
 =cut
 

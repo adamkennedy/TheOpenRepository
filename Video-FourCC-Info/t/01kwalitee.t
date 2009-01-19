@@ -3,7 +3,7 @@
 # t/01kwalitee.t
 #  Uses the CPANTS Kwalitee metrics to test the distribution
 #
-# $Id: 01kwalitee.t 5 2008-12-25 23:16:47Z frequency $
+# $Id$
 
 use strict;
 use warnings;

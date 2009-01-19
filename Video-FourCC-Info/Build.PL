@@ -3,7 +3,7 @@
 # Build.PL
 #  Script to build and install this distribution
 #
-# $Id: Build.PL 13 2009-01-15 18:19:07Z frequency $
+# $Id$
 #
 # This helper script is hereby released into the public domain.
 

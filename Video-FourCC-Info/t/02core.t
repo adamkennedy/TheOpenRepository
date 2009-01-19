@@ -3,7 +3,7 @@
 # t/02core.t
 #  Tests core functionality
 #
-# $Id: 02manifest.t 5 2008-12-25 23:16:47Z frequency $
+# $Id$
 #
 # This test script is hereby released into the public domain.
 

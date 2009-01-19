@@ -3,7 +3,7 @@
 # t/01pod-coverage.t
 #  Ensures all subroutines are documented with POD
 #
-# $Id: 01pod-coverage.t 5 2008-12-25 23:16:47Z frequency $
+# $Id$
 #
 # This test script is hereby released into the public domain.
 
