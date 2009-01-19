@@ -10,7 +10,7 @@ use Perl::Dist::WiX::Registry::Entry  qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
     @ISA = 'Perl::Dist::WiX::Component';
 }
 

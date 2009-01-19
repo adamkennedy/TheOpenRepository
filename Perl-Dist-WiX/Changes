@@ -1,5 +1,12 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.11_05 Mon 19 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    1. Work in progress debugging routines install_win32_extras needs
+    2. Documentation of some low-level modules added
+    3. Compile test updated with all modules.
+    4. Other tests skipped until rewriting done.
+    5. Some parameter-checking added.
+
 0.11_04 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
     - Verified generation of fragments up to step 4 
       (install_perl_modules) now. (84 fragments, 900K)

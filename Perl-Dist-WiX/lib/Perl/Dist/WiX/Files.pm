@@ -1,5 +1,25 @@
 package Perl::Dist::WiX::Files;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Files - <Fragment> tag that contains <DirectoryRef> tags
+
+=head1 DESCRIPTION
+
+This class represents a <Fragment> tag that contains <DirectoryRef> tags.  
+Most portions of the WiX installation are represented by one or more of these
+objects. 
+
+=head1 METHODS
+
+=head2 Accessors
+
+Accessors take no parameters and return the item requested (listed below)
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
@@ -9,27 +29,71 @@ use Data::UUID                           qw{ NameSpace_DNS       };
 use File::Spec                           qw{};
 use Perl::Dist::WiX::DirectoryTree       qw{};
 use Perl::Dist::WiX::Base::Fragment      qw{};
-use Perl::Dist::WiX::Base::Component     qw{};
+# use Perl::Dist::WiX::Base::Component     qw{};
 use Perl::Dist::WiX::Files::DirectoryRef qw{};
-use Object::Tiny                         qw{ directory_tree };
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
+=pod
+
+=over 4
+
+=item directory_tree, sitename
+
+Returns the parameter of the same name passed in to L</new>.
+
+=back
+
+    $id = $self->id;
+
+=cut
+
+use Object::Tiny qw{ 
+    directory_tree
+    sitename
+};
+
 #####################################################################
 # Constructors
+
+=head2 new
+
+The B<new> method creates a new files fragment object.
+
+    $fragment = Perl::Dist::WiX::Files->new(
+        directory_tree => $self->directories,
+        sitename       => $sitename,
+        id             => 'Files'
+    );
+
+=head2 Parameters
+
+=over 4
+
+=item * 
+
+directory_tree: A <Perl::Dist::WiX::DirectoryTree> object containing 
+the base directories of the installation. (See the 
+L<Perl::Dist::WiX/Accessors|"directories" accessor> of 
+Perl::Dist::Wix for more details.)
+
+=item *
+
+sitename: The site that this installation is being uploaded to. 
+Used to create GUIDs.
+
+=back
+
+=cut
 
 sub new {
     my $self = shift->SUPER::new(@_);
 
     # Apply defaults
-    unless ( _STRING( $self->id )) {
-        croak('Missing or invalid id parameter');
-    }
-
     unless (_INSTANCE($self->directory_tree, 'Perl::Dist::WiX::DirectoryTree')) {
         croak('Missing or invalid directory_tree parameter');
     }
@@ -40,6 +104,17 @@ sub new {
     
     return $self;
 }
+
+=head2 add_files(@files)
+
+The B<add_files> method checks that each file in the list is not 
+a directory and then calls the add_file method if it is.
+
+    my $self = $self->add_files(@filenames);
+    
+    my $self = $self->add_files($file1, $file2);
+
+=cut
 
 sub add_files {
     my ($self, @files) = @_;
@@ -53,6 +128,14 @@ sub add_files {
 
     return $self;
 }
+
+=head2 add_files($file)
+
+The B<add_file> adds a file to the fragment in the correct place.
+
+    my $self = $self->add_file($file);
+
+=cut
 
 sub add_file {
     my ($self, $file) = @_;
@@ -70,7 +153,7 @@ sub add_file {
     }
     
     # Is there a DirectoryRef for this path?
-    my $directory_ref = $self->search_refs($path);
+    my $directory_ref = $self->_search_refs($path);
     if (defined $directory_ref) {
         # Yes, add the file to this DirectoryRef.
         $directory_ref->add_file(sitename => $self->sitename, filename => $file);
@@ -86,7 +169,7 @@ sub add_file {
         foreach my $path_portion (@paths) {
 
             # Is there a DirectoryRef at this level?
-            $directory_ref = $self->search_refs($path_portion);
+            $directory_ref = $self->_search_refs($path_portion);
             if (defined $directory_ref) {
             
                 $directory_obj = $directory_ref->search($path);
@@ -186,7 +269,7 @@ sub _get_possible_paths {
     return @answers;
 }
 
-sub search_refs {
+sub _search_refs {
     my ($self, $path_to_find) = @_;
 
     my $answer = undef;
@@ -206,8 +289,18 @@ sub search_refs {
     return undef;
 }
 
+=head2 as_string
+
+The B<as_string> method converts the component tags within this object  
+into strings by calling their own L<Perl::Dist::WiX::Base::Component/"as_string($spaces)"|as_string>
+methods and indenting them appropriately.
+
+    my $string = $fragment->as_string;
+
+=cut
+
 sub as_string {
-    my ($self) = shift;
+    my $self = shift;
     
     my $string;
     my $s;
@@ -237,6 +330,17 @@ EOF
 EOF
     return $string;
 }
+
+=head2 get_component_array
+
+The B<get_component_array> method returns an array of id attributes 
+of components contained within this object.
+
+It does this recursively.
+
+    my @id = $fragment->get_component_array;
+
+=cut
 
 sub get_component_array {
     my $self = shift;

@@ -10,7 +10,7 @@ use Perl::Dist::WiX::Base::Fragment   qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
@@ -18,20 +18,20 @@ BEGIN {
 # Constructors
 
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my ($class, %params) = @_;
 
-    # Apply defaults
-    unless ( defined $self->id ) {
-        $self->{id} = 'Icons';
+    # Apply required defaults.
+    unless ( defined $params{id} ) {
+        $params{id} = 'Icons';
+    }
+    
+    unless ( defined $params{directory} ) {
+        $params{directory} = 'ApplicationProgramsFolder';
     }
 
-    unless ( defined $self->directory ) {
-        $self->{directory} = 'ApplicationProgramsFolder';
-    }
-
-    unless ( _STRING($self->sitename) ) {
-        croak('Missing or invalid sitename parameter - cannot generate GUID without one');
-    }
+    my $self = $class->SUPER::new(%params);
+    
+    return $self;
 }
 
 

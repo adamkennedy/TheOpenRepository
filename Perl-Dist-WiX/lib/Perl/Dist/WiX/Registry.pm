@@ -11,7 +11,7 @@ use Perl::Dist::WiX::Registry::Entry    qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
@@ -19,18 +19,18 @@ BEGIN {
 # Constructors for Registry
 
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my ($class, %params) = @_;
 
     # Apply defaults
-    unless ( defined $self->id ) {
-        $self->{id} = 'F_Registry';
+    unless ( defined $params{id} ) {
+        $params{id} = 'Registry';
     }
+
+    my $self = $class->SUPER::new(%params);
 }
 
 sub add_key {
-
-    my $self = shift;
-    my %params = @_;
+    my ($self, %params) = @_;
 
     # Check parameters.
     unless ( _STRING($params{id}) ) {
@@ -48,7 +48,7 @@ sub add_key {
     # Search for key...
     my $key = undef;
     # getting the number of items in the array referred to by $self->{components}
-    my $count = scalar \{$self->{components}};
+    my $count = scalar @{$self->{components}};
 
     foreach my $i (0 .. $count) {
         if ($self->{components}->[$i]->is_key($params{root}, $params{key})) {

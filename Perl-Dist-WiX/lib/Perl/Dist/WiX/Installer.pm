@@ -3,15 +3,19 @@ package Perl::Dist::WiX::Installer;
 use 5.006;
 use strict;
 use warnings;
-use Carp                       qw{ croak };
-use File::Spec                 ();
-use IO::File                   ();
-use IPC::Run3                  ();
-use Params::Util               qw{ _STRING _IDENTIFIER };
+use Carp                           qw{ croak verbose };
+use File::Spec::Functions          qw{ catdir catfile rel2abs curdir };
+use IO::File                       qw();
+use IPC::Run3                      qw();
+use Params::Util                   qw{ _STRING _IDENTIFIER _ARRAY0};
+use URI                            qw();
+use Perl::Dist::WiX::StartMenu     qw();
+use Perl::Dist::WiX::Registry      qw();
+use Perl::Dist::WiX::DirectoryTree qw();
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
 }
 
 use Object::Tiny qw{
@@ -26,6 +30,7 @@ use Object::Tiny qw{
     fragment_dir
     bin_candle
     bin_light
+    directories
 };
 
 =pod
@@ -44,7 +49,7 @@ fragment_dir    	$ENV{TEMP}\output\fragments - where WiX fragments and files are
 object_dir          $ENV{TEMP}\output\wixobj    - where .wixobj files are stored
 bin_candle			Location of WiX compiler
 bin_light			Location of WiX linker.
-
+directories         Perl::Dist::WiX::DirectoryTree object.
 =cut
 
 sub new {
@@ -52,8 +57,8 @@ sub new {
 
     # Apply defaults
     unless ( defined $self->output_dir ) {
-        $self->{output_dir} = File::Spec->rel2abs(
-            File::Spec->curdir,
+        $self->{output_dir} = rel2abs(
+            curdir,
         );
     }
     
@@ -109,20 +114,39 @@ sub new {
     }
 
     # Set element collections
-    $self->{fragments}    = [];
+    my $sitename = URI->new($self->app_publisher_url)->host;
 
+    $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
+        app_dir => $self->image_dir, 
+        app_name => $self->app_name, 
+        sitename => $sitename
+    );
+
+    $self->{fragments}    = {};
+    $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
+        sitename => $sitename,
+    );
+    $self->{fragments}->{Registry} = Perl::Dist::WiX::Registry->new(
+        sitename => $sitename,
+    );
+    $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
+        sitename        => $sitename,
+        directory_tree  => $self->directories,
+        id              => 'Win32Extras',
+    );
+    
     # Find the light.exe and candle.exe programs
     unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
         die("Failed to find the Program Files directory\n");
     }
-    my $wix_dir  = File::Spec->catdir(  $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
-    my $wix_file = File::Spec->catfile( $wix_dir,           'light.exe' );
+    my $wix_dir  = catdir(  $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
+    my $wix_file = catfile( $wix_dir,           'light.exe' );
     unless ( -f $wix_file ) {
         die("Failed to find the WiX light.exe program");
     }
     $self->{bin_light} = $wix_file;
 
-    $wix_file = File::Spec->catfile( $wix_dir,           'candle.exe' );
+    $wix_file = catfile( $wix_dir,           'candle.exe' );
     unless ( -f $wix_file ) {
         die("Failed to find the WiX candle.exe program");
     }
@@ -150,7 +174,7 @@ sub output_date_string {
 }
 
 sub fragments {
-    return @{ $_[0]->{fragments} };
+    return %{ $_[0]->{fragments} };
 }
 
 #####################################################################
@@ -169,7 +193,7 @@ sub compile_wxs {
     ];
     my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
 
-    retirn $rv;
+    return $rv;
 }
 
 sub write_msi {
@@ -178,12 +202,12 @@ sub write_msi {
     
     # Write out the .wxs file
     my $content  = $self->as_string;
-    my $filename = File::Spec::catfile($self->fragments_dir, $self->app_name . q{.wxs});
-    my $fh = new IO::File $filename, 'w';
+    my $filename = catfile($self->fragments_dir, $self->app_name . q{.wxs});
+    my $fh = IO::File->new($filename, 'w');
     $fh->print($content);
     $fh->close;
 
-    my $wixobj = File::Spec::catfile($self->object_dir, $self->app_name . q{.wixobj});
+    my $wixobj = catfile($self->object_dir, $self->app_name . q{.wixobj});
 
     my $rv = compile_wxs($filename, $wixobj);
  
@@ -196,7 +220,7 @@ sub link_msi {
     my ($self, $wixout, @files) = @_;
 
     # Get the name of the msi file to generate
-    my $output_msi = File::Spec->catfile(
+    my $output_msi = catfile(
         $self->output_dir,
         $self->output_base_filename . '.msi',
     );
@@ -217,15 +241,144 @@ sub link_msi {
     return $output_msi;
 }
 
+=head2 wix_{path, lib, include}
+
+Creates entries (adds them to the Reg_Environment fragment) to add 
+the accumulated path, lib or include entries to the environment 
+upon installation. 
+
+    $self = $self->wix_path->wix_lib->wix_include;
+    
+or
+
+    $self->wix_path;
+    $self->wix_lib;
+    $self->wix_include;
+        
+
+=cut
+
+sub wix_path {
+	my $self = shift;
+    return $self->_append_path('PATH', $self->env_path);
+}
+
+sub wix_lib {
+	my $self = shift;
+    return $self->_append_env('LIB', $self->env_lib);
+}
+
+sub wix_include {
+	my $self = shift;
+    return $self->_append_env('INCLUDE', $self->env_include);
+}
+
+sub _append_env {
+    my ($self, $name, $values_ref) = @_;
+
+    unless (_STRING($name)) {
+        croak q{Invalid or missing name parameter.};
+    }
+
+    unless (_ARRAY0($values_ref)) {
+        croak q{Can't dereference second parameter.};
+    }
+    
+	my $value = join ';', map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$values_ref};
+
+    $self->add_env($name, $value, 1);
+    
+    return $self;
+}
+
+=head2 add_env($name, $value[, $append])
+
+Adds the contents of $value to the environment variable $name 
+(or appends to it, if $append is true) upon installation (by 
+adding it to the Reg_Environment fragment.)
+
+$name and $value are required. 
+
+=cut
+
+sub add_env {
+    my ($self, $name, $value, $append) = @_;
+    
+    unless (defined $append) {
+        $append = 0;
+    }
+
+    unless (_STRING($name)) {
+        croak 'Invalid or missing name parameter';
+    }
+
+    unless (_STRING($value)) {
+        croak 'Invalid or missing value parameter';
+    }
+    
+    $self->{fragments}->{Registry}->add_key(
+        key        => 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
+        id         => 'Reg_Environment',
+        sitename   => URI->new($self->app_publisher_url)->host,
+        name       => $name,
+        value      => $value,
+        action     => $append ? 'append' : 'write',
+        value_type => 'expandable',
+    );
+
+    return $self;
+}
+
+=head2 add_file(source => $filename, fragment => $fragment_name)
+
+Adds the file C<$filename> to the fragment named by C<$fragment_name>.
+
+Both parameters are required, and the file and fragment must both exist. 
+
+=cut
+
+sub add_file {
+    my ($self, %params) = @_;
+
+    unless (_STRING($params{source})) {
+        croak 'Invalid or missing source parameter';
+    }
+
+    unless (-f $params{source}) {
+        croak "File $params{source} does not exist";
+    }
+    
+    unless (_IDENTIFIER($params{fragment})) {
+        croak 'Invalid or missing fragment parameter';
+    }
+    
+    unless (defined $self->{fragments}->{$params{fragment}}) {
+        croak "Fragment $params{fragment} not defined";
+    }
+    
+    $self->{fragments}->{$params{fragment}}->add_file($params{source});
+    
+    return $self;
+}
+
 #####################################################################
 # Serialization
+
+=head2 as_string
+
+Loads the main .wxs file template, using this object, and returns 
+it as a string.
+
+    $wxs = $self->as_string;
+
+=cut
 
 sub as_string {
 
     my $tt = new Template({
         INCLUDE_PATH => '/usr/local/templates',
         EVAL_PERL    => 1,
-    }) || Carp::croak($Template::ERROR . "\n");
+    }) || croak($Template::ERROR . "\n");
 
     my $answer;
     
@@ -238,3 +391,31 @@ sub as_string {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+No support of any kind is provided for this module
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist>, L<Perl::Dist::Inno::Script>, L<http://ali.as/>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell, Copyright 2008 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

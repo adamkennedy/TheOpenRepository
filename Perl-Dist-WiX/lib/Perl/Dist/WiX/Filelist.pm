@@ -26,7 +26,7 @@ use List::MoreUtils        qw( indexes );
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.11_04';
+	$VERSION = '0.11_05';
 }
 
 use Object::Tiny qw {

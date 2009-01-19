@@ -39,9 +39,12 @@ use PAR::Dist                       qw();
 use Perl::Dist::WiX::Registry       qw();
 use Perl::Dist::WiX::Files          qw();
 use Perl::Dist::WiX::StartMenu      qw();
+use Perl::Dist::WiX::StartMenuComponent
+                                    qw();
 use Perl::Dist::WiX::Installer      qw();
 use Perl::Dist::WiX::DirectoryTree  qw();
 use Perl::Dist::WiX::Filelist       qw();
+use Perl::Dist::WiX::StartMenu      qw();
 
 use Object::Tiny qw{
 	perl_version
@@ -76,7 +79,6 @@ use Object::Tiny qw{
 	force
 	checkpoint_before
 	checkpoint_after
-    directories
     filters
 };
 
@@ -392,13 +394,8 @@ sub new {
 	}
 
 	# Initialize the output values
-	$self->{output_file} = [];
-    $self->{fragments}   = [];
-    $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
-        app_dir => $self->image_dir, 
-        app_name => $self->app_name, 
-        sitename => URI->new($self->app_publisher_url)->host
-    );
+#	$self->{output_file} = [];
+#    $self->{fragments}   = {};
 
     $self->{filters} = [];
     push @{$self->filters},
@@ -714,13 +711,15 @@ sub run {
 	# Install additional Perl modules
 	$self->checkpoint_task( install_perl_modules => 4 );
 
-=pod
-
 	# Install the Win32 extras
 	$self->checkpoint_task( install_win32_extras => 5 );
 
+=pod
+
 	# Apply optional portability support
 	$self->checkpoint_task( install_portable     => 6 ) if $self->portable;
+
+=cut
 
 	# Remove waste and temporary files
 	$self->checkpoint_task( remove_waste         => 7 );
@@ -728,8 +727,6 @@ sub run {
 	# Install any extra custom non-Perl software on top of Perl.
 	# This is primarily added for the benefit of Parrot.
 	$self->checkpoint_task( install_custom       => 8 );
-
-=cut
     
 	# Write out the distributions
 	$self->checkpoint_task( write                => 9 );
@@ -811,7 +808,7 @@ sub install_c_toolchain {
 
 	# Set up the environment variables for the binaries
     # TODO: This...
-#	$self->add_env_path( 'c', 'bin' );
+	$self->add_env_path( 'c', 'bin' );
 
 	return 1;
 }
@@ -961,6 +958,11 @@ sub install_portable {
 sub install_win32_extras {
 	my $self = shift;
 
+    my $dir = catdir($self->image_dir, 'win32');
+    print "Creating directory: $dir\n";
+    
+	File::Path::mkpath($dir);
+    
 	$self->install_launcher(
 		name => 'CPAN Client',
 		bin  => 'cpan',
@@ -976,7 +978,10 @@ sub install_win32_extras {
 		);
 	}
 	if ( $self->perl_version_human eq '5.8.9' ) {
-		# Don't link to anything
+		$self->install_website(
+			name => 'Perl 5.8.9 Documentation',
+			url  => 'http://perldoc.perl.org/5.8.9/',
+		);
 	}
 	if ( $self->perl_version_human eq '5.10.0' ) {
 		$self->install_website(
@@ -989,7 +994,7 @@ sub install_win32_extras {
 		url  => 'http://win32.perl.org/',
 	);
 
-	return 1;
+	return $self;
 }
 
 # Delete various stuff we won't be needing
@@ -1824,8 +1829,7 @@ sub insert_fragment {
             directory_tree => $self->directories
         )->add_files(@{$files_ref});
 
-    my $position = scalar @{$self->{fragments}};
-    $self->{fragments}->[$position] = $fragment;
+    $self->{fragments}->{$id} = $fragment;
 
     return 1;
 }
@@ -2289,8 +2293,6 @@ sub _name_to_module {
     
     $module =~ s{-}{::}g;
     
-    print "Dist: $dist\nModule: $module\n";
-    
     return $module;
 }
 
@@ -2715,8 +2717,6 @@ Returns true or throws an exception on error.
 =cut
 
 sub install_launcher {
-    confess "Not done yet.";
-
 	my $self     = shift;
 	my $launcher = Perl::Dist::Asset::Launcher->new(
 		parent => $self,
@@ -2736,7 +2736,7 @@ sub install_launcher {
         fragment => "Icons"
 	);
 
-	return ();
+	return $self;
 }
 
 =pod
@@ -2770,8 +2770,6 @@ Returns true on success, or throws an exception on error.
 =cut
 
 sub install_website {
-    confess "Not done yet.";
-
 	my $self    = shift;
 	my $website = Perl::Dist::Asset::Website->new(
 		parent => $self,
@@ -2782,11 +2780,11 @@ sub install_website {
     
 	# Write the file directly to the image
 	$website->write($filename);
-
+    
 	# Add the file.
 	$self->add_file(
 		source   => $filename,
-        fragment => "Websites"
+        fragment => "Win32Extras"
 	);
 
     # Add the icon.
@@ -2847,8 +2845,10 @@ sub write_msi {
     my $filename_out;
     my $fh;
     my @files;
+    my $fragment;
     
-    foreach my $fragment (@{$self->{fragments}}) {
+    foreach my $key (keys %{$self->{fragments}}) {
+        $fragment = $self->{fragments}->{$key};
         $fragment_name = $fragment->id;
         $filename_in = catfile($dir, $fragment_name . q{.wxs});
         $filename_out = catfile($dir, $fragment_name . q{.wixout});
@@ -2939,22 +2939,38 @@ sub write_zip {
 	return $file;
 }
 
+sub add_icon {
+	my $self   = shift;
+	my %params = @_;
+    my $dir;
+    
+  	if ( $params{filename} =~ /^\{/ ) {
+        (undef, $dir, undef) = splitpath($params{filename});
+    } else {
+        $dir = $self->image_dir;
+		$params{filename} = catfile($self->image_dir, $params{filename});
+	}
+    
+    my $id = $params{name};
+    $id =~ s{\s}{_}g;
+    
+    $self->{fragments}->{Icons}->add_component(
+        Perl::Dist::WiX::StartMenuComponent->new(
+            sitename    => URI->new($self->app_publisher_url)->host,
+            name        => $params{name},
+            target      => $params{filename},
+            id          => $id,
+            working_dir => $dir,
+        )
+    );
 
-
-
+    return $self;
+}
 
 #####################################################################
 # Adding Inno-Setup Information
 
-sub add_icon {
-	my $self   = shift;
-	my %params = @_;
-	$params{name}     = "{group}\\$params{name}";
-	unless ( $params{filename} =~ /^\{/ ) {
-		$params{filename} = "{app}\\$params{filename}";
-	}
-	$self->SUPER::add_icon(%params);
-}
+=pod
 
 sub add_system {
 	my $self   = shift;
@@ -2974,14 +2990,7 @@ sub add_run {
 	$self->SUPER::add_run(%params);
 }
 
-sub add_uninstallrun {
-	my $self   = shift;
-	my %params = @_;
-	unless ( $params{filename} =~ /^\{/ ) {
-		$params{filename} = "{app}\\$params{filename}";
-	}
-	$self->SUPER::add_uninstallrun(%params);
-}
+=cut
 
 sub add_env_path {
 	my $self = shift;
@@ -2997,11 +3006,6 @@ sub add_env_path {
 sub get_env_path {
 	my $self = shift;
 	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_path};
-}
-
-sub get_inno_path {
-	my $self = shift;
-	return join ';', '{olddata}', map { catdir( '{app}', @$_ ) } @{$self->env_path};
 }
 
 sub add_env_lib {
@@ -3020,11 +3024,6 @@ sub get_env_lib {
 	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_lib};
 }
 
-sub get_inno_lib {
-	my $self = shift;
-	return join ';', '{olddata}', map { catdir( '{app}', @$_ ) } @{$self->env_lib};
-}
-
 sub add_env_include {
 	my $self = shift;
 	my @path = @_;
@@ -3040,14 +3039,6 @@ sub get_env_include {
 	my $self = shift;
 	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_include};
 }
-
-sub get_inno_include {
-	my $self = shift;
-	return join ';', '{olddata}', map { catdir( '{app}', @$_ ) } @{$self->env_include};
-}
-
-
-
 
 
 #####################################################################
@@ -3135,10 +3126,6 @@ sub image_dir_quotemeta {
 	$string =~ s/\\/\\\\/g;
 	return $string;
 }
-
-
-
-
 
 #####################################################################
 # Support Methods

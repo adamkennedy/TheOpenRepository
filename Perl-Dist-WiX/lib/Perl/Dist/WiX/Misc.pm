@@ -8,7 +8,7 @@ use Params::Util qw{ _STRING  _POSINT _NONNEGINT };
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.11_04';
+    $VERSION = '0.11_05';
 }
 
 sub new {

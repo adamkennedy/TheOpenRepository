@@ -9,7 +9,8 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 24;
+		plan skip_all => 'Skipping until rewritten';
+#		plan tests => 24;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}

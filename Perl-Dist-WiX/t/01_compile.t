@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 8;
+		plan tests => 20;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -18,6 +18,26 @@ BEGIN {
 ok( $] >= 5.008, 'Perl version is new enough' );
 
 use_ok( 'Perl::Dist::WiX' );
+use_ok( 'Perl::Dist::WiX::Directory' );
+use_ok( 'Perl::Dist::WiX::DirectoryTree' );
+use_ok( 'Perl::Dist::WiX::Filelist' );
+use_ok( 'Perl::Dist::WiX::Files' );
+use_ok( 'Perl::Dist::WiX::Installer' );
+use_ok( 'Perl::Dist::WiX::Misc' );
+use_ok( 'Perl::Dist::WiX::Registry' );
+use_ok( 'Perl::Dist::WiX::StartMenu' );
+use_ok( 'Perl::Dist::WiX::StartMenuComponent' );
+use_ok( 'Perl::Dist::WiX::Base::Component' );
+use_ok( 'Perl::Dist::WiX::Base::Entry' );
+use_ok( 'Perl::Dist::WiX::Base::Feature' );
+use_ok( 'Perl::Dist::WiX::Base::Fragment' );
+use_ok( 'Perl::Dist::WiX::Files::Component' );
+use_ok( 'Perl::Dist::WiX::Files::DirectoryRef' );
+use_ok( 'Perl::Dist::WiX::Files::Entry' );
+use_ok( 'Perl::Dist::WiX::Registry::Entry' );
+use_ok( 'Perl::Dist::WiX::Registry::Key' );
+
+
 
 ok(
 	$Perl::Dist::WiX::VERSION,
@@ -25,7 +45,7 @@ ok(
 );
 
 ok(
-	$Perl::Dist::WiX::Types::VERSION,
+	$Perl::Dist::WiX::DirectoryTree::VERSION,
 	'Perl::Dist::Types::WiX loaded ok',
 );
 
