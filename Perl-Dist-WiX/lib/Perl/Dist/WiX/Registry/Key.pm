@@ -11,7 +11,7 @@ use Perl::Dist::WiX::Registry::Entry  qw{};
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_05';
-    @ISA = 'Perl::Dist::WiX::Component';
+    @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 
 use Object::Tiny qw{
@@ -57,7 +57,9 @@ sub new {
 
 # Shortcut constructor for an environment variable
 sub add_environment {
-    return $_[0]->new(
+    my $class = shift;
+    
+    return $class->new(
         key       => 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
         id        => 'Registry',
         @_
@@ -65,16 +67,8 @@ sub add_environment {
 }
 
 
-sub add_entry {
+sub add_registry_entry {
     my ($self, $name, $value, $action, $value_type) = @_;  
-
-    unless ( _STRING($name) ) {
-        croak("Missing or invalid name");
-    }
-
-    unless ( _STRING($value) ) {
-        croak("Missing or invalid value");
-    }
     
     $self->add_entry( 
         Perl::Dist::WiX::Registry::Entry->entry($name, $value, $action, $value_type));
@@ -96,18 +90,18 @@ sub is_key {
 sub as_string {
     my $self = shift;
     
-    return q{} if ($self->entries_num == 0); 
+    return q{} if (scalar @{$self->{entries}} == 0); 
 
-    $self->{key} = uc $self->{key};
+    $self->{root} = uc $self->{root};
     
     my $answer = <<END_OF_XML;
 <Component Id='C_$self->{id}' Guid='$self->{guid}'>
   <RegistryKey Root='$self->{root}' Key='$self->{key}'>
 END_OF_XML
    
-    $answer += $self->SUPER::as_string(4);
+    $answer .= $self->SUPER::as_string(4);
     
-    $answer += <<END_OF_XML;
+    $answer .= <<END_OF_XML;
   </RegistryKey>
 </Component>
 END_OF_XML

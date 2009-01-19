@@ -63,7 +63,6 @@ use Object::Tiny qw{
     fragment_dir
 	build_dir
 	checkpoint_dir
-	user_agent
 	bin_perl
 	bin_make
 	bin_pexports
@@ -280,12 +279,7 @@ sub new {
 	}
 
 	# Auto-detect online-ness if needed
-	unless ( defined $self->user_agent ) {
-		$self->{user_agent} = LWP::UserAgent->new(
-			agent   => "$class/" . $VERSION || '0.00',
-			timeout => 30,
-		);
-	}
+
 	unless ( defined $self->offline ) {
 		$self->{offline} = LWP::Online::offline();
 	}
@@ -413,14 +407,11 @@ sub new {
         catdir( $self->image_dir, qw{ cpan build       }) . q{\\},
         catfile($self->image_dir, qw{ c    COPYING     }),
         catfile($self->image_dir, qw{ c    COPYING.LIB });
-    
-#    require Data::Dumper;
-    
-#    my $d = $self->{directories};
-#    print "$d\n";
-#    my $dump = Data::Dumper->new([$d], [qw(*d)]);
-#    print $dump->Indent(1)->Dump();
-#    exit;
+
+
+    $self->{env_path} = [];
+    $self->{env_lib} = [];
+    $self->{env_include} = [];
     
     return $self;
 }
@@ -579,12 +570,46 @@ sub checkpoint_save {
 	}
 
 	# Store the main object.
-	# Blank the checkpoint values to prevent load/save loops
-	Storable::nstore( {
+    # Blank the checkpoint values to prevent load/save loops, and remove
+    # things we can recreate later.
+       my $copy = {
 		%$self,
 		checkpoint_before => 0,
 		checkpoint_after  => 0,
-	}, $self->checkpoint_file );
+        user_agent        => undef,
+       };
+       Storable::nstore( $copy, $self->checkpoint_file );
+
+       return 1;
+}
+
+sub checkpoint_load {
+	my $self = shift;
+	unless ( $self->temp_dir ) {
+		die "Checkpoints require a temp_dir to be set";
+	}
+
+	# Does the checkpoint exist
+	$self->trace("Removing old checkpoint\n");
+	$self->{checkpoint_dir} = File::Spec->catfile(
+		$self->temp_dir, 'checkpoint',
+	);
+	unless ( -d $self->checkpoint_dir ) {
+		die "Failed to find checkpoint directory";
+	}
+
+	# Load the stored hash over our object
+	my $stored = Storable::retrieve( $self->checkpoint_file );
+	%$self = %$stored;
+
+	# Pull all the directories out of the storage
+	$self->trace("Restoring checkpoint directories...\n");
+	foreach my $dir ( qw{ build_dir download_dir image_dir output_dir } ) {
+		my $from = File::Spec->catdir( $self->checkpoint_dir, $dir );
+		my $to   = $self->$dir();
+		File::Remove::remove( $to );
+		$self->_copy( $from => $to );
+	}
 
 	return 1;
 }
@@ -594,8 +619,6 @@ sub checkpoint_save {
 sub source_dir {
 	$_[0]->image_dir;
 }
-
-
 
 # Default the versioned name to an unversioned name
 sub app_ver_name {
@@ -698,6 +721,9 @@ sub run {
 		$self->trace("No msi or zip target, nothing to do");
 		return 1;
 	}
+
+    # Don't buffer
+    $| = 1;
 
 	# Install the core C toolchain
 	$self->checkpoint_task( install_c_toolchain  => 1 );
@@ -886,8 +912,6 @@ sub install_cpan_upgrades {
 	}
 
 	# Generate the CPAN installation script
-	# my $env_lib     = $self->get_env_lib;
-	# my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -1040,9 +1064,6 @@ sub remove_file {
 }
 		
 
-
-
-
 #####################################################################
 # Perl 5.8.8 Support
 
@@ -1148,9 +1169,7 @@ sub install_perl_588_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd( $unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -1289,9 +1308,7 @@ sub install_perl_589_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd( $unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -1483,9 +1500,7 @@ sub install_perl_5100_bin {
 
 	# Build win32 perl
 	SCOPE: {
-		my $wd = File::pushd::pushd(
-			catdir( $unpack_to, $perlsrc , "win32" ),
-		);
+		my $wd = $self->_pushd($unpack_to, $perlsrc , "win32" );
 
 		# Prepare to patch
 		my $image_dir  = $self->image_dir;
@@ -2235,7 +2250,7 @@ sub install_distribution {
 
 	# Build the module
 	SCOPE: {
-		my $wd = File::pushd::pushd( $unpack_to );
+		my $wd = $self->pushd( $unpack_to );
 
 		# Enable automated_testing mode if needed
 		# Blame Term::ReadLine::Perl for needing this ugly hack.
@@ -2424,8 +2439,6 @@ sub install_module {
 	my $dist_file = catfile($self->build_dir, 'cpan_distro.txt');
     
 	# Generate the CPAN installation script
-	# my $env_lib     = $self->get_env_lib;
-	# my $env_include = $self->get_env_include;
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -2875,24 +2888,6 @@ sub write_msi {
 		}
 		$self->add_env( PATH => $value );
 	}
-	if ( @{$self->{env_lib}} ) {
-		my $value = "{olddata}";
-		foreach my $array ( @{$self->{env_lib}} ) {
-			$value .= File::Spec::Win32->catdir(
-				';{app}', @$array,
-			);
-		}
-		$self->add_env( LIB => $value );
-	}
-	if ( @{$self->{env_include}} ) {
-		my $value = "{olddata}";
-		foreach my $array ( @{$self->{env_include}} ) {
-			$value .= File::Spec::Win32->catdir(
-				';{app}', @$array,
-			);
-		}
-		$self->add_env( INCLUDE => $value );
-	}
 =cut
 
 #	$self->SUPER::write_exe(@_);
@@ -3146,6 +3141,57 @@ sub file {
 	catfile( shift->image_dir, @_ );
 }
 
+sub user_agent {
+	my $self = shift;
+	unless ( $self->{user_agent} ) {
+		if ( $self->{user_agent_cache} ) {
+			SCOPE: {
+				# Temporarily set $ENV{HOME} to the File::HomeDir
+				# version while loading the module.
+				local $ENV{HOME} ||= File::HomeDir->my_home;
+				require LWP::UserAgent::WithCache;
+			}
+			$self->{user_agent} = LWP::UserAgent::WithCache->new( {
+				namespace          => 'perl-dist',
+				cache_root         => $self->user_agent_directory,
+				cache_depth        => 0,
+				default_expires_in => 86400 * 30,
+				show_progress      => 1,
+			} );
+		} else {
+			$self->{user_agent} = LWP::UserAgent->new(
+				agent         => ref($self) . '/' . ($VERSION || '0.00'),
+				timeout       => 30,
+				show_progress => 1,
+			);
+		}
+	}
+	return $self->{user_agent};
+}
+
+sub user_agent_cache {
+	$_[0]->{user_agent_cache};
+}
+
+sub user_agent_directory {
+	my $self = shift;
+	my $path = ref($self);
+	   $path =~ s/::/-/g;
+	my $dir  = File::Spec->catdir(
+		File::HomeDir->my_data,
+		'Perl', $path,
+	);
+	unless ( -d $dir ) {
+		unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
+			die("Failed to create $dir");
+		}
+	}
+	unless ( -w $dir ) {
+		die("No write permissions for LWP::UserAgent cache '$dir'");
+	}
+	return $dir;
+}
+
 sub _mirror {
 	my ($self, $url, $dir) = @_;
 	my $file = $url;
@@ -3162,13 +3208,26 @@ sub _mirror {
 	$| = 1;
 
 	$self->trace("Downloading file $url...\n");
-	my $ua = LWP::UserAgent->new;
-	my $r  = $ua->mirror( $url, $target );
-	if ( $r->is_error ) {
-		$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
-	} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
-		$self->trace("(already up to date)\n");
+	if ( $url =~ m|^file://| ) {
+		# Don't use WithCache for files (it generates warnings)
+		my $ua = LWP::UserAgent->new;
+		my $r  = $ua->mirror( $url, $target );
+		if ( $r->is_error ) {
+			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
+		} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
+			$self->trace("(already up to date)\n");
+		}
+	} else {
+		# my $ua = $self->user_agent;
+		my $ua = LWP::UserAgent->new;
+		my $r  = $ua->mirror( $url, $target );
+		if ( $r->is_error ) {
+			$self->trace("    Error getting $url:\n" . $r->as_string . "\n");
+		} elsif ( $r->code == HTTP::Status::RC_NOT_MODIFIED ) {
+			$self->trace("(already up to date)\n");
+		}
 	}
+
 
 	return $target;
 }
@@ -3204,6 +3263,14 @@ sub _move {
 	$self->trace("Moving $from to $to\n");
 	File::Copy::Recursive::rmove( $from, $to ) or die $!;
 }
+
+sub _pushd {
+    my $self = shift;
+    my $dir  = catdir(@_);
+    $self->trace("Lexically changing directory to $dir...\n");
+    return File::pushd::pushd( $dir );
+}
+
 
 sub _make {
 	my $self   = shift;
@@ -3273,7 +3340,7 @@ sub _convert_name
 sub _extract {
 	my ( $self, $from, $to ) = @_;
 	File::Path::mkpath($to);
-	my $wd = File::pushd::pushd( $to );
+	my $wd = $self->_pushd( $to );
 	
 	my @filelist;
 	
@@ -3316,7 +3383,7 @@ sub _extract_filemap {
 	if ( $archive =~ m{\.zip\z} ) {
 
 		my $zip = Archive::Zip->new( $archive );
-		my $wd = File::pushd::pushd( $basedir );
+		my $wd = $self->_pushd( $basedir );
 		while ( my ($f, $t) = each %$filemap ) {
 			$self->trace("Extracting $f to $t\n");
 			my $dest = catfile( $basedir, $t );
@@ -3484,7 +3551,7 @@ L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Adam Kennedy.
+Copyright 2009 Curtis Jewell. Copyright 2008-2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -39,7 +39,7 @@ sub as_string {
     my ($self) = shift;
     
     # getting the number of items in the array referred to by $self->{components}
-    my $count = scalar \{$self->{components}};
+    my $count = scalar @{$self->{components}};
     my $string;
     my $s;
     
@@ -50,9 +50,9 @@ sub as_string {
     <DirectoryRef Id='$self->{directory}'>
 EOF
 
-    foreach my $i (0 .. $count) {
+    foreach my $i (0 .. $count - 1) {
         $s = $self->{components}->[$i]->as_string;
-        $string += $self->indent(6, $s);
+        $string .= $self->indent(6, $s);
     }
 
     my $guidgen = Data::UUID->new();

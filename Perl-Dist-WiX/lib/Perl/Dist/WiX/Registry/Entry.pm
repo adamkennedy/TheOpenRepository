@@ -10,7 +10,7 @@ use Perl::Dist::WiX::Base::Entry     qw{};
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_05';
-    @ISA = 'Perl::Dist::WiX::Entry';
+    @ISA = 'Perl::Dist::WiX::Base::Entry';
 }
 
 use Object::Tiny qw{
@@ -33,7 +33,7 @@ sub new {
 
     # Check params
     unless ( _IDENTIFIER($self->action) ) {
-        croak("Missing or invalid value_name param");
+        croak("Missing or invalid action param");
     }
     unless ( _IDENTIFIER($self->value_type) ) {
         croak("Invalid value_type param");
@@ -64,12 +64,12 @@ sub entry {
 sub as_string {
     my $self = shift;
 
-    return join( '<RegistryValue',
-        q{  Action='} . $self->action,
-        q{' Type='}   . $self->value_type,
-        q{' Name='}   . $self->value_name,
-        q{' Value='}  . $self->value_data . q{' />},
-    );
+    return q{<RegistryValue} .
+        q{ Action='}  . $self->action .
+        q{' Type='}   . $self->value_type .
+        q{' Name='}   . $self->value_name .
+        q{' Value='}  . $self->value_data . q{' />}
+    ;
 }
 
 1;

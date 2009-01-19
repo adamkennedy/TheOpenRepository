@@ -36,35 +36,3 @@ use_ok( 'Perl::Dist::WiX::Files::DirectoryRef' );
 use_ok( 'Perl::Dist::WiX::Files::Entry' );
 use_ok( 'Perl::Dist::WiX::Registry::Entry' );
 use_ok( 'Perl::Dist::WiX::Registry::Key' );
-
-
-
-ok(
-	$Perl::Dist::WiX::VERSION,
-	'Perl::Dist::WiX loaded ok',
-);
-
-ok(
-	$Perl::Dist::WiX::DirectoryTree::VERSION,
-	'Perl::Dist::Types::WiX loaded ok',
-);
-
-ok(
-	$Perl::Dist::WiX::File::VERSION,
-	'Perl::Dist::WiX::File loaded ok',
-);
-
-ok(
-	$Perl::Dist::WiX::Component::VERSION,
-	'Perl::Dist::WiX::Component loaded ok',
-);
-
-ok(
-	$Perl::Dist::WiX::Environment::VERSION,
-	'Perl::Dist::WiX::Environment loaded ok',
-);
-
-ok(
-	$Perl::Dist::WiX::Script::VERSION,
-	'Perl::Dist::WiX::Script loaded ok',
-);

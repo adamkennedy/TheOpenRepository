@@ -24,7 +24,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp                  qw( croak             );
-use Params::Util          qw( _CLASSISA _STRING );
+use Params::Util          qw( _CLASSISA _STRING _NONNEGINT );
 use Data::UUID            qw( NameSpace_DNS     );
 use Perl::Dist::WiX::Misc qw();
 
@@ -94,7 +94,9 @@ guid: The C<Guid> attribute of the component.
 =cut
   
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my ($class, %params) = @_;
+
+    my $self = $class->SUPER::new(%params);
     
     $self->{entries} = [];
     
@@ -113,7 +115,7 @@ This method can be chained.
 =cut
 
 sub add_entry {
-    my ($self, $entry) = shift;
+    my ($self, $entry) = @_;
     
     if (not defined _CLASSISA(ref $entry, 'Perl::Dist::WiX::Base::Entry')) {
         croak 'Not adding a valid component';
@@ -172,6 +174,8 @@ This is meant to be called by a subclass method.
 sub as_string {
     my ($self) = shift;
     my $spaces = shift;
+
+    return q{} if (scalar @{$self->{entries}} == 0); 
     
     unless (_NONNEGINT($spaces)) {
         croak 'Calling as_spaces improperly (most likely, not calling derived method)';
