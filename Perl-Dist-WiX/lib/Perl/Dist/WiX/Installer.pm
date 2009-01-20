@@ -126,8 +126,9 @@ sub new {
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
         sitename => $sitename,
     );
-    $self->{fragments}->{Registry} = Perl::Dist::WiX::Registry->new(
+    $self->{fragments}->{Reg_Environment} = Perl::Dist::WiX::Registry->new(
         sitename => $sitename,
+        id       => 'Reg_Environment',
     );
     $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
         sitename        => $sitename,
@@ -316,7 +317,7 @@ sub add_env {
         croak 'Invalid or missing value parameter';
     }
     
-    $self->{fragments}->{Registry}->add_key(
+    $self->{fragments}->{Reg_Environment}->add_key(
         key        => 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
         id         => 'Reg_Environment',
         sitename   => URI->new($self->app_publisher_url)->host,

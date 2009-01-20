@@ -164,3 +164,24 @@ EOF
 }
 
 1;
+
+=head1 SUPPORT
+
+No support of any kind is provided for this module
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+=cut

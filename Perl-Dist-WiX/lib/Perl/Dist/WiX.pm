@@ -982,10 +982,7 @@ sub install_portable {
 sub install_win32_extras {
 	my $self = shift;
 
-    my $dir = catdir($self->image_dir, 'win32');
-    print "Creating directory: $dir\n";
-    
-	File::Path::mkpath($dir);
+	File::Path::mkpath(catdir($self->image_dir, 'win32'));
     
 	$self->install_launcher(
 		name => 'CPAN Client',
@@ -2250,7 +2247,7 @@ sub install_distribution {
 
 	# Build the module
 	SCOPE: {
-		my $wd = $self->pushd( $unpack_to );
+		my $wd = $self->_pushd( $unpack_to );
 
 		# Enable automated_testing mode if needed
 		# Blame Term::ReadLine::Perl for needing this ugly hack.

@@ -14,6 +14,10 @@ BEGIN {
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
+use Object::Tiny qw{
+    sitename
+};
+
 #####################################################################
 # Constructors
 
@@ -30,6 +34,10 @@ sub new {
     }
 
     my $self = $class->SUPER::new(%params);
+
+    unless (_STRING($self->sitename)) {
+        croak 'Invalid or missing sitename';
+    }
     
     return $self;
 }
@@ -53,6 +61,7 @@ EOF
     foreach my $i (0 .. $count - 1) {
         $s = $self->{components}->[$i]->as_string;
         $string .= $self->indent(6, $s);
+        $string .= "\n";
     }
 
     my $guidgen = Data::UUID->new();
@@ -61,7 +70,7 @@ EOF
     #... then use it to create a GUID out of the ID.
     my $guid_RSF = uc $guidgen->create_from_name_str($uuid, 'RemoveShortcutFolder');
 
-    $string += <<'EOF';
+    $string .= <<'EOF';
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
       </Component>
