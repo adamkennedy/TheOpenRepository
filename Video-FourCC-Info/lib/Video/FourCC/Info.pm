@@ -65,8 +65,8 @@ human error or for some other reason.
 This is similar to the four-byte "magic number" used by the UNIX file(1)
 command to roughly determine a file format.
 
-As far as I know, this is a case sensitive code, since it is byte-dependent,
-and is not actually an alphanumeric code (although it is represented as such).
+Most applications seem to treat this as a case insensitive code. As a result,
+internally, your given FourCC's will be silently converted to uppercase.
 
 =head1 SYNOPSIS
 
