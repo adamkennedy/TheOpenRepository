@@ -2,7 +2,7 @@ Test::DistManifest Change History
 
 $Id$
 
-2009-XX-XX by FREQUENCY
+2009-01-19 by FREQUENCY
 - Version tagged 1.1
 - Fixed error with multiple plans for 02fallback.t
 - Fixed svn:keywords
