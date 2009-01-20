@@ -1,51 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="[% dist.product_id %]"
-		Language="1033"
-		Manufacturer="[% dist.product_manufacturer %]"
-		Name="[% dist.product_name %]"
-		UpgradeCode="[% dist.product_upgrade_code %]"
-		Version="[% dist.product_version %]" >
+  <Product Id="[% dist.msi_product_id %]"
+	Language="1033"
+	Manufacturer="[% dist.app_publisher %]"
+	Name="[% dist.app_name %]"
+	UpgradeCode="[% dist.msi_upgrade_code %]"
+	Version="[% dist.msi_perl_version %]" >
 
-		[%# Upgrade Support %]
-		<Upgrade Id="[% dist.product_upgrade_code %]">
-			<UpgradeVersion
-				Minimum="[% dist.product_version %]"
-				OnlyDetect="yes"
-				Property="NEWERVERSIONDETECTED" />
-			<UpgradeVersion
-				Minimum="5.0.0.0"
-				IncludeMinimum="yes"
-				Maximum="[% dist.product_version %]"
-				IncludeMaximum="no"
-				Property="OLDERVERSIONBEINGUPGRADED" />
-		</Upgrade>
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallInitialize" />
-		</InstallExecuteSequence>
+	[%# Upgrade Support %]
+	<Upgrade Id="[% dist.msi_upgrade_code %]">
+	  <UpgradeVersion
+		Minimum="[% dist.msi_perl_version %]"
+		OnlyDetect="yes"
+		Property="NEWERVERSIONDETECTED" />
+	  <UpgradeVersion
+		Minimum="5.0.0"
+		IncludeMinimum="yes"
+		Maximum="[% dist.msi_perl_version %]"
+		IncludeMaximum="no"
+		Property="OLDERVERSIONBEINGUPGRADED" />
+	</Upgrade>
+	<InstallExecuteSequence>
+		<RemoveExistingProducts After="InstallInitialize" />
+	</InstallExecuteSequence>
 
-	<UIRef Id="WixUI_Mondo" />
+    [% IF dist.msi_debug %]
+    <Package Description="Perl for Win32 opersting systems." 
+      Comments="Debug Build." 
+      InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
+    <Property Id='MsiLogging'>voIcewarmupx!</Property>
+    [% ELSE %]
+    <Package Description="Perl for Win32 opersting systems." 
+      InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
+    [% END %]
+
+    <Condition Message="You need to be an administrator to install this product.">
+      Privileged
+    </Condition>
+
+    <Condition Message="Cannot install on Windows 9x or ME systems.">
+      <![CDATA[VersionNT]]>
+    </Condition>
+    
+    <Condition Message="Cannot install on Windows NT 4.0 systems.">
+      <![CDATA[VersionNT > 400]]>
+    </Condition>
+
+	<UIRef Id="WixUI_[% dist.msi_ui_type %]" />
     <UIRef Id="WixUI_ErrorProgressText" />
     <UIRef Id="WixUI_Common" />
 
-		
-		<UIRef Name=''
-		
-		[%# Main File Set %]
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="_D4EEEA6C854FE3699D3A8CCBF95FD57A" Name="strawberry">
-			</Directory>
-		</Directory>
+    <Property Id="INSTALLDIR">[% dist.image_dir %]</Property>
+    
+[% dist.directories.as_string(6) %]
 
+[%# Commented out as of yet... dist.features.as_string(6) %]
 
+    <Property Id='ARPNOMODIFY'>1</Property>
+    <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
+    <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
+    <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
+    <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
+[% IF dist.msi_readme_file.defined %]
+    <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
+[% END %]
+    <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon %]</Property>
+[% IF dist.msi_banner_top.defined %]
+    <WixVariable Id='WixUIBannerBmp' Value='[% dist.msi_banner_top %]' />
+[% END %]
+[% IF dist.msi_banner_side.defined %]
+    <WixVariable Id='WixUIDialogBmp' Value='[% dist.msi_banner_side %]' />
+[% END %]
+    <WixVariable Id='WixUILicenseRtf' Value='[% dist.msi_license_file %]' />
 
-		[%# Additional Content Here %]
-
-
-
-		<Feature Id='Complete' Level='1'>
-			<ComponentRef Id='...' />
-			...
-		</Feature>
-	</Product>
+  </Product>
 </Wix>
