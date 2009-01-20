@@ -10,7 +10,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::NoWarnings;
 
 use Video::FourCC::Info;
@@ -29,6 +29,9 @@ use Video::FourCC::Info;
 {
   my $fourcc = Video::FourCC::Info->describe('DIV3');
   is($fourcc, 'DivX 3 Low-Motion', 'Use of class method describe');
+
+  $fourcc = Video::FourCC::Info->describe('div3');
+  is($fourcc, 'DivX 3 Low-Motion', 'Lowercase use of describe');
 }
 
 # Check that the date parsed is appropriate

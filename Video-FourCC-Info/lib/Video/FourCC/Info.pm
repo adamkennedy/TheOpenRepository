@@ -104,6 +104,7 @@ an exception on error.
 
 sub new {
   my ($class, $fourcc) = @_;
+  $fourcc = uc($fourcc);
 
   Carp::croak('You must call this as a class method') if ref($class);
   Carp::croak('You must specify a FourCC') unless defined($fourcc);
