@@ -11,7 +11,7 @@ use Parse::Marpa;
 
 my $mdl_source = <<'END';
 semantics are perl5.
-version is 1.001_005.
+version is 1.002000.
 start symbol is S.
 
 S: Document.

@@ -7,7 +7,7 @@ no warnings 'recursion';
 use strict;
 
 BEGIN {
-    our $VERSION        = '1.001_005';
+    our $VERSION        = '1.002000';
 }
 
 use integer;
@@ -210,7 +210,7 @@ is_synopsis_pl($_)
     say ${$value};
 
     __DATA__
-    semantics are perl5.  version is 1.001_005.  start symbol is Expression.
+    semantics are perl5.  version is 1.002000.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
         $_[0] * $_[2]

@@ -1,6 +1,7 @@
 Revision history for Parse::Marpa
 
-1.001_005 Sat Jan 17 18:26:13 PST 2009
+1.002000 Wed Jan 21 09:55:43 PST 2009
+
     Many perlcritic fixes.
 
     Improvements to the messages the user gets when there are problems
@@ -8,52 +9,65 @@ Revision history for Parse::Marpa
     for example, as the semantics for rules of the grammar
 
 1.001_nnn Thu Dec 18 21:59:40 PST 2008
+
     A series of developer's releases.
 
 1.000000 Sat Dec 13 11:27:37 PST 2008
+
     First beta release.
 
 0.222.000 Fri Dec 12
+
     Beta release candidate.
 
 0.218.000 Sun Sep 28 
+
     META.yml fixes.
 
     Use Test::Weaken 1.000000.
 
 0.214.000 Fri Aug 15
+
     Alpha release.
 
     Fixed bug with trailing whitespace in MDL.
 
 0.212.000 Thu Aug 14
+
     Alpha release.
 
     Fixed a problem with some long iterations of all parses.
 
 0.211_nnn Tue Apr 15
+
     A series of developer's releases.
 
 0.210.000 Mon Apr 14
+
     Alpha Release.
 
     Fixed a problem with parse order.
 
 0.209_nnn Fri Apr 11
+
     A series of developer's releases.
 
 0.208.000 Fri Apr 11
+
     Alpha Release.
 
     Eliminates problem of priority conflicts.
 
 0.207_nnn Tue Apr  1
+
     A series of developer's releases.
 
 0.206.000 Sun Mar 30
+
     Alpha Release.
 
 0.205_nnn Sat Mar 22
+
     A series of developer's releases.
 
     As of 0.205_000, I adopted a system where odd minor releases (0.205,
@@ -61,9 +75,11 @@ Revision history for Parse::Marpa
     releases (0.202, 0.206, etc.) are general releases.
 
 0.202.0 Thu Jan 17
+
     First Alpha Release
 
 0.200.0 Tue Jan 15
+
     First Candidate for Alpha Release
 
     The big jump in version numbers is because the earliest releases used a different
@@ -71,4 +87,5 @@ Revision history for Parse::Marpa
     the latest version number is after all others in ASCII collating order.
 
 0.01    Fri Sep 14
+
     Under development
