@@ -9,7 +9,7 @@ use Perl::Dist::WiX::Base::Entry     qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Entry';
 }
 

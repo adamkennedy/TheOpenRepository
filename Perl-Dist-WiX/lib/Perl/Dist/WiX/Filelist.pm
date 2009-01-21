@@ -26,7 +26,7 @@ use List::MoreUtils        qw( indexes );
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.11_05';
+	$VERSION = '0.11_06';
 }
 
 use Object::Tiny qw {
@@ -174,6 +174,19 @@ sub add {
     push @{$self->files}, @{$term->files};
 
     return $self;
+}
+
+sub move {
+    my ($self, $from, $to) = @_;
+
+    my @loc = indexes { $_ =~ m/\A\Q$from\E\z/ } @{$self->files};
+    if (@loc) {
+        foreach my $loc (@loc) {
+            $self->files->[$loc] = $to;
+        }
+    }
+
+    return $self;    
 }
 
 sub filter {

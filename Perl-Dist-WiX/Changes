@@ -1,5 +1,15 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.11_06 Wed 21 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    1. Moved Feature.pm up one level, created FeatureTree.pm.   
+    2. Spelling, a little documentation, bug fixes, tests.
+       (more in _07)
+    3. CPAN icon, get_component_array methods, build number, 
+       beta number, and msi parameters added.
+    4. Updated Perl::Dist::WiX to match Perl::Dist::Inno 1.11
+    5. Creating all .wixout files required - but no .msi yet 
+       (files are being counted twice)
+    
 0.11_05 Mon 19 Jan 2009 Curtis Jewell <csjewell@cpan.org>
     1. Work in progress debugging routines install_win32_extras needs
     2. Documentation of some low-level modules added

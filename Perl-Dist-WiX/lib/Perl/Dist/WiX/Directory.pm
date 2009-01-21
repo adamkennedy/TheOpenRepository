@@ -14,7 +14,7 @@ use Perl::Dist::WiX::Misc             qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
     @ISA = qw (Perl::Dist::WiX::Base::Component
                Perl::Dist::WiX::Base::Entry
                Perl::Dist::WiX::Misc
@@ -263,6 +263,10 @@ sub as_string {
             $answer = "<Directory Id='D_$self->{id}'>\n";
             $answer .= $self->indent(2, $string);
             $answer .= "\n</Directory>\n";
+        } elsif ($self->id eq 'TARGETDIR') {
+            $answer = "<Directory Id='$self->{id}' Name='$self->{name}'>\n";
+            $answer .= $self->indent(2, $string);
+            $answer .= "\n</Directory>\n";
         } else {
             $answer = "<Directory Id='D_$self->{id}' Name='$self->{name}'>\n";
             $answer .= $self->indent(2, $string);
@@ -270,9 +274,9 @@ sub as_string {
         }
     } else {
         if ($self->special == 2) {
-            $answer = "<Directory Id='$self->{id}' />\n";
+            $answer = "<Directory Id='D_$self->{id}' />\n";
         } else {
-            $answer = "<Directory Id='$self->{id}' Name='$self->{name}' />\n";
+            $answer = "<Directory Id='D_$self->{id}' Name='$self->{name}' />\n";
         }
     }
 

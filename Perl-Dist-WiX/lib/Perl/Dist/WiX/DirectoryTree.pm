@@ -6,10 +6,12 @@ use warnings;
 use Carp                        qw{ croak confess verbose      };
 use Params::Util                qw{ _IDENTIFIER _STRING };
 use Perl::Dist::WiX::Directory  qw{};
+use Perl::Dist::WiX::Misc       qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
+    @ISA = 'Perl::Dist::WiX::Misc'
 }
 
 use Object::Tiny qw{
@@ -40,21 +42,21 @@ sub initialize_tree {
     my $self = shift;
 
     my $branch = $self->root->add_directory({
-        id => 'D_App_Root', 
-        name => $self->app_dir, 
+        id => 'App_Root', 
+        name => '[INSTALLDIR]', 
         path => $self->app_dir
     });
     
     $self->root
          ->add_directory({id => 'ProgramMenuFolder', special => 2})
-         ->add_directory({id => 'D_App_Menu',        special => 1, name=> $self->app_name});
+         ->add_directory({id => 'App_Menu',        special => 1, name=> $self->app_name});
          
     $branch->add_directories_id(
-        'D_Perl',      'perl',
-        'D_Toolchain', 'c',
-        'D_License',   'licenses',
-        'D_Cpan',      'cpan',
-        'D_Win32',     'win32'
+        'Perl',      'perl',
+        'Toolchain', 'c',
+        'License',   'licenses',
+        'Cpan',      'cpan',
+        'Win32',     'win32'
         );
         
     $branch->add_directories_init($self->sitename, qw(
@@ -105,7 +107,8 @@ sub initialize_tree {
 }
 
 sub as_string {
-    return shift->root->as_string;
+    my $self = shift;
+    return $self->indent(4, $self->root->as_string);
 }
 
 1;

@@ -1,38 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="[% dist.msi_product_id %]"
-	Language="1033"
+  <Product Id='[% dist.msi_product_id %]'
+    Language='1033'
 	Manufacturer="[% dist.app_publisher %]"
 	Name="[% dist.app_name %]"
 	UpgradeCode="[% dist.msi_upgrade_code %]"
 	Version="[% dist.msi_perl_version %]" >
 
-	[%# Upgrade Support %]
+    [% IF dist.msi_debug %]
+    <Package Description='Perl for Win32 operating systems.' Id='*'
+      Comments='Debug Build.' 
+      InstallScope='perMachine' Platform='x86'
+      InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+    <Property Id='MsiLogging'>voIcewarmupx!</Property>
+    [% ELSE %]
+    <Package Description='Perl for Win32 operating systems.' Id='*'
+      InstallScope='perMachine' Platform='x86'
+      InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+    [% END %]
+
+    [%# Upgrade Support %]
 	<Upgrade Id="[% dist.msi_upgrade_code %]">
 	  <UpgradeVersion
-		Minimum="[% dist.msi_perl_version %]"
-		OnlyDetect="yes"
+	    Minimum="[% dist.msi_perl_version %]"
+	    OnlyDetect="yes"
 		Property="NEWERVERSIONDETECTED" />
 	  <UpgradeVersion
 		Minimum="5.0.0"
 		IncludeMinimum="yes"
 		Maximum="[% dist.msi_perl_version %]"
-		IncludeMaximum="no"
+	 	IncludeMaximum="no"
 		Property="OLDERVERSIONBEINGUPGRADED" />
 	</Upgrade>
 	<InstallExecuteSequence>
-		<RemoveExistingProducts After="InstallInitialize" />
+	  <RemoveExistingProducts After="InstallInitialize" />
 	</InstallExecuteSequence>
-
-    [% IF dist.msi_debug %]
-    <Package Description="Perl for Win32 operating systems." 
-      Comments="Debug Build." 
-      InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
-    <Property Id='MsiLogging'>voIcewarmupx!</Property>
-    [% ELSE %]
-    <Package Description="Perl for Win32 operating systems." 
-      InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
-    [% END %]
 
     <Condition Message="You need to be an administrator to install this product.">
       Privileged
@@ -54,7 +56,7 @@
     
 [% dist.directories.as_string %]
 
-[%# Commented out as of yet... dist.features_tree_obj.as_string %]
+[% dist.feature_tree_obj.as_string %]
 
     <Property Id='ARPNOMODIFY'>1</Property>
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>

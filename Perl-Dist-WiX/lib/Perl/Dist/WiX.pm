@@ -97,7 +97,7 @@ use Perl::Dist::Util::Toolchain     ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.11_05';
+	$VERSION = '0.11_06';
 	@ISA     = 'Perl::Dist::WiX::Installer';
 }
 
@@ -748,12 +748,8 @@ sub run {
 	# Install the Win32 extras
 	$self->checkpoint_task( install_win32_extras => 5 );
 
-=pod
-
 	# Apply optional portability support
 	$self->checkpoint_task( install_portable     => 6 ) if $self->portable;
-
-=cut
 
 	# Remove waste and temporary files
 	$self->checkpoint_task( remove_waste         => 7 );
@@ -1891,23 +1887,14 @@ sub install_libiconv {
 
 	# The dll is installed with an unexpected name,
 	# so we correct it post-install.
-	$self->_move(
-		catfile( $self->image_dir, 'c', 'bin', 'libiconv2.dll' ),
-		catfile( $self->image_dir, 'c', 'bin', 'iconv.dll'     ),
-        $filelist
-	);
-
+    my $from = catfile( $self->image_dir, 'c', 'bin', 'libiconv2.dll' );
+    my $to   = catfile( $self->image_dir, 'c', 'bin', 'iconv.dll'     );
+	$self->_move($from, $to);
+    $filelist->move($from, $to);
+    
     $self->insert_fragment('libiconv', $filelist->files);
 
 	return 1;
-}
-
-sub _change_file_location {
-    my ($self, $files_ref, $from, $to) = @_;
-    
-    #TODO: This.
-    
-    return 1;
 }
 
 =pod

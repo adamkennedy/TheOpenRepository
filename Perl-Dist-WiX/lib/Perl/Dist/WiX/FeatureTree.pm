@@ -7,10 +7,13 @@ use Carp                        qw{ croak confess verbose      };
 use Params::Util                qw{ _IDENTIFIER _STRING };
 use Scalar::Util                qw{ weaken };
 use Perl::Dist::WiX::Feature    qw{};
+use Perl::Dist::WiX::Misc    qw{};
+
 
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_06';
+    @ISA = 'Perl::Dist::WiX::Misc';
 }
 
 use Object::Tiny qw{
@@ -68,7 +71,7 @@ sub as_string {
         $answer .= $self->features->[$i]->as_string;
     }
 
-    return $answer;
+    return $self->indent(4, $answer);
 }
 
 1;

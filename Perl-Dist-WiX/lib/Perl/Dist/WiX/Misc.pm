@@ -24,7 +24,7 @@ use Params::Util qw{ _STRING  _POSINT _NONNEGINT };
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
 }
 
 =head2 new

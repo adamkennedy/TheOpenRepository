@@ -64,33 +64,35 @@ sub new {
         croak 'Missing or invalid level parameter';
     }
 
-    $self->{default_settings} = 0;
+    my $default_settings = 0;
     
     # Set defaults
     unless (_STRING($self->default)) {
         $self->{default} = 'install';
-        $self->{default_settings}++;
+        $default_settings++;
     }
     unless (_STRING($self->idefault)) {
-        $self->{display} = 'local';
-        $self->{default_settings}++;
+        $self->{idefault} = 'local';
+        $default_settings++;
     }
     unless (_STRING($self->display)) {
         $self->{display} = 'expand';
-        $self->{default_settings}++;
+        $default_settings++;
     }
     unless (_STRING($self->directory)) {
         $self->{directory} = 'INSTALLDIR';
-        $self->{default_settings}++;
+        $default_settings++;
     }
     unless (_STRING($self->absent)) {
         $self->{absent} = 'disallow';
-        $self->{default_settings}++;
+        $default_settings++;
     }
     unless (_STRING($self->advertise)) {
         $self->{advertise} = 'no';
-        $self->{default_settings}++;
+        $default_settings++;
     }
+
+    $self->{default_settings} = $default_settings;
 
     # Set up empty arrayrefs
     $self->{features} = [];
@@ -160,7 +162,22 @@ sub as_string {
         . q{' Description='}    . $self->description
         . q{' Level='}          . $self->level
     ;
-        
+
+    my %hash = (
+        advertise => $self->advertise,
+        absent    => $self->absent,
+        directory => $self->directory,
+        display   => $self->display,
+        idefault  => $self->idefault,
+        default   => $self->default,
+    );
+    
+    foreach my $key (keys %hash) {
+        if (not defined $hash{$key}) {
+            print "$key in feature $self->{id} is undefined.\n";
+        }
+    }
+    
     if ($self->{default_settings} != 6) {
         $string .= 
               q{' AllowAdvertise='} . $self->advertise
@@ -183,9 +200,13 @@ sub as_string {
         foreach my $i (0 .. $f_count - 1) {
             $s  .= $self->features->[$i]->as_string;
         }
-        $string .= $self->indent(2, $s);
+        if (defined $s) {
+            $string .= $self->indent(2, $s);
+        }
         $string .= $self->_componentrefs_as_string;
-        $string .= qq{\n}
+        $string .= qq{\n};
+        
+        $string .= qq{</Feature>\n};
     }
         
     return $string;
@@ -203,7 +224,7 @@ sub _componentrefs_as_string {
     
     foreach my $i (0 .. $c_count - 1) {
         $ref     = $self->componentrefs->[$i];
-        $string .= qq{<ComponentRef Id='$ref' />\n};
+        $string .= qq{<ComponentRef Id='C_$ref' />\n};
     }
     
     return $self->indent(2, $string);

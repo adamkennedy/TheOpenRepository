@@ -1,5 +1,24 @@
 package Perl::Dist::WiX::Installer;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Base::Component - Base class for <Component> tag.
+
+=head1 DESCRIPTION
+
+These are the routines that interact with the Windows Installer XML 
+package, generate .wxs files, or are otherwise WiX specific.
+
+=head1 METHODS
+
+=head2 Accessors
+
+Accessors take no parameters and return the item requested (listed below)
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
@@ -17,8 +36,63 @@ use Perl::Dist::WiX::FeatureTree   qw();
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
 }
+
+=pod
+
+=over 4
+
+=item *
+
+app_id, app_name, app_publisher, app_publisher_url: 
+Returns the parameter of the same 
+name passed in to L</new>
+
+=item *
+
+default_group_name, default_item_name: Unknown as of yet.
+
+=item *
+
+output_dir, source_dir, fragment_dir: Unknown as of yet.
+
+=item *
+
+bin_candle, bin_light: Returns the location of candle.exe or light.exe.
+
+=item *
+
+directories: Returns the Perl::Dist::WiX::DirectoryTree object 
+associated with this distribution.
+
+=item *
+
+fragments: Returns a hashref containing the objects subclassed from 
+Perl::Dist::WiX::Base::Fragment associated with this distribution.
+
+=item *
+
+msi_feature_tree: Returns the parameter of the same name passed in 
+from L</new>. Unused as of yet.
+
+=item *
+
+msi_banner_top, msi_banner_side, msi_help_url, msi_license_file, 
+msi_readme_file, msi_product_icon: Returns the parameter of the 
+same name passed in from L</new>.
+
+=item *
+
+feature_tree_obj: Returns the Perl::Dist::WiX::FeatureTree object 
+associated with this distribution.
+
+=back
+
+    $id = $component->bin_candle; 
+
+=cut
+
 
 use Object::Tiny qw{
     app_id
@@ -45,24 +119,6 @@ use Object::Tiny qw{
     feature_tree_obj
 };
 
-=pod
-
-=for documentation
-
-app_id
-app_name
-app_publisher
-app_publisher_url	
-default_group_name
-default_dir_name
-output_dir 			$ENV{TEMP}\output - where logs are kept.
-source_dir
-fragment_dir    	$ENV{TEMP}\output\fragments - where WiX fragments and files are stored.
-object_dir          $ENV{TEMP}\output\wixobj    - where .wixobj files are stored
-bin_candle			Location of WiX compiler
-bin_light			Location of WiX linker.
-directories         Perl::Dist::WiX::DirectoryTree object.
-=cut
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -238,7 +294,7 @@ sub msi_perl_version {
 		5100 => [5, 10, 0],
 	}->{$self->perl_version} || 0;
 
-    $ver->[2] = $ver->[2] << 8 + $self->build_number;
+    $ver->[2] = ($ver->[2] << 8) + $self->build_number;
     
     return join '.', @{$ver};
     
@@ -257,6 +313,10 @@ sub get_component_array {
 
 #####################################################################
 # Main Methods
+
+=pod
+
+=cut
 
 sub compile_wxs {
     my ($self, $filename, $wixobj) = @_;
@@ -284,38 +344,42 @@ sub write_msi {
     
     # Write out the .wxs file
     my $content  = $self->as_string;
-    my $filename = catfile($self->fragments_dir, $self->app_name . q{.wxs});
+    $content =~ s{\r\n}{\n}g;     # CRLF -> LF
+    $content =~ s{\n[ \t]*?\n[ \t]*?\n}{\n\n}g;   # Convert triple-spacing with horizontal
+                                                  # whitespace to double-spacing...
+    my $filename = catfile($self->fragment_dir, $self->app_name . q{.wxs});
     my $fh = IO::File->new($filename, 'w');
     $fh->print($content);
     $fh->close;
 
-    my $wixobj = catfile($self->fragments_dir, $self->app_name . q{.wixobj});
+    my $wixobj = catfile($self->fragment_dir, $self->app_name . q{.wixobj});
 
-#    $self->compile_wxs($filename, $wixobj)
-#        or die "WiX could not compile $filename";
+    $self->compile_wxs($filename, $wixobj)
+        or die "WiX could not compile $filename";
  
-#    my $msi_file = $self->link_msi($wixobj, @files);
+    my $msi_file = $self->link_msi;
     
-#    return $msi_file;
-
-    return 'msi';
+    return $msi_file;
 }
 
 sub link_msi {
-    my ($self, $wixout, @files) = @_;
+    my ($self) = @_;
 
     # Get the name of the msi file to generate
     my $output_msi = catfile(
         $self->output_dir,
         $self->output_base_filename . '.msi',
     );
+    
+    my $input_wixouts = catfile(
+        $self->fragment_dir, '*.wixout'
+    );
 
     # Compile the .wixobj files
     my $cmd = [
         $self->bin_light, 
         '-out', $output_msi,
-        $wixout,
-        @files
+        $input_wixouts,
     ];
     my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
     

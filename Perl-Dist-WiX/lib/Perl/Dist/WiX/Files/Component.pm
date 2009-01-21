@@ -35,7 +35,7 @@ use Perl::Dist::WiX::Files::Entry
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 
@@ -55,6 +55,7 @@ Returns the C<filename> parameter passed in by L</new>
 
 use Object::Tiny qw{
     filename
+    fragment_id
 };
 
 #####################################################################

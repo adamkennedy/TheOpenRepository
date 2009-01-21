@@ -29,12 +29,11 @@ use Data::UUID                           qw{ NameSpace_DNS       };
 use File::Spec                           qw{};
 use Perl::Dist::WiX::DirectoryTree       qw{};
 use Perl::Dist::WiX::Base::Fragment      qw{};
-# use Perl::Dist::WiX::Base::Component     qw{};
 use Perl::Dist::WiX::Files::DirectoryRef qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_05';
+    $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
@@ -156,7 +155,10 @@ sub add_file {
     my $directory_ref = $self->_search_refs($path);
     if (defined $directory_ref) {
         # Yes, add the file to this DirectoryRef.
-        $directory_ref->add_file(sitename => $self->sitename, filename => $file);
+        $directory_ref->add_file(
+            sitename => $self->sitename, 
+            filename => $file,
+        );
     } else {
         # Check for a DirectoryRef that's higher up in the directory tree.
         
@@ -181,7 +183,7 @@ sub add_file {
 
                 $file_obj = $directory_obj->add_file(
                     sitename => $self->sitename, 
-                    filename => $file
+                    filename => $file,
                 );
                 return $file_obj;
             }
@@ -217,7 +219,7 @@ sub add_file {
 
                         $file_obj = $directory_obj->add_file(
                             sitename => $self->sitename, 
-                            filename => $file
+                            filename => $file,
                             );
                         return $file_obj;
                     } else {
@@ -225,7 +227,7 @@ sub add_file {
                         # Add the file.
                         $file = $directory_ref->add_file(
                             sitename => $self->sitename, 
-                            filename => $file
+                            filename => $file,
                         );
                         return $file_obj;
                     }
