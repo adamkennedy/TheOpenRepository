@@ -42,6 +42,24 @@ sub new {
     return $self;
 }
 
+sub get_component_array {
+    my $self = shift;
+    
+    my $count = scalar @{$self->{components}};
+    my @answer;
+    my $id;
+
+    push @answer, 'C_RemoveShortcutFolder';
+    
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        $id = $self->{components}->[$i]->id;
+        push @answer,"C_$id"; 
+    }
+
+
+    return $self;
+}
 
 sub as_string {
     my ($self) = shift;

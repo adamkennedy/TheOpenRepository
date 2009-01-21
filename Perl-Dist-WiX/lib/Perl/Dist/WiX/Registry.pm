@@ -7,13 +7,18 @@ use Carp                              qw{ croak               };
 use Params::Util                      qw{ _IDENTIFIER _STRING };
 use Perl::Dist::WiX::Base::Fragment   qw{};
 use Perl::Dist::WiX::Registry::Key    qw{};
-use Perl::Dist::WiX::Registry::Entry    qw{};
+use Perl::Dist::WiX::Registry::Entry  qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_05';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
+
+use Object::Tiny qw{
+    sitename
+};
+
 
 #####################################################################
 # Constructors for Registry
@@ -27,6 +32,22 @@ sub new {
     }
 
     my $self = $class->SUPER::new(%params);
+}
+
+sub get_component_array {
+    my $self = shift;
+    
+    my $count = scalar @{$self->{components}};
+    my @answer;
+    my $id;
+    
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        $id = $self->{components}->[$i]->id;
+        push @answer,"C_$id"; 
+    }
+
+    return $self;
 }
 
 sub add_key {
@@ -50,7 +71,7 @@ sub add_key {
     # getting the number of items in the array referred to by $self->{components}
     my $count = scalar @{$self->{components}};
 
-    foreach my $i (0 .. $count) {
+    foreach my $i (0 .. $count - 1) {
         if ($self->{components}->[$i]->is_key($params{root}, $params{key})) {
             $key = $self->{components}->[$i];
             last; 

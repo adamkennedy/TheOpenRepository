@@ -137,7 +137,7 @@ $component->guid.
 
 This is meant to be called by subclass constructors.
 
-    $component->as_string(2);
+    $component->create_guid_from_id;
 
 =cut
 

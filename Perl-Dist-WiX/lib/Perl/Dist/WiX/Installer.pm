@@ -12,6 +12,8 @@ use URI                            qw();
 use Perl::Dist::WiX::StartMenu     qw();
 use Perl::Dist::WiX::Registry      qw();
 use Perl::Dist::WiX::DirectoryTree qw();
+use Perl::Dist::WiX::FeatureTree   qw();
+
 
 use vars qw{$VERSION};
 BEGIN {
@@ -31,6 +33,16 @@ use Object::Tiny qw{
     bin_candle
     bin_light
     directories
+    fragments
+    msi_feature_tree
+    msi_banner_top
+    msi_banner_side
+    msi_help_url
+    msi_debug
+    msi_license_file
+    msi_readme_file
+    msi_product_icon
+    feature_tree_obj
 };
 
 =pod
@@ -65,7 +77,9 @@ sub new {
     unless ( defined $self->default_group_name ) {
         $self->{default_group_name} = $self->app_name;
     }
-
+    unless ( _STRING($self->msi_license_file) ) {
+        $self->{msi_license_file} = catfile($self->dist_file, 'License.rtf');
+    }
     # Check and default params
     unless ( _IDENTIFIER($self->app_id) ) {
         croak("Missing or invalid app_id param");
@@ -156,6 +170,10 @@ sub new {
     return $self;
 }
 
+sub msi_product_icon_id {
+    return undef;
+}
+
 # Default the versioned name to an unversioned name
 sub app_ver_name {
     $_[0]->{app_ver_name} or
@@ -174,8 +192,67 @@ sub output_date_string {
     return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
 }
 
-sub fragments {
-    return %{ $_[0]->{fragments} };
+sub msi_ui_type {
+    my $self = shift;
+    return (defined $self->msi_feature_tree) ? 'FeatureTree' : 'Minimal';
+}
+
+sub msi_product_id {
+    my $self = shift;
+
+    my $sitename = URI->new($self->app_publisher_url)->host;
+    
+    my $guidgen = Data::UUID->new();
+    # Make our own namespace...
+    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $sitename);
+    #... then use it to create a GUID out of the ID.
+    my $guid = uc $guidgen->create_from_name_str($uuid, $self->app_ver_name);
+
+    return $guid;
+}
+
+sub msi_upgrade_code {
+    my $self = shift;
+
+    my $upgrade_ver = $self->app_name
+		. ($self->portable ? ' Portable' : '')
+		. ' ' . $self->perl_version_human;
+
+    my $sitename = URI->new($self->app_publisher_url)->host;
+    
+    my $guidgen = Data::UUID->new();
+    # Make our own namespace...
+    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $sitename);
+    #... then use it to create a GUID out of the ID.
+    my $guid = uc $guidgen->create_from_name_str($uuid, $upgrade_ver);
+
+    return $guid;
+}
+
+sub msi_perl_version {
+    my $self = shift;
+    
+    my $ver = {
+		588  => [5, 8, 8],
+		589  => [5, 8, 9],
+		5100 => [5, 10, 0],
+	}->{$self->perl_version} || 0;
+
+    $ver->[2] = $ver->[2] << 8 + $self->build_number;
+    
+    return join '.', @{$ver};
+    
+}
+
+sub get_component_array {
+    my $self = shift;
+
+    my @answer;
+    foreach my $key (keys %{$self->fragments}) {
+        push @answer, $self->fragments->{$key}->get_component_array;
+    }
+    
+    return @answer;
 }
 
 #####################################################################
@@ -200,6 +277,10 @@ sub compile_wxs {
 sub write_msi {
     my $self = shift;
     my @files = @_;
+
+    $self->{feature_tree_obj} = Perl::Dist::WiX::FeatureTree->new(
+        parent => $self
+    );
     
     # Write out the .wxs file
     my $content  = $self->as_string;
@@ -208,13 +289,16 @@ sub write_msi {
     $fh->print($content);
     $fh->close;
 
-    my $wixobj = catfile($self->object_dir, $self->app_name . q{.wixobj});
+    my $wixobj = catfile($self->fragments_dir, $self->app_name . q{.wixobj});
 
-    my $rv = compile_wxs($filename, $wixobj);
+#    $self->compile_wxs($filename, $wixobj)
+#        or die "WiX could not compile $filename";
  
-    my $msi_file = $self->link_msi($wixobj, @files);
+#    my $msi_file = $self->link_msi($wixobj, @files);
     
-    return $msi_file;
+#    return $msi_file;
+
+    return 'msi';
 }
 
 sub link_msi {
@@ -242,52 +326,22 @@ sub link_msi {
     return $output_msi;
 }
 
-=head2 wix_{path, lib, include}
+=head2 add_wix_path
 
 Creates entries (adds them to the Reg_Environment fragment) to add 
 the accumulated path, lib or include entries to the environment 
 upon installation. 
 
-    $self = $self->wix_path->wix_lib->wix_include;
-    
-or
-
-    $self->wix_path;
-    $self->wix_lib;
-    $self->wix_include;
-        
+    $self = $self->add_wix_path;
 
 =cut
 
-sub wix_path {
+sub add_wix_path {
 	my $self = shift;
-    return $self->_append_path('PATH', $self->env_path);
-}
 
-sub wix_lib {
-	my $self = shift;
-    return $self->_append_env('LIB', $self->env_lib);
-}
+	my $value = join ';', map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$self->env_path};
 
-sub wix_include {
-	my $self = shift;
-    return $self->_append_env('INCLUDE', $self->env_include);
-}
-
-sub _append_env {
-    my ($self, $name, $values_ref) = @_;
-
-    unless (_STRING($name)) {
-        croak q{Invalid or missing name parameter.};
-    }
-
-    unless (_ARRAY0($values_ref)) {
-        croak q{Can't dereference second parameter.};
-    }
-    
-	my $value = join ';', map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$values_ref};
-
-    $self->add_env($name, $value, 1);
+    $self->add_env('PATH', $value, 1);
     
     return $self;
 }
@@ -319,7 +373,7 @@ sub add_env {
     
     $self->{fragments}->{Reg_Environment}->add_key(
         key        => 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
-        id         => 'Reg_Environment',
+        id         => "Reg_Environment",
         sitename   => URI->new($self->app_publisher_url)->host,
         name       => $name,
         value      => $value,
@@ -375,18 +429,18 @@ it as a string.
 =cut
 
 sub as_string {
+    my $self = shift;
 
     my $tt = new Template({
-        INCLUDE_PATH => '/usr/local/templates',
+        INCLUDE_PATH => $self->dist_dir,
         EVAL_PERL    => 1,
     }) || croak($Template::ERROR . "\n");
 
     my $answer;
+    my $vars = { dist => $self };
     
-    $tt->process('Main.wxs.tt', , \$answer) || Carp::Croak($tt->error() . "\n");
+    $tt->process('Main.wxs.tt', $vars, \$answer) || croak($tt->error() . "\n");
 
-    ###############
-    
     # Combine it all
     return $answer;
 }

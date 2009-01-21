@@ -224,6 +224,26 @@ sub create_guid_from_path {
     return 1;
 }
 
+sub get_component_array {
+    my $self = shift;
+    
+    my $count = scalar @{$self->{directories}};
+    my @answer;
+    my $id;
+
+    # Get the array for each descendant.
+    foreach my $i (0 .. $count - 1) {
+        push @answer, $self->{directories}->[$i]->get_component_array;
+    }
+
+    $count = scalar @{$self->{files}};
+    foreach my $i (0 .. $count - 1) {
+        push @answer, $self->{files}->[$i]->id;
+    }
+
+    return @answer;
+}
+
 sub as_string {
     my $self = shift;
     my ($count, $answer, $string); 
@@ -257,22 +277,6 @@ sub as_string {
     }
 
     return $answer;
-}
-
-sub get_component_array {
-    my $self = shift;
-    
-    my @answer;
-    my $count = scalar @{$self->{directories}};
-    foreach my $i (0 .. $count - 1) {
-        push @answer, $self->{directories}->[$i]->get_component_array;
-    }
-    
-    $count = scalar @{$self->{files}};
-    foreach my $i (0 .. $count - 1) {
-        push @answer, $self->{files}->[$i]->id;
-    }
-
 }
 
 1;

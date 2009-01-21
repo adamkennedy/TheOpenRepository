@@ -79,6 +79,8 @@ use Object::Tiny qw{
 	checkpoint_before
 	checkpoint_after
     filters
+    build_number
+    beta_number
 };
 
 use Perl::Dist::Asset               ();
@@ -247,6 +249,12 @@ sub new {
 	my $self = $class->SUPER::new(%params);
 
 	# Check the version of Perl to build
+	unless ( $self->build_number ) {
+		croak "Failed to resolve perl_version_literal";
+	}
+   	unless ( $self->beta_number ) {
+		$self->{beta_number} = 0;
+	}
 	unless ( $self->perl_version_literal ) {
 		croak "Failed to resolve perl_version_literal";
 	}
@@ -408,10 +416,10 @@ sub new {
         catfile($self->image_dir, qw{ c    COPYING     }),
         catfile($self->image_dir, qw{ c    COPYING.LIB });
 
-
     $self->{env_path} = [];
-    $self->{env_lib} = [];
-    $self->{env_include} = [];
+    
+  	$self->add_env( 'TERM'        , 'dumb' );
+	$self->add_env( 'FTP_PASSIVE' , '1'    );
     
     return $self;
 }
@@ -463,7 +471,7 @@ sub binary_url {
 
 =head2 dist_dir
 
-Provides a shortcut to location the shared files directory.
+Provides a shortcut to the location of the shared files directory.
 
 Returns a directory as a string or dies on error.
 
@@ -833,7 +841,6 @@ sub install_c_toolchain {
 	$self->install_win32api;
 
 	# Set up the environment variables for the binaries
-    # TODO: This...
 	$self->add_env_path( 'c', 'bin' );
 
 	return 1;
@@ -1014,6 +1021,9 @@ sub install_win32_extras {
 		name => 'Win32 Perl Wiki',
 		url  => 'http://win32.perl.org/',
 	);
+
+    # Add the path that's been accumulating at this point.
+    $self->add_wix_path;
 
 	return $self;
 }
@@ -2817,7 +2827,6 @@ sub write {
 	if ( $self->zip ) {
 		push @{ $self->{output_file} }, $self->write_zip;
 	}
-	# TODO: Needs checked.
 	if ( $self->msi ) {
 		push @{ $self->{output_file} }, $self->write_msi;
 	}
@@ -2868,28 +2877,12 @@ sub write_msi {
         }
         $fh->print($fragment->as_string);
         $fh->close;
-#        compile_wxs($filename_in, $filename_out);
+        $self->compile_wxs($filename_in, $filename_out) 
+            or die "WiX could not compile $filename_in";
         push @files, $filename_out;
     }
     
-#    $self->SUPER::write_msi(@files);
-    
-=pod
-	# Convert the environment to registry entries
-	if ( @{$self->{env_path}} ) {
-		my $value = "{olddata}";
-		foreach my $array ( @{$self->{env_path}} ) {
-			$value .= File::Spec::Win32->catdir(
-				';{app}', @$array,
-			);
-		}
-		$self->add_env( PATH => $value );
-	}
-=cut
-
-#	$self->SUPER::write_exe(@_);
-
-    return 1;
+    return $self->SUPER::write_msi(@files);
 }
 
 =pod

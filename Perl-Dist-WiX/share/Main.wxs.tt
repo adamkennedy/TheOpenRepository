@@ -25,12 +25,12 @@
 	</InstallExecuteSequence>
 
     [% IF dist.msi_debug %]
-    <Package Description="Perl for Win32 opersting systems." 
+    <Package Description="Perl for Win32 operating systems." 
       Comments="Debug Build." 
       InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
-    <Package Description="Perl for Win32 opersting systems." 
+    <Package Description="Perl for Win32 operating systems." 
       InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
     [% END %]
 
@@ -52,19 +52,23 @@
 
     <Property Id="INSTALLDIR">[% dist.image_dir %]</Property>
     
-[% dist.directories.as_string(6) %]
+[% dist.directories.as_string %]
 
-[%# Commented out as of yet... dist.features.as_string(6) %]
+[%# Commented out as of yet... dist.features_tree_obj.as_string %]
 
     <Property Id='ARPNOMODIFY'>1</Property>
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
-    <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
+[% IF dist.msi_help_url.defined %]
+    <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
+[% END %]
 [% IF dist.msi_readme_file.defined %]
     <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
 [% END %]
+[% IF dist.msi_product_icon_id.defined %]
     <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon %]</Property>
+[% END %]
 [% IF dist.msi_banner_top.defined %]
     <WixVariable Id='WixUIBannerBmp' Value='[% dist.msi_banner_top %]' />
 [% END %]

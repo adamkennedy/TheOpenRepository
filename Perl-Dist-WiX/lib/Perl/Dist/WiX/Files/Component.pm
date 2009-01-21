@@ -120,6 +120,16 @@ sub new {
 #####################################################################
 # Main Methods
 
+
+
+sub get_component_array {
+    my $self = shift;
+
+    my $count = scalar @{$self->{components}};
+
+    return "C_$self->{id}";    
+}
+
 =head2 as_string()
 
 The B<as_string> method converts the entry tags within this object  
