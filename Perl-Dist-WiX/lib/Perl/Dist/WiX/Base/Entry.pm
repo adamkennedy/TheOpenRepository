@@ -1,24 +1,14 @@
 package Perl::Dist::WiX::Base::Entry;
 
-# This class is only here to provide an ISA relationship for 
-# validity checking.
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Base::Fragment - Base class for entry tags.
-
-=head1 DESCRIPTION
-
-This is a base class for classes that create entry tags (tags 
-contained in <Component> tags, and is here to provide an ISA
-relationship for validity checking. It is meant to be subclassed, 
-as opposed to creating objects of this class directly.
-
-=head1 METHODS
-
-=cut
+#####################################################################
+# Perl::Dist::WiX::Base::Entry - Base class for entries.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+#
+# WARNING: Class not meant to be created directly.
+# Use as virtual base class and for "isa" tests only.
 
 use 5.006;
 use strict;
@@ -35,24 +25,3 @@ sub new {
 }
 
 1;
-
-=head1 SUPPORT
-
-No support of any kind is provided for this module
-
-=head1 AUTHOR
-
-Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>
-
-=head1 COPYRIGHT
-
-Copyright 2009 Curtis Jewell.
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-=cut

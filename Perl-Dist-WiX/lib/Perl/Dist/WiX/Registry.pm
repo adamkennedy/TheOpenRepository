@@ -34,6 +34,14 @@ sub new {
     my $self = $class->SUPER::new(%params);
 }
 
+sub search_file {
+    return undef;
+}
+
+sub check_duplicates {
+    return undef;
+}
+
 sub get_component_array {
     my $self = shift;
     

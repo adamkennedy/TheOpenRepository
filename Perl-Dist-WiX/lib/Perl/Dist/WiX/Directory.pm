@@ -83,6 +83,46 @@ sub search {
     return undef; 
 }
 
+sub search_file {
+    my ($self, $filename) = @_;
+
+    my $path = $self->path;
+    
+    # Do we want to continue searching down this direction?
+    my $subset = $filename =~ m/\A\Q$path\E/;
+    return undef if not $subset;
+
+    # Check each of our branches.
+    my $count = scalar @{$self->{files}};
+    my $answer;
+    foreach my $i (0 .. $count - 1) {
+        next if (not defined $self->{files}->[$i]);
+        $answer = $self->{files}->[$i]->is_file($filename);
+        if ($answer) {
+            return [$self, $i];
+        }
+    }
+
+    $count = scalar @{$self->{directories}};
+    $answer = undef;
+    foreach my $i (0 .. $count - 1) {
+        $answer = $self->{directories}->[$i]->search_file($filename);
+        if (defined $answer) {
+            return $answer;
+        }
+    }
+
+    return undef;
+}
+
+sub delete_filenum {
+    my ($self, $i) = @_;
+    
+    $self->{files}->[$i] = undef;
+    
+    return $self;
+}
+
 sub add_directories_id {
     my ($self, @params) = @_;
     
@@ -238,6 +278,7 @@ sub get_component_array {
 
     $count = scalar @{$self->{files}};
     foreach my $i (0 .. $count - 1) {
+        next if (not defined $self->{files}->[$i]);
         push @answer, $self->{files}->[$i]->id;
     }
 
@@ -255,6 +296,7 @@ sub as_string {
     
     $count = scalar @{$self->{files}};
     foreach my $i (0 .. $count - 1) {
+        next if (not defined $self->{files}->[$i]);
         $string .= $self->{files}->[$i]->as_string;
     }
 

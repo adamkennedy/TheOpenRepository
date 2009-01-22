@@ -1,17 +1,30 @@
 package Perl::Dist::WiX::Registry::Entry;
 
+#####################################################################
+# Perl::Dist::WiX::Base::Component - Base class for <RegistryValue> tag.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+#
+
 use 5.006;
 use strict;
 use warnings;
-use Carp                             qw{ croak               };
-use Params::Util                     qw{ _IDENTIFIER _STRING };
-use Perl::Dist::WiX::Base::Entry     qw{};
+use Carp              qw{ croak               };
+use Params::Util      qw{ _IDENTIFIER _STRING };
+require Perl::Dist::WiX::Base::Entry;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Entry';
 }
+
+#####################################################################
+# Accessors:
+#   action, value_type, value_name, value_data:
+#     see constructor for information.
 
 use Object::Tiny qw{
     action
@@ -21,7 +34,13 @@ use Object::Tiny qw{
 };
 
 #####################################################################
-# Constructor for Registry::Entry
+# Constructors for Registry::Entry
+#
+# Parameters: [pairs]
+#   action:     Action attribute to <RegistryKey>.
+#   value_type: Type attribute to <RegistryKey>.
+#   value_name: Name attribute to <RegistryKey>.
+#   value_data: Value attribute to <RegistryKey>.
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -48,6 +67,14 @@ sub new {
     return $self;
 }
 
+#####################################################################
+# Main Methods
+
+########################################
+# entry($value_name, $value_data, $action, $value_type)
+# Parameters:
+#   See constructor for details. 
+
 # Shortcut constructor for an environment variable
 sub entry {
     return $_[0]->new(
@@ -58,8 +85,13 @@ sub entry {
     );
 }
 
-#####################################################################
-# Accessor
+########################################
+# as_string
+# Parameters:
+#    None
+# Returns:
+#   String representation of the <RegistryValue> tags represented 
+#   by this object.
 
 sub as_string {
     my $self = shift;

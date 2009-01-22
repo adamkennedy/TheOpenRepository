@@ -49,15 +49,23 @@ sub get_component_array {
     my @answer;
     my $id;
 
-    push @answer, 'C_RemoveShortcutFolder';
+    push @answer, 'RemoveShortcutFolder';
     
     # Get the array for each descendant.
     foreach my $i (0 .. $count - 1) {
         $id = $self->{components}->[$i]->id;
-        push @answer,"C_$id"; 
+        push @answer, "S_$id"; 
     }
 
     return @answer;
+}
+
+sub search_file {
+    return undef;
+}
+
+sub check_duplicates {
+    return undef;
 }
 
 sub as_string {
@@ -87,7 +95,7 @@ EOF
     #... then use it to create a GUID out of the ID.
     my $guid_RSF = uc $guidgen->create_from_name_str($uuid, 'RemoveShortcutFolder');
 
-    $string .= <<'EOF';
+    $string .= <<"EOF";
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
       </Component>

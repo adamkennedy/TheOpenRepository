@@ -36,7 +36,6 @@ use LWP::UserAgent    	    	    qw();
 use LWP::Online 			    	qw();
 use List::MoreUtils                 qw( any );
 use PAR::Dist                       qw();
-use Perl::Dist::WiX::Registry       qw();
 use Perl::Dist::WiX::Files          qw();
 use Perl::Dist::WiX::StartMenu      qw();
 use Perl::Dist::WiX::StartMenuComponent
@@ -1840,6 +1839,12 @@ sub install_mingw_make {
 sub insert_fragment {
     my ($self, $id, $files_ref) = @_;
 
+    print "Adding fragment $id...\n";
+    
+    foreach my $key (keys %{$self->{fragments}}) {
+        $self->{fragments}->{$key}->check_duplicates($files_ref);
+    }
+    
     my $fragment = 
         Perl::Dist::WiX::Files->new(
             id => $id, 
@@ -1848,7 +1853,7 @@ sub insert_fragment {
         )->add_files(@{$files_ref});
 
     $self->{fragments}->{$id} = $fragment;
-
+    
     return 1;
 }
 
@@ -2864,8 +2869,16 @@ sub write_msi {
         }
         $fh->print($fragment->as_string);
         $fh->close;
+        print "Compiling $filename_in...\n";
         $self->compile_wxs($filename_in, $filename_out) 
             or die "WiX could not compile $filename_in";
+        
+        unless ( -f $filename_out ) {
+            croak("Failed to find $filename_out (probably compilation error in $filename_in)");
+        }
+
+
+            
         push @files, $filename_out;
     }
     
@@ -2914,12 +2927,14 @@ sub write_zip {
 sub add_icon {
 	my $self   = shift;
 	my %params = @_;
-    my $dir;
+    my ($dir, $dir_obj, $dir_id);
     
   	if ( $params{filename} =~ /^\{/ ) {
         (undef, $dir, undef) = splitpath($params{filename});
+        $dir_obj = $self->directory_tree->search($dir);
+        $dir_id  = $dir_obj->id; 
     } else {
-        $dir = $self->image_dir;
+        $dir_id = 'D_App_Root';
 		$params{filename} = catfile($self->image_dir, $params{filename});
 	}
     
@@ -2932,7 +2947,7 @@ sub add_icon {
             name        => $params{name},
             target      => $params{filename},
             id          => $id,
-            working_dir => $dir,
+            working_dir => $dir_id,
         )
     );
 

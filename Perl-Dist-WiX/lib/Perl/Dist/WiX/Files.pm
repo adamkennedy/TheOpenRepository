@@ -291,6 +291,42 @@ sub _search_refs {
     return undef;
 }
 
+sub search_file {
+    my ($self, $filename) = @_;
+    
+    my $answer = undef;
+ 
+    # How many descendants do we have?
+    my $count = scalar @{$self->{components}};
+
+    # Pass the search down to each our descendants.
+    foreach my $i (0 .. $count - 1) {
+        $answer = $self->{components}->[$i]->search_file($filename);
+
+        # Exit if one of our descendants is successful.
+        return $answer if defined $answer;
+    }
+
+    # We were unsuccessful.
+    return undef;
+}
+
+sub check_duplicates {
+    my ($self, $files_ref) = @_;
+    
+    my $answer;
+    my ($object, $index);
+    foreach my $file (@{$files_ref}) {
+        $answer = $self->search_file($file);
+        if (defined $answer) {
+            ($object, $index) = @{$answer};
+            $object->delete_filenum($index);
+        }
+    }
+    
+    return $self;
+}
+
 =head2 as_string
 
 The B<as_string> method converts the component tags within this object  

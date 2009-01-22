@@ -29,7 +29,7 @@ use IPC::Run3                      qw();
 use Params::Util                   qw{ _STRING _IDENTIFIER _ARRAY0};
 use URI                            qw();
 use Perl::Dist::WiX::StartMenu     qw();
-use Perl::Dist::WiX::Registry      qw();
+use Perl::Dist::WiX::Environment   qw();
 use Perl::Dist::WiX::DirectoryTree qw();
 use Perl::Dist::WiX::FeatureTree   qw();
 
@@ -196,9 +196,9 @@ sub new {
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
         sitename => $sitename,
     );
-    $self->{fragments}->{Reg_Environment} = Perl::Dist::WiX::Registry->new(
+    $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
         sitename => $sitename,
-        id       => 'Reg_Environment',
+        id       => 'Environment',
     );
     $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
         sitename        => $sitename,
@@ -354,9 +354,16 @@ sub write_msi {
 
     my $wixobj = catfile($self->fragment_dir, $self->app_name . q{.wixobj});
 
+    print "Compiling $filename...\n";
     $self->compile_wxs($filename, $wixobj)
         or die "WiX could not compile $filename";
- 
+
+    unless ( -f $wixobj ) {
+        croak("Failed to find $wixobj (probably compilation error in $filename)");
+    }
+
+
+        
     my $msi_file = $self->link_msi;
     
     return $msi_file;
@@ -375,10 +382,12 @@ sub link_msi {
         $self->fragment_dir, '*.wixout'
     );
 
-    # Compile the .wixobj files
+    # Compile the .wixobj files"
+    print "Linking $output_msi...\n";
     my $cmd = [
         $self->bin_light, 
-        '-out', $output_msi,
+        '-out', $output_msi,       # TODO: Get rid of hard coding.
+        '-ext', 'C:\\Program Files\\Windows Installer XML v3\\bin\\WixUIExtension.dll',
         $input_wixouts,
     ];
     my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
@@ -403,10 +412,10 @@ upon installation.
 sub add_wix_path {
 	my $self = shift;
 
-	my $value = join ';', map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$self->env_path};
+    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', $_ ) } @{$self->env_path}) {
+        $self->add_env('PATH', $value, 1);
+    }
 
-    $self->add_env('PATH', $value, 1);
-    
     return $self;
 }
 
@@ -435,14 +444,14 @@ sub add_env {
         croak 'Invalid or missing value parameter';
     }
     
-    $self->{fragments}->{Reg_Environment}->add_key(
-        key        => 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment',
-        id         => "Reg_Environment",
-        sitename   => URI->new($self->app_publisher_url)->host,
+    my $num = scalar @{$self->{fragments}->{Environment}->{entries}};
+    
+    $self->{fragments}->{Environment}->add_entry(
+        id         => "Env_$num",        
         name       => $name,
         value      => $value,
-        action     => $append ? 'append' : 'write',
-        value_type => 'expandable',
+        action     => 'set',
+        part       => $append ? 'last' : 'all',
     );
 
     return $self;
