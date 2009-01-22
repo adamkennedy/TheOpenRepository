@@ -1,3 +1,5 @@
+#!perl
+
 # The tests from Lincoln Stein's Devel::Cycle module
 
 use Test::More tests => 4;

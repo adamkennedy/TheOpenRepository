@@ -4,7 +4,7 @@ require Exporter;
 
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(poof);
-our $VERSION   = '1.000000';
+our $VERSION   = '1.001_000';
 $VERSION   = eval $VERSION;
 
 use warnings;
@@ -48,11 +48,19 @@ can still be tested via the weak refs.
 # See POD, below
 sub poof {
 
-    my $closure    = shift;
-    my $type = reftype $closure;
-    croak("poof() argument must be code ref") unless $type eq "CODE";
+    my $constructor    = shift;
+    my $destructor     = shift;
 
-    my $base_ref = $closure->();
+    my $type = reftype $constructor;
+    croak('poof() first argument must be code ref') unless $type eq 'CODE';
+
+    if (defined $destructor)
+    {
+        $type = reftype $destructor;
+        croak('poof() arguments must be code refs') unless $type eq 'CODE';
+    }
+
+    my $base_ref = $constructor->();
     $type = ref $base_ref;
     carp("poof() argument did not return a reference") unless $type;
 
@@ -182,6 +190,7 @@ sub poof {
     # it's necessary so that the counts work out right.
     $reverse = undef;
     $workset = undef;
+    $destructor->($base_ref) if defined $destructor;
     weaken($base_ref);
 
     # The implicit copy below will strengthen the weak references
@@ -233,8 +242,8 @@ Test::Weaken - Test that freed references are, indeed, freed
 Frees memory, and
 checks that the memory
 is deallocated.
-Also checks deallocation of any memory referred to indirectly
-through arrays, hashes, and weak and strong references.
+The memory checked includes all memory referred to indirectly,
+whether through arrays, hashes, weak references or strong references.
 Arrays, hashes and references are followed
 recursively and to unlimited depth.
 
@@ -249,21 +258,42 @@ deallocating circular references.
 =head2 poof
 
 The C<poof> static method
-takes a closure as its only argument.
-This closure, the B<test object constructor>,
+takes one or two closures as arguments.
+The first, required, argument is the B<test object constructor>
+for the object to be tested.
+The second, optional, argument is a B<test object destructor>.
+
+The test object constructor,
+sometimes simply called the B<constructor> when no confusion
+with other constructors will arise,
 should build the B<test object>
 and create a B<primary test reference> to it.
 The return value of the test object constructor must be
 the primary test reference.
-The test object should be created as much as possible
-within the test object constructor,
-because that makes it easier to construct a
-test object which has no references into it from C<poof>'s
+It is usually best to construct the test object
+inside the test object constructor
+as much as possible.
+That is the easiest way to construct a
+test object with no references into it from C<poof>'s
 calling environment.
 More on this below.
 
+The test object destructor is optional.
+The test object destructor will be called just before C<Test::Weaken>
+frees the primary test reference.
+The destructor is called with
+the primary test reference as its only argument,
+just before the primary test reference is freed.
+The test object destructor can be used to allow
+C<Test::Weaken> to work with objects
+that require a destructor to be called on them before
+they are freed.
+For example, some of the objects created by Gtk2-Perl are of this type.
+If no test object destructor is specified, no last minute processing
+will be done on the primary test reference before it is freed.
+
 By recursively
-following references, arrays and hashes
+following references, arrays, and hashes
 from the primary test reference, C<poof>
 finds all of the references in the test object.
 These are C<poof>'s B<test references>.
@@ -304,18 +334,7 @@ The unfreed references in the arrays can be dereferenced
 and the unfreed data examined.
 This may offer a clue to locate the source of a memory leak.
 
-One technique a programmer can use to find memory leaks,
-is to add tags to the arrays and hashes inside his data object as it is created.
-These tags can indicate the point of creation of the objects.
-Once C<poof>'s test object is tagged in this manner,
-C<poof>'s list of unfreed references can be dereferenced to find the
-tags.
-The result will be a listing of all the sources of memory leaks.
-
-The name C<poof> is intended to warn the programmer that the test
-is destructive.  I originally called the main subroutine C<destroy>,
-but that choice seemed unfortunate because of similarities to
-C<DESTROY>, a name reserved for object destructors.
+=head2 Why the Arguments are Closures
 
 Obtaining the primary test reference
 from a test object constructor
@@ -337,14 +356,62 @@ the effect would be a false negative.
 Errors like this are tricky to detect and
 hard to debug.
 
-If the test object is constructed completely within the test object constructor,
-and the only objects used to construct
-it are all in the scope of the test object constructor, 
+When the test object is constructed completely within the test object constructor,
+and all the objects used to construct
+it are also in the scope of the test object constructor, 
 there will be
 no strong references held from outside the test object
 once the test object constructor returns.
 Following this discipline, it is relatively easy
 for a careful programmer to avoid false negatives.
+
+=head2 Tricks and Techniques
+
+In scalar context C<poof> returns zero if all references were freed.
+This is the simplest way to use C<poof>,
+but sometimes special techniques are required.
+
+=head3 Objects Which Refer to External Memory
+
+The object you need to test may have references to "external" memory --
+memory consider "outside" the object and not intended to be freed when
+the object is.
+When this is the case several techniques are be used.
+
+First, if you can rely there being a fixed count of "external" references,
+you can call C<poof> in scalar context and check that the correct count is
+returned.  Be aware that this can cause false positives in cases where equal numbers of
+references which shouldn't be freed
+are freed and references which should be freed are not.
+
+Second, you can call
+C<poof> in array context, so that it returns lists of the unfreed references.
+The unfreed references can be then be checked to ensure all and only the correct
+references are not freed.
+If references can't be identified using their contents,
+the addresses of the references can be recorded beforehand
+and afterward, and compared.
+
+=head3 Tracing Memory Leaks
+
+C<poof> called in array context can also be used
+to find the source of memory leaks.
+Pointer address can be used to identified which references are being
+"leaked".
+Depending on the application,
+you can also add elements to
+arrays and hashes to "tag" them for this purpose.
+
+=head3 If You Really Must Test Deallocation of a Global
+
+As explained above, C<poof> takes its test object as the the return
+value from a closure because it's tricky to create objects in the global
+environment without holding references to them which will cause false negatives.
+If you really have no choice but to do use a reference to an object
+from the global environment,
+you can defeat C<poof>'s safeguards by specifying
+as C<poof>'s constructor argument a closure which
+return the reference to the global object.
 
 =head1 EXPORT
 
@@ -355,6 +422,15 @@ By default, C<Test::Weaken> exports nothing.  Optionally, C<poof> may be exporte
 C<Test::Weaken> does not look inside code references.
 
 =head1 IMPLEMENTATION
+
+=head2 C<poof>'s Name
+
+The name C<poof> is intended to warn the programmer that the test
+is destructive.  I originally called the main subroutine C<destroy>,
+but that choice seemed unfortunate because of similarities to
+C<DESTROY>, a name reserved for object destructors.
+
+=head2 How C<poof> Works
 
 C<Test::Weaken> first recurses through the test object.
 It follows all weak and strong references, arrays and hashes.
@@ -371,12 +447,11 @@ The probe references to the strong test references are weakened,
 so that the probe reference will not interfere with normal deallocation of memory.
 
 When all the probe references have been created,
-the primary test reference is set to C<undef>.
-Normally, this is expected to cause all
-memory for the test object to be deallocated.
+the primary test reference is weakened.
+Normally, this causes the test object to be deallocated.
 To check this, C<Test::Weaken> dereferences the probe references.
-If the referent of the probe reference was deallocated,
-the value of the probe references will be C<undef>.
+If the referent of a probe reference was deallocated,
+the value of that probe reference will be C<undef>.
 
 =head1 AUTHOR
 
@@ -435,7 +510,7 @@ test cases and other ideas.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2007-2008 Jeffrey Kegler, all rights reserved.
+Copyright 2007-2009 Jeffrey Kegler, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl 5.10.

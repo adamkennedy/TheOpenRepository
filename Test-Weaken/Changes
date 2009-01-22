@@ -1,5 +1,11 @@
 Revision history for Test-Weaken
 
+1.001_nnn
+        Developer's Releases
+
+        Adding a destructor argument to poof().
+        Some documentation improvements.
+
 1.000000     Fri Sep 19
         First official release
 
