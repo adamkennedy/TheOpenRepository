@@ -1,9 +1,11 @@
 Changes
 etc/change_version.pl
 etc/check_links.pl
+etc/do_critic.pl
+etc/last_minute_check.sh
 etc/Makefile
 etc/not_in_manifest.pl
-etc/last_minute_check.sh
+etc/perlcriticrc
 lib/Test/Weaken.pm
 Makefile.PL
 MANIFEST
