@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Fatal qw(open close unlink select rename);
 use English qw( -no_match_vars );
+use Carp;
 
 our $FH;
 
@@ -11,7 +12,8 @@ croak("usage: $0: old_version new_version") unless scalar @ARGV == 2;
 
 my ($old, $new) = @ARGV;
 
-say STDERR "$old $new";
+print {*STDERR} "$old $new\n"
+    or croak("Cannot print to STDERR: $ERRNO");
 
 sub check_version {
    my $version = shift;
@@ -54,8 +56,11 @@ sub fix_META_yml {
     my $text_ref = shift;
     my $file_name = shift;
 
-    say STDERR "failed to change version from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(version:\s*)$old/$1$new/gxms;
+    unless (${$text_ref} =~ s/(version:\s*)$old/$1$new/gxms)
+    {
+        print {*STDERR} "failed to change version from $old to $new in $file_name\n"
+            or croak("Could not print to argvout: $ERRNO");
+    }
     return $text_ref;
 }
 
@@ -63,10 +68,16 @@ sub fix_Marpa_pm {
     my $text_ref = shift;
     my $file_name = shift;
 
-    say STDERR "failed to change VERSION from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/xms;
-    say STDERR "failed to change version from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/xms;
+    unless (${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/xms)
+    {
+        print {*STDERR} "failed to change VERSION from $old to $new in $file_name\n"
+            or croak("Could not print to STDERR: $ERRNO");
+    }
+    unless (${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/xms)
+    {
+        print {*STDERR} "failed to change version from $old to $new in $file_name\n"
+            or croak("Could not print to STDERR: $ERRNO");
+    }
     return $text_ref;
 }
 
