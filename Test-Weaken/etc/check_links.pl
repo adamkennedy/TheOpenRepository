@@ -1,10 +1,14 @@
-use 5.010;
+#!perl
+
 use strict;
 use warnings;
+
 use LWP::UserAgent;
 use URI::URL;
 use HTML::LinkExtor;
 use English qw( -no_match_vars ) ;
+use Carp;
+use IO::Handle;
 
 my $cpan_base = 'http://search.cpan.org';
 my $marpa_doc_base = $cpan_base . '/~jkegl/Test-Weaken-1.001_000/lib/Test/';
@@ -17,10 +21,10 @@ my %link;
 
 sub cb {
     my($tag, %links) = @_;
-    return unless $tag eq "a";
+    return unless $tag eq 'a';
     my $href = $links{href};
-    return if $href =~ /^#/;
-    $link{$href} = 1;
+    return if $href =~ /^[#]/xms;
+    return ($link{$href} = 1);
 }
 
 my %link_ok;
@@ -35,35 +39,40 @@ PAGE: for my $url (@url) {
 
     %link = ();
     # Request document and parse it as it arrives
-    my $response = $ua->request(
+    my $request_response = $ua->request(
 	HTTP::Request->new( GET => $url),
 	sub {$p->parse($_[0])}
     );
 
-    my $page_response_status_line = $response->status_line;
-    if ($response->code != 200) {
-        say "PAGE: ", $page_response_status_line, " ", $url;
+    my $page_response_status_line = $request_response->status_line;
+    if ($request_response->code != 200) {
+        print 'PAGE: ', $page_response_status_line, q{ }, $url, "\n"
+            or croak("Cannot print: $ERRNO");
         next PAGE;
     }
 
     LINK: for my $link (keys %link) {
 
 	$link = 'http://search.cpan.org' . $link
-	    if $link =~ m(^/);
+	    if $link =~ m{^/}xms;
+
         next LINK if $link_ok{$link};
 
 	my $response = $ua->request(HTTP::Request->new(GET => $link));
 
 	if ($response->code == 200) {
             $link_ok{$link} = 1;
-            print ".";
+            print q{.}
+                or croak("Cannot print: $ERRNO");
             next LINK;
         }
 
-	say "LINK: ", $response->status_line, " ", $link;
+	print 'LINK: ', $response->status_line, q{ }, $link, "\n"
+            or croak("Cannot print: $ERRNO");
 
     }
 
-    say " PAGE: $page_response_status_line: $url";
+    print " PAGE: $page_response_status_line: $url\n"
+        or croak("Cannot print: $ERRNO");
 
 }

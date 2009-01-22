@@ -1,9 +1,8 @@
 #!perl
 
-use 5.010;
 use strict;
 use warnings;
-use Fatal qw(:void open close unlink select);
+use Fatal qw(open close unlink select rename);
 use English qw( -no_match_vars );
 
 our $FH;
@@ -16,7 +15,7 @@ say STDERR "$old $new";
 
 sub check_version {
    my $version = shift;
-   my ($major, $minor1, $underscore, $minor2) = ($version =~ m/^ ([0-9]+) [.] ([0-9.]{3}) ([_]?) ([0-9.]{3}) $/x);
+   my ($major, $minor1, $underscore, $minor2) = ($version =~ m/^ ([0-9]+) [.] ([0-9.]{3}) ([_]?) ([0-9.]{3}) $/xms);
    if (not defined $minor2) {
        croak("Bad format in version number: $version");
    }
@@ -31,22 +30,24 @@ sub check_version {
 check_version($old);
 check_version($new);
 
+## no critic (BuiltinFunctions::ProhibitStringyEval)
 croak("$old >= $new") if eval $old >= eval $new;
+## use critic
 
 sub change {
-   my $fix = shift;
-   my @files = @_;
+   my ($fix, @files) = @_;
    for my $file (@files) {
-     open(FH, '<', $file);
-     my $text = do {local $RS; <FH> };
+     open my $fh, '<', $file;
+     my $text = do { local $RS = undef; <$fh> };
+     close $fh;
      my $backup = "save/$file";
-     rename($file, $backup);
-     open(ARGVOUT, '>', $file);
-     select(ARGVOUT);
-     print ARGVOUT ${$fix->(\$text, $file)};
-     select(STDOUT);
-     close(FH);
+     rename $file, $backup;
+     open my $argvout, '>', $file;
+     print {$argvout} ${$fix->(\$text, $file)}
+         or croak("Could not print to argvout: $ERRNO");
+     close $argvout;
    }
+   return 1;
 }
 
 sub fix_META_yml {
@@ -55,7 +56,7 @@ sub fix_META_yml {
 
     say STDERR "failed to change version from $old to $new in $file_name"
         unless ${$text_ref} =~ s/(version:\s*)$old/$1$new/gxms;
-    $text_ref;
+    return $text_ref;
 }
 
 sub fix_Marpa_pm {
@@ -66,21 +67,25 @@ sub fix_Marpa_pm {
         unless ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/xms;
     say STDERR "failed to change version from $old to $new in $file_name"
         unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/xms;
-    $text_ref;
+    return $text_ref;
 }
 
 sub update_changes {
     my $text_ref = shift;
     my $file_name = shift;
 
-    my $date_stamp = `date`;
-    say STDERR "failed to add $new to $file_name"
-        unless ${$text_ref} =~ s/(\ARevision\s+history\s+[^\n]*\n\n)/$1$new $date_stamp\n/xms;
-    $text_ref;
+    my $date_stamp = localtime;
+    unless (${$text_ref} =~ s/(\ARevision\s+history\s+[^\n]*\n\n)/$1$new $date_stamp\n/xms)
+    {
+        print {*STDERR} "failed to add $new to $file_name\n"
+            or croak("Could not print to STDERR: $ERRNO");
+    }
+    return $text_ref;
 }
 
 change(\&fix_META_yml, 'META.yml');
 change(\&fix_Marpa_pm, 'lib/Test/Weaken.pm');
 change(\&update_changes, 'Changes');
 
-say STDERR "REMEMBER TO UPDATE Changes file";
+print {*STDERR} 'REMEMBER TO UPDATE Changes file'
+    or croak("Could not print to STDERR: $ERRNO");
