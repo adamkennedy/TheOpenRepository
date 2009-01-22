@@ -32,9 +32,9 @@ typedef struct Token_t {
 class AbstractTokenType {
 public:
 	TokenTypeNames type;
-	bool significante;
+	bool significant;
 	/* tokenize a single charecter 
-	 * Assumation: there is a token (c_token is not NULL) and it's buffer is big enough
+	 * Assumption: there is a token (c_token is not NULL) and it's buffer is big enough
 	 *		to fit whatever already inside it and the rest of the line under work
 	 * Returns:
 	 *	my_char - signaling the calling function to copy the current char to this token's buffer
@@ -44,12 +44,12 @@ public:
 	 *	error_fail - on error. stop.
 	 */
 	virtual CharTokenizeResults tokenize(Tokenizer *t, Token *c_token, unsigned char c_char) = 0;
-	/* toeknize as much as you can
+	/* tokenize as much as you can
 	 * parallel for the tokenize function. should be implemented only for:
 	 *		CommentToken, WordToken and StructureToken
 	 */
 	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char) { return error_fail; }
-	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significante(sign) {}
+	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
 };
 
 class WhiteSpaceToken : public AbstractTokenType {
@@ -75,18 +75,18 @@ public:
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
-    found_token,
-    reached_eol,
-    tokenizing_fail
+	found_token,
+	reached_eol,
+	tokenizing_fail
 };
 
 class Tokenizer {
 public:
-    Token *c_token;
-    char *c_line;
+	Token *c_token;
+	char *c_line;
 	long line_length;
-    long line_pos;
-    char local_newline;
+	long line_pos;
+	char local_newline;
 	TokenTypeNames zone;
 	AbstractTokenType *TokenTypeNames_pool[6];
 	Tokenizer();
@@ -113,7 +113,7 @@ public:
 	/* freeToken - return a token to the free tokens poll
 	 */
 	void freeToken(Token *t);
-	/* _last_significant_token - return the n-th last significante token
+	/* _last_significant_token - return the n-th last significant token
 	 * must be: 1 <= n <= NUM_SIGNIFICANT_KEPT
 	 * May return NULL is no such token exists.
 	 */
@@ -130,7 +130,7 @@ private:
 	CommentToken m_CommentToken;
 	StructureToken m_StructureToken;
 
-	void keep_significante_token(Token *t);
+	void keep_significant_token(Token *t);
 
 	Token *m_LastSignificant[NUM_SIGNIFICANT_KEPT];
 	unsigned char m_nLastSignificantPos;

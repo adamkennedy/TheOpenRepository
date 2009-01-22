@@ -79,7 +79,7 @@ void Tokenizer::_new_token(TokenTypeNames new_type) {
 	c_token = tk;
 }
 
-void Tokenizer::keep_significante_token(Token *t) {
+void Tokenizer::keep_significant_token(Token *t) {
 	unsigned char oldest = ( m_nLastSignificantPos + 1 ) % NUM_SIGNIFICANT_KEPT;
 	if (m_LastSignificant[oldest] != NULL) {
 		freeToken(m_LastSignificant[oldest]);
@@ -97,8 +97,8 @@ TokenTypeNames Tokenizer::_finalize_token() {
 		c_token->text[c_token->length] = '\0';
 		c_token->next = tokens_found;
 		tokens_found = c_token;
-		if (c_token->type->significante) {
-			keep_significante_token(c_token);
+		if (c_token->type->significant) {
+			keep_significant_token(c_token);
 		}
 	} else {
 		freeToken(c_token);
