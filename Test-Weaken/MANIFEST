@@ -1,11 +1,17 @@
 Changes
+etc/change_version.pl
+etc/check_links.pl
+etc/Makefile
+etc/not_in_manifest.pl
+lib/Test/Weaken.pm
+Makefile.PL
 MANIFEST
 META.yml # Will be created by "make dist"
-Makefile.PL
 README
-lib/Test/Weaken.pm
 t/00-load.t
-t/stein.t
-t/weaken.t
 t/array.t
+t/circular.t
+t/faux_gtk.t
+t/stein.t
 t/synopsis.t
+t/weaken.t
