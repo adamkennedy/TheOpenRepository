@@ -1,11 +1,11 @@
 Revision history for Test-Weaken
 
-1.001_002 Thu Jan 22 13:45:18 2009
-1.001_002 Thu Jan 22 13:43:11 2009
 1.001_nnn
         Developer's Releases
 
         Adding a destructor argument to poof().
+        Adding various developer's utilities.
+        Make code perlcritic clean.
         Some documentation improvements.
 
 1.000000     Fri Sep 19

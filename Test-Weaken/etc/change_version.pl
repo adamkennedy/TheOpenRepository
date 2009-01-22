@@ -40,7 +40,7 @@ sub change {
    my ($fix, @files) = @_;
    for my $file (@files) {
      open my $fh, '<', $file;
-     my $text = do { local $RS = undef; <$fh> };
+     my $text = do { local($RS) = undef; <$fh> };
      close $fh;
      my $backup = "save/$file";
      rename $file, $backup;
@@ -64,18 +64,28 @@ sub fix_META_yml {
     return $text_ref;
 }
 
-sub fix_Marpa_pm {
+sub fix_Weaken_pm {
     my $text_ref = shift;
     my $file_name = shift;
 
-    unless (${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/xms)
+    unless (
+        ${$text_ref} =~ s{
+            (
+                our
+                \s+
+                [\$]
+                VERSION
+                \s*
+                =
+                \s*
+                [']
+            )
+            $old
+            [']
+            [;]
+        }{$1$new';}xms)
     {
         print {*STDERR} "failed to change VERSION from $old to $new in $file_name\n"
-            or croak("Could not print to STDERR: $ERRNO");
-    }
-    unless (${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/xms)
-    {
-        print {*STDERR} "failed to change version from $old to $new in $file_name\n"
             or croak("Could not print to STDERR: $ERRNO");
     }
     return $text_ref;
@@ -95,8 +105,8 @@ sub update_changes {
 }
 
 change(\&fix_META_yml, 'META.yml');
-change(\&fix_Marpa_pm, 'lib/Test/Weaken.pm');
+change(\&fix_Weaken_pm, 'lib/Test/Weaken.pm');
 change(\&update_changes, 'Changes');
 
-print {*STDERR} 'REMEMBER TO UPDATE Changes file'
+print {*STDERR} "REMEMBER TO UPDATE Changes file\n"
     or croak("Could not print to STDERR: $ERRNO");
