@@ -3,7 +3,7 @@
 # Based on the test case created by Kevin Ryde for #42502
 
 # This is a basic circular reference class which undoes its circularities
-# under an explicit delete() method.  This is a little like HTML::Tree.
+# under an explicit undo() method.  This is a little like HTML::Tree.
 
 package MyCircular;
 
@@ -17,9 +17,10 @@ sub new {
   return $self;
 }
 
-sub delete {
+sub undo {
   my ($self) = @_;
   @{$self->{'circular'}} = ();
+  return 1;
 }
 
 package main;
@@ -33,10 +34,11 @@ is(
     Test::Weaken::poof (
         sub {
            my $obj = MyCircular->new;
-           $obj->delete;
+           $obj->undo;
            return $obj
         }
-    ), 0
+    ), 0,
+    'no destructor'
 );
 
 is(
@@ -44,14 +46,16 @@ is(
         sub { MyCircular->new },
         sub {
             my ($obj) = @_;
-            $obj->delete;
+            $obj->undo;
         }
-    ), 0
+    ), 0,
+    'good destructor'
 );
 
 is(
     Test::Weaken::poof (
         sub { MyCircular->new },
         sub { my ($obj) = @_ }
-    ), 3
+    ), 3,
+    'null destructor'
 );

@@ -12,66 +12,67 @@ BEGIN {
 }
 
 sub brief_result {
-    my $text = "total: weak=" . (shift) . "; ";
-    $text .= "strong=" . (shift) . "; ";
-    $text .= "unfreed: weak=" . scalar @{ (shift) } . "; ";
-    $text .= "strong=" . scalar @{        (shift) };
+    my $text = 'total: weak=' . (shift) . q{; };
+    $text .= 'strong=' . (shift) . q{; };
+    $text .= 'unfreed: weak=' . scalar @{ (shift) } . q{; };
+    $text .= 'strong=' . scalar @{        (shift) };
+    return $text;
 } ## end sub brief_result
 
 my $result = Test::Weaken::poof(
     sub {
-        my $a = [];
-        my $b = \$a ;
-        weaken( my $c = \$a);
-        $c;
+        my $x = [];
+        my $y = \$x;
+        weaken( my $z = \$x );
+        $z;
     }
 );
-cmp_ok( $result, "==", 0, "Simple weak ref" );
+cmp_ok( $result, q{==}, 0, 'Simple weak ref' );
 
 is( brief_result(
-        Test::Weaken::poof( sub { my $a = 42; my $b = \$a; $a = \$b; } )
+        Test::Weaken::poof( sub { my $x = 42; my $y = \$x; $x = \$y; } )
     ),
-    "total: weak=0; strong=3; unfreed: weak=0; strong=3",
-    "Bad Less Simple Cycle"
+    'total: weak=0; strong=3; unfreed: weak=0; strong=3',
+    'Bad Less Simple Cycle'
 );
 
 is( brief_result(
         Test::Weaken::poof(
-            sub { my $a; weaken( my $b = \$a ); $a = \$b; $b; }
+            sub { my $x; weaken( my $y = \$x ); $x = \$y; $y; }
         )
     ),
-    "total: weak=1; strong=2; unfreed: weak=0; strong=0",
-    "Fixed simple cycle"
-);
-
-is( brief_result(
-        Test::Weaken::poof(
-            sub {
-                my $a;
-                my $b = [ \$a ];
-                my $c = { k1 => \$b };
-                $a = \$c;
-                [ $a, $b, $c ];
-            }
-        )
-    ),
-    "total: weak=0; strong=9; unfreed: weak=0; strong=5",
-    "Bad Complicated Cycle"
+    'total: weak=1; strong=2; unfreed: weak=0; strong=0',
+    'Fixed simple cycle'
 );
 
 is( brief_result(
         Test::Weaken::poof(
             sub {
-                my $a = 42;
-                my $b = [ \$a ];
-                my $c = { k1 => \$b };
-                weaken( $a = \$c );
-                [ $a, $b, $c ];
+                my $x;
+                my $y = [ \$x ];
+                my $z = { k1 => \$y };
+                $x = \$z;
+                [ $x, $y, $z ];
             }
         )
     ),
-    "total: weak=1; strong=8; unfreed: weak=0; strong=0",
-    "Fixed Complicated Cycle"
+    'total: weak=0; strong=9; unfreed: weak=0; strong=5',
+    'Bad Complicated Cycle'
+);
+
+is( brief_result(
+        Test::Weaken::poof(
+            sub {
+                my $x = 42;
+                my $y = [ \$x ];
+                my $z = { k1 => \$y };
+                weaken( $x = \$z );
+                [ $x, $y, $z ];
+            }
+        )
+    ),
+    'total: weak=1; strong=8; unfreed: weak=0; strong=0',
+    'Fixed Complicated Cycle'
 );
 
 # Local Variables:
