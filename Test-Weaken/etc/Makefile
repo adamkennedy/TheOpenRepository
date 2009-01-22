@@ -7,3 +7,7 @@ build:
 	(cd ..;make test)
 	(cd ..;make disttest)
 
+perlcritic: perlcritic.errs
+
+perlcritic.errs:
+	perl do_critic.pl > $@

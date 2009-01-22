@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Fatal qw(:void open close unlink select);
-use English;
+use English qw( -no_match_vars );
 
 our $FH;
 
@@ -54,7 +54,7 @@ sub fix_META_yml {
     my $file_name = shift;
 
     say STDERR "failed to change version from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(version:\s*)$old/$1$new/g;
+        unless ${$text_ref} =~ s/(version:\s*)$old/$1$new/gxms;
     $text_ref;
 }
 
@@ -63,9 +63,9 @@ sub fix_Marpa_pm {
     my $file_name = shift;
 
     say STDERR "failed to change VERSION from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/;
+        unless ${$text_ref} =~ s/(our\s+\$VERSION\s*=\s*')$old';/$1$new';/xms;
     say STDERR "failed to change version from $old to $new in $file_name"
-        unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/;
+        unless ${$text_ref} =~ s/(version\s+is\s+)$old/$1$new/xms;
     $text_ref;
 }
 
