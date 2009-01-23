@@ -194,7 +194,8 @@ sub new {
 
     $self->{fragments}    = {};
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
-        sitename => $sitename,
+        sitename  => $sitename,
+        directory => 'D_App_Menu',
     );
     $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
         sitename => $sitename,

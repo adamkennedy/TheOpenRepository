@@ -1,25 +1,44 @@
 package Perl::Dist::WiX::DirectoryTree;
 
+#####################################################################
+# Perl::Dist::WiX::DirectoryTree - Class containing initial tree of 
+#   <Directory> tag objects.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
 use 5.006;
 use strict;
 use warnings;
-use Carp                        qw{ croak confess verbose      };
-use Params::Util                qw{ _IDENTIFIER _STRING };
-use Perl::Dist::WiX::Directory  qw{};
-use Perl::Dist::WiX::Misc       qw{};
+use Carp             qw( croak               );
+use Params::Util     qw( _IDENTIFIER _STRING );
+require Perl::Dist::WiX::Directory;
+require Perl::Dist::WiX::Misc;
 
-use vars qw{$VERSION @ISA};
+use vars qw($VERSION @ISA);
 BEGIN {
     $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Misc'
 }
 
-use Object::Tiny qw{
+#####################################################################
+# Accessors:
+#   root: Returns the root of the directory tree created by new.
+#   sitename: Returns the sitename passed in to new.
+
+use Object::Tiny qw(
     root
     sitename
-    app_dir
-    app_name
-};
+);
+
+#####################################################################
+# Constructor for DirectoryTree
+#
+# Parameters: [pairs]
+#   app_name: The name of the distribution being created.
+#   app_dir: The location on disk of the distribution being created.
+#   sitename: The name of the site that is hosting the download.
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -27,30 +46,50 @@ sub new {
     print "Creating in-memory directory tree...\n";
 
     $self->{root} = Perl::Dist::WiX::Directory->new(id => 'TARGETDIR', name => 'SourceDir', special => 1);
-    $self->initialize_tree($self->app_dir, $self->app_name);
+    $self->initialize_tree($self->{app_dir}, $self->{app_name});
     
     return $self;
 }
 
+########################################
+# search($path)
+# Parameters:
+#   $path: Path to find.
+# Returns:
+#   Directory object representing $path or undef.
+
 sub search {
-    my ($self, $path) = @_;
+    my ($self, $path, $trace) = @_;
     
-    return $self->root->{directories}->[0]->search($path);
+    return $self->root->{directories}->[0]->search($path, $trace);
 }
+
+########################################
+# initialize_tree
+# Parameters:
+#   None.
+# Returns:
+#   Object being operated on (chainable).
+# Action:
+#   Creates Directory objects representing the base 
+#   of a Perl distribution's directory tree.
+# Note:
+#   Any directory that's used in more than one fragment needs to 
+#   be created in this routine, otherwise light.exe will bail with
+#   a duplicate symbol [LGHT0091] error.
 
 sub initialize_tree {
     my $self = shift;
 
+    # Create starting directories.
     my $branch = $self->root->add_directory({
         id => 'App_Root', 
         name => '[INSTALLDIR]', 
-        path => $self->app_dir
+        path => $self->{app_dir}
     });
-    
     $self->root
          ->add_directory({id => 'ProgramMenuFolder', special => 2})
-         ->add_directory({id => 'App_Menu',        special => 1, name=> $self->app_name});
-         
+         ->add_directory({id => 'App_Menu',          special => 1, name=> $self->{app_name}});  
     $branch->add_directories_id(
         'Perl',      'perl',
         'Toolchain', 'c',
@@ -58,7 +97,6 @@ sub initialize_tree {
         'Cpan',      'cpan',
         'Win32',     'win32'
         );
-        
     $branch->add_directories_init($self->sitename, qw(
         c\bin
         c\bin\startup
@@ -101,10 +139,24 @@ sub initialize_tree {
         licenses\pexports
         perl\bin
         perl\lib
+        perl\lib\auto
+        perl\lib\auto\share
         perl\site
         perl\site\lib
+        perl\site\lib\auto
+        perl\site\lib\auto\share        
+        perl\site\lib\Win32
     ));
+    
+    return $self;
 }
+
+########################################
+# as_string
+# Parameters:
+#   None
+# Returns:
+#   String representation of the <Directory> tags this object contains.
 
 sub as_string {
     my $self = shift;

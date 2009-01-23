@@ -1,5 +1,13 @@
 package Perl::Dist::WiX::Registry;
 
+#####################################################################
+# Perl::Dist::WiX::Registry - A <Fragment> and <DirectoryRef> tag that 
+# contains <RegistryKey>s and <RegistryValue>s.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
 use 5.006;
 use strict;
 use warnings;
@@ -15,13 +23,21 @@ BEGIN {
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
+#####################################################################
+# Accessors:
+#   sitename: Returns the sitename parameter passed in to new.
+
 use Object::Tiny qw{
     sitename
 };
 
 
 #####################################################################
-# Constructors for Registry
+# Constructor for Registry
+#
+# Parameters: [pairs]
+#   id, directory: See Base::Fragment
+#   sitename: The name of the site that is hosting the download.
 
 sub new {
     my ($class, %params) = @_;
@@ -42,6 +58,13 @@ sub check_duplicates {
     return undef;
 }
 
+########################################
+# get_component_array
+# Parameters:
+#   None
+# Returns:
+#   Array of Ids attached to the contained components.
+
 sub get_component_array {
     my $self = shift;
     
@@ -58,7 +81,18 @@ sub get_component_array {
     return @answer;
 }
 
+########################################
+# add_key
+# Parameters: [pairs in hashref]
+#   id, key, root: See Registry::Key->new
+#   name, value, action, value_type: See Registry::Entry->entry
+# Returns:
+#   Object being acted upon (chainable).
+# Action: 
+#   Creates a registry key entry.
+
 sub add_key {
+
     my ($self, %params) = @_;
 
     # Check parameters.

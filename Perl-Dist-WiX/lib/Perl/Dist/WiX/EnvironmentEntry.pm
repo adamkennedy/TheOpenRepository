@@ -1,26 +1,12 @@
 package Perl::Dist::WiX::EnvironmentEntry;
 
-=pod
+####################################################################
+# Perl::Dist::WiX::EnvironmentEntry -  
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
 
-=head1 NAME
-
-Perl::Dist::WiX::Base::Component - A <Component> tag that contains a start menu <Shortcut>.
-
-=head1 DESCRIPTION
-
-This class 
-
-Objects of this class are meant to be contained in a 
-L<Perl::Dist::WiX::StartMenu> class, and created by methods of that 
-class.
-
-=head1 METHODS
-
-=head2 Accessors
-
-Accessors take no parameters and return the item requested (listed below)
-
-=cut
 
 use 5.006;
 use strict;

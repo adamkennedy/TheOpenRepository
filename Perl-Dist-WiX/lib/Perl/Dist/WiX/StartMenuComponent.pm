@@ -1,28 +1,16 @@
 package Perl::Dist::WiX::StartMenuComponent;
 
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Base::Component - A <Component> tag that contains a start menu <Shortcut>.
-
-=head1 DESCRIPTION
-
-This class 
-
-Objects of this class are meant to be contained in a 
-L<Perl::Dist::WiX::StartMenu> class, and created by methods of that 
-class.
-
-=head1 METHODS
-
-=head2 Accessors
-
-Accessors take no parameters and return the item requested (listed below)
-
-=cut
-
-# Startmenu components contain the entry, so there is no WiX::Entry sub class
+#####################################################################
+# Perl::Dist::WiX::StartMenuComponent - A <Component> tag that contains a start menu <Shortcut>.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+#
+# WARNING: Class not meant to be created directly, except through 
+# Perl::Dist::WiX::StartMenu.
+#
+# StartMenu components contain the entry, so there is no WiX::Entry sub class
 
 use 5.006;
 use strict;
@@ -38,20 +26,10 @@ BEGIN {
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 
-=pod
-
-=over 4
-
-=item *
-
-name, description, target, working_dir: Returns the parameter 
-of the same name passed in by L</new>
-
-=back
-
-    $name = $component->name; 
-
-=cut
+#####################################################################
+# Accessors:
+#   name, description, target, working_dir: Returns the parameter 
+#     of the same name passed in to new.
 
 use Object::Tiny qw{
     name
@@ -61,26 +39,22 @@ use Object::Tiny qw{
 };
 
 #####################################################################
-# Constructors for StartMenuComponent
+# Constructor for StartMenuComponent
+#
+# Parameters: [pairs]
+#   id, guid: See Base::Component.
+#   name: Name attribute to the <Shortcut> tag.
+#   description: Description attribute to the <Shortcut> tag.
+#   target: Target of the <Shortcut> tag.
+#   working_dir: WorkingDirectory target of the <Shortcut> tag.
 
 sub new {
     my $self = shift->SUPER::new(@_);
     
+    # Check parameters.
     unless ( defined $self->guid ) {
-        unless ( _STRING($self->sitename) ) {
-            croak("Missing or invalid sitename param - cannot generate GUID without one");
-        }
-        unless ( _STRING($self->id) ) {
-            croak("Missing or invalid id param - cannot generate GUID without one");
-        }
-        my $guidgen = Data::UUID->new();
-        # Make our own namespace...
-        my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
-        #... then use it to create a GUID out of the filename.
-        $self->{guid} = uc $guidgen->create_from_name_str($uuid, $self->id);
+        $self->create_guid_from_id;
     }
-
-    # Check params
     unless ( _STRING($self->name) ) {
         croak("Missing or invalid name param");
     }
@@ -97,45 +71,30 @@ sub new {
     return $self;
 }
 
-
 #####################################################################
 # Main Methods
+
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   String representation of the <Component> and <Shortcut> tags represented
+#   by this object.
 
 sub as_string {
     my $self = shift;
         
-    my $answer = <<END_OF_XML;
+    return <<"END_OF_XML";
 <Component Id='C_S_$self->{id}' Guid='$self->{guid}'>
-   <Shortcut Id="S_$self->{id}" 
-             Name="$self->{name}"
-             Description="$self->{description}"
-             Target="$self->{target}"
-             WorkingDirectory="$self->{working_dir}" />
+   <Shortcut Id='S_$self->{id}' 
+             Name='$self->{name}'
+             Description='$self->{description}'
+             Target='$self->{target}'
+             WorkingDirectory='$self->{working_dir}' />
 </Component>
 END_OF_XML
     
-    return $answer;
 }
 
 1;
-
-=head1 SUPPORT
-
-No support of any kind is provided for this module
-
-=head1 AUTHOR
-
-Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>
-
-=head1 COPYRIGHT
-
-Copyright 2009 Curtis Jewell.
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-=cut

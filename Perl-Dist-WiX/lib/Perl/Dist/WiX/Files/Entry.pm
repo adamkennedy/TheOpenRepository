@@ -37,6 +37,11 @@ sub filename { my $self = shift; return $self->name; }
 
 #####################################################################
 # Constructor for Files::Entry
+#
+# Parameters: [pairs]
+#   sitename: The name of the site that is hosting the download.
+#   id: ID attribute to the <File> tag.
+#   name: Name attribute to the <File> tag.
 
 sub new {
     my $self = shift->SUPER::new(@_);

@@ -1,5 +1,12 @@
 package Perl::Dist::WiX::Files;
 
+####################################################################
+# Perl::Dist::WiX::Files -  
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
 =pod
 
 =head1 NAME
@@ -54,6 +61,7 @@ Returns the parameter of the same name passed in to L</new>.
 use Object::Tiny qw{ 
     directory_tree
     sitename
+    trace
 };
 
 #####################################################################
@@ -101,6 +109,15 @@ sub new {
         croak('Missing or invalid sitename parameter - cannot generate GUID without one');
     }
     
+    # Debugging switch.
+    $self->{trace} = 1;
+    
+    return $self;
+}
+
+sub print {
+    my $self = shift;
+    if ($self->trace) { print @_; }
     return $self;
 }
 
@@ -118,6 +135,7 @@ a directory and then calls the add_file method if it is.
 sub add_files {
     my ($self, @files) = @_;
     
+    # Each file could be a directory or have a newline, so fix that and add the files.
     foreach my $file (@files) {
         chomp $file;
         next if not -f $file;
@@ -138,7 +156,6 @@ The B<add_file> adds a file to the fragment in the correct place.
 
 sub add_file {
     my ($self, $file) = @_;
-
     my $directory_obj;
     my $file_obj;
     
@@ -151,36 +168,83 @@ sub add_file {
         $path = substr($path, 0, -1);
     }
     
-    # Is there a DirectoryRef for this path?
-    my $directory_ref = $self->_search_refs($path);
+# 1. Is there a DirectoryRef for this path?
+    
+    $self->print("[Files " . __LINE__ . "] ***** File: $file.\n");
+
+    # Check if we have a DirectoryRef directly contained with the appropriate path.
+    my $directory_ref = $self->_search_refs($path, 1);
     if (defined $directory_ref) {
-        # Yes, add the file to this DirectoryRef.
+        # Yes, we do. Add the file to this DirectoryRef.
+        $self->print("[Files " . __LINE__ . "] Stage 1 - Adding file to DirectoryRef for $path.\n");
+        $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
         $directory_ref->add_file(
             sitename => $self->sitename, 
             filename => $file,
         );
     } else {
-        # Check for a DirectoryRef that's higher up in the directory tree.
-        
-        # If there is one, add directory(ies) there, and the file to it.
-        # If not, search the tree, create a new DirectoryRef and add it to the list.
+# 2. Is there another Directory to create a reference of?
+    
+        # Check if we have a Directory in the tree to take a reference of.
+        $directory_obj = $self->directory_tree->search($path, $self->trace);        
+        if (defined $directory_obj) {
+            # Yes, we do. Make a DirectoryRef, and attach it.
+            $self->print("[Files " . __LINE__ . "] Stage 2 - Creating DirectoryRef for $path.\n");
+            $directory_ref = Perl::Dist::WiX::Files::DirectoryRef->new(
+                sitename => $self->sitename,
+                directory_object => $directory_obj
+            );
+            $self->add_component($directory_ref);
+            
+            # Did we get the path that we needed?
+            if ($directory_obj->path ne $path) {
+
+                $self->print("[Files " . __LINE__ . "]   Adding path $path.\n");
+                $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
+                # Create the directory objects and add the file.
+                $directory_obj = $directory_ref->add_directory_path($path);
+                $file_obj = $directory_obj->add_file(
+                    sitename => $self->sitename, 
+                    filename => $file,
+                );
+                return $file_obj;
+            } else {
+            
+                $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
+                # Add the file.
+                $file_obj = $directory_ref->add_file(
+                    sitename => $self->sitename, 
+                    filename => $file,
+                );
+                return $file_obj;
+            }
+        }
+    
+# 3. Is there a DirectoryRef that's higher up in the directory tree?
 
         # Get paths for each level up in the tree.
         $directory_obj = undef;
         my @paths = $self->_get_possible_paths($vol, $dirs);
         foreach my $path_portion (@paths) {
 
-            # Is there a DirectoryRef at this level?
+            $self->print("[Files " . __LINE__ . "] Stage 3 - Searching $path_portion.\n");
+            # Is there a DirectoryRef that exists at this level?
             $directory_ref = $self->_search_refs($path_portion);
             if (defined $directory_ref) {
+
+                $self->print("[Files " . __LINE__ . "] Stage 3 - Found DirectoryRef for $path_portion.\n");
             
+                # Do we already have the correct path in Directory objects?.
                 $directory_obj = $directory_ref->search($path);
                 if (not defined $directory_obj) {
 
-                    # Yes, add the directories required to climb down and then the file.
+                    $self->print("[Files " . __LINE__ . "]   Adding path $path.\n");
+                    # We don't, so add the Directory object(s) required to climb down.
                     $directory_obj = $directory_ref->add_directory_path($path);
                 }
 
+                $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
+                # Add the file, now that we have the Directory object we need.
                 $file_obj = $directory_obj->add_file(
                     sitename => $self->sitename, 
                     filename => $file,
@@ -189,48 +253,48 @@ sub add_file {
             }
         }
         
-        # No, we did not find a higher DirectoryRef, so we create one.
-        if (not defined $directory_ref) {
+# 4. Search the tree, create a new DirectoryRef and add it to the list.
 
         # Put the full path back in the list of directories to search for.
-            unshift @paths, $path;
+        unshift @paths, $path;
 
-            # Search until we find a directory object.
-            foreach my $path_portion (@paths) {
+        # Search until we find a directory object.
+        foreach my $path_portion (@paths) {
+        
+            # Search the directory tree.
+            $directory_obj = $self->directory_tree->search($path_portion);
+            if (defined $directory_obj) {
+
+                $self->print("[Files " . __LINE__ . "] Stage 4 - Creating DirectoryRef for $path_portion.\n");
             
-                # Search the directory tree.
-                $directory_obj = $self->directory_tree->search($path_portion);
-                if (defined $directory_obj) {
+                # Make a DirectoryRef and attach it.
+                $directory_ref = Perl::Dist::WiX::Files::DirectoryRef->new(
+                    sitename => $self->sitename,
+                    directory_object => $directory_obj
+                );
+                $self->add_component($directory_ref);
 
-                    # Create a reference.
-                    $directory_ref = Perl::Dist::WiX::Files::DirectoryRef->new(
-                        sitename => $self->sitename,
-                        directory_object => $directory_obj
-                    );
+                # Did we add the file's directory?
+                if ($path_portion ne $path) {
 
-                    # Add it to the list.
-                    $self->add_component($directory_ref);
-
-                    # Did we add the file's directory?
-                    if ($path_portion ne $path) {
-
-                        # Add required directories and the file.
-                        $directory_obj = $directory_ref->add_directory_path($path);
-
-                        $file_obj = $directory_obj->add_file(
-                            sitename => $self->sitename, 
-                            filename => $file,
-                            );
-                        return $file_obj;
-                    } else {
-
-                        # Add the file.
-                        $file = $directory_ref->add_file(
-                            sitename => $self->sitename, 
-                            filename => $file,
+                    $self->print("[Files " . __LINE__ . "]   Adding path $path.\n");
+                    $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
+                    # Add required directories .
+                    $directory_obj = $directory_ref->add_directory_path($path);
+                    $file_obj = $directory_obj->add_file(
+                        sitename => $self->sitename, 
+                        filename => $file,
                         );
-                        return $file_obj;
-                    }
+                    return $file_obj;
+                } else {
+
+                    $self->print("[Files " . __LINE__ . "]   Adding file $file.\n");
+                    # Add the file.
+                    $file_obj = $directory_ref->add_file(
+                        sitename => $self->sitename, 
+                        filename => $file,
+                    );
+                    return $file_obj;
                 }
             }
         }
@@ -239,6 +303,9 @@ sub add_file {
     # Completely unsuccessful.
     return undef;
 }
+
+# Gets a list of paths "above" the currect directory specified in
+# $volume and $dirs.
 
 sub _get_possible_paths {
     my ($self, $volume, $dirs) = @_;
@@ -271,8 +338,9 @@ sub _get_possible_paths {
     return @answers;
 }
 
+# Searches our contained DirectoryRefs for a path.
 sub _search_refs {
-    my ($self, $path_to_find) = @_;
+    my ($self, $path_to_find, $quick) = @_;
 
     my $answer = undef;
  
@@ -281,7 +349,7 @@ sub _search_refs {
 
     # Pass the search down to each our descendants.
     foreach my $i (0 .. $count - 1) {
-        $answer = $self->{components}->[$i]->search($path_to_find);
+        $answer = $self->{components}->[$i]->search($path_to_find, $quick);
 
         # Exit if one of our descendants is successful.
         return $answer if defined $answer;
@@ -293,7 +361,6 @@ sub _search_refs {
 
 sub search_file {
     my ($self, $filename) = @_;
-    
     my $answer = undef;
  
     # How many descendants do we have?
@@ -311,11 +378,14 @@ sub search_file {
     return undef;
 }
 
+
+
 sub check_duplicates {
     my ($self, $files_ref) = @_;
-    
     my $answer;
     my ($object, $index);
+
+    # Search out duplicate filenames and delete them if found.
     foreach my $file (@{$files_ref}) {
         $answer = $self->search_file($file);
         if (defined $answer) {

@@ -1,5 +1,13 @@
 package Perl::Dist::WiX::FeatureTree;
 
+####################################################################
+# Perl::Dist::WiX::FeatureTree - Tree of MSI features.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
+
 use 5.006;
 use strict;
 use warnings;

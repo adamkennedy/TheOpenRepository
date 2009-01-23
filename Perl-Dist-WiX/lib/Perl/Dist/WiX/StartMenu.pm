@@ -1,5 +1,13 @@
 package Perl::Dist::WiX::StartMenu;
 
+#####################################################################
+# Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that 
+# contains start menu <Shortcut>.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
 use 5.006;
 use strict;
 use warnings;
@@ -14,12 +22,20 @@ BEGIN {
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
+#####################################################################
+# Accessors:
+#   sitename: Returns the sitename passed in to new.
+
 use Object::Tiny qw{
     sitename
 };
 
 #####################################################################
-# Constructors
+# Constructor for StartMenuComponent
+#
+# Parameters: [pairs]
+#   id, directory: See Base::Filename.
+#   sitename: The name of the site that is hosting the download.
 
 sub new {
     my ($class, %params) = @_;
@@ -41,6 +57,16 @@ sub new {
     
     return $self;
 }
+
+#####################################################################
+# Main Methods
+
+########################################
+# get_component_array
+# Parameters:
+#   None.
+# Returns:
+#   Array of the Id attributes of the components within this object.
 
 sub get_component_array {
     my $self = shift;
@@ -67,6 +93,14 @@ sub search_file {
 sub check_duplicates {
     return undef;
 }
+
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   String representation of the <Fragment> and other tags represented
+#   by this object.
 
 sub as_string {
     my ($self) = shift;

@@ -1,19 +1,12 @@
 package Perl::Dist::WiX::Filelist;
 
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Filelist - File List routines for 4th generation Win32 Perl distribution builder
-
-=head1 DESCRIPTION
-
-This package provides for handling files lists for the experimental upgrade
-to Perl::Dist based on Windows Install XML technology
-
-=head1 METHODS
-
-=cut
+####################################################################
+# Perl::Dist::WiX::Filelist - This package provides for handling 
+# files lists for Perl::Dist::WiX.
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
 
 use 5.008;
 use strict;
@@ -21,6 +14,7 @@ use warnings;
 use Carp                   qw( verbose croak confess );
 use Params::Util           qw();
 use IO::Dir                qw();
+use IO::File               qw();
 use File::Spec::Functions  qw( catdir catfile );
 use List::MoreUtils        qw( indexes );
 
@@ -29,19 +23,35 @@ BEGIN {
 	$VERSION = '0.11_06';
 }
 
+#####################################################################
+# Accessors:
+#   files: Returns the list of files as an arrayref. 
+
 use Object::Tiny qw {
     files
-    pos
 };
+
+#####################################################################
+# Constructors for StartMenuComponent
+#
+
+########################################
+# new
+# Parameters:
+#   None.
 
 sub new {
     my $self = shift->SUPER::new();
 
     $self->{files} = [];
-    $self->{pos}   = 0;
     
     return $self;
 }
+
+########################################
+# clone
+# Parameters:
+#   $source: [Filelist object] Object to copy.
 
 sub clone {
     my $self = shift->SUPER::new();
@@ -49,22 +59,22 @@ sub clone {
     
     $self->{files} = [];
     push @{$self->{files}}, @{$source->{files}};
-    $self->{pos}   = 0;
     
     return $self;
 }
 
+#####################################################################
+# Main Methods
 
-# Reset iterator.
-sub reset {
-    my $self = shift;
-    
-    $self->{pos}   = 0;
-    
-    return $self;
-}
+########################################
+# clear
+# Parameters:
+#   None.
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Clears this filelist.
 
-# Clears file list.
 sub clear {
     my $self = shift;
     
@@ -73,10 +83,19 @@ sub clear {
     return $self;
 }
 
-# Reads in directory
+########################################
+# readdir($dir)
+# Parameters:
+#   $dir: Directory containing a files and subdirectories to add to this filelist. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Adds the files in $dir to our filelist.
+
 sub readdir {
     my ($self, $dir) = @_;
     
+    # Open directory.
     my $dir_object = IO::Dir->new($dir);
     if (!defined $dir_object) {
         croak "Error reading directory $dir: $!";        
@@ -101,7 +120,15 @@ sub readdir {
      return $self;
 }
 
-# Load loads the filelist from a file.
+########################################
+# load_array($packlist)
+# Parameters:
+#   $packlist: File containing a list of files to add to this filelist. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Adds the files listed in the file in $packlist to our filelist.
+
 sub load_file {
     my ($self, $packlist) = @_; 
 
@@ -118,6 +145,15 @@ sub load_file {
     return $self;
 }
 
+########################################
+# load_array(@files)
+# Parameters:
+#   @files: Files to add to this filelist. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Adds the files listed in @files to our filelist.
+
 sub load_array {
     my ($self, @files) = @_;
     
@@ -129,6 +165,15 @@ sub load_array {
     return $self;
 }
 
+########################################
+# add_file($file)
+# Parameters:
+#   $file: File to add to this filelist. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Adds the file listed in $file to our filelist.
+
 sub add_file {
     my ($self, $file) = @_;
     
@@ -137,7 +182,15 @@ sub add_file {
     return $self;
 }
 
-## defined as: remove each filespec in $self that's in $subtrahend.
+########################################
+# subtract($subtrahend)
+# Parameters:
+#   $subtrahend: [Filelist object] A filelist to remove from this one. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Removes the files listed in $subtrahend from our filelist.
+
 sub subtract {
     my ($self, $subtrahend) = @_;
 
@@ -167,6 +220,14 @@ sub subtract {
     return $self;
 }
 
+########################################
+# add($term)
+# Parameters:
+#   $term: [Filelist object] A filelist to add to this one. 
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Adds the files listed in $term to our filelist.
 
 sub add {
     my ($self, $term) = @_;
@@ -175,6 +236,16 @@ sub add {
 
     return $self;
 }
+
+########################################
+# move($from, $to)
+# Parameters:
+#   $from: the file or directory that has been moved on disk. 
+#   $to: The location being moved to.
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Substitutes $to for $from in the filelist.
 
 sub move {
     my ($self, $from, $to) = @_;
@@ -189,21 +260,36 @@ sub move {
     return $self;    
 }
 
+########################################
+# filter(@re_list)
+# Parameters:
+#   @re_list: Array of strings to use as regular 
+#     expressions of filenames to filter out.
+#     The strings are quotemeta'd as they are used.
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Removes files satisfying the filters in @re_list
+#   from the object.
+
 sub filter {
     my ($self, @re_list) = @_;
-    
+
+    # Define variables to use.
     my @loc;
     my @files = @{$self->files};
     my @files2;
     my $f;
     
+    # Check the filelist against each filter.
     foreach my $re (@re_list) {
         my @loc = indexes { $_ =~ m/\A\Q$re\E/ } @files;
         if (@loc) {
+            # Delete files found.
             delete @files[@loc];
             undef @loc;
 
-            # 'compress' @files;
+            # 'compress' @files by removing the deleted files each time a file is removed.
             undef @files2;
             while ($#files > -1) {
                 $f = shift @files;
@@ -213,10 +299,19 @@ sub filter {
         }
     }
 
+    # Reload 
     $self->clear->load_array(@files);
     
     return $self;    
 }
+
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   List of filenames in this object joined 
+#   by newlines for debugging purposes.
 
 sub as_string {
     my $self = shift;

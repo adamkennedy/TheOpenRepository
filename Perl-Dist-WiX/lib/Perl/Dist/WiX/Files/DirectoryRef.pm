@@ -148,7 +148,7 @@ sub search_file {
 # Parameters:
 #   $i: Index of file to delete
 # Returns:
-#   True if this is the object for this filename.
+#   Object being operated on. (chainable)
 
 sub delete_filenum {
     my ($self, $i) = @_;

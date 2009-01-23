@@ -1,5 +1,12 @@
 package Perl::Dist::WiX::Feature;
 
+####################################################################
+# Perl::Dist::WiX::Feature - 
+#
+# Copyright 2009 Curtis Jewell
+#
+# License is the same as perl. See Wix.pm for details.
+
 use 5.006;
 use strict;
 use warnings;
