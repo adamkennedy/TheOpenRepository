@@ -3,6 +3,10 @@
 
 #include "tokenizer.h"
 
+CharTokenizeResults AbstractTokenType::commit(Tokenizer *t, unsigned char c_char) { 
+	t->_new_token(type);
+	return tokenize(t, t->c_token, c_char);
+}
 
 //=====================================
 // Tokenizer
@@ -124,6 +128,7 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_WhiteSpace] = &m_WhiteSpaceToken;
 	TokenTypeNames_pool[Token_Comment] = &m_CommentToken;
 	TokenTypeNames_pool[Token_Structure] = &m_StructureToken;
+	TokenTypeNames_pool[Token_Magic] = &m_MagicToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

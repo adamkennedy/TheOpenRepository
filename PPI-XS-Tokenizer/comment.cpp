@@ -25,7 +25,7 @@ CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	if (c_char == t->local_newline ) {
 		t->_finalize_token();
 		t->_new_token(Token_WhiteSpace);
-		return t->c_token->type->tokenize(t, token, c_char);
+		return t->c_token->type->tokenize(t, t->c_token, c_char);
 	}
 	return my_char;
 }

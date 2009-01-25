@@ -2,13 +2,24 @@
 #ifndef _TOKENIZER_H_
 #define _TOKENIZER_H_
 
+typedef unsigned long ulong;
+typedef unsigned char uchar;
+
 enum TokenTypeNames {
     Token_NoType = 0, // for signaling that there is no current token
     Token_WhiteSpace,
     Token_Symbol,
     Token_Comment,
     Token_Word,
-    Token_Structure
+    Token_Structure,
+	Token_Magic,
+	Token_Number,
+	Token_Operator,
+	Token_Unknown,
+	Token_Quote_Single,
+	Token_Quote_Double,
+	Token_QuoteLike_Backtick,
+	Token_Cast
 };
 
 enum CharTokenizeResults {
@@ -45,10 +56,9 @@ public:
 	 */
 	virtual CharTokenizeResults tokenize(Tokenizer *t, Token *c_token, unsigned char c_char) = 0;
 	/* tokenize as much as you can
-	 * parallel for the tokenize function. should be implemented only for:
-	 *		CommentToken, WordToken and StructureToken
+	 * by default, declares new token of this type, and start tokenizing
 	 */
-	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char) { return error_fail; }
+	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
 	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
 };
 
@@ -72,6 +82,18 @@ public:
 	CharTokenizeResults commit(Tokenizer *t, unsigned char c_token);
 };
 
+class SymbolToken : public AbstractTokenType {
+public:
+	SymbolToken() : AbstractTokenType( Token_Symbol, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class MagicToken : public AbstractTokenType {
+public:
+	MagicToken() : AbstractTokenType( Token_Magic, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -88,7 +110,7 @@ public:
 	long line_pos;
 	char local_newline;
 	TokenTypeNames zone;
-	AbstractTokenType *TokenTypeNames_pool[6];
+	AbstractTokenType *TokenTypeNames_pool[20];
 	Tokenizer();
 	/* _finalize_token - close the current token
 	 * If exists token, close it
@@ -129,6 +151,7 @@ private:
 	WhiteSpaceToken m_WhiteSpaceToken;
 	CommentToken m_CommentToken;
 	StructureToken m_StructureToken;
+	MagicToken m_MagicToken;
 
 	void keep_significant_token(Token *t);
 

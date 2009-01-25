@@ -179,7 +179,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\magic.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\structure.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\symbol.cpp"
 				>
 			</File>
 			<File
