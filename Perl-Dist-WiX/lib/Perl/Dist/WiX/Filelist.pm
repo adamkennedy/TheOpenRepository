@@ -32,7 +32,7 @@ use Object::Tiny qw {
 };
 
 #####################################################################
-# Constructors for StartMenuComponent
+# Constructors for Filelist
 #
 
 ########################################

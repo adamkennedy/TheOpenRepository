@@ -26,6 +26,7 @@ BEGIN {
 #   root: Returns the root parameter passed in to new.
 #     Valid contents are 'HKLM' and 'HKCU'
 #   key: Returns the key parameter passed in to new.
+# See http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
 
 use Object::Tiny qw{
     root

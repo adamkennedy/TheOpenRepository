@@ -1,7 +1,8 @@
 package Perl::Dist::WiX::Environment;
 
 ####################################################################
-# Perl::Dist::WiX::Environment -  
+# Perl::Dist::WiX::Environment - Fragment & Component that contains
+#  <Environment> tags
 #
 # Copyright 2009 Curtis Jewell
 #
@@ -27,7 +28,7 @@ use Object::Tiny qw{
 
 
 #####################################################################
-# Constructors for Environment
+# Constructor for Environment
 
 sub new {
     my ($class, %params) = @_;
@@ -66,8 +67,15 @@ sub get_component_array {
     my $self = shift;
 
     return $self->{id};
-#    return "C_$self->{id}";
 }
+
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   String containing <Fragment> and <Component> tags defined by this object
+#   and <Environment> tags defined by objects contained in this object.
 
 sub as_string {
     my ($self) = shift;

@@ -45,8 +45,11 @@ sub new {
 
     print "Creating in-memory directory tree...\n";
 
-    $self->{root} = Perl::Dist::WiX::Directory->new(id => 'TARGETDIR', name => 'SourceDir', special => 1);
-    $self->initialize_tree($self->{app_dir}, $self->{app_name});
+    $self->{root} = Perl::Dist::WiX::Directory->new(
+        id => 'TARGETDIR', 
+        name => 'SourceDir', 
+        special => 1,
+        sitename => $self->sitename);
     
     return $self;
 }
@@ -65,9 +68,9 @@ sub search {
 }
 
 ########################################
-# initialize_tree
+# initialize_tree(@dirs)
 # Parameters:
-#   None.
+#   @dirs: Additional directories to create.
 # Returns:
 #   Object being operated on (chainable).
 # Action:
@@ -75,11 +78,16 @@ sub search {
 #   of a Perl distribution's directory tree.
 # Note:
 #   Any directory that's used in more than one fragment needs to 
-#   be created in this routine, otherwise light.exe will bail with
-#   a duplicate symbol [LGHT0091] error.
+#   be either in this routine or passed to it, otherwise light.exe WILL 
+#   bail with a duplicate symbol [LGHT0091] or duplicate primary key 
+#   [LGHT0130] error and will NOT create an MSI.
+# Note #2:
+#   Directories passed to this routine should not include the 
+#   installation directory. (e.g, share rather than 
+#   C:\strawberry\perl\share.)
 
 sub initialize_tree {
-    my $self = shift;
+    my ($self, @dirs) = @_;
 
     # Create starting directories.
     my $branch = $self->root->add_directory({
@@ -139,14 +147,37 @@ sub initialize_tree {
         licenses\pexports
         perl\bin
         perl\lib
+        perl\lib\ExtUtils
+        perl\lib\ExtUtils\CBuilder
+        perl\lib\ExtUtils\CBuilder\Platform
+        perl\lib\File
+        perl\lib\IO
+        perl\lib\IO\Compress
+        perl\lib\IO\Compress\Adapter
+        perl\lib\IO\Compress\Base
+        perl\lib\IO\Compress\Gzip
+        perl\lib\IO\Compress\Zip
+        perl\lib\IO\Uncompress
+        perl\lib\IO\Uncompress\Adapter
+        perl\lib\Math
+        perl\lib\Math\BigInt
         perl\lib\auto
+        perl\lib\auto\Digest
+        perl\lib\auto\Digest\MD5
+        perl\lib\auto\Math
+        perl\lib\auto\Math\BigInt
+        perl\lib\auto\Math\BigInt\FastCalc
         perl\lib\auto\share
         perl\site
         perl\site\lib
         perl\site\lib\auto
-        perl\site\lib\auto\share        
+        perl\site\lib\auto\share
+        perl\site\lib\Compress
+        perl\site\lib\File
+        perl\site\lib\HTML
+        perl\site\lib\Test
         perl\site\lib\Win32
-    ));
+    ), @dirs);
     
     return $self;
 }
@@ -160,7 +191,7 @@ sub initialize_tree {
 
 sub as_string {
     my $self = shift;
-    return $self->indent(4, $self->root->as_string);
+    return $self->indent(4, $self->root->as_string(0));
 }
 
 1;

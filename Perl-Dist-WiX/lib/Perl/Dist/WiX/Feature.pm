@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Feature;
 
 ####################################################################
-# Perl::Dist::WiX::Feature - 
+# Perl::Dist::WiX::Feature - Object representing <Feature> tag.
 #
 # Copyright 2009 Curtis Jewell
 #
@@ -53,6 +53,7 @@ use Object::Tiny qw{
 
 =cut
 
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -155,6 +156,15 @@ sub search {
     # If we get here, we did not find a feature.
     return undef; 
 }
+
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   String representation of the <Feature> tag represented
+#   by this object and the <Feature> and <ComponentRef> tags 
+#   contained in this object.
 
 sub as_string {
     my $self = shift;

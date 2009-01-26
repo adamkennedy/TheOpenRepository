@@ -400,7 +400,7 @@ sub new {
 
     $self->{filters} = [];
     push @{$self->filters},
-        $self->temp_dir . q{\\},
+                $self->temp_dir                           . q{\\},
         catdir( $self->image_dir, qw{ perl man         }) . q{\\},
         catdir( $self->image_dir, qw{ perl html        }) . q{\\},
         catdir( $self->image_dir, qw{ c    man         }) . q{\\},
@@ -414,7 +414,7 @@ sub new {
         catdir( $self->image_dir, qw{ cpan build       }) . q{\\},
         catfile($self->image_dir, qw{ c    COPYING     }),
         catfile($self->image_dir, qw{ c    COPYING.LIB });
-
+        
     $self->{env_path} = [];
     
   	$self->add_env( 'TERM'        , 'dumb' );
@@ -1836,27 +1836,6 @@ sub install_mingw_make {
 	return 1;
 }
 
-sub insert_fragment {
-    my ($self, $id, $files_ref) = @_;
-
-    print "Adding fragment $id...\n";
-    
-    foreach my $key (keys %{$self->{fragments}}) {
-        $self->{fragments}->{$key}->check_duplicates($files_ref);
-    }
-    
-    my $fragment = 
-        Perl::Dist::WiX::Files->new(
-            id => $id, 
-            sitename => URI->new($self->app_publisher_url)->host,
-            directory_tree => $self->directories
-        )->add_files(@{$files_ref});
-
-    $self->{fragments}->{$id} = $fragment;
-    
-    return 1;
-}
-
 =pod
 
 =head2 install_libiconv
@@ -2143,7 +2122,7 @@ sub install_library {
 	}
 
     my @sorted_files = sort { $a cmp $b } @files;
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)->filter($self->filters);
+    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)->filter(@{$self->filters});
     
 	return $filelist;
 }
@@ -2513,7 +2492,8 @@ END_PERL
     $mod_id =~ s/::/_/g;
     
     # Insert fragment.
-    $self->insert_fragment($mod_id, $filelist->files);
+    $self->insert_fragment($mod_id, $filelist->files)
+        unless ($mod_id eq 'Bundle_LWP');
 
     return $self;
 }
@@ -2851,15 +2831,15 @@ Returns true or throws an exception or error.
 sub write_msi {
 	my $self = shift;
     my $dir = $self->fragment_dir;
-    my $fragment_name;
-    my $filename_in;
-    my $filename_out;
+    my ($fragment, $fragment_name, $fragment_string);
+    my ($filename_in, $filename_out);
     my $fh;
     my @files;
-    my $fragment;
     
     foreach my $key (keys %{$self->{fragments}}) {
         $fragment = $self->{fragments}->{$key};
+        $fragment_string = $fragment->as_string;
+        next if ((not defined $fragment_string) or ($fragment_string eq q{}));
         $fragment_name = $fragment->id;
         $filename_in = catfile($dir, $fragment_name . q{.wxs});
         $filename_out = catfile($dir, $fragment_name . q{.wixout});
@@ -2867,7 +2847,7 @@ sub write_msi {
         if (not defined $fh) {
             die "Could not open file $filename_in for writing [$!] [$^E]";
         }
-        $fh->print($fragment->as_string);
+        $fh->print($fragment_string);
         $fh->close;
         print "Compiling $filename_in...\n";
         $self->compile_wxs($filename_in, $filename_out) 

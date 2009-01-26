@@ -115,7 +115,7 @@ sub search {
     }
     
     # Do we want to continue searching down this direction?
-    my $subset = $path_to_find =~ m/\A\Q$path\E/;
+    my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
     if ($trace && !$subset) {
         print '[Directory ' . __LINE__ . "] Not a subset\n";
         print '[Directory ' . __LINE__ . "]   in: $path.\n";
@@ -201,6 +201,14 @@ sub delete_filenum {
     return $self;
 }
 
+########################################
+# add_directories_id(($id, $name)...)
+# Parameters: [repeatable in pairs]
+#   $id:   ID of directory object to create.
+#   $name: Name of directory to create object for.
+# Returns:
+#   Object being operated on. (chainable)
+
 sub add_directories_id {
     my ($self, @params) = @_;
     
@@ -220,22 +228,42 @@ sub add_directories_id {
             $self->add_directory({id => $id, path => $self->path . '\\' . $name, name => $name});
         }
     }
+    
+    return $self;
 }
 
+########################################
+# add_directories_init(@dirs)
+# Parameters: 
+#   $sitename:  Name of site to download installer from.
+#   @dirs: List of directories to create object for.
+# Returns:
+#   Object being operated on. (chainable)
+
 sub add_directories_init {
-    my ($self, $sitename, @params) = @_;
+    my ($self, @params) = @_;
     
     my $name;
     while ($#params >= 0) {
         $name = shift @params;
+        next if not defined $name;
+        if (substr($name, -1) eq '\\') {
+            $name = substr($name, 0, -1);
+        }
         $self->add_directory({
-            sitename => $sitename, 
             path => $self->path . '\\' . $name
         });
     }
     
-    return 1;
+    return $self;
 }
+
+########################################
+# add_directory_path($path)
+# Parameters: 
+#   @path: Path of directories to create object(s) for.
+# Returns:
+#   Directory object created.
 
 sub add_directory_path {
     my ($self, $path) = @_;
@@ -275,9 +303,18 @@ sub add_directory_path {
     return $directory_obj;    
 }
 
+########################################
+# add_directory($params_ref)
+# Parameters: [hashref in $params_ref]
+#   see new.
+# Returns:
+#   Directory object created.
 
 sub add_directory {
     my ($self, $params_ref) = @_;
+    
+    # This way we don't need to pass in the sitename.
+    $params_ref->{sitename} = $self->sitename;
     
     # If we have a name or a special code, we create it under here.
     if ((defined $params_ref->{name}) || (defined $params_ref->{special})) {
@@ -304,8 +341,16 @@ sub add_directory {
     }
 }
 
-# Are we a child of the directory object passed in?
-# Returns false if the object is a "special".
+########################################
+# is_child_of($directory_obj)
+# Parameters:
+#   $directory_obj [WiX::Directory object]: 
+#     Directory object to compare against.
+# Returns:
+#   0 if a 'special' or we are not a child 
+#     of the directory passed in.
+#   1 otherwise.
+
 sub is_child_of {
     my ($self, $directory_obj) = @_;
     
@@ -316,6 +361,13 @@ sub is_child_of {
     return ($self->path =~ m{\A$path})
 }
 
+########################################
+# add_file(...)
+# Parameters: [pairs]
+#   See Files::Component->new. 
+# Returns:
+#   Files::Component object created.
+
 sub add_file {
     my ($self, @params) = @_;
 
@@ -323,6 +375,15 @@ sub add_file {
     $self->{files}->[$i] = Perl::Dist::WiX::Files::Component->new(@params);
     return $self->{files}->[$i];
 }
+
+########################################
+# create_guid_from_path
+# Parameters: 
+#   None. 
+# Returns:
+#   Object being operated on. (chainable)
+# Action:
+#   Creates a GUID and sets $self->{guid} to it.
 
 sub create_guid_from_path {
     my $self = shift;
@@ -339,8 +400,15 @@ sub create_guid_from_path {
     #... then use it to create a GUID out of the path.
     $self->{guid} = uc $guidgen->create_from_name_str($uuid, $self->path);
     
-    return 1;
+    return $self;
 }
+
+########################################
+# get_component_array
+# Parameters:
+#   None
+# Returns:
+#   Array of Ids attached to the contained directory and file objects.
 
 sub get_component_array {
     my $self = shift;
@@ -366,15 +434,17 @@ sub get_component_array {
 ########################################
 # as_string
 # Parameters:
-#   None.
+#   $tree: 1 if printing directory tree. [i.e. DO print empty directories.]
 # Returns:
 #   String representation of the <Directory> tag represented
 #   by this object, and the <Directory> and <File> tags
 #   contained in it.
 
 sub as_string {
-    my $self = shift;
-    my ($count, $answer, $string); 
+    my ($self, $tree) = @_;
+    my ($count, $answer); 
+    my $string = q{};
+    if (not defined $tree) { $tree = 0; }
     
     # Get string for each subdirectory.
     $count = scalar @{$self->{directories}};
@@ -389,6 +459,9 @@ sub as_string {
         $string .= $self->{files}->[$i]->as_string;
     }
 
+    # Short circuit...
+    if (($string eq q{}) and ($self->special == 0) and (not $tree)) { return q{}; }
+    
     # Now make our own string, and put what we've already got within it. 
     if (defined $string) {
         if ($self->special == 2) {

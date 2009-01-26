@@ -332,6 +332,10 @@ sub as_string {
         $string .= $self->{files}->[$i]->as_string;
     }
     
+    if ((not defined $string) or ($string eq q{})) { 
+        return q{}; 
+    }
+    
     # Finish up.
     $answer .= $self->indent(2, $string);
     $answer .= "\n</DirectoryRef>\n";

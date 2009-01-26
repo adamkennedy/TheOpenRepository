@@ -20,7 +20,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw($VERSION @ISA);
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 
@@ -93,15 +93,18 @@ sub add_entry {
 sub create_guid_from_id {
     my $self = shift;
 
+    # Check parameters.
     unless ( _STRING($self->sitename) ) {
         croak("Missing or invalid sitename param - cannot generate GUID without one");
     }
     unless ( _STRING($self->id) ) {
         croak("Missing or invalid id param - cannot generate GUID without one");
     }
-    my $guidgen = Data::UUID->new();
+    
     # Make our own namespace...
+    my $guidgen = Data::UUID->new();
     my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
+
     #... then use it to create a GUID out of the ID.
     $self->{guid} = uc $guidgen->create_from_name_str($uuid, $self->id);
     

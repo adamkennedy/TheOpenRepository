@@ -4,7 +4,7 @@ package Perl::Dist::WiX::Installer;
 
 =head1 NAME
 
-Perl::Dist::WiX::Base::Component - Base class for <Component> tag.
+Perl::Dist::WiX::Installer - WiX-specific routines.
 
 =head1 DESCRIPTION
 
@@ -117,6 +117,7 @@ use Object::Tiny qw{
     msi_readme_file
     msi_product_icon
     feature_tree_obj
+    msi_directory_tree_additions
 };
 
 
@@ -130,6 +131,10 @@ sub new {
         );
     }
     
+    unless ( defined _ARRAY0($self->msi_directory_tree_additions) ) {
+        $self->{msi_directory_tree_additions} = [];
+    }
+
     unless ( defined $self->default_group_name ) {
         $self->{default_group_name} = $self->app_name;
     }
@@ -190,7 +195,7 @@ sub new {
         app_dir => $self->image_dir, 
         app_name => $self->app_name, 
         sitename => $sitename
-    );
+    )->initialize_tree(@{$self->{msi_directory_tree_additions}});
 
     $self->{fragments}    = {};
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
@@ -249,11 +254,13 @@ sub output_date_string {
     return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
 }
 
+# For template
 sub msi_ui_type {
     my $self = shift;
     return (defined $self->msi_feature_tree) ? 'FeatureTree' : 'Minimal';
 }
 
+# For template
 sub msi_product_id {
     my $self = shift;
 
@@ -268,6 +275,7 @@ sub msi_product_id {
     return $guid;
 }
 
+# For template
 sub msi_upgrade_code {
     my $self = shift;
 
@@ -286,6 +294,7 @@ sub msi_upgrade_code {
     return $guid;
 }
 
+# For template
 sub msi_perl_version {
     my $self = shift;
     
@@ -314,10 +323,6 @@ sub get_component_array {
 
 #####################################################################
 # Main Methods
-
-=pod
-
-=cut
 
 sub compile_wxs {
     my ($self, $filename, $wixobj) = @_;
@@ -458,7 +463,7 @@ sub add_env {
     return $self;
 }
 
-=head2 add_file(source => $filename, fragment => $fragment_name)
+=head2 add_file({source => $filename, fragment => $fragment_name})
 
 Adds the file C<$filename> to the fragment named by C<$fragment_name>.
 
@@ -489,6 +494,36 @@ sub add_file {
     
     return $self;
 }
+
+=head2 insert_fragment($id, $files_ref)
+
+Adds the list of files C<$files_ref> to the fragment named by C<$id>.
+
+=cut
+
+
+sub insert_fragment {
+    my ($self, $id, $files_ref) = @_;
+
+    print "Adding fragment $id...\n";
+    
+    foreach my $key (keys %{$self->{fragments}}) {
+        $self->{fragments}->{$key}->check_duplicates($files_ref);
+    }
+    
+    my $fragment = 
+        Perl::Dist::WiX::Files->new(
+            id => $id, 
+            sitename => URI->new($self->app_publisher_url)->host,
+            directory_tree => $self->directories
+        )->add_files(@{$files_ref});
+
+    $self->{fragments}->{$id} = $fragment;
+    
+    return $fragment;
+}
+
+
 
 #####################################################################
 # Serialization

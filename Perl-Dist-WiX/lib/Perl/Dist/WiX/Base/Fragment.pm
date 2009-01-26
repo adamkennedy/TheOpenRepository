@@ -19,7 +19,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw($VERSION @ISA);
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 
@@ -43,14 +43,15 @@ use Object::Tiny qw{
 sub new {
     my $self = shift->SUPER::new(@_);
     
+    # Check parameters and set defaults.
     unless ( defined $self->directory ) {
         $self->{directory} = 'TARGETDIR';
     }
-    
     unless ( _STRING($self->id) ) {
         croak 'Missing or invalid id parameter';
     }
     
+    # Initialize components arrayref.
     $self->{components} = [];
     
     return $self;
@@ -71,6 +72,7 @@ sub new {
 sub add_component {
     my ($self, $component) = @_;
     
+    # Check parameters.
     if (not defined _CLASSISA(ref $component, 'Perl::Dist::WiX::Base::Component')) {
         croak 'Not adding a valid component';
     }

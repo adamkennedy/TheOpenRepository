@@ -1,12 +1,11 @@
 package Perl::Dist::WiX::EnvironmentEntry;
 
 ####################################################################
-# Perl::Dist::WiX::EnvironmentEntry -  
+# Perl::Dist::WiX::EnvironmentEntry - Object that represents an <Environment> tag.
 #
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
-
 
 use 5.006;
 use strict;
@@ -22,36 +21,38 @@ BEGIN {
     @ISA = 'Perl::Dist::WiX::Base::Entry';
 }
 
-=pod
-
-=over 4
-
-=item *
-
-name, description, target, working_dir: Returns the parameter 
-of the same name passed in by L</new>
-
-=back
-
-    $name = $component->name; 
-
-=cut
+#####################################################################
+# Accessors:
+#   see new.
 
 use Object::Tiny qw{
     id
+    name
+    value
+    action
+    part
+    permanent
 };
 
 #####################################################################
-# Constructors for StartMenuComponent
+# Constructors for EnvironmentEntry
+#
+# Parameters: [pairs]
+#   id: The Id attribute of the <Environment> tag being defined.
+#   name: The Name attribute of the <Environment> tag being defined.
+#   Value: The Value attribute of the <Environment> tag being defined.
+#   action: The Action attribute of the <Environment> tag being defined.
+#   part: The Part attribute of the <Environment> tag being defined.
+#   permanent: The Permanent attribute of the <Environment> tag being defined.
+# Note: see http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm for valid values.
 
 sub new {
     my $self = shift->SUPER::new(@_);
 
+    # Check params
     unless ( _STRING($self->id) ) {
         croak("Missing or invalid id param");
     }
-
-    # Check params
     unless ( _STRING($self->{name}) ) {
         croak("Missing or invalid name param");
     }
@@ -75,9 +76,17 @@ sub new {
 #####################################################################
 # Main Methods
 
+########################################
+# as_string
+# Parameters:
+#   None.
+# Returns:
+#   String containing <Environment> tag defined by this object.
+
 sub as_string {
     my $self = shift;
-        
+
+    # Print tag.
     my $answer = <<END_OF_XML;
    <Environment Id='E_$self->{id}' Name='$self->{name}' Value='$self->{value}' 
       System='yes' Permanent='$self->{permanent}' Action='$self->{action}' Part='$self->{part}' />
@@ -87,24 +96,3 @@ END_OF_XML
 }
 
 1;
-
-=head1 SUPPORT
-
-No support of any kind is provided for this module
-
-=head1 AUTHOR
-
-Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>
-
-=head1 COPYRIGHT
-
-Copyright 2009 Curtis Jewell.
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-=cut

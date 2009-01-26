@@ -19,7 +19,7 @@ use Params::Util qw{ _STRING  _POSINT _NONNEGINT };
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
 }
 
 #####################################################################
@@ -29,7 +29,6 @@ BEGIN {
 #   None used by this class, but puts its parameters into a 
 #   blessed hashref for subclasses to use.
 #   Checks for non-paired parameters.
-
 
 sub new {
     my $class = shift;
@@ -60,20 +59,21 @@ sub new {
 sub indent {
     my ($self, $num, $string) = @_;
     
+    # Check parameters.
     unless ( _STRING($string) ) {
         croak("Missing or invalid string param");
     }
-    
     unless ( defined _NONNEGINT($num) ) {
         croak("Missing or invalid num param");
     }
     
+    # Indent string.
     my $spaces = q{ } x $num;
-    
     my $answer = $spaces . $string;
     chomp $answer;
     $answer =~ s{\n        # match a newline and add spaces after it. (i.e. the beginning of the line.)
                }{\n$spaces}gxms;
+               
     return $answer;
 }
 

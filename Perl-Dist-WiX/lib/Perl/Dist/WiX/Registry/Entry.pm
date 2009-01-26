@@ -37,10 +37,12 @@ use Object::Tiny qw{
 # Constructors for Registry::Entry
 #
 # Parameters: [pairs]
-#   action:     Action attribute to <RegistryKey>.
-#   value_type: Type attribute to <RegistryKey>.
-#   value_name: Name attribute to <RegistryKey>.
-#   value_data: Value attribute to <RegistryKey>.
+#   action:     Action attribute to <RegistryValue>.
+#   value_type: Type attribute to <RegistryValue>.
+#   value_name: Name attribute to <RegistryValue>.
+#   value_data: Value attribute to <RegistryValue>.
+#
+# See http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
 
 sub new {
     my $self = shift->SUPER::new(@_);
