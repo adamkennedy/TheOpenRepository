@@ -13,11 +13,13 @@ package, generate .wxs files, or are otherwise WiX specific.
 
 =head1 METHODS
 
-=head2 Accessors
-
-Accessors take no parameters and return the item requested (listed below)
+All public methods are listed in L<Perl::Dist::WiX>, since this is a 
+superclass of that class.
 
 =cut
+
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
@@ -232,8 +234,16 @@ sub new {
     return $self;
 }
 
+#####################################################################
+# Accessor methods.
+#
+# These methods are for the comvienence of the main template, or of
+# the Perl::Dist::WiX class tree.
+
 sub msi_product_icon_id {
     return undef;
+    
+    # TODO: Not implemented yet.
 }
 
 # Default the versioned name to an unversioned name
@@ -574,7 +584,8 @@ L<Perl::Dist>, L<Perl::Dist::Inno::Script>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell, Copyright 2008 Adam Kennedy.
+Copyright 2009 Curtis Jewell
+Copyright 2008-2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

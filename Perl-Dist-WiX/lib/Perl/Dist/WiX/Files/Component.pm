@@ -6,6 +6,9 @@ package Perl::Dist::WiX::Files::Component;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;

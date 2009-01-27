@@ -7,17 +7,20 @@ package Perl::Dist::WiX::Registry;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw{ croak               };
-use Params::Util                      qw{ _IDENTIFIER _STRING };
-use Perl::Dist::WiX::Base::Fragment   qw{};
-use Perl::Dist::WiX::Registry::Key    qw{};
-use Perl::Dist::WiX::Registry::Entry  qw{};
+use Carp               qw( croak               );
+use Params::Util       qw( _IDENTIFIER _STRING );
+require Perl::Dist::WiX::Base::Fragment;
+require Perl::Dist::WiX::Registry::Key;
+require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw{$VERSION @ISA};
+use vars qw{ $VERSION @ISA };
 BEGIN {
     $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
@@ -50,6 +53,9 @@ sub new {
     my $self = $class->SUPER::new(%params);
 }
 
+#####################################################################
+# Main Methods
+
 sub search_file {
     return undef;
 }
@@ -67,12 +73,13 @@ sub check_duplicates {
 
 sub get_component_array {
     my $self = shift;
-    
-    my $count = scalar @{$self->{components}};
+
+    # Define variables.
     my @answer;
     my $id;
     
     # Get the array for each descendant.
+    my $count = scalar @{$self->{components}};
     foreach my $i (0 .. $count - 1) {
         $id = $self->{components}->[$i]->id;
         push @answer,"C_$id"; 
@@ -92,15 +99,14 @@ sub get_component_array {
 #   Creates a registry key entry.
 
 sub add_key {
-
     my ($self, %params) = @_;
 
     # Check parameters.
     unless ( _STRING($params{id}) ) {
-        croak("Missing or invalid name");
+        croak("Missing or invalid id");
     }
     unless ( _STRING($params{key}) ) {
-        croak("Missing or invalid name");
+        croak("Missing or invalid key");
     }
 
     # Set defaults.
@@ -108,11 +114,9 @@ sub add_key {
         $params{root} = 'HKLM';
     }
 
-    # Search for key...
+    # Search for a key...
     my $key = undef;
-    # getting the number of items in the array referred to by $self->{components}
     my $count = scalar @{$self->{components}};
-
     foreach my $i (0 .. $count - 1) {
         if ($self->{components}->[$i]->is_key($params{root}, $params{key})) {
             $key = $self->{components}->[$i];
@@ -120,6 +124,7 @@ sub add_key {
         }
     }
 
+    # Create a key if we don't have one already.
     if (not defined $key)
     {
         $key = Perl::Dist::WiX::Registry::Key->new(
@@ -130,6 +135,7 @@ sub add_key {
         $self->add_component($key);
     }
     
+    # Add the entry to our key.
     $key->add_entry(
         Perl::Dist::WiX::Registry::Entry->entry(@params{'name', 'value', 'action', 'value_type'}));
     

@@ -7,21 +7,24 @@ package Perl::Dist::WiX::Files;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
 use warnings;
-use Carp                                 qw{ croak confess       };
-use Params::Util                         qw{ _IDENTIFIER _STRING _INSTANCE };
-use Data::UUID                           qw{ NameSpace_DNS       };
-use File::Spec                           qw{};
-use Perl::Dist::WiX::DirectoryTree       qw{};
-use Perl::Dist::WiX::Base::Fragment      qw{};
-use Perl::Dist::WiX::Files::DirectoryRef qw{};
+use Carp              qw( croak                         );
+use Params::Util      qw( _IDENTIFIER _STRING _INSTANCE );
+use Data::UUID        qw( NameSpace_DNS                 );
+use File::Spec        qw();
+require Perl::Dist::WiX::DirectoryTree;
+require Perl::Dist::WiX::Base::Fragment;
+require Perl::Dist::WiX::Files::DirectoryRef;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 
@@ -36,7 +39,7 @@ use Object::Tiny qw{
 };
 
 #####################################################################
-# Constructor for DirectoryTree
+# Constructor for Files
 #
 # Parameters: [pairs]
 #   directory_tree: [Wix::DirectoryTree object] The initial directory tree.
@@ -83,8 +86,7 @@ sub add_files {
     # Each file could be a directory or have a newline, so fix that and add the files.
     foreach my $file (@files) {
         chomp $file;
-#        next if not -f $file;
-#        $self->add_file($file);
+        next if not -f $file;
         if (not defined $self->add_file($file)) {
             croak "Could not add $file";
         }
@@ -288,6 +290,7 @@ sub _get_possible_paths {
 }
 
 # Searches our contained DirectoryRefs for a path.
+
 sub _search_refs {
     my ($self, $path_to_find, $quick) = @_;
 
@@ -369,11 +372,10 @@ sub check_duplicates {
 
 sub get_component_array {
     my $self = shift;
-
-    my $count = scalar @{$self->{components}};
     my @answer;
     
     # Get the array for each descendant.
+    my $count = scalar @{$self->{components}};
     foreach my $i (0 .. $count - 1) {
         push @answer, $self->{components}->[$i]->get_component_array;
     }

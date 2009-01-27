@@ -10,6 +10,9 @@ package Perl::Dist::WiX::Misc;
 # NOTE: This is a base class with miscellaneous routines.  It is 
 # meant to be subclassed, as opposed to creating objects of this 
 # class directly.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;

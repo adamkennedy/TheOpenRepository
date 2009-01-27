@@ -7,6 +7,8 @@ package Perl::Dist::WiX::Registry::Entry;
 #
 # License is the same as perl. See Wix.pm for details.
 #
+# $Rev$ $Date$ $Author$ 
+# $URL$
 
 use 5.006;
 use strict;

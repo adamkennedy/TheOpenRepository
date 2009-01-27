@@ -7,6 +7,9 @@ package Perl::Dist::WiX::DirectoryTree;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
@@ -18,7 +21,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw($VERSION @ISA);
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc'
 }
 
@@ -83,7 +86,7 @@ sub search {
 #   [LGHT0130] error and will NOT create an MSI.
 # Note #2:
 #   Directories passed to this routine should not include the 
-#   installation directory. (e.g, share rather than 
+#   installation directory. (e.g, perl\share rather than 
 #   C:\strawberry\perl\share.)
 
 sub initialize_tree {
@@ -105,7 +108,7 @@ sub initialize_tree {
         'Cpan',      'cpan',
         'Win32',     'win32'
         );
-    $branch->add_directories_init($self->sitename, qw(
+    $branch->add_directories_init(qw(
         c\bin
         c\bin\startup
         c\include
@@ -147,6 +150,11 @@ sub initialize_tree {
         licenses\pexports
         perl\bin
         perl\lib
+        perl\lib\Compress
+        perl\lib\CPAN
+        perl\lib\CPAN\API
+        perl\lib\Digest
+        perl\lib\Digest\MD5
         perl\lib\ExtUtils
         perl\lib\ExtUtils\CBuilder
         perl\lib\ExtUtils\CBuilder\Platform
@@ -161,7 +169,12 @@ sub initialize_tree {
         perl\lib\IO\Uncompress\Adapter
         perl\lib\Math
         perl\lib\Math\BigInt
+        perl\lib\Math\BigInt\FastCalc
+        perl\lib\Module
+        perl\lib\Test
         perl\lib\auto
+        perl\lib\auto\Compress
+        perl\lib\auto\Cwd
         perl\lib\auto\Digest
         perl\lib\auto\Digest\MD5
         perl\lib\auto\Math
@@ -170,13 +183,27 @@ sub initialize_tree {
         perl\lib\auto\share
         perl\site
         perl\site\lib
-        perl\site\lib\auto
-        perl\site\lib\auto\share
+        perl\site\lib\Bundle
         perl\site\lib\Compress
+        perl\site\lib\DBD
         perl\site\lib\File
         perl\site\lib\HTML
+        perl\site\lib\IO
+        perl\site\lib\LWP
+        perl\site\lib\Math
+        perl\site\lib\PAR
+        perl\site\lib\Term
         perl\site\lib\Test
         perl\site\lib\Win32
+        perl\site\lib\XML
+        perl\site\lib\auto
+        perl\site\lib\auto\share
+        perl\site\lib\auto\Compress
+        perl\site\lib\auto\Compress\Raw
+        perl\site\lib\auto\Math
+        perl\site\lib\auto\Term
+        perl\site\lib\auto\Win32
+        perl\site\lib\auto\XML
     ), @dirs);
     
     return $self;
@@ -191,7 +218,7 @@ sub initialize_tree {
 
 sub as_string {
     my $self = shift;
-    return $self->indent(4, $self->root->as_string(0));
+    return $self->indent(4, $self->root->as_string(1));
 }
 
 1;

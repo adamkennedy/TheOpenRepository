@@ -6,19 +6,31 @@ package Perl::Dist::WiX::Feature;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
 use warnings;
-use Carp                        qw{ croak verbose                };
-use Params::Util                qw{ _CLASSISA _STRING _NONNEGINT };
-use Perl::Dist::WiX::Misc       qw{};
+use Carp                        qw( croak verbose                );
+use Params::Util                qw( _CLASSISA _STRING _NONNEGINT );
+require Perl::Dist::WiX::Misc;
 
-use vars qw{$VERSION @ISA};
+use vars qw{ $VERSION @ISA };
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';
 }
+
+#####################################################################
+# Accessors:
+#   features: TODO
+#   componentrefs: TODO
+#
+#  id, title, description, default, idefault, display, directory, absent, advertise, level:
+#    See new.
+
 
 use Object::Tiny qw{
     features
@@ -53,7 +65,19 @@ use Object::Tiny qw{
 
 =cut
 
-# http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
+#####################################################################
+# Constructor for Base::Fragment
+#
+# Parameters: [pairs]
+#   id: Id parameter to the <Fragment> tag (required)
+#   directory: Id parameter to the <DirectoryRef> tag  within this fragment. 
+#
+# See http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
+#
+# Defaults:
+#
+#
+
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -108,6 +132,9 @@ sub new {
     
     return $self;
 }
+
+#####################################################################
+# Main Methods
 
 sub add_feature {
     my ($self, $feature) = @_;

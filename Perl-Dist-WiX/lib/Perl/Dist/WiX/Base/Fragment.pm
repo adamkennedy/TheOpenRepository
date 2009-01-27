@@ -9,6 +9,9 @@ package Perl::Dist::WiX::Base::Fragment;
 #
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;

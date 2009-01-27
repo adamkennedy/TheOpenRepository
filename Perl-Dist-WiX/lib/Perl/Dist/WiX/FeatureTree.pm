@@ -6,6 +6,9 @@ package Perl::Dist::WiX::FeatureTree;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.008;
 use strict;
@@ -18,7 +21,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 
@@ -51,7 +54,7 @@ sub new {
     print "Creating feature tree...\n";
     $self->{features} = [];
     if (defined $self->{parent}->{msi_feature_tree}) {
-        croak "Complex feature tree Not implemented in Per::Dist::WiX $VERSION."; 
+        croak "Complex feature tree not implemented in Per::Dist::WiX $VERSION."; 
     } else {
         $self->features->[0] = Perl::Dist::WiX::Feature->new(
             id          => 'Complete', 
@@ -63,6 +66,9 @@ sub new {
 
     return $self;
 }
+
+#####################################################################
+# Main Methods
 
 ########################################
 # search($id)

@@ -6,6 +6,9 @@ package Perl::Dist::WiX::Directory;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
@@ -21,7 +24,7 @@ use Perl::Dist::WiX::Misc             qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = qw (Perl::Dist::WiX::Base::Component
                Perl::Dist::WiX::Base::Entry
                Perl::Dist::WiX::Misc
@@ -50,7 +53,8 @@ use Object::Tiny qw{
 # Parameters: [pairs]
 #   name: The name of the directory to create.
 #   path: The path to and including the directory on the local filesystem.
-#   special: [integer] defaults to 0, 1 = , 2= 
+#   special: [integer] defaults to 0, 1 = Id should not be prefixed, 
+#     2 = directory without name
 
 sub new {
     my $self = shift->Perl::Dist::WiX::Base::Component::new(@_);
@@ -89,9 +93,9 @@ sub new {
 
 sub search {
     my ($self, $path_to_find, $trace, $quick) = @_;
-
     my $path = $self->path;
 
+    # Set defaults for parameters.
     if (not defined $trace) { $trace = 0; }
     if (not defined $quick) { $quick = 0; }
     
@@ -122,6 +126,7 @@ sub search {
         print '[Directory ' . __LINE__ . "]   To find: $path_to_find.\n";
     }
     
+    # 
     return undef if not $subset;
     
     # Check each of our branches.
@@ -156,7 +161,6 @@ sub search {
 
 sub search_file {
     my ($self, $filename) = @_;
-
     my $path = $self->path;
     
     # Do we want to continue searching down this direction?
@@ -173,7 +177,6 @@ sub search_file {
             return [$self, $i];
         }
     }
-
     $count = scalar @{$self->{directories}};
     $answer = undef;
     foreach my $i (0 .. $count - 1) {
@@ -193,13 +196,7 @@ sub search_file {
 # Returns:
 #   Object being operated on. (chainable)
 
-sub delete_filenum {
-    my ($self, $i) = @_;
-    
-    $self->{files}->[$i] = undef;
-    
-    return $self;
-}
+sub delete_filenum { $_[0]->{files}->[$_[1]] = undef; return $_[0]; }
 
 ########################################
 # add_directories_id(($id, $name)...)
@@ -235,7 +232,6 @@ sub add_directories_id {
 ########################################
 # add_directories_init(@dirs)
 # Parameters: 
-#   $sitename:  Name of site to download installer from.
 #   @dirs: List of directories to create object for.
 # Returns:
 #   Object being operated on. (chainable)
@@ -449,7 +445,7 @@ sub as_string {
     # Get string for each subdirectory.
     $count = scalar @{$self->{directories}};
     foreach my $i (0 .. $count - 1) {
-        $string .= $self->{directories}->[$i]->as_string;
+        $string .= $self->{directories}->[$i]->as_string($tree);
     }
     
     # Get string for each file this directory contains.
@@ -460,10 +456,10 @@ sub as_string {
     }
 
     # Short circuit...
-    if (($string eq q{}) and ($self->special == 0) and (not $tree)) { return q{}; }
+    if (($string eq q{}) and ($self->special == 0) and ($tree == 0)) { return q{}; }
     
     # Now make our own string, and put what we've already got within it. 
-    if (defined $string) {
+    if ((defined $string) && ($string ne q{})) {
         if ($self->special == 2) {
             $answer = "<Directory Id='D_$self->{id}'>\n";
             $answer .= $self->indent(2, $string);

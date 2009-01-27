@@ -7,6 +7,9 @@ package Perl::Dist::WiX::Filelist;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.008;
 use strict;
@@ -20,7 +23,7 @@ use List::MoreUtils        qw( indexes );
 
 use vars qw($VERSION);
 BEGIN {
-	$VERSION = '0.11_06';
+	$VERSION = '0.11_07';
 }
 
 #####################################################################
@@ -43,6 +46,7 @@ use Object::Tiny qw {
 sub new {
     my $self = shift->SUPER::new();
 
+    # Initialize files area.
     $self->{files} = [];
     
     return $self;
@@ -57,6 +61,7 @@ sub clone {
     my $self = shift->SUPER::new();
     my $source = shift;
     
+    # Add filelist passed in.
     $self->{files} = [];
     push @{$self->{files}}, @{$source->{files}};
     
@@ -75,13 +80,7 @@ sub clone {
 # Action:
 #   Clears this filelist.
 
-sub clear {
-    my $self = shift;
-    
-    $self->{files} = [];
-    
-    return $self;
-}
+sub clear { $_[0]->{files} = []; return $_[0]; }
 
 ########################################
 # readdir($dir)
@@ -101,14 +100,20 @@ sub readdir {
         croak "Error reading directory $dir: $!";        
     }
     
+    # Read a file from the directory.
     my $file = $dir_object->read();
     
     while (defined $file) {
+        # Check to make sure it isn't . or ..
         if (($file ne q{.}) and ($file ne q{..})) {
+            
+            # Check for another directory.
             my $filespec = catfile($dir, $file);
             if (-d $filespec) {
+                # Read this directory.
                 $self->readdir($filespec);
             } else {
+                # Add the file!
                 push @{$self->files}, $filespec;
             }
         }
@@ -132,6 +137,7 @@ sub readdir {
 sub load_file {
     my ($self, $packlist) = @_; 
 
+    # Read ,packlist file.
     my $fh = IO::File->new($packlist, 'r');
     if (not defined $fh)
     {
@@ -140,6 +146,7 @@ sub load_file {
     my @files = <$fh>;
     $fh->close;
 
+    # Insert list of files read into this object. Chomp on the way.
     @{$self->files} = map { chomp $_; $_ } @files;
     
     return $self;
@@ -157,6 +164,7 @@ sub load_file {
 sub load_array {
     my ($self, @files) = @_;
     
+    # Add each file in the array - if it is a file.
     foreach my $file (@files) {
         next if -d $file;
         push @{$self->files}, $file;
@@ -194,12 +202,16 @@ sub add_file {
 sub subtract {
     my ($self, $subtrahend) = @_;
 
+    # Define variables.
     my @loc;
     my @files = @{$self->files};
     my @files2;
     my $f;
     
+    # For each file on the list passed in...
     foreach my $f (@{$subtrahend->files}) {
+    
+        # Find if it is in us.
         @loc = indexes { $_ eq $f } @files;
         if (@loc) {
             delete @files[@loc];
@@ -215,9 +227,8 @@ sub subtract {
         }
     }
 
-    $self->clear->load_array(@files);
-    
-    return $self;
+    # Reload ourselves.
+    return $self->clear->load_array(@files);
 }
 
 ########################################
@@ -250,9 +261,11 @@ sub add {
 sub move {
     my ($self, $from, $to) = @_;
 
+    # Find which files need moved.
     my @loc = indexes { $_ =~ m/\A\Q$from\E\z/ } @{$self->files};
     if (@loc) {
         foreach my $loc (@loc) {
+            # "move" them.
             $self->files->[$loc] = $to;
         }
     }

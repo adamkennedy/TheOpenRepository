@@ -11,6 +11,9 @@ package Perl::Dist::WiX::StartMenuComponent;
 # Perl::Dist::WiX::StartMenu.
 #
 # StartMenu components contain the entry, so there is no WiX::Entry sub class
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
@@ -22,7 +25,7 @@ use Perl::Dist::WiX::Base::Component  qw{};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 
@@ -47,6 +50,8 @@ use Object::Tiny qw{
 #   description: Description attribute to the <Shortcut> tag.
 #   target: Target of the <Shortcut> tag.
 #   working_dir: WorkingDirectory target of the <Shortcut> tag.
+#
+# See http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 
 sub new {
     my $self = shift->SUPER::new(@_);

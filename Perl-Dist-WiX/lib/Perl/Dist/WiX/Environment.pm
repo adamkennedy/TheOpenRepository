@@ -7,20 +7,27 @@ package Perl::Dist::WiX::Environment;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
+#
+# $Rev$ $Date$ $Author$
+# $URL$
 
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw{ croak               };
-use Params::Util                      qw{ _IDENTIFIER _STRING };
-use Perl::Dist::WiX::Base::Fragment   qw{};
-use Perl::Dist::WiX::EnvironmentEntry qw{};
+use Carp           qw( croak               );
+use Params::Util   qw( _IDENTIFIER _STRING );
+require Perl::Dist::WiX::Base::Fragment;
+require Perl::Dist::WiX::EnvironmentEntry;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
+
+#####################################################################
+# Accessors:
+#   sitename: The name of the site that is hosting the download.
 
 use Object::Tiny qw{
     sitename
@@ -29,6 +36,10 @@ use Object::Tiny qw{
 
 #####################################################################
 # Constructor for Environment
+#
+# Parameters: [pairs]
+#   id: The Id attribute of the <Fragment> and <Component> tags.
+#   sitename: The name of the site that is hosting the download.
 
 sub new {
     my ($class, %params) = @_;
@@ -45,6 +56,9 @@ sub new {
     return $self;
 }
 
+#####################################################################
+# Main Methods
+
 sub search_file {
     return undef;
 }
@@ -52,6 +66,13 @@ sub search_file {
 sub check_duplicates {
     return undef;
 }
+
+########################################
+# add_entry($entry)
+# Parameters:
+#   $entry: Environment Entry object being added. 
+# Returns: 
+#   Object being called. (chainable)
 
 sub add_entry {
     my $self = shift;
@@ -62,6 +83,13 @@ sub add_entry {
     
     return $self;
 }
+
+########################################
+# get_component_array
+# Parameters:
+#   None
+# Returns:
+#   Id attached to the contained component.
 
 sub get_component_array {
     my $self = shift;
