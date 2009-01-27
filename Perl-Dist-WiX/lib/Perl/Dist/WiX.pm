@@ -15,6 +15,9 @@ Install XML technology, instead of Inno Setup.
 
 =cut
 
+# $Rev$ $Date$ $Author$
+# $URL$
+
 use 5.008;
 use strict;
 use warnings;

@@ -402,6 +402,7 @@ sub link_msi {
     print "Linking $output_msi...\n";
     my $cmd = [
         $self->bin_light, 
+        '-sice:47'                 # Gets rid of ICE47 warning.
         '-out', $output_msi,       # TODO: Get rid of hard coding.
         '-ext', 'C:\\Program Files\\Windows Installer XML v3\\bin\\WixUIExtension.dll',
         $input_wixouts,
