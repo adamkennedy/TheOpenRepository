@@ -1,31 +1,30 @@
 use inc::Module::Install 0.77;
 
 all_from       'lib/Perl/Dist.pm';
-requires       'Archive::Tar'               => '1.38';
-requires       'Archive::Zip'               => '1.25';
-requires       'File::Spec'                 => '3.2701';
-requires       'File::Copy::Recursive'      => '0.37';
+requires       'Archive::Tar'               => '1.42';
+requires       'Archive::Zip'               => '1.26';
+requires       'File::Spec'                 => '3.29';
+requires       'File::Copy::Recursive'      => '0.38';
 requires       'File::Find::Rule'           => '0.30';
-requires       'File::Path'                 => '2.04';
+requires       'File::Path'                 => '2.07';
 requires       'File::pushd'                => '1.00';
 requires       'File::Remove'               => '1.42';
-requires       'File::HomeDir'              => '0.81';
+requires       'File::HomeDir'              => '0.82';
 requires       'File::ShareDir'             => '1.00';
 requires       'File::PathList'             => '1.04';
-requires       'File::Temp'                 => '0.20';
+requires       'File::Temp'                 => '0.21';
 requires       'HTTP::Status'               => '5.817';
 requires       'IPC::Run3'                  => '0.042';
-requires       'LWP::UserAgent'             => '5.817';
+requires       'LWP::UserAgent'             => '5.823';
 requires       'LWP::UserAgent::WithCache'  => '0.06';
-requires       'LWP::UserAgent::Determined' => '1.03';
 requires       'LWP::Online'                => '1.07';
 requires       'Object::Tiny'               => '1.06';
-requires       'YAML::Tiny'                 => '1.32';
-requires       'Module::CoreList'           => '2.15';
-requires       'Params::Util'               => '0.33';
+requires       'YAML::Tiny'                 => '1.36';
+requires       'Module::CoreList'           => '2.17';
+requires       'Params::Util'               => '0.35';
 requires       'Template'                   => '2.20';
-requires       'CPAN'                       => '1.93';
-requires       'PAR::Dist'                  => '0.37';
+requires       'CPAN'                       => '1.9301';
+requires       'PAR::Dist'                  => '0.42';
 requires       'Process'                    => '0.22';
 requires       'Process::Storable'          => '0.22';
 requires       'Process::Delegatable'       => '0.22';
@@ -38,6 +37,7 @@ test_requires  'Test::Script'               => '1.03';
 test_requires  'Test::LongString'           => '0.11';
 install_script 'perldist';
 install_share;
+
 WriteAll;
 
 # Look for Inno Setup

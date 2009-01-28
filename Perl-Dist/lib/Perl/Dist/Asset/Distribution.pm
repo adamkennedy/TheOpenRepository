@@ -50,7 +50,7 @@ This class inherits from L<Perl::Dist::Asset> and shares its API.
 
 use strict;
 use Carp              ();
-use Params::Util      qw{ _ARRAY _INSTANCE };
+use Params::Util      qw{ _STRING _ARRAY _INSTANCE };
 use File::Spec        ();
 use File::Spec::Unix  ();
 use URI               ();
@@ -161,7 +161,10 @@ sub new {
 	$self->{release_testing}   = !! $self->release_testing;
 
 	# Check params
-	unless ( _DIST($self->name) ) {
+	unless ( _STRING($self->name) ) {
+		Carp::croak("Missing or invalid name param");
+	}
+	if ( $self->name eq $self->url and not _DIST($self->name) ) {
 		Carp::croak("Missing or invalid name param");
 	}
 	if ( defined $self->inject ) {

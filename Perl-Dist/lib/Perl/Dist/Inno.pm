@@ -127,7 +127,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp                      ();
-use Archive::Tar              ();
+use Archive::Tar         1.42 ();
 use Archive::Zip              ();
 use File::Spec                ();
 use File::Spec::Unix          ();
