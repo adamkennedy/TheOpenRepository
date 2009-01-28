@@ -13,9 +13,10 @@ package Perl::Dist::WiX::Directory;
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw{ croak confess                  };
-use Params::Util                      qw{ _IDENTIFIER _STRING _NONNEGINT };
-use Data::UUID                        qw{ NameSpace_DNS                  };
+use Carp                              qw{ croak confess    };
+use Params::Util                      
+        qw{ _IDENTIFIER _STRING _NONNEGINT _INSTANCE       };
+use Data::UUID                        qw{ NameSpace_DNS    };
 use File::Spec                        qw{};
 use Perl::Dist::WiX::Base::Component  qw{};
 use Perl::Dist::WiX::Base::Entry      qw{};
@@ -83,70 +84,67 @@ sub new {
 # Main Methods
 
 ########################################
-# search($path_to_find, $trace, $quick)
-# Parameters:
-#   $filename: Filename being searched for
-#   $quick: 
+# search_dir(path_to_find => $path, ...)
+# Parameters: [pairs]
+#   path_to_find: Path being searched for.
+#   descend: 1 if can descend to lower levels, [default]
+#            0 if has to be on this level.
+#   exact:   1 if has to be equal, 
+#            0 if equal or subset. [default] 
 # Returns: [Directory object]
 #   Directory object if this is the object for this directory OR
-#   ( if a object contained in this object is AND $quick is not defined and true. )
+#   ( if a object contained in this object is AND descent = 1 AND exact = 1 ) OR
+#   ( if there are no lower matching directories AND descent = 1 AND exact = 0) 
 
-sub search {
-    my ($self, $path_to_find, $trace, $quick) = @_;
+sub search_dir {
+    my $self = shift;
+    my $params_ref = { @_ };
     my $path = $self->path;
 
     # Set defaults for parameters.
-    if (not defined $trace) { $trace = 0; }
-    if (not defined $quick) { $quick = 0; }
+    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
+    my $descend = $params_ref->{descend} || 1;
+    my $exact   = $params_ref->{exact}   || 0;
     
-    if ($trace) {
-        print '[Directory ' . __LINE__ . "] Looking for $path_to_find\n";
-        print '[Directory ' . __LINE__ . "]   in: $path.\n";
-        print '[Directory ' . __LINE__ . "]   quick: $quick.\n";
-    }
+    $self->trace_line( 3, "Looking for $path_to_find\n");
+    $self->trace_line( 4, "  in:      $path.\n");
+    $self->trace_line( 5, "  descend: $descend.\n");
+    $self->trace_line( 5, "  exact:   $exact.\n");
     
     # If we're at the correct path, exit with success!
     if ((defined $path) && ($path_to_find eq $path)) {
-        if ($trace) {
-            print '[Directory ' . __LINE__ . "] Found $path.\n";
-        }
+        $self->trace_line( 4, "Found $path.\n");
         return $self;
     }
     
     # Quick exit if required.
-    if ((defined $quick) and $quick) {
+    if (not $descend) {
         return undef;
     }
     
     # Do we want to continue searching down this direction?
     my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
-    if ($trace && !$subset) {
-        print '[Directory ' . __LINE__ . "] Not a subset\n";
-        print '[Directory ' . __LINE__ . "]   in: $path.\n";
-        print '[Directory ' . __LINE__ . "]   To find: $path_to_find.\n";
+    if (not $subset) {
+        $self->trace_line(4, "Not a subset\n");
+        $self->trace_line(4, "  in: $path.\n");
+        $self->trace_line(5, "  To find: $path_to_find.\n");
+        return undef;
     }
-    
-    # 
-    return undef if not $subset;
     
     # Check each of our branches.
     my $count = scalar @{$self->{directories}};
     my $answer;
-    if ($trace) {
-        print '[Directory ' . __LINE__ . "] Number of directories to search: $count\n";
-    }
+    $self->trace_line(4, "Number of directories to search: $count\n");
     foreach my $i (0 .. $count - 1) {
-        if ($trace ) {
-            print '[Directory ' . __LINE__ . "] Searching directory #$i\n";
-        }
-        $answer = $self->{directories}->[$i]->search($path_to_find, $trace);
+        $self->trace_line(5, "Searching directory #$i\n");
+        $answer = $self->{directories}->[$i]->search_dir(%{$params_ref});
         if (defined $answer) {
             return $answer;
         }
     }
     
     # If we get here, we did not find a lower directory.
-    return $self; 
+    return $exact ? undef : $self; 
 }
 
 ########################################
@@ -220,9 +218,16 @@ sub add_directories_id {
         $id   = shift @params;
         $name = shift @params;
         if ($name =~ m{\\}) {
-            $self->add_directory({id => $id, path => $name});
+            $self->add_directory({
+                id => $id, 
+                path => $name, 
+            });
         } else {
-            $self->add_directory({id => $id, path => $self->path . '\\' . $name, name => $name});
+            $self->add_directory({
+                id => $id, 
+                path => $self->path . '\\' . $name, 
+                name => $name,
+            });
         }
     }
     
@@ -247,7 +252,7 @@ sub add_directories_init {
             $name = substr($name, 0, -1);
         }
         $self->add_directory({
-            path => $self->path . '\\' . $name
+            path => $self->path . '\\' . $name,
         });
     }
     
@@ -292,7 +297,8 @@ sub add_directory_path {
         $directory_obj = $directory_obj->add_directory({
             sitename => $self->sitename, 
             name => $name_create,
-            path => $path_create
+            path => $path_create,
+            trace => $self->{trace},
         });
     }
     
@@ -309,15 +315,20 @@ sub add_directory_path {
 sub add_directory {
     my ($self, $params_ref) = @_;
     
-    # This way we don't need to pass in the sitename.
+    # This way we don't need to pass in the sitename or the trace.
     $params_ref->{sitename} = $self->sitename;
+    $params_ref->{trace} = $self->{trace};
     
     # If we have a name or a special code, we create it under here.
     if ((defined $params_ref->{name}) || (defined $params_ref->{special})) {
+        defined $params_ref->{name} ?
+            $self->trace_line(4, "Adding directory $params_ref->{name}\n") :
+            $self->trace_line(4, "Adding directory Id $params_ref->{id}\n");
         my $i = scalar @{$self->{directories}};
         $self->{directories}->[$i] = Perl::Dist::WiX::Directory->new(%{$params_ref});
         return $self->{directories}->[$i];
     } else {
+        $self->trace_line(4, "Adding $params_ref->{path}\n");
         my $path = $params_ref->{path};
         
         # Find the directory object where we want to create this directory.
@@ -325,9 +336,13 @@ sub add_directory {
         my @dirs = File::Spec->splitdir($directories);
         my $name = pop @dirs; # to eliminate the last directory.
         $directories = File::Spec->catdir(@dirs);
-        my $directory = $self->search(File::Spec->catpath($volume, $directories, q{}));
+        my $directory = $self->search_dir(
+            path_to_find => File::Spec->catpath($volume, $directories, q{}),
+            descend => 1,
+            exact   => 1,
+        );
         if (not defined $directory) {
-            confess q{Can't create intermediate directories.};
+            croak q{Can't create intermediate directories.};
         }
         
         # Add the directory there.
@@ -349,12 +364,20 @@ sub add_directory {
 
 sub is_child_of {
     my ($self, $directory_obj) = @_;
-    
-    my $path = $directory_obj->path;
-    if (not defined $path) {
+
+    # Check for a valid Directory or DirectoryRef object.
+    unless (_INSTANCE($directory_obj, 'Perl::Dist::WiX::Directory') or
+            _INSTANCE($directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef')
+    ) {
+        croak('Invalid directory object passed in.');
+    }
+
+    my $path_to_check = $directory_obj->path;
+    my $path = $self->path;
+    if (not defined $path_to_check) {
         return 0;
     }
-    return ($self->path =~ m{\A$path})
+    return ("$path\\" =~ m{\A\Q$path_to_check\E\\})
 }
 
 ########################################

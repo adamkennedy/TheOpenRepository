@@ -65,41 +65,81 @@ sub new {
 # Main Methods
 
 ########################################
-# search($path_to_find)
-# Parameters:
-#   $path_to_find: Path being searched for
+# path
+# Parameters: 
+#   None.
+# Returns:
+#   Path of the directory object being referenced.
+
+sub path { return $_[0]->directory_object->path; }
+
+########################################
+# search_dir(path_to_find => $path)
+# Parameters: [pairs]
+#   path_to_find: Path being searched for.
+#   descend: 1 if can descend to lower levels, [default]
+#            0 if has to be on this level.
+#   exact:   1 if has to be equal, 
+#            0 if equal or subset. [default] 
 # Returns:
 #   WiX::Files::DirectoryRef or WiX::Directory object representing
 #   the path being searched for if successful.
 #   undef if unsuccessful.
 
-sub search {
-    my ($self, $path_to_find) = @_;
+sub search_dir {
+    my $self = shift;
+    my $params_ref = { @_ };
 
+    # Set defaults for parameters.
+    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
+    my $descend      = $params_ref->{descend} || 1;
+    my $exact        = $params_ref->{exact}   || 0;
+    
     # Get OUR path.
     my $path = $self->directory_object->path;
     
+    $self->trace_line( 3, "Looking for $path_to_find\n");
+    $self->trace_line( 4, "  in: $path.\n");
+    $self->trace_line( 5, "  descend: $descend.\n");
+    $self->trace_line( 5, "  exact:   $exact.\n");
+
     # Success!
     if ((defined $path) && ($path_to_find eq $path)) {
+        $self->trace_line( 4, "Found $path.\n");
         return $self;
+    }
+
+    # Quick exit if required.
+    if (not $descend) {
+        return undef;
     }
     
     # Do we want to continue searching down this direction?
     my $subset = $path_to_find =~ m/\A\Q$path\E/;
-    return undef if not $subset;
+    if (not $subset) {
+        $self->trace_line( 4, "Not a subset\n");
+        $self->trace_line( 4, "  in: $path.\n");
+        $self->trace_line( 5, "  To find: $path_to_find.\n");
+        return undef;
+    }
     
     # Check each of our branches.
     my $count = scalar @{$self->{directories}};
-    my $answer;
+    my $answer = undef;
     foreach my $i (0 .. $count - 1) {
-        $answer = $self->{directories}->[$i]->search($path_to_find);
+        $answer = $self->{directories}->[$i]->search_dir(%{$params_ref});
         if (defined $answer) {
             return $answer;
         }
     }
     
-    # If we get here, we did not find a directory.
-    return undef; 
+    # If we get here, we did not find a directory, and we're the last subset if applicable.
+    if (not $exact) {
+        $self->trace_line( 5, "Found $path as subset.\n");
+        return $self;
+    } else {
+        return undef;
+    }    
 }
 
 ########################################

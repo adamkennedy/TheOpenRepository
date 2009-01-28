@@ -24,74 +24,81 @@ superclass of that class.
 use 5.006;
 use strict;
 use warnings;
-use Carp                           qw{ croak verbose };
-use File::Spec::Functions          qw{ catdir catfile rel2abs curdir };
-use IO::File                       qw();
-use IPC::Run3                      qw();
-use Params::Util                   qw{ _STRING _IDENTIFIER _ARRAY0};
-use URI                            qw();
-use Perl::Dist::WiX::StartMenu     qw();
-use Perl::Dist::WiX::Environment   qw();
-use Perl::Dist::WiX::DirectoryTree qw();
-use Perl::Dist::WiX::FeatureTree   qw();
+use Carp                     qw( croak                         );
+use File::Spec::Functions    qw( catdir catfile rel2abs curdir );
+use IO::File                 qw();
+use IPC::Run3                qw();
+use Params::Util             qw( _STRING _IDENTIFIER _ARRAY0   );
+use URI                      qw();
+require Perl::Dist::WiX::Misc;
+require Perl::Dist::WiX::StartMenu;
+require Perl::Dist::WiX::Environment;
+require Perl::Dist::WiX::DirectoryTree;
+require Perl::Dist::WiX::FeatureTree;
 
 
-use vars qw{$VERSION};
+use vars qw{ $VERSION @ISA };
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
+    @ISA = 'Perl::Dist::WiX::Misc'
 }
 
-=pod
+=head2 Accessors
+
+    $id = $dist->bin_candle; 
+
+Accessors will return a portion of the internal state of the object.
 
 =over 4
 
-=item *
+=item * output_dir
 
-app_id, app_name, app_publisher, app_publisher_url: 
-Returns the parameter of the same 
-name passed in to L</new>
+The location where the distribution files (*.msi, *.zip) 
+will be written.
 
-=item *
+=item * source_dir
 
-default_group_name, default_item_name: Unknown as of yet.
+The location where the installation (Perl, MingW, erc.) 
+will be written on this system.
 
-=item *
+=item * fragment_dir
 
-output_dir, source_dir, fragment_dir: Unknown as of yet.
+The location where this object will write the information for WiX 
+to process to create the MSI. A default is provided if this is not 
+specified.
 
-=item *
+=item * bin_candle
 
-bin_candle, bin_light: Returns the location of candle.exe or light.exe.
+Returns the location of candle.exe
 
-=item *
+=item * bin_light
 
-directories: Returns the Perl::Dist::WiX::DirectoryTree object 
-associated with this distribution.
+Returns the location of light.exe.
 
-=item *
+=item * directories
 
-fragments: Returns a hashref containing the objects subclassed from 
-Perl::Dist::WiX::Base::Fragment associated with this distribution.
+Returns the L<Perl::Dist::WiX::DirectoryTree> object 
+associated with this distribution.  Created by L</new>
 
-=item *
+=item * fragments
 
-msi_feature_tree: Returns the parameter of the same name passed in 
+Returns a hashref containing the objects subclassed from 
+L<Perl::Dist::WiX::Base::Fragment> associated with this distribution.
+Created as the distribution's L</run> routine progresses.
+
+=item * msi_feature_tree
+
+Returns the parameter of the same name passed in 
 from L</new>. Unused as of yet.
 
-=item *
+=item * msi_product_icon_id
 
-msi_banner_top, msi_banner_side, msi_help_url, msi_license_file, 
-msi_readme_file, msi_product_icon: Returns the parameter of the 
-same name passed in from L</new>.
+Specifies the Id for the icon that is used in Add/Remove Programs for this MSI file.
 
-=item *
+=item * feature_tree_obj
 
-feature_tree_obj: Returns the Perl::Dist::WiX::FeatureTree object 
+Returns the Perl::Dist::WiX::FeatureTree object 
 associated with this distribution.
-
-=back
-
-    $id = $component->bin_candle; 
 
 =cut
 
@@ -102,7 +109,6 @@ use Object::Tiny qw{
     app_publisher
     app_publisher_url
     default_group_name
-    default_dir_name
     output_dir
     source_dir
     fragment_dir
@@ -162,9 +168,6 @@ sub new {
     unless ( _STRING($self->default_group_name) ) {
         croak("Missing or invalid default_group_name param");
     }
-    unless ( _STRING($self->default_dir_name) ) {
-        croak("Missing or invalid default_dir_name");
-    }
     unless ( _STRING($self->output_dir) ) {
         croak("Missing or invalid output_dir param");
     }
@@ -196,7 +199,8 @@ sub new {
     $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
         app_dir => $self->image_dir, 
         app_name => $self->app_name, 
-        sitename => $sitename
+        sitename => $sitename,
+        trace    => $self->{trace},
     )->initialize_tree(@{$self->{msi_directory_tree_additions}});
 
     $self->{fragments}    = {};
@@ -216,18 +220,18 @@ sub new {
     
     # Find the light.exe and candle.exe programs
     unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
-        die("Failed to find the Program Files directory\n");
+        croak("Failed to find the Program Files directory\n");
     }
     my $wix_dir  = catdir(  $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
     my $wix_file = catfile( $wix_dir,           'light.exe' );
     unless ( -f $wix_file ) {
-        die("Failed to find the WiX light.exe program");
+        croak("Failed to find the WiX light.exe program");
     }
     $self->{bin_light} = $wix_file;
 
     $wix_file = catfile( $wix_dir,           'candle.exe' );
     unless ( -f $wix_file ) {
-        die("Failed to find the WiX candle.exe program");
+        croak("Failed to find the WiX candle.exe program");
     }
     $self->{bin_candle} = $wix_file;
 
@@ -237,7 +241,7 @@ sub new {
 #####################################################################
 # Accessor methods.
 #
-# These methods are for the comvienence of the main template, or of
+# These methods are for the convienence of the main template, or of
 # the Perl::Dist::WiX class tree.
 
 sub msi_product_icon_id {
@@ -246,11 +250,23 @@ sub msi_product_icon_id {
     # TODO: Not implemented yet.
 }
 
+=item * app_ver_name
+
+Returns the application name with the version appended to it.
+
+=cut
+
 # Default the versioned name to an unversioned name
 sub app_ver_name {
     $_[0]->{app_ver_name} or
     $_[0]->app_name;
 }
+
+=item * output_base_filename
+
+Returns the base filename that is used to create distributions.
+
+=cut
 
 # Default the output filename to the id plus the current date
 sub output_base_filename {
@@ -258,17 +274,40 @@ sub output_base_filename {
     $_[0]->app_id . '-' . $_[0]->output_date_string;
 }
 
+=item * output_date_string
+
+Returns a stringified date in YYYYMMDD format for the use of other 
+routines.
+
+=cut
+
 # Convenience method
 sub output_date_string {
     my @t = localtime;
     return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
 }
 
+=item * msi_ui_type
+
+Returns the UI type that the MSI needs to use.
+
+=cut
+
 # For template
 sub msi_ui_type {
     my $self = shift;
     return (defined $self->msi_feature_tree) ? 'FeatureTree' : 'Minimal';
 }
+
+=item * msi_product_id
+
+Returns the Id for the MSI's <Product> tag.
+
+See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
+
+=back
+
+=cut
 
 # For template
 sub msi_product_id {
@@ -284,6 +323,14 @@ sub msi_product_id {
 
     return $guid;
 }
+
+=item * msi_product_id
+
+Returns the Id for the MSI's <Upgrade> tag.
+
+See http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm
+
+=cut
 
 # For template
 sub msi_upgrade_code {
@@ -304,21 +351,42 @@ sub msi_upgrade_code {
     return $guid;
 }
 
-# For template
+=item * msi_perl_version
+
+Returns the Version attribute for the MSI's <Product> tag.
+
+See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
+
+=cut
+
+# For template.
+# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
 sub msi_perl_version {
     my $self = shift;
     
+    # Ger perl version arrayref.
     my $ver = {
 		588  => [5, 8, 8],
 		589  => [5, 8, 9],
 		5100 => [5, 10, 0],
-	}->{$self->perl_version} || 0;
+	}->{$self->perl_version} || [0, 0, 0];
 
+    # Merge build number with last part of perl version.
     $ver->[2] = ($ver->[2] << 8) + $self->build_number;
     
     return join '.', @{$ver};
     
 }
+
+=item * get_component_array
+
+Returns the Version attribute for the MSI's <Product> tag.
+
+See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
+
+=back
+
+=cut
 
 sub get_component_array {
     my $self = shift;
@@ -370,16 +438,14 @@ sub write_msi {
 
     my $wixobj = catfile($self->fragment_dir, $self->app_name . q{.wixobj});
 
-    print "Compiling $filename...\n";
+    $self->trace_line(2, "Compiling $filename...\n");
     $self->compile_wxs($filename, $wixobj)
-        or die "WiX could not compile $filename";
+        or croak("WiX could not compile $filename");
 
     unless ( -f $wixobj ) {
         croak("Failed to find $wixobj (probably compilation error in $filename)");
     }
-
-
-        
+     
     my $msi_file = $self->link_msi;
     
     return $msi_file;
@@ -397,20 +463,27 @@ sub link_msi {
     my $input_wixouts = catfile(
         $self->fragment_dir, '*.wixout'
     );
+    
+    my $input_wixobj = catfile(
+        $self->fragment_dir, $self->app_name . '.wixobj'
+    );
 
     # Compile the .wixobj files"
-    print "Linking $output_msi...\n";
+    $self->trace_line( 1, "Linking $output_msi...\n");
+    my $out;
     my $cmd = [
         $self->bin_light, 
-        '-sice:47'                 # Gets rid of ICE47 warning.
-        '-out', $output_msi,       # TODO: Get rid of hard coding.
+        '-sice:47',                # Gets rid of ICE47 warning.
+        '-out', $output_msi,       # TODO: Get rid of hard coding below.
         '-ext', 'C:\\Program Files\\Windows Installer XML v3\\bin\\WixUIExtension.dll',
+        $input_wixobj,
         $input_wixouts,
     ];
-    my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
+    my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
     
     unless ( -f $output_msi ) {
-        croak("Failed to find $output_msi");
+        $self->trace_line( 0, "$out");
+        croak "Failed to find $output_msi";
     }
 
     return $output_msi;
@@ -516,7 +589,7 @@ Adds the list of files C<$files_ref> to the fragment named by C<$id>.
 sub insert_fragment {
     my ($self, $id, $files_ref) = @_;
 
-    print "Adding fragment $id...\n";
+    $self->trace_line(2, "Adding fragment $id...\n");
     
     foreach my $key (keys %{$self->{fragments}}) {
         $self->{fragments}->{$key}->check_duplicates($files_ref);
@@ -526,7 +599,8 @@ sub insert_fragment {
         Perl::Dist::WiX::Files->new(
             id => $id, 
             sitename => URI->new($self->app_publisher_url)->host,
-            directory_tree => $self->directories
+            directory_tree => $self->directories,
+            trace => $self->{trace},
         )->add_files(@{$files_ref});
 
     $self->{fragments}->{$id} = $fragment;
@@ -571,7 +645,7 @@ sub as_string {
 
 =head1 SUPPORT
 
-No support of any kind is provided for this module
+No support of any kind is provided for this module.
 
 =head1 AUTHOR
 
@@ -586,6 +660,7 @@ L<Perl::Dist>, L<Perl::Dist::Inno::Script>, L<http://ali.as/>
 =head1 COPYRIGHT
 
 Copyright 2009 Curtis Jewell
+
 Copyright 2008-2009 Adam Kennedy.
 
 This program is free software; you can redistribute

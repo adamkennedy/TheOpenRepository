@@ -46,28 +46,43 @@ use Object::Tiny qw(
 sub new {
     my $self = shift->SUPER::new(@_);
 
-    print "Creating in-memory directory tree...\n";
+    $self->trace_line( 2, "Creating in-memory directory tree...\n");
 
     $self->{root} = Perl::Dist::WiX::Directory->new(
         id => 'TARGETDIR', 
         name => 'SourceDir', 
         special => 1,
-        sitename => $self->sitename);
+        sitename => $self->sitename,
+        trace => $self->{trace});
     
     return $self;
 }
 
 ########################################
-# search($path)
-# Parameters:
-#   $path: Path to find.
+# search_dir($path)
+# Parameters: [pairs]
+#   path_to_find: Path being searched for.
+#   descend: 1 if can descend to lower levels, [default]
+#            0 if has to be on this level.
+#   exact:   1 if has to be equal, 
+#            0 if equal or subset. [default] 
 # Returns:
 #   Directory object representing $path or undef.
 
-sub search {
-    my ($self, $path, $trace) = @_;
-    
-    return $self->root->{directories}->[0]->search($path, $trace);
+sub search_dir {
+    my $self = shift;
+    my $params_ref = { @_ };
+
+    # Set defaults for parameters.
+    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
+    my $descend = $params_ref->{descend} || 1;
+    my $exact   = $params_ref->{exact}   || 0;
+        
+    return $self->root->{directories}->[0]->search_dir(
+        path_to_find => $path_to_find, 
+        descend => $descend,
+        exact => $exact,
+    );
 }
 
 ########################################
@@ -92,6 +107,8 @@ sub search {
 sub initialize_tree {
     my ($self, @dirs) = @_;
 
+    $self->trace_line( 2, "Initializing directory tree.\n");
+    
     # Create starting directories.
     my $branch = $self->root->add_directory({
         id => 'App_Root', 
