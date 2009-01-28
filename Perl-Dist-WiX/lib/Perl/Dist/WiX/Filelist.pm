@@ -14,14 +14,14 @@ package Perl::Dist::WiX::Filelist;
 use 5.008;
 use strict;
 use warnings;
-use Carp                   qw( verbose croak confess );
+use Carp                   qw( croak );
+use File::Spec::Functions  qw( catdir catfile );
+use List::MoreUtils        qw( indexes );
 use Params::Util           qw();
 use IO::Dir                qw();
 use IO::File               qw();
-use File::Spec::Functions  qw( catdir catfile );
-use List::MoreUtils        qw( indexes );
 
-use vars qw($VERSION);
+use vars qw( $VERSION );
 BEGIN {
 	$VERSION = '0.11_07';
 }

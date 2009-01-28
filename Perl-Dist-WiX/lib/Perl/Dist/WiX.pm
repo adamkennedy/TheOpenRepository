@@ -40,7 +40,6 @@ use LWP::Online 			qw();
 use PAR::Dist               qw();
 use SelectSaver             qw();
 use Template                qw();
-# use YAML                   qw();
 require Perl::Dist::WiX::Files;
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::StartMenuComponent;
@@ -52,7 +51,6 @@ require Perl::Dist::WiX::StartMenu;
 use Object::Tiny qw{
 	perl_version
 	portable
-	archlib
 	exe
 	msi
 	zip
@@ -71,8 +69,6 @@ use Object::Tiny qw{
 	bin_pexports
 	bin_dlltool
 	env_path
-	env_lib
-	env_include
 	debug_stdout
 	debug_stderr
 	output_file
@@ -84,6 +80,7 @@ use Object::Tiny qw{
     filters
     build_number
     beta_number
+    trace
 };
 
 use Perl::Dist::Asset               ();
@@ -98,9 +95,9 @@ use Perl::Dist::Asset::Website      ();
 use Perl::Dist::Asset::Launcher     ();
 use Perl::Dist::Util::Toolchain     ();
 
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
-	$VERSION = '0.11_06';
+	$VERSION = '0.11_07';
 	@ISA     = 'Perl::Dist::WiX::Installer';
 }
 
@@ -118,7 +115,7 @@ discarded.
 
 Although there are about 30 potential constructor arguments that can be
 provided, most of them are automatically resolved and exist for overloading
-puposes only, or they revert to sensible default and generally never need
+puposes only, or they revert to sensible defaults and generally never need
 to be modified.
 
 The following is an example of the most likely attributes that will be
@@ -127,13 +124,19 @@ specified.
   my $build = Perl::Dist::WiX->new(
       image_dir => 'C:\vanilla',
       temp_dir  => 'C:\tmp\vp',
-	  
+	  msi_directory_tree_additions => [ qw(
+        c\bin\program
+        perl\lib\Acme
+      )],
       cpan      => URI->new(('file://C|/minicpan/')),
   );
 
+Attributes that are required to be set are marked as I<(required)> 
+below.  They may often be set by subclasses.
+
 =over 4
 
-=item * image_dir
+=item * image_dir I<(required)>
 
 Perl::Dist::WiX distributions can only be installed to fixed paths
 as of yet.
@@ -162,6 +165,40 @@ temporary directories should be created.
 
 For convenience it is best to make these short paths with simple
 names, near the root.
+
+This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
+
+=item * force
+
+The C<force> parameter determines if perl and perl modules are 
+tested upon installation.  If this parameter is true, then no 
+testing is done.
+
+=item * trace
+
+The C<trace> parameter sets the level of tracing that is output.
+
+Setting this parameter to 0 prints out only MAJOR stuff and errors.
+
+Setting this parameter to 2 or above will print out the level as the 
+first thing on the line.
+
+Setting this parameter to 3 or above will print out the filename and 
+line number after the trace level on those lines that require a trace 
+level of 3 or above to print.
+
+Setting this parameter to 5 or above will print out the filename and 
+line number on every line.
+
+Default is 1 if not set.
+
+=item * perl_version
+
+The C<perl_version> parameter specifies what version of perl is 
+downloaded and built.  Legal values for this parameter are '588', 
+'589', and '5100' (for 5.8.8, 5.8.9, and 5.10.0, respectively.)
+
+This parameter defaults to '5100' if not specified.
 
 =item * cpan
 
@@ -197,24 +234,32 @@ be created.
 
 The optional boolean C<exe> param is deprecated.
 
-=item * app_id
+=item * checkpoint_after
+
+Stops the installation at the stage that has this number. 
+
+=item * checkpoint_before
+
+Starts a saved installation at the stage that has this number.
+
+=item * app_id I<(required)>
 
 The C<app_id> parameter provides the base identifier of the 
 distribution that is used in constructing filenames.  This 
 must be a legal Perl identifier (no spaces, for example) and 
 is required.
 
-=item * app_name
+=item * app_name I<(required)>
 
 The C<app_name> parameter provides the name of the distribution. 
 This is required.
 
-=item * app_publisher
+=item * app_publisher I<(required)>
 
 The C<app_publisher> parameter provides the publisher of the 
-distribution.  This is required.
+distribution. 
 
-=item * app_publisher_url
+=item * app_publisher_url I<(required)>
 
 The C<app_publisher_url> parameter provides the URL of the publisher 
 of the distribution.
@@ -230,7 +275,7 @@ The optional boolean C<msi_debug> parameter is used to indicate that
 a debugging MSI (one that creates a log in $ENV{TEMP}) will be created if 
 C<msi> is also true.
 
-=item * build_number
+=item * build_number I<(required)>
 
 The required integer C<build_number> parameter is used to set the build number
 portion of the distribution's version number, and is used in constructing filenames.
@@ -243,6 +288,58 @@ and is used in constructing filenames.
 
 It defaults to 0 if not set, which will construct distributions without a beta
 number.
+
+=item * msi_license_file
+
+The optional C<msi_license_file> parameter specifies the location of an 
+.rtf or .txt file to be displayed at the point where the MSI asks you 
+to accept a license.
+
+Perl::Dist::WiX provides a default one if none is supplied here.
+
+=item * msi_banner_top
+
+The optional C<msi_banner_top> parameter specifies the location of a 
+493x58 .bmp file that is  used on the top of most of the dialogs in 
+the MSI file.
+
+WiX will use its default if no file is supplied here.
+
+=item * msi_banner_side
+
+The optional C<msi_banner_side> parameter specifies the location of 
+a 493x312 .bmp file that is used in the introductory dialog in the MSI 
+file.
+
+WiX will use its default if no file is supplied here.
+
+=item * msi_help_url
+
+The optional C<msi_help_url> parameter specifies the URL that 
+Add/Remove Programs directs you to for support when you click 
+the "Click here for support information." text.
+
+=item * msi_readme_file
+
+The optional C<msi_readme_file> parameter specifies a .txt or .rtf file 
+or a URL (TODO: check) that is linked in Add/Remove Programs in the 
+"Click here for support information." text.
+
+=item * msi_product_icon
+
+The optional C<msi_product_icon> parameter specifies the icon that is 
+used in Add/Remove Programs for this MSI file.
+
+=item * msi_directory_tree_additions
+
+The optional C<msi_directory_tree_additions> parameter is a reference 
+to an array of directories under image_dir (i.e. perl\lib\Module, as 
+opposed to C:\distribution\perl\lib\module) that need to be in the 
+initial directory tree because they are used by more than one fragment.
+
+If upon running the distribution module, you see LGHT0091 or LGHT0130 
+errors at the end that refer to directories, add the applicable directories 
+to this parameter.
 
 =back
 
@@ -323,15 +420,15 @@ sub new {
 
 	# Find the core list
 	my $corelist_version = $self->perl_version_literal+0;
-	if ( $corelist_version == 5.008009 ) {
-		$corelist_version = 5.008008;
+	if (( $corelist_version == 5.008009 ) && ( $Module::Corelist::VERSION < 2.17 )) {
+		$corelist_version = 5.008008; # This allows 5.8.9 to be handled without being required to upgrade.
 	}
 	$self->{perl_version_corelist} = $Module::CoreList::version{$corelist_version};
 	unless ( _HASH($self->{perl_version_corelist}) ) {
 		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
 	}
 
-        # Apply more defaults
+    # Apply more defaults
 	unless ( defined $self->{force} ) {
 		$self->{force} = 0;
 	}
@@ -370,7 +467,6 @@ sub new {
 	$self->{exe}          = !! $self->exe;
 	$self->{zip}          = !! $self->zip;
 	$self->{msi}          = !! $self->msi;
-	$self->{archlib}      = !! $self->archlib;
 
 	# Handle portable special cases
 	if ( $self->portable ) {
@@ -482,14 +578,6 @@ sub new {
 #####################################################################
 # Upstream Binary Packages (Mirrored)
 
-=pod
-
-=head2 %PACKAGES, binary_file, binary_url
-
-Undocumented as of yet.
-
-=cut
-
 my %PACKAGES = (
 	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 	'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
@@ -522,9 +610,92 @@ sub binary_url {
 	return $self->binary_root . '/' . $file;
 }
 
-=pod
+=head2 Accessors
 
-=head2 dist_dir
+    $id = $dist->bin_candle; 
+
+Accessors will return a specified portion of the distribution state.
+
+If it can also be set as a parameter to C<new>, it is marked as I<(also C<new> parameter)> below.
+
+=head3 binary_root
+
+I<(also C<new> parameter)>
+
+The C<binary_root> accessor returns the URL (as a string, not including the 
+filename) where the distribution will be uploaded.
+
+Defaults to 'http://strawberryperl.com/package'.
+
+=head3 modules_dir
+
+I<(also C<new> parameter)>
+
+The directory where the modules for the distribution will be downloaded to. 
+
+Defaults to C<download_dir> . '\modules'.
+
+=head3 license_dir
+
+I<(also C<new> parameter)>
+
+The subdirectory of image_dir where the licenses for the different portions 
+of the distribution will be copied to. 
+
+Defaults to C<image_dir> . '\licenses'.
+
+=head3 build_dir
+
+I<(also C<new> parameter)>
+
+The directory where the source files for the distribution will be extracted 
+and built from.
+
+Defaults to C<temp_dir> . '\build'.
+
+=head3 checkpoint_dir
+
+I<(also C<new> parameter)>
+
+The directory where Perl::Dist::WiX will store its checkpoints. 
+
+Defaults to C<temp_dir> . '\checkpoint'.
+
+=head3 bin_perl, bin_make, bin_pexports, bin_dlltool
+
+The location of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
+
+These only are available (not undef) once the appropriate packages 
+are installed.
+
+=head3 env_path
+
+An arrayref storing the different directories under C<image_dir> that 
+need to be added to the PATH.
+
+=head3 debug_stdout, debug_stderr
+
+The files where STDOUT and STDERR is redirected to to receive the output of
+make and perl.
+
+Defaults to C<output_dir> . '\debug.out' and C<output_dir> . '\debug.err'
+
+=head3 perl_version_corelist
+
+A hash containing the versions of the core modules in the version of 
+perl being distributed.  Retrieved from L<Module::Corelist>.
+
+=head3 output_file
+
+The list of distributions created as an array reference.
+
+=head3 filters
+
+Provides an array reference of files and directories that will not be installed.
+
+Initialized in C<new>.
+
+=head3 dist_dir
 
 Provides a shortcut to the location of the shared files directory.
 
@@ -536,13 +707,12 @@ sub dist_dir {
 	File::ShareDir::dist_dir('Perl-Dist-WiX');
 }
 
-
 #####################################################################
 # Documentation for accessors
 
 =pod
 
-=head2 offline
+=head3 offline
 
 The B<Perl::Dist> module has limited ability to build offline, if all
 packages have already been downloaded and cached.
@@ -555,7 +725,9 @@ The C<offline> accessor returns true if no connection to "the internet"
 is available and the object will run in offline mode, or false
 otherwise.
 
-=head2 download_dir
+=head3 download_dir 
+
+I<(also C<new> parameter)>
 
 The C<download_dir> accessor returns the path to the directory that
 packages of various types will be downloaded and cached to.
@@ -563,7 +735,9 @@ packages of various types will be downloaded and cached to.
 An explicit value can be provided via a C<download_dir> param to the
 constructor. Otherwise the value is derived from C<temp_dir>.
 
-=head2 image_dir
+=head3 image_dir
+
+I<(also C<new> parameter)>
 
 The C<image_dir> accessor returns the path to the built distribution
 image. That is, the directory in which the build C/Perl code and
@@ -571,7 +745,7 @@ modules will be installed on the build server.
 
 At the present time, this is also the path to which Perl will be
 installed on the user's machine via the C<source_dir> accessor,
-which is an alias to the L<Perl::Dist::Inno::Script> method
+which is an alias to the L<Perl::Dist::WiX::Installer> method
 C<source_dir>. (although theoretically they can be different,
 this is likely to break the user's Perl install)
 
@@ -708,7 +882,7 @@ sub output_base_filename {
 
 =pod
 
-=head2 perl_version
+=head3 perl_version
 
 The C<perl_version> accessor returns the shorthand perl version
 as a string (consisting of the three-part version with dots
@@ -716,7 +890,7 @@ removed).
 
 Thus Perl 5.8.8 will be "588" and Perl 5.10.0 will return "5100".
 
-=head2 perl_version_literal
+=head3 perl_version_literal
 
 The C<perl_version_literal> method returns the literal numeric Perl
 version for the distribution.
@@ -736,7 +910,7 @@ sub perl_version_literal {
 
 =pod
 
-=head2 perl_version_human
+=head3 perl_version_human
 
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
@@ -760,7 +934,7 @@ sub prepare { 1 }
 
 =pod
 
-=head1 run
+=head2 run
 
 The C<run> method is the main method for the class.
 
@@ -825,9 +999,9 @@ sub run {
 	return 1;
 }
 
-=pod
+=head2 Routines used by C<run>
 
-=head2 install_custom
+=head3 install_custom
 
 The C<install_custom> method is an empty install stub provided
 to allow sub-classed distributions to add B<vastly> different
@@ -848,9 +1022,7 @@ sub install_custom {
 	return 1;
 }
 
-=pod
-
-=head2 install_c_toolchain
+=head3 install_c_toolchain
 
 The C<install_c_toolchain> method is used by C<run> to install various
 binary packages to provide a working C development environment.
@@ -892,11 +1064,21 @@ sub install_c_toolchain {
 	return 1;
 }
 
+=head3 install_c_libraries
+
+The C<install_c_libraries> method is an empty install stub provided
+to allow sub-classed distributions to add B<vastly> different
+additional packages on top of Strawberry Perl.
+
+Returns true, or throws an error on exception.
+
+=cut
+
 # No additional modules by default
 sub install_c_libraries {
 	my $class = shift;
 	if ( $class eq __PACKAGE__ ) {
-		$class->trace("install_c_libraries: Nothing to do\n");
+		$class->trace_line( 1, "install_c_libraries: Nothing to do\n");
 	}
 	return 1;
 }
@@ -1068,9 +1250,6 @@ sub install_win32_extras {
 		url  => 'http://win32.perl.org/',
 	);
 
-    # Add the path that's been accumulating at this point.
-    $self->add_wix_path;
-
 	return $self;
 }
 
@@ -1121,7 +1300,7 @@ sub remove_file {
 #####################################################################
 # Perl 5.8.8 Support
 
-=head2 install_perl_* (* = 588, 589, or 5100)
+=head3 install_perl_* (* = 588, 589, or 5100)
 
     $self->install_perl_5100;
 
@@ -1136,7 +1315,7 @@ Returns true, or throws an exception on error.
 
 =pod
 
-=head2 install_perl_*_bin
+=head3 install_perl_*_bin
 
   $self->install_perl_5100_bin(
       name       => 'perl',
@@ -1603,7 +1782,7 @@ sub install_perl_5100_bin {
 
 =pod
 
-=head2 install_dmake
+=head3 install_dmake
 
   $dist->install_dmake
 
@@ -1647,7 +1826,7 @@ sub install_dmake {
 
 =pod
 
-=head2 install_gcc
+=head3 install_gcc
 
   $dist->install_gcc
 
@@ -1688,7 +1867,7 @@ sub install_gcc {
 
 =pod
 
-=head2 install_binutils
+=head3 install_binutils
 
   $dist->install_binutils
 
@@ -1725,7 +1904,7 @@ sub install_binutils {
 
 =pod
 
-=head2 install_pexports
+=head3 install_pexports
 
   $dist->install_pexports
 
@@ -1764,7 +1943,7 @@ sub install_pexports {
 
 =pod
 
-=head2 install_mingw_runtime
+=head3 install_mingw_runtime
 
   $dist->install_mingw_runtime
 
@@ -1794,7 +1973,7 @@ sub install_mingw_runtime {
 
 =pod
 
-=head2 install_zlib
+=head3 install_zlib
 
   $dist->install_zlib
 
@@ -1837,7 +2016,7 @@ sub install_zlib {
 
 =pod
 
-=head2 install_win32api
+=head3 install_win32api
 
   $dist->install_win32api
 
@@ -1862,7 +2041,7 @@ sub install_win32api {
 
 =pod
 
-=head2 install_mingw_make
+=head3 install_mingw_make
 
   $dist->install_mingw_make
 
@@ -1891,7 +2070,7 @@ sub install_mingw_make {
 
 =pod
 
-=head2 install_libiconv
+=head3 install_libiconv
 
   $dist->install_libiconv
 
@@ -1936,7 +2115,7 @@ sub install_libiconv {
 
 =pod
 
-=head2 install_libxml
+=head3 install_libxml
 
   $dist->install_libxml
 
@@ -1975,7 +2154,7 @@ sub install_libxml {
 
 =pod
 
-=head2 install_expat
+=head3 install_expat
 
   $dist->install_expat
 
@@ -2005,7 +2184,7 @@ sub install_expat {
 
 =pod
 
-=head2 install_gmp
+=head3 install_gmp
 
   $dist->install_gmp
 
@@ -2031,7 +2210,7 @@ sub install_gmp {
 
 =pod
 
-=head2 install_pari
+=head3 install_pari
 
   $dist->install_pari
 
@@ -2064,13 +2243,15 @@ sub install_pari {
 
 =pod
 
-=head2 install_binary
+=head2 General installation methods
+
+=head3 install_binary
 
   $self->install_binary(
       name => 'gmp',
   );
 
-The C<install_gmp> method is used by library-specific methods to
+The C<install_binary> method is used by library-specific methods to
 install pre-compiled and un-modified tar.gz or zip archives into
 the distribution.
 
@@ -2117,6 +2298,23 @@ sub install_binary {
     
 	return $filelist;
 }
+
+=head3 install_library
+
+TODO: Fix.
+
+  $self->install_binary(
+      name => 'gmp',
+  );
+
+The C<install_binary> method is used by library-specific methods to
+install pre-compiled and un-modified tar.gz or zip archives into
+the distribution.
+
+Returns true or throws an exception on error.
+
+=cut
+
 
 sub install_library {
 	my $self    = shift;
@@ -2197,7 +2395,7 @@ sub _copy_filesref {
 
 =pod
 
-=head2 install_distribution
+=head3 install_distribution
 
   $self->install_distribution(
       name              => 'ADAMK/File-HomeDir-0.69.tar.gz,
@@ -2259,7 +2457,7 @@ sub install_distribution {
 	# Download the file
 	my $tgz = $self->_mirror( 
 		$dist->abs_uri( $self->cpan ),
-		$self->download_dir,
+		$self->modules_dir,
 	);
 
 	# Where will it get extracted to
@@ -2429,7 +2627,7 @@ sub _need_packlist {
 
 =pod
 
-=head2 install_module
+=head3 install_module
 
   $self->install_module(
       name => 'DBI',
@@ -2553,7 +2751,7 @@ END_PERL
 
 =pod
 
-=head2 install_modules
+=head3 install_modules
 
   $self->install_modules( qw{
       Foo::Bar
@@ -2581,7 +2779,7 @@ sub install_modules {
 
 =pod
 
-=head2 install_par
+=head3 install_par
 
 The C<install_par> method extends the available installation options to
 allow for the install of pre-compiled modules and pre-compiled C libraries
@@ -2665,7 +2863,7 @@ sub install_par {
 
 =pod
 
-=head2 install_file
+=head3 install_file
 
   # Overwrite the CPAN::Config
   $self->install_file(
@@ -2749,7 +2947,7 @@ sub install_file {
 
 =pod
 
-=head2 install_launcher
+=head3 install_launcher
 
   $self->install_launcher(
       name => 'CPAN Client',
@@ -2799,7 +2997,7 @@ sub install_launcher {
 
 =pod
 
-=head2 install_website
+=head3 install_website
 
   $self->install_website(
       name       => 'Strawberry Perl Website',
@@ -2868,67 +3066,7 @@ sub write {
 	if ( $self->msi ) {
 		push @{ $self->{output_file} }, $self->write_msi;
 	}
-#	if ( $self->msp ) {
-#		push @{ $self->{output_file} }, $self->write_exe;
-#	}
 	return 1;
-}
-
-=pod
-
-=head2 write_msi
-
-  $self->write_msi;
-
-The C<write_msi> method is used to generate the compiled installer
-executable. It creates the entire installation file tree, and then
-executes WiX to create the final executable.
-
-This method should only be called after all installation phases have
-been completed and all of the files for the distribution are in place.
-
-The executable file is written to the output directory, and the location
-of the file is printed to STDOUT.
-
-Returns true or throws an exception or error.
-
-=cut
-
-sub write_msi {
-	my $self = shift;
-    my $dir = $self->fragment_dir;
-    my ($fragment, $fragment_name, $fragment_string);
-    my ($filename_in, $filename_out);
-    my $fh;
-    my @files;
-
-    $self->trace_line(1, "Generating msi.\n");
-
-    foreach my $key (keys %{$self->{fragments}}) {
-        $fragment = $self->{fragments}->{$key};
-        $fragment_string = $fragment->as_string;
-        next if ((not defined $fragment_string) or ($fragment_string eq q{}));
-        $fragment_name = $fragment->id;
-        $filename_in = catfile($dir, $fragment_name . q{.wxs});
-        $filename_out = catfile($dir, $fragment_name . q{.wixout});
-        $fh = IO::File->new($filename_in, 'w');
-        if (not defined $fh) {
-            croak "Could not open file $filename_in for writing [$!] [$^E]";
-        }
-        $fh->print($fragment_string);
-        $fh->close;
-        $self->trace_line(2, "Compiling $filename_in...\n");
-        $self->compile_wxs($filename_in, $filename_out) 
-            or croak "WiX could not compile $filename_in";
-        
-        unless ( -f $filename_out ) {
-            croak("Failed to find $filename_out (probably compilation error in $filename_in)");
-        }
-            
-        push @files, $filename_out;
-    }
-    
-    return $self->SUPER::write_msi(@files);
 }
 
 =pod
@@ -3000,31 +3138,6 @@ sub add_icon {
     return $self;
 }
 
-#####################################################################
-# Adding Inno-Setup Information
-
-=pod
-
-sub add_system {
-	my $self   = shift;
-	my %params = @_;
-	unless ( $params{filename} =~ /^\{/ ) {
-		$params{filename} = "{app}\\$params{filename}";
-	}
-	$self->SUPER::add_system(%params);
-}
-
-sub add_run {
-	my $self   = shift;
-	my %params = @_;
-	unless ( $params{filename} =~ /^\{/ ) {
-		$params{filename} = "{app}\\$params{filename}";
-	}
-	$self->SUPER::add_run(%params);
-}
-
-=cut
-
 sub add_env_path {
 	my $self = shift;
 	my @path = @_;
@@ -3040,39 +3153,6 @@ sub get_env_path {
 	my $self = shift;
 	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_path};
 }
-
-sub add_env_lib {
-	my $self = shift;
-	my @path = @_;
-	my $dir = catdir( $self->image_dir, @path);
-	unless ( -d $dir ) {
-		croak("INC directory $dir does not exist");
-	}
-	push @{$self->{env_lib}}, [ @path ];
-	return 1;
-}
-
-sub get_env_lib {
-	my $self = shift;
-	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_lib};
-}
-
-sub add_env_include {
-	my $self = shift;
-	my @path = @_;
-	my $dir = catdir($self->image_dir, @path);
-	unless ( -d $dir ) {
-		croak("PATH directory $dir does not exist");
-	}
-	push @{$self->{env_include}}, [ @path ];
-	return 1;
-}
-
-sub get_env_include {
-	my $self = shift;
-	return join ';', map { catdir( $self->image_dir, @$_ ) } @{$self->env_include};
-}
-
 
 #####################################################################
 # Patch Support
@@ -3347,7 +3427,7 @@ sub _run3 {
 	# Reset the environment
 	local $ENV{LIB}      = undef;
 	local $ENV{INCLUDE}  = undef;
-	local $ENV{PERL5LIB} = undef;
+	local $ENV{PERL5LIB} = undef;  # TODO: Get rid of hardcoding.
 #	local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
 	local $ENV{PATH}     = 'C:\\blueberry\\c\\bin;C:\\blueberry\\perl\\bin' . ';' . join( ';', @keep );
 
@@ -3585,7 +3665,9 @@ L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell. Copyright 2008-2009 Adam Kennedy.
+Copyright 2009 Curtis Jewell.
+
+Copyright 2008-2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

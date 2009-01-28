@@ -19,9 +19,9 @@ require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Base::Entry;
 require Perl::Dist::WiX::Misc;
 
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = qw (Perl::Dist::WiX::Base::Component
                Perl::Dist::WiX::Base::Entry
                Perl::Dist::WiX::Misc

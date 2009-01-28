@@ -1,5 +1,11 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.11_07 Tue 27 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+    1. Documentation completed.
+    2. Trace now has 6 (0-5) levels.
+    3. Directory creation simplified. (hopefully bug-free)
+    4. Still no .msi yet.
+
 0.11_06 Wed 21 Jan 2009 Curtis Jewell <csjewell@cpan.org>
     1. Moved Feature.pm up one level, created FeatureTree.pm.   
     2. Spelling, a little documentation, bug fixes, tests.

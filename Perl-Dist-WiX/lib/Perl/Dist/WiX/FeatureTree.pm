@@ -19,7 +19,7 @@ use Scalar::Util   qw( weaken                );
 require Perl::Dist::WiX::Feature;
 require Perl::Dist::WiX::Misc;
 
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';

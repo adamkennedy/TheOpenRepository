@@ -16,12 +16,12 @@ package Perl::Dist::WiX::Misc;
 
 use 5.006;
 use strict;
-use warnings FATAL => qw(all);
+use warnings;
 use Carp                  qw( croak verbose confess       );
 use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
 use File::Spec::Functions qw( splitpath splitdir          );
 
-use vars qw{$VERSION};
+use vars qw( $VERSION );
 BEGIN {
     $VERSION = '0.11_07';
 }

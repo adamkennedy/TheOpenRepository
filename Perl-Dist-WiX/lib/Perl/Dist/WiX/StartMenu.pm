@@ -14,14 +14,14 @@ package Perl::Dist::WiX::StartMenu;
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw{ croak               };
-use Params::Util                      qw{ _IDENTIFIER _STRING };
-use Data::UUID                        qw{ NameSpace_DNS       };
-use Perl::Dist::WiX::Base::Fragment   qw{};
+use Carp            qw( croak               );
+use Params::Util    qw( _IDENTIFIER _STRING );
+use Data::UUID      qw( NameSpace_DNS       );
+require Perl::Dist::WiX::Base::Fragment;
 
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 

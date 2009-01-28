@@ -13,7 +13,7 @@ package, generate .wxs files, or are otherwise WiX specific.
 
 =head1 METHODS
 
-All public methods are listed in L<Perl::Dist::WiX>, since this is a 
+Many public methods are listed in L<Perl::Dist::WiX>, since this is a 
 superclass of that class.
 
 =cut
@@ -26,9 +26,10 @@ use strict;
 use warnings;
 use Carp                     qw( croak                         );
 use File::Spec::Functions    qw( catdir catfile rel2abs curdir );
+use Params::Util             qw( _STRING _IDENTIFIER _ARRAY0   );
+use Data::UUID               qw( NameSpace_DNS                 );
 use IO::File                 qw();
 use IPC::Run3                qw();
-use Params::Util             qw( _STRING _IDENTIFIER _ARRAY0   );
 use URI                      qw();
 require Perl::Dist::WiX::Misc;
 require Perl::Dist::WiX::StartMenu;
@@ -37,7 +38,7 @@ require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::FeatureTree;
 
 
-use vars qw{ $VERSION @ISA };
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc'
@@ -58,8 +59,8 @@ will be written.
 
 =item * source_dir
 
-The location where the installation (Perl, MingW, erc.) 
-will be written on this system.
+See the L<image_dir|Perl::Dist::WiX/image_dir> accessor in 
+L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
 =item * fragment_dir
 
@@ -101,7 +102,6 @@ Returns the Perl::Dist::WiX::FeatureTree object
 associated with this distribution.
 
 =cut
-
 
 use Object::Tiny qw{
     app_id
@@ -303,9 +303,7 @@ sub msi_ui_type {
 
 Returns the Id for the MSI's <Product> tag.
 
-See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
-
-=back
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
 
 =cut
 
@@ -328,7 +326,7 @@ sub msi_product_id {
 
 Returns the Id for the MSI's <Upgrade> tag.
 
-See http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm>
 
 =cut
 
@@ -355,7 +353,7 @@ sub msi_upgrade_code {
 
 Returns the Version attribute for the MSI's <Product> tag.
 
-See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
 
 =cut
 
@@ -380,9 +378,10 @@ sub msi_perl_version {
 
 =item * get_component_array
 
-Returns the Version attribute for the MSI's <Product> tag.
+Returns the array of <Component Id>'s required.
 
-See http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm>, 
+L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
 
 =back
 
@@ -402,10 +401,30 @@ sub get_component_array {
 #####################################################################
 # Main Methods
 
+=head2 compile_wxs($filename, $wixobj)
+
+Compiles a .wxs file (specified by $filename) into a .wixobj file 
+(specified by $wixobj.)  Both parameters are required.
+
+    $self = $self->compile_wxs("Perl.wxs", "Perl.wixobj");
+
+=cut
+
 sub compile_wxs {
     my ($self, $filename, $wixobj) = @_;
     my @files = @_;
-    
+
+    # Check parameters.
+    unless (_STRING($filename)) {
+        croak "Invalid or missing filename parameter";
+    }    
+    unless (_STRING($wixobj)) {
+        croak "Invalid or missing wixobj parameter";
+    }
+    unless (-r $filename) {
+        croak "$filename does not exist or is not readable";
+    }    
+
     # Compile the .wxs file
     my $cmd = [
         $self->bin_candle,
@@ -418,10 +437,68 @@ sub compile_wxs {
     return $rv;
 }
 
+=pod
+
+=head2 write_msi
+
+  $self->write_msi;
+
+The C<write_msi> method is used to generate the compiled installer
+executable. It creates the entire installation file tree, and then
+executes WiX to create the final executable.
+
+This method should only be called after all installation phases have
+been completed and all of the files for the distribution are in place.
+
+The executable file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
 sub write_msi {
     my $self = shift;
-    my @files = @_;
 
+    my $dir = $self->fragment_dir;
+    my ($fragment, $fragment_name, $fragment_string);
+    my ($filename_in, $filename_out);
+    my $fh;
+    my @files;
+
+    $self->trace_line(1, "Generating msi.\n");
+
+    # Add the path in.
+    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', $_ ) } @{$self->env_path}) {
+        $self->add_env('PATH', $value, 1);
+    }
+
+    # Write out .wxs files for all the fragments and compile them.
+    foreach my $key (keys %{$self->{fragments}}) {
+        $fragment = $self->{fragments}->{$key};
+        $fragment_string = $fragment->as_string;
+        next if ((not defined $fragment_string) or ($fragment_string eq q{}));
+        $fragment_name = $fragment->id;
+        $filename_in = catfile($dir, $fragment_name . q{.wxs});
+        $filename_out = catfile($dir, $fragment_name . q{.wixout});
+        $fh = IO::File->new($filename_in, 'w');
+        if (not defined $fh) {
+            croak "Could not open file $filename_in for writing [$!] [$^E]";
+        }
+        $fh->print($fragment_string);
+        $fh->close;
+        $self->trace_line(2, "Compiling $filename_in...\n");
+        $self->compile_wxs($filename_in, $filename_out) 
+            or croak "WiX could not compile $filename_in";
+        
+        unless ( -f $filename_out ) {
+            croak("Failed to find $filename_out (probably compilation error in $filename_in)");
+        }
+            
+        push @files, $filename_out;
+    }
+
+    # Generate feature tree.
     $self->{feature_tree_obj} = Perl::Dist::WiX::FeatureTree->new(
         parent => $self
     );
@@ -431,44 +508,38 @@ sub write_msi {
     $content =~ s{\r\n}{\n}g;     # CRLF -> LF
     $content =~ s{\n[ \t]*?\n[ \t]*?\n}{\n\n}g;   # Convert triple-spacing with horizontal
                                                   # whitespace to double-spacing...
-    my $filename = catfile($self->fragment_dir, $self->app_name . q{.wxs});
-    my $fh = IO::File->new($filename, 'w');
+    $filename_in = catfile($self->fragment_dir, $self->app_name . q{.wxs});
+    $filename_out = catfile($self->fragment_dir, $self->app_name . q{.wixobj});
+    $fh = IO::File->new($filename_in, 'w');
+    if (not defined $fh) {
+        croak "Could not open file $filename_in for writing [$!] [$^E]";
+    }
     $fh->print($content);
     $fh->close;
 
-    my $wixobj = catfile($self->fragment_dir, $self->app_name . q{.wixobj});
-
-    $self->trace_line(2, "Compiling $filename...\n");
-    $self->compile_wxs($filename, $wixobj)
-        or croak("WiX could not compile $filename");
-
-    unless ( -f $wixobj ) {
-        croak("Failed to find $wixobj (probably compilation error in $filename)");
+    # Compile the main .wxs
+    $self->trace_line(2, "Compiling $filename_in...\n");
+    $self->compile_wxs($filename_in, $filename_out)
+        or croak("WiX could not compile $filename_in");
+    unless ( -f $filename_out ) {
+        croak("Failed to find $filename_out (probably compilation error in $filename_in)");
     }
-     
-    my $msi_file = $self->link_msi;
+
+# Start linking the msi.
     
-    return $msi_file;
-}
-
-sub link_msi {
-    my ($self) = @_;
-
-    # Get the name of the msi file to generate
+    # Get the parameters for the msi linking.
     my $output_msi = catfile(
         $self->output_dir,
         $self->output_base_filename . '.msi',
     );
-    
     my $input_wixouts = catfile(
         $self->fragment_dir, '*.wixout'
     );
-    
     my $input_wixobj = catfile(
         $self->fragment_dir, $self->app_name . '.wixobj'
     );
 
-    # Compile the .wixobj files"
+    # Link the .wixobj files
     $self->trace_line( 1, "Linking $output_msi...\n");
     my $out;
     my $cmd = [
@@ -481,35 +552,16 @@ sub link_msi {
     ];
     my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
     
+    # Did everything get done correctly?
     unless ( -f $output_msi ) {
-        $self->trace_line( 0, "$out");
+        $self->trace_line( 0, $out);
         croak "Failed to find $output_msi";
     }
 
     return $output_msi;
 }
 
-=head2 add_wix_path
-
-Creates entries (adds them to the Reg_Environment fragment) to add 
-the accumulated path, lib or include entries to the environment 
-upon installation. 
-
-    $self = $self->add_wix_path;
-
-=cut
-
-sub add_wix_path {
-	my $self = shift;
-
-    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', $_ ) } @{$self->env_path}) {
-        $self->add_env('PATH', $value, 1);
-    }
-
-    return $self;
-}
-
-=head2 add_env($name, $value[, $append])
+=head2 add_env($name, $value I<[, $append]>)
 
 Adds the contents of $value to the environment variable $name 
 (or appends to it, if $append is true) upon installation (by 
@@ -583,8 +635,11 @@ sub add_file {
 
 Adds the list of files C<$files_ref> to the fragment named by C<$id>.
 
-=cut
+The fragment is created by this routine, so this can only be done once.
 
+This B<MUST> be done for each set of files to be installed in an MSI.
+
+=cut
 
 sub insert_fragment {
     my ($self, $id, $files_ref) = @_;
@@ -607,8 +662,6 @@ sub insert_fragment {
     
     return $fragment;
 }
-
-
 
 #####################################################################
 # Serialization
@@ -659,7 +712,7 @@ L<Perl::Dist>, L<Perl::Dist::Inno::Script>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell
+Copyright 2009 Curtis Jewell.
 
 Copyright 2008-2009 Adam Kennedy.
 

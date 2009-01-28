@@ -17,7 +17,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use vars qw{$VERSION};
+use vars qw( $VERSION );
 BEGIN {
     $VERSION = '0.11_07';
 }

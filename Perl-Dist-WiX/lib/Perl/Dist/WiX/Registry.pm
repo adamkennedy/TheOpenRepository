@@ -20,9 +20,9 @@ require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Registry::Key;
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw{ $VERSION @ISA };
+use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 

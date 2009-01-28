@@ -16,11 +16,11 @@ package Perl::Dist::WiX::Base::Fragment;
 use 5.006;
 use strict;
 use warnings;
-use Carp                  qw( croak             );
-use Params::Util          qw( _CLASSISA _STRING );
+use Carp              qw( croak             );
+use Params::Util      qw( _CLASSISA _STRING );
 require Perl::Dist::WiX::Misc;
 
-use vars qw($VERSION @ISA);
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';

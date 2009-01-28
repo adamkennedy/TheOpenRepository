@@ -19,7 +19,7 @@ use Data::UUID      qw( NameSpace_DNS );
 require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Files::Entry;
                     
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_06';
     @ISA = 'Perl::Dist::WiX::Base::Component';

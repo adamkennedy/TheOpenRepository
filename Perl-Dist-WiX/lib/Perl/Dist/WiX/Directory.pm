@@ -13,23 +13,23 @@ package Perl::Dist::WiX::Directory;
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw{ croak confess    };
+use Carp                              qw( croak confess    );
 use Params::Util                      
-        qw{ _IDENTIFIER _STRING _NONNEGINT _INSTANCE       };
-use Data::UUID                        qw{ NameSpace_DNS    };
-use File::Spec                        qw{};
-use Perl::Dist::WiX::Base::Component  qw{};
-use Perl::Dist::WiX::Base::Entry      qw{};
-use Perl::Dist::WiX::Files::Component qw{};
-use Perl::Dist::WiX::Misc             qw{};
+        qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE       );
+use Data::UUID                        qw( NameSpace_DNS    );
+use File::Spec                        qw();
+require Perl::Dist::WiX::Base::Component;
+require Perl::Dist::WiX::Base::Entry;
+require Perl::Dist::WiX::Files::Component;
+require Perl::Dist::WiX::Misc;
 
-use vars qw{$VERSION @ISA};
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
-    @ISA = qw (Perl::Dist::WiX::Base::Component
-               Perl::Dist::WiX::Base::Entry
-               Perl::Dist::WiX::Misc
-              );
+    @ISA = qw(Perl::Dist::WiX::Base::Component
+              Perl::Dist::WiX::Base::Entry
+              Perl::Dist::WiX::Misc
+             );
 }
 
 #####################################################################

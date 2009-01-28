@@ -25,7 +25,7 @@ require Perl::Dist::WiX::Files::DirectoryRef;
 use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.11_07';
-    @ISA = qw (
+    @ISA = qw(
         Perl::Dist::WiX::Base::Fragment
         Perl::Dist::WiX::Misc
     );
@@ -202,6 +202,11 @@ sub add_file {
         $self->trace_line( 5, "  Adding file $file.\n");
         
         # Create the directory objects and add the file.
+        $directory_ref_obj = Perl::Dist::WiX::Files::DirectoryRef->new(
+            sitename => $self->sitename,
+            directory_object => $directory_obj
+        );
+        $self->add_component($directory_ref_obj);
         $directory_obj = $directory_ref_obj->add_directory_path($path);
         $file_obj = $directory_obj->add_file(
             sitename => $self->sitename, 
@@ -216,7 +221,7 @@ sub add_file {
         $self->trace_line( 5, "  Adding file $file.\n");
         
         # Create the directory objects and add the file.
-        $directory_obj = $directory_obj->add_directory_path($path);
+        $directory_obj = $directory_ref_obj->add_directory_path($path);
         $file_obj = $directory_obj->add_file(
             sitename => $self->sitename, 
             filename => $file,

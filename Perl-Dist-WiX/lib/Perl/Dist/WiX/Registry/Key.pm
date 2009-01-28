@@ -18,9 +18,9 @@ use Params::Util       qw( _IDENTIFIER _STRING );
 require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw($VERSION @ISA);
+use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 

@@ -19,7 +19,7 @@ use Params::Util     qw( _IDENTIFIER _STRING );
 require Perl::Dist::WiX::Directory;
 require Perl::Dist::WiX::Misc;
 
-use vars qw($VERSION @ISA);
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc'

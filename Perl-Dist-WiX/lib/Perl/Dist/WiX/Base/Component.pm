@@ -16,12 +16,12 @@ package Perl::Dist::WiX::Base::Component;
 use 5.006;
 use strict;
 use warnings;
-use Carp                  qw( croak                        );
-use Params::Util          qw( _CLASSISA _STRING _NONNEGINT );
-use Data::UUID            qw( NameSpace_DNS                );
+use Carp              qw( croak                        );
+use Params::Util      qw( _CLASSISA _STRING _NONNEGINT );
+use Data::UUID        qw( NameSpace_DNS                );
 require Perl::Dist::WiX::Misc;
 
-use vars qw($VERSION @ISA);
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';

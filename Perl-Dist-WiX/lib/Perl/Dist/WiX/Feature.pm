@@ -13,11 +13,11 @@ package Perl::Dist::WiX::Feature;
 use 5.006;
 use strict;
 use warnings;
-use Carp                        qw( croak verbose                );
-use Params::Util                qw( _CLASSISA _STRING _NONNEGINT );
+use Carp            qw( croak verbose                );
+use Params::Util    qw( _CLASSISA _STRING _NONNEGINT );
 require Perl::Dist::WiX::Misc;
 
-use vars qw{ $VERSION @ISA };
+use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
     @ISA = 'Perl::Dist::WiX::Misc';
