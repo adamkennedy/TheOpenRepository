@@ -29,6 +29,10 @@ ok( defined $key_1,
 isa_ok( $key_1, 'Perl::Dist::WiX::Registry::Key');
 isa_ok( $key_1, 'Perl::Dist::WiX::Base::Component');
 
+is( $key_1->as_string,
+    q{},
+    'testing as_string with empty key');
+
     
 $key_1->add_registry_entry('TEST', 'test string', 'test', 'expandable');
 
@@ -52,11 +56,6 @@ is( $key_1->is_key('HKCU', 'SYSTEM\CurrentControlSet\Control\Session Manager\Env
     0,
     'Testing non-existence of an entry' );
 
-my $key_2 = Perl::Dist::WiX::Registry::Key->add_environment(
-    sitename  => 'ttt.test.invalid',
-);
-
-is( $key_2->as_string,
-    q{},
-    'testing as_string with empty key');
-    
+#my $key_2 = Perl::Dist::WiX::Registry::Key->add_environment(
+#    sitename  => 'ttt.test.invalid',
+#);    

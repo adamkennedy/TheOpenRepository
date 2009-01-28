@@ -483,8 +483,9 @@ sub as_string {
         $string .= $self->{files}->[$i]->as_string;
     }
 
-    # Short circuit...
+    # Short circuits...
     if (($string eq q{}) and ($self->special == 0) and ($tree == 0)) { return q{}; }
+    if (($string eq q{}) and ($self->id eq 'TARGETDIR')) { return q{}; }
     
     # Now make our own string, and put what we've already got within it. 
     if ((defined $string) && ($string ne q{})) {

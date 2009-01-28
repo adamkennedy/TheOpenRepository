@@ -240,7 +240,10 @@ sub initialize_tree {
 
 sub as_string {
     my $self = shift;
-    return $self->indent(4, $self->root->as_string(1));
+    
+    my $string = $self->root->as_string(1);
+    
+    return $string ne q{} ? $self->indent(4, $string) : q{};
 }
 
 1;

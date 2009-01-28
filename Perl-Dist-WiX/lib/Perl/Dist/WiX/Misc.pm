@@ -92,10 +92,17 @@ sub indent {
 sub trace_line {
     my ($self, $tracelevel, $text, $no_display) = @_;
 
+    # Check parameters and object state.
     unless ( defined _NONNEGINT($tracelevel) ) {
         croak("Missing or invalid tracelevel");
     }
-
+    unless ( defined _NONNEGINT($self->{trace}) ) {
+        croak("Inconsistent trace state");
+    }
+    unless ( defined _STRING($text) ) {
+        croak("Missing or invalid text");
+    }
+        
     $no_display = 0 unless defined $no_display;
     
     return $self if (not defined $self->{trace});
@@ -112,7 +119,7 @@ sub trace_line {
                 my (undef, $path, $file) = splitpath($filespec);
                 my @dirs = splitdir($path);
                 pop @dirs if ((not defined $dirs[-1]) or ($dirs[-1] eq q{}));
-                $file = $dirs[-1] . '\\' . $file if ($dirs[-2] eq 'WiX'); 
+                $file = $dirs[-1] . '\\' . $file if ((defined $dirs[-2]) and ($dirs[-2] eq 'WiX')); 
                 $start .= "[$file $line] ";
             }
             $text =~ s{\n}              # Replace a newline that isn't at the end-of-string
