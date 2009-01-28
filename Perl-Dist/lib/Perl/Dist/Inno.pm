@@ -1310,9 +1310,9 @@ sub install_perl_589 {
 			lib/CPAN/Config.pm
 		} ],
 		license    => {
-			'perl-5.8.9-RC1/Readme'   => 'perl/Readme',
-			'perl-5.8.9-RC1/Artistic' => 'perl/Artistic',
-			'perl-5.8.9-RC1/Copying'  => 'perl/Copying',
+			'perl-5.8.9/Readme'   => 'perl/Readme',
+			'perl-5.8.9/Artistic' => 'perl/Artistic',
+			'perl-5.8.9/Copying'  => 'perl/Copying',
 		},
 	);
 
@@ -1356,7 +1356,7 @@ sub install_perl_589_bin {
 	if ( $patch ) {
 		# Overwrite the appropriate files
 		foreach my $file ( @$patch ) {
-			$self->patch_file( "perl-5.8.9-RC1/$file" => $unpack_to );
+			$self->patch_file( "perl-5.8.9/$file" => $unpack_to );
 		}
 	}
 
@@ -1376,7 +1376,7 @@ sub install_perl_589_bin {
 		my ($INST_DRV) = File::Spec->splitpath( $INST_TOP, 1 );
 
 		$self->trace("Patching makefile.mk\n");
-		$self->patch_file( 'perl-5.8.9-RC1/win32/makefile.mk' => $unpack_to, {
+		$self->patch_file( 'perl-5.8.9/win32/makefile.mk' => $unpack_to, {
 			dist     => $self,
 			INST_DRV => $INST_DRV,
 			INST_TOP => $INST_TOP,
