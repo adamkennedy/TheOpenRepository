@@ -1,5 +1,9 @@
 Revision history for Perl module Perl-Dist
 
+1.12 Thu 29 Jan 2009
+	- This release co-incides with Strawberry Perl January 2009
+	- Various minor tweaks
+
 1.11 Thu  4 Dec 2008
 	- This release represents a moment of stability at 5.10.0.4 Beta 1
 	- Adding an improved caching useragent

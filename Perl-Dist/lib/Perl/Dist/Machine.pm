@@ -30,7 +30,7 @@ use File::HomeDir ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 }
 
 use Object::Tiny qw{
