@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- $Rev$ $Date$ -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id='[% dist.msi_product_id %]'
     Language='1033'

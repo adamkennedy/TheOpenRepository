@@ -137,7 +137,7 @@ sub add_file {
     if (defined $directory_obj) {
         # Make a DirectoryRef, and attach it.
         $subpath = $directory_obj->path;
-        $self->trace_line( 4, " Stage 2b - Creating DirectoryRef at $subpath.\n");
+        $self->trace_line( 4, " Stage 2 - Creating DirectoryRef at $subpath.\n");
         $directory_ref_obj = Perl::Dist::WiX::Files::DirectoryRef->new(
             sitename => $self->sitename,
             directory_object => $directory_obj
@@ -174,19 +174,19 @@ sub add_file {
     my $use = -1;
     
     # Determine which one of these 2 to use
-    # $use = 0 means use $directory_obj, $use = $1 means use $directory_ref_obj.
+    # $use = 1 means use $directory_obj, $use = 0 means use $directory_ref_obj.
     if (not defined $directory_obj) {
         if (not defined $directory_ref_obj) {
             $use = -1;
         } else {
-            $use = 1;
+            $use = 0;
         }
     } else {
         if (not defined $directory_ref_obj) {
-            $use = 0
+            $use = 1
         } else {
             if ($directory_obj->path eq $directory_ref_obj->path) {
-                $use = 1; # Use directory_ref if the paths found are equal.
+                $use = 0; # Use directory_ref if the paths found are equal.
             } else {
                 $use = $directory_obj->is_child_of($directory_ref_obj);
             }
@@ -194,7 +194,7 @@ sub add_file {
     }
 
     # Now use the one that's "lower" in the directory tree.
-    if ($use == 1) {
+    if ($use == 0) {
         # Using $directory_ref_obj [from this object]
         $subpath = $directory_ref_obj->path;
         $self->trace_line( 5, "Stage 3a - Creating Directory within Directory{Ref} for $subpath.\n");
@@ -208,7 +208,7 @@ sub add_file {
             filename => $file,
         );
         return $file_obj;
-    } elsif ($use == 0) {
+    } elsif ($use == 1) {
         # Using $directory_obj [from DirectoryTree object]
         $subpath = $directory_obj->path;
         $self->trace_line( 5, "Stage 3b - Creating Directory within Directory for $subpath.\n");

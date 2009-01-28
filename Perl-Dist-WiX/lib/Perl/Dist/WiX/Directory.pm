@@ -13,9 +13,9 @@ package Perl::Dist::WiX::Directory;
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw( croak confess    );
+use Carp                              qw( croak            );
 use Params::Util                      
-        qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE       );
+        qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH );
 use Data::UUID                        qw( NameSpace_DNS    );
 use File::Spec                        qw();
 require Perl::Dist::WiX::Base::Component;
@@ -108,8 +108,7 @@ sub search_dir {
     
     $self->trace_line( 3, "Looking for $path_to_find\n");
     $self->trace_line( 4, "  in:      $path.\n");
-    $self->trace_line( 5, "  descend: $descend.\n");
-    $self->trace_line( 5, "  exact:   $exact.\n");
+    $self->trace_line( 5, "  descend: $descend exact: $exact.\n");
     
     # If we're at the correct path, exit with success!
     if ((defined $path) && ($path_to_find eq $path)) {
@@ -125,8 +124,7 @@ sub search_dir {
     # Do we want to continue searching down this direction?
     my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
     if (not $subset) {
-        $self->trace_line(4, "Not a subset\n");
-        $self->trace_line(4, "  in: $path.\n");
+        $self->trace_line(4, "Not a subset in: $path.\n");
         $self->trace_line(5, "  To find: $path_to_find.\n");
         return undef;
     }
@@ -136,7 +134,7 @@ sub search_dir {
     my $answer;
     $self->trace_line(4, "Number of directories to search: $count\n");
     foreach my $i (0 .. $count - 1) {
-        $self->trace_line(5, "Searching directory #$i\n");
+        $self->trace_line(5, "Searching directory #$i in $path\n");
         $answer = $self->{directories}->[$i]->search_dir(%{$params_ref});
         if (defined $answer) {
             return $answer;
@@ -315,6 +313,10 @@ sub add_directory_path {
 sub add_directory {
     my ($self, $params_ref) = @_;
     
+    unless (_HASH($params_ref)) {
+        croak('Parameters not passed in hash reference'); 
+    }
+    
     # This way we don't need to pass in the sitename or the trace.
     $params_ref->{sitename} = $self->sitename;
     $params_ref->{trace} = $self->{trace};
@@ -375,9 +377,12 @@ sub is_child_of {
     my $path_to_check = $directory_obj->path;
     my $path = $self->path;
     if (not defined $path_to_check) {
+        $self->trace_line(5, "Is Child Of: Answer: No path detected (0)\n");
         return 0;
     }
-    return ("$path\\" =~ m{\A\Q$path_to_check\E\\})
+    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\} ? 1 : 0;
+    $self->trace_line(5, "Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n");
+    return $answer;
 }
 
 ########################################

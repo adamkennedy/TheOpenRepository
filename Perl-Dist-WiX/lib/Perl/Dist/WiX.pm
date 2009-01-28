@@ -1257,8 +1257,8 @@ sub install_win32_extras {
 sub remove_waste {
 	my $self = shift;
 
-	$self->trace_line( 1, "Removing waste...\n");
-	$self->trace_line( 2, "Removing doc, man, info and html documentation...\n");
+	$self->trace_line( 1, "Removing waste\n");
+	$self->trace_line( 2, "  Removing doc, man, info and html documentation\n");
 	$self->remove_dir(qw{ perl man       });
 	$self->remove_dir(qw{ perl html      });
 	$self->remove_dir(qw{ c    man       });
@@ -1267,15 +1267,15 @@ sub remove_waste {
 	$self->remove_dir(qw{ c    contrib   });
 	$self->remove_dir(qw{ c    html      });
 
-	$self->trace_line( 2, "Removing C examples, manifests...\n");
+	$self->trace_line( 2, "  Removing C examples, manifests\n");
 	$self->remove_dir(qw{ c    examples  });
 	$self->remove_dir(qw{ c    manifest  });
 
-	$self->trace_line( 2, "Removing redundant license files...\n");
+	$self->trace_line( 2, "  Removing redundant license files\n");
 	$self->remove_file(qw{ c COPYING     });
 	$self->remove_file(qw{ c COPYING.LIB });
 
-	$self->trace_line( 2, "Removing CPAN build directories and download caches...\n");
+	$self->trace_line( 2, "  Removing CPAN build directories and download caches\n");
 	$self->remove_dir(qw{ cpan sources  });
 	$self->remove_dir(qw{ cpan build    });
 

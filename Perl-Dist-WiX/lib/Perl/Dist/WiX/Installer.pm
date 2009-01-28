@@ -466,7 +466,7 @@ sub write_msi {
     my $fh;
     my @files;
 
-    $self->trace_line(1, "Generating msi.\n");
+    $self->trace_line(1, "Generating msi\n");
 
     # Add the path in.
     foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', $_ ) } @{$self->env_path}) {
@@ -487,7 +487,7 @@ sub write_msi {
         }
         $fh->print($fragment_string);
         $fh->close;
-        $self->trace_line(2, "Compiling $filename_in...\n");
+        $self->trace_line(2, "Compiling $filename_in\n");
         $self->compile_wxs($filename_in, $filename_out) 
             or croak "WiX could not compile $filename_in";
         
@@ -518,7 +518,7 @@ sub write_msi {
     $fh->close;
 
     # Compile the main .wxs
-    $self->trace_line(2, "Compiling $filename_in...\n");
+    $self->trace_line(2, "Compiling $filename_in\n");
     $self->compile_wxs($filename_in, $filename_out)
         or croak("WiX could not compile $filename_in");
     unless ( -f $filename_out ) {
@@ -540,7 +540,7 @@ sub write_msi {
     );
 
     # Link the .wixobj files
-    $self->trace_line( 1, "Linking $output_msi...\n");
+    $self->trace_line( 1, "Linking $output_msi\n");
     my $out;
     my $cmd = [
         $self->bin_light, 

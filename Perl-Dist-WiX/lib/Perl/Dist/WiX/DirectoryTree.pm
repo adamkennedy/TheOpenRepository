@@ -192,11 +192,16 @@ sub initialize_tree {
         perl\lib\auto
         perl\lib\auto\Compress
         perl\lib\auto\Cwd
+        perl\lib\auto\Devel
         perl\lib\auto\Digest
         perl\lib\auto\Digest\MD5
+        perl\lib\auto\Encode
         perl\lib\auto\Math
         perl\lib\auto\Math\BigInt
         perl\lib\auto\Math\BigInt\FastCalc
+        perl\lib\auto\PerlIO
+        perl\lib\auto\POSIX
+        perl\lib\auto\Time
         perl\lib\auto\share
         perl\site
         perl\site\lib
