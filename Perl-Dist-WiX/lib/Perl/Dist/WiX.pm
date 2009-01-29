@@ -355,8 +355,8 @@ sub new {
 	# Apply some defaults
 	unless ( defined $params{trace} ) {
 		$params{trace} = 1;
-	}
-
+	} 
+    
     # Announce that we're staring. 
     my $time = localtime;
     if ($params{trace} > 1) { print '[0] '; }
@@ -538,13 +538,13 @@ sub new {
 	}
 
 	# More details on the tracing
-	if ( $self->{trace} ) {
-		$self->{stdout} = undef;
-		$self->{stderr} = undef;
-	} else {
+#	if ( $self->{trace} ) {
+#		$self->{stdout} = undef;
+#		$self->{stderr} = undef;
+#	} else {
 		$self->{stdout} = \undef;
 		$self->{stderr} = \undef;
-	}
+#	}
 
 	# Initialize the output values
 #	$self->{output_file} = [];
@@ -1364,6 +1364,10 @@ sub install_perl_588 {
 		croak "Failed to generate toolchain distributions";
 	}
 
+    # Make the perl directory if it hasn't been made alreafy.
+    $self->make_path(catdir($self->image_dir, 'perl'));
+    
+    # Get base filelist.
     my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
 	# Install the main perl distributions

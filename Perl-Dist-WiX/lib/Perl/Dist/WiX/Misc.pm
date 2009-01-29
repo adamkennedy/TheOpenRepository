@@ -97,24 +97,30 @@ sub trace_line {
         croak("Missing or invalid tracelevel");
     }
     unless ( defined _NONNEGINT($self->{trace}) ) {
-        croak("Inconsistent trace state");
+        croak("Inconsistent trace state in $self");
     }
     unless ( defined _STRING($text) ) {
         croak("Missing or invalid text");
     }
-        
+    
+    my $test_trace = 0;
+    my $tracelevel_status = $self->{trace};
+    if ($tracelevel_status >= 100) {
+        $tracelevel_status -= 100;
+        $test_trace = 1;
+        require Test::More;
+    }
+    
     $no_display = 0 unless defined $no_display;
-    
-    return $self if (not defined $self->{trace});
-    
-    if ($self->{trace} >= $tracelevel) {
+        
+    if ($tracelevel_status >= $tracelevel) {
         my $start = q{};
     
         if (not $no_display) {
-            if ($self->{trace} > 1) {
+            if ($tracelevel_status > 1) {
                 $start = "[$tracelevel] ";
             }
-            if (($tracelevel > 2) or ($self->{trace} > 4)) {
+            if (($tracelevel > 2) or ($tracelevel_status > 4)) {
                 my (undef, $filespec, $line, undef, undef, undef, undef, undef, undef, undef) = caller(0);
                 my (undef, $path, $file) = splitpath($filespec);
                 my @dirs = splitdir($path);
@@ -126,7 +132,9 @@ sub trace_line {
                       {\n$start}gmsx;   # with a newline and the start string.
             $text =~ s{\n\Q$start\E\z}{\n}gms; # Replace the newline and start string at the end with just the newline. 
         }
-        if ($tracelevel == 0) {
+        if ($test_trace) {
+            Test::More::diag("$start$text");
+        } elsif ($tracelevel == 0) {
             print STDERR "$start$text";
         } else {
             print "$start$text";

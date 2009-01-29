@@ -110,7 +110,7 @@ sub as_string {
     my ($self) = shift;
     
     # getting the number of items in the array referred to by $self->{components}
-    my $count = scalar @{$self->{components}};
+    my $count = scalar @{$self->{entries}};
     my $string;
     my $s;
     
@@ -129,8 +129,8 @@ sub as_string {
 EOF
 
     foreach my $i (0 .. $count - 1) {
-        $s = $self->{Entries}->[$i]->as_string;
-        $string .= $self->indent(8, $s);
+        $s = $self->{entries}->[$i]->as_string;
+        $string .= $self->indent(6, $s);
         $string .= "\n";
     }
 

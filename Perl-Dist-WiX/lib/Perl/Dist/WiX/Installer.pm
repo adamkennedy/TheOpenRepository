@@ -23,7 +23,7 @@ superclass of that class.
 
 use 5.006;
 use strict;
-use warnings;
+use warnings FATAL => qw(all);
 use Carp                     qw( croak                         );
 use File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use Params::Util             qw( _STRING _IDENTIFIER _ARRAY0   );
@@ -147,7 +147,7 @@ sub new {
         $self->{default_group_name} = $self->app_name;
     }
     unless ( _STRING($self->msi_license_file) ) {
-        $self->{msi_license_file} = catfile($self->dist_file, 'License.rtf');
+        $self->{msi_license_file} = catfile($self->dist_dir, 'License.rtf');
     }
     # Check and default params
     unless ( _IDENTIFIER($self->app_id) ) {
@@ -207,15 +207,18 @@ sub new {
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
         sitename  => $sitename,
         directory => 'D_App_Menu',
+        trace     => $self->{trace}, 
     );
     $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
         sitename => $sitename,
         id       => 'Environment',
+        trace    => $self->{trace}, 
     );
     $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
         sitename        => $sitename,
         directory_tree  => $self->directories,
         id              => 'Win32Extras',
+        trace           => $self->{trace}, 
     );
     
     # Find the light.exe and candle.exe programs

@@ -220,7 +220,8 @@ sub add_directory {
         $self->{directories}->[$i] = Perl::Dist::WiX::Directory->new(
             sitename => $self->sitename, 
             path => $params_ref->{path}, 
-            name => $params_ref->{name}
+            name => $params_ref->{name},
+            trace => $self->{trace},
         );
         return $self->{directories}->[$i];
     } else {
@@ -312,7 +313,8 @@ sub add_directory_path {
         $directory_obj = $directory_obj->add_directory({
             sitename => $self->sitename, 
             name => $name_create,
-            path => $path_create
+            path => $path_create,
+            trace => $self->{trace},
         });
     }
     

@@ -14,10 +14,10 @@ package Perl::Dist::WiX::Files;
 use 5.006;
 use strict;
 use warnings;
-use Carp              qw( croak carp                    );
-use Params::Util      qw( _IDENTIFIER _STRING _INSTANCE );
-use Data::UUID        qw( NameSpace_DNS                 );
-use File::Spec        qw();
+use Carp                  qw( croak carp                    );
+use Params::Util          qw( _IDENTIFIER _STRING _INSTANCE );
+use Data::UUID            qw( NameSpace_DNS                 );
+use File::Spec::Functions qw( splitpath catdir              );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Files::DirectoryRef;
@@ -59,7 +59,7 @@ sub new {
     unless ( _STRING($self->sitename) ) {
         croak('Missing or invalid sitename parameter - cannot generate GUID without one');
     }
-        
+    
     return $self;
 }
 
@@ -97,8 +97,8 @@ sub add_file {
     my ($directory_obj, $directory_ref_obj, $file_obj, $subpath) = (undef, undef, undef, undef);
     
     # Get the file path.
-    my ($vol, $dirs, $filename) = File::Spec->splitpath($file); 
-    my $path = File::Spec->catpath($vol, $dirs);
+    my ($vol, $dirs, $filename) = splitpath($file);
+    my $path = catdir($vol, $dirs);
 
     $self->trace_line( 3, "***** Adding file $file.\n");
     
@@ -140,7 +140,8 @@ sub add_file {
         $self->trace_line( 4, " Stage 2 - Creating DirectoryRef at $subpath.\n");
         $directory_ref_obj = Perl::Dist::WiX::Files::DirectoryRef->new(
             sitename => $self->sitename,
-            directory_object => $directory_obj
+            directory_object => $directory_obj,
+            trace => $self->{trace},
         );
         $self->add_component($directory_ref_obj);
         
@@ -218,7 +219,8 @@ sub add_file {
         # Create the directory objects and add the file.
         $directory_ref_obj = Perl::Dist::WiX::Files::DirectoryRef->new(
             sitename => $self->sitename,
-            directory_object => $directory_obj
+            directory_object => $directory_obj,
+            trace => $self->{trace},
         );
         $self->add_component($directory_ref_obj);
         $directory_obj = $directory_ref_obj->add_directory_path($path);
@@ -241,7 +243,7 @@ sub _get_possible_paths {
     my ($self, $volume, $dirs) = @_;
     
     # Get our list of directories.
-    my @directories = File::Spec->splitdir($dirs);
+    my @directories = splitdir($dirs);
 
     # Get rid of empty entries at the beginning or end.
     while ($directories[-1] eq q{}) {
@@ -259,7 +261,7 @@ sub _get_possible_paths {
     
         # Remove a level and create its path.
         pop @directories;
-        $dir = File::Spec->catfile($volume, File::Spec->catdir(@directories));
+        $dir = catdir($volume, catdir(@directories));
         
         # Add it to the answers list.
         push @answers, $dir;
