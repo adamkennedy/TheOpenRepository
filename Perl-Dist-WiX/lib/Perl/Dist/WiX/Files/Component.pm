@@ -87,6 +87,11 @@ sub new {
 sub is_file() {
     my ($self, $filename) = @_;
 
+    # Check parameters.
+    unless ( _STRING($filename) ) {
+        croak("Missing or invalid filename param");
+    }
+
     return ($self->filename eq $filename);
 }
 

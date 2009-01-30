@@ -13,8 +13,8 @@ package Perl::Dist::WiX::Feature;
 use 5.006;
 use strict;
 use warnings;
-use Carp            qw( croak verbose                );
-use Params::Util    qw( _CLASSISA _STRING _NONNEGINT );
+use Carp            qw( croak                        );
+use Params::Util    qw( _INSTANCE _STRING _NONNEGINT );
 require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
@@ -25,12 +25,13 @@ BEGIN {
 
 #####################################################################
 # Accessors:
-#   features: TODO
-#   componentrefs: TODO
+#   features: Returns a reference to an array of features contained 
+#     within this feature.
+#   componentrefs: Returns a reference to an array of component 
+#     references contained within this feature.
 #
 #  id, title, description, default, idefault, display, directory, absent, advertise, level:
 #    See new.
-
 
 use Object::Tiny qw{
     features
@@ -48,35 +49,30 @@ use Object::Tiny qw{
     level
 };
 
-=pod
-
-        $self->features->[0] = Perl::Dist::WiX::Feature->new(
-            id          => 'Complete', 
-            title       => $parent->app_ver_name,
-            description => 'The complete package.',
-#            default     => 'install',          # TypicalDefault
-#            idefault    => 'local',            # InstallDefault
-#            display     => 'expand',           
-#            directory   => 'INSTALLDIR',       # ConfigurableDirectory
-#            absent      => 'disallow'
-#            advertise   => 'no'                # Allowadvertise
-            level       => 1,
-        );
-
-=cut
-
 #####################################################################
-# Constructor for Base::Fragment
+# Constructor for Feature
 #
 # Parameters: [pairs]
-#   id: Id parameter to the <Fragment> tag (required)
-#   directory: Id parameter to the <DirectoryRef> tag  within this fragment. 
+#   id: Id parameter to the <Feature> tag (required)
+#   title: Title parameter to the <Feature> tag (required)
+#   description: Description parameter to the <Feature> tag (required)
+#   level: Level parameter to the <Feature> tag (required)
+#   default: TypicalDefault parameter to the <Feature> tag
+#   idefault: InstallDefault parameter to the <Feature> tag
+#   display: Display parameter to the <Feature> tag
+#   directory: ConfigurableDirectory parameter to the <Feature> tag
+#   absent: Absent parameter to the <Feature> tag
+#   advertise: AllowAdvertise parameter to the <Feature> tag
 #
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 #
 # Defaults:
-#
-#
+#   default     => 'install',
+#   idefault    => 'local',
+#   display     => 'expand',
+#   directory   => 'INSTALLDIR',
+#   absent      => 'disallow'
+#   advertise   => 'no'
 
 
 sub new {
@@ -92,7 +88,7 @@ sub new {
     unless (_STRING($self->description)) {
         croak 'Missing or invalid description parameter';
     }
-    unless (_NONNEGINT($self->level)) {
+    unless (defined _NONNEGINT($self->level)) {
         croak 'Missing or invalid level parameter';
     }
 
@@ -136,10 +132,17 @@ sub new {
 #####################################################################
 # Main Methods
 
+########################################
+# add_feature
+# Parameters:
+#   $feature: [Feature object] Feature to add as a subfeature of this one.
+# Returns:
+#   Object being acted on (chainable)
+
 sub add_feature {
     my ($self, $feature) = @_;
     
-    unless (_CLASSISA($feature, 'Perl::Dist::WiX::Fragment')) {
+    unless (_INSTANCE($feature, 'Perl::Dist::WiX::Feature')) {
         croak 'Not adding valid feature';
     }
     
@@ -147,6 +150,13 @@ sub add_feature {
     
     return $self;
 }
+
+########################################
+# add_components
+# Parameters:
+#   @componentids: List of component ids to add to this feature.
+# Returns:
+#   Object being acted on (chainable)
 
 sub add_components {
     my ($self, @componentids) = @_;
@@ -156,11 +166,19 @@ sub add_components {
     return $self;
 }
 
+########################################
+# search
+# Parameters:
+#   $id_to_find: Id of feature to find.
+# Returns:
+#   Feature object with given Id.
+
 sub search {
     my ($self, $id_to_find) = @_;
 
-    unless (_STRING($id_to_find)) {
-        croak 'Missing or invalid id to find';
+    # Check parameters.
+    unless (_IDENTIFIER($id_to_find)) {
+        croak 'Missing or invalid id parameter';
     }
 
     my $id = $self->id;

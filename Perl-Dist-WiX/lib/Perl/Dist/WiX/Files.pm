@@ -14,10 +14,10 @@ package Perl::Dist::WiX::Files;
 use 5.006;
 use strict;
 use warnings;
-use Carp                  qw( croak carp                    );
-use Params::Util          qw( _IDENTIFIER _STRING _INSTANCE );
-use Data::UUID            qw( NameSpace_DNS                 );
-use File::Spec::Functions qw( splitpath catdir              );
+use Carp                  qw( croak carp                            );
+use Params::Util          qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
+use Data::UUID            qw( NameSpace_DNS                         );
+use File::Spec::Functions qw( splitpath catdir                      );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Files::DirectoryRef;
@@ -95,6 +95,11 @@ sub add_files {
 sub add_file {
     my ($self, $file) = @_;
     my ($directory_obj, $directory_ref_obj, $file_obj, $subpath) = (undef, undef, undef, undef);
+
+    # Check parameters.
+    unless ( _STRING($file) ) {
+        croak('Missing or invalid file parameter');
+    }
     
     # Get the file path.
     my ($vol, $dirs, $filename) = splitpath($file);
@@ -312,7 +317,12 @@ sub _search_refs {
 sub search_file {
     my ($self, $filename) = @_;
     my $answer = undef;
- 
+
+    # Check parameters.
+    unless ( _STRING($filename) ) {
+        croak('Missing or invalid filename parameter');
+    }
+    
     # How many descendants do we have?
     my $count = scalar @{$self->{components}};
 
@@ -342,11 +352,18 @@ sub check_duplicates {
     my $answer;
     my ($object, $index);
 
+    # Check parameters.
+    unless ( _ARRAY0($files_ref) ) {
+        croak('Missing or invalid files_ref parameter');
+    }
+
     # Search out duplicate filenames and delete them if found.
     foreach my $file (@{$files_ref}) {
         $answer = $self->search_file($file);
         if (defined $answer) {
             ($object, $index) = @{$answer};
+            my $id = $object->id;
+            $self->trace_line(5, "Duplicate check successful: [$id $index]\n");
             $object->delete_filenum($index);
         }
     }

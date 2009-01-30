@@ -13,8 +13,8 @@ package Perl::Dist::WiX::FeatureTree;
 use 5.008;
 use strict;
 use warnings;
-use Carp           qw( croak confess verbose );
-use Params::Util   qw( _IDENTIFIER _STRING   );
+use Carp           qw( croak                 );
+use Params::Util   qw( _IDENTIFIER _CLASSISA );
 use Scalar::Util   qw( weaken                );
 require Perl::Dist::WiX::Feature;
 require Perl::Dist::WiX::Misc;
@@ -47,6 +47,10 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
 
+    unless (_CLASSISA($self->{parent}, 'Perl::Dist::WiX')) {
+        croak 'Missing or invalid id parameter';
+    }
+    
     # Do this so as not to create a garbage collection loop.
     weaken($self->{parent});
     
@@ -80,6 +84,11 @@ sub new {
 sub search {
     my ($self, $id_to_find) = @_;
 
+    # Check parameters.
+    unless (_IDENTIFIER($id_to_find)) {
+        croak 'Missing or invalid id parameter';
+    }
+    
     # Check each of our branches.
     my $count = scalar @{$self->features};
     my $answer;

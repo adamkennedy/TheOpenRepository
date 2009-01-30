@@ -130,7 +130,7 @@ sub as_string {
     return q{} if (scalar @{$self->{entries}} == 0); 
     
     # Check parameters.
-    unless (_NONNEGINT($spaces)) {
+    unless (defined _NONNEGINT($spaces)) {
         croak 'Calling as_spaces improperly (most likely, not calling derived method)';
     }
     

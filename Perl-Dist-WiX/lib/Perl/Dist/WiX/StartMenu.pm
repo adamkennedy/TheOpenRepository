@@ -34,7 +34,7 @@ use Object::Tiny qw{
 };
 
 #####################################################################
-# Constructor for StartMenuComponent
+# Constructor for StartMenu
 #
 # Parameters: [pairs]
 #   id, directory: See Base::Filename.
@@ -46,16 +46,22 @@ sub new {
     # Apply required defaults.
     unless ( defined $params{id} ) {
         $params{id} = 'Icons';
-    }
-    
+    }    
     unless ( defined $params{directory} ) {
         $params{directory} = 'ApplicationProgramsFolder';
     }
 
     my $self = $class->SUPER::new(%params);
 
+    # Check parameters.
     unless (_STRING($self->sitename)) {
         croak 'Invalid or missing sitename';
+    }
+    unless (_IDENTIFIER($self->id)) {
+        croak 'Invalid or missing id';
+    }
+    unless (_STRING($self->directory)) {
+        croak 'Invalid or missing directory';
     }
     
     return $self;

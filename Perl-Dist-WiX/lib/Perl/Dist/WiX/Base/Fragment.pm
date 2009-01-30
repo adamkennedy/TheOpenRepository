@@ -50,6 +50,9 @@ sub new {
     unless ( defined $self->directory ) {
         $self->{directory} = 'TARGETDIR';
     }
+    unless ( _STRING($self->directory) ) {
+        croak 'Invalid directory parameter';
+    }
     unless ( _STRING($self->id) ) {
         croak 'Missing or invalid id parameter';
     }

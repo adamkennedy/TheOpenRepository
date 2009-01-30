@@ -68,13 +68,9 @@ The location where this object will write the information for WiX
 to process to create the MSI. A default is provided if this is not 
 specified.
 
-=item * bin_candle
+=item * bin_candle, bin_light, bin_wixui
 
-Returns the location of candle.exe
-
-=item * bin_light
-
-Returns the location of light.exe.
+Returns the location of candle.exe, light.exe, or xxx respectively.
 
 =item * directories
 
@@ -114,6 +110,7 @@ use Object::Tiny qw{
     fragment_dir
     bin_candle
     bin_light
+    bin_wixui
     directories
     fragments
     msi_feature_tree
@@ -238,6 +235,13 @@ sub new {
     }
     $self->{bin_candle} = $wix_file;
 
+    $wix_file = catfile( $wix_dir,           'WixUIExtension.dll' );
+    unless ( -f $wix_file ) {
+        croak("Failed to find the WiX UI Extension DLL");
+    }
+    $self->{bin_wixui} = $wix_file;
+
+    
     return $self;
 }
 
@@ -472,7 +476,7 @@ sub write_msi {
     $self->trace_line(1, "Generating msi\n");
 
     # Add the path in.
-    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', $_ ) } @{$self->env_path}) {
+    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$self->env_path}) {
         $self->add_env('PATH', $value, 1);
     }
 
@@ -548,15 +552,15 @@ sub write_msi {
     my $cmd = [
         $self->bin_light, 
         '-sice:47',                # Gets rid of ICE47 warning.
-        '-out', $output_msi,       # TODO: Get rid of hard coding below.
-        '-ext', 'C:\\Program Files\\Windows Installer XML v3\\bin\\WixUIExtension.dll',
+        '-out', $output_msi,
+        '-ext', $self->bin_wixui,
         $input_wixobj,
         $input_wixouts,
     ];
     my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
     
     # Did everything get done correctly?
-    unless ( -f $output_msi ) {
+    unless (( -f $output_msi ) and ( not $out =~ /error|warning/ )) {
         $self->trace_line( 0, $out);
         croak "Failed to find $output_msi";
     }
@@ -647,6 +651,14 @@ This B<MUST> be done for each set of files to be installed in an MSI.
 sub insert_fragment {
     my ($self, $id, $files_ref) = @_;
 
+    # Check parameters.
+    unless ( _IDENTIFIER($id) ) {
+        croak 'Invalid or missing id parameter';
+    }
+    unless ( _ARRAY0($files_ref) ) {
+        croak 'Invalid or missing files_ref parameter';
+    }
+    
     $self->trace_line(2, "Adding fragment $id...\n");
     
     foreach my $key (keys %{$self->{fragments}}) {

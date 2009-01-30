@@ -537,19 +537,7 @@ sub new {
 		File::Path::mkpath($d);
 	}
 
-	# More details on the tracing
-#	if ( $self->{trace} ) {
-#		$self->{stdout} = undef;
-#		$self->{stderr} = undef;
-#	} else {
-		$self->{stdout} = \undef;
-		$self->{stderr} = \undef;
-#	}
-
-	# Initialize the output values
-#	$self->{output_file} = [];
-#    $self->{fragments}   = {};
-
+    # Initialize filters.
     $self->{filters} = [];
     push @{$self->filters},
                 $self->temp_dir                           . q{\\},
@@ -566,7 +554,8 @@ sub new {
         catdir( $self->image_dir, qw{ cpan build       }) . q{\\},
         catfile($self->image_dir, qw{ c    COPYING     }),
         catfile($self->image_dir, qw{ c    COPYING.LIB });
-        
+
+    # Get environment started.
     $self->{env_path} = [];
     
   	$self->add_env( 'TERM'        , 'dumb' );
@@ -603,6 +592,12 @@ sub binary_file {
 sub binary_url {
 	my $self = shift;
 	my $file = shift;
+
+    # Check parameters.
+	unless ( _STRING($file) ) {
+		croak("Missing or invalid file param");
+	}
+
 	unless ( $file =~ /\.(zip|gz|tgz)$/i ) {
 		# Shorthand, map to full file name
 		$file = $self->binary_file($file, @_);
@@ -1396,7 +1391,7 @@ sub install_perl_588 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl_licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
@@ -1517,6 +1512,9 @@ sub install_perl_589 {
 		croak "Failed to generate toolchain distributions";
 	}
 
+    # Make the perl directory if it hasn't been made alreafy.
+    $self->make_path(catdir($self->image_dir, 'perl'));
+    
     my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
 
 	# Install the main perl distributions
@@ -1536,7 +1534,7 @@ sub install_perl_589 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl_licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
@@ -1657,6 +1655,9 @@ sub install_perl_5100 {
 		die("Failed to generate toolchain distributions");
 	}
 
+    # Make the perl directory if it hasn't been made alreafy.
+    $self->make_path(catdir($self->image_dir, 'perl'));
+    
     my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
 	# Install the main binary
@@ -1677,7 +1678,7 @@ sub install_perl_5100 {
 	);
 
     my $fl_lic = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'licenses', 'perl'));
-    $self->insert_fragment('perl-licenses', $fl_lic->files);
+    $self->insert_fragment('perl_licenses', $fl_lic->files);
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
@@ -1858,13 +1859,13 @@ sub install_gcc {
 		},
 	);
 
-    $self->insert_fragment('gcc-core', $fl->files);
+    $self->insert_fragment('gcc_core', $fl->files);
 
     $fl = $self->install_binary(
 		name       => 'gcc-g++',
 	);
 
-    $self->insert_fragment('gcc-gplusplus', $fl->files);
+    $self->insert_fragment('gcc_gplusplus', $fl->files);
     
 	return 1;
 }
@@ -1970,7 +1971,7 @@ sub install_mingw_runtime {
 		},
 	);
 
-    $self->insert_fragment('mingw-runtime', $filelist->files);
+    $self->insert_fragment('mingw_runtime', $filelist->files);
 
 	return 1;
 }
@@ -2067,7 +2068,7 @@ sub install_mingw_make {
 		name => 'mingw-make',
 	);
 
-    $self->insert_fragment('mingw-make', $filelist->files);
+    $self->insert_fragment('mingw_make', $filelist->files);
     
 	return 1;
 }
@@ -2304,8 +2305,6 @@ sub install_binary {
 }
 
 =head3 install_library
-
-TODO: Fix.
 
   $self->install_binary(
       name => 'gmp',
@@ -3115,16 +3114,11 @@ sub write_zip {
 sub add_icon {
 	my $self   = shift;
 	my %params = @_;
-    my ($dir, $dir_obj, $dir_id);
+    my ($vol, $dir, $file, $dir_obj, $dir_id);
     
-  	if ( $params{filename} =~ /^\{/ ) {
-        (undef, $dir, undef) = splitpath($params{filename});
-        $dir_obj = $self->directory_tree->search($dir);
-        $dir_id  = $dir_obj->id; 
-    } else {
-        $dir_id = 'D_App_Root';
-		$params{filename} = catfile($self->image_dir, $params{filename});
-	}
+    ($vol, $dir, $file) = splitpath($params{filename});
+    $dir_obj = $self->directory_tree->search(catdir($vol, $dir));
+    $dir_id  = $dir_obj->id; 
     
     my $id = $params{name};
     $id =~ s{\s}{_}g;
@@ -3133,9 +3127,10 @@ sub add_icon {
         Perl::Dist::WiX::StartMenuComponent->new(
             sitename    => URI->new($self->app_publisher_url)->host,
             name        => $params{name},
-            target      => $params{filename},
+            target      => "[$dir_id]$file",
             id          => $id,
             working_dir => $dir_id,
+            trace       => $self->{trace},
         )
     );
 
@@ -3431,9 +3426,8 @@ sub _run3 {
 	# Reset the environment
 	local $ENV{LIB}      = undef;
 	local $ENV{INCLUDE}  = undef;
-	local $ENV{PERL5LIB} = undef;  # TODO: Get rid of hardcoding.
-#	local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
-	local $ENV{PATH}     = 'C:\\blueberry\\c\\bin;C:\\blueberry\\perl\\bin' . ';' . join( ';', @keep );
+	local $ENV{PERL5LIB} = undef;  
+	local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
 
 	# Execute the child process
 	return IPC::Run3::run3( [ @_ ],

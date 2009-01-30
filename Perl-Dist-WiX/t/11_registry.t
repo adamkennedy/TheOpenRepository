@@ -55,7 +55,3 @@ is( $key_1->is_key('HKLM', 'SYSTEM\CurrentControlSet\Control\Session Manager\Env
 is( $key_1->is_key('HKCU', 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment')  ,
     0,
     'Testing non-existence of an entry' );
-
-#my $key_2 = Perl::Dist::WiX::Registry::Key->add_environment(
-#    sitename  => 'ttt.test.invalid',
-#);    

@@ -19,7 +19,7 @@ BEGIN {
 # Tests 1-2.
 
 my $tree = Perl::Dist::WiX::DirectoryTree->new(
-    app_dir => 'c:\\test', 
+    app_dir => 'C:\\test', 
     app_name => 'Test Perl', 
     sitename => 'www.test.site.invalid',
     trace    => 0,
@@ -43,155 +43,156 @@ my $tree_test_1 = bless( {
                                     'special' => 1,
                                     'id' => 'TARGETDIR'
                                   }, 'Perl::Dist::WiX::Directory' ),
-                 'app_dir' => 'c:\\test'
+                 'app_dir' => 'C:\\test'
                }, 'Perl::Dist::WiX::DirectoryTree' );
 
 is_deeply( $tree, $tree_test_1, 'Object created correctly' );
 
-# Test 4 (Test 5 at line 208)
+# Test 4 (Test 5 at line 209)
               
-my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
+my $string_test = 
+'    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'D_App_Root\' Name=\'[INSTALLDIR]\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
-          <Directory Id=\'D_226714C2_4FE7_3E13_A8CD_4AECA493A891\' Name=\'bin\' />
-          <Directory Id=\'D_0771F5A2_E78C_3A87_BA9B_B620D7EF801D\' Name=\'lib\'>
-            <Directory Id=\'D_B5C62DCD_1159_3520_AF24_B0DDC0DB7B4E\' Name=\'Compress\' />
-            <Directory Id=\'D_19F728A5_7E97_393A_A908_E6FFA4599FDE\' Name=\'CPAN\'>
-              <Directory Id=\'D_150AEA8F_70A6_373F_897A_1FB013476475\' Name=\'API\' />
+          <Directory Id=\'D_F717B51E_5E57_329A_83A3_527819908145\' Name=\'bin\' />
+          <Directory Id=\'D_167768A4_449A_32CC_A0F4_3DCF273EDF69\' Name=\'lib\'>
+            <Directory Id=\'D_1E4CE48B_D491_3830_8C63_EE79BB61800A\' Name=\'Compress\' />
+            <Directory Id=\'D_8AF15C79_FA45_36B3_ABD8_B31D41B582AF\' Name=\'CPAN\'>
+              <Directory Id=\'D_53747424_89F4_3095_82EF_4C1A8B35027F\' Name=\'API\' />
             </Directory>
-            <Directory Id=\'D_E4CADB28_B6F1_3D6E_997A_831A9560B41F\' Name=\'Digest\'>
-              <Directory Id=\'D_91A53F97_5598_3D39_AC5D_F9086C8890C3\' Name=\'MD5\' />
+            <Directory Id=\'D_EB3DFBB1_E121_3F57_936E_2781FB7977D5\' Name=\'Digest\'>
+              <Directory Id=\'D_60F63516_AF1B_3DEE_BAFC_8B43C0619806\' Name=\'MD5\' />
             </Directory>
-            <Directory Id=\'D_D9B35910_AA20_33DA_A03D_15AEF231387D\' Name=\'ExtUtils\'>
-              <Directory Id=\'D_B8909B28_D2CB_3C5E_BE93_4297183B15F3\' Name=\'CBuilder\'>
-                <Directory Id=\'D_CC9CA1C5_F008_3B93_80F7_F36EE0F9E9FD\' Name=\'Platform\' />
+            <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\'>
+              <Directory Id=\'D_074C5720_D8E1_37DF_839D_F358DB19EE01\' Name=\'CBuilder\'>
+                <Directory Id=\'D_C65C6ABA_1CBA_3F37_931D_4821BFDCDE13\' Name=\'Platform\' />
               </Directory>
             </Directory>
-            <Directory Id=\'D_4E9FB20F_95A0_3338_8F17_578A18A9E069\' Name=\'File\' />
-            <Directory Id=\'D_0DB7D421_1C6B_39D6_BB8F_735744E56EE2\' Name=\'IO\'>
-              <Directory Id=\'D_303DA090_5203_3909_ADEA_E140A327F783\' Name=\'Compress\'>
-                <Directory Id=\'D_6FD5B45D_DE9F_30DC_AB00_B295755682FA\' Name=\'Adapter\' />
-                <Directory Id=\'D_2E454F6F_C015_3AEF_AE14_4E263E26D5E0\' Name=\'Base\' />
-                <Directory Id=\'D_45F36C9F_F143_3747_8F1A_6E883A95584F\' Name=\'Gzip\' />
-                <Directory Id=\'D_94DFFE7C_BFD7_3671_9215_4F3955040AB6\' Name=\'Zip\' />
+            <Directory Id=\'D_32453E8B_BBCD_3F54_B2C1_813C273C0847\' Name=\'File\' />
+            <Directory Id=\'D_79FC3F94_0468_3ECA_B18F_4C92F38990EC\' Name=\'IO\'>
+              <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\'>
+                <Directory Id=\'D_F6F6D72B_FAE4_3BD9_8A47_99A62B194A88\' Name=\'Adapter\' />
+                <Directory Id=\'D_3B3CB2F5_DA31_3A29_AD85_88D17BBC6C88\' Name=\'Base\' />
+                <Directory Id=\'D_2A6EF8AC_29D0_3A7E_BD75_7D71CEDBE38A\' Name=\'Gzip\' />
+                <Directory Id=\'D_98CE0D83_E820_31F1_A3ED_06AFD0393235\' Name=\'Zip\' />
               </Directory>
-              <Directory Id=\'D_E8D0A84C_085E_35C0_ACCC_3A737F038890\' Name=\'Uncompress\'>
-                <Directory Id=\'D_5E3A74C4_FA9B_390D_985F_893180CBF049\' Name=\'Adapter\' />
-              </Directory>
-            </Directory>
-            <Directory Id=\'D_BA1B90E4_CA72_3D67_8F81_BE2EC9667379\' Name=\'Math\'>
-              <Directory Id=\'D_8C30DD5B_9A38_3595_9A4A_6D15C649EF47\' Name=\'BigInt\'>
-                <Directory Id=\'D_C62EE46D_4134_3871_A579_EE80772B542E\' Name=\'FastCalc\' />
+              <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\'>
+                <Directory Id=\'D_9CDC0948_2798_3C94_9D64_C32246AEAA2B\' Name=\'Adapter\' />
               </Directory>
             </Directory>
-            <Directory Id=\'D_9D128CAB_C805_35B3_80DE_BCC74D9B18C0\' Name=\'Module\' />
-            <Directory Id=\'D_3457B94D_E013_3F81_88E9_35C5CFA57F92\' Name=\'Test\' />
-            <Directory Id=\'D_34F039B4_89BC_30E3_A5A9_34B40037EB6D\' Name=\'auto\'>
-              <Directory Id=\'D_FFCEA462_B5F9_396D_88AD_C662EAB85721\' Name=\'Compress\' />
-              <Directory Id=\'D_60FF52F4_7130_37CE_A50F_D26B75E074BD\' Name=\'Cwd\' />
-              <Directory Id=\'D_01FF5FAB_5F8E_3369_B3AA_20D4395D51D1\' Name=\'Devel\' />
-              <Directory Id=\'D_EDBBC989_D08A_3829_83F0_72D810401E6D\' Name=\'Digest\'>
-                <Directory Id=\'D_82AF33BC_A346_3E56_A95C_7410AA4B3430\' Name=\'MD5\' />
+            <Directory Id=\'D_27461A25_5034_3D89_AD5D_50A5E3CD5BA9\' Name=\'Math\'>
+              <Directory Id=\'D_4FF80E77_1B9F_3235_99FE_55B711F7CAD1\' Name=\'BigInt\'>
+                <Directory Id=\'D_71733DFA_C41E_33B7_A5F6_BA0A24B561A3\' Name=\'FastCalc\' />
               </Directory>
-              <Directory Id=\'D_A0FE6AC0_44AF_39E4_B49C_DE76B704C013\' Name=\'Encode\' />
-              <Directory Id=\'D_15E729EC_C5BF_3FA7_8F43_BFD548013873\' Name=\'Math\'>
-                <Directory Id=\'D_DB1FE4D3_CF25_3993_9C1A_8F247C25197F\' Name=\'BigInt\'>
-                  <Directory Id=\'D_60351E49_C426_3523_9CB2_0A71ECDCB1DD\' Name=\'FastCalc\' />
+            </Directory>
+            <Directory Id=\'D_CE106BF1_5EE2_3816_9A2D_0F00286C6749\' Name=\'Module\' />
+            <Directory Id=\'D_13EF26F9_C8E9_3439_9DD2_CE1506EF2826\' Name=\'Test\' />
+            <Directory Id=\'D_1EAEB13C_294E_3325_BC3B_135FE6E21463\' Name=\'auto\'>
+              <Directory Id=\'D_B5A75E38_F946_3B45_89F6_C763580585B6\' Name=\'Compress\' />
+              <Directory Id=\'D_DA94853F_4398_35C1_A18E_1A5B9D5E4893\' Name=\'Cwd\' />
+              <Directory Id=\'D_44A4B802_8C4F_35FB_A899_E94A0E835B7C\' Name=\'Devel\' />
+              <Directory Id=\'D_8779B820_38EA_39E6_B723_2A94D0359610\' Name=\'Digest\'>
+                <Directory Id=\'D_AB05C8BB_D7D3_30E9_AC70_09DCA7E9B705\' Name=\'MD5\' />
+              </Directory>
+              <Directory Id=\'D_87731680_27B6_39F3_8156_750CE68BE417\' Name=\'Encode\' />
+              <Directory Id=\'D_CB17F5A3_6530_362E_A8D0_D3D42CB4794B\' Name=\'Math\'>
+                <Directory Id=\'D_5CADB1DF_9C98_37E9_B078_3C4ED5736BED\' Name=\'BigInt\'>
+                  <Directory Id=\'D_7DDFFBD5_6735_3BD7_8A1B_A84B3ABF564A\' Name=\'FastCalc\' />
                 </Directory>
               </Directory>
-              <Directory Id=\'D_ADFBF2FE_A76A_3C05_8389_4EC03A63931D\' Name=\'PerlIO\' />
-              <Directory Id=\'D_9B02F097_DB37_3C38_A839_EDC474CBA087\' Name=\'POSIX\' />
-              <Directory Id=\'D_E723F059_3FD7_3D30_9E06_B70381275136\' Name=\'Time\' />
-              <Directory Id=\'D_4826C7F9_09CC_379E_A241_28689B815CFF\' Name=\'share\' />
+              <Directory Id=\'D_7E864D52_82FE_37C1_8FB4_BEDD92F5B4A5\' Name=\'PerlIO\' />
+              <Directory Id=\'D_9D9FF976_F842_3CAB_A6C5_681CF3C41D95\' Name=\'POSIX\' />
+              <Directory Id=\'D_853CDE42_1F58_3B81_9FC6_7DFB6A7986A3\' Name=\'Time\' />
+              <Directory Id=\'D_FE794D95_EB30_343C_A8B4_35B8EC58F146\' Name=\'share\' />
             </Directory>
           </Directory>
-          <Directory Id=\'D_61C86B69_E8DF_34BA_8EE6_AB952A84E83F\' Name=\'site\'>
-            <Directory Id=\'D_5352248B_E15C_36A5_9451_3117A96F42D8\' Name=\'lib\'>
-              <Directory Id=\'D_EA3D10B3_8C39_3CD6_8106_4F2A1C331D23\' Name=\'Bundle\' />
-              <Directory Id=\'D_F774DA5A_1A9C_3528_BB99_978861A60E2D\' Name=\'Compress\' />
-              <Directory Id=\'D_31F13D4F_7B11_3043_9124_7D28D8D4A0C3\' Name=\'DBD\' />
-              <Directory Id=\'D_CBCF6E21_6BAE_33AC_B8C9_DFC7B3106868\' Name=\'File\' />
-              <Directory Id=\'D_304EE39C_C7A4_3096_A8AD_07B59ECBB3D5\' Name=\'HTML\' />
-              <Directory Id=\'D_04CCCDBA_2BCF_33A9_B260_AF7C112A790E\' Name=\'IO\' />
-              <Directory Id=\'D_A8C9E86E_CD80_3D58_B2F2_4832E3EBEDAD\' Name=\'LWP\' />
-              <Directory Id=\'D_6EA69F29_DFA4_33B1_A4CF_6E2AA3C8CEAB\' Name=\'Math\' />
-              <Directory Id=\'D_49085693_E88D_3D4A_BFE5_7DBC28D63E10\' Name=\'PAR\' />
-              <Directory Id=\'D_E9101245_170C_3E04_B816_416DE081C03F\' Name=\'Term\' />
-              <Directory Id=\'D_AECD900B_AC2C_3C07_9899_96454B7DFB9D\' Name=\'Test\' />
-              <Directory Id=\'D_FB57F243_643D_3BD3_A8FB_E68D7EA0E9FB\' Name=\'Win32\' />
-              <Directory Id=\'D_9D57212D_4847_3102_9FA9_89259497CB20\' Name=\'XML\' />
-              <Directory Id=\'D_6D9C03D5_B041_3C7B_B6CD_F95F3B986D7B\' Name=\'auto\'>
-                <Directory Id=\'D_BBFE98DE_746C_3C9F_B9D3_D789BEDB72BE\' Name=\'share\' />
-                <Directory Id=\'D_56764A56_6248_3449_A4B0_B9A4A15DF5D2\' Name=\'Compress\'>
-                  <Directory Id=\'D_CEA11F02_4448_391F_8E06_E2CFC3883655\' Name=\'Raw\' />
+          <Directory Id=\'D_1BEF246B_FCD9_34B0_ABAA_5D90D198E4C9\' Name=\'site\'>
+            <Directory Id=\'D_B3D4AD98_92FD_3DCF_A3A5_26C8E2D252A3\' Name=\'lib\'>
+              <Directory Id=\'D_D797137C_CBFF_386F_ADB3_666F9830DCA8\' Name=\'Bundle\' />
+              <Directory Id=\'D_50CB1D55_C1AE_35A4_BC21_DBC362C2A7A6\' Name=\'Compress\' />
+              <Directory Id=\'D_C108793B_2141_3D01_A59F_82357A983698\' Name=\'DBD\' />
+              <Directory Id=\'D_59FAF411_602A_3066_846D_07E4A9B8EB69\' Name=\'File\' />
+              <Directory Id=\'D_D71A609A_E8F8_3E89_81E6_14081EE0ECA2\' Name=\'HTML\' />
+              <Directory Id=\'D_CC536878_B286_3AD4_90F6_B9BACB6B692D\' Name=\'IO\' />
+              <Directory Id=\'D_E28DFF76_91BB_3EBB_8864_CD132FDD077E\' Name=\'LWP\' />
+              <Directory Id=\'D_496E3E7C_A119_3614_8097_8AE576E025F0\' Name=\'Math\' />
+              <Directory Id=\'D_0551B560_2A5A_32E4_855E_EBE43EC34DF8\' Name=\'PAR\' />
+              <Directory Id=\'D_93051433_B6F7_3599_97B2_700071DA0864\' Name=\'Term\' />
+              <Directory Id=\'D_BEE4F0BB_54AB_335D_AB1B_7D44249D1696\' Name=\'Test\' />
+              <Directory Id=\'D_14F9992E_A451_3D44_AD43_D3A367B02031\' Name=\'Win32\' />
+              <Directory Id=\'D_633BBECE_77D7_30F6_9034_D39655638882\' Name=\'XML\' />
+              <Directory Id=\'D_7212C99C_98FC_3CC2_B32B_986926035439\' Name=\'auto\'>
+                <Directory Id=\'D_BC0402D3_9BD2_3987_B1B4_35EA398C6BEC\' Name=\'share\' />
+                <Directory Id=\'D_245FDF54_DE1F_3B14_B45C_F591F12FF8FD\' Name=\'Compress\'>
+                  <Directory Id=\'D_4054B239_62D0_3344_BA98_6DA544EBC8A6\' Name=\'Raw\' />
                 </Directory>
-                <Directory Id=\'D_C3368635_B44C_3089_A67E_BACC4E203DCE\' Name=\'Math\' />
-                <Directory Id=\'D_6D1134CE_3970_3BD8_82CF_332FC61F4B40\' Name=\'Term\' />
-                <Directory Id=\'D_21CB059D_089A_3C6B_815F_73F341933F43\' Name=\'Win32\' />
-                <Directory Id=\'D_4BE6EA31_4235_3FA2_8954_6A7D0BC10753\' Name=\'XML\' />
+                <Directory Id=\'D_6CE1EA06_9D83_3B72_B68C_375CB454C284\' Name=\'Math\' />
+                <Directory Id=\'D_EE6B1671_0C94_37EC_9C2E_84F5E42CA7BA\' Name=\'Term\' />
+                <Directory Id=\'D_C0D9F7F3_8AA7_3A70_810C_FC5FC5F9AA56\' Name=\'Win32\' />
+                <Directory Id=\'D_D2B863DE_1257_3C2A_A516_6406CEE125A0\' Name=\'XML\' />
               </Directory>
             </Directory>
           </Directory>
         </Directory>
         <Directory Id=\'D_Toolchain\' Name=\'c\'>
-          <Directory Id=\'D_E7951DB0_3670_3141_B27D_82B6379A1904\' Name=\'bin\'>
-            <Directory Id=\'D_AB8356A1_7A35_384D_BEFD_540DDAC1B712\' Name=\'startup\' />
+          <Directory Id=\'D_F929E019_ED70_313B_BAFD_0F0F27FF0A4F\' Name=\'bin\'>
+            <Directory Id=\'D_1871D525_EA82_3FCD_A1DD_6545613FA8A5\' Name=\'startup\' />
           </Directory>
-          <Directory Id=\'D_62A1622F_2B98_3C62_BF8C_7624BD39F8A0\' Name=\'include\'>
-            <Directory Id=\'D_2EB09ABE_ABD0_3A5B_984C_1188CE67A1DF\' Name=\'c++\'>
-              <Directory Id=\'D_747FEA5C_0351_33FC_B58C_CD52F33BA97C\' Name=\'3.4.5\'>
-                <Directory Id=\'D_7B87D6D1_14D3_3B8D_AEFD_2AE5CF66E8CE\' Name=\'backward\' />
-                <Directory Id=\'D_1BDC98D9_E0B0_3FC1_B3E0_27DB971F46C6\' Name=\'bits\' />
-                <Directory Id=\'D_DCDE3775_CE83_3BC6_82E7_98238A11AEAC\' Name=\'debug\' />
-                <Directory Id=\'D_12E80322_CF7D_36C5_8581_B600853B8861\' Name=\'ext\' />
-                <Directory Id=\'D_DFF47235_0840_364B_8C8E_4F70233CD620\' Name=\'mingw32\'>
-                  <Directory Id=\'D_C571B7DB_6EA8_3023_B048_8E0DB5418D04\' Name=\'bits\' />
+          <Directory Id=\'D_990EBE17_4FDD_3330_B77D_CC1780785AD9\' Name=\'include\'>
+            <Directory Id=\'D_4970DE0E_5BEC_34EA_BD37_9FE53647B20E\' Name=\'c++\'>
+              <Directory Id=\'D_0BD3E815_B406_3420_8279_5C17C43D3968\' Name=\'3.4.5\'>
+                <Directory Id=\'D_E6349AE4_B0D7_34C7_833A_5B1444369683\' Name=\'backward\' />
+                <Directory Id=\'D_C3EB056B_8B9C_38F5_B80B_7AF310AB57B8\' Name=\'bits\' />
+                <Directory Id=\'D_0BFD1700_7BDD_3E14_8878_BF46E4E1602C\' Name=\'debug\' />
+                <Directory Id=\'D_2EB1CFBC_2688_3547_980A_96CB2B0BD574\' Name=\'ext\' />
+                <Directory Id=\'D_F3F9A409_F0C0_378A_BFD7_8C06E94995AD\' Name=\'mingw32\'>
+                  <Directory Id=\'D_7F04A259_CADA_3CFC_A0B6_B75567F48201\' Name=\'bits\' />
                 </Directory>
               </Directory>
             </Directory>
-            <Directory Id=\'D_1882D24C_60A1_3AA4_A28C_67699862B29D\' Name=\'ddk\' />
-            <Directory Id=\'D_799E7C3A_0BAC_35CB_B683_CE3846B873DD\' Name=\'gl\' />
-            <Directory Id=\'D_521DF9CB_8AAE_3BA5_9C39_0DB97EB8CC4E\' Name=\'libxml\' />
-            <Directory Id=\'D_A43300F4_1A69_3AAE_84EA_E540EE1E62A5\' Name=\'sys\' />
+            <Directory Id=\'D_25D1AF22_5FC8_3804_BBCD_75DE143DC68A\' Name=\'ddk\' />
+            <Directory Id=\'D_04E8578B_77C2_3095_A0DB_209575994057\' Name=\'gl\' />
+            <Directory Id=\'D_65264A85_B764_346C_8343_700812E06884\' Name=\'libxml\' />
+            <Directory Id=\'D_95B154FE_05EE_3665_A1B4_9B055011A6A5\' Name=\'sys\' />
           </Directory>
-          <Directory Id=\'D_1F37D408_4CF1_3347_85A9_CDB762981D87\' Name=\'lib\'>
-            <Directory Id=\'D_83387D01_0432_3886_B959_D429B83C513A\' Name=\'debug\' />
-            <Directory Id=\'D_C23B9704_4061_3BCF_AD06_54861E166CBA\' Name=\'gcc\'>
-              <Directory Id=\'D_4B3EDA82_D137_3675_A64C_80E51B6036C7\' Name=\'mingw32\'>
-                <Directory Id=\'D_74CB2FE8_F5F1_304A_86BD_36FD455CFB6C\' Name=\'3.4.5\'>
-                  <Directory Id=\'D_D5AB2EDA_4C44_37B7_8FA8_6F5BF3E39CC7\' Name=\'include\' />
-                  <Directory Id=\'D_C26AC4C0_CF1E_34EA_A9E4_3302CB7D6829\' Name=\'install-tools\'>
-                    <Directory Id=\'D_A50C5F78_5156_3D6A_8D48_B6353F4852BD\' Name=\'include\' />
+          <Directory Id=\'D_14230B50_C0DC_36E3_8931_C28F934C84B5\' Name=\'lib\'>
+            <Directory Id=\'D_E764ADB9_9647_3B6F_8A99_DED1898EF040\' Name=\'debug\' />
+            <Directory Id=\'D_6B140931_6C1B_3379_A4F1_FB678B3C2544\' Name=\'gcc\'>
+              <Directory Id=\'D_99F170D9_C69E_3361_A1F4_CA1869C0648E\' Name=\'mingw32\'>
+                <Directory Id=\'D_27704913_5FF2_36A8_B225_BF1E47B48413\' Name=\'3.4.5\'>
+                  <Directory Id=\'D_12AEE065_432E_3782_93D7_586F15D9129D\' Name=\'include\' />
+                  <Directory Id=\'D_1C0767F2_565D_361B_B0E0_5BB83F2AE405\' Name=\'install-tools\'>
+                    <Directory Id=\'D_AF11F1AA_EB14_3594_926E_F8BACEF36342\' Name=\'include\' />
                   </Directory>
                 </Directory>
               </Directory>
             </Directory>
           </Directory>
-          <Directory Id=\'D_5F7950A1_CE06_3EA3_91B3_36AB475E55E6\' Name=\'libexec\'>
-            <Directory Id=\'D_C3B1D355_F724_3030_B3EE_7E17D9D1469B\' Name=\'gcc\'>
-              <Directory Id=\'D_B95420E6_BCE4_36F0_B9B1_D4B02B9CB627\' Name=\'mingw32\'>
-                <Directory Id=\'D_2AD02341_566E_3714_8D44_A1A948AB0C3A\' Name=\'3.4.5\'>
-                  <Directory Id=\'D_5AD17DCF_390D_3E49_B0E7_473FCD9C86D9\' Name=\'install-tools\' />
+          <Directory Id=\'D_DD294F22_4FBF_321A_80BB_4CBD1A25C9DE\' Name=\'libexec\'>
+            <Directory Id=\'D_12545A33_2C38_3D6F_A2DA_267EE97FDE2F\' Name=\'gcc\'>
+              <Directory Id=\'D_6E9B021B_04EE_3F14_A14C_919B80A6AC42\' Name=\'mingw32\'>
+                <Directory Id=\'D_97FE211B_F98C_3285_A75B_6F981AA3A19A\' Name=\'3.4.5\'>
+                  <Directory Id=\'D_870594AF_E302_36D9_AFE7_D999FA0DBBF6\' Name=\'install-tools\' />
                 </Directory>
               </Directory>
             </Directory>
           </Directory>
-          <Directory Id=\'D_F912A172_D30E_36E7_BDAC_25615B2B5E16\' Name=\'mingw32\'>
-            <Directory Id=\'D_A189758F_34E7_370F_A43C_EA46BCA6B3D7\' Name=\'bin\' />
-            <Directory Id=\'D_1A8EE004_8346_3CAD_8235_744BA37E1C5C\' Name=\'lib\'>
-              <Directory Id=\'D_3E24DE86_B16A_3011_8A11_0959F3EECEEE\' Name=\'ld-scripts\' />
+          <Directory Id=\'D_2470DFE7_CB83_3A8E_8821_BE8F36A4DB79\' Name=\'mingw32\'>
+            <Directory Id=\'D_4082B714_94AE_3055_A142_8AAC4D0F817A\' Name=\'bin\' />
+            <Directory Id=\'D_5E14DB0D_DF32_3502_9ABD_8B4B164CDE1A\' Name=\'lib\'>
+              <Directory Id=\'D_1733B110_8009_3A78_BBA9_3CD4327C357D\' Name=\'ld-scripts\' />
             </Directory>
           </Directory>
-          <Directory Id=\'D_1F2C0433_32FF_33F4_9C12_F1C67A1DEA54\' Name=\'share\'>
-            <Directory Id=\'D_E5AFC90F_83E1_3F25_BFC0_B1BF19E9E7DE\' Name=\'locale\' />
+          <Directory Id=\'D_BF54B1C7_EF09_3458_B556_2B9279AD2BBD\' Name=\'share\'>
+            <Directory Id=\'D_3AD5DB9D_61F5_3101_89F4_D4AD38190F21\' Name=\'locale\' />
           </Directory>
         </Directory>
         <Directory Id=\'D_License\' Name=\'licenses\'>
-          <Directory Id=\'D_977F59D0_E7F7_366F_B13C_BC89552F128C\' Name=\'dmake\' />
-          <Directory Id=\'D_E4AA909E_1F62_3290_B20B_2BAEC97B27FB\' Name=\'gcc\' />
-          <Directory Id=\'D_9E7C617F_EF97_3904_99E7_3523638C41EA\' Name=\'mingw\' />
-          <Directory Id=\'D_0607AA79_6734_3D85_B7FB_1C02FFD98184\' Name=\'perl\' />
-          <Directory Id=\'D_A80C3022_7E7A_3763_9F1B_EE7FF718146C\' Name=\'pexports\' />
+          <Directory Id=\'D_818D6C63_4B20_30FD_A5F0_019BE9408F83\' Name=\'dmake\' />
+          <Directory Id=\'D_B8131B88_3ABA_3EE1_BF5C_E3E81E0539E4\' Name=\'gcc\' />
+          <Directory Id=\'D_8D5645E4_03EC_3E0A_84A4_DA619495CFB5\' Name=\'mingw\' />
+          <Directory Id=\'D_3C916D82_47FE_34CE_8BDD_C793099E8A68\' Name=\'perl\' />
+          <Directory Id=\'D_4EAD5660_DA82_3DCB_A86A_D96BE1DF90FA\' Name=\'pexports\' />
         </Directory>
         <Directory Id=\'D_Cpan\' Name=\'cpan\' />
         <Directory Id=\'D_Win32\' Name=\'win32\' />
@@ -211,7 +212,7 @@ $tree->initialize_tree; $string = $tree->as_string;
 
 is($string, $string_test, 'Stringifies correctly once initialized');    
 
-# Test 6 (Test 7 at line 1561)
+# Test 6 (Test 7 at line 1562)
 
 my $tree_test_2 = bless( {
   'trace' => 0,
@@ -232,11 +233,11 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'bin',
-                'path' => 'c:\\test\\perl\\bin',
+                'path' => 'C:\\test\\perl\\bin',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '226714C2-4FE7-3E13-A8CD-4AECA493A891',
-                'id' => '226714C2_4FE7_3E13_A8CD_4AECA493A891'
+                'guid' => 'F717B51E-5E57-329A-83A3-527819908145',
+                'id' => 'F717B51E_5E57_329A_83A3_527819908145'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -247,11 +248,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'Compress',
-                    'path' => 'c:\\test\\perl\\lib\\Compress',
+                    'path' => 'C:\\test\\perl\\lib\\Compress',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'B5C62DCD-1159-3520-AF24-B0DDC0DB7B4E',
-                    'id' => 'B5C62DCD_1159_3520_AF24_B0DDC0DB7B4E'
+                    'guid' => '1E4CE48B-D491-3830-8C63-EE79BB61800A',
+                    'id' => '1E4CE48B_D491_3830_8C63_EE79BB61800A'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -262,21 +263,21 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'API',
-                        'path' => 'c:\\test\\perl\\lib\\CPAN\\API',
+                        'path' => 'C:\\test\\perl\\lib\\CPAN\\API',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '150AEA8F-70A6-373F-897A-1FB013476475',
-                        'id' => '150AEA8F_70A6_373F_897A_1FB013476475'
+                        'guid' => '53747424-89F4-3095-82EF-4C1A8B35027F',
+                        'id' => '53747424_89F4_3095_82EF_4C1A8B35027F'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'CPAN',
-                    'path' => 'c:\\test\\perl\\lib\\CPAN',
+                    'path' => 'C:\\test\\perl\\lib\\CPAN',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '19F728A5-7E97-393A-A908-E6FFA4599FDE',
-                    'id' => '19F728A5_7E97_393A_A908_E6FFA4599FDE'
+                    'guid' => '8AF15C79-FA45-36B3-ABD8-B31D41B582AF',
+                    'id' => '8AF15C79_FA45_36B3_ABD8_B31D41B582AF'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -287,21 +288,21 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'MD5',
-                        'path' => 'c:\\test\\perl\\lib\\Digest\\MD5',
+                        'path' => 'C:\\test\\perl\\lib\\Digest\\MD5',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '91A53F97-5598-3D39-AC5D-F9086C8890C3',
-                        'id' => '91A53F97_5598_3D39_AC5D_F9086C8890C3'
+                        'guid' => '60F63516-AF1B-3DEE-BAFC-8B43C0619806',
+                        'id' => '60F63516_AF1B_3DEE_BAFC_8B43C0619806'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'Digest',
-                    'path' => 'c:\\test\\perl\\lib\\Digest',
+                    'path' => 'C:\\test\\perl\\lib\\Digest',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'E4CADB28-B6F1-3D6E-997A-831A9560B41F',
-                    'id' => 'E4CADB28_B6F1_3D6E_997A_831A9560B41F'
+                    'guid' => 'EB3DFBB1-E121-3F57-936E-2781FB7977D5',
+                    'id' => 'EB3DFBB1_E121_3F57_936E_2781FB7977D5'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -315,31 +316,31 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Platform',
-                            'path' => 'c:\\test\\perl\\lib\\ExtUtils\\CBuilder\\Platform',
+                            'path' => 'C:\\test\\perl\\lib\\ExtUtils\\CBuilder\\Platform',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'CC9CA1C5-F008-3B93-80F7-F36EE0F9E9FD',
-                            'id' => 'CC9CA1C5_F008_3B93_80F7_F36EE0F9E9FD'
+                            'guid' => 'C65C6ABA-1CBA-3F37-931D-4821BFDCDE13',
+                            'id' => 'C65C6ABA_1CBA_3F37_931D_4821BFDCDE13'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'CBuilder',
-                        'path' => 'c:\\test\\perl\\lib\\ExtUtils\\CBuilder',
+                        'path' => 'C:\\test\\perl\\lib\\ExtUtils\\CBuilder',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'B8909B28-D2CB-3C5E-BE93-4297183B15F3',
-                        'id' => 'B8909B28_D2CB_3C5E_BE93_4297183B15F3'
+                        'guid' => '074C5720-D8E1-37DF-839D-F358DB19EE01',
+                        'id' => '074C5720_D8E1_37DF_839D_F358DB19EE01'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'ExtUtils',
-                    'path' => 'c:\\test\\perl\\lib\\ExtUtils',
+                    'path' => 'C:\\test\\perl\\lib\\ExtUtils',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'D9B35910-AA20-33DA-A03D-15AEF231387D',
-                    'id' => 'D9B35910_AA20_33DA_A03D_15AEF231387D'
+                    'guid' => '96781A12-24D3-3B0A-8731-39F011F3CEA1',
+                    'id' => '96781A12_24D3_3B0A_8731_39F011F3CEA1'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -347,11 +348,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'File',
-                    'path' => 'c:\\test\\perl\\lib\\File',
+                    'path' => 'C:\\test\\perl\\lib\\File',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '4E9FB20F-95A0-3338-8F17-578A18A9E069',
-                    'id' => '4E9FB20F_95A0_3338_8F17_578A18A9E069'
+                    'guid' => '32453E8B-BBCD-3F54-B2C1-813C273C0847',
+                    'id' => '32453E8B_BBCD_3F54_B2C1_813C273C0847'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -365,11 +366,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Adapter',
-                            'path' => 'c:\\test\\perl\\lib\\IO\\Compress\\Adapter',
+                            'path' => 'C:\\test\\perl\\lib\\IO\\Compress\\Adapter',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '6FD5B45D-DE9F-30DC-AB00-B295755682FA',
-                            'id' => '6FD5B45D_DE9F_30DC_AB00_B295755682FA'
+                            'guid' => 'F6F6D72B-FAE4-3BD9-8A47-99A62B194A88',
+                            'id' => 'F6F6D72B_FAE4_3BD9_8A47_99A62B194A88'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -377,11 +378,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Base',
-                            'path' => 'c:\\test\\perl\\lib\\IO\\Compress\\Base',
+                            'path' => 'C:\\test\\perl\\lib\\IO\\Compress\\Base',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '2E454F6F-C015-3AEF-AE14-4E263E26D5E0',
-                            'id' => '2E454F6F_C015_3AEF_AE14_4E263E26D5E0'
+                            'guid' => '3B3CB2F5-DA31-3A29-AD85-88D17BBC6C88',
+                            'id' => '3B3CB2F5_DA31_3A29_AD85_88D17BBC6C88'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -389,11 +390,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Gzip',
-                            'path' => 'c:\\test\\perl\\lib\\IO\\Compress\\Gzip',
+                            'path' => 'C:\\test\\perl\\lib\\IO\\Compress\\Gzip',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '45F36C9F-F143-3747-8F1A-6E883A95584F',
-                            'id' => '45F36C9F_F143_3747_8F1A_6E883A95584F'
+                            'guid' => '2A6EF8AC-29D0-3A7E-BD75-7D71CEDBE38A',
+                            'id' => '2A6EF8AC_29D0_3A7E_BD75_7D71CEDBE38A'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -401,21 +402,21 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Zip',
-                            'path' => 'c:\\test\\perl\\lib\\IO\\Compress\\Zip',
+                            'path' => 'C:\\test\\perl\\lib\\IO\\Compress\\Zip',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '94DFFE7C-BFD7-3671-9215-4F3955040AB6',
-                            'id' => '94DFFE7C_BFD7_3671_9215_4F3955040AB6'
+                            'guid' => '98CE0D83-E820-31F1-A3ED-06AFD0393235',
+                            'id' => '98CE0D83_E820_31F1_A3ED_06AFD0393235'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'Compress',
-                        'path' => 'c:\\test\\perl\\lib\\IO\\Compress',
+                        'path' => 'C:\\test\\perl\\lib\\IO\\Compress',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '303DA090-5203-3909-ADEA-E140A327F783',
-                        'id' => '303DA090_5203_3909_ADEA_E140A327F783'
+                        'guid' => 'E9641701-36CD-3592-AEC6-2E375354E244',
+                        'id' => 'E9641701_36CD_3592_AEC6_2E375354E244'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -426,31 +427,31 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Adapter',
-                            'path' => 'c:\\test\\perl\\lib\\IO\\Uncompress\\Adapter',
+                            'path' => 'C:\\test\\perl\\lib\\IO\\Uncompress\\Adapter',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '5E3A74C4-FA9B-390D-985F-893180CBF049',
-                            'id' => '5E3A74C4_FA9B_390D_985F_893180CBF049'
+                            'guid' => '9CDC0948-2798-3C94-9D64-C32246AEAA2B',
+                            'id' => '9CDC0948_2798_3C94_9D64_C32246AEAA2B'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'Uncompress',
-                        'path' => 'c:\\test\\perl\\lib\\IO\\Uncompress',
+                        'path' => 'C:\\test\\perl\\lib\\IO\\Uncompress',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'E8D0A84C-085E-35C0-ACCC-3A737F038890',
-                        'id' => 'E8D0A84C_085E_35C0_ACCC_3A737F038890'
+                        'guid' => '01D29F16-7FFE-3AC0-878C-482FB1D6B715',
+                        'id' => '01D29F16_7FFE_3AC0_878C_482FB1D6B715'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'IO',
-                    'path' => 'c:\\test\\perl\\lib\\IO',
+                    'path' => 'C:\\test\\perl\\lib\\IO',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '0DB7D421-1C6B-39D6-BB8F-735744E56EE2',
-                    'id' => '0DB7D421_1C6B_39D6_BB8F_735744E56EE2'
+                    'guid' => '79FC3F94-0468-3ECA-B18F-4C92F38990EC',
+                    'id' => '79FC3F94_0468_3ECA_B18F_4C92F38990EC'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -464,31 +465,31 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'FastCalc',
-                            'path' => 'c:\\test\\perl\\lib\\Math\\BigInt\\FastCalc',
+                            'path' => 'C:\\test\\perl\\lib\\Math\\BigInt\\FastCalc',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'C62EE46D-4134-3871-A579-EE80772B542E',
-                            'id' => 'C62EE46D_4134_3871_A579_EE80772B542E'
+                            'guid' => '71733DFA-C41E-33B7-A5F6-BA0A24B561A3',
+                            'id' => '71733DFA_C41E_33B7_A5F6_BA0A24B561A3'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'BigInt',
-                        'path' => 'c:\\test\\perl\\lib\\Math\\BigInt',
+                        'path' => 'C:\\test\\perl\\lib\\Math\\BigInt',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '8C30DD5B-9A38-3595-9A4A-6D15C649EF47',
-                        'id' => '8C30DD5B_9A38_3595_9A4A_6D15C649EF47'
+                        'guid' => '4FF80E77-1B9F-3235-99FE-55B711F7CAD1',
+                        'id' => '4FF80E77_1B9F_3235_99FE_55B711F7CAD1'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'Math',
-                    'path' => 'c:\\test\\perl\\lib\\Math',
+                    'path' => 'C:\\test\\perl\\lib\\Math',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'BA1B90E4-CA72-3D67-8F81-BE2EC9667379',
-                    'id' => 'BA1B90E4_CA72_3D67_8F81_BE2EC9667379'
+                    'guid' => '27461A25-5034-3D89-AD5D-50A5E3CD5BA9',
+                    'id' => '27461A25_5034_3D89_AD5D_50A5E3CD5BA9'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -496,11 +497,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'Module',
-                    'path' => 'c:\\test\\perl\\lib\\Module',
+                    'path' => 'C:\\test\\perl\\lib\\Module',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '9D128CAB-C805-35B3-80DE-BCC74D9B18C0',
-                    'id' => '9D128CAB_C805_35B3_80DE_BCC74D9B18C0'
+                    'guid' => 'CE106BF1-5EE2-3816-9A2D-0F00286C6749',
+                    'id' => 'CE106BF1_5EE2_3816_9A2D_0F00286C6749'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -508,11 +509,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'Test',
-                    'path' => 'c:\\test\\perl\\lib\\Test',
+                    'path' => 'C:\\test\\perl\\lib\\Test',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '3457B94D-E013-3F81-88E9-35C5CFA57F92',
-                    'id' => '3457B94D_E013_3F81_88E9_35C5CFA57F92'
+                    'guid' => '13EF26F9-C8E9-3439-9DD2-CE1506EF2826',
+                    'id' => '13EF26F9_C8E9_3439_9DD2_CE1506EF2826'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -523,11 +524,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Compress',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Compress',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Compress',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'FFCEA462-B5F9-396D-88AD-C662EAB85721',
-                        'id' => 'FFCEA462_B5F9_396D_88AD_C662EAB85721'
+                        'guid' => 'B5A75E38-F946-3B45-89F6-C763580585B6',
+                        'id' => 'B5A75E38_F946_3B45_89F6_C763580585B6'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -535,11 +536,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Cwd',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Cwd',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Cwd',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '60FF52F4-7130-37CE-A50F-D26B75E074BD',
-                        'id' => '60FF52F4_7130_37CE_A50F_D26B75E074BD'
+                        'guid' => 'DA94853F-4398-35C1-A18E-1A5B9D5E4893',
+                        'id' => 'DA94853F_4398_35C1_A18E_1A5B9D5E4893'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -547,11 +548,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Devel',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Devel',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Devel',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '01FF5FAB-5F8E-3369-B3AA-20D4395D51D1',
-                        'id' => '01FF5FAB_5F8E_3369_B3AA_20D4395D51D1'
+                        'guid' => '44A4B802-8C4F-35FB-A899-E94A0E835B7C',
+                        'id' => '44A4B802_8C4F_35FB_A899_E94A0E835B7C'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -562,21 +563,21 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'MD5',
-                            'path' => 'c:\\test\\perl\\lib\\auto\\Digest\\MD5',
+                            'path' => 'C:\\test\\perl\\lib\\auto\\Digest\\MD5',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '82AF33BC-A346-3E56-A95C-7410AA4B3430',
-                            'id' => '82AF33BC_A346_3E56_A95C_7410AA4B3430'
+                            'guid' => 'AB05C8BB-D7D3-30E9-AC70-09DCA7E9B705',
+                            'id' => 'AB05C8BB_D7D3_30E9_AC70_09DCA7E9B705'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'Digest',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Digest',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Digest',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'EDBBC989-D08A-3829-83F0-72D810401E6D',
-                        'id' => 'EDBBC989_D08A_3829_83F0_72D810401E6D'
+                        'guid' => '8779B820-38EA-39E6-B723-2A94D0359610',
+                        'id' => '8779B820_38EA_39E6_B723_2A94D0359610'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -584,11 +585,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Encode',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Encode',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Encode',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'A0FE6AC0-44AF-39E4-B49C-DE76B704C013',
-                        'id' => 'A0FE6AC0_44AF_39E4_B49C_DE76B704C013'
+                        'guid' => '87731680-27B6-39F3-8156-750CE68BE417',
+                        'id' => '87731680_27B6_39F3_8156_750CE68BE417'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -602,31 +603,31 @@ my $tree_test_2 = bless( {
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'FastCalc',
-                                'path' => 'c:\\test\\perl\\lib\\auto\\Math\\BigInt\\FastCalc',
+                                'path' => 'C:\\test\\perl\\lib\\auto\\Math\\BigInt\\FastCalc',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => '60351E49-C426-3523-9CB2-0A71ECDCB1DD',
-                                'id' => '60351E49_C426_3523_9CB2_0A71ECDCB1DD'
+                                'guid' => '7DDFFBD5-6735-3BD7-8A1B-A84B3ABF564A',
+                                'id' => '7DDFFBD5_6735_3BD7_8A1B_A84B3ABF564A'
                               }, 'Perl::Dist::WiX::Directory' )
                             ],
                             'files' => [],
                             'entries' => [],
                             'name' => 'BigInt',
-                            'path' => 'c:\\test\\perl\\lib\\auto\\Math\\BigInt',
+                            'path' => 'C:\\test\\perl\\lib\\auto\\Math\\BigInt',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'DB1FE4D3-CF25-3993-9C1A-8F247C25197F',
-                            'id' => 'DB1FE4D3_CF25_3993_9C1A_8F247C25197F'
+                            'guid' => '5CADB1DF-9C98-37E9-B078-3C4ED5736BED',
+                            'id' => '5CADB1DF_9C98_37E9_B078_3C4ED5736BED'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'Math',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Math',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Math',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '15E729EC-C5BF-3FA7-8F43-BFD548013873',
-                        'id' => '15E729EC_C5BF_3FA7_8F43_BFD548013873'
+                        'guid' => 'CB17F5A3-6530-362E-A8D0-D3D42CB4794B',
+                        'id' => 'CB17F5A3_6530_362E_A8D0_D3D42CB4794B'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -634,11 +635,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'PerlIO',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\PerlIO',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\PerlIO',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'ADFBF2FE-A76A-3C05-8389-4EC03A63931D',
-                        'id' => 'ADFBF2FE_A76A_3C05_8389_4EC03A63931D'
+                        'guid' => '7E864D52-82FE-37C1-8FB4-BEDD92F5B4A5',
+                        'id' => '7E864D52_82FE_37C1_8FB4_BEDD92F5B4A5'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -646,11 +647,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'POSIX',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\POSIX',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\POSIX',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '9B02F097-DB37-3C38-A839-EDC474CBA087',
-                        'id' => '9B02F097_DB37_3C38_A839_EDC474CBA087'
+                        'guid' => '9D9FF976-F842-3CAB-A6C5-681CF3C41D95',
+                        'id' => '9D9FF976_F842_3CAB_A6C5_681CF3C41D95'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -658,11 +659,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Time',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\Time',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\Time',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'E723F059-3FD7-3D30-9E06-B70381275136',
-                        'id' => 'E723F059_3FD7_3D30_9E06_B70381275136'
+                        'guid' => '853CDE42-1F58-3B81-9FC6-7DFB6A7986A3',
+                        'id' => '853CDE42_1F58_3B81_9FC6_7DFB6A7986A3'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -670,31 +671,31 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'share',
-                        'path' => 'c:\\test\\perl\\lib\\auto\\share',
+                        'path' => 'C:\\test\\perl\\lib\\auto\\share',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '4826C7F9-09CC-379E-A241-28689B815CFF',
-                        'id' => '4826C7F9_09CC_379E_A241_28689B815CFF'
+                        'guid' => 'FE794D95-EB30-343C-A8B4-35B8EC58F146',
+                        'id' => 'FE794D95_EB30_343C_A8B4_35B8EC58F146'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'auto',
-                    'path' => 'c:\\test\\perl\\lib\\auto',
+                    'path' => 'C:\\test\\perl\\lib\\auto',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '34F039B4-89BC-30E3-A5A9-34B40037EB6D',
-                    'id' => '34F039B4_89BC_30E3_A5A9_34B40037EB6D'
+                    'guid' => '1EAEB13C-294E-3325-BC3B-135FE6E21463',
+                    'id' => '1EAEB13C_294E_3325_BC3B_135FE6E21463'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'lib',
-                'path' => 'c:\\test\\perl\\lib',
+                'path' => 'C:\\test\\perl\\lib',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '0771F5A2-E78C-3A87-BA9B-B620D7EF801D',
-                'id' => '0771F5A2_E78C_3A87_BA9B_B620D7EF801D'
+                'guid' => '167768A4-449A-32CC-A0F4-3DCF273EDF69',
+                'id' => '167768A4_449A_32CC_A0F4_3DCF273EDF69'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -708,11 +709,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Bundle',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Bundle',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Bundle',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'EA3D10B3-8C39-3CD6-8106-4F2A1C331D23',
-                        'id' => 'EA3D10B3_8C39_3CD6_8106_4F2A1C331D23'
+                        'guid' => 'D797137C-CBFF-386F-ADB3-666F9830DCA8',
+                        'id' => 'D797137C_CBFF_386F_ADB3_666F9830DCA8'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -720,11 +721,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Compress',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Compress',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Compress',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'F774DA5A-1A9C-3528-BB99-978861A60E2D',
-                        'id' => 'F774DA5A_1A9C_3528_BB99_978861A60E2D'
+                        'guid' => '50CB1D55-C1AE-35A4-BC21-DBC362C2A7A6',
+                        'id' => '50CB1D55_C1AE_35A4_BC21_DBC362C2A7A6'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -732,11 +733,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'DBD',
-                        'path' => 'c:\\test\\perl\\site\\lib\\DBD',
+                        'path' => 'C:\\test\\perl\\site\\lib\\DBD',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '31F13D4F-7B11-3043-9124-7D28D8D4A0C3',
-                        'id' => '31F13D4F_7B11_3043_9124_7D28D8D4A0C3'
+                        'guid' => 'C108793B-2141-3D01-A59F-82357A983698',
+                        'id' => 'C108793B_2141_3D01_A59F_82357A983698'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -744,11 +745,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'File',
-                        'path' => 'c:\\test\\perl\\site\\lib\\File',
+                        'path' => 'C:\\test\\perl\\site\\lib\\File',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'CBCF6E21-6BAE-33AC-B8C9-DFC7B3106868',
-                        'id' => 'CBCF6E21_6BAE_33AC_B8C9_DFC7B3106868'
+                        'guid' => '59FAF411-602A-3066-846D-07E4A9B8EB69',
+                        'id' => '59FAF411_602A_3066_846D_07E4A9B8EB69'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -756,11 +757,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'HTML',
-                        'path' => 'c:\\test\\perl\\site\\lib\\HTML',
+                        'path' => 'C:\\test\\perl\\site\\lib\\HTML',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '304EE39C-C7A4-3096-A8AD-07B59ECBB3D5',
-                        'id' => '304EE39C_C7A4_3096_A8AD_07B59ECBB3D5'
+                        'guid' => 'D71A609A-E8F8-3E89-81E6-14081EE0ECA2',
+                        'id' => 'D71A609A_E8F8_3E89_81E6_14081EE0ECA2'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -768,11 +769,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'IO',
-                        'path' => 'c:\\test\\perl\\site\\lib\\IO',
+                        'path' => 'C:\\test\\perl\\site\\lib\\IO',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '04CCCDBA-2BCF-33A9-B260-AF7C112A790E',
-                        'id' => '04CCCDBA_2BCF_33A9_B260_AF7C112A790E'
+                        'guid' => 'CC536878-B286-3AD4-90F6-B9BACB6B692D',
+                        'id' => 'CC536878_B286_3AD4_90F6_B9BACB6B692D'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -780,11 +781,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'LWP',
-                        'path' => 'c:\\test\\perl\\site\\lib\\LWP',
+                        'path' => 'C:\\test\\perl\\site\\lib\\LWP',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'A8C9E86E-CD80-3D58-B2F2-4832E3EBEDAD',
-                        'id' => 'A8C9E86E_CD80_3D58_B2F2_4832E3EBEDAD'
+                        'guid' => 'E28DFF76-91BB-3EBB-8864-CD132FDD077E',
+                        'id' => 'E28DFF76_91BB_3EBB_8864_CD132FDD077E'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -792,11 +793,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Math',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Math',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Math',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '6EA69F29-DFA4-33B1-A4CF-6E2AA3C8CEAB',
-                        'id' => '6EA69F29_DFA4_33B1_A4CF_6E2AA3C8CEAB'
+                        'guid' => '496E3E7C-A119-3614-8097-8AE576E025F0',
+                        'id' => '496E3E7C_A119_3614_8097_8AE576E025F0'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -804,11 +805,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'PAR',
-                        'path' => 'c:\\test\\perl\\site\\lib\\PAR',
+                        'path' => 'C:\\test\\perl\\site\\lib\\PAR',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '49085693-E88D-3D4A-BFE5-7DBC28D63E10',
-                        'id' => '49085693_E88D_3D4A_BFE5_7DBC28D63E10'
+                        'guid' => '0551B560-2A5A-32E4-855E-EBE43EC34DF8',
+                        'id' => '0551B560_2A5A_32E4_855E_EBE43EC34DF8'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -816,11 +817,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Term',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Term',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Term',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'E9101245-170C-3E04-B816-416DE081C03F',
-                        'id' => 'E9101245_170C_3E04_B816_416DE081C03F'
+                        'guid' => '93051433-B6F7-3599-97B2-700071DA0864',
+                        'id' => '93051433_B6F7_3599_97B2_700071DA0864'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -828,11 +829,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Test',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Test',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Test',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'AECD900B-AC2C-3C07-9899-96454B7DFB9D',
-                        'id' => 'AECD900B_AC2C_3C07_9899_96454B7DFB9D'
+                        'guid' => 'BEE4F0BB-54AB-335D-AB1B-7D44249D1696',
+                        'id' => 'BEE4F0BB_54AB_335D_AB1B_7D44249D1696'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -840,11 +841,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'Win32',
-                        'path' => 'c:\\test\\perl\\site\\lib\\Win32',
+                        'path' => 'C:\\test\\perl\\site\\lib\\Win32',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'FB57F243-643D-3BD3-A8FB-E68D7EA0E9FB',
-                        'id' => 'FB57F243_643D_3BD3_A8FB_E68D7EA0E9FB'
+                        'guid' => '14F9992E-A451-3D44-AD43-D3A367B02031',
+                        'id' => '14F9992E_A451_3D44_AD43_D3A367B02031'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -852,11 +853,11 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'XML',
-                        'path' => 'c:\\test\\perl\\site\\lib\\XML',
+                        'path' => 'C:\\test\\perl\\site\\lib\\XML',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '9D57212D-4847-3102-9FA9-89259497CB20',
-                        'id' => '9D57212D_4847_3102_9FA9_89259497CB20'
+                        'guid' => '633BBECE-77D7-30F6-9034-D39655638882',
+                        'id' => '633BBECE_77D7_30F6_9034_D39655638882'
                       }, 'Perl::Dist::WiX::Directory' ),
                       bless( {
                         'sitename' => 'www.test.site.invalid',
@@ -867,11 +868,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'share',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\share',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\share',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'BBFE98DE-746C-3C9F-B9D3-D789BEDB72BE',
-                            'id' => 'BBFE98DE_746C_3C9F_B9D3_D789BEDB72BE'
+                            'guid' => 'BC0402D3-9BD2-3987-B1B4-35EA398C6BEC',
+                            'id' => 'BC0402D3_9BD2_3987_B1B4_35EA398C6BEC'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -882,21 +883,21 @@ my $tree_test_2 = bless( {
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'Raw',
-                                'path' => 'c:\\test\\perl\\site\\lib\\auto\\Compress\\Raw',
+                                'path' => 'C:\\test\\perl\\site\\lib\\auto\\Compress\\Raw',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => 'CEA11F02-4448-391F-8E06-E2CFC3883655',
-                                'id' => 'CEA11F02_4448_391F_8E06_E2CFC3883655'
+                                'guid' => '4054B239-62D0-3344-BA98-6DA544EBC8A6',
+                                'id' => '4054B239_62D0_3344_BA98_6DA544EBC8A6'
                               }, 'Perl::Dist::WiX::Directory' )
                             ],
                             'files' => [],
                             'entries' => [],
                             'name' => 'Compress',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\Compress',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\Compress',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '56764A56-6248-3449-A4B0-B9A4A15DF5D2',
-                            'id' => '56764A56_6248_3449_A4B0_B9A4A15DF5D2'
+                            'guid' => '245FDF54-DE1F-3B14-B45C-F591F12FF8FD',
+                            'id' => '245FDF54_DE1F_3B14_B45C_F591F12FF8FD'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -904,11 +905,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Math',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\Math',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\Math',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'C3368635-B44C-3089-A67E-BACC4E203DCE',
-                            'id' => 'C3368635_B44C_3089_A67E_BACC4E203DCE'
+                            'guid' => '6CE1EA06-9D83-3B72-B68C-375CB454C284',
+                            'id' => '6CE1EA06_9D83_3B72_B68C_375CB454C284'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -916,11 +917,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Term',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\Term',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\Term',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '6D1134CE-3970-3BD8-82CF-332FC61F4B40',
-                            'id' => '6D1134CE_3970_3BD8_82CF_332FC61F4B40'
+                            'guid' => 'EE6B1671-0C94-37EC-9C2E-84F5E42CA7BA',
+                            'id' => 'EE6B1671_0C94_37EC_9C2E_84F5E42CA7BA'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -928,11 +929,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'Win32',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\Win32',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\Win32',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '21CB059D-089A-3C6B-815F-73F341933F43',
-                            'id' => '21CB059D_089A_3C6B_815F_73F341933F43'
+                            'guid' => 'C0D9F7F3-8AA7-3A70-810C-FC5FC5F9AA56',
+                            'id' => 'C0D9F7F3_8AA7_3A70_810C_FC5FC5F9AA56'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -940,47 +941,47 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'XML',
-                            'path' => 'c:\\test\\perl\\site\\lib\\auto\\XML',
+                            'path' => 'C:\\test\\perl\\site\\lib\\auto\\XML',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '4BE6EA31-4235-3FA2-8954-6A7D0BC10753',
-                            'id' => '4BE6EA31_4235_3FA2_8954_6A7D0BC10753'
+                            'guid' => 'D2B863DE-1257-3C2A-A516-6406CEE125A0',
+                            'id' => 'D2B863DE_1257_3C2A_A516_6406CEE125A0'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'auto',
-                        'path' => 'c:\\test\\perl\\site\\lib\\auto',
+                        'path' => 'C:\\test\\perl\\site\\lib\\auto',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '6D9C03D5-B041-3C7B-B6CD-F95F3B986D7B',
-                        'id' => '6D9C03D5_B041_3C7B_B6CD_F95F3B986D7B'
+                        'guid' => '7212C99C-98FC-3CC2-B32B-986926035439',
+                        'id' => '7212C99C_98FC_3CC2_B32B_986926035439'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'lib',
-                    'path' => 'c:\\test\\perl\\site\\lib',
+                    'path' => 'C:\\test\\perl\\site\\lib',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '5352248B-E15C-36A5-9451-3117A96F42D8',
-                    'id' => '5352248B_E15C_36A5_9451_3117A96F42D8'
+                    'guid' => 'B3D4AD98-92FD-3DCF-A3A5-26C8E2D252A3',
+                    'id' => 'B3D4AD98_92FD_3DCF_A3A5_26C8E2D252A3'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'site',
-                'path' => 'c:\\test\\perl\\site',
+                'path' => 'C:\\test\\perl\\site',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '61C86B69-E8DF-34BA-8EE6-AB952A84E83F',
-                'id' => '61C86B69_E8DF_34BA_8EE6_AB952A84E83F'
+                'guid' => '1BEF246B-FCD9-34B0-ABAA-5D90D198E4C9',
+                'id' => '1BEF246B_FCD9_34B0_ABAA_5D90D198E4C9'
               }, 'Perl::Dist::WiX::Directory' )
             ],
             'files' => [],
             'entries' => [],
             'name' => 'perl',
-            'path' => 'c:\\test\\perl',
+            'path' => 'C:\\test\\perl',
             'trace' => 0,
             'special' => 0,
             'id' => 'Perl'
@@ -997,21 +998,21 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'startup',
-                    'path' => 'c:\\test\\c\\bin\\startup',
+                    'path' => 'C:\\test\\c\\bin\\startup',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'AB8356A1-7A35-384D-BEFD-540DDAC1B712',
-                    'id' => 'AB8356A1_7A35_384D_BEFD_540DDAC1B712'
+                    'guid' => '1871D525-EA82-3FCD-A1DD-6545613FA8A5',
+                    'id' => '1871D525_EA82_3FCD_A1DD_6545613FA8A5'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'bin',
-                'path' => 'c:\\test\\c\\bin',
+                'path' => 'C:\\test\\c\\bin',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => 'E7951DB0-3670-3141-B27D-82B6379A1904',
-                'id' => 'E7951DB0_3670_3141_B27D_82B6379A1904'
+                'guid' => 'F929E019-ED70-313B-BAFD-0F0F27FF0A4F',
+                'id' => 'F929E019_ED70_313B_BAFD_0F0F27FF0A4F'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1028,11 +1029,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'backward',
-                            'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\backward',
+                            'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\backward',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '7B87D6D1-14D3-3B8D-AEFD-2AE5CF66E8CE',
-                            'id' => '7B87D6D1_14D3_3B8D_AEFD_2AE5CF66E8CE'
+                            'guid' => 'E6349AE4-B0D7-34C7-833A-5B1444369683',
+                            'id' => 'E6349AE4_B0D7_34C7_833A_5B1444369683'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -1040,11 +1041,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'bits',
-                            'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\bits',
+                            'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\bits',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '1BDC98D9-E0B0-3FC1-B3E0-27DB971F46C6',
-                            'id' => '1BDC98D9_E0B0_3FC1_B3E0_27DB971F46C6'
+                            'guid' => 'C3EB056B-8B9C-38F5-B80B-7AF310AB57B8',
+                            'id' => 'C3EB056B_8B9C_38F5_B80B_7AF310AB57B8'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -1052,11 +1053,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'debug',
-                            'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\debug',
+                            'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\debug',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'DCDE3775-CE83-3BC6-82E7-98238A11AEAC',
-                            'id' => 'DCDE3775_CE83_3BC6_82E7_98238A11AEAC'
+                            'guid' => '0BFD1700-7BDD-3E14-8878-BF46E4E1602C',
+                            'id' => '0BFD1700_7BDD_3E14_8878_BF46E4E1602C'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -1064,11 +1065,11 @@ my $tree_test_2 = bless( {
                             'files' => [],
                             'entries' => [],
                             'name' => 'ext',
-                            'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\ext',
+                            'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\ext',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '12E80322-CF7D-36C5-8581-B600853B8861',
-                            'id' => '12E80322_CF7D_36C5_8581_B600853B8861'
+                            'guid' => '2EB1CFBC-2688-3547-980A-96CB2B0BD574',
+                            'id' => '2EB1CFBC_2688_3547_980A_96CB2B0BD574'
                           }, 'Perl::Dist::WiX::Directory' ),
                           bless( {
                             'sitename' => 'www.test.site.invalid',
@@ -1079,41 +1080,41 @@ my $tree_test_2 = bless( {
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'bits',
-                                'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\mingw32\\bits',
+                                'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\mingw32\\bits',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => 'C571B7DB-6EA8-3023-B048-8E0DB5418D04',
-                                'id' => 'C571B7DB_6EA8_3023_B048_8E0DB5418D04'
+                                'guid' => '7F04A259-CADA-3CFC-A0B6-B75567F48201',
+                                'id' => '7F04A259_CADA_3CFC_A0B6_B75567F48201'
                               }, 'Perl::Dist::WiX::Directory' )
                             ],
                             'files' => [],
                             'entries' => [],
                             'name' => 'mingw32',
-                            'path' => 'c:\\test\\c\\include\\c++\\3.4.5\\mingw32',
+                            'path' => 'C:\\test\\c\\include\\c++\\3.4.5\\mingw32',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => 'DFF47235-0840-364B-8C8E-4F70233CD620',
-                            'id' => 'DFF47235_0840_364B_8C8E_4F70233CD620'
+                            'guid' => 'F3F9A409-F0C0-378A-BFD7-8C06E94995AD',
+                            'id' => 'F3F9A409_F0C0_378A_BFD7_8C06E94995AD'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => '3.4.5',
-                        'path' => 'c:\\test\\c\\include\\c++\\3.4.5',
+                        'path' => 'C:\\test\\c\\include\\c++\\3.4.5',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '747FEA5C-0351-33FC-B58C-CD52F33BA97C',
-                        'id' => '747FEA5C_0351_33FC_B58C_CD52F33BA97C'
+                        'guid' => '0BD3E815-B406-3420-8279-5C17C43D3968',
+                        'id' => '0BD3E815_B406_3420_8279_5C17C43D3968'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'c++',
-                    'path' => 'c:\\test\\c\\include\\c++',
+                    'path' => 'C:\\test\\c\\include\\c++',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '2EB09ABE-ABD0-3A5B-984C-1188CE67A1DF',
-                    'id' => '2EB09ABE_ABD0_3A5B_984C_1188CE67A1DF'
+                    'guid' => '4970DE0E-5BEC-34EA-BD37-9FE53647B20E',
+                    'id' => '4970DE0E_5BEC_34EA_BD37_9FE53647B20E'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1121,11 +1122,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'ddk',
-                    'path' => 'c:\\test\\c\\include\\ddk',
+                    'path' => 'C:\\test\\c\\include\\ddk',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '1882D24C-60A1-3AA4-A28C-67699862B29D',
-                    'id' => '1882D24C_60A1_3AA4_A28C_67699862B29D'
+                    'guid' => '25D1AF22-5FC8-3804-BBCD-75DE143DC68A',
+                    'id' => '25D1AF22_5FC8_3804_BBCD_75DE143DC68A'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1133,11 +1134,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'gl',
-                    'path' => 'c:\\test\\c\\include\\gl',
+                    'path' => 'C:\\test\\c\\include\\gl',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '799E7C3A-0BAC-35CB-B683-CE3846B873DD',
-                    'id' => '799E7C3A_0BAC_35CB_B683_CE3846B873DD'
+                    'guid' => '04E8578B-77C2-3095-A0DB-209575994057',
+                    'id' => '04E8578B_77C2_3095_A0DB_209575994057'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1145,11 +1146,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'libxml',
-                    'path' => 'c:\\test\\c\\include\\libxml',
+                    'path' => 'C:\\test\\c\\include\\libxml',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '521DF9CB-8AAE-3BA5-9C39-0DB97EB8CC4E',
-                    'id' => '521DF9CB_8AAE_3BA5_9C39_0DB97EB8CC4E'
+                    'guid' => '65264A85-B764-346C-8343-700812E06884',
+                    'id' => '65264A85_B764_346C_8343_700812E06884'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1157,21 +1158,21 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'sys',
-                    'path' => 'c:\\test\\c\\include\\sys',
+                    'path' => 'C:\\test\\c\\include\\sys',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'A43300F4-1A69-3AAE-84EA-E540EE1E62A5',
-                    'id' => 'A43300F4_1A69_3AAE_84EA_E540EE1E62A5'
+                    'guid' => '95B154FE-05EE-3665-A1B4-9B055011A6A5',
+                    'id' => '95B154FE_05EE_3665_A1B4_9B055011A6A5'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'include',
-                'path' => 'c:\\test\\c\\include',
+                'path' => 'C:\\test\\c\\include',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '62A1622F-2B98-3C62-BF8C-7624BD39F8A0',
-                'id' => '62A1622F_2B98_3C62_BF8C_7624BD39F8A0'
+                'guid' => '990EBE17-4FDD-3330-B77D-CC1780785AD9',
+                'id' => '990EBE17_4FDD_3330_B77D_CC1780785AD9'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1182,11 +1183,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'debug',
-                    'path' => 'c:\\test\\c\\lib\\debug',
+                    'path' => 'C:\\test\\c\\lib\\debug',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '83387D01-0432-3886-B959-D429B83C513A',
-                    'id' => '83387D01_0432_3886_B959_D429B83C513A'
+                    'guid' => 'E764ADB9-9647-3B6F-8A99-DED1898EF040',
+                    'id' => 'E764ADB9_9647_3B6F_8A99_DED1898EF040'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1203,11 +1204,11 @@ my $tree_test_2 = bless( {
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'include',
-                                'path' => 'c:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\include',
+                                'path' => 'C:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\include',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => 'D5AB2EDA-4C44-37B7-8FA8-6F5BF3E39CC7',
-                                'id' => 'D5AB2EDA_4C44_37B7_8FA8_6F5BF3E39CC7'
+                                'guid' => '12AEE065-432E-3782-93D7-586F15D9129D',
+                                'id' => '12AEE065_432E_3782_93D7_586F15D9129D'
                               }, 'Perl::Dist::WiX::Directory' ),
                               bless( {
                                 'sitename' => 'www.test.site.invalid',
@@ -1218,61 +1219,61 @@ my $tree_test_2 = bless( {
                                     'files' => [],
                                     'entries' => [],
                                     'name' => 'include',
-                                    'path' => 'c:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\install-tools\\include',
+                                    'path' => 'C:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\install-tools\\include',
                                     'trace' => 0,
                                     'special' => 0,
-                                    'guid' => 'A50C5F78-5156-3D6A-8D48-B6353F4852BD',
-                                    'id' => 'A50C5F78_5156_3D6A_8D48_B6353F4852BD'
+                                    'guid' => 'AF11F1AA-EB14-3594-926E-F8BACEF36342',
+                                    'id' => 'AF11F1AA_EB14_3594_926E_F8BACEF36342'
                                   }, 'Perl::Dist::WiX::Directory' )
                                 ],
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'install-tools',
-                                'path' => 'c:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\install-tools',
+                                'path' => 'C:\\test\\c\\lib\\gcc\\mingw32\\3.4.5\\install-tools',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => 'C26AC4C0-CF1E-34EA-A9E4-3302CB7D6829',
-                                'id' => 'C26AC4C0_CF1E_34EA_A9E4_3302CB7D6829'
+                                'guid' => '1C0767F2-565D-361B-B0E0-5BB83F2AE405',
+                                'id' => '1C0767F2_565D_361B_B0E0_5BB83F2AE405'
                               }, 'Perl::Dist::WiX::Directory' )
                             ],
                             'files' => [],
                             'entries' => [],
                             'name' => '3.4.5',
-                            'path' => 'c:\\test\\c\\lib\\gcc\\mingw32\\3.4.5',
+                            'path' => 'C:\\test\\c\\lib\\gcc\\mingw32\\3.4.5',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '74CB2FE8-F5F1-304A-86BD-36FD455CFB6C',
-                            'id' => '74CB2FE8_F5F1_304A_86BD_36FD455CFB6C'
+                            'guid' => '27704913-5FF2-36A8-B225-BF1E47B48413',
+                            'id' => '27704913_5FF2_36A8_B225_BF1E47B48413'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'mingw32',
-                        'path' => 'c:\\test\\c\\lib\\gcc\\mingw32',
+                        'path' => 'C:\\test\\c\\lib\\gcc\\mingw32',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '4B3EDA82-D137-3675-A64C-80E51B6036C7',
-                        'id' => '4B3EDA82_D137_3675_A64C_80E51B6036C7'
+                        'guid' => '99F170D9-C69E-3361-A1F4-CA1869C0648E',
+                        'id' => '99F170D9_C69E_3361_A1F4_CA1869C0648E'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'gcc',
-                    'path' => 'c:\\test\\c\\lib\\gcc',
+                    'path' => 'C:\\test\\c\\lib\\gcc',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'C23B9704-4061-3BCF-AD06-54861E166CBA',
-                    'id' => 'C23B9704_4061_3BCF_AD06_54861E166CBA'
+                    'guid' => '6B140931-6C1B-3379-A4F1-FB678B3C2544',
+                    'id' => '6B140931_6C1B_3379_A4F1_FB678B3C2544'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'lib',
-                'path' => 'c:\\test\\c\\lib',
+                'path' => 'C:\\test\\c\\lib',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '1F37D408-4CF1-3347-85A9-CDB762981D87',
-                'id' => '1F37D408_4CF1_3347_85A9_CDB762981D87'
+                'guid' => '14230B50-C0DC-36E3-8931-C28F934C84B5',
+                'id' => '14230B50_C0DC_36E3_8931_C28F934C84B5'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1292,51 +1293,51 @@ my $tree_test_2 = bless( {
                                 'files' => [],
                                 'entries' => [],
                                 'name' => 'install-tools',
-                                'path' => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+                                'path' => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
                                 'trace' => 0,
                                 'special' => 0,
-                                'guid' => '5AD17DCF-390D-3E49-B0E7-473FCD9C86D9',
-                                'id' => '5AD17DCF_390D_3E49_B0E7_473FCD9C86D9'
+                                'guid' => '870594AF-E302-36D9-AFE7-D999FA0DBBF6',
+                                'id' => '870594AF_E302_36D9_AFE7_D999FA0DBBF6'
                               }, 'Perl::Dist::WiX::Directory' )
                             ],
                             'files' => [],
                             'entries' => [],
                             'name' => '3.4.5',
-                            'path' => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5',
+                            'path' => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5',
                             'trace' => 0,
                             'special' => 0,
-                            'guid' => '2AD02341-566E-3714-8D44-A1A948AB0C3A',
-                            'id' => '2AD02341_566E_3714_8D44_A1A948AB0C3A'
+                            'guid' => '97FE211B-F98C-3285-A75B-6F981AA3A19A',
+                            'id' => '97FE211B_F98C_3285_A75B_6F981AA3A19A'
                           }, 'Perl::Dist::WiX::Directory' )
                         ],
                         'files' => [],
                         'entries' => [],
                         'name' => 'mingw32',
-                        'path' => 'c:\\test\\c\\libexec\\gcc\\mingw32',
+                        'path' => 'C:\\test\\c\\libexec\\gcc\\mingw32',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => 'B95420E6-BCE4-36F0-B9B1-D4B02B9CB627',
-                        'id' => 'B95420E6_BCE4_36F0_B9B1_D4B02B9CB627'
+                        'guid' => '6E9B021B-04EE-3F14-A14C-919B80A6AC42',
+                        'id' => '6E9B021B_04EE_3F14_A14C_919B80A6AC42'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'gcc',
-                    'path' => 'c:\\test\\c\\libexec\\gcc',
+                    'path' => 'C:\\test\\c\\libexec\\gcc',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'C3B1D355-F724-3030-B3EE-7E17D9D1469B',
-                    'id' => 'C3B1D355_F724_3030_B3EE_7E17D9D1469B'
+                    'guid' => '12545A33-2C38-3D6F-A2DA-267EE97FDE2F',
+                    'id' => '12545A33_2C38_3D6F_A2DA_267EE97FDE2F'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'libexec',
-                'path' => 'c:\\test\\c\\libexec',
+                'path' => 'C:\\test\\c\\libexec',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '5F7950A1-CE06-3EA3-91B3-36AB475E55E6',
-                'id' => '5F7950A1_CE06_3EA3_91B3_36AB475E55E6'
+                'guid' => 'DD294F22-4FBF-321A-80BB-4CBD1A25C9DE',
+                'id' => 'DD294F22_4FBF_321A_80BB_4CBD1A25C9DE'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1347,11 +1348,11 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'bin',
-                    'path' => 'c:\\test\\c\\mingw32\\bin',
+                    'path' => 'C:\\test\\c\\mingw32\\bin',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'A189758F-34E7-370F-A43C-EA46BCA6B3D7',
-                    'id' => 'A189758F_34E7_370F_A43C_EA46BCA6B3D7'
+                    'guid' => '4082B714-94AE-3055-A142-8AAC4D0F817A',
+                    'id' => '4082B714_94AE_3055_A142_8AAC4D0F817A'
                   }, 'Perl::Dist::WiX::Directory' ),
                   bless( {
                     'sitename' => 'www.test.site.invalid',
@@ -1362,31 +1363,31 @@ my $tree_test_2 = bless( {
                         'files' => [],
                         'entries' => [],
                         'name' => 'ld-scripts',
-                        'path' => 'c:\\test\\c\\mingw32\\lib\\ld-scripts',
+                        'path' => 'C:\\test\\c\\mingw32\\lib\\ld-scripts',
                         'trace' => 0,
                         'special' => 0,
-                        'guid' => '3E24DE86-B16A-3011-8A11-0959F3EECEEE',
-                        'id' => '3E24DE86_B16A_3011_8A11_0959F3EECEEE'
+                        'guid' => '1733B110-8009-3A78-BBA9-3CD4327C357D',
+                        'id' => '1733B110_8009_3A78_BBA9_3CD4327C357D'
                       }, 'Perl::Dist::WiX::Directory' )
                     ],
                     'files' => [],
                     'entries' => [],
                     'name' => 'lib',
-                    'path' => 'c:\\test\\c\\mingw32\\lib',
+                    'path' => 'C:\\test\\c\\mingw32\\lib',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => '1A8EE004-8346-3CAD-8235-744BA37E1C5C',
-                    'id' => '1A8EE004_8346_3CAD_8235_744BA37E1C5C'
+                    'guid' => '5E14DB0D-DF32-3502-9ABD-8B4B164CDE1A',
+                    'id' => '5E14DB0D_DF32_3502_9ABD_8B4B164CDE1A'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'mingw32',
-                'path' => 'c:\\test\\c\\mingw32',
+                'path' => 'C:\\test\\c\\mingw32',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => 'F912A172-D30E-36E7-BDAC-25615B2B5E16',
-                'id' => 'F912A172_D30E_36E7_BDAC_25615B2B5E16'
+                'guid' => '2470DFE7-CB83-3A8E-8821-BE8F36A4DB79',
+                'id' => '2470DFE7_CB83_3A8E_8821_BE8F36A4DB79'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1397,27 +1398,27 @@ my $tree_test_2 = bless( {
                     'files' => [],
                     'entries' => [],
                     'name' => 'locale',
-                    'path' => 'c:\\test\\c\\share\\locale',
+                    'path' => 'C:\\test\\c\\share\\locale',
                     'trace' => 0,
                     'special' => 0,
-                    'guid' => 'E5AFC90F-83E1-3F25-BFC0-B1BF19E9E7DE',
-                    'id' => 'E5AFC90F_83E1_3F25_BFC0_B1BF19E9E7DE'
+                    'guid' => '3AD5DB9D-61F5-3101-89F4-D4AD38190F21',
+                    'id' => '3AD5DB9D_61F5_3101_89F4_D4AD38190F21'
                   }, 'Perl::Dist::WiX::Directory' )
                 ],
                 'files' => [],
                 'entries' => [],
                 'name' => 'share',
-                'path' => 'c:\\test\\c\\share',
+                'path' => 'C:\\test\\c\\share',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '1F2C0433-32FF-33F4-9C12-F1C67A1DEA54',
-                'id' => '1F2C0433_32FF_33F4_9C12_F1C67A1DEA54'
+                'guid' => 'BF54B1C7-EF09-3458-B556-2B9279AD2BBD',
+                'id' => 'BF54B1C7_EF09_3458_B556_2B9279AD2BBD'
               }, 'Perl::Dist::WiX::Directory' )
             ],
             'files' => [],
             'entries' => [],
             'name' => 'c',
-            'path' => 'c:\\test\\c',
+            'path' => 'C:\\test\\c',
             'trace' => 0,
             'special' => 0,
             'id' => 'Toolchain'
@@ -1431,11 +1432,11 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'dmake',
-                'path' => 'c:\\test\\licenses\\dmake',
+                'path' => 'C:\\test\\licenses\\dmake',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '977F59D0-E7F7-366F-B13C-BC89552F128C',
-                'id' => '977F59D0_E7F7_366F_B13C_BC89552F128C'
+                'guid' => '818D6C63-4B20-30FD-A5F0-019BE9408F83',
+                'id' => '818D6C63_4B20_30FD_A5F0_019BE9408F83'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1443,11 +1444,11 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'gcc',
-                'path' => 'c:\\test\\licenses\\gcc',
+                'path' => 'C:\\test\\licenses\\gcc',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => 'E4AA909E-1F62-3290-B20B-2BAEC97B27FB',
-                'id' => 'E4AA909E_1F62_3290_B20B_2BAEC97B27FB'
+                'guid' => 'B8131B88-3ABA-3EE1-BF5C-E3E81E0539E4',
+                'id' => 'B8131B88_3ABA_3EE1_BF5C_E3E81E0539E4'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1455,11 +1456,11 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'mingw',
-                'path' => 'c:\\test\\licenses\\mingw',
+                'path' => 'C:\\test\\licenses\\mingw',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '9E7C617F-EF97-3904-99E7-3523638C41EA',
-                'id' => '9E7C617F_EF97_3904_99E7_3523638C41EA'
+                'guid' => '8D5645E4-03EC-3E0A-84A4-DA619495CFB5',
+                'id' => '8D5645E4_03EC_3E0A_84A4_DA619495CFB5'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1467,11 +1468,11 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'perl',
-                'path' => 'c:\\test\\licenses\\perl',
+                'path' => 'C:\\test\\licenses\\perl',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => '0607AA79-6734-3D85-B7FB-1C02FFD98184',
-                'id' => '0607AA79_6734_3D85_B7FB_1C02FFD98184'
+                'guid' => '3C916D82-47FE-34CE-8BDD-C793099E8A68',
+                'id' => '3C916D82_47FE_34CE_8BDD_C793099E8A68'
               }, 'Perl::Dist::WiX::Directory' ),
               bless( {
                 'sitename' => 'www.test.site.invalid',
@@ -1479,17 +1480,17 @@ my $tree_test_2 = bless( {
                 'files' => [],
                 'entries' => [],
                 'name' => 'pexports',
-                'path' => 'c:\\test\\licenses\\pexports',
+                'path' => 'C:\\test\\licenses\\pexports',
                 'trace' => 0,
                 'special' => 0,
-                'guid' => 'A80C3022-7E7A-3763-9F1B-EE7FF718146C',
-                'id' => 'A80C3022_7E7A_3763_9F1B_EE7FF718146C'
+                'guid' => '4EAD5660-DA82-3DCB-A86A-D96BE1DF90FA',
+                'id' => '4EAD5660_DA82_3DCB_A86A_D96BE1DF90FA'
               }, 'Perl::Dist::WiX::Directory' )
             ],
             'files' => [],
             'entries' => [],
             'name' => 'licenses',
-            'path' => 'c:\\test\\licenses',
+            'path' => 'C:\\test\\licenses',
             'trace' => 0,
             'special' => 0,
             'id' => 'License'
@@ -1500,7 +1501,7 @@ my $tree_test_2 = bless( {
             'files' => [],
             'entries' => [],
             'name' => 'cpan',
-            'path' => 'c:\\test\\cpan',
+            'path' => 'C:\\test\\cpan',
             'trace' => 0,
             'special' => 0,
             'id' => 'Cpan'
@@ -1511,7 +1512,7 @@ my $tree_test_2 = bless( {
             'files' => [],
             'entries' => [],
             'name' => 'win32',
-            'path' => 'c:\\test\\win32',
+            'path' => 'C:\\test\\win32',
             'trace' => 0,
             'special' => 0,
             'id' => 'Win32'
@@ -1520,7 +1521,7 @@ my $tree_test_2 = bless( {
         'files' => [],
         'entries' => [],
         'name' => '[INSTALLDIR]',
-        'path' => 'c:\\test',
+        'path' => 'C:\\test',
         'trace' => 0,
         'special' => 0,
         'id' => 'App_Root'
@@ -1553,17 +1554,17 @@ my $tree_test_2 = bless( {
     'special' => 1,
     'id' => 'TARGETDIR'
   }, 'Perl::Dist::WiX::Directory' ),
-  'app_dir' => 'c:\\test'
+  'app_dir' => 'C:\\test'
 }, 'Perl::Dist::WiX::DirectoryTree' );
 
 is_deeply($tree, $tree_test_2, 'Initializes itself correctly');
 
 # Tests 7-10 are successful finds.
 
-# Test 7 (Test 8 at line 1586)
+# Test 7 (Test 8 at line 1587)
 
 my $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+    path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
     exact => 1,
     descend => 1,
 );
@@ -1574,19 +1575,19 @@ my $dir_test_1 = bless( {
   'files' => [],
   'entries' => [],
   'name' => 'install-tools',
-  'path' => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+  'path' => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
   'trace' => 0,
   'special' => 0,
-  'guid' => '5AD17DCF-390D-3E49-B0E7-473FCD9C86D9',
-  'id' => '5AD17DCF_390D_3E49_B0E7_473FCD9C86D9'
+  'guid' => '870594AF-E302-36D9-AFE7-D999FA0DBBF6',
+  'id' => '870594AF_E302_36D9_AFE7_D999FA0DBBF6'
 }, 'Perl::Dist::WiX::Directory' );
 
 is_deeply($dir, $dir_test_1, 'Successful search, descend=1 exact=1');
 
-# Test 8 (Test 9 at line 1608)
+# Test 8 (Test 9 at line 1609)
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\win32',
+    path_to_find => 'C:\\test\\win32',
     exact => 1,
     descend => 0,
 );
@@ -1597,7 +1598,7 @@ my $dir_test_2 = bless( {
   'files' => [],
   'entries' => [],
   'name' => 'win32',
-  'path' => 'c:\\test\\win32',
+  'path' => 'C:\\test\\win32',
   'trace' => 0,
   'special' => 0,
   'id' => 'Win32'
@@ -1608,7 +1609,7 @@ is_deeply($dir, $dir_test_2, 'Successful search, descend=0 exact=1');
 # Test 9
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+    path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
     exact => 0,
     descend => 1,
 );
@@ -1618,7 +1619,7 @@ is_deeply($dir, $dir_test_1, 'Successful search, descend=1 exact=0');
 # Test 10
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\win32\\x',
+    path_to_find => 'C:\\test\\win32\\x',
     exact => 0,
     descend => 0,
 );
@@ -1630,7 +1631,7 @@ is_deeply($dir, $dir_test_2, 'Successful search, descend=0 exact=0');
 # Test 11
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+    path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
     exact => 1,
     descend => 1,
 );
@@ -1640,7 +1641,7 @@ ok((not defined $dir), 'Unsuccessful search, descend=1 exact=1');
 # Test 12
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\test\\win32\\x',
+    path_to_find => 'C:\\test\\win32\\x',
     exact => 1,
     descend => 0,
 );
@@ -1650,7 +1651,7 @@ ok((not defined $dir), 'Unsuccessful search, descend=1 exact=0');
 # Test 13
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\xtest\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+    path_to_find => 'C:\\xtest\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
     exact => 0,
     descend => 1,
 );
@@ -1660,7 +1661,7 @@ ok((not defined $dir), 'Unsuccessful search, descend=0 exact=1');
 # Test 14
 
 $dir = $tree->search_dir(
-    path_to_find => 'c:\\xtest\\win33',
+    path_to_find => 'C:\\xtest\\win33',
     exact => 0,
     descend => 0,
 );

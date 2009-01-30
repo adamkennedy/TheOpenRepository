@@ -45,9 +45,12 @@ use Object::Tiny qw{
 sub new {
     my ($class, %params) = @_;
 
-    # Apply defaults
+    # Apply defaults and check parameters
     unless ( defined $params{id} ) {
         $params{id} = 'Registry';
+    }
+    unless ( _IDENTIFIER($params{id}) ) {
+        croak("Missing or invalid id");
     }
 
     my $self = $class->SUPER::new(%params);
@@ -102,7 +105,7 @@ sub add_key {
     my ($self, %params) = @_;
 
     # Check parameters.
-    unless ( _STRING($params{id}) ) {
+    unless ( _IDENTIFIER($params{id}) ) {
         croak("Missing or invalid id");
     }
     unless ( _STRING($params{key}) ) {

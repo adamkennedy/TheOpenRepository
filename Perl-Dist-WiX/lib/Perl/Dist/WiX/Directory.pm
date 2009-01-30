@@ -13,11 +13,11 @@ package Perl::Dist::WiX::Directory;
 use 5.006;
 use strict;
 use warnings;
-use Carp                              qw( croak            );
+use Carp                              qw( croak verbose           );
 use Params::Util                      
         qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH );
 use Data::UUID                        qw( NameSpace_DNS    );
-use File::Spec                        qw();
+use File::Spec::Functions             qw( catdir splitdir );
 require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Base::Entry;
 require Perl::Dist::WiX::Files::Component;
@@ -102,9 +102,9 @@ sub search_dir {
     my $path = $self->path;
 
     # Set defaults for parameters.
-    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
-    my $descend = $params_ref->{descend} || 1;
-    my $exact   = $params_ref->{exact}   || 0;
+    my $path_to_find = _STRING($params_ref->{path_to_find}) || croak("No path to find.");
+    my $descend      = $params_ref->{descend} || 1;
+    my $exact        = $params_ref->{exact}   || 0;
     
     $self->trace_line( 3, "Looking for $path_to_find\n");
     $self->trace_line( 4, "  in:      $path.\n");
@@ -159,6 +159,11 @@ sub search_file {
     my ($self, $filename) = @_;
     my $path = $self->path;
     
+    # Check required parameters.
+    unless (_STRING($filename)) {
+        croak 'Missing or invalid filename parameter';
+    }
+
     # Do we want to continue searching down this direction?
     my $subset = $filename =~ m/\A\Q$path\E/;
     return undef if not $subset;
@@ -267,6 +272,11 @@ sub add_directories_init {
 sub add_directory_path {
     my ($self, $path) = @_;
 
+    # Check required parameters.
+    unless (_STRING($path)) {
+        croak 'Missing or invalid path parameter';
+    }
+
     if (substr($path, -1) eq '\\') {
         $path = substr($path, 0, -1);
     }
@@ -312,11 +322,19 @@ sub add_directory_path {
 
 sub add_directory {
     my ($self, $params_ref) = @_;
-    
+
+    # Check parameters.
     unless (_HASH($params_ref)) {
         croak('Parameters not passed in hash reference'); 
     }
     
+    # Check required parameters.
+    if (((not defined $params_ref->{special}) or 
+         ($params_ref->{special} == 0)) and 
+        (not _STRING($params_ref->{path})))  {
+        croak 'Missing or invalid path parameter';
+    }
+
     # This way we don't need to pass in the sitename or the trace.
     $params_ref->{sitename} = $self->sitename;
     $params_ref->{trace} = $self->{trace};
@@ -335,16 +353,16 @@ sub add_directory {
         
         # Find the directory object where we want to create this directory.
         my ($volume, $directories, undef) = File::Spec->splitpath( $path, 1 );
-        my @dirs = File::Spec->splitdir($directories);
+        my @dirs = splitdir($directories);
         my $name = pop @dirs; # to eliminate the last directory.
-        $directories = File::Spec->catdir(@dirs);
+        $directories = catdir(@dirs);
         my $directory = $self->search_dir(
-            path_to_find => File::Spec->catpath($volume, $directories, q{}),
+            path_to_find => catdir($volume, $directories),
             descend => 1,
             exact   => 1,
         );
         if (not defined $directory) {
-            croak q{Can't create intermediate directories.};
+            croak "Can't create intermediate directories when creating $path (unsuccessful search for $volume$directories)";
         }
         
         # Add the directory there.
@@ -412,6 +430,7 @@ sub add_file {
 sub create_guid_from_path {
     my $self = shift;
 
+    # Check parameters.
     unless ( _STRING($self->sitename) ) {
         croak("Missing or invalid sitename param - cannot generate GUID without one");
     }

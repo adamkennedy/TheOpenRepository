@@ -14,9 +14,9 @@ package Perl::Dist::WiX::Environment;
 use 5.006;
 use strict;
 use warnings;
-use Carp           qw( croak               );
-use Params::Util   qw( _IDENTIFIER _STRING );
-use Data::UUID     qw( NameSpace_DNS       );
+use Carp           qw( croak          );
+use Params::Util   qw( _IDENTIFIER    );
+use Data::UUID     qw( NameSpace_DNS  );
 require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::EnvironmentEntry;
 
@@ -50,6 +50,10 @@ sub new {
         $params{id} = 'Environment';
     }
 
+    unless (_IDENTIFIER($params{id})) {
+        croak 'Missing or invalid id parameter';
+    }
+
     my $self = $class->SUPER::new(%params);
 
     $self->{entries} = [];
@@ -69,17 +73,16 @@ sub check_duplicates {
 }
 
 ########################################
-# add_entry($entry)
+# add_entry(...)
 # Parameters:
-#   $entry: Environment Entry object being added. 
+#   Passed to EnvironmentEntry->new. 
 # Returns: 
 #   Object being called. (chainable)
 
 sub add_entry {
     my $self = shift;
-    
+        
     my $i = scalar @{$self->{entries}};
-    
     $self->{entries}->[$i] = Perl::Dist::WiX::EnvironmentEntry->new(@_);
     
     return $self;

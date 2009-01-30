@@ -22,11 +22,15 @@ use Carp            qw( croak               );
 use Params::Util    qw( _IDENTIFIER _STRING );
 use Data::UUID      qw( NameSpace_DNS       );
 require Perl::Dist::WiX::Base::Component;
+require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.11_07';
-    @ISA = 'Perl::Dist::WiX::Base::Component';
+    @ISA = qw(
+        Perl::Dist::WiX::Base::Component
+        Perl::Dist::WiX::Misc
+    );
 }
 
 #####################################################################
@@ -73,6 +77,9 @@ sub new {
         croak("Missing or invalid working_dir param");
     }
 
+    my $target = $self->target;
+    $self->trace_line(0, "Adding Icon for $target");
+    
     return $self;
 }
 

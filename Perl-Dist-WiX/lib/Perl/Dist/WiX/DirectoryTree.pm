@@ -74,9 +74,9 @@ sub search_dir {
     my $params_ref = { @_ };
 
     # Set defaults for parameters.
-    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
-    my $descend = $params_ref->{descend} || 1;
-    my $exact   = $params_ref->{exact}   || 0;
+    my $path_to_find = _STRING($params_ref->{path_to_find}) || croak("No path to find.");
+    my $descend      = $params_ref->{descend} || 1;
+    my $exact        = $params_ref->{exact}   || 0;
         
     return $self->root->{directories}->[0]->search_dir(
         path_to_find => $path_to_find, 

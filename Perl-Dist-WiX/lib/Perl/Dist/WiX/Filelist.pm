@@ -14,10 +14,10 @@ package Perl::Dist::WiX::Filelist;
 use 5.008;
 use strict;
 use warnings;
-use Carp                   qw( croak );
-use File::Spec::Functions  qw( catdir catfile );
-use List::MoreUtils        qw( indexes );
-use Params::Util           qw();
+use Carp                   qw( croak             );
+use File::Spec::Functions  qw( catdir catfile    );
+use List::MoreUtils        qw( indexes           );
+use Params::Util           qw( _INSTANCE _STRING );
 use IO::Dir                qw();
 use IO::File               qw();
 
@@ -60,7 +60,12 @@ sub new {
 sub clone {
     my $self = shift->SUPER::new();
     my $source = shift;
-    
+
+    # Check parameters
+    unless (_INSTANCE($source, 'Perl::Dist::WiX::Filelist')) {
+        croak 'Missing or invalid source parameter';
+    }
+
     # Add filelist passed in.
     $self->{files} = [];
     push @{$self->{files}}, @{$source->{files}};
@@ -93,7 +98,15 @@ sub clear { $_[0]->{files} = []; return $_[0]; }
 
 sub readdir {
     my ($self, $dir) = @_;
-    
+
+    # Check parameters.
+    unless (_STRING($dir)) {
+        croak 'Missing or invalid dir parameter';
+    }
+    unless (-d $dir) {
+        croak '$dir is not a directory';
+    }
+
     # Open directory.
     my $dir_object = IO::Dir->new($dir);
     if (!defined $dir_object) {
@@ -137,6 +150,15 @@ sub readdir {
 sub load_file {
     my ($self, $packlist) = @_; 
 
+    # Check parameters.
+    unless (_STRING($packlist)) {
+        croak 'Missing or invalid packlist parameter';
+    }
+    unless (-r $packlist) {
+        croak '$packlist cannot be read';
+    }
+
+    
     # Read ,packlist file.
     my $fh = IO::File->new($packlist, 'r');
     if (not defined $fh)
@@ -184,6 +206,11 @@ sub load_array {
 
 sub add_file {
     my ($self, $file) = @_;
+
+    # Check parameters.
+    unless (_STRING($file)) {
+        croak 'Missing or invalid dir parameter';
+    }
     
     push @{$self->files}, $file;
 
@@ -202,6 +229,11 @@ sub add_file {
 sub subtract {
     my ($self, $subtrahend) = @_;
 
+    # Check parameters
+    unless (_INSTANCE($subtrahend, 'Perl::Dist::WiX::Filelist')) {
+        croak 'Missing or invalid subtrahend parameter';
+    }
+    
     # Define variables.
     my @loc;
     my @files = @{$self->files};
@@ -243,6 +275,11 @@ sub subtract {
 sub add {
     my ($self, $term) = @_;
 
+    # Check parameters
+    unless (_INSTANCE($term, 'Perl::Dist::WiX::Filelist')) {
+        croak 'Missing or invalid subtrahend parameter';
+    }
+
     push @{$self->files}, @{$term->files};
 
     return $self;
@@ -261,6 +298,14 @@ sub add {
 sub move {
     my ($self, $from, $to) = @_;
 
+    # Check parameters.
+    unless (_STRING($from)) {
+        croak 'Missing or invalid from parameter';
+    }
+    unless (_STRING($to)) {
+        croak 'Missing or invalid to parameter';
+    }
+    
     # Find which files need moved.
     my @loc = indexes { $_ =~ m/\A\Q$from\E\z/ } @{$self->files};
     if (@loc) {

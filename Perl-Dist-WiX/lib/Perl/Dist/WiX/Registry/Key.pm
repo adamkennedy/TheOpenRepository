@@ -52,7 +52,6 @@ sub new {
     unless ( defined $self->root ) {
         $self->{root} = 'HKLM';
     }
-    
     unless ( defined $self->guid ) {
         $self->create_guid_from_id;
     }
@@ -61,11 +60,9 @@ sub new {
     unless ( _IDENTIFIER($self->root) ) {
         croak("Missing or invalid root param");
     }
-
     unless ( _STRING($self->key) ) {
         croak("Missing or invalid subkey param");
     }
-
     unless ( _STRING($self->id) ) {
         croak("Missing or invalid id param");
     }
@@ -86,6 +83,9 @@ sub new {
 sub add_registry_entry {
     my ($self, $name, $value, $action, $value_type) = @_;  
     
+    # Parameters checked in Registry::Entry->new
+
+    # Pass this on to the new entry.
     $self->add_entry( 
         Perl::Dist::WiX::Registry::Entry->entry($name, $value, $action, $value_type));
     
@@ -103,6 +103,13 @@ sub add_registry_entry {
 sub is_key {
     my ($self, $root, $key) = @_;
     
+    unless ( _IDENTIFIER($self->root) ) {
+        croak("Missing or invalid root param");
+    }
+    unless ( _STRING($self->key) ) {
+        croak("Missing or invalid subkey param");
+    }
+
     return 0 if (uc $key ne uc $self->key);
     return 0 if (uc $root ne uc $self->root);
     return 1;

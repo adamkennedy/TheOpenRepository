@@ -17,7 +17,7 @@ package Perl::Dist::WiX::Misc;
 use 5.006;
 use strict;
 use warnings;
-use Carp                  qw( croak verbose confess       );
+use Carp                  qw( croak                       );
 use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
 use File::Spec::Functions qw( splitpath splitdir          );
 
@@ -36,16 +36,7 @@ BEGIN {
 
 sub new {
     my $class = shift;
-    
-#    if ($#_ % 2 == 0) {    
-#        require Data::Dumper;
-#        
-#        my $dump = Data::Dumper->new([\@_], [qw(*_)]);
-#        print $dump->Indent(1)->Dump();
-#        
-#        confess "uh oh";
-#    }
-    
+        
     bless { @_ }, $class;
 }
 

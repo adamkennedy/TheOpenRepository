@@ -69,7 +69,7 @@ sub new {
         $self->{part} = 'all';
     }
     unless ( _STRING($self->{permanent}) ) {
-        $self->{permanent} = 'all';
+        $self->{permanent} = 'no';
     }
 
     return $self;

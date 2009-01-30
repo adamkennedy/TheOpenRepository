@@ -13,8 +13,8 @@ package Perl::Dist::WiX::Files::DirectoryRef;
 use 5.006;
 use strict;
 use warnings;
-use Carp              qw( croak                         );
-use Params::Util      qw( _IDENTIFIER _STRING _INSTANCE );
+use Carp            qw( croak                                    );
+use Params::Util    qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
 require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Base::Entry;
 require Perl::Dist::WiX::Misc;
@@ -91,7 +91,7 @@ sub search_dir {
     my $params_ref = { @_ };
 
     # Set defaults for parameters.
-    my $path_to_find = $params_ref->{path_to_find} || croak("No path to find.");
+    my $path_to_find = _STRING($params_ref->{path_to_find}) || croak("No path to find.");
     my $descend      = $params_ref->{descend} || 1;
     my $exact        = $params_ref->{exact}   || 0;
     
@@ -155,11 +155,16 @@ sub search_dir {
 sub search_file {
     my ($self, $filename) = @_;
 
+    # Check parameters
+    if (not _STRING($filename)) {
+        croak 'Missing or invalid filename parameter';
+    }
+    
     # Get OUR path.
     my $path = $self->directory_object->path;
     
     # Do we want to continue searching down this direction?
-    my $subset = $filename =~ m/\A\Q$path\E/;
+    my $subset = ("$filename\\" =~ m/\A\Q$path\E\\/) ? 1 : 0;
     return undef if not $subset;
 
     # Check each file we contain.
@@ -168,7 +173,7 @@ sub search_file {
     foreach my $i (0 .. $count - 1) {
         next if (not defined $self->{files}->[$i]);
         $answer = $self->{files}->[$i]->is_file($filename);
-        if ($answer) {
+        if ($answer == 1) {
             return [$self, $i];
         }
     }
@@ -196,6 +201,12 @@ sub search_file {
 sub delete_filenum {
     my ($self, $i) = @_;
     
+    # Check parameters
+    if (not defined _NONNEGINT($i)) {
+        croak 'Missing or invalid index parameter';
+    }
+
+    # Delete the file. (The object should disappear once its reference is set to undef)
     $self->{files}->[$i] = undef;
     
     return $self;
@@ -211,6 +222,11 @@ sub delete_filenum {
 
 sub add_directory {
     my ($self, $params_ref) = @_;
+
+    # Check parameters
+    if (not _STRING($params_ref->{path})) {
+        croak 'Missing or invalid path parameter';
+    }
     
     # If we have a name, we create the directory object under here.
     if (defined $params_ref->{name})
@@ -237,19 +253,27 @@ sub add_directory {
 # Returns: [boolean]
 #   True if we are a child of the directory object passed in.
 
-# TODO: Do we need this one?
 sub is_child_of {
     my ($self, $directory_obj) = @_;
+
+    # Check for a valid Directory or DirectoryRef object.
+    unless (_INSTANCE($directory_obj, 'Perl::Dist::WiX::Directory') or
+            _INSTANCE($directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef')
+    ) {
+        croak('Invalid directory object passed in.');
+    }
     
-    my $path = $directory_obj->path;
+    my $path_to_check = $directory_obj->path;
 
     # Returns false if the object is a "special".
-    if (not defined $path) {
+    if (not defined $path_to_check) {
         return 0;
     }
     
+    my $path = $self->directory_object->path;
+    
     # Do the check.
-    return ($self->directory_object->path =~ m{\A$path})
+    return ( "$path\\" =~ m{\A\Q$path\E\\})
 }
 
 ########################################
@@ -261,6 +285,16 @@ sub is_child_of {
 
 sub add_file {
     my ($self, @params) = @_;
+
+    # Check parameters
+    if (-1 == scalar @params) {
+        croak 'Missing file parameter';
+    }
+    foreach my $j (0 .. scalar @params - 1) {
+        if (not _STRING($params[$j])) {
+            croak 'Missing or invalid file[$j] parameter';
+        }
+    }
 
     # Where are we going to add the file?
     my $i = scalar @{$self->{files}};
@@ -279,6 +313,11 @@ sub add_file {
 
 sub add_directory_path {
     my ($self, $path) = @_;
+
+    # Check parameters
+    if (not _STRING($path)) {
+        croak 'Missing or invalid path parameter';
+    }
 
     # Make sure we don't have a trailing slash.
     if (substr($path, -1) eq '\\') {
