@@ -509,7 +509,7 @@ sub as_string {
     # Now make our own string, and put what we've already got within it. 
     if ((defined $string) && ($string ne q{})) {
         if ($self->special == 2) {
-            $answer = "<Directory Id='D_$self->{id}'>\n";
+            $answer = "<Directory Id='$self->{id}'>\n";
             $answer .= $self->indent(2, $string);
             $answer .= "\n</Directory>\n";
         } elsif ($self->id eq 'TARGETDIR') {
@@ -523,7 +523,7 @@ sub as_string {
         }
     } else {
         if ($self->special == 2) {
-            $answer = "<Directory Id='D_$self->{id}' />\n";
+            $answer = "<Directory Id='$self->{id}' />\n";
         } else {
             $answer = "<Directory Id='D_$self->{id}' Name='$self->{name}' />\n";
         }

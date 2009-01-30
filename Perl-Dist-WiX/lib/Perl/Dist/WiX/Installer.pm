@@ -550,7 +550,8 @@ sub write_msi {
     my $out;
     my $cmd = [
         $self->bin_light, 
-        '-sice:ICE47',                # Gets rid of ICE47 warning.
+        '-sice:ICE47',                # Gets rid of ICE47 warning. (Too many components in one feature for Win9X)
+        '-sice:ICE48',                # Gets rid of ICE48 warning. (Hard-coded installation location)
         '-out', $output_msi,
         '-ext', $self->bin_wixui,
         $input_wixobj,

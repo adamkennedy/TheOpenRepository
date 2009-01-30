@@ -111,9 +111,9 @@ sub initialize_tree {
     
     # Create starting directories.
     my $branch = $self->root->add_directory({
-        id => 'App_Root', 
-        name => '[INSTALLDIR]', 
-        path => $self->{app_dir}
+        id => 'INSTALLDIR', 
+        special => 2,
+        path => $self->{app_dir},
     });
     $self->root
          ->add_directory({id => 'ProgramMenuFolder', special => 2})
