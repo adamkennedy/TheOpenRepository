@@ -123,6 +123,7 @@ use Object::Tiny qw{
     msi_product_icon
     feature_tree_obj
     msi_directory_tree_additions
+    sitename
 };
 
 
@@ -160,7 +161,10 @@ sub new {
         croak("Missing or invalid app_publisher param");
     }
     unless ( _STRING($self->app_publisher_url) ) {
-        croak("Missing or invalid app_publisher_uri param");
+        croak("Missing or invalid app_publisher_url param");
+    }
+    unless ( _STRING($self->sitename) ) {
+        $self->{sitename} = URI->new($self->app_publisher_url)->host;
     }
     unless ( _STRING($self->default_group_name) ) {
         croak("Missing or invalid default_group_name param");
@@ -191,28 +195,27 @@ sub new {
     }
 
     # Set element collections
-    my $sitename = URI->new($self->app_publisher_url)->host;
 
     $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
         app_dir => $self->image_dir, 
         app_name => $self->app_name, 
-        sitename => $sitename,
+        sitename => $self->sitename,
         trace    => $self->{trace},
     )->initialize_tree(@{$self->{msi_directory_tree_additions}});
 
     $self->{fragments}    = {};
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
-        sitename  => $sitename,
+        sitename  => $self->sitename,
         directory => 'D_App_Menu',
         trace     => $self->{trace}, 
     );
     $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
-        sitename => $sitename,
+        sitename => $self->sitename,
         id       => 'Environment',
         trace    => $self->{trace}, 
     );
     $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
-        sitename        => $sitename,
+        sitename        => $self->sitename,
         directory_tree  => $self->directories,
         id              => 'Win32Extras',
         trace           => $self->{trace}, 
@@ -318,11 +321,9 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
 sub msi_product_id {
     my $self = shift;
 
-    my $sitename = URI->new($self->app_publisher_url)->host;
-    
     my $guidgen = Data::UUID->new();
     # Make our own namespace...
-    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $sitename);
+    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
     #... then use it to create a GUID out of the ID.
     my $guid = uc $guidgen->create_from_name_str($uuid, $self->app_ver_name);
 
@@ -345,11 +346,9 @@ sub msi_upgrade_code {
 		. ($self->portable ? ' Portable' : '')
 		. ' ' . $self->perl_version_human;
 
-    my $sitename = URI->new($self->app_publisher_url)->host;
-    
     my $guidgen = Data::UUID->new();
     # Make our own namespace...
-    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $sitename);
+    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
     #... then use it to create a GUID out of the ID.
     my $guid = uc $guidgen->create_from_name_str($uuid, $upgrade_ver);
 
@@ -668,7 +667,7 @@ sub insert_fragment {
     my $fragment = 
         Perl::Dist::WiX::Files->new(
             id => $id, 
-            sitename => URI->new($self->app_publisher_url)->host,
+            sitename => $self->sitename,
             directory_tree => $self->directories,
             trace => $self->{trace},
         )->add_files(@{$files_ref});

@@ -27,7 +27,7 @@ use List::MoreUtils         qw( any                     );
 use Params::Util            qw( _HASH _STRING _INSTANCE );
 use File::Spec::Functions           
     qw( catdir catfile catpath tmpdir splitpath rel2abs curdir );
-use Archive::Tar            qw();
+use Archive::Tar       1.42 qw();
 use File::Remove            qw();
 use File::pushd             qw();
 use File::ShareDir          qw();
@@ -3117,7 +3117,7 @@ sub add_icon {
     my ($vol, $dir, $file, $dir_obj, $dir_id);
     
     ($vol, $dir, $file) = splitpath($params{filename});
-    $dir_obj = $self->directory_tree->search(catdir($vol, $dir));
+    $dir_obj = $self->directories->search(catdir($vol, $dir));
     $dir_id  = $dir_obj->id; 
     
     my $id = $params{name};
@@ -3125,9 +3125,9 @@ sub add_icon {
     
     $self->{fragments}->{Icons}->add_component(
         Perl::Dist::WiX::StartMenuComponent->new(
-            sitename    => URI->new($self->app_publisher_url)->host,
+            sitename    => $self->sitename,
             name        => $params{name},
-            target      => "[$dir_id]$file",
+            target      => "[D_$dir_id]$file",
             id          => $id,
             working_dir => $dir_id,
             trace       => $self->{trace},

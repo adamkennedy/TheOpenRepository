@@ -92,7 +92,7 @@ sub is_file() {
         croak("Missing or invalid filename param");
     }
 
-    return ($self->filename eq $filename);
+    return ($self->filename eq $filename) ? 1: 0;
 }
 
 ########################################

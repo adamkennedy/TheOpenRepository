@@ -362,8 +362,6 @@ sub check_duplicates {
         $answer = $self->search_file($file);
         if (defined $answer) {
             ($object, $index) = @{$answer};
-            my $id = $object->id;
-            $self->trace_line(5, "Duplicate check successful: [$id $index]\n");
             $object->delete_filenum($index);
         }
     }

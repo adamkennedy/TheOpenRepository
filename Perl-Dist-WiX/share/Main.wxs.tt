@@ -20,7 +20,7 @@
       InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     [% END %]
 
-    <Media Id="1" Cabinet="Perl.cab" CompressionLevel="none" EmbedCab="yes" />
+    <Media Id="1" Cabinet="Perl.cab" CompressionLevel="high" EmbedCab="yes" />
     
     [%# Upgrade Support %]
 	<Upgrade Id="[% dist.msi_upgrade_code %]">

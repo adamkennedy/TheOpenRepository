@@ -78,7 +78,7 @@ sub new {
     }
 
     my $target = $self->target;
-    $self->trace_line(0, "Adding Icon for $target");
+    $self->trace_line(3, "Adding Icon for $target\n");
     
     return $self;
 }
@@ -103,7 +103,7 @@ sub as_string {
              Name='$self->{name}'
              Description='$self->{description}'
              Target='$self->{target}'
-             WorkingDirectory='$self->{working_dir}' />
+             WorkingDirectory='D_$self->{working_dir}' />
 </Component>
 END_OF_XML
     
