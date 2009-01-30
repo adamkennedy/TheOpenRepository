@@ -135,12 +135,12 @@ EOF
     my $guidgen = Data::UUID->new();
     # Make our own namespace...
     my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
-    #... then use it to create a GUID out of the ID.
+    #... then use it to create a GUIDs out of the ID.
     my $guid_RSF = uc $guidgen->create_from_name_str($uuid, 'RemoveShortcutFolder');
 
     $string .= <<"EOF";
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
-        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <RemoveFolder Id="$self->{directory}" On="uninstall" />
       </Component>
     </DirectoryRef>
   </Fragment>

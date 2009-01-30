@@ -35,14 +35,15 @@ BEGIN {
 
 #####################################################################
 # Accessors:
-#   name, description, target, working_dir: Returns the parameter 
-#     of the same name passed in to new.
+#   name, description, target, working_dir, menudir_id: Returns the 
+#     parameter of the same name passed in to new.
 
 use Object::Tiny qw{
     name
     description
     target
     working_dir
+    menudir_id
 };
 
 #####################################################################
@@ -53,9 +54,11 @@ use Object::Tiny qw{
 #   name: Name attribute to the <Shortcut> tag.
 #   description: Description attribute to the <Shortcut> tag.
 #   target: Target of the <Shortcut> tag.
-#   working_dir: WorkingDirectory target of the <Shortcut> tag.
+#   working_dir: WorkingDirectory attribute of the <Shortcut> tag.
+#   menudir_id: Directory attribute of the <CreateFolder> tag.
 #
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
+# and http://wix.sourceforge.net/manual-wix3/wix_xsd_createfolder.htm
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -75,6 +78,9 @@ sub new {
     }
     unless ( _STRING($self->working_dir) ) {
         croak("Missing or invalid working_dir param");
+    }
+    unless ( _STRING($self->menudir_id) ) {
+        croak("Missing or invalid menudir_id param");
     }
 
     my $target = $self->target;
@@ -99,11 +105,12 @@ sub as_string {
         
     return <<"END_OF_XML";
 <Component Id='C_S_$self->{id}' Guid='$self->{guid}'>
-   <Shortcut Id='S_$self->{id}' 
-             Name='$self->{name}'
-             Description='$self->{description}'
-             Target='$self->{target}'
-             WorkingDirectory='D_$self->{working_dir}' />
+  <Shortcut Id='S_$self->{id}' 
+            Name='$self->{name}'
+            Description='$self->{description}'
+            Target='$self->{target}'
+            WorkingDirectory='D_$self->{working_dir}' />
+  <CreateFolder Directory="$self->{menudir_id}" />
 </Component>
 END_OF_XML
     

@@ -506,7 +506,7 @@ sub write_msi {
 
     # Generate feature tree.
     $self->{feature_tree_obj} = Perl::Dist::WiX::FeatureTree->new(
-        parent => $self
+        parent => $self,
     );
     
     # Write out the .wxs file
@@ -550,7 +550,7 @@ sub write_msi {
     my $out;
     my $cmd = [
         $self->bin_light, 
-        '-sice:47',                # Gets rid of ICE47 warning.
+        '-sice:ICE47',                # Gets rid of ICE47 warning.
         '-out', $output_msi,
         '-ext', $self->bin_wixui,
         $input_wixobj,

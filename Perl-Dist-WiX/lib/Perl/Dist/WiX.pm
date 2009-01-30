@@ -3117,7 +3117,11 @@ sub add_icon {
     my ($vol, $dir, $file, $dir_obj, $dir_id);
     
     ($vol, $dir, $file) = splitpath($params{filename});
-    $dir_obj = $self->directories->search(catdir($vol, $dir));
+    $dir_obj = $self->directories->search_dir(
+        path_to_find => catdir($vol, $dir),
+        exact => 1,
+        descend => 1,
+    );
     $dir_id  = $dir_obj->id; 
     
     my $id = $params{name};
@@ -3131,6 +3135,7 @@ sub add_icon {
             id          => $id,
             working_dir => $dir_id,
             trace       => $self->{trace},
+            menudir_id  => 'D_App_Menu',
         )
     );
 

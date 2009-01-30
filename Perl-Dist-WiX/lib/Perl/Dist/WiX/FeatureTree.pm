@@ -47,8 +47,8 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new(@_);
 
-    unless (_CLASSISA($self->{parent}, 'Perl::Dist::WiX')) {
-        croak 'Missing or invalid id parameter';
+    unless (_CLASSISA(ref $self->{parent}, 'Perl::Dist::WiX')) {
+        croak 'Missing or invalid parent parameter';
     }
     
     # Do this so as not to create a garbage collection loop.
