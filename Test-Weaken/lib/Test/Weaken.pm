@@ -7,10 +7,10 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(poof);
-our $VERSION   = '1.002000';
+our $VERSION   = '1.003_000';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
-$VERSION   = eval $VERSION;
+$VERSION = eval $VERSION;
 ## use critic
 
 use Carp;
@@ -51,14 +51,13 @@ can still be tested via the weak refs.
 # See POD, below
 sub poof {
 
-    my $constructor    = shift;
-    my $destructor     = shift;
+    my $constructor = shift;
+    my $destructor  = shift;
 
     my $type = reftype $constructor;
     croak('poof() first argument must be code ref') unless $type eq 'CODE';
 
-    if (defined $destructor)
-    {
+    if ( defined $destructor ) {
         $type = reftype $destructor;
         croak('poof() arguments must be code refs') unless $type eq 'CODE';
     }
@@ -74,18 +73,18 @@ sub poof {
     my $workset = [ \$base_ref ];
 
     # an array of strong references to the weak references
-    my $weak = [];
+    my $weak   = [];
     my $strong = [];
 
     # Loop while there is work to do
-    WORKSET: while (@{$workset}) {
+    WORKSET: while ( @{$workset} ) {
 
-        # The "follow-up" array, which holds those ref-refs to be 
+        # The "follow-up" array, which holds those ref-refs to be
         # be worked on in the next pass.
         my $follow = [];
 
         # For each ref-ref in the current workset
-        REF: for my $rr (@{$workset}) {
+        REF: for my $rr ( @{$workset} ) {
             my $rr_type = reftype ${$rr};
 
             # If it's not a reference, nothing to do.
@@ -93,7 +92,7 @@ sub poof {
 
             # We push weak refs into a list, then we're done.
             # We don't follow them.
-            if ( isweak ${$rr}) {
+            if ( isweak ${$rr} ) {
                 push @{$weak}, $rr;
                 next REF;
             }
@@ -117,7 +116,7 @@ sub poof {
 
                 # Index through its elements to avoid
                 # copying any which are weak refs
-                ELEMENT: for my $ix ( 0 .. $#{${$rr}} ) {
+                ELEMENT: for my $ix ( 0 .. $#{ ${$rr} } ) {
 
                     # Obviously, no need to deal with non-existent elements
                     next ELEMENT unless exists ${$rr}->[$ix];
@@ -127,6 +126,7 @@ sub poof {
                         push @{$follow}, \( ${$rr}->[$ix] );
                     }
                     else {
+
                         # Not defined (but exists)
                         # Set it to a number so it doesn't fool us later
                         # when we check to see that it was freed
@@ -144,13 +144,14 @@ sub poof {
             if ( $rr_type eq 'HASH' ) {
 
                 # Iterate through the keys to avoid copying any values which are weak refs
-                for my $ix ( keys %{${$rr}} ) {
+                for my $ix ( keys %{ ${$rr} } ) {
 
                     # If it's defined, put it on the follow-up list
                     if ( defined ${$rr}->{$ix} ) {
                         push @{$follow}, \( ${$rr}->{$ix} );
                     }
                     else {
+
                         # Hash entry exists but is undef
                         # Set it to a number so it doesn't fool us later
                         # when we check to see that it was freed
@@ -168,10 +169,10 @@ sub poof {
             # put a reference to the reference to a reference (whew!)
             # on the follow up list
             if ( $rr_type eq 'REF' ) {
-                push @{$follow}, \${${$rr}};
+                push @{$follow}, \${ ${$rr} };
             }
 
-        } # REF
+        }    # REF
 
         # Replace the current work list with the items we scheduled
         # for follow up
@@ -181,8 +182,8 @@ sub poof {
 
     # For the strong ref-refs, weaken the first reference so the array
     # of strong references does not affect the test
-    for my $rr (@{$strong}) {
-        weaken( $rr );
+    for my $rr ( @{$strong} ) {
+        weaken($rr);
     }
 
     # Record the original counts of weak and strong references

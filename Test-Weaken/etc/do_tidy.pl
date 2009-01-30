@@ -10,48 +10,55 @@ use IPC::Open2;
 use POSIX qw(WIFEXITED);
 use Text::Diff;
 
-my %exclude = map { ($_, 1) } qw(
-Changes
-MANIFEST
-META.yml
-Makefile.PL
-README
-etc/perlcriticrc
-etc/last_minute_check.sh
+{
+    package CountHunks;
+    @CountHunks::ISA = qw( Text::Diff::Base );
+    sub hunk { return '1' }
+}
+
+package main;
+
+my %exclude = map { ( $_, 1 ) } qw(
+    Changes
+    MANIFEST
+    META.yml
+    Makefile.PL
+    README
+    etc/perlcriticrc
+    etc/last_minute_check.sh
 );
 
 sub run_tidy {
     my $file = shift;
-    my @cmd = qw(perltidy --profile=perltidyrc);
+    my @cmd  = qw(perltidy --profile=perltidyrc);
     push @cmd, $file;
-    my ($child_out, $child_in);
+    my ( $child_out, $child_in );
+
     # say STDERR join(" ", @cmd);
-    my $pid = open2($child_out, $child_in, @cmd)
+    my $pid = open2( $child_out, $child_in, @cmd )
         or croak("IPC::Open2 of perltidy pipe failed: $ERRNO");
     close $child_in;
     my $tidy_output = do {
-        local($RS) = undef;
-         <$child_out>;
+        local ($RS) = undef;
+        <$child_out>;
     };
     close $child_out;
     waitpid $pid, 0;
 
-    my $diff = diff $file, \$tidy_output, { STYLE => 'Unified', CONTEXT => 0 };
+    my $diff = diff $file, \$tidy_output,
+        { STYLE => 'CountHunks', CONTEXT => 0 };
 
-    if (my $child_error = $CHILD_ERROR)
-    {
-        croak( "perltidy returned $child_error" );
+    if ( my $child_error = $CHILD_ERROR ) {
+        croak("perltidy returned $child_error");
     }
 
-    # say STDERR "$file: ", scalar @newlines, ' lines of complaints';
-    # say STDERR "$file: clean";
-    return \$diff;
+    return $diff;
 }
 
 open my $manifest, '<', '../MANIFEST'
     or croak("open of MANIFEST failed: $ERRNO");
 
-FILE: while (my $file = <$manifest>) {
+FILE: while ( my $file = <$manifest> ) {
     chomp $file;
     $file =~ s/\s*[#].*\z//xms;
     next FILE if $file =~ /.pod\z/xms;
@@ -61,12 +68,12 @@ FILE: while (my $file = <$manifest>) {
     $file = '../' . $file;
     next FILE if -d $file;
     croak("No such file: $file") unless -f $file;
-    if (my $result = run_tidy( $file ))
-    {
-        say "=== $file ===";
-        print ${$result}
-            or croak("print failed: $ERRNO");
-        exit(0);
+
+    my $result = run_tidy($file);
+    if ( $result ) {
+        print "$file: ", (length $result), " perltidy issues\n";
+    } else {
+        print "$file: clean\n";
     }
 }
 close $manifest;

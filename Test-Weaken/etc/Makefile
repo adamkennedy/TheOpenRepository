@@ -7,6 +7,9 @@ build:
 	(cd ..;make test)
 	(cd ..;make disttest)
 
+perltidy: 
+	perl do_tidy.pl
+
 perlcritic: perlcritic.errs
 
 perlcritic.errs:

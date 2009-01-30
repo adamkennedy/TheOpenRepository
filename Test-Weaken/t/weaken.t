@@ -15,7 +15,7 @@ sub brief_result {
     my $text = 'total: weak=' . (shift) . q{; };
     $text .= 'strong=' . (shift) . q{; };
     $text .= 'unfreed: weak=' . scalar @{ (shift) } . q{; };
-    $text .= 'strong=' . scalar @{        (shift) };
+    $text .= 'strong=' . scalar @{ (shift) };
     return $text;
 } ## end sub brief_result
 
