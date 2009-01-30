@@ -13,7 +13,7 @@ my %manifest;
 open my $manifest, '<', '../MANIFEST'
     or croak("open of MANIFEST failed: $ERRNO");
 
-FILE: while (my $line = <$manifest>) {
+FILE: while ( my $line = <$manifest> ) {
     chomp $line;
     $line =~ s/ \s* [#] .* \z//xms;
     $manifest{$line} = 1;
@@ -21,11 +21,11 @@ FILE: while (my $line = <$manifest>) {
 
 close $manifest;
 
-my $pid = open my $rdr, q{-|}, 'svn', 'list', '-R', q{..}  or
-    croak("open of svn list pipe failed: $ERRNO");
+my $pid = open my $rdr, q{-|}, 'svn', 'list', '-R', q{..}
+    or croak("open of svn list pipe failed: $ERRNO");
 waitpid $pid, 0;
 
-FILE: while (my $line = <$rdr>) {
+FILE: while ( my $line = <$rdr> ) {
     chomp $line;
     next FILE if $line =~ m{ [/] \z }xms;
     next FILE if -d $line;

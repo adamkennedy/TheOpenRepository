@@ -10,17 +10,20 @@ use Carp;
 # Module specific stuff here -- setup code
 use Scalar::Util qw(weaken isweak);
 
-BEGIN { use_ok('Test::Weaken') };
+BEGIN { use_ok('Test::Weaken') }
 
-package Module::Test_me1; sub new { bless [], (shift); }
-package Module::Test_me2; sub new { bless [], (shift); }
+package Module::Test_me1;
+sub new { bless [], (shift); }
+
+package Module::Test_me2;
+sub new { bless [], (shift); }
 
 package main;
 
 # slurp in the code
 my $filename = $INC{'Test/Weaken.pm'};
 open my $code_fh, '<', $filename;
-my $code = do { local($RS) = undef; <$code_fh> };
+my $code = do { local ($RS) = undef; <$code_fh> };
 close $code_fh;
 
 # remove stuff before and after the SYNOPSIS
@@ -36,7 +39,7 @@ my @lines = split /\n/xms, $code;
 my $line_count = @lines;
 
 # check for absence of code
-if ($code =~ /\A\s*\z/xms) {
+if ( $code =~ /\A\s*\z/xms ) {
     fail('No code in synopsis');
 }
 

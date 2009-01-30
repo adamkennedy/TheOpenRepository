@@ -11,16 +11,16 @@ use strict;
 use warnings;
 
 sub new {
-  my ($class) = @_;
-  my $self = bless { data => 'this is mycircular' }, $class;
-  $self->{'circular'} = [ $self ];
-  return $self;
+    my ($class) = @_;
+    my $self = bless { data => 'this is mycircular' }, $class;
+    $self->{'circular'} = [$self];
+    return $self;
 }
 
 sub undo {
-  my ($self) = @_;
-  @{$self->{'circular'}} = ();
-  return 1;
+    my ($self) = @_;
+    @{ $self->{'circular'} } = ();
+    return 1;
 }
 
 package main;
@@ -30,32 +30,27 @@ use warnings;
 use Test::Weaken;
 use Test::More tests => 3;
 
-is(
-    Test::Weaken::poof (
+is( Test::Weaken::poof(
         sub {
-           my $obj = MyCircular->new;
-           $obj->undo;
-           return $obj
+            my $obj = MyCircular->new;
+            $obj->undo;
+            return $obj;
         }
-    ), 0,
+    ),
+    0,
     'no destructor'
 );
 
-is(
-    Test::Weaken::poof (
+is( Test::Weaken::poof(
         sub { MyCircular->new },
         sub {
             my ($obj) = @_;
             $obj->undo;
         }
-    ), 0,
+    ),
+    0,
     'good destructor'
 );
 
-is(
-    Test::Weaken::poof (
-        sub { MyCircular->new },
-        sub { my ($obj) = @_ }
-    ), 3,
-    'null destructor'
-);
+is( Test::Weaken::poof( sub { MyCircular->new }, sub { my ($obj) = @_ } ),
+    3, 'null destructor' );
