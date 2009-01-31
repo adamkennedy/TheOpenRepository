@@ -197,6 +197,7 @@ sub initialize_tree {
         perl\lib\auto\Digest\MD5
         perl\lib\auto\Encode
         perl\lib\auto\ExtUtils
+        perl\lib\auto\File
         perl\lib\auto\IO
         perl\lib\auto\IO\Compress
         perl\lib\auto\Math
@@ -204,6 +205,7 @@ sub initialize_tree {
         perl\lib\auto\Math\BigInt\FastCalc
         perl\lib\auto\PerlIO
         perl\lib\auto\POSIX
+        perl\lib\auto\Test
         perl\lib\auto\Time
         perl\lib\auto\share
         perl\site
@@ -225,8 +227,11 @@ sub initialize_tree {
         perl\site\lib\auto\share
         perl\site\lib\auto\Compress
         perl\site\lib\auto\Compress\Raw
+        perl\site\lib\auto\IO
+        perl\site\lib\auto\LWP
         perl\site\lib\auto\Math
         perl\site\lib\auto\Term
+        perl\site\lib\auto\Test
         perl\site\lib\auto\Win32
         perl\site\lib\auto\XML
     ), @dirs);
