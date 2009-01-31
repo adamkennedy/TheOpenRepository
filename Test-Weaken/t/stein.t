@@ -48,7 +48,7 @@ sub stein_w2 {
 }
 
 is( brief_result( Test::Weaken::poof( \&stein_1 ) ),
-    'total: weak=0; strong=7; unfreed: weak=0; strong=7',
+    'total: weak=0; strong=7; unfreed: weak=0; strong=6',
     q{Stein's test}
 );
 

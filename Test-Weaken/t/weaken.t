@@ -32,7 +32,7 @@ cmp_ok( $result, q{==}, 0, 'Simple weak ref' );
 is( brief_result(
         Test::Weaken::poof( sub { my $x = 42; my $y = \$x; $x = \$y; } )
     ),
-    'total: weak=0; strong=3; unfreed: weak=0; strong=3',
+    'total: weak=0; strong=3; unfreed: weak=0; strong=2',
     'Bad Less Simple Cycle'
 );
 

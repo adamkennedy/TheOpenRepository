@@ -117,9 +117,8 @@ $text .= ( join "\n", sort @unfreed_text ) . "\n";
 
 is( $text, <<'EOS', 'Dump of unfreed arrays' );
 Starting counts: w=2  s=5
-Unfreed counts: w=2  s=5
+Unfreed counts: w=2  s=4
 Unfreed strong ref: a42 => [ r711, 42, r711 ]
-Unfreed strong ref: a711 => [ r42, 711, r42 ]
 Unfreed strong ref: a711 => [ r42, 711, r42 ]
 Unfreed strong ref: r42 => a42 == [ r711, 42, r711 ]
 Unfreed strong ref: r711 => a711 == [ r42, 711, r42 ]

@@ -53,4 +53,4 @@ is( Test::Weaken::poof(
 );
 
 is( Test::Weaken::poof( sub { MyCircular->new }, sub { my ($obj) = @_ } ),
-    3, 'null destructor' );
+    2, 'null destructor' );

@@ -3,6 +3,9 @@ package Test::Weaken;
 use strict;
 use warnings;
 
+use Data::Dumper;
+use Devel::Peek qw(Dump);
+
 require Exporter;
 
 use base qw(Exporter);
@@ -62,15 +65,16 @@ sub poof {
         croak('poof() arguments must be code refs') unless $type eq 'CODE';
     }
 
-    my $base_ref = $constructor->();
-    $type = ref $base_ref;
-    carp('poof() argument did not return a reference') unless $type;
+    my $test_object_rr = \( $constructor->() );
+    if (not ref ${$test_object_rr}) {
+        carp('poof() argument did not return a reference');
+    }
+    my $workset = [ \( ${$test_object_rr} ) ];
 
     # reverse hash -- maps strong ref address back to a reference to the reference
-    my $reverse = {};
+    my $reverse = { };
 
     # the current working set -- initialize to our first ref
-    my $workset = [ \$base_ref ];
 
     # an array of strong references to the weak references
     my $weak   = [];
@@ -87,29 +91,30 @@ sub poof {
         REF: for my $rr ( @{$workset} ) {
             my $rr_type = reftype ${$rr};
 
-            # If it's not a reference, nothing to do.
-            next REF unless defined $rr_type;
+            # It is assumed that everything in a workset is a reference.
+            # The other code is expected to make sure this is the case.
 
-            # We push weak refs into a list, then we're done.
-            # We don't follow them.
-            if ( isweak ${$rr} ) {
-                push @{$weak}, $rr;
-                next REF;
-            }
-
-            # Put it into the list of strong refs
-            push @{$strong}, $rr;
-
-            # If we've followed another ref to the same place before,
+            # If we've worked with this ref before,
             # we're done
-            if ( defined $reverse->{ refaddr ${$rr} } ) {
+            if ( defined $reverse->{ $rr+0 } ) {
                 next REF;
             }
 
-            # If it's new, first add it to the hash
-            $reverse->{ refaddr ${$rr} } = $rr;
+            # Add it to the hash
+            $reverse->{ $rr+0 }++;
 
-            # Note that this implementation ignores refs to closures
+            # Push it onto the strong or weak list, as appropriate, and add it to the hash
+            if ( isweak ${$rr} ) {
+                # printf STDERR "Pushing onto weak list (0x%x=>0x%x): %s", ($rr+0), (${$rr}+0), Dumper($rr);
+                push @{$weak}, $rr;
+            } else {
+                # printf STDERR "Pushing onto strong list (0x%x=>0x%x): %s", ($rr+0), (${$rr}+0), Dumper($rr);
+                weaken($strong->[ @{$strong} ] = \( ${$rr} ) );
+                # printf STDERR "Just Pushed onto strong list (0x%x=>0x%x): %s",
+                    # (($strong->[ $#{$strong} ])+0), (${($strong->[ $#{$strong} ])}+0), Dumper(($strong->[ $#{$strong} ]));
+            }
+
+            # Note that this implementation does not follow refs to closures
 
             # If it's a reference to an array
             if ( $rr_type eq 'ARRAY' ) {
@@ -121,21 +126,12 @@ sub poof {
                     # Obviously, no need to deal with non-existent elements
                     next ELEMENT unless exists ${$rr}->[$ix];
 
-                    # If it's defined, put it on the follow-up list
-                    if ( defined ${$rr}->[$ix] ) {
-                        push @{$follow}, \( ${$rr}->[$ix] );
-                    }
-                    else {
+                    # If it's not a ref, no need to deal with it
+                    next ELEMENT unless ref ${$rr}->[$ix];
 
-                        # Not defined (but exists)
-                        # Set it to a number so it doesn't fool us later
-                        # when we check to see that it was freed
-                        #
-                        # Actually, I think this is unnecessary.
-                        # Only references can fool us, and if it's undef
-                        # it's not a reference.
-                        # ${$rr}->[$ix] = 42;
-                    }
+                    # Put it on the follow-up list
+                    push @{$follow}, \( ${$rr}->[$ix] );
+
                 }
                 next REF;
             }
@@ -144,32 +140,22 @@ sub poof {
             if ( $rr_type eq 'HASH' ) {
 
                 # Iterate through the keys to avoid copying any values which are weak refs
-                for my $ix ( keys %{ ${$rr} } ) {
+                for my $key ( keys %{ ${$rr} } ) {
 
-                    # If it's defined, put it on the follow-up list
-                    if ( defined ${$rr}->{$ix} ) {
-                        push @{$follow}, \( ${$rr}->{$ix} );
+                    # If it's a reference, put a reference to it on the follow-up list
+                    if ( ref ${$rr}->{$key} ) {
+                        push @{$follow}, \(${$rr}->{$key});
                     }
-                    else {
 
-                        # Hash entry exists but is undef
-                        # Set it to a number so it doesn't fool us later
-                        # when we check to see that it was freed
-                        #
-                        # Actually, I think this is unnecessary.
-                        # Only references can fool us, and if it's undef
-                        # it's not a reference.
-                        # ${$rr}->{$ix} = 42;
-                    }
                 }
                 next REF;
             }
 
             # If it's a reference to a reference,
-            # put a reference to the reference to a reference (whew!)
+            # put a reference to the dereferenced reference (whew!)
             # on the follow up list
             if ( $rr_type eq 'REF' ) {
-                push @{$follow}, \${ ${$rr} };
+                push @{$follow}, \( ${ ${$rr} } );
             }
 
         }    # REF
@@ -180,26 +166,45 @@ sub poof {
 
     }    # WORKSET
 
-    # For the strong ref-refs, weaken the first reference so the array
-    # of strong references does not affect the test
-    for my $rr ( @{$strong} ) {
-        weaken($rr);
-    }
+    $workset = undef;
+    $reverse = undef;
 
     # Record the original counts of weak and strong references
     my $weak_count   = @{$weak};
     my $strong_count = @{$strong};
 
-    # Now free everything.  Note the weaken of the base_ref --
-    # it's necessary so that the counts work out right.
-    $reverse = undef;
-    $workset = undef;
-    $destructor->($base_ref) if defined $destructor;
-    weaken($base_ref);
+    # for my $rr ( @{$strong} ) {
+        # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $rr ? $rr+0 : 0), Dumper($rr);
+    # }
 
-    # The implicit copy below will strengthen the weak references
+    # Now free everything.
+    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
+    # print STDERR Dump($strong->[1]) if defined $strong->[1];
+    $destructor->(${$test_object_rr}) if defined $destructor;
+    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
+    $test_object_rr = undef;
+    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
+
+    # For the strong ref-refs, weaken the first reference so the array
+    # of strong references does not affect the test
+    # for my $rr ( @{$strong} ) {
+        # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $rr ? $rr+0 : 0), Dumper($rr);
+    # }
+    
+    # The implicit copies below will strengthen the weak references
     # but it no longer matters, since we have our data
-    my @unfreed_strong = map { ${$_} } grep { defined ${$_} } @{$strong};
+
+    my @unfreed_strong;
+    STRONG_RR: for my $rr (@{$strong}) {
+        # printf STDERR "Strong rr (0x%x): %s", (defined $rr ? $rr+0 : 0), Dumper($rr);
+        next STRONG_RR unless defined $rr;
+        my $r = ${$rr};
+        # printf STDERR "Unfreed strong referent (0x%x): %s", (defined $r ? $r+0 : 0), Dumper($r);
+        next STRONG_RR unless defined $r;
+        push(@unfreed_strong, $r);
+    }
+    # my @unfreed_strong = map { ${$_} } grep { defined ${$_} } @{$strong};
+
     my @unfreed_weak   = map { ${$_} } grep { defined ${$_} } @{$weak};
 
     # See the POD on the return values
