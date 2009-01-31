@@ -77,6 +77,15 @@ sub clone {
 # Main Methods
 
 ########################################
+# count
+# Parameters:
+#   None.
+# Returns:
+#   Number of files in this object 
+
+sub count { my $self = shift; return scalar @{$self->{files}} + 1; }
+
+########################################
 # clear
 # Parameters:
 #   None.
@@ -139,7 +148,7 @@ sub readdir {
 }
 
 ########################################
-# load_array($packlist)
+# load_file($packlist)
 # Parameters:
 #   $packlist: File containing a list of files to add to this filelist. 
 # Returns:
@@ -157,7 +166,6 @@ sub load_file {
     unless (-r $packlist) {
         croak '$packlist cannot be read';
     }
-
     
     # Read ,packlist file.
     my $fh = IO::File->new($packlist, 'r');
@@ -246,6 +254,12 @@ sub subtract {
         # Find if it is in us.
         @loc = indexes { $_ eq $f } @files;
         if (@loc) {
+            if ($#loc > 1) {
+                print "[*] Subtracting more than one file with one entry [$f]:\n";
+                foreach my $loc (@loc) {
+                    print '[*] ' . $loc . q{ } . $files[$loc] . "\n";
+                }
+            }
             delete @files[@loc];
             undef @loc;
 
@@ -308,6 +322,9 @@ sub move {
     
     # Find which files need moved.
     my @loc = indexes { $_ =~ m/\A\Q$from\E\z/ } @{$self->files};
+    print "Indexes: ";
+    print join " ", @loc;
+    print "\n";
     if (@loc) {
         foreach my $loc (@loc) {
             # "move" them.
@@ -317,6 +334,41 @@ sub move {
 
     return $self;    
 }
+
+########################################
+# move_dir($from, $to)
+# Parameters:
+#   $from: the file or directory that has been moved on disk. 
+#   $to: The location being moved to.
+# Returns:
+#   Object being acted upon (chainable) 
+# Action:
+#   Substitutes $to for $from in the filelist.
+
+sub move_dir {
+    my ($self, $from, $to) = @_;
+
+    # Check parameters.
+    unless (_STRING($from)) {
+        croak 'Missing or invalid from parameter';
+    }
+    unless (_STRING($to)) {
+        croak 'Missing or invalid to parameter';
+    }
+    
+    # Find which files need moved.
+    my @loc = indexes { "$_\\" =~ m(\A\Q$from\E\\) } @{$self->files};
+    my $to_file;
+    if (@loc) {
+        foreach my $loc (@loc) {
+            # "move" them.
+            $self->files->[$loc] =~ s(\A\Q$from\E)($to);
+        }
+    }
+
+    return $self;
+}
+
 
 ########################################
 # filter(@re_list)

@@ -197,7 +197,18 @@ sub search_file {
 # Returns:
 #   Object being operated on. (chainable)
 
-sub delete_filenum { $_[0]->{files}->[$_[1]] = undef; return $_[0]; }
+sub delete_filenum {
+    my ($self, $i) = @_;
+
+    # Check parameters
+    if (not defined _NONNEGINT($i)) {
+        croak 'Missing or invalid index parameter';
+    }
+    
+    $self->trace_line(0, 'Deleting ' . $self->{files}->[$i]->filename . "\n");
+    $self->{files}->[$i] = undef; 
+    return $self; 
+}
 
 ########################################
 # add_directories_id(($id, $name)...)

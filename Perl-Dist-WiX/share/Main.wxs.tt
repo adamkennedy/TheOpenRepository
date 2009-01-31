@@ -11,13 +11,11 @@
     [% IF dist.msi_debug %]
     <Package Description='Perl for Win32 operating systems.' Id='*'
       Comments='Debug Build.' 
-      InstallScope='perMachine' Platform='x86'
-      InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+      Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
     <Package Description='Perl for Win32 operating systems.' Id='*'
-      InstallScope='perMachine' Platform='x86'
-      InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+      Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     [% END %]
 
     <Media Id="1" Cabinet="Perl.cab" CompressionLevel="high" EmbedCab="yes" />
@@ -43,6 +41,10 @@
       Privileged
     </Condition>
 
+    <Condition Message="Can only install for all users on the machine.">
+      <![CDATA[ALLUSERS <> 1]]>
+    </Condition>
+    
     <Condition Message="Cannot install on Windows 9x or ME systems.">
       <![CDATA[VersionNT]]>
     </Condition>
@@ -65,6 +67,7 @@
     <Property Id='ARPNOMODIFY'>1</Property>
 [% END %]
     <Property Id='ARPNOREPAIR'>1</Property>
+    <Property Id='ALLUSERS'>1</Property>
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>

@@ -362,6 +362,7 @@ sub check_duplicates {
         $answer = $self->search_file($file);
         if (defined $answer) {
             ($object, $index) = @{$answer};
+            $self->trace_line(0, "Deleting $index at " . $object->path . "\n");
             $object->delete_filenum($index);
         }
     }

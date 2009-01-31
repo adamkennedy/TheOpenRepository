@@ -475,7 +475,7 @@ sub write_msi {
     $self->trace_line(1, "Generating msi\n");
 
     # Add the path in.
-    foreach my $value (map { catdir( '[APPLICATIONROOTDIRECTORY]', @$_ ) } @{$self->env_path}) {
+    foreach my $value (map { catdir( '[INSTALLDIR]', @$_ ) } @{$self->env_path}) {
         $self->add_env('PATH', $value, 1);
     }
 
@@ -550,6 +550,8 @@ sub write_msi {
     my $out;
     my $cmd = [
         $self->bin_light, 
+        '-sice:ICE38',                # Gets rid of ICE38 warning.
+        '-sice:ICE43',                # Gets rid of ICE43 warning.
         '-sice:ICE47',                # Gets rid of ICE47 warning. (Too many components in one feature for Win9X)
         '-sice:ICE48',                # Gets rid of ICE48 warning. (Hard-coded installation location)
         '-out', $output_msi,

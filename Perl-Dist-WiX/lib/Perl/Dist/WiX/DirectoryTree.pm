@@ -196,6 +196,9 @@ sub initialize_tree {
         perl\lib\auto\Digest
         perl\lib\auto\Digest\MD5
         perl\lib\auto\Encode
+        perl\lib\auto\ExtUtils
+        perl\lib\auto\IO
+        perl\lib\auto\IO\Compress
         perl\lib\auto\Math
         perl\lib\auto\Math\BigInt
         perl\lib\auto\Math\BigInt\FastCalc

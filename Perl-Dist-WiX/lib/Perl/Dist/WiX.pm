@@ -83,17 +83,17 @@ use Object::Tiny qw{
     trace
 };
 
-use Perl::Dist::Asset               ();
-use Perl::Dist::Asset::Binary       ();
-use Perl::Dist::Asset::Library      ();
-use Perl::Dist::Asset::Perl         ();
-use Perl::Dist::Asset::Distribution ();
-use Perl::Dist::Asset::Module       ();
-use Perl::Dist::Asset::PAR          ();
-use Perl::Dist::Asset::File         ();
-use Perl::Dist::Asset::Website      ();
-use Perl::Dist::Asset::Launcher     ();
-use Perl::Dist::Util::Toolchain     ();
+use Perl::Dist::Asset               1.12 ();
+use Perl::Dist::Asset::Binary       1.12 ();
+use Perl::Dist::Asset::Library      1.12 ();
+use Perl::Dist::Asset::Perl         1.12 ();
+use Perl::Dist::Asset::Distribution 1.12 ();
+use Perl::Dist::Asset::Module       1.12 ();
+use Perl::Dist::Asset::PAR          1.12 ();
+use Perl::Dist::Asset::File         1.12 ();
+use Perl::Dist::Asset::Website      1.12 ();
+use Perl::Dist::Asset::Launcher     1.12 ();
+use Perl::Dist::Util::Toolchain     1.12 ();
 
 use vars qw( $VERSION @ISA );
 BEGIN {
@@ -420,9 +420,6 @@ sub new {
 
 	# Find the core list
 	my $corelist_version = $self->perl_version_literal+0;
-	if (( $corelist_version == 5.008009 ) && ( $Module::Corelist::VERSION < 2.17 )) {
-		$corelist_version = 5.008008; # This allows 5.8.9 to be handled without being required to upgrade.
-	}
 	$self->{perl_version_corelist} = $Module::CoreList::version{$corelist_version};
 	unless ( _HASH($self->{perl_version_corelist}) ) {
 		croak("Failed to resolve Module::CoreList hash for " . $self->perl_version_human);
@@ -1583,7 +1580,7 @@ sub install_perl_589_bin {
 	if ( $patch ) {
 		# Overwrite the appropriate files
 		foreach my $file ( @$patch ) {
-			$self->patch_file( "perl-5.8.9-RC1/$file" => $unpack_to );
+			$self->patch_file( "perl-5.8.9/$file" => $unpack_to );
 		}
 	}
 
@@ -2551,9 +2548,9 @@ sub _search_packlist {
     my $fl;
     
     if (-r $perl) {
-        $fl = Perl::Dist::WiX::Filelist->new->load_file($perl);
+        $fl = Perl::Dist::WiX::Filelist->new->load_file($perl)->add_file($perl);
     } elsif (-r $site) {
-        $fl = Perl::Dist::WiX::Filelist->new->load_file($site);
+        $fl = Perl::Dist::WiX::Filelist->new->load_file($site)->add_file($site);
     } else {
         croak "No .packlist found for $module"
     }
