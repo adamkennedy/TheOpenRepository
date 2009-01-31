@@ -105,13 +105,9 @@ sub poof {
 
             # Push it onto the strong or weak list, as appropriate, and add it to the hash
             if ( isweak ${$rr} ) {
-                # printf STDERR "Pushing onto weak list (0x%x=>0x%x): %s", ($rr+0), (${$rr}+0), Dumper($rr);
                 push @{$weak}, $rr;
             } else {
-                # printf STDERR "Pushing onto strong list (0x%x=>0x%x): %s", ($rr+0), (${$rr}+0), Dumper($rr);
                 weaken($strong->[ @{$strong} ] = \( ${$rr} ) );
-                # printf STDERR "Just Pushed onto strong list (0x%x=>0x%x): %s",
-                    # (($strong->[ $#{$strong} ])+0), (${($strong->[ $#{$strong} ])}+0), Dumper(($strong->[ $#{$strong} ]));
             }
 
             # Note that this implementation does not follow refs to closures
@@ -173,39 +169,29 @@ sub poof {
     my $weak_count   = @{$weak};
     my $strong_count = @{$strong};
 
-    # for my $rr ( @{$strong} ) {
-        # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $rr ? $rr+0 : 0), Dumper($rr);
-    # }
-
     # Now free everything.
-    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
-    # print STDERR Dump($strong->[1]) if defined $strong->[1];
     $destructor->(${$test_object_rr}) if defined $destructor;
-    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
+
     $test_object_rr = undef;
-    # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $strong->[1] ? $strong->[1]+0 : 0), Dumper($strong->[1]);
 
-    # For the strong ref-refs, weaken the first reference so the array
-    # of strong references does not affect the test
-    # for my $rr ( @{$strong} ) {
-        # printf STDERR "%d: Strong rr (0x%x): %s", __LINE__, (defined $rr ? $rr+0 : 0), Dumper($rr);
-    # }
-    
-    # The implicit copies below will strengthen the weak references
-    # but it no longer matters, since we have our data
+    # Implicit copies will strengthen the weak references,
+    # but at this point it no longer matters, since we have our data
 
-    my @unfreed_strong;
+    my @unfreed_strong = ();
     STRONG_RR: for my $rr (@{$strong}) {
-        # printf STDERR "Strong rr (0x%x): %s", (defined $rr ? $rr+0 : 0), Dumper($rr);
         next STRONG_RR unless defined $rr;
         my $r = ${$rr};
-        # printf STDERR "Unfreed strong referent (0x%x): %s", (defined $r ? $r+0 : 0), Dumper($r);
         next STRONG_RR unless defined $r;
         push(@unfreed_strong, $r);
     }
-    # my @unfreed_strong = map { ${$_} } grep { defined ${$_} } @{$strong};
 
-    my @unfreed_weak   = map { ${$_} } grep { defined ${$_} } @{$weak};
+    my @unfreed_weak = ();
+    WEAK_RR: for my $rr (@{$weak}) {
+        next WEAK_RR unless defined $rr;
+        my $r = ${$rr};
+        next WEAK_RR unless defined $r;
+        push(@unfreed_weak, $r);
+    }
 
     # See the POD on the return values
     return
