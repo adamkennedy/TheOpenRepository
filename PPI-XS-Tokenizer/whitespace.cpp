@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "tokenizer.h"
 
@@ -49,6 +50,26 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			return t->TokenTypeNames_pool[commit_map[c_char]]->commit(t, c_char);
         }
     }
+	
+	if (c_char == 40) { // '('
+		Token *t0 = t->_last_significant_token(0);
+		Token *t1 = t->_last_significant_token(1);
+		Token *t2 = t->_last_significant_token(2);
+		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && 
+			 ( t1 != NULL ) && ( t1->type->type == Token_Word ) &&
+			 ( !strcmp(t1->text, "sub") ) &&
+			 ( ( t2 == NULL ) || ( t2->type->type == Token_Structure ) ) ) {
+			t->_new_token(Token_Prototype);
+			return done_it_myself;
+		}
+
+		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && ( !strcmp(t0->text, "sub") ) ) {
+			t->_new_token(Token_Prototype);
+			return done_it_myself;
+		}
+		t->_new_token(Token_Structure);
+		return done_it_myself;
+	}
 	// TODO
     return error_fail;
 }

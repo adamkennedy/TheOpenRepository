@@ -6,13 +6,14 @@
 
 	//$content =~ /^(
 	//	[\$@%&*]
-	//	(?: 
-	//		: (?!:) | # Allow single-colon non-magic vars
+	//	(?: : (?!:) | # Allow single-colon non-magic vars
 	//		(?: \w+ | \' (?!\d) \w+ | \:: \w+ )
+	//		(?:
+	//			# Allow both :: and ' in namespace separators
+	//			(?: \' (?!\d) \w+ | \:: \w+ )
+	//		)*
+	//		(?: :: )? # Technically a compiler-magic hash, but keep it here
 	//	)
-	//	# Allow both :: and ' in namespace separators
-	//	(?: \' (?!\d) \w+ | \:: \w+ )*
-	//	(?: :: )? # Technically a compiler-magic hash, but keep it here
 	//)/x or return undef;
 // assumation - the first charecter is a sigil, and the length >= 1
 static CharTokenizeResults oversuck(char *text, unsigned long length, unsigned long *new_length) {
@@ -35,7 +36,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 		token->type = t->TokenTypeNames_pool[Token_Magic];
 		TokenTypeNames zone = t->_finalize_token();
 		t->_new_token(zone);
-		return t->c_token->type->tokenize(t, t->c_token, t->c_line[t->line_pos]);
+		return done_it_myself;
 	}
 	
 	// Shortcut for most of the X:: symbols
@@ -47,7 +48,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 		}
 		TokenTypeNames zone = t->_finalize_token();
 		t->_new_token(zone);
-		return t->c_token->type->tokenize(t, t->c_token, t->c_line[t->line_pos]);
+		return done_it_myself;
 	}
 
 	// examine the first charecther
@@ -80,7 +81,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 				t->line_pos = t->line_pos - token->length;
 				TokenTypeNames zone = t->_finalize_token();
 				t->_new_token(zone);
-				return t->c_token->type->tokenize(t, t->c_token, t->c_line[t->line_pos]);
+				return done_it_myself;
 			}
 		}
 	}
@@ -92,7 +93,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 			token->type = t->TokenTypeNames_pool[Token_Magic];
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
-			return t->c_token->type->tokenize(t, t->c_token, t->c_line[t->line_pos]);
+			return done_it_myself;
 		}
 	}
 
@@ -109,5 +110,5 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
-	return t->c_token->type->tokenize(t, t->c_token, t->c_line[t->line_pos]);
+	return done_it_myself;
 }

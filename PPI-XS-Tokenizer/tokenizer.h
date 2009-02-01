@@ -19,7 +19,8 @@ enum TokenTypeNames {
 	Token_Quote_Single,
 	Token_Quote_Double,
 	Token_QuoteLike_Backtick,
-	Token_Cast
+	Token_Cast, 
+	Token_Prototype
 };
 
 enum CharTokenizeResults {
@@ -138,6 +139,7 @@ public:
 	/* _last_significant_token - return the n-th last significant token
 	 * must be: 1 <= n <= NUM_SIGNIFICANT_KEPT
 	 * May return NULL is no such token exists.
+	 * (NULL in C is expressed in this case as an empty Whitespace token in Perl) 
 	 */
 	Token *_last_significant_token(unsigned int n);
 	/* tokenizeLine - Tokenize one line
