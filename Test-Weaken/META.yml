@@ -9,7 +9,13 @@ license: perl
 distribution_type:   module
 no_index:
     directory:
+        - inc
         - t
+        - example
+        - author.t
+        - save
+    namespace:
+        - Test::Weaken::Internal
 requires:     
     Test::More:                    0
 provides:
