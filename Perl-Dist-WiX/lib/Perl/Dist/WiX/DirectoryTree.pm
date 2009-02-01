@@ -123,8 +123,8 @@ sub initialize_tree {
         'Toolchain', 'c',
         'License',   'licenses',
         'Cpan',      'cpan',
-        'Win32',     'win32'
-        );
+        'Win32',     'win32',
+    );
     $branch->add_directories_init(qw(
         c\bin
         c\bin\startup
@@ -227,12 +227,16 @@ sub initialize_tree {
         perl\site\lib\auto\share
         perl\site\lib\auto\Compress
         perl\site\lib\auto\Compress\Raw
+        perl\site\lib\auto\File
+        perl\site\lib\auto\HTML
         perl\site\lib\auto\IO
         perl\site\lib\auto\LWP
         perl\site\lib\auto\Math
+        perl\site\lib\auto\PAR
         perl\site\lib\auto\Term
         perl\site\lib\auto\Test
         perl\site\lib\auto\Win32
+        perl\site\lib\auto\Win32\File
         perl\site\lib\auto\XML
     ), @dirs);
     

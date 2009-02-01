@@ -2855,8 +2855,11 @@ sub install_par {
     $io->close;
     $self->trace_line( 2, $output);
     
-    # Read in the .packlist and return it as @files.
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_file($packlist)->filter(@{$self->filters});
+    # Read in the .packlist and return it.
+    my $filelist = Perl::Dist::WiX::Filelist->new
+        ->load_file($packlist)
+        ->filter(@{$self->filters})
+        ->add_file($packlist);
 
 	return $filelist;
 }

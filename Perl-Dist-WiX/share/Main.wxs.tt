@@ -42,7 +42,7 @@
     </Condition>
 
     <Condition Message="Can only install for all users on the machine.">
-      <![CDATA[ALLUSERS <> 1]]>
+      <![CDATA[ALLUSERS = 1]]>
     </Condition>
     
     <Condition Message="Cannot install on Windows 9x or ME systems.">

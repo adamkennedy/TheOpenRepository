@@ -322,9 +322,6 @@ sub move {
     
     # Find which files need moved.
     my @loc = indexes { $_ =~ m/\A\Q$from\E\z/ } @{$self->files};
-    print "Indexes: ";
-    print join " ", @loc;
-    print "\n";
     if (@loc) {
         foreach my $loc (@loc) {
             # "move" them.
