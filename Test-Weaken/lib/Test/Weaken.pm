@@ -70,7 +70,7 @@ sub Test::Weaken::Internal::follow {
 
         for my $old_refref (@old_refrefs) {
             my $rr_type = reftype ${$old_refref};
-            my $new_refref = 
+            my $new_refref =
                 $rr_type eq 'HASH' ? \%{${$old_refref}} :
                 $rr_type eq 'ARRAY' ? \@{${$old_refref}} :
                 $rr_type eq 'REF' ? \${${$old_refref}} :
@@ -78,7 +78,7 @@ sub Test::Weaken::Internal::follow {
                 $rr_type eq 'CODE' ? \&{${$old_refref}} :
                 $rr_type eq 'VSTRING' ? \${${$old_refref}} :
                 undef;
-            if (defined $new_refref && not $reverse{$new_refref+0}) {
+            if (defined $new_refref and not $reverse{$new_refref+0}) {
                 push @{$result}, $new_refref;
                 $reverse{$new_refref+0}++;
             }
@@ -125,7 +125,7 @@ sub new {
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
-            croak('Unknown named args to Test::Weaken::new: ', join(q{ }, @unknown_named_args));
+            croak('Unknown named args to Test::Weaken::new: ', (join q{ }, @unknown_named_args));
         }
 
     } # UNPACK_ARGS
@@ -196,7 +196,8 @@ sub Test::Weaken::Internal::poof_array_return {
 } ## end sub poof_array_return;
 
 sub poof {
-     my $test = new Test::Weaken(@_);
+     my @args = @_;
+     my $test = new Test::Weaken(@args);
      my $result = $test->test();
      return Test::Weaken::Internal::poof_array_return($test) if wantarray;
      return $result;
