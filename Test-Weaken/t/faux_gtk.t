@@ -30,35 +30,24 @@ package main;
 use strict;
 use warnings;
 use Test::Weaken;
-use Test::More tests => 3;
+use Test::More tests => 2;
 
-is( Test::Weaken::poof(
-        sub {
-            my $obj = MyObject->new;
-            $obj->destroy;
-            return $obj;
-        }
-    ),
-    0,
-    'no destructor'
-);
+use lib 't/lib';
+use Test::Weaken::Test;
 
 @INSTANCES = ();
-is( Test::Weaken::poof(
+my $result = Test::Weaken::poof(
         sub { MyObject->new },
         sub {
             my ($obj) = @_;
             $obj->destroy;
         }
-    ),
-    0,
-    'good destructor'
 );
+Test::Weaken::Test::is( $result, 0, 'good destructor');
 
 @INSTANCES = ();
-is( Test::Weaken::poof(
+$result = Test::Weaken::poof(
     sub { return MyObject->new },
-    sub { return 1 } ),
-    1,
-    'no-op destructor'
+    sub { return 1 }
 );
+Test::Weaken::Test::is( $result, 2, 'no-op destructor');

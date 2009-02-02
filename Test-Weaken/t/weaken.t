@@ -4,8 +4,10 @@ use strict;
 use warnings;
 
 use Test::More tests => 6;
-use Test::Weaken;
 use Scalar::Util qw(weaken);
+
+use lib 't/lib';
+use Test::Weaken::Test;
 
 BEGIN {
     use_ok('Test::Weaken');
@@ -29,14 +31,14 @@ my $result = Test::Weaken::poof(
 );
 cmp_ok( $result, q{==}, 0, 'Simple weak ref' );
 
-is( brief_result(
+Test::Weaken::Test::is( brief_result(
         Test::Weaken::poof( sub { my $x = 42; my $y = \$x; $x = \$y; } )
     ),
     'total: weak=0; strong=3; unfreed: weak=0; strong=2',
     'Bad Less Simple Cycle'
 );
 
-is( brief_result(
+Test::Weaken::Test::is( brief_result(
         Test::Weaken::poof(
             sub { my $x; weaken( my $y = \$x ); $x = \$y; $y; }
         )
@@ -45,7 +47,7 @@ is( brief_result(
     'Fixed simple cycle'
 );
 
-is( brief_result(
+Test::Weaken::Test::is( brief_result(
         Test::Weaken::poof(
             sub {
                 my $x;
@@ -56,11 +58,11 @@ is( brief_result(
             }
         )
     ),
-    'total: weak=0; strong=9; unfreed: weak=0; strong=5',
+    'total: weak=0; strong=7; unfreed: weak=0; strong=5',
     'Bad Complicated Cycle'
 );
 
-is( brief_result(
+Test::Weaken::Test::is( brief_result(
         Test::Weaken::poof(
             sub {
                 my $x = 42;
@@ -71,7 +73,7 @@ is( brief_result(
             }
         )
     ),
-    'total: weak=1; strong=8; unfreed: weak=0; strong=0',
+    'total: weak=1; strong=6; unfreed: weak=0; strong=0',
     'Fixed Complicated Cycle'
 );
 

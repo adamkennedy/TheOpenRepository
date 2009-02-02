@@ -28,29 +28,19 @@ package main;
 use strict;
 use warnings;
 use Test::Weaken;
-use Test::More tests => 3;
+use Test::More tests => 2;
 
-is( Test::Weaken::poof(
-        sub {
-            my $obj = MyCircular->new;
-            $obj->undo;
-            return $obj;
-        }
-    ),
-    0,
-    'no destructor'
-);
+use lib 't/lib';
+use Test::Weaken::Test;
 
-is( Test::Weaken::poof(
+my $result = Test::Weaken::poof(
         sub { MyCircular->new },
         sub {
             my ($obj) = @_;
             $obj->undo;
         }
-    ),
-    0,
-    'good destructor'
-);
+    );
+Test::Weaken::Test::is( $result, 0, 'good destructor');
 
-is( Test::Weaken::poof( sub { MyCircular->new }, sub { my ($obj) = @_ } ),
-    2, 'null destructor' );
+$result = Test::Weaken::poof( sub { MyCircular->new }, sub { } );
+Test::Weaken::Test::is( $result, 2, 'null destructor' );

@@ -18,3 +18,4 @@ t/faux_gtk.t
 t/stein.t
 t/synopsis.t
 t/weaken.t
+t/lib/Test/Weaken/Test.pm

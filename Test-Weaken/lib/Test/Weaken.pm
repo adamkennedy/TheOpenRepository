@@ -51,6 +51,49 @@ can still be tested via the weak refs.
 
 =cut
 
+sub Test::Weaken::Internal::follow {
+    my $base_ref = shift;
+
+    # Initialize the results with a reference to the dereferenced
+    # base reference.
+    my $result = [ \( ${$base_ref} ) ];
+    my %reverse = ();
+ 
+    my $to_here = -1;
+    REF: while ($to_here < $#{$result}) {
+        $to_here++;
+        my $refref = $result->[$to_here];
+        my $type = reftype $refref;
+
+        my @old_refrefs =
+            $type eq 'REF' ? ($refref) :
+            $type eq 'ARRAY' ?  (map { \$_ } grep { ref $_ } @{$refref}) :
+            $type eq 'HASH' ?  (map { \$_ } grep { ref $_ } values %{$refref}) :
+            ();
+
+        for my $old_refref (@old_refrefs) {
+            my $rr_type = reftype ${$old_refref};
+            my $new_refref = 
+                $rr_type eq 'HASH' ? \%{${$old_refref}} :
+                $rr_type eq 'ARRAY' ? \@{${$old_refref}} :
+                $rr_type eq 'REF' ? \${${$old_refref}} :
+                $rr_type eq 'SCALAR' ? \${${$old_refref}} :
+                $rr_type eq 'CODE' ? \&{${$old_refref}} :
+                $rr_type eq 'VSTRING' ? \${${$old_refref}} :
+                undef;
+            if (defined $new_refref && not $reverse{$new_refref+0}) {
+                push @{$result}, $new_refref;
+                $reverse{$new_refref+0}++;
+            }
+            
+        }
+
+    } # REF
+
+    return $result;
+
+} # sub follow
+
 # See POD, below
 sub poof {
 
@@ -69,105 +112,17 @@ sub poof {
     if (not ref ${$test_object_rr}) {
         carp('poof() argument did not return a reference');
     }
-    my $workset = [ \( ${$test_object_rr} ) ];
+    my $refrefs = Test::Weaken::Internal::follow($test_object_rr);
 
-    # reverse hash -- maps strong ref address back to a reference to the reference
-    my $reverse = { };
+    my $original_count = @{$refrefs};
+    my $original_weak_count   = grep {
+        ref $_ eq 'REF' and isweak ${$_}
+    } @{$refrefs};
+    my $original_strong_count = $original_count - $original_weak_count;
 
-    # the current working set -- initialize to our first ref
-
-    # an array of strong references to the weak references
-    my $weak   = [];
-    my $strong = [];
-
-    # Loop while there is work to do
-    WORKSET: while ( @{$workset} ) {
-
-        # The "follow-up" array, which holds those ref-refs to be
-        # be worked on in the next pass.
-        my $follow = [];
-
-        # For each ref-ref in the current workset
-        REF: for my $rr ( @{$workset} ) {
-            my $rr_type = reftype ${$rr};
-
-            # It is assumed that everything in a workset is a reference.
-            # The other code is expected to make sure this is the case.
-
-            # If we've worked with this ref before,
-            # we're done
-            if ( defined $reverse->{ $rr+0 } ) {
-                next REF;
-            }
-
-            # Add it to the hash
-            $reverse->{ $rr+0 }++;
-
-            # Push it onto the strong or weak list, as appropriate, and add it to the hash
-            if ( isweak ${$rr} ) {
-                push @{$weak}, $rr;
-            } else {
-                weaken($strong->[ @{$strong} ] = \( ${$rr} ) );
-            }
-
-            # Note that this implementation does not follow refs to closures
-
-            # If it's a reference to an array
-            if ( $rr_type eq 'ARRAY' ) {
-
-                # Index through its elements to avoid
-                # copying any which are weak refs
-                ELEMENT: for my $ix ( 0 .. $#{ ${$rr} } ) {
-
-                    # Obviously, no need to deal with non-existent elements
-                    next ELEMENT unless exists ${$rr}->[$ix];
-
-                    # If it's not a ref, no need to deal with it
-                    next ELEMENT unless ref ${$rr}->[$ix];
-
-                    # Put it on the follow-up list
-                    push @{$follow}, \( ${$rr}->[$ix] );
-
-                }
-                next REF;
-            }
-
-            # If it's a reference to a hash
-            if ( $rr_type eq 'HASH' ) {
-
-                # Iterate through the keys to avoid copying any values which are weak refs
-                for my $key ( keys %{ ${$rr} } ) {
-
-                    # If it's a reference, put a reference to it on the follow-up list
-                    if ( ref ${$rr}->{$key} ) {
-                        push @{$follow}, \(${$rr}->{$key});
-                    }
-
-                }
-                next REF;
-            }
-
-            # If it's a reference to a reference,
-            # put a reference to the dereferenced reference (whew!)
-            # on the follow up list
-            if ( $rr_type eq 'REF' ) {
-                push @{$follow}, \( ${ ${$rr} } );
-            }
-
-        }    # REF
-
-        # Replace the current work list with the items we scheduled
-        # for follow up
-        $workset = $follow;
-
-    }    # WORKSET
-
-    $workset = undef;
-    $reverse = undef;
-
-    # Record the original counts of weak and strong references
-    my $weak_count   = @{$weak};
-    my $strong_count = @{$strong};
+    for my $refref (@{$refrefs}) {
+        weaken($refref);
+    }
 
     # Now free everything.
     $destructor->(${$test_object_rr}) if defined $destructor;
@@ -177,27 +132,24 @@ sub poof {
     # Implicit copies will strengthen the weak references,
     # but at this point it no longer matters, since we have our data
 
-    my @unfreed_strong = ();
-    STRONG_RR: for my $rr (@{$strong}) {
-        next STRONG_RR unless defined $rr;
-        my $r = ${$rr};
-        next STRONG_RR unless defined $r;
-        push(@unfreed_strong, $r);
+    my @unfreed = grep { defined $_ } @{$refrefs};
+
+    if (not wantarray) {
+        return scalar @unfreed;
     }
 
-    my @unfreed_weak = ();
-    WEAK_RR: for my $rr (@{$weak}) {
-        next WEAK_RR unless defined $rr;
-        my $r = ${$rr};
-        next WEAK_RR unless defined $r;
-        push(@unfreed_weak, $r);
+    my @unfreed_strong = ();
+    my @unfreed_weak   = ();
+    for my $refref (@unfreed) {
+        if ( ref $refref eq 'REF' and isweak ${$refref} ) {
+            push @unfreed_weak, $refref;
+        } else {
+            push @unfreed_strong, $refref;
+        }
     }
 
     # See the POD on the return values
-    return
-        wantarray
-        ? ( $weak_count, $strong_count, \@unfreed_weak, \@unfreed_strong )
-        : ( @unfreed_weak + @unfreed_strong );
+    return ( $original_weak_count, $original_strong_count, \@unfreed_weak, \@unfreed_strong )
 
 } ## end sub poof
 
