@@ -24,7 +24,7 @@ require Perl::Dist::WiX::Files::DirectoryRef;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
     @ISA = qw(
         Perl::Dist::WiX::Base::Fragment
         Perl::Dist::WiX::Misc

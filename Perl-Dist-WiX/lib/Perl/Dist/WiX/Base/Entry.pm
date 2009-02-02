@@ -19,7 +19,7 @@ use warnings;
 
 use vars qw( $VERSION );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
 }
 
 sub new {

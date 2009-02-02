@@ -21,7 +21,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
     @ISA = qw (Perl::Dist::WiX::Base::Component
                Perl::Dist::WiX::Base::Entry
                Perl::Dist::WiX::Misc

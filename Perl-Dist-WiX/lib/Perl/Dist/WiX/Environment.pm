@@ -22,7 +22,7 @@ require Perl::Dist::WiX::EnvironmentEntry;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
 

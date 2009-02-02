@@ -40,13 +40,8 @@ use LWP::Online 			qw();
 use PAR::Dist               qw();
 use SelectSaver             qw();
 use Template                qw();
-require Perl::Dist::WiX::Files;
-require Perl::Dist::WiX::StartMenu;
-require Perl::Dist::WiX::StartMenuComponent;
 require Perl::Dist::WiX::Installer;
-require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Filelist;
-require Perl::Dist::WiX::StartMenu;
 
 use Object::Tiny qw{
 	perl_version
@@ -97,7 +92,7 @@ use Perl::Dist::Util::Toolchain     1.12 ();
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-	$VERSION = '0.11_07';
+	$VERSION = '0.13_01';
 	@ISA     = 'Perl::Dist::WiX::Installer';
 }
 
@@ -1218,28 +1213,33 @@ sub install_win32_extras {
 	$self->install_website(
 		name => 'CPAN Search',
 		url  => 'http://search.cpan.org/',
+        icon_file => catfile(File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpan.ico')
 	);
 	if ( $self->perl_version_human eq '5.8.8' ) {
 		$self->install_website(
 			name => 'Perl 5.8.8 Documentation',
 			url  => 'http://perldoc.perl.org/5.8.8/',
+            icon_file => catfile(File::ShareDir::dist_dir('Perl-Dist-WiX'), 'perldoc.ico')
 		);
 	}
 	if ( $self->perl_version_human eq '5.8.9' ) {
 		$self->install_website(
 			name => 'Perl 5.8.9 Documentation',
 			url  => 'http://perldoc.perl.org/5.8.9/',
+            icon_file => catfile(File::ShareDir::dist_dir('Perl-Dist-WiX'), 'perldoc.ico')
 		);
 	}
 	if ( $self->perl_version_human eq '5.10.0' ) {
 		$self->install_website(
 			name => 'Perl 5.10.0 Documentation',
 			url  => 'http://perldoc.perl.org/',
+            icon_file => catfile(File::ShareDir::dist_dir('Perl-Dist-WiX'), 'perldoc.ico')
 		);
 	}
 	$self->install_website(
 		name => 'Win32 Perl Wiki',
 		url  => 'http://win32.perl.org/',
+        icon_file => catfile(File::ShareDir::dist_dir('Perl-Dist-WiX'), 'win32.ico')
 	);
 
 	return $self;
@@ -3002,11 +3002,14 @@ sub install_launcher {
 		die "The script '" . $launcher->bin . '" does not exist';
 	}
 
+    my $icon_id = $self->icons->add_icon(catfile($self->dist_dir, "$launcher->{bin}.ico"), $launcher->bin . '.bat' );
+    
 	# Add the icon.
 	$self->add_icon(
 		name     => $launcher->name,
 		filename => $to,
-        fragment => "Icons"
+        fragment => "Icons",
+        icon_id  => $icon_id
 	);
 
 	return $self;
@@ -3060,11 +3063,14 @@ sub install_website {
         fragment => "Win32Extras"
 	);
 
+    my $icon_id = $self->icons->add_icon($website->icon_file, $filename);
+    
     # Add the icon.
 	$self->add_icon(
 		name     => $website->name,
 		filename => $filename,
-        fragment => "Icons"
+        fragment => "Icons",
+        icon_id  => $icon_id,
 	);
 
 	return $filename;

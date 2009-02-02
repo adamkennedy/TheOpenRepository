@@ -1,12 +1,18 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.11_07 Tue 27 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.13_01 Mon 02 Feb 2009 
+    1. Generates .msi file!
+    2. Added routines to help make sure all files are installed.
+    3. Updated to go with Perl::Dist 1.12 and Perl::Dist::Strawberry 1.09
+    4. Icons handled.
+
+0.11_07 Tue 27 Jan 2009
     1. Documentation completed.
     2. Trace now has 6 (0-5) levels.
     3. Directory creation simplified. (hopefully bug-free)
     4. Still no .msi yet.
 
-0.11_06 Wed 21 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.11_06 Wed 21 Jan 2009
     1. Moved Feature.pm up one level, created FeatureTree.pm.   
     2. Spelling, a little documentation, bug fixes, tests.
        (more in _07)
@@ -16,14 +22,14 @@ Changes for Perl extension Perl-Dist-WiX
     5. Creating all .wixout files required - but no .msi yet 
        (files are being counted twice)
     
-0.11_05 Mon 19 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.11_05 Mon 19 Jan 2009
     1. Work in progress debugging routines install_win32_extras needs
     2. Documentation of some low-level modules added
     3. Compile test updated with all modules.
     4. Other tests skipped until rewriting done.
     5. Some parameter-checking added.
 
-0.11_04 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.11_04 Sat 17 Jan 2009
     - Verified generation of fragments up to step 4 
       (install_perl_modules) now. (84 fragments, 900K)
     - Removed P::D::W::Toolchain, replaced it with ad-hoc
@@ -33,7 +39,7 @@ Changes for Perl extension Perl-Dist-WiX
       files to check.
     - Removed create_string_fragment method (not being used)
 
-0.11_03 Sat 17 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.11_03 Sat 17 Jan 2009
     - perl, the perl licenses, and the individual 
       modules of the Perl toolchain are now tested
       to generate fragments (now 57 fragments, about 
@@ -41,7 +47,7 @@ Changes for Perl extension Perl-Dist-WiX
     - Perl::Dist::WiX::Filelist module added to handle
       file list arithmetic and operations.
       
-0.11_02 Thu 15 Jan 2009 Curtis Jewell <csjewell@cpan.org>
+0.11_02 Thu 15 Jan 2009
     - First actual code:
       1: Most routines collect file names
       2: "low-level" routines create strings that 

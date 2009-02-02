@@ -23,7 +23,7 @@ use File::Spec::Functions qw( splitpath splitdir          );
 
 use vars qw( $VERSION );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
 }
 
 #####################################################################

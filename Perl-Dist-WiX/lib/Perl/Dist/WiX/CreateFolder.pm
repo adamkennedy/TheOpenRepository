@@ -1,22 +1,21 @@
-package Perl::Dist::WiX::StartMenu;
+package Perl::Dist::WiX::CreateFolder;
 
 #####################################################################
-# Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that 
-# contains start menu <Shortcut>.
+# Perl::Dist::WiX::CreateFolder - A <Fragment> and <DirectoryRef> tag that 
+# contains a <CreateFolder> element.
 #
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$
-# $URL$
+# $Rev: 5111 $ $Date: 2009-01-29 21:19:23 -0700 (Thu, 29 Jan 2009) $ $Author: csjewell@cpan.org $
+# $URL: http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/lib/Perl/Dist/WiX/StartMenu.pm $
 
 use 5.006;
 use strict;
 use warnings;
 use Carp            qw( croak               );
 use Params::Util    qw( _IDENTIFIER _STRING );
-use Data::UUID      qw( NameSpace_DNS       );
 require Perl::Dist::WiX::Base::Fragment;
 
 use vars qw( $VERSION @ISA );
@@ -27,36 +26,21 @@ BEGIN {
 
 #####################################################################
 # Accessors:
-#   sitename: Returns the sitename passed in to new.
+#   None.
 
-use Object::Tiny qw{
-    sitename
-};
 
 #####################################################################
-# Constructor for StartMenu
+# Constructor for CreateFolder
 #
 # Parameters: [pairs]
 #   id, directory: See Base::Filename.
-#   sitename: The name of the site that is hosting the download.
 
 sub new {
     my ($class, %params) = @_;
 
-    # Apply required defaults.
-    unless ( defined $params{id} ) {
-        $params{id} = 'Icons';
-    }    
-    unless ( defined $params{directory} ) {
-        $params{directory} = 'ApplicationProgramsFolder';
-    }
-
     my $self = $class->SUPER::new(%params);
 
     # Check parameters.
-    unless (_STRING($self->sitename)) {
-        croak 'Invalid or missing sitename';
-    }
     unless (_IDENTIFIER($self->id)) {
         croak 'Invalid or missing id';
     }
@@ -80,19 +64,7 @@ sub new {
 sub get_component_array {
     my $self = shift;
     
-    my $count = scalar @{$self->{components}};
-    my @answer;
-    my $id;
-
-    push @answer, 'RemoveShortcutFolder';
-    
-    # Get the array for each descendant.
-    foreach my $i (0 .. $count - 1) {
-        $id = $self->{components}->[$i]->id;
-        push @answer, "S_$id"; 
-    }
-
-    return @answer;
+    return "C_Create$self->{id}";
 }
 
 sub search_file {
@@ -122,25 +94,10 @@ sub as_string {
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='Fr_$self->{id}'>
-    <DirectoryRef Id='$self->{directory}'>
-EOF
-
-    foreach my $i (0 .. $count - 1) {
-        $s = $self->{components}->[$i]->as_string;
-        $string .= $self->indent(6, $s);
-        $string .= "\n";
-    }
-
-    my $guidgen = Data::UUID->new();
-    # Make our own namespace...
-    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
-    #... then use it to create a GUIDs out of the ID.
-    my $guid_RSF = uc $guidgen->create_from_name_str($uuid, 'RemoveShortcutFolder');
-
-    $string .= <<"EOF";
-      <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
-        <RemoveFolder Id="$self->{directory}" On="uninstall" />
+  <Fragment Id='Fr_Create$self->{id}'>
+    <DirectoryRef Id='D_$self->{directory}'>
+      <Component Id='C_Create$self->{id}'>
+        <CreateFolder />
       </Component>
     </DirectoryRef>
   </Fragment>

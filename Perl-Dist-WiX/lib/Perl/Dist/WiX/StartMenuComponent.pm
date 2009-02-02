@@ -26,7 +26,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
     @ISA = qw(
         Perl::Dist::WiX::Base::Component
         Perl::Dist::WiX::Misc
@@ -82,6 +82,9 @@ sub new {
     unless ( _STRING($self->menudir_id) ) {
         croak("Missing or invalid menudir_id param");
     }
+    unless ( _STRING($self->icon_id) ) {
+        croak("Missing or invalid icon_id param");
+    }
 
     my $target = $self->target;
     $self->trace_line(3, "Adding Icon for $target\n");
@@ -109,6 +112,7 @@ sub as_string {
             Name='$self->{name}'
             Description='$self->{description}'
             Target='$self->{target}'
+            Icon='$self->{icon_id}'
             WorkingDirectory='D_$self->{working_dir}' />
   <CreateFolder Directory="$self->{menudir_id}" />
 </Component>

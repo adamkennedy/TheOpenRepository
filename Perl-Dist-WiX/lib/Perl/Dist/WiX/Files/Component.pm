@@ -21,7 +21,7 @@ require Perl::Dist::WiX::Files::Entry;
                     
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_06';
+    $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 

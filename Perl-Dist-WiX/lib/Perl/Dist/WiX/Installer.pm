@@ -26,17 +26,20 @@ use strict;
 use warnings FATAL => qw(all);
 use Carp                     qw( croak                         );
 use File::Spec::Functions    qw( catdir catfile rel2abs curdir );
-use Params::Util             qw( _STRING _IDENTIFIER _ARRAY0   );
+use Params::Util             
+    qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                     );
 use Data::UUID               qw( NameSpace_DNS                 );
 use IO::File                 qw();
 use IPC::Run3                qw();
 use URI                      qw();
 require Perl::Dist::WiX::Misc;
+require Perl::Dist::WiX::Files;
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::Environment;
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::FeatureTree;
-
+require Perl::Dist::WiX::Icons;
+require Perl::Dist::WiX::CreateFolder;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
@@ -124,6 +127,7 @@ use Object::Tiny qw{
     feature_tree_obj
     msi_directory_tree_additions
     sitename
+    icons
 };
 
 
@@ -195,14 +199,12 @@ sub new {
     }
 
     # Set element collections
-
     $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
         app_dir => $self->image_dir, 
         app_name => $self->app_name, 
         sitename => $self->sitename,
         trace    => $self->{trace},
     )->initialize_tree(@{$self->{msi_directory_tree_additions}});
-
     $self->{fragments}    = {};
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
         sitename  => $self->sitename,
@@ -220,6 +222,15 @@ sub new {
         id              => 'Win32Extras',
         trace           => $self->{trace}, 
     );
+    $self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
+        directory       => 'Cpan',
+        id              => 'Cpan',
+        trace           => $self->{trace}, 
+    );    
+    $self->{icons} = Perl::Dist::WiX::Icons->new(trace => $self->{trace});
+    if (defined $self->msi_product_icon) {
+        $self->icons->add_icon($self->msi_product_icon);
+    }
     
     # Find the light.exe and candle.exe programs
     unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
@@ -255,9 +266,14 @@ sub new {
 # the Perl::Dist::WiX class tree.
 
 sub msi_product_icon_id {
-    return undef;
-    
-    # TODO: Not implemented yet.
+    my $self = shift;
+
+    # Get the icon ID if we can.
+    if (defined $self->msi_product_icon) {
+        return 'I_' . $self->icons->search_icon($self->msi_product_icon);
+    } else {
+        return undef;
+    }
 }
 
 =item * app_ver_name
@@ -680,7 +696,7 @@ sub insert_fragment {
     return $fragment;
 }
 
-=head2 insert_fragment($id, $files_ref)
+=head2 add_to_fragment($id, $files_ref)
 
 Adds the list of files C<$files_ref> to the fragment named by C<$id>.
 
