@@ -6,7 +6,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More;
+BEGIN {
+	unless ( $^O eq 'MSWin32' ) {
+		plan( skip_all, 'Not on MSWin32' );
+		exit(0);
+	}
+}
+plan( tests => 12 );
 use File::Spec::Functions    ':ALL';
 use File::Remove             ();
 use IPC::Run3                ();

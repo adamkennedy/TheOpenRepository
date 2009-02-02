@@ -12,4 +12,8 @@ use Alien::BatToExeConverter ();
 my $path = Alien::BatToExeConverter::bat2exe_path();
 ok(    $path, 'bat2exe_path is defined'    );
 ok( -f $path, 'bat2exe_path exists'        );
-ok( -x $path, 'bat2exe_path is executable' );
+SKIP: {
+	skip("Not on MSWin32", 1) unless $^O eq 'MSWin32';
+	ok( -x $path, 'bat2exe_path is executable' );
+}
+
