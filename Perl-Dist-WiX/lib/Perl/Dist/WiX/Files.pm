@@ -17,7 +17,7 @@ use warnings;
 use Carp                  qw( croak carp                            );
 use Params::Util          qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use Data::UUID            qw( NameSpace_DNS                         );
-use File::Spec::Functions qw( splitpath catdir                      );
+use File::Spec::Functions qw( splitpath catpath catdir              );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Files::DirectoryRef;
@@ -350,16 +350,26 @@ sub search_file {
 sub check_duplicates {
     my ($self, $files_ref) = @_;
     my $answer;
-    my ($object, $index);
+    my ($object, $index, $pathname_fixed);
 
     # Check parameters.
     unless ( _ARRAY0($files_ref) ) {
         croak('Missing or invalid files_ref parameter');
     }
 
-    # Search out duplicate filenames and delete them if found.
-    foreach my $file (@{$files_ref}) {
-        $answer = $self->search_file($file);
+    # For each file in the list...
+    foreach my $pathname (@{$files_ref}) {
+        # For a .AAA file, find the original file instead.
+        if ($pathname =~ m(\.AAA\z)) {
+            $pathname_fixed = substr($pathname, 0, -4);
+        } else {
+            $pathname_fixed = $pathname;
+        }
+        
+        # Try and find the file.
+        $answer = $self->search_file($pathname_fixed);
+        
+        # Delete the original file if found.
         if (defined $answer) {
             ($object, $index) = @{$answer};
             $self->trace_line(4, "Deleting reference $index at " . $object->path . "\n");

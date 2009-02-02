@@ -13,9 +13,10 @@ package Perl::Dist::WiX::Files::Entry;
 use 5.006;
 use strict;
 use warnings;
-use Carp                qw( croak               );
-use Params::Util        qw( _IDENTIFIER _STRING );
-use Data::UUID          qw( NameSpace_DNS       );
+use Carp                  qw( croak               );
+use Params::Util          qw( _IDENTIFIER _STRING );
+use Data::UUID            qw( NameSpace_DNS       );
+use File::Spec::Functions qw( splitpath           );
 require Perl::Dist::WiX::Base::Entry;
 
 use vars qw( $VERSION @ISA );
@@ -85,12 +86,27 @@ sub new {
 
 sub as_string {
     my $self = shift;
-
-    # Name= parameter defults to the filename portion of the Source parameter,
-    # so it isn't needed.
-    return q{<File Id='F_} . $self->id .
-        q{' Source='}      . $self->name .
-        q{' />};
+    my $answer;
+    my $pathname = $self->name;
+    
+    if ($pathname =~ m(\.AAA\z)) {
+        # If the file is a .AAA file, drop it in the original file's place.
+        my (undef, undef, $filename) = splitpath($pathname);
+        $filename = substr($filename, 0, -4);
+        $answer = q{<File Id='F_} . $self->id .
+            q{' Name='}           . $filename .
+            q{' Source='}         . $pathname .
+            q{' />};
+    
+    } else {
+        # Name= parameter defults to the filename portion of the Source parameter,
+        # so it isn't needed.
+        $answer = q{<File Id='F_} . $self->id .
+            q{' Source='}         . $pathname .
+            q{' />};
+    }
+    
+    return $answer;
 }
 
 1;

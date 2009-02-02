@@ -680,6 +680,39 @@ sub insert_fragment {
     return $fragment;
 }
 
+=head2 insert_fragment($id, $files_ref)
+
+Adds the list of files C<$files_ref> to the fragment named by C<$id>.
+
+The fragment must already exist.
+
+=cut
+
+sub add_to_fragment {
+    my ($self, $id, $files_ref) = @_;
+
+    # Check parameters.
+    unless ( _IDENTIFIER($id) ) {
+        croak 'Invalid or missing id parameter';
+    }
+    unless ( _ARRAY($files_ref) ) {
+        croak 'Invalid or missing files_ref parameter';
+    }
+
+    if (not exists $self->{fragments}->{$id}) {
+        croak "Fragment $id does not exist";
+    }
+    
+    foreach my $key (keys %{$self->{fragments}}) {
+        $self->{fragments}->{$key}->check_duplicates($files_ref);
+    }
+    
+    my $fragment = $self->{fragments}->{$id}->add_files(@{$files_ref});
+
+    return $fragment;
+}
+
+
 #####################################################################
 # Serialization
 

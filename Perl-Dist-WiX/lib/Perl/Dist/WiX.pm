@@ -1394,7 +1394,7 @@ sub install_perl_588 {
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->insert_fragment('perl588', $fl->files);
+    $self->insert_fragment('perl', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1537,7 +1537,7 @@ sub install_perl_589 {
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->insert_fragment('perl589', $fl->files);
+    $self->insert_fragment('perl', $fl->files);
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain( $toolchain );
@@ -1681,7 +1681,7 @@ sub install_perl_5100 {
     
     $fl->subtract($fl2)->filter(@{$self->filters});
     
-    $self->insert_fragment('perl5100', $fl->files);
+    $self->insert_fragment('perl', $fl->files);
     
 	# Install the toolchain
 	$self->install_perl_toolchain( $toolchain );

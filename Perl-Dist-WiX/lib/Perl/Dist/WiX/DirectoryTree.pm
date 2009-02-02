@@ -228,6 +228,7 @@ sub initialize_tree {
         perl\site\lib\Win32
         perl\site\lib\XML
         perl\site\lib\XML\LibXML
+        perl\site\lib\YAML
         perl\site\lib\auto
         perl\site\lib\auto\share
         perl\site\lib\auto\Compress
@@ -248,6 +249,7 @@ sub initialize_tree {
         perl\site\lib\auto\Win32\File
         perl\site\lib\auto\XML
         perl\site\lib\auto\XML\LibXML
+        perl\site\lib\auto\YAML
     ), @dirs);
     
     return $self;
