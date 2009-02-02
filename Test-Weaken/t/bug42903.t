@@ -1,5 +1,8 @@
 #!perl
 
+# This is the test case for Bug 42903.  This bug was found by Kevin Ryde,
+# and he supplied the basics of this test case.
+
 use strict;
 use warnings;
 

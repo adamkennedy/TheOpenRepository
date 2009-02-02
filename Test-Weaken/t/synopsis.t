@@ -4,25 +4,26 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Test::More tests => 2;
-use Fatal qw( open close );
+use Fatal qw(close);
 use Carp;
-
-# Module specific stuff here -- setup code
 use Scalar::Util qw(weaken isweak);
+
+use lib 't/lib';
+use Test::Weaken::Test;
 
 BEGIN { use_ok('Test::Weaken') }
 
-package Module::Test_me1;
+package Acme::Simple::Object;
 sub new { bless [], (shift); }
 
-package Module::Test_me2;
+package Acme::Complex::Object;
 sub new { bless [], (shift); }
 
 package main;
 
 # slurp in the code
 my $filename = $INC{'Test/Weaken.pm'};
-open my $code_fh, '<', $filename;
+open my $code_fh, '<', $filename or croak("Cannot open $filename: $!");
 my $code = do { local ($RS) = undef; <$code_fh> };
 close $code_fh;
 
@@ -33,24 +34,42 @@ $code =~ s/^=head1.*\z//xms;
 # remove POD text
 $code =~ s/^\S[^\n]*$//xmsg;
 
-# compute line count -- don't include whitespace lines
-$code =~ s/^\s*$//xmsg;
-my @lines = split /\n/xms, $code;
-my $line_count = @lines;
-
-# check for absence of code
-if ( $code =~ /\A\s*\z/xms ) {
-    fail('No code in synopsis');
-}
-
-# Try the code and see what happens
-## no critic (BuiltinFunctions::ProhibitStringyEval)
-elsif ( eval $code ) {
+my $code_output = q{};
+## no critic (InputOutput::ProhibitTwoArgOpen)
+my $pid = open my $read, q{-|};
 ## use critic
-    pass("Synopsis has $line_count lines of good code");
-
+if ( not defined $pid ) {
+    croak("Could not fork: $!");
+}
+elsif ($pid) {
+    local $RS = undef;
+    $code_output .= <$read>;
+    close $read;
+    if ( my $child_error = ${^CHILD_ERROR_NATIVE} ) {
+        $code_output .= "synopsis code returned $child_error\n";
+    }
 }
 else {
-    fail("Synopsis code failed: $EVAL_ERROR");
+    open STDERR, '>&STDOUT'
+        or croak("Cannot dup to STDOUT: $ERRNO");
+    $code .= "\n1;\n";
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    my $eval_ok = eval $code;
+    ## use critic
+    if ( not $eval_ok ) {
+        print "eval failed: $@\n"
+            or croak("Cannot print to STDOUT: $ERRNO");
+    }
+    exit;
 }
 
+Test::Weaken::Test::is( $code_output, <<'EOS', 'synopsis output' );
+No leaks in test 1
+Test 2: 1 of 2 original references were not freed
+These are the unfreed objects:
+$unfreed = [
+             42,
+             711,
+             $unfreed
+           ];
+EOS

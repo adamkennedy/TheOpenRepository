@@ -271,28 +271,39 @@ Test::Weaken - Test that freed references are, indeed, freed
 
 =head1 SYNOPSIS
 
-    use Test::Weaken qw(poof);
+    use Test::Weaken;
+    use Data::Dumper;
 
-    my $test = sub {
-           my $obj1 = new Module::Test_me1;
-           my $obj2 = new Module::Test_me2;
-           [ $obj1, $obj2 ];
+    my $good_test = sub {
+       my $obj1 = new Acme::Simple::Object(42);
+       my $obj2 = new Acme::Complex::Object(711);
+       [ $obj1, $obj2 ];
     };  
 
-    my $unfreed_count = Test::Weaken::poof( $test );
+    my $bad_test = sub {
+       my $array = [ 42, 711 ];
+       push @{$array}, $array;
+       $array;
+    };
 
-    my ($weak_count, $strong_count, $weak_unfreed, $strong_unfreed)
-        = Test::Weaken::poof( $test );
+    if ( !Test::Weaken::leaks( $good_test ) ) {
+        print "No leaks in test 1\n";
+    } else {
+        print "There were memory leaks from test 1!\n";
+    }
 
-    print scalar @{$weak_unfreed},
-        " of $weak_count weak references freed\n";
-    print scalar @{$strong_unfreed},
-        " of $strong_count strong references freed\n";
-
-    print 'Weak unfreed references: ',
-        join(q{ }, map { q{} . $_ } @{$weak_unfreed}), "\n";
-    print "Strong unfreed references: ",
-        join(q{ }, map { q{} . $_ } @{$strong_unfreed}), "\n";
+    my $test = Test::Weaken::leaks( $bad_test );
+    if ( $test ) {
+        my $unfreed = $test->raw_unfreed();
+        my $unfreed_count = @{$unfreed};
+        printf "Test 2: %d of %d original references were not freed\n",
+            $test->unfreed_count(),
+            $test->original_ref_count();
+        print "These are the unfreed objects:\n";
+        for my $ref_to_unfreed ( @{$unfreed} ) {
+            print Data::Dumper->Dump( [$ref_to_unfreed], ['unfreed'] );
+        }
+    }
 
 =head1 DESCRIPTION
 
@@ -562,8 +573,12 @@ does not have at present.
 =head1 ACKNOWLEDGEMENTS
 
 Thanks to jettero, Juerd and perrin of Perlmonks for their advice.
-Thanks also to Lincoln Stein (developer of L<Devel::Cycle>) for
+Thanks to Lincoln Stein (developer of L<Devel::Cycle>) for
 test cases and other ideas.
+Important suggestions and test cases from Kevin Ryde,
+made after the first release of C<Test::Weaken>,
+totally altered the design of this module, and are the
+reason for version 2.000000.
 
 =head1 LICENSE AND COPYRIGHT
 
