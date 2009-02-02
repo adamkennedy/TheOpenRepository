@@ -205,7 +205,7 @@ sub delete_filenum {
         croak 'Missing or invalid index parameter';
     }
     
-    $self->trace_line(0, 'Deleting ' . $self->{files}->[$i]->filename . "\n");
+    $self->trace_line(3, 'Deleting reference to ' . $self->{files}->[$i]->filename . "\n");
     $self->{files}->[$i] = undef; 
     return $self; 
 }

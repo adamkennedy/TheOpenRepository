@@ -2510,7 +2510,7 @@ sub install_distribution {
     # Making final filelist.
     my $filelist;
     if ($fl_flag) {
-        $filelist = $self->_search_packlist($module);
+        $filelist = $self->search_packlist($module);
     } else {
         $filelist = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
         $filelist->subtract($filelist_sub)->filter($self->filters);
@@ -2540,7 +2540,21 @@ sub _name_to_module {
     return $module;
 }
 
-sub _search_packlist {
+sub search_packlists {
+	my $self = shift;
+    my ($packlist, $mod_id);
+    
+	foreach my $name ( @_ ) {
+		$packlist = $self->search_packlist($name);
+        $mod_id = $name;
+        $mod_id =~ s/::/_/g;
+        $self->insert_fragment($mod_id, $packlist->files);
+    }
+
+    return $self;
+}
+
+sub search_packlist {
     my ($self, $module) = @_;
     
     my $perl = catfile(catdir($self->image_dir, qw{perl      lib auto}, split('::', $module)), '.packlist');
@@ -2734,7 +2748,7 @@ END_PERL
     # Making final filelist.
     my $filelist;
     if ($fl_flag) {
-        $filelist = $self->_search_packlist($module->name);
+        $filelist = $self->search_packlist($module->name);
     } else {
         $filelist = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
         $filelist->subtract($filelist_sub)->filter($self->filters);

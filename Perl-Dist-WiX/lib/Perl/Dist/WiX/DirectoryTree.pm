@@ -212,6 +212,7 @@ sub initialize_tree {
         perl\site\lib
         perl\site\lib\Bundle
         perl\site\lib\Compress
+        perl\site\lib\CPAN
         perl\site\lib\DBD
         perl\site\lib\File
         perl\site\lib\HTML
@@ -219,25 +220,34 @@ sub initialize_tree {
         perl\site\lib\LWP
         perl\site\lib\Math
         perl\site\lib\PAR
+        perl\site\lib\PAR\Dist
+        perl\site\lib\PAR\Repository
+        perl\site\lib\Parse
         perl\site\lib\Term
         perl\site\lib\Test
         perl\site\lib\Win32
         perl\site\lib\XML
+        perl\site\lib\XML\LibXML
         perl\site\lib\auto
         perl\site\lib\auto\share
         perl\site\lib\auto\Compress
         perl\site\lib\auto\Compress\Raw
+        perl\site\lib\auto\CPAN
         perl\site\lib\auto\File
         perl\site\lib\auto\HTML
         perl\site\lib\auto\IO
         perl\site\lib\auto\LWP
         perl\site\lib\auto\Math
         perl\site\lib\auto\PAR
+        perl\site\lib\auto\PAR\Dist
+        perl\site\lib\auto\PAR\Repository
+        perl\site\lib\auto\Parse
         perl\site\lib\auto\Term
         perl\site\lib\auto\Test
         perl\site\lib\auto\Win32
         perl\site\lib\auto\Win32\File
         perl\site\lib\auto\XML
+        perl\site\lib\auto\XML\LibXML
     ), @dirs);
     
     return $self;
