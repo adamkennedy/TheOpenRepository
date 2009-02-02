@@ -16,7 +16,12 @@ Alien::BatToExeConverter - Convert a DOS Batch Script to an Executable
 
 =head1 DESCRIPTION
 
-Bat_2
+F<Bat_To_Exe_Converter.exe> is a nice little Windows Freeware program,
+built from open source elements, that will take a batch script and
+convert it into an executable (both as a command-line form, and as a
+GUI form).
+
+=head1 FUNCTIONS
 
 =cut
 
@@ -30,6 +35,17 @@ use IPC::Run3      ();
 
 our $VERSION = '0.01';
 
+=pod
+
+=head2 bat2exe_path
+
+The C<bat2exe> function is used to locate the F<Bat_To_Exe_Converter.exe>
+tool on the host. The Alien module will look in the local binary search
+path, and then if a local version can't be found, it will instead return
+the path to a bundled version.
+
+=cut
+
 sub bat2exe_path {
 	# Check for the installed version
 	my $installed = File::Which::which('Bat_To_Exe_Converter');
@@ -41,6 +57,38 @@ sub bat2exe_path {
 		'Bat_To_Exe_Converter.exe',
 	);
 }
+
+=pod
+
+=head2 bat2exe
+
+  # Convert a batch script to an executable that will have an icon,
+  # won't show a DOS box, and will suppress to the command line.
+  Alien::BatToExeConverter::bat2exe(
+      bat => 'C:\strawberry\perl\bin\foo.bat',
+      exe => 'C:\strawberry\perl\bin\foo.exe',
+      ico => 'C:\strawberry\perl\bin\foo.ico',
+      dos => 0,
+  );
+
+The C<bat2exe> function is used to execute F<Bat_To_Exe_Converter.exe> and
+generate an executable from the batch script. It takes a series of named
+params, returning true on success or throwing an exception on failure.
+The default settings are intended to produce an .exe script for launching
+a GUI application.
+
+The compulsory C<bat> param should be the name of the source batch script.
+
+The compulsory C<exe> param should be the path to white the executable to,
+and must NOT already exist.
+
+The optional C<ico> param will bind an icon to the executable.
+
+The optional C<dos> param will indicate that the executable is intended
+for the command line. If C<not> supplied, STDOUT and STDERR will be
+supressed and a "DOS box" will not be shown on execution.
+
+=cut
 
 sub bat2exe {
 	my %param = @_;
