@@ -14,18 +14,18 @@ BEGIN {
 }
 
 sub brief_result {
-    my $test          = shift;
-    my $unfreed_count = $test->test();
-    my $unfreed       = $test->{unfreed_refrefs};
+    my $test              = shift;
+    my $unfreed_count     = $test->test();
+    my $unfreed_proberefs = $test->unfreed_proberefs();
 
     my @unfreed_strong = ();
     my @unfreed_weak   = ();
-    for my $refref ( @{$unfreed} ) {
-        if ( ref $refref eq 'REF' and isweak ${$refref} ) {
-            push @unfreed_weak, $refref;
+    for my $proberef ( @{$unfreed_proberefs} ) {
+        if ( ref $proberef eq 'REF' and isweak ${$proberef} ) {
+            push @unfreed_weak, $proberef;
         }
         else {
-            push @unfreed_strong, $refref;
+            push @unfreed_strong, $proberef;
         }
     }
 

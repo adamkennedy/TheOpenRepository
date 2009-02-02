@@ -30,7 +30,7 @@ my $test = new Test::Weaken(
 my $unfreed_count = $test->test();
 
 my $original_ref_count = $test->original_ref_count();
-my $raw_unfreed        = $test->raw_unfreed();
+my $unfreed_proberefs  = $test->unfreed_proberefs();
 
 my $text = "Checking $original_ref_count objects\n"
     . "$unfreed_count objects were not freed:\n";
@@ -38,8 +38,8 @@ my $text = "Checking $original_ref_count objects\n"
 # names for the references, so checking the dump does not depend
 # on the specific hex value of locations
 
-for my $unfreed ( @{$raw_unfreed} ) {
-    $text .= Data::Dumper->Dump( [$unfreed], [qw(unfreed)] );
+for my $probe_ref ( @{$unfreed_proberefs} ) {
+    $text .= Data::Dumper->Dump( [$probe_ref], [qw(unfreed)] );
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );

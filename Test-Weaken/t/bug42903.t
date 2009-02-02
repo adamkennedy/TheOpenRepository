@@ -27,9 +27,9 @@ my $result = q{};
             return $obj;
         }
     );
-    my $unfreed = $test ? $test->raw_unfreed() : [];
-    for my $ref_to_unfreed ( @{$unfreed} ) {
-        $result .= Data::Dumper->Dump( [$ref_to_unfreed], ['unfreed'] );
+    my $unfreed_proberefs = $test ? $test->unfreed_proberefs() : [];
+    for my $probe_ref ( @{$unfreed_proberefs} ) {
+        $result .= Data::Dumper->Dump( [$probe_ref], ['unfreed'] );
     }
     $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
@@ -53,9 +53,9 @@ $result = q{};
             return $obj;
         }
     );
-    my $unfreed = $test ? $test->raw_unfreed() : [];
-    for my $ref_to_unfreed ( @{$unfreed} ) {
-        $result .= Data::Dumper->Dump( [$ref_to_unfreed], ['unfreed'] );
+    my $unfreed_proberefs = $test ? $test->unfreed_proberefs() : [];
+    for my $proberef ( @{$unfreed_proberefs} ) {
+        $result .= Data::Dumper->Dump( [$proberef], ['unfreed'] );
     }
     $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }

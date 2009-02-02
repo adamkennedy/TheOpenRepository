@@ -13,12 +13,6 @@ use Test::Weaken::Test;
 
 BEGIN { use_ok('Test::Weaken') }
 
-package Acme::Simple::Object;
-sub new { bless [], (shift); }
-
-package Acme::Complex::Object;
-sub new { bless [], (shift); }
-
 package main;
 
 # slurp in the code
@@ -66,7 +60,7 @@ else {
 Test::Weaken::Test::is( $code_output, <<'EOS', 'synopsis output' );
 No leaks in test 1
 Test 2: 1 of 2 original references were not freed
-These are the unfreed objects:
+These are the probe references to the unfreed objects:
 $unfreed = [
              42,
              711,
