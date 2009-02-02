@@ -49,17 +49,20 @@ sub stein_w2 {
     return $test;
 }
 
-Test::Weaken::Test::is( brief_result( Test::Weaken::poof( \&stein_1 ) ),
+Test::Weaken::Test::is(
+    brief_result( Test::Weaken::poof( \&stein_1 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=4',
     q{Stein's test}
 );
 
-Test::Weaken::Test::is( brief_result( Test::Weaken::poof( \&stein_w1 ) ),
+Test::Weaken::Test::is(
+    brief_result( Test::Weaken::poof( \&stein_w1 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=2',
     q{Stein's test weakened once}
 );
 
-Test::Weaken::Test::is( brief_result( Test::Weaken::poof( \&stein_w2 ) ),
+Test::Weaken::Test::is(
+    brief_result( Test::Weaken::poof( \&stein_w2 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=0',
     q{Stein's test weakened twice}
 );

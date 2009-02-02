@@ -53,71 +53,72 @@ sub Test::Weaken::Internal::follow {
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
-    my $result = [ \( ${$base_ref} ) ];
+    my $result  = [ \( ${$base_ref} ) ];
     my %reverse = ();
- 
     my $to_here = -1;
-    REF: while ($to_here < $#{$result}) {
+    REF: while ( $to_here < $#{$result} ) {
         $to_here++;
         my $refref = $result->[$to_here];
-        my $type = reftype $refref;
+        my $type   = reftype $refref;
 
-        my @old_refrefs =
-            $type eq 'REF' ? ($refref) :
-            $type eq 'ARRAY' ?  (map { \$_ } grep { ref $_ } @{$refref}) :
-            $type eq 'HASH' ?  (map { \$_ } grep { ref $_ } values %{$refref}) :
-            ();
+        my @old_refrefs = ();
+        if ( $type eq 'REF' ) { @old_refrefs = ($refref) }
+        elsif ( $type eq 'ARRAY' ) {
+            @old_refrefs = map { \$_ } grep { ref $_ } @{$refref};
+        }
+        elsif ( $type eq 'HASH' ) {
+            @old_refrefs = map { \$_ } grep { ref $_ } values %{$refref};
+        }
 
         for my $old_refref (@old_refrefs) {
             my $rr_type = reftype ${$old_refref};
             my $new_refref =
-                $rr_type eq 'HASH' ? \%{${$old_refref}} :
-                $rr_type eq 'ARRAY' ? \@{${$old_refref}} :
-                $rr_type eq 'REF' ? \${${$old_refref}} :
-                $rr_type eq 'SCALAR' ? \${${$old_refref}} :
-                $rr_type eq 'CODE' ? \&{${$old_refref}} :
-                $rr_type eq 'VSTRING' ? \${${$old_refref}} :
-                undef;
-            if (defined $new_refref and not $reverse{$new_refref+0}) {
+                  $rr_type eq 'HASH'    ? \%{ ${$old_refref} }
+                : $rr_type eq 'ARRAY'   ? \@{ ${$old_refref} }
+                : $rr_type eq 'REF'     ? \${ ${$old_refref} }
+                : $rr_type eq 'SCALAR'  ? \${ ${$old_refref} }
+                : $rr_type eq 'CODE'    ? \&{ ${$old_refref} }
+                : $rr_type eq 'VSTRING' ? \${ ${$old_refref} }
+                :                         undef;
+            if ( defined $new_refref and not $reverse{ $new_refref + 0 } ) {
                 push @{$result}, $new_refref;
-                $reverse{$new_refref+0}++;
+                $reverse{ $new_refref + 0 }++;
             }
-            
         }
 
-    } # REF
+    }    # REF
 
     return $result;
 
-} # sub follow
+}    # sub follow
 
 # See POD, below
 sub new {
-    my ($class, $arg1, $arg2) = @_;
+    my ( $class, $arg1, $arg2 ) = @_;
     my $constructor;
     my $destructor;
     my $self = {};
     bless $self, $class;
 
     UNPACK_ARGS: {
-        if (ref $arg1 eq 'CODE') {
+        if ( ref $arg1 eq 'CODE' ) {
             $self->{constructor} = $arg1;
-            if (defined $arg2) {
-                $self->{destructor} = $arg2
+            if ( defined $arg2 ) {
+                $self->{destructor} = $arg2;
             }
             return $self;
         }
 
-        if (ref $arg1 ne 'HASH') {
+        if ( ref $arg1 ne 'HASH' ) {
             croak('arg to Test::Weaken::new is not HASH ref');
         }
 
-        if (defined $arg1->{constructor}) {
+        if ( defined $arg1->{constructor} ) {
             $self->{constructor} = $arg1->{constructor};
             delete $arg1->{constructor};
         }
 
-        if (defined $arg1->{destructor}) {
+        if ( defined $arg1->{destructor} ) {
             $self->{destructor} = $arg1->{destructor};
             delete $arg1->{destructor};
         }
@@ -125,10 +126,13 @@ sub new {
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
-            croak('Unknown named args to Test::Weaken::new: ', (join q{ }, @unknown_named_args));
+            croak(
+                'Unknown named args to Test::Weaken::new: ',
+                ( join q{ }, @unknown_named_args )
+            );
         }
 
-    } # UNPACK_ARGS
+    }    # UNPACK_ARGS
 
     croak('Test::Weaken: constructor must be CODE ref')
         unless ref $self->{constructor} eq 'CODE';
@@ -138,33 +142,32 @@ sub new {
 
     return $self;
 
-} # sub new
+}    # sub new
 
 sub test {
 
-    my $self = shift;
-    my $constructor  = $self->{constructor};
+    my $self        = shift;
+    my $constructor = $self->{constructor};
     my $destructor  = $self->{destructor};
 
     my $test_object_rr = \( $constructor->() );
-    if (not ref ${$test_object_rr}) {
+    if ( not ref ${$test_object_rr} ) {
         carp('poof() argument did not return a reference');
     }
     my $refrefs = Test::Weaken::Internal::follow($test_object_rr);
 
     $self->{original_ref_count} = @{$refrefs};
-    $self->{original_weak_count}   = grep {
-        ref $_ eq 'REF' and isweak ${$_}
-    } @{$refrefs};
+    $self->{original_weak_count} =
+        grep { ref $_ eq 'REF' and isweak ${$_} } @{$refrefs};
     $self->{original_strong_count} =
         $self->{original_ref_count} - $self->{original_weak_count};
 
-    for my $refref (@{$refrefs}) {
+    for my $refref ( @{$refrefs} ) {
         weaken($refref);
     }
 
     # Now free everything.
-    $destructor->(${$test_object_rr}) if defined $destructor;
+    $destructor->( ${$test_object_rr} ) if defined $destructor;
 
     $test_object_rr = undef;
 
@@ -173,34 +176,36 @@ sub test {
 
     return scalar @{$unfreed_refrefs};
 
-} # sub test
+}    # sub test
 
 sub Test::Weaken::Internal::poof_array_return {
 
-    my $test = shift;
+    my $test    = shift;
     my $results = $test->{unfreed_refrefs};
 
     my @unfreed_strong = ();
     my @unfreed_weak   = ();
-    for my $refref (@{$results}) {
+    for my $refref ( @{$results} ) {
         if ( ref $refref eq 'REF' and isweak ${$refref} ) {
             push @unfreed_weak, $refref;
-        } else {
+        }
+        else {
             push @unfreed_strong, $refref;
         }
     }
 
     # See the POD on the return values
-    return (@{$test}{qw(original_weak_count original_strong_count)}, \@unfreed_weak, \@unfreed_strong);
+    return ( @{$test}{qw(original_weak_count original_strong_count)},
+        \@unfreed_weak, \@unfreed_strong );
 
 } ## end sub poof_array_return;
 
 sub poof {
-     my @args = @_;
-     my $test = new Test::Weaken(@args);
-     my $result = $test->test();
-     return Test::Weaken::Internal::poof_array_return($test) if wantarray;
-     return $result;
+    my @args   = @_;
+    my $test   = new Test::Weaken(@args);
+    my $result = $test->test();
+    return Test::Weaken::Internal::poof_array_return($test) if wantarray;
+    return $result;
 }
 
 1;

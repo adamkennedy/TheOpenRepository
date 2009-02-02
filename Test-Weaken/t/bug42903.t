@@ -26,7 +26,7 @@ my $result;
         }
     );
     $result =
-        Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
+          Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
         . Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 1' );
@@ -56,7 +56,7 @@ EOS
         }
     );
     $result =
-        Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
+          Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
         . Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 2' );

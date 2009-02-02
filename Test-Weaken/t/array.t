@@ -20,8 +20,8 @@ my ( $weak_count, $strong_count, $weak_unfreed_array, $strong_unfreed_array )
         my $x;
         my $y = [ \$x, 42 ];
         $x = [ \$y, 711 ];
-        weaken(my $w1 = \$x);
-        weaken(my $w2 = \$y);
+        weaken( my $w1 = \$x );
+        weaken( my $w2 = \$y );
         $x->[2] = \$w1;
         $y->[2] = \$w2;
         $x;
@@ -37,11 +37,11 @@ my $text =
 # names for the references, so checking the dump does not depend
 # on the specific hex value of locations
 
-for my $strong_unfreed (@{$strong_unfreed_array}) {
-    $text .= Data::Dumper->Dump([$strong_unfreed], [qw(strong)]);
+for my $strong_unfreed ( @{$strong_unfreed_array} ) {
+    $text .= Data::Dumper->Dump( [$strong_unfreed], [qw(strong)] );
 }
-for my $weak_unfreed (@{$weak_unfreed_array}) {
-    $text .= Data::Dumper->Dump([$weak_unfreed], [qw(weak)]);
+for my $weak_unfreed ( @{$weak_unfreed_array} ) {
+    $text .= Data::Dumper->Dump( [$weak_unfreed], [qw(weak)] );
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );

@@ -34,13 +34,13 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 my $result = Test::Weaken::poof(
-        sub { MyCircular->new },
-        sub {
-            my ($obj) = @_;
-            $obj->undo;
-        }
-    );
-Test::Weaken::Test::is( $result, 0, 'good destructor');
+    sub { MyCircular->new },
+    sub {
+        my ($obj) = @_;
+        $obj->undo;
+    }
+);
+Test::Weaken::Test::is( $result, 0, 'good destructor' );
 
 $result = Test::Weaken::poof( sub { MyCircular->new }, sub { } );
 Test::Weaken::Test::is( $result, 2, 'null destructor' );

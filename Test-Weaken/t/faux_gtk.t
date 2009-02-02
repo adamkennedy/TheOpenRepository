@@ -15,7 +15,7 @@ our @INSTANCES;
 
 sub new {
     my ($class) = @_;
-    my $self = bless { data => [ 'this is a myobject' ] }, $class;
+    my $self = bless { data => ['this is a myobject'] }, $class;
     push @INSTANCES, $self;
     return $self;
 }
@@ -37,17 +37,14 @@ use Test::Weaken::Test;
 
 @INSTANCES = ();
 my $result = Test::Weaken::poof(
-        sub { MyObject->new },
-        sub {
-            my ($obj) = @_;
-            $obj->destroy;
-        }
+    sub { MyObject->new },
+    sub {
+        my ($obj) = @_;
+        $obj->destroy;
+    }
 );
-Test::Weaken::Test::is( $result, 0, 'good destructor');
+Test::Weaken::Test::is( $result, 0, 'good destructor' );
 
 @INSTANCES = ();
-$result = Test::Weaken::poof(
-    sub { return MyObject->new },
-    sub { return 1 }
-);
-Test::Weaken::Test::is( $result, 2, 'no-op destructor');
+$result = Test::Weaken::poof( sub { return MyObject->new }, sub { } );
+Test::Weaken::Test::is( $result, 2, 'no-op destructor' );
