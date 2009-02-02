@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 1;
+use Test::More tests => 3;
 use Alien::BatToExeConverter ();
 
 my $path = Alien::BatToExeConverter::bat2exe_path();

@@ -43,7 +43,7 @@ sub bat2exe_path {
 }
 
 sub bat2exe {
-	my %atr = @_;
+	my %param = @_;
 
 	# Required input batch script
 	my $bat = $param{bat};
@@ -71,7 +71,16 @@ sub bat2exe {
 
 	# Hand off to the executable
 	my $bat2exe = bat2exe_path();
+	my $stdin   = '';
+	my $stdout  = '';
+	my $stderr  = '';
+	my $rv      = IPC::Run3::run3( [
+		$bat2exe, $bat, $exe, $ico, $dos,
+	], \$stdin, \$stdout, \$stderr );
+
 	
+
+	1;
 }
 
 1;
