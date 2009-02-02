@@ -208,6 +208,59 @@ sub poof {
     return $result;
 }
 
+sub leaks {
+    my @args   = @_;
+    my $test   = new Test::Weaken(@args);
+    my $result = $test->test();
+    return $test if $result;
+    return;
+}
+
+sub raw_unfreed {
+    my $test   = shift;
+    my $result = $test->{unfreed_refrefs};
+    if ( not defined $result ) {
+        croak('Results not available for this Test::Weaken object');
+    }
+    return $result;
+}
+
+sub unfreed_count {
+    my $test   = shift;
+    my $result = $test->{unfreed_refrefs};
+    if ( not defined $result ) {
+        croak('Results not available for this Test::Weaken object');
+    }
+    return scalar @{$result};
+}
+
+sub original_ref_count {
+    my $test  = shift;
+    my $count = $test->{original_ref_count};
+    if ( not defined $count ) {
+        croak('Results not available for this Test::Weaken object');
+    }
+    return $count;
+}
+
+sub original_weak_count {
+    my $test  = shift;
+    my $count = $test->{original_weak_count};
+    if ( not defined $count ) {
+        croak('Results not available for this Test::Weaken object');
+    }
+    return $count;
+}
+
+sub original_strong_count {
+    my $test  = shift;
+    my $count = $test->{original_strong_count};
+    if ( not defined $count ) {
+        croak('Results not available for this Test::Weaken object');
+    }
+    return $count;
+}
+
 1;
 
 __END__

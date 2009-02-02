@@ -16,6 +16,7 @@ my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
     README
     etc/perlcriticrc
+    etc/perltidyrc
     etc/last_minute_check.sh
 );
 

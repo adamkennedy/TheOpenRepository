@@ -14,11 +14,30 @@ use Test::Weaken::Test;
 BEGIN { use_ok('Test::Weaken') }
 
 sub brief_result {
-    my $text = 'total: weak=' . (shift) . q{; };
-    $text .= 'strong=' . (shift) . q{; };
-    $text .= 'unfreed: weak=' . scalar @{ (shift) } . q{; };
-    $text .= 'strong=' . scalar @{ (shift) };
-    return $text;
+    my $test          = shift;
+    my $unfreed_count = $test->test();
+    my $unfreed       = $test->{unfreed_refrefs};
+
+    my @unfreed_strong = ();
+    my @unfreed_weak   = ();
+    for my $refref ( @{$unfreed} ) {
+        if ( ref $refref eq 'REF' and isweak ${$refref} ) {
+            push @unfreed_weak, $refref;
+        }
+        else {
+            push @unfreed_strong, $refref;
+        }
+    }
+
+    return
+          'total: weak='
+        . $test->original_weak_count() . q{; }
+        . 'strong='
+        . $test->original_strong_count() . q{; }
+        . 'unfreed: weak='
+        . ( scalar @unfreed_weak ) . q{; }
+        . 'strong='
+        . ( scalar @unfreed_strong );
 }
 
 sub stein_1 {
@@ -50,19 +69,19 @@ sub stein_w2 {
 }
 
 Test::Weaken::Test::is(
-    brief_result( Test::Weaken::poof( \&stein_1 ) ),
+    brief_result( new Test::Weaken( \&stein_1 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=4',
     q{Stein's test}
 );
 
 Test::Weaken::Test::is(
-    brief_result( Test::Weaken::poof( \&stein_w1 ) ),
+    brief_result( new Test::Weaken( \&stein_w1 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=2',
     q{Stein's test weakened once}
 );
 
 Test::Weaken::Test::is(
-    brief_result( Test::Weaken::poof( \&stein_w2 ) ),
+    brief_result( new Test::Weaken( \&stein_w2 ) ),
     'total: weak=0; strong=5; unfreed: weak=0; strong=0',
     q{Stein's test weakened twice}
 );

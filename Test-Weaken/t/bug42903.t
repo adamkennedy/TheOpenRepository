@@ -13,11 +13,10 @@ BEGIN {
     use_ok('Test::Weaken');
 }
 
-my $result;
-
+my $result = q{};
 {
     my $leak;
-    my @weaken = Test::Weaken::poof(
+    my $test = Test::Weaken::leaks(
         sub {
             my $aref = ['abc'];
             my $obj = { array => $aref };
@@ -25,29 +24,25 @@ my $result;
             return $obj;
         }
     );
-    $result =
-          Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
-        . Data::Dumper->Dump( [$leak], ['leak'] );
+    my $unfreed = $test ? $test->raw_unfreed() : [];
+    for my $ref_to_unfreed ( @{$unfreed} ) {
+        $result .= Data::Dumper->Dump( [$ref_to_unfreed], ['unfreed'] );
+    }
+    $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 1' );
-$weaken = [
-            0,
-            3,
-            [],
-            [
-              [
-                'abc'
-              ]
-            ]
-          ];
+$unfreed = [
+             'abc'
+           ];
 $leak = [
           'abc'
         ];
 EOS
 
+$result = q{};
 {
     my $leak;
-    my @weaken = Test::Weaken::poof(
+    my $test = Test::Weaken::leaks(
         sub {
             my $aref = [ 'def', ['ghi'] ];
             my $obj = { array => $aref };
@@ -55,25 +50,22 @@ EOS
             return $obj;
         }
     );
-    $result =
-          Data::Dumper->Dump( [ \@weaken ], ['weaken'] )
-        . Data::Dumper->Dump( [$leak], ['leak'] );
+    my $unfreed = $test ? $test->raw_unfreed() : [];
+    for my $ref_to_unfreed ( @{$unfreed} ) {
+        $result .= Data::Dumper->Dump( [$ref_to_unfreed], ['unfreed'] );
+    }
+    $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 2' );
-$weaken = [
-            0,
-            4,
-            [],
-            [
-              [
-                'def',
-                [
-                  'ghi'
-                ]
-              ],
-              $weaken->[3][0][1]
-            ]
-          ];
+$unfreed = [
+             'def',
+             [
+               'ghi'
+             ]
+           ];
+$unfreed = [
+             'ghi'
+           ];
 $leak = [
           'def',
           [

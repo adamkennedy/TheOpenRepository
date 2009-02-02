@@ -2,10 +2,12 @@ Changes
 etc/change_version.pl
 etc/check_links.pl
 etc/do_critic.pl
+etc/do_tidy.pl
 etc/last_minute_check.sh
 etc/Makefile
 etc/not_in_manifest.pl
 etc/perlcriticrc
+etc/perltidyrc
 lib/Test/Weaken.pm
 Makefile.PL
 MANIFEST
@@ -16,6 +18,7 @@ t/array.t
 t/circular.t
 t/bug42903.t
 t/faux_gtk.t
+t/poof.t
 t/stein.t
 t/synopsis.t
 t/weaken.t

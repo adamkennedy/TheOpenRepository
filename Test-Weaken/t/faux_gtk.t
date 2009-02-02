@@ -36,15 +36,16 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 @INSTANCES = ();
-my $result = Test::Weaken::poof(
+my $test = Test::Weaken::leaks(
     sub { MyObject->new },
     sub {
         my ($obj) = @_;
         $obj->destroy;
     }
 );
-Test::Weaken::Test::is( $result, 0, 'good destructor' );
+ok( ( !$test ), 'good destructor' );
 
 @INSTANCES = ();
-$result = Test::Weaken::poof( sub { return MyObject->new }, sub { } );
-Test::Weaken::Test::is( $result, 2, 'no-op destructor' );
+$test = Test::Weaken::leaks( sub { return MyObject->new }, sub { } );
+my $unfreed_count = $test ? $test->unfreed_count() : 0;
+Test::Weaken::Test::is( $unfreed_count, 2, 'no-op destructor' );

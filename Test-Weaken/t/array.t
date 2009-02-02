@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 2;
-use Scalar::Util qw(isweak weaken reftype);
+use Scalar::Util qw(weaken);
 use Data::Dumper;
 
 use lib 't/lib';
@@ -14,8 +14,7 @@ BEGIN {
     use_ok('Test::Weaken');
 }
 
-my ( $weak_count, $strong_count, $weak_unfreed_array, $strong_unfreed_array )
-    = Test::Weaken::poof(
+my $test = new Test::Weaken(
     sub {
         my $x;
         my $y = [ \$x, 42 ];
@@ -26,79 +25,78 @@ my ( $weak_count, $strong_count, $weak_unfreed_array, $strong_unfreed_array )
         $y->[2] = \$w2;
         $x;
     }
-    );
+);
 
-my $text =
-      "Starting counts: w=$weak_count  s=$strong_count\n"
-    . 'Unfreed counts: w='
-    . scalar @{$weak_unfreed_array} . '  s='
-    . scalar @{$strong_unfreed_array} . "\n";
+my $unfreed_count = $test->test();
+
+my $original_ref_count = $test->original_ref_count();
+my $raw_unfreed        = $test->raw_unfreed();
+
+my $text = "Checking $original_ref_count objects\n"
+    . "$unfreed_count objects were not freed:\n";
 
 # names for the references, so checking the dump does not depend
 # on the specific hex value of locations
 
-for my $strong_unfreed ( @{$strong_unfreed_array} ) {
-    $text .= Data::Dumper->Dump( [$strong_unfreed], [qw(strong)] );
-}
-for my $weak_unfreed ( @{$weak_unfreed_array} ) {
-    $text .= Data::Dumper->Dump( [$weak_unfreed], [qw(weak)] );
+for my $unfreed ( @{$raw_unfreed} ) {
+    $text .= Data::Dumper->Dump( [$unfreed], [qw(unfreed)] );
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );
-Starting counts: w=2  s=5
-Unfreed counts: w=2  s=4
-$strong = [
-            \[
-                \$strong,
-                42,
-                \$strong->[0]
-              ],
-            711,
-            \${$strong->[0]}->[0]
-          ];
-$strong = \[
-              \[
-                  $strong,
-                  711,
-                  \${$strong}->[0]
-                ],
-              42,
-              \$strong
-            ];
-$strong = [
-            \[
-                \$strong,
-                711,
-                \$strong->[0]
-              ],
-            42,
-            \${$strong->[0]}->[0]
-          ];
-$strong = \[
-              \[
-                  $strong,
-                  42,
-                  \${$strong}->[0]
-                ],
-              711,
-              \$strong
-            ];
-$weak = \\[
-              \[
-                  ${$weak},
-                  42,
-                  \${${$weak}}->[0]
-                ],
-              711,
-              $weak
-            ];
-$weak = \\[
-              \[
-                  ${$weak},
-                  711,
-                  \${${$weak}}->[0]
-                ],
-              42,
-              $weak
-            ];
+Checking 7 objects
+6 objects were not freed:
+$unfreed = [
+             \[
+                 \$unfreed,
+                 42,
+                 \$unfreed->[0]
+               ],
+             711,
+             \${$unfreed->[0]}->[0]
+           ];
+$unfreed = \[
+               \[
+                   $unfreed,
+                   711,
+                   \${$unfreed}->[0]
+                 ],
+               42,
+               \$unfreed
+             ];
+$unfreed = \\[
+                 \[
+                     ${$unfreed},
+                     42,
+                     \${${$unfreed}}->[0]
+                   ],
+                 711,
+                 $unfreed
+               ];
+$unfreed = [
+             \[
+                 \$unfreed,
+                 711,
+                 \$unfreed->[0]
+               ],
+             42,
+             \${$unfreed->[0]}->[0]
+           ];
+$unfreed = \[
+               \[
+                   $unfreed,
+                   42,
+                   \${$unfreed}->[0]
+                 ],
+               711,
+               \$unfreed
+             ];
+$unfreed = \\[
+                 \[
+                     ${$unfreed},
+                     711,
+                     \${${$unfreed}}->[0]
+                   ],
+                 42,
+                 $unfreed
+               ];
 EOS

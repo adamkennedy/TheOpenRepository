@@ -33,14 +33,16 @@ use Test::More tests => 2;
 use lib 't/lib';
 use Test::Weaken::Test;
 
-my $result = Test::Weaken::poof(
+my $test = Test::Weaken::leaks(
     sub { MyCircular->new },
     sub {
         my ($obj) = @_;
         $obj->undo;
     }
 );
-Test::Weaken::Test::is( $result, 0, 'good destructor' );
+my $unfreed_count = $test ? $test->unfreed_count() : 0;
+Test::Weaken::Test::is( $unfreed_count, 0, 'good destructor' );
 
-$result = Test::Weaken::poof( sub { MyCircular->new }, sub { } );
-Test::Weaken::Test::is( $result, 2, 'null destructor' );
+$test = Test::Weaken::leaks( sub { MyCircular->new }, sub { } );
+$unfreed_count = $test ? $test->unfreed_count() : 0;
+Test::Weaken::Test::is( $unfreed_count, 2, 'null destructor' );

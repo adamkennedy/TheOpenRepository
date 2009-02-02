@@ -11,9 +11,11 @@ use POSIX qw(WIFEXITED);
 use Text::Diff;
 
 {
+
     package CountHunks;
     @CountHunks::ISA = qw( Text::Diff::Base );
     sub hunk { return '1' }
+
 }
 
 package main;
@@ -25,6 +27,7 @@ my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
     README
     etc/perlcriticrc
+    etc/perltidyrc
     etc/last_minute_check.sh
 );
 
@@ -70,10 +73,13 @@ FILE: while ( my $file = <$manifest> ) {
     croak("No such file: $file") unless -f $file;
 
     my $result = run_tidy($file);
-    if ( $result ) {
-        print "$file: ", (length $result), " perltidy issues\n";
-    } else {
-        print "$file: clean\n";
+    if ($result) {
+        print "$file: ", ( length $result ), " perltidy issues\n"
+            or croak('Cannot print to STDOUT');
+    }
+    else {
+        print "$file: clean\n"
+            or croak('Cannot print to STDOUT');
     }
 }
 close $manifest;
