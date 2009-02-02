@@ -10,4 +10,4 @@ use Test::More tests => 2;
 
 ok( $] >= 5.008, 'Perl version is new enough' );
 
-use_ok( 'Alien::Bat2ExeConverter' );
+use_ok( 'Alien::BatToExeConverter' );

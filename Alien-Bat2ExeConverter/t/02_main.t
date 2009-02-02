@@ -7,9 +7,9 @@ BEGIN {
 }
 
 use Test::More tests => 1;
-use Alien::Bat2ExeConverter ();
+use Alien::BatToExeConverter ();
 
-my $path = Alien::Bat2ExeConverter::bat2exe_path();
+my $path = Alien::BatToExeConverter::bat2exe_path();
 ok(    $path, 'bat2exe_path is defined'    );
 ok( -f $path, 'bat2exe_path exists'        );
 ok( -x $path, 'bat2exe_path is executable' );
