@@ -7,12 +7,12 @@ use strict;
 use Carp         ();
 use File::Spec   ();
 use File::Temp   ();
-use Params::Util qw{ _STRING _CLASS _HASH };
+use Params::Util qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
 use DBI          ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.18';
+	$VERSION = '1.19';
 
 	# DBD::SQLite has a bug that generates a spurious warning
 	# at compile time, so we need to temporarily disable them.
@@ -48,7 +48,7 @@ sub import {
 			package  => undef, # Automatic
 			tables   => 1,
 		);
-	} elsif ( _HASH($_[1]) ) {
+	} elsif ( _HASHLIKE($_[1]) ) {
 		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
@@ -81,10 +81,16 @@ sub import {
 
 	# Connect to the database
 	my $file     = File::Spec->rel2abs($params{file});
+	my $created  = ! -f $params{file};
 	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
 	my $dsn      = "dbi:SQLite:$file";
 	my $dbh      = DBI->connect($dsn);
+
+	# Schema creation support
+	if ( $created and _CODELIKE($params{create}) ) {
+		$params{create}->( $dbh );
+	}
 
 	# Check the schema version before generating
 	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
@@ -384,7 +390,7 @@ ORLite - Extremely light weight SQLite-specific ORM
 
 =head1 DESCRIPTION
 
-L<SQLite> is a light weight single file SQL database that provides an
+L<SQLite> is a light single file SQL database that provides an
 excellent platform for embedded storage of structured data.
 
 However, while it is superficially similar to a regular server-side SQL
@@ -403,12 +409,13 @@ L<DBIx::Class>.
 What this situation would seem to need is an object-relation system that is
 designed specifically for SQLite and is aligned with its idiosyncracies.
 
-ORLite is an object-relation system specifically for SQLite that follows
-many of the same principles as the ::Tiny series of modules and has a
-design that aligns directly to the capabilities of SQLite.
+ORLite is an object-relation system specifically tailored for SQLite that
+follows many of the same principles as the ::Tiny series of modules and
+has a design and feature set that aligns directly to the capabilities of
+SQLite.
 
 Further documentation will be available at a later time, but the synopsis
-gives a pretty good idea of how it will work.
+gives a pretty good idea of how it works.
 
 =head1 How it Works
 
@@ -634,6 +641,10 @@ For other issues, contact the author.
 =head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<ORLite::Mirror>, L<ORLite::Migrate>
 
 =head1 COPYRIGHT
 

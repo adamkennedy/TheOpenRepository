@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.19 Tue  3 Feb 2009
+	- Adding support for using a CODE reference in the 'create'
+	  parameter, so that the schema setup can be provided directly
+	  in the ORLite initialisation.
+
 1.18 Wed 14 Jan 2009
 	- Adding an ->orlite method to return the version number of the
 	  ORLite module that was used to generate the distribution.
