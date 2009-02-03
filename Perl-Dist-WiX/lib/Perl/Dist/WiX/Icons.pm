@@ -83,7 +83,7 @@ sub add_icon {
     # Get Id made.
     my (undef, undef, $filename_icon) = splitpath($pathname_icon);
     my $id =  substr($filename_icon, 0, -4);
-    $id    =~ s/^\w/_/g; # Substitute _ for anything that isn't identifier-legal.
+    $id    =~ s/[^A-Za-z0-9]/_/g; # Substitute _ for anything non-alphanumeric.
     $id   .=  ".$target_type";
     
     # Add icon to our list.

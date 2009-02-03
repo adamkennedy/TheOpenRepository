@@ -42,6 +42,7 @@ use SelectSaver             qw();
 use Template                qw();
 require Perl::Dist::WiX::Installer;
 require Perl::Dist::WiX::Filelist;
+require Perl::Dist::WiX::StartMenuComponent;
 
 use Object::Tiny qw{
 	perl_version
@@ -3156,6 +3157,7 @@ sub add_icon {
             working_dir => $dir_id,
             trace       => $self->{trace},
             menudir_id  => 'D_App_Menu',
+            icon_id     => $self->{icon_id},
         )
     );
 

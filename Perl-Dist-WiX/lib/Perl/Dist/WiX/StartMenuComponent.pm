@@ -44,6 +44,7 @@ use Object::Tiny qw{
     target
     working_dir
     menudir_id
+    icon_id
 };
 
 #####################################################################
