@@ -1,25 +1,19 @@
 #!/usr/bin/perl
 
-#  Tests that Module::Manifest throws appropriate exceptions
+#  Tests that Module::Manifest throws appropriate exceptions and warnings
 
 use strict;
 BEGIN {
+	$|  = 1;
 	$^W = 1;
 }
 
 use Test::More;
+use Test::Warn;
+use Test::Exception;
 use Module::Manifest ();
 
-# Set up Test::Exception if it's available
-eval {
-	require Test::Exception;
-	Test::Exception->import;
-};
-if ( $@ ) {
-	plan skip_all => 'Test::Exception required to test exceptions';
-}
-
-plan tests => 14;
+plan tests => 21;
 
 # Fail if open called without a filename
 throws_ok(
@@ -142,4 +136,73 @@ throws_ok(
 	},
 	qr/as an object/,
 	'Static Module::Manifest->files call'
+);
+
+# Test that duplicate items elicit a warning
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->parse(manifest => [
+			'.svn',
+			'.svn/config',
+			'Makefile.PL',
+			'Makefile.PL',
+		]);
+	},
+	qr/Duplicate file/,
+	'Duplicate insertions cause warning'
+);
+
+# Warning emitted when accessors used in void context
+warning_like(
+	sub {
+		Module::Manifest->new;
+	},
+	qr/discarded/,
+	'Module::Manifest->new called in void context'
+);
+
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->dir;
+	},
+	qr/discarded/,
+	'$manifest->dir called in void context'
+);
+
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->skipfile;
+	},
+	qr/discarded/,
+	'$manifest->skipfile called in void context'
+);
+
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->skipped('testmask');
+	},
+	qr/discarded/,
+	'$manifest->skipped called in void context'
+);
+
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->file;
+	},
+	qr/discarded/,
+	'$manifest->file called in void context'
+);
+
+warning_like(
+	sub {
+		my $manifest = Module::Manifest->new;
+		$manifest->files;
+	},
+	qr/discarded/,
+	'$manifest->files called in void context'
 );
