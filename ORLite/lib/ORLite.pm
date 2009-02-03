@@ -249,9 +249,9 @@ END_PERL
 		# Generate the per-table code
 		foreach my $table ( @$tables ) {
 			# Generate the accessors
-			my $sql       = $table->{sql};
-			my @columns   = @{ $table->{columns} };
-			my @names     = map { $_->{name} } @columns;
+			my $sql     = $table->{sql};
+			my @columns = @{ $table->{columns} };
+			my @names   = map { $_->{name} } @columns;
 
 			# Generate the elements in all packages
 			$code .= <<"END_PERL";
