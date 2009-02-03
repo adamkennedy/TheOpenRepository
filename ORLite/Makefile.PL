@@ -7,5 +7,6 @@ requires      'Params::Util' => '0.33';
 requires      'DBI'          => '1.58';
 requires      'DBD::SQLite'  => '1.14';
 test_requires 'Test::More'   => '0.47';
+repository    'http://svn.ali.as/cpan/trunk/ORLite';
 
 WriteAll;
