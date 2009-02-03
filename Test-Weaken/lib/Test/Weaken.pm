@@ -319,7 +319,7 @@ If it does leak memory, C<Test::Weaken> allows you to examine the "leaked" memor
 even objects that would usually be inaccessible.
 It performs this magic by creating a set of weakened B<probe references>, as explained L<below|/"IMPLEMENTATION">.
 
-Objects to be tested by C<Test::Weaken> are passed as the return value of closures.
+The test object is passed as the return value of a closure.
 The closure should return the B<primary test reference>,
 a reference to the B<test object>.
 C<Test::Weaken> checks the memory that can be found by following the primary test reference.
@@ -328,7 +328,7 @@ arrays, hashes, weak references and strong references are followed
 recursively and to unlimited depth.
 
 C<Test::Weaken> handles circular references gracefully.
-This is important, because a major purpose of C<Test::Weaken> is to test schemes for deallocating
+A major purpose of C<Test::Weaken> is to test schemes for
 circular references.
 To avoid infinite loops,
 C<Test::Weaken> records all the memory objects it visits,
@@ -336,10 +336,9 @@ and will not visit the same memory object twice.
 
 =head2 Why the Test Object is Passed via a Closure
 
-C<Test::Weaken> does not accept either its test object or its primary test reference as an
-argument directly.
-Instead, C<Test::Weaken> takes a B<test object constructor> as an argument.
-The test object constructor must return the primary test reference.
+C<Test::Weaken> does not accept its test object or its primary test reference
+directly as an argument.
+Instead, C<Test::Weaken> receives its test objects from B<test object constructors>.
 
 Why so roundabout?
 It turns out the indirect way is the easiest.
@@ -366,9 +365,10 @@ it becomes relatively easy to be sure that nothing is left behind
 that will hold an unintended reference to memory inside the test
 object.
 
-To encourage this discipline, C<Test::Weaken> requires that its test object
+To encourage this discipline,
+C<Test::Weaken> requires that its primary test reference
 be the return value of a closure.
-This makes the safe thing and almost always right thing to do,
+This makes what is the safe and almost always right thing to do,
 also the easiest thing to do.
 
 Of course, if the user wants to,
@@ -377,7 +377,7 @@ he can refer to data in global and other scopes from outside the closure.
 The user can also return memory objects created partially or completely from data in any or all
 of those scopes.
 Subverting C<Test::Weaken>'s "closure data only" discipline can be done with only a small amount of trouble,
-certainly in comparison with the grief the user is exposing himself to.
+certainly by comparison to the grief that the user is exposing himself to.
 
 =head2 Returns and Exceptions
 
@@ -455,28 +455,16 @@ the return value of the C<unfreed_proberefs> method.
 Returns the total number of probe references in the test,
 including references to freed memory objects.
 This is the count of probe references
-after Test::Weaken finished following the test object reference
-recursively, but before calling the test object destructor and undefining the
+after C<Test::Weaken> was finished following the test object reference
+recursively,
+but before it called the test object destructor and undefined the
 test object reference.
-
-By recursively
-following references, arrays, and hashes
-from the primary test reference, C<Test::Weaken>
-finds all of the memory objects in the test object.
-For each visited memory object,
-C<Test::Weaken> creates a B<probe reference>.
-In recursing through the test object,
-C<Test::Weaken> records the memory objects that it has visited.
-C<Test::Weaken> uses this record to ensure that it never visits the same memory object twice.
-C<Test::Weaken> therefore has no problem
-with a test object containing circular references.
 
 =head1 ADVANCED TECHNIQUES
 
 The simplest way to use C<Test::Weaken> is to call the C<leaks>
-method, and treat its return value as a true or a false.
-You might also want to use C<Test::Weaken> as a true for tracing leaks
-if they exist.
+method, and treat its return value as a Perl true or false.
+But you can also use C<Test::Weaken> for tracing leaks.
 Here are some potentially helpful techniques.
 
 =head2 Tracing Memory Leaks
@@ -503,7 +491,7 @@ used when a referent address is meant.
 Any given reference has both a reference address and a referent address.
 The reference address is the reference's own location in memory.
 The referent address is the address of the memory object to which it refers.
-It is the referent address that interest us here and, happily, it is 
+It is the referent address that interests us here and, happily, it is 
 the referent address that addition of zero and C<refaddr> return.
 
 =head2 Testing Objects Which Refer to Persistent or External Memory
@@ -548,8 +536,6 @@ By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be export
 C<Test::Weaken> does not check for leaked code references or look inside them.
 
 =head1 IMPLEMENTATION
-
-=head2 How C<Test::Weaken> Works
 
 C<Test::Weaken> first recurses through the test object.
 It follows all weak and strong references, arrays and hashes.
