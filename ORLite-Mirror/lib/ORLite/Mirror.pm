@@ -88,7 +88,7 @@ sub import {
 
 	# Download compressed files with their extention first
 	my $url  = delete $params{url};
-	my $path = ($url =~ /(\.gz|\.bz2)$/) ? "$path$1" : $path;
+	my $path = ($url =~ /(\.gz|\.bz2)$/) ? "$db$1" : $db;
 
 	# Find the maximum age for the local database copy
 	unless ( defined $params{maxage} ) {
@@ -122,14 +122,14 @@ sub import {
 				IO::Uncompress::Gunzip::gunzip(
 					$path      => $db,
 					BinModeOut => 1,
-				) or Carp::croak("gunzip($archive) failed");
+				) or Carp::croak("gunzip($path) failed");
 			}
 		} elsif ( $path =~ /\.bz2$/ ) {
 			unless ( $response->code == 304 and -f $path ) {
 				IO::Uncompress::Bunzip2::bunzip2(
 					$path      => $db,
 					BinModeOut => 1,
-				) or Carp::croak("bunzip2($archive) failed");
+				) or Carp::croak("bunzip2($path) failed");
 			}
 		}
 	}
