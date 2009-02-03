@@ -1,6 +1,5 @@
 #!perl
 
-use 5.010;
 use strict;
 use warnings;
 
@@ -37,7 +36,6 @@ sub run_tidy {
     push @cmd, $file;
     my ( $child_out, $child_in );
 
-    # say STDERR join(" ", @cmd);
     my $pid = open2( $child_out, $child_in, @cmd )
         or croak("IPC::Open2 of perltidy pipe failed: $ERRNO");
     close $child_in;

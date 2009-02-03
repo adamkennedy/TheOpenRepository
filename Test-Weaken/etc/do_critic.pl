@@ -1,6 +1,5 @@
 #!perl
 
-use 5.010;
 use strict;
 use warnings;
 
@@ -41,14 +40,17 @@ sub run_critic {
             $error_message = "perlcritic returned $child_error";
         }
         if ( defined $error_message ) {
-            say STDERR $error_message;
+            print {*STDERR} $error_message, "\n"
+                or croak("Cannot print to STDERR: $ERRNO");
             $critic_output .= "$error_message\n";
         }
         my @newlines = ( $critic_output =~ m/\n/xmsg );
-        say STDERR "$file: ", scalar @newlines, ' lines of complaints';
+        print {*STDERR} "$file: ", scalar @newlines, " lines of complaints\n"
+            or croak("Cannot print to STDERR: $ERRNO");
         return \$critic_output;
     }
-    say STDERR "$file: clean";
+    print {*STDERR} "$file: clean\n"
+        or croak("Cannot print to STDERR: $ERRNO");
     return q{};
 }
 
@@ -68,7 +70,8 @@ FILE: while ( my $file = <$manifest> ) {
     croak("No such file: $file") unless -f $file;
 
     if ( my $result = run_critic($file) ) {
-        say "=== $file ===";
+        print "=== $file ===\n"
+            or croak("print failed: $ERRNO");
         print ${$result}
             or croak("print failed: $ERRNO");
     }
