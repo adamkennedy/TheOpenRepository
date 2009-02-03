@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.11 Wed  4 Feb 2009
+	- Minor fixes
+
 1.10 Tue  3 Feb 2009
 	- Adding support for a custom maxage
 
