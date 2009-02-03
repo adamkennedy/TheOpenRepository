@@ -77,6 +77,7 @@ sub run_command {
 	unless ( -f $pip ) {
 		die "pip is unexpectedly not installed";
 	}
+	$window->{output}->style_busy;
 	$window->run_command( join ' ', 'perl', $pip, $target );
 }
 
