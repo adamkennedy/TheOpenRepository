@@ -3,10 +3,9 @@ package ORDB::CPANTesters;
 use 5.008005;
 use strict;
 use warnings;
+use ORLite::Mirror 1.11 ();
 
-our $VERSION = '0.03';
-
-use ORLite::Mirror ();
+our $VERSION = '0.04';
 
 # Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
@@ -14,7 +13,10 @@ sub import {
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
-	ORLite::Mirror->import('http://testers.cpan.org/testers.db.bz2');
+	ORLite::Mirror->import( {
+		url => 'http://devel.cpantesters.org/cpanstats.db.bz2',
+		maxage => 30 * 24 * 60 * 60,
+	} );
 
 	return 1;
 }
@@ -160,7 +162,7 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-ORDB::CPANTesters is based on L<ORLite> 1.18.
+ORDB::CPANTesters is based on L<ORLite> 1.19.
 
 Documentation created by L<ORLite::Pod> 0.06.
 

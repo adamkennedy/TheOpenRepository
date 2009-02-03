@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANTesters
 
+0.04 Wed  4 Feb 2009
+	- Upgrading to Module::Install 0.79
+	- Updating ORLite::Mirror dependency again
+
 0.03 Fri 16 Jan 2009
 	- Updating ORLite::Mirror dependency again
 
