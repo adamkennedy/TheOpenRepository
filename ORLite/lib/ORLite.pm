@@ -10,7 +10,7 @@ use File::Temp   ();
 use Params::Util qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
 use DBI          ();
 
-use vars qw{$VERSION};
+our $VERSION;
 BEGIN {
 	$VERSION = '1.19';
 
@@ -379,10 +379,10 @@ ORLite - Extremely light weight SQLite-specific ORM
 =head1 SYNOPSIS
 
   package Foo;
-  
+
   use strict;
   use ORLite 'data/sqlite.db';
-  
+
   my @awesome = Foo::Person->select(
      'where first_name = ?',
      'Adam',
