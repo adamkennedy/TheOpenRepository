@@ -103,7 +103,18 @@ sub _poe_stopping {
 	return undef unless $api->session_count == 2;
 
 	# There should be no events left for this session
-	return undef if $api->event_queue->get_item_count;
+	my @items = $api->event_queue_dump();
+	if ( @items ) {
+		return undef if @items > 1;
+
+		# Make sure it's not the TRACE_STATISTICS tick
+		unless ( $items[0]->{'source'}->isa( 'POE::Kernel' ) and
+			$items[0]->{'destination'}->isa( 'POE::Kernel' ) and
+			$items[0]->{'event'} eq '_stat_tick' ) {
+
+			return undef;
+		}
+	}
 
 	# The kernel should not be tracking any handles
 	return undef if $api->handle_count;
