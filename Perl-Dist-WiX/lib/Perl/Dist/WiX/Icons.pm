@@ -74,7 +74,7 @@ sub add_icon {
 
     # Find the type of target.
     my ($target_type) = $pathname_target =~ m(\A.*[.](.+)\z);
-    $self->trace_line(0, "Adding icon $pathname_icon with target type $target_type.\n");
+    $self->trace_line(2, "Adding icon $pathname_icon with target type $target_type.\n");
     
     # If we have an icon already, return it.
     my $icon = $self->search_icon($pathname_icon, $target_type);
@@ -118,7 +118,7 @@ sub search_icon {
     
     # Print each icon
     foreach my $icon (@{$self->{icons}}) {
-        if (($icon->{file} eq $pathname_icon) and ($icon->{file} eq $target_type)) {
+        if (($icon->{file} eq $pathname_icon) and ($icon->{target_type} eq $target_type)) {
             return $icon->{id};
         }
     }
@@ -142,8 +142,8 @@ sub as_string {
     if (0 == scalar @{$self->{icons}}) { return q{}; }
 
     # Print each icon
-    foreach my $icon ($self->{icons}) {
-        $answer .= "<Icon Id='I_$icon->{id}' SourceFile='$icon->{file}' />\n"
+    foreach my $icon (@{$self->{icons}}) {
+        $answer .= "  <Icon Id='I_$icon->{id}' SourceFile='$icon->{file}' />\n"
     }
     
     return $answer;

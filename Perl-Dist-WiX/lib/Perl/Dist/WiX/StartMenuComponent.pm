@@ -113,7 +113,7 @@ sub as_string {
             Name='$self->{name}'
             Description='$self->{description}'
             Target='$self->{target}'
-            Icon='$self->{icon_id}'
+            Icon='I_$self->{icon_id}'
             WorkingDirectory='D_$self->{working_dir}' />
   <CreateFolder Directory="$self->{menudir_id}" />
 </Component>

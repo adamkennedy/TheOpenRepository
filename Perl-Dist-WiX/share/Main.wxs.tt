@@ -80,7 +80,7 @@
     <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
 [% END %]
 [% IF dist.msi_product_icon_id.defined %]
-    <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon %]</Property>
+    <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon_id %]</Property>
 [% END %]
 [% IF dist.msi_banner_top.defined %]
     <WixVariable Id='WixUIBannerBmp' Value='[% dist.msi_banner_top %]' />

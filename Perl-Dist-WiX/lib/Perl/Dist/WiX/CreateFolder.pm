@@ -17,11 +17,16 @@ use warnings;
 use Carp            qw( croak               );
 use Params::Util    qw( _IDENTIFIER _STRING );
 require Perl::Dist::WiX::Base::Fragment;
+require Perl::Dist::WiX::Base::Component;
+
 
 use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.13_01';
-    @ISA = 'Perl::Dist::WiX::Base::Fragment';
+    @ISA = qw( 
+        Perl::Dist::WiX::Base::Fragment
+        Perl::Dist::WiX::Base::Component
+    );
 }
 
 #####################################################################
@@ -33,19 +38,24 @@ BEGIN {
 # Constructor for CreateFolder
 #
 # Parameters: [pairs]
-#   id, directory: See Base::Filename.
+#   id, directory: See Base::Fragment.
 
 sub new {
     my ($class, %params) = @_;
 
-    my $self = $class->SUPER::new(%params);
+    my $self = $class->Perl::Dist::WiX::Base::Fragment::new(%params);
 
+    $self->trace_line(2, "Creating directory creation entry for directory id D_$self->{directory}\n");
+    
     # Check parameters.
     unless (_IDENTIFIER($self->id)) {
         croak 'Invalid or missing id';
     }
     unless (_STRING($self->directory)) {
         croak 'Invalid or missing directory';
+    }
+    unless (_STRING($self->{guid})) {
+        $self->create_guid_from_id;
     }
     
     return $self;
@@ -64,7 +74,7 @@ sub new {
 sub get_component_array {
     my $self = shift;
     
-    return "C_Create$self->{id}";
+    return "Create$self->{id}";
 }
 
 sub search_file {
@@ -96,7 +106,7 @@ sub as_string {
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Fragment Id='Fr_Create$self->{id}'>
     <DirectoryRef Id='D_$self->{directory}'>
-      <Component Id='C_Create$self->{id}'>
+      <Component Id='C_Create$self->{id}' Guid='$self->{guid}'>
         <CreateFolder />
       </Component>
     </DirectoryRef>

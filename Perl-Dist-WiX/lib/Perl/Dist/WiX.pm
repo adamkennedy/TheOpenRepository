@@ -3157,7 +3157,7 @@ sub add_icon {
             working_dir => $dir_id,
             trace       => $self->{trace},
             menudir_id  => 'D_App_Menu',
-            icon_id     => $self->{icon_id},
+            icon_id     => $params{icon_id},
         )
     );
 

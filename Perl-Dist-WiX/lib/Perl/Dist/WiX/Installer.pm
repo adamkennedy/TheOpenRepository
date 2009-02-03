@@ -43,7 +43,7 @@ require Perl::Dist::WiX::CreateFolder;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.11_07';
+    $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Misc'
 }
 
@@ -224,8 +224,9 @@ sub new {
     );
     $self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
         directory       => 'Cpan',
-        id              => 'Cpan',
-        trace           => $self->{trace}, 
+        id              => 'CPANFolder',
+        trace           => $self->{trace},
+        sitename        => $self->sitename,
     );    
     $self->{icons} = Perl::Dist::WiX::Icons->new(trace => $self->{trace});
     if (defined $self->msi_product_icon) {
@@ -254,7 +255,6 @@ sub new {
         croak("Failed to find the WiX UI Extension DLL");
     }
     $self->{bin_wixui} = $wix_file;
-
     
     return $self;
 }
@@ -491,7 +491,7 @@ sub write_msi {
     $self->trace_line(1, "Generating msi\n");
 
     # Add the path in.
-    foreach my $value (map { catdir( '[INSTALLDIR]', @$_ ) } @{$self->env_path}) {
+    foreach my $value (map { '[INSTALLDIR]' . catdir(@{$_}) } @{$self->env_path}) {
         $self->add_env('PATH', $value, 1);
     }
 
