@@ -8,14 +8,14 @@ use File::Path              ();
 use File::Remove            ();
 use File::HomeDir           ();
 use LWP::UserAgent          ();
-use Params::Util            qw{ _STRING _HASH };
+use Params::Util            qw{ _STRING _NONNEGINT _HASH };
 use IO::Uncompress::Gunzip  ();
 use IO::Uncompress::Bunzip2 ();
-use ORLite                  ();
+use ORLite 1.19             ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '1.10';
 	@ISA     = qw{ ORLite };
 }
 
@@ -54,6 +54,11 @@ sub import {
 		$params{package} = scalar caller;
 	}
 
+	# Handle incompatible create options
+	if ( $params{create} and ref($params{create}) ) {
+		Carp::croak("Cannot supply complex 'create' param to ORLite::Mirror");
+	}
+
 	# Check when we should update
 	unless ( defined $params{update} ) {
 		$params{update} = 'compile';
@@ -65,7 +70,8 @@ sub import {
 	# Determine the mirror database location
 	my $dir = File::Spec->catdir(
 		File::HomeDir->my_data,
-		'Perl', 'ORLite-Mirror'
+		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
+		'ORLite-Mirror',
 	);
 	my $file = $params{package} . '.sqlite';
 	$file =~ s/::/-/g;
@@ -86,9 +92,18 @@ sub import {
 		$path .= $1;
 	}
 
-	# Don't update if the file is newer than 24 hours
+	# Find the maximum age for the local database copy
+	unless ( defined $params{maxage} ) {
+		$params{maxage} = 86400;
+	}
+	unless ( _NONNEGINT($params{maxage}) ) {
+		Carp::croak("Invalid maxage param");
+	}
+
+	# Don't update if the file is newer than the maxage
 	my $archive = $path;
-	unless ( -f $path and (time - (stat($path))[9]) < 86400 ) {
+	my $fileage = time - (stat($path))[9];
+	unless ( -f $path and $fileage < $params{maxage} ) {
 		# Create the default useragent
 		my $useragent = delete $params{useragent};
 		unless ( $useragent ) {
@@ -136,7 +151,10 @@ sub import {
 	$params{readonly} = 1;
 
 	# Hand off to the main ORLite class.
-	my $rv = $class->SUPER::import( \%params, $DEBUG ? '-DEBUG' : () );
+	my $rv = $class->SUPER::import(
+		\%params,
+		$DEBUG ? '-DEBUG' : ()
+	);
 
 	# If and only if they update at connect-time, replace the
 	# original dbh method with one that syncs the database.

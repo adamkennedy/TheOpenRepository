@@ -26,7 +26,7 @@ IO::Compress::Gzip::gzip( $file => $zipped )
 	or die 'Failed to compress test script';
 
 # Convert the file into a URI
-my $uri = URI::file->new_abs($zipped)->as_string;
+my $url = URI::file->new_abs($zipped)->as_string;
 
 # Create the test package
 eval <<"END_PERL"; die $@ if $@;
@@ -37,7 +37,10 @@ use vars qw{\$VERSION};
 BEGIN {
 	\$VERSION = '1.00';
 }
-use ORLite::Mirror '$uri';
+use ORLite::Mirror {
+	url    => '$url',
+	maxage => 1,
+};
 
 1;
 
