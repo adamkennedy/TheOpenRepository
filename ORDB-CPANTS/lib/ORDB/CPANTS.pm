@@ -6,7 +6,7 @@ use warnings;
 
 our $VERSION = '0.02';
 
-use ORLite::Mirror ();
+use ORLite::Mirror 1.11 ();
 
 use constant ONE_MONTH => 30 * 24 * 60 * 60;
 

@@ -1,7 +1,8 @@
 Changes for Perl extension ORDB-CPANTesters
 
 0.02 Tue  3 Feb 2009
-	- Updating to use a 1 month maxage
+	- Updating to Module::Install 0.79
+	- Add a one month maxage
 
 0.01 Thu 15 Jan 2009
 	- Initial experimental release
