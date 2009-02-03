@@ -1,4 +1,4 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 0.79;
 
 all_from      'lib/ORDB/CPANTS.pm';
 requires      'ORLite::Mirror' => '1.10';
