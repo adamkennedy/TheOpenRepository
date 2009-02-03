@@ -4,9 +4,11 @@ use 5.008005;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use ORLite::Mirror ();
+
+use constant ONE_MONTH => 30 * 24 * 60 * 60;
 
 # Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
@@ -14,7 +16,10 @@ sub import {
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
-	ORLite::Mirror->import('http://cpants.perl.org/static/cpants_all.db.gz');
+	ORLite::Mirror->import(
+		url    => 'http://cpants.perl.org/static/cpants_all.db.gz',
+		maxage => ONE_MONTH,
+	);
 
 	return 1;
 }
