@@ -141,15 +141,17 @@ sub test {
 
     my $test_object_rr = \( $constructor->() );
     if ( not ref ${$test_object_rr} ) {
-        carp('poof() argument did not return a reference');
+        carp(
+            'Test::Weaken test object constructor did not return a reference'
+        );
     }
     my $refrefs = Test::Weaken::Internal::follow($test_object_rr);
 
-    $self->{original_ref_count} = @{$refrefs};
+    $self->{probe_count} = @{$refrefs};
     $self->{original_weak_count} =
         grep { ref $_ eq 'REF' and isweak ${$_} } @{$refrefs};
     $self->{original_strong_count} =
-        $self->{original_ref_count} - $self->{original_weak_count};
+        $self->{probe_count} - $self->{original_weak_count};
 
     for my $refref ( @{$refrefs} ) {
         weaken($refref);
@@ -223,9 +225,9 @@ sub unfreed_count {
     return scalar @{$result};
 }
 
-sub original_ref_count {
+sub probe_count {
     my $test  = shift;
-    my $count = $test->{original_ref_count};
+    my $count = $test->{probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -277,7 +279,7 @@ Test::Weaken - Test that freed references are, indeed, freed
        $array;
     };
 
-    my $bad_destructor = sub { "I don't work right" };
+    my $bad_destructor = sub { "I don't work" };
 
     if ( !leaks( $good_test ) ) {
         print "No leaks in test 1\n";
@@ -290,78 +292,92 @@ Test::Weaken - Test that freed references are, indeed, freed
         destructor  => $bad_destructor,
     });
     if ( $test ) {
-        my $unfreed = $test->unfreed_proberefs();
-        my $unfreed_count = @{$unfreed};
+        my $unfreed_proberefs = $test->unfreed_proberefs();
+        my $unfreed_count = @{$unfreed_proberefs};
         printf "Test 2: %d of %d original references were not freed\n",
             $test->unfreed_count(),
-            $test->original_ref_count();
+            $test->probe_count();
         print "These are the probe references to the unfreed objects:\n";
-        for my $probe_ref ( @{$unfreed} ) {
-            print Data::Dumper->Dump( [$probe_ref], ['unfreed'] );
+        for my $proberef ( @{$unfreed_proberefs} ) {
+            print Data::Dumper->Dump( [$proberef], ['unfreed'] );
         }
     }
 
 =head1 DESCRIPTION
 
-A memory leak happens when an object is incompletely freed.
-In Perl this happens, for example, if the object contains circular references which are not
-properly weakened or cleaned up.
-Leaked memory is often inaccessible, but it still uses space, and repeated creation and destruction
-of leaky memory objects can and does cause failures due to lack of memory.
+Memory leaks happen when the memory allocated by objects which are no longer needed is not completely deallocated.
+(Deallocating memory is also called B<freeing> it.)
+As an example in Perl, a memory leak will occur if
+an object contains circular references and does not have an effective scheme for
+weakening references or cleaning up memory.
+Leaked memory is a useless overhead.
+Leaky memory objects can significantly impact system performance.
+They can also cause the application with the leaks to abend due to lack of memory.
 
 C<Test::Weaken> allows you to check that an object does not leak memory.
 If it does leak memory, C<Test::Weaken> allows you to examine the "leaked" memory objects,
-even objects that would be "inaccessbile".
-It performs this magic by creating its own set weak references, as explained below.
+even objects that would usually be inaccessible.
+It performs this magic by creating a set of weakened B<probe references>, as explained L<below|/"IMPLEMENTATION">.
 
-The test object is passed using a closure.
-The closure should return a reference to the object to be checked.
-Memory referred to by this reference is checked.
-Arrays, hashes, weak references and strong references are followed
+Objects to be tested by C<Test::Weaken> are passed as the return value of closures.
+The closure should return the B<primary test reference>,
+a reference to the B<test object>.
+C<Test::Weaken> checks the memory that can be found by following the primary test reference.
+Starting with the primary test reference,
+arrays, hashes, weak references and strong references are followed
 recursively and to unlimited depth.
 
 C<Test::Weaken> handles circular references gracefully.
 This is important, because a major purpose of C<Test::Weaken> is to test schemes for deallocating
 circular references.
 To avoid infinite loops,
-C<Test::Weaken> records all the references it visits,
-and will not follow the same reference twice.
+C<Test::Weaken> records all the memory objects it visits,
+and will not visit the same memory object twice.
 
-=head2 Why the Arguments are Closures
+=head2 Why the Test Object is Passed via a Closure
 
-C<Test::Weaken> does not accept it's test objects as
-arguments directly.
-C<Test::Weaken>'s requires the test object be passed
-indirectly, using a B<test object constructor>.
-The test object constructor is passed as reference to a closure
-which returns a reference to the test object.
-Internally, C<Test::Weaken> calls the test object constructor
-to get the object to be tested.
+C<Test::Weaken> does not accept either its test object or its primary test reference as an
+argument directly.
+Instead, C<Test::Weaken> takes a B<test object constructor> as an argument.
+The test object constructor must return the primary test reference.
 
 Why so roundabout?
-It turns out that this indirect method is the easiest.
+It turns out the indirect way is the easiest.
 The test object must not have any strong references to
 it from outside.
-If you create the test object in C<Test::Weaken>'s
-calling environment,
-it takes some craft
-to create object without leaving
-any reference to it in that calling environment.
+It takes some craft
+to create the test object
+in C<Test::Weaken>'s calling environment
+without leaving
+any reference to the test object in the calling environment,
+and it is easy to make a mistake.
 
-It is easy to leave a reference from the calling environment
-in the object by mistake.
-Easy to make the mistake, but hard to detect and debug it.
-Mistakes appear as false reports of memory leaks.
+When the calling environment retains a reference to memory contained in the test object,
+the result is a memory leak.
+Mistakes in setting up the test object, therefore,
+appear as false reports of memory leaks.
+These are hard to distinguish from the real thing.
 
-When a test object is constructed completely within the test object constructor,
-it is easy to keep all the objects used to construct that test object
-in the scope of the test object constructor.
-By following this discipline, 
-you can relatively easily be sure
-that all the references to memory objects used in building the test object
-are released which
-the test object constructor returns.
-In C<Test::Weaken>'s case, roundabout turned out to be the fastest approach.
+Memory objects local to a closure will be destroyed when the
+closure returns, and any references they held will be released.
+When the test object is set up entirely in a closure, using only memory
+objects local to that closure,
+it becomes relatively easy to be sure that nothing is left behind
+that will hold an unintended reference to memory inside the test
+object.
+
+To encourage this discipline, C<Test::Weaken> requires that its test object
+be the return value of a closure.
+This makes the safe thing and almost always right thing to do,
+also the easiest thing to do.
+
+Of course, if the user wants to,
+within the closure
+he can refer to data in global and other scopes from outside the closure.
+The user can also return memory objects created partially or completely from data in any or all
+of those scopes.
+Subverting C<Test::Weaken>'s "closure data only" discipline can be done with only a small amount of trouble,
+certainly in comparison with the grief the user is exposing himself to.
 
 =head2 Returns and Exceptions
 
@@ -372,147 +388,156 @@ Errors are always thrown as exceptions.
 
 =head2 leaks
 
-Argments to the C<leaks> static method may be passed as a reference to
+Arguments to the C<leaks> static method may be passed as a reference to
 a hash of named arguments,
 or directly as code references.
-
 C<leaks> returns a C<Test::Weaken> object if it found leaks,
-otherwise a Perl false value.
+and a Perl false value otherwise.
 Users simply wanting to know if there were leaks can check whether
 the return value of C<leaks> is a Perl true or false.
 Users who want to look more closely at leaks can use other methods
 to interrogate the return value.
-Errors are thrown as exceptions.
 
 A B<test object constructor> is a required argument.
 It must be a code reference.
 If passed directly, it must be the first argument to C<leaks>.
-Otherwise, it must be the C<constructor> named argument.
-
-The B<test object destructor> is an optional argument.
-If specified, it must be a code reference.
-If passed directly, it must be the second argument to C<leaks>.
-Otherwise, it must be the C<destructor> named argument.
+Otherwise, it must be the value of the C<constructor> named argument.
 
 The test object constructor 
 should build the B<test object>
 and create a B<primary test reference> to it.
 The return value of the test object constructor must be
 the primary test reference.
-It is usually best to construct the test object
+It is best to construct the test object
 inside the test object constructor
 as much as possible.
 That is the easiest way to construct a
 test object with no references into it from the
 calling environment.
-I discuss this more below.
 
-The optional test object destructor
-is called just before C<Test::Weaken>
-frees the primary test reference.
+The B<test object destructor> is an optional argument.
+If specified, it must be a code reference.
+If passed directly, it must be the second argument to C<leaks>.
+Otherwise, it must be the value of the C<destructor> named argument.
+
 If specified,
-the test object destructor is called with
-the primary test reference as its only argument,
+the test object destructor is called
 just before the primary test reference is undefined.
-The test object destructor can be used to allow
+It will be passed one argument,
+the primary test reference.
+One purpose for
+the test object destructor is to allow
 C<Test::Weaken> to work with objects
-that require a destructor to be called on them before
+that require a destructor to be called on them when
 they are freed.
 For example, some of the objects created by Gtk2-Perl are of this type.
 
 =head2 unfreed_proberefs
 
-Returns a reference to an array of references to the unfreed test references.
+Returns a reference to an array of probe references to the unfreed memory objects.
 The user may examine these to find the source of a leak,
-or to produce her own statistics about the memory leaks.
+or to produce her own statistics.
 
 The array is returned as a reference because in some applications it can be quite long.
-The array contains references to the test references, not the test references themselves,
-because the test references may be weak references, and directly copying them would strengthen them.
-
-At present, there is only the "raw" version of the unfreed array.
-In the future, I may add calls that "cook" the unfreed array of references,
-for examply, by pruning some of the unfreed references referred to indirectly 
-by others in the array.
+The array contains probe references, not the memory objects themselves.
+This is because some memory objects, such as other arrays and hashes, cannot be elements of arrays.
+Weak references are another reason for not returning an array containing the memory objects themselves.
+Directly copying the weak references would strengthen them.
 
 =head2 unfreed_count
 
-Returns the count of unfreed test references.
+Returns the count of unfreed memory objects.
 This count will be exactly the length of the array referred to by
 the return value of the C<unfreed_proberefs> method.
 
-=head2 original_ref_count
+=head2 probe_count
 
-Returns the count of test references.
-This is the count after Test::Weaken finished following the test object reference
-recursively, and before calling the test object destructor and undef'ing the
+Returns the total number of probe references in the test,
+including references to freed memory objects.
+This is the count of probe references
+after Test::Weaken finished following the test object reference
+recursively, but before calling the test object destructor and undefining the
 test object reference.
 
 By recursively
 following references, arrays, and hashes
-from the primary test reference, C<poof>
-finds all of the references in the test object.
-These are C<poof>'s B<test references>.
+from the primary test reference, C<Test::Weaken>
+finds all of the memory objects in the test object.
+For each visited memory object,
+C<Test::Weaken> creates a B<probe reference>.
 In recursing through the test object,
-C<poof> keeps track of visited references.
-C<poof> never visits the same reference twice,
-and therefore has no problem
-when it has to deal with a test object which contains circular references.
+C<Test::Weaken> records the memory objects that it has visited.
+C<Test::Weaken> uses this record to ensure that it never visits the same memory object twice.
+C<Test::Weaken> therefore has no problem
+with a test object containing circular references.
 
 =head1 ADVANCED TECHNIQUES
 
 The simplest way to use C<Test::Weaken> is to call the C<leaks>
 method, and treat its return value as a true or a false.
-But you might want to use C<Test::Weaken> as a true for tracing leaks
+You might also want to use C<Test::Weaken> as a true for tracing leaks
 if they exist.
 Here are some potentially helpful techniques.
 
 =head2 Tracing Memory Leaks
 
 The C<unfreed_proberefs> method returns an array containing the unfreed
-memory and
+memory objects and
 can be used
 to find the source of leaks.
-There are several techniques for determining what the leaks are.
-
-If it's obvious what the leaked objects are and where they came from,
-you're in luck.
-If circumstances make it reasonable to
+If circumstances allow you to
 add elements to the arrays and hashes,
 you might find it useful to "tag" them for tracking purposes.
 
-If all else fails, you
-can identify memory with reference addresses.
-A reference's address 
-can be determined by using L<Scalar::Util>'s C<refaddr>.
-You can also find a reference's address by adding zero
+You can uniquely identify memory objects using
+the referent addresses of the probe references.
+A referent address 
+can be determined by using the
+C<refaddr> method of
+L<Scalar::Util>.
+You can also obtain the referent address of a reference by adding zero
 to the reference.
 
-=head2 Objects Which Refer to External Memory
+Note that in other Perl documentation, the term "reference address" is often
+used when a referent address is meant.
+Any given reference has both a reference address and a referent address.
+The reference address is the reference's own location in memory.
+The referent address is the address of the memory object to which it refers.
+It is the referent address that interest us here and, happily, it is 
+the referent address that addition of zero and C<refaddr> return.
 
-Your test object may have references to "external" memory --
-memory considered "outside" the object.
-This kind of "external" memory will often be expected to persist even
-after the test object is freed.
-To check for leaks when this is the case,
-you can examine the unfreed objects returned by C<unfreed_proberefs>.
-Once you eliminate the correctly unfreed objects from the list returned
-by C<unfreed_proberefs>, the remaining objects will be memory leaks.
+=head2 Testing Objects Which Refer to Persistent or External Memory
+
+Your test object may refer to
+memory that is considered to be "outside" the object:
+B<external memory>.
+In other cases, the specification of the object may allow certain memory referred
+to by the object to persist after the object is destroyed:
+B<persistent memory>.
+External memory is often expected to be persistent memory.
+
+To check for leaks in objects which refer to persistent memory,
+you can examine the unfreed objects returned by C<unfreed_proberefs>
+and eliminate the memory objects which are persistent.
+The remaining objects will be the memory leaks.
 
 =head2 If You Really Must Test Deallocation of a Global
 
-As explained above, C<poof> takes its test object as the the return
-value from a closure because it's tricky to create objects in the global
-environment without holding references to them.
+As explained above, C<Test::Weaken> receives its test object as the return
+value of a closure.
+It does this because it's tricky to create objects in a global
+environment without keeping references to them.
 References accidently held by the calling environment will cause false leak reports.
 
-It is easy to accidently cause false leak reports when you
-create objects in the global environment and very hard to debug this.
-But you can write a test object constructor that returns
-any object that is in a visible scope.
-So if you belive that you really have no other choice,
-your test object constructor can return
-a reference to a global object.
+But you may have no other choice.
+The test object constructor can refer to data
+in a scope which is not local
+to the constructor.
+It can also return a primary test reference built using this
+data.
+Nothing prevents a test object constructor from, for example,
+simply returning a reference it finds in global scope as the
+primary test reference.
 
 =head1 EXPORT
 
@@ -529,9 +554,9 @@ C<Test::Weaken> does not check for leaked code references or look inside them.
 C<Test::Weaken> first recurses through the test object.
 It follows all weak and strong references, arrays and hashes.
 The test object is explored to unlimited depth, 
-looking for B<memory objects>, objects which have memory allocated.
-Visited memory objects are tracked, and no memory object is followed
-twice.
+looking for B<memory objects>, that is, objects which have memory allocated.
+Visited memory objects are tracked,
+and no memory object is visited twice.
 For each memory object, a
 B<probe reference> is created.
 
@@ -539,10 +564,10 @@ Once recursion through the test object is complete,
 the probe references are weakened,
 so that they will not interfere with normal deallocation of memory.
 Next, the test object destructor is called,
-if the user specified one.
+if there is one.
 
 Finally, the primary test reference is undefined.
-This should complete deallocation of memory held by the test object.
+This should trigger the complete deallocation of all memory held by the test object.
 To check that this happened, C<Test::Weaken> dereferences the probe references.
 If the referent of a probe reference was deallocated,
 the value of that probe reference will be C<undef>.
@@ -607,8 +632,7 @@ test cases and other ideas.
 After the first release of C<Test::Weaken>,
 Kevin Ryde made several important suggestions
 and provided test cases.
-These totally altered the design of this module,
-and provided the impetus for version 2.000000.
+These provided the impetus for version 2.000000.
 
 =head1 LICENSE AND COPYRIGHT
 

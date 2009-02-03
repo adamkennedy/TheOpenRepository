@@ -40,7 +40,7 @@ sub brief_result {
         . ( scalar @unfreed_strong );
 }
 
-my $result = Test::Weaken::poof(
+my $test = Test::Weaken::leaks(
     sub {
         my $x = [];
         my $y = \$x;
@@ -48,7 +48,7 @@ my $result = Test::Weaken::poof(
         $z;
     }
 );
-cmp_ok( $result, q{==}, 0, 'Simple weak ref' );
+ok( ( !$test ), 'Simple weak ref' );
 
 Test::Weaken::Test::is(
     brief_result(

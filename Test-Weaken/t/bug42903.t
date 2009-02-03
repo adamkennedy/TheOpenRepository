@@ -28,8 +28,8 @@ my $result = q{};
         }
     );
     my $unfreed_proberefs = $test ? $test->unfreed_proberefs() : [];
-    for my $probe_ref ( @{$unfreed_proberefs} ) {
-        $result .= Data::Dumper->Dump( [$probe_ref], ['unfreed'] );
+    for my $proberef ( @{$unfreed_proberefs} ) {
+        $result .= Data::Dumper->Dump( [$proberef], ['unfreed'] );
     }
     $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
