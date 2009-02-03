@@ -1,18 +1,14 @@
 Revision history for Perl extension Module-Manifest
 
-$Id$
-
 0.05 Sat 20 Dec 2008
 	- Added option for file-less parsing
 	- Clarified the docs
 		o Added a synopsis
 		o Added compatibility notes
 		o Changed duplicate fatal error to a warning (cluck vs carp)
-	- Added a MANIFEST.SKIP file
 	- Added myself (Jonathan Yu) as a developer
 	- Added a README file made by hand from the perldoc
 	- Added a bunch of test files
-	- Signed the distribution with Module::Signature
 
 0.04 Thu 11 Dec 2008
 	- Upgrading Module::Install to 0.77
