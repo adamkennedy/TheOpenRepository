@@ -142,6 +142,32 @@ Token *Tokenizer::_last_significant_token(unsigned int n) {
 	return m_LastSignificant[ix];
 }
 
+OperatorOperandContext Tokenizer::_opcontext() {
+	Token *t0 = _last_significant_token(1);
+	if ( t0 == NULL )
+		return ooc_Operand;
+	TokenTypeNames p_type = t0->type->type;
+	if ( ( p_type == Token_Symbol ) || ( p_type == Token_Magic ) || 
+		 ( p_type == Token_Number ) || ( p_type == Token_ArrayIndex ) ) { // FIXME
+		return ooc_Operator;
+	}
+	if ( p_type == Token_Operator )
+		return ooc_Operand;
+	
+	// FIXME: Are we searching for Structure tokens?
+	if ( t0->length != 1 )
+		return ooc_Unknown;
+
+	uchar c_char = t0->text[0];
+	if ( ( c_char == '(' ) || ( c_char == '{' ) || ( c_char == '[' ) ||  ( c_char == ';' ) ) {
+		return ooc_Operand;
+	}
+	if ( c_char == '}' )
+		return ooc_Operator;
+
+	return ooc_Unknown;
+}
+
 //=====================================
 
 LineTokenizeResults Tokenizer::tokenizeLine(char *line, long line_length) {

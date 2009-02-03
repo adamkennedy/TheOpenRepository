@@ -18,9 +18,14 @@ enum TokenTypeNames {
 	Token_Unknown,
 	Token_Quote_Single,
 	Token_Quote_Double,
+	Token_Quote_Interpolate,
+	Token_Quote_Literal,
 	Token_QuoteLike_Backtick,
+	Token_QuoteLike_Readline,
+	Token_Regexp_Match,
 	Token_Cast, 
-	Token_Prototype
+	Token_Prototype,
+	Token_ArrayIndex
 };
 
 enum CharTokenizeResults {
@@ -103,6 +108,12 @@ enum LineTokenizeResults {
 	tokenizing_fail
 };
 
+enum OperatorOperandContext {
+	ooc_Unknown,
+	ooc_Operator,
+	ooc_Operand
+};
+
 class Tokenizer {
 public:
 	Token *c_token;
@@ -142,6 +153,10 @@ public:
 	 * (NULL in C is expressed in this case as an empty Whitespace token in Perl) 
 	 */
 	Token *_last_significant_token(unsigned int n);
+	/* _opcontext
+	 * Try to determine operator/operand context, is possible. 
+	 */
+	OperatorOperandContext _opcontext();
 	/* tokenizeLine - Tokenize one line
 	 */
 	LineTokenizeResults tokenizeLine(char *line, long line_length);

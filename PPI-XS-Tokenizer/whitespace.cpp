@@ -40,6 +40,55 @@ TokenTypeNames commit_map[128] = {
 	Token_Operator, /* '|' */ Token_Structure, /* '}' */ Token_Operator, /* '~' */ Token_NoType, /* 127 */
 };
 
+// seeking to see if: ( $line =~ /^<(?!\d)\w+>/ )
+// asumations: the current inspected char is '<'
+static bool scan_ahead_for_lineread(const Tokenizer *t) {
+	const char *line = t->c_line;
+	ulong pos = t->line_pos + 1;
+	ulong line_length = t->line_length;
+
+	if (pos >= line_length)
+		return false;
+
+	// eating away spaces
+	while ( ( pos < line_length ) && ( ( line[pos] == ' ' ) || ( line[pos] == '\t' ) ) ) {
+		pos++;
+	}
+
+	if (pos >= line_length)
+		return false;
+
+	// the first char need to be a \w but not \d, meaning [a..zA..Z_]
+	if ( ! ( ( ( line[pos] >= 'a' ) && ( line[pos] <= 'z' ) ) ||
+		     ( ( line[pos] >= 'A' ) && ( line[pos] <= 'Z' ) ) ||
+			 ( line[pos] == '_' ) ) ) {
+		return false;
+	}
+	pos++;
+
+	// the rest - zero or more \w
+	while ( ( pos < line_length ) &&
+		    ( ( ( line[pos] >= 'a' ) && ( line[pos] <= 'z' ) ) ||
+		      ( ( line[pos] >= 'A' ) && ( line[pos] <= 'Z' ) ) ||
+		      ( ( line[pos] >= '0' ) && ( line[pos] <= '9' ) ) ||
+			  ( line[pos] == '_' ) ) ) {
+		pos++;
+	}
+
+	// eating away spaces
+	while ( ( pos < line_length ) && ( ( line[pos] == ' ' ) || ( line[pos] == '\t' ) ) ) {
+		pos++;
+	}
+
+	if (pos >= line_length)
+		return false;
+
+	if ( line[pos] == '>' )
+		return true;
+
+	return false;
+}
+
 CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
     if ( c_char < 128 ) {
         if ( commit_map[c_char] == Token_WhiteSpace ) {
@@ -52,9 +101,9 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
     }
 	
 	if (c_char == 40) { // '('
-		Token *t0 = t->_last_significant_token(0);
-		Token *t1 = t->_last_significant_token(1);
-		Token *t2 = t->_last_significant_token(2);
+		Token *t0 = t->_last_significant_token(1);
+		Token *t1 = t->_last_significant_token(2);
+		Token *t2 = t->_last_significant_token(3);
 		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && 
 			 ( t1 != NULL ) && ( t1->type->type == Token_Word ) &&
 			 ( !strcmp(t1->text, "sub") ) &&
@@ -70,6 +119,109 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		t->_new_token(Token_Structure);
 		return done_it_myself;
 	}
-	// TODO
+	
+	if (c_char == 60) { // '<'
+		Token *t0 = t->_last_significant_token(1);
+		if ( t0 == NULL ) {
+			t->_new_token(Token_Operator);
+			return my_char;
+		}
+		TokenTypeNames t0_type = t0->type->type;
+		if ( ( t0_type == Token_Symbol ) || (  t0_type == Token_Magic ) || 
+			 (  t0_type == Token_Number ) || (  t0_type == Token_ArrayIndex ) ) {
+			t->_new_token(Token_Operator);
+			return my_char;
+		}
+		
+		if ( t->c_line[ t->line_pos + 1 ] == '<' ) {
+			// a HereDoc
+			t->_new_token(Token_Operator);
+			return my_char;
+		}
+
+		if ( ( ( t0_type == Token_Structure ) && ( !strcmp(t0->text, "(" ) ) ) ||
+			 ( ( t0_type == Token_Word      ) && ( !strcmp(t0->text, "while" ) ) ) ||
+			 ( ( t0_type == Token_Operator  ) && ( !strcmp(t0->text, "=" ) ) ) ||
+			 ( ( t0_type == Token_Operator  ) && ( !strcmp(t0->text, "," ) ) ) ) {
+			t->_new_token(Token_QuoteLike_Readline);
+			return done_it_myself;
+		}
+
+		if ( ( t0_type == Token_Structure ) && ( !strcmp(t0->text, "}" ) ) ) {
+			if ( scan_ahead_for_lineread(t) ) {
+				t->_new_token(Token_Operator);
+				return my_char;
+			}
+		}
+
+		t->_new_token(Token_QuoteLike_Readline);
+		return done_it_myself;
+	}
+
+	if (c_char == 47) { // '/'
+		Token *t0 = t->_last_significant_token(1);
+		if (t0 == NULL) {
+			t->_new_token(Token_Regexp_Match);
+			return done_it_myself;
+		}
+		if ( t0->type->type == Token_Operator) { 
+			t->_new_token(Token_Regexp_Match);
+			return done_it_myself;
+		}
+		if ( ( t0->type->type == Token_Symbol ) || 
+			 ( t0->type->type == Token_Number ) ||
+			 ( ( t0->type->type == Token_Structure ) && ( !strcmp(t0->text, "]" ) ) ) ) { 
+			t->_new_token(Token_Operator);
+			return my_char;
+		}
+		if ( ( t0->type->type == Token_Structure ) && 
+			( ( !strcmp(t0->text, "(") ) || ( !strcmp(t0->text, "{") ) || ( !strcmp(t0->text, ";") ) ) ) {
+			t->_new_token(Token_Regexp_Match);
+			return done_it_myself;
+		}
+		if ( ( t0->type->type == Token_Word ) && 
+			 ( ( !strcmp(t0->text, "split") ) || 
+			   ( !strcmp(t0->text, "if") ) || 
+			   ( !strcmp(t0->text, "unless") ) || 
+			   ( !strcmp(t0->text, "grep") ) ) ) {
+			t->_new_token(Token_Regexp_Match);
+			return done_it_myself;
+		}
+
+		uchar n_char = t->c_line[ t->line_pos + 1 ];
+		if ( ( n_char == '^' ) || ( n_char == '[' ) || ( n_char == '\\' ) ) {
+			t->_new_token(Token_Regexp_Match);
+			return done_it_myself;
+		}
+
+		t->_new_token(Token_Operator);
+		return my_char;
+	}
+
+	if ( c_char == 'x' ) {
+		uchar n_char = t->c_line[ t->line_pos + 1 ];
+		Token *t0 = t->_last_significant_token(1);
+		if ( ( t0 != NULL ) && ( n_char >= '0' ) && ( n_char <= 9 ) ) {
+			TokenTypeNames p_type = t0->type->type;
+			if ( ( p_type == Token_Quote_Single ) || ( p_type == Token_Quote_Double ) ) { // FIXME
+				t->_new_token(Token_Operator);
+				return my_char;
+			}
+		}
+		return t->TokenTypeNames_pool[Token_Word]->commit(t, c_char);
+	}
+
+	if ( c_char == '-' ) {
+		if ( t->_opcontext() == ooc_Operator ) {
+			t->_new_token(Token_Operator);
+			return my_char;
+		} else {
+			t->_new_token(Token_Unknown);
+			return done_it_myself;
+		}
+	}
+
+	// FIXME: Add the c_char > 127 part?
+
     return error_fail;
 }
