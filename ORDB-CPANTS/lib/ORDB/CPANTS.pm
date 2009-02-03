@@ -16,10 +16,10 @@ sub import {
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
-	ORLite::Mirror->import(
+	ORLite::Mirror->import( {
 		url    => 'http://cpants.perl.org/static/cpants_all.db.gz',
 		maxage => ONE_MONTH,
-	);
+	} );
 
 	return 1;
 }
