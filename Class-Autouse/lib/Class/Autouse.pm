@@ -37,15 +37,15 @@ use File::Spec ();
 use List::Util ();
 
 # Globals
-use vars qw{ $VERSION $DEVEL  $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA           }; # Load environment
-use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                                 }; # Special cases
-use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @LOADERS @sugar }; # Working information
+use vars qw{ $VERSION $DEVEL  $SUPERLOAD $NOSTAT $NOPREBLESS $STATICISA   }; # Load environment
+use vars qw{ %SPECIAL %LOADED %BAD %TRIED_LOADING                         }; # Special cases
+use vars qw{ $HOOKS   %CHASED $ORIGINAL_CAN $ORIGINAL_ISA @LOADERS @SUGAR }; # Working information
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
 	$VERSION = '1.99_03';
 
-	# We play with UNIVERSAL::can at times, so save a backup copy
+	# We play with UNIVERSAL:: functions, so save backup copies
 	$ORIGINAL_CAN = \&UNIVERSAL::can;
 	$ORIGINAL_ISA = \&UNIVERSAL::isa;
 
@@ -133,13 +133,13 @@ sub superloader {
 }
 
 sub sugar {
+	_debug(\@_) if DEBUG;
+
 	# Operate as a function or a method
 	shift if $_[0] eq 'Class::Autouse';
 
 	# Ignore calls with no arguments
 	return 1 unless @_;
-
-	_debug(\@_) if DEBUG;
 
 	foreach my $callback ( grep { $_ } @_ ) {
 		# Handle a callback or regex
@@ -151,7 +151,7 @@ sub sugar {
 				. ref($callback)
 			);
 		}
-		push @sugar, $callback;
+		push @SUGAR, $callback;
 		unless ( \&UNIVERSAL::AUTOLOAD == \&_UNIVERSAL_AUTOLOAD ) {
 			*UNIVERSAL::AUTOLOAD = \&_UNIVERSAL_AUTOLOAD;
 			*UNIVERSAL::DESTROY  = \&_DESTROY;
@@ -414,7 +414,7 @@ sub _UNIVERSAL_AUTOLOAD {
 			}
 		}
 	}
-	
+
 	# Find and go to the named method
 	my $found = List::Util::first { defined *{"${_}::$function"}{CODE} } @search;
 	goto &{"${found}::$function"} if $found;
@@ -428,8 +428,8 @@ sub _UNIVERSAL_AUTOLOAD {
 		}
 	}
 
-	for my $callback (@sugar) {
-		my $rv = $callback->($class,$function,@_);
+	for my $callback ( @SUGAR ) {
+		my $rv = $callback->( $class, $function, @_ );
 		goto $rv if $rv;
 	}
 
