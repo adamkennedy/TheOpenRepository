@@ -99,8 +99,7 @@ sub import {
 	}
 
 	# Don't update if the file is newer than the maxage
-	my $fileage = time - (stat($path))[9];
-	unless ( -f $path and $fileage < $params{maxage} ) {
+	unless ( -f $path and (time - (stat($path))[9]) < $params{maxage} ) {
 		# Create the default useragent
 		my $useragent = delete $params{useragent};
 		unless ( $useragent ) {
