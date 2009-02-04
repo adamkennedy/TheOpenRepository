@@ -7,7 +7,15 @@ BEGIN {
 }
 
 use Test::More;
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile curdir catdir rel2abs);
+
+my @file = (
+    catfile( rel2abs(curdir()), qw(t test10 file1.txt)),
+    catfile( rel2abs(curdir()), qw(t test10 file2.txt)),
+    catfile( rel2abs(curdir()), qw(t test10 file3.txt)),
+    catfile( rel2abs(curdir()), qw(t test10 excluded file1.txt)),
+    catfile( rel2abs(curdir()), qw(t test10 excluded file2.txt)),    
+);
 
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
@@ -19,36 +27,36 @@ BEGIN {
 
 use_ok( 'Perl::Dist::WiX::Filelist' );
 
-is( Perl::Dist::WiX::Filelist->new->add_file('C:\\test.txt')->as_string, 
-    'C:\\test.txt',
+is( Perl::Dist::WiX::Filelist->new->add_file($file[0])->as_string, 
+    $file[0],
     'adding single file' );
 
-my @files = ('C:\\test3.txt', 'C:\\test4.txt');
+my @files = @file[1, 2];
 
 is( Perl::Dist::WiX::Filelist->new->load_array(@files)->as_string, 
-    "C:\\test3.txt\nC:\\test4.txt",
+    "$file[1]\n$file[2]",
     'adding array' );
     
-my $add1 = Perl::Dist::WiX::Filelist->new->add_file('C:\\test5.txt');
-my $add2 = Perl::Dist::WiX::Filelist->new->add_file('C:\\test6.txt');
+my $add1 = Perl::Dist::WiX::Filelist->new->add_file($file[0]);
+my $add2 = Perl::Dist::WiX::Filelist->new->add_file($file[1]);
 
 is( $add1->add($add2)->as_string,
-    "C:\\test5.txt\nC:\\test6.txt",
+    "$file[0]\n$file[1]",
     'addition' );
     
-my $sub1 = Perl::Dist::WiX::Filelist->new->add_file('C:\\test7.txt')->add_file('C:\\test8.txt')
-    ->add_file('C:\\test9.txt');
-my $sub2 = Perl::Dist::WiX::Filelist->new->add_file('C:\\test8.txt');
+my $sub1 = Perl::Dist::WiX::Filelist->new->add_file($file[0])->add_file($file[1])
+    ->add_file($file[2]);
+my $sub2 = Perl::Dist::WiX::Filelist->new->add_file($file[1]);
 
 is( $sub1->subtract($sub2)->as_string,
-    "C:\\test7.txt\nC:\\test9.txt",
+    "$file[0]\n$file[2]",
     'subtraction' );
 
-my $filter = Perl::Dist::WiX::Filelist->new->add_file('C:\\test10.txt')->add_file('D:\\test11.txt')
-    ->add_file('C:\\test12.txt')->add_file('C:\excluded\test13.txt')->add_file('D:\\test14.txt');
-my @filters = ('D:\\', 'C:\\excluded');
+my $filter = Perl::Dist::WiX::Filelist->new->load_array(@file);
+my $re = catdir( rel2abs(curdir()), qw(t test10 excluded));
+my $filters = qr(\A\Q$re\E);
 
-is( $filter->filter(@filters)->as_string,
-    "C:\\test10.txt\nC:\\test12.txt",
+is( $filter->filter($filters)->as_string,
+    "$file[0]\n$file[1]\n$file[2]",
     'filtering'); 
     
