@@ -167,93 +167,25 @@ sub initialize_tree {
         licenses\pexports
         perl\bin
         perl\lib
-        perl\lib\Compress
-        perl\lib\CPAN
-        perl\lib\CPAN\API
-        perl\lib\Digest
-        perl\lib\Digest\MD5
-        perl\lib\ExtUtils
-        perl\lib\ExtUtils\CBuilder
-        perl\lib\ExtUtils\CBuilder\Platform
-        perl\lib\File
-        perl\lib\IO
-        perl\lib\IO\Compress
-        perl\lib\IO\Compress\Adapter
-        perl\lib\IO\Compress\Base
-        perl\lib\IO\Compress\Gzip
-        perl\lib\IO\Compress\Zip
-        perl\lib\IO\Uncompress
-        perl\lib\IO\Uncompress\Adapter
-        perl\lib\Math
-        perl\lib\Math\BigInt
-        perl\lib\Math\BigInt\FastCalc
         perl\lib\Module
-        perl\lib\Test
+        perl\lib\Module\Build
         perl\lib\auto
-        perl\lib\auto\Compress
-        perl\lib\auto\Cwd
+        perl\lib\auto\share
         perl\lib\auto\Devel
-        perl\lib\auto\Digest
-        perl\lib\auto\Digest\MD5
         perl\lib\auto\Encode
-        perl\lib\auto\ExtUtils
-        perl\lib\auto\File
-        perl\lib\auto\IO
-        perl\lib\auto\IO\Compress
-        perl\lib\auto\Math
-        perl\lib\auto\Math\BigInt
-        perl\lib\auto\Math\BigInt\FastCalc
         perl\lib\auto\PerlIO
         perl\lib\auto\POSIX
-        perl\lib\auto\Test
         perl\lib\auto\Time
-        perl\lib\auto\share
         perl\site
         perl\site\lib
-        perl\site\lib\Bundle
-        perl\site\lib\Compress
-        perl\site\lib\CPAN
-        perl\site\lib\DBD
-        perl\site\lib\File
-        perl\site\lib\HTML
-        perl\site\lib\IO
-        perl\site\lib\LWP
-        perl\site\lib\Math
-        perl\site\lib\PAR
-        perl\site\lib\PAR\Dist
-        perl\site\lib\PAR\Repository
-        perl\site\lib\Parse
-        perl\site\lib\Term
-        perl\site\lib\Test
-        perl\site\lib\Win32
-        perl\site\lib\XML
-        perl\site\lib\XML\LibXML
-        perl\site\lib\YAML
         perl\site\lib\auto
         perl\site\lib\auto\share
-        perl\site\lib\auto\Compress
-        perl\site\lib\auto\Compress\Raw
-        perl\site\lib\auto\CPAN
-        perl\site\lib\auto\File
-        perl\site\lib\auto\HTML
-        perl\site\lib\auto\IO
-        perl\site\lib\auto\LWP
-        perl\site\lib\auto\Math
-        perl\site\lib\auto\PAR
-        perl\site\lib\auto\PAR\Dist
-        perl\site\lib\auto\PAR\Repository
-        perl\site\lib\auto\Parse
-        perl\site\lib\auto\Term
-        perl\site\lib\auto\Test
-        perl\site\lib\auto\Win32
-        perl\site\lib\auto\Win32\File
-        perl\site\lib\auto\XML
-        perl\site\lib\auto\XML\LibXML
-        perl\site\lib\auto\YAML
     ), @dirs);
     
     return $self;
 }
+
+# perl\lib\Module\Build?
 
 ########################################
 # as_string

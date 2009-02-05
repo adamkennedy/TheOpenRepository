@@ -54,9 +54,8 @@ is( $sub1->subtract($sub2)->as_string,
 
 my $filter = Perl::Dist::WiX::Filelist->new->load_array(@file);
 my $re = catdir( rel2abs(curdir()), qw(t test10 excluded));
-my $filters = qr(\A\Q$re\E);
 
-is( $filter->filter($filters)->as_string,
+is( $filter->filter([$re])->as_string,
     "$file[0]\n$file[1]\n$file[2]",
     'filtering'); 
     

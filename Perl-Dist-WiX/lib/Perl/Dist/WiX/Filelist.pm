@@ -14,16 +14,18 @@ package Perl::Dist::WiX::Filelist;
 use 5.008;
 use strict;
 use warnings;
-use Carp                   qw( croak             );
-use File::Spec::Functions  qw( catdir catfile    );
-use List::MoreUtils        qw( indexes           );
-use Params::Util           qw( _INSTANCE _STRING );
+use Carp                   qw( croak                        );
+use File::Spec::Functions  qw( catdir catfile               );
+use List::MoreUtils        qw( indexes                      );
+use Params::Util           qw( _INSTANCE _STRING _NONNEGINT );
 use IO::Dir                qw();
 use IO::File               qw();
+require Perl::Dist::WiX::Misc;
 
-use vars qw( $VERSION );
+use vars qw( $VERSION @ISA );
 BEGIN {
 	$VERSION = '0.13_01';
+    @ISA = 'Perl::Dist::WiX::Misc';
 }
 
 #####################################################################
@@ -48,6 +50,16 @@ sub new {
 
     # Initialize files area.
     $self->{files} = [];
+    
+    # Set defaults and check parameters
+    if (not defined $self->{trace}) {
+        $self->{trace} = 0;
+    }
+    if (not defined _NONNEGINT($self->{trace})) {
+        croak "Invalid trace parameter";
+    }
+    
+    
     
     return $self;
 }
@@ -196,7 +208,7 @@ sub load_array {
     
     # Add each file in the array - if it is a file.
     foreach my $file (@files) {
-        next if -d $file;
+        next if not -f $file;
         push @{$self->files}, $file;
     }
 
@@ -368,11 +380,10 @@ sub move_dir {
 
 
 ########################################
-# filter(@re_list)
+# filter($re_list)
 # Parameters:
-#   @re_list: Array of strings to use as regular 
+#   $re_list: Arrayref of strings to use as regular 
 #     expressions of filenames to filter out.
-#     The strings are quotemeta'd as they are used.
 # Returns:
 #   Object being acted upon (chainable) 
 # Action:
@@ -380,36 +391,20 @@ sub move_dir {
 #   from the object.
 
 sub filter {
-    my ($self, @re_list) = @_;
+    my ($self, $re_list) = @_;
 
     # Define variables to use.
-    my @loc;
     my @files = @{$self->files};
-    my @files2;
-    my $f;
     
-    # Check the filelist against each filter.
-    foreach my $re (@re_list) {
-        my @loc = indexes { $_ =~ m/\A\Q$re\E/ } @files;
-        if (@loc) {
-            # Delete files found.
-            delete @files[@loc];
-            undef @loc;
-
-            # 'compress' @files by removing the deleted files each time a file is removed.
-            undef @files2;
-            while ($#files > -1) {
-                $f = shift @files;
-                push @files2, $f if defined($f);
-            }
-            @files = @files2; 
-        }
+    # Filtering out values that match the regular expressions.
+    foreach my $re (@{$re_list}) {
+        $self->trace_line(2, "Filtering on $re\n");
+        @files = grep { not ($_ =~ m/\A\Q$re\E/) } @files; 
     }
-
-    # Reload 
+    
     $self->clear->load_array(@files);
     
-    return $self;    
+    return $self;  
 }
 
 ########################################

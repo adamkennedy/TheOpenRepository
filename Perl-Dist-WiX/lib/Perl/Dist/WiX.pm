@@ -531,8 +531,8 @@ sub new {
 	}
 
     # Initialize filters.
-    $self->{filters} = [];
-    push @{$self->filters},
+    my @filters_array;
+    push @filters_array,
                 $self->temp_dir                           . q{\\},
         catdir( $self->image_dir, qw{ perl man         }) . q{\\},
         catdir( $self->image_dir, qw{ perl html        }) . q{\\},
@@ -546,8 +546,11 @@ sub new {
         catdir( $self->image_dir, qw{ cpan sources     }) . q{\\},
         catdir( $self->image_dir, qw{ cpan build       }) . q{\\},
         catfile($self->image_dir, qw{ c    COPYING     }),
-        catfile($self->image_dir, qw{ c    COPYING.LIB });
+        catfile($self->image_dir, qw{ c    COPYING.LIB }),
+    ;
 
+    $self->{filters} = \@filters_array;
+        
     # Get environment started.
     $self->{env_path} = [];
     
@@ -1393,7 +1396,7 @@ sub install_perl_588 {
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
-    $fl->subtract($fl2)->filter(@{$self->filters});
+    $fl->subtract($fl2)->filter($self->filters);
     
     $self->insert_fragment('perl', $fl->files);
 
@@ -1536,7 +1539,7 @@ sub install_perl_589 {
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
-    $fl->subtract($fl2)->filter(@{$self->filters});
+    $fl->subtract($fl2)->filter($self->filters);
     
     $self->insert_fragment('perl', $fl->files);
 
@@ -1680,7 +1683,7 @@ sub install_perl_5100 {
         
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(catdir($self->image_dir, 'perl'));
     
-    $fl->subtract($fl2)->filter(@{$self->filters});
+    $fl->subtract($fl2)->filter($self->filters);
     
     $self->insert_fragment('perl', $fl->files);
     
@@ -2297,7 +2300,7 @@ sub install_binary {
 		push @files, $self->_extract_filemap( $tgz, $binary->license, $self->license_dir, 1 );
 	}
 
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@files)->filter(@{$self->filters});
+    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@files)->filter($self->filters);
     
 	return $filelist;
 }
@@ -2374,7 +2377,7 @@ sub install_library {
 	}
 
     my @sorted_files = sort { $a cmp $b } @files;
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)->filter(@{$self->filters});
+    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)->filter($self->filters);
     
 	return $filelist;
 }
@@ -2635,6 +2638,7 @@ sub _need_packlist {
 		Win32::Env::Path
 		Win32::Exe
         LWP::Online
+        Pod::Simple
     );
     
     return any { $module eq $_ } @mods;    
@@ -2873,7 +2877,7 @@ sub install_par {
     # Read in the .packlist and return it.
     my $filelist = Perl::Dist::WiX::Filelist->new
         ->load_file($packlist)
-        ->filter(@{$self->filters})
+        ->filter($self->filters)
         ->add_file($packlist);
 
 	return $filelist;
@@ -2958,7 +2962,7 @@ sub install_file {
 	# Clear the download file
 	File::Remove::remove( \1, $tgz );
 
-    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@files)->filter(@{$self->filters});
+    my $filelist = Perl::Dist::WiX::Filelist->new->load_array(@files)->filter($self->filters);
     
 	return $filelist;
 }
