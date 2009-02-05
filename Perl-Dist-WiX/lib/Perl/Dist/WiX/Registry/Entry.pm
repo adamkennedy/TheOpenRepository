@@ -7,14 +7,14 @@ package Perl::Dist::WiX::Registry::Entry;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$ 
+# $Rev$ $Date$ $Author$
 # $URL$
-
-use 5.006;
-use strict;
-use warnings;
-use Carp              qw( croak               );
-use Params::Util      qw( _IDENTIFIER _STRING );
+#<<<
+use     5.006;
+use     strict;
+use     warnings;
+use     Carp              qw( croak               );
+use     Params::Util      qw( _IDENTIFIER _STRING );
 require Perl::Dist::WiX::Base::Entry;
 
 use vars qw( $VERSION @ISA );
@@ -22,17 +22,17 @@ BEGIN {
     $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Base::Entry';
 }
-
+#>>>
 #####################################################################
 # Accessors:
 #   action, value_type, value_name, value_data:
 #     see constructor for information.
 
 use Object::Tiny qw{
-    action
-    value_type
-    value_name
-    value_data
+  action
+  value_type
+  value_name
+  value_data
 };
 
 #####################################################################
@@ -47,7 +47,7 @@ use Object::Tiny qw{
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
 
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my $self = shift->SUPER::new( @_ );
 
     # Apply defaults
     unless ( defined $self->value_type ) {
@@ -55,21 +55,21 @@ sub new {
     }
 
     # Check params
-    unless ( _IDENTIFIER($self->action) ) {
-        croak("Missing or invalid action param");
+    unless ( _IDENTIFIER( $self->action ) ) {
+        croak( "Missing or invalid action param" );
     }
-    unless ( _IDENTIFIER($self->value_type) ) {
-        croak("Invalid value_type param");
+    unless ( _IDENTIFIER( $self->value_type ) ) {
+        croak( "Invalid value_type param" );
     }
-    unless ( _IDENTIFIER($self->value_name) ) {
-        croak("Missing or invalid value_name param");
+    unless ( _IDENTIFIER( $self->value_name ) ) {
+        croak( "Missing or invalid value_name param" );
     }
-    unless ( _STRING($self->value_data) ) {
-        croak("Missing or invalid value_data param");
+    unless ( _STRING( $self->value_data ) ) {
+        croak( "Missing or invalid value_data param" );
     }
 
     return $self;
-}
+} ## end sub new
 
 #####################################################################
 # Main Methods
@@ -77,7 +77,7 @@ sub new {
 ########################################
 # entry($value_name, $value_data, $action, $value_type)
 # Parameters:
-#   See constructor for details. 
+#   See constructor for details.
 
 # Shortcut constructor for an environment variable
 sub entry {
@@ -85,8 +85,7 @@ sub entry {
         value_name => $_[1],
         value_data => $_[2],
         action     => $_[3],
-        value_type => $_[4]
-    );
+        value_type => $_[4] );
 }
 
 ########################################
@@ -94,18 +93,22 @@ sub entry {
 # Parameters:
 #    None
 # Returns:
-#   String representation of the <RegistryValue> tags represented 
+#   String representation of the <RegistryValue> tags represented
 #   by this object.
 
 sub as_string {
     my $self = shift;
 
-    return q{<RegistryValue} .
-        q{ Action='}  . $self->action .
-        q{' Type='}   . $self->value_type .
-        q{' Name='}   . $self->value_name .
-        q{' Value='}  . $self->value_data . q{' />}
-    ;
-}
+    return
+        q{<RegistryValue}
+      . q{ Action='}
+      . $self->action
+      . q{' Type='}
+      . $self->value_type
+      . q{' Name='}
+      . $self->value_name
+      . q{' Value='}
+      . $self->value_data . q{' />};
+} ## end sub as_string
 
 1;

@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::StartMenu;
 
 #####################################################################
-# Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that 
+# Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that
 # contains start menu <Shortcut>.
 #
 # Copyright 2009 Curtis Jewell
@@ -10,13 +10,13 @@ package Perl::Dist::WiX::StartMenu;
 #
 # $Rev$ $Date$ $Author$
 # $URL$
-
-use 5.006;
-use strict;
-use warnings;
-use Carp            qw( croak               );
-use Params::Util    qw( _IDENTIFIER _STRING );
-use Data::UUID      qw( NameSpace_DNS       );
+#<<<
+use     5.006;
+use     strict;
+use     warnings;
+use     Carp            qw( croak               );
+use     Params::Util    qw( _IDENTIFIER _STRING );
+use     Data::UUID      qw( NameSpace_DNS       );
 require Perl::Dist::WiX::Base::Fragment;
 
 use vars qw( $VERSION @ISA );
@@ -24,13 +24,13 @@ BEGIN {
     $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Base::Fragment';
 }
-
+#>>>
 #####################################################################
 # Accessors:
 #   sitename: Returns the sitename passed in to new.
 
 use Object::Tiny qw{
-    sitename
+  sitename
 };
 
 #####################################################################
@@ -41,31 +41,31 @@ use Object::Tiny qw{
 #   sitename: The name of the site that is hosting the download.
 
 sub new {
-    my ($class, %params) = @_;
+    my ( $class, %params ) = @_;
 
     # Apply required defaults.
     unless ( defined $params{id} ) {
         $params{id} = 'Icons';
-    }    
+    }
     unless ( defined $params{directory} ) {
         $params{directory} = 'ApplicationProgramsFolder';
     }
 
-    my $self = $class->SUPER::new(%params);
+    my $self = $class->SUPER::new( %params );
 
     # Check parameters.
-    unless (_STRING($self->sitename)) {
+    unless ( _STRING( $self->sitename ) ) {
         croak 'Invalid or missing sitename';
     }
-    unless (_IDENTIFIER($self->id)) {
+    unless ( _IDENTIFIER( $self->id ) ) {
         croak 'Invalid or missing id';
     }
-    unless (_STRING($self->directory)) {
+    unless ( _STRING( $self->directory ) ) {
         croak 'Invalid or missing directory';
     }
-    
+
     return $self;
-}
+} ## end sub new
 
 #####################################################################
 # Main Methods
@@ -79,21 +79,21 @@ sub new {
 
 sub get_component_array {
     my $self = shift;
-    
-    my $count = scalar @{$self->{components}};
+
+    my $count = scalar @{ $self->{components} };
     my @answer;
     my $id;
 
     push @answer, 'RemoveShortcutFolder';
-    
+
     # Get the array for each descendant.
-    foreach my $i (0 .. $count - 1) {
+    foreach my $i ( 0 .. $count - 1 ) {
         $id = $self->{components}->[$i]->id;
-        push @answer, "S_$id"; 
+        push @answer, "S_$id";
     }
 
     return @answer;
-}
+} ## end sub get_component_array
 
 sub search_file {
     return undef;
@@ -112,13 +112,13 @@ sub check_duplicates {
 #   by this object.
 
 sub as_string {
-    my ($self) = shift;
-    
-    # getting the number of items in the array referred to by $self->{components}
-    my $count = scalar @{$self->{components}};
+    my ( $self ) = shift;
+
+# getting the number of items in the array referred to by $self->{components}
+    my $count = scalar @{ $self->{components} };
     my $string;
     my $s;
-    
+
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
@@ -126,17 +126,22 @@ sub as_string {
     <DirectoryRef Id='$self->{directory}'>
 EOF
 
-    foreach my $i (0 .. $count - 1) {
+    foreach my $i ( 0 .. $count - 1 ) {
         $s = $self->{components}->[$i]->as_string;
-        $string .= $self->indent(6, $s);
+        $string .= $self->indent( 6, $s );
         $string .= "\n";
     }
 
     my $guidgen = Data::UUID->new();
+
     # Make our own namespace...
-    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
+    my $uuid =
+      $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
+        $self->sitename );
+
     #... then use it to create a GUIDs out of the ID.
-    my $guid_RSF = uc $guidgen->create_from_name_str($uuid, 'RemoveShortcutFolder');
+    my $guid_RSF =
+      uc $guidgen->create_from_name_str( $uuid, 'RemoveShortcutFolder' );
 
     $string .= <<"EOF";
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
@@ -149,6 +154,6 @@ EOF
 
     return $string;
 
-}
+} ## end sub as_string
 
 1;

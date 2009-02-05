@@ -10,28 +10,32 @@ package Perl::Dist::WiX::Environment;
 #
 # $Rev$ $Date$ $Author$
 # $URL$
-
-use 5.006;
-use strict;
-use warnings;
-use Carp           qw( croak          );
-use Params::Util   qw( _IDENTIFIER    );
-use Data::UUID     qw( NameSpace_DNS  );
+#<<<
+use     5.006;
+use     strict;
+use     warnings;
+use     Carp           qw( croak          );
+use     Params::Util   qw( _IDENTIFIER    );
+use     Data::UUID     qw( NameSpace_DNS  );
 require Perl::Dist::WiX::Base::Fragment;
+require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::EnvironmentEntry;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
     $VERSION = '0.13_01';
-    @ISA = 'Perl::Dist::WiX::Base::Fragment';
+    @ISA = qw(
+        Perl::Dist::WiX::Base::Fragment
+        Perl::Dist::WiX::Base::Component
+    );
 }
-
+#>>>
 #####################################################################
 # Accessors:
 #   sitename: The name of the site that is hosting the download.
 
 use Object::Tiny qw{
-    sitename
+  sitename
 };
 
 
@@ -43,23 +47,27 @@ use Object::Tiny qw{
 #   sitename: The name of the site that is hosting the download.
 
 sub new {
-    my ($class, %params) = @_;
+    my ( $class, %params ) = @_;
 
     # Apply defaults
     unless ( defined $params{id} ) {
         $params{id} = 'Environment';
     }
 
-    unless (_IDENTIFIER($params{id})) {
+    unless ( _IDENTIFIER( $params{id} ) ) {
         croak 'Missing or invalid id parameter';
     }
 
-    my $self = $class->SUPER::new(%params);
+    my $self = $class->Perl::Dist::WiX::Base::Fragment::new( %params );
 
+    # Make a GUID for as_string to use.
+    $self->create_guid_from_id();
+
+    # Initialize list of entries
     $self->{entries} = [];
-    
+
     return $self;
-}
+} ## end sub new
 
 #####################################################################
 # Main Methods
@@ -75,16 +83,16 @@ sub check_duplicates {
 ########################################
 # add_entry(...)
 # Parameters:
-#   Passed to EnvironmentEntry->new. 
-# Returns: 
+#   Passed to EnvironmentEntry->new.
+# Returns:
 #   Object being called. (chainable)
 
 sub add_entry {
     my $self = shift;
-        
-    my $i = scalar @{$self->{entries}};
-    $self->{entries}->[$i] = Perl::Dist::WiX::EnvironmentEntry->new(@_);
-    
+
+    my $i = scalar @{ $self->{entries} };
+    $self->{entries}->[$i] = Perl::Dist::WiX::EnvironmentEntry->new( @_ );
+
     return $self;
 }
 
@@ -110,30 +118,24 @@ sub get_component_array {
 #   and <Environment> tags defined by objects contained in this object.
 
 sub as_string {
-    my ($self) = shift;
-    
-    # getting the number of items in the array referred to by $self->{components}
-    my $count = scalar @{$self->{entries}};
+    my ( $self ) = shift;
+
+# getting the number of items in the array referred to by $self->{components}
+    my $count = scalar @{ $self->{entries} };
     my $string;
     my $s;
-    
-    my $guidgen = Data::UUID->new();
-    # Make our own namespace...
-    my $uuid = $guidgen->create_from_name(Data::UUID::NameSpace_DNS, $self->sitename);
-    #... then use it to create a GUID out of the ID.
-    my $guid = uc $guidgen->create_from_name_str($uuid, $self->{id});
 
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Fragment Id='Fr_$self->{id}'>
     <DirectoryRef Id='TARGETDIR'>
-      <Component Id='C_$self->{id}' Guid='$guid'>
+      <Component Id='C_$self->{id}' Guid='$self->{guid}'>
 EOF
 
-    foreach my $i (0 .. $count - 1) {
+    foreach my $i ( 0 .. $count - 1 ) {
         $s = $self->{entries}->[$i]->as_string;
-        $string .= $self->indent(6, $s);
+        $string .= $self->indent( 6, $s );
         $string .= "\n";
     }
 
@@ -145,6 +147,6 @@ EOF
 EOF
 
     return $string;
-}
+} ## end sub as_string
 
 1;

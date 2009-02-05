@@ -18,13 +18,14 @@ use strict;
 use warnings;
 
 use vars qw( $VERSION );
+
 BEGIN {
     $VERSION = '0.13_01';
 }
 
 sub new {
     my $class = shift;
-    bless { @_ }, $class;
+    bless {@_}, $class;
 }
 
 1;

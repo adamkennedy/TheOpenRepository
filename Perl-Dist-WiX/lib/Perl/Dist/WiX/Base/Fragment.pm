@@ -12,12 +12,12 @@ package Perl::Dist::WiX::Base::Fragment;
 #
 # $Rev$ $Date$ $Author$
 # $URL$
-
-use 5.006;
-use strict;
-use warnings;
-use Carp              qw( croak             );
-use Params::Util      qw( _CLASSISA _STRING );
+#<<<
+use     5.006;
+use     strict;
+use     warnings;
+use     Carp              qw( croak             );
+use     Params::Util      qw( _CLASSISA _STRING );
 require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
@@ -25,15 +25,15 @@ BEGIN {
     $VERSION = '0.13_01';
     @ISA = 'Perl::Dist::WiX::Misc';
 }
-
+#>>>
 #####################################################################
 # Accessors:
 #   id: Returns the id parameter passed in to new.
 #   directory: Returns the directory parameter passed in to new.
 
 use Object::Tiny qw{
-    id
-    directory
+  id
+  directory
 };
 
 #####################################################################
@@ -41,27 +41,27 @@ use Object::Tiny qw{
 #
 # Parameters: [pairs]
 #   id: Id parameter to the <Fragment> tag (required)
-#   directory: Id parameter to the <DirectoryRef> tag  within this fragment. 
+#   directory: Id parameter to the <DirectoryRef> tag  within this fragment.
 
 sub new {
-    my $self = shift->SUPER::new(@_);
-    
+    my $self = shift->SUPER::new( @_ );
+
     # Check parameters and set defaults.
     unless ( defined $self->directory ) {
         $self->{directory} = 'TARGETDIR';
     }
-    unless ( _STRING($self->directory) ) {
+    unless ( _STRING( $self->directory ) ) {
         croak 'Invalid directory parameter';
     }
-    unless ( _STRING($self->id) ) {
+    unless ( _STRING( $self->id ) ) {
         croak 'Missing or invalid id parameter';
     }
-    
+
     # Initialize components arrayref.
     $self->{components} = [];
-    
+
     return $self;
-}
+} ## end sub new
 
 #####################################################################
 # Main Methods
@@ -71,40 +71,43 @@ sub new {
 # Parameters:
 #   $component: Component object being added. Must be a subclass of
 #   Perl::Dist::WiX::Base::Component
-# Returns: 
+# Returns:
 #   Object being called. (chainable)
 
 
 sub add_component {
-    my ($self, $component) = @_;
-    
+    my ( $self, $component ) = @_;
+
     # Check parameters.
-    if (not defined _CLASSISA(ref $component, 'Perl::Dist::WiX::Base::Component')) {
+    if (
+        not defined _CLASSISA( ref $component,
+            'Perl::Dist::WiX::Base::Component' ) )
+    {
         croak 'Not adding a valid component';
     }
-    
+
     # Adding component to the list.
-    my $i = scalar @{$self->{components}};
+    my $i = scalar @{ $self->{components} };
     $self->{components}->[$i] = $component;
-    
+
     return $self;
-}
+} ## end sub add_component
 
 ########################################
 # as_string
 # Parameters:
 #   None
 # Returns:
-#   String representation of <Fragment> and <DirectoryRef> tags represented 
+#   String representation of <Fragment> and <DirectoryRef> tags represented
 #   by this object, along with the components it contains.
 
 sub as_string {
-    my ($self) = shift;
+    my ( $self ) = shift;
     my $string;
     my $s;
- 
+
     # Short-circuit.
-    return q{} if (0 == scalar @{$self->{components}}); 
+    return q{} if ( 0 == scalar @{ $self->{components} } );
 
     # Start with XML header and opening tags.
     $string = <<"END_OF_XML";
@@ -115,14 +118,14 @@ sub as_string {
 END_OF_XML
 
     # Stringify the components we contain.
-    my $count = scalar @{$self->{components}};
-    foreach my $i (0 .. $count - 1) {
+    my $count = scalar @{ $self->{components} };
+    foreach my $i ( 0 .. $count - 1 ) {
         $s = $self->{components}->[$i]->as_string;
         chomp $s;
-        $string .= $self->indent(6, $s);
+        $string .= $self->indent( 6, $s );
         $string .= "\n";
     }
-    
+
     # Finish up.
     $string .= <<'END_OF_XML';
     </DirectoryRef>
@@ -131,6 +134,6 @@ END_OF_XML
 END_OF_XML
 
     return $string;
-}
+} ## end sub as_string
 
 1;
