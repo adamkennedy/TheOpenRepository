@@ -1131,6 +1131,13 @@ sub install_perl_toolchain {
             # Does something weird with tainting
             $force = 1;
         }
+        if ( $dist =~ /URI-/ ) {
+
+            # Can't rely on t/heuristic.t not finding a www.perl.bv
+            # because some ISP's use DNS redirectors for unfindable 
+            # sites.
+            $force = 1;
+        }
         if ( $dist =~ /Term-ReadLine-Perl/ ) {
 
             # Does evil things when testing, and
