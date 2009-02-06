@@ -175,19 +175,42 @@ sub initialize_tree {
           licenses\pexports
           perl\bin
           perl\lib
+          perl\lib\Compress
+          perl\lib\ExtUtils
+          perl\lib\File
+          perl\lib\IO
+          perl\lib\IO\Compress
           perl\lib\Module
           perl\lib\Module\Build
+          perl\lib\Test
           perl\lib\auto
           perl\lib\auto\share
+          perl\lib\auto\Compress
           perl\lib\auto\Devel
+          perl\lib\auto\Digest
           perl\lib\auto\Encode
+          perl\lib\auto\ExtUtils
+          perl\lib\auto\File
+          perl\lib\auto\IO
+          perl\lib\auto\IO\Compress
           perl\lib\auto\PerlIO
           perl\lib\auto\POSIX
+          perl\lib\auto\Test
           perl\lib\auto\Time
           perl\site
           perl\site\lib
+          perl\site\lib\Compress
+          perl\site\lib\File
+          perl\site\lib\HTML
+          perl\site\lib\IO
+          perl\site\lib\Win32
           perl\site\lib\auto
           perl\site\lib\auto\share
+          perl\site\lib\auto\Compress
+          perl\site\lib\auto\File
+          perl\site\lib\auto\HTML
+          perl\site\lib\auto\IO
+          perl\site\lib\auto\Win32
           ), @dirs
     );
 

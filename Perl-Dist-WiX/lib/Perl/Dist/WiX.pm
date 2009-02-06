@@ -19,28 +19,28 @@ Install XML technology, instead of Inno Setup.
 # $Rev$ $Date$ $Author$
 # $URL$
 
-use 5.008;
-use strict;
-use warnings;
-use Carp                  qw( croak                   );
-use Archive::Zip          qw( :ERROR_CODES            );
-use List::MoreUtils       qw( any                     );
-use Params::Util          qw( _HASH _STRING _INSTANCE );
-use File::Spec::Functions
+use     5.008;
+use     strict;
+use     warnings;
+use     Carp                  qw( croak                   );
+use     Archive::Zip          qw( :ERROR_CODES            );
+use     List::MoreUtils       qw( any                     );
+use     Params::Util          qw( _HASH _STRING _INSTANCE );
+use     File::Spec::Functions
   qw( catdir catfile catpath tmpdir splitpath rel2abs curdir );
-use Archive::Tar     1.42 qw();
-use File::Remove          qw();
-use File::pushd           qw();
-use File::ShareDir        qw();
-use File::Copy::Recursive qw();
-use File::PathList        qw();
-use HTTP::Status          qw();
-use IO::String            qw();
-use LWP::UserAgent        qw();
-use LWP::Online           qw();
-use PAR::Dist             qw();
-use SelectSaver           qw();
-use Template              qw();
+use     Archive::Tar     1.42 qw();
+use     File::Remove          qw();
+use     File::pushd           qw();
+use     File::ShareDir        qw();
+use     File::Copy::Recursive qw();
+use     File::PathList        qw();
+use     HTTP::Status          qw();
+use     IO::String            qw();
+use     LWP::UserAgent        qw();
+use     LWP::Online           qw();
+use     PAR::Dist             qw();
+use     SelectSaver           qw();
+use     Template              qw();
 require Perl::Dist::WiX::Installer;
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
@@ -93,14 +93,13 @@ use Perl::Dist::Asset::File         1.12 ();
 use Perl::Dist::Asset::Website      1.12 ();
 use Perl::Dist::Asset::Launcher     1.12 ();
 use Perl::Dist::Util::Toolchain     1.12 ();
-#>>>
 
 use vars qw( $VERSION @ISA );
-
 BEGIN {
     $VERSION = '0.13_01';
     @ISA     = 'Perl::Dist::WiX::Installer';
 }
+#>>>
 
 #####################################################################
 # Constructor
@@ -1155,6 +1154,18 @@ sub install_cpan_upgrades {
         croak( "Cannot install CPAN modules yet, perl is not installed" );
     }
 
+    if ( $self->perl_version =~ m(\A510)) {
+
+        # 5.10.x versions need these modules installed BEFORE the upgrade...
+        $self->install_distribution(
+            name => 'ARANDAL/Pod-Simple-3.07.tar.gz', 
+            makefilepl_param  => ['INSTALLDIRS=perl']
+        )->install_distribution(
+            name => 'MSERGEANT/Time-Piece-1.13.tar.gz', 
+            makefilepl_param  => ['INSTALLDIRS=perl']
+        );
+    }
+    
     # Generate the CPAN installation script
     my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
@@ -2689,6 +2700,7 @@ sub _need_packlist {
       Win32::Exe
       LWP::Online
       Pod::Simple
+      Time::Piece
     );
 
     return any { $module eq $_ } @mods;
