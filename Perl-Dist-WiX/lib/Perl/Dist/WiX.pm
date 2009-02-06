@@ -373,13 +373,6 @@ sub new {
         $params{download_dir} = catdir( $params{temp_dir}, 'download' );
         File::Path::mkpath( $params{download_dir} );
     }
-
-    # To store the WiX fragments in.
-    unless ( defined $params{fragment_dir} ) {
-        $params{fragment_dir} =
-          catdir( $params{temp_dir}, 'wix_fragments' );
-        File::Path::mkpath( $params{fragment_dir} );
-    }
     unless ( defined $params{build_dir} ) {
         $params{build_dir} = catdir( $params{temp_dir}, 'build' );
         $class->remake_path( $params{build_dir} );
@@ -391,6 +384,11 @@ sub new {
             print "Wait a second while we empty the output directory...\n";
         }
         $class->remake_path( $params{output_dir} );
+    }
+    unless ( defined $params{fragment_dir} ) {
+        $params{fragment_dir} =        # To store the WiX fragments in.
+          catdir( $params{output_dir}, 'fragments' );
+        File::Path::mkpath( $params{fragment_dir} );
     }
     if ( defined $params{image_dir} ) {
         $class->remake_path( $params{image_dir} );
@@ -1099,6 +1097,8 @@ sub install_perl {
     }
     $self->$install_perl_method( @_ );
 
+    $self->add_to_fragment('perl', [ catfile($self->image_dir, qw(perl lib perllocal.pod)) ]);
+    
     return $self;
 } ## end sub install_perl
 
@@ -1173,6 +1173,9 @@ sub install_cpan_upgrades {
         );
     }
     
+    my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(
+        catdir( $self->image_dir, 'perl' ) );
+    
     # Generate the CPAN installation script
     my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
@@ -1199,6 +1202,13 @@ END_PERL
     $self->_run3( $self->bin_perl, $cpan_file ) or die "perl failed";
     die "Failure detected during cpan upgrade, stopping" if $?;
 
+    my $fl = Perl::Dist::WiX::Filelist->new->readdir(
+        catdir( $self->image_dir, 'perl' ) );
+
+    $fl->subtract( $fl2 )->filter( $self->filters );
+
+    $self->insert_fragment( 'upgraded_modules', $fl->files );
+
     return 1;
 } ## end sub install_cpan_upgrades
 
@@ -1209,7 +1219,7 @@ sub install_perl_modules {
     # Upgrade anything out of date,
     # but don't install anything extra.
     $self->install_cpan_upgrades;
-
+    
     return 1;
 }
 

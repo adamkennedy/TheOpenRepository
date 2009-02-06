@@ -176,10 +176,14 @@ sub initialize_tree {
           perl\bin
           perl\lib
           perl\lib\Compress
+          perl\lib\CPAN
+          perl\lib\CPAN\API
+          perl\lib\Digest
           perl\lib\ExtUtils
           perl\lib\File
           perl\lib\IO
           perl\lib\IO\Compress
+          perl\lib\IO\Uncompress
           perl\lib\Module
           perl\lib\Module\Build
           perl\lib\Test
@@ -188,6 +192,7 @@ sub initialize_tree {
           perl\lib\auto\Compress
           perl\lib\auto\Devel
           perl\lib\auto\Digest
+          perl\lib\auto\Digest\MD5
           perl\lib\auto\Encode
           perl\lib\auto\ExtUtils
           perl\lib\auto\File
@@ -203,6 +208,7 @@ sub initialize_tree {
           perl\site\lib\File
           perl\site\lib\HTML
           perl\site\lib\IO
+          perl\site\lib\Term
           perl\site\lib\Win32
           perl\site\lib\auto
           perl\site\lib\auto\share
@@ -210,6 +216,7 @@ sub initialize_tree {
           perl\site\lib\auto\File
           perl\site\lib\auto\HTML
           perl\site\lib\auto\IO
+          perl\site\lib\auto\Term
           perl\site\lib\auto\Win32
           ), @dirs
     );
@@ -218,6 +225,8 @@ sub initialize_tree {
 } ## end sub initialize_tree
 
 # perl\lib\Module\Build?
+# perl\site\lib\[auto]Win32\API?
+# perl\lib\[auto\]Test\Deep?
 
 ########################################
 # as_string
