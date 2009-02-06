@@ -31,9 +31,9 @@ sub brief_result {
 
     return
           'total: weak='
-        . $test->original_weak_count() . q{; }
+        . $test->weak_probe_count() . q{; }
         . 'strong='
-        . $test->original_strong_count() . q{; }
+        . $test->strong_probe_count() . q{; }
         . 'unfreed: weak='
         . ( scalar @unfreed_weak ) . q{; }
         . 'strong='

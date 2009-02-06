@@ -38,44 +38,44 @@ of them, even implicitly.
 =cut
 
 sub Test::Weaken::Internal::follow {
-    my $base_ref = shift;
+    my $base_probe = shift;
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
-    my $result  = [ \( ${$base_ref} ) ];
+    my $result  = [ \( ${$base_probe} ) ];
     my %reverse = ();
     my $to_here = -1;
-    REF: while ( $to_here < $#{$result} ) {
+    PROBE: while ( $to_here < $#{$result} ) {
         $to_here++;
-        my $refref = $result->[$to_here];
-        my $type   = reftype $refref;
+        my $probe = $result->[$to_here];
+        my $type  = reftype $probe;
 
-        my @old_refrefs = ();
-        if ( $type eq 'REF' ) { @old_refrefs = ($refref) }
+        my @old_probes = ();
+        if ( $type eq 'REF' ) { @old_probes = ($probe) }
         elsif ( $type eq 'ARRAY' ) {
-            @old_refrefs = map { \$_ } grep { ref $_ } @{$refref};
+            @old_probes = map { \$_ } grep { ref $_ } @{$probe};
         }
         elsif ( $type eq 'HASH' ) {
-            @old_refrefs = map { \$_ } grep { ref $_ } values %{$refref};
+            @old_probes = map { \$_ } grep { ref $_ } values %{$probe};
         }
 
-        for my $old_refref (@old_refrefs) {
-            my $rr_type = reftype ${$old_refref};
-            my $new_refref =
-                  $rr_type eq 'HASH'    ? \%{ ${$old_refref} }
-                : $rr_type eq 'ARRAY'   ? \@{ ${$old_refref} }
-                : $rr_type eq 'REF'     ? \${ ${$old_refref} }
-                : $rr_type eq 'SCALAR'  ? \${ ${$old_refref} }
-                : $rr_type eq 'CODE'    ? \&{ ${$old_refref} }
-                : $rr_type eq 'VSTRING' ? \${ ${$old_refref} }
-                :                         undef;
-            if ( defined $new_refref and not $reverse{ $new_refref + 0 } ) {
-                push @{$result}, $new_refref;
-                $reverse{ $new_refref + 0 }++;
+        for my $old_probe (@old_probes) {
+            my $object_type = reftype ${$old_probe};
+            my $new_probe =
+                  $object_type eq 'HASH'    ? \%{ ${$old_probe} }
+                : $object_type eq 'ARRAY'   ? \@{ ${$old_probe} }
+                : $object_type eq 'REF'     ? \${ ${$old_probe} }
+                : $object_type eq 'SCALAR'  ? \${ ${$old_probe} }
+                : $object_type eq 'CODE'    ? \&{ ${$old_probe} }
+                : $object_type eq 'VSTRING' ? \${ ${$old_probe} }
+                :                             undef;
+            if ( defined $new_probe and not $reverse{ $new_probe + 0 } ) {
+                push @{$result}, $new_probe;
+                $reverse{ $new_probe + 0 }++;
             }
         }
 
-    }    # REF
+    }    # PROBE
 
     return $result;
 
@@ -139,54 +139,54 @@ sub test {
     my $constructor = $self->{constructor};
     my $destructor  = $self->{destructor};
 
-    my $test_object_rr = \( $constructor->() );
-    if ( not ref ${$test_object_rr} ) {
+    my $test_object_probe = \( $constructor->() );
+    if ( not ref ${$test_object_probe} ) {
         carp(
             'Test::Weaken test object constructor did not return a reference'
         );
     }
-    my $refrefs = Test::Weaken::Internal::follow($test_object_rr);
+    my $probes = Test::Weaken::Internal::follow($test_object_probe);
 
-    $self->{probe_count} = @{$refrefs};
-    $self->{original_weak_count} =
-        grep { ref $_ eq 'REF' and isweak ${$_} } @{$refrefs};
-    $self->{original_strong_count} =
-        $self->{probe_count} - $self->{original_weak_count};
+    $self->{probe_count} = @{$probes};
+    $self->{weak_probe_count} =
+        grep { ref $_ eq 'REF' and isweak ${$_} } @{$probes};
+    $self->{strong_probe_count} =
+        $self->{probe_count} - $self->{weak_probe_count};
 
-    for my $refref ( @{$refrefs} ) {
-        weaken($refref);
+    for my $probe ( @{$probes} ) {
+        weaken($probe);
     }
 
     # Now free everything.
-    $destructor->( ${$test_object_rr} ) if defined $destructor;
+    $destructor->( ${$test_object_probe} ) if defined $destructor;
 
-    $test_object_rr = undef;
+    $test_object_probe = undef;
 
-    my $unfreed_proberefs = [ grep { defined $_ } @{$refrefs} ];
-    $self->{unfreed_proberefs} = $unfreed_proberefs;
+    my $unfreed_probes = [ grep { defined $_ } @{$probes} ];
+    $self->{unfreed_probes} = $unfreed_probes;
 
-    return scalar @{$unfreed_proberefs};
+    return scalar @{$unfreed_probes};
 
 }    # sub test
 
 sub Test::Weaken::Internal::poof_array_return {
 
     my $test    = shift;
-    my $results = $test->{unfreed_proberefs};
+    my $results = $test->{unfreed_probes};
 
     my @unfreed_strong = ();
     my @unfreed_weak   = ();
-    for my $refref ( @{$results} ) {
-        if ( ref $refref eq 'REF' and isweak ${$refref} ) {
-            push @unfreed_weak, $refref;
+    for my $probe ( @{$results} ) {
+        if ( ref $probe eq 'REF' and isweak ${$probe} ) {
+            push @unfreed_weak, $probe;
         }
         else {
-            push @unfreed_strong, $refref;
+            push @unfreed_strong, $probe;
         }
     }
 
     # See the POD on the return values
-    return ( @{$test}{qw(original_weak_count original_strong_count)},
+    return ( @{$test}{qw(weak_probe_count strong_probe_count)},
         \@unfreed_weak, \@unfreed_strong );
 
 } ## end sub poof_array_return;
@@ -209,7 +209,7 @@ sub leaks {
 
 sub unfreed_proberefs {
     my $test   = shift;
-    my $result = $test->{unfreed_proberefs};
+    my $result = $test->{unfreed_probes};
     if ( not defined $result ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -218,7 +218,7 @@ sub unfreed_proberefs {
 
 sub unfreed_count {
     my $test   = shift;
-    my $result = $test->{unfreed_proberefs};
+    my $result = $test->{unfreed_probes};
     if ( not defined $result ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -234,18 +234,18 @@ sub probe_count {
     return $count;
 }
 
-sub original_weak_count {
+sub weak_probe_count {
     my $test  = shift;
-    my $count = $test->{original_weak_count};
+    my $count = $test->{weak_probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
 
-sub original_strong_count {
+sub strong_probe_count {
     my $test  = shift;
-    my $count = $test->{original_strong_count};
+    my $count = $test->{strong_probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
