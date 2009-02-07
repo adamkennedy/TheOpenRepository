@@ -35,7 +35,7 @@ TokenTypeNames commit_map[128] = {
 	Token_Word, /* 'h' */ Token_Word, /* 'i' */ Token_Word, /* 'j' */ Token_Word, /* 'k' */ 
 	Token_Word, /* 'l' */ Token_Word, /* 'm' */ Token_Word, /* 'n' */ Token_Word, /* 'o' */ 
 	Token_Word, /* 'p' */ Token_Word, /* 'q' */ Token_Word, /* 'r' */ Token_Word, /* 's' */ 
-	Token_Word, /* 't' */ Token_Word, /* 'u' */ Token_Word, /* 'v' */ Token_Word, /* 'w' */ 
+	Token_Word, /* 't' */ Token_Word, /* 'u' */ Token_Number_Version, /* 'v' */ Token_Word, /* 'w' */ 
 	Token_NoType, /* 120 */ Token_Word, /* 'y' */ Token_Word, /* 'z' */ Token_Structure, /* '{' */ 
 	Token_Operator, /* '|' */ Token_Structure, /* '}' */ Token_Operator, /* '~' */ Token_NoType, /* 127 */
 };

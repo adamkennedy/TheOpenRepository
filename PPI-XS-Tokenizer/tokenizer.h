@@ -14,6 +14,7 @@ enum TokenTypeNames {
     Token_Structure,
 	Token_Magic,
 	Token_Number,
+	Token_Number_Version,
 	Token_Operator,
 	Token_Unknown,
 	Token_Quote_Single,
@@ -22,6 +23,9 @@ enum TokenTypeNames {
 	Token_Quote_Literal,
 	Token_QuoteLike_Backtick,
 	Token_QuoteLike_Readline,
+	Token_QuoteLike_Command,
+	Token_QuoteLike_Regexp,
+	Token_QuoteLike_Words,
 	Token_Regexp_Match,
 	Token_Cast, 
 	Token_Prototype,
@@ -59,6 +63,18 @@ public:
 	 *	done_it_myself - already copied whatever I could, and advanced the positions,
 	 *		so the caller don't even need to advance the position on the line
 	 *	error_fail - on error. stop.
+	 * Converting guidlines:
+	 *	Perl: 
+	 *		return "TokenClassName";
+	 *	C++:
+	 *		t->_new_token(Token_Type);
+	 *		return my_char;
+	 *	Perl:
+	 *		return $t->_finalize_token->__TOKENIZER__on_char( $t );
+	 *	C++:
+	 *		TokenTypeNames zone = t->_finalize_token();
+	 *		t->_new_token(zone);
+	 *		return done_it_myself;
 	 */
 	virtual CharTokenizeResults tokenize(Tokenizer *t, Token *c_token, unsigned char c_char) = 0;
 	/* tokenize as much as you can
