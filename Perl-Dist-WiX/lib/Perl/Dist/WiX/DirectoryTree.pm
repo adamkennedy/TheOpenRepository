@@ -190,6 +190,7 @@ sub initialize_tree {
           perl\lib\autodie
           perl\lib\auto
           perl\lib\auto\share
+          perl\lib\auto\Archive
           perl\lib\auto\Compress
           perl\lib\auto\Devel
           perl\lib\auto\Digest
@@ -200,9 +201,12 @@ sub initialize_tree {
           perl\lib\auto\IO
           perl\lib\auto\IO\Compress
           perl\lib\auto\Module
+          perl\lib\auto\Module\Load
           perl\lib\auto\PerlIO
+          perl\lib\auto\Pod
           perl\lib\auto\POSIX
           perl\lib\auto\Test
+          perl\lib\auto\Test\Harness
           perl\lib\auto\Time
           perl\site
           perl\site\lib
