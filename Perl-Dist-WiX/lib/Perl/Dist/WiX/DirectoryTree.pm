@@ -187,6 +187,7 @@ sub initialize_tree {
           perl\lib\Module
           perl\lib\Module\Build
           perl\lib\Test
+          perl\lib\autodie
           perl\lib\auto
           perl\lib\auto\share
           perl\lib\auto\Compress

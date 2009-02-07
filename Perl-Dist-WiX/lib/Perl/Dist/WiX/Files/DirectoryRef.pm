@@ -118,7 +118,7 @@ sub search_dir {
     }
 
     # Do we want to continue searching down this direction?
-    my $subset = $path_to_find =~ m/\A\Q$path\E/;
+    my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
     if ( not $subset ) {
         $self->trace_line( 4, "Not a subset in: $path.\n" );
         $self->trace_line( 5, "  To find: $path_to_find.\n" );
