@@ -199,6 +199,7 @@ sub initialize_tree {
           perl\lib\auto\File
           perl\lib\auto\IO
           perl\lib\auto\IO\Compress
+          perl\lib\auto\Module
           perl\lib\auto\PerlIO
           perl\lib\auto\POSIX
           perl\lib\auto\Test
