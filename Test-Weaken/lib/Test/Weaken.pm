@@ -262,6 +262,14 @@ Test::Weaken - Test that freed references are, indeed, freed
 
 =head1 SYNOPSIS
 
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/synopsis.t', 'synopsis')
+
+=end Marpa::Test::Display:
+
     use Test::Weaken qw(leaks);
     use Data::Dumper;
     use Math::BigInt;
@@ -302,6 +310,12 @@ Test::Weaken - Test that freed references are, indeed, freed
             print Data::Dumper->Dump( [$proberef], ['unfreed'] );
         }
     }
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 =head1 DESCRIPTION
 
@@ -575,6 +589,12 @@ progress on your bug as I make changes.
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
+
+=begin Marpa::Test::Display:
+
+## skip display
+
+=end Marpa::Test::Display:
 
     perldoc Test::Weaken
 
