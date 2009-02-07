@@ -3,10 +3,9 @@ package ORDB::CPANTS;
 use 5.008005;
 use strict;
 use warnings;
-
-our $VERSION = '0.02';
-
 use ORLite::Mirror 1.11 ();
+
+our $VERSION = '0.03';
 
 use constant ONE_MONTH => 30 * 24 * 60 * 60;
 
