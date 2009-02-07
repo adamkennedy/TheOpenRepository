@@ -51,7 +51,7 @@ sub Test::Weaken::Internal::follow {
         my $type  = reftype $probe;
 
         my @old_probes = ();
-        if ( $type eq 'REF' ) { @old_probes = ($probe) }
+        if ( $type eq 'REF' ) { push @old_probes, $probe; }
         elsif ( $type eq 'ARRAY' ) {
             @old_probes = map { \$_ } grep { ref $_ } @{$probe};
         }

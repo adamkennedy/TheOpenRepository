@@ -34,7 +34,8 @@
 use strict;
 use warnings;
 
-use Scalar::Util qw(reftype);
+use Scalar::Util qw(reftype weaken);
+use Data::Dumper;
 
 my $array_ref = \@{[qw(42)]};
 
@@ -58,6 +59,21 @@ REF: for my $ref ($array_ref, $scalar_ref, $regexp_ref, $format_ref, $glob_ref, 
     print +(ref $ref), " ", (reftype $ref), "\n";
 }
 
-REF: for my $ref ($scalar_ref, $regexp_ref, $format_ref, $glob_ref, $IO_ref, $lv_ref) {
-    last REF;
+REF: for my $ref (
+$scalar_ref, $regexp_ref,
+$glob_ref,
+$lv_ref,
+) {
+    my $probe = \$ref;
+    print "Trying to deref ", (ref $probe), " ", (ref $ref), "\n";
+    my $new_probe = \ ${ ${$probe} };
 }
+
+REF: for my $ref (
+$IO_ref,
+) {
+    my $probe = \$ref;
+    print "Trying to deref ", (ref $probe), " ", (ref $ref), "\n";
+    my $new_probe = \ *{ ${$probe} };
+}
+
