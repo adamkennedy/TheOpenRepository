@@ -1,5 +1,8 @@
 Revision history for Perl extension Algorithm::Dependency
 
+1.107 Sun  8 Feb 2009
+	- Adding Algorithm::Dependency::Source::Invert
+
 1.106 Mon 14 Jan 2008
 	- Adding a slight change to 01_compile.t to prevent warnings
 

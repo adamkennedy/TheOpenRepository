@@ -38,7 +38,7 @@ use Params::Util qw{_HASH _ARRAY0};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 	@ISA     = 'Algorithm::Dependency::Source';
 }
 
@@ -119,7 +119,7 @@ L<Algorithm::Dependency>, L<Algorithm::Dependency::Source>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 - 2005 Adam Kennedy.
+Copyright 2003 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

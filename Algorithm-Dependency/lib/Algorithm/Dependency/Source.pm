@@ -25,7 +25,7 @@ use Params::Util qw{_SET};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.106';
+	$VERSION = '1.107';
 }
 
 
@@ -246,7 +246,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Algorithm-Dependency>
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -254,7 +254,7 @@ L<Algorithm::Dependency>, L<Algorithm::Dependency::Source::File>
 
 =head1 COPYRIGHT
 
-Copyright (c) 2003 - 2005 Adam Kennedy.
+Copyright 2003 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
