@@ -6,6 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
+use Test::More tests => 2;
+
 ok( $] >= 5.008, 'Perl version is new enough' );
 
 use_ok( 'CPANTS::Weight' );
