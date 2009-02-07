@@ -22,17 +22,30 @@ use strict;
 use warnings;
 use File::Spec    ();
 use File::HomeDir ();
-use DBI           ();
-
-# Where do we store the data
-use constant FILE => File::Spec->catfile(
-	File::HomeDir->my_data,
-	($^O eq 'MSWin32' ? 'Perl' : '.perl'),
-	'CPANTS-Weight',
-);
 
 # Generate the class tree
-use ORLite {
-	file   => FILE,
-	create => 1,
+use ORLite 1.19 {
+	file => File::Spec->catfile(
+		File::HomeDir->my_data,
+		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
+		'CPANTS-Weight',
+	),
+	create => sub {
+		$_[0]->do(<<'END_SQL');
+create table dist_weight (
+	id         integer      not null primary key,
+	dist       varchar(255) not null unique,
+	weight     integer      not null,
+	configure  integer      not null,
+	build      integer      not null,
+	test       integer      not null,
+	runtime    integer      not null,
+	volatility integer      not null,
+)
+	},
+	user_version => 0,
 };
+
+# Load the CPANTS database
+
+1;
