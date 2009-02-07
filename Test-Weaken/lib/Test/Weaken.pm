@@ -10,7 +10,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '1.003_001';
+our $VERSION   = '1.003_002';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -274,40 +274,47 @@ is_file($_, '../t/synopsis.t', 'synopsis')
     use Data::Dumper;
     use Math::BigInt;
     use Math::BigFloat;
+    use Carp;
+    use English qw( -no_match_vars );
 
     my $good_test = sub {
-       my $obj1 = new Math::BigInt('42');
-       my $obj2 = new Math::BigFloat('7.11');
-       [ $obj1, $obj2 ];
-    };  
-
-    my $bad_test = sub {
-       my $array = [ 42, 711 ];
-       push @{$array}, $array;
-       $array;
+        my $obj1 = new Math::BigInt('42');
+        my $obj2 = new Math::BigFloat('7.11');
+        [ $obj1, $obj2 ];
     };
 
-    my $bad_destructor = sub { "I don't work" };
+    my $bad_test = sub {
+        my $array = [ 42, 711 ];
+        push @{$array}, $array;
+        $array;
+    };
 
-    if ( !leaks( $good_test ) ) {
-        print "No leaks in test 1\n";
-    } else {
-        print "There were memory leaks from test 1!\n";
+    my $bad_destructor = sub {'I am useless'};
+
+    if ( !leaks($good_test) ) {
+        print "No leaks in test 1\n" or croak("Cannot print to STDOUT: $ERRNO");
+    }
+    else {
+        print "There were memory leaks from test 1!\n"
+            or croak("Cannot print to STDOUT: $ERRNO");
     }
 
-    my $test = Test::Weaken::leaks({
-        constructor => $bad_test,
-        destructor  => $bad_destructor,
-    });
-    if ( $test ) {
+    my $test = Test::Weaken::leaks(
+        {   constructor => $bad_test,
+            destructor  => $bad_destructor,
+        }
+    );
+    if ($test) {
         my $unfreed_proberefs = $test->unfreed_proberefs();
-        my $unfreed_count = @{$unfreed_proberefs};
+        my $unfreed_count     = @{$unfreed_proberefs};
         printf "Test 2: %d of %d original references were not freed\n",
-            $test->unfreed_count(),
-            $test->probe_count();
-        print "These are the probe references to the unfreed objects:\n";
+            $test->unfreed_count(), $test->probe_count()
+            or croak("Cannot print to STDOUT: $ERRNO");
+        print "These are the probe references to the unfreed objects:\n"
+            or croak("Cannot print to STDOUT: $ERRNO");
         for my $proberef ( @{$unfreed_proberefs} ) {
-            print Data::Dumper->Dump( [$proberef], ['unfreed'] );
+            print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+                or croak("Cannot print to STDOUT: $ERRNO");
         }
     }
 
