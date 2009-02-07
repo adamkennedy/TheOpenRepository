@@ -348,6 +348,48 @@ To avoid infinite loops,
 C<Test::Weaken> records all the memory objects it visits,
 and will not visit the same memory object twice.
 
+=head2 Tracked Objects and Followed Objects.
+
+Any memory object may be a B<tracked object>,
+if C<Test::Weaken> keeps track of it with a probe reference.
+An object is a B<followed object>
+if C<Test::Weaken> follows it in its recursive search for objects to track.
+Some tracked objects are not followed,
+and some followed objects are not tracked.
+
+Elements of arrays and hashes are followed, but are never tracked.
+They are not considered memory objects, because their memory will
+always be
+freed when the array or hash they belong to is destroyed.
+
+Variables and constants which are not array or hash elements
+are tracked or followed according to their type.
+Variables of type
+SCALAR, ARRAY, HASH, CODE, REF, VSTRING and Regexp are tracked.
+ARRAY, HASH, and REF variables are followed.
+SCALAR, VSTRING and Regexp objects do not hold references to memory objects
+and cannot be followed.
+CODE objects may, as closures, hold references to memory objects,
+and future implementations of 
+C<Test::Weaken> may look inside CODE objects
+and follow the references they contain,
+but this implementation does not.
+
+Perl objects of types other than those already described
+in this section
+are not tracked or followed.
+FORMAT objects
+are always global,
+and their use is not recommended.
+If C<Test::Weaken> encountered FORMAT, GLOB, IO or LVALUE
+objects, it would be through a reference,
+and references to these objects are rare and hard to create.
+GLOB, IO, and LVALUE objects
+are not standard memory objects
+and it is not clear how to track or follow them
+in a way that does
+anything but confuse matters.
+
 =head2 Why the Test Object is Passed via a Closure
 
 C<Test::Weaken> does not accept its test object or its primary test reference
@@ -491,7 +533,7 @@ If circumstances allow you to
 add elements to the arrays and hashes,
 you might find it useful to "tag" them for tracking purposes.
 
-You can uniquely identify memory objects using
+You can identify memory objects using
 the referent addresses of the probe references.
 A referent address 
 can be determined by using the
@@ -499,6 +541,26 @@ C<refaddr> method of
 L<Scalar::Util>.
 You can also obtain the referent address of a reference by adding zero
 to the reference.
+
+When using the referent addresses to identify objects,
+a corner case must be kept in mind.
+Referent addresses are only unique identifiers at a point in time.
+Once an object is freed, its address can be reused.
+An object with the same referent address
+as an object examined earlier is not necessarily
+the same object.
+
+To be sure an earlier and a later object with the same address
+are actually the same object,
+you need to know that the object is persistent,
+or to apply other tests.
+Pedantically, it is possible that two indiscernable
+(that is, completely identical)
+objects with the same referent address are, in a sense, different.
+The first object might have been destroyed and a second, identical,
+object created at the same address.
+But for most practical programming purposes,
+two indiscernable objects can be treated as the same object.
 
 Note that in other Perl documentation, the term "reference address" is often
 used when a referent address is meant.
@@ -541,13 +603,9 @@ Nothing prevents a test object constructor from, for example,
 simply returning a reference it finds in global scope as the
 primary test reference.
 
-=head1 EXPORT
+=head1 EXPORTS
 
 By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be exported.
-
-=head1 LIMITATIONS
-
-C<Test::Weaken> does not check for leaked code references or look inside them.
 
 =head1 IMPLEMENTATION
 
