@@ -3,7 +3,7 @@ Test::DistManifest Change History
 $Id$
 
 2009-02-07 by FREQUENCY
-- Version tagged 1.2
+- Version tagged 1.1.1
 - Hopefully fixed some failing tests due to upstream DBD::SQLite
 - Updated Build.PL and META.yml accordingly
 - Added recommended dependency Test::Without::Module

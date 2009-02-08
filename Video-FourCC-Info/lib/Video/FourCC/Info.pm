@@ -48,11 +48,11 @@ Character Code
 
 =head1 VERSION
 
-Version 1.2 ($Id$)
+Version 1.1.1 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.2');
+use version; our $VERSION = qv('1.1.1');
 
 =head1 DESCRIPTION
 
