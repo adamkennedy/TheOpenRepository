@@ -175,6 +175,7 @@ sub initialize_tree {
           licenses\pexports
           perl\bin
           perl\lib
+          perl\lib\B
           perl\lib\Compress
           perl\lib\CPAN
           perl\lib\CPAN\API
@@ -186,13 +187,17 @@ sub initialize_tree {
           perl\lib\IO\Uncompress
           perl\lib\Module
           perl\lib\Module\Build
+          perl\lib\Pod
           perl\lib\Test
+          perl\lib\Time
           perl\lib\autodie
           perl\lib\auto
           perl\lib\auto\share
           perl\lib\auto\Archive
+          perl\lib\auto\B
           perl\lib\auto\Compress
           perl\lib\auto\Devel
+          perl\lib\auto\Devel\PPPort
           perl\lib\auto\Digest
           perl\lib\auto\Digest\MD5
           perl\lib\auto\Encode
@@ -201,7 +206,7 @@ sub initialize_tree {
           perl\lib\auto\IO
           perl\lib\auto\IO\Compress
           perl\lib\auto\Module
-          perl\lib\auto\Module\Load
+          perl\lib\auto\Module\Load          
           perl\lib\auto\PerlIO
           perl\lib\auto\Pod
           perl\lib\auto\POSIX
