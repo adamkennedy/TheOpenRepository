@@ -3,8 +3,7 @@ NAME
     Character Code
 
 VERSION
-    Version 1.1 ($Id: Info.pm 4999 2009-01-20 04:20:20Z FREQUENCY@cpan.org
-    $)
+  Version 1.2 ($Id$)
 
 DESCRIPTION
     In order for video players to detect the algorithm required to decode a
@@ -171,9 +170,8 @@ CAVEATS
 
 DATA SOURCE
     The FourCC database of owner and descriptions come from data extracted
-    from GSpot v2.70a, a freeware Codec Information utility. The
-    registration dates come courtesy of Microsoft Corporation, accessed
-    online at:
+    from GSpot v2.70a, a freeware Codec Information utility. The registration
+    dates come courtesy of Microsoft Corporation, accessed online at:
     <http://msdn.microsoft.com/en-us/library/ms867195.aspx#fourcccodes>
 
 LICENSE

@@ -65,6 +65,7 @@ my $builder = Module::Build->new(
     'Test::Pod'               => '1.14',
     'Test::Pod::Coverage'     => '1.04',
     'Test::DistManifest'      => 0,
+    'Test::Without::Module'   => 0,
   },
   conflicts => {
   },

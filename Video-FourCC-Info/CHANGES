@@ -2,6 +2,12 @@ Test::DistManifest Change History
 
 $Id$
 
+2009-02-07 by FREQUENCY
+- Version tagged 1.2
+- Hopefully fixed some failing tests due to upstream DBD::SQLite
+- Updated Build.PL and META.yml accordingly
+- Added recommended dependency Test::Without::Module
+
 2009-01-19 by FREQUENCY
 - Version tagged 1.1
 - Fixed error with multiple plans for 02fallback.t
