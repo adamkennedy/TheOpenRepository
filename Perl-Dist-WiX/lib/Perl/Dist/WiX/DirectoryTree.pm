@@ -201,10 +201,22 @@ sub initialize_tree {
           perl\lib\auto\Digest
           perl\lib\auto\Digest\MD5
           perl\lib\auto\Encode
+          perl\lib\auto\Encode\Byte
+          perl\lib\auto\Encode\CN
+          perl\lib\auto\Encode\EBCDIC
+          perl\lib\auto\Encode\JP
+          perl\lib\auto\Encode\KR
+          perl\lib\auto\Encode\Symbol
+          perl\lib\auto\Encode\TW
+          perl\lib\auto\Encode\Unicode
           perl\lib\auto\ExtUtils
           perl\lib\auto\File
+          perl\lib\auto\Filter
           perl\lib\auto\IO
           perl\lib\auto\IO\Compress
+          perl\lib\auto\Math
+          perl\lib\auto\Math\BigInt
+          perl\lib\auto\Math\BigInt\FastCalc
           perl\lib\auto\Module
           perl\lib\auto\Module\Load          
           perl\lib\auto\PerlIO
@@ -212,6 +224,9 @@ sub initialize_tree {
           perl\lib\auto\POSIX
           perl\lib\auto\Test
           perl\lib\auto\Test\Harness
+          perl\lib\auto\Text
+          perl\lib\auto\threads
+          perl\lib\auto\threads\shared
           perl\lib\auto\Time
           perl\site
           perl\site\lib
