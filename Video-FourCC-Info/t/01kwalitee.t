@@ -21,4 +21,5 @@ if ($@) {
   plan skip_all => 'Test::Kwalitee required to test distribution Kwalitee';
 }
 
+# Everything is set up, run the Kwalitee tests
 Test::Kwalitee->import();

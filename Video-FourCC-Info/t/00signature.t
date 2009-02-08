@@ -22,4 +22,5 @@ if ($@) {
 }
 
 plan tests => 1;
+
 signature_ok();

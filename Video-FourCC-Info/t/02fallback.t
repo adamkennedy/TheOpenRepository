@@ -11,7 +11,9 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::NoWarnings;
+
+# Cannot 'use' because we might skip tests
+require Test::NoWarnings;
 
 eval {
   require DateTime;
@@ -29,10 +31,18 @@ if ($@) {
 
 plan tests => 2;
 
+# Delay loading of test hooks
+Test::NoWarnings->import();
+
 # Hide the DateTime package
 Test::Without::Module->import('DateTime');
 
 use Video::FourCC::Info;
+
+# Avoid warnings like:
+#  Name "DBD::SQLite::sqlite_version" used only once: possible typo
+# This is the reason for 90% of the failing CPAN Testers reports
+if (defined $DBD::SQLite::sqlite_version) { }
 
 # Check that the date parsed is appropriate
 my $codec = Video::FourCC::Info->new('CC12');
