@@ -20,6 +20,14 @@ use DBI ();
 use File::Basename ();
 use File::Spec     ();
 
+BEGIN {
+  use DBD::SQLite ();
+  # Avoid warnings like:
+  #  Name "DBD::SQLite::sqlite_version" used only once: possible typo
+  # This is the reason for 90% of the failing CPAN Testers reports
+  if (defined $DBD::SQLite::sqlite_version) { }
+}
+
 # Use DateTime if available
 eval { require DateTime; };
 
