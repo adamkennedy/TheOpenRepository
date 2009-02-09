@@ -8,11 +8,11 @@ use Test::More    ();
 use File::Path    ();
 use File::Remove  ();
 use Win32         ();
-use t::lib::Test1 ();
-use t::lib::Test588 ();
-use t::lib::Test3 ();
-use t::lib::Test4 ();
-use t::lib::Test589 ();
+use t::lib::TestQuick    ();
+use t::lib::Test588      ();
+use t::lib::Test5100     ();
+use t::lib::TestPortable ();
+use t::lib::Test589      ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -76,7 +76,7 @@ sub cpan {
 
 sub new1 {
 	my $class = shift;
-	return t::lib::Test1->new(
+	return t::lib::TestQuick->new(
 		cpan => $class->cpan,
 		$class->paths(@_),
 	);

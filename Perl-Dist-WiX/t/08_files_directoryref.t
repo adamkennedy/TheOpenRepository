@@ -16,7 +16,7 @@ BEGIN {
 }
 
 use     File::Spec::Functions 
-            qw(curdir updir splitdir rel2abs catfile);
+            qw(curdir updir splitdir rel2abs catfile catdir);
 require Perl::Dist::WiX::Files::DirectoryRef;
 require Perl::Dist::WiX::Directory;
 
@@ -24,8 +24,8 @@ require Perl::Dist::WiX::Directory;
 #####################################################################
 #
 
-my $path = rel2abs(curdir());
-my $path_up = rel2abs(updir());
+my $path = rel2abs( catdir( curdir(), 't' ) );
+my $path_up = rel2abs( curdir() );
 
 my $dir = Perl::Dist::WiX::Directory->new( 
     trace => 100,
