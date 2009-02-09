@@ -38,4 +38,5 @@
 
 # Avoid our own built files.
 \APerl-Dist-WiX-
+\bfilelist\.txt$
 
