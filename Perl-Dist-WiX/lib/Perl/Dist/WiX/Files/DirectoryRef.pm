@@ -208,6 +208,15 @@ sub delete_filenum {
         croak 'Missing or invalid index parameter';
     }
 
+    if ($i >= scalar @{$self->{files}}) {
+        croak 'Not enough files';
+    }
+
+    if (not defined $self->{files}->[$i]) {
+        croak 'Already deleted this file';
+    }
+
+    
 # Delete the file. (The object should disappear once its reference is set to undef)
     $self->trace_line( 3,
         'Deleting reference to ' . $self->{files}->[$i]->filename . "\n" );
@@ -271,16 +280,26 @@ sub is_child_of {
     }
 
     my $path_to_check = $directory_obj->path;
+    my $path = $self->directory_object->path;
 
     # Returns false if the object is a "special".
     if ( not defined $path_to_check ) {
         return 0;
     }
 
-    my $path = $self->directory_object->path;
-
+    # Short-circuit.
+    if ($path eq $path_to_check) { 
+        $self->trace_line( 5,
+            "Is Child Of: Answer: Identity (0)\n" );
+        return 0; 
+    }
+    
     # Do the check.
-    return ( "$path\\" =~ m{\A\Q$path\E\\} );
+    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\} ? 1 : 0;
+    $self->trace_line( 5,
+"Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
+    );
+    return $answer;
 } ## end sub is_child_of
 
 ########################################
@@ -294,12 +313,13 @@ sub add_file {
     my ( $self, @params ) = @_;
 
     # Check parameters
-    if ( -1 == scalar @params ) {
+    if ( 0 == scalar @params ) {
         croak 'Missing file parameter';
     }
+    
     foreach my $j ( 0 .. scalar @params - 1 ) {
         if ( not _STRING( $params[$j] ) ) {
-            croak 'Missing or invalid file[$j] parameter';
+            croak "Missing or invalid file[$j] parameter";
         }
     }
 

@@ -424,6 +424,14 @@ sub is_child_of {
             "Is Child Of: Answer: No path detected (0)\n" );
         return 0;
     }
+    
+    # Short-circuit.
+    if ($path eq $path_to_check) { 
+        $self->trace_line( 5,
+            "Is Child Of: Answer: Identity (0)\n" );
+        return 0; 
+    }
+
     my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\} ? 1 : 0;
     $self->trace_line( 5,
 "Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
