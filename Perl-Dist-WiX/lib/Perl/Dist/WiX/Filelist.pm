@@ -95,7 +95,7 @@ sub clone {
 # Returns:
 #   Number of files in this object
 
-sub count { my $self = shift; return scalar @{ $self->{files} } + 1; }
+sub count { my $self = shift; return scalar @{ $self->{files} }; }
 
 ########################################
 # clear
