@@ -24,7 +24,7 @@ my $component = Perl::Dist::WiX::Base::Component->new(
     id => 'Test');
 ok( $component, '->new returns true' );
 
-$component_test = bless( {
+my $component_test = bless( {
   'entries' => [],
   'id' => 'Test'
 }, 'Perl::Dist::WiX::Base::Component' );
