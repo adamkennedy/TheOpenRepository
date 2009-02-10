@@ -63,15 +63,13 @@ sub show {
 			next;
 		}
 		if ( @$elements > 1 ) {
-			error("$file contains more than one \$VERSION = 'something';");
+			error("$file contains more than one \$VERSION = something;");
 		}
-		my $element = $elements->[0];
-		my $version = $element->snext_sibling->snext_sibling;
-		my $version_string = $version->string;
-		unless ( defined $version_string ) {
+		my $version = _get_version($elements->[0]);
+		unless ( defined $version ) {
 			error("Failed to get version string");
 		}
-		print " $version_string\n";
+		print " $version\n";
 		$count++;
 	}
 
@@ -129,31 +127,49 @@ sub change {
 #####################################################################
 # Support Functions
 
+# Locate a version number token
 sub _find_version {
-	# Find a $VERSION symbol
-	$_[1]->isa('PPI::Token::Symbol')           or return '';
-	$_[1]->content =~ m/^\$(?:\w+::)*VERSION$/ or return '';
+	# Must be a quote or number
+	$_[1]->isa('PPI::Token::Quote')          or
+	$_[1]->isa('PPI::Token::Number')         or return '';
 
-	# It is the first thing in the statement
-	$_[1]->sprevious_sibling                  and return '';
+	# To the right is a statement terminator or nothing
+	my $t = $_[1]->snext_sibling;
+	if ( $t ) {
+		$t->isa('PPI::Token::Structure') or return '';
+		$t->content eq ';'               or return '';
+	}
 
-	# Followed by an "equals"
-	my $equals = $_[1]->snext_sibling          or return '';
-	$equals->isa('PPI::Token::Operator')       or return '';
-	$equals->content eq '='                    or return '';
+	# To the left is an equals sign
+	my $e = $_[1]->sprevious_sibling         or return '';
+	$e->isa('PPI::Token::Operator')          or return '';
+	$e->content eq '='                       or return '';
 
-	# Followed by a quote
-	my $quote = $equals->snext_sibling         or return '';
-	$quote->isa('PPI::Token::Quote')           or return '';
-
-	# ... which is EITHER the end of the statement
-	my $next = $quote->snext_sibling           or return 1;
-
-	# ... or is a statement terminator
-	$next->isa('PPI::Token::Structure')        or return '';
-	$next->content eq ';'                      or return '';
+	# To the left is a $VERSION symbol
+	my $v = $e->sprevious_sibling            or return '';
+	$v->isa('PPI::Token::Symbol')            or return '';
+	$v->content =~ m/^\$(?:\w+::)*VERSION$/  or return '';
+	
+	# To the left is either nothing or "our"
+	my $o = $v->sprevious_sibling;
+	if ( $o ) {
+		$o->content eq 'our'             or return '';
+		$o->sprevious_sibling           and return '';
+	}
 
 	return 1;
+}
+
+# Extract the version
+sub _get_version {
+	my $t = shift;
+	if ( $t->isa('PPI::Token::Quote') ) {
+		return $t->string;
+	}
+	if ( $t->isa('PPI::Token::Number') ) {
+		return $t->content;
+	}
+	die "Unknown version token";
 }
 
 sub _file_version {
