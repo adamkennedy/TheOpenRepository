@@ -183,6 +183,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\operator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\structure.cpp"
 				>
 			</File>

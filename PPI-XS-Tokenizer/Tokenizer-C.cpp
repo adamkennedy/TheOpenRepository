@@ -9,12 +9,12 @@ int main(int argc, char* argv[])
 {
 	Tokenizer tk;
 	char *line = "  {  }   \n";
-	long length = 6;
+	long length = 10;
 	tk.tokenizeLine(line, length);
 	line = "  # aabbcc d\n";
 	tk.tokenizeLine(line, 13);
-	//line = " $_ \n";
-	//tk.tokenizeLine(line, 5);
+	line = " + \n";
+	tk.tokenizeLine(line, 4);
 	tk._finalize_token();
 	Token *tkn;
 	while (( tkn = tk.pop_one_token() ) != NULL ) {

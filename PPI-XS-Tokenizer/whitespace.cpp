@@ -109,15 +109,15 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			 ( !strcmp(t1->text, "sub") ) &&
 			 ( ( t2 == NULL ) || ( t2->type->type == Token_Structure ) ) ) {
 			t->_new_token(Token_Prototype);
-			return done_it_myself;
+			return my_char;
 		}
 
 		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && ( !strcmp(t0->text, "sub") ) ) {
 			t->_new_token(Token_Prototype);
-			return done_it_myself;
+			return my_char;
 		}
 		t->_new_token(Token_Structure);
-		return done_it_myself;
+		return my_char;
 	}
 	
 	if (c_char == 60) { // '<'
@@ -144,7 +144,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			 ( ( t0_type == Token_Operator  ) && ( !strcmp(t0->text, "=" ) ) ) ||
 			 ( ( t0_type == Token_Operator  ) && ( !strcmp(t0->text, "," ) ) ) ) {
 			t->_new_token(Token_QuoteLike_Readline);
-			return done_it_myself;
+			return my_char;
 		}
 
 		if ( ( t0_type == Token_Structure ) && ( !strcmp(t0->text, "}" ) ) ) {
@@ -155,18 +155,18 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		}
 
 		t->_new_token(Token_QuoteLike_Readline);
-		return done_it_myself;
+		return my_char;
 	}
 
 	if (c_char == 47) { // '/'
 		Token *t0 = t->_last_significant_token(1);
 		if (t0 == NULL) {
 			t->_new_token(Token_Regexp_Match);
-			return done_it_myself;
+			return my_char;
 		}
 		if ( t0->type->type == Token_Operator) { 
 			t->_new_token(Token_Regexp_Match);
-			return done_it_myself;
+			return my_char;
 		}
 		if ( ( t0->type->type == Token_Symbol ) || 
 			 ( t0->type->type == Token_Number ) ||
@@ -177,7 +177,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		if ( ( t0->type->type == Token_Structure ) && 
 			( ( !strcmp(t0->text, "(") ) || ( !strcmp(t0->text, "{") ) || ( !strcmp(t0->text, ";") ) ) ) {
 			t->_new_token(Token_Regexp_Match);
-			return done_it_myself;
+			return my_char;
 		}
 		if ( ( t0->type->type == Token_Word ) && 
 			 ( ( !strcmp(t0->text, "split") ) || 
@@ -185,13 +185,13 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			   ( !strcmp(t0->text, "unless") ) || 
 			   ( !strcmp(t0->text, "grep") ) ) ) {
 			t->_new_token(Token_Regexp_Match);
-			return done_it_myself;
+			return my_char;
 		}
 
 		uchar n_char = t->c_line[ t->line_pos + 1 ];
 		if ( ( n_char == '^' ) || ( n_char == '[' ) || ( n_char == '\\' ) ) {
 			t->_new_token(Token_Regexp_Match);
-			return done_it_myself;
+			return my_char;
 		}
 
 		t->_new_token(Token_Operator);
@@ -217,7 +217,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			return my_char;
 		} else {
 			t->_new_token(Token_Unknown);
-			return done_it_myself;
+			return my_char;
 		}
 	}
 

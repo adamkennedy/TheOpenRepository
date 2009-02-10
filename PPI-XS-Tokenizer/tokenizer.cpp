@@ -123,12 +123,16 @@ Tokenizer::Tokenizer()
 	tokens_found(NULL), 
 	zone(Token_WhiteSpace),
 	m_nLastSignificantPos(0)
-	{
+{
+	for (int ix = 0; ix < Token_LastTokenType; ix++) {
+		TokenTypeNames_pool[Token_NoType] = NULL;
+	}
 	TokenTypeNames_pool[Token_NoType] = NULL;
 	TokenTypeNames_pool[Token_WhiteSpace] = &m_WhiteSpaceToken;
 	TokenTypeNames_pool[Token_Comment] = &m_CommentToken;
 	TokenTypeNames_pool[Token_Structure] = &m_StructureToken;
 	TokenTypeNames_pool[Token_Magic] = &m_MagicToken;
+	TokenTypeNames_pool[Token_Operator] = &m_OperatorToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}
@@ -195,4 +199,13 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, long line_length) {
         };
     }
     return reached_eol;
+}
+
+bool Tokenizer::is_digit(uchar c) {
+	return ( ( c >= '0' ) && ( c <= 9 ) );
+}
+
+void Tokenizer::changeTokenType(TokenTypeNames new_type) {
+	// FIXME: need to add special handling if Quote or Regex
+	c_token->type = TokenTypeNames_pool[new_type];
 }

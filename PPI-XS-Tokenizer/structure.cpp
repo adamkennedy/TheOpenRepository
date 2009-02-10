@@ -8,7 +8,7 @@ CharTokenizeResults StructureToken::tokenize(Tokenizer *t, Token *token, unsigne
 	// Finalize and process again.
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
-	return t->c_token->type->tokenize(t, t->c_token, c_char);
+	return done_it_myself;
 }
 
 CharTokenizeResults StructureToken::commit(Tokenizer *t, unsigned char c_token) {

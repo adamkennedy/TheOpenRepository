@@ -2,6 +2,10 @@
 #ifndef _TOKENIZER_H_
 #define _TOKENIZER_H_
 
+#include <map>
+#include <string>
+#include "string.h"
+
 typedef unsigned long ulong;
 typedef unsigned char uchar;
 
@@ -15,6 +19,7 @@ enum TokenTypeNames {
 	Token_Magic,
 	Token_Number,
 	Token_Number_Version,
+	Token_Number_Float,
 	Token_Operator,
 	Token_Unknown,
 	Token_Quote_Single,
@@ -29,7 +34,8 @@ enum TokenTypeNames {
 	Token_Regexp_Match,
 	Token_Cast, 
 	Token_Prototype,
-	Token_ArrayIndex
+	Token_ArrayIndex,
+	Token_LastTokenType // have to be last
 };
 
 enum CharTokenizeResults {
@@ -116,6 +122,14 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class OperatorToken : public AbstractTokenType {
+public:
+	OperatorToken();
+	static std::map <std::string, char> operators;
+	static bool is_operator(const char *str);
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -138,7 +152,7 @@ public:
 	long line_pos;
 	char local_newline;
 	TokenTypeNames zone;
-	AbstractTokenType *TokenTypeNames_pool[20];
+	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];
 	Tokenizer();
 	/* _finalize_token - close the current token
 	 * If exists token, close it
@@ -155,6 +169,8 @@ public:
 	 * creates a new token with the requested type
 	 */
 	void _new_token(TokenTypeNames new_type);
+	/* Change the current token's type */
+	void changeTokenType(TokenTypeNames new_type);
 	/* After a line (or more) was tokenize - pop the resulted tokens
 	 * - Will not pop the token under work
 	 * - After poping a token, call freeToken on it to return it to the free tokens poll
@@ -176,6 +192,10 @@ public:
 	/* tokenizeLine - Tokenize one line
 	 */
 	LineTokenizeResults tokenizeLine(char *line, long line_length);
+	/* Utility functions */
+	bool is_digit(uchar c);
+	bool is_word(uchar c);
+	bool is_operator(const char *str);
 private:
 	Token *free_tokens;
 	Token *tokens_found;
@@ -185,6 +205,7 @@ private:
 	CommentToken m_CommentToken;
 	StructureToken m_StructureToken;
 	MagicToken m_MagicToken;
+	OperatorToken m_OperatorToken;
 
 	void keep_significant_token(Token *t);
 
