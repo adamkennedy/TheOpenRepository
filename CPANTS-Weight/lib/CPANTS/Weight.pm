@@ -20,11 +20,12 @@ applications that work with the CPANTS data.
 use 5.008;
 use strict;
 use warnings;
-use File::Spec                         ();
-use File::HomeDir                      ();
-use Algorithm::Dependency              ();
-use Algorithm::Dependency::Weight      ();
-use Algorithm::Dependency::Source::DBI ();
+use File::Spec                            ();
+use File::HomeDir                         ();
+use Algorithm::Dependency 1.107           ();
+use Algorithm::Dependency::Weight         ();
+use Algorithm::Dependency::Source::DBI    ();
+use Algorithm::Dependency::Source::Invert ();
 
 # Generate the class tree
 use ORLite 1.19 {
@@ -45,6 +46,7 @@ create table dist_weight (
 	runtime    integer      not null,
 	volatility integer      not null,
 )
+END_SQL
 	},
 	user_version => 0,
 };
@@ -52,25 +54,55 @@ create table dist_weight (
 # Load the CPANTS database (This could take a while...)
 use ORDB::CPANTS;
 
+# Common string fragments
+my $SELECT_IDS     = <<'END_SQL';
+select
+	'id' || id as id
+from
+	dist
+where
+	id > 0
+END_SQL
+
+my $SELECT_DEPENDS = <<'END_SQL';
+select
+	'id' || dist as dist,
+	'id' || in_dist as in_dist
+from
+	prereq
+where
+	dist > 0
+	and
+	in_dist > 0
+END_SQL
+
 
 
 
 
 #####################################################################
-# Main Processing
+# Methods for all dependencies
 
-sub run {
-	my $class = shift;
-	die('CODE INCOMPLETE');
+sub all_source {
+	Algorithm::Dependency::Source::DBI->new(
+		dbh            => ORDB::CPANTS->dbh,
+		select_ids     => "$SELECT_IDS",
+		select_depends => "$SELECT_DEPENDS and is_prereq = 1 or is_build_prereq = 1",
+	);
 }
 
-sub source {
-	my $class = shift;
-	Algorithm::Dependency::Source::DBI->new(
-		dbh            => $class->dbh,
-		select_ids     => '',
-		select_depends => '',
-	);
+sub all_weights {
+	Algorithm::Dependency::Weight->new(
+		source => $_[0]->all_source,
+	)->weight_all;
+}
+
+sub all_volatility {
+	Algorithm::Dependency::Weight->new(
+		source => Algorithm::Dependency::Source::Invert->new(
+			$_[0]->all_source,
+		),
+	)->weight_all;
 }
 
 1;

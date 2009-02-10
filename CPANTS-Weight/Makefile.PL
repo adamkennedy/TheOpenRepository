@@ -6,7 +6,7 @@ requires      'File::HomeDir'                      => '0.82';
 requires      'Algorithm::Dependency'              => '1.106';
 requires      'Algorithm::Dependency::Source::DBI' => '0.05';
 requires      'ORLite'                             => '1.19';
-requires      'ORDB::CPANTS'                       => '0.02';
+requires      'ORDB::CPANTS'                       => '0.03';
 test_requires 'Test::More'                         => '0.42';
 
 WriteAll;
