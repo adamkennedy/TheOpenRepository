@@ -1,5 +1,8 @@
 Changes for Perl extension ADAMK-Repository
 
+0.06 Mon 26 Jan 2009
+	- Upgrading to inc::Module::Install::DSL 0.78
+
 0.05 Tue 23 Dec 2008
 	- Adding support for distribution exporting
 	- ADAMK::Release->distribution changed to distname
