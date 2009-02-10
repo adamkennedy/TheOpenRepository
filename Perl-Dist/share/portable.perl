@@ -14,6 +14,7 @@ minicpan:
   remote: http://cpan.strawberryperl.com/
   force: 1
   skip_perl: 1
+  no_conn_cache: 1
 HomeDir:
   my_home: ..
 Config:
