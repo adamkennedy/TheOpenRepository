@@ -8,10 +8,10 @@ BEGIN {
 }
 
 use Test::More tests => 11;
+use File::Spec::Functions ':ALL';
 use Module::Manifest ();
 
-use Cwd 'getcwd';
-my $root = getcwd();
+my $root = rel2abs( curdir() );
 
 # Load our own MANIFEST/MANIFEST.SKIP files
 SCOPE: {
