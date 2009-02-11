@@ -114,7 +114,7 @@ sub all_volatility {
 ######################################################################
 # Interesting Collections
 
-sub weighty_100 {
+sub heavy_100 {
 	my $class = shift;
 
 	# Get the Top 100 in id terms
@@ -128,7 +128,7 @@ sub weighty_100 {
 
 	# Map the ids to names
 	my %hash = map { $_->id => $_ } @dists;
-	return map { $hash{$_}->dist } @ids;
+	return map { [ $hash{$_} => $all->{$_} ] } @ids;
 }
 
 sub volatile_100 {
@@ -145,7 +145,7 @@ sub volatile_100 {
 
 	# Map the ids to names
 	my %hash = map { $_->id => $_ } @dists;
-	return map { $hash{$_}->dist } @ids;
+	return map { [ $hash{$_} => $all->{$_} ] } @ids;
 }
 
 1;

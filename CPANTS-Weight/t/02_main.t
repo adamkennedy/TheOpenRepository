@@ -18,16 +18,16 @@ is( ref($weights), 'HASH', '->all_weights returns a HASH' );
 my $volatility = CPANTS::Weight->all_volatility;
 is( ref($volatility), 'HASH', '->all_volatility returns a HASH' );
 
-my @weighty_100 = CPANTS::Weight->weighty_100;
-is( scalar(@weighty_100), 100, '->weighty_100 returns 100 names' );
+my @heavy_100 = CPANTS::Weight->heavy_100;
+is( scalar(@heavy_100), 100, '->heavy_100 returns 100 names' );
 foreach ( 0 .. 99 ) {
-	ok( length($weighty_100[$_]), "Element $_ is a string ($weighty_100[$_])" );
+	isa_ok( $heavy_100[$_]->[0], 'ORDB::CPANTS::Dist' );
 }
 
 my @volatile_100 = CPANTS::Weight->volatile_100;
 is( scalar(@volatile_100), 100, '->volatile_100 returns 100 names' );
 foreach ( 0 .. 99 ) {
-	ok( length($volatile_100[$_]), "Element $_ is a string ($volatile_100[$_])" );
+	isa_ok( $volatile_100[$_]->[0], 'ORDB::CPANTS::Dist' );
 }
 
 1;
