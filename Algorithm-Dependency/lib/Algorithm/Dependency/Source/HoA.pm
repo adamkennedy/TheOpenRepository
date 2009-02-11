@@ -38,7 +38,7 @@ use Params::Util qw{_HASH _ARRAY0};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.107';
+	$VERSION = '1.108';
 	@ISA     = 'Algorithm::Dependency::Source';
 }
 

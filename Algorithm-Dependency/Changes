@@ -1,5 +1,8 @@
 Revision history for Perl extension Algorithm::Dependency
 
+1.108 Wed 10 Feb 2009
+	- Allow ->weight to take _STRING instead of only _IDENTIFIER
+
 1.107 Sun  8 Feb 2009
 	- Adding Algorithm::Dependency::Source::Invert
 

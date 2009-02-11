@@ -25,7 +25,7 @@ use Params::Util qw{_SET};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.107';
+	$VERSION = '1.108';
 }
 
 

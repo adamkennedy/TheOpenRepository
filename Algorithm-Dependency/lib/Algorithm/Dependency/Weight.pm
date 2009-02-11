@@ -67,11 +67,11 @@ use 5.005;
 use strict;
 use List::Util            ();
 use Algorithm::Dependency ();
-use Params::Util qw{_INSTANCE _IDENTIFIER};
+use Params::Util qw{_INSTANCE _STRING};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.107';
+	$VERSION = '1.108';
 }
 
 
@@ -142,7 +142,9 @@ inside the C<Algorithm::Dependency> object passed as the C<source> param
 
 =cut
 
-sub source { $_[0]->{source} }
+sub source {
+	$_[0]->{source}
+}
 
 
 
@@ -167,7 +169,7 @@ on error.
 
 sub weight {
 	my $self = shift;
-	my $id   = _IDENTIFIER(shift) or return undef;
+	my $id   = defined(_STRING($_[0])) ? shift : return undef;
 	$self->{weight}->{$id} or
 	$self->{weight}->{$id} = $self->_weight($id);
 }
