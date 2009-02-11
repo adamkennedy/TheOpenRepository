@@ -46,7 +46,7 @@ sub new {
     my $self = shift->SUPER::new();
 
     # Initialize files area.
-    $self->{files_hash} = ();
+    $self->{files_hash} = undef;
 
     # Set defaults and check parameters
     if ( not defined $self->{trace} ) {
@@ -74,7 +74,7 @@ sub clone {
     }
 
     # Add filelist passed in.
-    $self->{files_hash} = ();
+    delete $self->{files_hash};
     $self->{files_hash} = $source->{files_hash};
     
     # Keep trace level the same.
@@ -146,7 +146,7 @@ sub _sorter {
 sub files { 
     my $self = shift; 
 
-    my @answer = sort { _sorter } keys($self->files_hash); 
+    my @answer = sort { _sorter } keys(%{$self->{files_hash}}); 
     return \@answer;
 }
 
@@ -158,7 +158,10 @@ sub files {
 # Returns:
 #   Number of files in this object
 
-sub count { my $self = shift; return scalar keys($self->files_hash); }
+sub count { 
+    my $self = shift; 
+    return scalar keys(%{$self->files_hash}); 
+}
 
 ########################################
 # clear
@@ -169,7 +172,14 @@ sub count { my $self = shift; return scalar keys($self->files_hash); }
 # Action:
 #   Clears this filelist.
 
-sub clear { my $self = shift; $self->{files_hash} = (); return $self; }
+sub clear { 
+    my $self = shift; 
+
+    delete $self->{files_hash}; 
+    $self->{files_hash} = {}; 
+
+    return $self; 
+}
 
 ########################################
 # readdir($dir)
@@ -214,7 +224,7 @@ sub readdir {
             } else {
 
                 # Add the file!
-                {$self->files_hash}{$filespec} = 1;
+                $self->{files_hash}{$filespec} = 1;
             }
         } ## end if ( ( $file ne q{.} )...
 
@@ -255,11 +265,12 @@ sub load_file {
     my $file;
     
     # Insert list of files read into this object. Chomp on the way.
-    $self->{files_hash} = map {
+    my %files = map {
         $file = $_;
         chomp $file;
-        ($file => 1);
+        ($file, 1);
     } @files;
+    $self->{files_hash} = \%files;
     
     return $self;
 } ## end sub load_file
@@ -279,7 +290,7 @@ sub load_array {
     # Add each file in the array - if it is a file.
     foreach my $file ( @files ) {
         next if not -f $file;
-        {$self->files_hash}{$file} = 1;
+        $self->{files_hash}{$file} = 1;
     }
 
     return $self;
@@ -302,7 +313,7 @@ sub add_file {
         croak 'Missing or invalid file parameter';
     }
 
-    {$self->files_hash}{$file} = 1;
+    $self->{files_hash}{$file} = 1;
 
     return $self;
 } ## end sub add_file
@@ -324,8 +335,8 @@ sub subtract {
         croak 'Missing or invalid subtrahend parameter';
     }
 
-    my @files_to_remove = keys($subtrahend->files_hash);
-    delete {$self->files_hash}{@files_to_remove};
+    my @files_to_remove = keys(%{$subtrahend->files_hash});
+    delete @{$self->files_hash}{@files_to_remove};
     
     return $self;
 } ## end sub subtract
@@ -348,8 +359,8 @@ sub add {
     }
 
     # Add the two hashes together.
-    my %files = ( {$self->files_hash}, {$term->files_hash} );
-    $self->{files_hash} = %files;
+    my %files = ( %{$self->files_hash}, %{$term->files_hash} );
+    $self->{files_hash} = \%files;
 
     return $self;
 } ## end sub add
@@ -376,9 +387,9 @@ sub move {
     }
 
     # Move the file if it exists.
-    if ( {$self->files_hash}{$from} ) {
-        delete {$self->files_hash}{$from}; 
-        {$self->files_hash}{$to} = 1; 
+    if ( $self->{files_hash}{$from} ) {
+        delete $self->{files_hash}{$from}; 
+        $self->{files_hash}{$to} = 1; 
     }
 
     return $self;
@@ -406,7 +417,7 @@ sub move_dir {
     }
 
     # Find which files need moved.
-    my @files_to_move = grep { "$_\\" =~ m(\A\Q$from\E\\) } keys($self->files_hash);
+    my @files_to_move = grep { "$_\\" =~ m(\A\Q$from\E\\) } keys(%{$self->files_hash});
     my $to_file;
     foreach my $file_to_move ( @files_to_move ) {
         
@@ -415,8 +426,8 @@ sub move_dir {
         $to_file =~ s(\A\Q$from\E)($to);
         
         # "move" the file.
-        delete {$self->files_hash}{$file_to_move}; 
-        {$self->files_hash}{$to_file} = 1; 
+        delete $self->{files_hash}{$file_to_move}; 
+        $self->{files_hash}{$to_file} = 1; 
     }
 
     return $self;
@@ -438,7 +449,7 @@ sub filter {
     my ( $self, $re_list ) = @_;
 
     # Define variables to use.
-    my @files_list = keys($self->files_hash);
+    my @files_list = keys(%{$self->files_hash});
 
     my @files_to_remove;
     
@@ -448,7 +459,7 @@ sub filter {
         push @files_to_remove, grep { m/\A\Q$re\E/ } @files_list;
     }
 
-    delete {$self->files_hash}{@files_to_remove};
+    delete @{$self->files_hash}{@files_to_remove};
     
     return $self;
 } ## end sub filter
@@ -464,7 +475,7 @@ sub filter {
 sub as_string {
     my $self = shift;
 
-    my @files = sort { _sorter } keys( $self->files_hash );
+    my @files = sort { _sorter } keys( %{$self->files_hash} );
     
     return join "\n", @files;
 }
