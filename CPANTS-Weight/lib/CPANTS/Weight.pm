@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use File::Spec                            ();
 use File::HomeDir                         ();
-use Algorithm::Dependency 1.107           ();
+use Algorithm::Dependency 1.108           ();
 use Algorithm::Dependency::Weight         ();
 use Algorithm::Dependency::Source::DBI    ();
 use Algorithm::Dependency::Source::Invert ();
@@ -44,7 +44,7 @@ create table dist_weight (
 	build      integer      not null,
 	test       integer      not null,
 	runtime    integer      not null,
-	volatility integer      not null,
+	volatility integer      not null
 )
 END_SQL
 	},
@@ -57,7 +57,7 @@ use ORDB::CPANTS;
 # Common string fragments
 my $SELECT_IDS     = <<'END_SQL';
 select
-	'id' || id as id
+	id
 from
 	dist
 where
@@ -66,11 +66,13 @@ END_SQL
 
 my $SELECT_DEPENDS = <<'END_SQL';
 select
-	'id' || dist as dist,
-	'id' || in_dist as in_dist
+	dist,
+	in_dist
 from
 	prereq
 where
+	in_dist is not null
+	and
 	dist > 0
 	and
 	in_dist > 0
@@ -87,7 +89,7 @@ sub all_source {
 	Algorithm::Dependency::Source::DBI->new(
 		dbh            => ORDB::CPANTS->dbh,
 		select_ids     => "$SELECT_IDS",
-		select_depends => "$SELECT_DEPENDS and is_prereq = 1 or is_build_prereq = 1",
+		select_depends => "$SELECT_DEPENDS and ( is_prereq = 1 or is_build_prereq = 1 )",
 	);
 }
 
@@ -103,6 +105,47 @@ sub all_volatility {
 			$_[0]->all_source,
 		),
 	)->weight_all;
+}
+
+
+
+
+
+######################################################################
+# Interesting Collections
+
+sub weighty_100 {
+	my $class = shift;
+
+	# Get the Top 100 in id terms
+	my $all   = $class->all_weights;
+	my @ids   = (sort { $all->{$b} <=> $all->{$a} } keys %$all)[0..99];
+
+	# Pull all the matching objects
+	my @dists = ORDB::CPANTS::Dist->select(
+		'where id in ( ' . join(', ', @ids) . ' )',
+	);
+
+	# Map the ids to names
+	my %hash = map { $_->id => $_ } @dists;
+	return map { $hash{$_}->dist } @ids;
+}
+
+sub volatile_100 {
+	my $class = shift;
+
+	# Get the Top 100 in id terms
+	my $all   = $class->all_volatility;
+	my @ids   = (sort { $all->{$b} <=> $all->{$a} } keys %$all)[0..99];
+
+	# Pull all the matching objects
+	my @dists = ORDB::CPANTS::Dist->select(
+		'where id in ( ' . join(', ', @ids) . ' )',
+	);
+
+	# Map the ids to names
+	my %hash = map { $_->id => $_ } @dists;
+	return map { $hash{$_}->dist } @ids;
 }
 
 1;
