@@ -35,6 +35,9 @@ sub new {
 		perl_version => 5100,
         trace => 102,
         build_number => 5,
+        msi_directory_tree_additions => [qw (
+            perl\site\lib\auto\HTML\Parser
+        )],
 		@_,
 	);
 }
