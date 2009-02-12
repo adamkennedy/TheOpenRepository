@@ -453,6 +453,32 @@ Errors are always thrown as exceptions.
 
 =head2 leaks
 
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'leaks snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+
+    my $test = Test::Weaken::leaks(
+        {   constructor => sub { new Buggy_Object },
+            destructor  => \&destroy_buggy_object,
+        }
+    );
+    if ($test) {
+        print "There are leaks\n" or croak("Cannot print to STDOUT: $ERRNO");
+    }
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
 Arguments to the C<leaks> static method may be passed as a reference to
 a hash of named arguments,
 or directly as code references.
@@ -499,6 +525,38 @@ For example, some of the objects created by Gtk2-Perl are of this type.
 
 =head2 unfreed_proberefs
 
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'unfreed_proberefs snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+
+    my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
+    if ($test) {
+        my $unfreed_proberefs = $test->unfreed_proberefs();
+        my $unfreed_count     = @{$unfreed_proberefs};
+        printf "%d of %d references were not freed\n",
+            $test->unfreed_count(), $test->probe_count()
+            or croak("Cannot print to STDOUT: $ERRNO");
+        print "These are the probe references to the unfreed objects:\n"
+            or croak("Cannot print to STDOUT: $ERRNO");
+        for my $proberef ( @{$unfreed_proberefs} ) {
+            print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+                or croak("Cannot print to STDOUT: $ERRNO");
+        }
+    }
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
 Returns a reference to an array of probe references to the unfreed memory objects.
 The user may examine these to find the source of a leak,
 or to produce her own statistics.
@@ -511,11 +569,60 @@ Directly copying the weak references would strengthen them.
 
 =head2 unfreed_count
 
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'unfreed_count snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+
+    my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
+    next TEST if not $test;
+    printf "%d memory objects were not freed\n", $test->unfreed_count(),
+        or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
 Returns the count of unfreed memory objects.
 This count will be exactly the length of the array referred to by
 the return value of the C<unfreed_proberefs> method.
 
 =head2 probe_count
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'probe_count snippet')
+
+=end Marpa::Test::Display:
+
+        use Test::Weaken;
+        use English qw( -no_match_vars );
+
+        my $test = Test::Weaken::leaks(
+            {   constructor => sub { new Buggy_Object },
+                destructor  => \&destroy_buggy_object,
+            }
+        );
+        next TEST if not $test;
+        printf "%d of %d memory objects were not freed\n",
+            $test->unfreed_count(), $test->probe_count()
+            or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 Returns the total number of probe references in the test,
 including references to freed memory objects.
@@ -524,6 +631,126 @@ after C<Test::Weaken> was finished following the test object reference
 recursively,
 but before it called the test object destructor and undefined the
 test object reference.
+
+=head2 weak_probe_count
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'weak_probe_count snippet')
+
+=end Marpa::Test::Display:
+
+        use Test::Weaken;
+        use Scalar::Util qw(isweak);
+        use English qw( -no_match_vars );
+
+        my $test = Test::Weaken::leaks( sub { new Buggy_Object }, );
+        next TEST if not $test;
+        my $weak_unfreed_reference_count =
+            scalar grep { ref $_ eq 'REF' and isweak( ${$_} ) }
+            @{ $test->unfreed_proberefs() };
+        printf "%d of %d weak references were not freed\n",
+            $weak_unfreed_reference_count, $test->weak_probe_count(),
+            or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+=head2 strong_probe_count
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'strong_probe_count snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+    use Scalar::Util qw(isweak);
+
+    my $test = Test::Weaken::leaks(
+        {   constructor => sub { new Buggy_Object },
+            destructor  => \&destroy_buggy_object,
+        }
+    );
+    next TEST if not $test;
+    my $proberefs = $test->unfreed_proberefs();
+    my $strong_unfreed_memory_object_count =
+        grep { ref $_ ne 'REF' or not isweak( ${$_} ) } @{$proberefs};
+    my $strong_unfreed_reference_count =
+        grep { ref $_ eq 'REF' and not isweak( ${$_} ) } @{$proberefs};
+
+    printf "%d of %d strong memory objects were not freed\n",
+        $strong_unfreed_memory_object_count, $test->strong_probe_count(),
+        or croak("Cannot print to STDOUT: $ERRNO");
+    printf "%d of the unfreed strong memory objects were references\n",
+        $strong_unfreed_reference_count
+        or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+=head1 PLUMBING METHODS
+
+=head2 new
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'new snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+
+    my $test = new Test::Weaken( sub { new My_Object } );
+    printf "There are %s\n", ( $test->test() ? 'leaks' : 'no leaks' )
+        or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+=head2 test
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, '../t/snippet.t', 'test snippet')
+
+=end Marpa::Test::Display:
+
+    use Test::Weaken;
+    use English qw( -no_match_vars );
+
+    my $test = new Test::Weaken(
+        {   constructor => sub { new My_Object },
+            destructor  => \&destroy_my_object,
+        }
+    );
+    printf "There are %s\n", ( $test->test() ? 'leaks' : 'no leaks' )
+        or croak("Cannot print to STDOUT: $ERRNO");
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 =head1 ADVANCED TECHNIQUES
 

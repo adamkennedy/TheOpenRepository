@@ -56,17 +56,14 @@ sub parse_displays {
     my $raw_ref = shift;
 
     my $result = {};
-
-    while (
-        my ( $display_name, $display_text ) = (
-            ${$raw_ref} =~ m{
+    my @matches = ${$raw_ref} =~ m{
                ^ [ \t]* [#] \h* [#] [\h#]* use [ \t]+ Marpa[:][:]Test[:][:]Display \h+ (\w+(?:\s+\w+)*) \s* \h* $
                (.*?)
                ^ [ \t]* [#] \h* [#] [\h#]* no [ \t]+ Marpa[:][:]Test[:][:]Display \h* $
-           }xmsgc
-        )
-        )
-    {
+           }xmsg;
+    while (@matches) {
+        my $display_name = shift @matches;
+        my $display_text = shift @matches;
         $result->{$display_name} = \$display_text;
     }
 
@@ -132,8 +129,14 @@ sub is_file {
     $pod_display =~ s/^\h*//gxms;
     ${$raw_file_display} =~ s/^\h*//gxms;
 
+    my $header =
+        $display_name
+        ? "Display '$display_name'"
+        : 'Display';
+    $header .= " in $::CURRENT_FILE differs from the one in $file_name";
+
     return (
-        (   "Display in $::CURRENT_FILE differs from the one in $file_name"
+        (   $header
                 . (
                 diff \$pod_display,
                 $raw_file_display,
@@ -376,7 +379,7 @@ close $manifest;
 exit unless $warnings;
 
 while ( my ( $file_name, $displays ) = each %normalized_display ) {
-    while ( my ( $display_name, $uses ) = each %{$displays} ) {
+    DISPLAY: while ( my ( $display_name, $uses ) = each %{$displays} ) {
         next DISPLAY if $uses > 0;
         print "display '$display_name' in $file_name never used\n"
             or croak("Cannot print to STDOUT: $ERRNO");

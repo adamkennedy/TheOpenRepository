@@ -1,7 +1,5 @@
 #!perl
 
-## no critic (Modules::ProhibitExcessMainComplexity)
-
 use strict;
 use warnings;
 use Test::More tests => 9;
@@ -57,6 +55,7 @@ $test_output = do {
 
     ## use Marpa::Test::Display leaks snippet
 
+    use Test::Weaken;
     use English qw( -no_match_vars );
 
     my $test = Test::Weaken::leaks(
@@ -79,7 +78,6 @@ Test::Weaken::Test::is( $test_output, <<'EOS', 'leaks snippet' );
 There are leaks
 EOS
 
-# unfreed_proberefs snippet
 package Test::Weaken::Test::Snippet::unfreed_proberefs;
 
 $test_output = do {
@@ -90,6 +88,8 @@ $test_output = do {
     open STDOUT, q{>}, \$code_output;
 
 ## use Marpa::Test::Display unfreed_proberefs snippet
+
+    use Test::Weaken;
     use English qw( -no_match_vars );
 
     my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
@@ -153,6 +153,7 @@ $test_output = do {
 
 ## use Marpa::Test::Display unfreed_count snippet
 
+        use Test::Weaken;
         use English qw( -no_match_vars );
 
         my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
@@ -173,7 +174,6 @@ Test::Weaken::Test::is( $test_output, <<'EOS', 'unfreed_count snippet' );
 3 memory objects were not freed
 EOS
 
-# probe_count snippet
 package Test::Weaken::Test::Snippet::probe_count;
 
 sub destroy_buggy_object { }
@@ -187,7 +187,9 @@ $test_output = do {
 
     TEST: for my $i (0) {
 
-        ## use Marpa::Test::Display leaks snippet
+        ## use Marpa::Test::Display probe_count snippet
+
+        use Test::Weaken;
         use English qw( -no_match_vars );
 
         my $test = Test::Weaken::leaks(
@@ -265,6 +267,7 @@ $test_output = do {
     TEST: for my $i (0) {
 ## use Marpa::Test::Display strong_probe_count snippet
 
+        use Test::Weaken;
         use English qw( -no_match_vars );
         use Scalar::Util qw(isweak);
 
@@ -317,6 +320,7 @@ $test_output = do {
 
 ## use Marpa::Test::Display new snippet
 
+    use Test::Weaken;
     use English qw( -no_match_vars );
 
     my $test = new Test::Weaken( sub { new My_Object } );
@@ -353,6 +357,7 @@ $test_output = do {
 
 ## use Marpa::Test::Display test snippet
 
+    use Test::Weaken;
     use English qw( -no_match_vars );
 
     my $test = new Test::Weaken(

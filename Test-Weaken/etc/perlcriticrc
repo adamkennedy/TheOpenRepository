@@ -183,7 +183,7 @@ severity=5
 severity=5
 
 [Modules::ProhibitExcessMainComplexity]
-severity=5
+severity=1
 
 [Modules::ProhibitMultiplePackages]
 severity=1
