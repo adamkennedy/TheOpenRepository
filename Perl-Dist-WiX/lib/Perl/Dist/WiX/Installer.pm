@@ -19,8 +19,6 @@ superclass of that class.
 =cut
 
 #<<<
-# $Rev$ $Date$ $Author$
-# $URL$
 
 use     5.006;
 use     strict;
@@ -45,7 +43,7 @@ require Perl::Dist::WiX::CreateFolder;
 use vars qw( $VERSION @ISA );
 
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA     = 'Perl::Dist::WiX::Misc';
 }
 

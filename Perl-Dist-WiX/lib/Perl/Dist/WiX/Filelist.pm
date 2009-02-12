@@ -21,7 +21,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA %sortcache);
 BEGIN {
-	$VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 #>>>
@@ -46,7 +46,7 @@ sub new {
     my $self = shift->SUPER::new();
 
     # Initialize files area.
-    $self->{files_hash} = undef;
+    $self->{files_hash} = {};
 
     # Set defaults and check parameters
     if ( not defined $self->{trace} ) {

@@ -7,8 +7,6 @@ package Perl::Dist::WiX::Icons;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev: 5108 $ $Date: 2009-01-29 17:12:36 -0700 (Thu, 29 Jan 2009) $ $Author: csjewell@cpan.org $
-# $URL: http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/lib/Perl/Dist/WiX/EnvironmentEntry.pm $
 #<<<
 use     5.006;
 use     strict;
@@ -20,7 +18,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 #>>>

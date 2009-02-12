@@ -12,8 +12,6 @@ package Perl::Dist::WiX::StartMenuComponent;
 #
 # StartMenu components contain the entry, so there is no WiX::Entry sub class
 #
-# $Rev$ $Date$ $Author$
-# $URL$
 #<<<
 use     5.006;
 use     strict;
@@ -26,7 +24,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = qw(
       Perl::Dist::WiX::Base::Component
       Perl::Dist::WiX::Misc
@@ -109,7 +107,7 @@ sub as_string {
 
     return <<"END_OF_XML";
 <Component Id='C_S_$self->{id}' Guid='$self->{guid}'>
-  <Shortcut Id='S_$self->{id}' 
+  <Shortcut Id='S_$self->{id}'
             Name='$self->{name}'
             Description='$self->{description}'
             Target='$self->{target}'
