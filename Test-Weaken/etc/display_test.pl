@@ -60,7 +60,7 @@ sub parse_displays {
     while (
         my ( $display_name, $display_text ) = (
             ${$raw_ref} =~ m{
-               ^ [ \t]* [#] \h* [#] [\h#]* use [ \t]+ Marpa[:][:]Test[:][:]Display \h+ (\w+) \h* $
+               ^ [ \t]* [#] \h* [#] [\h#]* use [ \t]+ Marpa[:][:]Test[:][:]Display \h+ (\w+(?:\s+\w+)*) \s* \h* $
                (.*?)
                ^ [ \t]* [#] \h* [#] [\h#]* no [ \t]+ Marpa[:][:]Test[:][:]Display \h* $
            }xmsgc

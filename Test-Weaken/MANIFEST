@@ -20,6 +20,7 @@ t/circular.t
 t/bug42903.t
 t/faux_gtk.t
 t/poof.t
+t/snippet.t
 t/stein.t
 t/synopsis.t
 t/weaken.t
