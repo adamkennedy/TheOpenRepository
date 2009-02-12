@@ -119,6 +119,10 @@ sub as_string {
     my $string;
     my $s;
 
+    # Short-circuit.
+    return q{} if (0 == $count);
+    
+    # Start printing.
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
@@ -126,23 +130,24 @@ sub as_string {
     <DirectoryRef Id='$self->{directory}'>
 EOF
 
+    # Get component strings.
     foreach my $i ( 0 .. $count - 1 ) {
         $s = $self->{components}->[$i]->as_string;
         $string .= $self->indent( 6, $s );
         $string .= "\n";
     }
 
-    my $guidgen = Data::UUID->new();
-
     # Make our own namespace...
+    my $guidgen = Data::UUID->new();
     my $uuid =
       $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
         $self->sitename );
 
-    #... then use it to create a GUIDs out of the ID.
+    #... then use it to create a GUID out of the ID.
     my $guid_RSF =
       uc $guidgen->create_from_name_str( $uuid, 'RemoveShortcutFolder' );
 
+    # Finish printing.
     $string .= <<"EOF";
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
         <RemoveFolder Id="$self->{directory}" On="uninstall" />

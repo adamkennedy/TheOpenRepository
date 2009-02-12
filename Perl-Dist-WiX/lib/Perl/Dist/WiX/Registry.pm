@@ -49,8 +49,8 @@ sub new {
     unless ( defined $params{id} ) {
         $params{id} = 'Registry';
     }
-    unless ( _IDENTIFIER( $params{id} ) ) {
-        croak( "Missing or invalid id" );
+    unless ( _STRING( $params{sitename} ) ) {
+        croak( "Missing or invalid sitename" );
     }
 
     my $self = $class->SUPER::new( %params );
@@ -83,6 +83,9 @@ sub get_component_array {
 
     # Get the array for each descendant.
     my $count = scalar @{ $self->{components} };
+    
+    return undef if (0 == $count);
+    
     foreach my $i ( 0 .. $count - 1 ) {
         $id = $self->{components}->[$i]->id;
         push @answer, "C_$id";
