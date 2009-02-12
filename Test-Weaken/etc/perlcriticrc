@@ -284,7 +284,7 @@ severity=5
 
 [TestingAndDebugging::ProhibitNoWarnings]
 severity=5
-allow=recursion
+allow_with_category_restriction = 1
 
 [TestingAndDebugging::ProhibitProlongedStrictureOverride]
 severity=5

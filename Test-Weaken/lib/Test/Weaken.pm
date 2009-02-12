@@ -3,9 +3,6 @@ package Test::Weaken;
 use strict;
 use warnings;
 
-use Carp;
-use Scalar::Util qw(refaddr reftype isweak weaken);
-
 require Exporter;
 
 use base qw(Exporter);
@@ -37,7 +34,12 @@ of them, even implicitly.
 
 =cut
 
-sub Test::Weaken::Internal::follow {
+package Test::Weaken::Internal;
+
+use Carp;
+use Scalar::Util qw(refaddr reftype isweak weaken);
+
+sub follow {
     my $base_probe = shift;
 
     # Initialize the results with a reference to the dereferenced
@@ -82,7 +84,7 @@ sub Test::Weaken::Internal::follow {
 }    # sub follow
 
 # See POD, below
-sub new {
+sub Test::Weaken::new {
     my ( $class, $arg1, $arg2 ) = @_;
     my $constructor;
     my $destructor;
@@ -133,7 +135,7 @@ sub new {
 
 }    # sub new
 
-sub test {
+sub Test::Weaken::test {
 
     my $self        = shift;
     my $constructor = $self->{constructor};
@@ -169,7 +171,7 @@ sub test {
 
 }    # sub test
 
-sub Test::Weaken::Internal::poof_array_return {
+sub poof_array_return {
 
     my $test    = shift;
     my $results = $test->{unfreed_probes};
@@ -191,7 +193,7 @@ sub Test::Weaken::Internal::poof_array_return {
 
 } ## end sub poof_array_return;
 
-sub poof {
+sub Test::Weaken::poof {
     my @args   = @_;
     my $test   = new Test::Weaken(@args);
     my $result = $test->test();
@@ -199,7 +201,7 @@ sub poof {
     return $result;
 }
 
-sub leaks {
+sub Test::Weaken::leaks {
     my @args   = @_;
     my $test   = new Test::Weaken(@args);
     my $result = $test->test();
@@ -207,7 +209,7 @@ sub leaks {
     return;
 }
 
-sub unfreed_proberefs {
+sub Test::Weaken::unfreed_proberefs {
     my $test   = shift;
     my $result = $test->{unfreed_probes};
     if ( not defined $result ) {
@@ -216,7 +218,7 @@ sub unfreed_proberefs {
     return $result;
 }
 
-sub unfreed_count {
+sub Test::Weaken::unfreed_count {
     my $test   = shift;
     my $result = $test->{unfreed_probes};
     if ( not defined $result ) {
@@ -225,7 +227,7 @@ sub unfreed_count {
     return scalar @{$result};
 }
 
-sub probe_count {
+sub Test::Weaken::probe_count {
     my $test  = shift;
     my $count = $test->{probe_count};
     if ( not defined $count ) {
@@ -234,7 +236,7 @@ sub probe_count {
     return $count;
 }
 
-sub weak_probe_count {
+sub Test::Weaken::weak_probe_count {
     my $test  = shift;
     my $count = $test->{weak_probe_count};
     if ( not defined $count ) {
@@ -243,7 +245,7 @@ sub weak_probe_count {
     return $count;
 }
 
-sub strong_probe_count {
+sub Test::Weaken::strong_probe_count {
     my $test  = shift;
     my $count = $test->{strong_probe_count};
     if ( not defined $count ) {
