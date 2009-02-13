@@ -276,7 +276,7 @@ other formats.
 
 =head1 AUTHOR
 
-Benjamin Trott, ben@sixapart.com
+Benjamin Trott E<lt>ben@sixapart.comE<gt>
 
 =head1 COPYRIGHT
 
