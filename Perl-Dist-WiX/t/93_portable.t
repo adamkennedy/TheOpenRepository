@@ -40,22 +40,22 @@ ok( $dist->run, '->run ok' );
 
 # Did we build 5.10.0?
 ok(
-	-f catfile( qw{ t tmp18 image perl bin perl510.dll } ),
+	-f catfile( qw{ t tmp93 image perl bin perl510.dll } ),
 	'Found Perl 5.10.0 DLL',
 );
 
 # Did we build the zip file
 ok(
-	-f catfile( qw{ t tmp18 output test-perl-5.10.0-alpha-1.zip } ),
+	-f catfile( qw{ t tmp93 output test-perl-5.10.0-alpha-1.zip } ),
 	'Found zip file',
 );
 
 # Did we build it portable
 ok(
-	-f catfile( qw{ t tmp18 image portable.perl } ),
+	-f catfile( qw{ t tmp93 image portable.perl } ),
 	'Found portable file',
 );
 ok(
-	-f catfile( qw{ t tmp18 image perl site lib Portable.pm } ),
+	-f catfile( qw{ t tmp93 image perl site lib Portable.pm } ),
 	'Found Portable.pm',
 );

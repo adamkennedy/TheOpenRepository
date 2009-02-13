@@ -1237,6 +1237,7 @@ sub install_portable {
 
     # Create the portability object
     $self->trace_line( 1, "Creating Portable::Dist\n" );
+    require Portable::Dist;
     $self->{portable_dist} =
       Portable::Dist->new( perl_root => catdir( $self->image_dir, 'perl' ),
       );
