@@ -3,10 +3,10 @@ package t::lib::TestQuick;
 use strict;
 use Perl::Dist::WiX;
 
-use vars qw{$VERSION @ISA};
+use vars qw{ $VERSION };
+use base 'Perl::Dist::WiX';
 BEGIN {
-	$VERSION = '1.12';
-	@ISA     = 'Perl::Dist::WiX';
+    use version; $VERSION = qv('0.13_02');
 }
 
 

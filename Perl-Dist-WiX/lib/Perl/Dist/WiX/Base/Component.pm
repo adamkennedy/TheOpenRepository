@@ -9,9 +9,6 @@ package Perl::Dist::WiX::Base::Component;
 #
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
-#
-# $Rev$ $Date$ $Author$
-# $URL$
 #<<<
 use     5.006;
 use     strict;
@@ -23,7 +20,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 #>>>

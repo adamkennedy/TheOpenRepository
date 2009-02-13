@@ -9,9 +9,6 @@ package Perl::Dist::WiX::Base::Entry;
 #
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
-#
-# $Rev$ $Date$ $Author$
-# $URL$
 
 use 5.006;
 use strict;
@@ -20,7 +17,7 @@ use warnings;
 use vars qw( $VERSION );
 
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
 }
 
 sub new {

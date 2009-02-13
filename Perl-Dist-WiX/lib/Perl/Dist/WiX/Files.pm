@@ -8,8 +8,6 @@ package Perl::Dist::WiX::Files;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$
-# $URL$
 #<<<
 use     5.006;
 use     strict;
@@ -24,7 +22,7 @@ require Perl::Dist::WiX::Files::DirectoryRef;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = qw(
         Perl::Dist::WiX::Base::Fragment
         Perl::Dist::WiX::Misc
@@ -112,7 +110,7 @@ sub add_file {
     my ( $vol, $dirs, $filename ) = splitpath( $file );
     my $path = catdir( $vol, $dirs );
 
-    $self->trace_line( 3, "***** Adding file $file.\n" );
+    $self->trace_line( 3, "Adding file $file.\n" );
 
     # Remove ending backslash.
     if ( substr( $path, -1 ) eq '\\' ) {

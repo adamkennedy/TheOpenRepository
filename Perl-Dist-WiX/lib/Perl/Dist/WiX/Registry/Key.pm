@@ -7,8 +7,6 @@ package Perl::Dist::WiX::Registry::Key;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$
-# $URL$
 #<<<
 use     5.006;
 use     strict;
@@ -20,7 +18,7 @@ require Perl::Dist::WiX::Registry::Entry;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = 'Perl::Dist::WiX::Base::Component';
 }
 #>>>

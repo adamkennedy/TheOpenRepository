@@ -7,8 +7,6 @@ package Perl::Dist::WiX::FeatureTree;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$
-# $URL$
 
 use 5.008;
 use strict;
@@ -22,7 +20,7 @@ require Perl::Dist::WiX::Misc;
 use vars qw( $VERSION @ISA );
 
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA     = 'Perl::Dist::WiX::Misc';
 }
 

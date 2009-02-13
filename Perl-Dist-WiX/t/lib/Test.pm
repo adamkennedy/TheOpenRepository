@@ -16,7 +16,7 @@ use t::lib::Test589      ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.12';
+    use version; $VERSION = qv('0.13_02');
 }
 
 

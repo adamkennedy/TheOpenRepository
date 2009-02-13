@@ -10,9 +10,6 @@ package Perl::Dist::WiX::Misc;
 # NOTE: This is a base class with miscellaneous routines.  It is
 # meant to be subclassed, as opposed to creating objects of this
 # class directly.
-#
-# $Rev$ $Date$ $Author$
-# $URL$
 
 #<<<
 use 5.006;
@@ -24,7 +21,7 @@ use File::Spec::Functions qw( splitpath splitdir          );
 
 use vars qw( $VERSION );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
 }
 #>>>
 
