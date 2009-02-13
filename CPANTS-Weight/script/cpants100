@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use 5.008;
+use strict;
+use warnings;
+use CPANTS::Weight ();
+
+my @list = ();
+if ( $ARGV[0] and $ARGV[0] eq 'heavy' ) {
+	print "Calculating CPANTS Heavy 100...\n";
+	@list = CPANTS::Weight->heavy_100;
+} elsif ( $ARGV[0] and $ARGV[0] eq 'volatile' ) {
+	print "Calculating CPANTS Volatile 100...\n";
+	@list = CPANTS::Weight->volatile_100;
+} else {
+	die "Missing or invalid CPANTS 100 list name";
+}
+
+foreach ( @list ) {
+	print $_->[1] . ' ' . $_->[0]->dist . "\n";
+}
