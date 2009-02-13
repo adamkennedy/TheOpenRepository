@@ -1,0 +1,31 @@
+$Id: README 1827 2005-05-18 06:00:33Z btrott $
+
+This is Crypt::DSA. It provides DSA signature and key generation.
+
+PREREQUISITES
+
+    * Digest::SHA1
+    * Math::BigInt (1.60 or greater)
+
+INSTALLATION
+
+Crypt::DSA installation is straightforward. If your cpan shell
+is set up, you should just be able to do
+
+    % perl -MCPAN -e 'install Crypt::DSA'
+
+If you don't like that, you can download the distribution; the
+latest version on CPAN can be found in
+
+    ftp://ftp.cpan.org/pub/CPAN/authors/id/B/BT/BTROTT/
+
+Download it, unpack it, then build it as per the usual:
+
+    % perl Makefile.PL
+    % make && make test
+
+Then install it:
+
+    % make install
+
+Benjamin Trott / ben@rhumba.pair.com

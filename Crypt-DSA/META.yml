@@ -1,0 +1,17 @@
+abstract: DSA Signatures and Key Generation
+author: 'Benjamin Trott, ben@sixapart.com'
+distribution_type: module
+generated_by: Module::Install version 0.61
+license: perl
+name: Crypt-DSA
+no_index:
+  directory:
+    - inc
+    - t
+recommends:
+  Convert::PEM: 0.07
+  Data::Buffer: 0.01
+requires:
+  Digest::SHA1: 0
+  Math::BigInt: 1.60
+version: 0.14
