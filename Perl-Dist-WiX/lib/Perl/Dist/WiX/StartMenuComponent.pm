@@ -13,23 +13,19 @@ package Perl::Dist::WiX::StartMenuComponent;
 # StartMenu components contain the entry, so there is no WiX::Entry sub class
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp            qw( croak               );
-use     Params::Util    qw( _IDENTIFIER _STRING );
-use     Data::UUID      qw( NameSpace_DNS       );
-require Perl::Dist::WiX::Base::Component;
-require Perl::Dist::WiX::Misc;
+use 5.006;
+use strict;
+use warnings;
+use Carp            qw( croak               );
+use Params::Util    qw( _IDENTIFIER _STRING );
+use Data::UUID      qw( NameSpace_DNS       );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw(
-      Perl::Dist::WiX::Base::Component
-      Perl::Dist::WiX::Misc
-    );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw(
+    Perl::Dist::WiX::Base::Component
+    Perl::Dist::WiX::Misc
+);
 #>>>
 #####################################################################
 # Accessors:
@@ -67,22 +63,22 @@ sub new {
         $self->create_guid_from_id;
     }
     unless ( _STRING( $self->name ) ) {
-        croak( "Missing or invalid name param" );
+        croak( 'Missing or invalid name param' );
     }
     unless ( _STRING( $self->description ) ) {
         $self->{description} = $self->name;
     }
     unless ( _STRING( $self->target ) ) {
-        croak( "Missing or invalid target param" );
+        croak( 'Missing or invalid target param' );
     }
     unless ( _STRING( $self->working_dir ) ) {
-        croak( "Missing or invalid working_dir param" );
+        croak( 'Missing or invalid working_dir param' );
     }
     unless ( _STRING( $self->menudir_id ) ) {
-        croak( "Missing or invalid menudir_id param" );
+        croak( 'Missing or invalid menudir_id param' );
     }
     unless ( _STRING( $self->icon_id ) ) {
-        croak( "Missing or invalid icon_id param" );
+        croak( 'Missing or invalid icon_id param' );
     }
 
     my $target = $self->target;

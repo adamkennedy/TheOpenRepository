@@ -8,18 +8,15 @@ package Perl::Dist::WiX::Feature;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp            qw( croak                        );
-use     Params::Util    qw( _INSTANCE _STRING _NONNEGINT );
-require Perl::Dist::WiX::Misc;
+use 5.006;
+use strict;
+use warnings;
+use Carp            qw( croak                        );
+use Params::Util    qw( _INSTANCE _STRING _NONNEGINT );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Misc';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
 #>>>
 #####################################################################
 # Accessors:
@@ -74,7 +71,8 @@ use Object::Tiny qw{
 
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     # Check required parameters.
     unless ( _STRING( $self->id ) ) {

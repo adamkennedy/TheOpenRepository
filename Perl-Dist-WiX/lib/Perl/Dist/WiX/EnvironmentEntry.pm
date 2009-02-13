@@ -8,19 +8,16 @@ package Perl::Dist::WiX::EnvironmentEntry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp                          qw( croak               );
-use     Params::Util                  qw( _IDENTIFIER _STRING );
-use     Data::UUID                    qw( NameSpace_DNS       );
-require Perl::Dist::WiX::Base::Entry;
+use 5.006;
+use strict;
+use warnings;
+use Carp           qw( croak               );
+use Params::Util   qw( _IDENTIFIER _STRING );
+use Data::UUID     qw( NameSpace_DNS       );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Entry';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Entry';
 #>>>
 #####################################################################
 # Accessors:
@@ -52,13 +49,13 @@ sub new {
 
     # Check params
     unless ( _STRING( $self->id ) ) {
-        croak( "Missing or invalid id param" );
+        croak( 'Missing or invalid id param' );
     }
     unless ( _STRING( $self->{name} ) ) {
-        croak( "Missing or invalid name param" );
+        croak( 'Missing or invalid name param' );
     }
     unless ( _STRING( $self->{value} ) ) {
-        croak( "Missing or invalid value param" );
+        croak( 'Missing or invalid value param' );
     }
     unless ( _STRING( $self->{action} ) ) {
         $self->{action} = 'set';
@@ -88,7 +85,7 @@ sub as_string {
     my $self = shift;
 
     # Print tag.
-    my $answer = <<END_OF_XML;
+    my $answer = <<"END_OF_XML";
    <Environment Id='E_$self->{id}' Name='$self->{name}' Value='$self->{value}' 
       System='yes' Permanent='$self->{permanent}' Action='$self->{action}' Part='$self->{part}' />
 END_OF_XML

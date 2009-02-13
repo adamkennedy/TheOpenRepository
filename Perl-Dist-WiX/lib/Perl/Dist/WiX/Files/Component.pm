@@ -14,14 +14,11 @@ use     warnings;
 use     Carp            qw( croak         );
 use     Params::Util    qw( _STRING       );
 use     Data::UUID      qw( NameSpace_DNS );
-require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Files::Entry;
-                    
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Component';
-}
+
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Component';
 #>>>
 #####################################################################
 # Accessors:
@@ -45,12 +42,12 @@ sub new {
 
     # Check parameters.
     unless ( _STRING( $self->filename ) ) {
-        croak( "Missing or invalid filename param" );
+        croak( 'Missing or invalid filename param' );
     }
 
     unless ( _STRING( $self->sitename ) ) {
         croak(
-"Missing or invalid sitename param - cannot generate GUID without one"
+'Missing or invalid sitename param - cannot generate GUID without one'
         );
     }
 
@@ -67,7 +64,7 @@ sub new {
         $self->{guid} =
           uc $guidgen->create_from_name_str( $uuid, $self->filename );
         $self->{id} = $self->{guid};
-        $self->{id} =~ s{-}{_}g;
+        $self->{id} =~ s{-}{_}smg;
     } ## end unless ( defined $self->guid)
 
     # Add the entry (Each component contains one entry.)
@@ -89,12 +86,12 @@ sub new {
 # Returns: [boolean]
 #   True if this is the object for this filename.
 
-sub is_file() {
+sub is_file {
     my ( $self, $filename ) = @_;
 
     # Check parameters.
     unless ( _STRING( $filename ) ) {
-        croak( "Missing or invalid filename param" );
+        croak( 'Missing or invalid filename param' );
     }
 
     return ( $self->filename eq $filename ) ? 1 : 0;

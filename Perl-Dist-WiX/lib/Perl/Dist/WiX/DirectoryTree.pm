@@ -15,23 +15,16 @@ use     warnings;
 use     Carp             qw( croak               );
 use     Params::Util     qw( _IDENTIFIER _STRING );
 require Perl::Dist::WiX::Directory;
-require Perl::Dist::WiX::Misc;
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Misc'
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
 #>>>
 #####################################################################
 # Accessors:
 #   root: Returns the root of the directory tree created by new.
-#   sitename: Returns the sitename passed in to new.
 
-use Object::Tiny qw(
-  root
-  sitename
-);
+sub root { my $self = shift; return $self->{root}; }
 
 #####################################################################
 # Constructor for DirectoryTree
@@ -42,7 +35,8 @@ use Object::Tiny qw(
 #   sitename: The name of the site that is hosting the download.
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     $self->trace_line( 2, "Creating in-memory directory tree...\n" );
 
@@ -50,7 +44,7 @@ sub new {
         id       => 'TARGETDIR',
         name     => 'SourceDir',
         special  => 1,
-        sitename => $self->sitename,
+        sitename => $self->{sitename},
         trace    => $self->{trace} );
 
     return $self;
@@ -73,7 +67,7 @@ sub search_dir {
 
     # Set defaults for parameters.
     my $path_to_find = _STRING( $params_ref->{path_to_find} )
-      || croak( "No path to find." );
+      || croak 'No path to find.';
     my $descend = $params_ref->{descend} || 1;
     my $exact   = $params_ref->{exact}   || 0;
 
@@ -124,7 +118,7 @@ sub initialize_tree {
             name    => $self->{app_name} } );
 #<<<
     $branch->add_directories_id(
-        'Perl',      'perl',    
+        'Perl',      'perl',
         'Toolchain', 'c',
         'License',   'licenses',
         'Cpan',      'cpan',

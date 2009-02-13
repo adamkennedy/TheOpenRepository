@@ -7,23 +7,19 @@ package Perl::Dist::WiX::FeatureTree;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-
-use 5.008;
-use strict;
-use warnings;
-use Carp qw( croak                 );
-use Params::Util qw( _IDENTIFIER _CLASSISA );
-use Scalar::Util qw( weaken                );
+#<<<
+use     5.008;
+use     strict;
+use     warnings;
+use     Carp                     qw( croak                 );
+use     Params::Util             qw( _IDENTIFIER _CLASSISA );
+use     Scalar::Util             qw( weaken                );
 require Perl::Dist::WiX::Feature;
-require Perl::Dist::WiX::Misc;
 
-use vars qw( $VERSION @ISA );
-
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA     = 'Perl::Dist::WiX::Misc';
-}
-
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
+#>>>
 #####################################################################
 # Accessors:
 #   features: Returns the first level of the features tree as an arrayref.

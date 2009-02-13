@@ -8,18 +8,15 @@ package Perl::Dist::WiX::Registry::Entry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp              qw( croak               );
-use     Params::Util      qw( _IDENTIFIER _STRING );
-require Perl::Dist::WiX::Base::Entry;
+use 5.006;
+use strict;
+use warnings;
+use Carp          qw( croak               );
+use Params::Util  qw( _IDENTIFIER _STRING );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Entry';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Entry';
 #>>>
 #####################################################################
 # Accessors:
@@ -54,16 +51,16 @@ sub new {
 
     # Check params
     unless ( _IDENTIFIER( $self->action ) ) {
-        croak( "Missing or invalid action param" );
+        croak( 'Missing or invalid action param' );
     }
     unless ( _IDENTIFIER( $self->value_type ) ) {
-        croak( "Invalid value_type param" );
+        croak( 'Invalid value_type param' );
     }
     unless ( _IDENTIFIER( $self->value_name ) ) {
-        croak( "Missing or invalid value_name param" );
+        croak( 'Missing or invalid value_name param' );
     }
     unless ( _STRING( $self->value_data ) ) {
-        croak( "Missing or invalid value_data param" );
+        croak( 'Missing or invalid value_data param' );
     }
 
     return $self;

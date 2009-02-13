@@ -15,14 +15,12 @@ package Perl::Dist::WiX::Misc;
 use 5.006;
 use strict;
 use warnings;
-use Carp                  qw( croak                       );
+use Carp                  qw( croak verbose               );
 use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
 use File::Spec::Functions qw( splitpath splitdir          );
 
 use vars qw( $VERSION );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-}
+use version; $VERSION = qv('0.13_02');
 #>>>
 
 #####################################################################
@@ -33,10 +31,17 @@ BEGIN {
 #   blessed hashref for subclasses to use.
 #   Checks for non-paired parameters.
 
+# Croaked out because no class (other than ourselves) should be calling this.
+
 sub new {
     my $class = shift;
 
-    bless {@_}, $class;
+    croak "Calling Perl::Dist::WiX::Misc->new not allowed for $class" 
+        if ($class ne 'Perl::Dist::WiX::Misc');
+
+    my $self = bless {@_}, $class;
+    
+    return $self;
 }
 
 #####################################################################
@@ -55,10 +60,10 @@ sub indent {
 
     # Check parameters.
     unless ( _STRING( $string ) ) {
-        croak( "Missing or invalid string param" );
+        croak( 'Missing or invalid string param' );
     }
     unless ( defined _NONNEGINT( $num ) ) {
-        croak( "Missing or invalid num param" );
+        croak( 'Missing or invalid num param' );
     }
 
     # Indent string.
@@ -85,13 +90,13 @@ sub trace_line {
 
     # Check parameters and object state.
     unless ( defined _NONNEGINT( $tracelevel ) ) {
-        croak( "Missing or invalid tracelevel" );
+        croak( 'Missing or invalid tracelevel' );
     }
     unless ( defined _NONNEGINT( $self->{trace} ) ) {
         croak( "Inconsistent trace state in $self" );
     }
     unless ( defined _STRING( $text ) ) {
-        croak( "Missing or invalid text" );
+        croak( 'Missing or invalid text' );
     }
 
     my $test_trace        = 0;
@@ -115,25 +120,25 @@ sub trace_line {
                 my (
                     undef, $filespec, $line, undef, undef,
                     undef, undef,     undef, undef, undef
-                ) = caller( 0 );
+                ) = caller 0;
                 my ( undef, $path, $file ) = splitpath( $filespec );
                 my @dirs = splitdir( $path );
                 pop @dirs
                   if ( ( not defined $dirs[-1] ) or ( $dirs[-1] eq q{} ) );
-                $file = $dirs[-1] . '\\' . $file
+                $file = $dirs[-1] . q{\\} . $file
                   if ( ( defined $dirs[-2] ) and ( $dirs[-2] eq 'WiX' ) );
                 $start .= "[$file $line] ";
             } ## end if ( ( $tracelevel > 2...
             $text =~ s{\n}              # Replace a newline
-                      {\n$start}gmsx;  # with a newline and the start string.
+                      {\n$start}gxms;   # with a newline and the start string.
             $text =~ s{\n\Q$start\E\z}  # Replace the newline and start
                                         # string at the end
-                      {\n}gxms;        # with just the newline.
+                      {\n}gxms;         # with just the newline.
         } ## end if ( not $no_display )
         if ( $test_trace ) {
             Test::More::diag( "$start$text" );
         } elsif ( $tracelevel == 0 ) {
-            print STDERR "$start$text";
+            print STDERR "$start$text"; ## no critic 'RequireBracedFileHandleWithPrint'
         } else {
             print "$start$text";
         }

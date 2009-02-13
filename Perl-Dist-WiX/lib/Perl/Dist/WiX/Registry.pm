@@ -14,15 +14,12 @@ use     strict;
 use     warnings;
 use     Carp             qw( croak               );
 use     Params::Util     qw( _IDENTIFIER _STRING );
-require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Registry::Key;
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Fragment';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Fragment';
 #>>>
 #####################################################################
 # Accessors:
@@ -48,10 +45,12 @@ sub new {
         $params{id} = 'Registry';
     }
     unless ( _STRING( $params{sitename} ) ) {
-        croak( "Missing or invalid sitename" );
+        croak( 'Missing or invalid sitename' );
     }
 
     my $self = $class->SUPER::new( %params );
+    
+    return $self;
 } ## end sub new
 
 #####################################################################
@@ -107,10 +106,10 @@ sub add_key {
 
     # Check parameters.
     unless ( _IDENTIFIER( $params{id} ) ) {
-        croak( "Missing or invalid id" );
+        croak( 'Missing or invalid id' );
     }
     unless ( _STRING( $params{key} ) ) {
-        croak( "Missing or invalid key" );
+        croak( 'Missing or invalid key' );
     }
 
     # Set defaults.

@@ -8,20 +8,17 @@ package Perl::Dist::WiX::Files::Entry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp                  qw( croak               );
-use     Params::Util          qw( _IDENTIFIER _STRING );
-use     Data::UUID            qw( NameSpace_DNS       );
-use     File::Spec::Functions qw( splitpath           );
-require Perl::Dist::WiX::Base::Entry;
+use 5.006;
+use strict;
+use warnings;
+use Carp                  qw( croak               );
+use Params::Util          qw( _IDENTIFIER _STRING );
+use Data::UUID            qw( NameSpace_DNS       );
+use File::Spec::Functions qw( splitpath           );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Entry';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Entry';
 #>>>
 #####################################################################
 # Accessors:
@@ -50,14 +47,14 @@ sub new {
 
     # Check params
     unless ( _STRING( $self->name ) or _STRING( $self->{filename} ) ) {
-        croak( "Missing or invalid name param" );
+        croak( 'Missing or invalid name param' );
     }
     if ( ( defined $self->{filename} ) and ( not defined $self->name ) ) {
         $self->{name} = $self->{filename};
     }
     unless ( _STRING( $self->sitename ) ) {
         croak(
-"Missing or invalid sitename param - cannot generate GUID without one"
+'Missing or invalid sitename param - cannot generate GUID without one'
         );
     }
 
@@ -73,7 +70,7 @@ sub new {
         #... then use it to create a GUID out of the filename.
         $self->{id} =
           uc $guidgen->create_from_name_str( $uuid, $self->filename );
-        $self->{id} =~ s{-}{_}g;
+        $self->{id} =~ s{-}{_}smg;
     } ## end unless ( defined $self->id)
 
     return $self;
@@ -94,11 +91,11 @@ sub as_string {
     my $answer;
     my $pathname = $self->name;
 
-    if ( $pathname =~ m(\.AAA\z) ) {
+    if ( $pathname =~ m{\.AAA\z}sm ) {
 
         # If the file is a .AAA file, drop it in the original file's place.
         my ( undef, undef, $filename ) = splitpath( $pathname );
-        $filename = substr( $filename, 0, -4 );
+        $filename = substr $filename, 0, -4;
         $answer =
             q{<File Id='F_}
           . $self->id

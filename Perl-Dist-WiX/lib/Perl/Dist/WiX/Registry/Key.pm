@@ -13,14 +13,11 @@ use     strict;
 use     warnings;
 use     Carp               qw( croak               );
 use     Params::Util       qw( _IDENTIFIER _STRING );
-require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Component';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Component';
 #>>>
 #####################################################################
 # Accessors:
@@ -56,13 +53,13 @@ sub new {
 
     # Check params
     unless ( _IDENTIFIER( $self->root ) ) {
-        croak( "Missing or invalid root param" );
+        croak( 'Missing or invalid root param' );
     }
     unless ( _STRING( $self->key ) ) {
-        croak( "Missing or invalid subkey param" );
+        croak( 'Missing or invalid subkey param' );
     }
     unless ( _STRING( $self->id ) ) {
-        croak( "Missing or invalid id param" );
+        croak( 'Missing or invalid id param' );
     }
 
     return $self;
@@ -104,10 +101,10 @@ sub is_key {
     my ( $self, $root, $key ) = @_;
 
     unless ( _IDENTIFIER( $self->root ) ) {
-        croak( "Missing or invalid root param" );
+        croak( 'Missing or invalid root param' );
     }
     unless ( _STRING( $self->key ) ) {
-        croak( "Missing or invalid subkey param" );
+        croak( 'Missing or invalid subkey param' );
     }
 
     return 0 if ( uc $key  ne uc $self->key );
@@ -132,14 +129,14 @@ sub as_string {
 
     $self->{root} = uc $self->{root};
 
-    my $answer = <<END_OF_XML;
+    my $answer = <<"END_OF_XML";
 <Component Id='C_$self->{id}' Guid='$self->{guid}'>
   <RegistryKey Root='$self->{root}' Key='$self->{key}'>
 END_OF_XML
 
     $answer .= $self->SUPER::as_string( 4 );
 
-    $answer .= <<END_OF_XML;
+    $answer .= <<"END_OF_XML";
   </RegistryKey>
 </Component>
 END_OF_XML

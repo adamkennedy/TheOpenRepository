@@ -25,13 +25,12 @@ use     strict;
 use     warnings;
 use     Carp                     qw( croak                         );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
-use     Params::Util             
+use     Params::Util
     qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                         );
 use     Data::UUID               qw( NameSpace_DNS                 );
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
-require Perl::Dist::WiX::Misc;
 require Perl::Dist::WiX::Files;
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::Environment;
@@ -39,13 +38,11 @@ require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::FeatureTree;
 require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
-#>>>
-use vars qw( $VERSION @ISA );
 
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA     = 'Perl::Dist::WiX::Misc';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw(Perl::Dist::WiX::Misc);
+#>>>
 
 =head2 Accessors
 
@@ -130,9 +127,17 @@ use Object::Tiny qw{
   icons
 };
 
+sub _check_string_parameter {
+    my ($self, $string, $name) = @_;
+
+    unless ( _STRING( $string ) ) {
+        croak( "Missing or invalid $name param" );
+    }
+}
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     # Apply defaults
     unless ( defined $self->output_dir ) {
@@ -153,51 +158,41 @@ sub new {
 
     # Check and default params
     unless ( _IDENTIFIER( $self->app_id ) ) {
-        croak( "Missing or invalid app_id param" );
+        croak( 'Missing or invalid app_id param' );
     }
-    unless ( _STRING( $self->app_name ) ) {
-        croak( "Missing or invalid app_name param" );
-    }
-    unless ( _STRING( $self->app_ver_name ) ) {
-        croak( "Missing or invalid app_ver_name param" );
-    }
-    unless ( _STRING( $self->app_publisher ) ) {
-        croak( "Missing or invalid app_publisher param" );
-    }
-    unless ( _STRING( $self->app_publisher_url ) ) {
-        croak( "Missing or invalid app_publisher_url param" );
-    }
+    $self->_check_string_parameter($self->app_name, 'app_name' );
+    $self->_check_string_parameter(
+        $self->app_ver_name, 'app_ver_name' );
+    $self->_check_string_parameter(
+        $self->app_publisher, 'app_publisher' );
+    $self->_check_string_parameter(
+        $self->app_publisher_url, 'app_publisher_url' );
     unless ( _STRING( $self->sitename ) ) {
         $self->{sitename} = URI->new( $self->app_publisher_url )->host;
     }
-    unless ( _STRING( $self->default_group_name ) ) {
-        croak( "Missing or invalid default_group_name param" );
-    }
-    unless ( _STRING( $self->output_dir ) ) {
-        croak( "Missing or invalid output_dir param" );
-    }
+    $self->_check_string_parameter(
+        $self->default_group_name, 'default_group_name' );
+    $self->_check_string_parameter($self->output_dir, 'output_dir');
     unless ( -d $self->output_dir ) {
-        croak(  "The output_dir "
+        croak(  'The output_dir '
               . $self->output_dir
-              . "directory does not exist" );
+              . 'directory does not exist' );
     }
     unless ( -w $self->output_dir ) {
-        croak( "The output_dir directory is not writable" );
+        croak( 'The output_dir directory is not writable' );
     }
-    unless ( _STRING( $self->output_base_filename ) ) {
-        croak( "Missing or invalid output_base_filename" );
-    }
+    $self->_check_string_parameter(
+        $self->output_base_filename, 'output_base_filename' );
     unless ( _STRING( $self->source_dir ) ) {
-        croak( "Missing or invalid source_dir param" );
+        croak( 'Missing or invalid source_dir param' );
     }
     unless ( -d $self->source_dir ) {
-        croak( "The source_dir directory does not exist" );
+        croak( 'The source_dir directory does not exist' );
     }
-    unless ( _STRING( $self->fragment_dir ) ) {
-        croak( "Missing or invalid fragment_dir param" );
-    }
+    $self->_check_string_parameter(
+        $self->fragment_dir, 'fragment_dir' );
     unless ( -d $self->fragment_dir ) {
-        croak( "The fragment_dir directory does not exist" );
+        croak( 'The fragment_dir directory does not exist' );
     }
 
     # Set element collections
@@ -238,25 +233,25 @@ sub new {
 
     # Find the light.exe and candle.exe programs
     unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
-        croak( "Failed to find the Program Files directory\n" );
+        croak( 'Failed to find the Program Files directory' );
     }
     my $wix_dir =
       catdir( $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
     my $wix_file = catfile( $wix_dir, 'light.exe' );
     unless ( -f $wix_file ) {
-        croak( "Failed to find the WiX light.exe program" );
+        croak( 'Failed to find the WiX light.exe program' );
     }
     $self->{bin_light} = $wix_file;
 
     $wix_file = catfile( $wix_dir, 'candle.exe' );
     unless ( -f $wix_file ) {
-        croak( "Failed to find the WiX candle.exe program" );
+        croak( 'Failed to find the WiX candle.exe program' );
     }
     $self->{bin_candle} = $wix_file;
 
     $wix_file = catfile( $wix_dir, 'WixUIExtension.dll' );
     unless ( -f $wix_file ) {
-        croak( "Failed to find the WiX UI Extension DLL" );
+        croak( 'Failed to find the WiX UI Extension DLL' );
     }
     $self->{bin_wixui} = $wix_file;
 
@@ -288,7 +283,7 @@ Returns the application name with the version appended to it.
 
 # Default the versioned name to an unversioned name
 sub app_ver_name {
-    $_[0]->{app_ver_name}
+    return $_[0]->{app_ver_name}
       or $_[0]->app_name;
 }
 
@@ -300,8 +295,8 @@ Returns the base filename that is used to create distributions.
 
 # Default the output filename to the id plus the current date
 sub output_base_filename {
-    $_[0]->{output_base_filename}
-      or $_[0]->app_id . '-' . $_[0]->output_date_string;
+    return $_[0]->{output_base_filename}
+      or $_[0]->app_id . q{-} . $_[0]->output_date_string;
 }
 
 =item * output_date_string
@@ -314,7 +309,7 @@ routines.
 # Convenience method
 sub output_date_string {
     my @t = localtime;
-    return sprintf( "%04d%02d%02d", $t[5] + 1900, $t[4] + 1, $t[3] );
+    return sprintf '%04d%02d%02d', $t[5] + 1900, $t[4] + 1, $t[3];
 }
 
 =item * msi_ui_type
@@ -369,7 +364,7 @@ sub msi_upgrade_code {
 
     my $upgrade_ver =
         $self->app_name
-      . ( $self->portable ? ' Portable' : '' ) . ' '
+      . ( $self->portable ? ' Portable' : q{} ) . q{ }
       . $self->perl_version_human;
 
     my $guidgen = Data::UUID->new();
@@ -409,7 +404,7 @@ sub msi_perl_version {
     # Merge build number with last part of perl version.
     $ver->[2] = ( $ver->[2] << 8 ) + $self->build_number;
 
-    return join '.', @{$ver};
+    return join q{.}, @{$ver};
 
 } ## end sub msi_perl_version
 
@@ -453,10 +448,10 @@ sub compile_wxs {
 
     # Check parameters.
     unless ( _STRING( $filename ) ) {
-        croak "Invalid or missing filename parameter";
+        croak 'Invalid or missing filename parameter';
     }
     unless ( _STRING( $wixobj ) ) {
-        croak "Invalid or missing wixobj parameter";
+        croak 'Invalid or missing wixobj parameter';
     }
     unless ( -r $filename ) {
         croak "$filename does not exist or is not readable";
@@ -548,7 +543,7 @@ sub write_msi {
 
     # Write out the .wxs file
     my $content = $self->as_string;
-    $content =~ s{\r\n}{\n}g;          # CRLF -> LF
+    $content =~ s{\r\n}{\n}msg;          # CRLF -> LF
     $filename_in =
       catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
     $filename_out =
@@ -600,7 +595,7 @@ sub write_msi {
     my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
     # Did everything get done correctly?
-    unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/ ) ) {
+    unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
         $self->trace_line( 0, $out );
         croak "Failed to find $output_msi";
     }
@@ -781,6 +776,8 @@ sub as_string {
 } ## end sub as_string
 
 1;
+
+__END__
 
 =pod
 

@@ -11,28 +11,23 @@ package Perl::Dist::WiX::Base::Fragment;
 # Use as virtual base class and for "isa" tests only.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp              qw( croak             );
-use     Params::Util      qw( _CLASSISA _STRING );
-require Perl::Dist::WiX::Misc;
+use 5.006;
+use strict;
+use warnings;
+use Carp          qw( croak             );
+use Params::Util  qw( _CLASSISA _STRING );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Misc';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
 #>>>
 #####################################################################
 # Accessors:
 #   id: Returns the id parameter passed in to new.
 #   directory: Returns the directory parameter passed in to new.
 
-use Object::Tiny qw{
-  id
-  directory
-};
+sub id { my $self = shift; return $self->{id}; }
+sub directory { my $self = shift; return $self->{directory}; }
 
 #####################################################################
 # Constructor for Base::Fragment
@@ -42,16 +37,17 @@ use Object::Tiny qw{
 #   directory: Id parameter to the <DirectoryRef> tag  within this fragment.
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     # Check parameters and set defaults.
-    unless ( defined $self->directory ) {
+    unless ( defined $self->{directory} ) {
         $self->{directory} = 'TARGETDIR';
     }
-    unless ( _STRING( $self->directory ) ) {
+    unless ( _STRING( $self->{directory} ) ) {
         croak 'Invalid directory parameter';
     }
-    unless ( _STRING( $self->id ) ) {
+    unless ( _STRING( $self->{id} ) ) {
         croak 'Missing or invalid id parameter';
     }
 

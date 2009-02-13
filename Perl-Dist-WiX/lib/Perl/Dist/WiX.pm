@@ -16,7 +16,6 @@ Install XML technology, instead of Inno Setup.
 =cut
 
 #<<<
-
 use     5.008;
 use     strict;
 use     warnings;
@@ -26,6 +25,7 @@ use     List::MoreUtils       qw( any                     );
 use     Params::Util          qw( _HASH _STRING _INSTANCE );
 use     File::Spec::Functions
   qw( catdir catfile catpath tmpdir splitpath rel2abs curdir );
+use English                   qw( -no_match_vars );
 use     Archive::Tar     1.42 qw();
 use     File::Remove          qw();
 use     File::pushd           qw();
@@ -34,18 +34,21 @@ use     File::Copy::Recursive qw();
 use     File::PathList        qw();
 use     HTTP::Status          qw();
 use     IO::String            qw();
+use     IO::Handle            qw();
 use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
 use     PAR::Dist             qw();
 use     SelectSaver           qw();
 use     Template              qw();
 use     Module::CoreList 2.17 qw();
-require Perl::Dist::WiX::Installer;
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
-#>>>
 
-use Object::Tiny qw{
+use vars qw( $VERSION @ISA );
+use version; $VERSION = qv('0.13_02');
+use base qw(Perl::Dist::WiX::Installer);
+
+use Object::Tiny qw(
   perl_version
   portable
   exe
@@ -78,9 +81,8 @@ use Object::Tiny qw{
   build_number
   beta_number
   trace
-};
+);
 
-#<<<
 use Perl::Dist::Asset               1.12 ();
 use Perl::Dist::Asset::Binary       1.12 ();
 use Perl::Dist::Asset::Library      1.12 ();
@@ -92,12 +94,6 @@ use Perl::Dist::Asset::File         1.12 ();
 use Perl::Dist::Asset::Website      1.12 ();
 use Perl::Dist::Asset::Launcher     1.12 ();
 use Perl::Dist::Util::Toolchain     1.12 ();
-
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA     = 'Perl::Dist::WiX::Installer';
-}
 #>>>
 
 #####################################################################
@@ -350,7 +346,7 @@ should then call C<run> on to generate the distribution.
 sub new {
     my $class  = shift;
     my %params = @_;
-
+    
     # Apply some defaults
     unless ( defined $params{trace} ) {
         $params{trace} = 1;
@@ -401,16 +397,16 @@ sub new {
 
     # Check the version of Perl to build
     unless ( $self->build_number ) {
-        croak "Failed to resolve build_number";
+        croak 'Failed to resolve build_number';
     }
     unless ( $self->beta_number ) {
         $self->{beta_number} = 0;
     }
     unless ( $self->perl_version_literal ) {
-        croak "Failed to resolve perl_version_literal";
+        croak 'Failed to resolve perl_version_literal';
     }
     unless ( $self->perl_version_human ) {
-        croak "Failed to resolve perl_version_human";
+        croak 'Failed to resolve perl_version_human';
     }
     unless ( $self->can( 'install_perl_' . $self->perl_version ) ) {
         croak( "$class does not support Perl " . $self->perl_version );
@@ -421,7 +417,7 @@ sub new {
     $self->{perl_version_corelist} =
       $Module::CoreList::version{$corelist_version};
     unless ( _HASH( $self->{perl_version_corelist} ) ) {
-        croak( "Failed to resolve Module::CoreList hash for "
+        croak( 'Failed to resolve Module::CoreList hash for '
               . $self->perl_version_human );
     }
 
@@ -473,56 +469,56 @@ sub new {
 
     # If we are online and don't have a cpan repository,
     # use cpan.strawberryperl.com as a default.
-    if ( !$self->offline and !$self->cpan ) {
+    if ( not $self->offline and not $self->cpan ) {
         $self->{cpan} = URI->new( 'http://cpan.strawberryperl.com/' );
     }
 
     # Check params
     unless ( _STRING( $self->download_dir ) ) {
-        croak( "Missing or invalid download_dir param" );
+        croak( 'Missing or invalid download_dir param' );
     }
     unless ( defined $self->modules_dir ) {
         $self->{modules_dir} = catdir( $self->download_dir, 'modules' );
     }
     unless ( _STRING( $self->modules_dir ) ) {
-        croak( "Invalid modules_dir param" );
+        croak( 'Invalid modules_dir param' );
     }
     unless ( _STRING( $self->image_dir ) ) {
-        croak( "Missing or invalid image_dir param" );
+        croak( 'Missing or invalid image_dir param' );
     }
     if ( $self->image_dir =~ /\s/ ) {
-        croak( "Spaces are not allowed in image_dir" );
+        croak( 'Spaces are not allowed in image_dir' );
     }
     unless ( defined $self->license_dir ) {
         $self->{license_dir} = catdir( $self->image_dir, 'licenses' );
     }
     unless ( _STRING( $self->license_dir ) ) {
-        croak( "Invalid license_dir param" );
+        croak( 'Invalid license_dir param' );
     }
     unless ( _STRING( $self->build_dir ) ) {
-        croak( "Missing or invalid build_dir param" );
+        croak( 'Missing or invalid build_dir param' );
     }
     if ( $self->build_dir =~ /\s/ ) {
-        croak( "Spaces are not allowed in build_dir" );
+        croak( 'Spaces are not allowed in build_dir' );
     }
     unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
-        croak( "Missing or invalid user_agent param" );
+        croak( 'Missing or invalid user_agent param' );
     }
     unless ( _INSTANCE( $self->cpan, 'URI' ) ) {
-        croak( "Missing or invalid cpan param" );
+        croak( 'Missing or invalid cpan param' );
     }
     unless ( $self->cpan->as_string =~ /\/$/ ) {
-        croak( "Missing trailing slash in cpan param" );
+        croak( 'Missing trailing slash in cpan param' );
     }
 
     # Clear the previous build
     if ( -d $self->image_dir ) {
         $self->trace_line( 1,
-            "Removing previous " . $self->image_dir . "\n" );
+            'Removing previous ' . $self->image_dir . "\n" );
         File::Remove::remove( \1, $self->image_dir );
     } else {
         $self->trace_line( 1,
-            "No previous " . $self->image_dir . " found\n" );
+            'No previous ' . $self->image_dir . " found\n" );
     }
 
     # Initialize the build
@@ -598,7 +594,7 @@ sub binary_url {
 
     # Check parameters.
     unless ( _STRING( $file ) ) {
-        croak( "Missing or invalid file param" );
+        croak( 'Missing or invalid file param' );
     }
 
     unless ( $file =~ /\.(zip|gz|tgz)$/i ) {
@@ -606,7 +602,7 @@ sub binary_url {
         # Shorthand, map to full file name
         $file = $self->binary_file( $file, @_ );
     }
-    return $self->binary_root . '/' . $file;
+    return $self->binary_root . q{/} . $file;
 } ## end sub binary_url
 
 =head2 Accessors
@@ -705,7 +701,7 @@ Returns a directory as a string or dies on error.
 =cut
 
 sub dist_dir {
-    File::ShareDir::dist_dir( 'Perl-Dist-WiX' );
+    return File::ShareDir::dist_dir( 'Perl-Dist-WiX' );
 }
 
 #####################################################################
@@ -782,17 +778,17 @@ sub checkpoint_task {
 } ## end sub checkpoint_task
 
 sub checkpoint_file {
-    catfile( $_[0]->checkpoint_dir, 'self.dat' );
+    return catfile( $_[0]->checkpoint_dir, 'self.dat' );
 }
 
 sub checkpoint_self {
-    die "CODE INCOMPLETE";
+    croak 'CODE INCOMPLETE';
 }
 
 sub checkpoint_save {
     my $self = shift;
     unless ( $self->temp_dir ) {
-        die "Checkpoints require a temp_dir to be set";
+        croak 'Checkpoints require a temp_dir to be set';
     }
 
     # Clear out any existing checkpoint
@@ -812,7 +808,7 @@ sub checkpoint_save {
     # Blank the checkpoint values to prevent load/save loops, and remove
     # things we can recreate later.
     my $copy = {
-        %$self,
+        %{$self},
         checkpoint_before => 0,
         checkpoint_after  => 0,
         user_agent        => undef,
@@ -825,7 +821,7 @@ sub checkpoint_save {
 sub checkpoint_load {
     my $self = shift;
     unless ( $self->temp_dir ) {
-        die "Checkpoints require a temp_dir to be set";
+        croak 'Checkpoints require a temp_dir to be set';
     }
 
     # Does the checkpoint exist
@@ -833,12 +829,12 @@ sub checkpoint_load {
     $self->{checkpoint_dir} =
       File::Spec->catfile( $self->temp_dir, 'checkpoint', );
     unless ( -d $self->checkpoint_dir ) {
-        die "Failed to find checkpoint directory";
+        croak 'Failed to find checkpoint directory';
     }
 
     # Load the stored hash over our object
     my $stored = Storable::retrieve( $self->checkpoint_file );
-    %$self = %$stored;
+    %{$self} = %{$stored};
 
     # Pull all the directories out of the storage
     $self->trace_line( "Restoring checkpoint directories...\n" );
@@ -862,7 +858,7 @@ sub app_ver_name {
     if ( $self->{app_ver_name} ) {
         return $self->{app_ver_name};
     }
-    return $self->app_name . ' ' . $self->perl_version_human;
+    return $self->app_name . q{ } . $self->perl_version_human;
 }
 
 # Default the output filename to the id plus the current date
@@ -872,8 +868,8 @@ sub output_base_filename {
         return $self->{output_base_filename};
     }
     return
-        $self->app_id . '-'
-      . $self->perl_version_human . '-'
+        $self->app_id . q{-}
+      . $self->perl_version_human . q{-}
       . $self->output_date_string;
 }
 
@@ -932,7 +928,7 @@ sub perl_version_human {
 #####################################################################
 # Top Level Process Methods
 
-sub prepare { 1 }
+sub prepare { return 1 }
 
 =pod
 
@@ -953,12 +949,12 @@ sub run {
     my $start = time;
 
     unless ( $self->msi or $self->zip ) {
-        $self->trace_line( "No msi or zip target, nothing to do" );
+        $self->trace_line( 'No msi or zip target, nothing to do' );
         return 1;
     }
 
     # Don't buffer
-    $| = 1;
+    STDOUT->autoflush(1);
 
     # Install the core C toolchain
     $self->checkpoint_task( install_c_toolchain => 1 );
@@ -990,7 +986,7 @@ sub run {
 
     # Finished
     $self->trace_line( 0,
-            "Distribution generation completed in "
+            'Distribution generation completed in '
           . ( time - $start )
           . " seconds\n" );
     foreach my $file ( @{ $self->output_file } ) {
@@ -1088,11 +1084,11 @@ sub install_c_libraries {
 # Just hand off to the larger set of Perl install methods.
 sub install_perl {
     my $self                = shift;
-    my $install_perl_method = "install_perl_" . $self->perl_version;
+    my $install_perl_method = 'install_perl_' . $self->perl_version;
     unless ( $self->can( $install_perl_method ) ) {
         croak(
             "Cannot generate perl, missing $install_perl_method method in "
-              . ref( $self ) );
+              . ref $self );
     }
     $self->$install_perl_method( @_ );
 
@@ -1109,7 +1105,7 @@ sub install_perl_toolchain {
       : Perl::Dist::Util::Toolchain->new(
         perl_version => $self->perl_version_literal, );
     unless ( $toolchain ) {
-        die( "Did not provide a toolchain resolver" );
+        croak 'Did not provide a toolchain resolver';
     }
 
     # Get the regular Perl to generate the list.
@@ -1117,7 +1113,7 @@ sub install_perl_toolchain {
     # any permanent CPAN.pm locks.
     $toolchain->delegate;
     if ( $toolchain->{errstr} ) {
-        die( "Failed to generate toolchain distributions" );
+        croak 'Failed to generate toolchain distributions';
     }
 
     # Install the toolchain dists
@@ -1163,25 +1159,26 @@ sub install_perl_toolchain {
 sub install_cpan_upgrades {
     my $self = shift;
     unless ( $self->bin_perl ) {
-        croak( "Cannot install CPAN modules yet, perl is not installed" );
+        croak 'Cannot install CPAN modules yet, perl is not installed';
     }
 
-    if ( $self->perl_version =~ m(\A510)) {
+    # Check for a 5.10.x 
+    if ( $self->perl_version eq '5100') {
 
         # 5.10.x versions need these modules installed BEFORE the upgrade...
         $self->install_distribution(
-            name => 'ARANDAL/Pod-Simple-3.07.tar.gz', 
+            name => 'ARANDAL/Pod-Simple-3.07.tar.gz',
             makefilepl_param  => ['INSTALLDIRS=perl']
         )->install_distribution(
-            name => 'MSERGEANT/Time-Piece-1.13.tar.gz', 
+            name => 'MSERGEANT/Time-Piece-1.13.tar.gz',
             makefilepl_param  => ['INSTALLDIRS=perl']
         );
     }
     
     my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(
         catdir( $self->image_dir, 'perl' ) );
-    
-    # Generate the CPAN installation script
+
+        # Generate the CPAN installation script
     my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -1197,15 +1194,16 @@ END_PERL
     $self->trace_line( 1, "Running upgrade of all modules\n" );
     my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
-        open( CPAN_FILE, '>', $cpan_file ) or die "open: $!";
-        print CPAN_FILE $cpan_string or die "print: $!";
-        close( CPAN_FILE ) or die "close: $!";
+        my $CPAN_FILE;
+        open $CPAN_FILE, '>', $cpan_file or croak "open: $!";
+        print { $CPAN_FILE } $cpan_string or croak "print: $!";
+        close $CPAN_FILE  or croak "close: $!";
     }
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
-    local $ENV{AUTOMATED_TESTING}   = '';
-    local $ENV{RELEASE_TESTING}     = '';
-    $self->_run3( $self->bin_perl, $cpan_file ) or die "perl failed";
-    die "Failure detected during cpan upgrade, stopping" if $?;
+    local $ENV{AUTOMATED_TESTING}   = q{};
+    local $ENV{RELEASE_TESTING}     = q{};
+    $self->_run3( $self->bin_perl, $cpan_file ) or croak 'perl failed';
+    croak 'Failure detected during cpan upgrade, stopping' if $CHILD_ERROR;
 
     my $fl = Perl::Dist::WiX::Filelist->new->readdir(
         catdir( $self->image_dir, 'perl' ) );
@@ -1416,11 +1414,11 @@ sub install_perl_588 {
     my $toolchain =
       Perl::Dist::Util::Toolchain->new(
         perl_version => $self->perl_version_literal, )
-      or croak "Failed to resolve toolchain modules";
+      or croak 'Failed to resolve toolchain modules';
     $toolchain->delegate;
 
     if ( $toolchain->{errstr} ) {
-        croak "Failed to generate toolchain distributions";
+        croak 'Failed to generate toolchain distributions';
     }
 
     # Make the perl directory if it hasn't been made alreafy.
@@ -1481,9 +1479,9 @@ sub install_perl_588_bin {
         @_,
     );
     unless ( $self->bin_make ) {
-        croak( "Cannot build Perl yet, no bin_make defined" );
+        croak( 'Cannot build Perl yet, no bin_make defined' );
     }
-    $self->trace_line( 0, "Preparing " . $perl->name . "\n" );
+    $self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
 
     # Download the file
     my $tgz = $self->_mirror( $perl->url, $self->download_dir, );
@@ -1505,7 +1503,7 @@ sub install_perl_588_bin {
     if ( $patch ) {
 
         # Overwrite the appropriate files
-        foreach my $file ( @$patch ) {
+        foreach my $file ( @{$patch} ) {
             $self->patch_file( "perl-5.8.8/$file" => $unpack_to );
         }
     }
@@ -1518,7 +1516,7 @@ sub install_perl_588_bin {
 
     # Build win32 perl
   SCOPE: {
-        my $wd = $self->_pushd( $unpack_to, $perlsrc, "win32" );
+        my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
 
         # Prepare to patch
         my $image_dir = $self->image_dir;
@@ -1553,7 +1551,7 @@ sub install_perl_588_bin {
 * -- csjewell\@cpan.org
 ***********************************************************
 EOF
-        
+
 #            local $ENV{PERL_SKIP_TTY_TEST} = 1;
 #            $self->trace_line( 1, "Testing perl...\n" );
 #            $self->_make( 'test' );
@@ -1566,7 +1564,7 @@ EOF
     # Should now have a perl to use
     $self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
     unless ( -x $self->bin_perl ) {
-        croak( "Can't execute " . $self->bin_perl );
+        croak( q{Can't execute } . $self->bin_perl );
     }
 
     # Add to the environment variables
@@ -1589,11 +1587,11 @@ sub install_perl_589 {
     my $toolchain =
       Perl::Dist::Util::Toolchain->new(
         perl_version => $self->perl_version_literal, )
-      or croak "Failed to resolve toolchain modules";
+      or croak 'Failed to resolve toolchain modules';
     $toolchain->delegate;
 
     if ( $toolchain->{errstr} ) {
-        croak "Failed to generate toolchain distributions";
+        croak 'Failed to generate toolchain distributions';
     }
 
     # Make the perl directory if it hasn't been made alreafy.
@@ -1644,9 +1642,9 @@ sub install_perl_589_bin {
         @_,
     );
     unless ( $self->bin_make ) {
-        croak( "Cannot build Perl yet, no bin_make defined" );
+        croak( 'Cannot build Perl yet, no bin_make defined' );
     }
-    $self->trace_line( 0, "Preparing " . $perl->name . "\n" );
+    $self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
 
     # Download the file
     my $tgz = $self->_mirror( $perl->url, $self->download_dir, );
@@ -1668,7 +1666,7 @@ sub install_perl_589_bin {
     if ( $patch ) {
 
         # Overwrite the appropriate files
-        foreach my $file ( @$patch ) {
+        foreach my $file ( @{$patch} ) {
             $self->patch_file( "perl-5.8.9/$file" => $unpack_to );
         }
     }
@@ -1681,7 +1679,7 @@ sub install_perl_589_bin {
 
     # Build win32 perl
   SCOPE: {
-        my $wd = $self->_pushd( $unpack_to, $perlsrc, "win32" );
+        my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
 
         # Prepare to patch
         my $image_dir = $self->image_dir;
@@ -1713,7 +1711,7 @@ sub install_perl_589_bin {
     # Should now have a perl to use
     $self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
     unless ( -x $self->bin_perl ) {
-        croak( "Can't execute " . $self->bin_perl );
+        croak( q{Can't execute } . $self->bin_perl );
     }
 
     # Add to the environment variables
@@ -1737,11 +1735,11 @@ sub install_perl_5100 {
     my $toolchain =
       Perl::Dist::Util::Toolchain->new(
         perl_version => $self->perl_version_literal, )
-      or die( "Failed to resolve toolchain modules" );
+      or croak 'Failed to resolve toolchain modules';
     $toolchain->delegate;
 
     if ( $toolchain->{errstr} ) {
-        die( "Failed to generate toolchain distributions" );
+        croak 'Failed to generate toolchain distributions';
     }
 
     # Make the perl directory if it hasn't been made alreafy.
@@ -1793,9 +1791,9 @@ sub install_perl_5100_bin {
         @_,
     );
     unless ( $self->bin_make ) {
-        croak "Cannot build Perl yet, no bin_make defined";
+        croak 'Cannot build Perl yet, no bin_make defined';
     }
-    $self->trace_line( 0, "Preparing " . $perl->name . "\n" );
+    $self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
 
     # Download the file
     my $tgz = $self->_mirror( $perl->url, $self->download_dir, );
@@ -1817,7 +1815,7 @@ sub install_perl_5100_bin {
     if ( $patch ) {
 
         # Overwrite the appropriate files
-        foreach my $file ( @$patch ) {
+        foreach my $file ( @{$patch} ) {
             $self->patch_file( "perl-5.10.0/$file" => $unpack_to );
         }
     }
@@ -1830,7 +1828,7 @@ sub install_perl_5100_bin {
 
     # Build win32 perl
   SCOPE: {
-        my $wd = $self->_pushd( $unpack_to, $perlsrc, "win32" );
+        my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
 
         # Prepare to patch
         my $image_dir = $self->image_dir;
@@ -1862,7 +1860,7 @@ sub install_perl_5100_bin {
     # Should now have a perl to use
     $self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
     unless ( -x $self->bin_perl ) {
-        die "Can't execute " . $self->bin_perl;
+        croak q{Can't execute } . $self->bin_perl;
     }
 
     # Add to the environment variables
@@ -1913,7 +1911,7 @@ sub install_dmake {
     $self->{bin_make} =
       catfile( $self->image_dir, 'c', 'bin', 'dmake.exe' );
     unless ( -x $self->bin_make ) {
-        croak( "Can't execute make" );
+        croak q{Can't execute make};
     }
 
     $self->insert_fragment( 'dmake', $filelist->files );
@@ -1990,7 +1988,7 @@ sub install_binutils {
     $self->{bin_dlltool} =
       catfile( $self->image_dir, 'c', 'bin', 'dlltool.exe' );
     unless ( -x $self->bin_dlltool ) {
-        die "Can't execute dlltool";
+        croak q{Can't execute dlltool};
     }
 
     $self->insert_fragment( 'binutils', $filelist->files );
@@ -2026,7 +2024,7 @@ sub install_pexports {
     $self->{bin_pexports} =
       catfile( $self->image_dir, 'c', 'bin', 'pexports.exe' );
     unless ( -x $self->bin_pexports ) {
-        die "Can't execute pexports";
+        croak q{Can't execute pexports};
     }
 
     $self->insert_fragment( 'pexports', $filelist->files );
@@ -2365,7 +2363,7 @@ sub install_binary {
         my $tgt = catdir( $self->image_dir, $binary->install_to );
         @files = $self->_extract( $tgz, $tgt );
     } else {
-        die "didn't expect install_to to be a " . ref $binary->install_to;
+        croak q{didn't expect install_to to be a } . ref $binary->install_to;
     }
 
     # Find the licenses
@@ -2437,7 +2435,7 @@ sub install_library {
     # Copy in the files
     my $install_to = $library->install_to;
     if ( _HASH( $install_to ) ) {
-        foreach my $k ( sort keys %$install_to ) {
+        foreach my $k ( sort keys %{$install_to} ) {
             my $from = catdir( $unpack_to,       $k );
             my $to   = catdir( $self->image_dir, $install_to->{$k} );
             $self->_copy( $from, $to );
@@ -2647,7 +2645,7 @@ sub search_packlist {
         catdir(
             $self->image_dir,
             qw{perl      lib auto},
-            split( '::', $module )
+            split qr{::}, $module
         ),
         '.packlist'
     );
@@ -2655,7 +2653,7 @@ sub search_packlist {
         catdir(
             $self->image_dir,
             qw{perl site lib auto},
-            split( '::', $module )
+            split qr{::}, $module
         ),
         '.packlist'
     );
@@ -2784,7 +2782,7 @@ sub install_module {
     my $force = $module->force;
 
     unless ( $self->bin_perl ) {
-        croak( "Cannot install CPAN modules yet, perl is not installed" );
+        croak 'Cannot install CPAN modules yet, perl is not installed';
     }
     my $dist_file = catfile( $self->build_dir, 'cpan_distro.txt' );
 
@@ -2832,15 +2830,16 @@ END_PERL
     $self->trace_line( 1, "Running install of $name\n" );
     my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
-        open( CPAN_FILE, '>', $cpan_file ) or die "open: $!";
-        print CPAN_FILE $cpan_string or die "print: $!";
-        close( CPAN_FILE ) or die "close: $!";
+        my $CPAN_FILE;
+        open $CPAN_FILE, '>', $cpan_file or croak "open: $!";
+        print { $CPAN_FILE } $cpan_string or croak "print: $!";
+        close $CPAN_FILE  or croak "close: $!";
     }
     local $ENV{PERL_MM_USE_DEFAULT} = 1;
-    local $ENV{AUTOMATED_TESTING}   = '';
-    local $ENV{RELEASE_TESTING}     = '';
-    $self->_run3( $self->bin_perl, $cpan_file ) or croak "perl failed";
-    croak "Failure detected installing $name, stopping [$?]" if $?;
+    local $ENV{AUTOMATED_TESTING}   = q{};
+    local $ENV{RELEASE_TESTING}     = q{};
+    $self->_run3( $self->bin_perl, $cpan_file ) or croak 'perl failed';
+    croak "Failure detected installing $name, stopping [$CHILD_ERROR]" if $CHILD_ERROR;
 
 
     # Read in the dist file and return it as $dist_info.
@@ -2919,7 +2918,7 @@ Returns true on success or throws an exception on error.
 sub install_par {
     my $self = shift;
     my $output;
-    $self->trace_line( 1, "Preparing " . {@_}->{name} . "\n" );
+    $self->trace_line( 1, q{Preparing } . {@_}->{name} . "\n" );
     my $io = IO::String->new( $output );
     my $packlist;
 
@@ -2949,7 +2948,7 @@ sub install_par {
         my $cdir = catdir( $self->image_dir, 'c' );
 
         # Suppress warnings for resources that don't exist
-        local $^W = 0;
+        local $WARNING = 0;
 
         # Install
         PAR::Dist::install_par(
@@ -3104,7 +3103,7 @@ sub install_launcher {
     my $to =
       catfile( $self->image_dir, 'perl', 'bin', $launcher->bin . '.bat' );
     unless ( -f $to ) {
-        die "The script '" . $launcher->bin . '" does not exist';
+        croak q{The script '} . $launcher->bin . q{" does not exist};
     }
 
     my $icon_id = $self->icons->add_icon(
@@ -3115,7 +3114,7 @@ sub install_launcher {
     $self->add_icon(
         name     => $launcher->name,
         filename => $to,
-        fragment => "Icons",
+        fragment => 'Icons',
         icon_id  => $icon_id
     );
 
@@ -3159,7 +3158,7 @@ sub install_website {
         @_,
     );
 
-    my $filename = catfile( $self->image_dir, "win32", $website->file );
+    my $filename = catfile( $self->image_dir, 'win32', $website->file );
 
     # Write the file directly to the image
     $website->write( $filename );
@@ -3167,7 +3166,7 @@ sub install_website {
     # Add the file.
     $self->add_file(
         source   => $filename,
-        fragment => "Win32Extras"
+        fragment => 'Win32Extras'
     );
 
     my $icon_id = $self->icons->add_icon( $website->icon_file, $filename );
@@ -3176,7 +3175,7 @@ sub install_website {
     $self->add_icon(
         name     => $website->name,
         filename => $filename,
-        fragment => "Icons",
+        fragment => 'Icons',
         icon_id  => $icon_id,
     );
 
@@ -3187,7 +3186,7 @@ sub install_website {
 #####################################################################
 # Package Generation
 
-sub write {
+sub write {  ## no critic 'ProhibitBuiltinHomonyms'
     my $self = shift;
     $self->{output_file} ||= [];
     if ( $self->zip ) {
@@ -3225,7 +3224,7 @@ sub write_zip {
     my $zip = Archive::Zip->new;
 
     # Add the image directory to the root
-    $zip->addTree( $self->image_dir, '' );
+    $zip->addTree( $self->image_dir, q{} );
 
     # Set max compression for all members
     foreach my $member ( $zip->members ) {
@@ -3283,8 +3282,8 @@ sub add_env_path {
 
 sub get_env_path {
     my $self = shift;
-    return join ';',
-      map { catdir( $self->image_dir, @$_ ) } @{ $self->env_path };
+    return join q{;},
+      map { catdir( $self->image_dir, @{ $_ } ) } @{ $self->env_path };
 }
 
 #####################################################################
@@ -3296,7 +3295,7 @@ sub patch_include_path {
     my $share = File::ShareDir::dist_dir( 'Perl-Dist' );
     my $path  = catdir( $share, 'default', );
     unless ( -d $path ) {
-        die( "Directory $path does not exist" );
+        croak "Directory $path does not exist";
     }
     return [$path];
 }
@@ -3308,7 +3307,7 @@ sub patch_pathlist {
 
 # Cache this
 sub patch_template {
-    $_[0]->{template_toolkit}
+    return $_[0]->{template_toolkit}
       or $_[0]->{template_toolkit} = Template->new(
         INCLUDE_PATH => $_[0]->patch_include_path,
         ABSOLUTE     => 1,
@@ -3327,31 +3326,31 @@ sub patch_file {
     my $from    = $pathlist->find_file( $file );
     my $from_tt = $pathlist->find_file( $file_tt );
     unless ( defined $from and defined $from_tt ) {
-        die "Missing or invalid file $file or $file_tt in pathlist search";
+        croak "Missing or invalid file $file or $file_tt in pathlist search";
     }
 
-    if ( $from_tt ne '' ) {
+    if ( $from_tt ne q{} ) {
 
         # Generate the file
         my $hash = _HASH( shift ) || {};
         my ( $fh, $output ) = File::Temp::tempfile();
         $self->trace_line( 2,
             "Generating $from_tt into temp file $output\n" );
-        $self->patch_template->process( $from_tt, { %$hash, self => $self },
+        $self->patch_template->process( $from_tt, { %{$hash}, self => $self },
             $fh, )
-          or die "Template processing failed for $from_tt";
+          or croak "Template processing failed for $from_tt";
 
         # Copy the file to the final location
         $fh->close;
         $self->_copy( $output => $to );
 
-    } elsif ( $from ne '' ) {
+    } elsif ( $from ne q{} ) {
 
         # Simple copy of the regular file to the target location
         $self->_copy( $from => $to );
 
     } else {
-        die "Failed to find file $file";
+        croak "Failed to find file $file";
     }
 
     return 1;
@@ -3374,11 +3373,11 @@ sub image_dir_quotemeta {
 # Support Methods
 
 sub dir {
-    catdir( shift->image_dir, @_ );
+    return catdir( shift->image_dir, @_ );
 }
 
 sub file {
-    catfile( shift->image_dir, @_ );
+    return catfile( shift->image_dir, @_ );
 }
 
 sub user_agent {
@@ -3396,12 +3395,12 @@ sub user_agent {
                     namespace          => 'perl-dist',
                     cache_root         => $self->user_agent_directory,
                     cache_depth        => 0,
-                    default_expires_in => 86400 * 30,
+                    default_expires_in => 86_400 * 30,
                     show_progress      => 1,
             } );
         } else {
             $self->{user_agent} = LWP::UserAgent->new(
-                agent => ref( $self ) . '/' . ( $VERSION || '0.00' ),
+                agent => ref( $self ) . q{/} . ( $VERSION || '0.00' ),
                 timeout       => 30,
                 show_progress => 1,
             );
@@ -3411,22 +3410,22 @@ sub user_agent {
 } ## end sub user_agent
 
 sub user_agent_cache {
-    $_[0]->{user_agent_cache};
+    return $_[0]->{user_agent_cache};
 }
 
 sub user_agent_directory {
     my $self = shift;
-    my $path = ref( $self );
+    my $path = ref $self;
     $path =~ s/::/-/g;
     my $dir = File::Spec->catdir( File::HomeDir->my_data, 'Perl', $path, );
 
     unless ( -d $dir ) {
         unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
-            die( "Failed to create $dir" );
+            croak "Failed to create $dir";
         }
     }
     unless ( -w $dir ) {
-        die( "No write permissions for LWP::UserAgent cache '$dir'" );
+        croak "No write permissions for LWP::UserAgent cache '$dir'";
     }
     return $dir;
 } ## end sub user_agent_directory
@@ -3438,25 +3437,24 @@ sub _mirror {
     my (
         undef, undef, undef, $sub,  undef,
         undef, undef, undef, undef, undef
-    ) = caller( 0 );
+    ) = caller 0;
     if ( $sub eq 'install_par' ) { $no_display_trace = 1; }
 
     my $file = $url;
-    $file =~ s|.+\/||;
+    $file =~ s{.+\/}{};
     my $target = catfile( $dir, $file );
     if ( $self->offline and -f $target ) {
         return $target;
     }
-    if ( $self->offline and !$url =~ m|^file://| ) {
+    if ( $self->offline and not $url =~ m{\Afile://}msx ) {
         $self->trace_line( 0,
             "Error: Currently offline, cannot download.\n" );
-        exit( 0 );
+        exit 0;
     }
     File::Path::mkpath( $dir );
-    $| = 1;
 
     $self->trace_line( 2, "Downloading file $url...\n", $no_display_trace );
-    if ( $url =~ m|^file://| ) {
+    if ( $url =~ m{\Afile://}msx ) {
 
         # Don't use WithCache for files (it generates warnings)
         my $ua = LWP::UserAgent->new;
@@ -3491,7 +3489,7 @@ sub _copy {
     File::Path::mkpath( $basedir ) unless -e $basedir;
     $self->trace_line( 2, "Copying $from to $to\n" );
 
-    if ( -f $to and !-w $to ) {
+    if ( -f $to and not -w $to ) {
         require Win32::File::Object;
 
         # Make sure it isn't readonly
@@ -3500,12 +3498,12 @@ sub _copy {
         $file->readonly( 0 );
 
         # Do the actual copy
-        File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+        File::Copy::Recursive::rcopy( $from, $to ) or croak $OS_ERROR;
 
         # Set it back to what it was
         $file->readonly( $readonly );
     } else {
-        File::Copy::Recursive::rcopy( $from, $to ) or die $!;
+        File::Copy::Recursive::rcopy( $from, $to ) or croak $OS_ERROR;
     }
     return 1;
 } ## end sub _copy
@@ -3515,7 +3513,9 @@ sub _move {
     my $basedir = File::Basename::dirname( $to );
     File::Path::mkpath( $basedir ) unless -e $basedir;
     $self->trace_line( 2, "Moving $from to $to\n" );
-    File::Copy::Recursive::rmove( $from, $to ) or die $!;
+    File::Copy::Recursive::rmove( $from, $to ) or croak $OS_ERROR;
+    
+    return;
 }
 
 sub _pushd {
@@ -3530,9 +3530,9 @@ sub _make {
     my $self   = shift;
     my @params = @_;
     $self->trace_line( 2,
-        join( ' ', '>', $self->bin_make, @params ) . "\n" );
-    $self->_run3( $self->bin_make, @params ) or die "make failed";
-    die "make failed (OS error)" if ( $? >> 8 );
+        join( q{ }, '>', $self->bin_make, @params ) . qq{\n} );
+    $self->_run3( $self->bin_make, @params ) or croak 'make failed';
+    croak 'make failed (OS error)' if ( $CHILD_ERROR >> 8 );
     return 1;
 }
 
@@ -3540,9 +3540,9 @@ sub _perl {
     my $self   = shift;
     my @params = @_;
     $self->trace_line( 2,
-        join( ' ', '>', $self->bin_perl, @params ) . "\n" );
-    $self->_run3( $self->bin_perl, @params ) or die "perl failed";
-    die "perl failed (OS error)" if ( $? >> 8 );
+        join( q{ }, '>', $self->bin_perl, @params ) . qq{\n} );
+    $self->_run3( $self->bin_perl, @params ) or croak 'perl failed';
+    croak 'perl failed (OS error)' if ( $CHILD_ERROR >> 8 );
     return 1;
 }
 
@@ -3571,7 +3571,7 @@ sub _run3 {
     local $ENV{LIB}      = undef;
     local $ENV{INCLUDE}  = undef;
     local $ENV{PERL5LIB} = undef;
-    local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
+    local $ENV{PATH}     = $self->get_env_path . q{;} . join q{;}, @keep;
 
     # Execute the child process
     return IPC::Run3::run3( [@_], \undef, $self->debug_stdout,
@@ -3580,11 +3580,11 @@ sub _run3 {
 
 sub _convert_name {
     my $name     = shift;
-    my @paths    = split( /\//, $name );
-    my $filename = pop( @paths );
-    $filename = '' unless defined( $filename );
+    my @paths    = split m{\/}ms, $name ;
+    my $filename = pop @paths ;
+    $filename = q{} unless defined $filename ;
     my $local_dirs = @paths ? catdir( @paths ) : q{};
-    my $local_name = catpath( '', $local_dirs, $filename );
+    my $local_name = catpath( q{} , $local_dirs, $filename );
     $local_name = rel2abs( $local_name );
     return $local_name;
 }
@@ -3596,7 +3596,6 @@ sub _extract {
 
     my @filelist;
 
-    $|++;
     $self->trace_line( 2, "Extracting $from...\n" );
     if ( $from =~ m{\.zip\z} ) {
         my $zip = Archive::Zip->new( $from );
@@ -3610,7 +3609,7 @@ sub _extract {
               ;                        # Converts filename to Windows format.
             my $status = $member->extractToFileNamed( $filename );
             if ( $status != AZ_OK ) {
-                die "Error in archive extraction";
+                croak 'Error in archive extraction';
             }
             push @filelist, $filename;
         }
@@ -3620,11 +3619,11 @@ sub _extract {
         my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
         @filelist = map { catfile( $to, $_ ) } @fl;
         if ( !@filelist ) {
-            die "Error in archive extraction";
+            croak 'Error in archive extraction';
         }
 
     } else {
-        die "Didn't recognize archive type for $from";
+        croak "Didn't recognize archive type for $from";
     }
     return @filelist;
 } ## end sub _extract
@@ -3638,7 +3637,7 @@ sub _extract_filemap {
 
         my $zip = Archive::Zip->new( $archive );
         my $wd  = $self->_pushd( $basedir );
-        while ( my ( $f, $t ) = each %$filemap ) {
+        while ( my ( $f, $t ) = each %{$filemap} ) {
             $self->trace_line( 2, "Extracting $f to $t\n" );
             my $dest = catfile( $basedir, $t );
 
@@ -3651,7 +3650,7 @@ sub _extract_filemap {
                 my $status = $member->extractToFileNamed( $filename );
 
                 if ( $status != AZ_OK ) {
-                    die "Error in archive extraction";
+                    croak 'Error in archive extraction';
                 }
                 push @files, $filename;
             }
@@ -3663,7 +3662,7 @@ sub _extract_filemap {
         for my $file ( $tar->get_files ) {
             my $f       = $file->full_path;
             my $canon_f = File::Spec::Unix->canonpath( $f );
-            for my $tgt ( keys %$filemap ) {
+            for my $tgt ( keys %{$filemap} ) {
                 my $canon_tgt = File::Spec::Unix->canonpath( $tgt );
                 my $t;
 
@@ -3687,7 +3686,7 @@ sub _extract_filemap {
         } ## end for my $file ( $tar->get_files)
 
     } else {
-        die "Didn't recognize archive type for $archive";
+        croak "Didn't recognize archive type for $archive";
     }
 
     return @files;
@@ -3698,38 +3697,38 @@ sub _dll_to_a {
     my $self   = shift;
     my %params = @_;
     unless ( $self->bin_dlltool ) {
-        croak( "Required method bin_dlltool is not defined" );
+        croak( 'Required method bin_dlltool is not defined' );
     }
 
     my @files;
 
     # Source file
     my $source = $params{source};
-    if ( $source and !$source =~ /\.dll$/ ) {
-        croak( "Missing or invalid source param" );
+    if ( $source and not ($source =~ /\.dll\z/ms) ) {
+        croak( 'Missing or invalid source param' );
     }
 
     # Target .dll file
     my $dll = $params{dll};
-    unless ( $dll and $dll =~ /\.dll/ ) {
-        croak( "Missing or invalid .dll file" );
+    unless ( $dll and $dll =~ /\.dll/ms ) {
+        croak( 'Missing or invalid .dll file' );
     }
 
     # Target .def file
     my $def = $params{def};
-    unless ( $def and $def =~ /\.def$/ ) {
-        croak( "Missing or invalid .def file" );
+    unless ( $def and $def =~ /\.def\z/ms ) {
+        croak( 'Missing or invalid .def file' );
     }
 
     # Target .a file
     my $_a = $params{a};
-    unless ( $_a and $_a =~ /\.a$/ ) {
-        croak( "Missing or invalid .a file" );
+    unless ( $_a and $_a =~ /\.a\z/ms ) {
+        croak( 'Missing or invalid .a file' );
     }
 
     # Step 1 - Copy the source .dll to the target if needed
     unless ( ( $source and -f $source ) or -f $dll ) {
-        croak( "Need either a source or dll param" );
+        croak( 'Need either a source or dll param' );
     }
     if ( $source ) {
         $self->_move( $source => $dll );
@@ -3740,11 +3739,11 @@ sub _dll_to_a {
   SCOPE: {
         my $bin = $self->bin_pexports;
         unless ( $bin ) {
-            croak( "Required method bin_pexports is not defined" );
+            croak( 'Required method bin_pexports is not defined' );
         }
-        my $ok = !system( "$bin $dll > $def" );
+        my $ok = !system "$bin $dll > $def" ;
         unless ( $ok and -f $def ) {
-            croak( "Failed to generate .def file" );
+            croak( 'Failed to generate .def file' );
         }
 
         push @files, $def;
@@ -3754,12 +3753,12 @@ sub _dll_to_a {
   SCOPE: {
         my $bin = $self->bin_dlltool;
         unless ( $bin ) {
-            croak( "Required method bin_dlltool is not defined" );
+            croak( 'Required method bin_dlltool is not defined' );
         }
         my $ok =
-          !system( "$bin -dllname $dll --def $def --output-lib $_a" );
+          !system "$bin -dllname $dll --def $def --output-lib $_a" ;
         unless ( $ok and -f $_a ) {
-            croak( "Failed to generate .a file" );
+            croak( 'Failed to generate .a file' );
         }
 
         push @files, $_a;
@@ -3791,6 +3790,8 @@ sub remake_path {
 }
 
 1;
+
+__END__
 
 =pod
 

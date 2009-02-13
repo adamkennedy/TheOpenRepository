@@ -15,18 +15,14 @@ use     warnings;
 use     Carp           qw( croak          );
 use     Params::Util   qw( _IDENTIFIER    );
 use     Data::UUID     qw( NameSpace_DNS  );
-require Perl::Dist::WiX::Base::Fragment;
-require Perl::Dist::WiX::Base::Component;
 require Perl::Dist::WiX::EnvironmentEntry;
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw(
-        Perl::Dist::WiX::Base::Fragment
-        Perl::Dist::WiX::Base::Component
-    );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw(
+    Perl::Dist::WiX::Base::Fragment
+    Perl::Dist::WiX::Base::Component
+);
 #>>>
 #####################################################################
 # Accessors:

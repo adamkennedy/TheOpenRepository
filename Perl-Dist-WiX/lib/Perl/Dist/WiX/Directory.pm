@@ -12,23 +12,19 @@ use     5.006;
 use     strict;
 use     warnings;
 use     Carp                         qw( croak                );
-use     Params::Util                      
+use     Params::Util
           qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
 use     Data::UUID                   qw( NameSpace_DNS        );
 use     File::Spec::Functions        qw( catdir splitdir      );
-require Perl::Dist::WiX::Base::Component;
-require Perl::Dist::WiX::Base::Entry;
 require Perl::Dist::WiX::Files::Component;
-require Perl::Dist::WiX::Misc;
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw(Perl::Dist::WiX::Base::Component
-              Perl::Dist::WiX::Base::Entry
-              Perl::Dist::WiX::Misc
-             );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw(
+    Perl::Dist::WiX::Base::Component
+    Perl::Dist::WiX::Base::Entry
+    Perl::Dist::WiX::Misc
+);
 #>>>
 #####################################################################
 # Accessors:
@@ -70,7 +66,7 @@ sub new {
     {
         $self->create_guid_from_path;
         $self->{id} = $self->{guid};
-        $self->{id} =~ s{-}{_}g;
+        $self->{id} =~ s{-}{_}msg;
     }
 
     # Initialize arrayrefs.
@@ -103,7 +99,7 @@ sub search_dir {
 
     # Set defaults for parameters.
     my $path_to_find = _STRING( $params_ref->{path_to_find} )
-      || croak( "No path to find." );
+      || croak 'No path to find.';
     my $descend = $params_ref->{descend} || 1;
     my $exact   = $params_ref->{exact}   || 0;
 
@@ -123,7 +119,7 @@ sub search_dir {
     }
 
     # Do we want to continue searching down this direction?
-    my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
+    my $subset = "$path_to_find\\" =~ m{\A\Q$path\E\\}msx;
     if ( not $subset ) {
         $self->trace_line( 4, "Not a subset in: $path.\n" );
         $self->trace_line( 5, "  To find: $path_to_find.\n" );
@@ -166,7 +162,7 @@ sub search_file {
     }
 
     # Do we want to continue searching down this direction?
-    my $subset = $filename =~ m/\A\Q$path\E/;
+    my $subset = $filename =~ m/\A\Q$path\E/msx;
     return undef if not $subset;
 
     # Check each of our branches.
@@ -234,7 +230,7 @@ sub add_directories_id {
     while ( $#params > 0 ) {
         $id   = shift @params;
         $name = shift @params;
-        if ( $name =~ m{\\} ) {
+        if ( $name =~ m{\\}ms ) {
             $self->add_directory( {
                     id   => $id,
                     path => $name,
@@ -242,7 +238,7 @@ sub add_directories_id {
         } else {
             $self->add_directory( {
                     id   => $id,
-                    path => $self->path . '\\' . $name,
+                    path => $self->path . q{\\} . $name,
                     name => $name,
             } );
         }
@@ -265,10 +261,10 @@ sub add_directories_init {
     while ( $#params >= 0 ) {
         $name = shift @params;
         next if not defined $name;
-        if ( substr( $name, -1 ) eq '\\' ) {
-            $name = substr( $name, 0, -1 );
+        if ( substr( $name, -1 ) eq q{\\} ) {
+            $name = substr $name, 0, -1;
         }
-        $self->add_directory( { path => $self->path . '\\' . $name, } );
+        $self->add_directory( { path => $self->path . q{\\} . $name, } );
     }
 
     return $self;
@@ -289,17 +285,18 @@ sub add_directory_path {
         croak 'Missing or invalid path parameter';
     }
 
-    if ( substr( $path, -1 ) eq '\\' ) {
-        $path = substr( $path, 0, -1 );
+    if ( substr( $path, -1 ) eq q{\\} ) {
+        $path = substr $path, 0, -1;
     }
 
-    if ( !$self->path =~ m{\A\Q$path\E} ) {
+    my $path_to_remove = $self->path;
+    if ( not ( $path =~ m{\A\Q$path_to_remove\E}msx ) ) {
+        $self->trace_line( 0, "Path to add: $path\nPath to add to: $path_to_remove\n" );
         croak q{Can't add the directories required};
     }
 
     # Get list of directories to add.
-    my $path_to_remove = $self->path;
-    $path =~ s{\A\Q$path_to_remove\E\\}{};
+    $path =~ s{\A\Q$path_to_remove\E\\}{}msx;
     my @dirs = File::Spec->splitdir( $path );
 
     # Get rid of empty entries at the beginning.
@@ -422,15 +419,15 @@ sub is_child_of {
             "Is Child Of: Answer: No path detected (0)\n" );
         return 0;
     }
-    
+
     # Short-circuit.
-    if ($path eq $path_to_check) { 
+    if ($path eq $path_to_check) {
         $self->trace_line( 5,
             "Is Child Of: Answer: Identity (0)\n" );
-        return 0; 
+        return 0;
     }
 
-    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\} ? 1 : 0;
+    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\}msx ? 1 : 0;
     $self->trace_line( 5,
 "Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
     );
@@ -468,12 +465,12 @@ sub create_guid_from_path {
     # Check parameters.
     unless ( _STRING( $self->sitename ) ) {
         croak(
-"Missing or invalid sitename param - cannot generate GUID without one"
+'Missing or invalid sitename param - cannot generate GUID without one'
         );
     }
     unless ( _STRING( $self->path ) ) {
         croak(
-            "Missing or invalid id param - cannot generate GUID without one"
+            'Missing or invalid id param - cannot generate GUID without one'
         );
     }
     my $guidgen = Data::UUID->new();

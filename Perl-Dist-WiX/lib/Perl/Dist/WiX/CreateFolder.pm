@@ -9,22 +9,18 @@ package Perl::Dist::WiX::CreateFolder;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp            qw( croak               );
-use     Params::Util    qw( _IDENTIFIER _STRING );
-require Perl::Dist::WiX::Base::Fragment;
-require Perl::Dist::WiX::Base::Component;
+use 5.006;
+use strict;
+use warnings;
+use Carp            qw( croak               );
+use Params::Util    qw( _IDENTIFIER _STRING );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw( 
-      Perl::Dist::WiX::Base::Fragment
-      Perl::Dist::WiX::Base::Component
-    );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw( 
+    Perl::Dist::WiX::Base::Fragment
+    Perl::Dist::WiX::Base::Component
+);
 #>>>
 #####################################################################
 # Accessors:
@@ -95,7 +91,6 @@ sub as_string {
 # getting the number of items in the array referred to by $self->{components}
     my $count = scalar @{ $self->{components} };
     my $string;
-    my $s;
 
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>

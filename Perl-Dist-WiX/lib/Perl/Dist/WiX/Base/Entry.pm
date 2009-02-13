@@ -13,16 +13,14 @@ package Perl::Dist::WiX::Base::Entry;
 use 5.006;
 use strict;
 use warnings;
-
-use vars qw( $VERSION );
-
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-}
+use vars      qw( $VERSION );
+use version;  $VERSION = qv('0.13_02');
 
 sub new {
     my $class = shift;
-    bless {@_}, $class;
+    my $self = bless {@_}, $class;
+    
+    return $self;
 }
 
 1;

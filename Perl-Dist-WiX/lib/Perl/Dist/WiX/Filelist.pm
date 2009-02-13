@@ -9,29 +9,29 @@ package Perl::Dist::WiX::Filelist;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.008;
-use     strict;
-use     warnings;
-use     Carp                   qw( croak                             );
-use     File::Spec::Functions  qw( catdir catfile splitpath splitdir );
-use     Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
-use     IO::Dir                qw();
-use     IO::File               qw();
-require Perl::Dist::WiX::Misc;
+use 5.008;
+use strict;
+use warnings;
+use Carp                   qw( croak                             );
+use File::Spec::Functions  qw( catdir catfile splitpath splitdir );
+use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
+use IO::Dir                qw();
+use IO::File               qw();
 
-use vars qw( $VERSION @ISA %sortcache);
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Misc';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
+
+my %sortcache; # Defined at this level so that the cache does not
+               # get reset each time _sorter is called.
+
 #>>>
 #####################################################################
 # Accessors:
-#   files: Returns the list of files as an arrayref.
+#   none.
 
-use Object::Tiny qw {
-  files_hash
-};
+#   files_hash: Returns the list of files as an hashref.
+
 
 #####################################################################
 # Constructors for Filelist
@@ -43,7 +43,8 @@ use Object::Tiny qw {
 #   None.
 
 sub new {
-    my $self = shift->SUPER::new();
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     # Initialize files area.
     $self->{files_hash} = {};
@@ -53,7 +54,7 @@ sub new {
         $self->{trace} = 0;
     }
     if ( not defined _NONNEGINT( $self->{trace} ) ) {
-        croak "Invalid trace parameter";
+        croak 'Invalid trace parameter';
     }
 
     return $self;
@@ -76,7 +77,7 @@ sub clone {
     # Add filelist passed in.
     delete $self->{files_hash};
     $self->{files_hash} = $source->{files_hash};
-    
+
     # Keep trace level the same.
     $self->{trace} = $source->{trace};
 
@@ -110,7 +111,7 @@ sub _sorter {
 
     # Short-circuit.
     return 0 if ($a eq $b);
-    
+
     # Get directoryspec and file 
     my (undef, $dirspec_1, $file_1) = @{( $sortcache{$a} ||= _splitpath($a) )};
     my (undef, $dirspec_2, $file_2) = @{( $sortcache{$b} ||= _splitpath($b) )};
@@ -121,7 +122,7 @@ sub _sorter {
     # Get list of directories.
     my @dirs_1 = @{( $sortcache{$dirspec_1} ||= _splitdir($dirspec_1) )};
     my @dirs_2 = @{( $sortcache{$dirspec_2} ||= _splitdir($dirspec_2) )};
-    
+
     # Find first directory that is not equal.
     my ( $dir_1, $dir_2 ) = ( q{}, q{} );
     while ($dir_1 eq $dir_2) {
@@ -143,10 +144,10 @@ sub _sorter {
 # Returns:
 #   Sorted list of files in this object
 
-sub files { 
-    my $self = shift; 
+sub files {
+    my $self = shift;
 
-    my @answer = sort { _sorter } keys(%{$self->{files_hash}}); 
+    my @answer = sort { _sorter } keys %{ $self->{files_hash} };
     return \@answer;
 }
 
@@ -158,9 +159,9 @@ sub files {
 # Returns:
 #   Number of files in this object
 
-sub count { 
-    my $self = shift; 
-    return scalar keys(%{$self->files_hash}); 
+sub count {
+    my $self = shift;
+    return scalar keys %{ $self->{files_hash} };
 }
 
 ########################################
@@ -172,13 +173,13 @@ sub count {
 # Action:
 #   Clears this filelist.
 
-sub clear { 
-    my $self = shift; 
+sub clear {
+    my $self = shift;
 
-    delete $self->{files_hash}; 
-    $self->{files_hash} = {}; 
+    delete $self->{files_hash};
+    $self->{files_hash} = {};
 
-    return $self; 
+    return $self;
 }
 
 ########################################
@@ -190,7 +191,7 @@ sub clear {
 # Action:
 #   Adds the files in $dir to our filelist.
 
-sub readdir {
+sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
     my ( $self, $dir ) = @_;
 
     # Check parameters.
@@ -198,7 +199,7 @@ sub readdir {
         croak 'Missing or invalid dir parameter';
     }
     unless ( -d $dir ) {
-        croak '$dir is not a directory';
+        croak "$dir is not a directory";
     }
 
     # Open directory.
@@ -252,7 +253,7 @@ sub load_file {
         croak 'Missing or invalid packlist parameter';
     }
     unless ( -r $packlist ) {
-        croak '$packlist cannot be read';
+        croak "$packlist cannot be read";
     }
 
     # Read ,packlist file.
@@ -263,9 +264,9 @@ sub load_file {
     my @files = <$fh>;
     $fh->close;
     my $file;
-    
+
     # Insert list of files read into this object. Chomp on the way.
-    my %files = map {
+    my %files = map {  ## no critic 'ProhibitComplexMappings'
         $file = $_;
         chomp $file;
         ($file, 1);
@@ -335,8 +336,8 @@ sub subtract {
         croak 'Missing or invalid subtrahend parameter';
     }
 
-    my @files_to_remove = keys(%{$subtrahend->files_hash});
-    delete @{$self->files_hash}{@files_to_remove};
+    my @files_to_remove = keys %{ $subtrahend->{files_hash} };
+    delete @{$self->{files_hash} }{@files_to_remove};
     
     return $self;
 } ## end sub subtract
@@ -359,7 +360,7 @@ sub add {
     }
 
     # Add the two hashes together.
-    my %files = ( %{$self->files_hash}, %{$term->files_hash} );
+    my %files = ( %{ $self->{files_hash} }, %{ $term->{files_hash} } );
     $self->{files_hash} = \%files;
 
     return $self;
@@ -388,8 +389,8 @@ sub move {
 
     # Move the file if it exists.
     if ( $self->{files_hash}{$from} ) {
-        delete $self->{files_hash}{$from}; 
-        $self->{files_hash}{$to} = 1; 
+        delete $self->{files_hash}{$from};
+        $self->{files_hash}{$to} = 1;
     }
 
     return $self;
@@ -417,17 +418,17 @@ sub move_dir {
     }
 
     # Find which files need moved.
-    my @files_to_move = grep { "$_\\" =~ m(\A\Q$from\E\\) } keys(%{$self->files_hash});
+    my @files_to_move = grep { "$_\\" =~ m{\A\Q$from\E\\}msx } keys %{ $self->{files_hash} };
     my $to_file;
     foreach my $file_to_move ( @files_to_move ) {
-        
+
         # Get the correct name.
         $to_file = $file_to_move;
-        $to_file =~ s(\A\Q$from\E)($to);
-        
+        $to_file =~ s{\A\Q$from\E}{$to}msx;
+
         # "move" the file.
-        delete $self->{files_hash}{$file_to_move}; 
-        $self->{files_hash}{$to_file} = 1; 
+        delete $self->{files_hash}{$file_to_move};
+        $self->{files_hash}{$to_file} = 1;
     }
 
     return $self;
@@ -449,17 +450,17 @@ sub filter {
     my ( $self, $re_list ) = @_;
 
     # Define variables to use.
-    my @files_list = keys(%{$self->files_hash});
+    my @files_list = keys %{ $self->{files_hash} };
 
     my @files_to_remove;
-    
+
     # Filtering out values that match the regular expressions.
     foreach my $re ( @{$re_list} ) {
         $self->trace_line( 4, "Filtering on $re\n" );
-        push @files_to_remove, grep { m/\A\Q$re\E/ } @files_list;
+        push @files_to_remove, grep { m/\A\Q$re\E/msx } @files_list;
     }
 
-    delete @{$self->files_hash}{@files_to_remove};
+    delete @{$self->{files_hash} }{@files_to_remove};
     
     return $self;
 } ## end sub filter
@@ -475,7 +476,7 @@ sub filter {
 sub as_string {
     my $self = shift;
 
-    my @files = sort { _sorter } keys( %{$self->files_hash} );
+    my @files = sort { _sorter } keys %{ $self->{files_hash} };
     
     return join "\n", @files;
 }

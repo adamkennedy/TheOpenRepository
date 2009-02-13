@@ -8,31 +8,24 @@ package Perl::Dist::WiX::Files::DirectoryRef;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp            qw( croak                                    );
-use     Params::Util    qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
-require Perl::Dist::WiX::Base::Component;
-require Perl::Dist::WiX::Base::Entry;
-require Perl::Dist::WiX::Misc;
+use 5.006;
+use strict;
+use warnings;
+use Carp            qw( croak                                    );
+use Params::Util    qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw (Perl::Dist::WiX::Base::Component
-               Perl::Dist::WiX::Base::Entry
-               Perl::Dist::WiX::Misc
-              );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw( Perl::Dist::WiX::Base::Component
+             Perl::Dist::WiX::Base::Entry
+             Perl::Dist::WiX::Misc
+            );
 #>>>
 #####################################################################
 # Accessors:
 #   directory_object: Returns the filename parameter passed in by new.
 
-use Object::Tiny qw{
-  directory_object
-};
+sub directory_object { my $self = shift; return $self->{directory_object}; }
 
 #####################################################################
 # Constructor for Files::DirectoryRef
@@ -93,7 +86,7 @@ sub search_dir {
 
     # Set defaults for parameters.
     my $path_to_find = _STRING( $params_ref->{path_to_find} )
-      || croak( "No path to find." );
+      || croak( 'No path to find.' );
     my $descend = $params_ref->{descend} || 1;
     my $exact   = $params_ref->{exact}   || 0;
 
@@ -116,7 +109,7 @@ sub search_dir {
     }
 
     # Do we want to continue searching down this direction?
-    my $subset = "$path_to_find\\" =~ m/\A\Q$path\E\\/;
+    my $subset = "$path_to_find\\" =~ m{\A\Q$path\E\\}msx;
     if ( not $subset ) {
         $self->trace_line( 4, "Not a subset in: $path.\n" );
         $self->trace_line( 5, "  To find: $path_to_find.\n" );
@@ -164,7 +157,7 @@ sub search_file {
     my $path = $self->directory_object->path;
 
     # Do we want to continue searching down this direction?
-    my $subset = ( "$filename\\" =~ m/\A\Q$path\E\\/ ) ? 1 : 0;
+    my $subset = ( "$filename\\" =~ m{\A\Q$path\E\\}msx ) ? 1 : 0;
     return undef if not $subset;
 
     # Check each file we contain.
@@ -214,7 +207,6 @@ sub delete_filenum {
         croak 'Already deleted this file';
     }
 
-    
 # Delete the file. (The object should disappear once its reference is set to undef)
     $self->trace_line( 3,
         'Deleting reference to ' . $self->{files}->[$i]->filename . "\n" );
@@ -286,14 +278,14 @@ sub is_child_of {
     }
 
     # Short-circuit.
-    if ($path eq $path_to_check) { 
+    if ($path eq $path_to_check) {
         $self->trace_line( 5,
             "Is Child Of: Answer: Identity (0)\n" );
-        return 0; 
+        return 0;
     }
-    
+
     # Do the check.
-    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\} ? 1 : 0;
+    my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\}msx ? 1 : 0;
     $self->trace_line( 5,
 "Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
     );
@@ -346,18 +338,19 @@ sub add_directory_path {
     }
 
     # Make sure we don't have a trailing slash.
-    if ( substr( $path, -1 ) eq '\\' ) {
-        $path = substr( $path, 0, -1 );
+    if ( substr( $path, -1 ) eq q{\\} ) {
+        $path = substr $path, 0, -1;
     }
 
     # Croak if we can't create this path under us.
-    if ( !$self->directory_object->path =~ m{\A\Q$path\E} ) {
+    my $path_to_remove = $self->directory_object->path;
+    if ( !($path =~ m{\A\Q$path_to_remove\E}msx) ) {
+        $self->trace_line( 0, "Path to add: $path\nPath to add to: $path_to_remove\n" );
         croak q{Can't add the directories required};
     }
 
     # Get list of directories to add.
-    my $path_to_remove = $self->directory_object->path;
-    $path =~ s{\A\Q$path_to_remove\E\\}{};
+    $path =~ s{\A\Q$path_to_remove\E\\}{}msx;
     my @dirs = File::Spec->splitdir( $path );
 
     # Get rid of empty entries at the beginning.

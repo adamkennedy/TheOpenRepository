@@ -9,27 +9,21 @@ package Perl::Dist::WiX::StartMenu;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp            qw( croak               );
-use     Params::Util    qw( _IDENTIFIER _STRING );
-use     Data::UUID      qw( NameSpace_DNS       );
-require Perl::Dist::WiX::Base::Fragment;
+use 5.006;
+use strict;
+use warnings;
+use Carp            qw( croak               );
+use Params::Util    qw( _IDENTIFIER _STRING );
+use Data::UUID      qw( NameSpace_DNS       );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Base::Fragment';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Base::Fragment';
 #>>>
 #####################################################################
 # Accessors:
+#   none.
 #   sitename: Returns the sitename passed in to new.
-
-use Object::Tiny qw{
-  sitename
-};
 
 #####################################################################
 # Constructor for StartMenu
@@ -52,7 +46,7 @@ sub new {
     my $self = $class->SUPER::new( %params );
 
     # Check parameters.
-    unless ( _STRING( $self->sitename ) ) {
+    unless ( _STRING( $self->{sitename} ) ) {
         croak 'Invalid or missing sitename';
     }
     unless ( _IDENTIFIER( $self->id ) ) {
@@ -119,7 +113,7 @@ sub as_string {
 
     # Short-circuit.
     return q{} if (0 == $count);
-    
+
     # Start printing.
     $string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
@@ -139,15 +133,15 @@ EOF
     my $guidgen = Data::UUID->new();
     my $uuid =
       $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
-        $self->sitename );
+        $self->{sitename} );
 
     #... then use it to create a GUID out of the ID.
-    my $guid_RSF =
+    my $guid_rsf =
       uc $guidgen->create_from_name_str( $uuid, 'RemoveShortcutFolder' );
 
     # Finish printing.
     $string .= <<"EOF";
-      <Component Id='C_RemoveShortcutFolder' Guid='$guid_RSF'>
+      <Component Id='C_RemoveShortcutFolder' Guid='$guid_rsf'>
         <RemoveFolder Id="$self->{directory}" On="uninstall" />
       </Component>
     </DirectoryRef>

@@ -17,17 +17,14 @@ use     Params::Util          qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     Data::UUID            qw( NameSpace_DNS                         );
 use     File::Spec::Functions qw( splitpath catpath catdir              );
 require Perl::Dist::WiX::DirectoryTree;
-require Perl::Dist::WiX::Base::Fragment;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = qw(
-        Perl::Dist::WiX::Base::Fragment
-        Perl::Dist::WiX::Misc
-    );
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base qw(
+    Perl::Dist::WiX::Base::Fragment
+    Perl::Dist::WiX::Misc
+);
 #>>>
 #####################################################################
 # Accessors:
@@ -113,8 +110,8 @@ sub add_file {
     $self->trace_line( 3, "Adding file $file.\n" );
 
     # Remove ending backslash.
-    if ( substr( $path, -1 ) eq '\\' ) {
-        $path = substr( $path, 0, -1 );
+    if ( substr( $path, -1 ) eq q{\\} ) {
+        $path = substr $path, 0, -1;
     }
 
 # 1. Is there a Directory{Ref} for this path in this object?
@@ -221,7 +218,7 @@ sub add_file {
         $self->trace_line( 5, "  Adding file $file.\n" );
 
         # Create the directory objects and add the file.
-        $directory_obj = $directory_ref_obj->add_directory_path( $path );
+        $directory_obj = $directory_ref_obj->add_directory_path($path);
         $file_obj      = $directory_obj->add_file(
             sitename => $self->sitename,
             filename => $file,
@@ -300,7 +297,7 @@ sub _search_refs {
 
     # Set defaults for parameters.
     my $path_to_find = $params_ref->{path_to_find}
-      || croak( "No path to find." );
+      || croak 'No path to find.';
     my $descend = $params_ref->{descend} || 1;
     my $exact   = $params_ref->{exact}   || 0;
 
@@ -379,8 +376,8 @@ sub check_duplicates {
     foreach my $pathname ( @{$files_ref} ) {
 
         # For a .AAA file, find the original file instead.
-        if ( $pathname =~ m(\.AAA\z) ) {
-            $pathname_fixed = substr( $pathname, 0, -4 );
+        if ( $pathname =~ m{\.AAA\z}ms ) {
+            $pathname_fixed = substr $pathname, 0, -4;
         } else {
             $pathname_fixed = $pathname;
         }

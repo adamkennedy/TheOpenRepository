@@ -8,27 +8,21 @@ package Perl::Dist::WiX::Icons;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
-use     strict;
-use     warnings;
-use     Carp                   qw( croak     );
-use     Params::Util           qw( _STRING   );
-use     File::Spec::Functions  qw( splitpath );
-require Perl::Dist::WiX::Misc;
+use 5.006;
+use strict;
+use warnings;
+use Carp                   qw( croak     );
+use Params::Util           qw( _STRING   );
+use File::Spec::Functions  qw( splitpath );
 
-use vars qw( $VERSION @ISA );
-BEGIN {
-    use version; $VERSION = qv('0.13_02');
-    @ISA = 'Perl::Dist::WiX::Misc';
-}
+use vars qw( $VERSION );
+use version; $VERSION = qv('0.13_02');
+use base 'Perl::Dist::WiX::Misc';
 #>>>
 #####################################################################
 # Accessors:
-#   see new.
+#   none.
 
-use Object::Tiny qw{
-  icons
-};
 
 #####################################################################
 # Constructors for Icons
@@ -36,7 +30,8 @@ use Object::Tiny qw{
 # Parameters: [none]
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+    my $class = shift;
+    my $self = bless { @_ }, $class;
 
     # Initialize our icons area.
     $self->{icons} = [];
@@ -64,14 +59,14 @@ sub add_icon {
         $pathname_target = 'Perl.msi';
     }
     unless ( defined _STRING( $pathname_target ) ) {
-        croak "Invalid pathname_target parameter";
+        croak 'Invalid pathname_target parameter';
     }
     unless ( defined _STRING( $pathname_icon ) ) {
-        croak "Invalid pathname_icon parameter";
+        croak 'Invalid pathname_icon parameter';
     }
 
     # Find the type of target.
-    my ( $target_type ) = $pathname_target =~ m(\A.*[.](.+)\z);
+    my ( $target_type ) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
     $self->trace_line( 2,
         "Adding icon $pathname_icon with target type $target_type.\n" );
 
@@ -81,8 +76,8 @@ sub add_icon {
 
     # Get Id made.
     my ( undef, undef, $filename_icon ) = splitpath( $pathname_icon );
-    my $id = substr( $filename_icon, 0, -4 );
-    $id =~ s/[^A-Za-z0-9]/_/g;         # Substitute _ for anything
+    my $id = substr $filename_icon, 0, -4;
+    $id =~ s/[^A-Za-z0-9]/_/gmxs;      # Substitute _ for anything
                                        # non-alphanumeric.
     $id .= ".$target_type";
 
@@ -113,10 +108,10 @@ sub search_icon {
         $target_type = 'msi';
     }
     unless ( defined _STRING( $target_type ) ) {
-        croak "Invalid target_type parameter";
+        croak 'Invalid target_type parameter';
     }
     unless ( defined _STRING( $pathname_icon ) ) {
-        croak "Invalid pathname_icon parameter";
+        croak 'Invalid pathname_icon parameter';
     }
 
     if ( 0 == scalar @{ $self->{icons} } ) { return undef; }
