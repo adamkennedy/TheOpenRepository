@@ -6,6 +6,7 @@ use Digest::SHA1 qw( sha1 );
 use Carp qw( croak );
 use IPC::Open3;
 use File::Spec;
+use File::Which ();
 use Symbol qw( gensym );
 
 use vars qw{$VERSION};
@@ -23,9 +24,8 @@ sub new {
 
 sub generate_params {
     my $keygen = shift;
-    my %param = @_;
-
-    my $bits = Math::BigInt->new($param{Size});
+    my %param  = @_;
+    my $bits   = Math::BigInt->new($param{Size});
     croak "Number of bits (Size) is too small" unless $bits;
     delete $param{Seed} if $param{Seed} && length $param{Seed} != 20;
     my $v = $param{Verbosity};
@@ -34,22 +34,20 @@ sub generate_params {
     unless ($param{Seed} || wantarray || $param{PurePerl}) {
 
         # OpenSSL support
-        my $bin = $^O eq 'MSWin32' ? 'openssl.exe' : 'openssl';
-        my $openssl = `which $bin`;
-        chomp $openssl;
-        if ($openssl) {
+        my $bin     = $^O eq 'MSWin32' ? 'openssl.exe' : 'openssl';
+        my $openssl = File::Which::which($bin);
+        if ( $openssl ) {
             print STDERR "Using openssl\n" if $v;
             my $bits_n = int($bits);
-            SCOPE: {
-                local $^W = 0;
-                open( NULL, ">", File::Spec->devnull );
-            }
+            open( NULL, ">", File::Spec->devnull );
             my $pid = open3( gensym, \*OPENSSL, ">&NULL", "$openssl dsaparam -text -noout $bits_n" );
             my @res;
             while( <OPENSSL> ) {
                 push @res, $_;
             }
             waitpid( $pid, 0 );
+            close OPENSSL;
+            close NULL;
 
             my %parts;
             my $cur_part;
@@ -81,7 +79,7 @@ sub generate_params {
     my($counter, $q, $p, $seed, $seedp1) = (0);
 
     ## Generate q.
-    {
+    SCOPE: {
         print STDERR "." if $v;
         $seed = $param{Seed} ? delete $param{Seed} :
             join '', map chr rand 256, 1..20;
@@ -99,7 +97,7 @@ sub generate_params {
     my $p_test = Math::BigInt->new(1); $p_test <<= ($bits-1);
 
     ## Generate p.
-    {
+    SCOPE: {
         print STDERR "." if $v;
         my $W = Math::BigInt->new(0);
         for my $k (0..$n) {
@@ -119,7 +117,7 @@ sub generate_params {
     my $e = ($p - 1) / $q;
     my $h = Math::BigInt->new(2);
     my $g;
-    {
+    SCOPE: {
         $g = mod_exp($h, $e, $p);
         $h++, redo if $g == 1;
     }
@@ -137,7 +135,7 @@ sub generate_keys {
     my $keygen = shift;
     my $key = shift;
     my($priv_key, $pub_key);
-    {
+    SCOPE: {
         my $i = bitsize($key->q);
         $priv_key = makerandom(Size => $i);
         $priv_key -= $key->q if $priv_key >= $key->q;
@@ -158,7 +156,8 @@ sub _seed_plus_one {
 }
 
 1;
-__END__
+
+=pod
 
 =head1 NAME
 
@@ -252,7 +251,7 @@ a I<Crypt::DSA::Key> object.
 
 =head1 AUTHOR & COPYRIGHT
 
-Please see the Crypt::DSA manpage for author, copyright,
+Please see the L<Crypt::DSA> manpage for author, copyright,
 and license information.
 
 =cut

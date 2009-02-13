@@ -1,23 +1,28 @@
+#!/usr/bin/perl
+
 use strict;
-
-use Test;
+use Test::More;
+use File::Which;
+BEGIN {
+	if ( $^O eq 'MSWin32' and not $INC{'Math/BigInt/GMP.pm'} ) {
+		plan( skip_all => 'Test is excessively slow without GMP' );
+	} else {
+		plan( tests => 4 );
+	}
+}
 use Crypt::DSA;
-
-BEGIN { plan tests => 4 }
 
 my $message = "Je suis l'homme a tete de chou.";
 
 my $dsa = Crypt::DSA->new;
 my $key = $dsa->keygen( Size => 512 );
-
-for (1..4) {
-    $message .= "\n$message";
-
-    my $sig = $dsa->sign( Message => $message, Key => $key );
-    my $verified = $dsa->verify(
-                    Key       => $key,
-                    Message   => $message,
-                    Signature => $sig
-            );
-    ok($verified);
-}
+my $sig = $dsa->sign(
+	Message => $message,
+	Key => $key,
+);
+my $verified = $dsa->verify(
+	Key       => $key,
+	Message   => $message,
+	Signature => $sig,
+);
+ok($verified);
