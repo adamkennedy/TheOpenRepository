@@ -111,9 +111,9 @@ sub write {
 			$html->say('  <tr>');
 			foreach my $cell ( @$row ) {
 				my $text = CGI::escapeHTML($cell);
-				$out->say("    <td>$text</td>");
+				$html->say("    <td>$text</td>");
 			}
-			$hrtl->say('  </tr>');
+			$html->say('  </tr>');
 		}
 		$html->say('</table>');
 	}
