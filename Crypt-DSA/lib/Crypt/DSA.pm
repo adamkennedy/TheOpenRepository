@@ -280,9 +280,12 @@ Benjamin Trott E<lt>ben@sixapart.comE<gt>
 
 =head1 COPYRIGHT
 
-Except where otherwise noted, Crypt::DSA is Copyright 2006
-Benjamin Trott. All rights reserved. Crypt::DSA is free
-software; you may redistribute it and/or modify it
-under the same terms as Perl itself.
+
+
+Except where otherwise noted,
+Crypt::DSA is Copyright 2006 - 2009 Benjamin Trott.
+
+Crypt::DSA is free software; you may redistribute it
+and/or modify it under the same terms as Perl itself.
 
 =cut
