@@ -1,12 +1,14 @@
-# $Id: SSH2.pm 211 2001-05-02 07:15:05Z btrott $
-
 package Crypt::DSA::Key::SSH2;
+
 use strict;
-
 use MIME::Base64 qw( decode_base64 );
-
 use Crypt::DSA::Key;
-use base qw( Crypt::DSA::Key );
+
+use vars qw{$VERSION @ISA};
+BEGIN {
+    $VERSION = '0.15_01';
+    @ISA     = 'Crypt::DSA::Key';
+}
 
 use constant PRIVKEY_MAGIC => 0x3f6ff9eb;
 

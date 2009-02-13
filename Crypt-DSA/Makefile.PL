@@ -1,25 +1,14 @@
-# $Id: Makefile.PL 1938 2006-05-03 06:20:36Z btrott $
+use inc::Module::Install 0.79;
 
-use inc::Module::Install;
+all_from      'lib/Crypt/DSA.pm';
+requires      'IPC::Open3'   => 0;
+requires      'File::Spec'   => 0;
+requires      'Digest::SHA1' => 0;
+requires      'MIME::Base64' => 0;
+requires      'Math::BigInt' => '1.60';
+requires      'Data::Random' => '0.05' if $^O eq 'MSWin32';
+requires      'Data::Buffer' => '0.01';
+test_requires 'Test'         => 0;
+test_requires 'Test::More'   => '0.42';
 
-name     'Crypt-DSA';
-all_from 'lib/Crypt/DSA.pm';
-requires 'Digest::SHA1' => 0;
-requires 'Math::BigInt' => '1.60';
-requires 'Data::Random' => '0.05' if $^O eq 'MSWin32';
-
-features(
-    'Read/write PEM-encoded files' => [
-        -default => 0,
-        recommends('Convert::PEM' => '0.07'),
-    ],
-
-    'Read/write SSH2 keyfiles' => [
-        -default => 0,
-        recommends('Data::Buffer' => '0.01'),
-    ],
-);
-
-sign(1);
-auto_install;
 WriteAll;

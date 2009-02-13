@@ -1,14 +1,17 @@
-# $Id: KeyChain.pm 1938 2006-05-03 06:20:36Z btrott $
-
 package Crypt::DSA::KeyChain;
-use strict;
 
+use strict;
 use Math::BigInt lib => 'GMP';
 use Digest::SHA1 qw( sha1 );
 use Carp qw( croak );
 use IPC::Open3;
 use File::Spec;
 use Symbol qw( gensym );
+
+use vars qw{$VERSION};
+BEGIN {
+    $VERSION = '0.15_01';
+}
 
 use Crypt::DSA::Key;
 use Crypt::DSA::Util qw( bin2mp bitsize mod_exp makerandom isprime );

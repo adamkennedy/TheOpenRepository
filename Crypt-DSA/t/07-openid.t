@@ -1,5 +1,3 @@
-# $Id: 07-openid.t 1843 2005-05-26 16:15:07Z btrott $
-
 use strict;
 
 use Test::More;

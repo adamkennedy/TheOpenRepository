@@ -1,4 +1,4 @@
-# $Id: 00-compile.t 192 2001-04-21 08:40:01Z btrott $
+#!/usr/bin/perl
 
 my $loaded;
 BEGIN { print "1..1\n" }

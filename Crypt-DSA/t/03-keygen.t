@@ -1,5 +1,3 @@
-# $Id: 03-keygen.t 1827 2005-05-18 06:00:33Z btrott $
-
 use strict;
 
 use Test;

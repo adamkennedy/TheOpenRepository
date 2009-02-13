@@ -1,16 +1,17 @@
-# $Id: Util.pm 1938 2006-05-03 06:20:36Z btrott $
-
 package Crypt::DSA::Util;
-use strict;
 
+use strict;
 use Math::BigInt lib => 'GMP';
 use Fcntl;
 use Carp qw( croak );
 
-use vars qw( @EXPORT_OK @ISA );
+use vars qw( $VERSION @ISA @EXPORT_OK );
 use Exporter;
-@EXPORT_OK = qw( bitsize bin2mp mp2bin mod_inverse mod_exp makerandom isprime );
-@ISA = qw( Exporter );
+BEGIN {
+    $VERSION   = '0.15_01';
+    @ISA       = qw( Exporter );
+    @EXPORT_OK = qw( bitsize bin2mp mp2bin mod_inverse mod_exp makerandom isprime );
+}
 
 ## Nicked from Crypt::RSA::DataFormat.
 ## Copyright (c) 2001, Vipul Ved Prakash.

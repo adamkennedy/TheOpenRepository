@@ -1,5 +1,3 @@
-# $Id: 04-pem.t 1841 2005-05-26 16:09:03Z btrott $
-
 use strict;
 
 use Test::More;

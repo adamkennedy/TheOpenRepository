@@ -1,9 +1,12 @@
-# $Id: Signature.pm 1843 2005-05-26 16:15:07Z btrott $
-
 package Crypt::DSA::Signature;
-use strict;
 
+use strict;
 use Carp qw( croak );
+
+use vars qw{$VERSION};
+BEGIN {
+    $VERSION = '0.15_01';
+}
 
 sub new {
     my $class = shift;

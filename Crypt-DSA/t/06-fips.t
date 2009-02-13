@@ -1,5 +1,3 @@
-# $Id: 06-fips.t 1834 2005-05-25 22:43:06Z btrott $
-
 use strict;
 
 use Test;

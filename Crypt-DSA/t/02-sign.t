@@ -1,5 +1,3 @@
-# $Id: 02-sign.t 1831 2005-05-25 22:37:37Z btrott $
-
 use strict;
 
 use Test;

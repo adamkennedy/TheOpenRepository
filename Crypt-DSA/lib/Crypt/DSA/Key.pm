@@ -1,11 +1,14 @@
-# $Id: Key.pm 1830 2005-05-25 21:58:57Z btrott $
-
 package Crypt::DSA::Key;
-use strict;
 
+use strict;
 use Math::BigInt lib => 'GMP';
 use Carp qw( croak );
 use Crypt::DSA::Util qw( bitsize );
+
+use vars qw{$VERSION};
+BEGIN {
+    $VERSION = '0.15_01';
+}
 
 sub new {
     my $class = shift;

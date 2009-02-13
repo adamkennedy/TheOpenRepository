@@ -1,18 +1,18 @@
-# $Id: DSA.pm 1938 2006-05-03 06:20:36Z btrott $
-
 package Crypt::DSA;
-use strict;
 
+use 5.005;
+use strict;
 use Digest::SHA1 qw( sha1 );
 use Carp qw( croak );
-
 use Crypt::DSA::KeyChain;
 use Crypt::DSA::Key;
 use Crypt::DSA::Signature;
 use Crypt::DSA::Util qw( bitsize bin2mp mod_inverse mod_exp makerandom );
 
 use vars qw( $VERSION );
-$VERSION = '0.14';
+BEGIN {
+    $VERSION = '0.15_01';
+}
 
 sub new {
     my $class = shift;
@@ -99,7 +99,10 @@ sub verify {
 }
 
 1;
+
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -264,6 +267,12 @@ string of arbitrary length. A SHA1 digest of this message will
 be created and used in the verification process.
 
 =back
+
+=head1 TODO
+
+Add ability to munge format of keys. For example, read/write keys
+from/to key files (SSH key files, etc.), and also write them in
+other formats.
 
 =head1 AUTHOR
 

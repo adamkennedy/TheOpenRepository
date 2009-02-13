@@ -1,13 +1,15 @@
-# $Id: PEM.pm 1830 2005-05-25 21:58:57Z btrott $
-
 package Crypt::DSA::Key::PEM;
+
 use strict;
-
-use Convert::PEM;
-
-use Crypt::DSA::Key;
 use Carp qw( croak );
-use base qw( Crypt::DSA::Key );
+use Convert::PEM;
+use Crypt::DSA::Key;
+
+use vars qw{$VERSION @ISA};
+BEGIN {
+    $VERSION = '0.15_01';
+    @ISA     = 'Crypt::DSA::Key';
+}
 
 sub deserialize {
     my $key = shift;
