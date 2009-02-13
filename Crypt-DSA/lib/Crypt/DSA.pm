@@ -274,13 +274,19 @@ Add ability to munge format of keys. For example, read/write keys
 from/to key files (SSH key files, etc.), and also write them in
 other formats.
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Crypt-DSA>
+
+For other issues, contact the author.
+
 =head1 AUTHOR
 
 Benjamin Trott E<lt>ben@sixapart.comE<gt>
 
 =head1 COPYRIGHT
-
-
 
 Except where otherwise noted,
 Crypt::DSA is Copyright 2006 - 2009 Benjamin Trott.
