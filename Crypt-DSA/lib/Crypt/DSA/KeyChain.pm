@@ -40,7 +40,10 @@ sub generate_params {
         if ($openssl) {
             print STDERR "Using openssl\n" if $v;
             my $bits_n = int($bits);
-            open( NULL, ">", File::Spec->devnull );
+            SCOPE: {
+                local $W = 0;
+                open( NULL, ">", File::Spec->devnull );
+            }
             my $pid = open3( gensym, \*OPENSSL, ">&NULL", "$openssl dsaparam -text -noout $bits_n" );
             my @res;
             while( <OPENSSL> ) {
