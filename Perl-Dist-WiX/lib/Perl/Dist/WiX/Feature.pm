@@ -7,8 +7,6 @@ package Perl::Dist::WiX::Feature;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev$ $Date$ $Author$
-# $URL$
 #<<<
 use     5.006;
 use     strict;
@@ -19,7 +17,7 @@ require Perl::Dist::WiX::Misc;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = 'Perl::Dist::WiX::Misc';
 }
 #>>>
@@ -217,6 +215,8 @@ sub as_string {
     my $f_count = scalar @{ $self->features };
     my $c_count = scalar @{ $self->componentrefs };
 
+    return q{} if (0 == $f_count + $c_count);
+    
     my ( $string, $s );
 #<<<
     $string =

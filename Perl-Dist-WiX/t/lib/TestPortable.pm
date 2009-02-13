@@ -1,12 +1,12 @@
 package t::lib::TestPortable;
 
 use strict;
-use Perl::Dist ();
+use Perl::Dist::WiX ();
 
-use vars qw{$VERSION @ISA};
+use vars qw{ $VERSION };
+use base 'Perl::Dist::WiX';
 BEGIN {
 	$VERSION = '1.12';
-	@ISA     = 'Perl::Dist';
 }
 
 

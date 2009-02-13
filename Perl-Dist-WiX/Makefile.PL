@@ -1,5 +1,6 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 0.79;
 
+die "OS unsupported\n" if (not win32);
 
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'File::ShareDir'   => '1.00';

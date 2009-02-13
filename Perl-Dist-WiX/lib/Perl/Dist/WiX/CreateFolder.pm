@@ -8,8 +8,6 @@ package Perl::Dist::WiX::CreateFolder;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-# $Rev: 5111 $ $Date: 2009-01-29 21:19:23 -0700 (Thu, 29 Jan 2009) $ $Author: csjewell@cpan.org $
-# $URL: http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/lib/Perl/Dist/WiX/StartMenu.pm $
 #<<<
 use     5.006;
 use     strict;
@@ -21,7 +19,7 @@ require Perl::Dist::WiX::Base::Component;
 
 use vars qw( $VERSION @ISA );
 BEGIN {
-    $VERSION = '0.13_01';
+    use version; $VERSION = qv('0.13_02');
     @ISA = qw( 
       Perl::Dist::WiX::Base::Fragment
       Perl::Dist::WiX::Base::Component
@@ -51,9 +49,6 @@ sub new {
     # Check parameters.
     unless ( _IDENTIFIER( $self->id ) ) {
         croak 'Invalid or missing id';
-    }
-    unless ( _STRING( $self->directory ) ) {
-        croak 'Invalid or missing directory';
     }
     unless ( _STRING( $self->{guid} ) ) {
         $self->create_guid_from_id;
