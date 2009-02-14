@@ -3307,11 +3307,12 @@ sub patch_pathlist {
 
 # Cache this
 sub patch_template {
-    return $_[0]->{template_toolkit}
-      or $_[0]->{template_toolkit} = Template->new(
-        INCLUDE_PATH => $_[0]->patch_include_path,
-        ABSOLUTE     => 1,
-      );
+    $_[0]->{template_toolkit} ||= Template->new(
+      INCLUDE_PATH => $_[0]->patch_include_path,
+      ABSOLUTE     => 1,
+    );
+      
+    return $_[0]->{template_toolkit};
 }
 
 sub patch_file {

@@ -24,9 +24,7 @@ use base 'Perl::Dist::WiX::Misc';
 # Accessors:
 #   features: Returns the first level of the features tree as an arrayref.
 
-use Object::Tiny qw{
-  features
-};
+# sub features { my $self = shift; return $self->{features}; }
 
 #####################################################################
 # Constructor for FeatureTree
@@ -40,7 +38,7 @@ use Object::Tiny qw{
 
 sub new {
     my $class = shift;
-    my $self  = $class->SUPER::new( @_ );
+    my $self = bless { @_ }, $class;
 
     unless ( _CLASSISA( ref $self->{parent}, 'Perl::Dist::WiX' ) ) {
         croak 'Missing or invalid parent parameter';
@@ -56,7 +54,7 @@ sub new {
         croak
 "Complex feature tree not implemented in Per::Dist::WiX $VERSION.";
     } else {
-        $self->features->[0] = Perl::Dist::WiX::Feature->new(
+        $self->{features}->[0] = Perl::Dist::WiX::Feature->new(
             id          => 'Complete',
             title       => $self->{parent}->app_ver_name,
             description => 'The complete package.',
@@ -86,10 +84,10 @@ sub search {
     }
 
     # Check each of our branches.
-    my $count = scalar @{ $self->features };
+    my $count = scalar @{ $self->{features} };
     my $answer;
     foreach my $i ( 0 .. $count - 1 ) {
-        $answer = $self->features->[$i]->search( $id_to_find );
+        $answer = $self->{features}->[$i]->search( $id_to_find );
         if ( defined $answer ) {
             return $answer;
         }
@@ -110,10 +108,10 @@ sub as_string {
     my $self = shift;
 
     # Get the strings for each of our branches.
-    my $count = scalar @{ $self->features };
+    my $count = scalar @{ $self->{features} };
     my $answer;
     foreach my $i ( 0 .. $count - 1 ) {
-        $answer .= $self->features->[$i]->as_string;
+        $answer .= $self->{features}->[$i]->as_string;
     }
 
     return $self->indent( 4, $answer );
