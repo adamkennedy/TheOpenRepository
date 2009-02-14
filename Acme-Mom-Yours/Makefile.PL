@@ -3,7 +3,7 @@ use inc::Module::Install 0.79;
 all_from 'lib/Acme/Mom/Yours.pm';
 requires 'MojoMojo'                 => 0;
 requires 'Task::Catalyst::Tutorial' => 0;
-requires 'Task-Email-PEP-All'       => 0;
+requires 'Task::Email::PEP::All'    => 0;
 requires 'Parley'                   => 0;
 requires 'Foorum'                   => 0;
 requires 'Angerwhale'               => 0;
