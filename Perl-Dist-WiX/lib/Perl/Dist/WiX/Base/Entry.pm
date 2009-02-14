@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Base::Entry;
-
+{
 #####################################################################
 # Perl::Dist::WiX::Base::Entry - Base class for entries.
 #
@@ -10,18 +10,11 @@ package Perl::Dist::WiX::Base::Entry;
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
 
-use 5.006;
-use strict;
-use warnings;
-use vars      qw( $VERSION              );
-use base      qw( Perl::Dist::WiX::Misc );
-use version;  $VERSION = qv('0.13_02');
-
-sub new {
-    my $class = shift;
-    my $self = bless {@_}, $class;
-    
-    return $self;
+	use 5.006;
+	use strict;
+	use warnings;
+	use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public );
+	use vars qw( $VERSION              );
+	use version; $VERSION = qv('0.13_02');
 }
-
 1;

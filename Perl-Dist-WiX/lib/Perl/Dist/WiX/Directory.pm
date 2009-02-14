@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Directory;
-
+{
 #####################################################################
 # Perl::Dist::WiX::Files::Directory - Class for a <Directory> tag.
 #
@@ -11,36 +11,28 @@ package Perl::Dist::WiX::Directory;
 use     5.006;
 use     strict;
 use     warnings;
-use     Carp                         qw( croak                );
+use     vars                   qw( $VERSION         );
+use Object::InsideOut 
+  qw( Perl::Dist::WiX::Base::Component Perl::Dist::WiX::Base::Entry );
+use     Carp                   qw( croak            );
 use     Params::Util
-          qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
-use     Data::UUID                   qw( NameSpace_DNS        );
-use     File::Spec::Functions        qw( catdir splitdir      );
+  qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
+use     Data::UUID             qw( NameSpace_DNS    );
+use     File::Spec::Functions  qw( catdir splitdir  );
 require Perl::Dist::WiX::Files::Component;
 
-use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base qw(
-    Perl::Dist::WiX::Base::Component
-    Perl::Dist::WiX::Base::Entry
-    Perl::Dist::WiX::Misc
-);
 #>>>
 #####################################################################
 # Accessors:
 #   name, path, special: See constructor.
-#   files: Returns an arrayref of the Files::Component objects
-#     contained in this object.
-#   directories: Returns an arrayref of the other Direcotry objects
-#     contained in this object.
 
-use Object::Tiny qw{
-  name
-  path
-  special
-  files
-  directories
-};
+	my @directories : Field;
+	my @files : Field;
+
+    my @name : Field : Arg(name) : Get(name);
+    my @path : Field : Arg(path) : Get(path);
+    my @special : Field : Arg(special) : Get(special);
 
 #####################################################################
 # Constructor for Directory
@@ -51,14 +43,15 @@ use Object::Tiny qw{
 #   special: [integer] defaults to 0, 1 = Id should not be prefixed,
 #     2 = directory without name
 
-sub new {
-    my $self = shift->Perl::Dist::WiX::Base::Component::new( @_ );
-
+sub _init :Init  {
+    my $self = shift;
+    my $object_id = ${$self};
+    
     # Check parameters.
-    if ( not defined _NONNEGINT( $self->special ) ) {
-        $self->{special} = 0;
+    if ( not defined _NONNEGINT( $special[$object_id] ) ) {
+        $special[$object_id] = 0;
     }
-    if ( ( $self->special == 0 ) && ( not _STRING( $self->path ) ) ) {
+    if ( ( $special[$object_id] == 0 ) && ( not _STRING( $path[$object_id] ) ) ) {
         croak 'Missing or invalid path';
     }
     if (   ( not defined _STRING( $self->guid ) )
@@ -578,5 +571,5 @@ sub as_string {
 
     return $answer;
 } ## end sub as_string
-
+}
 1;
