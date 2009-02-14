@@ -343,10 +343,10 @@ should then call C<run> on to generate the distribution.
 
 =cut
 
-sub new {
+sub new {  ## no critic 'ProhibitExcessComplexity'
     my $class  = shift;
     my %params = @_;
-    
+
     # Apply some defaults
     unless ( defined $params{trace} ) {
         $params{trace} = 1;
@@ -474,19 +474,15 @@ sub new {
     }
 
     # Check params
-    unless ( _STRING( $self->download_dir ) ) {
-        croak( 'Missing or invalid download_dir param' );
-    }
+    $self->_check_string_parameter( $self->download_dir, 'download_dir' );
     unless ( defined $self->modules_dir ) {
         $self->{modules_dir} = catdir( $self->download_dir, 'modules' );
     }
     unless ( _STRING( $self->modules_dir ) ) {
         croak( 'Invalid modules_dir param' );
     }
-    unless ( _STRING( $self->image_dir ) ) {
-        croak( 'Missing or invalid image_dir param' );
-    }
-    if ( $self->image_dir =~ /\s/ ) {
+    $self->_check_string_parameter( $self->image_dir, 'image_dir' );
+    if ( $self->image_dir =~ /\s/ms ) {
         croak( 'Spaces are not allowed in image_dir' );
     }
     unless ( defined $self->license_dir ) {
@@ -495,10 +491,8 @@ sub new {
     unless ( _STRING( $self->license_dir ) ) {
         croak( 'Invalid license_dir param' );
     }
-    unless ( _STRING( $self->build_dir ) ) {
-        croak( 'Missing or invalid build_dir param' );
-    }
-    if ( $self->build_dir =~ /\s/ ) {
+    $self->_check_string_parameter( $self->build_dir, 'build_dir' );
+    if ( $self->build_dir =~ /\s/ms ) {
         croak( 'Spaces are not allowed in build_dir' );
     }
     unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
@@ -507,7 +501,7 @@ sub new {
     unless ( _INSTANCE( $self->cpan, 'URI' ) ) {
         croak( 'Missing or invalid cpan param' );
     }
-    unless ( $self->cpan->as_string =~ /\/$/ ) {
+    unless ( $self->cpan->as_string =~ m{\/\z}ms ) {
         croak( 'Missing trailing slash in cpan param' );
     }
 
@@ -597,7 +591,7 @@ sub binary_url {
         croak( 'Missing or invalid file param' );
     }
 
-    unless ( $file =~ /\.(zip|gz|tgz)$/i ) {
+    unless ( $file =~ /\.(zip | gz | tgz)\z/imsx ) {
 
         # Shorthand, map to full file name
         $file = $self->binary_file( $file, @_ );
@@ -1121,25 +1115,25 @@ sub install_perl_toolchain {
         my $automated_testing = 0;
         my $release_testing   = 0;
         my $force             = $self->force;
-        if (( $dist =~ /Test-Simple/ ) and ($self->perl_version eq '588')) {
+        if (( $dist =~ /Test-Simple/msx ) and ($self->perl_version eq '588')) {
 
             # Can't rely on t/threads.t to work right
             # inside the harness. 
             $force = 1;
         }
-        if ( $dist =~ /Scalar-List-Util/ ) {
+        if ( $dist =~ /Scalar-List-Util/msx ) {
 
             # Does something weird with tainting
             $force = 1;
         }
-        if ( $dist =~ /URI-/ ) {
+        if ( $dist =~ /URI-/msx ) {
 
             # Can't rely on t/heuristic.t not finding a www.perl.bv
             # because some ISP's use DNS redirectors for unfindable 
             # sites.
             $force = 1;
         }
-        if ( $dist =~ /Term-ReadLine-Perl/ ) {
+        if ( $dist =~ /Term-ReadLine-Perl/msx ) {
 
             # Does evil things when testing, and
             # so testing cannot be automated.
@@ -1495,7 +1489,7 @@ sub install_perl_588_bin {
     my @files = $self->_extract( $tgz, $unpack_to );
 
     # Get the versioned name of the directory
-    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z|\.tgz\z}{};
+    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
     $perlsrc = File::Basename::basename( $perlsrc );
 
     # Pre-copy updated files over the top of the source
@@ -1658,7 +1652,7 @@ sub install_perl_589_bin {
     my @files = $self->_extract( $tgz, $unpack_to );
 
     # Get the versioned name of the directory
-    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z|\.tgz\z}{};
+    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
     $perlsrc = File::Basename::basename( $perlsrc );
 
     # Pre-copy updated files over the top of the source
@@ -1807,7 +1801,7 @@ sub install_perl_5100_bin {
     $self->_extract( $tgz, $unpack_to );
 
     # Get the versioned name of the directory
-    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z|\.tgz\z}{};
+    ( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
     $perlsrc = File::Basename::basename( $perlsrc );
 
     # Pre-copy updated files over the top of the source
@@ -2465,8 +2459,8 @@ sub _copy_filesref {
     my @files;
 
     foreach my $file ( @{$files_ref} ) {
-        if ( $file =~ m{\A\Q$from\E} ) {
-            $file =~ s{\A\Q$from\E}{$to};
+        if ( $file =~ m{\A\Q$from\E}msx ) {
+            $file =~ s{\A\Q$from\E}{$to}msx;
         }
         push @files, $file;
     }
@@ -2543,9 +2537,9 @@ sub install_distribution {
 
     # Where will it get extracted to
     my $dist_path = $name;
-    $dist_path =~ s/\.tar\.gz//;
-    $dist_path =~ s/\.zip//;
-    $dist_path =~ s/.+\///;
+    $dist_path =~ s{\.tar\.gz}{}msx; # Take off extensions. 
+    $dist_path =~ s{\.zip}{}msx;
+    $dist_path =~ s{.+\/}{}msx;      # Take off directories.
     my $unpack_to = catdir( $self->build_dir, $dist_path );
 
     # Extract the tarball
@@ -2600,7 +2594,7 @@ sub install_distribution {
         $filelist->subtract( $filelist_sub )->filter( $self->filters );
     }
     my $mod_id = $module;
-    $mod_id =~ s/::/_/g;
+    $mod_id =~ s{::}{_}msg;
 
     # Insert fragment.
     $self->insert_fragment( $mod_id, $filelist->files );
@@ -2619,7 +2613,7 @@ sub _name_to_module {
                     -\d*[.]         # up to a dash, a sequence of digits, and then a period.
                     }smx;           # (i.e. starting a version number.
 #>>>
-    $module =~ s{-}{::}g;
+    $module =~ s{-}{::}msg;
 
     return $module;
 } ## end sub _name_to_module
@@ -2631,7 +2625,7 @@ sub search_packlists {
     foreach my $name ( @_ ) {
         $packlist = $self->search_packlist( $name );
         $mod_id   = $name;
-        $mod_id =~ s/::/_/g;
+        $mod_id =~ s{::}{_}msg;
         $self->insert_fragment( $mod_id, $packlist->files );
     }
 
@@ -2645,7 +2639,7 @@ sub search_packlist {
         catdir(
             $self->image_dir,
             qw{perl      lib auto},
-            split qr{::}, $module
+            split /::/ms, $module
         ),
         '.packlist'
     );
@@ -2653,7 +2647,7 @@ sub search_packlist {
         catdir(
             $self->image_dir,
             qw{perl site lib auto},
-            split qr{::}, $module
+            split /::/ms, $module
         ),
         '.packlist'
     );
@@ -2860,8 +2854,10 @@ END_PERL
             catdir( $self->image_dir, 'perl' ) );
         $filelist->subtract( $filelist_sub )->filter( $self->filters );
     }
+
+    # Make legal fragment id.
     my $mod_id = $module->name;
-    $mod_id =~ s/::/_/g;
+    $mod_id =~ s{::}{_}gmsx;
 
     # Insert fragment.
     $self->insert_fragment( $mod_id, $filelist->files )
@@ -2940,7 +2936,7 @@ sub install_par {
 
         # Set the appropriate installation paths
         my $no_colon = $par->name;
-        $no_colon =~ s/::/-/g;
+        $no_colon =~ s{::}{-}gmsx; # Convert colons to dashes.
         my $perldir = catdir( $self->image_dir, 'perl' );
         my $libdir = catdir( $perldir, 'site', 'lib' );
         my $bindir = catdir( $perldir, 'bin' );
@@ -3243,6 +3239,7 @@ sub add_icon {
     my %params = @_;
     my ( $vol, $dir, $file, $dir_obj, $dir_id );
 
+    # Get the Id for directory object that stores the filename passed in.
     ( $vol, $dir, $file ) = splitpath( $params{filename} );
     $dir_obj = $self->directories->search_dir(
         path_to_find => catdir( $vol, $dir ),
@@ -3251,12 +3248,14 @@ sub add_icon {
     );
     $dir_id = $dir_obj->id;
 
+    # Get a legal id.
     my $id = $params{name};
-    $id =~ s{\s}{_}g;
+    $id =~ s{\s}{_}msxg; # Convert whitespace to underlines.
 
+    # Add the start menu icon.
     $self->{fragments}->{Icons}->add_component(
         Perl::Dist::WiX::StartMenuComponent->new(
-            sitename    => $self->sitename,
+            sitename    => $self->{sitename},
             name        => $params{name},
             target      => "[D_$dir_id]$file",
             id          => $id,
@@ -3366,7 +3365,8 @@ sub image_dir_url {
 sub image_dir_quotemeta {
     my $self   = shift;
     my $string = $self->image_dir;
-    $string =~ s/\\/\\\\/g;
+    $string =~ s{\\}        # Convert a backslash
+                {\\\\}gmsx; ## to 2 backslashes.
     return $string;
 }
 
@@ -3416,10 +3416,13 @@ sub user_agent_cache {
 
 sub user_agent_directory {
     my $self = shift;
+
+    # Create a legal path out of the object's class name under {Application Data}/Perl.
     my $path = ref $self;
-    $path =~ s/::/-/g;
+    $path =~ s{::}{-}gmsx; # Changes all :: to -.
     my $dir = File::Spec->catdir( File::HomeDir->my_data, 'Perl', $path, );
 
+    # Make the directory or die vividly.
     unless ( -d $dir ) {
         unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
             croak "Failed to create $dir";
@@ -3442,7 +3445,8 @@ sub _mirror {
     if ( $sub eq 'install_par' ) { $no_display_trace = 1; }
 
     my $file = $url;
-    $file =~ s{.+\/}{};
+    $file =~ s{.+\/} # Delete anything before the last forward slash.
+              {}msx; ## (leaves only the filename.)
     my $target = catfile( $dir, $file );
     if ( $self->offline and -f $target ) {
         return $target;
@@ -3552,7 +3556,7 @@ sub _run3 {
 
     # Remove any Perl installs from PATH to prevent
     # "which" discovering stuff it shouldn't.
-    my @path = split /;/, $ENV{PATH};
+    my @path = split /;/ms, $ENV{PATH};
     my @keep = ();
     foreach my $p ( @path ) {
 
@@ -3598,7 +3602,7 @@ sub _extract {
     my @filelist;
 
     $self->trace_line( 2, "Extracting $from...\n" );
-    if ( $from =~ m{\.zip\z} ) {
+    if ( $from =~ m{\.zip\z}ms ) {
         my $zip = Archive::Zip->new( $from );
 
 # I can't just do an extractTree here, as I'm trying to keep track of what got extracted.
@@ -3615,7 +3619,7 @@ sub _extract {
             push @filelist, $filename;
         }
 
-    } elsif ( $from =~ m{\.tar\.gz|\.tgz} ) {
+    } elsif ( $from =~ m{\.tar\.gz | \.tgz}msx ) {
         local $Archive::Tar::CHMOD = 0;
         my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
         @filelist = map { catfile( $to, $_ ) } @fl;
@@ -3634,7 +3638,7 @@ sub _extract_filemap {
 
     my @files;
 
-    if ( $archive =~ m{\.zip\z} ) {
+    if ( $archive =~ m{\.zip\z}ms ) {
 
         my $zip = Archive::Zip->new( $archive );
         my $wd  = $self->_pushd( $basedir );
@@ -3646,7 +3650,8 @@ sub _extract_filemap {
 
             foreach my $member ( @members ) {
                 my $filename = $member->fileName();
-                $filename =~ s{^\Q$f}{$dest};
+                $filename =~ s{\A\Q$f}    # At the beginning of the string, change $f 
+                              {$dest}msx; # to $dest.
                 $filename = _convert_name( $filename );
                 my $status = $member->extractToFileNamed( $filename );
 
@@ -3657,7 +3662,7 @@ sub _extract_filemap {
             }
         } ## end while ( my ( $f, $t ) = each...
 
-    } elsif ( $archive =~ m{\.tar\.gz|\.tgz} ) {
+    } elsif ( $archive =~ m{\.tar\.gz | \.tgz}msx ) {
         local $Archive::Tar::CHMOD = 0;
         my $tar = Archive::Tar->new( $archive );
         for my $file ( $tar->get_files ) {
@@ -3670,14 +3675,16 @@ sub _extract_filemap {
                 # say "matching $canon_f vs $canon_tgt";
                 if ( $file_only ) {
                     next
-                      unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}i;
+                      unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}imsx;
                     ( $t = $canon_f ) =~
-                      s{\A([^/]+[/])?\Q$canon_tgt\E\z}{$filemap->{$tgt}}i;
+                      s{\A([^/]+[/])?\Q$canon_tgt\E\z}
+                       {$filemap->{$tgt}}imsx;
 
                 } else {
-                    next unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}i;
+                    next unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
                     ( $t = $canon_f ) =~
-                      s{\A([^/]+[/])?\Q$canon_tgt\E}{$filemap->{$tgt}}i;
+                      s{\A([^/]+[/])?\Q$canon_tgt\E}
+                       {$filemap->{$tgt}}imsx;
                 }
                 my $full_t = catfile( $basedir, $t );
                 $self->trace_line( 2, "Extracting $f to $full_t\n" );

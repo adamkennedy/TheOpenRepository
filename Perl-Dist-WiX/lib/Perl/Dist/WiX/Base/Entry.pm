@@ -13,7 +13,8 @@ package Perl::Dist::WiX::Base::Entry;
 use 5.006;
 use strict;
 use warnings;
-use vars      qw( $VERSION );
+use vars      qw( $VERSION              );
+use base      qw( Perl::Dist::WiX::Misc );
 use version;  $VERSION = qv('0.13_02');
 
 sub new {

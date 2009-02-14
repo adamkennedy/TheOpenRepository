@@ -38,30 +38,30 @@ use Object::Tiny qw{
 #   sitename: The name of the site that is hosting the download.
 
 sub new {
-    my ( $class, %params ) = @_;
+	my ( $class, %params ) = @_;
 
-    # Apply defaults and check parameters
-    unless ( defined $params{id} ) {
-        $params{id} = 'Registry';
-    }
-    unless ( _STRING( $params{sitename} ) ) {
-        croak( 'Missing or invalid sitename' );
-    }
+	# Apply defaults and check parameters
+	unless ( defined $params{id} ) {
+		$params{id} = 'Registry';
+	}
+	unless ( _STRING( $params{sitename} ) ) {
+		croak('Missing or invalid sitename');
+	}
 
-    my $self = $class->SUPER::new( %params );
-    
-    return $self;
+	my $self = $class->SUPER::new(%params);
+
+	return $self;
 } ## end sub new
 
 #####################################################################
 # Main Methods
 
 sub search_file {
-    return undef;
+	return undef;
 }
 
 sub check_duplicates {
-    return undef;
+	return undef;
 }
 
 ########################################
@@ -72,23 +72,23 @@ sub check_duplicates {
 #   Array of Ids attached to the contained components.
 
 sub get_component_array {
-    my $self = shift;
+	my $self = shift;
 
-    # Define variables.
-    my @answer;
-    my $id;
+	# Define variables.
+	my @answer;
+	my $id;
 
-    # Get the array for each descendant.
-    my $count = scalar @{ $self->{components} };
-    
-    return undef if (0 == $count);
-    
-    foreach my $i ( 0 .. $count - 1 ) {
-        $id = $self->{components}->[$i]->id;
-        push @answer, "C_$id";
-    }
+	# Get the array for each descendant.
+	my $count = scalar @{ $self->{components} };
 
-    return @answer;
+	return undef if ( 0 == $count );
+
+	foreach my $i ( 0 .. $count - 1 ) {
+		$id = $self->{components}->[$i]->id;
+		push @answer, "C_$id";
+	}
+
+	return @answer;
 } ## end sub get_component_array
 
 ########################################
@@ -102,51 +102,50 @@ sub get_component_array {
 #   Creates a registry key entry.
 
 sub add_key {
-    my ( $self, %params ) = @_;
+	my ( $self, %params ) = @_;
 
-    # Check parameters.
-    unless ( _IDENTIFIER( $params{id} ) ) {
-        croak( 'Missing or invalid id' );
-    }
-    unless ( _STRING( $params{key} ) ) {
-        croak( 'Missing or invalid key' );
-    }
+	# Check parameters.
+	unless ( _IDENTIFIER( $params{id} ) ) {
+		croak('Missing or invalid id');
+	}
+	unless ( _STRING( $params{key} ) ) {
+		croak('Missing or invalid key');
+	}
 
-    # Set defaults.
-    unless ( _STRING( $params{root} ) ) {
-        $params{root} = 'HKLM';
-    }
+	# Set defaults.
+	unless ( _STRING( $params{root} ) ) {
+		$params{root} = 'HKLM';
+	}
 
-    # Search for a key...
-    my $key   = undef;
-    my $count = scalar @{ $self->{components} };
-    foreach my $i ( 0 .. $count - 1 ) {
-        if (
-            $self->{components}->[$i]->is_key( $params{root}, $params{key} )
-          )
-        {
-            $key = $self->{components}->[$i];
-            last;
-        }
-    }
+	# Search for a key...
+	my $key   = undef;
+	my $count = scalar @{ $self->{components} };
+	foreach my $i ( 0 .. $count - 1 ) {
+		if ($self->{components}->[$i]->is_key( $params{root}, $params{key} )
+		  )
+		{
+			$key = $self->{components}->[$i];
+			last;
+		}
+	}
 
-    # Create a key if we don't have one already.
-    if ( not defined $key ) {
-        $key = Perl::Dist::WiX::Registry::Key->new(
-            id       => $params{id},
-            root     => $params{root},
-            key      => $params{key},
-            sitename => $self->sitename
-        );
-        $self->add_component( $key );
-    }
+	# Create a key if we don't have one already.
+	if ( not defined $key ) {
+		$key = Perl::Dist::WiX::Registry::Key->new(
+			id       => $params{id},
+			root     => $params{root},
+			key      => $params{key},
+			sitename => $self->sitename
+		);
+		$self->add_component($key);
+	}
 
-    # Add the entry to our key.
-    $key->add_entry(
-        Perl::Dist::WiX::Registry::Entry->entry(
-            @params{ 'name', 'value', 'action', 'value_type' } ) );
+	# Add the entry to our key.
+	$key->add_entry(
+		Perl::Dist::WiX::Registry::Entry->entry(
+			@params{ 'name', 'value', 'action', 'value_type' } ) );
 
-    return $self;
+	return $self;
 } ## end sub add_key
 
 1;

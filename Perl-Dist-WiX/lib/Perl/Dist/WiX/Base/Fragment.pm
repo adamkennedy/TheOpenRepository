@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::Base::Fragment;
+package Perl::Dist::WiX::Base::Fragment; {
 
 #####################################################################
 # Perl::Dist::WiX::Base::Fragment - Base class for <Fragment> tag.
@@ -14,17 +14,22 @@ package Perl::Dist::WiX::Base::Fragment;
 use 5.006;
 use strict;
 use warnings;
-use Carp          qw( croak             );
-use Params::Util  qw( _CLASSISA _STRING );
+use Carp              qw( croak             );
+use Params::Util      qw( _CLASSISA _STRING );
+use Object::InsideOut;
 
 use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Misc';
+use base qw(Perl::Dist::WiX::Misc);
 #>>>
 #####################################################################
 # Accessors:
 #   id: Returns the id parameter passed in to new.
 #   directory: Returns the directory parameter passed in to new.
+
+my @id
+     :Field
+
 
 sub id { my $self = shift; return $self->{id}; }
 sub directory { my $self = shift; return $self->{directory}; }
@@ -131,3 +136,5 @@ END_OF_XML
 } ## end sub as_string
 
 1;
+
+}

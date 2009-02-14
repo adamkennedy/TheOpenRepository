@@ -11,58 +11,59 @@ package Perl::Dist::WiX::Registry::Key;
 use     5.006;
 use     strict;
 use     warnings;
-use     Carp               qw( croak               );
-use     Params::Util       qw( _IDENTIFIER _STRING );
+use     Readonly           qw( Readonly                         );
+use     Carp               qw( croak                            );
+use     Params::Util       qw( _IDENTIFIER _STRING              );
+use     vars               qw( $VERSION                         );
+use     base               qw( Perl::Dist::WiX::Base::Component );
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw( $VERSION );
-use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Base::Component';
+use     version; $VERSION = qv('0.13_02');
+
+# Defining at this level so it does not need recreated every time.
+Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
+
 #>>>
 #####################################################################
 # Accessors:
-#   root: Returns the root parameter passed in to new.
-#     Valid contents are 'HKLM' and 'HKCU'
-#   key: Returns the key parameter passed in to new.
-# See http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
-
-use Object::Tiny qw{
-  root
-  key
-};
+#   none.
 
 #####################################################################
 # Constructor for Registry::Key
 #
 # Parameters: [pairs]
 #   root: Returns the root parameter passed in to new.
-#     Valid contents are 'HKLM' and 'HKCU'
+#     Valid contents are 'HKLM', 'HKCU', 'HKCR', 'HKMU', and 'HKU'
 #   key: The registry key to write to.
 #   id, guid, sitename: see WiX::Base::Component
+# See http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
 
 sub new {
-    my $self = shift->SUPER::new( @_ );
+	my $self = shift->SUPER::new(@_);
 
-    # Apply defaults
-    unless ( defined $self->root ) {
-        $self->{root} = 'HKLM';
-    }
-    unless ( defined $self->guid ) {
-        $self->create_guid_from_id;
-    }
+	# Apply defaults
+	unless ( defined $self->{root} ) {
+		$self->{root} = 'HKLM';
+	}
+	unless ( defined $self->guid ) {
+		$self->create_guid_from_id;
+	}
 
-    # Check params
-    unless ( _IDENTIFIER( $self->root ) ) {
-        croak( 'Missing or invalid root param' );
-    }
-    unless ( _STRING( $self->key ) ) {
-        croak( 'Missing or invalid subkey param' );
-    }
-    unless ( _STRING( $self->id ) ) {
-        croak( 'Missing or invalid id param' );
-    }
+	# Check params
+	unless ( _IDENTIFIER( $self->{root} ) ) {
+		croak('Missing or invalid root param');
+	}
+	unless ( $self->check_options( $self->{root}, @root_options ) ) {
+		croak('Invalid root param (not a valid registry root key)');
+	}
+	unless ( _STRING( $self->{key} ) ) {
+		croak('Missing or invalid subkey param');
+	}
+	unless ( _STRING( $self->{id} ) ) {
+		croak('Missing or invalid id param');
+	}
 
-    return $self;
+	return $self;
 } ## end sub new
 
 #####################################################################
@@ -76,17 +77,17 @@ sub new {
 #   Object being called. (chainable)
 
 sub add_registry_entry {
-    my ( $self, $name, $value, $action, $value_type ) = @_;
+	my ( $self, $name, $value, $action, $value_type ) = @_;
 
-    # Parameters checked in Registry::Entry->new
+	# Parameters checked in Registry::Entry->new
 
-    # Pass this on to the new entry.
-    $self->add_entry(
-        Perl::Dist::WiX::Registry::Entry->entry(
-            $name, $value, $action, $value_type
-        ) );
+	# Pass this on to the new entry.
+	$self->add_entry(
+		Perl::Dist::WiX::Registry::Entry->entry(
+			$name, $value, $action, $value_type
+		) );
 
-    return $self;
+	return $self;
 } ## end sub add_registry_entry
 
 ########################################
@@ -98,18 +99,18 @@ sub add_registry_entry {
 #   True if this is the object representing $root and $key.
 
 sub is_key {
-    my ( $self, $root, $key ) = @_;
+	my ( $self, $root, $key ) = @_;
 
-    unless ( _IDENTIFIER( $self->root ) ) {
-        croak( 'Missing or invalid root param' );
-    }
-    unless ( _STRING( $self->key ) ) {
-        croak( 'Missing or invalid subkey param' );
-    }
+	unless ( _IDENTIFIER( $self->root ) ) {
+		croak('Missing or invalid root param');
+	}
+	unless ( _STRING( $self->key ) ) {
+		croak('Missing or invalid subkey param');
+	}
 
-    return 0 if ( uc $key  ne uc $self->key );
-    return 0 if ( uc $root ne uc $self->root );
-    return 1;
+	return 0 if ( uc $key  ne uc $self->key );
+	return 0 if ( uc $root ne uc $self->root );
+	return 1;
 } ## end sub is_key
 
 ########################################
@@ -122,26 +123,26 @@ sub is_key {
 #   by this object.
 
 sub as_string {
-    my $self = shift;
+	my $self = shift;
 
-    # Short-circuit.
-    return q{} if ( scalar @{ $self->{entries} } == 0 );
+	# Short-circuit.
+	return q{} if ( scalar @{ $self->{entries} } == 0 );
 
-    $self->{root} = uc $self->{root};
+	$self->{root} = uc $self->{root};
 
-    my $answer = <<"END_OF_XML";
+	my $answer = <<"END_OF_XML";
 <Component Id='C_$self->{id}' Guid='$self->{guid}'>
   <RegistryKey Root='$self->{root}' Key='$self->{key}'>
 END_OF_XML
 
-    $answer .= $self->SUPER::as_string( 4 );
+	$answer .= $self->SUPER::as_string(4);
 
-    $answer .= <<"END_OF_XML";
+	$answer .= <<"END_OF_XML";
   </RegistryKey>
 </Component>
 END_OF_XML
 
-    return $answer;
+	return $answer;
 } ## end sub as_string
 
 1;

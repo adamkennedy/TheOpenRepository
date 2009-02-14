@@ -10,16 +10,17 @@ package Perl::Dist::WiX::Base::Component;
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
 #<<<
-use     5.006;
+use 5.006;
 use strict;
 use warnings;
-use Carp              qw( croak                        );
-use Params::Util      qw( _CLASSISA _STRING _NONNEGINT );
-use Data::UUID        qw( NameSpace_DNS                );
+use Carp          qw( croak                        );
+use Params::Util  qw( _CLASSISA _STRING _NONNEGINT );
+use Data::UUID    qw( NameSpace_DNS                );
+use vars          qw( $VERSION                     );
+use base          qw( Perl::Dist::WiX::Misc        );
 
-use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Misc';
+
 #>>>
 #####################################################################
 # Accessors:
