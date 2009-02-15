@@ -1,4 +1,7 @@
 Changes for Perl extension CPANTS-Weight
 
+0.02 Mon 16 Feb 2009
+	- Moving to ORLite::Migrate
+
 0.01 Sun  8 Feb 2009
 	- Creating initial implementation

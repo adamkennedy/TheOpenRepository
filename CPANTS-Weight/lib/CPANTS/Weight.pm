@@ -17,52 +17,44 @@ applications that work with the CPANTS data.
 
 =cut
 
-use 5.008;
+use 5.008005;
 use strict;
 use warnings;
 use File::Spec                            ();
 use File::HomeDir                         ();
+use File::ShareDir                        ();
 use Algorithm::Dependency 1.108           ();
 use Algorithm::Dependency::Weight         ();
 use Algorithm::Dependency::Source::DBI    ();
 use Algorithm::Dependency::Source::Invert ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-# Generate the class tree
-use ORLite 1.19 {
-	file => File::Spec->catfile(
-		File::HomeDir->my_data,
-		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
-		'CPANTS-Weight',
-		'CPANTS-Weight.sqlite',
-	),
-	create => sub {
-		$_[0]->do(<<'END_SQL');
-create table author_weight (
-	id         integer      not null primary key,
-	pauseid    varchar(255) not null unique
+use constant ORLITE_FILE => File::Spec->catfile(
+	File::HomeDir->my_data,
+	($^O eq 'MSWin32' ? 'Perl' : '.perl'),
+	'CPANTS-Weight',
+	'CPANTS-Weight.sqlite',
 );
-END_SQL
 
-		$_[0]->do(<<'END_SQL');
-create table dist_weight (
-	id         integer      not null primary key,
-	dist       varchar(255) not null unique,
-	author     integer      not null,
-	weight     integer          null,
-	volatility integer          null
-)
-END_SQL
-	},
-	user_version => 0,
+use constant ORLITE_TIMELINE => File::Spec->catdir(
+	File::ShareDir::dist_dir('CPANTS-Weight'),
+	'timeline',
+);
+
+use ORLite 1.20 ();
+use ORLite::Migrate 0.01 {
+	file         => ORLITE_FILE,
+	create       => 1,
+	timeline     => ORLITE_TIMELINE,
+	user_version => 1,
 };
 
 # Load the CPANTS database (This could take a while...)
 use ORDB::CPANTS;
 
 # Common string fragments
-my $SELECT_IDS     = <<'END_SQL';
+my $SELECT_IDS = <<'END_SQL';
 select
 	id
 from
@@ -90,7 +82,14 @@ END_SQL
 
 
 #####################################################################
-# Main Method
+# Main Methods
+
+# Only used internally, for caching reasons
+sub new {
+	my $class = shift;
+	my $self  = bless { }, $class;
+	return $self;
+}
 
 =pod
 
@@ -108,26 +107,32 @@ locate the completed SQLite database file.
 =cut
 
 sub run {
-	my $class = shift;
+	my $self = ref($_[0]) ? shift : shift->new;
 
 	# Skip if the output database is newer than the input database
 	# (but is not a new database)
-	my $input_t  = (stat(ORDB::CPANTS->sqlite))[9];
+	my $input_t  = (stat(ORDB::CPANTS->sqlite  ))[9];
 	my $output_t = (stat(CPANTS::Weight->sqlite))[9];
 	# if ( $output_t > $input_t and CPANTS::Weight::AuthorWeight->count ) {
 	#	return 1;
 	# }
-	
-	# Get the various dist scores
-	my $weight     = CPANTS::Weight->all_weights;
-	my $volatility = CPANTS::Weight->all_volatility;
+
+	# Prefetch lists of all authors and dists
+	my @authors = ORDB::CPANTS::Author->select(
+		'where pauseid is not null'
+	);
+	my @dists = ORDB::CPANTS::Dist->select(
+		'where author not in ( select id from author where pauseid is null )'
+	);
 
 	# Populate the AuthorWeight objects
 	CPANTS::Weight->begin;
 	CPANTS::Weight::AuthorWeight->truncate;
-	foreach my $author (
-		ORDB::CPANTS::Author->select('where pauseid is not null')
-	) {
+	foreach my $author ( @authors ) {
+		# Find the list of distros for this author
+		my $id     = $author->id;
+		my @ids    = grep { $_->author } @dists;
+		my $weight = 
 		CPANTS::Weight::AuthorWeight->create(
 			id      => $author->id,
 			pauseid => $author->pauseid,
@@ -135,14 +140,14 @@ sub run {
 	}
 	CPANTS::Weight->commit;
 
+	# Get the various dist scores
+	my $weight     = $self->all_weights;
+	my $volatility = $self->all_volatility;
+
 	# Populate the DistWeight objects
 	CPANTS::Weight->begin;
 	CPANTS::Weight::DistWeight->truncate;
-	foreach my $dist (
-		ORDB::CPANTS::Dist->select(
-			'where author not in ( select id from author where pauseid is null )'
-		)
-	) {
+	foreach my $dist ( @dists ) {
 		my $id = $dist->id;
 		CPANTS::Weight::DistWeight->create(
 			id         => $id,
@@ -162,28 +167,48 @@ sub run {
 
 
 #####################################################################
-# Methods for all dependencies
+# Utility Methods
 
-sub all_source {
-	Algorithm::Dependency::Source::DBI->new(
-		dbh            => ORDB::CPANTS->dbh,
-		select_ids     => "$SELECT_IDS",
-		select_depends => "$SELECT_DEPENDS and ( is_prereq = 1 or is_build_prereq = 1 )",
-	);
+sub algorithm_weight {
+	my $self = shift;
+	unless ( $self->{algorithm_weight} ) {
+		$self->{algorithm_weight} = Algorithm::Dependency::Weight->new(
+			source => $_[0]->source_weight,
+		);
+	}
+	return $self->{algorithm_weight};
 }
 
-sub all_weights {
-	Algorithm::Dependency::Weight->new(
-		source => $_[0]->all_source,
-	)->weight_all;
+sub algorithm_volatility {
+	my $self = shift;
+	unless ( $self->{algorithm_volatility} ) {
+		$self->{algorithm_volatility} = Algorithm::Dependency::Weight->new(
+			source => $_[0]->source_volatility,
+		);
+	}
+	return $self->{algorithm_volatility};
 }
 
-sub all_volatility {
-	Algorithm::Dependency::Weight->new(
-		source => Algorithm::Dependency::Source::Invert->new(
-			$_[0]->all_source,
-		),
-	)->weight_all;
+sub source_weight {
+	my $self = shift;
+	unless ( $self->{source_weight} ) {
+		$self->{source_weight} = Algorithm::Dependency::Source::DBI->new(
+			dbh            => ORDB::CPANTS->dbh,
+			select_ids     => "$SELECT_IDS",
+			select_depends => "$SELECT_DEPENDS and ( is_prereq = 1 or is_build_prereq = 1 )",
+		);
+	}
+	return $self->{source_weight};
+}
+
+sub source_volatility {
+	my $self = shift;
+	unless ( $self->{source_volatility} ) {
+		$self->{source_volatility} = Algorithm::Dependency::Source::Invert->new(
+			$self->source_weight,
+		);
+	}
+	return $self->{source_volatility};
 }
 
 1;
