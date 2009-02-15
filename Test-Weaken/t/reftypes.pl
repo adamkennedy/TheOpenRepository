@@ -16,10 +16,13 @@ sub try_dumper {
 
     my @warnings = ();
     $SIG{__WARN__} = sub { push @warnings, $_[0]; };
-    printf STDERR "Dumper: %s", Dumper( ${$probe_ref} );
+    printf {*STDERR} 'Dumper: %s', Dumper( ${$probe_ref} )
+        or croak("Cannot print to STDERR: $ERRNO");
     for my $warning (@warnings) {
-        print STDERR "Dumper warning: $warning";
+        print {*STDERR} "Dumper warning: $warning"
+            or croak("Cannot print to STDERR: $ERRNO");
     }
+    return scalar @warnings;
 }
 
 my $array_ref = \@{ [qw(42)] };
@@ -41,6 +44,8 @@ my $format_ref = *fmt{FORMAT};
 my $glob_ref = *STDOUT{GLOB};
 
 my $io_ref = *STDOUT{IO};
+my $fh_ref = *STDOUT{FILEHANDLE};
+open my $autoviv_ref, q{>}, '/dev/null';
 
 my $string     = 'abc' x 40;
 my $lvalue_ref = \( pos $string );
@@ -57,22 +62,24 @@ my %data = (
     'format'  => $format_ref,
     'glob'    => $glob_ref,
     'io'      => $io_ref,
-    'lvalue'  => $io_ref,
+    'fh'      => $fh_ref,
+    'autovivified'      => $autoviv_ref,
+    'lvalue'  => $lvalue_ref,
 );
 
 REF:
 while ( my ( $name, $ref ) = each %data ) {
-    printf STDERR "==== $name, %s, %s ====\n", ( ref $ref ), ( reftype $ref)
-        or croak("Cannot print to STDOUT: $ERRNO");
+    printf {*STDERR} "==== $name, %s, %s ====\n", ( ref $ref ), ( reftype $ref)
+        or croak("Cannot print to STDERR: $ERRNO");
     try_dumper( \$ref );
 }
 
 REF:
 for my $data_name (qw(scalar vstring regexp ref )) {
     my $ref = $data{$data_name};
-    printf STDERR "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
+    printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
         ( ref $ref )
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or croak("Cannot print to STDERR: $ERRNO");
     my $old_probe = \$ref;
     try_dumper($old_probe);
     my $new_probe = \${ ${$old_probe} };
@@ -81,8 +88,8 @@ for my $data_name (qw(scalar vstring regexp ref )) {
 
 REF: for my $ref ($format_ref) {
     my $probe = \$ref;
-    print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+        or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
 
     # How to dereference ?
@@ -90,19 +97,19 @@ REF: for my $ref ($format_ref) {
 
 REF: for my $ref ($lvalue_ref) {
     my $probe = \$ref;
-    print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+        or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \${ ${$probe} };
-    printf {*STDOUT} "pos is %d\n", ${$lvalue_ref};
+    printf {*STDERR} "pos is %d\n", ${$lvalue_ref};
     ${$lvalue_ref} = 11;
-    printf {*STDOUT} "pos is %d\n", ${$lvalue_ref};
+    printf {*STDERR} "pos is %d\n", ${$lvalue_ref};
 }
 
 REF: for my $ref ($io_ref) {
     my $probe = \$ref;
-    print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+        or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
     print { ${$new_probe} } "Printing via IO ref\n";
@@ -111,8 +118,21 @@ REF: for my $ref ($io_ref) {
 REF: for my $ref ($glob_ref) {
     my $probe = \$ref;
     print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
     print { ${$new_probe} } "Printing via GLOB ref\n";
+}
+
+REF:
+for my $data_name ( qw( glob )) {
+    my $ref = $data{$data_name};
+    printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
+        ( ref $ref )
+        or croak("Cannot print to STDERR: $ERRNO");
+    my $old_probe = \$ref;
+    try_dumper($old_probe);
+    my $new_probe = \*{ ${$old_probe} };
+    print { ${$new_probe} } "Printing via $data_name ref\n";
+    try_dumper($new_probe);
 }
