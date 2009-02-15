@@ -43,7 +43,7 @@ use constant ORLITE_TIMELINE => File::Spec->catdir(
 );
 
 use ORLite 1.20 ();
-use ORLite::Migrate 0.01 {
+use ORLite::Migrate 0.02 {
 	file         => ORLITE_FILE,
 	create       => 1,
 	timeline     => ORLITE_TIMELINE,
@@ -117,12 +117,22 @@ sub run {
 	#	return 1;
 	# }
 
-	# Prefetch lists of all authors and dists
+	# Prefetch the author and dist lists
 	my @authors = ORDB::CPANTS::Author->select(
 		'where pauseid is not null'
 	);
 	my @dists = ORDB::CPANTS::Dist->select(
 		'where author not in ( select id from author where pauseid is null )'
+	);
+
+	# Indexed table of weighting scores
+	my $weight     = $self->algorithm_weight->weight_all;
+	my $volatility = $self->algorithm_volatility->weight_all;
+
+	# Indexed table of kwalitee data
+	my $kwalitee   = ORDB::CPANTS->selectall_hashref(
+		'select * from kwalitee',
+		'dist',
 	);
 
 	# Populate the AuthorWeight objects
@@ -131,8 +141,8 @@ sub run {
 	foreach my $author ( @authors ) {
 		# Find the list of distros for this author
 		my $id     = $author->id;
-		my @ids    = grep { $_->author } @dists;
-		my $weight = 
+		# my @ids    = grep { $_->author } @dists;
+		# my $weight = 
 		CPANTS::Weight::AuthorWeight->create(
 			id      => $author->id,
 			pauseid => $author->pauseid,
@@ -140,21 +150,20 @@ sub run {
 	}
 	CPANTS::Weight->commit;
 
-	# Get the various dist scores
-	my $weight     = $self->all_weights;
-	my $volatility = $self->all_volatility;
-
 	# Populate the DistWeight objects
 	CPANTS::Weight->begin;
 	CPANTS::Weight::DistWeight->truncate;
 	foreach my $dist ( @dists ) {
 		my $id = $dist->id;
+		my $k  = $kwalitee->{$id} || {};
 		CPANTS::Weight::DistWeight->create(
-			id         => $id,
-			dist       => $dist->dist,
-			author     => $dist->author,
-			weight     => $weight->{$id},
-			volatility => $volatility->{$id},
+			id               => $id,
+			dist             => $dist->dist,
+			author           => $dist->author,
+			weight           => $weight->{$id},
+			volatility       => $volatility->{$id},
+			enemy_downstream => $k->{easily_repackagable}   ? 1 : 0,
+			debian_candidate => $k->{distributed_by_debian} ? 0 : 1,
 		);
 	}
 	CPANTS::Weight->commit;
@@ -173,7 +182,7 @@ sub algorithm_weight {
 	my $self = shift;
 	unless ( $self->{algorithm_weight} ) {
 		$self->{algorithm_weight} = Algorithm::Dependency::Weight->new(
-			source => $_[0]->source_weight,
+			source => $self->source_weight,
 		);
 	}
 	return $self->{algorithm_weight};
@@ -183,7 +192,7 @@ sub algorithm_volatility {
 	my $self = shift;
 	unless ( $self->{algorithm_volatility} ) {
 		$self->{algorithm_volatility} = Algorithm::Dependency::Weight->new(
-			source => $_[0]->source_volatility,
+			source => $self->source_volatility,
 		);
 	}
 	return $self->{algorithm_volatility};

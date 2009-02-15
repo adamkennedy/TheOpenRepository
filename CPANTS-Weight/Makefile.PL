@@ -7,10 +7,9 @@ requires       'File::ShareDir'                     => '1.00';
 requires       'Algorithm::Dependency'              => '1.108';
 requires       'Algorithm::Dependency::Source::DBI' => '0.05';
 requires       'ORLite'                             => '1.20';
-requires       'ORLite::Migrate'                    => '0.01';
+requires       'ORLite::Migrate'                    => '0.02';
 requires       'ORDB::CPANTS'                       => '0.03';
 test_requires  'Test::More'                         => '0.42';
-test_requires  'Test::Script'                       => '1.03';
 install_share;
 
 WriteAll;

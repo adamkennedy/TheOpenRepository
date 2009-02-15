@@ -1,19 +1,27 @@
 #!/usr/bin/perl
 
+# Testing support methods of various types
+
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 3;
-use CPANTS::Weight ();
+use Test::More tests => 5;
+use CPANTS::Weight 0.02 ();
 
-my $source = CPANTS::Weight->all_source;
-isa_ok( $source, 'Algorithm::Dependency::Source::DBI' );
+my $cpants = CPANTS::Weight->new;
+isa_ok( $cpants, 'CPANTS::Weight' );
 
-my $weights = CPANTS::Weight->all_weights;
-is( ref($weights), 'HASH', '->all_weights returns a HASH' );
+my $source_weight = $cpants->source_weight;
+isa_ok( $source_weight, 'Algorithm::Dependency::Source::DBI' );
 
-my $volatility = CPANTS::Weight->all_volatility;
-is( ref($volatility), 'HASH', '->all_volatility returns a HASH' );
+my $source_volatility = $cpants->source_volatility;
+isa_ok( $source_volatility, 'Algorithm::Dependency::Source::Invert' );
+
+my $algorithm_weight = $cpants->algorithm_weight;
+isa_ok( $algorithm_weight, 'Algorithm::Dependency::Weight' );
+
+my $algorithm_volatility = $cpants->algorithm_volatility;
+isa_ok( $algorithm_volatility, 'Algorithm::Dependency::Weight' );

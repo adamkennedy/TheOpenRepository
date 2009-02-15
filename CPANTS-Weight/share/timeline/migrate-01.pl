@@ -36,7 +36,8 @@ create table dist_weight (
 	author           integer      not null,
 	weight           integer          null,
 	volatility       integer          null,
-	enemy_downstream integer 	  null
+	enemy_downstream integer      not null,
+	debian_candidate integer      not null
 )
 END_SQL
 

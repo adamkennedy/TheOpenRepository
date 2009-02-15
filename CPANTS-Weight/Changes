@@ -2,6 +2,8 @@ Changes for Perl extension CPANTS-Weight
 
 0.02 Mon 16 Feb 2009
 	- Moving to ORLite::Migrate
+	- Adding data for the "Enemies of the Downstream" list
+	- Adding data for the "Debian Most Wanted" list
 
 0.01 Sun  8 Feb 2009
 	- Creating initial implementation
