@@ -10,6 +10,7 @@ use Scalar::Util qw(reftype weaken);
 use Data::Dumper;
 use Carp;
 use English qw( -no_match_vars );
+use Fatal qw(open);
 
 sub try_dumper {
     my $probe_ref = shift;
@@ -45,7 +46,10 @@ my $glob_ref = *STDOUT{GLOB};
 
 my $io_ref = *STDOUT{IO};
 my $fh_ref = *STDOUT{FILEHANDLE};
+
+## no critic (InputOutput::RequireBriefOpen)
 open my $autoviv_ref, q{>}, '/dev/null';
+## use critic
 
 my $string     = 'abc' x 40;
 my $lvalue_ref = \( pos $string );
@@ -112,7 +116,8 @@ REF: for my $ref ($io_ref) {
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
-    print { ${$new_probe} } "Printing via IO ref\n";
+    print { ${$new_probe} } "Printing via IO ref\n"
+        or croak("Cannot print via IO ref: $ERRNO");
 }
 
 REF: for my $ref ($glob_ref) {
@@ -121,7 +126,8 @@ REF: for my $ref ($glob_ref) {
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
-    print { ${$new_probe} } "Printing via GLOB ref\n";
+    print { ${$new_probe} } "Printing via GLOB ref\n"
+        or croak("Cannot print via GLOB ref: $ERRNO");
 }
 
 REF:
@@ -133,6 +139,7 @@ for my $data_name ( qw( glob )) {
     my $old_probe = \$ref;
     try_dumper($old_probe);
     my $new_probe = \*{ ${$old_probe} };
-    print { ${$new_probe} } "Printing via $data_name ref\n";
+    print { ${$new_probe} } "Printing via $data_name ref\n"
+        or croak("Cannot print via $data_name ref: $ERRNO");
     try_dumper($new_probe);
 }
