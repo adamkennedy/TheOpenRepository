@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 1;
+use CPANTS::Weight ();
+
+ok(
+	CPANTS::Weight->run,
+	'->run ok',
+);
+
+1;

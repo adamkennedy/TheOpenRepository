@@ -33,18 +33,23 @@ use ORLite 1.19 {
 		File::HomeDir->my_data,
 		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
 		'CPANTS-Weight',
+		'CPANTS-Weight.sqlite',
 	),
 	create => sub {
+		$_[0]->do(<<'END_SQL');
+create table author_weight (
+	id         integer      not null primary key,
+	pauseid    varchar(255) not null unique
+);
+END_SQL
+
 		$_[0]->do(<<'END_SQL');
 create table dist_weight (
 	id         integer      not null primary key,
 	dist       varchar(255) not null unique,
-	weight     integer      not null,
-	configure  integer      not null,
-	build      integer      not null,
-	test       integer      not null,
-	runtime    integer      not null,
-	volatility integer      not null
+	author     integer      not null,
+	weight     integer          null,
+	volatility integer          null
 )
 END_SQL
 	},
@@ -83,6 +88,63 @@ END_SQL
 
 
 #####################################################################
+# Main Method
+
+sub run {
+	my $class = shift;
+
+	# Skip if the output database is newer than the input database
+	# (but is not a new database)
+	my $input_t  = (stat(ORDB::CPANTS->sqlite))[9];
+	my $output_t = (stat(CPANTS::Weight->sqlite))[9];
+	# if ( $output_t > $input_t and CPANTS::Weight::AuthorWeight->count ) {
+	#	return 1;
+	# }
+	
+	# Get the various dist scores
+	my $weight     = CPANTS::Weight->all_weights;
+	my $volatility = CPANTS::Weight->all_volatility;
+
+	# Populate the AuthorWeight objects
+	CPANTS::Weight->begin;
+	CPANTS::Weight::AuthorWeight->truncate;
+	foreach my $author (
+		ORDB::CPANTS::Author->select('where pauseid is not null')
+	) {
+		CPANTS::Weight::AuthorWeight->create(
+			id      => $author->id,
+			pauseid => $author->pauseid,
+		);
+	}
+	CPANTS::Weight->commit;
+
+	# Populate the DistWeight objects
+	CPANTS::Weight->begin;
+	CPANTS::Weight::DistWeight->truncate;
+	foreach my $dist (
+		ORDB::CPANTS::Dist->select(
+			'where author not in ( select id from author where pauseid is null )'
+		)
+	) {
+		my $id = $dist->id;
+		CPANTS::Weight::DistWeight->create(
+			id         => $id,
+			dist       => $dist->dist,
+			author     => $dist->author,
+			weight     => $weight->{$id},
+			volatility => $volatility->{$id},
+		);
+	}
+	CPANTS::Weight->commit;
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
 # Methods for all dependencies
 
 sub all_source {
@@ -105,47 +167,6 @@ sub all_volatility {
 			$_[0]->all_source,
 		),
 	)->weight_all;
-}
-
-
-
-
-
-######################################################################
-# Interesting Collections
-
-sub heavy_100 {
-	my $class = shift;
-
-	# Get the Top 100 in id terms
-	my $all   = $class->all_weights;
-	my @ids   = (sort { $all->{$b} <=> $all->{$a} } keys %$all)[0..99];
-
-	# Pull all the matching objects
-	my @dists = ORDB::CPANTS::Dist->select(
-		'where id in ( ' . join(', ', @ids) . ' )',
-	);
-
-	# Map the ids to names
-	my %hash = map { $_->id => $_ } @dists;
-	return map { [ $hash{$_} => $all->{$_} ] } @ids;
-}
-
-sub volatile_100 {
-	my $class = shift;
-
-	# Get the Top 100 in id terms
-	my $all   = $class->all_volatility;
-	my @ids   = (sort { $all->{$b} <=> $all->{$a} } keys %$all)[0..99];
-
-	# Pull all the matching objects
-	my @dists = ORDB::CPANTS::Dist->select(
-		'where id in ( ' . join(', ', @ids) . ' )',
-	);
-
-	# Map the ids to names
-	my %hash = map { $_->id => $_ } @dists;
-	return map { [ $hash{$_} => $all->{$_} ] } @ids;
 }
 
 1;
