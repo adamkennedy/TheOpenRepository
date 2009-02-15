@@ -41,7 +41,6 @@ package main;
 
 my $test_output;
 
-# leaks snippet
 package Test::Weaken::Test::Snippet::leaks;
 
 sub destroy_buggy_object { }
@@ -158,7 +157,7 @@ $test_output = do {
 
         my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
         next TEST if not $test;
-        printf "%d memory objects were not freed\n", $test->unfreed_count(),
+        printf "%d objects were not freed\n", $test->unfreed_count(),
             or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display
@@ -171,7 +170,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'unfreed_count snippet' );
-3 memory objects were not freed
+3 objects were not freed
 EOS
 
 package Test::Weaken::Test::Snippet::probe_count;
@@ -198,7 +197,7 @@ $test_output = do {
             }
         );
         next TEST if not $test;
-        printf "%d of %d memory objects were not freed\n",
+        printf "%d of %d objects were not freed\n",
             $test->unfreed_count(), $test->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
 
@@ -212,10 +211,9 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'probe_count snippet' );
-3 of 4 memory objects were not freed
+3 of 4 objects were not freed
 EOS
 
-# weak_probe_count snippet
 package Test::Weaken::Test::Snippet::weak_probe_count;
 
 $test_output = do {
@@ -278,15 +276,15 @@ $test_output = do {
         );
         next TEST if not $test;
         my $proberefs = $test->unfreed_proberefs();
-        my $strong_unfreed_memory_object_count =
+        my $strong_unfreed_object_count =
             grep { ref $_ ne 'REF' or not isweak( ${$_} ) } @{$proberefs};
         my $strong_unfreed_reference_count =
             grep { ref $_ eq 'REF' and not isweak( ${$_} ) } @{$proberefs};
 
-        printf "%d of %d strong memory objects were not freed\n",
-            $strong_unfreed_memory_object_count, $test->strong_probe_count(),
+        printf "%d of %d strong objects were not freed\n",
+            $strong_unfreed_object_count, $test->strong_probe_count(),
             or croak("Cannot print to STDOUT: $ERRNO");
-        printf "%d of the unfreed strong memory objects were references\n",
+        printf "%d of the unfreed strong objects were references\n",
             $strong_unfreed_reference_count
             or croak("Cannot print to STDOUT: $ERRNO");
 
@@ -300,11 +298,10 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'strong_probe_count snippet' );
-2 of 3 strong memory objects were not freed
-1 of the unfreed strong memory objects were references
+2 of 3 strong objects were not freed
+1 of the unfreed strong objects were references
 EOS
 
-# new snippet
 package Test::Weaken::Test::Snippet::new;
 
 $test_output = do {
@@ -324,7 +321,28 @@ $test_output = do {
     use English qw( -no_match_vars );
 
     my $test = new Test::Weaken( sub { new My_Object } );
-    printf "There are %s\n", ( $test->test() ? 'leaks' : 'no leaks' )
+    printf "There were %s leaks\n", $test->test()
+        or croak("Cannot print to STDOUT: $ERRNO");
+    my $proberefs            = $test->unfreed_proberefs();
+    my $unfreed_count        = 0;
+    my $weak_unfreed_count   = 0;
+    my $strong_unfreed_count = 0;
+    PROBEREF: for my $proberef ( @{$proberefs} ) {
+        $unfreed_count++;
+        if ( ref $_ eq 'REF' and isweak( ${$_} ) ) {
+            $weak_unfreed_count++;
+        }
+        else {
+            $strong_unfreed_count++;
+        }
+    }
+    printf "%d of %d objects freed\n", $unfreed_count, $test->probe_count()
+        or croak("Cannot print to STDOUT: $ERRNO");
+    printf "%d of %d weak references freed\n", $weak_unfreed_count,
+        $test->weak_probe_count()
+        or croak("Cannot print to STDOUT: $ERRNO");
+    printf "%d of %d other objects freed\n", $strong_unfreed_count,
+        $test->strong_probe_count()
         or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display
@@ -336,10 +354,12 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'new snippet' );
-There are no leaks
+There were 0 leaks
+0 of 7 objects freed
+0 of 0 weak references freed
+0 of 7 other objects freed
 EOS
 
-# test snippet
 package Test::Weaken::Test::Snippet::test;
 
 sub destroy_my_object { }
