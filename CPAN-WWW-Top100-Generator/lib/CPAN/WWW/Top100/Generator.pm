@@ -16,10 +16,71 @@ This module (for now) has no moving parts...
 
 use 5.008;
 use strict;
-use CPANTS::Weight      ();
+use CPANTS::Weight 0.02 ();
 use HTML::Spry::DataSet ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
+
+# SQL to select the Heavy 100
+use constant SQL_H100 => <<'END_SQL';
+select
+	d.weight as score,
+	a.pauseid,
+	d.dist
+from
+	dist_weight d,
+	author_weight a
+where
+	d.author = a.id
+order by
+	score desc,
+	a.pauseid asc,
+	d.dist asc
+limit 100
+END_SQL
+
+# SQL to select the Volatile 100
+use constant SQL_V100 => <<'END_SQL';
+select
+	d.volatility as score,
+	a.pauseid,
+	d.dist
+from
+	dist_weight d,
+	author_weight a
+where
+	d.author = a.id
+order by
+	score desc,
+	a.pauseid asc,
+	d.dist asc
+limit 100
+END_SQL
+
+# SQL to select the Debian Most Wanted
+use constant SQL_D100 => <<'END_SQL';
+select
+	d.volatility * d.debian_candidate as score,
+	a.pauseid,
+	d.dist
+from
+	dist_weight d,
+	author_weight a
+where
+	d.author = a.id
+order by
+	score desc,
+	a.pauseid asc,
+	d.dist asc
+limit 100
+END_SQL
+
+
+
+
+
+#####################################################################
+# Main Methods
 
 sub run {
 	my $class = shift;
@@ -36,106 +97,66 @@ sub run {
 	# Prepare the dataset object
 	my $dataset = HTML::Spry::DataSet->new;
 	
-	# Raw data for the Heavy 100
-	my $h100 = CPANTS::Weight->selectall_arrayref( <<'END_SQL' );
-select
-	d.weight,
-	a.pauseid,
-	d.dist
-from
-	dist_weight d,
-	author_weight a
-where
-	d.author = a.id
-order by
-	d.weight desc,
-	a.pauseid asc,
-	d.dist asc
-limit 100
-END_SQL
+	# Build the Heavy 100 index
+	my $h100 = CPANTS::Weight->selectall_arrayref( SQL_H100 );
+	$class->prepend_rank( $h100 );
+	$dataset->add( 'ds1',
+		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ],
+		@$h100,
+	);
 
-	# Calculate the ranks
-	SCOPE: {
-		my $rank  = 0;
-		my @ranks = ();
-		foreach my $i ( 0 .. $#$h100 ) {
-			if ( $i == 0 ) {
-				$rank = 1;
-			} elsif ( $h100->[$i]->[0] ne $h100->[$i - 1]->[0] ) {
-				$rank = $i + 1;
-			}
-			#if ( $i > 0 and $h100->[$i]->[0] eq $h100->[$i - 1]->[0] ) {
-			#	push @ranks, "$rank=";
-			#} elsif ( $i < $#$h100 and $h100->[$i]->[0] eq $h100->[$i + 1]->[0] ) {
-			#	push @ranks, "$rank=";
-			#} else {
-				push @ranks, $rank;
-			#}
-		}
+	# Build the Volatile 100 index
+	my $v100 = CPANTS::Weight->selectall_arrayref( SQL_V100 );
+	$class->prepend_rank( $v100 );
+	$dataset->add( 'ds2',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		@$v100,
+	);
 
-		# Add the merged rank + h100 to the dataset
-		$dataset->add( 'ds1',
-			[ 'Rank', 'Dependencies', 'Author', 'Distribution' ],
-			map { [
-				$ranks[$_],
-				@{$h100->[$_]}
-			] } (0 .. $#$h100)
-		);
-	}
-
-	# Raw data for the Heavy 100
-	my $v100 = CPANTS::Weight->selectall_arrayref( <<'END_SQL' );
-select
-	d.volatility,
-	a.pauseid,
-	d.dist
-from
-	dist_weight d,
-	author_weight a
-where
-	d.author = a.id
-order by
-	d.volatility desc,
-	a.pauseid asc,
-	d.dist asc
-limit 100
-END_SQL
-
-	# Calculate the ranks
-	SCOPE: {
-		my $rank  = 0;
-		my @ranks = ();
-		foreach my $i ( 0 .. $#$v100 ) {
-			if ( $i == 0 ) {
-				$rank = 1;
-			} elsif ( $v100->[$i]->[0] ne $v100->[$i - 1]->[0] ) {
-				$rank = $i + 1;
-			}
-			#if ( $i > 0 and $v100->[$i]->[0] eq $v100->[$i - 1]->[0] ) {
-			#	push @ranks, "$rank=";
-			#} elsif ( $i < $#$v100 and $v100->[$i]->[0] eq $v100->[$i + 1]->[0] ) {
-			#	push @ranks, "$rank=";
-			#} else {
-				push @ranks, $rank;
-			#}
-		}
-
-		# Add the merged rank + v100 to the dataset
-		$dataset->add( 'ds2',
-			[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-			map { [
-				$ranks[$_],
-				@{$v100->[$_]}
-			] } (0 .. $#$v100)
-		);
-	}
+	# Build the Debian 100 index
+	my $d100 = CPANTS::Weight->selectall_arrayref( SQL_D100 );
+	$class->prepend_rank( $d100 );
+	$dataset->add( 'ds3',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		@$d100,
+	);
 
 	# Write out the daa file
 	$dataset->write(
 		File::Spec->catfile( $dir, 'data.html' )
 	);
 
-	1;
+	return 1;
+}
+
+# Prepends ranks in place (ugly, but who cares for now)
+sub prepend_rank {
+	my $class = shift;
+	my $table = shift;
+
+	my $rank  = 0;
+	my @ranks = ();
+	foreach my $i ( 0 .. $#$table ) {
+		if ( $i == 0 ) {
+			$rank = 1;
+		} elsif ( $table->[$i]->[0] ne $table->[$i - 1]->[0] ) {
+			$rank = $i + 1;
+		}
+		#if ( $i > 0 and $table->[$i]->[0] eq $table->[$i - 1]->[0] ) {
+		#	push @ranks, "$rank=";
+		#} elsif ( $i < $#$table and $table->[$i]->[0] eq $table->[$i + 1]->[0] ) {
+		#	push @ranks, "$rank=";
+		#} else {
+			push @ranks, $rank;
+		#}
+	}
+
+	# Prepend the rank to the table
+	foreach my $i ( 0 .. $#$table ) {
+		unshift @{ $table->[$i] }, $ranks[$i];
+	}
+
+	return $table;
 }
 
 1;

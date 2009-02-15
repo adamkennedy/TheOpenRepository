@@ -21,3 +21,6 @@ ok(
 	CPAN::WWW::Top100::Generator->run($dir),
 	'->run ok',
 );
+
+1;
+

@@ -1,4 +1,7 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.02 Mon 16 Feb 2009
+	- Adding the Debian 100 list
+
 0.01 Sun 15 Feb 2009
 	- Creating the initial release
