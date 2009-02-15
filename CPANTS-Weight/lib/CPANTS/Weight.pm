@@ -4,7 +4,7 @@ package CPANTS::Weight;
 
 =head1 NAME
 
-CPAN::Weight - Graph based weights for CPAN Distributions
+CPANTS::Weight - Graph based weights for CPAN Distributions
 
 =head1 DESCRIPTION
 
