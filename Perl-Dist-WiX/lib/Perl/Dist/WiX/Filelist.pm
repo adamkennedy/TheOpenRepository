@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use vars                   qw( $VERSION                          );
 use Object::InsideOut      qw( Perl::Dist::WiX::Misc             );
-use Carp                   qw( croak                             );
+use Carp                   qw( croak verbose                            );
 use File::Spec::Functions  qw( catdir catfile splitpath splitdir );
 use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
@@ -277,20 +277,20 @@ my %sortcache; # Defined at this level so that the cache does not
 	} ## end sub load_file
 
 ########################################
-# load_array(@files)
+# load_array(@files_list)
 # Parameters:
-#   @files: Files to add to this filelist.
+#   @files_list: Files to add to this filelist.
 # Returns:
 #   Object being acted upon (chainable)
 # Action:
 #   Adds the files listed in @files to our filelist.
 
 	sub load_array {
-		my ( $self, @files ) = @_;
+		my ( $self, @files_list ) = @_;
 		my $object_id = ${$self};
 
 		# Add each file in the array - if it is a file.
-		foreach my $file (@files) {
+		foreach my $file (@files_list) {
 			next if not -f $file;
 			$files[$object_id]{$file} = 1;
 		}

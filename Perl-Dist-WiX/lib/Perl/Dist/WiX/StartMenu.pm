@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::StartMenu;
-
+{
 #####################################################################
 # Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that
 # contains start menu <Shortcut>.
@@ -12,11 +12,11 @@ package Perl::Dist::WiX::StartMenu;
 use 5.006;
 use strict;
 use warnings;
-use Carp            qw( croak                           );
-use Params::Util    qw( _IDENTIFIER _STRING             );
-use Data::UUID      qw( NameSpace_DNS                   );
-use vars            qw( $VERSION                        );
-use base            qw( Perl::Dist::WiX::Base::Fragment );
+use Carp              qw( croak                           );
+use Object::InsideOut qw( Perl::Dist::WiX::Base::Fragment );
+use Params::Util      qw( _IDENTIFIER _STRING             );
+use Data::UUID        qw( NameSpace_DNS                   );
+use vars              qw( $VERSION                        );
 
 use version; $VERSION = qv('0.13_02');
 
@@ -32,28 +32,15 @@ use version; $VERSION = qv('0.13_02');
 #   id, directory: See Base::Filename.
 #   sitename: The name of the site that is hosting the download.
 
-sub new {
-	my ( $class, %params ) = @_;
+sub _pre_init: PreInit {
+    my ($self, $args) = @_;
 
 	# Apply required defaults.
-	$params{id}        ||= 'Icons';
-	$params{directory} ||= 'ApplicationProgramsFolder';
+	$args->{id}        ||= 'Icons';
+	$args->{directory} ||= 'ApplicationProgramsFolder';
 
-	my $self = $class->SUPER::new(%params);
-
-	# Check parameters.
-	unless ( _STRING( $self->{sitename} ) ) {
-		croak 'Invalid or missing sitename';
-	}
-	unless ( _IDENTIFIER( $self->id ) ) {
-		croak 'Invalid or missing id';
-	}
-	unless ( _STRING( $self->directory ) ) {
-		croak 'Invalid or missing directory';
-	}
-
-	return $self;
-} ## end sub new
+    return;
+}
 
 #####################################################################
 # Main Methods
@@ -68,7 +55,7 @@ sub new {
 sub get_component_array {
 	my $self = shift;
 
-	my $count = scalar @{ $self->{components} };
+	my $count = scalar @{ $self->get_components };
 	my @answer;
 	my $id;
 
@@ -77,7 +64,7 @@ sub get_component_array {
 
 	# Get the array for each descendant.
 	foreach my $i ( 0 .. $count - 1 ) {
-		$id = $self->{components}->[$i]->id;
+		$id = $self->get_components->[$i]->id;
 		push @answer, "S_$id";
 	}
 
@@ -104,7 +91,7 @@ sub as_string {
 	my ($self) = shift;
 
 # getting the number of items in the array referred to by $self->{components}
-	my $count = scalar @{ $self->{components} };
+	my $count = scalar @{ $self->get_components };
 	my $string;
 	my $s;
 
@@ -121,7 +108,7 @@ EOF
 
 	# Get component strings.
 	foreach my $i ( 0 .. $count - 1 ) {
-		$s = $self->{components}->[$i]->as_string;
+		$s = $self->get_components->[$i]->as_string;
 		$string .= $self->indent( 6, $s );
 		$string .= "\n";
 	}
@@ -149,5 +136,7 @@ EOF
 	return $string;
 
 } ## end sub as_string
+
+}
 
 1;

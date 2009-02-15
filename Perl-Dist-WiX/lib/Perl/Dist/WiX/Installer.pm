@@ -41,7 +41,6 @@ require Perl::Dist::WiX::CreateFolder;
 
 use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base qw(Perl::Dist::WiX::Misc);
 #>>>
 
 =head2 Accessors
@@ -139,6 +138,8 @@ sub new {
     my $class = shift;
     my $self = bless { @_ }, $class;
 
+    $self->{misc} = Perl::Dist::WiX::Misc->new(trace => $self->{trace}, sitename => $self->{sitename});
+    
     # Apply defaults
     unless ( defined $self->output_dir ) {
         $self->{output_dir} = rel2abs( curdir, );
@@ -196,6 +197,7 @@ sub new {
     }
 
     # Set element collections
+    $self->trace_line( 2, "Creating in-memory directory tree...\n" );
     $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
         app_dir  => $self->image_dir,
         app_name => $self->app_name,
@@ -204,9 +206,7 @@ sub new {
     )->initialize_tree( @{ $self->{msi_directory_tree_additions} } );
     $self->{fragments} = {};
     $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
-        sitename  => $self->sitename,
         directory => 'D_App_Menu',
-        trace     => $self->{trace},
     );
     $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
         sitename => $self->sitename,
@@ -257,6 +257,12 @@ sub new {
 
     return $self;
 } ## end sub new
+
+sub trace_line {
+    my $self = shift;
+    
+    $self->{misc}->trace_line(@_);
+}
 
 #####################################################################
 # Accessor methods.
@@ -628,7 +634,7 @@ sub add_env {
         croak 'Invalid or missing value parameter';
     }
 
-    my $num = scalar @{ $self->{fragments}->{Environment}->{entries} };
+    my $num = $self->{fragments}->{Environment}->get_entries_count();
 
     $self->{fragments}->{Environment}->add_entry(
         id     => "Env_$num",

@@ -32,9 +32,8 @@ Readonly my $component_class => 'Perl::Dist::WiX::Base::Component';
 #   get_directory: Returns the directory parameter passed in to new.
 #   get_components: Returns the components contained in this fragment.
 
-	my @id : Field : Arg(id) : Get(Name => 'get_frag_id', Restricted => 1);
-	my @directory : Field : Arg(Name => 'directory', Default => 'TARGETDIR') :
-	  Get(Name => 'get_directory_id', Restricted => 1);
+	my @id : Field : Arg(id) : Std(Name => 'frag_id', Restricted => 1);
+	my @directory : Field : Arg(Name => 'directory', Default => 'TARGETDIR') :Std(Name => 'directory_id', Restricted => 1);
 	my @components : Field : Get(Name => 'get_components', Restricted => 1);
 
 #####################################################################

@@ -16,9 +16,9 @@ package Perl::Dist::WiX::Misc;
 use 5.006;
 use strict;
 use warnings;
-use vars                  qw( $VERSION                    );
-use Object::InsideOut     qw( :Private                    );
-use Carp                  qw( croak                       );
+use vars                  qw( $VERSION $tracestate        );
+use Object::InsideOut;
+use Carp                  qw( croak      verbose          );
 use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
 use File::Spec::Functions qw( splitpath splitdir          );
 use List::MoreUtils       qw( any                         );
@@ -62,19 +62,21 @@ use version; $VERSION = qv('0.13_03');
 #   trace: Trace level. : (default: 0)
 
 	sub _init : Init {
-		my ( $self, $args ) = shift;
+		my ( $self, $args ) = @_;
 
 		# Set the trace state from the parameter IF it's
 		# non-negative. Otherwise, set it to 0.
-
-		$tracestate = _NONNEGINT( $args->{'TRACE'} ) or 0;
+        
+		$tracestate =   defined _NONNEGINT( $args->{'TRACE'} ) ? $args->{'TRACE'} 
+                      : defined _NONNEGINT($tracestate)        ? $tracestate 
+                      : 0;
 
 		# Set the sitename from the parameter IF it hasn't been set yet.
 		# Set it to www.perl.invalid if the parameter is invalid.
 		if ( ( $sitename eq q{} ) or ( $sitename eq 'www.perl.invalid' ) ) {
 			$sitename =
-			  _STRING( $args->{'SITENAME'} ) eq q{}
-			  ? $args->{'SITENAME'}
+			   _STRING($args->{'SITENAME'})
+			  ? $args->{'SITENAME'} 
 			  : 'www.perl.invalid';
 		}
 
@@ -97,10 +99,10 @@ use version; $VERSION = qv('0.13_03');
 
 		# Check parameters.
 		unless ( _STRING($string) ) {
-			croak('Missing or invalid string param');
+			croak 'Missing or invalid string param';
 		}
 		unless ( defined _NONNEGINT($num) ) {
-			croak('Missing or invalid num param');
+			croak 'Missing or invalid num param';
 		}
 
 		# Indent string.
@@ -125,7 +127,7 @@ use version; $VERSION = qv('0.13_03');
 # Returns:
 #   Object called upon (chainable).
 
-	sub trace_line : Restricted {
+	sub trace_line {
 		my ( $self, $tracelevel, $text, $no_display ) = @_;
 
 		# Check parameters and object state.

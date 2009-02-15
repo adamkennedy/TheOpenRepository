@@ -35,7 +35,7 @@ use version; $VERSION = qv('0.13_02');
 #   id: Id parameter to the <Component> tag (generated if not given)
 #   guid: Id parameter to the <Component> tag (generated if not given)
 
-	sub new {
+	sub _init :Init {
 		my $self      = shift;
 		my $object_id = ${$self};
 
@@ -45,11 +45,11 @@ use version; $VERSION = qv('0.13_02');
 		}
 
 		# Create a GUID if required.
-		unless ( defined $self->guid ) {
+		unless ( defined $self->get_guid() ) {
 			$self->set_guid( $self->generate_guid( $name[$object_id] ) );
-			my $id = $self->guid;
+			my $id = $self->get_guid();
 			$id =~ s{-}{_}smg;
-			$self->set_id($id);
+			$self->set_component_id($id);
 		}
 
 		# Add the entry (Each component contains one entry.)

@@ -24,7 +24,9 @@ use version; $VERSION = qv('0.13_02');
 # Accessors:
 #   root: Returns the root of the directory tree created by new.
 
-	my @root : Fields : Get(root);
+	my @root : Field : Get(root);
+    my @app_dir : Field : Arg(Name => 'app_dir', Required => 1) : Get(app_dir);
+    my @app_name : Field : Arg(Name => 'app_name', Required => 1) : Get(app_name);
 
 #####################################################################
 # Constructor for DirectoryTree
@@ -34,8 +36,6 @@ use version; $VERSION = qv('0.13_02');
 	sub _init : Init {
 		my $self      = shift;
 		my $object_id = ${$self};
-
-		$self->trace_line( 2, "Creating in-memory directory tree...\n" );
 
 		$root[$object_id] = Perl::Dist::WiX::Directory->new(
 			id      => 'TARGETDIR',
@@ -102,7 +102,7 @@ use version; $VERSION = qv('0.13_02');
 		my $branch = $self->root->add_directory( {
 				id      => 'INSTALLDIR',
 				special => 2,
-				path    => $self->{app_dir},
+				path    => $self->app_dir,
 			} );
 		$self->root->add_directory( {
 				id      => 'ProgramMenuFolder',
@@ -111,7 +111,7 @@ use version; $VERSION = qv('0.13_02');
 		  )->add_directory( {
 				id      => 'App_Menu',
 				special => 1,
-				name    => $self->{app_name} } );
+				name    => $self->app_name } );
 #<<<
     $branch->add_directories_id(
         'Perl',      'perl',

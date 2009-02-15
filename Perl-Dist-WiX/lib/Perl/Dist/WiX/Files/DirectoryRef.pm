@@ -58,17 +58,17 @@ use version; $VERSION = qv('0.13_02');
 # Main Methods
 
 ########################################
-# path
+# get_path
 # Parameters:
 #   None.
 # Returns:
 #   Path of the directory object being referenced.
 
-	sub path {
+	sub get_path {
 		my $object_id = ${
 			do { shift; }
 		  };
-		return $directory_object[$object_id]->path;
+		return $directory_object[$object_id]->get_path;
 	}
 
 ########################################
@@ -96,7 +96,7 @@ use version; $VERSION = qv('0.13_02');
 		my $exact   = $params_ref->{exact}   or 0;
 
 		# Get OUR path.
-		my $path = $directory_object[$object_id]->path;
+		my $path = $directory_object[$object_id]->get_path;
 
 		$self->trace_line( 3, "Looking for $path_to_find\n" );
 		$self->trace_line( 4, "  in: $path.\n" );
@@ -161,7 +161,7 @@ use version; $VERSION = qv('0.13_02');
 		}
 
 		# Get OUR path.
-		my $path = $directory_object[$object_id]->path;
+		my $path = $directory_object[$object_id]->get_path;
 
 		# Do we want to continue searching down this direction?
 		my $subset = ( "$filename\\" =~ m{\A\Q$path\E\\}msx ) ? 1 : 0;
@@ -357,7 +357,7 @@ use version; $VERSION = qv('0.13_02');
 		}
 
 		# Croak if we can't create this path under us.
-		my $path_to_remove = $directory_object[$object_id]->path;
+		my $path_to_remove = $directory_object[$object_id]->get_path;
 		if ( !( $path =~ m{\A\Q$path_to_remove\E}msx ) ) {
 			$self->trace_line( 0,
 				"Path to add: $path\nPath to add to: $path_to_remove\n" );
@@ -375,7 +375,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Set up the loop.
 		my $directory_obj = $self;
-		my $path_create   = $directory_object[$object_id]->path;
+		my $path_create   = $directory_object[$object_id]->get_path;
 		my $name_create;
 
 		# Loop and create directory objects required.

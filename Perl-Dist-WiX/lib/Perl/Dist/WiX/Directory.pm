@@ -95,7 +95,7 @@ use version; $VERSION = qv('0.13_02');
 		my $path       = $path[$object_id];
 
 		# Quick jump down the tree if we start at the head.
-		if ( $name[$object_id] eq 'SourceDir' ) {
+		if ((defined $name[$object_id]) and ($name[$object_id] eq 'SourceDir' )) {
 			return $directories[$object_id]->[0]->search_dir(@_);
 		}
 
@@ -173,7 +173,7 @@ use version; $VERSION = qv('0.13_02');
 		my $count = scalar @{ $files[$object_id] };
 		my $answer;
 		foreach my $i ( 0 .. $count - 1 ) {
-			next if ( not defined $self->{files}->[$i] );
+			next if ( not defined $files[$object_id]->[$i] );
 			$answer = $files[$object_id]->[$i]->is_file($filename);
 			if ($answer) {
 				return [ $self, $i ];
@@ -246,7 +246,7 @@ use version; $VERSION = qv('0.13_02');
 			} else {
 				$self->add_directory( {
 						id   => $id,
-						path => $self->path . q{\\} . $name,
+						path => $self->get_path . q{\\} . $name,
 						name => $name,
 					} );
 			}
@@ -273,7 +273,7 @@ use version; $VERSION = qv('0.13_02');
 				$name = substr $name, 0, -1;
 			}
 			$self->add_directory(
-				{ path => $self->path . q{\\} . $name, } );
+				{ path => $self->get_path . q{\\} . $name, } );
 		}
 
 		return $self;
@@ -419,8 +419,8 @@ use version; $VERSION = qv('0.13_02');
 			croak('Invalid directory object passed in.');
 		}
 
-		my $path_to_check = $directory_obj->path;
-		my $path          = $self->path;
+		my $path_to_check = $directory_obj->get_path;
+		my $path          = $self->get_path;
 		if ( not defined $path_to_check ) {
 			$self->trace_line( 5,
 				"Is Child Of: Answer: No path detected (0)\n" );
