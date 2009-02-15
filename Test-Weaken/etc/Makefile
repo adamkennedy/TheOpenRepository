@@ -1,4 +1,6 @@
 
+.PHONY: build perltidy perlcritic display
+
 build:
 	(cd ..;perl Makefile.PL)
 	(cd ..;make realclean)
@@ -14,3 +16,11 @@ perlcritic: perlcritic.errs
 
 perlcritic.errs:
 	perl do_critic.pl > $@
+	wc -l $@
+
+display: display.errs
+
+# check displays
+display.errs:
+	perl display_test.pl > $@
+	wc -l $@

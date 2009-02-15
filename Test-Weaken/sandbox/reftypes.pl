@@ -48,7 +48,7 @@ my $io_ref = *STDOUT{IO};
 my $fh_ref = *STDOUT{FILEHANDLE};
 
 ## no critic (InputOutput::RequireBriefOpen)
-open my $autoviv_ref, q{>}, '/dev/null';
+open my $autoviv_ref, q{>&STDERR};
 ## use critic
 
 my $string     = 'abc' x 40;
@@ -67,13 +67,14 @@ my %data = (
     'glob'    => $glob_ref,
     'io'      => $io_ref,
     'fh'      => $fh_ref,
-    'autovivified'      => $autoviv_ref,
+    'autoviv' => $autoviv_ref,
     'lvalue'  => $lvalue_ref,
 );
 
 REF:
 while ( my ( $name, $ref ) = each %data ) {
-    printf {*STDERR} "==== $name, %s, %s ====\n", ( ref $ref ), ( reftype $ref)
+    printf {*STDERR} "==== $name, %s, %s ====\n", ( ref $ref ),
+        ( reftype $ref)
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper( \$ref );
 }
@@ -92,7 +93,8 @@ for my $data_name (qw(scalar vstring regexp ref )) {
 
 REF: for my $ref ($format_ref) {
     my $probe = \$ref;
-    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
+        "\n"
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
 
@@ -101,7 +103,8 @@ REF: for my $ref ($format_ref) {
 
 REF: for my $ref ($lvalue_ref) {
     my $probe = \$ref;
-    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
+        "\n"
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \${ ${$probe} };
@@ -112,7 +115,8 @@ REF: for my $ref ($lvalue_ref) {
 
 REF: for my $ref ($io_ref) {
     my $probe = \$ref;
-    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
+        "\n"
         or croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
@@ -131,7 +135,7 @@ REF: for my $ref ($glob_ref) {
 }
 
 REF:
-for my $data_name ( qw( glob )) {
+for my $data_name (qw( glob autoviv )) {
     my $ref = $data{$data_name};
     printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
         ( ref $ref )
