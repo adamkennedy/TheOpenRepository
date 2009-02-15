@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.20 Thu 12 Feb 2009
+	- Auto-create parent directory for ORLite files
+	- Add root method ->sqlite which returns the path to the
+	  sqlite file for that database.
+
 1.19 Tue  3 Feb 2009
 	- Adding support for using a CODE reference in the 'create'
 	  parameter, so that the schema setup can be provided directly

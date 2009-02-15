@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 49;
+use Test::More tests => 51;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -43,6 +43,11 @@ END_PERL
 
 Foo::Bar->begin;
 Foo::Bar->rollback;
+
+# Check the file name
+$file = rel2abs($file);
+is( Foo::Bar->sqlite, $file,              '->sqlite ok' );
+is( Foo::Bar->dsn,    "dbi:SQLite:$file", '->dsn ok'    );
 
 # Check the schema version
 is( Foo::Bar->pragma('user_version'), 0, '->user_version ok' );
