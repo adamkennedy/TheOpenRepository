@@ -11,7 +11,7 @@ use ORLite       ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'ORLite';
 }
 
@@ -35,9 +35,7 @@ sub import {
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
-	unless ( defined $params{create} ) {
-		$params{create} = 0;
-	}
+	$params{create} = $params{create} ? 1 : 0;
 	unless (
 		defined _STRING($params{file})
 		and (
@@ -71,6 +69,14 @@ sub import {
 
 	# Get the schema version
 	my $file     = File::Spec->rel2abs($params{file});
+	my $created  = ! -f $params{file};
+	if ( $created ) {
+		# Create the parent directory
+		my $dir = File::Basename::dirname($file);
+		unless ( -d $dir ) {
+			File::Path::mkpath( $dir, { verbose => 0 } );
+		}
+	}
 	my $dsn      = "dbi:SQLite:$file";
 	my $dbh      = DBI->connect($dsn);
 	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];

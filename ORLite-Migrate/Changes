@@ -1,4 +1,9 @@
-Changes for Perl extension ORLite
+Changes for Perl extension ORLite-Migrate
+
+0.02 Mon 16 Feb 2009
+	- Updating to Module::Install 0.79
+	- Support creation of database in subdirectories
+	- Updating ORLite minimum version
 
 0.01 Fri 13 Dec 2008
 	- Create an initial experimental implementation
