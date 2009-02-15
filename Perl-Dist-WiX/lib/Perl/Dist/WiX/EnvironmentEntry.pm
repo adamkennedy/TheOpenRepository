@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::EnvironmentEntry;
-
+{
 ####################################################################
 # Perl::Dist::WiX::EnvironmentEntry - Object that represents an <Environment> tag.
 #
@@ -11,26 +11,24 @@ package Perl::Dist::WiX::EnvironmentEntry;
 use 5.006;
 use strict;
 use warnings;
-use Carp           qw( croak               );
-use Params::Util   qw( _IDENTIFIER _STRING );
-use Data::UUID     qw( NameSpace_DNS       );
+use vars              qw( $VERSION                     );
+use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry );
+use Carp              qw( croak                        );
+use Params::Util      qw( _IDENTIFIER _STRING          );
 
-use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Base::Entry';
 #>>>
 #####################################################################
 # Accessors:
 #   see new.
 
-use Object::Tiny qw{
-  id
-  name
-  value
-  action
-  part
-  permanent
-};
+	my @id : Field : Arg(Name => 'id', Required => 1);
+	my @name : Field : Arg(Name => 'name', Required => 1);
+	my @value : Field : Arg(Name => 'value', Required => 1);
+	my @action : Field : Arg(Name => 'action');
+	my @part : Field : Arg(Name => 'part');
+	my @permanent : Field : Arg(Name => 'permanent');
+
 
 #####################################################################
 # Constructors for EnvironmentEntry
@@ -44,31 +42,34 @@ use Object::Tiny qw{
 #   permanent: The Permanent attribute of the <Environment> tag being defined.
 # Note: see http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm for valid values.
 
-sub new {
-    my $self = shift->SUPER::new( @_ );
+	sub _init : Init {
+		my $self      = shift;
+		my $object_id = ${$self};
 
-    # Check params
-    unless ( _STRING( $self->id ) ) {
-        croak( 'Missing or invalid id param' );
-    }
-    unless ( _STRING( $self->{name} ) ) {
-        croak( 'Missing or invalid name param' );
-    }
-    unless ( _STRING( $self->{value} ) ) {
-        croak( 'Missing or invalid value param' );
-    }
-    unless ( _STRING( $self->{action} ) ) {
-        $self->{action} = 'set';
-    }
-    unless ( _STRING( $self->{part} ) ) {
-        $self->{part} = 'all';
-    }
-    unless ( _STRING( $self->{permanent} ) ) {
-        $self->{permanent} = 'no';
-    }
+		# Check params
+		unless ( _STRING( $id[$object_id] ) ) {
+			croak('Missing or invalid id param');
+		}
+		unless ( _STRING( $name[$object_id] ) ) {
+			croak('Missing or invalid name param');
+		}
+		unless ( _STRING( $value[$object_id] ) ) {
+			croak('Missing or invalid value param');
+		}
 
-    return $self;
-} ## end sub new
+		# TODO: Check for valid enums...
+		unless ( _STRING( $action[$object_id] ) ) {
+			$action[$object_id] = 'set';
+		}
+		unless ( _STRING( $part[$object_id] ) ) {
+			$part[$object_id] = 'all';
+		}
+		unless ( _STRING( $permanent[$object_id] ) ) {
+			$permanent[$object_id] = 'no';
+		}
+
+		return $self;
+	} ## end sub _init :
 
 
 #####################################################################
@@ -81,16 +82,17 @@ sub new {
 # Returns:
 #   String containing <Environment> tag defined by this object.
 
-sub as_string {
-    my $self = shift;
+	sub as_string {
+		my $self      = shift;
+		my $object_id = ${$self};
 
-    # Print tag.
-    my $answer = <<"END_OF_XML";
-   <Environment Id='E_$self->{id}' Name='$self->{name}' Value='$self->{value}' 
-      System='yes' Permanent='$self->{permanent}' Action='$self->{action}' Part='$self->{part}' />
+		# Print tag.
+		my $answer = <<"END_OF_XML";
+   <Environment Id='E_$id[$object_id]' Name='$name[$object_id]' Value='$value[$object_id]' 
+      System='yes' Permanent='$permanent[$object_id]' Action='$action[$object_id]' Part='$part[$object_id]' />
 END_OF_XML
 
-    return $answer;
+		return $answer;
+	} ## end sub as_string
 }
-
 1;

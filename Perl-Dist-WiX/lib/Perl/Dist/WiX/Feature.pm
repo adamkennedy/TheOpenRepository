@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Feature;
-
+{
 ####################################################################
 # Perl::Dist::WiX::Feature - Object representing <Feature> tag.
 #
@@ -11,12 +11,13 @@ package Perl::Dist::WiX::Feature;
 use 5.006;
 use strict;
 use warnings;
-use Carp            qw( croak                        );
-use Params::Util    qw( _INSTANCE _STRING _NONNEGINT );
+use vars              qw( $VERSION                     );
+use Object::InsideOut qw( Perl::Dist::WiX::Misc        );
+# TODO: Not converted yet.
+use Carp              qw( croak                        );
+use Params::Util      qw( _INSTANCE _STRING _NONNEGINT );
 
-use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Misc';
 #>>>
 #####################################################################
 # Accessors:
@@ -28,21 +29,21 @@ use base 'Perl::Dist::WiX::Misc';
 #  id, title, description, default, idefault, display, directory, absent, advertise, level:
 #    See new.
 
-use Object::Tiny qw{
-  features
-  componentrefs
+	use Object::Tiny qw{
+	  features
+	  componentrefs
 
-  id
-  title
-  description
-  default
-  idefault
-  display
-  directory
-  absent
-  advertise
-  level
-};
+	  id
+	  title
+	  description
+	  default
+	  idefault
+	  display
+	  directory
+	  absent
+	  advertise
+	  level
+	};
 #<<<
 #####################################################################
 # Constructor for Feature
@@ -223,22 +224,22 @@ sub as_string {
       . q{' Description='}  . $self->description
       . q{' Level='}        . $self->level;
 #>>>
-    my %hash = (
-        advertise => $self->advertise,
-        absent    => $self->absent,
-        directory => $self->directory,
-        display   => $self->display,
-        idefault  => $self->idefault,
-        default   => $self->default,
-    );
+		my %hash = (
+			advertise => $self->advertise,
+			absent    => $self->absent,
+			directory => $self->directory,
+			display   => $self->display,
+			idefault  => $self->idefault,
+			default   => $self->default,
+		);
 
-    foreach my $key ( keys %hash ) {
-        if ( not defined $hash{$key} ) {
-            print "$key in feature $self->{id} is undefined.\n";
-        }
-    }
+		foreach my $key ( keys %hash ) {
+			if ( not defined $hash{$key} ) {
+				print "$key in feature $self->{id} is undefined.\n";
+			}
+		}
 
-    if ( $self->{default_settings} != 6 ) {
+		if ( $self->{default_settings} != 6 ) {
 #<<<
         $string .=
             q{' AllowAdvertise='}         . $self->advertise
@@ -248,46 +249,46 @@ sub as_string {
           . q{' InstallDefault='}         . $self->idefault
           . q{' TypicalDefault='}         . $self->default;
 #>>>
-    } ## end if ( $self->{default_settings...
+		}
 
 # TODO: Allow condition subtags.
 
-    if ( ( $c_count == 0 ) and ( $f_count == 0 ) ) {
-        $string .= qq{' />\n};
-    } else {
-        $string .= qq{'>\n};
+		if ( ( $c_count == 0 ) and ( $f_count == 0 ) ) {
+			$string .= qq{' />\n};
+		} else {
+			$string .= qq{'>\n};
 
-        foreach my $i ( 0 .. $f_count - 1 ) {
-            $s .= $self->features->[$i]->as_string;
-        }
-        if ( defined $s ) {
-            $string .= $self->indent( 2, $s );
-        }
-        $string .= $self->_componentrefs_as_string;
-        $string .= qq{\n};
+			foreach my $i ( 0 .. $f_count - 1 ) {
+				$s .= $self->features->[$i]->as_string;
+			}
+			if ( defined $s ) {
+				$string .= $self->indent( 2, $s );
+			}
+			$string .= $self->_componentrefs_as_string;
+			$string .= qq{\n};
 
-        $string .= qq{</Feature>\n};
-    } ## end else [ if ( ( $c_count == 0 )...
+			$string .= qq{</Feature>\n};
+		} ## end else [ if ( ( $c_count == 0 )...
 
-    return $string;
-} ## end sub as_string
+		return $string;
+	} ## end sub as_string
 
-sub _componentrefs_as_string {
-    my $self = shift;
+	sub _componentrefs_as_string {
+		my $self = shift;
 
-    my ( $string, $ref );
-    my $c_count = scalar @{ $self->componentrefs };
+		my ( $string, $ref );
+		my $c_count = scalar @{ $self->componentrefs };
 
-    if ( $c_count == 0 ) {
-        return q{};
-    }
+		if ( $c_count == 0 ) {
+			return q{};
+		}
 
-    foreach my $i ( 0 .. $c_count - 1 ) {
-        $ref = $self->componentrefs->[$i];
-        $string .= qq{<ComponentRef Id='C_$ref' />\n};
-    }
+		foreach my $i ( 0 .. $c_count - 1 ) {
+			$ref = $self->componentrefs->[$i];
+			$string .= qq{<ComponentRef Id='C_$ref' />\n};
+		}
 
-    return $self->indent( 2, $string );
-} ## end sub _componentrefs_as_string
-
+		return $self->indent( 2, $string );
+	} ## end sub _componentrefs_as_string
+}
 1;

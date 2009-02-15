@@ -26,11 +26,11 @@ use version; $VERSION = qv('0.13_02');
 # Attributes:
 #   entries: Entries contained in this component.
 
-	my @id : Field : Arg(Name => 'id') : Get(Name => 'id', Restricted => 1)
-	  : Set(Name => 'set_id', Restricted => 1);
-	my @guid : Field : Arg(guid) : Get(Name => 'guid', Restricted => 1) :
+	my @id : Field : Arg(Name => 'id') : Get(Name => 'get_component_id', Restricted => 1)
+	  : Set(Name => 'set_component_id', Restricted => 1);
+	my @guid : Field : Arg(guid) : Get(Name => 'get_guid', Restricted => 1) :
 	  Set(Name => 'set_guid', Restricted => 1);
-	my @entries : Field : Get(Name => 'entries', Restricted => 1);
+	my @entries : Field : Get(Name => 'get_entries', Restricted => 1);
 
 #####################################################################
 # Constructors for Base::Component
@@ -119,9 +119,13 @@ use version; $VERSION = qv('0.13_02');
 		return q{} if ( scalar @{ $entries[$object_id] } == 0 );
 
 		unless ( _STRING( $id[$object_id] ) ) {
-			croak('Invalid id param');
+			croak('Missing or invalid id param');
 		}
 
+		unless ( _STRING( $guid[$object_id] ) ) {
+			$guid[$object_id] = generate_guid($id[$object_id]);
+		}
+                
 		# Check parameters.
 		unless ( defined _NONNEGINT($spaces) ) {
 			croak 'Calling as_spaces improperly '

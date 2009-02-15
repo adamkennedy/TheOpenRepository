@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Environment;
-
+{
 ####################################################################
 # Perl::Dist::WiX::Environment - Fragment & Component that contains
 #  <Environment> tags
@@ -12,67 +12,55 @@ package Perl::Dist::WiX::Environment;
 use     5.006;
 use     strict;
 use     warnings;
-use     Carp           qw( croak          );
-use     Params::Util   qw( _IDENTIFIER    );
-use     Data::UUID     qw( NameSpace_DNS  );
-require Perl::Dist::WiX::EnvironmentEntry;
-
-use vars qw( $VERSION );
-use version; $VERSION = qv('0.13_02');
-use base qw(
+use     vars              qw( $VERSION       );
+use     Object::InsideOut qw(
     Perl::Dist::WiX::Base::Fragment
     Perl::Dist::WiX::Base::Component
 );
+use     Carp              qw( croak          );
+use     Params::Util      qw( _IDENTIFIER    );
+use     Data::UUID        qw( NameSpace_DNS  );
+require Perl::Dist::WiX::EnvironmentEntry;
+
+use version; $VERSION = qv('0.13_02');
 #>>>
 #####################################################################
 # Accessors:
-#   sitename: The name of the site that is hosting the download.
-
-use Object::Tiny qw{
-  sitename
-};
-
 
 #####################################################################
 # Constructor for Environment
 #
 # Parameters: [pairs]
 #   id: The Id attribute of the <Fragment> and <Component> tags.
-#   sitename: The name of the site that is hosting the download.
 
-sub new {
-    my ( $class, %params ) = @_;
+	sub _init : Init {
+		my $self = shift;
 
-    # Apply defaults
-    unless ( defined $params{id} ) {
-        $params{id} = 'Environment';
-    }
+		# Apply defaults
+		unless ( defined $self->get_component_id() ) {
+			$self->set_component_id('Environment');
+		}
 
-    unless ( _IDENTIFIER( $params{id} ) ) {
-        croak 'Missing or invalid id parameter';
-    }
+		unless ( _IDENTIFIER( $self->get_component_id() ) ) {
+			croak 'Missing or invalid id parameter';
+		}
 
-    my $self = $class->Perl::Dist::WiX::Base::Fragment::new( %params );
+		# Make a GUID for as_string to use.
+		$self->create_guid_from_id();
 
-    # Make a GUID for as_string to use.
-    $self->create_guid_from_id();
-
-    # Initialize list of entries
-    $self->{entries} = [];
-
-    return $self;
-} ## end sub new
+		return $self;
+	} ## end sub _init :
 
 #####################################################################
 # Main Methods
 
-sub search_file {
-    return undef;
-}
+	sub search_file {
+		return undef;
+	}
 
-sub check_duplicates {
-    return undef;
-}
+	sub check_duplicates {
+		return undef;
+	}
 
 ########################################
 # add_entry(...)
@@ -81,14 +69,15 @@ sub check_duplicates {
 # Returns:
 #   Object being called. (chainable)
 
-sub add_entry {
-    my $self = shift;
+	sub add_entry {
+		my $self = shift;
 
-    my $i = scalar @{ $self->{entries} };
-    $self->{entries}->[$i] = Perl::Dist::WiX::EnvironmentEntry->new( @_ );
+		my $i = scalar @{ $self->get_entries };
+		$self->get_entries->[$i] =
+		  Perl::Dist::WiX::EnvironmentEntry->new(@_);
 
-    return $self;
-}
+		return $self;
+	}
 
 ########################################
 # get_component_array
@@ -97,11 +86,11 @@ sub add_entry {
 # Returns:
 #   Id attached to the contained component.
 
-sub get_component_array {
-    my $self = shift;
+	sub get_component_array {
+		my $self = shift;
 
-    return $self->{id};
-}
+		return $self->get_component_id;
+	}
 
 ########################################
 # as_string
@@ -111,36 +100,38 @@ sub get_component_array {
 #   String containing <Fragment> and <Component> tags defined by this object
 #   and <Environment> tags defined by objects contained in this object.
 
-sub as_string {
-    my ( $self ) = shift;
+	sub as_string {
+		my ($self) = shift;
 
-# getting the number of items in the array referred to by $self->{components}
-    my $count = scalar @{ $self->{entries} };
-    my $string;
-    my $s;
+# getting the number of items in the array referred to by $self->{entries}
+		my $count = scalar @{ $self->get_entries(); };
+		my $string;
+		my $s;
+		my $id = $self->get_component_id();
 
-    $string = <<"EOF";
+		$string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Fragment Id='Fr_$self->{id}'>
     <DirectoryRef Id='TARGETDIR'>
-      <Component Id='C_$self->{id}' Guid='$self->{guid}'>
 EOF
 
-    foreach my $i ( 0 .. $count - 1 ) {
-        $s = $self->{entries}->[$i]->as_string;
-        $string .= $self->indent( 6, $s );
-        $string .= "\n";
-    }
+		$string .= $self->indent( 6, $self->as_start_string() );
 
-    $string .= <<'EOF';
+		foreach my $i ( 0 .. $count - 1 ) {
+			$s = $self->get_entries->[$i]->as_string;
+			$string .= $self->indent( 6, $s );
+			$string .= "\n";
+		}
+
+		$string .= <<'EOF';
       </Component>
     </DirectoryRef>
   </Fragment>
 </Wix>
 EOF
 
-    return $string;
-} ## end sub as_string
-
+		return $string;
+	} ## end sub as_string
+}
 1;
