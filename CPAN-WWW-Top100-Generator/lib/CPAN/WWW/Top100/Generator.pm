@@ -67,6 +67,14 @@ sub run {
 		)
 	);
 
+	# Build the Downstream 100 index
+	$dataset->add( 'ds3',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		$self->report(
+			sql_score => 'd.volatility * d.enemy_downstream',
+		),
+	);
+
 	# Write out the daa file
 	$dataset->write(
 		File::Spec->catfile( $dir, 'data.html' )
