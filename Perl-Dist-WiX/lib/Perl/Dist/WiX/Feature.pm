@@ -11,10 +11,10 @@ package Perl::Dist::WiX::Feature;
 use 5.006;
 use strict;
 use warnings;
-use vars              qw( $VERSION                     );
-use Object::InsideOut qw( Perl::Dist::WiX::Misc        );
-use Carp              qw( croak                        );
-use Params::Util      qw( _INSTANCE _STRING _NONNEGINT );
+use vars              qw( $VERSION                       );
+use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
+use Carp              qw( croak                          );
+use Params::Util      qw( _INSTANCE _STRING _NONNEGINT   );
 
 use version; $VERSION = qv('0.13_02');
 #>>>

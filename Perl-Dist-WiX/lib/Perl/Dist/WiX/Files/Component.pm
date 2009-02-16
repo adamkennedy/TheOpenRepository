@@ -11,10 +11,13 @@ package Perl::Dist::WiX::Files::Component;
 use     5.006;
 use     strict;
 use     warnings;
-use     vars              qw( $VERSION                         );
-use     Object::InsideOut qw( Perl::Dist::WiX::Base::Component );
-use     Carp              qw( croak                            );
-use     Params::Util      qw( _STRING                          );
+use     vars              qw( $VERSION );
+use     Object::InsideOut qw(
+    Perl::Dist::WiX::Base::Component
+    Storable
+);
+use     Carp              qw( croak    );
+use     Params::Util      qw( _STRING  );
 require Perl::Dist::WiX::Files::Entry;
 
 use version; $VERSION = qv('0.13_02');

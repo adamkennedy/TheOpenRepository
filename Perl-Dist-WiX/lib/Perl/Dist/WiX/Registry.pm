@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Registry;
-
+{
 #####################################################################
 # Perl::Dist::WiX::Registry - A <Fragment> and <DirectoryRef> tag that
 # contains <RegistryKey>s and <RegistryValue>s.
@@ -12,45 +12,32 @@ package Perl::Dist::WiX::Registry;
 use     5.006;
 use     strict;
 use     warnings;
-use     Carp             qw( croak               );
-use     Params::Util     qw( _IDENTIFIER _STRING );
+use     vars              qw( $VERSION                                 );
+use     Object::InsideOut qw( Perl::Dist::WiX::Base::Fragment Storable );
+use     Carp              qw( croak                                    );
+use     Params::Util      qw( _IDENTIFIER _STRING                      );
 require Perl::Dist::WiX::Registry::Key;
 require Perl::Dist::WiX::Registry::Entry;
 
-use vars qw( $VERSION );
 use version; $VERSION = qv('0.13_02');
-use base 'Perl::Dist::WiX::Base::Fragment';
+
 #>>>
 #####################################################################
 # Accessors:
-#   sitename: Returns the sitename parameter passed in to new.
-
-use Object::Tiny qw{
-  sitename
-};
-
 
 #####################################################################
 # Constructor for Registry
 #
 # Parameters: [pairs]
 #   id, directory: See Base::Fragment
-#   sitename: The name of the site that is hosting the download.
 
-sub new {
-	my ( $class, %params ) = @_;
+sub _pre_init : PreInit {
+	my ( $self, $args ) = @_;
 
-	# Apply defaults and check parameters
-	unless ( defined $params{id} ) {
-		$params{id} = 'Registry';
-	}
-	unless ( _STRING( $params{sitename} ) ) {
-		croak('Missing or invalid sitename');
-	}
+	# Apply defaults
+    $args->{id} ||= 'Registry';
 
-	my $self = $class->SUPER::new(%params);
-
-	return $self;
+	return;
 } ## end sub new
 
 #####################################################################
@@ -79,12 +66,12 @@ sub get_component_array {
 	my $id;
 
 	# Get the array for each descendant.
-	my $count = scalar @{ $self->{components} };
+	my $count = scalar @{ $self->get_components };
 
 	return undef if ( 0 == $count );
 
 	foreach my $i ( 0 .. $count - 1 ) {
-		$id = $self->{components}->[$i]->id;
+		$id = $self->get_components->[$i]->id;
 		push @answer, "C_$id";
 	}
 
@@ -119,12 +106,12 @@ sub add_key {
 
 	# Search for a key...
 	my $key   = undef;
-	my $count = scalar @{ $self->{components} };
+	my $count = scalar @{ $self->get_components };
 	foreach my $i ( 0 .. $count - 1 ) {
-		if ($self->{components}->[$i]->is_key( $params{root}, $params{key} )
+		if ($self->get_components->[$i]->is_key( $params{root}, $params{key} )
 		  )
 		{
-			$key = $self->{components}->[$i];
+			$key = $self->get_components->[$i];
 			last;
 		}
 	}
@@ -135,7 +122,6 @@ sub add_key {
 			id       => $params{id},
 			root     => $params{root},
 			key      => $params{key},
-			sitename => $self->sitename
 		);
 		$self->add_component($key);
 	}
@@ -147,5 +133,7 @@ sub add_key {
 
 	return $self;
 } ## end sub add_key
+
+}
 
 1;

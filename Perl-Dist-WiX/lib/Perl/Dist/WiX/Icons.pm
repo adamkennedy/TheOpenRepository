@@ -12,7 +12,7 @@ package Perl::Dist::WiX::Icons;
 use 5.006;
 use strict;
 use warnings;
-use Object::InsideOut      qw( Perl::Dist::WiX::Misc );
+use Object::InsideOut      qw( Perl::Dist::WiX::Misc Storable );
 use Carp                   qw( croak     );
 use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );

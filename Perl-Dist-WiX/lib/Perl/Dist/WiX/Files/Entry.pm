@@ -11,11 +11,11 @@ package Perl::Dist::WiX::Files::Entry;
 use 5.006;
 use strict;
 use warnings;
-use vars                  qw( $VERSION                     );
-use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry );
-use Carp                  qw( croak                        );
-use Params::Util          qw( _IDENTIFIER _STRING          );
-use File::Spec::Functions qw( splitpath                    );
+use vars                  qw( $VERSION                              );
+use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
+use Carp                  qw( croak                                 );
+use Params::Util          qw( _IDENTIFIER _STRING                   );
+use File::Spec::Functions qw( splitpath                             );
 
 use version; $VERSION = qv('0.13_02');
 #>>>

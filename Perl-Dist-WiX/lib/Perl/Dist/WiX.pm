@@ -805,8 +805,14 @@ sub checkpoint_save {
         %{$self},
         checkpoint_before => 0,
         checkpoint_after  => 0,
+        tt_exists         => (defined $self->{template_toolkit} ? 1 : 0),
+        template_toolkit  => undef,
         user_agent        => undef,
     };
+    require Data::Dump::Streamer;
+    print "\n\n\n";
+    print Data::Dump::Streamer->new()->IndentKeys(1)->DumpGlob(1)->Data($copy)->Out();
+    print "\n\n\n";
     Storable::nstore( $copy, $self->checkpoint_file );
 
     return 1;
@@ -3241,12 +3247,11 @@ sub add_icon {
 
     # Get the Id for directory object that stores the filename passed in.
     ( $vol, $dir, $file ) = splitpath( $params{filename} );
-    $dir_obj = $self->directories->search_dir(
+    $dir_id = $self->directories->search_dir(
         path_to_find => catdir( $vol, $dir ),
         exact        => 1,
         descend      => 1,
-    );
-    $dir_id = $dir_obj->get_component_id;
+    )->get_component_id();
 
     # Get a legal id.
     my $id = $params{name};

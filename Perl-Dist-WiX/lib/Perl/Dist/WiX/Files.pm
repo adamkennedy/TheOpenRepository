@@ -13,7 +13,10 @@ use     5.006;
 use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                              );
-use     Object::InsideOut     qw( Perl::Dist::WiX::Base::Fragment       );
+use     Object::InsideOut     qw(
+    Perl::Dist::WiX::Base::Fragment
+    Storable
+);
 use     Carp                  qw( croak                                 );
 use     Params::Util          qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     Data::UUID            qw( NameSpace_DNS                         );

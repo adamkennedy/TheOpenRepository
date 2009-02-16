@@ -11,10 +11,10 @@ package Perl::Dist::WiX::EnvironmentEntry;
 use 5.006;
 use strict;
 use warnings;
-use vars              qw( $VERSION                     );
-use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry );
-use Carp              qw( croak                        );
-use Params::Util      qw( _IDENTIFIER _STRING          );
+use vars              qw( $VERSION                              );
+use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry Storable );
+use Carp              qw( croak                                 );
+use Params::Util      qw( _IDENTIFIER _STRING                   );
 
 use version; $VERSION = qv('0.13_02');
 #>>>

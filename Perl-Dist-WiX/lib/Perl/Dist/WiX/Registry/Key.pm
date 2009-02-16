@@ -12,7 +12,10 @@ use     5.006;
 use     strict;
 use     warnings;
 use     vars               qw( $VERSION                         );
-use     Object::InsideOut  qw( Perl::Dist::WiX::Base::Component );
+use     Object::InsideOut  qw(
+    Perl::Dist::WiX::Base::Component
+    Storable
+);
 use     Readonly           qw( Readonly                         );
 use     Carp               qw( croak                            );
 use     Params::Util       qw( _IDENTIFIER _STRING              );

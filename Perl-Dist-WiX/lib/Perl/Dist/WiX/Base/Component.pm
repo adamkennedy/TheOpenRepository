@@ -14,10 +14,10 @@ package Perl::Dist::WiX::Base::Component;
 use 5.006;
 use strict;
 use warnings;
-use vars              qw( $VERSION                      );
-use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public );
-use Carp              qw( croak                         );
-use Params::Util      qw( _CLASSISA _STRING _NONNEGINT  );
+use vars              qw( $VERSION                               );
+use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable :Public );
+use Carp              qw( croak                                  );
+use Params::Util      qw( _CLASSISA _STRING _NONNEGINT           );
 
 use version; $VERSION = qv('0.13_02');
 #>>>
@@ -26,7 +26,7 @@ use version; $VERSION = qv('0.13_02');
 # Attributes:
 #   entries: Entries contained in this component.
 
-	my @id : Field : Arg(Name => 'id') : Std(Name => 'component_id', Restricted => 1);
+	my @id : Field : Arg(Name => 'id') : Std(Name => 'component_id', Permission => 'Restrict(Perl::Dist::WiX)');
 	my @guid : Field : Arg(guid) : Std(Name => 'guid', Restricted => 1);
 	my @entries : Field : Get(Name => 'get_entries', Restricted => 1);
     

@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Registry::Entry;
 {
 #####################################################################
-# Perl::Dist::WiX::Base::Component - Base class for <RegistryValue> tag.
+# Perl::Dist::WiX::Registry::Entry - Base class for <RegistryValue> tag.
 #
 # Copyright 2009 Curtis Jewell
 #
@@ -11,12 +11,14 @@ package Perl::Dist::WiX::Registry::Entry;
 use 5.006;
 use strict;
 use warnings;
-use Object::InsideOut 
-    qw( Perl::Dist::WiX::Base::Entry :Public);
-use Readonly      qw( Readonly                     );
-use Carp          qw( croak                        );
-use Params::Util  qw( _IDENTIFIER _STRING          );
-use vars          qw( $VERSION                     );
+use vars              qw( $VERSION            );
+use Object::InsideOut qw(
+    Perl::Dist::WiX::Base::Entry
+    Storable
+);
+use Readonly          qw( Readonly            );
+use Carp              qw( croak               );
+use Params::Util      qw( _IDENTIFIER _STRING );
 
 use version; $VERSION = qv('0.13_02');
 #>>>

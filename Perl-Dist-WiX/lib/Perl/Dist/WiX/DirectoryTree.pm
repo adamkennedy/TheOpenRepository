@@ -12,10 +12,10 @@ package Perl::Dist::WiX::DirectoryTree;
 use     5.006;
 use     strict;
 use     warnings;
-use     vars              qw( $VERSION              );
-use     Object::InsideOut qw( Perl::Dist::WiX::Misc );
-use     Carp              qw( croak                 );
-use     Params::Util      qw( _IDENTIFIER _STRING   );
+use     vars              qw( $VERSION                       );
+use     Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
+use     Carp              qw( croak                          );
+use     Params::Util      qw( _IDENTIFIER _STRING            );
 require Perl::Dist::WiX::Directory;
 
 use version; $VERSION = qv('0.13_02');

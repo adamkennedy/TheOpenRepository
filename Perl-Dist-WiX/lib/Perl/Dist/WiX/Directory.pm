@@ -12,8 +12,11 @@ use     5.006;
 use     strict;
 use     warnings;
 use     vars                   qw( $VERSION           );
-use     Object::InsideOut 
-  qw( Perl::Dist::WiX::Base::Component Perl::Dist::WiX::Base::Entry );
+use     Object::InsideOut      qw( 
+    Perl::Dist::WiX::Base::Component 
+    Perl::Dist::WiX::Base::Entry
+    Storable
+);
 use     Carp                   qw( croak              );
 use     Params::Util
   qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );

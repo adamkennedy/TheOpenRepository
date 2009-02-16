@@ -13,7 +13,7 @@ package Perl::Dist::WiX::Base::Entry;
 	use 5.006;
 	use strict;
 	use warnings;
-	use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public );
+	use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
 	use vars qw( $VERSION              );
 	use version; $VERSION = qv('0.13_02');
 }

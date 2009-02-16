@@ -11,11 +11,11 @@ package Perl::Dist::WiX::FeatureTree;
 use     5.008;
 use     strict;
 use     warnings;
-use     vars                     qw( $VERSION              );
-use     Object::InsideOut        qw( Perl::Dist::WiX::Misc );
-use     Carp                     qw( croak                 );
-use     Params::Util             qw( _IDENTIFIER _CLASSISA );
-use     Scalar::Util             qw( weaken                );
+use     vars                     qw( $VERSION                       );
+use     Object::InsideOut        qw( Perl::Dist::WiX::Misc Storable );
+use     Carp                     qw( croak                          );
+use     Params::Util             qw( _IDENTIFIER _CLASSISA          );
+use     Scalar::Util             qw( weaken                         );
 require Perl::Dist::WiX::Feature;
 
 use version; $VERSION = qv('0.13_02');

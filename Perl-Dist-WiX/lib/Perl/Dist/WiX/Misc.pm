@@ -17,7 +17,7 @@ use 5.006;
 use strict;
 use warnings;
 use vars                  qw( $VERSION $tracestate        );
-use Object::InsideOut;
+use Object::InsideOut     qw( Storable                    );
 use Carp                  qw( croak      verbose          );
 use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
 use File::Spec::Functions qw( splitpath splitdir          );
@@ -83,6 +83,28 @@ use version; $VERSION = qv('0.13_03');
 		return $self;
 	} ## end sub _init :
 
+    sub _dump :Dumper {
+        my $obj = shift;
+
+        my %field_data;
+        $field_data{'trace'}    = $tracestate;
+        $field_data{'sitename'} = $sitename;
+        $field_data{'siteguid'} = $sitename_guid;
+
+        return (\%field_data);
+    }
+    
+    sub _pump :Pumper
+    {
+        my ($obj, $field_data) = @_;
+
+        $tracestate    = $field_data->{'trace'};
+        $sitename      = $field_data->{'sitename'};
+        $sitename_guid = $field_data->{'siteguid'};
+
+        return;
+    }
+    
 #####################################################################
 # Main Methods
 

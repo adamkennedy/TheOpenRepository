@@ -16,6 +16,7 @@ use     vars              qw( $VERSION       );
 use     Object::InsideOut qw(
     Perl::Dist::WiX::Base::Fragment
     Perl::Dist::WiX::Base::Component
+    Storable
 );
 use     Carp              qw( croak          );
 use     Params::Util      qw( _IDENTIFIER    );

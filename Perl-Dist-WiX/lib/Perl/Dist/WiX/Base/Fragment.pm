@@ -15,11 +15,11 @@ package Perl::Dist::WiX::Base::Fragment;
 use 5.006;
 use strict;
 use warnings;
-use vars              qw( $VERSION                     );
-use Readonly          qw( Readonly                     );
-use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public);
-use Carp              qw( croak                        );
-use Params::Util      qw( _CLASSISA _STRING            );
+use vars              qw( $VERSION                               );
+use Readonly          qw( Readonly                               );
+use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
+use Carp              qw( croak                                  );
+use Params::Util      qw( _CLASSISA _STRING                      );
 
 use version; $VERSION = qv('0.13_02');
 
