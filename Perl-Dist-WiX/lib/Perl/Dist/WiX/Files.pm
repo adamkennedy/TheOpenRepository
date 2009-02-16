@@ -371,7 +371,7 @@ use version; $VERSION = qv('0.13_02');
 				( $object, $index ) = @{$answer};
 				$self->trace_line( 4,
 					    "Deleting reference $index at "
-					  . $object->path
+					  . $object->get_path
 					  . "\n" );
 				$object->delete_filenum($index);
 			}

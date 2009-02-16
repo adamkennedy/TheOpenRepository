@@ -3246,7 +3246,7 @@ sub add_icon {
         exact        => 1,
         descend      => 1,
     );
-    $dir_id = $dir_obj->id;
+    $dir_id = $dir_obj->get_component_id;
 
     # Get a legal id.
     my $id = $params{name};
@@ -3255,12 +3255,10 @@ sub add_icon {
     # Add the start menu icon.
     $self->{fragments}->{Icons}->add_component(
         Perl::Dist::WiX::StartMenuComponent->new(
-            sitename    => $self->{sitename},
             name        => $params{name},
             target      => "[D_$dir_id]$file",
             id          => $id,
             working_dir => $dir_id,
-            trace       => $self->{trace},
             menudir_id  => 'D_App_Menu',
             icon_id     => $params{icon_id},
         ) );

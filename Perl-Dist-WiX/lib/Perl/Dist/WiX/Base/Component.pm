@@ -27,7 +27,7 @@ use version; $VERSION = qv('0.13_02');
 #   entries: Entries contained in this component.
 
 	my @id : Field : Arg(Name => 'id') : Std(Name => 'component_id', Restricted => 1);
-	my @guid : Field : Arg(guid) : Get(Name => 'guid', Restricted => 1);
+	my @guid : Field : Arg(guid) : Std(Name => 'guid', Restricted => 1);
 	my @entries : Field : Get(Name => 'get_entries', Restricted => 1);
     
     sub get_entries_count {
@@ -47,7 +47,7 @@ use version; $VERSION = qv('0.13_02');
 
 		$entries[ ${$self} ] = [];
 
-		return $self;
+		return;
 	}
 
 #####################################################################

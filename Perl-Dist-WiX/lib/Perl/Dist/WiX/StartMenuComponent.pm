@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::StartMenuComponent;
-
+{
 #####################################################################
 # Perl::Dist::WiX::StartMenuComponent - A <Component> tag that contains a start menu <Shortcut>.
 #
@@ -16,14 +16,14 @@ package Perl::Dist::WiX::StartMenuComponent;
 use 5.006;
 use strict;
 use warnings;
-use Carp            qw( croak               );
-use Params::Util    qw( _IDENTIFIER _STRING );
-use Data::UUID      qw( NameSpace_DNS       );
-use vars            qw( $VERSION            );
-use base            qw(
+use vars              qw( $VERSION            );
+use Object::InsideOut qw(
     Perl::Dist::WiX::Base::Component
     Perl::Dist::WiX::Base::Entry
 );
+use Carp              qw( croak               );
+use Params::Util      qw( _IDENTIFIER _STRING );
+use Data::UUID        qw( NameSpace_DNS       );
 
 use version; $VERSION = qv('0.13_02');
 
@@ -31,6 +31,13 @@ use version; $VERSION = qv('0.13_02');
 #####################################################################
 # Accessors:
 #   none.
+
+my @name :Field :Arg(name);
+my @description :Field :Arg(description);
+my @target :Field :Arg(target);
+my @working_dir :Field :Arg(working_dir);
+my @menudir_id :Field :Arg(menudir_id);
+my @icon_id :Field :Arg(icon_id);
 
 #####################################################################
 # Constructor for StartMenuComponent
@@ -46,35 +53,42 @@ use version; $VERSION = qv('0.13_02');
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 # and http://wix.sourceforge.net/manual-wix3/wix_xsd_createfolder.htm
 
-sub new {
-	my $self = shift->Perl::Dist::WiX::Base::Component::new(@_);
-
-	# Check parameters.
-	unless ( defined $self->{guid} ) {
-		$self->create_guid_from_id;
-	}
-	unless ( _STRING( $self->{name} ) ) {
+sub _pre_init :PreInit {
+	my ($self, $args) = @_;
+    
+	unless ( _STRING( $args->{name} ) ) {
 		croak('Missing or invalid name param');
 	}
-	unless ( _STRING( $self->{description} ) ) {
-		$self->{description} = $self->name;
+
+	unless ( _STRING( $args->{description} ) ) {
+		$args->{description} = $args->{name};
 	}
-	unless ( _STRING( $self->{target} ) ) {
+
+    return;
+}
+
+sub _init :Init {
+	my $self = shift;
+    my $object_id = ${$self};
+    
+    # Create GUID from ID if required.
+    
+	unless ( _STRING( $target[$object_id] ) ) {
 		croak('Missing or invalid target param');
 	}
-	unless ( _STRING( $self->{working_dir} ) ) {
+	unless ( _STRING( $working_dir[$object_id] ) ) {
 		croak('Missing or invalid working_dir param');
 	}
-	unless ( _STRING( $self->{menudir_id} ) ) {
+	unless ( _STRING( $menudir_id[$object_id] ) ) {
 		croak('Missing or invalid menudir_id param');
 	}
-	unless ( _STRING( $self->{icon_id} ) ) {
+	unless ( _STRING( $icon_id[$object_id] ) ) {
 		croak('Missing or invalid icon_id param');
 	}
 
-	$self->trace_line( 3, "Adding Icon for $self->{target}\n" );
+	$self->trace_line( 3, "Adding Icon for $target[$object_id]\n" );
 
-	return $self;
+	return;
 } ## end sub new
 
 #####################################################################
@@ -90,19 +104,25 @@ sub new {
 
 sub as_string {
 	my $self = shift;
+    my $object_id = ${$self};
 
+    my $id = $self->get_component_id();
+    my $guid = $self->get_guid();
+    
 	return <<"END_OF_XML";
-<Component Id='C_S_$self->{id}' Guid='$self->{guid}'>
-  <Shortcut Id='S_$self->{id}'
-            Name='$self->{name}'
-            Description='$self->{description}'
-            Target='$self->{target}'
-            Icon='I_$self->{icon_id}'
-            WorkingDirectory='D_$self->{working_dir}' />
-  <CreateFolder Directory="$self->{menudir_id}" />
+<Component Id='C_S_$id' Guid='$guid'>
+  <Shortcut Id='S_$id'
+            Name='$name[$object_id]'
+            Description='$description[$object_id]'
+            Target='$target[$object_id]'
+            Icon='I_$icon_id[$object_id]'
+            WorkingDirectory='D_$working_dir[$object_id]' />
+  <CreateFolder Directory="$menudir_id[$object_id]" />
 </Component>
 END_OF_XML
 
 } ## end sub as_string
+
+}
 
 1;
