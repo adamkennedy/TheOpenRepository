@@ -536,7 +536,6 @@ Here's what one looks like
 
     \pos($string)
 
-
 Another reason that the user might be just as happy not to have
 FORMAT, IO and LVALUE references reported in the results,
 is that
