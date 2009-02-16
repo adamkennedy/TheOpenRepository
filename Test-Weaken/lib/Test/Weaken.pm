@@ -328,7 +328,9 @@ is_file($_, '../t/synopsis.t', 'synopsis')
 
 =head1 DESCRIPTION
 
-A memory leak occurs when an object is destroyed, but the memory it uses is not completely deallocated.
+A memory leak occurs when an object is destroyed
+but the memory that
+the object uses is not completely deallocated.
 Leaked memory is a useless overhead.
 Leaks can significantly impact system performance.
 They can also cause an application to abend due to lack of memory.
@@ -339,7 +341,7 @@ are
 a common cause of memory leaks.
 Circular references are allowed in Perl,
 but objects containing circular references will leak memory
-unless the programmer takes specific measures to prevent it.
+unless the programmer takes specific measures to prevent leaks.
 Preventive measures include
 weakening the references
 and arranging to break the reference cycle just before
@@ -347,22 +349,23 @@ the object is destroyed,
 
 It is easy to misdesign or misimplement a scheme for 
 preventing memory leaks.
-Mistakes in design or implementation of schemes to deal with
-memory leaks have been hard to detect
+Mistakes of this kind
+have been hard to detect
 in a test suite.
 
-C<Test::Weaken> exists to allow easy detection of memory leaks.
-C<Test::Weaken> allows you to examine the "leaked" memory objects,
+C<Test::Weaken> exists to allow easy detection of unfreed memory objects.
+C<Test::Weaken> allows you to examine the unfreed objects,
 even objects which are usually inaccessible.
 It performs this magic by creating a set of weakened B<probe references>, as explained L<below|/"IMPLEMENTATION">.
 
-C<Test::Weaken> gets its the test object from a closure.
+C<Test::Weaken> gets its test object from a closure.
 The closure should return
 a reference to the B<test object>.
-This reference is the B<test object reference>.
+This reference is called the B<test object reference>.
 
-C<Test::Weaken> checks that the memory which can be accessed
-from the test object reference is deallocated.
+C<Test::Weaken> frees the test object,
+then looks to see if any memory that can be accessed
+from the test object reference was not actually deallocated.
 To determine which memory can be accessed from the
 test object reference,
 C<Test::Weaken> follows
@@ -379,11 +382,10 @@ and will not visit the same memory object twice.
 
 =head2 Independent Objects and Tracked Objects
 
-if it has an address in memory.
 An object is called a B<independent memory object>,
 if it has independently allocated memory.
-For brevity, this document usually refers to independent memory objects
-as simply B<independent objects>.
+For brevity, this document often refers to independent memory objects
+as B<independent objects>.
 
 Arrays, hashes, closures and variables are independent memory objects.
 References and constants which are not elements of arrays or hashes are
@@ -393,102 +395,103 @@ memory is not independent --
 it is always deallocated when the array or hash to which they belong
 is destroyed.
 
-A independent object is a B<tracked object>,
+A independent object is called a B<tracked object>
 if C<Test::Weaken> tracks it with a probe reference.
-Only independent memory objects are tracked.
+Tracked objects are always independent objects.
 
 =head2 Followed Objects and External Objects
 
-An object is a B<followed object>
+An object is called a B<followed object>
 if C<Test::Weaken> examines it during its recursive search for
 objects to track.
-A followed object is not always an independent object.
-REF objects are not independent objects when 
+Followed objects are not always independent objects.
+References are not independent objects when 
 they are elements of arrays and hashes,
 but they are followed.
 
 An object inside the test object is called an B<internal object>.
-In the B<Test::Weaken> context, the relevant distinction for determining
-when an object is "inside" or "outside" the test object is its lifetime.
-If the object's lifetime is expected to be the same as that of the test
+In the C<Test::Weaken> context, the relevant criterion for deciding
+"inside" versus "outside" is the lifetime of an object.
+If an object's lifetime is expected to be the same as that of the test
 object, it is called an B<internal object>.
-If the object's lifetime might be different from the lifetime of the test
+If an object's lifetime might be different from the lifetime of the test
 object, then it is called an B<external object>.
-Since internal vs. external is a question of I<expected> lifetime,
-ultimately the difference is subjective.
-Most objects found by following objects recursively
-from the test object reference will be inside
-the test object.
+Since the question is one of I<expected> lifetime,
+this difference is ultimately subjective.
 
-If the test object has persistent objects,
-that complicates the problem of finding memory leaks.
-An external object is called B<persistent object>,
-if is expected that the lifetime of an external object might
+Objects found recursively
+from the test object reference will usually be internal objects.
+This may not always be the case, however.
+Some objects found by C<Test::Weaken> might be external to the
+test object.
+If external objects are found and they are persistent,
+they complicate matters.
+
+An external object is called a B<persistent object>,
+if is expected that the lifetime of the external object might
 extend beyond that of the test object,
-
 Persistent objects are not memory leaks.
-An objects is a memory leak only if it's life was not
-expected to exceed the life of the test object.
-To find memory leaks,
-the user must eliminate persistent objects
-from C<Test::Weaken>'s results.
+Persistent objects are objects not expected to be freed along
+with the test object.
+Leaked objects are objects which are expected to be freed
+with the test object,
+but which are not.
+
+To determine which of the unfreed objects are memory leaks,
+the user must separate out the persistent objects
+from the other results.
 Ways to do this are outlined
-L<below|/"Persistent and External Objects">.
+L<below|/"ADVANCED TECHNIQUES">.
 
-=head2 Object C<ref> Types
+=head2 Builtin Types
 
-In the next sections, I describe how C<Test::Weaken> handles each
-kind of object.
-Perl's terminology for objects is a bit too loose 
-for this purpose.
-In particular, even in authoritative sources, a scalar object
-might be a reference instead of a number or a string.
+When it needs to classify object types precisely,
+this document will
+use the builtin type names as returned by L<Scalar::Util>'s
+C<reftype> subroutine and Perl's C<ref> built-in.
+Both C<reftype> and C<ref> take a reference as their argument.
+They both return the type of the I<referent>.
+For example, given a reference to
+a number or a string,
+C<reftype> and C<ref> return "C<SCALAR>".
+If the argument to C<reftype> is a reference to a reference,
+C<reftype> and C<ref> return "C<REF>".
 
-When this document needs to be precise, I'll use the object
-types as returned by Perl's C<ref> built-in.
-C<ref>, given a reference as its argument,
-returns an exact type of its referent.
-If the referent is a number or a string, it's ref type is SCALAR.
-If the referent is another reference,
-the referent's ref type is REF.
-
-For brevity, I will sometimes refer to an object's ref type,
-as simply the object's B<type>.
-As of this writing, these are Perl's documented ref types: SCALAR, ARRAY,
+There are differences between C<reftype> and C<ref>.
+For an object blessed into a package, C<ref> returns the package name,
+rather than the builtin type.
+Also, C<ref> describes the builtin type of compiled regular expressions as "C<Regexp>",
+while C<reftype> describes it as being of the same builtin type as a number or a string:
+"C<SCALAR>".
+In this document,
+the list of builtin types is considered to be as follows:
+SCALAR, ARRAY,
 HASH, CODE, REF, GLOB, LVALUE, FORMAT, IO, VSTRING, and Regexp.
 
 =head2 ARRAY and HASH Objects
 
-Objects of ref type ARRAY and HASH are always both tracked and followed.
+Objects of builtin type ARRAY and HASH are always both tracked and followed.
 
 =head2 REF Objects
 
-Independent objects of ref type REF are always both tracked and followed.
+Independent memory objects of builtin type REF are always both tracked and followed.
 Objects of type REF which are elements of an array or a hash
 are followed, but are not tracked.
 
 =head2 CODE Objects
 
-Objects of ref type CODE cannot be elements of an array or a hash directly,
-although references to them can be.
-Therefore CODE objects are always independent objects.
-
 Objects of type CODE are tracked but are not followed.
 This can be seen as a limitation, because
-closures can hold references to memory objects.
-Usually the memory objects referred
-to from CODE objects will
-either be referred to elsewhere in the test object,
-or will be in external objects.
+closures hold references to memory objects.
 Future versions of C<Test::Weaken> may follow CODE objects.
 
 =head2 SCALAR, VSTRING and Regexp Objects
 
-Independent objects of ref types SCALAR, VSTRING and Regexp are tracked.
+Independent objects of builtin types SCALAR, VSTRING and Regexp are tracked.
 Objects of type SCALAR, VSTRING and Regexp are independent if and only if they
 are not array or hash elements.
 SCALAR, VSTRING and Regexp objects are not followed because there is
-nothing to follow.
+nothing to follow
 -- they do not hold references to other objects.
 
 =head2 Array and Hash Elements
@@ -497,66 +500,81 @@ Elements of arrays and hashes are never tracked,
 because they are not independent memory objects.
 If they are REF objects, they are followed.
 
-=head2 Objects Which are Ignored
+=head2 Objects That are Ignored
 
 An object is said to be B<ignored> if it is neither
 tracked or followed.
-All array and hash elements which are not of type REF
+All objects of builtin types GLOB, IO, FORMAT and LVALUE are ignored.
+All array and hash elements which are not of builtin type REF
 are ignored.
-Objects of ref type GLOB, IO, FORMAT and LVALUE are ignored.
 
-In most cases, ignoring GLOB, IO and FORMAT objects
-saves trouble, because these objects will almost always
+Ignoring GLOB, IO and FORMAT objects
+saves trouble.
+These objects will almost always
 be external.
 GLOB objects refer to an
 entry in the Perl symbol table,
 which is external.
-Objects of ref type IO
-are often associated with GLOB objects.
+Objects of builtin type IO
+are typically associated with GLOB objects.
 FORMAT objects are always global.
-
 Use of FORMAT objects is officially deprecated.
-An LVALUE objects could only be present through reference.
-Here's an example of an LVALUE reference: C<\pos($string)>.
+
+An LVALUE object could only be present in the test object
+through a reference.
 I have not seen LVALUE reference programming deprecated
-anywhere,
-but that's probably they're so rare that
-nobody has found it worth his breath.
-Finally,
-C<Data::Dumper> does handle FORMAT, IO and LVALUE references
-smoothly and issues a warning when it encounters them.
+anywhere.
+Possibly nobody has found worth his breath to do so.
+LVALUE references are rare.
+Here's what one looks like
 
-Tracking GLOB, IO and LVALUE objects would face implementation
-difficulties.
-and issue a warning every time
+=begin Marpa::Test::Display:
 
-Future implementations of Perl may have object types
+## skip display
+
+=end Marpa::Test::Display:
+
+    \pos($string)
+
+
+Another reason that the user might be just as happy not to have
+FORMAT, IO and LVALUE references reported in the results,
+is that
+C<Data::Dumper> does not handle them
+gracefully.
+C<Data::Dumper>
+issues a cryptic warning when it encounters a reference to
+FORMAT, IO and LVALUE objects.
+
+Future implementations of Perl may define builtin types
 not known as of this writing.
 Objects which do not fall into any of the types described above
-are not tracked or followed.
+will not be tracked or followed.
 
 =head2 Why the Test Object is Passed via a Closure
 
-C<Test::Weaken> does not accept a test object or a reference to it
-as an argument directly.
-Instead, C<Test::Weaken> receives its test objects from B<test object constructors>.
+C<Test::Weaken> does not accept test objects or references to them
+as arguments.
+Instead, C<Test::Weaken> receives its test objects
+indirectly,
+from B<test object constructors>.
 
 Why so roundabout?
 Because the indirect way is the easiest.
-The test object must not have any strong references to
-it from outside.
-It takes some craft
-to create the test object
-in C<Test::Weaken>'s calling environment
-without leaving
-any reference to the test object in that calling environment.
-It is easy to make a mistake.
+When you
+create the test object
+in C<Test::Weaken>'s calling environment,
+it takes a lot of craft to avoid
+leaving
+unintended references to the test object in that calling environment.
+It is easy to get this wrong.
 
-When the calling environment retains a reference to memory contained in the test object,
-the result is a memory leak.
-Mistakes in setting up the test object, therefore,
-appear as false reports of memory leaks.
-These false reports are hard to distinguish from the real thing.
+If the calling environment retains a reference to an object inside the test object,
+the result appears as a memory leak.
+In other words,
+mistakes in setting up the test object
+create memory leaks which are artifacts of the test environment.
+These artifacts are very difficult to sort out from the real thing.
 
 The easiest way to avoid leaving unintended references to memory inside
 the test object is to work entirely within a closure.
@@ -578,13 +596,14 @@ It is almost always right thing to do.
 C<Test::Weaken> makes it the easy thing to do.
 
 Nothing prevents a user from using a test object constructor
-which refers to data in global or other scopes.
+that refers to data in global or other scopes.
 Nothing prevents a
 test object constructor 
 from returning a reference to a test object
-created from data in any scope she desires.
-Subverting the closure-local strategy takes only a small effort,
-certainly in comparison to the trouble that the user is exposing herself to.
+created from data in any scope the user desires.
+Subverting the closure-local strategy takes little effort,
+certainly by comparison to the great amount of trouble
+that the user is exposing herself to.
 
 =head2 Returns and Exceptions
 
@@ -624,10 +643,14 @@ is_file($_, '../t/snippet.t', 'leaks snippet')
 Arguments to the C<leaks> static method may be passed as a reference to
 a hash of named arguments,
 or directly as code references.
-C<leaks> returns a C<Test::Weaken> object if it found leaks,
+C<leaks> returns a C<Test::Weaken> object if it found unfreed objects,
 and a Perl false value otherwise.
-Users only wanting to know if there were leaks can check whether
-the return value of C<leaks> is a Perl true or false.
+Users who only want to know if there were unfreed objects can
+test the return value of C<leaks> for Perl true or false.
+
+=over 4
+
+=item constructor
 
 The B<test object constructor> is a required argument.
 It must be a code reference.
@@ -639,6 +662,8 @@ should build the test object
 and return a reference to it.
 It is best to follow strictly the closure-local strategy,
 as described above.
+
+=item destructor
 
 The B<test object destructor> is an optional argument.
 If specified, it must be a code reference.
@@ -659,6 +684,8 @@ For example, some objects created by Gtk2-Perl are of this type.
 The primary purpose for
 the test object destructor is to enable
 C<Test::Weaken> to work with these objects.
+
+=back
 
 =head2 unfreed_proberefs
 
@@ -694,20 +721,26 @@ is_file($_, '../t/snippet.t', 'unfreed_proberefs snippet')
 
 =end Marpa::Test::Display:
 
-Returns a reference to an array of probe references to the unfreed independent objects.
-The user may examine these to find the source of a leak,
-or to produce her own statistics.
+Returns a reference to an array of probe references to the unfreed objects.
+Typically, this data can be examined
+to pinpoint the source of a leak.
+A user may also analyze this data to produce her own statistics about unfreed objects.
 
 The array is returned as a reference because in some applications it can be quite long.
 The array contains the probe references to the unfreed independent memory objects.
 
-Probe references are returned, rather than the objects because copying the independent
-objects into the array can destroy information, or simply be impossible.
+The array contains probe references rather than the objects themselves,
+because it is not always possible to copy
+the independent
+objects into the array.
+Arrays and hashes cannot be copied into individual
+array elements --
+references to them are the best that can be done.
+
+Even when copying is possible, it can destroy important information.
 Weak references are strengthened when they are copied.
-The original address of the independent object may be important for identifying it,
-and a copy will have a different address.
-Finally, for arrays and hashes, it is simply impossible to copy them as individual
-array elements -- references to them are the best that can be done.
+The original address of the copied object may be important for identifying it,
+and the copy will have a different address.
 
 =head2 unfreed_count
 
@@ -771,7 +804,7 @@ including references to freed objects.
 This is the count of probe references
 after C<Test::Weaken> was finished following the test object reference
 recursively,
-but before it called the test object destructor and undefined the
+but before C<Test::Weaken> called the test object destructor and undefined the
 test object reference.
 
 =head2 weak_probe_count
@@ -804,12 +837,12 @@ is_file($_, '../t/snippet.t', 'weak_probe_count snippet')
 =end Marpa::Test::Display:
 
 Returns the number of probe references which were to weak references.
-This includes
+The count includes
 probe references to freed weak references.
 The count is made
 after C<Test::Weaken> finishes following the test object reference
 recursively,
-but before it calls the test object destructor and undefines the
+but before C<Test::Weaken> calls the test object destructor and undefines the
 test object reference.
 
 =head2 strong_probe_count
@@ -856,20 +889,19 @@ Here "strong object" means any object which is not a weak reference.
 This includes not just strong REF objects,
 but all objects which are not of REF type.
 
-The count includes both freed and unfreed objects.
+The count includes probes to both freed and unfreed objects.
 The count is taken
 after C<Test::Weaken> finishes following the test object reference
 recursively,
-but before it calls the test object destructor and undefines the
+but before C<Test::Weaken> calls the test object destructor and undefines the
 test object reference.
 
 =head1 PLUMBING METHODS
 
-These "plumbing" methods will be of limited interest.
-Most users will want to skip this section.
+Most users can skip this section.
 The plumbing methods exist to satisfy object-oriented purists,
 and to accommodate the rare user who wants to access the probe counts
-even when the test did find any memory leaks.
+even when the test did find any unfreed objects.
 
 =head2 new
 
@@ -921,7 +953,7 @@ Errors are thrown as exceptions.
 
 The test object returned by C<new> will only have been initialized.
 The only thing that can be done with this test object is to call
-C<test> method on it.
+the C<test> method on it.
 Until the C<test> method is called,
 no results will be available,
 and calling any method which asks for a result will cause an
@@ -970,21 +1002,15 @@ If there is an error, the C<test> method throws an exception.
 
 =head1 ADVANCED TECHNIQUES
 
-=head2 Tracing Memory Leaks
+=head2 Tracing Leaks
 
 The C<unfreed_proberefs> method returns an array containing the unfreed
-independent memory objects and
-can be used
+independent memory objects.
+This can be used
 to find the source of leaks.
-If circumstances allow you to
-add elements to the arrays and hashes,
-you might find it useful to "tag" them for tracking purposes.
-
-For figuring out where the reference was held that prevented a chunk
-of memory from being freed, Kevin Ryde reports that
-L<Devel::FindRef> is useful: "It tends to be verbose and technical,
-but often there's
-a variable name or whatnot among the output that gives you a clue."
+If circumstances allow it,
+you might find it useful to add "tag" elements to arrays and hashes
+for tracking purposes.
 
 You can quasi-uniquely identify memory objects using
 the referent addresses of the probe references.
@@ -996,7 +1022,7 @@ You can also obtain the referent address of a reference by adding zero
 to the reference.
 
 I called referent addresses "quasi-unique", because they are only
-unique given a
+unique at a
 specific point in time.
 Once an object is freed, its address can be reused.
 This is an unusual, corner case, but it can bite you if you're not careful.
@@ -1005,10 +1031,10 @@ an object with the same referent address
 as an object examined earlier is not 100% certain to be
 the same object.
 
-To be sure an earlier and a later object with the same address
+To be sure an earlier object and a later object with the same address
 are actually the same object,
-you need to know that the object is persistent,
-or to compare the objects.
+you need to know that the earlier object will be persistent,
+or to compare the two objects.
 If you want to be really pedantic,
 even an exact match in a comparison doesn't settle the issue.
 It is possible that two indiscernable
@@ -1028,12 +1054,11 @@ The referent address is the address of the memory object to which it refers.
 It is the referent address that interests us here and, happily, it is 
 the referent address that addition of zero and C<refaddr> return.
 
-=head2 Persistent and External Objects
-
-To check for leaks in objects which refer to persistent memory,
-you can examine the unfreed objects returned by C<unfreed_proberefs>
-and eliminate the memory objects which are persistent.
-The remaining objects will be the memory leaks.
+Sometimes, when you are interested in why an object is not being freed,
+you want to seek out the reference
+that keeps the object's refcount above zero.
+Kevin Ryde reports that L<Devel::FindRef>
+can be useful for this.
 
 =head1 EXPORTS
 
@@ -1043,23 +1068,24 @@ By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be export
 
 C<Test::Weaken> first recurses through the test object.
 Starting from the test object reference,
-It follows and tracks objects recursively,
+it follows and tracks objects recursively,
 as described above.
 The test object is explored to unlimited depth, 
 looking for independent memory objects to track.
-Visited independent objects are tracked,
-and no indepdendent object is visited twice.
+Independent objects visited during the recursion are recorded,
+and no object is visited twice.
 For each independent memory object, a
-B<probe reference> is created.
+probe reference is created.
 
 Once recursion through the test object is complete,
-the probe references are weakened,
-so that they will not interfere with normal deallocation of memory.
+the probe references are weakened.
+This prevents the probe references from interfering
+with the normal deallocation of memory.
 Next, the test object destructor is called,
 if there is one.
 
 Finally, the test object reference is undefined.
-This should trigger the complete deallocation of all memory held by the test object.
+This should trigger the deallocation of all memory held by the test object.
 To check that this happened, C<Test::Weaken> dereferences the probe references.
 If the referent of a probe reference was deallocated,
 the value of that probe reference will be C<undef>.
