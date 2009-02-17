@@ -426,11 +426,13 @@ use version; $VERSION = qv('0.13_02');
 			return q{};
 		}
 
+        my $id = $self->get_fragment_id();
+        
 		# Start our fragment.
 		$string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='Fr_$self->{id}'>
+  <Fragment Id='Fr_$id'>
 EOF
 
 		# Get the string for each descendant.

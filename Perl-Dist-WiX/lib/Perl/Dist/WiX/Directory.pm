@@ -10,7 +10,7 @@ package Perl::Dist::WiX::Directory;
 #<<<
 use     5.006;
 use     strict;
-use     warnings;
+use     warnings 'all' => 'FATAL';
 use     vars                   qw( $VERSION           );
 use     Object::InsideOut      qw( 
     Perl::Dist::WiX::Base::Component 

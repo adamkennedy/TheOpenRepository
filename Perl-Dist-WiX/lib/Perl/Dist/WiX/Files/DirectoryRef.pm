@@ -438,7 +438,7 @@ use version; $VERSION = qv('0.13_02');
 		my ( $count, $answer, $string );
 
 		# Get our own Id and print it.
-		my $id = $directory_object[$object_id]->id;
+		my $id = $directory_object[$object_id]->get_componment_id;
 		$answer = "<DirectoryRef Id='D_$id'>\n";
 
 		# Stringify the WiX::Directory objects we own.

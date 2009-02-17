@@ -32,7 +32,7 @@ Readonly my $component_class => 'Perl::Dist::WiX::Base::Component';
 #   get_directory: Returns the directory parameter passed in to new.
 #   get_components: Returns the components contained in this fragment.
 
-	my @id : Field : Arg(id) : Std(Name => 'frag_id', Restricted => 1);
+	my @id : Field : Arg(id) : Std(Name => 'fragment_id', Restricted => 1);
 	my @directory : Field : Arg(Name => 'directory', Default => 'TARGETDIR') :Std(Name => 'directory_id', Restricted => 1);
 	my @components : Field : Get(Name => 'get_components', Restricted => 1);
 
@@ -49,7 +49,7 @@ Readonly my $component_class => 'Perl::Dist::WiX::Base::Component';
 		unless ( _STRING( $self->get_directory_id ) ) {
 			croak 'Invalid directory parameter';
 		}
-		unless ( _STRING( $self->get_frag_id ) ) {
+		unless ( _STRING( $self->get_fragment_id ) ) {
 			croak 'Missing or invalid id parameter';
 		}
 
