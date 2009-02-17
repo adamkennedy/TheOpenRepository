@@ -48,7 +48,7 @@ sub can {
 
 sub AUTOLOAD {
 	my $self     = shift;
-	my ($method) = $My::Clear::AUTOLOAD =~ m/^.*::(.*)$/s;
+	my ($method) = $My::Clear::AUTOLOAD =~ m/^.*::(.*)\z/s;
 	unless ( ref($self) ) {
 		Carp::croak(
 			  qq{Can't locate object method "$method" via package "$self" }

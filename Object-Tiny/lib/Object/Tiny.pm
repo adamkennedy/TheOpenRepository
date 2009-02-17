@@ -14,7 +14,7 @@ sub import {
 		"package $pkg;",
 		($child ? () : "\@${pkg}::ISA = 'Object::Tiny';"),
 		map {
-			defined and ! ref and /^[^\W\d]\w*$/s
+			defined and ! ref and /^[^\W\d]\w*\z/s
 			or die "Invalid accessor name '$_'";
 			"sub $_ { return \$_[0]->{$_} }"
 		} @_;

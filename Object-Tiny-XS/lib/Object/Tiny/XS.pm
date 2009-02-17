@@ -15,7 +15,7 @@ sub import {
 		($child ? () : "\@${pkg}::ISA = 'Object::Tiny::XS';"),
                 "use Class::XSAccessor getters => {",
 		(map {
-			defined and ! ref and /^[^\W\d]\w*$/s
+			defined and ! ref and /^[^\W\d]\w*\z/s
 			or die "Invalid accessor name '$_'";
 			"'$_' => '$_',"
 		} @_),

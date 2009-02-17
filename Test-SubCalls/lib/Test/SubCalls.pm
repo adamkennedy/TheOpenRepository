@@ -131,7 +131,7 @@ sub sub_calls {
 
 	# Check the count
 	my $count = shift;
-	unless ( $count =~ /^(?:0|[1-9]\d*)$/s ) {
+	unless ( $count =~ /^(?:0|[1-9]\d*)\z/s ) {
 		die "Test::SubCalls::sub_calls : Expected count '$count' is not an integer";
 	}
 

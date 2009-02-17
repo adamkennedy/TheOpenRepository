@@ -414,7 +414,7 @@ sub _make_ISA {
 sub _make_AUTOLOAD { my $pub = $_[2] ? 'and substr($method, 0, 1) ne "_"' : ''; return <<"END_AUTOLOAD" }
 sub AUTOLOAD {
 	my \$self     = shift;
-	my (\$method) = \$$_[1]::AUTOLOAD =~ m/^.*::(.*)\$/s;
+	my (\$method) = \$$_[1]::AUTOLOAD =~ m/^.*::(.*)\\z/s;
 	unless ( ref(\$self) $pub) {
 		Carp::croak(
 			  qq{Can't locate object method "\$method" via package "\$self" }

@@ -458,7 +458,7 @@ sub thaw {
 	while ( $serialized =~ s/^(.*?)\012//s ) {
 		my $header = $1;
 		if ( bytes::length($header) ) {
-			unless ( $header =~ /^(.+?): (.+)$/s ) {
+			unless ( $header =~ /^(.+?): (.+)\z/s ) {
 				Carp::croak("Frozen File::BLOB object is corrupt");
 			}
 			$headers{lc $1} = $2;

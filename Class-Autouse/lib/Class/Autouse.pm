@@ -356,7 +356,7 @@ sub _AUTOLOAD {
 	_cry("Undefined subroutine &$method called") if ++$CHASED{ $method } > 10;
 
 	# Don't bother with special classes
-	my ($class, $function) = $method =~ m/^(.*)::(.*)$/s;
+	my ($class, $function) = $method =~ m/^(.*)::(.*)\z/s;
 	_cry("Undefined subroutine &$method called") if $SPECIAL{$class};
 
 	# Load the class and it's dependancies, and get the search path
@@ -389,7 +389,7 @@ sub _UNIVERSAL_AUTOLOAD {
 	_cry("Undefined subroutine &$method called") if ++$CHASED{ $method } > 10;
 	
 	# Don't bother with special classes
-	my ($class, $function) = $method =~ m/^(.*)::(.*)$/s;
+	my ($class, $function) = $method =~ m/^(.*)::(.*)\z/s;
 	_cry("Undefined subroutine &$method called") if $SPECIAL{$class};
 	
 	my @search;

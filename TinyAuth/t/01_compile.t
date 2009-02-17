@@ -42,7 +42,7 @@ sub script_compiles_ok {
 	my $cmd    = [ $^X, '-c', '-Mblib', $path ];
 	my $stderr = '';
 	my $rv     = IPC::Run3::run3( $cmd, \undef, \undef, \$stderr );
-	my $ok     = !! ( $rv and $stderr =~ /syntax OK\s+$/si );
+	my $ok     = !! ( $rv and $stderr =~ /syntax OK\s+\z/si );
         ok( $ok, $name );
 	# Add this once I can make the tests work ok
         diag( $stderr ) unless $ok;
