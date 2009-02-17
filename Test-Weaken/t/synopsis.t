@@ -33,14 +33,6 @@ my $good_test = sub {
     [ $obj1, $obj2 ];
 };
 
-my $bad_test = sub {
-    my $array = [ 42, 711 ];
-    push @{$array}, $array;
-    $array;
-};
-
-my $bad_destructor = sub {'I am useless'};
-
 if ( !leaks($good_test) ) {
     print "No leaks in test 1\n" or croak("Cannot print to STDOUT: $ERRNO");
 }
@@ -48,6 +40,14 @@ else {
     print "There were memory leaks from test 1!\n"
         or croak("Cannot print to STDOUT: $ERRNO");
 }
+
+my $bad_test = sub {
+    my $array = [ 42, 711 ];
+    push @{$array}, $array;
+    $array;
+};
+
+my $bad_destructor = sub {'I am useless'};
 
 my $test = Test::Weaken::leaks(
     {   constructor => $bad_test,

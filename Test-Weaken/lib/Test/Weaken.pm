@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '1.003_003';
+our $VERSION   = '1.003_004';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -285,14 +285,6 @@ is_file($_, '../t/synopsis.t', 'synopsis')
         [ $obj1, $obj2 ];
     };
 
-    my $bad_test = sub {
-        my $array = [ 42, 711 ];
-        push @{$array}, $array;
-        $array;
-    };
-
-    my $bad_destructor = sub {'I am useless'};
-
     if ( !leaks($good_test) ) {
         print "No leaks in test 1\n" or croak("Cannot print to STDOUT: $ERRNO");
     }
@@ -300,6 +292,14 @@ is_file($_, '../t/synopsis.t', 'synopsis')
         print "There were memory leaks from test 1!\n"
             or croak("Cannot print to STDOUT: $ERRNO");
     }
+
+    my $bad_test = sub {
+        my $array = [ 42, 711 ];
+        push @{$array}, $array;
+        $array;
+    };
+
+    my $bad_destructor = sub {'I am useless'};
 
     my $test = Test::Weaken::leaks(
         {   constructor => $bad_test,
@@ -353,7 +353,7 @@ Mistakes of this kind
 have been hard to detect
 in a test suite.
 
-C<Test::Weaken> exists to allow easy detection of unfreed memory objects.
+C<Test::Weaken> allows easy detection of unfreed memory objects.
 C<Test::Weaken> allows you to examine the unfreed objects,
 even objects which are usually inaccessible.
 It performs this magic by creating a set of weakened B<probe references>, as explained L<below|/"IMPLEMENTATION">.
@@ -382,7 +382,7 @@ and will not visit the same memory object twice.
 
 =head2 Independent Objects and Tracked Objects
 
-An object is called a B<independent memory object>,
+An object is called a B<independent memory object>
 if it has independently allocated memory.
 For brevity, this document often refers to independent memory objects
 as B<independent objects>.
@@ -392,7 +392,8 @@ References and constants which are not elements of arrays or hashes are
 also independent memory objects.
 Elements of arrays and hashes are never independent memory objects, because their
 memory is not independent --
-it is always deallocated when the array or hash to which they belong
+it is always deallocated when the array or hash
+to which the elements belong
 is destroyed.
 
 A independent object is called a B<tracked object>
@@ -427,15 +428,15 @@ test object.
 If external objects are found and they are persistent,
 they complicate matters.
 
-An external object is called a B<persistent object>,
+An external object is called a B<persistent object>
 if is expected that the lifetime of the external object might
-extend beyond that of the test object,
+extend beyond that of the test object.
 Persistent objects are not memory leaks.
 Persistent objects are objects not expected to be freed along
 with the test object.
-Leaked objects are objects which are expected to be freed
+Leaked objects are objects that are expected to be freed
 with the test object,
-but which are not.
+but that are not actually freed.
 
 To determine which of the unfreed objects are memory leaks,
 the user must separate out the persistent objects
@@ -448,7 +449,7 @@ L<below|/"ADVANCED TECHNIQUES">.
 When it needs to classify object types precisely,
 this document will
 use the builtin type names as returned by L<Scalar::Util>'s
-C<reftype> subroutine and Perl's C<ref> built-in.
+C<reftype> subroutine and Perl's C<ref> builtin.
 Both C<reftype> and C<ref> take a reference as their argument.
 They both return the type of the I<referent>.
 For example, given a reference to
@@ -526,7 +527,7 @@ I have not seen LVALUE reference programming deprecated
 anywhere.
 Possibly nobody has found worth his breath to do so.
 LVALUE references are rare.
-Here's what one looks like
+Here's what one looks like:
 
 =begin Marpa::Test::Display:
 
@@ -536,9 +537,9 @@ Here's what one looks like
 
     \pos($string)
 
-Another reason that the user might be just as happy not to have
-FORMAT, IO and LVALUE references reported in the results,
-is that
+There is
+another reason that the user might be just as happy not to have
+FORMAT, IO and LVALUE references reported in the results.
 C<Data::Dumper> does not handle them
 gracefully.
 C<Data::Dumper>
@@ -552,8 +553,8 @@ will not be tracked or followed.
 
 =head2 Why the Test Object is Passed via a Closure
 
-C<Test::Weaken> does not accept test objects or references to them
-as arguments.
+C<Test::Weaken> does not accept directly as arguments,
+either test objects or references to them.
 Instead, C<Test::Weaken> receives its test objects
 indirectly,
 from B<test object constructors>.
@@ -568,8 +569,8 @@ leaving
 unintended references to the test object in that calling environment.
 It is easy to get this wrong.
 
-If the calling environment retains a reference to an object inside the test object,
-the result appears as a memory leak.
+When the calling environment retains a reference to an object inside the test object,
+the result usually appears as a memory leak.
 In other words,
 mistakes in setting up the test object
 create memory leaks which are artifacts of the test environment.
@@ -653,8 +654,10 @@ test the return value of C<leaks> for Perl true or false.
 
 The B<test object constructor> is a required argument.
 It must be a code reference.
-If passed directly, it must be the first argument to C<leaks>.
-Otherwise, it must be the value of the C<constructor> named argument.
+When the arguments are passed directly as code references,
+the test object constructor must be the first argument to C<leaks>.
+When named arguments are used,
+the test object constructor must be the value of the C<constructor> named argument.
 
 The test object constructor 
 should build the test object
@@ -666,8 +669,10 @@ as described above.
 
 The B<test object destructor> is an optional argument.
 If specified, it must be a code reference.
-If passed directly, it must be the second argument to C<leaks>.
-Otherwise, it must be the value of the C<destructor> named argument.
+When the arguments are passed directly as code references,
+the test object destructor is the second, optional, argument to C<leaks>.
+When named arguments are used,
+the test object destructor must be the value of the C<destructor> named argument.
 
 If specified,
 the test object destructor is called
@@ -721,7 +726,7 @@ is_file($_, '../t/snippet.t', 'unfreed_proberefs snippet')
 =end Marpa::Test::Display:
 
 Returns a reference to an array of probe references to the unfreed objects.
-Typically, this data can be examined
+Often, this data is examined
 to pinpoint the source of a leak.
 A user may also analyze this data to produce her own statistics about unfreed objects.
 
@@ -731,15 +736,15 @@ The array contains the probe references to the unfreed independent memory object
 The array contains probe references rather than the objects themselves,
 because it is not always possible to copy
 the independent
-objects into the array.
+objects directly into the array.
 Arrays and hashes cannot be copied into individual
 array elements --
 references to them are the best that can be done.
 
-Even when copying is possible, it can destroy important information.
-Weak references are strengthened when they are copied.
+Even when copying is possible, it destroys important information.
 The original address of the copied object may be important for identifying it,
 and the copy will have a different address.
+And weak references are strengthened when they are copied.
 
 =head2 unfreed_count
 
@@ -950,9 +955,9 @@ The C<new> method takes the same arguments as the C<leaks> method, described abo
 Unlike the C<leaks> method, it always returns a test object.
 Errors are thrown as exceptions.
 
-The test object returned by C<new> will only have been initialized.
-The only thing that can be done with this test object is to call
-the C<test> method on it.
+Only one thing that can be done with
+the test object returned by C<new>.
+That is to call the C<test> method on it.
 Until the C<test> method is called,
 no results will be available,
 and calling any method which asks for a result will cause an
@@ -981,8 +986,9 @@ is_file($_, '../t/snippet.t', 'test snippet')
 
 The C<test> method should only be called on a C<Test::Weaken> object just
 returned from the C<new> constructor.
-It causes the test specified in the constructor to be run
-and the results to be obtained.
+It runs the test specified
+by the arguments to the C<new> constructor
+and obtains the results.
 Calling any other method except C<test> on a C<Test::Weaken> object returned by
 the C<new> constructor, but not yet evaluated with the C<test> method,
 will produce an exception.
@@ -1020,22 +1026,24 @@ L<Scalar::Util>.
 You can also obtain the referent address of a reference by adding zero
 to the reference.
 
-I called referent addresses "quasi-unique", because they are only
+I call referent addresses "quasi-unique", because they are only
 unique at a
 specific point in time.
 Once an object is freed, its address can be reused.
-This is an unusual, corner case, but it can bite you if you're not careful.
 Absent other evidence,
-an object with the same referent address
-as an object examined earlier is not 100% certain to be
-the same object.
+an object with a given referent address
+is not 100% certain to be
+the same object
+as the object which had the same address earlier.
+This can bite you
+if you're not careful.
 
 To be sure an earlier object and a later object with the same address
 are actually the same object,
 you need to know that the earlier object will be persistent,
 or to compare the two objects.
 If you want to be really pedantic,
-even an exact match in a comparison doesn't settle the issue.
+even an exact match from a comparison doesn't settle the issue.
 It is possible that two indiscernable
 (that is, completely identical)
 objects with the same referent address are different in the following
@@ -1049,9 +1057,10 @@ Note that in other Perl documentation, the term "reference address" is often
 used when a referent address is meant.
 Any given reference has both a reference address and a referent address.
 The reference address is the reference's own location in memory.
-The referent address is the address of the memory object to which it refers.
-It is the referent address that interests us here and, happily, it is 
-the referent address that addition of zero and C<refaddr> return.
+The referent address is the address of the memory object to which the reference refers.
+It is the referent address that interests us here and,
+happily, it is 
+the referent address that both zero addition and C<refaddr> return.
 
 Sometimes, when you are interested in why an object is not being freed,
 you want to seek out the reference

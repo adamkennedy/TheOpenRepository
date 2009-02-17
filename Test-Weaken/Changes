@@ -2,7 +2,10 @@ Revision history for Test-Weaken
 
 1.003_nnn Thu Jan 29 20:47:58 2009
         Series of developer's releases.
-        Perltidy and perlcritic fixes.
+        Complete interface change and
+            code rewrite.
+        Documentation rewrite.
+        Code now perltidy clean.
         Fixed bug #42903
         Fixed bug #43608
 
