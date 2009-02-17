@@ -13,9 +13,8 @@ File::Find::Rule::NoIndex - Follow the rules in META.yml no_index keys
   
   # Find all Perl files smaller than 10k
   my @files = File::Find::Rule->no_index(
-      directory
-                              ->size('<10Ki')
-                              ->in( $dir );
+      directory => [ 'inc', 't', 'examples' ],
+  );
 
 =head1 DESCRIPTION
 
@@ -32,6 +31,7 @@ files.
 
 use 5.006;
 use strict;
+use Params::Util      qw{ _HASHLIKE };
 use File::Spec::Unix  ();
 use File::Find::Rule  ();
 use Parse::CPAN::Meta ();
@@ -68,6 +68,24 @@ in a C<META.yml> file.
 
 sub File::Find::Rule::no_index {
 	my $find  = shift->_force_object;
+
+	# Create the lexical vars
+	my $auto = 0;
+	my %lex  = (
+		dir  => {},
+		file => {},
+	);
+
+	# Handle the various param options
+	if ( @_ == 0 ) {
+		# No params means we auto-calculate
+		$auto = 1;
+
+	} elsif ( _HASHLIKE($_[0]) ) {
+		
+	}
+	
+
 	my %param = @_;
 
 	# Index the directory and file entries for faster access
