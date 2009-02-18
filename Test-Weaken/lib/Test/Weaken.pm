@@ -955,7 +955,7 @@ The C<new> method takes the same arguments as the C<leaks> method, described abo
 Unlike the C<leaks> method, it always returns a test object.
 Errors are thrown as exceptions.
 
-Only one thing that can be done with
+Only one thing can be done with
 the test object returned by C<new>.
 That is to call the C<test> method on it.
 Until the C<test> method is called,
