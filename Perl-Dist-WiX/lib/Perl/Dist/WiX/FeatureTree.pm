@@ -24,7 +24,7 @@ use version; $VERSION = qv('0.13_02');
 # Accessors:
 
 	my @parent : Field : Arg(Name => 'parent', Required => 1);
-	my @features : Field;
+	my @features : Field :Name(features);
 
 #####################################################################
 # Constructor for FeatureTree
@@ -36,7 +36,7 @@ use version; $VERSION = qv('0.13_02');
 #   parent: Perl::Dist::WiX object to get information from.
 #     [saved as a weak reference.]
 
-	sub new {
+	sub _init :Init {
 		my $self      = shift;
 		my $object_id = ${$self};
 

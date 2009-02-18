@@ -23,7 +23,7 @@ use version; $VERSION = qv('0.13_02');
 #####################################################################
 # Attributes
 
-	my @icons : Field;
+	my @icons : Field : Name(icons);
 
 #####################################################################
 # Constructors for Icons

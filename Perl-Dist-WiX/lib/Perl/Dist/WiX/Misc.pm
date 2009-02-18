@@ -254,4 +254,17 @@ use version; $VERSION = qv('0.13_03');
 
 }
 
+########################################
+# DDS_freeze()
+# Parameters:
+#   None.
+# Returns:
+#   String that Data::Dump::Streamer uses in its dump.
+
+sub DDS_freeze { 
+    my $self = shift; 
+    my $str = $self->dump(1); 
+    return (qq{Object::InsideOut->pump("$str")}, undef, undef); 
+} 
+
 1;

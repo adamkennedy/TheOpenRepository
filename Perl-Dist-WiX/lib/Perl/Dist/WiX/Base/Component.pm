@@ -28,7 +28,7 @@ use version; $VERSION = qv('0.13_02');
 
 	my @id : Field : Arg(Name => 'id') : Std(Name => 'component_id', Permission => 'Restrict(Perl::Dist::WiX)');
 	my @guid : Field : Arg(guid) : Std(Name => 'guid', Restricted => 1);
-	my @entries : Field : Get(Name => 'get_entries', Restricted => 1);
+	my @entries : Field : Name(entries) : Get(Name => 'get_entries', Restricted => 1);
     
     sub get_entries_count {
         my $self = shift;

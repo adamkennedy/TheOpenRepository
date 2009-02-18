@@ -39,9 +39,9 @@ use version; $VERSION = qv('0.13_02');
 	my @absent : Field : Arg(absent);
 	my @advertise : Field : Arg(advertise);
 
-	my @default_settings : Field;
-	my @features : Field;
-	my @componentrefs : Field;
+	my @default_settings : Field :Name(default_settings);
+	my @features : Field :Name(features);
+	my @componentrefs : Field :Name(componentrefs);
 
 #<<<
 #####################################################################

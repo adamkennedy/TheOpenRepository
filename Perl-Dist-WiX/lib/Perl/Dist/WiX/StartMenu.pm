@@ -97,7 +97,9 @@ sub as_string {
 	my $count = scalar @{ $self->get_components };
 	my $string;
 	my $s;
-
+    my $id = $self->get_fragment_id();
+    my $directory = $self->get_directory_id();
+    
 	# Short-circuit.
 	return q{} if ( 0 == $count );
 
@@ -105,8 +107,8 @@ sub as_string {
 	$string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='Fr_$self->{id}'>
-    <DirectoryRef Id='$self->{directory}'>
+  <Fragment Id='Fr_$id'>
+    <DirectoryRef Id='$directory'>
 EOF
 
 	# Get component strings.
@@ -116,20 +118,13 @@ EOF
 		$string .= "\n";
 	}
 
-	# Make our own namespace...
-	my $guidgen = Data::UUID->new();
-	my $uuid =
-	  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
-		$self->{sitename} );
-
-	#... then use it to create a GUID out of the ID.
-	my $guid_rsf =
-	  uc $guidgen->create_from_name_str( $uuid, 'RemoveShortcutFolder' );
+	# Create a GUID out of the ID for the last component.
+	my $guid_rsf = $self->generate_guid( 'RemoveShortcutFolder' );
 
 	# Finish printing.
 	$string .= <<"EOF";
       <Component Id='C_RemoveShortcutFolder' Guid='$guid_rsf'>
-        <RemoveFolder Id="$self->{directory}" On="uninstall" />
+        <RemoveFolder Id="$directory" On="uninstall" />
       </Component>
     </DirectoryRef>
   </Fragment>

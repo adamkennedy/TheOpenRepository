@@ -85,8 +85,12 @@ use version; $VERSION = qv('0.13_02');
 
 		my $id           = $self->get_component_id();
 		my $directory_id = $self->get_directory_id();
-		my $guid         = $self->get_guid()
-		  or do { $self->create_guid_from_id(); return $self->get_guid() };
+		my $guid         = $self->get_guid();
+        
+        unless (defined $guid) { 
+            $self->create_guid_from_id(); 
+            $guid = $self->get_guid(); 
+        };
 
 		return <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>

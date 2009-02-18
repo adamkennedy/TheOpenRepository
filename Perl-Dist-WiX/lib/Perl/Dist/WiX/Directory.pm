@@ -17,10 +17,9 @@ use     Object::InsideOut      qw(
     Perl::Dist::WiX::Base::Entry
     Storable
 );
-use     Carp                   qw( croak              );
 use     Params::Util
   qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
-use     Data::UUID             qw( NameSpace_DNS      );
+use     Carp                   qw( croak              );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
@@ -30,8 +29,8 @@ use version; $VERSION = qv('0.13_02');
 # Accessors:
 #   name, path, special: See constructor.
 
-	my @directories : Field;
-	my @files : Field;
+	my @directories : Field :Name(directories);
+	my @files : Field :Name(files);
 
 	my @name : Field : Arg(name) : Get(get_name);
 	my @path : Field : Arg(path) : Get(get_path);
@@ -485,7 +484,7 @@ use version; $VERSION = qv('0.13_02');
 		$count = scalar @{ $files[$object_id] };
 		foreach my $i ( 0 .. $count - 1 ) {
 			next if ( not defined $files[$object_id]->[$i] );
-			push @answer, $files[$object_id]->[$i]->id;
+			push @answer, $files[$object_id]->[$i]->get_component_id;
 		}
 
 		return @answer;
@@ -500,7 +499,7 @@ use version; $VERSION = qv('0.13_02');
 #   by this object, and the <Directory> and <File> tags
 #   contained in it.
 
-	sub as_string {
+	sub as_string : Stringify {
 		my ( $self, $tree ) = @_;
 		my $object_id = ${$self};
 		my ( $count, $answer );
@@ -522,19 +521,18 @@ use version; $VERSION = qv('0.13_02');
 
 		# Short circuits...
 		if (    ( $string eq q{} )
-			and ( $self->special == 0 )
+			and ( $special[$object_id] == 0 )
 			and ( $tree == 0 ) )
 		{
 			return q{};
 		}
-		if ( ( $string eq q{} ) and ( $self->id eq 'TARGETDIR' ) ) {
+		my $id   = $self->get_component_id();
+		if ( ( $string eq q{} ) and ( $id eq 'TARGETDIR' ) ) {
 			return q{};
 		}
 
-		my $id   = $self->get_component_id();
-		my $name = $name[$object_id];
-
 		# Now make our own string, and put what we've already got within it.
+		my $name = $name[$object_id];
 		if ( ( defined $string ) && ( $string ne q{} ) ) {
 			if ( $special[$object_id] == 2 ) {
 				$answer = "<Directory Id='$id'>\n";

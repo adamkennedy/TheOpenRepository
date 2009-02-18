@@ -29,8 +29,8 @@ use version; $VERSION = qv('0.13_02');
 	my @directory_object : Field :
 	  Arg(Name => 'directory_object', Required => 1) :
 	  Get(directory_object);
-	my @directories : Field;
-	my @files : Field;
+	my @directories : Field :Name(directories);
+	my @files : Field :Name(files);
 
 #####################################################################
 # Constructor for Files::DirectoryRef
@@ -41,10 +41,10 @@ use version; $VERSION = qv('0.13_02');
 	sub _init : Init {
 		my $self      = shift;
 		my $object_id = ${$self};
-
+        
 		if (
 			not _INSTANCE(
-				$self->directory_object, 'Perl::Dist::WiX::Directory'
+				$directory_object[$object_id], 'Perl::Dist::WiX::Directory'
 			) )
 		{
 			croak 'Missing or invalid directory object';
@@ -418,7 +418,7 @@ use version; $VERSION = qv('0.13_02');
 		$count = scalar @{ $files[$object_id] };
 		foreach my $i ( 0 .. $count - 1 ) {
 			next if ( not defined $files[$object_id]->[$i] );
-			push @answer, $files[$object_id]->[$i]->id;
+			push @answer, $files[$object_id]->[$i]->get_component_id;
 		}
 
 		return @answer;
@@ -432,13 +432,13 @@ use version; $VERSION = qv('0.13_02');
 #   String representation of <DirectoryRef> tag represented by this object,
 #   along with the <Component> and <Directory> entries it contains.
 
-	sub as_string {
+	sub as_string :Stringify {
 		my $self      = shift;
 		my $object_id = ${$self};
 		my ( $count, $answer, $string );
 
 		# Get our own Id and print it.
-		my $id = $directory_object[$object_id]->get_componment_id;
+		my $id = $directory_object[$object_id]->get_component_id;
 		$answer = "<DirectoryRef Id='D_$id'>\n";
 
 		# Stringify the WiX::Directory objects we own.

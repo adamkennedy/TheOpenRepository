@@ -110,7 +110,7 @@ use version; $VERSION = qv('0.13_02');
 		my $self = shift;
 
 		# Short-circuit.
-		return q{} if ( 0 == scalar @{ $self->entries } );
+		return q{} if ( 0 == scalar @{ $self->get_entries } );
 
 		# Start accumulating XML.
 		my $answer = $self->as_start_string();

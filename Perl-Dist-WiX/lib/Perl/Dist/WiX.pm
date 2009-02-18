@@ -761,6 +761,8 @@ sub checkpoint_task {
         $self->$task();
         $self->trace_line( 0,
             "Completed $task in " . ( time - $t ) . " seconds\n" );
+    } else {
+        $self->trace_line( 0, "Skipping $task.\n");
     }
 
     # Are we saving at this step
@@ -837,7 +839,7 @@ sub checkpoint_load {
     %{$self} = %{$stored};
 
     # Pull all the directories out of the storage
-    $self->trace_line( "Restoring checkpoint directories...\n" );
+    $self->trace_line( 0, "Restoring checkpoint directories...\n" );
     foreach my $dir ( qw{ build_dir download_dir image_dir output_dir } ) {
         my $from = File::Spec->catdir( $self->checkpoint_dir, $dir );
         my $to = $self->$dir();

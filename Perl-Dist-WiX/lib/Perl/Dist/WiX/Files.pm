@@ -18,7 +18,8 @@ use     Object::InsideOut     qw(
     Storable
 );
 use     Carp                  qw( croak                                 );
-use     Params::Util          qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
+use     Params::Util       
+   qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     Data::UUID            qw( NameSpace_DNS                         );
 use     File::Spec::Functions qw( splitpath catpath catdir              );
 require Perl::Dist::WiX::DirectoryTree;

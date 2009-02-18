@@ -32,15 +32,20 @@ use version; $VERSION = qv('0.13_02');
 # Constructor for Environment
 #
 # Parameters: [pairs]
-#   id: The Id attribute of the <Fragment> and <Component> tags.
+
+    sub _pre_init : PreInit {
+		my ($self, $args) = @_;
+
+		# Apply defaults
+		$args->{id} ||= 'Environment';
+
+        return;
+    }
 
 	sub _init : Init {
 		my $self = shift;
 
-		# Apply defaults
-		unless ( defined $self->get_component_id() ) {
-			$self->set_component_id('Environment');
-		}
+		# Check parameters.
 
 		unless ( _IDENTIFIER( $self->get_component_id() ) ) {
 			croak 'Missing or invalid id parameter';
@@ -113,7 +118,7 @@ use version; $VERSION = qv('0.13_02');
 		$string = <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='Fr_$self->{id}'>
+  <Fragment Id='Fr_$id'>
     <DirectoryRef Id='TARGETDIR'>
 EOF
 

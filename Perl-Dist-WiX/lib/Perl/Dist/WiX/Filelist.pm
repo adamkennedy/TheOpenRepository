@@ -32,7 +32,7 @@ my %sortcache; # Defined at this level so that the cache does not
 
 #   files_hash: Returns the list of files as an hashref.
 
-	my @files : Field : Get(Name => 'get_files', Private => 1);
+	my @files : Field :Name(files) : Get(Name => 'get_files', Private => 1);
 
 #####################################################################
 # Constructors for Filelist
