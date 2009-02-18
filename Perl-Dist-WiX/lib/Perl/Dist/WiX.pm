@@ -837,6 +837,12 @@ sub checkpoint_load {
     # Load the stored hash over our object
     my $stored = Storable::retrieve( $self->checkpoint_file );
     %{$self} = %{$stored};
+    
+    # Reload the template object if it existed before.
+    if ($self->{tt_exists}) {
+        $self->patch_template();
+        delete $self->{tt_exists};
+    }
 
     # Pull all the directories out of the storage
     $self->trace_line( 0, "Restoring checkpoint directories...\n" );
