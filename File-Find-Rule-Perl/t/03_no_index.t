@@ -31,14 +31,18 @@ foreach my $p ( @params ) {
 	my $rule  = FFR->no_index(@$p)->relative->file;
 	isa_ok( $rule, 'File::Find::Rule' );
 
+	my %ignore = map { $_ => 1 } qw{
+		Makefile
+		LICENSE
+		README
+		pm_to_blib
+	};
 	my @files = sort grep {
 		! /\.svn\b/
 		and
 		! /\bblib\b/
 		and
-		$_ ne 'pm_to_blib'
-		and
-		$_ ne 'Makefile'
+		! $ignore{$_}
 	} $rule->in( curdir() );
 
 	is_deeply( \@files, [ qw{
