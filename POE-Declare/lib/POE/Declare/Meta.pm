@@ -2,18 +2,26 @@ package POE::Declare::Meta;
 
 # Provides a simple metaclass object for POE::Declare
 
+use 5.008007;
 use strict;
-use Carp             qw{ croak   };
-use Scalar::Util     qw{ refaddr };
-use List::Util       qw{ first   };
-use Params::Util     qw{ _CLASS  };
-use Class::ISA       qw{ self_and_super_path };
+use Carp             ();
+use Scalar::Util     ();
+use Params::Util     ();
+use Class::ISA       ();
 use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
+
+use POE::Declare::Meta::Slot      ();
+use POE::Declare::Meta::Message   ();
+use POE::Declare::Meta::Event     ();
+use POE::Declare::Meta::Timeout   ();
+use POE::Declare::Meta::Attribute ();
+use POE::Declare::Meta::Internal  ();
+use POE::Declare::Meta::Param     ();
 
 
 
@@ -26,15 +34,15 @@ sub new {
 	my $class = shift;
 
 	# The name of the class
-	my $name  = shift;
-	unless ( _CLASS($name) ) {
-		croak("Invalid class name '$name'");
+	my $name = shift;
+	unless ( Params::Util::_CLASS($name) ) {
+		Carp::croak("Invalid class name '$name'");
 	}
 	unless ( Class::Inspector->loaded($name) ) {
-		croak("Class $name is not loaded");
+		Carp::croak("Class $name is not loaded");
 	}
 	unless ( $name->isa('POE::Declare::Object') ) {
-		croak("Class $name is not a POE::Declare::Object subclass");
+		Carp::croak("Class $name is not a POE::Declare::Object subclass");
 	}
 
 	# Create the object
@@ -43,7 +51,7 @@ sub new {
 		attr     => { },
 		alias    => $name,
 		sequence => 0,
-		}, $class;
+	}, $class;
 
 	$self;
 }
@@ -59,6 +67,7 @@ sub alias {
 sub sequence {
 	$_[0]->{sequence};
 }
+
 
 
 
@@ -82,19 +91,25 @@ sub compile {
 	# Go over all our methods, and add any required events
 	my $methods = Class::Inspector->methods($name, 'expanded');
 	foreach my $method ( @$methods ) {
-		my $mname = $method->[2];
-		my $mcode = $method->[3];
-		next unless $POE::Declare::EVENT{Scalar::Util::refaddr $mcode};
-		my $method_attr = $self->attr($mname);
-		if ( $method_attr ) {
+		my $mname  = $method->[2];
+		my $mcode  = $method->[3];
+		my $maddr  = Scalar::Util::refaddr($mcode);
+		my $mevent = $POE::Declare::EVENT{$maddr} or next;
+		my $mattr  = $self->attr($mname);
+		if ( $mattr ) {
 			# Make sure the existing attribute is an event
-			next if $method_attr->isa('POE::Declare::Meta::Event');
-			croak("Event '$mname' in $name clashes with non-event in parent class");
-		} else {
-			# Add an attribute for the event
-			require POE::Declare::Meta::Event;
-			$self->{attr}->{$mname} = POE::Declare::Meta::Event->new( name =>$mname );
+			next if $mattr->isa('POE::Declare::Meta::Event');
+			Carp::croak("Event '$mname' in $name clashes with non-event in parent class");
+			next;
 		}
+
+		# Add an attribute for the event
+		my $class = $mevent->[0];
+		my @param = @$mevent[1..$#$mevent];
+		$self->{attr}->{$mname} = $class->new(
+			name => $mname,
+			@param,
+		);
 	}
 
 	# Get all the package fragments
@@ -102,19 +117,29 @@ sub compile {
 	my @main  = (
 		"package " . $self->name . ";",
 		map { $_->{package} || '' } @parts,
-		);
+	);
 
 	# Compile the Perl code
 	my $code = join "\n\n", @main;
 	eval $code;
-	croak("Failed to compile code for " . $self->name) if $@;
+	Carp::croak("Failed to compile code for " . $self->name) if $@;
 
 	return 1;
 }
 
 # Resolve the inline states for a class
 sub package_states {
-	sort map { $_->name } grep { $_->isa('POE::Declare::Meta::Event') } $_[0]->attrs;
+	if ( wantarray ) {
+		return sort map {
+			$_->name
+		} grep {
+			$_->isa('POE::Declare::Meta::Event')
+		} $_[0]->attrs;
+	} else {
+		return scalar grep {
+			$_->isa('POE::Declare::Meta::Event')
+		} $_[0]->attrs;
+	}
 }
 
 # Fetch a named attribute (from this or parents)
@@ -140,7 +165,7 @@ sub attrs {
 			$hash{$_} = $attr->{$_};
 		}
 	}
-	values %hash;
+	return values %hash;
 }
 
 1;

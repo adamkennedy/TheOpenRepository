@@ -1,5 +1,6 @@
 package POE::Declare::Meta::Slot;
 
+use 5.008007;
 use strict;
 
 use vars qw{$VERSION};

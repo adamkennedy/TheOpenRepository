@@ -10,7 +10,7 @@ BEGIN {
 
 use Test::More tests => 14;
 
-ok( $] >= 5.005, "Your perl is new enough" );
+ok( $] >= 5.008007, "Your perl is new enough" );
 
 # Load the modules
 require_ok('POE::Declare');

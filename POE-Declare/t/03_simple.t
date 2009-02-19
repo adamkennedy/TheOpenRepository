@@ -6,10 +6,9 @@ use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	$DB::single = 1;
 }
 
-use Test::More tests => 24;
+use Test::More tests => 33;
 
 
 
@@ -73,7 +72,7 @@ SCOPE: {
 	is( $meta->{attr}->{foo}->name,    'foo',    'Attribute foo ->name ok'    );
 	is( $meta->{attr}->{bar}->name,    'bar',    'Attribute bar ->name ok'    );
         is( $meta->{attr}->{findme}->name, 'findme', 'Attribute findme ->name ok' );
-	is( $meta->{attr}->{findme}->name, 'to',     'Attribute to ->name ok'     );
+	is( $meta->{attr}->{to}->name,     'to',     'Attribute to ->name ok'     );
 
 	# Create an object
 	my $object = Foo->new( foo => 'foo' );

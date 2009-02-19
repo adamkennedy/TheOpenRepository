@@ -1,11 +1,13 @@
 package POE::Declare::Meta::Event;
 
+use 5.008007;
 use strict;
-use base 'POE::Declare::Meta::Slot';
+use POE::Declare::Meta::Slot ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.03';
+	@ISA     = 'POE::Declare::Meta::Slot';
 }
 
 1;

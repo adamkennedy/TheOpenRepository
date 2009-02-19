@@ -52,13 +52,14 @@ sub MODIFY_CODE_ATTRIBUTES {
 	# Register an event
 	if ( $name eq 'Event' ) {
 		# Add to the coderef event register
-		$POE::Declare::EVENT{refaddr $code} = [];
+		$POE::Declare::EVENT{Scalar::Util::refaddr($code)} = [
+			'POE::Declare::Meta::Event',
+		];
 		return ();
 	}
 
-
 	# Register a timeout
-	if ( $name =~ /^Timeout$/ ) {
+	if ( $name =~ /^Timeout\b/ ) {
 		unless ( $name =~ /^Timeout\((.+)\)$/ ) {
 			Carp::croak("Missing or invalid timeout");
 		}
@@ -66,7 +67,8 @@ sub MODIFY_CODE_ATTRIBUTES {
 		unless ( Params::Util::_POSINT($delay) ) {
 			Carp::croak("Missing or invalid timeout");
 		}
-		$POE::Declare::EVENT{refaddr $code} = [
+		$POE::Declare::EVENT{Scalar::Util::refaddr($code)} = [
+			'POE::Declare::Meta::Timeout',
 			default => $delay,
 		];
 		return ();
@@ -550,7 +552,7 @@ L<POE>, L<POE::Declare>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2008 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

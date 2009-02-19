@@ -28,7 +28,7 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
 
 =head1 DESCRIPTION
 
-B<WARNING: THIS CODE IS HIGHLY EXPERIMENTAL AND MADE BE CHANGED
+B<WARNING: THIS CODE IS EXPERIMENTAL AND MADE BE CHANGED
 OR DELETED ENTIRELY WITHOUT NOTICE>
 
 L<POE> is a very powerful and flexible system for doing asynchronous
@@ -69,11 +69,11 @@ implementation and comment.
 
 =cut
 
-use 5.005;
+use 5.008007;
 use strict;
 use Carp               ();
 use Exporter           ();
-use List::Util         qw{ first };
+use List::Util         ();
 use Params::Util       qw{ _IDENTIFIER _CLASS };
 use Class::Inspector   ();
 use POE                qw{ Session };
@@ -159,7 +159,7 @@ sub _declare {
 		Carp::croak("Attribute $name already defined in class $pkg");
 	}
 
-	# # Resolve the attribute class
+	# Resolve the attribute class
 	my $type = do {
 		local $Carp::CarpLevel += 1;
 		attribute_class(shift);
@@ -171,8 +171,7 @@ sub _declare {
 	}
 
 	# Create and save the attribute
-	my $attribute = $type->new( name => $name, @_ );
-	$ATTR{$pkg}->{$name} = $attribute;
+	$ATTR{$pkg}->{$name} = $type->new( name => $name, @_ );
 
 	return 1;
 }
@@ -224,7 +223,9 @@ sub compile {
 
 	# Are any attributes already defined in our parents?
 	foreach my $name ( sort keys %{$ATTR{$pkg}} ) {
-		my $found = List::Util::first { $ATTR{$_}->{attr}->{$name} } @super;
+		my $found = List::Util::first {
+			$ATTR{$_}->{attr}->{$name}
+		} @super;
 		if ( $found ) {
 			Carp::croak("Duplicate attribute '$name' already defined in " . $found->name );
 		}
@@ -271,7 +272,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2008 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

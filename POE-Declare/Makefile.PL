@@ -1,12 +1,13 @@
-use inc::Module::Install;
+use inc::Module::Install 0.79;
 
 all_from      'lib/POE/Declare.pm';
-requires      'Carp';
-requires      'Scalar::Util'     => '1.17';
-requires      'Params::Util'     => '0.33';
-requires      'Class::Inspector' => '1.20';
+requires      'Scalar::Util'     => winlike() ? '1.19' : '1.18';
+requires      'List::Util'       => winlike() ? '1.19' : '1.18';
+requires      'Params::Util'     => '0.38';
 requires      'IO::File'         => '1.14';
-requires      'POE'              => '1.0002';
+requires      'Class::Inspector' => '1.22';
+requires      'Class::ISA'       => '0.33';
+requires      'POE'              => '1.003';
 test_requires 'Test::More'       => '0.80';
 
 WriteAll;

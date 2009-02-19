@@ -1,18 +1,13 @@
 package POE::Declare::Meta::Param;
 
+use 5.008007;
 use strict;
-use base 'POE::Declare::Meta::Attribute';
+use POE::Declare::Meta::Attribute ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.03';
+	@ISA     = 'POE::Declare::Meta::Attribute';
 }
-
-
-
-
-
-#####################################################################
-# Constructor
 
 1;
