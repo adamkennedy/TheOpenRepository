@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "tokenizer.h"
+#include "forward_scan.h"
 
 
 TokenTypeNames commit_map[128] = {
@@ -43,50 +44,16 @@ TokenTypeNames commit_map[128] = {
 // seeking to see if: ( $line =~ /^<(?!\d)\w+>/ )
 // asumations: the current inspected char is '<'
 static bool scan_ahead_for_lineread(const Tokenizer *t) {
-	const char *line = t->c_line;
 	ulong pos = t->line_pos + 1;
-	ulong line_length = t->line_length;
 
-	if (pos >= line_length)
-		return false;
-
-	// eating away spaces
-	while ( ( pos < line_length ) && ( ( line[pos] == ' ' ) || ( line[pos] == '\t' ) ) ) {
-		pos++;
-	}
-
-	if (pos >= line_length)
-		return false;
-
-	// the first char need to be a \w but not \d, meaning [a..zA..Z_]
-	if ( ! ( ( ( line[pos] >= 'a' ) && ( line[pos] <= 'z' ) ) ||
-		     ( ( line[pos] >= 'A' ) && ( line[pos] <= 'Z' ) ) ||
-			 ( line[pos] == '_' ) ) ) {
-		return false;
-	}
-	pos++;
-
-	// the rest - zero or more \w
-	while ( ( pos < line_length ) &&
-		    ( ( ( line[pos] >= 'a' ) && ( line[pos] <= 'z' ) ) ||
-		      ( ( line[pos] >= 'A' ) && ( line[pos] <= 'Z' ) ) ||
-		      ( ( line[pos] >= '0' ) && ( line[pos] <= '9' ) ) ||
-			  ( line[pos] == '_' ) ) ) {
-		pos++;
-	}
-
-	// eating away spaces
-	while ( ( pos < line_length ) && ( ( line[pos] == ' ' ) || ( line[pos] == '\t' ) ) ) {
-		pos++;
-	}
-
-	if (pos >= line_length)
-		return false;
-
-	if ( line[pos] == '>' )
-		return true;
-
-	return false;
+	static PredicateAnd<
+		PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
+		PredicateNot< PredicateFunc< is_digit > >,
+		PredicateOneOrMore< PredicateFunc < is_word > >,
+		PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
+		PredicateIsChar<'>'>
+	> regex;
+	return regex.test(t->c_line, &pos, t->line_length);
 }
 
 CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "tokenizer.h"
+#include "forward_scan.h"
 
 	//$content =~ /^(
 	//	[\$@%&*]
@@ -16,16 +17,42 @@
 	//	)
 	//)/x or return undef;
 // assumation - the first charecter is a sigil, and the length >= 1
-static CharTokenizeResults oversuck(char *text, unsigned long length, unsigned long *new_length) {
-	return error_fail;
+static bool oversuck(char *text, unsigned long length, unsigned long *new_length) {
+	static PredicateOr <
+		PredicateAnd < 
+			PredicateIsChar<':'>, PredicateNot< PredicateIsChar<':'> > >,
+		PredicateAnd< 
+			PredicateOr<
+				PredicateOneOrMore< PredicateFunc< is_word > >,
+				PredicateAnd< 
+					PredicateIsChar<'\''>, 
+					PredicateNot< PredicateFunc< is_digit > >,
+					PredicateOneOrMore< PredicateFunc< is_word > > >,
+				PredicateAnd< 
+					PredicateIsChar<':'>, 
+					PredicateIsChar<':'>, 
+					PredicateOneOrMore< PredicateFunc< is_word > > > >,
+			PredicateZeroOrMore<
+				PredicateOr<
+					PredicateAnd< 
+						PredicateIsChar<'\''>, 
+						PredicateNot< PredicateFunc< is_digit > >,
+						PredicateOneOrMore< PredicateFunc< is_word > > >,
+					PredicateAnd< 
+						PredicateIsChar<':'>, 
+						PredicateIsChar<':'>, 
+						PredicateOneOrMore< PredicateFunc< is_word > > > > >,
+			PredicateZeroOrOne< 
+				PredicateAnd< 
+					PredicateIsChar<':'>, 
+					PredicateIsChar<':'> > >
+		>> regex;
+	return regex.test( text, new_length, length );
 }
 
 CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// Suck in till the end of the symbol
-	while ( ( ( c_char >= 'a' ) && (c_char <= 'z') ) || 
-		 ( ( c_char >= 'A' ) && (c_char <= 'Z') ) ||
-		 ( ( c_char >= '0' ) && (c_char <= '9') ) ||
-		 ( c_char == '_' ) || ( c_char == ':' ) || ( c_char == '\'' ) ) {
+	while ( is_word(c_char) || ( c_char == ':' ) || ( c_char == '\'' ) ) {
 			 token->text[token->length++] = c_char = t->c_line[t->line_pos++];
 	}
 	token->text[token->length] = '\0';
@@ -66,14 +93,9 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	}
 
 	// checking: $content =~ /^[\$%*@&]::(?:[^\w]|$)/
-	if ( token->length >= 4 ) {
+	if ( token->length >= 3 ) {
 		if ( ( first_is_sigil != 0 ) && ( token->text[1] == ':' ) && ( token->text[2] == ':' ) ) {
-			char fourth = token->text[3];
-			if ( ( ! ( ( ( fourth >= 'a' ) && ( fourth <='z' ) ) ||
-				       ( ( fourth >= 'A' ) && ( fourth <='Z' ) ) ||
-				       ( ( fourth >= '0' ) && ( fourth <='9' ) ) ||
-					   ( fourth == '_' ) ) ) 
-				  || ( fourth =='$' ) ) {
+			if ( ( token->length == 3 ) || ( ! is_word(token->text[3]) ) ) {
 				for (unsigned long ix = 3; ix < token->length; ix++) {
 					token->text[ix-3] = token->text[ix];
 				}
@@ -98,9 +120,9 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	}
 
 	if ( first_is_sigil != 0 ) {
-		unsigned long new_length = 0;
-		CharTokenizeResults ret = oversuck(token->text, token->length, &new_length);
-		if ( error_fail == ret )
+		unsigned long new_length = 1;
+		bool ret = oversuck(token->text, token->length, &new_length);
+		if ( false == ret )
 			return error_fail;
 		if ( new_length != token->length ) {
 			t->line_pos -= token->length - new_length;

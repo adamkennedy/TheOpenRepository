@@ -41,6 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
+				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -179,6 +180,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\forward_scan.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\magic.cpp"
 				>
 			</File>
@@ -203,6 +208,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\unknown.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\whitespace.cpp"
 				>
 			</File>
@@ -212,6 +221,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\forward_scan.h"
+				>
+			</File>
 			<File
 				RelativePath=".\tokenizer.h"
 				>

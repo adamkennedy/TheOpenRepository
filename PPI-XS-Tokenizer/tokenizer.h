@@ -35,6 +35,7 @@ enum TokenTypeNames {
 	Token_Cast, 
 	Token_Prototype,
 	Token_ArrayIndex,
+	Token_HereDoc,
 	Token_LastTokenType // have to be last
 };
 
@@ -87,6 +88,7 @@ public:
 	 * by default, declares new token of this type, and start tokenizing
 	 */
 	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
+	virtual bool isa( TokenTypeNames is_type ) const;
 	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
 };
 
@@ -127,6 +129,12 @@ public:
 	OperatorToken();
 	static std::map <std::string, char> operators;
 	static bool is_operator(const char *str);
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class UnknownToken : public AbstractTokenType {
+public:
+	UnknownToken() : AbstractTokenType( Token_Unknown, true ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
@@ -206,6 +214,8 @@ private:
 	StructureToken m_StructureToken;
 	MagicToken m_MagicToken;
 	OperatorToken m_OperatorToken;
+	UnknownToken m_UnknownToken;
+	SymbolToken m_SymbolToken;
 
 	void keep_significant_token(Token *t);
 

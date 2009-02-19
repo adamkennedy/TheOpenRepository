@@ -5,7 +5,12 @@
 
 CharTokenizeResults AbstractTokenType::commit(Tokenizer *t, unsigned char c_char) { 
 	t->_new_token(type);
-	return tokenize(t, t->c_token, c_char);
+	return my_char;
+	//return tokenize(t, t->c_token, c_char);
+}
+
+bool AbstractTokenType::isa( TokenTypeNames is_type ) const {
+	return ( is_type == type );
 }
 
 //=====================================
@@ -133,6 +138,8 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Structure] = &m_StructureToken;
 	TokenTypeNames_pool[Token_Magic] = &m_MagicToken;
 	TokenTypeNames_pool[Token_Operator] = &m_OperatorToken;
+	TokenTypeNames_pool[Token_Unknown] = &m_UnknownToken;
+	TokenTypeNames_pool[Token_Symbol] = &m_SymbolToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

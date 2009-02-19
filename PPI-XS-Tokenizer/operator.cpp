@@ -4,6 +4,7 @@
 #include <map>
 
 #include "tokenizer.h"
+#include "forward_scan.h"
 
 using namespace std;
 typedef pair <char *, uchar> uPair;
@@ -83,6 +84,10 @@ bool OperatorToken::is_operator(const char *str) {
 	return !( m1_AcIter == operators.end());
 }
 
+bool inline is_quote(char c) {
+	return ( ( c == '\'' ) || ( c = '"' ) || ( c == '`' ) );
+}
+
 CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	token->text[token->length] = c_char;
 	token->text[token->length+1] = '\0';
@@ -97,7 +102,25 @@ CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned
 		return done_it_myself;
 	}
 
-	// FIXME: add the heredoc option
+	if ( !strcmp( token->text, "<<") ) {
+		// parsing:  $line =~ /^(?: (?!\d)\w | \s*['"`] | \\\w ) /x 
+		static PredicateOr<
+			PredicateAnd<
+				PredicateNot< PredicateFunc< is_digit > >,
+				PredicateFunc< is_word > >,
+			PredicateAnd<
+				PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
+				PredicateFunc< is_quote > >,
+			PredicateAnd<
+				PredicateIsChar<'\\'>,
+				PredicateFunc< is_word > >
+		> regex;
+		unsigned long pos = t->line_pos;
+		if ( regex.test(t->c_line, &pos, t->line_length) ) {
+			t->changeTokenType(Token_HereDoc);
+			return done_it_myself;
+		}
+	}
 
 	if ( !strcmp( token->text, "<>") ) {
 		t->changeTokenType(Token_QuoteLike_Readline);
