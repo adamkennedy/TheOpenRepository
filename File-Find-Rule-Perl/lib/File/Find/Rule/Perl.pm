@@ -45,7 +45,7 @@ use Params::Util      qw{ _STRING _HASHLIKE };
 use File::Find::Rule  ();
 use Parse::CPAN::Meta ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	$VERSION = '1.05';
 	@ISA     = 'File::Find::Rule';
