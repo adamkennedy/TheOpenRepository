@@ -1,5 +1,9 @@
 Revision history for Perl extension File::Find::Rule::Perl
 
+1.05 Thu 19 Feb 2009
+	- Updating to Module::Install 0.79
+	- Adding support for no_index exclusions
+
 1.04 Sat 10 May 2008
 	- Switching to a production version.
 	- Move ->name before ->file to significantly reduce the IO load

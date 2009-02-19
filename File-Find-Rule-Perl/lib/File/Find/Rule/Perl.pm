@@ -14,7 +14,12 @@ File::Find::Rule::Perl - Common rules for searching for Perl things
   # Find all Perl files smaller than 10k
   my @files = File::Find::Rule->perl_file
                               ->size('<10Ki')
-                              ->in( $dir );
+                              ->in('dir');
+  
+  # Locate all the modules that PAUSE will index
+  my @mod = File::Find::Rule->no_index
+                            ->perl_module
+                            ->in('My-Distribution');
 
 =head1 DESCRIPTION
 
@@ -22,24 +27,32 @@ I write a lot of things that muck with Perl files. And it always annoyed
 me that finding "perl files" requires a moderately complex
 L<File::Find::Rule> pattern.
 
-B<File::Find::Rule::Perl> provides methods for finding various Perl-related
-files.
+B<File::Find::Rule::Perl> provides methods for finding various
+types Perl-related files, or replicating search queries run on a
+distribution in various parts of the CPAN ecosystem.
 
 =head1 METHODS
 
 =cut
 
-use 5.005;
+use 5.00503;
 use strict;
+use Carp;
 use UNIVERSAL;
-use base 'File::Find::Rule';
-use constant FFR => 'File::Find::Rule';
+use File::Spec        ();
+use File::Spec::Unix  ();
+use Params::Util      qw{ _STRING _HASHLIKE };
+use File::Find::Rule  ();
+use Parse::CPAN::Meta ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
+	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
+
+use constant FFR => 'File::Find::Rule';
 
 
 
@@ -140,11 +153,119 @@ C<perl_test>, C<perl_installer> and C<perl_script> rules.
 
 sub File::Find::Rule::perl_file {
 	my $self = shift()->_force_object;
-	$self->file->or(
-		FFR->name( '*.pm', '*.t', '*.pl', 'Makefile.PL', 'Build.PL' ),
+	$self->or(
+		FFR->name( '*.pm', '*.t', '*.pl', 'Makefile.PL', 'Build.PL' )
+		   ->file,
 		FFR->name( qr/^[^.]+$/ )
+		   ->file
 		   ->exec( \&File::Find::Rule::Perl::_shebang ),
 		);
+}
+
+=pod
+
+=head2 no_index
+
+  # Provide the rules directly
+  $rule->no_index(
+      directory => [ 'inc', 't', 'examples' ],
+      file      => [ 'Foo.pm', 'lib/Foo.pm' ],
+  );
+  
+  # Provide a META.yml to use
+  $rule->no_index( 'META.yml' );
+  
+  # Provide a dist root directory to look for a META.yml in
+  $rule->no_index( 'My-Distribution' );
+  
+  # Automatically pick up a META.yml from the target directory
+  $rule->no_index->in( 'My-Distribution' );
+
+The C<no_index> method applies a set of rules as per the no_index section
+in a C<META.yml> file.
+
+=cut
+
+# There's probably some bugs in this process somewhere,
+sub File::Find::Rule::no_index {
+	my $find  = shift()->_force_object;
+
+	# Create the lexical var for the function
+	my $rule;
+
+	# Handle the various param options
+	if ( @_ == 0 ) {
+		# No params means we auto-calculate
+		$rule = undef;
+
+	} elsif ( _HASHLIKE($_[0]) ) {
+		$rule = _no_index($_[0]);
+
+	} elsif ( defined _STRING($_[0]) ) {
+		my $path = shift;
+		if ( -d $path ) {
+			# This is probably a dist directory
+			my $meta = File::Spec->catfile( $path, 'META.yml' );
+			$path = $meta if -f $meta;
+		}
+		if ( -f $path ) {
+			# This is a META.yml file
+			my $meta = Parse::CPAN::Meta::LoadFile($path);
+
+			# Shortcut if there's nothing to do
+			my $no_index = $meta->{no_index};
+			if ( $no_index ) {
+				$rule = _no_index($no_index);
+			}
+		}
+	} else {
+		Carp::croak("Invalid or unsupported parameter type");
+	}
+
+	# Generate the subroutine in advance
+	my $function = sub {
+		my $r = $_[2];
+
+		# In the automated case the first time we are
+		# called we are passed the distribution directory.
+		unless ( defined $rule ) {
+			$rule = { directory => {}, file => {} };
+			my $meta = File::Spec->catfile( $r, 'META.yml' );
+			if ( -d $r and -f $meta ) {
+				my $yaml = Parse::CPAN::Meta::LoadFile($meta);
+				if ( $yaml and $yaml->{no_index} ) {
+					$rule = _no_index( $yaml->{no_index} );
+				}
+			}
+		}
+
+		$rule->{directory}->{$r} and -d $r and return 1;
+		$rule->{file}->{$r}      and -f _  and return 1;
+		return 0;
+	};
+
+	# Generate the rule
+	return $find->or(
+		FFR->exec( $function )->prune->discard,
+		FFR->new,
+	);
+}
+
+sub _no_index {
+	my $param = shift;
+
+	# Index the directory and file entries for faster access
+	my %file = $param->{file} ? (
+		map { $_ => 1 } @{$param->{file}}
+	) : ();
+	my %directory = $param->{directory} ? (
+		map { $_ => 1 } @{$param->{directory}}
+	) : ();
+
+	return {
+		file      => \%file,
+		directory => \%directory,
+	};
 }
 
 1;
@@ -169,7 +290,7 @@ L<http://ali.as/>, L<File::Find::Rule>, L<File::Find::Rule::PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2008 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
