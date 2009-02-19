@@ -109,8 +109,10 @@ use version; $VERSION = qv('0.13_02');
 	sub as_string {
 		my ($self) = shift;
 
-# getting the number of items in the array referred to by $self->{entries}
+        # getting the number of entries.
 		my $count = scalar @{ $self->get_entries(); };
+        return q{} if ($count == 0);
+
 		my $string;
 		my $s;
 		my $id = $self->get_component_id();
@@ -123,6 +125,7 @@ use version; $VERSION = qv('0.13_02');
 EOF
 
 		$string .= $self->indent( 6, $self->as_start_string() );
+        $string .= "\n";
 
 		foreach my $i ( 0 .. $count - 1 ) {
 			$s = $self->get_entries->[$i]->as_string;

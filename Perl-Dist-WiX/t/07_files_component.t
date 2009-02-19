@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 11;
+		plan tests => 10;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -33,35 +33,11 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid filename), '->new catches bad filename' );
-
-eval {
-    my $component_3 = Perl::Dist::WiX::Files::Component->new(
-        filename => 'C:\\temp\\invalid.test',
-        sitename => undef,
-    );
-};
-
-like($@, qr(Missing or invalid sitename), '->new catches bad sitename' );
-
-my $component_test_1 = bless( {
-  'sitename' => 'www.test.site.invalid',
-  'filename' => 'C:\\temp\\invalid.test',
-  'entries' => [
-    bless( {
-      'sitename' => 'www.test.site.invalid',
-      'name' => 'C:\\temp\\invalid.test',
-      'id' => 'CDD41023_A3B0_3385_AD13_974E2A1220AE'
-    }, 'Perl::Dist::WiX::Files::Entry' )
-  ],
-  'id' => 'CDD41023_A3B0_3385_AD13_974E2A1220AE',
-  'guid' => 'CDD41023-A3B0-3385-AD13-974E2A1220AE'
-}, 'Perl::Dist::WiX::Files::Component' );
-
-is_deeply( $component_1, $component_test_1, 'Object created correctly' );
+like($@, qr(Missing mandatory initializer 'filename'), '->new catches bad filename' );
 
 isa_ok( $component_1, 'Perl::Dist::WiX::Files::Component' );
 isa_ok( $component_1, 'Perl::Dist::WiX::Base::Component' );
+isa_ok( $component_1, 'Perl::Dist::WiX::Misc' );
 
 is($component_1->is_file('C:\\temp\\invalid.test'), 1, '->is_file true');
 is($component_1->is_file('C:\\texp\\invalid.test'), 0, '->is_file false');

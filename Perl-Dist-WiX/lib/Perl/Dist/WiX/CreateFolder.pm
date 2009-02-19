@@ -12,14 +12,14 @@ package Perl::Dist::WiX::CreateFolder;
 use 5.006;
 use strict;
 use warnings;
-use vars              qw( $VERSION            );
+use vars              qw( $VERSION );
 use Object::InsideOut qw( 
     Perl::Dist::WiX::Base::Fragment
     Perl::Dist::WiX::Base::Component
     Storable
 );
-use Carp              qw( croak               );
-use Params::Util      qw( _IDENTIFIER _STRING );
+use Carp              qw( croak    );
+use Params::Util      qw( _STRING  );
 
 use version; $VERSION = qv('0.13_02');
 #>>>
@@ -33,6 +33,19 @@ use version; $VERSION = qv('0.13_02');
 #
 # Parameters: [pairs]
 #   id, directory: See Base::Fragment.
+
+    sub _pre_init : PreInit {
+        my ($self, $args) = @_;
+        
+        unless (defined $args->{guid}) {
+            my $id = $args->{id};
+            unless (defined _STRING($id)) {
+                $self->trace_die('Invalid or missing id parameter.');
+            }
+            $args->{guid} = $self->generate_guid("Create$id"); 
+        };
+        
+    }
 
 	sub _init : Init {
 		my $self = shift;
@@ -87,11 +100,6 @@ use version; $VERSION = qv('0.13_02');
 		my $directory_id = $self->get_directory_id();
 		my $guid         = $self->get_guid();
         
-        unless (defined $guid) { 
-            $self->create_guid_from_id(); 
-            $guid = $self->get_guid(); 
-        };
-
 		return <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>

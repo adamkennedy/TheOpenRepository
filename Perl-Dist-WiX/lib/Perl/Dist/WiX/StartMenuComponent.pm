@@ -65,6 +65,10 @@ sub _pre_init :PreInit {
 		$args->{description} = $args->{name};
 	}
 
+	unless ( _STRING( $args->{guid} ) ) {
+		$args->{guid} = $self->generate_guid($args->{id});
+	}
+    
     return;
 }
 

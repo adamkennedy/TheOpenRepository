@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 7;
+		plan tests => 8;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -40,15 +40,26 @@ eval {
 
 like($@, qr(Invalid directory), '->new catches bad directory' );
 
-my $fragment_test_1 = bless( {
-  'components' => [],
-  'id' => 'Test',
-  'directory' => 'TARGETDIR'
-}, 'Perl::Dist::WiX::Base::Fragment' );
+my $fragment_test_1 = [
+  'Perl::Dist::WiX::Base::Fragment',
+  {
+    'Perl::Dist::WiX::Base::Fragment' => {
+                                           'components' => [],
+                                           'id' => 'Test',
+                                           'directory' => 'TARGETDIR'
+                                         },
+    'Perl::Dist::WiX::Misc' => {
+                                 'sitename' => 'www.perl.invalid',
+                                 'trace' => 0,
+                                 'siteguid' => undef
+                               }
+  }
+];
 
-is_deeply( $fragment_1, $fragment_test_1, 'Object created correctly' );
+is_deeply( $fragment_1->dump(), $fragment_test_1, 'Object created correctly' );
 
 isa_ok( $fragment_1, 'Perl::Dist::WiX::Base::Fragment' );
+isa_ok( $fragment_1, 'Perl::Dist::WiX::Misc' );
 
 is( $fragment_1->as_string(0), q[], '->as_string is empty (no components added)' );
 

@@ -3125,6 +3125,7 @@ sub install_launcher {
         name     => $launcher->name,
         filename => $to,
         fragment => 'Icons',
+        fragment => 'Icons',
         icon_id  => $icon_id
     );
 

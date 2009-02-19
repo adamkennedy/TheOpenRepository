@@ -75,16 +75,16 @@ use version; $VERSION = qv('0.13_02');
         
         # Check required parameters.
         unless ( _STRING( $id[$object_id] ) ) {
-            croak 'Invalid id parameter';
+            $self->trace_die('Invalid id parameter');
         }
         unless ( _STRING( $title[$object_id] ) ) {
-            croak 'Invalid title parameter';
+            $self->trace_die('Invalid title parameter');
         }
         unless ( _STRING( $description[$object_id] ) ) {
-            croak 'Invalid description parameter';
+            $self->trace_die('Invalid description parameter');
         }
         unless ( defined _NONNEGINT( $level[$object_id] ) ) {
-            croak 'Missing or invalid level parameter';
+            $self->trace_die('Missing or invalid level parameter');
         }
 
         my $default_settings = 0;
@@ -139,7 +139,7 @@ use version; $VERSION = qv('0.13_02');
         my $object_id = ${$self};
 
         unless ( _INSTANCE( $feature, 'Perl::Dist::WiX::Feature' ) ) {
-            croak 'Not adding valid feature';
+            $self->trace_die('Not adding valid feature');
         }
 
         push @{ $features[$object_id] }, $feature;
@@ -176,7 +176,7 @@ use version; $VERSION = qv('0.13_02');
 
         # Check parameters.
         unless ( _IDENTIFIER( $id_to_find ) ) {
-            croak 'Missing or invalid id parameter';
+            $self->trace_die('Missing or invalid id parameter');
         }
 
         my $id = $id[$object_id];
@@ -237,42 +237,41 @@ use version; $VERSION = qv('0.13_02');
 
 		foreach my $key ( keys %hash ) {
 			if ( not defined $hash{$key} ) {
-				print "$key in feature $id[$object_id] is undefined.\n";
+				$self->trace_line(0, "$key in feature $id[$object_id] is undefined.\n");
 			}
 		}
 
 		if ( $default_settings[$object_id] != 6 ) {
 #<<<
-        $string .=
-            q{' AllowAdvertise='}         . $advertise[$object_id]
-          . q{' Absent='}                 . $absent[$object_id]
-          . q{' ConfigurableDirectory='}  . $directory[$object_id]
-          . q{' Display='}                . $display[$object_id]
-          . q{' InstallDefault='}         . $idefault[$object_id]
-          . q{' TypicalDefault='}         . $default[$object_id];
+            $string .=
+                q{' AllowAdvertise='}         . $advertise[$object_id]
+              . q{' Absent='}                 . $absent[$object_id]
+              . q{' ConfigurableDirectory='}  . $directory[$object_id]
+              . q{' Display='}                . $display[$object_id]
+              . q{' InstallDefault='}         . $idefault[$object_id]
+              . q{' TypicalDefault='}         . $default[$object_id];
 #>>>
-
+        }
 # TODO: Allow condition subtags.
 
-			if ( ( $c_count == 0 ) and ( $f_count == 0 ) ) {
-				$string .= qq{' />\n};
-			} else {
-				$string .= qq{'>\n};
+        if ( ( $c_count == 0 ) and ( $f_count == 0 ) ) {
+            $string .= qq{' />\n};
+        } else {
+            $string .= qq{'>\n};
 
-				foreach my $i ( 0 .. $f_count - 1 ) {
-					$s .= $features[$object_id]->[$i]->as_string;
-				}
-				if ( defined $s ) {
-					$string .= $self->indent( 2, $s );
-				}
-				$string .= $self->_componentrefs_as_string;
-				$string .= qq{\n};
+            foreach my $i ( 0 .. $f_count - 1 ) {
+                $s .= $features[$object_id]->[$i]->as_string;
+            }
+            if ( defined $s ) {
+                $string .= $self->indent( 2, $s );
+            }
+            $string .= $self->_componentrefs_as_string;
+            $string .= qq{\n};
 
-				$string .= qq{</Feature>\n};
-			} ## end else [ if ( ( $c_count == 0 )...
+            $string .= qq{</Feature>\n};
+        } ## end else [ if ( ( $c_count == 0 )...
 
-			return $string;
-		} ## end if ( $default_settings...
+        return $string;
 
 	} ## end sub as_string
 

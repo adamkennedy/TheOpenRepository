@@ -24,7 +24,7 @@ use version; $VERSION = qv('0.13_02');
 # Accessors:
 
 	my @parent : Field : Arg(Name => 'parent', Required => 1);
-	my @features : Field :Name(features);
+	my @features : Field :Name(features) :Get(get_features);
 
 #####################################################################
 # Constructor for FeatureTree
@@ -41,18 +41,18 @@ use version; $VERSION = qv('0.13_02');
 		my $object_id = ${$self};
 
 		unless ( _CLASSISA( ref $parent[$object_id], 'Perl::Dist::WiX' ) ) {
-			croak 'Missing or invalid parent parameter';
+			$self->trace_die('Missing or invalid parent parameter');
 		}
 
 		# Do this so as not to create a garbage collection loop.
 		weaken( $parent[$object_id] );
 
 		# Start the tree.
-		print "Creating feature tree...\n";
+		$self->trace_line(0, "Creating feature tree...\n");
 		$features[$object_id] = [];
 		if ( defined $parent[$object_id]->{msi_feature_tree} ) {
-			croak 'Complex feature tree not implemented in '
-			  . "Perl::Dist::WiX $VERSION.";
+			$self->trace_die('Complex feature tree not implemented in '
+			  . "Perl::Dist::WiX $VERSION.");
 		} else {
 			$features[$object_id]->[0] = Perl::Dist::WiX::Feature->new(
 				id          => 'Complete',
@@ -81,7 +81,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _IDENTIFIER($id_to_find) ) {
-			croak 'Missing or invalid id parameter';
+			$self->trace_die('Missing or invalid id parameter');
 		}
 
 		# Check each of our branches.

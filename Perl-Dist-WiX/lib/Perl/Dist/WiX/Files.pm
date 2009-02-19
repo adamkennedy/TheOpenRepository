@@ -215,8 +215,8 @@ use version; $VERSION = qv('0.13_02');
 
 			# Using $directory_obj [from DirectoryTree object]
 			$subpath = $directory_obj->get_path;
-			$self->trace_line( 5,
-"Stage 3b - Creating Directory within Directory for $subpath.\n"
+			$self->trace_line( 5, 'Stage 3b - Creating Directory within ' 
+                . "Directory for $subpath.\n"
 			);
 			$self->trace_line( 5, "  Adding path $path.\n" );
 			$self->trace_line( 5, "  Adding file $file.\n" );

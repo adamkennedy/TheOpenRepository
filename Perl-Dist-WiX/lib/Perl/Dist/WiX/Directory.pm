@@ -499,7 +499,7 @@ use version; $VERSION = qv('0.13_02');
 #   by this object, and the <Directory> and <File> tags
 #   contained in it.
 
-	sub as_string : Stringify {
+	sub as_string {
 		my ( $self, $tree ) = @_;
 		my $object_id = ${$self};
 		my ( $count, $answer );

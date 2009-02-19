@@ -27,13 +27,22 @@ use Data::UUID            qw( NameSpace_DNS               );
 use version; $VERSION = qv('0.13_03');
 #>>>
 
+
+sub die_handler {
+    die @_;
+}
+
+BEGIN {
+    $SIG{'__DIE__'} = \&die_handler;
+}
+
 #####################################################################
 # Attributes
 
 	# Tracestate, sitename, and sitename_guid are singletons.
 	my $tracestate = -1;
 	my $sitename   = q{};
-	my $sitename_guid;
+	my $sitename_guid = undef;
 
 	my %init_args : InitArgs = (
 		'TRACE' => {
@@ -121,10 +130,10 @@ use version; $VERSION = qv('0.13_03');
 
 		# Check parameters.
 		unless ( _STRING($string) ) {
-			croak 'Missing or invalid string param';
+			$self->trace_die('Missing or invalid string param');
 		}
 		unless ( defined _NONNEGINT($num) ) {
-			croak 'Missing or invalid num param';
+			$self->trace_die('Missing or invalid num param');
 		}
 
 		# Indent string.
@@ -138,9 +147,12 @@ use version; $VERSION = qv('0.13_03');
 #>>>
 		return $answer;
 	} ## end sub indent :
+    
 
+    
+    
 ########################################
-# trace_line($text)
+# trace_line($tracelevel, $text, $no_display)
 # Parameters:
 #   $tracelevel: Level of trace to print at.
 #   $text: Text to print if trace flag is >= $tracelevel.
@@ -151,20 +163,20 @@ use version; $VERSION = qv('0.13_03');
 
 	sub trace_line {
 		my ( $self, $tracelevel, $text, $no_display ) = @_;
-
+		my $tracestate_status = $tracestate;
+        
 		# Check parameters and object state.
 		unless ( defined _NONNEGINT($tracelevel) ) {
-			croak('Missing or invalid tracelevel');
+			croak 'Missing or invalid tracelevel';
 		}
 		unless ( defined _NONNEGINT($tracestate) ) {
-			croak("Inconsistent trace state in $self");
-		}
+            my $tracestate_status = 0;
+		} 
 		unless ( defined _STRING($text) ) {
-			croak('Missing or invalid text');
+			croak 'Missing or invalid text';
 		}
 
 		my $tracestate_test   = 0;
-		my $tracestate_status = $tracestate;
 		if ( $tracestate_status >= 100 ) {
 			$tracestate_status -= 100;
 			$tracestate_test = 1;
@@ -173,6 +185,26 @@ use version; $VERSION = qv('0.13_03');
 
 		$no_display = 0 unless defined $no_display;
 
+        my $string = $self->_trace_line($tracelevel, $text, $no_display, $tracestate_status);
+
+		if ( $tracestate_status >= $tracelevel ) {
+            if ($tracestate_test) {
+                Test::More::diag("$string");
+            } elsif ( $tracelevel == 0 ) {
+                ## no critic 'RequireBracedFileHandleWithPrint'
+                print STDERR "$string";
+            } else {
+                print "$string";
+            }
+        }
+        
+        return $self;
+    }
+    
+
+	sub _trace_line : Private {
+		my ( $self, $tracelevel, $text, $no_display, $tracestate_status) = @_;
+        
 		if ( $tracestate_status >= $tracelevel ) {
 			my $start = q{};
 
@@ -202,26 +234,53 @@ use version; $VERSION = qv('0.13_03');
                         {\n}gxms;         # with just the newline.
 #>>>
 			} ## end if ( not $no_display )
-			if ($tracestate_test) {
-				Test::More::diag("$start$text");
-			} elsif ( $tracelevel == 0 ) {
-				## no critic 'RequireBracedFileHandleWithPrint'
-				print STDERR "$start$text";
-			} else {
-				print "$start$text";
-			}
+
+            return "$start$text";
 		} ## end if ( $tracestate_status...
 
-		return $self;
+		return q{};
 	} ## end sub trace_line :
 
+########################################
+# trace_die($text)
+# Parameters:
+#   $text: Text to print if trace flag is >= $tracelevel.
+# Returns:
+#   Doesn't. (dies)
+
+	sub trace_die {
+        my ($self, $text) = @_;
+		my $tracestate_status = $tracestate;
+        
+		# Check parameters and object state.
+		unless ( defined _NONNEGINT($tracestate) ) {
+            my $tracestate_status = 0;
+		} 
+		unless ( defined _STRING($text) ) {
+			croak 'Missing or invalid text';
+		}
+        
+		if ( $tracestate_status >= 100 ) {
+			$tracestate_status -= 100;
+		}
+
+        local $Carp::MaxArgLen = 0;
+        local $Carp::MaxArgNums = 0;
+        
+        my $string = Carp::longmess($text);
+        
+        my $trace_string = $self->_trace_line(0, $string, 0, $tracestate_status);
+        
+        die $trace_string;
+    }
+    
 ########################################
 # check_options($check, $options)
 # Parameters:
 #   $check: Option to check.
 #   $options: List of options to check against.
 # Returns:
-#   1 if $check is in $options, 0 otherwise.
+#   1 if option is in list.
 
 	sub check_options : Restricted {
 		my ( $self, $check, @options ) = @_;
@@ -243,10 +302,13 @@ use version; $VERSION = qv('0.13_03');
 		my $guidgen = Data::UUID->new();
 
 		# Make our own namespace if needed...
-		my $sitename_guid ||=
-		  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
+		unless (defined $sitename_guid) {
+            $sitename_guid = $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
 			$sitename );
+        }
 
+        $self->trace_line(0, 'Generated site GUID: ' . $guidgen->to_string($sitename_guid) . "\n");
+                
 		#... then use it to create a GUID out of the filename.
 		return uc $guidgen->create_from_name_str( $sitename_guid, $id );
 

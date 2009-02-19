@@ -38,22 +38,33 @@ use version; $VERSION = qv('0.13_02');
 # Parameters: [pairs]
 #   directory_object: The ::WiX::Directory object being referred to.
 
+sub _pre_init : PreInit {
+    my ($self, $args) = @_;
+
+    my $directory_object_to_check = $args->{directory_object};
+    if (
+        not _INSTANCE(
+            $directory_object_to_check, 'Perl::Dist::WiX::Directory'
+        ) )
+    {
+        if (defined $directory_object_to_check) {
+            $self->trace_die("Directory_object is really '$directory_object_to_check'\n" . 'Invalid directory object');
+        } else {
+            $self->trace_die('Missing directory object');
+        }
+    }
+    
+    return;
+}
+
 	sub _init : Init {
 		my $self      = shift;
 		my $object_id = ${$self};
         
-		if (
-			not _INSTANCE(
-				$directory_object[$object_id], 'Perl::Dist::WiX::Directory'
-			) )
-		{
-			croak 'Missing or invalid directory object';
-		}
-
 		$directories[$object_id] = [];
 		$files[$object_id]       = [];
 
-		return $self;
+		return;
 	} ## end sub _init :
 
 
@@ -432,7 +443,7 @@ use version; $VERSION = qv('0.13_02');
 #   String representation of <DirectoryRef> tag represented by this object,
 #   along with the <Component> and <Directory> entries it contains.
 
-	sub as_string :Stringify {
+	sub as_string {
 		my $self      = shift;
 		my $object_id = ${$self};
 		my ( $count, $answer, $string );

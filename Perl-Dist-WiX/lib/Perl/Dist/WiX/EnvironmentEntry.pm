@@ -88,7 +88,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Print tag.
 		my $answer = <<"END_OF_XML";
-   <Environment Id='E_$id[$object_id]' Name='$name[$object_id]' Value='$value[$object_id]' 
+   <Environment Id='E_$id[$object_id]' Name='$name[$object_id]' Value='$value[$object_id]'
       System='yes' Permanent='$permanent[$object_id]' Action='$action[$object_id]' Part='$part[$object_id]' />
 END_OF_XML
 

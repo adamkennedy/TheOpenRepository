@@ -95,7 +95,7 @@ use version; $VERSION = qv('0.13_02');
 	sub get_component_array {
 		my $self = shift;
 
-		return 'C_' . $self->id;
+		return 'C_' . $self->get_component_id;
 	}
 
 ########################################

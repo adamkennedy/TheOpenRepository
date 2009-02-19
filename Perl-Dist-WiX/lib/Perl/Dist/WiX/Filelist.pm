@@ -261,7 +261,7 @@ my %sortcache; # Defined at this level so that the cache does not
 		if ( not defined $fh ) {
 			croak "File Error: $!";
 		}
-		my @files = <$fh>;
+		my @files_list = <$fh>;
 		$fh->close;
 		my $file;
 
@@ -270,7 +270,7 @@ my %sortcache; # Defined at this level so that the cache does not
 			$file = $_;
 			chomp $file;
 			( $file, 1 );
-		} @files;
+		} @files_list;
 		$files[$object_id] = \%files;
 
 		return $self;
@@ -486,9 +486,9 @@ my %sortcache; # Defined at this level so that the cache does not
 		my $self      = shift;
 		my $object_id = ${$self};
 
-		my @files = sort {_sorter} keys %{ $files[$object_id] };
+		my @files_list = sort {_sorter} keys %{ $files[$object_id] };
 
-		return join "\n", @files;
+		return join "\n", @files_list;
 	}
 }
 1;

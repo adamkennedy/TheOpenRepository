@@ -67,7 +67,7 @@ sub get_component_array {
 
 	# Get the array for each descendant.
 	foreach my $i ( 0 .. $count - 1 ) {
-		$id = $self->get_components->[$i]->id;
+		$id = $self->get_components->[$i]->get_component_id;
 		push @answer, "S_$id";
 	}
 

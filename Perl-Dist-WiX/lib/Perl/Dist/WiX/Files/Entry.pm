@@ -39,6 +39,12 @@ sub filename { return $_[0]->name; }
 sub _pre_init : PreInit {
     my ($self, $args) = @_;
 
+	# Check params
+	unless ( _STRING( $args->{name} ) ) {
+		croak('Missing or invalid name param');
+	}
+   
+    # Create an ID and GUID.
 	unless ( defined $args->{id} ) {
 		$args->{id} = $self->generate_guid( $args->{name} );
 		$args->{id} =~ s{-}{_}smg;
@@ -46,18 +52,6 @@ sub _pre_init : PreInit {
 
     return;
 }
-
-sub _init : Init {
-	my $self      = shift;
-	my $object_id = ${$self};
-
-	# Check params
-#	unless ( _STRING( $name[$object_id] ) ) {
-#		croak('Missing or invalid name param');
-#	}
-
-	return $self;
-} ## end sub _init :
 
 #####################################################################
 # Main Methods

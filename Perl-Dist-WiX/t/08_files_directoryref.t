@@ -54,14 +54,19 @@ my $ref_1 = Perl::Dist::WiX::Files::DirectoryRef->new(
 );
 ok( $ref_1, '->new returns true' );
 
+    local $SIG{__DIE__};
+
 eval {
+
     my $ref_2 = Perl::Dist::WiX::Files::DirectoryRef->new(
         directory_object => undef,
         sitename => 'www.test.site.invalid',
     );
 };
 
-like( $@, qr(Missing or invalid directory object), '->new catches bad directory object' );
+like( $@, qr(Missing or invalid directory obj ect), '->new catches bad directory object' );
+
+__END__
 
 eval {
     my $ref_3 = Perl::Dist::WiX::Files::DirectoryRef->new(
