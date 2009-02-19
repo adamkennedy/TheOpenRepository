@@ -17,7 +17,6 @@ use Object::InsideOut qw(
     Storable
 );
 use Readonly          qw( Readonly            );
-use Carp              qw( croak               );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
 use version; $VERSION = qv('0.13_02');
@@ -31,10 +30,10 @@ use version; $VERSION = qv('0.13_02');
 #####################################################################
 # Accessors:
 
-	my @action : Field : Arg(Name => action, Required => 1);
-	my @name : Field : Arg(Name => value_name, Required => 1);
-	my @type : Field : Arg(value_type);
-	my @data : Field : Arg(Name => value_data, Required => 1);
+	my @action : Field : Arg(Name => 'action', Required => 1);
+	my @name : Field : Arg(Name => 'value_name', Required => 1);
+	my @type : Field : Arg(Name => 'value_type');
+	my @data : Field : Arg(Name => 'value_data', Required => 1);
 
 #####################################################################
 # Constructors for Registry::Entry
@@ -47,35 +46,42 @@ use version; $VERSION = qv('0.13_02');
 #
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
 
+    sub _pre_init : Init {
+		my ($self, $args) = @_;
+        
+		# Apply defaults
+		unless ( defined $args->value_type ) {
+			$args->{value_type} = 'expandable';
+		}
+
+        return;
+    }
+
 	sub _init : Init {
 		my $self      = shift;
 		my $object_id = ${$self};
 
-		# Apply defaults
-		unless ( defined $self->value_type ) {
-			$self->{value_type} = 'expandable';
-		}
 
 		# Check params
 		unless ( _IDENTIFIER( $action[$object_id] ) ) {
-			croak 'Invalid action param';
+			PDWiX->throw('Invalid action param');
 		}
 		unless (
 			$self->check_options( $action[$object_id], @action_options ) )
 		{
-			croak
-			  'Invalid action param (must be append, prepend, or write)';
+			PDWiX->throw(
+			  'Invalid action param (must be append, prepend, or write)');
 		}
 		unless ( $self->check_options( $type[$object_id], @type_options ) )
 		{
-			croak 'Invalid value_type param (see WiX documentation for '
-			  . 'RegistryValue/@Type)';
+			PDWiX->throw('Invalid value_type param (see WiX '
+            . 'documentation for RegistryValue/@Type)');
 		}
 		unless ( _IDENTIFIER( $name[$object_id] ) ) {
-			croak 'Invalid value_name param';
+			PDWiX->throw('Invalid value_name param');
 		}
 		unless ( _STRING( $data[$object_id] ) ) {
-			croak 'Invalid value_data param';
+			PDWiX->throw('Invalid value_data param');
 		}
 
 		return $self;

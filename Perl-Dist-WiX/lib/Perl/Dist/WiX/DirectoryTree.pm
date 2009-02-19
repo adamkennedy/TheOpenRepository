@@ -14,7 +14,6 @@ use     strict;
 use     warnings;
 use     vars              qw( $VERSION                       );
 use     Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
-use     Carp              qw( croak                          );
 use     Params::Util      qw( _IDENTIFIER _STRING            );
 require Perl::Dist::WiX::Directory;
 
@@ -63,7 +62,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Set defaults for parameters.
 		my $path_to_find = _STRING( $params_ref->{path_to_find} )
-		  || croak 'No path to find.';
+		  || PDWiX->throw('No path to find.');
 		my $descend = $params_ref->{descend} || 1;
 		my $exact   = $params_ref->{exact}   || 0;
 

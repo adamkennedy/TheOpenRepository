@@ -17,8 +17,8 @@ use Object::InsideOut qw(
     Perl::Dist::WiX::Base::Entry
     Storable
 );
-use Carp              qw( croak                                    );
-use Params::Util      qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
+use Params::Util      
+    qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
 
 use version; $VERSION = qv('0.13_02');
 #>>>
@@ -48,9 +48,9 @@ sub _pre_init : PreInit {
         ) )
     {
         if (defined $directory_object_to_check) {
-            $self->trace_die("Directory_object is really '$directory_object_to_check'\n" . 'Invalid directory object');
+            PDWiX->throw("Directory_object is really '$directory_object_to_check'\n" . 'Invalid directory object');
         } else {
-            $self->trace_die('Missing directory object');
+            PDWiX->throw('Missing or undefined directory object');
         }
     }
     
@@ -105,7 +105,7 @@ sub _pre_init : PreInit {
 
 		# Set defaults for parameters.
 		my $path_to_find = _STRING( $params_ref->{path_to_find} )
-		  or croak 'No path to find.';
+		  or PDWiX->throw('No path to find.');
 		my $descend = $params_ref->{descend} or 1;
 		my $exact   = $params_ref->{exact}   or 0;
 
@@ -171,7 +171,7 @@ sub _pre_init : PreInit {
 
 		# Check parameters
 		if ( not _STRING($filename) ) {
-			croak 'Missing or invalid filename parameter';
+			PDWiX->throw('Missing or invalid filename parameter');
 		}
 
 		# Get OUR path.
@@ -219,15 +219,15 @@ sub _pre_init : PreInit {
 
 		# Check parameters
 		if ( not defined _NONNEGINT($i) ) {
-			croak 'Missing or invalid index parameter';
+			PDWiX->throw('Missing or invalid index parameter');
 		}
 
 		if ( $i >= scalar @{ $files[$object_id] } ) {
-			croak 'Not enough files';
+			PDWiX->throw('Not enough files');
 		}
 
 		if ( not defined $files[$object_id]->[$i] ) {
-			croak 'Already deleted this file';
+			PDWiX->throw('Already deleted this file');
 		}
 
 # Delete the file. (The object should disappear once its reference is set to undef)
@@ -254,7 +254,7 @@ sub _pre_init : PreInit {
 
 		# Check parameters
 		if ( not _STRING( $params_ref->{path} ) ) {
-			croak 'Missing or invalid path parameter';
+			PDWiX->throw('Missing or invalid path parameter');
 		}
 
 		# If we have a name, we create the directory object under here.
@@ -271,7 +271,7 @@ sub _pre_init : PreInit {
 		} else {
 
 			# Catchable error condition.
-			croak q{Can't create intermediate directories.};
+			PDWiX->throw(q{Can't create intermediate directories.});
 		}
 	} ## end sub add_directory
 
@@ -293,11 +293,11 @@ sub _pre_init : PreInit {
 				$directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef'
 			) )
 		{
-			croak('Invalid directory object passed in.');
+			PDWiX->throw('Invalid directory object passed in.');
 		}
 
-		my $path_to_check = $directory_obj->path;
-		my $path          = $directories[$object_id]->path;
+		my $path_to_check = $directory_obj->get_path;
+		my $path          = $self->get_path;
 
 		# Returns false if the object is a "special".
 		if ( not defined $path_to_check ) {
@@ -312,8 +312,8 @@ sub _pre_init : PreInit {
 
 		# Do the check.
 		my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\}msx ? 1 : 0;
-		$self->trace_line( 5,
-"Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
+		$self->trace_line( 5, "Is Child Of: Answer: $answer\n  "
+        . "Path: $path\n  Path to check: $path_to_check\n"
 		);
 		return $answer;
 	} ## end sub is_child_of
@@ -331,12 +331,12 @@ sub _pre_init : PreInit {
 
 		# Check parameters
 		if ( 0 == scalar @params ) {
-			croak 'Missing file parameter';
+			PDWiX->throw('Missing file parameter');
 		}
 
 		foreach my $j ( 0 .. scalar @params - 1 ) {
 			if ( not _STRING( $params[$j] ) ) {
-				croak "Missing or invalid file[$j] parameter";
+				PDWiX->throw("Missing or invalid file[$j] parameter");
 			}
 		}
 
@@ -362,7 +362,7 @@ sub _pre_init : PreInit {
 
 		# Check parameters
 		if ( not _STRING($path) ) {
-			croak 'Missing or invalid path parameter';
+			PDWiX->throw('Missing or invalid path parameter');
 		}
 
 		# Make sure we don't have a trailing slash.
@@ -375,7 +375,7 @@ sub _pre_init : PreInit {
 		if ( !( $path =~ m{\A\Q$path_to_remove\E}msx ) ) {
 			$self->trace_line( 0,
 				"Path to add: $path\nPath to add to: $path_to_remove\n" );
-			croak q{Can't add the directories required};
+			PDWiX->throw(q{Can't add the directories required});
 		}
 
 		# Get list of directories to add.

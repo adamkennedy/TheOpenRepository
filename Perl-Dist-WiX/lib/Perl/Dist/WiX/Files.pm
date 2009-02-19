@@ -12,16 +12,14 @@ package Perl::Dist::WiX::Files;
 use     5.006;
 use     strict;
 use     warnings;
-use     vars                  qw( $VERSION                              );
+use     vars                  qw( $VERSION                 );
 use     Object::InsideOut     qw(
     Perl::Dist::WiX::Base::Fragment
     Storable
 );
-use     Carp                  qw( croak                                 );
 use     Params::Util       
    qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
-use     Data::UUID            qw( NameSpace_DNS                         );
-use     File::Spec::Functions qw( splitpath catpath catdir              );
+use     File::Spec::Functions qw( splitpath catpath catdir );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
@@ -48,7 +46,7 @@ use version; $VERSION = qv('0.13_02');
 				$self->directory_tree, 'Perl::Dist::WiX::DirectoryTree'
 			) )
 		{
-			croak('Missing or invalid directory_tree parameter');
+			PDWiX->throw('Missing or invalid directory_tree parameter');
 		}
 
 		return $self;
@@ -69,7 +67,7 @@ use version; $VERSION = qv('0.13_02');
 			chomp $file;
 			next if not -f $file;
 			if ( not defined $self->add_file($file) ) {
-				croak "Could not add $file";
+				PDWiX->throw("Could not add $file");
 			}
 		}
 
@@ -90,7 +88,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _STRING($file) ) {
-			croak('Missing or invalid file parameter');
+			PDWiX->throw('Missing or invalid file parameter');
 		}
 
 		# Get the file path.
@@ -282,7 +280,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Set defaults for parameters.
 		my $path_to_find = $params_ref->{path_to_find}
-		  || croak 'No path to find.';
+		  || PDWiX->throw('No path to find.');
 		my $descend = $params_ref->{descend} || 1;
 		my $exact   = $params_ref->{exact}   || 0;
 
@@ -320,7 +318,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _STRING($filename) ) {
-			croak('Missing or invalid filename parameter');
+			PDWiX->throw('Missing or invalid filename parameter');
 		}
 
 		# How many descendants do we have?
@@ -354,7 +352,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _ARRAY0($files_ref) ) {
-			croak('Missing or invalid files_ref parameter');
+			PDWiX->throw('Missing or invalid files_ref parameter');
 		}
 
 		# For each file in the list...
@@ -423,7 +421,8 @@ use version; $VERSION = qv('0.13_02');
 
 		# Short circuit.
 		if ( $count == 0 ) {
-			$self->trace_line( 2, "No components in fragment $self->{id}" );
+            my $id = $self->get_fragment_id();
+			$self->trace_line( 2, "No components in fragment $id" );
 			return q{};
 		}
 

@@ -14,7 +14,7 @@ require Perl::Dist::WiX::DirectoryTree;
 
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 8;
+		plan tests => 7;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -22,6 +22,8 @@ BEGIN {
 
 my $tree_1 = Perl::Dist::WiX::DirectoryTree->new(
     trace => 100,
+    app_name => 'Test Program',
+    app_dir => 'C:\\test', 
 );
 
 my $files_1 = Perl::Dist::WiX::Files->new(
@@ -58,16 +60,5 @@ eval {
 };
 
 like($@, qr(Missing or invalid directory_tree), '->new catches bad directory_tree' );
-
-eval {
-    my $files_4 = Perl::Dist::WiX::Files->new(
-        trace          => 100,
-        id             => 'TestFiles',
-        directory_tree => $tree_1,
-        sitename       => undef,
-    );
-};
-
-like($@, qr(Missing or invalid sitename), '->new catches bad sitename' );
 
 is( $files_1->as_string, q{}, '->as_string with no components' );

@@ -23,11 +23,9 @@ superclass of that class.
 use     5.006;
 use     strict;
 use     warnings;
-use     Carp                     qw( croak                         );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use     Params::Util
     qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                         );
-use     Data::UUID               qw( NameSpace_DNS                 );
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
@@ -130,7 +128,7 @@ sub _check_string_parameter {
     my ($self, $string, $name) = @_;
 
     unless ( _STRING( $string ) ) {
-        croak( "Missing or invalid $name param" );
+        PDWiX->throw( "Missing or invalid $name param" );
     }
 }
 
@@ -159,7 +157,7 @@ sub new {
 
     # Check and default params
     unless ( _IDENTIFIER( $self->app_id ) ) {
-        croak( 'Missing or invalid app_id param' );
+        PDWiX->throw( 'Missing or invalid app_id param' );
     }
     $self->_check_string_parameter($self->app_name, 'app_name' );
     $self->_check_string_parameter(
@@ -175,25 +173,25 @@ sub new {
         $self->default_group_name, 'default_group_name' );
     $self->_check_string_parameter($self->output_dir, 'output_dir');
     unless ( -d $self->output_dir ) {
-        croak(  'The output_dir '
+        PDWiX->throw(  'The output_dir '
               . $self->output_dir
               . 'directory does not exist' );
     }
     unless ( -w $self->output_dir ) {
-        croak( 'The output_dir directory is not writable' );
+        PDWiX->throw( 'The output_dir directory is not writable' );
     }
     $self->_check_string_parameter(
         $self->output_base_filename, 'output_base_filename' );
     unless ( _STRING( $self->source_dir ) ) {
-        croak( 'Missing or invalid source_dir param' );
+        PDWiX->throw( 'Missing or invalid source_dir param' );
     }
     unless ( -d $self->source_dir ) {
-        croak( 'The source_dir directory does not exist' );
+        PDWiX->throw( 'The source_dir directory does not exist' );
     }
     $self->_check_string_parameter(
         $self->fragment_dir, 'fragment_dir' );
     unless ( -d $self->fragment_dir ) {
-        croak( 'The fragment_dir directory does not exist' );
+        PDWiX->throw( 'The fragment_dir directory does not exist' );
     }
 
     # Set element collections
@@ -233,25 +231,25 @@ sub new {
 
     # Find the light.exe and candle.exe programs
     unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
-        croak( 'Failed to find the Program Files directory' );
+        PDWiX->throw( 'Failed to find the Program Files directory' );
     }
     my $wix_dir =
       catdir( $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
     my $wix_file = catfile( $wix_dir, 'light.exe' );
     unless ( -f $wix_file ) {
-        croak( 'Failed to find the WiX light.exe program' );
+        PDWiX->throw( 'Failed to find the WiX light.exe program' );
     }
     $self->{bin_light} = $wix_file;
 
     $wix_file = catfile( $wix_dir, 'candle.exe' );
     unless ( -f $wix_file ) {
-        croak( 'Failed to find the WiX candle.exe program' );
+        PDWiX->throw( 'Failed to find the WiX candle.exe program' );
     }
     $self->{bin_candle} = $wix_file;
 
     $wix_file = catfile( $wix_dir, 'WixUIExtension.dll' );
     unless ( -f $wix_file ) {
-        croak( 'Failed to find the WiX UI Extension DLL' );
+        PDWiX->throw( 'Failed to find the WiX UI Extension DLL' );
     }
     $self->{bin_wixui} = $wix_file;
 
@@ -342,16 +340,9 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
 sub msi_product_id {
     my $self = shift;
 
-    my $guidgen = Data::UUID->new();
-
-    # Make our own namespace...
-    my $uuid =
-      $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
-        $self->sitename );
-
     #... then use it to create a GUID out of the ID.
     my $guid =
-      uc $guidgen->create_from_name_str( $uuid, $self->app_ver_name );
+      $self->generate_guid( $self->app_ver_name );
 
     return $guid;
 } ## end sub msi_product_id
@@ -373,15 +364,8 @@ sub msi_upgrade_code {
       . ( $self->portable ? ' Portable' : q{} ) . q{ }
       . $self->perl_version_human;
 
-    my $guidgen = Data::UUID->new();
-
-    # Make our own namespace...
-    my $uuid =
-      $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
-        $self->sitename );
-
     #... then use it to create a GUID out of the ID.
-    my $guid = uc $guidgen->create_from_name_str( $uuid, $upgrade_ver );
+    my $guid = $self->generate_guid( $upgrade_ver );
 
     return $guid;
 } ## end sub msi_upgrade_code
@@ -454,13 +438,13 @@ sub compile_wxs {
 
     # Check parameters.
     unless ( _STRING( $filename ) ) {
-        croak 'Invalid or missing filename parameter';
+        PDWiX->throw('Invalid or missing filename parameter');
     }
     unless ( _STRING( $wixobj ) ) {
-        croak 'Invalid or missing wixobj parameter';
+        PDWiX->throw('Invalid or missing wixobj parameter');
     }
     unless ( -r $filename ) {
-        croak "$filename does not exist or is not readable";
+        PDWiX->throw("$filename does not exist or is not readable");
     }
 
     # Compile the .wxs file
@@ -526,16 +510,16 @@ sub write_msi {
         $fh            = IO::File->new( $filename_in, 'w' );
 
         if ( not defined $fh ) {
-            croak "Could not open file $filename_in for writing [$!] [$^E]";
+            PDWiX->throw("Could not open file $filename_in for writing [$!] [$^E]");
         }
         $fh->print( $fragment_string );
         $fh->close;
         $self->trace_line( 2, "Compiling $filename_in\n" );
         $self->compile_wxs( $filename_in, $filename_out )
-          or croak "WiX could not compile $filename_in";
+          or PDWiX->throw("WiX could not compile $filename_in");
 
         unless ( -f $filename_out ) {
-            croak(
+            PDWiX->throw(
 "Failed to find $filename_out (probably compilation error in $filename_in)"
             );
         }
@@ -557,7 +541,7 @@ sub write_msi {
     $fh = IO::File->new( $filename_in, 'w' );
 
     if ( not defined $fh ) {
-        croak "Could not open file $filename_in for writing [$!] [$^E]";
+        PDWiX->throw("Could not open file $filename_in for writing [$!] [$^E]");
     }
     $fh->print( $content );
     $fh->close;
@@ -565,9 +549,9 @@ sub write_msi {
     # Compile the main .wxs
     $self->trace_line( 2, "Compiling $filename_in\n" );
     $self->compile_wxs( $filename_in, $filename_out )
-      or croak( "WiX could not compile $filename_in" );
+      or PDWiX->throw( "WiX could not compile $filename_in" );
     unless ( -f $filename_out ) {
-        croak(
+        PDWiX->throw(
 "Failed to find $filename_out (probably compilation error in $filename_in)"
         );
     }
@@ -603,7 +587,7 @@ sub write_msi {
     # Did everything get done correctly?
     unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
         $self->trace_line( 0, $out );
-        croak "Failed to find $output_msi";
+        PDWiX->throw("Failed to find $output_msi");
     }
 
     return $output_msi;
@@ -627,11 +611,11 @@ sub add_env {
     }
 
     unless ( _STRING( $name ) ) {
-        croak 'Invalid or missing name parameter';
+        PDWiX->throw('Invalid or missing name parameter');
     }
 
     unless ( _STRING( $value ) ) {
-        croak 'Invalid or missing value parameter';
+        PDWiX->throw('Invalid or missing value parameter');
     }
 
     my $num = $self->{fragments}->{Environment}->get_entries_count();
@@ -659,19 +643,19 @@ sub add_file {
     my ( $self, %params ) = @_;
 
     unless ( _STRING( $params{source} ) ) {
-        croak 'Invalid or missing source parameter';
+        PDWiX->throw('Invalid or missing source parameter');
     }
 
     unless ( -f $params{source} ) {
-        croak "File $params{source} does not exist";
+        PDWiX->throw("File $params{source} does not exist");
     }
 
     unless ( _IDENTIFIER( $params{fragment} ) ) {
-        croak 'Invalid or missing fragment parameter';
-    }
+        PDWiX->throw('Invalid or missing fragment parameter');
+        }
 
     unless ( defined $self->{fragments}->{ $params{fragment} } ) {
-        croak "Fragment $params{fragment} not defined";
+        PDWiX->throw("Fragment $params{fragment} not defined");
     }
 
     $self->{fragments}->{ $params{fragment} }->add_file( $params{source} );
@@ -694,10 +678,10 @@ sub insert_fragment {
 
     # Check parameters.
     unless ( _IDENTIFIER( $id ) ) {
-        croak 'Invalid or missing id parameter';
+        PDWiX->throw('Invalid or missing id parameter');
     }
     unless ( _ARRAY0( $files_ref ) ) {
-        croak 'Invalid or missing files_ref parameter';
+        PDWiX->throw('Invalid or missing files_ref parameter');
     }
 
     $self->trace_line( 2, "Adding fragment $id...\n" );
@@ -731,14 +715,14 @@ sub add_to_fragment {
 
     # Check parameters.
     unless ( _IDENTIFIER( $id ) ) {
-        croak 'Invalid or missing id parameter';
+        PDWiX->throw('Invalid or missing id parameter');
     }
     unless ( _ARRAY( $files_ref ) ) {
-        croak 'Invalid or missing files_ref parameter';
+        PDWiX->throw('Invalid or missing files_ref parameter');
     }
 
     if ( not exists $self->{fragments}->{$id} ) {
-        croak "Fragment $id does not exist";
+        PDWiX->throw("Fragment $id does not exist");
     }
 
     foreach my $key ( keys %{ $self->{fragments} } ) {
@@ -769,13 +753,13 @@ sub as_string {
     my $tt = new Template( {
             INCLUDE_PATH => $self->dist_dir,
             EVAL_PERL    => 1,
-        } ) || croak( $Template::ERROR . "\n" );
+        } ) || PDWiX->throw( $Template::ERROR or $Template::ERROR );
 
     my $answer;
     my $vars = { dist => $self };
 
     $tt->process( 'Main.wxs.tt', $vars, \$answer )
-      || croak( $tt->error() . "\n" );
+      || PDWiX->throw( $tt->error() . "\n" );
 
     # Combine it all
     return $answer;

@@ -17,7 +17,6 @@ use     Object::InsideOut  qw(
     Storable
 );
 use     Readonly           qw( Readonly                         );
-use     Carp               qw( croak                            );
 use     Params::Util       qw( _IDENTIFIER _STRING              );
 require Perl::Dist::WiX::Registry::Entry;
 
@@ -45,28 +44,38 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 #   id, guid, sitename: see WiX::Base::Component
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
 
-	sub new {
+    sub _pre_init : PreInit {
+        my ($self, $args) = @_;
+
+        # Check parameter needed here.
+		unless ( _STRING( $args->{id} ) ) {
+			PDWiX->throw('Missing or invalid id param');
+		}
+
+		# Apply defaults
+		unless ( defined $args->{root} ) {
+			$args->{root} = 'HKLM';
+		}
+		unless ( defined $args->{guid} ) {
+			$args->{guid} = $self->generate_guid($args->{id});
+		}
+    }
+
+	sub _init :Init {
 		my $self      = shift;
 		my $object_id = ${$self};
 
-		# Apply defaults
-		unless ( defined $root[$object_id] ) {
-			$self->{root} = 'HKLM';
-		}
-		unless ( defined $self->guid ) {
-			$self->create_guid_from_id;
-		}
 
 		# Check params
 		unless ( _IDENTIFIER( $root[$object_id] ) ) {
-			croak('Invalid root param');
+			PDWiX->throw('Invalid root param');
 		}
 		unless ( $self->check_options( $root[$object_id], @root_options ) )
 		{
-			croak('Invalid root param (not a valid registry root key)');
+			PDWiX->throw('Invalid root param (not a valid registry root key)');
 		}
 		unless ( _STRING( $key[$object_id] ) ) {
-			croak('Missing or invalid subkey param');
+			PDWiX->throw('Missing or invalid subkey param');
 		}
 
 		return $self;
@@ -109,10 +118,10 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 		my $object_id = ${$self};
 
 		unless ( _IDENTIFIER($root) ) {
-			croak('Missing or invalid root param');
+			PDWiX->throw('Missing or invalid root param');
 		}
 		unless ( _STRING($key) ) {
-			croak('Missing or invalid subkey param');
+			PDWiX->throw('Missing or invalid subkey param');
 		}
 
 		return 0 if ( uc $key  ne uc $key[$object_id] );
@@ -134,7 +143,7 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 		my $object_id = ${$self};
 
 		# Short-circuit.
-		return q{} if ( scalar @{ $self->entries } == 0 );
+		return q{} if ( scalar @{ $self->get_entries } == 0 );
 
 		$root[$object_id] = uc $root[$object_id];
 
@@ -144,7 +153,7 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
   <RegistryKey Root='$root[$object_id]' Key='$key[$object_id]'>
 END_OF_XML
 
-		$answer .= $self->SUPER::as_string(4);
+		$answer .= $self->Perl::Dist::WiX::Base::Component::as_string(4);
 
 		$answer .= <<"END_OF_XML";
   </RegistryKey>

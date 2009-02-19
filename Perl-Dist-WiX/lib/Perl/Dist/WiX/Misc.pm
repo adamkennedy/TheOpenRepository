@@ -13,28 +13,44 @@ package Perl::Dist::WiX::Misc;
 # class directly.
 
 #<<<
-use 5.006;
-use strict;
-use warnings;
-use vars                  qw( $VERSION $tracestate        );
-use Object::InsideOut     qw( Storable                    );
-use Carp                  qw( croak      verbose          );
-use Params::Util          qw( _STRING  _POSINT _NONNEGINT );
-use File::Spec::Functions qw( splitpath splitdir          );
-use List::MoreUtils       qw( any                         );
-use Data::UUID            qw( NameSpace_DNS               );
+use     5.006;
+use     strict;
+use     warnings;
+use     vars                  qw( $VERSION $tracestate        );
+use     Object::InsideOut     qw( Storable                    );
+use     Params::Util          qw( _STRING  _POSINT _NONNEGINT );
+use     File::Spec::Functions qw( splitpath splitdir          );
+use     List::MoreUtils       qw( any                         );
+use     Data::UUID            qw( NameSpace_DNS               );
+require Devel::StackTrace;
 
 use version; $VERSION = qv('0.13_03');
+
 #>>>
 
+#####################################################################
+# Error Handling
 
-sub die_handler {
-    die @_;
-}
-
-BEGIN {
-    $SIG{'__DIE__'} = \&die_handler;
-}
+use Exception::Class        ( 
+    'PDWiX' => {
+        'description' => 'Perl::Dist::WiX error',
+    },
+  );
+  
+sub PDWiX::full_message {
+    my $self = shift;
+    
+    my $string = $self->description() . ': ' . $self->message() . "\n"; 
+    my $misc = Perl::Dist::WiX::Misc->new();
+    my $tracelevel = $misc->get_trace() % 100;
+    
+    # Add trace to it if tracelevel high enough.
+    if ($tracelevel > 1) {
+        $string .= "\n" . $self->trace() . "\n"; 
+    }
+    
+    return $misc->_trace_line(0, $string, 0, $tracelevel, $self->trace->frame(0));
+}  
 
 #####################################################################
 # Attributes
@@ -62,6 +78,9 @@ BEGIN {
 
 	sub sitename { return $sitename; }
 
+    sub get_trace { return $tracestate; }
+
+    
 #####################################################################
 # Constructor for Misc
 #
@@ -118,6 +137,25 @@ BEGIN {
 # Main Methods
 
 ########################################
+# set_trace($tracelevel)
+# Parameters:
+#   $tracelevel: Number to set tracelevel to.
+# Returns:
+#   The object used.
+
+sub set_trace {
+    my ($self, $tracelevel) = @_;
+    
+	unless ( defined _NONNEGINT($tracelevel) ) {
+		PDWiX->throw('Missing or invalid tracelevel parameter.');
+	}
+    
+    $tracestate = $tracelevel;
+
+    return $self;
+}
+
+########################################
 # indent($spaces, $string)
 # Parameters:
 #   $spaces: Number of spaces to indent $string.
@@ -125,15 +163,15 @@ BEGIN {
 # Returns:
 #   Indented $string.
 
-	sub indent : Restricted {
+	sub indent {
 		my ( $self, $num, $string ) = @_;
 
 		# Check parameters.
 		unless ( _STRING($string) ) {
-			$self->trace_die('Missing or invalid string param');
+			PDWiX->throw('Missing or invalid string parameter.');
 		}
 		unless ( defined _NONNEGINT($num) ) {
-			$self->trace_die('Missing or invalid num param');
+			PDWiX->throw('Missing or invalid num parameter.');
 		}
 
 		# Indent string.
@@ -167,13 +205,13 @@ BEGIN {
         
 		# Check parameters and object state.
 		unless ( defined _NONNEGINT($tracelevel) ) {
-			croak 'Missing or invalid tracelevel';
+			PDWiX->throw('Missing or invalid tracelevel');
 		}
 		unless ( defined _NONNEGINT($tracestate) ) {
             my $tracestate_status = 0;
 		} 
 		unless ( defined _STRING($text) ) {
-			croak 'Missing or invalid text';
+			PDWiX->throw('Missing or invalid text');
 		}
 
 		my $tracestate_test   = 0;
@@ -185,7 +223,9 @@ BEGIN {
 
 		$no_display = 0 unless defined $no_display;
 
-        my $string = $self->_trace_line($tracelevel, $text, $no_display, $tracestate_status);
+        my $stack = Devel::StackTrace->new();
+        
+        my $string = $self->_trace_line($tracelevel, $text, $no_display, $tracestate_status, $stack->frame(1));
 
 		if ( $tracestate_status >= $tracelevel ) {
             if ($tracestate_test) {
@@ -203,7 +243,7 @@ BEGIN {
     
 
 	sub _trace_line : Private {
-		my ( $self, $tracelevel, $text, $no_display, $tracestate_status) = @_;
+		my ( $self, $tracelevel, $text, $no_display, $tracestate_status, $frame) = @_;
         
 		if ( $tracestate_status >= $tracelevel ) {
 			my $start = q{};
@@ -213,9 +253,8 @@ BEGIN {
 					$start = "[$tracelevel] ";
 				}
 				if ( ( $tracelevel > 2 ) or ( $tracestate_status > 4 ) ) {
-					my (undef, $filespec, $line, undef, undef,
-						undef, undef,     undef, undef, undef
-					) = caller 0;
+                    my $filespec = $frame->filename();
+                    my $line = $frame->line();
 					my ( undef, $path, $file ) = splitpath($filespec);
 					my @dirs = splitdir($path);
 					pop @dirs
@@ -240,39 +279,6 @@ BEGIN {
 
 		return q{};
 	} ## end sub trace_line :
-
-########################################
-# trace_die($text)
-# Parameters:
-#   $text: Text to print if trace flag is >= $tracelevel.
-# Returns:
-#   Doesn't. (dies)
-
-	sub trace_die {
-        my ($self, $text) = @_;
-		my $tracestate_status = $tracestate;
-        
-		# Check parameters and object state.
-		unless ( defined _NONNEGINT($tracestate) ) {
-            my $tracestate_status = 0;
-		} 
-		unless ( defined _STRING($text) ) {
-			croak 'Missing or invalid text';
-		}
-        
-		if ( $tracestate_status >= 100 ) {
-			$tracestate_status -= 100;
-		}
-
-        local $Carp::MaxArgLen = 0;
-        local $Carp::MaxArgNums = 0;
-        
-        my $string = Carp::longmess($text);
-        
-        my $trace_string = $self->_trace_line(0, $string, 0, $tracestate_status);
-        
-        die $trace_string;
-    }
     
 ########################################
 # check_options($check, $options)
@@ -307,7 +313,7 @@ BEGIN {
 			$sitename );
         }
 
-        $self->trace_line(0, 'Generated site GUID: ' . $guidgen->to_string($sitename_guid) . "\n");
+        $self->trace_line(5, 'Generated site GUID: ' . $guidgen->to_string($sitename_guid) . "\n");
                 
 		#... then use it to create a GUID out of the filename.
 		return uc $guidgen->create_from_name_str( $sitename_guid, $id );

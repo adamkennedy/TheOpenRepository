@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 23;
+		plan tests => 22;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -64,20 +64,9 @@ eval {
     );
 };
 
-like( $@, qr(Missing or invalid directory obj ect), '->new catches bad directory object' );
+like( $@, qr(Missing or undefined directory object), '->new catches bad directory object' );
 
-__END__
-
-eval {
-    my $ref_3 = Perl::Dist::WiX::Files::DirectoryRef->new(
-        directory_object => $dir,
-        sitename => undef,
-    );
-};
-
-like( $@, qr(Missing or invalid sitename), '->new catches bad sitename' );
-
-is( $ref_1->path, $path, '->path' );
+is( $ref_1->get_path, $path, '->get_path' );
 
 # search_dir is tested in 12_directorytree
 
@@ -95,7 +84,7 @@ like( $@, qr(Invalid directory object), '->is_child_of catches bad object' );
 
 my $dir_1 = $ref_2->add_directory_path($path);
 
-is ( $dir_1->path, $ref_1->path, '->add_directory_path' );
+is ( $dir_1->get_path, $ref_1->get_path, '->add_directory_path' );
 
 eval {
     my $dir_2 = $ref_2->add_directory_path(undef);
@@ -103,13 +92,13 @@ eval {
 
 like( $@, qr(Missing or invalid path), '->add_directory_path catches bad path' );
 
-my $file_1 = $ref_1->add_file(filename => catfile($ref_1->path, 'test.txt'), sitename => 'www.test.site.invalid');
+my $file_1 = $ref_1->add_file(filename => catfile($ref_1->get_path, 'test.txt'), sitename => 'www.test.site.invalid');
 
 ok( $ref_1, '->add_file returns true' );
 
-isnt($ref_1->search_file(catfile($ref_1->path, 'test.txt')), undef, '->search_file');
+isnt($ref_1->search_file(catfile($ref_1->get_path, 'test.txt')), undef, '->search_file');
 
-is($ref_2->search_file(catfile($ref_1->path, 'test.txt')), undef, '->search_file for file that is not there');
+is($ref_2->search_file(catfile($ref_1->get_path, 'test.txt')), undef, '->search_file for file that is not there');
 
 eval {
     my $file_2 = $ref_2->add_file();

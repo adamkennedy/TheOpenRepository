@@ -40,7 +40,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid id), '->new catches bad id' );
+like($@, qr(Missing mandatory initializer 'id'), '->new catches bad id' );
 
 eval {
     my $feature_2 = Perl::Dist::WiX::Feature->new(
@@ -52,7 +52,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid title), '->new catches bad title' );
+like($@, qr(Missing mandatory initializer 'title'), '->new catches bad title' );
 
 eval {
     my $feature_2 = Perl::Dist::WiX::Feature->new(
@@ -64,7 +64,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid description), '->new catches bad description' );
+like($@, qr(Missing mandatory initializer 'description'), '->new catches bad description' );
 
 eval {
     my $feature_5 = Perl::Dist::WiX::Feature->new(
@@ -82,7 +82,7 @@ is( $feature_1->as_string, q{}, '->as_string with no components' );
 
 $feature_1->add_components('TestComponent');
 
-is( $feature_1->componentrefs->[0], 'TestComponent', '->add_components' );
+is( $feature_1->get_componentrefs->[0], 'TestComponent', '->add_components' );
 
 my $feature_1_test_string = <<'EOF';
 <Feature Id='Complete' Title='Complete' Description='The complete program' Level='0'>

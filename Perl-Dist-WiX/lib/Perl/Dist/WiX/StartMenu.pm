@@ -12,13 +12,11 @@ package Perl::Dist::WiX::StartMenu;
 use 5.006;
 use strict;
 use warnings;
-use Carp              qw( croak                           );
 use Object::InsideOut qw( 
     Perl::Dist::WiX::Base::Fragment
     Storable
 );
 use Params::Util      qw( _IDENTIFIER _STRING             );
-use Data::UUID        qw( NameSpace_DNS                   );
 use vars              qw( $VERSION                        );
 
 use version; $VERSION = qv('0.13_02');

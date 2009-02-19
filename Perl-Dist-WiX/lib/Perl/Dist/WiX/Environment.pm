@@ -18,9 +18,7 @@ use     Object::InsideOut qw(
     Perl::Dist::WiX::Base::Component
     Storable
 );
-use     Carp              qw( croak          );
 use     Params::Util      qw( _IDENTIFIER    );
-use     Data::UUID        qw( NameSpace_DNS  );
 require Perl::Dist::WiX::EnvironmentEntry;
 
 use version; $VERSION = qv('0.13_02');
@@ -48,7 +46,7 @@ use version; $VERSION = qv('0.13_02');
 		# Check parameters.
 
 		unless ( _IDENTIFIER( $self->get_component_id() ) ) {
-			croak 'Missing or invalid id parameter';
+			PDWiX->throw('Missing or invalid id parameter');
 		}
 
 		# Make a GUID for as_string to use.

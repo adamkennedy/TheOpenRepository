@@ -13,7 +13,6 @@ use 5.006;
 use strict;
 use warnings;
 use Object::InsideOut      qw( Perl::Dist::WiX::Misc Storable );
-use Carp                   qw( croak     );
 use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );
 use vars                   qw( $VERSION  );
@@ -59,10 +58,10 @@ use version; $VERSION = qv('0.13_02');
 			$pathname_target = 'Perl.msi';
 		}
 		unless ( defined _STRING($pathname_target) ) {
-			croak 'Invalid pathname_target parameter';
+			PDWiX->throw('Invalid pathname_target parameter');
 		}
 		unless ( defined _STRING($pathname_icon) ) {
-			croak 'Invalid pathname_icon parameter';
+			PDWiX->throw('Invalid pathname_icon parameter');
 		}
 
 		# Find the type of target.
@@ -107,10 +106,10 @@ use version; $VERSION = qv('0.13_02');
 			$target_type = 'msi';
 		}
 		unless ( defined _STRING($target_type) ) {
-			croak 'Invalid target_type parameter';
+			PDWiX->throw('Invalid target_type parameter');
 		}
 		unless ( defined _STRING($pathname_icon) ) {
-			croak 'Invalid pathname_icon parameter';
+			PDWiX->throw('Invalid pathname_icon parameter');
 		}
 
 		if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return undef; }

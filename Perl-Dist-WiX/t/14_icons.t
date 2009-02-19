@@ -31,18 +31,27 @@ is( $icon_1->as_string, q{}, '->as_string with no icons' );
 
 $icon_1->add_icon('c:\testicon.ico');
 
-my $icon_1_test = bless( {
-  'trace' => 100,
-  'icons' => [
-    {
-      'file' => 'c:\\testicon.ico',
-      'id' => 'testicon.msi',
-      'target_type' => 'msi'
-    }
-  ]
-}, 'Perl::Dist::WiX::Icons' );
+my $icon_1_test = [
+  'Perl::Dist::WiX::Icons',
+  {
+    'Perl::Dist::WiX::Icons' => {
+                                  'icons' => [
+                                               {
+                                                 'file' => 'c:\\testicon.ico',
+                                                 'id' => 'testicon.msi',
+                                                 'target_type' => 'msi'
+                                               }
+                                             ]
+                                },
+    'Perl::Dist::WiX::Misc' => {
+                                 'sitename' => 'www.perl.invalid',
+                                 'trace' => 100,
+                                 'siteguid' => undef
+                               }
+  }
+];
 
-is_deeply($icon_1, $icon_1_test, 'Object created correctly.');
+is_deeply($icon_1->dump(), $icon_1_test, 'Object created correctly.');
 
 is( $icon_1->search_icon('c:\testicon.ico'), 'testicon.msi', '->search_icon' );
 

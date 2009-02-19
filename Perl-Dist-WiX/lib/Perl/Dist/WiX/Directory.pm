@@ -19,7 +19,6 @@ use     Object::InsideOut      qw(
 );
 use     Params::Util
   qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
-use     Carp                   qw( croak              );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
@@ -56,7 +55,7 @@ use version; $VERSION = qv('0.13_02');
 		if (   ( $special[$object_id] == 0 )
 			&& ( not _STRING( $path[$object_id] ) ) )
 		{
-			croak 'Missing or invalid path';
+			PDWiX->throw('Missing or invalid path');
 		}
 		if (   ( not defined _STRING( $self->get_guid ) )
 			&& ( not defined _STRING( $self->get_component_id ) ) )
@@ -103,7 +102,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Set defaults for parameters.
 		my $path_to_find = _STRING( $params_ref->{path_to_find} )
-		  || croak 'No path to find.';
+		  || PDWiX->throw('No path to find.');
 		my $descend = $params_ref->{descend} || 1;
 		my $exact   = $params_ref->{exact}   || 0;
 
@@ -164,7 +163,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check required parameters.
 		unless ( _STRING($filename) ) {
-			croak 'Missing or invalid filename parameter';
+			PDWiX->throw('Missing or invalid filename parameter');
 		}
 
 		# Do we want to continue searching down this direction?
@@ -207,7 +206,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters
 		if ( not defined _NONNEGINT($i) ) {
-			croak 'Missing or invalid index parameter';
+			PDWiX->throw('Missing or invalid index parameter');
 		}
 
 		$self->trace_line( 3,
@@ -232,7 +231,7 @@ use version; $VERSION = qv('0.13_02');
 		# We need id, name pairs passed in.
 		if ( $#params % 2 != 1 )       # The test is weird, but $#params
 		{                              # is one less than the actual count.
-			croak('Odd number of parameters to add_directories_id');
+			PDWiX->throw('Odd number of parameters to add_directories_id');
 		}
 
 		# Add each individual id and name.
@@ -294,7 +293,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check required parameters.
 		unless ( _STRING($path) ) {
-			croak 'Missing or invalid path parameter';
+			PDWiX->throw('Missing or invalid path parameter');
 		}
 
 		if ( substr( $path, -1 ) eq q{\\} ) {
@@ -305,7 +304,7 @@ use version; $VERSION = qv('0.13_02');
 		if ( not( $path =~ m{\A\Q$path_to_remove\E}msx ) ) {
 			$self->trace_line( 0,
 				"Path to add: $path\nPath to add to: $path_to_remove\n" );
-			croak q{Can't add the directories required};
+			PDWiX->throw(q{Can't add the directories required});
 		}
 
 		# Get list of directories to add.
@@ -346,7 +345,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _HASH($params_ref) ) {
-			croak('Parameters not passed in hash reference');
+			PDWiX->throw('Parameters not passed in hash reference');
 		}
 
 		# Check required parameters.
@@ -354,7 +353,7 @@ use version; $VERSION = qv('0.13_02');
 				or ( $params_ref->{special} == 0 ) )
 			and ( not _STRING( $params_ref->{path} ) ) )
 		{
-			croak 'Missing or invalid path parameter';
+			PDWiX->throw('Missing or invalid path parameter');
 		}
 
 		# If we have a name or a special code, we create it under here.
@@ -387,8 +386,9 @@ use version; $VERSION = qv('0.13_02');
 			);
 
 			if ( not defined $directory ) {
-				croak
-"Can't create intermediate directories when creating $path (unsuccessful search for $volume$directories)";
+				PDWiX->throw(q{Can't create intermediate directories } 
+                . "when creating $path (unsuccessful search for "
+                . "$volume$directories)");
 			}
 
 			# Add the directory there.
@@ -418,7 +418,7 @@ use version; $VERSION = qv('0.13_02');
 				$directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef'
 			) )
 		{
-			croak('Invalid directory object passed in.');
+			PDWiX->throw('Invalid directory object passed in.');
 		}
 
 		my $path_to_check = $directory_obj->get_path;
@@ -436,8 +436,8 @@ use version; $VERSION = qv('0.13_02');
 		}
 
 		my $answer = "$path\\" =~ m{\A\Q$path_to_check\E\\}msx ? 1 : 0;
-		$self->trace_line( 5,
-"Is Child Of: Answer: $answer\n  Path: $path\n  Path to check: $path_to_check\n"
+		$self->trace_line( 5, "Is Child Of: Answer: $answer\n  "
+        . "Path: $path\n  Path to check: $path_to_check\n"
 		);
 		return $answer;
 	} ## end sub is_child_of

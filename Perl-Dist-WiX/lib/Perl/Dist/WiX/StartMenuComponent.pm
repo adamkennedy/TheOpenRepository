@@ -22,9 +22,7 @@ use Object::InsideOut qw(
     Perl::Dist::WiX::Base::Entry
     Storable
 );
-use Carp              qw( croak               );
 use Params::Util      qw( _IDENTIFIER _STRING );
-use Data::UUID        qw( NameSpace_DNS       );
 
 use version; $VERSION = qv('0.13_02');
 
@@ -58,11 +56,15 @@ sub _pre_init :PreInit {
 	my ($self, $args) = @_;
     
 	unless ( _STRING( $args->{name} ) ) {
-		croak('Missing or invalid name param');
+		PDWiX->throw('Missing or invalid name param');
 	}
 
 	unless ( _STRING( $args->{description} ) ) {
 		$args->{description} = $args->{name};
+	}
+
+	unless ( _STRING( $args->{id} ) ) {
+		PDWiX->throw('Missing or invalid id param');
 	}
 
 	unless ( _STRING( $args->{guid} ) ) {
@@ -76,19 +78,17 @@ sub _init :Init {
 	my $self = shift;
     my $object_id = ${$self};
     
-    # Create GUID from ID if required.
-    
 	unless ( _STRING( $target[$object_id] ) ) {
-		croak('Missing or invalid target param');
+		PDWiX->throw('Missing or invalid target param');
 	}
 	unless ( _STRING( $working_dir[$object_id] ) ) {
-		croak('Missing or invalid working_dir param');
+		PDWiX->throw('Missing or invalid working_dir param');
 	}
 	unless ( _STRING( $menudir_id[$object_id] ) ) {
-		croak('Missing or invalid menudir_id param');
+		PDWiX->throw('Missing or invalid menudir_id param');
 	}
 	unless ( _STRING( $icon_id[$object_id] ) ) {
-		croak('Missing or invalid icon_id param');
+		PDWiX->throw('Missing or invalid icon_id param');
 	}
 
 	$self->trace_line( 3, "Adding Icon for $target[$object_id]\n" );

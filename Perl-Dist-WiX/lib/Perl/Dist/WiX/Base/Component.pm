@@ -16,7 +16,6 @@ use strict;
 use warnings;
 use vars              qw( $VERSION                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable :Public );
-use Carp              qw( croak                                  );
 use Params::Util      qw( _CLASSISA _STRING _NONNEGINT           );
 
 use version; $VERSION = qv('0.13_02');
@@ -66,7 +65,7 @@ use version; $VERSION = qv('0.13_02');
 		my $object_id = ${$self};
 
 		unless ( _CLASSISA( ref $entry, 'Perl::Dist::WiX::Base::Entry' ) ) {
-			croak 'Not adding a valid component';
+			PDWiX->throw('Not adding a valid component');
 		}
 
 		# getting the number of items in the array
@@ -95,8 +94,8 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _STRING( $id[$object_id] ) ) {
-			croak 'Missing or invalid id param - cannot generate GUID '
-			  . 'without one';
+			PDWiX->throw('Missing or invalid id param - cannot generate GUID '
+			  . 'without one');
 		}
 
 		# Generate the GUID...
@@ -122,7 +121,7 @@ use version; $VERSION = qv('0.13_02');
 		return q{} if ( scalar @{ $entries[$object_id] } == 0 );
 
 		unless ( _STRING( $id[$object_id] ) ) {
-			croak('Missing or invalid id param');
+			PDWiX->throw('Missing or invalid id param');
 		}
 
 		unless ( _STRING( $guid[$object_id] ) ) {
@@ -131,8 +130,8 @@ use version; $VERSION = qv('0.13_02');
                 
 		# Check parameters.
 		unless ( defined _NONNEGINT($spaces) ) {
-			croak 'Calling as_spaces improperly '
-			  . '(most likely, not calling derived method)';
+			PDWiX->throw('Calling as_spaces improperly '
+			  . '(most likely, not calling derived method)');
 		}
 
 		# Stringify each entry and indent it.

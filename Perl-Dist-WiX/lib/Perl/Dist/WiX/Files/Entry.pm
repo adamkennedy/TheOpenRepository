@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use vars                  qw( $VERSION                              );
 use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
-use Carp                  qw( croak                                 );
 use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
 
@@ -41,7 +40,7 @@ sub _pre_init : PreInit {
 
 	# Check params
 	unless ( _STRING( $args->{name} ) ) {
-		croak('Missing or invalid name param');
+		PDWiX->throw('Missing or invalid name param');
 	}
    
     # Create an ID and GUID.

@@ -71,7 +71,7 @@ sub get_component_array {
 	return undef if ( 0 == $count );
 
 	foreach my $i ( 0 .. $count - 1 ) {
-		$id = $self->get_components->[$i]->id;
+		$id = $self->get_components->[$i]->get_component_id;
 		push @answer, "C_$id";
 	}
 
@@ -93,10 +93,10 @@ sub add_key {
 
 	# Check parameters.
 	unless ( _IDENTIFIER( $params{id} ) ) {
-		croak('Missing or invalid id');
+		PDWiX->throw('Missing or invalid id');
 	}
 	unless ( _STRING( $params{key} ) ) {
-		croak('Missing or invalid key');
+		PDWiX->throw('Missing or invalid key');
 	}
 
 	# Set defaults.

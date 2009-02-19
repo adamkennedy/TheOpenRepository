@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use vars              qw( $VERSION                              );
 use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry Storable );
-use Carp              qw( croak                                 );
 use Params::Util      qw( _IDENTIFIER _STRING                   );
 
 use version; $VERSION = qv('0.13_02');
@@ -48,13 +47,13 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check params
 		unless ( _STRING( $id[$object_id] ) ) {
-			croak('Missing or invalid id param');
+			PDWiX->throw('Missing or invalid id param');
 		}
 		unless ( _STRING( $name[$object_id] ) ) {
-			croak('Missing or invalid name param');
+			PDWiX->throw('Missing or invalid name param');
 		}
 		unless ( _STRING( $value[$object_id] ) ) {
-			croak('Missing or invalid value param');
+			PDWiX->throw('Missing or invalid value param');
 		}
 
 		# TODO: Check for valid enums...

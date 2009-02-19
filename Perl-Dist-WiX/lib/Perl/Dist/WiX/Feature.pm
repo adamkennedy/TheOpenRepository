@@ -13,7 +13,6 @@ use strict;
 use warnings;
 use vars              qw( $VERSION                       );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
-use Carp              qw( croak                          );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT   );
 
 use version; $VERSION = qv('0.13_02');
@@ -41,7 +40,7 @@ use version; $VERSION = qv('0.13_02');
 
 	my @default_settings : Field :Name(default_settings);
 	my @features : Field :Name(features);
-	my @componentrefs : Field :Name(componentrefs);
+	my @componentrefs : Field :Name(componentrefs) :Get(get_componentrefs);
 
 #<<<
 #####################################################################
@@ -75,16 +74,16 @@ use version; $VERSION = qv('0.13_02');
         
         # Check required parameters.
         unless ( _STRING( $id[$object_id] ) ) {
-            $self->trace_die('Invalid id parameter');
+            PDWiX->throw('Invalid id parameter');
         }
         unless ( _STRING( $title[$object_id] ) ) {
-            $self->trace_die('Invalid title parameter');
+            PDWiX->throw('Invalid title parameter');
         }
         unless ( _STRING( $description[$object_id] ) ) {
-            $self->trace_die('Invalid description parameter');
+            PDWiX->throw('Invalid description parameter');
         }
         unless ( defined _NONNEGINT( $level[$object_id] ) ) {
-            $self->trace_die('Missing or invalid level parameter');
+            PDWiX->throw('Missing or invalid level parameter');
         }
 
         my $default_settings = 0;
@@ -139,7 +138,7 @@ use version; $VERSION = qv('0.13_02');
         my $object_id = ${$self};
 
         unless ( _INSTANCE( $feature, 'Perl::Dist::WiX::Feature' ) ) {
-            $self->trace_die('Not adding valid feature');
+            PDWiX->throw('Not adding valid feature');
         }
 
         push @{ $features[$object_id] }, $feature;
@@ -176,7 +175,7 @@ use version; $VERSION = qv('0.13_02');
 
         # Check parameters.
         unless ( _IDENTIFIER( $id_to_find ) ) {
-            $self->trace_die('Missing or invalid id parameter');
+            PDWiX->throw('Missing or invalid id parameter');
         }
 
         my $id = $id[$object_id];

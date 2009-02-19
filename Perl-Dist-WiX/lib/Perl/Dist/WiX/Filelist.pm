@@ -14,7 +14,6 @@ use strict;
 use warnings;
 use vars                   qw( $VERSION                          );
 use Object::InsideOut      qw( Perl::Dist::WiX::Misc Storable    );
-use Carp                   qw( croak verbose                     );
 use File::Spec::Functions  qw( catdir catfile splitpath splitdir );
 use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
@@ -65,7 +64,7 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters
 		unless ( _INSTANCE( $source, 'Perl::Dist::WiX::Filelist' ) ) {
-			croak 'Missing or invalid source parameter';
+			PDWiX->throw('Missing or invalid source parameter');
 		}
 
 		# Add filelist passed in.
@@ -195,16 +194,16 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters.
 		unless ( _STRING($dir) ) {
-			croak 'Missing or invalid dir parameter';
+			PDWiX->throw('Missing or invalid dir parameter');
 		}
 		unless ( -d $dir ) {
-			croak "$dir is not a directory";
+			PDWiX->throw("$dir is not a directory");
 		}
 
 		# Open directory.
 		my $dir_object = IO::Dir->new($dir);
 		if ( !defined $dir_object ) {
-			croak "Error reading directory $dir: $!";
+			PDWiX->throw("Error reading directory $dir: $!");
 		}
 
 		# Read a file from the directory.
@@ -250,16 +249,16 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters.
 		unless ( _STRING($packlist) ) {
-			croak 'Missing or invalid packlist parameter';
+			PDWiX->throw('Missing or invalid packlist parameter');
 		}
 		unless ( -r $packlist ) {
-			croak "$packlist cannot be read";
+			PDWiX->throw("$packlist cannot be read");
 		}
 
 		# Read ,packlist file.
 		my $fh = IO::File->new( $packlist, 'r' );
 		if ( not defined $fh ) {
-			croak "File Error: $!";
+			PDWiX->throw("File Error: $!");
 		}
 		my @files_list = <$fh>;
 		$fh->close;
@@ -313,7 +312,7 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters.
 		unless ( _STRING($file) ) {
-			croak 'Missing or invalid file parameter';
+			PDWiX->throw('Missing or invalid file parameter');
 		}
 
 		$files[$object_id]{$file} = 1;
@@ -336,7 +335,7 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters
 		unless ( _INSTANCE( $subtrahend, 'Perl::Dist::WiX::Filelist' ) ) {
-			croak 'Missing or invalid subtrahend parameter';
+			PDWiX->throw('Missing or invalid subtrahend parameter');
 		}
 
 		my @files_to_remove = keys %{ $subtrahend->get_files };
@@ -360,7 +359,7 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters
 		unless ( _INSTANCE( $term, 'Perl::Dist::WiX::Filelist' ) ) {
-			croak 'Missing or invalid term parameter';
+			PDWiX->throw('Missing or invalid term parameter');
 		}
 
 		# Add the two hashes together.
@@ -386,10 +385,10 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters.
 		unless ( _STRING($from) ) {
-			croak 'Missing or invalid from parameter';
+			PDWiX->throw('Missing or invalid from parameter');
 		}
 		unless ( _STRING($to) ) {
-			croak 'Missing or invalid to parameter';
+			PDWiX->throw('Missing or invalid to parameter');
 		}
 
 		# Move the file if it exists.
@@ -417,10 +416,10 @@ my %sortcache; # Defined at this level so that the cache does not
 
 		# Check parameters.
 		unless ( _STRING($from) ) {
-			croak 'Missing or invalid from parameter';
+			PDWiX->throw('Missing or invalid from parameter');
 		}
 		unless ( _STRING($to) ) {
-			croak 'Missing or invalid to parameter';
+			PDWiX->throw('Missing or invalid to parameter');
 		}
 
 		# Find which files need moved.

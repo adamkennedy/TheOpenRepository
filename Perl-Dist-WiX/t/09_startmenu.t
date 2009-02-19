@@ -12,7 +12,7 @@ require Perl::Dist::WiX::StartMenuComponent;
 
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 20;
+		plan tests => 18;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -26,14 +26,6 @@ ok( defined $menu_1, 'creating a P::D::W::StartMenu' );
 
 isa_ok( $menu_1, 'Perl::Dist::WiX::StartMenu', 'The start menu');
 isa_ok( $menu_1, 'Perl::Dist::WiX::Base::Fragment', 'The start menu');
-
-eval {
-    my $menu_2 = Perl::Dist::WiX::StartMenu->new(
-        sitename  => undef,
-    );
-};
-
-like($@, qr(Invalid or missing sitename), 'StartMenu->new catches bad sitename' );
 
 is( $menu_1->as_string, q{}, 'StartMenu->as_string with no component');
 is_deeply( $menu_1->get_component_array, 'RemoveShortcutFolder', 'StartMenu->get_component_array with no component');
@@ -55,22 +47,6 @@ ok( defined $component_1, 'creating a P::D::W::StartMenuComponent' );
 isa_ok( $component_1, 'Perl::Dist::WiX::StartMenuComponent', 'The start menu component');
 isa_ok( $component_1, 'Perl::Dist::WiX::Base::Component', 'The start menu component');
 isa_ok( $component_1, 'Perl::Dist::WiX::Misc', 'The start menu component');
-
-eval {
-    my $component_2 = Perl::Dist::WiX::StartMenuComponent->new(
-        sitename    => undef,
-        id          => 'Test_Icon',
-        name        => 'Test Icon',
-        description => 'Test Icon Entry',
-        target      => '[D_TestDir]file.test',
-        working_dir => 'TestDir',
-        menudir_id  => 'D_App_Menu',
-        icon_id     => 'icon.test',
-        trace       => 100,
-    );
-};
-
-like($@, qr(Missing or invalid sitename), 'StartMenuComponent->new catches bad sitename' );
 
 eval {
     my $component_3 = Perl::Dist::WiX::StartMenuComponent->new(

@@ -13,7 +13,6 @@ use     strict;
 use     warnings;
 use     vars                     qw( $VERSION                       );
 use     Object::InsideOut        qw( Perl::Dist::WiX::Misc Storable );
-use     Carp                     qw( croak                          );
 use     Params::Util             qw( _IDENTIFIER _CLASSISA          );
 use     Scalar::Util             qw( weaken                         );
 require Perl::Dist::WiX::Feature;
@@ -41,7 +40,7 @@ use version; $VERSION = qv('0.13_02');
 		my $object_id = ${$self};
 
 		unless ( _CLASSISA( ref $parent[$object_id], 'Perl::Dist::WiX' ) ) {
-			$self->trace_die('Missing or invalid parent parameter');
+			PDWiX->throw('Missing or invalid parent parameter');
 		}
 
 		# Do this so as not to create a garbage collection loop.
@@ -51,7 +50,7 @@ use version; $VERSION = qv('0.13_02');
 		$self->trace_line(0, "Creating feature tree...\n");
 		$features[$object_id] = [];
 		if ( defined $parent[$object_id]->{msi_feature_tree} ) {
-			$self->trace_die('Complex feature tree not implemented in '
+			PDWiX->throw('Complex feature tree not implemented in '
 			  . "Perl::Dist::WiX $VERSION.");
 		} else {
 			$features[$object_id]->[0] = Perl::Dist::WiX::Feature->new(
@@ -81,7 +80,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _IDENTIFIER($id_to_find) ) {
-			$self->trace_die('Missing or invalid id parameter');
+			PDWiX->throw('Missing or invalid id parameter');
 		}
 
 		# Check each of our branches.

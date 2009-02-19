@@ -16,7 +16,6 @@ use     Object::InsideOut qw(
     Perl::Dist::WiX::Base::Component
     Storable
 );
-use     Carp              qw( croak    );
 use     Params::Util      qw( _STRING  );
 require Perl::Dist::WiX::Files::Entry;
 
@@ -44,7 +43,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _STRING( $name[$object_id] ) ) {
-			croak('Missing or invalid filename param');
+			PDWiX->throw('Missing or invalid filename param');
 		}
 
 		# Create a GUID if required.
@@ -79,7 +78,7 @@ use version; $VERSION = qv('0.13_02');
 
 		# Check parameters.
 		unless ( _STRING($filename) ) {
-			croak('Missing or invalid filename param');
+			PDWiX->throw('Missing or invalid filename param');
 		}
 
 		return ( $self->filename eq $filename ) ? 1 : 0;

@@ -32,21 +32,21 @@ stdout_like( sub { $misc->trace_line(1, "Test 5\n") },
     'trace_line works at level 5'
 );
 
-$misc->{trace} = 3;
+$misc->set_trace(3);
 
 stdout_like( sub { $misc->trace_line(1, "Test 6\n") }, 
     qr(\A\Q[1] Test 6\E\n\z), 
     'trace_line works at level 3'
 );
 
-$misc->{trace} = 1;
+$misc->set_trace(1);
 
 stdout_like( sub { $misc->trace_line(1, "Test 7\n") }, 
     qr(\ATest 7\n\z), 
     'trace_line works at level 1'
 );
 
-$misc->{trace} = 0;
+$misc->set_trace(0);
 
 stdout_like( sub { $misc->trace_line(1, "Test 8\n") }, 
     qr(\A\z), 
@@ -58,7 +58,7 @@ stderr_like( sub { $misc->trace_line(0, "Test 9\n") },
     'trace_line works (printing to stderr) at level 0'
 );
 
-$misc->{trace} = 2;
+$misc->set_trace(2);
 
 stdout_like( sub { $misc->trace_line(1, "Test 10\n", 1) }, 
     qr(\ATest 10\n\z), 
@@ -81,9 +81,8 @@ eval { $misc->trace_line(1, q[]); };
 
 like( $@ , qr(Missing or invalid text), 'trace_line prints text error');
 
-$misc->{trace} = -1;
+$misc->set_trace(5);
+eval { $misc->set_trace(-1); };
 
-eval { $misc->trace_line(1, "Error 5\n"); };
-
-like( $@ , qr(Inconsistent trace state), 'trace_line prints inconsistent state error');
+like( $@ , qr(invalid tracelevel), 'set_trace prints invalid tracelevel error');
 

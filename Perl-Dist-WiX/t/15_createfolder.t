@@ -7,8 +7,6 @@ BEGIN {
 }
 
 use Test::More;
-require Perl::Dist::WiX::CreateFolder;
-
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
 		plan tests => 8;
@@ -16,6 +14,8 @@ BEGIN {
 		plan skip_all => 'Not on Win32';
 	}
 }
+
+require Perl::Dist::WiX::CreateFolder;
 
 my $folder_1 = Perl::Dist::WiX::CreateFolder->new(
     trace     => 100,
@@ -29,6 +29,7 @@ ok( defined $folder_1, 'creating a P::D::W::CreateFolder' );
 isa_ok( $folder_1, 'Perl::Dist::WiX::CreateFolder' );
 isa_ok( $folder_1, 'Perl::Dist::WiX::Base::Fragment' );
 isa_ok( $folder_1, 'Perl::Dist::WiX::Base::Component' );
+isa_ok( $folder_1, 'Perl::Dist::WiX::Misc' );
 
 eval {
     my $folder_2 = Perl::Dist::WiX::CreateFolder->new(
@@ -39,18 +40,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid id), '->new catches bad id' );
-
-eval {
-    my $folder_3 = Perl::Dist::WiX::CreateFolder->new(
-        trace     => 100,
-        id        => 'TestID',
-        directory => 'TestID',
-        sitename  => undef,
-    );
-};
-
-like($@, qr(Missing or invalid sitename), '->new catches bad sitename' );
+like($@, qr(Invalid or missing id), '->new catches bad id' );
 
 is( $folder_1->get_component_array, 'CreateTestID', '->get_component_array' );
 
@@ -59,7 +49,7 @@ my $folder_1_test_string = <<'EOF';
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Fragment Id='Fr_CreateTestID'>
     <DirectoryRef Id='D_TestID'>
-      <Component Id='C_CreateTestID' Guid='47B5C556-9D29-3003-826B-932229FEE9CB'>
+      <Component Id='C_CreateTestID' Guid='FB041D3B-4936-3E95-88A4-C82080C91974'>
         <CreateFolder />
       </Component>
     </DirectoryRef>

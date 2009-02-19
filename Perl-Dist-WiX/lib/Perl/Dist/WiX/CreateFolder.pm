@@ -18,7 +18,6 @@ use Object::InsideOut qw(
     Perl::Dist::WiX::Base::Component
     Storable
 );
-use Carp              qw( croak    );
 use Params::Util      qw( _STRING  );
 
 use version; $VERSION = qv('0.13_02');
@@ -40,7 +39,7 @@ use version; $VERSION = qv('0.13_02');
         unless (defined $args->{guid}) {
             my $id = $args->{id};
             unless (defined _STRING($id)) {
-                $self->trace_die('Invalid or missing id parameter.');
+                PDWiX->throw('Invalid or missing id parameter.');
             }
             $args->{guid} = $self->generate_guid("Create$id"); 
         };
