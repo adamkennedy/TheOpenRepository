@@ -33,6 +33,7 @@ foreach my $p ( @params ) {
 
 	my %ignore = map { $_ => 1 } qw{
 		Makefile
+		MANIFEST
 		LICENSE
 		README
 		pm_to_blib
