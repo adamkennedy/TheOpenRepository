@@ -11,11 +11,13 @@ use Pod::Abstract::Serial;
 
  $node->nest( @list );          # Nests list as children of $node. If they
                                 # exist in a tree they will be detached.
+ $node->clear;                  # Remove all children of $node
  $node->hoist;                  # Append all children of $node after $node.
  $node->detach;                 # Detaches intact subtree from parent
  $node->select( $path_exp );    # Selects the path expression under $node
  $node->select_into( $target, $path_exp );
-                                # Selects into the children of the target node.
+                                # Selects into the children of the
+                                # target node.  (copies)
  
  $node->insert_before($target); # Inserts $node in $target's tree before $target
  $node->insert_after($target);
@@ -27,6 +29,9 @@ use Pod::Abstract::Serial;
  $node->children();             # All direct child nodes of this one
  
  $node->duplicate();            # Duplicate node and children in a new tree.
+ 
+ $node->pod;                    # Convert node back into literal POD
+ $node->ptree;                  # Show visual (abbreviated) parse tree
 
 =cut
 
@@ -50,13 +55,16 @@ sub new {
     return $self;
 }
 
-sub text_ptree {
+sub ptree {
     my $self = shift;
     my $indent = shift || 0;
     my $width = 76 - $indent;
     
     my $type = $self->type;
     my $body = $self->body;
+    if(my $body_attr = $self->param('body_attr')) {
+        $body = $self->param($body_attr)->pod;
+    }
     $body =~ s/[\n\t]//g if $body;
     
     my $r = ' ' x $indent;
@@ -65,12 +73,75 @@ sub text_ptree {
     } else {
         $r .= "[$type]";
     }
+    $r = sprintf("%3d %s",$self->serial, $r);
     $r .= "\n";
     my @children = $self->children;
     foreach my $c (@children) {
-        $r .= $c->text_ptree($indent + 2);
+        $r .= $c->ptree($indent + 2);
     }
     return $r;
+}
+
+sub pod {
+    my $self = shift;
+    
+    my $r = '';
+    my $body = $self->body;
+    my $type = $self->type;
+    my $should_para_break = 0;
+    
+    my $r_delim = undef; # Used if a interior sequence needs closing.
+
+    if($type eq ':paragraph') {
+        $should_para_break = 1;
+    } elsif( $type eq ':text' or $type eq '#cut' or $type eq ':verbatim') {
+        $r .= $body;
+        $should_para_break = 1 if $type eq ':verbatim';
+    } elsif( $type =~ m/^\:(.+)$/ ) { # Interior sequence
+        my $cmd = $1;
+        my $l_delim = $self->param('left_delimiter');
+        $r_delim = $self->param('right_delimiter');
+        $r .= "$cmd$l_delim";
+    } elsif( $type eq '[ROOT]' or $type =~ m/^@/) {
+        # ignore
+    } else { # command
+        my $body_attr = $self->param('body_attr');
+        if($body_attr) {
+            $body = $self->param($body_attr)->pod;
+        }
+        $r .= "=$type $body\n\n";
+    }
+    
+    my @children = $self->children;
+    foreach my $c (@children) {
+        $r .= $c->pod;
+    }
+    
+    if($should_para_break) {
+        $r .= "\n\n";
+    } elsif($r_delim) {
+        $r .= $r_delim;
+    }
+    return $r;
+}
+
+sub select {
+    my $self = shift;
+    my $path = shift;
+    
+    my $p_path = Pod::Abstract::Path->new($path);
+    return $p_path->process($self);
+}
+
+sub select_into {
+    my $self = shift;
+    my $target = shift;
+    my $path = shift;
+    
+    my @nodes = $self->select($path);
+    my @dup_nodes = map { $_->duplicate } @nodes;
+    
+    $target->nest(@dup_nodes);
 }
 
 sub type {
@@ -81,6 +152,12 @@ sub type {
 sub body {
     my $self = shift;
     return $self->{body};
+}
+
+sub param {
+    my $self = shift;
+    my $param_name = shift;
+    return $self->{params}{$param_name};
 }
 
 sub duplicate {
@@ -100,8 +177,9 @@ sub insert_before {
     my $target = shift;
     
     my $target_tree = $target->parent->tree;
+    die "Can't insert before a root node" unless $target_tree;
     if($target_tree->insert_before($target, $self)) {
-        $self->parent($target_tree);
+        $self->parent($target->parent);
     } else {
         die "Could not insert before [$target]";
     }
@@ -112,8 +190,9 @@ sub insert_after {
     my $target = shift;
     
     my $target_tree = $target->parent->tree;
+    die "Can't insert after a root node" unless $target_tree;
     if($target_tree->insert_after($target, $self)) {
-        $self->parent($target_tree);
+        $self->parent($target->parent);
     } else {
         die "Could not insert before [$target]";
     }
@@ -121,14 +200,18 @@ sub insert_after {
 
 sub hoist {
     my $self = shift;
+    my @children = $self->children;
     
-    my $n = $self;
-    foreach my $target(@_) {
-        $target->insert_after($n);
-        $n = $target;
+    my $parent = $self->parent;
+
+    my $target = $self;
+    foreach my $n(@children) {
+        $n->detach;
+        $n->insert_after($target);
+        $target = $n;
     }
     
-    return @_;
+    return scalar @children;
 }
 
 sub push {
@@ -137,7 +220,7 @@ sub push {
     
     my $target_tree = $self->tree;
     if($target_tree->push($target)) {
-        $target->parent($target_tree);
+        $target->parent($self);
     } else {
         die "Could not push [$target]";
     }
@@ -164,7 +247,7 @@ sub unshift {
     
     my $target_tree = $self->tree;
     if($target_tree->unshift($target)) {
-        $target->parent($target_tree);
+        $target->parent($target);
     } else {
         die "Could not unshift [$target]";
     }

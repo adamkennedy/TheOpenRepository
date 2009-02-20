@@ -1,0 +1,182 @@
+=head1 NAME
+
+Pod::Abstract - how to use what works so far:
+
+=head1 WHAT WORKS
+
+=over
+
+=item *
+
+ my $pa = Pod::Abstract->load_from_file($filename);
+ my $pa = Pod::Abstract->load_from_filehandle(\*STDIN);
+ my $pa = Pod::Abstract->load_from_string($pod);
+
+This will give you a [ROOT] node to start playing with. See
+Pod::Abstract::Parser if you want to play with the nesting/treeifying
+rules.
+
+=item *
+
+ print $pa->pod;
+
+This will (or should?) emit a blob of POD text matching the original
+input, except for what you have changed.
+
+=item *
+
+ print $pa->ptree;
+
+Emit a nice easy to read tree of a node. This will show node names in
+[ ] and abbreviated body.
+
+Left hand column shows node serial numbers, so if you rearrange nodes
+you can see that they are in the right order.
+
+=item *
+
+ my @nodes = $pa->select("/head1/head2[. =~ {WARNING}]");
+
+Select nodes matching pPath expression under the given node.
+
+At the moment, this will emit an execution flow for the pPath
+interpreter on STDERR while running. This can help if you want to know
+why your expression returns nothing.
+
+See pPath examples in test.pl and roundtrip.pl, and the PPATH section
+below.
+
+=item *
+
+ $node->nest(@nodes);
+ $node->detach; # removes from tree, but will not delete anything
+ $node->insert_before($other_node);
+ $node->insert_after($other_node);
+ my $new_node = $node->duplicate;
+ $node->hoist;
+ $node->push($other_node);  # insert $other_node at end of children
+ $node->shift($other_node); # backwards
+
+And of course, with any node:
+
+ $node->ptree;
+ $node->pod;
+ $node->select($expression);
+
+And the diabolical:
+
+ $node->select_into($some_target, $expression);
+
+=item *
+
+B<Nodes are typed by name>. A ":" node is a non-command node
+(verbatim, paragraph, text, inline sequence), a "#cut" node is a
+non-pod node, and a "[ROOT]" node is a ...
+
+You can select text nodes with "/:text" etc. I think I am going to
+keep it this way, because it's visual and it kinda works well.
+
+=item *
+
+Interior sequences are parsed where they're needed - even if it looks
+like they aren't. C<ptree> decodes sequences in headings and labels
+for prettier output. Anything in C<%attr_names> in
+Pod::Abstract::Parser has interior sequences in command paras parsed
+and expanded into the tree. You get at them with ->param('heading') or
+->param('label');
+
+=back
+
+=head1 DOESN'T EXIST/WORK
+
+=over
+
+=item *
+
+Node generation sucks. Generating new headings, lists etc is tedious
+beyond the basic level. Will be adding a nice API to pump out the
+obvious POD node types.
+
+You can generate nodes manually with Pod::Abstract::Node->new, or make
+some Pod text, parse it, then duplicate the nodes and put them where
+you want them.
+
+=item *
+
+Many features are missing for pPath. Only two [ ] matching tests are
+implemented.
+
+=item *
+
+Not all errors are trapped.
+
+=item *
+
+Things like =back are emitted even though they're pointless. They
+should be absorbed up into the =over node and kept there until being
+re-podified so that =overs can't lose their =backs.
+
+=back
+
+=head1 PPATH
+
+pPath is simple in operation and surprisingly expressive for the
+features implemented. It is evaluated left to right from the node that
+C<select> is invoked on.
+
+Example:
+
+ //head2[/head3 =~ {interesting}]
+
+Read:
+
+ //             Find all nodes under this one
+ head2          then take only the head2 nodes, then
+ [              select those having:
+  /             all child nodes
+  head3         Actually, head3 nodes only
+  =~            With title matching a regexp
+  {interesting} regex in m// context
+ ]              end select criteria
+
+Select criteria can be nested and stacked as required.
+
+Basic "keywords"
+
+=over
+
+=item EXPANSION
+
+All expansion is depth first.
+
+ //            Any child node at any depth.
+ /             Direct child nodes.
+ .             Current node (no effect)
+ ..            Parent node (for all nodes being evaluated - e.g, //head3..
+               would give all nodes with "head3" children - WITH 
+               POTENTIALLY DUPLICATES)
+
+=item RESTRICTION
+
+ (8)           Index. The 8th element of the previous selection.
+ name          Only things of type name
+ [   ]         Only things matching expression
+
+=item EXPRESSIONS
+
+ [! <exp> ]    Negated expression - will return the inverse set.
+ [/path/exp]   Any node that has at least one matching node. All
+               paths in expressions are evaluated from the perspective
+               of each candidate node. (e.g, each head2 node in the set)
+ [/path =~ {regexp}] Nodes matching regexp as above. This will match 
+               against the Pod text of whatever is being examined.
+
+=item MISSING
+
+ /head3@heading Match actual headings instead of entire section nodes.
+ [lpath=rpath]  Any node on lpath = any node on rpath.
+ [lpath='lit']  Match literal string
+ <,<=,>,>=      Other relational ops (not that useful for Pod but should be
+                supported.
+
+=back

@@ -69,6 +69,21 @@ sub push {
     return 1;
 }
 
+=head1 pop
+
+=cut
+
+sub pop {
+    my $self = shift;
+    
+    my $node = pop @{$self->{nodes}};
+    my $s = $node->serial;
+    delete $self->{id_map}{$s};
+    $node->parent(undef);
+
+    return $node;
+}
+
 =head1 insert_before
 
 =cut
@@ -82,7 +97,7 @@ sub insert_before {
     return 0 unless defined $idx;
     
     splice(@{$self->{nodes}}, $idx, 0, $node);
-    $self->{id_map}{$node} = $idx;
+    $self->{id_map}{$node->serial} = $idx;
 
     # Push all following nodes forwards by 1.
     my $length = scalar @{$self->{nodes}};
@@ -90,6 +105,7 @@ sub insert_before {
         my $s = $self->{nodes}[$i]->serial;
         $self->{id_map}{$s} ++;
     }
+    return 1;
 }
 
 =head1 insert_after
@@ -101,6 +117,8 @@ sub insert_after {
     my $node = shift;
     
     my $idx = $self->{id_map}{$target->serial};
+    die $target->serial, " not in index ", join(", ", keys %{$self->{id_map}})
+        unless defined $idx;
     my $last_idx = $#{$self->{nodes}};
     if($idx == $last_idx) {
         return $self->push($node);

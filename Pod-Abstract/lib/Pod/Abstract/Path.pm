@@ -201,7 +201,7 @@ sub test_regexp {
 
     my $match = 0;
     foreach my $t_n (@$t_list) {
-        my $body = $t_n->body;
+        my $body = $t_n->pod;
         if($body =~ $regexp) {
             $match ++;
         }

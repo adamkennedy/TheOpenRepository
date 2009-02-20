@@ -29,7 +29,7 @@ sub new {
         );
     $self->{pod_abstract} = $p_a;
     my $root_node = Pod::Abstract::Node->new(
-        type => ":root",
+        type => "[ROOT]",
         );
     $self->{cmd_stack} = [ $root_node ];
     $self->{root} = $root_node;
@@ -42,9 +42,6 @@ sub root {
     return $self->{root};
 }
 
-sub begin_pod {
-}
-
 # Automatically nest these items: A head1 section continues until the
 # next head1, list items continue until the next item or end of list,
 # etc. POD doesn't specify these relationships, but they are natural
@@ -53,8 +50,17 @@ my %section_commands = (
     'head1' => [ 'head1' ],
     'head2' => [ 'head2', 'head1' ],
     'head3' => [ 'head3', 'head2', 'head1' ],
+    'head4' => [ 'head4', 'head3', 'head2', 'head1' ],
     'over'  => [ 'back' ],
     'item'  => [ 'item', 'back' ],
+    );
+
+my %attr_names = (
+    head1 => 'heading',
+    head2 => 'heading',
+    head3 => 'heading',
+    head4 => 'heading',
+    item  => 'label',
     );
 
 sub command {
@@ -64,6 +70,12 @@ sub command {
     
     if($self->cutting) {
         # Treat as non-pod - i.e, verbatim program text block.
+        my $element_node = Pod::Abstract::Node->new(
+            type => "#cut",
+            body => "=$command $paragraph\n\n",
+            );
+        my $top = $cmd_stack->[$#$cmd_stack];
+        $top->push($element_node);
     } else {
         # Treat as command.
         while(@$cmd_stack > 0) {
@@ -78,9 +90,26 @@ sub command {
                 last;
             }
         }
+        
+        # Some commands have to get expandable interior sequences
+        my $attr_node = undef;
+        my $attr_name = $attr_names{$command};
+        my %attr = ( );
+        if($attr_name) {
+            $attr_node = Pod::Abstract::Node->new(
+                type => '@attribute',
+                body => $attr_name,
+                );
+            my $pt = $self->parse_text($paragraph);
+            $self->load_pt($attr_node, $pt);
+            $attr{$attr_name} = $attr_node;
+            $attr{body_attr} = $attr_name;
+        }
+        
         my $element_node = Pod::Abstract::Node->new(
             type => $command,
-            body => $paragraph,
+            body => ($attr_name ? $paragraph : ''),
+            %attr,
             );
         my $top = $cmd_stack->[$#$cmd_stack];
         $top->push($element_node);
@@ -107,13 +136,26 @@ sub verbatim {
     $top->push($element_node);
 }
 
+sub preprocess_paragraph {
+    my ($self, $text, $line_num) = @_;
+    return $text unless $self->cutting;
+    
+    # This is a non-pod text segment
+    my $element_node = Pod::Abstract::Node->new(
+        type => "#cut",
+        body => $text,
+        );
+    my $cmd_stack = $self->{cmd_stack};
+    my $top = $cmd_stack->[$#$cmd_stack];
+    $top->push($element_node);
+}
+
 sub textblock {
     my ($self, $paragraph, $line_num) = @_;
     chomp $paragraph; chomp $paragraph;
 
     my $element_node = Pod::Abstract::Node->new(
         type => ':paragraph',
-        body => $paragraph,
         );
     my $pt = $self->parse_text($paragraph);
     $self->load_pt($element_node, $pt);
@@ -137,7 +179,6 @@ sub load_pt {
                 my $cmd = $c->cmd_name;
                 my $i_node = Pod::Abstract::Node->new(
                     type => ":$cmd",
-                    body => $c->raw_text,
                     left_delimiter => $c->left_delimiter,
                     right_delimiter => $c->right_delimiter,
                     );
@@ -166,7 +207,7 @@ sub end_pod {
     while(defined $cmd_stack && @$cmd_stack) {
         $end_cmd = pop @$cmd_stack;
     }
-    die "Last node was not root node" unless $end_cmd->type eq ':root';
+    die "Last node was not root node" unless $end_cmd->type eq '[ROOT]';
     
     # Replace the root node.
     push @$cmd_stack, $end_cmd;

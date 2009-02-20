@@ -21,10 +21,10 @@ POD documents
  my @headings = $pa->select("/head1");
  my $toc_text = map { $_->name . \n" } @headings;
  my $toc = POD::Abstract::Verbatim->new($toc_text);
- $pa->insert_before( 0,
+ $pa->insert_before( 
     POD::Abstract::Heading->new("head1", "CONTENTS"),
     $toc );
- print $pa->pod_text;
+ print $pa->pod;
 
 =head1 DESCRIPTION
 
@@ -42,7 +42,7 @@ parse tree, rather than manipulate text, as a means to add features
 and functionality to POD based documenation systems.
 
 If you wish to write modules that interact nicely with other
-    POD::Abstract modules, then you should provide a POD::Abstract -E<gt>
+POD::Abstract modules, then you should provide a POD::Abstract -E<gt>
 POD::Abstract translation. Leave any document element that your
 program is not interested in directly untouched in the parse tree, and
 if you have data that could be useful to other packages, decorate with
@@ -58,14 +58,9 @@ or fork a whole translator, a single inline "decorator" can be added.
 
 =cut
 
-sub new {
-    my $class = shift;
-    return bless { }, $class;
-}
-
 =head2 blah
 
-=foo
+=target
 
 =head3
 
@@ -87,9 +82,18 @@ sub load_file {
     my $class = shift;
     my $filename = shift;
     
-    open my $in, "<", $filename;
-    
-    return $class->new( );
+    my $p = Pod::Abstract::Parser->new;
+    $p->parse_from_file($filename);
+    return $p->root;
+}
+
+sub load_filehandle {
+    my $class = shift;
+    my $fh = shift;
+
+    my $p = Pod::Abstract::Parser->new;
+    $p->parse_from_filehandle($fh);
+    return $p->root;
 }
 
 1;
