@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Registry::Key;
-{
+
 #####################################################################
 # Perl::Dist::WiX::Registry::Key - Class for <RegistryKey> tag.
 #
@@ -20,10 +20,10 @@ use     Readonly           qw( Readonly                         );
 use     Params::Util       qw( _IDENTIFIER _STRING              );
 require Perl::Dist::WiX::Registry::Entry;
 
-use     version; $VERSION = qv('0.13_02');
+use     version; $VERSION = qv('0.13_03');
 
 # Defining at this level so it does not need recreated every time.
-Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
+Readonly my @ROOT_OPTIONS => qw(HKMU HKCR HKCU HKLM HKU);
 
 #>>>
 #####################################################################
@@ -31,8 +31,8 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 #   none.
 # Attributes:
 
-	my @root : Field : Arg(Name => 'root', Required => 1);
-	my @key : Field : Arg(Name => 'key', Required => 1);
+my @root : Field : Arg(Name => 'root', Required => 1);
+my @key : Field : Arg(Name => 'key', Required => 1);
 
 #####################################################################
 # Constructor for Registry::Key
@@ -44,42 +44,42 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 #   id, guid, sitename: see WiX::Base::Component
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
 
-    sub _pre_init : PreInit {
-        my ($self, $args) = @_;
+sub _pre_init : PreInit {
+	my ( $self, $args ) = @_;
 
-        # Check parameter needed here.
-		unless ( _STRING( $args->{id} ) ) {
-			PDWiX->throw('Missing or invalid id param');
-		}
+	# Check parameter needed here.
+	unless ( _STRING( $args->{id} ) ) {
+		PDWiX->throw('Missing or invalid id param');
+	}
 
-		# Apply defaults
-		unless ( defined $args->{root} ) {
-			$args->{root} = 'HKLM';
-		}
-		unless ( defined $args->{guid} ) {
-			$args->{guid} = $self->generate_guid($args->{id});
-		}
-    }
+	# Apply defaults
+	unless ( defined $args->{root} ) {
+		$args->{root} = 'HKLM';
+	}
+	unless ( defined $args->{guid} ) {
+		$args->{guid} = $self->generate_guid( $args->{id} );
+	}
 
-	sub _init :Init {
-		my $self      = shift;
-		my $object_id = ${$self};
+	return;
+} ## end sub _pre_init :
 
+sub _init : Init {
+	my $self      = shift;
+	my $object_id = ${$self};
 
-		# Check params
-		unless ( _IDENTIFIER( $root[$object_id] ) ) {
-			PDWiX->throw('Invalid root param');
-		}
-		unless ( $self->check_options( $root[$object_id], @root_options ) )
-		{
-			PDWiX->throw('Invalid root param (not a valid registry root key)');
-		}
-		unless ( _STRING( $key[$object_id] ) ) {
-			PDWiX->throw('Missing or invalid subkey param');
-		}
+	# Check params
+	unless ( _IDENTIFIER( $root[$object_id] ) ) {
+		PDWiX->throw('Invalid root param');
+	}
+	unless ( $self->check_options( $root[$object_id], @ROOT_OPTIONS ) ) {
+		PDWiX->throw('Invalid root param (not a valid registry root key)');
+	}
+	unless ( _STRING( $key[$object_id] ) ) {
+		PDWiX->throw('Missing or invalid subkey param');
+	}
 
-		return $self;
-	} ## end sub new
+	return $self;
+} ## end sub _init :
 
 #####################################################################
 # Main Methods
@@ -91,19 +91,19 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 # Returns:
 #   Object being called. (chainable)
 
-	sub add_registry_entry {
-		my ( $self, $name, $value, $action, $value_type ) = @_;
+sub add_registry_entry {
+	my ( $self, $name, $value, $action, $value_type ) = @_;
 
-		# Parameters checked in Registry::Entry->new
+	# Parameters checked in Registry::Entry->new
 
-		# Pass this on to the new entry.
-		$self->add_entry(
-			Perl::Dist::WiX::Registry::Entry->entry(
-				$name, $value, $action, $value_type
-			) );
+	# Pass this on to the new entry.
+	$self->add_entry(
+		Perl::Dist::WiX::Registry::Entry->entry(
+			$name, $value, $action, $value_type
+		) );
 
-		return $self;
-	} ## end sub add_registry_entry
+	return $self;
+} ## end sub add_registry_entry
 
 ########################################
 # is_key($root, $key)
@@ -113,21 +113,21 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 # Returns:
 #   True if this is the object representing $root and $key.
 
-	sub is_key {
-		my ( $self, $root, $key ) = @_;
-		my $object_id = ${$self};
+sub is_key {
+	my ( $self, $root, $key ) = @_;
+	my $object_id = ${$self};
 
-		unless ( _IDENTIFIER($root) ) {
-			PDWiX->throw('Missing or invalid root param');
-		}
-		unless ( _STRING($key) ) {
-			PDWiX->throw('Missing or invalid subkey param');
-		}
+	unless ( _IDENTIFIER($root) ) {
+		PDWiX->throw('Missing or invalid root param');
+	}
+	unless ( _STRING($key) ) {
+		PDWiX->throw('Missing or invalid subkey param');
+	}
 
-		return 0 if ( uc $key  ne uc $key[$object_id] );
-		return 0 if ( uc $root ne uc $root[$object_id] );
-		return 1;
-	} ## end sub is_key
+	return 0 if ( uc $key  ne uc $key[$object_id] );
+	return 0 if ( uc $root ne uc $root[$object_id] );
+	return 1;
+} ## end sub is_key
 
 ########################################
 # as_string
@@ -138,29 +138,29 @@ Readonly my @root_options => qw(HKMU HKCR HKCU HKLM HKU);
 #   represented by this object, and the <RegistryValue> tags contained
 #   by this object.
 
-	sub as_string {
-		my $self      = shift;
-		my $object_id = ${$self};
+sub as_string {
+	my $self      = shift;
+	my $object_id = ${$self};
 
-		# Short-circuit.
-		return q{} if ( scalar @{ $self->get_entries } == 0 );
+	# Short-circuit.
+	return q{} if ( scalar @{ $self->get_entries } == 0 );
 
-		$root[$object_id] = uc $root[$object_id];
+	$root[$object_id] = uc $root[$object_id];
 
-		my $answer = $self->as_start_string();
+	my $answer = $self->as_start_string();
 
-		$answer .= <<"END_OF_XML";
+	$answer .= <<"END_OF_XML";
   <RegistryKey Root='$root[$object_id]' Key='$key[$object_id]'>
 END_OF_XML
 
-		$answer .= $self->Perl::Dist::WiX::Base::Component::as_string(4);
+	$answer .= $self->Perl::Dist::WiX::Base::Component::as_string(4);
 
-		$answer .= <<"END_OF_XML";
+	$answer .= <<"END_OF_XML";
   </RegistryKey>
 </Component>
 END_OF_XML
 
-		return $answer;
-	} ## end sub as_string
-}
+	return $answer;
+} ## end sub as_string
+
 1;

@@ -1,5 +1,8 @@
 verbose=%f:%l:%c:\n %p: %m\n
 
+[CodeLayout::RequireTidyCode]
+perltidyrc = t/settings/perltidy.txt
+
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless
 
@@ -22,7 +25,6 @@ add_packages = Module::CoreList
 # Exclusions
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 [-CodeLayout::ProhibitHardTabs]
-[-CodeLayout::RequireTidyCode]
 [-ControlStructures::ProhibitUnlessBlocks]
 [-Miscellanea::RequireRcsKeywords]
 [-Subroutines::RequireArgUnpacking]

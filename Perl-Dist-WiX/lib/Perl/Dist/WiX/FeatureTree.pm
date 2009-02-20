@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::FeatureTree;
-{
+
 ####################################################################
 # Perl::Dist::WiX::FeatureTree - Tree of MSI features.
 #
@@ -17,13 +17,13 @@ use     Params::Util             qw( _IDENTIFIER _CLASSISA          );
 use     Scalar::Util             qw( weaken                         );
 require Perl::Dist::WiX::Feature;
 
-use version; $VERSION = qv('0.13_02');
+use version; $VERSION = qv('0.13_03');
 #>>>
 #####################################################################
 # Accessors:
 
 	my @parent : Field : Arg(Name => 'parent', Required => 1);
-	my @features : Field :Name(features) :Get(get_features);
+	my @features : Field : Name(features) : Get(get_features);
 
 #####################################################################
 # Constructor for FeatureTree
@@ -35,7 +35,7 @@ use version; $VERSION = qv('0.13_02');
 #   parent: Perl::Dist::WiX object to get information from.
 #     [saved as a weak reference.]
 
-	sub _init :Init {
+	sub _init : Init {
 		my $self      = shift;
 		my $object_id = ${$self};
 
@@ -47,11 +47,11 @@ use version; $VERSION = qv('0.13_02');
 		weaken( $parent[$object_id] );
 
 		# Start the tree.
-		$self->trace_line(0, "Creating feature tree...\n");
+		$self->trace_line( 0, "Creating feature tree...\n" );
 		$features[$object_id] = [];
 		if ( defined $parent[$object_id]->{msi_feature_tree} ) {
-			PDWiX->throw('Complex feature tree not implemented in '
-			  . "Perl::Dist::WiX $VERSION.");
+			PDWiX->throw( 'Complex feature tree not implemented in '
+				  . "Perl::Dist::WiX $VERSION." );
 		} else {
 			$features[$object_id]->[0] = Perl::Dist::WiX::Feature->new(
 				id          => 'Complete',
@@ -62,7 +62,7 @@ use version; $VERSION = qv('0.13_02');
 		}
 
 		return $self;
-	} ## end sub new
+	} ## end sub _init :
 
 #####################################################################
 # Main Methods
@@ -117,5 +117,5 @@ use version; $VERSION = qv('0.13_02');
 
 		return $self->indent( 4, $answer );
 	} ## end sub as_string
-}
+
 1;

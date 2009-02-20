@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Registry::Entry;
-{
+
 #####################################################################
 # Perl::Dist::WiX::Registry::Entry - Base class for <RegistryValue> tag.
 #
@@ -19,21 +19,21 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly            );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
-use version; $VERSION = qv('0.13_02');
+use version; $VERSION = qv('0.13_03');
 #>>>
 
 # Defining at this level so they do not need recreated every time.
-	Readonly my @action_options => qw( append prepend write );
-	Readonly my @type_options =>
-	  qw ( string integer binary expandable multiString );
+Readonly my @ACTION_OPTIONS => qw( append prepend write );
+Readonly my @TYPE_OPTIONS =>
+  qw ( string integer binary expandable multiString );
 
 #####################################################################
 # Accessors:
 
-	my @action : Field : Arg(Name => 'action', Required => 1);
-	my @name : Field : Arg(Name => 'value_name', Required => 1);
-	my @type : Field : Arg(Name => 'value_type');
-	my @data : Field : Arg(Name => 'value_data', Required => 1);
+my @action : Field : Arg(Name => 'action', Required => 1);
+my @name : Field : Arg(Name => 'value_name', Required => 1);
+my @type : Field : Arg(Name => 'value_type');
+my @data : Field : Arg(Name => 'value_data', Required => 1);
 
 #####################################################################
 # Constructors for Registry::Entry
@@ -46,46 +46,45 @@ use version; $VERSION = qv('0.13_02');
 #
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
 
-    sub _pre_init : Init {
-		my ($self, $args) = @_;
-        
-		# Apply defaults
-		unless ( defined $args->value_type ) {
-			$args->{value_type} = 'expandable';
-		}
+sub _pre_init : Init {
+	my ( $self, $args ) = @_;
 
-        return;
-    }
+	# Apply defaults
+	unless ( defined $args->value_type ) {
+		$args->{value_type} = 'expandable';
+	}
 
-	sub _init : Init {
-		my $self      = shift;
-		my $object_id = ${$self};
+	return;
+}
+
+sub _init : Init {
+	my $self      = shift;
+	my $object_id = ${$self};
 
 
-		# Check params
-		unless ( _IDENTIFIER( $action[$object_id] ) ) {
-			PDWiX->throw('Invalid action param');
-		}
-		unless (
-			$self->check_options( $action[$object_id], @action_options ) )
-		{
-			PDWiX->throw(
-			  'Invalid action param (must be append, prepend, or write)');
-		}
-		unless ( $self->check_options( $type[$object_id], @type_options ) )
-		{
-			PDWiX->throw('Invalid value_type param (see WiX '
-            . 'documentation for RegistryValue/@Type)');
-		}
-		unless ( _IDENTIFIER( $name[$object_id] ) ) {
-			PDWiX->throw('Invalid value_name param');
-		}
-		unless ( _STRING( $data[$object_id] ) ) {
-			PDWiX->throw('Invalid value_data param');
-		}
+	# Check params
+	unless ( _IDENTIFIER( $action[$object_id] ) ) {
+		PDWiX->throw('Invalid action param');
+	}
+	unless ( $self->check_options( $action[$object_id], @ACTION_OPTIONS ) )
+	{
+		PDWiX->throw(
+			'Invalid action param (must be append, prepend, or write)');
+	}
+	unless ( $self->check_options( $type[$object_id], @TYPE_OPTIONS ) ) {
+		## no critic 'RequireInterpolationOfMetachars'
+		PDWiX->throw( 'Invalid value_type param (see WiX '
+			  . q{documentation for RegistryValue/@Type)} );
+	}
+	unless ( _IDENTIFIER( $name[$object_id] ) ) {
+		PDWiX->throw('Invalid value_name param');
+	}
+	unless ( _STRING( $data[$object_id] ) ) {
+		PDWiX->throw('Invalid value_data param');
+	}
 
-		return $self;
-	} ## end sub _init :
+	return $self;
+} ## end sub _init :
 
 #####################################################################
 # Main Methods
@@ -96,13 +95,13 @@ use version; $VERSION = qv('0.13_02');
 #   See constructor for details.
 
 # Shortcut constructor for an environment variable
-	sub entry {
-		return $_[0]->new(
-			value_name => $_[1],
-			value_data => $_[2],
-			action     => $_[3],
-			value_type => $_[4] );
-	}
+sub entry {
+	return $_[0]->new(
+		value_name => $_[1],
+		value_data => $_[2],
+		action     => $_[3],
+		value_type => $_[4] );
+}
 
 ########################################
 # as_string
@@ -112,9 +111,9 @@ use version; $VERSION = qv('0.13_02');
 #   String representation of the <RegistryValue> tags represented
 #   by this object.
 
-	sub as_string {
-		my $self      = shift;
-		my $object_id = ${$self};
+sub as_string {
+	my $self      = shift;
+	my $object_id = ${$self};
 
 #<<<
     return
@@ -124,6 +123,6 @@ use version; $VERSION = qv('0.13_02');
       . q{' Name='}       . $name[$object_id]
       . q{' Value='}      . $data[$object_id] . q{' />};
 #>>>
-	} ## end sub as_string
-}
+} ## end sub as_string
+
 1;

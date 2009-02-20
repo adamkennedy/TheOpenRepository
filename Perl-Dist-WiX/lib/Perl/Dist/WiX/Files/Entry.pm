@@ -16,7 +16,7 @@ use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
 
-use version; $VERSION = qv('0.13_02');
+use version; $VERSION = qv('0.13_03');
 #>>>
 #####################################################################
 # Accessors:
@@ -36,21 +36,21 @@ sub filename { return $_[0]->name; }
 #   name: Name attribute to the <File> tag.
 
 sub _pre_init : PreInit {
-    my ($self, $args) = @_;
+	my ( $self, $args ) = @_;
 
 	# Check params
 	unless ( _STRING( $args->{name} ) ) {
 		PDWiX->throw('Missing or invalid name param');
 	}
-   
-    # Create an ID and GUID.
+
+	# Create an ID and GUID.
 	unless ( defined $args->{id} ) {
 		$args->{id} = $self->generate_guid( $args->{name} );
 		$args->{id} =~ s{-}{_}smg;
 	}
 
-    return;
-}
+	return;
+} ## end sub _pre_init :
 
 #####################################################################
 # Main Methods

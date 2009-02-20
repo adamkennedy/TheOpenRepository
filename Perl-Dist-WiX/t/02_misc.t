@@ -28,7 +28,7 @@ like( $@ , qr(Missing or invalid num), 'indent prints integer error');
 # Test 5-11: trace_line
 
 stdout_like( sub { $misc->trace_line(1, "Test 5\n") }, 
-    qr(\A\Q[1] [13_misc.t 30] Test 5\E\n\z), 
+    qr(\A\Q[1] [02_misc.t 30] Test 5\E\n\z), 
     'trace_line works at level 5'
 );
 

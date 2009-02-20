@@ -26,7 +26,7 @@ use t::lib::Test;
 # Constructor Test
 
 # Create the dist object
-my $dist = t::lib::Test->new1(94);
+my $dist = t::lib::Test->new1(50);
 isa_ok( $dist, 't::lib::TestQuick' );
 
 # Check useragent method
@@ -35,5 +35,5 @@ isa_ok( $ua, 'LWP::UserAgent' );
 
 # Run the dist object, and ensure everything we expect was created
 ok( $dist->run, '->run ok' );
-ok( -f catfile( qw{ t tmp94 image c bin dmake.exe } ), 'Found dmake.exe' );
-ok( -f catfile( qw{ t tmp94 image c bin startup Makefile.in } ), 'Found startup' );
+ok( -f catfile( qw{ t tmp50 image c bin dmake.exe } ), 'Found dmake.exe' );
+ok( -f catfile( qw{ t tmp50 image c bin startup Makefile.in } ), 'Found startup' );

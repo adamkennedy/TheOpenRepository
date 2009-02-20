@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::CreateFolder;
-{
+
 #####################################################################
 # Perl::Dist::WiX::CreateFolder - A <Fragment> and <DirectoryRef> tag that
 # contains a <CreateFolder> element.
@@ -20,7 +20,7 @@ use Object::InsideOut qw(
 );
 use Params::Util      qw( _STRING  );
 
-use version; $VERSION = qv('0.13_02');
+use version; $VERSION = qv('0.13_03');
 #>>>
 #####################################################################
 # Accessors:
@@ -33,30 +33,31 @@ use version; $VERSION = qv('0.13_02');
 # Parameters: [pairs]
 #   id, directory: See Base::Fragment.
 
-    sub _pre_init : PreInit {
-        my ($self, $args) = @_;
-        
-        unless (defined $args->{guid}) {
-            my $id = $args->{id};
-            unless (defined _STRING($id)) {
-                PDWiX->throw('Invalid or missing id parameter.');
-            }
-            $args->{guid} = $self->generate_guid("Create$id"); 
-        };
-        
-    }
+sub _pre_init : PreInit {
+	my ( $self, $args ) = @_;
 
-	sub _init : Init {
-		my $self = shift;
-
-		my $directory_id = $self->get_directory_id();
-
-		$self->trace_line( 2,
-			    'Creating directory creation entry for directory '
-			  . "id D_$directory_id\n" );
-
-		return $self;
+	unless ( defined $args->{guid} ) {
+		my $id = $args->{id};
+		unless ( defined _STRING($id) ) {
+			PDWiX->throw('Invalid or missing id parameter.');
+		}
+		$args->{guid} = $self->generate_guid("Create$id");
 	}
+
+	return;
+} ## end sub _pre_init :
+
+sub _init : Init {
+	my $self = shift;
+
+	my $directory_id = $self->get_directory_id();
+
+	$self->trace_line( 2,
+		    'Creating directory creation entry for directory '
+		  . "id D_$directory_id\n" );
+
+	return $self;
+}
 
 #####################################################################
 # Main Methods
@@ -68,21 +69,21 @@ use version; $VERSION = qv('0.13_02');
 # Returns:
 #   Array of the Id attributes of the components within this object.
 
-	sub get_component_array {
-		my $self = shift;
+sub get_component_array {
+	my $self = shift;
 
-		my $id = $self->get_component_id();
+	my $id = $self->get_component_id();
 
-		return "Create$id";
-	}
+	return "Create$id";
+}
 
-	sub search_file {
-		return undef;
-	}
+sub search_file {
+	return undef;
+}
 
-	sub check_duplicates {
-		return undef;
-	}
+sub check_duplicates {
+	return undef;
+}
 
 ########################################
 # as_string
@@ -92,14 +93,14 @@ use version; $VERSION = qv('0.13_02');
 #   String representation of the <Fragment> and other tags represented
 #   by this object.
 
-	sub as_string {
-		my $self = shift;
+sub as_string {
+	my $self = shift;
 
-		my $id           = $self->get_component_id();
-		my $directory_id = $self->get_directory_id();
-		my $guid         = $self->get_guid();
-        
-		return <<"EOF";
+	my $id           = $self->get_component_id();
+	my $directory_id = $self->get_directory_id();
+	my $guid         = $self->get_guid();
+
+	return <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Fragment Id='Fr_Create$id'>
@@ -112,8 +113,6 @@ use version; $VERSION = qv('0.13_02');
 </Wix>
 EOF
 
-	} ## end sub as_string
-    
-}
+} ## end sub as_string
 
 1;

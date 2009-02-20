@@ -19,10 +19,10 @@ superclass of that class.
 =cut
 
 #<<<
-
 use     5.006;
 use     strict;
 use     warnings;
+use     vars                     qw( $VERSION                      );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use     Params::Util
     qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                         );
@@ -37,8 +37,7 @@ require Perl::Dist::WiX::FeatureTree;
 require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 
-use vars qw( $VERSION );
-use version; $VERSION = qv('0.13_02');
+use version; $VERSION = qv('0.13_03');
 #>>>
 
 =head2 Accessors
@@ -125,141 +124,142 @@ use Object::Tiny qw{
 };
 
 sub _check_string_parameter {
-    my ($self, $string, $name) = @_;
+	my ( $self, $string, $name ) = @_;
 
-    unless ( _STRING( $string ) ) {
-        PDWiX->throw( "Missing or invalid $name param" );
-    }
+	unless ( _STRING($string) ) {
+		PDWiX->throw("Missing or invalid $name param");
+	}
+
+	return;
 }
 
 sub new {
-    my $class = shift;
-    my $self = bless { @_ }, $class;
+	my $class = shift;
+	my $self = bless {@_}, $class;
 
-    $self->{misc} = Perl::Dist::WiX::Misc->new(trace => $self->{trace}, sitename => $self->{sitename});
-    
-    # Apply defaults
-    unless ( defined $self->output_dir ) {
-        $self->{output_dir} = rel2abs( curdir, );
-    }
+	$self->{misc} = Perl::Dist::WiX::Misc->new(
+		trace    => $self->{trace},
+		sitename => $self->{sitename} );
 
-    unless ( defined _ARRAY0( $self->msi_directory_tree_additions ) ) {
-        $self->{msi_directory_tree_additions} = [];
-    }
+	# Apply defaults
+	unless ( defined $self->output_dir ) {
+		$self->{output_dir} = rel2abs( curdir, );
+	}
 
-    unless ( defined $self->default_group_name ) {
-        $self->{default_group_name} = $self->app_name;
-    }
-    unless ( _STRING( $self->msi_license_file ) ) {
-        $self->{msi_license_file} =
-          catfile( $self->dist_dir, 'License.rtf' );
-    }
+	unless ( defined _ARRAY0( $self->msi_directory_tree_additions ) ) {
+		$self->{msi_directory_tree_additions} = [];
+	}
 
-    # Check and default params
-    unless ( _IDENTIFIER( $self->app_id ) ) {
-        PDWiX->throw( 'Missing or invalid app_id param' );
-    }
-    $self->_check_string_parameter($self->app_name, 'app_name' );
-    $self->_check_string_parameter(
-        $self->app_ver_name, 'app_ver_name' );
-    $self->_check_string_parameter(
-        $self->app_publisher, 'app_publisher' );
-    $self->_check_string_parameter(
-        $self->app_publisher_url, 'app_publisher_url' );
-    unless ( _STRING( $self->sitename ) ) {
-        $self->{sitename} = URI->new( $self->app_publisher_url )->host;
-    }
-    $self->_check_string_parameter(
-        $self->default_group_name, 'default_group_name' );
-    $self->_check_string_parameter($self->output_dir, 'output_dir');
-    unless ( -d $self->output_dir ) {
-        PDWiX->throw(  'The output_dir '
-              . $self->output_dir
-              . 'directory does not exist' );
-    }
-    unless ( -w $self->output_dir ) {
-        PDWiX->throw( 'The output_dir directory is not writable' );
-    }
-    $self->_check_string_parameter(
-        $self->output_base_filename, 'output_base_filename' );
-    unless ( _STRING( $self->source_dir ) ) {
-        PDWiX->throw( 'Missing or invalid source_dir param' );
-    }
-    unless ( -d $self->source_dir ) {
-        PDWiX->throw( 'The source_dir directory does not exist' );
-    }
-    $self->_check_string_parameter(
-        $self->fragment_dir, 'fragment_dir' );
-    unless ( -d $self->fragment_dir ) {
-        PDWiX->throw( 'The fragment_dir directory does not exist' );
-    }
+	unless ( defined $self->default_group_name ) {
+		$self->{default_group_name} = $self->app_name;
+	}
+	unless ( _STRING( $self->msi_license_file ) ) {
+		$self->{msi_license_file} =
+		  catfile( $self->dist_dir, 'License.rtf' );
+	}
 
-    # Set element collections
-    $self->trace_line( 2, "Creating in-memory directory tree...\n" );
-    $self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
-        app_dir  => $self->image_dir,
-        app_name => $self->app_name,
-        sitename => $self->sitename,
-        trace    => $self->{trace},
-    )->initialize_tree( @{ $self->{msi_directory_tree_additions} } );
-    $self->{fragments} = {};
-    $self->{fragments}->{Icons} = Perl::Dist::WiX::StartMenu->new(
-        directory => 'D_App_Menu',
-    );
-    $self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
-        sitename => $self->sitename,
-        id       => 'Environment',
-        trace    => $self->{trace},
-    );
-    $self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
-        sitename       => $self->sitename,
-        directory_tree => $self->directories,
-        id             => 'Win32Extras',
-        trace          => $self->{trace},
-    );
-    $self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
-        directory => 'Cpan',
-        id        => 'CPANFolder',
-        trace     => $self->{trace},
-        sitename  => $self->sitename,
-    );
-    $self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
+	# Check and default params
+	unless ( _IDENTIFIER( $self->app_id ) ) {
+		PDWiX->throw('Missing or invalid app_id param');
+	}
+	$self->_check_string_parameter( $self->app_name,      'app_name' );
+	$self->_check_string_parameter( $self->app_ver_name,  'app_ver_name' );
+	$self->_check_string_parameter( $self->app_publisher, 'app_publisher' );
+	$self->_check_string_parameter( $self->app_publisher_url,
+		'app_publisher_url' );
 
-    if ( defined $self->msi_product_icon ) {
-        $self->icons->add_icon( $self->msi_product_icon );
-    }
+	unless ( _STRING( $self->sitename ) ) {
+		$self->{sitename} = URI->new( $self->app_publisher_url )->host;
+	}
+	$self->_check_string_parameter( $self->default_group_name,
+		'default_group_name' );
+	$self->_check_string_parameter( $self->output_dir, 'output_dir' );
+	unless ( -d $self->output_dir ) {
+		PDWiX->throw( 'The output_dir '
+			  . $self->output_dir
+			  . 'directory does not exist' );
+	}
+	unless ( -w $self->output_dir ) {
+		PDWiX->throw('The output_dir directory is not writable');
+	}
+	$self->_check_string_parameter( $self->output_base_filename,
+		'output_base_filename' );
+	unless ( _STRING( $self->source_dir ) ) {
+		PDWiX->throw('Missing or invalid source_dir param');
+	}
+	unless ( -d $self->source_dir ) {
+		PDWiX->throw('The source_dir directory does not exist');
+	}
+	$self->_check_string_parameter( $self->fragment_dir, 'fragment_dir' );
+	unless ( -d $self->fragment_dir ) {
+		PDWiX->throw('The fragment_dir directory does not exist');
+	}
 
-    # Find the light.exe and candle.exe programs
-    unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
-        PDWiX->throw( 'Failed to find the Program Files directory' );
-    }
-    my $wix_dir =
-      catdir( $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
-    my $wix_file = catfile( $wix_dir, 'light.exe' );
-    unless ( -f $wix_file ) {
-        PDWiX->throw( 'Failed to find the WiX light.exe program' );
-    }
-    $self->{bin_light} = $wix_file;
+	# Set element collections
+	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
+	$self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
+		app_dir  => $self->image_dir,
+		app_name => $self->app_name,
+		sitename => $self->sitename,
+		trace    => $self->{trace},
+	)->initialize_tree( @{ $self->{msi_directory_tree_additions} } );
+	$self->{fragments} = {};
+	$self->{fragments}->{Icons} =
+	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
+	$self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
+		sitename => $self->sitename,
+		id       => 'Environment',
+		trace    => $self->{trace},
+	);
+	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
+		sitename       => $self->sitename,
+		directory_tree => $self->directories,
+		id             => 'Win32Extras',
+		trace          => $self->{trace},
+	);
+	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
+		directory => 'Cpan',
+		id        => 'CPANFolder',
+		trace     => $self->{trace},
+		sitename  => $self->sitename,
+	);
+	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
 
-    $wix_file = catfile( $wix_dir, 'candle.exe' );
-    unless ( -f $wix_file ) {
-        PDWiX->throw( 'Failed to find the WiX candle.exe program' );
-    }
-    $self->{bin_candle} = $wix_file;
+	if ( defined $self->msi_product_icon ) {
+		$self->icons->add_icon( $self->msi_product_icon );
+	}
 
-    $wix_file = catfile( $wix_dir, 'WixUIExtension.dll' );
-    unless ( -f $wix_file ) {
-        PDWiX->throw( 'Failed to find the WiX UI Extension DLL' );
-    }
-    $self->{bin_wixui} = $wix_file;
+	# Find the light.exe and candle.exe programs
+	unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
+		PDWiX->throw('Failed to find the Program Files directory');
+	}
+	my $wix_dir =
+	  catdir( $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
+	my $wix_file = catfile( $wix_dir, 'light.exe' );
+	unless ( -f $wix_file ) {
+		PDWiX->throw('Failed to find the WiX light.exe program');
+	}
+	$self->{bin_light} = $wix_file;
 
-    return $self;
+	$wix_file = catfile( $wix_dir, 'candle.exe' );
+	unless ( -f $wix_file ) {
+		PDWiX->throw('Failed to find the WiX candle.exe program');
+	}
+	$self->{bin_candle} = $wix_file;
+
+	$wix_file = catfile( $wix_dir, 'WixUIExtension.dll' );
+	unless ( -f $wix_file ) {
+		PDWiX->throw('Failed to find the WiX UI Extension DLL');
+	}
+	$self->{bin_wixui} = $wix_file;
+
+	return $self;
 } ## end sub new
 
 sub trace_line {
-    my $self = shift;
-    
-    $self->{misc}->trace_line(@_);
+	my $self = shift;
+
+	return $self->{misc}->trace_line(@_);
 }
 
 #####################################################################
@@ -269,14 +269,14 @@ sub trace_line {
 # the Perl::Dist::WiX class tree.
 
 sub msi_product_icon_id {
-    my $self = shift;
+	my $self = shift;
 
-    # Get the icon ID if we can.
-    if ( defined $self->msi_product_icon ) {
-        return 'I_' . $self->icons->search_icon( $self->msi_product_icon );
-    } else {
-        return undef;
-    }
+	# Get the icon ID if we can.
+	if ( defined $self->msi_product_icon ) {
+		return 'I_' . $self->icons->search_icon( $self->msi_product_icon );
+	} else {
+		return undef;
+	}
 }
 
 =item * app_ver_name
@@ -287,8 +287,8 @@ Returns the application name with the version appended to it.
 
 # Default the versioned name to an unversioned name
 sub app_ver_name {
-    return $_[0]->{app_ver_name}
-      or $_[0]->app_name;
+	return $_[0]->{app_ver_name}
+	  or $_[0]->app_name;
 }
 
 =item * output_base_filename
@@ -299,8 +299,8 @@ Returns the base filename that is used to create distributions.
 
 # Default the output filename to the id plus the current date
 sub output_base_filename {
-    return $_[0]->{output_base_filename}
-      or $_[0]->app_id . q{-} . $_[0]->output_date_string;
+	return $_[0]->{output_base_filename}
+	  or $_[0]->app_id . q{-} . $_[0]->output_date_string;
 }
 
 =item * output_date_string
@@ -312,8 +312,8 @@ routines.
 
 # Convenience method
 sub output_date_string {
-    my @t = localtime;
-    return sprintf '%04d%02d%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+	my @t = localtime;
+	return sprintf '%04d%02d%02d', $t[5] + 1900, $t[4] + 1, $t[3];
 }
 
 =item * msi_ui_type
@@ -324,8 +324,8 @@ Returns the UI type that the MSI needs to use.
 
 # For template
 sub msi_ui_type {
-    my $self = shift;
-    return ( defined $self->msi_feature_tree ) ? 'FeatureTree' : 'Minimal';
+	my $self = shift;
+	return ( defined $self->msi_feature_tree ) ? 'FeatureTree' : 'Minimal';
 }
 
 =item * msi_product_id
@@ -338,14 +338,13 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
 
 # For template
 sub msi_product_id {
-    my $self = shift;
+	my $self = shift;
 
-    #... then use it to create a GUID out of the ID.
-    my $guid =
-      $self->{misc}->generate_guid( $self->app_ver_name );
+	#... then use it to create a GUID out of the ID.
+	my $guid = $self->{misc}->generate_guid( $self->app_ver_name );
 
-    return $guid;
-} ## end sub msi_product_id
+	return $guid;
+}
 
 =item * msi_product_id
 
@@ -357,17 +356,17 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm>
 
 # For template
 sub msi_upgrade_code {
-    my $self = shift;
+	my $self = shift;
 
-    my $upgrade_ver =
-        $self->app_name
-      . ( $self->portable ? ' Portable' : q{} ) . q{ }
-      . $self->perl_version_human;
+	my $upgrade_ver =
+	    $self->app_name
+	  . ( $self->portable ? ' Portable' : q{} ) . q{ }
+	  . $self->perl_version_human;
 
-    #... then use it to create a GUID out of the ID.
-    my $guid = $self->{misc}->generate_guid( $upgrade_ver );
+	#... then use it to create a GUID out of the ID.
+	my $guid = $self->{misc}->generate_guid($upgrade_ver);
 
-    return $guid;
+	return $guid;
 } ## end sub msi_upgrade_code
 
 =item * msi_perl_version
@@ -381,20 +380,20 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
 # For template.
 # MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
 sub msi_perl_version {
-    my $self = shift;
+	my $self = shift;
 
-    # Ger perl version arrayref.
-    my $ver = {
-        588  => [5, 8,  8],
-        589  => [5, 8,  9],
-        5100 => [5, 10, 0],
-      }->{ $self->perl_version }
-      || [0, 0, 0];
+	# Ger perl version arrayref.
+	my $ver = {
+		588  => [ 5, 8,  8 ],
+		589  => [ 5, 8,  9 ],
+		5100 => [ 5, 10, 0 ],
+	  }->{ $self->perl_version }
+	  || [ 0, 0, 0 ];
 
-    # Merge build number with last part of perl version.
-    $ver->[2] = ( $ver->[2] << 8 ) + $self->build_number;
+	# Merge build number with last part of perl version.
+	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number;
 
-    return join q{.}, @{$ver};
+	return join q{.}, @{$ver};
 
 } ## end sub msi_perl_version
 
@@ -410,14 +409,14 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
 =cut
 
 sub get_component_array {
-    my $self = shift;
+	my $self = shift;
 
-    my @answer;
-    foreach my $key ( keys %{ $self->fragments } ) {
-        push @answer, $self->fragments->{$key}->get_component_array;
-    }
+	my @answer;
+	foreach my $key ( keys %{ $self->fragments } ) {
+		push @answer, $self->fragments->{$key}->get_component_array;
+	}
 
-    return @answer;
+	return @answer;
 }
 
 #####################################################################
@@ -433,30 +432,30 @@ Compiles a .wxs file (specified by $filename) into a .wixobj file
 =cut
 
 sub compile_wxs {
-    my ( $self, $filename, $wixobj ) = @_;
-    my @files = @_;
+	my ( $self, $filename, $wixobj ) = @_;
+	my @files = @_;
 
-    # Check parameters.
-    unless ( _STRING( $filename ) ) {
-        PDWiX->throw('Invalid or missing filename parameter');
-    }
-    unless ( _STRING( $wixobj ) ) {
-        PDWiX->throw('Invalid or missing wixobj parameter');
-    }
-    unless ( -r $filename ) {
-        PDWiX->throw("$filename does not exist or is not readable");
-    }
+	# Check parameters.
+	unless ( _STRING($filename) ) {
+		PDWiX->throw('Invalid or missing filename parameter');
+	}
+	unless ( _STRING($wixobj) ) {
+		PDWiX->throw('Invalid or missing wixobj parameter');
+	}
+	unless ( -r $filename ) {
+		PDWiX->throw("$filename does not exist or is not readable");
+	}
 
-    # Compile the .wxs file
-    my $cmd = [
-        $self->bin_candle,
-        '-out', $wixobj,
-        $filename,
+	# Compile the .wxs file
+	my $cmd = [
+		$self->bin_candle,
+		'-out', $wixobj,
+		$filename,
 
-    ];
-    my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
 
-    return $rv;
+	return $rv;
 } ## end sub compile_wxs
 
 =pod
@@ -480,117 +479,117 @@ Returns true or throws an exception or error.
 =cut
 
 sub write_msi {
-    my $self = shift;
+	my $self = shift;
 
-    my $dir = $self->fragment_dir;
-    my ( $fragment, $fragment_name, $fragment_string );
-    my ( $filename_in, $filename_out );
-    my $fh;
-    my @files;
+	my $dir = $self->fragment_dir;
+	my ( $fragment, $fragment_name, $fragment_string );
+	my ( $filename_in, $filename_out );
+	my $fh;
+	my @files;
 
-    $self->trace_line( 1, "Generating msi\n" );
+	$self->trace_line( 1, "Generating msi\n" );
 
-    # Add the path in.
-    foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
-        @{ $self->env_path } )
-    {
-        $self->add_env( 'PATH', $value, 1 );
-    }
+	# Add the path in.
+	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
+		@{ $self->env_path } )
+	{
+		$self->add_env( 'PATH', $value, 1 );
+	}
 
-    # Write out .wxs files for all the fragments and compile them.
-    foreach my $key ( keys %{ $self->{fragments} } ) {
-        $fragment        = $self->{fragments}->{$key};
-        $fragment_string = $fragment->as_string;
-        next
-          if ( ( not defined $fragment_string )
-            or ( $fragment_string eq q{} ) );
-        $fragment_name = $fragment->get_fragment_id;
-        $filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
-        $filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
-        $fh            = IO::File->new( $filename_in, 'w' );
+	# Write out .wxs files for all the fragments and compile them.
+	foreach my $key ( keys %{ $self->{fragments} } ) {
+		$fragment        = $self->{fragments}->{$key};
+		$fragment_string = $fragment->as_string;
+		next
+		  if ( ( not defined $fragment_string )
+			or ( $fragment_string eq q{} ) );
+		$fragment_name = $fragment->get_fragment_id;
+		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
+		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
+		$fh            = IO::File->new( $filename_in, 'w' );
 
-        if ( not defined $fh ) {
-            PDWiX->throw("Could not open file $filename_in for writing [$!] [$^E]");
-        }
-        $fh->print( $fragment_string );
-        $fh->close;
-        $self->trace_line( 2, "Compiling $filename_in\n" );
-        $self->compile_wxs( $filename_in, $filename_out )
-          or PDWiX->throw("WiX could not compile $filename_in");
+		if ( not defined $fh ) {
+			PDWiX->throw(
+				"Could not open file $filename_in for writing [$!] [$^E]");
+		}
+		$fh->print($fragment_string);
+		$fh->close;
+		$self->trace_line( 2, "Compiling $filename_in\n" );
+		$self->compile_wxs( $filename_in, $filename_out )
+		  or PDWiX->throw("WiX could not compile $filename_in");
 
-        unless ( -f $filename_out ) {
-            PDWiX->throw(
-"Failed to find $filename_out (probably compilation error in $filename_in)"
-            );
-        }
+		unless ( -f $filename_out ) {
+			PDWiX->throw( "Failed to find $filename_out (probably "
+				  . "compilation error in $filename_in)" );
+		}
 
-        push @files, $filename_out;
-    } ## end foreach my $key ( keys %{ $self...
+		push @files, $filename_out;
+	} ## end foreach my $key ( keys %{ $self...
 
-    # Generate feature tree.
-    $self->{feature_tree_obj} =
-      Perl::Dist::WiX::FeatureTree->new( parent => $self, );
+	# Generate feature tree.
+	$self->{feature_tree_obj} =
+	  Perl::Dist::WiX::FeatureTree->new( parent => $self, );
 
-    # Write out the .wxs file
-    my $content = $self->as_string;
-    $content =~ s{\r\n}{\n}msg;          # CRLF -> LF
-    $filename_in =
-      catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
-    $filename_out =
-      catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
-    $fh = IO::File->new( $filename_in, 'w' );
+	# Write out the .wxs file
+	my $content = $self->as_string;
+	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
+	$filename_in =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
+	$filename_out =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
+	$fh = IO::File->new( $filename_in, 'w' );
 
-    if ( not defined $fh ) {
-        PDWiX->throw("Could not open file $filename_in for writing [$!] [$^E]");
-    }
-    $fh->print( $content );
-    $fh->close;
+	if ( not defined $fh ) {
+		PDWiX->throw(
+			"Could not open file $filename_in for writing [$!] [$^E]");
+	}
+	$fh->print($content);
+	$fh->close;
 
-    # Compile the main .wxs
-    $self->trace_line( 2, "Compiling $filename_in\n" );
-    $self->compile_wxs( $filename_in, $filename_out )
-      or PDWiX->throw( "WiX could not compile $filename_in" );
-    unless ( -f $filename_out ) {
-        PDWiX->throw(
-"Failed to find $filename_out (probably compilation error in $filename_in)"
-        );
-    }
+	# Compile the main .wxs
+	$self->trace_line( 2, "Compiling $filename_in\n" );
+	$self->compile_wxs( $filename_in, $filename_out )
+	  or PDWiX->throw("WiX could not compile $filename_in");
+	unless ( -f $filename_out ) {
+		PDWiX->throw( "Failed to find $filename_out (probably "
+			  . "compilation error in $filename_in)" );
+	}
 
 # Start linking the msi.
 
-    # Get the parameters for the msi linking.
-    my $output_msi =
-      catfile( $self->output_dir, $self->output_base_filename . '.msi', );
-    my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
-    my $input_wixobj =
-      catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
+	# Get the parameters for the msi linking.
+	my $output_msi =
+	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
+	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
+	my $input_wixobj =
+	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
 
-    # Link the .wixobj files
-    $self->trace_line( 1, "Linking $output_msi\n" );
-    my $out;
-    my $cmd = [
-        $self->bin_light,
-        '-sice:ICE38',                 # Gets rid of ICE38 warning.
-        '-sice:ICE43',                 # Gets rid of ICE43 warning.
-        '-sice:ICE47',                 # Gets rid of ICE47 warning.
-                                       # (Too many components in one
-                                       # feature for Win9X)
-        '-sice:ICE48',                 # Gets rid of ICE48 warning.
-                                       # (Hard-coded installation location)
-        '-out', $output_msi,
-        '-ext', $self->bin_wixui,
-        $input_wixobj,
-        $input_wixouts,
-    ];
-    my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+	# Link the .wixobj files
+	$self->trace_line( 1, "Linking $output_msi\n" );
+	my $out;
+	my $cmd = [
+		$self->bin_light,
+		'-sice:ICE38',                 # Gets rid of ICE38 warning.
+		'-sice:ICE43',                 # Gets rid of ICE43 warning.
+		'-sice:ICE47',                 # Gets rid of ICE47 warning.
+		                               # (Too many components in one
+		                               # feature for Win9X)
+		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+		                               # (Hard-coded installation location)
+		'-out', $output_msi,
+		'-ext', $self->bin_wixui,
+		$input_wixobj,
+		$input_wixouts,
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
-    # Did everything get done correctly?
-    unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
-        $self->trace_line( 0, $out );
-        PDWiX->throw("Failed to find $output_msi");
-    }
+	# Did everything get done correctly?
+	unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw("Failed to find $output_msi");
+	}
 
-    return $output_msi;
+	return $output_msi;
 } ## end sub write_msi
 
 =head2 add_env($name, $value I<[, $append]>)
@@ -604,31 +603,31 @@ $name and $value are required.
 =cut
 
 sub add_env {
-    my ( $self, $name, $value, $append ) = @_;
+	my ( $self, $name, $value, $append ) = @_;
 
-    unless ( defined $append ) {
-        $append = 0;
-    }
+	unless ( defined $append ) {
+		$append = 0;
+	}
 
-    unless ( _STRING( $name ) ) {
-        PDWiX->throw('Invalid or missing name parameter');
-    }
+	unless ( _STRING($name) ) {
+		PDWiX->throw('Invalid or missing name parameter');
+	}
 
-    unless ( _STRING( $value ) ) {
-        PDWiX->throw('Invalid or missing value parameter');
-    }
+	unless ( _STRING($value) ) {
+		PDWiX->throw('Invalid or missing value parameter');
+	}
 
-    my $num = $self->{fragments}->{Environment}->get_entries_count();
+	my $num = $self->{fragments}->{Environment}->get_entries_count();
 
-    $self->{fragments}->{Environment}->add_entry(
-        id     => "Env_$num",
-        name   => $name,
-        value  => $value,
-        action => 'set',
-        part   => $append ? 'last' : 'all',
-    );
+	$self->{fragments}->{Environment}->add_entry(
+		id     => "Env_$num",
+		name   => $name,
+		value  => $value,
+		action => 'set',
+		part   => $append ? 'last' : 'all',
+	);
 
-    return $self;
+	return $self;
 } ## end sub add_env
 
 =head2 add_file({source => $filename, fragment => $fragment_name})
@@ -640,27 +639,27 @@ Both parameters are required, and the file and fragment must both exist.
 =cut
 
 sub add_file {
-    my ( $self, %params ) = @_;
+	my ( $self, %params ) = @_;
 
-    unless ( _STRING( $params{source} ) ) {
-        PDWiX->throw('Invalid or missing source parameter');
-    }
+	unless ( _STRING( $params{source} ) ) {
+		PDWiX->throw('Invalid or missing source parameter');
+	}
 
-    unless ( -f $params{source} ) {
-        PDWiX->throw("File $params{source} does not exist");
-    }
+	unless ( -f $params{source} ) {
+		PDWiX->throw("File $params{source} does not exist");
+	}
 
-    unless ( _IDENTIFIER( $params{fragment} ) ) {
-        PDWiX->throw('Invalid or missing fragment parameter');
-        }
+	unless ( _IDENTIFIER( $params{fragment} ) ) {
+		PDWiX->throw('Invalid or missing fragment parameter');
+	}
 
-    unless ( defined $self->{fragments}->{ $params{fragment} } ) {
-        PDWiX->throw("Fragment $params{fragment} not defined");
-    }
+	unless ( defined $self->{fragments}->{ $params{fragment} } ) {
+		PDWiX->throw("Fragment $params{fragment} not defined");
+	}
 
-    $self->{fragments}->{ $params{fragment} }->add_file( $params{source} );
+	$self->{fragments}->{ $params{fragment} }->add_file( $params{source} );
 
-    return $self;
+	return $self;
 } ## end sub add_file
 
 =head2 insert_fragment($id, $files_ref)
@@ -674,32 +673,32 @@ This B<MUST> be done for each set of files to be installed in an MSI.
 =cut
 
 sub insert_fragment {
-    my ( $self, $id, $files_ref ) = @_;
+	my ( $self, $id, $files_ref ) = @_;
 
-    # Check parameters.
-    unless ( _IDENTIFIER( $id ) ) {
-        PDWiX->throw('Invalid or missing id parameter');
-    }
-    unless ( _ARRAY0( $files_ref ) ) {
-        PDWiX->throw('Invalid or missing files_ref parameter');
-    }
+	# Check parameters.
+	unless ( _IDENTIFIER($id) ) {
+		PDWiX->throw('Invalid or missing id parameter');
+	}
+	unless ( _ARRAY0($files_ref) ) {
+		PDWiX->throw('Invalid or missing files_ref parameter');
+	}
 
-    $self->trace_line( 2, "Adding fragment $id...\n" );
+	$self->trace_line( 2, "Adding fragment $id...\n" );
 
-    foreach my $key ( keys %{ $self->{fragments} } ) {
-        $self->{fragments}->{$key}->check_duplicates( $files_ref );
-    }
+	foreach my $key ( keys %{ $self->{fragments} } ) {
+		$self->{fragments}->{$key}->check_duplicates($files_ref);
+	}
 
-    my $fragment = Perl::Dist::WiX::Files->new(
-        id             => $id,
-        sitename       => $self->sitename,
-        directory_tree => $self->directories,
-        trace          => $self->{trace},
-    )->add_files( @{$files_ref} );
+	my $fragment = Perl::Dist::WiX::Files->new(
+		id             => $id,
+		sitename       => $self->sitename,
+		directory_tree => $self->directories,
+		trace          => $self->{trace},
+	)->add_files( @{$files_ref} );
 
-    $self->{fragments}->{$id} = $fragment;
+	$self->{fragments}->{$id} = $fragment;
 
-    return $fragment;
+	return $fragment;
 } ## end sub insert_fragment
 
 =head2 add_to_fragment($id, $files_ref)
@@ -711,27 +710,27 @@ The fragment must already exist.
 =cut
 
 sub add_to_fragment {
-    my ( $self, $id, $files_ref ) = @_;
+	my ( $self, $id, $files_ref ) = @_;
 
-    # Check parameters.
-    unless ( _IDENTIFIER( $id ) ) {
-        PDWiX->throw('Invalid or missing id parameter');
-    }
-    unless ( _ARRAY( $files_ref ) ) {
-        PDWiX->throw('Invalid or missing files_ref parameter');
-    }
+	# Check parameters.
+	unless ( _IDENTIFIER($id) ) {
+		PDWiX->throw('Invalid or missing id parameter');
+	}
+	unless ( _ARRAY($files_ref) ) {
+		PDWiX->throw('Invalid or missing files_ref parameter');
+	}
 
-    if ( not exists $self->{fragments}->{$id} ) {
-        PDWiX->throw("Fragment $id does not exist");
-    }
+	if ( not exists $self->{fragments}->{$id} ) {
+		PDWiX->throw("Fragment $id does not exist");
+	}
 
-    foreach my $key ( keys %{ $self->{fragments} } ) {
-        $self->{fragments}->{$key}->check_duplicates( $files_ref );
-    }
+	foreach my $key ( keys %{ $self->{fragments} } ) {
+		$self->{fragments}->{$key}->check_duplicates($files_ref);
+	}
 
-    my $fragment = $self->{fragments}->{$id}->add_files( @{$files_ref} );
+	my $fragment = $self->{fragments}->{$id}->add_files( @{$files_ref} );
 
-    return $fragment;
+	return $fragment;
 } ## end sub add_to_fragment
 
 
@@ -748,21 +747,25 @@ it as a string.
 =cut
 
 sub as_string {
-    my $self = shift;
+	my $self = shift;
 
-    my $tt = new Template( {
-            INCLUDE_PATH => $self->dist_dir,
-            EVAL_PERL    => 1,
-        } ) || PDWiX->throw( $Template::ERROR or $Template::ERROR );
+	my $tt = new Template( {
+			INCLUDE_PATH => $self->dist_dir,
+			EVAL_PERL    => 1,
+		} )
+	  || PDWiX->throw(
+		     $Template::ERROR
+		  or $Template::ERROR
+	  );
 
-    my $answer;
-    my $vars = { dist => $self };
+	my $answer;
+	my $vars = { dist => $self };
 
-    $tt->process( 'Main.wxs.tt', $vars, \$answer )
-      || PDWiX->throw( $tt->error() . "\n" );
+	$tt->process( 'Main.wxs.tt', $vars, \$answer )
+	  || PDWiX->throw( $tt->error() . "\n" );
 
-    # Combine it all
-    return $answer;
+	# Combine it all
+	return $answer;
 } ## end sub as_string
 
 1;
