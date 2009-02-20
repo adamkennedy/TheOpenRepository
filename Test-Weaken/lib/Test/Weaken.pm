@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '1.003_004';
+our $VERSION   = '2.000000';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;

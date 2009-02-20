@@ -1,7 +1,6 @@
 Revision history for Test-Weaken
 
-1.003_nnn Thu Jan 29 20:47:58 2009
-        Series of developer's releases.
+2.000000 Thu Feb 19
         Complete interface change and
             code rewrite.
         Documentation rewrite.
