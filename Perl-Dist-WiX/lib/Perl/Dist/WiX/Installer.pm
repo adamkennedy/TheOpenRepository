@@ -342,7 +342,7 @@ sub msi_product_id {
 
     #... then use it to create a GUID out of the ID.
     my $guid =
-      $self->generate_guid( $self->app_ver_name );
+      $self->{misc}->generate_guid( $self->app_ver_name );
 
     return $guid;
 } ## end sub msi_product_id
@@ -365,7 +365,7 @@ sub msi_upgrade_code {
       . $self->perl_version_human;
 
     #... then use it to create a GUID out of the ID.
-    my $guid = $self->generate_guid( $upgrade_ver );
+    my $guid = $self->{misc}->generate_guid( $upgrade_ver );
 
     return $guid;
 } ## end sub msi_upgrade_code

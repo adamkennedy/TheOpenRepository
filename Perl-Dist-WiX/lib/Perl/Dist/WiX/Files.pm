@@ -116,7 +116,6 @@ use version; $VERSION = qv('0.13_02');
 			$self->trace_line( 4,
 				"Stage 1 - Adding file to Directory{Ref} for $path.\n" );
 			$file_obj = $directory_ref_obj->add_file(
-				sitename => $self->sitename,
 				filename => $file,
 			);
 			return $file_obj;
@@ -226,7 +225,6 @@ use version; $VERSION = qv('0.13_02');
 			$self->add_component($directory_ref_obj);
 			$directory_obj = $directory_ref_obj->add_directory_path($path);
 			$file_obj      = $directory_obj->add_file(
-				sitename => $self->sitename,
 				filename => $file,
 			);
 			return $file_obj;

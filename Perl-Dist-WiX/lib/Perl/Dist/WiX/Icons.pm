@@ -1,5 +1,4 @@
 package Perl::Dist::WiX::Icons;
-{
 
 ####################################################################
 # Perl::Dist::WiX::Icons - Object that represents a list of <Icon> tags.
@@ -22,21 +21,21 @@ use version; $VERSION = qv('0.13_02');
 #####################################################################
 # Attributes
 
-	my @icons : Field : Name(icons);
+my @icons : Field : Name(icons);
 
 #####################################################################
 # Constructors for Icons
 #
 # Parameters: [none]
 
-	sub _init : Init {
-		my $self = shift;
+sub _init : Init {
+	my $self = shift;
 
-		# Initialize our icons area.
-		@icons[ ${$self} ] = [];
+	# Initialize our icons area.
+	@icons[ ${$self} ] = [];
 
-		return $self;
-	}
+	return $self;
+}
 
 
 #####################################################################
@@ -50,45 +49,45 @@ use version; $VERSION = qv('0.13_02');
 # Returns:
 #   Id of icon.
 
-	sub add_icon {
-		my ( $self, $pathname_icon, $pathname_target ) = @_;
+sub add_icon {
+	my ( $self, $pathname_icon, $pathname_target ) = @_;
 
-		# Check parameters
-		unless ( defined $pathname_target ) {
-			$pathname_target = 'Perl.msi';
-		}
-		unless ( defined _STRING($pathname_target) ) {
-			PDWiX->throw('Invalid pathname_target parameter');
-		}
-		unless ( defined _STRING($pathname_icon) ) {
-			PDWiX->throw('Invalid pathname_icon parameter');
-		}
+	# Check parameters
+	unless ( defined $pathname_target ) {
+		$pathname_target = 'Perl.msi';
+	}
+	unless ( defined _STRING($pathname_target) ) {
+		PDWiX->throw('Invalid pathname_target parameter');
+	}
+	unless ( defined _STRING($pathname_icon) ) {
+		PDWiX->throw('Invalid pathname_icon parameter');
+	}
 
-		# Find the type of target.
-		my ($target_type) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
-		$self->trace_line( 2,
-			"Adding icon $pathname_icon with target type $target_type.\n" );
+	# Find the type of target.
+	my ($target_type) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
+	$self->trace_line( 2,
+		"Adding icon $pathname_icon with target type $target_type.\n" );
 
-		# If we have an icon already, return it.
-		my $icon = $self->search_icon( $pathname_icon, $target_type );
-		if ( defined $icon ) { return $icon; }
+	# If we have an icon already, return it.
+	my $icon = $self->search_icon( $pathname_icon, $target_type );
+	if ( defined $icon ) { return $icon; }
 
-		# Get Id made.
-		my ( undef, undef, $filename_icon ) = splitpath($pathname_icon);
-		my $id = substr $filename_icon, 0, -4;
-		$id =~ s/[^A-Za-z0-9]/_/gmxs;  # Substitute _ for anything
-		                               # non-alphanumeric.
-		$id .= ".$target_type";
+	# Get Id made.
+	my ( undef, undef, $filename_icon ) = splitpath($pathname_icon);
+	my $id = substr $filename_icon, 0, -4;
+	$id =~ s/[^A-Za-z0-9]/_/gmxs;      # Substitute _ for anything
+	                                   # non-alphanumeric.
+	$id .= ".$target_type";
 
-		# Add icon to our list.
-		push @{ $icons[ ${$self} ] },
-		  { file        => $pathname_icon,
-			target_type => $target_type,
-			id          => $id
-		  };
+	# Add icon to our list.
+	push @{ $icons[ ${$self} ] },
+	  { file        => $pathname_icon,
+		target_type => $target_type,
+		id          => $id
+	  };
 
-		return $id;
-	} ## end sub add_icon
+	return $id;
+} ## end sub add_icon
 
 ########################################
 # search_icon
@@ -98,33 +97,33 @@ use version; $VERSION = qv('0.13_02');
 # Returns:
 #   Id of icon.
 
-	sub search_icon {
-		my ( $self, $pathname_icon, $target_type ) = @_;
+sub search_icon {
+	my ( $self, $pathname_icon, $target_type ) = @_;
 
-		# Check parameters
-		unless ( defined $target_type ) {
-			$target_type = 'msi';
-		}
-		unless ( defined _STRING($target_type) ) {
-			PDWiX->throw('Invalid target_type parameter');
-		}
-		unless ( defined _STRING($pathname_icon) ) {
-			PDWiX->throw('Invalid pathname_icon parameter');
-		}
+	# Check parameters
+	unless ( defined $target_type ) {
+		$target_type = 'msi';
+	}
+	unless ( defined _STRING($target_type) ) {
+		PDWiX->throw('Invalid target_type parameter');
+	}
+	unless ( defined _STRING($pathname_icon) ) {
+		PDWiX->throw('Invalid pathname_icon parameter');
+	}
 
-		if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return undef; }
+	if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return undef; }
 
-		# Print each icon
-		foreach my $icon ( @{ $icons[ ${$self} ] } ) {
-			if (    ( $icon->{file} eq $pathname_icon )
-				and ( $icon->{target_type} eq $target_type ) )
-			{
-				return $icon->{id};
-			}
+	# Print each icon
+	foreach my $icon ( @{ $icons[ ${$self} ] } ) {
+		if (    ( $icon->{file} eq $pathname_icon )
+			and ( $icon->{target_type} eq $target_type ) )
+		{
+			return $icon->{id};
 		}
+	}
 
-		return undef;
-	} ## end sub search_icon
+	return undef;
+} ## end sub search_icon
 
 
 ########################################
@@ -134,21 +133,20 @@ use version; $VERSION = qv('0.13_02');
 # Returns:
 #   String containing <Icon> tags defined by this object.
 
-	sub as_string {
-		my $self = shift;
-		my $answer;
+sub as_string {
+	my $self = shift;
+	my $answer;
 
-		# Short-circuit
-		if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return q{}; }
+	# Short-circuit
+	if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return q{}; }
 
-		# Print each icon
-		foreach my $icon ( @{ $icons[ ${$self} ] } ) {
-			$answer .=
-			  "  <Icon Id='I_$icon->{id}' SourceFile='$icon->{file}' />\n";
-		}
+	# Print each icon
+	foreach my $icon ( @{ $icons[ ${$self} ] } ) {
+		$answer .=
+		  "  <Icon Id='I_$icon->{id}' SourceFile='$icon->{file}' />\n";
+	}
 
-		return $answer;
-	} ## end sub as_string
+	return $answer;
+} ## end sub as_string
 
-}
 1;

@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::StartMenu;
-{
+
 #####################################################################
 # Perl::Dist::WiX::StartMenu - A <Fragment> and <DirectoryRef> tag that
 # contains start menu <Shortcut>.
@@ -33,14 +33,14 @@ use version; $VERSION = qv('0.13_02');
 #   id, directory: See Base::Filename.
 #   sitename: The name of the site that is hosting the download.
 
-sub _pre_init: PreInit {
-    my ($self, $args) = @_;
+sub _pre_init : PreInit {
+	my ( $self, $args ) = @_;
 
 	# Apply required defaults.
 	$args->{id}        ||= 'Icons';
 	$args->{directory} ||= 'ApplicationProgramsFolder';
 
-    return;
+	return;
 }
 
 #####################################################################
@@ -95,9 +95,9 @@ sub as_string {
 	my $count = scalar @{ $self->get_components };
 	my $string;
 	my $s;
-    my $id = $self->get_fragment_id();
-    my $directory = $self->get_directory_id();
-    
+	my $id        = $self->get_fragment_id();
+	my $directory = $self->get_directory_id();
+
 	# Short-circuit.
 	return q{} if ( 0 == $count );
 
@@ -117,7 +117,7 @@ EOF
 	}
 
 	# Create a GUID out of the ID for the last component.
-	my $guid_rsf = $self->generate_guid( 'RemoveShortcutFolder' );
+	my $guid_rsf = $self->generate_guid('RemoveShortcutFolder');
 
 	# Finish printing.
 	$string .= <<"EOF";
@@ -132,7 +132,5 @@ EOF
 	return $string;
 
 } ## end sub as_string
-
-}
 
 1;

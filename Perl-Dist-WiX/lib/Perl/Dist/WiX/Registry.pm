@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::Registry;
-{
+
 #####################################################################
 # Perl::Dist::WiX::Registry - A <Fragment> and <DirectoryRef> tag that
 # contains <RegistryKey>s and <RegistryValue>s.
@@ -35,10 +35,10 @@ sub _pre_init : PreInit {
 	my ( $self, $args ) = @_;
 
 	# Apply defaults
-    $args->{id} ||= 'Registry';
+	$args->{id} ||= 'Registry';
 
 	return;
-} ## end sub new
+}
 
 #####################################################################
 # Main Methods
@@ -108,8 +108,8 @@ sub add_key {
 	my $key   = undef;
 	my $count = scalar @{ $self->get_components };
 	foreach my $i ( 0 .. $count - 1 ) {
-		if ($self->get_components->[$i]->is_key( $params{root}, $params{key} )
-		  )
+		if ( $self->get_components->[$i]
+			->is_key( $params{root}, $params{key} ) )
 		{
 			$key = $self->get_components->[$i];
 			last;
@@ -119,9 +119,9 @@ sub add_key {
 	# Create a key if we don't have one already.
 	if ( not defined $key ) {
 		$key = Perl::Dist::WiX::Registry::Key->new(
-			id       => $params{id},
-			root     => $params{root},
-			key      => $params{key},
+			id   => $params{id},
+			root => $params{root},
+			key  => $params{key},
 		);
 		$self->add_component($key);
 	}
@@ -133,7 +133,5 @@ sub add_key {
 
 	return $self;
 } ## end sub add_key
-
-}
 
 1;

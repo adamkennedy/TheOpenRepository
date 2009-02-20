@@ -1,5 +1,5 @@
 package Perl::Dist::WiX::StartMenuComponent;
-{
+
 #####################################################################
 # Perl::Dist::WiX::StartMenuComponent - A <Component> tag that contains a start menu <Shortcut>.
 #
@@ -31,12 +31,13 @@ use version; $VERSION = qv('0.13_02');
 # Accessors:
 #   none.
 
-my @name :Field :Arg(name);
-my @description :Field :Arg(description);
-my @target :Field :Arg(target);
-my @working_dir :Field :Arg(working_dir);
-my @menudir_id :Field :Arg(menudir_id);
-my @icon_id :Field :Arg(icon_id);
+## no critic 'ProhibitUnusedVariables'
+my @name : Field : Arg(name);
+my @description : Field : Arg(description);
+my @target : Field : Arg(target);
+my @working_dir : Field : Arg(working_dir);
+my @menudir_id : Field : Arg(menudir_id);
+my @icon_id : Field : Arg(icon_id);
 
 #####################################################################
 # Constructor for StartMenuComponent
@@ -52,9 +53,9 @@ my @icon_id :Field :Arg(icon_id);
 # See http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 # and http://wix.sourceforge.net/manual-wix3/wix_xsd_createfolder.htm
 
-sub _pre_init :PreInit {
-	my ($self, $args) = @_;
-    
+sub _pre_init : PreInit {
+	my ( $self, $args ) = @_;
+
 	unless ( _STRING( $args->{name} ) ) {
 		PDWiX->throw('Missing or invalid name param');
 	}
@@ -68,16 +69,16 @@ sub _pre_init :PreInit {
 	}
 
 	unless ( _STRING( $args->{guid} ) ) {
-		$args->{guid} = $self->generate_guid($args->{id});
+		$args->{guid} = $self->generate_guid( $args->{id} );
 	}
-    
-    return;
-}
 
-sub _init :Init {
-	my $self = shift;
-    my $object_id = ${$self};
-    
+	return;
+} ## end sub _pre_init :
+
+sub _init : Init {
+	my $self      = shift;
+	my $object_id = ${$self};
+
 	unless ( _STRING( $target[$object_id] ) ) {
 		PDWiX->throw('Missing or invalid target param');
 	}
@@ -94,7 +95,7 @@ sub _init :Init {
 	$self->trace_line( 3, "Adding Icon for $target[$object_id]\n" );
 
 	return;
-} ## end sub new
+} ## end sub _init :
 
 #####################################################################
 # Main Methods
@@ -108,12 +109,12 @@ sub _init :Init {
 #   by this object.
 
 sub as_string {
-	my $self = shift;
-    my $object_id = ${$self};
+	my $self      = shift;
+	my $object_id = ${$self};
 
-    my $id = $self->get_component_id();
-    my $guid = $self->get_guid();
-    
+	my $id   = $self->get_component_id();
+	my $guid = $self->get_guid();
+
 	return <<"END_OF_XML";
 <Component Id='C_S_$id' Guid='$guid'>
   <Shortcut Id='S_$id'
@@ -127,7 +128,5 @@ sub as_string {
 END_OF_XML
 
 } ## end sub as_string
-
-}
 
 1;
