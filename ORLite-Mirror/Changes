@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.12 Sat 21 Feb 2009
+	- Adding offline support to the mirror logic
+
 1.11 Wed  4 Feb 2009
 	- Minor fixes
 

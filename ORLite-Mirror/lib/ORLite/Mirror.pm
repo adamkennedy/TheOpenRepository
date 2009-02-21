@@ -7,15 +7,16 @@ use File::Spec              ();
 use File::Path              ();
 use File::Remove            ();
 use File::HomeDir           ();
-use LWP::UserAgent          ();
 use Params::Util            qw{ _STRING _NONNEGINT _HASH };
 use IO::Uncompress::Gunzip  ();
 use IO::Uncompress::Bunzip2 ();
+use LWP::UserAgent          ();
+use LWP::Online             ();
 use ORLite 1.19             ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	@ISA     = qw{ ORLite };
 }
 
@@ -98,8 +99,16 @@ sub import {
 		Carp::croak("Invalid maxage param");
 	}
 
+	# Are we online
+	my $online = LWP::Online::online();
+	unless ( $online or -f $path ) {
+		# Don't have the file and can't get it
+		Carp::croak("Cannot fetch database while offline");
+	}
+
 	# Don't update if the file is newer than the maxage
-	unless ( -f $path and (time - (stat($path))[9]) < $params{maxage} ) {
+	my $old = (time - (stat($path))[9]) > $params{maxage};
+	if ( -f $path ? $old : 1 ) {
 		# Create the default useragent
 		my $useragent = delete $params{useragent};
 		unless ( $useragent ) {

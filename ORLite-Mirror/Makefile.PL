@@ -8,6 +8,7 @@ requires      'File::Remove'            => '1.40';
 requires      'Params::Util'            => '0.33';
 requires      'URI'                     => '1.35';
 requires      'LWP'                     => '5.806';
+requires      'LWP::Online'             => '1.07';
 requires      'ORLite'                  => '1.19';
 requires      'IO::Uncompress::Gunzip'  => '2.008';
 requires      'IO::Uncompress::Bunzip2' => '2.008';
