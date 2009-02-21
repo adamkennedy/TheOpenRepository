@@ -1,5 +1,14 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.13_03 Fri 20 Feb 2009
+    1. Internals use Object::InsideOut (I have to admit 
+	   I was getting confused with all the inheritance.)
+	   Perl::Dist::WiX[::Installer] still uses Object::Tiny
+	   for backwards compatibility.
+	2. Exception::Class also used (Makes it so errors 
+	   change along with the trace level.)
+	3. Tests reordered and categorized.
+
 0.13_02 Thu 12 Feb 2009
     1. Test sequence completed. Passes, as well.
 

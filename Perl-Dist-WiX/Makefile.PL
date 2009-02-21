@@ -8,6 +8,7 @@ requires       'Perl::Dist'          => '1.12';
 requires       'Data::UUID'          => '1.149';
 requires       'List::MoreUtils'     => '0.07';
 requires       'Module::CoreList'    => '2.17';
+requires       'Exception::Class'    => '1.22';
 requires       'Object::InsideOut'   => '3.53';
 requires       'Readonly'            => '1.03';
 build_requires 'Test::More'          => '0.47';
