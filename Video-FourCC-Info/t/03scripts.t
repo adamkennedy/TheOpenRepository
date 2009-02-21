@@ -3,7 +3,7 @@
 # t/03scripts.t
 #  Test that included script files compile properly
 #
-# $Id: 01critic.t 5226 2009-02-08 00:06:30Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This test script is hereby released into the public domain.
 

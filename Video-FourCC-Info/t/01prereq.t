@@ -3,7 +3,7 @@
 # t/01prereq.t
 #  Checks that Build.PL prerequisites are correct
 #
-# $Id: 01pod.t 4994 2009-01-19 21:05:22Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This test script is hereby released into the public domain.
 
