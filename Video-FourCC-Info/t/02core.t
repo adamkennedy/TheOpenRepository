@@ -11,7 +11,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 8;
-use Test::NoWarnings;
+use Test::NoWarnings; # 1 test
 
 use Video::FourCC::Info;
 

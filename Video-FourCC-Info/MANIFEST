@@ -18,8 +18,12 @@ t/01critic.t
 t/01kwalitee.t
 t/01manifest.t
 t/01meta.t
+t/01min-perl.t
 t/01pod-coverage.t
 t/01pod.t
+t/01portability.t
+t/01prereq.t
 t/02core.t
 t/02exceptions.t
 t/02fallback.t
+t/03scripts.t

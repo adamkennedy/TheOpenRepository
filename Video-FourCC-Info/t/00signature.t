@@ -16,11 +16,15 @@ unless ($ENV{TEST_AUTHOR}) {
   plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
 }
 
-eval 'use Test::Signature';
+eval {
+  require Test::Signature;
+};
 if ($@) {
   plan skip_all => 'Test::Signature required to test SIGNATURE files';
 }
 
 plan tests => 1;
+
+Test::Signature->import();
 
 signature_ok();
