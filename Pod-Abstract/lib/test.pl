@@ -42,6 +42,8 @@ my $path = q|
    [/:paragraph =~ {wiggy}][!/:paragraph =~ {woo}]
   ]
 |;
+$path = '//item@label[! . =~ {\*}]';
+
 #    '//:paragraph[//:E =~ {gt}]'
 #    'head1/head2[/head3[/:paragraph =~ {wiggy}][!/:paragraph =~ {woo}]](0)'
 #    'head1/head2[!/foo]/head3[/:paragraph =~ {wiggy}]'

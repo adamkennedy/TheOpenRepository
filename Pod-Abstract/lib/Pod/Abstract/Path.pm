@@ -160,6 +160,21 @@ sub select_name {
     return $nlist;
 }
 
+sub select_attr {
+    my $self = shift;
+    my $ilist = shift;
+    my $name = shift;
+    my $nlist = [ ];
+    
+    foreach my $i (@$ilist) {
+        my $pv = $i->param($name);
+        if($pv) {
+            push @$nlist, $pv;
+        }
+    }
+    return $nlist;
+}
+
 sub select_index {
     my $self = shift;
     my $ilist = shift;
@@ -323,6 +338,12 @@ sub parse_path {
     } elsif($tok == NAME) {
         return {
             'action' => 'select_name',
+            'arguments' => [ $val ],
+            'next' => $self->parse_path($l),
+        };
+    } elsif($tok == ATTR) {
+        return {
+            'action' => 'select_attr',
             'arguments' => [ $val ],
             'next' => $self->parse_path($l),
         };

@@ -122,6 +122,11 @@ sub pod {
     } elsif($r_delim) {
         $r .= $r_delim;
     }
+    
+    if($self->param('close_element')) {
+        $r .= $self->param('close_element')->pod;
+    }
+    
     return $r;
 }
 
@@ -146,17 +151,29 @@ sub select_into {
 
 sub type {
     my $self = shift;
+    if(@_) {
+        my $new_val = shift;
+        $self->{type} = $new_val;
+    }
     return $self->{type};
 }
 
 sub body {
     my $self = shift;
+    if(@_) {
+        my $new_val = shift;
+        $self->{body} = $new_val;
+    }
     return $self->{body};
 }
 
 sub param {
     my $self = shift;
     my $param_name = shift;
+    if(@_) {
+        my $new_val = shift;
+        $self->{params}{$param_name} = $new_val;
+    }
     return $self->{params}{$param_name};
 }
 
@@ -165,7 +182,23 @@ sub duplicate {
     my $class = ref $self;
  
     # Implement the new() call with all the data needed.
-    my $dup = new $class;
+    my $params = $self->{params};
+    my %new_params = ( );
+    foreach my $param (keys %$params) {
+        my $pv = $params->{$param};
+        if(ref $pv && UNIVERSAL::can($pv, 'duplicate')) {
+            $new_params{$param} = $pv->duplicate;
+        } elsif(! ref $pv) {
+            $new_params{$param} = $pv;
+        } else {
+            die "Don't know how to copy a ", ref $pv;
+        }
+    }
+    my $dup = $class->new(
+        type => $self->type,
+        body => $self->body,
+        %new_params,
+        );
     
     my @children = $self->children;
     my @dup_children = map { $_->duplicate } @children;
@@ -212,6 +245,17 @@ sub hoist {
     }
     
     return scalar @children;
+}
+
+sub clear {
+    my $self = shift;
+    my @children = $self->children;
+    
+    foreach my $n (@children) {
+        $n->detach;
+    }
+    
+    return @children;
 }
 
 sub push {

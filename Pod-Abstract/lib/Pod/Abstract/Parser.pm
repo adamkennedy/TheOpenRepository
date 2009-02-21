@@ -46,13 +46,21 @@ sub root {
 # next head1, list items continue until the next item or end of list,
 # etc. POD doesn't specify these relationships, but they are natural
 # and make sense in the whole document context.
+#
+# SPECIAL: Start node with < to pull the end node out of the tree and
+# into the opening node - e.g, pull a "back" into an "over", but not
+# into an "item". Pulling a command stops it from closing any more
+# elements, so begin/end style blocks need to use a pull, or one end
+# will close all begins.
 my %section_commands = (
     'head1' => [ 'head1' ],
     'head2' => [ 'head2', 'head1' ],
     'head3' => [ 'head3', 'head2', 'head1' ],
     'head4' => [ 'head4', 'head3', 'head2', 'head1' ],
-    'over'  => [ 'back' ],
+    'over'  => [ '<back' ],
     'item'  => [ 'item', 'back' ],
+    'begin' => [ '<end' ],
+    'for'   => [ '<end' ],
     );
 
 my %attr_names = (
@@ -78,14 +86,22 @@ sub command {
         $top->push($element_node);
     } else {
         # Treat as command.
+        my $pull = undef;
         while(@$cmd_stack > 0) {
             my $last = scalar(@$cmd_stack) - 1;
             my @should_end = ( );
             @should_end = 
                 grep { $command eq $_ }
                      @{$section_commands{$cmd_stack->[$last]->type}};
+            my @should_pull = ( );
+            @should_pull =
+                grep { "<$command" eq $_ }
+                     @{$section_commands{$cmd_stack->[$last]->type}};
             if(@should_end) {
                 my $end_cmd = pop @$cmd_stack;
+            } elsif(@should_pull) {
+                $pull = pop @$cmd_stack;
+                last;
             } else {
                 last;
             }
@@ -112,7 +128,11 @@ sub command {
             %attr,
             );
         my $top = $cmd_stack->[$#$cmd_stack];
-        $top->push($element_node);
+        if($pull) {
+            $pull->param('close_element', $element_node);
+        } else {
+            $top->push($element_node);
+        }
         if($section_commands{$command}) {
             push @$cmd_stack, $element_node;
         } else {
