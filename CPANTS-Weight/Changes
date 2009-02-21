@@ -1,5 +1,9 @@
 Changes for Perl extension CPANTS-Weight
 
+0.03 Sat 21 Feb 2009
+	- Adding the META.yml Level 1, 2 and 3 scores
+	- Adding ORLite::Mirror 1.12 dep for offline support
+
 0.02 Mon 16 Feb 2009
 	- Moving to ORLite::Migrate
 	- Adding data for the "Enemies of the Downstream" list

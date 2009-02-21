@@ -28,7 +28,7 @@ use Algorithm::Dependency::Weight         ();
 use Algorithm::Dependency::Source::DBI    ();
 use Algorithm::Dependency::Source::Invert ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -47,10 +47,13 @@ use ORLite::Migrate 0.02 {
 	file         => ORLITE_FILE,
 	create       => 1,
 	timeline     => ORLITE_TIMELINE,
-	user_version => 1,
+	user_version => 2,
 };
 
 # Load the CPANTS database (This could take a while...)
+BEGIN {
+	$DB::single = 1;
+}
 use ORDB::CPANTS;
 
 # Common string fragments
@@ -156,14 +159,41 @@ sub run {
 	foreach my $dist ( @dists ) {
 		my $id = $dist->id;
 		my $k  = $kwalitee->{$id} || {};
+
+		# Does this distribution make life difficult
+		# for downstream packagers.
+		my $enemy_downstream = $k->{easily_repackagable} ? 0 : 1;
+
+		# Is this distribution popular, but NOT provided in
+		# Debian, making it a good candidate for packaging.
+		my $debian_candidate = $k->{distributed_by_debian} ? 0 : 1;
+
+		# Does this distribution supply useful metadata.
+		# Level 1 requires a parsable META.yml file
+		# Level 2 requires META.yml conforms to a known specification,
+		# and has a license declaration.
+		# Level 3 requires META.yml conform to the current specification,
+		# and declares the required minimum Perl version.
+		my $meta1 = ($k->{has_meta_yml} and $k->{metayml_parsable}) ? 0 : 1;
+		my $meta2 = ($k->{metayml_conforms_to_known_spec} and $k->{metayml_has_license}) ? 0 : 1;
+		my $meta3 = ($k->{metayml_conforms_current_spec} and $k->{metayml_declares_perl_version}) ? 0 : 1;
+		if ( $meta1 ) {
+			$meta2 = 0;
+		}
+		if ( $meta1 or $meta2 ) {
+			$meta3 = 0;
+		}
 		CPANTS::Weight::DistWeight->create(
 			id               => $id,
 			dist             => $dist->dist,
 			author           => $dist->author,
 			weight           => $weight->{$id},
 			volatility       => $volatility->{$id},
-			enemy_downstream => $k->{easily_repackagable}   ? 1 : 0,
-			debian_candidate => $k->{distributed_by_debian} ? 0 : 1,
+			enemy_downstream => $enemy_downstream,
+			debian_candidate => $debian_candidate,
+			meta1            => $meta1,
+			meta2            => $meta2,
+			meta3            => $meta3,
 		);
 	}
 	CPANTS::Weight->commit;

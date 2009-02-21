@@ -7,6 +7,7 @@ requires       'File::ShareDir'                     => '1.00';
 requires       'Algorithm::Dependency'              => '1.108';
 requires       'Algorithm::Dependency::Source::DBI' => '0.05';
 requires       'ORLite'                             => '1.20';
+requires       'ORLite::Mirror'                     => '1.12';
 requires       'ORLite::Migrate'                    => '0.02';
 requires       'ORDB::CPANTS'                       => '0.03';
 test_requires  'Test::More'                         => '0.42';
