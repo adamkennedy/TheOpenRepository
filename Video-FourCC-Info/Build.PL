@@ -66,6 +66,10 @@ my $builder = Module::Build->new(
     'Test::Pod::Coverage'     => '1.04',
     'Test::DistManifest'      => 0,
     'Test::Without::Module'   => 0,
+    'Test::Prereq::Build'     => '1.036',
+    'Test::Portability::Files' => 0,
+    'Test::MinimumVersion'    => 0,
+    'Test::Script'            => 0,
   },
   conflicts => {
   },

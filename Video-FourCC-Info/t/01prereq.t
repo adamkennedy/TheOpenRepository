@@ -25,6 +25,9 @@ if ($@) {
 
 plan tests => 1;
 
+# add a no-op; this should be committed upstream but is broken in 1.036
+sub Test::Prereq::Build::add_build_element { 1 }
+
 Test::Prereq::Build->import();
 
 prereq_ok();
