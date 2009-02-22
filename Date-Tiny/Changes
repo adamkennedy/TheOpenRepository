@@ -1,5 +1,7 @@
 Revision history for Perl extension Date::Tiny
 
+        - Makefile.PL will create a better META.yml
+
 1.03 Thu  1 Nov 2007
 	- Converting from Module::Install to EU::MM
 	- Moving to a production version
