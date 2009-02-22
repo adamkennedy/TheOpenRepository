@@ -396,16 +396,16 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	# Check the version of Perl to build
 	unless ( $self->build_number ) {
-		PDWiX->throw('Failed to resolve build_number');
+		PDWiX::Parameter->throw('build_number');
 	}
 	unless ( $self->beta_number ) {
 		$self->{beta_number} = 0;
 	}
 	unless ( $self->perl_version_literal ) {
-		PDWiX->throw('Failed to resolve perl_version_literal');
+		PDWiX::Parameter->throw('perl_version_literal: Failed to resolve');
 	}
 	unless ( $self->perl_version_human ) {
-		PDWiX->throw('Failed to resolve perl_version_human');
+		PDWiX::Parameter->throw('perl_version_human: Failed to resolve');
 	}
 	unless ( $self->can( 'install_perl_' . $self->perl_version ) ) {
 		PDWiX->throw(
@@ -479,30 +479,30 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{modules_dir} = catdir( $self->download_dir, 'modules' );
 	}
 	unless ( _STRING( $self->modules_dir ) ) {
-		PDWiX->throw('Invalid modules_dir param');
+		PDWiX::Parameter->throw('modules_dir');
 	}
 	$self->_check_string_parameter( $self->image_dir, 'image_dir' );
 	if ( $self->image_dir =~ /\s/ms ) {
-		PDWiX->throw('Spaces are not allowed in image_dir');
+		PDWiX::Parameter->throw('image_dir: Spaces are not allowed');
 	}
 	unless ( defined $self->license_dir ) {
 		$self->{license_dir} = catdir( $self->image_dir, 'licenses' );
 	}
 	unless ( _STRING( $self->license_dir ) ) {
-		PDWiX->throw('Invalid license_dir param');
+		PDWiX::Parameter->throw('license_dir');
 	}
 	$self->_check_string_parameter( $self->build_dir, 'build_dir' );
 	if ( $self->build_dir =~ /\s/ms ) {
-		PDWiX->throw('Spaces are not allowed in build_dir');
+		PDWiX::Parameter->throw('build_dir: Spaces are not allowed');
 	}
 	unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
-		PDWiX->throw('Missing or invalid user_agent param');
+		PDWiX::Parameter->throw('user_agent');
 	}
 	unless ( _INSTANCE( $self->cpan, 'URI' ) ) {
-		PDWiX->throw('Missing or invalid cpan param');
+		PDWiX::Parameter->throw('cpan');
 	}
 	unless ( $self->cpan->as_string =~ m{\/\z}ms ) {
-		PDWiX->throw('Missing trailing slash in cpan param');
+		PDWiX::Parameter->throw('cpan: Missing trailing slash');
 	}
 
 	# Clear the previous build
@@ -1162,11 +1162,55 @@ sub install_perl_toolchain {
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
+			packlist          => $self->_need_packlist($self->_name_to_module($dist))
 		);
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	return 1;
 } ## end sub install_perl_toolchain
+
+sub _need_packlist {
+	my ( $self, $module ) = @_;
+
+	my @mods = qw(
+	  ExtUtils::MakeMaker
+	  File::Path
+	  ExtUtils::Command
+	  Win32API::File
+	  ExtUtils::Install
+	  ExtUtils::Manifest
+	  Test::Harness
+	  Test::Simple
+	  ExtUtils::CBuilder
+	  ExtUtils::ParseXS
+	  version
+	  IO::Compress::Base
+	  Compress::Raw::Zlib
+	  Compress::Raw::Bzip2
+	  IO::Compress::Zlib
+	  IO::Compress::Bzip2
+	  Compress::Zlib
+	  Compress::Bzip2
+	  IO::Zlib
+	  File::Temp
+	  Win32API::Registry
+	  Win32::TieRegistry
+	  File::HomeDir
+	  File::Which
+	  Archive::Zip
+	  IO::String
+	  YAML
+	  Digest::SHA1
+	  Digest::SHA
+	  Module::Build
+	  CPAN
+	  Text::Glob
+	  HTML::Tagset
+	  HTML::Parser
+	);
+
+	return any { $module eq $_ } @mods;
+} ## end sub _need_packlist
 
 sub install_cpan_upgrades {
 	my $self = shift;
@@ -2541,10 +2585,10 @@ sub install_distribution {
 
 # If we don't have a packlist file, get an initial filelist to subtract from.
 	my $module  = $self->_name_to_module($name);
-	my $fl_flag = $self->_need_packlist($module);
+	my $packlist_flag = defined $dist->{packlist} ? $dist->{packlist} : 1;
 	my $filelist_sub;
 
-	if ( not $fl_flag ) {
+	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
 	}
@@ -2604,7 +2648,7 @@ sub install_distribution {
 
 	# Making final filelist.
 	my $filelist;
-	if ($fl_flag) {
+	if ($packlist_flag) {
 		$filelist = $self->search_packlist($module);
 	} else {
 		$filelist = Perl::Dist::WiX::Filelist->new->readdir(
@@ -2676,80 +2720,21 @@ sub search_packlist {
 		$fl =
 		  Perl::Dist::WiX::Filelist->new->load_file($site)->add_file($site);
 	} else {
-		PDWiX->throw("No .packlist found for $module");
-	}
+		my $error = <<"EOF";
+No .packlist found for $module.
+
+Please set packlist => 0 when calling install_distribution or 
+install_module for this module.  If this is in an install_modules 
+list, please take it out of the list, creating two lists if need 
+be, and create an install_module call for this module with 
+packlist => 0.
+EOF
+		chomp $error;
+		PDWiX->throw($error);
+		}
 
 	return $fl->filter( $self->filters );
 } ## end sub search_packlist
-
-sub _need_packlist {
-	my ( $self, $module ) = @_;
-
-	my @mods = qw(
-	  ExtUtils::MakeMaker
-	  File::Path
-	  ExtUtils::Command
-	  Win32API::File
-	  ExtUtils::Install
-	  ExtUtils::Manifest
-	  Test::Harness
-	  Test::Simple
-	  ExtUtils::CBuilder
-	  ExtUtils::ParseXS
-	  version
-	  IO::Compress::Base
-	  Compress::Raw::Zlib
-	  Compress::Raw::Bzip2
-	  IO::Compress::Zlib
-	  IO::Compress::Bzip2
-	  Compress::Zlib
-	  Compress::Bzip2
-	  IO::Zlib
-	  File::Temp
-	  Win32API::Registry
-	  Win32::TieRegistry
-	  File::HomeDir
-	  File::Which
-	  Archive::Zip
-	  IO::String
-	  YAML
-	  Digest::SHA1
-	  Digest::SHA
-	  Module::Build
-	  CPAN
-	  Text::Glob
-	  HTML::Tagset
-	  HTML::Parser
-	  CPAN::SQLite
-	  DBD::SQLite
-	  DBI
-	  pler
-	  pip
-	  PPM
-	  PAR::Repository::Client
-	  DBM::Deep
-	  PAR::Dist::InstallPPD
-	  Test::Exception
-	  Test::Warn
-	  Test::Deep
-	  XML::LibXML
-	  XML::Parser
-	  Math::BigInt
-	  Math::BigInt::FastCalc
-	  Math::BigRat
-	  Math::BigInt::GMP
-	  Win32::File
-	  Win32::File::Object
-	  Win32::API
-	  Win32::Env::Path
-	  Win32::Exe
-	  LWP::Online
-	  Pod::Simple
-	  Time::Piece
-	);
-
-	return any { $module eq $_ } @mods;
-} ## end sub _need_packlist
 
 =pod
 
@@ -2775,6 +2760,9 @@ The optional 'force' param can be used to force the install of module.
 This does not, however, force the installation of the dependencies of
 the module.
 
+The optional 'packlist' param sshould be 0 if a .packlist file is not 
+installed with the module.
+
 Returns true or throws an exception on error.
 
 =cut
@@ -2788,6 +2776,7 @@ sub install_module {
 	);
 	my $name  = $module->name;
 	my $force = $module->force;
+	my $packlist_flag = defined $module->{packlist} ? $module->{packlist} : 1;
 
 	unless ( $self->bin_perl ) {
 		PDWiX->throw(
@@ -2828,9 +2817,9 @@ unless ( \$module->uptodate ) {
 exit(0);
 END_PERL
 
-	my $fl_flag = $self->_need_packlist( $module->name );
+# 	my $fl_flag = $self->_need_packlist( $module->name );
 	my $filelist_sub;
-	if ( not $fl_flag ) {
+	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
 	}
@@ -2865,7 +2854,7 @@ END_PERL
 
 	# Making final filelist.
 	my $filelist;
-	if ($fl_flag) {
+	if ($packlist_flag) {
 		$filelist = $self->search_packlist( $module->name );
 	} else {
 		$filelist = Perl::Dist::WiX::Filelist->new->readdir(

@@ -12,9 +12,10 @@ package Perl::Dist::WiX::DirectoryTree;
 use     5.006;
 use     strict;
 use     warnings;
-use     vars              qw( $VERSION                       );
-use     Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
-use     Params::Util      qw( _IDENTIFIER _STRING            );
+use     vars                  qw( $VERSION                       );
+use     Object::InsideOut     qw( Perl::Dist::WiX::Misc Storable );
+use     Params::Util          qw( _IDENTIFIER _STRING            );
+use     File::Spec::Functions qw( catdir                         );
 require Perl::Dist::WiX::Directory;
 
 use version; $VERSION = qv('0.13_03');
@@ -63,6 +64,7 @@ sub search_dir {
 	my $params_ref = {@_};
 
 	# Set defaults for parameters.
+	$self->trace_line(5, "\$self: $self\n$params_ref: $params_ref\npath_to_find: $params_ref->{path_to_find}\n");
 	my $path_to_find = _STRING( $params_ref->{path_to_find} )
 	  || PDWiX->throw('No path to find.');
 	my $descend = $params_ref->{descend} || 1;
@@ -239,6 +241,35 @@ sub initialize_tree {
 
 	return $self;
 } ## end sub initialize_tree
+
+########################################
+# add_root_directory($id, $dir)
+
+sub add_root_directory {
+	my ($self, $id, $dir) = @_;
+	
+	unless (defined _IDENTIFIER($id)) {
+		PDWiX->throw('Missing or invalid id parameter');
+	}
+	
+	unless (defined _STRING($dir)) {
+		PDWiX->throw('Missing or invalid dir parameter');
+	}
+
+	my $path = $self->app_dir;
+	
+	$self->trace_line(5, "Path: $path\n");
+	
+	return $self->search_dir(
+		path_to_find => $path,
+		descend => 0,
+		exact => 1,
+	)->add_directory({
+		id => $id,
+		name => $dir,
+		path => catdir($path, $dir)
+	});
+}
 
 ########################################
 # as_string

@@ -31,7 +31,9 @@ use version; $VERSION = qv('0.13_03');
 # Error Handling
 
 use Exception::Class (
-	'PDWiX' => { 'description' => 'Perl::Dist::WiX error', }, );
+	'PDWiX' => { 'description' => 'Perl::Dist::WiX error', },
+	'PDWiX::Parameter' => { 'description' => 'Perl::Dist::WiX error: Parameter missing or invalid', },
+);
 
 sub PDWiX::full_message { ## no critic 'Capitalization'
 	my $self = shift;

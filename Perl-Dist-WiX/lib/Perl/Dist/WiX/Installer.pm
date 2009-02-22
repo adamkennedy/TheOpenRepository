@@ -749,7 +749,7 @@ it as a string.
 sub as_string {
 	my $self = shift;
 
-	my $tt = new Template( {
+	my $tt = Template->new( {
 			INCLUDE_PATH => $self->dist_dir,
 			EVAL_PERL    => 1,
 		} )
