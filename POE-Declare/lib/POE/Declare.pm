@@ -286,7 +286,10 @@ sub _attribute_class {
 
 =head2 compile
 
+The C<compile> function indicates that all attributes and events have
+been defined and the structure should be finalised and compiled.
 
+Returns true or throws an exception.
 
 =cut
 
@@ -308,17 +311,18 @@ sub compile {
 
 	# Are any attributes already defined in our parents?
 	foreach my $name ( sort keys %{$ATTR{$pkg}} ) {
-		my $found = List::Util::first {
+		my $found = List::Util::first { 
 			$ATTR{$_}->{attr}->{$name}
 		} @super;
-		if ( $found ) {
-			Carp::croak("Duplicate attribute '$name' already defined in " . $found->name );
-		}
+		Carp::croak(
+			"Duplicate attribute '$name' already defined in "
+			. $found->name
+		) if $found;
 		$meta->{attr}->{$name} = $ATTR{$pkg}->{$name};
 	}
 
 	# Compile the individual parts
-	$meta->compile;
+	$meta->_compile;
 }
 
 # Get the meta-object for a class.

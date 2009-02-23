@@ -1,7 +1,8 @@
 Revision history for Perl extension POE-Declare
 
 0.05 Mon 23 Feb 2009
-	- Bulking out the documentation
+	- Completing most of the initial pass over the documentation
+	- Switching to using Class::XSAccessor
 
 0.04 skipped
 

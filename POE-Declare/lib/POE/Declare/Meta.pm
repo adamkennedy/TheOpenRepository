@@ -166,7 +166,7 @@ sub super_path {
 	Class::ISA::self_and_super_path( $_[0]->name );
 }
 
-sub compile {
+sub _compile {
 	my $self = shift;
 	my $name = $self->name;
 	my $attr = $self->{attr};
@@ -196,7 +196,7 @@ sub compile {
 	}
 
 	# Get all the package fragments
-	my @parts = map { $attr->{$_}->compile } sort keys %$attr;
+	my @parts = map { $attr->{$_}->_compile } sort keys %$attr;
 	my @main  = (
 		"package " . $self->name . ";",
 		map { $_->{package} || '' } @parts,
