@@ -155,9 +155,10 @@ value if a custom C<Alias> param has been explicitly passed to the constructor.
 
 =cut
 
-sub Alias {
-	$_[0]->{Alias};
-}
+# This is auto-generated
+# sub Alias {
+#     $_[0]->{Alias};
+# }
 
 =pod
 
