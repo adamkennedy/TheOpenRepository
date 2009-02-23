@@ -40,7 +40,7 @@ BEGIN {
 # Main Methods
 
 sub _compile { +{ package => <<"END_PERL" } }
-use Class::XSAccessor getters => { $_[0]->{name} => $_[0]->{name} };
+use Class::XSAccessor getters => { $_[0]->{name} => '$_[0]->{name}' };
 END_PERL
 
 1;
