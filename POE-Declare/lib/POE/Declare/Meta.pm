@@ -200,7 +200,6 @@ sub _compile {
 	my @main  = (
 		"package " . $self->name . ";",
 		map { $_->{package} || '' } @parts,
-		'1;',
 	);
 
 	# Compile the Perl code
