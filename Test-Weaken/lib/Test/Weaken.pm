@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.000000';
+our $VERSION   = '2.001_000';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -117,10 +117,11 @@ sub Test::Weaken::new {
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
-            croak(
-                'Unknown named args to Test::Weaken::new: ',
-                ( join q{ }, @unknown_named_args )
-            );
+            my $message = q{};
+            for my $unknown_named_arg (@unknown_named_args) {
+                $message .= "Unknown named arg: '$unknown_named_arg'\n";
+            }
+            croak($message . 'Test::Weaken failed due to unknown named arg(s)');
         }
 
     }    # UNPACK_ARGS

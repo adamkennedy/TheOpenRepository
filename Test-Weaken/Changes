@@ -1,5 +1,9 @@
 Revision history for Test-Weaken
 
+2.001_000 Sun Feb 22 22:13:16 2009
+        Starting series of developer's releases.
+        Adding 'ignore' option.
+
 2.000000 Thu Feb 19
         Complete interface change and
             code rewrite.
