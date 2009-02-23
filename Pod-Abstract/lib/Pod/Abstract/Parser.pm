@@ -63,6 +63,12 @@ my %section_commands = (
     'for'   => [ '<end' ],
     );
 
+# Don't parse anything inside these.
+my %no_parse = (
+    'begin' => 1,
+    'for' => 1,
+    );
+
 my %attr_names = (
     head1 => 'heading',
     head2 => 'heading',
@@ -74,13 +80,17 @@ my %attr_names = (
 sub command {
     my ($self, $command, $paragraph, $line_num) = @_;
     my $cmd_stack = $self->{cmd_stack} || [ ];
-    chomp $paragraph; chomp $paragraph;
+    
+    my $p_break = "\n\n";
+    if($paragraph =~ s/([ \t]*\n[ \t]*\n)$//s) {
+        $p_break = $1;
+    }        
     
     if($self->cutting) {
         # Treat as non-pod - i.e, verbatim program text block.
         my $element_node = Pod::Abstract::Node->new(
             type => "#cut",
-            body => "=$command $paragraph\n\n",
+            body => "=$command $paragraph$p_break",
             );
         my $top = $cmd_stack->[$#$cmd_stack];
         $top->push($element_node);
@@ -107,6 +117,17 @@ sub command {
             }
         }
         
+        # Don't do anything special if we're on a no_parse node
+        my $top = $cmd_stack->[$#$cmd_stack];
+        if($no_parse{$top->type}) {
+            my $t_node = Pod::Abstract::Node->new(
+                type => ':text',
+                body => "=$command $paragraph$p_break",
+                );
+            $top->push($t_node);
+            return;
+        }
+        
         # Some commands have to get expandable interior sequences
         my $attr_node = undef;
         my $attr_name = $attr_names{$command};
@@ -124,10 +145,10 @@ sub command {
         
         my $element_node = Pod::Abstract::Node->new(
             type => $command,
-            body => ($attr_name ? $paragraph : ''),
+            body => ($attr_name ? undef : $paragraph),
+            p_break => $p_break,
             %attr,
             );
-        my $top = $cmd_stack->[$#$cmd_stack];
         if($pull) {
             $pull->param('close_element', $element_node);
         } else {
@@ -145,14 +166,19 @@ sub command {
 
 sub verbatim {
     my ($self, $paragraph, $line_num) = @_;
-    chomp $paragraph; chomp $paragraph;
+    
+    my $cmd_stack = $self->{cmd_stack};
+    my $top = $cmd_stack->[$#$cmd_stack];
+
+    my $type = ':verbatim';
+    if($no_parse{$top->type}) {
+        $type = ':text';
+    }
     
     my $element_node = Pod::Abstract::Node->new(
         type => ':verbatim',
         body => $paragraph,
         );
-    my $cmd_stack = $self->{cmd_stack};
-    my $top = $cmd_stack->[$#$cmd_stack];
     $top->push($element_node);
 }
 
@@ -172,16 +198,28 @@ sub preprocess_paragraph {
 
 sub textblock {
     my ($self, $paragraph, $line_num) = @_;
-    chomp $paragraph; chomp $paragraph;
+    my $p_break = "\n\n";
+    if($paragraph =~ s/([ \t]*\n[ \t]*\n)$//s) {
+        $p_break = $1;
+    }
+    my $cmd_stack = $self->{cmd_stack};
+    my $top = $cmd_stack->[$#$cmd_stack];
+    if($no_parse{$top->type}) {
+        my $element_node = Pod::Abstract::Node->new(
+            type => ':text',
+            body => "$paragraph$p_break",
+            );
+        $top->push($element_node);
+        return;
+    }
 
     my $element_node = Pod::Abstract::Node->new(
         type => ':paragraph',
+        p_break => $p_break,
         );
     my $pt = $self->parse_text($paragraph);
     $self->load_pt($element_node, $pt);
 
-    my $cmd_stack = $self->{cmd_stack};
-    my $top = $cmd_stack->[$#$cmd_stack];
     $top->push($element_node);
 }
 

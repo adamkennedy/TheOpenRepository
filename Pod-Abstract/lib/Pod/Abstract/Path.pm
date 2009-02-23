@@ -137,7 +137,6 @@ sub process {
         }
         if($self->can($action)) {
             $ilist = $self->$action($ilist, @args);
-            warn "$action => ", scalar @$ilist, "\n";
         } else {
             warn "discarding '$action', can't do that";
         }
@@ -216,7 +215,8 @@ sub test_regexp {
 
     my $match = 0;
     foreach my $t_n (@$t_list) {
-        my $body = $t_n->pod;
+        my $body = $t_n->body;
+        $body = $t_n->pod unless defined $body;
         if($body =~ $regexp) {
             $match ++;
         }

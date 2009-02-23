@@ -5,13 +5,34 @@ use warnings;
 use Pod::Abstract::Node;
 use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
+use IO::String;
 
 =pod
+
+=head1 Contents
+
+=toc
 
 =head1 NAME
 
 POD::Abstract - Abstract document tree and processing model for Perl
 POD documents
+
+=begin define test
+
+=over
+
+=item *
+
+la la la la la
+
+=item *
+
+this is a test
+
+=back
+
+=end
 
 =head1 SYNOPSIS
 
@@ -25,6 +46,8 @@ POD documents
     POD::Abstract::Heading->new("head1", "CONTENTS"),
     $toc );
  print $pa->pod;
+
+=use test
 
 =head1 DESCRIPTION
 
@@ -62,17 +85,13 @@ or fork a whole translator, a single inline "decorator" can be added.
 
 =target
 
-=head3
-
-wiggy wiggy
+=head3 wiggy wiggy
 
 target
 
 =head2
 
-=head3
-
-wiggy wiggy
+=head3 wiggy wiggy
 
 woo
 
@@ -94,6 +113,14 @@ sub load_filehandle {
     my $p = Pod::Abstract::Parser->new;
     $p->parse_from_filehandle($fh);
     return $p->root;
+}
+
+sub load_string {
+    my $class = shift;
+    my $str = shift;
+    
+    my $fh = IO::String->new($str);
+    return $class->load_filehandle($fh);
 }
 
 1;

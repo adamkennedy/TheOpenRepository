@@ -58,7 +58,7 @@ sub new {
 sub ptree {
     my $self = shift;
     my $indent = shift || 0;
-    my $width = 76 - $indent;
+    my $width = 72 - $indent;
     
     my $type = $self->type;
     my $body = $self->body;
@@ -89,6 +89,8 @@ sub pod {
     my $body = $self->body;
     my $type = $self->type;
     my $should_para_break = 0;
+    my $p_break = $self->param('p_break');
+    $p_break = "\n\n" unless defined $p_break;
     
     my $r_delim = undef; # Used if a interior sequence needs closing.
 
@@ -96,7 +98,6 @@ sub pod {
         $should_para_break = 1;
     } elsif( $type eq ':text' or $type eq '#cut' or $type eq ':verbatim') {
         $r .= $body;
-        $should_para_break = 1 if $type eq ':verbatim';
     } elsif( $type =~ m/^\:(.+)$/ ) { # Interior sequence
         my $cmd = $1;
         my $l_delim = $self->param('left_delimiter');
@@ -109,7 +110,8 @@ sub pod {
         if($body_attr) {
             $body = $self->param($body_attr)->pod;
         }
-        $r .= "=$type $body\n\n";
+        
+        $r .= "=$type $body$p_break";
     }
     
     my @children = $self->children;
@@ -118,7 +120,7 @@ sub pod {
     }
     
     if($should_para_break) {
-        $r .= "\n\n";
+        $r .= $p_break;
     } elsif($r_delim) {
         $r .= $r_delim;
     }
@@ -203,6 +205,8 @@ sub duplicate {
     my @children = $self->children;
     my @dup_children = map { $_->duplicate } @children;
     $dup->nest(@dup_children);
+    
+    return $dup;
 }
 
 sub insert_before {
@@ -291,7 +295,7 @@ sub unshift {
     
     my $target_tree = $self->tree;
     if($target_tree->unshift($target)) {
-        $target->parent($target);
+        $target->parent($self);
     } else {
         die "Could not unshift [$target]";
     }

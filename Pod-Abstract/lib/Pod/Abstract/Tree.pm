@@ -150,6 +150,7 @@ sub unshift {
     }
     unshift @{$self->{nodes}}, $node;
     $self->{id_map}{$s} = 0;
+    return 1;
 }
 
 sub children {
