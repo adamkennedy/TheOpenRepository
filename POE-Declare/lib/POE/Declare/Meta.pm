@@ -1,6 +1,23 @@
 package POE::Declare::Meta;
 
-# Provides a simple metaclass object for POE::Declare
+=pod
+
+=head1 NAME
+
+POE::Declare::Meta - Metadata object that describes a POE::Declare class
+
+=head1 DESCRIPTION
+
+B<POE::Declare::Meta> objects are constructed and used internally by
+L<POE::Declare> during class construction. B<POE::Declare::Meta> objects
+are not created directly.
+
+Access to the meta object for a L<POE::Declare> class is via the exported
+C<meta> function.
+
+=head1 METHODS
+
+=cut
 
 use 5.008007;
 use strict;
@@ -12,7 +29,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 use POE::Declare::Meta::Slot      ();
@@ -46,7 +63,7 @@ sub new {
 	}
 
 	# Create the object
-	my $self  = bless {
+	my $self = bless {
 		name     => $name,
 		attr     => { },
 		alias    => $name,
@@ -56,13 +73,55 @@ sub new {
 	$self;
 }
 
+
+
+
+
+#####################################################################
+# Accessors
+
+=pod
+
+=head2 name
+
+The C<name> accessor returns the name of the class for this meta instance.
+
+=cut
+
 sub name {
 	$_[0]->{name};
 }
 
+=pod
+
+=head2 alias
+
+The C<alias> accessor returns the alias root string that will be used for
+objects that are created of this type.
+
+Normally this will be identical to the class C<name> but may be changed
+at constructor time.
+
+=cut
+
 sub alias {
 	$_[0]->{alias};
 }
+
+=pod
+
+=head2 sequence
+
+Because each object has its own L<POE::Session>, each session also needs
+its own session alias, and the session alias is derived from a combination
+of the C<alias> method an an incrementing C<sequence> value.
+
+The C<sequence> accessor returns the most recently requested value from the
+sequence. As with sequence in SQL, not all values pulled from the sequence
+will necesarily be used in an object, and objects will not necesarily have
+incrementing sequence values.
+
+=cut
 
 sub sequence {
 	$_[0]->{sequence};
@@ -75,9 +134,33 @@ sub sequence {
 #####################################################################
 # Methods
 
+=pod
+
+=head2 next_alias
+
+The C<next_alias> method generates and returns a new session alias,
+by taking the C<alias> base string and appending an incremented
+C<sequence> value.
+
+The typical alias string returned will look something like
+C<'My::Class.123'>.
+
+=cut
+
 sub next_alias {
 	$_[0]->{alias} . '.' . ++$_[0]->{sequence};
 }
+
+=pod
+
+=head2 super_path
+
+The C<super_path> method is provided as a convenience, and returns a list
+of the inheritance path for the class.
+
+It is equivalent to C<Class::ISA::self_and_super_path('My::Class')>.
+
+=cut
 
 sub super_path {
 	Class::ISA::self_and_super_path( $_[0]->name );
@@ -142,7 +225,21 @@ sub package_states {
 	}
 }
 
-# Fetch a named attribute (from this or parents)
+=pod
+
+=head2 attr
+
+
+  my $attribute = My::Class->meta->attr('foo');
+
+The C<attr> method is used to get a single named attribute meta object
+within the class meta object.
+
+Returns a L<POE::Declare::Meta::Attribute> object or C<undef> if no such
+named attribute exists.
+
+=cut
+
 sub attr {
 	my $self = shift;
 	my $name = shift;
@@ -169,3 +266,33 @@ sub attrs {
 }
 
 1;
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be always be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Declare>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<POE>
+
+=head1 COPYRIGHT
+
+Copyright 2006 - 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

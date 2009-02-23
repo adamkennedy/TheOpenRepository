@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 14;
+use Test::More tests => 22;
 
 ok( $] >= 5.008007, "Your perl is new enough" );
 
@@ -28,3 +28,21 @@ ok( POE::Declare::Meta::Param->isa('POE::Declare::Meta::Slot'),     'Param isa S
 ok( POE::Declare::Meta::Message->isa('POE::Declare::Meta::Slot'),   'Message isa Slot'   );
 ok( POE::Declare::Meta::Event->isa('POE::Declare::Meta::Slot'),     'Event isa Slot'     );
 ok( POE::Declare::Meta::Timeout->isa('POE::Declare::Meta::Slot'),   'Timeout isa Slot'   );
+
+# Check that all versions match
+foreach my $class ( qw{
+	POE::Declare::Object
+	POE::Declare::Meta
+	POE::Declare::Meta::Internal
+	POE::Declare::Meta::Attribute
+	POE::Declare::Meta::Param
+	POE::Declare::Meta::Message
+	POE::Declare::Meta::Event
+	POE::Declare::Meta::Timeout
+} ) {
+	is(
+		POE::Declare->VERSION,
+		$class->VERSION,
+		"\$POE::Declare::VERSION matches \$${class}::VERSION",
+	);
+}

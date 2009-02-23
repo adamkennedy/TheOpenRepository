@@ -13,14 +13,14 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   use strict;
   use POE::Declare;
   
-  declare foo => 'Atribute';
+  declare foo => 'Attribute';
   declare bar => 'Internal';
   
   sub hello : Event {
       print "Hello World!\n";
   }
   
-  sub hello_timeout : Alarm {
+  sub hello_timeout : Timeout(30) {
       print "Alas, I die!\n";
   }
   
@@ -28,8 +28,8 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
 
 =head1 DESCRIPTION
 
-B<WARNING: THIS CODE IS EXPERIMENTAL AND MADE BE CHANGED
-OR DELETED ENTIRELY WITHOUT NOTICE>
+B<WARNING: THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE
+WITHOUT NOTICE>
 
 L<POE> is a very powerful and flexible system for doing asynchronous
 programming.
@@ -59,7 +59,64 @@ and it may well turn out that I am wrong. But I think I'm heading
 in the right general direction (I just don't know if I'm taking
 quite the right path).
 
-=head1 METHODS
+=head1 ARCHITECTURE
+
+B<POE::Declare> is composed of three main modules, and a tree of
+slot/attribute classes.
+
+=head2 POE::Declare
+
+=head2 POE::Declare::Object
+
+L<POE::Declare::Object> is the abstract base class for all classes created
+by B<POE::Declare>.
+
+=head2 POE::Declare::Meta
+
+L<POE::Declare::Meta> implements the metadata objects that describe each of
+the B<POE::Declare> classes.
+
+=head2 POE::Declare::Slot
+
+  POE::Declare::Meta::Slot
+    POE::Declare::Meta::Internal
+    POE::Declare::Meta::Attribute
+      POE::Declare::Meta::Param
+    POE::Declare::Meta::Message
+    POE::Declare::Meta::Event
+      POE::Declare::Meta::Timeout
+
+=head2 POE::Declare::Meta::Internal
+
+L<POE::Declare::Meta::Internal> is a slot class that won't generate any
+functionality, but allows you to reserve an attribute for internal use
+so that they won't be used by any sub-classes.
+
+=head2 POE::Declare::Meta::Attribute
+
+L<POE::Declare::Meta::Attribute> is a slot class used for readable
+attributes.
+
+=head2 POE::Declare::Meta::Param
+
+L<POE::Declare::Meta::Attribute> is a slot class for attributes that
+are provided to the constructor as a parameter.
+
+=head2 POE::Declare::Meta::Message
+
+TO BE COMPLETED
+
+=head2 POE::Declare::Meta::Event
+
+L<POE::Declare::Meta::Event> is a class for named POE events that can be
+called or yielded to by other POE messages/events.
+
+=head2 POE::Declare::Meta::Timeout
+
+L<POE::Declare::Meta::Timeout> is a L<POE::Declare::Meta::Event> sub-class
+that is designed to trigger from an alarm.
+
+=head1 FUNCTIONS
 
 For the first few releases, I plan to leave this module undocumented.
 
@@ -89,7 +146,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.05';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -136,6 +193,27 @@ sub import {
 	$pkg->SUPER::import(@_);
 }
 
+=pod
+
+=head2 declare
+
+  declare one   => 'Internal';
+  declare two   => 'Attribute';
+  declare three => 'Param';
+  declare four  => 'Message';
+
+The C<declare> function is exported by default. It takes two parameters,
+a slot name and a slot type.
+
+The slot name can be any legal Perl identifier.
+
+The slot type should be one of C<Internal>, C<Attribute>, C<Param> or
+C<Message>.
+
+Creates the new slot, throws an exception on error.
+
+=cut
+
 sub declare (@) {
 	my $pkg = caller();
 	local $Carp::CarpLevel += 1;
@@ -162,7 +240,7 @@ sub _declare {
 	# Resolve the attribute class
 	my $type = do {
 		local $Carp::CarpLevel += 1;
-		attribute_class(shift);
+		_attribute_class(shift);
 	};
 
 	# Is the class an attribute class?
@@ -177,7 +255,7 @@ sub _declare {
 }
 
 # Resolve an attribute type
-sub attribute_class {
+sub _attribute_class {
 	my $type = shift;
 	if ( _IDENTIFIER($type) ) {
 		$type = "POE::Declare::Meta::$type";
@@ -204,7 +282,14 @@ sub attribute_class {
 	return $type;
 }
 
-# Compile a named class
+=pod
+
+=head2 compile
+
+
+
+=cut
+
 sub compile {
 	my $pkg = @_ ? shift : caller();
 

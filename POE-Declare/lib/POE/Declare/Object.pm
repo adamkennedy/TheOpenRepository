@@ -22,14 +22,14 @@ use 5.008007;
 use strict;
 use attributes   ();
 use Carp         ();
-use Scalar::Util qw{ refaddr };
+use Scalar::Util ();
 use Params::Util ();
 use POE          qw{ Session };
 use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.05';
 }
 
 # Inside-out storage of internal values
@@ -78,6 +78,15 @@ sub MODIFY_CODE_ATTRIBUTES {
 	Carp::croak("Unknown or unsupported attribute $name");
 }
 
+=pod
+
+=head2 meta
+
+The C<meta> method can be run on either a class or instances of that class,
+and returns the L<POE::Declare::Meta> metadata object for that class.
+
+=cut
+
 sub meta {
 	POE::Declare::meta( ref $_[0] || $_[0] );
 }
@@ -89,12 +98,38 @@ sub meta {
 #####################################################################
 # Constructor
 
+=pod
+
+=head2 new
+
+  # Create an object, but do not spawn it
+  my $object = My::Class->new(
+      Param1 => 'value',
+      Param2 => 'value',
+  );
+
+The C<new> constructor is used to create a L<POE::Declare> component
+B<WITHOUT> immediately starting it up.
+
+This is typically assemble to build heirachies of interlinked
+components and services, without the need to start all of them
+simultaneously.
+
+Instead, a startup routine in the top object of the heirachy can
+undertake a controlled startup process, bootstrapping each piece of
+the overall application.
+
+All constructors take a series of named params and return a new instance,
+or throw an exception on error.
+
+=cut
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
 	# Clear out any accidentally set internal values
-	delete $SESSIONID{$self->refaddr};
+	delete $SESSIONID{Scalar::Util::refaddr($self)};
 
 	# Set the alias
 	if ( exists $self->{Alias} ) {
@@ -108,9 +143,46 @@ sub new {
 	$self;
 }
 
+=pod
+
+=head2 Alias
+
+The C<Alias> method returns the L<POE::Session> alias that will be used with
+this object instance.
+
+These will typically be of the form C<'My::Class.123'> but may be a different
+value if a custom C<Alias> param has been explicitly passed to the constructor.
+
+=cut
+
 sub Alias {
 	$_[0]->{Alias};
 }
+
+=pod
+
+=head2 spawn
+
+  # Spawn (i.e. startup) an existing object
+  $object->spawn;
+  
+  # Create the start the object in one call
+  my $alias = My::Class->spawn(
+      Param1 => 'value',
+      Param2 => 'value',
+  );
+
+The C<spawn> method is used to create the L<POE::Session> for this object.
+
+It returns the session alias as a convenience, or throws an exception on error.
+
+When called on the class instead of an object, it provides a shortcut method
+for a one-shot construction and spawning of an object, returning the object
+instead of the session alias.
+
+Throws an exception on error.
+
+=cut
 
 sub spawn {
 	# Handle the class context
@@ -121,34 +193,69 @@ sub spawn {
 		return $self;
 	}
 
-	# Handle the normal object context
-	my $self  = shift;
-
 	# Create the session
-	$SESSIONID{$self->refaddr} = POE::Session->create(
+	my $self = shift;
+	my $meta = $self->meta;
+	$SESSIONID{Scalar::Util::refaddr($self)} = POE::Session->create(
 		heap           => $self,
 		package_states => [
-			$self->meta->name => [ $self->meta->package_states ],
-			],
-		)->ID;
+			$meta->name => [ $meta->package_states ],
+		],
+	)->ID;
 
 	# Return the alias
 	$self->Alias;
 }
 
+=pod
+
+=head2 spawned
+
+The C<spawned> method returns true if the L<POE::Session> for a B<POE::Declare>
+object has been created, or false if not.
+
+=cut
+
 sub spawned {
-	!! $SESSIONID{$_[0]->refaddr};
+	!! $SESSIONID{Scalar::Util::refaddr($_[0])};
 
 }
+
+=pod
+
+=head2 session_id
+
+The C<session_id> accessor finds and returns the internal L<POE::Session>
+id for this instance, or C<undef> if the object has not been spawned.
+
+=cut
 
 sub session_id {
-	$SESSIONID{$_[0]->refaddr};
+	$SESSIONID{Scalar::Util::refaddr($_[0])};
 }
 
+=pod
+
+=head2 session_id
+
+The C<session_id> accessor finds and returns the internal L<POE::Session>
+object for this instance, or C<undef> if the object has not been spawned.
+
+=cut
+
 sub session {
-	my $id = $SESSIONID{$_[0]->refaddr} or return undef;
-	$poe_kernel->ID_id_to_session($id)  or return undef;
+	my $id = $SESSIONID{Scalar::Util::refaddr($_[0])} or return undef;
+	$poe_kernel->ID_id_to_session($id)                or return undef;
 }
+
+=pod
+
+=head2 kernel
+
+The C<kernel> method is provided as a convenience. It returns the
+L<POE::Kernel> object that objects of this class will run in.
+
+=cut
 
 sub kernel {
 	$poe_kernel;
@@ -241,7 +348,7 @@ Returns an integer, or C<undef> if the heap object has not spawned.
 =cut
 
 sub ID {
-	$SESSIONID{$_[0]->refaddr}
+	$SESSIONID{Scalar::Util::refaddr($_[0])};
 }
 
 =pod
@@ -505,10 +612,13 @@ sub is_message {
 	# This will be converted to a call to the relevant
 	# POE session.event
 	if (
-		    Params::Util::_ARRAY0($it)
-		and scalar(@$it) == 2
-		and Params::Util::_IDENTIFIER($it->[0])
-		and Params::Util::_IDENTIFIER($it->[1])
+		Params::Util::_ARRAY0($it)
+		and
+		scalar(@$it) == 2
+		and
+		Params::Util::_IDENTIFIER($it->[0])
+		and
+		Params::Util::_IDENTIFIER($it->[1])
 	) {
 		# Create a closure for the call
 		my $session = $it->[0];
