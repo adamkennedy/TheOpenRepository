@@ -1,7 +1,7 @@
 verbose=%f:%l:%c:\n %p: %m\n
 
 [CodeLayout::RequireTidyCode]
-perltidyrc = t/settings/perltidy.txt
+perltidyrc = t\settings\perltidy.txt
 
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless

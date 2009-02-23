@@ -23,7 +23,7 @@ use     File::Spec::Functions qw( splitpath catpath catdir );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 #>>>
 #####################################################################
 # Accessors:

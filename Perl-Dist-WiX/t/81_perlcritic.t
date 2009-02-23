@@ -21,5 +21,5 @@ if ( $EVAL_ERROR ) {
 }
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
-Test::Perl::Critic->import( -profile => $rcfile );
+Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
 all_critic_ok();

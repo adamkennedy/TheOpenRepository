@@ -45,7 +45,7 @@ use     Module::CoreList 2.17 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 
 use Object::Tiny qw(
   perl_version
@@ -1162,8 +1162,8 @@ sub install_perl_toolchain {
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
-			packlist          => $self->_need_packlist($self->_name_to_module($dist))
-		);
+			packlist =>
+			  $self->_need_packlist( $self->_name_to_module($dist) ) );
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	return 1;
@@ -2584,7 +2584,7 @@ sub install_distribution {
 	my $name = $dist->name;
 
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my $module  = $self->_name_to_module($name);
+	my $module = $self->_name_to_module($name);
 	my $packlist_flag = defined $dist->{packlist} ? $dist->{packlist} : 1;
 	my $filelist_sub;
 
@@ -2731,7 +2731,7 @@ packlist => 0.
 EOF
 		chomp $error;
 		PDWiX->throw($error);
-		}
+	} ## end else [ if ( -r $perl )
 
 	return $fl->filter( $self->filters );
 } ## end sub search_packlist
@@ -2776,7 +2776,8 @@ sub install_module {
 	);
 	my $name  = $module->name;
 	my $force = $module->force;
-	my $packlist_flag = defined $module->{packlist} ? $module->{packlist} : 1;
+	my $packlist_flag =
+	  defined $module->{packlist} ? $module->{packlist} : 1;
 
 	unless ( $self->bin_perl ) {
 		PDWiX->throw(

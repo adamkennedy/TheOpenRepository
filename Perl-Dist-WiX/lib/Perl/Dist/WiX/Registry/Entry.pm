@@ -19,7 +19,7 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly            );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 #>>>
 
 # Defining at this level so they do not need recreated every time.

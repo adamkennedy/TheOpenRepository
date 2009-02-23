@@ -22,7 +22,7 @@ use     Params::Util
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 #>>>
 #####################################################################
 # Accessors:
@@ -99,7 +99,7 @@ sub search_dir {
 	if (    ( defined $name[$object_id] )
 		and ( $name[$object_id] eq 'SourceDir' ) )
 	{
-		$self->trace_line(2, "Passing search down from root.\n");
+		$self->trace_line( 4, "Passing search down from root.\n" );
 		return $directories[$object_id]->[0]->search_dir(@_);
 	}
 

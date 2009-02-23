@@ -19,7 +19,7 @@ use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
 use IO::File               qw();
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 
 my %sortcache; # Defined at this level so that the cache does not
                # get reset each time _sorter is called.
@@ -65,8 +65,10 @@ sub clone {
 		PDWiX->throw('Missing or invalid source parameter');
 	}
 
+	my %files = %{ $source->get_files };
+
 	# Add filelist passed in.
-	$files[$object_id] = $source->get_files;
+	$files[$object_id] = \%files;
 
 	return $self;
 } ## end sub clone

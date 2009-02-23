@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = qv('0.13_03');
+use version; $VERSION = qv('0.13_04');
 
 #>>>
 
@@ -31,8 +31,11 @@ use version; $VERSION = qv('0.13_03');
 # Error Handling
 
 use Exception::Class (
-	'PDWiX' => { 'description' => 'Perl::Dist::WiX error', },
-	'PDWiX::Parameter' => { 'description' => 'Perl::Dist::WiX error: Parameter missing or invalid', },
+	'PDWiX'            => { 'description' => 'Perl::Dist::WiX error', },
+	'PDWiX::Parameter' => {
+		'description' =>
+		  'Perl::Dist::WiX error: Parameter missing or invalid',
+	},
 );
 
 sub PDWiX::full_message { ## no critic 'Capitalization'
