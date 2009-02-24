@@ -63,7 +63,7 @@ sub follow {
         }
 
         if ($ignore) {
-            @old_probes = grep { $ignore->( ${$_} ) } @old_probes;
+            @old_probes = grep { not $ignore->($_) } @old_probes;
         }
         OLD_PROBE: for my $old_probe (@old_probes) {
             my $object_type = reftype ${$old_probe};
@@ -79,7 +79,7 @@ sub follow {
             my $new_probe_address = $new_probe + 0;
             next OLD_PROBE if $reverse{$new_probe_address};
             $reverse{ $new_probe_address + 0 }++;
-            next OLD_PROBE if defined $ignore and $ignore->( ${$new_probe} );
+            next OLD_PROBE if defined $ignore and $ignore->($new_probe);
             push @{$result}, $new_probe;
         }
 
@@ -284,7 +284,7 @@ __END__
 
 =head1 NAME
 
-Test::Weaken - Test that freed references are, indeed, freed
+Test::Weaken - Test that freed memory objects were, indeed, freed
 
 =head1 SYNOPSIS
 
