@@ -4,6 +4,7 @@ author.t/display.t
 author.t/do_tidy.pl
 author.t/perlcriticrc
 author.t/perltidyrc
+author.t/tidy1
 etc/change_version.pl
 etc/check_links.pl
 etc/last_minute_check.sh
@@ -20,6 +21,7 @@ t/array.t
 t/circular.t
 t/bug42903.t
 t/faux_gtk.t
+t/ignore.t
 t/poof.t
 t/snippet.t
 t/stein.t
