@@ -278,6 +278,47 @@ sub Test::Weaken::strong_probe_count {
     return $count;
 }
 
+sub Test::Weaken::check_ignore {
+    my ( $ignore, $error_callback ) = @_;
+    return sub {
+        my ($probe_ref) = @_;
+
+        my $ref_type = ref $probe_ref;
+        if ( $ref_type eq 'REF' ) {
+            $ref_type =
+                ( isweak( ${$probe_ref} ) ? 'weak' : 'strong' ) . q{ }
+                . $ref_type;
+        }
+        my $before_signature = sprintf "$ref_type at 0x%x",
+            ( $probe_ref + 0 );
+
+        my $return_value = $ignore->($probe_ref);
+
+        $ref_type = ref $probe_ref;
+        if ( $ref_type eq 'REF' ) {
+            $ref_type =
+                ( isweak( ${$probe_ref} ) ? 'weak' : 'strong' ) . q{ }
+                . $ref_type;
+        }
+        my $after_signature = sprintf "$ref_type at 0x%x", ( $probe_ref + 0 );
+
+        if ( $before_signature ne $after_signature ) {
+            my $message =
+                "Problem in ignore callback: arg was changed from '$before_signature' to '$after_signature'";
+            if ($error_callback) {
+                $error_callback->(
+                    $message, $before_signature, $after_signature, $probe_ref
+                );
+            }
+            else {
+                croak($message);
+            }
+        }
+
+        return $return_value;
+    }
+}
+
 1;
 
 __END__
