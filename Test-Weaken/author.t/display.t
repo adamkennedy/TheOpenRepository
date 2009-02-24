@@ -4,15 +4,18 @@ use Pod::Parser;
 use warnings;
 use strict;
 use English qw( -no_match_vars );
-use Fatal qw(open close);
+use Fatal qw(close);
 use Text::Diff;
 use Carp;
 use Getopt::Long qw(GetOptions);
+use Test::More;
 
 my $warnings = 0;
 my $options_result = GetOptions( 'warnings' => \$warnings );
 croak("$PROGRAM_NAME options parsing failed")
     unless $options_result;
+
+our $FILE_ERROR = 'No error';
 
 our $PREAMBLE   = q{1};
 our $IN_COMMAND = 0;
@@ -45,7 +48,12 @@ sub normalize_whitespace {
 }
 
 sub slurp {
-    open my $fh, '<', shift;
+    my ($file_name) = @_;
+    my $open_result = open my $fh, '<', $file_name;
+    if ( not $open_result ) {
+        $::FILE_ERROR = "Cannot open $file_name: $ERRNO";
+        return;
+    }
     local ($RS) = undef;
     my $result = \<$fh>;
     close $fh;
@@ -78,6 +86,7 @@ sub read_file {
     my $file_ref = $normalized{$file_name};
     if ( not defined $file_ref ) {
         my $raw_ref = $raw{$file_name} = slurp($file_name);
+        return if not defined $raw_ref;
         $file_ref = $normalized{$file_name} = normalize_whitespace($raw_ref);
         my $raw_display = $raw_display{$file_name} = parse_displays($raw_ref);
         for my $raw_display_name ( keys %{$raw_display} ) {
@@ -100,6 +109,9 @@ sub in_file {
 
     my $pod_display_ref = normalize_whitespace( \$pod_display );
     my $file_display_ref = read_file( $file_name, $display_name );
+    if ( not defined $file_display_ref ) {
+        return ( "$::FILE_ERROR\n", 1 );
+    }
 
     my $location = index ${$file_display_ref}, ${$pod_display_ref};
 
@@ -118,6 +130,9 @@ sub is_file {
 
     my $pod_display_ref = normalize_whitespace( \$pod_display );
     my $file_display_ref = read_file( $file_name, $display_name );
+    if ( not defined $file_display_ref ) {
+        return ( "$::FILE_ERROR\n", 1 );
+    }
 
     return q{} if ${$file_display_ref} eq ${$pod_display_ref};
 
@@ -301,20 +316,10 @@ sub command {
 package main;
 
 my %exclude = map { ( $_, 1 ) } qw(
-    Changes
-    MANIFEST
-    META.yml
     Makefile.PL
-    README
-    etc/perlcriticrc
-    etc/perltidyrc
-    etc/last_minute_check.sh
 );
 
 my $parser = new MyParser();
-
-open my $manifest, '<', '../MANIFEST'
-    or croak("open of MANIFEST failed: $ERRNO");
 
 sub test_file {
     my $file = shift;
@@ -325,7 +330,8 @@ sub test_file {
     $::CURRENT_CODE      = $DEFAULT_CODE;
     $::COMMAND_COUNTDOWN = 0;
     $::DISPLAY_SKIP      = 0;
-    my $problems = 0;
+    my $mismatch_count = 0;
+    my $mismatches     = q{};
 
     $parser->parse_from_file($file);
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
@@ -347,41 +353,75 @@ sub test_file {
             unless ($do_not_add_display) {
                 $message .= "\n$display";
             }
-            print "=== $message"
-                or croak("Cannot print to STDOUT: $ERRNO");
-            $problems++;
+            $mismatches .= "=== $message";
+            $mismatch_count++;
         }
     }    # $display_test
-    if ( $problems > 0 ) {
-        print $problems, " display blocks with problems in $file\n"
-            or croak("Cannot print to STDOUT: $ERRNO");
-    }
 
-    return;
+    return ( $mismatch_count, \$mismatches );
 
-}
+}    # sub test_file
 
+my @test_files = ();
+open my $manifest, '<', 'MANIFEST'
+    or croak("Cannot open MANIFEST: $ERRNO");
 FILE: while ( my $file = <$manifest> ) {
     chomp $file;
     $file =~ s/\s*[#].*\z//xms;
-    next FILE if $file =~ /.pod\z/xms;
-    next FILE if $file =~ /.marpa\z/xms;
-    next FILE if $file =~ /\/Makefile\z/xms;
     next FILE if $exclude{$file};
-    $file = '../' . $file;
     next FILE if -d $file;
-    croak("No such file: $file") unless -f $file;
-    test_file($file);
-}
+    my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
+    next FILE unless defined $ext;
+    $ext = lc $ext;
+    next FILE
+        if $ext ne 'pod'
+            and $ext ne 'pl'
+            and $ext ne 'pm'
+            and $ext ne 't';
 
+    push @test_files, $file;
+}    # FILE
 close $manifest;
 
-exit unless $warnings;
+plan tests => 1 + scalar @test_files;
 
+open my $error_file, '>', 'author.t/display.errs'
+    or croak("Cannot open display.errs: $ERRNO");
+FILE: for my $file (@test_files) {
+    if ( not -f $file ) {
+        fail("attempt to test displays in non-file: $file");
+        next FILE;
+    }
+
+    my ( $mismatch_count, $mismatches ) = test_file($file);
+    my $clean = $mismatch_count == 0;
+
+    my $message =
+        $clean
+        ? "displays match for $file"
+        : "displays in $file has $mismatch_count mismatches";
+
+    ok( $clean, $message );
+    next FILE if $clean;
+    print {$error_file} "=== $file ===\n" . ${$mismatches}
+        or croak("print failed: $ERRNO");
+}
+
+my $unused       = q{};
+my $unused_count = 0;
 while ( my ( $file_name, $displays ) = each %normalized_display ) {
     DISPLAY: while ( my ( $display_name, $uses ) = each %{$displays} ) {
         next DISPLAY if $uses > 0;
-        print "display '$display_name' in $file_name never used\n"
-            or croak("Cannot print to STDOUT: $ERRNO");
+        $unused .= "display '$display_name' in $file_name never used\n";
+        $unused_count++;
     }
 }
+if ($unused_count) {
+    fail('$unused count displays not used');
+    print {$error_file} "=== UNUSED DISPLAYS ===\n" . $unused
+        or croak("print failed: $ERRNO");
+}
+else {
+    pass('all displays used');
+}
+close $error_file;

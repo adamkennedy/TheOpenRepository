@@ -82,7 +82,7 @@ severity=5
 
 [CodeLayout::RequireTidyCode]
 severity=5
-perltidyrc=perltidyrc
+perltidyrc=author.t/perltidyrc
 
 [ControlStructures::ProhibitCStyleForLoops]
 severity=5

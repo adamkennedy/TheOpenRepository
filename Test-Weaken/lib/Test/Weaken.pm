@@ -41,6 +41,7 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 
 sub follow {
     my $base_probe = shift;
+    my $ignore     = shift;
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
@@ -61,7 +62,10 @@ sub follow {
             @old_probes = map { \$_ } grep { ref $_ } values %{$probe};
         }
 
-        for my $old_probe (@old_probes) {
+        if ($ignore) {
+            @old_probes = grep { $ignore->( ${$_} ) } @old_probes;
+        }
+        OLD_PROBE: for my $old_probe (@old_probes) {
             my $object_type = reftype ${$old_probe};
             my $new_probe =
                   $object_type eq 'HASH'    ? \%{ ${$old_probe} }
@@ -71,10 +75,12 @@ sub follow {
                 : $object_type eq 'CODE'    ? \&{ ${$old_probe} }
                 : $object_type eq 'VSTRING' ? \${ ${$old_probe} }
                 :                             undef;
-            if ( defined $new_probe and not $reverse{ $new_probe + 0 } ) {
-                push @{$result}, $new_probe;
-                $reverse{ $new_probe + 0 }++;
-            }
+            next OLD_PROBE if not defined $new_probe;
+            my $new_probe_address = $new_probe + 0;
+            next OLD_PROBE if $reverse{$new_probe_address};
+            $reverse{ $new_probe_address + 0 }++;
+            next OLD_PROBE if defined $ignore and $ignore->( ${$new_probe} );
+            push @{$result}, $new_probe;
         }
 
     }    # PROBE
@@ -114,6 +120,11 @@ sub Test::Weaken::new {
             delete $arg1->{destructor};
         }
 
+        if ( defined $arg1->{ignore} ) {
+            $self->{ignore} = $arg1->{ignore};
+            delete $arg1->{ignore};
+        }
+
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
@@ -121,16 +132,26 @@ sub Test::Weaken::new {
             for my $unknown_named_arg (@unknown_named_args) {
                 $message .= "Unknown named arg: '$unknown_named_arg'\n";
             }
-            croak($message . 'Test::Weaken failed due to unknown named arg(s)');
+            croak( $message
+                    . 'Test::Weaken failed due to unknown named arg(s)' );
         }
 
     }    # UNPACK_ARGS
 
-    croak('Test::Weaken: constructor must be CODE ref')
-        unless ref $self->{constructor} eq 'CODE';
+    if ( my $ref_type = ref $self->{constructor} ) {
+        croak('Test::Weaken: constructor must be CODE ref')
+            unless ref $self->{constructor} eq 'CODE';
+    }
 
-    croak('Test::Weaken: destructor must be CODE ref')
-        unless ref $self->{destructor} eq 'CODE';
+    if ( my $ref_type = ref $self->{destructor} ) {
+        croak('Test::Weaken: destructor must be CODE ref')
+            unless ref $self->{destructor} eq 'CODE';
+    }
+
+    if ( my $ref_type = ref $self->{ignore} ) {
+        croak('Test::Weaken: ignore must be CODE ref')
+            unless ref $self->{ignore} eq 'CODE';
+    }
 
     return $self;
 
@@ -141,6 +162,7 @@ sub Test::Weaken::test {
     my $self        = shift;
     my $constructor = $self->{constructor};
     my $destructor  = $self->{destructor};
+    my $ignore      = $self->{ignore};
 
     my $test_object_probe = \( $constructor->() );
     if ( not ref ${$test_object_probe} ) {
@@ -148,7 +170,8 @@ sub Test::Weaken::test {
             'Test::Weaken test object constructor did not return a reference'
         );
     }
-    my $probes = Test::Weaken::Internal::follow($test_object_probe);
+    my $probes =
+        Test::Weaken::Internal::follow( $test_object_probe, $ignore );
 
     $self->{probe_count} = @{$probes};
     $self->{weak_probe_count} =
@@ -269,7 +292,7 @@ Test::Weaken - Test that freed references are, indeed, freed
 
 ## start display
 ## next display
-is_file($_, '../t/synopsis.t', 'synopsis')
+is_file($_, 't/synopsis.t', 'synopsis')
 
 =end Marpa::Test::Display:
 
@@ -619,7 +642,7 @@ Errors are always thrown as exceptions.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'leaks snippet')
+is_file($_, 't/snippet.t', 'leaks snippet')
 
 =end Marpa::Test::Display:
 
@@ -698,7 +721,7 @@ C<Test::Weaken> to work with these objects.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'unfreed_proberefs snippet')
+is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
 
 =end Marpa::Test::Display:
 
@@ -753,7 +776,7 @@ And weak references are strengthened when they are copied.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'unfreed_count snippet')
+is_file($_, 't/snippet.t', 'unfreed_count snippet')
 
 =end Marpa::Test::Display:
 
@@ -781,7 +804,7 @@ the return value of the C<unfreed_proberefs> method.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'probe_count snippet')
+is_file($_, 't/snippet.t', 'probe_count snippet')
 
 =end Marpa::Test::Display:
 
@@ -818,7 +841,7 @@ test object reference.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'weak_probe_count snippet')
+is_file($_, 't/snippet.t', 'weak_probe_count snippet')
 
 =end Marpa::Test::Display:
 
@@ -856,7 +879,7 @@ test object reference.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'strong_probe_count snippet')
+is_file($_, 't/snippet.t', 'strong_probe_count snippet')
 
 =end Marpa::Test::Display:
 
@@ -914,7 +937,7 @@ even when the test did find any unfreed objects.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'new snippet')
+is_file($_, 't/snippet.t', 'new snippet')
 
 =end Marpa::Test::Display:
 
@@ -970,7 +993,7 @@ exception.
 
 ## start display
 ## next display
-is_file($_, '../t/snippet.t', 'test snippet')
+is_file($_, 't/snippet.t', 'test snippet')
 
 =end Marpa::Test::Display:
 

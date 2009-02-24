@@ -1,5 +1,5 @@
 
-.PHONY: build perltidy perlcritic display
+.PHONY: build display
 
 build:
 	(cd ..;perl Makefile.PL)
@@ -8,15 +8,6 @@ build:
 	(cd ..;make)
 	(cd ..;make test)
 	(cd ..;make disttest)
-
-perltidy: 
-	perl do_tidy.pl
-
-perlcritic: perlcritic.errs
-
-perlcritic.errs:
-	perl do_critic.pl > $@
-	wc -l $@
 
 display: display.errs
 
