@@ -15,6 +15,10 @@ bool inline is_whitespace(char c) {
 	return ( (  c == ' ' ) || (  c == '\t' ) || (  c == 10 ) || (  c == 13 ) );
 }
 
+bool inline is_sigil(char c) {
+	return ( ( c == '$' ) || (  c == '@' ) || (  c == '%' ) || (  c == '*' ) );
+}
+
 typedef bool (*predicate_function)(char c);
 
 template <predicate_function func> 

@@ -180,6 +180,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\doublequote.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\forward_scan.cpp"
 				>
 			</File>
@@ -213,6 +217,10 @@
 			</File>
 			<File
 				RelativePath=".\whitespace.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\word.cpp"
 				>
 			</File>
 		</Filter>

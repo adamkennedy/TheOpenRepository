@@ -11,19 +11,21 @@ typedef unsigned char uchar;
 
 enum TokenTypeNames {
     Token_NoType = 0, // for signaling that there is no current token
-    Token_WhiteSpace,
-    Token_Symbol,
-    Token_Comment,
+    Token_WhiteSpace, // done
+    Token_Symbol, // done
+    Token_Comment, // done
     Token_Word,
-    Token_Structure,
+	Token_DashedWord,
+    Token_Structure, // done
 	Token_Magic,
 	Token_Number,
 	Token_Number_Version,
 	Token_Number_Float,
-	Token_Operator,
-	Token_Unknown,
+	Token_Operator, // done
+	Token_Operator_Attribute, // Operator with _attribute = 1
+	Token_Unknown, // done
 	Token_Quote_Single,
-	Token_Quote_Double,
+	Token_Quote_Double, // done
 	Token_Quote_Interpolate,
 	Token_Quote_Literal,
 	Token_QuoteLike_Backtick,
@@ -32,10 +34,14 @@ enum TokenTypeNames {
 	Token_QuoteLike_Regexp,
 	Token_QuoteLike_Words,
 	Token_Regexp_Match,
+	Token_Regexp_Substitute,
+	Token_Regexp_Transliterate,
 	Token_Cast, 
 	Token_Prototype,
 	Token_ArrayIndex,
 	Token_HereDoc,
+	Token_Attribute,
+	Token_Label,
 	Token_LastTokenType // have to be last
 };
 
@@ -132,10 +138,30 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class AttributeOperatorToken : public OperatorToken {
+public:
+	AttributeOperatorToken();
+};
+
 class UnknownToken : public AbstractTokenType {
 public:
 	UnknownToken() : AbstractTokenType( Token_Unknown, true ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+private:
+	bool is_an_attribute(Tokenizer *t);
+};
+
+class DoubleQuoteToken : public AbstractTokenType {
+public:
+	DoubleQuoteToken() : AbstractTokenType( Token_Quote_Double, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class WordToken : public AbstractTokenType {
+public:
+	WordToken() : AbstractTokenType( Token_Word, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+	CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
 };
 
 #define NUM_SIGNIFICANT_KEPT 3
@@ -156,9 +182,10 @@ class Tokenizer {
 public:
 	Token *c_token;
 	char *c_line;
-	long line_length;
-	long line_pos;
+	ulong line_length;
+	ulong line_pos;
 	char local_newline;
+	uchar quote_seperator;
 	TokenTypeNames zone;
 	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];
 	Tokenizer();
@@ -199,14 +226,15 @@ public:
 	OperatorOperandContext _opcontext();
 	/* tokenizeLine - Tokenize one line
 	 */
-	LineTokenizeResults tokenizeLine(char *line, long line_length);
+	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
 	/* Utility functions */
 	bool is_digit(uchar c);
 	bool is_word(uchar c);
 	bool is_operator(const char *str);
 private:
 	Token *free_tokens;
-	Token *tokens_found;
+	Token *tokens_found_head;
+	Token *tokens_found_tail;
 	Token *allocateToken();
 
 	WhiteSpaceToken m_WhiteSpaceToken;
@@ -216,6 +244,8 @@ private:
 	OperatorToken m_OperatorToken;
 	UnknownToken m_UnknownToken;
 	SymbolToken m_SymbolToken;
+	AttributeOperatorToken m_AttributeOperatorToken;
+	DoubleQuoteToken m_DoubleQuoteToken;
 
 	void keep_significant_token(Token *t);
 

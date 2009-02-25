@@ -21,6 +21,7 @@ typedef pair <char *, uchar> uPair;
 std::map <string, char> OperatorToken::operators;
 
 OperatorToken::OperatorToken() : AbstractTokenType( Token_Operator, true ) {
+	operators.clear();
 	operators.insert( uPair ( "->", 1 ) );
 	operators.insert( uPair ( "++", 1 ) );
 	operators.insert( uPair ( "--", 1 ) );
@@ -77,6 +78,10 @@ OperatorToken::OperatorToken() : AbstractTokenType( Token_Operator, true ) {
 	operators.insert( uPair ( "or", 1 ) );
 	operators.insert( uPair ( "xor", 1 ) );
 	operators.insert( uPair ( "not", 1 ) );
+}
+
+AttributeOperatorToken::AttributeOperatorToken() : OperatorToken() {
+	type = Token_Operator_Attribute;
 }
 
 bool OperatorToken::is_operator(const char *str) {

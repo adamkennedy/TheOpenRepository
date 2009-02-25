@@ -18,10 +18,12 @@ bool AbstractTokenType::isa( TokenTypeNames is_type ) const {
 //=====================================
 
 Token *Tokenizer::pop_one_token() {
-	if (tokens_found == NULL)
+	if (tokens_found_head == NULL)
 		return NULL;
-	Token *tk = tokens_found;
-	tokens_found = tokens_found->next;
+	Token *tk = tokens_found_head;
+	tokens_found_head = tokens_found_head->next;
+	if ( NULL == tokens_found_head )
+		tokens_found_tail = NULL;
 	return tk;
 }
 
@@ -85,6 +87,7 @@ void Tokenizer::_new_token(TokenTypeNames new_type) {
 		}
 	}
 	tk->type = TokenTypeNames_pool[new_type];
+	quote_seperator = 0;
 	c_token = tk;
 }
 
@@ -104,8 +107,13 @@ TokenTypeNames Tokenizer::_finalize_token() {
 
 	if (c_token->length != 0) {
 		c_token->text[c_token->length] = '\0';
-		c_token->next = tokens_found;
-		tokens_found = c_token;
+		c_token->next = NULL;
+		if ( NULL == tokens_found_tail ) {
+			tokens_found_head = c_token;
+		} else {
+			tokens_found_tail->next = c_token;
+		}
+		tokens_found_tail = c_token;
 		if (c_token->type->significant) {
 			keep_significant_token(c_token);
 		}
@@ -125,7 +133,8 @@ Tokenizer::Tokenizer()
 	line_length(0),
 	local_newline('\n'),
 	free_tokens(NULL), 
-	tokens_found(NULL), 
+	tokens_found_head(NULL), 
+	tokens_found_tail(NULL),
 	zone(Token_WhiteSpace),
 	m_nLastSignificantPos(0)
 {
@@ -140,6 +149,8 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Operator] = &m_OperatorToken;
 	TokenTypeNames_pool[Token_Unknown] = &m_UnknownToken;
 	TokenTypeNames_pool[Token_Symbol] = &m_SymbolToken;
+	TokenTypeNames_pool[Token_Operator_Attribute] = &m_AttributeOperatorToken;
+	TokenTypeNames_pool[Token_Quote_Double] = &m_DoubleQuoteToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}
@@ -186,7 +197,7 @@ OperatorOperandContext Tokenizer::_opcontext() {
 
 //=====================================
 
-LineTokenizeResults Tokenizer::tokenizeLine(char *line, long line_length) {
+LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
 	line_pos = 0;
 	c_line = line;
 	this->line_length = line_length;
