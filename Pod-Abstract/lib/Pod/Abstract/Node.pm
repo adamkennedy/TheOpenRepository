@@ -342,4 +342,35 @@ sub children {
     return $self->tree->children();
 }
 
+sub coalesce_body {
+    my $self = shift;
+    my $node_type = shift;
+    
+    # Select all elements containing :verbatim nodes.
+    my @candidates = $self->select("//[/$node_type]");
+    foreach my $c (@candidates) {
+        my @children = $c->children;
+        my $current_start = undef;
+        foreach my $n (@children) {
+            if($n->type eq $node_type) {
+                if(defined $current_start) {
+                    my $p_break = $current_start->param('p_break');
+                    $p_break = "" unless $p_break;
+                    my $body_start = $current_start->body;
+                    $current_start->body(
+                        $body_start . $p_break . $n->body
+                        );
+                    $current_start->param('p_break',
+                                          $n->param('p_break'));
+                    $n->detach or die; # node has been appended to prev.
+                } else {
+                    $current_start = $n;
+                }
+            } else {
+                $current_start = undef;
+            }
+        }
+    }
+}
+
 1;

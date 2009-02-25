@@ -43,13 +43,14 @@ sub verbatim {
     my $class = shift;
     my $str = shift;
     
-    my @strs = split $str, '\n';
+    my @strs = split "\n",$str;
     for(my $i = 0; $i < @strs; $i ++) {
-        $strs[$i] = ' '.$strs[$i];
+        my $str_line = $strs[$i];
+        $strs[$i] = ' '.$str_line;
     }
     my $verbatim = Pod::Abstract::Node->new(
         type => ':verbatim',
-        body => join('\n', @strs),
+        body => (join("\n", @strs) . "\n\n"),
         );
     return $verbatim;
 }
@@ -147,6 +148,22 @@ sub text {
         body => $text,
         );
     return $attr_node;
+}
+
+sub pod {
+    my $class = shift;
+    return Pod::Abstract::Node->new(
+        type => 'pod',
+        body => '',
+        );
+}
+
+sub cut {
+    my $class = shift;
+    return Pod::Abstract::Node->new(
+        type => '#cut',
+        body => "=cut\n\n",
+        );
 }
 
 1;

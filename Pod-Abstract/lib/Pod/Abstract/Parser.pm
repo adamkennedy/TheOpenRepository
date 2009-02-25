@@ -119,7 +119,7 @@ sub command {
         
         # Don't do anything special if we're on a no_parse node
         my $top = $cmd_stack->[$#$cmd_stack];
-        if($no_parse{$top->type}) {
+        if($no_parse{$top->type} && !$top->param('parse_me')) {
             my $t_node = Pod::Abstract::Node->new(
                 type => ':text',
                 body => "=$command $paragraph$p_break",
@@ -131,7 +131,7 @@ sub command {
         # Some commands have to get expandable interior sequences
         my $attr_node = undef;
         my $attr_name = $attr_names{$command};
-        my %attr = ( );
+        my %attr = ( parse_me => 0 );
         if($attr_name) {
             $attr_node = Pod::Abstract::Node->new(
                 type => '@attribute',
@@ -141,6 +141,8 @@ sub command {
             $self->load_pt($attr_node, $pt);
             $attr{$attr_name} = $attr_node;
             $attr{body_attr} = $attr_name;
+        } elsif($paragraph =~ m/^\:/) {
+            $attr{parse_me} = 1;
         }
         
         my $element_node = Pod::Abstract::Node->new(
@@ -171,7 +173,7 @@ sub verbatim {
     my $top = $cmd_stack->[$#$cmd_stack];
 
     my $type = ':verbatim';
-    if($no_parse{$top->type}) {
+    if($no_parse{$top->type} && !$top->param('parse_me')) {
         $type = ':text';
     }
     
@@ -204,7 +206,7 @@ sub textblock {
     }
     my $cmd_stack = $self->{cmd_stack};
     my $top = $cmd_stack->[$#$cmd_stack];
-    if($no_parse{$top->type}) {
+    if($no_parse{$top->type} && !$top->param('parse_me')) {
         my $element_node = Pod::Abstract::Node->new(
             type => ':text',
             body => "$paragraph$p_break",

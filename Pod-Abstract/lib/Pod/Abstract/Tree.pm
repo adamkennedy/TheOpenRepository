@@ -28,18 +28,21 @@ sub detach {
     my $self = shift;
     my $node = shift;
     my $id_map = $self->{id_map};
+    my $serial = $node->serial;
     
     my $idx = $id_map->{$node->serial};
     return 0 unless defined $idx;
+    die "Wrong node ($idx/$serial)! Got: ", $self->{nodes}[$idx]->serial
+        unless $self->{nodes}[$idx]->serial == $serial;
     
     # Node is defined, remove it:
     splice @{$self->{nodes}},$idx,1;
-    delete $id_map->{$node->serial};
+    delete $id_map->{$serial};
     
     #  Move all following nodes back by 1
     my $length = scalar @{$self->{nodes}};
     for(my $i = $idx; $i < $length; $i ++) {
-        my $s = $self->{nodes}[$i];
+        my $s = $self->{nodes}[$i]->serial;
         $id_map->{$s} --;
     }
     

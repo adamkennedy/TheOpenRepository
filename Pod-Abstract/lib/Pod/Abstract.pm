@@ -11,43 +11,28 @@ use IO::String;
 
 =head1 Contents
 
-=toc
-
 =head1 NAME
 
-POD::Abstract - Abstract document tree and processing model for Perl
-POD documents
-
-=begin define test
-
-=over
-
-=item *
-
-la la la la la
-
-=item *
-
-this is a test
-
-=back
-
-=end
+POD::Abstract - Consistent Abstract document tree and processing model
+for Perl POD documents
 
 =head1 SYNOPSIS
 
- use POD::Abstract;
- 
- my $pa = POD::Abstract->load_file($file);
- my @headings = $pa->select("/head1");
- my $toc_text = map { $_->name . \n" } @headings;
- my $toc = POD::Abstract::Verbatim->new($toc_text);
- $pa->insert_before( 
-    POD::Abstract::Heading->new("head1", "CONTENTS"),
-    $toc );
- print $pa->pod;
+ use Pod::Abstract;
+ use Pod::Abstract::BuildNode qw(node);
 
-=use test
+ # Get all the first level headings, and put them in a verbatim block
+ # at the start of the document
+ my $pa = Pod::Abstract->load_filehandle(\*STDIN);
+ my @headings = $pa->select('/head1@heading');
+ my @headings_text = map { $_->pod } @headings;
+ my $headings_node = node->verbatim(join "\n",@headings_text);
+ 
+ $pa->unshift( node->cut );
+ $pa->unshift( $headings_node );
+ $pa->unshift( node->pod );
+
+ print $pa->pod;
 
 =head1 DESCRIPTION
 
@@ -68,32 +53,89 @@ If you wish to write modules that interact nicely with other
 POD::Abstract modules, then you should provide a POD::Abstract -E<gt>
 POD::Abstract translation. Leave any document element that your
 program is not interested in directly untouched in the parse tree, and
-if you have data that could be useful to other packages, decorate with
-the parse tree with that data even if you don't see any direct way to
-use it in the output.
-
-For example, if you have written a module to number the sections of
-POD documents with multipart numbers, these numbers can be picked up
-by the simple table of contents module in the synopsis above.
+if you have data that could be useful to other packages, decorate the
+parse tree with that data even if you don't see any direct way to use
+it in the output.
 
 In this way, when you want one more feature for POD, rather than write
 or fork a whole translator, a single inline "decorator" can be added.
 
-=cut
+=head2 EXAMPLE
 
-=head2 blah
+Suppose you are frustrated by the verbose list syntax used by regular
+POD. You might reasonably want to define a simplified list format for
+your own use, except POD formatters won't support it.
 
-=target
+With Pod::Abstract you can right an inline filter to convert:
 
-=head3 wiggy wiggy
+ =begin list
+ 
+ * item 1
+ * item 2
+ * item 3
+ 
+ =end list
 
-target
+into:
 
-=head2
+ =over
+ 
+ =item *
+ 
+ item 1
+ 
+ =item *
+ 
+ item 2
+ 
+ =item *
+ 
+ item 3
+ 
+ =back
 
-=head3 wiggy wiggy
+This transformation can be simply performed on the document tree. If
+your formatter does not use Pod::Abstract, you can simply pipe out POD
+and use a regular formatter. If your formatter supports Pod::Abstract
+though, then you can feed in the syntax tree directly without having
+to re-serialise and parse the document!
 
-woo
+=head2 POD SUPPORT
+
+Pod::Abstract aims to support all POD rules defined in perlpodspec
+(even the ones I don't like), except for those directly related to
+formatting output, or which cannot be implemented generically.
+
+=head1 COMPONENTS
+
+Pod::Abstract is comprised of:
+
+=over
+
+=item *
+
+The parser, which loads a document tree for you.
+
+You should access this through C<Pod::Abstract>, not directly
+
+=item *
+
+The document tree, which is the root node you are given by the
+parser. Calling B<pod> on the root node should always give you back
+your original document.
+
+See L<Pod::Abstract::Node>
+
+=item *
+
+L<Pod::Abstract::Path>, the node selection expression language. This
+is generally called by doing C<<$node->select(PATH_EXP)>>.
+
+=item *
+
+The node builder, L<Pod::Abstract::BuildNode>
+
+=back
 
 =cut
 
@@ -103,6 +145,8 @@ sub load_file {
     
     my $p = Pod::Abstract::Parser->new;
     $p->parse_from_file($filename);
+    $p->root->coalesce_body(":verbatim");
+    $p->root->coalesce_body(":text");
     return $p->root;
 }
 
@@ -112,6 +156,8 @@ sub load_filehandle {
 
     my $p = Pod::Abstract::Parser->new;
     $p->parse_from_filehandle($fh);
+    $p->root->coalesce_body(":verbatim");
+    $p->root->coalesce_body(":text");
     return $p->root;
 }
 
