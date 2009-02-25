@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.1401  Wed 25 Feb 2009
+	1. Got bit by new indexing rules implemented as of
+	   December 2008, so creating tar file with correct
+	   permissions.
+
 0.14    Wed 25 Feb 2009
     1. Got rid of warning at Directory.pm around line 416
 	   (using comparison with result of Scalar::Util::blessed 

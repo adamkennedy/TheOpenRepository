@@ -1,3 +1,5 @@
+#! perl
+
 use inc::Module::Install 0.79;
 
 die "OS unsupported\n" if (not win32);
