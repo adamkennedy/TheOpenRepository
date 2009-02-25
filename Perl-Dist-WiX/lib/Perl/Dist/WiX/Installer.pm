@@ -37,7 +37,7 @@ require Perl::Dist::WiX::FeatureTree;
 require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 #>>>
 
 =head2 Accessors

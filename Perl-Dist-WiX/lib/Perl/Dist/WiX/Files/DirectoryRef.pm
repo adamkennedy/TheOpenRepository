@@ -19,8 +19,9 @@ use Object::InsideOut qw(
 );
 use Params::Util
     qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
+use Scalar::Util      qw( blessed  );
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 #>>>
 #####################################################################
 # Accessors:
@@ -286,10 +287,12 @@ sub is_child_of {
 	my $object_id = ${$self};
 
 	# Check for a valid Directory or DirectoryRef object.
-	unless ( _INSTANCE( $directory_obj, 'Perl::Dist::WiX::Directory' )
+	my $class = blessed($directory_obj);
+	unless ( defined $class and (
+		( $class eq 'Perl::Dist::WiX::Directory' )
 		or
-		_INSTANCE( $directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef' )
-	  )
+		( $class eq 'Perl::Dist::WiX::Files::DirectoryRef' )
+	  ) )
 	{
 		PDWiX->throw('Invalid directory object passed in.');
 	}

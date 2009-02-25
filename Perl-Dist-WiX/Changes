@@ -1,6 +1,12 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.13_04 Mon 21 Feb 2009
+0.14    Wed 25 Feb 2009
+    1. Got rid of warning at Directory.pm around line 416
+	   (using comparison with result of Scalar::Util::blessed 
+	   instead of Params::Util::_INSTANCE because _INSTANCE 
+	   returns undef, rather than a numeric.)
+
+0.13_04 Mon 23 Feb 2009
 	1. Added PDWiX::Parameter error class
 	2. Added packlist parameter to install_module
 	   and install_distribution

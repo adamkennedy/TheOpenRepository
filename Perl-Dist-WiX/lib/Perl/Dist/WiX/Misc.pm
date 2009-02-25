@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 
 #>>>
 

@@ -18,11 +18,12 @@ use     Object::InsideOut      qw(
     Storable
 );
 use     Params::Util
-  qw( _IDENTIFIER _STRING _NONNEGINT _INSTANCE _HASH  );
+  qw( _IDENTIFIER _STRING _NONNEGINT _HASH  );
+use     Scalar::Util           qw( blessed            );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 #>>>
 #####################################################################
 # Accessors:
@@ -413,10 +414,11 @@ sub is_child_of {
 	my ( $self, $directory_obj ) = @_;
 
 	# Check for a valid Directory or DirectoryRef object.
-	unless ( _INSTANCE( $directory_obj, 'Perl::Dist::WiX::Directory' )
-		or
-		_INSTANCE( $directory_obj, 'Perl::Dist::WiX::Files::DirectoryRef' )
-	  )
+	my $class = blessed($directory_obj);
+	unless (
+		defined $class
+		and (  ( $class eq 'Perl::Dist::WiX::Directory' )
+			or ( $class eq 'Perl::Dist::WiX::Files::DirectoryRef' ) ) )
 	{
 		PDWiX->throw('Invalid directory object passed in.');
 	}

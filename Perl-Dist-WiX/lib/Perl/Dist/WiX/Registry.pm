@@ -19,7 +19,7 @@ use     Params::Util      qw( _IDENTIFIER _STRING                      );
 require Perl::Dist::WiX::Registry::Key;
 require Perl::Dist::WiX::Registry::Entry;
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 
 #>>>
 #####################################################################

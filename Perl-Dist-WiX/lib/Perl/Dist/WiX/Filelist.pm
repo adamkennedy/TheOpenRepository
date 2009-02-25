@@ -19,7 +19,7 @@ use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
 use IO::File               qw();
 
-use version; $VERSION = qv('0.13_04');
+use version; $VERSION = qv('0.14');
 
 my %sortcache; # Defined at this level so that the cache does not
                # get reset each time _sorter is called.
