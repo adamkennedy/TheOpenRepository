@@ -25,6 +25,8 @@ use constant {
     MATCHES   => 17, # =~
     REGEXP    => 18, # {<pattern>}
     NOP       => 19, # .
+    PREV      => 20, # <<
+    NEXT      => 21, # >>
 };
 
 =pod
@@ -114,6 +116,12 @@ sub lex {
         } elsif($expression =~ m/^\!/) {
             push @l, [ NOT, undef ];
             substr($expression, 0, 1) = '';
+        } elsif($expression =~ m/^\<\</) {
+            push @l, [ PREV, undef ];
+            substr($expression, 0, 2) = '';
+        } elsif($expression =~ m/^\>\>/) {
+            push @l, [ NEXT, undef ];
+            substr($expression, 0, 2) = '';
         } else {
             die "Invalid token encountered - remaining string is $expression";
         }
@@ -244,6 +252,36 @@ sub select_children {
     return $nlist;
 }
 
+sub select_next {
+    my $self = shift;
+    my $ilist = shift;
+    my $nlist = [ ];
+    
+    foreach my $n (@$ilist) {
+        my $next = $n->next;
+        if($next) {
+            push @$nlist, $next;
+        }
+    }
+    
+    return $nlist;
+}
+
+sub select_prev {
+    my $self = shift;
+    my $ilist = shift;
+    my $nlist = [ ];
+    
+    foreach my $n (@$ilist) {
+        my $next = $n->previous;
+        if($next) {
+            push @$nlist, $next;
+        }
+    }
+    
+    return $nlist;
+}
+
 sub select_parents {
     my $self = shift;
     my $ilist = shift;
@@ -323,6 +361,16 @@ sub parse_path {
     } elsif($tok == ALL) {
         return {
             'action' => 'select_all',
+            'next' => $self->parse_path($l),
+        };
+    } elsif($tok == NEXT) {
+        return {
+            'action' => 'select_next',
+            'next' => $self->parse_path($l),
+        };
+    } elsif($tok == PREV) {
+        return {
+            'action' => 'select_prev',
             'next' => $self->parse_path($l),
         };
     } elsif($tok == PARENT) {

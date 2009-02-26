@@ -161,4 +161,35 @@ sub children {
     return @{$self->{nodes}};
 }
 
+=head2 index_relative
+
+ my $node = $tree->index_relative($target, $offset);
+
+This method will return a node at an offset of $offset (which may be
+negative) from this tree structure. If there is no such node, undef
+will be returned. For example, an offset of 1 will give the following
+element of $node.
+
+=cut
+
+sub index_relative {
+    my $self = shift;
+    my $node = shift;
+    my $index = shift;
+    my $serial = $node->serial;
+    
+    die "index_relative called with unattached node"
+        unless $node->attached;
+    my $node_idx = $self->{id_map}{$serial};
+    die "index_relative called with node not present in tree"
+        unless defined $node_idx;
+    my $real_index = $node_idx + $index;
+    my $n_nodes = scalar @{$self->{nodes}};
+    if($real_index >= 0 && $real_index < $n_nodes) {
+        return $self->{nodes}[$real_index];
+    } else {
+        return undef;
+    }
+}
+
 1;

@@ -7,10 +7,6 @@ use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
 use IO::String;
 
-=pod
-
-=head1 Contents
-
 =head1 NAME
 
 POD::Abstract - Consistent Abstract document tree and processing model
@@ -27,7 +23,7 @@ for Perl POD documents
  my @headings = $pa->select('/head1@heading');
  my @headings_text = map { $_->pod } @headings;
  my $headings_node = node->verbatim(join "\n",@headings_text);
- 
+
  $pa->unshift( node->cut );
  $pa->unshift( $headings_node );
  $pa->unshift( node->pod );
@@ -69,36 +65,36 @@ your own use, except POD formatters won't support it.
 With Pod::Abstract you can right an inline filter to convert:
 
  =begin list
- 
+
  * item 1
  * item 2
  * item 3
- 
+
  =end list
 
 into:
 
  =over
- 
+
  =item *
- 
+
  item 1
- 
+
  =item *
- 
+
  item 2
- 
+
  =item *
- 
+
  item 3
- 
+
  =back
 
 This transformation can be simply performed on the document tree. If
 your formatter does not use Pod::Abstract, you can simply pipe out POD
 and use a regular formatter. If your formatter supports Pod::Abstract
 though, then you can feed in the syntax tree directly without having
-to re-serialise and parse the document!
+to re-serialise and parse the document.
 
 =head2 POD SUPPORT
 
@@ -137,6 +133,18 @@ The node builder, L<Pod::Abstract::BuildNode>
 
 =back
 
+=head1 METHODS
+
+=cut
+
+
+=head2 load_file
+
+ my $pa = Pod::Abstract->load_file( FILENAME );
+
+Read the POD document in the named file. Returns the root node of the
+document.
+
 =cut
 
 sub load_file {
@@ -150,6 +158,15 @@ sub load_file {
     return $p->root;
 }
 
+=head2 load_filehandle
+
+ my $pa = Pod::Abstract->load_file( FH );
+
+Load a POD document from the provided filehandle reference. Returns
+the root node of the document.
+
+=cut
+
 sub load_filehandle {
     my $class = shift;
     my $fh = shift;
@@ -160,6 +177,15 @@ sub load_filehandle {
     $p->root->coalesce_body(":text");
     return $p->root;
 }
+
+=head2 load_string
+
+ my $pa = Pod::Abstract->load_string( STRING );
+
+Loads a POD document from a scalar string value. Returns the root node
+of the document.
+
+=cut
 
 sub load_string {
     my $class = shift;

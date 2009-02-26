@@ -36,13 +36,8 @@ Read as
 =cut
 
 my $path = q|
-/head1/
- head2
-  [/head3
-   [/:paragraph =~ {wiggy}][!/:paragraph =~ {woo}]
-  ]
+//:verbatim[>>:verbatim[!<<:verbatim]]
 |;
-$path = '//item@label[! . =~ {\*}]';
 
 #    '//:paragraph[//:E =~ {gt}]'
 #    'head1/head2[/head3[/:paragraph =~ {wiggy}][!/:paragraph =~ {woo}]](0)'
