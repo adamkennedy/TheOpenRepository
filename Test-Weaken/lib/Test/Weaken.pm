@@ -316,7 +316,7 @@ sub Test::Weaken::check_ignore {
         }
 
         return $return_value;
-    }
+    };
 }
 
 1;

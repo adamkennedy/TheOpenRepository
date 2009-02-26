@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 10;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
@@ -37,6 +37,17 @@ sub new {
         one => MyGlobal->new('foo'),
         two => MyGlobal->new('bar'),
     }, $class;
+}
+
+package MyCycle;
+
+sub new {
+    my ($class) = @_;
+    my $weak;
+    my $strong = \$weak;
+    my $self   = \$strong;
+    Scalar::Util::weaken( $weak = \$self );
+    return bless [ \$self ], $class;
 }
 
 package main;
@@ -153,13 +164,23 @@ sub replacing_ignore {
 }
 ## use critic
 
-sub error_callback {
-    my ( $standard_message, $before_signature, $after_signature, $probe_ref )
-        = @_;
-    my $custom_message = "'$before_signature' -> '$after_signature'\n";
-    print {*STDERR} $custom_message
-        or croak("Cannot print STDERR: $ERRNO");
-    return 1;
+{
+    my $error_callback_count = 0;
+    my $max_errors           = 100;
+
+    sub error_callback {
+        my ($standard_message, $before_signature,
+            $after_signature,  $probe_ref
+        ) = @_;
+        $error_callback_count++;
+        my $custom_message = "'$before_signature' -> '$after_signature'\n";
+        print {*STDERR} $custom_message
+            or croak("Cannot print STDERR: $ERRNO");
+        if ( $error_callback_count > $max_errors ) {
+            croak("Terminating after $max_errors errors");
+        }
+        return 1;
+    }
 }
 
 my $stderr = q{};
@@ -194,3 +215,89 @@ Test::Weaken::Test::is( $stderr,
 'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
 'ARRAY at 0xXXXXXXX' -> 'ARRAY at 0xXXXXXXX'
 EOS
+
+sub noop_ignore { return 0; }
+
+$test = Test::Weaken::leaks(
+    {   constructor => sub { MyCycle->new },
+        ignore      => \&noop_ignore,
+    }
+);
+if ( not $test ) {
+    pass('cycle w/ no-op ignore');
+}
+else {
+    Test::Weaken::Test::is( $test->unfreed_proberefs, q{},
+        'cycle w/ no-op ignore' );
+}
+
+## no critic (Subroutines::RequireArgUnpacking)
+sub copying_ignore {
+    if ( Scalar::Util::reftype $_[0] eq 'REF' ) {
+        my $temp = ${ $_[0] };
+        ${ $_[0] } = $temp;
+    }
+    return 0;
+}
+## use critic
+
+$test = Test::Weaken::leaks(
+    {   constructor => sub { MyCycle->new },
+        ignore      => \&copying_ignore,
+    }
+);
+if ( not $test ) {
+    pass('cycle w/ copying ignore');
+}
+else {
+    Test::Weaken::Test::is(
+        Data::Dumper->Dump( [ $test->unfreed_proberefs ], [qw(unfreed)] ),
+        <<'EOS',
+$unfreed = [
+             \\\$unfreed->[0],
+             ${$unfreed->[0]},
+             ${${$unfreed->[0]}}
+           ];
+EOS
+        'cycle w/ copying ignore'
+    );
+}
+
+$stderr = q{};
+open $save_stderr, '>&STDERR';
+close STDERR;
+open STDERR, '>', \$stderr;
+
+$test = Test::Weaken::leaks(
+    {   constructor => sub { MyCycle->new },
+        ignore =>
+            Test::Weaken::check_ignore( \&copying_ignore, \&error_callback ),
+    }
+);
+if ( not $test ) {
+    pass('cycle w/ copying & error callback');
+}
+else {
+    Test::Weaken::Test::is(
+        Data::Dumper->Dump( [ $test->unfreed_proberefs ], [qw(unfreed)] ),
+        <<'EOS',
+$unfreed = [
+             \\\$unfreed->[0],
+             ${$unfreed->[0]},
+             ${${$unfreed->[0]}}
+           ];
+EOS
+        'unfreed refs for cycle w/ copying'
+    );
+}
+
+# the exact addresses will vary, so just X them out
+$stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+Test::Weaken::Test::is(
+    $stderr,
+    qq{'weak REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'\n},
+    'stderr for cycle w/ copying'
+);
+
+open STDERR, '>&', $save_stderr;
+close $save_stderr;
