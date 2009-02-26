@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 
 # t/01prereq.t
 #  Checks that Build.PL prerequisites are correct
