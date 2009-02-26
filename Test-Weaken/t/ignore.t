@@ -62,16 +62,21 @@ BEGIN {
 use lib 't/lib';
 use Test::Weaken::Test;
 
-sub good_ignore {
+## use Marpa::Test::Display ignore snippet
+
+sub ignore_my_global {
     my ($thing) = @_;
     return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
 }
 
 my $test = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
-        ignore      => \&good_ignore,
+        ignore      => \&ignore_my_global,
     }
 );
+
+## no Marpa::Test::Display
+
 if ( not $test ) {
     pass('good ignore');
 }
@@ -106,7 +111,7 @@ EOS
 
 $test = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
-        ignore => Test::Weaken::check_ignore( \&good_ignore ),
+        ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
     }
 );
 if ( not $test ) {
@@ -146,7 +151,7 @@ Test::Weaken::Test::is(
 
 ## no critic (Subroutines::RequireArgUnpacking)
 # Trigger warnings, while replacing everything with its equivalent
-sub replacing_ignore {
+sub buggy_ignore {
     $_[0] = \${ $_[0] } if Scalar::Util::reftype $_[0] eq 'REF';
     if ( Scalar::Util::reftype $_[0] eq 'ARRAY' ) {
         my @temp = @{ $_[0] };
@@ -163,6 +168,8 @@ sub replacing_ignore {
     return 0;
 }
 ## use critic
+
+## use Marpa::Test::Display error callback snippet
 
 {
     my $error_callback_count = 0;
@@ -183,18 +190,23 @@ sub replacing_ignore {
     }
 }
 
+## no Marpa::Test::Display
+
 my $stderr = q{};
 open my $save_stderr, '>&STDERR';
 close STDERR;
 open STDERR, '>', \$stderr;
 
+## use Marpa::Test::Display check_ignore snippet
+
 Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
-        ignore      => Test::Weaken::check_ignore(
-            \&replacing_ignore, \&error_callback
-        ),
+        ignore =>
+            Test::Weaken::check_ignore( \&buggy_ignore, \&error_callback ),
     }
 );
+
+## no Marpa::Test::Display
 
 open STDERR, '>&', $save_stderr;
 close $save_stderr;
