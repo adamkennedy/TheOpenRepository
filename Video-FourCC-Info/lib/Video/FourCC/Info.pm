@@ -40,7 +40,8 @@ my $data = File::Spec->catfile(
   'codecs.dat'
 );
 
-# Since this is a 
+# Since we are only going to read, this is okay; we can share
+# the dbhandle with different threads if need be
 my $dbh = DBI->connect(
   'dbi:SQLite:dbname=' . $data,
   'notused', # cannot be null, or DBI complains
@@ -130,17 +131,20 @@ sub new {
 
   my $href = $sth->fetchrow_hashref;
   if (defined $href) {
-    if (defined $href->{description}) {
-      $self->{desc}  = $href->{description};
-    }
+    $self->{desc}  = $href->{description};
+
     if (defined $href->{owner}) {
       $self->{owner} = $href->{owner};
     }
     if (defined $href->{registered}) {
       # If we have a DateTime object, we should parse the date and store it
       if (exists $INC{'DateTime.pm'}) {
-        my ($year, $month, $day) = split(/-/, $href->{registered});
-        $self->{regdate} = DateTime->new(
+        # Extract the Y/M/D numbers from $href->{registered}; this should
+        # have the format: yyyy-mm-dd
+        my ($year, $month, $day) =
+          ($href->{registered} =~ m/^(\d{4})-(\d{2})-(\d{2})$/s);
+
+          $self->{regdate} = DateTime->new(
           year    => $year,
           month   => $month,
           day     => $day,
