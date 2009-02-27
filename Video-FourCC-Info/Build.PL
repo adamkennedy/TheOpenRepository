@@ -30,7 +30,7 @@ my $builder = Module::Build->new(
     'perl'                    => '5.006',
 
     # Pragmatic and special modules
-    'Carp'                    => '1.04',
+    'Carp'                    => 1.04,
     'version'                 => 0,
     'warnings'                => 0,
     'strict'                  => 0,
@@ -41,35 +41,36 @@ my $builder = Module::Build->new(
 
     # Database related modules
     'DBI'                     => 0,
-    'DBD::SQLite'             => '1.14',
+    'DBD::SQLite'             => 1.14,
   },
   build_requires => {
     # User tests for good functionality
-    'Test::More'              => '0.62',
-    'Test::NoWarnings'        => '0.084',
+    'Test::More'              => 0.62,
+    'Test::NoWarnings'        => 0.084,
   },
   recommends => {
     # Video::Info for detecting FourCC used in files
     # CPAN.pm cannot install Video::Info for some reason (due to a quirky
     # distribution?), so we have to install Video::Info::Magic
-    'Video::Info::Magic'      => '1.01',
+    'Video::Info::Magic'        => 1.01,
 
     # Optional module DateTime
-    'DateTime'                => '0.4501',
+    'DateTime'                  => 0.4501,
 
     # Author tests
-    'Test::Perl::Critic'      => 0,
-    'Test::YAML::Meta'        => 0,
-    'Test::Kwalitee'          => '1.01',
-    'Test::Signature'         => 0,
-    'Test::Pod'               => '1.14',
-    'Test::Pod::Coverage'     => '1.04',
-    'Test::DistManifest'      => 0,
-    'Test::Without::Module'   => 0,
-    'Test::Prereq::Build'     => '1.036',
-    'Test::Portability::Files' => 0,
-    'Test::MinimumVersion'    => 0,
-    'Test::Script'            => 0,
+    'Test::Perl::Critic'        => 0,
+    'Perl::Critic'              => 1.096,
+    'Test::YAML::Meta'          => 0,
+    'Test::Kwalitee'            => 1.01,
+    'Test::Signature'           => 0,
+    'Test::Pod'                 => 1.14,
+    'Test::Pod::Coverage'       => 1.04,
+    'Test::DistManifest'        => 0,
+    'Test::Without::Module'     => 0,
+    'Test::Prereq::Build'       => 1.036,
+    'Test::Portability::Files'  => 0,
+    'Test::MinimumVersion'      => 0,
+    'Test::Script'              => 0,
   },
   conflicts => {
   },
