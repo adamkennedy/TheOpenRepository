@@ -3,11 +3,15 @@
 use 5.010;
 use strict;
 use warnings;
+use Test::More tests => 2;
+use lib 'lib';
 use Parse::Marpa;
 
 # This is code to test examples, in order to prove that they do actually
 # compile and execute.  No checking other than for compilation errors
 # or fatal exceptions is done.  This code DOES NOT do anything sensible.
+
+pass('misc.pl compiled');
 
 my $mdl_source = <<'END';
 semantics are perl5.
@@ -100,3 +104,4 @@ $first_result = Parse::Marpa::mdl(
     { warnings => 0 }
 );
 
+pass('misc.pl ran to end');

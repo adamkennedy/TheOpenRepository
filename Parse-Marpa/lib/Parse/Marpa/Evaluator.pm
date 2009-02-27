@@ -1374,12 +1374,12 @@ Parse::Marpa::Evaluator - Marpa Evaluator Objects
 
 =head1 SYNOPSIS
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 3 displays
-in_equation_s_t($_)
+in_file($_, 't/equation_s.t')
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
@@ -1435,12 +1435,12 @@ For example, in MDL,
 the following says that whenever the symbol C<A> is nulled,
 its value should be a string that says it is missing.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_null_value_grammar($_)
+in_file($_, 'example/null_value.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     A: . q{'A is missing'}.
 
@@ -1532,13 +1532,13 @@ and arrange to have that closure run by the parent node.
 
 Suppose a grammar has these rules
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## start display
 ## next display
-in_null_value_grammar($_)
+in_file($_, 'example/null_value.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S: A, Y. q{ $_[0] . ", but " . $_[1] }. # Call me the start rule
     note: you can also call me Rule 0.
@@ -1556,12 +1556,11 @@ in_null_value_grammar($_)
     Y: /Z/. q{'Zorro was here'}. # Call me Rule 6
 
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## end display
-in_null_value_grammar($_)
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
 In the above MDL, the Perl 5 regex "C</Z/>" occurs on the rhs of Rule 6.
 Where a regex is on the rhs of a rule, MDL internally creates a terminal symbol
@@ -1573,11 +1572,11 @@ C</Z/> will be called C<Z>.
 If the input text is the Perl 5 string "C<Z>",
 the derivation is as follows:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip 2 displays
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S -> A Y      (Rule 0)
       -> A "Z"    (Y produces "Z", by Rule 6)
@@ -1598,11 +1597,11 @@ Here's a table showing, for each node, its lhs symbol,
 the sentence it derives, and
 its value.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip 2 displays
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
                         Symbol      Sentence     Value
                                     Derived
@@ -1701,12 +1700,12 @@ When this is the case, cloning is unnecessary.
 
 =head2 new
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_s_t($_)
+in_file($_, 't/equation_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $evaler = new Parse::Marpa::Evaluator(
       { recognizer => $recce }
@@ -1714,12 +1713,12 @@ in_equation_s_t($_)
 
 Z<>
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $evaler = new Parse::Marpa::Evaluator( {
         recce => $recce,
@@ -1754,12 +1753,12 @@ For these, see L<Parse::Marpa::Doc::Options>.
 
 =head2 set
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t')
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $evaler->set( { cycle_depth => $depth } );
 
@@ -1773,12 +1772,12 @@ C<set> either returns true or throws an exception.
 
 =head2 value
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_ah2_t($_)
+in_file($_, 't/ah2.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $result = $evaler->value();
 
