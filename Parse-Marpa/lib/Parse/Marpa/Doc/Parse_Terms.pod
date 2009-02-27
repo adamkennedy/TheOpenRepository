@@ -67,21 +67,21 @@ and B<lexical analysis> is often called B<lexing> or B<scanning>.
 A standard way of describing rules is Backus-Naur Form, or B<BNF>.
 In one common way of writing BNF, a production looks like this.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Expression ::= Term Factor
 
 The equivalent in Marpa's MDL language looks like this:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Expression: Term, Factor.
 
@@ -113,11 +113,11 @@ and replacing any occurrence of the lhs symbol in the symbol string with the
 rhs of the production.  For example, if C<A>, C<B>, C<C>, C<D>, and C<X> are symbols,
 and
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip 2 displays
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     X: B, C.
 

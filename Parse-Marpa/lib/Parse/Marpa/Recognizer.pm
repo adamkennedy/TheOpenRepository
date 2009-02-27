@@ -1225,12 +1225,12 @@ Parse::Marpa::Recognizer - Marpa Recognizer Objects
 
 =head1 SYNOPSIS
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_equation_s_t($_)
+in_file($_, 't/equation_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
 
@@ -1241,12 +1241,12 @@ in_equation_s_t($_)
 
 Z<>
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 5 displays
-in_equation_t($_)
+in_file($_, 't/equation.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
@@ -1406,12 +1406,12 @@ When this is the case, cloning is unnecessary.
 
 =head2 new
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $recce = new Parse::Marpa::Recognizer({
        grammar=> $grammar,
@@ -1456,12 +1456,12 @@ For these, see L<Parse::Marpa::Doc::Options>.
 
 =head2 text
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_s_t($_)
+in_file($_, 't/equation_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
@@ -1518,12 +1518,12 @@ that terminal will not be recognized.
 
 =head2 earleme
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_ah2_t($_)
+in_file($_, 't/ah2.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $a = $grammar->get_symbol('a');
     $recce->earleme([$a, 'a', 1]) or croak('Parsing exhausted');
@@ -1577,12 +1577,12 @@ is assumed.  The user is free to invent her own.
 
 =head2 end_input
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_t($_)
+in_file($_, 't/equation.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $recce->end_input();
 
@@ -1606,12 +1606,12 @@ C<end_input> will do nothing, successfully.
 
 =head2 stringify
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $stringified_recce = $recce->stringify();
 
@@ -1624,12 +1624,12 @@ On failure, C<stringify> throws an exception.
 
 =head2 unstringify
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce, $trace_fh);
 
@@ -1652,12 +1652,12 @@ the recognizer's original trace file handle may have been lost.
 
 =head2 clone
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $cloned_recce = $recce->clone();
 

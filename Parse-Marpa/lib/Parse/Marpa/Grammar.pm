@@ -3951,23 +3951,23 @@ plumbing interface.
 
 =head2 new
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $grammar = new Parse::Marpa::Grammar();
 
 Z<>
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_s_t($_)
+in_file($_, 't/equation_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $grammar = new Parse::Marpa::Grammar(
 	{ max_parses => 10, mdl_source => \$source, } );
@@ -4013,12 +4013,12 @@ For a way around this, see L<the C<set> method|"set">.
 
 =head2 set
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_ah_s_t($_)
+in_file($_, 't/ah_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $grammar->set( { mdl_source => \$source } );
 
@@ -4044,12 +4044,12 @@ arguments.
 
 =head2 precompute
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_ah_s_t($_)
+in_file($_, 't/ah_s.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $grammar->precompute();
 
@@ -4066,12 +4066,12 @@ For more details, see L<above|"Precomputation">.
 
 =head2 stringify
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_bin_mdl($_)
+in_file($_, 'bin/mdl');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $stringified_grammar = $grammar->stringify();
 
@@ -4084,12 +4084,12 @@ On failure, C<stringify> throws an exception.
 
 =head2 unstringify
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);
 
@@ -4120,12 +4120,12 @@ then restores the handle using the C<trace_file_handle> argument of C<unstringif
 
 =head2 clone
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $cloned_grammar = $grammar->clone();
 

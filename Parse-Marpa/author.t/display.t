@@ -219,7 +219,11 @@ sub process_instruction {
             "  'next $::COMMAND_COUNTDOWN display' has countdown less than one\n"
         ) if $::COMMAND_COUNTDOWN < 1;
         $::CURRENT_CODE = join "\n", @{$code};
-        $::DEFAULT_CODE = join "\n", @{$code};
+        return;
+    }
+
+    if ( $instruction =~ / ^ default $ /xms ) {
+        $::DEFAULT_CODE = join( "\n", @{$code} );
         $::CURRENT_CODE = $::DEFAULT_CODE if $::COMMAND_COUNTDOWN <= 0;
         return;
     }
@@ -260,8 +264,7 @@ sub process_instruction {
     }
 
     croak(
-        "File: $::CURRENT_FILE  Line: $line_num\n",
-        "  unrecognized instruction: '$_'\n"
+        "Unrecognized instruction in file $::CURRENT_FILE at line $line_num: $instruction\n"
     );
 
 }
@@ -317,6 +320,7 @@ package main;
 
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
+    t/lib/Test/Weaken.pm
 );
 
 my $parser = new MyParser();
@@ -346,11 +350,13 @@ sub test_file {
         ## no critic (BuiltinFunctions::ProhibitStringyEval)
         $eval_result = eval '[ do {' . $code . '} ] ';
         ## use critic
-        if (not $eval_result) {
-            croak($EVAL_ERROR . "Code with problem was:\n$code\n");
-        }
-        my $message = $eval_result->[0];
-        if ($message) {
+
+        if (my $message =
+              $eval_result
+            ? $eval_result->[0]
+            : $EVAL_ERROR . "Code with problem was:\n$code\n"
+            )
+        {
             my $do_not_add_display = $eval_result->[1];
             unless ($do_not_add_display) {
                 $message .= "\n$display";
@@ -358,6 +364,7 @@ sub test_file {
             $mismatches .= "=== $message";
             $mismatch_count++;
         }
+
     }    # $display_test
 
     return ( $mismatch_count, \$mismatches );

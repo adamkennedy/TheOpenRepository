@@ -11,6 +11,12 @@ use POSIX qw(WIFEXITED);
 
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
+    bootstrap/bootstrap_header.pl
+    bootstrap/bootstrap_trailer.pl
+    lib/Parse/Marpa/Raw_Source.pm
+    lib/Parse/Marpa/header_Raw_Source.pm
+    lib/Parse/Marpa/trailer_Raw_Source.pm
+    t/lib/Test/Weaken.pm
 );
 
 sub run_critic {

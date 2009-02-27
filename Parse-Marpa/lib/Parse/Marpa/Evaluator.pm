@@ -878,7 +878,7 @@ sub Parse::Marpa::Evaluator::show_tree {
             .= "Tree Node #$tree_position: "
             . $or_node->[Parse::Marpa::Internal::Or_Node::NAME]
             . "[$choice]";
-	$text .= "; Parent= $parent " if defined $parent;
+	$text .= "; Parent = $parent" if defined $parent;
 	$text .= "; Depth = $depth; Rhs Length = $argc\n";
 
         $text .= '    Rule: '

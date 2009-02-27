@@ -180,12 +180,12 @@ Marpa.
 
 =head2 lex_regex
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my ($regex, $token_length)
         = Parse::Marpa::Lex::lex_regex(\$input_string, $lexeme_start);
@@ -217,12 +217,12 @@ which will include the length of any discarded prefix.
 
 =head2 lex_q_quote
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my ($string, $token_length)
         = Parse::Marpa::Lex::lex_q_quote(\$input_string, $lexeme_start);

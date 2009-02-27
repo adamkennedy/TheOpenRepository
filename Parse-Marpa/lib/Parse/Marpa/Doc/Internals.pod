@@ -44,11 +44,11 @@ The origin of an Earley item can also be called its B<start location>.
 Here's a representation of an Earley item, as you might see it in
 debugging output from Marpa:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S5@6-7
 
@@ -83,11 +83,11 @@ They can be ignored.
 About QDFA's, it will be necessary to know more.
 Let's start with an example of another Earley item:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S1@2-2
 
@@ -99,12 +99,12 @@ earleme 2.
 We can get a description of the QDFA states with the C<show_QDFA> method.
 Here's what it says about QDFA state 1:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S1: predict; 1,5
     e ::= . e op e
@@ -212,12 +212,12 @@ a new Earley item S4@2-3 is added at earleme 3.
 
 Here (again from C<show_QDFA>) is the description of QDFA state 4:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S4: 6
     e ::= number .
@@ -241,12 +241,12 @@ In this example, S4@2-3 is the successor of S1@2-2.
 Here's what S4@2-3 looks like in the Earley sets, after a successful
 scan of the input C<"2+2">.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_earley_sets($_);
+in_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S4@2-3  [p=S1@2-2; t=2]
 
@@ -281,12 +281,12 @@ the Earley item in our example of a scanned item.
 Its state was QDFA state 4.
 QDFA state 4 contained the LR(0) item 
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     e ::= number .
 
@@ -297,12 +297,12 @@ and therefore any Earley item which is looking for an C<e>
 beginning at earleme 2 is in luck.
 S5@0-2 is such a rule.  QDFA state 5 looks like this:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S5: 3
     e ::= e op . e
@@ -312,12 +312,12 @@ This says that in QDFA state 5, when you see an C<e>, you transition to
 QDFA state 6.
 Here's S6@0-3, the item which is the effect of the completion:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_earley_sets($_);
+in_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S6@0-3 [p=S5@0-2; c=S4@2-3]
 
@@ -371,12 +371,12 @@ on their left hand side.
 
 Recall QDFA state 5:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S5: 3
     e ::= e op . e
@@ -385,12 +385,12 @@ in_equation_show_QDFA($_);
 QDFA state 5 is expecting an C<e>.
 This means that the rules 
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     e ::= . e op e
     e ::= . number
@@ -399,12 +399,12 @@ can also be expected to originate at this earleme.
 Marpa is smart about grouping rules into QDFA states
 and both these rules are in QDFA state 1:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S1: predict; 1,5
     e ::= . e op e
@@ -417,12 +417,12 @@ and it is expecting the rules which originate
 in QDFA state 1,
 there will be an Earley item for QDFA state 1 at earleme 2:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_earley_sets($_);
+in_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S1@2-2
 
@@ -444,12 +444,12 @@ That means they don't need source choice entries.
 One or two Earley items are put into Earley set 0 to start things off.
 In our example, the initial Earley items are
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_earley_sets($_);
+in_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S0@0-0
     S1@0-0
@@ -511,12 +511,12 @@ the grammar's original start symbol.
 QDFA state 2 is the completed start rule state
 for our example parse:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S2: 8
     e['] ::= e .
@@ -530,12 +530,12 @@ Here's the Earley item which makes the parse in our example,
 which started at earleme 0,
 successful at earleme 3:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_earley_sets($_);
+in_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S2@0-3 [p=S0@0-0; c=S6@0-3]
       
@@ -905,12 +905,12 @@ that was accepted by the recognizer.
 
 =head2 Examples of Parse Bocage Productions
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_bocage($_);
+in_file($_, 'author.t/equation_show_bocage.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S2@0-3L3 ::= S2@0-3L3[0]
 
@@ -963,12 +963,12 @@ Here is the and-production which is the start or-node's only child:
 
 Z<>
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_bocage($_);
+in_file($_, 'author.t/equation_show_bocage.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S2@0-3L3[0] ::= S6@0-3L0
         rule 2: e['] ::= e .
@@ -999,12 +999,12 @@ A closure or-node
 may or may not have
 a corresponding Perl closure.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_bocage($_);
+in_file($_, 'author.t/equation_show_bocage.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S5@0-2R0:2 ::= S5@0-2R0:2[0]
     S5@0-2R0:2[0] ::= S3@0-1R0:1 '+'
@@ -1029,12 +1029,12 @@ In this case there is only one symbol
 ("C<e>")
 before the pre-dot symbol.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_bocage($_);
+in_file($_, 'author.t/equation_show_bocage.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     S4@0-1L0 ::= S4@0-1L0[0]
     S4@0-1L0[0] ::= '2'
@@ -1075,19 +1075,19 @@ every parse bocage and-node becomes a tree node.
 In the case of an ambiguous parse,
 some and-nodes will not be used in the parse tree.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_show_tree($_);
+in_file($_, 'author.t/equation_show_tree.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
-    Tree Node: S6@0-3L0[0]; Depth = 1; Rhs Length = 3
+    Tree Node #1: S6@0-3L0[0]; Parent = 0; Depth = 1; Rhs Length = 3
         Rule: e ::= e op e .
         Kernel: S5@0-2R0:2
         Closure: S4@2-3L0
         Perl Closure: Y
-    Tree Node: S4@2-3L0[0]; Depth = 2; Rhs Length = 1
+    Tree Node #2: S4@2-3L0[0]; Parent = 1; Depth = 2; Rhs Length = 1
         Rule: e ::= number .
         Perl Closure: Y; Token: '2'
 
@@ -1118,12 +1118,12 @@ option.
 The C<trace_values> output for our example is in an appendix.
 Here's the section that evaluates the tree nodes shown above:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_equation_trace_values($_);
+in_file($_, 'author.t/equation_trace_values.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Popping 1 values to evaluate S4@2-3L0, rule: 1: e -> number
     Calculated and pushed value: '2==2'
@@ -1218,12 +1218,12 @@ the multiplier.  Here's an example of a CHAF rewrite from Marpa's
 own self-grammar.
 First, the rule:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_self_marpa($_);
+in_file($_, 'bootstrap/self.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     production paragraph:
         non structural production sentences,
@@ -1243,12 +1243,12 @@ appears three times.
 
 Here's is the output from C<show_rules>, showing what Marpa did with this rule:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 4 displays
-in_self_show_rules($_);
+in_file($_, 'author.t/self_show_rules.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     11: production-paragraph
 	    -> non-structural-production-sentences
@@ -1358,23 +1358,23 @@ to the user's actions as if no CHAF rewrite had occurred.
 Internally, Marpa converts productions specified as sequences into BNF productions.
 The conversion is done in a standard way.  For example,
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_self_marpa($_);
+in_file($_, 'bootstrap/self.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     paragraphs: empty line separated paragraph sequence.
 
 becomes
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_self_show_rules($_);
+in_file($_, 'author.t/self_show_rules.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     1: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5]
     2: paragraphs -> paragraph[Seq:1-*][Sep:empty_line][x5] empty-line
@@ -1389,23 +1389,23 @@ C<empty_line> separated.
 
 Here's another example, this time of a sequence without a separator:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_self_marpa($_);
+in_file($_, 'bootstrap/self.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     definition paragraph: definition sequence.
 
 is written as the following BNF:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_self_show_rules($_);
+in_file($_, 'author.t/self_show_rules.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     8: definition-paragraph -> definition[Seq:1-*][xa]
     9: definition[Seq:1-*][xa] -> definition
@@ -1438,13 +1438,13 @@ The input text was "C<2+2>".
 
 =head2 MDL Grammar
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
 ## start display
-is_equation_grammar($_);
+is_file($_, 'example/equation.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
 
     semantics are perl5.  version is 1.002000.
@@ -1489,22 +1489,22 @@ is_equation_grammar($_);
 	}.
 
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## end display
 ## next display
-is_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
 =head2 C<show_symbols> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_symbols($_);
+is_file($_, 'author.t/equation_show_symbols.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     0: e, lhs=[0 1] rhs=[0 2]
     1: op, lhs=[] rhs=[0] terminal
@@ -1513,12 +1513,12 @@ is_equation_show_symbols($_);
 
 =head2 C<show_rules> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_rules($_);
+is_file($_, 'author.t/equation_show_rules.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     0: e -> e op e
     1: e -> number
@@ -1526,12 +1526,12 @@ is_equation_show_rules($_);
 
 =head2 C<show_QDFA> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_QDFA($_);
+in_file($_, 'author.t/equation_show_QDFA.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Start States: S0; S1
     S0: 7
@@ -1557,12 +1557,12 @@ is_equation_show_QDFA($_);
 
 =head2 C<show_earley_sets> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_earley_sets($_);
+is_file($_, 'author.t/equation_show_earley_sets.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     At End of Input
     Earley Set 0
@@ -1584,12 +1584,12 @@ is_equation_show_earley_sets($_);
 
 =head2 C<show_bocage> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_bocage($_);
+is_file($_, 'author.t/equation_show_bocage.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     package: Parse::Marpa::E_1; parse count: 0
     S2@0-3L3 ::= S2@0-3L3[0]
@@ -1619,45 +1619,45 @@ is_equation_show_bocage($_);
 
 =head2 C<show_tree> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_show_tree($_);
+is_file($_, 'author.t/equation_show_tree.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
-    Tree Node: S2@0-3L3[0]; Depth = 0; Rhs Length = 1
+    Tree Node #0: S2@0-3L3[0]; Depth = 0; Rhs Length = 1
         Rule: e['] ::= e .
         Closure: S6@0-3L0
         Perl Closure: Y
-    Tree Node: S6@0-3L0[0]; Depth = 1; Rhs Length = 3
+    Tree Node #1: S6@0-3L0[0]; Parent = 0; Depth = 1; Rhs Length = 3
         Rule: e ::= e op e .
         Kernel: S5@0-2R0:2
         Closure: S4@2-3L0
         Perl Closure: Y
-    Tree Node: S4@2-3L0[0]; Depth = 2; Rhs Length = 1
+    Tree Node #2: S4@2-3L0[0]; Parent = 1; Depth = 2; Rhs Length = 1
         Rule: e ::= number .
         Perl Closure: Y; Token: '2'
-    Tree Node: S5@0-2R0:2[0]; Depth = 2; Rhs Length = 3
+    Tree Node #3: S5@0-2R0:2[0]; Parent = 1; Depth = 2; Rhs Length = 3
         Rule: e ::= e op . e
         Kernel: S3@0-1R0:1
         Perl Closure: N; Token: '+'
-    Tree Node: S3@0-1R0:1[0]; Depth = 3; Rhs Length = 3
+    Tree Node #4: S3@0-1R0:1[0]; Parent = 3; Depth = 3; Rhs Length = 3
         Rule: e ::= e . op e
         Closure: S4@0-1L0
         Perl Closure: N
-    Tree Node: S4@0-1L0[0]; Depth = 4; Rhs Length = 1
+    Tree Node #5: S4@0-1L0[0]; Parent = 4; Depth = 4; Rhs Length = 1
         Rule: e ::= number .
         Perl Closure: Y; Token: '2'
 
 =head2 C<trace_values> Output
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-is_equation_trace_values($_);
+is_file($_, 'author.t/equation_trace_values.out');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Pushed value from S4@0-1L0: '2'
     Popping 1 values to evaluate S4@0-1L0, rule: 1: e -> number

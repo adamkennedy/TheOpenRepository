@@ -61,4 +61,10 @@ author.t/MDL_displays.marpa
 author.t/Makefile
 author.t/test_pod
 author.t/minimal.marpa
-author.t/misc.pl
+author.t/critic.t
+author.t/critic1
+author.t/display.t
+author.t/misc.t
+author.t/perlcriticrc
+author.t/perltidyrc
+author.t/tidy1

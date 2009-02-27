@@ -2,12 +2,12 @@
 
 Parse::Marpa::Doc::MDL - The Marpa Demonstration Language
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## default
-in_self_marpa($_)
+in_file($_, 'bootstrap/self.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
 =head1 OVERVIEW
 
@@ -234,12 +234,12 @@ by C<the>.
 
 The following sentences all define the semantics of the grammar to be Perl 5.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     semantics are perl5.
     perl5 is the semantics.
@@ -313,12 +313,12 @@ not explicitly specify an action.  By default, rules return undefined.
 The current version of C<self.marpa> uses this default.
 Here's the specification of a default action from an earlier version:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     concatenate lines is the default action. 
 
@@ -342,12 +342,12 @@ This default can be changed.
 For example, the following changes the default null symbol value
 to an at-sign.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     the default null value is q{'@'}.
 
@@ -404,12 +404,12 @@ Also, the article to be used before the name of the predefined must be
 C<a> and not C<the>.  As with other definitions, the article may be omitted.
 This was a C<self.marpa> lex preamble in one version:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     a lex preamble is q{
 	our $regex_data = [];
@@ -464,12 +464,12 @@ We've already seen several examples of those, but here's another:
 
 In this case the regex C</the/> is optional, so that the sentences
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     the default action is do whatever.
 
@@ -503,12 +503,12 @@ Z<>
 
     paragraphs: empty line separated paragraph sequence.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     frobitz: optional comma separated whatchamacallit sequence.
 
@@ -531,12 +531,12 @@ Both of the following would parse as valid C<rhs>'s:
 
     optional /the/, /default/, /action/, /is/, action specifier
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     optional /the/, /default/, /action/, /is/, action specifier,
 
@@ -685,12 +685,12 @@ of whitespace-separated "comment words".  Comment words
 may contain anything except whitespace or a period.
 The comment tags are C<to do>, C<note> and C<comment>.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_MDL_displays($_)
+in_file($_, 'author.t/MDL_displays.marpa');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     note: I may look like a production sentence; but MDL
     knows the difference.

@@ -78,12 +78,12 @@ MDL symbol name to its canonical form.
 
 =head2 canonical_name
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $g->set( {
         start => Parse::Marpa::MDL::canonical_symbol_name('Document')
@@ -96,12 +96,12 @@ the symbol's plumbing name.
 
 =head2 get_symbol
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next display
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     my $op = Parse::Marpa::MDL::get_symbol($grammar, 'Op');
 

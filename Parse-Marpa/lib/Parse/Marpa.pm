@@ -186,13 +186,13 @@ Parse::Marpa - Generate Parsers from any BNF grammar
 
 =head1 SYNOPSIS
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## start display
 ## next display
-is_synopsis_pl($_)
+is_file($_, 'example/synopsis.pl');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     #!perl
     
@@ -222,11 +222,11 @@ is_synopsis_pl($_)
 
     Expression: /\d+/.  q{ $_[0] }.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## end display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
 =head1 DESCRIPTION
 
@@ -353,12 +353,12 @@ can be used to initialize that namespace.
 The result of an action is the result of running its Perl 5 code string.
 From L<the synopsis|"SYNOPSIS">, here's a rule for an expression that does addition:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 2 displays
-in_synopsis_pl($_)
+in_file($_, 'example/synopsis.pl');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Expression: Expression, /[+]/, Expression.
 
@@ -519,11 +519,11 @@ These special namespaces belong entirely to the user.
 In the following namespaces,
 users should use only documented methods:
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     Parse::Marpa
     Parse::Marpa::Grammar
@@ -551,12 +551,12 @@ Non-exceptional failures are described in the documentation for the method which
 
 =head2 mdl
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## next 3 displays
-in_misc_pl($_)
+in_file($_, 'author.t/misc.t');
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     $first_result =
         Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
@@ -758,11 +758,11 @@ your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-=begin Parse::Marpa::test_document:
+=begin Marpa::Test::Display:
 
 ## skip display
 
-=end Parse::Marpa::test_document:
+=end Marpa::Test::Display:
 
     perldoc Parse::Marpa
     
