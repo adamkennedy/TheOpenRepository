@@ -1,0 +1,15 @@
+What you want is:
+
+perl paf add_podcmds SomePod.pm
+
+But you will probably also like:
+
+perl paf summary paf (or some other Pod document)
+
+I think
+
+perl paf sort summary Pod/Abstract/Node.pm
+
+is sweet.
+
+enjoy!

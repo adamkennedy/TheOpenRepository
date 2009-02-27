@@ -13,6 +13,8 @@ are stored in an ordered set - a single node can appear once only in a
 single document tree, so inserting a node at a point will also remove
 it from it's previous location.
 
+=head1 METHODS
+
 =cut
 
 sub new {
@@ -51,7 +53,7 @@ sub detach {
     return $node;
 }
 
-=head1 push
+=head2 push
 
 Add an element to the end of the node list.
 
@@ -72,7 +74,7 @@ sub push {
     return 1;
 }
 
-=head1 pop
+=head2 pop
 
 =cut
 
@@ -87,7 +89,7 @@ sub pop {
     return $node;
 }
 
-=head1 insert_before
+=head2 insert_before
 
 =cut
 
@@ -111,7 +113,7 @@ sub insert_before {
     return 1;
 }
 
-=head1 insert_after
+=head2 insert_after
 
 =cut
 sub insert_after {
@@ -131,7 +133,7 @@ sub insert_after {
     }
 }
 
-=head1 unshift
+=head2 unshift
 
 Unshift takes linear time - it has to relocate every other element in
 id_map so that they stay in line.

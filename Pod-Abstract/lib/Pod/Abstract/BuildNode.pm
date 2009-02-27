@@ -13,7 +13,7 @@ use constant {
     nodes => 'Pod::Abstract::BuildNode',
 };
 
-sub pod {
+sub from_pod {
     my $class = shift;
     my $str = shift;
     
@@ -22,6 +22,29 @@ sub pod {
     my @r = map { $_->detach } $root->children;
     return @r;
 }
+
+sub root {
+    my $class = shift;
+    my $para = Pod::Abstract::Node->new(
+        type => '[ROOT]',
+        );
+}
+
+sub begin {
+    my $class = shift;
+    my $cmd = shift;
+    
+    my $begin = Pod::Abstract::Node->new(
+        type => 'begin',
+        body => $cmd,
+        close_element => Pod::Abstract::Node->new(
+            type => 'end',
+            body => $cmd,
+        ),
+        );
+    return $begin;
+}
+        
 
 sub paragraph {
     my $class = shift;

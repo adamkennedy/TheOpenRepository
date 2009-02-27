@@ -135,7 +135,6 @@ sub command {
         if($attr_name) {
             $attr_node = Pod::Abstract::Node->new(
                 type => '@attribute',
-                body => $attr_name,
                 );
             my $pt = $self->parse_text($paragraph);
             $self->load_pt($attr_node, $pt);

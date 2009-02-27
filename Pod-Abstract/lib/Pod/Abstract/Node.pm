@@ -7,6 +7,8 @@ use Pod::Abstract::Serial;
 
 =pod
 
+la la ala la
+
 =head1 NAME
 
 Pod::Abstract::Node - Pod Document Node.
@@ -361,7 +363,7 @@ sub insert_before {
     }
 }
 
-=head2 insert_before
+=head2 insert_after
 
  $node->insert_after($target);
 
@@ -606,6 +608,7 @@ sub next {
     my $self = shift;
     my $parent = $self->parent;
 
+    return undef unless $parent; # No following node for root nodes.
     return $parent->tree->index_relative($self,+1);
 }
 
@@ -621,7 +624,8 @@ preceding node, undef will be returned.
 sub previous {
     my $self = shift;
     my $parent = $self->parent;
-    
+
+    return undef unless $parent; # No preceding nodes for root nodes.
     return $parent->tree->index_relative($self,+1);
 }
 

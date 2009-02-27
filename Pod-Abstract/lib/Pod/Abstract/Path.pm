@@ -89,7 +89,7 @@ sub lex {
         } elsif($expression =~ m/^\]/) {
             substr($expression,0,1) = '';
             push @l, [ R_SELECT, undef ];
-        } elsif($expression =~ m/^([_\:a-zA-Z0-9]+)/) {
+        } elsif($expression =~ m/^([#_\:a-zA-Z0-9]+)/) {
             push @l, [ NAME, $1 ];
             substr($expression, 0, length $1) = '';
         } elsif($expression =~ m/^\@([a-zA-Z0-9]+)/) {
