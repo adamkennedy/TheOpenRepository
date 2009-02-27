@@ -20,7 +20,7 @@ my @test_files = qw(
 ./t/randal.t
 ./author.t/MDL_displays.marpa
 ./author.t/minimal.marpa
-./author.t/misc.pl
+./author.t/misc.t
 );
 
 our $FH;

@@ -1,18 +1,19 @@
 Revision history for Parse::Marpa
 
-1.002000 Wed Jan 21 09:55:43 PST 2009
+1.003_nnn Thu Feb 26
+
+    New series of developer's releases.
+
+1.002000 Wed Jan 21
 
     Many perlcritic fixes.
 
-    Improvements to the messages the user gets when there are problems
-    with the Perl 5 code he passes to Marpa.  User code is used,
-    for example, as the semantics for rules of the grammar
+    Improvements to the messages the user gets from the Perl 5 code he
+    passes to Marpa.  User code is used in many places.  Most importantly,
+    the semantics of the grammar are specified with Perl 5 code.  So good
+    error messages are important.
 
-1.001_nnn Thu Dec 18 21:59:40 PST 2008
-
-    A series of developer's releases.
-
-1.000000 Sat Dec 13 11:27:37 PST 2008
+1.000000 Sat Dec 13
 
     First beta release.
 

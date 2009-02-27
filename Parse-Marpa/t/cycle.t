@@ -21,7 +21,7 @@ my $example_dir = 'example';
 chdir $example_dir;
 
 my $mdl_header = <<'EOF';
-semantics are perl5.  version is 1.002000.
+semantics are perl5.  version is 1.003_000.
 start symbol is S.
 default action is q{join(q{ }, @_)}.
 
