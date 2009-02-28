@@ -8,6 +8,8 @@ use Pod::Abstract;
 use Pod::Abstract::Filter;
 use UNIVERSAL qw(isa);
 
+use File::Temp qw(tempfile tempdir);
+
 =head1 NAME
 
 paf -- Pod Abstract Filter
@@ -22,6 +24,10 @@ paf -- Pod Abstract Filter
 
   # METHODS is default -heading for overlay too
   paf overlay -file=Subclass.pm sort cut clear_podcmds Superclass.pm
+  
+  # -p will make a tempfile and invoke perldoc on it.
+  paf -p sort Pod::Abstract::Node
+  paf -p find -f=hoist Pod::Abstract::Node
 
 =head1 DESCRIPTION
 
@@ -89,7 +95,7 @@ sub main {
 
     for( my $i = 0; $i < $#ARGV; $i ++ ) { # leave the last argument
         my $arg = $ARGV[$i];
-        if($arg =~ m/^-([^=]+)(=(.*))$/) {
+        if($arg =~ m/^-([^=]+)(=(.*))?$/) {
             if($filter) {
                 if(defined $3) {
                     $filter_flags{$1} = $3;
@@ -128,28 +134,40 @@ sub main {
     if($filename eq '--') {
         $next = Pod::Abstract->load_filehandle(\*STDIN);
     } else {
-	unless(-r $filename) {
-	    # Maybe a module name?
-	    $filename =~ s/::/\//g;
-	    $filename .= '.pm' unless $filename =~ m/.pm$/;
-	    foreach my $path (@INC) {
-		if(-r "$path/$filename") {
-		    $filename = "$path/$filename";
-		    last;
-		}
-	    }
-	}
-	$next = Pod::Abstract->load_file($filename);
+        unless(-r $filename) {
+            # Maybe a module name?
+            $filename =~ s/::/\//g;
+            $filename .= '.pm' unless $filename =~ m/.pm$/;
+            foreach my $path (@INC) {
+                if(-r "$path/$filename") {
+                    $filename = "$path/$filename";
+                    last;
+                }
+            }
+        }
+        $next = Pod::Abstract->load_file($filename);
     }
     foreach my $filter (@filters) {
         $next = $filter->filter($next);
     }
     
     my $out = \*STDOUT;
+    my $tmpfilename = undef;
+
+    if($flags{p}) {
+        ($out, $tmpfilename) = tempfile;
+    }
+
     if(isa($next, 'Pod::Abstract::Node')) {
         print $out $next->pod;
     } else {
         print $out $next;
+    }
+    
+    if($flags{p}) {
+        system('perldoc', $tmpfilename);
+        warn $tmpfilename;
+        unlink $tmpfilename;
     }
 }
 

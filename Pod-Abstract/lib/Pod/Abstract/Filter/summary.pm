@@ -9,7 +9,7 @@ sub filter {
     my $pa = shift;
     
     my $summary = node->root;
-    my $summ_block = node->begin('summary');
+    my $summ_block = node->head1('Summary');
     $summary->nest($summ_block);
     
     $self->summarise_headings($pa,$summ_block);
@@ -27,8 +27,15 @@ sub summarise_headings {
     $depth = 1 unless defined $depth;
     
     my @headings = $pa->select('/[@heading]');
+    my @items = $pa->select('/over/item[@label =~ {[a-zA-Z]+}]'); # Labels that have strings
+    
+    unshift @headings, @items;
+    
     foreach my $head (@headings) {
         my ($hdg) = $head->select('@heading');
+        if($head->type eq 'item') {
+            ($hdg) = $head->select('@label');
+        }
         my $hdg_text = $hdg->text;
         $summ_block->push(
             node->text(("  " x $depth) . $hdg_text . "\n")
