@@ -22,9 +22,7 @@ my $test = sub {
             [ 'A', [qw/E/] ],
             [ 'E' ],
         ],
-        terminals => [
-            [ 'a' => { regex => qr/a/m } ],
-        ],
+        terminals => [ 'a' ],
     });
     my $a = $g->get_symbol('a');
     my $recce = new Parse::Marpa::Recognizer({grammar => $g});

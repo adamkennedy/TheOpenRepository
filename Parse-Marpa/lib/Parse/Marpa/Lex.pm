@@ -183,12 +183,12 @@ Marpa.
 =begin Marpa::Test::Display:
 
 ## next display
-in_file($_, 'author.t/misc.t');
+is_file($_, 'author.t/misc.t', 'lex_regex snippet');
 
 =end Marpa::Test::Display:
 
-    my ($regex, $token_length)
-        = Parse::Marpa::Lex::lex_regex(\$input_string, $lexeme_start);
+    my ( $regex, $token_length ) =
+        Parse::Marpa::Lex::lex_regex( \$input_string, $lexeme_start );
 
 Takes two required arguments.
 C<$string>
@@ -220,12 +220,12 @@ which will include the length of any discarded prefix.
 =begin Marpa::Test::Display:
 
 ## next display
-in_file($_, 'author.t/misc.t');
+is_file( $_, 'author.t/misc.t', 'lex_q_quote snippet' );
 
 =end Marpa::Test::Display:
 
-    my ($string, $token_length)
-        = Parse::Marpa::Lex::lex_q_quote(\$input_string, $lexeme_start);
+    my ( $string, $token_length ) =
+        Parse::Marpa::Lex::lex_q_quote( \$input_string, $lexeme_start );
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
 The I<string reference> must be to a string that might contain a C<q-> or C<qq->quoted string.

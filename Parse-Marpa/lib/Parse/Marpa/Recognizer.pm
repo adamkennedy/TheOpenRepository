@@ -1408,15 +1408,23 @@ When this is the case, cloning is unnecessary.
 
 =begin Marpa::Test::Display:
 
+## start display
 ## next display
-in_file($_, 'author.t/misc.t');
+is_file($_, 'author.t/misc.t', 'new Recognizer snippet');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer({
-       grammar=> $grammar,
-       lex_preamble => $new_lex_preamble,
-    });
+    my $recce = new Parse::Marpa::Recognizer(
+        {    grammar      => $grammar,
+             lex_preamble => $new_lex_preamble,
+        }
+    );
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 The C<new> method's one, required, argument is a hash reference of named
 arguments.
@@ -1626,14 +1634,21 @@ On failure, C<stringify> throws an exception.
 
 =begin Marpa::Test::Display:
 
-## next 2 displays
-in_file($_, 'author.t/misc.t');
+## start display
+## next display
+is_file($_, 'author.t/misc.t', 'unstringify Recognizer snippet');
 
 =end Marpa::Test::Display:
 
-    $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce, $trace_fh);
+    $recce = Parse::Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
 
     $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce);
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 The C<unstringify> static method takes a reference to a stringified recognizer as its first
 argument.

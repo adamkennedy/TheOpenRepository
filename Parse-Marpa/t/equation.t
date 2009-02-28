@@ -59,10 +59,6 @@ EOCODE
 EOCODE
         ],
     ],
-    terminals => [
-	[ 'Number' => { regex => qr/\d+/xms } ],
-	[ 'Op' => { regex => qr/[-+*]/xms } ],
-    ],
 
     default_action =>
 <<'EO_CODE',

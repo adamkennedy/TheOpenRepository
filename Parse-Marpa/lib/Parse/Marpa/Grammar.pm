@@ -1213,9 +1213,14 @@ sub Parse::Marpa::Grammar::precompute {
         );
     }
 
-    nulling($grammar);
-    nullable($grammar) or return $grammar;
-    productive($grammar);
+    if (not terminals_distinguished($grammar)) {
+        mark_all_symbols_terminal($grammar);
+    }
+    else {
+        nulling($grammar);
+        nullable($grammar) or return $grammar;
+        productive($grammar);
+    }
 
     check_start( $grammar ) or return $grammar;
 
@@ -1930,6 +1935,9 @@ sub assign_symbol {
 sub assign_user_symbol {
     my $self = shift;
     my $name = shift;
+    if (my $type = ref $name) {
+        croak("Symbol name was ref to $type; it must be a scalar string")
+    }
     croak("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
     return assign_symbol( $self, $name );
@@ -2301,15 +2309,22 @@ sub add_user_terminals {
     my $grammar   = shift;
     my $terminals = shift;
 
+    my $type = ref $terminals;
     TERMINAL: for my $terminal (@{$terminals}) {
-        my $arg_count = @{$terminal};
-        if ( $arg_count > 2 or $arg_count < 1 ) {
-            croak('terminal must have from 1 or 2 arguments');
+        my $lhs_name;
+        my $options = {};
+        if (ref $terminal eq 'ARRAY') {
+            my $arg_count = @{$terminal};
+            if ( $arg_count > 2 or $arg_count < 1 ) {
+                croak('terminal must have 1 or 2 arguments');
+            }
+            ( $lhs_name, $options ) = @{$terminal};
+        } else {
+            $lhs_name = $terminal;
         }
-        my ( $lhs_name, $options ) = @{$terminal};
         add_user_terminal( $grammar, $lhs_name, $options );
     }
-    return;
+    return 1;
 }
 
 sub add_user_terminal {
@@ -2317,6 +2332,9 @@ sub add_user_terminal {
     my $name    = shift;
     my $options = shift;
 
+    if (my $type = ref $name) {
+        croak("Terminal name was ref to $type; it must be a scalar string")
+    }
     croak("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
     add_terminal( $grammar, $name, $options );
@@ -2585,6 +2603,38 @@ sub productive {
 
     return 1;
 
+}
+
+sub terminals_distinguished {
+    my ($grammar) = @_;
+    my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
+    for my $symbol ( @{$symbols} ) {
+        return 1 if $symbol->[Parse::Marpa::Internal::Symbol::TERMINAL];
+    }
+    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+    RULE: for my $rule ( @{$rules} ) {
+        next RULE if scalar @{$rule->[Parse::Marpa::Internal::Rule::RHS]};
+        croak("A grammar with empty rules must mark its terminals");
+    }
+    return 0;
+}
+
+sub mark_all_symbols_terminal {
+    my ($grammar) = @_;
+    my $symbols = $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS];
+    for my $symbol ( @{$symbols} ) {
+        $symbol->[Parse::Marpa::Internal::Symbol::TERMINAL]   = 1;
+        $symbol->[Parse::Marpa::Internal::Symbol::NULLING]    = 0;
+        $symbol->[Parse::Marpa::Internal::Symbol::NULLABLE]   = 0;
+        $symbol->[Parse::Marpa::Internal::Symbol::PRODUCTIVE] = 1;
+    }
+    my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
+    for my $rule ( @{$rules} ) {
+        $rule->[Parse::Marpa::Internal::Rule::NULLING]    = 0;
+        $rule->[Parse::Marpa::Internal::Rule::NULLABLE]   = 0;
+        $rule->[Parse::Marpa::Internal::Rule::PRODUCTIVE] = 1;
+    }
+    return 1;
 }
 
 sub nulling {
@@ -4086,14 +4136,21 @@ On failure, C<stringify> throws an exception.
 
 =begin Marpa::Test::Display:
 
-## next 2 displays
-in_file($_, 'author.t/misc.t');
+## start display
+## next display
+is_file($_, 'author.t/misc.t', 'unstringify snippet');
 
 =end Marpa::Test::Display:
 
-    $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar, $trace_fh);
+    $grammar = Parse::Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
 
     $grammar = Parse::Marpa::Grammar::unstringify($stringified_grammar);
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
 
 The C<unstringify> static method takes a reference to a stringified grammar as its first
 argument.

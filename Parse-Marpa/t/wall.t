@@ -77,10 +77,6 @@ EOCODE
 EOCODE
         ],
     ],
-    terminals => [
-        [ 'Number' => { regex => qr/\d+/xms } ],
-        [ 'Minus' => { regex => qr/[-]/xms } ],
-    ],
     default_action =>
 <<'EOCODE'
      my $v_count = scalar @_;

@@ -553,20 +553,30 @@ Non-exceptional failures are described in the documentation for the method which
 
 =begin Marpa::Test::Display:
 
-## next 3 displays
-in_file($_, 'author.t/misc.t');
+## next display
+is_file($_, 'author.t/misc.t', 'mdl scalar snippet');
 
 =end Marpa::Test::Display:
 
     $first_result =
         Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
 
-Z<>
+=begin Marpa::Test::Display:
+
+## next display
+is_file($_, 'author.t/misc.t', 'mdl array snippet');
+
+=end Marpa::Test::Display:
 
      @all_results
-         = Parse::Marpa::mdl(\$grammar_description, \$string_to_parse);
+         = Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
 
-Z<>
+=begin Marpa::Test::Display:
+
+## next display
+is_file($_, 'author.t/misc.t', 'mdl scalar hash args snippet');
+
+=end Marpa::Test::Display:
 
      $first_result = Parse::Marpa::mdl(
          \$grammar_description,

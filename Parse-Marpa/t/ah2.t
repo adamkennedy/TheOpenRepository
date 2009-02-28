@@ -39,11 +39,7 @@ my $grammar = new Parse::Marpa::Grammar({
 EOCODE
 });
 
-$grammar->set({
-    terminals => [
-        [ 'a' => { regex => 'a' } ],
-    ],
-});
+$grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 

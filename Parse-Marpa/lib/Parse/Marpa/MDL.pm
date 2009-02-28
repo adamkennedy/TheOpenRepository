@@ -99,11 +99,11 @@ the symbol's plumbing name.
 =begin Marpa::Test::Display:
 
 ## next display
-in_file($_, 'author.t/misc.t');
+is_file($_, 'author.t/misc.t', 'get_symbol snippet');
 
 =end Marpa::Test::Display:
 
-    my $op = Parse::Marpa::MDL::get_symbol($grammar, 'Op');
+    my $op = Parse::Marpa::MDL::get_symbol( $grammar, 'Op' );
 
 This static method takes a Marpa grammar object as its first argument and an MDL symbol name as its second.
 It returns the symbol's "cookie".

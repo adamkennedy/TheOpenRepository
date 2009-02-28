@@ -19,7 +19,7 @@ BEGIN {
 }
 
 sub ah_extended {
-     my $n = shift;
+    my $n = shift;
 
     my $g = new Parse::Marpa::Grammar({
         start => 'S',
@@ -34,9 +34,8 @@ sub ah_extended {
             [ 'A', [qw/E/] ],
             [ 'E' ],
         ],
-        terminals => [
-            [ 'a' => { regex => qr/a/xms } ],
-        ],
+        terminals => [ 'a' ],
+
         # no warnings for $n equals zero
         warnings => ($n ? 1 : 0),
     });
