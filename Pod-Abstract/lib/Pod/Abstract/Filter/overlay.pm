@@ -10,7 +10,7 @@ use Pod::Abstract;
 =head2 filter
 
 Causes any section within the document inside the named C<heading>, to
-be replaced by the equivelant section within the specified C<file>.
+be replaced by the equivalant section within the specified C<file>.
 
 =cut
 
