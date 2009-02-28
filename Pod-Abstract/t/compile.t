@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 my @modules = qw(
 Pod::Abstract
@@ -19,6 +19,7 @@ Pod::Abstract::Filter::overlay
 Pod::Abstract::Filter::add_podcmds
 Pod::Abstract::Filter::clear_podcmds
 Pod::Abstract::Filter::summary
+Pod::Abstract::Filter::find
 );
 
 foreach my $module (@modules) {
