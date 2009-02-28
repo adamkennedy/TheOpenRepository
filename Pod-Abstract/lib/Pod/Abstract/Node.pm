@@ -146,6 +146,34 @@ sub ptree {
     return $r;
 }
 
+=head2 text
+
+ print $n->text;
+
+Returns the text subnodes only of the given node, concatenated
+together - i,e, the text only with no formatting at all.
+
+=cut
+
+sub text {
+    my $self = shift;
+    
+    my $r = '';
+    my $type = $self->type;
+    my $body = $self->body;
+    
+    if($type eq ':text') {
+	$r .= $body;
+    } # else ignore
+    
+    my @children = $self->children;
+    foreach my $c (@children) {
+        $r .= $c->text;
+    }
+    
+    return $r;
+}
+
 =head2 pod
 
  print $n->pod;

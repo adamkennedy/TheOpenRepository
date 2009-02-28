@@ -7,10 +7,11 @@ use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
 use IO::String;
 
+our $VERSION = 0.1;
+
 =head1 NAME
 
-POD::Abstract - Consistent Abstract document tree and processing model
-for Perl POD documents
+Pod::Abstract - Abstract document tree for Perl POD documents
 
 =head1 SYNOPSIS
 

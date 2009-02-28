@@ -29,11 +29,11 @@ sub summarise_headings {
     my @headings = $pa->select('/[@heading]');
     foreach my $head (@headings) {
         my ($hdg) = $head->select('@heading');
-        my $hdg_text = $hdg->pod;
+        my $hdg_text = $hdg->text;
         $summ_block->push(
             node->text(("  " x $depth) . $hdg_text . "\n")
             );
-        if($hdg_text =~ m/^[0-9a-zA-Z_]+$/) {
+        if($hdg_text =~ m/^[0-9a-zA-Z_ ]+$/) {
             my ($synopsis) = $head->select("//:verbatim[. =~ {$hdg_text}](0)");
             if($synopsis) {
                 my $synop_body = $synopsis->body;

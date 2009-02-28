@@ -123,11 +123,23 @@ sub main {
     
     my $filename = $ARGV[$#ARGV];
     die "No filename or filters provided\n" unless $filename;
+    
     my $next = undef;
     if($filename eq '--') {
         $next = Pod::Abstract->load_filehandle(\*STDIN);
     } else {
-        $next = Pod::Abstract->load_file($filename);
+	unless(-r $filename) {
+	    # Maybe a module name?
+	    $filename =~ s/::/\//g;
+	    $filename .= '.pm' unless $filename =~ m/.pm$/;
+	    foreach my $path (@INC) {
+		if(-r "$path/$filename") {
+		    $filename = "$path/$filename";
+		    last;
+		}
+	    }
+	}
+	$next = Pod::Abstract->load_file($filename);
     }
     foreach my $filter (@filters) {
         $next = $filter->filter($next);
