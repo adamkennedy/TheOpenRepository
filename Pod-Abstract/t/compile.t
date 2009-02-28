@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 my @modules = qw(
 Pod::Abstract
@@ -14,6 +14,7 @@ Pod::Abstract::Path
 Pod::Abstract::Parser
 Pod::Abstract::Filter
 Pod::Abstract::Filter::cut
+Pod::Abstract::Filter::uncut
 Pod::Abstract::Filter::sort
 Pod::Abstract::Filter::overlay
 Pod::Abstract::Filter::add_podcmds

@@ -236,7 +236,7 @@ sub test_simple {
     my $self = shift;
     my $t_list = shift;
     
-    return scalar @$t_list;
+    return (scalar @$t_list) > 0;
 }
 
 sub select_children {
@@ -273,9 +273,9 @@ sub select_prev {
     my $nlist = [ ];
     
     foreach my $n (@$ilist) {
-        my $next = $n->previous;
-        if($next) {
-            push @$nlist, $next;
+        my $prev = $n->previous;
+        if($prev) {
+            push @$nlist, $prev;
         }
     }
     

@@ -90,6 +90,12 @@ considered an example and expanded as part of the summary.
 Find specific sub-sections or list items mentioning name. Used to restrict a
 larger document down to a smaller set that you're interested in.
 
+=head2 uncut
+
+ paf uncut Source.pm
+
+Convert cut nodes in the source into verbatim text. Not the inverse of cut!
+
 =cut
  
 

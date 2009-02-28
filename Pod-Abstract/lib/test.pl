@@ -36,7 +36,7 @@ Read as
 =cut
 
 my $path = q|
-//:verbatim[>>:verbatim[!<<:verbatim]]
+//:verbatim[>>:verbatim][!<<:verbatim]
 |;
 
 #    '//:paragraph[//:E =~ {gt}]'

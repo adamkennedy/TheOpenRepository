@@ -5,10 +5,6 @@ use warnings;
 use Pod::Abstract::Tree;
 use Pod::Abstract::Serial;
 
-=pod
-
-la la ala la
-
 =head1 NAME
 
 Pod::Abstract::Node - Pod Document Node.
@@ -654,7 +650,7 @@ sub previous {
     my $parent = $self->parent;
 
     return undef unless $parent; # No preceding nodes for root nodes.
-    return $parent->tree->index_relative($self,+1);
+    return $parent->tree->index_relative($self,-1);
 }
 
 =head2 coalesce_body

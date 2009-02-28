@@ -18,7 +18,7 @@ sub filter {
         $pod_cmd->detach
             unless $pod_cmd->serial == $first_node->serial;
     }
-
+    
     return $pa;
 }
 
