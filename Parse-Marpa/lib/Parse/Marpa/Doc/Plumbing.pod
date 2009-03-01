@@ -146,8 +146,11 @@ and the same separator.
 
 =head2 The C<terminals> Named Argument
 
-The value of the C<terminals> name argument must be a reference to an array of references to terminal descriptions.
-Terminal descriptions are arrays of two elements.
+The value of the C<terminals> name argument must be a reference to an array of terminal descriptions.
+Terminal descriptions can be short form or long form.
+The short form is very short: it is the symbol name of the terminal as a scalar string.
+
+A long form terminal description is a reference to an array of two elements.
 The first element is the symbol name of the terminal.
 The second element must be a reference to a hash of B<terminal options>,
 with option names as hash keys
@@ -160,7 +163,10 @@ and option values as hash values.
 =item C<regex>
 
 The value of the C<regex> terminal option must be a regular expression.
-It will be used to match the terminal in the input text.
+It is used when Marpa is asked to match the terminals in the input text.
+When the tokens are supplied directly,
+for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+the terminal's C<regex> value is ignored.
 Only one of the C<regex> and C<action> terminal options may be specified.
 See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing terminal regexes.
 
@@ -170,6 +176,9 @@ The value of the C<action> terminal option must be a string with code in the cur
 Right now the only available semantics is Perl 5.
 The code will be interpreted as a lex action, which
 will be used to match the terminal in the input text.
+When the tokens are supplied directly,
+for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+the terminal's C<action> value is ignored.
 Only one of the C<regex> and C<action> terminal options may be specified.
 See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing lex actions.
 
@@ -179,6 +188,9 @@ The value of the C<prefix> terminal option must be a regular expression.
 It will be used to match and discard text from the input
 before any attempt is made to match the terminal itself.
 The most common use is to discard leading whitespace.
+When the tokens are supplied directly,
+for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+the terminal's C<prefix> value is ignored.
 
 =item C<priority>
 
@@ -214,7 +226,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

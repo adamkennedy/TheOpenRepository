@@ -171,6 +171,21 @@ that symbol's null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
 L<Parse::Marpa::Evaluator/"Null Symbol Values">.
 
+=item inaccessible_ok
+
+The value must be a reference to an array of symbol names.
+By default, Marpa warns if a symbol is inaccessible, but
+the warning is suppressed for any symbol named in the array.
+Setting the C<inaccessible_ok> option
+after grammar precomputation is useless,
+and itself results in a warning.
+
+Inaccessible symbols sometimes indicate errors in the grammar
+design.
+But a user may have plans for these symbols,
+may wish to keep them as notes,
+or may simply wish to deal with them later.
+
 =item lex_preamble
 
 The value must be a string which contains code in the current semantics.
@@ -241,6 +256,21 @@ Warnings and trace output go to the trace file handle.
 By default it's C<STDERR>.
 The trace file handle can be changed at any point in a parse.
 
+=item unproductive_ok
+
+The value must be a reference to an array of symbol names.
+By default, Marpa warns if a symbol is unproductive, but
+the warning is suppressed for any symbol named in the array.
+Setting the C<unproductive_ok> option
+after grammar precomputation is useless,
+and itself results in a warning.
+
+Unproductive symbols sometimes indicate errors in the grammar
+design.
+But a user may have plans for these symbols,
+may wish to keep them as notes,
+or may simply wish to deal with them later.
+
 =item version
 
 If present, the C<version> option must match the current
@@ -251,7 +281,7 @@ The C<version> option cannot be changed after the grammar is precomputed.
 
 The value is a boolean.
 If true, it enables warnings
-about inaccessible and unproductive rules in the grammar.
+about inaccessible and unproductive symbols in the grammar.
 Warnings are written to the trace file handle.
 By default, warnings are on.
 Turning warnings on
@@ -276,7 +306,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

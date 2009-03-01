@@ -205,7 +205,10 @@ use Parse::Marpa::Offset Grammar =>
         NFA QDFA_BY_NAME
         NULLABLE_SYMBOL
         LOCATION_CALLBACK
-        WARNINGS SEMANTICS
+        WARNINGS
+        INACCESSIBLE_OK
+        UNPRODUCTIVE_OK
+        SEMANTICS
         TRACE_RULES TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
         ALLOW_RAW_SOURCE INTERFACE
     );
@@ -657,10 +660,12 @@ sub Parse::Marpa::Grammar::new {
     $grammar->[Parse::Marpa::Internal::Grammar::STRIP]              = 1;
     $grammar->[Parse::Marpa::Internal::Grammar::LOCATION_CALLBACK] =
         q{ 'Earleme ' . $earleme };
-    $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS]   = 1;
-    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION]   = 'warn';
-    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH]    = 1;
-    $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] = undef;
+    $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS]        = 1;
+    $grammar->[Parse::Marpa::Internal::Grammar::INACCESSIBLE_OK] = {};
+    $grammar->[Parse::Marpa::Internal::Grammar::UNPRODUCTIVE_OK] = {};
+    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_ACTION]    = 'warn';
+    $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH]     = 1;
+    $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES]      = undef;
     $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
         Parse::Marpa::Internal::Phase::NEW;
     $grammar->[Parse::Marpa::Internal::Grammar::SYMBOLS]      = [];
@@ -1098,6 +1103,28 @@ sub Parse::Marpa::Grammar::set {
                 $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] =
                     $value;
             }
+            when ('inaccessible_ok') {
+                say {$trace_fh}
+                    q{"inaccessible_ok" option is useless after grammar is precomputed}
+                    if $value
+                        && $phase
+                        >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                croak('value of inaccessible_ok option must be an array ref')
+                    unless ref $value eq 'ARRAY';
+                $grammar->[Parse::Marpa::Internal::Grammar::INACCESSIBLE_OK] =
+                    {map { ( $_, 1 ) } @{$value} };
+            }
+            when ('unproductive_ok') {
+                say {$trace_fh}
+                    q{"unproductive_ok" option is useless after grammar is precomputed}
+                    if $value
+                        && $phase
+                        >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                croak('value of unproductive_ok option must be an array ref')
+                    unless ref $value eq 'ARRAY';
+                $grammar->[Parse::Marpa::Internal::Grammar::UNPRODUCTIVE_OK] =
+                    {map { ( $_, 1 ) } @{$value} };
+            }
             when ('code_lines') {
                 $grammar->[Parse::Marpa::Internal::Grammar::CODE_LINES] =
                     $value;
@@ -1237,14 +1264,18 @@ sub Parse::Marpa::Grammar::precompute {
     if ( $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] ) {
         $trace_fh //=
             $grammar->[Parse::Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        for my $symbol (
+        my $ok = $grammar->[Parse::Marpa::Internal::Grammar::INACCESSIBLE_OK];
+        SYMBOL: for my $symbol (
             @{ Parse::Marpa::Grammar::inaccessible_symbols($grammar) } )
         {
+            next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Inaccessible symbol: $symbol";
         }
-        for my $symbol (
+        $ok = $grammar->[Parse::Marpa::Internal::Grammar::UNPRODUCTIVE_OK];
+        SYMBOL: for my $symbol (
             @{ Parse::Marpa::Grammar::unproductive_symbols($grammar) } )
         {
+            next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Unproductive symbol: $symbol";
         }
     }
@@ -4200,7 +4231,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

@@ -4,8 +4,9 @@ Parse::Marpa::Doc::MDL - The Marpa Demonstration Language
 
 =begin Marpa::Test::Display:
 
-## default
-in_file($_, 'bootstrap/self.marpa');
+default
+file bootstrap/self.marpa
+partial
 
 =end Marpa::Test::Display:
 

@@ -8,81 +8,159 @@ use warnings;
 use Carp;
 use Parse::Marpa;
 
-my $grammar = new Parse::Marpa::Grammar({
-    start => 'program',
+my $grammar = new Parse::Marpa::Grammar(
+    {   start => 'display_or_commands',
 
-    rules => [
-        {   lhs    => 'program',
-            rhs    => ['stretch'],
-            min    => 1,
-            action => '\@_'
-        },
-        [ 'stretch', [qw/display/],     '$_[0]' ],
-        [ 'stretch', [qw/other lines/], '$_[0]' ],
-        [   'display', [ 'begin line', 'instruction lines', 'end line' ],
-            '$_[1]'
+        rules => [
+            {   lhs    => 'display_or_commands',
+                rhs    => ['display'],
+                action => '{ display => $_[0] }'
+            },
+            {   lhs    => 'display_or_commands',
+                rhs    => ['commands'],
+                action => '{ commands => $_[0] }'
+            },
+            {   lhs    => 'display_or_commands',
+                rhs    => [qw(commands display)],
+                action => '{ commands => $_[0], display => $_[1] }'
+            },
+            {   lhs    => 'commands',
+                rhs    => [ 'begin line', 'instructions', 'end line' ],
+                action => '{ $_[1] }'
+            },
+            {   lhs => 'instructions',
+                rhs => ['command'],
+                min => 1
+            },
+            {   lhs    => 'command',
+                rhs    => ['partial command'],
+                action => '{ partial => 1 }'
+            },
+            {   lhs    => 'command',
+                rhs    => ['file command'],
+                action => '{ file => $_[0] }'
+            },
+            {   lhs    => 'command',
+                rhs    => ['name command'],
+                action => '{ name => $_[0] }'
+            },
+            {   lhs    => 'command',
+                rhs    => ['ignore whitespace command'],
+                action => '{ ignore_whitespace => $_[0] }'
+            },
+            {   lhs    => 'command',
+                rhs    => ['default command'],
+                action => '{ default => $_[0] }'
+            },
+            {   lhs => 'display',
+                rhs => ['display line'],
+                min => 1
+            },
+            [ 'display line', ['whitespace'],    '$_[0]' ],
+            [ 'display line', ['indented line'], '$_[0]' ],
         ],
-        {   lhs => 'instructions',
-            rhs => ['instruction'],
-            min => 1
-        },
-        {   lhs => 'other lines',
-            rhs => ['other line'],
-            min => 1,
-        },
+
+        terminals => [
+            'whitespace',
+            'indented line',
+            'begin line',
+            'end line',
+            'ignore whitespace command',
+            'name command',
+            'partial command',
+            'default command',
+            'file command',
+            'other line',
         ],
 
-    default_action =>
-<<'EO_CODE',
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     '(' . join(q{;}, @_) . ')';
-EO_CODE
+        inaccessible_ok => [ 'other line' ],
 
-});
+    }
+);
 
 $grammar->precompute();
 
 my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
 
-my $instruction = $grammar->get_symbol('instruction');
-my $other = $grammar->get_symbol('other line');
-my $begin = $grammar->get_symbol('begin line');
-my $end = $grammar->get_symbol('end line');
+my $instruction = $grammar->get_symbol('whitespace');
+my $indented_line = $grammar->get_symbol('indented line');
+my $begin_line = $grammar->get_symbol('begin line');
+my $end_line = $grammar->get_symbol('end line');
+my $name_command = $grammar->get_symbol('name command');
+my $file_command = $grammar->get_symbol('file command');
+my $partial_command = $grammar->get_symbol('partial command');
+my $default_command = $grammar->get_symbol('default command');
+my $ignore_whitespace_command = $grammar->get_symbol('ignore whitespace command');
+my $whitespace = $grammar->get_symbol('whitespace');
+my $other_line = $grammar->get_symbol('other line');
 
-TOKEN: while (my $line = <STDIN>) {
+my $line_number = 0;
+TOKEN: while ( my $line = <STDIN> ) {
+    $line_number++;
+    print $line;
     chomp $line;
-    if ( $line =~ /\A [=] begin \s+ Marpa[:][:]Test[:][:]Display[:] \s* .* \z/xms )
-    {
-       print "BEGIN: $line\n";
-    }
-    if ( $line =~ /\A [=] end \s+ Marpa[:][:]Test[:][:]Display[:] \s* \z/xms )
-    {
-       print "END: $line\n";
-    }
-    if ( $line =~ /\A \s* \z/xms )
-    {
-       print "WHITESPACE\n";
-    }
-    if ( $line =~ /\A \s* partial \s* \z/xms )
-    {
-       print "PARTIAL COMMAND: $line\n";
-    }
-    if ( $line =~ /\A \s* file \s* \z/xms )
-    {
-       print "FILE COMMAND: $line\n";
-    }
-    if ( $line =~ /\A \s* name \s* \z/xms )
-    {
-       print "NAME COMMAND: $line\n";
-    }
-    if ( $line =~ /\A \s* ignore \s+ whitespace \s* \z/xms )
-    {
-       print "IGNORE WHITESPACE COMMAND: $line\n";
-    }
-    # next TOKEN if $recce->earleme($token);
-    # croak('Parsing exhausted at character: ', $token->[1]);
+
+    my $value = q{};
+    my $token = $other_line;
+
+    LINE_TEST: {
+        if ( $line
+            =~ /\A [=] begin \s+ Marpa[:][:]Test[:][:]Display[:] \s* .* \z/xms
+            )
+        {
+            print "BEGIN: $line\n";
+            $token = $begin_line;
+            last LINE_TEST;
+        }
+        if ( $line
+            =~ /\A [=] end \s+ Marpa[:][:]Test[:][:]Display[:] \s* \z/xms )
+        {
+            print "END: $line\n";
+            $token = $end_line;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* \z/xms ) {
+            print "WHITESPACE\n";
+            $token = $whitespace;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* partial \s* \z/xms ) {
+            print "PARTIAL COMMAND: $line\n";
+            $token = $partial_command;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* default \s* \z/xms ) {
+            print "DEFAULT COMMAND: $line\n";
+            $token = $default_command;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* file \s+ (.*\S) \s* \z/xms ) {
+            $value = $1;
+            print "FILE COMMAND: $value\n";
+            $token = $file_command;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* name \s+ (.*\S) \s* \z/xms ) {
+            $value = $1;
+            print "NAME COMMAND: $value\n";
+            $token = $name_command;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s* ignore \s+ whitespace \s* \z/xms ) {
+            print "IGNORE WHITESPACE COMMAND\n";
+            $token = $ignore_whitespace_command;
+            last LINE_TEST;
+        }
+        if ( $line =~ /\A \s+ .* \z/xms ) {
+            $value = $line;
+            print "INDENTED LINE: $value\n";
+            $token = $indented_line;
+            last LINE_TEST;
+        }
+    }    # LINE_TEST
+
+    next TOKEN if $recce->earleme( [ $token, $value, 1 ] );
+    croak("Parsing exhausted at line $line_number: $line");
 }
 
 exit 0;

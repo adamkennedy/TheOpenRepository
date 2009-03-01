@@ -649,21 +649,20 @@ sub Parse::Marpa::Recognizer::text {
     my $parse     = shift;
     my $input     = shift;
     my $input_length    = shift;
+
     croak(
         'Parse::Marpa::Recognizer::text() third argument not yet implemented')
         if defined $input_length;
 
     my $input_ref;
-    given (ref $input) {
-    when (q{}) { $input_ref = \$input; }
-    when ('SCALAR') { $input_ref = $input; }
-    default {
-	croak(
-	    'text argument to Parse::Marpa::Recognizer::text() ',
-	    'must be string or string ref'
-	);
-    }
-    } # given ref $input
+    given ( ref $input ) {
+        when (q{})      { $input_ref = \$input; }
+        when ('SCALAR') { $input_ref = $input; }
+        default {
+            croak( 'text argument to Parse::Marpa::Recognizer::text() ',
+                'must be string or string ref' );
+        }
+    }    # given ref $input
 
     my ( $grammar, $earley_sets, $current_set, $lexers, ) = @{$parse}[
         Parse::Marpa::Internal::Recognizer::GRAMMAR,
@@ -697,8 +696,11 @@ sub Parse::Marpa::Recognizer::text {
 
     $input_length = length ${$input_ref} unless defined $input_length;
 
+    my $active = 1;
+    my $pos = 0;
+
     pos ${$input_ref} = 0;
-    POS: for my $pos (0 .. ($input_length-1)) {
+    POS: while ( $pos < $input_length ) {
         my @alternatives;
 
         # NOTE: Often the number of the earley set, and the idea of
@@ -824,13 +826,18 @@ sub Parse::Marpa::Recognizer::text {
 
         }    # LEXABLE
 
-        my $active = scan_set( $parse, @alternatives );
+        $active = scan_set( $parse, @alternatives );
 
-        return $pos unless $active;
+        $pos++;
+
+        last POS if not $active;
 
     }    # POS
 
-    return -1;
+    return
+          $active              ? -2
+        : $pos < $input_length ? $pos
+        :                        -1;
 
 }    # sub text
 
@@ -838,30 +845,20 @@ sub Parse::Marpa::Recognizer::text {
 sub Parse::Marpa::Recognizer::end_input {
     my $self = shift;
 
-    my ( $grammar, $current_set, $last_completed_set, $furthest_earleme, ) =
-        @{$self}[
-        Parse::Marpa::Internal::Recognizer::GRAMMAR,
-        Parse::Marpa::Internal::Recognizer::CURRENT_SET,
-        Parse::Marpa::Internal::Recognizer::LAST_COMPLETED_SET,
-        Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME,
-        ];
-
+    my $grammar = $self->[ Parse::Marpa::Internal::Recognizer::GRAMMAR ];
     my $phase = $grammar->[ Parse::Marpa::Internal::Grammar::PHASE ];
 
     # If called repeatedly, just return success,
     # without complaint.  In other words, be idempotent.
     return 1 if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZED;
 
-    if ($last_completed_set < $furthest_earleme) {
-
-         EARLEY_SET: while ( $current_set <= $furthest_earleme ) {
-             Parse::Marpa::Internal::Recognizer::complete_set($self);
-             $current_set++;
-             $self->[Parse::Marpa::Internal::Recognizer::CURRENT_SET] =
-                 $current_set;
-         }
-
+    my $last_completed_set = $self->[ Parse::Marpa::Internal::Recognizer::LAST_COMPLETED_SET ];
+    my $furthest_earleme   = $self->[ Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME ];
+    while ($last_completed_set++ < $furthest_earleme) {
+        Parse::Marpa::Internal::Recognizer::complete_set($self);
     }
+    $self->[Parse::Marpa::Internal::Recognizer::CURRENT_SET] =
+        $furthest_earleme;
 
     if ($grammar->[ Parse::Marpa::Internal::Grammar::STRIP ]) {
 
@@ -920,14 +917,8 @@ sub scan_set {
 
     if ( not defined $earley_set ) {
         $earley_set_list->[$current_set] = [];
-        if ( $current_set >= $furthest_earleme ) {
-            $parse->[Parse::Marpa::Internal::Recognizer::EXHAUSTED] =
-                $exhausted = 1;
-        }
-        else {
-            $parse->[CURRENT_SET]++;
-        }
-        return !$exhausted;
+        $parse->[Parse::Marpa::Internal::Recognizer::CURRENT_SET]++;
+        return 1;
     }
 
     # Important: more earley sets can be added in the loop
@@ -955,8 +946,6 @@ sub scan_set {
             }
 
             # Make sure it's an allowed terminal symbol.
-            # TODO: Must remember to be sure that
-            # nulling symbols are never terminals
             unless ( $token->[Parse::Marpa::Internal::Symbol::TERMINAL] ) {
                 my $name = $token->[Parse::Marpa::Internal::Symbol::NAME];
                 croak(    'Non-terminal '
@@ -1012,8 +1001,12 @@ sub scan_set {
 
     }    # EARLEY_ITEM
 
-    $parse->[CURRENT_SET]++;
+    if ( $current_set >= $furthest_earleme ) {
+        $parse->[Parse::Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
+        return 0;
+    }
 
+    $parse->[ Parse::Marpa::Internal::Recognizer::CURRENT_SET ]++;
     return 1;
 
 }    # sub scan_set
@@ -1152,7 +1145,6 @@ sub complete_set {
 	  or croak('Cannot print to trace file');
     }
 
-    # Dream up some efficiency hack here.  Memoize sorted lexables by state?
     my $lexables = [
         sort {
             $a->[Parse::Marpa::Internal::Symbol::PRIORITY]
@@ -1164,54 +1156,6 @@ sub complete_set {
     return $lexables;
 
 }    # sub complete_set
-
-sub Parse::Marpa::Recognizer::find_complete_rule {
-    my $parse         = shift;
-    my $start_earleme = shift;
-    my $symbol        = shift;
-    my $last_earleme  = shift;
-
-    my ( $default_parse_set, $earley_sets, ) = @{$parse}[
-        Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET,
-        Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
-    ];
-
-    # Set up the defaults for undefined arguments
-    $start_earleme //= 0;
-    $last_earleme  //= $default_parse_set;
-    $last_earleme = $default_parse_set if $last_earleme > $default_parse_set;
-
-    EARLEME:
-    ## no critic (ProhibitCStyleForLoops)
-    for (
-        my $earleme = $last_earleme;
-        $earleme >= $start_earleme;
-        $earleme--
-        )
-    ## use critic
-    {
-        my $earley_set = $earley_sets->[$earleme];
-
-        ITEM: for my $earley_item (@{$earley_set}) {
-            my ( $state, $parent ) = @{$earley_item}[
-                Parse::Marpa::Internal::Earley_item::STATE,
-                Parse::Marpa::Internal::Earley_item::PARENT,
-            ];
-            next ITEM unless $parent == $start_earleme;
-            if ( defined $symbol ) {
-                my $complete_rules =
-                    $state->[Parse::Marpa::Internal::QDFA::COMPLETE_RULES]
-                    ->{$symbol};
-                next ITEM unless $complete_rules;
-            }
-            my $complete_lhs =
-                $state->[Parse::Marpa::Internal::QDFA::COMPLETE_LHS];
-            next ITEM unless scalar @{$complete_lhs};
-            return ( $earleme, $complete_lhs );
-        }    # ITEM
-    }    # EARLEME
-    return;
-}
 
 1;
 
@@ -1366,12 +1310,12 @@ be B<exhausted>.
 A B<recognizer> is B<active>,
 if and only if it is not exhausted.
 
-When the recognizer is exhausted or active,
+When the recognizer is exhausted (active),
 I sometimes say, more loosely, that the parser is exhausted (active),
 or that parsing is exhausted (active).
 In context of a particular parse being worked on,
 we can also speak of a parse being exhausted or active.
-Remember, however, that an exhausted recognizer
+An exhausted recognizer
 can contain successful parses prior to the current earleme.
 In fact, successful parsing always leaves the recognizer exhausted.
 
@@ -1690,7 +1634,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

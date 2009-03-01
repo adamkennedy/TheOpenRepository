@@ -10,12 +10,11 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =item * Add a SYNOPSIS to the Plumbing document.
 
-=item * Create a new porcelain interface, along the lines of the Parrot Grammar
-Engine and Perl 6 regexes.
-
 =item * Parse bocage creation can probably be made a bit slightly cleaner.
 At least I think so, based on what I found when revising that part of the
 Internals doc.
+
+=item * Make sure that nulling symbols can never be terminals
 
 =back
 
