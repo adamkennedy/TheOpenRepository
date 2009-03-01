@@ -28,7 +28,7 @@ Token *Tokenizer::pop_one_token() {
 }
 
 void Tokenizer::freeToken(Token *t) {
-	if (t->ref_count > 1) {
+	if (t->ref_count > 0) {
 		t->ref_count--;
 		return;
 	}
@@ -62,7 +62,7 @@ Token *Tokenizer::allocateToken() {
 	if (t == NULL)
 		return NULL; // die
 
-	t->ref_count = 1;
+	t->ref_count = 0;
 	t->length = 0;
 	t->allocated_size = needed_size;
 	t->text = (char *)malloc(sizeof(char) * needed_size);
@@ -204,7 +204,7 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
 	if (c_token == NULL)
 		_new_token(Token_WhiteSpace);
 
-    while (line_length >= line_pos) {
+    while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
         switch (rv) {
             case my_char:

@@ -34,23 +34,19 @@ CharTokenizeResults DoubleQuoteToken::tokenize(Tokenizer *t, Token *token, unsig
 		if ( s_char == 0 )
 			return my_char;
 		t->quote_seperator = get_matching_seperator(s_char);
+		token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	}
 
 	// we have a seperator, now will scan the text for it
 	bool is_slash = false;
-	while ( t->line_length >= t->line_pos ) {
-		uchar my_char = t->c_line[ t->line_pos ];
+	while ( t->line_length > t->line_pos ) {
+		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
 		if ( ( !is_slash ) && ( my_char == t->quote_seperator ) ) {
-			token->text[token->length++] = my_char;
-			t->line_pos++;
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
 			return done_it_myself;
 		}
 		is_slash = ( my_char == '\\' ) ? !is_slash : false;
-		// accept char to the string
-		token->text[token->length++] = my_char;
-		t->line_pos++;
 	}
 	// will reach here only if the line ended while still in the string
 	return done_it_myself; 

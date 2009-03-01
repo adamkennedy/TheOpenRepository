@@ -58,8 +58,14 @@ int main(int argc, char* argv[])
 	tk.tokenizeLine(line, 13);
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "\"ab cd ef\"", Token_Quote_Double);
+	line = " \"ab cd ef \n";
+	tk.tokenizeLine(line, 12);
+	line = "xs cd ef\" \n";
+	tk.tokenizeLine(line, 11);
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckToken(&tk, "\"ab cd ef \nxs cd ef\"", Token_Quote_Double);
 	tk._finalize_token();
-	CheckToken(&tk, " \n", Token_WhiteSpace);
+//	CheckToken(&tk, " \n", Token_WhiteSpace);
 	Token *tkn;
 	while (( tkn = tk.pop_one_token() ) != NULL ) {
 		printf("Token: |%s| (%d, %d)\n", tkn->text, tkn->length, tkn->type->type);
