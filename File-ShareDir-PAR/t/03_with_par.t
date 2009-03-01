@@ -9,7 +9,7 @@ BEGIN {
   my $got_par = eval { require PAR; };
   if ($got_par) {
     my $v = PAR->VERSION;
-    if ($v >= 0.983) {
+    if (eval "$v+0" >= 0.983) {
       Test::More->import(tests => 30);
     }
     else {
