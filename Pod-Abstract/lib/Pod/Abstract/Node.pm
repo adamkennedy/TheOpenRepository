@@ -151,6 +151,13 @@ together - i,e, the text only with no formatting at all.
 
 =cut
 
+my %escapes = (
+    'gt'     => '>',
+    'lt'     => '<',
+    'sol'    => '/',
+    'verbar' => '|',
+    );
+
 sub text {
     my $self = shift;
     
@@ -158,11 +165,20 @@ sub text {
     my $type = $self->type;
     my $body = $self->body;
     
-    if($type eq ':text') {
-	$r .= $body;
-    } # else ignore
-    
     my @children = $self->children;
+    if($type eq ':text') {
+	    $r .= $body;
+    } elsif( $type eq ':E' ) {
+        my $code = '';
+        foreach my $c (@children) {
+            $code .= $c->text;
+        }
+        if($escapes{$code}) {
+            $r .= $escapes{$code};
+        }
+        return $r;
+    }
+    
     foreach my $c (@children) {
         $r .= $c->text;
     }
