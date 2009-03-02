@@ -9,7 +9,7 @@ requires      'File::Path'       => 0;
 requires      'Params::Util'     => '0.07';
 requires      'Class::Inspector' => '1.12';
 requires      'File::Spec'       => '0.80';
-requires      'PAR'              => '0.988';
+requires      'PAR'              => '0.989';
 test_requires 'Test::More'       => '0.47';
 
 # Default version

@@ -101,28 +101,32 @@ END {
 
 # This isn't nice: Breaking PAR encapsulation.
 # finds the specified file in the loaded .par's
-# and returns the zip member and zip handle on
-# success
+# and returns the zip member, zip file, and zip handle
+# on success
 {
   my $ver          = $Config::Config{version};
   my $arch         = $Config::Config{archname};
   sub _par_find_zip_member {
-    my $file         = shift;
+    my $files = shift;
+    $files = [$files] if not ref $files;
 
     require PAR;
 
-    $file =~ s/\/+$//;
+    s/\/+$// for @$files;
 
-    my @files = map {s/\\/\//g; $_} (
-      $file, "lib/$file", "arch/$file",
-      "$arch/$file", "$ver/$file", "$ver/$arch/$file"
-    );
-    @files = map {($_, "$_/")} @files;
-    #use Data::Dumper; warn Dumper \@files;
-    foreach my $zip (@PAR::LibCache) {
-    my @m = $zip->memberNames();
-        my $member = PAR::_first_member($zip, @files) or next;
-        return($member, $zip);
+    my @files =
+      map {s{\\}{/}g; $_}
+      map {
+        my $file = $_;
+        ( $file, "lib/$file", "arch/$file", "$arch/$file", "$ver/$file", "$ver/$arch/$file" )
+      }
+      @$files;
+
+    my $files_regexp = '^(?:' . join(')|(?:', map {quotemeta($_)} @files) . ')/?';
+    foreach my $zipkey (keys %PAR::LibCache) {
+      my $zip = $PAR::LibCache{$zipkey};
+      my $member = PAR::_first_member_matching($zip, $files_regexp) or next;
+      return($member, $zipkey, $zip);
     }
 
     return;
@@ -135,26 +139,29 @@ sub _par_in_use {
   return 1;
 }
 
-{
-  my %extracted_already;
-  sub _search_and_unpar {
-    my $zippath = shift;
-    my ($member, $zip) = _par_find_zip_member($zippath);
-    if ($member) {
-      if (exists $extracted_already{$zip}) {
-        my $inc = $extracted_already{$zip};
-        return $inc;
-      }
-      else {
-        # watch out: breaking PAR encapsulation
-        my $inc = PAR::_extract_inc($zip, 'force');
-        $CLEANUP_DIRS{$inc} = 1;
-        $extracted_already{$zip} = $inc;
-        return $inc;
-      }
+sub _search_and_unpar {
+  my $zippaths = shift;
+  $zippaths = [$zippaths] if not ref $zippaths;
+
+  my ($member, $zipkey, $zip) = _par_find_zip_member($zippaths);
+  if ($member) {
+    if (exists $PAR::ArchivesExtracted{$zip->fileName()} or $PAR::ArchivesExtracted{$zipkey}) {
+      my $inc = $PAR::ArchivesExtracted{$zip->fileName()};
+      return $inc;
     }
-    return();
+    else {
+      # watch out: breaking PAR encapsulation
+      my $inc_existed = -d "$PAR::SetupTemp::PARTemp/inc" ? 1 : 0;
+      my $inc = PAR::_extract_inc($zip, 'force');
+      $PAR::ArchivesExtracted{$zip->fileName()} = $inc;
+      if (defined $inc and not $inc_existed) {
+        $CLEANUP_DIRS{$inc} = 1;
+        return $inc;
+      }
+      return();
+    }
   }
+  return();
 }
 
 
@@ -163,15 +170,23 @@ sub _par_in_use {
 
 sub dist_dir {
   my @args = @_;
-  my $dist = File::ShareDir::_DIST(shift);
+  if (_par_in_use()) {
+    my $dist = File::ShareDir::_DIST(shift);
 
-  # Create the subpath
-  my $zippath = join (
-    '/',
-    'auto', split( /-/, $dist )
-  );
+    # Create the subpath
+    my $zip_paths = [
+      join (
+        '/',
+        'auto', split( /-/, $dist )
+      ),
+      join (
+        '/',
+        'auto', 'share', 'dist', split( /-/, $dist )
+      )
+    ];
 
-  _search_and_unpar($zippath) if _par_in_use();
+    _search_and_unpar($zip_paths);
+  }
 
   # hide from croak  
   @_ = @args;
@@ -282,7 +297,7 @@ L<File::ShareDir>, L<File::HomeDir>, L<Module::Install>, L<Module::Install::Shar
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2008 Steffen Mueller
+Copyright (c) 2008-2009 Steffen Mueller
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
