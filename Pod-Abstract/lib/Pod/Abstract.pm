@@ -7,7 +7,7 @@ use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
 use IO::String;
 
-our $VERSION = 0.1;
+our $VERSION = '0.11';
 
 =head1 NAME
 
@@ -195,5 +195,16 @@ sub load_string {
     my $fh = IO::String->new($str);
     return $class->load_filehandle($fh);
 }
+
+=head1 AUTHOR
+
+Ben Lilburne <bnej@mac.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

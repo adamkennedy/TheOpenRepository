@@ -13,6 +13,9 @@ are stored in an ordered set - a single node can appear once only in a
 single document tree, so inserting a node at a point will also remove
 it from it's previous location.
 
+This is an internal class to Pod::Abstract::Node, and should not
+generally be used externally.
+
 =head1 METHODS
 
 =cut
@@ -25,6 +28,15 @@ sub new {
         nodes => [ ],
     }, $class;
 }
+
+=head2 detach
+
+ $tree->detach($node);
+
+Unparent the C<$node> from C<$tree>. All other elements will be
+shifted to fill the empty spot.
+
+=cut
 
 sub detach {
     my $self = shift;
@@ -76,6 +88,8 @@ sub push {
 
 =head2 pop
 
+Remove an element from the end of the node list.
+
 =cut
 
 sub pop {
@@ -90,6 +104,10 @@ sub pop {
 }
 
 =head2 insert_before
+
+ $tree->insert_before($target,$node);
+
+Insert C<$node> before C<$target>. Both must be children of C<$tree>
 
 =cut
 
@@ -115,7 +133,12 @@ sub insert_before {
 
 =head2 insert_after
 
+ $tree->insert_after($target,$node);
+
+Insert C<$node> after C<$target>. Both must be children of C<$tree>
+
 =cut
+
 sub insert_after {
     my $self = shift;
     my $target = shift;
@@ -134,6 +157,8 @@ sub insert_after {
 }
 
 =head2 unshift
+
+Remove the first node from the node list and return it.
 
 Unshift takes linear time - it has to relocate every other element in
 id_map so that they stay in line.
@@ -157,6 +182,12 @@ sub unshift {
     $self->{id_map}{$s} = 0;
     return 1;
 }
+
+=head2 children
+
+Returns the in-order node list.
+
+=cut
 
 sub children {
     my $self = shift;
@@ -193,5 +224,16 @@ sub index_relative {
         return undef;
     }
 }
+
+=head1 AUTHOR
+
+Ben Lilburne <bnej@mac.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

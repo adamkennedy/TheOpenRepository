@@ -11,6 +11,7 @@ lib/Pod/Abstract/Filter/overlay.pm
 lib/Pod/Abstract/Filter/sort.pm
 lib/Pod/Abstract/Filter/summary.pm
 lib/Pod/Abstract/Filter/find.pm
+lib/Pod/Abstract/Filter/number_sections.pm
 lib/Pod/Abstract/Node.pm
 lib/Pod/Abstract/Parser.pm
 lib/Pod/Abstract/Path.pm

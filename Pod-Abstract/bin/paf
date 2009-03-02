@@ -96,8 +96,14 @@ larger document down to a smaller set that you're interested in.
 
 Convert cut nodes in the source into verbatim text. Not the inverse of cut!
 
+=head2 number_sections
+
+ paf number_sections Source.pm
+
+Applies simple multipart (3.1.2) section numbering to head1 through
+head4 headings.
+
 =cut
- 
 
 sub main {
     my $filter = undef;

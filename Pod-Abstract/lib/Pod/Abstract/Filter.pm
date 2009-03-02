@@ -5,6 +5,17 @@ use warnings;
 use Pod::Abstract;
 use UNIVERSAL qw(isa);
 
+=head1 NAME
+
+Pod::Abstract::Filter - Generic Pod-in to Pod-out filter.
+
+=head1 DESCRIPTION
+
+This is a superclass for filter modules using
+Pod::Abstract. Subclasses should override the C<filter>
+sub. Pod::Abstract::Filter classes in the Pod::Abstract::Filter
+namespace will be used by the C<paf> utility.
+
 =head1 METHODS
 
 =head2 new
@@ -64,5 +75,16 @@ sub run {
         return $self->filter($pa);
     }
 }
+
+=head1 AUTHOR
+
+Ben Lilburne <bnej@mac.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

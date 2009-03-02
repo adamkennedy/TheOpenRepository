@@ -4,6 +4,13 @@ use strict;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
+=head1 NAME
+
+Pod::Abstract::Filter::summary - show document outline, with short
+examples.
+
+=cut
+
 sub filter {
     my $self = shift;
     my $pa = shift;
@@ -59,5 +66,16 @@ sub summarise_headings {
         $self->summarise_headings($head, $summ_block, $depth + 1);
     }
 }
+
+=head1 AUTHOR
+
+Ben Lilburne <bnej@mac.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

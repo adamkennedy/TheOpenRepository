@@ -5,6 +5,12 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
+=head1 NAME
+
+Pod::Abstract::Filter::uncut - turn source code into verbatim nodes.
+
+=cut
+
 sub filter {
     my $self = shift;
     my $pa = shift;
@@ -26,5 +32,16 @@ sub filter {
     
     return $pa;
 }
+
+=head1 AUTHOR
+
+Ben Lilburne <bnej@mac.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This program is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
