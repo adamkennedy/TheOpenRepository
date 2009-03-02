@@ -56,8 +56,7 @@ FILE: while ( my $file = <$manifest> ) {
     next FILE if not defined $ext;
     $ext = lc $ext;
     next FILE
-        if $ext ne 'pod'
-            and $ext ne 'pl'
+        if $ext ne 'pl'
             and $ext ne 'pm'
             and $ext ne 't';
 

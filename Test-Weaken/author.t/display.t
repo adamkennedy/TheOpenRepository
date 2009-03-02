@@ -5,7 +5,6 @@ use warnings;
 use strict;
 use English qw( -no_match_vars );
 use Fatal qw(close);
-use Text::Diff;
 use Carp;
 use Getopt::Long qw(GetOptions);
 use Test::More;
@@ -14,6 +13,16 @@ my $warnings = 0;
 my $options_result = GetOptions( 'warnings' => \$warnings );
 croak("$PROGRAM_NAME options parsing failed")
     unless $options_result;
+
+package Marpa::Test::Display;
+
+@Marpa::Test::Display::ISA       = qw(Exporter);
+@Marpa::Test::Display::EXPORT_OK = qw(test_file);
+
+use Text::Diff;
+use Carp;
+use Fatal qw(close);
+use English qw( -no_match_vars );
 
 our $FILE_ERROR = 'No error';
 
@@ -33,10 +42,11 @@ sub no_code_defined {
     return 'No code defined to test display:';
 }
 
-my %raw                = ();
-my %normalized         = ();
-my %raw_display        = ();
-my %normalized_display = ();
+my %raw                     = ();
+my %normalized              = ();
+my %raw_display             = ();
+my %normalized_display      = ();
+my %normalized_display_uses = ();
 
 sub normalize_whitespace {
     my $raw_ref = shift;
@@ -51,7 +61,7 @@ sub slurp {
     my ($file_name) = @_;
     my $open_result = open my $fh, '<', $file_name;
     if ( not $open_result ) {
-        $::FILE_ERROR = "Cannot open $file_name: $ERRNO";
+        $Marpa::Test::Display::FILE_ERROR = "Cannot open $file_name: $ERRNO";
         return;
     }
     local ($RS) = undef;
@@ -76,7 +86,6 @@ sub parse_displays {
     }
 
     return $result;
-
 }
 
 sub read_file {
@@ -100,7 +109,7 @@ sub read_file {
     if ( not defined $display_ref ) {
         croak("No display named '$display_name' in file: $file_name");
     }
-    $normalized_display{$file_name}{$display_name}++;
+    $normalized_display_uses{$file_name}{$display_name}++;
     return $display_ref;
 }
 
@@ -110,7 +119,7 @@ sub in_file {
     my $pod_display_ref = normalize_whitespace( \$pod_display );
     my $file_display_ref = read_file( $file_name, $display_name );
     if ( not defined $file_display_ref ) {
-        return ( "$::FILE_ERROR\n", 1 );
+        return ( "$Marpa::Test::Display::FILE_ERROR\n", 1 );
     }
 
     my $location = index ${$file_display_ref}, ${$pod_display_ref};
@@ -118,7 +127,8 @@ sub in_file {
     return (
         (   $location >= 0
             ? q{}
-            : "Display in $::CURRENT_FILE not in $file_name\n" . $pod_display
+            : "Display in $Marpa::Test::Display::CURRENT_FILE not in $file_name\n"
+                . $pod_display
         ),
         1
     );
@@ -131,7 +141,7 @@ sub is_file {
     my $pod_display_ref = normalize_whitespace( \$pod_display );
     my $file_display_ref = read_file( $file_name, $display_name );
     if ( not defined $file_display_ref ) {
-        return ( "$::FILE_ERROR\n", 1 );
+        return ( "$Marpa::Test::Display::FILE_ERROR\n", 1 );
     }
 
     return q{} if ${$file_display_ref} eq ${$pod_display_ref};
@@ -148,7 +158,8 @@ sub is_file {
         $display_name
         ? "Display '$display_name'"
         : 'Display';
-    $header .= " in $::CURRENT_FILE differs from the one in $file_name";
+    $header
+        .= " in $Marpa::Test::Display::CURRENT_FILE differs from the one in $file_name";
 
     return (
         (   $header
@@ -163,6 +174,53 @@ sub is_file {
 
 }
 
+sub test_file {
+    my $file = shift;
+
+    $Marpa::Test::Display::CURRENT_FILE      = $file;
+    @Marpa::Test::Display::DISPLAY           = ();
+    $Marpa::Test::Display::DEFAULT_CODE      = q{ no_code_defined($_) };
+    $Marpa::Test::Display::CURRENT_CODE      = $DEFAULT_CODE;
+    $Marpa::Test::Display::COMMAND_COUNTDOWN = 0;
+    $Marpa::Test::Display::DISPLAY_SKIP      = 0;
+    my $mismatch_count = 0;
+    my $mismatches     = q{};
+
+    my $parser = new MyParser();
+    $parser->parse_from_file($file);
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    my $eval_result = eval $PREAMBLE;
+    ## use critic
+    croak($EVAL_ERROR) unless $eval_result;
+
+    for my $display_test (@Marpa::Test::Display::DISPLAY) {
+        my ( $display, $code, $display_file, $display_line ) =
+            @{$display_test}{qw(display code file line)};
+        local $_ = $display;
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        $eval_result = eval '[ do {' . $code . '} ] ';
+        ## use critic
+
+        if (my $message =
+              $eval_result
+            ? $eval_result->[0]
+            : $EVAL_ERROR . "Code with problem was:\n$code\n"
+            )
+        {
+            my $do_not_add_display = $eval_result->[1];
+            unless ($do_not_add_display) {
+                $message .= "\n$display";
+            }
+            $mismatches .= "=== $message";
+            $mismatch_count++;
+        }
+
+    }    # $display_test
+
+    return ( $mismatch_count, \$mismatches );
+
+}    # sub test_file
+
 package MyParser;
 @MyParser::ISA = qw(Pod::Parser);
 use Carp;
@@ -170,18 +228,19 @@ use Carp;
 sub queue_display {
     my $display  = shift;
     my $line_num = shift;
-    push @::DISPLAY,
+    push @Marpa::Test::Display::DISPLAY,
         {
         'display' => $display,
-        'code'    => $::CURRENT_CODE,
-        'file'    => $::CURRENT_FILE,
+        'code'    => $Marpa::Test::Display::CURRENT_CODE,
+        'file'    => $Marpa::Test::Display::CURRENT_FILE,
         'line'    => $line_num,
         }
-        if not $::DISPLAY_SKIP;
-    $::COMMAND_COUNTDOWN--;
-    if ( $::COMMAND_COUNTDOWN <= 0 ) {
-        $::CURRENT_CODE = $::DEFAULT_CODE;
-        $::DISPLAY_SKIP = 0;
+        if not $Marpa::Test::Display::DISPLAY_SKIP;
+    $Marpa::Test::Display::COMMAND_COUNTDOWN--;
+    if ( $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0 ) {
+        $Marpa::Test::Display::CURRENT_CODE =
+            $Marpa::Test::Display::DEFAULT_CODE;
+        $Marpa::Test::Display::DISPLAY_SKIP = 0;
     }
     return;
 }
@@ -189,9 +248,9 @@ sub queue_display {
 sub verbatim {
     my ( $parser, $paragraph, $line_num ) = @_;
 
-    if ( defined $::COLLECTED_DISPLAY ) {
-        $::COLLECTED_DISPLAY .= $paragraph;
-        $::COLLECTING_FROM_LINE_NUM //= $line_num;
+    if ( defined $Marpa::Test::Display::COLLECTED_DISPLAY ) {
+        $Marpa::Test::Display::COLLECTED_DISPLAY .= $paragraph;
+        $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM //= $line_num;
         return;
     }
     queue_display( $paragraph, $line_num );
@@ -207,68 +266,76 @@ sub process_instruction {
     $instruction =~ s/\s/ /gxms;    # normalize whitespace
 
     if ( $instruction =~ /^ next \s+ display $ /xms ) {
-        $::COMMAND_COUNTDOWN = 1;
-        $::CURRENT_CODE = join "\n", @{$code};
+        $Marpa::Test::Display::COMMAND_COUNTDOWN = 1;
+        $Marpa::Test::Display::CURRENT_CODE = join "\n", @{$code};
         return;
     }
 
     if ( $instruction =~ / ^ next \s+ (\d+) \s+ display(s)? $ /xms ) {
-        $::COMMAND_COUNTDOWN = $1;
+        $Marpa::Test::Display::COMMAND_COUNTDOWN = $1;
         croak(
-            "File: $::CURRENT_FILE  Line: $line_num\n",
-            "  'next $::COMMAND_COUNTDOWN display' has countdown less than one\n"
-        ) if $::COMMAND_COUNTDOWN < 1;
-        $::CURRENT_CODE = join "\n", @{$code};
-        $::DEFAULT_CODE = join "\n", @{$code};
-        $::CURRENT_CODE = $::DEFAULT_CODE if $::COMMAND_COUNTDOWN <= 0;
+            "File: $Marpa::Test::Display::CURRENT_FILE  Line: $line_num\n",
+            "  'next $Marpa::Test::Display::COMMAND_COUNTDOWN display' has countdown less than one\n"
+        ) if $Marpa::Test::Display::COMMAND_COUNTDOWN < 1;
+        $Marpa::Test::Display::CURRENT_CODE = join "\n", @{$code};
+        return;
+    }
+
+    if ( $instruction =~ / ^ default $ /xms ) {
+        $Marpa::Test::Display::DEFAULT_CODE = join "\n", @{$code};
+        $Marpa::Test::Display::CURRENT_CODE =
+            $Marpa::Test::Display::DEFAULT_CODE
+            if $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0;
         return;
     }
 
     if ( $instruction =~ / ^ preamble $ /xms ) {
-        $::PREAMBLE .= join "\n", @{$code};
+        $Marpa::Test::Display::PREAMBLE .= join "\n", @{$code};
         return;
     }
 
     if ( $instruction =~ / ^ skip \s+ display $ /xms ) {
-        $::COMMAND_COUNTDOWN = 1;
-        $::DISPLAY_SKIP++;
+        $Marpa::Test::Display::COMMAND_COUNTDOWN = 1;
+        $Marpa::Test::Display::DISPLAY_SKIP++;
         return;
     }
 
     if ( $instruction =~ / ^ skip \s+ (\d+) \s+ display(s)? $ /xms ) {
-        $::COMMAND_COUNTDOWN = $1;
+        $Marpa::Test::Display::COMMAND_COUNTDOWN = $1;
         croak(
-            "File: $::CURRENT_FILE  Line: $line_num\n",
-            "  'display $::COMMAND_COUNTDOWN skip' has countdown less than one\n"
-        ) if $::COMMAND_COUNTDOWN < 1;
-        $::DISPLAY_SKIP++;
+            "File: $Marpa::Test::Display::CURRENT_FILE  Line: $line_num\n",
+            "  'display $Marpa::Test::Display::COMMAND_COUNTDOWN skip' has countdown less than one\n"
+        ) if $Marpa::Test::Display::COMMAND_COUNTDOWN < 1;
+        $Marpa::Test::Display::DISPLAY_SKIP++;
         return;
     }
 
     if ( $instruction =~ /^ start \s+ display $/xms ) {
-        $::COLLECTED_DISPLAY = q{};
+        $Marpa::Test::Display::COLLECTED_DISPLAY = q{};
         return;
     }
 
     if ( $instruction =~ / ^ end \s+ display $ /xms ) {
 
         # line num will be set when first part of display is found
-        queue_display( $::COLLECTED_DISPLAY, $::COLLECTING_FROM_LINE_NUM );
-        $::COLLECTED_DISPLAY        = undef;
-        $::COLLECTING_FROM_LINE_NUM = -1;
+        queue_display(
+            $Marpa::Test::Display::COLLECTED_DISPLAY,
+            $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM
+        );
+        $Marpa::Test::Display::COLLECTED_DISPLAY        = undef;
+        $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM = -1;
         return;
     }
 
     croak(
-        "File: $::CURRENT_FILE  Line: $line_num\n",
-        "  unrecognized instruction: '$_'\n"
+        "Unrecognized instruction in file $Marpa::Test::Display::CURRENT_FILE at line $line_num: $instruction\n"
     );
 
 }
 
 sub textblock {
     my ( $parser, $paragraph, $line_num ) = @_;
-    return unless $::IN_COMMAND;
+    return unless $Marpa::Test::Display::IN_COMMAND;
 
     ## Translate/Format this block of text; sample actions might be:
 
@@ -282,9 +349,10 @@ sub textblock {
             $found_instruction = 1;
             next LINE;
         }
-        croak( "File: $::CURRENT_FILE  Line: $line_num\n",
-            "test block doesn't begin with ## instruction\n$paragraph" )
-            if not $found_instruction;
+        croak(
+            "File: $Marpa::Test::Display::CURRENT_FILE  Line: $line_num\n",
+            "test block doesn't begin with ## instruction\n$paragraph"
+        ) if not $found_instruction;
         last LINE;
     }
 
@@ -298,15 +366,15 @@ sub command {
 
     my ( $parser, $command, $paragraph ) = @_;
     if ( $command eq 'begin' ) {
-        $::IN_COMMAND++ if $paragraph =~ m{
+        $Marpa::Test::Display::IN_COMMAND++ if $paragraph =~ m{
                 \A
                 Marpa[:][:]Test[:][:]Display[:]
                 \s* \Z
             }xms;
-        $::IN_COMMAND++ if $paragraph =~ /\Amake:$/xms;
+        $Marpa::Test::Display::IN_COMMAND++ if $paragraph =~ /\Amake:$/xms;
     }
     elsif ( $command eq 'end' ) {
-        $::IN_COMMAND = 0;
+        $Marpa::Test::Display::IN_COMMAND = 0;
     }
 
     return;
@@ -318,49 +386,6 @@ package main;
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
 );
-
-my $parser = new MyParser();
-
-sub test_file {
-    my $file = shift;
-
-    $::CURRENT_FILE      = $file;
-    @::DISPLAY           = ();
-    $::DEFAULT_CODE      = q{ no_code_defined($_) };
-    $::CURRENT_CODE      = $DEFAULT_CODE;
-    $::COMMAND_COUNTDOWN = 0;
-    $::DISPLAY_SKIP      = 0;
-    my $mismatch_count = 0;
-    my $mismatches     = q{};
-
-    $parser->parse_from_file($file);
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    my $eval_result = eval $PREAMBLE;
-    ## use critic
-    croak($EVAL_ERROR) unless $eval_result;
-
-    for my $display_test (@::DISPLAY) {
-        my ( $display, $code, $display_file, $display_line ) =
-            @{$display_test}{qw(display code file line)};
-        local $_ = $display;
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-        $eval_result = eval '[ ' . $code . ' ] ';
-        ## use critic
-        croak($EVAL_ERROR) unless $eval_result;
-        my $message = $eval_result->[0];
-        if ($message) {
-            my $do_not_add_display = $eval_result->[1];
-            unless ($do_not_add_display) {
-                $message .= "\n$display";
-            }
-            $mismatches .= "=== $message";
-            $mismatch_count++;
-        }
-    }    # $display_test
-
-    return ( $mismatch_count, \$mismatches );
-
-}    # sub test_file
 
 my @test_files = ();
 open my $manifest, '<', 'MANIFEST'
@@ -393,7 +418,8 @@ FILE: for my $file (@test_files) {
         next FILE;
     }
 
-    my ( $mismatch_count, $mismatches ) = test_file($file);
+    my ( $mismatch_count, $mismatches ) =
+        Marpa::Test::Display::test_file($file);
     my $clean = $mismatch_count == 0;
 
     my $message =
@@ -409,7 +435,7 @@ FILE: for my $file (@test_files) {
 
 my $unused       = q{};
 my $unused_count = 0;
-while ( my ( $file_name, $displays ) = each %normalized_display ) {
+while ( my ( $file_name, $displays ) = each %normalized_display_uses ) {
     DISPLAY: while ( my ( $display_name, $uses ) = each %{$displays} ) {
         next DISPLAY if $uses > 0;
         $unused .= "display '$display_name' in $file_name never used\n";

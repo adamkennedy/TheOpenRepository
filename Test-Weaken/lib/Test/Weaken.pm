@@ -792,46 +792,43 @@ L<unfreed_proberefs> after the fact is easier, safer and
 faster.
 The C<ignore> argument is provided for those situations
 where after-the-fact filtering
-is not practical, such as when the user needs to filter out
-objects which would generate a large amount of data.
+is not practical,
+such as when the user needs to filter out
+large objects.
 
 When specified, the value of the C<ignore> argument must be a
-reference to a subroutine.
-The subroutine will be called once for every probe reference,
+reference to a callback subroutine.
+The subroutine will be called once for each probe reference,
 with that probe reference as the only argument.
 This probe reference and everything it refers to must not
 be altered.
-The subroutine should return Perl true if the probe reference is
+If the probe reference or its referents are altered, all bets are off.
+The result might be
+an exception, an abend, an infinite loop, or erroneous results.
+
+The callback subroutine should return Perl true if the probe reference is
 to an object that should be ignored --
 that is, neither followed or tracked.
-Otherwise the subroutine should return a Perl false.
+Otherwise the callback subroutine should return a Perl false.
 
-There are several reasons to avoid use
-of the C<ignore> option in favor of after-the-fact analysis.
-First, if the probe reference or its referents are altered,
-C<Test::Weaken> may throw an exception, cause an abend, go into an infinite loop, or produce
-unexpected results.
-Alteration of the subroutine's input data can
-can happen by mistake.
-Those C<ignore> subroutines which are necessary
-are best kept simple,
-and as much of the analysis as possible deferred until after the test is
-completed.
+In the C<ignore> callback subroutine,
+it is important to 
+always unpack the C<@_> array before doing anything else.
+(In any Perl subtroutine, this is a highly recommended best practice.
+See Damian Conway's I<Perl Best Practices>, pp. 179-181.)
+This makes it less likely that
+the probe reference or its referents will be altered by accident.
+For the same reason, C<ignore> callbacks
+are best kept simple.
+Defer as much of the analysis as you reasonably can,
+until after the test is completed.
 
-A second reason to avoid C<ignore> is that
-the subtrouine will be called once per probe reference.
-The overhead of these subroutine calls will slow down the test down,
-perhaps significantly.
+Another reason to avoid C<ignore> is that
+the C<ignore> subroutine will be invoked once per probe reference.
+All those callbacks can be a significant overhead.
 
-A third reason to avoid C<ignore> is that
-coding the C<ignore> subroutine is also harder than after-the-fact analysis.
-The C<ignore> subroutine only sees the probe references
-one by one, out of context, while in the result from
-L<unfreed_proberefs> all the results are given at once.
-
-Finally, since the C<ignore> subroutine is called inside C<Test::Weaken>'s
-logic, rather than directly by the user, it can be hard to debug.
-C<Test::Weaken> offers some help in this situation.
+C<Test::Weaken> offers some help in debugging
+C<ignore> callback subroutines.
 See L<below|/"Debugging Ignore Subroutines">.
 
 =back
@@ -1171,6 +1168,23 @@ L<Scalar::Util>.
 You can also obtain the referent address of a reference by adding zero
 to the reference.
 
+Note that in other Perl documentation, the term "reference address" is often
+used when a referent address is meant.
+Any given reference has both a reference address and a referent address.
+The reference address is the reference's own location in memory.
+The referent address is the address of the memory object to which the reference refers.
+It is the referent address that interests us here and,
+happily, it is 
+the referent address that both zero addition and C<refaddr> return.
+
+Sometimes, when you are interested in why an object is not being freed,
+you want to seek out the reference
+that keeps the object's refcount above zero.
+Kevin Ryde reports that L<Devel::FindRef>
+can be useful for this.
+
+=head2 Quasi-unique addresses and Indiscernable Objects
+
 I call referent addresses "quasi-unique", because they are only
 unique at a
 specific point in time.
@@ -1198,26 +1212,11 @@ object created at the same address.
 But for most practical programming purposes,
 two indiscernable objects can be regarded as the same object.
 
-Note that in other Perl documentation, the term "reference address" is often
-used when a referent address is meant.
-Any given reference has both a reference address and a referent address.
-The reference address is the reference's own location in memory.
-The referent address is the address of the memory object to which the reference refers.
-It is the referent address that interests us here and,
-happily, it is 
-the referent address that both zero addition and C<refaddr> return.
-
-Sometimes, when you are interested in why an object is not being freed,
-you want to seek out the reference
-that keeps the object's refcount above zero.
-Kevin Ryde reports that L<Devel::FindRef>
-can be useful for this.
-
 =head2 Debugging Ignore Subroutines
 
-As mentioned in the description of the L<C<ignore> option|/"ignore">,
-the ignore subroutines, like all callbacks, can be hard to debug.
-C<Test::Weaken> offers some support for this situation.
+Callbacks can be hard to debug.
+C<Test::Weaken> offers some support for debugging
+its C<ignore> callback subroutines.
 
 =begin Marpa::Test::Display:
 
@@ -1244,28 +1243,31 @@ is_file($_, 't/ignore.t', 'check_ignore snippet')
 
 C<Test::Weaken::check_ignore> is a static method which constructs
 a debugging wrapper from its code reference arguments.
-It takes takes two arguments, one optional.
-The first must be the problematic ignore callback.
-The second can be an error callback, which is called when a problem
-is detected.
+It takes two arguments, one optional.
+The first must be the ignore callback which is the test subject,
+that is, the one which you are trying to debug.
+I will call this the B<lab rat>.
+The second argument can be an error callback.
+The error callback is called when a problem is detected.
 
 C<Test::Weaken::check_ignore>
-returns a reference to the debugging wrapper.
+returns a reference to the wrapper callback.
 If no problems are detected,
-the wrapper behaves exactly like the problematic ignore subroutine,
-except that the wrappered version is slower.
+the wrapper callback behaves exactly like the lab rat callback,
+except that the wrapper is slower.
 
-To discover when and if the problematic ignore subroutine is
+To discover when and if the lab rat callback is
 altering its probe reference argument,
-C<Test::Weaken::check_ignore> takes a "signature" of the probe reference
-before and after the problematic ignore subroutine is called.
+C<Test::Weaken::check_ignore> takes a "signature" of the probe reference.
 The signature contains the probe referent's builtin type
 (obtained by calling C<ref> on the probe reference)
 and the probe referent's address.
 If the reftype was 'REF', the signature also indicates whether the referent was
 strong or weak.
-If the two signatures differ,
-the debug wrapper treats it as a problem.
+The wrapper takes a signature before it calls the lab rat,
+and after it returns.
+If the two signatures are different,
+the wrapper treats it as a problem.
 
 If a problem was detected
 and no error callback was specified,
@@ -1280,7 +1282,8 @@ the problem:
 
     Problem in ignore callback: arg was changed from 'strong REF at 0x8361a88' to 'SCALAR at 0x8361a88'
 
-If a problem was detected and an error callback was specified, the error callback is called
+If a signature change was detected and an error callback was specified,
+the error callback is called
 with four arguments: the default message, the "before" signature,
 the "after" signature, and the probe reference.
 Here is an example of an error callback:
@@ -1321,18 +1324,18 @@ is_file($_, 't/ignore.t', 'error callback snippet')
 
 This example of an error callback does not throw an exception on the first
 error, allowing multiple errors to be caught.
-Note that it does keep count of the number of times it was called,
+Note that it keeps count of the number of times it was called,
 and will throw an exception after a maximum.
 It is prudent to put a limit on the number of error callbacks,
-because one common symptom
-of a buggy C<ignore> subroutine
-is an infinite loop.
+because infinite loops are a common behavior
+in buggy lab rats.
 
 The fourth, probe reference, argument is the same probe reference
 whose overwritability is one of the vulnerabilities
 C<Test::Weaken::check_ignore> exists to discover.
 The probe reference argument must not be altered.
-In fact, for safety, the error callback should usually ignore the probe reference argument.
+For safety, the error callback should usually ignore the existence of
+the probe reference argument.
 But it is available to help in the more desperate cases.
 
 Comparing signatures detects most problems,
