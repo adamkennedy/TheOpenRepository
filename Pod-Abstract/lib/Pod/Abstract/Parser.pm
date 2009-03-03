@@ -60,7 +60,6 @@ my %section_commands = (
     'over'  => [ '<back' ],
     'item'  => [ 'item', 'back' ],
     'begin' => [ '<end' ],
-    'for'   => [ '<end' ],
     );
 
 # Don't parse anything inside these.

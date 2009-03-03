@@ -5,12 +5,37 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
 
+=begin :overlay
+
+=overlay METHODS Pod::Abstract::Filter
+
+=end :overlay
+
 =head1 METHODS
 
 =head2 filter
 
-Causes any section within the document inside the named C<heading>, to
-be replaced by the equivalant section within the specified C<file>.
+Inspects the source document for a begin/end block named
+":overlay". The overlay block will be inspected for "=overlay"
+commands, which should be structured like:
+
+ =begin :overlay
+ 
+ =overlay METHODS Some::Class::Or::File
+ 
+ =end :overlay
+
+Each overlay is processed in order. It will add any headings for the
+matched sections in the current document from the named source, for
+any heading that is not already present in the given section.
+
+If that doesn't make sense just try it and it will!
+
+The main utility of this is to specify a superclass, so that all the
+methods that are not documented in your subclass become documented by
+the overlay. The C<sort> filter makes a good follow up.
+
+The overlay block will be removed after processing.
 
 =cut
 
@@ -18,32 +43,48 @@ sub filter {
     my $self = shift;
     my $pa = shift;
     
-    my $file = $self->param('file');
-    my $section = $self->param('heading');
-    $section = 'METHODS' unless $section;
-    
-    die "overlay requires -file\n"
-        unless($file);
-    
-    my $over = Pod::Abstract->load_file($file);
-    my ($target) = $pa->select("//[\@heading =~ {$section}](0)");
-    my ($overlay) = $over->select("//[\@heading =~ {$section}](0)");
-    
-    my @t_headings = $target->select("/[\@heading]");
-    my @o_headings = $overlay->select("/[\@heading]");
-    
-    my %t_heading = map { $_->param('heading')->pod => $_ } @t_headings;
-    foreach my $hdg (@o_headings) {
-        my $hdg_text = $hdg->param('heading')->pod;
-        if($t_heading{$hdg_text}) {
-            $hdg->detach;
-            $hdg->insert_after($t_heading{$hdg_text});
-            $t_heading{$hdg_text}->detach;
-        } else {
-            $target->push($hdg);
+    my ($overlay_list) = $pa->select("//begin[. =~ {^:overlay}](0)");
+    unless($overlay_list) {
+        die "No overlay defined in document\n";
+    }
+    my @overlays = $overlay_list->select("/overlay");
+    foreach my $overlay (@overlays) {
+        my $o_def = $overlay->body;
+        my ($section, $module) = split " ", $o_def;
+
+        # This should be factored into a method.
+        unless(-r $module) {
+            # Maybe a module name?
+            $module =~ s/::/\//g;
+            $module .= '.pm' unless $module =~ m/.pm$/;
+            foreach my $path (@INC) {
+                if(-r "$path/$module") {
+                    $module = "$path/$module";
+                    last;
+                }
+            }
+        }
+        my $ovr_doc = Pod::Abstract->load_file($module);
+        
+        my ($t) = $pa->select("//[\@heading =~ {$section}](0)");
+        my ($o) = $ovr_doc->select("//[\@heading =~ {$section}](0)");
+
+        my @t_headings = $t->select("/[\@heading]");
+        my @o_headings = $o->select("/[\@heading]");
+        
+        my %t_heading = map { 
+            $_->param('heading')->pod => $_ 
+        } @t_headings;
+        
+        foreach my $hdg (@o_headings) {
+            my $hdg_text = $hdg->param('heading')->pod;
+            unless($t_heading{$hdg_text}) {
+                $t->push($hdg->duplicate);
+            }
         }
     }
-
+    $overlay_list->detach;
+    
     return $pa;
 }
 

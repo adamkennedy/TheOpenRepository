@@ -275,10 +275,9 @@ sub over {
     
     return Pod::Abstract::Node->new(
         type => 'over',
-        body => $number,
+        body => ($number ? $number : undef),
         close_element => Pod::Abstract::Node->new(
             type => 'back',
-            body => '',
         ),
         );
 }

@@ -31,6 +31,18 @@ sub new {
     return bless { %args }, $class;
 }
 
+=head2 require_params
+
+Override to return a list of parameters that must be provided. This
+will be accepted in order on the command line if they are not set
+using the C<-flag=xxx> notation.
+
+=cut
+
+sub require_params {
+    return ( );
+}
+
 =head2 param
 
 Get the named param. Read only.

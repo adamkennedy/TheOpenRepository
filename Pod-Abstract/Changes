@@ -1,5 +1,9 @@
 Revision history for Pod-Abstract
 
-0.1     28/02/2009
+0.14    03/03/2009
+        Improved paf filter suite. Bug fixes. paf defaults to "load as
+        perldoc". Allow mandatory positional arguments for filters.
+
+0.10    28/02/2009
         Package build with functional library and "paf" utility.
 

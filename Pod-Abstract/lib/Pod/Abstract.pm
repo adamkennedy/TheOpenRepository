@@ -7,7 +7,7 @@ use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
 use IO::String;
 
-our $VERSION = '0.11';
+our $VERSION = '0.14';
 
 =head1 NAME
 

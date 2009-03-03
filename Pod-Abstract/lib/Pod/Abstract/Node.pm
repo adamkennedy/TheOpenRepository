@@ -40,6 +40,8 @@ Pod::Abstract::Node - Pod Document Node.
 
 =head1 METHODS
 
+=for sorting
+
 =cut
 
 =head2 new
@@ -223,8 +225,11 @@ sub pod {
         if($body_attr) {
             $body = $self->param($body_attr)->pod;
         }
-        
-        $r .= "=$type $body$p_break";
+        if(defined $body) {
+            $r .= "=$type $body$p_break";
+        } else {
+            $r .= "=$type$p_break";
+        }
     }
     
     my @children = $self->children;

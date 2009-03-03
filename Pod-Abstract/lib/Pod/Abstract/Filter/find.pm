@@ -20,16 +20,20 @@ presuming that find is not useful if it returns anything higher than a head2,
 so as long as your module wraps function doco in a head2, head3, head4 or list
 item, we're fine. If you use head1 then it won't be useful.
 
-In order to be useful as an end user tool (paf -p), head1 nodes (...) are
-added between the found nodes. This stops perldoc from dying with no
+In order to be useful as an end user tool, head1 nodes (...) are added
+between the found nodes. This stops perldoc from dying with no
 documentation. These can be easily stripped using:
 C<<$pa->select('/head1/')>>, then clear and re-nest.
 
 A good example of this working as intended is:
 
- paf -p find -f=select Pod::Abstract::Node
+ paf find select Pod::Abstract::Node
 
 =cut
+
+sub require_params {
+    return ( 'f' );
+}
 
 sub filter {
     my $self = shift;
@@ -60,12 +64,10 @@ sub filter {
                 my $head = node->head1('...');
                 if($t->type eq 'item') {
                     my $over = node->over;
-                    $t->detach;
-                    $over->nest($t);
+                    $over->nest($t->duplicate);
                     $head->nest($over);
                 } else {
-                    $t->detach;
-                    $head->nest($t);
+                    $head->nest($t->duplicate);
                 }
                 $out_doc->push($head);
                 $finals{$t->serial} = 1;

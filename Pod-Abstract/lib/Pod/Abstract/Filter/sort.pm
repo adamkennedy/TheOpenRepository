@@ -14,6 +14,14 @@ sub filter {
     $heading = 'METHODS' unless defined $heading;
     
     my @targets = $pa->select("//[\@heading =~ {$heading}]");
+    my @spec_targets = $pa->select("//[/for =~ {^sorting}]");
+    
+    if($self->param('heading')) {
+        push @targets, @spec_targets;
+    } else {
+        @targets = @spec_targets if @spec_targets;
+    }
+    
     foreach my $t (@targets) {
         my @ignore = $t->select("/[!\@heading]");
         my @to_sort = $t->select("/[\@heading]");

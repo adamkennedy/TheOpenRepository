@@ -20,5 +20,6 @@ lib/Pod/Abstract/Tree.pm
 Makefile.PL
 MANIFEST
 README
-t/compile.t
-t/roundtrip.t
+t/01_compile.t
+t/02_roundtrip.t
+t/03_buildnode.t
