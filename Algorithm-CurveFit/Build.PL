@@ -7,7 +7,7 @@ my $b = Module::Build->new
    license => 'perl',
    requires => {
                 'Data::Dumper' => '0',
-                'Math::Symbolic' => '0.128',
+                'Math::Symbolic' => '0.602',
                 'Math::MatrixReal' => '0',
                },
    recommends => {
@@ -18,7 +18,6 @@ my $b = Module::Build->new
                       'Test::More' => 0,
                      },
    create_makefile_pl => 'traditional',
-   sign => 1,
 #   conflicts => {},
 #   script_files => [],
   );

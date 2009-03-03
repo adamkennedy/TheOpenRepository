@@ -4,34 +4,27 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 require Exporter;
 
 our @ISA = qw(Exporter);
 
-# This allows declaration	use Algorithm::CurveFit ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
 our %EXPORT_TAGS = (
-    'all' => [
-        qw(
-          curve_fit
-          )
-    ]
+    'all' => [ qw( curve_fit ) ]
 );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw();
 
-use Carp qw/cluck confess/;
+use Carp qw/confess/;
 use Math::Symbolic qw/parse_from_string/;
 use Math::MatrixReal;
 use Data::Dumper;
 
 sub curve_fit {
-    shift @_ if $_[0] eq 'Algorithm::CurveFit';
+    shift @_ if not ref $_[0] and defined $_[0] and $_[0] eq 'Algorithm::CurveFit';
 
     # Parameter checking. (I hate this.)
     confess('Uneven number of arguments to Algorithm::CurveFit::curve_fit.')
@@ -116,8 +109,8 @@ sub curve_fit {
         push @$param, 0 if @$param < 3;
     }
 
-  # Array holding all first order partial derivatives of the function in respect
-  # to the parameters in order.
+    # Array holding all first order partial derivatives of the function in respect
+    # to the parameters in order.
     my @derivatives;
     foreach my $param (@parameters) {
         my $deriv =
@@ -152,7 +145,7 @@ sub curve_fit {
             push @cols, \@ary;
         }
         
-		# Prepare matrix of datapoints X parameters
+        # Prepare matrix of datapoints X parameters
         my $A = Math::MatrixReal->new_from_cols( \@cols );
 
         # transpose
@@ -399,7 +392,7 @@ Steffen Mueller, E<lt>smueller@cpan.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005-2006 by Steffen Mueller
+Copyright (C) 2005-2009 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
