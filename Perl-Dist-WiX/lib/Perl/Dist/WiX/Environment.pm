@@ -44,9 +44,8 @@ sub _init : Init {
 	my $self = shift;
 
 	# Check parameters.
-
 	unless ( _IDENTIFIER( $self->get_component_id() ) ) {
-		PDWiX->throw('Missing or invalid id parameter');
+		PDWiX->throw(parameter => 'id', where => '::Environment->new');
 	}
 
 	# Make a GUID for as_string to use.

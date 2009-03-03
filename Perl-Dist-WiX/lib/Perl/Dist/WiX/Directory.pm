@@ -56,7 +56,7 @@ sub _init : Init {
 	if (   ( $special[$object_id] == 0 )
 		&& ( not _STRING( $path[$object_id] ) ) )
 	{
-		PDWiX->throw('Missing or invalid path');
+		PDWiX::Parameter->throw(parameter => 'path', where => '::Directory->new');
 	}
 	if (   ( not defined _STRING( $self->get_guid ) )
 		&& ( not defined _STRING( $self->get_component_id ) ) )
@@ -106,7 +106,7 @@ sub search_dir {
 
 	# Set defaults for parameters.
 	my $path_to_find = _STRING( $params_ref->{path_to_find} )
-	  || PDWiX->throw('No path to find.');
+	  || PDWiX::Parameter->throw(parameter => 'path_to_find', where => '::Directory->search_dir');
 	my $descend = $params_ref->{descend} || 1;
 	my $exact   = $params_ref->{exact}   || 0;
 
@@ -167,7 +167,7 @@ sub search_file {
 
 	# Check required parameters.
 	unless ( _STRING($filename) ) {
-		PDWiX->throw('Missing or invalid filename parameter');
+		PDWiX::Parameter->throw(parameter => 'filename', where => '::Directory->search_file');
 	}
 
 	# Do we want to continue searching down this direction?
@@ -209,7 +209,7 @@ sub delete_filenum {
 
 	# Check parameters
 	if ( not defined _NONNEGINT($i) ) {
-		PDWiX->throw('Missing or invalid index parameter');
+		PDWiX::Parameter->throw(parameter => 'index', where => '::Directory->delete_filenum');
 	}
 
 	$self->trace_line( 3,
@@ -234,7 +234,7 @@ sub add_directories_id {
 	# We need id, name pairs passed in.
 	if ( $#params % 2 != 1 )           # The test is weird, but $#params
 	{                                  # is one less than the actual count.
-		PDWiX->throw('Odd number of parameters to add_directories_id');
+		PDWiX->throw('Internal Error: Odd number of parameters to add_directories_id');
 	}
 
 	# Add each individual id and name.
@@ -296,7 +296,7 @@ sub add_directory_path {
 
 	# Check required parameters.
 	unless ( _STRING($path) ) {
-		PDWiX->throw('Missing or invalid path parameter');
+		PDWiX->throw(parameter => 'path', where => '::Directory->add_directory_path');
 	}
 
 	if ( substr( $path, -1 ) eq q{\\} ) {
@@ -348,7 +348,7 @@ sub add_directory {
 
 	# Check parameters.
 	unless ( _HASH($params_ref) ) {
-		PDWiX->throw('Parameters not passed in hash reference');
+		PDWiX->throw('Internal Error: Parameters not passed in hash reference');
 	}
 
 	# Check required parameters.
@@ -356,7 +356,7 @@ sub add_directory {
 			or ( $params_ref->{special} == 0 ) )
 		and ( not _STRING( $params_ref->{path} ) ) )
 	{
-		PDWiX->throw('Missing or invalid path parameter');
+		PDWiX->throw(parameter => 'path', where => '::Directory::add_directory');
 	}
 
 	# If we have a name or a special code, we create it under here.
@@ -411,19 +411,19 @@ sub add_directory {
 #   1 otherwise.
 
 sub is_child_of {
-	my ( $self, $directory_obj ) = @_;
+	my ( $self, $directory_object ) = @_;
 
 	# Check for a valid Directory or DirectoryRef object.
-	my $class = blessed($directory_obj);
+	my $class = blessed($directory_object);
 	unless (
 		defined $class
 		and (  ( $class eq 'Perl::Dist::WiX::Directory' )
 			or ( $class eq 'Perl::Dist::WiX::Files::DirectoryRef' ) ) )
 	{
-		PDWiX->throw('Invalid directory object passed in.');
+		PDWiX::Parameter->throw('directory_object', where => '::Directory->is_child_of');
 	}
 
-	my $path_to_check = $directory_obj->get_path;
+	my $path_to_check = $directory_object->get_path;
 	my $path          = $self->get_path;
 	if ( not defined $path_to_check ) {
 		$self->trace_line( 5,

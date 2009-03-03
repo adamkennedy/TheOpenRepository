@@ -39,7 +39,7 @@ sub _pre_init : PreInit {
 	unless ( defined $args->{guid} ) {
 		my $id = $args->{id};
 		unless ( defined _STRING($id) ) {
-			PDWiX->throw('Invalid or missing id parameter.');
+			PDWiX::Parameter->throw(parameter => 'id', where => 'Perl::Dist::WiX::CreateFolder->new');
 		}
 		$args->{guid} = $self->generate_guid("Create$id");
 	}

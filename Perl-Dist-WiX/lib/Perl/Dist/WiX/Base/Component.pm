@@ -15,9 +15,9 @@ use strict;
 use warnings;
 use vars              qw( $VERSION                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable :Public );
-use Params::Util      qw( _CLASSISA _STRING _NONNEGINT           );
+use Params::Util      qw( _INSTANCE _STRING _NONNEGINT           );
 
-use version; $VERSION = qv('0.14');
+use version; $VERSION = qv('0.15');
 #>>>
 
 #####################################################################
@@ -65,8 +65,8 @@ sub add_entry {
 	my ( $self, $entry ) = @_;
 	my $object_id = ${$self};
 
-	unless ( _CLASSISA( ref $entry, 'Perl::Dist::WiX::Base::Entry' ) ) {
-		PDWiX->throw('Not adding a valid component');
+	unless ( _INSTANCE( $entry, 'Perl::Dist::WiX::Base::Entry' ) ) {
+		PDWiX::Parameter->throw(parameter => 'entry', where => 'Perl::Dist::WiX::Base::Component->add_entry');
 	}
 
 	# getting the number of items in the array
@@ -95,8 +95,7 @@ sub create_guid_from_id {
 
 	# Check parameters.
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX->throw( 'Missing or invalid id param - cannot generate GUID '
-			  . 'without one' );
+		PDWiX::Parameter->throw( parameter => 'id', where => 'Perl::Dist::WiX::Base::Component->create_guid_from_id' );
 	}
 
 	# Generate the GUID...
@@ -122,7 +121,7 @@ sub as_string {
 	return q{} if ( scalar @{ $entries[$object_id] } == 0 );
 
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid id param');
+		PDWiX->throw('Internal Error: Missing or invalid id');
 	}
 
 	unless ( _STRING( $guid[$object_id] ) ) {
@@ -131,7 +130,7 @@ sub as_string {
 
 	# Check parameters.
 	unless ( defined _NONNEGINT($spaces) ) {
-		PDWiX->throw( 'Calling as_spaces improperly '
+		PDWiX->throw( 'Internal Error: Calling as_spaces improperly '
 			  . '(most likely, not calling derived method)' );
 	}
 
