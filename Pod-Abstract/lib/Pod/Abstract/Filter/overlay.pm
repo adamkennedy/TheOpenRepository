@@ -5,6 +5,8 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
 
+our $VERSION = '0.14';
+
 =begin :overlay
 
 =overlay METHODS Pod::Abstract::Filter

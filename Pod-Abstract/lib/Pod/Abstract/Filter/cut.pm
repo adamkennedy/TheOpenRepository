@@ -4,6 +4,8 @@ use warnings;
 
 use base qw(Pod::Abstract::Filter);
 
+our $VERSION = '0.14';
+
 sub filter {
     my $self = shift;
     my $pa = shift;

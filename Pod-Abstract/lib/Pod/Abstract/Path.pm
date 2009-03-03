@@ -5,6 +5,8 @@ use warnings;
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
 
+our $VERSION = '0.14';
+
 use constant {
     CHILDREN  => 1,  # /
     ALL       => 2,  # //

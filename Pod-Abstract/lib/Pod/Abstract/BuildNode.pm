@@ -7,6 +7,8 @@ use Pod::Abstract::Parser;
 use Pod::Abstract::Node;
 use base qw(Exporter);
 
+our $VERSION = '0.14';
+
 our @EXPORT_OK = qw(node nodes);
 use constant {
     node  => 'Pod::Abstract::BuildNode',

@@ -5,6 +5,8 @@ use warnings;
 use Pod::Abstract;
 use UNIVERSAL qw(isa);
 
+our $VERSION = '0.14';
+
 =head1 NAME
 
 Pod::Abstract::Filter - Generic Pod-in to Pod-out filter.

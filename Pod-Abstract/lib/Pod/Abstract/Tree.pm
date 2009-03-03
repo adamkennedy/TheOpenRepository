@@ -1,6 +1,8 @@
 package Pod::Abstract::Tree;
 use strict;
 
+our $VERSION = '0.14';
+
 =head1 NAME
 
 Pod::Abstract::Tree - Manage a level of Pod document tree Nodes.

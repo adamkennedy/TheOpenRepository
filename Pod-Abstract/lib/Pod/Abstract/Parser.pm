@@ -6,6 +6,8 @@ use Pod::Abstract::Node;
 use Data::Dumper;
 use base qw(Pod::Parser);
 
+our $VERSION = '0.14';
+
 =head1 new
 
  Pod::Abstract::Parser->new( $pod_abstract );

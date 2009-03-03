@@ -5,6 +5,8 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
+our $VERSION = '0.14';
+
 =head1 NAME
 
 Pod::Abstract::Filter::uncut - turn source code into verbatim nodes.
