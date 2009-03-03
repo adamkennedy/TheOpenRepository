@@ -17,7 +17,7 @@ my $b = Module::Build->new
    build_requires => {
                       'Test::More' => 0,
                      },
-   create_makefile_pl => 'traditional',
+   create_makefile_pl => 'passthrough',
 #   conflicts => {},
 #   script_files => [],
   );
