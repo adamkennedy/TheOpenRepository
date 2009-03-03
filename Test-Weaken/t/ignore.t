@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 14;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
@@ -115,7 +115,7 @@ $test = Test::Weaken::leaks(
     }
 );
 if ( not $test ) {
-    pass('wrappered good ignore');
+    pass('5: wrappered good ignore');
 }
 else {
     Test::Weaken::Test::is( $test->unfreed_proberefs, q{},
@@ -169,64 +169,89 @@ sub buggy_ignore {
 }
 ## use critic
 
-## use Marpa::Test::Display error callback snippet
+my %counted_error_expected = (
+    0 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+    1 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Terminating ignore callbacks after finding 1 error(s) at <FILE> line <LINE_NUMBER>
+EOS
+    2 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Terminating ignore callbacks after finding 2 error(s) at <FILE> line <LINE_NUMBER>
+EOS
+    3 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Terminating ignore callbacks after finding 3 error(s) at <FILE> line <LINE_NUMBER>
+EOS
+    4 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+);
 
-{
-    my $error_callback_count = 0;
-    my $max_errors           = 100;
+sub counted_errors {
+    my ($error_count) = @_;
 
-    sub error_callback {
-        my ($standard_message, $before_signature,
-            $after_signature,  $probe_ref
-        ) = @_;
-        $error_callback_count++;
-        my $custom_message = "'$before_signature' -> '$after_signature'\n";
-        print {*STDERR} $custom_message
-            or croak("Cannot print STDERR: $ERRNO");
-        if ( $error_callback_count > $max_errors ) {
-            croak("Terminating after $max_errors errors");
-        }
-        return 1;
-    }
-}
-
-## no Marpa::Test::Display
-
-my $stderr = q{};
-open my $save_stderr, '>&STDERR';
-close STDERR;
-open STDERR, '>', \$stderr;
+    my $stderr = q{};
+    open my $save_stderr, '>&STDERR';
+    close STDERR;
+    open STDERR, '>', \$stderr;
+    $eval_return = eval {
 
 ## use Marpa::Test::Display check_ignore snippet
 
-Test::Weaken::leaks(
-    {   constructor => sub { MyObject->new },
-        ignore =>
-            Test::Weaken::check_ignore( \&buggy_ignore, \&error_callback ),
-    }
-);
+        Test::Weaken::leaks(
+            {   constructor => sub { MyObject->new },
+                ignore => Test::Weaken::check_ignore( \&buggy_ignore, $error_count ),
+            }
+        );
 
 ## no Marpa::Test::Display
 
-open STDERR, '>&', $save_stderr;
-close $save_stderr;
+    };
 
-# the exact addresses will vary, so just X them out
-$stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+    open STDERR, '>&', $save_stderr;
+    close $save_stderr;
 
-Test::Weaken::Test::is( $stderr,
-    <<'EOS', 'wrappered overwriting ignore w/ error callback' );
-'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
-'MyObject at 0xXXXXXXX' -> 'HASH at 0xXXXXXXX'
-'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
-'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
-'MyGlobal at 0xXXXXXXX' -> 'HASH at 0xXXXXXXX'
-'MyGlobal at 0xXXXXXXX' -> 'HASH at 0xXXXXXXX'
-'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
-'ARRAY at 0xXXXXXXX' -> 'ARRAY at 0xXXXXXXX'
-'strong REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'
-'ARRAY at 0xXXXXXXX' -> 'ARRAY at 0xXXXXXXX'
-EOS
+    # the exact addresses will vary, so just X them out
+    $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+
+    $stderr .= $EVAL_ERROR if not $eval_return;
+
+    $stderr =~ s/
+        [ ] at [ ] (\S+) [ ] line [ ] \d+ $
+    / at <FILE> line <LINE_NUMBER>/gxms;
+
+    Test::Weaken::Test::is( $stderr, $counted_error_expected{$error_count},
+         "wrappered overwriting ignore, max_errors=$error_count" );
+
+}
+
+counted_errors(0);
+counted_errors(1);
+counted_errors(2);
+counted_errors(3);
+counted_errors(4);
 
 sub noop_ignore { return 0; }
 
@@ -262,8 +287,9 @@ if ( not $test ) {
     pass('cycle w/ copying ignore');
 }
 else {
+    my $unfreed = $test->unfreed_proberefs;
     Test::Weaken::Test::is(
-        Data::Dumper->Dump( [ $test->unfreed_proberefs ], [qw(unfreed)] ),
+        Data::Dumper->Dump( [ $unfreed ], [qw(unfreed)] ),
         <<'EOS',
 $unfreed = [
              \\\$unfreed->[0],
@@ -275,23 +301,32 @@ EOS
     );
 }
 
-$stderr = q{};
-open $save_stderr, '>&STDERR';
+my $stderr = q{};
+open my $save_stderr, '>&STDERR';
 close STDERR;
 open STDERR, '>', \$stderr;
 
-$test = Test::Weaken::leaks(
-    {   constructor => sub { MyCycle->new },
-        ignore =>
-            Test::Weaken::check_ignore( \&copying_ignore, \&error_callback ),
-    }
-);
+$eval_return = eval {
+
+    $test = Test::Weaken::leaks(
+        {   constructor => sub { MyCycle->new },
+            ignore      => Test::Weaken::check_ignore(
+                \&copying_ignore, 2
+            ),
+        }
+    );
+};
+
+open STDERR, '>&', $save_stderr;
+close $save_stderr;
+
 if ( not $test ) {
     pass('cycle w/ copying & error callback');
 }
 else {
+    my $unfreed = $test->unfreed_proberefs;
     Test::Weaken::Test::is(
-        Data::Dumper->Dump( [ $test->unfreed_proberefs ], [qw(unfreed)] ),
+        Data::Dumper->Dump( [ $unfreed ], [qw(unfreed)] ),
         <<'EOS',
 $unfreed = [
              \\\$unfreed->[0],
@@ -305,11 +340,10 @@ EOS
 
 # the exact addresses will vary, so just X them out
 $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+$stderr .= $EVAL_ERROR if not $eval_return;
+
 Test::Weaken::Test::is(
     $stderr,
     qq{'weak REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'\n},
     'stderr for cycle w/ copying'
 );
-
-open STDERR, '>&', $save_stderr;
-close $save_stderr;

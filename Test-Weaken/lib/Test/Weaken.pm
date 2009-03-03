@@ -63,7 +63,8 @@ sub follow {
         }
 
         if ($ignore) {
-            @old_probes = grep { not $ignore->($_) } @old_probes;
+            my @safe_copies = @old_probes;
+            @old_probes = grep { not $ignore->($_) } @safe_copies;
         }
         OLD_PROBE: for my $old_probe (@old_probes) {
             my $object_type = reftype ${$old_probe};
@@ -79,7 +80,9 @@ sub follow {
             my $new_probe_address = $new_probe + 0;
             next OLD_PROBE if $reverse{$new_probe_address};
             $reverse{ $new_probe_address + 0 }++;
-            next OLD_PROBE if defined $ignore and $ignore->($new_probe);
+            my $safe_copy = $new_probe;
+            next OLD_PROBE
+                if defined $ignore and $ignore->($safe_copy);
             push @{$result}, $new_probe;
         }
 
@@ -279,40 +282,78 @@ sub Test::Weaken::strong_probe_count {
 }
 
 sub Test::Weaken::check_ignore {
-    my ( $ignore, $error_callback ) = @_;
+    my ( $ignore, $max_errors, $print_depth, $compare_depth ) = @_;
+
+    my $error_count = 0;
+
+    $max_errors = 1 if not defined $max_errors;
+    if (not Scalar::Util::looks_like_number($max_errors)) {
+        croak("Test::Weaken::check_ignore max_errors must be a number");
+    }
+    $max_errors = 0 if $max_errors <= 0;
+
+    $print_depth = -1 if not defined $print_depth;
+    if (not Scalar::Util::looks_like_number($print_depth)) {
+        croak("Test::Weaken::check_ignore print_depth must be a number");
+    }
+    $print_depth = -1 if $print_depth < 0;
+
+    $compare_depth = 0 if not defined $compare_depth;
+    if (not Scalar::Util::looks_like_number($compare_depth) or $compare_depth < 0) {
+        croak("Test::Weaken::check_ignore compare_depth must be a non-negative number");
+    }
+
     return sub {
         my ($probe_ref) = @_;
 
-        my $ref_type = ref $probe_ref;
-        if ( $ref_type eq 'REF' ) {
-            $ref_type =
-                ( isweak( ${$probe_ref} ) ? 'weak' : 'strong' ) . q{ }
-                . $ref_type;
+        my $before_weak =
+            ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
+        my $before_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
+        my $before_dump = $before_dumper->Maxdepth($compare_depth)->Dump();
+        my $before_print_dump;
+        if ($print_depth >= 0) {
+            $before_print_dump = $before_dumper->Maxdepth($print_depth)->Dump();
         }
-        my $before_signature = sprintf "$ref_type at 0x%x",
-            ( $probe_ref + 0 );
 
         my $return_value = $ignore->($probe_ref);
 
-        $ref_type = ref $probe_ref;
-        if ( $ref_type eq 'REF' ) {
-            $ref_type =
-                ( isweak( ${$probe_ref} ) ? 'weak' : 'strong' ) . q{ }
-                . $ref_type;
+        my $after_weak =
+            ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
+        my $after_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
+        my $after_dump = $after_dumper->Maxdepth($compare_depth)->Dump();
+        my $after_print_dump;
+        if ($print_depth >= 0) {
+            $after_print_dump = $after_dumper->Maxdepth($print_depth)->Dump();
         }
-        my $after_signature = sprintf "$ref_type at 0x%x", ( $probe_ref + 0 );
 
-        if ( $before_signature ne $after_signature ) {
-            my $message =
-                "Problem in ignore callback: arg was changed from '$before_signature' to '$after_signature'";
-            if ($error_callback) {
-                $error_callback->(
-                    $message, $before_signature, $after_signature, $probe_ref
-                );
-            }
-            else {
-                croak($message);
-            }
+        my $problems       = q{};
+        my $include_before = 0;
+        my $include_after  = 0;
+
+        if ( $before_weak != $after_weak ) {
+           my $changed = $before_weak ? 'strengthened' : 'weakened';
+           $problems .= "Probe referent $changed by ignore call\n";
+           $include_before = defined $before_print_dump;
+        }
+        if ( $before_dump ne $after_dump ) {
+           $problems .= "Probe referent changed by ignore call\n";
+           $include_before = defined $before_print_dump;
+           $include_after = defined $after_print_dump;
+        }
+
+        return $return_value if not $problems;
+
+        $error_count++;
+
+        my $message .= q{};
+        $message .= "**** Probe ref before ignore callback:\n$before_print_dump" . qq{****} . "\n"
+            if $include_before;
+        $message .= "**** Probe ref after ignore callback:\n$after_print_dump" . qq{****} . "\n"
+            if $include_after;
+        carp($message . $problems . "Above errors reported");
+
+        if ($max_errors > 0 and $error_count >= $max_errors) {
+            croak( "Terminating ignore callbacks after finding $error_count error(s)" );
         }
 
         return $return_value;
