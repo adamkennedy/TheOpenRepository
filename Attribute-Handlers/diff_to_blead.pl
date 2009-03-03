@@ -5,19 +5,19 @@ use Getopt::Long;
 
 my $diff = 'diff';
 
-my $path = 'lib/Attribute';
+my $path = 'ext/Attribute-Handlers';
 # local => blead
 my %files = (
-  "$path/Handlers.pm" => "$path/Handlers.pm",
-  "README" => "$path/Handlers/README",
-  "Changes" => "$path/Handlers/Changes",
+  "lib/Attribute/Handlers.pm" => "$path/lib/Attribute/Handlers.pm",
+  "README" => "$path/README",
+  "Changes" => "$path/Changes",
 
-  "t/constants.t" => "$path/Handlers/t/constants.t",
-  "t/data_convert.t" => "$path/Handlers/t/data_convert.t",
-  "t/linerep.t" => "$path/Handlers/t/linerep.t",
-  "t/multi.t" => "$path/Handlers/t/multi.t",
+  "t/constants.t" => "$path/t/constants.t",
+  "t/data_convert.t" => "$path/t/data_convert.t",
+  "t/linerep.t" => "$path/t/linerep.t",
+  "t/multi.t" => "$path/t/multi.t",
 
-  (map {("demo/$_" => "$path/Handlers/demo/$_")} qw(
+  (map {("demo/$_" => "$path/demo/$_")} qw(
     demo2.pl
     demo3.pl
     demo4.pl
