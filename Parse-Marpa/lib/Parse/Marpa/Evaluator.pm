@@ -433,11 +433,10 @@ sub Parse::Marpa::Evaluator::new {
 
     $self->set( $args );
 
-    $grammar->[Parse::Marpa::Internal::Grammar::PHASE]
-        = Parse::Marpa::Internal::Phase::EVALUATING;
+    $grammar->[Parse::Marpa::Internal::Grammar::PHASE] =
+        Parse::Marpa::Internal::Phase::EVALUATING;
 
-    my $tracing
-        = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
+    my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iterations;
 
@@ -450,14 +449,12 @@ sub Parse::Marpa::Evaluator::new {
 
     local ($Data::Dumper::Terse) = 1;
 
-    my $default_parse_set =
-        $recce->[Parse::Marpa::Internal::Recognizer::DEFAULT_PARSE_SET];
-
     $self->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     $self->[Parse::Marpa::Internal::Evaluator::OR_NODES]    = [];
-    $self->[Parse::Marpa::Internal::Evaluator::CYCLES]    = {};
+    $self->[Parse::Marpa::Internal::Evaluator::CYCLES]      = {};
 
-    my $current_parse_set = $parse_set_arg // $default_parse_set;
+    my $current_parse_set = $parse_set_arg
+        // $recce->[Parse::Marpa::Internal::Recognizer::CURRENT_SET];
 
     # Look for the start item and start rule
     my $earley_set = $earley_sets->[$current_parse_set];
@@ -476,12 +473,6 @@ sub Parse::Marpa::Evaluator::new {
     }
 
     return unless $start_rule;
-
-    @{$recce}[
-        Parse::Marpa::Internal::Recognizer::START_ITEM,
-        Parse::Marpa::Internal::Recognizer::CURRENT_PARSE_SET,
-        ]
-        = ( $start_item, $current_parse_set );
 
     state $parse_number = 0;
     my $package = $self->[Parse::Marpa::Internal::Evaluator::PACKAGE] =
@@ -760,7 +751,7 @@ sub Parse::Marpa::Evaluator::new {
 
     return $self;
 
-}
+}    # sub new
 
 sub Parse::Marpa::Evaluator::show_bocage {
     my $evaler  = shift;

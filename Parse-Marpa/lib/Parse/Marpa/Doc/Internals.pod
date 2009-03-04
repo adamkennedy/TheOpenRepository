@@ -555,7 +555,7 @@ Default values
 are often used for these parse criteria.
 The default start earleme is earleme 0.
 The default end earleme
-comes from the default end of parsing.
+is the recognizer's current earleme.
 This will usually be
 the furthest earleme reached by any token in
 the parse.

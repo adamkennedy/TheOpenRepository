@@ -7,6 +7,7 @@ use warnings;
 
 use Carp;
 use Parse::Marpa;
+use Data::Dumper;
 
 my $grammar = new Parse::Marpa::Grammar(
     {   start => 'display_or_commands',
@@ -80,8 +81,6 @@ my $grammar = new Parse::Marpa::Grammar(
 
 $grammar->precompute();
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
-
 my $instruction = $grammar->get_symbol('whitespace');
 my $indented_line = $grammar->get_symbol('indented line');
 my $begin_line = $grammar->get_symbol('begin line');
@@ -94,10 +93,14 @@ my $ignore_whitespace_command = $grammar->get_symbol('ignore whitespace command'
 my $whitespace = $grammar->get_symbol('whitespace');
 my $other_line = $grammar->get_symbol('other line');
 
+my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+
+my $active = 0;
 my $line_number = 0;
+
 TOKEN: while ( my $line = <STDIN> ) {
     $line_number++;
-    print $line;
+    print "$line_number: $line";
     chomp $line;
 
     my $value = q{};
@@ -159,15 +162,28 @@ TOKEN: while ( my $line = <STDIN> ) {
         }
     }    # LINE_TEST
 
-    next TOKEN if $recce->earleme( [ $token, $value, 1 ] );
-    croak("Parsing exhausted at line $line_number: $line");
+    my $now_active = $recce->earleme( [ $token, $value, 1 ] );
+
+    # on active to exhausted transition, produce a parse
+    if ($active and not $now_active) {
+        $recce->end_input();
+        my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, } );
+        print Dumper ( $evaler->value());
+    }
+
+    # if not now active, create a new recognizer
+    if (not $now_active) {
+        $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+    }
+
+    $active = $now_active;
+
+} continue {
 }
 
 exit 0;
 
-$recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, } );
 
 # Local Variables:
 #   mode: cperl
