@@ -14,6 +14,18 @@ use Fatal qw(open close);
 use lib 't/lib';
 use Test::Weaken::Test;
 
+sub divert_stderr {
+    my $stderr = q{};
+    open my $save_stderr, '>&STDERR';
+    close STDERR;
+    open STDERR, '>', \$stderr;
+    return sub {
+        open STDERR, '>&', $save_stderr;
+        close $save_stderr;
+        return $stderr;
+    };
+}
+
 package MyGlobal;
 
 my %cache;
@@ -114,8 +126,9 @@ $test = Test::Weaken::leaks(
         ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
     }
 );
+
 if ( not $test ) {
-    pass('5: wrappered good ignore');
+    pass('wrappered good ignore');
 }
 else {
     Test::Weaken::Test::is( $test->unfreed_proberefs, q{},
@@ -128,6 +141,7 @@ sub overwriting_ignore {
     return 0;
 }
 
+my $restore     = divert_stderr();
 my $eval_return = eval {
     Test::Weaken::leaks(
         {   constructor => sub { MyObject->new },
@@ -136,16 +150,23 @@ my $eval_return = eval {
     );
     1;
 };
+my $stderr = &{$restore};
+
 my $eval_result = 'proberef overwrite not caught';
 if ( not $eval_return ) {
     $eval_result = $EVAL_ERROR;
-    $eval_result =~ s/[^']*\z//xms;
-    $eval_result =~ s/0x[0-9a-fA-F]+/0xXXXXXXX/xmsg;
 }
 
+$eval_result =~ s{
+    [ ] at [ ] (\S+) [ ] line [ ] \d+ $
+}{ at <FILE> line <LINE_NUMBER>}gxms;
+
 Test::Weaken::Test::is(
-    $eval_result,
-    q{Problem in ignore callback: arg was changed from 'strong REF at 0xXXXXXXX' to 'SCALAR at 0xXXXXXXX'},
+    ( $stderr . $eval_result ),
+    <<'EOS',
+Probe referent changed by ignore call
+Terminating ignore callbacks after finding 1 error(s) at <FILE> line <LINE_NUMBER>
+EOS
     'wrappered overwriting ignore'
 );
 
@@ -180,14 +201,12 @@ Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
     1 => <<'EOS',
 Probe referent changed by ignore call
-Above errors reported at <FILE> line <LINE_NUMBER>
 Terminating ignore callbacks after finding 1 error(s) at <FILE> line <LINE_NUMBER>
 EOS
     2 => <<'EOS',
 Probe referent changed by ignore call
 Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
-Above errors reported at <FILE> line <LINE_NUMBER>
 Terminating ignore callbacks after finding 2 error(s) at <FILE> line <LINE_NUMBER>
 EOS
     3 => <<'EOS',
@@ -196,7 +215,6 @@ Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
 Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
-Above errors reported at <FILE> line <LINE_NUMBER>
 Terminating ignore callbacks after finding 3 error(s) at <FILE> line <LINE_NUMBER>
 EOS
     4 => <<'EOS',
@@ -222,7 +240,9 @@ sub counted_errors {
 
         Test::Weaken::leaks(
             {   constructor => sub { MyObject->new },
-                ignore => Test::Weaken::check_ignore( \&buggy_ignore, $error_count ),
+                ignore      => Test::Weaken::check_ignore(
+                    \&buggy_ignore, $error_count
+                ),
             }
         );
 
@@ -238,13 +258,17 @@ sub counted_errors {
 
     $stderr .= $EVAL_ERROR if not $eval_return;
 
-    $stderr =~ s/
+    $stderr =~ s{
         [ ] at [ ] (\S+) [ ] line [ ] \d+ $
-    / at <FILE> line <LINE_NUMBER>/gxms;
+    }{ at <FILE> line <LINE_NUMBER>}gxms;
 
-    Test::Weaken::Test::is( $stderr, $counted_error_expected{$error_count},
-         "wrappered overwriting ignore, max_errors=$error_count" );
+    Test::Weaken::Test::is(
+        $stderr,
+        $counted_error_expected{$error_count},
+        "wrappered overwriting ignore, max_errors=$error_count"
+    );
 
+    return 1;
 }
 
 counted_errors(0);
@@ -289,7 +313,7 @@ if ( not $test ) {
 else {
     my $unfreed = $test->unfreed_proberefs;
     Test::Weaken::Test::is(
-        Data::Dumper->Dump( [ $unfreed ], [qw(unfreed)] ),
+        Data::Dumper->Dump( [$unfreed], [qw(unfreed)] ),
         <<'EOS',
 $unfreed = [
              \\\$unfreed->[0],
@@ -301,7 +325,7 @@ EOS
     );
 }
 
-my $stderr = q{};
+$stderr = q{};
 open my $save_stderr, '>&STDERR';
 close STDERR;
 open STDERR, '>', \$stderr;
@@ -310,9 +334,7 @@ $eval_return = eval {
 
     $test = Test::Weaken::leaks(
         {   constructor => sub { MyCycle->new },
-            ignore      => Test::Weaken::check_ignore(
-                \&copying_ignore, 2
-            ),
+            ignore => Test::Weaken::check_ignore( \&copying_ignore, 2 ),
         }
     );
 };
@@ -326,7 +348,7 @@ if ( not $test ) {
 else {
     my $unfreed = $test->unfreed_proberefs;
     Test::Weaken::Test::is(
-        Data::Dumper->Dump( [ $unfreed ], [qw(unfreed)] ),
+        Data::Dumper->Dump( [$unfreed], [qw(unfreed)] ),
         <<'EOS',
 $unfreed = [
              \\\$unfreed->[0],
@@ -341,9 +363,15 @@ EOS
 # the exact addresses will vary, so just X them out
 $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
 $stderr .= $EVAL_ERROR if not $eval_return;
+$stderr =~ s{
+    [ ] at [ ] (\S+) [ ] line [ ] \d+ $
+}{ at <FILE> line <LINE_NUMBER>}gxms;
 
 Test::Weaken::Test::is(
     $stderr,
-    qq{'weak REF at 0xXXXXXXX' -> 'strong REF at 0xXXXXXXX'\n},
+    <<'EOS',
+Probe referent strengthened by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
     'stderr for cycle w/ copying'
 );

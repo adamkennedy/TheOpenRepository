@@ -287,20 +287,24 @@ sub Test::Weaken::check_ignore {
     my $error_count = 0;
 
     $max_errors = 1 if not defined $max_errors;
-    if (not Scalar::Util::looks_like_number($max_errors)) {
-        croak("Test::Weaken::check_ignore max_errors must be a number");
+    if ( not Scalar::Util::looks_like_number($max_errors) ) {
+        croak('Test::Weaken::check_ignore max_errors must be a number');
     }
     $max_errors = 0 if $max_errors <= 0;
 
     $print_depth = -1 if not defined $print_depth;
-    if (not Scalar::Util::looks_like_number($print_depth)) {
-        croak("Test::Weaken::check_ignore print_depth must be a number");
+    if ( not Scalar::Util::looks_like_number($print_depth) ) {
+        croak('Test::Weaken::check_ignore print_depth must be a number');
     }
     $print_depth = -1 if $print_depth < 0;
 
     $compare_depth = 0 if not defined $compare_depth;
-    if (not Scalar::Util::looks_like_number($compare_depth) or $compare_depth < 0) {
-        croak("Test::Weaken::check_ignore compare_depth must be a non-negative number");
+    if ( not Scalar::Util::looks_like_number($compare_depth)
+        or $compare_depth < 0 )
+    {
+        croak(
+            'Test::Weaken::check_ignore compare_depth must be a non-negative number'
+        );
     }
 
     return sub {
@@ -311,8 +315,9 @@ sub Test::Weaken::check_ignore {
         my $before_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
         my $before_dump = $before_dumper->Maxdepth($compare_depth)->Dump();
         my $before_print_dump;
-        if ($print_depth >= 0) {
-            $before_print_dump = $before_dumper->Maxdepth($print_depth)->Dump();
+        if ( $print_depth >= 0 ) {
+            $before_print_dump =
+                $before_dumper->Maxdepth($print_depth)->Dump();
         }
 
         my $return_value = $ignore->($probe_ref);
@@ -322,7 +327,7 @@ sub Test::Weaken::check_ignore {
         my $after_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
         my $after_dump = $after_dumper->Maxdepth($compare_depth)->Dump();
         my $after_print_dump;
-        if ($print_depth >= 0) {
+        if ( $print_depth >= 0 ) {
             $after_print_dump = $after_dumper->Maxdepth($print_depth)->Dump();
         }
 
@@ -331,14 +336,14 @@ sub Test::Weaken::check_ignore {
         my $include_after  = 0;
 
         if ( $before_weak != $after_weak ) {
-           my $changed = $before_weak ? 'strengthened' : 'weakened';
-           $problems .= "Probe referent $changed by ignore call\n";
-           $include_before = defined $before_print_dump;
+            my $changed = $before_weak ? 'strengthened' : 'weakened';
+            $problems .= "Probe referent $changed by ignore call\n";
+            $include_before = defined $before_print_dump;
         }
         if ( $before_dump ne $after_dump ) {
-           $problems .= "Probe referent changed by ignore call\n";
-           $include_before = defined $before_print_dump;
-           $include_after = defined $after_print_dump;
+            $problems .= "Probe referent changed by ignore call\n";
+            $include_before = defined $before_print_dump;
+            $include_after  = defined $after_print_dump;
         }
 
         return $return_value if not $problems;
@@ -346,16 +351,23 @@ sub Test::Weaken::check_ignore {
         $error_count++;
 
         my $message .= q{};
-        $message .= "**** Probe ref before ignore callback:\n$before_print_dump" . qq{****} . "\n"
+        $message
+            .= "**** Probe ref before ignore callback:\n$before_print_dump"
+            . "****\n"
             if $include_before;
-        $message .= "**** Probe ref after ignore callback:\n$after_print_dump" . qq{****} . "\n"
+        $message
+            .= "**** Probe ref after ignore callback:\n$after_print_dump"
+            . "****\n"
             if $include_after;
-        carp($message . $problems . "Above errors reported");
+        $message .= $problems;
 
-        if ($max_errors > 0 and $error_count >= $max_errors) {
-            croak( "Terminating ignore callbacks after finding $error_count error(s)" );
+        if ( $max_errors > 0 and $error_count >= $max_errors ) {
+            $message
+                .= "Terminating ignore callbacks after finding $error_count error(s)";
+            croak($message);
         }
 
+        carp( $message . 'Above errors reported' );
         return $return_value;
     };
 }
@@ -1263,14 +1275,14 @@ its C<ignore> callback subroutines.
 
 ## start display
 ## next display
-is_file($_, 't/ignore.t', 'check_ignore snippet')
+is_file($_, 't/ignore.t', 'check_ignore snippet !!!')
 
 =end Marpa::Test::Display:
 
     Test::Weaken::leaks(
         {   constructor => sub { MyObject->new },
             ignore      => Test::Weaken::check_ignore(
-                \&buggy_ignore, \&error_callback
+                \&buggy_ignore, $error_count
             ),
         }
     );
@@ -1299,85 +1311,21 @@ except that the wrapper is slower.
 
 To discover when and if the lab rat callback is
 altering its probe reference argument,
-C<Test::Weaken::check_ignore> takes a "signature" of the probe reference.
-The signature contains the probe referent's builtin type
-(obtained by calling C<ref> on the probe reference)
-and the probe referent's address.
-If the reftype was 'REF', the signature also indicates whether the referent was
-strong or weak.
-The wrapper takes a signature before it calls the lab rat,
-and after it returns.
-If the two signatures are different,
+C<Test::Weaken::check_ignore> calls C<Data::Dumper> on the
+probe reference argument twice:
+once before the lab rat runs,
+and again after the lab rat returns.
+If the probe referent is another reference,
+C<Test::Weaken::check_ignore> also checks to see if the probe referent
+is weak, before and after running the lab rat.
+If the results from C<Data::Dumper> differ,
 the wrapper treats it as a problem.
+The wrapper also treats it as a problem
+if the referent changed from strong to weak or vice versa.
 
-If a problem was detected
-and no error callback was specified,
-the debug wrapper throws an exception with a default message describing
-the problem:
-
-=begin Marpa::Test::Display:
-
-## skip display
-
-=end Marpa::Test::Display:
-
-    Problem in ignore callback: arg was changed from 'strong REF at 0x8361a88' to 'SCALAR at 0x8361a88'
-
-If a signature change was detected and an error callback was specified,
-the error callback is called
-with four arguments: the default message, the "before" signature,
-the "after" signature, and the probe reference.
-Here is an example of an error callback:
-
-=begin Marpa::Test::Display:
-
-## start display
-## next display
-is_file($_, 't/ignore.t', 'error callback snippet')
-
-=end Marpa::Test::Display:
-
-    {
-        my $error_callback_count = 0;
-        my $max_errors           = 100;
-
-        sub error_callback {
-            my ($standard_message, $before_signature,
-                $after_signature,  $probe_ref
-            ) = @_;
-            $error_callback_count++;
-            my $custom_message = "'$before_signature' -> '$after_signature'\n";
-            print {*STDERR} $custom_message
-                or croak("Cannot print STDERR: $ERRNO");
-            if ( $error_callback_count > $max_errors ) {
-                croak("Terminating after $max_errors errors");
-            }
-            return 1;
-        }
-    }
-
-
-=begin Marpa::Test::Display:
-
-## end display
-
-=end Marpa::Test::Display:
-
-This example of an error callback does not throw an exception on the first
-error, allowing multiple errors to be caught.
-Note that it keeps count of the number of times it was called,
-and will throw an exception after a maximum.
 It is prudent to put a limit on the number of error callbacks,
 because infinite loops are a common behavior
 in buggy lab rats.
-
-The fourth, probe reference, argument is the same probe reference
-whose overwritability is one of the vulnerabilities
-C<Test::Weaken::check_ignore> exists to discover.
-The probe reference argument must not be altered.
-For safety, the error callback should usually ignore the existence of
-the probe reference argument.
-But it is available to help in the more desperate cases.
 
 Comparing signatures detects most problems,
 but C<Test::Weaken::check_ignore> only detects changes in the type of the probe referents,
