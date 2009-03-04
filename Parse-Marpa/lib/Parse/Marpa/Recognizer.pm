@@ -1541,24 +1541,30 @@ in_file($_, 't/equation.t');
     $recce->end_input();
 
 Used to indicate the end of input.
-C<end_input> takes no arguments.
-C<end_input> processes the input
-out to the furthest earleme
-and sets
-the current earleme to the furthest earleme.
-If it does not throw an exception,
-C<end_input> returns a true value.
+Tells the recognizer that
+no new tokens will be added,
+or, in other words,
+that no tokens will start at
+or after the current earleme.
+The C<end_input> method takes no arguments.
 
+The C<end_input> method
+does not change the location of the furthest earleme.
+After a successful call to 
+the C<end_input> method,
+the current earleme is located at the furthest earleme.
 Since positioning the current earleme at the furthest
 earleme leaves the recognizer exhausted,
 any further calls to C<text> will return 0,
 and any further calls to C<earleme> will throw an
 exception.
 
+The C<end_input> method returns a Perl true value on success.
+On failure, it throws an exception.
 The C<end_input> method can only usefully be called once
 per recognizer, but the method is idempotent.
 Subsequent calls to the C<end_input> method
-will do nothing and return a true value.
+will have no effect and will return a Perl true.
 
 =head2 stringify
 
