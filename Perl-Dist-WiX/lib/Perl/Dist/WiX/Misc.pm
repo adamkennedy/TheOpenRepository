@@ -35,7 +35,7 @@ use Exception::Class (
 	'PDWiX::Parameter' => {
 		'description' =>
 		  'Perl::Dist::WiX error: Parameter missing or invalid',
-		'isa' => 'PDWiX',
+		'isa'    => 'PDWiX',
 		'fields' => [ 'parameter', 'where' ],
 	},
 );
@@ -59,7 +59,11 @@ sub PDWiX::full_message { ## no critic 'Capitalization'
 sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
-	my $string     = $self->description() . ': ' . $self->parameter() . ' in Perl::Dist::Wix' . $self->where() . "\n";
+	my $string =
+	    $self->description() . ': '
+	  . $self->parameter()
+	  . ' in Perl::Dist::WiX'
+	  . $self->where() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -167,13 +171,16 @@ sub set_trace {
 	my ( $self, $tracelevel ) = @_;
 
 	unless ( defined _NONNEGINT($tracelevel) ) {
-		PDWiX::Parameter->throw(parameter=> 'tracelevel', where => 'Perl::Dist::WiX::Misc->set_trace');
+		PDWiX::Parameter->throw(
+			parameter => 'tracelevel',
+			where     => '::Misc->set_trace'
+		);
 	}
 
 	$tracestate = $tracelevel;
 
 	return $self;
-}
+} ## end sub set_trace
 
 ########################################
 # indent($spaces, $string)
@@ -188,10 +195,16 @@ sub indent {
 
 	# Check parameters.
 	unless ( _STRING($string) ) {
-		PDWiX::Parameter->throw(parameter=> 'string', where => 'Perl::Dist::WiX::Misc->indent');
+		PDWiX::Parameter->throw(
+			parameter => 'string',
+			where     => '::Misc->indent'
+		);
 	}
 	unless ( defined _NONNEGINT($num) ) {
-		PDWiX::Parameter->throw(parameter => 'num', where => 'Perl::Dist::WiX::Misc->indent');
+		PDWiX::Parameter->throw(
+			parameter => 'num',
+			where     => '::Misc->indent'
+		);
 	}
 
 	# Indent string.
@@ -222,13 +235,19 @@ sub trace_line {
 
 	# Check parameters and object state.
 	unless ( defined _NONNEGINT($tracelevel) ) {
-		PDWiX::Parameter->throw(parameter => 'tracelevel', where => 'Perl::Dist::WiX::Misc->trace_line');
+		PDWiX::Parameter->throw(
+			parameter => 'tracelevel',
+			where     => '::Misc->trace_line'
+		);
 	}
 	unless ( defined _NONNEGINT($tracestate) ) {
 		$tracestate_status = 0;
 	}
 	unless ( defined _STRING($text) ) {
-		PDWiX::Parameter->throw(parameter => 'text', where => 'Perl::Dist::WiX::Misc->trace_line');
+		PDWiX::Parameter->throw(
+			parameter => 'text',
+			where     => '::Misc->trace_line'
+		);
 	}
 
 	my $tracestate_test = 0;

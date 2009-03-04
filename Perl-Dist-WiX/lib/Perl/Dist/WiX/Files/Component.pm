@@ -43,7 +43,10 @@ sub _init : Init {
 
 	# Check parameters.
 	unless ( _STRING( $name[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid filename param');
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Files::Component->new'
+		);
 	}
 
 	# Create a GUID if required.
@@ -76,11 +79,14 @@ sub is_file {
 
 	# Check parameters.
 	unless ( _STRING($filename) ) {
-		PDWiX->throw('Missing or invalid filename param');
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Files::Component->is_file'
+		);
 	}
 
 	return ( $self->filename eq $filename ) ? 1 : 0;
-}
+} ## end sub is_file
 
 ########################################
 # get_component_array

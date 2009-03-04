@@ -127,11 +127,14 @@ sub _check_string_parameter {
 	my ( $self, $string, $name ) = @_;
 
 	unless ( _STRING($string) ) {
-		PDWiX->throw("Missing or invalid $name param");
+		PDWiX::Parameter->throw(
+			parameter => $name,
+			where     => '::Installer->new'
+		);
 	}
 
 	return;
-}
+} ## end sub _check_string_parameter
 
 sub new {
 	my $class = shift;
@@ -160,7 +163,10 @@ sub new {
 
 	# Check and default params
 	unless ( _IDENTIFIER( $self->app_id ) ) {
-		PDWiX->throw('Missing or invalid app_id param');
+		PDWiX::Parameter->throw(
+			parameter => 'app_id',
+			where     => '::Installer->new'
+		);
 	}
 	$self->_check_string_parameter( $self->app_name,      'app_name' );
 	$self->_check_string_parameter( $self->app_ver_name,  'app_ver_name' );
@@ -175,24 +181,35 @@ sub new {
 		'default_group_name' );
 	$self->_check_string_parameter( $self->output_dir, 'output_dir' );
 	unless ( -d $self->output_dir ) {
-		PDWiX->throw( 'The output_dir '
-			  . $self->output_dir
-			  . 'directory does not exist' );
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->output_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'output_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
 	}
 	unless ( -w $self->output_dir ) {
 		PDWiX->throw('The output_dir directory is not writable');
 	}
 	$self->_check_string_parameter( $self->output_base_filename,
 		'output_base_filename' );
-	unless ( _STRING( $self->source_dir ) ) {
-		PDWiX->throw('Missing or invalid source_dir param');
-	}
+	$self->_check_string_parameter( $self->source_dir, 'source_dir' );
 	unless ( -d $self->source_dir ) {
-		PDWiX->throw('The source_dir directory does not exist');
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->source_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'source_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
 	}
 	$self->_check_string_parameter( $self->fragment_dir, 'fragment_dir' );
 	unless ( -d $self->fragment_dir ) {
-		PDWiX->throw('The fragment_dir directory does not exist');
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->fragment_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'fragment_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
 	}
 
 	# Set element collections
@@ -437,10 +454,16 @@ sub compile_wxs {
 
 	# Check parameters.
 	unless ( _STRING($filename) ) {
-		PDWiX->throw('Invalid or missing filename parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Installer->compile_wxs'
+		);
 	}
 	unless ( _STRING($wixobj) ) {
-		PDWiX->throw('Invalid or missing wixobj parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'wixobj',
+			where     => '::Installer->compile_wxs'
+		);
 	}
 	unless ( -r $filename ) {
 		PDWiX->throw("$filename does not exist or is not readable");
@@ -610,11 +633,17 @@ sub add_env {
 	}
 
 	unless ( _STRING($name) ) {
-		PDWiX->throw('Invalid or missing name parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => '::Installer->add_env'
+		);
 	}
 
 	unless ( _STRING($value) ) {
-		PDWiX->throw('Invalid or missing value parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'value',
+			where     => '::Installer->add_env'
+		);
 	}
 
 	my $num = $self->{fragments}->{Environment}->get_entries_count();
@@ -642,7 +671,10 @@ sub add_file {
 	my ( $self, %params ) = @_;
 
 	unless ( _STRING( $params{source} ) ) {
-		PDWiX->throw('Invalid or missing source parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'source',
+			where     => '::Installer->add_file'
+		);
 	}
 
 	unless ( -f $params{source} ) {
@@ -650,7 +682,10 @@ sub add_file {
 	}
 
 	unless ( _IDENTIFIER( $params{fragment} ) ) {
-		PDWiX->throw('Invalid or missing fragment parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'fragment',
+			where     => '::Installer->add_file'
+		);
 	}
 
 	unless ( defined $self->{fragments}->{ $params{fragment} } ) {
@@ -677,10 +712,16 @@ sub insert_fragment {
 
 	# Check parameters.
 	unless ( _IDENTIFIER($id) ) {
-		PDWiX->throw('Invalid or missing id parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Installer->insert_fragment'
+		);
 	}
 	unless ( _ARRAY0($files_ref) ) {
-		PDWiX->throw('Invalid or missing files_ref parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'files_ref',
+			where     => '::Installer->insert_fragment'
+		);
 	}
 
 	$self->trace_line( 2, "Adding fragment $id...\n" );
@@ -714,10 +755,16 @@ sub add_to_fragment {
 
 	# Check parameters.
 	unless ( _IDENTIFIER($id) ) {
-		PDWiX->throw('Invalid or missing id parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Installer->add_to_fragment'
+		);
 	}
 	unless ( _ARRAY($files_ref) ) {
-		PDWiX->throw('Invalid or missing files_ref parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'files_ref',
+			where     => '::Installer->add_to_fragment'
+		);
 	}
 
 	if ( not exists $self->{fragments}->{$id} ) {

@@ -20,11 +20,15 @@ use     Object::InsideOut     qw(
 use     Params::Util
    qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     File::Spec::Functions qw( splitpath catpath catdir );
+use     Readonly              qw( Readonly                 );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
 use version; $VERSION = qv('0.15');
 #>>>
+
+Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';
+
 #####################################################################
 # Accessors:
 #   see new.
@@ -42,12 +46,11 @@ sub _init : Init {
 	my $self = shift;
 
 	# Check parameters
-	unless (
-		_INSTANCE(
-			$self->directory_tree, 'Perl::Dist::WiX::DirectoryTree'
-		) )
-	{
-		PDWiX->throw('Missing or invalid directory_tree parameter');
+	unless ( _INSTANCE( $self->directory_tree, $TREE_CLASS ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory_tree',
+			where     => '::Files->new'
+		);
 	}
 
 	return $self;
@@ -89,7 +92,10 @@ sub add_file {
 
 	# Check parameters.
 	unless ( _STRING($file) ) {
-		PDWiX->throw('Missing or invalid file parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'file',
+			where     => '::Files->new'
+		);
 	}
 
 	# Get the file path.
@@ -196,8 +202,8 @@ sub add_file {
 		# Using $directory_ref_obj [from this object]
 		$subpath = $directory_ref_obj->get_path;
 		$self->trace_line( 5,
-"Stage 3a - Creating Directory within Directory{Ref} for $subpath.\n"
-		);
+			    'Stage 3a - Creating Directory within '
+			  . "Directory{Ref} for $subpath.\n" );
 		$self->trace_line( 5, "  Adding path $path.\n" );
 		$self->trace_line( 5, "  Adding file $file.\n" );
 
@@ -273,7 +279,10 @@ sub _search_refs {
 
 	# Set defaults for parameters.
 	my $path_to_find = $params_ref->{path_to_find}
-	  || PDWiX->throw('No path to find.');
+	  || PDWiX::Parameter->throw(
+		parameter => 'path_to_find',
+		where     => '::Files->_search_refs'
+	  );
 	my $descend = $params_ref->{descend} || 1;
 	my $exact   = $params_ref->{exact}   || 0;
 
@@ -311,7 +320,10 @@ sub search_file {
 
 	# Check parameters.
 	unless ( _STRING($filename) ) {
-		PDWiX->throw('Missing or invalid filename parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Files->search_file'
+		);
 	}
 
 	# How many descendants do we have?
@@ -345,7 +357,10 @@ sub check_duplicates {
 
 	# Check parameters.
 	unless ( _ARRAY0($files_ref) ) {
-		PDWiX->throw('Missing or invalid files_ref parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'files_ref',
+			where     => '::Files->check_duplicates'
+		);
 	}
 
 	# For each file in the list...

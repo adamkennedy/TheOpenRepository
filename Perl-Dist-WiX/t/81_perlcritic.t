@@ -20,6 +20,13 @@ if ( $EVAL_ERROR ) {
    plan( skip_all => $msg );
 }
 
+eval { require Perl::Critic::More; };
+
+if ( $EVAL_ERROR ) {
+   my $msg = 'Perl::Critic::More required to criticise code';
+   plan( skip_all => $msg );
+}
+
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
 all_critic_ok();

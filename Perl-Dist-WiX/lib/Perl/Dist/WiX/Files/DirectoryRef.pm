@@ -19,10 +19,14 @@ use Object::InsideOut qw(
 );
 use Params::Util
     qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
+use Readonly          qw( Readonly );
 use Scalar::Util      qw( blessed  );
 
 use version; $VERSION = qv('0.15');
 #>>>
+
+Readonly my $DIRECTORY_CLASS => 'Perl::Dist::WiX::Directory';
+
 #####################################################################
 # Accessors:
 #   directory_object: Returns the directory object passed in by new.
@@ -41,20 +45,14 @@ my @files : Field : Name(files);
 sub _pre_init : PreInit {
 	my ( $self, $args ) = @_;
 
-	my $directory_object_to_check = $args->{directory_object};
-	if (
-		not _INSTANCE(
-			$directory_object_to_check, 'Perl::Dist::WiX::Directory'
-		) )
+	unless (
+		defined _INSTANCE( $args->{directory_object}, $DIRECTORY_CLASS ) )
 	{
-		if ( defined $directory_object_to_check ) {
-			PDWiX->throw(
-				"Directory_object is really '$directory_object_to_check'\n"
-				  . 'Invalid directory object' );
-		} else {
-			PDWiX->throw('Missing or undefined directory object');
-		}
-	} ## end if ( not _INSTANCE( $directory_object_to_check...
+		PDWiX::Parameter->throw(
+			parameter => 'directory_object',
+			where     => '::Files::DirectoryRef->new'
+		);
+	}
 
 	return;
 } ## end sub _pre_init :
@@ -68,7 +66,6 @@ sub _init : Init {
 
 	return;
 }
-
 
 #####################################################################
 # Main Methods
@@ -107,7 +104,11 @@ sub search_dir {
 
 	# Set defaults for parameters.
 	my $path_to_find = _STRING( $params_ref->{path_to_find} )
-	  or PDWiX->throw('No path to find.');
+	  or PDWiX::Parameter->throw(
+		parameter => 'path_to_find',
+		where     => '::Files::DirectoryRef->search_dir'
+	  );
+
 	my $descend = $params_ref->{descend} or 1;
 	my $exact   = $params_ref->{exact}   or 0;
 
@@ -173,7 +174,10 @@ sub search_file {
 
 	# Check parameters
 	if ( not _STRING($filename) ) {
-		PDWiX->throw('Missing or invalid filename parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Files::DirectoryRef->search_file'
+		);
 	}
 
 	# Get OUR path.
@@ -208,35 +212,44 @@ sub search_file {
 } ## end sub search_file
 
 ########################################
-# delete_filenum($i)
+# delete_filenum($index)
 # Parameters:
-#   $i: Index of file to delete
+#   $index: Index of file to delete
 # Returns:
 #   Object being operated on. (chainable)
 
 sub delete_filenum {
-	my ( $self, $i ) = @_;
+	my ( $self, $index ) = @_;
 	my $object_id = ${$self};
 
 	# Check parameters
-	if ( not defined _NONNEGINT($i) ) {
-		PDWiX->throw('Missing or invalid index parameter');
+	if ( not defined _NONNEGINT($index) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'index',
+			where     => '::Files::DirectoryRef->delete_filenum'
+		);
 	}
 
-	if ( $i >= scalar @{ $files[$object_id] } ) {
-		PDWiX->throw('Not enough files');
+	if ( $index >= scalar @{ $files[$object_id] } ) {
+		PDWiX::Parameter->throw(
+			parameter => q{index: Index greater than last file's},
+			where     => '::Files::DirectoryRef->delete_filenum'
+		);
 	}
 
-	if ( not defined $files[$object_id]->[$i] ) {
-		PDWiX->throw('Already deleted this file');
+	if ( not defined $files[$object_id]->[$index] ) {
+		PDWiX::Parameter->throw(
+			parameter => 'index: File already deleted',
+			where     => '::Files::DirectoryRef->delete_filenum'
+		);
 	}
 
 # Delete the file. (The object should disappear once its reference is set to undef)
 	$self->trace_line( 3,
 		    'Deleting reference to '
-		  . $files[$object_id]->[$i]->filename
+		  . $files[$object_id]->[$index]->filename
 		  . "\n" );
-	$files[$object_id]->[$i] = undef;
+	$files[$object_id]->[$index] = undef;
 
 	return $self;
 } ## end sub delete_filenum
@@ -255,7 +268,10 @@ sub add_directory {
 
 	# Check parameters
 	if ( not _STRING( $params_ref->{path} ) ) {
-		PDWiX->throw('Missing or invalid path parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'path',
+			where     => '::Files::DirectoryRef->add_directory'
+		);
 	}
 
 	# If we have a name, we create the directory object under here.
@@ -283,21 +299,24 @@ sub add_directory {
 #   True if we are a child of the directory object passed in.
 
 sub is_child_of {
-	my ( $self, $directory_obj ) = @_;
+	my ( $self, $directory_object ) = @_;
 	my $object_id = ${$self};
 
 	# Check for a valid Directory or DirectoryRef object.
-	my $class = blessed($directory_obj);
-	unless ( defined $class and (
-		( $class eq 'Perl::Dist::WiX::Directory' )
-		or
-		( $class eq 'Perl::Dist::WiX::Files::DirectoryRef' )
-	  ) )
+	my $class =
+	  defined $directory_object ? blessed($directory_object) : undef;
+	unless (
+		defined $class
+		and (  ( $class eq 'Perl::Dist::WiX::Directory' )
+			or ( $class eq 'Perl::Dist::WiX::Files::DirectoryRef' ) ) )
 	{
-		PDWiX->throw('Invalid directory object passed in.');
+		PDWiX::Parameter->throw(
+			parameter => 'directory_object',
+			where     => '::Files::DirectoryRef->is_child_of'
+		);
 	}
 
-	my $path_to_check = $directory_obj->get_path;
+	my $path_to_check = $directory_object->get_path;
 	my $path          = $self->get_path;
 
 	# Returns false if the object is a "special".
@@ -332,12 +351,18 @@ sub add_file {
 
 	# Check parameters
 	if ( 0 == scalar @params ) {
-		PDWiX->throw('Missing file parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'file',
+			where     => '::Files::DirectoryRef->add_file'
+		);
 	}
 
 	foreach my $j ( 0 .. scalar @params - 1 ) {
 		if ( not _STRING( $params[$j] ) ) {
-			PDWiX->throw("Missing or invalid file[$j] parameter");
+			PDWiX::Parameter->throw(
+				parameter => "file[$j]",
+				where     => '::Files::DirectoryRef->add_file'
+			);
 		}
 	}
 
@@ -363,7 +388,10 @@ sub add_directory_path {
 
 	# Check parameters
 	if ( not _STRING($path) ) {
-		PDWiX->throw('Missing or invalid path parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'path',
+			where     => '::Files::DirectoryRef->add_directory_path'
+		);
 	}
 
 	# Make sure we don't have a trailing slash.

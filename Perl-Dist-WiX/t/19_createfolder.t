@@ -40,7 +40,7 @@ eval {
     );
 };
 
-like($@, qr(Invalid or missing id), '->new catches bad id' );
+like($@, qr(invalid: id), '->new catches bad id' );
 
 is( $folder_1->get_component_array, 'CreateTestID', '->get_component_array' );
 

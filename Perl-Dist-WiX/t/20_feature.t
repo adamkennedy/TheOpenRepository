@@ -76,7 +76,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid level), '->new catches bad level' );
+like($@, qr(invalid: level), '->new catches bad level' );
 
 is( $feature_1->as_string, q{}, '->as_string with no components' );
 

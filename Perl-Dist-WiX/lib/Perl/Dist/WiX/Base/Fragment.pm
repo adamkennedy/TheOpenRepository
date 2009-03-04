@@ -49,10 +49,16 @@ sub _init : Init {
 	my $self = shift;
 
 	unless ( _STRING( $self->get_directory_id ) ) {
-		PDWiX::Parameter->throw(parameter => 'directory', where => '::Base::Fragment->new');
+		PDWiX::Parameter->throw(
+			parameter => 'directory',
+			where     => '::Base::Fragment->new'
+		);
 	}
 	unless ( _STRING( $self->get_fragment_id ) ) {
-		PDWiX::Parameter->throw(parameter => 'id', where => '::Base::Fragment->new');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Base::Fragment->new'
+		);
 	}
 
 	# Initialize components arrayref.
@@ -77,7 +83,10 @@ sub add_component {
 
 	# Check parameters.
 	unless ( _INSTANCE( $component, $COMPONENT_CLASS ) ) {
-		PDWiX::Parameter->throw(parameter => 'component', where => 'Perl::Dist::WiX::Base::Fragment->add_component');
+		PDWiX::Parameter->throw(
+			parameter => 'component',
+			where     => '::Base::Fragment->add_component'
+		);
 	}
 
 	# Adding component to the list.

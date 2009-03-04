@@ -19,11 +19,11 @@ is($misc->indent(2, $string), "  testing\n  indent", 'indent');
 
 eval { $misc->indent(1, q[]); };
 
-like( $@, qr(Missing or invalid string), 'indent prints string error');
+like( $@, qr(invalid: string), 'indent prints string error');
 
 eval { $misc->indent(-1, q[ ]); };
 
-like( $@ , qr(Missing or invalid num), 'indent prints integer error');
+like( $@ , qr(invalid: num), 'indent prints integer error');
 
 # Test 5-11: trace_line
 
@@ -75,14 +75,14 @@ stdout_like( sub { $misc->trace_line(1, "Test 11a\nTest 11b\n") },
 
 eval { $misc->trace_line(-1, q[ ]); };
 
-like( $@, qr(Missing or invalid tracelevel), 'trace_line prints tracelevel error');
+like( $@, qr(invalid: tracelevel), 'trace_line prints tracelevel error');
 
 eval { $misc->trace_line(1, q[]); };
 
-like( $@ , qr(Missing or invalid text), 'trace_line prints text error');
+like( $@ , qr(invalid: text), 'trace_line prints text error');
 
 $misc->set_trace(5);
 eval { $misc->set_trace(-1); };
 
-like( $@ , qr(invalid tracelevel), 'set_trace prints invalid tracelevel error');
+like( $@ , qr(invalid: tracelevel), 'set_trace prints invalid tracelevel error');
 

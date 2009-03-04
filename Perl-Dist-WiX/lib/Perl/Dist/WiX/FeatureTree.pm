@@ -8,7 +8,7 @@ package Perl::Dist::WiX::FeatureTree;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.008;
+use     5.006;
 use     strict;
 use     warnings;
 use     vars                     qw( $VERSION                       );
@@ -40,7 +40,10 @@ sub _init : Init {
 	my $object_id = ${$self};
 
 	unless ( _CLASSISA( ref $parent[$object_id], 'Perl::Dist::WiX' ) ) {
-		PDWiX->throw('Missing or invalid parent parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'parent',
+			where     => '::FeatureTree->new'
+		);
 	}
 
 	# Do this so as not to create a garbage collection loop.
@@ -68,9 +71,9 @@ sub _init : Init {
 # Main Methods
 
 ########################################
-# search($id)
+# search($id_to_find)
 # Parameters:
-#   $id: Id of feature to find.
+#   $id_to_find: Id of feature to find.
 # Returns:
 #   Feature object found or undef.
 
@@ -80,7 +83,10 @@ sub search {
 
 	# Check parameters.
 	unless ( _IDENTIFIER($id_to_find) ) {
-		PDWiX->throw('Missing or invalid id parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'id_to_find',
+			where     => '::FeatureTree->search'
+		);
 	}
 
 	# Check each of our branches.

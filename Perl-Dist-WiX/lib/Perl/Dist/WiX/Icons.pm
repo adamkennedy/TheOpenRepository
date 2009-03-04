@@ -42,10 +42,10 @@ sub _init : Init {
 # Main Methods
 
 ########################################
-# add_icon
+# add_icon($pathname_icon, $pathname_target)
 # Parameters:
-#   pathname_icon: Path of icon.
-#   pathname_target: Path of icon's target.
+#   $pathname_icon: Path of icon.
+#   $pathname_target: Path of icon's target.
 # Returns:
 #   Id of icon.
 
@@ -57,10 +57,16 @@ sub add_icon {
 		$pathname_target = 'Perl.msi';
 	}
 	unless ( defined _STRING($pathname_target) ) {
-		PDWiX->throw('Invalid pathname_target parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'pathname_target',
+			where     => '::Icons->add_icon'
+		);
 	}
 	unless ( defined _STRING($pathname_icon) ) {
-		PDWiX->throw('Invalid pathname_icon parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'pathname_icon',
+			where     => '::Icons->add_icon'
+		);
 	}
 
 	# Find the type of target.
@@ -90,10 +96,10 @@ sub add_icon {
 } ## end sub add_icon
 
 ########################################
-# search_icon
+# search_icon($pathname_icon, $target_type)
 # Parameters:
-#   pathname_icon: Path of icon to search for.
-#   target_type: Target type to search for.
+#   $pathname_icon: Path of icon to search for.
+#   $target_type: Target type to search for.
 # Returns:
 #   Id of icon.
 
@@ -105,10 +111,16 @@ sub search_icon {
 		$target_type = 'msi';
 	}
 	unless ( defined _STRING($target_type) ) {
-		PDWiX->throw('Invalid target_type parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'target_type',
+			where     => '::Icons->search_icon'
+		);
 	}
 	unless ( defined _STRING($pathname_icon) ) {
-		PDWiX->throw('Invalid pathname_icon parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'pathname_icon',
+			where     => '::Icons->search_icon'
+		);
 	}
 
 	if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return undef; }

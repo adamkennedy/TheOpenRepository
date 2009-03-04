@@ -64,7 +64,7 @@ eval {
     );
 };
 
-like( $@, qr(Missing or undefined directory object), '->new catches bad directory object' );
+like( $@, qr(invalid: directory_object), '->new catches bad directory object' );
 
 is( $ref_1->get_path, $path, '->get_path' );
 
@@ -80,7 +80,7 @@ eval {
     my $answer = $ref_2->is_child_of(undef);
 };
 
-like( $@, qr(Invalid directory object), '->is_child_of catches bad object' );
+like( $@, qr(invalid: directory_object), '->is_child_of catches bad object' );
 
 my $dir_1 = $ref_2->add_directory_path($path);
 
@@ -90,7 +90,7 @@ eval {
     my $dir_2 = $ref_2->add_directory_path(undef);
 };
 
-like( $@, qr(Missing or invalid path), '->add_directory_path catches bad path' );
+like( $@, qr(invalid: path), '->add_directory_path catches bad path' );
 
 my $file_1 = $ref_1->add_file(filename => catfile($ref_1->get_path, 'test.txt'), sitename => 'www.test.site.invalid');
 
@@ -104,13 +104,13 @@ eval {
     my $file_2 = $ref_2->add_file();
 };
 
-like( $@, qr(Missing file parameter), '->add_file catches no parameters' );
+like( $@, qr(invalid: file), '->add_file catches no parameters' );
 
 eval {
     my $file_3 = $ref_2->add_file(filename => undef);
 };
 
-like( $@, qr(Missing or invalid file\[1\] parameter), '->add_file catches bad parameters' );
+like( $@, qr(invalid: file\[1\]), '->add_file catches bad parameters' );
 
 is( scalar $ref_1->get_component_array, 1, '->get_component_array' );
 
@@ -126,16 +126,16 @@ eval {
     $ref_2->delete_filenum(-1);
 };
 
-like( $@, qr(Missing or invalid index parameter), '->delete_filenum catches invalid parameter' );
+like( $@, qr(invalid: index), '->delete_filenum catches invalid parameter' );
 
 eval {
     $ref_2->delete_filenum(1);
 };
 
-like( $@, qr(Not enough files), '->delete_filenum catches deleting too much' );
+like( $@, qr(invalid: index: Index greater than last file's), '->delete_filenum catches deleting too much' );
 
 eval {
     $ref_1->delete_filenum(0);
 };
 
-like( $@, qr(Already deleted), '->delete_filenum catches deleting file twice' );
+like( $@, qr(invalid: index: File already deleted), '->delete_filenum catches deleting file twice' );

@@ -42,7 +42,6 @@ my @default_settings : Field : Name(default_settings);
 my @features : Field : Name(features);
 my @componentrefs : Field : Name(componentrefs) : Get(get_componentrefs);
 
-#<<<
 #####################################################################
 # Constructor for Feature
 #
@@ -68,22 +67,34 @@ my @componentrefs : Field : Name(componentrefs) : Get(get_componentrefs);
 #   absent      => 'disallow'
 #   advertise   => 'no'
 
-sub _init :Init {
-	my $self = shift;
+sub _init : Init {
+	my $self      = shift;
 	my $object_id = ${$self};
 
 	# Check required parameters.
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX->throw('Invalid id parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Feature->new'
+		);
 	}
 	unless ( _STRING( $title[$object_id] ) ) {
-		PDWiX->throw('Invalid title parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'title',
+			where     => '::Feature->new'
+		);
 	}
 	unless ( _STRING( $description[$object_id] ) ) {
-		PDWiX->throw('Invalid description parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'description',
+			where     => '::Feature->new'
+		);
 	}
 	unless ( defined _NONNEGINT( $level[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid level parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'level',
+			where     => '::Feature->new'
+		);
 	}
 
 	my $default_settings = 0;
@@ -121,7 +132,7 @@ sub _init :Init {
 	$componentrefs[$object_id] = [];
 
 	return $self;
-}
+} ## end sub _init :
 
 #####################################################################
 # Main Methods
@@ -138,13 +149,16 @@ sub add_feature {
 	my $object_id = ${$self};
 
 	unless ( _INSTANCE( $feature, 'Perl::Dist::WiX::Feature' ) ) {
-		PDWiX->throw('Not adding valid feature');
+		PDWiX::Parameter->throw(
+			parameter => 'feature',
+			where     => '::Feature->add_feature'
+		);
 	}
 
 	push @{ $features[$object_id] }, $feature;
 
 	return $self;
-}
+} ## end sub add_feature
 
 ########################################
 # add_components
@@ -163,7 +177,7 @@ sub add_components {
 }
 
 ########################################
-# search
+# search($id_to_find)
 # Parameters:
 #   $id_to_find: Id of feature to find.
 # Returns:
@@ -174,8 +188,11 @@ sub search {
 	my $object_id = ${$self};
 
 	# Check parameters.
-	unless ( _IDENTIFIER( $id_to_find ) ) {
-		PDWiX->throw('Missing or invalid id parameter');
+	unless ( _IDENTIFIER($id_to_find) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'id_to_find',
+			where     => '::Feature->search'
+		);
 	}
 
 	my $id = $id[$object_id];
@@ -189,7 +206,7 @@ sub search {
 	my $count = scalar @{ $features[$object_id] };
 	my $answer;
 	foreach my $i ( 0 .. $count - 1 ) {
-		$answer = $features[$object_id]->[$i]->search( $id_to_find );
+		$answer = $features[$object_id]->[$i]->search($id_to_find);
 		if ( defined $answer ) {
 			return $answer;
 		}
@@ -209,14 +226,14 @@ sub search {
 #   contained in this object.
 
 sub as_string {
-	my $self = shift;
+	my $self      = shift;
 	my $object_id = ${$self};
 
 	my $f_count = scalar @{ $features[$object_id] };
 	my $c_count = scalar @{ $componentrefs[$object_id] };
 
-	return q{} if (0 == $f_count + $c_count);
-	
+	return q{} if ( 0 == $f_count + $c_count );
+
 	my ( $string, $s );
 #<<<
 	$string =

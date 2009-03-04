@@ -40,7 +40,10 @@ sub _pre_init : PreInit {
 
 	# Check params
 	unless ( _STRING( $args->{name} ) ) {
-		PDWiX->throw('Missing or invalid name param');
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => '::Files::Entry->new'
+		);
 	}
 
 	# Create an ID and GUID.

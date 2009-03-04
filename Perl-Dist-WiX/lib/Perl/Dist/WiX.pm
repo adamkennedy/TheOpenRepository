@@ -16,7 +16,7 @@ Install XML technology, instead of Inno Setup.
 =cut
 
 #<<<
-use     5.008;
+use     5.006;
 use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                   );
@@ -387,17 +387,23 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
-		if ( $params{trace} > 2 ) {
-			print "[WiX.pm 391] [3] Currently executing perl: $perl_location\n";
+		if ( 2 < ( $params{trace} % 100 ) ) {
+			print '[WiX.pm 391] [3] '
+			  . "Currently executing perl: $perl_location\n";
 		}
-		my $our_perl_location = lc catfile($params{image_dir}, qw(perl bin perl.exe));
-		if ( $params{trace} > 2 ) {
-			print "[WiX.pm 395] [3] Our perl to create:       $our_perl_location\n";
+		my $our_perl_location =
+		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
+		if ( 2 < ( $params{trace} % 100 ) ) {
+			print '[WiX.pm 397] [3] '
+			  . "Our perl to create:       $our_perl_location\n";
 		}
 
-		PDWiX::Parameter->throw(parameter =>'image_dir: attempting to commit suicide', where => '->new') if ( $our_perl_location eq $perl_location); 
+		PDWiX::Parameter->throw(
+			parameter => ' image_dir : attempting to commit suicide ',
+			where     => '->new'
+		) if ( $our_perl_location eq $perl_location );
 		$class->remake_path( $params{image_dir} );
-	}
+	} ## end if ( defined $params{image_dir...
 	unless ( defined $params{perl_version} ) {
 		$params{perl_version} = '5100';
 	}
@@ -407,16 +413,25 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	# Check the version of Perl to build
 	unless ( $self->build_number ) {
-		PDWiX::Parameter->throw(parameter => 'build_number', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'build_number',
+			where     => '->new'
+		);
 	}
 	unless ( $self->beta_number ) {
 		$self->{beta_number} = 0;
 	}
 	unless ( $self->perl_version_literal ) {
-		PDWiX::Parameter->throw(parameter => 'perl_version_literal: Failed to resolve', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version_literal: Failed to resolve',
+			where     => '->new'
+		);
 	}
 	unless ( $self->perl_version_human ) {
-		PDWiX::Parameter->throw(parameter => 'perl_version_human: Failed to resolve', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version_human: Failed to resolve',
+			where     => '->new'
+		);
 	}
 	unless ( $self->can( 'install_perl_' . $self->perl_version ) ) {
 		PDWiX->throw(
@@ -490,30 +505,51 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{modules_dir} = catdir( $self->download_dir, 'modules' );
 	}
 	unless ( _STRING( $self->modules_dir ) ) {
-		PDWiX::Parameter->throw(parameter => 'modules_dir', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'modules_dir',
+			where     => '->new'
+		);
 	}
 	$self->_check_string_parameter( $self->image_dir, 'image_dir' );
 	if ( $self->image_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(parameter => 'image_dir: Spaces are not allowed', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'image_dir: Spaces are not allowed',
+			where     => '->new'
+		);
 	}
 	unless ( defined $self->license_dir ) {
 		$self->{license_dir} = catdir( $self->image_dir, 'licenses' );
 	}
 	unless ( _STRING( $self->license_dir ) ) {
-		PDWiX::Parameter->throw(parameter => 'license_dir', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'license_dir',
+			where     => '->new'
+		);
 	}
 	$self->_check_string_parameter( $self->build_dir, 'build_dir' );
 	if ( $self->build_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(parameter => 'build_dir: Spaces are not allowed', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'build_dir: Spaces are not allowed',
+			where     => '->new'
+		);
 	}
 	unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
-		PDWiX::Parameter->throw(parameter => 'user_agent', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'user_agent',
+			where     => '->new'
+		);
 	}
 	unless ( _INSTANCE( $self->cpan, 'URI' ) ) {
-		PDWiX::Parameter->throw(parameter => 'cpan: Not a URI instance', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'cpan: Not a URI instance',
+			where     => '->new'
+		);
 	}
 	unless ( $self->cpan->as_string =~ m{\/\z}ms ) {
-		PDWiX::Parameter->throw(parameter => 'cpan: Missing trailing slash', where => '->new');
+		PDWiX::Parameter->throw(
+			parameter => 'cpan: Missing trailing slash',
+			where     => '->new'
+		);
 	}
 
 	# Clear the previous build
@@ -599,7 +635,10 @@ sub binary_url {
 
 	# Check parameters.
 	unless ( _STRING($file) ) {
-		PDWiX::Parameter->throw(parameter => 'file', where => '->binary_url');
+		PDWiX::Parameter->throw(
+			parameter => 'file',
+			where     => '->binary_url'
+		);
 	}
 
 	unless ( $file =~ /\.(zip | gz | tgz)\z/imsx ) {
@@ -992,7 +1031,8 @@ sub run {
 	$self->checkpoint_task( install_win32_extras => 5 );
 
 	# Apply optional portability support
-	$self->checkpoint_task( install_portable => 6 ) if $self->portable;
+	$self->checkpoint_task( install_portable => 6 )
+	  if $self->portable;
 
 	# Remove waste and temporary files
 	$self->checkpoint_task( remove_waste => 7 );
@@ -3345,7 +3385,8 @@ sub patch_file {
 	my $from_tt = $pathlist->find_file($file_tt);
 	unless ( defined $from and defined $from_tt ) {
 		PDWiX->throw(
-			"Missing or invalid file $file or $file_tt in pathlist search");
+			"Missing or invalid file $file or $file_tt in pathlist search"
+		);
 	}
 
 	if ( $from_tt ne q{} ) {
@@ -3539,7 +3580,8 @@ sub _move {
 	my $basedir = File::Basename::dirname($to);
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace_line( 2, "Moving $from to $to\n" );
-	File::Copy::Recursive::rmove( $from, $to ) or PDWiX->throw($OS_ERROR);
+	File::Copy::Recursive::rmove( $from, $to )
+	  or PDWiX->throw($OS_ERROR);
 
 	return;
 }
@@ -3557,7 +3599,8 @@ sub _make {
 	my @params = @_;
 	$self->trace_line( 2,
 		join( q{ }, '>', $self->bin_make, @params ) . qq{\n} );
-	$self->_run3( $self->bin_make, @params ) or PDWiX->throw('make failed');
+	$self->_run3( $self->bin_make, @params )
+	  or PDWiX->throw('make failed');
 	PDWiX->throw('make failed (OS error)') if ( $CHILD_ERROR >> 8 );
 	return 1;
 }
@@ -3567,7 +3610,8 @@ sub _perl {
 	my @params = @_;
 	$self->trace_line( 2,
 		join( q{ }, '>', $self->bin_perl, @params ) . qq{\n} );
-	$self->_run3( $self->bin_perl, @params ) or PDWiX->throw('perl failed');
+	$self->_run3( $self->bin_perl, @params )
+	  or PDWiX->throw('perl failed');
 	PDWiX->throw('perl failed (OS error)') if ( $CHILD_ERROR >> 8 );
 	return 1;
 }

@@ -9,7 +9,7 @@ package Perl::Dist::WiX::Filelist;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.008;
+use 5.006;
 use strict;
 use warnings;
 use vars                   qw( $VERSION                          );
@@ -62,7 +62,10 @@ sub clone {
 
 	# Check parameters
 	unless ( _INSTANCE( $source, 'Perl::Dist::WiX::Filelist' ) ) {
-		PDWiX->throw('Missing or invalid source parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'source',
+			where     => '::Filelist->clone'
+		);
 	}
 
 	my %files = %{ $source->get_files };
@@ -192,10 +195,16 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 
 	# Check parameters.
 	unless ( _STRING($dir) ) {
-		PDWiX->throw('Missing or invalid dir parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'dir',
+			where     => '::Filelist->readdir'
+		);
 	}
 	unless ( -d $dir ) {
-		PDWiX->throw("$dir is not a directory");
+		PDWiX::Parameter->throw(
+			parameter => "dir: $dir is not a directory",
+			where     => '::Filelist->readdir'
+		);
 	}
 
 	# Open directory.
@@ -247,10 +256,16 @@ sub load_file {
 
 	# Check parameters.
 	unless ( _STRING($packlist) ) {
-		PDWiX->throw('Missing or invalid packlist parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'packlist',
+			where     => '::Filelist->load_file'
+		);
 	}
 	unless ( -r $packlist ) {
-		PDWiX->throw("$packlist cannot be read");
+		PDWiX::Parameter->throw(
+			parameter => "packlist: $packlist cannot be read",
+			where     => '::Filelist->load_file'
+		);
 	}
 
 	# Read ,packlist file.
@@ -310,7 +325,10 @@ sub add_file {
 
 	# Check parameters.
 	unless ( _STRING($file) ) {
-		PDWiX->throw('Missing or invalid file parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'file',
+			where     => '::Filelist->add_file'
+		);
 	}
 
 	$files[$object_id]{$file} = 1;
@@ -333,7 +351,10 @@ sub subtract {
 
 	# Check parameters
 	unless ( _INSTANCE( $subtrahend, 'Perl::Dist::WiX::Filelist' ) ) {
-		PDWiX->throw('Missing or invalid subtrahend parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'subtrahend',
+			where     => '::Filelist->subtract'
+		);
 	}
 
 	my @files_to_remove = keys %{ $subtrahend->get_files };
@@ -357,7 +378,10 @@ sub add {
 
 	# Check parameters
 	unless ( _INSTANCE( $term, 'Perl::Dist::WiX::Filelist' ) ) {
-		PDWiX->throw('Missing or invalid term parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'term',
+			where     => '::Filelist->add'
+		);
 	}
 
 	# Add the two hashes together.
@@ -383,10 +407,16 @@ sub move {
 
 	# Check parameters.
 	unless ( _STRING($from) ) {
-		PDWiX->throw('Missing or invalid from parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'from',
+			where     => '::Filelist->move'
+		);
 	}
 	unless ( _STRING($to) ) {
-		PDWiX->throw('Missing or invalid to parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'to',
+			where     => '::Filelist->move'
+		);
 	}
 
 	# Move the file if it exists.
@@ -414,10 +444,16 @@ sub move_dir {
 
 	# Check parameters.
 	unless ( _STRING($from) ) {
-		PDWiX->throw('Missing or invalid from parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'from',
+			where     => '::Filelist->move_dir'
+		);
 	}
 	unless ( _STRING($to) ) {
-		PDWiX->throw('Missing or invalid to parameter');
+		PDWiX::Parameter->throw(
+			parameter => 'to',
+			where     => '::Filelist->move_dir'
+		);
 	}
 
 	# Find which files need moved.

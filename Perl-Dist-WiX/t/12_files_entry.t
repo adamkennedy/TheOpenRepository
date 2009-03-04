@@ -34,7 +34,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid name), '->new catches bad name' );
+like($@, qr(invalid: name), '->new catches bad name' );
 
 
 my $entry_test_1 = [

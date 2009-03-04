@@ -57,7 +57,10 @@ sub _pre_init : PreInit {
 	my ( $self, $args ) = @_;
 
 	unless ( _STRING( $args->{name} ) ) {
-		PDWiX->throw('Missing or invalid name param');
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 
 	unless ( _STRING( $args->{description} ) ) {
@@ -65,7 +68,10 @@ sub _pre_init : PreInit {
 	}
 
 	unless ( _STRING( $args->{id} ) ) {
-		PDWiX->throw('Missing or invalid id param');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 
 	unless ( _STRING( $args->{guid} ) ) {
@@ -80,16 +86,28 @@ sub _init : Init {
 	my $object_id = ${$self};
 
 	unless ( _STRING( $target[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid target param');
+		PDWiX::Parameter->throw(
+			parameter => 'target',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 	unless ( _STRING( $working_dir[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid working_dir param');
+		PDWiX::Parameter->throw(
+			parameter => 'working_dir',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 	unless ( _STRING( $menudir_id[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid menudir_id param');
+		PDWiX::Parameter->throw(
+			parameter => 'menudir_id',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 	unless ( _STRING( $icon_id[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid icon_id param');
+		PDWiX::Parameter->throw(
+			parameter => 'icon_id',
+			where     => '::StartMenuComponent->new'
+		);
 	}
 
 	$self->trace_line( 3, "Adding Icon for $target[$object_id]\n" );

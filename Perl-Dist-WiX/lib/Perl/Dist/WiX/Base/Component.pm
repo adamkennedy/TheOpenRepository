@@ -66,7 +66,10 @@ sub add_entry {
 	my $object_id = ${$self};
 
 	unless ( _INSTANCE( $entry, 'Perl::Dist::WiX::Base::Entry' ) ) {
-		PDWiX::Parameter->throw(parameter => 'entry', where => '::Base::Component->add_entry');
+		PDWiX::Parameter->throw(
+			parameter => 'entry',
+			where     => '::Base::Component->add_entry'
+		);
 	}
 
 	# getting the number of items in the array
@@ -95,7 +98,10 @@ sub create_guid_from_id {
 
 	# Check parameters.
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX::Parameter->throw( parameter => 'id', where => '::Base::Component->create_guid_from_id' );
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Base::Component->create_guid_from_id'
+		);
 	}
 
 	# Generate the GUID...

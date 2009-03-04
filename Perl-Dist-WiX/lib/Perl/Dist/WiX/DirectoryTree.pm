@@ -68,7 +68,10 @@ sub search_dir {
 		    "\$self: $self\n$params_ref: $params_ref\n"
 		  . "path_to_find: $params_ref->{path_to_find}\n" );
 	my $path_to_find = _STRING( $params_ref->{path_to_find} )
-	  || PDWiX::Parameter->throw(parameter => 'path_to_find', where => '::DirectoryTree->search_dir');
+	  || PDWiX::Parameter->throw(
+		parameter => 'path_to_find',
+		where     => '::DirectoryTree->search_dir'
+	  );
 	my $descend = $params_ref->{descend} || 1;
 	my $exact   = $params_ref->{exact}   || 0;
 
@@ -251,11 +254,17 @@ sub add_root_directory {
 	my ( $self, $id, $dir ) = @_;
 
 	unless ( defined _IDENTIFIER($id) ) {
-		PDWiX::Parameter->throw(parameter => 'id', where => '::DirectoryTree->add_root_directory');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::DirectoryTree->add_root_directory'
+		);
 	}
 
 	unless ( defined _STRING($dir) ) {
-		PDWiX::Parameter->throw(parameter => 'dir', where => '::DirectoryTree->add_root_directory');
+		PDWiX::Parameter->throw(
+			parameter => 'dir',
+			where     => '::DirectoryTree->add_root_directory'
+		);
 	}
 
 	my $path = $self->app_dir;

@@ -64,23 +64,37 @@ sub _init : Init {
 
 	# Check params
 	unless ( _IDENTIFIER( $action[$object_id] ) ) {
-		PDWiX->throw('Invalid action param');
+		PDWiX::Parameter->throw(
+			parameter => 'action',
+			where     => '::Registry::Entry->new'
+		);
 	}
 	unless ( $self->check_options( $action[$object_id], @ACTION_OPTIONS ) )
 	{
-		PDWiX->throw(
-			'Invalid action param (must be append, prepend, or write)');
+		PDWiX::Parameter->throw(
+			parameter => 'action: Must be append, prepend, or write',
+			where     => '::Registry::Entry->new'
+		);
 	}
 	unless ( $self->check_options( $type[$object_id], @TYPE_OPTIONS ) ) {
 		## no critic 'RequireInterpolationOfMetachars'
-		PDWiX->throw( 'Invalid value_type param (see WiX '
-			  . q{documentation for RegistryValue/@Type)} );
+		PDWiX::Parameter->throw(
+			parameter => 'value_type: See WiX '
+			  . q{documentation for RegistryValue/@Type},
+			where => '::Registry::Entry->new'
+		);
 	}
 	unless ( _IDENTIFIER( $name[$object_id] ) ) {
-		PDWiX->throw('Invalid value_name param');
+		PDWiX::Parameter->throw(
+			parameter => 'value_name',
+			where     => '::Registry::Entry->new'
+		);
 	}
 	unless ( _STRING( $data[$object_id] ) ) {
-		PDWiX->throw('Invalid value_data param');
+		PDWiX::Parameter->throw(
+			parameter => 'value_data',
+			where     => '::Registry::Entry->new'
+		);
 	}
 
 	return $self;

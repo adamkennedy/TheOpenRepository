@@ -56,6 +56,6 @@ eval {
     $component_1->add_entry($s);
 };
 
-like($@, qr(Not adding a valid component), '->add_component catches bad component' );
+like($@, qr(invalid: entry), '->add_entry catches bad entry' );
 
 

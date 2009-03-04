@@ -39,7 +39,10 @@ sub _pre_init : PreInit {
 	unless ( defined $args->{guid} ) {
 		my $id = $args->{id};
 		unless ( defined _STRING($id) ) {
-			PDWiX::Parameter->throw(parameter => 'id', where => '::CreateFolder->new');
+			PDWiX::Parameter->throw(
+				parameter => 'id',
+				where     => '::CreateFolder->new'
+			);
 		}
 		$args->{guid} = $self->generate_guid("Create$id");
 	}

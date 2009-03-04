@@ -29,7 +29,7 @@ eval {
         id => undef);
 };
 
-like($@, qr(Missing or invalid id), '->new catches bad id' );
+like($@, qr(invalid: id), '->new catches bad id' );
 
 eval {
     my $s = q{};
@@ -38,7 +38,7 @@ eval {
         directory => \$s);
 };
 
-like($@, qr(Invalid directory), '->new catches bad directory' );
+like($@, qr(invalid: directory), '->new catches bad directory' );
 
 my $fragment_test_1 = [
   'Perl::Dist::WiX::Base::Fragment',
@@ -68,6 +68,6 @@ eval {
     $fragment_1->add_component($s);
 };
 
-like($@, qr(Not adding a valid component), '->add_component catches bad component' );
+like($@, qr(invalid: component), '->add_component catches bad component' );
 
 

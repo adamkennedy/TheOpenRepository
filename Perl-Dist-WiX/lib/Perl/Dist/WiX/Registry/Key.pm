@@ -49,7 +49,10 @@ sub _pre_init : PreInit {
 
 	# Check parameter needed here.
 	unless ( _STRING( $args->{id} ) ) {
-		PDWiX->throw('Missing or invalid id param');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::Registry::Key->new'
+		);
 	}
 
 	# Apply defaults
@@ -69,13 +72,22 @@ sub _init : Init {
 
 	# Check params
 	unless ( _IDENTIFIER( $root[$object_id] ) ) {
-		PDWiX->throw('Invalid root param');
+		PDWiX::Parameter->throw(
+			parameter => 'root',
+			where     => '::Registry::Key->new'
+		);
 	}
 	unless ( $self->check_options( $root[$object_id], @ROOT_OPTIONS ) ) {
-		PDWiX->throw('Invalid root param (not a valid registry root key)');
+		PDWiX::Parameter->throw(
+			parameter => 'root: not a valid registry root key',
+			where     => '::Registry::Key->new'
+		);
 	}
 	unless ( _STRING( $key[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid subkey param');
+		PDWiX::Parameter->throw(
+			parameter => 'key',
+			where     => '::Registry::Key->new'
+		);
 	}
 
 	return $self;
@@ -118,10 +130,22 @@ sub is_key {
 	my $object_id = ${$self};
 
 	unless ( _IDENTIFIER($root) ) {
-		PDWiX->throw('Missing or invalid root param');
+		PDWiX::Parameter->throw(
+			parameter => 'root',
+			where     => '::Registry::Key->is_key'
+		);
+	}
+	unless ( $self->check_options( $root, @ROOT_OPTIONS ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'root: not a valid registry root key',
+			where     => '::Registry::Key->is_key'
+		);
 	}
 	unless ( _STRING($key) ) {
-		PDWiX->throw('Missing or invalid subkey param');
+		PDWiX::Parameter->throw(
+			parameter => 'key',
+			where     => '::Registry::Key->is_key'
+		);
 	}
 
 	return 0 if ( uc $key  ne uc $key[$object_id] );

@@ -86,7 +86,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid id), 'Registry::Key->new catches bad id' );
+like($@, qr(invalid: id), 'Registry::Key->new catches bad id' );
 
 is( $key_1->as_string,
     q{},
@@ -135,7 +135,7 @@ eval {
     );
 };
 
-like($@, qr(Invalid value_type), 'Registry::Entry->new catches bad value_type' );
+like($@, qr(invalid: value_type), 'Registry::Entry->new catches bad value_type' );
 
 eval {
     my $entry_3 = Perl::Dist::WiX::Registry::Entry->new(

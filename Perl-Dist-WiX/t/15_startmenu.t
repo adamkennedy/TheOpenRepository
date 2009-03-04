@@ -62,7 +62,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid id), 'StartMenuComponent->new catches bad id' );
+like($@, qr(invalid: id), 'StartMenuComponent->new catches bad id' );
 
 eval {
     my $component_4 = Perl::Dist::WiX::StartMenuComponent->new(
@@ -78,7 +78,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid name), 'StartMenuComponent->new catches bad name' );
+like($@, qr(invalid: name), 'StartMenuComponent->new catches bad name' );
 
 eval {
     my $component_5 = Perl::Dist::WiX::StartMenuComponent->new(
@@ -94,7 +94,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid target), 'StartMenuComponent->new catches bad target' );
+like($@, qr(invalid: target), 'StartMenuComponent->new catches bad target' );
 
 eval {
     my $component_6 = Perl::Dist::WiX::StartMenuComponent->new(
@@ -110,7 +110,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid working_dir), 'StartMenuComponent->new catches bad working_dir' );
+like($@, qr(invalid: working_dir), 'StartMenuComponent->new catches bad working_dir' );
 
 eval {
     my $component_7 = Perl::Dist::WiX::StartMenuComponent->new(
@@ -126,7 +126,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid menudir_id), 'StartMenuComponent->new catches bad menudir_id' );
+like($@, qr(invalid: menudir_id), 'StartMenuComponent->new catches bad menudir_id' );
 
 eval {
     my $component_8 = Perl::Dist::WiX::StartMenuComponent->new(
@@ -142,7 +142,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid icon_id), 'StartMenuComponent->new catches bad icon_id' );
+like($@, qr(invalid: icon_id), 'StartMenuComponent->new catches bad icon_id' );
 
 my $component_test_string_1 = <<'EOF';
 <Component Id='C_S_Test_Icon' Guid='7F231660-EE9D-34A7-AC48-DD3A45C7235C'>

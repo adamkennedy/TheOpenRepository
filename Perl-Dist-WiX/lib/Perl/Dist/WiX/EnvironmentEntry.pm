@@ -47,13 +47,22 @@ sub _init : Init {
 
 	# Check params
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX::Parameter->throw(parameter => 'id', where => '::EnvironmentEntry->new');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => '::EnvironmentEntry->new'
+		);
 	}
 	unless ( _STRING( $name[$object_id] ) ) {
-		PDWiX::Parameter->throw(parameter => 'name', where => '::EnvironmentEntry->new');
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => '::EnvironmentEntry->new'
+		);
 	}
 	unless ( _STRING( $value[$object_id] ) ) {
-		PDWiX::Parameter->throw(parameter => 'value', where => '::EnvironmentEntry->new');
+		PDWiX::Parameter->throw(
+			parameter => 'value',
+			where     => '::EnvironmentEntry->new'
+		);
 	}
 
 	# TODO: Check for valid enums...

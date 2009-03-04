@@ -48,7 +48,7 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid id), '->new catches bad id' );
+like($@, qr(invalid: id), '->new catches bad id' );
 
 eval {
     my $files_3 = Perl::Dist::WiX::Files->new(
@@ -59,6 +59,6 @@ eval {
     );
 };
 
-like($@, qr(Missing or invalid directory_tree), '->new catches bad directory_tree' );
+like($@, qr(invalid: directory_tree), '->new catches bad directory_tree' );
 
 is( $files_1->as_string, q{}, '->as_string with no components' );
