@@ -21,7 +21,7 @@ use Params::Util
     qw( _IDENTIFIER _STRING _INSTANCE _NONNEGINT );
 use Scalar::Util      qw( blessed  );
 
-use version; $VERSION = qv('0.14');
+use version; $VERSION = qv('0.15');
 #>>>
 #####################################################################
 # Accessors:

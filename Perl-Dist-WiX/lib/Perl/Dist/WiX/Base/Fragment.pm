@@ -19,7 +19,7 @@ use Readonly          qw( Readonly                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
 use Params::Util      qw( _INSTANCE _STRING                      );
 
-use version; $VERSION = qv('0.14');
+use version; $VERSION = qv('0.15');
 
 Readonly my $COMPONENT_CLASS => 'Perl::Dist::WiX::Base::Component';
 
@@ -49,10 +49,10 @@ sub _init : Init {
 	my $self = shift;
 
 	unless ( _STRING( $self->get_directory_id ) ) {
-		PDWiX::Parameter->throw(parameter => 'directory', where => 'Perl::Dist::WiX::Base::Fragment->new');
+		PDWiX::Parameter->throw(parameter => 'directory', where => '::Base::Fragment->new');
 	}
 	unless ( _STRING( $self->get_fragment_id ) ) {
-		PDWiX::Parameter->throw(parameter => 'id', where => 'Perl::Dist::WiX::Base::Fragment->new');
+		PDWiX::Parameter->throw(parameter => 'id', where => '::Base::Fragment->new');
 	}
 
 	# Initialize components arrayref.

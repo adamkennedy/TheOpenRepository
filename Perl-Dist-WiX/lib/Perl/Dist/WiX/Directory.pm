@@ -23,7 +23,7 @@ use     Scalar::Util           qw( blessed            );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
-use version; $VERSION = qv('0.14');
+use version; $VERSION = qv('0.15');
 #>>>
 #####################################################################
 # Accessors:
@@ -296,7 +296,7 @@ sub add_directory_path {
 
 	# Check required parameters.
 	unless ( _STRING($path) ) {
-		PDWiX->throw(parameter => 'path', where => '::Directory->add_directory_path');
+		PDWiX::Parameter->throw(parameter => 'path', where => '::Directory->add_directory_path');
 	}
 
 	if ( substr( $path, -1 ) eq q{\\} ) {
@@ -356,7 +356,7 @@ sub add_directory {
 			or ( $params_ref->{special} == 0 ) )
 		and ( not _STRING( $params_ref->{path} ) ) )
 	{
-		PDWiX->throw(parameter => 'path', where => '::Directory::add_directory');
+		PDWiX::Parameter->throw(parameter => 'path', where => '::Directory::add_directory');
 	}
 
 	# If we have a name or a special code, we create it under here.

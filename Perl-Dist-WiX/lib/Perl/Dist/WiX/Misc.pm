@@ -59,7 +59,7 @@ sub PDWiX::full_message { ## no critic 'Capitalization'
 sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
-	my $string     = $self->description() . ': ' . $self->parameter() . q{ in } . $self->where() . "\n";
+	my $string     = $self->description() . ': ' . $self->parameter() . ' in Perl::Dist::Wix' . $self->where() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 

@@ -395,7 +395,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			print "[WiX.pm 395] [3] Our perl to create:       $our_perl_location\n";
 		}
 
-		PDWiX::Parameter->throw(parameter =>'image_dir: attempting to commit suicide', where => 'Perl::Dist::WiX->new') if ( $our_perl_location eq $perl_location); 
+		PDWiX::Parameter->throw(parameter =>'image_dir: attempting to commit suicide', where => '->new') if ( $our_perl_location eq $perl_location); 
 		$class->remake_path( $params{image_dir} );
 	}
 	unless ( defined $params{perl_version} ) {
@@ -407,16 +407,16 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	# Check the version of Perl to build
 	unless ( $self->build_number ) {
-		PDWiX::Parameter->throw(parameter => 'build_number', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'build_number', where => '->new');
 	}
 	unless ( $self->beta_number ) {
 		$self->{beta_number} = 0;
 	}
 	unless ( $self->perl_version_literal ) {
-		PDWiX::Parameter->throw(parameter => 'perl_version_literal: Failed to resolve', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'perl_version_literal: Failed to resolve', where => '->new');
 	}
 	unless ( $self->perl_version_human ) {
-		PDWiX::Parameter->throw(parameter => 'perl_version_human: Failed to resolve', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'perl_version_human: Failed to resolve', where => '->new');
 	}
 	unless ( $self->can( 'install_perl_' . $self->perl_version ) ) {
 		PDWiX->throw(
@@ -490,30 +490,30 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{modules_dir} = catdir( $self->download_dir, 'modules' );
 	}
 	unless ( _STRING( $self->modules_dir ) ) {
-		PDWiX::Parameter->throw(parameter => 'modules_dir', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'modules_dir', where => '->new');
 	}
 	$self->_check_string_parameter( $self->image_dir, 'image_dir' );
 	if ( $self->image_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(parameter => 'image_dir: Spaces are not allowed', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'image_dir: Spaces are not allowed', where => '->new');
 	}
 	unless ( defined $self->license_dir ) {
 		$self->{license_dir} = catdir( $self->image_dir, 'licenses' );
 	}
 	unless ( _STRING( $self->license_dir ) ) {
-		PDWiX::Parameter->throw(parameter => 'license_dir', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'license_dir', where => '->new');
 	}
 	$self->_check_string_parameter( $self->build_dir, 'build_dir' );
 	if ( $self->build_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(parameter => 'build_dir: Spaces are not allowed', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'build_dir: Spaces are not allowed', where => '->new');
 	}
 	unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
-		PDWiX::Parameter->throw(parameter => 'user_agent', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'user_agent', where => '->new');
 	}
 	unless ( _INSTANCE( $self->cpan, 'URI' ) ) {
-		PDWiX::Parameter->throw(parameter => 'cpan: Not a URI instance', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'cpan: Not a URI instance', where => '->new');
 	}
 	unless ( $self->cpan->as_string =~ m{\/\z}ms ) {
-		PDWiX::Parameter->throw(parameter => 'cpan: Missing trailing slash', where => 'Perl::Dist::WiX->new');
+		PDWiX::Parameter->throw(parameter => 'cpan: Missing trailing slash', where => '->new');
 	}
 
 	# Clear the previous build
@@ -599,7 +599,7 @@ sub binary_url {
 
 	# Check parameters.
 	unless ( _STRING($file) ) {
-		PDWiX::Parameter->throw(parameter => 'file', where => 'Perl::Dist::WiX->binary_url');
+		PDWiX::Parameter->throw(parameter => 'file', where => '->binary_url');
 	}
 
 	unless ( $file =~ /\.(zip | gz | tgz)\z/imsx ) {

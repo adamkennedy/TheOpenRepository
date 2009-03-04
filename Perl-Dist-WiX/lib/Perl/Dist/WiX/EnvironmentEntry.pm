@@ -15,7 +15,7 @@ use vars              qw( $VERSION                              );
 use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util      qw( _IDENTIFIER _STRING                   );
 
-use version; $VERSION = qv('0.14');
+use version; $VERSION = qv('0.15');
 #>>>
 #####################################################################
 # Accessors:
@@ -47,13 +47,13 @@ sub _init : Init {
 
 	# Check params
 	unless ( _STRING( $id[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid id param');
+		PDWiX::Parameter->throw(parameter => 'id', where => '::EnvironmentEntry->new');
 	}
 	unless ( _STRING( $name[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid name param');
+		PDWiX::Parameter->throw(parameter => 'name', where => '::EnvironmentEntry->new');
 	}
 	unless ( _STRING( $value[$object_id] ) ) {
-		PDWiX->throw('Missing or invalid value param');
+		PDWiX::Parameter->throw(parameter => 'value', where => '::EnvironmentEntry->new');
 	}
 
 	# TODO: Check for valid enums...
