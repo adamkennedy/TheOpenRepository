@@ -24,12 +24,13 @@ use attributes   ();
 use Carp         ();
 use Scalar::Util ();
 use Params::Util ();
-use POE          qw{ Session };
+use POE;
+use POE::Session ();
 use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 # Inside-out storage of internal values
@@ -333,7 +334,6 @@ sub _stop : Event {
 
 
 
-
 #####################################################################
 # POE::Session Wrappers
 
@@ -441,6 +441,7 @@ sub lookback {
 
 
 
+
 #####################################################################
 # POE::Kernel Wrappers
 
@@ -487,7 +488,7 @@ session.
 =cut
 
 sub alarm_set {
-	my $self = shift;
+	shift;
 	$poe_kernel->alarm_set( @_ );
 }
 
@@ -502,7 +503,7 @@ object's session.
 =cut
 
 sub alarm_adjust {
-	my $self = shift;
+	shift;
 	$poe_kernel->alarm_adjust( @_ );
 }
 
@@ -517,7 +518,7 @@ object's session.
 =cut
 
 sub alarm_remove {
-	my $self = shift;
+	shift;
 	$poe_kernel->alarm_remove( @_ );
 }
 
@@ -547,7 +548,7 @@ heap object's session.
 =cut
 
 sub delay_set {
-	my $self = shift;
+	shift;
 	$poe_kernel->delay_set( @_ );
 }
 
@@ -562,7 +563,7 @@ heap object's session.
 =cut
 
 sub delay_adjust {
-	my $self = shift;
+	shift;
 	$poe_kernel->delay_adjust( @_ );
 }
 
@@ -590,20 +591,17 @@ registration after the initial creation of the object.
 =cut
 
 sub set_message {
-	my $self = shift;
-	my $name  = shift;
-	unless ( $self->{__callback}->{$name} ) {
-		Carp::croak("The callback event $name does not exist");
+	unless ( $_[0]->{__callback}->{$_[1]} ) {
+		Carp::croak("The callback event $_[1] does not exist");
 	}
-	$self->{$name} = _CALLBACK(shift);
+	$_[0]->{$_[1]} = _CALLBACK($_[2]);
 	return 1;
 }
 
 # Check the validity of a provided message handler,
 # dying if not valid.
 sub is_message {
-	my $self = shift;
-	my $it   = shift;
+	my $it = $_[1];
 
 	# The callback is an anonymous subroutine
 	return $it if Params::Util::_CODE($it);

@@ -29,7 +29,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use POE::Declare::Meta::Slot      ();

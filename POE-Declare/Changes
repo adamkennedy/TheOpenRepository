@@ -1,5 +1,8 @@
 Revision history for Perl extension POE-Declare
 
+0.06 Wed  4 Mar 2009
+	- use POE::Declare is now also an implicit use POE
+
 0.05 Mon 23 Feb 2009
 	- Completing most of the initial pass over the documentation
 	- Switching to using Class::XSAccessor

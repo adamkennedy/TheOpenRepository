@@ -133,7 +133,8 @@ use Exporter           ();
 use List::Util         ();
 use Params::Util       qw{ _IDENTIFIER _CLASS };
 use Class::Inspector   ();
-use POE                qw{ Session };
+use POE;
+use POE::Session       ();
 use POE::Declare::Meta ();
 
 # The base class requires POE::Declare to be fully compiled,
@@ -146,7 +147,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -191,6 +192,12 @@ sub import {
 	# Export the symbols
 	local $Exporter::ExportLevel += 1;
 	$pkg->SUPER::import(@_);
+
+	# Make "use POE::Declare;" an implicit "use POE;" as well
+	eval "package $callpkg; use POE;";
+	die $@ if $@;
+
+	return 1;
 }
 
 =pod
@@ -249,7 +256,10 @@ sub _declare {
 	}
 
 	# Create and save the attribute
-	$ATTR{$pkg}->{$name} = $type->new( name => $name, @_ );
+	$ATTR{$pkg}->{$name} = $type->new(
+		name => $name,
+		@_,
+	);
 
 	return 1;
 }
