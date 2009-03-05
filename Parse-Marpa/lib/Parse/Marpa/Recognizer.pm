@@ -1227,27 +1227,83 @@ Marpa tokens can even overlap.
 For most parsers, position is location in a token stream.
 To deal with variable-length and overlapping tokens,
 Marpa needs a more flexible idea of location.
-This flexibility is provided by tracking parse position in B<earlemes>.
-Earlemes are named after Jay Earley, the inventor of the first algorithm
+Marpa's idea of position is location in an B<earleme> stream.
+B<Earlemes> are named after Jay Earley, the inventor of the first algorithm
 in Marpa's lineage.
 
+While scanning, Marpa keeps track of the B<current earleme>.
+Earlemes in an earleme start at earleme 0 and increase numerically.
+The earleme immediately following earleme 0 is earleme 1,
+the earleme immediately following earleme 1 is earleme 2,
+and so on.
+The earleme immediately following earleme I<N> is always earleme I<N+1>.
+
+B<Distance> in the earleme stream are what you'd expect.
+The distance between earleme I<X> and earleme I<Y> is
+the absolute value of the difference between I<X> and I<Y>,
+I<|X-Y|>.
+The distance from earleme 3 to earleme 6,
+for example, is 3 earlemes.
+
+Whenever a token is given to Marpa to be scanned,
+it starts at the current earleme.
+In addition to the type and value of the token,
+Marpa must be told token's B<length> in earlemes.
+The length of a Marpa token must be greater than zero.
+This earleme length will become
+the distance from the start of the
+token to the end of the token.
+
+The start of the token is put at the current earleme.
+If the length of the token is I<L>,
+and the number of the current earleme is I<C>,
+the end of the token will be at the earleme number I<C+L>.
+
+=head3 The One-Character-Per-Earleme Model
+
+Many different models of the relationship between tokens and earlemes
+are possible, but two are particularly important.
+One is the one-token-per-earleme model.
+The other is the one-character-per-earleme model.
 If you do your lexing with the C<text> method,
 you will use a
 one-character-per-earleme model.
-Conceptually, the raw input to the parse will be the
-concatenation of
-the series of strings and string references
-provided as arguments to one or more calls
-to the C<text> method.
+
+Using the C<text> method, Marpa receives the input as the series
+of strings and string reference.
+provided in the one or more calls to the C<text> method.
+The B<raw input> can be thought of the concatenation of these
+strings,
+even though the strings are not physically concatenated.
+When the C<text> method is used,
+character position in this raw input will 
+correspond exactly one-to-one with the earleme position.
+
+
 Every character will be treated as being exactly one
 earleme in length.
+Any tokens which are more than one several character in length,
+will span earlemes.
+
+It is common, when a one-character-per-earleme model of input is used,
+for there to be many earlemes at which no tokens start.
+For example,
+in a standard implementation
+of a grammar for a language which allows
+comments,
+no tokens will start at
+any earlemes which corresponds to character locations inside
+a comment.
+
+=head3 Other Models
 
 Marpa is not restricted to the one-character-per-earleme model.
-With the C<earleme> method, you can structure your input in almost any way you like.
-You can, for example, create a token stream and use a one-token-per-earleme model,
-and this would be equivalent to the way things are typically done in parser generators.
+Most parser generators treat location as position in a token stream.
+In Marpa, this correspoind to a
+one-token-per-earleme model.
 
-There are only three restrictions on the mapping of tokens to earlemes:
+If you use the C<earleme> method, you can structure your input in almost any way you like.
+There are only four restrictions:
 
 =over 4
 
@@ -1257,28 +1313,25 @@ Scanning always starts at earleme 0.
 
 =item 2
 
-Tokens must be scanned in earleme order.
-That is, all the tokens starting at earleme I<N>
-must be scanned before any token starting at earleme I<N+1>.
+Earleme I<N> is always scanned immediately before earleme I<N+1>.
+In other words, the earlemes are scanned one by one in increasing numerical order.
 
 =item 3
 
-Tokens cannot be zero or negative in earleme length.
+When an earleme is scanned, all tokens starting at that earleme must be
+added.
+It is perfectly acceptable for there to be no tokens
+starting at a given earleme.
+However, once earleme I<N> is scanned,
+it is no longer possible to add a token starting at any of the earlemes
+from 0 to I<N>.
+
+=item 4
+
+With every token, a length in earlemes must be given,
+and this length cannot be zero or negative.
 
 =back
-
-B<Earleme number> I<N>, or B<earleme> I<N>,
-means the location I<N> earlemes
-after earleme 0.
-B<Length> in earlemes means what you think it does.
-The length from earleme 3 to earleme 6,
-for example, is 3 earlemes.
-
-When a token is scanned, the start of the token is put at the B<current earleme>.
-The end of the token is at earleme number I<c+l>,
-where I<c> is the location number of the current earleme,
-and I<l> is the length of the token.
-The length of the token must be greater than zero.
 
 =head2 Exhaustion
 
@@ -1290,7 +1343,8 @@ If the new token's end earleme is after the furthest earleme,
 the furthest earleme is set at the new token's end earleme.
 
 If, after scanning all the tokens at an earleme,
-the current earleme is at or before the furthest earleme,
+the current earleme
+has reached the furthest earleme,
 no more successful parses are possible.
 At this point, the recognizer is said to
 be B<exhausted>.
@@ -1302,39 +1356,35 @@ when the recognizer is exhausted.
 Parsing is said to be active,
 when the recognizer is active.
 
-Whether a recognizer is exhausted or active
-is about the future.
-That is, exhaustion and activeness are about
-whether, given more input, successful parses might result.
-Recognizer exhaustion and activeness has nothing to 
-with the past.
-There may or may not be successful parses in
-the input up to the current point.
-
-In other words,
-exhausted parsing does not mean failed parsing
-and active parsing does not mean successful parsing.
+Exhausted parsing does not mean failed parsing.
+In particular,
+parsing is often exhausted at the point of a successful parse.
 An exhausted recognizer
-may contain successful parses
-both at and prior to the current earleme.
-On the other hand, an active recognizer may not contain
-any successful parses.
-A recognizer is active as long as some potential input
-might produce a successful parse.
+may also contain successful parses
+both prior to the current earleme.
 
-Because tokens can be more than one earleme in length,
+Conversely, active parsing does not mean successful parsing.
+A recognizer remains active as long as some potential input
+I<might> produce a successful parse.
+This does not mean that it ever will.
+
 Marpa parsing can remain active even if
 no token is found at the current earleme.
 In the one-character-per-earleme model,
-stretches where no token either begins or ends
-are often many earlemes in length.
+the current earleme might fall in the middle of a
+previously recognized token
+and parsing will remain active at least until the end of that
+token is reached.
+In the one-character-per-earleme model,
+stretches where no token either starts or ends
+can be many earlemes in length.
 
 =head2 Cloning
 
 The C<new> constructor requires a grammar to be specified in
 one of its arguments.
 By default, the C<new> constructor clones the grammar object.
-This is done so that recongnizers do not interfere with each other by
+This is done so that recognizers do not interfere with each other by
 modifying the same data.
 Cloning is the default behavior, and is always safe.
 
@@ -1342,7 +1392,7 @@ While safe, cloning does impose an overhead in memory and time.
 This can be avoided by using the C<clone> option with the C<new>
 constructor.
 Not cloning is safe if you know that the grammar object will not be shared by another recognizer
-or by more than one evaluator.
+or used by more than one evaluator.
 
 It is very common for a Marpa program to have simple
 flows of data, where no more than one recognizer is created from any grammar,
@@ -1457,7 +1507,7 @@ The I<c>th character,
 where the count I<c> includes
 all characters from any previous calls to the C<text> method
 for this recognizer,
-with start at earleme I<c-1>
+will start at earleme I<c-1>
 and will end at earleme I<c>.
 
 How a string is divided up among calls to the C<text> method
@@ -1480,10 +1530,14 @@ in_file($_, 't/ah2.t');
     my $a = $grammar->get_symbol('a');
     $recce->earleme([$a, 'a', 1]) or croak('Parsing exhausted');
 
-The C<earleme> method takes zero or more arguments,
-which represent tokens to be added at the B<current earleme>.
-More than one token may start at each earleme,
-because ambiguous lexing is allowed.
+The C<earleme> method takes zero or more arguments.
+Each argument represents a token which starts at the B<current earleme>.
+Because ambiguous lexing is allowed.
+more than one token may start at each earleme,
+in which case, there will be one argument per token.
+Because tokens can span earlemes,
+no tokens may start at an earleme
+in which case the call to C<earleme> will have zero arguments.
 
 After adding the tokens to the recognizer,
 the C<earleme> method determines whether the recognizer is active or exhausted.
@@ -1492,17 +1546,8 @@ the C<earleme> method moves the current earleme forward by one,
 and the C<earleme> method returns 1.
 If the recognizer is exhausted, the current earleme stays where it is,
 and the C<earleme> method returns 0.
+The C<earleme> method throws an exception on failure.
 Any attempt to add more input to an exhausted recognizer will fail.
-The C<earleme> method throws an exception on other failures.
-
-The C<earleme> method can be called with no arguments.
-This represents a situation where no tokens start at the current earleme.
-This is not unusual.
-Where a language allows comments,
-and a one-character-per-earleme model of input is used,
-standard implementations will have no tokens starting at
-any of the earlemes which represent character locations inside
-a comment.
 
 Each token argument is a reference to a three element array.
 The first element is a "cookie" for the token's symbol,
@@ -1517,15 +1562,19 @@ an earleme remains the current earleme during only one call of the C<earleme> me
 All tokens starting at that earleme must be added in that call.
 The first time that the C<earleme> method is called in a recognizer,
 the current earleme is at earleme 0.
+
 Once a recognizer is exhausted, the current earleme never moves
 and no more input can be added.
 It is possible for a call to B<earleme>
 with no arguments
 to exhaust the recognizer.
+This happens if
+C<earleme> is called
+with zero arguments when the current earleme reaches 
+the furthest earleme.
 
 C<earleme> is the low-level token input method.
 Unlike C<text>, the C<earleme> method assumes no particular model of the input.
-It allows maximum control over scanning.
 It is up to the user to define the relationship between
 tokens and earlemes.
 
@@ -1552,7 +1601,7 @@ The C<end_input> method
 does not change the location of the furthest earleme.
 After a successful call to 
 the C<end_input> method,
-the current earleme is located at the furthest earleme.
+the current earleme will be positioned at the furthest earleme.
 Since positioning the current earleme at the furthest
 earleme leaves the recognizer exhausted,
 any further calls to C<text> will return 0,
