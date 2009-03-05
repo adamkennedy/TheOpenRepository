@@ -29,7 +29,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 use POE::Declare::Meta::Slot      ();
@@ -212,23 +212,26 @@ sub _compile {
 
 # Resolve the inline states for a class
 sub package_states {
+	unless ( exists $self->{package_states} ) {
+		# Cache for speed reasons
+		$self->{package_states} = [
+			sort map {
+				$_->name
+			} grep {
+				$_->isa('POE::Declare::Meta::Event')
+			} $_[0]->attrs
+		];
+	}
 	if ( wantarray ) {
-		return sort map {
-			$_->name
-		} grep {
-			$_->isa('POE::Declare::Meta::Event')
-		} $_[0]->attrs;
+		return @{$self->{package_states}};
 	} else {
-		return scalar grep {
-			$_->isa('POE::Declare::Meta::Event')
-		} $_[0]->attrs;
+		return $self->{package_states};
 	}
 }
 
 =pod
 
 =head2 attr
-
 
   my $attribute = My::Class->meta->attr('foo');
 

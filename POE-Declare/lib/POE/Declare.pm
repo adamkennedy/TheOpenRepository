@@ -147,7 +147,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -303,8 +303,8 @@ Returns true or throws an exception.
 
 =cut
 
-sub compile {
-	my $pkg = @_ ? shift : caller();
+sub compile () {
+	my $pkg = caller();
 
 	# Shortcut if already compiled
 	return 1 if $META{$pkg};
