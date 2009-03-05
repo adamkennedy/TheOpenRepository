@@ -1,5 +1,9 @@
 Revision history for Perl extension POE-Declare
 
+0.09 Thu  5 Mar 2009
+	- Converting all simple accessors to Class::XSAccessor
+	- Switching to a better and faster error check in lookback
+
 0.08 Thu  5 Mar 2009
 	- Adding tests for half a dozen or so more methods
 	- Fixed a bug in ->lookback

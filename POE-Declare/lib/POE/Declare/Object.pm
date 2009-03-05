@@ -30,7 +30,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 }
 
 # Inside-out storage of internal values
@@ -127,7 +127,9 @@ or throw an exception on error.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless { @_,
+		lookback => { },
+	}, $class;
 
 	# Clear out any accidentally set internal values
 	delete $SESSIONID{Scalar::Util::refaddr($self)};
@@ -259,9 +261,7 @@ L<POE::Kernel> object that objects of this class will run in.
 
 =cut
 
-sub kernel {
-	$poe_kernel;
-}
+use constant kernel => $poe_kernel;
 
 
 
@@ -421,20 +421,16 @@ the event name.
 
 sub lookback {
 	my $self  = shift;
-	my $class = ref $self;
+	my $class = ref($self);
 	my $name  = Params::Util::_IDENTIFIER($_[0]);
 	unless ( $name ) {
 		Carp::croak("Invalid identifier name '$_[0]'");
 	}
 
-	# Does the method exist?
-	unless ( $self->can($name) ) {
-		Carp::croak( ref($self) . " has no method '$name'" );
-	}
-
-	# Is it an event
-	unless ( grep { $_ eq $name } $self->meta->package_states ) {
-		Carp::croak( "$class does not have the event '$name'" );
+	# Does the event exist?
+	my $attr = $self->meta->attr($name);
+	unless ( $attr and $attr->isa('') ) {
+		Carp::croak("$class does not have the event '$name'");
 	}
 
 	return [ $self->Alias, $name ];

@@ -29,7 +29,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 }
 
 use POE::Declare::Meta::Slot      ();
@@ -39,6 +39,14 @@ use POE::Declare::Meta::Timeout   ();
 use POE::Declare::Meta::Attribute ();
 use POE::Declare::Meta::Internal  ();
 use POE::Declare::Meta::Param     ();
+
+use Class::XSAccessor
+	getters => {
+		name     => 'name',
+		alias    => 'alias',
+		sequence => 'sequence',
+		compiled => 'compiled',
+	};
 
 
 
@@ -88,9 +96,9 @@ The C<name> accessor returns the name of the class for this meta instance.
 
 =cut
 
-sub name {
-	$_[0]->{name};
-}
+# sub name {
+#     $_[0]->{name};
+# }
 
 =pod
 
@@ -104,9 +112,9 @@ at constructor time.
 
 =cut
 
-sub alias {
-	$_[0]->{alias};
-}
+# sub alias {
+#     $_[0]->{alias};
+# }
 
 =pod
 
@@ -123,9 +131,9 @@ incrementing sequence values.
 
 =cut
 
-sub sequence {
-	$_[0]->{sequence};
-}
+# sub sequence {
+#     $_[0]->{sequence};
+# }
 
 
 
@@ -164,50 +172,6 @@ It is equivalent to C<Class::ISA::self_and_super_path('My::Class')>.
 
 sub super_path {
 	Class::ISA::self_and_super_path( $_[0]->name );
-}
-
-sub _compile {
-	my $self = shift;
-	my $name = $self->name;
-	my $attr = $self->{attr};
-
-	# Go over all our methods, and add any required events
-	my $methods = Class::Inspector->methods($name, 'expanded');
-	foreach my $method ( @$methods ) {
-		my $mname  = $method->[2];
-		my $mcode  = $method->[3];
-		my $maddr  = Scalar::Util::refaddr($mcode);
-		my $mevent = $POE::Declare::EVENT{$maddr} or next;
-		my $mattr  = $self->attr($mname);
-		if ( $mattr ) {
-			# Make sure the existing attribute is an event
-			next if $mattr->isa('POE::Declare::Meta::Event');
-			Carp::croak("Event '$mname' in $name clashes with non-event in parent class");
-			next;
-		}
-
-		# Add an attribute for the event
-		my $class = $mevent->[0];
-		my @param = @$mevent[1..$#$mevent];
-		$self->{attr}->{$mname} = $class->new(
-			name => $mname,
-			@param,
-		);
-	}
-
-	# Get all the package fragments
-	my @parts = map { $attr->{$_}->_compile } sort keys %$attr;
-	my @main  = (
-		"package " . $self->name . ";",
-		map { $_->{package} || '' } @parts,
-	);
-
-	# Compile the Perl code
-	my $code = join "\n\n", @main;
-	eval $code;
-	Carp::croak("Failed to compile code for " . $self->name) if $@;
-
-	return 1;
 }
 
 # Resolve the inline states for a class
@@ -268,6 +232,61 @@ sub attrs {
 	}
 	return values %hash;
 }
+
+
+
+
+
+#####################################################################
+# Compilation
+
+sub _compile {
+	my $self = shift;
+	my $name = $self->name;
+	my $attr = $self->{attr};
+
+	# Go over all our methods, and add any required events
+	my $methods = Class::Inspector->methods($name, 'expanded');
+	foreach my $method ( @$methods ) {
+		my $mname  = $method->[2];
+		my $mcode  = $method->[3];
+		my $maddr  = Scalar::Util::refaddr($mcode);
+		my $mevent = $POE::Declare::EVENT{$maddr} or next;
+		my $mattr  = $self->attr($mname);
+		if ( $mattr ) {
+			# Make sure the existing attribute is an event
+			next if $mattr->isa('POE::Declare::Meta::Event');
+			Carp::croak("Event '$mname' in $name clashes with non-event in parent class");
+			next;
+		}
+
+		# Add an attribute for the event
+		my $class = $mevent->[0];
+		my @param = @$mevent[1..$#$mevent];
+		$self->{attr}->{$mname} = $class->new(
+			name => $mname,
+			@param,
+		);
+	}
+
+	# Get all the package fragments
+	my @parts = map { $attr->{$_}->_compile } sort keys %$attr;
+	my @main  = (
+		"package " . $self->name . ";",
+		map { $_->{package} || '' } @parts,
+	);
+
+	# Compile the Perl code
+	my $code = join "\n\n", @main;
+	eval $code;
+	Carp::croak("Failed to compile code for " . $self->name) if $@;
+
+	return( $self->{compiled} = 1 );
+}
+
+# sub compiled {
+#     $_[0]->{compiled};
+# }
 
 1;
 

@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 45;
+use Test::More tests => 46;
 
 
 
@@ -70,6 +70,7 @@ SCOPE: {
 	# Check the meta-object
 	my $meta = POE::Declare::meta('Foo');
 	isa_ok( $meta, 'POE::Declare::Meta' );
+	is( $meta->compiled, 1, '->compiled is true' );
 	is( $meta->name, 'Foo', '->name is ok' );
 	is( ref($meta->{attr}), 'HASH', '->{attr} is a hash' );
 	isa_ok( $meta->{attr}->{foo},    'POE::Declare::Meta::Attribute' );

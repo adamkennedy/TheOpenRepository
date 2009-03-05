@@ -45,12 +45,12 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 }
 
 use Class::XSAccessor
 	constructor => 'new',
-	getters => {
+	getters     => {
 		name => 'name',
 	};
 
