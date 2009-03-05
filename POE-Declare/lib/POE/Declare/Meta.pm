@@ -220,7 +220,7 @@ sub package_states {
 				$_->name
 			} grep {
 				$_->isa('POE::Declare::Meta::Event')
-			} $_[0]->attrs
+			} $self->attrs
 		];
 	}
 	if ( wantarray ) {
