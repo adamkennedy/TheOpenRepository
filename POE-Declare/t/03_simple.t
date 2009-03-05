@@ -58,7 +58,14 @@ SCOPE: {
 	is( POE::Declare::meta('Foo'), undef, 'meta(Foo) is undef' );
 
 	# Compile the class
-	is( POE::Declare::compile('Foo'), 1, 'compile(Foo) returns true' );
+	SCOPE: {
+		package Foo;
+		Test::More::is(
+			POE::Declare::compile,
+			1,
+			'compile(Foo) returns true',
+		);
+	}
 
 	# Check the meta-object
 	my $meta = POE::Declare::meta('Foo');
