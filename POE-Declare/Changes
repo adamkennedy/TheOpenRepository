@@ -1,5 +1,9 @@
 Revision history for Perl extension POE-Declare
 
+0.08 Thu  5 Mar 2009
+	- Adding tests for half a dozen or so more methods
+	- Fixed a bug in ->lookback
+
 0.07 Thu  5 Mar 2009
 	- compile is now prototyped ()
 	- package_states caches now, making spawning faster

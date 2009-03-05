@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 33;
+use Test::More tests => 45;
 
 
 
@@ -87,6 +87,9 @@ SCOPE: {
 	is( $object->foo,   'foo',   '->foo created and returns correctly' );
 	is( $object->Alias, 'Foo.1', 'Pregenerated ->Alias returns as expected' );
 
+	# Check the kernel method
+	isa_ok( $object->kernel, 'POE::Kernel' );
+
 	# Check the attr method
 	isa_ok( $meta->attr('foo'),    'POE::Declare::Meta::Attribute' );
 	isa_ok( $meta->attr('bar'),    'POE::Declare::Meta::Internal'  );
@@ -104,12 +107,38 @@ SCOPE: {
 		'->package_states returns as expected',
 	);
 
-	# Check the behaviour of SELF in methods
+	# Check various spawning related methods
+	is( $object->spawned, '', '->spawned is false' );
+	is( $object->session_id, undef, '->session_id is undef' );
+	is( $object->ID, undef, '->ID is undef' );
+	is( $object->session, undef, '->session is undef' );
 	$object->spawn;
+	is( $object->spawned, 1,  '->spawned is true'  );
+	is( $object->session_id, 2, '->session_id is true' );
+	is( $object->ID, 2, '->ID is true and matches ->session_id' );
+	isa_ok( $object->session, 'POE::Session', '->session is true' );
+
+	# Check the behaviour of SELF in methods
 	my $me = $object->call('findme');
 	is_deeply( $me, $object, 'SELF works in methods' );
 	$object->call('to');
 	is( $Foo::to, 1, 'Timeout method called directly increments to' );
+
+	# Check the postback method
+	my $postback = $object->postback('findme');
+	isa_ok( $postback, 'POE::Session::AnonEvent' );
+
+	# Check the callback method
+	my $callback = $object->callback('findme');
+	isa_ok( $postback, 'POE::Session::AnonEvent' );
+
+	# Check the lookback method
+	my $lookback = $object->lookback('findme');
+	is_deeply(
+		$lookback,
+		[ 'Foo.1', 'findme' ],
+		'Created lookback ARRAY',
+	);
 }
 
 

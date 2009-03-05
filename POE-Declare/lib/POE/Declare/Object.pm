@@ -30,7 +30,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 }
 
 # Inside-out storage of internal values
@@ -422,8 +422,10 @@ the event name.
 sub lookback {
 	my $self  = shift;
 	my $class = ref $self;
-	my $name  = _IDENTIFIER($_[0])
-		or Carp::croak("Invalid identifier name '$_[0]'");
+	my $name  = Params::Util::_IDENTIFIER($_[0]);
+	unless ( $name ) {
+		Carp::croak("Invalid identifier name '$_[0]'");
+	}
 
 	# Does the method exist?
 	unless ( $self->can($name) ) {
@@ -639,7 +641,7 @@ sub is_message {
 #####################################################################
 # Compile the POE::Declare form of POE::Declare::Object itself
 
-POE::Declare::compile();
+POE::Declare::compile;
 
 =pod
 
