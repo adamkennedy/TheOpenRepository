@@ -62,6 +62,13 @@ sub new {
     return bless [ \$self ], $class;
 }
 
+package DeepObject;
+
+sub new {
+    my ($class) = @_;
+    return bless { one => { two => { three => 4 } } }, $class;
+}
+
 package main;
 
 use Scalar::Util;
@@ -230,10 +237,7 @@ EOS
 sub counted_errors {
     my ($error_count) = @_;
 
-    my $stderr = q{};
-    open my $save_stderr, '>&STDERR';
-    close STDERR;
-    open STDERR, '>', \$stderr;
+    $restore = divert_stderr();
     $eval_return = eval {
 
 ## use Marpa::Test::Display check_ignore snippet
@@ -249,9 +253,7 @@ sub counted_errors {
 ## no Marpa::Test::Display
 
     };
-
-    open STDERR, '>&', $save_stderr;
-    close $save_stderr;
+    $stderr = &{$restore};
 
     # the exact addresses will vary, so just X them out
     $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
@@ -325,11 +327,7 @@ EOS
     );
 }
 
-$stderr = q{};
-open my $save_stderr, '>&STDERR';
-close STDERR;
-open STDERR, '>', \$stderr;
-
+$restore     = divert_stderr();
 $eval_return = eval {
 
     $test = Test::Weaken::leaks(
@@ -338,9 +336,7 @@ $eval_return = eval {
         }
     );
 };
-
-open STDERR, '>&', $save_stderr;
-close $save_stderr;
+$stderr = &{$restore};
 
 if ( not $test ) {
     pass('cycle w/ copying & error callback');
@@ -375,3 +371,68 @@ Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
     'stderr for cycle w/ copying'
 );
+
+sub cause_deep_problem {
+    my ($proberef) = @_;
+    print STDERR __LINE__, q{ }, (Scalar::Util::reftype ${$proberef}), "\n";
+    if (Scalar::Util::reftype ${$proberef} eq 'HASH' and exists ${$proberef}->{one}) {
+        print STDERR __LINE__, "\n";
+        ${$proberef}->{one}->{bad} = 42;
+    }
+    return 1;
+}
+
+my %counted_compare_depth_expected = (
+    0 => <<'EOS',
+EOS
+    1 => <<'EOS',
+EOS
+    2 => <<'EOS',
+EOS
+    3 => <<'EOS',
+EOS
+    4 => <<'EOS',
+EOS
+);
+
+sub counted_compare_depth {
+    my ($compare_depth) = @_;
+
+    $restore = divert_stderr();
+    $eval_return = eval {
+        print STDERR __LINE__, ": $compare_depth\n";
+        Test::Weaken::leaks(
+            {   constructor => sub { DeepObject->new },
+                ignore      => Test::Weaken::check_ignore(
+                    \&cause_deep_problem, 99, $compare_depth, $compare_depth
+                ),
+            }
+        );
+    };
+    $stderr = &{$restore};
+    print STDERR __LINE__, ": $compare_depth\n";
+
+    # the exact addresses will vary, so just X them out
+    $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+
+    $stderr .= $EVAL_ERROR if not $eval_return;
+
+    $stderr =~ s{
+        [ ] at [ ] (\S+) [ ] line [ ] \d+ $
+    }{ at <FILE> line <LINE_NUMBER>}gxms;
+
+    Test::Weaken::Test::is(
+        $stderr,
+        $counted_compare_depth_expected{$compare_depth},
+        "deep problem, compare depth=$compare_depth"
+    );
+
+    return 1;
+}
+
+counted_compare_depth(0);
+counted_compare_depth(1);
+counted_compare_depth(2);
+counted_compare_depth(3);
+counted_compare_depth(4);
+
