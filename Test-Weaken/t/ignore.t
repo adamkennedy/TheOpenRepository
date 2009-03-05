@@ -6,7 +6,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 14;
+use Test::More tests => 24;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open close);
@@ -237,7 +237,7 @@ EOS
 sub counted_errors {
     my ($error_count) = @_;
 
-    $restore = divert_stderr();
+    $restore     = divert_stderr();
     $eval_return = eval {
 
 ## use Marpa::Test::Display check_ignore snippet
@@ -374,9 +374,9 @@ EOS
 
 sub cause_deep_problem {
     my ($proberef) = @_;
-    print STDERR __LINE__, q{ }, (Scalar::Util::reftype ${$proberef}), "\n";
-    if (Scalar::Util::reftype ${$proberef} eq 'HASH' and exists ${$proberef}->{one}) {
-        print STDERR __LINE__, "\n";
+    if ( Scalar::Util::reftype ${$proberef} eq 'HASH'
+        and exists ${$proberef}->{one} )
+    {
         ${$proberef}->{one}->{bad} = 42;
     }
     return 1;
@@ -384,33 +384,79 @@ sub cause_deep_problem {
 
 my %counted_compare_depth_expected = (
     0 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => {
+                                                             'three' => 4
+                                                           }
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => {
+                                                            'three' => 4
+                                                          }
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
     1 => <<'EOS',
 EOS
     2 => <<'EOS',
 EOS
     3 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => 'HASH(0xXXXXXXX)'
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => 'HASH(0xXXXXXXX)'
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
     4 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => {
+                                                             'three' => 4
+                                                           }
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => {
+                                                            'three' => 4
+                                                          }
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
 );
 
 sub counted_compare_depth {
     my ($compare_depth) = @_;
 
-    $restore = divert_stderr();
+    $restore     = divert_stderr();
     $eval_return = eval {
-        print STDERR __LINE__, ": $compare_depth\n";
         Test::Weaken::leaks(
             {   constructor => sub { DeepObject->new },
                 ignore      => Test::Weaken::check_ignore(
-                    \&cause_deep_problem, 99, $compare_depth, $compare_depth
+                    \&cause_deep_problem, 99,
+                    $compare_depth,       $compare_depth
                 ),
             }
         );
     };
     $stderr = &{$restore};
-    print STDERR __LINE__, ": $compare_depth\n";
 
     # the exact addresses will vary, so just X them out
     $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
@@ -435,4 +481,115 @@ counted_compare_depth(1);
 counted_compare_depth(2);
 counted_compare_depth(3);
 counted_compare_depth(4);
+
+my %counted_print_depth_expected = (
+    0 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => {
+                                                             'three' => 4
+                                                           }
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => {
+                                                            'three' => 4
+                                                          }
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+    1 => <<'EOS',
+$proberef_before_callback = \'DeepObject=HASH(0xXXXXXXX)';
+$proberef_after_callback = \'DeepObject=HASH(0xXXXXXXX)';
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+    2 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => 'HASH(0xXXXXXXX)'
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => 'HASH(0xXXXXXXX)'
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+    3 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => 'HASH(0xXXXXXXX)'
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => 'HASH(0xXXXXXXX)'
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+    4 => <<'EOS',
+$proberef_before_callback = \bless( {
+                                       'one' => {
+                                                  'two' => {
+                                                             'three' => 4
+                                                           }
+                                                }
+                                     }, 'DeepObject' );
+$proberef_after_callback = \bless( {
+                                      'one' => {
+                                                 'bad' => 42,
+                                                 'two' => {
+                                                            'three' => 4
+                                                          }
+                                               }
+                                    }, 'DeepObject' );
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+EOS
+);
+
+sub counted_print_depth {
+    my ($print_depth) = @_;
+
+    $restore     = divert_stderr();
+    $eval_return = eval {
+        Test::Weaken::leaks(
+            {   constructor => sub { DeepObject->new },
+                ignore      => Test::Weaken::check_ignore(
+                    \&cause_deep_problem, 99, 0, $print_depth
+                ),
+            }
+        );
+    };
+    $stderr = &{$restore};
+
+    # the exact addresses will vary, so just X them out
+    $stderr =~ s/0x[0-9a-fA-F]*/0xXXXXXXX/gxms;
+
+    $stderr .= $EVAL_ERROR if not $eval_return;
+
+    $stderr =~ s{
+        [ ] at [ ] (\S+) [ ] line [ ] \d+ $
+    }{ at <FILE> line <LINE_NUMBER>}gxms;
+
+    Test::Weaken::Test::is(
+        $stderr,
+        $counted_print_depth_expected{$print_depth},
+        "deep problem, print depth=$print_depth"
+    );
+
+    return 1;
+}
+
+counted_print_depth(0);
+counted_print_depth(1);
+counted_print_depth(2);
+counted_print_depth(3);
+counted_print_depth(4);
 

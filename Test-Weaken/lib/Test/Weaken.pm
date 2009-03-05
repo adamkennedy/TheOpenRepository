@@ -282,7 +282,7 @@ sub Test::Weaken::strong_probe_count {
 }
 
 sub Test::Weaken::check_ignore {
-    my ( $ignore, $max_errors, $print_depth, $compare_depth ) = @_;
+    my ( $ignore, $max_errors, $compare_depth, $print_depth ) = @_;
 
     my $error_count = 0;
 
@@ -312,23 +312,40 @@ sub Test::Weaken::check_ignore {
 
         my $before_weak =
             ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
-        my $before_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
-        my $before_dump = $before_dumper->Maxdepth($compare_depth)->Dump();
+        my $before_dump =
+            Data::Dumper->new( [$probe_ref], [qw(proberef)] )
+            ->Maxdepth($compare_depth)->Dump();
         my $before_print_dump;
         if ( $print_depth >= 0 ) {
+            #<<< perltidy doesn't do this well
             $before_print_dump =
-                $before_dumper->Maxdepth($print_depth)->Dump();
+                Data::Dumper->new(
+                    [$probe_ref],
+                    [qw(proberef_before_callback)]
+                )
+                ->Maxdepth($print_depth)
+                ->Dump();
+            #>>>
         }
 
         my $return_value = $ignore->($probe_ref);
 
         my $after_weak =
             ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
-        my $after_dumper = Data::Dumper->new( [$probe_ref], ['probe_ref'] );
-        my $after_dump = $after_dumper->Maxdepth($compare_depth)->Dump();
+        my $after_dump =
+            Data::Dumper->new( [$probe_ref], [qw(proberef)] )
+            ->Maxdepth($compare_depth)->Dump();
         my $after_print_dump;
         if ( $print_depth >= 0 ) {
-            $after_print_dump = $after_dumper->Maxdepth($print_depth)->Dump();
+            #<<< perltidy doesn't do this well
+            $after_print_dump =
+                Data::Dumper->new(
+                    [$probe_ref],
+                    [qw(proberef_after_callback)]
+                )
+                ->Maxdepth($print_depth)
+                ->Dump();
+            #<<<
         }
 
         my $problems       = q{};
@@ -351,13 +368,9 @@ sub Test::Weaken::check_ignore {
         $error_count++;
 
         my $message .= q{};
-        $message
-            .= "**** Probe ref before ignore callback:\n$before_print_dump"
-            . "****\n"
+        $message .= $before_print_dump
             if $include_before;
-        $message
-            .= "**** Probe ref after ignore callback:\n$after_print_dump"
-            . "****\n"
+        $message .= $after_print_dump
             if $include_after;
         $message .= $problems;
 
@@ -465,7 +478,7 @@ weakening the references
 and arranging to break the reference cycle just before
 the object is destroyed,
 
-It is easy to misdesign or misimplement a scheme for 
+It is easy to misdesign or misimplement a scheme for
 preventing memory leaks.
 Mistakes of this kind
 have been hard to detect
@@ -524,7 +537,7 @@ An object is called a B<followed object>
 if C<Test::Weaken> examines it during its recursive search for
 objects to track.
 Followed objects are not always independent objects.
-References are not independent objects when 
+References are not independent objects when
 they are elements of arrays and hashes,
 but they are followed.
 
@@ -716,7 +729,7 @@ C<Test::Weaken> makes it the easy thing to do.
 Nothing prevents a user from using a test object constructor
 that refers to data in global or other scopes.
 Nothing prevents a
-test object constructor 
+test object constructor
 from returning a reference to a test object
 created from data in any scope the user desires.
 Subverting the closure-local strategy takes little effort,
@@ -777,7 +790,7 @@ the test object constructor must be the first argument to C<leaks>.
 When named arguments are used,
 the test object constructor must be the value of the C<constructor> named argument.
 
-The test object constructor 
+The test object constructor
 should build the test object
 and return a reference to it.
 It is best to follow strictly the closure-local strategy,
@@ -865,7 +878,7 @@ that is, neither followed or tracked.
 Otherwise the callback subroutine should return a Perl false.
 
 In the C<ignore> callback subroutine,
-it is important to 
+it is important to
 always unpack the C<@_> array before doing anything else.
 (In any Perl subtroutine, this is a highly recommended best practice.
 See Damian Conway's I<Perl Best Practices>, pp. 179-181.)
@@ -1189,7 +1202,7 @@ the C<new> constructor, but not yet evaluated with the C<test> method,
 will produce an exception.
 
 The C<test> method returns the count of unfreed objects.
-This will be identical to the length of the array 
+This will be identical to the length of the array
 returned by C<unfreed_proberefs> and
 the count returned by C<unfreed_count>.
 If there is an error, the C<test> method throws an exception.
@@ -1214,7 +1227,7 @@ for tracking purposes.
 
 You can quasi-uniquely identify memory objects using
 the referent addresses of the probe references.
-A referent address 
+A referent address
 can be determined by using the
 C<refaddr> method of
 L<Scalar::Util>.
@@ -1227,7 +1240,7 @@ Any given reference has both a reference address and a referent address.
 The reference address is the reference's own location in memory.
 The referent address is the address of the memory object to which the reference refers.
 It is the referent address that interests us here and,
-happily, it is 
+happily, it is
 the referent address that both zero addition and C<refaddr> return.
 
 Sometimes, when you are interested in why an object is not being freed,
@@ -1351,7 +1364,7 @@ C<Test::Weaken> first recurses through the test object.
 Starting from the test object reference,
 it follows and tracks objects recursively,
 as described above.
-The test object is explored to unlimited depth, 
+The test object is explored to unlimited depth,
 looking for independent memory objects to track.
 Independent objects visited during the recursion are recorded,
 and no object is visited twice.
