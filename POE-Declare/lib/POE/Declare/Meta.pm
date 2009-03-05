@@ -212,6 +212,7 @@ sub _compile {
 
 # Resolve the inline states for a class
 sub package_states {
+	my $self = shift;
 	unless ( exists $self->{package_states} ) {
 		# Cache for speed reasons
 		$self->{package_states} = [
