@@ -429,7 +429,7 @@ sub lookback {
 
 	# Does the event exist?
 	my $attr = $self->meta->attr($name);
-	unless ( $attr and $attr->isa('') ) {
+	unless ( $attr and $attr->isa('POE::Declare::Meta::Event') ) {
 		Carp::croak("$class does not have the event '$name'");
 	}
 
