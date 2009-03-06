@@ -1,5 +1,8 @@
 Changes for Perl extension Text-FindIndent
 
+0.04 
+	- Fix the MANIFEST of the distribution
+
 0.03 
 	- Rudimentary support for emacs local variables.
 
