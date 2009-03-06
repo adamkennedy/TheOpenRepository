@@ -282,7 +282,7 @@ sub Test::Weaken::strong_probe_count {
 }
 
 sub Test::Weaken::check_ignore {
-    my ( $ignore, $max_errors, $compare_depth, $print_depth ) = @_;
+    my ( $ignore, $max_errors, $compare_depth, $reporting_depth ) = @_;
 
     my $error_count = 0;
 
@@ -292,11 +292,11 @@ sub Test::Weaken::check_ignore {
     }
     $max_errors = 0 if $max_errors <= 0;
 
-    $print_depth = -1 if not defined $print_depth;
-    if ( not Scalar::Util::looks_like_number($print_depth) ) {
-        croak('Test::Weaken::check_ignore print_depth must be a number');
+    $reporting_depth = -1 if not defined $reporting_depth;
+    if ( not Scalar::Util::looks_like_number($reporting_depth) ) {
+        croak('Test::Weaken::check_ignore reporting_depth must be a number');
     }
-    $print_depth = -1 if $print_depth < 0;
+    $reporting_depth = -1 if $reporting_depth < 0;
 
     $compare_depth = 0 if not defined $compare_depth;
     if ( not Scalar::Util::looks_like_number($compare_depth)
@@ -315,15 +315,15 @@ sub Test::Weaken::check_ignore {
         my $before_dump =
             Data::Dumper->new( [$probe_ref], [qw(proberef)] )
             ->Maxdepth($compare_depth)->Dump();
-        my $before_print_dump;
-        if ( $print_depth >= 0 ) {
+        my $before_reporting_dump;
+        if ( $reporting_depth >= 0 ) {
             #<<< perltidy doesn't do this well
-            $before_print_dump =
+            $before_reporting_dump =
                 Data::Dumper->new(
                     [$probe_ref],
                     [qw(proberef_before_callback)]
                 )
-                ->Maxdepth($print_depth)
+                ->Maxdepth($reporting_depth)
                 ->Dump();
             #>>>
         }
@@ -335,15 +335,15 @@ sub Test::Weaken::check_ignore {
         my $after_dump =
             Data::Dumper->new( [$probe_ref], [qw(proberef)] )
             ->Maxdepth($compare_depth)->Dump();
-        my $after_print_dump;
-        if ( $print_depth >= 0 ) {
+        my $after_reporting_dump;
+        if ( $reporting_depth >= 0 ) {
             #<<< perltidy doesn't do this well
-            $after_print_dump =
+            $after_reporting_dump =
                 Data::Dumper->new(
                     [$probe_ref],
                     [qw(proberef_after_callback)]
                 )
-                ->Maxdepth($print_depth)
+                ->Maxdepth($reporting_depth)
                 ->Dump();
             #<<<
         }
@@ -355,12 +355,12 @@ sub Test::Weaken::check_ignore {
         if ( $before_weak != $after_weak ) {
             my $changed = $before_weak ? 'strengthened' : 'weakened';
             $problems .= "Probe referent $changed by ignore call\n";
-            $include_before = defined $before_print_dump;
+            $include_before = defined $before_reporting_dump;
         }
         if ( $before_dump ne $after_dump ) {
             $problems .= "Probe referent changed by ignore call\n";
-            $include_before = defined $before_print_dump;
-            $include_after  = defined $after_print_dump;
+            $include_before = defined $before_reporting_dump;
+            $include_after  = defined $after_reporting_dump;
         }
 
         return $return_value if not $problems;
@@ -368,9 +368,9 @@ sub Test::Weaken::check_ignore {
         $error_count++;
 
         my $message .= q{};
-        $message .= $before_print_dump
+        $message .= $before_reporting_dump
             if $include_before;
-        $message .= $after_print_dump
+        $message .= $after_reporting_dump
             if $include_after;
         $message .= $problems;
 
@@ -684,13 +684,12 @@ will not be tracked or followed.
 
 =head2 Why the Test Object is Passed via a Closure
 
-C<Test::Weaken> does not accept directly as arguments,
-either test objects or references to them.
-Instead, C<Test::Weaken> receives its test objects
+C<Test::Weaken> gets its test object
 indirectly,
-from B<test object constructors>.
-
+as the return value from a
+B<test object constructor>.
 Why so roundabout?
+
 Because the indirect way is the easiest.
 When you
 create the test object
@@ -812,10 +811,9 @@ It will be passed one argument,
 the test object reference.
 The return value of the test object destructor is ignored.
 
-Some objects which are of interest as test objects require
+Some test objects require
 a destructor to be called when
 they are freed.
-For example, some objects created by Gtk2-Perl are of this type.
 The primary purpose for
 the test object destructor is to enable
 C<Test::Weaken> to work with these objects.
@@ -851,25 +849,30 @@ The B<ignore> argument is optional.
 It can be used to prevent C<Test::Weaken> from following
 and tracking selected probe references, as chosen by
 the user.
-In general,
-use of the C<ignore> argument should be avoided
-because filtering the probe references returned by
-L<unfreed_proberefs> after the fact is easier, safer and
-faster.
-The C<ignore> argument is provided for those situations
-where after-the-fact filtering
-is not practical,
-such as when the user needs to filter out
-large objects.
+Use of the C<ignore> argument should be avoided
+when possible.
+Filtering the probe references returned by
+L<unfreed_proberefs>
+is easier, safer and
+faster
+after the fact.
+The C<ignore> argument is provided for situations
+where filtering after the fact
+is not practical.
+One such
+situation is when
+large or complicated sub-objects need to be filtered out of the results.
 
 When specified, the value of the C<ignore> argument must be a
 reference to a callback subroutine.
 The subroutine will be called once for each probe reference,
 with that probe reference as the only argument.
-This probe reference and everything it refers to must not
-be altered.
-If the probe reference or its referents are altered, all bets are off.
-The result might be
+Everything that is referred to, directly or indirectly,
+by this
+probe reference
+should be left unchanged by the C<ignore>
+callback.
+The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
 
 The callback subroutine should return Perl true if the probe reference is
@@ -877,21 +880,22 @@ to an object that should be ignored --
 that is, neither followed or tracked.
 Otherwise the callback subroutine should return a Perl false.
 
-In the C<ignore> callback subroutine,
-it is important to
-always unpack the C<@_> array before doing anything else.
-(In any Perl subtroutine, this is a highly recommended best practice.
-See Damian Conway's I<Perl Best Practices>, pp. 179-181.)
+For safety, C<Test::Weaken> does not pass the original probe reference
+to the C<ignore> callback.
+Instead, C<Test::Weaken> passes a copy of the probe reference.
 This makes it less likely that
-the probe reference or its referents will be altered by accident.
-For the same reason, C<ignore> callbacks
-are best kept simple.
-Defer as much of the analysis as you reasonably can,
-until after the test is completed.
+the probe reference will be altered by accident.
+The object referred to by the probe reference is not a copy, however.
+It is the original object.
+If that is altered, all bets are off.
 
-Another reason to avoid C<ignore> is that
-the C<ignore> subroutine will be invoked once per probe reference.
-All those callbacks can be a significant overhead.
+C<ignore> callbacks are best kept simple.
+Defer as much of the analysis as you can
+until after the test is completed.
+C<ignore> callbacks 
+can also be a significant overhead.
+The C<ignore> callback is
+invoked once per probe reference.
 
 C<Test::Weaken> offers some help in debugging
 C<ignore> callback subroutines.
@@ -1262,7 +1266,7 @@ the same object
 as the object which had the same address earlier.
 This can bite you
 if you're not careful.
-
+_
 To be sure an earlier object and a later object with the same address
 are actually the same object,
 you need to know that the earlier object will be persistent,
@@ -1280,26 +1284,48 @@ two indiscernable objects can be regarded as the same object.
 
 =head2 Debugging Ignore Subroutines
 
-Callbacks can be hard to debug.
-C<Test::Weaken> offers some support for debugging
-its C<ignore> callback subroutines.
+It can be hard to determine if
+C<ignore> callback subroutines
+are inadvertently
+modifying the test object.
+The C<Test::Weaken::check_ignore> static method is
+provided to make this debugging task easier.
 
 =begin Marpa::Test::Display:
 
 ## start display
 ## next display
-is_file($_, 't/ignore.t', 'check_ignore snippet !!!')
+is_file($_, 't/ignore.t', 'check_ignore 1 arg snippet')
 
 =end Marpa::Test::Display:
 
-    Test::Weaken::leaks(
+    $test = Test::Weaken::leaks(
         {   constructor => sub { MyObject->new },
-            ignore      => Test::Weaken::check_ignore(
-                \&buggy_ignore, $error_count
-            ),
+            ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
         }
     );
 
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
+
+=end Marpa::Test::Display:
+
+    $test = Test::Weaken::leaks(
+        {   constructor => sub { DeepObject->new },
+            ignore      => Test::Weaken::check_ignore(
+                \&cause_deep_problem, 99, 0, $reporting_depth
+            ),
+        }
+    );
 
 =begin Marpa::Test::Display:
 
@@ -1308,13 +1334,46 @@ is_file($_, 't/ignore.t', 'check_ignore snippet !!!')
 =end Marpa::Test::Display:
 
 C<Test::Weaken::check_ignore> is a static method which constructs
-a debugging wrapper from its code reference arguments.
-It takes two arguments, one optional.
-The first must be the ignore callback which is the test subject,
-that is, the one which you are trying to debug.
-I will call this the B<lab rat>.
-The second argument can be an error callback.
-The error callback is called when a problem is detected.
+a debugging wrapper from
+four arguments, three of which are optional.
+The first argument must be the ignore callback
+which you are trying to debug.
+This callback is the called test subject, or the
+B<lab rat>.
+
+The second, optional argument, is the maximum error count.
+Below this count, errors are reported as warnings using C<carp>.
+When the maximum error count is reached, an
+exception is thrown using C<croak>.
+The maximum error count, if defined,
+must be an number greater than or equal to 0.
+By default the maximum error count is 1,
+which means that the first error will be thrown
+as an exception.
+
+If the maximum error count is 0, all errors will be reported
+as warnings and no exception will ever be thrown.
+Infinite loops are a common behavior of
+buggy lab rats,
+and setting the maximum error
+count to 0 will usually not be something you
+want to do.
+
+The third, optional, argument is the B<compare depth>.
+It is the depth to which the probe referents will be checked,
+as described below.
+It must be a number greater than or equal to zero.
+If the compare depth is zero, the probe referent is checked
+to unlimited depth.
+By default the compare depth is 0.
+
+This fourth, optional, argument is the B<reporting depth>.
+It is the depth to which the probe referents are dumped
+in C<check_ignore>'s error messages.
+It must be a number greater than or equal to -1.
+If the reporting depth is zero, the object is dumped to unlimited depth.
+If the reporting depth is -1, there is no dump in the error message.
+By default, the reporting depth is -1.
 
 C<Test::Weaken::check_ignore>
 returns a reference to the wrapper callback.
@@ -1323,36 +1382,49 @@ the wrapper callback behaves exactly like the lab rat callback,
 except that the wrapper is slower.
 
 To discover when and if the lab rat callback is
-altering its probe reference argument,
-C<Test::Weaken::check_ignore> calls C<Data::Dumper> on the
-probe reference argument twice:
-once before the lab rat runs,
-and again after the lab rat returns.
-If the probe referent is another reference,
-C<Test::Weaken::check_ignore> also checks to see if the probe referent
-is weak, before and after running the lab rat.
-If the results from C<Data::Dumper> differ,
-the wrapper treats it as a problem.
-The wrapper also treats it as a problem
-if the referent changed from strong to weak or vice versa.
+altering its arguments,
+C<Test::Weaken::check_ignore>
+compares the test object
+before the call to the lab rat
+with the test object after the lab rat returns.
+C<Test::Weaken::check_ignore>
+compares the before and after test object in two ways.
+First, it dumps the test object's contents using
+C<Data::Dumper>.
+For comparison purposes,
+the dump using C<Data::Dumper> is performed with C<Maxdepth>
+set to the compare depth.
+Second, if the immediate probe referent has builtin type REF,
+C<Test::Weaken::check_ignore>
+determines whether the immediate probe referent
+is a weak reference or a strong one.
 
-It is prudent to put a limit on the number of error callbacks,
-because infinite loops are a common behavior
-in buggy lab rats.
+If either comparison shows a difference,
+the wrapper treats it as a problem, and
+produces an error message.
+This error message is either a C<carp> warning or a
+C<croak> exception, depending on the number of error
+messages already reported and the setting of the
+maximum error count.
+If the reporting depth is a non-negative number, the error
+message include a dump from C<Data::Dumper> of the
+test object.
+C<Data::Dumper>'s C<Maxdepth>
+for reporting purposes is the reporting depth.
 
-Comparing signatures detects most problems,
-but C<Test::Weaken::check_ignore> only detects changes in the type of the probe referents,
-not their values.
-A user who wants to watch for altered values or to detect deep changes in objects
-can alter
-C<Test::Weaken::check_ignore> to construct
-their own, custom, debugging wrapper.
-C<Test::Weaken::check_ignore> is static
-and is easy to copy from the C<Test::Weaken> source
-and hack to the user's specification.
-C<Test::Weaken::check_ignore> does not use any C<Test::Weaken>
-package resources, so the hacked version does not need to
-reside in the C<Test::Weaken> package.
+A user who wants other features, such as deep checking
+of the test object
+for strengthened references,
+can easily modify
+C<Test::Weaken::check_ignore>.
+C<Test::Weaken::check_ignore> is a static method
+which does not use any C<Test::Weaken>
+package resources.
+It is easy to copy it from the C<Test::Weaken> source
+and hack it up.
+Because C<Test::Weaken::check_ignore> makes no use of
+package resources, the hacked version does not need to
+be part of the C<Test::Weaken> package.
 
 =head1 EXPORTS
 

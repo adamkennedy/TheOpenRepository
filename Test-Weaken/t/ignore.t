@@ -128,11 +128,13 @@ $VAR1 = [
         ];
 EOS
 
+## use Marpa::Test::Display check_ignore 1 arg snippet
 $test = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
         ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
     }
 );
+## no Marpa::Test::Display
 
 if ( not $test ) {
     pass('wrappered good ignore');
@@ -374,12 +376,13 @@ EOS
 
 sub cause_deep_problem {
     my ($proberef) = @_;
-    if ( Scalar::Util::reftype ${$proberef} eq 'HASH'
+    if (    ref $proberef eq 'REF'
+        and Scalar::Util::reftype ${$proberef} eq 'HASH'
         and exists ${$proberef}->{one} )
     {
         ${$proberef}->{one}->{bad} = 42;
     }
-    return 1;
+    return 0;
 }
 
 my %counted_compare_depth_expected = (
@@ -482,7 +485,7 @@ counted_compare_depth(2);
 counted_compare_depth(3);
 counted_compare_depth(4);
 
-my %counted_print_depth_expected = (
+my %counted_reporting_depth_expected = (
     0 => <<'EOS',
 $proberef_before_callback = \bless( {
                                        'one' => {
@@ -554,18 +557,20 @@ Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
 );
 
-sub counted_print_depth {
-    my ($print_depth) = @_;
+sub counted_reporting_depth {
+    my ($reporting_depth) = @_;
 
     $restore     = divert_stderr();
     $eval_return = eval {
-        Test::Weaken::leaks(
+## use Marpa::Test::Display check_ignore 4 arg snippet
+        $test = Test::Weaken::leaks(
             {   constructor => sub { DeepObject->new },
                 ignore      => Test::Weaken::check_ignore(
-                    \&cause_deep_problem, 99, 0, $print_depth
+                    \&cause_deep_problem, 99, 0, $reporting_depth
                 ),
             }
         );
+## no Marpa::Test::Display
     };
     $stderr = &{$restore};
 
@@ -580,16 +585,16 @@ sub counted_print_depth {
 
     Test::Weaken::Test::is(
         $stderr,
-        $counted_print_depth_expected{$print_depth},
-        "deep problem, print depth=$print_depth"
+        $counted_reporting_depth_expected{$reporting_depth},
+        "deep problem, reporting depth=$reporting_depth"
     );
 
     return 1;
 }
 
-counted_print_depth(0);
-counted_print_depth(1);
-counted_print_depth(2);
-counted_print_depth(3);
-counted_print_depth(4);
+counted_reporting_depth(0);
+counted_reporting_depth(1);
+counted_reporting_depth(2);
+counted_reporting_depth(3);
+counted_reporting_depth(4);
 
