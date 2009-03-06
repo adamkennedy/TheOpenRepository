@@ -3870,7 +3870,17 @@ __END__
 
 =head1 SUPPORT
 
-No support of any kind is provided for this module
+Bugs should be reported via: 
+
+1) 
+L<The CPAN bug tracker|http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+if you have an account there.
+
+2) Email to 
+L<bug-Perl-Dist-WiX at rt.cpan.org|mailto:bug-Perl-Dist-WiX@rt.cpan.org> 
+if you do not.
+
+For other issues, contact the topmost author.
 
 =head1 AUTHORS
 
