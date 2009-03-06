@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.15    Wed  4 Mar 2009
+0.15    Thu  5 Mar 2009
     1. Updated PDWix::Parameter error class.
     2. Used PDWiX::Parameter more places.
     3. Added code to Perl::Dist::WiX->new to attempt 

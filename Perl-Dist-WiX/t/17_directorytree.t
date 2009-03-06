@@ -42,6 +42,9 @@ my $string_test =
             <Directory Id=\'D_EB3DFBB1_E121_3F57_936E_2781FB7977D5\' Name=\'Digest\' />
             <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\' />
             <Directory Id=\'D_32453E8B_BBCD_3F54_B2C1_813C273C0847\' Name=\'File\' />
+            <Directory Id=\'D_6B79F1E7_1095_34B6_AF8E_20A2F9FB6136\' Name=\'Filter\'>
+              <Directory Id=\'D_5F8D8371_677A_3299_816F_2ABB7197FF55\' Name=\'Util\' />
+            </Directory>
             <Directory Id=\'D_79FC3F94_0468_3ECA_B18F_4C92F38990EC\' Name=\'IO\'>
               <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\' />
               <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\' />
@@ -76,7 +79,11 @@ my $string_test =
               </Directory>
               <Directory Id=\'D_0C3638AF_5BCC_37D3_A128_5353F6322FD1\' Name=\'ExtUtils\' />
               <Directory Id=\'D_79A9E7EF_8E16_3E54_880D_75096FE90E96\' Name=\'File\' />
-              <Directory Id=\'D_CBE44A8D_DAD2_30E0_A434_529A1345BCA9\' Name=\'Filter\' />
+              <Directory Id=\'D_CBE44A8D_DAD2_30E0_A434_529A1345BCA9\' Name=\'Filter\'>
+                <Directory Id=\'D_6A5818C3_A575_371E_81E9_8EF4733B4C61\' Name=\'Util\'>
+                  <Directory Id=\'D_70765165_304A_3B5B_8BEC_AF6E8882A93D\' Name=\'Call\' />
+                </Directory>
+              </Directory>
               <Directory Id=\'D_42D6502C_6758_3EF4_A771_6D0781150666\' Name=\'IO\'>
                 <Directory Id=\'D_CEEBEC0F_FA9A_3406_BF4C_E80F3824F8E3\' Name=\'Compress\' />
               </Directory>
@@ -95,6 +102,7 @@ my $string_test =
                 <Directory Id=\'D_552D454D_23A7_34BD_9A9A_5DC892924D7B\' Name=\'Harness\' />
               </Directory>
               <Directory Id=\'D_6E122939_8649_3EFF_B6B7_0811B971F099\' Name=\'Text\' />
+              <Directory Id=\'D_C97CA829_B4BF_3B40_BE98_35B9224B55F2\' Name=\'Thread\' />
               <Directory Id=\'D_79722C1B_07DC_3CE4_BD64_694966C68444\' Name=\'threads\'>
                 <Directory Id=\'D_959B7613_679A_3565_8CB3_9EE8AF8E9177\' Name=\'shared\' />
               </Directory>

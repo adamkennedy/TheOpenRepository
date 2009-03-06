@@ -179,6 +179,8 @@ sub initialize_tree {
 		  perl\lib\Digest
 		  perl\lib\ExtUtils
 		  perl\lib\File
+		  perl\lib\Filter
+		  perl\lib\Filter\Util
 		  perl\lib\IO
 		  perl\lib\IO\Compress
 		  perl\lib\IO\Uncompress
@@ -209,6 +211,8 @@ sub initialize_tree {
 		  perl\lib\auto\ExtUtils
 		  perl\lib\auto\File
 		  perl\lib\auto\Filter
+		  perl\lib\auto\Filter\Util
+		  perl\lib\auto\Filter\Util\Call
 		  perl\lib\auto\IO
 		  perl\lib\auto\IO\Compress
 		  perl\lib\auto\Math
@@ -222,6 +226,7 @@ sub initialize_tree {
 		  perl\lib\auto\Test
 		  perl\lib\auto\Test\Harness
 		  perl\lib\auto\Text
+		  perl\lib\auto\Thread
 		  perl\lib\auto\threads
 		  perl\lib\auto\threads\shared
 		  perl\lib\auto\Time
