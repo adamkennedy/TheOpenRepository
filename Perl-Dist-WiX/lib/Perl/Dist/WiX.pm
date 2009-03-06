@@ -1647,7 +1647,7 @@ sub install_perl_588_bin {
 			$self->trace_line( 0, <<"EOF");
 ***********************************************************
 * Perl 5.8.8 cannot be tested at this point.
-* It fails in op\\magic.c, tests 26 and 27 at this point.
+* It fails in op\\magic.t, tests 26 and 27 at this point.
 * However, when running "dmake test" within the directory
 * $wd,
 * it passes all tests for me.
