@@ -46,7 +46,7 @@ use     Module::CoreList 2.17 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.15');
+use version; $VERSION = qv('0.150');
 
 use Object::Tiny qw(
   perl_version

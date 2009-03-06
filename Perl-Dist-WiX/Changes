@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.150   Thu  5 Mar 2009
+	1. Added a digit to the version number because 
+	   having a version numbered 0.1401 messed the 
+	   ordering up.
+	   
 0.15    Thu  5 Mar 2009
     1. Updated PDWix::Parameter error class.
     2. Used PDWiX::Parameter more places.
