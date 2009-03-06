@@ -1,4 +1,5 @@
 ^diff_to_blead\.pl$
+^.dualLivedDiffConfig$
 
 # Default section:
 # Avoid version control files.
