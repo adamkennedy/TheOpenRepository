@@ -54,7 +54,7 @@ sub follow {
         my $type  = reftype $probe;
 
         my @old_probes = ();
-        if ( $type eq 'REF' ) { push @old_probes, $probe; }
+        if ( $type eq 'REF' ) { push @old_probes, \${$probe}; }
         elsif ( $type eq 'ARRAY' ) {
             @old_probes = map { \$_ } grep { ref $_ } @{$probe};
         }
@@ -79,10 +79,11 @@ sub follow {
             next OLD_PROBE if not defined $new_probe;
             my $new_probe_address = $new_probe + 0;
             next OLD_PROBE if $reverse{$new_probe_address};
-            $reverse{ $new_probe_address + 0 }++;
-            my $safe_copy = $new_probe;
-            next OLD_PROBE
-                if defined $ignore and $ignore->($safe_copy);
+            $reverse{$new_probe_address}++;
+            if ( defined $ignore ) {
+                my $safe_copy = $new_probe;
+                next OLD_PROBE if $ignore->($safe_copy);
+            }
             push @{$result}, $new_probe;
         }
 
