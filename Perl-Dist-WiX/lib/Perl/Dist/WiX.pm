@@ -1269,6 +1269,118 @@ sub install_cpan_upgrades {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
+    
+	# Generate the CPAN installation script
+	my $cpan_string = <<'END_PERL';
+print "Loading CPAN...\\n";
+use CPAN;
+CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
+print "Loading Storable...\\n";
+use Storable qw(nstore);
+
+    my ($module, %seen, %need, @toget);
+	
+    my @modulelist = CPAN::Shell->expand('Module', '/./');
+
+	# Schwartzian transform from CPAN.pm.
+    my @expand;
+	@expand = map {
+		$_->[1]
+	} sort {
+		$b->[0] <=> $a->[0]
+		||
+		$a->[1]{ID} cmp $b->[1]{ID},
+	} map {
+		[$_->_is_representative_module,
+		 $_
+		]
+	} @modulelist;
+
+	MODULE: for $module (@expand) {
+        my $file = $module->cpan_file;
+		
+		# If there's no file to download, skip it.
+        next MODULE unless defined $file;
+
+        $file =~ s!^./../!!;
+        my $latest  = $module->cpan_version;
+        my $inst_file = $module->inst_file;
+        my $have;
+        my $next_MODULE;
+        eval { # version.pm involved!
+            if ($inst_file) {
+				$have = $module->inst_version;
+				local $^W = 0;
+				++$next_MODULE unless CPAN::Version->vgt($latest, $have);
+				# to be pedantic we should probably say:
+				#    && !($have eq "undef" && $latest ne "undef" && $latest gt "");
+				# to catch the case where CPAN has a version 0 and we have a version undef
+            } else {
+               ++$next_MODULE;
+            }
+        };
+
+        next MODULE if $next_MODULE;
+		
+        if ($@) {
+            next MODULE;
+        }
+		
+        $seen{$file} ||= 0;
+		next MODULE if $seen{$file}++;
+		
+		push @toget, $module;
+		
+        $need{$module->id}++;
+    }
+
+    unless (%need) {
+        print "All modules are up to date\n";
+    }
+	
+	nstore \@toget, 'cpan.info';
+    print "Completed collecting information on all modules\n";
+
+    exit 0;
+END_PERL
+
+	# Dump the CPAN script to a temp file and execute
+	$self->trace_line( 1, "Running upgrade of all modules\n" );
+	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
+  SCOPE: {
+		my $CPAN_FILE;
+		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("open: $!");
+		print {$CPAN_FILE} $cpan_string or PDWiX->throw("print: $!");
+		close $CPAN_FILE or PDWiX->throw("close: $!");
+	}
+	$self->_run3( $self->bin_perl, $cpan_file )
+	  or PDWiX->throw('perl failed');
+	PDWiX->throw('Failure detected during cpan upgrade, stopping')
+	  if $CHILD_ERROR;
+
+	my $cpan_info = catfile( $self->build_dir, 'cpan.info' );
+    my $module_info = retrieve $cpan_info;
+    my $core;
+    
+    for my $module (@{$module_info}) {
+        # DON'T try to install Perl.
+        next if $module->cpan_file =~ m{/perl-5\.}msx; 
+        $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module->id} ? 1 : 0;
+        
+		$self->install_distribution(
+			name             => substr($module->cpan_file, 5),
+            mod_name         => $module->id,
+			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
+        );
+    }
+}
+
+sub install_cpan_upgrades_old {
+	my $self = shift;
+	unless ( $self->bin_perl ) {
+		PDWiX->throw(
+			'Cannot install CPAN modules yet, perl is not installed');
+	}
 
 	# Check for a 5.10.x
 	if ( $self->perl_version eq '5100' ) {
