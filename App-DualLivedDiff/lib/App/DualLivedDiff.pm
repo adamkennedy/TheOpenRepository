@@ -2,7 +2,7 @@ package App::DualLivedDiff;
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 use Getopt::Long;
 use Parse::CPAN::Meta ();
