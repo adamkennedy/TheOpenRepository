@@ -33,6 +33,10 @@ Does a diff FROM a dual lived module distribution TO blead perl
              (defaults to .dualLivedDiffConfig in the module path or current path)
 -o/--output  file name for output (defaults to STDOUT)
              useful to separate diff from CPAN.pm output
+
+Check perldoc "App::DualLivedDiff" for more info on the usage.
+The "diff" command is assumed to be in your PATH and will be run with the
+-u and -N options by default.
 HERE
   exit(1);
 }
@@ -439,6 +443,30 @@ By running the following command, you can get the diff between your blead perl c
 the CPAN distribution:
 
   dualLivedDiff --dual http://search.cpan.org/CPAN/authors/id/S/SM/SMUELLER/Filter-Simple-0.84.tar.gz --blead $HOME/perl-ssh
+
+Or this if you have CPAN.pm configured:
+
+  dualLivedDiff --dual SMUELLER/Filter-Simple-0.84.tar.gz --blead $HOME/perl-ssh
+
+Or this if you want to search for a given module name:
+
+  dualLivedDiff --dual Filter::Simple --blead $HOME/perl-ssh
+
+You can use the C<base-path-in-blead> option in the YAML config file to set a base path
+within the blead-perl checkout. Example of the configuration for the Attribute::Handlers
+dual-lived module/distribution which lives entirely within F<ext/Attribute-Handlers>:
+
+  ---
+  base-path-in-blead: ext/Attribute-Handlers
+  files:
+    Changes: Changes
+    README: README
+  dirs-recursive:
+    lib/: lib/
+    t/: t/
+    demo/: demo/
+
+Run the "dualLivedDiff" program to get an overview of the command line options.
 
 =head1 DESCRIPTION
 

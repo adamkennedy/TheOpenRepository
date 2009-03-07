@@ -1,5 +1,8 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.01  Sat Mar  7 18:34 2009
+  - Support for base-paths in bleadperl
+
 1.00  Fri Mar  6 19:45 2009
   - Initial baby steps.
 
