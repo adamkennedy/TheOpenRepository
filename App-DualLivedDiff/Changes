@@ -1,5 +1,8 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.02  Sat Mar  7 19:32 2009
+  - Default to using the current directory as distribution directory.
+
 1.01  Sat Mar  7 18:34 2009
   - Support for base-paths in bleadperl
 

@@ -2,7 +2,7 @@ package App::DualLivedDiff;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 use Getopt::Long;
 use Parse::CPAN::Meta ();
@@ -27,7 +27,8 @@ Usage: $0 -d source-dist -b /path/to/blead/checkout
 Does a diff FROM a dual lived module distribution TO blead perl
 
 -b/--blead   blead perl path
--d/--dual    dual lived module distribution path, file, URL, or name
+-d/--dual    dual lived module distribution path, archive, URL,
+             or module- or distribution name (default: .)
 -r/--reverse reverses the diff (blead to lib)
 -c/--config  name of the configuration file with file mappings
              (defaults to .dualLivedDiffConfig in the module path or current path)
@@ -48,19 +49,19 @@ my (
 );
 
 sub run {
-  $bleadpath = undef;
-  $dualmodule = undef;
-  $reverse = 0;
+  $bleadpath           = undef;
+  $dualmodule          = '.';
+  $reverse             = 0;
   $default_config_file = '.dualLivedDiffConfig';
-  $config_file = $default_config_file;
-  $output_file = undef;
+  $config_file         = $default_config_file;
+  $output_file         = undef;
   GetOptions(
-    'b|blead=s' => \$bleadpath,
-    'h|help' => \&usage,
-    'r|reverse' => \$reverse,
-    'd|dual=s' => \$dualmodule,
+    'b|blead=s'                  => \$bleadpath,
+    'h|help'                     => \&usage,
+    'r|reverse'                  => \$reverse,
+    'd|dual=s'                   => \$dualmodule,
     'c|conf|config|configfile=s' => \$config_file,
-    'o|out|output=s' => \$output_file,
+    'o|out|output=s'             => \$output_file,
   );
 
   if (defined $output_file) {
