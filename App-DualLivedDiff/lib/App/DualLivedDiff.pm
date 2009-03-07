@@ -72,6 +72,10 @@ sub run {
   my $files          = $config->{files} || {};
   my $dirs_flat      = $config->{"dirs-flat"} || {};
   my $dirs_recursive = $config->{"dirs-recursive"} || {};
+  
+  my $blead_module_base_path = $config->{"base-path-in-blead"};
+  $bleadpath = File::Spec->catdir($bleadpath, $blead_module_base_path)
+    if defined $blead_module_base_path and $blead_module_base_path !~ /^.?\/?$/;
 
   foreach my $source_file (keys %$files) {
     my $blead_file = $files->{$source_file};
