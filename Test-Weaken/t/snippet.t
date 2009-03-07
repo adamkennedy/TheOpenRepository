@@ -127,15 +127,15 @@ $unfreed = \[
                42,
                711,
                ${$unfreed},
-               $unfreed,
-               \${$unfreed}
+               \${$unfreed},
+               $unfreed
              ];
 $unfreed = \[
                42,
                711,
                ${$unfreed},
-               \${$unfreed},
-               $unfreed
+               $unfreed,
+               \${$unfreed}
              ];
 EOS
 

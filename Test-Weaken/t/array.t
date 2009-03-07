@@ -53,15 +53,6 @@ $unfreed = [
              711,
              \${$unfreed->[0]}->[0]
            ];
-$unfreed = \[
-               \[
-                   $unfreed,
-                   711,
-                   \${$unfreed}->[0]
-                 ],
-               42,
-               \$unfreed
-             ];
 $unfreed = \\[
                  \[
                      ${$unfreed},
@@ -71,15 +62,6 @@ $unfreed = \\[
                  711,
                  $unfreed
                ];
-$unfreed = [
-             \[
-                 \$unfreed,
-                 711,
-                 \$unfreed->[0]
-               ],
-             42,
-             \${$unfreed->[0]}->[0]
-           ];
 $unfreed = \[
                \[
                    $unfreed,
@@ -89,6 +71,24 @@ $unfreed = \[
                711,
                \$unfreed
              ];
+$unfreed = \[
+               \[
+                   $unfreed,
+                   711,
+                   \${$unfreed}->[0]
+                 ],
+               42,
+               \$unfreed
+             ];
+$unfreed = [
+             \[
+                 \$unfreed,
+                 711,
+                 \$unfreed->[0]
+               ],
+             42,
+             \${$unfreed->[0]}->[0]
+           ];
 $unfreed = \\[
                  \[
                      ${$unfreed},

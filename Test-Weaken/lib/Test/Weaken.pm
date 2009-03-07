@@ -45,51 +45,91 @@ sub follow {
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
-    my $result  = [ \( ${$base_probe} ) ];
-    my %reverse = ();
-    my $to_here = -1;
-    PROBE: while ( $to_here < $#{$result} ) {
-        $to_here++;
-        my $probe = $result->[$to_here];
-        my $type  = reftype $probe;
 
-        my @old_probes = ();
-        if ( $type eq 'REF' ) { push @old_probes, \${$probe}; }
-        elsif ( $type eq 'ARRAY' ) {
-            @old_probes = map { \$_ } grep { ref $_ } @{$probe};
-        }
-        elsif ( $type eq 'HASH' ) {
-            @old_probes = map { \$_ } grep { ref $_ } values %{$probe};
-        }
+    # The initialization assumes the $base_probe is a reference,
+    # not part of the test object, whose referent is also a reference
+    # which IS part of the test object.
+    my @follow_probes    = ($base_probe);
+    my @tracking_probes  = ($base_probe);
+    my %already_followed = ();
+    my %already_tracked  = ();
 
-        if ($ignore) {
-            my @safe_copies = @old_probes;
-            @old_probes = grep { not $ignore->($_) } @safe_copies;
-        }
-        OLD_PROBE: for my $old_probe (@old_probes) {
-            my $object_type = reftype ${$old_probe};
-            my $new_probe =
-                  $object_type eq 'HASH'    ? \%{ ${$old_probe} }
-                : $object_type eq 'ARRAY'   ? \@{ ${$old_probe} }
-                : $object_type eq 'REF'     ? \${ ${$old_probe} }
-                : $object_type eq 'SCALAR'  ? \${ ${$old_probe} }
-                : $object_type eq 'CODE'    ? \&{ ${$old_probe} }
-                : $object_type eq 'VSTRING' ? \${ ${$old_probe} }
-                :                             undef;
-            next OLD_PROBE if not defined $new_probe;
-            my $new_probe_address = $new_probe + 0;
-            next OLD_PROBE if $reverse{$new_probe_address};
-            $reverse{$new_probe_address}++;
-            if ( defined $ignore ) {
-                my $safe_copy = $new_probe;
-                next OLD_PROBE if $ignore->($safe_copy);
-            }
-            push @{$result}, $new_probe;
+    FOLLOW_OBJECT: while ( my $follow_probe = pop @follow_probes ) {
+
+        # The follow probes are to objects which either will not be
+        # tracked or which have already been added to @tracking_probes
+
+        next FOLLOW_OBJECT if $already_followed{ $follow_probe + 0 }++;
+
+        my $object_type = reftype $follow_probe;
+
+        if ( defined $ignore ) {
+            my $safe_copy = $follow_probe;
+            next FOLLOW_OBJECT if $ignore->($safe_copy);
         }
 
-    }    # PROBE
+        if ( $object_type eq 'ARRAY' ) {
+            push @follow_probes, map { \$_ } grep { ref $_ } @{$follow_probe};
+            next FOLLOW_OBJECT;
+        }
 
-    return $result;
+        if ( $object_type eq 'HASH' ) {
+            push @follow_probes,
+                map { \$_ } grep { ref $_ } values %{$follow_probe};
+            next FOLLOW_OBJECT;
+        }
+
+        # ignore any IO, FORMAT, LVALUE object or object of a type not listed
+        next FOLLOW_OBJECT if $object_type ne 'REF';
+
+        # if we reach here, $object_type eq 'REF'
+
+        # now figure what kind of object it points to, and put a new probe
+        # in the follow probes, depending on the type
+
+        my $ref_type = Scalar::Util::reftype ${$follow_probe};
+
+        my $new_tracking_probe;
+        my $new_follow_probe;
+
+        if ( $ref_type eq 'HASH' ) {
+            $new_follow_probe = $new_tracking_probe = \%{ ${$follow_probe} };
+        }
+
+        if ( $ref_type eq 'ARRAY' ) {
+            $new_follow_probe = $new_tracking_probe = \@{ ${$follow_probe} };
+        }
+
+        if ( $ref_type eq 'REF' ) {
+            $new_follow_probe = $new_tracking_probe = \${ ${$follow_probe} };
+        }
+
+        if (   $ref_type eq 'SCALAR'
+            or $ref_type eq 'VSTRING' )
+        {
+            $new_tracking_probe = \${ ${$follow_probe} };
+        }
+
+        if ( $ref_type eq 'CODE' ) {
+            $new_tracking_probe = \&{ ${$follow_probe} };
+        }
+
+        push @follow_probes, $new_follow_probe if defined $new_follow_probe;
+
+        next FOLLOW_OBJECT unless defined $new_tracking_probe;
+
+        next FOLLOW_OBJECT if $already_tracked{ $new_tracking_probe + 0 }++;
+
+        if ( defined $ignore ) {
+            my $safe_copy = $new_tracking_probe;
+            next FOLLOW_OBJECT if $ignore->($safe_copy);
+        }
+
+        push @tracking_probes, $new_tracking_probe;
+
+    }    # FOLLOW_OBJECT
+
+    return \@tracking_probes;
 
 }    # sub follow
 

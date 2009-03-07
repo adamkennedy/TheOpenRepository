@@ -62,6 +62,15 @@ $strong = [
 $strong = \[
               \[
                   $strong,
+                  42,
+                  \${$strong}->[0]
+                ],
+              711,
+              \$strong
+            ];
+$strong = \[
+              \[
+                  $strong,
                   711,
                   \${$strong}->[0]
                 ],
@@ -77,15 +86,6 @@ $strong = [
             42,
             \${$strong->[0]}->[0]
           ];
-$strong = \[
-              \[
-                  $strong,
-                  42,
-                  \${$strong}->[0]
-                ],
-              711,
-              \$strong
-            ];
 $weak = \\[
               \[
                   ${$weak},

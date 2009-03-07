@@ -46,8 +46,8 @@ package MyObject;
 sub new {
     my ($class) = @_;
     return bless {
-        one => MyGlobal->new('foo'),
-        two => MyGlobal->new('bar'),
+        one => MyGlobal->new('ishtar'),
+        two => MyGlobal->new('ereskigal'),
     }, $class;
 }
 
@@ -113,18 +113,18 @@ Test::Weaken::Test::is( Dumper( $test->unfreed_proberefs ),
 $VAR1 = [
           bless( {
                    'array' => [
-                                'something for foo'
+                                'something for ereskigal'
                               ],
-                   'name' => 'foo'
-                 }, 'MyGlobal' ),
-          bless( {
-                   'array' => [
-                                'something for bar'
-                              ],
-                   'name' => 'bar'
+                   'name' => 'ereskigal'
                  }, 'MyGlobal' ),
           $VAR1->[0]{'array'},
-          $VAR1->[1]{'array'}
+          bless( {
+                   'array' => [
+                                'something for ishtar'
+                              ],
+                   'name' => 'ishtar'
+                 }, 'MyGlobal' ),
+          $VAR1->[2]{'array'}
         ];
 EOS
 
@@ -207,6 +207,12 @@ Probe referent changed by ignore call
 Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
 Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
 EOS
     1 => <<'EOS',
 Probe referent changed by ignore call
@@ -226,7 +232,13 @@ Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
 Terminating ignore callbacks after finding 3 error(s) at <FILE> line <LINE_NUMBER>
 EOS
-    4 => <<'EOS',
+    9 => <<'EOS',
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
+Probe referent changed by ignore call
+Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
 Above errors reported at <FILE> line <LINE_NUMBER>
 Probe referent changed by ignore call
@@ -279,7 +291,7 @@ counted_errors(0);
 counted_errors(1);
 counted_errors(2);
 counted_errors(3);
-counted_errors(4);
+counted_errors(9);
 
 sub noop_ignore { return 0; }
 
