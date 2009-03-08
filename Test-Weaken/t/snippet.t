@@ -57,12 +57,12 @@ $test_output = do {
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub { new Buggy_Object },
             destructor  => \&destroy_buggy_object,
         }
     );
-    if ($test) {
+    if ($tester) {
         print "There are leaks\n" or croak("Cannot print to STDOUT: $ERRNO");
     }
 
@@ -91,12 +91,12 @@ $test_output = do {
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
-    if ($test) {
-        my $unfreed_proberefs = $test->unfreed_proberefs();
+    my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+    if ($tester) {
+        my $unfreed_proberefs = $tester->unfreed_proberefs();
         my $unfreed_count     = @{$unfreed_proberefs};
         printf "%d of %d references were not freed\n",
-            $test->unfreed_count(), $test->probe_count()
+            $tester->unfreed_count(), $tester->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or croak("Cannot print to STDOUT: $ERRNO");
@@ -155,9 +155,9 @@ $test_output = do {
         use Test::Weaken;
         use English qw( -no_match_vars );
 
-        my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
-        next TEST if not $test;
-        printf "%d objects were not freed\n", $test->unfreed_count(),
+        my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+        next TEST if not $tester;
+        printf "%d objects were not freed\n", $tester->unfreed_count(),
             or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display
@@ -191,14 +191,14 @@ $test_output = do {
         use Test::Weaken;
         use English qw( -no_match_vars );
 
-        my $test = Test::Weaken::leaks(
+        my $tester = Test::Weaken::leaks(
             {   constructor => sub { new Buggy_Object },
                 destructor  => \&destroy_buggy_object,
             }
         );
-        next TEST if not $test;
+        next TEST if not $tester;
         printf "%d of %d objects were not freed\n",
-            $test->unfreed_count(), $test->probe_count()
+            $tester->unfreed_count(), $tester->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
 
         ## no Marpa::Test::Display
@@ -229,13 +229,13 @@ $test_output = do {
         use Scalar::Util qw(isweak);
         use English qw( -no_match_vars );
 
-        my $test = Test::Weaken::leaks( sub { new Buggy_Object }, );
-        next TEST if not $test;
+        my $tester = Test::Weaken::leaks( sub { new Buggy_Object }, );
+        next TEST if not $tester;
         my $weak_unfreed_reference_count =
             scalar grep { ref $_ eq 'REF' and isweak( ${$_} ) }
-            @{ $test->unfreed_proberefs() };
+            @{ $tester->unfreed_proberefs() };
         printf "%d of %d weak references were not freed\n",
-            $weak_unfreed_reference_count, $test->weak_probe_count(),
+            $weak_unfreed_reference_count, $tester->weak_probe_count(),
             or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display
@@ -269,20 +269,20 @@ $test_output = do {
         use English qw( -no_match_vars );
         use Scalar::Util qw(isweak);
 
-        my $test = Test::Weaken::leaks(
+        my $tester = Test::Weaken::leaks(
             {   constructor => sub { new Buggy_Object },
                 destructor  => \&destroy_buggy_object,
             }
         );
-        next TEST if not $test;
-        my $proberefs = $test->unfreed_proberefs();
+        next TEST if not $tester;
+        my $proberefs = $tester->unfreed_proberefs();
         my $strong_unfreed_object_count =
             grep { ref $_ ne 'REF' or not isweak( ${$_} ) } @{$proberefs};
         my $strong_unfreed_reference_count =
             grep { ref $_ eq 'REF' and not isweak( ${$_} ) } @{$proberefs};
 
         printf "%d of %d strong objects were not freed\n",
-            $strong_unfreed_object_count, $test->strong_probe_count(),
+            $strong_unfreed_object_count, $tester->strong_probe_count(),
             or croak("Cannot print to STDOUT: $ERRNO");
         printf "%d of the unfreed strong objects were references\n",
             $strong_unfreed_reference_count
@@ -320,29 +320,10 @@ $test_output = do {
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = new Test::Weaken( sub { new My_Object } );
-    printf "There were %s leaks\n", $test->test()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    my $proberefs            = $test->unfreed_proberefs();
-    my $unfreed_count        = 0;
-    my $weak_unfreed_count   = 0;
-    my $strong_unfreed_count = 0;
-    PROBEREF: for my $proberef ( @{$proberefs} ) {
-        $unfreed_count++;
-        if ( ref $_ eq 'REF' and isweak( ${$_} ) ) {
-            $weak_unfreed_count++;
-        }
-        else {
-            $strong_unfreed_count++;
-        }
-    }
-    printf "%d of %d objects freed\n", $unfreed_count, $test->probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    printf "%d of %d weak references freed\n", $weak_unfreed_count,
-        $test->weak_probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    printf "%d of %d other objects freed\n", $strong_unfreed_count,
-        $test->strong_probe_count()
+    my $tester        = new Test::Weaken( sub { new My_Object } );
+    my $unfreed_count = $tester->test();
+    my $proberefs     = $tester->unfreed_proberefs();
+    printf "%d of %d objects freed\n", $unfreed_count, $tester->probe_count()
         or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display
@@ -354,10 +335,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'new snippet' );
-There were 0 leaks
 0 of 7 objects freed
-0 of 0 weak references freed
-0 of 7 other objects freed
 EOS
 
 package Test::Weaken::Test::Snippet::test;
@@ -380,12 +358,12 @@ $test_output = do {
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = new Test::Weaken(
+    my $tester = new Test::Weaken(
         {   constructor => sub { new My_Object },
             destructor  => \&destroy_my_object,
         }
     );
-    printf "There are %s\n", ( $test->test() ? 'leaks' : 'no leaks' )
+    printf "There are %s\n", ( $tester->test() ? 'leaks' : 'no leaks' )
         or croak("Cannot print to STDOUT: $ERRNO");
 
 ## no Marpa::Test::Display

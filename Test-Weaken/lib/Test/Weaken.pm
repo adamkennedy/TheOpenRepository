@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.001_002';
+our $VERSION   = '2.001_003';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -203,7 +203,12 @@ sub Test::Weaken::new {
 
 sub Test::Weaken::test {
 
-    my $self        = shift;
+    my $self = shift;
+
+    if ( defined $self->{unfreed_probes} ) {
+        croak('Test::Weaken tester was already evaluated');
+    }
+
     my $constructor = $self->{constructor};
     my $destructor  = $self->{destructor};
     my $ignore      = $self->{ignore};
@@ -239,10 +244,11 @@ sub Test::Weaken::test {
 
 }    # sub test
 
+# Undocumented and deprecated
 sub poof_array_return {
 
-    my $test    = shift;
-    my $results = $test->{unfreed_probes};
+    my $tester  = shift;
+    my $results = $tester->{unfreed_probes};
 
     my @unfreed_strong = ();
     my @unfreed_weak   = ();
@@ -255,31 +261,34 @@ sub poof_array_return {
         }
     }
 
-    # See the POD on the return values
-    return ( @{$test}{qw(weak_probe_count strong_probe_count)},
-        \@unfreed_weak, \@unfreed_strong );
+    return (
+        $tester->weak_probe_count(),
+        $tester->strong_probe_count(),
+        \@unfreed_weak, \@unfreed_strong
+    );
 
 } ## end sub poof_array_return;
 
+# Undocumented and deprecated
 sub Test::Weaken::poof {
     my @args   = @_;
-    my $test   = new Test::Weaken(@args);
-    my $result = $test->test();
-    return Test::Weaken::Internal::poof_array_return($test) if wantarray;
+    my $tester = new Test::Weaken(@args);
+    my $result = $tester->test();
+    return Test::Weaken::Internal::poof_array_return($tester) if wantarray;
     return $result;
 }
 
 sub Test::Weaken::leaks {
     my @args   = @_;
-    my $test   = new Test::Weaken(@args);
-    my $result = $test->test();
-    return $test if $result;
+    my $tester = new Test::Weaken(@args);
+    my $result = $tester->test();
+    return $tester if $result;
     return;
 }
 
 sub Test::Weaken::unfreed_proberefs {
-    my $test   = shift;
-    my $result = $test->{unfreed_probes};
+    my $tester = shift;
+    my $result = $tester->{unfreed_probes};
     if ( not defined $result ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -287,8 +296,8 @@ sub Test::Weaken::unfreed_proberefs {
 }
 
 sub Test::Weaken::unfreed_count {
-    my $test   = shift;
-    my $result = $test->{unfreed_probes};
+    my $tester = shift;
+    my $result = $tester->{unfreed_probes};
     if ( not defined $result ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -296,26 +305,28 @@ sub Test::Weaken::unfreed_count {
 }
 
 sub Test::Weaken::probe_count {
-    my $test  = shift;
-    my $count = $test->{probe_count};
+    my $tester = shift;
+    my $count  = $tester->{probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
 
+# Undocumented and deprecated
 sub Test::Weaken::weak_probe_count {
-    my $test  = shift;
-    my $count = $test->{weak_probe_count};
+    my $tester = shift;
+    my $count  = $tester->{weak_probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
 
+# Undocumented and deprecated
 sub Test::Weaken::strong_probe_count {
-    my $test  = shift;
-    my $count = $test->{strong_probe_count};
+    my $tester = shift;
+    my $count  = $tester->{strong_probe_count};
     if ( not defined $count ) {
         croak('Results not available for this Test::Weaken object');
     }
@@ -473,16 +484,16 @@ is_file($_, 't/synopsis.t', 'synopsis')
 
     my $bad_destructor = sub {'I am useless'};
 
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => $bad_test,
             destructor  => $bad_destructor,
         }
     );
-    if ($test) {
-        my $unfreed_proberefs = $test->unfreed_proberefs();
+    if ($tester) {
+        my $unfreed_proberefs = $tester->unfreed_proberefs();
         my $unfreed_count     = @{$unfreed_proberefs};
         printf "Test 2: %d of %d original references were not freed\n",
-            $test->unfreed_count(), $test->probe_count()
+            $tester->unfreed_count(), $tester->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or croak("Cannot print to STDOUT: $ERRNO");
@@ -517,7 +528,7 @@ unless the programmer takes specific measures to prevent leaks.
 Preventive measures include
 weakening the references
 and arranging to break the reference cycle just before
-the object is destroyed,
+the object is destroyed.
 
 It is easy to misdesign or misimplement a scheme for
 preventing memory leaks.
@@ -541,7 +552,7 @@ from the test object reference was not actually deallocated.
 To determine which memory can be accessed from the
 test object reference,
 C<Test::Weaken> follows
-arrays, hashes, weak references and strong references.
+arrays, hashes, weak references, and strong references.
 It follows these recursively and to unlimited depth.
 
 C<Test::Weaken> deals gracefully with circular references.
@@ -552,14 +563,14 @@ To avoid infinite loops,
 C<Test::Weaken> records all the memory objects it visits,
 and will not visit the same memory object twice.
 
-=head2 Independent Objects and Tracked Objects
+=head2 Tracked Objects
 
 An object is called a B<independent memory object>
 if it has independently allocated memory.
 For brevity, this document often refers to independent memory objects
 as B<independent objects>.
 
-Arrays, hashes, closures and variables are independent memory objects.
+Arrays, hashes, closures, and variables are independent memory objects.
 References and constants which are not elements of arrays or hashes are
 also independent memory objects.
 Elements of arrays and hashes are never independent memory objects, because their
@@ -572,7 +583,7 @@ A independent object is called a B<tracked object>
 if C<Test::Weaken> tracks it with a probe reference.
 Tracked objects are always independent objects.
 
-=head2 Followed Objects and External Objects
+=head2 Followed Objects
 
 An object is called a B<followed object>
 if C<Test::Weaken> examines it during its recursive search for
@@ -604,11 +615,14 @@ An external object is called a B<persistent object>
 if is expected that the lifetime of the external object might
 extend beyond that of the test object.
 Persistent objects are not memory leaks.
-Persistent objects are objects not expected to be freed along
-with the test object.
-Leaked objects are objects that are expected to be freed
-with the test object,
-but that are not actually freed.
+With a persistent objects,
+it is not expected that
+freeing the test object will always also
+free the persistent object.
+With a memory leak,
+freeing the test object was expected
+to also free the leaked object,
+and that expectation which was disappointed.
 
 To determine which of the unfreed objects are memory leaks,
 the user must separate out the persistent objects
@@ -618,28 +632,12 @@ L<below|/"ADVANCED TECHNIQUES">.
 
 =head2 Builtin Types
 
-When it needs to classify object types precisely,
-this document will
-use the builtin type names as returned by L<Scalar::Util>'s
-C<reftype> subroutine and Perl's C<ref> builtin.
-Both C<reftype> and C<ref> take a reference as their argument.
-They both return the type of the I<referent>.
-For example, given a reference to
-a number or a string,
-C<reftype> and C<ref> return "C<SCALAR>".
-If the argument to C<reftype> is a reference to a reference,
-C<reftype> and C<ref> return "C<REF>".
-
-There are differences between C<reftype> and C<ref>.
-For an object blessed into a package, C<ref> returns the package name,
-rather than the builtin type.
-Also, C<ref> describes the builtin type of compiled regular expressions as "C<Regexp>",
-while C<reftype> describes it as being of the same builtin type as a number or a string:
-"C<SCALAR>".
-In this document,
-the list of builtin types is considered to be as follows:
-SCALAR, ARRAY,
-HASH, CODE, REF, GLOB, LVALUE, FORMAT, IO, VSTRING, and Regexp.
+B<Builtin types> are
+the type names returned by L<Scalar::Util>'s
+C<reftype> subroutine.
+C<Scalar::Util::reftype> differs from Perl's C<ref> function.
+If an object was blessed into a package, C<ref> returns the package name,
+while C<reftype> returns the original builtin type of the object.
 
 =head2 ARRAY and HASH Objects
 
@@ -658,12 +656,12 @@ This can be seen as a limitation, because
 closures hold references to memory objects.
 Future versions of C<Test::Weaken> may follow CODE objects.
 
-=head2 SCALAR, VSTRING and Regexp Objects
+=head2 SCALAR and VSTRING Objects
 
-Independent objects of builtin types SCALAR, VSTRING and Regexp are tracked.
-Objects of type SCALAR, VSTRING and Regexp are independent if and only if they
+Independent objects of builtin types SCALAR and VSTRING are tracked.
+Objects of type SCALAR and VSTRING are independent if and only if they
 are not array or hash elements.
-SCALAR, VSTRING and Regexp objects are not followed because there is
+SCALAR and VSTRING objects are not followed because there is
 nothing to follow
 -- they do not hold references to other objects.
 
@@ -748,9 +746,8 @@ create memory leaks which are artifacts of the test environment.
 These artifacts are very difficult to sort out from the real thing.
 
 The easiest way to avoid leaving unintended references to memory inside
-the test object is to work entirely within a closure.
-Under this strategy,
-the test object is created entirely in the closure, using
+the test object is to work entirely within a closure,
+using
 only objects local to that closure.
 Memory objects local to a closure will be destroyed when the
 closure returns, and any references they held will be released.
@@ -796,12 +793,12 @@ is_file($_, 't/snippet.t', 'leaks snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub { new Buggy_Object },
             destructor  => \&destroy_buggy_object,
         }
     );
-    if ($test) {
+    if ($tester) {
         print "There are leaks\n" or croak("Cannot print to STDOUT: $ERRNO");
     }
 
@@ -811,13 +808,18 @@ is_file($_, 't/snippet.t', 'leaks snippet')
 
 =end Marpa::Test::Display:
 
+C<leaks> returns a
+Perl false if no unfreed memory objects were detected.
+If unfreed memory objects were detected,
+C<leaks> returns an evaluated C<Test::Weaken> object.
+(An B<evaluated> C<Test::Weaken> object is one on which the
+tests have been run,
+and for which results are available.)
+Users who only want to know if there were unfreed objects can
+test the return value of C<leaks> for Perl true or false.
 Arguments to the C<leaks> static method may be passed as a reference to
 a hash of named arguments,
 or directly as code references.
-C<leaks> returns a C<Test::Weaken> object if it found unfreed objects,
-and a Perl false value otherwise.
-Users who only want to know if there were unfreed objects can
-test the return value of C<leaks> for Perl true or false.
 
 =over 4
 
@@ -874,7 +876,7 @@ is_file($_, 't/ignore.t', 'ignore snippet')
         return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
     }
 
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub { MyObject->new },
             ignore      => \&ignore_my_global,
         }
@@ -892,11 +894,12 @@ and tracking selected probe references, as chosen by
 the user.
 Use of the C<ignore> argument should be avoided
 when possible.
-Filtering the probe references returned by
+Filtering the probe references,
+as returned by
 L<unfreed_proberefs>
+after the fact,
 is easier, safer and
-faster
-after the fact.
+faster.
 The C<ignore> argument is provided for situations
 where filtering after the fact
 is not practical.
@@ -924,10 +927,11 @@ Otherwise the callback subroutine should return a Perl false.
 For safety, C<Test::Weaken> does not pass the original probe reference
 to the C<ignore> callback.
 Instead, C<Test::Weaken> passes a copy of the probe reference.
-This makes it less likely that
-the probe reference will be altered by accident.
-The object referred to by the probe reference is not a copy, however.
-It is the original object.
+This prevent the user
+altering
+the probe reference itself.
+The object referred to by the probe reference is not copied.
+It is still the original object.
 If that is altered, all bets are off.
 
 C<ignore> callbacks are best kept simple.
@@ -957,12 +961,12 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
-    if ($test) {
-        my $unfreed_proberefs = $test->unfreed_proberefs();
+    my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+    if ($tester) {
+        my $unfreed_proberefs = $tester->unfreed_proberefs();
         my $unfreed_count     = @{$unfreed_proberefs};
         printf "%d of %d references were not freed\n",
-            $test->unfreed_count(), $test->probe_count()
+            $tester->unfreed_count(), $tester->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or croak("Cannot print to STDOUT: $ERRNO");
@@ -979,6 +983,9 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
 =end Marpa::Test::Display:
 
 Returns a reference to an array of probe references to the unfreed objects.
+Throws an exception if there is a problem,
+for example if the C<Test::Weaken> object has not yet been evaluated.
+
 Often, this data is examined
 to pinpoint the source of a leak.
 A user may also analyze this data to produce her own statistics about unfreed objects.
@@ -1012,9 +1019,9 @@ is_file($_, 't/snippet.t', 'unfreed_count snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = Test::Weaken::leaks( sub { new Buggy_Object } );
-    next TEST if not $test;
-    printf "%d objects were not freed\n", $test->unfreed_count(),
+    my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+    next TEST if not $tester;
+    printf "%d objects were not freed\n", $tester->unfreed_count(),
         or croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
@@ -1026,6 +1033,8 @@ is_file($_, 't/snippet.t', 'unfreed_count snippet')
 Returns the count of unfreed objects.
 This count will be exactly the length of the array referred to by
 the return value of the C<unfreed_proberefs> method.
+Throws an exception if there is a problem,
+for example if the C<Test::Weaken> object has not yet been evaluated.
 
 =head2 probe_count
 
@@ -1040,14 +1049,14 @@ is_file($_, 't/snippet.t', 'probe_count snippet')
         use Test::Weaken;
         use English qw( -no_match_vars );
 
-        my $test = Test::Weaken::leaks(
+        my $tester = Test::Weaken::leaks(
             {   constructor => sub { new Buggy_Object },
                 destructor  => \&destroy_buggy_object,
             }
         );
-        next TEST if not $test;
+        next TEST if not $tester;
         printf "%d of %d objects were not freed\n",
-            $test->unfreed_count(), $test->probe_count()
+            $tester->unfreed_count(), $tester->probe_count()
             or croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
@@ -1063,95 +1072,8 @@ after C<Test::Weaken> was finished following the test object reference
 recursively,
 but before C<Test::Weaken> called the test object destructor and undefined the
 test object reference.
-
-=head2 weak_probe_count
-
-=begin Marpa::Test::Display:
-
-## start display
-## next display
-is_file($_, 't/snippet.t', 'weak_probe_count snippet')
-
-=end Marpa::Test::Display:
-
-        use Test::Weaken;
-        use Scalar::Util qw(isweak);
-        use English qw( -no_match_vars );
-
-        my $test = Test::Weaken::leaks( sub { new Buggy_Object }, );
-        next TEST if not $test;
-        my $weak_unfreed_reference_count =
-            scalar grep { ref $_ eq 'REF' and isweak( ${$_} ) }
-            @{ $test->unfreed_proberefs() };
-        printf "%d of %d weak references were not freed\n",
-            $weak_unfreed_reference_count, $test->weak_probe_count(),
-            or croak("Cannot print to STDOUT: $ERRNO");
-
-=begin Marpa::Test::Display:
-
-## end display
-
-=end Marpa::Test::Display:
-
-Returns the number of probe references which were to weak references.
-The count includes
-probe references to freed weak references.
-The count is made
-after C<Test::Weaken> finishes following the test object reference
-recursively,
-but before C<Test::Weaken> calls the test object destructor and undefines the
-test object reference.
-
-=head2 strong_probe_count
-
-=begin Marpa::Test::Display:
-
-## start display
-## next display
-is_file($_, 't/snippet.t', 'strong_probe_count snippet')
-
-=end Marpa::Test::Display:
-
-    use Test::Weaken;
-    use English qw( -no_match_vars );
-    use Scalar::Util qw(isweak);
-
-    my $test = Test::Weaken::leaks(
-        {   constructor => sub { new Buggy_Object },
-            destructor  => \&destroy_buggy_object,
-        }
-    );
-    next TEST if not $test;
-    my $proberefs = $test->unfreed_proberefs();
-    my $strong_unfreed_object_count =
-        grep { ref $_ ne 'REF' or not isweak( ${$_} ) } @{$proberefs};
-    my $strong_unfreed_reference_count =
-        grep { ref $_ eq 'REF' and not isweak( ${$_} ) } @{$proberefs};
-
-    printf "%d of %d strong objects were not freed\n",
-        $strong_unfreed_object_count, $test->strong_probe_count(),
-        or croak("Cannot print to STDOUT: $ERRNO");
-    printf "%d of the unfreed strong objects were references\n",
-        $strong_unfreed_reference_count
-        or croak("Cannot print to STDOUT: $ERRNO");
-
-=begin Marpa::Test::Display:
-
-## end display
-
-=end Marpa::Test::Display:
-
-Returns the number of probe references which were to strong objects.
-Here "strong object" means any object which is not a weak reference.
-This includes not just strong REF objects,
-but all objects which are not of REF type.
-
-The count includes probes to both freed and unfreed objects.
-The count is taken
-after C<Test::Weaken> finishes following the test object reference
-recursively,
-but before C<Test::Weaken> calls the test object destructor and undefines the
-test object reference.
+Throws an exception if there is a problem,
+for example if the C<Test::Weaken> object has not yet been evaluated.
 
 =head1 PLUMBING METHODS
 
@@ -1173,29 +1095,12 @@ is_file($_, 't/snippet.t', 'new snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = new Test::Weaken( sub { new My_Object } );
-    printf "There were %s leaks\n", $test->test()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    my $proberefs            = $test->unfreed_proberefs();
-    my $unfreed_count        = 0;
-    my $weak_unfreed_count   = 0;
-    my $strong_unfreed_count = 0;
-    PROBEREF: for my $proberef ( @{$proberefs} ) {
-        $unfreed_count++;
-        if ( ref $_ eq 'REF' and isweak( ${$_} ) ) {
-            $weak_unfreed_count++;
-        }
-        else {
-            $strong_unfreed_count++;
-        }
-    }
-    printf "%d of %d objects freed\n", $unfreed_count, $test->probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    printf "%d of %d weak references freed\n", $weak_unfreed_count,
-        $test->weak_probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
-    printf "%d of %d other objects freed\n", $strong_unfreed_count,
-        $test->strong_probe_count()
+    my $tester        = new Test::Weaken( sub { new My_Object } );
+    my $unfreed_count = $tester->test();
+    my $proberefs     = $tester->unfreed_proberefs();
+    printf "%d of %d objects freed\n",
+        $unfreed_count,
+        $tester->probe_count()
         or croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
@@ -1205,16 +1110,15 @@ is_file($_, 't/snippet.t', 'new snippet')
 =end Marpa::Test::Display:
 
 The C<new> method takes the same arguments as the C<leaks> method, described above.
-Unlike the C<leaks> method, it always returns a test object.
-Errors are thrown as exceptions.
+Unlike the C<leaks> method, it always returns an B<unevaluated> tester.
+An B<unevaluated> tester is one on which the test has not yet
+been run and for which results are not yet available.
+It there are any problems, the C<new>
+method throws an exception.
 
-Only one thing can be done with
-the test object returned by C<new>.
-That is to call the C<test> method on it.
-Until the C<test> method is called,
-no results will be available,
-and calling any method which asks for a result will cause an
-exception.
+The C<test> method is the only method which can be called successfully on
+an unevaluated tester.
+Calling any other method on an unevaluated tester causes an exception to be thrown.
 
 =head2 test
 
@@ -1229,28 +1133,26 @@ is_file($_, 't/snippet.t', 'test snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $test = new Test::Weaken(
+    my $tester = new Test::Weaken(
         {   constructor => sub { new My_Object },
             destructor  => \&destroy_my_object,
         }
     );
-    printf "There are %s\n", ( $test->test() ? 'leaks' : 'no leaks' )
+    printf "There are %s\n", ( $tester->test() ? 'leaks' : 'no leaks' )
         or croak("Cannot print to STDOUT: $ERRNO");
 
-The C<test> method should only be called on a C<Test::Weaken> object just
-returned from the C<new> constructor.
-It runs the test specified
+Converts an unevaluated tester into an evaluated tester.
+It does this by performing the test
+specified
 by the arguments to the C<new> constructor
-and obtains the results.
-Calling any other method except C<test> on a C<Test::Weaken> object returned by
-the C<new> constructor, but not yet evaluated with the C<test> method,
-will produce an exception.
+and recording the results.
+Throws an exception if there is a problem,
+for example if the tester had already been evaluated.
 
 The C<test> method returns the count of unfreed objects.
 This will be identical to the length of the array
 returned by C<unfreed_proberefs> and
 the count returned by C<unfreed_count>.
-If there is an error, the C<test> method throws an exception.
 
 =begin Marpa::Test::Display:
 
@@ -1307,7 +1209,7 @@ the same object
 as the object which had the same address earlier.
 This can bite you
 if you're not careful.
-_
+
 To be sure an earlier object and a later object with the same address
 are actually the same object,
 you need to know that the earlier object will be persistent,
@@ -1330,7 +1232,7 @@ C<ignore> callback subroutines
 are inadvertently
 modifying the test object.
 The C<Test::Weaken::check_ignore> static method is
-provided to make this debugging task easier.
+provided to make this task easier.
 
 =begin Marpa::Test::Display:
 
@@ -1340,7 +1242,7 @@ is_file($_, 't/ignore.t', 'check_ignore 1 arg snippet')
 
 =end Marpa::Test::Display:
 
-    $test = Test::Weaken::leaks(
+    $tester = Test::Weaken::leaks(
         {   constructor => sub { MyObject->new },
             ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
         }
@@ -1360,7 +1262,7 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 
 =end Marpa::Test::Display:
 
-    $test = Test::Weaken::leaks(
+    $tester = Test::Weaken::leaks(
         {   constructor => sub { DeepObject->new },
             ignore      => Test::Weaken::check_ignore(
                 \&cause_deep_problem, 99, 0, $reporting_depth
@@ -1379,7 +1281,7 @@ a debugging wrapper from
 four arguments, three of which are optional.
 The first argument must be the ignore callback
 which you are trying to debug.
-This callback is the called test subject, or the
+This callback is called the test subject, or
 B<lab rat>.
 
 The second, optional argument, is the maximum error count.
@@ -1426,15 +1328,15 @@ To discover when and if the lab rat callback is
 altering its arguments,
 C<Test::Weaken::check_ignore>
 compares the test object
-before the call to the lab rat
-with the test object after the lab rat returns.
+before the lab rat is called,
+to the test object after the lab rat returns.
 C<Test::Weaken::check_ignore>
 compares the before and after test object in two ways.
 First, it dumps the test object's contents using
 C<Data::Dumper>.
 For comparison purposes,
 the dump using C<Data::Dumper> is performed with C<Maxdepth>
-set to the compare depth.
+set to the compare depth as described above.
 Second, if the immediate probe referent has builtin type REF,
 C<Test::Weaken::check_ignore>
 determines whether the immediate probe referent
@@ -1448,10 +1350,10 @@ C<croak> exception, depending on the number of error
 messages already reported and the setting of the
 maximum error count.
 If the reporting depth is a non-negative number, the error
-message include a dump from C<Data::Dumper> of the
+message includes a dump from C<Data::Dumper> of the
 test object.
 C<Data::Dumper>'s C<Maxdepth>
-for reporting purposes is the reporting depth.
+for reporting purposes is the reporting depth as described above.
 
 A user who wants other features, such as deep checking
 of the test object
@@ -1463,8 +1365,8 @@ which does not use any C<Test::Weaken>
 package resources.
 It is easy to copy it from the C<Test::Weaken> source
 and hack it up.
-Because C<Test::Weaken::check_ignore> makes no use of
-package resources, the hacked version does not need to
+The hacked version can reside anywhere,
+and does not need to
 be part of the C<Test::Weaken> package.
 
 =head1 EXPORTS

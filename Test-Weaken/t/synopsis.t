@@ -49,16 +49,16 @@ my $bad_test = sub {
 
 my $bad_destructor = sub {'I am useless'};
 
-my $test = Test::Weaken::leaks(
+my $tester = Test::Weaken::leaks(
     {   constructor => $bad_test,
         destructor  => $bad_destructor,
     }
 );
-if ($test) {
-    my $unfreed_proberefs = $test->unfreed_proberefs();
+if ($tester) {
+    my $unfreed_proberefs = $tester->unfreed_proberefs();
     my $unfreed_count     = @{$unfreed_proberefs};
     printf "Test 2: %d of %d original references were not freed\n",
-        $test->unfreed_count(), $test->probe_count()
+        $tester->unfreed_count(), $tester->probe_count()
         or croak("Cannot print to STDOUT: $ERRNO");
     print "These are the probe references to the unfreed objects:\n"
         or croak("Cannot print to STDOUT: $ERRNO");

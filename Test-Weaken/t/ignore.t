@@ -88,7 +88,7 @@ sub ignore_my_global {
     return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
 }
 
-my $test = Test::Weaken::leaks(
+my $tester = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
         ignore      => \&ignore_my_global,
     }
@@ -96,19 +96,19 @@ my $test = Test::Weaken::leaks(
 
 ## no Marpa::Test::Display
 
-if ( not $test ) {
+if ( not $tester ) {
     pass('good ignore');
 }
 else {
-    Test::Weaken::Test::is( $test->unfreed_proberefs, q{}, 'good ignore' );
+    Test::Weaken::Test::is( $tester->unfreed_proberefs, q{}, 'good ignore' );
 }
 
-$test = Test::Weaken::leaks(
+$tester = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
         ignore      => sub { return; }
     }
 );
-Test::Weaken::Test::is( Dumper( $test->unfreed_proberefs ),
+Test::Weaken::Test::is( Dumper( $tester->unfreed_proberefs ),
     <<'EOS', 'no-op ignore' );
 $VAR1 = [
           bless( {
@@ -129,18 +129,18 @@ $VAR1 = [
 EOS
 
 ## use Marpa::Test::Display check_ignore 1 arg snippet
-$test = Test::Weaken::leaks(
+$tester = Test::Weaken::leaks(
     {   constructor => sub { MyObject->new },
         ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
     }
 );
 ## no Marpa::Test::Display
 
-if ( not $test ) {
+if ( not $tester ) {
     pass('wrappered good ignore');
 }
 else {
-    Test::Weaken::Test::is( $test->unfreed_proberefs, q{},
+    Test::Weaken::Test::is( $tester->unfreed_proberefs, q{},
         'wrappered good ignore' );
 }
 
@@ -295,16 +295,16 @@ counted_errors(9);
 
 sub noop_ignore { return 0; }
 
-$test = Test::Weaken::leaks(
+$tester = Test::Weaken::leaks(
     {   constructor => sub { MyCycle->new },
         ignore      => \&noop_ignore,
     }
 );
-if ( not $test ) {
+if ( not $tester ) {
     pass('cycle w/ no-op ignore');
 }
 else {
-    Test::Weaken::Test::is( $test->unfreed_proberefs, q{},
+    Test::Weaken::Test::is( $tester->unfreed_proberefs, q{},
         'cycle w/ no-op ignore' );
 }
 
@@ -318,16 +318,16 @@ sub copying_ignore {
 }
 ## use critic
 
-$test = Test::Weaken::leaks(
+$tester = Test::Weaken::leaks(
     {   constructor => sub { MyCycle->new },
         ignore      => \&copying_ignore,
     }
 );
-if ( not $test ) {
+if ( not $tester ) {
     pass('cycle w/ copying ignore');
 }
 else {
-    my $unfreed = $test->unfreed_proberefs;
+    my $unfreed = $tester->unfreed_proberefs;
     Test::Weaken::Test::is(
         Data::Dumper->Dump( [$unfreed], [qw(unfreed)] ),
         <<'EOS',
@@ -344,7 +344,7 @@ EOS
 $restore     = divert_stderr();
 $eval_return = eval {
 
-    $test = Test::Weaken::leaks(
+    $tester = Test::Weaken::leaks(
         {   constructor => sub { MyCycle->new },
             ignore => Test::Weaken::check_ignore( \&copying_ignore, 2 ),
         }
@@ -352,11 +352,11 @@ $eval_return = eval {
 };
 $stderr = &{$restore};
 
-if ( not $test ) {
+if ( not $tester ) {
     pass('cycle w/ copying & error callback');
 }
 else {
-    my $unfreed = $test->unfreed_proberefs;
+    my $unfreed = $tester->unfreed_proberefs;
     Test::Weaken::Test::is(
         Data::Dumper->Dump( [$unfreed], [qw(unfreed)] ),
         <<'EOS',
@@ -575,7 +575,7 @@ sub counted_reporting_depth {
     $restore     = divert_stderr();
     $eval_return = eval {
 ## use Marpa::Test::Display check_ignore 4 arg snippet
-        $test = Test::Weaken::leaks(
+        $tester = Test::Weaken::leaks(
             {   constructor => sub { DeepObject->new },
                 ignore      => Test::Weaken::check_ignore(
                     \&cause_deep_problem, 99, 0, $reporting_depth
