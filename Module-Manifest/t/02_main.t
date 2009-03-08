@@ -16,6 +16,7 @@ my $root = rel2abs( curdir() );
 # Load our own MANIFEST/MANIFEST.SKIP files
 SKIP: {
 	skip( "No MANIFEST file", 5 ) unless -f 'MANIFEST';
+	skip( "No MANIFEST.SKIP file", 5 ) unless -f 'MANIFEST.SKIP';
 	my $manifest = Module::Manifest->new('MANIFEST', 'MANIFEST.SKIP');
 	isa_ok($manifest, 'Module::Manifest');
 
