@@ -615,14 +615,15 @@ An external object is called a B<persistent object>
 if is expected that the lifetime of the external object might
 extend beyond that of the test object.
 Persistent objects are not memory leaks.
-With a persistent objects,
+With a persistent object,
 it is not expected that
-freeing the test object will always also
+freeing the test object will always
 free the persistent object.
 With a memory leak,
-freeing the test object was expected
-to also free the leaked object,
-and that expectation which was disappointed.
+when the test object was freed,
+the leaked object was expected
+to be freed along with it,
+and this expectation was disappointed.
 
 To determine which of the unfreed objects are memory leaks,
 the user must separate out the persistent objects
@@ -808,13 +809,16 @@ is_file($_, 't/snippet.t', 'leaks snippet')
 
 =end Marpa::Test::Display:
 
-C<leaks> returns a
+Returns a
 Perl false if no unfreed memory objects were detected.
 If unfreed memory objects were detected,
-C<leaks> returns an evaluated C<Test::Weaken> object.
-(An B<evaluated> C<Test::Weaken> object is one on which the
+returns an evaluated C<Test::Weaken> class object.
+
+C<Test::Weaken> class objects, for brevity, are called B<testers>.
+An B<evaluated> tester is one on which the
 tests have been run,
-and for which results are available.)
+and for which results are available.
+
 Users who only want to know if there were unfreed objects can
 test the return value of C<leaks> for Perl true or false.
 Arguments to the C<leaks> static method may be passed as a reference to
@@ -927,7 +931,7 @@ Otherwise the callback subroutine should return a Perl false.
 For safety, C<Test::Weaken> does not pass the original probe reference
 to the C<ignore> callback.
 Instead, C<Test::Weaken> passes a copy of the probe reference.
-This prevent the user
+This prevents the user
 altering
 the probe reference itself.
 The object referred to by the probe reference is not copied.
@@ -1113,7 +1117,7 @@ The C<new> method takes the same arguments as the C<leaks> method, described abo
 Unlike the C<leaks> method, it always returns an B<unevaluated> tester.
 An B<unevaluated> tester is one on which the test has not yet
 been run and for which results are not yet available.
-It there are any problems, the C<new>
+If there are any problems, the C<new>
 method throws an exception.
 
 The C<test> method is the only method which can be called successfully on
@@ -1164,13 +1168,15 @@ the count returned by C<unfreed_count>.
 
 =head2 Tracing Leaks
 
-The C<unfreed_proberefs> method returns an array containing the unfreed
+The C<unfreed_proberefs> method returns an array containing
+probes to
+the unfreed
 independent memory objects.
 This can be used
 to find the source of leaks.
 If circumstances allow it,
 you might find it useful to add "tag" elements to arrays and hashes
-for tracking purposes.
+to aid in identifying the source of a leak.
 
 You can quasi-uniquely identify memory objects using
 the referent addresses of the probe references.
@@ -1331,8 +1337,8 @@ compares the test object
 before the lab rat is called,
 to the test object after the lab rat returns.
 C<Test::Weaken::check_ignore>
-compares the before and after test object in two ways.
-First, it dumps the test object's contents using
+compares the before and after test objects in two ways.
+First, it dumps the contents of each test object using
 C<Data::Dumper>.
 For comparison purposes,
 the dump using C<Data::Dumper> is performed with C<Maxdepth>
