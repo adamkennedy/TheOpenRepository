@@ -2,7 +2,7 @@ package App::DualLivedDiff;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 use Getopt::Long;
 use Parse::CPAN::Meta ();
@@ -357,8 +357,8 @@ sub file_diff {
   #$result =~ s{^($blead_prefix\s*)(\S+)}{$1 . remove_path_prefix($2, $blead_base_dir)}gme;
   #$result =~ s{^($source_prefix\s*)(\S+)}{$1 . remove_path_prefix($2, $source_base_dir)}gme;
   
-  $result =~ s{^($blead_prefix\s*)(\S+)}{$1 . $patched_filename}gme;
-  $result =~ s{^($source_prefix\s*)(\S+)}{$1 . $patched_filename}gme;
+  $result =~ s{^($blead_prefix\s+)(\S+)}{$1 . $patched_filename}gme;
+  $result =~ s{^($source_prefix\s+)(\S+)}{$1 . $patched_filename}gme;
 
   if (defined $output_file) {
     print $output_file $result;
@@ -385,9 +385,14 @@ sub module_or_dist_to_url {
 
   my $distro;
   if ($module_name =~ /[\/.]/) {
-    my $dist = CPAN::Shell->expand("Distribution", $module_name);
+    my $dist = CPAN::Shell->expandany($module_name);
     if (not defined $dist) {
-      warn "Could not find distribution '$module_name' on CPAN";
+      warn "Could not find distribution '$module_name' on CPAN\n";
+      return();
+    }
+    $dist = $dist->distribution() if ref($dist) eq 'CPAN::Module';
+    if (not ref($dist) eq 'CPAN::Distribution') {
+      warn "Could not find distribution '$module_name' on CPAN\n";
       return();
     }
     $distro = $dist->pretty_id();
@@ -396,7 +401,7 @@ sub module_or_dist_to_url {
   else {
     my $module = CPAN::Shell->expand("Module", $module_name);
     if (not defined $module) {
-      warn "Could not find module '$module_name' on CPAN";
+      warn "Could not find module '$module_name' on CPAN\n";
       return();
     }
     $distro = $module->distribution()->pretty_id();

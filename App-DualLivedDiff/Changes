@@ -1,5 +1,11 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.03  Sun Mar  8 13:08 2009
+  - Fix the path munging of the diffs.
+  - Work around what seems to be a slight bug in CPAN.pm's
+    expand("Distribution, ...) to make expansion of dev
+    releases on CPAN work.
+
 1.02  Sat Mar  7 19:32 2009
   - Default to using the current directory as distribution directory.
 
