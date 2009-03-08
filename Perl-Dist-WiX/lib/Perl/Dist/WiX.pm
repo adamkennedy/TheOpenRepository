@@ -22,11 +22,12 @@ use     warnings;
 use     vars                  qw( $VERSION                   );
 use     base                  qw( Perl::Dist::WiX::Installer );
 use     Archive::Zip          qw( :ERROR_CODES               );
+use     English               qw( -no_match_vars             );
 use     List::MoreUtils       qw( any                        );
 use     Params::Util          qw( _HASH _STRING _INSTANCE    );
+use		Storable              qw( retrieve                   );
 use     File::Spec::Functions
   qw( catdir catfile catpath tmpdir splitpath rel2abs curdir );
-use     English               qw( -no_match_vars             );
 use     Archive::Tar     1.42 qw();
 use     File::Remove          qw();
 use     File::pushd           qw();
@@ -1358,17 +1359,22 @@ END_PERL
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;
 
-	my $cpan_info = catfile( $self->build_dir, 'cpan.info' );
+	my $cpan_info = catfile( rel2abs(curdir()), 'cpan.info' );
     my $module_info = retrieve $cpan_info;
-    my $core;
+    my ($core, $module_file);
     
+	require Data::Dumper;
+	require CPAN;
     for my $module (@{$module_info}) {
+		my $d = Data::Dumper->new([$module],[qw(module)]);
+		print $d->Indent(1)->Dump();
         # DON'T try to install Perl.
-        next if $module->cpan_file =~ m{/perl-5\.}msx; 
+        next if $module->inst_file =~ m{/perl-5\.}msx; 
         $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module->id} ? 1 : 0;
-        
+        $module_file = substr($module->inst_file, 5)
+		print "$module_file\n";
 		$self->install_distribution(
-			name             => substr($module->cpan_file, 5),
+			name             => $module_file,
             mod_name         => $module->id,
 			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
         );
