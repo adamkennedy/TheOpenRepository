@@ -61,7 +61,7 @@ contact the maintainer.
 
 =cut
 
-use 5.005;
+use 5.00503;
 use strict;
 use Carp           ();
 use File::Spec     ();
