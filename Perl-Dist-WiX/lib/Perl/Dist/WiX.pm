@@ -23,7 +23,7 @@ use     vars                  qw( $VERSION                   );
 use     base                  qw( Perl::Dist::WiX::Installer );
 use     Archive::Zip          qw( :ERROR_CODES               );
 use     English               qw( -no_match_vars             );
-use     List::MoreUtils       qw( any                        );
+use     List::MoreUtils       qw( any none                   );
 use     Params::Util          qw( _HASH _STRING _INSTANCE    );
 use		Storable              qw( retrieve                   );
 use     File::Spec::Functions
@@ -403,6 +403,12 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			parameter => ' image_dir : attempting to commit suicide ',
 			where     => '->new'
 		) if ( $our_perl_location eq $perl_location );
+
+		PDWiX::Parameter->throw(
+			parameter => ' image_dir : cannot contain two consecutive slashes ',
+			where     => '->new'
+		) if ( $params{image_dir} =~ m{\\\\}ms ); 
+		
 		$class->remake_path( $params{image_dir} );
 	} ## end if ( defined $params{image_dir...
 	unless ( defined $params{perl_version} ) {
@@ -1361,24 +1367,46 @@ END_PERL
 
 	my $cpan_info = catfile( rel2abs(curdir()), 'cpan.info' );
     my $module_info = retrieve $cpan_info;
-    my ($core, $module_file);
+    my ($core, $module_file, $module_id);
     
-	require Data::Dumper;
 	require CPAN;
     for my $module (@{$module_info}) {
-		my $d = Data::Dumper->new([$module],[qw(module)]);
-		print $d->Indent(1)->Dump();
         # DON'T try to install Perl.
-        next if $module->inst_file =~ m{/perl-5\.}msx; 
+        next if $module->cpan_file =~ m{/perl-5\.}msx;
+		# Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
+        if ($module->cpan_file =~ m{/Test-Harness-Straps-\d}msx) {
+			$self->install_module(name => 'Test::Harness::Straps');
+			next;
+		}	
+		
         $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module->id} ? 1 : 0;
-        $module_file = substr($module->inst_file, 5)
-		print "$module_file\n";
+        $module_file = substr($module->cpan_file, 5);
+		$module_id = $self->_module_fix($module->id);
 		$self->install_distribution(
 			name             => $module_file,
-            mod_name         => $module->id,
+            mod_name         => $module_id,
+			packlist         => $self->_need_packlist_2($module_id),
 			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
         );
     }
+}
+
+sub _need_packlist_2 {	
+	my ( $self, $module ) = @_;
+
+	my @mods = qw(
+		Locale::Maketext
+	);
+
+	return none { $module eq $_ } @mods ? 1 : 0;
+}
+
+sub _module_fix {
+	my ( $self, $module ) = @_;
+
+	return 'CGI' if ($module eq 'CGI.pm');
+	
+	return $module;
 }
 
 sub install_cpan_upgrades_old {
@@ -2739,6 +2767,9 @@ array of additional params that should be passwd to the
 C<perl Makefile.PL>. This can help with distributions that insist
 on taking additional options via Makefile.PL.
 
+Distributions that do not have a Makefile.PL cannot be installed via
+this routine.
+
 Returns true or throws an exception on error.
 
 =cut
@@ -2780,9 +2811,13 @@ sub install_distribution {
 	}
 	$self->_extract( $tgz => $self->build_dir );
 	unless ( -d $unpack_to ) {
-		PDWiX->throw("Failed to extract $unpack_to");
+		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
+	unless ( -r catfile($unpack_to, 'Makefile.PL') ) {
+		PDWiX->throw("Could not find Makefile.PL in $unpack_to\n");
+	}
+	
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
