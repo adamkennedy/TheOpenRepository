@@ -131,7 +131,7 @@ use strict;
 use Carp               ();
 use Exporter           ();
 use List::Util         ();
-use Params::Util       qw{ _IDENTIFIER _CLASS };
+use Params::Util       ();
 use Class::Inspector   ();
 use POE;
 use POE::Session       ();
@@ -147,7 +147,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -235,7 +235,7 @@ sub _declare {
 
 	# What is the name of the attribute
 	my $name = shift;
-	unless ( _IDENTIFIER($name) ) {
+	unless ( Params::Util::_IDENTIFIER($name) ) {
 		Carp::croak("Did not provide a valid attribute name");
 	}
 
@@ -267,9 +267,9 @@ sub _declare {
 # Resolve an attribute type
 sub _attribute_class {
 	my $type = shift;
-	if ( _IDENTIFIER($type) ) {
+	if ( Params::Util::_IDENTIFIER($type) ) {
 		$type = "POE::Declare::Meta::$type";
-	} elsif ( _CLASS($type) ) {
+	} elsif ( Params::Util::_CLASS($type) ) {
 		$type = $type;
 	} else {
 		Carp::croak("Invalid attribute type");

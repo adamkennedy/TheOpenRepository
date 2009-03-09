@@ -1,5 +1,8 @@
 Revision history for Perl extension POE-Declare
 
+0.10 Mon  9 Mar 2009
+	- Adding specific _alias_set and _alias_remove methods
+
 0.09 Thu  5 Mar 2009
 	- Converting all simple accessors to Class::XSAccessor
 	- Switching to a better and faster error check in lookback

@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 46;
+use Test::More tests => 50;
 
 
 
@@ -101,10 +101,16 @@ SCOPE: {
 	is( $meta->attr('findme')->name, 'findme', 'Attribute findme ->name ok' );
 	is( $meta->attr('to')->name,     'to',     'Attribute to ->name ok'     );
 
+	# Check for the base attributes
+	isa_ok( $meta->attr('_start'),        'POE::Declare::Meta::Event' );
+	isa_ok( $meta->attr('_stop'),         'POE::Declare::Meta::Event' );
+	isa_ok( $meta->attr('_alias_set'),    'POE::Declare::Meta::Event' );
+	isa_ok( $meta->attr('_alias_remove'), 'POE::Declare::Meta::Event' );
+
 	# Check the package_states method
 	is_deeply(
 		[ $meta->package_states ],
-		[ '_start', '_stop', 'findme', 'to' ],
+		[ '_alias_remove', '_alias_set', '_start', '_stop', 'findme', 'to' ],
 		'->package_states returns as expected',
 	);
 

@@ -30,11 +30,11 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 }
 
 # Inside-out storage of internal values
-my %SESSIONID = ();
+my %ID = ();
 
 # Set default attributes
 POE::Declare::declare( Alias => 'Param' );
@@ -127,12 +127,10 @@ or throw an exception on error.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_,
-		lookback => { },
-	}, $class;
+	my $self  = bless { @_ }, $class;
 
 	# Clear out any accidentally set internal values
-	delete $SESSIONID{Scalar::Util::refaddr($self)};
+	delete $ID{Scalar::Util::refaddr($self)};
 
 	# Set the alias
 	if ( exists $self->{Alias} ) {
@@ -200,7 +198,7 @@ sub spawn {
 	# Create the session
 	my $self = shift;
 	my $meta = $self->meta;
-	$SESSIONID{Scalar::Util::refaddr($self)} = POE::Session->create(
+	POE::Session->create(
 		heap           => $self,
 		package_states => [
 			$meta->name => [ $meta->package_states ],
@@ -221,7 +219,7 @@ object has been created, or false if not.
 =cut
 
 sub spawned {
-	!! $SESSIONID{Scalar::Util::refaddr($_[0])};
+	!! $ID{Scalar::Util::refaddr($_[0])};
 
 }
 
@@ -235,7 +233,7 @@ id for this instance, or C<undef> if the object has not been spawned.
 =cut
 
 sub session_id {
-	$SESSIONID{Scalar::Util::refaddr($_[0])};
+	$ID{Scalar::Util::refaddr($_[0])};
 }
 
 =pod
@@ -248,8 +246,8 @@ object for this instance, or C<undef> if the object has not been spawned.
 =cut
 
 sub session {
-	my $id = $SESSIONID{Scalar::Util::refaddr($_[0])} or return undef;
-	$poe_kernel->ID_id_to_session($id)                or return undef;
+	my $id = $ID{Scalar::Util::refaddr($_[0])} or return undef;
+	$poe_kernel->ID_id_to_session($id)         or return undef;
 }
 
 =pod
@@ -280,7 +278,7 @@ tasks in C<_start> you should always call it first.
 
   sub _start {
       my $self = $_[HEAP];
-      shift->SUPER::_start(@_);
+      $_[0]->SUPER::_start(@_[1..$#_]);
 
       # Additional tasks here
       ...
@@ -293,8 +291,8 @@ after the SUPER call.
 =cut
 
 sub _start : Event {
-	$poe_kernel->alias_set( $_[HEAP]->Alias );
-	return;
+	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
+	$poe_kernel->alias_set($_[HEAP]->Alias);
 }
 
 =pod
@@ -318,16 +316,47 @@ SUPER last.
 =cut
 
 sub _stop : Event {
-	my $self = $_[HEAP];
+	delete $ID{Scalar::Util::refaddr($_[HEAP])};
+}
 
-	# Clean up the named session.
-	# (although this could well be superfluous)
-	$poe_kernel->alias_remove( $self->Alias );
+=pod
 
-	# Remove the stored session ID
-	delete $self->{__SESSIONID};
+=head2 _alias_set
 
-	return;
+During the period in which a L<POE::Declare> object is active, it will
+register an alias with the L<POE> kernel (so that the session will not be
+cleaned up if it has no queued events of it's own and it only waiting for
+other sessions to send it a message).
+
+The C<_alias_set> method (which takes no parameters) will set the alias
+for the current object. This will be done automatically for you during
+the C<spawn> process (in the C<_start> event).
+
+=cut
+
+sub _alias_set : Event {
+	### This will fail is sessions have clashing aliases
+	my $alias = $_[HEAP]->Alias;
+	unless ( defined $poe_kernel->alias_resolve($alias) ) {
+		if ( $poe_kernel->alias_set($alias) ) {
+			# Failed to set alias
+			Carp::croak("Failed to set alias '$alias'");
+		}
+	}
+}
+
+sub _alias_remove : Event {
+	my $self    = $_[HEAP];
+	my $alias   = $self->Alias;
+	my $poe_id  = $poe_kernel->alias_resolve($alias);
+	my $self_id = Scalar::Util::refaddr($self);
+	unless ( defined $poe_id and defined $self_id ) {
+		return;
+	}
+	unless ( $poe_id == $self_id ) {
+		Carp::croak("Session id mismatch error");
+	}
+	$poe_kernel->alias_remove($alias);
 }
 
 
@@ -349,7 +378,7 @@ Returns an integer, or C<undef> if the heap object has not spawned.
 =cut
 
 sub ID {
-	$SESSIONID{Scalar::Util::refaddr($_[0])};
+	$ID{Scalar::Util::refaddr($_[0])};
 }
 
 =pod
@@ -369,7 +398,7 @@ spawned.
 =cut
 
 sub postback {
-	shift->session->postback( @_ );
+	shift->session->postback(@_);
 }
 
 =pod
@@ -392,7 +421,7 @@ spawned.
 =cut
 
 sub callback {
-	shift->session->callback( @_ );
+	shift->session->callback(@_);
 }
 
 =pod
@@ -622,7 +651,7 @@ sub is_message {
 		my $event   = $it->[1];
 		my $closure = sub {
 			$poe_kernel->call( $session, $event, @_ );
-			};
+		};
 		return $closure;
 	}
 
