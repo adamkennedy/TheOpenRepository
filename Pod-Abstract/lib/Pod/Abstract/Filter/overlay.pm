@@ -5,7 +5,7 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 =begin :overlay
 
@@ -95,6 +95,8 @@ sub filter {
 Ben Lilburne <bnej@mac.com>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 Ben Lilburne
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -7,13 +7,12 @@ use Pod::Abstract::Parser;
 use Pod::Abstract::Node;
 use base qw(Exporter);
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 our @EXPORT_OK = qw(node nodes);
-use constant {
-    node  => 'Pod::Abstract::BuildNode',
-    nodes => 'Pod::Abstract::BuildNode',
-};
+
+sub node { 'Pod::Abstract::BuildNode' };
+sub nodes { 'Pod::Abstract::BuildNode' };
 
 =head1 NAME
 
@@ -375,6 +374,8 @@ sub cut {
 Ben Lilburne <bnej@mac.com>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 Ben Lilburne
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -5,7 +5,7 @@ use warnings;
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 use constant {
     CHILDREN  => 1,  # /
@@ -35,15 +35,96 @@ use constant {
 
 =head1 NAME
 
-POD::Abstract::Path - Search for POD nodes matching a path within a
+Pod::Abstract::Path - Search for POD nodes matching a path within a
 document tree.
 
 =head1 SYNOPSIS
 
- /head1.1/head2     # All head2 elements under the 2nd head1 element
- //item             # All items anywhere
- //item[@label='*'] # All items with '*' labels.
- //head2[hilight]   # All head2 elements containing "hilight" elements
+ /head1(1)/head2          # All head2 elements under the 2nd head1 element
+ //item                   # All items anywhere
+ //item[@label =~ {^\*$}] # All items with '*' labels.
+ //head2[/hilight]        # All head2 elements containing "hilight" elements
+
+ # Top level head1s containing head2s that have headings matching
+ # "NAME", and also have at least one list somewhere in their
+ # contents.
+ /head1[/head2[@heading =~ {NAME}]][//over]
+
+=head1 DESCRIPTION
+
+Pod::Abstract::Path is a path selection syntax that allows fast and
+easy traversal of Pod::Abstract documents. While it has a simple
+syntax, there is significant complexity in the queries that you can
+create.
+
+Not all of the designed features have yet been implemented, but it is
+currently quite useful, and all of the filters in C<paf> make use of
+Pod Paths.
+
+=head2 SYMBOLS:
+
+=over
+
+=item /
+
+Selects children of the left hand side.
+
+=item //
+
+Selects all descendants of the left hand side.
+
+=item .
+
+Selects the current node - this is a NOP that can be used in
+expressions.
+
+=item ..
+
+Selects the parrent node. If there are multiple nodes selected, all of
+their parents will be included.
+
+=item name, #cut, :text, :verbatim, :paragraph
+
+Any element name, or symbolic type name, will restrict the selection
+to only elements matching that type. e.g, "C<//:paragraph>" will
+select all descendants, anywhere, but then restrict that set to only
+C<:paragraph> type nodes.
+
+=item @attrname
+
+The named attribute of the nodes on the left hand side. Current
+attributes are C<@heading> for head1 through head4, and C<@label> for
+list items.
+
+=item [ expression ]
+
+Select only the left hand elements that match the expression in the
+brackets. The expression will be evaluated from the point of view of
+each node in the current result set.
+
+Expressions can be:
+
+=over
+
+=item simple: C<[/head2]>
+
+Any regular path will be true if there are any nodes matched. The
+above example will be true if there are any head2 nodes as direct
+children of the selected node.
+
+=item regex match: C<[@heading =~ {FOO}]>
+
+A regex match will be true if the left hand expression has nodes that
+match the regular expression between the braces on the right hand
+side. The above example will match anything with a heading containing
+"FOO".
+
+=item complement: C<[! /head2 ]>
+
+Reverses the remainder of the expression. The above example will match
+anything B<without> a child head2 node.
+
+=back
 
 =cut
 
@@ -485,6 +566,8 @@ sub parse_expression {
 Ben Lilburne <bnej@mac.com>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 Ben Lilburne
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

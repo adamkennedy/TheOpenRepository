@@ -7,7 +7,7 @@ use Pod::Abstract::Path;
 use Pod::Abstract::Parser;
 use IO::String;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 =head1 NAME
 
@@ -40,11 +40,29 @@ manipulations on the abstract syntax tree.
 This can be used to support additional features for POD, to format
 output, to compile into alternative formats, etc.
 
+=head2 WHY?
+
+If you've ever asked yourself "What does Pod do for me?", this module
+is intended to answer that question.
+
+While Pod looks like a simple format, the specification calls for a
+number of special cases to be handled, and that makes any software
+that works on Pod as text more complex than it needs to be.
+
+In addition to this, Pod does not lend itself to a natural structured
+model. This makes it difficult to manipulate without damaging the
+validity of the document.
+
+Pod::Abstract solves these problems by loading the document into a
+structured tree, and providing consistent traversal, searching,
+manpulation and re-serialisation. Pod related utilities are easy to
+write using Pod::Abstract.
+
 =head2 PROCESSING MODEL
 
 The intent with POD::Abstract is to provide a means to decorate a
-parse tree, rather than manipulate text, as a means to add features
-and functionality to POD based documenation systems.
+parse tree, rather than manipulate text, to allow other software to
+add features and functionality to POD based documenation systems.
 
 If you wish to write modules that interact nicely with other
 POD::Abstract modules, then you should provide a POD::Abstract -E<gt>
@@ -57,21 +75,22 @@ it in the output.
 In this way, when you want one more feature for POD, rather than write
 or fork a whole translator, a single inline "decorator" can be added.
 
+The C<paf> utility provides a good starting point, which also allows
+you to hook in to an existing filter/transform library. Simply add a
+C<Pod::Abstract::Filter> class to the namespace and it should start
+working as a C<paf> command.
+
 =head2 EXAMPLE
 
 Suppose you are frustrated by the verbose list syntax used by regular
 POD. You might reasonably want to define a simplified list format for
 your own use, except POD formatters won't support it.
 
-With Pod::Abstract you can right an inline filter to convert:
-
- =begin list
+With Pod::Abstract you can write an inline filter to convert:
 
  * item 1
  * item 2
  * item 3
-
- =end list
 
 into:
 
@@ -96,6 +115,10 @@ your formatter does not use Pod::Abstract, you can simply pipe out POD
 and use a regular formatter. If your formatter supports Pod::Abstract
 though, then you can feed in the syntax tree directly without having
 to re-serialise and parse the document.
+
+In addition to this, because the source document is still valid Pod,
+you aren't breaking compatibility with regular perldoc just by making
+Pod::Abstract transformations.
 
 =head2 POD SUPPORT
 
@@ -201,6 +224,8 @@ sub load_string {
 Ben Lilburne <bnej@mac.com>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2009 Ben Lilburne
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
