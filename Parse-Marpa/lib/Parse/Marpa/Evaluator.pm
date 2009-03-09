@@ -756,6 +756,7 @@ sub Parse::Marpa::Evaluator::new {
 sub Parse::Marpa::Evaluator::show_bocage {
     my $evaler  = shift;
     my $verbose = shift;
+    $verbose //= 0;
 
     my ( $parse_count, $or_nodes, $package, ) = @{$evaler}[
         Parse::Marpa::Internal::Evaluator::PARSE_COUNT,
