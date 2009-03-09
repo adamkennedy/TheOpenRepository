@@ -1,6 +1,9 @@
 #!perl
-#
 
+use strict;
+use warnings;
+
+use Carp;
 use Fatal qw( chdir waitpid close );
 use English qw( -no_match_vars );
 
@@ -12,8 +15,8 @@ FILE: while (my $line = <$manifest>) {
 }
 close $manifest;
 
-chdir('..');
-my $pid = open my $rdr, '-|', 'svn', 'list', '-R' or
+chdir q{..};
+my $pid = open my $rdr, q{-|}, 'svn', 'list', '-R' or
     croak("open of svn list pipe failed: $ERRNO");
 waitpid $pid, 0;
 
@@ -21,5 +24,8 @@ FILE: while (my $line = <$rdr>) {
     chomp $line;
     next FILE if -d $line;
     next FILE if $manifest{$line};
-    print "$line\n";
+    print "$line\n"
+        or croak("Cannot print: $ERRNO");
 }
+
+close $rdr;

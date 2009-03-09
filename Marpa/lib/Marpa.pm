@@ -120,7 +120,7 @@ BEGIN {
               . " MDL source is for version '$source_version'"
         }
     }
-    undef $Marpa::Internal::stringified_source_grammar
+    undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
         if $STRINGIFIED_EVAL_ERROR;
 }
 
@@ -230,7 +230,8 @@ is_file($_, 'example/synopsis.pl');
 
 =head1 DESCRIPTION
 
-B<This is the experimental version of C<Parse::Marpa>>.  It is alpha.
+This is alpha software.
+B<This is an experimental fork from C<Parse::Marpa>>.
 
 If you can write a grammar in BNF, Marpa will generate a parser for it.
 That means Marpa parses

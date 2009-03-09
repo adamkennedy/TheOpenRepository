@@ -13,9 +13,9 @@ my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
     bootstrap/bootstrap_header.pl
     bootstrap/bootstrap_trailer.pl
-    lib//Marpa/Raw_Source.pm
-    lib//Marpa/header_Raw_Source.pm
-    lib//Marpa/trailer_Raw_Source.pm
+    lib/Marpa/Raw_Source.pm
+    lib/Marpa/header_Raw_Source.pm
+    lib/Marpa/trailer_Raw_Source.pm
     t/lib/Test/Weaken.pm
 );
 

@@ -210,7 +210,7 @@ sub test_file {
             unless ($do_not_add_display) {
                 $message .= "\n$display";
             }
-            $mismatches .= "=== $message";
+            $mismatches .= "=== Line $display_line: $message";
             $mismatch_count++;
         }
 
@@ -281,7 +281,9 @@ sub process_instruction {
 
     if ( $instruction =~ / ^ default $ /xms ) {
         $Marpa::Test::Display::DEFAULT_CODE = join "\n", @{$code};
-        $Marpa::Test::Display::CURRENT_CODE = $Marpa::Test::Display::DEFAULT_CODE if $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0;
+        $Marpa::Test::Display::CURRENT_CODE =
+            $Marpa::Test::Display::DEFAULT_CODE
+            if $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0;
         return;
     }
 

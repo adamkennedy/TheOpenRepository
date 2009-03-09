@@ -681,7 +681,7 @@ sub Marpa::Grammar::new {
 
 sub Marpa::show_source_grammar_status {
     my $status =
-        $Marpa::Internal::stringified_source_grammar ? 'Stringified' : 'Raw';
+        $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR ? 'Stringified' : 'Raw';
     if ($Marpa::Internal::STRINGIFIED_EVAL_ERROR) {
         $status .= "\nStringified source had error:\n"
             . $Marpa::Internal::STRINGIFIED_EVAL_ERROR;
@@ -786,9 +786,9 @@ sub parse_source_grammar {
         $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $allow_raw_source =
         $grammar->[Marpa::Internal::Grammar::ALLOW_RAW_SOURCE];
-    if ( not defined $Marpa::Internal::stringified_source_grammar ) {
+    if ( not defined $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR ) {
         if ($allow_raw_source) {
-            $Marpa::Internal::stringified_source_grammar =
+            $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR =
                 Marpa::stringify_source_grammar();
         }
         else {
@@ -802,7 +802,7 @@ sub parse_source_grammar {
 
     my $recce = new Marpa::Recognizer(
         {   stringified_grammar =>
-                $Marpa::Internal::stringified_source_grammar,
+                $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR,
             trace_file_handle => $trace_fh,
             %{$source_options}
         }
@@ -2644,8 +2644,8 @@ sub terminals_distinguished {
     }
     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
     RULE: for my $rule ( @{$rules} ) {
-        next RULE if scalar @{$rule->[Marpa::Internal::Rule::RHS]};
-        croak("A grammar with empty rules must mark its terminals");
+        next RULE if scalar @{ $rule->[Marpa::Internal::Rule::RHS] };
+        croak('A grammar with empty rules must mark its terminals');
     }
     return 0;
 }

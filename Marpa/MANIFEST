@@ -1,6 +1,6 @@
 Changes
 MANIFEST
-META.yml # Will be created by "make dist"
+META.yml
 Makefile.PL
 README
 bin/mdl
@@ -11,6 +11,8 @@ bootstrap/bootstrap_trailer.pl
 bootstrap/self.marpa
 etc/perlcriticrc
 etc/do_critic.pl
+etc/Makefile
+etc/not_in_manifest.pl
 example/null_value.marpa
 example/equation.marpa
 example/synopsis.pl

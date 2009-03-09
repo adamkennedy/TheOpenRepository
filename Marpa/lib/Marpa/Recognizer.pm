@@ -1279,7 +1279,6 @@ When the C<text> method is used,
 character position in this raw input will 
 correspond exactly one-to-one with the earleme position.
 
-
 Every character will be treated as being exactly one
 earleme in length.
 Any tokens which are more than one several character in length,

@@ -20,6 +20,8 @@ start symbol is S.
 
 S: Document.
 
+Document: /.+/ .
+
 Document: .
 
 END

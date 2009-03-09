@@ -37,7 +37,7 @@ package Marpa::Internal::Source;
 use English qw( -no_match_vars ) ;
 {
     local($RS) = undef;
-    $Marpa::Internal::stringified_source_grammar = \(<DATA>);
+    $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR = \(<DATA>);
 }
 
 1;
