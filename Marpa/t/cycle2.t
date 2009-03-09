@@ -13,7 +13,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    use_ok('Marpa');
 }
 
 
@@ -50,7 +50,7 @@ EOF
 
 my $trace;
 open my $MEMORY, '>', \$trace;
-my $grammar = new Parse::Marpa::Grammar({
+my $grammar = new Marpa::Grammar({
     mdl_source => \$mdl,
     trace_file_handle => $MEMORY,
 });
@@ -62,7 +62,7 @@ Cycle found involving rule: 3: b -> a
 Cycle found involving rule: 1: a -> b
 EOS
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = new Marpa::Recognizer({
    grammar => $grammar,
    trace_file_handle => *STDERR,
 });
@@ -70,14 +70,14 @@ my $recce = new Parse::Marpa::Recognizer({
 my $text = 'a';
 my $fail_location = $recce->text( \$text );
 if ( $fail_location >= 0 ) {
-    croak( Parse::Marpa::show_location( 'Parsing failed',
+    croak( Marpa::show_location( 'Parsing failed',
         \$text, $fail_location ) );
 }
 $recce->end_input();
 
 for my $depth (1, 2, 5, 10) {
 
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, cycle_depth => $depth } );
+    my $evaler = new Marpa::Evaluator( { recce => $recce, cycle_depth => $depth } );
     my $parse_count = 0;
     while (my $value = $evaler->value()) {
         Marpa::Test::is(${$value}, $expected_values[$parse_count++], 'cycle depth test');

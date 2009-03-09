@@ -273,7 +273,7 @@ production copula: /:/.
 production copula: /::=/.
 
 symbol phrase: symbol word sequence.
-q{ Parse::Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) }.
+q{ Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) }.
 
 lhs: symbol phrase.
 q{ '    lhs => ' . q{'} . $_[0] . q{'} }.
@@ -364,7 +364,7 @@ rhs symbol specifier: regex.
 q{
     our $regex_data;
     my $regex = $_[0];
-    my ($symbol, $new) = Parse::Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
+    my ($symbol, $new) = Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
     if ($new) {
         our @implicit_terminals;
         push @implicit_terminals,

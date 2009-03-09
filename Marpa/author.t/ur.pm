@@ -6,10 +6,10 @@ use strict;
 use warnings;
 
 use Carp;
-use Parse::Marpa;
+use Marpa;
 use Data::Dumper;
 
-my $grammar = new Parse::Marpa::Grammar(
+my $grammar = new Marpa::Grammar(
     {   start => 'display_or_commands',
 
         rules => [
@@ -93,7 +93,7 @@ my $ignore_whitespace_command = $grammar->get_symbol('ignore whitespace command'
 my $whitespace = $grammar->get_symbol('whitespace');
 my $other_line = $grammar->get_symbol('other line');
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+my $recce = new Marpa::Recognizer({grammar => $grammar});
 
 my $active = 0;
 my $line_number = 0;
@@ -167,13 +167,13 @@ TOKEN: while ( my $line = <STDIN> ) {
     # on active to exhausted transition, produce a parse
     if ($active and not $now_active) {
         $recce->end_input();
-        my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, } );
+        my $evaler = new Marpa::Evaluator( { recce => $recce, } );
         print Dumper ( $evaler->value());
     }
 
     # if not now active, create a new recognizer
     if (not $now_active) {
-        $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+        $recce = new Marpa::Recognizer({grammar => $grammar});
     }
 
     $active = $now_active;

@@ -6,7 +6,7 @@
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
 
-# This file was automatically generated using Parse::Marpa 1.001_003
+# This file was automatically generated using Marpa 1.001_003
 #!perl
 # This is the beginning of bootstrap_header.pl
 
@@ -18,8 +18,8 @@
 use 5.010;
 use strict;
 use warnings;
-use Parse::Marpa;
-use Parse::Marpa::MDL;
+use Marpa;
+use Marpa::MDL;
 use Carp;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
@@ -690,7 +690,7 @@ push @{$new_rules}, {
 min => 1,
 ,
     action =>
-q{ Parse::Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) },
+q{ Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) },
 ,
 ,
 
@@ -870,7 +870,7 @@ push @{$new_rules}, {
 q{
     our $regex_data;
     my $regex = $_[0];
-    my ($symbol, $new) = Parse::Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
+    my ($symbol, $new) = Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
     if ($new) {
         our @implicit_terminals;
         push @implicit_terminals,
@@ -1062,13 +1062,13 @@ $new_start_symbol //= '(undefined start symbol)';
 $new_semantics //= 'not defined';
 $new_version //= 'not defined';
 
-croak('Version requested is ', $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, ' exactly.')
-   unless $new_version eq $Parse::Marpa::VERSION;
+croak('Version requested is ', $new_version, "\nVersion must match ", $Marpa::VERSION, ' exactly.')
+   unless $new_version eq $Marpa::VERSION;
 
 croak('Semantics are ', $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq 'perl5';
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => $new_start_symbol,
     rules => $new_rules,
     terminals => $new_terminals,
@@ -1093,7 +1093,7 @@ $g->set({
 
 $g->precompute();
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = new Marpa::Recognizer({
    grammar=> $g,
    preamble => $new_preamble,
    lex_preamble => $new_lex_preamble,
@@ -1139,7 +1139,7 @@ my $spec;
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+my $evaler = new Marpa::Evaluator( { recce => $recce } );
 croak('No parse') unless $evaler;
 
 sub slurp {
@@ -1150,7 +1150,7 @@ sub slurp {
     return $file;
 }
 
-say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
+say '# This file was automatically generated using Marpa ', $Marpa::VERSION;
 
 if ($header_file_name)
 {

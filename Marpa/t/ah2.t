@@ -16,10 +16,10 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
-my $grammar = new Parse::Marpa::Grammar({
+my $grammar = new Marpa::Grammar({
     precompute => 0,
     start => 'S',
     strip => 0,
@@ -255,7 +255,7 @@ St15: pri=0.1; 8
 S ::= A[] S[R0:1][x6] .
 EOS
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar, clone => 0 });
+my $recce = new Marpa::Recognizer({grammar => $grammar, clone => 0 });
 
 my $set0_new = <<'EOS';
 Earley Set 0
@@ -372,7 +372,7 @@ my $total_count = 0;
 my @answer = (q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)]);
 
 for my $i (0 .. 4) {
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = new Marpa::Evaluator( {
         recce => $recce,
         end => $i,
         clone => 0,

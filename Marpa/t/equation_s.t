@@ -14,7 +14,7 @@ use Test::More tests => 6;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    use_ok('Marpa');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -35,10 +35,10 @@ close $grammar_fh;
 # Set max_parses to 10 in case there's an infinite loop.
 # This is for debugging, after all
 
-my $grammar = new Parse::Marpa::Grammar(
+my $grammar = new Marpa::Grammar(
     { max_parses => 10, mdl_source => \$source, } );
 
-my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+my $recce = new Marpa::Recognizer( { grammar => $grammar } );
 
 my $fail_offset = $recce->text( '2-0*3+1' );
 if ( $fail_offset >= 0 ) {
@@ -53,7 +53,7 @@ my @expected = (
     '(2-(0*(3+1)))==2',
 );
 
-my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
+my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
 croak('Parse failed') unless $evaler;
 
 my $i = -1;

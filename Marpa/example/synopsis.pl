@@ -4,10 +4,10 @@ use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars ) ;
-use Parse::Marpa;
+use Marpa;
 
 # remember to use refs to strings
-my $value = Parse::Marpa::mdl(
+my $value = Marpa::mdl(
     (do { local($RS) = undef; my $source = <DATA>; \$source; }),
     \('2+2*3')
 );

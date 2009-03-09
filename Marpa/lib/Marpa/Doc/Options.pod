@@ -1,19 +1,19 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Options - Options to Marpa Method Calls
+Marpa::Doc::Options - Options to Marpa Method Calls
 
 =head1 DESCRIPTION
 
 Marpa has options which control its behavior.
-These may be set using named arguments when C<Parse::Marpa::Grammar>,
-C<Parse::Marpa::Recognizer>,
+These may be set using named arguments when C<Marpa::Grammar>,
+C<Marpa::Recognizer>,
 and
-C<Parse::Marpa::Evaluator>,
+C<Marpa::Evaluator>,
 objects are created;
-with the C<Parse::Marpa::Grammar::set>
-and the C<Parse::Marpa::Evaluator::set> methods,
+with the C<Marpa::Grammar::set>
+and the C<Marpa::Evaluator::set> methods,
 and
-with the C<Parse::Marpa::mdl> static method.
+with the C<Marpa::mdl> static method.
 Except as noted,
 a recognizer object inherits the Marpa option settings
 of the grammar from which it was created,
@@ -21,7 +21,7 @@ and an evaluator object inherits the Marpa option settings
 of the recognizer from which it was created.
 
 Options for debugging and tracing are described in
-L<a separate document on diagnostics|Parse::Marpa::Doc::Diagnostics>.
+L<a separate document on diagnostics|Marpa::Doc::Diagnostics>.
 The other Marpa options are listed below, by argument name,
 and described.
 
@@ -169,7 +169,7 @@ If there is no C<default_null_value> action,
 and a symbol has no explicitly set null action,
 that symbol's null value is a Perl 5 undefined.
 There's more about null values L<above|"Null Symbol Values"> and in
-L<Parse::Marpa::Evaluator/"Null Symbol Values">.
+L<Marpa::Evaluator/"Null Symbol Values">.
 
 =item inaccessible_ok
 
@@ -298,7 +298,7 @@ or may simply wish to deal with them later.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 

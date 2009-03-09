@@ -1,4 +1,4 @@
-package Parse::Marpa;
+package Marpa;
 
 use 5.010;
 
@@ -12,43 +12,43 @@ BEGIN {
 
 use integer;
 
-use Parse::Marpa::Grammar;
-use Parse::Marpa::Recognizer;
-use Parse::Marpa::Evaluator;
-use Parse::Marpa::Lex;
+use Marpa::Grammar;
+use Marpa::Recognizer;
+use Marpa::Evaluator;
+use Marpa::Lex;
 
 use Carp;
 our @CARP_NOT = qw(
-Parse::Marpa
-Parse::Marpa::Evaluator
-Parse::Marpa::Grammar
-Parse::Marpa::Internal
-Parse::Marpa::Internal::And_Node
-Parse::Marpa::Internal::Earley_item
-Parse::Marpa::Internal::Evaluator
-Parse::Marpa::Internal::Evaluator::Rule
-Parse::Marpa::Internal::Grammar
-Parse::Marpa::Internal::Interface
-Parse::Marpa::Internal::LR0_item
-Parse::Marpa::Internal::Lex
-Parse::Marpa::Internal::NFA
-Parse::Marpa::Internal::Or_Node
-Parse::Marpa::Internal::Or_Sapling
-Parse::Marpa::Internal::Phase
-Parse::Marpa::Internal::QDFA
-Parse::Marpa::Internal::Recognizer
-Parse::Marpa::Internal::Rule
-Parse::Marpa::Internal::Source_Eval
-Parse::Marpa::Internal::Source_Raw
-Parse::Marpa::Internal::Symbol
-Parse::Marpa::Internal::Tree_Node
-Parse::Marpa::Lex
-Parse::Marpa::MDL
-Parse::Marpa::Recognizer
+Marpa
+Marpa::Evaluator
+Marpa::Grammar
+Marpa::Internal
+Marpa::Internal::And_Node
+Marpa::Internal::Earley_item
+Marpa::Internal::Evaluator
+Marpa::Internal::Evaluator::Rule
+Marpa::Internal::Grammar
+Marpa::Internal::Interface
+Marpa::Internal::LR0_item
+Marpa::Internal::Lex
+Marpa::Internal::NFA
+Marpa::Internal::Or_Node
+Marpa::Internal::Or_Sapling
+Marpa::Internal::Phase
+Marpa::Internal::QDFA
+Marpa::Internal::Recognizer
+Marpa::Internal::Rule
+Marpa::Internal::Source_Eval
+Marpa::Internal::Source_Raw
+Marpa::Internal::Symbol
+Marpa::Internal::Tree_Node
+Marpa::Lex
+Marpa::MDL
+Marpa::Recognizer
 );
 
 # Maybe MDL will be optional someday, but not today
-use Parse::Marpa::MDL;
+use Marpa::MDL;
 
 =begin Apology:
 
@@ -98,7 +98,7 @@ CPAN modules don't follow his guidelines all that closely.
 
 =cut
 
-package Parse::Marpa::Internal;
+package Marpa::Internal;
 
 use Carp;
 
@@ -106,12 +106,12 @@ our $STRINGIFIED_EVAL_ERROR;
 
 BEGIN {
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    if (not eval ' use Parse::Marpa::Source ')
+    if (not eval ' use Marpa::Source ')
     ## use critic 
     {
         $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
-        my $marpa_version = $Parse::Marpa::VERSION // 'undef';
-        my $source_version = $Parse::Marpa::Source::VERSION // 'undef';
+        my $marpa_version = $Marpa::VERSION // 'undef';
+        my $source_version = $Marpa::Source::VERSION // 'undef';
         if ($marpa_version ne $source_version)
         {
            $STRINGIFIED_EVAL_ERROR =
@@ -120,16 +120,16 @@ BEGIN {
               . " MDL source is for version '$source_version'"
         }
     }
-    undef $Parse::Marpa::Internal::stringified_source_grammar
+    undef $Marpa::Internal::stringified_source_grammar
         if $STRINGIFIED_EVAL_ERROR;
 }
 
-package Parse::Marpa::Internal;
+package Marpa::Internal;
 
 # Returns failure if no parses.
 # On success, returns first parse in scalar context,
 # all of them in list context.
-sub Parse::Marpa::mdl {
+sub Marpa::mdl {
     my $grammar = shift;
     my $text    = shift;
     my $options = shift;
@@ -148,8 +148,8 @@ sub Parse::Marpa::mdl {
         unless $ref eq 'HASH';
 
     my $g =
-        new Parse::Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
-    my $recce = new Parse::Marpa::Recognizer( {
+        new Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
+    my $recce = new Marpa::Recognizer( {
         grammar => $g,
         clone => 0
     } );
@@ -161,7 +161,7 @@ sub Parse::Marpa::mdl {
 
     $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = new Marpa::Evaluator( {
         recce => $recce,
         clone => 0,
     } );
@@ -176,13 +176,13 @@ sub Parse::Marpa::mdl {
     return @values;
 }
 
-1;    # End of Parse::Marpa
+1;    # End of Marpa
 
 __END__
 
 =head1 NAME
 
-Parse::Marpa - Generate Parsers from any BNF grammar
+Marpa - Generate Parsers from any BNF grammar
 
 =head1 SYNOPSIS
 
@@ -200,10 +200,10 @@ is_file($_, 'example/synopsis.pl');
     use strict;
     use warnings;
     use English qw( -no_match_vars ) ;
-    use Parse::Marpa;
+    use Marpa;
 
     # remember to use refs to strings
-    my $value = Parse::Marpa::mdl(
+    my $value = Marpa::mdl(
         (do { local($RS) = undef; my $source = <DATA>; \$source; }),
         \('2+2*3')
     );
@@ -244,10 +244,10 @@ Here's all you need to get started:
 =item * This document.
 
 =item * 
-L<The MDL document|Parse::Marpa::Doc::MDL>.
+L<The MDL document|Marpa::Doc::MDL>.
 It describes the format of Marpa's grammars.
 
-=item * The L<Parse::Marpa::Doc::Options>
+=item * The L<Marpa::Doc::Options>
 document.
 This one you only need to skim, checking for
 anything relevant to your application.
@@ -257,50 +257,50 @@ anything relevant to your application.
 The Marpa documents use a lot of parsing terminology.
 For a quick refresher in the
 standard parsing vocabulary,
-there's a L<Parse::Marpa::Doc::Parse_Terms> document.
+there's a L<Marpa::Doc::Parse_Terms> document.
 B<Defining uses> of terms are in boldface, for easy skimming.
 
 =head2 What is in the Other Documents
 
 If you want help debugging a grammar,
-look at L<Parse::Marpa::Doc::Diagnostics>.
+look at L<Marpa::Doc::Diagnostics>.
 As you get into advanced applications of Marpa,
 the first places to look will be the
 documents for the various phases of Marpa parsing:
-L<Parse::Marpa::Grammar>,
-L<Parse::Marpa::Recognizer>,
-and L<Parse::Marpa::Evaluator>.
+L<Marpa::Grammar>,
+L<Marpa::Recognizer>,
+and L<Marpa::Evaluator>.
 
 A few documents describe details you may never need.
-L<Parse::Marpa::Doc::Plumbing> documents Marpa's plumbing.
-L<Parse::Marpa::MDL> documents utilities for converting MDL symbol
+L<Marpa::Doc::Plumbing> documents Marpa's plumbing.
+L<Marpa::MDL> documents utilities for converting MDL symbol
 names to plumbing interface names.
-L<Parse::Marpa::Lex> documents some lex actions which are used
+L<Marpa::Lex> documents some lex actions which are used
 by MDL, and which are available to users for their own lexing.
 
 For very advanced diagnostics
 or for reading Marpa's code,
 it is necessary to understand Marpa's internals.
 These are described in 
-L<Parse::Marpa::Doc::Internals>.
+L<Marpa::Doc::Internals>.
 
 For those interesting in the theory behind Marpa and
 the details of its programming,
-L<Parse::Marpa::Doc::Algorithm> describes the algorithms,
+L<Marpa::Doc::Algorithm> describes the algorithms,
 explains how Marpa would not have been possible
 without the work of others,
 and details what is new with Marpa.
 Details about sources (books, web pages and articles) referred to in these documents
 or used in the writing of Marpa
 are collected in
-L<Parse::Marpa::Doc::Bibliography>.
-L<Parse::Marpa::Doc::To_Do> is the list of things that might be done to
+L<Marpa::Doc::Bibliography>.
+L<Marpa::Doc::To_Do> is the list of things that might be done to
 Marpa in the future.
 
 =head2 The Easy Way
 
 Most of Marpa's capabilities are available using a single static method:
-L<C<Parse::Marpa::mdl>|/mdl>.
+L<C<Marpa::mdl>|/mdl>.
 The C<mdl> method requires a grammar description in MDL (the Marpa Description Language) and a string.
 C<mdl> parses the string according to the MDL description.
 In scalar context, C<mdl> returns a reference to the value of the first parse.
@@ -318,8 +318,8 @@ doesn't mean it will be familiar.
 Even if you've studied parsing,
 you might not have run across that particular term,
 or might not remember exactly what it meant.
-I define all the terms I treat as "standard" in L<Parse::Marpa::Doc::Parse_Terms>.
-The L<parse terms document|Parse::Marpa::Doc::Parse_Terms> is
+I define all the terms I treat as "standard" in L<Marpa::Doc::Parse_Terms>.
+The L<parse terms document|Marpa::Doc::Parse_Terms> is
 designed for skimming:
 the B<defining uses> of the terms are all in boldface.
 
@@ -327,10 +327,10 @@ If you want an
 introduction to parsing concepts,
 the chapter on parsing in
 L<Mark Jason Dominus's
-I<Higher Order Perl>|Parse::Marpa::Doc::Bibliography/"Dominus 2005">
+I<Higher Order Perl>|Marpa::Doc::Bibliography/"Dominus 2005">
 is an excellent description in the Perl context.
 It's available online.
-L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is also very useful.
+L<Wikipedia|Marpa::Doc::Bibliography/"Wikipedia"> is also very useful.
 
 =head2 Semantic Actions
 
@@ -386,7 +386,7 @@ If not explicitly set, C<default_null_value> is a Perl 5 undefined.
 Every symbol can have its own null symbol value.
 In cases where a null symbol derives other null symbols,
 only the value of the symbol highest in the null derivation is used.
-For details and examples, see L<Parse::Marpa::Evaluator/"Null Symbol Values">.
+For details and examples, see L<Marpa::Evaluator/"Null Symbol Values">.
 
 =head2 Lexing
 
@@ -408,7 +408,7 @@ Most parsers have a problem with this, but Marpa does not.
 
 Marpa is not restricted to MDL's model of lexing.
 Advanced users can invent new models of the input, customized to their applications.
-For more detail see L<Parse::Marpa::Grammar/"Tokens and Earlemes">.
+For more detail see L<Marpa::Grammar/"Tokens and Earlemes">.
 
 =head2 Lack of Backward Compatibility
 
@@ -442,18 +442,18 @@ evaluators are created from recognizers.
 
 =head3 Grammars
 
-Grammar objects (C<Parse::Marpa::Grammar>) are created first.
+Grammar objects (C<Marpa::Grammar>) are created first.
 They may be created with rules or empty.
 Rules may be added to grammar objects after they have been created.
 After all the rules have been added, but before it is used to create a recognizer,
 a grammar must be precomputed.
 Precomputation is usually done automatically,
 when rules are added, but this behavior can be fine-tuned.
-Details on grammar objects and methods can be found at L<Parse::Marpa::Grammar>.
+Details on grammar objects and methods can be found at L<Marpa::Grammar>.
 
 =head3 Recognizers
 
-To create a Marpa recognizer object (C<Parse::Marpa::Recognizer>),
+To create a Marpa recognizer object (C<Marpa::Recognizer>),
 a Marpa grammar object is required.
 Once a recognizer object has been created, it can accept input.
 You can create multiple recognizers from a single grammar,
@@ -467,12 +467,12 @@ Before creation of an evaluation object,
 the input has not been parsed in the strict sense of the term,
 that is, its structure according to the grammar has not been determined.
 For more details on recognizer objects and methods,
-see L<Parse::Marpa::Recognizer>.
+see L<Marpa::Recognizer>.
 
 =head3 Evaluators
 
 Once the end of input is recognized,
-an evaluator object (C<Parse::Marpa::Evaluator>) can be created.
+an evaluator object (C<Marpa::Evaluator>) can be created.
 For each recognizer, only one evaluator object can
 be in use at any one time.
 
@@ -480,7 +480,7 @@ An evaluator object is an iterator.
 If the grammar is ambiguous,
 the evaluator object can be used to return the values of all the parses.
 For details on evaluator objects and methods,
-see L<Parse::Marpa::Evaluator>.
+see L<Marpa::Evaluator>.
 
 =head2 Plumbing and Porcelain
 
@@ -501,14 +501,14 @@ but MDL is easier to read, write and maintain.
 Users seeking efficiency are usually better off
 using stringified MDL.
 The documentation for the plumbing
-is L<Parse::Marpa::Doc::Plumbing>.
+is L<Marpa::Doc::Plumbing>.
 
 Users are encouraged to design their own porcelain.
 In Marpa's eyes all porcelain will be equal.
 I call the porcelain that I am delivering with 
 Marpa the Marpa Demonstration Language instead
 of the "Marpa Language" to emphasize its lack of special status.
-The documentation for MDL can be found at L<Parse::Marpa::Doc::MDL>.
+The documentation for MDL can be found at L<Marpa::Doc::MDL>.
 
 =head2 Namespaces
 
@@ -525,12 +525,12 @@ users should use only documented methods:
 
 =end Marpa::Test::Display:
 
-    Parse::Marpa
-    Parse::Marpa::Grammar
-    Parse::Marpa::Lex
-    Parse::Marpa::MDL
-    Parse::Marpa::Recognizer
-    Parse::Marpa::Evaluator
+    Marpa
+    Marpa::Grammar
+    Marpa::Lex
+    Marpa::MDL
+    Marpa::Recognizer
+    Marpa::Evaluator
 
 The C<$STRING> and C<$START> variables,
 which are made available to the lex actions,
@@ -559,7 +559,7 @@ is_file($_, 'author.t/misc.t', 'mdl scalar snippet');
 =end Marpa::Test::Display:
 
     $first_result =
-        Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
+        Marpa::mdl( \$grammar_description, \$string_to_parse );
 
 =begin Marpa::Test::Display:
 
@@ -569,7 +569,7 @@ is_file($_, 'author.t/misc.t', 'mdl array snippet');
 =end Marpa::Test::Display:
 
      @all_results
-         = Parse::Marpa::mdl( \$grammar_description, \$string_to_parse );
+         = Marpa::mdl( \$grammar_description, \$string_to_parse );
 
 =begin Marpa::Test::Display:
 
@@ -578,7 +578,7 @@ is_file($_, 'author.t/misc.t', 'mdl scalar hash args snippet');
 
 =end Marpa::Test::Display:
 
-     $first_result = Parse::Marpa::mdl(
+     $first_result = Marpa::mdl(
          \$grammar_description,
          \$string_to_parse,
          { warnings => 0 }
@@ -588,7 +588,7 @@ The C<mdl> static method takes three arguments:
 a B<reference> to a string containing an MDL description of the grammar;
 a B<reference> to a string with the text to be parsed;
 and (optionally) a B<reference> to a hash with options.
-The available options are described in L<Parse::Marpa::Doc::Options>.
+The available options are described in L<Marpa::Doc::Options>.
 
 In scalar context,  C<mdl> returns a B<reference> to the value of the first parse.
 In list context, C<mdl> returns a list of B<references> to the values of the parses.
@@ -597,7 +597,7 @@ the empty list in list context.
 
 =head2 Diagnostic Methods
 
-L<The separate document on diagnostics|Parse::Marpa::Doc::Diagnostics> deals
+L<The separate document on diagnostics|Marpa::Doc::Diagnostics> deals
 with methods for debugging grammars and parses.
 
 =head1 IMPLEMENTATION NOTES
@@ -760,7 +760,7 @@ L<http://www.amazon.com/God-Proof-Jeffrey-Kegler/dp/1434807355>.
 
 Please report any bugs or feature requests to
 C<bug-parse-marpa at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Parse-Marpa>.
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa>.
 I will be notified, and then you'll automatically be notified of progress on
 your bug as I make changes.
 
@@ -774,7 +774,7 @@ You can find documentation for this module with the perldoc command.
 
 =end Marpa::Test::Display:
 
-    perldoc Parse::Marpa
+    perldoc Marpa
     
 You can also look for information at:
 
@@ -782,19 +782,19 @@ You can also look for information at:
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Parse-Marpa>
+L<http://annocpan.org/dist/Marpa>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Parse-Marpa>
+L<http://cpanratings.perl.org/d/Marpa>
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Parse-Marpa>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Parse-Marpa>
+L<http://search.cpan.org/dist/Marpa>
 
 =back
 
@@ -802,12 +802,12 @@ L<http://search.cpan.org/dist/Parse-Marpa>
 
 Marpa is
 derived from the parser described in
-L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
+L<Aycock and Horspool 2002|Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 I've made significant changes to it,
-which are documented separately (L<Parse::Marpa::Doc::Algorithm>).
+which are documented separately (L<Marpa::Doc::Algorithm>).
 Aycock and Horspool, for their part,
 built on the
-L<algorithm discovered by Jay Earley|Parse::Marpa::Doc::Bibliography/"Earley 1970">.
+L<algorithm discovered by Jay Earley|Marpa::Doc::Bibliography/"Earley 1970">.
 
 I'm grateful to Randal Schwartz for his encouragement over the years that
 I've been working on Marpa.  My one conversation
@@ -848,7 +848,7 @@ on issues about which I really should have know better.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007-2008 Jeffrey Kegler, all rights reserved.
+Copyright 2007-2009 Jeffrey Kegler, all rights reserved.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

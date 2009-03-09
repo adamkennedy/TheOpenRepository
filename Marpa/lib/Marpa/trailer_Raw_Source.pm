@@ -1,7 +1,7 @@
 
-sub Parse::Marpa::Internal::raw_source_grammar {
+sub Marpa::Internal::raw_source_grammar {
 
-    my $raw_source_grammar = new Parse::Marpa::Grammar(
+    my $raw_source_grammar = new Marpa::Grammar(
         {
             start => $new_start_symbol,
             rules => $new_rules,

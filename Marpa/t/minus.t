@@ -16,7 +16,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -26,7 +26,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => 'E',
     strip => 0,
 
@@ -87,7 +87,7 @@ EOCODE
 EOCODE
 });
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = new Marpa::Recognizer({
     grammar => $g,
 });
 
@@ -165,7 +165,7 @@ for my $string_piece ('6', '-----', '1')
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
+my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
 croak('Could not initialize parse') unless $evaler;
 
 my $i = -1;

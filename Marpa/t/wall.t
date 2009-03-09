@@ -19,7 +19,7 @@ use Carp;
 use Test::More tests => 13;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 use Marpa::Test;
@@ -31,7 +31,7 @@ use Marpa::Test;
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => 'E',
 
     # Set max_parses just in case there's an infinite loop.
@@ -90,7 +90,7 @@ my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
 for my $n (1 .. 12) {
 
-    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $recce = new Marpa::Recognizer({grammar => $g});
     my $minus = $g->get_symbol('Minus');
     my $number = $g->get_symbol('Number');
     $recce->earleme([$number, 6, 1]);
@@ -100,7 +100,7 @@ for my $n (1 .. 12) {
     $recce->earleme([$number, 1, 1]);
     $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = new Marpa::Evaluator( { recce => $recce } );
 
     my $parse_count = 0;
     while ($evaler->value()) { $parse_count++; }

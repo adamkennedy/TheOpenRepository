@@ -14,7 +14,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    use_ok('Marpa');
 }
 
 my $example_dir = 'example';
@@ -115,7 +115,7 @@ EOS
     my ($grammar, $input, $expected, $expected_trace) = @{$test_data};
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
-    my $value = Parse::Marpa::mdl(
+    my $value = Marpa::mdl(
         $grammar,
         $input,
         {

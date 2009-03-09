@@ -12,7 +12,7 @@ use Marpa::Test;
 use Carp;
 
 BEGIN {
-    use_ok( 'Parse::Marpa' );
+    use_ok( 'Marpa' );
 }
 
 my @tests = split /\n/xms, <<'EO_TESTS';
@@ -30,7 +30,7 @@ EO_TESTS
 
 my $source; { local($RS) = undef; $source = <DATA> };
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     warnings => 1,
     code_lines => -1,
 });
@@ -40,10 +40,10 @@ $g->set({ mdl_source => \$source });
 $g->precompute();
 
 TEST: while (my $test = pop @tests) {
-    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $recce = new Marpa::Recognizer({grammar => $g});
     $recce->text(\$test);
     $recce->end_input();
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = new Marpa::Evaluator( { recce => $recce } );
     my @parses;
     while (defined(my $value = $evaler->value)) {
         push @parses, $value;

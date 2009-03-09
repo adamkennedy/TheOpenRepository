@@ -14,7 +14,7 @@ use Carp;
 use English qw( -no_match_vars );
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 my @features = qw(
@@ -107,8 +107,8 @@ sub canonical {
     my $where = shift;
     my $long_where = shift;
     $long_where //= $where;
-    $template =~ s{ \b package \s Parse [:][:] Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
-        }{package Parse::Marpa::<PACKAGE>;}xms;
+    $template =~ s{ \b package \s Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
+        }{package Marpa::<PACKAGE>;}xms;
     $template =~ s/ \s* at \s [^\s]* code_diag[.]t \s line  \s \d+\Z//xms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
     $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
@@ -143,13 +143,13 @@ sub run_test {
         when ('preamble') { $preamble = $value }
         when ('lexer') { $text_lexer = $value }
         when ('null_action') { $null_action = $value }
-        when ('unstringify_grammar') { return Parse::Marpa::Grammar::unstringify(\$value) }
-        when ('unstringify_recce') { return Parse::Marpa::Recognizer::unstringify(\$value) }
+        when ('unstringify_grammar') { return Marpa::Grammar::unstringify(\$value) }
+        when ('unstringify_recce') { return Marpa::Recognizer::unstringify(\$value) }
         default { croak("unknown argument to run_test: $arg"); }
       }
     }
 
-    my $grammar = new Parse::Marpa::Grammar({
+    my $grammar = new Marpa::Grammar({
         start => 'S',
         rules => [
             [ 'S', [qw/E trailer optional_trailer1 optional_trailer2/], ],
@@ -172,7 +172,7 @@ sub run_test {
         default_null_value => $default_null_value,
     });
 
-    my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+    my $recce = new Marpa::Recognizer({grammar => $grammar});
 
     my $fail_offset = $recce->text( '2 - 0 * 3 + 1 q{trailer}' );
     if ( $fail_offset >= 0 ) {
@@ -182,7 +182,7 @@ sub run_test {
     $recce->end_input();
 
     my $expected = '((((2-0)*3)+1)==7; q{trailer};[default null];[null])';
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = new Marpa::Evaluator( { recce => $recce } );
     my $value = $evaler->value();
     Marpa::Test::is(${$value}, $expected, 'Ambiguous Equation Value');
 
@@ -375,7 +375,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 6 lines in problem code, beginning:
-1: package Parse::Marpa::<PACKAGE>;
+1: package Marpa::<PACKAGE>;
 2: # this should be a compile phase error
 3: my $x = 0;
 4: $x=;
@@ -409,7 +409,7 @@ Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 8 lines in problem code, beginning:
 1: sub {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this should be a compile phase error
 4: my $x = 0;
 5: $x=;
@@ -426,7 +426,7 @@ Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 9 lines in problem code, beginning:
 1: $null_value = do {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this should be a compile phase error
 4: my $x = 0;
 5: $x=;
@@ -445,7 +445,7 @@ Fatal Error
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;
-4:     package Parse::Marpa::<PACKAGE>;
+4:     package Marpa::<PACKAGE>;
 5:     # this should be a compile phase error
 6: my $x = 0;
 7: $x=;
@@ -603,7 +603,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 6 lines in problem code, beginning:
-1: package Parse::Marpa::<PACKAGE>;
+1: package Marpa::<PACKAGE>;
 2: # this should be a run phase error
 3: my $x = 0;
 4: $x = 711/0;
@@ -636,7 +636,7 @@ Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
 8 lines in problem code, beginning:
 1: sub {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this should be a run phase error
 4: my $x = 0;
 5: $x = 711/0;
@@ -653,7 +653,7 @@ Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
 8 lines in problem code, beginning:
 1: sub {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this should be a run phase error
 4: my $x = 0;
 5: $x = 711/0;
@@ -670,7 +670,7 @@ Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 9 lines in problem code, beginning:
 1: $null_value = do {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this should be a run phase error
 4: my $x = 0;
 5: $x = 711/0;
@@ -689,7 +689,7 @@ Fatal Error
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;
-4:     package Parse::Marpa::<PACKAGE>;
+4:     package Marpa::<PACKAGE>;
 5:     # this should be a run phase error
 6: my $x = 0;
 7: $x = 711/0;
@@ -712,7 +712,7 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 6 lines in problem code, beginning:
-1: package Parse::Marpa::<PACKAGE>;
+1: package Marpa::<PACKAGE>;
 2: # this is a call to die()
 3: my $x = 0;
 4: die('test call to die');
@@ -745,7 +745,7 @@ Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
 8 lines in problem code, beginning:
 1: sub {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this is a call to die()
 4: my $x = 0;
 5: die('test call to die');
@@ -762,7 +762,7 @@ Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
 8 lines in problem code, beginning:
 1: sub {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this is a call to die()
 4: my $x = 0;
 5: die('test call to die');
@@ -779,7 +779,7 @@ Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 9 lines in problem code, beginning:
 1: $null_value = do {
-2:     package Parse::Marpa::<PACKAGE>;
+2:     package Marpa::<PACKAGE>;
 3: # this is a call to die()
 4: my $x = 0;
 5: die('test call to die');
@@ -798,7 +798,7 @@ Fatal Error
 1: sub {
 2:     my $STRING = shift;
 3:     my $START = shift;
-4:     package Parse::Marpa::<PACKAGE>;
+4:     package Marpa::<PACKAGE>;
 5:     # this is a call to die()
 6: my $x = 0;
 7: die('test call to die');

@@ -11,10 +11,10 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More tests => 2;
 use Test::Weaken;
 
-BEGIN { use_ok( 'Parse::Marpa' ); }
+BEGIN { use_ok( 'Marpa' ); }
 
 my $test = sub {
-    my $g = new Parse::Marpa::Grammar({
+    my $g = new Marpa::Grammar({
         start => 'S',
         rules => [
             [ 'S', [qw/A A A A/] ],
@@ -25,13 +25,13 @@ my $test = sub {
         terminals => [ 'a' ],
     });
     my $a = $g->get_symbol('a');
-    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $recce = new Marpa::Recognizer({grammar => $g});
     $recce->earleme([$a, 'a', 1]);
     $recce->earleme([$a, 'a', 1]);
     $recce->earleme([$a, 'a', 1]);
     $recce->earleme([$a, 'a', 1]);
     $recce->end_input();
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = new Marpa::Evaluator( { recce => $recce } );
     croak('No parse found') unless $evaler;
     $evaler->value();
     [ $g, $recce, $evaler ];

@@ -10,14 +10,14 @@ use Test::More tests => 8;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    use_ok('Marpa');
 }
 
 # The example grammar in Aycock/Horspool "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630
 # This time testing the stripped output
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => q{S'},
     rules => [
         [ q{S'}, [qw/S/] ],

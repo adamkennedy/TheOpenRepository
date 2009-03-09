@@ -5,56 +5,56 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NO_META             => 1,
-    NAME                => 'Parse::Marpa',
+    NAME                => 'Marpa',
     AUTHOR              => 'Jeffrey Kegler',
-    VERSION_FROM        => 'lib/Parse/Marpa.pm',
-    ABSTRACT_FROM       => 'lib/Parse/Marpa.pm',
+    VERSION_FROM        => 'lib/Marpa.pm',
+    ABSTRACT_FROM       => 'lib/Marpa.pm',
     PL_FILES => {
-        "lib/Parse/Marpa/Source.pm.PL" => "lib/Parse/Marpa/Source.pm"
+        "lib/Marpa/Source.pm.PL" => "lib/Marpa/Source.pm"
     },
     PM => {
-	'lib/Parse/Marpa/Raw_Source.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Raw_Source.pm',
-	'lib/Parse/Marpa/Doc/Algorithm.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Algorithm.pod',
-	'lib/Parse/Marpa/Doc/Bibliography.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Bibliography.pod',
-	'lib/Parse/Marpa/Doc/Diagnostics.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Diagnostics.pod',
-	'lib/Parse/Marpa/Doc/Internals.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Internals.pod',
-	'lib/Parse/Marpa/Doc/Parse_Terms.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Parse_Terms.pod',
-	'lib/Parse/Marpa/Doc/Plumbing.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Plumbing.pod',
-	'lib/Parse/Marpa/Doc/Options.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/Options.pod',
-	'lib/Parse/Marpa/Doc/MDL.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/MDL.pod',
-	'lib/Parse/Marpa/Doc/To_Do.pod'
-	    => '$(INST_LIB)/Parse/Marpa/Doc/To_Do.pod',
-	'lib/Parse/Marpa/Lex.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Lex.pm',
-	'lib/Parse/Marpa/MDL.pm'
-	    => '$(INST_LIB)/Parse/Marpa/MDL.pm',
-	'lib/Parse/Marpa/Grammar.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Grammar.pm',
-	'lib/Parse/Marpa/Offset.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Offset.pm',
-	'lib/Parse/Marpa/Recognizer.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Recognizer.pm',
-	'lib/Parse/Marpa/Evaluator.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Evaluator.pm',
-	'lib/Parse/Marpa.pm'
-	    => '$(INST_LIB)/Parse/Marpa.pm',
-	'lib/Parse/Marpa/trailer_Raw_Source.pm'
-	    => '$(INST_LIB)/Parse/Marpa/trailer_Raw_Source.pm',
-	'lib/Parse/Marpa/Source.pm'
-	    => '$(INST_LIB)/Parse/Marpa/Source.pm',
-	'lib/Parse/Marpa/Source.pm.PL'
-	    => '$(INST_LIB)/Parse/Marpa/Source.pm.PL',
-	'lib/Parse/Marpa/header_Raw_Source.pm'
-	    => '$(INST_LIB)/Parse/Marpa/header_Raw_Source.pm',
+	'lib/Marpa/Raw_Source.pm'
+	    => '$(INST_LIB)/Marpa/Raw_Source.pm',
+	'lib/Marpa/Doc/Algorithm.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Algorithm.pod',
+	'lib/Marpa/Doc/Bibliography.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Bibliography.pod',
+	'lib/Marpa/Doc/Diagnostics.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Diagnostics.pod',
+	'lib/Marpa/Doc/Internals.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Internals.pod',
+	'lib/Marpa/Doc/Parse_Terms.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Parse_Terms.pod',
+	'lib/Marpa/Doc/Plumbing.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Plumbing.pod',
+	'lib/Marpa/Doc/Options.pod'
+	    => '$(INST_LIB)/Marpa/Doc/Options.pod',
+	'lib/Marpa/Doc/MDL.pod'
+	    => '$(INST_LIB)/Marpa/Doc/MDL.pod',
+	'lib/Marpa/Doc/To_Do.pod'
+	    => '$(INST_LIB)/Marpa/Doc/To_Do.pod',
+	'lib/Marpa/Lex.pm'
+	    => '$(INST_LIB)/Marpa/Lex.pm',
+	'lib/Marpa/MDL.pm'
+	    => '$(INST_LIB)/Marpa/MDL.pm',
+	'lib/Marpa/Grammar.pm'
+	    => '$(INST_LIB)/Marpa/Grammar.pm',
+	'lib/Marpa/Offset.pm'
+	    => '$(INST_LIB)/Marpa/Offset.pm',
+	'lib/Marpa/Recognizer.pm'
+	    => '$(INST_LIB)/Marpa/Recognizer.pm',
+	'lib/Marpa/Evaluator.pm'
+	    => '$(INST_LIB)/Marpa/Evaluator.pm',
+	'lib/Marpa.pm'
+	    => '$(INST_LIB)/Marpa.pm',
+	'lib/Marpa/trailer_Raw_Source.pm'
+	    => '$(INST_LIB)/Marpa/trailer_Raw_Source.pm',
+	'lib/Marpa/Source.pm'
+	    => '$(INST_LIB)/Marpa/Source.pm',
+	'lib/Marpa/Source.pm.PL'
+	    => '$(INST_LIB)/Marpa/Source.pm.PL',
+	'lib/Marpa/header_Raw_Source.pm'
+	    => '$(INST_LIB)/Marpa/header_Raw_Source.pm',
     },
     EXE_FILES => [
                            'bin/mdl',

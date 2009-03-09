@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Bibliography - A Marpa Bibliography
+Marpa::Doc::Bibliography - A Marpa Bibliography
 
 =head1 BIBLIOGRAPHY
 
@@ -36,7 +36,7 @@ this particular topic on and off for years.
 Nonetheless I found this paper very heavy going.
 Readers who want to delve into Aycock and Horspool 2002
 might find it helpful to read the Marpa documentation,
-up to and including L<Parse::Marpa::Doc::Internals>, first.
+up to and including L<Marpa::Doc::Internals>, first.
 
 =head2 Dominus 2005
 
@@ -140,7 +140,7 @@ using a similar notation.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -148,7 +148,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

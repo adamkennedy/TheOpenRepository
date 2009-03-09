@@ -7,7 +7,7 @@ use HTML::LinkExtor;
 use English qw( -no_match_vars ) ;
 
 my $cpan_base = 'http://search.cpan.org';
-my $marpa_doc_base = $cpan_base . '/~jkegl/Parse-Marpa-1.001_002/lib/Parse/';
+my $marpa_doc_base = $cpan_base . '/~jkegl/Marpa-1.001_002/lib/';
 
 my @url = qw(
     Marpa.pm

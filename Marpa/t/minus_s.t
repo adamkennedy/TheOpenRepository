@@ -16,14 +16,14 @@ use Test::More tests => 10;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 my $grammar_source; { local($RS) = undef; $grammar_source = <DATA> };
 
 my $text = '6-----1';
 
-my @values = Parse::Marpa::mdl(\$grammar_source, \$text, { max_parses => 30 });
+my @values = Marpa::mdl(\$grammar_source, \$text, { max_parses => 30 });
 
 my @expected = (
     '(((6--)--)-1)==5',

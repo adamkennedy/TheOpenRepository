@@ -11,8 +11,8 @@ my @test_files = qw(
 ./example/null_value.marpa
 ./example/equation.marpa
 ./example/synopsis.pl
-./lib/Parse/Marpa/Doc/Internals.pod
-./lib/Parse/Marpa/Doc/MDL.pod
+./lib/Marpa/Doc/Internals.pod
+./lib/Marpa/Doc/MDL.pod
 ./t/ah_s.t
 ./t/cycle.t
 ./t/cycle2.t
@@ -115,7 +115,7 @@ sub update_changes {
 }
 
 change(\&fix_META_yml, 'META.yml');
-change(\&fix_Marpa_pm, 'lib/Parse/Marpa.pm');
+change(\&fix_Marpa_pm, 'lib/Marpa.pm');
 change(\&fix_bootstrap_pl, 'bootstrap/bootstrap.pl');
 change(\&fix_test_files, @test_files);
 change(\&update_changes, 'Changes');

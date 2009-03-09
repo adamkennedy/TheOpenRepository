@@ -9,8 +9,8 @@
 use 5.010;
 use strict;
 use warnings;
-use Parse::Marpa;
-use Parse::Marpa::MDL;
+use Marpa;
+use Marpa::MDL;
 use Carp;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;

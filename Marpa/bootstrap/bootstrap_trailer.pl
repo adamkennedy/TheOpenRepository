@@ -4,13 +4,13 @@ $new_start_symbol //= '(undefined start symbol)';
 $new_semantics //= 'not defined';
 $new_version //= 'not defined';
 
-croak('Version requested is ', $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, ' exactly.')
-   unless $new_version eq $Parse::Marpa::VERSION;
+croak('Version requested is ', $new_version, "\nVersion must match ", $Marpa::VERSION, ' exactly.')
+   unless $new_version eq $Marpa::VERSION;
 
 croak('Semantics are ', $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq 'perl5';
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => $new_start_symbol,
     rules => $new_rules,
     terminals => $new_terminals,
@@ -35,7 +35,7 @@ $g->set({
 
 $g->precompute();
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = new Marpa::Recognizer({
    grammar=> $g,
    preamble => $new_preamble,
    lex_preamble => $new_lex_preamble,
@@ -81,7 +81,7 @@ my $spec;
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+my $evaler = new Marpa::Evaluator( { recce => $recce } );
 croak('No parse') unless $evaler;
 
 sub slurp {
@@ -92,7 +92,7 @@ sub slurp {
     return $file;
 }
 
-say '# This file was automatically generated using Parse::Marpa ', $Parse::Marpa::VERSION;
+say '# This file was automatically generated using Marpa ', $Marpa::VERSION;
 
 if ($header_file_name)
 {

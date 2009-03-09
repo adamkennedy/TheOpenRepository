@@ -1,4 +1,4 @@
-package Parse::Marpa::MDL;
+package Marpa::MDL;
 
 use 5.010;
 use strict;
@@ -35,7 +35,7 @@ sub canonical_symbol_name {
 sub get_symbol {
     my $grammar     = shift;
     my $symbol_name = shift;
-    return Parse::Marpa::Grammar::get_symbol( $grammar,
+    return Marpa::Grammar::get_symbol( $grammar,
         canonical_symbol_name($symbol_name) );
 }
 
@@ -45,14 +45,14 @@ __END__
 
 =head1 NAME
 
-Parse::Marpa::MDL -- Utility Methods for MDL
+Marpa::MDL -- Utility Methods for MDL
 
 =head1 DESCRIPTION
 
 If you are looking for the document that describes the Marpa Demonstration
-Language, this is not it -- you want L<Parse::Marpa::Doc::MDL>.
+Language, this is not it -- you want L<Marpa::Doc::MDL>.
 This document describes some utility routines that come with
-C<Parse::Marpa::MDL>.
+C<Marpa::MDL>.
 
 These routines handle the conversion of MDL symbol names
 to plumbing symbol names.
@@ -71,7 +71,7 @@ For example,
 the MDL symbol whose acceptable variants include
 C<My symbol> and C<MY_SYMBOL> is, in canonical form, C<my-symbol>.
 Users should always use 
-the C<Parse::Marpa::MDL::canonical_name> method to convert from the
+the C<Marpa::MDL::canonical_name> method to convert from the
 MDL symbol name to its canonical form.
 
 =head1 METHODS
@@ -86,7 +86,7 @@ in_file($_, 'author.t/misc.t');
 =end Marpa::Test::Display:
 
     $g->set( {
-        start => Parse::Marpa::MDL::canonical_symbol_name('Document')
+        start => Marpa::MDL::canonical_symbol_name('Document')
     } );
 
 This static method takes as its one argument an MDL symbol
@@ -103,15 +103,15 @@ is_file($_, 'author.t/misc.t', 'get_symbol snippet');
 
 =end Marpa::Test::Display:
 
-    my $op = Parse::Marpa::MDL::get_symbol( $grammar, 'Op' );
+    my $op = Marpa::MDL::get_symbol( $grammar, 'Op' );
 
 This static method takes a Marpa grammar object as its first argument and an MDL symbol name as its second.
 It returns the symbol's "cookie".
-Symbol cookies are needed to use the C<Parse::Marpa::Recognizer::earleme> method.
+Symbol cookies are needed to use the C<Marpa::Recognizer::earleme> method.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -119,7 +119,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

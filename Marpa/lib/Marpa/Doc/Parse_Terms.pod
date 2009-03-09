@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Parse_Terms - Standard Parsing Terms used in the Marpa Documents
+Marpa::Doc::Parse_Terms - Standard Parsing Terms used in the Marpa Documents
 
 =head1 DESCRIPTION
 
@@ -23,9 +23,9 @@ If you've never looked into parsing before,
 you'll probably find this document too terse.
 As an introduction, I reccommend
 L<Mark Jason Dominus's
-excellent chapter on parsing in the Perl context|Parse::Marpa::Doc::Bibliography/"Dominus 2005">.
+excellent chapter on parsing in the Perl context|Marpa::Doc::Bibliography/"Dominus 2005">.
 It's available on-line.
-L<Wikipedia|Parse::Marpa::Doc::Bibliography/"Wikipedia"> is also an excellent place to start.
+L<Wikipedia|Marpa::Doc::Bibliography/"Wikipedia"> is also an excellent place to start.
 
 =head2 Basic terms
 
@@ -264,7 +264,7 @@ has a value associated with it on input.
 Non-null inner nodes 
 take their semantics from the production whose lhs they represent.
 Nulled nodes are often deal with in special ways.
-Their handling in Marpa is described L<elsewhere|Parse::Marpa/"Null Symbol Values">.
+Their handling in Marpa is described L<elsewhere|Marpa/"Null Symbol Values">.
 
 The semantics for a production
 describe how to calculate the value of the node which represents the lhs
@@ -276,7 +276,7 @@ The value of a parse is the value of its start symbol.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -284,7 +284,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

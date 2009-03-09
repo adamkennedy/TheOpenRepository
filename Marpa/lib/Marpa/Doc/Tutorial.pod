@@ -1,11 +1,11 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Tutorial - A Marpa Tutorial
+Marpa::Doc::Tutorial - A Marpa Tutorial
 
 =head1 OVERVIEW
 
 This Tutorial expands on an example in
-L<the Parse::Marpa SYNOPSIS|Parse::Marpa/"SYNOPSIS">.
+L<the Marpa SYNOPSIS|Marpa/"SYNOPSIS">.
 
 =head1 THE MOTIVATION BEHIND THIS EXAMPLE
 
@@ -52,7 +52,7 @@ We start with a pretty standard preamble:
     use strict;
     use warnings;
     use English qw( -no_match_vars ) ;
-    use Parse::Marpa;
+    use Marpa;
 
 Then we create an array of Perl lines for test data.
 
@@ -76,7 +76,7 @@ the defaults are fine.
 So the only option specified is the source string for the
 grammar.
 
-    my $g = new Parse::Marpa( mdl_source => \$source);
+    my $g = new Marpa( mdl_source => \$source);
 
 Now that we have our grammar, we are ready to loop over
 our test lines:
@@ -89,7 +89,7 @@ Every time we want to parse different input, we need to create
 another parse object to do it.  In this case we'll have a new
 parse object for each test line.
 
-	my $parse = new Parse::Marpa::Recognizer(grammar => $g);
+	my $parse = new Marpa::Recognizer(grammar => $g);
 
 Now we give the parser its input.
 

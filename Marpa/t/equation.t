@@ -13,7 +13,7 @@ use Marpa::Test;
 use Carp;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -23,7 +23,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $grammar = new Parse::Marpa::Grammar({
+my $grammar = new Marpa::Grammar({
     start => 'E',
     strip => 0,
 
@@ -102,7 +102,7 @@ St6: 8
 E['] ::= E .
 END_QDFA
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+my $recce = new Marpa::Recognizer({grammar => $grammar});
 
 my $op = $grammar->get_symbol('Op');
 my $number = $grammar->get_symbol('Number');
@@ -131,7 +131,7 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
+my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
 
 my $i = -1;
 while (defined(my $value = $evaler->value()))

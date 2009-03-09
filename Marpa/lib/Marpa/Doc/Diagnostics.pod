@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Diagnostics - Diagnostics
+Marpa::Doc::Diagnostics - Diagnostics
 
 =head1 DESCRIPTION
 
@@ -96,7 +96,7 @@ C<trace_lex>,
 and C<trace_values>
 can be lengthy.
 You'll want to work with short inputs if at all possible.
-The L<internals document|Parse::Marpa::Doc::Internals>
+The L<internals document|Marpa::Doc::Internals>
 has example outputs from the C<show_QDFA>,
 C<show_earley_sets>,
 C<show_bocage>,
@@ -111,13 +111,13 @@ Unless otherwise stated,
 the Marpa options are valid
 for all methods which accept Marpa options as named arguments
 (
-C<Parse::Marpa::mdl>,
-C<Parse::Marpa::Grammar::new>,
-C<Parse::Marpa::Grammar::set>,
-C<Parse::Marpa::Recognizer::new>,
-C<Parse::Marpa::Evaluator::new>,
+C<Marpa::mdl>,
+C<Marpa::Grammar::new>,
+C<Marpa::Grammar::set>,
+C<Marpa::Recognizer::new>,
+C<Marpa::Evaluator::new>,
 and
-C<Parse::Marpa::Evaluator::set>).
+C<Marpa::Evaluator::set>).
 All options are useful at any point in the parse,
 unless otherwise stated.
 Trace output goes to the trace file handle.
@@ -174,7 +174,7 @@ Setting it after that point will result in a warning.
 
 # I find it better to wait until evaluation time,
 # when there's more information
-# and then use C<Parse::Marpa::Recognizer::show_status()>.
+# and then use C<Marpa::Recognizer::show_status()>.
 # Requires knowledge of Marpa internals.
 
 =end undocumented:
@@ -269,7 +269,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
 
 =begin Marpa::Test::Display:
 
@@ -281,7 +281,7 @@ in_file($_, 'bin/mdl');
     my $fail_location = $recce->text( \$text_to_parse );
 
     if ( $fail_location >= 0 ) {
-        print {*STDERR} Parse::Marpa::show_location(
+        print {*STDERR} Marpa::show_location(
             'Parsing failed',
             \$text_to_parse,
             $fail_location,
@@ -569,7 +569,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
 
 =begin Marpa::Test::Display:
 
@@ -612,7 +612,7 @@ The bocage is given in pre-order,
 in the form of a grammar.
 Parse bocage grammars are similar to
 parse forest grammars.
-In the L<internals document|Parse::Marpa::Doc::Internals>,
+In the L<internals document|Marpa::Doc::Internals>,
 parse bocage grammars are described at length, using
 an example output from C<show_bocage>.
 
@@ -670,7 +670,7 @@ the result returned by C<show_tree> is unpredictable.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -678,7 +678,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Plumbing - The Plumbing Interface
+Marpa::Doc::Plumbing - The Plumbing Interface
 
 =head1 DESCRIPTION
 
@@ -8,9 +8,9 @@ This document describes Marpa's plumbing Interface.
 The plumbing is the low-level interface used by all the porcelain interfaces.
 The plumbing can be used directly.
 It is a short list of named arguments to the
-C<Parse::Marpa::Grammar::new()>,
-C<Parse::Marpa::Grammar::set()>,
-and C<Parse::Marpa::Recognizer::new()> methods.
+C<Marpa::Grammar::new()>,
+C<Marpa::Grammar::set()>,
+and C<Marpa::Recognizer::new()> methods.
 
 The C<start> argument may be used in combination
 with a porcelain interface,
@@ -39,7 +39,7 @@ means a plumbing symbol name.
 
 =head1 METHOD
 
-=head2 Parse::Marpa::Grammar::get_symbol
+=head2 Marpa::Grammar::get_symbol
 
 =begin Marpa::Test::Display:
 
@@ -53,10 +53,10 @@ in_file($_, 't/ah2.t');
 Given a symbol's plumbing name, returns the symbol's cookie.
 It returns undefined if a symbol with that name doesn't exist.
 If you are using MDL to define your grammar,
-you want to use C<Parse::Marpa::MDL::get_symbol> instead.
+you want to use C<Marpa::MDL::get_symbol> instead.
 
 Symbol cookies are used primarily
-in calls to the C<Parse::Marpa::Recognizer::earleme> method.
+in calls to the C<Marpa::Recognizer::earleme> method.
 To get the cookie for a symbol using its porcelain name,
 see the documentation for the individual porcelain interface.
 
@@ -64,8 +64,8 @@ see the documentation for the individual porcelain interface.
 
 =head2 The C<rules> Named Argument
 
-The C<rules> named argument is available with both the C<Parse::Marpa::Grammar::new>
-and C<Parse::Marpa::Grammar::set> methods.
+The C<rules> named argument is available with both the C<Marpa::Grammar::new>
+and C<Marpa::Grammar::set> methods.
 The C<rules> named argument may be specified multiple times, adding new rules
 to the grammar each time.
 New rules may be added until the grammar is precomputed.
@@ -123,7 +123,7 @@ The input will be required to match
 the rhs symbol at least C<min> times
 and will be allowed to match an unlimited number of times.
 For an introduction to sequence productions,
-see the L<MDL document|Parse::Marpa::Doc::MDL>.
+see the L<MDL document|Marpa::Doc::MDL>.
 
 =item C<separator>
 
@@ -165,10 +165,10 @@ and option values as hash values.
 The value of the C<regex> terminal option must be a regular expression.
 It is used when Marpa is asked to match the terminals in the input text.
 When the tokens are supplied directly,
-for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+for example when using the L<earleme command|Marpa::Recognizer/"earleme">,
 the terminal's C<regex> value is ignored.
 Only one of the C<regex> and C<action> terminal options may be specified.
-See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing terminal regexes.
+See L<the MDL document|Marpa::Doc::MDL> for details on writing terminal regexes.
 
 =item C<action>
 
@@ -177,10 +177,10 @@ Right now the only available semantics is Perl 5.
 The code will be interpreted as a lex action, which
 will be used to match the terminal in the input text.
 When the tokens are supplied directly,
-for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+for example when using the L<earleme command|Marpa::Recognizer/"earleme">,
 the terminal's C<action> value is ignored.
 Only one of the C<regex> and C<action> terminal options may be specified.
-See L<the MDL document|Parse::Marpa::Doc::MDL> for details on writing lex actions.
+See L<the MDL document|Marpa::Doc::MDL> for details on writing lex actions.
 
 =item C<prefix>
 
@@ -189,7 +189,7 @@ It will be used to match and discard text from the input
 before any attempt is made to match the terminal itself.
 The most common use is to discard leading whitespace.
 When the tokens are supplied directly,
-for example when using the L<earleme command|Parse::Marpa::Recognizer/"earleme">,
+for example when using the L<earleme command|Marpa::Recognizer/"earleme">,
 the terminal's C<prefix> value is ignored.
 
 =item C<priority>
@@ -218,7 +218,7 @@ to convert porcelain symbol names to plumbing symbol names.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 

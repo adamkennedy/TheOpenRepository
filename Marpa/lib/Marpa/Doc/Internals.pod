@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Internals - Marpa Internals
+Marpa::Doc::Internals - Marpa Internals
 
 =head1 OVERVIEW
 
@@ -20,7 +20,7 @@ the C<strip> Marpa option has been turned off.
 =head1 EARLEY SETS
 
 To speak pedantically, the algorithm in
-L<Earley's 1970 parsing article|Parse::Marpa::Doc::Bibliography/"Earley 1970">
+L<Earley's 1970 parsing article|Marpa::Doc::Bibliography/"Earley 1970">
 does not actually parse in the strict sense.
 It is a recognizer, not a parser.
 
@@ -64,7 +64,7 @@ a traditional Earley item.
 QDFA states are not traditional --
 they are my elaboration of an invention by Aycock and Horspool.
 The use of the at-sign as punctuation follows
-L<Grune and Jacobs|Parse::Marpa::Doc::Bibliography/"Grune and Jacobs 2008">.
+L<Grune and Jacobs|Marpa::Doc::Bibliography/"Grune and Jacobs 2008">.
 Finally, in the traditional notation for an Earley item,
 the dot earleme is not
 included at all --
@@ -157,7 +157,7 @@ Earley items are built from one or more LR(0) items.
 In traditional Earley parsing, each Earley item contained one and only one LR(0) item.
 This made the internals simpler, but was not as efficient.
 Marpa combines LR(0) items into QDFA states
-based on ideas in L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
+based on ideas in L<Aycock and Horspool 2002|Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
 Every LR(0) item is a statement that a rule
 has been recognized as far as the dot position.
@@ -350,7 +350,7 @@ Marpa uses the Earley item source choices
 to track the reasons why Earley items were added.
 Aycock and Horspool don't call them source choices.
 But Marpa's method is derived from the one Aycock and Horspool describe in
-L<their 2002 article|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
+L<their 2002 article|Marpa::Doc::Bibliography/"Aycock and Horspool 2002">.
 
 We've already seen a token source choice in the scanning example.
 Earley item S6@0-3 has another example of a source choice: C<[p=S5@0-2; c=S4@2-3]>.
@@ -1165,7 +1165,7 @@ a proper nullable is a symbol that
 can produce either the empty sentence or a non-empty sentence.
 
 Nullable symbols were a problem in previous versions of Earley parsers.
-L<Aycock and Horspool 2002|Parse::Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
+L<Aycock and Horspool 2002|Marpa::Doc::Bibliography/"Aycock and Horspool 2002">
 outlined a new approach for dealing with them.
 I use their ideas with modifications of my own.
 
@@ -1591,7 +1591,7 @@ is_file($_, 'author.t/equation_show_bocage.out');
 
 =end Marpa::Test::Display:
 
-    package: Parse::Marpa::E_1; parse count: 0
+    package: Marpa::E_1; parse count: 0
     S2@0-3L3 ::= S2@0-3L3[0]
     S2@0-3L3[0] ::= S6@0-3L0
         rule 2: e['] ::= e .
@@ -1674,7 +1674,7 @@ is_file($_, 'author.t/equation_trace_values.out');
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -1682,7 +1682,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

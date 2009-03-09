@@ -1,5 +1,5 @@
 --- #YAML:1.0
-name:                Parse-Marpa
+name:                Marpa
 version:             1.003_000
 abstract:            Generate Parsers from any BNF grammar
 author:              
@@ -16,29 +16,29 @@ no_index:
         - author.t
         - save
     namespace:
-        - Parse::Marpa::Internal
+        - Marpa::Internal
     package:
-        - Parse::Marpa::Offset
+        - Marpa::Offset
 requires:     
     Test::More:                    0
 provides:
-    Parse::Marpa:
-        file: lib/Parse/Marpa.pm
+    Marpa:
+        file: lib/Marpa.pm
         version: 1.003_000
-    Parse::Marpa::Evaluator:
-        file: lib/Parse/Marpa/Evaluator.pm
+    Marpa::Evaluator:
+        file: lib/Marpa/Evaluator.pm
         version: 1.003_000
-    Parse::Marpa::Recognizer:
-        file: lib/Parse/Marpa/Recognizer.pm
+    Marpa::Recognizer:
+        file: lib/Marpa/Recognizer.pm
         version: 1.003_000
-    Parse::Marpa::Grammar:
-        file: lib/Parse/Marpa/Grammar.pm
+    Marpa::Grammar:
+        file: lib/Marpa/Grammar.pm
         version: 1.003_000
-    Parse::Marpa::MDL:
-        file: lib/Parse/Marpa/MDL.pm
+    Marpa::MDL:
+        file: lib/Marpa/MDL.pm
         version: 1.003_000
-    Parse::Marpa::Lex:
-        file: lib/Parse/Marpa/Lex.pm
+    Marpa::Lex:
+        file: lib/Marpa/Lex.pm
         version: 1.003_000
 recommends:
     Test::Weaken: 1.000000

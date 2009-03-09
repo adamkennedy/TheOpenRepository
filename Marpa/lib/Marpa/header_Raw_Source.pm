@@ -6,7 +6,7 @@ use strict;
 # It's all integers, except for the version number
 use integer;
 
-package Parse::Marpa::Internal::Source_Raw;
+package Marpa::Internal::Source_Raw;
 
 my $new_terminals = [];
 my $new_rules = [];

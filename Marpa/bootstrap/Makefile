@@ -17,17 +17,17 @@ test: bootcopy0.pl bootcopy1.pl
 
 install: test install_stringified install_raw
 
-install_stringified: ../lib/Parse/Marpa/Source.pm
+install_stringified: ../lib/Marpa/Source.pm
 
-install_raw: ../lib/Parse/Marpa/Raw_Source.pm
+install_raw: ../lib/Marpa/Raw_Source.pm
 
-../lib/Parse/Marpa/Source.pm: \
-    ../lib/Parse/Marpa/Raw_Source.pm \
-    ../lib/Parse/Marpa/Source.pm.PL \
-    ../lib/Parse/Marpa/header_Raw_Source.pm
-	(cd ..; perl -Ilib lib/Parse/Marpa/Source.pm.PL lib/Parse/Marpa/Source.pm )
+../lib/Marpa/Source.pm: \
+    ../lib/Marpa/Raw_Source.pm \
+    ../lib/Marpa/Source.pm.PL \
+    ../lib/Marpa/header_Raw_Source.pm
+	(cd ..; perl -Ilib lib/Marpa/Source.pm.PL lib/Marpa/Source.pm )
 
-../lib/Parse/Marpa/Raw_Source.pm: source_raw.pl ../lib/Parse/Marpa/header_Raw_Source.pm \
-    ../lib/Parse/Marpa/trailer_Raw_Source.pm
-	cat ../lib/Parse/Marpa/header_Raw_Source.pm source_raw.pl ../lib/Parse/Marpa/trailer_Raw_Source.pm \
-	    > ../lib/Parse/Marpa/Raw_Source.pm
+../lib/Marpa/Raw_Source.pm: source_raw.pl ../lib/Marpa/header_Raw_Source.pm \
+    ../lib/Marpa/trailer_Raw_Source.pm
+	cat ../lib/Marpa/header_Raw_Source.pm source_raw.pl ../lib/Marpa/trailer_Raw_Source.pm \
+	    > ../lib/Marpa/Raw_Source.pm

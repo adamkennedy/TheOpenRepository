@@ -6,7 +6,7 @@ use warnings;
 
 use Carp;
 use Getopt::Long qw(GetOptionsFromArray);
-use Parse::Marpa;
+use Marpa;
 use English qw( -no_match_vars ) ;
 use Fatal qw(open close);
 
@@ -126,7 +126,7 @@ sub do_stringify {
     my $grammar_source;
     { local ($RS) = undef; $grammar_source = <ARGV>; }
 
-    my $grammar = new Parse::Marpa::Grammar(
+    my $grammar = new Marpa::Grammar(
         {   mdl_source => \$grammar_source,
             %options
         }
@@ -160,7 +160,7 @@ sub do_parse {
         $options{strip} = 0 if $show_QDFA;
 
         eval {
-            $grammar = new Parse::Marpa::Grammar( {%options} );
+            $grammar = new Marpa::Grammar( {%options} );
             $grammar->set(
                 {   mdl_source     => \$grammar_source,
                     source_options => \%source_options,
@@ -228,7 +228,7 @@ sub do_parse {
         }
     }
 
-    my $recce = new Parse::Marpa::Recognizer( {
+    my $recce = new Marpa::Recognizer( {
         grammar => $grammar,
         clone => 0
     } );
@@ -246,7 +246,7 @@ sub do_parse {
     }
 
     if ( $fail_location >= 0 ) {
-        print {*STDERR} Parse::Marpa::show_location(
+        print {*STDERR} Marpa::show_location(
                 'Parsing failed',
                 \$text_to_parse,
                 $fail_location,
@@ -256,7 +256,7 @@ sub do_parse {
 
     $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = new Marpa::Evaluator( {
         recce => $recce,
         clone => 0
     } );

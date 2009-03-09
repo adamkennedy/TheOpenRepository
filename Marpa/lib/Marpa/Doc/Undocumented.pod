@@ -1,6 +1,6 @@
 =head1 NAME
 
-Parse::Marpa::Doc::Undocumented - Fragments Describing Undocumented Features
+Marpa::Doc::Undocumented - Fragments Describing Undocumented Features
 
 =head1 DESCRIPTION
 
@@ -29,7 +29,7 @@ A Perl 5 undefined is a legitimate value.
 A Marpa "no value" means that no value calculation was done for
 that node.
 
-=head2 Parse::Marpa::Recognizer::find_complete_rule
+=head2 Marpa::Recognizer::find_complete_rule
 
      my ($end_earleme, $symbol_names) = $recce->find_complete_rule();
 
@@ -44,7 +44,7 @@ The top symbol, if specified, must be the plumbing name of the symbol.
 
 This description should be considered an very advanced Marpa topic.
 It will refer to Marpa internals,
-which are described in L<their own document|Parse::Marpa::Doc::Internals>.
+which are described in L<their own document|Marpa::Doc::Internals>.
 The internals document, for its part, is intended to be read after
 all the other Marpa documents.
 
@@ -138,7 +138,7 @@ if the grammar uses certain kinds of sequence productions.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -146,7 +146,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

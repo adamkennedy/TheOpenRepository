@@ -18,9 +18,9 @@ README
 bootstrap/bootstrap_header.pl
 bootstrap/bootstrap_trailer.pl
 etc/perlcriticrc
-lib/Parse/Marpa/Raw_Source.pm
-lib/Parse/Marpa/header_Raw_Source.pm
-lib/Parse/Marpa/trailer_Raw_Source.pm
+lib/Marpa/Raw_Source.pm
+lib/Marpa/header_Raw_Source.pm
+lib/Marpa/trailer_Raw_Source.pm
 t/lib/Test/Weaken.pm
 );
 

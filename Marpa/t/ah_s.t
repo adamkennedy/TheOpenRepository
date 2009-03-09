@@ -14,13 +14,13 @@ use Carp;
 use Test::More tests => 2;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    use_ok('Marpa');
 }
 
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
-my $grammar = new Parse::Marpa::Grammar(
+my $grammar = new Marpa::Grammar(
     {   warnings   => 1,
         code_lines => -1,
     }
@@ -30,9 +30,9 @@ $grammar->set( { mdl_source => \$source } );
 
 $grammar->precompute();
 
-my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+my $recce = new Marpa::Recognizer( { grammar => $grammar } );
 
-my $lc_a = Parse::Marpa::MDL::get_symbol( $grammar, 'lowercase a' );
+my $lc_a = Marpa::MDL::get_symbol( $grammar, 'lowercase a' );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
@@ -50,7 +50,7 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = new Marpa::Evaluator( {
         recce => $recce,
         end => $i
     } );

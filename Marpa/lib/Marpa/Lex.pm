@@ -1,4 +1,4 @@
-package Parse::Marpa;
+package Marpa;
 
 use 5.010;
 
@@ -9,7 +9,7 @@ use strict;
 use integer;
 
 # package for various lexing utilities
-package Parse::Marpa::Lex;
+package Marpa::Lex;
 
 # \x{5c} is backslash
 sub gen_bracket_regex {
@@ -161,13 +161,13 @@ sub lex_regex {
     return;
 }
 
-1;    # End of Parse::Marpa
+1;    # End of Marpa
 
 __END__
 
 =head1 NAME
 
-Parse::Marpa::Lex -- Utility Methods for Lexing
+Marpa::Lex -- Utility Methods for Lexing
 
 =head1 DESCRIPTION
 
@@ -188,7 +188,7 @@ is_file($_, 'author.t/misc.t', 'lex_regex snippet');
 =end Marpa::Test::Display:
 
     my ( $regex, $token_length ) =
-        Parse::Marpa::Lex::lex_regex( \$input_string, $lexeme_start );
+        Marpa::Lex::lex_regex( \$input_string, $lexeme_start );
 
 Takes two required arguments.
 C<$string>
@@ -204,7 +204,7 @@ C<$lexeme_start>
 should be the location where the prefix started.
 If no prefix was removed, C<$lexeme_start> will be the same as C<pos ${$string}>.
 
-How C<lex_regex> delimits a regex is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
+How C<lex_regex> delimits a regex is described in L<the MDL document|Marpa::Doc::MDL>.
 C<lex_regex> returns the null array if no regex was found.
 If a regex was found,
 C<lex_regex> returns an array of two elements.
@@ -225,7 +225,7 @@ is_file( $_, 'author.t/misc.t', 'lex_q_quote snippet' );
 =end Marpa::Test::Display:
 
     my ( $string, $token_length ) =
-        Parse::Marpa::Lex::lex_q_quote( \$input_string, $lexeme_start );
+        Marpa::Lex::lex_q_quote( \$input_string, $lexeme_start );
 
 Takes two required arguents, a I<string reference> and a I<start earleme>.
 The I<string reference> must be to a string that might contain a C<q-> or C<qq->quoted string.
@@ -241,7 +241,7 @@ C<$lexeme_start>
 should be the location where the prefix started.
 If no prefix was removed, C<$lexeme_start> should be the same as C<pos $$string>.
 
-How C<lex_q_quote> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Parse::Marpa::Doc::MDL>.
+How C<lex_q_quote> delimits a C<q-> or C<qq->quoted string is described in L<the MDL document|Marpa::Doc::MDL>.
 C<lex_q_quote> returns the null array if no string was found.
 If a string was found,
 C<lex_q_quote> returns an array of two elements.
@@ -252,7 +252,7 @@ which will include the length of any discarded prefix.
 
 =head1 SUPPORT
 
-See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+See the L<support section|Marpa/SUPPORT> in the main module.
 
 =head1 AUTHOR
 
@@ -260,7 +260,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

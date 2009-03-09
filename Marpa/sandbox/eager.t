@@ -15,10 +15,10 @@ use Test::More tests => 8;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => 'S',
 
     # An arbitrary maximum is put on the number of parses -- this is for
@@ -44,13 +44,13 @@ my $g = new Parse::Marpa::Grammar({
 
 });
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+my $recce = new Marpa::Recognizer({grammar => $g});
 
 my $a = $g->get_symbol('a');
 for (0 .. 4) { $recce->earleme([$a, 'a', 1]); }
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, } );
+my $evaler = new Marpa::Evaluator( { recce => $recce, } );
 croak("Cannot evaluate parse") unless $evaler;
 
 print $evaler->show_bocage(2);

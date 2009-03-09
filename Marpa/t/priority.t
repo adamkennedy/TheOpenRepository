@@ -16,7 +16,7 @@ use Test::More tests => 5;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	use_ok( 'Marpa' );
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -26,7 +26,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = new Parse::Marpa::Grammar({
+my $g = new Marpa::Grammar({
     start => 'S',
 
     # Set max_parses to 20 in case there's an infinite loop.
@@ -46,7 +46,7 @@ my $g = new Parse::Marpa::Grammar({
     ],
 });
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = new Marpa::Recognizer({
     grammar => $g,
 });
 
@@ -59,7 +59,7 @@ if ($fail_offset >= 0) {
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+my $evaler = new Marpa::Evaluator( { recce => $recce } );
 croak('Could not initialize parse') unless $evaler;
 
 my $i = -1;
