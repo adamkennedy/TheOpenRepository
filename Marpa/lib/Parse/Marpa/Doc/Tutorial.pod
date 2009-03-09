@@ -1,0 +1,199 @@
+=head1 NAME
+
+Parse::Marpa::Doc::Tutorial - A Marpa Tutorial
+
+=head1 OVERVIEW
+
+This Tutorial expands on an example in
+L<the Parse::Marpa SYNOPSIS|Parse::Marpa/"SYNOPSIS">.
+
+=head1 THE MOTIVATION BEHIND THIS EXAMPLE
+
+=head2 The Problem of Parsing PERL
+
+In a perlmonks post
+(L<http://www.perlmonks.org/?node_id=44722>),
+Randal Schwartz points out that
+"the only thing which can parse Perl (the language) is perl (the binary)",
+and provides two cleverly constructed
+lines of Perl 5 as examples:
+
+    time  / 25 ; # / ; die "this dies!";
+    localtime  / 25 ; # / ; die "this dies!";
+
+It these two lines, it's not completely clear
+what Perl should do with the slash.
+It can be the first delimiter of a match,
+and if it is, the line of Perl 5 contains a function call with the match as its one argument,
+then a die statement.
+It can also be the division operator, in which case the line contains a function call with no
+arguments divided by 25, followed by a comment which runs to the end of the line.
+
+The point here is not that this Perl code is actually unparseable --
+Perl does it so it B<can> be done.
+The point is that to deal with examples of Perl code like this,
+using present (read LALR) parsing techniques,
+you have to write what amounts to a Perl 5 reimplementation.
+
+=head2 Why That's a Drag
+
+There are lots of good reason
+to want to parse Perl without running Perl.
+Static source code analyzers like Perl::Critic,
+pretty printers like perltidy.
+
+=head2 How Marpa is the solution
+
+=head1 THE CODE
+
+We start with a pretty standard preamble:
+
+    use 5.010;
+    use strict;
+    use warnings;
+    use English qw( -no_match_vars ) ;
+    use Parse::Marpa;
+
+Then we create an array of Perl lines for test data.
+
+    my @tests = split(/\n/, <<'EO_TESTS');
+    time  / 25 ; # / ; die "this dies!";
+    sin  / 25 ; # / ; die "this dies!";
+    caller  / 25 ; # / ; die "this dies!";
+    eof  / 25 ; # / ; die "this dies!";
+    localtime  / 25 ; # / ; die "this dies!";
+    EO_TESTS
+
+The source for the grammar is a DATA file.  The next
+line reads this into a string.
+We'll deal through the grammar line by line below.
+
+    my $source; { local($RS) = undef; $source = <DATA> };
+
+Next, we create a grammar object.
+There are many options, but here, as often,
+the defaults are fine.
+So the only option specified is the source string for the
+grammar.
+
+    my $g = new Parse::Marpa( mdl_source => \$source);
+
+Now that we have our grammar, we are ready to loop over
+our test lines:
+
+    TEST: while (my $test = pop @tests) {
+	say "Here's what I'm parsing: ", $test;
+
+Next we create a Marpa parse object.
+Every time we want to parse different input, we need to create
+another parse object to do it.  In this case we'll have a new
+parse object for each test line.
+
+	my $parse = new Parse::Marpa::Recognizer(grammar => $g);
+
+Now we give the parser its input.
+
+	my $exhaustion_location = $parse->text(\$test);
+	if ($exhaustion_location >= 0) {
+	    die("Parse exhausted at location $exhaustion_location in line: $test\n");
+	}
+
+For the most part Marpa uses exceptions
+(thrown via C<croak()>) to report problems.
+This is consistent with Damian Conway's guideline X.
+
+However, failed parses are not "exceptional" -- they're common and should be handled
+in the normal course of processing.
+If the input to C<text()> did not match the grammar,
+text returns the number of the character where parsing was "exhausted".
+This is the point where Marpa realizes no more successful parses will be found.
+
+In this example, there is a known, fixed grammar and an array of known, fixed outputs,
+this will not happen, but error checking is good practice.
+Who knows but I'll want to change this example someday?
+
+C<text()> returns -1 on success.  That's non-standard, but parsing can be exhausted at the very
+first character of input,
+so a return value of zero has to be reserved for parse exhaustion at character 0.
+
+With the input finished, we can calculate our first parse.
+
+	unless ($parse->initial())
+	{
+	    die("No parse for line: $test\n");
+	}
+	my @parses;
+	push(@parses, $parse->value);
+	while ($parse->next) {
+	    push(@parses, $parse->value);
+	}
+	if (scalar @parses == 1) {
+	   say "Things look good, I've got just one parse:";
+	   say ${$parses[0]};
+	   print "\n";
+	   next TEST;
+	}
+	say "Things look complicated here, I've got ", scalar @parses, " parses:";
+	for (my $i = 0; $i < @parses; $i++) {
+	    say "Parse $i: ", ${$parses[$i]};
+	}
+	print "\n";
+    }
+
+    __DATA__
+    semantics are perl5.  version is 0.204.0.  the start symbol is perl line.
+    the default lex prefix is qr/\s*/.
+
+    perl line: perl statements, optional comment.
+    q{
+	my $result = $_->[0];
+	$result .= ", comment"
+	    if defined $_->[1];
+	$result
+    }.
+
+    perl statements: semicolon separated perl statement sequence.
+    q{ join(", ", @{$_}) }.
+
+    perl statement: division. q{ "division" }.
+
+    perl statement: function call.
+    q{ $_->[0] }.
+
+    perl statement: empty statement.  q{ "empty statement" }.
+
+    perl statement: /die/, string literal.  q{ "die statement" }.
+
+    division: expr, division sign, expr.
+
+    expr: function call.
+
+    expr: number.
+
+    function call: unary function name, argument.
+    q{ $_->[0] . " function call" }.
+
+    function call: nullary function name.
+    q{ $_->[0] . " function call" }.
+
+    argument: pattern match.
+
+    empty statement: horizontal whitespace.
+
+    horizontal whitespace matches qr/ \t/.
+
+    unary function name matches /(caller|eof|sin|localtime)/.
+
+    nullary function name matches /(caller|eof|sin|time|localtime)/.
+
+    number matches /\d+/.
+
+    semicolon matches /;/.
+
+    division sign matches qr{/}.
+
+    pattern match matches qr{/[^/]*/}.
+
+    comment matches /#.*/.
+
+    string literal matches qr{"[^"]*"}.
