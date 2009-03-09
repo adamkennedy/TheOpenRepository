@@ -1,4 +1,6 @@
-Parse::Marpa
+Marpa
+
+This is the experimental version of Parse::Marpa.  It is alpha.
 
 Marpa generates parses from any BNF grammar.  That includes recursive
 grammars, ambiguous grammars, infinitely ambiguous grammars and
@@ -19,11 +21,11 @@ SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the perldoc command.
 
-    perldoc Parse::Marpa
+    perldoc Marpa
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007-2008 Jeffrey Kegler
+Copyright (C) 2007-2009 Jeffrey Kegler
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -182,7 +182,7 @@ __END__
 
 =head1 NAME
 
-Marpa - Generate Parsers from any BNF grammar
+Marpa - General BNF Parsing (Experimental version)
 
 =head1 SYNOPSIS
 
@@ -229,6 +229,8 @@ is_file($_, 'example/synopsis.pl');
 =end Marpa::Test::Display:
 
 =head1 DESCRIPTION
+
+B<This is the experimental version of C<Parse::Marpa>>.  It is alpha.
 
 If you can write a grammar in BNF, Marpa will generate a parser for it.
 That means Marpa parses
