@@ -3,12 +3,13 @@
 # Test the export behaviour of POE::Declare
 
 use strict;
+use warnings;
 BEGIN {
 	$|  = 1;
-	$^W = 1;
 }
 
-use Test::More tests => 6;
+use Test::More tests => 7;
+use Test::NoWarnings;
 
 # Check that "use POE::Declare;" acts as an implicit "use POE;"
 is( defined(&ARG0), '', 'ARG0 is not defined before "use POE::Declare"' );

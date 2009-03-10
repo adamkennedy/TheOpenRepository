@@ -128,6 +128,7 @@ implementation and comment.
 
 use 5.008007;
 use strict;
+use warnings;
 use Carp               ();
 use Exporter           ();
 use List::Util         ();
@@ -147,7 +148,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

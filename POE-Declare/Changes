@@ -1,5 +1,10 @@
 Revision history for Perl extension POE-Declare
 
+0.11 Mon  9 Mar 2009
+	- Adding use warnings to all classes
+	- Adding Test::NoWarnings to all tests
+	- Fixing some bugs in _alias_remove
+
 0.10 Mon  9 Mar 2009
 	- Adding specific _alias_set and _alias_remove methods
 

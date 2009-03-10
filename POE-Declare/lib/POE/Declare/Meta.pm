@@ -21,6 +21,7 @@ C<meta> function.
 
 use 5.008007;
 use strict;
+use warnings;
 use Carp             ();
 use Scalar::Util     ();
 use Params::Util     ();
@@ -29,7 +30,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use POE::Declare::Meta::Slot      ();

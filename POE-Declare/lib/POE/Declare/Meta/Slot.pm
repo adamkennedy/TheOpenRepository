@@ -42,10 +42,11 @@ which themselves will have already checked params.
 
 use 5.008007;
 use strict;
+use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use Class::XSAccessor

@@ -15,11 +15,12 @@ a number of additional methods relating to timers and alarms.
 
 use 5.008007;
 use strict;
+use warnings;
 use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 

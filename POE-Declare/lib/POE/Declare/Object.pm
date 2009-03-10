@@ -20,6 +20,7 @@ objects.
 
 use 5.008007;
 use strict;
+use warnings;
 use attributes   ();
 use Carp         ();
 use Scalar::Util ();
@@ -30,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 # Inside-out storage of internal values
@@ -292,7 +293,7 @@ after the SUPER call.
 
 sub _start : Event {
 	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
-	$poe_kernel->alias_set($_[HEAP]->Alias);
+	$poe_kernel->call( $_[SESSION], '_alias_set');
 }
 
 =pod
@@ -348,8 +349,9 @@ sub _alias_set : Event {
 sub _alias_remove : Event {
 	my $self    = $_[HEAP];
 	my $alias   = $self->Alias;
-	my $poe_id  = $poe_kernel->alias_resolve($alias);
-	my $self_id = Scalar::Util::refaddr($self);
+	my $session = $poe_kernel->alias_resolve($alias);
+	my $poe_id  = $session->ID;
+	my $self_id = $ID{Scalar::Util::refaddr($self)};
 	unless ( defined $poe_id and defined $self_id ) {
 		return;
 	}

@@ -3,12 +3,13 @@
 # Validate that _stop fires when expected
 
 use strict;
+use warnings;
 BEGIN {
 	$|  = 1;
-	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 10;
+use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
 
@@ -41,12 +42,22 @@ SCOPE: {
 	}
 
 	sub say : Event {
-		is( $order++, 2, 'Fired Foo::say (3)' );
+		is( $order++, 3, 'Fired Foo::say (3)' );
 	}
 
 	sub _stop : Event {
-		is( $order++, 5, 'Fired Foo::_stop (2)' );
-		shift->SUPER::_stop(@_);
+		is( $order++, 6, 'Fired Foo::_stop (6)' );
+		$_[0]->SUPER::_stop(@_[1..$#_]);
+	}
+
+	sub _alias_set : Event {
+		is( $order++, 1, 'Fired Foo::_alias_set (1)' );
+		$_[0]->SUPER::_alias_set(@_[1..$#_]);
+	}
+
+	sub _alias_remove : Event {
+		is( $order++, -1, 'Fired Foo::_alias_remove (-1)' );
+		$_[0]->SUPER::_alias_remove(@_[1..$#_]);
 	}
 
 	compile;
@@ -74,16 +85,16 @@ POE::Session->create(
 );
 
 sub _start {
-	is( $order++, 1, 'Fired main::_start (1)' );
+	is( $order++, 2, 'Fired main::_start (2)' );
 	$_[KERNEL]->delay_set( timeout => 0.5 );
 }
 
 sub _stop {
-	is( $order++, 4, 'Fired main::_stop (4)' );
+	is( $order++, 5, 'Fired main::_stop (5)' );
 }
 
 sub timeout {
-	is( $order++, 3, 'Fired main::timeout (3)' );
+	is( $order++, 4, 'Fired main::timeout (4)' );
 }
 
 POE::Kernel->run;
