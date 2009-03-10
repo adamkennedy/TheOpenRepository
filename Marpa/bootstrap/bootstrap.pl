@@ -14,6 +14,7 @@
 ## no critic (RegularExpressions::RequireExtendedFormatting)
 ## no critic (RegularExpressions::RequireLineBoundaryMatching)
 ## no critic (RegularExpressions::RequireDotMatchAnything)
+## no critic (CodeLayout::RequireTidyCode)
 
 use 5.010;
 use strict;

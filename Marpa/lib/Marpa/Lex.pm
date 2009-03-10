@@ -142,7 +142,7 @@ sub lex_regex {
     my $depth = 1;
     MATCH: while ( ${$string} =~ /$regex/gxms ) {
         given ($1) {
-            when (undef)  {return}
+            when (undef)          { return; }
             when ($left_bracket)  { $depth++; }
             when ($right_bracket) { $depth--; }
         }
@@ -151,11 +151,10 @@ sub lex_regex {
             # also take in trailing options
             ${$string} =~ /\G[msixpo]*/gxms;
             my $pos = pos ${$string};
-            return (
-                $prefix
-                    . substr( ${$string}, $value_start, $pos - $value_start ),
-                $pos - $lexeme_start
-            );
+            my $value = $prefix
+                . ( substr ${$string}, $value_start, $pos - $value_start );
+            return ( $value, $pos - $lexeme_start );
+
         }
     }
     return;

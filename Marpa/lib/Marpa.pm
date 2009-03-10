@@ -7,7 +7,7 @@ no warnings 'recursion';
 use strict;
 
 BEGIN {
-    our $VERSION        = '0.001_000';
+    our $VERSION = '0.001_000';
 }
 
 use integer;
@@ -19,32 +19,32 @@ use Marpa::Lex;
 
 use Carp;
 our @CARP_NOT = qw(
-Marpa
-Marpa::Evaluator
-Marpa::Grammar
-Marpa::Internal
-Marpa::Internal::And_Node
-Marpa::Internal::Earley_item
-Marpa::Internal::Evaluator
-Marpa::Internal::Evaluator::Rule
-Marpa::Internal::Grammar
-Marpa::Internal::Interface
-Marpa::Internal::LR0_item
-Marpa::Internal::Lex
-Marpa::Internal::NFA
-Marpa::Internal::Or_Node
-Marpa::Internal::Or_Sapling
-Marpa::Internal::Phase
-Marpa::Internal::QDFA
-Marpa::Internal::Recognizer
-Marpa::Internal::Rule
-Marpa::Internal::Source_Eval
-Marpa::Internal::Source_Raw
-Marpa::Internal::Symbol
-Marpa::Internal::Tree_Node
-Marpa::Lex
-Marpa::MDL
-Marpa::Recognizer
+    Marpa
+    Marpa::Evaluator
+    Marpa::Grammar
+    Marpa::Internal
+    Marpa::Internal::And_Node
+    Marpa::Internal::Earley_item
+    Marpa::Internal::Evaluator
+    Marpa::Internal::Evaluator::Rule
+    Marpa::Internal::Grammar
+    Marpa::Internal::Interface
+    Marpa::Internal::LR0_item
+    Marpa::Internal::Lex
+    Marpa::Internal::NFA
+    Marpa::Internal::Or_Node
+    Marpa::Internal::Or_Sapling
+    Marpa::Internal::Phase
+    Marpa::Internal::QDFA
+    Marpa::Internal::Recognizer
+    Marpa::Internal::Rule
+    Marpa::Internal::Source_Eval
+    Marpa::Internal::Source_Raw
+    Marpa::Internal::Symbol
+    Marpa::Internal::Tree_Node
+    Marpa::Lex
+    Marpa::MDL
+    Marpa::Recognizer
 );
 
 # Maybe MDL will be optional someday, but not today
@@ -105,23 +105,24 @@ use Carp;
 our $STRINGIFIED_EVAL_ERROR;
 
 BEGIN {
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    if (not eval ' use Marpa::Source ')
-    ## use critic 
-    {
+
+## no critic (BuiltinFunctions::ProhibitStringyEval)
+    if ( not eval ' use Marpa::Source ' ) {
+## use critic
         $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
-        my $marpa_version = $Marpa::VERSION // 'undef';
+        my $marpa_version  = $Marpa::VERSION         // 'undef';
         my $source_version = $Marpa::Source::VERSION // 'undef';
-        if ($marpa_version ne $source_version)
-        {
-           $STRINGIFIED_EVAL_ERROR =
-              'MDL/Marpa version mismatch:'
-              . " Marpa is version '$marpa_version'; "
-              . " MDL source is for version '$source_version'"
+        if ( $marpa_version ne $source_version ) {
+            $STRINGIFIED_EVAL_ERROR =
+                  'MDL/Marpa version mismatch:'
+                . " Marpa is version '$marpa_version'; "
+                . " MDL source is for version '$source_version'";
         }
     }
+
     undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
         if $STRINGIFIED_EVAL_ERROR;
+
 }
 
 package Marpa::Internal;
@@ -147,12 +148,12 @@ sub Marpa::mdl {
     croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
         unless $ref eq 'HASH';
 
-    my $g =
-        new Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
-    my $recce = new Marpa::Recognizer( {
-        grammar => $g,
-        clone => 0
-    } );
+    my $g = new Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
+    my $recce = new Marpa::Recognizer(
+        {   grammar => $g,
+            clone   => 0
+        }
+    );
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {
@@ -161,10 +162,11 @@ sub Marpa::mdl {
 
     $recce->end_input();
 
-    my $evaler = new Marpa::Evaluator( {
-        recce => $recce,
-        clone => 0,
-    } );
+    my $evaler = new Marpa::Evaluator(
+        {   recce => $recce,
+            clone => 0,
+        }
+    );
     if ( not defined $evaler ) {
         die_with_parse_failure( $text, length $text );
     }
