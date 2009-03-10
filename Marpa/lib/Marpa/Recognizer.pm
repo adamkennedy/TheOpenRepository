@@ -14,8 +14,10 @@ package Marpa::Internal;
 # LR(0) items.
 
 use Marpa::Offset Earley_item =>
+
     # evaluator data
     qw(NAME STATE TOKENS LINKS),
+
     # temporary data
     qw(PARENT SET);
 
@@ -44,6 +46,7 @@ use Marpa::Offset Recognizer => (
 
 package Marpa::Internal::Recognizer;
 use constant LAST_EVALUATOR_FIELD => Marpa::Internal::Recognizer::CURRENT_SET;
+
 package Marpa::Internal;
 
 # GRAMMAR            - the grammar used
@@ -71,32 +74,32 @@ use English qw( -no_match_vars );
 
 use Carp;
 our @CARP_NOT = qw(
-Marpa
-Marpa::Evaluator
-Marpa::Grammar
-Marpa::Internal
-Marpa::Internal::And_Node
-Marpa::Internal::Earley_item
-Marpa::Internal::Evaluator
-Marpa::Internal::Evaluator::Rule
-Marpa::Internal::Grammar
-Marpa::Internal::Interface
-Marpa::Internal::LR0_item
-Marpa::Internal::Lex
-Marpa::Internal::NFA
-Marpa::Internal::Or_Node
-Marpa::Internal::Or_Sapling
-Marpa::Internal::Phase
-Marpa::Internal::QDFA
-Marpa::Internal::Recognizer
-Marpa::Internal::Rule
-Marpa::Internal::Source_Eval
-Marpa::Internal::Source_Raw
-Marpa::Internal::Symbol
-Marpa::Internal::Tree_Node
-Marpa::Lex
-Marpa::MDL
-Marpa::Recognizer
+    Marpa
+    Marpa::Evaluator
+    Marpa::Grammar
+    Marpa::Internal
+    Marpa::Internal::And_Node
+    Marpa::Internal::Earley_item
+    Marpa::Internal::Evaluator
+    Marpa::Internal::Evaluator::Rule
+    Marpa::Internal::Grammar
+    Marpa::Internal::Interface
+    Marpa::Internal::LR0_item
+    Marpa::Internal::Lex
+    Marpa::Internal::NFA
+    Marpa::Internal::Or_Node
+    Marpa::Internal::Or_Sapling
+    Marpa::Internal::Phase
+    Marpa::Internal::QDFA
+    Marpa::Internal::Recognizer
+    Marpa::Internal::Rule
+    Marpa::Internal::Source_Eval
+    Marpa::Internal::Source_Raw
+    Marpa::Internal::Symbol
+    Marpa::Internal::Tree_Node
+    Marpa::Lex
+    Marpa::MDL
+    Marpa::Recognizer
 );
 
 my $parse_number = 0;
@@ -106,28 +109,22 @@ sub set_lexers {
     my $grammar = shift;
     my $package = shift;
 
-    my (
-	$symbols,
-	$symbol_hash,
-	$QDFA,
-	$tracing, $default_prefix,
-        $default_suffix
-    ) = @{$grammar}[
+    my ( $symbols, $symbol_hash, $QDFA, $tracing, $default_prefix,
+        $default_suffix )
+        = @{$grammar}[
         Marpa::Internal::Grammar::SYMBOLS,
         Marpa::Internal::Grammar::SYMBOL_HASH,
         Marpa::Internal::Grammar::QDFA,
         Marpa::Internal::Grammar::TRACING,
         Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
         Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
-    ];
+        ];
 
     my $trace_fh;
     my $trace_actions;
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_actions =
-            $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
     }
 
     my @lexers;
@@ -163,49 +160,49 @@ sub set_lexers {
                     [ \&Marpa::Lex::lex_q_quote, $prefix, $suffix ];
             }
             when ('lex_regex') {
-                $lexers[$ix] =
-                    [ \&Marpa::Lex::lex_regex, $prefix, $suffix ];
+                $lexers[$ix] = [ \&Marpa::Lex::lex_regex, $prefix, $suffix ];
             }
             default {
-                my $code
-		    = "sub {\n"
-		    . '    my $STRING = shift;' . "\n"
-		    . '    my $START = shift;' . "\n"
-                    . '    package ' . $package . ";\n"
-		    . q{    } . $action . ";\n"
-		    . "    return\n"
-		    . "}\n";
+                my $code =
+                      "sub {\n"
+                    . '    my $STRING = shift;' . "\n"
+                    . '    my $START = shift;' . "\n"
+                    . '    package '
+                    . $package . ";\n" . q{    }
+                    . $action . ";\n"
+                    . "    return\n" . "}\n";
 
                 if ($trace_actions) {
                     print {$trace_fh} 'Setting action for terminal ', $name,
-                        " to\n", $code,
-                        "\n"
-		    or croak('Could not print to trace file');
+                        " to\n", $code, "\n"
+                        or croak('Could not print to trace file');
                 }
 
                 my $closure;
                 {
                     my $old_warn_handler = $SIG{__WARN__};
                     my @warnings;
-                    $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+                    $SIG{__WARN__} =
+                        sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-		    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+                    ## no critic (BuiltinFunctions::ProhibitStringyEval)
                     $closure = eval $code;
-		    ## use critic
+                    ## use critic
 
                     $SIG{__WARN__} = $old_warn_handler;
 
                     if ( not $closure or @warnings ) {
                         my $fatal_error = $EVAL_ERROR;
-                        Marpa::Internal::code_problems({
-                            eval_ok => $closure,
-                            fatal_error => $fatal_error,
-                            grammar => $grammar,
-                            warnings => \@warnings,
-                            where => 'compiling lexer',
-                            long_where => "compiling lexer for $name",
-                            code => \$code,
-                        });
+                        Marpa::Internal::code_problems(
+                            {   eval_ok     => $closure,
+                                fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                warnings    => \@warnings,
+                                where       => 'compiling lexer',
+                                long_where  => "compiling lexer for $name",
+                                code        => \$code,
+                            }
+                        );
                     }
                 }
 
@@ -220,23 +217,20 @@ sub set_lexers {
     my @lexables_by_state;
     $#lexables_by_state = $#{$QDFA};
 
-    for my $state (@{$QDFA}) {
-        my ( $id, $transition ) = @{$state}[
-            Marpa::Internal::QDFA::ID,
-            Marpa::Internal::QDFA::TRANSITION,
-        ];
+    for my $state ( @{$QDFA} ) {
+        my ( $id, $transition ) =
+            @{$state}[ Marpa::Internal::QDFA::ID,
+            Marpa::Internal::QDFA::TRANSITION, ];
         $lexables_by_state[$id] = [
-            grep { $lexers[$_] }
-                map {
-                $symbol_hash->{$_}->[Marpa::Internal::Symbol::ID]
-                }
+            grep    { $lexers[$_] }
+                map { $symbol_hash->{$_}->[Marpa::Internal::Symbol::ID] }
                 keys %{$transition}
         ];
     }
 
     return ( \@lexers, \@lexables_by_state, );
 
-} # sub set_lexers
+}    # sub set_lexers
 
 sub compile_regexes {
     my $grammar = shift;
@@ -246,7 +240,7 @@ sub compile_regexes {
         Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
     ];
 
-    SYMBOL: for my $symbol (@{$symbols}) {
+    SYMBOL: for my $symbol ( @{$symbols} ) {
         my $regex = $symbol->[Marpa::Internal::Symbol::REGEX];
         next SYMBOL unless defined $regex;
         if ( q{} =~ $regex ) {
@@ -278,42 +272,39 @@ sub prepare_grammar_for_recognizer {
     my $package = $parse->[Marpa::Internal::Recognizer::PACKAGE] =
         sprintf 'Marpa::P_%x', $parse_number++;
 
-    my $lex_preamble = $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE];
-    my $default_action =
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION];
+    my $lex_preamble   = $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE];
+    my $default_action = $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION];
     my $default_null_value =
         $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     if ( defined $lex_preamble ) {
         my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-        my $code =
-	    'package ' . $package . ";\n"
-	    . $lex_preamble;
-	## no critic (BuiltinFunctions::ProhibitStringyEval)
+        my $code = 'package ' . $package . ";\n" . $lex_preamble;
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
         my $eval_ok = eval $code;
-	## use critic
+        ## use critic
 
         $SIG{__WARN__} = $old_warn_handler;
 
-        if (not $eval_ok or @warnings ) {
+        if ( not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
-            Marpa::Internal::code_problems({
-                eval_ok => $eval_ok,
-                fatal_error => $fatal_error,
-                grammar => $grammar,
-                warnings => \@warnings,
-                where => 'evaluating lex preamble',
-                code => \$code,
-            });
+            Marpa::Internal::code_problems(
+                {   eval_ok     => $eval_ok,
+                    fatal_error => $fatal_error,
+                    grammar     => $grammar,
+                    warnings    => \@warnings,
+                    where       => 'evaluating lex preamble',
+                    code        => \$code,
+                }
+            );
         }
     }
 
     compile_regexes($grammar);
-    @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
-        set_lexers( $grammar, $package );
+    @{$parse}[ LEXERS, LEXABLES_BY_STATE ] = set_lexers( $grammar, $package );
 
     return;
 
@@ -322,7 +313,7 @@ sub prepare_grammar_for_recognizer {
 # Returns the new parse object or throws an exception
 sub Marpa::Recognizer::new {
     my $class = shift;
-    my $args = shift;
+    my $args  = shift;
 
     my $arg_trace_fh = $args->{trace_file_handle};
 
@@ -369,15 +360,14 @@ sub Marpa::Recognizer::new {
     }
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if (   $phase != Marpa::Internal::Phase::PRECOMPUTED )
-    {
+    if ( $phase != Marpa::Internal::Phase::PRECOMPUTED ) {
         croak(
             'Attempt to parse grammar in inappropriate phase ',
             Marpa::Internal::Phase::description($phase)
         );
     }
 
-    if ( $clone) {
+    if ($clone) {
         $grammar = $grammar->clone($arg_trace_fh);
         delete $args->{trace_file_handle};
     }
@@ -393,11 +383,10 @@ sub Marpa::Recognizer::new {
     my $earley_hash;
     my $earley_set;
 
-    my $start_states =
-        $grammar->[Marpa::Internal::Grammar::START_STATES];
+    my $start_states = $grammar->[Marpa::Internal::Grammar::START_STATES];
 
-    for my $state (@{$start_states}) {
-	my $state_id = $state->[Marpa::Internal::QDFA::ID];
+    for my $state ( @{$start_states} ) {
+        my $state_id = $state->[Marpa::Internal::QDFA::ID];
         my $name = sprintf 'S%d@%d-%d', $state_id, 0, 0;
         my $item;
         @{$item}[
@@ -414,9 +403,8 @@ sub Marpa::Recognizer::new {
     }
 
     @{$parse}[
-        CURRENT_SET, FURTHEST_EARLEME,
-        EARLEY_HASH,     GRAMMAR,     EARLEY_SETS,
-        LAST_COMPLETED_SET,
+        CURRENT_SET, FURTHEST_EARLEME, EARLEY_HASH,
+        GRAMMAR,     EARLEY_SETS,      LAST_COMPLETED_SET,
         ]
         = ( 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
 
@@ -426,19 +414,17 @@ sub Marpa::Recognizer::new {
 # Convert Recognizer into string form
 #
 sub Marpa::Recognizer::stringify {
-    my $recce = shift;
-    my $grammar = $recce->[ Marpa::Internal::Recognizer::GRAMMAR ];
+    my $recce   = shift;
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
     my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if (   $phase != Marpa::Internal::Phase::RECOGNIZED )
-    {
+    if ( $phase != Marpa::Internal::Phase::RECOGNIZED ) {
         croak(
             "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
             Marpa::Internal::Phase::description($phase)
@@ -460,7 +446,7 @@ sub Marpa::Recognizer::stringify {
 # Returns the unstringified recognizer
 sub Marpa::Recognizer::unstringify {
     my $stringified_recce = shift;
-    my $trace_fh         = shift;
+    my $trace_fh          = shift;
     $trace_fh //= *STDERR;
 
     croak('Attempt to unstringify undefined recognizer')
@@ -472,7 +458,7 @@ sub Marpa::Recognizer::unstringify {
     {
         my $old_warn_handler = $SIG{__WARN__};
         my @warnings;
-        $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+        $SIG{__WARN__} = sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
         ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
         no strict 'refs';
@@ -482,21 +468,21 @@ sub Marpa::Recognizer::unstringify {
 
         $SIG{__WARN__} = $old_warn_handler;
 
-        if (not $eval_ok or @warnings ) {
+        if ( not $eval_ok or @warnings ) {
             my $fatal_error = $EVAL_ERROR;
-            Marpa::Internal::code_problems({
-                eval_ok => $eval_ok,
-                fatal_error => $fatal_error,
-                warnings => \@warnings,
-                where => 'unstringifying recognizer',
-                code => $stringified_recce,
-            });
+            Marpa::Internal::code_problems(
+                {   eval_ok     => $eval_ok,
+                    fatal_error => $fatal_error,
+                    warnings    => \@warnings,
+                    where       => 'unstringifying recognizer',
+                    code        => $stringified_recce,
+                }
+            );
         }
     }
 
-    my $grammar = $recce->[ Marpa::Internal::Recognizer::GRAMMAR ];
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] =
-        $trace_fh;
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
 
     return $recce;
 
@@ -505,17 +491,15 @@ sub Marpa::Recognizer::unstringify {
 sub Marpa::Recognizer::clone {
     my $recce = shift;
 
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
-    if ($#{$recce} > Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD)
-    {
-       croak(
-           "Cloning of unstripped recognizers not yet implemented\n",
-           "Strip the recognizer or turn off cloning\n"
-        );
+    if ( $#{$recce} > Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD ) {
+        croak( "Cloning of unstripped recognizers not yet implemented\n",
+            "Strip the recognizer or turn off cloning\n" );
     }
     my $stringified_recce = Marpa::Recognizer::stringify($recce);
+
     # say $$stringified_recce;
     # exit 0;
     return Marpa::Recognizer::unstringify( $stringified_recce, $trace_fh );
@@ -532,10 +516,8 @@ sub Marpa::brief_earley_item {
         Marpa::Internal::Earley_item::PARENT,
         Marpa::Internal::Earley_item::SET
     ];
-    my ( $id, $tag ) = @{$state}[
-        Marpa::Internal::QDFA::ID,
-        Marpa::Internal::QDFA::TAG
-    ];
+    my ( $id, $tag ) =
+        @{$state}[ Marpa::Internal::QDFA::ID, Marpa::Internal::QDFA::TAG ];
     my $text = defined $tag ? ( 'St' . $tag ) : ( 'S' . $id );
     $text .= q{@} . $parent . q{-} . $set;
     return $text;
@@ -544,7 +526,8 @@ sub Marpa::brief_earley_item {
 sub show_token_choice {
     my $token = shift;
     my $ii    = shift;
-    return '[p='
+    return
+          '[p='
         . Marpa::brief_earley_item( $token->[0], $ii ) . '; t='
         . $token->[1] . ']';
 }
@@ -552,7 +535,8 @@ sub show_token_choice {
 sub show_link_choice {
     my $link = shift;
     my $ii   = shift;
-    return '[p='
+    return
+          '[p='
         . Marpa::brief_earley_item( $link->[0], $ii ) . '; c='
         . Marpa::brief_earley_item( $link->[1], $ii ) . ']';
 }
@@ -560,7 +544,7 @@ sub show_link_choice {
 sub Marpa::show_earley_item {
     my $item = shift;
     my $ii   = shift;
-    my ($tokens,      $links) = @{$item}[
+    my ( $tokens, $links ) = @{$item}[
         Marpa::Internal::Earley_item::TOKENS,
         Marpa::Internal::Earley_item::LINKS,
     ];
@@ -568,12 +552,12 @@ sub Marpa::show_earley_item {
     my $text = Marpa::brief_earley_item( $item, $ii );
 
     if ( defined $tokens and @{$tokens} ) {
-        for my $token (@{$tokens}) {
+        for my $token ( @{$tokens} ) {
             $text .= q{ } . show_token_choice( $token, $ii );
         }
     }
     if ( defined $links and @{$links} ) {
-        for my $link (@{$links}) {
+        for my $link ( @{$links} ) {
             $text .= q{ } . show_link_choice( $link, $ii );
         }
     }
@@ -584,7 +568,7 @@ sub Marpa::show_earley_set {
     my $earley_set = shift;
     my $ii         = shift;
     my $text       = q{};
-    for my $earley_item (@{$earley_set}) {
+    for my $earley_item ( @{$earley_set} ) {
         $text .= Marpa::show_earley_item( $earley_item, $ii ) . "\n";
     }
     return $text;
@@ -595,25 +579,25 @@ sub Marpa::show_earley_set_list {
     my $ii               = shift;
     my $text             = q{};
     my $earley_set_count = @{$earley_set_list};
-    LIST: for my $ix ( 0 .. $earley_set_count-1 ) {
+    LIST: for my $ix ( 0 .. $earley_set_count - 1 ) {
         my $set = $earley_set_list->[$ix];
         next LIST unless defined $set;
-        $text .= "Earley Set $ix\n"
-            . Marpa::show_earley_set( $set, $ii );
+        $text .= "Earley Set $ix\n" . Marpa::show_earley_set( $set, $ii );
     }
     return $text;
 }
 
 sub Marpa::Recognizer::show_earley_sets {
-    my $recce = shift;
-    my $ii    = shift;
-    my $current_set = $recce->[ CURRENT_SET ];
-    my $furthest_earleme = $recce->[ FURTHEST_EARLEME ];
-    my $earley_set_list = $recce->[ EARLEY_SETS ];
+    my $recce            = shift;
+    my $ii               = shift;
+    my $current_set      = $recce->[CURRENT_SET];
+    my $furthest_earleme = $recce->[FURTHEST_EARLEME];
+    my $earley_set_list  = $recce->[EARLEY_SETS];
 
-    my $text = defined $furthest_earleme ?
-          "Current Earley Set: $current_set; Furthest: $furthest_earleme\n" :
-          "At End of Input\n";
+    my $text =
+        defined $furthest_earleme
+        ? "Current Earley Set: $current_set; Furthest: $furthest_earleme\n"
+        : "At End of Input\n";
 
     $text .= Marpa::show_earley_set_list( $earley_set_list, $ii );
     return $text;
@@ -628,8 +612,8 @@ sub Marpa::Recognizer::earleme {
     my $parse = shift;
 
     my $grammar = $parse->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ($phase >= Marpa::Internal::Phase::RECOGNIZED) {
+    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
+    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
         croak('New earlemes not allowed after end of input');
     }
 
@@ -640,14 +624,13 @@ sub Marpa::Recognizer::earleme {
 }
 
 sub Marpa::Recognizer::text {
-    my $parse     = shift;
-    my $input     = shift;
-    my $input_length    = shift;
+    my $parse        = shift;
+    my $input        = shift;
+    my $input_length = shift;
 
-    return 0 if $parse->[ Marpa::Internal::Recognizer::EXHAUSTED ];
+    return 0 if $parse->[Marpa::Internal::Recognizer::EXHAUSTED];
 
-    croak(
-        'Marpa::Recognizer::text() third argument not yet implemented')
+    croak('Marpa::Recognizer::text() third argument not yet implemented')
         if defined $input_length;
 
     my $input_ref;
@@ -668,7 +651,7 @@ sub Marpa::Recognizer::text {
     ];
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ($phase >= Marpa::Internal::Phase::RECOGNIZED) {
+    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
         croak('More text not allowed after end of input');
     }
 
@@ -677,8 +660,7 @@ sub Marpa::Recognizer::text {
     my $trace_lex_tries;
     my $trace_lex_matches;
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $trace_lex_tries =
             $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES];
         $trace_lex_matches =
@@ -693,7 +675,7 @@ sub Marpa::Recognizer::text {
     $input_length = length ${$input_ref} unless defined $input_length;
 
     my $active = 1;
-    my $pos = 0;
+    my $pos    = 0;
 
     pos ${$input_ref} = 0;
     POS: while ( $pos < $input_length ) {
@@ -712,13 +694,12 @@ sub Marpa::Recognizer::text {
             say $trace_fh "Match target at $pos: ", $string_to_match;
         }
 
-        LEXABLE: for my $lexable (@{$lexables}) {
+        LEXABLE: for my $lexable ( @{$lexables} ) {
             my ($symbol_id) = @{$lexable}[Marpa::Internal::Symbol::ID];
             if ($trace_lex_tries) {
                 print {$trace_fh} 'Trying to match ',
-                    $lexable->[Marpa::Internal::Symbol::NAME],
-                    " at $pos\n"
-		or croak('Could not print to trace file');
+                    $lexable->[Marpa::Internal::Symbol::NAME], " at $pos\n"
+                    or croak('Could not print to trace file');
             }
 
             my $lexer      = $lexers->[$symbol_id];
@@ -730,14 +711,14 @@ sub Marpa::Recognizer::text {
 
             if ( $lexer_type eq 'Regexp' ) {
 
-		## no critic (RegularExpressions::RequireLineBoundaryMatching)
-		## no critic (RegularExpressions::RequireExtendedFormatting)
+                ## no critic (RegularExpressions::RequireLineBoundaryMatching)
+                ## no critic (RegularExpressions::RequireExtendedFormatting)
                 if ( ${$input_ref} =~ /$lexer/g ) {
-		## use critic
+                    ## use critic
 
-		    ## no critic (Variables::ProhibitPunctuationVars)
+                    ## no critic (Variables::ProhibitPunctuationVars)
                     my $match = $+{mArPa_match};
-		    ## use critic
+                    ## use critic
 
                     # my $prefix = $+{mArPa_prefix};
                     # my $suffix = $+{mArPa_suffix};
@@ -753,7 +734,7 @@ sub Marpa::Recognizer::text {
                             'Matched regex for ',
                             $lexable->[Marpa::Internal::Symbol::NAME],
                             " at $pos: ", $match, "\n"
-			or croak('Could not print to trace file');
+                            or croak('Could not print to trace file');
                     }
                     last LEXABLE unless $ambiguous_lex;
                 }    # if match
@@ -770,10 +751,10 @@ sub Marpa::Recognizer::text {
             my ( $lex_closure, $prefix, $suffix ) = @{$lexer};
             if ( defined $prefix ) {
 
-		## no critic (RegularExpressions::RequireLineBoundaryMatching)
-		## no critic (RegularExpressions::RequireExtendedFormatting)
+                ## no critic (RegularExpressions::RequireLineBoundaryMatching)
+                ## no critic (RegularExpressions::RequireExtendedFormatting)
                 ${$input_ref} =~ /\G$prefix/g;
-		## use critic
+                ## use critic
 
             }
 
@@ -781,27 +762,32 @@ sub Marpa::Recognizer::text {
             {
                 my $old_warn_handler = $SIG{__WARN__};
                 my @warnings;
-                $SIG{__WARN__} = sub { push @warnings, [ $_[0], (caller 0) ]; };
+                $SIG{__WARN__} =
+                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
                 my $eval_ok = eval {
-                    ( $match, $length ) = $lex_closure->( $input_ref, $pos ); 1;
+                    ( $match, $length ) = $lex_closure->( $input_ref, $pos );
+                    1;
                 };
 
                 $SIG{__WARN__} = $old_warn_handler;
 
-                if (not $eval_ok or @warnings ) {
+                if ( not $eval_ok or @warnings ) {
                     my $fatal_error = $EVAL_ERROR;
-                    Marpa::Internal::code_problems({
-                        eval_ok => $eval_ok,
-                        fatal_error => $fatal_error,
-                        grammar => $grammar,
-                        warnings => \@warnings,
-                        where => 'user supplied lexer',
-                        long_where => 'user supplied lexer for '
-                            . $lexable->[Marpa::Internal::Symbol::NAME]
-                            . " at $pos",
-                        code => \(  $lexable->[Marpa::Internal::Symbol::ACTION] ),
-                    });
+                    Marpa::Internal::code_problems(
+                        {   eval_ok     => $eval_ok,
+                            fatal_error => $fatal_error,
+                            grammar     => $grammar,
+                            warnings    => \@warnings,
+                            where       => 'user supplied lexer',
+                            long_where  => 'user supplied lexer for '
+                                . $lexable->[Marpa::Internal::Symbol::NAME]
+                                . " at $pos",
+                            code => \(
+                                $lexable->[Marpa::Internal::Symbol::ACTION]
+                            ),
+                        }
+                    );
                 }
             }
 
@@ -815,7 +801,7 @@ sub Marpa::Recognizer::text {
                     'Matched Closure for ',
                     $lexable->[Marpa::Internal::Symbol::NAME],
                     " at $pos: ", $match, "\n"
-		or croak('Could not print to trace file');
+                    or croak('Could not print to trace file');
             }
 
             last LEXABLE unless $ambiguous_lex;
@@ -841,44 +827,45 @@ sub Marpa::Recognizer::text {
 sub Marpa::Recognizer::end_input {
     my $self = shift;
 
-    my $grammar = $self->[ Marpa::Internal::Recognizer::GRAMMAR ];
-    my $phase = $grammar->[ Marpa::Internal::Grammar::PHASE ];
+    my $grammar = $self->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
 
     # If called repeatedly, just return success,
     # without complaint.  In other words, be idempotent.
     return 1 if $phase >= Marpa::Internal::Phase::RECOGNIZED;
 
-    my $last_completed_set = $self->[ Marpa::Internal::Recognizer::LAST_COMPLETED_SET ];
-    my $furthest_earleme   = $self->[ Marpa::Internal::Recognizer::FURTHEST_EARLEME ];
-    while ($last_completed_set++ < $furthest_earleme) {
+    my $last_completed_set =
+        $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET];
+    my $furthest_earleme =
+        $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    while ( $last_completed_set++ < $furthest_earleme ) {
         Marpa::Internal::Recognizer::complete_set($self);
     }
-    $self->[Marpa::Internal::Recognizer::CURRENT_SET] =
-        $furthest_earleme;
+    $self->[Marpa::Internal::Recognizer::CURRENT_SET] = $furthest_earleme;
 
-    if ($grammar->[ Marpa::Internal::Grammar::STRIP ]) {
+    if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
 
         $#{$self} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
 
         $#{$grammar} = Marpa::Internal::Grammar::LAST_EVALUATOR_FIELD;
-        for my $symbol (@{$grammar->[ Marpa::Internal::Grammar::SYMBOLS ]}) {
+        for my $symbol ( @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] } )
+        {
             $#{$symbol} = Marpa::Internal::Symbol::LAST_EVALUATOR_FIELD;
         }
-        for my $rule (@{$grammar->[ Marpa::Internal::Grammar::RULES ]}) {
+        for my $rule ( @{ $grammar->[Marpa::Internal::Grammar::RULES] } ) {
             $#{$rule} = Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
         }
-        for my $QDFA (@{$grammar->[ Marpa::Internal::Grammar::QDFA ]}) {
+        for my $QDFA ( @{ $grammar->[Marpa::Internal::Grammar::QDFA] } ) {
             $#{$QDFA} = Marpa::Internal::QDFA::LAST_EVALUATOR_FIELD;
         }
 
     }
 
-    $grammar->[ Marpa::Internal::Grammar::PHASE ]
-    = Marpa::Internal::Phase::RECOGNIZED;
+    $grammar->[Marpa::Internal::Grammar::PHASE] =
+        Marpa::Internal::Phase::RECOGNIZED;
 
     return 1;
 }
-
 
 # It's bad style, but this routine is in a tight loop -- it may be called
 # as often as once per character of input in.  For efficiency
@@ -900,8 +887,9 @@ sub scan_set {
 
     my $parse = shift;
 
-    my ( $earley_set_list, $earley_hash, $grammar, $current_set,
-        $furthest_earleme, $exhausted, )
+    my ($earley_set_list, $earley_hash,      $grammar,
+        $current_set,     $furthest_earleme, $exhausted,
+        )
         = @{$parse}[
         EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
         FURTHEST_EARLEME, EXHAUSTED
@@ -921,7 +909,7 @@ sub scan_set {
     my $earley_set_ix = -1;
     EARLEY_ITEM: while (1) {
 
-        my $earley_item = $earley_set->[++$earley_set_ix];
+        my $earley_item = $earley_set->[ ++$earley_set_ix ];
         last EARLEY_ITEM unless defined $earley_item;
 
         my ( $state, $parent ) = @{$earley_item}[
@@ -957,18 +945,18 @@ sub scan_set {
             next ALTERNATIVE unless $states;
 
             # Create the kernel item and its link.
-            my $target_ix   = $current_set + $length;
-            my $target_set  = ( $earley_set_list->[$target_ix] //= [] );
+            my $target_ix = $current_set + $length;
+            my $target_set = ( $earley_set_list->[$target_ix] //= [] );
             if ( $target_ix > $furthest_earleme ) {
-                $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME]
-                    = $furthest_earleme = $target_ix;
+                $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
+                    $furthest_earleme = $target_ix;
             }
-            STATE: for my $state (@{$states}) {
-                my $reset =
-                    $state->[Marpa::Internal::QDFA::RESET_ORIGIN];
-                my $origin = $reset ? $target_ix : $parent;
-		my $state_id = $state->[Marpa::Internal::QDFA::ID];
-		my $name = sprintf 'S%d@%d-%d', $state_id, $origin, $target_ix;
+            STATE: for my $state ( @{$states} ) {
+                my $reset    = $state->[Marpa::Internal::QDFA::RESET_ORIGIN];
+                my $origin   = $reset ? $target_ix : $parent;
+                my $state_id = $state->[Marpa::Internal::QDFA::ID];
+                my $name     = sprintf 'S%d@%d-%d', $state_id, $origin,
+                    $target_ix;
                 my $target_item = $earley_hash->{$name};
                 unless ( defined $target_item ) {
                     $target_item = [];
@@ -985,12 +973,9 @@ sub scan_set {
                     push @{$target_set}, $target_item;
                 }
                 next STATE if $reset;
-                push
-                    @{  $target_item
-                            ->[Marpa::Internal::Earley_item::TOKENS]
-                        },
-                    [ $earley_item, $value ]
-                ;
+                push @{ $target_item->[Marpa::Internal::Earley_item::TOKENS]
+                    },
+                    [ $earley_item, $value ];
             }    # for my $state
 
         }    # ALTERNATIVE
@@ -1002,7 +987,7 @@ sub scan_set {
         return 0;
     }
 
-    $parse->[ Marpa::Internal::Recognizer::CURRENT_SET ]++;
+    $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
     return 1;
 
 }    # sub scan_set
@@ -1010,16 +995,18 @@ sub scan_set {
 sub complete_set {
     my $parse = shift;
 
-    my ( $earley_set_list, $earley_hash, $grammar, $current_set,
-        $furthest_earleme, $exhausted, $lexables_by_state )
+    my ($earley_set_list,  $earley_hash, $grammar, $current_set,
+        $furthest_earleme, $exhausted,   $lexables_by_state
+        )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASH,   GRAMMAR, CURRENT_SET,
-        FURTHEST_EARLEME, EXHAUSTED,     LEXABLES_BY_STATE,
+        EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
+        FURTHEST_EARLEME, EXHAUSTED,   LEXABLES_BY_STATE,
         ];
-    croak('Attempt to complete another earley set after parsing was exhausted')
+    croak(
+        'Attempt to complete another earley set after parsing was exhausted')
         if $exhausted;
 
-    my $earley_set  = $earley_set_list->[$current_set];
+    my $earley_set = $earley_set_list->[$current_set];
 
     $earley_set ||= [];
 
@@ -1031,8 +1018,7 @@ sub complete_set {
 
     my ( $trace_fh, $trace_completions );
     if ($tracing) {
-        $trace_fh =
-            $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $trace_completions =
             $grammar->[Marpa::Internal::Grammar::TRACE_COMPLETIONS];
     }
@@ -1044,7 +1030,7 @@ sub complete_set {
     my $earley_set_ix = -1;
     EARLEY_ITEM: while (1) {
 
-        my $earley_item = $earley_set->[++$earley_set_ix];
+        my $earley_item = $earley_set->[ ++$earley_set_ix ];
         last EARLEY_ITEM unless defined $earley_item;
 
         my ( $state, $parent ) = @{$earley_item}[
@@ -1070,17 +1056,19 @@ sub complete_set {
                     Marpa::Internal::Earley_item::PARENT
                 ];
                 my $states =
-                    $QDFA->[ $parent_state->[Marpa::Internal::QDFA::ID]
-                    ]->[Marpa::Internal::QDFA::TRANSITION]
+                    $QDFA->[ $parent_state->[Marpa::Internal::QDFA::ID] ]
+                    ->[Marpa::Internal::QDFA::TRANSITION]
                     ->{$complete_symbol_name};
                 next PARENT_ITEM unless defined $states;
 
-                TRANSITION_STATE: for my $transition_state (@{$states}) {
-                    my $reset =
-                        $transition_state->[Marpa::Internal::QDFA::RESET_ORIGIN];
+                TRANSITION_STATE: for my $transition_state ( @{$states} ) {
+                    my $reset = $transition_state
+                        ->[Marpa::Internal::QDFA::RESET_ORIGIN];
                     my $origin = $reset ? $current_set : $grandparent;
-		    my $transition_state_id = $transition_state->[Marpa::Internal::QDFA::ID];
-		    my $name = sprintf 'S%d@%d-%d', $transition_state_id, $origin, $current_set;
+                    my $transition_state_id =
+                        $transition_state->[Marpa::Internal::QDFA::ID];
+                    my $name = sprintf 'S%d@%d-%d', $transition_state_id,
+                        $origin, $current_set;
                     my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];
@@ -1090,19 +1078,20 @@ sub complete_set {
                             Marpa::Internal::Earley_item::PARENT,
                             Marpa::Internal::Earley_item::LINKS,
                             Marpa::Internal::Earley_item::TOKENS,
-                            Marpa::Internal::Earley_item::SET
+                            Marpa::Internal::Earley_item::SET,
                             ]
-                            = ( $name, $transition_state, $origin, [], [], $current_set );
+                            = (
+                            $name, $transition_state, $origin, [], [],
+                            $current_set,
+                            );
                         $earley_hash->{$name} = $target_item;
                         push @{$earley_set}, $target_item;
                     }    # unless defined $target_item
                     next TRANSITION_STATE if $reset;
                     push
-                        @{  $target_item
-                                ->[Marpa::Internal::Earley_item::LINKS]
-                            },
-                        [ $parent_item, $earley_item ]
-                    ;
+                        @{ $target_item->[Marpa::Internal::Earley_item::LINKS]
+                        },
+                        [ $parent_item, $earley_item ];
                 }    # TRANSITION_STATE
 
             }    # PARENT_ITEM
@@ -1111,11 +1100,10 @@ sub complete_set {
 
     }    # EARLEY_ITEM
 
-    EARLEY_ITEM: for my $earley_item (@{$earley_set}) {
-        my $links =
-            $earley_item->[Marpa::Internal::Earley_item::LINKS];
+    EARLEY_ITEM: for my $earley_item ( @{$earley_set} ) {
+        my $links = $earley_item->[Marpa::Internal::Earley_item::LINKS];
         my @sorted_links =
-            map  { $_->[0] }
+            map { $_->[0] }
             ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
             sort { $b->[1] cmp $a->[1] }
             ## use critic
@@ -1125,18 +1113,16 @@ sub complete_set {
                     ->[Marpa::Internal::QDFA::PRIORITY]
             ]
             } @{$links};
-        $earley_item->[Marpa::Internal::Earley_item::LINKS] =
-            \@sorted_links;
+        $earley_item->[Marpa::Internal::Earley_item::LINKS] = \@sorted_links;
     }
 
     # TODO: Prove that the completion links are UNIQUE
 
-    $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] =
-        $current_set;
+    $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;
 
     if ($trace_completions) {
         print {$trace_fh} Marpa::show_earley_set($earley_set)
-	  or croak('Cannot print to trace file');
+            or croak('Cannot print to trace file');
     }
 
     my $lexables = [
