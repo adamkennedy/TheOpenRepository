@@ -19,10 +19,20 @@ my %exclude = map { ( $_, 1 ) } qw(
     t/lib/Test/Weaken.pm
 );
 
+# usually workarounds for perlcritic bugs
+my %per_file_options =
+    ( 'bootstrap/bootstrap.pl' => [qw(--exclude CodeLayout::RequireTidyCode)],
+    );
+
 sub run_critic {
     my $file = shift;
-    my @cmd  = qw(perlcritic -profile author.t/perlcriticrc);
+
+    my $per_file_options = $per_file_options{$file};
+    my @cmd              = ('perlcritic');
+    push @cmd, @{$per_file_options} if defined $per_file_options;
+    push @cmd, qw(--profile author.t/perlcriticrc);
     push @cmd, $file;
+
     my ( $child_out, $child_in );
 
     my $pid = open2( $child_out, $child_in, @cmd )

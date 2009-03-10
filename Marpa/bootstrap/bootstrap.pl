@@ -1,7 +1,7 @@
 #!perl
-#
+
 # Marpa compiling its own specification language
-# New generations of this file will usually be created by 
+# New generations of this file will usually be created by
 # replacing everything after this comment with bootcopy1.pl,
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
@@ -14,7 +14,6 @@
 ## no critic (RegularExpressions::RequireExtendedFormatting)
 ## no critic (RegularExpressions::RequireLineBoundaryMatching)
 ## no critic (RegularExpressions::RequireDotMatchAnything)
-## no critic (CodeLayout::RequireTidyCode)
 
 use 5.010;
 use strict;
