@@ -1184,6 +1184,8 @@ sub install_perl_toolchain {
 		PDWiX->throw('Failed to generate toolchain distributions');
 	}
 
+    my $core;
+    
 	# Install the toolchain dists
 	foreach my $dist ( @{ $toolchain->{dists} } ) {
 		my $automated_testing = 0;
@@ -1215,13 +1217,18 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
+        
+        $module_id = $self->_name_to_module($dist);
+        $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module_id} ? 1 : 0;
 		$self->install_distribution(
 			name              => $dist,
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
 			packlist =>
-			  $self->_need_packlist( $self->_name_to_module($dist) ) );
+			  $self->_need_packlist( $module_id ), 
+			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
+);
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	return 1;
@@ -1411,7 +1418,7 @@ sub _module_fix {
 	return 'Filter' if ($module eq 'Filter::Util::Call');
 	return 'Locale-Maketext' if ($module eq 'Locale::Maketext');
 	return 'Pod' if ($module eq 'Pod::Man');
-	return 'Text::Tabs' if ($module eq 'Pod::Man');
+	return 'Text' if ($module eq 'Text::Tabs');
 	
 	
 	
