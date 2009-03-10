@@ -694,9 +694,6 @@ Use of FORMAT objects is officially deprecated.
 
 An LVALUE object could only be present in the test object
 through a reference.
-I have not seen LVALUE reference programming deprecated
-anywhere.
-Possibly nobody has found worth his breath to do so.
 LVALUE references are rare.
 Here's what one looks like:
 
@@ -707,6 +704,10 @@ Here's what one looks like:
 =end Marpa::Test::Display:
 
     \pos($string)
+
+I have not seen LVALUE reference programming deprecated
+anywhere.
+Possibly nobody has found worth his breath to do so.
 
 There is
 another reason that the user might be just as happy not to have
@@ -812,9 +813,9 @@ is_file($_, 't/snippet.t', 'leaks snippet')
 Returns a
 Perl false if no unfreed memory objects were detected.
 If unfreed memory objects were detected,
-returns an evaluated C<Test::Weaken> class object.
+returns an evaluated C<Test::Weaken> class instance.
 
-C<Test::Weaken> class objects, for brevity, are called B<testers>.
+Instances of the C<Test::Weaken> class, for brevity, are called B<testers>.
 An B<evaluated> tester is one on which the
 tests have been run,
 and for which results are available.
@@ -898,10 +899,9 @@ and tracking selected probe references, as chosen by
 the user.
 Use of the C<ignore> argument should be avoided
 when possible.
-Filtering the probe references,
-as returned by
+Filtering the probe references that are
+returned by
 L<unfreed_proberefs>
-after the fact,
 is easier, safer and
 faster.
 The C<ignore> argument is provided for situations
@@ -913,8 +913,15 @@ large or complicated sub-objects need to be filtered out of the results.
 
 When specified, the value of the C<ignore> argument must be a
 reference to a callback subroutine.
-The subroutine will be called once for each probe reference,
-with that probe reference as the only argument.
+The subroutine will be called once
+for every independent memory object when it is about
+to be tracked,
+and once for every object when it is about to be
+followed.
+The C<ignore> callback is called with
+a probe reference to the object which is about to be
+tracked or followed as
+its only argument.
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
@@ -928,15 +935,18 @@ to an object that should be ignored --
 that is, neither followed or tracked.
 Otherwise the callback subroutine should return a Perl false.
 
-For safety, C<Test::Weaken> does not pass the original probe reference
+For safety, C<Test::Weaken> does not pass its internal
+probe reference
 to the C<ignore> callback.
-Instead, C<Test::Weaken> passes a copy of the probe reference.
+The C<ignore> callback is passed a copy of the internal
+probe reference.
 This prevents the user
 altering
 the probe reference itself.
-The object referred to by the probe reference is not copied.
-It is still the original object.
-If that is altered, all bets are off.
+However,
+the object referred to by the probe reference is not copied.
+The probe referent is the original object and if it
+is altered, all bets are off.
 
 C<ignore> callbacks are best kept simple.
 Defer as much of the analysis as you can
@@ -988,7 +998,7 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
 
 Returns a reference to an array of probe references to the unfreed objects.
 Throws an exception if there is a problem,
-for example if the C<Test::Weaken> object has not yet been evaluated.
+for example if the tester has not yet been evaluated.
 
 Often, this data is examined
 to pinpoint the source of a leak.
@@ -1038,7 +1048,7 @@ Returns the count of unfreed objects.
 This count will be exactly the length of the array referred to by
 the return value of the C<unfreed_proberefs> method.
 Throws an exception if there is a problem,
-for example if the C<Test::Weaken> object has not yet been evaluated.
+for example if the tester has not yet been evaluated.
 
 =head2 probe_count
 
@@ -1077,7 +1087,7 @@ recursively,
 but before C<Test::Weaken> called the test object destructor and undefined the
 test object reference.
 Throws an exception if there is a problem,
-for example if the C<Test::Weaken> object has not yet been evaluated.
+for example if the tester has not yet been evaluated.
 
 =head1 PLUMBING METHODS
 
@@ -1202,7 +1212,7 @@ that keeps the object's refcount above zero.
 Kevin Ryde reports that L<Devel::FindRef>
 can be useful for this.
 
-=head2 Quasi-unique addresses and Indiscernable Objects
+=head2 Quasi-unique Addresses and Indiscernable Objects
 
 I call referent addresses "quasi-unique", because they are only
 unique at a

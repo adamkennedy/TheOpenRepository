@@ -1,6 +1,6 @@
 Test-Weaken
 
-Test that freed references are, indeed, freed
+Test that freed memory objects were, indeed, freed
 
 INSTALLATION
 
