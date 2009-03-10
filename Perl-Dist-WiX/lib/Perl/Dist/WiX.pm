@@ -1373,6 +1373,8 @@ END_PERL
     for my $module (@{$module_info}) {
         # DON'T try to install Perl.
         next if $module->cpan_file =~ m{/perl-5\.}msx;
+        # If the ID is CGI::Carp, there's a bug in the index.
+        next if $module->id eq 'CGI::Carp';
 		# Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
         if ($module->cpan_file =~ m{/Test-Harness-Straps-\d}msx) {
 			$self->install_module(name => 'Test::Harness::Straps');
@@ -1405,6 +1407,13 @@ sub _module_fix {
 	my ( $self, $module ) = @_;
 
 	return 'CGI' if ($module eq 'CGI.pm');
+	return 'autodie' if ($module eq 'Fatal');
+	return 'Filter' if ($module eq 'Filter::Util::Call');
+	return 'Locale-Maketext' if ($module eq 'Locale::Maketext');
+	return 'Pod' if ($module eq 'Pod::Man');
+	return 'Text::Tabs' if ($module eq 'Pod::Man');
+	
+	
 	
 	return $module;
 }
@@ -2784,13 +2793,14 @@ sub install_distribution {
 	my $name = $dist->name;
 
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my $module = $self->_name_to_module($name);
+	my $module = $dist->{mod_name} || $self->_name_to_module($name);
 	my $packlist_flag = defined $dist->{packlist} ? $dist->{packlist} : 1;
 	my $filelist_sub;
 
 	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
+		$self->trace_line(0, "***** Module being installed $module requires packlist => 0 *****\n");
 	}
 
 	# Download the file
@@ -2861,6 +2871,7 @@ sub install_distribution {
 	}
 	my $mod_id = $module;
 	$mod_id =~ s{::}{_}msg;
+	$mod_id =~ s{-}{_}msg;
 
 	# Insert fragment.
 	$self->insert_fragment( $mod_id, $filelist->files );
@@ -3027,6 +3038,7 @@ END_PERL
 	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
+		$self->trace_line(0, "***** Module being installed $name requires packlist => 0 *****\n");
 	}
 
 	# Dump the CPAN script to a temp file and execute
