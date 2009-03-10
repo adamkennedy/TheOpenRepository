@@ -1398,7 +1398,7 @@ sub _need_packlist_2 {
 		Locale::Maketext
 	);
 
-	return none { $module eq $_ } @mods ? 1 : 0;
+	return ( none { $module eq $_ } @mods ) ? 1 : 0;
 }
 
 sub _module_fix {
