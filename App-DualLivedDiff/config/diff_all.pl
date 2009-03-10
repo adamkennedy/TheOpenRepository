@@ -106,6 +106,8 @@ foreach my $conf (sort @confDirs) {
     status => ($isDiff ? 'not ok' : 'ok'),
     cmd => \@cmd,
     module => $modname,
+    date => time(),
+    config => do {open my $fh, '<', $confFile or die $!; local $/ = undef; <$fh>},
   };
 
   #$db->rollback;
