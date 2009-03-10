@@ -1,5 +1,8 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.04  Tue Mar 10 10:20 2009
+  - Fix path correction brain fart.
+
 1.03  Sun Mar  8 13:08 2009
   - Fix the path munging of the diffs.
   - Work around what seems to be a slight bug in CPAN.pm's

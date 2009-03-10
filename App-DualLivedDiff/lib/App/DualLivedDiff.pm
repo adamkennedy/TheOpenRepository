@@ -2,7 +2,7 @@ package App::DualLivedDiff;
 use strict;
 use warnings;
 
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 use Getopt::Long;
 use Parse::CPAN::Meta ();
@@ -352,7 +352,8 @@ sub file_diff {
   my $blead_prefix = quotemeta($reverse ? '---' : '+++');
   my $source_prefix = quotemeta($reverse ? '+++' : '---');
 
-  my $patched_filename = $reverse ? $source_file : $blead_file;
+  my $patched_filename = $reverse ? $blead_file : $source_file;
+  #my $patched_filename = $reverse ? $source_file : $blead_file;
 
   #$result =~ s{^($blead_prefix\s*)(\S+)}{$1 . remove_path_prefix($2, $blead_base_dir)}gme;
   #$result =~ s{^($source_prefix\s*)(\S+)}{$1 . remove_path_prefix($2, $source_base_dir)}gme;
