@@ -38,31 +38,32 @@ with the last event in progress (no other sessions, empty queue, no event
 generators, etc).
 
 If POE is B<not> stopping, then the C<poe_stopping> function will emit a
-fail result and then do a hard-stop of the POE kernel.
+fail result and then do a hard-stop of the POE kernel so that at least your
+test script ends.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
 use Test::Builder  ();
-use POE            ('Session');
+use POE          qw( Session );
 use POE::API::Peek ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
-
 
 my $Test = Test::Builder->new;
 
 sub import {
 	my $self = shift;
-	my $pack = caller;
-	$Test->exported_to($pack);
+	my $pkg  = caller;
+	$Test->exported_to($pkg);
 	$Test->plan(@_);
 	$self->export_to_level(1, $self, 'poe_stopping');
 }
@@ -108,10 +109,13 @@ sub _poe_stopping {
 		return undef if @items > 1;
 
 		# Make sure it's not the TRACE_STATISTICS tick
-		unless ( $items[0]->{'source'}->isa( 'POE::Kernel' ) and
-			$items[0]->{'destination'}->isa( 'POE::Kernel' ) and
-			$items[0]->{'event'} eq '_stat_tick' ) {
-
+		unless (
+			$items[0]->{'source'}->isa('POE::Kernel')
+			and
+			$items[0]->{'destination'}->isa('POE::Kernel')
+			and
+			$items[0]->{'event'} eq '_stat_tick'
+		) {
 			return undef;
 		}
 	}
@@ -122,7 +126,8 @@ sub _poe_stopping {
 	# Is this last session watching any signals
 	my %signals = eval {
 		$api->signals_watched_by_session;
-		};
+	};
+
 	# Catch and handle a bug in POE
 	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
 		%signals = ();
@@ -155,7 +160,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2008 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
