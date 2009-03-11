@@ -1,5 +1,8 @@
 Revision history for Perl extension POE-Declare
 
+0.13 Wed 11 Mar 2009
+	- Adding a missing dependency on Test::NoWarnings
+
 0.12 Tue 10 Mar 2009
 	- Adding a missing dependency on Test::POE::Stopping
 
