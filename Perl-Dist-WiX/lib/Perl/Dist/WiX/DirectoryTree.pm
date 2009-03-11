@@ -194,6 +194,7 @@ sub initialize_tree {
 		  perl\lib\Module\Build
 		  perl\lib\Net
 		  perl\lib\Pod
+		  perl\lib\Term
 		  perl\lib\Test
 		  perl\lib\Time
 		  perl\lib\autodie
