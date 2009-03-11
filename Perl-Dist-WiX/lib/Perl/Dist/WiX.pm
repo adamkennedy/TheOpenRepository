@@ -47,7 +47,7 @@ use     Module::CoreList 2.17 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.150');
+use version; $VERSION = qv('0.155');
 
 use Object::Tiny qw(
   perl_version
@@ -1184,7 +1184,7 @@ sub install_perl_toolchain {
 		PDWiX->throw('Failed to generate toolchain distributions');
 	}
 
-    my $core;
+    my ($core, $module_id);
     
 	# Install the toolchain dists
 	foreach my $dist ( @{ $toolchain->{dists} } ) {

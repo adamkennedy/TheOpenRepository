@@ -18,7 +18,7 @@ use     Params::Util          qw( _IDENTIFIER _STRING            );
 use     File::Spec::Functions qw( catdir                         );
 require Perl::Dist::WiX::Directory;
 
-use version; $VERSION = qv('0.15');
+use version; $VERSION = qv('0.16');
 #>>>
 #####################################################################
 # Accessors:
@@ -176,6 +176,10 @@ sub initialize_tree {
 		  perl\lib\Compress
 		  perl\lib\CPAN
 		  perl\lib\CPAN\API
+		  perl\lib\CPANPLUS
+		  perl\lib\CPANPLUS\Dist
+		  perl\lib\CPANPLUS\Internals
+		  perl\lib\Devel
 		  perl\lib\Digest
 		  perl\lib\ExtUtils
 		  perl\lib\File
@@ -184,8 +188,11 @@ sub initialize_tree {
 		  perl\lib\IO
 		  perl\lib\IO\Compress
 		  perl\lib\IO\Uncompress
+		  perl\lib\Math
+		  perl\lib\Math\BigInt
 		  perl\lib\Module
 		  perl\lib\Module\Build
+		  perl\lib\Net
 		  perl\lib\Pod
 		  perl\lib\Test
 		  perl\lib\Time
