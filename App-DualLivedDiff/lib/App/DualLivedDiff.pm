@@ -156,7 +156,7 @@ sub run {
       next;
     }
     elsif (-d $absolute_source_dir) {
-      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, $paths, $paths, 1, $exclude_regexes );
+      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, $paths, 1, $exclude_regexes );
     }
     else {
       warn "Explicitly mapped directory '$source_dir' missing from dual lived module source tree!";
