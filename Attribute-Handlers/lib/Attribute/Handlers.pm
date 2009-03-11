@@ -878,6 +878,6 @@ Bug reports and other feedback are most welcome.
 
 =head1 COPYRIGHT AND LICENSE
 
-         Copyright (c) 2001-2008, Damian Conway. All Rights Reserved.
+         Copyright (c) 2001-2009, Damian Conway. All Rights Reserved.
        This module is free software. It may be used, redistributed
            and/or modified under the same terms as Perl itself.
