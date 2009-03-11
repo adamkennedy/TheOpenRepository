@@ -199,7 +199,7 @@ sub trash (@) {
 		die "Support for trash() on platform '$^O' not available at this time.\n";
 	}
 
-	goto &remove;
+	remove(@_);
 }
 
 sub undelete (@) {
