@@ -34,6 +34,8 @@ Does a diff FROM a dual lived module distribution TO blead perl
              (defaults to .dualLivedDiffConfig in the module path or current path)
 -o/--output  file name for output (defaults to STDOUT)
              useful to separate diff from CPAN.pm output
+-p/--paths   show the "dual"-lived module paths or the "blead" paths?
+             defaults to "blead" or to "dual" if in --reverse mode
 
 Check perldoc "App::DualLivedDiff" for more info on the usage.
 The "diff" command is assumed to be in your PATH and will be run with the
@@ -45,7 +47,7 @@ HERE
 my (
   $bleadpath, $dualmodule, $reverse,
   $default_config_file, $config_file,
-  $output_file
+  $output_file, $paths
 );
 
 sub run {
@@ -55,6 +57,7 @@ sub run {
   $default_config_file = '.dualLivedDiffConfig';
   $config_file         = $default_config_file;
   $output_file         = undef;
+  $paths               = undef;
   GetOptions(
     'b|blead=s'                  => \$bleadpath,
     'h|help'                     => \&usage,
@@ -62,6 +65,7 @@ sub run {
     'd|dual=s'                   => \$dualmodule,
     'c|conf|config|configfile=s' => \$config_file,
     'o|out|output=s'             => \$output_file,
+    'p|path|paths=s'             => \$paths,
   );
 
   if (defined $output_file) {
@@ -70,8 +74,21 @@ sub run {
   }
 
   usage() if not defined $bleadpath or not -d $bleadpath;
+  if (not defined $paths) {
+    $paths = $reverse ? "blead" : "dual";
+  }
+  elsif (defined $paths) {
+    if ($paths =~ /^blead$/i) {
+      $paths = 'blead';
+    } elsif ($paths =~ /^dual$/i) {
+      $paths = 'dual';
+    }
+    else {
+      die "Invalid path setting: --paths must be either 'dual' or 'blead'!\n";
+    }
+  }
 
-  my $workdir        = get_dual_lived_distribution_dir($dualmodule);
+  my $workdir         = get_dual_lived_distribution_dir($dualmodule);
   my $config          = get_config($workdir, $config_file);
 
   my $files           = $config->{"files"} || {};
@@ -93,7 +110,7 @@ sub run {
     my $absolute_source_file = File::Spec->catdir($workdir, $source_file);
 
     if (-f $absolute_source_file) {
-      file_diff( $output_file, $workdir, $bleadpath, $source_file, $blead_file );
+      file_diff( $output_file, $workdir, $bleadpath, $source_file, $blead_file, $paths );
     }
     elsif (-d $absolute_source_file) {
       warn "'$absolute_source_file' is not a file but a directory. Use the 'dirs-flat' or 'dirs-recursive' config options instead!";
@@ -118,7 +135,7 @@ sub run {
       next;
     }
     elsif (-d $absolute_source_dir) {
-      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 0, $exclude_regexes );
+      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, $paths, 0, $exclude_regexes );
     }
     else {
       warn "Explicitly mapped directory '$source_dir' missing from dual lived module source tree!";
@@ -139,7 +156,7 @@ sub run {
       next;
     }
     elsif (-d $absolute_source_dir) {
-      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 1, $exclude_regexes );
+      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, $paths, $paths, 1, $exclude_regexes );
     }
     else {
       warn "Explicitly mapped directory '$source_dir' missing from dual lived module source tree!";
@@ -332,6 +349,7 @@ sub dir_diff {
   my $blead_base_dir  = shift;
   my $source_dir      = shift;
   my $blead_dir       = shift;
+  my $paths           = shift;
   my $recursive       = shift;
   my $exclude_regexes = shift;
 
@@ -340,7 +358,7 @@ sub dir_diff {
   foreach my $source_file (keys %$map) {
     next if grep {$source_file =~ $_} @$exclude_regexes;
     my $blead_file = $map->{$source_file};
-    file_diff( $output_file, $source_base_dir, $blead_base_dir, $source_file, $blead_file );
+    file_diff( $output_file, $source_base_dir, $blead_base_dir, $source_file, $blead_file, $paths );
   }
 }
 
@@ -351,6 +369,7 @@ sub file_diff {
   my $blead_base_dir  = shift;
   my $source_file     = shift;
   my $blead_file      = shift;
+  my $paths           = shift;
 
   my $absolute_source_file = File::Spec->catfile($source_base_dir, $source_file);
   my $absolute_blead_file  = File::Spec->catfile($blead_base_dir, $blead_file);
@@ -367,7 +386,14 @@ sub file_diff {
   my $blead_prefix = quotemeta($reverse ? '---' : '+++');
   my $source_prefix = quotemeta($reverse ? '+++' : '---');
 
-  my $patched_filename = $reverse ? $blead_file : $source_file;
+  my $patched_filename;
+  if ($paths eq 'dual') {
+    $patched_filename = $source_file;
+  } elsif ($paths eq 'blead') {
+    $patched_filename = $blead_file;
+  } else {
+    $patched_filename = $reverse ? $blead_file : $source_file;
+  }
   #my $patched_filename = $reverse ? $source_file : $blead_file;
 
   #$result =~ s{^($blead_prefix\s*)(\S+)}{$1 . remove_path_prefix($2, $blead_base_dir)}gme;
@@ -453,6 +479,9 @@ Given a simple YAML file F<.dualLivedDiffConfig> in the current working director
 or the Filter::Simple CPAN distribution:
 
   ---
+  exclude-regexes:
+    - ^(?:\./)?MANIFEST$
+    - ^(?:\./)?META.yml$
   files:
     lib/Filter/Simple.pm: lib/Filter/Simple.pm
     Changes: lib/Filter/Simple/Changes
