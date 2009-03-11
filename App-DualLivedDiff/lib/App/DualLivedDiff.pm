@@ -72,17 +72,22 @@ sub run {
   usage() if not defined $bleadpath or not -d $bleadpath;
 
   my $workdir        = get_dual_lived_distribution_dir($dualmodule);
-  my $config         = get_config($workdir, $config_file);
+  my $config          = get_config($workdir, $config_file);
 
-  my $files          = $config->{files} || {};
-  my $dirs_flat      = $config->{"dirs-flat"} || {};
-  my $dirs_recursive = $config->{"dirs-recursive"} || {};
+  my $files           = $config->{"files"} || {};
+  my $exclude_regexes = [ map {qr/$_/} @{$config->{"exclude-regexes"} || []} ];
+  my $dirs_flat       = $config->{"dirs-flat"} || {};
+  my $dirs_recursive  = $config->{"dirs-recursive"} || {};
   
   my $blead_module_base_path = $config->{"base-path-in-blead"};
   $bleadpath = File::Spec->catdir($bleadpath, $blead_module_base_path)
     if defined $blead_module_base_path and $blead_module_base_path !~ /^.?\/?$/;
 
   foreach my $source_file (keys %$files) {
+    if (grep {$source_file =~ $_} @$exclude_regexes) {
+      warn "Explicitly mapped file '$source_file' is also excluded explicitly. Skipping it.";
+      next;
+    }
     my $blead_file = $files->{$source_file};
 
     my $absolute_source_file = File::Spec->catdir($workdir, $source_file);
@@ -101,6 +106,10 @@ sub run {
   }
 
   foreach my $source_dir (keys %$dirs_flat) {
+    if (grep {$source_dir =~ $_} @$exclude_regexes) {
+      warn "Explicitly mapped directory '$source_dir' is also excluded explicitly. Skipping it.";
+      next;
+    }
     my $blead_dir = $dirs_flat->{$source_dir};
 
     my $absolute_source_dir = File::Spec->catdir($workdir, $source_dir);
@@ -109,7 +118,7 @@ sub run {
       next;
     }
     elsif (-d $absolute_source_dir) {
-      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 0 );
+      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 0, $exclude_regexes );
     }
     else {
       warn "Explicitly mapped directory '$source_dir' missing from dual lived module source tree!";
@@ -118,6 +127,10 @@ sub run {
   }
 
   foreach my $source_dir (keys %$dirs_recursive) {
+    if (grep {$source_dir =~ $_} @$exclude_regexes) {
+      warn "Explicitly mapped directory '$source_dir' is also excluded explicitly. Skipping it.";
+      next;
+    }
     my $blead_dir = $dirs_recursive->{$source_dir};
 
     my $absolute_source_dir = File::Spec->catdir($workdir, $source_dir);
@@ -126,7 +139,7 @@ sub run {
       next;
     }
     elsif (-d $absolute_source_dir) {
-      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 1 );
+      dir_diff( $output_file, $workdir, $bleadpath, $source_dir, $blead_dir, 1, $exclude_regexes );
     }
     else {
       warn "Explicitly mapped directory '$source_dir' missing from dual lived module source tree!";
@@ -320,10 +333,12 @@ sub dir_diff {
   my $source_dir      = shift;
   my $blead_dir       = shift;
   my $recursive       = shift;
+  my $exclude_regexes = shift;
 
   my $map = dirs_to_filemapping( $source_base_dir, $blead_base_dir, $source_dir, $blead_dir, $recursive );
 
   foreach my $source_file (keys %$map) {
+    next if grep {$source_file =~ $_} @$exclude_regexes;
     my $blead_file = $map->{$source_file};
     file_diff( $output_file, $source_base_dir, $blead_base_dir, $source_file, $blead_file );
   }

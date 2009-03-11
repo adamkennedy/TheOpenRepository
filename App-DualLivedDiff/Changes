@@ -1,5 +1,8 @@
 Revision history for Perl extension App::DualLivedDiff
 
+  - "exclude-regexes" option in the YAML config file
+    (an array of regexes matched against source files)
+
 1.04  Tue Mar 10 10:20 2009
   - Fix path correction brain fart.
 
