@@ -3,28 +3,30 @@
  * $Id$
  */
 
-#ifndef STANDARD
+#include "EXTERN.h"
+#include "perl.h"
+
 #include "standard.h"
-#endif /* STANDARD */
 
 #ifndef RAND
+
 #define RAND
 #define RANDSIZL  (8)  /* 8 for crypto, 4 for simulations */
 #define RANDSIZ   (1 << RANDSIZL)
 
 /* context of random number generator */
 struct randctx {
-  ub4 randcnt;
-  ub4 randrsl[RANDSIZ];
-  ub4 randmem[RANDSIZ];
-  ub4 randa;
-  ub4 randb;
-  ub4 randc;
+  UV randcnt;
+  UV randrsl[RANDSIZ];
+  UV randmem[RANDSIZ];
+  UV randa;
+  UV randb;
+  UV randc;
 };
 typedef  struct randctx  randctx;
 
-/* If flag is TRUE, use randrsl[0..RANDSIZ-1] as the seed */
-void randinit(randctx *r, word flag);
+/* Initialize using randrsl[0..RANDSIZ-1] as the seed */
+void randinit(randctx *r);
 void isaac(randctx *r);
 
 /* Call rand(randctx *r) to get a single 32-bit random value

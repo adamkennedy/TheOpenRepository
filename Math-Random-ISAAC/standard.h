@@ -73,19 +73,17 @@ typedef                 int  word; /* fastest system type */
 #define align(a) (((ub4)a+(sizeof(void *)-1))&(~(sizeof(void *)-1)))
 #endif /* align */
 
-// Find the absolute value of a number
+/* Find the absolute value of a number */
 #ifndef abs
 #define abs(a)   (((a)>0) ? (a) : -(a))
 #endif
 
-// Some boolean truth value constants
+/* Some boolean truth value constants */
 #ifndef TRUE
 #define TRUE  1
 #endif /* TRUE */
 #ifndef FALSE
 #define FALSE 0
 #endif /* FALSE */
-
-#define SUCCESS 0  /* 1 on VAX */
 
 #endif /* STANDARD */

@@ -14,7 +14,6 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-#include "ppport.h"
 
 #include "rand.h"
 #include "standard.h"
@@ -54,12 +53,13 @@ new(...)
       self->randrsl[idx] = (ub4)0;
     }
 
-    randinit(self, TRUE); /* Initialize using our seed */
+    randinit(self); /* Initialize using our seed */
     RETVAL = self;
   OUTPUT:
     RETVAL
 
-int rand(self)
+UV
+rand(self)
   Math::Random::ISAAC self
   CODE:
     /* If we run out of numbers, reset the sequence */

@@ -8,5 +8,6 @@ my $rng = Math::Random::ISAAC->new();
 
 use Data::Dumper;
 
-#printf("%.8lx", $rng->rand);
-$rng->testout;
+for (0..20) {
+  printf("%02d: %u\n", $_, $rng->rand);
+}
