@@ -1,5 +1,6 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.05  Wed Mar 11 18:15 2009
   - '--paths=blead' / '--paths=dual' option to manually set the
     paths shown in the diff.
   - "exclude-regexes" option in the YAML config file
