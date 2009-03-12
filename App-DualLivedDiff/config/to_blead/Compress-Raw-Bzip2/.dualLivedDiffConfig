@@ -1,0 +1,10 @@
+---
+base-path-in-blead: ext/Compress-Raw-Bzip2
+dirs-recursive:
+  .: .
+exclude-regexes:
+  - '^(?:\.?/)?META.yml$'
+  - '^(?:\.?/)?MANIFEST$'
+  - '^(?:\.?/)?t/Test/'
+  - '^(?:\.?/)?ppport\.h$'
+
