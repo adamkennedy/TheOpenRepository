@@ -8,6 +8,7 @@ lib/Pod/Abstract/Filter/clear_podcmds.pm
 lib/Pod/Abstract/Filter/cut.pm
 lib/Pod/Abstract/Filter/uncut.pm
 lib/Pod/Abstract/Filter/overlay.pm
+lib/Pod/Abstract/Filter/unoverlay.pm
 lib/Pod/Abstract/Filter/sort.pm
 lib/Pod/Abstract/Filter/summary.pm
 lib/Pod/Abstract/Filter/find.pm

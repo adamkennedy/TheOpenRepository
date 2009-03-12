@@ -18,6 +18,28 @@ Pod::Abstract. Subclasses should override the C<filter>
 sub. Pod::Abstract::Filter classes in the Pod::Abstract::Filter
 namespace will be used by the C<paf> utility.
 
+To create a filter, you need to implement:
+
+=over
+
+=item filter
+
+Takes a Pod::Abstract::Node tree, and returns either another tree, or
+a string. If a string is returned, it will be re-parsed to be input to
+any following filter, or output directly if it is the last filter in
+the list.
+
+=item require_params
+
+If you want positional arguments following your filter in the style of:
+
+ paf find [thing] Pod::Abstract
+
+then override require_params to list the named arguments that are to
+be accepted after the filter name.
+
+=back
+
 =head1 METHODS
 
 =head2 new
@@ -36,8 +58,8 @@ sub new {
 =head2 require_params
 
 Override to return a list of parameters that must be provided. This
-will be accepted in order on the command line if they are not set
-using the C<-flag=xxx> notation.
+will be accepted in order on the command line, unless they are first
+set using the C<-flag=xxx> notation.
 
 =cut
 

@@ -1,6 +1,6 @@
 Revision history for Pod-Abstract
 
-0.15    09/03/2009
+0.15    12/03/2009
         Improved documentation. Added some real documentation for
         Pod::Abstract::Path. Had an attempt at fixing the compile
         issues for Perl 5.6. No significant changes in function.

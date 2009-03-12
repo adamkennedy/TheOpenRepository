@@ -68,6 +68,18 @@ Note that this will overlay the whole subheading, INCLUDING CUT NODES,
 so it can add code to the source document. Use C<cut> if you don't
 want this.
 
+Each overlaid section will include a C<=for overlay from> marker, so
+that it can be replaced by a subsequent overlay from the same
+file/module. These sections will be replaced in-place, so ordering of
+sections once first overlaid will be preserved.
+
+=head2 unoverlay
+
+ paf unoverlay Source.pm
+
+Strips B<all> sections marked as overlaid and matching the overlay
+spec from the source.
+
 =head2 sort
 
  paf sort [-heading=METHODS] Source.pm

@@ -123,6 +123,25 @@ sub begin {
     return $begin;
 }
 
+=head2 for
+
+ my $for = node->for('overlay from <class>');
+
+Create a =for node. The argument is the literal body of the for node,
+no parsing will be performed.
+
+=cut
+
+sub for {
+    my $class = shift;
+    my $str = shift;
+
+    return Pod::Abstract::Node->new(
+        type => 'for',
+        body => $str,
+        );
+}
+
 =head2 paragraph
 
  my $para = node->paragraph('Pod text');

@@ -155,9 +155,6 @@ sub lex {
     my $expression = shift;
     my @l = ( );
 
-    # Get rid of white space
-    $expression =~ s/[ \t\n\r]+//g;
-
     # Digest expression into @l
     while($expression) {
         if($expression =~ m/^\/\//) {
@@ -205,6 +202,9 @@ sub lex {
         } elsif($expression =~ m/^\>\>/) {
             push @l, [ NEXT, undef ];
             substr($expression, 0, 2) = '';
+        } elsif($expression =~ m/([ \n\t]+)/) {
+            # Discard uncaptured whitespace
+            substr($expression, 0, length($1)) = '';
         } else {
             die "Invalid token encountered - remaining string is $expression";
         }

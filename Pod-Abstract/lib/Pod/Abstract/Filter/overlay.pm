@@ -4,6 +4,7 @@ use warnings;
 
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
+use Pod::Abstract::BuildNode qw(node);
 
 our $VERSION = '0.15';
 
@@ -37,7 +38,14 @@ The main utility of this is to specify a superclass, so that all the
 methods that are not documented in your subclass become documented by
 the overlay. The C<sort> filter makes a good follow up.
 
-The overlay block will be removed after processing.
+The start of overlaid sections will include:
+
+ =for overlay from <class-or-file>
+
+You can use these markers to set sections to be replaced by some other
+document, or to repeat an overlay on an already processed Pod
+file. Changes to existing marked sections are made in-place without
+changing document order.
 
 =cut
 
@@ -55,6 +63,7 @@ sub filter {
         my ($section, $module) = split " ", $o_def;
 
         # This should be factored into a method.
+        my $ovr_module = $module; # Keep original value
         unless(-r $module) {
             # Maybe a module name?
             $module =~ s/::/\//g;
@@ -80,13 +89,41 @@ sub filter {
         
         foreach my $hdg (@o_headings) {
             my $hdg_text = $hdg->param('heading')->pod;
-            unless($t_heading{$hdg_text}) {
-                $t->push($hdg->duplicate);
+            if($t_heading{$hdg_text}) {
+                my @overlay_from = 
+                    $t_heading{$hdg_text}->select(
+                        "/for[. =~ {^overlay from }]");
+                my @from_current = grep {
+                    substr($_->body, -(length $ovr_module)) eq $ovr_module
+                } @overlay_from;
+                
+                if(@from_current) {
+                    my $dup = $hdg->duplicate;
+                    my @overlay_from = 
+                        $hdg->select("/for[. =~ {^overlay from }]");
+                    $_->detach foreach @overlay_from;
+                    
+                    $dup->unshift(node->for("overlay from $ovr_module"));
+                    
+                    $dup->insert_after($t_heading{$hdg_text});
+                    $t_heading{$hdg_text}->detach;
+                    $t_heading{$hdg_text} = $dup;
+                }
+            } else {
+                my $dup = $hdg->duplicate;
+                
+                # Remove existing overlay markers;
+                my @overlay_from = 
+                    $hdg->select("/for[. =~ {^overlay from }]");
+                $_->detach foreach @overlay_from;
+
+                $dup->unshift(node->for("overlay from $ovr_module"));
+
+                $t->push($dup);
+                $t_heading{$hdg_text} = $dup;
             }
         }
     }
-    $overlay_list->detach;
-    
     return $pa;
 }
 
