@@ -4,6 +4,7 @@ exclude-regexes:
   - '^(?:\.?/)?MANIFEST$'
   - '^(?:\.?/)?t/pod[^\.]*\.t$'
   - '^(?:\.?/)?t/distchk\.t$'
+  - '^(?:\.?/)?t/portfs\.t$'
   - '^(?:\.?/)?t/data-validation\.t$'
   - '^(?:\.?/)?eg/'
   - '^(?:\.?/)?ppport\.h$'
