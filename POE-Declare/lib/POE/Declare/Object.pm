@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 }
 
 # Inside-out storage of internal values
@@ -71,7 +71,7 @@ sub MODIFY_CODE_ATTRIBUTES {
 		}
 		$POE::Declare::EVENT{Scalar::Util::refaddr($code)} = [
 			'POE::Declare::Meta::Timeout',
-			default => $delay,
+			delay => $delay,
 		];
 		return ();
 	}
@@ -128,6 +128,8 @@ or throw an exception on error.
 
 sub new {
 	my $class = shift;
+	my %param = @_;
+
 	my $self  = bless { @_ }, $class;
 
 	# Clear out any accidentally set internal values
@@ -594,6 +596,46 @@ heap object's session.
 sub delay_adjust {
 	shift;
 	$poe_kernel->delay_adjust( @_ );
+}
+
+
+
+
+
+#####################################################################
+# Timeout Support
+
+=pod
+
+=head2 timeout_start 
+
+  # Declare a timer event
+  sub event : Timeout(30) {
+    # Do something
+  }
+  
+  # Start a 5 minute timeout
+  $object->timeout_start(300);
+
+The C<timeout_start> method starts an alarm timer for a named C<Timeout>
+event.
+
+=cut
+
+sub timeout_start {
+	my $self = shift;
+	my $name = shift;
+
+	# Check params
+	my $attr = $self->meta->attr($name);
+	unless ( $attr and $attr->isa('POE::Declare::Meta::Timeout') ) {
+		Carp::croak("Slot '$name' does not exist or not a timeout");
+	}
+	my $delay = shift or $attr->delay;
+
+	# Kick off the POE timer
+	my $id = $self->delay_set( $name => $delay );
+	
 }
 
 

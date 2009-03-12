@@ -29,7 +29,7 @@ use POE::Declare::Meta::Slot ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 	@ISA     = 'POE::Declare::Meta::Slot';
 }
 
@@ -40,7 +40,7 @@ BEGIN {
 #####################################################################
 # Main Methods
 
-sub _compile { +{ package => <<"END_PERL" } }
+sub _compile { <<"END_PERL" }
 use Class::XSAccessor getters => { $_[0]->{name} => '$_[0]->{name}' };
 END_PERL
 

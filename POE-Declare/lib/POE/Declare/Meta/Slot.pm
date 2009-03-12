@@ -46,7 +46,7 @@ use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 }
 
 use Class::XSAccessor
@@ -56,9 +56,7 @@ use Class::XSAccessor
 	};
 
 # By default, a slot contains nothing
-sub _compile {
-	return { package => '' };
-}
+sub _compile { '' }
 
 1;
 

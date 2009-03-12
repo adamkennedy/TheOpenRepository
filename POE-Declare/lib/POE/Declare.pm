@@ -114,7 +114,8 @@ called or yielded to by other POE messages/events.
 =head2 POE::Declare::Meta::Timeout
 
 L<POE::Declare::Meta::Timeout> is a L<POE::Declare::Meta::Event> sub-class
-that is designed to trigger from an alarm.
+that is designed to trigger from an alarm and generates additional methods
+to manage the alarms.
 
 =head1 FUNCTIONS
 
@@ -148,7 +149,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

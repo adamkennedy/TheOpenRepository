@@ -1,5 +1,8 @@
 Revision history for Perl extension POE-Declare
 
+0.14 Thu 12 Mar 2009
+	- Adding the initial implementation of Timeout that actually works
+
 0.13 Wed 11 Mar 2009
 	- Adding a missing dependency on Test::NoWarnings
 

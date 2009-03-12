@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 51;
+use Test::More tests => 56;
 use Test::NoWarnings;
 
 
@@ -30,8 +30,10 @@ SCOPE: {
 	# Check that SELF is exported, and matches HEAP
 	main::is( SELF, HEAP, 'SELF == HEAP' );
 
-	declare foo => 'Attribute';
 	declare bar => 'Internal';
+	declare foo => 'Attribute';
+	declare One => 'Param';
+	declare Two => 'Param';
 
 	sub findme : Event {
 		my $self = $_[SELF];
@@ -97,10 +99,14 @@ SCOPE: {
 	isa_ok( $meta->attr('bar'),    'POE::Declare::Meta::Internal'  );
 	isa_ok( $meta->attr('findme'), 'POE::Declare::Meta::Event'     );
 	isa_ok( $meta->attr('to'),     'POE::Declare::Meta::Timeout'   );
+	isa_ok( $meta->attr('One'),    'POE::Declare::Meta::Param'     );
+	isa_ok( $meta->attr('Two'),    'POE::Declare::Meta::Param'     );
 	is( $meta->attr('foo')->name,    'foo',    'Attribute foo ->name ok'    );
 	is( $meta->attr('bar')->name,    'bar',    'Attribute bar ->name ok'    );
 	is( $meta->attr('findme')->name, 'findme', 'Attribute findme ->name ok' );
 	is( $meta->attr('to')->name,     'to',     'Attribute to ->name ok'     );
+	is( $meta->attr('One')->name,    'One',    'Attribute One ->name ok'    );
+	is( $meta->attr('Two')->name,    'Two',    'Attribute Two ->name ok'    );
 
 	# Check for the base attributes
 	isa_ok( $meta->attr('_start'),        'POE::Declare::Meta::Event' );
@@ -113,6 +119,13 @@ SCOPE: {
 		[ $meta->package_states ],
 		[ '_alias_remove', '_alias_set', '_start', '_stop', 'findme', 'to' ],
 		'->package_states returns as expected',
+	);
+
+	# Check the params method
+	is_deeply(
+		[ $meta->params ],
+		[ 'Alias', 'One', 'Two' ],
+		'->params returns as expected',
 	);
 
 	# Check various spawning related methods

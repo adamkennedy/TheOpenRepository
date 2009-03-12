@@ -23,14 +23,16 @@ use 5.008007;
 use strict;
 use warnings;
 use Carp             ();
+use File::Temp       ();
 use Scalar::Util     ();
 use Params::Util     ();
 use Class::ISA       ();
 use Class::Inspector ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.13';
+	$VERSION = '0.14';
+	$DEBUG   = !! $DEBUG;
 }
 
 use POE::Declare::Meta::Slot      ();
@@ -40,6 +42,8 @@ use POE::Declare::Meta::Timeout   ();
 use POE::Declare::Meta::Attribute ();
 use POE::Declare::Meta::Internal  ();
 use POE::Declare::Meta::Param     ();
+
+use constant DEBUG => $DEBUG;
 
 use Class::XSAccessor
 	getters => {
@@ -74,9 +78,9 @@ sub new {
 	# Create the object
 	my $self = bless {
 		name     => $name,
-		attr     => { },
 		alias    => $name,
 		sequence => 0,
+		attr     => { },
 	}, $class;
 
 	$self;
@@ -234,6 +238,15 @@ sub attrs {
 	return values %hash;
 }
 
+sub params {
+	my $self   = shift;
+	my @params = sort map {
+		$_->name
+	} grep {
+		Params::Util::_INSTANCE($_, 'POE::Declare::Meta::Param')
+	} $self->attrs;
+}
+
 
 
 
@@ -272,17 +285,37 @@ sub _compile {
 
 	# Get all the package fragments
 	my @parts = map { $attr->{$_}->_compile } sort keys %$attr;
-	my @main  = (
-		"package " . $self->name . ";",
-		map { $_->{package} || '' } @parts,
+	my @main  = ( "package " . $self->name . ";", @parts );
+	my $code  = join "\n", @main;
+
+	# Load the code
+	if ( DEBUG ) {
+		# Compile the combined code via a temp file
+		my ($fh, $filename) = File::Temp::tempfile();
+		$fh->print("$code\n\n1;\n");
+		close $fh;
+		require $filename;
+		unlink $filename;
+
+		# Print the debugging output
+		my @trace = map {
+			s/\s*[{;]$//;
+			s/^s/  s/;
+			s/^p/\np/;
+			"$_\n"
+		} grep {
+			/^(?:package|sub)\b/
+		} split /\n/, $code;
+		print STDERR @trace, "\n$name code saved as $filename\n\n";
+	} else {
+		eval("$code\n\n1;\n");
+		die $@ if $@;
+		Carp::croak("Failed to compile code for $name") if $@;
+	}
+
+	return (
+		$self->{compiled} = 1
 	);
-
-	# Compile the Perl code
-	my $code = join "\n\n", @main;
-	eval $code;
-	Carp::croak("Failed to compile code for " . $self->name) if $@;
-
-	return( $self->{compiled} = 1 );
 }
 
 # sub compiled {

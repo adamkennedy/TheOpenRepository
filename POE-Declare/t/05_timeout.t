@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
@@ -20,6 +20,10 @@ sub order {
 	my $message  = shift;
 	is( $order++, $position, "$message ($position)" );
 }
+
+#BEGIN {
+#	$POE::Declare::Meta::DEBUG = 1;
+#}
 
 
 
@@ -44,11 +48,18 @@ SCOPE: {
 		$_[0]->SUPER::_start(@_[1..$#_]);
 
 		# Trigger a regular event
-		$_[SELF]->post( say => 'Hello World!' );
+		$_[SELF]->post('started');
 	}
 
-	sub say : Event {
-		order( 3, 'Fired Foo::say' );
+	sub started : Event {
+		order( 3, 'Fired Foo::started' );
+		$_[SELF]->timer_start;
+	}
+
+	sub timer : Timeout(1) {
+		order( 4, 'Fired Foo::timer' );
+		$_[SELF]->timer_stop;
+		$_[SELF]->call('_alias_remove');
 	}
 
 	sub _stop : Event {
@@ -62,12 +73,29 @@ SCOPE: {
 	}
 
 	sub _alias_remove : Event {
-		order( -1, 'Fired Foo::_alias_remove' );
+		order( 5, 'Fired Foo::_alias_remove' );
 		$_[0]->SUPER::_alias_remove(@_[1..$#_]);
 	}
 
 	compile;
 }
+
+ok( Foo->can('timer'),           '->timer ok' );
+ok( Foo->can('timer_start'),     '->timer ok' );
+ok( Foo->can('timer_restart'), '->timer ok' );
+ok( Foo->can('timer_stop'),     '->timer ok' );
+is_deeply(
+	[ Foo->meta->package_states ],
+	[ qw{
+		_alias_remove
+		_alias_set
+		_start
+		_stop
+		started
+		timer
+	} ],
+	'->package_states ok',
+);
 
 
 
@@ -92,15 +120,15 @@ POE::Session->create(
 
 sub _start {
 	order( 2, 'Fired main::_start' );
-	$_[KERNEL]->delay_set( timeout => 0.5 );
+	$_[KERNEL]->delay_set( timeout => 2 );
 }
 
 sub _stop {
-	order( 5, 'Fired main::_stop' );
+	order( 8, 'Fired main::_stop' );
 }
 
 sub timeout {
-	order( 4, 'Fired main::timeout' );
+	order( 7, 'Fired main::timeout' );
 }
 
 POE::Kernel->run;
