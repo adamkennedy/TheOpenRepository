@@ -1,5 +1,9 @@
 Revision history for Perl extension Module-Manifest
 
+0.06 Thu 12 Mar 2009
+	- Adding a missing Test::Warn dependency
+	- Updated Module::Install to 0.79
+
 0.05 Sat 20 Dec 2008
 	- Added option for file-less parsing
 	- Clarified the docs
