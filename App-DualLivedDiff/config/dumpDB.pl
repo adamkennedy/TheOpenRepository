@@ -80,8 +80,24 @@ included in the list. It would help if you include a YAML file mapping file such
 as those accessible below under the <i>cfg</i> links.
 </p>
 <p>
-Data generated with <a href="http://search.cpan.org/dist/App-DualLivedDiff">App::DualLivedDiff</a>.
+Data generated with <a href="http://search.cpan.org/dist/App-DualLivedDiff">App::DualLivedDiff</a>. It is not
+currently updated automatically. If you want to help and have a server with access to git and the ability to add a cron job, feel
+free to get in touch.
 </p>
+<p>
+Additional notes:
+</p>
+<ul>
+<li>
+Please note that developer releases are not picked up from CPAN.
+</li>
+<li>
+The paths given are the paths in core perl (blead).
+</li>
+<li>
+The diffs are from CPAN to core perl.
+</li>
+</ul>
 <hr/>
 <table cellspacing="2" cellpadding="3" border="0">
 <tr>
