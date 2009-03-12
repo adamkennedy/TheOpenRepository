@@ -1,5 +1,9 @@
 Revision history for Perl extension POE-Declare
 
+0.15 Fri 13 Mar 2009
+	- Moving package_states and params to private methods
+	- Add strict checking of constructor params
+
 0.14 Thu 12 Mar 2009
 	- Adding the initial implementation of Timeout that actually works
 

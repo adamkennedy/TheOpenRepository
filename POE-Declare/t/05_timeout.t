@@ -80,12 +80,12 @@ SCOPE: {
 	compile;
 }
 
-ok( Foo->can('timer'),           '->timer ok' );
-ok( Foo->can('timer_start'),     '->timer ok' );
+ok( Foo->can('timer'),         '->timer ok' );
+ok( Foo->can('timer_start'),   '->timer ok' );
 ok( Foo->can('timer_restart'), '->timer ok' );
-ok( Foo->can('timer_stop'),     '->timer ok' );
+ok( Foo->can('timer_stop'),    '->timer ok' );
 is_deeply(
-	[ Foo->meta->package_states ],
+	[ Foo->meta->_package_states ],
 	[ qw{
 		_alias_remove
 		_alias_set
@@ -94,7 +94,7 @@ is_deeply(
 		started
 		timer
 	} ],
-	'->package_states ok',
+	'->_package_states ok',
 );
 
 

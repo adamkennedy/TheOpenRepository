@@ -116,16 +116,16 @@ SCOPE: {
 
 	# Check the package_states method
 	is_deeply(
-		[ $meta->package_states ],
+		[ $meta->_package_states ],
 		[ '_alias_remove', '_alias_set', '_start', '_stop', 'findme', 'to' ],
-		'->package_states returns as expected',
+		'->_package_states returns as expected',
 	);
 
 	# Check the params method
 	is_deeply(
-		[ $meta->params ],
+		[ $meta->_params ],
 		[ 'Alias', 'One', 'Two' ],
-		'->params returns as expected',
+		'->_params returns as expected',
 	);
 
 	# Check various spawning related methods

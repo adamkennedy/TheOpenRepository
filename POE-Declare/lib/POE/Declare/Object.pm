@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 # Inside-out storage of internal values
@@ -129,13 +129,21 @@ or throw an exception on error.
 sub new {
 	my $class = shift;
 	my %param = @_;
+	my $self  = bless { }, $class;
+	foreach ( $class->meta->params ) {
+		$self->{$_} = delete $param{$_};
+	}
 
-	my $self  = bless { @_ }, $class;
+	# Check for unsupported params
+	if ( %param ) {
+		my $names = join ', ', sort keys %param;
+		Carp::croak("Unknown or unsupported param(s) $names");
+	}
 
 	# Clear out any accidentally set internal values
 	delete $ID{Scalar::Util::refaddr($self)};
 
-	# Set the alias
+	# Default the Alias
 	if ( exists $self->{Alias} ) {
 		unless ( Params::Util::_STRING($self->{Alias}) ) {
 			Carp::croak("Did not provide a valid Alias param, must be a string");
@@ -204,7 +212,7 @@ sub spawn {
 	POE::Session->create(
 		heap           => $self,
 		package_states => [
-			$meta->name => [ $meta->package_states ],
+			$meta->name => [ $meta->_package_states ],
 		],
 	)->ID;
 

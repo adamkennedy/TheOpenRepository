@@ -31,7 +31,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 	$DEBUG   = !! $DEBUG;
 }
 
@@ -179,26 +179,6 @@ sub super_path {
 	Class::ISA::self_and_super_path( $_[0]->name );
 }
 
-# Resolve the inline states for a class
-sub package_states {
-	my $self = shift;
-	unless ( exists $self->{package_states} ) {
-		# Cache for speed reasons
-		$self->{package_states} = [
-			sort map {
-				$_->name
-			} grep {
-				$_->isa('POE::Declare::Meta::Event')
-			} $self->attrs
-		];
-	}
-	if ( wantarray ) {
-		return @{$self->{package_states}};
-	} else {
-		return $self->{package_states};
-	}
-}
-
 =pod
 
 =head2 attr
@@ -238,14 +218,6 @@ sub attrs {
 	return values %hash;
 }
 
-sub params {
-	my $self   = shift;
-	my @params = sort map {
-		$_->name
-	} grep {
-		Params::Util::_INSTANCE($_, 'POE::Declare::Meta::Param')
-	} $self->attrs;
-}
 
 
 
@@ -321,6 +293,53 @@ sub _compile {
 # sub compiled {
 #     $_[0]->{compiled};
 # }
+
+
+
+
+
+#####################################################################
+# Run-Time Support Methods
+
+# Resolve the inline states for a class
+sub _package_states {
+	my $self = shift;
+	unless ( exists $self->{package_states} ) {
+		# Cache for speed reasons
+		$self->{package_states} = [
+			sort map {
+				$_->name
+			} grep {
+				$_->isa('POE::Declare::Meta::Event')
+			} $self->attrs
+		];
+	}
+	if ( wantarray ) {
+		return @{$self->{package_states}};
+	} else {
+		return $self->{package_states};
+	}
+}
+
+# Resolve the parameter list
+sub _params {
+	my $self = shift;
+	unless ( exists $self->{package_states} ) {
+		# Cache for speed reasons
+		$self->{params} = [
+			sort map {
+				$_->name
+			} grep {
+				$_->isa('POE::Declare::Meta::Param')
+			} $self->attrs
+		];
+	}
+	if ( wantarray ) {
+		return @{$self->{params}};
+	} else {
+		return $self->{params};
+	}
+}
 
 1;
 
