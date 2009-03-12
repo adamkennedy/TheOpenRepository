@@ -72,9 +72,20 @@ sub to_html {
 <html>
 <head><title>dualLivedDiff</title></head>
 <body>
+<p>
+This list of differences corresponds to a subset of the distributions (modules)
+that are both in core and on CPAN as separate distributions. If you maintain one of these so-called
+<i>dual-lived</i> modules, feel free to contact Steffen Mueller at his CPAN.org mail address to get your module
+included in the list. It would help if you include a YAML file mapping file such
+as those accessible below under the <i>cfg</i> links.
+</p>
+<p>
+Data generated with <a href="http://search.cpan.org/dist/App-DualLivedDiff">App::DualLivedDiff</a>.
+</p>
+<hr/>
 <table cellspacing="2" cellpadding="3" border="0">
 <tr>
-<th>Distname</th><th>Status</th><th>Diff</th><th>Length</th><th>Date of Diff</th><th>File Mapping</th>
+<th>CPAN Author</th><th>Distname</th><th>Status</th><th>Diff</th><th>Length</th><th>Date of Diff</th><th>File Mapping</th>
 </tr>
 HERE
 
@@ -90,14 +101,14 @@ HERE
     my $date = localtime($dist->{date});
 
     my $diffLink = '-';
-    my $bgcolor = '#00FF00';
+    my $bgcolor = '#66FF66';
     my $filename = md5_base64($distname) . ".txt";
     $filename =~ s/[\/:]//g;
     if ($status !~ /^ok/i) {
       open my $fh, '>', File::Spec->catfile($dir, $filename) or die $!;
       print $fh $diff;
       close $fh;
-      $bgcolor = '#FF0000';
+      $bgcolor = '#FF6666';
       $diffLink = "<a href=\"$filename\">Diff</a>";
     }
 
@@ -108,10 +119,23 @@ HERE
     print $cfh $dist->{config};
     close $cfh;
 
+    # highlight the actual dist name
+    my $html_distname = $distname;
+    $html_distname =~ s{
+      ^([^\/]+)
+      \/  (.*)
+      (
+        -[\d_\.]+
+        \. (?:zip | tar\.(?:gz|bz2))
+      )$
+    }{<b>$2<\/b>$3}x;
+    my $author = $1;
+
     my $diffLen = defined($diff) ? length($diff) : 0;
     print $ifh <<HERE;
 <tr bgcolor="$bgcolor">
-<td>$distname</td><td>$status</td><td>$diffLink</td><td align="right">$diffLen</td><td>$date</td><td>$configLink</td>
+<td>$author</td>
+<td>$html_distname</td><td>$status</td><td>$diffLink</td><td align="right">$diffLen</td><td>$date</td><td>$configLink</td>
 </tr>
 HERE
 
