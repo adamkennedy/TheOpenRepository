@@ -117,13 +117,13 @@ BEGIN {
                   'MDL/Marpa version mismatch:'
                 . " Marpa is version '$marpa_version'; "
                 . " MDL source is for version '$source_version'";
-        }
-    }
+        } ## end if ( $marpa_version ne $source_version )
+    } ## end if ( not eval ' use Marpa::Source ' )
 
     undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
         if $STRINGIFIED_EVAL_ERROR;
 
-}
+} ## end BEGIN
 
 package Marpa::Internal;
 
@@ -176,7 +176,7 @@ sub Marpa::mdl {
         push @values, $value;
     }
     return @values;
-}
+} ## end sub Marpa::mdl
 
 1;    # End of Marpa
 

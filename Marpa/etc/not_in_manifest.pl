@@ -26,6 +26,6 @@ FILE: while ( my $line = <$rdr> ) {
     next FILE if $manifest{$line};
     print "$line\n"
         or croak("Cannot print: $ERRNO");
-}
+} ## end while ( my $line = <$rdr> )
 
 close $rdr;

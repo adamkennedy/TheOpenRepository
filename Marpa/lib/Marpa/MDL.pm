@@ -24,7 +24,7 @@ sub gen_symbol_from_regex {
     $symbol .= sprintf ':k%x', ( ${$uniq_number} )++;
     $regex_hash->{$regex} = $symbol;
     return ( $symbol, 1 );
-}
+} ## end sub gen_symbol_from_regex
 
 sub canonical_symbol_name {
     my $symbol = lc shift;
@@ -37,7 +37,7 @@ sub get_symbol {
     my $symbol_name = shift;
     return Marpa::Grammar::get_symbol( $grammar,
         canonical_symbol_name($symbol_name) );
-}
+} ## end sub get_symbol
 
 1;
 

@@ -88,7 +88,7 @@ sub run_preamble {
                 code        => \$code,
             }
         );
-    }
+    } ## end if ( not $eval_ok or @warnings )
 
     return;
 
@@ -118,7 +118,7 @@ sub set_null_symbol_value {
             $rhs_symbol->[Marpa::Internal::Symbol::NULL_ALIAS] // $rhs_symbol;
         my $value = set_null_symbol_value( $null_values, $nulling_symbol );
         push @chaf_null_values, $value;
-    }
+    } ## end for my $rhs_symbol ( @{$chaf_nulling} )
     push @chaf_null_values, [];
 
     return ( $null_values->[$symbol_id] = \@chaf_null_values );
@@ -151,7 +151,7 @@ sub set_null_values {
             if $symbol->[Marpa::Internal::Symbol::IS_CHAF_NULLING];
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
         $null_values->[$id] = $default_null_value;
-    }
+    } ## end for my $symbol ( @{$symbols} )
 
     # Before tackling the CHAF symbols, set null values specified in
     # empty rules.
@@ -199,7 +199,7 @@ sub set_null_values {
                         code => \$code,
                     }
                 );
-            }
+            } ## end if ( not $eval_ok or @warnings )
             my $nulling_symbol_id =
                 $nulling_symbol->[Marpa::Internal::Symbol::ID];
             $null_values->[$nulling_symbol_id] = $null_value;
@@ -210,9 +210,9 @@ sub set_null_values {
                     " from\n", $code, "\n",
                     ' to ', Dumper( \$null_value ), "\n"
                     or croak('Could not print to trace file');
-            }
+            } ## end if ($trace_actions)
 
-        }
+        } ## end if ( defined $action and @{$rhs} <= 0 )
 
     }    # RULE
 
@@ -234,8 +234,8 @@ sub set_null_values {
                 'Setting null value for CHAF symbol ',
                 $name, ' to ', Dumper( $null_values->[$id] ),
                 or croak('Could not print to trace file');
-        }
-    }
+        } ## end for my $symbol ( @{$symbols} )
+    } ## end if ($trace_actions)
 
     return $null_values;
 
@@ -289,7 +289,7 @@ sub set_actions {
                 $action = q{push @_, [];} . "\n" . q{\@_} . "\n";
                 last ACTION;
 
-            }
+            } ## end if ($has_chaf_lhs)
 
             # at this point must have chaf rhs and not a chaf lhs
 
@@ -320,7 +320,7 @@ sub set_actions {
                 \undef;
             $rule_data->[$rule_id] = $rule_datum;
             next RULE;
-        }
+        } ## end if ( not defined $action )
 
         my $code =
             "sub {\n" . '    package ' . $package . ";\n" . $action . '}';
@@ -355,7 +355,7 @@ sub set_actions {
                         code => \$code,
                     }
                 );
-            }
+            } ## end if ( not $closure or @warnings )
         }
 
         my $rule_datum;
@@ -385,7 +385,7 @@ sub Marpa::Evaluator::new {
         next RECCE_ARG_NAME unless defined $arg_value;
         croak('recognizer specified twice') if defined $recce;
         $recce = $arg_value;
-    }
+    } ## end for my $recce_arg_name (qw(recognizer recce))
     croak('No recognizer specified') unless defined $recce;
 
     my $recce_class = ref $recce;
@@ -456,7 +456,7 @@ sub Marpa::Evaluator::new {
         next EARLEY_ITEM unless $start_rule;
         $start_item = $item;
         last EARLEY_ITEM;
-    }
+    } ## end for my $item ( @{$earley_set} )
 
     return unless $start_rule;
 
@@ -551,7 +551,7 @@ sub Marpa::Evaluator::new {
             my $symbol = $rule->[Marpa::Internal::Rule::RHS]->[$position];
             push @and_saplings, [ $rule, $position, $symbol ];
 
-        }
+        } ## end if ($is_kernel_or_node)
         else {
 
             # Closure or-node.
@@ -602,18 +602,17 @@ sub Marpa::Evaluator::new {
                     $symbol->[Marpa::Internal::Symbol::ID];
                 my $null_value = $null_values->[$nulling_symbol_id];
                 @or_bud_list = ( [ $item, undef, \$null_value, ] );
-            }
+            } ## end if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
             else {
                 @or_bud_list = (
-                    (   map { [ $_->[0], undef, \( $_->[1] ) ] } @{
-                            $item->[ Marpa::Internal::Earley_item::TOKENS ]
-                            }
+                    (   map { [ $_->[0], undef, \( $_->[1] ) ] }
+                            @{ $item->[Marpa::Internal::Earley_item::TOKENS] }
                     ),
                     (   map { [ $_->[0], $_->[1] ] }
                             @{ $item->[Marpa::Internal::Earley_item::LINKS] }
                     )
                 );
-            }
+            } ## end else [ if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
 
             for my $or_bud (@or_bud_list) {
 
@@ -723,9 +722,9 @@ sub Marpa::Evaluator::new {
             my $name = $and_node->[$field];
             next FIELD unless defined $name;
             $and_node->[$field] = $or_node_by_name{$name};
-        }
+        } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
-    }
+    } ## end for my $and_node ( map { @{ $_->[...
 
     return $self;
 
@@ -802,14 +801,14 @@ sub Marpa::Evaluator::show_bocage {
                     $text .= '; closure';
                 }
                 $text .= "\n";
-            }
+            } ## end if ($verbose)
 
         }    # for my $and_node;
 
     }    # for my $or_node
 
     return $text;
-}
+} ## end sub Marpa::Evaluator::show_bocage
 
 sub Marpa::Evaluator::show_tree {
     my $evaler  = shift;
@@ -869,7 +868,7 @@ sub Marpa::Evaluator::show_tree {
             else {
                 $text .= "\n";
             }
-        }
+        } ## end if ($verbose)
 
         $tree_position++;
 
@@ -877,7 +876,7 @@ sub Marpa::Evaluator::show_tree {
 
     return $text;
 
-}
+} ## end sub Marpa::Evaluator::show_tree
 
 sub Marpa::Evaluator::set {
     my $evaler       = shift;
@@ -886,7 +885,7 @@ sub Marpa::Evaluator::set {
     my ( $grammar, ) = @{$recce}[ Marpa::Internal::Recognizer::GRAMMAR, ];
     Marpa::Grammar::set( $grammar, $args );
     return 1;
-}
+} ## end sub Marpa::Evaluator::set
 
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
@@ -949,7 +948,7 @@ sub Marpa::Evaluator::value {
 
         $evaler->[Marpa::Internal::Evaluator::TREE] = $tree = [];
 
-    }
+    } ## end if ( not defined $tree )
     else {
 
         # If we are called with empty tree after the first parse,
@@ -957,7 +956,7 @@ sub Marpa::Evaluator::value {
         # returning failure.
         return if @{$tree} == 0;
 
-    }
+    } ## end else [ if ( not defined $tree )
 
     my @old_tree = @{$tree};
     my @last_position_by_depth;
@@ -991,7 +990,7 @@ sub Marpa::Evaluator::value {
 
                 if ( $build_node <= $tree_position ) { undef $build_node }
 
-            }
+            } ## end if ( defined $build_node )
 
             my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
 
@@ -1011,7 +1010,7 @@ sub Marpa::Evaluator::value {
                     $tree_position, q{ },
                     $or_node->[Marpa::Internal::Or_Node::NAME],
                     or croak('print to trace handle failed');
-            }
+            } ## end if ($trace_iterations)
 
             my $new_tree_node;
             @{$new_tree_node}[
@@ -1109,7 +1108,7 @@ sub Marpa::Evaluator::value {
                     $cycles_count++
                         if $or_node_name eq $parent_or_node_name
                             and $choice == $parent_choice;
-                }
+                } ## end while ( defined $parent )
 
                 # replace highball estimate with actual count
                 $cycles->{$and_node_name} = $cycles_count;
@@ -1130,7 +1129,7 @@ sub Marpa::Evaluator::value {
                     Marpa::Internal::Tree_Node::PARENT
                     ]
                     = ( $predecessor_or_node, $depth + 1, scalar @{$tree} );
-            }
+            } ## end if ( defined $predecessor_or_node )
 
             my $cause_tree_node;
             if ( defined $cause_or_node ) {
@@ -1140,7 +1139,7 @@ sub Marpa::Evaluator::value {
                     Marpa::Internal::Tree_Node::PARENT
                     ]
                     = ( $cause_or_node, $depth + 1, scalar @{$tree} );
-            }
+            } ## end if ( defined $cause_or_node )
 
             @{$new_tree_node}[
                 Marpa::Internal::Tree_Node::CHOICE,
@@ -1169,7 +1168,7 @@ sub Marpa::Evaluator::value {
                     Marpa::show_dotted_rule( $rule, $rule_position + 1 ),
                     $value_description
                     or croak('print to trace handle failed');
-            }
+            } ## end if ($trace_iterations)
 
             push @{$tree}, $new_tree_node;
 
@@ -1198,14 +1197,13 @@ sub Marpa::Evaluator::value {
 
     if ($trace_iterations) {
         say {$trace_fh} 'Nodes built: ', $nodes_built,
-            '; kept on root side: ', $build_node,
-            '; kept on leaf side: ',
+            '; kept on root side: ', $build_node, '; kept on leaf side: ',
             (
             defined $leaf_side_start_position
             ? @old_tree - $leaf_side_start_position
-            : 0 )
-            or croak('print to trace handle failed');
-    }
+            : 0
+            ) or croak('print to trace handle failed');
+    } ## end if ($trace_iterations)
 
     # Put the uniterated leaf side of the tree back on the stack.
     push @{$tree}, @old_tree[ $leaf_side_start_position .. $#old_tree ]
@@ -1221,7 +1219,7 @@ sub Marpa::Evaluator::value {
                 print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] )
                     or croak('print to trace handle failed');
             }
-        }
+        } ## end if ( $trace_values >= 3 )
 
         my ( $closure, $value_ref, $argc ) = @{$node}[
             Marpa::Internal::Tree_Node::PERL_CLOSURE,
@@ -1241,7 +1239,7 @@ sub Marpa::Evaluator::value {
                     $or_node->[Marpa::Internal::Or_Node::NAME],
                     ': ', Dumper( ${$value_ref} )
                     or croak('print to trace handle failed');
-            }
+            } ## end if ($trace_values)
 
         }    # defined $value_ref
 
@@ -1259,7 +1257,7 @@ sub Marpa::Evaluator::value {
                 $or_node->[Marpa::Internal::Or_Node::NAME],
                 ', rule: ',
                 Marpa::brief_rule($rule);
-        }
+        } ## end if ($trace_values)
 
         my $args = [ map { ${$_} } ( splice @evaluation_stack, -$argc ) ];
 
@@ -1296,7 +1294,7 @@ sub Marpa::Evaluator::value {
                             code => \$code,
                         }
                     );
-                }
+                } ## end if ( not $eval_ok or @warnings )
             }
 
         }    # when CODE
@@ -1323,7 +1321,7 @@ sub Marpa::Evaluator::value {
 
     return pop @evaluation_stack;
 
-}
+} ## end sub Marpa::Evaluator::value
 
 1;
 

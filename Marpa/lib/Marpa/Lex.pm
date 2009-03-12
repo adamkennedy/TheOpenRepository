@@ -25,7 +25,7 @@ sub gen_bracket_regex {
             | \x{5c}
         )
     }xms;
-}
+} ## end sub gen_bracket_regex
 
 my %regex_data = (
     '{' => [ '}', gen_bracket_regex( '{', '}' ) ],
@@ -61,7 +61,7 @@ sub lex_q_quote {
                 )
             }xms;
         $regex_data{$left_bracket} = $regex_data = [ undef, $regex ];
-    }
+    } ## end if ( not defined $regex_data )
     my ( $right_bracket, $regex ) = @{$regex_data};
 
     # unbracketed quote
@@ -72,9 +72,9 @@ sub lex_q_quote {
                 my $length = ( pos ${$string} ) - $start;
                 return ( substr( ${$string}, $start, $length ), $length );
             }
-        }
+        } ## end while ( ${$string} =~ /$regex/gcxms )
         return;
-    }
+    } ## end if ( not defined $right_bracket )
 
     # bracketed quote
     my $depth = 1;
@@ -88,9 +88,9 @@ sub lex_q_quote {
             my $length = ( pos ${$string} ) - $start;
             return ( substr( ${$string}, $start, $length ), $length );
         }
-    }
+    } ## end while ( ${$string} =~ /$regex/gxms )
     return;
-}
+} ## end sub lex_q_quote
 
 sub lex_regex {
     my $string       = shift;
@@ -115,7 +115,7 @@ sub lex_regex {
                 )
             }xms;
         $regex_data{$left_bracket} = $regex_data = [ undef, $regex ];
-    }
+    } ## end if ( not defined $regex_data )
     my ( $right_bracket, $regex ) = @{$regex_data};
 
     # unbracketed quote
@@ -132,10 +132,10 @@ sub lex_regex {
                     . ( substr ${$string}, $value_start,
                     $pos - $value_start );
                 return ( $value, $pos - $lexeme_start );
-            }
-        }
+            } ## end if ( $1 eq $left_bracket )
+        } ## end while ( ${$string} =~ /$regex/xmsgc )
         return;
-    }
+    } ## end if ( not defined $right_bracket )
 
     # bracketed quote
     my $depth = 1;
@@ -154,10 +154,10 @@ sub lex_regex {
                 . ( substr ${$string}, $value_start, $pos - $value_start );
             return ( $value, $pos - $lexeme_start );
 
-        }
-    }
+        } ## end if ( $depth <= 0 )
+    } ## end while ( ${$string} =~ /$regex/gxms )
     return;
-}
+} ## end sub lex_regex
 
 1;    # End of Marpa
 
