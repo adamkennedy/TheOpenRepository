@@ -1,6 +1,8 @@
 ---
+files:
+  t/compress/CompTestUtils.pm: t/lib/compress/CompTestUtils.pm
 dirs-recursive:
-  .: ext/Compress-Raw-Bzip2 
+  .: ext/Compress-Raw-Zlib
 exclude-regexes:
   - '^(?:\.?/)?META.yml$'
   - '^(?:\.?/)?MANIFEST$'
@@ -9,5 +11,4 @@ exclude-regexes:
   - '^(?:\.?/)?t/\d*pod.*\.t$'
   - '^(?:\.?/)?t/000prereq\.t$'
   - '^(?:\.?/)?t/compress/CompTestUtils\.pm$'
-files:
-  t/compress/CompTestUtils.pm: t/lib/compress/CompTestUtils.pm
+
