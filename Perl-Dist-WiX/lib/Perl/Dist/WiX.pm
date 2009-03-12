@@ -1222,11 +1222,10 @@ sub install_perl_toolchain {
         $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module_id} ? 1 : 0;
 		$self->install_distribution(
 			name              => $dist,
+			mod_name          => $self->_module_fix($module_id),
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
-			packlist =>
-			  $self->_need_packlist( $module_id ), 
 			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
 );
 	} ## end foreach my $dist ( @{ $toolchain...
@@ -1234,48 +1233,6 @@ sub install_perl_toolchain {
 	return 1;
 } ## end sub install_perl_toolchain
 
-sub _need_packlist {
-	my ( $self, $module ) = @_;
-
-	my @mods = qw(
-	  ExtUtils::MakeMaker
-	  File::Path
-	  ExtUtils::Command
-	  Win32API::File
-	  ExtUtils::Install
-	  ExtUtils::Manifest
-	  Test::Harness
-	  Test::Simple
-	  ExtUtils::CBuilder
-	  ExtUtils::ParseXS
-	  version
-	  IO::Compress::Base
-	  Compress::Raw::Zlib
-	  Compress::Raw::Bzip2
-	  IO::Compress::Zlib
-	  IO::Compress::Bzip2
-	  Compress::Zlib
-	  Compress::Bzip2
-	  IO::Zlib
-	  File::Temp
-	  Win32API::Registry
-	  Win32::TieRegistry
-	  File::HomeDir
-	  File::Which
-	  Archive::Zip
-	  IO::String
-	  YAML
-	  Digest::SHA1
-	  Digest::SHA
-	  Module::Build
-	  CPAN
-	  Text::Glob
-	  HTML::Tagset
-	  HTML::Parser
-	);
-
-	return any { $module eq $_ } @mods;
-} ## end sub _need_packlist
 
 sub install_cpan_upgrades {
 	my $self = shift;
@@ -1394,17 +1351,15 @@ END_PERL
 		$self->install_distribution(
 			name             => $module_file,
             mod_name         => $module_id,
-			packlist         => $self->_need_packlist_2($module_id),
 			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
         );
     }
 }
 
-sub _need_packlist_2 {	
+sub _need_packlist {	
 	my ( $self, $module ) = @_;
 
 	my @mods = qw(
-		Locale::Maketext
 	);
 
 	return ( none { $module eq $_ } @mods ) ? 1 : 0;
@@ -1419,8 +1374,10 @@ sub _module_fix {
 	return 'Locale-Maketext' if ($module eq 'Locale::Maketext');
 	return 'Pod' if ($module eq 'Pod::Man');
 	return 'Text' if ($module eq 'Text::Tabs');
-	
-	
+	return 'Cwd' if ($module eq 'PathTools');
+	return 'Term::ReadKey' if ($module eq 'TermReadKey');
+	return 'Term::ReadLine' if ($module eq 'Term::ReadLine::Perl');
+	return 'LWP' if ($module eq 'libwww::perl');
 	
 	return $module;
 }

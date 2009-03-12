@@ -188,6 +188,8 @@ sub initialize_tree {
 		  perl\lib\IO
 		  perl\lib\IO\Compress
 		  perl\lib\IO\Uncompress
+		  perl\lib\Locale
+		  perl\lib\Locale\Maketext
 		  perl\lib\Math
 		  perl\lib\Math\BigInt
 		  perl\lib\Module
@@ -196,6 +198,8 @@ sub initialize_tree {
 		  perl\lib\Pod
 		  perl\lib\Term
 		  perl\lib\Test
+		  perl\lib\Text
+		  perl\lib\Thread
 		  perl\lib\Time
 		  perl\lib\autodie
 		  perl\lib\auto
