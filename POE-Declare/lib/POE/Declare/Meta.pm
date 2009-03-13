@@ -256,9 +256,13 @@ sub _compile {
 	}
 
 	# Get all the package fragments
-	my @parts = map { $attr->{$_}->_compile } sort keys %$attr;
-	my @main  = ( "package " . $self->name . ";", @parts );
-	my $code  = join "\n", @main;
+	my $code  = join "\n", (
+		"package " . $self->name . ";",
+		"sub meta () { \$POE::Declare::META{'$name'} }",
+		map {
+			$attr->{$_}->_compile
+		} sort keys %$attr
+	);
 
 	# Load the code
 	if ( DEBUG ) {
@@ -304,9 +308,9 @@ sub _compile {
 # Resolve the inline states for a class
 sub _package_states {
 	my $self = shift;
-	unless ( exists $self->{package_states} ) {
+	unless ( exists $self->{_package_states} ) {
 		# Cache for speed reasons
-		$self->{package_states} = [
+		$self->{_package_states} = [
 			sort map {
 				$_->name
 			} grep {
@@ -315,18 +319,18 @@ sub _package_states {
 		];
 	}
 	if ( wantarray ) {
-		return @{$self->{package_states}};
+		return @{$self->{_package_states}};
 	} else {
-		return $self->{package_states};
+		return $self->{_package_states};
 	}
 }
 
 # Resolve the parameter list
 sub _params {
 	my $self = shift;
-	unless ( exists $self->{package_states} ) {
+	unless ( exists $self->{_params} ) {
 		# Cache for speed reasons
-		$self->{params} = [
+		$self->{_params} = [
 			sort map {
 				$_->name
 			} grep {
@@ -335,9 +339,9 @@ sub _params {
 		];
 	}
 	if ( wantarray ) {
-		return @{$self->{params}};
+		return @{$self->{_params}};
 	} else {
-		return $self->{params};
+		return $self->{_params};
 	}
 }
 

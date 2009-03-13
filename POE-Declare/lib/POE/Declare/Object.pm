@@ -89,9 +89,10 @@ and returns the L<POE::Declare::Meta> metadata object for that class.
 
 =cut
 
-sub meta {
-	POE::Declare::meta( ref $_[0] || $_[0] );
-}
+# Moved to code generation
+# sub meta ($) {
+#     POE::Declare::meta( ref $_[0] || $_[0] );
+# }
 
 
 
@@ -128,29 +129,33 @@ or throw an exception on error.
 
 sub new {
 	my $class = shift;
-	my %param = @_;
 	my $self  = bless { }, $class;
-	foreach ( $class->meta->params ) {
+	my %param = @_;
+
+	# Check the Alias
+	if ( exists $param{Alias} ) {
+		unless ( Params::Util::_STRING($param{Alias}) ) {
+			Carp::croak("Did not provide a valid Alias param, must be a string");
+		}
+		$self->{Alias} = delete $param{Alias};
+	} else {
+		$self->{Alias} = $self->meta->next_alias;
+	}
+
+	# Check and default params
+	foreach ( $class->meta->_params ) {
+		next unless exists $param{$_};
 		$self->{$_} = delete $param{$_};
 	}
 
 	# Check for unsupported params
 	if ( %param ) {
 		my $names = join ', ', sort keys %param;
-		Carp::croak("Unknown or unsupported param(s) $names");
+		die("Unknown or unsupported $class param(s) $names");
 	}
 
 	# Clear out any accidentally set internal values
 	delete $ID{Scalar::Util::refaddr($self)};
-
-	# Default the Alias
-	if ( exists $self->{Alias} ) {
-		unless ( Params::Util::_STRING($self->{Alias}) ) {
-			Carp::croak("Did not provide a valid Alias param, must be a string");
-		}
-	} else {
-		$self->{Alias} = $self->meta->next_alias;
-	}
 
 	$self;
 }
