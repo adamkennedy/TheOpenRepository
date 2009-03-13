@@ -37,3 +37,6 @@
 
 # Test::Kwalitee cache files.
 ^Debian_CPANTS\.txt
+
+# Debian package control files
+^debian/
