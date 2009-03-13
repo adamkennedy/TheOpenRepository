@@ -616,46 +616,6 @@ sub delay_adjust {
 
 
 #####################################################################
-# Timeout Support
-
-=pod
-
-=head2 timeout_start 
-
-  # Declare a timer event
-  sub event : Timeout(30) {
-    # Do something
-  }
-  
-  # Start a 5 minute timeout
-  $object->timeout_start(300);
-
-The C<timeout_start> method starts an alarm timer for a named C<Timeout>
-event.
-
-=cut
-
-sub timeout_start {
-	my $self = shift;
-	my $name = shift;
-
-	# Check params
-	my $attr = $self->meta->attr($name);
-	unless ( $attr and $attr->isa('POE::Declare::Meta::Timeout') ) {
-		Carp::croak("Slot '$name' does not exist or not a timeout");
-	}
-	my $delay = shift or $attr->delay;
-
-	# Kick off the POE timer
-	my $id = $self->delay_set( $name => $delay );
-	
-}
-
-
-
-
-
-#####################################################################
 # message Support
 
 # Dispatch a message, if registered
