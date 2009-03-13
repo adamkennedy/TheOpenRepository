@@ -50,17 +50,18 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = new Marpa::Evaluator( {
-        recce => $recce,
-        end => $i
-    } );
+    my $evaler = new Marpa::Evaluator(
+        {   recce => $recce,
+            end   => $i
+        }
+    );
     my $result = $evaler->value();
     $total_count++;
     if ( $answer[$i] ne ${$result} ) {
         diag( 'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
         $failure_count++;
     }
-}
+} ## end for my $i ( 0 .. 4 )
 
 ok( !$failure_count,
     ( $total_count - $failure_count )

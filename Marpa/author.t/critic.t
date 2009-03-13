@@ -55,9 +55,9 @@ sub run_critic {
             $critic_output .= "$error_message\n";
         }
         return \$critic_output;
-    }
+    } ## end if ( my $child_error = $CHILD_ERROR )
     return q{};
-}
+} ## end sub run_critic
 
 open my $manifest, '<', 'MANIFEST'
     or croak("open of MANIFEST failed: $ERRNO");
@@ -98,10 +98,10 @@ FILE: for my $file (@test_files) {
               "perlcritic for $file: "
             . ( scalar @newlines )
             . ' lines of warnings';
-    }
+    } ## end if ($warnings)
     ok( $clean, $message );
     next FILE if $clean;
     print {$error_file} "=== $file ===\n" . ${$warnings}
         or croak("print failed: $ERRNO");
-}
+} ## end for my $file (@test_files)
 close $error_file;

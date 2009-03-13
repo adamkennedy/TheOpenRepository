@@ -1513,7 +1513,7 @@ in_file($_, 't/ah2.t');
 =end Marpa::Test::Display:
 
     my $a = $grammar->get_symbol('a');
-    $recce->earleme([$a, 'a', 1]) or croak('Parsing exhausted');
+    $recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
 
 The C<earleme> method takes zero or more arguments.
 Each argument represents a token which starts at the B<current earleme>.
