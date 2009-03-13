@@ -26,10 +26,9 @@ my $tree = Perl::Dist::WiX::DirectoryTree->new(
 );
 ok($tree, '->new returns true');
 
-# Test 2. (Test 3 at line xx)
+# Test 2.
               
-my $string_test = 
-'    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
+my $string_test =  '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'INSTALLDIR\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
           <Directory Id=\'D_F717B51E_5E57_329A_83A3_527819908145\' Name=\'bin\' />
@@ -39,6 +38,11 @@ my $string_test =
             <Directory Id=\'D_8AF15C79_FA45_36B3_ABD8_B31D41B582AF\' Name=\'CPAN\'>
               <Directory Id=\'D_53747424_89F4_3095_82EF_4C1A8B35027F\' Name=\'API\' />
             </Directory>
+            <Directory Id=\'D_9B15C326_D2AD_3F05_8480_FB76CEF4C35A\' Name=\'CPANPLUS\'>
+              <Directory Id=\'D_ED001608_7377_3EF1_ABF8_DBC04B048064\' Name=\'Dist\' />
+              <Directory Id=\'D_86FAECA8_D6D9_3A8E_BC20_2E626F2BE0DF\' Name=\'Internals\' />
+            </Directory>
+            <Directory Id=\'D_152F3CF8_314D_3F98_A249_392EE0A5C9DC\' Name=\'Devel\' />
             <Directory Id=\'D_EB3DFBB1_E121_3F57_936E_2781FB7977D5\' Name=\'Digest\' />
             <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\' />
             <Directory Id=\'D_32453E8B_BBCD_3F54_B2C1_813C273C0847\' Name=\'File\' />
@@ -49,11 +53,21 @@ my $string_test =
               <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\' />
               <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\' />
             </Directory>
+            <Directory Id=\'D_C8B207D4_21D6_3F1F_8CC8_4F7670CD8BCD\' Name=\'Locale\'>
+              <Directory Id=\'D_E0C4B2B5_C4E4_3EA1_A27B_D1BC6CE444CF\' Name=\'Maketext\' />
+            </Directory>
+            <Directory Id=\'D_27461A25_5034_3D89_AD5D_50A5E3CD5BA9\' Name=\'Math\'>
+              <Directory Id=\'D_4FF80E77_1B9F_3235_99FE_55B711F7CAD1\' Name=\'BigInt\' />
+            </Directory>
             <Directory Id=\'D_CE106BF1_5EE2_3816_9A2D_0F00286C6749\' Name=\'Module\'>
               <Directory Id=\'D_4EB1F21D_6BEF_3CD6_AF16_A13DE1410E56\' Name=\'Build\' />
             </Directory>
+            <Directory Id=\'D_472DF1A0_222E_3479_B1E5_172B6AF84738\' Name=\'Net\' />
             <Directory Id=\'D_3E78F079_73DD_3DAA_912F_209CEC68903D\' Name=\'Pod\' />
+            <Directory Id=\'D_32E5A173_2C22_3AED_B76B_C90550094A4C\' Name=\'Term\' />
             <Directory Id=\'D_13EF26F9_C8E9_3439_9DD2_CE1506EF2826\' Name=\'Test\' />
+            <Directory Id=\'D_E03DC170_1409_37D7_BCC0_FC44AF896C8F\' Name=\'Text\' />
+            <Directory Id=\'D_46AD6F6D_D148_3BE4_AFA8_CAE080280AC2\' Name=\'Thread\' />
             <Directory Id=\'D_CF3A962C_7210_3ECB_AF74_B6CD04EB0C5A\' Name=\'Time\' />
             <Directory Id=\'D_E0D6BA76_D23F_3DB8_95B0_0127F8C4670F\' Name=\'autodie\' />
             <Directory Id=\'D_1EAEB13C_294E_3325_BC3B_135FE6E21463\' Name=\'auto\'>
@@ -201,9 +215,14 @@ my $string = $tree->as_string;
 
 is($string, q{}, 'Stringifies correctly when uninitialized');    
 
-# Test 4
+# Test 3
 
 $tree->initialize_tree; $string = $tree->as_string;
+
+# require Data::Dumper;
+# my $d = Data::Dumper->new([$string], [qw(string)]);
+# print $d->Indent(1)->Dump();
+# exit;
 
 is($string, $string_test, 'Stringifies correctly once initialized');    
 

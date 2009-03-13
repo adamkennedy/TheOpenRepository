@@ -1,0 +1,8 @@
+1. Create an Alien::WiX distribution and depend on it (0.170)
+
+2. Handle installing distributions that only contain a Build.PL 
+   by executing the Build.PL (instead of throwing an exception)
+   in install_distribution. (0.170? 0.180?)
+
+3. Create a distribution for handling the XML-generating parts 
+   of Perl::Dist::WiX and depend on it (0.180? 0.190?)

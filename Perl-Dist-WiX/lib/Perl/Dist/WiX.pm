@@ -39,15 +39,16 @@ use     IO::String            qw();
 use     IO::Handle            qw();
 use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
+use     Module::CoreList 2.17 qw();
 use     PAR::Dist             qw();
 use     Probe::Perl           qw();
 use     SelectSaver           qw();
 use     Template              qw();
-use     Module::CoreList 2.17 qw();
+use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.155');
+use version; $VERSION = qv('0.158');
 
 use Object::Tiny qw(
   perl_version
@@ -405,10 +406,11 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		) if ( $our_perl_location eq $perl_location );
 
 		PDWiX::Parameter->throw(
-			parameter => ' image_dir : cannot contain two consecutive slashes ',
-			where     => '->new'
-		) if ( $params{image_dir} =~ m{\\\\}ms ); 
-		
+			parameter =>
+			  ' image_dir : cannot contain two consecutive slashes ',
+			where => '->new'
+		) if ( $params{image_dir} =~ m{\\\\}ms );
+
 		$class->remake_path( $params{image_dir} );
 	} ## end if ( defined $params{image_dir...
 	unless ( defined $params{perl_version} ) {
@@ -1184,8 +1186,8 @@ sub install_perl_toolchain {
 		PDWiX->throw('Failed to generate toolchain distributions');
 	}
 
-    my ($core, $module_id);
-    
+	my ( $core, $module_id );
+
 	# Install the toolchain dists
 	foreach my $dist ( @{ $toolchain->{dists} } ) {
 		my $automated_testing = 0;
@@ -1217,22 +1219,23 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-        
-        $module_id = $self->_name_to_module($dist);
-        $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module_id} ? 1 : 0;
+
+		$module_id = $self->_name_to_module($dist);
+		$core =
+		  exists $Module::CoreList::version{ $self->perl_version_literal }
+		  {$module_id} ? 1 : 0;
 		$self->install_distribution(
 			name              => $dist,
 			mod_name          => $self->_module_fix($module_id),
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
-			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
-);
+			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+		);
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	return 1;
 } ## end sub install_perl_toolchain
-
 
 sub install_cpan_upgrades {
 	my $self = shift;
@@ -1240,7 +1243,7 @@ sub install_cpan_upgrades {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-    
+
 	# Generate the CPAN installation script
 	my $cpan_string = <<'END_PERL';
 print "Loading CPAN...\\n";
@@ -1329,34 +1332,41 @@ END_PERL
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;
 
-	my $cpan_info = catfile( rel2abs(curdir()), 'cpan.info' );
-    my $module_info = retrieve $cpan_info;
-    my ($core, $module_file, $module_id);
-    
-	require CPAN;
-    for my $module (@{$module_info}) {
-        # DON'T try to install Perl.
-        next if $module->cpan_file =~ m{/perl-5\.}msx;
-        # If the ID is CGI::Carp, there's a bug in the index.
-        next if $module->id eq 'CGI::Carp';
-		# Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
-        if ($module->cpan_file =~ m{/Test-Harness-Straps-\d}msx) {
-			$self->install_module(name => 'Test::Harness::Straps');
-			next;
-		}	
-		
-        $core = exists $Module::CoreList::version{$self->perl_version_literal}{$module->id} ? 1 : 0;
-        $module_file = substr($module->cpan_file, 5);
-		$module_id = $self->_module_fix($module->id);
-		$self->install_distribution(
-			name             => $module_file,
-            mod_name         => $module_id,
-			$core ? (makefilepl_param => ['INSTALLDIRS=perl']) : (),
-        );
-    }
-}
+	my $cpan_info = catfile( rel2abs( curdir() ), 'cpan.info' );
+	my $module_info = retrieve $cpan_info;
+	my ( $core, $module_file, $module_id );
 
-sub _need_packlist {	
+	require CPAN;
+	for my $module ( @{$module_info} ) {
+
+		# DON'T try to install Perl.
+		next if $module->cpan_file =~ m{/perl-5\.}msx;
+
+		# If the ID is CGI::Carp, there's a bug in the index.
+		next if $module->id eq 'CGI::Carp';
+
+# Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
+		if ( $module->cpan_file =~ m{/Test-Harness-Straps-\d}msx ) {
+			$self->install_module( name => 'Test::Harness::Straps' );
+			next;
+		}
+
+		$core =
+		  exists $Module::CoreList::version{ $self->perl_version_literal }
+		  { $module->id } ? 1 : 0;
+		$module_file = substr $module->cpan_file, 5;
+		$module_id = $self->_module_fix( $module->id );
+		$self->install_distribution(
+			name     => $module_file,
+			mod_name => $module_id,
+			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+		);
+	} ## end for my $module ( @{$module_info...
+
+	return 1;
+} ## end sub install_cpan_upgrades
+
+sub _need_packlist {
 	my ( $self, $module ) = @_;
 
 	my @mods = qw(
@@ -1368,19 +1378,19 @@ sub _need_packlist {
 sub _module_fix {
 	my ( $self, $module ) = @_;
 
-	return 'CGI' if ($module eq 'CGI.pm');
-	return 'autodie' if ($module eq 'Fatal');
-	return 'Filter' if ($module eq 'Filter::Util::Call');
-	return 'Locale-Maketext' if ($module eq 'Locale::Maketext');
-	return 'Pod' if ($module eq 'Pod::Man');
-	return 'Text' if ($module eq 'Text::Tabs');
-	return 'Cwd' if ($module eq 'PathTools');
-	return 'Term::ReadKey' if ($module eq 'TermReadKey');
-	return 'Term::ReadLine' if ($module eq 'Term::ReadLine::Perl');
-	return 'LWP' if ($module eq 'libwww::perl');
-	
+	return 'CGI'             if ( $module eq 'CGI.pm' );
+	return 'autodie'         if ( $module eq 'Fatal' );
+	return 'Filter'          if ( $module eq 'Filter::Util::Call' );
+	return 'Locale-Maketext' if ( $module eq 'Locale::Maketext' );
+	return 'Pod'             if ( $module eq 'Pod::Man' );
+	return 'Text'            if ( $module eq 'Text::Tabs' );
+	return 'Cwd'             if ( $module eq 'PathTools' );
+	return 'Term::ReadKey'   if ( $module eq 'TermReadKey' );
+	return 'Term::ReadLine'  if ( $module eq 'Term::ReadLine::Perl' );
+	return 'LWP'             if ( $module eq 'libwww::perl' );
+
 	return $module;
-}
+} ## end sub _module_fix
 
 sub install_cpan_upgrades_old {
 	my $self = shift;
@@ -1441,7 +1451,7 @@ END_PERL
 	$self->insert_fragment( 'upgraded_modules', $fl->files );
 
 	return 1;
-} ## end sub install_cpan_upgrades
+} ## end sub install_cpan_upgrades_old
 
 # No additional modules by default
 sub install_perl_modules {
@@ -2072,7 +2082,31 @@ sub install_perl_5100_bin {
 		$self->trace_line( 1, "Building perl...\n" );
 		$self->_make;
 
-		unless ( $perl->force ) {
+		my $long_build =
+		  Win32::GetLongPathName( rel2abs( $self->build_dir ) );
+
+		if ( ( not $perl->force ) && ( $long_build =~ /\s/ms ) ) {
+			$self->trace_line( 0, <<"EOF");
+***********************************************************
+* Perl 5.10.0 cannot be tested at this point.
+* Because the build directory
+* $long_build
+* contains spaces when it becomes a long name,
+* testing the CPANPLUS module fails in 
+* lib/CPANPLUS/t/15_CPANPLUS-Shell.t
+* 
+* You may wish to build perl within a directory
+* that does not contain spaces by setting the build_dir
+* (or temp_dir, which sets the build_dir indirectly if
+* build_dir is not specified) parameter to new to a 
+* directory that does not contain spaces.
+*
+* -- csjewell\@cpan.org
+***********************************************************
+EOF
+		} ## end if ( ( not $perl->force...
+
+		unless ( ( $perl->force ) or ( $long_build =~ /\s/ms ) ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->trace_line( 1, "Testing perl...\n" );
 			$self->_make('test');
@@ -2093,7 +2127,6 @@ sub install_perl_5100_bin {
 
 	return 1;
 } ## end sub install_perl_5100_bin
-
 
 
 #####################################################################
@@ -2764,7 +2797,9 @@ sub install_distribution {
 	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$self->trace_line(0, "***** Module being installed $module requires packlist => 0 *****\n");
+		$self->trace_line( 5,
+			    "***** Module being installed $module"
+			  . " requires packlist => 0 *****\n" );
 	}
 
 	# Download the file
@@ -2788,10 +2823,10 @@ sub install_distribution {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
-	unless ( -r catfile($unpack_to, 'Makefile.PL') ) {
+	unless ( -r catfile( $unpack_to, 'Makefile.PL' ) ) {
 		PDWiX->throw("Could not find Makefile.PL in $unpack_to\n");
 	}
-	
+
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
@@ -3002,7 +3037,9 @@ END_PERL
 	if ( not $packlist_flag ) {
 		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$self->trace_line(0, "***** Module being installed $name requires packlist => 0 *****\n");
+		$self->trace_line( 5,
+			    "***** Module being installed $name"
+			  . " requires packlist => 0 *****\n" );
 	}
 
 	# Dump the CPAN script to a temp file and execute
@@ -3106,7 +3143,8 @@ sub install_par {
 	my $io = IO::String->new($output);
 	my $packlist;
 
-	{                                  # When $saved goes out of context, STDOUT will be restored.
+	# When $saved goes out of context, STDOUT will be restored.
+	{
 		my $saved = SelectSaver->new($io);
 
 		# Create Asset::Par object.
@@ -3763,6 +3801,11 @@ sub _run3 {
 		next if -f catfile( $p, 'dmake.exe' );
 		next if -f catfile( $p, 'perl.exe' );
 
+		# Strip any path that contains either unzip or gzip.exe.
+		# These two programs cause perl to fail its own tests.
+		next if -f catfile( $p, 'unzip.exe' );
+		next if -f catfile( $p, 'gzip.exe' );
+
 		push @keep, $p;
 	} ## end foreach my $p (@path)
 
@@ -3771,6 +3814,8 @@ sub _run3 {
 	local $ENV{INCLUDE}  = undef;
 	local $ENV{PERL5LIB} = undef;
 	local $ENV{PATH}     = $self->get_env_path . q{;} . join q{;}, @keep;
+
+	$self->trace_line( 3, "Path during _run3: $ENV{PATH}\n" );
 
 	# Execute the child process
 	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout,
@@ -3799,7 +3844,8 @@ sub _extract {
 	if ( $from =~ m{\.zip\z}ms ) {
 		my $zip = Archive::Zip->new($from);
 
-# I can't just do an extractTree here, as I'm trying to keep track of what got extracted.
+# I can't just do an extractTree here, as I'm trying to
+# keep track of what got extracted.
 		my @members = $zip->members();
 
 		foreach my $member (@members) {

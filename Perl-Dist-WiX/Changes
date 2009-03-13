@@ -1,5 +1,19 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.160   Fri 13 Mar 2009
+    1. install_cpan_upgrades goes through and gets a 
+	   list of installations to call install_distribution
+	   on instead of installing all of the distributions
+	   at once using CPAN::Shell::uptodate.
+	2. _run3 removes directories containing unzip.exe 
+	   and gzip.exe from the path (causes perl's
+	   'make test' to fail if this is not done).
+	3. Checks for spaces in build directory when testing
+	   perl 5.10.0 (Testing CPANPLUS::Shell will fail.)
+	   Adds Win32 to dependencies, but it was being used
+	   in testing anyway.
+	4. Add TODO list.
+
 0.150   Thu  5 Mar 2009
 	1. Added a digit to the version number because 
 	   having a version numbered 0.1401 messed the 
