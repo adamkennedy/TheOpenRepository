@@ -1,5 +1,9 @@
 Revision history for Perl extension POE-Declare
 
+0.17 Fri 13 Mar 2009
+	- Adding POD documentation for _alias_remove
+	- Moving the events into their own documentation section
+
 0.16 Fri 13 Mar 2009
 	- Adding missing Test::Exception dependency
 	- Dropping the superfluous timeout_start method

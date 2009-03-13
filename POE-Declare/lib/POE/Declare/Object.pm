@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.16';
+	$VERSION = '0.17';
 }
 
 # Inside-out storage of internal values
@@ -282,105 +282,6 @@ use constant kernel => $poe_kernel;
 
 
 #####################################################################
-# Default Events
-
-=pod
-
-=head2 _start
-
-The default C<_start> implementation is used to register the alias for
-the heap object with the kernel. As such, if you need to do your own
-tasks in C<_start> you should always call it first.
-
-  sub _start {
-      my $self = $_[HEAP];
-      $_[0]->SUPER::_start(@_[1..$#_]);
-
-      # Additional tasks here
-      ...
-  }
-
-Please note though that the super call will break @_ in the current
-subroutine, and so you should not use C<$_[KERNEL]> style expressions
-after the SUPER call.
-
-=cut
-
-sub _start : Event {
-	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
-	$poe_kernel->call( $_[SESSION], '_alias_set');
-}
-
-=pod
-
-=head2 _stop
-
-The default C<_stop> implementation is used to clean up our resources
-and aliases in the kernel. As such, if you need to do your own
-tasks in C<_stop> you should always do them first and then call the
-SUPER last.
-
-  sub _stop {
-      my $self = $_[HEAP];
-
-      # Additional tasks here
-      ...
-
-      shift->SUPER::_stop(@_);
-  }
-
-=cut
-
-sub _stop : Event {
-	delete $ID{Scalar::Util::refaddr($_[HEAP])};
-}
-
-=pod
-
-=head2 _alias_set
-
-During the period in which a L<POE::Declare> object is active, it will
-register an alias with the L<POE> kernel (so that the session will not be
-cleaned up if it has no queued events of it's own and it only waiting for
-other sessions to send it a message).
-
-The C<_alias_set> method (which takes no parameters) will set the alias
-for the current object. This will be done automatically for you during
-the C<spawn> process (in the C<_start> event).
-
-=cut
-
-sub _alias_set : Event {
-	### This will fail is sessions have clashing aliases
-	my $alias = $_[HEAP]->Alias;
-	unless ( defined $poe_kernel->alias_resolve($alias) ) {
-		if ( $poe_kernel->alias_set($alias) ) {
-			# Failed to set alias
-			Carp::croak("Failed to set alias '$alias'");
-		}
-	}
-}
-
-sub _alias_remove : Event {
-	my $self    = $_[HEAP];
-	my $alias   = $self->Alias;
-	my $session = $poe_kernel->alias_resolve($alias);
-	my $poe_id  = $session->ID;
-	my $self_id = $ID{Scalar::Util::refaddr($self)};
-	unless ( defined $poe_id and defined $self_id ) {
-		return;
-	}
-	unless ( $poe_id == $self_id ) {
-		Carp::croak("Session id mismatch error");
-	}
-	$poe_kernel->alias_remove($alias);
-}
-
-
-
-
-
-#####################################################################
 # POE::Session Wrappers
 
 =pod
@@ -616,7 +517,7 @@ sub delay_adjust {
 
 
 #####################################################################
-# message Support
+# Message Support
 
 # Dispatch a message, if registered
 sub send_message {
@@ -674,6 +575,128 @@ sub is_message {
 
 	# Otherwise, not valid
 	Carp::croak('Invalid callback event handler');
+}
+
+
+
+
+
+#####################################################################
+# Events
+
+=pod
+
+=head1 EVENTS
+
+The following POE events are provided for all classes
+
+=head2 _start
+
+The default C<_start> implementation is used to register the alias for
+the heap object with the kernel. As such, if you need to do your own
+tasks in C<_start> you should always call it first.
+
+  sub _start {
+      my $self = $_[HEAP];
+      $_[0]->SUPER::_start(@_[1..$#_]);
+
+      # Additional tasks here
+      ...
+  }
+
+Please note though that the super call will break @_ in the current
+subroutine, and so you should not use C<$_[KERNEL]> style expressions
+after the SUPER call.
+
+=cut
+
+sub _start : Event {
+	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
+	$poe_kernel->call( $_[SESSION], '_alias_set');
+}
+
+=pod
+
+=head2 _stop
+
+The default C<_stop> implementation is used to clean up our resources
+and aliases in the kernel. As such, if you need to do your own
+tasks in C<_stop> you should always do them first and then call the
+SUPER last.
+
+  sub _stop {
+      my $self = $_[HEAP];
+
+      # Additional tasks here
+      ...
+
+      shift->SUPER::_stop(@_);
+  }
+
+=cut
+
+sub _stop : Event {
+	delete $ID{Scalar::Util::refaddr($_[HEAP])};
+}
+
+=pod
+
+=head2 _alias_set
+
+During the period in which a L<POE::Declare> object is active, it will
+register an alias with the L<POE> kernel (so that the session will not be
+cleaned up if it has no queued events of it's own and it only waiting for
+other sessions to send it a message).
+
+The C<_alias_set> method (which takes no parameters) will set the alias
+for the current object. This will be done automatically for you during
+the C<spawn> process (in the C<_start> event).
+
+=cut
+
+sub _alias_set : Event {
+	### This will fail is sessions have clashing aliases
+	my $alias = $_[HEAP]->Alias;
+	unless ( defined $poe_kernel->alias_resolve($alias) ) {
+		if ( $poe_kernel->alias_set($alias) ) {
+			# Failed to set alias
+			Carp::croak("Failed to set alias '$alias'");
+		}
+	}
+}
+
+=pod
+
+=head2 _alias_remove
+
+Each L<POE::Declare> object has a POE session and a unique alias, which is
+registered with the POE core when it is spawned.
+
+Even if no events, timers, callbacks or handles are registered for the
+session, the existance of the alias will keep the session alive.
+
+The C<_alias_remove> event is used to trigger the stopping of the session
+as soon as all currently live events have been cleared.
+
+This method is usually called at the beginning of a shutdown process, to
+indicate that the session is no longer permanent and should shutdown when
+possible.
+
+=cut
+
+sub _alias_remove : Event {
+	my $self    = $_[HEAP];
+	my $alias   = $self->Alias;
+	my $session = $poe_kernel->alias_resolve($alias);
+	my $poe_id  = $session->ID;
+	my $self_id = $ID{Scalar::Util::refaddr($self)};
+	unless ( defined $poe_id and defined $self_id ) {
+		return;
+	}
+	unless ( $poe_id == $self_id ) {
+		Carp::croak("Session id mismatch error");
+	}
+	$poe_kernel->alias_remove($alias);
 }
 
 
