@@ -24,7 +24,7 @@ POE::Declare::Meta::Timeout - A named timeout event with support methods
       $_[SELF]->request_timeout_stop;
       $_[SELF]->{parent}->post('child_response', $_[ARG0]);
   }
-
+  
   # Did not get a response
   sub request_timeout : Timeout(30) {
       # Take some action
@@ -46,7 +46,7 @@ use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.17';
+	$VERSION = '0.18';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 
@@ -66,7 +66,6 @@ sub _compile {
 	my $name  = $_[0]->{name};
 	my $delay = $_[0]->{delay};
 	return <<"END_PERL";
-
 sub ${name}_start {
 	my \$self = (\@_ == 1) ? \$_[0] : \$_[HEAP];
 	if ( \$self->{$name} ) {
@@ -127,7 +126,6 @@ sub ${name}_stop {
 	);
 	return 1;
 }
-
 END_PERL
 }
 

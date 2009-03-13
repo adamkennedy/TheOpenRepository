@@ -13,8 +13,9 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   use strict;
   use POE::Declare;
   
-  declare foo => 'Attribute';
-  declare bar => 'Internal';
+  declare foo          => 'Attribute';
+  declare bar          => 'Internal';
+  declare TimeoutError => 'Message';
   
   sub hello : Event {
       print "Hello World!\n";
@@ -22,6 +23,9 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   
   sub hello_timeout : Timeout(30) {
       print "Alas, I die!\n";
+  
+      # Tell our parent as well
+      $_[SELF]->TimeoutError;
   }
   
   1;
@@ -149,7 +153,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.17';
+	$VERSION = '0.18';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 

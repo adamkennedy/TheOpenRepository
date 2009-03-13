@@ -31,7 +31,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.17';
+	$VERSION = '0.18';
 	$DEBUG   = !! $DEBUG;
 }
 
@@ -342,6 +342,26 @@ sub _params {
 		return @{$self->{_params}};
 	} else {
 		return $self->{_params};
+	}
+}
+
+# Resolve the message list
+sub _messages {
+	my $self = shift;
+	unless ( exists $self->{_messages} ) {
+		# Cache for speed reasons
+		$self->{_messages} = [
+			sort map {
+				$_->name
+			} grep {
+				$_->isa('POE::Declare::Meta::Message')
+			} $self->attrs
+		];
+	}
+	if ( wantarray ) {
+		return @{$self->{_messages}};
+	} else {
+		return $self->{_messages};
 	}
 }
 

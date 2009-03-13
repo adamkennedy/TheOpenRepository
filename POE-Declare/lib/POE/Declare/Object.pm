@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.17';
+	$VERSION = '0.18';
 }
 
 # Inside-out storage of internal values
@@ -129,6 +129,7 @@ or throw an exception on error.
 
 sub new {
 	my $class = shift;
+	my $meta  = $class->meta;
 	my $self  = bless { }, $class;
 	my %param = @_;
 
@@ -139,11 +140,11 @@ sub new {
 		}
 		$self->{Alias} = delete $param{Alias};
 	} else {
-		$self->{Alias} = $self->meta->next_alias;
+		$self->{Alias} = $meta->next_alias;
 	}
 
 	# Check and default params
-	foreach ( $class->meta->_params ) {
+	foreach ( $meta->_params ) {
 		next unless exists $param{$_};
 		$self->{$_} = delete $param{$_};
 	}
@@ -154,10 +155,48 @@ sub new {
 		die("Unknown or unsupported $class param(s) $names");
 	}
 
+	# Check and normalize message registration
+	foreach ( $meta->_messages ) {
+		$self->{$_} = _CALLBACK($self->{$_});
+	}
+
 	# Clear out any accidentally set internal values
 	delete $ID{Scalar::Util::refaddr($self)};
 
 	$self;
+}
+
+# Check the validity of a provided message handler.
+sub _CALLBACK {
+	my $it = $_[1];
+
+	# The callback is an anonymous subroutine
+	return $it if Params::Util::_CODE($it);
+
+	# Otherwise, we also allow a reference to an array,
+	# which contains two identifiers (like foo_bar).
+	# This will be converted to a call to the relevant
+	# POE session.event
+	if (
+		Params::Util::_ARRAY0($it)
+		and
+		scalar(@$it) == 2
+		and
+		Params::Util::_IDENTIFIER($it->[0])
+		and
+		Params::Util::_IDENTIFIER($it->[1])
+	) {
+		# Create a closure for the call
+		my $session = $it->[0];
+		my $event   = $it->[1];
+		my $closure = sub {
+			$poe_kernel->call( $session, $event, @_ );
+		};
+		return $closure;
+	}
+
+	# Otherwise, not valid
+	Carp::croak('Invalid message event handler');
 }
 
 =pod
@@ -510,71 +549,6 @@ heap object's session.
 sub delay_adjust {
 	shift;
 	$poe_kernel->delay_adjust( @_ );
-}
-
-
-
-
-
-#####################################################################
-# Message Support
-
-# Dispatch a message, if registered
-sub send_message {
-	my ($self, $name) = @_;
-	return unless $self->{$name};
-	return $self->{$name}->( $self->Alias, @_ );
-}
-
-=pod
-
-=head2 set_message
-
-The C<set_message> method is used to set or change a callback event
-registration after the initial creation of the object.
-
-=cut
-
-sub set_message {
-	unless ( $_[0]->{__callback}->{$_[1]} ) {
-		Carp::croak("The callback event $_[1] does not exist");
-	}
-	$_[0]->{$_[1]} = _CALLBACK($_[2]);
-	return 1;
-}
-
-# Check the validity of a provided message handler,
-# dying if not valid.
-sub is_message {
-	my $it = $_[1];
-
-	# The callback is an anonymous subroutine
-	return $it if Params::Util::_CODE($it);
-
-	# Otherwise, we also allow a reference to an array,
-	# which contains two identifiers (like foo_bar).
-	# This will be converted to a call to the relevant
-	# POE session.event
-	if (
-		Params::Util::_ARRAY0($it)
-		and
-		scalar(@$it) == 2
-		and
-		Params::Util::_IDENTIFIER($it->[0])
-		and
-		Params::Util::_IDENTIFIER($it->[1])
-	) {
-		# Create a closure for the call
-		my $session = $it->[0];
-		my $event   = $it->[1];
-		my $closure = sub {
-			$poe_kernel->call( $session, $event, @_ );
-		};
-		return $closure;
-	}
-
-	# Otherwise, not valid
-	Carp::croak('Invalid callback event handler');
 }
 
 
