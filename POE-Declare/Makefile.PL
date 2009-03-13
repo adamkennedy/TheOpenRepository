@@ -10,6 +10,7 @@ requires      'Class::ISA'          => '0.33';
 requires      'Class::XSAccessor'   => '0.14';
 requires      'POE'                 => '1.003';
 test_requires 'Test::More'          => '0.80';
+test_requires 'Test::Exception'     => '0.27';
 test_requires 'Test::NoWarnings'    => '0.084';
 test_requires 'Test::POE::Stopping' => '0.02';
 
