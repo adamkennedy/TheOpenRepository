@@ -33,7 +33,7 @@ my $g = new Marpa::Grammar(
 
 $g->set(
     {
-    #<<<
+    #<<< perltidy flattens this
     terminals => [
         [ 'a' => { regex => 'a' } ],
     ],
