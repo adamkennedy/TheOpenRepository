@@ -1,0 +1,43 @@
+NAME
+    Env::Constant - Exporting %ENV as constants
+
+SYNOPSIS
+      use Env::Constant qr/^PAR/;
+  
+      # This will fail at compile time if the $ENV{PAR_PROGNAME}
+      # environment variable didn't exist:
+      print ENV_PAR_PROGNAME, "\n";
+  
+      # regular constant sub, works fully qualified, too!
+      package Foo;
+      print main::ENV_PAR_PROGNAME, "\n"; 
+
+DESCRIPTION
+    This module exports a part or all of the environment variables in %ENV
+    as constants with the "ENV_" prefix. You can select the
+
+  EXPORT
+    All contents of the %ENV hash by default as constants with a "ENV_"
+    prefix. You can limit this to a part of %ENV by supplying a regular
+    expression for matching against the keys.
+
+CAVEATS
+    You cannot export environment variables that contain characters that
+    would be invalid in a Perl subroutine (aka constant) name. Such
+    environment variables are warned about and then skipped.
+
+SEE ALSO
+    "constant"
+
+    "perlvar"
+
+AUTHOR
+    Steffen Mueller, <smueller@cpan.org>
+
+COPYRIGHT AND LICENSE
+    Copyright (C) 2009 by Steffen Mueller
+
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, either Perl version 5.6 or, at your
+    option, any later version of Perl 5 you may have available.
+
