@@ -8,7 +8,7 @@ BEGIN {
 }
 
 END {print "not ok 1\n" unless $loaded;}
-use v5.6.0;
+use 5.006;
 use Attribute::Handlers;
 $loaded = 1;
 

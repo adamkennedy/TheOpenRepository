@@ -240,7 +240,7 @@ released November 25, 2007.
 =head1 SYNOPSIS
 
 	package MyClass;
-	require v5.6.0;
+	require 5.006;
 	use Attribute::Handlers;
 	no warnings 'redefine';
 
