@@ -54,7 +54,8 @@
 void isaac(randctx *ctx)
 {
   /* Keep these in CPU registers if possible, for speed */
-  register ub4 a, b, x, y, *m, *mm, *m2, *r, *mend;
+  register uint32_t a, b, x, y;
+  register uint32_t *m, *mm, *m2, *r, *mend;
 
   mm = ctx->randmem;
   r = ctx->randrsl;
@@ -79,12 +80,12 @@ void isaac(randctx *ctx)
 /* If flag is TRUE, use randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *ctx)
 {
-  ub4 a, b, c, d, e, f, g, h;
+  uint32_t a, b, c, d, e, f, g, h;
 
-  ub4 *m = ctx->randmem;
-  ub4 *r = ctx->randrsl;
+  uint32_t *m = ctx->randmem;
+  uint32_t *r = ctx->randrsl;
 
-  word i; /* for loop incrementing variable */
+  int i; /* for loop incrementing variable */
 
   ctx->randa = ctx->randb = ctx->randc = 0;
 

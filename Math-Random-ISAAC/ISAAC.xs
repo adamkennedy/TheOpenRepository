@@ -58,7 +58,7 @@ new(...)
   OUTPUT:
     RETVAL
 
-ub4
+UV
 rand(self)
   Math::Random::ISAAC self
   CODE:
@@ -68,7 +68,7 @@ rand(self)
       isaac(self);
       self->randcnt = RANDSIZ - 1;
     }
-    RETVAL = self->randrsl[self->randcnt];
+    RETVAL = (UV)self->randrsl[self->randcnt];
   OUTPUT:
     RETVAL
 
