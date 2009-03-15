@@ -34,7 +34,7 @@ A(B(A(B(A(B(A(B(A(B(A(B(A(B(A(B(A(B(A(B(a))))))))))))))))))))
 EOS
 
 my $mdl = <<'EOF';
-semantics are perl5.  version is 0.001_000.
+semantics are perl5.  version is 0.001_003.
 start symbol is S.
 default action is q{join(q{ }, @_)}.
 

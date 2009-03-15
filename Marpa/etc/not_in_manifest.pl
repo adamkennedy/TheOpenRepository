@@ -7,6 +7,8 @@ use Carp;
 use Fatal qw( chdir waitpid close );
 use English qw( -no_match_vars );
 
+my %manifest;
+
 open my $manifest, '<', '../MANIFEST'
     or croak("open of MANIFEST failed: $ERRNO");
 FILE: while ( my $line = <$manifest> ) {
@@ -18,7 +20,6 @@ close $manifest;
 chdir q{..};
 my $pid = open my $rdr, q{-|}, 'svn', 'list', '-R'
     or croak("open of svn list pipe failed: $ERRNO");
-waitpid $pid, 0;
 
 FILE: while ( my $line = <$rdr> ) {
     chomp $line;
@@ -29,3 +30,4 @@ FILE: while ( my $line = <$rdr> ) {
 } ## end while ( my $line = <$rdr> )
 
 close $rdr;
+waitpid $pid, 0;
