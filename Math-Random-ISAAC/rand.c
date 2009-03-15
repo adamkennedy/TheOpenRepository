@@ -21,42 +21,8 @@
  * $Id$
  */
 
-#include "EXTERN.h"
-#include "perl.h"
-
 #include "standard.h"
 #include "rand.h"
-
-#if UVSIZE == 8 /* 8-byte unsigned integer values - 64bit platform */
-
-#define ind(mm,x)  (*(UV *)((ub1 *)(mm) + ((x) & ((RANDSIZ-1)<<3))))
-#define rngstep(mix,a,b,mm,m,m2,r,x) \
-{ \
-  x = *m;  \
-  a = (mix) + *(m2++); \
-  *(m++) = y = ind(mm,x) + a + b; \
-  *(r++) = b = ind(mm,y>>RANDSIZL) + x; \
-}
-#define mix(a,b,c,d,e,f,g,h) \
-{ \
-  a-=e; f^=h>>9;  h+=a; \
-  b-=f; g^=a<<9;  a+=b; \
-  c-=g; h^=b>>23; b+=c; \
-  d-=h; a^=c<<15; c+=d; \
-  e-=a; b^=d>>14; d+=e; \
-  f-=b; c^=e<<20; e+=f; \
-  g-=c; d^=f>>17; f+=g; \
-  h-=d; e^=g<<14; g+=h; \
-}
-#define shuffle(a, b, mm, m, m2, r, x) \
-{ \
-  rngstep(~(a^(a<<21)), a, b, mm, m, m2, r, x); \
-  rngstep(  a^(a>>5)  , a, b, mm, m, m2, r, x); \
-  rngstep(  a^(a<<12) , a, b, mm, m, m2, r, x); \
-  rngstep(  a^(a>>33) , a, b, mm, m, m2, r, x); \
-}
-
-#else /* Default to 32 bit */
 
 #define ind(mm,x)  ((mm)[(x>>2)&(RANDSIZ-1)])
 #define rngstep(mix,a,b,mm,m,m2,r,x) \
@@ -85,12 +51,10 @@
   rngstep(a>>16, a, b, mm, m, m2, r, x); \
 }
 
-#endif
-
 void isaac(randctx *ctx)
 {
   /* Keep these in CPU registers if possible, for speed */
-  register UV a, b, x, y, *m, *mm, *m2, *r, *mend;
+  register ub4 a, b, x, y, *m, *mm, *m2, *r, *mend;
 
   mm = ctx->randmem;
   r = ctx->randrsl;
@@ -115,21 +79,17 @@ void isaac(randctx *ctx)
 /* If flag is TRUE, use randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *ctx)
 {
-  UV a, b, c, d, e, f, g, h;
+  ub4 a, b, c, d, e, f, g, h;
 
-  UV *m = ctx->randmem;
-  UV *r = ctx->randrsl;
+  ub4 *m = ctx->randmem;
+  ub4 *r = ctx->randrsl;
 
   word i; /* for loop incrementing variable */
 
   ctx->randa = ctx->randb = ctx->randc = 0;
 
   /* Initialize a to h with the golden ratio */
-#if UVSIZE == 8
-  a = b = c = d = e = f = g = h = 0x9e3779b97f4a7c13LL;
-#else
-  a = b = c = d = e = f = g = h = 0x9e3779b9;
-#endif
+  a=b=c=d=e=f=g=h = 0x9e3779b9;
 
   for (i = 0; i < 4; i++) /* scramble it */
   {

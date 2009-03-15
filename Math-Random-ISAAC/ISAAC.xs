@@ -30,8 +30,8 @@ new(...)
     word idx;
     randctx *self;
   INIT:
-    self = malloc(sizeof(randctx));
-    self->randa = self->randb = self->randc = (ub4) 0;
+    Newx(self, 1, randctx); /* allocate 1 randctx instance */
+    self->randa = self->randb = self->randc = (ub4)0;
   CODE:
     /* Loop through each argument and copy it into randrsl. Copy items from
      * our parameter list first, and then zero-pad thereafter.
@@ -43,7 +43,7 @@ new(...)
         break;
 
       /* note: the list begins at ST(1) */
-      self->randrsl[idx] = (ub4)SvIV(ST(idx+1));
+      self->randrsl[idx] = (ub4)SvUV(ST(idx+1));
       items--;
     }
 
@@ -58,7 +58,7 @@ new(...)
   OUTPUT:
     RETVAL
 
-UV
+ub4
 rand(self)
   Math::Random::ISAAC self
   CODE:
@@ -76,20 +76,4 @@ void
 DESTROY(self)
   Math::Random::ISAAC self
   CODE:
-    free(self);
-
-void testout(self)
-  Math::Random::ISAAC self
-  PREINIT:
-    word i, j;
-  CODE:
-    for (i = 0; i < 2; i++)
-    {
-      isaac(self);
-
-      for (j = 0; j < RANDSIZ; j++) {
-        printf("%.8lx", self->randrsl[j]);
-        if ((j&7)==7)
-          printf("\n");
-      }
-    }
+    Safefree(self);

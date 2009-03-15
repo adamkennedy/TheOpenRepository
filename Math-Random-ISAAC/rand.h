@@ -16,12 +16,12 @@
 
 /* context of random number generator */
 struct randctx {
-  UV randcnt;
-  UV randrsl[RANDSIZ];
-  UV randmem[RANDSIZ];
-  UV randa;
-  UV randb;
-  UV randc;
+  ub4 randcnt;
+  ub4 randrsl[RANDSIZ];
+  ub4 randmem[RANDSIZ];
+  ub4 randa;
+  ub4 randb;
+  ub4 randc;
 };
 typedef  struct randctx  randctx;
 
