@@ -15,7 +15,7 @@ sub usage {
   warn "$msg\n" if defined $msg;
 
   warn <<HERE;
-Usage: $0 --blead path/to/blead --dir path/to/dir/with/config --outdir path/to/output
+Usage: $0 --blead path/to/blead --dir path/to/dir/with/config --outfile path/to/output
 HERE
   exit(1);
 }
