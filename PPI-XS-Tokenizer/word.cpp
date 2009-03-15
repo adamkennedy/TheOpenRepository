@@ -20,6 +20,17 @@ static inline bool is_quote_like( const char *str ) {
 			 ( ( str[0] == 't' ) && ( str[1] == 'r' ) ) );
 }
 
+static uchar oversuck_protection( const char *text, ulong len) {
+		// /^(?:q|m|s|y)\'/
+		if ( ( len >= 2 ) && ( text[1] == '\'' ) && is_letter_msyq( text[0] ) ) {
+			return 1;
+		} else
+		if ( ( len >= 3 ) && ( text[2] == '\'' ) && is_quote_like( text ) ) {
+			return 2;
+		} else
+			return 0;
+}
+
 static TokenTypeNames get_quotelike_type( Token *token) {
 	TokenTypeNames is_quotelike = Token_NoType;
 	if ( token->length == 1 ) {
@@ -109,14 +120,10 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 		while (t->line_pos < new_pos)
 			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 		// oversucking protection
-		// /^(?:q|m|s|y)\'/
-		if ( ( token->length >= 2 ) && ( token->text[1] == '\'' ) && is_letter_msyq( token->text[0] ) ) {
-			t->line_pos -= token->length - 1;
-			token->length = 1;
-		} else
-		if ( ( token->length >= 3 ) && ( token->text[2] == '\'' ) && is_quote_like( token->text ) ) {
-			t->line_pos -= token->length - 2;
-			token->length = 2;
+		uchar new_len = oversuck_protection( token->text, token->length );
+		if ( new_len > 0 ) {
+			t->line_pos -= token->length - new_len;
+			token->length = new_len;
 		}
 	}
 
@@ -162,6 +169,125 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 	return done_it_myself;
 }
 
+static inline bool has_a_colon( Token *token ) {
+	for (ulong ix = 0; ix < token->length; ix++) {
+		if ( token->text[ix] == ':' )
+			return true;
+	}
+	return false;
+}
+
+static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev) {
+	if ( has_a_colon( token ) ) {
+		return Token_Word;
+	}
+	if ( OperatorToken::is_operator( token->text ) )  {
+		if ( is_literal( t, prev ) )
+			return Token_Word;
+		else
+			return Token_Operator;
+	} 
+
+	TokenTypeNames is_quotelike = get_quotelike_type(token);
+	if ( is_quotelike != Token_NoType ) {
+		if ( is_literal(t, prev) )
+			return Token_Word;
+		else
+			return is_quotelike;
+	}
+
+	// $string =~ /^(\s*:)(?!:)/ )
+	PredicateAnd<
+		PredicateZeroOrMore<
+			PredicateFunc< is_whitespace > >,
+		PredicateIsChar< ':' >,
+		PredicateNot< PredicateIsChar< ':' > > > regex;
+	ulong pos = t->line_pos;
+	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
+		if ( ( prev != NULL ) && ( !strcmp( prev->text, "sub" ) ) ) {
+			return Token_Word;
+		} else {
+			while ( pos > t->line_pos )
+				token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+			return Token_Label;
+		}
+	}
+
+	if ( !strcmp( token->text, "_" ) ) 
+		return Token_Magic;
+
+	return Token_Word;
+}
+
 CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
-	return error_fail;
+	// $rest =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/
+	PredicateAnd< 
+		PredicateNot< PredicateFunc< is_digit > >,
+		PredicateOneOrMore<
+			PredicateFunc< is_word > >,
+		PredicateZeroOrMore< 
+			PredicateAnd<
+				PredicateOr<
+					PredicateIsChar< '\'' >,
+					PredicateAnd<
+						PredicateIsChar< ':' >,
+						PredicateIsChar< ':' > > >,
+				PredicateNot< PredicateFunc < is_digit > >,
+				PredicateOneOrMore<
+					PredicateFunc< is_word > > > >,
+		PredicateZeroOrOne<
+			PredicateAnd<
+				PredicateIsChar< ':' >,
+				PredicateIsChar< ':' > > > > regex;
+	ulong new_pos = t->line_pos;
+	if ( !regex.test( t->c_line, &new_pos, t->line_length ) ) {
+		return error_fail;
+	}
+
+	uchar new_len = oversuck_protection( t->c_line + t->line_pos, new_pos - t->line_pos );
+	if ( new_len > 0 )
+		new_pos = t->line_pos + new_len;
+
+	t->_new_token( Token_Word );
+	Token *token = t->c_token;
+	while ( t->line_pos < new_pos )
+		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+	token->text[token->length] = 0;
+
+	Token *prev = t->_last_significant_token(1);
+	if ( ( prev != NULL ) && prev->type->isa( Token_Operator_Attribute ) ) {
+		t->changeTokenType(	Token_Attribute );
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token( zone );
+		return done_it_myself;
+	}
+
+	if ( !strcmp( token->text, "__END__" ) ) {
+		t->changeTokenType( Token_Separator );
+		t->_finalize_token();
+		t->zone = Token_End;
+		t->TokenTypeNames_pool[ Token_Comment ]->commit( t, t->c_line[ t->line_pos ] );
+		while ( t->line_length > t->line_pos )
+			t->c_token->text[ t->c_token->length++ ] = t->c_line[ t->line_pos++ ];
+		t->_finalize_token();
+		return done_it_myself;
+	}
+
+	if ( !strcmp( token->text, "__DATA__" ) ) {
+		t->changeTokenType( Token_Separator );
+		t->_finalize_token();
+		t->zone = Token_Data;
+		t->TokenTypeNames_pool[ Token_Comment ]->commit( t, t->c_line[ t->line_pos ] );
+		while ( t->line_length > t->line_pos )
+			t->c_token->text[ t->c_token->length++ ] = t->c_line[ t->line_pos++ ];
+		t->_finalize_token();
+		return done_it_myself;
+	}
+
+	TokenTypeNames class_type = commit_detect_type(t, token, prev);
+	if ( class_type != Token_Word )
+		t->changeTokenType( class_type );
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
 }

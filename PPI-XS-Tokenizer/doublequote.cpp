@@ -1,3 +1,4 @@
+#if 0
 
 #include "tokenizer.h"
 #include "forward_scan.h"
@@ -28,12 +29,13 @@ static inline uchar get_matching_seperator(uchar s_char) {
 	return seperator;
 }
 
-CharTokenizeResults DoubleQuoteToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	if (t->quote_seperator == 0) {
+CharTokenizeResults DoubleQuoteToken::tokenize(Tokenizer *t, Token *p_token, unsigned char c_char) {
+	QuoteToken *token = (QuoteToken *)p_token;
+	if (token->seperator == 0) {
 		uchar s_char = find_seperator(token);
 		if ( s_char == 0 )
 			return my_char;
-		t->quote_seperator = get_matching_seperator(s_char);
+		token->seperator = get_matching_seperator(s_char);
 		token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	}
 
@@ -41,7 +43,7 @@ CharTokenizeResults DoubleQuoteToken::tokenize(Tokenizer *t, Token *token, unsig
 	bool is_slash = false;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
-		if ( ( !is_slash ) && ( my_char == t->quote_seperator ) ) {
+		if ( ( !is_slash ) && ( my_char == token->seperator ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
 			return done_it_myself;
@@ -51,3 +53,4 @@ CharTokenizeResults DoubleQuoteToken::tokenize(Tokenizer *t, Token *token, unsig
 	// will reach here only if the line ended while still in the string
 	return done_it_myself; 
 }
+#endif

@@ -196,6 +196,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\simplequote.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\structure.cpp"
 				>
 			</File>

@@ -3,14 +3,89 @@
 
 #include "tokenizer.h"
 
+//=====================================
+// AbstractTokenType
+//=====================================
+
 CharTokenizeResults AbstractTokenType::commit(Tokenizer *t, unsigned char c_char) { 
 	t->_new_token(type);
 	return my_char;
-	//return tokenize(t, t->c_token, c_char);
 }
 
 bool AbstractTokenType::isa( TokenTypeNames is_type ) const {
 	return ( is_type == type );
+}
+
+Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany& tc, ulong line_length ) {
+	unsigned long needed_size = line_length - t->line_pos;
+	if ( needed_size < 200 ) needed_size = 200;
+
+	Token *tk = _get_from_cache(tc);
+
+	if ( tk == NULL ) {
+		tk = _alloc_from_cache(tc);
+		if ( tk == NULL )
+			return NULL; // die
+		tk->text = NULL;
+		tk->allocated_size = needed_size;
+	} else {
+		if ( tk->allocated_size < needed_size ) {
+			free( tk->text );
+			tk->text = NULL;
+			tk->allocated_size = needed_size;
+		}
+	}
+
+	if ( tk->text == NULL ) {
+		tk->text = (char *)malloc(sizeof(char) * needed_size);
+		if (tk->text == NULL) {
+			free(tk);
+			return NULL; // die
+		}
+	}
+
+	tk->ref_count = 0;
+	tk->length = 0;
+	tk->next = NULL;
+	_clean_token_fields( tk );
+	return tk;
+}
+
+Token *AbstractTokenType::_get_from_cache(TokensCacheMany& tc) {
+	return tc.standard.get();
+}
+
+Token *AbstractTokenType::_alloc_from_cache(TokensCacheMany& tc) {
+	return tc.standard.alloc();
+}
+
+void AbstractTokenType::_clean_token_fields( Token *t ) {
+}
+
+void AbstractTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
+	tc.standard.store( token );
+}
+
+//=====================================
+// AbstractQuoteTokenType
+//=====================================
+
+Token *AbstractQuoteTokenType::_get_from_cache(TokensCacheMany& tc) {
+	return tc.quote.get();
+}
+
+Token *AbstractQuoteTokenType::_alloc_from_cache(TokensCacheMany& tc) {
+	return tc.quote.alloc();
+}
+
+void AbstractQuoteTokenType::_clean_token_fields( Token *t ) {
+	QuoteToken *t2 = static_cast<QuoteToken*>( t );
+	t2->seperator = 0;
+}
+
+void AbstractQuoteTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
+	QuoteToken *t2 = static_cast<QuoteToken*>( token );
+	tc.quote.store( t2 );
 }
 
 //=====================================
@@ -34,60 +109,25 @@ void Tokenizer::freeToken(Token *t) {
 	}
 	t->ref_count = 0;
 	t->length = 0;
+	AbstractTokenType *type = t->type;
 	t->type = NULL;
-	t->next = free_tokens;
-	free_tokens = t;
-}
-
-Token *Tokenizer::allocateToken() {
-	unsigned long needed_size = line_length - line_pos;
-	if ( needed_size < 100 )
-		needed_size = 100;
-
-	if (free_tokens != NULL) {
-		Token *t = free_tokens;
-		free_tokens = free_tokens->next;
-		t->next = NULL;
-		if (t->allocated_size < needed_size) {
-			free(t->text);
-			t->text = (char *)malloc(sizeof(char) * needed_size);
-			if (t->text == NULL) {
-				free(t);
-				return NULL; // die
-			}
-		}
-		return t;
-	}
-	Token *t = (Token *)malloc(sizeof(Token));
-	if (t == NULL)
-		return NULL; // die
-
-	t->ref_count = 0;
-	t->length = 0;
-	t->allocated_size = needed_size;
-	t->text = (char *)malloc(sizeof(char) * needed_size);
-	if (t->text == NULL) {
-		free(t);
-		return NULL; // die
-	}
-	t->next = NULL;
-	return t;
+	type->FreeToken( this->m_TokensCache, t );
 }
 
 void Tokenizer::_new_token(TokenTypeNames new_type) {
 	Token *tk;
 	if (c_token == NULL) {
-		tk = allocateToken();
+		tk = TokenTypeNames_pool[new_type]->GetNewToken(this, this->m_TokensCache, line_length);
 	} else {
 		if (c_token->length > 0) {
 			_finalize_token();
-			tk = allocateToken();
+			tk = TokenTypeNames_pool[new_type]->GetNewToken(this, this->m_TokensCache, line_length);
 		} else {
+			// FIXME - switch token type
 			tk = c_token;
 		}
 	}
 	tk->type = TokenTypeNames_pool[new_type];
-	quote_seperator = 0;
 	c_token = tk;
 }
 
@@ -132,7 +172,6 @@ Tokenizer::Tokenizer()
 	line_pos(0),
 	line_length(0),
 	local_newline('\n'),
-	free_tokens(NULL), 
 	tokens_found_head(NULL), 
 	tokens_found_tail(NULL),
 	zone(Token_WhiteSpace),
@@ -151,16 +190,25 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Symbol] = &m_SymbolToken;
 	TokenTypeNames_pool[Token_Operator_Attribute] = &m_AttributeOperatorToken;
 	TokenTypeNames_pool[Token_Quote_Double] = &m_DoubleQuoteToken;
+	TokenTypeNames_pool[Token_Quote_Single] = &m_SingleQuoteToken;
+	TokenTypeNames_pool[Token_QuoteLike_Backtick] = &m_BacktickQuoteToken;
+	TokenTypeNames_pool[Token_Word] = &m_WordToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}
 }
 
+Tokenizer::~Tokenizer() {
+	Token *t;
+	while ( ( t = pop_one_token() ) != NULL ) {
+		freeToken( t );
+	}
+}
 
 Token *Tokenizer::_last_significant_token(unsigned int n) {
 	if (( n < 1) || (n > NUM_SIGNIFICANT_KEPT ))
 		return NULL;
-	unsigned int ix = ( m_nLastSignificantPos + NUM_SIGNIFICANT_KEPT - n + 1 ) % m_nLastSignificantPos;
+	unsigned int ix = ( m_nLastSignificantPos + NUM_SIGNIFICANT_KEPT - n + 1 ) % NUM_SIGNIFICANT_KEPT;
 	return m_LastSignificant[ix];
 }
 
@@ -202,7 +250,7 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
 	c_line = line;
 	this->line_length = line_length;
 	if (c_token == NULL)
-		_new_token(Token_WhiteSpace);
+		_new_token(zone);
 
     while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
@@ -217,10 +265,6 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
         };
     }
     return reached_eol;
-}
-
-bool Tokenizer::is_digit(uchar c) {
-	return ( ( c >= '0' ) && ( c <= 9 ) );
 }
 
 void Tokenizer::changeTokenType(TokenTypeNames new_type) {

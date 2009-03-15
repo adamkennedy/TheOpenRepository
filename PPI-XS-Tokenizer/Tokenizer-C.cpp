@@ -10,8 +10,10 @@ void forward_scan2_unittest();
 void checkToken( Tokenizer *tk, const char *text, TokenTypeNames type, int line) {
 	Token *token = tk->pop_one_token();
 	if ( token == NULL ) {
-		if ( text != NULL )
+		if ( text != NULL ) {
 			printf("CheckedToken: Got unexpected NULL token (line %d)\n", line);
+			return;
+		}
 	} else
 	if ( text == NULL ) {
 		printf("CheckedToken: Token was expected to be NULL (line %d)\n", line);
@@ -64,6 +66,12 @@ int main(int argc, char* argv[])
 	tk.tokenizeLine(line, 11);
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "\"ab cd ef \nxs cd ef\"", Token_Quote_Double);
+	line = " 'ab cd ef' \n";
+	tk.tokenizeLine(line, 13);
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckToken(&tk, "'ab cd ef'", Token_Quote_Single);
+//	line = " qq { baaccvf cxxdf } \n";
+//	tk.tokenizeLine(line, 23);
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);
 	Token *tkn;

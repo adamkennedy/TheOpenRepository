@@ -14,7 +14,7 @@ enum TokenTypeNames {
     Token_WhiteSpace, // done
     Token_Symbol, // done
     Token_Comment, // done
-    Token_Word,
+    Token_Word, // done
 	Token_DashedWord,
     Token_Structure, // done
 	Token_Magic,
@@ -22,13 +22,13 @@ enum TokenTypeNames {
 	Token_Number_Version,
 	Token_Number_Float,
 	Token_Operator, // done
-	Token_Operator_Attribute, // Operator with _attribute = 1
+	Token_Operator_Attribute, // done - Operator with _attribute = 1
 	Token_Unknown, // done
-	Token_Quote_Single,
+	Token_Quote_Single, // done
 	Token_Quote_Double, // done
 	Token_Quote_Interpolate,
 	Token_Quote_Literal,
-	Token_QuoteLike_Backtick,
+	Token_QuoteLike_Backtick, // done
 	Token_QuoteLike_Readline,
 	Token_QuoteLike_Command,
 	Token_QuoteLike_Regexp,
@@ -42,7 +42,13 @@ enum TokenTypeNames {
 	Token_HereDoc,
 	Token_Attribute,
 	Token_Label,
-	Token_LastTokenType // have to be last
+	Token_Separator,
+	Token_End,
+	Token_Data,
+	Token_LastTokenType, // Marker for the last real types
+
+	// Here are abstract markers
+	isToken_QuoteOrQuotaLike
 };
 
 enum CharTokenizeResults {
@@ -53,15 +59,17 @@ enum CharTokenizeResults {
 
 class Tokenizer;
 class AbstractTokenType;
+class TokensCacheMany;
 
-typedef struct Token_t {
+class Token {
+public:
     AbstractTokenType *type;
     char *text;
     unsigned long length;
 	unsigned long allocated_size;
 	unsigned char ref_count;
-	struct Token_t *next;
-} Token;
+	Token *next;
+};
 
 class AbstractTokenType {
 public:
@@ -95,7 +103,74 @@ public:
 	 */
 	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
 	virtual bool isa( TokenTypeNames is_type ) const;
+	Token *GetNewToken( Tokenizer *t, TokensCacheMany& tc, ulong line_length );
+	virtual void FreeToken( TokensCacheMany& tc, Token *token );
 	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
+protected: 
+	virtual Token *_get_from_cache(TokensCacheMany& tc);
+	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
+	virtual void _clean_token_fields( Token *t );
+};
+
+class QuoteToken : public Token {
+public:
+	uchar seperator;
+};
+
+class AbstractQuoteTokenType : public AbstractTokenType {
+public:
+	AbstractQuoteTokenType( TokenTypeNames my_type,  bool sign ) : AbstractTokenType( my_type, sign ) {}
+	virtual void FreeToken( TokensCacheMany& tc, Token *token );
+protected: 
+	virtual Token *_get_from_cache(TokensCacheMany& tc);
+	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
+	virtual void _clean_token_fields( Token *t );
+};
+
+// Quote type simple - normal quoted string '' or "" or ``
+class AbstractSimpleQuote : public AbstractTokenType {
+public:
+	AbstractSimpleQuote(TokenTypeNames my_type,  bool sign, uchar sep) : AbstractTokenType( my_type, sign ), seperator(sep) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+	virtual bool isa( TokenTypeNames is_type ) const;
+private:
+	uchar seperator;
+};
+
+template <typename T> 
+class TokenCache {
+public:
+	TokenCache() : head(NULL) {};
+	T *get() {
+		if ( head == NULL) 
+			return NULL;
+		T *t = head;
+		head = (T*)head->next;
+		return t;
+	}
+	void store( T *t) {
+		t->next = head;
+		head = t;
+	}
+	T *alloc() {
+		T *t = (T*)malloc(sizeof(T));
+		return t;
+	}
+	~TokenCache() {
+		T *t;
+		while ( ( t = (T*)head ) != NULL ) {
+			head = (T*)head->next;
+			free( t );
+		}
+	}
+private:
+	T *head;
+};
+
+class TokensCacheMany {
+public:
+	TokenCache< Token > standard;
+	TokenCache< QuoteToken > quote;
 };
 
 class WhiteSpaceToken : public AbstractTokenType {
@@ -151,10 +226,19 @@ private:
 	bool is_an_attribute(Tokenizer *t);
 };
 
-class DoubleQuoteToken : public AbstractTokenType {
+class DoubleQuoteToken : public AbstractSimpleQuote {
 public:
-	DoubleQuoteToken() : AbstractTokenType( Token_Quote_Double, true ) {}
-	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+	DoubleQuoteToken() : AbstractSimpleQuote(  Token_Quote_Double, true, '"' ) {}
+};
+
+class SingleQuoteToken : public AbstractSimpleQuote {
+public:
+	SingleQuoteToken() : AbstractSimpleQuote(  Token_Quote_Single, true, '\'' ) {}
+};
+
+class BacktickQuoteToken : public AbstractSimpleQuote {
+public:
+	BacktickQuoteToken() : AbstractSimpleQuote(  Token_QuoteLike_Backtick, true, '`' ) {}
 };
 
 class WordToken : public AbstractTokenType {
@@ -185,10 +269,10 @@ public:
 	ulong line_length;
 	ulong line_pos;
 	char local_newline;
-	uchar quote_seperator;
 	TokenTypeNames zone;
 	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];
 	Tokenizer();
+	~Tokenizer();
 	/* _finalize_token - close the current token
 	 * If exists token, close it
 	 * if there is an empty token - return it to the free tokens poll
@@ -227,12 +311,11 @@ public:
 	/* tokenizeLine - Tokenize one line
 	 */
 	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
+
 	/* Utility functions */
-	bool is_digit(uchar c);
-	bool is_word(uchar c);
 	bool is_operator(const char *str);
 private:
-	Token *free_tokens;
+	TokensCacheMany m_TokensCache;
 	Token *tokens_found_head;
 	Token *tokens_found_tail;
 	Token *allocateToken();
@@ -246,6 +329,9 @@ private:
 	SymbolToken m_SymbolToken;
 	AttributeOperatorToken m_AttributeOperatorToken;
 	DoubleQuoteToken m_DoubleQuoteToken;
+	SingleQuoteToken m_SingleQuoteToken;
+	BacktickQuoteToken m_BacktickQuoteToken;
+	WordToken m_WordToken;
 
 	void keep_significant_token(Token *t);
 

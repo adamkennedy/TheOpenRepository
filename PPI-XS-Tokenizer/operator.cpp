@@ -102,7 +102,7 @@ CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned
 
 	token->text[token->length] = '\0';
 
-	if ( ( !strcmp( token->text, ".") ) && ( t->is_digit(c_char) ) ) {
+	if ( ( !strcmp( token->text, ".") ) && ( is_digit(c_char) ) ) {
 		t->changeTokenType(Token_Number_Float);
 		return done_it_myself;
 	}
