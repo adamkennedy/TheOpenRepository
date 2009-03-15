@@ -11,10 +11,8 @@
  */
 
 #ifndef STANDARD
-#define STANDARD
+#define STANDARD 1
 
-#include <stdio.h>
-#include <stddef.h>
 #include <stdint.h>
 
 /* Some miscellaneous bit operation macros */

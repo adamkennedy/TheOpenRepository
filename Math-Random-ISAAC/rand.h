@@ -3,14 +3,14 @@
  * $Id$
  */
 
+#ifndef RAND
+#define RAND 1
+
 #include "EXTERN.h"
 #include "perl.h"
 
 #include "standard.h"
 
-#ifndef RAND
-
-#define RAND
 #define RANDSIZL  (8)  /* 8 for crypto, 4 for simulations */
 #define RANDSIZ   (1 << RANDSIZL)
 
