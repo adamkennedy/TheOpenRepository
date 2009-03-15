@@ -27,11 +27,11 @@ PROTOTYPES: DISABLE
 Math::Random::ISAAC
 new(...)
   PREINIT:
-    word idx;
+    int idx;
     randctx *self;
   INIT:
     Newx(self, 1, randctx); /* allocate 1 randctx instance */
-    self->randa = self->randb = self->randc = (ub4)0;
+    self->randa = self->randb = self->randc = (uint32_t)0;
   CODE:
     /* Loop through each argument and copy it into randrsl. Copy items from
      * our parameter list first, and then zero-pad thereafter.
@@ -43,14 +43,14 @@ new(...)
         break;
 
       /* note: the list begins at ST(1) */
-      self->randrsl[idx] = (ub4)SvUV(ST(idx+1));
+      self->randrsl[idx] = (uint32_t)SvUV(ST(idx+1));
       items--;
     }
 
     /* Zero-pad the array, if necessary */
     for (; idx < RANDSIZ; idx++)
     {
-      self->randrsl[idx] = (ub4)0;
+      self->randrsl[idx] = (uint32_t)0;
     }
 
     randinit(self); /* Initialize using our seed */
