@@ -1337,6 +1337,7 @@ END_PERL
 	my ( $core, $module_file, $module_id );
 
 	require CPAN;
+	my @delayed_modules;
 	for my $module ( @{$module_info} ) {
 
 		# DON'T try to install Perl.
@@ -1344,10 +1345,16 @@ END_PERL
 
 		# If the ID is CGI::Carp, there's a bug in the index.
 		next if $module->id eq 'CGI::Carp';
-
+		
 # Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
 		if ( $module->cpan_file =~ m{/Test-Harness-Straps-\d}msx ) {
 			$self->install_module( name => 'Test::Harness::Straps' );
+			next;
+		}
+		
+		if ($module->id eq 'CPANPLUS::Dist::Build') {
+			# Delay this module until last.
+			push @delayed_modules, $module;
 			next;
 		}
 
@@ -1363,6 +1370,19 @@ END_PERL
 		);
 	} ## end for my $module ( @{$module_info...
 
+	for my $module ( @delayed_modules ) {
+		$core =
+		  exists $Module::CoreList::version{ $self->perl_version_literal }
+		  { $module->id } ? 1 : 0;
+		$module_file = substr $module->cpan_file, 5;
+		$module_id = $self->_module_fix( $module->id );
+		$self->install_distribution(
+			name     => $module_file,
+			mod_name => $module_id,
+			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+		);
+	}
+	
 	return 1;
 } ## end sub install_cpan_upgrades
 
