@@ -1389,6 +1389,7 @@ sub _module_fix {
 	return 'Term::ReadLine'  if ( $module eq 'Term::ReadLine::Perl' );
 	return 'LWP'             if ( $module eq 'libwww::perl' );
 	return 'List::Util'      if ( $module eq 'Scalar::List::Utils' );
+	return 'Net'             if ( $module eq 'libnet' );
 
 	return $module;
 } ## end sub _module_fix
