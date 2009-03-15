@@ -1,5 +1,8 @@
 Revision history for Perl extension lib
 
+0.62  Sun Mar 15 18:01 2009
+  - Add a fake package for PAUSE to index.
+
 0.61  Sat Oct 25 12:05 2008
   - The Makefile.PL breakage in 0.59_01 and 0.60 wasn't detected
     for a month, but it was still there!

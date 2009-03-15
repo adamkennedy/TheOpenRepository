@@ -6,7 +6,7 @@ require 5.006_001;
 use strict;
 use ExtUtils::MakeMaker;
 
-my $lib_version = '0.61';
+my $lib_version = '0.62';
 
 my $extra_meta = <<"EMETA";
 provides:
