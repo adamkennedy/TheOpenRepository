@@ -13,14 +13,6 @@ use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
 
-# Test event firing order
-my $order = 0;
-sub order {
-	my $position = shift;
-	my $message  = shift;
-	is( $order++, $position, "$message ($position)" );
-}
-
 #BEGIN {
 #	$POE::Declare::Meta::DEBUG = 1;
 #}
