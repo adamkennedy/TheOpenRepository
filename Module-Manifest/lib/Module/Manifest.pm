@@ -226,6 +226,18 @@ sub parse {
 Check if C<$filename> matches any masks that should be skipped, given the
 regular expressions provided to either the C<parse> or C<open> methods.
 
+Absolute path names must first be relativized and converted to a Unix-like
+path string by using the C<normalize> method.
+
+Example code:
+
+  if ($manifest->skipped('Makefile.PL')) {
+    # do stuff
+  }
+
+This method returns a boolean true or false value indicating whether the
+file path is skipped according the C<skipfile>.
+
 =cut
 
 sub skipped {
@@ -237,7 +249,55 @@ sub skipped {
 		Carp::croak('You must pass a filename or path to check');
 	}
 
-	my $path = File::Spec->abs2rel($file);
+	# Quit early if we have no skip list
+	return 0 unless (exists $self->{skiplist});
+
+	# Loop through masks and exit early if there's a match
+	foreach my $mask (@{ $self->{skiplist} }) {
+		return 1 if ($file =~ /$mask/i);
+	}
+	return 0;
+}
+
+=pod
+
+=head2 Module::Manifest->normalize( $path, [ $rel ] )
+=head2 $manifest->normalize( $path, [ $rel ] )
+
+This method takes a given platform-specific path string and converts it
+to a Unix-style string compatible with the MANIFEST and MANIFEST.SKIP
+specifications.
+
+Note that this method normalizes paths depending on the platform detected
+by C<$^O> -- that is, Win32 style paths can only be normalized if the
+module is currently running under Win32.
+
+By default, this method will relativize file paths to the current working
+directory (using L<File::Spec>'s C<abs2rel> method without a C<$root>). To
+disable this behaviour, set C<$rel> to a false value.
+
+Example code:
+
+  # Useful for normalizing Win32-style paths
+  my $normal = Module::Manifest->normalize('t\\test\\file');
+  # Returns: t/test/file (ie, in Unix style for MANIFEST)
+
+This returns a normalized version of the given path.
+
+=cut
+
+sub normalize {
+	my (undef, $path, $rel) = @_;
+
+	Carp::carp('Return value discarded') unless (defined wantarray);
+	unless ( defined $path && length $path ) {
+		Carp::croak('You must pass a filename or path to check');
+	}
+
+	# Relativize if $rel is undefined or a true value
+	if ( !defined $rel || $path ) {
+		$path = File::Spec->abs2rel($path);
+	}
 
 	# Portably deal with different OSes
 	if ($platforms{$^O}) { # Check if we are on a non-Unix platform
@@ -250,14 +310,7 @@ sub skipped {
 		$path = File::Spec::Unix->catpath(undef, $dir, $filename);
 	}
 
-	# Quit early if we have no skip list
-	return 0 unless (exists $self->{skiplist});
-
-	# Loop through masks and exit early if there's a match
-	foreach my $mask (@{ $self->{skiplist} }) {
-		return 1 if ($file =~ /$mask/i);
-	}
-	return 0;
+	return $path;
 }
 
 =pod
