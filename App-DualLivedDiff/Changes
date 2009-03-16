@@ -1,5 +1,12 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.06  Mon Mar 16 13:12 2009
+  - Explicitly mapped files trump the exclusion regexps.
+  - config subdirectory ships with many file mappings
+    between blead and CPAN
+  - config subdirectory also contains tools to run in
+    batch mode and generate HTML reports
+
 1.05  Wed Mar 11 18:15 2009
   - '--paths=blead' / '--paths=dual' option to manually set the
     paths shown in the diff.
