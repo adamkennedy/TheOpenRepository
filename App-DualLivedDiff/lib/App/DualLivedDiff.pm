@@ -105,10 +105,8 @@ sub run {
   };
 
   foreach my $source_file (keys %$files) {
-    if (grep {$source_file =~ $_} @$exclude_regexes) {
-      warn "Explicitly mapped file '$source_file' is also excluded explicitly. Skipping it.";
-      next;
-    }
+    # commented out since explicitly mapped files trump exclusion
+    #if (grep {$source_file =~ $_} @$exclude_regexes) { next; }
     my $blead_file = $files->{$source_file};
     $pathspec->{blead_file} = $blead_file;
     $pathspec->{source_file} = $source_file;
