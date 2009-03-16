@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 17;
+use Test::More tests => 2;
 use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
@@ -27,11 +27,7 @@ use Test::POE::Stopping;
 SCOPE: {
 	package Foo;
 
-	use strict;
 	use POE::Declare;
-	use Test::More;
-
-	*order = *main::order;
 
 	declare bar      => 'Internal';
 	declare EventOne => 'Message';
