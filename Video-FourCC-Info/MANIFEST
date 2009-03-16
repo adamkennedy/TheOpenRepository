@@ -1,5 +1,5 @@
 Build.PL
-CHANGES
+Changes
 examples/fourcc.pl
 bin/peekvideo
 lib/Video/FourCC/codecs.dat
@@ -22,7 +22,6 @@ t/01min-perl.t
 t/01pod-coverage.t
 t/01pod.t
 t/01portability.t
-t/01prereq.t
 t/02core.t
 t/02exceptions.t
 t/02fallback.t
