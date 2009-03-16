@@ -34,11 +34,6 @@
 #define align(a) (((ub4)a+(sizeof(void *)-1))&(~(sizeof(void *)-1)))
 #endif /* align */
 
-/* Find the absolute value of a number */
-#ifndef abs
-#define abs(a)   (((a)>0) ? (a) : -(a))
-#endif
-
 /* Some boolean truth value constants */
 #ifndef TRUE
 #define TRUE  1

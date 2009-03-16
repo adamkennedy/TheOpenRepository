@@ -59,16 +59,18 @@ new(...)
     RETVAL
 
 UV
+randInt(self)
+  Math::Random::ISAAC self
+  CODE:
+    RETVAL = (UV)randInt(self);
+  OUTPUT:
+    RETVAL
+
+double
 rand(self)
   Math::Random::ISAAC self
   CODE:
-    /* If we run out of numbers, reset the sequence */
-    if (!self->randcnt--)
-    {
-      isaac(self);
-      self->randcnt = RANDSIZ - 1;
-    }
-    RETVAL = (UV)self->randrsl[self->randcnt];
+    RETVAL = (double)randInt(self) / UINT32_MAX;
   OUTPUT:
     RETVAL
 

@@ -8,7 +8,6 @@
  *  970719: use context, not global variables, for internal state
  *  980324: make a portable version
  *  010626: Note this is public domain
- * This file also includes some code ported back from isaac64.c
  *
  * Jonathan Yu <frequency@cpan.org> made some mostly cosmetic changes and
  * prepared the file for life as a CPAN XS module. It remains in the public
@@ -77,7 +76,7 @@ void isaac(randctx *ctx)
   ctx->randa = a;
 }
 
-/* If flag is TRUE, use randrsl[0..RANDSIZ-1] as the seed */
+/* using randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *ctx)
 {
   uint32_t a, b, c, d, e, f, g, h;
@@ -147,4 +146,15 @@ void randinit(randctx *ctx)
 
   isaac(ctx);              /* fill in the first set of results */
   ctx->randcnt = RANDSIZ;  /* prepare to use the first set of results */
+}
+
+uint32_t randInt(randctx *ctx)
+{
+  /* If we run out of numbers, reset the sequence */
+  if (!ctx->randcnt--)
+  {
+    isaac(ctx);
+    ctx->randcnt = RANDSIZ - 1;
+  }
+  return ctx->randrsl[ctx->randcnt];
 }
