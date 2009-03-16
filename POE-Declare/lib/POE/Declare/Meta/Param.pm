@@ -24,7 +24,7 @@ use POE::Declare::Meta::Attribute ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.18';
+	$VERSION = '0.19';
 	@ISA     = 'POE::Declare::Meta::Attribute';
 }
 

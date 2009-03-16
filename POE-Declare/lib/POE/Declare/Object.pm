@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.18';
+	$VERSION = '0.19';
 }
 
 # Inside-out storage of internal values
@@ -157,6 +157,7 @@ sub new {
 
 	# Check and normalize message registration
 	foreach ( $meta->_messages ) {
+		next unless exists $param{$_};
 		$self->{$_} = _CALLBACK($self->{$_});
 	}
 

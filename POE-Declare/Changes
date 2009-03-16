@@ -1,5 +1,8 @@
 Revision history for Perl extension POE-Declare
 
+0.19 Tue 17 Mar 2009
+	- Allowing Message params to be optional
+
 0.18 Fri 13 Mar 2009
 	- Changing the Message implementation to be much simpler
 
