@@ -7,3 +7,4 @@ exclude-regexes:
   - '^(?:\.?/)?SIGNATURE$'
   - '^(?:\.?/)?ppport\.h$'
   - '^(?:\.?/)?inc/'
+  - '^(?:\.?/)?mytypemap$'
