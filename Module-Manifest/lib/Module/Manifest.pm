@@ -65,6 +65,7 @@ use 5.00503;
 use strict;
 use Carp           ();
 use File::Spec     ();
+use File::Spec::Unix ();
 use File::Basename ();
 use Params::Util   '_STRING';
 
@@ -72,6 +73,19 @@ use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.06';
 }
+
+# These platforms were copied from File::Spec
+my %platforms = (
+  MacOS   => 1,
+  MSWin32 => 1,
+  os2     => 1,
+  VMS     => 1,
+  epoc    => 1,
+  NetWare => 1,
+  symbian => 1,
+  dos     => 1,
+  cygwin  => 1,
+);
 
 =pod
 
@@ -223,7 +237,18 @@ sub skipped {
 		Carp::croak('You must pass a filename or path to check');
 	}
 
-	$file = File::Spec->abs2rel($file);
+	my $path = File::Spec->abs2rel($file);
+
+	# Portably deal with different OSes
+	if ($platforms{$^O}) { # Check if we are on a non-Unix platform
+		# Get path info from File::Spec, split apart
+		my (undef, $dir, $filename) = File::Spec->splitpath($path);
+		my @dir = File::Spec->splitdir($dir);
+
+		# Reconstruct the path in Unix-style
+		$dir = File::Spec::Unix->catdir(@dir);
+		$path = File::Spec::Unix->catpath(undef, $dir, $filename);
+	}
 
 	# Quit early if we have no skip list
 	return 0 unless (exists $self->{skiplist});
