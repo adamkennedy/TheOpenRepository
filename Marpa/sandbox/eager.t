@@ -20,6 +20,7 @@ BEGIN {
 
 my $g = new Marpa::Grammar({
     start => 'S',
+    strip => 0,
 
     # An arbitrary maximum is put on the number of parses -- this is for
     # debugging, and infinite loops happen.
@@ -50,10 +51,15 @@ my $a = $g->get_symbol('a');
 for (0 .. 4) { $recce->earleme([$a, 'a', 1]); }
 $recce->end_input();
 
-my $evaler = new Marpa::Evaluator( { recce => $recce, } );
+my $evaler = new Marpa::Evaluator( { clone=>0, recce => $recce, } );
 croak("Cannot evaluate parse") unless $evaler;
 
-print $evaler->show_bocage(2);
+say "Symbols:\n", $g->show_symbols();
+say "Rules:\n",  $g->show_rules();
+say "QDFA:\n",  $g->show_QDFA();
+
+say "Earley Sets:\n", $recce->show_earley_sets();
+say "Bocage:\n", $evaler->show_bocage(2);
 
 # Local Variables:
 #   mode: cperl
