@@ -3,7 +3,7 @@
 # t/99data.t
 #  Test data constraints of the SQLite database
 #
-# $Id: 00signature.t 5375 2009-02-21 04:15:37Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This test script is hereby released into the public domain.
 

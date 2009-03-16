@@ -2,8 +2,7 @@ NAME
     Video::FourCC::Info - Find information about codecs specified as Four
     Character Code
 
-VERSION
-  Version 1.1.2 ($Id$)
+$Id$
 
 DESCRIPTION
     In order for video players to detect the algorithm required to decode a
@@ -19,13 +18,6 @@ DESCRIPTION
     byte-dependent, and is not actually an alphanumeric code (although it is
     represented as such).
 
-SYNOPSIS
-      use Video::FourCC::Info;
-
-      my $codec = Video::FourCC::Info->new('DIV3');
-
-      printf "Codec description: %s\n", $codec->description;
-
 COMPATIBILITY
     This module was tested under Perl 5.10.0, using Debian Linux. However,
     because it's Pure Perl and doesn't do anything too obscure, it should be
@@ -35,85 +27,8 @@ COMPATIBILITY
     If you encounter any problems on a different version or architecture,
     please contact the maintainer.
 
-METHODS
-  Video::FourCC::Info->new( $fourcc )
-    Creates a "Video::FourCC::Info" object, which provides information about
-    the given Four Character Code. If the code does not exist in the
-    database, it will return an error.
-
-    Example code:
-
-      my $codec = Video::FourCC::Info->new('DIV3');
-
-    This method will return an appropriate Video::FourCC::Info object or
-    throw an exception on error.
-
-  Video::FourCC::Info->describe( $fourcc )
-    This is really just a shortcut to grab the short description of a codec
-    given a Four Character Code as input. Note that this is a class method,
-    not an object method.
-
-    Example code:
-
-      my $codec_desc = Video::FourCC::Info->describe('DIV3');
-
-    Internally, this method creates a temporary object and returns the
-    description, destroying the object due to falling out of scope. If you
-    already have a "Video::FourCC::Info" object, then the description
-    accessor will provide better performance.
-
-    Note, that just like "new", this class method may throw an exception if
-    the Four Character Code does not exist in the database.
-
-    Remember that this value could be "undef" if the information is unknown.
-
-  $codec->description( )
-    This returns the short description of the codec. It may be "undef" if
-    there is no description in the database.
-
-    Example code:
-
-      my $codec_desc = $codec->description;
-
-    Remember that this value could be "undef" if the information is unknown.
-
-  $codec->registered( )
-    This returns the short description of the codec. It may be "undef" if
-    there is no description in the database.
-
-    If "DateTime" is installed, then this will be a DateTime object.
-    Otherwise, it will simply be a string in the format "yyyy-mm-dd".
-
-    Example code:
-
-      my $registered = $codec->registered;
-
-    Remember that this value could be "undef" if the information is unknown.
-
-  $codec->owner( )
-    This returns the name of the corporation or other entity that owns the
-    FourCC. Generally, this seems to be an ad-hoc standard, so it's a
-    listing of the first entity known to use the given FourCC.
-
-    Example code:
-
-      my $owner_name = $codec->owner;
-
-    Remember that this value could be "undef" if the information is unknown.
-
-  $codec->code( )
-    This returns the Four Character Code corresponding to the current
-    "Video::FourCC::Info" object.
-
-    Example code:
-
-      my $fourcc = $codec->fourcc;
-
 AUTHOR
     Jonathan Yu <frequency@cpan.org>
-
-  CONTRIBUTORS
-    Your name here ;-)
 
 ACKNOWLEDGEMENTS
     *   Thanks to Allen Day <allenday@ucla.edu> and Benjamin R. Ginter
@@ -147,6 +62,17 @@ SUPPORT
 
         <http://cpants.perl.org/dist/overview/Video-FourCC-Info>
 
+REPOSITORY
+
+    You can access the most recent development version of this module at:
+
+    L<http://svn.ali.as/cpan/trunk/Test-DistManifest>
+
+    If you are a CPAN developer and would like to make modifications to the
+    code base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the
+    repository administrator. I only ask that you contact me first to discuss
+    the changes you wish to make to the distribution.
+
 FEEDBACK
     Please send relevant comments, rotten tomatoes and suggestions directly
     to the maintainer noted above.
@@ -177,14 +103,7 @@ DATA SOURCE
 LICENSE
     Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
 
-    This package is distributed under the same terms as Perl itself. At time
-    of writing, this means that you are entitled to enjoy the covenants of,
-    at your option:
-
-    1   The Free Software Foundation's GNU General Public License (GPL),
-        version 2 or later; or
-
-    2   The Perl Foundation's Artistic License, version 2.0 or later
+    This package is distributed under the same terms as Perl itself.
 
 DISCLAIMER OF WARRANTY
     This software is provided by the copyright holders and contributors "AS
