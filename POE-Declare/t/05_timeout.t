@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 17;
+use Test::More tests => 16;
 # Disabled for now due to POE::Peek::API throwing warnings.
 # use Test::NoWarnings;
 use POE;
