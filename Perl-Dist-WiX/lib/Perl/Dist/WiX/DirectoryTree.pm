@@ -190,6 +190,8 @@ sub initialize_tree {
 		  perl\lib\IO\Uncompress
 		  perl\lib\Locale
 		  perl\lib\Locale\Maketext
+		  perl\lib\Log
+		  perl\lib\Log\Message
 		  perl\lib\Math
 		  perl\lib\Math\BigInt
 		  perl\lib\Module

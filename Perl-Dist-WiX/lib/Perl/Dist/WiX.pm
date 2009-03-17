@@ -48,7 +48,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.158');
+use version; $VERSION = qv('0.158005');
 
 use Object::Tiny qw(
   perl_version
@@ -1334,27 +1334,33 @@ END_PERL
 
 	my $cpan_info = catfile( rel2abs( curdir() ), 'cpan.info' );
 	my $module_info = retrieve $cpan_info;
-	my ( $core, $module_file, $module_id );
+	my ( $core, $module_file, $module_id, $force );
 
 	require CPAN;
 	my @delayed_modules;
 	for my $module ( @{$module_info} ) {
+		$force = 0;
 
-		# DON'T try to install Perl.
-		next if $module->cpan_file =~ m{/perl-5\.}msx;
+		next if $self->_skip_upgrade($module);
 
-		# If the ID is CGI::Carp, there's a bug in the index.
-		next if $module->id eq 'CGI::Carp';
-		
-# Test-Harness-Straps only has a Build.PL, so can't use install_distribution.
+		# Test-Harness-Straps only has a Build.PL, so
+		# can't use install_distribution.
 		if ( $module->cpan_file =~ m{/Test-Harness-Straps-\d}msx ) {
 			$self->install_module( name => 'Test::Harness::Straps' );
 			next;
 		}
-		
-		if ($module->id eq 'CPANPLUS::Dist::Build') {
-			# Delay this module until last.
-			push @delayed_modules, $module;
+
+		# ExtUtils-MakeMaker 6.48 needs forced, but only under
+		# specific conditions.
+		if ( $module->cpan_file =~ m{/ExtUtils-MakeMaker-6.48}msx ) {
+			$force = $self->_force_makemaker();
+			next;
+		}
+
+		if ( $self->_delay_upgrade($module) ) {
+
+			# Delay these module until last.
+			unshift @delayed_modules, $module;
 			next;
 		}
 
@@ -1367,10 +1373,13 @@ END_PERL
 			name     => $module_file,
 			mod_name => $module_id,
 			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+			(        $self->force
+				  or $force
+			  ) ? ( force => 1 ) : (),
 		);
 	} ## end for my $module ( @{$module_info...
 
-	for my $module ( @delayed_modules ) {
+	for my $module (@delayed_modules) {
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal }
 		  { $module->id } ? 1 : 0;
@@ -1380,11 +1389,51 @@ END_PERL
 			name     => $module_file,
 			mod_name => $module_id,
 			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+			$self->force ? ( force => 1 ) : (),
 		);
-	}
-	
+	} ## end for my $module (@delayed_modules)
+
 	return 1;
 } ## end sub install_cpan_upgrades
+
+sub _skip_upgrade {
+	my ( $self, $module ) = @_;
+
+	# DON'T try to install Perl.
+	return 1 if $module->cpan_file =~ m{/perl-5\.}msx;
+
+	# DON'T try to install Net::Ping, it seems to require
+	# a web server available on 127.0.0.1 to pass tests.
+	return 1 if $module->id eq 'Net::Ping';
+
+	# If the ID is CGI::Carp, there's a bug in the index.
+	return 1 if $module->id eq 'CGI::Carp';
+
+	return 0;
+} ## end sub _skip_upgrade
+
+sub _delay_upgrade {
+	my ( $self, $module ) = @_;
+
+	return 1 if $module->id eq 'CPANPLUS::Dist::Build';
+
+	return 1 if $module->id eq 'File::Fetch';
+
+	return 1 if $module->id eq 'Thread::Queue';
+
+	return 0;
+}
+
+sub _force_makemaker {
+	my $self = shift;
+
+	my $long_build = Win32::GetLongPathName( rel2abs( $self->build_dir ) );
+	my $spaces_in_build_dir = ( $long_build =~ m{\s}ms );
+
+	return ( $spaces_in_build_dir and ( $self->perl_version eq '588' ) )
+	  ? 1
+	  : 0;
+}
 
 sub _need_packlist {
 	my ( $self, $module ) = @_;
