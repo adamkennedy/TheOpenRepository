@@ -1,5 +1,11 @@
 Revision history for Perl extension POE-Declare
 
+0.20 Tue 17 Mar 2009
+	- Disable Test::NoWarnings when using Test::POE::Stopping.
+	  It uses POE::Peek::API, which will throw a warnings when
+	  loaded against a development version of POE.
+	- Adding a specific META.yml dependency check.
+
 0.19 Tue 17 Mar 2009
 	- Allowing Message params to be optional
 

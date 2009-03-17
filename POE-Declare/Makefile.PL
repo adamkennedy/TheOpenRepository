@@ -1,4 +1,4 @@
-use inc::Module::Install 0.79;
+use inc::Module::Install 0.080;
 
 all_from      'lib/POE/Declare.pm';
 requires      'Scalar::Util'        => winlike() ? '1.19' : '1.18';
