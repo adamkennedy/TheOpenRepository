@@ -25,7 +25,7 @@ A(B(a))
 EOS
 
 my $mdl = <<'EOF';
-semantics are perl5.  version is 0.001_003.
+semantics are perl5.  version is 0.001_004.
 start symbol is S.
 default action is q{join(q{ }, @_)}.
 
