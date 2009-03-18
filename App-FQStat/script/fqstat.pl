@@ -15,7 +15,7 @@ use Term::ANSIScreen qw/RESET cls/;
 use Term::ReadKey;
 use Getopt::Long;
 
-use constant DEBUG => 2;
+use constant DEBUG => 0;
 use constant STARTTIME => Time::HiRes::time();
 
 ###################
