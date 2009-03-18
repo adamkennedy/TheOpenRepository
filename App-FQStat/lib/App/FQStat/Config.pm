@@ -114,6 +114,8 @@ sub _default_config {
     version => $App::FQStat::VERSION,
     colors => $App::FQStat::Colors::DefaultColors,
     color_schemes => $App::FQStat::Colors::DefaultColorSchemes,
+    summary_mode => 0,
+    summary_clustering => 0,
   );
 
   my %upgrades;
