@@ -49,7 +49,7 @@ sub draw_title_line {
     my $progress = ::PROGRESS_INDICATORS()->[$::ProgressIndicator];
     $progress = ' ' if not defined $progress;
     $line = sprintf(
-      'fqstat v%.1f %s Jobs:%i Upd:%.1fs ' . get_color('header_highlight') . 'Summary Mode' . RESET . ' (c) S. Mueller, Nodes:%i',
+      'fqstat v%.1f %s Jobs:%i Upd:%.1fs [S]witch [F10] Menu ' . get_color('header_highlight') . 'Summary Mode' . RESET . ', Nodes:%i',
       $App::FQStat::VERSION||0,
       $progress,
       scalar(@{$::Records})||0,
