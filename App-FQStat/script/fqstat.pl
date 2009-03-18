@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use 5.008;
-# fqstat.pl (version see FQStat.pm) is (c) 2007-2008 Steffen Mueller
+# fqstat.pl (version see FQStat.pm) is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -15,7 +15,7 @@ use Term::ANSIScreen qw/RESET cls/;
 use Term::ReadKey;
 use Getopt::Long;
 
-use constant DEBUG => 0;
+use constant DEBUG => 2;
 use constant STARTTIME => Time::HiRes::time();
 
 ###################
@@ -87,6 +87,8 @@ our %Keys;                              # hash of key => action for main loop
 our %ControlKeys;                       # hash of control key id => action for main loop
 our %MenuKeys;                          # hash of key => action for menu 
 our %MenuControlKeys;                   # hash of control key id => action for menu
+our %SummaryKeys;
+our %SummaryControlKeys;
 
 # twiddly globals
 use constant PROGRESS_INDICATORS => ['-', '\\', '|', '/']; # progress indicator states
@@ -107,29 +109,49 @@ our $HighlightUser;
   }
 }
 
+# application mode globals
+our $MenuMode            = 0; # in menu or not
+our $SummaryMode :shared = App::FQStat::Config::get("summary_mode") || 0; # in summary mode or not
+
 # menu globals
-our $MenuMode        = 0; # in menu or not
 our $MenuNumber      = 0; # which menu (see @App::FQStat::Menu::Menus)
 our $MenuEntryNumber = 0; # in which entry of that menu
 
+
 # Displayed column descriptions
 our %Columns =  (
-  prio  => { format => '%.5f',  width => 7,  name => 'Prio',  key => 'prio',  'index' => F_prio,  order => 'num_highlow' },
-  name  => { format => '%-10s', width => 10, name => 'Name',  key => 'name',  'index' => F_name,  order => 'alpha'       },
-  user  => { format => '%-12s', width => 12, name => 'Owner', key => 'user',  'index' => F_user,  order => 'alpha'       },
-  id    => { format => '%7u',   width => 7,  name => 'Id',    key => 'id',    'index' => F_id,    order => 'num'         },
-  date  => { format => '%-10s', width => 10, name => 'Date',  key => 'date',  'index' => F_date,  order => 'date'        },
-  time  => { format => '%-8s',  width => 8,  name => 'Time',  key => 'time',  'index' => F_time,  order => 'time'        },
-  queue => { format => '%30s',  width => 30, name => 'Queue', key => 'queue', 'index' => F_queue, order => 'alpha'       },
+  prio   => { format => '%.5f',  width => 7,  name => 'Prio',  key => 'prio',  'index' => F_prio,  order => 'num_highlow' },
+  name   => { format => '%-10s', width => 10, name => 'Name',  key => 'name',  'index' => F_name,  order => 'alpha'       },
+  user   => { format => '%-12s', width => 12, name => 'Owner', key => 'user',  'index' => F_user,  order => 'alpha'       },
+  id     => { format => '%7u',   width => 7,  name => 'Id',    key => 'id',    'index' => F_id,    order => 'num'         },
+  date   => { format => '%-10s', width => 10, name => 'Date',  key => 'date',  'index' => F_date,  order => 'date'        },
+  'time' => { format => '%-8s',  width => 8,  name => 'Time',  key => 'time',  'index' => F_time,  order => 'time'        },
+  queue  => { format => '%30s',  width => 30, name => 'Queue', key => 'queue', 'index' => F_queue, order => 'alpha'       },
 );
 # Column order
 our @Columns = qw(id name prio user date time queue);
+
+# Summary Mode: Displayed column descriptions
+our %SummaryColumns =  (
+  user   => { format => '%-12s', width => 12, name => 'Owner',       key => 'user',  'index' => 0, order => 'alpha'       },
+  name   => { format => '%-12s', width => 12, name => 'Name-Like',   key => 'name',  'index' => 1, order => 'alpha'       },
+  n_run  => { format => '%-5u',  width => 5,  name => 'NRun',        key => 'nrun',  'index' => 2, order => 'num'         },
+  n_err  => { format => '%-5u',  width => 5,  name => 'NErr',        key => 'nerr',  'index' => 3, order => 'num'         },
+  n_hld  => { format => '%-5u',  width => 5,  name => 'NHold',       key => 'nhold', 'index' => 4, order => 'num'         },
+  n_wait => { format => '%-5u',  width => 5,  name => 'NWait',       key => 'nwait', 'index' => 5, order => 'num'         },
+  prio   => { format => '%.6f',  width => 8,  name => 'AvrgPrio',    key => 'prio',  'index' => 6, order => 'num_highlow' },
+  'time' => { format => '%-8s',  width => 11, name => 'AvrgRunTime', key => 'time',  'index' => 7, order => 'time'        },
+);
+# Summary Mode: Column order
+our @SummaryColumns = qw(user name n_run n_err n_hld n_wait prio time);
+
 
 # Data structure to hold information about the current state of affairs
 our $Records = [];
 our $RecordsChanged : shared = 0;
 our $RecordsReversed : shared = 0;
 our $NoActiveNodes = 0;
+our $Summary = [];
 
 # scanner thread globals, see below.
 
@@ -279,14 +301,12 @@ BEGIN {
     ' ' => \&App::FQStat::Actions::show_job_details,
     "\n" => \&App::FQStat::Actions::show_job_details,
     'l' => \&App::FQStat::Actions::show_job_log,
+    'S' => \&App::FQStat::Actions::toggle_summary_mode,
   );
 
   # copy of the key maps for the menu
   %MenuControlKeys = %ControlKeys;
-  delete $MenuControlKeys{5}; # pg-up
-  delete $MenuControlKeys{6}; # pg-down
-  delete $MenuControlKeys{H}; # home 
-  delete $MenuControlKeys{F}; # end
+  delete $MenuControlKeys{$_} foreach qw(5 6 H F); # pg-up, pg-down, home, end
   $MenuControlKeys{A}    = \&App::FQStat::Menu::menu_up,     # up-arrow
   $MenuControlKeys{B}    = \&App::FQStat::Menu::menu_down,   # down-arrow
   $MenuControlKeys{C}    = \&App::FQStat::Menu::menu_right,  # right-arrow
@@ -295,6 +315,12 @@ BEGIN {
   %MenuKeys = %Keys;
   $MenuKeys{"\n"} = \&App::FQStat::Menu::menu_select, # Enter
   $MenuKeys{" "}  = \&App::FQStat::Menu::menu_select, # space
+  delete $MenuKeys{$_} foreach qw(S);
+
+  %SummaryKeys = map {($_ => $Keys{$_})} qw(q i h S);
+  $SummaryKeys{c} = \&App::FQStat::Actions::toggle_summary_name_clustering;
+  $SummaryKeys{s} = $SummaryKeys{S};
+  %SummaryControlKeys = map {($_ => $ControlKeys{$_})} qw(15 21);
 }
 
 my @OldTermSize = @Termsize;
@@ -308,12 +334,14 @@ sub main_loop {
     if (defined $input) {
       my ($KeysHash, $ControlKeysHash);
       if ($MenuMode) {
-        #warn "MENU MODE";
         $KeysHash = \%MenuKeys;
         $ControlKeysHash = \%MenuControlKeys;
       }
+      elsif ($SummaryMode) {
+        $KeysHash = \%SummaryKeys;
+        $ControlKeysHash = \%SummaryControlKeys;
+      }
       else {
-        #warn "NONMENU MODE";
         $KeysHash = \%Keys;
         $ControlKeysHash = \%ControlKeys;
       }
@@ -351,6 +379,7 @@ sub main_loop {
       warnline "Scanner thread joined in main loop" if ::DEBUG;
       lock($RecordsChanged);
       $RecordsChanged = 1;
+      $Summary = [];
     }
 
     my $startRun;
@@ -443,7 +472,7 @@ fqstat - Interactive front-end for qstat
 
   You can get online help by hitting 'h' while running fqstat.
 
-fqstat is (c) 2007-2008 Steffen Mueller.
+fqstat is (c) 2007-2009 Steffen Mueller.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

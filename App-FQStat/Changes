@@ -1,5 +1,13 @@
 Revision history for Perl extension App::FQStat.
 
+6.3  Wed Mar 18 15:08 2009
+  - Summary mode!
+  - In summary mode, optionally either collapses all jobs of each
+    user into one line with a brief status count and avrg. prio. and
+    run time or collapses only jobs with similar names.
+  - Copyright date update.
+  - Miscellaneous small bug fixes.
+
 6.2  Mon Oct  9 14:25 2008
   - Save/load/delete named color schemes.
   - Two color schemes to choose from by default.

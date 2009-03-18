@@ -1,6 +1,6 @@
 
 package App::FQStat::Colors;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -50,6 +50,8 @@ our $DefaultColors = {
   selected_job         => "blue on white",
   selected_cursor      => "black on red",
 
+  summary              => "bold white on blue",
+
   warning              => "red",
 };
 our $DefaultColorSchemes = {
@@ -71,6 +73,7 @@ our $DefaultColorSchemes = {
     status_hold => 'black on yellow',
     status_queued => 'bold white on blue',
     status_running => 'black on green',
+    summary => 'bold red on blue',
     user_highlight => 'bold red on blue',
     user_input => 'bold red on black',
     user_instructions => 'bold white on red',

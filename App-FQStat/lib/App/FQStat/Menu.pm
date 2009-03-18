@@ -1,6 +1,6 @@
 
 package App::FQStat::Menu;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -21,6 +21,8 @@ our @EXPORT_OK = @{$EXPORT_TAGS{'all'}};
 
 our @Menus = (
   { width => 11, name => 'Display', entries => [
+      { name => 'Summary',     action => \&App::FQStat::Actions::toggle_summary_mode },
+      { name => 'Summ.Clust.', action => \&App::FQStat::Actions::toggle_summary_name_clustering },
       { name => 'Refresh',     action => sub { App::FQStat::Drawing::update_display(1) } },
       { name => 'Sort',        action => \&App::FQStat::Actions::select_sort_field },
       { name => 'Reverse',     action => \&App::FQStat::Actions::toggle_reverse_sort },

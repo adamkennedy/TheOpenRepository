@@ -1,6 +1,6 @@
 
 package App::FQStat::Drawing;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -37,9 +37,26 @@ sub draw_title_line {
   locate(1,1);
   my $line;
 
+  my $summary_mode;
+  { lock($::SummaryMode); $summary_mode = $::SummaryMode; }
+
   if ($::MenuMode) {
     print get_color("menu_normal");
     $line = App::FQStat::Menu::get_menu_title_line();
+  }
+  elsif ($summary_mode) {
+    lock($::Interval);
+    my $progress = ::PROGRESS_INDICATORS()->[$::ProgressIndicator];
+    $progress = ' ' if not defined $progress;
+    $line = sprintf(
+      'fqstat v%.1f %s Jobs:%i Upd:%.1fs ' . get_color('header_highlight') . 'Summary Mode' . RESET . ' (c) S. Mueller, Nodes:%i',
+      $App::FQStat::VERSION||0,
+      $progress,
+      ($::User ? "User:$::User " : ""),
+      scalar(@{$::Records})||0,
+      $::Interval||0,
+      $::NoActiveNodes||0,
+    );
   }
   else {
     lock($::RecordsReversed);
@@ -84,18 +101,26 @@ sub draw_header_line {
   my $high = get_color("header_highlight");
   my $norm = get_color("header_normal");
 
+  my $summary_mode = do {lock($::SummaryMode); $::SummaryMode};
+  my $summary_clustering = App::FQStat::Config::get("summary_clustering");
+
   print $norm;
-  if (exists $highlight{1}) { $line = $high.'Stat'.$norm }
-  else { $line = 'Stat' }
+  if (not $summary_mode) {
+    if (exists $highlight{1}) { $line = $high.'Stat'.$norm }
+    else { $line = 'Stat' }
+  }
 
   $width = 4;
   my $colno = 1;
-  foreach my $col (@::Columns) {
-    my $c = $::Columns{$col};
+  my $columns_list = $summary_mode ? \@::SummaryColumns : \@::Columns;
+  my $columns_hash = $summary_mode ? \%::SummaryColumns : \%::Columns;
+  foreach my $col (@$columns_list) {
+    my $c = $columns_hash->{$col};
     $colno++;
+    next if $summary_mode and $c->{key} eq 'name' and not $summary_clustering;
     $line .= (' 'x($::Termsize[0]-$width-1)).'>', last if $width+2+$c->{width} > $::Termsize[0];
     $width += 1+$c->{width};
-    $line .= ' ';
+    $line .= ' ' unless $colno == 2 and $summary_mode;
     if (exists $highlight{$colno}) { $line .= $high.sprintf("\%-".$c->{width}."s", $c->{name}).$norm }
     else                           { $line .= sprintf("\%-".$c->{width}."s", $c->{name}) }
   }
@@ -124,9 +149,90 @@ sub update_display {
 
   draw_title_line(); # first line
   draw_header_line(); # second line
-  draw_job_display(); # list of jobs
+  my $summary_mode;
+  { lock($::SummaryMode); $summary_mode = $::SummaryMode; }
+
+  if ($summary_mode) {
+    draw_summary();
+  } else {
+    draw_job_display(); # list of jobs
+  }
+
   if ($::MenuMode) {
     App::FQStat::Menu::draw_menu();
+  }
+
+  locate(1,1);
+}
+
+# Draws the job summary
+sub draw_summary {
+  warnenter if ::DEBUG;
+
+  # before there's any jobs, warn the user that the
+  # queue isn't actually empty.
+  if (not $::Initialized) {
+    draw_initializing_sign();
+    locate(1,1);
+    return;
+  }
+
+  App::FQStat::Scanner::calculate_summary()
+    if not defined $::Summary or @$::Summary == 0;
+
+  my $summary = $::Summary;
+  my $summary_clustering = App::FQStat::Config::get("summary_clustering");
+
+  my $maxno_lines = space_for_jobs();
+
+  my %status_color = (
+    nrun  => get_color("status_running"),
+    nerr  => get_color("status_error"),
+    nhold => get_color("status_hold"),
+    nwait => get_color("status_queued"),
+  );
+
+  locate(3,1);
+  my $summary_color = get_color("summary");
+
+  my $no = 0;
+
+  foreach my $summaryLine (@$summary) {
+    $no++;
+    last if $no >= $maxno_lines;
+
+    clline();
+    print $summary_color;
+
+    my $width = 0;
+    my $first = 1;
+    my $too_short = 0;
+    foreach my $col (@::SummaryColumns) {
+      my $c = $::SummaryColumns{$col};
+
+      # skip name column if not defined
+      next if $c->{key} eq 'name' and not $summary_clustering;
+
+      $too_short = 1, last if $width+3+$c->{width} > $::Termsize[0];
+      $width += 1+$c->{width};
+      print ' ' unless $first;
+      $first = 0;
+      print $status_color{ $c->{key} } if exists $status_color{ $c->{key} };
+      printf( $c->{format}, $summaryLine->[ $c->{index} ] );
+      print $summary_color if exists $status_color{ $c->{key} };
+    }
+
+    # padding for "position bar" of scroll bar
+    print ' 'x($::Termsize[0]-$width-1);
+
+    if ($too_short) {
+      # not enough space
+      print '>';
+    }
+    
+    print RESET;
+
+    print "\n";
   }
 
   locate(1,1);
@@ -179,7 +285,6 @@ sub draw_job_display {
   my $no = 0;
   my %status_color = (
     running  => get_color("status_running"),
-    error    => get_color("status_error"),
     hold     => get_color("status_hold"),
     error    => get_color("status_error"),
     queued   => get_color("status_queued"),

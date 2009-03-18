@@ -1,6 +1,6 @@
 
 package App::FQStat::Scanner;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -8,6 +8,9 @@ package App::FQStat::Scanner;
 use strict;
 use warnings;
 use Time::HiRes qw/sleep/;
+use String::Trigram ();
+use DateTime ();
+use Time::Zone ();
 use App::FQStat::Debug;
 
 # run qstat
@@ -24,6 +27,7 @@ sub run_qstat {
     warnline "Joining scanner thread" if ::DEBUG;
     my $return = $::ScannerThread->join();
     ($::Records, $::NoActiveNodes) = @$return;
+    $::Summary = [];
     $::Initialized = 1;
     { lock($::RecordsChanged); $::RecordsChanged = 1; }
     warnline "Joined scanner thread. Creating new scanner thread" if ::DEBUG;
@@ -50,8 +54,14 @@ sub scanner_thread {
   my @lines;
   my @args;
   {
-    lock($::User);
-    push @args, '-u', ( (defined($::User) && $::User ne '') ? $::User : '*');
+    lock($::SummaryMode);
+    if ($::SummaryMode) {
+      push @args, '-u', '*';
+    }
+    else {
+      lock($::User);
+      push @args, '-u', ( (defined($::User) && $::User ne '') ? $::User : '*');
+    }
   }
 
   my $timebefore = time();
@@ -210,11 +220,123 @@ sub sort_current {
   }
 }
 
+
 # reverse the current set of records
 sub reverse_records {
   warnenter if ::DEBUG;
   my $lines = shift;
   @$lines = reverse @$lines;
+}
+
+
+# calculate the job summary
+sub calculate_summary {
+  warnenter if ::DEBUG;
+  $::Summary = [];
+
+  my $offset = Time::Zone::tz_local_offset();
+  my $curtime = time() + $offset;
+
+  my %user_clusters;
+  foreach my $job (@$::Records) {
+    my $user = $job->[::F_user];
+    $user_clusters{$user} ||= [];
+    push @{$user_clusters{$user}}, $job;
+  }
+
+  if (App::FQStat::Config::get("summary_clustering")) {
+    my $trigram = String::Trigram->new(
+      minSim  => 0.25,
+      warp    => 1.2,
+      cmpBase => [],
+    );
+
+    my %user_name_clusters;
+
+    foreach my $user (keys %user_clusters) {
+      $trigram->reInit([]);
+
+      my %jname_clusters;
+      my $jobs = $user_clusters{$user};
+      foreach my $job (@$jobs) {
+        my $jname = $job->[::F_name];
+        
+        if (keys %jname_clusters) {
+          my @bestmatch;
+          my $sim = $trigram->getBestMatch($jname, \@bestmatch);
+          if (@bestmatch and $sim) {
+            push @{ $jname_clusters{$bestmatch[0]} }, $job;
+          }
+          else {
+            $jname_clusters{$jname} ||= [];
+            push @{ $jname_clusters{$jname} }, $job;
+            $trigram->extendBase([$jname]);
+          }
+        }
+        else {
+          $jname_clusters{$jname} = [$job];
+          $trigram->extendBase([$jname]);
+        }
+
+      }
+
+      foreach my $jname (keys %jname_clusters) {
+        my $clustername = "$user;$jname";
+        $user_name_clusters{$clustername} ||= [];
+        push @{$user_name_clusters{$clustername}}, @{$jname_clusters{$jname}};
+        delete $jname_clusters{$jname};
+      }
+      
+    } # end foreach user cluster
+
+    %user_clusters = %user_name_clusters;
+  }
+
+  foreach my $user (keys %user_clusters) {
+    my $jobs          = $user_clusters{$user};
+    my %n_status      = (r => 0, E => 0, h => 0, 'qw' => 0);
+    my $prio_sum      = 0;
+    my $runtime_sum   = 0;
+    my $njobs_started = 0;
+
+    foreach my $job (@$jobs) {
+      $prio_sum += $job->[::F_prio];
+
+      # find job status
+      for ($job->[::F_status]) {
+        if    (/^[rt]$/)      {$n_status{r}++}
+        elsif (/(?:^d|E)/)    {$n_status{E}++}
+        elsif (/h(?:qw|r|t)/) {$n_status{h}++}
+        else                  {$n_status{qw}++}
+      }
+
+      if ($job->[::F_status] =~ /^h?[rt]$/) {
+        my ($day, $month, $year)     = split /\./, $job->[::F_date];
+        my ($hour, $minute, $second) = split /:/, $job->[::F_time];
+        my $dt = DateTime->new(year => $year, month  => $month,  day    => $day,
+                               hour => $hour, minute => $minute, second => $second);
+        $runtime_sum += $curtime - $dt->epoch();
+        $njobs_started++;
+      }
+
+    }
+
+    ($user, my $jobname) = split /;/, $user;
+
+    my $runtime = '';
+    if ($njobs_started) {
+      my $seconds = $runtime_sum/$njobs_started;
+      my $hours = int($seconds / 3600);
+      my $minutes = int($seconds / 60 - $hours*60);
+      $seconds = int($seconds) % 60;
+      $runtime = join ':', $hours, $minutes, $seconds;
+    }
+
+    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/@$jobs, $runtime ];
+    push @$::Summary, $line;
+  } # end for each user
+
+  return(1);
 }
 
 

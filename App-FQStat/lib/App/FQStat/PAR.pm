@@ -1,6 +1,6 @@
 
 package App::FQStat::PAR;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.

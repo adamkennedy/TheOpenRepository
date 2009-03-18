@@ -1,6 +1,6 @@
 
 package App::FQStat::Actions;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -609,6 +609,28 @@ sub save_color_scheme {
   return 1;
 }
 
+sub toggle_summary_mode {
+  warnenter if ::DEBUG;
+  {
+    lock($::SummaryMode);
+    $::SummaryMode = ($::SummaryMode+1) % 2;
+    set_config("summary_mode", $::SummaryMode);
+  }
+  return 1;
+}
+
+
+sub toggle_summary_name_clustering {
+  warnenter if ::DEBUG;
+  $::SummaryNameClustering = ($::SummaryNameClustering+1) % 2;
+  $::Summary = [];
+  my $cluster = get_config("summary_clustering")||0;
+  $cluster = ($cluster+1)%2;
+  set_config("summary_clustering", $cluster);
+  return 1;
+}
+
+
 
 sub show_manual {
   warnenter if ::DEBUG;
@@ -623,6 +645,7 @@ Commands:
   ${h}'q'             ${r}     (Q)uit
   ${h}F10             ${r}     Show Menu
   ${h}F5              ${r}     Refresh data from qstat and redraw
+  ${h}'S'             ${r}     Toggle Summary Mode
   ${h}Up- / Down-Arrow${r}     Scroll up/down if possible
   ${h}Page-Up / -Down ${r}     Scroll one page up/down if possible
   ${h}Pos1 / End      ${r}     Jump to beginning / end
@@ -638,8 +661,9 @@ Commands:
   ${h}'p'             ${r}     Change (P)riority of selected jobs
   ${h}'o/O'           ${r}     H(o)ld jobs / Resume j(O)bs
   ${h}'c'             ${r}     (C)lear error state of jobs
+                               (In Summary Mode: Toggle Clustering)
   ${h}'d'             ${r}     Change job (d)ependencies
-fqstat is (c) 2007-2008 Steffen Mueller. This program is free software; you
+fqstat is (c) 2007-2009 Steffen Mueller. This program is free software; you
 can redistribute it and/or modify it under the same terms as Perl itself.
 HERE
   my $input = Term::ReadKey::ReadKey(1e9);

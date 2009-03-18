@@ -1,6 +1,6 @@
 
 package App::FQStat::Config;
-# App::FQStat is (c) 2007-2008 Steffen Mueller
+# App::FQStat is (c) 2007-2009 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -121,7 +121,6 @@ sub _default_config {
     old => sub {
       my $cfg = shift;
       %$cfg = %default;
-      save_configuration();
     },
     '6.0' => sub {
       my $cfg = shift;
@@ -132,6 +131,17 @@ sub _default_config {
     '6.1' => sub {
       my $cfg = shift;
       $cfg->{color_schemes} = $App::FQStat::Colors::DefaultColorSchemes;
+      $upgrades{6.2}->($cfg);
+      save_configuration();
+    },
+    '6.2' => sub {
+      my $cfg = shift;
+      foreach my $scheme (values %{$cfg->{color_schemes}}) {
+        $scheme->{summary} = $scheme->{user_highlight};
+      }
+      $cfg->{colors}->{summary} = $cfg->{colors}->{user_highlight};
+      $cfg->{summary_mode} = 0;
+      $cfg->{summary_clustering} = 0;
       save_configuration();
     },
   );
