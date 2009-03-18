@@ -48,7 +48,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.158005');
+use version; $VERSION = qv('0.158_006');
 
 use Object::Tiny qw(
   perl_version

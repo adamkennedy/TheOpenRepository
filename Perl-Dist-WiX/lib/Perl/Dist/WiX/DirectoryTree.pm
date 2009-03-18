@@ -200,8 +200,10 @@ sub initialize_tree {
 		  perl\lib\Pod
 		  perl\lib\Term
 		  perl\lib\Test
+		  perl\lib\Test\Harness
 		  perl\lib\Text
 		  perl\lib\Thread
+		  perl\lib\Tie
 		  perl\lib\Time
 		  perl\lib\autodie
 		  perl\lib\auto

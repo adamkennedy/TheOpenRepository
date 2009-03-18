@@ -19,7 +19,7 @@ use Readonly          qw( Readonly                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
 use Params::Util      qw( _INSTANCE _STRING                      );
 
-use version; $VERSION = qv('0.15');
+use version; $VERSION = qv('0.160');
 
 Readonly my $COMPONENT_CLASS => 'Perl::Dist::WiX::Base::Component';
 

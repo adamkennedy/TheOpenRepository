@@ -21,7 +21,7 @@ use     Object::InsideOut qw(
 use     Params::Util      qw( _IDENTIFIER    );
 require Perl::Dist::WiX::EnvironmentEntry;
 
-use version; $VERSION = qv('0.15');
+use version; $VERSION = qv('0.160');
 #>>>
 #####################################################################
 # Accessors:
