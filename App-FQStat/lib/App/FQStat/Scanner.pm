@@ -246,7 +246,7 @@ sub calculate_summary {
 
   if (App::FQStat::Config::get("summary_clustering")) {
     my $trigram = String::Trigram->new(
-      minSim  => 0.25,
+      minSim  => App::FQStat::Config::get("summary_clustering_similarity"),
       warp    => 1.2,
       cmpBase => [],
     );
@@ -341,5 +341,4 @@ sub calculate_summary {
 
 
 1;
-
 

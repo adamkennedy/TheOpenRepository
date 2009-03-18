@@ -116,6 +116,7 @@ sub _default_config {
     color_schemes => $App::FQStat::Colors::DefaultColorSchemes,
     summary_mode => 0,
     summary_clustering => 0,
+    summary_clustering_similarity => 0.25,
   );
 
   my %upgrades;
@@ -142,8 +143,7 @@ sub _default_config {
         $scheme->{summary} = $scheme->{user_highlight};
       }
       $cfg->{colors}->{summary} = $cfg->{colors}->{user_highlight};
-      $cfg->{summary_mode} = 0;
-      $cfg->{summary_clustering} = 0;
+      $cfg->{summary_clustering_similarity} = 0.25;
       save_configuration();
     },
   );

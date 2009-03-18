@@ -622,14 +622,12 @@ sub toggle_summary_mode {
 
 sub toggle_summary_name_clustering {
   warnenter if ::DEBUG;
-  $::SummaryNameClustering = ($::SummaryNameClustering+1) % 2;
   $::Summary = [];
   my $cluster = get_config("summary_clustering")||0;
   $cluster = ($cluster+1)%2;
   set_config("summary_clustering", $cluster);
   return 1;
 }
-
 
 
 sub show_manual {
