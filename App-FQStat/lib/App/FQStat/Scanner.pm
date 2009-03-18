@@ -332,9 +332,17 @@ sub calculate_summary {
       $runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
     }
 
-    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/@$jobs, $runtime ];
+    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/@$jobs, $runtime, $njobs_started ];
     push @$::Summary, $line;
   } # end for each user
+
+  @$::Summary =
+    sort {
+         $b->[3] <=> $a->[3] #errors
+      or $b->[8] <=> $a->[8] #nodes-used
+      or $b->[2] <=> $a->[2] #running
+    }
+    @$::Summary;
 
   return(1);
 }
