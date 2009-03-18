@@ -329,7 +329,7 @@ sub calculate_summary {
       my $hours = int($seconds / 3600);
       my $minutes = int($seconds / 60 - $hours*60);
       $seconds = int($seconds) % 60;
-      $runtime = join ':', $hours, $minutes, $seconds;
+      $runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
     }
 
     my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/@$jobs, $runtime ];
