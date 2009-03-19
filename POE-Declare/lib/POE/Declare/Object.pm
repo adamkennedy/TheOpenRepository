@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.20';
+	$VERSION = '0.21';
 }
 
 # Inside-out storage of internal values
@@ -157,7 +157,7 @@ sub new {
 
 	# Check and normalize message registration
 	foreach ( $meta->_messages ) {
-		next unless exists $param{$_};
+		next unless exists $self->{$_};
 		$self->{$_} = _CALLBACK($self->{$_});
 	}
 
@@ -169,7 +169,7 @@ sub new {
 
 # Check the validity of a provided message handler.
 sub _CALLBACK {
-	my $it = $_[1];
+	my $it = $_[0];
 
 	# The callback is an anonymous subroutine
 	return $it if Params::Util::_CODE($it);
@@ -183,7 +183,7 @@ sub _CALLBACK {
 		and
 		scalar(@$it) == 2
 		and
-		Params::Util::_IDENTIFIER($it->[0])
+		_ALIAS($it->[0])
 		and
 		Params::Util::_IDENTIFIER($it->[1])
 	) {
@@ -198,6 +198,16 @@ sub _CALLBACK {
 
 	# Otherwise, not valid
 	Carp::croak('Invalid message event handler');
+}
+
+# Check the format of an alias
+sub _ALIAS {
+	Params::Util::_IDENTIFIER($_[0])
+	or (
+		defined(Params::Util::_STRING($_[0]))
+		and
+		$_[0] =~ /\.\d+$/
+	) ? $_[0] : undef;
 }
 
 =pod

@@ -8,8 +8,8 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 2;
-use Test::NoWarnings;
+use Test::More tests => 3;
+# use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
 
@@ -25,12 +25,17 @@ use Test::POE::Stopping;
 # Generate the test class
 
 SCOPE: {
-	package Foo;
+	package Foo::Bar;
 
 	use POE::Declare;
 
 	declare bar      => 'Internal';
 	declare EventOne => 'Message';
+	declare EventTwo => 'Message';
+
+	sub foo : Event {
+
+	}
 
 	compile;
 }
@@ -43,7 +48,10 @@ SCOPE: {
 # Tests
 
 # Start the test session
-my $foo = Foo->new(
+my $foo = Foo::Bar->new(
 	EventOne => \&eventone,
+	EventTwo => [ 'Foo::Bar.1', 'foo' ],
 );
-isa_ok( $foo, 'Foo' );
+isa_ok( $foo, 'Foo::Bar' );
+is( ref($foo->{EventOne}), 'CODE', 'EventOne is a CODE reference' );
+is( ref($foo->{EventTwo}), 'CODE', 'EventTwo is a CODE reference' );
