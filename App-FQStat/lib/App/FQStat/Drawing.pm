@@ -37,8 +37,7 @@ sub draw_title_line {
   locate(1,1);
   my $line;
 
-  my $summary_mode;
-  { lock($::SummaryMode); $summary_mode = $::SummaryMode; }
+  my $summary_mode = $::SummaryMode;
 
   if ($::MenuMode) {
     print get_color("menu_normal");
@@ -100,7 +99,7 @@ sub draw_header_line {
   my $high = get_color("header_highlight");
   my $norm = get_color("header_normal");
 
-  my $summary_mode = do {lock($::SummaryMode); $::SummaryMode};
+  my $summary_mode = $::SummaryMode;
   my $summary_clustering = App::FQStat::Config::get("summary_clustering");
 
   print $norm;
@@ -148,8 +147,7 @@ sub update_display {
 
   draw_title_line(); # first line
   draw_header_line(); # second line
-  my $summary_mode;
-  { lock($::SummaryMode); $summary_mode = $::SummaryMode; }
+  my $summary_mode = $::SummaryMode;
 
   if ($summary_mode) {
     draw_summary();
