@@ -1,7 +1,8 @@
 /* rand.c: The ISAAC Pseudo-Random Number Generator
  *
  * This is the original ISAAC reference implementation, written by Bob Jenkins
- * and released into the public domain.
+ * and released into the public domain. The original code by Bob Jenkins was
+ * retrieved from: http://burtleburtle.net/bob/rand/isaacafa.html
  *
  * Original filename was rand.c and carried this changelog:
  *  960327: Creation (addition of randinit, really)
@@ -10,12 +11,11 @@
  *  010626: Note this is public domain
  *
  * Jonathan Yu <frequency@cpan.org> made some mostly cosmetic changes and
- * prepared the file for life as a CPAN XS module. It remains in the public
- * domain, but may also be used under the same terms as Perl itself - that is,
- * Artistic or the GNU General Public License.
+ * prepared the file for life as a CPAN XS module.
  *
- * This code was retrieved in March 2009 from:
- * http://burtleburtle.net/bob/rand/isaacafa.html
+ * This package and its contents are released by the author into the
+ * Public Domain, to the full extent permissible by law. For additional
+ * information, please see the included `LICENSE' file.
  *
  * $Id$
  */
@@ -148,6 +148,9 @@ void randinit(randctx *ctx)
   ctx->randcnt = RANDSIZ;  /* prepare to use the first set of results */
 }
 
+/* This function was added by Jonathan Yu to return the next integer (taking
+ * the code out of a macro and putting it into a function instead
+ */
 uint32_t randInt(randctx *ctx)
 {
   /* If we run out of numbers, reset the sequence */

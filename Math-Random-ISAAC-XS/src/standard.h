@@ -1,11 +1,10 @@
 /* standard.h: standard definitions and types
  *
- * These are some standard definitions and types for ISAAC
+ * These are some standard definitions and types for ISAAC.
  *
- * Jonathan Yu <frequency@cpan.org> made some mostly cosmetic changes and
- * prepared the file for life as a CPAN XS module. It remains in the public
- * domain, but may also be used under the same terms as Perl itself - that is,
- * Artistic or the GNU General Public License. See isaac.c for details.
+ * This package and its contents are released by the author into the
+ * Public Domain, to the full extent permissible by law. For additional
+ * information, please see the included `LICENSE' file.
  *
  * $Id$
  */

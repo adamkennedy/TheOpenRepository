@@ -2,11 +2,7 @@
  *
  * This is a Perl XS interface to the original ISAAC reference implementation,
  * written by Bob Jenkins and released into the public domain circa 1996.
- * See rand.c for details.
- *
- * This distribution remains in the public domain, but may also be used under
- * the same terms as Perl itself - that is, your choice of either: the Perl
- * Artistic or the GNU General Public License.
+ * See `LICENSE' for details.
  *
  * $Id$
  */
@@ -20,7 +16,7 @@
 
 typedef randctx * Math__Random__ISAAC;
 
-MODULE = Math::Random::ISAAC        PACKAGE = Math::Random::ISAAC
+MODULE = Math::Random::ISAAC::XS    PACKAGE = Math::Random::ISAAC::XS
 
 PROTOTYPES: DISABLE
 
