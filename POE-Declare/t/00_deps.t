@@ -63,7 +63,7 @@ sub module {
 	return unless defined $path;
 
 	# Load the version
-	my $got = normalize(version($path));
+	my $got = normalise(version($path));
 	Test::More::ok( $got >= $need, "$module version ok ($got >= $need)" );
 }
 
