@@ -28,11 +28,12 @@ ok($tree, '->new returns true');
 
 # Test 2.
               
-my $string_test =  '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
+my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'INSTALLDIR\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
           <Directory Id=\'D_F717B51E_5E57_329A_83A3_527819908145\' Name=\'bin\' />
           <Directory Id=\'D_167768A4_449A_32CC_A0F4_3DCF273EDF69\' Name=\'lib\'>
+            <Directory Id=\'D_180F87E3_8BA9_3D33_AEE7_BCF494527ABA\' Name=\'Archive\' />
             <Directory Id=\'D_A8C8FC6F_24E4_3756_9816_68E0C6AF697E\' Name=\'B\' />
             <Directory Id=\'D_1E4CE48B_D491_3830_8C63_EE79BB61800A\' Name=\'Compress\' />
             <Directory Id=\'D_8AF15C79_FA45_36B3_ABD8_B31D41B582AF\' Name=\'CPAN\'>
@@ -53,8 +54,12 @@ my $string_test =  '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
               <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\' />
               <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\' />
             </Directory>
+            <Directory Id=\'D_C382D2EC_779A_339E_9BED_D146C7489317\' Name=\'IPC\' />
             <Directory Id=\'D_C8B207D4_21D6_3F1F_8CC8_4F7670CD8BCD\' Name=\'Locale\'>
               <Directory Id=\'D_E0C4B2B5_C4E4_3EA1_A27B_D1BC6CE444CF\' Name=\'Maketext\' />
+            </Directory>
+            <Directory Id=\'D_4D70863F_EDBA_396B_A936_0352639DA92F\' Name=\'Log\'>
+              <Directory Id=\'D_D72A1DA3_7C47_3D1D_8F9A_E25ED762E034\' Name=\'Message\' />
             </Directory>
             <Directory Id=\'D_27461A25_5034_3D89_AD5D_50A5E3CD5BA9\' Name=\'Math\'>
               <Directory Id=\'D_4FF80E77_1B9F_3235_99FE_55B711F7CAD1\' Name=\'BigInt\' />
@@ -65,9 +70,12 @@ my $string_test =  '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
             <Directory Id=\'D_472DF1A0_222E_3479_B1E5_172B6AF84738\' Name=\'Net\' />
             <Directory Id=\'D_3E78F079_73DD_3DAA_912F_209CEC68903D\' Name=\'Pod\' />
             <Directory Id=\'D_32E5A173_2C22_3AED_B76B_C90550094A4C\' Name=\'Term\' />
-            <Directory Id=\'D_13EF26F9_C8E9_3439_9DD2_CE1506EF2826\' Name=\'Test\' />
+            <Directory Id=\'D_13EF26F9_C8E9_3439_9DD2_CE1506EF2826\' Name=\'Test\'>
+              <Directory Id=\'D_F8E7E97D_FECD_3EE1_88F1_1FBD58F31DF4\' Name=\'Harness\' />
+            </Directory>
             <Directory Id=\'D_E03DC170_1409_37D7_BCC0_FC44AF896C8F\' Name=\'Text\' />
             <Directory Id=\'D_46AD6F6D_D148_3BE4_AFA8_CAE080280AC2\' Name=\'Thread\' />
+            <Directory Id=\'D_3777377C_4417_3C20_9A58_542CABDD2F41\' Name=\'Tie\' />
             <Directory Id=\'D_CF3A962C_7210_3ECB_AF74_B6CD04EB0C5A\' Name=\'Time\' />
             <Directory Id=\'D_E0D6BA76_D23F_3DB8_95B0_0127F8C4670F\' Name=\'autodie\' />
             <Directory Id=\'D_1EAEB13C_294E_3325_BC3B_135FE6E21463\' Name=\'auto\'>

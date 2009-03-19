@@ -172,6 +172,7 @@ sub initialize_tree {
 		  licenses\pexports
 		  perl\bin
 		  perl\lib
+		  perl\lib\Archive
 		  perl\lib\B
 		  perl\lib\Compress
 		  perl\lib\CPAN
@@ -188,6 +189,7 @@ sub initialize_tree {
 		  perl\lib\IO
 		  perl\lib\IO\Compress
 		  perl\lib\IO\Uncompress
+		  perl\lib\IPC
 		  perl\lib\Locale
 		  perl\lib\Locale\Maketext
 		  perl\lib\Log
