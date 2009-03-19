@@ -260,6 +260,8 @@ sub calculate_summary {
       my $jobs = $user_clusters{$user};
       foreach my $job (@$jobs) {
         my $jname = $job->[::F_name];
+        # ignore numbers
+        $jname =~ s/\d+//g;
         
         if (keys %jname_clusters) {
           my @bestmatch;
