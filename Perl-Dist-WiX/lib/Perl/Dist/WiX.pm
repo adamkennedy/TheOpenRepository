@@ -48,7 +48,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.158_006');
+use version; $VERSION = qv('0.158_007');
 
 use Object::Tiny qw(
   perl_version
@@ -1357,6 +1357,13 @@ END_PERL
 			next;
 		}
 
+		if (    ( $module->cpan_file =~ m{/Module-Install-/d}msx )
+			and ( $module->cpan_version > 0.79 ) )
+		{
+			$self->install_modules(qw( File::Remove YAML::Tiny ));
+			next;
+		}
+
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
@@ -1364,37 +1371,35 @@ END_PERL
 			next;
 		}
 
-		$core =
-		  exists $Module::CoreList::version{ $self->perl_version_literal }
-		  { $module->id } ? 1 : 0;
-		$module_file = substr $module->cpan_file, 5;
-		$module_id = $self->_module_fix( $module->id );
-		$self->install_distribution(
-			name     => $module_file,
-			mod_name => $module_id,
-			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
-			(        $self->force
-				  or $force
-			  ) ? ( force => 1 ) : (),
-		);
+		$self->_install_cpan_module( $module, $force );
 	} ## end for my $module ( @{$module_info...
 
 	for my $module (@delayed_modules) {
-		$core =
-		  exists $Module::CoreList::version{ $self->perl_version_literal }
-		  { $module->id } ? 1 : 0;
-		$module_file = substr $module->cpan_file, 5;
-		$module_id = $self->_module_fix( $module->id );
-		$self->install_distribution(
-			name     => $module_file,
-			mod_name => $module_id,
-			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
-			$self->force ? ( force => 1 ) : (),
-		);
-	} ## end for my $module (@delayed_modules)
+		$self->_install_cpan_module( $module, 0 );
+	}
 
 	return 1;
 } ## end sub install_cpan_upgrades
+
+sub _install_cpan_module {
+	my ( $self, $module, $force ) = @_;
+
+	my $core =
+	  exists $Module::CoreList::version{ $self->perl_version_literal }
+	  { $module->id } ? 1 : 0;
+	$module_file = substr $module->cpan_file, 5;
+	$module_id = $self->_module_fix( $module->id );
+	$self->install_distribution(
+		name     => $module_file,
+		mod_name => $module_id,
+		$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+		(        $self->force
+			  or $force
+		  ) ? ( force => 1 ) : (),
+	);
+
+	return 1;
+} ## end sub _install_cpan_module
 
 sub _skip_upgrade {
 	my ( $self, $module ) = @_;
