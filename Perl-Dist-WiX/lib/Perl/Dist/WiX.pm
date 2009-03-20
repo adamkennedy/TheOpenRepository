@@ -48,7 +48,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.158_007');
+use version; $VERSION = qv('0.158008');
 
 use Object::Tiny qw(
   perl_version
@@ -1334,7 +1334,7 @@ END_PERL
 
 	my $cpan_info = catfile( rel2abs( curdir() ), 'cpan.info' );
 	my $module_info = retrieve $cpan_info;
-	my ( $core, $module_file, $module_id, $force );
+	my $force;
 
 	require CPAN;
 	my @delayed_modules;
@@ -1387,8 +1387,8 @@ sub _install_cpan_module {
 	my $core =
 	  exists $Module::CoreList::version{ $self->perl_version_literal }
 	  { $module->id } ? 1 : 0;
-	$module_file = substr $module->cpan_file, 5;
-	$module_id = $self->_module_fix( $module->id );
+	my $module_file = substr $module->cpan_file, 5;
+	my $module_id = $self->_module_fix( $module->id );
 	$self->install_distribution(
 		name     => $module_file,
 		mod_name => $module_id,
