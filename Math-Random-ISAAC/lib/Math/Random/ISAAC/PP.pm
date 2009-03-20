@@ -13,11 +13,54 @@ package Math::Random::ISAAC::PP;
 
 use strict;
 use warnings;
+use Carp ();
+
+=head1 NAME
+
+Math::Random::ISAAC::PP - Pure Perl port of the ISAAC PRNG Algorithm
+
+=head1 VERSION
+
+Version 0.1 ($Id$)
+
+=cut
 
 use version; our $VERSION = qv('0.1');
 
-use constant RANDSIZL => 8;
-use constant RANDSIZ  => (1 << RANDSIZL);
+=head1 DESCRIPTION
+
+This module implements the same interface as C<Math::Random::ISAAC> and can be
+used as a drop-in replacement. However, it is recommended that you let the
+C<Math::Random::ISAAC> module decide whether to use the PurePerl or XS version
+of this module, instead of choosing manually.
+
+Selecting the backend to use manually really only has two uses:
+
+=over
+
+=item *
+
+If you are trying to avoid the small overhead incurred with dispatching method
+calls to the appropriate backend modules.
+
+=item *
+
+If you are testing the module for performance and wish to explicitly decide
+which module you would like to use.
+
+=back
+
+Example code:
+
+  # With Math::Random::ISAAC
+  my $rng = Math::Random::ISAAC->new(time);
+  my $rand = $rng->rand();
+
+  # With Math::Random::ISAAC::PP
+  my $rng = Math::Random::ISAAC::PP->new(time);
+  my $rand = $rng->rand();
+
+=cut
 
 sub new {
   my ($class, @seed) = @_;
@@ -25,10 +68,10 @@ sub new {
   my $seedsize = scalar(@seed);
 
   my @mm;
-  $#mm = $#seed = RANDSIZ-1; # predeclare the arrays are RANDSIZ large
+  $#mm = $#seed = 255; # predeclare arrays with 256 slots
 
   # Zero-fill our seed data
-  for (my $i = $seedsize; $i < RANDSIZ; $i++) {
+  for (my $i = $seedsize; $i < 256; $i++) {
     $seed[$i] = 0;
   }
 
@@ -45,7 +88,7 @@ sub new {
   # By blessing this class as our parent class, users can 
   bless($self, $class);
 
-  _randinit($self);
+  $self->_randinit();
 
   return $self;
 }
@@ -56,7 +99,7 @@ sub rand {
   return ($self->randInt() / (2**32-1))
 }
 
-sub randInt {
+sub irand {
   my ($self) = @_;
 
   # Reset the sequence if we run out of random stuff
@@ -85,28 +128,28 @@ sub _isaac {
 
   # The C code deals with two halves of the randmem separately;
   # we deal with it in one loop, by adding the &255 parts
-  for (my $i = 0; $i < RANDSIZ; $i++)
+  for (my $i = 0; $i < 256; $i++)
   {
     $x = $mm->[$i];
-    $a = ($a ^ ($a << 13)) + $mm->[($i + RANDSIZ/2) & 255];
+    $a = ($a ^ ($a << 13)) + $mm->[($i + 128) & 255];
     $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
     $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
     $i++;
 
     $x = $mm->[$i];
-    $a = ($a ^ (0x03ffffff & ($a >> 6))) + $mm->[($i + RANDSIZ/2) & 255];
+    $a = ($a ^ (0x03ffffff & ($a >> 6))) + $mm->[($i + 128) & 255];
     $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
     $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
     $i++;
 
     $x = $mm->[$i];
-    $a = ($a ^ ($a << 2)) + $mm->[($i + RANDSIZ/2) & 255];
+    $a = ($a ^ ($a << 2)) + $mm->[($i + 128) & 255];
     $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
     $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
     $i++;
 
     $x = $mm->[$i];
-    $a = ($a ^ (0x0000ffff & ($a >> 16))) + $mm->[($i + RANDSIZ/2) & 255];
+    $a = ($a ^ (0x0000ffff & ($a >> 16))) + $mm->[($i + 128) & 255];
     $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
     $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
 
@@ -164,7 +207,7 @@ sub _randinit
     $a += $b;
   }
 
-  for (my $i = 0; $i < RANDSIZ; $i += 8)
+  for (my $i = 0; $i < 256; $i += 8)
   {
     $a += $r->[$i  ];
     $b += $r->[$i+1];
@@ -270,8 +313,8 @@ sub _randinit
     $mm->[$i+7] = $h;
   }
 
-  _isaac($self);
-  $self->{randcnt} = RANDSIZ;
+  $self->_isaac();
+  $self->{randcnt} = 256;
 
   return;
 }
