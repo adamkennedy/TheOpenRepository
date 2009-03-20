@@ -1,5 +1,8 @@
 Revision history for Perl extension File::ShareDir::PAR
 
+0.05 Fri 20 Mar 2009
+  - Attempt band-aid fix for strange win32 test problem.
+
 0.04 Mon  2 Mar 2009
   - Fix issues accessing the dist_dir of PAR'd exes.
 

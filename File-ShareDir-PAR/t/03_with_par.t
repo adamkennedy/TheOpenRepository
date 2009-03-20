@@ -39,7 +39,8 @@ BEGIN {
   my $cwd = quotemeta(realpath(cwd()));
   @INC = grep {
     if (!ref($_)) {
-      my $path = realpath($_)||$_;
+      my $path = eval{realpath($_)};
+      $path = $_ if $@ or not defined $path;
       not /^(?:\.\\|\.\/)?blib\b/
         and
       not $path =~ /^$cwd(?:\\|\/).+/
