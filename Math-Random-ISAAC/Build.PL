@@ -5,9 +5,9 @@
 #
 # $Id$
 #
-# All rights to this helper script are hereby disclaimed and its contents
-# released into the public domain by the author. Where this is not possible,
-# you may use this file under the same terms as Perl itself.
+# This package and its contents are released by the author into the
+# Public Domain, to the full extent permissible by law. For additional
+# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -15,10 +15,10 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-  module_name           => 'Test::DistManifest',
-  license               => 'perl',
+  module_name           => 'Math::Random::ISAAC',
+  license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',
-  dist_version_from     => 'lib/Test/DistManifest.pm',
+  dist_version_from     => 'lib/Math/Random/ISAAC.pm',
   dynamic_config        => 0,
   create_readme         => 1,
   recursive_test_files  => 1,
@@ -26,7 +26,7 @@ my $builder = Module::Build->new(
   create_packlist       => 1,
 
   # Maintain compatibility with ExtUtils::MakeMaker installations
-  create_makefile_pl    => 'traditional',
+  create_makefile_pl    => 'passthrough',
 
   requires => {
     'perl'              => 5.006,
@@ -36,26 +36,19 @@ my $builder = Module::Build->new(
     'version'           => 0.76,
     'warnings'          => 0,
     'strict'            => 0,
-
-    # File manipulation modules
-    'Cwd'               => 0,
-    'File::Spec'        => 0,
-    'File::Spec::Unix'  => 0,
-    'File::Find'        => 0,
+    'integer'           => 0,
 
     # The tests are based on Test::More
     'Test::More'        => 0.62,
-    'Test::Builder'     => 0.86,
-
-    # Other modules
-    'Module::Manifest'  => 0.05,
   },
   build_requires => {
     # User tests for good functionality
-    'Test::Builder::Tester'   => 0,
     'Test::NoWarnings'        => 0.084,
   },
   recommends => {
+    # The XS version of this module
+    'Math::Random::ISAAC::XS'   => 0,
+
     # Author tests
     'Test::Perl::Critic'        => 1.01,
     'Perl::Critic'              => 1.096,
@@ -70,18 +63,18 @@ my $builder = Module::Build->new(
   conflicts => {
   },
 
-  add_to_cleanup => [ 'Test-DistManifest-*' ],
+  add_to_cleanup => [ 'Math-Random-ISAAC-*' ],
   script_files => [],
 
   meta_merge => {
     resources => {
       # Custom resources (must begin with an uppercase letter)
-      Ratings      => 'http://cpanratings.perl.org/d/Test-DistManifest',
+      Ratings      => 'http://cpanratings.perl.org/d/Math-Random-ISAAC',
 
       # Official keys (homepage, license, bugtracker)
-      repository   => 'http://svn.ali.as/cpan/trunk/Test-DistManifest',
-      bugtracker   => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-DistManifest',
-      license      => 'http://dev.perl.org/licenses/',
+      repository   => 'http://svn.ali.as/cpan/trunk/Math-Random-ISAAC',
+      bugtracker   => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC',
+      license      => 'http://edwardsamuels.com/copyright/beyond/articles/public.html',
     },
   },
 );
