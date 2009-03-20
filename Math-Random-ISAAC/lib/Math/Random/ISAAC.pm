@@ -12,6 +12,11 @@
 
 package Math::Random::ISAAC;
 
+use strict;
+use warnings;
+
+use Carp ();
+
 use version; our $VERSION = qv('0.1');
 
 # Try to load the XS version first
@@ -44,7 +49,7 @@ sub new {
     $self->{backend} = Math::Random::ISAAC::PP->new(@_);
   }
 
-  bless($self, __PACKAGE__);
+  bless($self, $class);
   return $self;
 }
 

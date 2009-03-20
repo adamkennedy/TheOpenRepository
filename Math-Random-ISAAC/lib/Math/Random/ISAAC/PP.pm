@@ -14,6 +14,8 @@ package Math::Random::ISAAC::PP;
 use strict;
 use warnings;
 
+use version; our $VERSION = qv('0.1');
+
 use constant RANDSIZL => 8;
 use constant RANDSIZ  => (1 << RANDSIZL);
 
@@ -41,7 +43,7 @@ sub new {
   };
 
   # By blessing this class as our parent class, users can 
-  bless($self, __PACKAGE__);
+  bless($self, $class);
 
   _randinit($self);
 
@@ -71,6 +73,7 @@ sub randInt {
 sub _isaac {
   my ($self) = @_;
 
+  # Use integer math
   use integer;
 
   my $mm = $self->{randmem};
@@ -110,6 +113,8 @@ sub _isaac {
     $self->{randb} = $b;
     $self->{randa} = $a;
   }
+
+  return;
 }
 
 sub _randinit
@@ -267,6 +272,8 @@ sub _randinit
 
   _isaac($self);
   $self->{randcnt} = RANDSIZ;
+
+  return;
 }
 
 1;
