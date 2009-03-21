@@ -27,7 +27,7 @@ Version 0.1 ($Id$)
 
 use version; our $VERSION = qv('0.1');
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
 
 This module implements the same interface as C<Math::Random::ISAAC> and can be
 used as a drop-in replacement. However, it is recommended that you let the
@@ -60,6 +60,10 @@ Example code:
   my $rng = Math::Random::ISAAC::PP->new(time);
   my $rand = $rng->rand();
 
+=head1 DESCRIPTION
+
+See L<Math::Random::ISAAC> for the full description.
+
 =cut
 
 sub new {
@@ -71,8 +75,8 @@ sub new {
   $#mm = $#seed = 255; # predeclare arrays with 256 slots
 
   # Zero-fill our seed data
-  for (my $i = $seedsize; $i < 256; $i++) {
-    $seed[$i] = 0;
+  for ($seedsize .. 255) {
+    $seed[$_] = 0;
   }
 
   my $self = {
@@ -93,10 +97,15 @@ sub new {
   return $self;
 }
 
+# This package should have an interface similar to the builtin Perl
+# random number routines; these are methods, not functions, so they
+# are not problematic
+## no critic (ProhibitBuiltinHomonyms)
+
 sub rand {
   my ($self) = @_;
 
-  return ($self->randInt() / (2**32-1))
+  return ($self->irand() / (2**32-1))
 }
 
 sub irand {
@@ -107,11 +116,17 @@ sub irand {
   {
     # Call method like this because of our hack above
     _isaac($self);
-    $self->{randcnt} = RANDSIZ-1;
+    $self->{randcnt} = 255;
   }
 
   return sprintf('%u', $self->{randrsl}->[$self->{randcnt}]);
 }
+
+# C-style for loops are used a lot since this is a port of the C version
+## no critic (ProhibitCStyleForLoops)
+
+# Numbers are specified in hex, so they don't need separators
+## no critic (RequireNumberSeparators)
 
 sub _isaac {
   my ($self) = @_;
@@ -121,40 +136,39 @@ sub _isaac {
 
   my $mm = $self->{randmem};
   my $r = $self->{randrsl};
-  my $a = $self->{randa};
-  my $b = $self->{randb} + (++$self->{randc});
+
+  # $a and $b are reserved (see 'sort')
+  my $aa = $self->{randa};
+  my $bb = $self->{randb} + (++$self->{randc});
 
   my ($x, $y); # temporary storage
 
   # The C code deals with two halves of the randmem separately;
   # we deal with it in one loop, by adding the &255 parts
-  for (my $i = 0; $i < 256; $i++)
+  for (my $i = 0; $i < 256; $i += 4)
   {
-    $x = $mm->[$i];
-    $a = ($a ^ ($a << 13)) + $mm->[($i + 128) & 255];
-    $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
-    $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
-    $i++;
+    $x = $mm->[$i  ];
+    $aa = ($aa ^ ($aa << 13)) + $mm->[($i   + 128) & 255];
+    $mm->[$i  ] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
+    $r->[$i  ] = $bb = $mm->[($y >> 10) & 255] + $x;
 
-    $x = $mm->[$i];
-    $a = ($a ^ (0x03ffffff & ($a >> 6))) + $mm->[($i + 128) & 255];
-    $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
-    $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
-    $i++;
+    $x = $mm->[$i+1];
+    $aa = ($aa ^ (0x03ffffff & ($aa >> 6))) + $mm->[($i+1 + 128) & 255];
+    $mm->[$i+1] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
+    $r->[$i+1] = $bb = $mm->[($y >> 10) & 255] + $x;
 
-    $x = $mm->[$i];
-    $a = ($a ^ ($a << 2)) + $mm->[($i + 128) & 255];
-    $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
-    $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
-    $i++;
+    $x = $mm->[$i+2];
+    $aa = ($aa ^ ($aa << 2)) + $mm->[($i+2 + 128) & 255];
+    $mm->[$i+2] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
+    $r->[$i+2] = $bb = $mm->[($y >> 10) & 255] + $x;
 
-    $x = $mm->[$i];
-    $a = ($a ^ (0x0000ffff & ($a >> 16))) + $mm->[($i + 128) & 255];
-    $mm->[$i] = $y = $mm->[($x >> 2) & 255] + $a + $b;
-    $r->[$i] = $b = $mm->[($y >> 10) & 255] + $x;
+    $x = $mm->[$i+3];
+    $aa = ($aa ^ (0x0000ffff & ($aa >> 16))) + $mm->[($i+3 + 128) & 255];
+    $mm->[$i+3] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
+    $r->[$i+3] = $bb = $mm->[($y >> 10) & 255] + $x;
 
-    $self->{randb} = $b;
-    $self->{randa} = $a;
+    $aaelf->{randb} = $bb;
+    $aaelf->{randa} = $aa;
   }
 
   return;
@@ -166,151 +180,152 @@ sub _randinit
 
   use integer;
 
-  my ($a, $b, $c, $d, $e, $f, $g, $h);
-  $a=$b=$c=$d=$e=$f=$g=$h = 0x9e3779b9;
+  # $a and $b are reserved (see 'sort'); $i is the iterator
+  my ($c, $d, $e, $f, $g, $h, $j, $k);
+  $c=$d=$e=$f=$g=$h=$j=$k = 0x9e3779b9;
 
   my $mm = $self->{randmem};
   my $r = $self->{randrsl};
 
-  for (my $i = 0; $i < 4; $i++)
+  for (0..3) # Loop 4 times
   {
-    $a ^= $b << 11;
-    $d +=$a;
-    $b +=$c;
-
-    $b ^= 0x3fffffff & ($c >> 2);
-    $e += $b;
-    $c += $d;
-
-    $c ^= $d << 8;
+    $c ^= $d << 11;
     $f += $c;
     $d += $e;
 
-    $d ^= 0x0000ffff & ($e >> 16);
+    $d ^= 0x3fffffff & ($e >> 2);
     $g += $d;
     $e += $f;
 
-    $e ^= $f << 10;
+    $e ^= $f << 8;
     $h += $e;
     $f += $g;
 
-    $f ^= 0x0fffffff & ($g >> 4);
-    $a += $f;
+    $f ^= 0x0000ffff & ($g >> 16);
+    $j += $f;
     $g += $h;
 
-    $g ^= $h << 8;
-    $b += $g;
-    $h += $a;
+    $g ^= $h << 10;
+    $k += $g;
+    $h += $j;
 
-    $h ^= 0x007fffff & ($a >> 9);
+    $h ^= 0x0fffffff & ($j >> 4);
     $c += $h;
-    $a += $b;
+    $j += $k;
+
+    $j ^= $k << 8;
+    $d += $j;
+    $k += $c;
+
+    $k ^= 0x007fffff & ($c >> 9);
+    $e += $k;
+    $c += $d;
   }
 
   for (my $i = 0; $i < 256; $i += 8)
   {
-    $a += $r->[$i  ];
-    $b += $r->[$i+1];
-    $c += $r->[$i+2];
-    $d += $r->[$i+3];
-    $e += $r->[$i+4];
-    $f += $r->[$i+5];
-    $g += $r->[$i+6];
-    $h += $r->[$i+7];
+    $c += $r->[$i  ];
+    $d += $r->[$i+1];
+    $e += $r->[$i+2];
+    $f += $r->[$i+3];
+    $g += $r->[$i+4];
+    $h += $r->[$i+5];
+    $j += $r->[$i+6];
+    $k += $r->[$i+7];
 
-    $a ^= $b << 11;
-    $d += $a;
-    $b += $c;
-
-    $b ^= 0x3fffffff & ($c >> 2);
-    $e += $b;
-    $c += $d;
-
-    $c ^= $d << 8;
+    $c ^= $d << 11;
     $f += $c;
     $d += $e;
 
-    $d ^= 0x0000ffff & ($e >> 16);
+    $d ^= 0x3fffffff & ($e >> 2);
     $g += $d;
     $e += $f;
 
-    $e ^= $f << 10;
+    $e ^= $f << 8;
     $h += $e;
     $f += $g;
 
-    $f ^= 0x0fffffff & ($g >> 4);
-    $a += $f;
+    $f ^= 0x0000ffff & ($g >> 16);
+    $j += $f;
     $g += $h;
 
-    $g ^= $h << 8;
-    $b += $g;
-    $h += $a;
+    $g ^= $h << 10;
+    $k += $g;
+    $h += $j;
 
-    $h ^= 0x007fffff & ($a >> 9);
+    $h ^= 0x0fffffff & ($j >> 4);
     $c += $h;
-    $a += $b;
+    $j += $k;
 
-    $mm->[$i  ] = $a;
-    $mm->[$i+1] = $b;
-    $mm->[$i+2] = $c;
-    $mm->[$i+3] = $d;
-    $mm->[$i+4] = $e;
-    $mm->[$i+5] = $f;
-    $mm->[$i+6] = $g;
-    $mm->[$i+7] = $h;
+    $j ^= $k << 8;
+    $d += $j;
+    $k += $c;
+
+    $k ^= 0x007fffff & ($c >> 9);
+    $e += $k;
+    $c += $d;
+
+    $mm->[$i  ] = $c;
+    $mm->[$i+1] = $d;
+    $mm->[$i+2] = $e;
+    $mm->[$i+3] = $f;
+    $mm->[$i+4] = $g;
+    $mm->[$i+5] = $h;
+    $mm->[$i+6] = $j;
+    $mm->[$i+7] = $k;
   }
 
-  for (my $i = 0; $i < RANDSIZ; $i += 8)
+  for (my $i = 0; $i < 256; $i += 8)
   {
-    $a += $mm->[$i  ];
-    $b += $mm->[$i+1];
-    $c += $mm->[$i+2];
-    $d += $mm->[$i+3];
-    $e += $mm->[$i+4];
-    $f += $mm->[$i+5];
-    $g += $mm->[$i+6];
-    $h += $mm->[$i+7];
+    $c += $mm->[$i  ];
+    $d += $mm->[$i+1];
+    $e += $mm->[$i+2];
+    $f += $mm->[$i+3];
+    $g += $mm->[$i+4];
+    $h += $mm->[$i+5];
+    $j += $mm->[$i+6];
+    $k += $mm->[$i+7];
 
-    $a ^= $b << 11;
-    $d += $a;
-    $b += $c;
-
-    $b ^= 0x3fffffff & ($c >> 2);
-    $e += $b;
-    $c += $d;
-
-    $c ^= $d << 8;
+    $c ^= $d << 11;
     $f += $c;
     $d += $e;
 
-    $d ^= 0x0000ffff & ($e >> 16);
+    $d ^= 0x3fffffff & ($e >> 2);
     $g += $d;
     $e += $f;
 
-    $e ^= $f << 10;
+    $e ^= $f << 8;
     $h += $e;
     $f += $g;
 
-    $f ^= 0x0fffffff & ($g >> 4);
-    $a += $f;
+    $f ^= 0x0000ffff & ($g >> 16);
+    $j += $f;
     $g += $h;
 
-    $g ^= $h << 8;
-    $b += $g;
-    $h += $a;
+    $g ^= $h << 10;
+    $k += $g;
+    $h += $j;
 
-    $h ^= 0x007fffff & ($a >> 9);
+    $h ^= 0x0fffffff & ($j >> 4);
     $c += $h;
-    $a += $b;
+    $j += $k;
 
-    $mm->[$i  ] = $a;
-    $mm->[$i+1] = $b;
-    $mm->[$i+2] = $c;
-    $mm->[$i+3] = $d;
-    $mm->[$i+4] = $e;
-    $mm->[$i+5] = $f;
-    $mm->[$i+6] = $g;
-    $mm->[$i+7] = $h;
+    $j ^= $k << 8;
+    $d += $j;
+    $k += $c;
+
+    $k ^= 0x007fffff & ($c >> 9);
+    $e += $k;
+    $c += $d;
+
+    $mm->[$i  ] = $c;
+    $mm->[$i+1] = $d;
+    $mm->[$i+2] = $e;
+    $mm->[$i+3] = $f;
+    $mm->[$i+4] = $g;
+    $mm->[$i+5] = $h;
+    $mm->[$i+6] = $j;
+    $mm->[$i+7] = $k;
   }
 
   $self->_isaac();
@@ -318,5 +333,45 @@ sub _randinit
 
   return;
 }
+
+=head1 AUTHOR
+
+Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Math::Random::ISAAC>
+
+=head1 SUPPORT
+
+Please file bugs for this module under the C<Math::Random::ISAAC>
+distribution. For more information, see L<Math::Random::ISAAC>'s perldoc.
+
+=head1 LICENSE
+
+Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
+
+I, the copyright holder of this package, hereby release the entire contents
+therein into the public domain. This applies worldwide, to the extent that
+it is permissible by law.
+
+In case this is not legally possible, I grant any entity the right to use
+this work for any purpose, without any conditions, unless such conditions
+are required by law.
+
+The full details of this can be found in the B<LICENSE> file included in
+this package.
+
+=head1 DISCLAIMER OF WARRANTY
+
+The software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in
+the software.
+
+=cut
 
 1;

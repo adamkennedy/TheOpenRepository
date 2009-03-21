@@ -98,18 +98,18 @@ throw an exception on error.
 
 # Wrappers around the actual methods
 sub new {
-  my $class = shift;
-  # The rest of the parameters are seed data
+  my ($class, @seed) = @_;
+
   Carp::croak('You must call this as a class method') if ref($class);
 
   my $self = {
   };
 
   if ($DRIVER eq 'XS') {
-    $self->{backend} = Math::Random::ISAAC::XS->new(@_);
+    $self->{backend} = Math::Random::ISAAC::XS->new(@seed);
   }
   else {
-    $self->{backend} = Math::Random::ISAAC::PP->new(@_);
+    $self->{backend} = Math::Random::ISAAC::PP->new(@seed);
   }
 
   bless($self, $class);
@@ -132,6 +132,11 @@ This method will return a double-precision floating point number or throw an
 exception on error.
 
 =cut
+
+# This package should have an interface similar to the builtin Perl
+# random number routines; these are methods, not functions, so they
+# are not problematic
+## no critic (ProhibitBuiltinHomonyms)
 
 sub rand {
   my ($self) = @_;
@@ -300,8 +305,6 @@ authors or copyright holders be liable for any claim, damages or other
 liability, whether in an action of contract, tort or otherwise, arising from,
 out of or in connection with the software or the use or other dealings in
 the software.
-
-=cut
 
 =cut
 
