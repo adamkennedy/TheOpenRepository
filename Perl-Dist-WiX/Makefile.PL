@@ -1,11 +1,12 @@
 #! perl
 
-use inc::Module::Install 0.79;
+use inc::Module::Install;
 
 die "OS unsupported\n" if (not win32);
 
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'version'             => '0.76';
+requires       'Alien::WiX'          => 'v0.300000';
 requires       'Data::UUID'          => '1.149';
 requires       'Exception::Class'    => '1.22';
 requires       'File::ShareDir'      => '1.00';

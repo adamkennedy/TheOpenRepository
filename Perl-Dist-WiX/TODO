@@ -1,4 +1,4 @@
-1. Create an Alien::WiX distribution and depend on it (0.170)
+1. Update documentation (0.161)
 
 2. Handle installing distributions that only contain a Build.PL 
    by executing the Build.PL (instead of throwing an exception)

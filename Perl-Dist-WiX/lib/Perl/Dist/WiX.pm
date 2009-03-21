@@ -48,7 +48,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.158008');
+use version; $VERSION = qv('0.159001');
 
 use Object::Tiny qw(
   perl_version
@@ -1219,6 +1219,11 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
+		# ExtUtils-MakeMaker needs forced, but only under
+		# specific conditions.
+		if ( $dist =~ m/ExtUtils-MakeMaker-/msx ) {
+			$force = $self->_force_makemaker();
+		}
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
@@ -1347,13 +1352,6 @@ END_PERL
 		# can't use install_distribution.
 		if ( $module->cpan_file =~ m{/Test-Harness-Straps-\d}msx ) {
 			$self->install_module( name => 'Test::Harness::Straps' );
-			next;
-		}
-
-		# ExtUtils-MakeMaker 6.48 needs forced, but only under
-		# specific conditions.
-		if ( $module->cpan_file =~ m{/ExtUtils-MakeMaker-6.48}msx ) {
-			$force = $self->_force_makemaker();
 			next;
 		}
 

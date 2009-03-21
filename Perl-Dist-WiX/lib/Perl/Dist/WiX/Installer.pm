@@ -23,6 +23,7 @@ use     5.006;
 use     strict;
 use     warnings;
 use     vars                     qw( $VERSION                      );
+use     Alien::WiX               qw( :ALL                          );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use     Params::Util
     qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                         );
@@ -42,7 +43,7 @@ use version; $VERSION = qv('0.160');
 
 =head2 Accessors
 
-    $id = $dist->bin_candle; 
+    $id = $dist->output_dir; 
 
 Accessors will return a portion of the internal state of the object.
 
@@ -63,10 +64,6 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>.
 The location where this object will write the information for WiX 
 to process to create the MSI. A default is provided if this is not 
 specified.
-
-=item * bin_candle, bin_light, bin_wixui
-
-Returns the location of candle.exe, light.exe, or xxx respectively.
 
 =item * directories
 
@@ -104,9 +101,6 @@ use Object::Tiny qw{
   output_dir
   source_dir
   fragment_dir
-  bin_candle
-  bin_light
-  bin_wixui
   directories
   fragments
   msi_feature_tree
@@ -250,25 +244,6 @@ sub new {
 	unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
 		PDWiX->throw('Failed to find the Program Files directory');
 	}
-	my $wix_dir =
-	  catdir( $ENV{PROGRAMFILES}, 'Windows Installer XML v3', 'bin' );
-	my $wix_file = catfile( $wix_dir, 'light.exe' );
-	unless ( -f $wix_file ) {
-		PDWiX->throw('Failed to find the WiX light.exe program');
-	}
-	$self->{bin_light} = $wix_file;
-
-	$wix_file = catfile( $wix_dir, 'candle.exe' );
-	unless ( -f $wix_file ) {
-		PDWiX->throw('Failed to find the WiX candle.exe program');
-	}
-	$self->{bin_candle} = $wix_file;
-
-	$wix_file = catfile( $wix_dir, 'WixUIExtension.dll' );
-	unless ( -f $wix_file ) {
-		PDWiX->throw('Failed to find the WiX UI Extension DLL');
-	}
-	$self->{bin_wixui} = $wix_file;
 
 	return $self;
 } ## end sub new
@@ -471,7 +446,7 @@ sub compile_wxs {
 
 	# Compile the .wxs file
 	my $cmd = [
-		$self->bin_candle,
+		wix_bin_candle(),
 		'-out', $wixobj,
 		$filename,
 
@@ -591,7 +566,7 @@ sub write_msi {
 	$self->trace_line( 1, "Linking $output_msi\n" );
 	my $out;
 	my $cmd = [
-		$self->bin_light,
+		wix_bin_light(),
 		'-sice:ICE38',                 # Gets rid of ICE38 warning.
 		'-sice:ICE43',                 # Gets rid of ICE43 warning.
 		'-sice:ICE47',                 # Gets rid of ICE47 warning.
@@ -600,7 +575,7 @@ sub write_msi {
 		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
 		'-out', $output_msi,
-		'-ext', $self->bin_wixui,
+		'-ext', wix_lib_wixui(),
 		$input_wixobj,
 		$input_wixouts,
 	];
