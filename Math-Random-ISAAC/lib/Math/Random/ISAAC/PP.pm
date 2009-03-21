@@ -167,8 +167,8 @@ sub _isaac {
     $mm->[$i+3] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
     $r->[$i+3] = $bb = $mm->[($y >> 10) & 255] + $x;
 
-    $aaelf->{randb} = $bb;
-    $aaelf->{randa} = $aa;
+    $self->{randb} = $bb;
+    $self->{randa} = $aa;
   }
 
   return;

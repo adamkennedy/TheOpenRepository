@@ -25,4 +25,6 @@ if ($@) {
   plan skip_all => 'Test::Pod::Coverage required to test POD Coverage';
 }
 
+plan tests => 1;
+
 pod_coverage_ok('Math::Random::ISAAC');

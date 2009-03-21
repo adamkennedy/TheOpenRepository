@@ -34,6 +34,7 @@ provides:
   Math::Random::ISAAC::PP:
     file: lib/Math/Random/ISAAC/PP.pm
     version: 0.001
+generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
