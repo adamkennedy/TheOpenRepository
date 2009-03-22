@@ -9,6 +9,7 @@ BEGIN {
 
 use Test::More;
 use LWP::Online ':skip_all';
+use File::Spec::Functions ':ALL';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -18,13 +19,14 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
+	if (rel2abs( catdir( qw( t tmp90 ) ) ) =~ m{\s}) {
+		plan( skip_all => 'Cannot test successfully in a test directory with spaces' );
+		exit(0);
+	}
 	plan( tests => 13 );
 }
 
-use File::Spec::Functions ':ALL';
 use t::lib::Test;
-
-
 
 
 

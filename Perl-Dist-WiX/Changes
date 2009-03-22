@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.160   Fri 13 Mar 2009
+0.160   Sun 22 Mar 2009
     1. install_cpan_upgrades goes through and gets a 
 	   list of installations to call install_distribution
 	   on instead of installing all of the distributions
@@ -9,10 +9,12 @@ Changes for Perl extension Perl-Dist-WiX
 	   and gzip.exe from the path (causes perl's
 	   'make test' to fail if this is not done).
 	3. Checks for spaces in build directory when testing
-	   perl 5.10.0 (Testing CPANPLUS::Shell will fail.)
+	   perl 5.10.0 (Testing CPANPLUS::Shell will fail)
+	   and 5.8.8 (Installing modules will fail.)
 	   Adds Win32 to dependencies, but it was being used
 	   in testing anyway.
 	4. Add TODO list.
+	5. Add dependency on Alien::WiX.
 
 0.150   Thu  5 Mar 2009
 	1. Added a digit to the version number because 

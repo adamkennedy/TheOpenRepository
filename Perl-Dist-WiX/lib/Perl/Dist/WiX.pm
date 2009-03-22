@@ -25,6 +25,7 @@ use     Archive::Zip          qw( :ERROR_CODES               );
 use     English               qw( -no_match_vars             );
 use     List::MoreUtils       qw( any none                   );
 use     Params::Util          qw( _HASH _STRING _INSTANCE    );
+use     Readonly              qw( Readonly                   );
 use		Storable              qw( retrieve                   );
 use     File::Spec::Functions
   qw( catdir catfile catpath tmpdir splitpath rel2abs curdir );
@@ -48,7 +49,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = qv('0.159001');
+use version; $VERSION = qv('0.160');
 
 use Object::Tiny qw(
   perl_version
@@ -97,6 +98,28 @@ use Perl::Dist::Asset::Website      1.12 ();
 use Perl::Dist::Asset::Launcher     1.12 ();
 use Perl::Dist::Util::Toolchain     1.12 ();
 #>>>
+
+Readonly my %MODULE_FIX => (
+	'CGI.pm'               => 'CGI',
+	'Fatal'                => 'autodie',
+	'Filter::Util::Call'   => 'Filter',
+	'Locale::Maketest'     => 'Locale-Maketext',
+	'Pod::Man'             => 'Pod',
+	'Text::Tabs'           => 'Text',
+	'PathTools'            => 'Cwd',
+	'TermReadKey'          => 'Term::ReadKey',
+	'Term::ReadLine::Perl' => 'Term::ReadLine',
+	'libwww::perl'         => 'LWP',
+	'Scalar::List::Utils'  => 'List::Util',
+	'libnet'               => 'Net',
+);
+
+Readonly my @MODULE_DELAY => qw(
+  CPANPLUS::Dist::Build
+  File::Fetch
+  Thread::Queue
+);
+
 
 #####################################################################
 # Constructor
@@ -1219,11 +1242,6 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		# ExtUtils-MakeMaker needs forced, but only under
-		# specific conditions.
-		if ( $dist =~ m/ExtUtils-MakeMaker-/msx ) {
-			$force = $self->_force_makemaker();
-		}
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
@@ -1418,24 +1436,7 @@ sub _skip_upgrade {
 sub _delay_upgrade {
 	my ( $self, $module ) = @_;
 
-	return 1 if $module->id eq 'CPANPLUS::Dist::Build';
-
-	return 1 if $module->id eq 'File::Fetch';
-
-	return 1 if $module->id eq 'Thread::Queue';
-
-	return 0;
-}
-
-sub _force_makemaker {
-	my $self = shift;
-
-	my $long_build = Win32::GetLongPathName( rel2abs( $self->build_dir ) );
-	my $spaces_in_build_dir = ( $long_build =~ m{\s}ms );
-
-	return ( $spaces_in_build_dir and ( $self->perl_version eq '588' ) )
-	  ? 1
-	  : 0;
+	return any { $module->id eq $_ } @MODULE_DELAY ? 1 : 0;
 }
 
 sub _need_packlist {
@@ -1450,21 +1451,9 @@ sub _need_packlist {
 sub _module_fix {
 	my ( $self, $module ) = @_;
 
-	return 'CGI'             if ( $module eq 'CGI.pm' );
-	return 'autodie'         if ( $module eq 'Fatal' );
-	return 'Filter'          if ( $module eq 'Filter::Util::Call' );
-	return 'Locale-Maketext' if ( $module eq 'Locale::Maketext' );
-	return 'Pod'             if ( $module eq 'Pod::Man' );
-	return 'Text'            if ( $module eq 'Text::Tabs' );
-	return 'Cwd'             if ( $module eq 'PathTools' );
-	return 'Term::ReadKey'   if ( $module eq 'TermReadKey' );
-	return 'Term::ReadLine'  if ( $module eq 'Term::ReadLine::Perl' );
-	return 'LWP'             if ( $module eq 'libwww::perl' );
-	return 'List::Util'      if ( $module eq 'Scalar::List::Utils' );
-	return 'Net'             if ( $module eq 'libnet' );
+	return exists $MODULE_FIX{$module} ? $MODULE_FIX{$module} : $module;
 
-	return $module;
-} ## end sub _module_fix
+}
 
 sub install_cpan_upgrades_old {
 	my $self = shift;
