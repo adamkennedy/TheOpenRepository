@@ -237,6 +237,7 @@ sub calculate_summary {
   my $offset = Time::Zone::tz_local_offset();
   my $curtime = time() + $offset;
 
+  # cluster by user name
   my %user_clusters;
   foreach my $job (@$::Records) {
     my $user = $job->[::F_user];
@@ -253,6 +254,7 @@ sub calculate_summary {
 
     my %user_name_clusters;
 
+    # cluster by similarity
     foreach my $user (keys %user_clusters) {
       $trigram->reInit([]);
 
@@ -294,22 +296,25 @@ sub calculate_summary {
     %user_clusters = %user_name_clusters;
   }
 
+  # actually calculate the summaries for each cluster
   foreach my $user (keys %user_clusters) {
     my $jobs          = $user_clusters{$user};
     my %n_status      = (r => 0, E => 0, h => 0, 'qw' => 0);
     my $prio_sum      = 0;
+    my $nprio         = 0;
     my $runtime_sum   = 0;
     my $njobs_started = 0;
 
     foreach my $job (@$jobs) {
-      $prio_sum += $job->[::F_prio];
+      my $prio = $job->[::F_prio];
+      $nprio++, $prio_sum += $prio if $prio > 1.e-2;
 
       # find job status
       for ($job->[::F_status]) {
-        if    (/^[rt]$/)      {$n_status{r}++}
-        elsif (/(?:^d|E)/)    {$n_status{E}++}
-        elsif (/h(?:qw|r|t)/) {$n_status{h}++}
-        else                  {$n_status{qw}++}
+        if    (/^[rt]$/)      { $n_status{r}++;  }
+        elsif (/(?:^d|E)/)    { $n_status{E}++;  }
+        elsif (/h(?:qw|r|t)/) { $n_status{h}++;  }
+        else                  { $n_status{qw}++; }
       }
 
       if ($job->[::F_status] =~ /^h?[rt]$/) {
@@ -334,7 +339,7 @@ sub calculate_summary {
       $runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
     }
 
-    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/@$jobs, $runtime, $njobs_started ];
+    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/$nprio, $runtime, $njobs_started ];
     push @$::Summary, $line;
   } # end for each user
 
