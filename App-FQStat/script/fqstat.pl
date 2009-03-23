@@ -133,17 +133,18 @@ our @Columns = qw(id name prio user date time queue);
 
 # Summary Mode: Displayed column descriptions
 our %SummaryColumns =  (
-  user   => { format => '%-12s', width => 12, name => 'Owner',       key => 'user',  'index' => 0, order => 'alpha'       },
-  name   => { format => '%-12s', width => 12, name => 'Name-Like',   key => 'name',  'index' => 1, order => 'alpha'       },
-  n_run  => { format => '%-5u',  width => 5,  name => 'NRun',        key => 'nrun',  'index' => 2, order => 'num'         },
-  n_err  => { format => '%-5u',  width => 5,  name => 'NErr',        key => 'nerr',  'index' => 3, order => 'num'         },
-  n_hld  => { format => '%-5u',  width => 5,  name => 'NHold',       key => 'nhold', 'index' => 4, order => 'num'         },
-  n_wait => { format => '%-5u',  width => 5,  name => 'NWait',       key => 'nwait', 'index' => 5, order => 'num'         },
-  prio   => { format => '%.6f',  width => 8,  name => 'AvrgPrio',    key => 'prio',  'index' => 6, order => 'num_highlow' },
-  'time' => { format => '%-8s',  width => 11, name => 'AvrgRunTime', key => 'time',  'index' => 7, order => 'time'        },
+  user    => { format => '%-12s', width => 12, name => 'Owner',       key => 'user',    'index' => 0, order => 'alpha'       },
+  name    => { format => '%-12s', width => 12, name => 'Name-Like',   key => 'name',    'index' => 1, order => 'alpha'       },
+  n_run   => { format => '%-5u',  width => 5,  name => 'NRun',        key => 'nrun',    'index' => 2, order => 'num'         },
+  n_err   => { format => '%-5u',  width => 5,  name => 'NErr',        key => 'nerr',    'index' => 3, order => 'num'         },
+  n_hld   => { format => '%-5u',  width => 5,  name => 'NHold',       key => 'nhold',   'index' => 4, order => 'num'         },
+  n_wait  => { format => '%-5u',  width => 5,  name => 'NWait',       key => 'nwait',   'index' => 5, order => 'num'         },
+  prio    => { format => '%.6f',  width => 8,  name => 'AvrgPrio',    key => 'prio',    'index' => 6, order => 'num_highlow' },
+  'time'  => { format => '%-11s', width => 11, name => 'AvrgRunTime', key => 'time',    'index' => 7, order => 'time'        },
+  maxtime => { format => '%-11s', width => 11, name => 'MaxRunTime',  key => 'maxtime', 'index' => 9, order => 'time'        },
 );
 # Summary Mode: Column order
-our @SummaryColumns = qw(user name n_run n_err n_hld n_wait prio time);
+our @SummaryColumns = qw(user name n_run n_err n_hld n_wait prio time maxtime);
 
 
 # Data structure to hold information about the current state of affairs

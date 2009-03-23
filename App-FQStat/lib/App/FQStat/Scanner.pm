@@ -304,6 +304,7 @@ sub calculate_summary {
     my $nprio         = 0;
     my $runtime_sum   = 0;
     my $njobs_started = 0;
+    my $max_runtime   = 0;
 
     foreach my $job (@$jobs) {
       my $prio = $job->[::F_prio];
@@ -322,7 +323,9 @@ sub calculate_summary {
         my ($hour, $minute, $second) = split /:/, $job->[::F_time];
         my $dt = DateTime->new(year => $year, month  => $month,  day    => $day,
                                hour => $hour, minute => $minute, second => $second);
-        $runtime_sum += $curtime - $dt->epoch();
+        my $runtime = $curtime - $dt->epoch();
+        $runtime_sum += $runtime;
+        $max_runtime = $runtime if $runtime > $max_runtime;
         $njobs_started++;
       }
 
@@ -337,9 +340,18 @@ sub calculate_summary {
       my $minutes = int($seconds / 60 - $hours*60);
       $seconds = int($seconds) % 60;
       $runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
+
+      $seconds = $max_runtime;
+      $hours = int($seconds / 3600);
+      $minutes = int($seconds / 60 - $hours*60);
+      $seconds = int($seconds) % 60;
+      $max_runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
+    }
+    else {
+      $max_runtime = '';
     }
 
-    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/$nprio, $runtime, $njobs_started ];
+    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/$nprio, $runtime, $njobs_started, $max_runtime ];
     push @$::Summary, $line;
   } # end for each user
 
