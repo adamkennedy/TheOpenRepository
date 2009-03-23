@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use File::Find::Rule       ();
 use File::Find::Rule::Perl ();
 use constant FFR => 'File::Find::Rule';
@@ -32,5 +32,8 @@ foreach my $method ( qw{ perl_file perl_module perl_script perl_test perl_instal
 # Make an object containing all of them
 my $Rule = File::Find::Rule->new->perl_file;
 isa_ok( $Rule, 'File::Find::Rule' );
+
+my $Rule1 = File::Find::Rule->perl_file; #used in perlver
+isa_ok( $Rule1, 'File::Find::Rule' );
 
 exit(0);

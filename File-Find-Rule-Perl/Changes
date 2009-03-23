@@ -1,5 +1,7 @@
 Revision history for Perl extension File::Find::Rule::Perl
 
+        - additional test (without new) (Alexandr Ciornii)
+
 1.05 Thu 19 Feb 2009
 	- Updating to Module::Install 0.79
 	- Adding support for no_index exclusions
