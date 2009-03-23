@@ -103,7 +103,7 @@ Readonly my %MODULE_FIX => (
 	'CGI.pm'               => 'CGI',
 	'Fatal'                => 'autodie',
 	'Filter::Util::Call'   => 'Filter',
-	'Locale::Maketest'     => 'Locale-Maketext',
+	'Locale::Maketext'     => 'Locale-Maketext',
 	'Pod::Man'             => 'Pod',
 	'Text::Tabs'           => 'Text',
 	'PathTools'            => 'Cwd',
@@ -1436,7 +1436,7 @@ sub _skip_upgrade {
 sub _delay_upgrade {
 	my ( $self, $module ) = @_;
 
-	return any { $module->id eq $_ } @MODULE_DELAY ? 1 : 0;
+	return ( any { $module->id eq $_ } @MODULE_DELAY ) ? 1 : 0;
 }
 
 sub _need_packlist {
@@ -1451,7 +1451,7 @@ sub _need_packlist {
 sub _module_fix {
 	my ( $self, $module ) = @_;
 
-	return exists $MODULE_FIX{$module} ? $MODULE_FIX{$module} : $module;
+	return ( exists $MODULE_FIX{$module} ) ? $MODULE_FIX{$module} : $module;
 
 }
 
