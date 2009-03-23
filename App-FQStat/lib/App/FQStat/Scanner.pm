@@ -351,7 +351,7 @@ sub calculate_summary {
       $max_runtime = '';
     }
 
-    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, $prio_sum/$nprio, $runtime, $njobs_started, $max_runtime ];
+    my $line = [ $user, $jobname, @n_status{'r', 'E', 'h', 'qw'}, ($nprio?$prio_sum/$nprio:''), $runtime, $njobs_started, $max_runtime ];
     push @$::Summary, $line;
   } # end for each user
 
