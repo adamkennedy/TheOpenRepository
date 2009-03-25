@@ -59,6 +59,7 @@ my $builder = Module::Build->new(
     'Test::Pod::Coverage'       => 1.04,
     'Test::Portability::Files'  => 0.05,
     'Test::MinimumVersion'      => 0.008,
+    'Test::LeakTrace'           => 0.07,
   },
   conflicts => {
   },
