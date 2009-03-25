@@ -49,11 +49,12 @@ As with other Pseudo-Random Number Generator (PRNG) algorithms like the
 Mersenne Twister (see L<Math::Random::MT>), this algorithm is designed to
 take some seed information and produce seemingly random results as output.
 
-ISAAC (Indirection, Shift, Accumulate, Add, and Count) has different goals
-than these algorithms. In particular, it's really fast - on average, it
-requires only 18.75 machine cycles to generate a 32-bit value. This makes
-it suitable for applications where a significant amount of random data
-needs to be produced quickly, such solving using the Monte Carlo method.
+However, ISAAC (Indirection, Shift, Accumulate, Add, and Count) has different
+goals than these commonly used algorithms. In particular, it's really fast -
+on average, it requires only 18.75 machine cycles to generate a 32-bit value.
+This makes it suitable for applications where a significant amount of random
+data needs to be produced quickly, such solving using the Monte Carlo method
+or for games.
 
 The results are uniformly distributed, unbiased, and unpredictable unless
 you know the seed. The algorithm was published by Bob Jenkins in the late
@@ -67,8 +68,27 @@ attacks have been found to date.
   my $rng = Math::Random::ISAAC->new(@seeds);
 
   for (0..30) {
-    print 'Result: ' . $rng->randInt() . "\n";
+    print 'Result: ' . $rng->irand() . "\n";
   }
+
+=head1 PURPOSE
+
+The intent of this module is to provide single simple interface to the two
+compatible implementations of this module, namely, L<Math::Random::ISAAC::XS>
+and L<Math::Random::ISAAC::PP>.
+
+If, for some reason, you need to determine what version of the module is
+actually being included by C<Math::Random::ISAAC>, then:
+
+  print 'Backend type: ', $Math::Random::ISAAC::DRIVER, "\n";
+
+In order to force use of one or the other, simply load the appropriate module:
+
+  use Math::Random::ISAAC::XS;
+  my $rng = Math::Random::ISAAC::XS->new();
+  # or
+  use Math::Random::ISAAC::PP;
+  my $rng = Math::Random::ISAAC::PP->new();
 
 =head1 COMPATIBILITY
 
@@ -122,7 +142,8 @@ Returns a random double-precision floating point number which is normalized
 between 0 and 1 (inclusive; it's a closed interval).
 
 Internally, this simply takes the uniformly distributed unsigned integer from
-C<$rng->irand()> and divides it by C<2**32-1> (maximum unsigned integer size)
+C<$rng-E<gt>irand()> and divides it by C<2**32-1> (maximum unsigned integer
+size)
 
 Example code:
 
@@ -229,6 +250,17 @@ L<http://www.cpantesters.org/show/Math-Random-ISAAC.html>
 
 =back
 
+=head1 REPOSITORY
+
+You can access the most recent development version of this module at:
+
+L<http://svn.ali.as/cpan/trunk/Math-Random-ISAAC>
+
+If you are a CPAN developer and would like to make modifications to the code
+base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the repository
+administrator. I only ask that you contact me first to discuss the changes you
+wish to make to the distribution.
+
 =head1 FEEDBACK
 
 Please send relevant comments, rotten tomatoes and suggestions directly to the
@@ -278,6 +310,12 @@ But he also provides a simple workaround:
   one way is to use some other cipher to seed some initial version of ISAAC,
   then use ISAAC's output as a seed for other instances of ISAAC whenever
   they need to be reseeded. 
+
+=item *
+
+There is no way to clone a PRNG instance. I'm not sure why this is might even
+be necessary or useful. File a bug report with an explanation why and I'll
+consider adding it to the next release.
 
 =back
 
