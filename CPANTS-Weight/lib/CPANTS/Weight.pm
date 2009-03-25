@@ -28,7 +28,7 @@ use Algorithm::Dependency::Weight         ();
 use Algorithm::Dependency::Source::DBI    ();
 use Algorithm::Dependency::Source::Invert ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,

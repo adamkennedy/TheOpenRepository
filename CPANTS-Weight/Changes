@@ -1,5 +1,8 @@
 Changes for Perl extension CPANTS-Weight
 
+0.04 Sub 22 Feb 2009
+	- Bug fix
+
 0.03 Sat 21 Feb 2009
 	- Adding the META.yml Level 1, 2 and 3 scores
 	- Adding ORLite::Mirror 1.12 dep for offline support
