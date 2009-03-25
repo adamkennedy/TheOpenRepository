@@ -1,5 +1,8 @@
 Revision history for Perl extension App::DualLivedDiff
 
+1.07  Wed Mar 25 14:10 2009
+  - Option to ignore whitespace.
+
 1.06  Mon Mar 16 13:12 2009
   - Explicitly mapped files trump the exclusion regexps.
   - config subdirectory ships with many file mappings
