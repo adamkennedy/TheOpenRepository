@@ -97,6 +97,9 @@ The paths given are the paths in core perl (blead).
 <li>
 The diffs are from CPAN to core perl.
 </li>
+<li>
+The additional diff options used are -N and -w (include new files in diff, ignore whitespace).
+</li>
 </ul>
 <hr/>
 <table cellspacing="2" cellpadding="3" border="0">

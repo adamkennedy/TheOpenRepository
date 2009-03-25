@@ -78,6 +78,7 @@ foreach my $conf (sort @confDirs) {
     '-o', $tmpOutFile,
     '-d', $modname,
     '-c', $confFile,
+    '-w',
   );
   my $res = IPC::Cmd::run(
     command => \@cmd,

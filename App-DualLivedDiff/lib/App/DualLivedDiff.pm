@@ -36,6 +36,7 @@ Does a diff FROM a dual lived module distribution TO blead perl
              useful to separate diff from CPAN.pm output
 -p/--paths   show the "dual"-lived module paths or the "blead" paths?
              defaults to "blead" or to "dual" if in --reverse mode
+-w/--ignore-all-space (same as for normal gnu diff)
 
 Check perldoc "App::DualLivedDiff" for more info on the usage.
 The "diff" command is assumed to be in your PATH and will be run with the
@@ -47,7 +48,7 @@ HERE
 my (
   $bleadpath, $dualmodule, $reverse,
   $default_config_file, $config_file,
-  $output_file, $paths
+  $output_file, $paths, $ignore_space
 );
 
 sub run {
@@ -58,6 +59,7 @@ sub run {
   $config_file         = $default_config_file;
   $output_file         = undef;
   $paths               = undef;
+  $ignore_space        = undef;
   GetOptions(
     'b|blead=s'                  => \$bleadpath,
     'h|help'                     => \&usage,
@@ -66,6 +68,7 @@ sub run {
     'c|conf|config|configfile=s' => \$config_file,
     'o|out|output=s'             => \$output_file,
     'p|path|paths=s'             => \$paths,
+    'w|ignore-all-space'         => \$ignore_space,
   );
 
   if (defined $output_file) {
@@ -377,7 +380,7 @@ sub file_diff {
   my $absolute_blead_file  = get_full_blead_path( $pathspec, $pathspec->{blead_file} );
   #warn "Diffing '$absolute_source_file' to '$absolute_blead_file'";
 
-  my @cmd = ($diff_cmd, qw(-u -N));
+  my @cmd = ($diff_cmd, ($ignore_space ? ('-w') : ()), qw(-u -N));
   if ($reverse) {
     push @cmd, $absolute_blead_file, $absolute_source_file;
   }
