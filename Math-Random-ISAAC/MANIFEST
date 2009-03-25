@@ -23,3 +23,5 @@ t/01pod.t
 t/01portability.t
 t/02sequence.t
 t/03uniform.t
+t/04fallback.t
+t/05exceptions.t
