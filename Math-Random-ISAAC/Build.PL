@@ -47,19 +47,22 @@ my $builder = Module::Build->new(
   },
   recommends => {
     # The XS version of this module
-    'Math::Random::ISAAC::XS'   => 0,
+    'Math::Random::ISAAC::XS'       => 0,
 
     # Author tests
-    'Test::Perl::Critic'        => 1.01,
-    'Perl::Critic'              => 1.096,
-    'Test::YAML::Meta'          => 0.11,
-    'Test::Kwalitee'            => 1.01,
-    'Test::Signature'           => 1.10,
-    'Test::Pod'                 => 1.14,
-    'Test::Pod::Coverage'       => 1.04,
-    'Test::Portability::Files'  => 0.05,
-    'Test::MinimumVersion'      => 0.008,
-    'Test::LeakTrace'           => 0.07,
+    'Test::Perl::Critic'            => 1.01,
+    'Perl::Critic'                  => 1.096,
+    'Test::YAML::Meta'              => 0.11,
+    'Test::Kwalitee'                => 1.01,
+    'Test::Signature'               => 1.10,
+    'Test::Pod'                     => 1.14,
+    'Test::Pod::Coverage'           => 1.04,
+    'Test::Portability::Files'      => 0.05,
+    'Test::MinimumVersion'          => 0.008,
+    'Test::LeakTrace'               => 0.07,
+    'Statistics::Test::RandomWalk'  => 0,
+    'Test::Without::Module'         => 0.17,
+    'Test::DistManifest'            => 1.001002,
   },
   conflicts => {
   },
