@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use File::Spec::Functions ':ALL';
 use ADAMK::Changes;
 
@@ -29,4 +29,6 @@ SCOPE: {
 	is( scalar($changes->releases), 26, '->releases is 26' );
 	isa_ok( $changes->current_release, 'ADAMK::Changes::Release' );
 	is( $changes->current_version, '2.12', '->current_version ok' );
+	is( $changes->current_release->version, '2.12', '->current_release->version matches' );
+	is( $changes->current_release->date, 'Thu  1 Nov 2007', '->current_release->date ok' );
 }

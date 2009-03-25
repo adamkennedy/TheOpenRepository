@@ -17,6 +17,8 @@ It is largely undocumented.
 use 5.005;
 use strict;
 use Carp 'croak';
+use DateTime                  0.4501 ();
+use DateTime::Format::DateParse 0.04 (); 
 
 use vars qw{$VERSION};
 BEGIN {
@@ -24,8 +26,9 @@ BEGIN {
 }
 
 use ADAMK::Changes::Release ();
+use ADAMK::Changes::Change  ();
 
-use Object::Tiny qw{
+use Object::Tiny 1.03 qw{
 	header
 	dist_name
 	module_name
