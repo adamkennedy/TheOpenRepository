@@ -1,5 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.161   Mon 23 Mar 2009
+    1. Test and documentation update only.  Do not worry 
+	   about upgrading.
+
 0.160   Sun 22 Mar 2009
     1. install_cpan_upgrades goes through and gets a 
 	   list of installations to call install_distribution
