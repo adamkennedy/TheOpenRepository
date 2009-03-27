@@ -6,10 +6,20 @@ package Module::Changes::ADAMK;
 
 Module::Changes::ADAMK - Parse a traditional Changes file (as ADAMK interpretes it)
 
+=head1 SYNOPSIS
+
+  my $changes  = Module::Changes::ADAMK->read('Changes');
+  my $latest   = $changes->current_release;
+  my $datetime = $changes->datetime; # DateTime object
+
 =head1 DESCRIPTION
 
 This module was written for parsing ADAMK's Changes files (which are a pretty
 traditional format that might be of us to others).
+
+It is provided to the CPAN community for discussion and testing purposes.
+
+It is currently not documented in detail, see the source code for the API.
 
 =cut
 
@@ -122,7 +132,9 @@ sub current_version {
 
 =head1 SUPPORT
 
-No support is available for this module
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Changes-ADAMK>
 
 =head1 AUTHOR
 
