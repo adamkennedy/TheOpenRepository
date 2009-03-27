@@ -1,0 +1,5 @@
+Changes for Perl extension Module-Changes-ADAMK
+
+0.01 Sun 16 Dec 2007
+	- Created the initial version (ADAMK)
+	- Adding DateTime parsing (ADAMK)
