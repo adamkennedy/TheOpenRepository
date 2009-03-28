@@ -8,34 +8,48 @@
 	Version="[% dist.msi_perl_version %]" >
 
     [% IF dist.msi_debug %]
-    <Package Description='Perl for Win32 operating systems.' Id='*'
+    <Package Description='Perl for Win32 operating systems.' Id='*' Language='1033'
       Comments='Debug Build.' 
       Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
-    <Package Description='Perl for Win32 operating systems.' Id='*'
+    <Package Description='Perl for Win32 operating systems.' Id='*' Language='1033'
       Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     [% END %]
 
     <Media Id="1" Cabinet="Perl.cab" CompressionLevel="high" EmbedCab="yes" />
     
     [%# Upgrade Support %]
+    <CustomAction 
+	  Id="PreventDowngrading"
+      Error="A newer version of [% dist.app_name %] is already installed." />
 	<Upgrade Id="[% dist.msi_upgrade_code %]">
 	  <UpgradeVersion
 	    Minimum="[% dist.msi_perl_version %]"
+		IncludeMinimum="yes"
 	    OnlyDetect="yes"
+		Language="1033"
 		Property="NEWERVERSIONDETECTED" />
 	  <UpgradeVersion
 		Minimum="5.0.0"
 		IncludeMinimum="yes"
 		Maximum="[% dist.msi_perl_version %]"
 	 	IncludeMaximum="no"
+		Language="1033"
 		Property="OLDERVERSIONBEINGUPGRADED" />
 	</Upgrade>
 	<InstallExecuteSequence>
+      <Custom 
+	    Action="PreventDowngrading"
+        After="FindRelatedProducts">NEWERVERSIONDETECTED</Custom>
 	  <RemoveExistingProducts After="InstallInitialize" />
 	</InstallExecuteSequence>
-
+    <InstallUISequence>
+      <Custom 
+	    Action="PreventDowngrading"
+        After="FindRelatedProducts">NEWERVERSIONDETECTED</Custom>
+    </InstallUISequence>
+	
     <Condition Message="You need to be an administrator to install this product.">
       Privileged
     </Condition>
