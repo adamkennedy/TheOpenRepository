@@ -1,0 +1,15 @@
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$CPANTS::Weight::DEBUG = 1;
+}
+use CPANTS::Weight ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.06';
+}
+
+print STDERR "# Running CPANTS::Weight->run\n";
+CPANTS::Weight->run;
