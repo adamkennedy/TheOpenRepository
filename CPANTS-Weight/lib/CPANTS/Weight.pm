@@ -20,15 +20,20 @@ applications that work with the CPANTS data.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                            ();
-use File::HomeDir                         ();
-use File::ShareDir                        ();
-use Algorithm::Dependency 1.108           ();
-use Algorithm::Dependency::Weight         ();
-use Algorithm::Dependency::Source::DBI    ();
-use Algorithm::Dependency::Source::Invert ();
+use File::Spec                              ();
+use File::HomeDir                      0.82 ();
+use File::ShareDir                     1.00 ();
+use Algorithm::Dependency             1.108 ();
+use Algorithm::Dependency::Weight           ();
+use Algorithm::Dependency::Source::DBI 0.05 ();
+use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.06';
+
+our $DEBUG;
+sub trace {
+	print STDERR "# $_[0]\n" if $DEBUG;
+}
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -51,10 +56,7 @@ use ORLite::Migrate 0.02 {
 };
 
 # Load the CPANTS database (This could take a while...)
-BEGIN {
-	$DB::single = 1;
-}
-use ORDB::CPANTS;
+use ORDB::CPANTS 0.03;
 
 # Common string fragments
 my $SELECT_IDS = <<'END_SQL';
@@ -121,27 +123,31 @@ sub run {
 	# }
 
 	# Prefetch the author and dist lists
+	trace("Loading CPANTS Authors...");
 	my @authors = ORDB::CPANTS::Author->select(
 		'where pauseid is not null'
 	);
+	trace("Loading CPANTS Distributions...");
 	my @dists = ORDB::CPANTS::Dist->select(
 		'where author not in ( select id from author where pauseid is null )'
 	);
-
-	# Indexed table of weighting scores
-	my $weight     = $self->algorithm_weight->weight_all;
-	my $volatility = $self->algorithm_volatility->weight_all;
-
-	# Indexed table of kwalitee data
+	trace("Loading Kwalitee...");
 	my $kwalitee   = ORDB::CPANTS->selectall_hashref(
 		'select * from kwalitee',
 		'dist',
 	);
 
+	# Indexed table of weighting scores
+	trace("Precalculating weight...");
+	my $weight     = $self->algorithm_weight->weight_all;
+	trace("Precalculating volatility...");
+	my $volatility = $self->algorithm_volatility->weight_all;
+
 	# Populate the AuthorWeight objects
+	trace("Populating Author metrics...");
 	CPANTS::Weight->begin;
 	CPANTS::Weight::AuthorWeight->truncate;
-	foreach my $author ( @authors ) {
+	foreach my $author ( @authors ) { ### Authors [===|    ] % done
 		# Find the list of distros for this author
 		my $id     = $author->id;
 		# my @ids    = grep { $_->author } @dists;
@@ -154,9 +160,10 @@ sub run {
 	CPANTS::Weight->commit;
 
 	# Populate the DistWeight objects
+	trace("Populating Distribution metrics...");
 	CPANTS::Weight->begin;
 	CPANTS::Weight::DistWeight->truncate;
-	foreach my $dist ( @dists ) {
+	foreach my $dist ( @dists ) { ### Distributions [===|    ] % done
 		my $id = $dist->id;
 		my $k  = $kwalitee->{$id} || {};
 

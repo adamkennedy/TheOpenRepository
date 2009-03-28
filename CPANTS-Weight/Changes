@@ -1,6 +1,10 @@
 Changes for Perl extension CPANTS-Weight
 
-0.04 Sub 22 Feb 2009
+0.06 Sun 29 Mar 2009
+	- Adding debug messages
+	- Adding a cpants-weight front-end script
+
+0.04 Sun 22 Feb 2009
 	- Bug fix
 
 0.03 Sat 21 Feb 2009
