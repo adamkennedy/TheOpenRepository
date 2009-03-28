@@ -81,6 +81,8 @@ Token *AbstractQuoteTokenType::_alloc_from_cache(TokensCacheMany& tc) {
 void AbstractQuoteTokenType::_clean_token_fields( Token *t ) {
 	QuoteToken *t2 = static_cast<QuoteToken*>( t );
 	t2->seperator = 0;
+	t2->state = 0;
+	t2->current_section = 0;
 }
 
 void AbstractQuoteTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
@@ -193,6 +195,7 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Quote_Single] = &m_SingleQuoteToken;
 	TokenTypeNames_pool[Token_QuoteLike_Backtick] = &m_BacktickQuoteToken;
 	TokenTypeNames_pool[Token_Word] = &m_WordToken;
+	TokenTypeNames_pool[Token_Quote_Interpolate] = &m_InterpolateQuoteToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}
@@ -268,6 +271,24 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
 }
 
 void Tokenizer::changeTokenType(TokenTypeNames new_type) {
-	// FIXME: need to add special handling if Quote or Regex
-	c_token->type = TokenTypeNames_pool[new_type];
+	AbstractTokenType *oldType = c_token->type;
+	AbstractTokenType *newType = TokenTypeNames_pool[new_type];
+
+	if (oldType->isa(isToken_Extended) != newType->isa(isToken_Extended)) {
+		Token *newToken = newType->GetNewToken( this, m_TokensCache, line_pos + 1 );
+		char *temp_text = c_token->text;
+		c_token->text = newToken->text;
+		newToken->text = temp_text;
+
+		newToken->length = c_token->length;
+		c_token->length = 0;
+
+		ulong aSize = c_token->allocated_size;
+		c_token->allocated_size = newToken->allocated_size;
+		newToken->allocated_size = aSize;
+
+		freeToken( c_token );
+		c_token = newToken;
+	}
+	c_token->type = newType;
 }

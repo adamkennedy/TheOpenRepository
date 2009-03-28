@@ -48,7 +48,8 @@ enum TokenTypeNames {
 	Token_LastTokenType, // Marker for the last real types
 
 	// Here are abstract markers
-	isToken_QuoteOrQuotaLike
+	isToken_QuoteOrQuotaLike,
+	isToken_Extended
 };
 
 enum CharTokenizeResults {
@@ -115,16 +116,28 @@ protected:
 class QuoteToken : public Token {
 public:
 	uchar seperator;
+	uchar state;
+	uchar quote_type;
+	bool is_braced;
+	uchar open_char, close_char;
+	uchar current_section, total_sections;
 };
 
 class AbstractQuoteTokenType : public AbstractTokenType {
 public:
 	AbstractQuoteTokenType( TokenTypeNames my_type,  bool sign ) : AbstractTokenType( my_type, sign ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+	virtual bool isa( TokenTypeNames is_type ) const;
 	virtual void FreeToken( TokensCacheMany& tc, Token *token );
 protected: 
 	virtual Token *_get_from_cache(TokensCacheMany& tc);
 	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
 	virtual void _clean_token_fields( Token *t );
+};
+
+class InterpolateQuoteToken : public AbstractQuoteTokenType {
+public:
+	InterpolateQuoteToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true ) {}
 };
 
 // Quote type simple - normal quoted string '' or "" or ``
@@ -332,6 +345,7 @@ private:
 	SingleQuoteToken m_SingleQuoteToken;
 	BacktickQuoteToken m_BacktickQuoteToken;
 	WordToken m_WordToken;
+	InterpolateQuoteToken m_InterpolateQuoteToken;
 
 	void keep_significant_token(Token *t);
 

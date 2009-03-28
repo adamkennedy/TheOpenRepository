@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
 	tk.tokenizeLine(line, 13);
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "'ab cd ef'", Token_Quote_Single);
-//	line = " qq { baaccvf cxxdf } \n";
-//	tk.tokenizeLine(line, 23);
+	line = " qq / baaccvf cxxdf/ \n";
+	tk.tokenizeLine(line, 24);
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);
 	Token *tkn;

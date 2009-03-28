@@ -285,8 +285,10 @@ CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
 	}
 
 	TokenTypeNames class_type = commit_detect_type(t, token, prev);
-	if ( class_type != Token_Word )
+	if ( class_type != Token_Word ) {
 		t->changeTokenType( class_type );
+		return done_it_myself;
+	}
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
 	return done_it_myself;
