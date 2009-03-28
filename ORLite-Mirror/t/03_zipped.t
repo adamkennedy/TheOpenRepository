@@ -11,8 +11,9 @@ BEGIN {
 
 use Test::More tests => 26;
 use File::Spec::Functions ':ALL';
-use IO::Compress::Gzip   ();
-use URI::file ();
+use File::Remove       ();
+use IO::Compress::Gzip ();
+use URI::file          ();
 use t::lib::Test;
 
 # Set up the file
@@ -22,6 +23,7 @@ my $dbh  = create_ok(
 	"dbi:SQLite:$file",
 );
 my $zipped = $file . '.gz';
+File::Remove::clear($zipped);
 IO::Compress::Gzip::gzip( $file => $zipped )
 	or die 'Failed to compress test script';
 

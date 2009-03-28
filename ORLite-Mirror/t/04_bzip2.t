@@ -11,8 +11,9 @@ BEGIN {
 
 use Test::More tests => 26;
 use File::Spec::Functions ':ALL';
+use File::Remove        ();
 use IO::Compress::Bzip2 ();
-use URI::file ();
+use URI::file           ();
 use t::lib::Test;
 
 # Set up the file
@@ -22,6 +23,7 @@ my $dbh  = create_ok(
 	"dbi:SQLite:$file",
 );
 my $archive = $file . '.bz2';
+File::Remove::clear($archive);
 IO::Compress::Bzip2::bzip2( $file => $archive )
 	or die('Failed to compress test script');
 

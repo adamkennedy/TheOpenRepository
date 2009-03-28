@@ -4,6 +4,7 @@ use strict;
 use Exporter       ();
 use ORLite::Mirror ();
 use Test::More     ();
+use File::Remove   ();
 use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
@@ -20,19 +21,9 @@ BEGIN {
 #####################################################################
 # Test Methods
 
-my %to_delete = ();
-END {
-	foreach my $file ( sort keys %to_delete ) {
-		unlink $file;
-	}
-}
-
 sub test_db {
 	my $file = catfile( @_ ? @_ : 't', 'sqlite.db' );
-	if ( $file ) {
-		File::Remove::remove( $file );
-	}
-	$to_delete{$file} = 1;
+	File::Remove::clear($file);
 	return $file;
 }
 

@@ -11,6 +11,7 @@ BEGIN {
 
 use Test::More tests => 26;
 use File::Spec::Functions ':ALL';
+use File::Remove 'clear';
 use URI::file ();
 use t::lib::Test;
 
