@@ -18,7 +18,7 @@ use     Params::Util          qw( _IDENTIFIER _STRING            );
 use     File::Spec::Functions qw( catdir                         );
 require Perl::Dist::WiX::Directory;
 
-use version; $VERSION = qv('0.16');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 #####################################################################
 # Accessors:
@@ -122,13 +122,13 @@ sub initialize_tree {
 			name    => $self->app_name
 		} );
 #<<<
-    $branch->add_directories_id(
-        'Perl',      'perl',
-        'Toolchain', 'c',
-        'License',   'licenses',
-        'Cpan',      'cpan',
-        'Win32',     'win32',
-    );
+	$branch->add_directories_id(
+		'Perl',      'perl',
+		'Toolchain', 'c',
+		'License',   'licenses',
+		'Cpan',      'cpan',
+		'Win32',     'win32',
+	);
 #>>>
 	$branch->add_directories_init( qw(
 		  c\bin

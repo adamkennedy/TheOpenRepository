@@ -13,13 +13,13 @@ use 5.006;
 use strict;
 use warnings;
 use Object::InsideOut qw( 
-    Perl::Dist::WiX::Base::Fragment
-    Storable
+	Perl::Dist::WiX::Base::Fragment
+	Storable
 );
 use Params::Util      qw( _IDENTIFIER _STRING             );
 use vars              qw( $VERSION                        );
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 
 #>>>
 #####################################################################

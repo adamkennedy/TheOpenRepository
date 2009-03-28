@@ -17,7 +17,7 @@ use vars              qw( $VERSION                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable :Public );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT           );
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 
 #####################################################################
@@ -136,7 +136,7 @@ sub as_string {
 
 	# Check parameters.
 	unless ( defined _NONNEGINT($spaces) ) {
-		PDWiX->throw( 'Internal Error: Calling as_spaces improperly '
+		PDWiX->throw( 'Internal Error: Calling as_string improperly '
 			  . '(most likely, not calling derived method)' );
 	}
 

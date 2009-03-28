@@ -16,7 +16,7 @@ use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 #####################################################################
 # Accessors:
@@ -76,19 +76,19 @@ sub as_string {
 		my ( undef, undef, $filename ) = splitpath( $name[$object_id] );
 		$filename = substr $filename, 0, -4;
 #<<<
-        $answer =
-            q{<File Id='F_} . $id[$object_id]
-          . q{' Name='}     . $filename
-          . q{' Source='}   . $name[$object_id] . q{' />};
+		$answer =
+			q{<File Id='F_} . $id[$object_id]
+		  . q{' Name='}     . $filename
+		  . q{' Source='}   . $name[$object_id] . q{' />};
 #>>>
 	} else {
 
   # Name= parameter defults to the filename portion of the Source parameter,
   # so it isn't needed.
 #<<<
-        $answer =
-            q{<File Id='F_} . $id[$object_id]
-          . q{' Source='}   . $name[$object_id] . q{' />};
+		$answer =
+			q{<File Id='F_} . $id[$object_id]
+		  . q{' Source='}   . $name[$object_id] . q{' />};
 #>>>
 	}
 

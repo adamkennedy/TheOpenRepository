@@ -13,13 +13,13 @@ use     strict;
 use     warnings;
 use     vars              qw( $VERSION );
 use     Object::InsideOut qw(
-    Perl::Dist::WiX::Base::Component
-    Storable
+	Perl::Dist::WiX::Base::Component
+	Storable
 );
 use     Params::Util      qw( _STRING  );
 require Perl::Dist::WiX::Files::Entry;
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 #####################################################################
 # Accessors:

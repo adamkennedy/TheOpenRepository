@@ -15,7 +15,7 @@ use vars              qw( $VERSION                       );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT   );
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 #####################################################################
 # Accessors:
@@ -260,13 +260,13 @@ sub as_string {
 
 	if ( $default_settings[$object_id] != 6 ) {
 #<<<
-            $string .=
-                q{' AllowAdvertise='}         . $advertise[$object_id]
-              . q{' Absent='}                 . $absent[$object_id]
-              . q{' ConfigurableDirectory='}  . $directory[$object_id]
-              . q{' Display='}                . $display[$object_id]
-              . q{' InstallDefault='}         . $idefault[$object_id]
-              . q{' TypicalDefault='}         . $default[$object_id];
+		$string .=
+			q{' AllowAdvertise='}         . $advertise[$object_id]
+		  . q{' Absent='}                 . $absent[$object_id]
+		  . q{' ConfigurableDirectory='}  . $directory[$object_id]
+		  . q{' Display='}                . $display[$object_id]
+		  . q{' InstallDefault='}         . $idefault[$object_id]
+		  . q{' TypicalDefault='}         . $default[$object_id];
 #>>>
 	}
 

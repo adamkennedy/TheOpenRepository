@@ -14,17 +14,17 @@ use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                 );
 use     Object::InsideOut     qw(
-    Perl::Dist::WiX::Base::Fragment
-    Storable
+	Perl::Dist::WiX::Base::Fragment
+	Storable
 );
 use     Params::Util
-   qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
+	qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     File::Spec::Functions qw( splitpath catpath catdir );
 use     Readonly              qw( Readonly                 );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 
 Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';

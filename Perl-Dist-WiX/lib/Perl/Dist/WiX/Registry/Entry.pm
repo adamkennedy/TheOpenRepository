@@ -13,13 +13,13 @@ use strict;
 use warnings;
 use vars              qw( $VERSION            );
 use Object::InsideOut qw(
-    Perl::Dist::WiX::Base::Entry
-    Storable
+	Perl::Dist::WiX::Base::Entry
+	Storable
 );
 use Readonly          qw( Readonly            );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 #>>>
 
 # Defining at this level so they do not need recreated every time.
@@ -130,12 +130,12 @@ sub as_string {
 	my $object_id = ${$self};
 
 #<<<
-    return
-        q{<RegistryValue}
-      . q{ Action='}      . $action[$object_id]
-      . q{' Type='}       . $type[$object_id]
-      . q{' Name='}       . $name[$object_id]
-      . q{' Value='}      . $data[$object_id] . q{' />};
+	return
+		q{<RegistryValue}
+	  . q{ Action='}      . $action[$object_id]
+	  . q{' Type='}       . $type[$object_id]
+	  . q{' Name='}       . $name[$object_id]
+	  . q{' Value='}      . $data[$object_id] . q{' />};
 #>>>
 } ## end sub as_string
 

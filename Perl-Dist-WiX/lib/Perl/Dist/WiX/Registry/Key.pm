@@ -13,14 +13,14 @@ use     strict;
 use     warnings;
 use     vars               qw( $VERSION                         );
 use     Object::InsideOut  qw(
-    Perl::Dist::WiX::Base::Component
-    Storable
+	Perl::Dist::WiX::Base::Component
+	Storable
 );
 use     Readonly           qw( Readonly                         );
 use     Params::Util       qw( _IDENTIFIER _STRING              );
 require Perl::Dist::WiX::Registry::Entry;
 
-use     version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 
 # Defining at this level so it does not need recreated every time.
 Readonly my @ROOT_OPTIONS => qw(HKMU HKCR HKCU HKLM HKU);

@@ -6,12 +6,44 @@ package Perl::Dist::WiX;
 
 Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX version 0.150.
+
 =head1 DESCRIPTION
 
 This package is the experimental upgrade to Perl::Dist based on Windows 
 Install XML technology, instead of Inno Setup.
 
-=head1 METHODS
+Perl distributions built with this module have the option of being created
+as Windows Installer databases (otherwise known as .msi files)
+
+=head1 SYNOPSIS
+
+	# Sets up a distribution with the following options
+	my $distribution = Perl::Dist::WiX->new(
+		msi               => 1,
+		trace             => 1,
+		build_number      => 1,
+		cpan              => URI->new(('file://C|/minicpan/')),
+		image_dir         => 'C:\myperl',
+		download_dir      => 'C:\cpandl',
+		output_dir        => 'C:\myperl_build',
+		temp_dir          => 'C:\temp',
+		app_id            => 'myperl',
+		app_name          => 'My Perl',
+		app_publisher     => 'My Perl Distribution Project',
+		app_publisher_url => 'http:/myperl.invalid/',
+		msi_directory_tree_additions => [ qw(
+		  c\bin\program
+		  perl\lib\Acme
+		)],
+	);
+
+	# Creates the distribution
+	$bb->run();
+
+=head1 INTERFACE
 
 =cut
 
@@ -49,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.162')->numify;
+use version; $VERSION = version->new('0.163_011')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -138,18 +170,10 @@ provided, most of them are automatically resolved and exist for overloading
 puposes only, or they revert to sensible defaults and generally never need
 to be modified.
 
-The following is an example of the most likely attributes that will be
-specified.
+This routine may take a few minutes to run.
 
-  my $build = Perl::Dist::WiX->new(
-      image_dir => 'C:\vanilla',
-      temp_dir  => 'C:\tmp\vp',
-	  msi_directory_tree_additions => [ qw(
-        c\bin\program
-        perl\lib\Acme
-      )],
-      cpan      => URI->new(('file://C|/minicpan/')),
-  );
+An example of the most likely attributes that will be specified is in the 
+SYNOPSIS.
 
 Attributes that are required to be set are marked as I<(required)> 
 below.  They may often be set by subclasses.
@@ -201,7 +225,8 @@ The C<trace> parameter sets the level of tracing that is output.
 Setting this parameter to 0 prints out only MAJOR stuff and errors.
 
 Setting this parameter to 2 or above will print out the level as the 
-first thing on the line.
+first thing on the line, and when an error occurs and an exception 
+object is printed, a stack trace will be printed as well.
 
 Setting this parameter to 3 or above will print out the filename and 
 line number after the trace level on those lines that require a trace 
@@ -237,7 +262,7 @@ convenience.
 
 The optional boolean C<portable> param is used to indicate that the
 distribution is intended for installation on a portable storable
-device.
+device. This creates a distribution in zip format.
 
 =item * zip
 
@@ -252,7 +277,7 @@ be created.
 
 =item * exe
 
-The optional boolean C<exe> param is deprecated.
+The optional boolean C<exe> param is unused at the moment.
 
 =item * checkpoint_after
 
@@ -292,8 +317,9 @@ installs its shortcuts to.  Defaults to app_name if none is provided.
 =item * msi_debug
 
 The optional boolean C<msi_debug> parameter is used to indicate that
-a debugging MSI (one that creates a log in $ENV{TEMP}) will be created if 
-C<msi> is also true.
+a debugging MSI (one that creates a log in $ENV{TEMP} upon execution
+in Windows Installer 4.0 or above) will be created if C<msi> is also 
+true.
 
 =item * build_number I<(required)>
 
@@ -363,7 +389,7 @@ directories to this parameter.
 
 =back
 
-The C<new> constructor returns a B<Perl::Dist> object, which you
+The C<new> constructor returns a B<Perl::Dist::WiX> object, which you
 should then call C<run> on to generate the distribution.
 
 =cut
@@ -607,22 +633,22 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	# Initialize filters.
 	my @filters_array;
 #<<<
-    push @filters_array,
-               $self->temp_dir . q{\\},
-      catdir ( $self->image_dir, qw{ perl man         } ) . q{\\},
-      catdir ( $self->image_dir, qw{ perl html        } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    man         } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    doc         } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    info        } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    contrib     } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    html        } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    examples    } ) . q{\\},
-      catdir ( $self->image_dir, qw{ c    manifest    } ) . q{\\},
-      catdir ( $self->image_dir, qw{ cpan sources     } ) . q{\\},
-      catdir ( $self->image_dir, qw{ cpan build       } ) . q{\\},
-      catfile( $self->image_dir, qw{ c    COPYING     } ),
-      catfile( $self->image_dir, qw{ c    COPYING.LIB } ),
-      ;
+	push @filters_array,
+			   $self->temp_dir . q{\\},
+	  catdir ( $self->image_dir, qw{ perl man         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ perl html        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    man         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    doc         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    info        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    contrib     } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    html        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    examples    } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    manifest    } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ cpan sources     } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ cpan build       } ) . q{\\},
+	  catfile( $self->image_dir, qw{ c    COPYING     } ),
+	  catfile( $self->image_dir, qw{ c    COPYING.LIB } ),
+	  ;
 #>>>
 
 	$self->{filters} = \@filters_array;
@@ -683,7 +709,7 @@ sub binary_url {
 
 =head2 Accessors
 
-    $id = $dist->bin_candle; 
+	$id = $dist->bin_candle; 
 
 Accessors will return a specified portion of the distribution state.
 
@@ -1275,70 +1301,70 @@ CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 print "Loading Storable...\\n";
 use Storable qw(nstore);
 
-    my ($module, %seen, %need, @toget);
+my ($module, %seen, %need, @toget);
 	
-    my @modulelist = CPAN::Shell->expand('Module', '/./');
+my @modulelist = CPAN::Shell->expand('Module', '/./');
 
-	# Schwartzian transform from CPAN.pm.
-    my @expand;
-	@expand = map {
-		$_->[1]
-	} sort {
-		$b->[0] <=> $a->[0]
-		||
-		$a->[1]{ID} cmp $b->[1]{ID},
-	} map {
-		[$_->_is_representative_module,
-		 $_
-		]
-	} @modulelist;
+# Schwartzian transform from CPAN.pm.
+my @expand;
+@expand = map {
+	$_->[1]
+} sort {
+	$b->[0] <=> $a->[0]
+	||
+	$a->[1]{ID} cmp $b->[1]{ID},
+} map {
+	[$_->_is_representative_module,
+	 $_
+	]
+} @modulelist;
 
-	MODULE: for $module (@expand) {
-        my $file = $module->cpan_file;
-		
-		# If there's no file to download, skip it.
-        next MODULE unless defined $file;
-
-        $file =~ s!^./../!!;
-        my $latest  = $module->cpan_version;
-        my $inst_file = $module->inst_file;
-        my $have;
-        my $next_MODULE;
-        eval { # version.pm involved!
-            if ($inst_file) {
-				$have = $module->inst_version;
-				local $^W = 0;
-				++$next_MODULE unless CPAN::Version->vgt($latest, $have);
-				# to be pedantic we should probably say:
-				#    && !($have eq "undef" && $latest ne "undef" && $latest gt "");
-				# to catch the case where CPAN has a version 0 and we have a version undef
-            } else {
-               ++$next_MODULE;
-            }
-        };
-
-        next MODULE if $next_MODULE;
-		
-        if ($@) {
-            next MODULE;
-        }
-		
-        $seen{$file} ||= 0;
-		next MODULE if $seen{$file}++;
-		
-		push @toget, $module;
-		
-        $need{$module->id}++;
-    }
-
-    unless (%need) {
-        print "All modules are up to date\n";
-    }
+MODULE: for $module (@expand) {
+	my $file = $module->cpan_file;
 	
-	nstore \@toget, 'cpan.info';
-    print "Completed collecting information on all modules\n";
+	# If there's no file to download, skip it.
+	next MODULE unless defined $file;
 
-    exit 0;
+	$file =~ s!^./../!!;
+	my $latest  = $module->cpan_version;
+	my $inst_file = $module->inst_file;
+	my $have;
+	my $next_MODULE;
+	eval { # version.pm involved!
+		if ($inst_file) {
+			$have = $module->inst_version;
+			local $^W = 0;
+			++$next_MODULE unless CPAN::Version->vgt($latest, $have);
+			# to be pedantic we should probably say:
+			#    && !($have eq "undef" && $latest ne "undef" && $latest gt "");
+			# to catch the case where CPAN has a version 0 and we have a version undef
+		} else {
+		   ++$next_MODULE;
+		}
+	};
+
+	next MODULE if $next_MODULE;
+	
+	if ($@) {
+		next MODULE;
+	}
+	
+	$seen{$file} ||= 0;
+	next MODULE if $seen{$file}++;
+	
+	push @toget, $module;
+	
+	$need{$module->id}++;
+}
+
+unless (%need) {
+	print "All modules are up to date\n";
+}
+	
+nstore \@toget, 'cpan.info';
+print "Completed collecting information on all modules\n";
+
+exit 0;
 END_PERL
 
 	# Dump the CPAN script to a temp file and execute
@@ -1658,7 +1684,7 @@ sub remove_file {
 
 =head3 install_perl_* (* = 588, 589, or 5100)
 
-    $self->install_perl_5100;
+	$self->install_perl_5100;
 
 The C<install_perl_*> method provides a simplified way to install
 Perl into the distribution.
@@ -1673,17 +1699,17 @@ Returns true, or throws an exception on error.
 
 =head3 install_perl_*_bin
 
-  $self->install_perl_5100_bin(
-      name       => 'perl',
-      dist       => 'RGARCIA/perl-5.10.0.tar.gz',
-      unpack_to  => 'perl',
-      license    => {
-          'perl-5.10.0/Readme'   => 'perl/Readme',
-          'perl-5.10.0/Artistic' => 'perl/Artistic',
-          'perl-5.10.0/Copying'  => 'perl/Copying',
-      },
-      install_to => 'perl',
-  );
+	$self->install_perl_5100_bin(
+	  name       => 'perl',
+	  dist       => 'RGARCIA/perl-5.10.0.tar.gz',
+	  unpack_to  => 'perl',
+	  license    => {
+		  'perl-5.10.0/Readme'   => 'perl/Readme',
+		  'perl-5.10.0/Artistic' => 'perl/Artistic',
+		  'perl-5.10.0/Copying'  => 'perl/Copying',
+	  },
+	  install_to => 'perl',
+	);
 
 The C<install_perl_*_bin> method takes care of the detailed process
 of building the Perl binary and installing it into the
@@ -2645,9 +2671,9 @@ sub install_pari {
 
 =head3 install_binary
 
-  $self->install_binary(
-      name => 'gmp',
-  );
+	$self->install_binary(
+		name => 'gmp',
+	);
 
 The C<install_binary> method is used by library-specific methods to
 install pre-compiled and un-modified tar.gz or zip archives into
@@ -2704,8 +2730,8 @@ sub install_binary {
 
 =head3 install_library
 
-  $self->install_binary(
-      name => 'gmp',
+  $self->install_library(
+	  name => 'gmp',
   );
 
 The C<install_binary> method is used by library-specific methods to
@@ -2800,16 +2826,16 @@ sub _copy_filesref {
 
 =head3 install_distribution
 
-  $self->install_distribution(
-      name              => 'ADAMK/File-HomeDir-0.69.tar.gz,
-      force             => 1,
-      automated_testing => 1,
-      makefilepl_param  => [
-          'LIBDIR=' . File::Spec->catdir(
-              $self->image_dir, 'c', 'lib',
-          ),
-      ],
-  );
+	$self->install_distribution(
+	  name              => 'ADAMK/File-HomeDir-0.69.tar.gz,
+	  force             => 1,
+	  automated_testing => 1,
+	  makefilepl_param  => [
+		  'LIBDIR=' . File::Spec->catdir(
+			  $self->image_dir, 'c', 'lib',
+		  ),
+	  ],
+	);
 
 The C<install_distribution> method is used to install a single
 CPAN or non-CPAN distribution directly, without installing any of the
@@ -2945,12 +2971,12 @@ sub _name_to_module {
 	my ( $self, $dist ) = @_;
 
 #<<<
-    my ( $module ) = $dist =~ m{\A  # Start the string...
-                    [A-Za-z/]*      # With a string of letters and slashes
-                    /               # followed by a forward slash. 
-                    (.*?)           # Then capture all characters, non-greedily 
-                    -\d*[.]         # up to a dash, a sequence of digits, and then a period.
-                    }smx;           # (i.e. starting a version number.
+	my ( $module ) = $dist =~ m{\A  # Start the string...
+					[A-Za-z/]*      # With a string of letters and slashes
+					/               # followed by a forward slash. 
+					(.*?)           # Then capture all characters, non-greedily 
+					-\d*[.]         # up to a dash, a sequence of digits, and then a period.
+					}smx;           # (i.e. starting a version number.
 #>>>
 	$module =~ s{-}{::}msg;
 
@@ -3018,7 +3044,7 @@ EOF
 =head3 install_module
 
   $self->install_module(
-      name => 'DBI',
+	  name => 'DBI',
   );
 
 The C<install_module> method is a high level installation method that can
@@ -3075,11 +3101,11 @@ if ( \$module->uptodate ) {
 	exit(0);
 }
 SCOPE: {
-    my \$dist_file = '$dist_file'; 
-    open( CPAN_FILE, '>', \$dist_file )      or die "open: $!";
-    print CPAN_FILE 
-        \$module->distribution()->pretty_id() or die "print: $!";
-    close( CPAN_FILE )                       or die "close: $!";
+	my \$dist_file = '$dist_file'; 
+	open( CPAN_FILE, '>', \$dist_file )      or die "open: $!";
+	print CPAN_FILE 
+		\$module->distribution()->pretty_id() or die "print: $!";
+	close( CPAN_FILE )                       or die "close: $!";
 }
 
 print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
@@ -3159,9 +3185,9 @@ END_PERL
 =head3 install_modules
 
   $self->install_modules( qw{
-      Foo::Bar
-      This::That
-      One::Two
+	  Foo::Bar
+	  This::That
+	  One::Two
   } );
 
 The C<install_modules> method is a convenience shorthand that makes it
@@ -3273,15 +3299,15 @@ sub install_par {
 
   # Overwrite the CPAN::Config
   $self->install_file(
-      share      => 'Perl-Dist CPAN_Config.pm',
-      install_to => 'perl/lib/CPAN/Config.pm',
+	  share      => 'Perl-Dist CPAN_Config.pm',
+	  install_to => 'perl/lib/CPAN/Config.pm',
   );
   
   # Install a custom icon file
   $self->install_file(
-      name       => 'Strawberry Perl Website Icon',
-      url        => 'http://strawberryperl.com/favicon.ico',
-      install_to => 'Strawberry Perl Website.ico',
+	  name       => 'Strawberry Perl Website Icon',
+	  url        => 'http://strawberryperl.com/favicon.ico',
+	  install_to => 'Strawberry Perl Website.ico',
   );
 
 The C<install_file> method is used to install a single specific file from
@@ -3355,8 +3381,8 @@ sub install_file {
 =head3 install_launcher
 
   $self->install_launcher(
-      name => 'CPAN Client',
-      bin  => 'cpan',
+	  name => 'CPAN Client',
+	  bin  => 'cpan',
   );
 
 The C<install_launcher> method is used to describe a binary program
@@ -3413,10 +3439,10 @@ sub install_launcher {
 =head3 install_website
 
   $self->install_website(
-      name       => 'Strawberry Perl Website',
-      url        => 'http://strawberryperl.com/',
-      icon_file  => 'Strawberry Perl Website.ico',
-      icon_index => 1,
+	  name       => 'Strawberry Perl Website',
+	  url        => 'http://strawberryperl.com/',
+	  icon_file  => 'Strawberry Perl Website.ico',
+	  icon_index => 1,
   );
 
 The C<install_website> param is used to install a "Start" menu entry
@@ -3656,7 +3682,7 @@ sub image_dir_quotemeta {
 	my $self   = shift;
 	my $string = $self->image_dir;
 	$string =~ s{\\}        # Convert a backslash
-                {\\\\}gmsx; ## to 2 backslashes.
+				{\\\\}gmsx; ## to 2 backslashes.
 	return $string;
 }
 
@@ -3736,7 +3762,7 @@ sub _mirror {
 
 	my $file = $url;
 	$file =~ s{.+\/} # Delete anything before the last forward slash.
-              {}msx; ## (leaves only the filename.)
+			  {}msx; ## (leaves only the filename.)
 	my $target = catfile( $dir, $file );
 	if ( $self->offline and -f $target ) {
 		return $target;
@@ -3953,9 +3979,11 @@ sub _extract_filemap {
 
 			foreach my $member (@members) {
 				my $filename = $member->fileName();
+#<<<
 				$filename =~
 				  s{\A\Q$f}    # At the beginning of the string, change $f 
-                              {$dest}msx;   # to $dest.
+				   {$dest}msx; # to $dest.
+#>>>
 				$filename = _convert_name($filename);
 				my $status = $member->extractToFileNamed($filename);
 
@@ -3976,20 +4004,20 @@ sub _extract_filemap {
 				my $canon_tgt = File::Spec::Unix->canonpath($tgt);
 				my $t;
 
+#<<<
 				# say "matching $canon_f vs $canon_tgt";
 				if ($file_only) {
-					next
-					  unless $canon_f =~
-						  m{\A([^/]+[/])?\Q$canon_tgt\E\z}imsx;
+					next unless 
+					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}imsx;
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E\z}
-                       {$filemap->{$tgt}}imsx;
-
+										  {$filemap->{$tgt}}imsx;
 				} else {
-					next
-					  unless $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
+.					next unless 
+					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E}
-                       {$filemap->{$tgt}}imsx;
+										  {$filemap->{$tgt}}imsx;
 				}
+#>>>
 				my $full_t = catfile( $basedir, $t );
 				$self->trace_line( 2, "Extracting $f to $full_t\n" );
 				$tar->extract_file( $f, $full_t );
@@ -4105,6 +4133,101 @@ sub remake_path {
 __END__
 
 =pod
+
+=head1 DIAGNOSTICS
+
+Note that most errors are defined as exception objects in the PDWiX and
+PDWiX::Parameter classes.  Those errors will start with C<< Perl::Dist::WiX 
+error: >>
+
+Some errors will be caught by Object::InsideOut.
+
+=head2 C<< Perl::Dist::WiX error: >>
+
+=over 
+
+=item C<< Parameter missing or invalid >>
+
+Implemented as a PDWiX::Parameter class)
+ 
+The parameter mentioned is either missing (and it is required) or 
+invalid (for example, a string where an integer is required).
+
+Often, but not always, exactly why the parameter is invalid is 
+mentioned, as well.
+
+=item C<< Internal Error: Missing or invalid id >>
+
+A Perl::Dist::WiX::Base::Component has been created with a 
+missing or invalid id parameter.  This should not happen.
+
+=item C<< Internal Error: Calling as_string improperly (most likely, not calling derived method) >>
+
+Perl::Dist::WiX::Base::Component->as_spaces is being called instead of 
+one of its derived methods.
+
+=item C<< Internal Error: Odd number of parameters to add_directories_id >>
+
+The Perl::Dist::WiX->add_directories_id method takes pairs of directories and 
+the id to use when adding them.  Somehow, these got mismatched.
+
+=item C<< Can't add the directories required >>
+
+The directories that are requested to be added under this directory object
+aren't a subdirectory of the directory being referred to by the directory 
+object, so directory objects cannot be created within this object for them.
+
+=item C<< Internal Error: Parameters not passed in hash reference >>
+
+The method referred to takes all its parameters as a hash reference (i.e. 
+within C<< { } >> brackets) and this was not done.
+
+=item C<< Can't create intermediate directories when creating %s (unsuccessful search for %s) >>
+
+Perl::Dist::WiX::Directory->add_directory could not find a directory 
+object to add the new directory object to. (add_directory can only create
+a directory object immediately under another one.)
+
+=item C<< Complex feature tree not implemented in Perl::Dist::WiX %s. >>
+
+Having more than one feature (and supporting conditional installation
+of features by the user) has not been implemented in Perl::Dist::WiX 
+at this point.
+
+=item C<< Error reading directory %s: %s >>
+
+Something happened when attempting to get a list of files for the 
+directory mentioned.
+
+=item C<< Error reading packlist file %s: %s >>
+
+Something happened when attempting to read the packlist file mentioned.
+
+=item C<< Could not add %s >>
+
+The file to be added to the Perl distribution was completely outside the
+distribution's directories, so a directory object could not be found to 
+refer to.
+
+=item C<< The output_dir directory is not writable >>
+
+The directory specified by the output_dir parameter is not writable by
+the current user.  Specify a different directory, or have your 
+administrator set the directory so it can be written to.
+
+=item C<< %s does not exist or is not readable >>
+
+Trying to use light.exe to compile a file that cannot be read or it
+does not exist (someone may be trying to modify your file system from 
+under you?)
+
+=item C<< Could not open file $filename_in for writing [$!] [$^E] >>
+
+=back
+
+=head2 Other errors
+
+As other errors are noticed, they will be listed here.
 
 =head1 SUPPORT
 

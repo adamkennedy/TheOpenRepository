@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = qv('0.160');
+use version; $VERSION = version->new('0.163')->numify;
 
 #>>>
 
@@ -213,8 +213,8 @@ sub indent {
 	chomp $answer;
 #<<<
 		$answer =~ s{\n}                   # match a newline 
-                    {\n$spaces}gxms;       # and add spaces after it.
-		                                   # (i.e. the beginning of the line.)
+					{\n$spaces}gxms;       # and add spaces after it.
+										   # (i.e. the beginning of the line.)
 #>>>
 	return $answer;
 } ## end sub indent
@@ -305,11 +305,11 @@ sub _trace_line : Private { ## no critic 'ProhibitManyArgs'
 				$start .= "[$file $line] ";
 			} ## end if ( ( $tracelevel > 2...
 #<<<
-            $text =~ s{\n}              # Replace a newline
-                      {\n$start}gxms;   ## with a newline and the start string.
-            $text =~ s{\n\Q$start\E\z}  # Replace the newline and start
-                                        # string at the end
-                      {\n}gxms;         # with just the newline.
+			$text =~ s{\n}              # Replace a newline
+					  {\n$start}gxms;   ## with a newline and the start string.
+			$text =~ s{\n\Q$start\E\z}  # Replace the newline and start
+										# string at the end
+					  {\n}gxms;         # with just the newline.
 #>>>
 		} ## end if ( not $no_display )
 
