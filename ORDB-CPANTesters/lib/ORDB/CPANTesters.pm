@@ -3,9 +3,9 @@ package ORDB::CPANTesters;
 use 5.008005;
 use strict;
 use warnings;
-use ORLite::Mirror 1.11 ();
+use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 # Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
@@ -14,7 +14,7 @@ sub import {
 	# Prevent double-initialisation
 	$class->can('orlite') or
 	ORLite::Mirror->import( {
-		url => 'http://devel.cpantesters.org/cpanstats.db.bz2',
+		url    => 'http://devel.cpantesters.org/cpanstats.db.bz2',
 		maxage => 30 * 24 * 60 * 60,
 	} );
 
