@@ -1,0 +1,9 @@
+---
+dirs-recursive:
+  .: ext/Unicode-Normalize
+exclude-regexes:
+  - '^(?:\.?/)?META.yml$'
+  - '^(?:\.?/)?MANIFEST(?:\.N)?$'
+  - '^(?:\.?/)?MANIFEST$'
+  - '^(?:\.?/)?(?:en|dis)ableXS$'
+  - '^(?:\.?/)?Normalize\.pmN$'
