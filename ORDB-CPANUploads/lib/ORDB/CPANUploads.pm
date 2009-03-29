@@ -29,7 +29,7 @@ __END__
 
 =head1 NAME
 
-ORDB::CPANTesters - An ORM for the published CPAN Testers SQLite database
+ORDB::CPANUploads - An ORLite-based ORM Database API
 
 =head1 SYNOPSIS
 
@@ -162,19 +162,16 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-ORDB::CPANTesters is based on L<ORLite> 1.19.
+ORDB::CPANUploads is based on L<ORLite> 1.20.
 
 Documentation created by L<ORLite::Pod> 0.06.
 
-Bugs should be reported via the CPAN bug tracker at
-
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-CPANUploads>
-
-For other issues, contact the author.
+For general support please see the support section of the main
+project documentation.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Adam Kennedy
 
 =head1 COPYRIGHT
 
