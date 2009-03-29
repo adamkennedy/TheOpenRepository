@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;	
 }
 
-use Test::More tests => 28;
+use Test::More tests => 31;
 use DateTime::Tiny;
 
 
