@@ -169,7 +169,7 @@ Documentation created by L<ORLite::Pod> 0.06.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-CPANTesters>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-CPANUploads>
 
 For other issues, contact the author.
 
