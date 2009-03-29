@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_012')->numify;
+use version; $VERSION = version->new('0.163_013')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -144,6 +144,7 @@ Readonly my %MODULE_FIX => (
 	'libwww::perl'         => 'LWP',
 	'Scalar::List::Utils'  => 'List::Util',
 	'libnet'               => 'Net',
+	'encoding'             => 'Encode',
 );
 
 Readonly my @MODULE_DELAY => qw(
@@ -4012,7 +4013,7 @@ sub _extract_filemap {
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E\z}
 										  {$filemap->{$tgt}}imsx;
 				} else {
-.					next unless 
+					next unless 
 					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E}
 										  {$filemap->{$tgt}}imsx;

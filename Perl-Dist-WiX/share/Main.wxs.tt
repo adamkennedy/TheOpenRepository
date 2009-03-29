@@ -8,12 +8,12 @@
 	Version="[% dist.msi_perl_version %]" >
 
     [% IF dist.msi_debug %]
-    <Package Description='Perl for Win32 operating systems.' Id='*' Language='1033'
+    <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
       Comments='Debug Build.' 
       Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
-    <Package Description='Perl for Win32 operating systems.' Id='*' Language='1033'
+    <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
       Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     [% END %]
 
