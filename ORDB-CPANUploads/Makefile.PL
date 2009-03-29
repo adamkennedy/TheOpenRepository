@@ -1,4 +1,4 @@
-use inc::Module::Install 0.81;
+use inc::Module::Install::DSL 0.81;
 
 all_from      lib/ORDB/CPANUploads.pm
 requires_from lib/ORDB/CPANUploads.pm
