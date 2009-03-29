@@ -166,12 +166,16 @@ ORDB::CPANUploads is based on L<ORLite> 1.20.
 
 Documentation created by L<ORLite::Pod> 0.06.
 
-For general support please see the support section of the main
-project documentation.
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-CPANTesters>
+
+For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
