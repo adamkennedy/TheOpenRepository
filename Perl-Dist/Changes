@@ -1,5 +1,8 @@
 Revision history for Perl module Perl-Dist
 
+        - really check for InnoSetup in Makefile.PL and do not generate
+          Makefile in case of failure (Alexandr Ciornii)
+
 1.12 Thu 29 Jan 2009
 	- This release co-incides with Strawberry Perl January 2009
 	- Various minor tweaks

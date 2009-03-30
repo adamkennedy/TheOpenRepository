@@ -1,5 +1,8 @@
 use inc::Module::Install 0.77;
 
+use File::Spec;
+check_innosetup();
+
 all_from       'lib/Perl/Dist.pm';
 requires       'Archive::Tar'               => '1.42';
 requires       'Archive::Zip'               => '1.26';
@@ -41,22 +44,23 @@ install_share;
 WriteAll;
 
 # Look for Inno Setup
-use File::Spec;
-print "Looking for Inno Setup 5... ";
-unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
-	pexit("Failed to find the Program Files directory\n");
+sub check_innosetup {
+	print "Looking for Inno Setup 5... ";
+	unless ( $ENV{PROGRAMFILES} and -d $ENV{PROGRAMFILES} ) {
+		pexit("Failed to find the Program Files directory\n");
+	}
+	my $innosetup_dir  = File::Spec->catdir( $ENV{PROGRAMFILES}, "Inno Setup 5" );
+	my $innosetup_file = File::Spec->catfile( $innosetup_dir, 'Compil32.exe' );
+	unless ( -d $innosetup_dir and -f $innosetup_file ) {
+		pexit(
+			"failed\n",
+			"\n",
+			"  Failed to find an installation of Inno Setup 5\n",
+			"  Please install http://www.jrsoftware.org/download.php/is.exe\n",
+		);
+	}
+	print "OK\n";
 }
-my $innosetup_dir  = File::Spec->catdir( $ENV{PROGRAMFILES}, "Inno Setup 5" );
-my $innosetup_file = File::Spec->catfile( $innosetup_dir, 'Compil32.exe' );
-unless ( -d $innosetup_dir and -f $innosetup_file ) {
-	pexit(
-		"failed\n",
-		"\n",
-		"  Failed to find an installation of Inno Setup 5\n",
-		"  Please install http://www.jrsoftware.org/download.php/is.exe\n",
-	);
-}
-print "OK\n";
 
 sub pexit {
 	print(@_, "\n");
