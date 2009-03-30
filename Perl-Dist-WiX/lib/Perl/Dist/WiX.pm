@@ -1743,10 +1743,11 @@ sub install_perl_588 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	$toolchain->delegate;
+	eval { $toolchain->delegate; };
+	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
 
 	if ( $toolchain->{errstr} ) {
-		PDWiX->throw('Failed to generate toolchain distributions');
+		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -1915,10 +1916,11 @@ sub install_perl_589 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	$toolchain->delegate;
+	eval { $toolchain->delegate; };
+	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
 
 	if ( $toolchain->{errstr} ) {
-		PDWiX->throw('Failed to generate toolchain distributions');
+		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -2062,10 +2064,11 @@ sub install_perl_5100 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	$toolchain->delegate;
+	eval { $toolchain->delegate; };
+	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
 
 	if ( $toolchain->{errstr} ) {
-		PDWiX->throw('Failed to generate toolchain distributions');
+		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -4224,9 +4227,31 @@ under you?)
 
 =item C<< Could not open file $filename_in for writing [$!] [$^E] >>
 
+(undocumented yet. TODO)
+
 =back
 
-=head2 Other errors
+=head2 C<< Error caught by Perl::Dist::WiX from other module: >>
+
+=item C<< Unknown delegation error occured >>
+
+This error occurs after "Completed install_c_libraries in %i seconds" if 
+trace => 0 or "Pregenerating toolchain..." if trace => 1 or greater.
+
+My understanding of this error is that Perl::Dist::Util::Toolchain had an 
+unknown problem finding out which modules needed upgraded in the CPAN 
+toolchain.
+
+It is a transitory error, so try again and it will work.
+
+=item C<< Failed to generate toolchain distributions >>
+
+Perl::Dist::Util::Toolchain was not able to find out which modules need
+upgraded in the CPAN toolchain.
+
+The specific problem is mentioned in the next line.
+
+=back
 
 As other errors are noticed, they will be listed here.
 

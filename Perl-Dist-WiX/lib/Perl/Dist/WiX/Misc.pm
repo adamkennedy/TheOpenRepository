@@ -38,12 +38,18 @@ use Exception::Class (
 		'isa'    => 'PDWiX',
 		'fields' => [ 'parameter', 'where' ],
 	},
+	'PDWiX::Caught'    => { 
+		'description' => 
+		  'Error caught by Perl::Dist::WiX from other module', 
+		'isa'    => 'PDWiX',
+		'fields' => [ 'message', 'info' ],
+	},
 );
 
 sub PDWiX::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
-	my $string     = $self->description() . ': ' . $self->message() . "\n";
+	my $string     = $self->description() . ': ' . $self->message() . "\n" .  'Time error caught: ' . localtime() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -63,7 +69,7 @@ sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 	    $self->description() . ': '
 	  . $self->parameter()
 	  . ' in Perl::Dist::WiX'
-	  . $self->where() . "\n";
+	  . $self->where() . "\n" . 'Time error caught: ' . localtime() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -74,6 +80,25 @@ sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 		$self->trace->frame(0) );
 } ## end sub PDWiX::Parameter::full_message
 
+sub PDWiX::Caught::full_message { ## no critic 'Capitalization'
+	my $self = shift;
+
+	my $string =
+	    $self->description() . ': '
+	  . $self->message()
+	  . "\n"
+	  . $self->info() . "\n" . 'Time error caught: ' . localtime() . "\n";
+	my $misc       = Perl::Dist::WiX::Misc->new();
+	my $tracelevel = $misc->get_trace() % 100;
+
+	# Add trace to it if tracelevel high enough.
+	if ( $tracelevel > 1 ) {
+		$string .= "\n" . $self->trace() . "\n";
+	}
+
+	return $misc->_trace_line( 0, $string, 0, $tracelevel,
+		$self->trace->frame(0) );
+} ## end sub PDWiX::Parameter::full_message
 
 #####################################################################
 # Attributes

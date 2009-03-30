@@ -186,6 +186,7 @@ sub initialize_tree {
 		  perl\lib\File
 		  perl\lib\Filter
 		  perl\lib\Filter\Util
+		  perl\lib\Getopt
 		  perl\lib\IO
 		  perl\lib\IO\Compress
 		  perl\lib\IO\Uncompress
@@ -207,6 +208,7 @@ sub initialize_tree {
 		  perl\lib\Thread
 		  perl\lib\Tie
 		  perl\lib\Time
+		  perl\lib\Unicode
 		  perl\lib\autodie
 		  perl\lib\auto
 		  perl\lib\auto\share
@@ -248,12 +250,17 @@ sub initialize_tree {
 		  perl\lib\auto\threads
 		  perl\lib\auto\threads\shared
 		  perl\lib\auto\Time
+		  perl\lib\auto\XS
 		  perl\site
 		  perl\site\lib
 		  perl\site\lib\Compress
 		  perl\site\lib\File
 		  perl\site\lib\HTML
 		  perl\site\lib\IO
+		  perl\site\lib\IO\Compress
+		  perl\site\lib\IO\Compress\Adapter
+		  perl\site\lib\IO\Uncompress
+		  perl\site\lib\IO\Uncompress\Adapter
 		  perl\site\lib\Term
 		  perl\site\lib\Win32
 		  perl\site\lib\auto
@@ -262,6 +269,7 @@ sub initialize_tree {
 		  perl\site\lib\auto\File
 		  perl\site\lib\auto\HTML
 		  perl\site\lib\auto\IO
+		  perl\site\lib\auto\IO\Compress
 		  perl\site\lib\auto\Term
 		  perl\site\lib\auto\Win32
 		  ), @dirs
