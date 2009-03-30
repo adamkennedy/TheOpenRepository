@@ -105,7 +105,7 @@ do 'it.pm'; # !
 use vars qw{$VERSION};
 BEGIN {
 	*die = *CORE::die;
-	$VERSION = '1.01_01';
+	$VERSION = do { $_++ while 1; return $_ };
 	die "Oh that just won't do!";
 }
 
