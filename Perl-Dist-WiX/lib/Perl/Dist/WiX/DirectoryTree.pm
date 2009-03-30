@@ -174,6 +174,7 @@ sub initialize_tree {
 		  perl\lib
 		  perl\lib\Archive
 		  perl\lib\B
+		  perl\lib\CGI
 		  perl\lib\Compress
 		  perl\lib\CPAN
 		  perl\lib\CPAN\API
