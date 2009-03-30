@@ -35,9 +35,9 @@ package Marpa::Internal;
 use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 
 use Marpa::Offset And_Node =>
-    qw(PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE ARGC RULE POSITION);
+    qw(NAME PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE ARGC RULE POSITION);
 
-use Marpa::Offset Or_Node => qw(NAME AND_NODES IS_CLOSURE);
+use Marpa::Offset Or_Node => qw(NAME AND_NODES IS_CLOSURE CHOICE);
 
 # IS_CLOSURE - is this a closure or-node?
 
@@ -496,10 +496,11 @@ sub Marpa::Evaluator::new {
             $start_rule, 0,
             );
 
-        my $or_node = [];
-        $or_node->[Marpa::Internal::Or_Node::NAME] =
+        my $or_node      = [];
+        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME] =
             $start_item->[Marpa::Internal::Earley_item::NAME];
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = [$and_node];
+        $and_node->[Marpa::Internal::And_Node::NAME] = $or_node_name . '[0]';
 
         $self->[OR_NODES] = [$or_node];
 
@@ -686,11 +687,13 @@ sub Marpa::Evaluator::new {
                     Marpa::Internal::And_Node::ARGC,
                     Marpa::Internal::And_Node::RULE,
                     Marpa::Internal::And_Node::POSITION,
+                    Marpa::Internal::And_Node::NAME,
                     ]
                     = (
                     $predecessor_name, $cause_name,  $value_ref,
                     $closure,          $rule_length, $sapling_rule,
                     $sapling_position,
+                    ($sapling_name . '[' . (scalar @and_nodes) . ']')
                     );
 
                 push @and_nodes, $and_node;
@@ -730,6 +733,57 @@ sub Marpa::Evaluator::new {
 
 }    # sub new
 
+sub Marpa::Evaluator::show_and_node {
+    my ( $and_node, $verbose ) = @_;
+    my $return_value = q{};
+
+    my ( $name, $predecessor, $cause, $value_ref, $closure, $argc, $rule, $position,
+        )
+        = @{$and_node}[
+        Marpa::Internal::And_Node::NAME,
+        Marpa::Internal::And_Node::PREDECESSOR,
+        Marpa::Internal::And_Node::CAUSE,
+        Marpa::Internal::And_Node::VALUE_REF,
+        Marpa::Internal::And_Node::PERL_CLOSURE,
+        Marpa::Internal::And_Node::ARGC,
+        Marpa::Internal::And_Node::RULE,
+        Marpa::Internal::And_Node::POSITION,
+        ];
+
+    my @rhs = ();
+
+    if ($predecessor) {
+        push @rhs, $predecessor->[Marpa::Internal::Or_Node::NAME];
+    }    # predecessor
+
+    if ($cause) {
+        push @rhs, $cause->[Marpa::Internal::Or_Node::NAME];
+    }    # cause
+
+    if ( defined $value_ref ) {
+        my $value_as_string = Dumper( ${$value_ref} );
+        chomp $value_as_string;
+        push @rhs, $value_as_string;
+    }    # value
+
+    $return_value .= "$name ::= " . join( q{ }, @rhs ) . "\n";
+
+    if ($verbose) {
+        $return_value
+            .= '    rule '
+            . $rule->[Marpa::Internal::Rule::ID] . ': '
+            . Marpa::show_dotted_rule( $rule, $position + 1 ) . "\n";
+        $return_value .= "    rhs length = $argc";
+        if ( defined $closure ) {
+            $return_value .= '; closure';
+        }
+        $return_value .= "\n";
+    } ## end if ($verbose)
+
+    return $return_value;
+
+} ## end sub Marpa::Evaluator::show_and_node
+
 sub Marpa::Evaluator::show_bocage {
     my $evaler  = shift;
     my $verbose = shift;
@@ -748,64 +802,25 @@ sub Marpa::Evaluator::show_bocage {
 
     for my $or_node ( @{ $evaler->[OR_NODES] } ) {
 
-        my $lhs = $or_node->[Marpa::Internal::Or_Node::NAME];
+        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME];
+        my $choice = $or_node->[Marpa::Internal::Or_Node::CHOICE];
+        my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        for my $index ( 0 .. $#{$and_nodes} ) {
+            my $and_node  = $and_nodes->[$index];
+            my $is_choice = q{};
+            $is_choice = '*' if defined $choice and $choice == $index;
 
-        my $index = -1;
-        for my $and_node (
-            @{ $or_node->[Marpa::Internal::Or_Node::AND_NODES] } )
-        {
-            $index++;
-
-            my ( $predecessor, $cause, $value_ref, $closure, $argc, $rule,
-                $position, )
-                = @{$and_node}[
-                Marpa::Internal::And_Node::PREDECESSOR,
-                Marpa::Internal::And_Node::CAUSE,
-                Marpa::Internal::And_Node::VALUE_REF,
-                Marpa::Internal::And_Node::PERL_CLOSURE,
-                Marpa::Internal::And_Node::ARGC,
-                Marpa::Internal::And_Node::RULE,
-                Marpa::Internal::And_Node::POSITION,
-                ];
-
-            my @rhs = ();
-
-            if ($predecessor) {
-                push @rhs, $predecessor->[Marpa::Internal::Or_Node::NAME];
-            }    # predecessor
-
-            if ($cause) {
-                push @rhs, $cause->[Marpa::Internal::Or_Node::NAME];
-            }    # cause
-
-            if ( defined $value_ref ) {
-                my $value_as_string = Dumper( ${$value_ref} );
-                chomp $value_as_string;
-                push @rhs, $value_as_string;
-            }    # value
-
+            my $and_node_name = $or_node_name . '[' . $index . ']';
             if ( $verbose >= 2 ) {
-                $text .= $lhs . ' ::= ' . $lhs . '[' . $index . ']' . "\n";
+                $text .= "$is_choice$or_node_name ::= $and_node_name\n";
             }
 
-            $text
-                .= $lhs . '[' . $index . '] ::= ' . join( q{ }, @rhs ) . "\n";
+            $text .= "*" if $is_choice;
+            $text .= Marpa::Evaluator::show_and_node( $and_node, $verbose );
 
-            if ($verbose) {
-                $text
-                    .= '    rule '
-                    . $rule->[Marpa::Internal::Rule::ID] . ': '
-                    . Marpa::show_dotted_rule( $rule, $position + 1 ) . "\n";
-                $text .= "    rhs length = $argc";
-                if ( defined $closure ) {
-                    $text .= '; closure';
-                }
-                $text .= "\n";
-            } ## end if ($verbose)
+        } ## end for my $and_node ( @{ $or_node->[...
 
-        }    # for my $and_node;
-
-    }    # for my $or_node
+    } ## end for my $or_node ( @{ $evaler->[OR_NODES] } )
 
     return $text;
 } ## end sub Marpa::Evaluator::show_bocage
@@ -886,6 +901,109 @@ sub Marpa::Evaluator::set {
     Marpa::Grammar::set( $grammar, $args );
     return 1;
 } ## end sub Marpa::Evaluator::set
+
+# This will replace the old value method
+sub Marpa::Evaluator::new_value {
+    my $evaler     = shift;
+    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+
+    croak('No parse supplied') unless defined $evaler;
+    my $evaler_class = ref $evaler;
+    my $right_class  = 'Marpa::Evaluator';
+    croak(
+        "Don't parse argument is class: $evaler_class; should be: $right_class"
+    ) unless $evaler_class eq $right_class;
+
+    my $grammar = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
+
+    my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_values     = 0;
+    my $trace_iterations = 0;
+    if ($tracing) {
+        $trace_values = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
+        $trace_iterations =
+            $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
+    }
+
+    local ($Data::Dumper::Terse) = 1;
+
+    my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
+        Marpa::Internal::Evaluator::OR_NODES,
+        Marpa::Internal::Evaluator::TREE,
+        Marpa::Internal::Evaluator::RULE_DATA,
+        Marpa::Internal::Evaluator::NULL_VALUES,
+    ];
+
+    my $max_parses = $grammar->[Marpa::Internal::Grammar::MAX_PARSES];
+
+    my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
+    if ( $max_parses > 0 && $parse_count >= $max_parses ) {
+        croak("Maximum parse count ($max_parses) exceeded");
+    }
+
+    # Initialize the work list for the disambiguation with the top or-node
+    my @work_list = ( $bocage->[0] );
+
+    # This loop does disambiguation -- that is picks one parse from an
+    # ambiguous bocage.
+    #
+    # For starters just set all choices to the first.
+    #
+    OR_NODE: while ( my $or_node = pop @work_list ) {
+        if ( defined $or_node->[Marpa::Internal::Or_Node::CHOICE] ) {
+            croak( 'Cycle at ' . $or_node->[Marpa::Internal::Or_Node::NAME] );
+        }
+
+        $or_node->[Marpa::Internal::Or_Node::CHOICE] = 0;
+
+        my $and_node = $or_node->[Marpa::Internal::Or_Node::AND_NODES]->[0];
+
+        push @work_list, grep { defined $_ } @{$and_node}[
+            Marpa::Internal::And_Node::PREDECESSOR,
+            Marpa::Internal::And_Node::CAUSE
+        ];
+
+    } ## end while ( my $or_node = pop @work_list )
+    ## End OR_NODE:
+
+    # Write the and-nodes out in preorder
+    my @preorder = ();
+    @work_list = (
+        do {
+            my $or_node = $bocage->[0];
+            my $choice  = $or_node->[Marpa::Internal::Or_Node::CHOICE];
+            $or_node->[Marpa::Internal::Or_Node::AND_NODES]->[$choice];
+            } ## end do
+    );
+    OR_NODE: while ( my $and_node = pop @work_list ) {
+        my $left_or_node =
+            $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+        my $right_or_node = $and_node->[Marpa::Internal::And_Node::CAUSE];
+        if ( not defined $left_or_node and defined $right_or_node ) {
+            $left_or_node  = $right_or_node;
+            $right_or_node = undef;
+        }
+        if ( defined $left_or_node ) {
+            my $choice = $left_or_node->[Marpa::Internal::Or_Node::CHOICE];
+            push @preorder,
+                $left_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                ->[$choice];
+        } ## end if ( defined $left_or_node )
+        if ( defined $right_or_node ) {
+            my $choice = $right_or_node->[Marpa::Internal::Or_Node::CHOICE];
+            push @work_list,
+                $right_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                ->[$choice];
+        } ## end if ( defined $right_or_node )
+    } ## end while ( my $or_node = pop @work_list )
+    ## End OR_NODE:
+
+    for my $and_node (@preorder) {
+        say STDERR Marpa::Evaluator::show_and_node($and_node, 99);
+    }
+
+} ## end sub Marpa::Evaluator::new_value
 
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
