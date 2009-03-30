@@ -1,4 +1,7 @@
-Revision history for Perl extension Acme::BadExample
+Changes for Perl extension Acme-BadExample
+
+1.01 Mon 30 Mar 2009
+	- $VERSION is now determined by an infinite loop
 
 1.01_01 Sun  6 Apr 2008
 	- Testing a new evil trick
