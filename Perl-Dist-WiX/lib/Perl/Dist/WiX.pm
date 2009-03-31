@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_100')->numify;
+use version; $VERSION = version->new('0.163_101')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -2806,7 +2806,7 @@ sub install_library {
 	my @sorted_files = sort { $a cmp $b } @files;
 	my $filelist =
 	  Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)
-	  ->filter( $self->filters );
+	  ->filter( $self->filters )->filter( [ $unpack_to ] );
 
 	return $filelist;
 } ## end sub install_library
