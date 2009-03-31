@@ -170,9 +170,9 @@ sub Marpa::mdl {
     if ( not defined $evaler ) {
         die_with_parse_failure( $text, length $text );
     }
-    return $evaler->value if not wantarray;
+    return $evaler->old_value if not wantarray;
     my @values;
-    while ( defined( my $value = $evaler->value() ) ) {
+    while ( defined( my $value = $evaler->old_value() ) ) {
         push @values, $value;
     }
     return @values;

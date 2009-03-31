@@ -137,17 +137,8 @@ my @expected = (
 );
 my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
 
-my $i = -1;
-while ( defined( my $value = $evaler->old_value() ) ) {
-    $i++;
-    if ( $i > $#expected ) {
-        fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
-    }
-    else {
-        Marpa::Test::is( ${$value}, $expected[$i],
-            "Ambiguous Equation Value $i" );
-    }
-} ## end while ( defined( my $value = $evaler->old_value() ) )
+my $value = $evaler->new_value();
+Marpa::Test::is( ${$value}, $expected[0], "Ambiguous Equation Value" );
 
 # Local Variables:
 #   mode: cperl

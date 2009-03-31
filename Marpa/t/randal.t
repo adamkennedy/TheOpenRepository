@@ -47,7 +47,7 @@ TEST: while ( my $test = pop @tests ) {
     $recce->end_input();
     my $evaler = new Marpa::Evaluator( { recce => $recce } );
     my @parses;
-    while ( defined( my $value = $evaler->value ) ) {
+    while ( defined( my $value = $evaler->old_value ) ) {
         push @parses, $value;
     }
     my @expected_parses;

@@ -840,7 +840,7 @@ sub parse_source_grammar {
     my $evaler = new Marpa::Evaluator( { recce => $recce } );
     croak('Marpa Internal error: failed to create evaluator for MDL')
         unless defined $evaler;
-    my $value = $evaler->value();
+    my $value = $evaler->old_value();
     raw_grammar_eval( $grammar, $value );
     return;
 } ## end sub parse_source_grammar
