@@ -329,7 +329,9 @@ sub msi_product_id {
 
 	my $product_name =
 		$self->app_name
-	  . ( $self->portable ? ' Portable' : q{} ) . q{ ver. }
+	  . ( $self->portable ? ' Portable ' : q{ } ) 
+	  . $self->app_publisher_url
+      . q{ ver. }
 	  . $self->msi_perl_version;
 
 	#... then use it to create a GUID out of the ID.
@@ -353,7 +355,7 @@ sub msi_upgrade_code {
 	my $upgrade_ver =
 		$self->app_name
 	  . ( $self->portable ? ' Portable' : q{} ) . q{ }
-	  . $self->perl_version_human;
+	  . $self->app_publisher_url;
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $self->{misc}->generate_guid($upgrade_ver);
@@ -451,8 +453,15 @@ sub compile_wxs {
 		$filename,
 
 	];
-	my $rv = IPC::Run3::run3( $cmd, \undef, \undef, \undef );
+	my $out;
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
+	unless ( ( -f $wixobj ) and ( not $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw("Failed to find $wixobj");
+	}
+
+	
 	return $rv;
 } ## end sub compile_wxs
 

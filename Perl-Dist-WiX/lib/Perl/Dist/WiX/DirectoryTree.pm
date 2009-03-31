@@ -244,6 +244,7 @@ sub initialize_tree {
 		  perl\lib\auto\PerlIO
 		  perl\lib\auto\Pod
 		  perl\lib\auto\POSIX
+		  perl\lib\auto\Term
 		  perl\lib\auto\Test
 		  perl\lib\auto\Test\Harness
 		  perl\lib\auto\Text
@@ -254,7 +255,10 @@ sub initialize_tree {
 		  perl\lib\auto\XS
 		  perl\site
 		  perl\site\lib
+		  perl\site\lib\Archive
 		  perl\site\lib\Compress
+		  perl\site\lib\Compress\Raw
+		  perl\site\lib\Digest
 		  perl\site\lib\File
 		  perl\site\lib\HTML
 		  perl\site\lib\IO
@@ -264,15 +268,20 @@ sub initialize_tree {
 		  perl\site\lib\IO\Uncompress\Adapter
 		  perl\site\lib\Term
 		  perl\site\lib\Win32
+		  perl\site\lib\Win32API
 		  perl\site\lib\auto
 		  perl\site\lib\auto\share
+		  perl\site\lib\auto\Archive
 		  perl\site\lib\auto\Compress
+		  perl\site\lib\auto\Compress\Raw
+		  perl\site\lib\auto\Digest
 		  perl\site\lib\auto\File
 		  perl\site\lib\auto\HTML
 		  perl\site\lib\auto\IO
 		  perl\site\lib\auto\IO\Compress
 		  perl\site\lib\auto\Term
 		  perl\site\lib\auto\Win32
+		  perl\site\lib\auto\Win32API
 		  ), @dirs
 	);
 
