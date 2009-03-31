@@ -1,5 +1,7 @@
 1. Update documentation (0.163)
 
+2. Make sure fragments_dir is cleared out (0.163)
+
 2. Add ability to install distribution from local file. (0.164)
 
 3. Handle installing distributions that only contain a Build.PL 
