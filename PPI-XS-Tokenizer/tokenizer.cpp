@@ -195,6 +195,7 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Quote_Single] = &m_SingleQuoteToken;
 	TokenTypeNames_pool[Token_QuoteLike_Backtick] = &m_BacktickQuoteToken;
 	TokenTypeNames_pool[Token_Word] = &m_WordToken;
+	TokenTypeNames_pool[Token_Quote_Literal] = &m_LiteralQuoteToken;
 	TokenTypeNames_pool[Token_Quote_Interpolate] = &m_InterpolateQuoteToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;

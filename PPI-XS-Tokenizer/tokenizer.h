@@ -26,8 +26,8 @@ enum TokenTypeNames {
 	Token_Unknown, // done
 	Token_Quote_Single, // done
 	Token_Quote_Double, // done
-	Token_Quote_Interpolate,
-	Token_Quote_Literal,
+	Token_Quote_Interpolate, // done
+	Token_Quote_Literal, // done
 	Token_QuoteLike_Backtick, // done
 	Token_QuoteLike_Readline,
 	Token_QuoteLike_Command,
@@ -117,27 +117,53 @@ class QuoteToken : public Token {
 public:
 	uchar seperator;
 	uchar state;
-	uchar quote_type;
-	bool is_braced;
-	uchar open_char, close_char;
-	uchar current_section, total_sections;
+	uchar current_section;
+	ulong brace_counter;
+	struct section {
+		uchar open_char, close_char;
+		ulong position, size;
+	} sections[3];
 };
 
 class AbstractQuoteTokenType : public AbstractTokenType {
 public:
-	AbstractQuoteTokenType( TokenTypeNames my_type,  bool sign ) : AbstractTokenType( my_type, sign ) {}
+	// my_type, sign, num_sections, accept_modifiers
+	AbstractQuoteTokenType( 
+		TokenTypeNames my_type,  
+		bool sign, 
+		uchar num_sections, 
+		bool accept_modifiers ) 
+		: 
+		AbstractTokenType( my_type, sign ), 
+		m_numSections(num_sections), 
+		m_acceptModifiers(accept_modifiers) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 	virtual bool isa( TokenTypeNames is_type ) const;
 	virtual void FreeToken( TokensCacheMany& tc, Token *token );
+	uchar m_numSections;
+	bool m_acceptModifiers;
 protected: 
 	virtual Token *_get_from_cache(TokensCacheMany& tc);
 	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
 	virtual void _clean_token_fields( Token *t );
+private:
+	CharTokenizeResults StateFuncInSectionBraced(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncInSectionUnBraced(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncBootstrapSection(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncConsumeWhitespaces(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
+};
+
+class LiteralQuoteToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	LiteralQuoteToken() : AbstractQuoteTokenType( Token_Quote_Literal, true, 1, false ) {}
 };
 
 class InterpolateQuoteToken : public AbstractQuoteTokenType {
 public:
-	InterpolateQuoteToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true ) {}
+	// my_type, sign, num_sections, accept_modifiers
+	InterpolateQuoteToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true, 1, false ) {}
 };
 
 // Quote type simple - normal quoted string '' or "" or ``
@@ -345,6 +371,7 @@ private:
 	SingleQuoteToken m_SingleQuoteToken;
 	BacktickQuoteToken m_BacktickQuoteToken;
 	WordToken m_WordToken;
+	LiteralQuoteToken m_LiteralQuoteToken;
 	InterpolateQuoteToken m_InterpolateQuoteToken;
 
 	void keep_significant_token(Token *t);
