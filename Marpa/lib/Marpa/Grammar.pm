@@ -86,13 +86,13 @@ use Marpa::Offset Rule =>
     qw(
     USEFUL ACTION
     CODE CYCLE
+    PRIORITY HASTY
     HAS_CHAF_LHS HAS_CHAF_RHS
     ),
 
     # temporary data
     qw(
     ORIGINAL_RULE
-    PRIORITY
     NULLABLE ACCESSIBLE PRODUCTIVE NULLING
 );
 
@@ -1597,6 +1597,7 @@ sub Marpa::show_rule {
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
             [ 0, 'nulling',      Marpa::Internal::Rule::NULLING, ],
+            [ 0, 'hasty',        Marpa::Internal::Rule::HASTY, ],
         )
         )
     {
@@ -2047,6 +2048,7 @@ sub add_rule {
         $rhs,        $nulling,           $nulling,
         $nulling,    $action,            $priority,
         );
+    $new_rule->[Marpa::Internal::Rule::HASTY] = 0;
 
     push @{$rules}, $new_rule;
     {

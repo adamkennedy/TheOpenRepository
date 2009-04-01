@@ -37,7 +37,8 @@ use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 use Marpa::Offset And_Node =>
     qw(NAME PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE ARGC RULE POSITION);
 
-use Marpa::Offset Or_Node => qw(NAME AND_NODES IS_CLOSURE CHOICE);
+use Marpa::Offset Or_Node =>
+    qw(NAME AND_NODES IS_CLOSURE START_EARLEME END_EARLEME CHOICE CHOICE_MAP);
 
 # IS_CLOSURE - is this a closure or-node?
 
@@ -45,7 +46,7 @@ use Marpa::Offset Tree_Node =>
     qw(OR_NODE CHOICE PREDECESSOR CAUSE DEPTH PERL_CLOSURE ARGC VALUE_REF RULE POSITION PARENT);
 
 use Marpa::Offset Evaluator =>
-    qw(RECOGNIZER PARSE_COUNT OR_NODES TREE RULE_DATA PACKAGE NULL_VALUES CYCLES);
+    qw(RECOGNIZER PARSE_COUNT OR_NODES TREE RULE_DATA PACKAGE NULL_VALUES CYCLES CHOICE_POINTS);
 
 # PARSE_COUNT  number of parses in an ambiguous parse
 # TREE         current evaluation tree
@@ -583,6 +584,9 @@ sub Marpa::Evaluator::new {
 
         }    # closure or-node
 
+        my $start_earleme = $item->[Marpa::Internal::Earley_item::PARENT];
+        my $end_earleme   = $item->[Marpa::Internal::Earley_item::SET];
+
         my @and_nodes;
 
         my $item_name = $item->[Marpa::Internal::Earley_item::NAME];
@@ -704,8 +708,15 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
         $or_node->[Marpa::Internal::Or_Node::IS_CLOSURE] =
             not $is_kernel_or_node;
-        push @{ $self->[OR_NODES] }, $or_node;
+        $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
+        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = $end_earleme;
+        push @{ $self->[Marpa::Internal::Evaluator::OR_NODES] }, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
+
+        if ( @and_nodes >= 2 ) {
+            $self->[Marpa::Internal::Evaluator::CHOICE_POINTS]
+                ->[$start_earleme] = [];
+        }
 
     }    # OR_SAPLING
 
@@ -725,6 +736,50 @@ sub Marpa::Evaluator::new {
         } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
     } ## end for my $and_node ( map { @{ $_->[...
+
+    # Compute the lists of completed and_nodes at choice points
+    OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
+        next OR_NODE unless $or_node->[Marpa::Internal::Or_Node::IS_CLOSURE];
+        my $start_earleme =
+            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
+        my $choices =
+            $self->[Marpa::Internal::Evaluator::CHOICE_POINTS]
+            ->[$start_earleme];
+        next OR_NODE unless defined $choices;
+        my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        push @{$choices}, @{$and_nodes};
+    } ## end for my $or_node ( @{ $self->[OR_NODES] } )
+    ## End OR_NODE:
+
+    # Sort the lists of completed and_nodes
+    OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
+        my $start_earleme =
+            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
+        my $end_earleme = $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
+        my $choice_points =
+            $self->[Marpa::Internal::Evaluator::CHOICE_POINTS];
+        my @decorated_choices = ();
+        for my $choice ( @{ $choice_points->[$start_earleme] } ) {
+            my $rule     = $choice->[Marpa::Internal::And_Node::RULE];
+            my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
+            my $order    = $rule->[Marpa::Internal::Rule::ID];
+            my $is_hasty = $rule->[Marpa::Internal::Rule::HASTY];
+            my $laziness = $end_earleme;
+            $laziness = -$laziness if $is_hasty;
+            push @decorated_choices,
+                [ $choice, $priority, $order, $laziness ];
+        } ## end for my $choice ( @{ $choice_points->[$start_earleme] ...
+        $choice_points->[$start_earleme] = [
+            map { $_->[0] }
+                sort {
+                       $a->[1] cmp $b->[1]
+                    or $a->[2] <=> $b->[2]
+                    or $a->[3] <=> $b->[3]
+                } @decorated_choices
+        ];
+
+    } ## end for my $or_node ( @{ $self->[OR_NODES] } )
+    ## End OR_NODE:
 
     return $self;
 
