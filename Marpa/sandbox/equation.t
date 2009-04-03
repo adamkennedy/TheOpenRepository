@@ -137,7 +137,7 @@ my @expected = (
 );
 my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
 
-my $value = $evaler->new_value();
+my $value = $evaler->value();
 Marpa::Test::is( ${$value}, $expected[0], "Ambiguous Equation Value" );
 
 # Local Variables:
