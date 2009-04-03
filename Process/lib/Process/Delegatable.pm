@@ -36,10 +36,13 @@ sub delegate {
 	# Fire the command
 	IPC::Run3::run3( $cmd, $stdin, $stdout, \undef );
 
-	# Get the first line of the response, which will be an OK/FAIL
+	# Get the first line with content of the response, which will be an OK/FAIL
 	seek( $stdout, 0, 0 );
-	my $result = <$stdout>;
-	chomp $result;
+	my $result;
+	while ($result eq '') {
+		$result = <$stdout>;
+		chomp $result;
+	}
 	if ( $result eq 'OK' ) {
 		# Looks good, deserialize the data
 		my $complete = $class->deserialize( $stdout );
