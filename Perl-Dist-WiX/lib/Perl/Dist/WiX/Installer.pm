@@ -458,7 +458,8 @@ sub compile_wxs {
 
 	unless ( ( -f $wixobj ) and ( not $out =~ /error|warning/msx ) ) {
 		$self->trace_line( 0, $out );
-		PDWiX->throw("Failed to find $wixobj");
+		PDWiX->throw("Failed to find $wixobj (probably "
+				  . "compilation error in $filename)");
 	}
 
 	
@@ -593,7 +594,7 @@ sub write_msi {
 	# Did everything get done correctly?
 	unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
 		$self->trace_line( 0, $out );
-		PDWiX->throw("Failed to find $output_msi");
+		PDWiX->throw("Failed to find $output_msi (probably compilation error)");
 	}
 
 	return $output_msi;
@@ -673,7 +674,7 @@ sub add_file {
 	}
 
 	unless ( defined $self->{fragments}->{ $params{fragment} } ) {
-		PDWiX->throw("Fragment $params{fragment} not defined");
+		PDWiX->throw("Fragment $params{fragment} does not exist");
 	}
 
 	$self->{fragments}->{ $params{fragment} }->add_file( $params{source} );
@@ -784,7 +785,7 @@ sub as_string {
 			INCLUDE_PATH => $self->dist_dir,
 			EVAL_PERL    => 1,
 		} )
-	  || PDWiX->throw(
+	  || PDWiX::Caught->throw( message => 'Template error', info =>
 		     $Template::ERROR
 		  or $Template::ERROR
 	  );
@@ -793,7 +794,7 @@ sub as_string {
 	my $vars = { dist => $self };
 
 	$tt->process( 'Main.wxs.tt', $vars, \$answer )
-	  || PDWiX->throw( $tt->error() . "\n" );
+	  || PDWiX::Caught->throw( message => 'Template error', info => $tt->error() );
 
 	# Combine it all
 	return $answer;
@@ -809,13 +810,10 @@ __END__
 
 Bugs should be reported via: 
 
-1) 
-L<The CPAN bug tracker|http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 if you have an account there.
 
-2) Email to 
-L<bug-Perl-Dist-WiX at rt.cpan.org|mailto:bug-Perl-Dist-WiX@rt.cpan.org> 
-if you do not.
+2) Email to L<mailto:bug-Perl-Dist-WiX@rt.cpan.org> if you do not.
 
 For other issues, contact the topmost author.
 

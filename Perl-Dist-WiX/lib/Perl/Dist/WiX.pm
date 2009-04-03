@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_102')->numify;
+use version; $VERSION = version->new('0.163_103')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1374,12 +1374,12 @@ END_PERL
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("open: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("print: $!");
-		close $CPAN_FILE or PDWiX->throw("close: $!");
+		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
+		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
+		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
 	}
 	$self->_run3( $self->bin_perl, $cpan_file )
-	  or PDWiX->throw('perl failed');
+	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;
 
@@ -1522,16 +1522,16 @@ END_PERL
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("open: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("print: $!");
-		close $CPAN_FILE or PDWiX->throw("close: $!");
+		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
+		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
+		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
 	}
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
 	local $ENV{AUTOMATED_TESTING}   = q{};
 	local $ENV{RELEASE_TESTING}     = q{};
 	$self->_run3( $self->bin_perl, $cpan_file )
-	  or PDWiX->throw('perl failed');
-	PDWiX->throw('Failure detected during cpan upgrade, stopping')
+	  or PDWiX->throw('CPAN script execution failed');
+	PDWiX->throw('Failure detected during cpan upgrade, stopping [$CHILD_ERROR]')
 	  if $CHILD_ERROR;
 
 	my $fl = Perl::Dist::WiX::Filelist->new->readdir(
@@ -2121,7 +2121,6 @@ sub install_perl_5100_bin {
 		@_,
 	);
 	unless ( $self->bin_make ) {
-		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
 	$self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
 
@@ -2715,7 +2714,7 @@ sub install_binary {
 		my $tgt = catdir( $self->image_dir, $binary->install_to );
 		@files = $self->_extract( $tgz, $tgt );
 	} else {
-		PDWiX->throw( q{didn't expect install_to to be a }
+		PDWiX->throw( q{Didn't expect install_to to be a }
 			  . ref $binary->install_to );
 	}
 
@@ -3141,15 +3140,15 @@ END_PERL
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("open: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("print: $!");
-		close $CPAN_FILE or PDWiX->throw("close: $!");
+		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
+		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
+		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
 	}
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
 	local $ENV{AUTOMATED_TESTING}   = q{};
 	local $ENV{RELEASE_TESTING}     = q{};
 	$self->_run3( $self->bin_perl, $cpan_file )
-	  or PDWiX->throw('perl failed');
+	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw(
 		"Failure detected installing $name, stopping [$CHILD_ERROR]")
 	  if $CHILD_ERROR;
@@ -3159,7 +3158,7 @@ END_PERL
 	my @files;
 	my $fh = IO::File->new( $dist_file, 'r' );
 	if ( not defined $fh ) {
-		PDWiX->throw("File Error: $!");
+		PDWiX->throw("CPAN modules file error: $!");
 	}
 	my $dist_info = <$fh>;
 	$fh->close;
@@ -3825,13 +3824,13 @@ sub _copy {
 
 		# Do the actual copy
 		File::Copy::Recursive::rcopy( $from, $to )
-		  or PDWiX->throw($OS_ERROR);
+		  or PDWiX->throw("Copy error: $OS_ERROR");
 
 		# Set it back to what it was
 		$file->readonly($readonly);
 	} else {
 		File::Copy::Recursive::rcopy( $from, $to )
-		  or PDWiX->throw($OS_ERROR);
+		  or PDWiX->throw("Copy error: $OS_ERROR");
 	}
 	return 1;
 } ## end sub _copy
@@ -3842,7 +3841,7 @@ sub _move {
 	File::Path::mkpath($basedir) unless -e $basedir;
 	$self->trace_line( 2, "Moving $from to $to\n" );
 	File::Copy::Recursive::rmove( $from, $to )
-	  or PDWiX->throw($OS_ERROR);
+	  or PDWiX->throw("Move error: $OS_ERROR");
 
 	return;
 }
@@ -4042,7 +4041,7 @@ sub _dll_to_a {
 	my $self   = shift;
 	my %params = @_;
 	unless ( $self->bin_dlltool ) {
-		PDWiX->throw('Required method bin_dlltool is not defined');
+		PDWiX->throw('dlltool has not been installed');
 	}
 
 	my @files;
@@ -4050,30 +4049,35 @@ sub _dll_to_a {
 	# Source file
 	my $source = $params{source};
 	if ( $source and not( $source =~ /\.dll\z/ms ) ) {
-		PDWiX->throw('Missing or invalid source param');
+		PDWiX::Parameter->throw( parameter => 'source',
+			where => '->_dll_to_a');
 	}
 
 	# Target .dll file
 	my $dll = $params{dll};
 	unless ( $dll and $dll =~ /\.dll/ms ) {
-		PDWiX->throw('Missing or invalid .dll file');
+		PDWiX::Parameter->throw( parameter => 'dll',
+			where => '->_dll_to_a');
 	}
 
 	# Target .def file
 	my $def = $params{def};
 	unless ( $def and $def =~ /\.def\z/ms ) {
-		PDWiX->throw('Missing or invalid .def file');
+		PDWiX::Parameter->throw( parameter => 'def',
+			where => '->_dll_to_a');
 	}
 
 	# Target .a file
 	my $_a = $params{a};
 	unless ( $_a and $_a =~ /\.a\z/ms ) {
-		PDWiX->throw('Missing or invalid .a file');
+		PDWiX::Parameter->throw( parameter => 'a',
+			where => '->_dll_to_a');
 	}
 
 	# Step 1 - Copy the source .dll to the target if needed
 	unless ( ( $source and -f $source ) or -f $dll ) {
-		PDWiX->throw('Need either a source or dll param');
+		PDWiX::Parameter->throw( parameter => 'source or dll: Need one of ' . 'these two parameters, and the file needs to exist',
+			where => '->_dll_to_a');
 	}
 	if ($source) {
 		$self->_move( $source => $dll );
@@ -4084,11 +4088,11 @@ sub _dll_to_a {
   SCOPE: {
 		my $bin = $self->bin_pexports;
 		unless ($bin) {
-			PDWiX->throw('Required method bin_pexports is not defined');
+			PDWiX->throw('pexports has not been installed');
 		}
 		my $ok = !system "$bin $dll > $def";
 		unless ( $ok and -f $def ) {
-			PDWiX->throw('Failed to generate .def file');
+			PDWiX->throw('pexports failed to generate .def file');
 		}
 
 		push @files, $def;
@@ -4098,11 +4102,11 @@ sub _dll_to_a {
   SCOPE: {
 		my $bin = $self->bin_dlltool;
 		unless ($bin) {
-			PDWiX->throw('Required method bin_dlltool is not defined');
+			PDWiX->throw('dlltool has not been installed');
 		}
 		my $ok = !system "$bin -dllname $dll --def $def --output-lib $_a";
 		unless ( $ok and -f $_a ) {
-			PDWiX->throw('Failed to generate .a file');
+			PDWiX->throw('dlltool failed to generate .a file');
 		}
 
 		push @files, $_a;
@@ -4128,7 +4132,7 @@ sub remake_path {
 	File::Path::mkpath($dir);
 
 	unless ( -d $dir ) {
-		PDWiX->throw("Failed to make_path for $dir");
+		PDWiX->throw("Failed to remake_path for $dir");
 	}
 	return $dir;
 }
@@ -4141,11 +4145,12 @@ __END__
 
 =head1 DIAGNOSTICS
 
-Note that most errors are defined as exception objects in the PDWiX and
-PDWiX::Parameter classes.  Those errors will start with C<< Perl::Dist::WiX 
-error: >>
+Note that most errors are defined as exception objects in the PDWiX,
+PDWiX::Parameter, and PDWiX::Caught classes.  Those errors will start 
+with C<< Perl::Dist::WiX error: >>
 
-Some errors will be caught by Object::InsideOut.
+Some errors will be caught by Object::InsideOut. (Those errors will be in 
+the OIO class)
 
 =head2 C<< Perl::Dist::WiX error: >>
 
@@ -4226,9 +4231,140 @@ Trying to use light.exe to compile a file that cannot be read or it
 does not exist (someone may be trying to modify your file system from 
 under you?)
 
-=item C<< Could not open file $filename_in for writing [$!] [$^E] >>
+=item C<< Failed to find %s (Probably compilation error in %s) >>
 
-(undocumented yet. TODO)
+The first file mentioned could not be found.  There was probably a 
+error in compilation of the second file.
+
+=item C<< Could not open file %s for writing [$!] [$^E] >>
+
+Perl::Dist::WiX could not open the file mentioned.  The reason should
+be specified within the brackets.
+
+=item C<< Fragment %s does not exist >>
+
+An attempt to add a file or files to a fragment that had not been 
+created yet has been detected.
+
+=item C<< %s does not support Perl %s >>
+
+An invalid perl_version parameter has been passed in.
+
+=item C<< Failed to resolve Module::CoreList hash for %s >>
+
+We could not get a hash of modules from Module::Corelist for
+the version of Perl mentioned.
+
+=item C<< Unknown package %s >>
+
+An improper package name was passed to Perl::Dist::WiX->binary_url.
+
+=item C<< Checkpoints require a temp_dir to be set >>
+
+There was no temp_dir parameter set and a checkpoint routine was called/.
+
+=item C<< Failed to find checkpoint directory >>
+
+=item C<< Cannot generate perl, missing $s method in %s >>
+
+=item C<< Did not provide a toolchain resolver >>
+
+=item C<< Cannot install CPAN modules yet, perl is not installed >>
+
+Perl::Dist::WiX->install_cpan_upgrades was called before 
+Perl::Dist::WiX->install_perl.
+
+=item C<< CPAN script %s failed >>
+
+An error happened creating or executing the script to upgrade or install 
+a CPAN module. The error will usually be mentioned on this line, and the 
+debug.err and debug.out files (in the output_dir) can be examined for 
+assistance in determining what happened.
+
+=item C<< Failure detected during cpan upgrade, stopping [%s] >> or C<< Failure detected installing %s, stopping [%s] >>
+
+The script to upgrade or install a CPAN module reported an error.
+The error will usually be mentioned on this line, and the debug.err and 
+debug.out files (in the output_dir) can be examined for assistance in 
+determining what happened.
+
+=item C<< Cannot build Perl yet, dmake has not been installed >>
+
+=item C<< Can't execute %s >>
+
+We just installed something, but a test to make sure that it is executable 
+did not pass.
+
+=item C<< Didn't expect install_to to be a %s >>
+
+=item C<< Failed to extract %s >>
+
+=item C<< Could not find Makefile.PL in %s >>
+
+This module did not have a Makefile.PL when it was unpacked.
+
+If it has only a Build.PL, it can be installed by install_module or
+install_modules, but not install_distribution.  Otherwise, there was
+probably an extraction error.
+	
+=item C<< No .packlist found for %s. ... >>	
+
+When this module was being installed, Perl::Dist::WiX was looking for 
+a packlist in order to create a fragment for the module.
+
+The description given with this error tells how to tell Perl::Dist::WiX to 
+create the fragment another way.
+
+=item C<< Template processing failed for $from_tt >>
+
+=item C<< Missing or invalid file $file or $file_tt in pathlist search >>
+
+=item C<< Failed to find file $file >>
+
+=item C<< Failed to create $dir >>
+
+=item C<< No write permissions for LWP::UserAgent cache '$dir' >>
+
+=item C<< make failed or perl failed >>
+
+=item C<< make failed (OS error) or perl failed (OS error) >>
+
+=item C<< CPAN modules file error: $! >>
+
+=item C<< The script %s does not exist >>
+
+Install_launcher could not find a script at this location when 
+creating a shortcut.
+
+=item C<< PATH directory $dir does not exist >>
+
+=item C<< Directory $path does not exist >>
+
+=item C<< Copy error: %s >>	or C<< Move error: %s >>
+
+There was an error copying or moving a file.
+
+=item C<< Error in archive extraction >>
+
+The archive that was downloaded was corrupt when an extraction 
+attempt was made.
+
+=item C<< Didn't recognize archive type for $archive >>
+
+Perl::Dist::WiX can only install files with a .zip or .tar.gz extension.
+
+=item C<< %s has not been installed >>
+
+The install_* routine that adds this particular package needed to be called 
+before this one, but it wasn't.
+
+=item C<< pexports failed to generate .def file >> or C<< pexports failed to generate .a file >>
+
+pexports or dlltool had an error and was not able to generate the file required.
+
+=item C<< Failed to make_path for %s >> or C<< Failed to remake_path for %s >>
+
+The directory did not exist once made or remade.
 
 =back
 
@@ -4239,11 +4375,7 @@ under you?)
 This error occurs after "Completed install_c_libraries in %i seconds" if 
 trace => 0 or "Pregenerating toolchain..." if trace => 1 or greater.
 
-My understanding of this error is that Perl::Dist::Util::Toolchain had an 
-unknown problem finding out which modules needed upgraded in the CPAN 
-toolchain.
-
-It is a transitory error, so try again and it will work.
+The specific problem is mentioned in the next line.
 
 =item C<< Failed to generate toolchain distributions >>
 
@@ -4251,6 +4383,10 @@ Perl::Dist::Util::Toolchain was not able to find out which modules need
 upgraded in the CPAN toolchain.
 
 The specific problem is mentioned in the next line.
+
+=item C<< Template error >>
+
+There was a problem creating or processing the main .wxs template.
 
 =back
 
@@ -4260,13 +4396,10 @@ As other errors are noticed, they will be listed here.
 
 Bugs should be reported via: 
 
-1) 
-L<The CPAN bug tracker|http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 if you have an account there.
 
-2) Email to 
-L<bug-Perl-Dist-WiX at rt.cpan.org|mailto:bug-Perl-Dist-WiX@rt.cpan.org> 
-if you do not.
+2) Email to L<mailto:bug-Perl-Dist-WiX@rt.cpan.org> if you do not.
 
 For other issues, contact the topmost author.
 
