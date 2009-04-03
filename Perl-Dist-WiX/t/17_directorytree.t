@@ -35,6 +35,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
           <Directory Id=\'D_167768A4_449A_32CC_A0F4_3DCF273EDF69\' Name=\'lib\'>
             <Directory Id=\'D_180F87E3_8BA9_3D33_AEE7_BCF494527ABA\' Name=\'Archive\' />
             <Directory Id=\'D_A8C8FC6F_24E4_3756_9816_68E0C6AF697E\' Name=\'B\' />
+            <Directory Id=\'D_57DF1862_07C3_33E0_B569_3BE5C1E5B10B\' Name=\'CGI\' />
             <Directory Id=\'D_1E4CE48B_D491_3830_8C63_EE79BB61800A\' Name=\'Compress\' />
             <Directory Id=\'D_8AF15C79_FA45_36B3_ABD8_B31D41B582AF\' Name=\'CPAN\'>
               <Directory Id=\'D_53747424_89F4_3095_82EF_4C1A8B35027F\' Name=\'API\' />
@@ -50,6 +51,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
             <Directory Id=\'D_6B79F1E7_1095_34B6_AF8E_20A2F9FB6136\' Name=\'Filter\'>
               <Directory Id=\'D_5F8D8371_677A_3299_816F_2ABB7197FF55\' Name=\'Util\' />
             </Directory>
+            <Directory Id=\'D_C19FDDD3_0EB3_3963_83AD_6B9E204BB211\' Name=\'Getopt\' />
             <Directory Id=\'D_79FC3F94_0468_3ECA_B18F_4C92F38990EC\' Name=\'IO\'>
               <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\' />
               <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\' />
@@ -77,6 +79,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
             <Directory Id=\'D_46AD6F6D_D148_3BE4_AFA8_CAE080280AC2\' Name=\'Thread\' />
             <Directory Id=\'D_3777377C_4417_3C20_9A58_542CABDD2F41\' Name=\'Tie\' />
             <Directory Id=\'D_CF3A962C_7210_3ECB_AF74_B6CD04EB0C5A\' Name=\'Time\' />
+            <Directory Id=\'D_82003174_F290_3049_8CB6_FBE6F4D7D6DC\' Name=\'Unicode\' />
             <Directory Id=\'D_E0D6BA76_D23F_3DB8_95B0_0127F8C4670F\' Name=\'autodie\' />
             <Directory Id=\'D_1EAEB13C_294E_3325_BC3B_135FE6E21463\' Name=\'auto\'>
               <Directory Id=\'D_FE794D95_EB30_343C_A8B4_35B8EC58F146\' Name=\'share\' />
@@ -120,6 +123,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
               <Directory Id=\'D_7E864D52_82FE_37C1_8FB4_BEDD92F5B4A5\' Name=\'PerlIO\' />
               <Directory Id=\'D_8118EEA5_28BA_3A98_8256_18639EE63293\' Name=\'Pod\' />
               <Directory Id=\'D_9D9FF976_F842_3CAB_A6C5_681CF3C41D95\' Name=\'POSIX\' />
+              <Directory Id=\'D_F91FED16_DB86_3E27_85AE_6636A7F5D750\' Name=\'Term\' />
               <Directory Id=\'D_A331F4A8_9F7F_3325_8123_AE7B2AD8A5FF\' Name=\'Test\'>
                 <Directory Id=\'D_552D454D_23A7_34BD_9A9A_5DC892924D7B\' Name=\'Harness\' />
               </Directory>
@@ -129,24 +133,44 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
                 <Directory Id=\'D_959B7613_679A_3565_8CB3_9EE8AF8E9177\' Name=\'shared\' />
               </Directory>
               <Directory Id=\'D_853CDE42_1F58_3B81_9FC6_7DFB6A7986A3\' Name=\'Time\' />
+              <Directory Id=\'D_E7D4A4EB_9F0C_3FD7_8D53_076F769B55D1\' Name=\'XS\' />
             </Directory>
           </Directory>
           <Directory Id=\'D_1BEF246B_FCD9_34B0_ABAA_5D90D198E4C9\' Name=\'site\'>
             <Directory Id=\'D_B3D4AD98_92FD_3DCF_A3A5_26C8E2D252A3\' Name=\'lib\'>
-              <Directory Id=\'D_50CB1D55_C1AE_35A4_BC21_DBC362C2A7A6\' Name=\'Compress\' />
+              <Directory Id=\'D_BD78229F_A1E0_3B61_840A_4F42B5775653\' Name=\'Archive\' />
+              <Directory Id=\'D_50CB1D55_C1AE_35A4_BC21_DBC362C2A7A6\' Name=\'Compress\'>
+                <Directory Id=\'D_7C27E321_1393_3EF2_977A_127AC702B020\' Name=\'Raw\' />
+              </Directory>
+              <Directory Id=\'D_CD082B7E_C828_315F_9A8F_454ACB4AC394\' Name=\'Digest\' />
               <Directory Id=\'D_59FAF411_602A_3066_846D_07E4A9B8EB69\' Name=\'File\' />
               <Directory Id=\'D_D71A609A_E8F8_3E89_81E6_14081EE0ECA2\' Name=\'HTML\' />
-              <Directory Id=\'D_CC536878_B286_3AD4_90F6_B9BACB6B692D\' Name=\'IO\' />
+              <Directory Id=\'D_CC536878_B286_3AD4_90F6_B9BACB6B692D\' Name=\'IO\'>
+                <Directory Id=\'D_BF72F7C9_EBDE_3790_9951_C113401F482C\' Name=\'Compress\'>
+                  <Directory Id=\'D_7D15BDFE_130B_3194_B612_ED93DF52359E\' Name=\'Adapter\' />
+                </Directory>
+                <Directory Id=\'D_A4F849D5_F208_3BB0_8757_848ACFE1F68A\' Name=\'Uncompress\'>
+                  <Directory Id=\'D_8DCDFED1_25B5_33C0_94B2_EBA6F67B788D\' Name=\'Adapter\' />
+                </Directory>
+              </Directory>
               <Directory Id=\'D_93051433_B6F7_3599_97B2_700071DA0864\' Name=\'Term\' />
               <Directory Id=\'D_14F9992E_A451_3D44_AD43_D3A367B02031\' Name=\'Win32\' />
+              <Directory Id=\'D_8F84FF33_C4AD_3F0F_A048_EFA5F61F6E82\' Name=\'Win32API\' />
               <Directory Id=\'D_7212C99C_98FC_3CC2_B32B_986926035439\' Name=\'auto\'>
                 <Directory Id=\'D_BC0402D3_9BD2_3987_B1B4_35EA398C6BEC\' Name=\'share\' />
-                <Directory Id=\'D_245FDF54_DE1F_3B14_B45C_F591F12FF8FD\' Name=\'Compress\' />
+                <Directory Id=\'D_DC0D1A3F_F9FD_3308_A33D_00F4DAFF3A55\' Name=\'Archive\' />
+                <Directory Id=\'D_245FDF54_DE1F_3B14_B45C_F591F12FF8FD\' Name=\'Compress\'>
+                  <Directory Id=\'D_4054B239_62D0_3344_BA98_6DA544EBC8A6\' Name=\'Raw\' />
+                </Directory>
+                <Directory Id=\'D_9DA1EA9E_A994_3361_A245_AB09FC3FC74D\' Name=\'Digest\' />
                 <Directory Id=\'D_CDC2E593_45F3_34EF_82A5_8E1B2F82B2AE\' Name=\'File\' />
                 <Directory Id=\'D_27E957E3_1F26_3ADB_B1C5_BE6DD5336BF3\' Name=\'HTML\' />
-                <Directory Id=\'D_337746D2_10AF_3567_8817_7B8A546783B8\' Name=\'IO\' />
+                <Directory Id=\'D_337746D2_10AF_3567_8817_7B8A546783B8\' Name=\'IO\'>
+                  <Directory Id=\'D_E059DEA9_3D55_3EED_98A2_14DC2B3BEF9A\' Name=\'Compress\' />
+                </Directory>
                 <Directory Id=\'D_EE6B1671_0C94_37EC_9C2E_84F5E42CA7BA\' Name=\'Term\' />
                 <Directory Id=\'D_C0D9F7F3_8AA7_3A70_810C_FC5FC5F9AA56\' Name=\'Win32\' />
+                <Directory Id=\'D_1F08A362_0240_3F08_B244_F218AF8B4BB6\' Name=\'Win32API\' />
               </Directory>
             </Directory>
           </Directory>
@@ -227,6 +251,7 @@ is($string, q{}, 'Stringifies correctly when uninitialized');
 
 $tree->initialize_tree; $string = $tree->as_string;
 
+# This is here for data collection when the tree contents change.
 # require Data::Dumper;
 # my $d = Data::Dumper->new([$string], [qw(string)]);
 # print $d->Indent(1)->Dump();

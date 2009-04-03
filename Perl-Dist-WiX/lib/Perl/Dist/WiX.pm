@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_101')->numify;
+use version; $VERSION = version->new('0.163_102')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1231,9 +1231,10 @@ sub install_perl_toolchain {
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
 	# any permanent CPAN.pm locks.
-	$toolchain->delegate;
+	eval { $toolchain->delegate; };
+	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
 	if ( $toolchain->{errstr} ) {
-		PDWiX->throw('Failed to generate toolchain distributions');
+		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions', info => $toolchain->{errstr});
 	}
 
 	my ( $core, $module_id );
