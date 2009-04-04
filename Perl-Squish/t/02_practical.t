@@ -17,13 +17,6 @@ END {
 	}
 }
 
-sub new_ok {
-	my $class = shift;
-	my $object = $class->new( @_ );
-	isa_ok( $object, $class );
-	$object;
-}
-
 
 
 
@@ -64,9 +57,9 @@ foreach my $input ( @files ) {
 	#push @cleanup, $copy2;
 	ok( copy( $input, $copy ), "Copied $input to $copy" );
 
-	my $Original = new_ok( 'PPI::Document' => $input  );
-	my $Input    = new_ok( 'PPI::Document' => $input  );
-	my $Output   = new_ok( 'PPI::Document' => $output );
+	my $Original = new_ok( 'PPI::Document', [ $input  ] );
+	my $Input    = new_ok( 'PPI::Document', [ $input  ] );
+	my $Output   = new_ok( 'PPI::Document', [ $output ] );
 
 	# Process the file
 	my $rv = Perl::Squish->document( $Input );
@@ -76,14 +69,14 @@ foreach my $input ( @files ) {
 
 	# Squish to another location
 	ok( Perl::Squish->file( $copy, $copy2 ), '->file returned true' );
-	my $Copy  = new_ok( 'PPI::Document' => $copy  );
+	my $Copy  = new_ok( 'PPI::Document', [ $copy  ] );
 	is_deeply( $Copy, $Original, 'targeted transform leaves original unchanged' );
-	my $Copy2 = new_ok( 'PPI::Document' => $copy2 );
+	my $Copy2 = new_ok( 'PPI::Document', [ $copy2 ] );
 	is_deeply( $Copy2, $Output, 'targeted transform works as expected' );
 
 	# Copy the file and process in-place
 	ok( Perl::Squish->file( $copy ),
 		'->file returned true' );
-	$Copy = new_ok( 'PPI::Document' => $copy );
+	$Copy = new_ok( 'PPI::Document', [ $copy ] );
 	is_deeply( $Copy, $Output, 'In-place transform works as expected' );
 }

@@ -65,7 +65,7 @@ sub document {
 		$operator->isa('PPI::Token::Operator')    or return '';
 		$operator->content eq '->'                or return '';
 		return 1;
-		} );
+	} );
 
 
 	# Lets also do some whitespace cleanup
@@ -105,7 +105,7 @@ sub document {
 		$section->{size} = length($content) - $section->{position} - 1;
 		
 		return '';
-		} );
+	} );
 
 	die $document->errstr if $document->errstr;
 
@@ -133,7 +133,7 @@ For general comments, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy <adamk@cpan.org>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -141,7 +141,7 @@ L<PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
