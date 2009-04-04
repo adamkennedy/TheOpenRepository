@@ -4,6 +4,7 @@ Revision history for Perl extension Perl::Squish
 	- Upgrading to Module::Install 0.81
 	- Upgrading Test::More to use it's new_ok
 	- Strip whitespace in qw//
+	- Minimum Perl version is now 5.006
 
 1.04 Sat 16 Aug 2008
 	- No functional changes

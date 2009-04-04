@@ -26,10 +26,10 @@ module's documentation for more information.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
-use Params::Util   '_INSTANCE';
-use PPI::Transform ();
+use Params::Util   0.14 '_INSTANCE';
+use PPI::Transform 1.200 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
