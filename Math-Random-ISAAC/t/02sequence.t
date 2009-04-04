@@ -147,5 +147,5 @@ plan tests => scalar(@results);
 my $rng = Math::Random::ISAAC::PP->new();
 
 foreach my $num (@results) {
-  is($num, $rng->irand());
+  is($rng->irand(), $num);
 }
