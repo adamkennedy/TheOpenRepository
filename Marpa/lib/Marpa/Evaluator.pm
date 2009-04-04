@@ -749,7 +749,7 @@ sub Marpa::Evaluator::new {
 
     # Find the choice points
     OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
-        if ($or_node->[Marpa::Internal::Or_Node::AND_NODES] >= 2) {
+        if ( $or_node->[Marpa::Internal::Or_Node::AND_NODES] >= 2 ) {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
             $choice_or_nodes->[$start_earleme] = [];
@@ -993,7 +993,6 @@ sub Marpa::Evaluator::set {
     return 1;
 } ## end sub Marpa::Evaluator::set
 
-
 # map the choices at the choice point or node
 sub map_choice_point {
     my ( $evaler, $choice_point ) = @_;
@@ -1055,7 +1054,7 @@ sub map_choice_point {
             # printf STDERR "Cycle: new=%s parent=%s original=%s\n", unpack('b*', $new_or_vec), unpack('b*', $parent_vec), unpack('b*', $or_vec);
             croak( 'Cycle at '
                     . $map_or_node->[Marpa::Internal::Or_Node::NAME] );
-        } ## end if ( $new_or_vec & ( $parent_vec | $or_vec ) =~ /[^\0]/)
+        } ## end if ( $new_or_vec & ( $parent_vec | $or_vec ) =~ /[^\0]/xms)
         no warnings 'numeric';
         $new_or_vec |= $or_vec;
 
@@ -1091,7 +1090,7 @@ sub map_choice_point {
     } ## end while ( my $ur_map_entry = pop @ur_map )
 
     return;
-} ## end sub Marpa::Evaluator::map_choice_point
+} ## end sub map_choice_point
 
 # This will replace the old value method
 sub Marpa::Evaluator::value {
@@ -1144,18 +1143,20 @@ sub Marpa::Evaluator::value {
     my $last_choice_earleme = -1;
     OR_NODE: while ( my $or_node = pop @work_list ) {
         if ( defined $or_node->[Marpa::Internal::Or_Node::CHOICE]
-            and $or_node->[Marpa::Internal::Or_Node::START_EARLEME] > $last_choice_earleme
-        ) {
+            and $or_node->[Marpa::Internal::Or_Node::START_EARLEME]
+            > $last_choice_earleme )
+        {
             croak( 'Cycle at ' . $or_node->[Marpa::Internal::Or_Node::NAME] );
-        }
+        } ## end if ( defined $or_node->[Marpa::Internal::Or_Node::CHOICE...
 
         my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
 
         # if the choice is non-trivial
         if ( @{$and_nodes} >= 2 ) {
 
-            map_choice_point($evaler, $or_node)
-                if not defined $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
+            map_choice_point( $evaler, $or_node )
+                if not
+                    defined $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
 
         } ## end if ( @{$and_nodes} >= 2 )
 
