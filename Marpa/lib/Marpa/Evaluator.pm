@@ -997,6 +997,9 @@ sub Marpa::Evaluator::set {
 sub map_choice_point {
     my ( $evaler, $choice_point ) = @_;
 
+    # array in which to build map
+    my @map;
+
     my $start_earleme =
         $choice_point->[Marpa::Internal::Or_Node::START_EARLEME];
 
@@ -1037,8 +1040,8 @@ sub map_choice_point {
 
     # build the choice map for this choice point or node
     my @ur_map = ( [ $choice_point, q{}, q{} ] );
-    while ( my $ur_map_entry = pop @ur_map ) {
-        my ( $map_or_node, $or_vec, $and_vec ) = @{$ur_map_entry};
+    MAP_ENTRY: while ( my $ur_map_entry = pop @ur_map ) {
+        my ( $map_or_node, $and_vec, $or_vec, ) = @{$ur_map_entry};
         my $new_or_vec = q{};
 
         # printf STDERR "In Map builder, Start Earleme: %d  %d: %s\n",
@@ -1054,12 +1057,15 @@ sub map_choice_point {
             # printf STDERR "Cycle: new=%s parent=%s original=%s\n", unpack('b*', $new_or_vec), unpack('b*', $parent_vec), unpack('b*', $or_vec);
             croak( 'Cycle at '
                     . $map_or_node->[Marpa::Internal::Or_Node::NAME] );
+            next MAP_ENTRY;
         } ## end if ( $new_or_vec & ( $parent_vec | $or_vec ) =~ /[^\0]/xms)
         no warnings 'numeric';
         $new_or_vec |= $or_vec;
 
         my $is_completed =
             $map_or_node->[Marpa::Internal::Or_Node::IS_COMPLETED];
+
+        MAP_AND_NODE:
         for my $map_and_node (
             @{ $map_or_node->[Marpa::Internal::Or_Node::AND_NODES] } )
         {
@@ -1071,23 +1077,31 @@ sub map_choice_point {
             }
 
             my $cause = $map_and_node->[Marpa::Internal::And_Node::CAUSE];
+            my $predecessor =
+                $map_and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+
+            if ( not defined $cause and not defined $predecessor ) {
+                push @map, [ $new_and_vec, $new_or_vec ];
+            }
+
             if ( defined $cause
                 and $cause->[Marpa::Internal::Or_Node::START_EARLEME]
                 <= $start_earleme )
             {
-                push @ur_map, [ $cause, $new_or_vec, $new_and_vec ];
+                push @ur_map, [ $cause, $new_and_vec, $new_or_vec ];
             } ## end if ( defined $cause and $cause->[...
 
-            my $predecessor =
-                $map_and_node->[Marpa::Internal::And_Node::PREDECESSOR];
             if ( defined $predecessor
                 and $predecessor->[Marpa::Internal::Or_Node::START_EARLEME]
                 <= $start_earleme )
             {
-                push @ur_map, [ $predecessor, $new_or_vec, $new_and_vec ];
+                push @ur_map, [ $predecessor, $new_and_vec, $new_or_vec ];
             } ## end if ( defined $predecessor and $predecessor->[...
         } ## end for my $map_and_node ( @{ $map_or_node->[...
     } ## end while ( my $ur_map_entry = pop @ur_map )
+
+    $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP] =
+        [ sort { $a->[0] cmp $b->[0] } @map ];
 
     return;
 } ## end sub map_choice_point

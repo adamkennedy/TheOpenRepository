@@ -3690,7 +3690,6 @@ sub rewrite_as_CHAF {
                 } ## end if ( @{$proper_nullables} == 2 )
 
                 # The following subproduction is non-nullable.
-                # TODO: Has this code been tried yet? ( 15 Jan 2008)
                 if ( $proper_nullable1 < $last_nonnullable ) {
                     $subp_end = $proper_nullable1;
                     splice @{$proper_nullables}, 0, 2;
