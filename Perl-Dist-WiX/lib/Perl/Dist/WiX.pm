@@ -1483,67 +1483,6 @@ sub _module_fix {
 
 }
 
-sub install_cpan_upgrades_old {
-	my $self = shift;
-	unless ( $self->bin_perl ) {
-		PDWiX->throw(
-			'Cannot install CPAN modules yet, perl is not installed');
-	}
-
-	# Check for a 5.10.x
-	if ( $self->perl_version eq '5100' ) {
-
-		# 5.10.x versions need these modules installed BEFORE the upgrade...
-		$self->install_distribution(
-			name             => 'ARANDAL/Pod-Simple-3.07.tar.gz',
-			makefilepl_param => ['INSTALLDIRS=perl']
-		  )->install_distribution(
-			name             => 'MSERGEANT/Time-Piece-1.13.tar.gz',
-			makefilepl_param => ['INSTALLDIRS=perl'] );
-	}
-
-	my $fl2 = Perl::Dist::WiX::Filelist->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
-	# Generate the CPAN installation script
-	my $cpan_string = <<"END_PERL";
-print "Loading CPAN...\\n";
-use CPAN;
-CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
-print "Upgrading all out of date CPAN modules...\\n";
-print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
-CPAN::Shell->upgrade;
-print "Completed upgrade of all modules\\n";
-exit(0);
-END_PERL
-
-	# Dump the CPAN script to a temp file and execute
-	$self->trace_line( 1, "Running upgrade of all modules\n" );
-	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
-  SCOPE: {
-		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
-		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
-	}
-	local $ENV{PERL_MM_USE_DEFAULT} = 1;
-	local $ENV{AUTOMATED_TESTING}   = q{};
-	local $ENV{RELEASE_TESTING}     = q{};
-	$self->_run3( $self->bin_perl, $cpan_file )
-	  or PDWiX->throw('CPAN script execution failed');
-	PDWiX->throw('Failure detected during cpan upgrade, stopping [$CHILD_ERROR]')
-	  if $CHILD_ERROR;
-
-	my $fl = Perl::Dist::WiX::Filelist->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
-	$fl->subtract($fl2)->filter( $self->filters );
-
-	$self->insert_fragment( 'upgraded_modules', $fl->files );
-
-	return 1;
-} ## end sub install_cpan_upgrades_old
-
 # No additional modules by default
 sub install_perl_modules {
 	my $self = shift;
@@ -2970,6 +2909,151 @@ sub install_distribution {
 
 	return $self;
 } ## end sub install_distribution
+
+=pod
+
+=head3 install_distribution_from_file
+
+	$self->install_distribution_from_file(
+	  name              => 'c:\distdir\File-HomeDir-0.69.tar.gz,
+	  force             => 1,
+	  automated_testing => 1,
+	  makefilepl_param  => [
+		  'LIBDIR=' . File::Spec->catdir(
+			  $self->image_dir, 'c', 'lib',
+		  ),
+	  ],
+	);
+
+The C<install_distribution> method is used to install a single
+CPAN or non-CPAN distribution directly, without installing any of the
+dependencies for that distribution, from disk.
+
+It takes a compulsory 'name' param, which should be the location of the
+distribution on disk.
+
+The optional 'force' param allows the installation of distributions
+with spuriously failing test suites.
+
+The optional 'automated_testing' param allows for installation
+with the C<AUTOMATED_TESTING> environment flag enabled, which is
+used to either run more-intensive testing, or to convince certain
+Makefile.PL that insists on prompting that there is no human around
+and they REALLY need to just go with the default options.
+
+The optional 'makefilepl_param' param should be a reference to an
+array of additional params that should be passwd to the
+C<perl Makefile.PL>. This can help with distributions that insist
+on taking additional options via Makefile.PL.
+
+Distributions that do not have a Makefile.PL cannot be installed via
+this routine.
+
+Returns true or throws an exception on error.
+
+=cut
+
+sub install_distribution_from_file {
+	my $self = shift;
+	my $dist = {
+		automated_testing => 0,
+		release_testing => 0,
+		packlist => 1,
+		force  => $self->force,
+		@_,
+	};
+	my $name = $dist->{name};
+	if ( not -f $name ) {
+		PDWiX::Parameter->throw(
+			parameter => 'file: $name does not exist',
+			where     => '->install_distribution_from_file'
+		);
+	}
+
+# If we don't have a packlist file, get an initial filelist to subtract from.
+	my $module = $self->_name_to_module($name);
+	my $filelist_sub;
+
+	if ( not $dist->{packlist} ) {
+		$filelist_sub = Perl::Dist::WiX::Filelist->new->readdir(
+			catdir( $self->image_dir, 'perl' ) );
+		$self->trace_line( 5,
+			    "***** Module being installed $module"
+			  . " requires packlist => 0 *****\n" );
+	}
+
+
+	# Where will it get extracted to
+	my $dist_path = $name;
+	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
+	$dist_path =~ s{\.zip}{}msx;
+	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
+	my $unpack_to = catdir( $self->build_dir, $dist_path );
+
+	# Extract the tarball
+	if ( -d $unpack_to ) {
+		$self->trace_line( 2, "Removing previous $unpack_to\n" );
+		File::Remove::remove( \1, $unpack_to );
+	}
+	$self->_extract( $name => $self->build_dir );
+	unless ( -d $unpack_to ) {
+		PDWiX->throw("Failed to extract $unpack_to\n");
+	}
+
+	unless ( -r catfile( $unpack_to, 'Makefile.PL' ) ) {
+		PDWiX->throw("Could not find Makefile.PL in $unpack_to\n");
+	}
+
+	# Build the module
+  SCOPE: {
+		my $wd = $self->_pushd($unpack_to);
+
+		# Enable automated_testing mode if needed
+		# Blame Term::ReadLine::Perl for needing this ugly hack.
+		if ( $dist->{automated_testing} ) {
+			$self->trace_line( 2,
+				"Installing with AUTOMATED_TESTING enabled...\n" );
+		}
+		if ( $dist->{release_testing} ) {
+			$self->trace_line( 2,
+				"Installing with RELEASE_TESTING enabled...\n" );
+		}
+		local $ENV{AUTOMATED_TESTING} = $dist->{automated_testing};
+		local $ENV{RELEASE_TESTING}   = $dist->{release_testing};
+
+		$self->trace_line( 2, "Configuring $name...\n" );
+		$self->_perl( 'Makefile.PL', @{ $dist->{makefilepl_param} } );
+
+		$self->trace_line( 1, "Building $name...\n" );
+		$self->_make;
+
+		unless ( $dist->force ) {
+			$self->trace_line( 2, "Testing $name...\n" );
+			$self->_make('test');
+		}
+
+		$self->trace_line( 2, "Installing $name...\n" );
+		$self->_make(qw/install UNINST=1/);
+	} ## end SCOPE:
+
+	# Making final filelist.
+	my $filelist;
+	if ($dist->{packlist}) {
+		$filelist = $self->search_packlist($module);
+	} else {
+		$filelist = Perl::Dist::WiX::Filelist->new->readdir(
+			catdir( $self->image_dir, 'perl' ) );
+		$filelist->subtract($filelist_sub)->filter( $self->filters );
+	}
+	my $mod_id = $module;
+	$mod_id =~ s{::}{_}msg;
+	$mod_id =~ s{-}{_}msg;
+
+	# Insert fragment.
+	$self->insert_fragment( $mod_id, $filelist->files );
+
+	return $self;
+} ## end sub install_distribution_from_file
 
 sub _name_to_module {
 	my ( $self, $dist ) = @_;

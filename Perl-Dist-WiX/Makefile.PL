@@ -6,7 +6,7 @@ die "OS unsupported\n" if (not win32);
 
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'version'              => '0.76';
-requires       'Alien::WiX'           => 'v0.300000';
+requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';
 requires       'Data::UUID'           => '1.149';
 requires       'Devel::StackTrace'    => '1.20';
