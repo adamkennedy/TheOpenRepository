@@ -823,7 +823,7 @@ sub Marpa::Evaluator::new {
 
 }    # sub new
 
-sub Marpa::Evaluator::show_and_node {
+sub Marpa::show_and_node {
     my ( $and_node, $verbose ) = @_;
     my $return_value = q{};
 
@@ -872,9 +872,9 @@ sub Marpa::Evaluator::show_and_node {
 
     return $return_value;
 
-} ## end sub Marpa::Evaluator::show_and_node
+} ## end sub Marpa::show_and_node
 
-sub Marpa::Evaluator::show_bocage {
+sub Marpa::show_bocage {
     my $evaler  = shift;
     my $verbose = shift;
     $verbose //= 0;
@@ -907,16 +907,16 @@ sub Marpa::Evaluator::show_bocage {
             }
 
             $text .= q{*} if $is_choice;
-            $text .= Marpa::Evaluator::show_and_node( $and_node, $verbose );
+            $text .= Marpa::show_and_node( $and_node, $verbose );
 
         } ## end for my $index ( 0 .. $#{$and_nodes} )
 
     } ## end for my $or_node ( @{ $evaler->[OR_NODES] } )
 
     return $text;
-} ## end sub Marpa::Evaluator::show_bocage
+} ## end sub Marpa::show_bocage
 
-sub Marpa::Evaluator::show_tree {
+sub Marpa::show_tree {
     my $evaler  = shift;
     my $verbose = shift;
 
@@ -982,7 +982,7 @@ sub Marpa::Evaluator::show_tree {
 
     return $text;
 
-} ## end sub Marpa::Evaluator::show_tree
+} ## end sub Marpa::show_tree
 
 sub Marpa::Evaluator::set {
     my $evaler       = shift;
@@ -1219,7 +1219,7 @@ sub Marpa::Evaluator::value {
     ## End OR_NODE:
 
     # for my $and_node (@preorder) {
-    ## print STDERR Marpa::Evaluator::show_and_node($and_node, 99);
+    ## print STDERR Marpa::show_and_node($and_node, 99);
     # }
 
     my @evaluation_stack = ();

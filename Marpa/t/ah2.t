@@ -43,7 +43,8 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-Marpa::Test::is( $grammar->show_rules(), <<'EOS', 'Aycock/Horspool Rules' );
+Marpa::Test::is( Marpa::show_rules($grammar),
+    <<'EOS', 'Aycock/Horspool Rules' );
 0: S -> A A A A /* !useful nullable */
 1: A -> a
 2: A -> E /* !useful nullable nulling */
@@ -61,7 +62,7 @@ Marpa::Test::is( $grammar->show_rules(), <<'EOS', 'Aycock/Horspool Rules' );
 14: S['][] -> /* empty nullable nulling */
 EOS
 
-Marpa::Test::is( $grammar->show_symbols(),
+Marpa::Test::is( Marpa::show_symbols($grammar),
     <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 6 7 9 10 11 12]
@@ -78,27 +79,27 @@ Marpa::Test::is( $grammar->show_symbols(),
 EOS
 
 Marpa::Test::is(
-    $grammar->show_nullable_symbols(),
+    Marpa::show_nullable_symbols($grammar),
     q{A[] E S['][] S[R0:1][x6][] S[R0:2][x8][] S[]},
     'Aycock/Horspool Nullable Symbols'
 );
 Marpa::Test::is(
-    $grammar->show_nulling_symbols(),
+    Marpa::show_nulling_symbols($grammar),
     q{A[] E S['][] S[R0:1][x6][] S[R0:2][x8][] S[]},
     'Aycock/Horspool Nulling Symbols'
 );
 Marpa::Test::is(
-    $grammar->show_productive_symbols(),
+    Marpa::show_productive_symbols($grammar),
     q{A A[] E S S['] S['][] S[R0:1][x6] S[R0:1][x6][] S[R0:2][x8] S[R0:2][x8][] S[] a},
     'Aycock/Horspool Productive Symbols'
 );
 Marpa::Test::is(
-    $grammar->show_accessible_symbols(),
+    Marpa::show_accessible_symbols($grammar),
     q{A A[] E S S['] S['][] S[R0:1][x6] S[R0:1][x6][] S[R0:2][x8] S[R0:2][x8][] S[] a},
     'Aycock/Horspool Accessible Symbols'
 );
 
-Marpa::Test::is( $grammar->show_NFA(), <<'EOS', 'Aycock/Horspool NFA' );
+Marpa::Test::is( Marpa::show_NFA($grammar), <<'EOS', 'Aycock/Horspool NFA' );
 S0: /* empty */
  empty => S30 S32
 S1: A ::= . a
@@ -183,7 +184,8 @@ S31: S['] ::= S .
 S32: S['][] ::= .
 EOS
 
-Marpa::Test::is( $grammar->show_ii_QDFA(), <<'EOS', 'Aycock/Horspool QDFA' );
+Marpa::Test::is( Marpa::show_ii_QDFA($grammar),
+    <<'EOS', 'Aycock/Horspool QDFA' );
 Start States: St11; St3
 St0: predict; 1
 A ::= . a
@@ -342,7 +344,7 @@ my $sets_at_3 = $sets_at_2 . $set3_at_3 . $set4_at_3;
 my $sets_at_4 = $sets_at_3 . $set4_at_4;
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 0; Furthest: 0\n" . $sets_new,
     'Aycock/Horspool Parse Status before parse'
 );
@@ -351,7 +353,7 @@ my $a = $grammar->get_symbol('a');
 $recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 1; Furthest: 1\n" . $sets_at_0,
     'Aycock/Horspool Parse Status at 0'
 );
@@ -359,7 +361,7 @@ Marpa::Test::is(
 $recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 2; Furthest: 2\n" . $sets_at_1,
     'Aycock/Horspool Parse Status at 1'
 );
@@ -367,7 +369,7 @@ Marpa::Test::is(
 $recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 3; Furthest: 3\n" . $sets_at_2,
     'Aycock/Horspool Parse Status at 2'
 );
@@ -375,7 +377,7 @@ Marpa::Test::is(
 $recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 4; Furthest: 4\n" . $sets_at_3,
     'Aycock/Horspool Parse Status at 3'
 );
@@ -383,7 +385,7 @@ Marpa::Test::is(
 $recce->end_input();
 
 Marpa::Test::is(
-    $recce->show_earley_sets(1),
+    Marpa::show_earley_sets( $recce, 1 ),
     "Current Earley Set: 4; Furthest: 4\n" . $sets_at_4,
     'Aycock/Horspool Parse Status at 4'
 );

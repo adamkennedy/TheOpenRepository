@@ -93,6 +93,7 @@ use Marpa::Offset Rule =>
     # temporary data
     qw(
     ORIGINAL_RULE
+    CHAF_START CHAF_END
     NULLABLE ACCESSIBLE PRODUCTIVE NULLING
 );
 
@@ -1229,7 +1230,7 @@ sub Marpa::Grammar::precompute {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         croak(
-            Marpa::Grammar::show_problems($grammar),
+            Marpa::show_problems($grammar),
             "Second attempt to precompute grammar with fatal problems\n",
             'Marpa cannot proceed'
         );
@@ -1315,7 +1316,7 @@ sub Marpa::Grammar::precompute {
 
 } ## end sub Marpa::Grammar::precompute
 
-sub Marpa::Grammar::show_problems {
+sub Marpa::show_problems {
     my $grammar = shift;
 
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
@@ -1326,7 +1327,7 @@ sub Marpa::Grammar::show_problems {
             . ( join "\n", @{$problems} ) . "\n";
     } ## end if ($problems)
     return "Grammar has no problems\n";
-} ## end sub Marpa::Grammar::show_problems
+} ## end sub Marpa::show_problems
 
 # Convert Grammar into string form
 #
@@ -1352,7 +1353,7 @@ sub Marpa::Grammar::stringify {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         croak(
-            Marpa::Grammar::show_problems($grammar),
+            Marpa::show_problems($grammar),
             "Attempt to stringify grammar with fatal problems\n",
             'Marpa cannot proceed'
         );
@@ -1486,7 +1487,7 @@ sub Marpa::show_symbol {
 
 } ## end sub Marpa::show_symbol
 
-sub Marpa::Grammar::show_symbols {
+sub Marpa::show_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $text    = q{};
@@ -1494,9 +1495,9 @@ sub Marpa::Grammar::show_symbols {
         $text .= Marpa::show_symbol($symbol_ref);
     }
     return $text;
-} ## end sub Marpa::Grammar::show_symbols
+} ## end sub Marpa::show_symbols
 
-sub Marpa::Grammar::show_nulling_symbols {
+sub Marpa::show_nulling_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     return 'stripped_'
@@ -1504,18 +1505,18 @@ sub Marpa::Grammar::show_nulling_symbols {
             @{$symbols};
     return join q{ }, sort map { $_->[Marpa::Internal::Symbol::NAME] }
         grep { $_->[Marpa::Internal::Symbol::NULLING] } @{$symbols};
-} ## end sub Marpa::Grammar::show_nulling_symbols
+} ## end sub Marpa::show_nulling_symbols
 
-sub Marpa::Grammar::show_nullable_symbols {
+sub Marpa::show_nullable_symbols {
     my $grammar = shift;
     return 'stripped_'
         unless exists $grammar->[Marpa::Internal::Grammar::NULLABLE_SYMBOL];
     my $symbols = $grammar->[Marpa::Internal::Grammar::NULLABLE_SYMBOL];
     return join q{ },
         sort map { $_->[Marpa::Internal::Symbol::NAME] } @{$symbols};
-} ## end sub Marpa::Grammar::show_nullable_symbols
+} ## end sub Marpa::show_nullable_symbols
 
-sub Marpa::Grammar::show_productive_symbols {
+sub Marpa::show_productive_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     return 'stripped_'
@@ -1523,9 +1524,9 @@ sub Marpa::Grammar::show_productive_symbols {
             @{$symbols};
     return join q{ }, sort map { $_->[Marpa::Internal::Symbol::NAME] }
         grep { $_->[Marpa::Internal::Symbol::PRODUCTIVE] } @{$symbols};
-} ## end sub Marpa::Grammar::show_productive_symbols
+} ## end sub Marpa::show_productive_symbols
 
-sub Marpa::Grammar::show_accessible_symbols {
+sub Marpa::show_accessible_symbols {
     my $grammar = shift;
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     return 'stripped_'
@@ -1533,7 +1534,7 @@ sub Marpa::Grammar::show_accessible_symbols {
             @{$symbols};
     return join q{ }, sort map { $_->[Marpa::Internal::Symbol::NAME] }
         grep { $_->[Marpa::Internal::Symbol::ACCESSIBLE] } @{$symbols};
-} ## end sub Marpa::Grammar::show_accessible_symbols
+} ## end sub Marpa::show_accessible_symbols
 
 sub Marpa::Grammar::inaccessible_symbols {
     my $grammar = shift;
@@ -1642,7 +1643,7 @@ sub Marpa::show_priority {
     return \( $pri1 . q{.} . $pri2 );
 } ## end sub Marpa::show_priority
 
-sub Marpa::Grammar::show_rules {
+sub Marpa::show_rules {
     my $grammar = shift;
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
     my $text;
@@ -1651,7 +1652,7 @@ sub Marpa::Grammar::show_rules {
         $text .= Marpa::show_rule($rule);
     }
     return $text;
-} ## end sub Marpa::Grammar::show_rules
+} ## end sub Marpa::show_rules
 
 sub Marpa::show_dotted_rule {
     my $rule     = shift;
@@ -1712,7 +1713,7 @@ sub Marpa::show_NFA_state {
     return $text;
 } ## end sub Marpa::show_NFA_state
 
-sub Marpa::Grammar::show_NFA {
+sub Marpa::show_NFA {
     my $grammar = shift;
     my $text    = q{};
 
@@ -1725,7 +1726,7 @@ sub Marpa::Grammar::show_NFA {
     }
 
     return $text;
-} ## end sub Marpa::Grammar::show_NFA
+} ## end sub Marpa::show_NFA
 
 sub Marpa::brief_QDFA_state {
     my $state = shift;
@@ -1802,7 +1803,7 @@ sub tag_QDFA {
     return;
 } ## end sub tag_QDFA
 
-sub Marpa::Grammar::show_QDFA {
+sub Marpa::show_QDFA {
     my $grammar = shift;
     my $tags    = shift;
 
@@ -1818,9 +1819,9 @@ sub Marpa::Grammar::show_QDFA {
         $text .= Marpa::show_QDFA_state( $state, $tags );
     }
     return $text;
-} ## end sub Marpa::Grammar::show_QDFA
+} ## end sub Marpa::show_QDFA
 
-sub Marpa::Grammar::show_ii_QDFA {
+sub Marpa::show_ii_QDFA {
     my $grammar = shift;
     my $text    = q{};
     my $QDFA    = $grammar->[Marpa::Internal::Grammar::QDFA];
@@ -1845,7 +1846,7 @@ sub Marpa::Grammar::show_ii_QDFA {
         $text .= Marpa::show_QDFA_state( $state, $tags );
     } ## end for my $state ( map { $_->[0] } sort { $a->[1] <=> $b...
     return $text;
-} ## end sub Marpa::Grammar::show_ii_QDFA
+} ## end sub Marpa::show_ii_QDFA
 
 sub Marpa::Grammar::get_symbol {
     my $grammar     = shift;
@@ -3837,6 +3838,8 @@ sub rewrite_as_CHAF {
                     = ( 1, 1, 1, 0, 0, $has_chaf_lhs, $has_chaf_rhs, );
 
                 $new_rule->[Marpa::Internal::Rule::ORIGINAL_RULE] = $rule;
+                $new_rule->[Marpa::Internal::Rule::CHAF_START] = $subp_start;
+                $new_rule->[Marpa::Internal::Rule::CHAF_END]   = $subp_end;
                 $new_rule->[Marpa::Internal::Rule::ACTION] =
                     $rule->[Marpa::Internal::Rule::ACTION];
 

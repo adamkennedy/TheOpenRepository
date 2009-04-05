@@ -348,7 +348,7 @@ sub Marpa::Recognizer::new {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         croak(
-            Marpa::Grammar::show_problems($grammar),
+            Marpa::show_problems($grammar),
             "Attempt to parse grammar with fatal problems\n",
             'Marpa cannot proceed',
         );
@@ -523,7 +523,7 @@ sub Marpa::brief_earley_item {
     return $text;
 } ## end sub Marpa::brief_earley_item
 
-sub show_token_choice {
+sub Marpa::show_token_choice {
     my $token = shift;
     my $ii    = shift;
     return
@@ -532,7 +532,7 @@ sub show_token_choice {
         . $token->[1] . ']';
 } ## end sub show_token_choice
 
-sub show_link_choice {
+sub Marpa::show_link_choice {
     my $link = shift;
     my $ii   = shift;
     return
@@ -553,12 +553,12 @@ sub Marpa::show_earley_item {
 
     if ( defined $tokens and @{$tokens} ) {
         for my $token ( @{$tokens} ) {
-            $text .= q{ } . show_token_choice( $token, $ii );
+            $text .= q{ } . Marpa::show_token_choice( $token, $ii );
         }
     }
     if ( defined $links and @{$links} ) {
         for my $link ( @{$links} ) {
-            $text .= q{ } . show_link_choice( $link, $ii );
+            $text .= q{ } . Marpa::show_link_choice( $link, $ii );
         }
     }
     return $text;
@@ -587,7 +587,7 @@ sub Marpa::show_earley_set_list {
     return $text;
 } ## end sub Marpa::show_earley_set_list
 
-sub Marpa::Recognizer::show_earley_sets {
+sub Marpa::show_earley_sets {
     my $recce            = shift;
     my $ii               = shift;
     my $current_set      = $recce->[CURRENT_SET];
@@ -601,7 +601,7 @@ sub Marpa::Recognizer::show_earley_sets {
 
     $text .= Marpa::show_earley_set_list( $earley_set_list, $ii );
     return $text;
-} ## end sub Marpa::Recognizer::show_earley_sets
+} ## end sub Marpa::show_earley_sets
 
 # check class of parse?
 

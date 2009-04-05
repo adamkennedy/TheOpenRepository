@@ -47,7 +47,7 @@ EO_CODE
 
 $grammar->precompute();
 
-Marpa::Test::is( $grammar->show_rules(),
+Marpa::Test::is( Marpa::show_rules($grammar),
     <<'END_OF_STRING', 'final nonnulling Rules' );
 0: S -> p p p n /* !useful */
 1: p -> a
@@ -62,7 +62,7 @@ Marpa::Test::is( $grammar->show_rules(),
 10: S['] -> S
 END_OF_STRING
 
-Marpa::Test::is( $grammar->show_ii_QDFA(),
+Marpa::Test::is( Marpa::show_ii_QDFA($grammar),
     <<'END_OF_STRING', 'final nonnulling QDFA' );
 Start States: St1; St9
 St0: predict; 1,3,21,25

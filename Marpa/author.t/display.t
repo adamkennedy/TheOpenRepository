@@ -4,7 +4,7 @@ use Pod::Parser;
 use warnings;
 use strict;
 use English qw( -no_match_vars );
-use Fatal qw(close);
+use Fatal qw(open close);
 use Carp;
 use Getopt::Long qw(GetOptions);
 use Test::More;
@@ -61,8 +61,9 @@ sub slurp {
     my ($file_name) = @_;
     my $open_result = open my $fh, '<', $file_name;
     if ( not $open_result ) {
-        $Marpa::Test::Display::FILE_ERROR = "Cannot open $file_name: $ERRNO";
-        return;
+        $Marpa::Test::Display::FILE_ERROR = my $message = "Cannot open $file_name: $ERRNO";
+        warn($message);
+        return \$message;
     }
     local ($RS) = undef;
     my $result = \<$fh>;
@@ -389,26 +390,28 @@ my %exclude = map { ( $_, 1 ) } qw(
     t/lib/Test/Weaken.pm
 );
 
-my @test_files = ();
-open my $manifest, '<', 'MANIFEST'
-    or croak("Cannot open MANIFEST: $ERRNO");
-FILE: while ( my $file = <$manifest> ) {
-    chomp $file;
-    $file =~ s/\s*[#].*\z//xms;
-    next FILE if $exclude{$file};
-    next FILE if -d $file;
-    my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
-    next FILE unless defined $ext;
-    $ext = lc $ext;
-    next FILE
-        if $ext ne 'pod'
-            and $ext ne 'pl'
-            and $ext ne 'pm'
-            and $ext ne 't';
+my @test_files = @ARGV;
+if (not scalar @test_files) {
+    open my $manifest, '<', 'MANIFEST'
+        or croak("Cannot open MANIFEST: $ERRNO");
+    FILE: while ( my $file = <$manifest> ) {
+        chomp $file;
+        $file =~ s/\s*[#].*\z//xms;
+        next FILE if $exclude{$file};
+        next FILE if -d $file;
+        my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
+        next FILE unless defined $ext;
+        $ext = lc $ext;
+        next FILE
+            if $ext ne 'pod'
+                and $ext ne 'pl'
+                and $ext ne 'pm'
+                and $ext ne 't';
 
-    push @test_files, $file;
-}    # FILE
-close $manifest;
+        push @test_files, $file;
+    }    # FILE
+    close $manifest;
+}
 
 plan tests => 1 + scalar @test_files;
 

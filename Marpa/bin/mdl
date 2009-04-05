@@ -176,32 +176,32 @@ sub do_parse {
     $grammar->precompute();
 
     if ($show_symbols) {
-        print $grammar->show_symbols()
+        print Marpa::show_symbols($grammar)
             or croak "print failed: $OS_ERROR";
     }
 
     if ($show_rules) {
-        print $grammar->show_rules()
+        print Marpa::show_rules($grammar)
             or croak "print failed: $OS_ERROR";
     }
 
     if ($show_problems) {
-        print $grammar->show_problems()
+        print Marpa::show_problems($grammar)
             or croak "print failed: $OS_ERROR";
     }
 
     if ($show_NFA) {
-        print $grammar->show_NFA()
+        print Marpa::show_NFA($grammar)
             or croak "print failed: $OS_ERROR";
     }
 
     if ($show_QDFA) {
-        print $grammar->show_QDFA()
+        print Marpa::show_QDFA($grammar)
             or croak "print failed: $OS_ERROR";
     }
 
     if ($accessible_symbols) {
-        say 'Accessible symbols: ', $grammar->show_accessible_symbols();
+        say 'Accessible symbols: ', Marpa::show_accessible_symbols($grammar);
     }
 
     if ($inaccessible_symbols) {
@@ -211,19 +211,19 @@ sub do_parse {
     }
 
     if ($nullable_symbols) {
-        say 'Nullable symbols: ', $grammar->show_nullable_symbols();
+        say 'Nullable symbols: ', Marpa::show_nullable_symbols($grammar);
     }
 
     if ($nulling_symbols) {
-        say 'Nulling symbols: ', $grammar->show_nulling_symbols();
+        say 'Nulling symbols: ', Marpa::show_nulling_symbols($grammar);
     }
 
     if ($productive_symbols) {
-        say 'Productive symbols: ', $grammar->show_productive_symbols();
+        say 'Productive symbols: ', Marpa::show_productive_symbols($grammar);
     }
 
     if ($unproductive_symbols) {
-        for my $symbol ( @{ $grammar->unproductive_symbols() } ) {
+        for my $symbol ( @{ Marpa::unproductive_symbols($grammar) } ) {
             say 'Unproductive symbol: ', $symbol;
         }
     }
@@ -241,7 +241,7 @@ sub do_parse {
 
     if ($show_earley_sets) {
 	$recce->end_input();
-	print $recce->show_earley_sets
+	print Marpa::show_earley_sets($recce)
             or croak "print failed: $OS_ERROR";
     }
 
@@ -266,7 +266,7 @@ sub do_parse {
     }
 
     if (defined $show_bocage_verbosity) {
-	print $evaler->show_bocage($show_bocage_verbosity)
+	print Marpa::show_bocage($evaler, $show_bocage_verbosity)
             or croak "print failed: $OS_ERROR";
     }
 
@@ -286,7 +286,7 @@ sub do_parse {
         }
 
         if (defined $show_tree_flag) {
-            print $evaler->show_tree($show_tree_flag)
+            print Marpa::show_tree($evaler, $show_tree_flag)
                 or croak "print failed: $OS_ERROR";
         }
 
