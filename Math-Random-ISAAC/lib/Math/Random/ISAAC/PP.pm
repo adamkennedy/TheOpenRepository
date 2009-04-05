@@ -21,11 +21,11 @@ Math::Random::ISAAC::PP - Pure Perl port of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0 ($Id$)
+Version 1.0.1 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0');
+use version; our $VERSION = qv('1.0.1');
 
 =head1 SYNOPSIS
 
@@ -78,10 +78,10 @@ sub new {
   my $seedsize = scalar(@seed);
 
   my @mm;
-  $#mm = $#seed = 255; # predeclare arrays with 256 slots
+  $#mm = $#seed = 0xff; # predeclare arrays with 256 slots
 
   # Zero-fill our seed data
-  for ($seedsize .. 255) {
+  for ($seedsize .. 0xff) {
     $seed[$_] = 0;
   }
 
@@ -117,7 +117,7 @@ Implements the interface as specified in C<Math::Random::ISAAC>
 sub rand {
   my ($self) = @_;
 
-  return ($self->irand() / (2**32-1))
+  return ($self->irand() / (2**32-1));
 }
 
 =head2 $rng->irand()
@@ -157,33 +157,40 @@ sub _isaac {
 
   # $a and $b are reserved (see 'sort')
   my $aa = $self->{randa};
-  my $bb = $self->{randb} + (++$self->{randc});
+  my $bb = ($self->{randb} + (++$self->{randc})) & 0xffffffff;
 
   my ($x, $y); # temporary storage
 
-  # The C code deals with two halves of the randmem separately;
-  # we deal with it in one loop, by adding the &255 parts
+  # The C code deals with two halves of the randmem separately; we deal with
+  # it here in one loop, by adding the &0xff parts. These calls represent the
+  # rngstep() macro, but it's inlined here for speed.
   for (my $i = 0; $i < 256; $i += 4)
   {
     $x = $mm->[$i  ];
-    $aa = ($aa ^ ($aa << 13)) + $mm->[($i   + 128) & 255];
-    $mm->[$i  ] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
-    $r->[$i  ] = $bb = $mm->[($y >> 10) & 255] + $x;
+    $aa = (($aa ^ ($aa << 13)) + $mm->[($i   + 128) & 0xff]);
+    $aa &= 0xffffffff; # Mask out high bits for 64-bit systems
+    $mm->[$i  ] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
+    $r->[$i  ] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
 
+    # I don't actually know why the "0x03ffffff" stuff is for. It was in Allen
+    # Day's code. If you can explain this please file a bug report.
     $x = $mm->[$i+1];
-    $aa = ($aa ^ (0x03ffffff & ($aa >> 6))) + $mm->[($i+1 + 128) & 255];
-    $mm->[$i+1] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
-    $r->[$i+1] = $bb = $mm->[($y >> 10) & 255] + $x;
+    $aa = (($aa ^ (0x03ffffff & ($aa >> 6))) + $mm->[($i+1+128) & 255]);
+    $aa &= 0xffffffff;
+    $mm->[$i+1] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
+    $r->[$i+1] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
 
     $x = $mm->[$i+2];
-    $aa = ($aa ^ ($aa << 2)) + $mm->[($i+2 + 128) & 255];
-    $mm->[$i+2] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
-    $r->[$i+2] = $bb = $mm->[($y >> 10) & 255] + $x;
+    $aa = (($aa ^ ($aa << 2)) + $mm->[($i+2 + 128) & 0xff]);
+    $aa &= 0xffffffff;
+    $mm->[$i+2] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
+    $r->[$i+2] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
 
     $x = $mm->[$i+3];
-    $aa = ($aa ^ (0x0000ffff & ($aa >> 16))) + $mm->[($i+3 + 128) & 255];
-    $mm->[$i+3] = $y = $mm->[($x >> 2) & 255] + $aa + $bb;
-    $r->[$i+3] = $bb = $mm->[($y >> 10) & 255] + $x;
+    $aa = (($aa ^ (0x0000ffff & ($aa >> 16))) + $mm->[($i+3 + 128) & 0xff]);
+    $aa &= 0xffffffff;
+    $mm->[$i+3] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
+    $r->[$i+3] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
 
     $self->{randb} = $bb;
     $self->{randa} = $aa;
