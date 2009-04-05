@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_104')->numify;
+use version; $VERSION = version->new('0.163_105')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -2915,7 +2915,7 @@ sub install_distribution {
 =head3 install_distribution_from_file
 
 	$self->install_distribution_from_file(
-	  name              => 'c:\distdir\File-HomeDir-0.69.tar.gz,
+	  file              => 'c:\distdir\File-HomeDir-0.69.tar.gz',
 	  force             => 1,
 	  automated_testing => 1,
 	  makefilepl_param  => [
@@ -2929,7 +2929,7 @@ The C<install_distribution> method is used to install a single
 CPAN or non-CPAN distribution directly, without installing any of the
 dependencies for that distribution, from disk.
 
-It takes a compulsory 'name' param, which should be the location of the
+It takes a compulsory 'file' param, which should be the location of the
 distribution on disk.
 
 The optional 'force' param allows the installation of distributions
@@ -2962,10 +2962,17 @@ sub install_distribution_from_file {
 		force  => $self->force,
 		@_,
 	};
-	my $name = $dist->{name};
+	my $name = $dist->{file};
+	
+	unless ( _STRING( $name ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => '->install_distribution_from_file'
+		);
+	}
 	if ( not -f $name ) {
 		PDWiX::Parameter->throw(
-			parameter => 'file: $name does not exist',
+			parameter => "name: $name does not exist",
 			where     => '->install_distribution_from_file'
 		);
 	}
