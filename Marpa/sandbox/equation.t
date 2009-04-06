@@ -140,6 +140,8 @@ my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
 my $value = $evaler->value();
 Marpa::Test::is( ${$value}, $expected[0], "Ambiguous Equation Value" );
 
+print $evaler->show_choices;
+
 # Local Variables:
 #   mode: cperl
 #   cperl-indent-level: 4

@@ -1577,9 +1577,13 @@ sub Marpa::brief_original_rule {
 } ## end sub Marpa::brief_original_rule
 
 sub Marpa::brief_virtual_rule {
-    my ($rule) = @_;
+    my ($rule, $dot_position) = @_;
     my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
-    if ( not defined $original_rule ) { return brief_rule($rule); }
+    if ( not defined $original_rule ) {
+        return Marpa::show_dotted_rule($rule, $dot_position)
+            if defined $dot_position;
+        return Marpa::brief_rule($rule);
+    }
     my $rule_id          = $rule->[Marpa::Internal::Rule::ID];
     my $original_rule_id = $original_rule->[Marpa::Internal::Rule::ID];
     my $original_lhs     = $original_rule->[Marpa::Internal::Rule::LHS];
@@ -1587,15 +1591,29 @@ sub Marpa::brief_virtual_rule {
     my $chaf_start       = $rule->[Marpa::Internal::Rule::CHAF_START];
     my $chaf_end         = $rule->[Marpa::Internal::Rule::CHAF_END];
     if ( not defined $chaf_start ) {
-        return "$rule_id, virtual " . Marpa::brief_rule($original_rule);
+        return "$rule_id, dot at $dot_position, virtual " . Marpa::brief_rule($original_rule)
+            if defined $dot_position;
+        return "$rule_id, virtual " . Marpa::brief_rule($original_rule)
     }
     my $text = "$rule_id, part of $original_rule_id: ";
     $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' -> ';
     if ( @{$original_rhs} ) {
         my @rhs_names =
             map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
-        $text .= join q{ }, @rhs_names[ 0 .. $chaf_start - 1 ], '{',
-            @rhs_names[ $chaf_start .. $chaf_end ], '}',
+        my @chaf_portion;
+        if ( defined $dot_position ) {
+            my $dot_in_original = $dot_position + $chaf_start;
+            @chaf_portion = (
+                @rhs_names[ $chaf_start .. $dot_in_original ],
+                q{.}, @rhs_names[ $dot_in_original + 1 .. $chaf_end ],
+            );
+        } ## end if ( defined $dot_position )
+        else {
+            @chaf_portion = @rhs_names[ $chaf_start .. $chaf_end ];
+        }
+        $text .= join q{ },
+            @rhs_names[ 0 .. $chaf_start - 1 ], '{',
+            @chaf_portion, '}',
             @rhs_names[ $chaf_end + 1 .. $#rhs_names ];
     } ## end if ( @{$original_rhs} )
     return $text;

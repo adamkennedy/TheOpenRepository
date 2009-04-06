@@ -857,6 +857,7 @@ sub Marpa::show_and_node {
     }    # value
 
     $return_value .= "$name ::= " . join( q{ }, @rhs ) . "\n";
+    $return_value .= q{    } . Marpa::brief_virtual_rule($rule, $position+1) . "\n";
 
     if ($verbose) {
         $return_value
@@ -875,20 +876,48 @@ sub Marpa::show_and_node {
 } ## end sub Marpa::show_and_node
 
 sub Marpa::Evaluator::show_choices {
-    my ($evaler, $choice_point) = @_;
-    my $map = $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP];
-    if (not defined $map) {
-       return "No choice map\n";
-    }
+    my ($evaler) = @_;
     my $text = q{};
-    my $choice_ix  = $choice_point->[Marpa::Internal::Or_Node::CHOICE_IX];
-    if (not defined $choice_ix) {
-       $text .= "Choice not defined\n";
+    OR_NODE:
+    for my $or_node ( @{$evaler->[Marpa::Internal::Evaluator::OR_NODES]} )
+    {
+        my $map = $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
+        next OR_NODE unless $map;
+        $text .= $evaler->show_choice_point($or_node);
+    } ## end for my $or_node ( $evaler->[Marpa::Internal::Evaluator::OR_NODES...
+    ## End OR_NODE
+    return $text;
+} ## end sub Marpa::Evaluator::show_choices
+
+sub Marpa::Evaluator::show_choice_point {
+    my ( $evaler, $choice_point ) = @_;
+    my $map = $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP];
+    my $choice_point_name = $choice_point->[Marpa::Internal::Or_Node::NAME];
+    if ( not defined $map ) {
+        return "No choice map for $choice_point_name\n";
     }
-    for my $map_entry (@{$map}) {
-       my ($and_vec, $or_vec) = @{$map_entry};
+    my $text      = q{};
+    my $choice_ix = $choice_point->[Marpa::Internal::Or_Node::CHOICE_IX];
+    if ( not defined $choice_ix ) {
+        $text .= "Choice not defined for $choice_point_name\n";
+        $choice_ix = -1;
     }
-} ## end sub Marpa::show_choice_map
+    my $start_earleme = $choice_point->[Marpa::Internal::Or_Node::START_EARLEME];
+    my $choice_or_nodes =
+        $evaler->[Marpa::Internal::Evaluator::CHOICE_OR_NODES]->[$start_earleme];
+    my $choice_and_nodes =
+        $evaler->[Marpa::Internal::Evaluator::CHOICE_AND_NODES]->[$start_earleme];
+    for my $map_ix ( 0 .. $#{$map} ) {
+        $text .= "CHOSEN: " if $map_ix == $choice_ix;
+        $text .= "Alternative $map_ix for $choice_point_name:\n";
+        my ( $and_vec, $or_vec ) = @{$map->[$map_ix]};
+        for my $and_ix (0 .. $#{$choice_and_nodes}) {
+            Marpa::show_and_node($choice_and_nodes->[$and_ix])
+                if vec($and_vec, $and_ix, 1);
+        }
+    }
+    return $text;
+} ## end sub Marpa::Evaluator::show_choices
 
 sub Marpa::Evaluator::show_bocage {
     my ($evaler, $verbose) = @_;
