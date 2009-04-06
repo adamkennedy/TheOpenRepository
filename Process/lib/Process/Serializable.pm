@@ -3,10 +3,11 @@ package Process::Serializable;
 use 5.005;
 use strict;
 
-use vars qw{$VERSION @ISA};
+use vars qw{$VERSION};
+use base qw{Process::Role::Serializable};
+
 BEGIN {
 	$VERSION = '0.23';
-	@ISA     = 'Process::Role::Serializable';
 }
 
 1;
