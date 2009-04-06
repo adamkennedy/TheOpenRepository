@@ -2925,7 +2925,7 @@ sub install_distribution {
 	  ],
 	);
 
-The C<install_distribution> method is used to install a single
+The C<install_distribution_from_file> method is used to install a single
 CPAN or non-CPAN distribution directly, without installing any of the
 dependencies for that distribution, from disk.
 
@@ -2966,13 +2966,13 @@ sub install_distribution_from_file {
 	
 	unless ( _STRING( $name ) ) {
 		PDWiX::Parameter->throw(
-			parameter => 'name',
+			parameter => 'file',
 			where     => '->install_distribution_from_file'
 		);
 	}
 	if ( not -f $name ) {
 		PDWiX::Parameter->throw(
-			parameter => "name: $name does not exist",
+			parameter => "file: $name does not exist",
 			where     => '->install_distribution_from_file'
 		);
 	}
