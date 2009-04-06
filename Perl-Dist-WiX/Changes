@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.163_012 Sat 28 Mar 2009
+0.163_107 Mon 06 Apr 2009
     1. With previous distributions where build_number 
        was the only parameter that was different, 
        Product/@Id attribute would be identical.
@@ -11,7 +11,9 @@ Changes for Perl extension Perl-Dist-WiX
 	3. releaserc not included in distribution.
 	4. Additions to main .wxs template to disallow 
 	   downgrading and correctly detect upgrades.
-
+    5. install_distribution_from_file routine added
+	   to support Perl::Dist::Bootstrap.
+	   
 0.162   Fri 27 Mar 2009
     1. Test and documentation update only.  Do not worry 
        about upgrading.
