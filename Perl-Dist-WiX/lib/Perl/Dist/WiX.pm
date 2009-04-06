@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_107')->numify;
+use version; $VERSION = version->new('0.163_108')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -435,7 +435,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	unless ( defined $params{fragment_dir} ) {
 		$params{fragment_dir} =        # To store the WiX fragments in.
 		  catdir( $params{output_dir}, 'fragments' );
-		File::Path::mkpath( $params{fragment_dir} );
+		$class->remake_path( $params{fragment_dir} );
 	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();

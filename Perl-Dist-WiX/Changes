@@ -13,6 +13,7 @@ Changes for Perl extension Perl-Dist-WiX
 	   downgrading and correctly detect upgrades.
     5. install_distribution_from_file routine added
 	   to support Perl::Dist::Bootstrap.
+	6. Updating to Module::Install 0.81.
 	   
 0.162   Fri 27 Mar 2009
     1. Test and documentation update only.  Do not worry 

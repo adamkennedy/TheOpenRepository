@@ -1,12 +1,8 @@
 1. Update documentation (0.163)
 
-2. Make sure fragments_dir is cleared out (0.164)
-
-2. Add ability to install distribution from local file. (0.164)
-
-3. Handle installing distributions that only contain a Build.PL 
+2. Handle installing distributions that only contain a Build.PL 
    by executing the Build.PL (instead of throwing an exception)
    in install_distribution. (0.170? 0.180?)
 
-4. Create a distribution for handling the XML-generating parts 
+3. Create a distribution for handling the XML-generating parts 
    of Perl::Dist::WiX and depend on it (0.180? 0.190?)
