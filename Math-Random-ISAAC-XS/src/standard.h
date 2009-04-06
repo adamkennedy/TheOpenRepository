@@ -12,7 +12,8 @@
 #ifndef STANDARD
 #define STANDARD 1
 
-#include <stdint.h>
+/* Use unsigned long as our type */
+typedef  unsigned long  ub4;
 
 /* Some miscellaneous bit operation macros */
 #define bis(target,mask)  ((target) |=  (mask))

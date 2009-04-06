@@ -55,7 +55,7 @@ new(...)
     RETVAL
 
 UV
-randInt(self)
+irand(self)
   Math::Random::ISAAC self
   CODE:
     RETVAL = (UV)randInt(self);

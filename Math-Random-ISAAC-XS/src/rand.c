@@ -23,13 +23,15 @@
 #include "standard.h"
 #include "rand.h"
 
+#define cut(a)     ((a) &= 0xffffffff) /* Cut the integer down to 32bits */
 #define ind(mm,x)  ((mm)[(x>>2)&(RANDSIZ-1)])
+/* the call to cut() is a macro defined in standard.h */
 #define rngstep(mix,a,b,mm,m,m2,r,x) \
 { \
   x = *m;  \
-  a = ((a^(mix)) + *(m2++)) & 0xffffffff; \
-  *(m++) = y = (ind(mm,x) + a + b) & 0xffffffff; \
-  *(r++) = b = (ind(mm,y>>RANDSIZL) + x) & 0xffffffff; \
+  a = cut((a^(mix)) + *(m2++)); \
+  *(m++) = y = cut(ind(mm,x) + a + b); \
+  *(r++) = b = cut(ind(mm,y>>RANDSIZL) + x); \
 }
 #define mix(a,b,c,d,e,f,g,h) \
 { \
@@ -59,7 +61,7 @@ void isaac(randctx *ctx)
   mm = ctx->randmem;
   r = ctx->randrsl;
   a = ctx->randa;
-  b = (ctx->randb + (++ctx->randc)) & 0xffffffff;
+  b = cut(ctx->randb + (++ctx->randc));
 
   m = mm;
   mend = m2 = m + (RANDSIZ / 2);

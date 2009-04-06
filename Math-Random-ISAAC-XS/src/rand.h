@@ -20,12 +20,12 @@
 
 /* context of random number generator */
 struct randctx {
-  uint32_t randcnt;
-  uint32_t randrsl[RANDSIZ];
-  uint32_t randmem[RANDSIZ];
-  uint32_t randa;
-  uint32_t randb;
-  uint32_t randc;
+  ub4 randcnt;
+  ub4 randrsl[RANDSIZ];
+  ub4 randmem[RANDSIZ];
+  ub4 randa;
+  ub4 randb;
+  ub4 randc;
 };
 typedef  struct randctx  randctx;
 
