@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_105')->numify;
+use version; $VERSION = version->new('0.163_106')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -799,12 +799,23 @@ Initialized in C<new>.
 
 Provides a shortcut to the location of the shared files directory.
 
-Returns a directory as a string or dies on error.
+Returns a directory as a string or throws an exception on error.
 
 =cut
 
 sub dist_dir {
-	return File::ShareDir::dist_dir('Perl-Dist-WiX');
+	my $dir;
+	
+	eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX') };
+
+	if ($EVAL_ERROR) {
+		PDWiX::Caught->throw(
+			message => 'Could not find distribution directory for Perl::Dist::WiX',
+			info => $EVAL_ERROR,
+		);
+	}
+	
+	return $dir;
 }
 
 #####################################################################
@@ -2978,7 +2989,8 @@ sub install_distribution_from_file {
 	}
 
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my $module = $self->_name_to_module($name);
+	my (undef, undef, $filename) = splitpath($name, 0);
+	my $module = $self->_name_to_module("CSJ/$filename");
 	my $filelist_sub;
 
 	if ( not $dist->{packlist} ) {
@@ -3002,6 +3014,7 @@ sub install_distribution_from_file {
 		$self->trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
+	$self->trace_line(4, "Unpacking to $unpack_to\n");
 	$self->_extract( $name => $self->build_dir );
 	unless ( -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
@@ -3034,7 +3047,7 @@ sub install_distribution_from_file {
 		$self->trace_line( 1, "Building $name...\n" );
 		$self->_make;
 
-		unless ( $dist->force ) {
+		unless ( $dist->{force} ) {
 			$self->trace_line( 2, "Testing $name...\n" );
 			$self->_make('test');
 		}
@@ -3064,6 +3077,7 @@ sub install_distribution_from_file {
 
 sub _name_to_module {
 	my ( $self, $dist ) = @_;
+	$self->trace_line(3, "Trying to get module name out of $dist\n");
 
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
@@ -3514,7 +3528,7 @@ sub install_launcher {
 	}
 
 	my $icon_id = $self->icons->add_icon(
-		catfile( $self->dist_dir, "$launcher->{bin}.ico" ),
+		catfile( $self->dist_dir, $launcher->bin . '.ico' ),
 		$launcher->bin . '.bat' );
 
 	# Add the icon.

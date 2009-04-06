@@ -780,14 +780,14 @@ it as a string.
 
 sub as_string {
 	my $self = shift;
-
+	
 	my $tt = Template->new( {
 			INCLUDE_PATH => $self->dist_dir,
 			EVAL_PERL    => 1,
 		} )
-	  || PDWiX::Caught->throw( message => 'Template error', info =>
-		     $Template::ERROR
-		  or $Template::ERROR
+	  || PDWiX::Caught->throw( 
+		message => 'Template error', 
+		info => do { defined $Template::ERROR ? $Template::ERROR : 'Unknown error' }, 
 	  );
 
 	my $answer;
