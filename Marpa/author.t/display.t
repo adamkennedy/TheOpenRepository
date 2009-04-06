@@ -62,11 +62,13 @@ sub slurp {
     my $open_result = open my $fh, '<', $file_name;
     if ( not $open_result ) {
         $Marpa::Test::Display::FILE_ERROR = my $message = "Cannot open $file_name: $ERRNO";
-        warn($message);
+        carp($message);
         return \$message;
     }
     local ($RS) = undef;
     my $result = \<$fh>;
+    # special for corner case: empty file
+    $result = \q{} if not defined ${$result};
     close $fh;
     return $result;
 } ## end sub slurp
@@ -391,7 +393,8 @@ my %exclude = map { ( $_, 1 ) } qw(
 );
 
 my @test_files = @ARGV;
-if (not scalar @test_files) {
+my $debug_mode = scalar @test_files;
+if (not $debug_mode) {
     open my $manifest, '<', 'MANIFEST'
         or croak("Cannot open MANIFEST: $ERRNO");
     FILE: while ( my $file = <$manifest> ) {
@@ -415,8 +418,15 @@ if (not scalar @test_files) {
 
 plan tests => 1 + scalar @test_files;
 
-open my $error_file, '>', 'author.t/display.errs'
-    or croak("Cannot open display.errs: $ERRNO");
+my $error_file;
+if ($debug_mode) {
+    open $error_file, '>&STDOUT'
+        or croak("Cannot dup STDOUT: $ERRNO");
+} else {
+    open $error_file, '>', 'author.t/display.errs'
+        or croak("Cannot open display.errs: $ERRNO");
+}
+
 FILE: for my $file (@test_files) {
     if ( not -f $file ) {
         fail("attempt to test displays in non-file: $file");

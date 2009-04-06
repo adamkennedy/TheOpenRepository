@@ -349,7 +349,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    print Marpa::show_NFA($grammar)
+    print $grammar->show_NFA
         or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string listing the states of the NFA
@@ -369,7 +369,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    print Marpa::show_QDFA($grammar)
+    print $grammar->show_QDFA
         or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string listing the states of the QDFA
@@ -389,7 +389,7 @@ in_file($_, 'bin/mdl');
     $grammar->precompute();
 
     say 'Accessible symbols: ',
-        Marpa::show_accessible_symbols($grammar);
+        $grammar->show_accessible_symbols;
 
 Returns a one-line string with the plumbing names
 of the accessible symbols of the grammar,
@@ -410,7 +410,7 @@ in_file($_, 'bin/mdl');
     $grammar->precompute();
 
     say 'Nullable symbols: ',
-        Marpa::show_nullable_symbols($grammar);
+        $grammar->show_nullable_symbols;
 
 Returns a one-line string with the plumbing names
 of the nullable symbols of the grammar,
@@ -431,7 +431,7 @@ in_file($_, 'bin/mdl');
     $grammar->precompute();
 
     say 'Nulling symbols: ',
-        Marpa::show_nulling_symbols($grammar);
+        $grammar->show_nulling_symbols;
 
 Returns a one-line string with the plumbing names
 of the nulling symbols of the grammar,
@@ -451,7 +451,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    print Marpa::show_problems($grammar)
+    print $grammar->show_problems
         or croak "print failed: $OS_ERROR";
 
 Returns a string describing the problems a grammar had in the precomputation phase.
@@ -482,7 +482,7 @@ in_file($_, 'bin/mdl');
     $grammar->precompute();
 
     say 'Productive symbols: ',
-        Marpa::show_productive_symbols($grammar);
+        $grammar->show_productive_symbols;
 
 Returns a one-line string with the plumbing names
 of the productive symbols of the grammar,
@@ -502,7 +502,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    print Marpa::show_rules($grammar)
+    print $grammar->show_rules
         or croak "print failed: $OS_ERROR";
 
 Returns a string listing the rules, each commented as to whether it
@@ -529,7 +529,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    print Marpa::show_symbols($grammar)
+    print $grammar->show_symbols
         or croak "print failed: $OS_ERROR";
 
 Returns a string listing the symbols, along with whether they were
@@ -550,7 +550,7 @@ in_file($_, 'bin/mdl');
 
     $grammar->precompute();
 
-    for my $symbol ( @{ Marpa::unproductive_symbols($grammar) } ) {
+    for my $symbol ( @{ $grammar->unproductive_symbols } ) {
         say 'Unproductive symbol: ', $symbol;
     }
 
@@ -585,7 +585,7 @@ in_file($_, 'bin/mdl');
 
     my $fail_location = $recce->text( \$text_to_parse );
 
-    print Marpa::show_earley_sets($recce)
+    print $recce->show_earley_sets
         or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string
@@ -602,7 +602,7 @@ in_file($_, 'bin/mdl');
 
 =end Marpa::Test::Display:
 
-    print Marpa::show_bocage($evaler, $show_bocage_verbosity)
+    print $evaler->show_bocage($show_bocage_verbosity)
         or croak "print failed: $OS_ERROR";
 
 Returns a multi-line string describing the bocage
@@ -644,7 +644,7 @@ in_file($_, 'bin/mdl');
 
 =end Marpa::Test::Display:
 
-    print Marpa::show_tree($evaler, $show_tree_flag)
+    print $evaler->show_tree($show_tree_flag)
         or croak "print failed: $OS_ERROR";
 
 When called after a successful call to the C<value> method,

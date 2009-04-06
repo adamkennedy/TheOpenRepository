@@ -72,14 +72,14 @@ EO_CODE
 
 $grammar->precompute();
 
-Marpa::Test::is( Marpa::show_rules($grammar),
+Marpa::Test::is( $grammar->show_rules,
     <<'END_RULES', 'Ambiguous Equation Rules' );
 0: E -> E Op E
 1: E -> Number
 2: E['] -> E
 END_RULES
 
-Marpa::Test::is( Marpa::show_ii_QDFA($grammar),
+Marpa::Test::is( $grammar->show_ii_QDFA,
     <<'END_QDFA', 'Ambiguous Equation QDFA' );
 Start States: St0; St5
 St0: predict; 1,5

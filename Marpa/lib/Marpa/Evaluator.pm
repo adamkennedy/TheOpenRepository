@@ -38,7 +38,7 @@ use Marpa::Offset And_Node =>
     qw(NAME ID PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
 
 use Marpa::Offset Or_Node =>
-    qw(NAME ID AND_NODES IS_COMPLETED START_EARLEME CHOICE CHOICE_MAP PARENT_VEC);
+    qw(NAME ID AND_NODES IS_COMPLETED START_EARLEME CHOICE CHOICE_MAP CHOICE_IX PARENT_VEC);
 
 # IS_COMPLETED - is this a completed or-node?
 
@@ -874,9 +874,24 @@ sub Marpa::show_and_node {
 
 } ## end sub Marpa::show_and_node
 
-sub Marpa::show_bocage {
-    my $evaler  = shift;
-    my $verbose = shift;
+sub Marpa::Evaluator::show_choices {
+    my ($evaler, $choice_point) = @_;
+    my $map = $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP];
+    if (not defined $map) {
+       return "No choice map\n";
+    }
+    my $text = q{};
+    my $choice_ix  = $choice_point->[Marpa::Internal::Or_Node::CHOICE_IX];
+    if (not defined $choice_ix) {
+       $text .= "Choice not defined\n";
+    }
+    for my $map_entry (@{$map}) {
+       my ($and_vec, $or_vec) = @{$map_entry};
+    }
+} ## end sub Marpa::show_choice_map
+
+sub Marpa::Evaluator::show_bocage {
+    my ($evaler, $verbose) = @_;
     $verbose //= 0;
 
     my ( $parse_count, $or_nodes, $package, ) = @{$evaler}[
@@ -916,11 +931,10 @@ sub Marpa::show_bocage {
     return $text;
 } ## end sub Marpa::show_bocage
 
-sub Marpa::show_tree {
-    my $evaler  = shift;
-    my $verbose = shift;
+sub Marpa::Evaluator::show_tree {
+    my ($evaler, $verbose) = @_;
 
-    my ( $tree, ) = @{$evaler}[ Marpa::Internal::Evaluator::TREE, ];
+    my $tree = $evaler->[ Marpa::Internal::Evaluator::TREE ];
 
     local $Data::Dumper::Terse = 1;
 
