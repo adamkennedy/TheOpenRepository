@@ -56,7 +56,7 @@ and prevents the use of these objects en-mass as a denial of service.
 
 =cut
 
-use 5.005;
+use 5.00503;
 use strict;
 use File::Spec           ();
 use List::Util           ();

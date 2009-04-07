@@ -1,6 +1,6 @@
 package Process::Packageable;
 
-use 5.005;
+use 5.00503;
 use strict;
 
 use vars qw{$VERSION};
@@ -10,7 +10,7 @@ BEGIN {
 
 # Sample implementation for dependencies method
 sub dependencies {
-	return( perl => '5.005' );
+	return( perl => '5.00503' );
 }
 
 

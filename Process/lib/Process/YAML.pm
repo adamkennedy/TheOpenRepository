@@ -1,6 +1,6 @@
 package Process::Storable;
 
-use 5.005;
+use 5.00503;
 use strict;
 use YAML::Tiny            ();
 use IO::Handle            ();

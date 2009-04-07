@@ -1,6 +1,6 @@
 package Process::Launcher;
 
-use 5.005;
+use 5.00503;
 use strict;
 use Exporter              ();
 use Params::Util          ();

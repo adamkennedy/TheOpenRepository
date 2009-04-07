@@ -12,7 +12,7 @@ use Test::More tests => 22;
 use File::Spec::Functions ':ALL';
 
 BEGIN {
-	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+	ok( $] > 5.00503, 'Perl version is 5.00503 or newer' );
 	use_ok( 'Process'                     );
 	use_ok( 'Process::Infinite'           );
 	use_ok( 'Process::Serializable'       );
