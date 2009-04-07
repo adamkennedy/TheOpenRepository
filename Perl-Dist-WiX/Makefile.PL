@@ -18,6 +18,7 @@ requires       'Module::CoreList'     => '2.17';
 requires       'Object::InsideOut'    => '3.53';
 test_requires  'Perl::Critic::More'   => '1.000' if ( $ENV{TEST_AUTHOR} );
 requires       'Perl::Dist'           => '1.12';
+requires       'Process'              => '0.23';
 requires       'Readonly'             => '1.03';
 requires       'Scalar::Util'         => '1.19'; # Remove when 5.008 is minimum perl version.
 requires       'Storable'             => '2.15'; # Remove when 5.008 is minimum perl version.
