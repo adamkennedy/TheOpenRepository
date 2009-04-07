@@ -1,19 +1,18 @@
 package Process::Storable;
 
-# Storable-based implementation of Process::Serializable
-
 use 5.005;
 use strict;
-use base 'Process::Serializable';
-use Storable     ();
-use IO::Handle   ();
-use IO::String   ();
-use Scalar::Util ();
-use Params::Util '_INSTANCE';
+use Storable              ();
+use IO::Handle            ();
+use IO::String            ();
+use Scalar::Util          ();
+use Params::Util          ();
+use Process::Serializable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.23';
+	@ISA     = 'Process::Serializable';
 
 	# Hack IO::String to be a real IO::Handle
 	unless ( IO::String->isa('IO::Handle') ) {
@@ -60,7 +59,7 @@ sub deserialize {
 	my $self  = $class->_deserialize(@_);
 
 	# Integrity check
-	_INSTANCE($self, $class) or return undef;
+	Params::Util::_INSTANCE($self, $class) or return undef;
 
 	$self;
 }
@@ -160,11 +159,15 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

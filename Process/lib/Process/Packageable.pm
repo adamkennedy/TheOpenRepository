@@ -8,7 +8,7 @@ BEGIN {
 	$VERSION = '0.23';
 }
 
-# sample implementation for dependencies method
+# Sample implementation for dependencies method
 sub dependencies {
 	return( perl => '5.005' );
 }
@@ -27,39 +27,39 @@ Process::Packageable - Process that can be packaged with its dependencies
 =head1 SYNOPSIS
 
   # In MyPackageableProcess.pm:
-  
   package MyPackageableProcess;
-  use strict;
   
-  use base
-           'Process',
-           'Process::Storable', # or other Process::Serializable subclass
-           'Process::Packageable',
-           ;
+  use strict;
+  use base qw{
+           Process
+           Process::Storable
+           Process::Packageable
+  };
   
   # Add your dependencies to your parent class's if you like
   sub dependencies {
-	  my $self = shift;
-	  return(
-        $self->SUPER::dependencies(),
-	    'Some::Class::Name' => '1.01',
-        'Another::Class'    => '0.03',
-        ...
+      my $self = shift;
+      return (
+          $self->SUPER::dependencies(),
+          'Some::Class::Name' => '1.01',
+          'Another::Class'    => '0.03',
+          ...
       );
   }
   
   # Now as usual for Process subclasses:
   sub new {
-    ...
+      ...
   }
   
   sub prepare {
-    ...
+      ...
   }
   
   sub run {
-    ...
+      ...
   }
+  
   
   
   # in user code:
@@ -112,7 +112,7 @@ to L<Process::Serializable> for details on when that is the case.
 
 =head2 dependencies
 
-  my @dependency_list = $object->dependencies();
+  my @dependency_list = $object->dependencies;
 
 The C<dependencies> method returns a list of class names and respective
 version strings that describe the dependencies of your C<Process>
@@ -124,9 +124,8 @@ will be mapped to files by C<Process::Packaged>.
 
 Specifying a C<'0'> as a version indicates I<any version>.
 
-There is a special
-key word C<perl> which can be used to set a dependency on a minimum
-perl version. (perl isn't packaged, though.)
+There is a special key word C<perl> which can be used to set a dependency
+on a minimum perl version. (perl isn't packaged, though.)
 
 Dependencies on modules that are not pure Perl might not be packaged
 and extracted correctly.
@@ -150,11 +149,15 @@ For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>, L<http://ali.as/>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

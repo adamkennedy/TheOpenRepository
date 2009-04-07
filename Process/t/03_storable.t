@@ -8,24 +8,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 33;
+use Test::More tests => 32;
 use File::Spec::Functions ':ALL';
-use lib catdir('t', 'lib');
-use File::Remove 'remove';
-
-BEGIN {
-	my $testdir = catdir('t', 'lib');
-	ok( -d $testdir, 'Found test modules directory' );
-	lib->import( $testdir );
-}
+use File::Remove 'clear';
 
 # Check the two files we'll need
 my $filename   = catfile( 't', '03_filename.dat'   );
 my $filehandle = catfile( 't', '03_filehandle.dat' );
-      remove($filename)   if -f $filename;
-      remove($filehandle) if -f $filehandle;
-END { remove($filename)   if -f $filename;   }
-END { remove($filehandle) if -f $filehandle; }
+clear( $filename   );
+clear( $filehandle );
 
 
 
@@ -35,16 +26,16 @@ END { remove($filehandle) if -f $filehandle; }
 # Write out to all three types of handle
 
 # Write to everything we support
-use MyStorableProcess ();
+use t::lib::MyStorableProcess ();
 SCOPE: {
 	local $/ = undef;
 
 	# Create the test object
-	my $object = MyStorableProcess->new( foo => 'bar' );
-	isa_ok( $object, 'Process'               );
-	isa_ok( $object, 'Process::Serializable' );
-	isa_ok( $object, 'Process::Storable'     );
-	isa_ok( $object, 'MyStorableProcess'     );
+	my $object = t::lib::MyStorableProcess->new( foo => 'bar' );
+	isa_ok( $object, 'Process'                   );
+	isa_ok( $object, 'Process::Serializable'     );
+	isa_ok( $object, 'Process::Storable'         );
+	isa_ok( $object, 't::lib::MyStorableProcess' );
 
 	# A normal string
 	my $string = '';
@@ -72,7 +63,7 @@ SCOPE: {
 	my $iohandle  = IO::String->new( \$string2 );
 	isa_ok( $iohandle, 'IO::String' );
 	isa_ok( $iohandle, 'IO::Handle' );
-	ok( $object->serialize( $iohandle ), '->serialize(iohandle) returns ok' );
+	ok( $object->serialize($iohandle), '->serialize(iohandle) returns ok' );
 
 	# Do they all match
 	is( $string, $file,     'serialize(string) matches serialize(filename)'   );
@@ -82,14 +73,14 @@ SCOPE: {
 	# Now deserialize from the various things
 	ok( open( HANDLE, '<', $filehandle ), 'Opened filehandle' );
 	ok( $iohandle->seek(0,0), 'Seeked to (0,0)' );
-	my $thawed1 = MyStorableProcess->deserialize( \$string  );
-	my $thawed2 = MyStorableProcess->deserialize( $filename );
-	my $thawed3 = MyStorableProcess->deserialize( \*HANDLE  );
-	my $thawed4 = MyStorableProcess->deserialize( $iohandle );
-	isa_ok( $thawed1, 'MyStorableProcess' );
-	isa_ok( $thawed2, 'MyStorableProcess' );
-	isa_ok( $thawed3, 'MyStorableProcess' );
-	isa_ok( $thawed4, 'MyStorableProcess' );
+	my $thawed1 = t::lib::MyStorableProcess->deserialize( \$string  );
+	my $thawed2 = t::lib::MyStorableProcess->deserialize( $filename );
+	my $thawed3 = t::lib::MyStorableProcess->deserialize( \*HANDLE  );
+	my $thawed4 = t::lib::MyStorableProcess->deserialize( $iohandle );
+	isa_ok( $thawed1, 't::lib::MyStorableProcess' );
+	isa_ok( $thawed2, 't::lib::MyStorableProcess' );
+	isa_ok( $thawed3, 't::lib::MyStorableProcess' );
+	isa_ok( $thawed4, 't::lib::MyStorableProcess' );
 
 	# Do they all match the original
 	is_deeply( $object, $thawed1, 'object matches deserialize(string)'     );

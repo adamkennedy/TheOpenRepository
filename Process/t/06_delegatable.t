@@ -8,16 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 18;
+use Test::More tests => 17;
 use File::Spec::Functions ':ALL';
-use lib catdir('t', 'lib');
-use Process::Launcher;
-
-BEGIN {
-	my $testdir = catdir('t', 'lib');
-	ok( -d $testdir, 'Found test modules directory' );
-	lib->import( $testdir );
-}
+use Process::Launcher ();
 
 
 
@@ -26,14 +19,14 @@ BEGIN {
 #####################################################################
 # Test Process::Backgroundable
 
-use MyDelegatableProcess ();
+use t::lib::MyDelegatableProcess ();
 SCOPE: {
-	my $process = MyDelegatableProcess->new;
-	isa_ok( $process, 'MyDelegatableProcess'  );
-	isa_ok( $process, 'Process::Delegatable'  );
-	isa_ok( $process, 'Process::Serializable' );
-	isa_ok( $process, 'Process'               );
-	can_ok( $process, 'delegate'              );
+	my $process = t::lib::MyDelegatableProcess->new;
+	isa_ok( $process, 't::lib::MyDelegatableProcess' );
+	isa_ok( $process, 'Process::Delegatable'         );
+	isa_ok( $process, 'Process::Serializable'        );
+	isa_ok( $process, 'Process'                      );
+	can_ok( $process, 'delegate'                     );
 
 	# Trigger the backgrounding
 	SCOPE: {
@@ -41,8 +34,7 @@ SCOPE: {
 			@Process::Delegatable::PERLCMD,
 			'-I' . catdir('blib', 'arch'),
 			'-I' . catdir('blib', 'lib'),
-			'-I' . catdir('t',    'lib'),
-			);
+		);
 		ok( $process->delegate, '->delegate returns ok' );
 	}
 
@@ -58,28 +50,29 @@ SCOPE: {
 
 
 # Repeat for the error case
-
 SCOPE: {
-	my $process = MyDelegatableProcess->new( pleasedie => 1 );
-	isa_ok( $process, 'MyDelegatableProcess'  );
-	isa_ok( $process, 'Process::Delegatable'  );
-	isa_ok( $process, 'Process::Serializable' );
-	isa_ok( $process, 'Process'               );
-	can_ok( $process, 'delegate'              );
+	my $process = t::lib::MyDelegatableProcess->new( pleasedie => 1 );
+	isa_ok( $process, 't::lib::MyDelegatableProcess' );
+	isa_ok( $process, 'Process::Delegatable'         );
+	isa_ok( $process, 'Process::Serializable'        );
+	isa_ok( $process, 'Process'                      );
+	can_ok( $process, 'delegate'                     );
 
 	# Trigger the backgrounding
 	SCOPE: {
 		local @Process::Delegatable::PERLCMD = (
 			@Process::Delegatable::PERLCMD,
+			'-I' . catdir('blib', 'arch'),
 			'-I' . catdir('blib', 'lib'),
-			'-I' . catdir('t',    'lib'),
 			);
 		ok( $process->delegate, '->delegate returns ok' );
 	}
 
 	# Should have set the data value
 	is( $process->{somedata},  undef, '->data not set' );
-	like( $process->{errstr}, qr/You wanted me to die/,
-		'Got error message' );
-
+	like(
+		$process->{errstr},
+		qr/You wanted me to die/,
+		'Got error message',
+	);
 }

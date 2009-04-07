@@ -1,13 +1,18 @@
-package MyDelegatableProcess;
+package t::lib::MyDelegatableProcess;
 
 use strict;
-use base 'Process::Delegatable',
-         'Process::Storable',
-         'Process';
+use Process              ();
+use Process::Storable    ();
+use Process::Delegatable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = qw{
+		Process::Delegatable
+		Process::Storable
+		Process
+	};
 }
 
 sub new {

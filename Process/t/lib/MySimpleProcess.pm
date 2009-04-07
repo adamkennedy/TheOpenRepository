@@ -1,11 +1,12 @@
-package MySimpleProcess;
+package t::lib::MySimpleProcess;
 
 use strict;
-use base 'Process';
+use Process ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = 'Process';
 }
 
 sub new {

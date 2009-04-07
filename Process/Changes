@@ -1,11 +1,13 @@
 Revision history for Perl extension Process
 
 0.23 Sun 10 Aug 2008
+	- Upgraded to Module::Install::DSL 0.81
 	- Incremental cleanup release in preparation for major
 	  refactoring, leading to Process 1.00 (which will have
 	  a modified API).
-	- Upgraded author tests
-	- Upgraded to Module::Install 0.77
+	- Moved Process::Serializable to Process::Role::Serializable
+	- Added a basic version of Process::Probe
+	- Removed the use of base.pm
 
 0.22 Wed  2 Jan 2008
 	- Moving from Perl::Exe to Probe::Perl

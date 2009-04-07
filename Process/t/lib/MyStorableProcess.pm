@@ -1,12 +1,16 @@
-package MyStorableProcess;
+package t::lib::MyStorableProcess;
 
 use strict;
-use base 'Process::Storable',
-         'Process';
+use Process           ();
+use Process::Storable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.01';
+	@ISA     = qw{
+		Process::Storable
+		Process
+	};
 }
 
 sub new {
