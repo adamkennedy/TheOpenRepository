@@ -1,4 +1,4 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 0.81;
 
 use File::Spec;
 check_innosetup();
