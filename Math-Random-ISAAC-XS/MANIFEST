@@ -1,0 +1,27 @@
+Build.PL
+Changes
+lib/Math/Random/ISAAC/XS.pm
+LICENSE
+Makefile.PL
+MANIFEST                        This list of files
+MANIFEST.SKIP
+META.yml
+README
+SIGNATURE
+src/rand.h
+src/rand.c
+src/standard.h
+src/ISAAC.xs
+t/01min-perl.t
+t/01manifest.t
+t/01compile.t
+t/00signature.t
+t/01meta.t
+t/01pod-coverage.t
+t/01pod.t
+t/02sequence.t
+t/03uniform.t
+t/01portability.t
+t/01memory.t
+t/01kwalitee.t
+typemap

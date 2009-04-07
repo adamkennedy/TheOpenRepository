@@ -12,6 +12,10 @@
 ^Build$
 ^_build/
 
+# Source object files
+^src/.*\.o$
+^lib/Random/Math/ISAAC/XS\.(o|c|xs)$
+
 # Module::Install included files.
 ^inc/Module/Install
 
