@@ -3123,9 +3123,9 @@ sub _run3 {
 	}
 
 	# Reset the environment
-	local $ENV{LIB}      = undef;
-	local $ENV{INCLUDE}  = undef;
-	local $ENV{PERL5LIB} = undef;
+	local $ENV{LIB}      = '';
+	local $ENV{INCLUDE}  = '';
+	local $ENV{PERL5LIB} = '';
 	local $ENV{PATH}     = $self->get_env_path . ';' . join( ';', @keep );
 
 	# Execute the child process
