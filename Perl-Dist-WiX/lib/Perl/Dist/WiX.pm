@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_108')->numify;
+use version; $VERSION = version->new('0.163_109')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -3003,10 +3003,10 @@ sub install_distribution_from_file {
 
 
 	# Where will it get extracted to
-	my $dist_path = $name;
+	my $dist_path = $filename;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{\.zip}{}msx;
-	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
+#	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
 	my $unpack_to = catdir( $self->build_dir, $dist_path );
 
 	# Extract the tarball
