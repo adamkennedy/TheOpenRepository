@@ -20,11 +20,11 @@ Math::Random::ISAAC::XS - C implementation of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0 ($Id$)
+Version 1.0.1 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0');
+use version; our $VERSION = qv('1.0.1');
 
 =head1 SYNOPSIS
 
@@ -82,7 +82,7 @@ Implements the interface as specified in C<Math::Random::ISAAC>
 # the interface for the user. XSLoader is believed to be more
 # memory efficient than DynaLoader.
 use XSLoader;
-XSLoader::load(__PACKAGE__, $VERSION->numify);
+XSLoader::load(__PACKAGE__, $VERSION);
 
 =head1 AUTHOR
 
