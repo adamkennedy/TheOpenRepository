@@ -1,0 +1,11 @@
+Revision history for Alien-WiX
+
+0.305207  Tue Apr 07 2009
+       Updated to download WiX 3.0.5207.
+
+0.305121  Fri Apr 03 2009
+       Changing way version is calculated.
+
+0.305120  Wed Mar 21 2009
+       Initial release (WiX 3.0.5120).
+

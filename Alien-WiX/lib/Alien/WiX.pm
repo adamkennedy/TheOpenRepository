@@ -1,0 +1,254 @@
+package Alien::WiX;
+
+use 5.006;
+use warnings;
+use strict;
+use Carp;
+use File::Spec;
+use base                qw( Exporter );
+use vars                qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
+use Readonly            qw( Readonly );
+use Win32::TieRegistry  qw( KEY_READ ); 
+use version; $VERSION = version->new('0.305207')->numify();
+
+# http://wix.sourceforge.net/releases/3.0.5207.0/Wix3.msi
+
+Readonly my $WIX_REGISTRY_KEY => 'HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows Installer XML/3.0';
+@EXPORT_OK = qw(wix_binary wix_library wix_version wix_version_number wix_bin_candle wix_bin_light wix_lib_wixui);
+%EXPORT_TAGS = (
+    GENERAL => [qw(wix_binary wix_library wix_version wix_version_number)], 
+    ALL => [@EXPORT_OK]
+    );
+ 
+my $_wix_registry;
+
+sub import {
+    _wix_registry(); # So we die quick if WiX is not installed.
+    Alien::WiX->export_to_level(1, @_);
+}
+
+sub _wix_registry {
+	$_wix_registry ||= Win32::TieRegistry->new( $WIX_REGISTRY_KEY => {
+		Access    => KEY_READ(),
+		Delimiter => '/',
+	} );
+	
+	unless (defined $_wix_registry) {
+		croak 'Windows Installer XML not installed, cannot continue';
+	}
+	
+	return $_wix_registry;
+}
+
+sub _wix_root {
+	return _wix_registry->TiedRef->{'InstallRoot'};
+}
+
+sub wix_version {
+	return _wix_registry->TiedRef->{'ProductVersion'};
+}
+
+sub wix_version_number {
+	my $version = wix_version();
+    if ($version =~ m/3.0.(\d+).0/) {
+        return $1;
+    } 
+    
+    return;
+}
+
+sub wix_binary {
+	my $file = File::Spec->catfile( _wix_root(), "$_[0].exe" );
+    croak "Cannot execute $file" unless (-x $file);
+    return $file;
+}
+
+sub wix_library {
+	my $file = File::Spec->catfile( _wix_root(), "$_[0]Extension.dll" );
+    croak "Cannot find $file" unless (-f $file);
+    return $file;
+}
+
+sub wix_bin_candle {
+	return wix_binary('candle');
+}
+
+sub wix_bin_light {
+	return wix_binary('light');
+}
+
+sub wix_lib_wixui {
+	return wix_library('WixUI')
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+Alien::WiX - Installing and finding Windows Installer XML (WiX)
+
+=head1 VERSION
+
+This document describes Alien::WiX version 0.305207.
+
+Note that the first digit will change if the API changes 
+in an incompatible manner, while the other digits change 
+when the version of WiX that is installed by this module 
+changes.
+
+=head1 SYNOPSIS
+
+    use Alien::WiX qw(:GENERAL);
+
+    print wix_version();
+    # Prints 3.0.5207.0, usually.
+    
+    $version_number = wix_version_number();
+    die 'WiX beta-exit build or better required, stopping' 
+        if ($version_number < 4805)
+    
+    print wix_binary('candle'), " exists\n";
+    print wix_library('WixFirewall'), " exists\n";
+    
+    use Alien::WiX 0.305207 qw(:ALL);
+    
+    print wix_bin_candle(), " exists\n";
+    print wix_bin_light(), " exists\n";
+    print wix_lib_wixui(), " exists\n";
+    
+=head1 DESCRIPTION
+
+Installing this module will also install Windows Installer XML (otherwise 
+known as WiX) version 3.0.5207.0, if it (or a later version) has not 
+already been installed.
+
+This module provides utility subroutines that would be useful for programs
+that use WiX to create Windows Installer (.msi) installation packages.
+
+=head1 INTERFACE 
+
+All routines will C<croak> when errors occur.
+C<use>ing the module will also croak if WiX is not installed.
+
+=head2 wix_version
+
+Returns the version of Windows Installer XML (i.e. 3.0.5021.0) as a string.
+
+=head2 wix_version_number
+
+Returns the third portion of the version of Windows Installer XML 
+(i.e. if wix_version returns 3.0.5021.0, this returns 5021) as a number.
+
+=head2 wix_binary
+
+Returns the location of the WiX program specified as its first parameter.
+The '.exe' part is not required.
+
+=head2 wix_library
+
+Returns the location of the WiX extension library specified as its first parameter.
+The 'Extension.dll' part is not required.
+
+=head2 wix_bin_candle, wix_bin_light
+
+Returns the location of candle.exe or light.exe.
+
+=head2 wix_lib_wixui
+
+Returns the location of the WixUI extension library.
+
+=head1 DIAGNOSTICS
+
+=over 
+
+=item C<< Windows Installer XML not installed, cannot continue >>
+
+The module could not find the registry key for WiX 3.0.
+
+=item C<< Cannot execute %s >>
+
+The file wix_binary or a wix_bin routine was attempting to find 
+could not be found or it could not be executed.
+
+=item C<< Cannot find %s >>
+
+The file wix_library or a wix_lib routine was attempting to find 
+could not be found.
+
+=back
+
+=head1 CONFIGURATION AND ENVIRONMENT
+  
+Alien::WiX requires no configuration files or environment variables.
+
+It checks the registry entries that WiX's installer wrote to the
+Windows registry to get its return values.
+
+Note that this module checks if Windows Installer XML is INSTALLED, NOT 
+that it successfully executes.
+
+=head1 DEPENDENCIES
+
+This module requires Perl 5.6.0.
+
+Non-core perl modules required are L<Win32API::Registry>
+(which is required to be installed in order to run the 
+Makefile.PL or Build.PL successfully), L<Module::Build> 
+(which is required to install this module), 
+L<Win32::TieRegistry>, L<version>, and L<Readonly>.
+
+Installation of Alien::WiX will install Microsoft .NET Framework 2.0 SP1 
+and Windows Installer XML 3.0.5207.0 by downloading them from the 
+appropriate sites unless otherwise specified.
+
+=head1 INCOMPATIBILITIES
+
+If you want to install WiX in a non-default location, you will want to install 
+it yourself before installing this module.
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to
+C<bug-Alien-WiX@rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org>.
+
+=head1 AUTHOR
+
+Curtis Jewell  C<< <csjewell@cpan.org> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2009, Curtis Jewell.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+The software installed by this module has its own licenses and copyrights, and is
+not included in this license and copyright.
+
+=head1 DISCLAIMER OF WARRANTY
+
+BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
+EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
+YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
+NECESSARY SERVICING, REPAIR, OR CORRECTION.
+
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
+LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
+OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
+THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
