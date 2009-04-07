@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 
 # t/02valgrind.t
 #  Tests that there are no memory leaks
