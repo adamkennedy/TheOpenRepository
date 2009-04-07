@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/01memory.t
+# t/02memory.t
 #  Tests that there are no memory leaks
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
