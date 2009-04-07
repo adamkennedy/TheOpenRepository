@@ -10,9 +10,6 @@
 #ifndef RAND
 #define RAND 1
 
-#include "EXTERN.h"
-#include "perl.h"
-
 #include "standard.h"
 
 #define RANDSIZL  (8)  /* 8 for crypto, 4 for simulations */
@@ -32,7 +29,7 @@ typedef  struct randctx  randctx;
 /* Initialize using randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *);
 void isaac(randctx *);
-uint32_t randInt(randctx *);
+ub4 randInt(randctx *);
 
 /* Call rand(randctx *r) to get a single 32-bit random value
  * The code from this macro was moved to the ISAAC.xs file

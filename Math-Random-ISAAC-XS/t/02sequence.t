@@ -3,16 +3,21 @@
 # t/02sequence.t
 #  Checks that the generated sequence matches the reference
 #
+# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
+#
 # $Id$
 #
-# This test script is hereby released into the public domain.
+# This package and its contents are released by the author into the
+# Public Domain, to the full extent permissible by law. For additional
+# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
 
 use Test::More;
 
-use Math::Random::ISAAC ();
+# Test the Pure Perl version only; the XS version has its own tests
+use Math::Random::ISAAC::XS ();
 
 my @results = (
    405143795,  806046349,  807101986, 2961886497,  695195257,
@@ -139,8 +144,8 @@ my @results = (
 
 plan tests => scalar(@results);
 
-my $rng = Math::Random::ISAAC->new();
+my $rng = Math::Random::ISAAC::XS->new();
 
 foreach my $num (@results) {
-  ok($num == $rng->randInt());
+  is($rng->irand(), $num);
 }

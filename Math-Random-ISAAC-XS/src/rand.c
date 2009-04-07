@@ -23,7 +23,7 @@
 #include "standard.h"
 #include "rand.h"
 
-#define cut(a)     ((a) &= 0xffffffff) /* Cut the integer down to 32bits */
+#define cut(a)     ((a) & 0xffffffff) /* Cut the integer down to 32bits */
 #define ind(mm,x)  ((mm)[(x>>2)&(RANDSIZ-1)])
 /* the call to cut() is a macro defined in standard.h */
 #define rngstep(mix,a,b,mm,m,m2,r,x) \
@@ -55,8 +55,8 @@
 void isaac(randctx *ctx)
 {
   /* Keep these in CPU registers if possible, for speed */
-  register uint32_t a, b, x, y;
-  register uint32_t *m, *mm, *m2, *r, *mend;
+  register ub4 a, b, x, y;
+  register ub4 *m, *mm, *m2, *r, *mend;
 
   mm = ctx->randmem;
   r = ctx->randrsl;
@@ -81,10 +81,10 @@ void isaac(randctx *ctx)
 /* using randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *ctx)
 {
-  uint32_t a, b, c, d, e, f, g, h;
+  ub4 a, b, c, d, e, f, g, h;
 
-  uint32_t *m = ctx->randmem;
-  uint32_t *r = ctx->randrsl;
+  ub4 *m = ctx->randmem;
+  ub4 *r = ctx->randrsl;
 
   int i; /* for loop incrementing variable */
 
@@ -153,7 +153,7 @@ void randinit(randctx *ctx)
 /* This function was added by Jonathan Yu to return the next integer (taking
  * the code out of a macro and putting it into a function instead
  */
-uint32_t randInt(randctx *ctx)
+ub4 randInt(randctx *ctx)
 {
   /* If we run out of numbers, reset the sequence */
   if (!ctx->randcnt--)

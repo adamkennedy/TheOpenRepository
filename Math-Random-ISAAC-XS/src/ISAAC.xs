@@ -14,20 +14,20 @@
 #include "rand.h"
 #include "standard.h"
 
-typedef randctx * Math__Random__ISAAC;
+typedef randctx * Math__Random__ISAAC__XS;
 
 MODULE = Math::Random::ISAAC::XS    PACKAGE = Math::Random::ISAAC::XS
 
 PROTOTYPES: DISABLE
 
-Math::Random::ISAAC
+Math::Random::ISAAC::XS
 new(...)
   PREINIT:
     int idx;
     randctx *self;
   INIT:
     Newx(self, 1, randctx); /* allocate 1 randctx instance */
-    self->randa = self->randb = self->randc = (uint32_t)0;
+    self->randa = self->randb = self->randc = (ub4)0;
   CODE:
     /* Loop through each argument and copy it into randrsl. Copy items from
      * our parameter list first, and then zero-pad thereafter.
@@ -39,14 +39,14 @@ new(...)
         break;
 
       /* note: the list begins at ST(1) */
-      self->randrsl[idx] = (uint32_t)SvUV(ST(idx+1));
+      self->randrsl[idx] = (ub4)SvUV(ST(idx+1));
       items--;
     }
 
     /* Zero-pad the array, if necessary */
     for (; idx < RANDSIZ; idx++)
     {
-      self->randrsl[idx] = (uint32_t)0;
+      self->randrsl[idx] = (ub4)0;
     }
 
     randinit(self); /* Initialize using our seed */
@@ -56,7 +56,7 @@ new(...)
 
 UV
 irand(self)
-  Math::Random::ISAAC self
+  Math::Random::ISAAC::XS self
   CODE:
     RETVAL = (UV)randInt(self);
   OUTPUT:
@@ -64,7 +64,7 @@ irand(self)
 
 double
 rand(self)
-  Math::Random::ISAAC self
+  Math::Random::ISAAC::XS self
   CODE:
     RETVAL = (double)randInt(self) / UINT32_MAX;
   OUTPUT:
@@ -72,6 +72,6 @@ rand(self)
 
 void
 DESTROY(self)
-  Math::Random::ISAAC self
+  Math::Random::ISAAC::XS self
   CODE:
     Safefree(self);

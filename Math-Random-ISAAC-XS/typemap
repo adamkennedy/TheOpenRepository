@@ -1,1 +1,1 @@
-Math::Random::ISAAC            T_PTROBJ
+Math::Random::ISAAC::XS        T_PTROBJ
