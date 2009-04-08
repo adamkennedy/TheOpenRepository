@@ -44,12 +44,9 @@ my %MODULES = (
 		ExtUtils::ParseXS
 		version
 		Scalar::Util
-		IO::Compress::Base
 		Compress::Raw::Zlib
 		Compress::Raw::Bzip2
-		IO::Compress::Zip
-		IO::Compress::Bzip2
-		Compress::Zlib
+		IO::Compress
 		Compress::Bzip2
 		IO::Zlib
 		File::Spec
