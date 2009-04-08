@@ -35,10 +35,10 @@ package Marpa::Internal;
 use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 
 use Marpa::Offset And_Node =>
-    qw(NAME ID PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
+    qw(NAME ID PARENT PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
 
 use Marpa::Offset Or_Node =>
-    qw(NAME ID AND_NODES IS_COMPLETED START_EARLEME CHOICE CHOICE_MAP CHOICE_IX PARENT_VEC);
+    qw(NAME ID PARENT AND_NODES IS_COMPLETED START_EARLEME CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES);
 
 # IS_COMPLETED - is this a completed or-node?
 
@@ -710,6 +710,7 @@ sub Marpa::Evaluator::new {
         my $or_node = [];
         $or_node->[Marpa::Internal::Or_Node::NAME]      = $sapling_name;
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
+        weaken($_->[Marpa::Internal::And_Node::PARENT] = $or_node) for @and_nodes;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
@@ -737,7 +738,9 @@ sub Marpa::Evaluator::new {
         {
             my $name = $and_node->[$field];
             next FIELD unless defined $name;
-            $and_node->[$field] = $or_node_by_name{$name};
+            my $or_node = $or_node_by_name{$name};
+            $and_node->[$field] = $or_node;
+            weaken($or_node->[Marpa::Internal::Or_Node::PARENT] = $and_node);
         } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
     } ## end for my $and_node ( map { @{ $_->[...
@@ -753,7 +756,6 @@ sub Marpa::Evaluator::new {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
             $choice_or_nodes->[$start_earleme] = [];
-# print STDERR "Start Earleme: $start_earleme\n";
         }
     }
     ## End OR_NODE:
@@ -769,11 +771,6 @@ sub Marpa::Evaluator::new {
         next OR_NODE unless defined $earleme_or_nodes;
         $or_node->[Marpa::Internal::Or_Node::ID] = @{$earleme_or_nodes};
         push @{$earleme_or_nodes}, $or_node;
-# printf STDERR "Start Earleme: %d  %d: %s\n",
-    # $start_earleme,
-    # $or_node->[Marpa::Internal::Or_Node::ID],
-    # $or_node->[Marpa::Internal::Or_Node::NAME],
-# ;
 
         # If this is a completed or node, the child and nodes will be completed
         # and nodes.  Push them on a list.
@@ -795,7 +792,7 @@ sub Marpa::Evaluator::new {
             my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
             my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
             my $order    = $rule->[Marpa::Internal::Rule::ID];
-            my $is_hasty = $rule->[Marpa::Internal::Rule::HASTY];
+            my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $laziness = $end_earleme;
             $laziness = -$laziness if $is_hasty;
             push @decorated_and_nodes,
@@ -851,7 +848,7 @@ sub Marpa::show_and_node {
     }    # cause
 
     if ( defined $value_ref ) {
-        my $value_as_string = Dumper( ${$value_ref} );
+        my $value_as_string = Data::Dumper->new( [${$value_ref}] )->Terse(1)->Dump;
         chomp $value_as_string;
         push @rhs, $value_as_string;
     }    # value
@@ -897,7 +894,7 @@ sub Marpa::Evaluator::show_choice_point {
         return "No choice map for $choice_point_name\n";
     }
     my $text      = q{};
-    my $choice_ix = $choice_point->[Marpa::Internal::Or_Node::CHOICE_IX];
+    my $choice_ix = $choice_point->[Marpa::Internal::Or_Node::MAP_IX];
     if ( not defined $choice_ix ) {
         $text .= "Choice not defined for $choice_point_name\n";
         $choice_ix = -1;
@@ -910,11 +907,22 @@ sub Marpa::Evaluator::show_choice_point {
     for my $map_ix ( 0 .. $#{$map} ) {
         $text .= "CHOSEN: " if $map_ix == $choice_ix;
         $text .= "Alternative $map_ix for $choice_point_name:\n";
-        my ( $and_vec, $or_vec ) = @{$map->[$map_ix]};
+        my ( $and_vec, $or_choices ) = @{$map->[$map_ix]};
         for my $and_ix (0 .. $#{$choice_and_nodes}) {
-            Marpa::show_and_node($choice_and_nodes->[$and_ix])
+            $text .= "Completion: " . Marpa::show_and_node($choice_and_nodes->[$and_ix])
                 if vec($and_vec, $and_ix, 1);
         }
+        OR_IX: for my $or_ix ( 0 .. $#{$choice_or_nodes} ) {
+            my $and_choice = $or_choices->[$or_ix];
+            next OR_IX if not defined $and_choice or $and_choice < 0;
+            my $or_node = $choice_or_nodes->[$or_ix];
+            my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+            my $choice_count = scalar @{$and_nodes};
+            my $choice_label = "Trivial";
+            $choice_label = "Choice $and_choice of $choice_count" if $choice_count > 1;
+            my $and_node = $and_nodes->[$and_choice];
+            $text .= "$choice_label: " . Marpa::show_and_node($and_node);
+        } ## end for my $or_ix ( 0 .. $#{$choice_or_nodes} )
     }
     return $text;
 } ## end sub Marpa::Evaluator::show_choices
@@ -1048,11 +1056,14 @@ sub map_choice_point {
 
     # gross and buggy hack for incremental development -- delete this
     state %been_there_done_that;
-    return if $been_there_done_that{$start_earleme};
+    if ($been_there_done_that{$start_earleme}) {
+       # print STDERR "Been there $start_earleme\n";
+       return;
+    }
     $been_there_done_that{$start_earleme} = 1;
 
     # create the vector of parent or nodes
-    my $parent_vec = q{};
+    my $parent_or_choices = [];
     CHOICE_OR_NODE:
     for my $choice_or_node (
         @{  $evaler->[Marpa::Internal::Evaluator::CHOICE_OR_NODES]
@@ -1061,57 +1072,39 @@ sub map_choice_point {
         )
     {
 
-        # printf STDERR "Finding parents, Start Earleme: %d  %d: %s\n",
-        # $start_earleme,
-        # $choice_or_node->[Marpa::Internal::Or_Node::ID],
-        # $choice_or_node->[Marpa::Internal::Or_Node::NAME],
-        # ;
         if ( defined $choice_or_node->[Marpa::Internal::Or_Node::CHOICE] ) {
 
-            # printf STDERR "Found parent, Start Earleme: %d  %d: %s\n",
-            # $start_earleme,
-            # $choice_or_node->[Marpa::Internal::Or_Node::ID],
-            # $choice_or_node->[Marpa::Internal::Or_Node::NAME],
-            # ;
-            vec( $parent_vec, $choice_or_node->[Marpa::Internal::Or_Node::ID],
-                1 )
-                = 1;
+            $parent_or_choices->[ $choice_or_node->[Marpa::Internal::Or_Node::ID] ]
+                = -1;
         } ## end if ( defined $choice_or_node->[...
     } ## end for my $choice_or_node ( @{ $evaler->[...
     ## End CHOICE_OR_NODE:
-    $choice_point->[Marpa::Internal::Or_Node::PARENT_VEC] = $parent_vec;
+    $choice_point->[Marpa::Internal::Or_Node::PARENT_OR_CHOICES] = $parent_or_choices;
 
     # build the choice map for this choice point or node
-    my @ur_map = ( [ $choice_point, q{}, q{} ] );
+    my @ur_map = ( [ $choice_point, q{}, [ @{$parent_or_choices} ] ] );
     MAP_ENTRY: while ( my $ur_map_entry = pop @ur_map ) {
-        my ( $map_or_node, $and_vec, $or_vec, ) = @{$ur_map_entry};
-        my $new_or_vec = q{};
+        my ( $map_or_node, $and_vec, $or_choices, ) = @{$ur_map_entry};
 
-        # printf STDERR "In Map builder, Start Earleme: %d  %d: %s\n",
-        # $start_earleme,
-        # $map_or_node->[Marpa::Internal::Or_Node::ID],
-        # $map_or_node->[Marpa::Internal::Or_Node::NAME],
-        # ;
-        vec( $new_or_vec, $map_or_node->[Marpa::Internal::Or_Node::ID], 1 ) =
-            1;
-        no warnings 'numeric';
-        if ( $new_or_vec & ( $parent_vec | $or_vec ) =~ /[^\0]/xms ) {
-
-            # printf STDERR "Cycle: new=%s parent=%s original=%s\n", unpack('b*', $new_or_vec), unpack('b*', $parent_vec), unpack('b*', $or_vec);
+        if (defined
+            $or_choices->[ $map_or_node->[Marpa::Internal::Or_Node::ID] ]
+            )
+        {
             croak( 'Cycle at '
                     . $map_or_node->[Marpa::Internal::Or_Node::NAME] );
             next MAP_ENTRY;
-        } ## end if ( $new_or_vec & ( $parent_vec | $or_vec ) =~ /[^\0]/xms)
-        no warnings 'numeric';
-        $new_or_vec |= $or_vec;
+        } ## end if ( defined $new_or_choices->[ $map_or_node->[...
 
         my $is_completed =
             $map_or_node->[Marpa::Internal::Or_Node::IS_COMPLETED];
 
-        MAP_AND_NODE:
-        for my $map_and_node (
-            @{ $map_or_node->[Marpa::Internal::Or_Node::AND_NODES] } )
+        CHOICE:
+        for my $choice (
+            0 .. $#{ $map_or_node->[Marpa::Internal::Or_Node::AND_NODES] } )
         {
+            my $map_and_node =
+                $map_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                ->[$choice];
             my $new_and_vec = $and_vec;
             if ($is_completed) {
                 vec( $new_and_vec,
@@ -1119,28 +1112,32 @@ sub map_choice_point {
                     = 1;
             }
 
+            my $new_or_choices = [ @{$or_choices} ];
+            $new_or_choices->[ $map_or_node->[Marpa::Internal::Or_Node::ID] ]
+                = $choice;
+
             my $cause = $map_and_node->[Marpa::Internal::And_Node::CAUSE];
             my $predecessor =
                 $map_and_node->[Marpa::Internal::And_Node::PREDECESSOR];
 
             if ( not defined $cause and not defined $predecessor ) {
-                push @map, [ $new_and_vec, $new_or_vec ];
+                push @map, [ $new_and_vec, $new_or_choices ];
             }
 
             if ( defined $cause
                 and $cause->[Marpa::Internal::Or_Node::START_EARLEME]
                 <= $start_earleme )
             {
-                push @ur_map, [ $cause, $new_and_vec, $new_or_vec ];
+                push @ur_map, [ $cause, $new_and_vec, $new_or_choices ];
             } ## end if ( defined $cause and $cause->[...
 
             if ( defined $predecessor
                 and $predecessor->[Marpa::Internal::Or_Node::START_EARLEME]
                 <= $start_earleme )
             {
-                push @ur_map, [ $predecessor, $new_and_vec, $new_or_vec ];
+                push @ur_map, [ $predecessor, $new_and_vec, $new_or_choices ];
             } ## end if ( defined $predecessor and $predecessor->[...
-        } ## end for my $map_and_node ( @{ $map_or_node->[...
+        } ## end for my $choice ( 0 .. $#{ $map_or_node->[...
     } ## end while ( my $ur_map_entry = pop @ur_map )
 
     $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP] =
@@ -1214,6 +1211,8 @@ sub Marpa::Evaluator::value {
             map_choice_point( $evaler, $or_node )
                 if not
                     defined $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
+
+            # what if no choices found?
 
         } ## end if ( @{$and_nodes} >= 2 )
 
