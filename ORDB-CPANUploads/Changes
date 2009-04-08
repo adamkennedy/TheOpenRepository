@@ -1,4 +1,7 @@
 Changes for Perl extension ORDB-CPANUploads
 
+0.02 Wed  9 Apr 2009
+	- Upgrading to Module::Install::DSL 0.82
+
 0.01 Sun 29 Mar 2009
 	- Creating the initial implementation
