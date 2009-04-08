@@ -8,7 +8,7 @@ use DateTime::Format::DateParse ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 use Module::Changes::ADAMK::Change ();
