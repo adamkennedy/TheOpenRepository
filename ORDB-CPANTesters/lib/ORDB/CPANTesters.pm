@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 # Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
