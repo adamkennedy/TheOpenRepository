@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.81;
+use inc::Module::Install::DSL 0.82;
 
 all_from      lib/Perl/Squish.pm
 requires_from lib/Perl/Squish.pm

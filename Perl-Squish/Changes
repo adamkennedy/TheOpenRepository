@@ -1,5 +1,8 @@
 Revision history for Perl extension Perl::Squish
 
+1.06 Wed  9 Apr 2009
+	- Upgrading to Module::Install::DSL 0.81
+
 1.05 Sun  5 Apr 2009
 	- Upgrading to Module::Install 0.81
 	- Upgrading Test::More to use it's new_ok
