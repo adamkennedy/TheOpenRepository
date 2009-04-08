@@ -81,12 +81,25 @@ static uchar GetClosingSeperator( uchar opening ) {
 	}
 }
 
+CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer *t, QuoteToken *token) {
+	QuoteToken::section &ms = token->modifiers;
+	ms.size = 0;
+	ms.position = token->length;
+	if ( m_acceptModifiers ) {
+		while ( ( t->line_length > t->line_pos ) && is_letter( t->c_line[ t->line_pos ] ) ) {
+			token->text[token->length++] = t->c_line[ t->line_pos++ ];
+			ms.size++;
+		}
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}
+
 CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *t, QuoteToken *token) {
 	token->state = in_section_braced;
 	uchar c_section_num = token->current_section;
 	QuoteToken::section &cs = token->sections[ c_section_num ];
-	cs.position = token->length;
-	cs.size = 0;
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
@@ -96,9 +109,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *
 					token->current_section++;
 
 					if ( token->current_section == m_numSections ) {
-						TokenTypeNames zone = t->_finalize_token();
-						t->_new_token(zone);
-						return done_it_myself;
+						return StateFuncConsumeModifiers( t, token );
 					} else {
 						// there is another section - read on
 						return StateFuncExamineFirstChar( t, token );
@@ -122,8 +133,6 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 	token->state = in_section_not_braced;
 	uchar c_section_num = token->current_section;
 	QuoteToken::section &cs = token->sections[ c_section_num ];
-	cs.position = token->length;
-	cs.size = 0;
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
@@ -131,11 +140,14 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 			token->current_section++;
 
 			if ( token->current_section == m_numSections ) {
-				TokenTypeNames zone = t->_finalize_token();
-				t->_new_token(zone);
-				return done_it_myself;
+				return StateFuncConsumeModifiers( t, token );
 			} else {
 				// there is another section - read on
+				QuoteToken::section &next = token->sections[ token->current_section ];
+				next.position = token->length;
+				next.size = 0;
+				next.open_char = cs.open_char;
+				next.close_char = cs.close_char;
 				return StateFuncInSectionUnBraced( t, token );
 			}
 		}
@@ -150,11 +162,11 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer *t, QuoteToken *token) {
 	uchar my_char = t->c_line[ t->line_pos ];
 	uchar c_section_num = token->current_section;
+	token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	QuoteToken::section &cs = token->sections[ c_section_num ];
 	cs.position = token->length;
 	cs.size = 0;
 	cs.open_char = my_char;
-	token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	uchar close_char = GetClosingSeperator( my_char );
 	if ( close_char == 0 ) {
 		cs.close_char = my_char;
@@ -205,8 +217,22 @@ CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1
 	switch ( token->state ) {
 		case inital:
 			return StateFuncExamineFirstChar( t, token );
+		case consume_whitespaces:
+			return StateFuncConsumeWhitespaces( t,  token );
+		case in_section_braced:
+			return StateFuncInSectionBraced( t, token );
+		case in_section_not_braced:
+			return StateFuncInSectionUnBraced( t, token );
 	}
 	return error_fail;
+}
+
+CharTokenizeResults AbstractBareQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token) {
+	// in this case, we are already after the first char. 
+	// rewind and let the boot strap section to handle it
+	token->length--;
+	t->line_pos--;
+	return StateFuncBootstrapSection( t, token );
 }
 
 bool AbstractQuoteTokenType::isa( TokenTypeNames is_type ) const {

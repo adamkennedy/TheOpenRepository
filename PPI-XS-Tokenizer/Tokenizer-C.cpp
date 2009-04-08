@@ -28,6 +28,73 @@ void checkToken( Tokenizer *tk, const char *text, TokenTypeNames type, int line)
 	tk->freeToken(token);
 }
 
+void checkExtendedTokenModifiers( Tokenizer *tk,
+					     QuoteToken *qtoken,
+						 const char *section, 
+						 int line) {
+	bool hasError = false;
+	if ( section == NULL ) {
+		if ( qtoken->modifiers.size > 0 ) {
+			printf("checkExtendedTokenModifiers: no modifiers were supposed to be\n");
+			hasError = true;
+		}
+	} else {
+		size_t len = strlen( section );
+		if ( len != qtoken->modifiers.size ) {
+			printf("checkExtendedTokenModifiers: Section length does not match\n");
+			hasError = true;
+		} else if ( strncmp( section, qtoken->text + qtoken->modifiers.position, len ) ) {
+			printf("checkExtendedTokenModifiers: Section text does not match\n");
+			hasError = true;
+		}
+	}
+	if ( hasError ) {
+		printf("checkExtendedTokenModifiers: Got incorrect modifiers:\n");
+		if ( section != NULL ) {
+			printf("expected size %d and modifiers |%s|\n", strlen( section ), section);
+		} else {
+			printf("expected not to find modifiers\n");
+		}
+		printf("got size %d and section |", qtoken->modifiers.size);
+		for (ulong ix = 0; ix < qtoken->modifiers.size; ix++) {
+			printf("%c", qtoken->text[ qtoken->modifiers.position + ix ]);
+		}
+		printf("| (line %d)\n", line);
+	}
+}
+
+void checkExtendedTokenSection( Tokenizer *tk,
+					     QuoteToken *qtoken,
+					     uchar section_to_check,
+						 const char *section, 
+						 int line) {
+	bool hasError = false;
+	if ( section == NULL ) {
+		if ( qtoken->current_section > section_to_check ) {
+			printf("checkExtendedTokenSection: Section was not supposed to be\n");
+			hasError = true;
+		}
+	} else {
+		size_t len = strlen( section );
+		if ( len != qtoken->sections[section_to_check].size ) {
+			printf("checkExtendedTokenSection: Section length does not match\n");
+			hasError = true;
+		} else if ( strncmp( section, qtoken->text + qtoken->sections[section_to_check].position, len ) ) {
+			printf("checkExtendedTokenSection: Section text does not match\n");
+			hasError = true;
+		}
+	}
+	if ( hasError ) {
+		printf("checkExtendedToken: Got incorrect section %d:\n", section_to_check);
+		printf("expected size %d, got size %d (line %d)\n", strlen( section ), qtoken->sections[section_to_check].size, line);
+		printf("expected section |%s|, got section |", section );
+		for (ulong ix = 0; ix < qtoken->sections[section_to_check].size; ix++) {
+			printf("%c", qtoken->text[ qtoken->sections[section_to_check].position + ix ]);
+		}
+		printf("|\n");
+	}
+}
+
 void checkExtendedToken( Tokenizer *tk, 
 						 const char *text, 
 						 const char *section1, 
@@ -53,64 +120,56 @@ void checkExtendedToken( Tokenizer *tk,
 	} else 
 	{
 		QuoteToken *qtoken = (QuoteToken *)token;
-		if ( section1 != NULL ) {
-			size_t len = strlen( section1 );
-			if ( ( len != qtoken->sections[0].size ) || strncmp( section1, qtoken->text + qtoken->sections[0].position, len ) ) {
-				printf("checkExtendedToken: Got unexpected NULL token (line %d)\n", line);
-			}
-		}
+		if ( qtoken->current_section >= 1 )
+			checkExtendedTokenSection( tk, qtoken, 0, section1, line);
+		if ( qtoken->current_section >= 2 )
+			checkExtendedTokenSection( tk, qtoken, 1, section2, line);
+		checkExtendedTokenModifiers( tk, qtoken, modifiers, line );
 	}
 
 	tk->freeToken(token);
 }
 #define CheckToken( tk, text, type ) checkToken(tk, text, type, __LINE__);
 #define CheckExtendedToken( tk, text, section1, section2, modifiers, type ) checkExtendedToken(tk, text, section1, section2, modifiers, type, __LINE__);
+#define Tokenize( line ) tk.tokenizeLine( line , (ulong)strlen(line) );
 
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
 	Tokenizer tk;
 
-	char *line = "  {  }   \n";
-	long length = 10;
-	tk.tokenizeLine(line, length);
+	Tokenize("  {  }   \n");
 	CheckToken(&tk, "  ", Token_WhiteSpace);
 	CheckToken(&tk, "{", Token_Structure);
 	CheckToken(&tk, "  ", Token_WhiteSpace);
 	CheckToken(&tk, "}", Token_Structure);
 
-	line = "  # aabbcc d\n";
-	tk.tokenizeLine(line, 13);
+	Tokenize("  # aabbcc d\n");
 	CheckToken(&tk, "   \n  ", Token_WhiteSpace);
 	CheckToken(&tk, "# aabbcc d", Token_Comment);
 
-	line = " + \n";
-	tk.tokenizeLine(line, 4);
+	Tokenize(" + \n");
 	CheckToken(&tk, "\n ", Token_WhiteSpace);
 	CheckToken(&tk, "+", Token_Operator);
 
-	line = " $testing \n";
-	tk.tokenizeLine(line, 11);
+	Tokenize(" $testing \n");
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "$testing", Token_Symbol);
 
-	line = " \"ab cd ef\" \n";
-	tk.tokenizeLine(line, 13);
+	Tokenize(" \"ab cd ef\" \n");
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "\"ab cd ef\"", Token_Quote_Double);
-	line = " \"ab cd ef \n";
-	tk.tokenizeLine(line, 12);
-	line = "xs cd ef\" \n";
-	tk.tokenizeLine(line, 11);
+
+	Tokenize(" \"ab cd ef \n");
+	Tokenize("xs cd ef\" \n");
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "\"ab cd ef \nxs cd ef\"", Token_Quote_Double);
-	line = " 'ab cd ef' \n";
-	tk.tokenizeLine(line, 13);
+
+	Tokenize(" 'ab cd ef' \n");
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckToken(&tk, "'ab cd ef'", Token_Quote_Single);
 
-	line = " qq / baaccvf cxxdf/  q/zxcvvfdcvff/ qq !a\\!a!\n";
-	tk.tokenizeLine(line, strlen(line));
+	Tokenize(" qq / baaccvf cxxdf/  q/zxcvvfdcvff/ qq !a\\!a!\n");
 	CheckToken(&tk, " \n ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "qq / baaccvf cxxdf/", " baaccvf cxxdf", NULL, NULL, Token_Quote_Interpolate );
 	CheckToken(&tk, "  ", Token_WhiteSpace);
@@ -118,14 +177,70 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, " ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "qq !a\\!a!", "a\\!a", NULL, NULL, Token_Quote_Interpolate );
 
-	line = " qq { baa{ccv\\{f cx}xdf}  q(zx(cv(vfd))cvff) qq <a\\!a>\n";
-	tk.tokenizeLine(line, strlen(line));
+	Tokenize(" qq { baa{ccv\\{f cx}xdf}  q(zx(cv(vfd))cvff) qq <a\\!a>\n");
 	CheckToken(&tk, "\n ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "qq { baa{ccv\\{f cx}xdf}", " baa{ccv\\{f cx}xdf", NULL, NULL, Token_Quote_Interpolate );
 	CheckToken(&tk, "  ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "q(zx(cv(vfd))cvff)", "zx(cv(vfd))cvff", NULL, NULL, Token_Quote_Literal );
 	CheckToken(&tk, " ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "qq <a\\!a>", "a\\!a", NULL, NULL, Token_Quote_Interpolate );
+
+	Tokenize(" qw{ aa bb \n");
+	Tokenize(" cc dd }\n");
+	CheckToken(&tk, "\n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "qw{ aa bb \n cc dd }", " aa bb \n cc dd ", NULL, NULL, Token_QuoteLike_Words );
+
+	Tokenize(" <FFAA> <$var> \n");
+	CheckToken(&tk, "\n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "<FFAA>", "FFAA", NULL, NULL, Token_QuoteLike_Readline );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "<$var>", "$var", NULL, NULL, Token_QuoteLike_Readline );
+
+	Tokenize(" m/aabbcc/i m/cvfder/ =~ /rewsdf/xds \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "m/aabbcc/i", "aabbcc", NULL, "i", Token_Regexp_Match );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "m/cvfder/", "cvfder", NULL, NULL, Token_Regexp_Match );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "=~", Token_Operator);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "/rewsdf/xds", "rewsdf", NULL, "xds", Token_Regexp_Match_Bare );
+
+	Tokenize(" qr/xxccvvb/ qr{xcvbfv}i \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "qr/xxccvvb/", "xxccvvb", NULL, NULL, Token_QuoteLike_Regexp );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "qr{xcvbfv}i", "xcvbfv", NULL, "i", Token_QuoteLike_Regexp );
+
+	Tokenize(" s/xxccvvb/ccffdd/ s/xxccvvb/ccffdd/is \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s/xxccvvb/ccffdd/", "xxccvvb", "ccffdd", NULL, Token_Regexp_Substitute );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s/xxccvvb/ccffdd/is", "xxccvvb", "ccffdd", "is", Token_Regexp_Substitute );
+
+	Tokenize(" tr/xxccvvb/ccffdd/ tr/xxccvvb/ccffdd/is \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "tr/xxccvvb/ccffdd/", "xxccvvb", "ccffdd", NULL, Token_Regexp_Transliterate );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "tr/xxccvvb/ccffdd/is", "xxccvvb", "ccffdd", "is", Token_Regexp_Transliterate );
+
+	Tokenize(" y/xxccvvb/ccffdd/ y/xxccvvb/ccffdd/is \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "y/xxccvvb/ccffdd/", "xxccvvb", "ccffdd", NULL, Token_Regexp_Transliterate );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "y/xxccvvb/ccffdd/is", "xxccvvb", "ccffdd", "is", Token_Regexp_Transliterate );
+
+	Tokenize(" s{xxccvvb} {ccffdd} s{xxccvvb}{ccffdd}is \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s{xxccvvb} {ccffdd}", "xxccvvb", "ccffdd", NULL, Token_Regexp_Substitute );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s{xxccvvb}{ccffdd}is", "xxccvvb", "ccffdd", "is", Token_Regexp_Substitute );
+
+	Tokenize(" s{xxccvvb} [ccffdd] s{xxccvvb}/ccffdd/is \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s{xxccvvb} [ccffdd]", "xxccvvb", "ccffdd", NULL, Token_Regexp_Substitute );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "s{xxccvvb}/ccffdd/is", "xxccvvb", "ccffdd", "is", Token_Regexp_Substitute );
 
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);

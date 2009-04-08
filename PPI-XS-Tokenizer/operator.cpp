@@ -90,7 +90,7 @@ bool OperatorToken::is_operator(const char *str) {
 }
 
 bool inline is_quote(char c) {
-	return ( ( c == '\'' ) || ( c = '"' ) || ( c == '`' ) );
+	return ( ( c == '\'' ) || ( c == '"' ) || ( c == '`' ) );
 }
 
 CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {

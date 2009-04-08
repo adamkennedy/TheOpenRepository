@@ -100,7 +100,7 @@ class PredicateNot {
 public:
 	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
 		unsigned long pos = *position;
-		return (!inner.test( text, position, line_lenght ));
+		return (!inner.test( text, &pos, line_lenght ));
 	}
 private:
 	A1 inner;

@@ -197,6 +197,14 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Word] = &m_WordToken;
 	TokenTypeNames_pool[Token_Quote_Literal] = &m_LiteralQuoteToken;
 	TokenTypeNames_pool[Token_Quote_Interpolate] = &m_InterpolateQuoteToken;
+	TokenTypeNames_pool[Token_QuoteLike_Words] = &m_WordsQuoteLikeToken;
+	TokenTypeNames_pool[Token_QuoteLike_Command] = &m_CommandQuoteLikeToken;
+	TokenTypeNames_pool[Token_QuoteLike_Readline] = &m_ReadlineQuoteLikeToken;
+	TokenTypeNames_pool[Token_Regexp_Match] = &m_MatchRegexpToken;
+	TokenTypeNames_pool[Token_Regexp_Match_Bare] = &m_BareMatchRegexpToken;
+	TokenTypeNames_pool[Token_QuoteLike_Regexp] = &m_RegexpQuoteLikeToken;
+	TokenTypeNames_pool[Token_Regexp_Substitute] = &m_SubstituteRegexpToken;
+	TokenTypeNames_pool[Token_Regexp_Transliterate] = &m_TransliterateRegexpToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

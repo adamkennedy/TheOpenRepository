@@ -128,11 +128,11 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 	if (c_char == 47) { // '/'
 		Token *t0 = t->_last_significant_token(1);
 		if (t0 == NULL) {
-			t->_new_token(Token_Regexp_Match);
+			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
 		if ( t0->type->type == Token_Operator) { 
-			t->_new_token(Token_Regexp_Match);
+			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
 		if ( ( t0->type->type == Token_Symbol ) || 
@@ -143,7 +143,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		}
 		if ( ( t0->type->type == Token_Structure ) && 
 			( ( !strcmp(t0->text, "(") ) || ( !strcmp(t0->text, "{") ) || ( !strcmp(t0->text, ";") ) ) ) {
-			t->_new_token(Token_Regexp_Match);
+			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
 		if ( ( t0->type->type == Token_Word ) && 
@@ -151,7 +151,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			   ( !strcmp(t0->text, "if") ) || 
 			   ( !strcmp(t0->text, "unless") ) || 
 			   ( !strcmp(t0->text, "grep") ) ) ) {
-			t->_new_token(Token_Regexp_Match);
+			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
 

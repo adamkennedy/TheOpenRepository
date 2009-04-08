@@ -29,13 +29,14 @@ enum TokenTypeNames {
 	Token_Quote_Interpolate, // done
 	Token_Quote_Literal, // done
 	Token_QuoteLike_Backtick, // done
-	Token_QuoteLike_Readline,
-	Token_QuoteLike_Command,
-	Token_QuoteLike_Regexp,
-	Token_QuoteLike_Words,
-	Token_Regexp_Match,
-	Token_Regexp_Substitute,
-	Token_Regexp_Transliterate,
+	Token_QuoteLike_Readline, // done
+	Token_QuoteLike_Command, // done
+	Token_QuoteLike_Regexp, // done
+	Token_QuoteLike_Words, // done
+	Token_Regexp_Match, // done
+	Token_Regexp_Match_Bare, // done - Token_Regexp_Match without the 'm'
+	Token_Regexp_Substitute, // done
+	Token_Regexp_Transliterate, // done
 	Token_Cast, 
 	Token_Prototype,
 	Token_ArrayIndex,
@@ -122,7 +123,7 @@ public:
 	struct section {
 		uchar open_char, close_char;
 		ulong position, size;
-	} sections[3];
+	} sections[2], modifiers;
 };
 
 class AbstractQuoteTokenType : public AbstractTokenType {
@@ -146,12 +147,26 @@ protected:
 	virtual Token *_get_from_cache(TokensCacheMany& tc);
 	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
 	virtual void _clean_token_fields( Token *t );
-private:
+protected:
 	CharTokenizeResults StateFuncInSectionBraced(Tokenizer *t, QuoteToken *token);
 	CharTokenizeResults StateFuncInSectionUnBraced(Tokenizer *t, QuoteToken *token);
 	CharTokenizeResults StateFuncBootstrapSection(Tokenizer *t, QuoteToken *token);
 	CharTokenizeResults StateFuncConsumeWhitespaces(Tokenizer *t, QuoteToken *token);
-	CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncConsumeModifiers(Tokenizer *t, QuoteToken *token);
+	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
+};
+
+class AbstractBareQuoteTokenType : public AbstractQuoteTokenType {
+public:
+	AbstractBareQuoteTokenType( 
+		TokenTypeNames my_type,  
+		bool sign, 
+		uchar num_sections, 
+		bool accept_modifiers ) 
+		: 
+	AbstractQuoteTokenType( my_type, sign, num_sections, accept_modifiers ) {} 
+protected:
+	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
 };
 
 class LiteralQuoteToken : public AbstractQuoteTokenType {
@@ -164,6 +179,55 @@ class InterpolateQuoteToken : public AbstractQuoteTokenType {
 public:
 	// my_type, sign, num_sections, accept_modifiers
 	InterpolateQuoteToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true, 1, false ) {}
+};
+
+class ReadlineQuoteLikeToken : public AbstractBareQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	ReadlineQuoteLikeToken() : AbstractBareQuoteTokenType( Token_QuoteLike_Readline, true, 1, false ) {}
+};
+
+class CommandQuoteLikeToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	CommandQuoteLikeToken() : AbstractQuoteTokenType( Token_QuoteLike_Command, true, 1, false ) {}
+};
+
+class RegexpQuoteLikeToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	RegexpQuoteLikeToken() : AbstractQuoteTokenType( Token_QuoteLike_Regexp, true, 1, true ) {}
+};
+
+class WordsQuoteLikeToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	WordsQuoteLikeToken() : AbstractQuoteTokenType( Token_QuoteLike_Words, true, 1, false ) {}
+};
+
+class MatchRegexpToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	MatchRegexpToken() : AbstractQuoteTokenType( Token_Regexp_Match, true, 1, true ) {}
+};
+
+class BareMatchRegexpToken : public AbstractBareQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	BareMatchRegexpToken() : AbstractBareQuoteTokenType( Token_Regexp_Match_Bare, true, 1, true ) {}
+};
+
+class SubstituteRegexpToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	SubstituteRegexpToken() : AbstractQuoteTokenType( Token_Regexp_Substitute, true, 2, true ) {}
+};
+
+
+class TransliterateRegexpToken : public AbstractQuoteTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	TransliterateRegexpToken() : AbstractQuoteTokenType( Token_Regexp_Transliterate, true, 2, true ) {}
 };
 
 // Quote type simple - normal quoted string '' or "" or ``
@@ -373,6 +437,14 @@ private:
 	WordToken m_WordToken;
 	LiteralQuoteToken m_LiteralQuoteToken;
 	InterpolateQuoteToken m_InterpolateQuoteToken;
+	WordsQuoteLikeToken m_WordsQuoteLikeToken; 
+	CommandQuoteLikeToken m_CommandQuoteLikeToken;
+	ReadlineQuoteLikeToken m_ReadlineQuoteLikeToken;
+	MatchRegexpToken m_MatchRegexpToken;
+	BareMatchRegexpToken m_BareMatchRegexpToken;
+	RegexpQuoteLikeToken m_RegexpQuoteLikeToken;
+	SubstituteRegexpToken m_SubstituteRegexpToken;
+	TransliterateRegexpToken m_TransliterateRegexpToken;
 
 	void keep_significant_token(Token *t);
 
