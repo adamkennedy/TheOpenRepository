@@ -524,23 +524,23 @@ sub Marpa::brief_earley_item {
 } ## end sub Marpa::brief_earley_item
 
 sub Marpa::show_token_choice {
-    my ($token, $ii) = @_;
+    my ( $token, $ii ) = @_;
     return
           '[p='
         . Marpa::brief_earley_item( $token->[0], $ii ) . '; t='
         . $token->[1] . ']';
-} ## end sub show_token_choice
+} ## end sub Marpa::show_token_choice
 
 sub Marpa::show_link_choice {
-    my ($link, $ii) = @_;
+    my ( $link, $ii ) = @_;
     return
           '[p='
         . Marpa::brief_earley_item( $link->[0], $ii ) . '; c='
         . Marpa::brief_earley_item( $link->[1], $ii ) . ']';
-} ## end sub show_link_choice
+} ## end sub Marpa::show_link_choice
 
 sub Marpa::show_earley_item {
-    my ($item, $ii) = @_;
+    my ( $item,   $ii )    = @_;
     my ( $tokens, $links ) = @{$item}[
         Marpa::Internal::Earley_item::TOKENS,
         Marpa::Internal::Earley_item::LINKS,
@@ -562,8 +562,8 @@ sub Marpa::show_earley_item {
 } ## end sub Marpa::show_earley_item
 
 sub Marpa::show_earley_set {
-    my ($earley_set, $ii) = @_;
-    my $text       = q{};
+    my ( $earley_set, $ii ) = @_;
+    my $text = q{};
     for my $earley_item ( @{$earley_set} ) {
         $text .= Marpa::show_earley_item( $earley_item, $ii ) . "\n";
     }
@@ -571,7 +571,7 @@ sub Marpa::show_earley_set {
 } ## end sub Marpa::show_earley_set
 
 sub Marpa::show_earley_set_list {
-    my ($earley_set_list, $ii) = @_;
+    my ( $earley_set_list, $ii ) = @_;
     my $text             = q{};
     my $earley_set_count = @{$earley_set_list};
     LIST: for my $ix ( 0 .. $earley_set_count - 1 ) {
@@ -583,7 +583,7 @@ sub Marpa::show_earley_set_list {
 } ## end sub Marpa::show_earley_set_list
 
 sub Marpa::Recognizer::show_earley_sets {
-    my ($recce, $ii) = @_;
+    my ( $recce, $ii ) = @_;
     my $current_set      = $recce->[CURRENT_SET];
     my $furthest_earleme = $recce->[FURTHEST_EARLEME];
     my $earley_set_list  = $recce->[EARLEY_SETS];
@@ -595,7 +595,7 @@ sub Marpa::Recognizer::show_earley_sets {
 
     $text .= Marpa::show_earley_set_list( $earley_set_list, $ii );
     return $text;
-} ## end sub Marpa::show_earley_sets
+} ## end sub Marpa::Recognizer::show_earley_sets
 
 # check class of parse?
 

@@ -61,12 +61,14 @@ sub slurp {
     my ($file_name) = @_;
     my $open_result = open my $fh, '<', $file_name;
     if ( not $open_result ) {
-        $Marpa::Test::Display::FILE_ERROR = my $message = "Cannot open $file_name: $ERRNO";
+        $Marpa::Test::Display::FILE_ERROR = my $message =
+            "Cannot open $file_name: $ERRNO";
         carp($message);
         return \$message;
-    }
+    } ## end if ( not $open_result )
     local ($RS) = undef;
     my $result = \<$fh>;
+
     # special for corner case: empty file
     $result = \q{} if not defined ${$result};
     close $fh;
@@ -394,7 +396,7 @@ my %exclude = map { ( $_, 1 ) } qw(
 
 my @test_files = @ARGV;
 my $debug_mode = scalar @test_files;
-if (not $debug_mode) {
+if ( not $debug_mode ) {
     open my $manifest, '<', 'MANIFEST'
         or croak("Cannot open MANIFEST: $ERRNO");
     FILE: while ( my $file = <$manifest> ) {
@@ -414,18 +416,21 @@ if (not $debug_mode) {
         push @test_files, $file;
     }    # FILE
     close $manifest;
-}
+} ## end if ( not $debug_mode )
 
 plan tests => 1 + scalar @test_files;
 
 my $error_file;
+## no critic (InputOutput::RequireBriefOpen)
 if ($debug_mode) {
     open $error_file, '>&STDOUT'
         or croak("Cannot dup STDOUT: $ERRNO");
-} else {
+}
+else {
     open $error_file, '>', 'author.t/display.errs'
         or croak("Cannot open display.errs: $ERRNO");
 }
+## use critic
 
 FILE: for my $file (@test_files) {
     if ( not -f $file ) {
