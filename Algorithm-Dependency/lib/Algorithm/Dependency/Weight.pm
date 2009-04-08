@@ -71,7 +71,7 @@ use Params::Util qw{_INSTANCE _STRING};
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 }
 
 
@@ -177,6 +177,23 @@ sub weight {
 sub _weight {
 	my $self  = shift;
 	my $items = $self->{algdep}->schedule($_[0]) or return undef;
+	scalar(@$items);
+}
+
+=pod
+
+=head2 weight_merged @names
+
+The C<weight_merged> method takes the name of a set of items and
+calculates an aggregated weight for the whole set.
+
+Returns the weight as a scalar, or C<undef> on error.
+
+=cut
+
+sub weight_merged {
+	my $self  = shift;
+	my $items = $self->{algdep}->schedule(@_) or return undef;
 	scalar(@$items);
 }
 

@@ -24,7 +24,7 @@ use Algorithm::Dependency::Source::HoA ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.108';
+	$VERSION = '1.109';
 	@ISA     = 'Algorithm::Dependency::Source::HoA';
 }
 

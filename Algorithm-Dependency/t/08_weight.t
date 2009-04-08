@@ -71,9 +71,13 @@ my $complex = {
 	S => 6,	T => 11,
 	};
 foreach my $item ( sort keys %$complex ) {
-	is( $algorithm->weight($item), $complex->{$item}, "complex: Got weight for '$item'" );
+	is(
+		$algorithm->weight($item),
+		$complex->{$item},
+		"complex: Got weight for '$item'",
+	);
 }
-
+	
 
 
 

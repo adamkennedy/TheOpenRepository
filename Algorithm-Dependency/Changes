@@ -1,5 +1,9 @@
 Revision history for Perl extension Algorithm::Dependency
 
+1.109 Wed  9 Apr 2009
+	- Upgrading to Module::Install 0.82
+	- Adding new method ->weight_merged
+
 1.108 Wed 10 Feb 2009
 	- Allow ->weight to take _STRING instead of only _IDENTIFIER
 
