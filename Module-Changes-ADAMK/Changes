@@ -1,7 +1,7 @@
 Changes for Perl extension Module-Changes-ADAMK
 
 0.02 Wed  9 Apr 2009
-	- Updated to Module::Install::DSL 0.82
+	- Updated to Module::Install::DSL 0.82 (ADAMK)
 
 0.01 Wed  2 Apr 2009
 	- Created the initial version (ADAMK)
