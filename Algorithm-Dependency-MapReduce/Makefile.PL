@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.81;
+use inc::Module::Install::DSL 0.82;
 
 all_from      lib/Algorithm/Dependency/MapReduce.pm
 requires      Algorithm::Dependency 1.108
