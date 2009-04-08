@@ -1,6 +1,9 @@
 Revision history for Perl extension Process
 
-0.23 Sun 10 Aug 2008
+0.24 Wed  9 Apr 2009
+	- Upgraded to Module::Install::DSL 0.82
+
+0.23 Tue  8 Apr 2009
 	- Upgraded to Module::Install::DSL 0.81
 	- Incremental cleanup release in preparation for major
 	  refactoring, leading to Process 1.00 (which will have

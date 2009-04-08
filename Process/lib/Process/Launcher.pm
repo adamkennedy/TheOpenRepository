@@ -9,7 +9,7 @@ use Process::Serializable ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.23';
+	$VERSION = '0.24';
 	@ISA     = qw{Exporter};
 	@EXPORT  = qw{run run3 serialized};
 
