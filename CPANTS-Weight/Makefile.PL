@@ -1,4 +1,4 @@
-use inc::Module::Install 0.81;
+use inc::Module::Install 0.82;
 
 all_from       'lib/CPANTS/Weight.pm';
 requires_from  'lib/CPANTS/Weight.pm';
