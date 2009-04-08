@@ -1,4 +1,4 @@
-use inc::Module::Install 0.79;
+use inc::Module::Install 0.82;
 
 all_from      'lib/ADAMK/Changes.pm';
 requires      'Object::Tiny'                => '1.03';
@@ -11,7 +11,7 @@ WriteAll;
 
 __END__
 
-use inc::Module::Install::DSL 0.81;
+use inc::Module::Install::DSL 0.82;
 
 name          ADAMK-Changes
 all_from      lib/ADAMK/Changes.pm
