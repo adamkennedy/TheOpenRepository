@@ -3121,8 +3121,8 @@ sub _run3 {
 
 		# Strip any path that contains either unzip or gzip.exe.
 		# These two programs cause perl to fail its own tests.
-		next if -f catfile( $p, 'unzip.exe' );
-		next if -f catfile( $p, 'gzip.exe' );
+		next if -f File::Spec->catfile( $p, 'unzip.exe' );
+		next if -f File::Spec->catfile( $p, 'gzip.exe' );
 
 		push @keep, $p;
 	}

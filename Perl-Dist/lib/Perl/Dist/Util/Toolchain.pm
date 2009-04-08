@@ -46,7 +46,7 @@ my %MODULES = (
 		Scalar::Util
 		Compress::Raw::Zlib
 		Compress::Raw::Bzip2
-		IO::Compress
+		IO::Compress::Base
 		Compress::Bzip2
 		IO::Zlib
 		File::Spec
