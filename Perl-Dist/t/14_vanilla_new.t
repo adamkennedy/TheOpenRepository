@@ -35,7 +35,7 @@ sub cpan_uri {
 # Constructor Test
 
 my $dist = Perl::Dist::Vanilla->new(
-	t::lib::Test->paths(16),
+	t::lib::Test->paths(14),
 	cpan     => cpan_uri(),
 );
 isa_ok( $dist, 'Perl::Dist::Vanilla' );

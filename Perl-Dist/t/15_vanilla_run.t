@@ -31,7 +31,7 @@ use t::lib::Test          ();
 # Complete Generation Run
 
 my $dist = Perl::Dist::Vanilla->new(
-	t::lib::Test->paths(17),
+	t::lib::Test->paths(15),
 );
 isa_ok( $dist, 'Perl::Dist::Vanilla' );
 ok( $dist->run, '->run ok' );
