@@ -16,4 +16,6 @@ BEGIN {
 }
 
 all_uses_ok();
+diag( "Testing Perl::Dist::WiX $Perl::Dist::WiX::VERSION" );
+
 

@@ -8,7 +8,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.163.
+This document describes Perl::Dist::WiX version 0.169.
 
 =head1 DESCRIPTION
 
@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.163_109')->numify;
+use version; $VERSION = version->new('0.169')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -805,18 +805,18 @@ Returns a directory as a string or throws an exception on error.
 
 sub dist_dir {
 	my $dir;
-	
-	eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX') };
 
-	if ($EVAL_ERROR) {
+	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
+	{
 		PDWiX::Caught->throw(
-			message => 'Could not find distribution directory for Perl::Dist::WiX',
-			info => $EVAL_ERROR,
+			message =>
+			  'Could not find distribution directory for Perl::Dist::WiX',
+			info => ( defined $EVAL_ERROR ) ? $EVAL_ERROR : 'Unknown error',
 		);
 	}
-	
+
 	return $dir;
-}
+} ## end sub dist_dir
 
 #####################################################################
 # Documentation for accessors
@@ -1242,10 +1242,16 @@ sub install_perl_toolchain {
 	# Get the regular Perl to generate the list.
 	# Run it in a separate process so we don't hold
 	# any permanent CPAN.pm locks.
-	eval { $toolchain->delegate; };
-	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
 	if ( $toolchain->{errstr} ) {
-		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions', info => $toolchain->{errstr});
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->{errstr} );
 	}
 
 	my ( $core, $module_id );
@@ -1385,8 +1391,10 @@ END_PERL
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
+		open $CPAN_FILE, '>', $cpan_file
+		  or PDWiX->throw("CPAN script open failed: $!");
+		print {$CPAN_FILE} $cpan_string
+		  or PDWiX->throw("CPAN script print failed: $!");
 		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
 	}
 	$self->_run3( $self->bin_perl, $cpan_file )
@@ -1694,11 +1702,16 @@ sub install_perl_588 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	eval { $toolchain->delegate; };
-	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
-
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
 	if ( $toolchain->{errstr} ) {
-		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->{errstr} );
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -1867,11 +1880,16 @@ sub install_perl_589 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	eval { $toolchain->delegate; };
-	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
-
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
 	if ( $toolchain->{errstr} ) {
-		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->{errstr} );
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -2015,11 +2033,16 @@ sub install_perl_5100 {
 	  Perl::Dist::Util::Toolchain->new(
 		perl_version => $self->perl_version_literal, )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
-	eval { $toolchain->delegate; };
-	PDWiX::Caught->throw(message => 'Delegation error occured', info => $EVAL_ERROR) if ($EVAL_ERROR);
-
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
 	if ( $toolchain->{errstr} ) {
-		PDWiX::Caught->throw(message => 'Failed to generate toolchain distributions',  info => $toolchain->{errstr});
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->{errstr} );
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -2756,7 +2779,7 @@ sub install_library {
 	my @sorted_files = sort { $a cmp $b } @files;
 	my $filelist =
 	  Perl::Dist::WiX::Filelist->new->load_array(@sorted_files)
-	  ->filter( $self->filters )->filter( [ $unpack_to ] );
+	  ->filter( $self->filters )->filter( [$unpack_to] );
 
 	return $filelist;
 } ## end sub install_library
@@ -2968,14 +2991,14 @@ sub install_distribution_from_file {
 	my $self = shift;
 	my $dist = {
 		automated_testing => 0,
-		release_testing => 0,
-		packlist => 1,
-		force  => $self->force,
+		release_testing   => 0,
+		packlist          => 1,
+		force             => $self->force,
 		@_,
 	};
 	my $name = $dist->{file};
-	
-	unless ( _STRING( $name ) ) {
+
+	unless ( _STRING($name) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'file',
 			where     => '->install_distribution_from_file'
@@ -2989,7 +3012,7 @@ sub install_distribution_from_file {
 	}
 
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my (undef, undef, $filename) = splitpath($name, 0);
+	my ( undef, undef, $filename ) = splitpath( $name, 0 );
 	my $module = $self->_name_to_module("CSJ/$filename");
 	my $filelist_sub;
 
@@ -3006,6 +3029,7 @@ sub install_distribution_from_file {
 	my $dist_path = $filename;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{\.zip}{}msx;
+
 #	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
 	my $unpack_to = catdir( $self->build_dir, $dist_path );
 
@@ -3014,7 +3038,7 @@ sub install_distribution_from_file {
 		$self->trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
-	$self->trace_line(4, "Unpacking to $unpack_to\n");
+	$self->trace_line( 4, "Unpacking to $unpack_to\n" );
 	$self->_extract( $name => $self->build_dir );
 	unless ( -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
@@ -3058,7 +3082,7 @@ sub install_distribution_from_file {
 
 	# Making final filelist.
 	my $filelist;
-	if ($dist->{packlist}) {
+	if ( $dist->{packlist} ) {
 		$filelist = $self->search_packlist($module);
 	} else {
 		$filelist = Perl::Dist::WiX::Filelist->new->readdir(
@@ -3077,7 +3101,7 @@ sub install_distribution_from_file {
 
 sub _name_to_module {
 	my ( $self, $dist ) = @_;
-	$self->trace_line(3, "Trying to get module name out of $dist\n");
+	$self->trace_line( 3, "Trying to get module name out of $dist\n" );
 
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
@@ -3245,8 +3269,10 @@ END_PERL
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
-		open $CPAN_FILE, '>', $cpan_file or PDWiX->throw("CPAN script open failed: $!");
-		print {$CPAN_FILE} $cpan_string or PDWiX->throw("CPAN script print failed: $!");
+		open $CPAN_FILE, '>', $cpan_file
+		  or PDWiX->throw("CPAN script open failed: $!");
+		print {$CPAN_FILE} $cpan_string
+		  or PDWiX->throw("CPAN script print failed: $!");
 		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
 	}
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
@@ -4116,12 +4142,12 @@ sub _extract_filemap {
 #<<<
 				# say "matching $canon_f vs $canon_tgt";
 				if ($file_only) {
-					next unless 
+					next unless
 					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}imsx;
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E\z}
 										  {$filemap->{$tgt}}imsx;
 				} else {
-					next unless 
+					next unless
 					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
 					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E}
 										  {$filemap->{$tgt}}imsx;
@@ -4154,35 +4180,46 @@ sub _dll_to_a {
 	# Source file
 	my $source = $params{source};
 	if ( $source and not( $source =~ /\.dll\z/ms ) ) {
-		PDWiX::Parameter->throw( parameter => 'source',
-			where => '->_dll_to_a');
+		PDWiX::Parameter->throw(
+			parameter => 'source',
+			where     => '->_dll_to_a'
+		);
 	}
 
 	# Target .dll file
 	my $dll = $params{dll};
 	unless ( $dll and $dll =~ /\.dll/ms ) {
-		PDWiX::Parameter->throw( parameter => 'dll',
-			where => '->_dll_to_a');
+		PDWiX::Parameter->throw(
+			parameter => 'dll',
+			where     => '->_dll_to_a'
+		);
 	}
 
 	# Target .def file
 	my $def = $params{def};
 	unless ( $def and $def =~ /\.def\z/ms ) {
-		PDWiX::Parameter->throw( parameter => 'def',
-			where => '->_dll_to_a');
+		PDWiX::Parameter->throw(
+			parameter => 'def',
+			where     => '->_dll_to_a'
+		);
 	}
 
 	# Target .a file
 	my $_a = $params{a};
 	unless ( $_a and $_a =~ /\.a\z/ms ) {
-		PDWiX::Parameter->throw( parameter => 'a',
-			where => '->_dll_to_a');
+		PDWiX::Parameter->throw(
+			parameter => 'a',
+			where     => '->_dll_to_a'
+		);
 	}
 
 	# Step 1 - Copy the source .dll to the target if needed
 	unless ( ( $source and -f $source ) or -f $dll ) {
-		PDWiX::Parameter->throw( parameter => 'source or dll: Need one of ' . 'these two parameters, and the file needs to exist',
-			where => '->_dll_to_a');
+		PDWiX::Parameter->throw(
+			parameter => 'source or dll: Need one of '
+			  . 'these two parameters, and the file needs to exist',
+			where => '->_dll_to_a'
+		);
 	}
 	if ($source) {
 		$self->_move( $source => $dll );

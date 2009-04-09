@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
 use vars              qw( $VERSION                               );
-use version; $VERSION = version->new('0.163')->numify;
+use version; $VERSION = version->new('0.169')->numify;
 #>>>
 
 1;

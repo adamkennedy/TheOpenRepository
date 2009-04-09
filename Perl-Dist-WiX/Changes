@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.163_107 Mon 06 Apr 2009
+0.169   Thu 09 Apr 2009
     1. With previous distributions where build_number 
        was the only parameter that was different, 
        Product/@Id attribute would be identical.

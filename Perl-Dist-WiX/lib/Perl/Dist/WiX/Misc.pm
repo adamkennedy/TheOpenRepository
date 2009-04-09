@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = version->new('0.163')->numify;
+use version; $VERSION = version->new('0.169')->numify;
 
 #>>>
 
@@ -38,9 +38,9 @@ use Exception::Class (
 		'isa'    => 'PDWiX',
 		'fields' => [ 'parameter', 'where' ],
 	},
-	'PDWiX::Caught'    => { 
-		'description' => 
-		  'Error caught by Perl::Dist::WiX from other module', 
+	'PDWiX::Caught' => {
+		'description' =>
+		  'Error caught by Perl::Dist::WiX from other module',
 		'isa'    => 'PDWiX',
 		'fields' => [ 'message', 'info' ],
 	},
@@ -49,7 +49,11 @@ use Exception::Class (
 sub PDWiX::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
-	my $string     = $self->description() . ': ' . $self->message() . "\n" .  'Time error caught: ' . localtime() . "\n";
+	my $string =
+	    $self->description() . ': '
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -69,7 +73,9 @@ sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 	    $self->description() . ': '
 	  . $self->parameter()
 	  . ' in Perl::Dist::WiX'
-	  . $self->where() . "\n" . 'Time error caught: ' . localtime() . "\n";
+	  . $self->where() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -85,9 +91,10 @@ sub PDWiX::Caught::full_message { ## no critic 'Capitalization'
 
 	my $string =
 	    $self->description() . ': '
-	  . $self->message()
-	  . "\n"
-	  . $self->info() . "\n" . 'Time error caught: ' . localtime() . "\n";
+	  . $self->message() . "\n"
+	  . $self->info() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
 	my $misc       = Perl::Dist::WiX::Misc->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
@@ -98,7 +105,7 @@ sub PDWiX::Caught::full_message { ## no critic 'Capitalization'
 
 	return $misc->_trace_line( 0, $string, 0, $tracelevel,
 		$self->trace->frame(0) );
-} ## end sub PDWiX::Parameter::full_message
+} ## end sub PDWiX::Caught::full_message
 
 #####################################################################
 # Attributes

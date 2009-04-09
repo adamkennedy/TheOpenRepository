@@ -22,7 +22,7 @@ use Params::Util
 use Readonly          qw( Readonly );
 use Scalar::Util      qw( blessed  );
 
-use version; $VERSION = version->new('0.163')->numify;
+use version; $VERSION = version->new('0.169')->numify;
 #>>>
 
 Readonly my $DIRECTORY_CLASS => 'Perl::Dist::WiX::Directory';
