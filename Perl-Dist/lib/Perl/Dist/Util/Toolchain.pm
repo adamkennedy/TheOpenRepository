@@ -181,8 +181,6 @@ sub run {
 	# Squash all output that CPAN might spew during this process
 	my $stdout = IO::Capture::Stdout->new;
 	my $stderr = IO::Capture::Stderr->new;
-	$stdout->start;
-	$stderr->start;
 	
 	# Find the module
 	my $core = delete $self->{corelist};
@@ -193,11 +191,12 @@ sub run {
 			next;
 		}
 
-		# Get the CPAN object for the module
+		# Get the CPAN object for the module, covering any output.
+		$stdout->start;		$stderr->start;
 		my $module = CPAN::Shell->expand('Module', $name);
+		$stdout->stop;		$stderr->stop;
 		unless ( $module ) {
-			$self->{errstr} = "Failed to find '$name'";
-			return 0;
+			die "Failed to find '$name'";
 		}
 
 		# Ignore modules that don't need to be updated
@@ -225,10 +224,6 @@ sub run {
 	# Remove duplicates
 	my %seen = ();
 	@{$self->{dists}} = grep { ! $seen{$_}++ } @{$self->{dists}};
-
-	# Free up stdout/stderr for normal output again
-	$stdout->stop;
-	$stderr->stop;
 
 	return 1;
 }
