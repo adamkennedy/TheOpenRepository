@@ -43,6 +43,7 @@ sub delegate {
 	my $result;
 	while ( 1 ) {
 		$result = <$stdout>;
+		$result = "FAIL No output returned\n" unless defined $result;
 		next unless $result =~ /\S/;
 		chomp($result);
 		last;
