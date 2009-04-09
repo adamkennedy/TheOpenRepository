@@ -791,19 +791,17 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME];
             my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
             my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
-            my $order    = $rule->[Marpa::Internal::Rule::ID];
             my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $laziness = $end_earleme;
             $laziness = -$laziness if $is_hasty;
             push @decorated_and_nodes,
-                [ $and_node, $priority, $order, $laziness ];
+                [ $and_node, $priority, $laziness ];
         } ## end for my $and_node ( @{ $choice_and_nodes->[$start_earleme...
         $and_nodes = [];
         for my $decorated_and_node (
             sort {
                        $a->[1] cmp $b->[1]
                     || $a->[2] <=> $b->[2]
-                    || $a->[3] <=> $b->[3]
             } @decorated_and_nodes
             )
         {
@@ -908,14 +906,24 @@ sub Marpa::Evaluator::show_choice_point {
         $text .= "CHOSEN: " if $map_ix == $choice_ix;
         $text .= "Alternative $map_ix for $choice_point_name:\n";
         my ( $and_vec, $or_choices ) = @{$map->[$map_ix]};
-        for my $and_ix (0 .. $#{$choice_and_nodes}) {
-            $text .= "Completion: " . Marpa::show_and_node($choice_and_nodes->[$and_ix])
-                if vec($and_vec, $and_ix, 1);
+        AND_IX: for my $and_ix (0 .. $#{$choice_and_nodes}) {
+            next AND_IX unless vec($and_vec, $and_ix, 1);
+            my $and_node = $choice_and_nodes->[$and_ix];
+            my $or_parent = $and_node->[Marpa::Internal::And_Node::PARENT];
+            my $and_nodes = $or_parent->[Marpa::Internal::Or_Node::AND_NODES];
+            my $or_ix = $or_parent->[Marpa::Internal::Or_Node::ID];
+            my $and_choice = $or_choices->[$or_ix];
+            my $choice_count = scalar @{$and_nodes};
+            my $choice_label = q{};
+            $choice_label = ", choice $and_choice of $choice_count" if $choice_count > 1;
+            $text .= "Completion$choice_label: " . Marpa::show_and_node($and_node)
         }
         OR_IX: for my $or_ix ( 0 .. $#{$choice_or_nodes} ) {
             my $and_choice = $or_choices->[$or_ix];
             next OR_IX if not defined $and_choice or $and_choice < 0;
             my $or_node = $choice_or_nodes->[$or_ix];
+            # completed and nodes were already shown above
+            next OR_IX if $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED];
             my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
             my $choice_count = scalar @{$and_nodes};
             my $choice_label = "Trivial";
