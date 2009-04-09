@@ -54,8 +54,7 @@ Marpa::Test::is( $g->show_rules, <<'EOS', 'Hopcroft/Ullman Rules' );
 4: A -> a b
 EOS
 
-Marpa::Test::is( $g->show_symbols,
-    <<'EOS', 'Hopcroft/Ullman Symbols' );
+Marpa::Test::is( $g->show_symbols, <<'EOS', 'Hopcroft/Ullman Symbols' );
 0: S', lhs=[0] rhs=[]
 1: S, lhs=[1 2] rhs=[0 1 3]
 2: c, lhs=[] rhs=[0] terminal
@@ -64,10 +63,10 @@ Marpa::Test::is( $g->show_symbols,
 5: b, lhs=[] rhs=[3 4] terminal
 EOS
 
-Marpa::Test::is( $g->show_nullable_symbols,
-    q{}, 'Hopcroft/Ullman Nullable Symbols' );
-Marpa::Test::is( $g->show_nulling_symbols,
-    q{}, 'Hopcroft/Ullman Nulling Symbols' );
+Marpa::Test::is( $g->show_nullable_symbols, q{},
+    'Hopcroft/Ullman Nullable Symbols' );
+Marpa::Test::is( $g->show_nulling_symbols, q{},
+    'Hopcroft/Ullman Nulling Symbols' );
 Marpa::Test::is(
     $g->show_productive_symbols,
     'A S S\' a b c',

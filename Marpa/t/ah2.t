@@ -43,8 +43,7 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-Marpa::Test::is( $grammar->show_rules,
-    <<'EOS', 'Aycock/Horspool Rules' );
+Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 0: S -> A A A A /* !useful nullable */
 1: A -> a
 2: A -> E /* !useful nullable nulling */
@@ -62,8 +61,7 @@ Marpa::Test::is( $grammar->show_rules,
 14: S['][] -> /* empty nullable nulling */
 EOS
 
-Marpa::Test::is( $grammar->show_symbols,
-    <<'EOS', 'Aycock/Horspool Symbols' );
+Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 6 7 9 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
@@ -184,8 +182,7 @@ S31: S['] ::= S .
 S32: S['][] ::= .
 EOS
 
-Marpa::Test::is( $grammar->show_ii_QDFA,
-    <<'EOS', 'Aycock/Horspool QDFA' );
+Marpa::Test::is( $grammar->show_ii_QDFA, <<'EOS', 'Aycock/Horspool QDFA' );
 Start States: St11; St3
 St0: predict; 1
 A ::= . a

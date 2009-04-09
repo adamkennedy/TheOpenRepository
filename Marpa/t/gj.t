@@ -68,10 +68,10 @@ Marpa::Test::is( $g->show_symbols, <<'EOS', 'Grune/Jacobs Symbols' );
 8: ), lhs=[] rhs=[5] terminal
 EOS
 
-Marpa::Test::is( $g->show_nullable_symbols,
-    q{}, 'Grune/Jacobs Nullable Symbols' );
-Marpa::Test::is( $g->show_nulling_symbols,
-    q{}, 'Grune/Jacobs Nulling Symbols' );
+Marpa::Test::is( $g->show_nullable_symbols, q{},
+    'Grune/Jacobs Nullable Symbols' );
+Marpa::Test::is( $g->show_nulling_symbols, q{},
+    'Grune/Jacobs Nulling Symbols' );
 Marpa::Test::is(
     $g->show_productive_symbols,
     '$ ( ) - E S S\' T n',
