@@ -40,7 +40,7 @@ ok( $dist->run, '->run ok' );
 
 # C toolchain files
 ok(
-	-f catfile( qw{ t catfi image c bin dmake.exe } ),
+	-f catfile( qw{ t tmp17 image c bin dmake.exe } ),
 	'Found dmake.exe',
 );
 ok(
