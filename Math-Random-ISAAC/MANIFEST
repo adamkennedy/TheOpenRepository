@@ -16,11 +16,11 @@ t/01critic.t
 t/01kwalitee.t
 t/01manifest.t
 t/01meta.t
-t/01memory.t
 t/01min-perl.t
 t/01pod-coverage.t
 t/01pod.t
 t/01portability.t
+t/02memory.t
 t/02sequence.t
 t/03uniform.t
 t/04fallback.t
