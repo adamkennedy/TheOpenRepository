@@ -21,11 +21,11 @@ Math::Random::ISAAC::PP - Pure Perl port of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0.1 ($Id$)
+Version 1.0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.1');
+use version; our $VERSION = qv('1.0.2');
 
 =head1 SYNOPSIS
 
@@ -78,10 +78,10 @@ sub new {
   my $seedsize = scalar(@seed);
 
   my @mm;
-  $#mm = $#seed = 0xff; # predeclare arrays with 256 slots
+  $#mm = $#seed = 255; # predeclare arrays with 256 slots
 
   # Zero-fill our seed data
-  for ($seedsize .. 0xff) {
+  for ($seedsize .. 255) {
     $seed[$_] = 0;
   }
 
@@ -95,7 +95,6 @@ sub new {
     randc     => 0,
   };
 
-  # By blessing this class as our parent class, users can 
   bless($self, $class);
 
   $self->_randinit();
@@ -175,7 +174,7 @@ sub _isaac {
     # I don't actually know why the "0x03ffffff" stuff is for. It was in Allen
     # Day's code. If you can explain this please file a bug report.
     $x = $mm->[$i+1];
-    $aa = (($aa ^ (0x03ffffff & ($aa >> 6))) + $mm->[($i+1+128) & 255]);
+    $aa = (($aa ^ (0x03ffffff & ($aa >> 6))) + $mm->[($i+1+128) & 0xff]);
     $aa &= 0xffffffff;
     $mm->[$i+1] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
     $r->[$i+1] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
@@ -191,10 +190,10 @@ sub _isaac {
     $aa &= 0xffffffff;
     $mm->[$i+3] = $y = ($mm->[($x >> 2) & 0xff] + $aa + $bb) & 0xffffffff;
     $r->[$i+3] = $bb = ($mm->[($y >> 10) & 0xff] + $x) & 0xffffffff;
-
-    $self->{randb} = $bb;
-    $self->{randa} = $aa;
   }
+
+  $self->{randb} = $bb;
+  $self->{randa} = $aa;
 
   return;
 }
@@ -212,7 +211,7 @@ sub _randinit
   my $mm = $self->{randmem};
   my $r = $self->{randrsl};
 
-  for (0..3) # Loop 4 times
+  for (1..4)
   {
     $c ^= $d << 11;
     $f += $c;
