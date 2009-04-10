@@ -924,7 +924,7 @@ sub Marpa::Evaluator::show_choice_point {
             $choice_label = ", choice $and_choice of $choice_count"
                 if $choice_count > 1;
             $text .= "Completion$choice_label: "
-                . Marpa::show_and_node($and_node);
+                . Marpa::show_and_node( $and_node, 1 );
         } ## end for my $and_ix ( 0 .. $#{$choice_and_nodes} )
         OR_IX: for my $or_ix ( 0 .. $#{$choice_or_nodes} ) {
             my $and_choice = $or_choices->[$or_ix];
@@ -939,7 +939,7 @@ sub Marpa::Evaluator::show_choice_point {
             $choice_label = "Choice $and_choice of $choice_count"
                 if $choice_count > 1;
             my $and_node = $and_nodes->[$and_choice];
-            $text .= "$choice_label: " . Marpa::show_and_node($and_node);
+            $text .= "$choice_label: " . Marpa::show_and_node( $and_node, 1 );
         } ## end for my $or_ix ( 0 .. $#{$choice_or_nodes} )
     } ## end for my $map_ix ( 0 .. $#{$map} )
     return $text;
