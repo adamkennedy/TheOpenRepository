@@ -212,8 +212,10 @@ sub set_null_values {
                 print {$trace_fh} 'Setting null value for symbol ',
                     $nulling_symbol->[Marpa::Internal::Symbol::NAME],
                     " from\n", $code, "\n",
-                    ' to ', Dumper( \$null_value ), "\n"
-                    or croak('Could not print to trace file');
+                    ' to ',
+                    Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump,
+                    "\n"
+                    or exception('Could not print to trace file');
             } ## end if ($trace_actions)
 
         } ## end if ( defined $action and @{$rhs} <= 0 )
@@ -236,8 +238,9 @@ sub set_null_values {
             ];
             print {$trace_fh}
                 'Setting null value for CHAF symbol ',
-                $name, ' to ', Dumper( $null_values->[$id] ),
-                or croak('Could not print to trace file');
+                $name, ' to ',
+                Data::Dumper->new( [ $null_values->[$id] ] )->Terse(1)->Dump,
+                or exception('Could not print to trace file');
         } ## end for my $symbol ( @{$symbols} )
     } ## end if ($trace_actions)
 
@@ -437,8 +440,6 @@ sub Marpa::Evaluator::new {
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
     }
-
-    local ($Data::Dumper::Terse) = 1;
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     $self->[Marpa::Internal::Evaluator::OR_NODES]    = [];
@@ -819,6 +820,7 @@ sub Marpa::Evaluator::new {
 
 sub Marpa::show_and_node {
     my ( $and_node, $verbose ) = @_;
+    $verbose //= 0;
     my $return_value = q{};
 
     my ( $name, $predecessor, $cause, $value_ref, $closure, $argc, $rule,
@@ -852,20 +854,21 @@ sub Marpa::show_and_node {
     }    # value
 
     $return_value .= "$name ::= " . join( q{ }, @rhs ) . "\n";
-    $return_value
-        .= q{    } . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
 
     if ($verbose) {
         $return_value
             .= '    rule '
             . $rule->[Marpa::Internal::Rule::ID] . ': '
-            . Marpa::show_dotted_rule( $rule, $position + 1 ) . "\n";
+            . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
+    } ## end if ($verbose)
+
+    if ( $verbose >= 2 ) {
         $return_value .= "    rhs length = $argc";
         if ( defined $closure ) {
             $return_value .= '; closure';
         }
         $return_value .= "\n";
-    } ## end if ($verbose)
+    } ## end if ( $verbose >= 2 )
 
     return $return_value;
 
@@ -952,8 +955,6 @@ sub Marpa::Evaluator::show_bocage {
         Marpa::Internal::Evaluator::PACKAGE,
     ];
 
-    local $Data::Dumper::Terse = 1;
-
     my $text =
         'package: ' . $package . '; parse count: ' . $parse_count . "\n";
 
@@ -987,8 +988,6 @@ sub Marpa::Evaluator::show_tree {
     my ( $evaler, $verbose ) = @_;
 
     my $tree = $evaler->[Marpa::Internal::Evaluator::TREE];
-
-    local $Data::Dumper::Terse = 1;
 
     my $text = q{};
 
@@ -1035,7 +1034,8 @@ sub Marpa::Evaluator::show_tree {
         if ($verbose) {
             $text .= '    Perl Closure: ' . ( defined $closure ? 'Y' : 'N' );
             if ( defined $value_ref ) {
-                $text .= '; Token: ' . Dumper( ${$value_ref} );
+                $text .= '; Token: '
+                    . Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump;
             }
             else {
                 $text .= "\n";
@@ -1176,8 +1176,6 @@ sub Marpa::Evaluator::value {
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
     }
 
-    local ($Data::Dumper::Terse) = 1;
-
     my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
         Marpa::Internal::Evaluator::OR_NODES,
         Marpa::Internal::Evaluator::TREE,
@@ -1304,9 +1302,11 @@ sub Marpa::Evaluator::value {
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $#evaluation_stack ) {
                 printf {$trace_fh} 'Stack position %3d:', $i;
-                print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] )
-                    or croak('print to trace handle failed');
-            }
+                print {$trace_fh} q{ },
+                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
+                    ->Dump
+                    or exception('print to trace handle failed');
+            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
         my ( $closure, $value_ref, $argc ) = @{$and_node}[
@@ -1323,7 +1323,8 @@ sub Marpa::Evaluator::value {
                 print {$trace_fh}
                     'Pushed value from ',
                     $and_node->[Marpa::Internal::And_Node::NAME],
-                    ': ', Dumper( ${$value_ref} )
+                    ': ',
+                    Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
                     or croak('print to trace handle failed');
             } ## end if ($trace_values)
 
@@ -1394,8 +1395,9 @@ sub Marpa::Evaluator::value {
         }    # when non-code reference
 
         if ($trace_values) {
-            print {$trace_fh} 'Calculated and pushed value: ', Dumper($result)
-                or croak('print to trace handle failed');
+            print {$trace_fh} 'Calculated and pushed value: ',
+                Data::Dumper->new( [$result] )->Terse(1)->Dump
+                or exception('print to trace handle failed');
         }
 
         push @evaluation_stack, \$result;
@@ -1433,8 +1435,6 @@ sub Marpa::Evaluator::old_value {
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
     }
-
-    local ($Data::Dumper::Terse) = 1;
 
     my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
         Marpa::Internal::Evaluator::OR_NODES,
@@ -1675,7 +1675,9 @@ sub Marpa::Evaluator::old_value {
 
             if ($trace_iterations) {
                 my $value_description = "\n";
-                $value_description = '; value=' . Dumper( ${$value_ref} )
+                $value_description =
+                    '; value='
+                    . Data::Dumper->new( ${$value_ref} )->Terse(1)->Dump
                     if defined $value_ref;
                 print {$trace_fh}
                     'Pushing tree node #',
@@ -1684,7 +1686,7 @@ sub Marpa::Evaluator::old_value {
                     "[$choice]: ",
                     Marpa::show_dotted_rule( $rule, $rule_position + 1 ),
                     $value_description
-                    or croak('print to trace handle failed');
+                    or exception('print to trace handle failed');
             } ## end if ($trace_iterations)
 
             push @{$tree}, $new_tree_node;
@@ -1719,7 +1721,7 @@ sub Marpa::Evaluator::old_value {
             defined $leaf_side_start_position
             ? @old_tree - $leaf_side_start_position
             : 0
-            ) or croak('print to trace handle failed');
+            ) or exception('print to trace handle failed');
     } ## end if ($trace_iterations)
 
     # Put the uniterated leaf side of the tree back on the stack.
@@ -1733,9 +1735,11 @@ sub Marpa::Evaluator::old_value {
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $#evaluation_stack ) {
                 printf {$trace_fh} 'Stack position %3d:', $i;
-                print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] )
-                    or croak('print to trace handle failed');
-            }
+                print {$trace_fh} q{ },
+                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
+                    ->Dump
+                    or exception('print to trace handle failed');
+            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
         my ( $closure, $value_ref, $argc ) = @{$node}[
@@ -1754,8 +1758,9 @@ sub Marpa::Evaluator::old_value {
                 print {$trace_fh}
                     'Pushed value from ',
                     $or_node->[Marpa::Internal::Or_Node::NAME],
-                    ': ', Dumper( ${$value_ref} )
-                    or croak('print to trace handle failed');
+                    ': ',
+                    Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
+                    or exception('print to trace handle failed');
             } ## end if ($trace_values)
 
         }    # defined $value_ref
@@ -1828,8 +1833,9 @@ sub Marpa::Evaluator::old_value {
         }    # when non-code reference
 
         if ($trace_values) {
-            print {$trace_fh} 'Calculated and pushed value: ', Dumper($result)
-                or croak('print to trace handle failed');
+            print {$trace_fh} 'Calculated and pushed value: ',
+                Data::Dumper->new( [$result] )->Terse(1)->Dump
+                or exception('print to trace handle failed');
         }
 
         push @evaluation_stack, \$result;
