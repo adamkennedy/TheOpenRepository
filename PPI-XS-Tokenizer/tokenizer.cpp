@@ -205,6 +205,11 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_QuoteLike_Regexp] = &m_RegexpQuoteLikeToken;
 	TokenTypeNames_pool[Token_Regexp_Substitute] = &m_SubstituteRegexpToken;
 	TokenTypeNames_pool[Token_Regexp_Transliterate] = &m_TransliterateRegexpToken;
+	TokenTypeNames_pool[Token_Number] = &m_NumberToken;
+	TokenTypeNames_pool[Token_Number_Float] = &m_FloatNumberToken;
+	TokenTypeNames_pool[Token_Number_Hex] = &m_HexNumberToken;
+	TokenTypeNames_pool[Token_Number_Binary] = &m_BinaryNumberToken;
+	TokenTypeNames_pool[Token_Number_Octal] = &m_OctalNumberToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

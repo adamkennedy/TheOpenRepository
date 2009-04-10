@@ -242,6 +242,32 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, " ", Token_WhiteSpace);
 	CheckExtendedToken( &tk, "s{xxccvvb}/ccffdd/is", "xxccvvb", "ccffdd", "is", Token_Regexp_Substitute );
 
+	Tokenize(" 17 .17 15.34 54..34 53.2..45.6 0x56Bd3 -0x71 0b101\n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckToken(&tk, "17", Token_Number);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, ".17", Token_Number_Float);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "15.34", Token_Number_Float);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "54", Token_Number);
+	CheckToken(&tk, "..", Token_Operator);
+	CheckToken(&tk, "34", Token_Number);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "53.2", Token_Number_Float);
+	CheckToken(&tk, "..", Token_Operator);
+	CheckToken(&tk, "45.6", Token_Number_Float);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "0x56Bd3", Token_Number_Hex);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "-0x71", Token_Number_Hex);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "0b101", Token_Number_Binary);
+
+	Tokenize("04324");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "04324", Token_Number_Octal);
+
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);
 	Token *tkn;

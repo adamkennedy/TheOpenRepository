@@ -18,9 +18,13 @@ enum TokenTypeNames {
 	Token_DashedWord,
     Token_Structure, // done
 	Token_Magic,
-	Token_Number,
+	Token_Number, // done
 	Token_Number_Version,
-	Token_Number_Float,
+	Token_Number_Float, // done
+	Token_Number_Hex, // done
+	Token_Number_Binary, // done
+	Token_Number_Octal, // done
+	Token_Number_Exp,
 	Token_Operator, // done
 	Token_Operator_Attribute, // done - Operator with _attribute = 1
 	Token_Unknown, // done
@@ -351,6 +355,42 @@ public:
 	CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
 };
 
+class NumberToken : public AbstractTokenType {
+public:
+	NumberToken() : AbstractTokenType( Token_Number, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class AbstractNumberSubclassToken : public AbstractTokenType {
+public:
+	virtual bool isa( TokenTypeNames is_type ) const;
+	AbstractNumberSubclassToken( TokenTypeNames my_type,  bool sign ) : AbstractTokenType( my_type, sign ) {}
+};
+
+class FloatNumberToken : public AbstractNumberSubclassToken {
+public:
+	FloatNumberToken() : AbstractNumberSubclassToken( Token_Number_Float, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class HexNumberToken : public AbstractNumberSubclassToken {
+public:
+	HexNumberToken() : AbstractNumberSubclassToken( Token_Number_Hex, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class BinaryNumberToken : public AbstractNumberSubclassToken {
+public:
+	BinaryNumberToken() : AbstractNumberSubclassToken( Token_Number_Binary, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class OctalNumberToken : public AbstractNumberSubclassToken {
+public:
+	OctalNumberToken() : AbstractNumberSubclassToken( Token_Number_Octal, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -445,6 +485,11 @@ private:
 	RegexpQuoteLikeToken m_RegexpQuoteLikeToken;
 	SubstituteRegexpToken m_SubstituteRegexpToken;
 	TransliterateRegexpToken m_TransliterateRegexpToken;
+	NumberToken m_NumberToken;
+	FloatNumberToken m_FloatNumberToken;
+	HexNumberToken m_HexNumberToken;
+	BinaryNumberToken m_BinaryNumberToken;
+	OctalNumberToken m_OctalNumberToken;
 
 	void keep_significant_token(Token *t);
 
@@ -452,5 +497,6 @@ private:
 	unsigned char m_nLastSignificantPos;
 };
 
+// FIXME: add "_error" items where needed. currently omitted.
 
 #endif
