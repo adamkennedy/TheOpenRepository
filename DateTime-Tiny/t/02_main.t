@@ -60,7 +60,7 @@ SCOPE: {
 SKIP: {
 	# Do we have DateTime
 	eval { require DateTime };
-	skip( "Skipping DateTime tests (not installed)", 7 ) if $@;
+	skip( "Skipping DateTime tests (not installed)", 10 ) if $@;
 
 	# Create a normal date
 	my $date = DateTime::Tiny->new(

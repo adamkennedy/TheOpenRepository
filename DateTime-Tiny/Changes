@@ -1,5 +1,7 @@
 Changes for Perl extension DateTime-Tiny
 
+        - fix 02_main.t fail if DateTime is not available (Alexandr Ciornii)
+
 1.03 Sun 29 Mar 2009
 	- Time to stop shirking and do an actual public release
 
