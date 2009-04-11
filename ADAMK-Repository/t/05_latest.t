@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT}) {
-	plan( tests => 11 );
+	plan( tests => 12 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -50,18 +50,28 @@ is( $extract, $release->extracted, '->extracted ok' );
 
 # Run the Araxis tarball comparison
 SKIP: {
-	skip("Not testing Araxis Merge", 0) unless 0; # $ENV{TEST_ARAXIS};
 	unless ( -f ADAMK::Repository->araxis_compare_bin ) {
-		skip("Cannot find Araxis Merge to test", 0);
+		skip("Cannot find Araxis Merge to test", 1);
 	}
-	$repository->compare_tarball_latest('Config-Tiny');
+	unless ( $ENV{TEST_ARAXIS} ) {
+		skip("Not testing Araxis Merge", 1);
+	}
+	ok(
+		$repository->compare_tarball_latest('Config-Tiny'),
+		'->compare_tarball_latest ok',
+	);
 }
 
 # Run the Araxis export comparison
 SKIP: {
-	skip("Not testing Araxis Merge", 1) unless 1; # $ENV{TEST_ARAXIS};
 	unless ( -f ADAMK::Repository->araxis_compare_bin ) {
 		skip("Cannot find Araxis Merge to test", 1);
 	}
-	$repository->compare_export_latest('Config-Tiny');
+	unless ( $ENV{TEST_ARAXIS} ) {
+		skip("Not testing Araxis Merge", 1);
+	}
+	ok(
+		$repository->compare_export_latest('Config-Tiny'),
+		'->compare_export_latest ok',
+	);
 }
