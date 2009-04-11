@@ -1,7 +1,8 @@
 Changes for Perl extension ADAMK-Repository
 
 0.06 Mon 26 Jan 2009
-	- Upgrading to inc::Module::Install::DSL 0.78
+	- Upgrading to inc::Module::Install::DSL 0.82
+	- Sort all files and dirs as we read them
 
 0.05 Tue 23 Dec 2008
 	- Adding support for distribution exporting
