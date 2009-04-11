@@ -50,9 +50,9 @@ is( $extract, $release->extracted, '->extracted ok' );
 
 # Run the Araxis tarball comparison
 SKIP: {
-	skip("Not testing Araxis Merge", 1) unless 0; # $ENV{TEST_ARAXIS};
+	skip("Not testing Araxis Merge", 0) unless 0; # $ENV{TEST_ARAXIS};
 	unless ( -f ADAMK::Repository->araxis_compare_bin ) {
-		skip("Cannot find Araxis Merge to test", 1);
+		skip("Cannot find Araxis Merge to test", 0);
 	}
 	$repository->compare_tarball_latest('Config-Tiny');
 }
