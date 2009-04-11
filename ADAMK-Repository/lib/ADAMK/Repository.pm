@@ -89,7 +89,7 @@ sub distribution_directories {
 	# Load the directory
 	local *DIR;
 	opendir( DIR, $self->distribution_dir ) or die("opendir: $!");
-	my @files = readdir(DIR);
+	my @files = sort readdir(DIR);
 	closedir(DIR) or die("closedir: $!");
 
 	# Filter the directory
@@ -144,7 +144,7 @@ sub release_files {
 	my $self   = shift;
 	local *DIR;
 	opendir( DIR, $self->release_dir ) or die("opendir: $!");
-	my @files = readdir(DIR);
+	my @files = sort readdir(DIR);
 	closedir(DIR) or die("closedir: $!");
 	return grep { /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ } @files;
 }
