@@ -427,7 +427,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	if ( $params{build_dir} =~ m{\.}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'build_dir: Cannot be '
-			  . ' a directory that has a . in the name.',
+			  . 'a directory that has a . in the name.',
 			where => '->new'
 		);
 	}

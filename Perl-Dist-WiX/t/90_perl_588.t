@@ -19,6 +19,10 @@ BEGIN {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 		exit(0);
 	}
+	if ( rel2abs( curdir() ) =~ m{\.} ) {
+		plan( skip_all => 'Cannot be tested in a directory with an extension.' );
+		exit(0);
+	}
 	if (rel2abs( catdir( qw( t tmp90 ) ) ) =~ m{\s}) {
 		plan( skip_all => 'Cannot test successfully in a test directory with spaces' );
 		exit(0);
