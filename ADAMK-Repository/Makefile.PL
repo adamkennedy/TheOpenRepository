@@ -1,5 +1,4 @@
-use inc::Module::Install 0.78;
-use Module::Install::DSL;
+use inc::Module::Install::DSL 0.82;
 
 all_from       lib/ADAMK/Repository.pm
 requires       File::Spec            3.29
