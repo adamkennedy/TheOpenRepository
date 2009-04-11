@@ -6,7 +6,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Object::Tiny qw{
@@ -41,6 +41,17 @@ sub new {
 	$self->{message} =~ s/^-\s*//;
 
 	return $self;
+}
+
+
+
+
+
+#####################################################################
+# Stringification
+
+sub as_string {
+	return $_[0]->string;
 }
 
 1;

@@ -3,12 +3,14 @@ package Module::Changes::ADAMK::Release;
 use 5.005;
 use strict;
 use Carp                        ();
+use Params::Util                '_INSTANCE';
 use DateTime                    ();
+use DateTime::Format::CLDR      ();
 use DateTime::Format::DateParse (); 
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Module::Changes::ADAMK::Change ();
@@ -76,6 +78,50 @@ sub new {
 
 sub changes {
 	@{$_[0]->{changes}};
+}
+
+
+
+
+
+#####################################################################
+# Modification Functions
+
+sub set_datetime_now {
+	my $dt = DateTime->now;
+	$_[0]->set_datetime( $dt );
+}
+
+sub set_datetime {
+	my $self = shift;
+	my $dt   = shift;
+	unless ( _INSTANCE($dt, 'DateTime') ) {
+		Carp::croak('Did not pass a valid DateTime to set_datetime');
+	}
+
+	# Overwrite the datetime
+	$self->{datetime} = $dt;
+
+	# Overwrite the string form
+	$self->{date} = $dt->strftime('%a %e %b %Y');
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Stringification
+
+sub as_string {
+	my $self  = shift;
+	my @lines = (
+		$self->version . ' ' . $self->date,
+		map { $_->as_string } $self->changes,
+	);
+	return join "\n", @lines;
 }
 
 1;

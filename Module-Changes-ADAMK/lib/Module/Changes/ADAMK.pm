@@ -27,17 +27,19 @@ use 5.005;
 use strict;
 use Carp 'croak';
 use DateTime                  0.4501 ();
+use DateTime::Format::CLDR      1.06 ();
 use DateTime::Format::DateParse 0.04 (); 
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Module::Changes::ADAMK::Release ();
 use Module::Changes::ADAMK::Change  ();
 
 use Object::Tiny 1.03 qw{
+	string
 	header
 	dist_name
 	module_name
@@ -70,7 +72,9 @@ sub read {
 
 sub read_string {
 	my $class = shift;
-	my $self  = $class->new;
+	my $self  = $class->new(
+		string => $_[0],
+	);
 
 	# Normalize newlines
 	my $string = shift;
@@ -124,6 +128,22 @@ sub current_release {
 
 sub current_version {
 	$_[0]->current_release->version;
+}
+
+
+
+
+
+#####################################################################
+# Stringification
+
+sub as_string {
+	my $self  = shift;
+	my @parts = (
+		$self->header,
+		map { $_->as_string } $self->releases,
+	);
+	return join "\n", map { "$_\n" } @parts;
 }
 
 1;

@@ -1,5 +1,9 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.03 Sun 12 Apr 2009
+	- Adding support for changing a release date (ADAMK)
+	- Implemented stringification (ADAMK)
+
 0.02 Wed  9 Apr 2009
 	- Updated to Module::Install::DSL 0.82 (ADAMK)
 

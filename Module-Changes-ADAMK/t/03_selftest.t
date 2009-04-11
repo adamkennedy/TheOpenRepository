@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 11;
+use Test::More tests => 16;
 use Module::Changes::ADAMK;
 
 
@@ -23,11 +23,40 @@ is( $changes->dist_name,   'Module-Changes-ADAMK',  '->dist_name ok'   );
 is( $changes->module_name, 'Module::Changes::ADAMK', '->module_name ok' );
 my $current = $changes->current_release;
 isa_ok( $current, 'Module::Changes::ADAMK::Release' );
-is( $current->version, '0.02', '->version ok' );
-is( $current->date, 'Wed  9 Apr 2009', '->date ok' );
+is( $current->version, '0.03', '->version ok' );
+is( $current->date, 'Sun 12 Apr 2009', '->date ok' );
 my @changes = $current->changes;
-is( scalar(@changes), 1, 'Found 1 change' );
+is( scalar(@changes), 2, 'Found 2 changes' );
 my $change = $changes[0];
 isa_ok( $change, 'Module::Changes::ADAMK::Change' );
 is( $change->author, 'ADAMK', '->author ok' );
-is( $change->message, 'Updated to Module::Install::DSL 0.82', '->message ok' );
+is( $change->message, 'Adding support for changing a release date', '->message ok' );
+
+
+
+
+
+#####################################################################
+# Change a release date
+
+# Round-trip testing
+ok(
+	$current->as_string eq $current->string,
+	'Change round-trip stringification ok',
+);
+ok(
+	$changes->as_string eq $changes->string,
+	'File round-trip stringification ok',
+);
+ok(
+	$current->set_datetime_now,
+	'->set_datetime_now ok',
+);
+ok(
+	$current->as_string ne $current->string,
+	'Date was changed (' . $current->date . ')',
+);
+ok(
+	$changes->as_string ne $changes->string,
+	'File was changed',
+);
