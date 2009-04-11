@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT}) {
-	plan( tests => 10 );
+	plan( tests => 11 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
