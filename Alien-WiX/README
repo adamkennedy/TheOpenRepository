@@ -1,4 +1,4 @@
-Alien-WiX version 0.305207
+Alien-WiX version 0.305210
 
 Alien::WiX is provided in order to be able to specify a dependency on Windows
 Installer XML (otherwise known as WiX), which is used to create Windows 
