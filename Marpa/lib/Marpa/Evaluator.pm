@@ -35,10 +35,10 @@ package Marpa::Internal;
 use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 
 use Marpa::Offset And_Node =>
-    qw(NAME ID PARENT PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
+    qw(NAME ID PARENT_OR_NODE PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
 
 use Marpa::Offset Or_Node =>
-    qw(NAME ID PARENT AND_NODES IS_COMPLETED START_EARLEME AND_CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES);
+    qw(NAME ID PARENT_OR_NODE AND_NODES IS_COMPLETED START_EARLEME AND_CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES);
 
 # IS_COMPLETED - is this a completed or-node?
 
@@ -47,7 +47,7 @@ use Marpa::Offset Tree_Node => qw(OR_NODE CHOICE PREDECESSOR CAUSE DEPTH
 
 use Marpa::Offset Evaluator =>
     qw(RECOGNIZER PARSE_COUNT OR_NODES TREE RULE_DATA PACKAGE NULL_VALUES CYCLES
-    OR_NODES_BY_EARLEME COMPLETIONS_BY_EARLEME
+    OR_NODES_BY_EARLEME COMPLETIONS_BY_EARLEME CHOICE_POINTS
 );
 
 # PARSE_COUNT  number of parses in an ambiguous parse
@@ -317,7 +317,7 @@ sub set_actions {
             if ($trace_actions) {
                 print {$trace_fh} 'Setting action for rule ',
                     Marpa::brief_rule($rule), " to undef by default\n"
-                    or croak('Could not print to trace file');
+                    or exception('Could not print to trace file');
             }
 
             my $rule_datum;
@@ -335,7 +335,7 @@ sub set_actions {
         if ($trace_actions) {
             print {$trace_fh} 'Setting action for rule ',
                 Marpa::brief_rule($rule), " to\n", $code, "\n"
-                or croak('Could not print to trace file');
+                or exception('Could not print to trace file');
         }
 
         my $closure;
@@ -390,13 +390,13 @@ sub Marpa::Evaluator::new {
         my $arg_value = $args->{$recce_arg_name};
         delete $args->{$recce_arg_name};
         next RECCE_ARG_NAME unless defined $arg_value;
-        croak('recognizer specified twice') if defined $recce;
+        exception('recognizer specified twice') if defined $recce;
         $recce = $arg_value;
     } ## end for my $recce_arg_name (qw(recognizer recce))
-    croak('No recognizer specified') unless defined $recce;
+    exception('No recognizer specified') unless defined $recce;
 
     my $recce_class = ref $recce;
-    croak("${class}::new() recognizer arg has wrong class: $recce_class")
+    exception("${class}::new() recognizer arg has wrong class: $recce_class")
         unless $recce_class eq 'Marpa::Recognizer';
 
     my $parse_set_arg = $args->{end};
@@ -417,9 +417,9 @@ sub Marpa::Evaluator::new {
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
 
-    # croak('Recognizer already in use by Evaluator')
+    # exception('Recognizer already in use by Evaluator')
     # if $phase == Marpa::Internal::Phase::EVALUATING;
-    croak(
+    exception(
         'Attempt to evaluate grammar in wrong phase: ',
         Marpa::Internal::Phase::description($phase)
     ) if $phase < Marpa::Internal::Phase::RECOGNIZED;
@@ -712,20 +712,13 @@ sub Marpa::Evaluator::new {
         my $or_node = [];
         $or_node->[Marpa::Internal::Or_Node::NAME]      = $sapling_name;
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
-        weaken( $_->[Marpa::Internal::And_Node::PARENT] = $or_node )
+        weaken( $_->[Marpa::Internal::And_Node::PARENT_OR_NODE] = $or_node )
             for @and_nodes;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
         push @{ $self->[Marpa::Internal::Evaluator::OR_NODES] }, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
-
-        if ( @and_nodes >= 2 ) {
-            $self->[Marpa::Internal::Evaluator::OR_NODES_BY_EARLEME]
-                ->[$start_earleme] = [];
-            $self->[Marpa::Internal::Evaluator::COMPLETIONS_BY_EARLEME]
-                ->[$start_earleme] = [];
-        } ## end if ( @and_nodes >= 2 )
 
     }    # OR_SAPLING
 
@@ -743,8 +736,6 @@ sub Marpa::Evaluator::new {
             next FIELD unless defined $name;
             my $or_node = $or_node_by_name{$name};
             $and_node->[$field] = $or_node;
-            weaken( $or_node->[Marpa::Internal::Or_Node::PARENT] =
-                    $and_node );
         } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
     } ## end for my $and_node ( map { @{ $_->[...
@@ -756,31 +747,34 @@ sub Marpa::Evaluator::new {
 
     # Find the choice points
     OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
+        my $start_earleme =
+            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
         if ( $or_node->[Marpa::Internal::Or_Node::AND_NODES] >= 2 ) {
-            my $start_earleme =
-                $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
-            $choice_or_nodes->[$start_earleme] = [];
+            $choice_and_nodes->[$start_earleme] = [];
+        }
+        my $or_nodes_here = $choice_or_nodes->[$start_earleme];
+        if (defined $or_nodes_here) {
+            push @{$or_nodes_here}, $or_node;
+            $or_node->[Marpa::Internal::Or_Node::ID] = $#{$or_nodes_here};
+        } else {
+            $choice_or_nodes->[$start_earleme] = [ $or_node ];
+            $or_node->[Marpa::Internal::Or_Node::ID] = 0;
         }
     } ## end for my $or_node ( @{ $self->[OR_NODES] } )
     ## End OR_NODE:
 
     # Compute the lists of completed and_nodes at choice points
     OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
-        my $start_earleme =
-            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
-
-        # Do nothing unless this is a choice earleme, otherwise start
-        # by pushing this or_node on the list for this choice point
-        my $earleme_or_nodes = $choice_or_nodes->[$start_earleme];
-        next OR_NODE unless defined $earleme_or_nodes;
-        $or_node->[Marpa::Internal::Or_Node::ID] = @{$earleme_or_nodes};
-        push @{$earleme_or_nodes}, $or_node;
 
         # If this is a completed or node, the child and nodes will be completed
         # and nodes.  Push them on a list.
         next OR_NODE
             unless $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED];
-        push @{ $choice_and_nodes->[$start_earleme] },
+        my $start_earleme =
+            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
+        my $and_nodes_here = $choice_and_nodes->[$start_earleme];
+        next OR_NODE unless defined $and_nodes_here;
+        push @{ $and_nodes_here },
             @{ $or_node->[Marpa::Internal::Or_Node::AND_NODES] };
 
     } ## end for my $or_node ( @{ $self->[OR_NODES] } )
@@ -914,8 +908,9 @@ sub Marpa::Evaluator::show_choice_point {
         my ( $and_vec, $or_choices ) = @{ $map->[$map_ix] };
         AND_IX: for my $and_ix ( 0 .. $#{$choice_and_nodes} ) {
             next AND_IX unless vec $and_vec, $and_ix, 1;
-            my $and_node  = $choice_and_nodes->[$and_ix];
-            my $or_parent = $and_node->[Marpa::Internal::And_Node::PARENT];
+            my $and_node = $choice_and_nodes->[$and_ix];
+            my $or_parent =
+                $and_node->[Marpa::Internal::And_Node::PARENT_OR_NODE];
             my $and_nodes = $or_parent->[Marpa::Internal::Or_Node::AND_NODES];
             my $or_ix     = $or_parent->[Marpa::Internal::Or_Node::ID];
             my $and_choice   = $or_choices->[$or_ix];
@@ -1080,6 +1075,7 @@ sub map_choice_point {
     {
         if ( defined $choice_or_node->[Marpa::Internal::Or_Node::AND_CHOICE] )
         {
+            say 'Choice Point Parent ', $choice_or_node->[ Marpa::Internal::Or_Node::NAME];
             $parent_or_choices
                 ->[ $choice_or_node->[Marpa::Internal::Or_Node::ID] ] = -1;
         }
@@ -1096,7 +1092,7 @@ sub map_choice_point {
         if (defined
             $or_choices->[ $map_or_node->[Marpa::Internal::Or_Node::ID] ] )
         {
-            croak( 'Cycle at '
+            exception( 'Cycle at '
                     . $map_or_node->[Marpa::Internal::Or_Node::NAME] );
             ## next MAP_ENTRY;
         } ## end if ( defined $or_choices->[ $map_or_node->[...
@@ -1108,10 +1104,11 @@ sub map_choice_point {
         for my $choice (
             0 .. $#{ $map_or_node->[Marpa::Internal::Or_Node::AND_NODES] } )
         {
+            my $new_and_vec = $and_vec;
+
             my $map_and_node =
                 $map_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                 ->[$choice];
-            my $new_and_vec = $and_vec;
             if ($is_completed) {
                 vec( $new_and_vec,
                     $map_and_node->[Marpa::Internal::And_Node::ID], 1 )
@@ -1145,6 +1142,7 @@ sub map_choice_point {
             } ## end if ( defined $predecessor and $predecessor->[...
         } ## end for my $choice ( 0 .. $#{ $map_or_node->[...
     } ## end while ( my $ur_map_entry = pop @ur_map )
+    ## End MAP_ENTRY
 
     $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP] =
         [ sort { $a->[0] cmp $b->[0] } @map ];
@@ -1157,10 +1155,10 @@ sub Marpa::Evaluator::value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
 
-    croak('No parse supplied') unless defined $evaler;
+    exception('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
     my $right_class  = 'Marpa::Evaluator';
-    croak(
+    exception(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
@@ -1187,7 +1185,7 @@ sub Marpa::Evaluator::value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
-        croak("Maximum parse count ($max_parses) exceeded");
+        exception("Maximum parse count ($max_parses) exceeded");
     }
 
     # Initialize the work list for the disambiguation with the top or-node
@@ -1195,8 +1193,6 @@ sub Marpa::Evaluator::value {
 
     # This loop does disambiguation -- that is picks one parse from an
     # ambiguous bocage.
-    #
-    # For starters just set all choices to the first.
     #
     my $chosen_to_here_earleme = -1;
     OR_NODE: while ( my $or_node = pop @work_list ) {
@@ -1248,10 +1244,13 @@ sub Marpa::Evaluator::value {
         my $and_choice = $or_node->[Marpa::Internal::Or_Node::AND_CHOICE];
         my $and_node   = $and_nodes->[$and_choice];
 
-        push @work_list, grep { defined $_ } @{$and_node}[
+        my @new_work_nodes = grep { defined $_ } @{$and_node}[
             Marpa::Internal::And_Node::CAUSE,
             Marpa::Internal::And_Node::PREDECESSOR,
         ];
+        weaken( $_->[Marpa::Internal::Or_Node::PARENT_OR_NODE] = $or_node )
+            for @new_work_nodes;
+        push @work_list, @new_work_nodes;
 
     } ## end while ( my $or_node = pop @work_list )
     ## End OR_NODE:
@@ -1325,7 +1324,7 @@ sub Marpa::Evaluator::value {
                     $and_node->[Marpa::Internal::And_Node::NAME],
                     ': ',
                     Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
-                    or croak('print to trace handle failed');
+                    or exception('print to trace handle failed');
             } ## end if ($trace_values)
 
         }    # defined $value_ref
@@ -1416,10 +1415,10 @@ sub Marpa::Evaluator::old_value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
 
-    croak('No parse supplied') unless defined $evaler;
+    exception('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
     my $right_class  = 'Marpa::Evaluator';
-    croak(
+    exception(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
@@ -1447,7 +1446,7 @@ sub Marpa::Evaluator::old_value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
-        croak("Maximum parse count ($max_parses) exceeded");
+        exception("Maximum parse count ($max_parses) exceeded");
     }
 
     my @traversal_stack;
@@ -1526,7 +1525,7 @@ sub Marpa::Evaluator::old_value {
                     ' tree node #',
                     $tree_position, q{ },
                     $or_node->[Marpa::Internal::Or_Node::NAME],
-                    or croak('print to trace handle failed');
+                    or exception('print to trace handle failed');
             } ## end if ($trace_iterations)
 
             my $new_tree_node;
@@ -1867,11 +1866,11 @@ in_file($_, 't/equation_s.t')
 
     my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        exception("Parse failed at offset $fail_offset");
     }
 
     my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
-    croak('Parse failed') unless $evaler;
+    exception('Parse failed') unless $evaler;
 
     my $i = -1;
     while ( defined( my $value = $evaler->value() ) ) {
