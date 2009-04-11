@@ -424,6 +424,13 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$params{build_dir} = catdir( $params{temp_dir}, 'build' );
 		$class->remake_path( $params{build_dir} );
 	}
+	if ( $params{build_dir} =~ m{\.}ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'build_dir: Cannot be '
+			  . ' a directory that has a . in the name.',
+			where => '->new'
+		);
+	}
 	unless ( defined $params{output_dir} ) {
 		$params{output_dir} = catdir( $params{temp_dir}, 'output' );
 		if ( $params{trace} > 0 ) {
@@ -4222,38 +4229,6 @@ sub _dll_to_a {
 		);
 	}
 	
-	if ( $source and ( $source =~ m{\.}ms ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'source: Cannot be '
-			  . 'within a directory that has a . in the name.',
-			where => '->_dll_to_a'
-		);
-	}
-
-	if ( $dll and ( $dll =~ m{\.}ms ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'dll: Cannot be '
-			  . 'within a directory that has a . in the name.',
-			where => '->_dll_to_a'
-		);
-	}
-
-	if ( $def =~ m{\.}ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'def: Cannot be '
-			  . 'within a directory that has a . in the name.',
-			where => '->_dll_to_a'
-		);
-	}
-
-	if ( $_a =~ m{\.}ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'a: Cannot be '
-			  . 'within a directory that has a . in the name.',
-			where => '->_dll_to_a'
-		);
-	}
-
 	if ($source) {
 		$self->_move( $source => $dll );
 		push @files, $dll;
