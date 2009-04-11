@@ -40,7 +40,7 @@ is( $repository->root, $root, '->root ok' );
 my $hash = $repository->svn_info( $repository->root );
 is( ref($hash), 'HASH', '->svn_info' );
 is(
-	$hash->{RepositoryRoot},
+	$hash->{URL},
 	'http://svn.ali.as/cpan',
 	'svn_info: Repository Root ok',
 );
