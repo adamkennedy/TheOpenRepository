@@ -3,7 +3,7 @@
 # Build.PL
 #  Script to build and install this distribution
 #
-# $Id: Build.PL 5759 2009-03-25 21:33:58Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This package and its contents are released by the author into the
 # Public Domain, to the full extent permissible by law. For additional
@@ -28,6 +28,13 @@ my $builder = Module::Build->new(
   # Maintain compatibility with ExtUtils::MakeMaker installations
   create_makefile_pl    => 'passthrough',
 
+  # Location of our special C and XS source files
+  c_source => 'src',
+  xs_files => {
+    'src/Journal.xs'      => 'lib/IO/Journal.xs',
+    'src/Transaction.xs'  => 'lib/IO/Journal/Transaction.xs',
+  },
+
   requires => {
     'perl'              => 5.006,
 
@@ -42,7 +49,10 @@ my $builder = Module::Build->new(
   },
   build_requires => {
     # User tests for good functionality
-    #'Test::NoWarnings'        => 0.084,
+    'Test::NoWarnings'        => 0.084,
+
+    # For the XS build process
+    'ExtUtils::CBuilder'      => 0,
   },
   recommends => {
     # Author tests

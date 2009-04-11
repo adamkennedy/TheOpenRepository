@@ -1,7 +1,7 @@
 # IO::Journal
 #  A file I/O interface with journalling support, based on libjio.
 #
-# $Id: ISAAC.pm 6045 2009-04-07 02:34:58Z FREQUENCY@cpan.org $
+# $Id$
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
@@ -21,11 +21,11 @@ IO::Journal - Perl interface for journalled file operations
 
 =head1 VERSION
 
-Version 0.1 ($Id: ISAAC.pm 6045 2009-04-07 02:34:58Z FREQUENCY@cpan.org $)
+Version 0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.1');
+use version; our $VERSION = qv('0.2');
 
 =head1 DESCRIPTION
 
@@ -56,6 +56,14 @@ a bit of a land grab. Expect a working version in a few weeks.
   # or
   print $file ('...');
   $file->commit;
+
+=cut
+
+# This is the code that actually bootstraps the module and exposes
+# the interface for the user. XSLoader is believed to be more
+# memory efficient than DynaLoader.
+use XSLoader;
+XSLoader::load(__PACKAGE__, $VERSION);
 
 =head1 AUTHOR
 

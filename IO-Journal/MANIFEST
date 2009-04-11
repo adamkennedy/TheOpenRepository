@@ -8,5 +8,7 @@ MANIFEST.SKIP
 META.yml
 README
 SIGNATURE
+src/Journal.xs
+src/Transaction.xs
 t/00signature.t
 t/01compile.t
