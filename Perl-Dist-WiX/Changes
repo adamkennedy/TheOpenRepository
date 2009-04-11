@@ -6,7 +6,10 @@ Changes for Perl extension Perl-Dist-WiX
     2. Requirement for Perl-Dist updated to current
        svn version. Check it out at:
        http://svn.ali.as/cpan/trunk/Perl-Dist
-    3. Updating to Module::Install 0.82
+    3. Added test to detect dlltool problem 
+       (dlltool will not work within a path
+       with extensions.)
+    4. Updating to Module::Install 0.82
 	   
 0.169   Thu 09 Apr 2009
     1. With previous distributions where build_number 

@@ -4174,7 +4174,7 @@ sub _dll_to_a {
 	unless ( $self->bin_dlltool ) {
 		PDWiX->throw('dlltool has not been installed');
 	}
-
+	
 	my @files;
 
 	# Source file
@@ -4221,6 +4221,39 @@ sub _dll_to_a {
 			where => '->_dll_to_a'
 		);
 	}
+	
+	if ( $source and ( $source =~ m{\.}ms ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'source: Cannot be '
+			  . 'within a directory that has a . in the name.',
+			where => '->_dll_to_a'
+		);
+	}
+
+	if ( $dll and ( $dll =~ m{\.}ms ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'dll: Cannot be '
+			  . 'within a directory that has a . in the name.',
+			where => '->_dll_to_a'
+		);
+	}
+
+	if ( $def =~ m{\.}ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'def: Cannot be '
+			  . 'within a directory that has a . in the name.',
+			where => '->_dll_to_a'
+		);
+	}
+
+	if ( $_a =~ m{\.}ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'a: Cannot be '
+			  . 'within a directory that has a . in the name.',
+			where => '->_dll_to_a'
+		);
+	}
+
 	if ($source) {
 		$self->_move( $source => $dll );
 		push @files, $dll;
