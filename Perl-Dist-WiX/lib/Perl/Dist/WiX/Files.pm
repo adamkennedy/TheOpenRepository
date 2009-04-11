@@ -24,7 +24,7 @@ use     Readonly              qw( Readonly                 );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
-use version; $VERSION = version->new('0.169')->numify;
+use version; $VERSION = version->new('0.170')->numify;
 #>>>
 
 Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';

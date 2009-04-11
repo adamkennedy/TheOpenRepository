@@ -6,7 +6,7 @@ use Perl::Dist::WiX ();
 use vars qw{ $VERSION };
 use base 'Perl::Dist::WiX';
 BEGIN {
-    use version; $VERSION = qv('0.13_02');
+    use version; $VERSION = qv('0.170');
 }
 
 
@@ -33,7 +33,7 @@ sub output_base_filename { 'test-perl-5.10.0-alpha-1' }
 sub new {
 	return shift->SUPER::new(
 		perl_version => 5100,
-        trace => 102,
+        trace => 101,
         build_number => 5,
 		portable     => 1,
 		@_,

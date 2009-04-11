@@ -1,6 +1,6 @@
 #! perl
 
-use inc::Module::Install;
+use inc::Module::Install 0.82;
 
 die "OS unsupported\n" if (not win32);
 
@@ -17,7 +17,7 @@ requires       'List::MoreUtils'      => '0.07';
 requires       'Module::CoreList'     => '2.17';
 requires       'Object::InsideOut'    => '3.53';
 test_requires  'Perl::Critic::More'   => '1.000' if ( $ENV{TEST_AUTHOR} );
-requires       'Perl::Dist'           => '1.12';
+requires       'Perl::Dist'           => '1.13';
 requires       'Process'              => '0.23';
 requires       'Readonly'             => '1.03';
 requires       'Scalar::Util'         => '1.19'; # Remove when 5.008 is minimum perl version.

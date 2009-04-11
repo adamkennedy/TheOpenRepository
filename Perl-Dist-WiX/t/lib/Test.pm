@@ -16,7 +16,7 @@ use t::lib::Test589      ();
 
 use vars qw{$VERSION};
 BEGIN {
-    use version; $VERSION = qv('0.13_02');
+    use version; $VERSION = qv('0.170');
 }
 
 
@@ -50,11 +50,12 @@ sub paths {
         File::Path::mkpath( $dir ) unless -d $dir;
     }
 	my $basedir      = Win32::GetShortPathName( rel2abs( catdir( 't', "tmp$subpath" ) ) );
+	my $dldir        = Win32::GetShortPathName( rel2abs( catdir( 't', 'download' ) ) );
     Test::More::diag($basedir);
 	# File::Remove::clear( $basedir );
 	my $output_dir   = remake_path( catdir( $basedir, 'output'   ) );
 	my $image_dir    = remake_path( catdir( $basedir, 'image'    ) );
-	my $download_dir =   make_path( catdir( $basedir, 'download' ) );
+	my $download_dir =   make_path( $dldir );
 	my $build_dir    = remake_path( catdir( $basedir, 'build'    ) );
 	return (
 		output_dir   => $output_dir,

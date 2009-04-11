@@ -24,7 +24,7 @@ use Object::InsideOut qw(
 );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
-use version; $VERSION = version->new('0.169')->numify;
+use version; $VERSION = version->new('0.170')->numify;
 
 #>>>
 #####################################################################
