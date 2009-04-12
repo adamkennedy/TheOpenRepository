@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 103 );
+	plan( tests => 105 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -17,7 +17,7 @@ use File::Spec::Functions ':ALL';
 use ADAMK::Repository;
 
 my $root = $ENV{ADAMK_CHECKOUT};
-
+my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
 
 
 
@@ -46,7 +46,7 @@ is(
 );
 is(
 	$hash->{RepositoryUUID},
-	'88f4d9cd-8a04-0410-9d60-8f63309c3137',
+	$uuid,
 	'svn_info: Repository UUID ok',
 );
 is(
@@ -89,7 +89,11 @@ SCOPE: {
 		my $name = $checkout->name;
 		my $path = $checkout->path;
 		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
-		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );		
+		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
+
+		my $hash = $checkout->svn_info;
+		is( ref($hash), 'HASH', '->svn_info returns a HASH' );
+		is( $hash->{RepositoryUUID}, $uuid, 'RepositoryUUID ok' );
 	}
 
 	# Export a distribution

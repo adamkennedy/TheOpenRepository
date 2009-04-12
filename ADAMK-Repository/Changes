@@ -6,6 +6,7 @@ Changes for Perl extension ADAMK-Repository
 	- Skip Araxis tests when we can't find it
 	- Added ADAMK::Distribution::Export
 	- Added ADAMK::Distribution::Checkout
+	- Abstracting svn basics into ADAMK::SVN
 
 0.05 Tue 23 Dec 2008
 	- Adding support for distribution exporting

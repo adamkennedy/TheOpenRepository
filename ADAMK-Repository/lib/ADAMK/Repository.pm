@@ -11,22 +11,25 @@ ADAMK::Repository - Repository object model for ADAMK's svn repository
 use 5.008;
 use strict;
 use warnings;
-use Carp                       ();
-use File::Spec            3.29 ();
-use File::Flat            1.04 ();
-use File::pushd           1.00 ();
-use File::Remove          1.42 ();
-use File::Find::Rule      0.30 ();
-use File::Find::Rule::VCS 1.05 ();
-use IPC::Run3            0.034 ();
-use Params::Util          0.35 qw{ _STRING _CODE };
-use CPAN::Version          5.5 ();
-use ADAMK::Release             ();
-use ADAMK::Distribution        ();
+use Carp                        ();
+use File::Spec             3.29 ();
+use File::Flat             1.04 ();
+use File::pushd            1.00 ();
+use File::Remove           1.42 ();
+use File::Find::Rule       0.30 ();
+use File::Find::Rule::VCS  1.05 ();
+use IPC::Run3             0.034 ();
+use Params::Util           0.35 qw{ _STRING _CODE };
+use CPAN::Version           5.5 ();
+use Module::Changes::ADAMK 0.04 ();
+use ADAMK::SVN                  ();
+use ADAMK::Release              ();
+use ADAMK::Distribution         ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.06';
+	@ISA     = 'ADAMK::SVN';
 }
 
 use Object::Tiny 1.06 qw{
@@ -301,50 +304,7 @@ sub compare_export_stable {
 
 
 #####################################################################
-# Simple SVN Interfaces
-
-sub svn_command {
-	my $self = shift;
-	my $root = File::pushd::pushd( $self->root );
-	my $cmd  = join( ' ', 'svn', @_ );
-	$self->trace("> $cmd\n");
-	my @rv   = `$cmd`;
-	chomp(@rv);
-	return @rv;
-}
-
-sub svn_version {
-	my $self = shift;
-	die "CODE INCOMPLETE";
-}
-
-sub svn_info {
-	my $self = shift;
-	my @info = $self->svn_command( 'info', @_ );
-	my %hash = map {
-		/^([^:]+)\s*:\s*(.*)$/;
-		my $key   = "$1";
-		my $value = "$2";
-		$key =~ s/\s+//g;
-		( $key, $value );
-	} grep { length $_ } @info;
-	return \%hash;
-}
-
-sub svn_root {
-	my $self = shift;
-	my $root  = shift;
-	unless ( defined _STRING($root) ) {
-		return undef;
-	}
-	unless ( -d $root ) {
-		return undef;
-	}
-	unless ( -d File::Spec->catdir($root, '.svn') ) {
-		return undef;
-	}
-	return $root;
-}
+# SVN Methods
 
 sub svn_dir {
 	my $self = shift;

@@ -74,6 +74,7 @@ sub checkout {
 	return ADAMK::Distribution::Checkout->new(
 		name         => $self->name,
 		path         => $path,
+		trace        => $self->repository->{trace},
 		distribution => $self,
 	);
 }
@@ -107,7 +108,7 @@ sub export_head {
 sub releases {
 	my $self     = shift;
 	my @releases = sort {
-		CPAN::Version->vcmp( $b, $a )
+		CPAN::Version->vcmp( $b->version, $a->version )
 	} grep {
 		$_->distname eq $self->name
 	} $self->repository->releases;
