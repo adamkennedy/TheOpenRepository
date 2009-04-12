@@ -58,7 +58,7 @@ sub changes {
 	my $self = shift;
 	my $file = $self->changes_file;
 	unless ( -f $file ) {
-		die("Changes file '$file' does not exist");
+		die("Changes file '$file' in '" . $self->name . "' does not exist");
 	}
 	Module::Changes::ADAMK->read($file);
 }
