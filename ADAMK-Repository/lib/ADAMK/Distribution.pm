@@ -3,11 +3,12 @@ package ADAMK::Distribution;
 use 5.008;
 use strict;
 use warnings;
-use File::Spec              ();
-use File::Temp              ();
-use File::pushd             ();
-use CPAN::Version           ();
-use ADAMK::Repository::Util ('shell');
+use File::Spec                  ();
+use File::Temp                  ();
+use File::pushd                 ();
+use CPAN::Version               ();
+use ADAMK::Repository::Util     ('shell');
+use ADAMK::Distribution::Export ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -68,7 +69,13 @@ sub export {
 	my $path     = File::Temp::tempdir(@_);
 	my $url      = $self->svn_url;
 	$self->repository->svn_export( $url, $revision, $path );
-	return $path;
+
+	# Create and return an ADAMK::Distribution::Export object
+	return ADAMK::Distribution::Export->new(
+		name         => $self->name,
+		path         => $path,
+		distribution => $self,
+	);
 }
 
 sub export_head {

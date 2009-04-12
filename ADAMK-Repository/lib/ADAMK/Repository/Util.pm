@@ -1,7 +1,8 @@
 package ADAMK::Repository::Util;
 
-use 5.005;
+use 5.008;
 use strict;
+use warnings;
 use Carp         ();
 use IPC::Run3    ();
 use File::Flat   ();

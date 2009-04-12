@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 96 );
+	plan( tests => 98 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -63,8 +63,11 @@ is(
 # Distribution Methods
 
 SCOPE: {
-	my @distributions = $repository->distributions;
-	@distributions = sort { rand() <=> rand() } @distributions;
+	my @distributions = sort {
+		rand() <=> rand()
+	} grep {
+		-f catfile($_->path, 'Makefile.PL')
+	} $repository->distributions;
 	foreach my $distribution ( sort @distributions[0 .. 25] ) {
 		my $info = $distribution->svn_info;
 		is( ref($info), 'HASH', $distribution->name . ': ->svn_info ok' );
@@ -78,10 +81,14 @@ SCOPE: {
 	like( $last_changed, qr/^\d+$/, '->last_changed ok' );
 
 	# Export a distribution
-	my $dir = $first->export( $last_changed );
-	ok( $dir, '->export(last_changed) ok' );
-	ok( -d $dir, '->export directory exists' );
-	ok( -f catfile($dir, 'Makefile.PL'), '->export/Makefile.PL exists' );
+	my $export = $first->export( $last_changed );
+	isa_ok( $export, 'ADAMK::Distribution::Export' );
+	isa_ok( $export->distribution, 'ADAMK::Distribution' );
+	isa_ok( $export->repository,   'ADAMK::Repository'   );
+	my $name = $export->name;
+	my $path = $export->path;
+	ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
+	ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
 }
 
 
@@ -92,8 +99,11 @@ SCOPE: {
 # Release Methods
 
 SCOPE: {
-	my @releases = $repository->releases_trunk;
-	@releases = sort { rand() <=> rand() } @releases;
+	my @releases = sort {
+		rand() <=> rand()
+	} grep {
+		-f catfile($_->distribution->path, 'Makefile.PL')
+	} $repository->releases_trunk;
 	foreach my $release ( sort @releases[0 .. 25] ) {
 		my $info = $release->svn_info;
 		is( ref($info), 'HASH', $release->file . ': ->svn_info ok' );
@@ -106,10 +116,13 @@ SCOPE: {
 	like( $revision, qr/^\d+$/, '->revision ok ok' );
 
 	# Export a distribution
-	my $dir = $first->export;
-	ok( $dir, '->export ok' );
-	ok( -d $dir, '->export directory exists' );
-	ok( -f catfile($dir, 'Makefile.PL'), '->export/Makefile.PL exists' );
+	my $export = $first->export;
+	isa_ok( $export, 'ADAMK::Distribution::Export' );
+	ok( -d $export->path, '->path directory exists' );
+	ok(
+		-f catfile($export->path, 'Makefile.PL'),
+		'->path/Makefile.PL exists'
+	);
 }
 
 
