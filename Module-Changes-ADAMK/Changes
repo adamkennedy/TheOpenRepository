@@ -1,5 +1,9 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.06 Mon 13 Apr 2009
+	- Adding a regression test script (ADAMK)
+	- More descriptive version-parse failure message (ADAMK)
+
 0.05 Sun 12 Apr 2009
 	- Changed ->current_release to ->current (ADAMK)
 
