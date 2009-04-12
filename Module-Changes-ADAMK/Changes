@@ -1,5 +1,8 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.05 Sun 12 Apr 2009
+	- Changed ->current_release to ->current (ADAMK)
+
 0.04 Sun 12 Apr 2009
 	- Implemented ->save (ADAMK)
 

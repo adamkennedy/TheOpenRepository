@@ -9,7 +9,7 @@ Module::Changes::ADAMK - Parse a traditional Changes file (as ADAMK interpretes 
 =head1 SYNOPSIS
 
   my $changes  = Module::Changes::ADAMK->read('Changes');
-  my $latest   = $changes->current_release;
+  my $latest   = $changes->current;
   my $datetime = $changes->datetime; # DateTime object
 
 =head1 DESCRIPTION
@@ -32,7 +32,7 @@ use DateTime::Format::DateParse 0.04 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 use Module::Changes::ADAMK::Release ();
@@ -142,12 +142,12 @@ sub save {
 #####################################################################
 # Main Methods
 
-sub current_release {
+sub current {
 	$_[0]->{releases}->[0];
 }
 
 sub current_version {
-	$_[0]->current_release->version;
+	$_[0]->current->version;
 }
 
 

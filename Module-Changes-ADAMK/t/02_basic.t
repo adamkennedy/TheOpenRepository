@@ -27,8 +27,8 @@ SCOPE: {
 	is( $changes->dist_name,   'Config-Tiny',  '->dist_name ok'   );
 	is( $changes->module_name, 'Config::Tiny', '->module_name ok' );
 	is( scalar($changes->releases), 26, '->releases is 26' );
-	isa_ok( $changes->current_release, 'Module::Changes::ADAMK::Release' );
+	isa_ok( $changes->current, 'Module::Changes::ADAMK::Release' );
 	is( $changes->current_version, '2.12', '->current_version ok' );
-	is( $changes->current_release->version, '2.12', '->current_release->version matches' );
-	is( $changes->current_release->date, 'Thu  1 Nov 2007', '->current_release->date ok' );
+	is( $changes->current->version, '2.12', '->current_release->version matches' );
+	is( $changes->current->date, 'Thu  1 Nov 2007', '->current_release->date ok' );
 }
