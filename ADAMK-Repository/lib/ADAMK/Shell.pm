@@ -7,7 +7,7 @@ use ADAMK::Repository ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 use Object::Tiny 1.06 qw{
