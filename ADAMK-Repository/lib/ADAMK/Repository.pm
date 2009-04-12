@@ -11,23 +11,25 @@ ADAMK::Repository - Repository object model for ADAMK's svn repository
 use 5.008;
 use strict;
 use warnings;
-use Carp                  ();
-use File::Spec            ();
-use File::pushd           ();
-use File::Find::Rule      ();
-use File::Find::Rule::VCS ();
-use IPC::Run3             ();
-use Params::Util          qw{ _STRING _CODE };
-use CPAN::Version         ();
-use ADAMK::Release        ();
-use ADAMK::Distribution   ();
+use Carp                       ();
+use File::Spec            3.29 ();
+use File::Flat            1.04 ();
+use File::pushd           1.00 ();
+use File::Remove          1.42 ();
+use File::Find::Rule      0.30 ();
+use File::Find::Rule::VCS 1.05 ();
+use IPC::Run3            0.034 ();
+use Params::Util          0.35 qw{ _STRING _CODE };
+use CPAN::Version          5.5 ();
+use ADAMK::Release             ();
+use ADAMK::Distribution        ();
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.06';
 }
 
-use Object::Tiny qw{
+use Object::Tiny 1.06 qw{
 	root
 };
 
@@ -431,7 +433,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2008 Adam Kennedy.
+Copyright 2007 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
