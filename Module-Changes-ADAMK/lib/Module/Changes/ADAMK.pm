@@ -23,7 +23,7 @@ It is currently not documented in detail, see the source code for the API.
 
 =cut
 
-use 5.005;
+use 5.008;
 use strict;
 use Carp 'croak';
 use DateTime                  0.4501 ();
@@ -32,13 +32,14 @@ use DateTime::Format::DateParse 0.04 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 use Module::Changes::ADAMK::Release ();
 use Module::Changes::ADAMK::Change  ();
 
 use Object::Tiny 1.03 qw{
+	file
 	string
 	header
 	dist_name
@@ -67,7 +68,12 @@ sub read {
 	my $contents = <CFG>;
 	close CFG;
 
-	$class->read_string( $contents );
+	# Hand off to the actual parser
+	my $self = $class->read_string( $contents );
+
+	# Keep the file name so we can save later
+	$self->{file} = $file;
+	return $self;
 }
 
 sub read_string {
@@ -113,6 +119,20 @@ sub read_string {
 
 sub releases {
 	return @{$_[0]->{releases}};
+}
+
+sub save {
+	my $self = shift;
+	unless ( $self->{file} ) {
+		die("Tried to save Changes file without a file name");
+	}
+
+	# Generate and write
+	open( CFG, '>', $self->{file} ) or die "open: $!";
+	print CFG $self->as_string;
+	close CFG;
+
+	return 1;
 }
 
 

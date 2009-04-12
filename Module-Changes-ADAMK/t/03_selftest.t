@@ -23,14 +23,14 @@ is( $changes->dist_name,   'Module-Changes-ADAMK',  '->dist_name ok'   );
 is( $changes->module_name, 'Module::Changes::ADAMK', '->module_name ok' );
 my $current = $changes->current_release;
 isa_ok( $current, 'Module::Changes::ADAMK::Release' );
-is( $current->version, '0.03', '->version ok' );
+is( $current->version, '0.04', '->version ok' );
 is( $current->date, 'Sun 12 Apr 2009', '->date ok' );
 my @changes = $current->changes;
-is( scalar(@changes), 2, 'Found 2 changes' );
+is( scalar(@changes), 1, 'Found 2 changes' );
 my $change = $changes[0];
 isa_ok( $change, 'Module::Changes::ADAMK::Change' );
 is( $change->author, 'ADAMK', '->author ok' );
-is( $change->message, 'Adding support for changing a release date', '->message ok' );
+is( $change->message, 'Implemented ->save', '->message ok' );
 
 
 
@@ -49,7 +49,9 @@ ok(
 	'File round-trip stringification ok',
 );
 ok(
-	$current->set_datetime_now,
+	$current->set_datetime(
+		DateTime->now->add( days => 2 )
+	),
 	'->set_datetime_now ok',
 );
 ok(

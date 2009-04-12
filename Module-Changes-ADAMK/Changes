@@ -1,5 +1,8 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.04 Sun 12 Apr 2009
+	- Implemented ->save (ADAMK)
+
 0.03 Sun 12 Apr 2009
 	- Adding support for changing a release date (ADAMK)
 	- Implemented stringification (ADAMK)
