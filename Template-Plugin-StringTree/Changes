@@ -4,7 +4,7 @@ Revision history for Perl extension Template::Plugin::StringTree;
 	- Updating to a new version of Module::Install
 	  (fixes various CPANTS problems)
 
-0.07 Web  7 Jul 2004
+0.07 Wed  7 Jul 2004
 	- Removed the 'bool' overload.
 	  It was returning wrong results in some cases, and is not really needed anyway
 
