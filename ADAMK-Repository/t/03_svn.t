@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 98 );
+	plan( tests => 103 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -80,15 +80,29 @@ SCOPE: {
 	like( $url,          qr/^http:\/\/svn\.ali\.as\/cpan/, '->svn_url ok' );
 	like( $last_changed, qr/^\d+$/, '->last_changed ok' );
 
+	# Checkout a distribution
+	SCOPE: {
+		my $checkout = $first->checkout;
+		isa_ok( $checkout, 'ADAMK::Distribution::Checkout' );
+		isa_ok( $checkout->distribution, 'ADAMK::Distribution' );
+		isa_ok( $checkout->repository,   'ADAMK::Repository'   );
+		my $name = $checkout->name;
+		my $path = $checkout->path;
+		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
+		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );		
+	}
+
 	# Export a distribution
-	my $export = $first->export( $last_changed );
-	isa_ok( $export, 'ADAMK::Distribution::Export' );
-	isa_ok( $export->distribution, 'ADAMK::Distribution' );
-	isa_ok( $export->repository,   'ADAMK::Repository'   );
-	my $name = $export->name;
-	my $path = $export->path;
-	ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
-	ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
+	SCOPE: {
+		my $export = $first->export( $last_changed );
+		isa_ok( $export, 'ADAMK::Distribution::Export' );
+		isa_ok( $export->distribution, 'ADAMK::Distribution' );
+		isa_ok( $export->repository,   'ADAMK::Repository'   );
+		my $name = $export->name;
+		my $path = $export->path;
+		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
+		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
+	}
 }
 
 

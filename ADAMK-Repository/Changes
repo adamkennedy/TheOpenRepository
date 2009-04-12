@@ -4,6 +4,8 @@ Changes for Perl extension ADAMK-Repository
 	- Upgrading to inc::Module::Install::DSL 0.82
 	- Sort all files and dirs as we read them
 	- Skip Araxis tests when we can't find it
+	- Added ADAMK::Distribution::Export
+	- Added ADAMK::Distribution::Checkout
 
 0.05 Tue 23 Dec 2008
 	- Adding support for distribution exporting

@@ -405,16 +405,29 @@ sub svn_file_info {
 	return $hash;
 }
 
+sub svn_checkout {
+	my $self = shift;
+	my $url  = shift;
+	my $path = shift;
+	my @rv   = $self->svn_command(
+		'checkout', $url, $path,
+	);
+	unless ( $rv[-1] =~ qr/^Checked out revision \d+\.$/ ) {
+		die "Failed to checkout '$url'";
+	}
+	return 1;
+}
+
 sub svn_export {
 	my $self     = shift;
 	my $url      = shift;
-	my $revision = shift;
 	my $path     = shift;
+	my $revision = shift;
 	my @rv       = $self->svn_command(
 		'export', '--force', '-r', $revision, $url, $path,
 	);
 	unless ( $rv[-1] eq "Exported revision $revision." ) {
-		die "Failed to export $url at revision $revision";
+		die "Failed to export '$url' at revision $revision";
 	}
 	return 1;
 }
