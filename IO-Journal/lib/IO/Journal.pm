@@ -15,6 +15,15 @@ use strict;
 use warnings;
 use Carp ();
 
+use Fcntl (
+  'O_RDONLY',
+  'O_RDWR',
+  'O_CREAT',
+  'O_TRUNC',
+);
+
+use IO::Journal::Transaction;
+
 =head1 NAME
 
 IO::Journal - Perl interface for journalled file operations
@@ -64,6 +73,42 @@ a bit of a land grab. Expect a working version in a few weeks.
 # memory efficient than DynaLoader.
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
+
+# In order to mimic the Perl open function, we must map the following Perl
+# flags to their fopen counterparts:
+#
+# Perl   C   Flags
+#   <    r   O_RDONLY
+#  +<    r+  O_RDWR
+#  >>    a   O_RDWR | O_CREAT
+# +>>    a+  O_RDWR | O_CREAT
+#   >    w   O_RDWR | O_CREAT | O_TRUNC
+#  +>    w+  O_RDWR | O_CREAT | O_TRUNC
+#
+# The Fcntl core module provides these constants.
+my %FLAGMAP = (
+  '<'   => O_RDONLY,
+  '+<'  => O_RDWR,
+  '>>'  => O_RDWR | O_CREAT,
+  '+>>' => O_RDWR | O_CREAT,
+  '>'   => O_RDWR | O_CREAT | O_TRUNC,
+  '+>'  => O_RDWR | O_CREAT | O_TRUNC,
+);
+
+sub open {
+  my ($self, $flags, $filename) = @_;
+
+  Carp::croak('Unrecognized flag(s): ' . $flags)
+    unless exists($FLAGMAP{$flags});
+
+  $self->sysopen($filename, $FLAGMAP{$flags});
+}
+
+sub begin_transaction {
+  my ($self) = @_;
+
+  return IO::Journal::Transaction->new($self);
+}
 
 =head1 AUTHOR
 

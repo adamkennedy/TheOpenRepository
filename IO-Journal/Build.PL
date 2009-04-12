@@ -14,12 +14,15 @@ use warnings;
 
 use Module::Build;
 
+my $flags = `getconf LFS_CFLAGS`;
+$flags ||= '-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE';
+
 my $builder = Module::Build->new(
   module_name           => 'IO::Journal',
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',
   dist_version_from     => 'lib/IO/Journal.pm',
-  dynamic_config        => 0,
+  dynamic_config        => 1,
   create_readme         => 1,
   recursive_test_files  => 1,
   sign                  => 1,
@@ -35,6 +38,10 @@ my $builder = Module::Build->new(
     'src/Transaction.xs'  => 'lib/IO/Journal/Transaction.xs',
   },
 
+  # Special flags required to locate libjio
+  extra_compiler_flags => $flags,
+  extra_linker_flags   => '-ljio',
+
   requires => {
     'perl'              => 5.006,
 
@@ -43,6 +50,7 @@ my $builder = Module::Build->new(
     'version'           => 0.76,
     'warnings'          => 0,
     'strict'            => 0,
+    'Fcntl'             => 0,
 
     # The tests are based on Test::More
     'Test::More'        => 0.62,
