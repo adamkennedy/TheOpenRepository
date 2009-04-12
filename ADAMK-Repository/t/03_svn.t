@@ -77,6 +77,7 @@ SCOPE: {
 
 	# Check a typical svn_info
 	my $first        = $distributions[0];
+	diag("Testing " . $first->name . "\n");
 	my $url          = $first->svn_url;
 	my $last_changed = $first->svn_last_changed;
 	like( $url,          qr/^http:\/\/svn\.ali\.as\/cpan/, '->svn_url ok' );
