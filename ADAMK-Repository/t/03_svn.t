@@ -144,6 +144,7 @@ SCOPE: {
 
 	# Check a typical svn_info
 	my $first    = $releases[0];
+	diag("Testing " . $dist->file . "\n");
 	my $revision = $first->svn_revision;
 	like( $revision, qr/^\d+$/, '->revision ok ok' );
 
