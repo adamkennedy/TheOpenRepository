@@ -215,7 +215,7 @@ Formerly known as Test::Inline2, a private Phase N Australia module
 	- Added a special hack to prevent one particular warning during a
 	 unit test script in which we don't want to see it.
 
-1.61 Web Sep  1 2004
+1.61 Wed Sep  1 2004
 	- Fixed some bugs in Test::Inline2::Handler::File
 
 1.60 Wed Sep  1 2004
