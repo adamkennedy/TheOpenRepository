@@ -3,8 +3,10 @@ package ADAMK::Distribution::Checkout;
 use 5.008;
 use strict;
 use warnings;
-use Carp       ();
-use ADAMK::SVN ();
+use Carp                   ();
+use File::Spec             ();
+use ADAMK::SVN             ();
+use Module::Changes::ADAMK ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
@@ -42,13 +44,39 @@ sub svn_revision {
 
 
 #####################################################################
-# SVN Methods
+# Integration with Module::Changes::ADAMK
 
-sub commit {
+sub changes_file {
 	my $self = shift;
-	$self->repository->svn_commit(
+	File::Spec->catfile(
 		$self->path,
+		'Changes',
 	);
+}
+
+sub changes {
+	my $self = shift;
+	my $file = $self->changes_file;
+	unless ( -f $file ) {
+		die('Changes file does not exist');
+	}
+	Module::Changes::ADAMK->read($file);
+}
+
+
+
+
+
+#####################################################################
+# High Level Methods
+
+sub update_current_release_datetime {
+	my $self    = shift;
+	my $changes = $self->changes;
+	my $release = $changes->current_release;
+	$release->set_datetime_now;
+	$changes->save;
+	return 1;
 }
 
 1;

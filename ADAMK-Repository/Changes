@@ -7,6 +7,7 @@ Changes for Perl extension ADAMK-Repository
 	- Added ADAMK::Distribution::Export
 	- Added ADAMK::Distribution::Checkout
 	- Abstracting svn basics into ADAMK::SVN
+	- Integrating with Module::Changes::ADAMK
 
 0.05 Tue 23 Dec 2008
 	- Adding support for distribution exporting

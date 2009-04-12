@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 105 );
+	plan( tests => 107 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -91,9 +91,18 @@ SCOPE: {
 		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
 		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
 
-		my $hash = $checkout->svn_info;
-		is( ref($hash), 'HASH', '->svn_info returns a HASH' );
-		is( $hash->{RepositoryUUID}, $uuid, 'RepositoryUUID ok' );
+		# Test svn info in checkouts
+		my $info = $checkout->svn_info;
+		is( ref($info), 'HASH', '->svn_info returns a HASH' );
+		is( $info->{RepositoryUUID}, $uuid, 'RepositoryUUID ok' );
+
+		# Test Changes integration
+		my $changes = $checkout->changes;
+		isa_ok( $changes, 'Module::Changes::ADAMK' );
+		ok(
+			$checkout->update_current_release_datetime,
+			'->update_current_release_datetime ok',
+		);
 	}
 
 	# Export a distribution
