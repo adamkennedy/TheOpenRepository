@@ -75,7 +75,7 @@ Revision history for Perl extension Config::Tiny
 1.5  Wed Jan  7 2004
 	- Updating documentation to provide a correct location to send bug reports
 
-1.4  Web Dec 24 2003
+1.4  Wed Dec 24 2003
 	- Caught a warning when trying to parse an undefined string.
 	  Returns undef in that case.
 	- Merry Christmas and a productive New Year to you all!
