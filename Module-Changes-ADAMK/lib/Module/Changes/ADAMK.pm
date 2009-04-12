@@ -32,7 +32,7 @@ use DateTime::Format::DateParse 0.04 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 use Module::Changes::ADAMK::Release ();
