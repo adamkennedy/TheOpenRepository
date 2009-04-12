@@ -29,7 +29,7 @@ sub trace {
 sub svn_command {
 	my $self   = shift;
 	my $root   = File::pushd::pushd( $self->root );
-	$self->trace("> " . join( ' ', 'svn', @_ ) . "\n");
+	$self->trace("> " . join( ' ', map { /\s/ ? "'$_'" : $_ } 'svn', @_ ) . "\n");
 	my $stdout = '';
 	IPC::Run3::run3(
 		[ 'svn', @_ ],
@@ -73,9 +73,15 @@ sub svn_commit {
 	my @rv   = $self->svn_command(
 		'commit', @_,
 	);
-	unless ( $rv[-1] =~ qr/commit/ ) {
-		die('Failed to commit');
+	unless ( @rv ) {
+		# Nothing changed
+		$self->trace("Nothing changed in commit.\n");
+		return 0;
 	}
+	unless ( $rv[-1] =~ qr/^Committed revision \d+\.$/ ) {
+		die("Commit failed: $rv[-1]");
+	}
+	$self->trace("$rv[-1]\n");
 	return 1;
 }
 

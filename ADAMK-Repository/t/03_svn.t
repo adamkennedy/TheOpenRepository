@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 107 );
+	plan( tests => 108 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -89,6 +89,8 @@ SCOPE: {
 		isa_ok( $checkout, 'ADAMK::Distribution::Checkout' );
 		isa_ok( $checkout->distribution, 'ADAMK::Distribution' );
 		isa_ok( $checkout->repository,   'ADAMK::Repository'   );
+		my @releases = $first->releases;
+		isa_ok( $releases[0], 'ADAMK::Release' );
 		my $name = $checkout->name;
 		my $path = $checkout->path;
 		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );

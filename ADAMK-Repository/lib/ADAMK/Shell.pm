@@ -15,6 +15,10 @@ use Object::Tiny 1.06 qw{
 	repository
 };
 
+sub trace {
+	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};
+}
+
 
 
 
@@ -66,19 +70,46 @@ sub compare_export_stable {
 # Custom Commands
 
 sub update_current_release_datetime {
-	my $self     = shift;
-	my $dist     = $self->repository->distribution(shift);
-	my $latest   = $dist->latest->version;
-	my $checkout = $dist->checkout;
-	my $current  = $checkout->changes->current->version;
-	if ( $latest eq $current ) {
+	my $self         = shift;
+	my $distribution = $self->repository->distribution(shift);
+
+	# Is there an unreleased version
+	my $checkout     = $distribution->checkout;
+	my $released     = $distribution->latest->version;
+	my $current      = $checkout->changes->current->version;
+	if ( $released eq $current ) {
 		# We have already released the current version
 		die("Version $current has already been released");
 	}
+
+	# Update the Changes file
 	my $date = $checkout->update_current_release_datetime;
 	$checkout->svn_commit(
 		-m => "[bot] Set version $current release date to $date",
 		'Changes',
+	);
+}
+
+sub update_current_perl_versions {
+	my $self         = shift;
+	my $distribution = $self->repository->distribution(shift);
+
+	# Is there an unreleased version
+	my $checkout     = $distribution->checkout;
+	my $released     = $distribution->latest->version;
+	my $current      = $checkout->changes->current->version;
+	if ( $released eq $current ) {
+		# We have already released the current version
+		die("Version $current has already been released");
+	}
+
+	# Update the $VERSION strings
+	my $changed = $checkout->update_current_perl_versions;
+	unless ( $changed ) {
+		$self->trace("No files were updated");
+	}
+	$checkout->svn_commit(
+		-m => "[bot] Changed \$VERSION strings from $released to $current",
 	);
 }
 
