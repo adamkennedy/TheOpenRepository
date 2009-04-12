@@ -67,6 +67,8 @@ SCOPE: {
 		rand() <=> rand()
 	} grep {
 		-f catfile($_->path, 'Makefile.PL')
+		and
+		-f catfile($_->path, 'Changes')
 	} $repository->distributions;
 	foreach my $distribution ( sort @distributions[0 .. 25] ) {
 		my $info = $distribution->svn_info;
@@ -130,6 +132,8 @@ SCOPE: {
 		rand() <=> rand()
 	} grep {
 		-f catfile($_->distribution->path, 'Makefile.PL')
+		and
+		-f catfile($_->distribution->path, 'Changes')
 	} $repository->releases_trunk;
 	foreach my $release ( sort @releases[0 .. 25] ) {
 		my $info = $release->svn_info;
