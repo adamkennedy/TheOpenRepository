@@ -1,6 +1,6 @@
 Revision history for Perl extension Process
 
-0.24 to be released
+0.25 to be released
 	- Catch the error if there IS no output. (CSJEWELL)
 
 0.24 Wed  9 Apr 2009
