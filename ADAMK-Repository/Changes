@@ -1,5 +1,9 @@
 Changes for Perl extension ADAMK-Repository
 
+0.07 not released yet
+	- Added ADAMK::Shell
+	- Updated to use Module::Changes::ADAMK 0.05
+
 0.06 Mon 26 Jan 2009
 	- Upgrading to inc::Module::Install::DSL 0.82
 	- Sort all files and dirs as we read them

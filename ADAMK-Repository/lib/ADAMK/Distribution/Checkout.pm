@@ -58,7 +58,8 @@ sub changes {
 	my $self = shift;
 	my $file = $self->changes_file;
 	unless ( -f $file ) {
-		die("Changes file '$file' in '" . $self->name . "' does not exist");
+		my $name = $self->name;
+		die("Changes file '$file' in '$name' does not exist");
 	}
 	Module::Changes::ADAMK->read($file);
 }
@@ -73,10 +74,13 @@ sub changes {
 sub update_current_release_datetime {
 	my $self    = shift;
 	my $changes = $self->changes;
-	my $release = $changes->current_release;
+	my $release = $changes->current;
 	$release->set_datetime_now;
+	my $version = $release->version;
+	my $date    = $release->date;
+	$self->trace("Set version $version release date to $date\n");
 	$changes->save;
-	return 1;
+	return $date;
 }
 
 1;

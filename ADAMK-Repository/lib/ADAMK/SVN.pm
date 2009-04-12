@@ -3,9 +3,10 @@ package ADAMK::SVN;
 use 5.008;
 use strict;
 use warnings;
+use IPC::Run3    ();
 use File::Spec   ();
 use File::pushd  ();
-use Params::Util qw{_STRING};
+use Params::Util qw{ _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
@@ -26,13 +27,17 @@ sub trace {
 # SVN Methods
 
 sub svn_command {
-	my $self = shift;
-	my $root = File::pushd::pushd( $self->root );
-	my $cmd  = join( ' ', 'svn', @_ );
-	$self->trace("> $cmd\n");
-	my @rv   = `$cmd`;
-	chomp(@rv);
-	return @rv;
+	my $self   = shift;
+	my $root   = File::pushd::pushd( $self->root );
+	$self->trace("> " . join( ' ', 'svn', @_ ) . "\n");
+	my $stdout = '';
+	IPC::Run3::run3(
+		[ 'svn', @_ ],
+		\undef,
+		\$stdout,
+		\undef,
+	);
+	return split /\n/, $stdout;
 }
 
 sub svn_info {

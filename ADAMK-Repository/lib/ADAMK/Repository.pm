@@ -12,6 +12,7 @@ use 5.008;
 use strict;
 use warnings;
 use Carp                        ();
+use List::Util             1.18 ();
 use File::Spec             3.29 ();
 use File::Flat             1.04 ();
 use File::pushd            1.00 ();
@@ -57,9 +58,9 @@ sub new {
 	$self->{preload} = !! $self->{preload};
 
 	# Preload if we are into that sort of thing
-	$self->trace("Preloading distributions...");
+	$self->trace("Preloading distributions...\n");
 	$self->{distributions} = [ $self->distributions ];
-	$self->trace("Preloading releases...");
+	$self->trace("Preloading releases...\n");
 	$self->{releases} = [ $self->releases ];
 
 	return $self;
@@ -169,7 +170,7 @@ sub releases {
 			Carp::croak("Unexpected file name '$file'");
 		}
 		my $distname = "$1";
-		my $version      = "$2";
+		my $version  = "$2";
 		my $object = ADAMK::Release->new(
 			repository => $self,
 			directory  => 'releases',

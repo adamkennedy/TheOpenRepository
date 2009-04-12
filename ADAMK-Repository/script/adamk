@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
 use strict;
-use ADAMK::Repository ();
+use List::Util   ();
+use ADAMK::Shell ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -15,16 +16,25 @@ BEGIN {
 #####################################################################
 # Main Script
 
+my $root = List::Util::first {
+	defined $_ and -d $_
+} (
+	$ENV{ADAMK_CHECKOUT},
+	'D:\cpan',
+	'/home/adam/cpan',
+) or die "Failed to guess repository root";
+
 # Connect to the repository
-my $repository = ADAMK::Repository->new(
-	root => 'D:\cpan',
+my $shell = ADAMK::Shell->new(
+	root  => 'D:\cpan',
+	trace => 1,
 ) or die 'Failed to locate repository checkout';
 
 # First argv is the command
 my $method = shift @ARGV;
-unless ( $repository->can($method) ) {
-	die "Repository does not have a $method method";
+unless ( $shell->can($method) ) {
+	die "Shell does not expose a $method command";
 }
 
 # Execute the command
-$repository->$method(@ARGV);
+$shell->$method(@ARGV);
