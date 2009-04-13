@@ -1,4 +1,4 @@
-Revision history for Perl extension Algorithm::CurveFit.
+Revision history for Perl extension Algorithm-CurveFit.
 
 1.04  Tue Mar  3 17:25 2009
   - Require Math::Symbolic 0.602 due to bug fix.

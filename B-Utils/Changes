@@ -1,4 +1,4 @@
-Revision history for Perl extension B::Utils.
+Revision history for Perl extension B-Utils.
 
 0.05_09 Sat Apr 6 16:09:.. CEST 2008
     - Allow for nested disjunctions in opgrep patterns.

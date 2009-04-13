@@ -1,4 +1,4 @@
-Revision history for Perl extension CPAN::Mini::Extract
+Revision history for Perl extension CPAN-Mini-Extract
 
 1.20 Mon 30 Jun 2008
 	- Refactoring and reducing the number of stat calls needed

@@ -1,4 +1,4 @@
-Revision history for Perl extension Email::Stuff
+Revision history for Perl extension Email-Stuff
 
 2.06  Fri 28 Dec 2007
 	- Removed unreliable File::Slurp dependency

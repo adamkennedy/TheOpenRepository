@@ -1,4 +1,4 @@
-Revision history for Perl extension ExtUtils::InferConfig.
+Revision history for Perl extension ExtUtils-InferConfig.
 
 1.03  Sat Nov 22 17:48 2008
         - Always use IPC::Run...

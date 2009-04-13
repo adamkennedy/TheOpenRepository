@@ -1,4 +1,4 @@
-Revision history for Perl extension DBIx::MySQLSequence.
+Revision history for Perl extension DBIx-MySQLSequence.
 
 1.04 Tue 11 Dec 2007
 	- Upgrading to Module::Install 0.68

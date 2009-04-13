@@ -1,4 +1,4 @@
-Revision history for Perl extension Config::Tiny
+Revision history for Perl extension Config-Tiny
 
 2.12 Thu  1 Nov 2007
 	- Converting build script from Module::Install to tinier EU:MM

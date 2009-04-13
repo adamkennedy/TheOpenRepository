@@ -1,4 +1,4 @@
-Revision history for Perl extension CGI::Capture
+Revision history for Perl extension CGI-Capture
 
 1.12 Mon 10 Dec 2007
 	- Switching to IO::Scalar in the hope it ties properly

@@ -1,4 +1,4 @@
-Revision history for Perl extension AutoXS::Header.
+Revision history for Perl extension AutoXS-Header.
 
 0.05  Tue Dec  9 21:16 2008
         - Fix documentation to advise a Win32-nmake compatible Makefile.PL

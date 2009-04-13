@@ -1,4 +1,4 @@
-Revision history for Perl extension Data::Package
+Revision history for Perl extension Data-Package
 
 1.05 Tue 20 Nov 2007
 	- Bug fix, avoid the use of base.pm to try and prevent an error

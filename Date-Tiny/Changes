@@ -1,5 +1,6 @@
-Revision history for Perl extension Date::Tiny
+Revision history for Perl extension Date-Tiny
 
+1.04 to be released
         - Makefile.PL will create a better META.yml
 
 1.03 Thu  1 Nov 2007

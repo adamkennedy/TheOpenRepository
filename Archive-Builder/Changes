@@ -18,15 +18,13 @@ Revision history for Perl extension Archive-Builder
 	- No functional changes.
 
 1.10 Fri  4 May 2007
-	Due to the fixing of some fairly major issues that caused
-	compatibility issues, it is STRONGLY recommended that this release
-	be used as the the mimumum dependency for code using this module.
-
+	- Due to the fixing of some fairly major issues that caused
+	  compatibility issues, it is STRONGLY recommended that this release
+	  be used as the the mimumum dependency for code using this module.
 	- Paths are unix paths, use File::Spec::Unix when working with them
 	- Archive::Builder installs on Win32 now.
 	- Archives are always built with the files in sorted order,
 	  so that Archive::Extract won't get confused about the extract_path
-
 
 1.08 Tue 20 Feb 2007
 	- Improve error message on content generation failure
