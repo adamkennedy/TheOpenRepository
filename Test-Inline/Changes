@@ -1,4 +1,4 @@
-Revision history for Perl extension Test::Inline
+Revision history for Perl extension Test-Inline
 
 2.208 Wed 12 Dec 2007
 	- Updating to Module::Install 0.68
@@ -142,15 +142,13 @@ Revision history for Perl extension Test::Inline
 	  smarter.
 
 2.00_01 Fri Mar 18 2005
+	- Formerly known as Test::Inline2, a private Phase N Australia module
 	- Moved from PCPP (Phase N private CPAN repository) to Open Source
 	  repository.
 	- Inlined File::DirUtils as Test::Inline::Util
 	- Renamed Test::Inline::TestFile as Test::Inline::Script
 	- Completed POD docs for what methods exist
 	- Partially completed main module DESCRIPTION
-
----------------------------------------------------------------------
-Formerly known as Test::Inline2, a private Phase N Australia module
 
 2.12 Tue Mar 15 2005
 	- Fixed a bug in the generation of the manifest resulting from
