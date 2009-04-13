@@ -25,19 +25,19 @@ use Params::Util           0.35 qw{ _STRING _CODE };
 use CPAN::Version           5.5 ();
 use PPI                   1.203 ();
 use Module::Changes::ADAMK 0.04 ();
-use ADAMK::SVN                  ();
+use ADAMK::Role::SVN            ();
 use ADAMK::Release              ();
 use ADAMK::Distribution         ();
+
+use Object::Tiny::XS 1.01 qw{
+	root
+};
 
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.07';
-	@ISA     = 'ADAMK::SVN';
+	unshift @ISA, 'ADAMK::Role::SVN';
 }
-
-use Object::Tiny 1.06 qw{
-	root
-};
 
 
 

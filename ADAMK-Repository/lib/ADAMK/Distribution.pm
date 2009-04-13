@@ -7,21 +7,21 @@ use File::Spec                    ();
 use File::Temp                    ();
 use File::pushd                   ();
 use CPAN::Version                 ();
-use ADAMK::Repository::Util       ('shell');
+use ADAMK::Util                   'shell';
 use ADAMK::Distribution::Export   ();
 use ADAMK::Distribution::Checkout ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.07';
-}
-
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	name
 	directory
 	path
 	repository
 };
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.07';
+}
 
 
 
@@ -133,24 +133,6 @@ sub stable {
 	my $self     = shift;
 	my @releases = grep { $_->stable } $self->releases;
 	return $releases[0];
-}
-
-
-
-
-
-#####################################################################
-# Testing
-
-sub make_test_ok {
-	my $self  = shift;
-	my $path  = $self->export_head;
-	my $pushd = File::pushd::pushd($path);
-
-	# Configure the distribution
-	shell( 'perl Makefile.PL', "Configuring $pushd" );
-
-	
 }
 
 1;

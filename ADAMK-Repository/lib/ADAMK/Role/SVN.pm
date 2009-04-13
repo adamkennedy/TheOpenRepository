@@ -1,4 +1,4 @@
-package ADAMK::SVN;
+package ADAMK::Role::SVN;
 
 use 5.008;
 use strict;
@@ -11,12 +11,6 @@ use Params::Util qw{ _STRING };
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.07';
-}
-
-use Object::Tiny;
-
-sub trace {
-	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};
 }
 
 

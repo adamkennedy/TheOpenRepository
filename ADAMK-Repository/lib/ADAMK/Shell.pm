@@ -5,15 +5,15 @@ use strict;
 use warnings;
 use ADAMK::Repository ();
 
+use Object::Tiny::XS qw{
+	root
+	repository
+};
+
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.07';
 }
-
-use Object::Tiny 1.06 qw{
-	root
-	repository
-};
 
 sub trace {
 	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};

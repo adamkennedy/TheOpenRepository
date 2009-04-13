@@ -5,22 +5,23 @@ use strict;
 use warnings;
 use Carp                   ();
 use File::Spec             ();
-use ADAMK::SVN             ();
+use ADAMK::Role::SVN       ();
 use File::Find::Rule       ();
 use File::Find::Rule::Perl ();
 use Module::Changes::ADAMK ();
+use ADAMK::Mixin::Trace;
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-	$VERSION = '0.07';
-	@ISA     = 'ADAMK::SVN';
-}
-
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	path
 	name
 	distribution
 };
+
+use vars qw{$VERSION @ISA};
+BEGIN {
+	$VERSION = '0.07';
+	unshift @ISA, 'ADAMK::Role::SVN';
+}
 
 sub root {
 	$_[0]->path;

@@ -5,16 +5,16 @@ use strict;
 use warnings;
 use Carp ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.07';
-}
-
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	path
 	name
 	distribution
 };
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.07';
+}
 
 sub repository {
 	$_[0]->distribution->repository;

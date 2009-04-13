@@ -9,12 +9,7 @@ use File::Remove     ();
 use Params::Util     qw{ _INSTANCE };
 use Archive::Extract ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.07';
-}
-
-use Object::Tiny qw{
+use Object::Tiny::XS qw{
 	file
 	directory
 	path
@@ -24,6 +19,11 @@ use Object::Tiny qw{
 	extracted
 	exported
 };
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.07';
+}
 
 
 

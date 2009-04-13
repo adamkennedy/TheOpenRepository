@@ -1,5 +1,10 @@
 Changes for Perl extension ADAMK-Repository
 
+0.08 to be released
+	- Moved ADAMK::SVN to ADAMK::Role::SVN
+	- Moved ADAMK::Repository::Util to ADAMK::Util
+	- Moved tracing logic into ADAMK::Mixin::Trace
+
 0.07 Sun 12 Apr 2009
 	- Added ADAMK::Shell
 	- Added update_current_perl_versions command
