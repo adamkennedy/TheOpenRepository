@@ -3,7 +3,8 @@ package ADAMK::Mixin::Trace;
 use 5.008;
 use strict;
 use warnings;
-use Exporter ();
+use Exporter     ();
+use Params::Util ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
@@ -12,7 +13,11 @@ BEGIN {
 }
 
 sub trace {
-	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};
+	if ( Params::Util::_CODE($_[0]->{trace}) ) {
+		$_[0]->trace( @_[1..$#_] );
+	} elsif ( $_[0]->{trace} ) {
+		print @_[1..$#_];
+	}
 }
 
 1;

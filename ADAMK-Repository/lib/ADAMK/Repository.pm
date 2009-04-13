@@ -20,17 +20,17 @@ use File::pushd            1.00 ();
 use File::Remove           1.42 ();
 use File::Find::Rule       0.30 ();
 use File::Find::Rule::VCS  1.05 ();
-use File::Find::Rule::Perl 1.05 ();
+use File::Find::Rule::Perl 1.06 ();
 use IPC::Run3             0.034 ();
 use Archive::Extract       0.30 ();
 use Params::Util           0.35 ();
 use CPAN::Version           5.5 ();
 use Object::Tiny::XS       1.01 ();
 use PPI                   1.203 ();
-use Module::Changes::ADAMK 0.04 ();
+use Module::Changes::ADAMK 0.08 ();
+use ADAMK::Role::SVN            ();
 use ADAMK::Release              ();
 use ADAMK::Distribution         ();
-use ADAMK::Role::SVN            ();
 use ADAMK::Mixin::Trace;
 
 use vars qw{$VERSION @ISA};
@@ -53,9 +53,6 @@ sub new {
 	# Check params
 	unless ( -d $self->svn_root($self->root) ) {
 		Carp::croak("Missing or invalid SVN root directory");
-	}
-	if ( $self->{trace} and not Params::Util::_CODE($self->{trace}) ) {
-		$self->{trace} = sub { print @_ };
 	}
 	$self->{preload} = !! $self->{preload};
 
@@ -106,6 +103,13 @@ sub distribution_directories {
 	} @files;
 }
 
+sub distribution {
+	my @distribution = grep {
+		$_->name eq $_[1]
+	} $_[0]->distributions;
+	return $distribution[0];
+}
+
 sub distributions {
 	my $self = shift;
 
@@ -127,14 +131,14 @@ sub distributions {
 		);
 		push @distributions, $object;
 	}
+
 	return @distributions;
 }
 
-sub distribution {
-	my @distribution = grep {
-		$_->name eq $_[1]
-	} $_[0]->distributions;
-	return $distribution[0];
+sub distributions_released {
+	grep {
+		scalar($_->releases)
+	} shift->distributions;
 }
 
 

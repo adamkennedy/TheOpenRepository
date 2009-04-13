@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 108 );
+	plan( tests => 109 );
 } else {
 	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 }
@@ -82,6 +82,12 @@ SCOPE: {
 	my $last_changed = $first->svn_last_changed;
 	like( $url,          qr/^http:\/\/svn\.ali\.as\/cpan/, '->svn_url ok' );
 	like( $last_changed, qr/^\d+$/, '->last_changed ok' );
+
+	# Check Changes file in the current distribution
+	SCOPE: {
+		my $changes = $first->changes;
+		isa_ok( $changes, 'Module::Changes::ADAMK' );
+	}
 
 	# Checkout a distribution
 	SCOPE: {

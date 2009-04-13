@@ -66,6 +66,16 @@ sub compare_export_stable {
 #####################################################################
 # Custom Commands
 
+sub info {
+	my $self    = shift;
+	my $dist    = $self->repository->distribution(shift);
+	my $release = $dist->latest;
+	print "Distribution: "    . $dist->name . "\n";
+	print "Directory:    "    . $dist->path . "\n";
+	print "Changes Version: " . $dist->changes->current->version . "\n";
+	print "Release Version: " . $release->version . "\n";
+}
+
 sub update_current_release_datetime {
 	my $self         = shift;
 	my $distribution = $self->repository->distribution(shift);
@@ -81,6 +91,8 @@ sub update_current_release_datetime {
 
 	# Update the Changes file
 	my $date = $checkout->update_current_release_datetime;
+
+	# Commit if we are allowed
 	$checkout->svn_commit(
 		-m => "[bot] Set version $current release date to $date",
 		'Changes',
@@ -105,6 +117,8 @@ sub update_current_perl_versions {
 	unless ( $changed ) {
 		$self->trace("No files were updated");
 	}
+
+	# Commit if we are allowed
 	$checkout->svn_commit(
 		-m => "[bot] Changed \$VERSION strings from $released to $current",
 	);

@@ -52,7 +52,7 @@ sub svn_revision {
 
 
 #####################################################################
-# Integration with Module::Changes::ADAMK
+# Module::Changes::ADAMK Integration
 
 sub changes_file {
 	my $self = shift;

@@ -135,4 +135,29 @@ sub stable {
 	return $releases[0];
 }
 
+
+
+
+
+#####################################################################
+# Module::Changes::ADAMK Integration
+
+sub changes_file {
+	my $self = shift;
+	File::Spec->catfile(
+		$self->path,
+		'Changes',
+	);
+}
+
+sub changes {
+	my $self = shift;
+	my $file = $self->changes_file;
+	unless ( -f $file ) {
+		my $name = $self->name;
+		die("Changes file '$file' in '$name' does not exist");
+	}
+	Module::Changes::ADAMK->read($file);
+}
+
 1;

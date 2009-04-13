@@ -1,9 +1,11 @@
 Changes for Perl extension ADAMK-Repository
 
-0.08 to be released
+0.08 Mon 13 Apr 2009
 	- Moved ADAMK::SVN to ADAMK::Role::SVN
 	- Moved ADAMK::Repository::Util to ADAMK::Util
 	- Moved tracing logic into ADAMK::Mixin::Trace
+	- Updating File::Find::Rule::Perl dependency to 1.06
+	- Updating Module::Changes::ADAMK dependency to 0.08
 
 0.07 Sun 12 Apr 2009
 	- Added ADAMK::Shell
@@ -26,8 +28,6 @@ Changes for Perl extension ADAMK-Repository
 	- ADAMK::Release->export works
 	- ADAMK::Repository->compare_export_latest added
 	- ADAMK::Repository->compare_export_stable works
-
-0.04 
 
 0.03 Wed 17 Nov 2008
 	- Adding calculation of the latest release for a distribution
