@@ -11,7 +11,7 @@ use DateTime::Format::DateParse ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 }
 
 use Module::Changes::ADAMK::Change ();
@@ -48,9 +48,11 @@ sub new {
 	# Inflate the DateTime
 	if ( $self->{date} ) {
 		$self->{datetime} = DateTime::Format::DateParse->parse_datetime($self->{date});
-		$self->{datetime}->truncate( to => 'day' );
-		$self->{datetime}->set_time_zone('floating');
-		$self->{datetime}->set_locale('C');
+		if ( $self->{datetime} ) {
+			$self->{datetime}->truncate( to => 'day' );
+			$self->{datetime}->set_time_zone('floating');
+			$self->{datetime}->set_locale('C');
+		}
 	}
 
 	# Split up the changes

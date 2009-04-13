@@ -25,14 +25,14 @@ is( $changes->dist_name,   'Module-Changes-ADAMK',  '->dist_name ok'   );
 is( $changes->module_name, 'Module::Changes::ADAMK', '->module_name ok' );
 my $current = $changes->current;
 isa_ok( $current, 'Module::Changes::ADAMK::Release' );
-is( $current->version, '0.08', '->version ok' );
+is( $current->version, '0.09', '->version ok' );
 is( $current->date, 'Mon 13 Apr 2009', '->date ok' );
 my @changes = $current->changes;
 is( scalar(@changes), 1, 'Found 1 changes' );
 my $change = $changes[0];
 isa_ok( $change, 'Module::Changes::ADAMK::Change' );
 is( $change->author, 'ADAMK', '->author ok' );
-is( $change->message, 'Localise newlines before the constructor', '->message ok' );
+is( $change->message, 'Handle failed DateTime parsing better', '->message ok' );
 
 
 

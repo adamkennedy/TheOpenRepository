@@ -1,5 +1,8 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.09 Mon 13 Apr 2009
+	- Handle failed DateTime parsing better (ADAMK)
+
 0.08 Mon 13 Apr 2009
 	- Localise newlines before the constructor (ADAMK)
 
