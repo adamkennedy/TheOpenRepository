@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 16;
+use Test::More tests => 23;
 use Module::Changes::ADAMK;
 
 
@@ -31,6 +31,17 @@ my $change = $changes[0];
 isa_ok( $change, 'Module::Changes::ADAMK::Change' );
 is( $change->author, 'ADAMK', '->author ok' );
 is( $change->message, 'Added a ->roundtrips method', '->message ok' );
+
+
+
+
+
+#####################################################################
+# Round-Trip Testing for Releases
+
+foreach ( $changes->releases ) {
+	ok( $_->roundtrips, 'Roundtrip ' . $_->version . ' ok' );
+}
 
 
 
