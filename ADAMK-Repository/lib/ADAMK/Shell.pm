@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use ADAMK::Repository ();
+use ADAMK::Mixin::Trace;
 
 use Object::Tiny::XS qw{
 	root
@@ -13,10 +14,6 @@ use Object::Tiny::XS qw{
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.07';
-}
-
-sub trace {
-	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};
 }
 
 

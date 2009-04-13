@@ -14,6 +14,7 @@ use warnings;
 use Carp                        ();
 use List::Util             1.18 ();
 use File::Spec             3.29 ();
+use File::Temp             0.21 ();
 use File::Flat             1.04 ();
 use File::pushd            1.00 ();
 use File::Remove           1.42 ();
@@ -21,22 +22,21 @@ use File::Find::Rule       0.30 ();
 use File::Find::Rule::VCS  1.05 ();
 use File::Find::Rule::Perl 1.05 ();
 use IPC::Run3             0.034 ();
-use Params::Util           0.35 qw{ _STRING _CODE };
+use Archive::Extract       0.30 ();
+use Params::Util           0.35 ();
 use CPAN::Version           5.5 ();
+use Object::Tiny::XS       1.01 ();
 use PPI                   1.203 ();
 use Module::Changes::ADAMK 0.04 ();
-use ADAMK::Role::SVN            ();
 use ADAMK::Release              ();
 use ADAMK::Distribution         ();
-
-use Object::Tiny::XS 1.01 qw{
-	root
-};
+use ADAMK::Role::SVN            ();
+use ADAMK::Mixin::Trace;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.07';
-	unshift @ISA, 'ADAMK::Role::SVN';
+	@ISA     = 'ADAMK::Role::SVN';
 }
 
 
@@ -48,13 +48,13 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $self  = $class->SUPER::new(@_);
+	my $self  = bless { @_ }, $class;
 
 	# Check params
 	unless ( -d $self->svn_root($self->root) ) {
 		Carp::croak("Missing or invalid SVN root directory");
 	}
-	if ( $self->{trace} and not _CODE($self->{trace}) ) {
+	if ( $self->{trace} and not Params::Util::_CODE($self->{trace}) ) {
 		$self->{trace} = sub { print @_ };
 	}
 	$self->{preload} = !! $self->{preload};
@@ -68,16 +68,16 @@ sub new {
 	return $self;
 }
 
+sub root {
+	$_[0]->{root};
+}
+
 sub dir {
 	File::Spec->catdir( shift->root, @_ );
 }
 
 sub file {
 	File::Spec->catfile( shift->root, @_ );
-}
-
-sub trace {
-	$_[0]->{trace}->( @_[1..$#_] ) if $_[0]->{trace};
 }
 
 
@@ -312,7 +312,7 @@ sub compare_export_stable {
 sub svn_dir {
 	my $self = shift;
 	my $dir  = shift;
-	unless ( defined _STRING($dir) ) {
+	unless ( defined Params::Util::_STRING($dir) ) {
 		return undef;
 	}
 	my $path = File::Spec->catfile( $self->root, $dir );
@@ -328,7 +328,7 @@ sub svn_dir {
 sub svn_file {
 	my $self = shift;
 	my $file = shift;
-	unless ( defined _STRING($file) ) {
+	unless ( defined Params::Util::_STRING($file) ) {
 		return undef;
 	}
 	my $path = File::Spec->catfile( $self->root, $file );
