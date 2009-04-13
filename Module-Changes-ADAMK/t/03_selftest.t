@@ -24,7 +24,7 @@ is( $changes->module_name, 'Module::Changes::ADAMK', '->module_name ok' );
 my $current = $changes->current;
 isa_ok( $current, 'Module::Changes::ADAMK::Release' );
 is( $current->version, '0.06', '->version ok' );
-is( $current->date, 'Sun 12 Apr 2009', '->date ok' );
+is( $current->date, 'Mon 13 Apr 2009', '->date ok' );
 my @changes = $current->changes;
 is( scalar(@changes), 2, 'Found 2 changes' );
 my $change = $changes[0];
