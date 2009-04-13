@@ -1,4 +1,4 @@
-use inc::Module::Install 0.79;
+use inc::Module::Install 0.82;
 
 all_from      'lib/File/Find/Rule/Perl.pm';
 requires      'File::Spec'        => winlike() ? '3.27' : '0.82';

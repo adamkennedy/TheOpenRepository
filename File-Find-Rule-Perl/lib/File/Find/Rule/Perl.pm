@@ -47,7 +47,7 @@ use Parse::CPAN::Meta ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
@@ -123,12 +123,10 @@ that have a perl "hash-bang" line.
 sub File::Find::Rule::perl_script {
 	my $self = shift()->_force_object;
 	$self->or(
-		FFR->file
-		   ->name( '*.pl' ),
-		FFR->file
-		   ->name( qr/^[^.]+$/ )
+		FFR->name( '*.pl' )->file,
+		FFR->name( qr/^[^.]+$/ )->file
 		   ->exec( \&File::Find::Rule::Perl::_shebang ),
-		);
+	);
 }
 
 sub File::Find::Rule::Perl::_shebang {
@@ -154,12 +152,10 @@ C<perl_test>, C<perl_installer> and C<perl_script> rules.
 sub File::Find::Rule::perl_file {
 	my $self = shift()->_force_object;
 	$self->or(
-		FFR->name( '*.pm', '*.t', '*.pl', 'Makefile.PL', 'Build.PL' )
-		   ->file,
-		FFR->name( qr/^[^.]+$/ )
-		   ->file
+		FFR->name('*.pm', '*.t', '*.pl', 'Makefile.PL', 'Build.PL')->file,
+		FFR->name( qr/^[^.]+$/ )->file
 		   ->exec( \&File::Find::Rule::Perl::_shebang ),
-		);
+	);
 }
 
 =pod
@@ -190,8 +186,9 @@ in a C<META.yml> file.
 sub File::Find::Rule::no_index {
 	my $find  = shift()->_force_object;
 
-	# Create the lexical var for the function
-	my $rule;
+	# Variables we'll need in the closure
+	my $rule = undef;
+	my $root = undef;
 
 	# Handle the various param options
 	if ( @_ == 0 ) {
@@ -205,7 +202,7 @@ sub File::Find::Rule::no_index {
 		my $path = shift;
 		if ( -d $path ) {
 			# This is probably a dist directory
-			my $meta = File::Spec->catfile( $path, 'META.yml' );
+			my $meta = File::Spec->catfile($path, 'META.yml');
 			$path = $meta if -f $meta;
 		}
 		if ( -f $path ) {
@@ -224,14 +221,24 @@ sub File::Find::Rule::no_index {
 
 	# Generate the subroutine in advance
 	my $function = sub {
-		my $r = $_[2];
+		my $shortname = $_[0];
+		my $fullname  = $_[2];
 
 		# In the automated case the first time we are
-		# called we are passed the distribution directory.
+		# called we are passed the META.yml-relative root.
+		unless ( defined $root ) {
+			if ( File::Spec->file_name_is_absolute($fullname) ) {
+				$root = $fullname;
+			} else {
+				$root = File::Spec->rel2abs(
+					File::Spec->curdir
+				);
+			}
+		}
 		unless ( defined $rule ) {
-			$rule = { directory => {}, file => {} };
-			my $meta = File::Spec->catfile( $r, 'META.yml' );
-			if ( -d $r and -f $meta ) {
+			$rule = '';
+			my $meta = File::Spec->catfile( $root, 'META.yml' );
+			if ( -f $meta ) {
 				my $yaml = Parse::CPAN::Meta::LoadFile($meta);
 				if ( $yaml and $yaml->{no_index} ) {
 					$rule = _no_index( $yaml->{no_index} );
@@ -239,8 +246,22 @@ sub File::Find::Rule::no_index {
 			}
 		}
 
-		$rule->{directory}->{$r} and -d $r and return 1;
-		$rule->{file}->{$r}      and -f _  and return 1;
+		# Shortcut when there is no META.yml
+		return 0 unless $rule;
+
+		# Derive the META.yml-relative unix path
+		my $absname = File::Spec->file_name_is_absolute($fullname)
+			? $fullname
+			: File::Spec->rel2abs($shortname);
+		my $relpath = File::Spec->abs2rel($absname, $root);
+
+		# Attempt to match a META.yml entry
+		if ( $rule->{directory}->{$relpath} and -d $absname ) {
+			return 1;
+		}
+		if ( $rule->{file}->{$relpath} and -f $absname ) {
+			return 1;
+		}
 		return 0;
 	};
 

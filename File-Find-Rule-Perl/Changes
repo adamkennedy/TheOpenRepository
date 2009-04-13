@@ -1,6 +1,9 @@
-Revision history for Perl extension File::Find::Rule::Perl
+Revision history for Perl extension File-Find-Rule-Perl
 
-        - additional test (without new) (Alexandr Ciornii)
+1.06 to be released
+	- Upgraded to Module::Install 0.82 (ADAMK)
+        - Additional test (without new) (Alexandr Ciornii)
+	- We can now use non-curdir() ->in targets (ADAMK)
 
 1.05 Thu 19 Feb 2009
 	- Updating to Module::Install 0.79
