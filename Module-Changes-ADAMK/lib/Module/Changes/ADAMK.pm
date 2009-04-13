@@ -33,7 +33,7 @@ use DateTime::Format::DateParse 0.04 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 }
 
 use Module::Changes::ADAMK::Release ();
@@ -79,14 +79,16 @@ sub read {
 
 sub read_string {
 	my $class = shift;
-	my $self  = $class->new(
-		string => $_[0],
-	);
 
 	# Normalize newlines
 	my $string = shift;
 	return undef unless defined $string;
 	$string =~ s/(?:\015{1,2}\012|\015|\012)/\n/gs;
+
+	# Create the unpopulated object
+	my $self  = $class->new(
+		string => $string,
+	);
 
 	# Split into paragraphs
 	my @paragraphs = split /\n{2,}(?=[^ \t])/, $string;
