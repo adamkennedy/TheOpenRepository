@@ -11,7 +11,7 @@ use Process::Serializable ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.24';
+	$VERSION = '0.25';
 	@ISA     = 'Process::Serializable';
 
 	# Hack IO::String to be a real IO::Handle
