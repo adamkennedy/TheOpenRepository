@@ -447,13 +447,13 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[WiX.pm 391] [3] '
+			print '[WiX.pm 450] [3] '
 			  . "Currently executing perl: $perl_location\n";
 		}
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[WiX.pm 397] [3] '
+			print '[WiX.pm 456] [3] '
 			  . "Our perl to create:       $our_perl_location\n";
 		}
 
