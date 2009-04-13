@@ -11,6 +11,7 @@ use POSIX qw(WIFEXITED);
 
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
+    bootstrap/bootstrap.pl
     bootstrap/bootstrap_header.pl
     bootstrap/bootstrap_trailer.pl
     lib/Marpa/Raw_Source.pm

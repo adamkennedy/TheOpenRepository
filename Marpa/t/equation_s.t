@@ -8,6 +8,7 @@ use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
 use Carp;
+BEGIN { *exception = \&Carp::croak }
 use Fatal qw(open close chdir);
 
 use Test::More tests => 6;
@@ -42,7 +43,7 @@ my $recce = new Marpa::Recognizer( { grammar => $grammar } );
 
 my $fail_offset = $recce->text('2-0*3+1');
 if ( $fail_offset >= 0 ) {
-    croak("Parse failed at offset $fail_offset");
+    exception("Parse failed at offset $fail_offset");
 }
 
 $recce->end_input();
@@ -54,7 +55,7 @@ my @expected = (
 );
 
 my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
-croak('Parse failed') unless $evaler;
+exception('Parse failed') unless $evaler;
 
 my $i = -1;
 while ( defined( my $value = $evaler->old_value() ) ) {

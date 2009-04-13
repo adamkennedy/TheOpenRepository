@@ -26,6 +26,7 @@ BEGIN {
 my $grammar = new Marpa::Grammar(
     {   start => 'E',
         strip => 0,
+        trace_choices => 99,
 
         # Set max at 10 just in case there's an infinite loop.
         # This is for debugging, after all
