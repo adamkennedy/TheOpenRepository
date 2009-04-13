@@ -1,5 +1,8 @@
 Changes for Perl extension ADAMK-Repository
 
+0.09 Tue 14 Apr 2009
+	- Updating Module::Changes::ADAMK dependency to 0.09
+
 0.08 Mon 13 Apr 2009
 	- Moved ADAMK::SVN to ADAMK::Role::SVN
 	- Moved ADAMK::Repository::Util to ADAMK::Util

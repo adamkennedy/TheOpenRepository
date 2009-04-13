@@ -27,7 +27,7 @@ use Params::Util           0.35 ();
 use CPAN::Version           5.5 ();
 use Object::Tiny::XS       1.01 ();
 use PPI                   1.203 ();
-use Module::Changes::ADAMK 0.08 ();
+use Module::Changes::ADAMK 0.09 ();
 use ADAMK::Role::SVN            ();
 use ADAMK::Release              ();
 use ADAMK::Distribution         ();
