@@ -7,12 +7,13 @@ BEGIN {
 }
 
 use Test::More;
-if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-	plan( tests => 109 );
-} else {
-	plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
+BEGIN {
+	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
+		plan( tests => 109 );
+	} else {
+		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
+	}
 }
-
 use File::Spec::Functions ':ALL';
 use ADAMK::Repository;
 
