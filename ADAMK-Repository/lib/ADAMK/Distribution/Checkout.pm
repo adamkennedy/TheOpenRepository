@@ -19,7 +19,7 @@ use Object::Tiny::XS qw{
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 	unshift @ISA, 'ADAMK::Role::SVN';
 }
 
