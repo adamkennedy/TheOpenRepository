@@ -21,6 +21,7 @@ Revision history for Perl extension Archive-Builder
 	- Due to the fixing of some fairly major issues that caused
 	  compatibility issues, it is STRONGLY recommended that this release
 	  be used as the the mimumum dependency for code using this module.
+
 	- Paths are unix paths, use File::Spec::Unix when working with them
 	- Archive::Builder installs on Win32 now.
 	- Archives are always built with the files in sorted order,

@@ -23,9 +23,10 @@ It is currently not documented in detail, see the source code for the API.
 
 =cut
 
-use 5.008;
+use 5.006;
 use strict;
-use Carp 'croak';
+use warnings;
+use Carp                             'croak';
 use DateTime                  0.4501 ();
 use DateTime::Format::CLDR      1.06 ();
 use DateTime::Format::DateParse 0.04 (); 
@@ -88,7 +89,10 @@ sub read_string {
 	$string =~ s/(?:\015{1,2}\012|\015|\012)/\n/gs;
 
 	# Split into paragraphs
-	my @paragraphs = split /\n{2,}/, $string;
+	my @paragraphs = split /\n{2,}(?=[^ \t])/, $string;
+	foreach ( @paragraphs ) {
+		s/\n\z//;
+	}
 
 	# The first paragraph contains the name of the module, which
 	# should be the last word.
@@ -164,6 +168,10 @@ sub as_string {
 		map { $_->as_string } $self->releases,
 	);
 	return join "\n", map { "$_\n" } @parts;
+}
+
+sub roundtrips {
+	$_[0]->string eq $_[0]->as_string
 }
 
 1;

@@ -1,7 +1,8 @@
 package Module::Changes::ADAMK::Change;
 
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
 use Carp ();
 
 use vars qw{$VERSION};
@@ -27,7 +28,7 @@ sub new {
 	my $self  = bless { string => shift }, $class;
 
 	# Get the paragraph strings
-	my @lines  = split /\n/, $self->{string};
+	my @lines = split /\n/, $self->{string};
 
 	# A (FOO) at the end indicates an author
 	if ( $lines[-1] =~ s/\s*\((\w+)\)\s*\z//s ) {
@@ -35,9 +36,11 @@ sub new {
 	}
 
 	# Trim the lines and merge to get the long-form message
-	$self->{message} = join ' ',
-		grep { s/^\s+//; s/\s+\z//; $_ }
-		@lines;
+	$self->{message} = join ' ', grep {
+		s/^\s+//;
+		s/\s+\z//;
+		$_
+	} @lines;
 	$self->{message} =~ s/^-\s*//;
 
 	return $self;
@@ -51,7 +54,11 @@ sub new {
 # Stringification
 
 sub as_string {
-	return $_[0]->string;
+	$_[0]->string;
+}
+
+sub roundtrips {
+	$_[0]->string eq $_[0]->as_string
 }
 
 1;

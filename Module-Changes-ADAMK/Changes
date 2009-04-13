@@ -1,5 +1,10 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.07 Mon 13 Apr 2009
+	- Added a ->roundtrips method (ADAMK)
+	- Added support for blank lines in the middle of
+	  a set of changes (ADAMK)
+
 0.06 Mon 13 Apr 2009
 	- Adding a regression test script (ADAMK)
 	- More descriptive version-parse failure message (ADAMK)
