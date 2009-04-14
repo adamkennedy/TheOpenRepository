@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.82;
+use inc::Module::Install::DSL 0.83;
 
 all_from      lib/JSAN/Client.pm
 requires      ORLite          1.20

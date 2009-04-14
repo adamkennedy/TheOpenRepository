@@ -46,7 +46,7 @@ use DBI            ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.16';
+	$VERSION = '0.20';
 
 	# Optional prefork.pm support
 	eval "use prefork 'Class::DBI';";
