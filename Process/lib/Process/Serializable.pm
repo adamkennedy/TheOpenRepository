@@ -6,7 +6,7 @@ use Process::Role::Serializable ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.25';
+	$VERSION = '0.26';
 	@ISA     = 'Process::Role::Serializable';	
 }
 

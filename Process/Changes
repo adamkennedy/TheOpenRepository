@@ -1,5 +1,8 @@
 Revision history for Perl extension Process
 
+0.26 Tue 14 Apr 2009
+	- Updating to Module::Install::DSL 0.83
+
 0.25 Sun 12 Apr 2009
 	- Catch the error if there IS no output. (CSJEWELL)
 
