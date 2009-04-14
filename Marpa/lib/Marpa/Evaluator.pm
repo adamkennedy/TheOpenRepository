@@ -872,6 +872,18 @@ sub Marpa::show_and_node {
 sub Marpa::Evaluator::show_choices {
     my ($evaler) = @_;
     my $text = q{};
+    my $completions_by_earleme = $evaler->[COMPLETIONS_BY_EARLEME];
+    CHOICE_EARLEME:
+    for my $choice_earleme ( 0 .. $#{$completions_by_earleme} ) {
+        my $completions_here = $completions_by_earleme->[$choice_earleme];
+        next CHOICE_EARLEME unless defined $completions_here;
+        $text .= "Completions at earleme $choice_earleme\n";
+        for my $rank ( 0 .. $#{$completions_here} ) {
+            $text .= ( sprintf '  %3d: ', $rank )
+                . Marpa::show_and_node( $completions_here->[$rank], 99 );
+        }
+    } ## end for my $choice_earleme ( 0 .. $#{$completions_by_earleme...
+    ## End CHOICE_EARLEME
     OR_NODE:
     for my $or_node ( @{ $evaler->[Marpa::Internal::Evaluator::OR_NODES] } ) {
         my $map = $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];

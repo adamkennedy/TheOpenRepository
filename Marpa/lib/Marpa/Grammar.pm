@@ -1572,31 +1572,30 @@ sub Marpa::brief_virtual_rule {
     my $chaf_start       = $rule->[Marpa::Internal::Rule::CHAF_START];
     my $chaf_end         = $rule->[Marpa::Internal::Rule::CHAF_END];
     if ( not defined $chaf_start ) {
-        return "$rule_id, dot at $dot_position, virtual "
+        return "dot at $dot_position, virtual "
             . Marpa::brief_rule($original_rule)
             if defined $dot_position;
-        return "$rule_id, virtual " . Marpa::brief_rule($original_rule);
+        return "virtual " . Marpa::brief_rule($original_rule);
     } ## end if ( not defined $chaf_start )
-    my $text = "$rule_id, part of $original_rule_id: ";
+    my $text .= "(part of $original_rule_id) ";
     $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' -> ';
     if ( @{$original_rhs} ) {
         my @rhs_names =
             map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
-        my @chaf_portion;
         if ( defined $dot_position ) {
             my $dot_in_original = $dot_position + $chaf_start;
-            @chaf_portion = (
-                @rhs_names[ $chaf_start .. $dot_in_original ],
-                q{.}, @rhs_names[ $dot_in_original + 1 .. $chaf_end ],
-            );
-        } ## end if ( defined $dot_position )
-        else {
-            @chaf_portion = @rhs_names[ $chaf_start .. $chaf_end ];
+            given ( $dot_in_original - $chaf_end ) {
+                when (1) { $rhs_names[$chaf_end]   .= q{ .}; }
+                when (2) { $rhs_names[$#rhs_names] .= q{ .}; }
+                default {
+                    $rhs_names[$dot_in_original] =
+                        q{. } . $rhs_names[$dot_in_original];
+                }
+            } ## end given
         }
-        $text .= join q{ },
-            @rhs_names[ 0 .. $chaf_start - 1 ], '{',
-            @chaf_portion, '}',
-            @rhs_names[ $chaf_end + 1 .. $#rhs_names ];
+        $rhs_names[$chaf_start] = '{ ' . $rhs_names[$chaf_start];
+        $rhs_names[$chaf_end] .= ' }';
+        $text .= join q{ }, @rhs_names;
     } ## end if ( @{$original_rhs} )
     return $text;
 } ## end sub Marpa::brief_virtual_rule
