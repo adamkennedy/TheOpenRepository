@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.82;
+use inc::Module::Install::DSL 0.83;
 
 all_from      lib/Module/Changes/ADAMK.pm
 requires_from lib/Module/Changes/ADAMK.pm

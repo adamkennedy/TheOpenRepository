@@ -11,7 +11,7 @@ use DateTime::Format::DateParse ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 }
 
 use Module::Changes::ADAMK::Change ();
