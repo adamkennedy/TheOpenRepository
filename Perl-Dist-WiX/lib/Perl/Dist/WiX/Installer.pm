@@ -41,6 +41,7 @@ require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::FeatureTree;
 require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
+require Perl::Dist::WiX::RemoveFolder;
 
 use version; $VERSION = version->new('0.170')->numify;
 #>>>
@@ -215,28 +216,24 @@ sub new {
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
-		sitename => $self->sitename,
-		trace    => $self->{trace},
 	)->initialize_tree( @{ $self->{msi_directory_tree_additions} } );
 	$self->{fragments} = {};
 	$self->{fragments}->{Icons} =
 	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
 	$self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
-		sitename => $self->sitename,
 		id       => 'Environment',
-		trace    => $self->{trace},
 	);
 	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
-		sitename       => $self->sitename,
 		directory_tree => $self->directories,
 		id             => 'Win32Extras',
-		trace          => $self->{trace},
 	);
 	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
 		directory => 'Cpan',
 		id        => 'CPANFolder',
-		trace     => $self->{trace},
-		sitename  => $self->sitename,
+	);
+	$self->{fragments}->{RemovePerl} = Perl::Dist::WiX::RemoveFolder->new(
+		directory => 'Perl',
+		id        => 'PerlFolder',
 	);
 	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
 
