@@ -22,7 +22,7 @@ use Algorithm::Dependency ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = 'Algorithm::Dependency';
 }
 
