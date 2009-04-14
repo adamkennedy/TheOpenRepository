@@ -16,6 +16,8 @@ BEGIN {
 }
 use ADAMK::Repository;
 
+my $path = $ENV{ADAMK_CHECKOUT};
+
 
 
 
@@ -24,7 +26,7 @@ use ADAMK::Repository;
 # Simple Constructor
 
 my $repository = ADAMK::Repository->new(
-	root    => $ENV{ADAMK_CHECKOUT},
+	path => $path,
 );
 isa_ok( $repository, 'ADAMK::Repository' );
 
@@ -37,7 +39,7 @@ isa_ok( $repository, 'ADAMK::Repository' );
 
 my $release = $repository->release_latest('Config-Tiny');
 isa_ok( $release, 'ADAMK::Release' );
-is( $release->directory, 'releases', '->directory ok' );
+ok( -d $release->directory, '->directory ok' );
 is( $release->distname, 'Config-Tiny', '->distribution ok' );
 is( $release->file, 'Config-Tiny-2.12.tar.gz', '->file ok' );
 ok( -f $release->path, "->path exists at " . $release->path );

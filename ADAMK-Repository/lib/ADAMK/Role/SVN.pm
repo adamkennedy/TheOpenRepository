@@ -6,7 +6,8 @@ use warnings;
 use IPC::Run3    ();
 use File::Spec   ();
 use File::pushd  ();
-use Params::Util qw{ _STRING };
+use Params::Util ();
+use ADAMK::Mixin::Trace;
 
 use vars qw{$VERSION};
 BEGIN {
@@ -20,9 +21,21 @@ BEGIN {
 #####################################################################
 # SVN Methods
 
+sub svn_dir {
+	my $self = shift;
+	my $dir  = shift;
+	unless ( defined Params::Util::_STRING($dir) ) {
+		return undef;
+	}
+	unless ( -d File::Spec->catdir($dir, '.svn') ) {
+		return undef;
+	}
+	return $dir;
+}
+
 sub svn_command {
-	my $self   = shift;
-	my $root   = File::pushd::pushd( $self->root );
+	my $self = shift;
+	my $root = File::pushd::pushd( $self->directory );
 	$self->trace("> " . join( ' ', map { /\s/ ? "'$_'" : $_ } 'svn', @_ ) . "\n");
 	my $stdout = '';
 	IPC::Run3::run3(
@@ -47,19 +60,40 @@ sub svn_info {
 	return \%hash;
 }
 
-sub svn_root {
+sub svn_subdir {
 	my $self = shift;
-	my $root  = shift;
-	unless ( defined _STRING($root) ) {
+	my $dir  = File::Spec->catdir(@_);
+	unless ( $self->svn_dir($self->directory, $dir) ) {
 		return undef;
 	}
-	unless ( -d $root ) {
+	return $dir;
+}
+
+sub svn_file {
+	my $self = shift;
+	my $file = File::Spec->catfile(@_);
+	my $path = $self->file($file);
+	unless ( -f $path ) {
 		return undef;
 	}
-	unless ( -d File::Spec->catdir($root, '.svn') ) {
+	my ($v, $d, $f) = File::Spec->splitpath($path);
+	my $svn = File::Spec->catpath(
+		$v,
+		File::Spec->catdir($d, '.svn', 'text-base'),
+		"$f.svn-base",
+	);
+	unless ( -f $svn ) {
 		return undef;
 	}
-	return $root;
+	return $file;
+}
+
+sub svn_url {
+	shift->svn_info->{URL};
+}
+
+sub svn_revision {
+	shift->svn_info->{LastChangedRev};
 }
 
 sub svn_commit {

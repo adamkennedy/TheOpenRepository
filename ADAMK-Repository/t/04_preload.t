@@ -16,7 +16,7 @@ BEGIN {
 }
 use ADAMK::Repository;
 
-my $root = $ENV{ADAMK_CHECKOUT};
+my $path = $ENV{ADAMK_CHECKOUT};
 
 
 
@@ -26,7 +26,7 @@ my $root = $ENV{ADAMK_CHECKOUT};
 # Constructor
 
 my $repository = ADAMK::Repository->new(
-	root    => $root,
+	path    => $path,
 	preload => 1,
 );
 isa_ok( $repository, 'ADAMK::Repository' );

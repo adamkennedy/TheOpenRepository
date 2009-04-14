@@ -1,15 +1,13 @@
-package ADAMK::Mixin::Trace;
+package ADAMK::Role::Trace;
 
 use 5.008;
 use strict;
 use warnings;
-use Exporter     ();
 use Params::Util ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.09';
-	@EXPORT  = 'trace';
 }
 
 sub trace {

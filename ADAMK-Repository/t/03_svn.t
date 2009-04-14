@@ -17,7 +17,7 @@ BEGIN {
 use File::Spec::Functions ':ALL';
 use ADAMK::Repository;
 
-my $root = $ENV{ADAMK_CHECKOUT};
+my $path = $ENV{ADAMK_CHECKOUT};
 my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
 
 
@@ -27,9 +27,9 @@ my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
 #####################################################################
 # Simple Constructor
 
-my $repository = ADAMK::Repository->new( root => $root );
+my $repository = ADAMK::Repository->new( path => $path );
 isa_ok( $repository, 'ADAMK::Repository' );
-is( $repository->root, $root, '->root ok' );
+is( $repository->path, $path, '->path ok' );
 
 
 
@@ -38,10 +38,10 @@ is( $repository->root, $root, '->root ok' );
 #####################################################################
 # SVN Methods
 
-my $hash = $repository->svn_info( $repository->root );
+my $hash = $repository->svn_info;
 is( ref($hash), 'HASH', '->svn_info' );
 is(
-	$hash->{URL},
+	$repository->svn_url,
 	'http://svn.ali.as/cpan',
 	'svn_info: Repository Root ok',
 );
@@ -80,7 +80,7 @@ SCOPE: {
 	my $first        = $distributions[0];
 	diag("Testing " . $first->name . "\n");
 	my $url          = $first->svn_url;
-	my $last_changed = $first->svn_last_changed;
+	my $last_changed = $first->svn_revision;
 	like( $url,          qr/^http:\/\/svn\.ali\.as\/cpan/, '->svn_url ok' );
 	like( $last_changed, qr/^\d+$/, '->last_changed ok' );
 

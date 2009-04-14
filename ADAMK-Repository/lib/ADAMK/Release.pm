@@ -3,27 +3,32 @@ package ADAMK::Release;
 use 5.008;
 use strict;
 use warnings;
-use Carp             ();
-use File::Temp       ();
-use File::Remove     ();
-use Params::Util     qw{ _INSTANCE };
-use Archive::Extract ();
+use Carp              ();
+use File::Temp        ();
+use File::Remove      ();
+use Params::Util      ();
+use Archive::Extract  ();
+use ADAMK::Repository ();
 
-use Object::Tiny::XS qw{
-	file
-	directory
-	path
-	repository
-	distname
-	version
-	extracted
-	exported
-};
-
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.09';
+	@ISA     = qw{
+		ADAMK::Role::Trace
+		ADAMK::Role::SVN
+	};
 }
+
+use Class::XSAccessor
+	getters => {
+		file       => 'file',
+		path       => 'path',
+		repository => 'repository',
+		directory  => 'directory',
+		distname   => 'distname',
+		version    => 'version',
+		extracted  => 'extracted',
+	};
 
 
 
@@ -34,10 +39,10 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $self  = $class->SUPER::new(@_);
+	my $self  = bless { @_ }, $class;
 
 	# Check params
-	unless ( _INSTANCE($self->repository, 'ADAMK::Repository') ) {
+	unless ( Params::Util::_INSTANCE($self->repository, 'ADAMK::Repository') ) {
 		Carp::croak("Did not provide a repository");
 	}
 
@@ -64,16 +69,17 @@ sub trunk {
 # SVN Integration
 
 sub svn_info {
-	$_[0]->repository->svn_file_info(
-		File::Spec->catfile(
-			$_[0]->directory,
-			$_[0]->file,
-		)
-	);
+	my $self = shift;
+	$self->SUPER::svn_info($self->file);
 }
 
-sub svn_revision {
-	$_[0]->svn_info->{LastChangedRev};
+sub svn_commit {
+	my $self = shift;
+	$self->SUPER::svn_info($self->file);
+}
+
+sub svn_subdir {
+	die "Cannot call svn_subdir on a release";
 }
 
 
@@ -113,8 +119,7 @@ sub export {
 }
 
 sub clear {
-	delete $_[0]->{extracted} if $_[0]->{extracted};
-	delete $_[0]->{exported}  if $_[0]->{exported};
+	delete $_[0]->{extracted};
 	return 1;
 }
 

@@ -11,32 +11,42 @@ ADAMK::Repository - Repository object model for ADAMK's svn repository
 use 5.008;
 use strict;
 use warnings;
-use Carp                        ();
-use List::Util             1.18 ();
-use File::Spec             3.29 ();
-use File::Temp             0.21 ();
-use File::Flat             1.04 ();
-use File::pushd            1.00 ();
-use File::Remove           1.42 ();
-use File::Find::Rule       0.30 ();
-use File::Find::Rule::VCS  1.05 ();
-use File::Find::Rule::Perl 1.06 ();
-use IPC::Run3             0.034 ();
-use Archive::Extract       0.30 ();
-use Params::Util           0.35 ();
-use CPAN::Version           5.5 ();
-use Object::Tiny::XS       1.01 ();
-use PPI                   1.203 ();
-use Module::Changes::ADAMK 0.09 ();
-use ADAMK::Role::SVN            ();
-use ADAMK::Release              ();
-use ADAMK::Distribution         ();
-use ADAMK::Mixin::Trace;
+use Carp                          ();
+use List::Util               1.18 ();
+use File::Spec               3.29 ();
+use File::Temp               0.21 ();
+use File::Flat               1.04 ();
+use File::pushd              1.00 ();
+use File::Remove             1.42 ();
+use File::Find::Rule         0.30 ();
+use File::Find::Rule::VCS    1.05 ();
+use File::Find::Rule::Perl   1.06 ();
+use IPC::Run3               0.034 ();
+use Archive::Extract         0.30 ();
+use Params::Util             0.35 ();
+use CPAN::Version             5.5 ();
+use Object::Tiny::XS         1.01 ();
+use PPI                     1.203 ();
+use Module::Changes::ADAMK   0.09 ();
+use ADAMK::Util                   ();
+use ADAMK::Role::Trace            ();
+use ADAMK::Role::File             ();
+use ADAMK::Role::SVN              ();
+use ADAMK::Role::Changes          ();
+use ADAMK::Role::Make             ();
+use ADAMK::Release                ();
+use ADAMK::Distribution           ();
+use ADAMK::Distribution::Export   ();
+use ADAMK::Distribution::Checkout ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.09';
-	@ISA     = 'ADAMK::Role::SVN';
+	@ISA     = qw{
+		ADAMK::Role::Trace
+		ADAMK::Role::File
+		ADAMK::Role::SVN
+	};
 }
 
 
@@ -51,31 +61,20 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Check params
-	unless ( -d $self->svn_root($self->root) ) {
+	unless ( $self->svn_dir($self->path) ) {
 		Carp::croak("Missing or invalid SVN root directory");
 	}
 	$self->{preload} = !! $self->{preload};
 
 	# Preload if we are into that sort of thing
-	$self->trace("Preloading distributions...\n");
-	$self->{distributions} = [ $self->distributions ];
 	$self->trace("Preloading releases...\n");
 	$self->{releases} = [ $self->releases ];
+	$self->trace("Preloading distributions...\n");
+	$self->{distributions} = [ $self->distributions ];
 
 	return $self;
 }
 
-sub root {
-	$_[0]->{root};
-}
-
-sub dir {
-	File::Spec->catdir( shift->root, @_ );
-}
-
-sub file {
-	File::Spec->catfile( shift->root, @_ );
-}
 
 
 
@@ -84,16 +83,12 @@ sub file {
 #####################################################################
 # Distributions
 
-sub distribution_dir {
-	$_[0]->dir('trunk');
-}
-
-sub distribution_directories {
+sub directories {
 	my $self = shift;
 
 	# Load the directory
 	local *DIR;
-	opendir( DIR, $self->distribution_dir ) or die("opendir: $!");
+	opendir( DIR, $self->dir('trunk') ) or die("opendir: $!");
 	my @files = sort readdir(DIR);
 	closedir(DIR) or die("closedir: $!");
 
@@ -118,16 +113,13 @@ sub distributions {
 		return @{$self->{distributions}};
 	}
 
-	my @directories   = $self->distribution_directories;
+	my @directories   = $self->directories;
 	my @distributions = ();
 	foreach my $directory ( @directories ) {
 		my $object = ADAMK::Distribution->new(
 			name       => $directory,
-			directory  => 'trunk',
+			path       => $self->dir('trunk', $directory),
 			repository => $self,
-			path       => File::Spec->catfile(
-				$self->distribution_dir, $directory,
-			),
 		);
 		push @distributions, $object;
 	}
@@ -136,9 +128,7 @@ sub distributions {
 }
 
 sub distributions_released {
-	grep {
-		scalar($_->releases)
-	} shift->distributions;
+	grep { scalar $_->releases } shift->distributions;
 }
 
 
@@ -148,14 +138,10 @@ sub distributions_released {
 #####################################################################
 # Releases
 
-sub release_dir {
-	$_[0]->dir('releases');
-}
-
-sub release_files {
+sub tarballs {
 	my $self   = shift;
 	local *DIR;
-	opendir( DIR, $self->release_dir ) or die("opendir: $!");
+	opendir( DIR, $self->dir('releases') ) or die("opendir: $!");
 	my @files = sort readdir(DIR);
 	closedir(DIR) or die("closedir: $!");
 	return grep { /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ } @files;
@@ -169,7 +155,7 @@ sub releases {
 		return @{$self->{releases}};
 	}
 
-	my @files    = $self->release_files;
+	my @files    = $self->tarballs;
 	my @releases = ();
 	foreach my $file ( @files ) {
 		unless ( $file =~ /^([\w-]+?)-(\d[\d_\.]*[a-z]?)\.(?:tar\.gz|zip)$/ ) {
@@ -178,14 +164,12 @@ sub releases {
 		my $distname = "$1";
 		my $version  = "$2";
 		my $object = ADAMK::Release->new(
-			repository => $self,
-			directory  => 'releases',
 			file       => $file,
-			version    => $version,
+			directory  => $self->file('releases'),
+			path       => $self->file('releases', $file),
 			distname   => $distname,
-			path       => File::Spec->catfile(
-				$self->release_dir, $file,
-			),
+			version    => $version,
+			repository => $self,
 		);
 		push @releases, $object;
 	}
@@ -204,6 +188,40 @@ sub release_latest {
 
 sub release_version {
 	$_[0]->distribution($_[1])->release($_[2]);
+}
+
+
+
+
+
+#####################################################################
+# SVN Methods
+
+sub svn_checkout {
+	my $self = shift;
+	my $url  = shift;
+	my $path = shift;
+	my @rv   = $self->svn_command(
+		'checkout', $url, $path,
+	);
+	unless ( $rv[-1] =~ qr/^Checked out revision \d+\.$/ ) {
+		die "Failed to checkout '$url'";
+	}
+	return 1;
+}
+
+sub svn_export {
+	my $self     = shift;
+	my $url      = shift;
+	my $path     = shift;
+	my $revision = shift;
+	my @rv       = $self->svn_command(
+		'export', '--force', '-r', $revision, $url, $path,
+	);
+	unless ( $rv[-1] eq "Exported revision $revision." ) {
+		die "Failed to export '$url' at revision $revision";
+	}
+	return 1;
 }
 
 
@@ -304,99 +322,6 @@ sub compare_export_stable {
 		$release->export,
 		$distribution->path,
 	);
-}
-
-
-
-
-
-#####################################################################
-# SVN Methods
-
-sub svn_dir {
-	my $self = shift;
-	my $dir  = shift;
-	unless ( defined Params::Util::_STRING($dir) ) {
-		return undef;
-	}
-	my $path = File::Spec->catfile( $self->root, $dir );
-	unless ( -d $path ) {
-		return undef;
-	}
-	unless ( -d File::Spec->catdir($path, '.svn') ) {
-		return undef;
-	}
-	return $dir;
-}
-
-sub svn_file {
-	my $self = shift;
-	my $file = shift;
-	unless ( defined Params::Util::_STRING($file) ) {
-		return undef;
-	}
-	my $path = File::Spec->catfile( $self->root, $file );
-	unless ( -f $path ) {
-		return undef;
-	}
-	my ($v, $d, $f) = File::Spec->splitpath($path);
-	my $svn = File::Spec->catpath(
-		$v,
-		File::Spec->catdir($d, '.svn', 'text-base'),
-		"$f.svn-base",
-	);
-	unless ( -f $svn ) {
-		return undef;
-	}
-	return $file;
-}
-
-sub svn_dir_info {
-	my $self = shift;
-	my $dir  = $self->svn_dir(shift);
-	unless ( defined $dir ) {
-		return undef;
-	}
-	my $hash = $self->svn_info($dir);
-	$hash->{Directory} = $dir;
-	return $hash;
-}
-
-sub svn_file_info {
-	my $self = shift;
-	my $file = $self->svn_file(shift);
-	unless ( defined $file ) {
-		return undef;
-	}
-	my $hash = $self->svn_info($file);
-	return $hash;
-}
-
-sub svn_checkout {
-	my $self = shift;
-	my $url  = shift;
-	my $path = shift;
-	my @rv   = $self->svn_command(
-		'checkout', $url, $path,
-	);
-	unless ( $rv[-1] =~ qr/^Checked out revision \d+\.$/ ) {
-		die "Failed to checkout '$url'";
-	}
-	return 1;
-}
-
-sub svn_export {
-	my $self     = shift;
-	my $url      = shift;
-	my $path     = shift;
-	my $revision = shift;
-	my @rv       = $self->svn_command(
-		'export', '--force', '-r', $revision, $url, $path,
-	);
-	unless ( $rv[-1] eq "Exported revision $revision." ) {
-		die "Failed to export '$url' at revision $revision";
-	}
-	return 1;
 }
 
 1;

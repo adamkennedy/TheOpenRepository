@@ -29,7 +29,7 @@ sub new {
 
 	# Create the repository from the root
 	$self->{repository} = ADAMK::Repository->new(
-		root  => $self->root,
+		path  => $self->path,
 		trace => $self->{trace},
 	);
 

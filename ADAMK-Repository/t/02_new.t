@@ -9,14 +9,15 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 1001 );
+		plan( tests => 1002 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
 }
+use Test::NoWarnings;
 use ADAMK::Repository;
 
-my $root = $ENV{ADAMK_CHECKOUT};
+my $path = $ENV{ADAMK_CHECKOUT};
 
 
 
@@ -26,9 +27,9 @@ my $root = $ENV{ADAMK_CHECKOUT};
 #####################################################################
 # Simple Constructor
 
-my $repository = ADAMK::Repository->new( root => $root );
+my $repository = ADAMK::Repository->new( path => $path );
 isa_ok( $repository, 'ADAMK::Repository' );
-is( $repository->root, $root, '->root ok' );
+is( $repository->path, $path, '->path ok' );
 
 
 

@@ -9,22 +9,36 @@ use ADAMK::Role::SVN       ();
 use File::Find::Rule       ();
 use File::Find::Rule::Perl ();
 use Module::Changes::ADAMK ();
-use ADAMK::Mixin::Trace;
-
-use Object::Tiny::XS qw{
-	path
-	name
-	distribution
-};
+use ADAMK::Repository      ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.09';
-	unshift @ISA, 'ADAMK::Role::SVN';
+	@ISA     = qw{
+		ADAMK::Role::File
+		ADAMK::Role::SVN
+		ADAMK::Role::Changes
+		ADAMK::Role::Make
+	};
 }
 
-sub root {
-	$_[0]->path;
+use Class::XSAccessor
+	getters => {
+		name         => 'name',
+		distribution => 'distribution',
+	};
+
+
+
+
+
+#####################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+	return $self;
 }
 
 sub repository {
@@ -35,41 +49,8 @@ sub releases {
 	$_[0]->distribution->releases;
 }
 
-
-
-
-
-
-#####################################################################
-# SVN Integration
-
-sub svn_revision {
-	$_[0]->svn_info->{LastChangedRev};
-}
-
-
-
-
-
-#####################################################################
-# Module::Changes::ADAMK Integration
-
-sub changes_file {
-	my $self = shift;
-	File::Spec->catfile(
-		$self->path,
-		'Changes',
-	);
-}
-
-sub changes {
-	my $self = shift;
-	my $file = $self->changes_file;
-	unless ( -f $file ) {
-		my $name = $self->name;
-		die("Changes file '$file' in '$name' does not exist");
-	}
-	Module::Changes::ADAMK->read($file);
+sub trace {
+	shift->repository->trace(@_);
 }
 
 
