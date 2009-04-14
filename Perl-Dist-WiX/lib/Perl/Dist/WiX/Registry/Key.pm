@@ -31,7 +31,7 @@ Readonly my @ROOT_OPTIONS => qw(HKMU HKCR HKCU HKLM HKU);
 #   none.
 # Attributes:
 
-my @root : Field : Arg(Name => 'root', Required => 1);
+my @root : Field : Arg(Name => 'root', Required => 1, Default => 'HKLM');
 my @key : Field : Arg(Name => 'key', Required => 1);
 
 #####################################################################
@@ -56,9 +56,6 @@ sub _pre_init : PreInit {
 	}
 
 	# Apply defaults
-	unless ( defined $args->{root} ) {
-		$args->{root} = 'HKLM';
-	}
 	unless ( defined $args->{guid} ) {
 		$args->{guid} = $self->generate_guid( $args->{id} );
 	}
