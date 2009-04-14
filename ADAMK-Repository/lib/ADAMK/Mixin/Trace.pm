@@ -8,7 +8,7 @@ use Params::Util ();
 
 use vars qw{$VERSION @EXPORT};
 BEGIN {
-	$VERSION = '0.08';
+	$VERSION = '0.09';
 	@EXPORT  = 'trace';
 }
 
