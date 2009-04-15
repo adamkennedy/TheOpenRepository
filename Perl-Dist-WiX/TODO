@@ -4,3 +4,5 @@
 
 2. Create a distribution for handling the XML-generating parts 
    of Perl::Dist::WiX and depend on it (0.180? 0.190?)
+   
+3. t\xx_removefolder.t test needs created (0.171)

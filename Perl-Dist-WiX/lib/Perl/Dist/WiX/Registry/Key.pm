@@ -31,7 +31,7 @@ Readonly my @ROOT_OPTIONS => qw(HKMU HKCR HKCU HKLM HKU);
 #   none.
 # Attributes:
 
-my @root : Field : Arg(Name => 'root', Required => 1, Default => 'HKLM');
+my @root : Field : Arg(Name => 'root', Default => 'HKLM');
 my @key : Field : Arg(Name => 'key', Required => 1);
 
 #####################################################################

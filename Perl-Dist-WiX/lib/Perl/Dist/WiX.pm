@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170')->numify;
+use version; $VERSION = version->new('0.170_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1560,7 +1560,7 @@ sub install_win32_extras {
 		name => 'CPAN Search',
 		url  => 'http://search.cpan.org/',
 		icon_file =>
-		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpan.ico' )
+		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpanweb.ico' )
 	);
 
 	if ( $self->perl_version_human eq '5.8.8' ) {
@@ -3676,15 +3676,19 @@ sub write_zip {
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
 	# Create the archive
-	my $zip = Archive::Zip->new;
+	my $zip = Archive::Zip->new();
 
 	# Add the image directory to the root
-	$zip->addTree( $self->image_dir, q{} );
+	$zip->addTree( $self->image_dir(), q{} );
 
-	# Set max compression for all members
-	foreach my $member ( $zip->members ) {
-		next if $member->isDirectory;
+	my @members = $zip->members();
+	# Set max compression for all members, deleting .AAA files.
+	foreach my $member ( @members ) {
+		next if $member->isDirectory();
 		$member->desiredCompressionLevel(9);
+		if ($member->fileName =~ m{\.AAA\z}sm ) {
+			$zip->removeMember($member);
+		}
 	}
 
 	# Write out the file name
@@ -4598,6 +4602,10 @@ store its required data (C<< $Config{sitelib}\auto\share\Perl-Dist-WiX >>)
 =back
 
 As other errors are noticed, they will be listed here.
+
+=head2 C<< OIO::Args error: Missing mandatory initializer '%s' for class '%s' >>
+
+This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 
 =head1 SUPPORT
 
