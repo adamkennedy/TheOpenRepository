@@ -20,6 +20,7 @@ use Fcntl (
   'O_RDWR',
   'O_CREAT',
   'O_TRUNC',
+  'O_APPEND',
 );
 
 use IO::Journal::Transaction;
@@ -86,13 +87,14 @@ sub new {
 # Perl   C   Flags
 #   <    r   O_RDONLY
 #  +<    r+  O_RDWR
-#  >>    a   O_RDWR | O_CREAT
-# +>>    a+  O_RDWR | O_CREAT
 #   >    w   O_RDWR | O_CREAT | O_TRUNC
 #  +>    w+  O_RDWR | O_CREAT | O_TRUNC
+#  >>    a   O_RDWR | O_CREAT | O_APPEND
+# +>>    a+  O_RDWR | O_CREAT | O_APPEND
 #
 # The Fcntl core module provides these constants.
 my %FLAGMAP = (
+  # Mode   Unix-style flags
   '<'   => O_RDONLY,
   '+<'  => O_RDWR,
   '>>'  => O_RDWR | O_CREAT,
@@ -102,12 +104,12 @@ my %FLAGMAP = (
 );
 
 sub open {
-  my ($self, $flags, $filename) = @_;
+  my ($self, $mode, $filename) = @_;
 
-  Carp::croak('Unrecognized flag(s): ' . $flags)
-    unless exists($FLAGMAP{$flags});
+  Carp::croak('Unrecognized mode: ' . $mode)
+    unless exists($FLAGMAP{$mode});
 
-  return $self->sysopen($filename, $FLAGMAP{$flags});
+  return $self->sysopen($filename, $FLAGMAP{$mode});
 }
 
 sub begin_transaction {

@@ -8,7 +8,7 @@
  * Domain, to the full extent permissible by law. For additional information,
  * please see the included `LICENSE' file.
  *
- * $Id: Transaction.xs 6200 2009-04-11 23:06:51Z FREQUENCY@cpan.org $
+ * $Id$
  */
 
 #ifndef _MODEL_H
@@ -26,9 +26,10 @@ typedef  journal  * IO__Journal;
 /* For dealing with individual transactions */
 struct transaction
 {
-  struct journal *journal;
+  journal *journal;
   struct jtrans jtrans;
 };
+typedef  struct transaction  transaction;
 typedef  transaction  * IO__Journal__Transaction;
 
 #endif

@@ -15,6 +15,8 @@
 #include "XSUB.h"
 
 #include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <libjio.h>
 #include "model.h"
 
@@ -29,7 +31,7 @@ sysopen(class, filename, flags, perms = 0666)
   int flags
   int perms
   PREINIT:
-    IO::Journal *self;
+    journal *self;
     int ret;
     struct jfsck_result result;
   INIT:
@@ -43,7 +45,12 @@ sysopen(class, filename, flags, perms = 0666)
     if (ret < 0)
       croak("Error opening file: %s", filename);
 
-    /* The file has been opend successfully, save the fd for future use */
+    if (flags & O_APPEND)
+      jlseek(&(self->jfs), 0, SEEK_END); /* point to end of file */
+    else
+      jlseek(&(self->jfs), 0, SEEK_SET); /* point to beginning */
+
+    /* Save the fd for future use */
     self->fd = ret;
 
     RETVAL = self;

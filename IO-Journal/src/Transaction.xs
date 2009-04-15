@@ -15,6 +15,9 @@
 
 #include <errno.h>
 #include <libjio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include "model.h"
 
 MODULE = IO::Journal::Transaction    PACKAGE = IO::Journal::Transaction
 
@@ -25,31 +28,38 @@ new(class, journal)
   char *class
   IO::Journal journal
   PREINIT:
-    IO::Journal::Transaction self;
+    transaction *self;
   INIT:
     Newx(self, 1, transaction); /* allocate 1 transaction instance */
   CODE:
     self->journal = journal;
-    jtrans_init(journal, self->jtrans);
+    jtrans_init(&(journal->jfs), &(self->jtrans));
     RETVAL = self;
   OUTPUT:
     RETVAL
 
 SV *
-sysread(self, count, offset = -1)
+sysread(self, ...)
   IO::Journal::Transaction self
-  size_t count
-  off_t offset
   PREINIT:
-    char *buf
-    size_t ret
+    char *buf;
+    size_t count;
+    off_t offset;
+    size_t ret;
   INIT:
+    /* Check if parameters are undefined or not numeric */
+    if (!SvIOK(ST(1))) /* count */
+      count = 1024;
+    else
+      count = SvIV(ST(1));
+
     Newx(buf, count, char);
   CODE:
-    if (offset < 0)
-      ret = jread(self->journal, buf, count);
+    if (SvIOK(ST(2))) /* offset */    
+      ret = jread(&(self->journal->jfs), buf, count);
     else
-      ret = jpread(self->journal, buf, count, offset);
+      ret = jpread(&(self->journal->jfs), buf, count, offset);
+
     RETVAL = newSVpvn(buf, ret);
   OUTPUT:
     RETVAL
@@ -57,19 +67,23 @@ sysread(self, count, offset = -1)
     Safefree(buf);
 
 void
-syswrite(self, text, count = -1, offset = -1)
+syswrite(self, text, ...)
   IO::Journal::Transaction self
   char *text
-  size_t count
-  off_t offset
+  PREINIT:
+    size_t count;
+    off_t offset;
+    int ret;
   CODE:
-    if (length < 0)
-      length = strlen(text);
+    if (!SvIOK(ST(2))) /* count */
+      count = strlen(text);
 
-    if (offset < 0)
-      offset = lseek(, 0, SEEK_CUR);
+    if (!SvIOK(ST(3))) /* offset */
+      offset = jlseek(&(self->journal->jfs), 0, SEEK_CUR);
 
-    jtrans_add(self, text, count, pos);
+    ret = jtrans_add(&(self->jtrans), text, count, offset);
+    if (ret > 0) /* If success, advance file pointer */
+      jlseek(&(self->journal->jfs), count, SEEK_CUR);
 
 void
 commit(self)
@@ -77,7 +91,7 @@ commit(self)
   PREINIT:
     int r;
   CODE:
-    r = jtrans_commit(self);
+    r = jtrans_commit(&(self->jtrans));
     if (r < 0)
       croak("Error during commit. Data may be lost.");
 
@@ -87,7 +101,7 @@ rollback(self)
   PREINIT:
     int r;
   CODE:
-    r = jtrans_rollback(self);
+    r = jtrans_rollback(&(self->jtrans));
     if (r < 0)
       croak("Error encountered while rolling back");
 
@@ -95,5 +109,5 @@ void
 DESTROY(self)
   IO::Journal::Transaction self
   CODE:
-    jtrans_free(self);
+    jtrans_free(&(self->jtrans));
     Safefree(self);
