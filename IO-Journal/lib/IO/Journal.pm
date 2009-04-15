@@ -74,6 +74,12 @@ a bit of a land grab. Expect a working version in a few weeks.
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
+sub new {
+  Carp::croak('This package does not have a ->new method. Use open or ' .
+    'sysopen instead.');
+  return;
+}
+
 # In order to mimic the Perl open function, we must map the following Perl
 # flags to their fopen counterparts:
 #
@@ -101,7 +107,7 @@ sub open {
   Carp::croak('Unrecognized flag(s): ' . $flags)
     unless exists($FLAGMAP{$flags});
 
-  $self->sysopen($filename, $FLAGMAP{$flags});
+  return $self->sysopen($filename, $FLAGMAP{$flags});
 }
 
 sub begin_transaction {
