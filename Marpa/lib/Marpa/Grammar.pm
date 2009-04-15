@@ -653,7 +653,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]      = 1;
     $grammar->[Marpa::Internal::Grammar::TRACE_RULES]        = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]       = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_CHOICES]       = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_CHOICES]      = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
     $grammar->[Marpa::Internal::Grammar::TRACING]            = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]              = 1;
@@ -741,8 +741,9 @@ sub Marpa::die_with_parse_failure {
     my $source  = shift;
     my $earleme = shift;
 
-    Marpa::exception( Marpa::show_location( 'Parse failed', $source, $earleme ) );
-} ## end sub die_with_parse_failure
+    Marpa::exception(
+        Marpa::show_location( 'Parse failed', $source, $earleme ) );
+} ## end sub Marpa::die_with_parse_failure
 
 # The following method fails if "use Marpa::Raw_Source" is not
 # specified by the user.  This is an undocumented bootstrapping routine,
@@ -788,8 +789,9 @@ sub parse_source_grammar {
         else {
             my $eval_error = $Marpa::Internal::STRINGIFIED_EVAL_ERROR
                 // 'no eval error';
-            Marpa::exception( "No stringified source grammar:\n", $eval_error );
-        }
+            Marpa::exception( "No stringified source grammar:\n",
+                $eval_error );
+        } ## end else [ if ($allow_raw_source)
     } ## end if ( not defined $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR)
 
     $source_options //= {};
@@ -808,7 +810,8 @@ sub parse_source_grammar {
     }
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
-    Marpa::exception('Marpa Internal error: failed to create evaluator for MDL')
+    Marpa::exception(
+        'Marpa Internal error: failed to create evaluator for MDL')
         unless defined $evaler;
     my $value = $evaler->old_value();
     raw_grammar_eval( $grammar, $value );
@@ -836,7 +839,8 @@ sub Marpa::Grammar::set {
     # value of source needs to be a *REF* to a string
     my $source = $args->{'mdl_source'};
     if ( defined $source ) {
-        Marpa::exception('Cannot source grammar with some rules already defined')
+        Marpa::exception(
+            'Cannot source grammar with some rules already defined')
             if $phase != Marpa::Internal::Phase::NEW;
         Marpa::exception('Source for grammar must be specified as string ref')
             unless ref $source eq 'SCALAR';
@@ -1027,7 +1031,8 @@ sub Marpa::Grammar::set {
                 } ## end if ($value)
             } ## end when ('trace_predefineds')
             when ('trace_iterations') {
-                Marpa::exception('trace_iterations must be set to a number >= 0')
+                Marpa::exception(
+                    'trace_iterations must be set to a number >= 0')
                     unless $value =~ /\A\d+\z/xms;
                 $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] =
                     $value + 0;
@@ -1100,7 +1105,8 @@ sub Marpa::Grammar::set {
                     q{"inaccessible_ok" option is useless after grammar is precomputed};
                 }
                 #>>>
-                Marpa::exception('value of inaccessible_ok option must be an array ref')
+                Marpa::exception(
+                    'value of inaccessible_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
                 $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] =
                     { map { ( $_, 1 ) } @{$value} };
@@ -1115,7 +1121,8 @@ sub Marpa::Grammar::set {
                     q{"unproductive_ok" option is useless after grammar is precomputed};
                 }
                 #>>>
-                Marpa::exception('value of unproductive_ok option must be an array ref')
+                Marpa::exception(
+                    'value of unproductive_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
                 $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] =
                     { map { ( $_, 1 ) } @{$value} };
@@ -1585,14 +1592,14 @@ sub Marpa::brief_virtual_rule {
         if ( defined $dot_position ) {
             my $dot_in_original = $dot_position + $chaf_start;
             given ( $dot_in_original - $chaf_end ) {
-                when (1) { $rhs_names[$chaf_end]   .= q{ .}; }
-                when (2) { $rhs_names[-1] .= q{ .}; }
+                when (1) { $rhs_names[$chaf_end] .= q{ .}; }
+                when (2) { $rhs_names[-1]        .= q{ .}; }
                 default {
                     $rhs_names[$dot_in_original] =
                         q{. } . $rhs_names[$dot_in_original];
                 }
             } ## end given
-        }
+        } ## end if ( defined $dot_position )
         $rhs_names[$chaf_start] = '{ ' . $rhs_names[$chaf_start];
         $rhs_names[$chaf_end] .= ' }';
         $text .= join q{ }, @rhs_names;
@@ -1986,7 +1993,8 @@ sub assign_user_symbol {
     my $self = shift;
     my $name = shift;
     if ( my $type = ref $name ) {
-        Marpa::exception("Symbol name was ref to $type; it must be a scalar string");
+        Marpa::exception(
+            "Symbol name was ref to $type; it must be a scalar string");
     }
     Marpa::exception("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
@@ -2128,7 +2136,8 @@ sub add_user_rules {
                 add_rules_from_hash( $grammar, $rule );
             }
             default {
-                Marpa::exception( 'Invalid rule reftype ', ( $_ ? $_ : 'undefined' ) );
+                Marpa::exception( 'Invalid rule reftype ',
+                    ( $_ ? $_ : 'undefined' ) );
             }
         } ## end given
 
@@ -2160,7 +2169,9 @@ sub add_rules_from_hash {
             when ('left_associative')  { $left_associative  = $value }
             when ('right_associative') { $left_associative  = !$value }
             when ('priority')          { $user_priority     = $value }
-            default { Marpa::exception("Unknown option in counted rule: $option") };
+            default {
+                Marpa::exception("Unknown option in counted rule: $option");
+            };
         } ## end given
     } ## end while ( my ( $option, $value ) = each %{$options} )
 
@@ -2170,14 +2181,16 @@ sub add_rules_from_hash {
         when (undef) {;}
         when ( [ 0, 1 ] ) {;}
         default {
-            Marpa::exception('If min is defined for a rule, it must be 0 or 1');
+            Marpa::exception(
+                'If min is defined for a rule, it must be 0 or 1');
         }
     } ## end given
 
     if ( scalar @{$rhs_names} == 0 or not defined $min ) {
 
         if ( defined $separator_name ) {
-            Marpa::exception('separator defined for rule without repetitions');
+            Marpa::exception(
+                'separator defined for rule without repetitions');
         }
 
         # This is an ordinary, non-counted rule,
@@ -2375,7 +2388,8 @@ sub add_user_terminal {
     my $options = shift;
 
     if ( my $type = ref $name ) {
-        Marpa::exception("Terminal name was ref to $type; it must be a scalar string");
+        Marpa::exception(
+            "Terminal name was ref to $type; it must be a scalar string");
     }
     Marpa::exception("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
@@ -2642,7 +2656,8 @@ sub terminals_distinguished {
     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
     RULE: for my $rule ( @{$rules} ) {
         next RULE if scalar @{ $rule->[Marpa::Internal::Rule::RHS] };
-        Marpa::exception('A grammar with empty rules must mark its terminals');
+        Marpa::exception(
+            'A grammar with empty rules must mark its terminals');
     }
     return 0;
 } ## end sub terminals_distinguished

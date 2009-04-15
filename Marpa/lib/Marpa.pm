@@ -18,7 +18,6 @@ use Marpa::Recognizer;
 use Marpa::Evaluator;
 use Marpa::Lex;
 
-
 # Maybe MDL will be optional someday, but not today
 use Marpa::MDL;
 
@@ -109,16 +108,19 @@ sub Marpa::mdl {
     my $options = shift;
 
     my $ref = ref $grammar;
-    Marpa::exception(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
+    Marpa::exception(
+        qq{grammar arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq 'SCALAR';
 
     $ref = ref $text;
-    Marpa::exception(qq{text arg to mdl() was ref type "$ref", must be string ref})
+    Marpa::exception(
+        qq{text arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq 'SCALAR';
 
     $options //= {};
     $ref = ref $options;
-    Marpa::exception(qq{text arg to mdl() was ref type "$ref", must be hash ref})
+    Marpa::exception(
+        qq{text arg to mdl() was ref type "$ref", must be hash ref})
         unless $ref eq 'HASH';
 
     my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );

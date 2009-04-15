@@ -25,7 +25,8 @@ my @test_files = qw(
 
 our $FH;
 
-Marpa::exception("usage: $0: old_version new_version") unless scalar @ARGV == 2;
+Marpa::exception("usage: $0: old_version new_version")
+    unless scalar @ARGV == 2;
 
 my ( $old, $new ) = @ARGV;
 
@@ -39,10 +40,12 @@ sub check_version {
         Marpa::exception("Bad format in version number: $version");
     }
     if ( $minor1 % 2 and $underscore ne '_' ) {
-        Marpa::exception("No underscore in developer's version number: $version");
+        Marpa::exception(
+            "No underscore in developer's version number: $version");
     }
     if ( $minor1 % 2 == 0 and $underscore eq '_' ) {
-        Marpa::exception("Underscore in official release version number: $version");
+        Marpa::exception(
+            "Underscore in official release version number: $version");
     }
 } ## end sub check_version
 

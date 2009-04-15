@@ -59,7 +59,7 @@ use Marpa::Offset Rule => qw(CODE PERL_CLOSURE);
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
-use Marpa::Internal
+use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
 sub run_preamble {
