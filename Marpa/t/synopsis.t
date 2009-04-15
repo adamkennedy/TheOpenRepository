@@ -7,7 +7,6 @@ use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
 use Config;
-use Carp;
 use Fatal qw( chdir close waitpid );
 use IPC::Open2;
 
@@ -29,7 +28,7 @@ my $this_perl = $EXECUTABLE_NAME;
 local ($RS) = undef;
 
 open my $PIPE, q{-|}, $this_perl, '-I../lib', 'synopsis.pl'
-    or croak("Problem opening pipe to perl: $ERRNO");
+    or Marpa::exception("Problem opening pipe to perl: $ERRNO");
 Marpa::Test::is( <$PIPE>, "12\n", 'synopsis example' );
 close $PIPE;
 

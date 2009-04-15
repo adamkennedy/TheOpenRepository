@@ -9,7 +9,6 @@ use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 use Test::More tests => 4;
-use Carp;
 use Marpa::Test;
 
 BEGIN {
@@ -62,7 +61,7 @@ my $recce = new Marpa::Recognizer(
 my $text          = 'a';
 my $fail_location = $recce->text( \$text );
 if ( $fail_location >= 0 ) {
-    croak( Marpa::show_location( 'Parsing failed', \$text, $fail_location ) );
+    Marpa::exception( Marpa::show_location( 'Parsing failed', \$text, $fail_location ) );
 }
 $recce->end_input();
 

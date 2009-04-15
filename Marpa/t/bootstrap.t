@@ -6,7 +6,6 @@ use lib 'lib';
 use lib 't/lib';
 use Test::More;
 use Fatal qw(close open waitpid);
-use Carp;
 use English qw( -no_match_vars );
 use Config;
 use IPC::Open3;
@@ -38,7 +37,7 @@ END_OF_SCRIPT
 
 my ( $wtr, $rdr, $err );
 my $pid = open3( $wtr, $rdr, $err, 'sh' );
-print {$wtr} $script or croak("write to open3 failed: $ERRNO");
+print {$wtr} $script or Marpa::exception("write to open3 failed: $ERRNO");
 close $wtr;
 waitpid $pid, 0;
 

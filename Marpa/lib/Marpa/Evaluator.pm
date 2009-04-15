@@ -215,7 +215,7 @@ sub set_null_values {
                     ' to ',
                     Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump,
                     "\n"
-                    or exception('Could not print to trace file');
+                    or Marpa::exception('Could not print to trace file');
             } ## end if ($trace_actions)
 
         } ## end if ( defined $action and @{$rhs} <= 0 )
@@ -240,7 +240,7 @@ sub set_null_values {
                 'Setting null value for CHAF symbol ',
                 $name, ' to ',
                 Data::Dumper->new( [ $null_values->[$id] ] )->Terse(1)->Dump,
-                or exception('Could not print to trace file');
+                or Marpa::exception('Could not print to trace file');
         } ## end for my $symbol ( @{$symbols} )
     } ## end if ($trace_actions)
 
@@ -317,7 +317,7 @@ sub set_actions {
             if ($trace_actions) {
                 print {$trace_fh} 'Setting action for rule ',
                     Marpa::brief_rule($rule), " to undef by default\n"
-                    or exception('Could not print to trace file');
+                    or Marpa::exception('Could not print to trace file');
             }
 
             my $rule_datum;
@@ -335,7 +335,7 @@ sub set_actions {
         if ($trace_actions) {
             print {$trace_fh} 'Setting action for rule ',
                 Marpa::brief_rule($rule), " to\n", $code, "\n"
-                or exception('Could not print to trace file');
+                or Marpa::exception('Could not print to trace file');
         }
 
         my $closure;
@@ -390,13 +390,13 @@ sub Marpa::Evaluator::new {
         my $arg_value = $args->{$recce_arg_name};
         delete $args->{$recce_arg_name};
         next RECCE_ARG_NAME unless defined $arg_value;
-        exception('recognizer specified twice') if defined $recce;
+        Marpa::exception('recognizer specified twice') if defined $recce;
         $recce = $arg_value;
     } ## end for my $recce_arg_name (qw(recognizer recce))
-    exception('No recognizer specified') unless defined $recce;
+    Marpa::exception('No recognizer specified') unless defined $recce;
 
     my $recce_class = ref $recce;
-    exception("${class}::new() recognizer arg has wrong class: $recce_class")
+    Marpa::exception("${class}::new() recognizer arg has wrong class: $recce_class")
         unless $recce_class eq 'Marpa::Recognizer';
 
     my $parse_set_arg = $args->{end};
@@ -417,9 +417,9 @@ sub Marpa::Evaluator::new {
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
 
-    # exception('Recognizer already in use by Evaluator')
+    # Marpa::exception('Recognizer already in use by Evaluator')
     # if $phase == Marpa::Internal::Phase::EVALUATING;
-    exception(
+    Marpa::exception(
         'Attempt to evaluate grammar in wrong phase: ',
         Marpa::Internal::Phase::description($phase)
     ) if $phase < Marpa::Internal::Phase::RECOGNIZED;
@@ -789,15 +789,19 @@ sub Marpa::Evaluator::new {
             my $end_earleme =
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME];
             my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
-            my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
+            my ($external_priority, $internal_priority) =
+                unpack 'NN', $rule->[Marpa::Internal::Rule::PRIORITY];
+            $external_priority //= 0;
+            $internal_priority //= 0;
             my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $laziness = $end_earleme;
             $laziness = -$laziness if $is_hasty;
-            push @decorated_and_nodes, [ $and_node, $priority, $laziness ];
+            push @decorated_and_nodes, [ $and_node, $external_priority, $internal_priority, $laziness ];
         } ## end for my $and_node ( @{ $choice_and_nodes->[$start_earleme...
         $and_nodes = [];
         for my $decorated_and_node (
-            sort { $a->[1] cmp $b->[1] || $a->[2] <=> $b->[2] }
+            ## reversed sort
+            sort { $b->[1] <=> $a->[1] || $b->[2] <=> $a->[2] || $b->[3] <=> $a->[3] }
             @decorated_and_nodes )
         {
             my $and_node = $decorated_and_node->[0];
@@ -920,7 +924,7 @@ sub Marpa::Evaluator::show_choice_point {
         $text .= "Alternative $map_ix for $choice_point_name:\n";
         my ( $and_vec, $or_choices ) = @{ $map->[$map_ix] };
         AND_IX: for my $and_ix ( 0 .. $#{$choice_and_nodes} ) {
-            next AND_IX unless vec $and_vec, $and_ix, 1;
+            next AND_IX unless substr $and_vec, $and_ix, 1 eq '1';
             my $and_node = $choice_and_nodes->[$and_ix];
             my $or_parent =
                 $and_node->[Marpa::Internal::And_Node::PARENT_OR_NODE];
@@ -1098,14 +1102,22 @@ sub map_choice_point {
         $parent_or_choices;
 
     # build the choice map for this choice point or node
-    my @ur_map = ( [ $choice_point, q{}, [ @{$parent_or_choices} ] ] );
+    my @ur_map = (
+        [   $choice_point,
+            '0' x scalar @{
+                $evaler->[Marpa::Internal::Evaluator::COMPLETIONS_BY_EARLEME]
+                    ->[$start_earleme]
+                },
+            [ @{$parent_or_choices} ]
+        ]
+    );
     MAP_ENTRY: while ( my $ur_map_entry = pop @ur_map ) {
         my ( $map_or_node, $and_vec, $or_choices, ) = @{$ur_map_entry};
 
         if (defined
             $or_choices->[ $map_or_node->[Marpa::Internal::Or_Node::ID] ] )
         {
-            exception( 'Cycle at '
+            Marpa::exception( 'Cycle at '
                     . $map_or_node->[Marpa::Internal::Or_Node::NAME] );
             ## next MAP_ENTRY;
         } ## end if ( defined $or_choices->[ $map_or_node->[...
@@ -1123,9 +1135,9 @@ sub map_choice_point {
                 $map_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                 ->[$choice];
             if ($is_completed) {
-                vec( $new_and_vec,
+                substr( $new_and_vec,
                     $map_and_node->[Marpa::Internal::And_Node::ID], 1 )
-                    = 1;
+                    = '1';
             }
 
             my $cause = $map_and_node->[Marpa::Internal::And_Node::CAUSE];
@@ -1159,7 +1171,8 @@ sub map_choice_point {
     ## End MAP_ENTRY
 
     $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP] =
-        [ sort { $a->[0] cmp $b->[0] } @map ];
+        ## reverse a, b
+        [ sort { $b->[0] cmp $a->[0] } @map ];
 
     return;
 } ## end sub map_choice_point
@@ -1169,10 +1182,10 @@ sub Marpa::Evaluator::value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
 
-    exception('No parse supplied') unless defined $evaler;
+    Marpa::exception('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
     my $right_class  = 'Marpa::Evaluator';
-    exception(
+    Marpa::exception(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
@@ -1201,7 +1214,7 @@ sub Marpa::Evaluator::value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
-        exception("Maximum parse count ($max_parses) exceeded");
+        Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
     # Initialize the work list for the disambiguation with the top or-node
@@ -1231,7 +1244,7 @@ sub Marpa::Evaluator::value {
 
                 # ... which can be a bad thing
                 if ( $start_earleme > $chosen_to_here_earleme ) {
-                    exception( 'Cycle at '
+                    Marpa::exception( 'Cycle at '
                             . $or_node->[Marpa::Internal::Or_Node::NAME] );
                 }
                 last MAKE_CHOICE;
@@ -1350,7 +1363,7 @@ sub Marpa::Evaluator::value {
                 print {$trace_fh} q{ },
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
@@ -1370,7 +1383,7 @@ sub Marpa::Evaluator::value {
                     $and_node->[Marpa::Internal::And_Node::NAME],
                     ': ',
                     Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_values)
 
         }    # defined $value_ref
@@ -1442,7 +1455,7 @@ sub Marpa::Evaluator::value {
         if ($trace_values) {
             print {$trace_fh} 'Calculated and pushed value: ',
                 Data::Dumper->new( [$result] )->Terse(1)->Dump
-                or exception('print to trace handle failed');
+                or Marpa::exception('print to trace handle failed');
         }
 
         push @evaluation_stack, \$result;
@@ -1461,10 +1474,10 @@ sub Marpa::Evaluator::old_value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
 
-    exception('No parse supplied') unless defined $evaler;
+    Marpa::exception('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
     my $right_class  = 'Marpa::Evaluator';
-    exception(
+    Marpa::exception(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
@@ -1492,7 +1505,7 @@ sub Marpa::Evaluator::old_value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
-        exception("Maximum parse count ($max_parses) exceeded");
+        Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
     my @traversal_stack;
@@ -1571,7 +1584,7 @@ sub Marpa::Evaluator::old_value {
                     ' tree node #',
                     $tree_position, q{ },
                     $or_node->[Marpa::Internal::Or_Node::NAME],
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_iterations)
 
             my $new_tree_node;
@@ -1731,7 +1744,7 @@ sub Marpa::Evaluator::old_value {
                     "[$choice]: ",
                     Marpa::show_dotted_rule( $rule, $rule_position + 1 ),
                     $value_description
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_iterations)
 
             push @{$tree}, $new_tree_node;
@@ -1766,7 +1779,7 @@ sub Marpa::Evaluator::old_value {
             defined $leaf_side_start_position
             ? @old_tree - $leaf_side_start_position
             : 0
-            ) or exception('print to trace handle failed');
+            ) or Marpa::exception('print to trace handle failed');
     } ## end if ($trace_iterations)
 
     # Put the uniterated leaf side of the tree back on the stack.
@@ -1783,7 +1796,7 @@ sub Marpa::Evaluator::old_value {
                 print {$trace_fh} q{ },
                     Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
                     ->Dump
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end for my $i ( reverse 0 .. $#evaluation_stack )
         } ## end if ( $trace_values >= 3 )
 
@@ -1805,7 +1818,7 @@ sub Marpa::Evaluator::old_value {
                     $or_node->[Marpa::Internal::Or_Node::NAME],
                     ': ',
                     Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
-                    or exception('print to trace handle failed');
+                    or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_values)
 
         }    # defined $value_ref
@@ -1880,7 +1893,7 @@ sub Marpa::Evaluator::old_value {
         if ($trace_values) {
             print {$trace_fh} 'Calculated and pushed value: ',
                 Data::Dumper->new( [$result] )->Terse(1)->Dump
-                or exception('print to trace handle failed');
+                or Marpa::exception('print to trace handle failed');
         }
 
         push @evaluation_stack, \$result;
@@ -1912,11 +1925,11 @@ in_file($_, 't/equation_s.t')
 
     my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
-        exception("Parse failed at offset $fail_offset");
+        Marpa::exception("Parse failed at offset $fail_offset");
     }
 
     my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
-    exception('Parse failed') unless $evaler;
+    Marpa::exception('Parse failed') unless $evaler;
 
     my $i = -1;
     while ( defined( my $value = $evaler->value() ) ) {

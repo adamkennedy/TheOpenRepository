@@ -1467,7 +1467,7 @@ is_file($_, 'example/equation.marpa');
 		} elsif ($op eq "-") {
 		   $value = $left_value - $right_value;
 		} else {
-		   croak("Unknown op: $op");
+		   Marpa::exception("Unknown op: $op");
 		}
 		"(" . $left_string . $op . $right_string . ")==" . $value;
     }.

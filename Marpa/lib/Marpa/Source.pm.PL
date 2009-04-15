@@ -7,7 +7,6 @@ use English qw( -no_match_vars );
 use lib 'lib';
 use Marpa;
 use Marpa::Raw_Source;
-use Carp;
 
 if (@ARGV) {
     open STDOUT, '>', $ARGV[0] or croak "Cannot write '$ARGV[0]' - $!";
@@ -30,7 +29,7 @@ END_OF_PREAMBLE_CODE
 
 say 'our $VERSION = "', $Marpa::VERSION, q{";};
 
-print <<'END_OF_PREAMBLE_CODE' or croak("print failed: $ERRNO");
+print <<'END_OF_PREAMBLE_CODE' or Marpa::exception("print failed: $ERRNO");
 
 package Marpa::Internal::Source;
 
@@ -54,4 +53,4 @@ __DATA__
 END_OF_PREAMBLE_CODE
 
 say ${ Marpa::stringify_source_grammar() }
-    or croak("print failed: $ERRNO");
+    or Marpa::exception("print failed: $ERRNO");

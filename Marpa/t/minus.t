@@ -12,7 +12,6 @@ use Test::More tests => 11;
 
 use lib 'lib';
 use lib 't/lib';
-use Carp;
 use Marpa::Test;
 
 BEGIN {
@@ -158,14 +157,14 @@ my @expected = (
 for my $string_piece ( '6', '-----', '1' ) {
     my $fail_offset = $recce->text($string_piece);
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Marpa::exception("Parse failed at offset $fail_offset");
     }
 } ## end for my $string_piece ( '6', '-----', '1' )
 
 $recce->end_input();
 
 my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
-croak('Could not initialize parse') unless $evaler;
+Marpa::exception('Could not initialize parse') unless $evaler;
 
 my $i = -1;
 while ( defined( my $value = $evaler->old_value() ) ) {

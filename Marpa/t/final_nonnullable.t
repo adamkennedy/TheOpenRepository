@@ -12,7 +12,6 @@ use Test::More tests => 7;
 use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
-use Carp;
 
 BEGIN {
     use_ok('Marpa');
@@ -135,7 +134,7 @@ for my $input_length ( 1 .. 4 ) {
     my $recce = new Marpa::Recognizer( { grammar => $grammar } );
     TOKEN: for my $token ( 1 .. $input_length ) {
         next TOKEN if $recce->earleme( [ $a, 'a', 1 ] );
-        croak( 'Parsing exhausted at character: ', $token );
+        Marpa::exception( 'Parsing exhausted at character: ', $token );
     }
     $recce->end_input();
     my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );

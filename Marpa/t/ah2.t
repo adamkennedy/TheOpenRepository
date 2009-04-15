@@ -12,7 +12,6 @@ use Test::More tests => 16;
 
 use lib 'lib';
 use lib 't/lib';
-use Carp;
 use Marpa::Test;
 
 BEGIN {
@@ -347,7 +346,7 @@ Marpa::Test::is(
 );
 
 my $a = $grammar->get_symbol('a');
-$recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
+$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 Marpa::Test::is(
     $recce->show_earley_sets(1),
@@ -355,7 +354,7 @@ Marpa::Test::is(
     'Aycock/Horspool Parse Status at 0'
 );
 
-$recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
+$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 Marpa::Test::is(
     $recce->show_earley_sets(1),
@@ -363,7 +362,7 @@ Marpa::Test::is(
     'Aycock/Horspool Parse Status at 1'
 );
 
-$recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
+$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 Marpa::Test::is(
     $recce->show_earley_sets(1),
@@ -371,7 +370,7 @@ Marpa::Test::is(
     'Aycock/Horspool Parse Status at 2'
 );
 
-$recce->earleme( [ $a, 'a', 1 ] ) or croak('Parsing exhausted');
+$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 Marpa::Test::is(
     $recce->show_earley_sets(1),

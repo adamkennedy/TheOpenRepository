@@ -2,9 +2,9 @@ package Marpa::Test;
 use 5.010;
 use strict;
 use warnings;
-use Carp;
+use Marpa::Internal;
 
-croak('Test::More not loaded')
+Marpa::exception('Test::More not loaded')
     unless defined &Test::More::is;
 
 BEGIN {

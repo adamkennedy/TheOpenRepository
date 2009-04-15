@@ -9,7 +9,6 @@ use English qw( -no_match_vars );
 
 use Test::More tests => 5;
 use Marpa::Test;
-use Carp;
 
 BEGIN {
     use_ok('Marpa');
@@ -61,7 +60,7 @@ TEST: while ( my $test = pop @tests ) {
                 ( 'division, comment', 'sin function call, die statement', );
         }
         default {
-            croak("unexpected test: $test_name");
+            Marpa::exception("unexpected test: $test_name");
         }
     } ## end given
     my $expected_parse_count = scalar @expected_parses;

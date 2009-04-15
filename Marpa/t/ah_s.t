@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
-use Carp;
 
 use Test::More tests => 2;
 

@@ -10,7 +10,6 @@ use Test::More tests => 8;
 use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
-use Carp;
 
 BEGIN {
     use_ok('Marpa');
@@ -48,7 +47,7 @@ my $grammar = new Marpa::Grammar(
             } elsif ($op eq '-') {
                $value = $left_value - $right_value;
             } else {
-               croak("Unknown op: $op");
+               Marpa::exception("Unknown op: $op");
             }
             '(' . $left_string . $op . $right_string . ')==' . $value;
 EOCODE
@@ -122,7 +121,7 @@ my @tokens = (
 
 TOKEN: for my $token (@tokens) {
     next TOKEN if $recce->earleme($token);
-    croak( 'Parsing exhausted at character: ', $token->[1] );
+    Marpa::exception( 'Parsing exhausted at character: ', $token->[1] );
 }
 
 $recce->end_input();

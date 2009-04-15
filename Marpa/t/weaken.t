@@ -6,7 +6,6 @@ use warnings;
 use lib 'lib';
 use lib 't/lib';
 
-use Carp;
 use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More tests => 2;
 use Test::Weaken;
@@ -33,7 +32,7 @@ my $test = sub {
     $recce->earleme( [ $a, 'a', 1 ] );
     $recce->end_input();
     my $evaler = new Marpa::Evaluator( { recce => $recce } );
-    croak('No parse found') unless $evaler;
+    Marpa::exception('No parse found') unless $evaler;
     $evaler->value();
     [ $g, $recce, $evaler ];
 };

@@ -10,7 +10,6 @@ use Test::More tests => 42;
 use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
-use Carp;
 use English qw( -no_match_vars );
 
 BEGIN {
@@ -75,7 +74,7 @@ LINE: while ( my $line = <DATA> ) {
             if ( $header =~ s/\A expected \s //xms ) {
                 my ( $feature, $test ) =
                     ( $header =~ m/\A ([^\s]*) \s+ (.*) \Z/xms );
-                croak(
+                Marpa::exception(
                     "expected result given for unknown test, feature: $test, $feature"
                 ) unless defined $expected{$test}{$feature};
                 $expected{$test}{$feature} = $data;
@@ -88,12 +87,12 @@ LINE: while ( my $line = <DATA> ) {
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
-                croak("test code given for unknown test: $header")
+                Marpa::exception("test code given for unknown test: $header")
                     unless defined $test_code{$header};
                 $test_code{$header} = $data;
                 next HEADER;
             } ## end if ( $header =~ s/\A bad \s code \s //xms )
-            croak("Bad header: $header");
+            Marpa::exception("Bad header: $header");
         }    # HEADER
         $getting_headers = 1;
         $data            = q{};
@@ -147,7 +146,7 @@ sub run_test {
             when ('unstringify_recce') {
                 return Marpa::Recognizer::unstringify( \$value );
             }
-            default { croak("unknown argument to run_test: $arg"); };
+            default { Marpa::exception("unknown argument to run_test: $arg"); };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
 
@@ -179,7 +178,7 @@ sub run_test {
 
     my $fail_offset = $recce->text('2 - 0 * 3 + 1 q{trailer}');
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Marpa::exception("Parse failed at offset $fail_offset");
     }
 
     $recce->end_input();
@@ -820,7 +819,7 @@ if ($op eq '+') {
 } elsif ($op eq '-') {
    $value = $left_value - $right_value;
 } else {
-   croak("Unknown op: $op");
+   Marpa::exception("Unknown op: $op");
 }
 '(' . $left_string . $op . $right_string . ')==' . $value;
 __END__

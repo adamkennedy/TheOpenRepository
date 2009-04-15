@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use lib 'lib';
 use lib 't/lib';
-use Carp;
 
 use Test::More tests => 8;
 use Marpa::Test;
@@ -56,7 +55,7 @@ sub ah_extended {
                 end   => $loc
             }
         );
-        croak("Cannot initialize parse at location $loc") unless $evaler;
+        Marpa::exception("Cannot initialize parse at location $loc") unless $evaler;
         while ( $evaler->old_value() ) { $parse_counts[$loc]++ }
     } ## end for my $loc ( 0 .. $n )
     return join q{ }, @parse_counts;

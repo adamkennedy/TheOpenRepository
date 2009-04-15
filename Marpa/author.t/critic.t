@@ -8,6 +8,8 @@ use Fatal qw( open close waitpid );
 use English qw( -no_match_vars );
 use IPC::Open2;
 use POSIX qw(WIFEXITED);
+use lib 'lib';
+use Marpa;
 
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
@@ -37,7 +39,7 @@ sub run_critic {
     my ( $child_out, $child_in );
 
     my $pid = open2( $child_out, $child_in, @cmd )
-        or croak("IPC::Open2 of perlcritic pipe failed: $ERRNO");
+        or Marpa::Exception("IPC::Open2 of perlcritic pipe failed: $ERRNO");
     close $child_in;
     my $critic_output = do {
         local ($RS) = undef;
@@ -52,7 +54,7 @@ sub run_critic {
         }
         if ( defined $error_message ) {
             print {*STDERR} $error_message, "\n"
-                or croak("Cannot print to STDERR: $ERRNO");
+                or Marpa::Exception("Cannot print to STDERR: $ERRNO");
             $critic_output .= "$error_message\n";
         }
         return \$critic_output;
@@ -61,7 +63,7 @@ sub run_critic {
 } ## end sub run_critic
 
 open my $manifest, '<', 'MANIFEST'
-    or croak("open of MANIFEST failed: $ERRNO");
+    or Marpa::Exception("open of MANIFEST failed: $ERRNO");
 
 my @test_files = ();
 FILE: while ( my $file = <$manifest> ) {
@@ -103,6 +105,6 @@ FILE: for my $file (@test_files) {
     ok( $clean, $message );
     next FILE if $clean;
     print {$error_file} "=== $file ===\n" . ${$warnings}
-        or croak("print failed: $ERRNO");
+        or Marpa::Exception("print failed: $ERRNO");
 } ## end for my $file (@test_files)
 close $error_file;

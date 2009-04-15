@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use lib 'lib';
 use lib 't/lib';
-use Carp;
 
 use Test::More tests => 8;
 use Marpa::Test;
@@ -52,7 +51,7 @@ for (0 .. 4) { $recce->earleme([$a, 'a', 1]); }
 $recce->end_input();
 
 my $evaler = new Marpa::Evaluator( { clone=>0, recce => $recce, } );
-croak("Cannot evaluate parse") unless $evaler;
+Marpa::exception("Cannot evaluate parse") unless $evaler;
 
 say "Symbols:\n", $g->show_symbols();
 say "Rules:\n",  $g->show_rules();
