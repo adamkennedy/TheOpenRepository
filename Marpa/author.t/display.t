@@ -63,7 +63,7 @@ sub slurp {
     if ( not $open_result ) {
         $Marpa::Test::Display::FILE_ERROR = my $message =
             "Cannot open $file_name: $ERRNO";
-        carp($message);
+        Carp::carp($message);
         return \$message;
     } ## end if ( not $open_result )
     local ($RS) = undef;
@@ -170,7 +170,7 @@ sub is_file {
     return (
         (   $header
                 . (
-                diff \$pod_display,
+                Text::Diff::diff \$pod_display,
                 $raw_file_display,
                 { STYLE => 'Table' }
                 )
@@ -192,7 +192,7 @@ sub test_file {
     my $mismatch_count = 0;
     my $mismatches     = q{};
 
-    my $parser = new MyParser();
+    my $parser = MyParser->new();
     $parser->parse_from_file($file);
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
     my $eval_result = eval $PREAMBLE;
@@ -418,7 +418,7 @@ if ( not $debug_mode ) {
     close $manifest;
 } ## end if ( not $debug_mode )
 
-plan tests => 1 + scalar @test_files;
+Test::More::plan tests => 1 + scalar @test_files;
 
 my $error_file;
 ## no critic (InputOutput::RequireBriefOpen)
@@ -434,7 +434,7 @@ else {
 
 FILE: for my $file (@test_files) {
     if ( not -f $file ) {
-        fail("attempt to test displays in non-file: $file");
+        Test::More::fail("attempt to test displays in non-file: $file");
         next FILE;
     }
 
@@ -447,7 +447,7 @@ FILE: for my $file (@test_files) {
         ? "displays match for $file"
         : "displays in $file has $mismatch_count mismatches";
 
-    ok( $clean, $message );
+    Test::More::ok( $clean, $message );
     next FILE if $clean;
     print {$error_file} "=== $file ===\n" . ${$mismatches}
         or Marpa::exception("print failed: $ERRNO");
@@ -463,11 +463,11 @@ while ( my ( $file_name, $displays ) = each %normalized_display_uses ) {
     }
 } ## end while ( my ( $file_name, $displays ) = each %normalized_display_uses)
 if ($unused_count) {
-    fail('$unused count displays not used');
+    Test::More::fail('$unused count displays not used');
     print {$error_file} "=== UNUSED DISPLAYS ===\n" . $unused
         or Marpa::exception("print failed: $ERRNO");
 }
 else {
-    pass('all displays used');
+    Test::More::pass('all displays used');
 }
 close $error_file;

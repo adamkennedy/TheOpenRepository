@@ -800,14 +800,20 @@ sub Marpa::Evaluator::new {
         } ## end for my $and_node ( @{ $choice_and_nodes->[$start_earleme...
         $and_nodes = [];
         for my $decorated_and_node (
-            ## reversed sort
-            sort { $b->[1] <=> $a->[1] || $b->[2] <=> $a->[2] || $b->[3] <=> $a->[3] }
-            @decorated_and_nodes )
+            ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
+            sort {
+                $b->[1] <=> $a->[1]
+                    || $b->[2] <=> $a->[2]
+                    || $b->[3] <=> $a->[3]
+            }
+            ## use critic
+            @decorated_and_nodes
+            )
         {
             my $and_node = $decorated_and_node->[0];
             $and_node->[Marpa::Internal::And_Node::ID] = @{$and_nodes};
             push @{$and_nodes}, $and_node;
-        } ## end for my $decorated_and_node ( sort { $a->[1] cmp $b->[...
+        } ## end for my $decorated_and_node ( sort {  $b->[1] <=> $a->...
         $choice_and_nodes->[$start_earleme] = $and_nodes;
 
     } ## end for my $start_earleme ( 0 .. $#{$choice_and_nodes} )
@@ -924,7 +930,7 @@ sub Marpa::Evaluator::show_choice_point {
         $text .= "Alternative $map_ix for $choice_point_name:\n";
         my ( $and_vec, $or_choices ) = @{ $map->[$map_ix] };
         AND_IX: for my $and_ix ( 0 .. $#{$choice_and_nodes} ) {
-            next AND_IX unless substr $and_vec, $and_ix, 1 eq '1';
+            next AND_IX unless (substr $and_vec, $and_ix, 1) eq '1';
             my $and_node = $choice_and_nodes->[$and_ix];
             my $or_parent =
                 $and_node->[Marpa::Internal::And_Node::PARENT_OR_NODE];
@@ -1135,9 +1141,9 @@ sub map_choice_point {
                 $map_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                 ->[$choice];
             if ($is_completed) {
-                substr( $new_and_vec,
-                    $map_and_node->[Marpa::Internal::And_Node::ID], 1 )
-                    = '1';
+                substr $new_and_vec,
+                    $map_and_node->[Marpa::Internal::And_Node::ID],
+                    1, '1';
             }
 
             my $cause = $map_and_node->[Marpa::Internal::And_Node::CAUSE];
@@ -1170,9 +1176,10 @@ sub map_choice_point {
     } ## end while ( my $ur_map_entry = pop @ur_map )
     ## End MAP_ENTRY
 
+    ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
     $choice_point->[Marpa::Internal::Or_Node::CHOICE_MAP] =
-        ## reverse a, b
         [ sort { $b->[0] cmp $a->[0] } @map ];
+    ## use critic
 
     return;
 } ## end sub map_choice_point
@@ -1230,7 +1237,7 @@ sub Marpa::Evaluator::value {
         my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
 
         if ($trace_choices >= 2) {
-            say {$trace_fh} "Making choice for ",
+            say {$trace_fh} 'Making choice for ',
                 $or_node->[Marpa::Internal::Or_Node::NAME];
         }
         MAKE_CHOICE: {
@@ -1238,7 +1245,7 @@ sub Marpa::Evaluator::value {
             # The choice is already made ...
             if ( defined $or_node->[Marpa::Internal::Or_Node::AND_CHOICE] ) {
                 if ($trace_choices >= 2) {
-                    say {$trace_fh} "Choice already made for ",
+                    say {$trace_fh} 'Choice already made for ',
                         $or_node->[Marpa::Internal::Or_Node::NAME];
                 }
 
@@ -1254,7 +1261,7 @@ sub Marpa::Evaluator::value {
             if ( @{$and_nodes} <= 1 ) {
 
                 if ( $trace_choices >= 2 ) {
-                    say {$trace_fh} "Choice trivial for ",
+                    say {$trace_fh} 'Choice trivial for ',
                         $or_node->[Marpa::Internal::Or_Node::NAME];
                 }
 
@@ -1263,7 +1270,7 @@ sub Marpa::Evaluator::value {
             }
 
             if ($trace_choices) {
-                say {$trace_fh} "Choice non-trivial for ",
+                say {$trace_fh} 'Choice non-trivial for ',
                     $or_node->[Marpa::Internal::Or_Node::NAME];
             }
             # The choice is non-trivial
@@ -1928,14 +1935,14 @@ in_file($_, 't/equation_s.t')
         Marpa::exception("Parse failed at offset $fail_offset");
     }
 
-    my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
+    my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
     Marpa::exception('Parse failed') unless $evaler;
 
     my $i = -1;
     while ( defined( my $value = $evaler->value() ) ) {
         $i++;
         if ( $i > $#expected ) {
-            fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
+            Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
         }
         else {
             Marpa::Test::is( ${$value}, $expected[$i],
@@ -2249,7 +2256,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $evaler = new Marpa::Evaluator(
+    my $evaler = Marpa::Evaluator->new(
       { recognizer => $recce }
     );
 
@@ -2262,7 +2269,7 @@ in_file($_, 'author.t/misc.t');
 
 =end Marpa::Test::Display:
 
-    my $evaler = new Marpa::Evaluator( {
+    my $evaler = Marpa::Evaluator->new( {
         recce => $recce,
         end => $location,
         clone => 0,

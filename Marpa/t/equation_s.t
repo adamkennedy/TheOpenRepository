@@ -13,7 +13,7 @@ use Test::More tests => 6;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -35,9 +35,9 @@ close $grammar_fh;
 # This is for debugging, after all
 
 my $grammar =
-    new Marpa::Grammar( { max_parses => 10, mdl_source => \$source, } );
+    Marpa::Grammar->new( { max_parses => 10, mdl_source => \$source, } );
 
-my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $fail_offset = $recce->text('2-0*3+1');
 if ( $fail_offset >= 0 ) {
@@ -52,14 +52,14 @@ my @expected = (
     '(2-(0*(3+1)))==2',
 );
 
-my $evaler = new Marpa::Evaluator( { recognizer => $recce } );
+my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
 Marpa::exception('Parse failed') unless $evaler;
 
 my $i = -1;
 while ( defined( my $value = $evaler->old_value() ) ) {
     $i++;
     if ( $i > $#expected ) {
-        fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
+        Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
     }
     else {
         Marpa::Test::is( ${$value}, $expected[$i],

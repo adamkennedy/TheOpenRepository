@@ -14,10 +14,10 @@ use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
-my $grammar = new Marpa::Grammar(
+my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
 
@@ -131,13 +131,13 @@ my $a = $grammar->get_symbol('a');
 my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 
 for my $input_length ( 1 .. 4 ) {
-    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     TOKEN: for my $token ( 1 .. $input_length ) {
         next TOKEN if $recce->earleme( [ $a, 'a', 1 ] );
         Marpa::exception( 'Parsing exhausted at character: ', $token );
     }
     $recce->end_input();
-    my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     my $value = $evaler->old_value();
     Marpa::Test::is( ${$value}, $results[$input_length],
         "final nonnulling, input length=$input_length" );

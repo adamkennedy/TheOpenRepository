@@ -14,10 +14,10 @@ use Test::More;
 use Marpa::Test;
 
 if ( $Config{'d_fork'} ) {
-    plan tests => 2;
+    Test::More::plan tests => 2;
 }
 else {
-    plan skip_all => 'Fork required to test examples';
+    Test::More::plan skip_all => 'Fork required to test examples';
     exit 0;
 }
 
@@ -27,21 +27,23 @@ chdir $example_dir;
 my $this_perl = $EXECUTABLE_NAME;
 local ($RS) = undef;
 
-open my $PIPE, q{-|}, $this_perl, '-I../lib', 'synopsis.pl'
+my $pipe;
+open $pipe, q{-|}, $this_perl, '-I../lib', 'synopsis.pl'
     or Marpa::exception("Problem opening pipe to perl: $ERRNO");
-Marpa::Test::is( <$PIPE>, "12\n", 'synopsis example' );
-close $PIPE;
+Marpa::Test::is( <$pipe>, "12\n", 'synopsis example' );
+close $pipe;
 
 $ENV{PERL5LIB} = '../lib:' . $ENV{PERL5LIB};
+my $text;
 my $pid =
-    open2( \*PIPE, \*TEXT, $this_perl, '../bin/mdl', 'parse', '-grammar',
+    IPC::Open2::open2( $pipe, $text, $this_perl, '../bin/mdl', 'parse', '-grammar',
     '../example/null_value.marpa' );
-say TEXT 'Z';
-close TEXT;
+say {$text} 'Z';
+close $text;
 Marpa::Test::is(
-    <PIPE>,
+    <$pipe>,
     "A is missing, but Zorro was here\n",
     'null value example'
 );
-close PIPE;
+close $pipe;
 waitpid $pid, 0;

@@ -294,7 +294,7 @@ sub Marpa::Recognizer::new {
 
     my $arg_trace_fh = $args->{trace_file_handle};
 
-    my $parse = [];
+    my $self = [];
     my $ambiguous_lex;
     my $lex_preamble;
 
@@ -352,7 +352,7 @@ sub Marpa::Recognizer::new {
     # options are not set until *AFTER* the grammar is cloned
     Marpa::Grammar::set( $grammar, $args );
 
-    prepare_grammar_for_recognizer( $parse, $grammar );
+    prepare_grammar_for_recognizer( $self, $grammar );
 
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::RECOGNIZING;
@@ -379,13 +379,17 @@ sub Marpa::Recognizer::new {
         $earley_hash->{$name} = $item;
     } ## end for my $state ( @{$start_states} )
 
-    @{$parse}[
-        CURRENT_SET, FURTHEST_EARLEME, EARLEY_HASH,
-        GRAMMAR,     EARLEY_SETS,      LAST_COMPLETED_SET,
+    @{$self}[
+        Marpa::Internal::Recognizer::CURRENT_SET,
+        Marpa::Internal::Recognizer::FURTHEST_EARLEME,
+        Marpa::Internal::Recognizer::EARLEY_HASH,
+        Marpa::Internal::Recognizer::GRAMMAR,
+        Marpa::Internal::Recognizer::EARLEY_SETS,
+        Marpa::Internal::Recognizer::LAST_COMPLETED_SET,
         ]
         = ( 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
 
-    bless $parse, $class;
+    return bless $self, $class;
 } ## end sub Marpa::Recognizer::new
 
 # Convert Recognizer into string form
@@ -862,10 +866,15 @@ sub scan_set {
         $current_set,     $furthest_earleme, $exhausted,
         )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
-        FURTHEST_EARLEME, EXHAUSTED
+        Marpa::Internal::Recognizer::EARLEY_SETS,
+        Marpa::Internal::Recognizer::EARLEY_HASH,
+        Marpa::Internal::Recognizer::GRAMMAR,
+        Marpa::Internal::Recognizer::CURRENT_SET,
+        Marpa::Internal::Recognizer::FURTHEST_EARLEME,
+        Marpa::Internal::Recognizer::EXHAUSTED
         ];
-    Marpa::exception('Attempt to scan tokens after parsing was exhausted') if $exhausted;
+    Marpa::exception('Attempt to scan tokens after parsing was exhausted')
+        if $exhausted;
     my $QDFA = $grammar->[Marpa::Internal::Grammar::QDFA];
 
     my $earley_set = $earley_set_list->[$current_set];
@@ -970,8 +979,13 @@ sub complete_set {
         $furthest_earleme, $exhausted,   $lexables_by_state
         )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
-        FURTHEST_EARLEME, EXHAUSTED,   LEXABLES_BY_STATE,
+        Marpa::Internal::Recognizer::EARLEY_SETS,
+        Marpa::Internal::Recognizer::EARLEY_HASH,
+        Marpa::Internal::Recognizer::GRAMMAR,
+        Marpa::Internal::Recognizer::CURRENT_SET,
+        Marpa::Internal::Recognizer::FURTHEST_EARLEME,
+        Marpa::Internal::Recognizer::EXHAUSTED,
+        Marpa::Internal::Recognizer::LEXABLES_BY_STATE,
         ];
     Marpa::exception(
         'Attempt to complete another earley set after parsing was exhausted')
@@ -1127,7 +1141,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
@@ -1143,7 +1157,7 @@ in_file($_, 't/equation.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $op     = $grammar->get_symbol('Op');
     my $number = $grammar->get_symbol('Number');
@@ -1367,7 +1381,7 @@ is_file($_, 'author.t/misc.t', 'new Recognizer snippet');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Marpa::Recognizer(
+    my $recce = Marpa::Recognizer->new(
         {    grammar      => $grammar,
              lex_preamble => $new_lex_preamble,
         }

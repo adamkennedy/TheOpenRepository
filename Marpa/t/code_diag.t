@@ -13,7 +13,7 @@ use Marpa::Test;
 use English qw( -no_match_vars );
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 my @features = qw(
@@ -150,7 +150,7 @@ sub run_test {
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
 
-    my $grammar = new Marpa::Grammar(
+    my $grammar = Marpa::Grammar->new(
         {   start => 'S',
             rules => [
                 [ 'S', [qw/E trailer optional_trailer1 optional_trailer2/], ],
@@ -174,7 +174,7 @@ sub run_test {
         }
     );
 
-    my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $fail_offset = $recce->text('2 - 0 * 3 + 1 q{trailer}');
     if ( $fail_offset >= 0 ) {
@@ -184,7 +184,7 @@ sub run_test {
     $recce->end_input();
 
     my $expected = '((((2-0)*3)+1)==7; q{trailer};[default null];[null])';
-    my $evaler   = new Marpa::Evaluator( { recce => $recce } );
+    my $evaler   = Marpa::Evaluator->new( { recce => $recce } );
     my $value    = $evaler->value();
     Marpa::Test::is( ${$value}, $expected, 'Ambiguous Equation Value' );
 
@@ -220,7 +220,7 @@ for my $test (@tests) {
     for my $feature (@features) {
         my $test_name = "$test in $feature";
         if ( eval { run_test( { $feature => $test_code{$test}, } ); } ) {
-            fail("$test_name did not fail -- that shouldn't happen");
+            Test::More::fail("$test_name did not fail -- that shouldn't happen");
         }
         else {
             my $eval_error = $EVAL_ERROR;

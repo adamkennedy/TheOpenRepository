@@ -794,7 +794,7 @@ sub parse_source_grammar {
 
     $source_options //= {};
 
-    my $recce = new Marpa::Recognizer(
+    my $recce = Marpa::Recognizer->new(
         {   stringified_grammar =>
                 $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR,
             trace_file_handle => $trace_fh,
@@ -807,7 +807,7 @@ sub parse_source_grammar {
         die_with_parse_failure( $source, $failed_at_earleme );
     }
     $recce->end_input();
-    my $evaler = new Marpa::Evaluator( { recce => $recce } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     Marpa::exception('Marpa Internal error: failed to create evaluator for MDL')
         unless defined $evaler;
     my $value = $evaler->old_value();
@@ -855,8 +855,8 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::INTERFACE] //=
                     Marpa::Internal::Interface::RAW;
                 $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
-                Marpa::exception( 'rules option not allowed with '
-                        . interface_description($interface) )
+                Marpa::exception(
+                    'rules option only allowed with raw interface')
                     if $interface ne Marpa::Internal::Interface::RAW;
                 Marpa::exception(
                     "$option option not allowed after grammar is precomputed")
@@ -869,8 +869,8 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::INTERFACE] //=
                     Marpa::Internal::Interface::RAW;
                 $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
-                Marpa::exception( 'terminals option not allowed with '
-                        . interface_description($interface) )
+                Marpa::exception(
+                    'terminals option only allowed with raw interface')
                     if $interface ne Marpa::Internal::Interface::RAW;
                 Marpa::exception(
                     "$option option not allowed after grammar is precomputed")
@@ -1575,7 +1575,7 @@ sub Marpa::brief_virtual_rule {
         return "dot at $dot_position, virtual "
             . Marpa::brief_rule($original_rule)
             if defined $dot_position;
-        return "virtual " . Marpa::brief_rule($original_rule);
+        return 'virtual ' . Marpa::brief_rule($original_rule);
     } ## end if ( not defined $chaf_start )
     my $text .= "(part of $original_rule_id) ";
     $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' -> ';
@@ -1586,7 +1586,7 @@ sub Marpa::brief_virtual_rule {
             my $dot_in_original = $dot_position + $chaf_start;
             given ( $dot_in_original - $chaf_end ) {
                 when (1) { $rhs_names[$chaf_end]   .= q{ .}; }
-                when (2) { $rhs_names[$#rhs_names] .= q{ .}; }
+                when (2) { $rhs_names[-1] .= q{ .}; }
                 default {
                     $rhs_names[$dot_in_original] =
                         q{. } . $rhs_names[$dot_in_original];
@@ -4007,7 +4007,7 @@ in_file($_, 'author.t/misc.t');
 
 =end Marpa::Test::Display:
 
-    my $grammar = new Marpa::Grammar();
+    my $grammar = Marpa::Grammar->new();
 
 Z<>
 
@@ -4018,7 +4018,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $grammar = new Marpa::Grammar(
+    my $grammar = Marpa::Grammar->new(
 	{ max_parses => 10, mdl_source => \$source, } );
 
 C<Marpa::Recognizer::new> has one, optional, argument --

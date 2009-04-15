@@ -11,13 +11,13 @@ use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 # A grammar from Grune & Jacobs, Parsing Techniques: A Practical Guide, pp 206-207.
 # The book is available on the web.
 
-my $g = new Marpa::Grammar(
+my $g = Marpa::Grammar->new(
     {   precompute => 0,
         start      => q{S'},
         strip      => 0,

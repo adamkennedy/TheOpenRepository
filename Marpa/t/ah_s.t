@@ -10,16 +10,16 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 2;
+use Test::More tests => 6;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
-my $grammar = new Marpa::Grammar(
+my $grammar = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
     }
@@ -29,7 +29,7 @@ $grammar->set( { mdl_source => \$source } );
 
 $grammar->precompute();
 
-my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $lc_a = Marpa::MDL::get_symbol( $grammar, 'lowercase a' );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
@@ -38,8 +38,6 @@ $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->end_input();
 
-my $failure_count = 0;
-my $total_count   = 0;
 my @answer        = (
     q{},
     '(lowercase a;;;)',
@@ -49,22 +47,14 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = new Marpa::Evaluator(
+    my $evaler = Marpa::Evaluator->new(
         {   recce => $recce,
             end   => $i
         }
     );
     my $result = $evaler->value();
-    $total_count++;
-    if ( $answer[$i] ne ${$result} ) {
-        diag( 'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
-        $failure_count++;
-    }
+    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
 } ## end for my $i ( 0 .. 4 )
-
-ok( !$failure_count,
-    ( $total_count - $failure_count )
-        . " of $total_count parse permutations succeeded" );
 
 # Local Variables:
 #   mode: cperl

@@ -15,7 +15,7 @@ use Test::More tests => 10;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 my $grammar_source;

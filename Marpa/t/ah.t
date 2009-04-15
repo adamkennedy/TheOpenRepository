@@ -12,10 +12,10 @@ use Test::More tests => 8;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
-my $g = new Marpa::Grammar(
+my $g = Marpa::Grammar->new(
     {   start => q{S'},
         rules => [
             [ q{S'}, [qw/S/] ],

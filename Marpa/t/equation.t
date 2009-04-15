@@ -12,7 +12,7 @@ use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Marpa');
+    Test::More::use_ok('Marpa');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -22,7 +22,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $grammar = new Marpa::Grammar(
+my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
 
@@ -103,7 +103,7 @@ St6: 8
 E['] ::= E .
 END_QDFA
 
-my $recce = new Marpa::Recognizer( { grammar => $grammar } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $op     = $grammar->get_symbol('Op');
 my $number = $grammar->get_symbol('Number');
@@ -134,13 +134,13 @@ my @expected = (
     '(2-(0*(3+1)))==2',
     #>>>
 );
-my $evaler = new Marpa::Evaluator( { recce => $recce, clone => 0 } );
+my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
 my $i = -1;
 while ( defined( my $value = $evaler->old_value() ) ) {
     $i++;
     if ( $i > $#expected ) {
-        fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
+        Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
     }
     else {
         Marpa::Test::is( ${$value}, $expected[$i],
