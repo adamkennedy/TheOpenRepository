@@ -35,9 +35,8 @@ close $pipe;
 
 $ENV{PERL5LIB} = '../lib:' . $ENV{PERL5LIB};
 my $text;
-my $pid =
-    IPC::Open2::open2( $pipe, $text, $this_perl, '../bin/mdl', 'parse', '-grammar',
-    '../example/null_value.marpa' );
+my $pid = IPC::Open2::open2( $pipe, $text, $this_perl, '../bin/mdl', 'parse',
+    '-grammar', '../example/null_value.marpa' );
 say {$text} 'Z';
 close $text;
 Marpa::Test::is(

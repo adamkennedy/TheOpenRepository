@@ -64,7 +64,8 @@ my $i = -1;
 while ( defined( my $value = $evaler->old_value() ) ) {
     $i++;
     if ( $i > $#expected ) {
-        Test::More::fail( 'Minuses equation has extra value: ' . ${$value} . "\n" );
+        Test::More::fail(
+            'Minuses equation has extra value: ' . ${$value} . "\n" );
     }
     else {
         Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );

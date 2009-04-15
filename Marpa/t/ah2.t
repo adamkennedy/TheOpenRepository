@@ -386,7 +386,7 @@ Marpa::Test::is(
     'Aycock/Horspool Parse Status at 4'
 );
 
-my @answer        = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
+my @answer = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 
 for my $i ( 0 .. 4 ) {
     my $evaler = Marpa::Evaluator->new(
@@ -396,7 +396,7 @@ for my $i ( 0 .. 4 ) {
         }
     );
     my $result = $evaler->value();
-    Test::More::is(${$result}, $answer[$i], "parse permutation $i" );
+    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
 } ## end for my $i ( 0 .. 4 )
 
 # Local Variables:

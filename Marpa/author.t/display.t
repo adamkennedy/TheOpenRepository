@@ -113,7 +113,8 @@ sub read_file {
         if not defined $display_name;
     my $display_ref = $normalized_display{$file_name}{$display_name};
     if ( not defined $display_ref ) {
-        Marpa::exception("No display named '$display_name' in file: $file_name");
+        Marpa::exception(
+            "No display named '$display_name' in file: $file_name");
     }
     $normalized_display_uses{$file_name}{$display_name}++;
     return $display_ref;

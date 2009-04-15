@@ -305,7 +305,8 @@ sub Marpa::Recognizer::new {
     my $grammar = $args->{grammar};
     if ( not defined $grammar ) {
         my $stringified_grammar = $args->{stringified_grammar};
-        Marpa::exception('No grammar specified') unless defined $stringified_grammar;
+        Marpa::exception('No grammar specified')
+            unless defined $stringified_grammar;
         delete $args->{stringified_grammar};
         my $trace_fh = $arg_trace_fh // (*STDERR);
         $grammar =
@@ -317,7 +318,8 @@ sub Marpa::Recognizer::new {
     }
 
     my $grammar_class = ref $grammar;
-    Marpa::exception("${class}::new() grammar arg has wrong class: $grammar_class")
+    Marpa::exception(
+        "${class}::new() grammar arg has wrong class: $grammar_class")
         unless $grammar_class eq 'Marpa::Grammar';
 
     my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
@@ -476,7 +478,8 @@ sub Marpa::Recognizer::clone {
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     if ( $#{$recce} > Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD ) {
-        Marpa::exception( "Cloning of unstripped recognizers not yet implemented\n",
+        Marpa::exception(
+            "Cloning of unstripped recognizers not yet implemented\n",
             "Strip the recognizer or turn off cloning\n" );
     }
     my $stringified_recce = Marpa::Recognizer::stringify($recce);
@@ -605,7 +608,8 @@ sub Marpa::Recognizer::text {
 
     return 0 if $parse->[Marpa::Internal::Recognizer::EXHAUSTED];
 
-    Marpa::exception('Marpa::Recognizer::text() third argument not yet implemented')
+    Marpa::exception(
+        'Marpa::Recognizer::text() third argument not yet implemented')
         if defined $input_length;
 
     my $input_ref;
@@ -709,7 +713,8 @@ sub Marpa::Recognizer::text {
                             'Matched regex for ',
                             $lexable->[Marpa::Internal::Symbol::NAME],
                             " at $pos: ", $match, "\n"
-                            or Marpa::exception('Could not print to trace file');
+                            or
+                            Marpa::exception('Could not print to trace file');
                     } ## end if ($trace_lex_matches)
                     last LEXABLE unless $ambiguous_lex;
                 }    # if match
@@ -903,7 +908,7 @@ sub scan_set {
             my ( $token, $value, $length ) = @{$alternative};
 
             if ( $length <= 0 ) {
-                Marpa::exception(    'Token '
+                Marpa::exception( 'Token '
                         . $token->[Marpa::Internal::Symbol::NAME]
                         . ' with bad length '
                         . $length );
@@ -912,7 +917,7 @@ sub scan_set {
             # Make sure it's an allowed terminal symbol.
             unless ( $token->[Marpa::Internal::Symbol::TERMINAL] ) {
                 my $name = $token->[Marpa::Internal::Symbol::NAME];
-                Marpa::exception(    'Non-terminal '
+                Marpa::exception( 'Non-terminal '
                         . ( defined $name ? "$name " : q{} )
                         . 'supplied as token' );
             } ## end unless ( $token->[Marpa::Internal::Symbol::TERMINAL] )

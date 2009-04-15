@@ -74,7 +74,7 @@ TEST: while ( my $test = pop @tests ) {
         : $parse_count;
     for my $i ( 0 .. ( $parses_to_check - 1 ) ) {
         if ( ${ $parses[$i] } ne $expected_parses[$i] ) {
-            Test::More::diag(     "Mismatch on parse $i for test $test_name: "
+            Test::More::diag( "Mismatch on parse $i for test $test_name: "
                     . ${ $parses[$i] } . ' vs. '
                     . $expected_parses[$i] );
             $mismatch_count++;

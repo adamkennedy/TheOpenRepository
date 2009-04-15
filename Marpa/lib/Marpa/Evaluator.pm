@@ -396,7 +396,8 @@ sub Marpa::Evaluator::new {
     Marpa::exception('No recognizer specified') unless defined $recce;
 
     my $recce_class = ref $recce;
-    Marpa::exception("${class}::new() recognizer arg has wrong class: $recce_class")
+    Marpa::exception(
+        "${class}::new() recognizer arg has wrong class: $recce_class")
         unless $recce_class eq 'Marpa::Recognizer';
 
     my $parse_set_arg = $args->{end};
@@ -788,21 +789,25 @@ sub Marpa::Evaluator::new {
         for my $and_node ( @{ $choice_and_nodes->[$start_earleme] } ) {
             my $end_earleme =
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-            my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
-            my ($external_priority, $internal_priority) =
-                unpack 'NN', $rule->[Marpa::Internal::Rule::PRIORITY];
+            my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+            my ( $external_priority, $internal_priority ) = unpack 'NN',
+                $rule->[Marpa::Internal::Rule::PRIORITY];
             $external_priority //= 0;
             $internal_priority //= 0;
             my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $laziness = $end_earleme;
             $laziness = -$laziness if $is_hasty;
-            push @decorated_and_nodes, [ $and_node, $external_priority, $internal_priority, $laziness ];
+            push @decorated_and_nodes,
+                [
+                $and_node,          $external_priority,
+                $internal_priority, $laziness
+                ];
         } ## end for my $and_node ( @{ $choice_and_nodes->[$start_earleme...
         $and_nodes = [];
         for my $decorated_and_node (
             ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
             sort {
-                $b->[1] <=> $a->[1]
+                       $b->[1] <=> $a->[1]
                     || $b->[2] <=> $a->[2]
                     || $b->[3] <=> $a->[3]
             }
@@ -813,7 +818,7 @@ sub Marpa::Evaluator::new {
             my $and_node = $decorated_and_node->[0];
             $and_node->[Marpa::Internal::And_Node::ID] = @{$and_nodes};
             push @{$and_nodes}, $and_node;
-        } ## end for my $decorated_and_node ( sort {  $b->[1] <=> $a->...
+        } ## end for my $decorated_and_node ( sort { $b->[1] <=> $a->[...
         $choice_and_nodes->[$start_earleme] = $and_nodes;
 
     } ## end for my $start_earleme ( 0 .. $#{$choice_and_nodes} )
@@ -880,8 +885,8 @@ sub Marpa::show_and_node {
 } ## end sub Marpa::show_and_node
 
 sub Marpa::Evaluator::show_choices {
-    my ($evaler) = @_;
-    my $text = q{};
+    my ($evaler)               = @_;
+    my $text                   = q{};
     my $completions_by_earleme = $evaler->[COMPLETIONS_BY_EARLEME];
     CHOICE_EARLEME:
     for my $choice_earleme ( 0 .. $#{$completions_by_earleme} ) {
@@ -930,7 +935,7 @@ sub Marpa::Evaluator::show_choice_point {
         $text .= "Alternative $map_ix for $choice_point_name:\n";
         my ( $and_vec, $or_choices ) = @{ $map->[$map_ix] };
         AND_IX: for my $and_ix ( 0 .. $#{$choice_and_nodes} ) {
-            next AND_IX unless (substr $and_vec, $and_ix, 1) eq '1';
+            next AND_IX unless ( substr $and_vec, $and_ix, 1 ) eq '1';
             my $and_node = $choice_and_nodes->[$and_ix];
             my $or_parent =
                 $and_node->[Marpa::Internal::And_Node::PARENT_OR_NODE];
@@ -1081,7 +1086,6 @@ sub Marpa::Evaluator::set {
 sub map_choice_point {
     my ( $evaler, $choice_point ) = @_;
 
-
     # array in which to build map
     my @map;
 
@@ -1162,7 +1166,8 @@ sub map_choice_point {
                 and $cause->[Marpa::Internal::Or_Node::START_EARLEME]
                 <= $start_earleme )
             {
-                push @ur_map, [ $cause, $new_and_vec, [ @{$new_or_choices} ], ];
+                push @ur_map,
+                    [ $cause, $new_and_vec, [ @{$new_or_choices} ], ];
             } ## end if ( defined $cause and $cause->[...
 
             if ( defined $predecessor
@@ -1201,14 +1206,14 @@ sub Marpa::Evaluator::value {
     my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_values     = 0;
-    my $trace_choices     = 0;
+    my $trace_choices    = 0;
     my $trace_iterations = 0;
     if ($tracing) {
         $trace_choices = $grammar->[Marpa::Internal::Grammar::TRACE_CHOICES];
-        $trace_values = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
+        $trace_values  = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
-    }
+    } ## end if ($tracing)
 
     my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
         Marpa::Internal::Evaluator::OR_NODES,
@@ -1236,7 +1241,7 @@ sub Marpa::Evaluator::value {
             $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
         my $and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
 
-        if ($trace_choices >= 2) {
+        if ( $trace_choices >= 2 ) {
             say {$trace_fh} 'Making choice for ',
                 $or_node->[Marpa::Internal::Or_Node::NAME];
         }
@@ -1244,7 +1249,7 @@ sub Marpa::Evaluator::value {
 
             # The choice is already made ...
             if ( defined $or_node->[Marpa::Internal::Or_Node::AND_CHOICE] ) {
-                if ($trace_choices >= 2) {
+                if ( $trace_choices >= 2 ) {
                     say {$trace_fh} 'Choice already made for ',
                         $or_node->[Marpa::Internal::Or_Node::NAME];
                 }
@@ -1267,12 +1272,13 @@ sub Marpa::Evaluator::value {
 
                 $or_node->[Marpa::Internal::Or_Node::AND_CHOICE] = 0;
                 last MAKE_CHOICE;
-            }
+            } ## end if ( @{$and_nodes} <= 1 )
 
             if ($trace_choices) {
                 say {$trace_fh} 'Choice non-trivial for ',
                     $or_node->[Marpa::Internal::Or_Node::NAME];
             }
+
             # The choice is non-trivial
             my $choices = $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
             if ( not defined $choices ) {
@@ -1282,7 +1288,7 @@ sub Marpa::Evaluator::value {
                 }
                 map_choice_point( $evaler, $or_node );
                 $choices = $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
-            }
+            } ## end if ( not defined $choices )
             if ( @{$choices} <= 0 ) {
                 Marpa::exception( 'No valid choices for '
                         . $or_node->[Marpa::Internal::Or_Node::NAME] );

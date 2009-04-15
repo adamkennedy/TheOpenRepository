@@ -38,7 +38,7 @@ $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->end_input();
 
-my @answer        = (
+my @answer = (
     q{},
     '(lowercase a;;;)',
     '(lowercase a;lowercase a;;)',

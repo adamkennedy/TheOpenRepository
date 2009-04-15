@@ -146,7 +146,9 @@ sub run_test {
             when ('unstringify_recce') {
                 return Marpa::Recognizer::unstringify( \$value );
             }
-            default { Marpa::exception("unknown argument to run_test: $arg"); };
+            default {
+                Marpa::exception("unknown argument to run_test: $arg");
+            };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
 
@@ -220,7 +222,8 @@ for my $test (@tests) {
     for my $feature (@features) {
         my $test_name = "$test in $feature";
         if ( eval { run_test( { $feature => $test_code{$test}, } ); } ) {
-            Test::More::fail("$test_name did not fail -- that shouldn't happen");
+            Test::More::fail(
+                "$test_name did not fail -- that shouldn't happen");
         }
         else {
             my $eval_error = $EVAL_ERROR;
