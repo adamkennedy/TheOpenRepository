@@ -57,6 +57,34 @@ sysopen(class, filename, flags, perms = 0666)
   OUTPUT:
     RETVAL
 
+SV *
+sysread(self, ...)
+  IO::Journal self
+  PREINIT:
+    char *buf;
+    size_t count;
+    off_t offset;
+    size_t ret;
+  INIT:
+    /* Check if parameters are undefined or not numeric */
+    if (!SvIOK(ST(1))) /* count */
+      count = 1024;
+    else
+      count = SvIV(ST(1));
+
+    Newx(buf, count, char);
+  CODE:
+    if (SvIOK(ST(2))) /* offset */    
+      ret = jread(&(self->jfs), buf, count);
+    else
+      ret = jpread(&(sel->jfs), buf, count, offset);
+
+    RETVAL = newSVpvn(buf, ret);
+  OUTPUT:
+    RETVAL
+  CLEANUP:
+    Safefree(buf);
+
 void
 DESTROY(self)
   IO::Journal self
