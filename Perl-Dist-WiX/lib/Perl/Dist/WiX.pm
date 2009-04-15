@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170_001')->numify;
+use version; $VERSION = version->new('0.170_002')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1321,10 +1321,10 @@ sub install_cpan_upgrades {
 
 	# Generate the CPAN installation script
 	my $cpan_string = <<'END_PERL';
-print "Loading CPAN...\\n";
+print "Loading CPAN...\n";
 use CPAN;
-CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
-print "Loading Storable...\\n";
+CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+print "Loading Storable...\n";
 use Storable qw(nstore);
 
 my ($module, %seen, %need, @toget);
@@ -1351,7 +1351,7 @@ MODULE: for $module (@expand) {
 	# If there's no file to download, skip it.
 	next MODULE unless defined $file;
 
-	$file =~ s!^./../!!;
+	$file =~ s{^./../}{};
 	my $latest  = $module->cpan_version;
 	my $inst_file = $module->inst_file;
 	my $have;
@@ -1387,8 +1387,12 @@ unless (%need) {
 	print "All modules are up to date\n";
 }
 	
-nstore \@toget, 'cpan.info';
-print "Completed collecting information on all modules\n";
+END_PERL
+
+	my $cpan_info = catfile( $self->output_dir , 'cpan.info' );
+	$cpan_string .= <<"END_PERL";
+nstore \\\@toget, '$cpan_info';
+print "Completed collecting information on all modules\\n";
 
 exit 0;
 END_PERL
@@ -1409,7 +1413,6 @@ END_PERL
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;
 
-	my $cpan_info = catfile( rel2abs( curdir() ), 'cpan.info' );
 	my $module_info = retrieve $cpan_info;
 	my $force;
 
@@ -1431,6 +1434,7 @@ END_PERL
 			and ( $module->cpan_version > 0.79 ) )
 		{
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
+			$self->_install_cpan_module( $module, $force );
 			next;
 		}
 

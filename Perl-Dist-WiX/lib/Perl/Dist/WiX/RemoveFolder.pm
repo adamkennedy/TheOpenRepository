@@ -123,7 +123,7 @@ sub as_string {
   <Fragment Id='Fr_Remove$id'>
     <DirectoryRef Id='D_$directory_id'>
       <Component Id='C_Remove$id' Guid='$guid'>
-        <RemoveFolder On="$on"/>
+        <RemoveFolder Id='RF_$directory_id' On="$on"/>
       </Component>
     </DirectoryRef>
   </Fragment>
