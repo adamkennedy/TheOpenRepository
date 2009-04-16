@@ -34,9 +34,11 @@ package Marpa::Internal;
 
 use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
 
+# Is PARENT_OR_NODE needed?
 use Marpa::Offset And_Node =>
     qw(NAME ID PARENT_OR_NODE PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
 
+# Is PARENT_OR_NODE needed?
 use Marpa::Offset Or_Node =>
     qw(NAME ID PARENT_OR_NODE AND_NODES IS_COMPLETED START_EARLEME AND_CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES);
 
@@ -1229,13 +1231,30 @@ sub Marpa::Evaluator::value {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
+    # if it's an empty list of choice points, we're done iterating
+    my $choice_points = $evaler->[Marpa::Internal::Evaluator::CHOICE_POINTS];
+    if ( defined $choice_points and not scalar @{$choice_points} ) {
+        return;
+    }
+
+    my $chosen_to_here_earleme;
+    my @work_list;
+
     # Initialize the work list for the disambiguation with the top or-node
-    my @work_list = ( $bocage->[0] );
+    if ( not defined $choice_points ) {
+        $choice_points =
+            $evaler->[Marpa::Internal::Evaluator::CHOICE_POINTS] = [];
+        @work_list              = ( $bocage->[0] );
+        $chosen_to_here_earleme = -1;
+    } ## end if ( not defined $choice_points )
+
+    if ( scalar @{$choice_points} ) {
+        Marpa::exception('Iteration not yet implemented');
+    }
 
     # This loop does disambiguation -- that is picks one parse from an
     # ambiguous bocage.
     #
-    my $chosen_to_here_earleme = -1;
     OR_NODE: while ( my $or_node = pop @work_list ) {
         my $start_earleme =
             $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
@@ -1274,12 +1293,12 @@ sub Marpa::Evaluator::value {
                 last MAKE_CHOICE;
             } ## end if ( @{$and_nodes} <= 1 )
 
+            # The choice is non-trivial
             if ($trace_choices) {
                 say {$trace_fh} 'Choice non-trivial for ',
                     $or_node->[Marpa::Internal::Or_Node::NAME];
             }
 
-            # The choice is non-trivial
             my $choices = $or_node->[Marpa::Internal::Or_Node::CHOICE_MAP];
             if ( not defined $choices ) {
                 if ($trace_choices) {
@@ -1293,7 +1312,11 @@ sub Marpa::Evaluator::value {
                 Marpa::exception( 'No valid choices for '
                         . $or_node->[Marpa::Internal::Or_Node::NAME] );
             }
-            $or_node->[Marpa::Internal::Or_Node::MAP_IX] = my $map_ix = 0;
+            my $map_ix = $or_node->[Marpa::Internal::Or_Node::MAP_IX];
+            if ( not defined $map_ix ) {
+                $or_node->[Marpa::Internal::Or_Node::MAP_IX] = $map_ix = 0;
+            }
+            push @{$choice_points}, $or_node;
             my $or_choices = $choices->[$map_ix]->[1];
             my $or_nodes_here =
                 $evaler->[Marpa::Internal::Evaluator::OR_NODES_BY_EARLEME]
