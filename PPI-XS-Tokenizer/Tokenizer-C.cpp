@@ -28,7 +28,7 @@ void checkToken( Tokenizer *tk, const char *text, TokenTypeNames type, int line)
 	tk->freeToken(token);
 }
 
-void checkExtendedTokenModifiers( Tokenizer *tk,
+void checkExtendedTokenModifiers(
 					     QuoteToken *qtoken,
 						 const char *section, 
 						 int line) {
@@ -63,7 +63,7 @@ void checkExtendedTokenModifiers( Tokenizer *tk,
 	}
 }
 
-void checkExtendedTokenSection( Tokenizer *tk,
+void checkExtendedTokenSection(
 					     QuoteToken *qtoken,
 					     uchar section_to_check,
 						 const char *section, 
@@ -121,10 +121,10 @@ void checkExtendedToken( Tokenizer *tk,
 	{
 		QuoteToken *qtoken = (QuoteToken *)token;
 		if ( qtoken->current_section >= 1 )
-			checkExtendedTokenSection( tk, qtoken, 0, section1, line);
+			checkExtendedTokenSection( qtoken, 0, section1, line);
 		if ( qtoken->current_section >= 2 )
-			checkExtendedTokenSection( tk, qtoken, 1, section2, line);
-		checkExtendedTokenModifiers( tk, qtoken, modifiers, line );
+			checkExtendedTokenSection( qtoken, 1, section2, line);
+		checkExtendedTokenModifiers( qtoken, modifiers, line );
 	}
 
 	tk->freeToken(token);
@@ -264,9 +264,25 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, " ", Token_WhiteSpace);
 	CheckToken(&tk, "0b101", Token_Number_Binary);
 
-	Tokenize("04324");
+	Tokenize("04324 12.34e-56 12.34e+56 / 12.34e56 123.e12 123.edc \n");
 	CheckToken(&tk, "\n", Token_WhiteSpace);
 	CheckToken(&tk, "04324", Token_Number_Octal);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "12.34e-56", Token_Number_Exp);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "12.34e+56", Token_Number_Exp);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "/", Token_Operator);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "12.34e56", Token_Number_Exp);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "123.e12", Token_Number_Exp);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "123", Token_Number);
+	CheckToken(&tk, ".", Token_Operator);
+	CheckToken(&tk, "edc", Token_Word);
+
+	Tokenize(" $#array");
 
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);

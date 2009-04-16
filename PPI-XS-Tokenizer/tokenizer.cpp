@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <map>
 
 #include "tokenizer.h"
 
@@ -167,6 +169,74 @@ TokenTypeNames Tokenizer::_finalize_token() {
 	return zone;
 }
 
+
+using namespace std;
+typedef pair <const char *, uchar> uPair;
+//std::map <string, char> Tokenizer::operators;
+
+bool Tokenizer::is_operator(const char *str) {
+	map <string, char> :: const_iterator m1_AcIter = operators.find( str );
+	return !( m1_AcIter == operators.end());
+}
+
+bool Tokenizer::is_magic(const char *str) {
+	map <string, char> :: const_iterator m1_AcIter = magics.find( str );
+	return !( m1_AcIter == magics.end());
+}
+
+		// Operators:
+		//-> ++ -- ** ! ~ + -
+		//=~ !~ * / % x + - . << >>
+		//< > <= >= lt gt le ge
+		//== != <=> eq ne cmp ~~
+		//& | ^ && || // .. ...
+		//? : = += -= *= .= /= //=
+		//=> <> ,
+		//and or xor not
+
+#define OPERATORS_COUNT 58
+
+		// Magics:
+		// $1 $2 $3 $4 $5 $6 $7 $8 $9
+		// $_ $& $` $' $+ @+ %+ $* $. $/ $|
+		// $\\ $" $; $% $= $- @- %- $)
+		// $~ $^ $: $? $! %! $@ $$ $< $>
+		// $( $0 $[ $] @_ @*
+		// $^L $^A $^E $^C $^D $^F $^H
+		// $^I $^M $^N $^O $^P $^R $^S
+		// $^T $^V $^W $^X %^H
+		// $::| $}, "$,", '$#', '$#+', '$#-'
+
+#define MAGIC_COUNT 70
+
+static void fill_maps( std::map <string, char> &omap, std::map <string, char> &mmap ) {
+	const char o_list[OPERATORS_COUNT][4] = {
+		"->", "++", "--", "**", "!", "~", "+", "-",
+		"=~", "!~", "*", "/", "%" ,"x" ,"+" ,"-" ,"." ,"<<" ,">>",
+		"<" ,">" ,"<=" ,">=" ,"lt" ,"gt" ,"le" ,"ge",
+		"==" ,"!=" ,"<=>" ,"eq" ,"ne" ,"cmp" ,"~~",
+		"&" ,"|" ,"^" ,"&&" ,"||" ,"//" ,".." ,"...",
+		"?" ,":" ,"=" ,"+=" ,"-=" ,"*=" ,".=" ,"/=" ,"//=",
+		"=>" ,"<>" ,",",
+		"and" ,"or" ,"xor" ,"not" };
+	for ( ulong ix = 0; ix < OPERATORS_COUNT; ix++ )
+		omap.insert( uPair ( o_list[ix], 1 ) );
+
+	const char m_list[MAGIC_COUNT][5] = {
+		 "$1", "$2", "$3", "$4", "$5", "$6" ,"$7" ,"$8", "$9",
+		 "$_", "$&", "$`", "$'", "$+", "@+", "%+" ,"$*", "$.", "$/", "$|",
+		 "$\\", "$\"", "$;", "$%", "$=", "$-", "@-", "%-", "$)",
+		 "$~", "$^", "$:", "$?", "$!", "%!", "$@", "$$", "$<", "$>",
+		 "$(", "$0", "$[", "$]", "@_", "@*",
+		 "$^L", "$^A", "$^E", "$^C", "$^D", "$^F", "$^H",
+		 "$^I", "$^M", "$^N", "$^O", "$^P", "$^R", "$^S",
+		 "$^T", "$^V", "$^W", "$^X", "%^H",
+		 "$::|", "$}", "$,", "$#", "$#+", "$#-"
+	};
+	for ( ulong ix = 0; ix < MAGIC_COUNT; ix++ )
+		mmap.insert( uPair ( m_list[ix], 1 ) );
+}
+
 Tokenizer::Tokenizer() 
 	: 
 	c_token(NULL),
@@ -210,9 +280,12 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Number_Hex] = &m_HexNumberToken;
 	TokenTypeNames_pool[Token_Number_Binary] = &m_BinaryNumberToken;
 	TokenTypeNames_pool[Token_Number_Octal] = &m_OctalNumberToken;
+	TokenTypeNames_pool[Token_Number_Exp] = &m_ExpNumberToken;
+	TokenTypeNames_pool[Token_ArrayIndex] = &m_ArrayIndexToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}
+	fill_maps( operators, magics );
 }
 
 Tokenizer::~Tokenizer() {

@@ -24,7 +24,7 @@ enum TokenTypeNames {
 	Token_Number_Hex, // done
 	Token_Number_Binary, // done
 	Token_Number_Octal, // done
-	Token_Number_Exp,
+	Token_Number_Exp, // done
 	Token_Operator, // done
 	Token_Operator_Attribute, // done - Operator with _attribute = 1
 	Token_Unknown, // done
@@ -314,9 +314,7 @@ public:
 
 class OperatorToken : public AbstractTokenType {
 public:
-	OperatorToken();
-	static std::map <std::string, char> operators;
-	static bool is_operator(const char *str);
+	OperatorToken() : AbstractTokenType( Token_Operator, true ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
@@ -391,6 +389,18 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class ExpNumberToken : public AbstractNumberSubclassToken {
+public:
+	ExpNumberToken() : AbstractNumberSubclassToken( Token_Number_Exp, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class ArrayIndexToken : public AbstractTokenType {
+public:
+	ArrayIndexToken() : AbstractTokenType( Token_ArrayIndex, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -457,6 +467,7 @@ public:
 
 	/* Utility functions */
 	bool is_operator(const char *str);
+	bool is_magic(const char *str);
 private:
 	TokensCacheMany m_TokensCache;
 	Token *tokens_found_head;
@@ -490,9 +501,12 @@ private:
 	HexNumberToken m_HexNumberToken;
 	BinaryNumberToken m_BinaryNumberToken;
 	OctalNumberToken m_OctalNumberToken;
+	ExpNumberToken m_ExpNumberToken;
+	ArrayIndexToken m_ArrayIndexToken;
 
 	void keep_significant_token(Token *t);
 
+	std::map <std::string, char> operators, magics;
 	Token *m_LastSignificant[NUM_SIGNIFICANT_KEPT];
 	unsigned char m_nLastSignificantPos;
 };

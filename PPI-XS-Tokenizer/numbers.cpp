@@ -25,7 +25,7 @@ CharTokenizeResults NumberToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	}
 	while ( t->line_length > t->line_pos ) {
 		uchar c = t->c_line[ t->line_pos ];
-		if ( !is_digit( c ) ) {
+		if ( !( is_digit( c ) || ( c == '_' ) ) ) {
 			if (c == '.') {
 				t->changeTokenType( Token_Number_Float );
 				return my_char;
@@ -143,13 +143,47 @@ CharTokenizeResults BinaryNumberToken::tokenize(Tokenizer *t, Token *token, unsi
 CharTokenizeResults OctalNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
 		uchar c = t->c_line[ t->line_pos ];
-		if (!is_digit( c ) ) {
+		if (! ( is_digit( c ) || ( c == '_' ) ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
 			return done_it_myself;
 		}
 		token->text[ token->length++ ] = c;
 		t->line_pos++;
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}
+
+inline bool is_first_exp_char( char c ) {
+	return ( is_digit(c) || ( c == '-' ) || ( c == '+' ) || ( c == '_' ) );
+}
+
+CharTokenizeResults ExpNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	// if we have reached here, the number looks like 12.34e-56 / 12.34e+56 / 12.34e56
+	// the number up untill and including the 'e' is already captured
+	PredicateAnd<
+		PredicateZeroOrOne< PredicateFunc< is_first_exp_char > >,
+		PredicateOneOrMore< PredicateFunc< is_digit > >
+	> regex;
+
+	ulong pos = t->line_pos;
+	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
+		for ( ulong ix = t->line_pos; ix < pos; ix++ ) {
+			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+		}
+	} else {
+		// not a valid exponent - try to recover
+		if ( token->text[ token->length - 2 ] == '.' ) {
+			// rewind to before the '.' and this is probably an operator
+			token->length -= 2;
+			t->line_pos -= 2;
+			t->changeTokenType( Token_Number );
+			t->_finalize_token();
+			t->_new_token( Token_Operator );
+			return my_char;
+		}
 	}
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);

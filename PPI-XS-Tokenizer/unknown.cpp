@@ -60,7 +60,12 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 			return my_char;
 		}
 
-		// FIXME: handle Magic token
+		token->text[ token->length ] = c_char;
+		token->text[ token->length + 1 ] = 0;
+		if ( t->is_magic( token->text ) ) {
+			t->changeTokenType( Token_Magic );
+			return my_char;
+		}
 
 		t->changeTokenType( Token_Cast );
 		TokenTypeNames zone = t->_finalize_token();

@@ -134,3 +134,20 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	t->_new_token(zone);
 	return done_it_myself;
 }
+
+bool inline is_word_colon_tag( char c ) {
+	return ( is_word(c) || ( c == ':' ) || ( c == '\'' ) );
+}
+
+CharTokenizeResults ArrayIndexToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	PredicateOneOrMore< PredicateFunc< is_word_colon_tag > > regex;
+	ulong pos = t->line_pos;
+	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
+		for ( ulong ix = t->line_pos; ix < pos; ix++ ) {
+			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+		}
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}

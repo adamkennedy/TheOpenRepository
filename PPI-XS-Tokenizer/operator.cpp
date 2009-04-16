@@ -1,92 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <map>
 
 #include "tokenizer.h"
 #include "forward_scan.h"
 
-using namespace std;
-typedef pair <char *, uchar> uPair;
-
-		//-> ++ -- ** ! ~ + -
-		//=~ !~ * / % x + - . << >>
-		//< > <= >= lt gt le ge
-		//== != <=> eq ne cmp ~~
-		//& | ^ && || // .. ...
-		//? : = += -= *= .= /= //=
-		//=> <> ,
-		//and or xor not
-
-std::map <string, char> OperatorToken::operators;
-
-OperatorToken::OperatorToken() : AbstractTokenType( Token_Operator, true ) {
-	operators.clear();
-	operators.insert( uPair ( "->", 1 ) );
-	operators.insert( uPair ( "++", 1 ) );
-	operators.insert( uPair ( "--", 1 ) );
-	operators.insert( uPair ( "**", 1 ) );
-	operators.insert( uPair ( "!",  1 ) );
-	operators.insert( uPair ( "~",  1 ) );
-	operators.insert( uPair ( "+",  1 ) );
-	operators.insert( uPair ( "-",  1 ) );
-	operators.insert( uPair ( "=~", 1 ) );
-	operators.insert( uPair ( "!~", 1 ) );
-	operators.insert( uPair ( "*", 1 ) );
-	operators.insert( uPair ( "/", 1 ) );
-	operators.insert( uPair ( "%", 1 ) );
-	operators.insert( uPair ( "x", 1 ) );
-	operators.insert( uPair ( ".", 1 ) );
-	operators.insert( uPair ( "<<", 1 ) );
-	operators.insert( uPair ( ">>", 1 ) );
-	operators.insert( uPair ( "<", 1 ) );
-	operators.insert( uPair ( ">", 1 ) );
-	operators.insert( uPair ( "<=", 1 ) );
-	operators.insert( uPair ( ">=", 1 ) );
-	operators.insert( uPair ( "lt", 1 ) );
-	operators.insert( uPair ( "gt", 1 ) );
-	operators.insert( uPair ( "le", 1 ) );
-	operators.insert( uPair ( "ge", 1 ) );
-	operators.insert( uPair ( "==", 1 ) );
-	operators.insert( uPair ( "!=", 1 ) );
-	operators.insert( uPair ( "<=>", 1 ) );
-	operators.insert( uPair ( "eq", 1 ) );
-	operators.insert( uPair ( "ne", 1 ) );
-	operators.insert( uPair ( "cmp", 1 ) );
-	operators.insert( uPair ( "~~", 1 ) );
-	operators.insert( uPair ( "&", 1 ) );
-	operators.insert( uPair ( "|", 1 ) );
-	operators.insert( uPair ( "^", 1 ) );
-	operators.insert( uPair ( "&&", 1 ) );
-	operators.insert( uPair ( "||", 1 ) );
-	operators.insert( uPair ( "//", 1 ) );
-	operators.insert( uPair ( "..", 1 ) );
-	operators.insert( uPair ( "...", 1 ) );
-	operators.insert( uPair ( "?", 1 ) );
-	operators.insert( uPair ( ":", 1 ) );
-	operators.insert( uPair ( "=", 1 ) );
-	operators.insert( uPair ( "+=", 1 ) );
-	operators.insert( uPair ( "-=", 1 ) );
-	operators.insert( uPair ( "*=", 1 ) );
-	operators.insert( uPair ( ".=", 1 ) );
-	operators.insert( uPair ( "/=", 1 ) );
-	operators.insert( uPair ( "//=", 1 ) );
-	operators.insert( uPair ( "=>", 1 ) );
-	operators.insert( uPair ( "<>", 1 ) );
-	operators.insert( uPair ( ",", 1 ) );
-	operators.insert( uPair ( "and", 1 ) );
-	operators.insert( uPair ( "or", 1 ) );
-	operators.insert( uPair ( "xor", 1 ) );
-	operators.insert( uPair ( "not", 1 ) );
-}
 
 AttributeOperatorToken::AttributeOperatorToken() : OperatorToken() {
 	type = Token_Operator_Attribute;
-}
-
-bool OperatorToken::is_operator(const char *str) {
-	map <string, char> :: const_iterator m1_AcIter = operators.find( str );
-	return !( m1_AcIter == operators.end());
 }
 
 bool inline is_quote(char c) {
@@ -97,7 +17,7 @@ CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned
 	token->text[token->length] = c_char;
 	token->text[token->length+1] = '\0';
 
-	if ( is_operator( token->text ) )
+	if ( t->is_operator( token->text ) )
 		return my_char;
 
 	token->text[token->length] = '\0';

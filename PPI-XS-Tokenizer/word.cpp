@@ -140,7 +140,7 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 		return done_it_myself;
 	}
 
-	if ( OperatorToken::is_operator( token->text ) && !is_literal( t, prev ) ) {
+	if ( t->is_operator( token->text ) && !is_literal( t, prev ) ) {
 		t->changeTokenType( Token_Operator );
 		return done_it_myself;
 	}
@@ -181,7 +181,7 @@ static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev
 	if ( has_a_colon( token ) ) {
 		return Token_Word;
 	}
-	if ( OperatorToken::is_operator( token->text ) )  {
+	if ( t->is_operator( token->text ) )  {
 		if ( is_literal( t, prev ) )
 			return Token_Word;
 		else
