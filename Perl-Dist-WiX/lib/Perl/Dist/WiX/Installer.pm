@@ -271,6 +271,12 @@ sub trace_line {
 sub msi_product_icon_id {
 	my $self = shift;
 
+=item * msi_product_icon_id
+
+Returns the product icon to use in the main template.
+
+=cut
+
 	# Get the icon ID if we can.
 	if ( defined $self->msi_product_icon ) {
 		return 'I_' . $self->icons->search_icon( $self->msi_product_icon );
@@ -798,16 +804,14 @@ it as a string.
 
 sub as_string {
 	my $self = shift;
-
+	
 	my $tt = Template->new( {
-			INCLUDE_PATH => File::ShareDir::dist_dir('Perl-Dist-WiX'),
+			INCLUDE_PATH => [ $self->dist_dir, File::ShareDir::dist_dir('Perl-Dist-WiX'), ]
 			EVAL_PERL    => 1,
 		} )
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
-		info    => do {
-			defined $Template::ERROR ? $Template::ERROR : 'Unknown error';
-		},
+		info    => Template->error() or 'Unknown error',
 	  );
 
 	my $answer;
