@@ -3,6 +3,7 @@ use inc::Module::Install 0.83;
 die "OS unsupported\n" unless win32;
 
 all_from       'lib/Perl/Dist/WiX.pm';
+requires       'perl'                 => '5.006';
 requires       'version'              => '0.76';
 requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';

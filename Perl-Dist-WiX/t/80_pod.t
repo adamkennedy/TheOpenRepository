@@ -3,9 +3,11 @@
 # Test that the syntax of our POD documentation is valid
 
 use strict;
+
 BEGIN {
-	$|  = 1;
-	$^W = 1;
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
 }
 
 my @MODULES = (
@@ -22,9 +24,9 @@ unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
-	if ( $@ ) {
+	if ( $EVAL_ERROR ) {
 		$ENV{RELEASE_TESTING}
-		? die( "Failed to load required release-testing module $MODULE" )
+		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 		: plan( skip_all => "$MODULE not available for testing" );
 	}
 }

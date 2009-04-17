@@ -1,21 +1,33 @@
-#!perl
+#!/usr/bin/perl
+
+# Test that all modules have a version number.
 
 use strict;
-use warnings;
 
-use Test::More;
-
-use English qw(-no_match_vars);
-
-if ( not $ENV{TEST_AUTHOR} ) {
-    my $msg = 'No TEST_AUTHOR: Skipping author test';
-    plan( skip_all => $msg );
+BEGIN {
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
 }
 
-eval { require Test::HasVersion; };
+my @MODULES = (
+	'Test::HasVersion 0.012',
+);
 
-plan skip_all => 
-    'Test::HasVersion required for testing for version numbers' if $EVAL_ERROR;
+# Don't run tests for installs
+use Test::More;
+unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
+	plan( skip_all => "Author tests not required for installation" );
+}
 
-Test::HasVersion->import();
+# Load the testing modules
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $EVAL_ERROR ) {
+		$ENV{RELEASE_TESTING}
+		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
+		: plan( skip_all => "$MODULE not available for testing" );
+	}
+}
+
 all_pm_version_ok();
