@@ -806,12 +806,12 @@ sub as_string {
 	my $self = shift;
 	
 	my $tt = Template->new( {
-			INCLUDE_PATH => [ $self->dist_dir, File::ShareDir::dist_dir('Perl-Dist-WiX'), ]
+			INCLUDE_PATH => [ $self->dist_dir, File::ShareDir::dist_dir('Perl-Dist-WiX'), ],
 			EVAL_PERL    => 1,
 		} )
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
-		info    => Template->error() or 'Unknown error',
+		info    => Template->error(),
 	  );
 
 	my $answer;
