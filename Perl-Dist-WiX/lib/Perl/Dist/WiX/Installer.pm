@@ -173,6 +173,13 @@ sub new {
 	$self->_check_string_parameter( $self->app_publisher_url,
 		'app_publisher_url' );
 
+	if ( $self->app_name =~ m{[\\/:*"<>|]}msx ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_name: Contains characters invalid ' . 'for Windows file/directory names',
+			where     => '::Installer->new'
+		);
+	}
+
 	unless ( _STRING( $self->sitename ) ) {
 		$self->{sitename} = URI->new( $self->app_publisher_url )->host;
 	}
@@ -539,26 +546,17 @@ sub write_msi {
 	$self->{feature_tree_obj} =
 	  Perl::Dist::WiX::FeatureTree->new( parent => $self, );
 
-	# Convert non-perl-identifier characters to underlines,
-	# so as to create a safe filename.
-	my $name = $self->app_name =~ s{\W}{_}msg; 
-	
 	# Write out the .wxs file
 	my $content = $self->as_string;
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
-	  catfile( $self->fragment_dir, $name . q{.wxs} );
+	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
 	if (-f $filename_in) {
-		# Collision. Try a second time.
-		$filename_in =
-		  catfile( $self->fragment_dir, $name . q{.1.wxs} );	
-	}
-	if (-f $filename_in) {
-		# Still a collision. Yell and scream.
-		PDWiX->throw('Could not write out $filename_in: File already exists.');
+		# Had a collision. Yell and scream.
+		PDWiX->throw("Could not write out $filename_in: File already exists.");
 	}
 	$filename_out =
-	  catfile( $self->fragment_dir, $name . q{.wixobj} );
+	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
 	$fh = IO::File->new( $filename_in, 'w' );
 
 	if ( not defined $fh ) {

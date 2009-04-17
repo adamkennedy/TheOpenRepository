@@ -81,7 +81,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170_002')->numify;
+use version; $VERSION = version->new('0.170_003')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -4572,6 +4572,12 @@ pexports or dlltool had an error and was not able to generate the file required.
 =item C<< Failed to make_path for %s >> or C<< Failed to remake_path for %s >>
 
 The directory did not exist once made or remade.
+
+=item C<< Could not write out $filename_in: File already exists. >>
+
+The application name (as defined by the L<app_name|/app_name> parameter) 
+conflicts with one of the other fragments somehow. Please choose a different 
+application name.
 
 =back
 
