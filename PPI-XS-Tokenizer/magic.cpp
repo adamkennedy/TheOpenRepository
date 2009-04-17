@@ -73,5 +73,28 @@ CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned ch
 			return done_it_myself;
 		}
 	}
-	return error_fail;
+	if ( ( token->text[0] == '%' ) && ( token->length >= 1 ) && ( token->text[1] == '^' ) ) {
+		// is this a magic token or a % operator?
+		if ( t->line_length > t->line_pos + 1 ) {
+			token->text[ token->length + 1 ] = t->c_line[ t->line_pos + 1 ];
+			token->text[ token->length + 2 ] = '\0';
+			if ( t->is_magic( token->text ) ) {
+				token->length++;
+				t->line_pos++;
+				TokenTypeNames zone = t->_finalize_token();
+				t->_new_token(zone);
+				return done_it_myself;
+			}
+		}
+		// trat % as operator
+		t->line_pos -= token->length - 1;
+		token->length = 1;
+		t->changeTokenType( Token_Operator );
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token(zone);
+		return done_it_myself;
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
 }

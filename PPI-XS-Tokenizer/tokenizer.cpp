@@ -282,6 +282,9 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Number_Octal] = &m_OctalNumberToken;
 	TokenTypeNames_pool[Token_Number_Exp] = &m_ExpNumberToken;
 	TokenTypeNames_pool[Token_ArrayIndex] = &m_ArrayIndexToken;
+	TokenTypeNames_pool[Token_Label] = &m_LabelToken;
+	TokenTypeNames_pool[Token_Attribute] = &m_AttributeToken;
+	TokenTypeNames_pool[Token_Attribute_Parameterized] = &m_ParameterizedAttributeToken;
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

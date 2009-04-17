@@ -17,7 +17,7 @@ enum TokenTypeNames {
     Token_Word, // done
 	Token_DashedWord,
     Token_Structure, // done
-	Token_Magic,
+	Token_Magic, // done
 	Token_Number, // done
 	Token_Number_Version,
 	Token_Number_Float, // done
@@ -43,13 +43,15 @@ enum TokenTypeNames {
 	Token_Regexp_Transliterate, // done
 	Token_Cast, 
 	Token_Prototype,
-	Token_ArrayIndex,
+	Token_ArrayIndex, // done
 	Token_HereDoc,
-	Token_Attribute,
-	Token_Label,
+	Token_Attribute, // done
+	Token_Attribute_Parameterized, // done
+	Token_Label, // done
 	Token_Separator,
 	Token_End,
 	Token_Data,
+	Token_Pod,
 	Token_LastTokenType, // Marker for the last real types
 
 	// Here are abstract markers
@@ -401,6 +403,25 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class LabelToken : public AbstractTokenType {
+public:
+	LabelToken() : AbstractTokenType( Token_Label, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class AttributeToken : public AbstractTokenType {
+public:
+	AttributeToken() : AbstractTokenType( Token_Attribute, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class ParameterizedAttributeToken : public AbstractBareQuoteTokenType {
+public:
+	virtual bool isa( TokenTypeNames is_type ) const;
+	// my_type, sign, num_sections, accept_modifiers
+	ParameterizedAttributeToken() : AbstractBareQuoteTokenType( Token_Attribute_Parameterized, true, 1, false ) {}
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -503,6 +524,9 @@ private:
 	OctalNumberToken m_OctalNumberToken;
 	ExpNumberToken m_ExpNumberToken;
 	ArrayIndexToken m_ArrayIndexToken;
+	LabelToken m_LabelToken;
+	AttributeToken m_AttributeToken;
+	ParameterizedAttributeToken m_ParameterizedAttributeToken;
 
 	void keep_significant_token(Token *t);
 

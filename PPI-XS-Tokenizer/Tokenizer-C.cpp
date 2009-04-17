@@ -282,7 +282,45 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, ".", Token_Operator);
 	CheckToken(&tk, "edc", Token_Word);
 
-	Tokenize(" $#array");
+	Tokenize(" $#array + $^X Hello: ;\n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckToken(&tk, "$#array", Token_ArrayIndex);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "+", Token_Operator);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "$^X", Token_Magic);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "Hello:", Token_Label);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("sub mmss:attrib{return 5}\n");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "sub", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "mmss", Token_Word);
+	CheckToken(&tk, ":", Token_Operator_Attribute);
+	CheckToken(&tk, "attrib", Token_Attribute);
+	CheckToken(&tk, "{", Token_Structure);
+	CheckToken(&tk, "return", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "5", Token_Number);
+	CheckToken(&tk, "}", Token_Structure);
+
+	Tokenize("sub mmss:attrib(45) {return 5}\n");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "sub", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "mmss", Token_Word);
+	CheckToken(&tk, ":", Token_Operator_Attribute);
+	CheckToken(&tk, "attrib(45)", Token_Attribute_Parameterized);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "{", Token_Structure);
+	CheckToken(&tk, "return", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "5", Token_Number);
+	CheckToken(&tk, "}", Token_Structure);
+
 
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);

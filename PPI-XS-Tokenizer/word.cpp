@@ -177,7 +177,8 @@ static inline bool has_a_colon( Token *token ) {
 	return false;
 }
 
-static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev) {
+static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev, bool *should_finalize) {
+	*should_finalize = true;
 	if ( has_a_colon( token ) ) {
 		return Token_Word;
 	}
@@ -190,10 +191,12 @@ static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev
 
 	TokenTypeNames is_quotelike = get_quotelike_type(token);
 	if ( is_quotelike != Token_NoType ) {
-		if ( is_literal(t, prev) )
+		if ( is_literal(t, prev) ) {
 			return Token_Word;
-		else
+		} else {
+			*should_finalize = false;
 			return is_quotelike;
+		}
 	}
 
 	// $string =~ /^(\s*:)(?!:)/ )
@@ -257,8 +260,12 @@ CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
 	Token *prev = t->_last_significant_token(1);
 	if ( ( prev != NULL ) && prev->type->isa( Token_Operator_Attribute ) ) {
 		t->changeTokenType(	Token_Attribute );
-		TokenTypeNames zone = t->_finalize_token();
-		t->_new_token( zone );
+		if (!( t->line_length > t->line_pos )) {
+			// if there is no morecharecters in the line to process - then 
+			// this Attribute tiken can not have parameters
+			TokenTypeNames zone = t->_finalize_token();
+			t->_new_token( zone );
+		}
 		return done_it_myself;
 	}
 
@@ -284,12 +291,43 @@ CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
 		return done_it_myself;
 	}
 
-	TokenTypeNames class_type = commit_detect_type(t, token, prev);
+	bool should_finalize;
+	TokenTypeNames class_type = commit_detect_type(t, token, prev, &should_finalize);
 	if ( class_type != Token_Word ) {
 		t->changeTokenType( class_type );
-		return done_it_myself;
+		if (should_finalize == false)
+			return done_it_myself;
 	}
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
 	return done_it_myself;
+}
+
+//=====================================
+// Label Token
+//=====================================
+
+CharTokenizeResults LabelToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	// should never reach here - the Word token will take care of me
+	return error_fail;
+}
+
+//=====================================
+// Attribute Token
+//=====================================
+
+CharTokenizeResults AttributeToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	// when reached here, the attribute word was already read by Word token. 
+	// now checking if the attribute have parameters
+	if ( c_char == '(' ) {
+		t->changeTokenType( Token_Attribute_Parameterized );
+		return my_char;
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}
+
+bool ParameterizedAttributeToken::isa( TokenTypeNames is_type ) const {
+	return ( ( is_type == type ) || ( is_type == Token_Attribute ) || ( is_type == isToken_Extended) );
 }
