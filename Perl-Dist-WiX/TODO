@@ -1,8 +1,0 @@
-1. Handle installing distributions that only contain a Build.PL 
-   by executing the Build.PL (instead of throwing an exception)
-   in install_distribution. (0.180)
-
-2. Create a distribution for handling the XML-generating parts 
-   of Perl::Dist::WiX and depend on it (0.180? 0.190?)
-   
-3. t\xx_removefolder.t test needs created (0.171)

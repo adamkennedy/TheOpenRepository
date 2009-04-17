@@ -4617,6 +4617,17 @@ As other errors are noticed, they will be listed here.
 
 This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 
+=head1 TO DO
+
+1. Handle installing distributions that only contain a Build.PL 
+by executing the Build.PL (instead of throwing an exception)
+in install_distribution. (0.180)
+
+2. Create a distribution for handling the XML-generating parts 
+of Perl::Dist::WiX and depend on it (0.180? 0.190?)
+   
+3. t\xx_removefolder.t test needs created (0.171)
+
 =head1 SUPPORT
 
 Bugs should be reported via: 
@@ -4642,7 +4653,7 @@ L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
 
 Copyright 2009 Curtis Jewell.
 
-Copyright 2008-2009 Adam Kennedy.
+Copyright 2008 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
