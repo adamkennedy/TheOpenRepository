@@ -1266,8 +1266,95 @@ sub Marpa::Evaluator::value {
     }
 
     if ( scalar @{$choice_points} ) {
-        Marpa::exception('Iteration not yet implemented');
-    }
+
+        # Marpa::exception('Iteration not yet implemented');
+
+        # Find the last choice point that we can iterate
+        my $new_map_ix;
+        my $iteration_choice_point;
+        FIND_ITERATION_CHOICE_POINT:
+        while ( $iteration_choice_point = pop @{$choice_points} ) {
+
+            my $map_ix =
+                $iteration_choice_point->[Marpa::Internal::Or_Node::MAP_IX]
+                + 1;
+            my $choice_map = $iteration_choice_point
+                ->[Marpa::Internal::Or_Node::CHOICE_MAP];
+
+            ITERATE_MAP: while ( $map_ix <= $#{$choice_map} ) {
+
+                # Skip blanked out map entries
+                if ( not scalar @{ $choice_map->[$map_ix] } ) {
+                    $map_ix++;
+                    next ITERATE_MAP;
+                }
+
+                # We've found an iterable choice point
+                $new_map_ix = $map_ix;
+                last FIND_ITERATION_CHOICE_POINT;
+
+            } ## end while ( $map_ix <= $#{$choice_map} )
+            ## End ITERATE_MAP
+
+        } ## end while ( $iteration_choice_point = pop @{$choice_points})
+        ## End FIND_ITERATION_CHOICE_POINT
+
+        # Remember that at this point
+        # $iteration_choice_point may not be correct.
+        my $chosen_to_here =
+            defined $new_map_ix
+            ? $iteration_choice_point
+            ->[Marpa::Internal::Or_Node::START_EARLEME]
+            : -1;
+
+        my $or_nodes_by_earleme =
+            $evaler->[Marpa::Internal::Evaluator::OR_NODES_BY_EARLEME];
+
+        # Clear out iteration values in the or nodes after the chosen-to earleme
+        for my $earleme ( $chosen_to_here + 1 .. $#{$or_nodes_by_earleme} ) {
+            my $or_nodes_here = $or_nodes_by_earleme->[$earleme];
+            for my $or_node ( @{$or_nodes_here} ) {
+                $or_node->[Marpa::Internal::Or_Node::AND_CHOICE]     = undef;
+                $or_node->[Marpa::Internal::Or_Node::MAP_IX]         = undef;
+                $or_node->[Marpa::Internal::Or_Node::PARENT_OR_NODE] = undef;
+            }
+        } ## end for my $earleme ( $chosen_to_here + 1 .. $#{...
+
+        # If we can't iterate any more, return false
+        return if not defined $new_map_ix;
+
+        # From here on out, $iteration_choice_point correct reflects a real
+        # or node which can be iterated.
+        $iteration_choice_point->[Marpa::Internal::Or_Node::AND_CHOICE] =
+            undef;
+        $iteration_choice_point->[Marpa::Internal::Or_Node::MAP_IX] =
+            $new_map_ix;
+
+        my $choice_point_id =
+            $iteration_choice_point->[Marpa::Internal::Or_Node::ID];
+        my $parent_or_nodes = $iteration_choice_point
+            ->[Marpa::Internal::Or_Node::PARENT_OR_CHOICES];
+
+        # Above I unset everything in the or nodes after the choice point, and I set the choice point
+        # or node itself correctly.  Or nodes before the choice point will not be changed. This leaves
+        # the other or nodes *AT* the choice point.  Mask out the parent or nodes, which are to remain
+        # unchanged, and the choice or node itself, which has just be set correctly, then unset the
+        # iteration values in the other or nodes.
+        my $or_nodes_here = $or_nodes_by_earleme->[$chosen_to_here];
+        OR_NODE_ID:
+        for my $or_node_id ( ( 0 .. $choice_point_id - 1 ),
+            ( $choice_point_id + 1 .. $#{$or_nodes_here} ) )
+        {
+            next OR_NODE_ID if defined $parent_or_nodes->[$or_node_id];
+            my $child_or_node = $or_nodes_here->[$or_node_id];
+            $child_or_node->[Marpa::Internal::Or_Node::AND_CHOICE] = undef;
+            $child_or_node->[Marpa::Internal::Or_Node::MAP_IX]     = undef;
+            $child_or_node->[Marpa::Internal::Or_Node::PARENT_OR_NODE] =
+                undef;
+        } ## end for my $or_node_id ( ( 0 .. $choice_point_id - 1 ), (...
+        ## End OR_NODE_ID
+
+    } ## end if ( scalar @{$choice_points} )
 
     # This loop does disambiguation -- that is picks one parse from an
     # ambiguous bocage.
