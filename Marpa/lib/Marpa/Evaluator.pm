@@ -32,24 +32,41 @@ use English qw( -no_match_vars );
 
 package Marpa::Internal;
 
-use Marpa::Offset Or_Sapling => qw(NAME ITEM RULE POSITION CHILD_LHS_SYMBOL);
+use Marpa::Offset Or_Sapling => qw(
+    NAME ITEM RULE
+    POSITION CHILD_LHS_SYMBOL
+);
 
 # Is PARENT_OR_NODE needed?
-use Marpa::Offset And_Node =>
-    qw(NAME ID PARENT_OR_NODE PREDECESSOR CAUSE VALUE_REF PERL_CLOSURE END_EARLEME ARGC RULE POSITION);
+use Marpa::Offset And_Node => qw(
+    NAME ID PARENT_OR_NODE
+    PREDECESSOR CAUSE
+    VALUE_REF PERL_CLOSURE END_EARLEME
+    ARGC RULE POSITION
+);
 
 # Is PARENT_OR_NODE needed?
-use Marpa::Offset Or_Node =>
-    qw(NAME ID PARENT_OR_NODE AND_NODES IS_COMPLETED START_EARLEME AND_CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES);
+use Marpa::Offset Or_Node => qw(
+    NAME ID PARENT_OR_NODE AND_NODES IS_COMPLETED
+    START_EARLEME END_EARLEME
+    AND_CHOICE CHOICE_MAP MAP_IX PARENT_OR_CHOICES
+);
 
 # IS_COMPLETED - is this a completed or-node?
 
-use Marpa::Offset Tree_Node => qw(OR_NODE CHOICE PREDECESSOR CAUSE DEPTH
-    PERL_CLOSURE ARGC VALUE_REF RULE POSITION PARENT);
+use Marpa::Offset Tree_Node => qw(
+    OR_NODE CHOICE PREDECESSOR
+    CAUSE DEPTH
+    PERL_CLOSURE ARGC VALUE_REF
+    RULE POSITION PARENT
+);
 
-use Marpa::Offset Evaluator =>
-    qw(RECOGNIZER PARSE_COUNT OR_NODES TREE RULE_DATA PACKAGE NULL_VALUES CYCLES
-    OR_NODES_BY_EARLEME COMPLETIONS_BY_EARLEME CHOICE_POINTS
+use Marpa::Offset Evaluator => qw(
+    RECOGNIZER PARSE_COUNT OR_NODES
+    TREE RULE_DATA PACKAGE
+    NULL_VALUES CYCLES
+    OR_NODES_BY_EARLEME COMPLETIONS_BY_EARLEME
+    CHOICE_POINTS
 );
 
 # PARSE_COUNT  number of parses in an ambiguous parse
@@ -485,30 +502,30 @@ sub Marpa::Evaluator::new {
 
     # deal with a null parse as a special case
     if ($nulling) {
-        my $and_node = [];
 
         my $closure =
             $rule_data->[ $start_rule->[Marpa::Internal::Rule::ID] ]
             ->[Marpa::Internal::Evaluator::Rule::PERL_CLOSURE];
 
-        @{$and_node}[
-            Marpa::Internal::And_Node::VALUE_REF,
-            Marpa::Internal::And_Node::PERL_CLOSURE,
-            Marpa::Internal::And_Node::ARGC,
-            Marpa::Internal::And_Node::RULE,
-            Marpa::Internal::And_Node::POSITION,
-            ]
-            = (
-            \$start_null_value, $closure,
-            ( scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] } ),
-            $start_rule, 0,
-            );
+        my $or_node  = [];
+        my $and_node = [];
 
-        my $or_node      = [];
         my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME] =
             $start_item->[Marpa::Internal::Earley_item::NAME];
-        $or_node->[Marpa::Internal::Or_Node::AND_NODES] = [$and_node];
+        $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
+        $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
+        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
+        $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
+
         $and_node->[Marpa::Internal::And_Node::NAME] = $or_node_name . '[0]';
+        $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
+            \$start_null_value;
+        $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] = $closure;
+        $and_node->[Marpa::Internal::And_Node::ARGC] =
+            scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
+        $and_node->[Marpa::Internal::And_Node::RULE]        = $start_rule;
+        $and_node->[Marpa::Internal::And_Node::POSITION]    = 0;
+        $and_node->[Marpa::Internal::And_Node::END_EARLEME] = 0;
 
         $self->[OR_NODES] = [$or_node];
 
@@ -720,6 +737,7 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
+        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = $end_earleme;
         push @{ $self->[Marpa::Internal::Evaluator::OR_NODES] }, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
 
@@ -1237,16 +1255,15 @@ sub Marpa::Evaluator::value {
         return;
     }
 
-    my $chosen_to_here_earleme;
+    my $chosen_to_here_earleme = -1;
     my @work_list;
 
     # Initialize the work list for the disambiguation with the top or-node
     if ( not defined $choice_points ) {
         $choice_points =
             $evaler->[Marpa::Internal::Evaluator::CHOICE_POINTS] = [];
-        @work_list              = ( $bocage->[0] );
-        $chosen_to_here_earleme = -1;
-    } ## end if ( not defined $choice_points )
+        @work_list = ( $bocage->[0] );
+    }
 
     if ( scalar @{$choice_points} ) {
         Marpa::exception('Iteration not yet implemented');
@@ -1339,6 +1356,12 @@ sub Marpa::Evaluator::value {
 
         } ## end MAKE_CHOICE:
         ## End MAKE_CHOICE
+
+        # Have choices already been made for all children of this or-node?
+        # If so, don't push the children on the work list
+        next OR_NODE
+            if $or_node->[Marpa::Internal::Or_Node::END_EARLEME]
+                < $chosen_to_here_earleme;
 
         my $and_choice = $or_node->[Marpa::Internal::Or_Node::AND_CHOICE];
         my $and_node   = $and_nodes->[$and_choice];
