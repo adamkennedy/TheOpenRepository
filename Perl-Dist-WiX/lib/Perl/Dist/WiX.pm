@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170_003')->numify;
+use version; $VERSION = version->new('0.170_004')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1565,7 +1565,7 @@ sub install_win32_extras {
 		name => 'CPAN Search',
 		url  => 'http://search.cpan.org/',
 		icon_file =>
-		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpanweb.ico' )
+		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpan.ico' )
 	);
 
 	if ( $self->perl_version_human eq '5.8.8' ) {
@@ -4190,7 +4190,7 @@ sub _dll_to_a {
 	unless ( $self->bin_dlltool ) {
 		PDWiX->throw('dlltool has not been installed');
 	}
-	
+
 	my @files;
 
 	# Source file
@@ -4237,7 +4237,7 @@ sub _dll_to_a {
 			where => '->_dll_to_a'
 		);
 	}
-	
+
 	if ($source) {
 		$self->_move( $source => $dll );
 		push @files, $dll;

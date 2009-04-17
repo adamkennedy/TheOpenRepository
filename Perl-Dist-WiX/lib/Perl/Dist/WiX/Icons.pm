@@ -83,7 +83,7 @@ sub add_icon {
 	my $id = substr $filename_icon, 0, -4;
 	$id =~ s/[^A-Za-z0-9]/_/gmxs;      # Substitute _ for anything
 	                                   # non-alphanumeric.
-	$id .= ".$target_type";
+	$id .= ".$target_type.ico";
 
 	# Add icon to our list.
 	push @{ $icons[ ${$self} ] },

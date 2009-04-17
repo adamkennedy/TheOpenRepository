@@ -120,6 +120,8 @@ use Object::Tiny qw{
   msi_directory_tree_additions
   sitename
   icons
+  pdw_version
+  pdw_class
 };
 
 sub _check_string_parameter {
@@ -138,6 +140,9 @@ sub _check_string_parameter {
 sub new {
 	my $class = shift;
 	my $self = bless {@_}, $class;
+
+	$self->{pdw_version} = $Perl::Dist::WiX::VERSION;
+	$self->{pdw_class}   = $class;
 
 	$self->{misc} = Perl::Dist::WiX::Misc->new(
 		trace    => $self->{trace},
@@ -795,7 +800,7 @@ sub as_string {
 	my $self = shift;
 
 	my $tt = Template->new( {
-			INCLUDE_PATH => $self->dist_dir,
+			INCLUDE_PATH => File::ShareDir::dist_dir('Perl-Dist-WiX'),
 			EVAL_PERL    => 1,
 		} )
 	  || PDWiX::Caught->throw(

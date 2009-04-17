@@ -1,5 +1,16 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.171   Fri 17 Apr 2009
+    1. Adding ability to create RemoveFolder tag 
+       independent of shortcuts.
+    2. app_name must be legal filename (as it is used
+       to create the main .wxs filename)
+    3. Fixed handling of .AAA files in both .zip and 
+       .msi installers.
+	4. Moved cpan.info file to output_dir.
+	5. Adding generator comment to main .wxs file.
+	5. Updating to Module::Install 0.84.
+	   
 0.170   Sat 11 Apr 2009
     1. Tests updated to create common download 
        directory.

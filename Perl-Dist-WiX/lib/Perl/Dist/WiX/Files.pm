@@ -100,7 +100,7 @@ sub add_file {
 
 	# Do not add .AAA files.
 	return undef if ( $file =~ m{\.AAA\z}ms );
-	
+
 	# Get the file path.
 	my ( $vol, $dirs, $filename ) = splitpath($file);
 	my $path = catdir( $vol, $dirs );

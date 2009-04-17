@@ -31,6 +31,7 @@ Readonly my @ON_OPTIONS => qw(install uninstall both);
 # Accessors:
 #   on: Whether the directory should be removed on install, uninstall, or both.
 
+## no critic 'ProhibitUnusedVariables'
 my @on : Field : Arg('Name' => 'on', 'Default' => 'uninstall') : Get(get_on);
 
 #####################################################################
@@ -67,7 +68,7 @@ sub _init : Init {
 	}
 
 	my $directory_id = $self->get_directory_id();
-	
+
 	$self->trace_line( 2,
 		    'Creating directory removal entry for directory '
 		  . "id D_$directory_id\n" );
@@ -116,7 +117,7 @@ sub as_string {
 	my $directory_id = $self->get_directory_id();
 	my $guid         = $self->get_guid();
 	my $on           = $self->get_on();
-	
+
 	return <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
