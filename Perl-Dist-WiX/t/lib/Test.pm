@@ -44,18 +44,20 @@ sub remake_path {
 sub paths {
 	my $class        = shift;
 	my $subpath      = shift || '';
-    {
-        # Create base directory so we can do a GetShortPathName on it.
-        my $dir = rel2abs( catdir( curdir(), 't', "tmp$subpath" ) );
-        File::Path::mkpath( $dir ) unless -d $dir;
-    }
-	my $basedir      = Win32::GetShortPathName( rel2abs( catdir( 't', "tmp$subpath" ) ) );
-	my $dldir        = Win32::GetShortPathName( rel2abs( catdir( 't', 'download' ) ) );
-    Test::More::diag($basedir);
-	# File::Remove::clear( $basedir );
+
+        # Create base and download directory so we can do a GetShortPathName on it.
+        my $basedir  = rel2abs( catdir( 't', "tmp$subpath" ) );
+	my $download = rel2abs( catdir( 't', 'download' ) );
+        File::Path::mkpath( $basedir )  unless -d $basedir;
+	File::Path::mkpath( $download ) unless -d $download;
+	$basedir  = Win32::GetShortPathName( $basedir );
+	$download = Win32::GetShortPathName( $download );
+	Test::More::diag($basedir);
+
+	# Make or remake the subpaths
 	my $output_dir   = remake_path( catdir( $basedir, 'output'   ) );
 	my $image_dir    = remake_path( catdir( $basedir, 'image'    ) );
-	my $download_dir =   make_path( $dldir );
+	my $download_dir =   make_path( $download );
 	my $build_dir    = remake_path( catdir( $basedir, 'build'    ) );
 	return (
 		output_dir   => $output_dir,
