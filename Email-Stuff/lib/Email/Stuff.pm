@@ -1,7 +1,5 @@
 package Email::Stuff;
 
-=pod
-
 =head1 NAME
 
 Email::Stuff - A more casual approach to creating and sending Email:: emails
@@ -164,7 +162,6 @@ B<are not> chainable.
 use 5.005;
 use strict;
 use Carp                   ();
-use Clone                  ();
 use File::Basename         ();
 use Params::Util           '_INSTANCE';
 use Email::MIME            ();
@@ -174,17 +171,11 @@ use prefork 'File::Type';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.06';
+	$VERSION = '2.08';
 }
-
-
-
-
 
 #####################################################################
 # Constructor and Accessors
-
-=pod
 
 =head2 new
 
@@ -213,19 +204,20 @@ sub _self {
 	ref($either) ? $either : $either->new;
 }
 
-=pod
-
-=head2 headers
+=head2 header_names
 
 Returns, as a list, all of the headers currently set for the Email
+For backwards compatibility, this method can also be called as B[headers].
 
 =cut
 
-sub headers {
-	shift()->{email}->headers;
+sub header_names {
+	shift()->{email}->header_names;
 }
 
-=pod
+sub headers {
+	shift()->{email}->header_names; ## This is now header_names, headers is depreciated
+}
 
 =head2 parts
 
@@ -244,8 +236,6 @@ sub parts {
 #####################################################################
 # Header Methods
 
-=pod
-
 =head2 header $header => $value
 
 Adds a single named header to the email. Note I said B<add> not set,
@@ -260,8 +250,6 @@ sub header {
 	$self->{email}->header_set(shift, shift) ? $self : undef;
 }
 
-=pod
-
 =head2 to $address
 
 Adds a To: header to the email
@@ -272,8 +260,6 @@ sub to {
 	my $self = shift()->_self;
 	$self->{email}->header_set(to => shift) ? $self : undef;
 }
-
-=pod
 
 =head2 from $address
 
@@ -286,8 +272,6 @@ sub from {
 	$self->{email}->header_set(from => shift) ? $self : undef;
 }
 
-=pod
-
 =head2 cc $address
 
 Adds a Cc: header to the email
@@ -298,8 +282,6 @@ sub cc {
 	my $self = shift()->_self;
 	$self->{email}->header_set(cc => shift) ? $self : undef;
 }
-
-=pod
 
 =head2 bcc $address
 
@@ -312,8 +294,6 @@ sub bcc {
 	$self->{email}->header_set(bcc => shift) ? $self : undef;
 }
 
-=pod
-
 =head2 subject $text
 
 Adds a subject to the email
@@ -325,14 +305,8 @@ sub subject {
 	$self->{email}->header_set(subject => shift) ? $self : undef;
 }
 
-
-
-
-
 #####################################################################
 # Body and Attachments
-
-=pod
 
 =head2 text_body $body [, $header => $value, ... ]
 
@@ -363,8 +337,6 @@ sub text_body {
 	$self;
 }
 
-=pod
-
 =head2 html_body $body [, $header => $value, ... ]
 
 Set the HTML body of the email. Unless specified, all the appropriate
@@ -392,8 +364,6 @@ sub html_body {
 
 	$self;
 }
-
-=pod
 
 =head2 attach $contents [, $header => $value, ... ]
 
@@ -434,8 +404,6 @@ sub attach {
 
 	$self;
 }
-
-=pod
 
 =head2 attach_file $file
 
@@ -483,8 +451,6 @@ sub _slurp {
 	\$source;
 }
 
-=pod
-
 =head2 using $drivername, @options
 
 The C<using> method specifies the L<Email::Send> driver that you want to use to
@@ -521,8 +487,6 @@ sub using {
 #####################################################################
 # Output Methods
 
-=pod
-
 =head2 email
 
 Creates and returns the full L<Email::MIME> object for the email.
@@ -532,14 +496,54 @@ Creates and returns the full L<Email::MIME> object for the email.
 sub email {
 	my $self  = shift;
 	my @parts = $self->parts;
-	$self->{email}->parts_set( \@parts ) if @parts;
+
+        ### Lyle Hopkins, code added to Fix single part, and multipart/alternative problems
+        if ( scalar( @{ $self->{parts} } ) >= 3 ) {
+                ## multipart/mixed
+                $self->{email}->parts_set( \@parts );
+        }
+        ## Check we actually have any parts
+        elsif ( scalar( @{ $self->{parts} } ) ) {
+                if ( _INSTANCE($parts[0], 'Email::MIME') && _INSTANCE($parts[1], 'Email::MIME') ) {
+                        ## multipart/alternate
+                        $self->{email}->header_set( 'Content-Type' => 'multipart/alternative' );
+                        $self->{email}->parts_set( \@parts );
+                }
+                ## As @parts is $self->parts without the blanks, we only need check $parts[0]
+                elsif ( _INSTANCE($parts[0], 'Email::MIME') ) {
+                        ## single part text/plain
+                        _transfer_headers( $self->{email}, $parts[0] );
+                        $self->{email} = $parts[0];
+                }
+        }
+
 	$self->{email};
 }
 
 # Support coercion to an Email::MIME
 sub __as_Email_MIME { shift()->email }
 
-=pod
+# Quick any routine
+sub _any (&@) {
+        my $f = shift;
+        return if ! @_;
+        for (@_) {
+                return 1 if $f->();
+        }
+        return 0;
+}
+
+# header transfer from one object to another
+sub _transfer_headers {
+        # $_[0] = from, $_[1] = to
+        my @headers_move = $_[0]->header_names;
+        my @headers_skip = $_[1]->header_names;
+        foreach my $header_name (@headers_move) {
+                next if _any { $_ eq $header_name } @headers_skip;
+                my @values = $_[0]->header($header_name);
+                $_[1]->header_set( $header_name, @values );
+        }
+}
 
 =head2 as_string
 
@@ -551,8 +555,6 @@ scenes) Email::MIME-E<gt>as_string.
 sub as_string {
 	shift()->email->as_string;
 }
-
-=pod
 
 =head2 send
 
@@ -577,8 +579,6 @@ sub _options {
 	my $options = $#{$self->{send_using}};
 	@{$self->{send_using}}[1 .. $options];
 }
-
-=pod
 
 =head2 mailer
 
@@ -623,15 +623,17 @@ sub Email   { shift->email(@_)   }
 
 1;
 
-=pod
-
 =head1 TO DO
 
-- Fix a number of bugs still likely to exist
+=over 4
 
-- Write some proper unit tests. Write ANY unit tests
+=item * Fix a number of bugs still likely to exist
 
-- Add any additional small bit of automation that arn't too expensive
+=item * Write more tests.
+
+=item * Add any additional small bit of automation that arn't too expensive
+
+=back
 
 =head1 SUPPORT
 
@@ -639,9 +641,9 @@ All bugs should be filed via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Email-Stuff>
 
-For other issues, or commercial enhancement or support, contact the author.
-
 =head1 AUTHORS
+
+B<Current maintainer>: Ricardo Signes C<rjbs@cpan.org>
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
