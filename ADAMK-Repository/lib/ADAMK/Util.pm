@@ -8,6 +8,7 @@ use IPC::Run3    ();
 use File::Flat   ();
 use File::Remove ();
 use File::Which  ();
+use Text::Table  ();
 
 use vars qw{$VERSION @ISA $VERBOSE @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
@@ -88,6 +89,37 @@ sub remove {
 	File::Remove::remove( \1, $path );
 	Carp::croak( "Failed to remove '$path'" ) if -e $path;
 	return 1;
+}
+
+sub ljoin {
+	my $j = shift;
+	if ( @_ > 1 ) {
+		return ( shift, map { $j, $_ } @_ );
+	} elsif ( @_ ) {
+		return ( shift );
+	} else {
+		return ( );
+	}
+}
+
+sub table {
+	# Populate the table
+	my $title = shift;
+	my $table = Text::Table->new(
+		\'| ', 
+		ljoin( \' | ', @$title ),
+		\' |',
+	);
+	$table->load( @_ );
+
+	# Generate the string form
+	return join( '', "\n",
+		$table->rule('-'),
+		$table->title,
+		$table->rule('-'),
+		$table->body,
+		$table->rule('-'),
+	);
 }
 
 1;

@@ -27,7 +27,7 @@ sub mi {
 		# Doesn't use Module::Install
 		return undef;
 	}
-	unless ( $makefile =~ /use\s+inc::Module::Install(?:::DSL)\s+([\d.]+)/ ) {
+	unless ( $makefile =~ /use\s+inc::Module::Install(?:::DSL)?\s+([\d.]+)/ ) {
 		# Does not use a specific version of Module::Install
 		return 0;
 	}

@@ -3,6 +3,7 @@ package ADAMK::Shell;
 use 5.008;
 use strict;
 use warnings;
+use Class::Inspector  ();
 use ADAMK::Repository ();
 
 use Object::Tiny::XS qw{
@@ -43,7 +44,55 @@ sub new {
 
 
 #####################################################################
-# Repository Commands
+# Information
+
+sub usage {
+	print ADAMK::Util::table(
+		[ 'Command',                         'Params' ],
+		[ 'usage',                                    ],
+		[ 'report_module_install_versions',           ],
+		[ 'module',                          'MODULE' ],
+		[ 'compare_tarball_latest',          'MODULE' ],
+		[ 'compare_tarball_stable',          'MODULE' ],
+		[ 'compare_export_latest',           'MODULE' ],
+		[ 'compare_export_stable',           'MODULE' ],
+		[ 'update_current_release_datetime', 'MODULE' ],
+		[ 'update_current_perl_versions',    'MODULE' ],
+	);
+}
+
+sub module {
+	my $self = shift;
+
+	# Get the distribution
+	my $name = $self->_distname(shift);
+	my $dist = $self->repository->distribution($name);
+	unless ( $dist ) {
+		die("The distribution '$_[0]' does not exist");
+	}
+
+	# Show the information
+	my $changes = $dist->changes;
+	my $release = $dist->latest;
+	print ADAMK::Util::table(
+		[ 'Property',     'Value' ],
+		[ 'Distribution', $dist->name ],
+		[ 'Directory',    $dist->path ],
+		( $changes ?
+			[ 'Changes Version', $changes->current->version ]
+		: () ),
+		( $release ?
+			[ 'Release Version', $release->version ]
+		: () ),
+	);
+}
+
+
+
+
+
+#####################################################################
+# Araxis Merge Commands
 
 sub compare_tarball_latest {
 	shift->repository->compare_tarball_latest(@_);
@@ -66,26 +115,50 @@ sub compare_export_stable {
 
 
 #####################################################################
-# Custom Commands
+# Reports
 
-sub info {
-	my $self    = shift;
-	my $dist    = $self->repository->distribution(shift);
-	my $release = $dist->latest;
-	print "Distribution: "    . $dist->name . "\n";
-	print "Directory:    "    . $dist->path . "\n";
-	print "Changes Version: " . $dist->changes->current->version . "\n";
-	print "Release Version: " . $release->version . "\n";
+sub report_module_install_versions {
+	my $self = shift;
+	my $repo = $self->repository;
+	my @rows = ();
+	foreach my $dist ( $repo->distributions_released ) {
+		my $name   = $dist->name;
+		my $svn    = $dist->mi;
+		my $latest = $dist->latest;
+
+		# Add the final row to the table
+		$svn = '~' unless defined $svn;
+		push @rows, [ $name, $svn ];
+	}
+
+	# Generate the table
+	my $version_order = !! $_[0];
+	print ADAMK::Util::table(
+		[ 'Name', 'Version' ],
+		sort { $version_order
+			? $b->[1] <=> $a->[1]
+			: $a->[0] cmp $b->[0]
+		}
+		@rows,
+	);
 }
 
+
+
+
+
+#####################################################################
+# Custom Commands
+
 sub update_current_release_datetime {
-	my $self         = shift;
-	my $distribution = $self->repository->distribution(shift);
+	my $self = shift;
+	my $name = $self->_distname(shift);
+	my $dist = $self->repository->distribution($name);
 
 	# Is there an unreleased version
-	my $checkout     = $distribution->checkout;
-	my $released     = $distribution->latest->version;
-	my $current      = $checkout->changes->current->version;
+	my $checkout = $dist->checkout;
+	my $released = $dist->latest->version;
+	my $current  = $checkout->changes->current->version;
 	if ( $released eq $current ) {
 		# We have already released the current version
 		die("Version $current has already been released");
@@ -102,13 +175,13 @@ sub update_current_release_datetime {
 }
 
 sub update_current_perl_versions {
-	my $self         = shift;
-	my $distribution = $self->repository->distribution(shift);
+	my $self = shift;
+	my $dist = $self->repository->distribution(shift);
 
 	# Is there an unreleased version
-	my $checkout     = $distribution->checkout;
-	my $released     = $distribution->latest->version;
-	my $current      = $checkout->changes->current->version;
+	my $checkout = $dist->checkout;
+	my $released = $dist->latest->version;
+	my $current  = $checkout->changes->current->version;
 	if ( $released eq $current ) {
 		# We have already released the current version
 		die("Version $current has already been released");
@@ -124,6 +197,20 @@ sub update_current_perl_versions {
 	$checkout->svn_commit(
 		-m => "[bot] Changed \$VERSION strings from $released to $current",
 	);
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _distname {
+	my $self = shift;
+	my $name = shift;
+	$name =~ s/:+/-/g;
+	return $name;
 }
 
 1;

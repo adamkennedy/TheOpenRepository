@@ -33,6 +33,7 @@ my $shell = ADAMK::Shell->new(
 ) or die 'Failed to locate repository checkout';
 
 # First argv is the command
+@ARGV = 'usage' unless @ARGV;
 my $method = shift @ARGV;
 unless ( $shell->can($method) ) {
 	die "Shell does not expose a $method command";

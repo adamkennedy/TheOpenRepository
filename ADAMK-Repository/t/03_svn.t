@@ -70,7 +70,7 @@ SCOPE: {
 		-f catfile($_->path, 'Makefile.PL')
 		and
 		-f catfile($_->path, 'Changes')
-	} $repository->distributions;
+	} $repository->distributions_released;
 	foreach my $distribution ( sort @distributions[0 .. 25] ) {
 		my $info = $distribution->svn_info;
 		is( ref($info), 'HASH', $distribution->name . ': ->svn_info ok' );
