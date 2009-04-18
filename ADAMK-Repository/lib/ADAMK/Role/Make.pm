@@ -7,7 +7,7 @@ use ADAMK::Util 'shell';
 
 use vars qw{$VERSION $BIN_MAKE};
 BEGIN {
-	$VERSION    = '0.09';
+	$VERSION    = '0.10';
 	$BIN_MAKE ||= $Config::Config{make};
 }
 

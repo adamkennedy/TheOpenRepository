@@ -11,7 +11,7 @@ use ADAMK::Repository ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 	@ISA     = qw{
 		ADAMK::Role::Trace
 		ADAMK::Role::File

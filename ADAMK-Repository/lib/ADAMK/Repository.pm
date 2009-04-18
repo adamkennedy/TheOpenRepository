@@ -41,7 +41,7 @@ use ADAMK::Distribution::Checkout ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 	@ISA     = qw{
 		ADAMK::Role::Trace
 		ADAMK::Role::File
@@ -127,8 +127,30 @@ sub distributions {
 	return @distributions;
 }
 
+sub distributions_like {
+	my $self = shift;
+	unless ( defined $_[0] ) {
+		die "Did not provide a like condition";
+	}
+	my $like = Params::Util::_REGEX($_[0])
+		? $_[0]
+		: quotemeta($_[0]);
+	return grep {
+		$_->name =~ /$like/
+	} $self->distributions;	
+}
+
 sub distributions_released {
-	grep { scalar $_->releases } shift->distributions;
+	my $self = shift;
+	if ( @_ ) {
+		return grep {
+			scalar $_->releases
+		} $self->distributions_like(@_);
+	} else {
+		return grep {
+			scalar $_->releases
+		} $self->distributions;
+	}
 }
 
 

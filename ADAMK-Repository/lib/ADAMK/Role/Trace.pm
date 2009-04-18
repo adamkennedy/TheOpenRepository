@@ -7,7 +7,7 @@ use Params::Util ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.09';
+	$VERSION = '0.10';
 }
 
 sub trace {
