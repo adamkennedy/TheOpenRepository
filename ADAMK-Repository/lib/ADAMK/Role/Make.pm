@@ -13,18 +13,46 @@ BEGIN {
 
 sub bin_make { $BIN_MAKE }
 
+# Find the version of Module::Install in use
+sub mi {
+	my $self = shift;
+	my $file = $self->file('Makefile.PL');
+	unless ( -f $file ) {
+		return undef;
+	}
+
+	# Find the version
+	my $makefile = $self->_slurp($file);
+	unless ( $makefile =~ /use\s+inc::Module::Install\b/ ) {
+		# Doesn't use Module::Install
+		return undef;
+	}
+	unless ( $makefile =~ /use\s+inc::Module::Install(?:::DSL)\s+([\d.]+)/ ) {
+		# Does not use a specific version of Module::Install
+		return 0;
+	}
+
+	return "$1";
+}
+
 # Configure the distribution
 sub run_makefile_pl {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
-	shell( [ 'perl', 'Makefile.PL', @_ ], "Configuring $pushd" );
+	shell(
+		[ 'perl', 'Makefile.PL', @_ ],
+		"Configuring $pushd",
+	);
 }
 
 # Make the distribution
 sub run_make {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
-	shell( [ $self->bin_make, @_ ], "Configuring $pushd" );
+	shell(
+		[ $self->bin_make, @_ ],
+		"Configuring $pushd",
+	);
 }
 
 # Test the distribution

@@ -4,16 +4,18 @@ use 5.008;
 use strict;
 use warnings;
 use ADAMK::Repository ();
-use ADAMK::Mixin::Trace;
 
 use Object::Tiny::XS qw{
-	root
 	repository
 };
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.09';
+	@ISA     = qw{
+		ADAMK::Role::Trace
+		ADAMK::Role::File
+	};
 }
 
 
@@ -25,7 +27,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-	my $self  = $class->SUPER::new(@_);
+	my $self  = bless { @_ }, $class;
 
 	# Create the repository from the root
 	$self->{repository} = ADAMK::Repository->new(

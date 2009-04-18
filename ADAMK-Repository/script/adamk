@@ -28,7 +28,7 @@ my $root = List::Util::first {
 
 # Connect to the repository
 my $shell = ADAMK::Shell->new(
-	root  => 'D:\cpan',
+	path  => 'D:\cpan',
 	trace => 1,
 ) or die 'Failed to locate repository checkout';
 

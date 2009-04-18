@@ -29,4 +29,15 @@ sub file {
 	File::Spec->catfile( shift->directory, @_ );
 }
 
+# A simple _slurp implementation
+sub _slurp {
+	my $file = $_[1];
+	local $/;
+	local *FILE;
+	open( FILE, '<', $file ) or die("open($file): $!");
+	my $source = <FILE>;
+	close( FILE ) or die("close($file): $!");
+	return $source;
+}
+
 1;

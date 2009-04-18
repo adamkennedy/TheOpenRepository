@@ -3,7 +3,9 @@ Changes for Perl extension ADAMK-Repository
 0.09 Tue 14 Apr 2009
 	- Updating to Module::Install::DSL 0.83
 	- Updating Module::Changes::ADAMK dependency to 0.09
-	- Heavy refactoring
+	- Heavy refactoring of the codebase
+	  (Everything useful is now a Role class)
+	- Added support for detecting the Module::Install version
 
 0.08 Mon 13 Apr 2009
 	- Moved ADAMK::SVN to ADAMK::Role::SVN

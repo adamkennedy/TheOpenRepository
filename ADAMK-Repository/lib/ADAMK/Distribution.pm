@@ -13,6 +13,7 @@ use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.09';
 	@ISA     = qw{
+		ADAMK::Role::Trace
 		ADAMK::Role::File
 		ADAMK::Role::SVN
 		ADAMK::Role::Changes
