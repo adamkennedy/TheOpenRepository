@@ -76,9 +76,9 @@ sub module {
 	my $changes = $dist->changes;
 	my $release = $dist->latest;
 	print ADAMK::Util::table(
-		[ 'Property',     'Value'     ],
-		[ 'Name',         $dist->name ],
-		[ 'Directory',    $dist->path ],
+		[ 'Property',  'Value'     ],
+		[ 'Name',      $dist->name ],
+		[ 'Directory', $dist->path ],
 		( $changes ?
 			[ 'Trunk   Version', $changes->current->version ]
 		: () ),
@@ -135,9 +135,12 @@ sub report_changed_versions {
 	my $repo = $self->repository;
 	my @rows = ();
 	foreach my $dist ( $repo->distributions_released ) {
+		my $extract = $dist->latest->extract;
+		next unless -f $dist->changes_file;
+		next unless -f $extract->changes_file;
 		my $name    = $dist->name;
 		my $trunk   = $dist->changes->current->version;
-		my $release = $dist->latest->extract->changes->current->version;
+		my $release = $extract->changes->current->version;
 		if ( $trunk eq $release ) {
 			next;
 		}

@@ -100,7 +100,7 @@ sub extract {
 		my $ae   = Archive::Extract->new(
 			archive => $self->path,
 		);
-		$self->trace("Extracting " . $self->file . "...\n");
+		# $self->trace("Extracting " . $self->file . "...\n");
 		my $ok   = $ae->extract( to => $temp );
 		Carp::croak(
 			"Failed to extract " . $self->path
