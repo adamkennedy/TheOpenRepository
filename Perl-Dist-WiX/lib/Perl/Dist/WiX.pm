@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170_005')->numify;
+use version; $VERSION = version->new('0.170_006')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -4618,16 +4618,27 @@ As other errors are noticed, they will be listed here.
 
 This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 
-=head1 TO DO
+=head1 TODO
 
-1. Handle installing distributions that only contain a Build.PL 
+=over
+
+=item 1.
+
+Need to add custom action to delete leftover files from perl
+installation (0.172)
+
+=item 2.
+
+Handle installing distributions that only contain a Build.PL 
 by executing the Build.PL (instead of throwing an exception)
 in install_distribution. (0.180)
 
-2. Create a distribution for handling the XML-generating parts 
+=item 3.
+
+Create a distribution for handling the XML-generating parts 
 of Perl::Dist::WiX and depend on it (0.180? 0.190?)
    
-3. t\xx_removefolder.t test needs created (0.171)
+=back
 
 =head1 SUPPORT
 

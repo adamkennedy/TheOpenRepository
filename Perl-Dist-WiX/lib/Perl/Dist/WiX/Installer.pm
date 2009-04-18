@@ -243,10 +243,10 @@ sub new {
 		directory => 'Cpan',
 		id        => 'CPANFolder',
 	);
-	$self->{fragments}->{RemovePerl} = Perl::Dist::WiX::RemoveFolder->new(
-		directory => 'Perl',
-		id        => 'PerlFolder',
-	);
+#	$self->{fragments}->{RemovePerl} = Perl::Dist::WiX::RemoveFolder->new(
+#		directory => 'Perl',
+#		id        => 'PerlFolder',
+#	);
 	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
 
 	if ( defined $self->msi_product_icon ) {
@@ -804,7 +804,7 @@ it as a string.
 
 sub as_string {
 	my $self = shift;
-	
+
 	my $tt = Template->new( {
 			INCLUDE_PATH => [ $self->dist_dir, File::ShareDir::dist_dir('Perl-Dist-WiX'), ],
 			EVAL_PERL    => 1,

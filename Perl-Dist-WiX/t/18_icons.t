@@ -26,7 +26,6 @@ ok( defined $icon_1, 'creating a P::D::W::Icons' );
 isa_ok( $icon_1, 'Perl::Dist::WiX::Icons', 'The icons list' );
 isa_ok( $icon_1, 'Perl::Dist::WiX::Misc', 'The icons list' );
 
-
 is( $icon_1->as_string, q{}, '->as_string with no icons' );
 
 $icon_1->add_icon('c:\testicon.ico');
@@ -38,7 +37,7 @@ my $icon_1_test = [
                                   'icons' => [
                                                {
                                                  'file' => 'c:\\testicon.ico',
-                                                 'id' => 'testicon.msi',
+                                                 'id' => 'testicon.msi.ico',
                                                  'target_type' => 'msi'
                                                }
                                              ]
@@ -53,6 +52,6 @@ my $icon_1_test = [
 
 is_deeply($icon_1->dump(), $icon_1_test, 'Object created correctly.');
 
-is( $icon_1->search_icon('c:\testicon.ico'), 'testicon.msi', '->search_icon' );
+is( $icon_1->search_icon('c:\testicon.ico'), 'testicon.msi.ico', '->search_icon' );
 
-is( $icon_1->as_string, "  <Icon Id='I_testicon.msi' SourceFile='c:\\testicon.ico' />\n", '->as_string' );
+is( $icon_1->as_string, "  <Icon Id='I_testicon.msi.ico' SourceFile='c:\\testicon.ico' />\n", '->as_string' );
