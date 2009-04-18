@@ -130,10 +130,7 @@ use 5.005;
 use strict;
 use File::Spec                     ();
 use IO::Handle                     ();
-use Params::Util                   '_CLASS',
-                                   '_INSTANCE',
-                                   '_SCALAR',
-                                   '_CODE';
+use Params::Util                   ();
 use Algorithm::Dependency          ();
 use Test::Inline::Util             ();
 use Test::Inline::Section          ();
@@ -150,7 +147,7 @@ use base 'Algorithm::Dependency::Source';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.208';
+	$VERSION = '2.209';
 }
 
 
@@ -233,8 +230,11 @@ Returns C<undef> if there is a problem with one of the options.
 
 # For now, the various Handlers are hard-coded
 sub new {
-	my $class  = _CLASS(shift) or die '->new is a static method';
+	my $class  = Params::Util::_CLASS(shift);
 	my %params = @_;
+	unless ( $class ) {
+		die '->new is a static method';
+	}
 
 	# Create the object
 	my $self = bless {
@@ -246,10 +246,10 @@ sub new {
 
 		# Store the ::TestFile objects
 		Classes        => {},
-		}, $class;
+	}, $class;
 
 	# Run in verbose mode?
-	$self->{verbose} = !! $params{verbose};
+	$self->{verbose}  = !! $params{verbose};
 
 	# Generate tests with read-only permissions?
 	$self->{readonly} = !! $params{readonly};
@@ -268,7 +268,7 @@ sub new {
 
 	# Support the legacy file_content param
 	if ( $params{file_content} ) {
-		_CODE($params{file_content}) or return undef;
+		Params::Util::_CODE($params{file_content}) or return undef;
 		$self->{ContentHandler} = Test::Inline::Content::Legacy->new( $params{file_content} ) or return undef;
 	}
 
@@ -279,7 +279,7 @@ sub new {
 	$self->{OutputHandler}  ||= Test::Inline::IO::File->new(
 		path     => File::Spec->curdir,
 		readonly => $self->{readonly},
-		);
+	);
 
 	# Where to write test file to, within the context of the OutputHandler
 	$self->{output} = defined $params{output} ? $params{output} : '';
@@ -449,7 +449,7 @@ sub _add_directory {
 # Actually add the source code
 sub _add_source {
 	my $self   = shift;
-	my $source = _SCALAR(shift) or return undef;
+	my $source = Params::Util::_SCALAR(shift) or return undef;
 
 	# Extract the elements from the source code
 	my $Extract = $self->ExtractHandler->new( $source )
@@ -481,8 +481,11 @@ sub _add_source {
 		}
 
 		# Create a new ::TestFile object for the collection of Sections
-		my $File = Test::Inline::Script->new($_class, $classes{$_class}, $self->{check_count})
-			or return $self->_error("Failed to create a new TestFile for '$_class'");
+		my $File = Test::Inline::Script->new(
+			$_class,
+			$classes{$_class},
+			$self->{check_count}
+		) or return $self->_error("Failed to create a new TestFile for '$_class'");
 		$self->_verbose("Adding $File to schedule\n");
 		$Classes->{$_class} = $File;
 		$added++;
@@ -742,11 +745,11 @@ sub _source {
 		}
 		return undef;
 	}
-	if ( _SCALAR($_[0]) ) {
+	if ( Params::Util::_SCALAR($_[0]) ) {
 		# Reference to SCALAR containing code
 		return shift;
 	}
-	if ( _INSTANCE($_[0], 'IO::Handle') ) {
+	if ( Params::Util::_INSTANCE($_[0], 'IO::Handle') ) {
 		my $fh   = shift;
 		my $old  = $fh->input_record_separator(undef);
 		my $code = $fh->getline;
@@ -812,7 +815,7 @@ the open sourcing and release of this distribution.
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2007 Adam Kennedy.
+Copyright 2004 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

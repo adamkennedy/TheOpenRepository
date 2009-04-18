@@ -1,5 +1,8 @@
 Revision history for Perl extension Test-Inline
 
+2.209 Sub 19 Apr 2009
+	- Updating to Module::Install 0.83
+
 2.208 Wed 12 Dec 2007
 	- Updating to Module::Install 0.68
 	- Updating bundled tests

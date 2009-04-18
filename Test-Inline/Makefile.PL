@@ -1,7 +1,5 @@
-use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.83;
 
-name           'Test-Inline';
 all_from       'lib/Test/Inline.pm';
 requires       'File::Spec'            => '0.80';
 requires       'List::Util'            => '1.19';
@@ -15,9 +13,9 @@ requires       'Params::Util'          => '0.21';
 requires       'Class::Autouse'        => '1.15';
 requires       'Algorithm::Dependency' => '1.02';
 requires       'File::Flat'            => '1.00';
-test_requires 'Test::More'            => '0.42';
-test_requires 'Test::Script'          => '1.02';
-test_requires 'Test::ClassAPI'        => '1.02';
+test_requires  'Test::More'            => '0.42';
+test_requires  'Test::Script'          => '1.02';
+test_requires  'Test::ClassAPI'        => '1.02';
 install_script 'inline2test';
 
 # Because some programs incorrectly do things like...
