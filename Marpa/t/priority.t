@@ -18,13 +18,6 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-# The inefficiency (at least some of it) is deliberate.
-# Passing up a duples of [ string, value ] and then
-# assembling a final string at the top would be better
-# than assembling the string then taking it
-# apart at each step.  But I wanted to test having
-# a start symbol that appears repeatedly on the RHS.
-
 my $g = Marpa::Grammar->new(
     {   start => 'S',
 
@@ -61,7 +54,7 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce } );
 Marpa::exception('Could not initialize parse') unless $evaler;
 
 my $i = -1;
-while ( defined( my $value = $evaler->old_value() ) ) {
+while ( defined( my $value = $evaler->value() ) ) {
     $i++;
     if ( $i > $#expected ) {
         Test::More::fail(
@@ -70,7 +63,7 @@ while ( defined( my $value = $evaler->old_value() ) ) {
     else {
         Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
     }
-} ## end while ( defined( my $value = $evaler->old_value() ) )
+} ## end while ( defined( my $value = $evaler->value() ) )
 
 # Local Variables:
 #   mode: cperl
