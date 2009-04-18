@@ -13,7 +13,7 @@ use Test::Script;
 use File::Spec::Functions ':ALL';
 
 # Check their perl version
-ok( $] >= 5.005, "Your perl is new enough" );
+ok( $] >= 5.006, "Your perl is new enough" );
 
 # Does the module load
 use Class::Autouse ':devel';
@@ -29,5 +29,3 @@ use_ok('Test::Inline::Script'           );
 use_ok('Test::Inline::Section'          );
 
 script_compiles_ok('script/inline2test');
-
-exit(0);

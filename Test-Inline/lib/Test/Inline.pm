@@ -126,7 +126,7 @@ will be run after the numbered tests.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use File::Spec                     ();
 use IO::Handle                     ();
