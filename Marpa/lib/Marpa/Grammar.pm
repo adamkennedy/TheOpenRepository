@@ -3808,12 +3808,16 @@ sub rewrite_as_CHAF {
                 my $has_chaf_rhs = $next_subp_lhs;
 
                 # Add new rule.   In assigning internal priority:
-                # The first factored production is
+                # Leftmost subproductions have highest priority.
+                # Within each subproduction,
+                # the first factored production is
                 # highest, last is lowest, but middle two are
                 # reversed.
+                my $new_internal_priority =
+                    ( @{$rhs} - $subp_start ) * 4 + @{ [qw(3 1 2 0)] }[$ix];
                 my $new_rule =
                     add_rule( $grammar, $subp_lhs, $factor_rhs, undef,
-                    ( pack 'NN', $user_priority, @{ [qw(3 1 2 0)] }[$ix] ) );
+                    ( pack 'NN', $user_priority, $new_internal_priority ) );
 
                 @{$new_rule}[
                     Marpa::Internal::Rule::USEFUL,
