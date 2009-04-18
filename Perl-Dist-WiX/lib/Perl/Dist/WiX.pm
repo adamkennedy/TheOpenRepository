@@ -8,7 +8,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.170.
+This document describes Perl::Dist::WiX version 0.171.
 
 =head1 DESCRIPTION
 

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installer - WiX-specific routines.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installer version 0.170.
+This document describes Perl::Dist::WiX::Installer version 0.171.
 
 =head1 DESCRIPTION
 
