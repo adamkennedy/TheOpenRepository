@@ -7,10 +7,10 @@ Changes for Perl extension Perl-Dist-WiX
        to create the main .wxs filename)
     3. Fixed handling of .AAA files in both .zip and 
        .msi installers.
-	4. Moved cpan.info file to output_dir.
-	5. Adding generator comment to main .wxs file.
-	6. Can override main .wxs file template.
-	7. Updating to Module::Install 0.84.
+    4. Moved cpan.info file to output_dir.
+    5. Adding generator comment to main .wxs file.
+    6. Can override main .wxs file template.
+    7. Updating to Module::Install 0.84.
 	   
 0.170   Sat 11 Apr 2009
     1. Tests updated to create common download 
