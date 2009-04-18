@@ -1,11 +1,13 @@
 Changes for Perl extension ADAMK-Repository
 
 0.10 to be released
-	- Added ADAMK::Util::ljoin
-	- Added ADAMK::Util::table
-	- Added ADAMK::Repository::distributions_like
-	- Added ADAMK::Shell::usage
-	- Added ADAMK::Shell::report_module_install_versions
+	- Added function  ADAMK::Util::ljoin
+	- Added function  ADAMK::Util::table
+	- Added method    ADAMK::Repository::distributions_like
+	- Added command   ADAMK::Shell::usage
+	- Added command   ADAMK::Shell::report_changed_versions
+	- Added command   ADAMK::Shell::report_module_install_versions
+	- Added new class ADAMK::Release::Extract
 
 0.09 Sat 18 Apr 2009
 	- Updating to Module::Install::DSL 0.83

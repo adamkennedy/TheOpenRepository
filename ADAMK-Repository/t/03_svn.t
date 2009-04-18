@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 109 );
+		plan( tests => 113 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
@@ -157,14 +157,28 @@ SCOPE: {
 	my $revision = $first->svn_revision;
 	like( $revision, qr/^\d+$/, '->revision ok ok' );
 
-	# Export a distribution
-	my $export = $first->export;
-	isa_ok( $export, 'ADAMK::Distribution::Export' );
-	ok( -d $export->path, '->path directory exists' );
-	ok(
-		-f catfile($export->path, 'Makefile.PL'),
-		'->path/Makefile.PL exists'
-	);
+	# Export a release
+	SCOPE: {
+		my $export = $first->export;
+		isa_ok( $export, 'ADAMK::Distribution::Export' );
+		ok( -d $export->path, '->path directory exists' );
+		ok(
+			-f catfile($export->path, 'Makefile.PL'),
+			'->path/Makefile.PL exists'
+		);
+	}
+
+	# Extract a release
+	SCOPE: {
+		my $extract = $first->extract;
+		isa_ok( $extract, 'ADAMK::Release::Extract' );
+		ok( -d $extract->path, '->path directory exists' );
+		ok(
+			-f catfile($extract->path, 'Makefile.PL'),
+			'->path/Makefile.PL exists',
+		);
+		isa_ok( $extract->changes, 'Module::Changes::ADAMK' );
+	}
 }
 
 

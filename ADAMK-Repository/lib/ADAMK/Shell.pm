@@ -50,6 +50,7 @@ sub usage {
 	print ADAMK::Util::table(
 		[ 'Command',                         'Params' ],
 		[ 'usage',                                    ],
+		[ 'report_changed_versions'                   ],
 		[ 'report_module_install_versions',           ],
 		[ 'module',                          'MODULE' ],
 		[ 'compare_tarball_latest',          'MODULE' ],
@@ -129,6 +130,27 @@ sub compare_export_stable {
 #####################################################################
 # Reports
 
+sub report_changed_versions {
+	my $self = shift;
+	my $repo = $self->repository;
+	my @rows = ();
+	foreach my $dist ( $repo->distributions_released ) {
+		my $name    = $dist->name;
+		my $trunk   = $dist->changes->current->version;
+		my $release = $dist->latest->extract->changes->current->version;
+		if ( $trunk eq $release ) {
+			next;
+		}
+		push @rows, [ $name, $trunk, $release ];
+	}
+
+	# Generate the table
+	print ADAMK::Util::table(
+		[ 'Name', 'Trunk', 'Release' ],
+		@rows,
+	);	
+}
+
 sub report_module_install_versions {
 	my $self = shift;
 	my $repo = $self->repository;
@@ -154,6 +176,7 @@ sub report_module_install_versions {
 		@rows,
 	);
 }
+
 
 
 

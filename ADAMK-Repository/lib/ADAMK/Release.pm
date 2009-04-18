@@ -14,7 +14,6 @@ use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.10';
 	@ISA     = qw{
-		ADAMK::Role::Trace
 		ADAMK::Role::SVN
 	};
 }
@@ -57,6 +56,10 @@ sub distribution {
 	$_[0]->repository->distribution($_[0]->distname);
 }
 
+sub trace {
+	shift->repository->trace(@_);
+}
+
 sub trunk {
 	!! $_[0]->distribution;
 }
@@ -92,17 +95,23 @@ sub svn_subdir {
 # Extracts the actual tarball into a temporary directory
 sub extract {
 	my $self = shift;
-	my $temp = File::Temp::tempdir(@_);
-	my $ae   = Archive::Extract->new(
-		archive => $self->path,
+	unless ( $self->{extract_path} ) {
+		my $temp = File::Temp::tempdir(@_);
+		my $ae   = Archive::Extract->new(
+			archive => $self->path,
+		);
+		$self->trace("Extracting " . $self->file . "...\n");
+		my $ok   = $ae->extract( to => $temp );
+		Carp::croak(
+			"Failed to extract " . $self->path
+			. ": " . $ae->error
+		) unless $ok;
+		$self->{extract_path} = $ae->extract_path;
+	}
+	return ADAMK::Release::Extract->new(
+		path    => $self->{extract_path},
+		release => $self,
 	);
-	my $ok   = $ae->extract( to => $temp );
-	Carp::croak( 
-		"Failed to extract " . $self->path
-		. ": " . $ae->error
-	) unless $ok;
-	$self->{extracted} = $ae->extract_path;
-	return $self->{extracted};
 }
 
 # Exports the distribution at the point in time that the

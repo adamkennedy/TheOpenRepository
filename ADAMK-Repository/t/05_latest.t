@@ -16,8 +16,6 @@ BEGIN {
 }
 use ADAMK::Repository;
 
-my $path = $ENV{ADAMK_CHECKOUT};
-
 
 
 
@@ -26,7 +24,7 @@ my $path = $ENV{ADAMK_CHECKOUT};
 # Simple Constructor
 
 my $repository = ADAMK::Repository->new(
-	path => $path,
+	path => $ENV{ADAMK_CHECKOUT},
 );
 isa_ok( $repository, 'ADAMK::Repository' );
 
@@ -47,9 +45,9 @@ isa_ok( $release->repository, 'ADAMK::Repository' );
 is( $release->version, '2.12', '->version ok' );
 
 # Extract it for examination
-my $extract = $release->extract( CLEANUP => 1 );
-ok( -d $extract, '->extract ok' );
-is( $extract, $release->extracted, '->extracted ok' );
+my $extract = $release->extract;
+isa_ok( $extract, 'ADAMK::Release::Extract' );
+ok( -d $extract->path, '->extract ok' );
 
 # Run the Araxis tarball comparison
 SKIP: {
