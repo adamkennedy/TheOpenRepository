@@ -1252,8 +1252,11 @@ sub Marpa::Evaluator::value {
     # if it's an empty list of choice points, we're done iterating
     my $choice_points = $evaler->[Marpa::Internal::Evaluator::CHOICE_POINTS];
     if ( defined $choice_points and not scalar @{$choice_points} ) {
+        if ($trace_iterations) {
+            say {$trace_fh} 'Value method called on fully iterated Evaluator';
+        }
         return;
-    }
+    } ## end if ( defined $choice_points and not scalar @{$choice_points...
 
     my $chosen_to_here_earleme = -1;
     my @work_list;
@@ -1263,11 +1266,12 @@ sub Marpa::Evaluator::value {
         $choice_points =
             $evaler->[Marpa::Internal::Evaluator::CHOICE_POINTS] = [];
         @work_list = ( $bocage->[0] );
-    }
+        if ($trace_iterations) {
+            say {$trace_fh} 'Evaluator setting up first iteration';
+        }
+    } ## end if ( not defined $choice_points )
 
     if ( scalar @{$choice_points} ) {
-
-        # Marpa::exception('Iteration not yet implemented');
 
         # Find the last choice point that we can iterate
         my $new_map_ix;
@@ -1301,7 +1305,7 @@ sub Marpa::Evaluator::value {
 
         # Remember that at this point
         # $iteration_choice_point may not be correct.
-        my $chosen_to_here =
+        $chosen_to_here_earleme =
             defined $new_map_ix
             ? $iteration_choice_point
             ->[Marpa::Internal::Or_Node::START_EARLEME]
@@ -1311,20 +1315,44 @@ sub Marpa::Evaluator::value {
             $evaler->[Marpa::Internal::Evaluator::OR_NODES_BY_EARLEME];
 
         # Clear out iteration values in the or nodes after the chosen-to earleme
-        for my $earleme ( $chosen_to_here + 1 .. $#{$or_nodes_by_earleme} ) {
+        for my $earleme (
+            $chosen_to_here_earleme + 1 .. $#{$or_nodes_by_earleme} )
+        {
             my $or_nodes_here = $or_nodes_by_earleme->[$earleme];
             for my $or_node ( @{$or_nodes_here} ) {
-                $or_node->[Marpa::Internal::Or_Node::AND_CHOICE]     = undef;
+                $or_node->[Marpa::Internal::Or_Node::AND_CHOICE] = undef;
+                if ( $trace_choices >= 2 ) {
+                    say {$trace_fh} 'Setting choice for ',
+                        $or_node->[Marpa::Internal::Or_Node::NAME],
+                        ' to undef';
+                }
                 $or_node->[Marpa::Internal::Or_Node::MAP_IX]         = undef;
                 $or_node->[Marpa::Internal::Or_Node::PARENT_OR_NODE] = undef;
-            }
-        } ## end for my $earleme ( $chosen_to_here + 1 .. $#{...
+            } ## end for my $or_node ( @{$or_nodes_here} )
+        } ## end for my $earleme ( $chosen_to_here_earleme + 1 .. $#{...
 
         # If we can't iterate any more, return false
-        return if not defined $new_map_ix;
+        if ( not defined $new_map_ix ) {
+            if ($trace_iterations) {
+                say {$trace_fh} 'Evaluator is after final iteration';
+            }
+            return;
+        } ## end if ( not defined $new_map_ix )
+
+        if ($trace_iterations) {
+            say {$trace_fh}
+                'Evaluator iterating ',
+                $iteration_choice_point->[Marpa::Internal::Or_Node::NAME],
+                " to map index $new_map_ix at earleme $chosen_to_here_earleme";
+        } ## end if ($trace_iterations)
 
         # From here on out, $iteration_choice_point correct reflects a real
         # or node which can be iterated.
+        if ( $trace_choices >= 2 ) {
+            say {$trace_fh} 'Setting choice for ',
+                $iteration_choice_point->[Marpa::Internal::Or_Node::NAME],
+                ' to undef';
+        }
         $iteration_choice_point->[Marpa::Internal::Or_Node::AND_CHOICE] =
             undef;
         $iteration_choice_point->[Marpa::Internal::Or_Node::MAP_IX] =
@@ -1340,7 +1368,7 @@ sub Marpa::Evaluator::value {
         # the other or nodes *AT* the choice point.  Mask out the parent or nodes, which are to remain
         # unchanged, and the choice or node itself, which has just be set correctly, then unset the
         # iteration values in the other or nodes.
-        my $or_nodes_here = $or_nodes_by_earleme->[$chosen_to_here];
+        my $or_nodes_here = $or_nodes_by_earleme->[$chosen_to_here_earleme];
         OR_NODE_ID:
         for my $or_node_id ( ( 0 .. $choice_point_id - 1 ),
             ( $choice_point_id + 1 .. $#{$or_nodes_here} ) )
@@ -1348,11 +1376,18 @@ sub Marpa::Evaluator::value {
             next OR_NODE_ID if defined $parent_or_nodes->[$or_node_id];
             my $child_or_node = $or_nodes_here->[$or_node_id];
             $child_or_node->[Marpa::Internal::Or_Node::AND_CHOICE] = undef;
-            $child_or_node->[Marpa::Internal::Or_Node::MAP_IX]     = undef;
+            if ( $trace_choices >= 2 ) {
+                say {$trace_fh} 'Setting choice for ',
+                    $child_or_node->[Marpa::Internal::Or_Node::NAME],
+                    ' to undef';
+            }
+            $child_or_node->[Marpa::Internal::Or_Node::MAP_IX] = undef;
             $child_or_node->[Marpa::Internal::Or_Node::PARENT_OR_NODE] =
                 undef;
         } ## end for my $or_node_id ( ( 0 .. $choice_point_id - 1 ), (...
         ## End OR_NODE_ID
+
+        @work_list = ( $bocage->[0] );
 
     } ## end if ( scalar @{$choice_points} )
 
@@ -1389,8 +1424,9 @@ sub Marpa::Evaluator::value {
             if ( @{$and_nodes} <= 1 ) {
 
                 if ( $trace_choices >= 2 ) {
-                    say {$trace_fh} 'Choice trivial for ',
-                        $or_node->[Marpa::Internal::Or_Node::NAME];
+                    say {$trace_fh} 'Setting trivial choice for ',
+                        $or_node->[Marpa::Internal::Or_Node::NAME],
+                        'to 0';
                 }
 
                 $or_node->[Marpa::Internal::Or_Node::AND_CHOICE] = 0;
@@ -1431,7 +1467,7 @@ sub Marpa::Evaluator::value {
                 my $and_choice     = $or_choices->[$or_ix];
                 next OR_IX if not defined $and_choice or $and_choice < 0;
                 if ($trace_choices) {
-                    say {$trace_fh} 'setting choice for ',
+                    say {$trace_fh} 'Setting choice for ',
                         $choice_or_node->[Marpa::Internal::Or_Node::NAME],
                         " to $and_choice";
                 }

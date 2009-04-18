@@ -272,7 +272,7 @@ sub do_parse {
     my $parse_count = 0;
     PARSE: while (1) {
 
-        my $value = $evaler->old_value();
+        my $value = $evaler->value();
         if ( not defined $value ) {
             Marpa::exception 'No parse' if $parse_count <= 0;
             return;
