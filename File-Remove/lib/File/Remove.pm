@@ -14,9 +14,10 @@ BEGIN {
 # If we ever need a Mac::Glue object we will want to cache it.
 my $glue;
 
-use File::Spec ();
 use File::Path ();
 use File::Glob ();
+use File::Spec 3.2701 ();
+use Cwd        3.2701 ();
 
 sub expand (@) {
 	map { -e $_ ? $_ : File::Glob::bsd_glob($_) } @_;
@@ -311,7 +312,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Some parts copyright 2006 - 2008 Adam Kennedy.
+Some parts copyright 2006 - 2009 Adam Kennedy.
 
 Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt> to fix the
 "deep readonly files" bug, and do some more cleaning up.
