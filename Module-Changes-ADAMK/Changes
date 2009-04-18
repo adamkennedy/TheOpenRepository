@@ -1,5 +1,8 @@
 Changes for Perl extension Module-Changes-ADAMK
 
+0.11 Sun 19 Apr 2009
+	- Ignore empty paragraphs (ADAMK)
+
 0.10 Tue 14 Apr 2009
 	- Updating to Module::Install::DSL 0.83 (ADAMK)
 

@@ -7,7 +7,7 @@ use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use Object::Tiny qw{

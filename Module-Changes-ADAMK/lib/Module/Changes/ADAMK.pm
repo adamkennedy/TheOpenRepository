@@ -33,7 +33,7 @@ use DateTime::Format::DateParse 0.04 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 }
 
 use Module::Changes::ADAMK::Release ();
@@ -115,8 +115,8 @@ sub read_string {
 	# Parse each paragraph into a release
 	my @releases = ();
 	foreach my $paragraph ( @paragraphs ) {
+		next unless $paragraph =~ /\S/;
 		push @releases, Module::Changes::ADAMK::Release->new($paragraph);
-		
 	}
 	$self->{releases} = \@releases;
 
