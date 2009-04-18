@@ -110,10 +110,7 @@ sub extract {
 sub export {
 	my $self = shift;
 	unless ( $self->trunk ) {
-		die(
-			"Cannot export non-trunk release " .
-			$self->file
-		);
+		die("Cannot export non-trunk release " . $self->file);
 	}
 	$self->distribution->export( $self->svn_revision, @_ );
 }

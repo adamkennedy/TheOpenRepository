@@ -92,8 +92,16 @@ sub svn_url {
 	shift->svn_info->{URL};
 }
 
+sub svn_author {
+	shift->svn_info->{LastChangedAuthor};
+}
+
 sub svn_revision {
 	shift->svn_info->{LastChangedRev};
+}
+
+sub svn_date {
+	shift->svn_info->{LastChangedDate};
 }
 
 sub svn_commit {

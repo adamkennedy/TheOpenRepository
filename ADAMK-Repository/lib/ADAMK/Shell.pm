@@ -75,14 +75,26 @@ sub module {
 	my $changes = $dist->changes;
 	my $release = $dist->latest;
 	print ADAMK::Util::table(
-		[ 'Property',     'Value' ],
-		[ 'Distribution', $dist->name ],
+		[ 'Property',     'Value'     ],
+		[ 'Name',         $dist->name ],
 		[ 'Directory',    $dist->path ],
 		( $changes ?
-			[ 'Changes Version', $changes->current->version ]
+			[ 'Trunk   Version', $changes->current->version ]
 		: () ),
 		( $release ?
 			[ 'Release Version', $release->version ]
+		: () ),
+		[ 'Trunk   SVN', $dist->svn_revision ],
+		( $release ?
+			[ 'Release SVN', $release->svn_revision ]
+		: () ),
+		[ 'Trunk   Author', $dist->svn_author ],
+		( $release ?
+			[ 'Release Author', $release->svn_author ]
+		: () ),
+		[ 'Trunk   Date', $dist->svn_date ],
+		( $release ?
+			[ 'Release Date', $release->svn_date ]
 		: () ),
 	);
 }

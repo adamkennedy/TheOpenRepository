@@ -107,7 +107,12 @@ sub table {
 	my $title = shift;
 	my $table = Text::Table->new(
 		\'| ', 
-		ljoin( \' | ', @$title ),
+		ljoin( \' | ', map { {
+			align             => 'left',
+			align_title       => 'left',
+			align_title_lines => 'left',
+			title             => $_,
+		} } @$title ),
 		\' |',
 	);
 	$table->load( @_ );
