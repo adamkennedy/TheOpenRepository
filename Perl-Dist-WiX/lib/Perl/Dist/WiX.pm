@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.170_006')->numify;
+use version; $VERSION = version->new('0.171')->numify;
 
 use Object::Tiny qw(
   perl_version

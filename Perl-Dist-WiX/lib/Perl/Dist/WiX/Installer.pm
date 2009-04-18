@@ -43,7 +43,7 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
 
-use version; $VERSION = version->new('0.170')->numify;
+use version; $VERSION = version->new('0.171')->numify;
 #>>>
 
 =head2 Accessors
