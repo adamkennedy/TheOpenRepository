@@ -53,7 +53,9 @@ L<Pod::Browser>
 
 L<Titanium>
 
-L<Handle>
+L<Handel>
+
+... and more
 
 =cut
 
@@ -62,7 +64,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub dummy { 1 }
