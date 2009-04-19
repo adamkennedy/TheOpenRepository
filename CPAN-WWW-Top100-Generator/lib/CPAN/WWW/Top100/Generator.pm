@@ -69,7 +69,7 @@ sub run {
 	);
 
 	# Build the Downstream 100 index
-	$dataset->add( 'ds3',
+	$dataset->add( 'ds4',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
 			sql_score => 'd.volatility * d.enemy_downstream',
