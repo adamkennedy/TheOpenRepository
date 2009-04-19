@@ -46,7 +46,7 @@ sub run {
 	# Build the Heavy 100 index
 	$dataset->add( 'ds1',
 		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ],
-		$self->report(
+		$class->report(
 			sql_score => 'd.weight',
 		),
 	);
@@ -54,7 +54,7 @@ sub run {
 	# Build the Volatile 100 index
 	$dataset->add( 'ds2',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$self->report(
+		$class->report(
 			sql_score => 'd.volatility',
 		),
 	);
@@ -62,7 +62,7 @@ sub run {
 	# Build the Debian 100 index
 	$dataset->add( 'ds3',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$self->report(
+		$class->report(
 			sql_score => 'd.volatility * d.debian_candidate',
 		)
 	);
@@ -70,7 +70,7 @@ sub run {
 	# Build the Downstream 100 index
 	$dataset->add( 'ds3',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$self->report(
+		$class->report(
 			sql_score => 'd.volatility * d.enemy_downstream',
 		),
 	);
@@ -84,12 +84,12 @@ sub run {
 }
 
 sub report {
-	my $self  = shift;
+	my $class  = shift;
 	my %param = @_;
 	my $list  = CPANTS::Weight->selectall_arrayref(
-		$self->_distsql( $param ),
+		$class->_distsql( $param ),
 	);
-	$self->_rank( $list );
+	$class->_rank( $list );
 	return @$list;
 }
 
@@ -130,7 +130,7 @@ sub _rank {
 }
 
 sub _distsql {
-	my $self  = shift;
+	my $class = shift;
 	my %param = @_;
 	$param{sql_limit} ||= 100;
 	unless ( defined $param{sql_score} ) {
