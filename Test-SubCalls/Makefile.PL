@@ -1,9 +1,5 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install::DSL 0.83;
 
-all_from      'lib/Test/SubCalls.pm';
-requires      'Test::More'            => '0.60';
-requires      'File::Spec'            => '0.80';
-requires      'Hook::LexWrap'         => '0.20';
-test_requires 'Test::Builder::Tester' => '1.02';
-
-WriteAll;
+all_from      lib/Test/SubCalls.pm
+requires_from lib/Test/SubCalls.pm
+test_requires Test::Builder::Tester 1.02

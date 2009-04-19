@@ -1,4 +1,7 @@
-Revision history for Perl extension Test::SubCalls
+Changes for Perl extension Test-SubCalls
+
+1.09 Sun 19 Apr 2009
+	- Upgrading to Module::Install::DSL 0.83
 
 1.08 Fri 22 Aug 2008
 	- No functional changes
