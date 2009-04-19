@@ -1,7 +1,10 @@
 #!/usr/bin/perl
 
+use 5.008;
 use strict;
 use CPAN::WWW::Top100::Generator ();
+
+our $VERSION = '0.03';
 
 my $dir = $ARGV[0] or die "Did not provide a build directory";
 CPAN::WWW::Top100::Generator->run($dir),

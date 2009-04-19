@@ -17,10 +17,10 @@ This module (for now) has no moving parts...
 use 5.008;
 use strict;
 use File::Spec          0.80 ();
-use CPANTS::Weight      0.07 ();
+use CPANTS::Weight      0.08 ();
 use HTML::Spry::DataSet 0.01 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 
