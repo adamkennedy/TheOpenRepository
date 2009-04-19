@@ -16,8 +16,8 @@ This module (for now) has no moving parts...
 
 use 5.008;
 use strict;
-use File::Spec     0.80      ();
-use CPANTS::Weight 0.02      ();
+use File::Spec          0.80 ();
+use CPANTS::Weight      0.07 ();
 use HTML::Spry::DataSet 0.01 ();
 
 our $VERSION = '0.02';
@@ -90,6 +90,9 @@ sub report {
 	my $list  = CPANTS::Weight->selectall_arrayref(
 		$class->_distsql( %param ),
 	);
+	unless ( $list ) {
+		die("Report SQL failed in " . CPANTS::Weight->dsn);
+	}
 	$class->_rank( $list );
 	return @$list;
 }
