@@ -25,7 +25,7 @@ use ORLite::Migrate {
 	create       => 1,
 	file         => '$file',
 	timeline     => '$timeline',
-	user_version => 2,
+	user_version => 3,
 };
 
 1;

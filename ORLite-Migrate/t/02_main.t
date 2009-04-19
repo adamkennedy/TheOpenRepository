@@ -18,7 +18,7 @@ ok( -d $timeline, 'Found timeline' );
 my @patches = ORLite::Migrate::patches( $timeline );
 is_deeply(
 	\@patches,
-	[ undef, 'migrate-1.pl', 'migrate-02.pl' ],
+	[ undef, 'migrate-1.pl', 'migrate-02.pl', 'migrate-03.pl' ],
 	'Found the expected patch set',
 );
 
@@ -26,7 +26,7 @@ is_deeply(
 my @plan = ORLite::Migrate::plan( $timeline, 1 );
 is_deeply(
 	\@plan,
-	[ 'migrate-02.pl' ],
+	[ 'migrate-02.pl', 'migrate-03.pl' ],
 	'Found expected plan',
 );
 
