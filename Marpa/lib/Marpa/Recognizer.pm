@@ -1080,22 +1080,6 @@ sub complete_set {
 
     }    # EARLEY_ITEM
 
-    EARLEY_ITEM: for my $earley_item ( @{$earley_set} ) {
-        my $links = $earley_item->[Marpa::Internal::Earley_item::LINKS];
-        my @sorted_links =
-            map { $_->[0] }
-            ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
-            sort { $b->[1] cmp $a->[1] }
-            ## use critic
-            map {
-            [   $_,
-                $_->[1]->[Marpa::Internal::Earley_item::STATE]
-                    ->[Marpa::Internal::QDFA::PRIORITY]
-            ]
-            } @{$links};
-        $earley_item->[Marpa::Internal::Earley_item::LINKS] = \@sorted_links;
-    } ## end for my $earley_item ( @{$earley_set} )
-
     # TODO: Prove that the completion links are UNIQUE
 
     $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;

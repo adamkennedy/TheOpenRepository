@@ -52,26 +52,26 @@ Marpa::Test::is( $grammar->show_rules,
 1: p -> a
 2: p -> /* !useful empty nullable nulling */
 3: n -> a
-4: S -> p p S[R0:2][x5] /* priority=0.3 */
-5: S -> p[] p S[R0:2][x5] /* priority=0.1 */
-6: S -> p p[] S[R0:2][x5] /* priority=0.2 */
-7: S -> p[] p[] S[R0:2][x5]
-8: S[R0:2][x5] -> p n /* priority=0.3 */
-9: S[R0:2][x5] -> p[] n /* priority=0.1 */
+4: S -> p p S[R0:2][x5] /* priority=0.19 */
+5: S -> p[] p S[R0:2][x5] /* priority=0.17 */
+6: S -> p p[] S[R0:2][x5] /* priority=0.18 */
+7: S -> p[] p[] S[R0:2][x5] /* priority=0.16 */
+8: S[R0:2][x5] -> p n /* priority=0.11 */
+9: S[R0:2][x5] -> p[] n /* priority=0.9 */
 10: S['] -> S
 END_OF_STRING
 
 Marpa::Test::is( $grammar->show_ii_QDFA,
     <<'END_OF_STRING', 'final nonnulling QDFA' );
-Start States: St1; St9
+Start States: St1; St8
 St0: predict; 1,3,21,25
 p ::= . a
 n ::= . a
 S[R0:2][x5] ::= . p n
 S[R0:2][x5] ::= p[] . n
- <a> => St4
- <n> => St8
- <p> => St11; St6
+ <a> => St3
+ <n> => St7
+ <p> => St10; St5
 St1: predict; 1,3,5,10,13,19,21,25
 p ::= . a
 n ::= . a
@@ -81,48 +81,47 @@ S ::= . p p[] S[R0:2][x5]
 S ::= p[] p[] . S[R0:2][x5]
 S[R0:2][x5] ::= . p n
 S[R0:2][x5] ::= p[] . n
- <S[R0:2][x5]> => St5
- <a> => St4
- <n> => St8
- <p> => St0; St13
-St2: pri=0.1; 12
+ <S[R0:2][x5]> => St4
+ <a> => St3
+ <n> => St7
+ <p> => St0; St12
+St2: 12,16
 S ::= p[] p S[R0:2][x5] .
-St3: pri=0.2; 16
 S ::= p p[] S[R0:2][x5] .
-St4: 2,4
+St3: 2,4
 p ::= a .
 n ::= a .
-St5: 20
+St4: 20
 S ::= p[] p[] S[R0:2][x5] .
-St6: 22
+St5: 22
 S[R0:2][x5] ::= p . n
- <n> => St7
-St7: pri=0.3; 23
+ <n> => St6
+St6: 23
 S[R0:2][x5] ::= p n .
-St8: pri=0.1; 26
+St7: 26
 S[R0:2][x5] ::= p[] n .
-St9: 27
+St8: 27
 S['] ::= . S
- <S> => St10
-St10: 28
+ <S> => St9
+St9: 28
 S['] ::= S .
-St11: predict; 3
+St10: predict; 3
 n ::= . a
- <a> => St12
-St12: 4
+ <a> => St11
+St11: 4
 n ::= a .
-St13: 6,11,15,22
+St12: 6,11,15,22
 S ::= p . p S[R0:2][x5]
 S ::= p[] p . S[R0:2][x5]
 S ::= p p[] . S[R0:2][x5]
 S[R0:2][x5] ::= p . n
- <S[R0:2][x5]> => St2; St3
- <n> => St7
- <p> => St0; St14
-St14: 7
+ <S[R0:2][x5]> => St2
+ <n> => St6
+ <p> => St0; St13
+St13: 7
 S ::= p p . S[R0:2][x5]
- <S[R0:2][x5]> => St15
-St15: pri=0.3; 8
+ <S[R0:2][x5]> => St14
+St14: 8
 S ::= p p S[R0:2][x5] .
 END_OF_STRING
 
@@ -138,7 +137,7 @@ for my $input_length ( 1 .. 4 ) {
     }
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
-    my $value = $evaler->old_value();
+    my $value = $evaler->value();
     Marpa::Test::is( ${$value}, $results[$input_length],
         "final nonnulling, input length=$input_length" );
 } ## end for my $input_length ( 1 .. 4 )

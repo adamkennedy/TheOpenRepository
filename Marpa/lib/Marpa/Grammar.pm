@@ -104,8 +104,9 @@ CYCLE - is this rule part of a cycle?
 
 =cut
 
-use Marpa::Offset NFA =>
-    qw(ID NAME ITEM TRANSITION AT_NULLING COMPLETE PRIORITY);
+use Marpa::Offset NFA => qw(
+    ID NAME ITEM TRANSITION AT_NULLING COMPLETE
+);
 
 =begin Implementation:
 
@@ -113,7 +114,6 @@ ITEM - an LR(0) item
 TRANSITION - the transitions, as a hash from symbol name to NFA states
 AT_NULLING - dot just before a nullable symbol?
 COMPLETE - rule is complete?
-PRIORITY - rule priority
 
 =end Implementation:
 
@@ -127,7 +127,7 @@ use Marpa::Offset QDFA => qw(
     =LAST_EVALUATOR_FIELD
 
     TRANSITION COMPLETE_LHS
-    RESET_ORIGIN PRIORITY
+    RESET_ORIGIN
     =LAST_RECOGNIZER_FIELD
 
     NFA_STATES
@@ -146,7 +146,6 @@ COMPLETE_RULES - an array of lists of the complete rules,
 START_RULE     - the start rule
 TAG            - implementation-independant tag
 RESET_ORIGIN   - reset origin for this state?
-PRIORITY       - priority of this state
 
 =end Implementation:
 
@@ -1670,18 +1669,14 @@ sub Marpa::show_item {
 
 sub Marpa::show_NFA_state {
     my ($state) = @_;
-    my ( $name, $item, $transition, $at_nulling, $priority ) = @{$state}[
+    my ( $name, $item, $transition, $at_nulling, ) = @{$state}[
         Marpa::Internal::NFA::NAME,       Marpa::Internal::NFA::ITEM,
         Marpa::Internal::NFA::TRANSITION, Marpa::Internal::NFA::AT_NULLING,
-        Marpa::Internal::NFA::PRIORITY,
     ];
     my $text = $name . ': ';
     $text .= Marpa::show_item($item) . "\n";
     my @properties = ();
     push @properties, 'at_nulling' if $at_nulling;
-    my $priority_string_ref = Marpa::show_priority($priority);
-    push @properties, 'priority=' . ${$priority_string_ref}
-        if defined $priority_string_ref;
     $text .= join( q{ }, @properties ) . "\n" if @properties;
 
     for my $symbol_name ( sort keys %{$transition} ) {
@@ -1730,13 +1725,6 @@ sub Marpa::show_QDFA_state {
     if ( exists $state->[Marpa::Internal::QDFA::RESET_ORIGIN] ) {
         $text .= 'predict; ' if $state->[Marpa::Internal::QDFA::RESET_ORIGIN];
     }
-
-    if ( exists $state->[Marpa::Internal::QDFA::PRIORITY] ) {
-        my $priority            = $state->[Marpa::Internal::QDFA::PRIORITY];
-        my $priority_string_ref = Marpa::show_priority($priority);
-        $text .= 'pri=' . ${$priority_string_ref} . '; '
-            if defined $priority_string_ref;
-    } ## end if ( exists $state->[Marpa::Internal::QDFA::PRIORITY...
 
     $text .= $state->[Marpa::Internal::QDFA::NAME] . "\n";
 
@@ -3169,10 +3157,8 @@ sub create_NFA {
         # no transitions if position is after the end of the RHS
         if ( not defined $next_symbol ) {
             $state->[Marpa::Internal::NFA::COMPLETE] = 1;
-            $state->[Marpa::Internal::NFA::PRIORITY] =
-                $rule->[Marpa::Internal::Rule::PRIORITY];
             next STATE;
-        } ## end if ( not defined $next_symbol )
+        }
 
         $state->[Marpa::Internal::NFA::AT_NULLING] = 1
             if $next_symbol->[Marpa::Internal::Symbol::NULLING];
@@ -3275,15 +3261,7 @@ sub assign_QDFA_state_set {
         }
 
         $reset //= 0;
-        my $priority;
-        $priority = $NFA_state->[Marpa::Internal::NFA::PRIORITY]
-            if $NFA_state->[Marpa::Internal::NFA::COMPLETE];
-        if ( defined $priority ) {
-            $highest_priority = $priority
-                if not defined $highest_priority
-                    or $priority gt $highest_priority;
-        }
-        push @{$seen}, $reset, $priority, $NFA_id;
+        push @{$seen}, $reset, 0, $NFA_id;
 
     }    # WORK_ITEM
 
@@ -3357,31 +3335,23 @@ sub assign_QDFA_state_set {
                     push @{ $complete_rules->[$lhs_id] }, $rule;
                     $start_rule = $rule if $lhs_is_start;
                 } ## end for my $NFA_state ( @{$NFA_state_list} )
-                my $new_priority =
-                    $QDFA_complete ? $old_priority : ( pack 'NN', 0, 0 );
-                @{$QDFA_state}[
-                    Marpa::Internal::QDFA::ID,
-                    Marpa::Internal::QDFA::NAME,
-                    Marpa::Internal::QDFA::NFA_STATES,
-                    Marpa::Internal::QDFA::RESET_ORIGIN,
-                    Marpa::Internal::QDFA::PRIORITY,
-                    Marpa::Internal::QDFA::START_RULE,
-                    ]
-                    = (
-                    $id, $name, $NFA_state_list, $old_reset, $new_priority,
-                    $start_rule,
-                    );
+
+                $QDFA_state->[ Marpa::Internal::QDFA::ID ]   = $id;
+                $QDFA_state->[ Marpa::Internal::QDFA::NAME ] = $name;
+                $QDFA_state->[ Marpa::Internal::QDFA::NFA_STATES ] =
+                    $NFA_state_list;
+                $QDFA_state->[ Marpa::Internal::QDFA::RESET_ORIGIN ] =
+                    $old_reset;
+                $QDFA_state->[ Marpa::Internal::QDFA::START_RULE ] =
+                    $start_rule;
                 $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_RULES] =
                     $complete_rules;
+
                 $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_LHS] =
                     [ map { $_->[Marpa::Internal::Symbol::NAME] }
                         @{$symbols}[ grep { $lhs_list->[$_] }
                         ( 0 .. $#{$lhs_list} ) ] ];
-                if ($trace_priorities) {
-                    my $string_ref = Marpa::show_priority($new_priority);
-                    say {$trace_fh} "Priority for QDFA state $id: ",
-                        $string_ref ? 'undef' : ${$string_ref};
-                }
+
                 push @{$QDFA}, $QDFA_state;
                 $QDFA_by_name->{$name} = $QDFA_state;
             }    # unless $QDFA_state
