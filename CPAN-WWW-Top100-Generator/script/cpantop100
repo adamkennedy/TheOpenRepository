@@ -1,0 +1,7 @@
+#!/usr/bin/perl
+
+use strict;
+use CPAN::WWW::Top100::Generator ();
+
+my $dir = $ARGV[0] or die "Did not provide a build directory";
+CPAN::WWW::Top100::Generator->run($dir),

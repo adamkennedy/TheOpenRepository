@@ -16,8 +16,9 @@ This module (for now) has no moving parts...
 
 use 5.008;
 use strict;
-use CPANTS::Weight 0.02 ();
-use HTML::Spry::DataSet ();
+use File::Spec     0.80      ();
+use CPANTS::Weight 0.02      ();
+use HTML::Spry::DataSet 0.01 ();
 
 our $VERSION = '0.02';
 
