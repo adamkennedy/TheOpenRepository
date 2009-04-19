@@ -214,8 +214,8 @@ sub set_null_values {
                 print {$trace_fh} 'Setting null value for symbol ',
                     $nulling_symbol->[Parse::Marpa::Internal::Symbol::NAME],
                     " from\n", $code, "\n",
-                    ' to ', Dumper( \$null_value ), "\n"
-                    or croak('Could not print to trace file');
+                    ' to ', Data::Dumper::Dumper( \$null_value ), "\n"
+                    or Carp::croak('Could not print to trace file');
             }
 
         }
@@ -240,8 +240,8 @@ sub set_null_values {
             ];
             print {$trace_fh}
                 'Setting null value for CHAF symbol ',
-                $name, ' to ', Dumper( $null_values->[$id] ),
-                or croak('Could not print to trace file');
+                $name, ' to ', Data::Dumper::Dumper( $null_values->[$id] ),
+                or Carp::croak('Could not print to trace file');
         }
     }
 
@@ -322,7 +322,7 @@ sub set_actions {
             if ($trace_actions) {
                 print {$trace_fh} 'Setting action for rule ',
                     Parse::Marpa::brief_rule($rule), " to undef by default\n"
-                    or croak('Could not print to trace file');
+                    or Carp::croak('Could not print to trace file');
             }
 
             my $rule_datum;
@@ -343,7 +343,7 @@ sub set_actions {
         if ($trace_actions) {
             print {$trace_fh} 'Setting action for rule ',
                 Parse::Marpa::brief_rule($rule), " to\n", $code, "\n"
-                or croak('Could not print to trace file');
+                or Carp::croak('Could not print to trace file');
         }
 
         my $closure;
@@ -396,13 +396,13 @@ sub Parse::Marpa::Evaluator::new {
         my $arg_value = $args->{$recce_arg_name};
         delete $args->{$recce_arg_name};
         next RECCE_ARG_NAME unless defined $arg_value;
-        croak('recognizer specified twice') if defined $recce;
+        Carp::croak('recognizer specified twice') if defined $recce;
         $recce = $arg_value;
     }
-    croak('No recognizer specified') unless defined $recce;
+    Carp::croak('No recognizer specified') unless defined $recce;
 
     my $recce_class = ref $recce;
-    croak("${class}::new() recognizer arg has wrong class: $recce_class")
+    Carp::croak("${class}::new() recognizer arg has wrong class: $recce_class")
         unless $recce_class eq 'Parse::Marpa::Recognizer';
 
     my $parse_set_arg = $args->{end};
@@ -426,7 +426,7 @@ sub Parse::Marpa::Evaluator::new {
 
     # croak('Recognizer already in use by Evaluator')
         # if $phase == Parse::Marpa::Internal::Phase::EVALUATING;
-    croak('Attempt to evaluate grammar in wrong phase: ', Parse::Marpa::Internal::Phase::description($phase))
+    Carp::croak('Attempt to evaluate grammar in wrong phase: ', Parse::Marpa::Internal::Phase::description($phase))
         if $phase < Parse::Marpa::Internal::Phase::RECOGNIZED;
 
     $self->[Parse::Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
@@ -803,7 +803,7 @@ sub Parse::Marpa::Evaluator::show_bocage {
             }    # cause
 
             if ( defined $value_ref ) {
-                my $value_as_string = Dumper( ${$value_ref} );
+                my $value_as_string = Data::Dumper::Dumper( ${$value_ref} );
                 chomp $value_as_string;
                 push @rhs, $value_as_string;
             }    # value
@@ -888,7 +888,7 @@ sub Parse::Marpa::Evaluator::show_tree {
         if ($verbose) {
             $text .= '    Perl Closure: ' . ( defined $closure ? 'Y' : 'N' );
             if ( defined $value_ref ) {
-                $text .= '; Token: ' . Dumper( ${$value_ref} );
+                $text .= '; Token: ' . Data::Dumper::Dumper( ${$value_ref} );
             }
             else {
                 $text .= "\n";
@@ -920,10 +920,10 @@ sub Parse::Marpa::Evaluator::value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Parse::Marpa::Internal::Evaluator::RECOGNIZER];
 
-    croak('No parse supplied') unless defined $evaler;
+    Carp::croak('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
     my $right_class  = 'Parse::Marpa::Evaluator';
-    croak(
+    Carp::croak(
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
@@ -958,7 +958,7 @@ sub Parse::Marpa::Evaluator::value {
     my $parse_count =
         $evaler->[Parse::Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
-        croak("Maximum parse count ($max_parses) exceeded");
+        Carp::croak("Maximum parse count ($max_parses) exceeded");
     }
 
     my @traversal_stack;
@@ -1039,7 +1039,7 @@ sub Parse::Marpa::Evaluator::value {
                     ' tree node #',
 		    $tree_position, q{ },
                     $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
-                    or croak('print to trace handle failed');
+                    or Carp::croak('print to trace handle failed');
             }
 
             my $new_tree_node;
@@ -1187,7 +1187,7 @@ sub Parse::Marpa::Evaluator::value {
 
             if ($trace_iterations) {
                 my $value_description = "\n";
-                $value_description = '; value=' . Dumper( ${$value_ref} )
+                $value_description = '; value=' . Data::Dumper::Dumper( ${$value_ref} )
                     if defined $value_ref;
                 print {$trace_fh}
                     'Pushing tree node #',
@@ -1198,7 +1198,7 @@ sub Parse::Marpa::Evaluator::value {
 			$rule, $rule_position + 1
                     ),
                     $value_description
-                    or croak('print to trace handle failed');
+                    or Carp::croak('print to trace handle failed');
             }
 
             push @{$tree}, $new_tree_node;
@@ -1231,7 +1231,7 @@ sub Parse::Marpa::Evaluator::value {
             '; kept on root side: ', $build_node,
             '; kept on leaf side: ',
 	       (defined $leaf_side_start_position ? @old_tree - $leaf_side_start_position : 0)
-            or croak('print to trace handle failed');
+            or Carp::croak('print to trace handle failed');
     }
 
     # Put the uniterated leaf side of the tree back on the stack.
@@ -1245,8 +1245,8 @@ sub Parse::Marpa::Evaluator::value {
        if ($trace_values >= 3) {
            for my $i (reverse 0 .. $#evaluation_stack) {
 	       printf {$trace_fh} 'Stack position %3d:', $i;
-	       print {$trace_fh} q{ }, Dumper( $evaluation_stack[$i] )
-                 or croak('print to trace handle failed');
+	       print {$trace_fh} q{ }, Data::Dumper::Dumper( $evaluation_stack[$i] )
+                 or Carp::croak('print to trace handle failed');
 	   }
        }
 
@@ -1268,8 +1268,8 @@ sub Parse::Marpa::Evaluator::value {
 		    'Pushed value from ',
 		    $or_node->[Parse::Marpa::Internal::Or_Node::NAME],
 		    ': ',
-		    Dumper( ${$value_ref} )
-                    or croak('print to trace handle failed');
+		    Data::Dumper::Dumper( ${$value_ref} )
+                    or Carp::croak('print to trace handle failed');
             }
 
         }    # defined $value_ref
@@ -1342,8 +1342,8 @@ sub Parse::Marpa::Evaluator::value {
         }    # when non-code reference
 
         if ($trace_values) {
-            print {$trace_fh} 'Calculated and pushed value: ', Dumper($result)
-                or croak('print to trace handle failed');
+            print {$trace_fh} 'Calculated and pushed value: ', Data::Dumper::Dumper($result)
+                or Carp::croak('print to trace handle failed');
         }
 
         push @evaluation_stack, \$result;
@@ -1375,11 +1375,11 @@ in_file($_, 't/equation_s.t')
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Carp::croak("Parse failed at offset $fail_offset");
     }
 
     my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
-    croak('Parse failed') unless $evaler;
+    Carp::croak('Parse failed') unless $evaler;
 
     my $i = -1;
     while ( defined( my $value = $evaler->value() ) )

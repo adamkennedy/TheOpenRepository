@@ -15,13 +15,13 @@ use Test::More tests => 8;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	Test::More::use_ok( 'Parse::Marpa' );
 }
 
 sub ah_extended {
     my $n = shift;
 
-    my $g = new Parse::Marpa::Grammar({
+    my $g = Parse::Marpa::Grammar->new({
         start => 'S',
 
         # An arbitrary maximum is put on the number of parses -- this is for
@@ -40,7 +40,7 @@ sub ah_extended {
         warnings => ($n ? 1 : 0),
     });
 
-    my $recce = new Parse::Marpa::Recognizer({grammar => $g});
+    my $recce = Parse::Marpa::Recognizer->new({grammar => $g});
 
     my $a = $g->get_symbol('a');
     for (0 .. $n) { $recce->earleme([$a, 'a', 1]); }
@@ -49,11 +49,11 @@ sub ah_extended {
     my @parse_counts;
     for my $loc (0 .. $n) {
         my $parse_number = 0;
-        my $evaler = new Parse::Marpa::Evaluator( {
+        my $evaler = Parse::Marpa::Evaluator->new( {
             recce => $recce,
             end => $loc
         } );
-        croak("Cannot initialize parse at location $loc") unless $evaler;
+        Carp::croak("Cannot initialize parse at location $loc") unless $evaler;
         while ($evaler->value()) { $parse_counts[$loc]++ }
     }
     return join q{ }, @parse_counts;

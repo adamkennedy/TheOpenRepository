@@ -16,7 +16,7 @@ use Test::More tests => 10;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	Test::More::use_ok( 'Parse::Marpa' );
 }
 
 my $grammar_source; { local($RS) = undef; $grammar_source = <DATA> };

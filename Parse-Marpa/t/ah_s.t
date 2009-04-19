@@ -14,13 +14,13 @@ use Carp;
 use Test::More tests => 2;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    Test::More::use_ok('Parse::Marpa');
 }
 
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
-my $grammar = new Parse::Marpa::Grammar(
+my $grammar = Parse::Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
     }
@@ -30,7 +30,7 @@ $grammar->set( { mdl_source => \$source } );
 
 $grammar->precompute();
 
-my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+my $recce = Parse::Marpa::Recognizer->new( { grammar => $grammar } );
 
 my $lc_a = Parse::Marpa::MDL::get_symbol( $grammar, 'lowercase a' );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
@@ -50,19 +50,19 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = Parse::Marpa::Evaluator->new( {
         recce => $recce,
         end => $i
     } );
     my $result = $evaler->value();
     $total_count++;
     if ( $answer[$i] ne ${$result} ) {
-        diag( 'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
+        Test::More::diag( 'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
         $failure_count++;
     }
 }
 
-ok( !$failure_count,
+Test::More::ok( !$failure_count,
     ( $total_count - $failure_count )
         . " of $total_count parse permutations succeeded" );
 

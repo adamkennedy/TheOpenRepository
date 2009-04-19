@@ -180,7 +180,7 @@ sub set_lexers {
                     print {$trace_fh} 'Setting action for terminal ', $name,
                         " to\n", $code,
                         "\n"
-		    or croak('Could not print to trace file');
+		    or Carp::croak('Could not print to trace file');
                 }
 
                 my $closure;
@@ -251,7 +251,7 @@ sub compile_regexes {
         next SYMBOL unless defined $regex;
         if ( q{} =~ $regex ) {
             my $name = $symbol->[Parse::Marpa::Internal::Symbol::NAME];
-            croak( 'Attempt to add nullable terminal: ', $name );
+            Carp::croak( 'Attempt to add nullable terminal: ', $name );
         }
         my $prefix = $symbol->[Parse::Marpa::Internal::Symbol::PREFIX]
             // $default_lex_prefix;
@@ -312,7 +312,7 @@ sub prepare_grammar_for_recognizer {
     }
 
     compile_regexes($grammar);
-    @{$parse}[ LEXERS, LEXABLES_BY_STATE ] =
+    @{$parse}[ Parse::Marpa::Internal::Recognizer::LEXERS, Parse::Marpa::Internal::Recognizer::LEXABLES_BY_STATE ] =
         set_lexers( $grammar, $package );
 
     return;
@@ -337,7 +337,7 @@ sub Parse::Marpa::Recognizer::new {
     my $grammar = $args->{grammar};
     if ( not defined $grammar ) {
         my $stringified_grammar = $args->{stringified_grammar};
-        croak('No grammar specified') unless defined $stringified_grammar;
+        Carp::croak('No grammar specified') unless defined $stringified_grammar;
         delete $args->{stringified_grammar};
         my $trace_fh = $arg_trace_fh // (*STDERR);
         $grammar =
@@ -349,14 +349,14 @@ sub Parse::Marpa::Recognizer::new {
     }
 
     my $grammar_class = ref $grammar;
-    croak("${class}::new() grammar arg has wrong class: $grammar_class")
+    Carp::croak("${class}::new() grammar arg has wrong class: $grammar_class")
         unless $grammar_class eq 'Parse::Marpa::Grammar';
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
-        croak(
+        Carp::croak(
             Parse::Marpa::Grammar::show_problems($grammar),
             "Attempt to parse grammar with fatal problems\n",
             'Marpa cannot proceed',
@@ -364,14 +364,14 @@ sub Parse::Marpa::Recognizer::new {
     }
 
     if ( $grammar->[Parse::Marpa::Internal::Grammar::ACADEMIC] ) {
-        croak( "Attempt to parse grammar marked academic\n",
+        Carp::croak( "Attempt to parse grammar marked academic\n",
             'Marpa cannot proceed' );
     }
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if (   $phase != Parse::Marpa::Internal::Phase::PRECOMPUTED )
     {
-        croak(
+        Carp::croak(
             'Attempt to parse grammar in inappropriate phase ',
             Parse::Marpa::Internal::Phase::description($phase)
         );
@@ -414,9 +414,12 @@ sub Parse::Marpa::Recognizer::new {
     }
 
     @{$parse}[
-        CURRENT_SET, FURTHEST_EARLEME,
-        EARLEY_HASH,     GRAMMAR,     EARLEY_SETS,
-        LAST_COMPLETED_SET,
+        Parse::Marpa::Internal::Recognizer::CURRENT_SET,
+        Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME,
+        Parse::Marpa::Internal::Recognizer::EARLEY_HASH,
+        Parse::Marpa::Internal::Recognizer::GRAMMAR,
+        Parse::Marpa::Internal::Recognizer::EARLEY_SETS,
+        Parse::Marpa::Internal::Recognizer::LAST_COMPLETED_SET,
         ]
         = ( 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
 
@@ -439,7 +442,7 @@ sub Parse::Marpa::Recognizer::stringify {
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if (   $phase != Parse::Marpa::Internal::Phase::RECOGNIZED )
     {
-        croak(
+        Carp::croak(
             "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
             Parse::Marpa::Internal::Phase::description($phase)
         );
@@ -463,9 +466,9 @@ sub Parse::Marpa::Recognizer::unstringify {
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
 
-    croak('Attempt to unstringify undefined recognizer')
+    Carp::croak('Attempt to unstringify undefined recognizer')
         unless defined $stringified_recce;
-    croak('Arg to unstringify must be ref to SCALAR')
+    Carp::croak('Arg to unstringify must be ref to SCALAR')
         if ref $stringified_recce ne 'SCALAR';
 
     my $recce;
@@ -510,7 +513,7 @@ sub Parse::Marpa::Recognizer::clone {
 
     if ($#{$recce} > Parse::Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD)
     {
-       croak(
+       Carp::croak(
            "Cloning of unstripped recognizers not yet implemented\n",
            "Strip the recognizer or turn off cloning\n"
         );
@@ -607,9 +610,9 @@ sub Parse::Marpa::show_earley_set_list {
 sub Parse::Marpa::Recognizer::show_earley_sets {
     my $recce = shift;
     my $ii    = shift;
-    my $current_set = $recce->[ CURRENT_SET ];
-    my $furthest_earleme = $recce->[ FURTHEST_EARLEME ];
-    my $earley_set_list = $recce->[ EARLEY_SETS ];
+    my $current_set      = $recce->[Parse::Marpa::Internal::Recognizer::CURRENT_SET];
+    my $furthest_earleme = $recce->[Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    my $earley_set_list  = $recce->[Parse::Marpa::Internal::Recognizer::EARLEY_SETS];
 
     my $text = defined $furthest_earleme ?
           "Current Earley Set: $current_set; Furthest: $furthest_earleme\n" :
@@ -630,7 +633,7 @@ sub Parse::Marpa::Recognizer::earleme {
     my $grammar = $parse->[Parse::Marpa::Internal::Recognizer::GRAMMAR];
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
-        croak('New earlemes not allowed after end of input');
+        Carp::croak('New earlemes not allowed after end of input');
     }
 
     # lexables not checked -- don't use prediction here
@@ -646,7 +649,7 @@ sub Parse::Marpa::Recognizer::text {
 
     return 0 if $parse->[ Parse::Marpa::Internal::Recognizer::EXHAUSTED ];
 
-    croak(
+    Carp::croak(
         'Parse::Marpa::Recognizer::text() third argument not yet implemented')
         if defined $input_length;
 
@@ -655,7 +658,7 @@ sub Parse::Marpa::Recognizer::text {
         when (q{})      { $input_ref = \$input; }
         when ('SCALAR') { $input_ref = $input; }
         default {
-            croak( 'text argument to Parse::Marpa::Recognizer::text() ',
+            Carp::croak( 'text argument to Parse::Marpa::Recognizer::text() ',
                 'must be string or string ref' );
         }
     }    # given ref $input
@@ -669,7 +672,7 @@ sub Parse::Marpa::Recognizer::text {
 
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if ($phase >= Parse::Marpa::Internal::Phase::RECOGNIZED) {
-        croak('More text not allowed after end of input');
+        Carp::croak('More text not allowed after end of input');
     }
 
     my $tracing = $grammar->[Parse::Marpa::Internal::Grammar::TRACING];
@@ -718,12 +721,12 @@ sub Parse::Marpa::Recognizer::text {
                 print {$trace_fh} 'Trying to match ',
                     $lexable->[Parse::Marpa::Internal::Symbol::NAME],
                     " at $pos\n"
-		or croak('Could not print to trace file');
+		or Carp::croak('Could not print to trace file');
             }
 
             my $lexer      = $lexers->[$symbol_id];
             my $lexer_type = ref $lexer;
-            croak('Illegal type for lexer: undefined')
+            Carp::croak('Illegal type for lexer: undefined')
                 unless defined $lexer_type;
 
             pos ${$input_ref} = $pos;
@@ -744,7 +747,7 @@ sub Parse::Marpa::Recognizer::text {
                     # my $length = length(${^MATCH});
 
                     my $length = ( pos ${$input_ref} ) - $pos;
-                    croak(
+                    Carp::croak(
                         'Internal error, zero length token -- this is a Marpa bug'
                     ) unless $length;
                     push @alternatives, [ $lexable, $match, $length ];
@@ -753,7 +756,7 @@ sub Parse::Marpa::Recognizer::text {
                             'Matched regex for ',
                             $lexable->[Parse::Marpa::Internal::Symbol::NAME],
                             " at $pos: ", $match, "\n"
-			or croak('Could not print to trace file');
+			or Carp::croak('Could not print to trace file');
                     }
                     last LEXABLE unless $ambiguous_lex;
                 }    # if match
@@ -764,7 +767,7 @@ sub Parse::Marpa::Recognizer::text {
 
             # If it's a lexable and a regex was not defined, there must be a
             # closure
-            croak("Illegal type for lexer: $lexer_type")
+            Carp::croak("Illegal type for lexer: $lexer_type")
                 unless $lexer_type eq 'ARRAY';
 
             my ( $lex_closure, $prefix, $suffix ) = @{$lexer};
@@ -815,7 +818,7 @@ sub Parse::Marpa::Recognizer::text {
                     'Matched Closure for ',
                     $lexable->[Parse::Marpa::Internal::Symbol::NAME],
                     " at $pos: ", $match, "\n"
-		or croak('Could not print to trace file');
+		or Carp::croak('Could not print to trace file');
             }
 
             last LEXABLE unless $ambiguous_lex;
@@ -903,10 +906,10 @@ sub scan_set {
     my ( $earley_set_list, $earley_hash, $grammar, $current_set,
         $furthest_earleme, $exhausted, )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASH, GRAMMAR, CURRENT_SET,
-        FURTHEST_EARLEME, EXHAUSTED
+        Parse::Marpa::Internal::Recognizer::EARLEY_SETS,      Parse::Marpa::Internal::Recognizer::EARLEY_HASH, Parse::Marpa::Internal::Recognizer::GRAMMAR, Parse::Marpa::Internal::Recognizer::CURRENT_SET,
+        Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME, Parse::Marpa::Internal::Recognizer::EXHAUSTED
         ];
-    croak('Attempt to scan tokens after parsing was exhausted') if $exhausted;
+    Carp::croak('Attempt to scan tokens after parsing was exhausted') if $exhausted;
     my $QDFA = $grammar->[Parse::Marpa::Internal::Grammar::QDFA];
 
     my $earley_set = $earley_set_list->[$current_set];
@@ -935,7 +938,7 @@ sub scan_set {
             my ( $token, $value, $length ) = @{$alternative};
 
             if ( $length <= 0 ) {
-                croak(    'Token '
+                Carp::croak(    'Token '
                         . $token->[Parse::Marpa::Internal::Symbol::NAME]
                         . ' with bad length '
                         . $length );
@@ -944,7 +947,7 @@ sub scan_set {
             # Make sure it's an allowed terminal symbol.
             unless ( $token->[Parse::Marpa::Internal::Symbol::TERMINAL] ) {
                 my $name = $token->[Parse::Marpa::Internal::Symbol::NAME];
-                croak(    'Non-terminal '
+                Carp::croak(    'Non-terminal '
                         . ( defined $name ? "$name " : q{} )
                         . 'supplied as token' );
             }
@@ -1013,10 +1016,10 @@ sub complete_set {
     my ( $earley_set_list, $earley_hash, $grammar, $current_set,
         $furthest_earleme, $exhausted, $lexables_by_state )
         = @{$parse}[
-        EARLEY_SETS,      EARLEY_HASH,   GRAMMAR, CURRENT_SET,
-        FURTHEST_EARLEME, EXHAUSTED,     LEXABLES_BY_STATE,
+        Parse::Marpa::Internal::Recognizer::EARLEY_SETS,      Parse::Marpa::Internal::Recognizer::EARLEY_HASH,   Parse::Marpa::Internal::Recognizer::GRAMMAR, Parse::Marpa::Internal::Recognizer::CURRENT_SET,
+        Parse::Marpa::Internal::Recognizer::FURTHEST_EARLEME, Parse::Marpa::Internal::Recognizer::EXHAUSTED,     Parse::Marpa::Internal::Recognizer::LEXABLES_BY_STATE,
         ];
-    croak('Attempt to complete another earley set after parsing was exhausted')
+    Carp::croak('Attempt to complete another earley set after parsing was exhausted')
         if $exhausted;
 
     my $earley_set  = $earley_set_list->[$current_set];
@@ -1136,7 +1139,7 @@ sub complete_set {
 
     if ($trace_completions) {
         print {$trace_fh} Parse::Marpa::show_earley_set($earley_set)
-	  or croak('Cannot print to trace file');
+	  or Carp::croak('Cannot print to trace file');
     }
 
     my $lexables = [
@@ -1174,7 +1177,7 @@ in_file($_, 't/equation_s.t');
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Carp::croak("Parse failed at offset $fail_offset");
     }
 
 Z<>
@@ -1203,7 +1206,7 @@ in_file($_, 't/equation.t');
 
     TOKEN: for my $token (@tokens) {
 	next TOKEN if $recce->earleme($token);
-	croak('Parsing exhausted at character: ', $token->[1]);
+	Carp::croak('Parsing exhausted at character: ', $token->[1]);
     }
 
     $recce->end_input();
@@ -1470,7 +1473,7 @@ in_file($_, 't/equation_s.t');
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Carp::croak("Parse failed at offset $fail_offset");
     }
 
 Extends the parse using the one-character-per-earleme model.
@@ -1528,7 +1531,7 @@ in_file($_, 't/ah2.t');
 =end Marpa::Test::Display:
 
     my $a = $grammar->get_symbol('a');
-    $recce->earleme([$a, 'a', 1]) or croak('Parsing exhausted');
+    $recce->earleme([$a, 'a', 1]) or Carp::croak('Parsing exhausted');
 
 The C<earleme> method takes zero or more arguments.
 Each argument represents a token which starts at the B<current earleme>.

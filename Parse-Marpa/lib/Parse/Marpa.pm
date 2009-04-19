@@ -135,38 +135,38 @@ sub Parse::Marpa::mdl {
     my $options = shift;
 
     my $ref = ref $grammar;
-    croak(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
+    Carp::croak(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq 'SCALAR';
 
     $ref = ref $text;
-    croak(qq{text arg to mdl() was ref type "$ref", must be string ref})
+    Carp::croak(qq{text arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq 'SCALAR';
 
     $options //= {};
     $ref = ref $options;
-    croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
+    Carp::croak(qq{text arg to mdl() was ref type "$ref", must be hash ref})
         unless $ref eq 'HASH';
 
     my $g =
-        new Parse::Marpa::Grammar( { mdl_source => $grammar, %{$options} } );
-    my $recce = new Parse::Marpa::Recognizer( {
+        Parse::Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
+    my $recce = Parse::Marpa::Recognizer->new( {
         grammar => $g,
         clone => 0
     } );
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {
-        die_with_parse_failure( $text, $failed_at_earleme );
+        Parse::Marpa::Grammar::die_with_parse_failure( $text, $failed_at_earleme );
     }
 
     $recce->end_input();
 
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = Parse::Marpa::Evaluator->new( {
         recce => $recce,
         clone => 0,
     } );
     if ( not defined $evaler ) {
-        die_with_parse_failure( $text, length $text );
+        Parse::Marpa::Grammar::die_with_parse_failure( $text, length $text );
     }
     return $evaler->value if not wantarray;
     my @values;
@@ -542,7 +542,7 @@ should not be relied on or modified.
 =head2 Returns and Exceptions
 
 Most Marpa methods return only if successful.
-On failure they throw an exception using C<croak()>.
+On failure they throw an exception using C<Carp::croak()>.
 If you don't want the exception to be fatal, catch it using C<eval>.
 A few failures are considered "non-exceptional" and returned.
 Non-exceptional failures are described in the documentation for the method which returns them.

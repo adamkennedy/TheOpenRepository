@@ -14,7 +14,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    Test::More::use_ok('Parse::Marpa');
 }
 
 my $example_dir = 'example';

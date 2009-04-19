@@ -12,7 +12,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	Test::More::use_ok( 'Parse::Marpa' );
 }
 
 # A grammar from Hopcroft & Ullman,
@@ -20,7 +20,7 @@ BEGIN {
 # (Addison-Wesley, Reading, Massachusetts: 1979),
 # pp. 248, 250.
 
-my $g = new Parse::Marpa::Grammar({
+my $g = Parse::Marpa::Grammar->new({
     precompute => 0,
     start => q{S'},
     strip => 0,

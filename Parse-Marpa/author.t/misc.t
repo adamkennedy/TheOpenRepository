@@ -11,7 +11,7 @@ use Parse::Marpa;
 # compile and execute.  No checking other than for compilation errors
 # or fatal exceptions is done.  This code DOES NOT do anything sensible.
 
-pass('misc.pl compiled');
+Test::More::pass('misc.pl compiled');
 
 my $mdl_source = <<'END';
 semantics are perl5.
@@ -20,7 +20,7 @@ start symbol is S.
 
 S: Document.
 
-Document: .
+Document: /.+/ .
 
 END
 
@@ -29,7 +29,7 @@ my $location;
 my $first_result;
 my @all_results;
 
-my $grammar = new Parse::Marpa::Grammar();
+my $grammar = Parse::Marpa::Grammar->new();
 
 $grammar->set( { mdl_source => \$mdl_source } );
 
@@ -50,7 +50,7 @@ my $new_lex_preamble = q{1};
 
 ## use Marpa::Test::Display new Recognizer snippet
 
-my $recce = new Parse::Marpa::Recognizer(
+my $recce = Parse::Marpa::Recognizer->new(
     {   grammar      => $grammar,
         lex_preamble => $new_lex_preamble,
     }
@@ -73,7 +73,7 @@ $recce = Parse::Marpa::Recognizer::unstringify($stringified_recce);
 
 my $cloned_recce = $recce->clone();
 
-my $evaler = new Parse::Marpa::Evaluator(
+my $evaler = Parse::Marpa::Evaluator->new(
     {   recce => $recce,
         end   => $location,
         clone => 0,
@@ -105,7 +105,7 @@ my $lexeme_start = 0;
 ## no Marpa::Test::Display
 }
 
-my $g = new Parse::Marpa::Grammar();
+my $g = Parse::Marpa::Grammar->new();
 
 $g->set( { start => Parse::Marpa::MDL::canonical_symbol_name('Document') } );
 
@@ -138,4 +138,4 @@ $first_result =
 
 ## no Marpa::Test::Display
 
-pass('misc.pl ran to end');
+Test::More::pass('misc.pl ran to end');

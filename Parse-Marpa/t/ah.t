@@ -13,10 +13,10 @@ use Marpa::Test;
 use Carp;
 
 BEGIN {
-    use_ok('Parse::Marpa');
+    Test::More::use_ok('Parse::Marpa');
 }
 
-my $g = new Parse::Marpa::Grammar({
+my $g = Parse::Marpa::Grammar->new({
     start => q{S'},
     rules => [
         [ q{S'}, [qw/S/] ],

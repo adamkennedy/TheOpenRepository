@@ -13,7 +13,7 @@ use Marpa::Test;
 use Carp;
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	Test::More::use_ok( 'Parse::Marpa' );
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -23,7 +23,7 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $grammar = new Parse::Marpa::Grammar({
+my $grammar = Parse::Marpa::Grammar->new({
     start => 'E',
     strip => 0,
 
@@ -47,7 +47,7 @@ my $grammar = new Parse::Marpa::Grammar({
             } elsif ($op eq '-') {
                $value = $left_value - $right_value;
             } else {
-               croak("Unknown op: $op");
+               Carp::croak("Unknown op: $op");
             }
             '(' . $left_string . $op . $right_string . ')==' . $value;
 EOCODE
@@ -102,7 +102,7 @@ St6: 8
 E['] ::= E .
 END_QDFA
 
-my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+my $recce = Parse::Marpa::Recognizer->new({grammar => $grammar});
 
 my $op = $grammar->get_symbol('Op');
 my $number = $grammar->get_symbol('Number');
@@ -119,7 +119,7 @@ my @tokens = (
 
 TOKEN: for my $token (@tokens) {
     next TOKEN if $recce->earleme($token);
-    croak('Parsing exhausted at character: ', $token->[1]);
+    Carp::croak('Parsing exhausted at character: ', $token->[1]);
 }
 
 $recce->end_input();
@@ -131,14 +131,14 @@ my @expected = (
     '(2-((0*3)+1))==1',
     '(2-(0*(3+1)))==2',
 );
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce, clone => 0 } );
+my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
 my $i = -1;
 while (defined(my $value = $evaler->value()))
 {
     $i++;
     if ($i > $#expected) {
-       fail('Ambiguous equation has extra value: ' . ${$value} . "\n");
+       Test::More::fail('Ambiguous equation has extra value: ' . ${$value} . "\n");
     } else {
        Marpa::Test::is(${$value}, $expected[$i], "Ambiguous Equation Value $i");
     }

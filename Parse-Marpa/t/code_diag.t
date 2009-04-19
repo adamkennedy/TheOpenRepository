@@ -14,7 +14,7 @@ use Carp;
 use English qw( -no_match_vars );
 
 BEGIN {
-	use_ok( 'Parse::Marpa' );
+	Test::More::use_ok( 'Parse::Marpa' );
 }
 
 my @features = qw(
@@ -76,7 +76,7 @@ LINE: while (my $line = <DATA>)
         HEADER: while (my $header = pop @headers) {
             if ($header =~ s/\A expected \s //xms) {
                 my ($feature, $test) = ($header =~ m/\A ([^\s]*) \s+ (.*) \Z/xms);
-                croak("expected result given for unknown test, feature: $test, $feature")
+                Carp::croak("expected result given for unknown test, feature: $test, $feature")
                     unless defined $expected{$test}{$feature};
                 $expected{$test}{$feature} = $data;
                 next HEADER;
@@ -88,12 +88,12 @@ LINE: while (my $line = <DATA>)
             }
             if ($header =~ s/\A bad \s code \s //xms) {
                 chomp $header;
-                croak("test code given for unknown test: $header")
+                Carp::croak("test code given for unknown test: $header")
                     unless defined $test_code{$header};
                 $test_code{$header} = $data;
                 next HEADER;
             }
-            croak("Bad header: $header");
+            Carp::croak("Bad header: $header");
         } # HEADER
         $getting_headers = 1;
         $data = q{};
@@ -145,11 +145,11 @@ sub run_test {
         when ('null_action') { $null_action = $value }
         when ('unstringify_grammar') { return Parse::Marpa::Grammar::unstringify(\$value) }
         when ('unstringify_recce') { return Parse::Marpa::Recognizer::unstringify(\$value) }
-        default { croak("unknown argument to run_test: $arg"); }
+        default { Carp::croak("unknown argument to run_test: $arg"); }
       }
     }
 
-    my $grammar = new Parse::Marpa::Grammar({
+    my $grammar = Parse::Marpa::Grammar->new({
         start => 'S',
         rules => [
             [ 'S', [qw/E trailer optional_trailer1 optional_trailer2/], ],
@@ -172,17 +172,17 @@ sub run_test {
         default_null_value => $default_null_value,
     });
 
-    my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+    my $recce = Parse::Marpa::Recognizer->new({grammar => $grammar});
 
     my $fail_offset = $recce->text( '2 - 0 * 3 + 1 q{trailer}' );
     if ( $fail_offset >= 0 ) {
-        croak("Parse failed at offset $fail_offset");
+        Carp::croak("Parse failed at offset $fail_offset");
     }
 
     $recce->end_input();
 
     my $expected = '((((2-0)*3)+1)==7; q{trailer};[default null];[null])';
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
     my $value = $evaler->value();
     Marpa::Test::is(${$value}, $expected, 'Ambiguous Equation Value');
 
@@ -225,7 +225,7 @@ for my $test (@tests)
             });
         })
         {
-           fail("$test_name did not fail -- that shouldn't happen");
+           Test::More::fail("$test_name did not fail -- that shouldn't happen");
         } else {
             my $eval_error = $EVAL_ERROR;
             my $where = $where{$feature};
@@ -823,7 +823,7 @@ if ($op eq '+') {
 } elsif ($op eq '-') {
    $value = $left_value - $right_value;
 } else {
-   croak("Unknown op: $op");
+   Carp::croak("Unknown op: $op");
 }
 '(' . $left_string . $op . $right_string . ')==' . $value;
 __END__

@@ -491,7 +491,7 @@ sub Parse::Marpa::Internal::code_problems {
         push @msg, q{======} . "\n";
     }
 
-    croak(@msg);
+    Carp::croak(@msg);
 }
 
 package Parse::Marpa::Internal::Source_Eval;
@@ -746,7 +746,7 @@ sub die_with_parse_failure {
     my $source  = shift;
     my $earleme = shift;
 
-    croak( Parse::Marpa::show_location( 'Parse failed', $source, $earleme ) );
+    Carp::croak( Parse::Marpa::show_location( 'Parse failed', $source, $earleme ) );
 }
 
 # The following method fails if "use Parse::Marpa::Raw_Source" is not
@@ -765,7 +765,7 @@ sub Parse::Marpa::stringify_source_grammar {
         $raw_source_grammar->[Parse::Marpa::Internal::Grammar::VERSION];
     $raw_source_version //= 'not defined';
     if ( $raw_source_version ne $Parse::Marpa::VERSION ) {
-        croak(
+        Carp::croak(
             "raw source grammar version ($raw_source_version) does not match Marpa version (",
             $Parse::Marpa::VERSION, ')'
         );
@@ -794,7 +794,7 @@ sub parse_source_grammar {
         else {
             my $eval_error = $Parse::Marpa::Internal::STRINGIFIED_EVAL_ERROR
                 // 'no eval error';
-            croak( "No stringified source grammar:\n", $eval_error );
+            Carp::croak( "No stringified source grammar:\n", $eval_error );
         }
     }
 
@@ -814,7 +814,7 @@ sub parse_source_grammar {
     }
     $recce->end_input();
     my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
-    croak('Marpa Internal error: failed to create evaluator for MDL') unless defined $evaler;
+    Carp::croak('Marpa Internal error: failed to create evaluator for MDL') unless defined $evaler;
     my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
     return;
@@ -842,11 +842,11 @@ sub Parse::Marpa::Grammar::set {
     # value of source needs to be a *REF* to a string
     my $source = $args->{'mdl_source'};
     if ( defined $source ) {
-        croak('Cannot source grammar with some rules already defined')
+        Carp::croak('Cannot source grammar with some rules already defined')
             if $phase != Parse::Marpa::Internal::Phase::NEW;
-        croak('Source for grammar must be specified as string ref')
+        Carp::croak('Source for grammar must be specified as string ref')
             unless ref $source eq 'SCALAR';
-        croak('Source for grammar undefined')
+        Carp::croak('Source for grammar undefined')
             if not defined ${$source};
         parse_source_grammar( $grammar, $source, $args->{'source_options'} );
         delete $args->{'mdl_source'};
@@ -862,10 +862,10 @@ sub Parse::Marpa::Grammar::set {
                     Parse::Marpa::Internal::Interface::RAW;
                 $interface =
                     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
-                croak( 'rules option not allowed with '
-                        . interface_description($interface) )
+                Carp::croak( 'rules option not allowed with '
+                        . Parse::Marpa::Interface::description($interface) )
                     if $interface ne Parse::Marpa::Internal::Interface::RAW;
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_rules( $grammar, $value );
@@ -877,10 +877,10 @@ sub Parse::Marpa::Grammar::set {
                     Parse::Marpa::Internal::Interface::RAW;
                 $interface =
                     $grammar->[Parse::Marpa::Internal::Grammar::INTERFACE];
-                croak( 'terminals option not allowed with '
-                        . interface_description($interface) )
+                Carp::croak( 'terminals option not allowed with '
+                        . Parse::Marpa::Interface::description($interface) )
                     if $interface ne Parse::Marpa::Internal::Interface::RAW;
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 add_user_terminals( $grammar, $value );
@@ -888,20 +888,20 @@ sub Parse::Marpa::Grammar::set {
                     Parse::Marpa::Internal::Phase::RULES;
             }
             when ('start') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::START_NAME] = $value;
             }
             when ('academic') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::ACADEMIC] =
                     $value;
             }
             when ('default_null_value') {
-                croak( "$option option not allowed in ",
+                Carp::croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar
@@ -909,14 +909,14 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('default_action') {
-                croak( "$option option not allowed in ",
+                Carp::croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::DEFAULT_ACTION] =
                     $value;
             }
             when ('default_lex_prefix') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar
@@ -924,7 +924,7 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('default_lex_suffix') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar
@@ -932,14 +932,14 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('ambiguous_lex') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::AMBIGUOUS_LEX] =
                     $value;
             }
             when ('strip') {
-                croak(
+                Carp::croak(
                     "$option option not allowed in ", Parse::Marpa::Internal::Phase::description($phase))
                     if $phase >= Parse::Marpa::Internal::Phase::EVALUATING;
                 $grammar->[Parse::Marpa::Internal::Grammar::STRIP] =
@@ -987,7 +987,7 @@ sub Parse::Marpa::Grammar::set {
                 }
             }
             when ('trace_values') {
-		croak('trace_values must be set to a number >= 0')
+		Carp::croak('trace_values must be set to a number >= 0')
 		    unless $value =~ /\A\d+\z/xms;
                 $grammar->[Parse::Marpa::Internal::Grammar::TRACE_VALUES] =
                     $value + 0;
@@ -1039,7 +1039,7 @@ sub Parse::Marpa::Grammar::set {
                 }
             }
             when ('trace_iterations') {
-		croak('trace_iterations must be set to a number >= 0')
+		Carp::croak('trace_iterations must be set to a number >= 0')
 		    unless $value =~ /\A\d+\z/xms;
                 $grammar->[
                     Parse::Marpa::Internal::Grammar::TRACE_ITERATIONS]
@@ -1070,10 +1070,10 @@ sub Parse::Marpa::Grammar::set {
                 }
             }
             when ('location_callback') {
-                croak('location callback not yet implemented');
+                Carp::croak('location callback not yet implemented');
             }
             when ('opaque') {
-                croak( 'the opaque option has been removed');
+                Carp::croak( 'the opaque option has been removed');
             }
             when ('cycle_action') {
                 say {$trace_fh}
@@ -1081,7 +1081,7 @@ sub Parse::Marpa::Grammar::set {
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
-		croak("$option must be 'warn', 'quiet' or 'fatal'")
+		Carp::croak("$option must be 'warn', 'quiet' or 'fatal'")
 		    unless $value eq 'warn'
                         || $value eq 'quiet'
                         || $value eq 'fatal';
@@ -1089,7 +1089,7 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('cycle_depth') {
-		croak('cycle_depth must be set to a number > 0')
+		Carp::croak('cycle_depth must be set to a number > 0')
 		    if not defined $value or $value !~ /\A\d+\z/xms or $value <= 0;
                 $grammar->[Parse::Marpa::Internal::Grammar::CYCLE_DEPTH] =
                     $value;
@@ -1109,7 +1109,7 @@ sub Parse::Marpa::Grammar::set {
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
-                croak('value of inaccessible_ok option must be an array ref')
+                Carp::croak('value of inaccessible_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
                 $grammar->[Parse::Marpa::Internal::Grammar::INACCESSIBLE_OK] =
                     {map { ( $_, 1 ) } @{$value} };
@@ -1120,7 +1120,7 @@ sub Parse::Marpa::Grammar::set {
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
-                croak('value of unproductive_ok option must be an array ref')
+                Carp::croak('value of unproductive_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
                 $grammar->[Parse::Marpa::Internal::Grammar::UNPRODUCTIVE_OK] =
                     {map { ( $_, 1 ) } @{$value} };
@@ -1130,7 +1130,7 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('allow_raw_source') {
-                croak( "$option option not allowed in ",
+                Carp::croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::RULES;
                 $grammar->[Parse::Marpa::Internal::Grammar::ALLOW_RAW_SOURCE]
@@ -1141,34 +1141,34 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('version') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::VERSION] = $value;
             }
             when ('semantics') {
-                croak(
+                Carp::croak(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
                 $grammar->[Parse::Marpa::Internal::Grammar::SEMANTICS] =
                     $value;
             }
             when ('lex_preamble') {
-                croak( "$option option not allowed in ",
+                Carp::croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::LEX_PREAMBLE] =
                     $value;
             }
             when ('preamble') {
-                croak( "$option option not allowed in ",
+                Carp::croak( "$option option not allowed in ",
                     Parse::Marpa::Internal::Phase::description($phase) )
                     if $phase >= Parse::Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Parse::Marpa::Internal::Grammar::PREAMBLE] =
                     $value;
             }
             default {
-                croak("$_ is not an available Marpa option");
+                Carp::croak("$_ is not an available Marpa option");
             }
         }
     }
@@ -1219,7 +1219,7 @@ sub Parse::Marpa::Grammar::precompute {
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
-        croak(
+        Carp::croak(
             Parse::Marpa::Grammar::show_problems($grammar),
             "Second attempt to precompute grammar with fatal problems\n",
             'Marpa cannot proceed'
@@ -1234,7 +1234,7 @@ sub Parse::Marpa::Grammar::precompute {
     }
 
     if ( $phase != Parse::Marpa::Internal::Phase::RULES ) {
-        croak(
+        Carp::croak(
             "Attempt to precompute grammar in inappropriate state\nAttempt to precompute ",
             Parse::Marpa::Internal::Phase::description($phase)
         );
@@ -1335,7 +1335,7 @@ sub Parse::Marpa::Grammar::stringify {
     my $phase = $grammar->[Parse::Marpa::Internal::Grammar::PHASE];
     if (   $phase != Parse::Marpa::Internal::Phase::PRECOMPUTED )
     {
-        croak(
+        Carp::croak(
             "Attempt to stringify grammar in inappropriate state\nAttempt to stringify ",
             Parse::Marpa::Internal::Phase::description($phase)
         );
@@ -1343,7 +1343,7 @@ sub Parse::Marpa::Grammar::stringify {
 
     my $problems = $grammar->[Parse::Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
-        croak(
+        Carp::croak(
             Parse::Marpa::Grammar::show_problems($grammar),
             "Attempt to stringify grammar with fatal problems\n",
             'Marpa cannot proceed'
@@ -1368,9 +1368,9 @@ sub Parse::Marpa::Grammar::unstringify {
     my $trace_fh         = shift;
     $trace_fh //= *STDERR;
 
-    croak('Attempt to unstringify undefined grammar')
+    Carp::croak('Attempt to unstringify undefined grammar')
         unless defined $stringified_grammar;
-    croak('Arg to unstringify must be ref to SCALAR')
+    Carp::croak('Arg to unstringify must be ref to SCALAR')
         if ref $stringified_grammar ne 'SCALAR';
 
     my $grammar;
@@ -1867,7 +1867,7 @@ sub add_terminal {
             when ('suffix')   { $suffix        = $value; }
             when ('regex')    { $regex         = $value; }
             default {
-                croak(
+                Carp::croak(
                     "Attempt to add terminal named $name with unknown option $key"
                 );
             }
@@ -1891,7 +1891,7 @@ sub add_terminal {
     if ( defined $symbol ) {
 
         if ( $symbol->[Parse::Marpa::Internal::Symbol::TERMINAL] ) {
-            croak("Attempt to add terminal twice: $name");
+            Carp::croak("Attempt to add terminal twice: $name");
         }
 
         @{$symbol}[
@@ -1967,9 +1967,9 @@ sub assign_user_symbol {
     my $self = shift;
     my $name = shift;
     if (my $type = ref $name) {
-        croak("Symbol name was ref to $type; it must be a scalar string")
+        Carp::croak("Symbol name was ref to $type; it must be a scalar string")
     }
-    croak("Symbol name $name ends in '_': that's not allowed")
+    Carp::croak("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
     return assign_symbol( $self, $name );
 }
@@ -1992,7 +1992,7 @@ sub add_user_rule {
     my $rule_key = join q{,},
         map { $_->[Parse::Marpa::Internal::Symbol::ID] }
             ( $lhs_symbol, @{$rhs_symbols} );
-    croak( 'Duplicate rule: ', $lhs_name, ' -> ', (join q{ }, @{$rhs_names}) )
+    Carp::croak( 'Duplicate rule: ', $lhs_name, ' -> ', (join q{ }, @{$rhs_names}) )
         if exists $rule_hash->{$rule_key};
 
     $rule_hash->{$rule_key} = 1;
@@ -2000,13 +2000,13 @@ sub add_user_rule {
     $user_priority //= 0;
     my $max_priority = 1_000_000;
     if ( $user_priority > $max_priority ) {
-        croak(
+        Carp::croak(
             "Rule priority ($user_priority) greater than maximum ($max_priority)"
         );
     }
     my $min_priority = -1_000_000;
     if ( $user_priority < $min_priority ) {
-        croak(
+        Carp::croak(
             "Rule priority ($user_priority) less than minimum ($min_priority)"
         );
     }
@@ -2078,7 +2078,7 @@ sub add_rule {
             join( q{ },
             map { $_->[Parse::Marpa::Internal::Symbol::NAME] } @{$rhs} ),
             "\n"
-        or croak('Could not print to trace file');
+        or Carp::croak('Could not print to trace file');
     }
     return $new_rule;
 }
@@ -2095,7 +2095,7 @@ sub add_user_rules {
                 my $arg_count = @{$rule};
 
                 if ( $arg_count > 4 or $arg_count < 1 ) {
-                    croak(
+                    Carp::croak(
                         "Rule has $arg_count arguments: "
                             . join( ', ',
                             map { defined $_ ? $_ : 'undef' } @{$rule} )
@@ -2112,7 +2112,7 @@ sub add_user_rules {
                 add_rules_from_hash( $grammar, $rule );
             }
             default {
-                croak( 'Invalid rule reftype ', ( $_ ? $_ : 'undefined' ) );
+                Carp::croak( 'Invalid rule reftype ', ( $_ ? $_ : 'undefined' ) );
             }
         }
 
@@ -2144,24 +2144,24 @@ sub add_rules_from_hash {
             when ('left_associative')  { $left_associative  = $value }
             when ('right_associative') { $left_associative  = !$value }
             when ('priority')          { $user_priority     = $value }
-            default { croak("Unknown option in counted rule: $option") };
+            default { Carp::croak("Unknown option in counted rule: $option") };
         }
     }
 
-    croak('Only left associative sequences available')
+    Carp::croak('Only left associative sequences available')
         unless $left_associative;
     given ($min) {
 	when (undef) {;}
 	when ([0, 1]) {;}
 	default {
-	    croak('If min is defined for a rule, it must be 0 or 1')
+	    Carp::croak('If min is defined for a rule, it must be 0 or 1')
 	}
     }
 
     if ( scalar @{$rhs_names} == 0 or not defined $min) {
 
         if (defined $separator_name ) {
-            croak('separator defined for rule without repetitions');
+            Carp::croak('separator defined for rule without repetitions');
 	}
 
 	# This is an ordinary, non-counted rule,
@@ -2191,7 +2191,7 @@ sub add_rules_from_hash {
         $min = 1;
     }
 
-    croak('Only one rhs symbol allowed for counted rule')
+    Carp::croak('Only one rhs symbol allowed for counted rule')
         if scalar @{$rhs_names} != 1;
 
     # create the rhs symbol
@@ -2232,7 +2232,7 @@ sub add_rules_from_hash {
         my $rule_key = join q{,},
             map { $_->[Parse::Marpa::Internal::Symbol::ID] }
                 ( $lhs, @key_rhs );
-        croak( 'Duplicate rule: ',
+        Carp::croak( 'Duplicate rule: ',
             $lhs_name, q{ -> }, (join q{,}, @{$rhs_names}) )
             if exists $rule_hash->{$rule_key};
         $rule_hash->{$rule_key} = 1;
@@ -2257,7 +2257,7 @@ EO_CODE
 
             }
             else {
-		croak('Only left associative sequences available')
+		Carp::croak('Only left associative sequences available')
             }
             $rule_action .= $action;
         }
@@ -2299,7 +2299,7 @@ EO_CODE
         }
     }
     else {
-	croak('Only left associative sequences available')
+	Carp::croak('Only left associative sequences available')
     }
 
     add_rule( $grammar, $sequence, $counted_rhs, $rule_action,
@@ -2347,7 +2347,7 @@ sub add_user_terminals {
         if (ref $terminal eq 'ARRAY') {
             my $arg_count = @{$terminal};
             if ( $arg_count > 2 or $arg_count < 1 ) {
-                croak('terminal must have 1 or 2 arguments');
+                Carp::croak('terminal must have 1 or 2 arguments');
             }
             ( $lhs_name, $options ) = @{$terminal};
         } else {
@@ -2364,9 +2364,9 @@ sub add_user_terminal {
     my $options = shift;
 
     if (my $type = ref $name) {
-        croak("Terminal name was ref to $type; it must be a scalar string")
+        Carp::croak("Terminal name was ref to $type; it must be a scalar string")
     }
-    croak("Symbol name $name ends in '_': that's not allowed")
+    Carp::croak("Symbol name $name ends in '_': that's not allowed")
         if $name =~ /_\z/xms;
     add_terminal( $grammar, $name, $options );
     return;
@@ -2377,9 +2377,9 @@ sub check_start {
     my $success    = 1;
 
     my $start_name = $grammar->[Parse::Marpa::Internal::Grammar::START_NAME];
-    croak('No start symbol specified') unless defined $start_name;
+    Carp::croak('No start symbol specified') unless defined $start_name;
     if (my $ref_type = ref $start_name) {
-        croak("Start symbol name specified as a ref to $ref_type, it should be a string");
+        Carp::croak("Start symbol name specified as a ref to $ref_type, it should be a string");
     }
 
     my $symbol_hash =
@@ -2387,7 +2387,7 @@ sub check_start {
     my $start = $symbol_hash->{$start_name};
 
     if ( not defined $start ) {
-        croak( 'Start symbol: ' . $start_name . ' not defined' )
+        Carp::croak( 'Start symbol: ' . $start_name . ' not defined' )
     }
 
     my ( $lhs, $rhs, $terminal, $productive ) = @{$start}[
@@ -2645,7 +2645,7 @@ sub terminals_distinguished {
     my $rules = $grammar->[Parse::Marpa::Internal::Grammar::RULES];
     RULE: for my $rule ( @{$rules} ) {
         next RULE if scalar @{$rule->[Parse::Marpa::Internal::Rule::RHS]};
-        croak("A grammar with empty rules must mark its terminals");
+        Carp::croak('A grammar with empty rules must mark its terminals');
     }
     return 0;
 }
@@ -3106,12 +3106,12 @@ sub detect_cycle {
                 print {$trace_fh}
                     'Cycle found involving rule: ',
                     Parse::Marpa::brief_rule($warning_rule), "\n"
-                or croak('Could not print to trace file');
+                or Carp::croak('Could not print to trace file');
             }
 	}
     }
 
-    croak( 'Cycle in grammar, fatal error' )
+    Carp::croak( 'Cycle in grammar, fatal error' )
        if $cycle_count and $cycle_is_fatal;
 
     return 1;
@@ -3482,7 +3482,7 @@ sub create_QDFA {
     my $initial_NFA_states =
         $NFA_s0->[Parse::Marpa::Internal::NFA::TRANSITION]->{ q{} };
     if ( not defined $initial_NFA_states ) {
-        croak('Empty NFA, cannot create QDFA');
+        Carp::croak('Empty NFA, cannot create QDFA');
     }
     $grammar->[Parse::Marpa::Internal::Grammar::START_STATES] =
         assign_QDFA_state_set( $grammar, $initial_NFA_states );

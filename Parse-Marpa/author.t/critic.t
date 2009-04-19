@@ -25,8 +25,8 @@ sub run_critic {
     push @cmd, $file;
     my ( $child_out, $child_in );
 
-    my $pid = open2( $child_out, $child_in, @cmd )
-        or croak("IPC::Open2 of perlcritic pipe failed: $ERRNO");
+    my $pid = IPC::Open2::open2( $child_out, $child_in, @cmd )
+        or Carp::croak("IPC::Open2 of perlcritic pipe failed: $ERRNO");
     close $child_in;
     my $critic_output = do {
         local ($RS) = undef;
@@ -36,21 +36,28 @@ sub run_critic {
     waitpid $pid, 0;
     if ( my $child_error = $CHILD_ERROR ) {
         my $error_message;
-        if ( WIFEXITED( ${^CHILD_ERROR_NATIVE} ) != 1 ) {
+        if (WIFEXITED(
+                ## critic apparently can't find ${^CHILD_ERROR_NATIVE}
+                ## no critic (Subroutines::ProhibitCallsToUndeclaredSubs)
+                ${^CHILD_ERROR_NATIVE}
+                    ## use critic (Subroutines::ProhibitCallsToUndeclaredSubs)
+            ) != 1
+            )
+        {
             $error_message = "perlcritic returned $child_error";
-        }
+        } ## end if ( WIFEXITED( ${^CHILD_ERROR_NATIVE} ) != 1 )
         if ( defined $error_message ) {
             print {*STDERR} $error_message, "\n"
-                or croak("Cannot print to STDERR: $ERRNO");
+                or Carp::croak("Cannot print to STDERR: $ERRNO");
             $critic_output .= "$error_message\n";
         }
         return \$critic_output;
-    }
+    } ## end if ( my $child_error = $CHILD_ERROR )
     return q{};
 }
 
 open my $manifest, '<', 'MANIFEST'
-    or croak("open of MANIFEST failed: $ERRNO");
+    or Carp::croak("open of MANIFEST failed: $ERRNO");
 
 my @test_files = ();
 FILE: while ( my $file = <$manifest> ) {
@@ -70,12 +77,12 @@ FILE: while ( my $file = <$manifest> ) {
 }    # FILE
 close $manifest;
 
-plan tests => scalar @test_files;
+Test::More::plan tests => scalar @test_files;
 
 open my $error_file, '>', 'author.t/perlcritic.errs';
 FILE: for my $file (@test_files) {
     if ( not -f $file ) {
-        fail("perlcritic of non-file: $file");
+        Test::More::fail("perlcritic of non-file: $file");
         next FILE;
     }
     my $warnings = run_critic($file);
@@ -89,9 +96,9 @@ FILE: for my $file (@test_files) {
             . ( scalar @newlines )
             . ' lines of warnings';
     }
-    ok( $clean, $message );
+    Test::More::ok( $clean, $message );
     next FILE if $clean;
     print {$error_file} "=== $file ===\n" . ${$warnings}
-        or croak("print failed: $ERRNO");
+        or Carp::croak("print failed: $ERRNO");
 }
 close $error_file;

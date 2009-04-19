@@ -37,7 +37,7 @@ my $new_default_lex_prefix;
 my %strings;
 
 sub usage {
-   croak("usage: $0 grammar-file\n");
+   Carp::croak("usage: $0 grammar-file\n");
 }
 
 my $argc = @ARGV;
@@ -1062,13 +1062,13 @@ $new_start_symbol //= '(undefined start symbol)';
 $new_semantics //= 'not defined';
 $new_version //= 'not defined';
 
-croak('Version requested is ', $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, ' exactly.')
+Carp::croak('Version requested is ', $new_version, "\nVersion must match ", $Parse::Marpa::VERSION, ' exactly.')
    unless $new_version eq $Parse::Marpa::VERSION;
 
-croak('Semantics are ', $new_semantics, "\nThe only semantics currently available are perl5.")
+Carp::croak('Semantics are ', $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq 'perl5';
 
-my $g = new Parse::Marpa::Grammar({
+my $g = Parse::Marpa::Grammar->new({
     start => $new_start_symbol,
     rules => $new_rules,
     terminals => $new_terminals,
@@ -1093,7 +1093,7 @@ $g->set({
 
 $g->precompute();
 
-my $recce = new Parse::Marpa::Recognizer({
+my $recce = Parse::Marpa::Recognizer->new({
    grammar=> $g,
    preamble => $new_preamble,
    lex_preamble => $new_lex_preamble,
@@ -1120,7 +1120,7 @@ my $spec;
 
 {
     local($RS) = undef;
-    open my $grammar, '<', $grammar_file_name or croak("Cannot open $grammar_file_name: $ERRNO");
+    open my $grammar, '<', $grammar_file_name or Carp::croak("Cannot open $grammar_file_name: $ERRNO");
     $spec = <$grammar>;
     close $grammar;
     if ((my $earleme = $recce->text(\$spec)) >= 0) {
@@ -1139,8 +1139,8 @@ my $spec;
 
 $recce->end_input();
 
-my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
-croak('No parse') unless $evaler;
+my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
+Carp::croak('No parse') unless $evaler;
 
 sub slurp {
     open my $fh, '<', shift;
@@ -1159,7 +1159,7 @@ if ($header_file_name)
     {
         # explicit STDOUT is workaround for perlcritic bug
         print {*STDOUT} $header
-            or croak("print failed: $ERRNO");
+            or Carp::croak("print failed: $ERRNO");
     }
 }
 
@@ -1173,7 +1173,7 @@ if ($trailer_file_name)
     {
         # explicit STDOUT is workaround for perlcritic bug
         print {*STDOUT} $trailer
-            or croak("print failed: $ERRNO");
+            or Carp::croak("print failed: $ERRNO");
     }
 }
 
