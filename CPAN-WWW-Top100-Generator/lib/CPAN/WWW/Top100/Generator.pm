@@ -87,7 +87,7 @@ sub report {
 	my $class  = shift;
 	my %param = @_;
 	my $list  = CPANTS::Weight->selectall_arrayref(
-		$class->_distsql( $param ),
+		$class->_distsql( %param ),
 	);
 	$class->_rank( $list );
 	return @$list;
