@@ -134,6 +134,7 @@ sub report_changed_versions {
 	my $self = shift;
 	my $repo = $self->repository;
 	my @rows = ();
+	$self->trace("Scanning distributions... (this may take a few minutes)\n");
 	foreach my $dist ( $repo->distributions_released ) {
 		my $extract = $dist->latest->extract;
 		next unless -f $dist->changes_file;
@@ -151,7 +152,7 @@ sub report_changed_versions {
 	print ADAMK::Util::table(
 		[ 'Name', 'Trunk', 'Release' ],
 		@rows,
-	);	
+	);
 }
 
 sub report_module_install_versions {
