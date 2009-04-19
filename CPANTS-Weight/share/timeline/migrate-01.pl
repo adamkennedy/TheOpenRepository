@@ -1,24 +1,5 @@
-#!/usr/bin/perl
-
 use strict;
-use File::Spec ();
-use lib File::Spec->rel2abs(
-	File::Spec->catdir(
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-	)
-);
-use Padre::DB::Patch;
-
-
-
-
-
-#####################################################################
-# Patch Content
+use ORLite::Migrate::Patch;
 
 # Create the author_weight table
 do(<<'END_SQL');
@@ -40,5 +21,3 @@ create table dist_weight (
 	debian_candidate integer      not null
 )
 END_SQL
-
-exit(0);

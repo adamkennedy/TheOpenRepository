@@ -50,7 +50,7 @@ use constant ORLITE_TIMELINE => File::Spec->catdir(
 
 use ORLite          1.20 ();
 use ORLite::Mirror  1.12 ();
-use ORLite::Migrate 0.02 {
+use ORLite::Migrate 0.03 {
 	file         => ORLITE_FILE,
 	create       => 1,
 	timeline     => ORLITE_TIMELINE,
