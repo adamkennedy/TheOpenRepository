@@ -383,3 +383,11 @@ severity=5
 [Variables::RequireNegativeIndices]
 severity=5
 
+[Subroutines::ProhibitCallsToUnexportedSubs]
+severity=1
+
+[Subroutines::ProhibitQualifiedSubDeclarations]
+severity=1
+
+[Modules::RequireExplicitInclusion]
+severity=1
