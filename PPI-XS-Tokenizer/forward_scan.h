@@ -38,6 +38,9 @@ public:
 class PredicateTrue {
 public:
 	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+		(void)text;
+		(void)position;
+		(void)line_lenght;
 		return true;
 	}
 };
@@ -45,6 +48,9 @@ public:
 class PredicateFalse {
 public:
 	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+		(void)text;
+		(void)position;
+		(void)line_lenght;
 		return false;
 	}
 };
@@ -117,6 +123,27 @@ public:
 			return true;
 		}
 		return false;
+	}
+};
+
+template <unsigned long len, char *str>
+class PredicateLiteral {
+public:
+	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+		if ( str[len] != '\0' ) {
+			printf("PredicateLiteral failure: last char is not zero (%s)", str);
+			return false;
+		}
+		if ( *position >= ( line_lenght - len + 1 ) )
+			return false;
+		ulong pos = *position;
+		for (ulong ix = 0; ix < len; ix++) {
+			if ( text[pos + ix] != str[ix] ) {
+				return false;
+			}
+		}
+		*position += len;
+		return true;
 	}
 };
 

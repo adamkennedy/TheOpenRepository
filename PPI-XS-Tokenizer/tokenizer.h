@@ -51,7 +51,9 @@ enum TokenTypeNames {
 	Token_Separator,
 	Token_End,
 	Token_Data,
-	Token_Pod,
+	Token_Pod, // done
+	Token_BOM,
+	Token_Foreign_Block, // for Perl6 code, unimplemented
 	Token_LastTokenType, // Marker for the last real types
 
 	// Here are abstract markers
@@ -109,7 +111,7 @@ public:
 	/* tokenize as much as you can
 	 * by default, declares new token of this type, and start tokenizing
 	 */
-	virtual CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
+	virtual CharTokenizeResults commit(Tokenizer *t);
 	virtual bool isa( TokenTypeNames is_type ) const;
 	Token *GetNewToken( Tokenizer *t, TokensCacheMany& tc, ulong line_length );
 	virtual void FreeToken( TokensCacheMany& tc, Token *token );
@@ -292,14 +294,14 @@ class CommentToken : public AbstractTokenType {
 public:
 	CommentToken() : AbstractTokenType( Token_Comment, false ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
-	CharTokenizeResults commit(Tokenizer *t, unsigned char c_token);
+	CharTokenizeResults commit(Tokenizer *t);
 };
 
 class StructureToken : public AbstractTokenType {
 public:
 	StructureToken() : AbstractTokenType( Token_Structure, true ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
-	CharTokenizeResults commit(Tokenizer *t, unsigned char c_token);
+	CharTokenizeResults commit(Tokenizer *t);
 };
 
 class SymbolToken : public AbstractTokenType {
@@ -352,7 +354,7 @@ class WordToken : public AbstractTokenType {
 public:
 	WordToken() : AbstractTokenType( Token_Word, true ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
-	CharTokenizeResults commit(Tokenizer *t, unsigned char c_char);
+	CharTokenizeResults commit(Tokenizer *t);
 };
 
 class NumberToken : public AbstractTokenType {
@@ -420,6 +422,12 @@ public:
 	virtual bool isa( TokenTypeNames is_type ) const;
 	// my_type, sign, num_sections, accept_modifiers
 	ParameterizedAttributeToken() : AbstractBareQuoteTokenType( Token_Attribute_Parameterized, true, 1, false ) {}
+};
+
+class PodToken : public AbstractTokenType {
+public:
+	PodToken() : AbstractTokenType( Token_Pod, false ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
 #define NUM_SIGNIFICANT_KEPT 3
@@ -527,6 +535,7 @@ private:
 	LabelToken m_LabelToken;
 	AttributeToken m_AttributeToken;
 	ParameterizedAttributeToken m_ParameterizedAttributeToken;
+	PodToken m_PodToken;
 
 	void keep_significant_token(Token *t);
 

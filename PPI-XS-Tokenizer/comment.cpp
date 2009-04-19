@@ -3,7 +3,7 @@
 
 #include "tokenizer.h"
 
-CharTokenizeResults CommentToken::commit(Tokenizer *t, unsigned char c_char) {
+CharTokenizeResults CommentToken::commit(Tokenizer *t) {
     t->_new_token(Token_Comment);
     Token *c_token = t->c_token;
 	char *c_token_text = c_token->text;

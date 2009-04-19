@@ -11,7 +11,7 @@ CharTokenizeResults StructureToken::tokenize(Tokenizer *t, Token *token, unsigne
 	return done_it_myself;
 }
 
-CharTokenizeResults StructureToken::commit(Tokenizer *t, unsigned char c_token) {
+CharTokenizeResults StructureToken::commit(Tokenizer *t) {
 	t->_new_token(Token_Structure);
 	return my_char;
 }

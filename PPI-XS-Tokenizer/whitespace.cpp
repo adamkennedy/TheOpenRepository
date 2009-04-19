@@ -46,7 +46,7 @@ TokenTypeNames commit_map[128] = {
 static bool scan_ahead_for_lineread(const Tokenizer *t) {
 	ulong pos = t->line_pos + 1;
 
-	static PredicateAnd<
+	PredicateAnd<
 		PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
 		PredicateNot< PredicateFunc< is_digit > >,
 		PredicateOneOrMore< PredicateFunc < is_word > >,
@@ -57,13 +57,28 @@ static bool scan_ahead_for_lineread(const Tokenizer *t) {
 }
 
 CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	if ( t->line_pos == 0 ) {
+		// start of the line testings
+		PredicateAnd<
+			PredicateIsChar< '=' >,
+			PredicateFunc< is_word >
+		> regex1;
+		ulong pos = 0;
+		if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
+			t->_finalize_token();
+			t->_new_token( Token_Pod );
+			return done_it_myself;
+		}
+		// FIXME: I'm not going to handle "use v6-alpha;" - Perl6 blocks
+	}
+
     if ( c_char < 128 ) {
         if ( commit_map[c_char] == Token_WhiteSpace ) {
 			return my_char;
 		}
         if ( commit_map[c_char] != Token_NoType ) {
             // this is the first char of some token
-			return t->TokenTypeNames_pool[commit_map[c_char]]->commit(t, c_char);
+			return t->TokenTypeNames_pool[commit_map[c_char]]->commit( t );
         }
     }
 	
@@ -175,7 +190,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 				return my_char;
 			}
 		}
-		return t->TokenTypeNames_pool[Token_Word]->commit(t, c_char);
+		return t->TokenTypeNames_pool[Token_Word]->commit( t );
 	}
 
 	if ( c_char == '-' ) {
@@ -191,4 +206,22 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 	// FIXME: Add the c_char > 127 part?
 
     return error_fail;
+}
+
+extern char end_pod[] = "=cut";
+CharTokenizeResults PodToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	// will enter here only on the line's start, but not nessesery on byte 0.
+	// there may be a BOM before it.
+	PredicateLiteral< 4, end_pod > regex;
+	ulong pos = t->line_pos;
+	// suck the line anyway
+	for ( ulong ix = pos; ix < t->line_length; ix++ ) {
+		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+	}
+	if ( regex.test( t->c_line, &pos, t->line_length ) &&
+		( ( pos >= t->line_length ) || is_whitespace( t->c_line[ pos ] ) ) ) {
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token(zone);
+	}
+	return done_it_myself;
 }

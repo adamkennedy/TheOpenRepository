@@ -222,7 +222,7 @@ static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev
 	return Token_Word;
 }
 
-CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
+CharTokenizeResults WordToken::commit(Tokenizer *t) {
 	// $rest =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/
 	PredicateAnd< 
 		PredicateNot< PredicateFunc< is_digit > >,
@@ -273,7 +273,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
 		t->changeTokenType( Token_Separator );
 		t->_finalize_token();
 		t->zone = Token_End;
-		t->TokenTypeNames_pool[ Token_Comment ]->commit( t, t->c_line[ t->line_pos ] );
+		t->TokenTypeNames_pool[ Token_Comment ]->commit( t );
 		while ( t->line_length > t->line_pos )
 			t->c_token->text[ t->c_token->length++ ] = t->c_line[ t->line_pos++ ];
 		t->_finalize_token();
@@ -284,7 +284,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t, unsigned char c_char) {
 		t->changeTokenType( Token_Separator );
 		t->_finalize_token();
 		t->zone = Token_Data;
-		t->TokenTypeNames_pool[ Token_Comment ]->commit( t, t->c_line[ t->line_pos ] );
+		t->TokenTypeNames_pool[ Token_Comment ]->commit( t );
 		while ( t->line_length > t->line_pos )
 			t->c_token->text[ t->c_token->length++ ] = t->c_line[ t->line_pos++ ];
 		t->_finalize_token();

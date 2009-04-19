@@ -321,6 +321,8 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, "5", Token_Number);
 	CheckToken(&tk, "}", Token_Structure);
 
+	Tokenize("=head start of pod\n");
+	Tokenize("=cut");
 
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);

@@ -9,7 +9,7 @@
 // AbstractTokenType
 //=====================================
 
-CharTokenizeResults AbstractTokenType::commit(Tokenizer *t, unsigned char c_char) { 
+CharTokenizeResults AbstractTokenType::commit(Tokenizer *t) { 
 	t->_new_token(type);
 	return my_char;
 }
@@ -285,6 +285,8 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Label] = &m_LabelToken;
 	TokenTypeNames_pool[Token_Attribute] = &m_AttributeToken;
 	TokenTypeNames_pool[Token_Attribute_Parameterized] = &m_ParameterizedAttributeToken;
+	TokenTypeNames_pool[Token_Pod] = &m_PodToken;
+
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
 	}

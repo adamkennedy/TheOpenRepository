@@ -1,61 +1,34 @@
 #include "stdio.h"
 #include "forward_scan.h"
 
-static void is_true( const char *name, bool check ) {
+static void is_true( bool check, int line ) {
 	if (!check)
-		printf("Forward_scan_UI: %s: Is not correct (false)\n", name);
+		printf("Forward_scan_UI: %d: Is not correct (false)\n", line);
 }
 
-static void is_false( const char *name, bool check ) {
+static void is_false( bool check, int line ) {
 	if (check)
-		printf("Forward_scan_UI: %s: Is not correct (true)\n", name);
+		printf("Forward_scan_UI: %d: Is not correct (true)\n", line);
 }
+#define BE_TRUE( check ) is_true( (check), __LINE__ );
+#define BE_FALSE( check ) is_false( (check), __LINE__ );
+
+typedef unsigned long ulong;
+extern char l_test[] = "yz";
 
 void forward_scan2_unittest() {
-	PredicateOr <
-		PredicateAnd < 
-			PredicateIsChar<':'>, PredicateNot< PredicateIsChar<':'> > >,
-		PredicateAnd< 
-			PredicateOr<
-				PredicateOneOrMore< PredicateFunc< is_word > >,
-				PredicateAnd< 
-					PredicateIsChar<'\''>, 
-					PredicateNot< PredicateFunc< is_digit > >,
-					PredicateOneOrMore< PredicateFunc< is_word > > >,
-				PredicateAnd< 
-					PredicateIsChar<':'>, 
-					PredicateIsChar<':'>, 
-					PredicateOneOrMore< PredicateFunc< is_word > > > >,
-			PredicateZeroOrMore<
-				PredicateOr<
-					PredicateAnd< 
-						PredicateIsChar<'\''>, 
-						PredicateNot< PredicateFunc< is_digit > >,
-						PredicateOneOrMore< PredicateFunc< is_word > > >,
-					PredicateAnd< 
-						PredicateIsChar<':'>, 
-						PredicateIsChar<':'>, 
-						PredicateOneOrMore< PredicateFunc< is_word > > > > >,
-			PredicateZeroOrOne< 
-				PredicateAnd< 
-					PredicateIsChar<':'>, 
-					PredicateIsChar<':'> > >
-		>> x;
-	unsigned long pos = 0;
-	is_false( "only :", x.test( "::", &pos, 2) );
-	is_true("pos", pos == 0 );
-	is_true( "only :", x.test( ":5", &pos, 2) );
-	is_true("pos", pos == 1 );
+	PredicateIsChar< 'x' > regex1;
+	ulong pos = 0;
+	BE_TRUE( regex1.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 1 );
+	BE_FALSE( regex1.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 1 );
+	
+	PredicateLiteral< 2, l_test > regex2;
 	pos = 0;
-	is_true( "only :", x.test( ":", &pos, 1) );
-	is_true("pos", pos == 1 );
-	pos = 0;
-	is_true( "only :", x.test( ":5", &pos, 1) );
-	is_true("pos", pos == 1 );
-	pos = 0;
-	is_false( "only :", x.test( "&:5", &pos, 3) );
-	is_true("pos", pos == 0 );
+	BE_FALSE( regex2.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 0 );
 	pos = 1;
-	is_true( "only :", x.test( "&:5", &pos, 3) );
-	is_true("pos", pos == 2 );
+	BE_TRUE( regex2.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 3 );
 }
