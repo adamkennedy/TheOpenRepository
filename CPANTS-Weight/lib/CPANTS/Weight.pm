@@ -20,7 +20,7 @@ applications that work with the CPANTS data.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                              ();
+use File::Spec                       3.2701 ();
 use File::HomeDir                      0.82 ();
 use File::ShareDir                     1.00 ();
 use Algorithm::Dependency             1.108 ();
@@ -28,9 +28,10 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 our $DEBUG;
+
 sub trace {
 	print STDERR "# $_[0]\n" if $DEBUG;
 }
@@ -47,7 +48,8 @@ use constant ORLITE_TIMELINE => File::Spec->catdir(
 	'timeline',
 );
 
-use ORLite 1.20 ();
+use ORLite          1.20 ();
+use ORLite::Mirror  1.12 ();
 use ORLite::Migrate 0.02 {
 	file         => ORLITE_FILE,
 	create       => 1,
