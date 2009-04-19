@@ -7,7 +7,7 @@ no warnings 'recursion';
 use strict;
 
 BEGIN {
-    our $VERSION        = '1.003_000';
+    our $VERSION = '1.003_000';
 }
 
 use integer;
@@ -19,32 +19,32 @@ use Parse::Marpa::Lex;
 
 use Carp;
 our @CARP_NOT = qw(
-Parse::Marpa
-Parse::Marpa::Evaluator
-Parse::Marpa::Grammar
-Parse::Marpa::Internal
-Parse::Marpa::Internal::And_Node
-Parse::Marpa::Internal::Earley_item
-Parse::Marpa::Internal::Evaluator
-Parse::Marpa::Internal::Evaluator::Rule
-Parse::Marpa::Internal::Grammar
-Parse::Marpa::Internal::Interface
-Parse::Marpa::Internal::LR0_item
-Parse::Marpa::Internal::Lex
-Parse::Marpa::Internal::NFA
-Parse::Marpa::Internal::Or_Node
-Parse::Marpa::Internal::Or_Sapling
-Parse::Marpa::Internal::Phase
-Parse::Marpa::Internal::QDFA
-Parse::Marpa::Internal::Recognizer
-Parse::Marpa::Internal::Rule
-Parse::Marpa::Internal::Source_Eval
-Parse::Marpa::Internal::Source_Raw
-Parse::Marpa::Internal::Symbol
-Parse::Marpa::Internal::Tree_Node
-Parse::Marpa::Lex
-Parse::Marpa::MDL
-Parse::Marpa::Recognizer
+    Parse::Marpa
+    Parse::Marpa::Evaluator
+    Parse::Marpa::Grammar
+    Parse::Marpa::Internal
+    Parse::Marpa::Internal::And_Node
+    Parse::Marpa::Internal::Earley_item
+    Parse::Marpa::Internal::Evaluator
+    Parse::Marpa::Internal::Evaluator::Rule
+    Parse::Marpa::Internal::Grammar
+    Parse::Marpa::Internal::Interface
+    Parse::Marpa::Internal::LR0_item
+    Parse::Marpa::Internal::Lex
+    Parse::Marpa::Internal::NFA
+    Parse::Marpa::Internal::Or_Node
+    Parse::Marpa::Internal::Or_Sapling
+    Parse::Marpa::Internal::Phase
+    Parse::Marpa::Internal::QDFA
+    Parse::Marpa::Internal::Recognizer
+    Parse::Marpa::Internal::Rule
+    Parse::Marpa::Internal::Source_Eval
+    Parse::Marpa::Internal::Source_Raw
+    Parse::Marpa::Internal::Symbol
+    Parse::Marpa::Internal::Tree_Node
+    Parse::Marpa::Lex
+    Parse::Marpa::MDL
+    Parse::Marpa::Recognizer
 );
 
 # Maybe MDL will be optional someday, but not today
@@ -106,18 +106,17 @@ our $STRINGIFIED_EVAL_ERROR;
 
 BEGIN {
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    if (not eval ' use Parse::Marpa::Source ')
-    ## use critic 
+    if ( not eval ' use Parse::Marpa::Source ' )
+        ## use critic
     {
         $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
-        my $marpa_version = $Parse::Marpa::VERSION // 'undef';
+        my $marpa_version  = $Parse::Marpa::VERSION         // 'undef';
         my $source_version = $Parse::Marpa::Source::VERSION // 'undef';
-        if ($marpa_version ne $source_version)
-        {
-           $STRINGIFIED_EVAL_ERROR =
-              'MDL/Marpa version mismatch:'
-              . " Marpa is version '$marpa_version'; "
-              . " MDL source is for version '$source_version'"
+        if ( $marpa_version ne $source_version ) {
+            $STRINGIFIED_EVAL_ERROR =
+                  'MDL/Marpa version mismatch:'
+                . " Marpa is version '$marpa_version'; "
+                . " MDL source is for version '$source_version'";
         }
     }
     undef $Parse::Marpa::Internal::stringified_source_grammar
@@ -135,7 +134,8 @@ sub Parse::Marpa::mdl {
     my $options = shift;
 
     my $ref = ref $grammar;
-    Carp::croak(qq{grammar arg to mdl() was ref type "$ref", must be string ref})
+    Carp::croak(
+        qq{grammar arg to mdl() was ref type "$ref", must be string ref})
         unless $ref eq 'SCALAR';
 
     $ref = ref $text;
@@ -149,22 +149,25 @@ sub Parse::Marpa::mdl {
 
     my $g =
         Parse::Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
-    my $recce = Parse::Marpa::Recognizer->new( {
-        grammar => $g,
-        clone => 0
-    } );
+    my $recce = Parse::Marpa::Recognizer->new(
+        {   grammar => $g,
+            clone   => 0
+        }
+    );
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {
-        Parse::Marpa::Grammar::die_with_parse_failure( $text, $failed_at_earleme );
+        Parse::Marpa::Grammar::die_with_parse_failure( $text,
+            $failed_at_earleme );
     }
 
     $recce->end_input();
 
-    my $evaler = Parse::Marpa::Evaluator->new( {
-        recce => $recce,
-        clone => 0,
-    } );
+    my $evaler = Parse::Marpa::Evaluator->new(
+        {   recce => $recce,
+            clone => 0,
+        }
+    );
     if ( not defined $evaler ) {
         Parse::Marpa::Grammar::die_with_parse_failure( $text, length $text );
     }

@@ -44,7 +44,7 @@ my $punct = qr'[!"#$%&\x{27}(*+,-./:;<=?\x{5b}^_`{|~@]'xms;
 sub lex_q_quote {
     my $string = shift;
     my $start  = shift;
-    my ($left_bracket) = (${$string} =~ m/\Gqq?($punct)/xmsogc);
+    my ($left_bracket) = ( ${$string} =~ m/\Gqq?($punct)/xmsogc );
     return unless defined $left_bracket;
 
     my $regex_data = $regex_data{$left_bracket};
@@ -80,7 +80,7 @@ sub lex_q_quote {
     my $depth = 1;
     MATCH: while ( ${$string} =~ /$regex/gxms ) {
         given ($1) {
-            when (undef)  {return}
+            when (undef)          {return}
             when ($left_bracket)  { $depth++; }
             when ($right_bracket) { $depth--; }
         }
@@ -96,7 +96,7 @@ sub lex_regex {
     my $string       = shift;
     my $lexeme_start = shift;
     my $value_start  = pos ${$string};
-    my ($left_side) = (${$string} =~ m{\G(qr$punct|/)}xmsogc);
+    my ($left_side) = ( ${$string} =~ m{\G(qr$punct|/)}xmsogc );
     return unless defined $left_side;
     my $left_bracket = substr $left_side, -1;
     my $prefix = ( $left_side =~ /^qr/xms ) ? q{} : 'qr';
@@ -129,8 +129,9 @@ sub lex_regex {
                 my $pos = pos ${$string};
                 return (
                     $prefix
-                        . substr( ${$string}, $value_start,
-                        $pos - $value_start ),
+                        . substr(
+                        ${$string}, $value_start, $pos - $value_start
+                        ),
                     $pos - $lexeme_start
                 );
             }
@@ -142,7 +143,7 @@ sub lex_regex {
     my $depth = 1;
     MATCH: while ( ${$string} =~ /$regex/gxms ) {
         given ($1) {
-            when (undef)  {return}
+            when (undef)          {return}
             when ($left_bracket)  { $depth++; }
             when ($right_bracket) { $depth--; }
         }
