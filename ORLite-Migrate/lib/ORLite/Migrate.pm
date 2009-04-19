@@ -4,14 +4,18 @@ package ORLite::Migrate;
 
 use 5.006;
 use strict;
-use Carp         ();
-use Params::Util qw{ _STRING _CLASS _HASH };
-use DBI          ();
-use ORLite       ();
+use Carp              ();
+use File::Spec 3.2701 ();
+use File::Path   2.04 ();
+use File::Basename    ();
+use Params::Util 0.37 qw{ _STRING _CLASS _HASH };
+use DBI          1.58 ();
+use DBD::SQLite  1.21 ();
+use ORLite       1.20 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = 'ORLite';
 }
 
