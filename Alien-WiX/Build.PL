@@ -63,7 +63,7 @@ my $builder = $class->new(
 		'Win32API::Registry'
 		                => '0.30',
 		'Win32::TieRegistry'
-		                => '0.25',
+		                => '0.26',
     },
 	recommends          => {
 		'Readonly::XS'  => '1.05',
