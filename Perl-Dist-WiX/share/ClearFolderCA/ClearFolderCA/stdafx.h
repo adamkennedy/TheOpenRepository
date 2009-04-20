@@ -31,3 +31,4 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <tchar.h>
+#pragma comment(lib, "msi.lib")

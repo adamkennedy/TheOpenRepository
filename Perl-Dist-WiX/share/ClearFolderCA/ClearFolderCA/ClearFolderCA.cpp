@@ -7,35 +7,47 @@
 
 #include "stdafx.h"
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
+BOOL APIENTRY DllMain(HMODULE hModule,
+                      DWORD  ul_reason_for_call,
+                      LPVOID lpReserved
 					 )
 {
     return TRUE;
 }
 
+UINT LogString(MSIHANDLE hModule, LPCTSTR sMessage) 
+{
+	PMSIHANDLE hRecord = ::MsiCreateRecord(2);
+
+	TCHAR szTemp[MAX_PATH * 2];
+
+	_stprintf_s(szTemp, MAX_PATH * 2, TEXT("-- MSI_LOGGING --   %s"), sMessage); 
+
+	::MsiRecordSetString(hRecord, 0, szTemp);
+	return ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
+}
+
 UINT GetDirectoryIDView(MSIHANDLE hModule, 
 					    LPCTSTR sParentDirID,
-					    MSIHANDLE& hView )
+					    MSIHANDLE& hView)
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `Directory`,`DefaultDir` FROM `Directory` WHERE `Directory_Parent`= ?");
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
-	uiAnswer = MsiDatabaseOpenView(hModule, sSQL, &hView);
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &hView);
 
 	if (uiAnswer != ERROR_SUCCESS) {
 		return uiAnswer;
 	}
 
-	PMSIHANDLE phRecord = MsiCreateRecord(1);
+	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
 	// ERROR: phRecord == NULL
 
-	uiAnswer = MsiRecordSetString(phRecord, 1, sParentDirID);
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sParentDirID);
 
-	uiAnswer = MsiViewExecute(hView, phRecord);
+	uiAnswer = ::MsiViewExecute(hView, phRecord);
 
 	return uiAnswer;
 }
@@ -52,21 +64,21 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 	while (uiAnswer == ERROR_SUCCESS) {
 
 		DWORD dwLengthDir = MAX_PATH + 1;
-		uiAnswer = MsiRecordGetString(phRecord, 2, sDir, &dwLengthDir);
+		uiAnswer = ::MsiRecordGetString(phRecord, 2, sDir, &dwLengthDir);
 
 		if (_tcscmp(sDirectory, sDir) == 0) {
 			DWORD dwLengthID = 0;
-			uiAnswer = MsiRecordGetString(phRecord, 1, _T(""), &dwLengthID);
+			uiAnswer = ::MsiRecordGetString(phRecord, 1, _T(""), &dwLengthID);
 			if (uiAnswer == ERROR_MORE_DATA) {
 				dwLengthID++;
 				sDirectoryID = (TCHAR *)malloc(dwLengthID * sizeof(TCHAR));
-				uiAnswer = MsiRecordGetString(phRecord, 1,sDirectoryID, &dwLengthID);
+				uiAnswer = ::MsiRecordGetString(phRecord, 1,sDirectoryID, &dwLengthID);
 			}
-			MsiViewClose(hView);
+			::MsiViewClose(hView);
 			return ERROR_SUCCESS;
 		}
 
-		uiAnswer = MsiViewFetch(hView, &phRecord);
+		uiAnswer = ::MsiViewFetch(hView, &phRecord);
 	}
 
 	if (uiAnswer == ERROR_NO_MORE_ITEMS) {
@@ -88,42 +100,72 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
-	uiAnswer = MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
 
 	if (uiAnswer != ERROR_SUCCESS) {
 		return uiAnswer;
 	}
 
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
-	// ERROR: phRecord == NULL
+	if (phRecord == NULL) {
+		return ERROR_INSTALL_FAILURE;
+	}
 
-	uiAnswer = MsiRecordSetString(phRecord, 1, sDirectoryID);
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 
-	uiAnswer = MsiViewExecute(phView, phRecord);
+	if (uiAnswer != ERROR_SUCCESS) {
+		return uiAnswer;
+	}
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+
+	if (uiAnswer != ERROR_SUCCESS) {
+		return uiAnswer;
+	}
 
 	TCHAR sFile[MAX_PATH + 1];
+	TCHAR* sPipeLocation = NULL;
 	
-	uiAnswer = MsiViewFetch(phView, &phRecord);
+	// Fetch the first row.
+	uiAnswer = ::MsiViewFetch(phView, &phRecord);
 
 	while (uiAnswer == ERROR_SUCCESS) {
 
+		// Get the filename.
 		DWORD dwLengthFile = MAX_PATH + 1;
-		uiAnswer = MsiRecordGetString(phRecord, 2, sFile, &dwLengthFile);
+		uiAnswer = ::MsiRecordGetString(phRecord, 2, sFile, &dwLengthFile);
 
+		// Compare the filename.
 		if (_tcscmp(sFilename, sFile) == 0) {
 			bInstalled = TRUE;
-			MsiViewClose(phView);
+			::MsiViewClose(phView);
 			return ERROR_SUCCESS;
 		}
 
-		uiAnswer = MsiViewFetch(phView, &phRecord);
+		sPipeLocation = _tcschr(sFile, _T('|'));
+		if (sPipeLocation != NULL) {
+			// Adjust the position past the pipe character.
+			sPipeLocation = _tcsninc(sPipeLocation, 1); 
+
+			// NOW compare the filename!
+			if (_tcscmp(sFilename, sPipeLocation) == 0) {
+				bInstalled = TRUE;
+				::MsiViewClose(phView);
+				return ERROR_SUCCESS;
+			}
+		}
+
+		// Fetch the next row.
+		uiAnswer = ::MsiViewFetch(phView, &phRecord);
 	}
 
+	// It's not an error if we had no more rows to search for.
 	if (uiAnswer == ERROR_NO_MORE_ITEMS) {
 		uiAnswer = ERROR_SUCCESS;
 	}
 
-	uiAnswer = MsiViewClose(phView);
+	// Close out and get out of here.
+	uiAnswer = ::MsiViewClose(phView);
 	return uiAnswer;
 }
 
@@ -186,7 +228,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 	::FindClose(hFindHandle);
 	free(sFind);
 	if (hView != NULL) {
-		MsiViewClose(hView);
+		::MsiViewClose(hView);
 	}
 
 	if (uiAnswer != ERROR_SUCCESS) {
