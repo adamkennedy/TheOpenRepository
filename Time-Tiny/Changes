@@ -1,5 +1,9 @@
 Revision history for Perl extension Time::Tiny
 
+1.04 Mon 20 Apr 2009
+	- Converting to EU:MM
+	- Adding a few more tests
+
 1.02 Thu  5 Jun 2008
 	- Updating to Module::Install 0.75
 	  (Mental note, convert to EU:MM later)
