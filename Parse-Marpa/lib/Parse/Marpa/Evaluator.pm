@@ -1378,7 +1378,7 @@ in_file($_, 't/equation_s.t')
         Carp::croak("Parse failed at offset $fail_offset");
     }
 
-    my $evaler = new Parse::Marpa::Evaluator( { recognizer => $recce } );
+    my $evaler = Parse::Marpa::Evaluator->new( { recognizer => $recce } );
     Carp::croak('Parse failed') unless $evaler;
 
     my $i = -1;
@@ -1386,7 +1386,7 @@ in_file($_, 't/equation_s.t')
     {
         $i++;
         if ( $i > $#expected ) {
-            fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
+            Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
         }
         else {
             Marpa::Test::is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
@@ -1699,7 +1699,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $evaler = new Parse::Marpa::Evaluator(
+    my $evaler = Parse::Marpa::Evaluator->new(
       { recognizer => $recce }
     );
 
@@ -1712,7 +1712,7 @@ in_file($_, 'author.t/misc.t');
 
 =end Marpa::Test::Display:
 
-    my $evaler = new Parse::Marpa::Evaluator( {
+    my $evaler = Parse::Marpa::Evaluator->new( {
         recce => $recce,
         end => $location,
         clone => 0,
@@ -1752,7 +1752,7 @@ in_file($_, 'author.t/misc.t')
 
 =end Marpa::Test::Display:
 
-    $evaler->set( { cycle_depth => $depth } );
+    $evaler->set( { trace_values => 1 } );
 
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
 It allows Marpa options

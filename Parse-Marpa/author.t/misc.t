@@ -11,7 +11,7 @@ use Parse::Marpa;
 # compile and execute.  No checking other than for compilation errors
 # or fatal exceptions is done.  This code DOES NOT do anything sensible.
 
-Test::More::pass('misc.pl compiled');
+Test::More::pass('misc.t compiled');
 
 my $mdl_source = <<'END';
 semantics are perl5.
@@ -21,6 +21,8 @@ start symbol is S.
 S: Document.
 
 Document: /.+/ .
+
+Document: .
 
 END
 
@@ -82,7 +84,7 @@ my $evaler = Parse::Marpa::Evaluator->new(
 
 my $depth = 1;
 
-$evaler->set( { cycle_depth => $depth } );
+$evaler->set( { trace_values => 1 } );
 
 my $input_string = q{};
 my $lexeme_start = 0;
@@ -138,4 +140,4 @@ $first_result =
 
 ## no Marpa::Test::Display
 
-Test::More::pass('misc.pl ran to end');
+Test::More::pass('misc.t ran to end');

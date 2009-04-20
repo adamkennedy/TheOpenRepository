@@ -23,22 +23,26 @@ use integer;
 package Parse::Marpa::Internal;
 
 use Parse::Marpa::Offset Symbol =>
+
     # basic data
     qw(ID NAME),
+
     # evaluator data
     qw(IS_CHAF_NULLING NULL_ALIAS NULLING),
+
     # recognizer data
     qw(
-        ACTION PREFIX SUFFIX
-        REGEX PRIORITY TERMINAL
+    ACTION PREFIX SUFFIX
+    REGEX PRIORITY TERMINAL
     ),
+
     # temporary data
     qw(
-        LHS RHS ACCESSIBLE PRODUCTIVE START
-        NULLABLE NULL_VALUE
-        CLOSURE
-        COUNTED
-    );
+    LHS RHS ACCESSIBLE PRODUCTIVE START
+    NULLABLE NULL_VALUE
+    CLOSURE
+    COUNTED
+);
 
 package Parse::Marpa::Internal::Symbol;
 use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Symbol::NULLING;
@@ -72,21 +76,24 @@ package Parse::Marpa::Internal;
 #                   of rhs symbols
 
 use Parse::Marpa::Offset Rule =>
+
     # basic data
     qw(ID NAME LHS RHS
     ),
+
     # evaluator data
     qw(
-        USEFUL ACTION
-        CODE CYCLE
-        HAS_CHAF_LHS HAS_CHAF_RHS
+    USEFUL ACTION
+    CODE CYCLE
+    HAS_CHAF_LHS HAS_CHAF_RHS
     ),
+
     # temporary data
     qw(
-        ORIGINAL_RULE
-        PRIORITY
-        NULLABLE ACCESSIBLE PRODUCTIVE NULLING
-    );
+    ORIGINAL_RULE
+    PRIORITY
+    NULLABLE ACCESSIBLE PRODUCTIVE NULLING
+);
 
 package Parse::Marpa::Internal::Rule;
 use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::Rule::HAS_CHAF_RHS;
@@ -132,17 +139,21 @@ PRIORITY - rule priority
 =cut
 
 use Parse::Marpa::Offset QDFA =>
+
     # basic data
     qw(ID NAME TAG),
+
     # evaluator data
     qw(COMPLETE_RULES START_RULE),
+
     # recognizer data
     qw(TRANSITION COMPLETE_LHS
-        RESET_ORIGIN PRIORITY
+    RESET_ORIGIN PRIORITY
     ),
+
     # temporary data
     qw(NFA_STATES
-    );
+);
 
 package Parse::Marpa::Internal::QDFA;
 use constant LAST_EVALUATOR_FIELD => Parse::Marpa::Internal::QDFA::START_RULE;
@@ -800,7 +811,7 @@ sub parse_source_grammar {
 
     $source_options //= {};
 
-    my $recce = new Parse::Marpa::Recognizer(
+    my $recce = Parse::Marpa::Recognizer->new(
         {   stringified_grammar =>
                 $Parse::Marpa::Internal::stringified_source_grammar,
             trace_file_handle => $trace_fh,
@@ -813,7 +824,7 @@ sub parse_source_grammar {
         die_with_parse_failure( $source, $failed_at_earleme );
     }
     $recce->end_input();
-    my $evaler = new Parse::Marpa::Evaluator( { recce => $recce } );
+    my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
     Carp::croak('Marpa Internal error: failed to create evaluator for MDL') unless defined $evaler;
     my $value = $evaler->value();
     raw_grammar_eval( $grammar, $value );
@@ -4039,7 +4050,7 @@ in_file($_, 'author.t/misc.t');
 
 =end Marpa::Test::Display:
 
-    my $grammar = new Parse::Marpa::Grammar();
+    my $grammar = Parse::Marpa::Grammar->new();
 
 Z<>
 
@@ -4050,7 +4061,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $grammar = new Parse::Marpa::Grammar(
+    my $grammar = Parse::Marpa::Grammar->new(
 	{ max_parses => 10, mdl_source => \$source, } );
 
 C<Parse::Marpa::Recognizer::new> has one, optional, argument --

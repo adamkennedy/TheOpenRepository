@@ -1173,7 +1173,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer( { grammar => $grammar } );
+    my $recce = Parse::Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $fail_offset = $recce->text( '2-0*3+1' );
     if ( $fail_offset >= 0 ) {
@@ -1189,7 +1189,7 @@ in_file($_, 't/equation.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer({grammar => $grammar});
+    my $recce = Parse::Marpa::Recognizer->new({grammar => $grammar});
 
     my $op = $grammar->get_symbol('Op');
     my $number = $grammar->get_symbol('Number');
@@ -1414,7 +1414,7 @@ is_file($_, 'author.t/misc.t', 'new Recognizer snippet');
 
 =end Marpa::Test::Display:
 
-    my $recce = new Parse::Marpa::Recognizer(
+    my $recce = Parse::Marpa::Recognizer->new(
         {    grammar      => $grammar,
              lex_preamble => $new_lex_preamble,
         }

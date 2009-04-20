@@ -202,12 +202,13 @@ is_file($_, 'example/synopsis.pl');
     use 5.010;
     use strict;
     use warnings;
-    use English qw( -no_match_vars ) ;
+    use English qw( -no_match_vars );
     use Parse::Marpa;
 
     # remember to use refs to strings
     my $value = Parse::Marpa::mdl(
-        (do { local($RS) = undef; my $source = <DATA>; \$source; }),
+        (   do { local ($RS) = undef; my $source = <DATA>; \$source; }
+        ),
         \('2+2*3')
     );
     say ${$value};

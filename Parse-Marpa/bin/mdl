@@ -49,11 +49,11 @@ sub mdl_command
 
     given ($command) {
         when ('stringify') {
-            croak unless GetOptionsFromArray( $argvp, 'option=s' => \%options );
+            Carp::croak unless GetOptionsFromArray( $argvp, 'option=s' => \%options );
             return do_stringify();
         }
         when ('parse') {
-            croak
+            Carp::croak
                 unless GetOptionsFromArray( $argvp,
                 'grammar=s'            => \$grammar_file,
                 'stringified_grammar=s'   => \$stringified_grammar_file,
@@ -113,7 +113,7 @@ sub mdl_command
 
         }
         default {
-            croak("Unimplemented marpa command: $command");
+            Carp::croak("Unimplemented marpa command: $command");
         }
     }
 
@@ -135,7 +135,7 @@ sub do_stringify {
     $grammar->precompute();
     my $stringified_grammar = $grammar->stringify();
     print ${$stringified_grammar}
-        or croak "print failed: $OS_ERROR";
+        or Carp::croak "print failed: $OS_ERROR";
 
     return 1;
 
@@ -145,7 +145,7 @@ sub do_parse {
 
     my $grammar;
     if ( defined $stringified_grammar_file ) {
-        croak('Stringified grammars not implemented');
+        Carp::croak('Stringified grammars not implemented');
 
     }
     elsif ( defined $grammar_file ) {
@@ -166,38 +166,38 @@ sub do_parse {
                     source_options => \%source_options,
                 }
             );
-        } or croak( "Parse of $grammar_file failed:\n", $EVAL_ERROR );
+        } or Carp::croak( "Parse of $grammar_file failed:\n", $EVAL_ERROR );
         %options = ();
     }
     else {
-        croak('No grammar specified');
+        Carp::croak('No grammar specified');
     }
 
     $grammar->precompute();
 
     if ($show_symbols) {
         print $grammar->show_symbols()
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ($show_rules) {
         print $grammar->show_rules()
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ($show_problems) {
         print $grammar->show_problems()
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ($show_NFA) {
         print $grammar->show_NFA()
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ($show_QDFA) {
         print $grammar->show_QDFA()
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ($accessible_symbols) {
@@ -242,7 +242,7 @@ sub do_parse {
     if ($show_earley_sets) {
 	$recce->end_input();
 	print $recce->show_earley_sets
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     if ( $fail_location >= 0 ) {
@@ -250,7 +250,7 @@ sub do_parse {
                 'Parsing failed',
                 \$text_to_parse,
                 $fail_location,
-        ) or croak "print to STDERR failed: $OS_ERROR";
+        ) or Carp::croak "print to STDERR failed: $OS_ERROR";
         exit 1;
     }
 
@@ -267,7 +267,7 @@ sub do_parse {
 
     if (defined $show_bocage_verbosity) {
 	print $evaler->show_bocage($show_bocage_verbosity)
-            or croak "print failed: $OS_ERROR";
+            or Carp::croak "print failed: $OS_ERROR";
     }
 
     my $parse_count = 0;
@@ -275,7 +275,7 @@ sub do_parse {
 
         my $value = $evaler->value();
         if ( not defined $value ) {
-            croak 'No parse' if $parse_count <= 0;
+            Carp::croak 'No parse' if $parse_count <= 0;
             return;
         }
         $parse_count++;
@@ -287,7 +287,7 @@ sub do_parse {
 
         if (defined $show_tree_flag) {
             print $evaler->show_tree($show_tree_flag)
-                or croak "print failed: $OS_ERROR";
+                or Carp::croak "print failed: $OS_ERROR";
         }
 
         last PARSE unless $all_parses;
