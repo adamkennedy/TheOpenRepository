@@ -149,30 +149,39 @@ sub report_changed_versions {
 		next unless -f $dist->changes_file;
 		next unless -f $extract->changes_file;
 
+		# Skip if there's no new significant changes
 		my $trunk   = $dist->changes->current->version;
 		my $release = $extract->changes->current->version;
 		if ( $trunk eq $release ) {
-			# No new significant changes
 			next;
 		}
 
 		# How many log entries are there from the last release
-		my $from    = $dist->latest->svn_revision;
-		my $to      = $dist->svn_revision;
-		my @entries = $dist->svn_log('-r', "$from:$to");
+		my $from     = $dist->latest->svn_revision;
+		my $to       = $dist->svn_revision;
+		my @entries  = $dist->svn_log('-r', "$from:$to");
+
+		# Skip if there are no external commits
+		my @external = grep {
+			$_->author ne 'adamk@cpan.org'
+		} @entries;
+		if ( @_ and not @external ) {
+			next;
+		}
 
 		push @rows, [
 			$dist->name,
 			$trunk,
 			$release,
 			scalar(@entries),
+			scalar(@external),
 			$dist->svn_author,
 		];
 	}
 
 	# Generate the table
 	print ADAMK::Util::table(
-		[ 'Name', 'Trunk', 'Release', 'Changes', 'Last Commit By' ],
+		[ 'Name', 'Trunk', 'Release', 'Changes', 'External', 'Last Commit By' ],
 		@rows,
 	);
 }
