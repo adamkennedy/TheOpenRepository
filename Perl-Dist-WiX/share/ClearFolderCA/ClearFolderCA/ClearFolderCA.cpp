@@ -26,6 +26,10 @@ UINT GetDirectoryIDView(MSIHANDLE hModule,
 
 	uiAnswer = MsiDatabaseOpenView(hModule, sSQL, &hView);
 
+	if (uiAnswer != ERROR_SUCCESS) {
+		return uiAnswer;
+	}
+
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
 	// ERROR: phRecord == NULL
 
