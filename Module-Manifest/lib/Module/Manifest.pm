@@ -63,28 +63,28 @@ contact the maintainer.
 
 use 5.00503;
 use strict;
-use Carp           ();
-use File::Spec     ();
+use Carp             ();
+use File::Spec       ();
 use File::Spec::Unix ();
-use File::Basename ();
-use Params::Util   '_STRING';
+use File::Basename   ();
+use Params::Util     '_STRING';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.06';
+	$VERSION = '0.07';
 }
 
 # These platforms were copied from File::Spec
 my %platforms = (
-  MacOS   => 1,
-  MSWin32 => 1,
-  os2     => 1,
-  VMS     => 1,
-  epoc    => 1,
-  NetWare => 1,
-  symbian => 1,
-  dos     => 1,
-  cygwin  => 1,
+	MacOS   => 1,
+	MSWin32 => 1,
+	os2     => 1,
+	VMS     => 1,
+	epoc    => 1,
+	NetWare => 1,
+	symbian => 1,
+	dos     => 1,
+	cygwin  => 1,
 );
 
 =pod
