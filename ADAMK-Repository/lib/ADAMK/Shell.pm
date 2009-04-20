@@ -87,24 +87,22 @@ sub module {
 		( $changes ?
 			[ 'Trunk   Version', $changes->current->version ]
 		: () ),
-		( $release ?
-			[ 'Release Version', $release->version ]
-		: () ),
-		[ 'Trunk   SVN', $dist->svn_revision ],
-		( $release ?
-			[ 'Release SVN', $release->svn_revision ]
-		: () ),
-		[ 'Trunk   Author', $dist->svn_author ],
-		( $release ?
-			[ 'Release Author', $release->svn_author ]
-		: () ),
-		[ 'Trunk   Date', $dist->svn_date ],
-		( $release ?
-			[ 'Release Date', $release->svn_date ]
-		: () ),
-		map {
-			[ 'r' . $_->revision => $_->message ]
-		} @entries,
+		[ 'Trunk   Revision', $dist->svn_revision ],
+		[ 'Trunk   Author',   $dist->svn_author ],
+		[ 'Trunk   Date',     $dist->svn_date ],
+		( map {
+			my $revision = $_->revision;
+			my $message  = $_->author . ' - ' . $_->message;
+			$message =~ s/(.{52})/$1\n/g;
+			$message =~ s/\n+$//;
+			[ "Commit  $revision" => $message ]
+		} @entries ),
+		( $release ? (
+			[ 'Release Version',  $release->version      ],
+			[ 'Release Revision', $release->svn_revision ],
+			[ 'Release Author',   $release->svn_author   ],
+			[ 'Release Date',     $release->svn_date     ],
+		) : () ),
 	);
 }
 

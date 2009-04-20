@@ -133,7 +133,7 @@ sub svn_log {
 
 	# Parse the log tree
 	my @entries = ();
-	foreach my $hash ( @{$tree->[0]->{content}} ) {
+	foreach my $hash ( reverse @{$tree->[0]->{content}} ) {
 		my %entry = (
 			revision => $hash->{attrib}->{revision},
 			map {
