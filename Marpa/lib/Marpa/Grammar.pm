@@ -3261,20 +3261,12 @@ sub assign_QDFA_state_set {
         }
 
         $reset //= 0;
-        push @{$seen}, $reset, 0, $NFA_id;
+        push @{$seen}, $reset, $NFA_id;
 
     }    # WORK_ITEM
 
-    $highest_priority //= pack 'NN', 0, 0;
-
-    my @result_data = map { $_->[0] }
-        sort { $a->[1] cmp $b->[1] }
-        ## no critic (BuiltinFunctions::ProhibitComplexMappings)
-        map {
-        $_->[1] //= $highest_priority;
-        [ $_, ( ( pack 'N', $_->[0] ) . $_->[1] ) ]
-        }
-        ## use critic
+    my @result_data =
+        sort { $a->[0] <=> $b->[0] }
         grep { defined $_ and scalar @{$_} } @NFA_state_seen;
 
     # this is a fake record with an
@@ -3292,16 +3284,15 @@ sub assign_QDFA_state_set {
     # which is something like references to arrays of hash of references.
 
     my $old_reset = -2;    # -2 is an "impossible" value
-    my $old_priority;
     my @NFA_ids = ();
 
     # result data is an array of the "records"
     DATUM: for my $result_data (@result_data) {
 
-        my ( $reset, $priority, $NFA_id ) = @{$result_data};
+        my ( $reset, $NFA_id ) = @{$result_data};
 
         # if no "control break"
-        if ( $old_reset == $reset and $old_priority eq $priority ) {
+        if ( $old_reset == $reset ) {
             push @NFA_ids, $NFA_id;
             next DATUM;
         }
@@ -3363,7 +3354,6 @@ sub assign_QDFA_state_set {
         # reset everything for the next control break
         @NFA_ids      = ($NFA_id);
         $old_reset    = $reset;
-        $old_priority = $priority;
 
     }    # DATUM
 
