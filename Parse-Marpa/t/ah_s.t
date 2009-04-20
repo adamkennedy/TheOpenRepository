@@ -50,14 +50,16 @@ my @answer        = (
 );
 
 for my $i ( 0 .. 4 ) {
-    my $evaler = Parse::Marpa::Evaluator->new( {
-        recce => $recce,
-        end => $i
-    } );
+    my $evaler = Parse::Marpa::Evaluator->new(
+        {   recce => $recce,
+            end   => $i
+        }
+    );
     my $result = $evaler->value();
     $total_count++;
     if ( $answer[$i] ne ${$result} ) {
-        Test::More::diag( 'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
+        Test::More::diag(
+            'got ' . ${$result} . ', expected ' . $answer[$i] . "\n" );
         $failure_count++;
     }
 }

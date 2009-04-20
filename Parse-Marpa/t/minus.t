@@ -16,7 +16,7 @@ use Carp;
 use Marpa::Test;
 
 BEGIN {
-	Test::More::use_ok( 'Parse::Marpa' );
+    Test::More::use_ok('Parse::Marpa');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -26,17 +26,17 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = Parse::Marpa::Grammar->new({
-    start => 'E',
-    strip => 0,
+my $g = Parse::Marpa::Grammar->new(
+    {   start => 'E',
+        strip => 0,
 
-    # Set max_parses to 20 in case there's an infinite loop.
-    # This is for debugging, after all
-    max_parses => 20,
+        # Set max_parses to 20 in case there's an infinite loop.
+        # This is for debugging, after all
+        max_parses => 20,
 
-    rules => [
-	[ 'E', [qw/E Minus E/],
-<<'EOCODE'
+        rules => [
+            [   'E', [qw/E Minus E/],
+                <<'EOCODE'
     my ($right_string, $right_value)
         = ($_[2] =~ /^(.*)==(.*)$/);
     my ($left_string, $left_value)
@@ -44,52 +44,50 @@ my $g = Parse::Marpa::Grammar->new({
     my $value = $left_value - $right_value;
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 EOCODE
-        ],
-	[ 'E', [qw/E MinusMinus/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/E MinusMinus/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 EOCODE
-        ],
-	[ 'E', [qw/MinusMinus E/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/MinusMinus E/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 EOCODE
-        ],
-	[ 'E', [qw/Minus E/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/Minus E/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
 EOCODE
-        ],
-	[ 'E', [qw/Number/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/Number/],
+                <<'EOCODE'
     my $value = $_[0];
     "$value==$value";
 EOCODE
+            ],
         ],
-    ],
-    terminals => [
-	[ 'Number' => { regex => qr/\d+/xms } ],
-	[ 'Minus' => { regex => qr/[-]/xms } ],
-	[ 'MinusMinus' => { regex => qr/[-][-]/xms } ],
-    ],
-    default_action =>
-<<'EOCODE',
+        terminals => [
+            [ 'Number'     => { regex => qr/\d+/xms } ],
+            [ 'Minus'      => { regex => qr/[-]/xms } ],
+            [ 'MinusMinus' => { regex => qr/[-][-]/xms } ],
+        ],
+        default_action => <<'EOCODE',
      my $v_count = scalar @_;
      return "" if $v_count <= 0;
      return $_[0] if $v_count == 1;
      "(" . join(";", @_) . ")";
 EOCODE
-});
+    }
+);
 
-my $recce = Parse::Marpa::Recognizer->new({
-    grammar => $g,
-});
+my $recce = Parse::Marpa::Recognizer->new( { grammar => $g, } );
 
 Marpa::Test::is( $g->show_rules(), <<'END_RULES', 'Minuses Equation Rules' );
 0: E -> E Minus E
@@ -144,22 +142,17 @@ E ::= MinusMinus . E
 END_QDFA
 
 my @expected = (
-    '(((6--)--)-1)==5',
-    '((6--)-(--1))==6',
-    '(6-(--(--1)))==7',
-    '(6-(--(-(-1))))==6',
-    '((6--)-(-(-1)))==5',
-    '(6-(-(-(--1))))==6',
-    '(6-(-(-(-(-1)))))==5',
-    '(6-(-(--(-1))))==4',
+    '(((6--)--)-1)==5',     '((6--)-(--1))==6',
+    '(6-(--(--1)))==7',     '(6-(--(-(-1))))==6',
+    '((6--)-(-(-1)))==5',   '(6-(-(-(--1))))==6',
+    '(6-(-(-(-(-1)))))==5', '(6-(-(--(-1))))==4',
 );
 
 # test multiple text calls
-for my $string_piece ('6', '-----', '1')
-{
+for my $string_piece ( '6', '-----', '1' ) {
     my $fail_offset = $recce->text($string_piece);
-    if ($fail_offset >= 0) {
-       Carp::croak("Parse failed at offset $fail_offset");
+    if ( $fail_offset >= 0 ) {
+        Carp::croak("Parse failed at offset $fail_offset");
     }
 }
 
@@ -169,12 +162,15 @@ my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 Carp::croak('Could not initialize parse') unless $evaler;
 
 my $i = -1;
-while ( defined(my $value = $evaler->value()) ) {
+while ( defined( my $value = $evaler->value() ) ) {
     $i++;
-    if ($i > $#expected) {
-       Test::More::fail('Minuses equation has extra value: ' . ${$value} . "\n");
-    } else {
-        Marpa::Test::is(${$value}, $expected[$i], "Minuses Equation Value $i");
+    if ( $i > $#expected ) {
+        Test::More::fail(
+            'Minuses equation has extra value: ' . ${$value} . "\n" );
+    }
+    else {
+        Marpa::Test::is( ${$value}, $expected[$i],
+            "Minuses Equation Value $i" );
     }
 }
 

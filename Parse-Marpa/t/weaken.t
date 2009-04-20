@@ -11,25 +11,26 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More tests => 2;
 use Test::Weaken;
 
-BEGIN { Test::More::use_ok( 'Parse::Marpa' ); }
+BEGIN { Test::More::use_ok('Parse::Marpa'); }
 
 my $test = sub {
-    my $g = Parse::Marpa::Grammar->new({
-        start => 'S',
-        rules => [
-            [ 'S', [qw/A A A A/] ],
-            [ 'A', [qw/a/] ],
-            [ 'A', [qw/E/] ],
-            [ 'E' ],
-        ],
-        terminals => [ 'a' ],
-    });
+    my $g = Parse::Marpa::Grammar->new(
+        {   start => 'S',
+            rules => [
+                [ 'S', [qw/A A A A/] ],
+                [ 'A', [qw/a/] ],
+                [ 'A', [qw/E/] ],
+                ['E'],
+            ],
+            terminals => ['a'],
+        }
+    );
     my $a = $g->get_symbol('a');
-    my $recce = Parse::Marpa::Recognizer->new({grammar => $g});
-    $recce->earleme([$a, 'a', 1]);
-    $recce->earleme([$a, 'a', 1]);
-    $recce->earleme([$a, 'a', 1]);
-    $recce->earleme([$a, 'a', 1]);
+    my $recce = Parse::Marpa::Recognizer->new( { grammar => $g } );
+    $recce->earleme( [ $a, 'a', 1 ] );
+    $recce->earleme( [ $a, 'a', 1 ] );
+    $recce->earleme( [ $a, 'a', 1 ] );
+    $recce->earleme( [ $a, 'a', 1 ] );
     $recce->end_input();
     my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
     Carp::croak('No parse found') unless $evaler;
@@ -47,8 +48,10 @@ my $freed_count       = $total - $unfreed_count;
 # an undef "global".  No harm done if there's only one.
 
 my $ignored_count = 0;
-DELETE_UNDEF_CONSTANT: for my $ix (0 .. $#{$unfreed_proberefs}) {
-    if (ref $unfreed_proberefs->[$ix] eq 'SCALAR' and not defined ${$unfreed_proberefs->[$ix]}) {
+DELETE_UNDEF_CONSTANT: for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+    if ( ref $unfreed_proberefs->[$ix] eq 'SCALAR'
+        and not defined ${ $unfreed_proberefs->[$ix] } )
+    {
         delete $unfreed_proberefs->[$ix];
         $ignored_count++;
         last DELETE_UNDEF_CONSTANT;
@@ -56,9 +59,11 @@ DELETE_UNDEF_CONSTANT: for my $ix (0 .. $#{$unfreed_proberefs}) {
 }
 $unfreed_count = @{$unfreed_proberefs};
 
-Test::More::diag("Freed=$freed_count, ignored=$ignored_count, unfreed=$unfreed_count, total=$total");
+Test::More::diag(
+    "Freed=$freed_count, ignored=$ignored_count, unfreed=$unfreed_count, total=$total"
+);
 
-Test::More::cmp_ok($unfreed_count, q{==}, 0, 'All refs freed')
+Test::More::cmp_ok( $unfreed_count, q{==}, 0, 'All refs freed' )
     or Test::More::diag("Unfreed refs: $unfreed_count");
 
 # Local Variables:

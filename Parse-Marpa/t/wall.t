@@ -19,7 +19,7 @@ use Carp;
 use Test::More tests => 13;
 
 BEGIN {
-	Test::More::use_ok( 'Parse::Marpa' );
+    Test::More::use_ok('Parse::Marpa');
 }
 
 use Marpa::Test;
@@ -31,16 +31,16 @@ use Marpa::Test;
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = Parse::Marpa::Grammar->new({
-    start => 'E',
+my $g = Parse::Marpa::Grammar->new(
+    {   start => 'E',
 
-    # Set max_parses just in case there's an infinite loop.
-    # This is for debugging, after all
-    max_parses => 300,
+        # Set max_parses just in case there's an infinite loop.
+        # This is for debugging, after all
+        max_parses => 300,
 
-    rules => [
-        [ 'E', [qw/E Minus E/],
-<<'EOCODE'
+        rules => [
+            [   'E', [qw/E Minus E/],
+                <<'EOCODE'
     my ($right_string, $right_value)
         = ($_[2] =~ /^(.*)==(.*)$/);
     my ($left_string, $left_value)
@@ -48,63 +48,63 @@ my $g = Parse::Marpa::Grammar->new({
     my $value = $left_value - $right_value;
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 EOCODE
-        ],
-        [ 'E', [qw/E Minus Minus/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/E Minus Minus/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 EOCODE
-        ],
-        [ 'E', [qw/Minus Minus E/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/Minus Minus E/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[2] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 EOCODE
-        ],
-        [ 'E', [qw/Minus E/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/Minus E/],
+                <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
 EOCODE
-        ],
-        [ 'E', [qw/Number/],
-<<'EOCODE'
+            ],
+            [   'E', [qw/Number/],
+                <<'EOCODE'
             my $value = $_[0];
             "$value==$value";
 EOCODE
+            ],
         ],
-    ],
-    default_action =>
-<<'EOCODE'
+        default_action => <<'EOCODE'
      my $v_count = scalar @_;
      return "" if $v_count <= 0;
      return $_[0] if $v_count == 1;
      "(" . join(";", @_) . ")";
 EOCODE
-});
+    }
+);
 
 my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
-for my $n (1 .. 12) {
+for my $n ( 1 .. 12 ) {
 
-    my $recce = Parse::Marpa::Recognizer->new({grammar => $g});
-    my $minus = $g->get_symbol('Minus');
+    my $recce  = Parse::Marpa::Recognizer->new( { grammar => $g } );
+    my $minus  = $g->get_symbol('Minus');
     my $number = $g->get_symbol('Number');
-    $recce->earleme([$number, 6, 1]);
-    for my $i (1 .. $n) {
-        $recce->earleme([$minus, q{-}, 1]);
+    $recce->earleme( [ $number, 6, 1 ] );
+    for my $i ( 1 .. $n ) {
+        $recce->earleme( [ $minus, q{-}, 1 ] );
     }
-    $recce->earleme([$number, 1, 1]);
+    $recce->earleme( [ $number, 1, 1 ] );
     $recce->end_input();
 
     my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
 
     my $parse_count = 0;
-    while ($evaler->value()) { $parse_count++; }
-    Marpa::Test::is($expected[$n], $parse_count, "Wall Series Number $n");
+    while ( $evaler->value() ) { $parse_count++; }
+    Marpa::Test::is( $expected[$n], $parse_count, "Wall Series Number $n" );
 
 }
 

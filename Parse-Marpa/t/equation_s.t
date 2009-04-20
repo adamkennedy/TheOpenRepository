@@ -40,7 +40,7 @@ my $grammar = Parse::Marpa::Grammar->new(
 
 my $recce = Parse::Marpa::Recognizer->new( { grammar => $grammar } );
 
-my $fail_offset = $recce->text( '2-0*3+1' );
+my $fail_offset = $recce->text('2-0*3+1');
 if ( $fail_offset >= 0 ) {
     Carp::croak("Parse failed at offset $fail_offset");
 }
@@ -57,14 +57,15 @@ my $evaler = Parse::Marpa::Evaluator->new( { recognizer => $recce } );
 Carp::croak('Parse failed') unless $evaler;
 
 my $i = -1;
-while ( defined( my $value = $evaler->value() ) )
-{
+while ( defined( my $value = $evaler->value() ) ) {
     $i++;
     if ( $i > $#expected ) {
-        Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
+        Test::More::fail(
+            'Ambiguous equation has extra value: ' . ${$value} . "\n" );
     }
     else {
-        Marpa::Test::is( ${$value}, $expected[$i], "Ambiguous Equation Value $i" );
+        Marpa::Test::is( ${$value}, $expected[$i],
+            "Ambiguous Equation Value $i" );
     }
 }
 

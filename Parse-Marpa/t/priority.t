@@ -16,7 +16,7 @@ use Test::More tests => 5;
 use Marpa::Test;
 
 BEGIN {
-	Test::More::use_ok( 'Parse::Marpa' );
+    Test::More::use_ok('Parse::Marpa');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -26,35 +26,34 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $g = Parse::Marpa::Grammar->new({
-    start => 'S',
+my $g = Parse::Marpa::Grammar->new(
+    {   start => 'S',
 
-    # Set max_parses to 20 in case there's an infinite loop.
-    # This is for debugging, after all
-    max_parses => 20,
-    rules => [
-	[ 'S', ['P300'], '300', 300 ],
-	[ 'S', ['P200'], '200', 200 ],
-	[ 'S', ['P400'], '400', 400 ],
-	[ 'S', ['P100'], '100', 100 ],
-    ],
-    terminals => [
-	[ 'P200' => { regex => qr/a/xms } ],
-	[ 'P400' => { regex => qr/a/xms } ],
-	[ 'P100' => { regex => qr/a/xms } ],
-	[ 'P300' => { regex => qr/a/xms } ],
-    ],
-});
+        # Set max_parses to 20 in case there's an infinite loop.
+        # This is for debugging, after all
+        max_parses => 20,
+        rules      => [
+            [ 'S', ['P300'], '300', 300 ],
+            [ 'S', ['P200'], '200', 200 ],
+            [ 'S', ['P400'], '400', 400 ],
+            [ 'S', ['P100'], '100', 100 ],
+        ],
+        terminals => [
+            [ 'P200' => { regex => qr/a/xms } ],
+            [ 'P400' => { regex => qr/a/xms } ],
+            [ 'P100' => { regex => qr/a/xms } ],
+            [ 'P300' => { regex => qr/a/xms } ],
+        ],
+    }
+);
 
-my $recce = Parse::Marpa::Recognizer->new({
-    grammar => $g,
-});
+my $recce = Parse::Marpa::Recognizer->new( { grammar => $g, } );
 
 my @expected = qw(400 300 200 100);
 
-my $fail_offset = $recce->text(\('a'));
-if ($fail_offset >= 0) {
-   Carp::croak("Parse failed at offset $fail_offset");
+my $fail_offset = $recce->text( \('a') );
+if ( $fail_offset >= 0 ) {
+    Carp::croak("Parse failed at offset $fail_offset");
 }
 
 $recce->end_input();
@@ -63,12 +62,14 @@ my $evaler = Parse::Marpa::Evaluator->new( { recce => $recce } );
 Carp::croak('Could not initialize parse') unless $evaler;
 
 my $i = -1;
-while ( defined(my $value = $evaler->value()) ) {
+while ( defined( my $value = $evaler->value() ) ) {
     $i++;
-    if ($i > $#expected) {
-       Test::More::fail('Minuses equation has extra value: ' . ${$value} . "\n");
-    } else {
-       Marpa::Test::is(${$value}, $expected[$i], "Priority Value $i");
+    if ( $i > $#expected ) {
+        Test::More::fail(
+            'Minuses equation has extra value: ' . ${$value} . "\n" );
+    }
+    else {
+        Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
     }
 }
 
