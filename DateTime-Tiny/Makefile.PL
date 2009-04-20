@@ -1,8 +1,8 @@
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	require 5.003_96;
-	$VERSION = '1.03';
+	require 5.004;
+	$VERSION = '1.04';
 }
 use ExtUtils::MakeMaker;
 
@@ -18,7 +18,15 @@ WriteMakefile(
 	($] >= 5.005 ? (
 		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
 	) : ()),
-	($ExtUtils::MakeMaker::VERSION ge '6.30_00' ? (
+	($ExtUtils::MakeMaker::VERSION ge '6.31' ? (
 		LICENSE => 'perl',
+	) : ()),
+	($ExtUtils::MakeMaker::VERSION ge '6.48' ? (
+		MIN_PERL_VERSION => 5.004,
+		META_MERGE => {
+			resources => {
+				repository => 'http://svn.ali.as/cpan/trunk/DateTime-Tiny',
+			},
+		},
 	) : ()),
 );

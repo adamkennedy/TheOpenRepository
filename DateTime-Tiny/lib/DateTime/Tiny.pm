@@ -109,12 +109,12 @@ less of it.
 use strict;
 BEGIN {
 	require 5.004;
-	$DateTime::Tiny::VERSION = '1.03';
+	$DateTime::Tiny::VERSION = '1.04';
 }
-use overload 'bool' => sub () { 1 },
-             '""'   => 'as_string',
-             'eq'   => sub { "$_[0]" eq "$_[1]" },
-             'ne'   => sub { "$_[0]" ne "$_[1]" };
+use overload 'bool' => sub () { 1 };
+use overload '""'   => 'as_string';
+use overload 'eq'   => sub { "$_[0]" eq "$_[1]" };
+use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
 
 
 
@@ -172,14 +172,14 @@ Returns a new B<DateTime::Tiny> object.
 
 sub now {
 	my @t = localtime time;
-	return shift->new(
+	shift->new(
 		year   => $t[5] + 1900,
 		month  => $t[4] + 1,
 		day    => $t[3],
 		hour   => $t[2],
 		minute => $t[1],
 		second => $t[0],
-		);
+	);
 }
 
 =pod
@@ -269,8 +269,12 @@ format, which returns in the form "2006-04-12".
 
 sub ymdhms {
 	sprintf( "%04u-%02u-%02uT%02u:%02u:%02u",
-		$_[0]->year, $_[0]->month,  $_[0]->day,
-		$_[0]->hour, $_[0]->minute, $_[0]->second,
+		$_[0]->year,
+		$_[0]->month,
+		$_[0]->day,
+		$_[0]->hour,
+		$_[0]->minute,
+		$_[0]->second,
 	);
 }
 
@@ -303,7 +307,7 @@ sub from_string {
 	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601)");
 	}
-	return $_[0]->new(
+	$_[0]->new(
 		year   => $1 + 0,
 		month  => $2 + 0,
 		day    => $3 + 0,
@@ -360,7 +364,7 @@ sub DateTime {
 		locale    => 'C',
 		time_zone => 'floating',
 		@_,
-		);
+	);
 }
 
 1;

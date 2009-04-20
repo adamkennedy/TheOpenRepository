@@ -99,7 +99,7 @@ less of it.
 use strict;
 BEGIN {
 	require 5.004;
-	$Date::Tiny::VERSION = '1.03';
+	$Date::Tiny::VERSION = '1.04';
 }
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
@@ -156,11 +156,11 @@ Returns a new B<Date::Tiny> object.
 
 sub now {
 	my @t = localtime time;
-	return shift->new(
-		year   => $t[5] + 1900,
-		month  => $t[4] + 1,
-		day    => $t[3],
-		);
+	shift->new(
+		year  => $t[5] + 1900,
+		month => $t[4] + 1,
+		day   => $t[3],
+	);
 }
 
 =pod
@@ -209,7 +209,11 @@ format, which returns in the form "2006-04-12".
 =cut
 
 sub ymd {
-	sprintf( "%04u-%02u-%02u", $_[0]->year, $_[0]->month, $_[0]->day );
+	sprintf( "%04u-%02u-%02u",
+		$_[0]->year,
+		$_[0]->month,
+		$_[0]->day,
+	);
 }
 
 
@@ -257,11 +261,11 @@ sub from_string {
 	unless ( $string =~ /^(\d\d\d\d)-(\d\d)-(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601 yyyy-mm-dd)");
 	}
-	return $_[0]->new(
+	$_[0]->new(
 		year  => $1 + 0,
 		month => $2 + 0,
 		day   => $3 + 0,
-		);
+	);
 }
 
 =pod
@@ -292,7 +296,7 @@ sub DateTime {
 		locale    => 'C',
 		time_zone => 'floating',
 		@_,
-		);
+	);
 }
 
 1;
@@ -317,7 +321,7 @@ L<DateTime>, L<DateTime::Tiny>, L<Time::Tiny>, L<Config::Tiny>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2007 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

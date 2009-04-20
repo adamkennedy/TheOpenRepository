@@ -24,7 +24,7 @@ SCOPE: {
 		year  => 2006,
 		month => 12,
 		day   => 31,
-		);
+	);
 	isa_ok( $date, 'Date::Tiny' );
 	is( $date->year,  2006, '->year ok'  );
 	is( $date->month, 12,   '->month ok' );
@@ -55,7 +55,7 @@ SKIP: {
 		year  => 2006,
 		month => 1,
 		day   => 31,
-		);
+	);
 	isa_ok( $date, 'Date::Tiny' );
 
 	# Expand to a DateTime
@@ -78,5 +78,3 @@ SCOPE: {
 	is( $date->month, 1, '->month ok' );
 	is( $date->day, 31, '->day ok' );
 }
-
-exit(0);

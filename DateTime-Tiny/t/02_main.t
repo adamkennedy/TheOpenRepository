@@ -24,7 +24,7 @@ SCOPE: {
 		year  => 2006,
 		month => 12,
 		day   => 31,
-		);
+	);
 	isa_ok( $date, 'DateTime::Tiny' );
 	is( $date->year,  2006, '->year ok'   );
 	is( $date->month, 12,   '->month ok'  );
@@ -70,7 +70,7 @@ SKIP: {
 		hour   => 3,
 		minute => 20,
 		second => 30,
-		);
+	);
 	isa_ok( $date, 'DateTime::Tiny' );
 
 	# Expand to a DateTime
@@ -100,7 +100,7 @@ SCOPE: {
 		hour   => 1,
 		minute => 2,
 		second => 3,
-		);
+	);
 	isa_ok( $tiny, 'DateTime::Tiny' );
 	is( $tiny->hour,  '1', '->hour ok'   );
 	is( $tiny->minute, 2,  '->minute ok' );
@@ -112,5 +112,3 @@ SCOPE: {
 		$tiny, '->from_string ok',
 	);
 }
-
-exit(0);

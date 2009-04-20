@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 15;
 use Time::Tiny ();
 
 
@@ -23,7 +23,7 @@ SCOPE: {
 		hour   => 1,
 		minute => 2,
 		second => 3,
-		);
+	);
 	isa_ok( $tiny, 'Time::Tiny' );
 	is( $tiny->hour,  '1', '->hour ok'   );
 	is( $tiny->minute, 2,  '->minute ok' );
@@ -32,5 +32,41 @@ SCOPE: {
 	is( "$tiny", '01:02:03', 'Stringification ok' );
 	is_deeply(
 		Time::Tiny->from_string( $tiny->as_string ),
-		$tiny, '->from_string ok' );
+		$tiny, '->from_string ok',
+	);
+
+	my $now = Time::Tiny->now;
+	isa_ok( $now, 'Time::Tiny' );
+}
+
+
+
+
+
+#####################################################################
+# DateTime Testing
+
+SKIP: {
+	# Do we have DateTime
+	eval { require DateTime };
+	skip( "Skipping DateTime tests (not installed)", 7 ) if $@;
+
+	# Create a normal date
+	my $date = Time::Tiny->new(
+		hour   => 1,
+		minute => 2,
+		second => 3,
+	);
+	isa_ok( $date, 'Time::Tiny' );
+
+	# Expand to a DateTime
+	my $dt = $date->DateTime;
+	isa_ok( $dt, 'DateTime' );
+	is( $dt->locale->id,      'C',        '->locate ok'   );
+	is( $dt->time_zone->name, 'floating', '->timezone ok' );
+
+	# Compare accessor results
+	is( $date->hour,   $dt->hour,   '->year matches'  );
+	is( $date->minute, $dt->minute, '->month matches' );
+	is( $date->second, $dt->second, '->day matches'   );
 }

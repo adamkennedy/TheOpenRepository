@@ -99,7 +99,7 @@ less of it.
 use strict;
 BEGIN {
 	require 5.004;
-	$Time::Tiny::VERSION = '1.02';
+	$Time::Tiny::VERSION = '1.04';
 }
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
@@ -163,11 +163,11 @@ Returns a new B<Time::Tiny> object.
 
 sub now {
 	my @t = localtime time;
-	return $_[0]->new(
+	$_[0]->new(
 		hour   => $t[2],
 		minute => $t[1],
 		second => $t[0],
-		);
+	);
 }
 
 =pod
@@ -239,11 +239,11 @@ sub from_string {
 	unless ( $string =~ /^(\d\d):(\d\d):(\d\d)$/ ) {
 		Carp::croak("Invalid time format (does not match ISO 8601 hh:mm:ss)");
 	}
-	return $_[0]->new(
+	$_[0]->new(
 		hour   => $1 + 0,
 		minute => $2 + 0,
 		second => $3 + 0,
-		);
+	);
 }
 
 =pod
@@ -262,7 +262,7 @@ sub as_string {
 		$_[0]->hour,
 		$_[0]->minute,
 		$_[0]->second,
-		);
+	);
 }
 
 =pod
@@ -293,10 +293,10 @@ sub DateTime {
 		hour      => $self->hour,
 		minute    => $self->minute,
 		second    => $self->second,
-		locale    => 'en_US',
+		locale    => 'C',
 		time_zone => 'floating',
 		@_,
-		);
+	);
 }
 
 1;
@@ -321,7 +321,7 @@ L<DateTime>, L<DateTime::Tiny>, L<Time::Tiny>, L<Config::Tiny>, L<ali.as>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2008 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
