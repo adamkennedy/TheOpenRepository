@@ -13,7 +13,6 @@ use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.11';
 	@ISA     = qw{
-		ADAMK::Role::Trace
 		ADAMK::Role::File
 		ADAMK::Role::SVN
 		ADAMK::Role::Changes
@@ -40,7 +39,9 @@ sub new {
 	return $self;
 }
 
-
+sub trace {
+	shift->repository->trace(@_);
+}
 
 
 
