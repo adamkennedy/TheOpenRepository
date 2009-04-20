@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.002000';
+our $VERSION   = '2.003_000';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -42,6 +42,7 @@ use Scalar::Util qw(refaddr reftype isweak weaken);
 sub follow {
     my $base_probe = shift;
     my $ignore     = shift;
+    my $contents   = shift;
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
@@ -151,7 +152,7 @@ sub Test::Weaken::new {
         }
 
         if ( ref $arg1 ne 'HASH' ) {
-            croak('arg to Test::Weaken::new is not HASH ref');
+            Carp::croak('arg to Test::Weaken::new is not HASH ref');
         }
 
         if ( defined $arg1->{constructor} ) {
@@ -169,6 +170,11 @@ sub Test::Weaken::new {
             delete $arg1->{ignore};
         }
 
+        if ( defined $arg1->{contents} ) {
+            $self->{contents} = $arg1->{contents};
+            delete $arg1->{contents};
+        }
+
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
@@ -176,24 +182,29 @@ sub Test::Weaken::new {
             for my $unknown_named_arg (@unknown_named_args) {
                 $message .= "Unknown named arg: '$unknown_named_arg'\n";
             }
-            croak( $message
+            Carp::croak( $message
                     . 'Test::Weaken failed due to unknown named arg(s)' );
         }
 
     }    # UNPACK_ARGS
 
     if ( my $ref_type = ref $self->{constructor} ) {
-        croak('Test::Weaken: constructor must be CODE ref')
+        Carp::croak('Test::Weaken: constructor must be CODE ref')
             unless ref $self->{constructor} eq 'CODE';
     }
 
     if ( my $ref_type = ref $self->{destructor} ) {
-        croak('Test::Weaken: destructor must be CODE ref')
+        Carp::croak('Test::Weaken: destructor must be CODE ref')
             unless ref $self->{destructor} eq 'CODE';
     }
 
     if ( my $ref_type = ref $self->{ignore} ) {
-        croak('Test::Weaken: ignore must be CODE ref')
+        Carp::croak('Test::Weaken: ignore must be CODE ref')
+            unless ref $self->{ignore} eq 'CODE';
+    }
+
+    if ( my $ref_type = ref $self->{ignore} ) {
+        Carp::croak('Test::Weaken: contents must be CODE ref')
             unless ref $self->{ignore} eq 'CODE';
     }
 
@@ -206,7 +217,7 @@ sub Test::Weaken::test {
     my $self = shift;
 
     if ( defined $self->{unfreed_probes} ) {
-        croak('Test::Weaken tester was already evaluated');
+        Carp::croak('Test::Weaken tester was already evaluated');
     }
 
     my $constructor = $self->{constructor};
@@ -290,7 +301,7 @@ sub Test::Weaken::unfreed_proberefs {
     my $tester = shift;
     my $result = $tester->{unfreed_probes};
     if ( not defined $result ) {
-        croak('Results not available for this Test::Weaken object');
+        Carp::croak('Results not available for this Test::Weaken object');
     }
     return $result;
 }
@@ -299,7 +310,7 @@ sub Test::Weaken::unfreed_count {
     my $tester = shift;
     my $result = $tester->{unfreed_probes};
     if ( not defined $result ) {
-        croak('Results not available for this Test::Weaken object');
+        Carp::croak('Results not available for this Test::Weaken object');
     }
     return scalar @{$result};
 }
@@ -308,7 +319,7 @@ sub Test::Weaken::probe_count {
     my $tester = shift;
     my $count  = $tester->{probe_count};
     if ( not defined $count ) {
-        croak('Results not available for this Test::Weaken object');
+        Carp::croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
@@ -318,7 +329,7 @@ sub Test::Weaken::weak_probe_count {
     my $tester = shift;
     my $count  = $tester->{weak_probe_count};
     if ( not defined $count ) {
-        croak('Results not available for this Test::Weaken object');
+        Carp::croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
@@ -328,7 +339,7 @@ sub Test::Weaken::strong_probe_count {
     my $tester = shift;
     my $count  = $tester->{strong_probe_count};
     if ( not defined $count ) {
-        croak('Results not available for this Test::Weaken object');
+        Carp::croak('Results not available for this Test::Weaken object');
     }
     return $count;
 }
@@ -340,13 +351,13 @@ sub Test::Weaken::check_ignore {
 
     $max_errors = 1 if not defined $max_errors;
     if ( not Scalar::Util::looks_like_number($max_errors) ) {
-        croak('Test::Weaken::check_ignore max_errors must be a number');
+        Carp::croak('Test::Weaken::check_ignore max_errors must be a number');
     }
     $max_errors = 0 if $max_errors <= 0;
 
     $reporting_depth = -1 if not defined $reporting_depth;
     if ( not Scalar::Util::looks_like_number($reporting_depth) ) {
-        croak('Test::Weaken::check_ignore reporting_depth must be a number');
+        Carp::croak('Test::Weaken::check_ignore reporting_depth must be a number');
     }
     $reporting_depth = -1 if $reporting_depth < 0;
 
@@ -354,7 +365,7 @@ sub Test::Weaken::check_ignore {
     if ( not Scalar::Util::looks_like_number($compare_depth)
         or $compare_depth < 0 )
     {
-        croak(
+        Carp::croak(
             'Test::Weaken::check_ignore compare_depth must be a non-negative number'
         );
     }
@@ -429,10 +440,10 @@ sub Test::Weaken::check_ignore {
         if ( $max_errors > 0 and $error_count >= $max_errors ) {
             $message
                 .= "Terminating ignore callbacks after finding $error_count error(s)";
-            croak($message);
+            Carp::croak($message);
         }
 
-        carp( $message . 'Above errors reported' );
+        Carp::carp( $message . 'Above errors reported' );
         return $return_value;
     };
 }
@@ -469,11 +480,12 @@ is_file($_, 't/synopsis.t', 'synopsis')
     };
 
     if ( !leaks($good_test) ) {
-        print "No leaks in test 1\n" or croak("Cannot print to STDOUT: $ERRNO");
+        print "No leaks in test 1\n"
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
     else {
         print "There were memory leaks from test 1!\n"
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
 
     my $bad_test = sub {

@@ -13,7 +13,7 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 BEGIN {
-    use_ok('Test::Weaken');
+    Test::More::use_ok('Test::Weaken');
 }
 
 my $result = q{};

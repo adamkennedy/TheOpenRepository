@@ -43,7 +43,7 @@ my $test = Test::Weaken::leaks(
         $obj->destroy;
     }
 );
-ok( ( !$test ), 'good destructor' );
+Test::More::ok( ( !$test ), 'good destructor' );
 
 @INSTANCES = ();
 $test = Test::Weaken::leaks( sub { return MyObject->new }, sub { } );

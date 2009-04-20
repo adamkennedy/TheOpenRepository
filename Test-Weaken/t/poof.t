@@ -14,7 +14,7 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 BEGIN {
-    use_ok('Test::Weaken');
+    Test::More::use_ok('Test::Weaken');
 }
 
 my ( $weak_count, $strong_count, $weak_unfreed_array, $strong_unfreed_array )

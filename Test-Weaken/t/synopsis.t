@@ -8,7 +8,7 @@ use Fatal qw(open close);
 use lib 't/lib';
 use Test::Weaken::Test;
 
-BEGIN { use_ok('Test::Weaken') }
+BEGIN { Test::More::use_ok('Test::Weaken') }
 
 ## no critic (InputOutput::RequireBriefOpen)
 open my $save_stdout, '>&STDOUT';
@@ -28,17 +28,17 @@ use Carp;
 use English qw( -no_match_vars );
 
 my $good_test = sub {
-    my $obj1 = new Math::BigInt('42');
-    my $obj2 = new Math::BigFloat('7.11');
+    my $obj1 = Math::BigInt->new('42');
+    my $obj2 = Math::BigFloat->new('7.11');
     [ $obj1, $obj2 ];
 };
 
 if ( !leaks($good_test) ) {
-    print "No leaks in test 1\n" or croak("Cannot print to STDOUT: $ERRNO");
+    print "No leaks in test 1\n" or Carp::croak("Cannot print to STDOUT: $ERRNO");
 }
 else {
     print "There were memory leaks from test 1!\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
 }
 
 my $bad_test = sub {
@@ -59,12 +59,12 @@ if ($tester) {
     my $unfreed_count     = @{$unfreed_proberefs};
     printf "Test 2: %d of %d original references were not freed\n",
         $tester->unfreed_count(), $tester->probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
     print "These are the probe references to the unfreed objects:\n"
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
     for my $proberef ( @{$unfreed_proberefs} ) {
         print Data::Dumper->Dump( [$proberef], ['unfreed'] )
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
 }
 

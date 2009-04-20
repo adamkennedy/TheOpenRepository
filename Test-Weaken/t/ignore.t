@@ -75,7 +75,7 @@ use Scalar::Util;
 use Data::Dumper;
 
 BEGIN {
-    use_ok('Test::Weaken');
+    Test::More::use_ok('Test::Weaken');
 }
 
 use lib 't/lib';
@@ -97,7 +97,7 @@ my $tester = Test::Weaken::leaks(
 ## no Marpa::Test::Display
 
 if ( not $tester ) {
-    pass('good ignore');
+    Test::More::pass('good ignore');
 }
 else {
     Test::Weaken::Test::is( $tester->unfreed_proberefs, q{}, 'good ignore' );
@@ -108,7 +108,7 @@ $tester = Test::Weaken::leaks(
         ignore      => sub { return; }
     }
 );
-Test::Weaken::Test::is( Dumper( $tester->unfreed_proberefs ),
+Test::Weaken::Test::is( Data::Dumper::Dumper( $tester->unfreed_proberefs ),
     <<'EOS', 'no-op ignore' );
 $VAR1 = [
           bless( {
@@ -137,7 +137,7 @@ $tester = Test::Weaken::leaks(
 ## no Marpa::Test::Display
 
 if ( not $tester ) {
-    pass('wrappered good ignore');
+    Test::More::pass('wrappered good ignore');
 }
 else {
     Test::Weaken::Test::is( $tester->unfreed_proberefs, q{},
@@ -301,7 +301,7 @@ $tester = Test::Weaken::leaks(
     }
 );
 if ( not $tester ) {
-    pass('cycle w/ no-op ignore');
+    Test::More::pass('cycle w/ no-op ignore');
 }
 else {
     Test::Weaken::Test::is( $tester->unfreed_proberefs, q{},
@@ -324,7 +324,7 @@ $tester = Test::Weaken::leaks(
     }
 );
 if ( not $tester ) {
-    pass('cycle w/ copying ignore');
+    Test::More::pass('cycle w/ copying ignore');
 }
 else {
     my $unfreed = $tester->unfreed_proberefs;
@@ -353,7 +353,7 @@ $eval_return = eval {
 $stderr = &{$restore};
 
 if ( not $tester ) {
-    pass('cycle w/ copying & error callback');
+    Test::More::pass('cycle w/ copying & error callback');
 }
 else {
     my $unfreed = $tester->unfreed_proberefs;

@@ -10,7 +10,7 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 BEGIN {
-    use_ok('Test::Weaken');
+    Test::More::use_ok('Test::Weaken');
 }
 
 sub brief_result {
@@ -48,11 +48,11 @@ my $test = Test::Weaken::leaks(
         $z;
     }
 );
-ok( ( !$test ), 'Simple weak ref' );
+Test::More::ok( ( !$test ), 'Simple weak ref' );
 
 Test::Weaken::Test::is(
     brief_result(
-        new Test::Weaken( sub { my $x = 42; my $y = \$x; $x = \$y; } )
+        Test::Weaken->new( sub { my $x = 42; my $y = \$x; $x = \$y; } )
     ),
     'total: weak=0; strong=3; unfreed: weak=0; strong=2',
     'Bad Less Simple Cycle'
@@ -60,7 +60,7 @@ Test::Weaken::Test::is(
 
 Test::Weaken::Test::is(
     brief_result(
-        new Test::Weaken(
+        Test::Weaken->new(
             sub { my $x; weaken( my $y = \$x ); $x = \$y; $y; }
         )
     ),
@@ -70,7 +70,7 @@ Test::Weaken::Test::is(
 
 Test::Weaken::Test::is(
     brief_result(
-        new Test::Weaken(
+        Test::Weaken->new(
             sub {
                 my $x;
                 my $y = [ \$x ];
@@ -86,7 +86,7 @@ Test::Weaken::Test::is(
 
 Test::Weaken::Test::is(
     brief_result(
-        new Test::Weaken(
+        Test::Weaken->new(
             sub {
                 my $x = 42;
                 my $y = [ \$x ];
