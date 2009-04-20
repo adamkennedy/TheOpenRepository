@@ -1135,11 +1135,11 @@ sub complete_set {
                             Parse::Marpa::Internal::Earley_item::PARENT,
                             Parse::Marpa::Internal::Earley_item::LINKS,
                             Parse::Marpa::Internal::Earley_item::TOKENS,
-                            Parse::Marpa::Internal::Earley_item::SET
+                            Parse::Marpa::Internal::Earley_item::SET,
                             ]
                             = (
                             $name, $transition_state, $origin, [], [],
-                            $current_set
+                            $current_set,
                             );
                         $earley_hash->{$name} = $target_item;
                         push @{$earley_set}, $target_item;
@@ -1323,7 +1323,6 @@ even though the strings are not physically concatenated.
 When the C<text> method is used,
 character position in this raw input will 
 correspond exactly one-to-one with the earleme position.
-
 
 Every character will be treated as being exactly one
 earleme in length.

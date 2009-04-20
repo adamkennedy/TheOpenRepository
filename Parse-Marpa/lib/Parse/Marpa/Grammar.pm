@@ -1119,13 +1119,13 @@ sub Parse::Marpa::Grammar::set {
                 Carp::croak('the opaque option has been removed');
             }
             when ('cycle_action') {
-                say {
-                    $trace_fh
-                }
+                #<<< pertidy gets confused here
+                say {$trace_fh}
                 q{"cycle_action" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                #>>>
                 Carp::croak("$option must be 'warn', 'quiet' or 'fatal'")
                     unless $value eq 'warn'
                         || $value eq 'quiet'
@@ -1142,24 +1142,24 @@ sub Parse::Marpa::Grammar::set {
                     $value;
             }
             when ('warnings') {
-                say {
-                    $trace_fh
-                }
+                #<<< pertidy gets confused here
+                say {$trace_fh}
                 q{"warnings" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                #>>>
                 $grammar->[Parse::Marpa::Internal::Grammar::WARNINGS] =
                     $value;
             }
             when ('inaccessible_ok') {
-                say {
-                    $trace_fh
-                }
+                #<<< pertidy gets confused here
+                say {$trace_fh}
                 q{"inaccessible_ok" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                #>>>
                 Carp::croak(
                     'value of inaccessible_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
@@ -1167,13 +1167,13 @@ sub Parse::Marpa::Grammar::set {
                     { map { ( $_, 1 ) } @{$value} };
             }
             when ('unproductive_ok') {
-                say {
-                    $trace_fh
-                }
+                #<<< pertidy gets confused here
+                say {$trace_fh}
                 q{"unproductive_ok" option is useless after grammar is precomputed}
                     if $value
                         && $phase
                         >= Parse::Marpa::Internal::Phase::PRECOMPUTED;
+                #>>>
                 Carp::croak(
                     'value of unproductive_ok option must be an array ref')
                     unless ref $value eq 'ARRAY';
@@ -3142,8 +3142,7 @@ sub detect_cycle {
 
     # Now find the transitive closure of the unit derivation matrix
     CLOSURE_LOOP:
-    while ( my $new_unit_derivation = shift @new_unit_derivations )
-    {
+    while ( my $new_unit_derivation = shift @new_unit_derivations ) {
 
         my ( $start_id, $derived_id ) = @{$new_unit_derivation};
         ID: for my $id ( 0 .. $#{$symbols} ) {
@@ -3158,9 +3157,9 @@ sub detect_cycle {
 
             $unit_derivation[$start_id][$id] = 1;
             push @new_unit_derivations, [ $start_id, $id ];
-        }
+        } ## end for my $id ( 0 .. $#{$symbols} )
 
-    }
+    } ## end while ( my $new_unit_derivation = shift @new_unit_derivations)
 
     my $cycle_count = 0;
 

@@ -16,7 +16,7 @@ Carp::croak("$PROGRAM_NAME options parsing failed")
 
 package Marpa::Test::Display;
 
-@Marpa::Test::Display::ISA = qw(Exporter);
+@Marpa::Test::Display::ISA       = qw(Exporter);
 @Marpa::Test::Display::EXPORT_OK = qw(test_file);
 
 use Text::Diff;
@@ -128,7 +128,8 @@ sub in_file {
     return (
         (   $location >= 0
             ? q{}
-            : "Display in $Marpa::Test::Display::CURRENT_FILE not in $file_name\n" . $pod_display
+            : "Display in $Marpa::Test::Display::CURRENT_FILE not in $file_name\n"
+                . $pod_display
         ),
         1
     );
@@ -158,7 +159,8 @@ sub is_file {
         $display_name
         ? "Display '$display_name'"
         : 'Display';
-    $header .= " in $Marpa::Test::Display::CURRENT_FILE differs from the one in $file_name";
+    $header
+        .= " in $Marpa::Test::Display::CURRENT_FILE differs from the one in $file_name";
 
     return (
         (   $header
@@ -210,7 +212,7 @@ sub test_file {
             unless ($do_not_add_display) {
                 $message .= "\n$display";
             }
-            $mismatches .= "=== $message";
+            $mismatches .= "=== Line $display_line: $message";
             $mismatch_count++;
         }
 
@@ -237,7 +239,8 @@ sub queue_display {
         if not $Marpa::Test::Display::DISPLAY_SKIP;
     $Marpa::Test::Display::COMMAND_COUNTDOWN--;
     if ( $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0 ) {
-        $Marpa::Test::Display::CURRENT_CODE = $Marpa::Test::Display::DEFAULT_CODE;
+        $Marpa::Test::Display::CURRENT_CODE =
+            $Marpa::Test::Display::DEFAULT_CODE;
         $Marpa::Test::Display::DISPLAY_SKIP = 0;
     }
     return;
@@ -281,7 +284,9 @@ sub process_instruction {
 
     if ( $instruction =~ / ^ default $ /xms ) {
         $Marpa::Test::Display::DEFAULT_CODE = join "\n", @{$code};
-        $Marpa::Test::Display::CURRENT_CODE = $Marpa::Test::Display::DEFAULT_CODE if $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0;
+        $Marpa::Test::Display::CURRENT_CODE =
+            $Marpa::Test::Display::DEFAULT_CODE
+            if $Marpa::Test::Display::COMMAND_COUNTDOWN <= 0;
         return;
     }
 
@@ -314,7 +319,10 @@ sub process_instruction {
     if ( $instruction =~ / ^ end \s+ display $ /xms ) {
 
         # line num will be set when first part of display is found
-        queue_display( $Marpa::Test::Display::COLLECTED_DISPLAY, $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM );
+        queue_display(
+            $Marpa::Test::Display::COLLECTED_DISPLAY,
+            $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM
+        );
         $Marpa::Test::Display::COLLECTED_DISPLAY        = undef;
         $Marpa::Test::Display::COLLECTING_FROM_LINE_NUM = -1;
         return;
@@ -342,9 +350,10 @@ sub textblock {
             $found_instruction = 1;
             next LINE;
         }
-        Carp::croak( "File: $Marpa::Test::Display::CURRENT_FILE  Line: $line_num\n",
-            "test block doesn't begin with ## instruction\n$paragraph" )
-            if not $found_instruction;
+        Carp::croak(
+            "File: $Marpa::Test::Display::CURRENT_FILE  Line: $line_num\n",
+            "test block doesn't begin with ## instruction\n$paragraph"
+        ) if not $found_instruction;
         last LINE;
     }
 
@@ -411,7 +420,8 @@ FILE: for my $file (@test_files) {
         next FILE;
     }
 
-    my ( $mismatch_count, $mismatches ) = Marpa::Test::Display::test_file($file);
+    my ( $mismatch_count, $mismatches ) =
+        Marpa::Test::Display::test_file($file);
     my $clean = $mismatch_count == 0;
 
     my $message =

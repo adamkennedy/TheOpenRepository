@@ -1243,13 +1243,12 @@ sub Parse::Marpa::Evaluator::value {
 
     if ($trace_iterations) {
         say {$trace_fh} 'Nodes built: ', $nodes_built,
-            '; kept on root side: ', $build_node,
-            '; kept on leaf side: ',
+            '; kept on root side: ', $build_node, '; kept on leaf side: ',
             (
             defined $leaf_side_start_position
             ? @old_tree - $leaf_side_start_position
-            : 0 )
-            or Carp::croak('print to trace handle failed');
+            : 0
+            ) or Carp::croak('print to trace handle failed');
     }
 
     # Put the uniterated leaf side of the tree back on the stack.
