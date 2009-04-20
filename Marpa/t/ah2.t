@@ -47,15 +47,15 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 1: A -> a
 2: A -> E /* !useful nullable nulling */
 3: E -> /* !useful empty nullable nulling */
-4: S -> A S[R0:1][x6] /* priority=0.3 */
-5: S -> A[] S[R0:1][x6] /* priority=0.1 */
-6: S -> A S[R0:1][x6][] /* priority=0.2 */
-7: S[R0:1][x6] -> A S[R0:2][x8] /* priority=0.3 */
-8: S[R0:1][x6] -> A[] S[R0:2][x8] /* priority=0.1 */
-9: S[R0:1][x6] -> A S[R0:2][x8][] /* priority=0.2 */
-10: S[R0:2][x8] -> A A /* priority=0.3 */
-11: S[R0:2][x8] -> A[] A /* priority=0.1 */
-12: S[R0:2][x8] -> A A[] /* priority=0.2 */
+4: S -> A S[R0:1][x6] /* priority=0.19 */
+5: S -> A[] S[R0:1][x6] /* priority=0.17 */
+6: S -> A S[R0:1][x6][] /* priority=0.18 */
+7: S[R0:1][x6] -> A S[R0:2][x8] /* priority=0.15 */
+8: S[R0:1][x6] -> A[] S[R0:2][x8] /* priority=0.13 */
+9: S[R0:1][x6] -> A S[R0:2][x8][] /* priority=0.14 */
+10: S[R0:2][x8] -> A A /* priority=0.11 */
+11: S[R0:2][x8] -> A[] A /* priority=0.9 */
+12: S[R0:2][x8] -> A A[] /* priority=0.10 */
 13: S['] -> S
 14: S['][] -> /* empty nullable nulling */
 EOS
@@ -109,7 +109,6 @@ S4: S ::= A . S[R0:1][x6]
  empty => S12 S15 S18
  <S[R0:1][x6]> => S5
 S5: S ::= A S[R0:1][x6] .
-priority=0.3
 S6: S ::= . A[] S[R0:1][x6]
 at_nulling
  <A[]> => S7
@@ -117,7 +116,6 @@ S7: S ::= A[] . S[R0:1][x6]
  empty => S12 S15 S18
  <S[R0:1][x6]> => S8
 S8: S ::= A[] S[R0:1][x6] .
-priority=0.1
 S9: S ::= . A S[R0:1][x6][]
  empty => S1
  <A> => S10
@@ -125,7 +123,6 @@ S10: S ::= A . S[R0:1][x6][]
 at_nulling
  <S[R0:1][x6][]> => S11
 S11: S ::= A S[R0:1][x6][] .
-priority=0.2
 S12: S[R0:1][x6] ::= . A S[R0:2][x8]
  empty => S1
  <A> => S13
@@ -133,7 +130,6 @@ S13: S[R0:1][x6] ::= A . S[R0:2][x8]
  empty => S21 S24 S27
  <S[R0:2][x8]> => S14
 S14: S[R0:1][x6] ::= A S[R0:2][x8] .
-priority=0.3
 S15: S[R0:1][x6] ::= . A[] S[R0:2][x8]
 at_nulling
  <A[]> => S16
@@ -141,7 +137,6 @@ S16: S[R0:1][x6] ::= A[] . S[R0:2][x8]
  empty => S21 S24 S27
  <S[R0:2][x8]> => S17
 S17: S[R0:1][x6] ::= A[] S[R0:2][x8] .
-priority=0.1
 S18: S[R0:1][x6] ::= . A S[R0:2][x8][]
  empty => S1
  <A> => S19
@@ -149,7 +144,6 @@ S19: S[R0:1][x6] ::= A . S[R0:2][x8][]
 at_nulling
  <S[R0:2][x8][]> => S20
 S20: S[R0:1][x6] ::= A S[R0:2][x8][] .
-priority=0.2
 S21: S[R0:2][x8] ::= . A A
  empty => S1
  <A> => S22
@@ -157,7 +151,6 @@ S22: S[R0:2][x8] ::= A . A
  empty => S1
  <A> => S23
 S23: S[R0:2][x8] ::= A A .
-priority=0.3
 S24: S[R0:2][x8] ::= . A[] A
 at_nulling
  <A[]> => S25
@@ -165,7 +158,6 @@ S25: S[R0:2][x8] ::= A[] . A
  empty => S1
  <A> => S26
 S26: S[R0:2][x8] ::= A[] A .
-priority=0.1
 S27: S[R0:2][x8] ::= . A A[]
  empty => S1
  <A> => S28
@@ -173,7 +165,6 @@ S28: S[R0:2][x8] ::= A . A[]
 at_nulling
  <A[]> => S29
 S29: S[R0:2][x8] ::= A A[] .
-priority=0.2
 S30: S['] ::= . S
  empty => S3 S6 S9
  <S> => S31
@@ -182,7 +173,7 @@ S32: S['][] ::= .
 EOS
 
 Marpa::Test::is( $grammar->show_ii_QDFA, <<'EOS', 'Aycock/Horspool QDFA' );
-Start States: St11; St3
+Start States: St10; St3
 St0: predict; 1
 A ::= . a
  <a> => St7
@@ -194,7 +185,7 @@ S[R0:1][x6] ::= . A S[R0:2][x8][]
 S[R0:2][x8] ::= . A A
 S[R0:2][x8] ::= A[] . A
 S[R0:2][x8] ::= . A A[]
- <A> => St10; St2; St4
+ <A> => St2; St4
  <S[R0:2][x8]> => St6
  <a> => St7
 St2: predict; 1,21,25,27
@@ -202,7 +193,7 @@ A ::= . a
 S[R0:2][x8] ::= . A A
 S[R0:2][x8] ::= A[] . A
 S[R0:2][x8] ::= . A A[]
- <A> => St0; St10; St8
+ <A> => St0; St8
  <a> => St7
 St3: predict; 1,3,7,9,12,16,18,21,25,27
 A ::= . a
@@ -215,50 +206,51 @@ S[R0:1][x6] ::= . A S[R0:2][x8][]
 S[R0:2][x8] ::= . A A
 S[R0:2][x8] ::= A[] . A
 S[R0:2][x8] ::= . A A[]
- <A> => St1; St10; St13
- <S[R0:1][x6]> => St15
+ <A> => St1; St12
+ <S[R0:1][x6]> => St14
  <S[R0:2][x8]> => St6
  <a> => St7
-St4: pri=0.2; 13,20,22,29
+St4: 13,20,22,26,29
 S[R0:1][x6] ::= A . S[R0:2][x8]
 S[R0:1][x6] ::= A S[R0:2][x8][] .
 S[R0:2][x8] ::= A . A
+S[R0:2][x8] ::= A[] A .
 S[R0:2][x8] ::= A A[] .
  <A> => St9
  <S[R0:2][x8]> => St5
-St5: pri=0.3; 14
+St5: 14
 S[R0:1][x6] ::= A S[R0:2][x8] .
-St6: pri=0.1; 17
+St6: 17
 S[R0:1][x6] ::= A[] S[R0:2][x8] .
 St7: 2
 A ::= a .
-St8: pri=0.2; 22,29
+St8: 22,26,29
 S[R0:2][x8] ::= A . A
+S[R0:2][x8] ::= A[] A .
 S[R0:2][x8] ::= A A[] .
  <A> => St9
-St9: pri=0.3; 23
+St9: 23
 S[R0:2][x8] ::= A A .
-St10: pri=0.1; 26
-S[R0:2][x8] ::= A[] A .
-St11: 30,32
+St10: 30,32
 S['] ::= . S
 S['][] ::= .
- <S> => St12
-St12: 31
+ <S> => St11
+St11: 31
 S['] ::= S .
-St13: pri=0.2; 4,11,13,20,22,29
+St12: 4,11,13,20,22,26,29
 S ::= A . S[R0:1][x6]
 S ::= A S[R0:1][x6][] .
 S[R0:1][x6] ::= A . S[R0:2][x8]
 S[R0:1][x6] ::= A S[R0:2][x8][] .
 S[R0:2][x8] ::= A . A
+S[R0:2][x8] ::= A[] A .
 S[R0:2][x8] ::= A A[] .
  <A> => St9
- <S[R0:1][x6]> => St14
+ <S[R0:1][x6]> => St13
  <S[R0:2][x8]> => St5
-St14: pri=0.3; 5
+St13: 5
 S ::= A S[R0:1][x6] .
-St15: pri=0.1; 8
+St14: 8
 S ::= A[] S[R0:1][x6] .
 EOS
 
@@ -266,7 +258,7 @@ my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 
 my $set0_new = <<'EOS';
 Earley Set 0
-St11@0-0
+St10@0-0
 St3@0-0
 EOS
 
@@ -276,12 +268,11 @@ St7@0-1 [p=St3@0-0; t=a]
 EOS
 
 my $set1_at_1 = <<'EOS';
-St10@0-1 [p=St3@0-0; c=St7@0-1]
-St13@0-1 [p=St3@0-0; c=St7@0-1]
+St12@0-1 [p=St3@0-0; c=St7@0-1]
 St1@1-1
-St6@0-1 [p=St3@0-0; c=St13@0-1] [p=St3@0-0; c=St10@0-1]
-St12@0-1 [p=St11@0-0; c=St13@0-1] [p=St11@0-0; c=St15@0-1]
-St15@0-1 [p=St3@0-0; c=St13@0-1] [p=St3@0-0; c=St6@0-1]
+St11@0-1 [p=St10@0-0; c=St12@0-1] [p=St10@0-0; c=St14@0-1]
+St14@0-1 [p=St3@0-0; c=St12@0-1] [p=St3@0-0; c=St6@0-1]
+St6@0-1 [p=St3@0-0; c=St12@0-1]
 EOS
 
 my $set2_at_1 = <<'EOS';
@@ -290,16 +281,15 @@ St7@1-2 [p=St1@1-1; t=a]
 EOS
 
 my $set2_at_2 = <<'EOS';
-St9@0-2 [p=St13@0-1; c=St7@1-2]
-St10@1-2 [p=St1@1-1; c=St7@1-2]
+St9@0-2 [p=St12@0-1; c=St7@1-2]
 St4@1-2 [p=St1@1-1; c=St7@1-2]
 St2@2-2
 St6@0-2 [p=St3@0-0; c=St9@0-2]
-St5@0-2 [p=St13@0-1; c=St4@1-2] [p=St13@0-1; c=St10@1-2]
-St6@1-2 [p=St1@1-1; c=St4@1-2] [p=St1@1-1; c=St10@1-2]
-St14@0-2 [p=St13@0-1; c=St4@1-2] [p=St13@0-1; c=St6@1-2]
-St15@0-2 [p=St3@0-0; c=St5@0-2] [p=St3@0-0; c=St6@0-2]
-St12@0-2 [p=St11@0-0; c=St14@0-2] [p=St11@0-0; c=St15@0-2]
+St13@0-2 [p=St12@0-1; c=St4@1-2] [p=St12@0-1; c=St6@1-2]
+St5@0-2 [p=St12@0-1; c=St4@1-2]
+St6@1-2 [p=St1@1-1; c=St4@1-2]
+St14@0-2 [p=St3@0-0; c=St6@0-2] [p=St3@0-0; c=St5@0-2]
+St11@0-2 [p=St10@0-0; c=St13@0-2] [p=St10@0-0; c=St14@0-2]
 EOS
 
 my $set3_at_2 = <<'EOS';
@@ -309,15 +299,14 @@ EOS
 
 my $set3_at_3 = <<'EOS';
 St9@1-3 [p=St4@1-2; c=St7@2-3]
-St10@2-3 [p=St2@2-2; c=St7@2-3]
 St8@2-3 [p=St2@2-2; c=St7@2-3]
 St0@3-3
-St5@0-3 [p=St13@0-1; c=St9@1-3]
+St5@0-3 [p=St12@0-1; c=St9@1-3]
 St6@1-3 [p=St1@1-1; c=St9@1-3]
-St5@1-3 [p=St4@1-2; c=St8@2-3] [p=St4@1-2; c=St10@2-3]
-St15@0-3 [p=St3@0-0; c=St5@0-3]
-St14@0-3 [p=St13@0-1; c=St5@1-3] [p=St13@0-1; c=St6@1-3]
-St12@0-3 [p=St11@0-0; c=St14@0-3] [p=St11@0-0; c=St15@0-3]
+St5@1-3 [p=St4@1-2; c=St8@2-3]
+St14@0-3 [p=St3@0-0; c=St5@0-3]
+St13@0-3 [p=St12@0-1; c=St6@1-3] [p=St12@0-1; c=St5@1-3]
+St11@0-3 [p=St10@0-0; c=St14@0-3] [p=St10@0-0; c=St13@0-3]
 EOS
 
 my $set4_at_3 = <<'EOS';
@@ -328,8 +317,8 @@ EOS
 my $set4_at_4 = <<'EOS';
 St9@2-4 [p=St8@2-3; c=St7@3-4]
 St5@1-4 [p=St4@1-2; c=St9@2-4]
-St14@0-4 [p=St13@0-1; c=St5@1-4]
-St12@0-4 [p=St11@0-0; c=St14@0-4]
+St13@0-4 [p=St12@0-1; c=St5@1-4]
+St11@0-4 [p=St10@0-0; c=St13@0-4]
 EOS
 
 my $sets_new  = $set0_new;
