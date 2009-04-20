@@ -62,7 +62,8 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 				sDirectoryID = (TCHAR *)malloc(dwLengthID * sizeof(TCHAR));
 				uiAnswer = MsiRecordGetString(phRecord, 1,sDirectoryID, &dwLengthID);
 			}
-			return uiAnswer;
+			MsiViewClose(hView);
+			return ERROR_SUCCESS;
 		}
 
 		uiAnswer = MsiViewFetch(hView, &phRecord);
@@ -72,6 +73,57 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 		uiAnswer = ERROR_SUCCESS;
 	}
 
+	return uiAnswer;
+}
+
+UINT IsFileInstalled(MSIHANDLE hModule, 
+					 LPCTSTR sDirectoryID, 
+					 LPCTSTR sFilename, 
+					 BOOL& bInstalled)
+{
+	TCHAR* sSQL = 
+		TEXT("SELECT `File` FROM `Component`,`File` WHERE `Component`.`Component`='File`.`Component_` AND 'Component`.`` = ?");
+	PMSIHANDLE phView;
+	bInstalled = FALSE;
+
+	UINT uiAnswer = ERROR_SUCCESS;
+
+	uiAnswer = MsiDatabaseOpenView(hModule, sSQL, &phView);
+
+	if (uiAnswer != ERROR_SUCCESS) {
+		return uiAnswer;
+	}
+
+	PMSIHANDLE phRecord = MsiCreateRecord(1);
+	// ERROR: phRecord == NULL
+
+	uiAnswer = MsiRecordSetString(phRecord, 1, sDirectoryID);
+
+	uiAnswer = MsiViewExecute(phView, phRecord);
+
+	TCHAR sFile[MAX_PATH + 1];
+	
+	uiAnswer = MsiViewFetch(phView, &phRecord);
+
+	while (uiAnswer == ERROR_SUCCESS) {
+
+		DWORD dwLengthFile = MAX_PATH + 1;
+		uiAnswer = MsiRecordGetString(phRecord, 2, sFile, &dwLengthFile);
+
+		if (_tcscmp(sFilename, sFile) == 0) {
+			bInstalled = TRUE;
+			MsiViewClose(phView);
+			return ERROR_SUCCESS;
+		}
+
+		uiAnswer = MsiViewFetch(phView, &phRecord);
+	}
+
+	if (uiAnswer == ERROR_NO_MORE_ITEMS) {
+		uiAnswer = ERROR_SUCCESS;
+	}
+
+	uiAnswer = MsiViewClose(phView);
 	return uiAnswer;
 }
 
@@ -111,8 +163,6 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
 			_tcscat_s(sNewDir, MAX_PATH, lpFound->cFileName);
 
-			// Get directory ID
-
 			if (sParentDirID != NULL) {
 				uiAnswer = GetDirectoryID(hView, 
 					lpFound->cFileName, 
@@ -123,6 +173,11 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 			free((void *)sNewDir);
 		} else {
 			uiFoundFilesToDelete++;
+			// Verify that it wasn't installed by this MSI.
+			if (sDirectoryID != NULL) {
+				BOOL bInstalled;
+				uiAnswer = IsFileInstalled(hModule, sDirectoryID, lpFound->cFileName, bInstalled);
+			} 
 		}
 	
 		bAnswer = ::FindNextFile(hFindHandle, lpFound);
@@ -138,9 +193,13 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 		return uiAnswer;
 	}
 
-
 	if (uiFoundFilesToDelete > 0) {
-		// HELP: Add entry to RemoveFiles table for *.* in this directory
+		if (sDirectoryID != NULL) {
+			// HELP: Add entry to RemoveFiles table for *.* in this directory
+		} else {
+			// TODO: Insert directory ID.
+			// HELP: Add entry to RemoveFiles table for *.* in this directory
+		}
 	}
 	
 
