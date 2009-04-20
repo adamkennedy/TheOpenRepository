@@ -1,7 +1,7 @@
 Changes for Perl extension ADAMK-Repository
 
 0.11 to be released
-	-
+	- Adding support for svn log
 
 0.10 Mon 20 Apr 2009
 	- Added function  ADAMK::Util::ljoin

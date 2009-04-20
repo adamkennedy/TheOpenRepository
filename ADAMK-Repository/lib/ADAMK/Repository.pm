@@ -25,6 +25,7 @@ use IPC::Run3               0.034 ();
 use XML::Tiny                2.02 ();
 use Text::Table             1.114 ();
 use Params::Util             0.35 ();
+use IO::ScalarArray         2.110 ();
 use CPAN::Version             5.5 ();
 use Archive::Extract         0.30 ();
 use Object::Tiny::XS         1.01 ();
