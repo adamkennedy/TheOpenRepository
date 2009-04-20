@@ -380,7 +380,7 @@ Adam Kennedy <adamk@cpan.org>
 Thank you to Phase N Australia (L<http://phase-n.com/>) for
 permitting the open sourcing and release of this distribution.
 
-Copyright (c) 2004 - 2005 Adam Kennedy.
+Copyright 2004 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
