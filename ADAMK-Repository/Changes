@@ -1,6 +1,9 @@
 Changes for Perl extension ADAMK-Repository
 
-0.10 to be released
+0.11 to be released
+	-
+
+0.10 Mon 20 Apr 2009
 	- Added function  ADAMK::Util::ljoin
 	- Added function  ADAMK::Util::table
 	- Added method    ADAMK::Repository::distributions_like

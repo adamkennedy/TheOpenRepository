@@ -8,7 +8,7 @@ use ADAMK::Repository ();
 
 use vars qw{$VERSION $BIN_MAKE};
 BEGIN {
-	$VERSION    = '0.10';
+	$VERSION    = '0.11';
 	$BIN_MAKE ||= $Config::Config{make};
 }
 

@@ -22,6 +22,7 @@ use File::Find::Rule         0.30 ();
 use File::Find::Rule::VCS    1.05 ();
 use File::Find::Rule::Perl   1.06 ();
 use IPC::Run3               0.034 ();
+use XML::Tiny                2.02 ();
 use Text::Table             1.114 ();
 use Params::Util             0.35 ();
 use CPAN::Version             5.5 ();
@@ -40,10 +41,11 @@ use ADAMK::Release::Extract       ();
 use ADAMK::Distribution           ();
 use ADAMK::Distribution::Export   ();
 use ADAMK::Distribution::Checkout ();
+use ADAMK::LogEntry               ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 	@ISA     = qw{
 		ADAMK::Role::Trace
 		ADAMK::Role::File

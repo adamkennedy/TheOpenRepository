@@ -12,7 +12,7 @@ use Object::Tiny::XS qw{
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.10';
+	$VERSION = '0.11';
 	@ISA     = qw{
 		ADAMK::Role::Trace
 		ADAMK::Role::File

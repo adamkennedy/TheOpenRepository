@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 113 );
+		plan( tests => 114 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
@@ -115,6 +115,10 @@ SCOPE: {
 			$checkout->update_current_release_datetime,
 			'->update_current_release_datetime ok',
 		);
+
+		# Test svn log support
+		my @lines = $checkout->svn_log;
+		isa_ok( $lines[0], 'ADAMK::LogEntry' );
 	}
 
 	# Export a distribution

@@ -14,7 +14,7 @@ use vars qw{$VERSION @ISA $VERBOSE @EXPORT_OK %EXPORT_TAGS};
 BEGIN {
 	require Exporter;
 
-	$VERSION     = '0.10';
+	$VERSION     = '0.11';
 	@ISA         = ( 'Exporter' );
 	$VERBOSE     = 0 unless defined $VERBOSE;
 	@EXPORT_OK   = qw{ shell chdir copy move remove which };
