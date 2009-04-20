@@ -1217,7 +1217,7 @@ in_file($_, 't/equation_s.t');
 
     my $recce = Parse::Marpa::Recognizer->new( { grammar => $grammar } );
 
-    my $fail_offset = $recce->text( '2-0*3+1' );
+    my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
         Carp::croak("Parse failed at offset $fail_offset");
     }
@@ -1231,24 +1231,24 @@ in_file($_, 't/equation.t');
 
 =end Marpa::Test::Display:
 
-    my $recce = Parse::Marpa::Recognizer->new({grammar => $grammar});
+    my $recce = Parse::Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $op = $grammar->get_symbol('Op');
     my $number = $grammar->get_symbol('Number');
 
     my @tokens = (
-	[$number, 2, 1],
-	[$op, q{-}, 1],
-	[$number, 0, 1],
-	[$op, q{*}, 1],
-	[$number, 3, 1],
-	[$op, q{+}, 1],
-	[$number, 1, 1],
+        [ $number, 2,    1 ],
+        [ $op,     q{-}, 1 ],
+        [ $number, 0,    1 ],
+        [ $op,     q{*}, 1 ],
+        [ $number, 3,    1 ],
+        [ $op,     q{+}, 1 ],
+        [ $number, 1,    1 ],
     );
 
     TOKEN: for my $token (@tokens) {
-	next TOKEN if $recce->earleme($token);
-	Carp::croak('Parsing exhausted at character: ', $token->[1]);
+        next TOKEN if $recce->earleme($token);
+        Carp::croak( 'Parsing exhausted at character: ', $token->[1] );
     }
 
     $recce->end_input();
@@ -1512,7 +1512,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $fail_offset = $recce->text( '2-0*3+1' );
+    my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
         Carp::croak("Parse failed at offset $fail_offset");
     }
@@ -1572,7 +1572,7 @@ in_file($_, 't/ah2.t');
 =end Marpa::Test::Display:
 
     my $a = $grammar->get_symbol('a');
-    $recce->earleme([$a, 'a', 1]) or Carp::croak('Parsing exhausted');
+    $recce->earleme( [ $a, 'a', 1 ] ) or Carp::croak('Parsing exhausted');
 
 The C<earleme> method takes zero or more arguments.
 Each argument represents a token which starts at the B<current earleme>.

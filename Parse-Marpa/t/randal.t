@@ -54,7 +54,7 @@ TEST: while ( my $test = pop @tests ) {
     my ($test_name) = ( $test =~ /\A([a-z]+) /xms );
     given ($test_name) {
         when ('time') {
-            @expected_parses = ( 'division, comment' );
+            @expected_parses = ('division, comment');
         }
         when ('sin') {
             @expected_parses =

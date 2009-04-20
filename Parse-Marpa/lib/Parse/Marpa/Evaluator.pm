@@ -1392,7 +1392,7 @@ in_file($_, 't/equation_s.t')
 
 =end Marpa::Test::Display:
 
-    my $fail_offset = $recce->text( '2-0*3+1' );
+    my $fail_offset = $recce->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
         Carp::croak("Parse failed at offset $fail_offset");
     }
