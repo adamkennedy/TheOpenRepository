@@ -72,6 +72,11 @@ sub module {
 		die("The distribution '$_[0]' does not exist");
 	}
 
+	# Find the list of changes
+	my $from    = $dist->latest->svn_revision;
+	my $to      = $dist->svn_revision;
+	my @entries = $dist->svn_log('-r', "$from:$to");
+
 	# Show the information
 	my $changes = $dist->changes;
 	my $release = $dist->latest;
@@ -97,6 +102,9 @@ sub module {
 		( $release ?
 			[ 'Release Date', $release->svn_date ]
 		: () ),
+		map {
+			[ 'r' . $_->revision => $_->message ]
+		} @entries,
 	);
 }
 
@@ -143,19 +151,30 @@ sub report_changed_versions {
 		next unless -f $dist->changes_file;
 		next unless -f $extract->changes_file;
 
-		my $name    = $dist->name;
 		my $trunk   = $dist->changes->current->version;
 		my $release = $extract->changes->current->version;
 		if ( $trunk eq $release ) {
 			# No new significant changes
 			next;
 		}
-		push @rows, [ $name, $trunk, $release, $dist->svn_author ];
+
+		# How many log entries are there from the last release
+		my $from    = $dist->latest->svn_revision;
+		my $to      = $dist->svn_revision;
+		my @entries = $dist->svn_log('-r', "$from:$to");
+
+		push @rows, [
+			$dist->name,
+			$trunk,
+			$release,
+			scalar(@entries),
+			$dist->svn_author,
+		];
 	}
 
 	# Generate the table
 	print ADAMK::Util::table(
-		[ 'Name', 'Trunk', 'Release', 'Last Commit By' ],
+		[ 'Name', 'Trunk', 'Release', 'Changes', 'Last Commit By' ],
 		@rows,
 	);
 }
