@@ -63,7 +63,8 @@ $test_output = do {
         }
     );
     if ($tester) {
-        print "There are leaks\n" or Carp::croak("Cannot print to STDOUT: $ERRNO");
+        print "There are leaks\n"
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
 
     ## no Marpa::Test::Display
@@ -359,7 +360,7 @@ $test_output = do {
     use English qw( -no_match_vars );
 
     my $tester = Test::Weaken->new(
-        {   constructor => sub { My_Object->new },
+        {   constructor => sub { My_Object->new() },
             destructor  => \&destroy_my_object,
         }
     );

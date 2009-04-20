@@ -36,8 +36,8 @@ sub run_tidy {
     push @cmd, $file;
     my ( $child_out, $child_in );
 
-    my $pid = open2( $child_out, $child_in, @cmd )
-        or croak("IPC::Open2 of perltidy pipe failed: $ERRNO");
+    my $pid = IPC::Open2::open2( $child_out, $child_in, @cmd )
+        or Carp::croak("IPC::Open2 of perltidy pipe failed: $ERRNO");
     close $child_in;
     my $tidy_output = do {
         local ($RS) = undef;
@@ -46,18 +46,18 @@ sub run_tidy {
     close $child_out;
     waitpid $pid, 0;
 
-    my $diff = diff $file, \$tidy_output,
+    my $diff = Text::Diff::diff $file, \$tidy_output,
         { STYLE => 'CountHunks', CONTEXT => 0 };
 
     if ( my $child_error = $CHILD_ERROR ) {
-        croak("perltidy returned $child_error");
+        Carp::croak("perltidy returned $child_error");
     }
 
     return $diff;
 }
 
 open my $manifest, '<', '../MANIFEST'
-    or croak("open of MANIFEST failed: $ERRNO");
+    or Carp::croak("open of MANIFEST failed: $ERRNO");
 
 FILE: while ( my $file = <$manifest> ) {
     chomp $file;
@@ -68,16 +68,16 @@ FILE: while ( my $file = <$manifest> ) {
     next FILE if $exclude{$file};
     $file = '../' . $file;
     next FILE if -d $file;
-    croak("No such file: $file") unless -f $file;
+    Carp::croak("No such file: $file") unless -f $file;
 
     my $result = run_tidy($file);
     if ($result) {
         print "$file: ", ( length $result ), " perltidy issues\n"
-            or croak('Cannot print to STDOUT');
+            or Carp::croak('Cannot print to STDOUT');
     }
     else {
         print "$file: clean\n"
-            or croak('Cannot print to STDOUT');
+            or Carp::croak('Cannot print to STDOUT');
     }
 }
 close $manifest;

@@ -8,33 +8,34 @@ use Carp;
 
 our $FH;
 
-croak("usage: $0: old_version new_version") unless scalar @ARGV == 2;
+Carp::croak("usage: $0: old_version new_version") unless scalar @ARGV == 2;
 
 my ( $old, $new ) = @ARGV;
 
 print {*STDERR} "$old $new\n"
-    or croak("Cannot print to STDERR: $ERRNO");
+    or Carp::croak("Cannot print to STDERR: $ERRNO");
 
 sub check_version {
     my $version = shift;
     my ( $major, $minor1, $underscore, $minor2 ) =
         ( $version =~ m/^ ([0-9]+) [.] ([0-9.]{3}) ([_]?) ([0-9.]{3}) $/xms );
     if ( not defined $minor2 ) {
-        croak("Bad format in version number: $version");
+        Carp::croak("Bad format in version number: $version");
     }
     if ( $minor1 % 2 and $underscore ne '_' ) {
-        croak("No underscore in developer's version number: $version");
+        Carp::croak("No underscore in developer's version number: $version");
     }
     if ( $minor1 % 2 == 0 and $underscore eq '_' ) {
-        croak("Underscore in official release version number: $version");
+        Carp::croak(
+            "Underscore in official release version number: $version");
     }
-}
+} ## end sub check_version
 
 check_version($old);
 check_version($new);
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
-croak("$old >= $new") if eval $old >= eval $new;
+Carp::croak("$old >= $new") if eval $old >= eval $new;
 ## use critic
 
 sub change {
@@ -47,7 +48,7 @@ sub change {
         rename $file, $backup;
         open my $argvout, '>', $file;
         print {$argvout} ${ $fix->( \$text, $file ) }
-            or croak("Could not print to argvout: $ERRNO");
+            or Carp::croak("Could not print to argvout: $ERRNO");
         close $argvout;
     }
     return 1;
@@ -60,7 +61,7 @@ sub fix_META_yml {
     unless ( ${$text_ref} =~ s/(version:\s*)$old/$1$new/gxms ) {
         print {*STDERR}
             "failed to change version from $old to $new in $file_name\n"
-            or croak("Could not print to argvout: $ERRNO");
+            or Carp::croak("Could not print to argvout: $ERRNO");
     }
     return $text_ref;
 }
@@ -89,7 +90,7 @@ sub fix_Weaken_pm {
     {
         print {*STDERR}
             "failed to change VERSION from $old to $new in $file_name\n"
-            or croak("Could not print to STDERR: $ERRNO");
+            or Carp::croak("Could not print to STDERR: $ERRNO");
     }
     return $text_ref;
 }
@@ -103,7 +104,7 @@ sub update_changes {
         =~ s/(\ARevision\s+history\s+[^\n]*\n\n)/$1$new $date_stamp\n/xms )
     {
         print {*STDERR} "failed to add $new to $file_name\n"
-            or croak("Could not print to STDERR: $ERRNO");
+            or Carp::croak("Could not print to STDERR: $ERRNO");
     }
     return $text_ref;
 }
@@ -113,4 +114,4 @@ change( \&fix_Weaken_pm,  'lib/Test/Weaken.pm' );
 change( \&update_changes, 'Changes' );
 
 print {*STDERR} "REMEMBER TO UPDATE Changes file\n"
-    or croak("Could not print to STDERR: $ERRNO");
+    or Carp::croak("Could not print to STDERR: $ERRNO");

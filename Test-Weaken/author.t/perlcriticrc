@@ -382,6 +382,9 @@ severity=5
 [Variables::RequireNegativeIndices]
 severity=5
 
+[Subroutines::ProhibitCallsToUndeclaredSubs]
+severity=5
+
 [Subroutines::ProhibitCallsToUnexportedSubs]
 severity=1
 

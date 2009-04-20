@@ -89,7 +89,7 @@ sub ignore_my_global {
 }
 
 my $tester = Test::Weaken::leaks(
-    {   constructor => sub { MyObject->new },
+    {   constructor => sub { MyObject->new() },
         ignore      => \&ignore_my_global,
     }
 );
@@ -104,7 +104,7 @@ else {
 }
 
 $tester = Test::Weaken::leaks(
-    {   constructor => sub { MyObject->new },
+    {   constructor => sub { MyObject->new() },
         ignore      => sub { return; }
     }
 );
@@ -130,7 +130,7 @@ EOS
 
 ## use Marpa::Test::Display check_ignore 1 arg snippet
 $tester = Test::Weaken::leaks(
-    {   constructor => sub { MyObject->new },
+    {   constructor => sub { MyObject->new() },
         ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
     }
 );
@@ -153,7 +153,7 @@ sub overwriting_ignore {
 my $restore     = divert_stderr();
 my $eval_return = eval {
     Test::Weaken::leaks(
-        {   constructor => sub { MyObject->new },
+        {   constructor => sub { MyObject->new() },
             ignore => Test::Weaken::check_ignore( \&overwriting_ignore ),
         }
     );
@@ -257,7 +257,7 @@ sub counted_errors {
 ## use Marpa::Test::Display check_ignore snippet
 
         Test::Weaken::leaks(
-            {   constructor => sub { MyObject->new },
+            {   constructor => sub { MyObject->new() },
                 ignore      => Test::Weaken::check_ignore(
                     \&buggy_ignore, $error_count
                 ),
@@ -296,7 +296,7 @@ counted_errors(9);
 sub noop_ignore { return 0; }
 
 $tester = Test::Weaken::leaks(
-    {   constructor => sub { MyCycle->new },
+    {   constructor => sub { MyCycle->new() },
         ignore      => \&noop_ignore,
     }
 );
@@ -319,7 +319,7 @@ sub copying_ignore {
 ## use critic
 
 $tester = Test::Weaken::leaks(
-    {   constructor => sub { MyCycle->new },
+    {   constructor => sub { MyCycle->new() },
         ignore      => \&copying_ignore,
     }
 );
@@ -345,7 +345,7 @@ $restore     = divert_stderr();
 $eval_return = eval {
 
     $tester = Test::Weaken::leaks(
-        {   constructor => sub { MyCycle->new },
+        {   constructor => sub { MyCycle->new() },
             ignore => Test::Weaken::check_ignore( \&copying_ignore, 2 ),
         }
     );
@@ -463,8 +463,8 @@ sub counted_compare_depth {
     $restore     = divert_stderr();
     $eval_return = eval {
         Test::Weaken::leaks(
-            {   constructor => sub { DeepObject->new },
-                ignore      => Test::Weaken::check_ignore(
+            {   constructor => sub { DeepObject->new() },
+                ignore => Test::Weaken::check_ignore(
                     \&cause_deep_problem, 99,
                     $compare_depth,       $compare_depth
                 ),
@@ -576,8 +576,8 @@ sub counted_reporting_depth {
     $eval_return = eval {
 ## use Marpa::Test::Display check_ignore 4 arg snippet
         $tester = Test::Weaken::leaks(
-            {   constructor => sub { DeepObject->new },
-                ignore      => Test::Weaken::check_ignore(
+            {   constructor => sub { DeepObject->new() },
+                ignore => Test::Weaken::check_ignore(
                     \&cause_deep_problem, 99, 0, $reporting_depth
                 ),
             }

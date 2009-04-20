@@ -226,7 +226,7 @@ sub Test::Weaken::test {
 
     my $test_object_probe = \( $constructor->() );
     if ( not ref ${$test_object_probe} ) {
-        carp(
+        Carp::carp(
             'Test::Weaken test object constructor did not return a reference'
         );
     }
@@ -283,7 +283,7 @@ sub poof_array_return {
 # Undocumented and deprecated
 sub Test::Weaken::poof {
     my @args   = @_;
-    my $tester = new Test::Weaken(@args);
+    my $tester = Test::Weaken->new(@args);
     my $result = $tester->test();
     return Test::Weaken::Internal::poof_array_return($tester) if wantarray;
     return $result;
@@ -291,7 +291,7 @@ sub Test::Weaken::poof {
 
 sub Test::Weaken::leaks {
     my @args   = @_;
-    my $tester = new Test::Weaken(@args);
+    my $tester = Test::Weaken->new(@args);
     my $result = $tester->test();
     return $tester if $result;
     return;
@@ -357,7 +357,8 @@ sub Test::Weaken::check_ignore {
 
     $reporting_depth = -1 if not defined $reporting_depth;
     if ( not Scalar::Util::looks_like_number($reporting_depth) ) {
-        Carp::croak('Test::Weaken::check_ignore reporting_depth must be a number');
+        Carp::croak(
+            'Test::Weaken::check_ignore reporting_depth must be a number');
     }
     $reporting_depth = -1 if $reporting_depth < 0;
 
@@ -474,8 +475,8 @@ is_file($_, 't/synopsis.t', 'synopsis')
     use English qw( -no_match_vars );
 
     my $good_test = sub {
-        my $obj1 = new Math::BigInt('42');
-        my $obj2 = new Math::BigFloat('7.11');
+        my $obj1 = Math::BigInt->new('42');
+        my $obj2 = Math::BigFloat->new('7.11');
         [ $obj1, $obj2 ];
     };
 
@@ -506,12 +507,12 @@ is_file($_, 't/synopsis.t', 'synopsis')
         my $unfreed_count     = @{$unfreed_proberefs};
         printf "Test 2: %d of %d original references were not freed\n",
             $tester->unfreed_count(), $tester->probe_count()
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
         for my $proberef ( @{$unfreed_proberefs} ) {
             print Data::Dumper->Dump( [$proberef], ['unfreed'] )
-                or croak("Cannot print to STDOUT: $ERRNO");
+                or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
     }
 
@@ -808,12 +809,12 @@ is_file($_, 't/snippet.t', 'leaks snippet')
     use English qw( -no_match_vars );
 
     my $tester = Test::Weaken::leaks(
-        {   constructor => sub { new Buggy_Object },
+        {   constructor => sub { Buggy_Object->new() },
             destructor  => \&destroy_buggy_object,
         }
     );
     if ($tester) {
-        print "There are leaks\n" or croak("Cannot print to STDOUT: $ERRNO");
+        print "There are leaks\n" or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
 
 =begin Marpa::Test::Display:
@@ -894,7 +895,7 @@ is_file($_, 't/ignore.t', 'ignore snippet')
     }
 
     my $tester = Test::Weaken::leaks(
-        {   constructor => sub { MyObject->new },
+        {   constructor => sub { MyObject->new() },
             ignore      => \&ignore_my_global,
         }
     );
@@ -987,18 +988,18 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+    my $tester = Test::Weaken::leaks( sub { Buggy_Object->new() } );
     if ($tester) {
         my $unfreed_proberefs = $tester->unfreed_proberefs();
         my $unfreed_count     = @{$unfreed_proberefs};
         printf "%d of %d references were not freed\n",
             $tester->unfreed_count(), $tester->probe_count()
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
         for my $proberef ( @{$unfreed_proberefs} ) {
             print Data::Dumper->Dump( [$proberef], ['unfreed'] )
-                or croak("Cannot print to STDOUT: $ERRNO");
+                or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
     }
 
@@ -1045,10 +1046,10 @@ is_file($_, 't/snippet.t', 'unfreed_count snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $tester = Test::Weaken::leaks( sub { new Buggy_Object } );
+    my $tester = Test::Weaken::leaks( sub { Buggy_Object->new() } );
     next TEST if not $tester;
     printf "%d objects were not freed\n", $tester->unfreed_count(),
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
 
@@ -1076,14 +1077,14 @@ is_file($_, 't/snippet.t', 'probe_count snippet')
         use English qw( -no_match_vars );
 
         my $tester = Test::Weaken::leaks(
-            {   constructor => sub { new Buggy_Object },
+            {   constructor => sub { Buggy_Object->new() },
                 destructor  => \&destroy_buggy_object,
             }
         );
         next TEST if not $tester;
         printf "%d of %d objects were not freed\n",
             $tester->unfreed_count(), $tester->probe_count()
-            or croak("Cannot print to STDOUT: $ERRNO");
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
 
@@ -1121,13 +1122,13 @@ is_file($_, 't/snippet.t', 'new snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $tester        = new Test::Weaken( sub { new My_Object } );
+    my $tester        = Test::Weaken->new( sub { My_Object->new() } );
     my $unfreed_count = $tester->test();
     my $proberefs     = $tester->unfreed_proberefs();
     printf "%d of %d objects freed\n",
         $unfreed_count,
         $tester->probe_count()
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
 
 =begin Marpa::Test::Display:
 
@@ -1159,13 +1160,13 @@ is_file($_, 't/snippet.t', 'test snippet')
     use Test::Weaken;
     use English qw( -no_match_vars );
 
-    my $tester = new Test::Weaken(
-        {   constructor => sub { new My_Object },
+    my $tester = Test::Weaken->new(
+        {   constructor => sub { My_Object->new() },
             destructor  => \&destroy_my_object,
         }
     );
     printf "There are %s\n", ( $tester->test() ? 'leaks' : 'no leaks' )
-        or croak("Cannot print to STDOUT: $ERRNO");
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
 
 Converts an unevaluated tester into an evaluated tester.
 It does this by performing the test
@@ -1271,7 +1272,7 @@ is_file($_, 't/ignore.t', 'check_ignore 1 arg snippet')
 =end Marpa::Test::Display:
 
     $tester = Test::Weaken::leaks(
-        {   constructor => sub { MyObject->new },
+        {   constructor => sub { MyObject->new() },
             ignore => Test::Weaken::check_ignore( \&ignore_my_global ),
         }
     );
@@ -1291,7 +1292,7 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 =end Marpa::Test::Display:
 
     $tester = Test::Weaken::leaks(
-        {   constructor => sub { DeepObject->new },
+        {   constructor => sub { DeepObject->new() },
             ignore      => Test::Weaken::check_ignore(
                 \&cause_deep_problem, 99, 0, $reporting_depth
             ),
@@ -1313,9 +1314,9 @@ This callback is called the test subject, or
 B<lab rat>.
 
 The second, optional argument, is the maximum error count.
-Below this count, errors are reported as warnings using C<carp>.
+Below this count, errors are reported as warnings using C<Carp::carp>.
 When the maximum error count is reached, an
-exception is thrown using C<croak>.
+exception is thrown using C<Carp::croak>.
 The maximum error count, if defined,
 must be an number greater than or equal to 0.
 By default the maximum error count is 1,
@@ -1373,8 +1374,8 @@ is a weak reference or a strong one.
 If either comparison shows a difference,
 the wrapper treats it as a problem, and
 produces an error message.
-This error message is either a C<carp> warning or a
-C<croak> exception, depending on the number of error
+This error message is either a C<Carp::carp> warning or a
+C<Carp::croak> exception, depending on the number of error
 messages already reported and the setting of the
 maximum error count.
 If the reporting depth is a non-negative number, the error

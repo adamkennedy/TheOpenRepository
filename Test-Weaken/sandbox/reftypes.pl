@@ -17,35 +17,40 @@ sub try_dumper {
 
     my @warnings = ();
     $SIG{__WARN__} = sub { push @warnings, $_[0]; };
-    printf {*STDERR} 'Dumper: %s', Dumper( ${$probe_ref} )
-        or croak("Cannot print to STDERR: $ERRNO");
+    printf {*STDERR} 'Dumper: %s', Data::Dumper::Dumper( ${$probe_ref} )
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     for my $warning (@warnings) {
         print {*STDERR} "Dumper warning: $warning"
-            or croak("Cannot print to STDERR: $ERRNO");
+            or Carp::croak("Cannot print to STDERR: $ERRNO");
     }
     return scalar @warnings;
 }
 
 my $array_ref = \@{ [qw(42)] };
-my $hash_ref    = { a => 1, b => 2 };
-my $scalar_ref  = \42;
-my $ref_ref     = \$scalar_ref;
-my $regexp_ref  = qr/./xms;
-my $vstring_ref = \(v1.2.3.4);
-my $code_ref    = \&try_dumper;
+my $hash_ref   = { a => 1, b => 2 };
+my $scalar_ref = \42;
+my $ref_ref    = \$scalar_ref;
+my $regexp_ref = qr/./xms;
 
-## no critic (Miscellanea::ProhibitFormats,References::ProhibitDoubleSigils)
+## no critic (Subroutines::ProhibitCallsToUndeclaredSubs)
+my $vstring_ref = \(v1.2.3.4);
+## use critic
+
+my $code_ref = \&try_dumper;
+
+## no critic (Miscellanea::ProhibitFormats,References::ProhibitDoubleSigils,Subroutines::ProhibitCallsToUndeclaredSubs)
 format fmt =
 @<<<<<<<<<<<<<<<
 $_
 .
 ## use critic
+
+## no critic (Subroutines::ProhibitCallsToUndeclaredSubs)
 my $format_ref = *fmt{FORMAT};
-
-my $glob_ref = *STDOUT{GLOB};
-
-my $io_ref = *STDOUT{IO};
-my $fh_ref = *STDOUT{FILEHANDLE};
+my $glob_ref   = *STDOUT{GLOB};
+my $io_ref     = *STDOUT{IO};
+my $fh_ref     = *STDOUT{FILEHANDLE};
+## use critic
 
 ## no critic (InputOutput::RequireBriefOpen)
 open my $autoviv_ref, q{>&STDERR};
@@ -75,7 +80,7 @@ REF:
 while ( my ( $name, $ref ) = each %data ) {
     printf {*STDERR} "==== $name, %s, %s ====\n", ( ref $ref ),
         ( reftype $ref)
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     try_dumper( \$ref );
 }
 
@@ -84,7 +89,7 @@ for my $data_name (qw(scalar vstring regexp ref )) {
     my $ref = $data{$data_name};
     printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
         ( ref $ref )
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $old_probe = \$ref;
     try_dumper($old_probe);
     my $new_probe = \${ ${$old_probe} };
@@ -95,7 +100,7 @@ REF: for my $ref ($format_ref) {
     my $probe = \$ref;
     print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
         "\n"
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
 
     # How to dereference ?
@@ -105,7 +110,7 @@ REF: for my $ref ($lvalue_ref) {
     my $probe = \$ref;
     print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
         "\n"
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \${ ${$probe} };
     printf {*STDERR} "pos is %d\n", ${$lvalue_ref};
@@ -117,21 +122,21 @@ REF: for my $ref ($io_ref) {
     my $probe = \$ref;
     print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
         "\n"
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
     print { ${$new_probe} } "Printing via IO ref\n"
-        or croak("Cannot print via IO ref: $ERRNO");
+        or Carp::croak("Cannot print via IO ref: $ERRNO");
 }
 
 REF: for my $ref ($glob_ref) {
     my $probe = \$ref;
     print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     try_dumper($probe);
     my $new_probe = \*{ ${$probe} };
     print { ${$new_probe} } "Printing via GLOB ref\n"
-        or croak("Cannot print via GLOB ref: $ERRNO");
+        or Carp::croak("Cannot print via GLOB ref: $ERRNO");
 }
 
 REF:
@@ -139,11 +144,11 @@ for my $data_name (qw( glob autoviv )) {
     my $ref = $data{$data_name};
     printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
         ( ref $ref )
-        or croak("Cannot print to STDERR: $ERRNO");
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $old_probe = \$ref;
     try_dumper($old_probe);
     my $new_probe = \*{ ${$old_probe} };
     print { ${$new_probe} } "Printing via $data_name ref\n"
-        or croak("Cannot print via $data_name ref: $ERRNO");
+        or Carp::croak("Cannot print via $data_name ref: $ERRNO");
     try_dumper($new_probe);
 }

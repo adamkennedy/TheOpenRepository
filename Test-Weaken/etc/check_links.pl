@@ -46,7 +46,7 @@ PAGE: for my $url (@url) {
     my $page_response_status_line = $request_response->status_line;
     if ( $request_response->code != 200 ) {
         print 'PAGE: ', $page_response_status_line, q{ }, $url, "\n"
-            or croak("Cannot print: $ERRNO");
+            or Carp::croak("Cannot print: $ERRNO");
         next PAGE;
     }
 
@@ -62,16 +62,16 @@ PAGE: for my $url (@url) {
         if ( $response->code == 200 ) {
             $link_ok{$link} = 1;
             print q{.}
-                or croak("Cannot print: $ERRNO");
+                or Carp::croak("Cannot print: $ERRNO");
             next LINK;
         }
 
         print 'LINK: ', $response->status_line, q{ }, $link, "\n"
-            or croak("Cannot print: $ERRNO");
+            or Carp::croak("Cannot print: $ERRNO");
 
     }
 
     print " PAGE: $page_response_status_line: $url\n"
-        or croak("Cannot print: $ERRNO");
+        or Carp::croak("Cannot print: $ERRNO");
 
 }

@@ -11,10 +11,10 @@ use lib 't/lib';
 use Test::Weaken::Test;
 
 BEGIN {
-    use_ok('Test::Weaken');
+    Test::More::use_ok('Test::Weaken');
 }
 
-my $test = new Test::Weaken(
+my $test = Test::Weaken->new(
     sub {
         my $x;
         my $y = [ \$x, 42 ];

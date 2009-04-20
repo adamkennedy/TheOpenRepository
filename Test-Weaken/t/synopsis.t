@@ -34,7 +34,8 @@ my $good_test = sub {
 };
 
 if ( !leaks($good_test) ) {
-    print "No leaks in test 1\n" or Carp::croak("Cannot print to STDOUT: $ERRNO");
+    print "No leaks in test 1\n"
+        or Carp::croak("Cannot print to STDOUT: $ERRNO");
 }
 else {
     print "There were memory leaks from test 1!\n"
