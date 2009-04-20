@@ -98,6 +98,7 @@ object directly.
 
 use 5.006;
 use strict;
+use warnings;
 use Carp       ();
 use Config     ();
 use Storable   ();
@@ -106,7 +107,7 @@ use YAML::Tiny ();
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.12_01';
+	$VERSION = '1.12';
 }
 
 use CGI::Capture::TieSTDIN ();
@@ -514,16 +515,13 @@ For other issues, or commercial enhancement or support, contact the author.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Thank you to Phase N (L<http://phase-n.com/>) for permitting
-the open sourcing and release of this distribution.
-
 =head1 SEE ALSO
 
 L<http://ali.as/>, L<CGI>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2007 Adam Kennedy.
+Copyright 2004 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

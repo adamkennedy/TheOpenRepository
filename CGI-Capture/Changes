@@ -1,6 +1,7 @@
 Revision history for Perl extension CGI-Capture
 
 1.12 Mon 10 Dec 2007
+	- Updating to Module::Install::DSL 0.83
 	- Switching to IO::Scalar in the hope it ties properly
 
 1.11 Thu  6 Dec 2007

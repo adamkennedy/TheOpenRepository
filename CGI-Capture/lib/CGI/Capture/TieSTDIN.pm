@@ -2,10 +2,11 @@ package CGI::Capture::TieSTDIN;
 
 # Small class for replacing STDIN with a provided string
 
+use 5.006
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.12_01';
+	$VERSION = '1.12';
 }
 
 sub TIEHANDLE {
