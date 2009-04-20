@@ -1,6 +1,8 @@
 Revision history for Perl extension Data-JavaScript-Anon
 
 1.03 Thu 20 Nov 2008
+	- Upgrading to Module::Install::DSL 0.83
+	- Upgrading Perl dependency to a cleaner 5.006
 	- Corrected minimum Perl dependency to 5.005_03
 
 1.02 Tue 14 Oct 2008

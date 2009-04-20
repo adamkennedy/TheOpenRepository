@@ -97,5 +97,3 @@ is( Data::JavaScript::Anon->anon_scalar( 'foo"bar' ), '"foo\\"bar"',
 # Test for generalised case of CPAN bug # (newline not being escaped)
 $rv = Data::JavaScript::Anon->anon_dump( [ "a\nb", "a\rb", "a	b", "a\"b", "a\bb" ] );
 is( $rv, '[ "a\nb", "a\rb", "a\tb", "a\\"b", "a\010b" ]', 'escape tabs, newlines, CRs and control chars');
-
-1;

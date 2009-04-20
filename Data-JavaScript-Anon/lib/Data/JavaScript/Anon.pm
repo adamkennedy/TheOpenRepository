@@ -4,15 +4,16 @@ package Data::JavaScript::Anon;
 # structures into JavaScript structures, making it easier to transfer
 # data from Perl to JavaScript.
 
-use 5.00503;
+use 5.006;
 use strict;
+use warnings;
 use Params::Util   qw{ _STRING _SCALAR0 _ARRAY0 _HASH0 };
 use Class::Default ();
 
 use vars qw{@ISA $VERSION $errstr $RE_NUMERIC $RE_NUMERIC_HASHKEY %KEYWORD};
 BEGIN {
 	$VERSION = '1.03';
-	@ISA     = qw{Class::Default};
+	@ISA     = 'Class::Default';
 	$errstr  = '';
 
 	# Attempt to define a single, all encompasing,
@@ -285,6 +286,8 @@ sub _err_not_supported {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Data::JavaScript::Anon - Dump big dumb Perl structs to anonymous JavaScript structs
@@ -452,7 +455,7 @@ L<JSON>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2003 - 2008 Adam Kennedy.
+Copyright 2003 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
