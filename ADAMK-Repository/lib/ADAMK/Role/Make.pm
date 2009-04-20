@@ -3,7 +3,8 @@ package ADAMK::Role::Make;
 use 5.008;
 use strict;
 use warnings;
-use ADAMK::Util 'shell';
+use ADAMK::Util       ();
+use ADAMK::Repository ();
 
 use vars qw{$VERSION $BIN_MAKE};
 BEGIN {
@@ -39,7 +40,7 @@ sub mi {
 sub run_makefile_pl {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
-	shell(
+	ADAMK::Util::shell(
 		[ 'perl', 'Makefile.PL', @_ ],
 		"Configuring $pushd",
 	);
@@ -49,7 +50,7 @@ sub run_makefile_pl {
 sub run_make {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
-	shell(
+	ADAMK::Util::shell(
 		[ $self->bin_make, @_ ],
 		"Configuring $pushd",
 	);

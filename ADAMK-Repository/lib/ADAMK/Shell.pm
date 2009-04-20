@@ -136,21 +136,26 @@ sub report_changed_versions {
 	my @rows = ();
 	$self->trace("Scanning distributions... (this may take a few minutes)\n");
 	foreach my $dist ( $repo->distributions_released ) {
+		# Untar the most recent release
 		my $extract = $dist->latest->extract;
+
+		# Ignore anything weird that doesn't have Changes files
 		next unless -f $dist->changes_file;
 		next unless -f $extract->changes_file;
+
 		my $name    = $dist->name;
 		my $trunk   = $dist->changes->current->version;
 		my $release = $extract->changes->current->version;
 		if ( $trunk eq $release ) {
+			# No new significant changes
 			next;
 		}
-		push @rows, [ $name, $trunk, $release ];
+		push @rows, [ $name, $trunk, $release, $dist->svn_author ];
 	}
 
 	# Generate the table
 	print ADAMK::Util::table(
-		[ 'Name', 'Trunk', 'Release' ],
+		[ 'Name', 'Trunk', 'Release', 'Last Commit By' ],
 		@rows,
 	);
 }

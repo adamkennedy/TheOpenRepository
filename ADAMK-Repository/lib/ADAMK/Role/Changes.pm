@@ -6,6 +6,7 @@ use 5.008;
 use strict;
 use warnings;
 use Module::Changes::ADAMK ();
+use ADAMK::Repository      ();
 
 use vars qw{$VERSION};
 BEGIN {

@@ -3,11 +3,11 @@ package ADAMK::Role::SVN;
 use 5.008;
 use strict;
 use warnings;
-use IPC::Run3    ();
-use File::Spec   ();
-use File::pushd  ();
-use Params::Util ();
-use ADAMK::Mixin::Trace;
+use IPC::Run3         ();
+use File::Spec        ();
+use File::pushd       ();
+use Params::Util      ();
+use ADAMK::Repository ();
 
 use vars qw{$VERSION};
 BEGIN {
