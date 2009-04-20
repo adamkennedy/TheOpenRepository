@@ -1,24 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Load testing for prefork.pm
 
 use strict;
-use lib ();
-use UNIVERSAL 'isa';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		chdir ($FindBin::Bin = $FindBin::Bin); # Avoid a warning
-		lib->import(
-			File::Spec->catdir(
-				File::Spec->updir(),
-				File::Spec->updir(),
-				'modules')
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
-
 use Test::More tests => 18;
 
 # Try to prefork-load a module

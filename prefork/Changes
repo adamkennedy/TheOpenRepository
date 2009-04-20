@@ -1,7 +1,7 @@
 Revision history for Perl extension prefork
 
 1.03 Mon 21 Apr 2008
-	- Upgrading to Module::Install 0.72
+	- Upgrading to Module::Install 0.83
 	- Preload all of Config.pm
 
 1.02 Fri 23 Nov 2007
