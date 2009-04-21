@@ -1,7 +1,21 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 12;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More;
+BEGIN {
+	if ( $^O ne 'MSWin32' and $ENV{RELEASE_TESTING} {
+		# Special magic to get past ADAMK's release automation
+		plan( skip_all => "Skipping ADAMK's release automation" );
+	} else {
+		plan( tests => 12 );
+	}
+}
+
 use File::Spec::Functions ':ALL';
 use File::Remove          ();
 use Win32::File::Object   ();

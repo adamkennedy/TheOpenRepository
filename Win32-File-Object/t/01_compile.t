@@ -1,7 +1,20 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 2;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More;
+BEGIN {
+	if ( $^O ne 'MSWin32' and $ENV{RELEASE_TESTING} {
+		# Special magic to get past ADAMK's release automation
+		plan( skip_all => "Skipping ADAMK's release automation" );
+	} else {
+		plan( tests => 2 );
+	}
+}
 
 ok ( $] >= 5.005, 'Your perl is new enough' );
 

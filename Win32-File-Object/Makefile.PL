@@ -1,21 +1,15 @@
-use strict;
-use ExtUtils::MakeMaker;
+use inc::Module::Install 0.85;
 
-# This module is only for Win32
-unless ( $^O eq 'MSWin32' or $^O eq 'cygwin' ) {
+# Abort unless we are on Win32 or in ADAMK's release automation
+unless ( $^O eq 'MSWin32' or $^O eq 'cygwin' or $ENV{RELEASE_TESTING} ) {
 	print "Win32::File::Object is only applicable to Win32 and cygwin\n";
-	print "Install Result: N/A\n";
-	exit(255);
+	exit(0);
 }
 
-WriteMakefile(
-	'NAME'         => 'Win32::File::Object',
-	'VERSION_FROM' => 'lib/Win32/File/Object.pm', # finds $VERSION
-	'NO_META'      => 1,
-	'PREREQ_PM'    => {
-		'Win32::File'  => '0.05',
-		'File::Spec'   => '0.80',
-		'File::Remove' => '0.38',
-		'Test::More'   => '0.42',
-	},
-);
+all_from      'lib/Win32/File/Object.pm',
+requires      'Win32::File'  => '0.05';
+requires      'File::Spec'   => '0.80';
+requires      'File::Remove' => '0.38';
+test_requires 'Test::More'   => '0.42';
+
+WriteAll;
