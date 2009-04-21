@@ -48,19 +48,14 @@ When the program exits, the profing information is written to STDERR.
 use 5.008;
 use strict;
 use warnings;
-use Aspect ();
+use Aspect;
 
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 }
 
-sub import {
-	# Set up a Profiler aspect on DBI->connect
-	Aspect::aspect( 'Profiler',
-		Aspect::call( 'DBI::connect' ),
-	);
-}
+aspect Profiler => call qr/^DBI::(?:connect|db::prepare|db::do|db::select|st::execute|st::fetch)/;
 
 1;
 
