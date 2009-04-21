@@ -7,12 +7,48 @@
 
 #include "stdafx.h"
 
+#define MSI_OK(x) if (ERROR_SUCCESS != x) { \
+                     return x; \
+				  }
+
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD  ul_reason_for_call,
                       LPVOID lpReserved
 					 )
 {
     return TRUE;
+}
+
+LPTSTR CreateDirectoryGUID ()
+{
+	GUID guid;
+	CoCreateGuid(&guid);
+
+	LPTSTR sGUID = malloc(40 * sizeof(TCHAR)); 
+
+	_stprintf_s(sGUID, 40, 
+		TEXT("DX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
+		guid.Data1, guid.Data2, guid.Data3, 
+		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
+		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+		
+	return sGUID;
+}
+
+LPTSTR CreateFileGUID ()
+{
+	GUID guid;
+	CoCreateGuid(&guid);
+
+	LPTSTR sGUID = malloc(40 * sizeof(TCHAR)); 
+
+	_stprintf_s(sGUID, 40, 
+		TEXT("FX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
+		guid.Data1, guid.Data2, guid.Data3, 
+		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
+		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+		
+	return sGUID;
 }
 
 UINT LogString(MSIHANDLE hModule, LPCTSTR sMessage) 
@@ -37,18 +73,15 @@ UINT GetDirectoryIDView(MSIHANDLE hModule,
 	UINT uiAnswer = ERROR_SUCCESS;
 
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &hView);
-
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
 	// ERROR: phRecord == NULL
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sParentDirID);
+	MSI_OK(uiAnswer)
 
 	uiAnswer = ::MsiViewExecute(hView, phRecord);
-
 	return uiAnswer;
 }
 
@@ -59,7 +92,7 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 	TCHAR sDir[MAX_PATH + 1];
 	
 	sDirectoryID = NULL;
-	uiAnswer = MsiViewFetch(hView, &phRecord);
+	uiAnswer = ::MsiViewFetch(hView, &phRecord);
 
 	while (uiAnswer == ERROR_SUCCESS) {
 
@@ -101,10 +134,7 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	UINT uiAnswer = ERROR_SUCCESS;
 
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
-
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
 	if (phRecord == NULL) {
@@ -112,16 +142,10 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	}
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
-
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	MSI_OK(uiAnswer)
 
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
-
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	MSI_OK(uiAnswer)
 
 	TCHAR sFile[MAX_PATH + 1];
 	TCHAR* sPipeLocation = NULL;
@@ -162,6 +186,8 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	// It's not an error if we had no more rows to search for.
 	if (uiAnswer == ERROR_NO_MORE_ITEMS) {
 		uiAnswer = ERROR_SUCCESS;
+	} else {
+		return uiAnswer;
 	}
 
 	// Close out and get out of here.
@@ -169,7 +195,48 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	return uiAnswer;
 }
 
-UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
+UINT AddFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID, )
+{
+    // FileKey = GUID, Component_ = Component key to use, Filename = "*", 
+	// DirProperty = sDirectoryID, InstallMode = 2
+ 
+}
+
+UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, LPTSTR sDirectoryID)
+{
+	LPCTSTR sSQL = 
+		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?)");
+
+	PMSIHANDLE phView;
+	sDirectoryID = CreateDirectoryGUID();
+
+	UINT uiAnswer = ERROR_SUCCESS;
+
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	MSI_OK(uiAnswer)
+
+	PMSIHANDLE phRecord = MsiCreateRecord(3);
+	if (phRecord == NULL) {
+		return ERROR_INSTALL_FAILURE;
+	}
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, sParentDirID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 3, sName);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewClose(phView);
+	return uiAnswer;	
+}
+
+UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, bool bParentIDExisted)
 {
 	TCHAR * sFind = (TCHAR *)malloc((MAX_PATH + 1) * sizeof(TCHAR));
 
@@ -194,7 +261,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 
 	MSIHANDLE hView;
 	
-	if (sParentDirID != NULL) {
+	if (bParentDirIDExisted) {
 		uiAnswer = GetDirectoryIDView(hModule, sParentDirID, hView);
 	}
 
@@ -205,21 +272,47 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
 			_tcscat_s(sNewDir, MAX_PATH, lpFound->cFileName);
 
-			if (sParentDirID != NULL) {
+			if (bParentDirIDExisted) {
 				uiAnswer = GetDirectoryID(hView, 
 					lpFound->cFileName, 
 					sDirectoryID);
+				MSI_OK(uiAnswer)
+				if (sDirectoryID != NULL) {
+					uiAnswer = AddDirectory(hModule, sNewDir, sDirectoryID, true);
+					MSI_OK(uiAnswer)
+				} else {
+					LPTSTR sID = CreateDirectoryGUID()
+					uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
+						lpFound->cFileName, 
+						sID);
+					MSI_OK(uiAnswer)
+					
+					uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
+					MSI_OK(uiAnswer)
+				}
+			} else {
+				LPTSTR sID = CreateDirectoryGUID()
+				uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
+					lpFound->cFileName, 
+					sID);
+				MSI_OK(uiAnswer)
+				
+				uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
+				MSI_OK(uiAnswer)
 			}
 
-			uiAnswer = AddDirectory(hModule, sNewDir, sDirectoryID);
 			free((void *)sNewDir);
 		} else {
-			uiFoundFilesToDelete++;
 			// Verify that it wasn't installed by this MSI.
 			if (sDirectoryID != NULL) {
-				BOOL bInstalled;
+				BOOL bInstalled = FALSE;
 				uiAnswer = IsFileInstalled(hModule, sDirectoryID, lpFound->cFileName, bInstalled);
-			} 
+				if (!bInstalled) {
+					uiFoundFilesToDelete++;
+				}
+			} else {
+				uiFoundFilesToDelete++;
+			}
 		}
 	
 		bAnswer = ::FindNextFile(hFindHandle, lpFound);
@@ -231,24 +324,102 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID)
 		::MsiViewClose(hView);
 	}
 
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	MSI_OK(uiAnswer)
 
 	if (uiFoundFilesToDelete > 0) {
-		if (sDirectoryID != NULL) {
-			// HELP: Add entry to RemoveFiles table for *.* in this directory
-		} else {
-			// TODO: Insert directory ID.
-			// HELP: Add entry to RemoveFiles table for *.* in this directory
-		}
+		// HELP: Add entry to RemoveFiles table for *.* in this directory
 	}
 	
-
 	// HELP: Add entry to RemoveFiles table for this directory with empty filename
 	// (in order to delete the directory)
 	
 	return uiAnswer;
+}
+
+// The component for TARGET_DIR/perl/bin/perl.exe
+static TCHAR sComponent[40];
+
+UINT GetComponent(MSIHANDLE hModule)
+{
+	LPCTSTR sSQL = 
+		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ?" AND `DefaultDir` = ?);
+
+	PMSIHANDLE phView;
+	UINT uiAnswer = ERROR_SUCCESS;
+
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	MSI_OK(uiAnswer)
+
+	PMSIHANDLE phRecord = ::MsiCreateRecord(2);
+	if (phRecord == NULL) {
+		return ERROR_INSTALL_FAILURE;
+	}
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("TARGETDIR"));
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("perl"));
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK(uiAnswer)
+	
+	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
+	if (phAnswerRecord == NULL) {
+		return ERROR_INSTALL_FAILURE;
+	}
+
+	uiAnswer = ::MsiViewFetch(hView, &phAnswerRecord);
+	MSI_OK(uiAnswer)
+	
+	// Get the ID.
+	TCHAR sID[40]
+	DWORD dwLengthID = 39;
+	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
+	MSI_OK(uiAnswer);
+	
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("bin"));
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewFetch(hView, &phAnswerRecord);
+	MSI_OK(uiAnswer)
+	
+	// Get the ID.
+	dwLengthID = 39;
+	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
+	MSI_OK(uiAnswer);
+	
+	uiAnswer = ::MsiViewClose(hView, &phAnswerRecord);
+	MSI_OK(uiAnswer)
+
+	LPCTSTR sSQLFile = 
+		TEXT("SELECT `Component`.`Component` FROM `Component`,`File` WHERE `Component`.`Directory_` = ? AND `File`.`FileName`= ? AND `File`.`Component_` = `Component`.`Component`");
+
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQLFile, &phView);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("perl.exe"));
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK(uiAnswer)
+
+	// Get the ID.
+	dwLengthID = 39;
+	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sComponent, &dwLengthID);
+	MSI_OK(uiAnswer);
+	
+	uiAnswer = ::MsiViewClose(hView, &phAnswerRecord);	
+	return uiAnswer; 
 }
 
 UINT __stdcall ClearFolder(MSIHANDLE hModule)
@@ -258,16 +429,13 @@ UINT __stdcall ClearFolder(MSIHANDLE hModule)
 	DWORD dwPropLength = MAX_PATH; 
 
 	uiAnswer = MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
+	MSI_OK(uiAnswer)
 
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
-
-	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("TARGETDIR"));
+	uiAnswer = GetComponent(hModule);
+	MSI_OK(uiAnswer)
 	
-	if (uiAnswer != ERROR_SUCCESS) {
-		return uiAnswer;
-	}
+	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("TARGETDIR"), true);	
+	MSI_OK(uiAnswer)
 	
 	uiAnswer = MsiDoAction(hModule, _T("RemoveFiles"));
 	
