@@ -12,8 +12,12 @@
 #ifndef STANDARD
 #define STANDARD 1
 
-/* Use unsigned long as our type */
+/* Determine what type to use based on Perl's detection */
+#ifdef USE_INT
+typedef  unsigned int  ub4;
+#else
 typedef  unsigned long  ub4;
+#endif
 
 /* Some miscellaneous bit operation macros */
 #define bis(target,mask)  ((target) |=  (mask))
