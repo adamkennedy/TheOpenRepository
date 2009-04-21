@@ -28,6 +28,7 @@
 #include <windows.h>
 #include <msi.h>
 #include <msiquery.h>
+#include <objbase.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <tchar.h>

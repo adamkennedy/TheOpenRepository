@@ -9,7 +9,11 @@
 <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
 
 <InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' After='CostFinalize' />
+  <Custom Action='CA_ClearFolder' Before='CostInitialize' />
+</InstallExecuteSequence>
+
+<InstallExecuteSequence>
+  <Custom Action='CA_ClearFolder' Before='CostInitialize' />
 </InstallExecuteSequence>
 
 <Binary Id='B_ClearFolder' SourceFile='share\ClearFolderCA.dll' />
@@ -18,8 +22,15 @@
 #include "stdafx.h"
 
 #define MSI_OK(x) if (ERROR_SUCCESS != x) { \
-                     return x; \
+                    return x; \
 				  }
+
+#define RECORD_OK(x) if (NULL == x) { \
+					   return ERROR_INSTALL_FAILURE; \
+					 }
+
+// The component for TARGET_DIR/perl/bin/perl.exe
+static TCHAR sComponent[40];
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD  ul_reason_for_call,
@@ -32,9 +43,9 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 LPTSTR CreateDirectoryGUID ()
 {
 	GUID guid;
-	CoCreateGuid(&guid);
+	::CoCreateGuid(&guid);
 
-	LPTSTR sGUID = malloc(40 * sizeof(TCHAR)); 
+	LPTSTR sGUID = (LPTSTR)malloc(40 * sizeof(TCHAR)); 
 
 	_stprintf_s(sGUID, 40, 
 		TEXT("DX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
@@ -48,9 +59,9 @@ LPTSTR CreateDirectoryGUID ()
 LPTSTR CreateFileGUID ()
 {
 	GUID guid;
-	CoCreateGuid(&guid);
+	::CoCreateGuid(&guid);
 
-	LPTSTR sGUID = malloc(40 * sizeof(TCHAR)); 
+	LPTSTR sGUID = (LPTSTR)malloc(40 * sizeof(TCHAR)); 
 
 	_stprintf_s(sGUID, 40, 
 		TEXT("FX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
@@ -86,7 +97,7 @@ UINT GetDirectoryIDView(MSIHANDLE hModule,
 	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
-	// ERROR: phRecord == NULL
+	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sParentDirID);
 	MSI_OK(uiAnswer)
@@ -147,9 +158,7 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
-	if (phRecord == NULL) {
-		return ERROR_INSTALL_FAILURE;
-	}
+	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 	MSI_OK(uiAnswer)
@@ -205,11 +214,44 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	return uiAnswer;
 }
 
-UINT AddFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID, )
+UINT AddRemoveFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
 {
     // FileKey = GUID, Component_ = Component key to use, Filename = "*", 
 	// DirProperty = sDirectoryID, InstallMode = 2
- 
+
+	LPCTSTR sSQL = 
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
+
+	PMSIHANDLE phView;
+	sDirectoryID = CreateDirectoryGUID();
+
+	UINT uiAnswer = ERROR_SUCCESS;
+
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	MSI_OK(uiAnswer)
+
+	PMSIHANDLE phRecord = MsiCreateRecord(3);
+	RECORD_OK(phRecord)
+
+	LPTSTR sFileID = CreateFileGUID();
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sFileID);
+	free((void*)sFileID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, sComponent);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 3, sDirectoryID);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiViewClose(phView);
+	return uiAnswer;	
+
+
 }
 
 UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, LPTSTR sDirectoryID)
@@ -226,9 +268,7 @@ UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, 
 	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
-	if (phRecord == NULL) {
-		return ERROR_INSTALL_FAILURE;
-	}
+	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 	MSI_OK(uiAnswer)
@@ -271,7 +311,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 
 	MSIHANDLE hView;
 	
-	if (bParentDirIDExisted) {
+	if (bParentIDExisted) {
 		uiAnswer = GetDirectoryIDView(hModule, sParentDirID, hView);
 	}
 
@@ -282,7 +322,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
 			_tcscat_s(sNewDir, MAX_PATH, lpFound->cFileName);
 
-			if (bParentDirIDExisted) {
+			if (bParentIDExisted) {
 				uiAnswer = GetDirectoryID(hView, 
 					lpFound->cFileName, 
 					sDirectoryID);
@@ -291,7 +331,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 					uiAnswer = AddDirectory(hModule, sNewDir, sDirectoryID, true);
 					MSI_OK(uiAnswer)
 				} else {
-					LPTSTR sID = CreateDirectoryGUID()
+					LPTSTR sID = CreateDirectoryGUID();
 					uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
 						lpFound->cFileName, 
 						sID);
@@ -301,7 +341,7 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 					MSI_OK(uiAnswer)
 				}
 			} else {
-				LPTSTR sID = CreateDirectoryGUID()
+				LPTSTR sID = CreateDirectoryGUID();
 				uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
 					lpFound->cFileName, 
 					sID);
@@ -346,13 +386,10 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 	return uiAnswer;
 }
 
-// The component for TARGET_DIR/perl/bin/perl.exe
-static TCHAR sComponent[40];
-
 UINT GetComponent(MSIHANDLE hModule)
 {
 	LPCTSTR sSQL = 
-		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ?" AND `DefaultDir` = ?);
+		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ? AND `DefaultDir` = ?");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -361,9 +398,7 @@ UINT GetComponent(MSIHANDLE hModule)
 	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = ::MsiCreateRecord(2);
-	if (phRecord == NULL) {
-		return ERROR_INSTALL_FAILURE;
-	}
+	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("TARGETDIR"));
 	MSI_OK(uiAnswer)
@@ -374,16 +409,16 @@ UINT GetComponent(MSIHANDLE hModule)
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 	
-	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
+	PMSIHANDLE phAnswerRecord = ::MsiCreateRecord(1);
 	if (phAnswerRecord == NULL) {
 		return ERROR_INSTALL_FAILURE;
 	}
 
-	uiAnswer = ::MsiViewFetch(hView, &phAnswerRecord);
+	uiAnswer = ::MsiViewFetch(phView, &phAnswerRecord);
 	MSI_OK(uiAnswer)
 	
 	// Get the ID.
-	TCHAR sID[40]
+	TCHAR sID[40];
 	DWORD dwLengthID = 39;
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
 	MSI_OK(uiAnswer);
@@ -397,7 +432,7 @@ UINT GetComponent(MSIHANDLE hModule)
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 
-	uiAnswer = ::MsiViewFetch(hView, &phAnswerRecord);
+	uiAnswer = ::MsiViewFetch(phView, &phAnswerRecord);
 	MSI_OK(uiAnswer)
 	
 	// Get the ID.
@@ -405,7 +440,7 @@ UINT GetComponent(MSIHANDLE hModule)
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
 	MSI_OK(uiAnswer);
 	
-	uiAnswer = ::MsiViewClose(hView, &phAnswerRecord);
+	uiAnswer = ::MsiViewClose(phView);
 	MSI_OK(uiAnswer)
 
 	LPCTSTR sSQLFile = 
@@ -428,7 +463,7 @@ UINT GetComponent(MSIHANDLE hModule)
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sComponent, &dwLengthID);
 	MSI_OK(uiAnswer);
 	
-	uiAnswer = ::MsiViewClose(hView, &phAnswerRecord);	
+	uiAnswer = ::MsiViewClose(phView);	
 	return uiAnswer; 
 }
 
