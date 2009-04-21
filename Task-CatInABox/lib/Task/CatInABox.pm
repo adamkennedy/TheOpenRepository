@@ -96,7 +96,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 1;
@@ -116,7 +116,7 @@ You can find documentation for this module with the perldoc command.
 
 =head1 COPYRIGHT
 
-Copyright 2008 Adam Kennedy.
+Copyright 2008 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

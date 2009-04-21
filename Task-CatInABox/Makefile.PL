@@ -1,8 +1,8 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 0.85;
 
 all_from      'lib/Task/CatInABox.pm';
-requires      'Catalyst::Devel'                                => 0;
 requires      'Template'                                       => 0;
+requires      'Catalyst::Devel'                                => 0;
 requires      'DBIx::Class'                                    => 0;
 requires      'DBIx::Class::EncodedColumn'                     => 0;
 requires      'DBIx::Class::Timestamp'                         => 0;
