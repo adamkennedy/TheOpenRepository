@@ -5,6 +5,16 @@
 // This code is free software; you can redistribute it and/or modify it
 // under the same terms as Perl itself.
 
+/* 
+<CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
+
+<InstallExecuteSequence>
+  <Custom Action='CA_ClearFolder' After='CostFinalize' />
+</InstallExecuteSequence>
+
+<Binary Id='B_ClearFolder' SourceFile='share\ClearFolderCA.dll' />
+*/
+
 #include "stdafx.h"
 
 #define MSI_OK(x) if (ERROR_SUCCESS != x) { \
