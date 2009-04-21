@@ -26,7 +26,7 @@
 #define MSI_OK(x) if (ERROR_SUCCESS != x) { \
                     return x; \
 				  }
-
+ 
 #define MSI_OK_FREE(x, y) if (ERROR_SUCCESS != x) { \
 							free(y); \
 		                    return x; \
