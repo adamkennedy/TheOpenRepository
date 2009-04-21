@@ -217,14 +217,6 @@ C<trace_lex> turns on both.
 May be set at any point in the parse, but will be useless if
 set after input is complete.
 
-=item trace_priorities
-
-Traces the priority setting of each QDFA state.
-Requires knowledge of Marpa internals.
-The priorities are set during precomputation.
-A trace message warns the user if he sets
-C<trace_priorities> after that point.
-
 =item trace_rules
 
 Traces rules as they are added to the grammar.

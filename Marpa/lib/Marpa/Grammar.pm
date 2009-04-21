@@ -187,7 +187,7 @@ use Marpa::Offset Grammar => qw(
     INACCESSIBLE_OK
     UNPRODUCTIVE_OK
     SEMANTICS
-    TRACE_RULES TRACE_STRINGS TRACE_PREDEFINEDS TRACE_PRIORITIES
+    TRACE_RULES TRACE_STRINGS TRACE_PREDEFINEDS
     ALLOW_RAW_SOURCE INTERFACE
     =LAST_FIELD
 );
@@ -997,17 +997,6 @@ sub Marpa::Grammar::set {
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
             } ## end when ('trace_iterations')
-            when ('trace_priorities') {
-                $grammar->[Marpa::Internal::Grammar::TRACE_PRIORITIES] =
-                    $value;
-                if ($value) {
-                    say {$trace_fh} "Setting $option";
-                    say {$trace_fh}
-                        "Warning: Setting $option after semantics were finalized"
-                        if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-                    $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-                } ## end if ($value)
-            } ## end when ('trace_priorities')
             when ('trace_completions') {
                 $grammar->[Marpa::Internal::Grammar::TRACE_COMPLETIONS] =
                     $value;
@@ -1043,9 +1032,7 @@ sub Marpa::Grammar::set {
                 #<<< perltidy gets confused
                 if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED )
                 {
-                    say {
-                        $trace_fh
-                    }
+                    say {$trace_fh}
                     q{"warnings" option is useless after grammar is precomputed};
                 }
                 #>>>
@@ -1055,9 +1042,7 @@ sub Marpa::Grammar::set {
                 #<<< perltidy gets confused
                 if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED )
                 {
-                    say {
-                        $trace_fh
-                    }
+                    say {$trace_fh}
                     q{"inaccessible_ok" option is useless after grammar is precomputed};
                 }
                 #>>>
@@ -1071,9 +1056,7 @@ sub Marpa::Grammar::set {
                 #<<< perltidy gets confused
                 if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED )
                 {
-                    say {
-                        $trace_fh
-                    }
+                    say {$trace_fh}
                     q{"unproductive_ok" option is useless after grammar is precomputed};
                 }
                 #>>>
@@ -3197,22 +3180,12 @@ sub assign_QDFA_state_set {
     my $grammar       = shift;
     my $kernel_states = shift;
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my ( $trace_fh, $trace_priorities );
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_priorities =
-            $grammar->[Marpa::Internal::Grammar::TRACE_PRIORITIES];
-    }
-
     my ( $symbols, $NFA_states, $QDFA_by_name, $QDFA ) = @{$grammar}[
         Marpa::Internal::Grammar::SYMBOLS,
         Marpa::Internal::Grammar::NFA,
         Marpa::Internal::Grammar::QDFA_BY_NAME,
         Marpa::Internal::Grammar::QDFA
     ];
-
-    my $highest_priority;
 
     # Track if a state has been seen.
     # Undefined if never seen.
