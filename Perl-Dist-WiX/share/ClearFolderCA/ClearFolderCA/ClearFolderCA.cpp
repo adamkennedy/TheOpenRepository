@@ -21,9 +21,16 @@
 
 #include "stdafx.h"
 
+// Helper macros for error checking.
+
 #define MSI_OK(x) if (ERROR_SUCCESS != x) { \
                     return x; \
 				  }
+
+#define MSI_OK_FREE(x, y) if (ERROR_SUCCESS != x) { \
+							free(y); \
+		                    return x; \
+						  }
 
 #define RECORD_OK(x) if (NULL == x) { \
 					   return ERROR_INSTALL_FAILURE; \
@@ -31,6 +38,9 @@
 
 // The component for TARGET_DIR/perl/bin/perl.exe
 static TCHAR sComponent[40];
+
+// Default DllMain, since nothing special
+// is happening here.
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD  ul_reason_for_call,
@@ -40,13 +50,16 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     return TRUE;
 }
 
-LPTSTR CreateDirectoryGUID ()
+// Gets GUID for Directory columns. Return value needs to be free()'d.
+
+LPTSTR CreateDirectoryGUID()
 {
 	GUID guid;
 	::CoCreateGuid(&guid);
 
 	LPTSTR sGUID = (LPTSTR)malloc(40 * sizeof(TCHAR)); 
 
+	// Formatting GUID correctly.
 	_stprintf_s(sGUID, 40, 
 		TEXT("DX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
 		guid.Data1, guid.Data2, guid.Data3, 
@@ -56,13 +69,16 @@ LPTSTR CreateDirectoryGUID ()
 	return sGUID;
 }
 
-LPTSTR CreateFileGUID ()
+// Gets GUID for FileKey column. Return value needs to be free()'d.
+
+LPTSTR CreateFileGUID()
 {
 	GUID guid;
 	::CoCreateGuid(&guid);
 
 	LPTSTR sGUID = (LPTSTR)malloc(40 * sizeof(TCHAR)); 
 
+	// Formatting GUID correctly.
 	_stprintf_s(sGUID, 40, 
 		TEXT("FX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
 		guid.Data1, guid.Data2, guid.Data3, 
@@ -72,17 +88,25 @@ LPTSTR CreateFileGUID ()
 	return sGUID;
 }
 
+// Logs string in MSI log.
+
 UINT LogString(MSIHANDLE hModule, LPCTSTR sMessage) 
 {
+	// Set up variables.
+	TCHAR szTemp[MAX_PATH * 2];
 	PMSIHANDLE hRecord = ::MsiCreateRecord(2);
 
-	TCHAR szTemp[MAX_PATH * 2];
-
+	// Format the string and set the record.
 	_stprintf_s(szTemp, MAX_PATH * 2, TEXT("-- MSI_LOGGING --   %s"), sMessage); 
 
 	::MsiRecordSetString(hRecord, 0, szTemp);
+
+	// Send the message
 	return ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
 }
+
+// Gets view for finding Directory IDs.
+// Remember to call ::MsiCloseHandle(hView) when done.
 
 UINT GetDirectoryIDView(MSIHANDLE hModule, 
 					    LPCTSTR sParentDirID,
@@ -93,18 +117,23 @@ UINT GetDirectoryIDView(MSIHANDLE hModule,
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Open the view.
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &hView);
 	MSI_OK(uiAnswer)
 
+	// Create and fill the record.
 	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
 	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sParentDirID);
 	MSI_OK(uiAnswer)
 
+	// Execute the SQL statement.
 	uiAnswer = ::MsiViewExecute(hView, phRecord);
 	return uiAnswer;
 }
+
+// Finds directory ID for directory named in sDirectory.
 
 UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 {
@@ -112,14 +141,17 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 	UINT uiAnswer = ERROR_SUCCESS;
 	TCHAR sDir[MAX_PATH + 1];
 	
+	// Fetch the first row from the view.
 	sDirectoryID = NULL;
 	uiAnswer = ::MsiViewFetch(hView, &phRecord);
 
 	while (uiAnswer == ERROR_SUCCESS) {
 
-		DWORD dwLengthDir = MAX_PATH + 1;
+		// Get the directory.
+		DWORD dwLengthDir = MAX_PATH;
 		uiAnswer = ::MsiRecordGetString(phRecord, 2, sDir, &dwLengthDir);
 
+		// We found our directory.
 		if (_tcscmp(sDirectory, sDir) == 0) {
 			DWORD dwLengthID = 0;
 			uiAnswer = ::MsiRecordGetString(phRecord, 1, _T(""), &dwLengthID);
@@ -128,19 +160,28 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 				sDirectoryID = (TCHAR *)malloc(dwLengthID * sizeof(TCHAR));
 				uiAnswer = ::MsiRecordGetString(phRecord, 1,sDirectoryID, &dwLengthID);
 			}
-			::MsiViewClose(hView);
-			return ERROR_SUCCESS;
+
+			// We're done! Hurray!
+			uiAnswer = ::MsiViewClose(hView);
+			return uiAnswer;
 		}
 
+		// TODO: Handle long directory names.
+
+		// Fetch the next row.
 		uiAnswer = ::MsiViewFetch(hView, &phRecord);
 	}
 
+	// No more items is not an error.
 	if (uiAnswer == ERROR_NO_MORE_ITEMS) {
 		uiAnswer = ERROR_SUCCESS;
 	}
 
 	return uiAnswer;
 }
+
+// Is the file in sFilename in the directory referred to by sDirectoryID installed by this MSI? 
+// Returned in bInstalled.
 
 UINT IsFileInstalled(MSIHANDLE hModule, 
 					 LPCTSTR sDirectoryID, 
@@ -154,15 +195,18 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Open the view.
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
+	// Create and fill the record.
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
 	RECORD_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 	MSI_OK(uiAnswer)
 
+	// Execute the view.
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 
@@ -214,45 +258,87 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 	return uiAnswer;
 }
 
+// Adds a record to remove all files in the directory referred to by sDirectoryID.
+
 UINT AddRemoveFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
 {
-    // FileKey = GUID, Component_ = Component key to use, Filename = "*", 
-	// DirProperty = sDirectoryID, InstallMode = 2
-
 	LPCTSTR sSQL = 
 		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
 
 	PMSIHANDLE phView;
-	sDirectoryID = CreateDirectoryGUID();
-
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Open the view.
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
+	// Create a record storing the values to add.
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
 	RECORD_OK(phRecord)
 
+	// Fill the record.
 	LPTSTR sFileID = CreateFileGUID();
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sFileID);
-	free((void*)sFileID);
-	MSI_OK(uiAnswer)
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 2, sComponent);
-	MSI_OK(uiAnswer)
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 3, sDirectoryID);
-	MSI_OK(uiAnswer)
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
+	// Execute the SQL statement and close the view.
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
-	MSI_OK(uiAnswer)
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	uiAnswer = ::MsiViewClose(phView);
+	free((LPTSTR)sFileID);
 	return uiAnswer;	
-
-
 }
+
+// Adds a record to remove the directory referred to by sDirectoryID.
+
+UINT AddRemoveDirectoryRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
+{
+	LPCTSTR sSQL = 
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, NULL, 2)");
+
+	PMSIHANDLE phView;
+	UINT uiAnswer = ERROR_SUCCESS;
+
+	// Open the view.
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	MSI_OK(uiAnswer)
+
+	// Create a record storing the values to add.
+	PMSIHANDLE phRecord = MsiCreateRecord(3);
+	RECORD_OK(phRecord)
+
+	// Fill the record.
+	LPTSTR sFileID = CreateFileGUID();
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sFileID);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, sComponent);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 3, sDirectoryID);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	// Execute the SQL statement and close the view.
+	uiAnswer = ::MsiViewExecute(phView, phRecord);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	uiAnswer = ::MsiViewClose(phView);
+	free((LPTSTR)sFileID);
+	return uiAnswer;	
+}
+
+// Adds a record to reference the directory referred to by sParentDirID and sName
+// in sDirectoryID.
+// sDirectoryID will need free()'d when done.
 
 UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, LPTSTR sDirectoryID)
 {
@@ -260,16 +346,20 @@ UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, 
 		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?)");
 
 	PMSIHANDLE phView;
-	sDirectoryID = CreateDirectoryGUID();
-
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Open the view.
 	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
+	// Create a record storing the values to add.
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
 	RECORD_OK(phRecord)
 
+	// Get the ID to add.
+	sDirectoryID = CreateDirectoryGUID();
+
+	// Fill the record.
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 	MSI_OK(uiAnswer)
 
@@ -279,6 +369,7 @@ UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, 
 	uiAnswer = ::MsiRecordSetString(phRecord, 3, sName);
 	MSI_OK(uiAnswer)
 
+	// Execute the SQL statement and close the view.
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 
@@ -286,103 +377,132 @@ UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, 
 	return uiAnswer;	
 }
 
+// The main routine
+
 UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, bool bParentIDExisted)
 {
-	TCHAR * sFind = (TCHAR *)malloc((MAX_PATH + 1) * sizeof(TCHAR));
-
-	_tcscpy_s(sFind, MAX_PATH, sDirectory); // strcpy
+	// Set up the wildcard for the files to find.
+	TCHAR sFind[MAX_PATH + 1];
+	_tcscpy_s(sFind, MAX_PATH, sDirectory);
 	_tcscat_s(sFind, MAX_PATH, TEXT("\\*"));
 
-	TCHAR* sNewDir = NULL;
-	LPWIN32_FIND_DATA lpFound;
+	// Set up other variables.
+	TCHAR sNewDir[MAX_PATH + 1];
+	WIN32_FIND_DATA found;
 	TCHAR* sDirectoryID = NULL;
 
 	HANDLE hFindHandle;
+	MSIHANDLE hView;
 
 	UINT uiFoundFilesToDelete = 0;
-	BOOL bAnswer = FALSE;
+	BOOL bFileFound = FALSE;
 	UINT uiAnswer = ERROR_SUCCESS;
-	
-	hFindHandle = ::FindFirstFile(sFind, lpFound);
-	
+
+	LPTSTR sID = CreateDirectoryGUID();
+
+	// Start finding files and directories.
+	hFindHandle = ::FindFirstFile(sFind, &found);
 	if (hFindHandle != INVALID_HANDLE_VALUE) {
-		bAnswer = TRUE;
+		bFileFound = TRUE;
 	}
 
-	MSIHANDLE hView;
-	
 	if (bParentIDExisted) {
 		uiAnswer = GetDirectoryIDView(hModule, sParentDirID, hView);
 	}
 
-	while (bAnswer & (uiAnswer == ERROR_SUCCESS)) {
-		if (lpFound->dwFileAttributes && FILE_ATTRIBUTE_DIRECTORY) {
-			sNewDir = (TCHAR *)malloc((MAX_PATH + 1) * sizeof(TCHAR));
+	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
+		if (found.dwFileAttributes && FILE_ATTRIBUTE_DIRECTORY) {
+			// Create a new directory spec to recurse into.
 			_tcscpy_s(sNewDir, MAX_PATH, sDirectory);
 			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
-			_tcscat_s(sNewDir, MAX_PATH, lpFound->cFileName);
+			_tcscat_s(sNewDir, MAX_PATH, found.cFileName);
 
 			if (bParentIDExisted) {
+				// Try and get the ID that already exists.
 				uiAnswer = GetDirectoryID(hView, 
-					lpFound->cFileName, 
+					found.cFileName, 
 					sDirectoryID);
-				MSI_OK(uiAnswer)
-				if (sDirectoryID != NULL) {
+				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+				if (sDirectoryID != NULL) { 
+					// We found an existing directory ID.
 					uiAnswer = AddDirectory(hModule, sNewDir, sDirectoryID, true);
-					MSI_OK(uiAnswer)
+					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 				} else {
-					LPTSTR sID = CreateDirectoryGUID();
+					// We need to add a directory ID, then go down into this directory.
 					uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
-						lpFound->cFileName, 
+						found.cFileName, 
 						sID);
-					MSI_OK(uiAnswer)
+					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 					
 					uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
-					MSI_OK(uiAnswer)
+					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 				}
 			} else {
-				LPTSTR sID = CreateDirectoryGUID();
+				// We need to add a directory ID, then go down into this directory.
 				uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
-					lpFound->cFileName, 
+					found.cFileName, 
 					sID);
-				MSI_OK(uiAnswer)
+				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 				
 				uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
-				MSI_OK(uiAnswer)
+				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 			}
-
-			free((void *)sNewDir);
 		} else {
-			// Verify that it wasn't installed by this MSI.
-			if (sDirectoryID != NULL) {
-				BOOL bInstalled = FALSE;
-				uiAnswer = IsFileInstalled(hModule, sDirectoryID, lpFound->cFileName, bInstalled);
-				if (!bInstalled) {
-					uiFoundFilesToDelete++;
+			// Verify that the file wasn't installed by this MSI.
+			if (bParentIDExisted) {
+				if (uiFoundFilesToDelete == 0) {
+					BOOL bInstalled = FALSE;
+					uiAnswer = IsFileInstalled(hModule, sDirectoryID, 
+						found.cFileName, bInstalled);
+					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+					if (!bInstalled) {
+						uiFoundFilesToDelete++;
+					}
 				}
 			} else {
 				uiFoundFilesToDelete++;
 			}
 		}
 	
-		bAnswer = ::FindNextFile(hFindHandle, lpFound);
+		// Check and see if there is another file to process.
+		bFileFound = ::FindNextFile(hFindHandle, &found);
 	}
 	
+	// Close the find handle.
 	::FindClose(hFindHandle);
-	free(sFind);
+
+	// Close the view if we opened it.
 	if (hView != NULL) {
-		::MsiViewClose(hView);
+		uiAnswer = ::MsiViewClose(hView);
+		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+		uiAnswer = ::MsiCloseHandle(hView);
+		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 	}
 
-	MSI_OK(uiAnswer)
-
+	// If we found extra files, add an entry to delete them.
 	if (uiFoundFilesToDelete > 0) {
-		// HELP: Add entry to RemoveFiles table for *.* in this directory
+		if (sDirectoryID != NULL) {
+			uiAnswer = AddRemoveFileRecord(hModule, sDirectoryID);
+			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+		} else {
+			uiAnswer = AddRemoveFileRecord(hModule, sID);
+			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+		}
 	}
 	
-	// HELP: Add entry to RemoveFiles table for this directory with empty filename
-	// (in order to delete the directory)
-	
+	// If we found an extra directory, add an entry to delete it.
+	if (sDirectoryID == NULL) {
+		uiAnswer = AddRemoveDirectoryRecord(hModule, sID);
+		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+	} else {
+		free((LPTSTR)sDirectoryID);
+	}
+
+	// Clean up after ourselves.
+	free((LPTSTR)sID);	
 	return uiAnswer;
 }
 
@@ -473,12 +593,15 @@ UINT __stdcall ClearFolder(MSIHANDLE hModule)
 	UINT uiAnswer;
 	DWORD dwPropLength = MAX_PATH; 
 
+	// Get directory to search.
 	uiAnswer = MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
 	MSI_OK(uiAnswer)
 
+	// Get component to add files to delete to.
 	uiAnswer = GetComponent(hModule);
 	MSI_OK(uiAnswer)
 	
+	// Start getting files to delete (recursive)
 	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("TARGETDIR"), true);	
 	
     return uiAnswer;
