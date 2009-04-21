@@ -9,11 +9,11 @@
 <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
 
 <InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' Before='CostInitialize' />
+  <Custom Action='CA_ClearFolder' Before='CostInitialize'>REMOVE="ALL"</Custom>
 </InstallExecuteSequence>
 
-<InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' Before='CostInitialize' />
+<AdminExecuteSequence>
+  <Custom Action='CA_ClearFolder' Before='CostInitialize'>REMOVE="ALL"</Custom>
 </InstallExecuteSequence>
 
 <Binary Id='B_ClearFolder' SourceFile='share\ClearFolderCA.dll' />
