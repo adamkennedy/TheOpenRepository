@@ -1,6 +1,8 @@
 Changes for Perl extension Win32-Env-Path
 
 0.02 Wed 26 Mar 2008
+	- Updating to Module::Install::DSL 0.85
+	- Updating to support ADAMK's release.pl
 	- Fixed bad use of push in win32envpath
 	- Adding the push and unshift functionality
 

@@ -1,12 +1,21 @@
 #!/usr/bin/perl
 
 use strict;
-use warnings;
 BEGIN {
-	$| = 1;
+	$|  = 1;
+	$^W = 1;
 }
 
-use Test::More tests => 6;
+use Test::More;
+BEGIN {
+	if ( $^O ne 'MSWin32' and $ENV{ADAMK_RELEASE} ) {
+		# Special magic to get past ADAMK's release automation
+		plan( skip_all => "Skipping on ADAMK's release automation" );
+	} else {
+		plan( tests => 6 );
+	}
+}
+
 use Win32::Env::Path;
 
 
@@ -31,5 +40,3 @@ SCOPE: {
 	# Clean the path
 	$path->clean;
 }
-
-1;

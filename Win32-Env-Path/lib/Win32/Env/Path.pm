@@ -8,14 +8,14 @@ Win32::Env::Path - Manipulate environment PATH strings
 
 =head1 SYNOPSIS
 
-use Win32::Env::Path;
-
-my $path = Win32::Env::Path->new(
-	name => 'PATH',
-);
-
-$path->add('C:\\strawberry');
-$path->remove('C:\\strawberry');
+  use Win32::Env::Path;
+  
+  my $path = Win32::Env::Path->new(
+      name => 'PATH',
+  );
+  
+  $path->add('C:\\strawberry');
+  $path->remove('C:\\strawberry');
 
 =head1 DESCRIPTION
 
@@ -262,7 +262,7 @@ L<Win32::Env>, L<Perl::Dist::Inno>
 
 =head1 COPYRIGHT
 
-Copyright 2007 - 2008 Adam Kennedy.
+Copyright 2007 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
