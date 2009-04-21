@@ -3238,97 +3238,69 @@ sub assign_QDFA_state_set {
 
     }    # WORK_ITEM
 
-    my @result_data =
-        sort { $a->[0] <=> $b->[0] }
-        grep { defined $_ and scalar @{$_} } @NFA_state_seen;
-
-    # this is a fake record with an
-    # "impossible" value for the reset flag to force a
-    # control break at the last record
-    push @result_data, [-1];
-
     # this will hold the QDFA state set,
     # which is the result
     my @result_states = ();
 
-    # Below is "control break logic", which was big in the days of tape sorts
-    # (yes, I'm that old).  Anyway, it's fast in Perl, will be really fast in
-    # C and I think actually easier to figure out than the alternative --
-    # which is something like references to arrays of hash of references.
+    RESET: for my $reset ( 0, 1 ) {
 
-    my $old_reset = -2;    # -2 is an "impossible" value
-    my @NFA_ids = ();
+        my @NFA_ids = grep {
+                    defined $NFA_state_seen[$_]
+                and scalar @{ $NFA_state_seen[$_] }
+                and $NFA_state_seen[$_]->[0] == $reset
+        } ( 0 .. $#NFA_state_seen );
 
-    # result data is an array of the "records"
-    DATUM: for my $result_data (@result_data) {
+        next RESET unless scalar @NFA_ids;
 
-        my ( $reset, $NFA_id ) = @{$result_data};
+        my $name = join q{,}, @NFA_ids;
+        my $QDFA_state = $QDFA_by_name->{$name};
 
-        # if no "control break"
-        if ( $old_reset == $reset ) {
-            push @NFA_ids, $NFA_id;
-            next DATUM;
-        }
+        # this is a new QDFA state -- create it
+        unless ($QDFA_state) {
+            my $id = scalar @{$QDFA};
 
-        # here what's called the "control break", where the record key changes
-        if (@NFA_ids) {
-            my $name = join q{,}, @NFA_ids;
-            my $QDFA_state = $QDFA_by_name->{$name};
+            my $start_rule;
+            my $lhs_list       = [];
+            my $complete_rules = [];
+            my $QDFA_complete  = 0;
+            my $NFA_state_list = [ @{$NFA_states}[@NFA_ids] ];
+            NFA_STATE: for my $NFA_state ( @{$NFA_state_list} ) {
+                next NFA_STATE
+                    unless $NFA_state->[Marpa::Internal::NFA::COMPLETE];
+                $QDFA_complete = 1;
+                my $item = $NFA_state->[Marpa::Internal::NFA::ITEM];
+                my $rule = $item->[Marpa::Internal::LR0_item::RULE];
+                my $lhs  = $rule->[Marpa::Internal::Rule::LHS];
+                my ( $lhs_id, $lhs_is_start ) = @{$lhs}[
+                    Marpa::Internal::Symbol::ID,
+                    Marpa::Internal::Symbol::START
+                ];
+                $lhs_list->[$lhs_id] = 1;
+                push @{ $complete_rules->[$lhs_id] }, $rule;
+                $start_rule = $rule if $lhs_is_start;
+            } ## end for my $NFA_state ( @{$NFA_state_list} )
 
-            # this is a new QDFA state -- create it
-            unless ($QDFA_state) {
-                my $id = scalar @{$QDFA};
+            $QDFA_state->[Marpa::Internal::QDFA::ID]   = $id;
+            $QDFA_state->[Marpa::Internal::QDFA::NAME] = $name;
+            $QDFA_state->[Marpa::Internal::QDFA::NFA_STATES] =
+                $NFA_state_list;
+            $QDFA_state->[Marpa::Internal::QDFA::RESET_ORIGIN] = $reset;
+            $QDFA_state->[Marpa::Internal::QDFA::START_RULE]   = $start_rule;
+            $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_RULES] =
+                $complete_rules;
 
-                my $start_rule;
-                my $lhs_list       = [];
-                my $complete_rules = [];
-                my $QDFA_complete  = 0;
-                my $NFA_state_list = [ @{$NFA_states}[@NFA_ids] ];
-                NFA_STATE: for my $NFA_state ( @{$NFA_state_list} ) {
-                    next NFA_STATE
-                        unless $NFA_state->[Marpa::Internal::NFA::COMPLETE];
-                    $QDFA_complete = 1;
-                    my $item = $NFA_state->[Marpa::Internal::NFA::ITEM];
-                    my $rule = $item->[Marpa::Internal::LR0_item::RULE];
-                    my $lhs  = $rule->[Marpa::Internal::Rule::LHS];
-                    my ( $lhs_id, $lhs_is_start ) = @{$lhs}[
-                        Marpa::Internal::Symbol::ID,
-                        Marpa::Internal::Symbol::START
-                    ];
-                    $lhs_list->[$lhs_id] = 1;
-                    push @{ $complete_rules->[$lhs_id] }, $rule;
-                    $start_rule = $rule if $lhs_is_start;
-                } ## end for my $NFA_state ( @{$NFA_state_list} )
+            $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_LHS] =
+                [ map { $_->[Marpa::Internal::Symbol::NAME] }
+                    @{$symbols}[ grep { $lhs_list->[$_] }
+                    ( 0 .. $#{$lhs_list} ) ] ];
 
-                $QDFA_state->[ Marpa::Internal::QDFA::ID ]   = $id;
-                $QDFA_state->[ Marpa::Internal::QDFA::NAME ] = $name;
-                $QDFA_state->[ Marpa::Internal::QDFA::NFA_STATES ] =
-                    $NFA_state_list;
-                $QDFA_state->[ Marpa::Internal::QDFA::RESET_ORIGIN ] =
-                    $old_reset;
-                $QDFA_state->[ Marpa::Internal::QDFA::START_RULE ] =
-                    $start_rule;
-                $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_RULES] =
-                    $complete_rules;
+            push @{$QDFA}, $QDFA_state;
+            $QDFA_by_name->{$name} = $QDFA_state;
+        }    # unless $QDFA_state
 
-                $QDFA_state->[Marpa::Internal::QDFA::COMPLETE_LHS] =
-                    [ map { $_->[Marpa::Internal::Symbol::NAME] }
-                        @{$symbols}[ grep { $lhs_list->[$_] }
-                        ( 0 .. $#{$lhs_list} ) ] ];
+        push @result_states, $QDFA_state;
 
-                push @{$QDFA}, $QDFA_state;
-                $QDFA_by_name->{$name} = $QDFA_state;
-            }    # unless $QDFA_state
-
-            push @result_states, $QDFA_state;
-
-        } ## end if (@NFA_ids)
-
-        # reset everything for the next control break
-        @NFA_ids      = ($NFA_id);
-        $old_reset    = $reset;
-
-    }    # DATUM
+    } ## end for my $reset ( 0, 1 )
 
     return \@result_states;
 } ## end sub assign_QDFA_state_set
