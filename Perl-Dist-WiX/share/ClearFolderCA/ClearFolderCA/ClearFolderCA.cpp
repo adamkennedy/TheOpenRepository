@@ -435,9 +435,6 @@ UINT __stdcall ClearFolder(MSIHANDLE hModule)
 	MSI_OK(uiAnswer)
 	
 	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("TARGETDIR"), true);	
-	MSI_OK(uiAnswer)
-	
-	uiAnswer = MsiDoAction(hModule, _T("RemoveFiles"));
 	
     return uiAnswer;
 }
