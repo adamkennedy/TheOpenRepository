@@ -80,6 +80,12 @@ sub follow {
             next FOLLOW_OBJECT;
         }
 
+        if ( defined $contents ) {
+            my $safe_copy = $follow_probe;
+            push @follow_probes,
+                map { \$_ } grep { ref $_ } ( $contents->($safe_copy) );
+        }
+
         # ignore any IO, FORMAT, LVALUE object or object of a type not listed
         next FOLLOW_OBJECT if $object_type ne 'REF';
 
@@ -141,6 +147,7 @@ sub Test::Weaken::new {
     my $destructor;
     my $self = {};
     bless $self, $class;
+    $self->{test} = 1;
 
     UNPACK_ARGS: {
         if ( ref $arg1 eq 'CODE' ) {
@@ -175,6 +182,11 @@ sub Test::Weaken::new {
             delete $arg1->{contents};
         }
 
+        if ( defined $arg1->{test} ) {
+            $self->{test} = $arg1->{test};
+            delete $arg1->{test};
+        }
+
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
@@ -203,9 +215,9 @@ sub Test::Weaken::new {
             unless ref $self->{ignore} eq 'CODE';
     }
 
-    if ( my $ref_type = ref $self->{ignore} ) {
+    if ( my $ref_type = ref $self->{contents} ) {
         Carp::croak('Test::Weaken: contents must be CODE ref')
-            unless ref $self->{ignore} eq 'CODE';
+            unless ref $self->{contents} eq 'CODE';
     }
 
     return $self;
@@ -223,6 +235,8 @@ sub Test::Weaken::test {
     my $constructor = $self->{constructor};
     my $destructor  = $self->{destructor};
     my $ignore      = $self->{ignore};
+    my $contents    = $self->{contents};
+    my $test        = $self->{test};
 
     my $test_object_probe = \( $constructor->() );
     if ( not ref ${$test_object_probe} ) {
@@ -230,14 +244,19 @@ sub Test::Weaken::test {
             'Test::Weaken test object constructor did not return a reference'
         );
     }
-    my $probes =
-        Test::Weaken::Internal::follow( $test_object_probe, $ignore );
+    my $probes = Test::Weaken::Internal::follow( $test_object_probe, $ignore,
+        $contents );
 
     $self->{probe_count} = @{$probes};
     $self->{weak_probe_count} =
         grep { ref $_ eq 'REF' and isweak ${$_} } @{$probes};
     $self->{strong_probe_count} =
         $self->{probe_count} - $self->{weak_probe_count};
+
+    if ( not $test ) {
+        $self->{unfreed_probes} = $probes;
+        return scalar @{$probes};
+    }
 
     for my $probe ( @{$probes} ) {
         weaken($probe);
@@ -972,6 +991,41 @@ invoked once per probe reference.
 C<Test::Weaken> offers some help in debugging
 C<ignore> callback subroutines.
 See L<below|/"Debugging Ignore Subroutines">.
+
+=item contents
+
+=begin Marpa::Test::Display:
+
+## start display
+## next 2 displays
+is_file($_, 'sandbox/contents.t', 'contents snippet')
+
+=end Marpa::Test::Display:
+
+    sub myobject_contents_func {
+        my ($probe) = @_;
+        print STDERR Data::Dumper::Dumper($probe);
+        return unless ref $probe;
+        return unless Scalar::Util::blessed($probe) && $probe->isa('MyObject');
+        return ${$probe}->data, ${$probe}->moredata;
+    } ## end sub myobject_contents_func
+
+    {
+        my $test = Test::Weaken::leaks(
+            {   constructor => sub { return MyObject->new },
+                contents    => \&myobject_contents_func
+            }
+        );
+        Test::More::is( $test, undef, 'good weaken of MyObject' );
+    }
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+The B<contents> argument is optional.
 
 =back
 

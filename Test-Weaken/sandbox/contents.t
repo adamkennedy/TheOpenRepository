@@ -14,16 +14,24 @@ package MyObject;
 use strict;
 use warnings;
 
+use Test::More tests => 3;
+use English qw( -no_match_vars );
+use Fatal qw(open close);
+use Test::Weaken;
+use Data::Dumper;
+
+use lib 't/lib';
+use Test::Weaken::Test;
+
 my %data;
 my %moredata;
 
 sub new {
     my ($class) = @_;
-    my $scalar = 'this is a myobject';
-    my $self = bless \$scalar, $class;
+    my $self = [];
     $data{ $self + 0 } = ['extra data'];
     $moredata{ $self + 0 } = [ 'more extra data', ['with a sub-array too'] ];
-    return $self;
+    return bless $self, $class;
 } ## end sub new
 
 sub DESTROY {
@@ -43,24 +51,27 @@ sub moredata {
 }
 
 package main;
-use strict;
-use warnings;
-use Test::Weaken;
-use Test::More tests => 5;
 
-sub myobject_contest_func {
-    my ($obj) = @_;
-    return $obj->data, $obj->moredata;
-}
+## use Marpa::Test::Display contents snippet
+
+sub myobject_contents_func {
+    my ($probe) = @_;
+    print STDERR Data::Dumper::Dumper($probe);
+    return unless ref $probe;
+    return unless Scalar::Util::blessed($probe) && $probe->isa('MyObject');
+    return ${$probe}->data, ${$probe}->moredata;
+} ## end sub myobject_contents_func
 
 {
     my $test = Test::Weaken::leaks(
         {   constructor => sub { return MyObject->new },
-            contents    => \&myobject_contest_func
+            contents    => \&myobject_contents_func
         }
     );
     Test::More::is( $test, undef, 'good weaken of MyObject' );
 }
+
+## no Marpa::Test::Display
 
 {
     my $leak;
@@ -70,11 +81,19 @@ sub myobject_contest_func {
                 $leak = $obj->data;
                 return $obj;
             },
-            contents => \&myobject_contest_func,
+            contents => \&myobject_contents_func,
+            test     => 0,
         }
     );
-    Test::More::ok( $test, 'leaky "data" detection' );
-    Test::More::is( $test && $test->unfreed_count, 1, 'one object leaked' );
+    my $test_name = 'leaky "data" detection';
+    if (not $test) {
+        Test::More::fail( $test_name );
+    } else {
+        # Test::Weaken::Test::is( $test && $test->unfreed_count, 1, 'one object leaked' );
+        Test::Weaken::Test::is(
+            Data::Dumper::Dumper( $test->unfreed_proberefs ),
+            q{}, $test_name );
+    }
 }
 
 {
@@ -85,11 +104,22 @@ sub myobject_contest_func {
                 $leak = $obj->moredata;
                 return $obj;
             },
-            contents => \&myobject_contest_func,
+            contents => \&myobject_contents_func,
+            test     => 0,
         }
     );
-    Test::More::ok( $test, 'leaky "moredata" detection' );
-    Test::More::is( $test && $test->unfreed_count, 2, 'one object leaked' );
+    # 
+    # Test::More::ok( $test, 'leaky "moredata" detection' );
+    # Test::Weaken::Test::is( $test && $test->unfreed_count, 2, 'one object leaked' );
+    my $test_name = q{leaky "moredata" detection};
+    if (not $test) {
+        Test::More::fail( $test_name );
+    } else {
+        # Test::Weaken::Test::is( $test && $test->unfreed_count, 1, 'one object leaked' );
+        Test::Weaken::Test::is(
+            Data::Dumper::Dumper( $test->unfreed_proberefs ),
+            q{}, $test_name );
+    }
 }
 
 exit 0;
