@@ -3212,7 +3212,7 @@ sub assign_QDFA_state_set {
 
         my $NFA_id = $NFA_state->[Marpa::Internal::NFA::ID];
         next WORK_ITEM if defined $NFA_state_seen[$NFA_id];
-        my $seen = $NFA_state_seen[$NFA_id] = [];
+        $NFA_state_seen[$NFA_id] = -1;
 
         my $transition = $NFA_state->[Marpa::Internal::NFA::TRANSITION];
 
@@ -3234,7 +3234,7 @@ sub assign_QDFA_state_set {
         }
 
         $reset //= 0;
-        push @{$seen}, $reset, $NFA_id;
+        $NFA_state_seen[$NFA_id] = $reset;
 
     }    # WORK_ITEM
 
@@ -3245,9 +3245,8 @@ sub assign_QDFA_state_set {
     RESET: for my $reset ( 0, 1 ) {
 
         my @NFA_ids = grep {
-                    defined $NFA_state_seen[$_]
-                and scalar @{ $NFA_state_seen[$_] }
-                and $NFA_state_seen[$_]->[0] == $reset
+            defined $NFA_state_seen[$_]
+                and $NFA_state_seen[$_] == $reset
         } ( 0 .. $#NFA_state_seen );
 
         next RESET unless scalar @NFA_ids;
