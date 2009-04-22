@@ -115,52 +115,44 @@ UINT LogString(
 	return ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
 }
 
-// Gets view for finding Directory IDs.
-// Remember to call ::MsiCloseHandle(hView) when done.
+// Finds directory ID for directory named in sDirectory.
 
-UINT GetDirectoryIDView(
+UINT GetDirectoryID(
 	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
 	LPCTSTR sParentDirID, // ID of parent directory (to search in). [in]
-	MSIHANDLE& hView)     // View created. [out]
+	LPCTSTR sDirectory,  // Directory to find the ID for. [in]
+	LPTSTR sDirectoryID) // ID of directory. Can be NULL. 
+	                     // Must be free()'d if not. [out]
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `Directory`,`DefaultDir` FROM `Directory` WHERE `Directory_Parent`= ?");
 
 	UINT uiAnswer = ERROR_SUCCESS;
+	PMSIHANDLE phView;
 
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &hView);
+	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create and fill the record.
-	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
-	RECORD_OK(phRecord)
+	PMSIHANDLE phRecordSelect = ::MsiCreateRecord(1);
+	RECORD_OK(phRecordSelect)
 
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, sParentDirID);
+	uiAnswer = ::MsiRecordSetString(phRecordSelect, 1, sParentDirID);
 	MSI_OK(uiAnswer)
 
 	// Execute the SQL statement.
-	uiAnswer = ::MsiViewExecute(hView, phRecord);
-	return uiAnswer;
-}
+	uiAnswer = ::MsiViewExecute(phView, phRecordSelect);
+	MSI_OK(uiAnswer)
 
-// Finds directory ID for directory named in sDirectory.
-
-UINT GetDirectoryID(
-	MSIHANDLE hView,     // View to use when searching. [in]
-	LPCTSTR sDirectory,  // Directory to find the ID for. [in]
-	LPTSTR sDirectoryID) // ID of directory. Can be NULL. 
-	                     // Must be free()'d if not. [out]
-{
 	PMSIHANDLE phRecord = MsiCreateRecord(2);
-	UINT uiAnswer = ERROR_SUCCESS;
 	TCHAR sDir[MAX_PATH + 1];
 	TCHAR* sPipeLocation = NULL;
 	DWORD dwLengthID = 0;
 	
 	// Fetch the first row from the view.
 	sDirectoryID = NULL;
-	uiAnswer = ::MsiViewFetch(hView, &phRecord);
+	uiAnswer = ::MsiViewFetch(phView, &phRecord);
 
 	while (uiAnswer == ERROR_SUCCESS) {
 
@@ -179,7 +171,9 @@ UINT GetDirectoryID(
 			}
 
 			// We're done! Hurray!
-			uiAnswer = ::MsiViewClose(hView);
+			uiAnswer = ::MsiViewClose(phView);
+			MSI_OK_FREE(uiAnswer, (TCHAR *)sDirectoryID)
+
 			return uiAnswer;
 		}
 
@@ -199,13 +193,15 @@ UINT GetDirectoryID(
 				}
 				
 				// We're done! Hurray!
-				::MsiViewClose(phView);
-				return ERROR_SUCCESS;
+				uiAnswer = ::MsiViewClose(phView);
+				MSI_OK_FREE(uiAnswer, (TCHAR *)sDirectoryID)
+
+				return uiAnswer;
 			}
 		}
 
 		// Fetch the next row.
-		uiAnswer = ::MsiViewFetch(hView, &phRecord);
+		uiAnswer = ::MsiViewFetch(phView, &phRecord);
 	}
 
 	// No more items is not an error.
@@ -441,7 +437,6 @@ UINT AddDirectory(
 	TCHAR* sDirectoryID = NULL;
 
 	HANDLE hFindHandle;
-	MSIHANDLE hView;
 
 	UINT uiFoundFilesToDelete = 0;
 	BOOL bFileFound = FALSE;
@@ -455,10 +450,6 @@ UINT AddDirectory(
 		bFileFound = TRUE;
 	}
 
-	if (bParentIDExisted) {
-		uiAnswer = GetDirectoryIDView(hModule, sParentDirID, hView);
-	}
-
 	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
 		if (found.dwFileAttributes && FILE_ATTRIBUTE_DIRECTORY) {
 			// Create a new directory spec to recurse into.
@@ -468,7 +459,8 @@ UINT AddDirectory(
 
 			if (bParentIDExisted) {
 				// Try and get the ID that already exists.
-				uiAnswer = GetDirectoryID(hView, 
+				uiAnswer = GetDirectoryID(hModule, 
+					sParentDirID, 
 					found.cFileName, 
 					sDirectoryID);
 				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
@@ -521,15 +513,6 @@ UINT AddDirectory(
 	
 	// Close the find handle.
 	::FindClose(hFindHandle);
-
-	// Close the view if we opened it.
-	if (hView != NULL) {
-		uiAnswer = ::MsiViewClose(hView);
-		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-
-		uiAnswer = ::MsiCloseHandle(hView);
-		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-	}
 
 	// If we found extra files, add an entry to delete them.
 	if (uiFoundFilesToDelete > 0) {
