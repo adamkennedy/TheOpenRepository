@@ -23,18 +23,21 @@
 
 // Helper macros for error checking.
 
-#define MSI_OK(x) if (ERROR_SUCCESS != x) { \
-                    return x; \
-				  }
+#define MSI_OK(x) \
+	if (ERROR_SUCCESS != x) { \
+		return x; \
+	}
  
-#define MSI_OK_FREE(x, y) if (ERROR_SUCCESS != x) { \
-							free(y); \
-		                    return x; \
-						  }
+#define MSI_OK_FREE(x, y) \
+	if (ERROR_SUCCESS != x) { \
+		free(y); \
+		return x; \
+	}
 
-#define RECORD_OK(x) if (NULL == x) { \
-					   return ERROR_INSTALL_FAILURE; \
-					 }
+#define RECORD_OK(x) \
+	if (NULL == x) { \
+		return ERROR_INSTALL_FAILURE; \
+	}
 
 // The component for TARGET_DIR/perl/bin/perl.exe
 static TCHAR sComponent[40];
@@ -42,10 +45,10 @@ static TCHAR sComponent[40];
 // Default DllMain, since nothing special
 // is happening here.
 
-BOOL APIENTRY DllMain(HMODULE hModule,
-                      DWORD  ul_reason_for_call,
-                      LPVOID lpReserved
-					 )
+BOOL APIENTRY DllMain(
+	HMODULE hModule,
+	DWORD   ul_reason_for_call,
+	LPVOID  lpReserved)
 {
     return TRUE;
 }
@@ -65,7 +68,7 @@ LPTSTR CreateDirectoryGUID()
 		guid.Data1, guid.Data2, guid.Data3, 
 		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
 		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-		
+
 	return sGUID;
 }
 
@@ -84,13 +87,20 @@ LPTSTR CreateFileGUID()
 		guid.Data1, guid.Data2, guid.Data3, 
 		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
 		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-		
+
 	return sGUID;
 }
 
+/* All routines after this point return UINT error codes,
+ * as defined by the Win32 API reference under the Installer Functions
+ * area (at http://msdn.microsoft.com/en-us/library/aa369426(VS.85).aspx ) 
+ */
+
 // Logs string in MSI log.
 
-UINT LogString(MSIHANDLE hModule, LPCTSTR sMessage) 
+UINT LogString(
+	MSIHANDLE hModule, // Handle of MSI being installed. [in]
+	LPCTSTR sMessage)  // Message to enter into log. [in]
 {
 	// Set up variables.
 	TCHAR szTemp[MAX_PATH * 2];
@@ -108,9 +118,10 @@ UINT LogString(MSIHANDLE hModule, LPCTSTR sMessage)
 // Gets view for finding Directory IDs.
 // Remember to call ::MsiCloseHandle(hView) when done.
 
-UINT GetDirectoryIDView(MSIHANDLE hModule, 
-					    LPCTSTR sParentDirID,
-					    MSIHANDLE& hView)
+UINT GetDirectoryIDView(
+	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
+	LPCTSTR sParentDirID, // ID of parent directory (to search in). [in]
+	MSIHANDLE& hView)     // View created. [out]
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `Directory`,`DefaultDir` FROM `Directory` WHERE `Directory_Parent`= ?");
@@ -135,11 +146,17 @@ UINT GetDirectoryIDView(MSIHANDLE hModule,
 
 // Finds directory ID for directory named in sDirectory.
 
-UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
+UINT GetDirectoryID(
+	MSIHANDLE hView,     // View to use when searching. [in]
+	LPCTSTR sDirectory,  // Directory to find the ID for. [in]
+	LPTSTR sDirectoryID) // ID of directory. Can be NULL. 
+	                     // Must be free()'d if not. [out]
 {
 	PMSIHANDLE phRecord = MsiCreateRecord(2);
 	UINT uiAnswer = ERROR_SUCCESS;
 	TCHAR sDir[MAX_PATH + 1];
+	TCHAR* sPipeLocation = NULL;
+	DWORD dwLengthID = 0;
 	
 	// Fetch the first row from the view.
 	sDirectoryID = NULL;
@@ -153,7 +170,7 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 
 		// We found our directory.
 		if (_tcscmp(sDirectory, sDir) == 0) {
-			DWORD dwLengthID = 0;
+			dwLengthID = 0;
 			uiAnswer = ::MsiRecordGetString(phRecord, 1, _T(""), &dwLengthID);
 			if (uiAnswer == ERROR_MORE_DATA) {
 				dwLengthID++;
@@ -166,7 +183,26 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 			return uiAnswer;
 		}
 
-		// TODO: Handle long directory names.
+		sPipeLocation = _tcschr(sDir, _T('|'));
+		if (sPipeLocation != NULL) {
+			// Adjust the position past the pipe character.
+			sPipeLocation = _tcsninc(sPipeLocation, 1); 
+
+			// NOW compare the filename!
+			if (_tcscmp(sDirectory, sPipeLocation) == 0) {
+				dwLengthID = 0;
+				uiAnswer = ::MsiRecordGetString(phRecord, 1, _T(""), &dwLengthID);
+				if (uiAnswer == ERROR_MORE_DATA) {
+					dwLengthID++;
+					sDirectoryID = (TCHAR *)malloc(dwLengthID * sizeof(TCHAR));
+					uiAnswer = ::MsiRecordGetString(phRecord, 1,sDirectoryID, &dwLengthID);
+				}
+				
+				// We're done! Hurray!
+				::MsiViewClose(phView);
+				return ERROR_SUCCESS;
+			}
+		}
 
 		// Fetch the next row.
 		uiAnswer = ::MsiViewFetch(hView, &phRecord);
@@ -183,10 +219,11 @@ UINT GetDirectoryID(MSIHANDLE hView, LPCTSTR sDirectory, LPTSTR sDirectoryID)
 // Is the file in sFilename in the directory referred to by sDirectoryID installed by this MSI? 
 // Returned in bInstalled.
 
-UINT IsFileInstalled(MSIHANDLE hModule, 
-					 LPCTSTR sDirectoryID, 
-					 LPCTSTR sFilename, 
-					 BOOL& bInstalled)
+UINT IsFileInstalled(
+	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
+	LPCTSTR sDirectoryID, // ID of directory being checked. [in]
+	LPCTSTR sFilename,    // Filename to check. [in]
+	BOOL& bInstalled)     // Whether file was installed by MSI or not. [out]
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `File` FROM `Component`,`File` WHERE `Component`.`Component`='File`.`Component_` AND 'Component`.`` = ?");
@@ -260,7 +297,9 @@ UINT IsFileInstalled(MSIHANDLE hModule,
 
 // Adds a record to remove all files in the directory referred to by sDirectoryID.
 
-UINT AddRemoveFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
+UINT AddRemoveFileRecord(
+	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
+	LPCTSTR sDirectoryID) // ID of directory to remove files from. [in]
 {
 	LPCTSTR sSQL = 
 		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
@@ -299,7 +338,9 @@ UINT AddRemoveFileRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
 
 // Adds a record to remove the directory referred to by sDirectoryID.
 
-UINT AddRemoveDirectoryRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
+UINT AddRemoveDirectoryRecord(
+	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
+	LPCTSTR sDirectoryID) // ID of directory to remove. [in]
 {
 	LPCTSTR sSQL = 
 		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, NULL, 2)");
@@ -340,7 +381,11 @@ UINT AddRemoveDirectoryRecord(MSIHANDLE hModule, LPCTSTR sDirectoryID)
 // in sDirectoryID.
 // sDirectoryID will need free()'d when done.
 
-UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, LPTSTR sDirectoryID)
+UINT AddDirectoryRecord(
+	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
+	LPCTSTR sParentDirID, // ID of parent directory. [in]
+	LPCTSTR sName,        // Name of directory being added to MSI. [in]
+	LPTSTR sDirectoryID)  // ID to use when adding directory. [out]
 {
 	LPCTSTR sSQL = 
 		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?)");
@@ -379,7 +424,11 @@ UINT AddDirectoryRecord(MSIHANDLE hModule, LPCTSTR sParentDirID, LPCTSTR sName, 
 
 // The main routine
 
-UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, bool bParentIDExisted)
+UINT AddDirectory(
+	MSIHANDLE hModule,     // Handle of MSI being installed. [in]
+	LPCTSTR sDirectory,    // Directory being searched. [in]
+	LPCTSTR sParentDirID,  // ID of parent directory. [in]
+	bool bParentIDExisted) // Did parent ID exist in the MSI originally? [in]
 {
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
@@ -506,7 +555,8 @@ UINT AddDirectory(MSIHANDLE hModule, LPCTSTR sDirectory, LPCTSTR sParentDirID, b
 	return uiAnswer;
 }
 
-UINT GetComponent(MSIHANDLE hModule)
+UINT GetComponent(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
 {
 	LPCTSTR sSQL = 
 		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ? AND `DefaultDir` = ?");
@@ -587,7 +637,9 @@ UINT GetComponent(MSIHANDLE hModule)
 	return uiAnswer; 
 }
 
-UINT __stdcall ClearFolder(MSIHANDLE hModule)
+UINT __stdcall ClearFolder(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+	                   // Passed to most other routines.
 {
 	TCHAR sInstallDirectory[MAX_PATH + 1];
 	UINT uiAnswer;
