@@ -1210,7 +1210,7 @@ sub map_choice_point {
 } ## end sub map_choice_point
 
 # This will replace the old value method
-sub Marpa::Evaluator::value {
+sub Marpa::Evaluator::trial_value {
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
 
@@ -1646,11 +1646,11 @@ sub Marpa::Evaluator::value {
 
     return pop @evaluation_stack;
 
-} ## end sub Marpa::Evaluator::value
+} ## end sub Marpa::Evaluator::trial_value
 
 # Apparently perlcritic has a bug and doesn't see the final return
 ## no critic (Subroutines::RequireFinalReturn)
-sub Marpa::Evaluator::old_value {
+sub Marpa::Evaluator::value {
 ## use critic
 
     my $evaler     = shift;
@@ -2084,7 +2084,9 @@ sub Marpa::Evaluator::old_value {
 
     return pop @evaluation_stack;
 
-} ## end sub Marpa::Evaluator::old_value
+} ## end sub Marpa::Evaluator::value
+
+*Marpa::Evaluator::old_value = \&Marpa::Evaluator::value;
 
 1;
 

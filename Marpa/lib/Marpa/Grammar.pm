@@ -3187,11 +3187,14 @@ sub assign_QDFA_state_set {
         Marpa::Internal::Grammar::QDFA
     ];
 
-    # Track if a state has been seen.
-    # Undefined if never seen.
-    # Ref to an empty array if seen, but not a result
-    # Ref to an array of reset origin flag, priority
-    # and NFA ID, if seen and to go into result
+    # Track if a state has been seen in @NFA_state_seen.
+    # Value is Undefined if never seen.
+    # Value is -1 if seen, but not a result
+    # Value is >=0 if seen and a result.
+    #
+    # If seen and to go into result, the
+    # value is the reset flag, which must be
+    # 0 or 1.
     my @NFA_state_seen;
 
     # pre-allocate the array
