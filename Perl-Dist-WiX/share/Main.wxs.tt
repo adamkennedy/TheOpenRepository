@@ -79,6 +79,14 @@
 
 [% dist.icons.as_string %]
 
+<CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
+
+<InstallExecuteSequence>
+  <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
+</InstallExecuteSequence>
+
+<Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
+
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
 [% END %]

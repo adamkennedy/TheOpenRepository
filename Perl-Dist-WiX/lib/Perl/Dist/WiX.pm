@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.171')->numify;
+use version; $VERSION = version->new('0.172_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -812,6 +812,20 @@ Returns a directory as a string or throws an exception on error.
 =cut
 
 sub dist_dir {
+	my $self = shift;
+	
+	return $self->wix_dist_dir();
+}
+
+=head3 wix_dist_dir
+
+Provides a shortcut to the location of the shared files directory.
+
+Returns a directory as a string or throws an exception on error.
+
+=cut
+
+sub wix_dist_dir {
 	my $dir;
 
 	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
@@ -1565,7 +1579,7 @@ sub install_win32_extras {
 		name => 'CPAN Search',
 		url  => 'http://search.cpan.org/',
 		icon_file =>
-		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'cpan.ico' )
+		  catfile( $self->wix_dist_dir(), 'cpan.ico' )
 	);
 
 	if ( $self->perl_version_human eq '5.8.8' ) {
@@ -1573,7 +1587,7 @@ sub install_win32_extras {
 			name      => 'Perl 5.8.8 Documentation',
 			url       => 'http://perldoc.perl.org/5.8.8/',
 			icon_file => catfile(
-				File::ShareDir::dist_dir('Perl-Dist-WiX'),
+				$self->wix_dist_dir(),
 				'perldoc.ico'
 			) );
 	}
@@ -1582,7 +1596,7 @@ sub install_win32_extras {
 			name      => 'Perl 5.8.9 Documentation',
 			url       => 'http://perldoc.perl.org/5.8.9/',
 			icon_file => catfile(
-				File::ShareDir::dist_dir('Perl-Dist-WiX'),
+				$self->wix_dist_dir(),
 				'perldoc.ico'
 			) );
 	}
@@ -1591,7 +1605,7 @@ sub install_win32_extras {
 			name      => 'Perl 5.10.0 Documentation',
 			url       => 'http://perldoc.perl.org/',
 			icon_file => catfile(
-				File::ShareDir::dist_dir('Perl-Dist-WiX'),
+				$self->wix_dist_dir(),
 				'perldoc.ico'
 			) );
 	}
@@ -1599,7 +1613,7 @@ sub install_win32_extras {
 		name => 'Win32 Perl Wiki',
 		url  => 'http://win32.perl.org/',
 		icon_file =>
-		  catfile( File::ShareDir::dist_dir('Perl-Dist-WiX'), 'win32.ico' )
+		  catfile( $self->wix_dist_dir(), 'win32.ico' )
 	);
 
 	return $self;

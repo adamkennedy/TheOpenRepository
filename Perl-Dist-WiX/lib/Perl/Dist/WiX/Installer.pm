@@ -162,7 +162,7 @@ sub new {
 	}
 	unless ( _STRING( $self->msi_license_file ) ) {
 		$self->{msi_license_file} =
-		  catfile( $self->dist_dir, 'License.rtf' );
+		  catfile( $self->wix_dist_dir, 'License.rtf' );
 	}
 
 	# Check and default params
@@ -806,7 +806,7 @@ sub as_string {
 	my $self = shift;
 
 	my $tt = Template->new( {
-			INCLUDE_PATH => [ $self->dist_dir, File::ShareDir::dist_dir('Perl-Dist-WiX'), ],
+			INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
 			EVAL_PERL    => 1,
 		} )
 	  || PDWiX::Caught->throw(
@@ -821,7 +821,13 @@ sub as_string {
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
 		info    => $tt->error() );
-
+#<<<
+	# Delete empty lines.
+	$answer =~ s{\R        # Replace a linebreak,
+				 \s*?      # any whitespace we may be able to catch,
+				 \R}       # and a second linebreak
+				{\r\n}msgx # With one Windows linebreak.
+#>>>
 	# Combine it all
 	return $answer;
 } ## end sub as_string
