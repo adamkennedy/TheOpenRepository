@@ -9,11 +9,7 @@
 <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
 
 <InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' Before='CostInitialize'>REMOVE="ALL"</Custom>
-</InstallExecuteSequence>
-
-<AdminExecuteSequence>
-  <Custom Action='CA_ClearFolder' Before='CostInitialize'>REMOVE="ALL"</Custom>
+  <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
 </InstallExecuteSequence>
 
 <Binary Id='B_ClearFolder' SourceFile='share\ClearFolderCA.dll' />
@@ -34,7 +30,7 @@
 		return x; \
 	}
 
-#define RECORD_OK(x) \
+#define HANDLE_OK(x) \
 	if (NULL == x) { \
 		return ERROR_INSTALL_FAILURE; \
 	}
@@ -130,13 +126,17 @@ UINT GetDirectoryID(
 	UINT uiAnswer = ERROR_SUCCESS;
 	PMSIHANDLE phView;
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create and fill the record.
 	PMSIHANDLE phRecordSelect = ::MsiCreateRecord(1);
-	RECORD_OK(phRecordSelect)
+	HANDLE_OK(phRecordSelect)
 
 	uiAnswer = ::MsiRecordSetString(phRecordSelect, 1, sParentDirID);
 	MSI_OK(uiAnswer)
@@ -228,13 +228,17 @@ UINT IsFileInstalled(
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create and fill the record.
 	PMSIHANDLE phRecord = MsiCreateRecord(1);
-	RECORD_OK(phRecord)
+	HANDLE_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDirectoryID);
 	MSI_OK(uiAnswer)
@@ -303,13 +307,17 @@ UINT AddRemoveFileRecord(
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create a record storing the values to add.
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
-	RECORD_OK(phRecord)
+	HANDLE_OK(phRecord)
 
 	// Fill the record.
 	LPTSTR sFileID = CreateFileGUID();
@@ -344,13 +352,17 @@ UINT AddRemoveDirectoryRecord(
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create a record storing the values to add.
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
-	RECORD_OK(phRecord)
+	HANDLE_OK(phRecord)
 
 	// Fill the record.
 	LPTSTR sFileID = CreateFileGUID();
@@ -389,13 +401,17 @@ UINT AddDirectoryRecord(
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	// Open the view.
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	// Create a record storing the values to add.
 	PMSIHANDLE phRecord = MsiCreateRecord(3);
-	RECORD_OK(phRecord)
+	HANDLE_OK(phRecord)
 
 	// Get the ID to add.
 	sDirectoryID = CreateDirectoryGUID();
@@ -539,19 +555,23 @@ UINT AddDirectory(
 }
 
 UINT GetComponent(
-	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+	MSIHANDLE hModule ) // Database Handle of MSI being installed. [in]
 {
 	LPCTSTR sSQL = 
 		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ? AND `DefaultDir` = ?");
 
+	// Get database handle
+	PMSIHANDLE phDB = ::MsiGetActiveDatabase(hModule);
+	HANDLE_OK(phDB)
+
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
 
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQL, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQL, &phView);
 	MSI_OK(uiAnswer)
 
 	PMSIHANDLE phRecord = ::MsiCreateRecord(2);
-	RECORD_OK(phRecord)
+	HANDLE_OK(phRecord)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("TARGETDIR"));
 	MSI_OK(uiAnswer)
@@ -599,7 +619,7 @@ UINT GetComponent(
 	LPCTSTR sSQLFile = 
 		TEXT("SELECT `Component`.`Component` FROM `Component`,`File` WHERE `Component`.`Directory_` = ? AND `File`.`FileName`= ? AND `File`.`Component_` = `Component`.`Component`");
 
-	uiAnswer = ::MsiDatabaseOpenView(hModule, sSQLFile, &phView);
+	uiAnswer = ::MsiDatabaseOpenView(phDB, sSQLFile, &phView);
 	MSI_OK(uiAnswer)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 1, sID);
