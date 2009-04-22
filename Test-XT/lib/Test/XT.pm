@@ -75,7 +75,7 @@ use Exporter ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION   = '0.01';
+	$VERSION   = '0.02';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw{
 		WriteTest
