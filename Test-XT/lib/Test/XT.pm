@@ -14,6 +14,7 @@ Test::XT - Generate best practice author tests
       'Test::Pod'            => 't/pod.t',
       'Test::CPAN::Meta'     => 't/meta.t',
       'Test::MinimumVersion' => 't/minimumversion.t',
+      'Test::Perl::Critic'   => 't/critic.t',
   );
 
 =head1 DESCRIPTION
@@ -99,12 +100,27 @@ my %STANDARD = (
 			'Test::CPAN::Meta' => '0.12',
 		},
 	},
+	'Test::HasVersion' => {
+		test    => 'all_pm_version_ok',
+		comment => 'Test that all modules have a version number',
+		modules => {
+			'Test::HasVersion' => '0.012',
+		},
+	},
 	'Test::MinimumVersion' => {
 		test    => 'all_minimum_version_from_metayml_ok',
 		comment => 'Test that our declared minimum Perl version matches our syntax',
 		modules => {
 			'Perl::MinimumVersion' => '1.20',
 			'Test::MinimumVersion' => '0.008',
+		},
+	},
+	'Test::Perl::Critic' => {
+		test    => 'all_critic_ok',
+		comment => 'Test that the module passes perlcritic',
+		modules => {
+			'Perl::Critic'       => '1.098',
+			'Test::Perl::Critic' => '1.01',
 		},
 	},
 );

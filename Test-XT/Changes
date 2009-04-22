@@ -1,4 +1,7 @@
 Changes for Perl extension Test-XS
 
-0.01 to be released
+0.02 Thu 23 Apr 2009
+	- Adding two more modules
+
+0.01 Fri 17 Apr 2009
 	- Creating the initial release
