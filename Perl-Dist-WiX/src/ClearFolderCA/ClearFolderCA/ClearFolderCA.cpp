@@ -468,10 +468,22 @@ UINT AddDirectory(
 
 	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
 		if (found.dwFileAttributes && FILE_ATTRIBUTE_DIRECTORY) {
+
+			// Handle . and ..
+			if (0 == _tcscmp(found.cFileName, TEXT("."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			if (0 == _tcscmp(found.cFileName, TEXT(".."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
 			// Create a new directory spec to recurse into.
 			_tcscpy_s(sNewDir, MAX_PATH, sDirectory);
-			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
 			_tcscat_s(sNewDir, MAX_PATH, found.cFileName);
+			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
 
 			if (bParentIDExisted) {
 				// Try and get the ID that already exists.
@@ -573,19 +585,17 @@ UINT GetComponent(
 	PMSIHANDLE phRecord = ::MsiCreateRecord(2);
 	HANDLE_OK(phRecord)
 
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("TARGETDIR"));
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("D_Perl"));
 	MSI_OK(uiAnswer)
 
-	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("perl"));
+	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("bin"));
 	MSI_OK(uiAnswer)
 
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 	
 	PMSIHANDLE phAnswerRecord = ::MsiCreateRecord(1);
-	if (phAnswerRecord == NULL) {
-		return ERROR_INSTALL_FAILURE;
-	}
+	HANDLE_OK(phAnswerRecord)
 
 	uiAnswer = ::MsiViewFetch(phView, &phAnswerRecord);
 	MSI_OK(uiAnswer)
@@ -595,24 +605,7 @@ UINT GetComponent(
 	DWORD dwLengthID = 39;
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
 	MSI_OK(uiAnswer);
-	
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, sID);
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("bin"));
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiViewExecute(phView, phRecord);
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiViewFetch(phView, &phAnswerRecord);
-	MSI_OK(uiAnswer)
-	
-	// Get the ID.
-	dwLengthID = 39;
-	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
-	MSI_OK(uiAnswer);
-	
+		
 	uiAnswer = ::MsiViewClose(phView);
 	MSI_OK(uiAnswer)
 
@@ -631,6 +624,9 @@ UINT GetComponent(
 	uiAnswer = ::MsiViewExecute(phView, phRecord);
 	MSI_OK(uiAnswer)
 
+	uiAnswer = ::MsiViewFetch(phView, &phAnswerRecord);
+	MSI_OK(uiAnswer)
+	
 	// Get the ID.
 	dwLengthID = 39;
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sComponent, &dwLengthID);
@@ -657,7 +653,7 @@ UINT __stdcall ClearFolder(
 	MSI_OK(uiAnswer)
 	
 	// Start getting files to delete (recursive)
-	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("TARGETDIR"), true);	
+	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("INSTALLDIR"), true);	
 	
     return uiAnswer;
 }
