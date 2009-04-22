@@ -99,11 +99,12 @@ object directly.
 use 5.006;
 use strict;
 use warnings;
-use Carp       ();
-use Config     ();
-use Storable   ();
-use IO::Scalar ();
-use YAML::Tiny ();
+use Carp              ();
+use Config            ();
+use Storable     2.11 ();
+use IO::Scalar  2.110 ();
+use YAML::Tiny   1.36 ();
+use Params::Util 0.37 qw{ _SCALAR0 _HASH0 _CODE _INSTANCE };
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
@@ -183,7 +184,7 @@ sub store {
 
 	# Make sure we are allowed to use B::Deparse to serialise
 	# CODE refs in INC if needed.
-	my $any_CODE_refs = scalar grep { ref $_ eq 'CODE' } @{$self->{INC}};
+	my $any_CODE_refs = scalar grep { _CODE($_) } @{$self->{INC}};
 	if ( $any_CODE_refs and ! $DEPARSE ) {
 		die "Found a CODE reference in \@INC, but \$CGI::Capture::DEPARSE is not true";
 	}
@@ -212,7 +213,7 @@ sub retrieve {
 	my $class = ref $_[0] ? ref shift : shift;
 	local $Storable::Eval = $DEPARSE;
 	my $self = Storable::lock_retrieve(shift);
-	return $self if UNIVERSAL::isa(ref $self, $class);
+	return $self if _INSTANCE($self, $class);
 	die "Storable did not contains a $class object";
 }
 
@@ -257,10 +258,10 @@ sub from_yaml {
 
 	# Check params
 	my $yaml  = shift;
-	unless ( defined $yaml and ref($yaml) and $yaml->isa('YAML::Tiny') ) {
+	unless ( _INSTANCE($yaml, 'YAML::Tiny') ) {
 		Carp::croak("Did not provide a YAML::Tiny object to from_yaml");
 	}
-	unless ( ref($yaml->[0]) eq 'HASH' ) {
+	unless ( _HASH0($yaml->[0]) ) {
 		Carp::croak("The YAML::Tiny object does not have a HASH as first element");
 	}
 
@@ -493,7 +494,7 @@ sub _check {
 # Takes a scalar reference and sets STDIN to read from it
 sub _stdin {
 	my $self = shift;
-	my $scalar_ref = ref $_[0] eq 'SCALAR' ? shift
+	my $scalar_ref = _SCALAR0($_[0]) ? shift
 		: die "SCALAR reference not passed to ->_stdin";
 	tie *MYSTDIN, 'CGI::Capture::TieSTDIN', $scalar_ref;
 	*STDIN = *MYSTDIN;
