@@ -1,6 +1,11 @@
 Revision history for Perl extension CGI-Capture
 
-1.12 Mon 10 Dec 2007
+1.13 Wed 22 Apr 2009
+	- Updating to Module::Install::DSL 0.85
+	- Adding missing IO::Scalar dependency
+	- Switching to use Params::Util for type checking
+
+1.12 Tue 21 Apr 2009
 	- Updating to Module::Install::DSL 0.83
 	- Switching to IO::Scalar in the hope it ties properly
 

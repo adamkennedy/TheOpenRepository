@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 }
 
 sub TIEHANDLE {

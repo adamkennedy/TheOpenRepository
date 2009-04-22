@@ -7,7 +7,7 @@ use CGI::Capture ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 }
 
 # Capture the CGI environment

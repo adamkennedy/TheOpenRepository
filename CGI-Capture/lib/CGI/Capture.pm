@@ -108,7 +108,7 @@ use Params::Util 0.37 qw{ _SCALAR0 _HASH0 _CODE _INSTANCE };
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 }
 
 use CGI::Capture::TieSTDIN ();
