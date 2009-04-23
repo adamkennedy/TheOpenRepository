@@ -1582,12 +1582,20 @@ sub Marpa::show_rule {
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
 
-    if (defined (my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY])) {
-        push @comment, qq{user priority="$priority"}
-    }
-    if (defined (my $priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY])) {
-        push @comment, qq{internal priority="$priority"}
-    }
+    if (defined(
+            my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY]
+        )
+        )
+    {
+        push @comment, qq{user priority="$priority"};
+    } ## end if ( defined( my $priority = $rule->[...
+    if (defined(
+            my $priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY]
+        )
+        )
+    {
+        push @comment, qq{internal priority="$priority"};
+    } ## end if ( defined( my $priority = $rule->[...
 
     my $text = Marpa::brief_rule($rule);
 
@@ -1848,9 +1856,7 @@ sub add_terminal {
             Marpa::Internal::Symbol::ACTION,
             Marpa::Internal::Symbol::TERMINAL,
             ]
-            = (
-            1, 0, $regex, $prefix, $suffix, $action, 1,
-            );
+            = ( 1, 0, $regex, $prefix, $suffix, $action, 1, );
 
         return;
     } ## end if ( defined $symbol )
@@ -1877,20 +1883,20 @@ sub add_terminal {
 sub assign_symbol {
     my $grammar     = shift;
     my $name        = shift;
-    my $symbol_hash = $grammar->[ Marpa::Internal::Grammar::SYMBOL_HASH ];
-    my $symbols     = $grammar->[ Marpa::Internal::Grammar::SYMBOLS ];
+    my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
+    my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $default_null_value =
-        $grammar->[ Marpa::Internal::Grammar::DEFAULT_NULL_VALUE ];
+        $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     my $symbol_count = @{$symbols};
     my $symbol       = $symbol_hash->{$name};
     if ( not defined $symbol ) {
         $#{$symbol} = Marpa::Internal::Symbol::LAST_FIELD;
-        $symbol->[Marpa::Internal::Symbol::ID]   = $symbol_count;
-        $symbol->[Marpa::Internal::Symbol::NAME] = $name;
-        $symbol->[Marpa::Internal::Symbol::LHS]  = [];
-        $symbol->[Marpa::Internal::Symbol::RHS]  = [];
-        $symbol->[Marpa::Internal::Symbol::USER_PRIORITY]  = q{};
+        $symbol->[Marpa::Internal::Symbol::ID]            = $symbol_count;
+        $symbol->[Marpa::Internal::Symbol::NAME]          = $name;
+        $symbol->[Marpa::Internal::Symbol::LHS]           = [];
+        $symbol->[Marpa::Internal::Symbol::RHS]           = [];
+        $symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = q{};
         push @{$symbols}, $symbol;
         weaken( $symbol_hash->{$name} = $symbol );
     } ## end if ( not defined $symbol )
@@ -1921,14 +1927,15 @@ sub add_user_rule {
     my $lhs_name = $arg_copy{lhs};
     Marpa::exception('Missing lhs argument to add_user_rule')
         if not defined $lhs_name;
-    my $rhs_names = $arg_copy{rhs};
+    my $rhs_names         = $arg_copy{rhs};
     my $action            = $arg_copy{action};
     my $user_priority     = $arg_copy{user_priority};
     my $internal_priority = $arg_copy{internal_priority};
 
     my ($rule_hash) = @{$grammar}[Marpa::Internal::Grammar::RULE_HASH];
 
-    my $lhs_symbol = $arg_copy{lhs} = assign_user_symbol( $grammar, $lhs_name );
+    my $lhs_symbol = $arg_copy{lhs} =
+        assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
     my $rhs_symbols = $arg_copy{rhs} =
         [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
@@ -1943,31 +1950,36 @@ sub add_user_rule {
 
     $rule_hash->{$rule_key} = 1;
 
-    if (defined $user_priority) {
-       my $expected_length = $grammar->[ Marpa::Internal::Grammar::USER_PRIORITY_LENGTH];
-       my $actual_length   = length $user_priority;
-       if ( not defined $expected_length ) {
-           $grammar->[Marpa::Internal::Grammar::USER_PRIORITY_LENGTH] = length $user_priority;
-       }
-       Marpa::exception(
-           "Priority length mismatch\n",
-           " Expected length $expected_length, got length $actual_length\n",
-           ' Rule: ', $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ), "\n"
-       ) unless
-           $expected_length = $actual_length;
-    }
+    if ( defined $user_priority ) {
+        my $expected_length =
+            $grammar->[Marpa::Internal::Grammar::USER_PRIORITY_LENGTH];
+        my $actual_length = length $user_priority;
+        if ( not defined $expected_length ) {
+            $grammar->[Marpa::Internal::Grammar::USER_PRIORITY_LENGTH] =
+                length $user_priority;
+        }
+        Marpa::exception(
+            "Priority length mismatch\n",
+            " Expected length $expected_length, got length $actual_length\n",
+            ' Rule: ',
+            $lhs_name,
+            ' -> ',
+            ( join q{ }, @{$rhs_names} ),
+            "\n"
+        ) unless $expected_length = $actual_length;
+    } ## end if ( defined $user_priority )
 
     return add_rule( \%arg_copy );
 } ## end sub add_user_rule
 
 sub add_rule {
 
-    my ($arg_hash) = @_;
-    my $grammar  = $arg_hash->{grammar};
-    my $lhs      = $arg_hash->{lhs};
-    my $rhs      = $arg_hash->{rhs};
-    my $action   = $arg_hash->{action};
-    my $user_priority = $arg_hash->{user_priority};
+    my ($arg_hash)        = @_;
+    my $grammar           = $arg_hash->{grammar};
+    my $lhs               = $arg_hash->{lhs};
+    my $rhs               = $arg_hash->{rhs};
+    my $action            = $arg_hash->{action};
+    my $user_priority     = $arg_hash->{user_priority};
     my $internal_priority = $arg_hash->{internal_priority};
 
     my ( $rules, $package, $trace_rules, $trace_fh, ) = @{$grammar}[
@@ -1981,17 +1993,18 @@ sub add_rule {
     my $new_rule   = [];
     my $nulling    = @{$rhs} ? undef : 1;
 
-    $new_rule->[Marpa::Internal::Rule::ID]         = $rule_count;
-    $new_rule->[Marpa::Internal::Rule::NAME]       = "rule $rule_count";
-    $new_rule->[Marpa::Internal::Rule::LHS]        = $lhs;
-    $new_rule->[Marpa::Internal::Rule::RHS]        = $rhs;
-    $new_rule->[Marpa::Internal::Rule::NULLABLE]   = $nulling;
-    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE] = $nulling;
-    $new_rule->[Marpa::Internal::Rule::NULLING]    = $nulling;
-    $new_rule->[Marpa::Internal::Rule::ACTION]     = $action;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]    = 0;
-    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY]    = $user_priority;
-    $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY]    = $internal_priority;
+    $new_rule->[Marpa::Internal::Rule::ID]            = $rule_count;
+    $new_rule->[Marpa::Internal::Rule::NAME]          = "rule $rule_count";
+    $new_rule->[Marpa::Internal::Rule::LHS]           = $lhs;
+    $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
+    $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
+    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
+    $new_rule->[Marpa::Internal::Rule::NULLING]       = $nulling;
+    $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
+    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = 0;
+    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
+    $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
+        $internal_priority;
 
     push @{$rules}, $new_rule;
     {
@@ -2115,15 +2128,14 @@ sub add_rules_from_hash {
 
         # This is an ordinary, non-counted rule,
         # which we'll take care of first as a special case
-        my $ordinary_rule =
-            add_user_rule(
-                {   grammar       => $grammar,
-                    lhs           => $lhs_name,
-                    rhs           => $rhs_names,
-                    action        => $action,
-                    user_priority => $user_priority
-                }
-            );
+        my $ordinary_rule = add_user_rule(
+            {   grammar       => $grammar,
+                lhs           => $lhs_name,
+                rhs           => $rhs_names,
+                action        => $action,
+                user_priority => $user_priority
+            }
+        );
 
         return;
 
@@ -3431,16 +3443,16 @@ sub alias_symbol {
     my $alias_name = $nullable_symbol->[Marpa::Internal::Symbol::NAME] . '[]';
     my $alias      = [];
     $#{$alias} = Marpa::Internal::Symbol::LAST_FIELD;
-    $alias->[ Marpa::Internal::Symbol::ID, ]        = $symbol_count;
-    $alias->[ Marpa::Internal::Symbol::NAME ]       = $alias_name;
-    $alias->[ Marpa::Internal::Symbol::LHS ]        = [];
-    $alias->[ Marpa::Internal::Symbol::RHS ]        = [];
-    $alias->[ Marpa::Internal::Symbol::ACCESSIBLE ] = $accessible;
-    $alias->[ Marpa::Internal::Symbol::PRODUCTIVE ] = $productive;
-    $alias->[ Marpa::Internal::Symbol::NULLABLE ]   = 1;
-    $alias->[ Marpa::Internal::Symbol::NULLING ]    = 1;
-    $alias->[ Marpa::Internal::Symbol::NULL_VALUE ] = $null_value;
-    $alias->[ Marpa::Internal::Symbol::USER_PRIORITY ] = q{};
+    $alias->[ Marpa::Internal::Symbol::ID, ]         = $symbol_count;
+    $alias->[Marpa::Internal::Symbol::NAME]          = $alias_name;
+    $alias->[Marpa::Internal::Symbol::LHS]           = [];
+    $alias->[Marpa::Internal::Symbol::RHS]           = [];
+    $alias->[Marpa::Internal::Symbol::ACCESSIBLE]    = $accessible;
+    $alias->[Marpa::Internal::Symbol::PRODUCTIVE]    = $productive;
+    $alias->[Marpa::Internal::Symbol::NULLABLE]      = 1;
+    $alias->[Marpa::Internal::Symbol::NULLING]       = 1;
+    $alias->[Marpa::Internal::Symbol::NULL_VALUE]    = $null_value;
+    $alias->[Marpa::Internal::Symbol::USER_PRIORITY] = q{};
     push @{$symbols}, $alias;
     weaken( $symbol->{$alias_name} = $alias );
 
@@ -3501,7 +3513,7 @@ sub rewrite_as_CHAF {
 
     my $position_format = do {
         my $max_rhs_length = 10;
-        RULE: for my $rule (@{$rules}) {
+        RULE: for my $rule ( @{$rules} ) {
             my $rhs = $rule->[Marpa::Internal::Rule::RHS];
             next RULE if $max_rhs_length >= @{$rhs};
             $max_rhs_length = @{$rhs};
@@ -3514,7 +3526,7 @@ sub rewrite_as_CHAF {
     # over them
     my $rule_count = @{$rules};
     RULE: for my $rule_id ( 0 .. ( $rule_count - 1 ) ) {
-        my $rule       = $rules->[$rule_id];
+        my $rule = $rules->[$rule_id];
 
         # unreachable and nulling rules are useless
         my $productive = $rule->[Marpa::Internal::Rule::PRODUCTIVE];
