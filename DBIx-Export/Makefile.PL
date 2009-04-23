@@ -5,4 +5,3 @@ requires_from lib/DBIx/Export.pm
 test_requires Test::More   0.42
 test_requires File::Spec   0.80
 test_requires File::Remove 1.42
-test_requires DBD::CSV     0.22
