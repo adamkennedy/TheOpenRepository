@@ -9,6 +9,7 @@ my $b = Module::Build->new
                 'Data::Dumper' => '0',
                 'Math::Symbolic' => '0.602',
                 'Math::MatrixReal' => '0',
+                'perl' => 5.006,
                },
    recommends => {
                   'Test::Pod' => '1.0',
