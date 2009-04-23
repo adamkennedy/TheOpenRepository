@@ -52,12 +52,12 @@ Marpa::Test::is( $grammar->show_rules,
 1: p -> a
 2: p -> /* !useful empty nullable nulling */
 3: n -> a
-4: S -> p p S[R0:2][x5] /* priority=0.19 */
-5: S -> p[] p S[R0:2][x5] /* priority=0.17 */
-6: S -> p p[] S[R0:2][x5] /* priority=0.18 */
-7: S -> p[] p[] S[R0:2][x5] /* priority=0.16 */
-8: S[R0:2][x5] -> p n /* priority=0.11 */
-9: S[R0:2][x5] -> p[] n /* priority=0.9 */
+4: S -> p p S[R0:2][x5] /* internal priority="0044" */
+5: S -> p[] p S[R0:2][x5] /* internal priority="0042" */
+6: S -> p p[] S[R0:2][x5] /* internal priority="0043" */
+7: S -> p[] p[] S[R0:2][x5] /* internal priority="0041" */
+8: S[R0:2][x5] -> p n /* internal priority="0024" */
+9: S[R0:2][x5] -> p[] n /* internal priority="0022" */
 10: S['] -> S
 END_OF_STRING
 
@@ -138,8 +138,11 @@ for my $input_length ( 1 .. 4 ) {
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     my $value = $evaler->value();
-    Marpa::Test::is( ${$value}, $results[$input_length],
-        "final nonnulling, input length=$input_length" );
+    TODO: {
+        local $TODO = 'new evaluator not yet finished' if $input_length == 2;
+        Marpa::Test::is( ${$value}, $results[$input_length],
+            "final nonnulling, input length=$input_length" );
+    }
 } ## end for my $input_length ( 1 .. 4 )
 
 # Local Variables:

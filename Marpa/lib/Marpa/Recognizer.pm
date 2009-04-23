@@ -1091,8 +1091,8 @@ sub complete_set {
 
     my $lexables = [
         sort {
-            $a->[Marpa::Internal::Symbol::PRIORITY]
-                cmp $b->[Marpa::Internal::Symbol::PRIORITY]
+            $a->[Marpa::Internal::Symbol::USER_PRIORITY]
+                cmp $b->[Marpa::Internal::Symbol::USER_PRIORITY]
             }
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
