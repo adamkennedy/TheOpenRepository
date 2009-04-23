@@ -45,7 +45,7 @@ use Apache2::RequestRec ();
 use Apache2::RequestIO  ();
 use Apache2::Const -compile => qw( OK SERVER_ERROR );
 
-use vars qw{$VERSION};
+our $VERSION;
 BEGIN {
 	$VERSION = '0.02';
 }
