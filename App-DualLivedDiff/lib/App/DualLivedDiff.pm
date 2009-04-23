@@ -1,4 +1,5 @@
 package App::DualLivedDiff;
+use 5.006;
 use strict;
 use warnings;
 
