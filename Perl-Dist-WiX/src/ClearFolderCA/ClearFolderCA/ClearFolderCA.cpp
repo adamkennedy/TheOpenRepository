@@ -116,9 +116,9 @@ UINT LogString(
 UINT GetDirectoryID(
 	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
 	LPCTSTR sParentDirID, // ID of parent directory (to search in). [in]
-	LPCTSTR sDirectory,  // Directory to find the ID for. [in]
-	LPTSTR sDirectoryID) // ID of directory. Can be NULL. 
-	                     // Must be free()'d if not. [out]
+	LPCTSTR sDirectory,   // Directory to find the ID for. [in]
+	LPTSTR &sDirectoryID) // ID of directory. Can be NULL. 
+	                      // Must be free()'d if not. [out]
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `Directory`,`DefaultDir` FROM `Directory` WHERE `Directory_Parent`= ?");
@@ -222,7 +222,7 @@ UINT IsFileInstalled(
 	BOOL& bInstalled)     // Whether file was installed by MSI or not. [out]
 {
 	TCHAR* sSQL = 
-		TEXT("SELECT `File` FROM `Component`,`File` WHERE `Component`.`Component`='File`.`Component_` AND 'Component`.`` = ?");
+		TEXT("SELECT `File`.`FileName` FROM `Component`,`File` WHERE `Component`.`Component`=`File`.`Component_` AND `Component`.`Directory_` = ?");
 	PMSIHANDLE phView;
 	bInstalled = FALSE;
 
@@ -262,8 +262,8 @@ UINT IsFileInstalled(
 		// Compare the filename.
 		if (_tcscmp(sFilename, sFile) == 0) {
 			bInstalled = TRUE;
-			::MsiViewClose(phView);
-			return ERROR_SUCCESS;
+			uiAnswer = ::MsiViewClose(phView);
+			return uiAnswer;
 		}
 
 		sPipeLocation = _tcschr(sFile, _T('|'));
@@ -274,8 +274,8 @@ UINT IsFileInstalled(
 			// NOW compare the filename!
 			if (_tcscmp(sFilename, sPipeLocation) == 0) {
 				bInstalled = TRUE;
-				::MsiViewClose(phView);
-				return ERROR_SUCCESS;
+				uiAnswer = ::MsiViewClose(phView);
+				return uiAnswer;
 			}
 		}
 
@@ -390,10 +390,10 @@ UINT AddRemoveDirectoryRecord(
 // sDirectoryID will need free()'d when done.
 
 UINT AddDirectoryRecord(
-	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
-	LPCTSTR sParentDirID, // ID of parent directory. [in]
-	LPCTSTR sName,        // Name of directory being added to MSI. [in]
-	LPTSTR sDirectoryID)  // ID to use when adding directory. [out]
+	MSIHANDLE hModule,     // Handle of MSI being installed. [in]
+	LPCTSTR sParentDirID,  // ID of parent directory. [in]
+	LPCTSTR sName,         // Name of directory being added to MSI. [in]
+	LPTSTR &sDirectoryID)  // ID to use when adding directory. [out]
 {
 	LPCTSTR sSQL = 
 		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?)");
@@ -467,7 +467,7 @@ UINT AddDirectory(
 	}
 
 	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
-		if (found.dwFileAttributes && FILE_ATTRIBUTE_DIRECTORY) {
+		if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY) {
 
 			// Handle . and ..
 			if (0 == _tcscmp(found.cFileName, TEXT("."))) {
@@ -522,9 +522,12 @@ UINT AddDirectory(
 			if (bParentIDExisted) {
 				if (uiFoundFilesToDelete == 0) {
 					BOOL bInstalled = FALSE;
-					uiAnswer = IsFileInstalled(hModule, sDirectoryID, 
-						found.cFileName, bInstalled);
-					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+					if (sDirectoryID != NULL) {
+						uiAnswer = IsFileInstalled(hModule, sParentDirID, 
+							found.cFileName, bInstalled);
+						MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+					}
 
 					if (!bInstalled) {
 						uiFoundFilesToDelete++;
@@ -546,9 +549,13 @@ UINT AddDirectory(
 	if (uiFoundFilesToDelete > 0) {
 		if (sDirectoryID != NULL) {
 			uiAnswer = AddRemoveFileRecord(hModule, sDirectoryID);
+			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
+			LogString(hModule, sDirectoryID);
 			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 		} else {
 			uiAnswer = AddRemoveFileRecord(hModule, sID);
+			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
+			LogString(hModule, sID);
 			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 		}
 	}
@@ -556,6 +563,10 @@ UINT AddDirectory(
 	// If we found an extra directory, add an entry to delete it.
 	if (sDirectoryID == NULL) {
 		uiAnswer = AddRemoveDirectoryRecord(hModule, sID);
+		LogString(hModule, TEXT("Added directory entry with ID string:"));
+		LogString(hModule, sID);
+		LogString(hModule, TEXT("and name:"));
+		LogString(hModule, sDirectory);
 		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 	} else {
 		free((LPTSTR)sDirectoryID);
