@@ -26,9 +26,7 @@ use Params::Util  0.35 ();
 use DBIx::Publish 0.02 ();
 use DBI           1.57 ();
 
-use vars qw{$VERSION};
-	$VERSION = '0.01';
-}
+our $VERSION = '0.01';
 
 use Object::Tiny 1.06 qw{
 	from
@@ -48,7 +46,7 @@ sub main {
 		"from=s" => \$FROM,
 		"user=s" => \$USER,
 		"pass=s" => \$PASS,
-		"to=s"   => \$FILE,
+		"to=s"   => \$TO,
 	) or die("Failed to parse options");
 
 	# Create the program instance
