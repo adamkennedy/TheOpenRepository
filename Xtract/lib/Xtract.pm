@@ -22,11 +22,12 @@ use 5.006;
 use strict;
 use warnings;
 use Getopt::Long  2.37 ();
+use File::Remove  1.42 ();
 use Params::Util  0.35 ();
-use DBIx::Publish 0.02 ();
+use DBIx::Publish 0.03 ();
 use DBI           1.57 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Object::Tiny 1.06 qw{
 	from
@@ -51,11 +52,12 @@ sub main {
 
 	# Create the program instance
 	my $self = Xtract->new(
-		from => $FROM,
-		user => $USER,
-		pass => $PASS,
-		to   => $TO,
-		argv => [ @ARGV ],
+		from  => $FROM,
+		user  => $USER,
+		pass  => $PASS,
+		to    => $TO,
+		argv  => [ @ARGV ],
+		trace => 1,
 	);
 
 	# Run the object
@@ -64,6 +66,12 @@ sub main {
 
 sub run {
 	my $self = shift;
+
+	# Clear any existing output database
+	if ( -e $self->to ) {
+		$self->trace("Deleting existing " . $self->to . "...\n");
+		File::Remove::remove($self->to);
+	}
 
 	# Connect to the data source
 	$self->trace("Connecting to " . $self->from . "...\n");
@@ -86,9 +94,11 @@ sub run {
 	}
 
 	# Get the list of tables
-	my @tables = $publish->dbh->tables('', '', '');
+	my @tables = $publish->source->tables;
 	foreach my $table ( @tables ) {
-		$self->trace("Publishing table $table...");
+		$table =~ s/\"//g;
+		next if $table =~ /^sqlite_/;
+		$self->trace("Publishing table $table...\n");
 		$publish->table( $table,
 			"select * from $table",
 		);
