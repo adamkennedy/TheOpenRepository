@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 8;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
-use DBIx::Export          ();
+use DBIx::Publish          ();
 
 # Locate the CVS database
 my $input  = catfile('t', 'input.sqlite' );
@@ -48,27 +48,25 @@ $source->do(
 	4, 'd', 'four',
 );
 
-# Create the export object
-my $export = DBIx::Export->new(
+# Create the Publish object
+my $publish = DBIx::Publish->new(
 	file   => $output,
 	source => $source,
 );
-isa_ok( $export, 'DBIx::Export' );
-is( $export->file, $output, '->file ok' );
-ok( $export->source, '->source ok' );
-isa_ok( $export->dbh, 'DBI::db', '->sqlite ok' );
+isa_ok( $publish, 'DBIx::Publish' );
+is( $publish->file, $output, '->file ok' );
+ok( $publish->source, '->source ok' );
+isa_ok( $publish->dbh, 'DBI::db', '->sqlite ok' );
 
 # Fill some basic tables
 ok(
-	$export->table( 'simple1', 'select id, foo from table1 where id < ?', 4 ),
+	$publish->table( 'simple1', 'select id, foo from table1 where id < ?', 4 ),
 	'Created simple1 table',
 );
 ok(
-	$export->table( 'simple2', 'select id, bar from table1 where id > ?', 1 ),
+	$publish->table( 'simple2', 'select id, bar from table1 where id > ?', 1 ),
 	'Created simple2 table',
 );
 
 # Clean up
-ok( $export->finish, '->finish ok' );
-
-1;
+ok( $publish->finish, '->finish ok' );

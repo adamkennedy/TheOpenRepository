@@ -1,29 +1,29 @@
-package DBIx::Export;
+package DBIx::Publish;
 
 =pod
 
 =head1 NAME
 
-DBIx::Export - Export data from DBI as a SQLite database
+DBIx::Publish - Publish data from DBI as a SQLite database
 
 =head1 SYNOPSIS
 
-  my $export = DBIx::Export->new(
+  my $publish = DBIx::Publish->new(
       file   => 'publish.sqlite',
       source => DBI->connect($dsn, $user, $pass),
   );
   
-  $export->table( 'table1',
+  $publish->table( 'table1',
       'select * from foo where this < 10',
   );
   
-  $export->finish;
+  $publish->finish;
 
 =head1 DESCRIPTION
 
 B<THIS MODULE IS EXPERIMENTAL>
 
-This is an experimental module that automates the exporting of data from
+This is an experimental module that automates the publishing of data from
 arbitrary DBI handles to a SQLite file suitable for publishing online
 for others to download.
 
@@ -239,7 +239,7 @@ sub table {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-Export>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBIx-Publish>
 
 For other issues, contact the author.
 

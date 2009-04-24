@@ -10,4 +10,4 @@ use Test::More tests => 2;
 
 ok( $] >= 5.006, 'Perl version is new enough' );
 
-use_ok( 'DBIx::Export' );
+use_ok( 'DBIx::Publish' );

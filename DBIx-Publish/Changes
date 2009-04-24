@@ -1,4 +1,8 @@
-Changes for Perl extension DBIx-Export
+Changes for Perl extension DBIx-Publish
 
-0.01 to be released
+0.02 Sat 25 Apr 2009
+	- Changing name to DBIx-Publish to better-imply that this conversion
+	  is a one way process.
+
+0.01 Thu 23 Apr 2009
 	- Created initial repository
