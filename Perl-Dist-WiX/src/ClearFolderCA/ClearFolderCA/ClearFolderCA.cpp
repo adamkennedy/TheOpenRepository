@@ -60,7 +60,7 @@ LPTSTR CreateDirectoryGUID()
 
 	// Formatting GUID correctly.
 	_stprintf_s(sGUID, 40, 
-		TEXT("DX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
+		TEXT("DX_%.08X_%.04X_%.04X_%.02X%.02X_%.02X%.02X%.02X%.02X%.02X%.02X"),
 		guid.Data1, guid.Data2, guid.Data3, 
 		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
 		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
@@ -79,7 +79,7 @@ LPTSTR CreateFileGUID()
 
 	// Formatting GUID correctly.
 	_stprintf_s(sGUID, 40, 
-		TEXT("FX_%.08X-%.04X-%.04X-%.02X%.02X-%.02X%.02X%.02X%.02X%.02X%.02X"),
+		TEXT("FX_%.08X_%.04X_%.04X_%.02X%.02X_%.02X%.02X%.02X%.02X%.02X%.02X"),
 		guid.Data1, guid.Data2, guid.Data3, 
 		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], 
 		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
@@ -257,7 +257,7 @@ UINT IsFileInstalled(
 
 		// Get the filename.
 		DWORD dwLengthFile = MAX_PATH + 1;
-		uiAnswer = ::MsiRecordGetString(phRecord, 2, sFile, &dwLengthFile);
+		uiAnswer = ::MsiRecordGetString(phRecord, 1, sFile, &dwLengthFile);
 
 		// Compare the filename.
 		if (_tcscmp(sFilename, sFile) == 0) {
@@ -302,7 +302,7 @@ UINT AddRemoveFileRecord(
 	LPCTSTR sDirectoryID) // ID of directory to remove files from. [in]
 {
 	LPCTSTR sSQL = 
-		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -347,7 +347,7 @@ UINT AddRemoveDirectoryRecord(
 	LPCTSTR sDirectoryID) // ID of directory to remove. [in]
 {
 	LPCTSTR sSQL = 
-		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `Filename`, `InstallMode`) VALUES (?, ?, ?, NULL, 2)");
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, NULL, 2) TEMPORARY");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -523,11 +523,9 @@ UINT AddDirectory(
 				if (uiFoundFilesToDelete == 0) {
 					BOOL bInstalled = FALSE;
 
-					if (sDirectoryID != NULL) {
-						uiAnswer = IsFileInstalled(hModule, sParentDirID, 
-							found.cFileName, bInstalled);
-						MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-					}
+					uiAnswer = IsFileInstalled(hModule, sParentDirID, 
+						found.cFileName, bInstalled);
+					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
 
 					if (!bInstalled) {
 						uiFoundFilesToDelete++;
