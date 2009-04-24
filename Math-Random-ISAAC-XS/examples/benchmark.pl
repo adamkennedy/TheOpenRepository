@@ -15,8 +15,6 @@
 use strict;
 use warnings;
 
-use Pod::Usage;
-
 eval {
   require Benchmark::ProgressBar;
   Benchmark::ProgressBar->import('cmpthese');
