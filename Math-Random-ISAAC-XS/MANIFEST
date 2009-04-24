@@ -1,5 +1,7 @@
 Build.PL
 Changes
+examples/benchmark.pl
+examples/distribution.pl
 lib/Math/Random/ISAAC/XS.pm
 LICENSE
 Makefile.PL
