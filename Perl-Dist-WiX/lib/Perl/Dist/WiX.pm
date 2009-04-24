@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.172_003')->numify;
+use version; $VERSION = version->new('0.172_004')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -3213,8 +3213,11 @@ EOF
 		$fh->close;
 
 		my @files_list =
-		  map { ( $_ =~ /\AInstalling [ ] (.*)\R\z/msx ) ? ($1) : (); }
-		  @output_list;
+		  map {
+			my $t = $_;
+			chomp $t;
+			( $t =~ /\AInstalling [ ] (.*)\z/msx ) ? ($1) : ();
+		  } @output_list;
 
 		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
