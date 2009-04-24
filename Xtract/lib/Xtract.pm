@@ -4,7 +4,7 @@ package Xtract;
 
 =head1 NAME
 
-Xtract - Take your database and deliver it to the world
+Xtract - Take any database and deliver it to the world
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ use Params::Util  0.35 ();
 use DBIx::Publish 0.02 ();
 use DBI           1.57 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Object::Tiny 1.06 qw{
 	from
