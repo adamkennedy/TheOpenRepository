@@ -1,5 +1,18 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.172   Not released yet
+    1. If the .packlist is missing, attempt to use
+       the debug.out file from the install stage
+       to get a file list.
+    2. install_distribution will now use Build.PL
+       files (and will prefer them to Makefile.PL
+       files except for version.pm)
+    3. A custom action to clean out the installation
+       directory is now used on uninstall or upgrade.
+    4. Added wix_dist_dir for stuff that is supposed
+       to come out of the Perl-Dist-WiX share
+       directory even if dist_dir is overridden.
+
 0.171   Sat 18 Apr 2009
     1. Adding ability to create RemoveFolder tag 
        independent of shortcuts.
