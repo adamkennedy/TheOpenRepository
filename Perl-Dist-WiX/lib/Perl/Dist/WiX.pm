@@ -3213,7 +3213,7 @@ EOF
 		$fh->close;
 
 		my @files_list =
-		  map { ( $_ =~ /\AInstalling [ ] (.*)\z/msx ) ? ($1) : (); }
+		  map { ( $_ =~ /\AInstalling [ ] (.*)\R\z/msx ) ? ($1) : (); }
 		  @output_list;
 
 		if ( $#files_list == 0 ) {
