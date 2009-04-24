@@ -64,7 +64,7 @@ use Marpa::Offset Evaluator => qw(
     RECOGNIZER PARSE_COUNT OR_NODES
     TREE RULE_DATA PACKAGE
     NULL_VALUES CYCLES
-    DECISION_POINTS
+    JOURNAL
 );
 
 # PARSE_COUNT  number of parses in an ambiguous parse
@@ -757,7 +757,6 @@ sub Marpa::Evaluator::new {
             $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES];
         for my $choice ( 0 .. scalar @{$and_nodes} ) {
             my $and_node = $and_nodes->[$choice];
-            $and_node->[Marpa::Internal::And_Node::ID] = $and_node_counter++;
 
             FIELD:
             for my $field (
@@ -776,15 +775,6 @@ sub Marpa::Evaluator::new {
 
         } ## end for my $choice ( 0 .. scalar @{$and_nodes} )
     } ## end for my $parent_or_node ( @{$or_nodes} )
-
-    # Find the decision points
-    OR_NODE: for my $or_node ( @{ $self->[OR_NODES] } ) {
-        if ( $or_node->[Marpa::Internal::Or_Node::AND_NODES] >= 2 ) {
-
-            # TODO: put onto list
-        }
-    } ## end for my $or_node ( @{ $self->[OR_NODES] } )
-    ## End OR_NODE:
 
     return $self;
 
@@ -948,18 +938,17 @@ sub Marpa::Evaluator::show_tree {
 } ## end sub Marpa::Evaluator::show_tree
 
 sub Marpa::Evaluator::set {
-    my $evaler       = shift;
-    my $args         = shift;
-    my $recce        = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my ( $grammar, ) = @{$recce}[ Marpa::Internal::Recognizer::GRAMMAR, ];
+    my $evaler  = shift;
+    my $args    = shift;
+    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     Marpa::Grammar::set( $grammar, $args );
     return 1;
 } ## end sub Marpa::Evaluator::set
 
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
-    my $evaler     = shift;
-    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my ($evaler) = @_;
 
     Marpa::exception('No parse supplied') unless defined $evaler;
     my $evaler_class = ref $evaler;
@@ -968,7 +957,15 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) unless $evaler_class eq $right_class;
 
-    my $grammar = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+
+    # If the journal is defined, but empty, that means we've
+    # exhausted all parses.  Patiently keep returning failure
+    # whenever called.
+    return if defined $journal and @{$journal} == 0;
+
+    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
 
     my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -982,21 +979,70 @@ sub Marpa::Evaluator::new_value {
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
     } ## end if ($tracing)
 
-    my ( $bocage, $tree, $rule_data, $null_values, ) = @{$evaler}[
-        Marpa::Internal::Evaluator::OR_NODES,
-        Marpa::Internal::Evaluator::TREE,
-        Marpa::Internal::Evaluator::RULE_DATA,
-        Marpa::Internal::Evaluator::NULL_VALUES,
-    ];
+    my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $tree        = $evaler->[Marpa::Internal::Evaluator::TREE];
+    my $rule_data   = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
+    my $null_values = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
+    my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
     my $max_parses = $grammar->[Marpa::Internal::Grammar::MAX_PARSES];
-
-    my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
     # TODO: insert new iteration logic here
+    if (defined $journal) {
+        Marpa::exception("New evaluator: iteration not yet implemented");
+    }
+
+    # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
+    # Note the use of Unicode for packing, which I've not seen anyone else do.
+    my @GRT_data = ();
+    my @and_nodes = ();
+    OR_NODE: for my $or_node ( @{$or_nodes} ) {
+        my $start_earleme =
+            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
+        my $end_earleme = $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
+        my $or_node_childen = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        for my $and_node ( @{$or_node_childen} ) {
+            my $rule          = $and_node->[Marpa::Internal::And_Node::RULE];
+            my $record_counter = @and_nodes;
+            push @and_nodes, $and_node;
+
+            my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+            $user_priority //= 0;
+            ## a non-zero user priority makes an and-node interesting
+
+            my $internal_priority =
+                $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
+            $internal_priority //= 0;
+
+            # is this and-node interesting for priority purposes?
+            ## any non-zero priority makes an and-node interesting
+            my $interesting = $user_priority || $internal_priority;
+
+            my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
+            my $laziness = 0;
+            if (defined $is_hasty) {
+
+                # a hasty or lazy and-node is interesting
+                $interesting = 1;
+
+                my $laziness = $end_earleme - $start_earleme;
+                $laziness = -$laziness if $is_hasty;
+            }
+
+            # only sort interesting and-nodes by location
+            my $location = $interesting ? $start_earleme : 0;
+
+            push @GRT_data, 
+                (pack 'U*', $location, $user_priority, $internal_priority, $laziness, $record_counter++)
+                ;
+        } ## end for my $and_node ( @{$and_nodes} )
+    } ## end for my $or_node ( @{$or_nodes} )
+
+    @and_nodes = @and_nodes[ map { ( unpack 'U*', $_ )[4] } @GRT_data ];
+
     my @work_list;
 
     # Write the and-nodes out in preorder
@@ -1004,7 +1050,7 @@ sub Marpa::Evaluator::new_value {
 
     @work_list = (
         do {
-            my $or_node = $bocage->[0];
+            my $or_node = $or_nodes->[0];
 
             # TODO: replace with actual choice
             my $choice = 0;

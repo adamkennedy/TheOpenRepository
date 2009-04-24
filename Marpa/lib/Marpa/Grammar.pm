@@ -170,7 +170,6 @@ use Marpa::Offset Grammar => qw(
     TRACE_ACTIONS TRACE_VALUES TRACE_CHOICES
     MAX_PARSES
     PREAMBLE
-    USER_PRIORITY_LENGTH
     =LAST_EVALUATOR_FIELD
 
     PROBLEMS
@@ -1587,14 +1586,14 @@ sub Marpa::show_rule {
         )
         )
     {
-        push @comment, qq{user priority="$priority"};
+        push @comment, "user priority=$priority";
     } ## end if ( defined( my $priority = $rule->[...
     if (defined(
             my $priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY]
         )
         )
     {
-        push @comment, qq{internal priority="$priority"};
+        push @comment, "internal priority=$priority";
     } ## end if ( defined( my $priority = $rule->[...
 
     my $text = Marpa::brief_rule($rule);
@@ -1874,7 +1873,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::REGEX]         = $regex;
     $new_symbol->[Marpa::Internal::Symbol::ACTION]        = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
-    $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = q{};
+    $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
 
     push @{$symbols}, $new_symbol;
     return weaken( $symbol_hash->{$name} = $new_symbol );
@@ -1896,7 +1895,7 @@ sub assign_symbol {
         $symbol->[Marpa::Internal::Symbol::NAME]          = $name;
         $symbol->[Marpa::Internal::Symbol::LHS]           = [];
         $symbol->[Marpa::Internal::Symbol::RHS]           = [];
-        $symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = q{};
+        $symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
         push @{$symbols}, $symbol;
         weaken( $symbol_hash->{$name} = $symbol );
     } ## end if ( not defined $symbol )
@@ -1948,26 +1947,16 @@ sub add_user_rule {
         $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ) )
         if exists $rule_hash->{$rule_key};
 
-    $rule_hash->{$rule_key} = 1;
-
-    if ( defined $user_priority ) {
-        my $expected_length =
-            $grammar->[Marpa::Internal::Grammar::USER_PRIORITY_LENGTH];
-        my $actual_length = length $user_priority;
-        if ( not defined $expected_length ) {
-            $grammar->[Marpa::Internal::Grammar::USER_PRIORITY_LENGTH] =
-                length $user_priority;
-        }
+    $user_priority //= 0;
+    if ($user_priority < 0) {
         Marpa::exception(
-            "Priority length mismatch\n",
-            " Expected length $expected_length, got length $actual_length\n",
-            ' Rule: ',
-            $lhs_name,
-            ' -> ',
-            ( join q{ }, @{$rhs_names} ),
-            "\n"
-        ) unless $expected_length = $actual_length;
-    } ## end if ( defined $user_priority )
+            "User priority must be non-negative:\n",
+            " Priority given was $user_priority\n",
+            ' Rule:', $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ), "\n"
+            );
+    }
+
+    $rule_hash->{$rule_key} = 1;
 
     return add_rule( \%arg_copy );
 } ## end sub add_user_rule
@@ -3452,7 +3441,7 @@ sub alias_symbol {
     $alias->[Marpa::Internal::Symbol::NULLABLE]      = 1;
     $alias->[Marpa::Internal::Symbol::NULLING]       = 1;
     $alias->[Marpa::Internal::Symbol::NULL_VALUE]    = $null_value;
-    $alias->[Marpa::Internal::Symbol::USER_PRIORITY] = q{};
+    $alias->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
     push @{$symbols}, $alias;
     weaken( $symbol->{$alias_name} = $alias );
 
@@ -3758,8 +3747,7 @@ sub rewrite_as_CHAF {
                 # highest, last is lowest, but middle two are
                 # reversed.
                 my $new_internal_priority =
-                      ( sprintf $position_format, ( @{$rhs} - $subp_start ) )
-                    . ( substr '4231', $ix, 1 );
+                      10 * ( @{$rhs} - $subp_start ) + (qw(4 2 3 1)[$ix]);
                 my $new_rule = add_rule(
                     {   grammar           => $grammar,
                         lhs               => $subp_lhs,

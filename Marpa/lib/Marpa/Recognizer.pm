@@ -317,7 +317,7 @@ sub Marpa::Recognizer::new {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         Marpa::exception(
-            Marpa::show_problems($grammar),
+            Marpa::Grammar::show_problems($grammar),
             "Attempt to parse grammar with fatal problems\n",
             'Marpa cannot proceed',
         );
@@ -1092,7 +1092,7 @@ sub complete_set {
     my $lexables = [
         sort {
             $a->[Marpa::Internal::Symbol::USER_PRIORITY]
-                cmp $b->[Marpa::Internal::Symbol::USER_PRIORITY]
+                <=> $b->[Marpa::Internal::Symbol::USER_PRIORITY]
             }
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
