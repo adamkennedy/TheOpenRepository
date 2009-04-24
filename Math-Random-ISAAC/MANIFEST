@@ -1,5 +1,8 @@
 Build.PL
 Changes
+examples/benchmark.pl
+examples/distribution.pl
+examples/12345678
 lib/Math/Random/ISAAC.pm
 lib/Math/Random/ISAAC/PP.pm
 LICENSE
