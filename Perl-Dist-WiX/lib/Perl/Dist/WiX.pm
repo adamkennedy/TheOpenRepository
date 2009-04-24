@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.172_002')->numify;
+use version; $VERSION = version->new('0.172_003')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -2904,13 +2904,13 @@ sub install_distribution {
 
 	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
 
-	# Can't build version.pm using Build.PL until Module::Build 
+	# Can't build version.pm using Build.PL until Module::Build
 	# has been upgraded.
-	if ($module eq 'version') {
-		$self->trace_line( 3, "Bypassing version.pm's Build.PL\n");
+	if ( $module eq 'version' ) {
+		$self->trace_line( 3, "Bypassing version.pm's Build.PL\n" );
 		$buildpl = 0;
 	}
-	
+
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
@@ -3175,7 +3175,7 @@ be, and create an install_module call for this module with
 packlist => 0.
 EOF
 	chomp $error;
-	
+
 	my $perl = catfile(
 		catdir(
 			$self->image_dir, qw{perl      lib auto},
@@ -3200,9 +3200,11 @@ EOF
 		$fl =
 		  Perl::Dist::WiX::Filelist->new->load_file($site)->add_file($site);
 	} else {
+
 		# Trying to use the output to make an array.
-		$self->trace_line(0, "Attempting to use debug.out file to make filelist\n");
-		
+		$self->trace_line( 0,
+			"Attempting to use debug.out file to make filelist\n" );
+
 		my $fh = IO::File->new( $output, 'r' );
 		if ( not defined $fh ) {
 			PDWiX->throw("Error reading output file $output: $!");
@@ -3210,9 +3212,11 @@ EOF
 		my @output_list = <$fh>;
 		$fh->close;
 
-		my @files_list = map { ($_ =~ /\AInstalling [ ] (.*)\z/msx) ? ($1) : (); } @output_list;
-	
-		if ($#files_list == 0) {
+		my @files_list =
+		  map { ( $_ =~ /\AInstalling [ ] (.*)\z/msx ) ? ($1) : (); }
+		  @output_list;
+
+		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
 		} else {
 			$fl = Perl::Dist::WiX::Filelist->new->load_array(@files_list);
