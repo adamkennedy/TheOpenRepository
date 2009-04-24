@@ -1,5 +1,8 @@
 Changes for Perl extension DBIx-Publish
 
+0.03 Sat 25 Apr 2009
+	- Support tables with no rows
+
 0.02 Sat 25 Apr 2009
 	- Changing name to DBIx-Publish to better-imply that this conversion
 	  is a one way process.

@@ -51,7 +51,7 @@ use DBD::SQLite  1.21 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 use Object::Tiny 1.06 qw{
@@ -138,17 +138,20 @@ sub table {
 		my $sth = $self->source->prepare($sql) or croak($DBI::errstr);
 		$sth->execute( @params );
 		@names = @{$sth->{NAME}};
+		foreach ( @names ) {
+			$type{$_} = {
+				NULL      => 0,
+				POSINT    => 0,
+				NONNEGINT => 0,
+				NUMBER    => 0,
+				STRING    => {},
+			};
+		}
 		while ( my $row = $sth->fetchrow_hashref ) {
 			$rows++;
 			foreach my $key ( sort keys %$row ) {
 				my $value = $row->{$key};
-				my $hash  = $type{$key} ||= {
-					NULL      => 0,
-					POSINT    => 0,
-					NONNEGINT => 0,
-					NUMBER    => 0,
-					STRING    => {},
-				};
+				my $hash  = $type{$key};
 				unless ( defined $value ) {
 					$hash->{NULL}++;
 					next;
@@ -217,9 +220,11 @@ sub table {
 	SCOPE: {
 		my $sth = $self->source->prepare($sql) or croak($DBI::errstr);
 		$sth->execute( @params );
+		$self->{dbh}->begin_work;
 		while ( my $row = $sth->fetchrow_hashref ) {
 			$self->sqlite($insert, {}, @$row{@names});
 		}
+		$self->{dbh}->commit;
 		$sth->finish;
 	}
 
