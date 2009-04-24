@@ -9,4 +9,4 @@ use vars qw{$VERSION};
 	$VERSION = '0.01';
 }
 
-Xtract::main(@ARGV);
+Xtract::main();
