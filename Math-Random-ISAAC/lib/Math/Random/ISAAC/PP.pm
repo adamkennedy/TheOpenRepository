@@ -21,11 +21,11 @@ Math::Random::ISAAC::PP - Pure Perl port of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0.2 ($Id$)
+Version 1.0.3 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.2');
+use version; our $VERSION = qv('1.0.3');
 
 =head1 SYNOPSIS
 
