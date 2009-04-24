@@ -1581,20 +1581,16 @@ sub Marpa::show_rule {
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
 
-    if (defined(
-            my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY]
-        )
-        )
-    {
-        push @comment, "user priority=$priority";
-    } ## end if ( defined( my $priority = $rule->[...
-    if (defined(
-            my $priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY]
-        )
-        )
-    {
-        push @comment, "internal priority=$priority";
-    } ## end if ( defined( my $priority = $rule->[...
+    my $user_priority     = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+    my $internal_priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
+    if ( $user_priority or $internal_priority ) {
+        push @comment, 'priority='
+            . (
+            join q{.},
+            ( $user_priority // 0 ),
+            ( $internal_priority // 0 )
+            );
+    } ## end if ( $user_priority or $internal_priority )
 
     my $text = Marpa::brief_rule($rule);
 
@@ -1948,13 +1944,17 @@ sub add_user_rule {
         if exists $rule_hash->{$rule_key};
 
     $user_priority //= 0;
-    if ($user_priority < 0) {
+    if ( $user_priority < 0 ) {
         Marpa::exception(
             "User priority must be non-negative:\n",
             " Priority given was $user_priority\n",
-            ' Rule:', $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ), "\n"
-            );
-    }
+            ' Rule:',
+            $lhs_name,
+            ' -> ',
+            ( join q{ }, @{$rhs_names} ),
+            "\n"
+        );
+    } ## end if ( $user_priority < 0 )
 
     $rule_hash->{$rule_key} = 1;
 
@@ -3747,7 +3747,7 @@ sub rewrite_as_CHAF {
                 # highest, last is lowest, but middle two are
                 # reversed.
                 my $new_internal_priority =
-                      10 * ( @{$rhs} - $subp_start ) + (qw(4 2 3 1)[$ix]);
+                    10 * ( @{$rhs} - $subp_start ) + ( qw(4 2 3 1) [$ix] );
                 my $new_rule = add_rule(
                     {   grammar           => $grammar,
                         lhs               => $subp_lhs,

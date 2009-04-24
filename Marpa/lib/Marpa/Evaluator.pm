@@ -991,21 +991,22 @@ sub Marpa::Evaluator::new_value {
     }
 
     # TODO: insert new iteration logic here
-    if (defined $journal) {
-        Marpa::exception("New evaluator: iteration not yet implemented");
+    if ( defined $journal ) {
+        Marpa::exception('New evaluator: iteration not yet implemented');
     }
 
     # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
     # Note the use of Unicode for packing, which I've not seen anyone else do.
-    my @GRT_data = ();
+    my @GRT_data  = ();
     my @and_nodes = ();
     OR_NODE: for my $or_node ( @{$or_nodes} ) {
         my $start_earleme =
             $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
         my $end_earleme = $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
-        my $or_node_childen = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        for my $and_node ( @{$or_node_childen} ) {
-            my $rule          = $and_node->[Marpa::Internal::And_Node::RULE];
+        my $or_node_children =
+            $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        for my $and_node ( @{$or_node_children} ) {
+            my $rule           = $and_node->[Marpa::Internal::And_Node::RULE];
             my $record_counter = @and_nodes;
             push @and_nodes, $and_node;
 
@@ -1023,25 +1024,27 @@ sub Marpa::Evaluator::new_value {
 
             my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $laziness = 0;
-            if (defined $is_hasty) {
+            if ( defined $is_hasty ) {
 
                 # a hasty or lazy and-node is interesting
                 $interesting = 1;
 
-                my $laziness = $end_earleme - $start_earleme;
+                $laziness = $end_earleme - $start_earleme;
                 $laziness = -$laziness if $is_hasty;
-            }
+            } ## end if ( defined $is_hasty )
 
             # only sort interesting and-nodes by location
             my $location = $interesting ? $start_earleme : 0;
 
-            push @GRT_data, 
-                (pack 'U*', $location, $user_priority, $internal_priority, $laziness, $record_counter++)
-                ;
-        } ## end for my $and_node ( @{$and_nodes} )
+            push @GRT_data,
+                (
+                pack 'U*', $location, $user_priority, $internal_priority,
+                $laziness, $record_counter
+                );
+        } ## end for my $and_node ( @{$or_node_children} )
     } ## end for my $or_node ( @{$or_nodes} )
 
-    @and_nodes = @and_nodes[ map { ( unpack 'U*', $_ )[4] } @GRT_data ];
+    @and_nodes = @and_nodes[ map { ( unpack 'U*', $_ )[-1] } @GRT_data ];
 
     my @work_list;
 

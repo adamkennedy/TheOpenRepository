@@ -47,15 +47,15 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 1: A -> a
 2: A -> E /* !useful nullable nulling */
 3: E -> /* !useful empty nullable nulling */
-4: S -> A S[R0:1][x6] /* internal priority=44 */
-5: S -> A[] S[R0:1][x6] /* internal priority=42 */
-6: S -> A S[R0:1][x6][] /* internal priority=43 */
-7: S[R0:1][x6] -> A S[R0:2][x8] /* internal priority=34 */
-8: S[R0:1][x6] -> A[] S[R0:2][x8] /* internal priority=32 */
-9: S[R0:1][x6] -> A S[R0:2][x8][] /* internal priority=33 */
-10: S[R0:2][x8] -> A A /* internal priority=24 */
-11: S[R0:2][x8] -> A[] A /* internal priority=22 */
-12: S[R0:2][x8] -> A A[] /* internal priority=23 */
+4: S -> A S[R0:1][x6] /* priority=0.44 */
+5: S -> A[] S[R0:1][x6] /* priority=0.42 */
+6: S -> A S[R0:1][x6][] /* priority=0.43 */
+7: S[R0:1][x6] -> A S[R0:2][x8] /* priority=0.34 */
+8: S[R0:1][x6] -> A[] S[R0:2][x8] /* priority=0.32 */
+9: S[R0:1][x6] -> A S[R0:2][x8][] /* priority=0.33 */
+10: S[R0:2][x8] -> A A /* priority=0.24 */
+11: S[R0:2][x8] -> A[] A /* priority=0.22 */
+12: S[R0:2][x8] -> A A[] /* priority=0.23 */
 13: S['] -> S
 14: S['][] -> /* empty nullable nulling */
 EOS

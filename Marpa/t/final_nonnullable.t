@@ -52,12 +52,12 @@ Marpa::Test::is( $grammar->show_rules,
 1: p -> a
 2: p -> /* !useful empty nullable nulling */
 3: n -> a
-4: S -> p p S[R0:2][x5] /* internal priority=44 */
-5: S -> p[] p S[R0:2][x5] /* internal priority=42 */
-6: S -> p p[] S[R0:2][x5] /* internal priority=43 */
-7: S -> p[] p[] S[R0:2][x5] /* internal priority=41 */
-8: S[R0:2][x5] -> p n /* internal priority=24 */
-9: S[R0:2][x5] -> p[] n /* internal priority=22 */
+4: S -> p p S[R0:2][x5] /* priority=0.44 */
+5: S -> p[] p S[R0:2][x5] /* priority=0.42 */
+6: S -> p p[] S[R0:2][x5] /* priority=0.43 */
+7: S -> p[] p[] S[R0:2][x5] /* priority=0.41 */
+8: S[R0:2][x5] -> p n /* priority=0.24 */
+9: S[R0:2][x5] -> p[] n /* priority=0.22 */
 10: S['] -> S
 END_OF_STRING
 
