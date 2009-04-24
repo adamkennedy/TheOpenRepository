@@ -206,7 +206,7 @@ sub _randinit
 
   # $a and $b are reserved (see 'sort'); $i is the iterator
   my ($c, $d, $e, $f, $g, $h, $j, $k);
-  $c=$d=$e=$f=$g=$h=$j=$k = 0x9e3779b9;
+  $c=$d=$e=$f=$g=$h=$j=$k = 0x9e3779b9; # The golden ratio
 
   my $mm = $self->{randmem};
   my $r = $self->{randrsl};
