@@ -43,7 +43,7 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
 
-use version; $VERSION = version->new('0.171')->numify;
+use version; $VERSION = version->new('0.172')->numify;
 #>>>
 
 =head2 Accessors
@@ -180,8 +180,9 @@ sub new {
 
 	if ( $self->app_name =~ m{[\\/:*"<>|]}msx ) {
 		PDWiX::Parameter->throw(
-			parameter => 'app_name: Contains characters invalid ' . 'for Windows file/directory names',
-			where     => '::Installer->new'
+			parameter => 'app_name: Contains characters invalid '
+			  . 'for Windows file/directory names',
+			where => '::Installer->new'
 		);
 	}
 
@@ -232,9 +233,8 @@ sub new {
 	$self->{fragments} = {};
 	$self->{fragments}->{Icons} =
 	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
-	$self->{fragments}->{Environment} = Perl::Dist::WiX::Environment->new(
-		id       => 'Environment',
-	);
+	$self->{fragments}->{Environment} =
+	  Perl::Dist::WiX::Environment->new( id => 'Environment', );
 	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
 		directory_tree => $self->directories,
 		id             => 'Win32Extras',
@@ -243,6 +243,7 @@ sub new {
 		directory => 'Cpan',
 		id        => 'CPANFolder',
 	);
+
 #	$self->{fragments}->{RemovePerl} = Perl::Dist::WiX::RemoveFolder->new(
 #		directory => 'Perl',
 #		id        => 'PerlFolder',
@@ -283,7 +284,7 @@ Returns the product icon to use in the main template.
 	} else {
 		return undef;
 	}
-}
+} ## end sub msi_product_icon_id
 
 =item * app_ver_name
 
@@ -562,9 +563,12 @@ sub write_msi {
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
-	if (-f $filename_in) {
+
+	if ( -f $filename_in ) {
+
 		# Had a collision. Yell and scream.
-		PDWiX->throw("Could not write out $filename_in: File already exists.");
+		PDWiX->throw(
+			"Could not write out $filename_in: File already exists.");
 	}
 	$filename_out =
 	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
@@ -823,11 +827,12 @@ sub as_string {
 		info    => $tt->error() );
 #<<<
 	# Delete empty lines.
-	$answer =~ s{\R        # Replace a linebreak,
-				 \s*?      # any whitespace we may be able to catch,
-				 \R}       # and a second linebreak
-				{\r\n}msgx # With one Windows linebreak.
+	$answer =~ s{\R         # Replace a linebreak,
+				 \s*?       # any whitespace we may be able to catch,
+				 \R}        # and a second linebreak
+				{\r\n}msgx; # With one Windows linebreak.
 #>>>
+
 	# Combine it all
 	return $answer;
 } ## end sub as_string

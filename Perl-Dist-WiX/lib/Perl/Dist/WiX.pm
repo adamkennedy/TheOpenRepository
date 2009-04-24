@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.172_001')->numify;
+use version; $VERSION = version->new('0.172_002')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -813,7 +813,7 @@ Returns a directory as a string or throws an exception on error.
 
 sub dist_dir {
 	my $self = shift;
-	
+
 	return $self->wix_dist_dir();
 }
 
@@ -838,7 +838,7 @@ sub wix_dist_dir {
 	}
 
 	return $dir;
-} ## end sub dist_dir
+} ## end sub wix_dist_dir
 
 #####################################################################
 # Documentation for accessors
@@ -1404,7 +1404,7 @@ unless (%need) {
 	
 END_PERL
 
-	my $cpan_info = catfile( $self->output_dir , 'cpan.info' );
+	my $cpan_info = catfile( $self->output_dir, 'cpan.info' );
 	$cpan_string .= <<"END_PERL";
 nstore \\\@toget, '$cpan_info';
 print "Completed collecting information on all modules\\n";
@@ -1437,13 +1437,6 @@ END_PERL
 		$force = 0;
 
 		next if $self->_skip_upgrade($module);
-
-		# Test-Harness-Straps only has a Build.PL, so
-		# can't use install_distribution.
-		if ( $module->cpan_file =~ m{/Test-Harness-Straps-\d}msx ) {
-			$self->install_module( name => 'Test::Harness::Straps' );
-			next;
-		}
 
 		if (    ( $module->cpan_file =~ m{/Module-Install-/d}msx )
 			and ( $module->cpan_version > 0.79 ) )
@@ -1576,45 +1569,32 @@ sub install_win32_extras {
 		bin  => 'cpan',
 	);
 	$self->install_website(
-		name => 'CPAN Search',
-		url  => 'http://search.cpan.org/',
-		icon_file =>
-		  catfile( $self->wix_dist_dir(), 'cpan.ico' )
-	);
+		name      => 'CPAN Search',
+		url       => 'http://search.cpan.org/',
+		icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
 
 	if ( $self->perl_version_human eq '5.8.8' ) {
 		$self->install_website(
 			name      => 'Perl 5.8.8 Documentation',
 			url       => 'http://perldoc.perl.org/5.8.8/',
-			icon_file => catfile(
-				$self->wix_dist_dir(),
-				'perldoc.ico'
-			) );
+			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
 	}
 	if ( $self->perl_version_human eq '5.8.9' ) {
 		$self->install_website(
 			name      => 'Perl 5.8.9 Documentation',
 			url       => 'http://perldoc.perl.org/5.8.9/',
-			icon_file => catfile(
-				$self->wix_dist_dir(),
-				'perldoc.ico'
-			) );
+			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
 	}
 	if ( $self->perl_version_human eq '5.10.0' ) {
 		$self->install_website(
 			name      => 'Perl 5.10.0 Documentation',
 			url       => 'http://perldoc.perl.org/',
-			icon_file => catfile(
-				$self->wix_dist_dir(),
-				'perldoc.ico'
-			) );
+			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
 	}
 	$self->install_website(
-		name => 'Win32 Perl Wiki',
-		url  => 'http://win32.perl.org/',
-		icon_file =>
-		  catfile( $self->wix_dist_dir(), 'win32.ico' )
-	);
+		name      => 'Win32 Perl Wiki',
+		url       => 'http://win32.perl.org/',
+		icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
 	return $self;
 } ## end sub install_win32_extras
@@ -2915,10 +2895,22 @@ sub install_distribution {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
-	unless ( -r catfile( $unpack_to, 'Makefile.PL' ) ) {
-		PDWiX->throw("Could not find Makefile.PL in $unpack_to\n");
+	unless ( ( -r catfile( $unpack_to, 'Makefile.PL' ) )
+		or ( -r catfile( $unpack_to, 'Build.PL' ) ) )
+	{
+		PDWiX->throw(
+			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
 
+	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
+
+	# Can't build version.pm using Build.PL until Module::Build 
+	# has been upgraded.
+	if ($module eq 'version') {
+		$self->trace_line( 3, "Bypassing version.pm's Build.PL\n");
+		$buildpl = 0;
+	}
+	
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
@@ -2937,18 +2929,22 @@ sub install_distribution {
 		local $ENV{RELEASE_TESTING}   = $dist->release_testing;
 
 		$self->trace_line( 2, "Configuring $name...\n" );
-		$self->_perl( 'Makefile.PL', @{ $dist->makefilepl_param } );
+		$buildpl
+		  ? $self->_perl( 'Build.PL',    @{ $dist->makefilepl_param } )
+		  : $self->_perl( 'Makefile.PL', @{ $dist->makefilepl_param } );
 
 		$self->trace_line( 1, "Building $name...\n" );
-		$self->_make;
+		$buildpl ? $self->_build : $self->_make;
 
 		unless ( $dist->force ) {
 			$self->trace_line( 2, "Testing $name...\n" );
-			$self->_make('test');
+			$buildpl ? $self->_build('test') : $self->_make('test');
 		}
 
 		$self->trace_line( 2, "Installing $name...\n" );
-		$self->_make(qw/install UNINST=1/);
+		$buildpl
+		  ? $self->_build(qw/install uninst=1/)
+		  : $self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
 	# Making final filelist.
@@ -3070,9 +3066,14 @@ sub install_distribution_from_file {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
-	unless ( -r catfile( $unpack_to, 'Makefile.PL' ) ) {
-		PDWiX->throw("Could not find Makefile.PL in $unpack_to\n");
+	unless ( ( -r catfile( $unpack_to, 'Makefile.PL' ) )
+		or ( -r catfile( $unpack_to, 'Build.PL' ) ) )
+	{
+		PDWiX->throw(
+			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
+
+	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
 
 	# Build the module
   SCOPE: {
@@ -3092,18 +3093,22 @@ sub install_distribution_from_file {
 		local $ENV{RELEASE_TESTING}   = $dist->{release_testing};
 
 		$self->trace_line( 2, "Configuring $name...\n" );
-		$self->_perl( 'Makefile.PL', @{ $dist->{makefilepl_param} } );
+		$buildpl
+		  ? $self->_perl( 'Build.PL',    @{ $dist->makefilepl_param } )
+		  : $self->_perl( 'Makefile.PL', @{ $dist->makefilepl_param } );
 
 		$self->trace_line( 1, "Building $name...\n" );
-		$self->_make;
+		$buildpl ? $self->_build : $self->_make;
 
-		unless ( $dist->{force} ) {
+		unless ( $dist->force ) {
 			$self->trace_line( 2, "Testing $name...\n" );
-			$self->_make('test');
+			$buildpl ? $self->_build('test') : $self->_make('test');
 		}
 
 		$self->trace_line( 2, "Installing $name...\n" );
-		$self->_make(qw/install UNINST=1/);
+		$buildpl
+		  ? $self->_build(qw/install uninst=1/)
+		  : $self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
 	# Making final filelist.
@@ -3159,6 +3164,18 @@ sub search_packlists {
 sub search_packlist {
 	my ( $self, $module ) = @_;
 
+	# We don't use the error until later, if needed.
+	my $error = <<"EOF";
+No .packlist found for $module.
+
+Please set packlist => 0 when calling install_distribution or 
+install_module for this module.  If this is in an install_modules 
+list, please take it out of the list, creating two lists if need 
+be, and create an install_module call for this module with 
+packlist => 0.
+EOF
+	chomp $error;
+	
 	my $perl = catfile(
 		catdir(
 			$self->image_dir, qw{perl      lib auto},
@@ -3173,6 +3190,7 @@ sub search_packlist {
 		),
 		'.packlist'
 	);
+	my $output = catfile( $self->output_dir, 'debug.out' );
 	my $fl;
 
 	if ( -r $perl ) {
@@ -3182,21 +3200,29 @@ sub search_packlist {
 		$fl =
 		  Perl::Dist::WiX::Filelist->new->load_file($site)->add_file($site);
 	} else {
-		my $error = <<"EOF";
-No .packlist found for $module.
+		# Trying to use the output to make an array.
+		$self->trace_line(0, "Attempting to use debug.out file to make filelist\n");
+		
+		my $fh = IO::File->new( $output, 'r' );
+		if ( not defined $fh ) {
+			PDWiX->throw("Error reading output file $output: $!");
+		}
+		my @output_list = <$fh>;
+		$fh->close;
 
-Please set packlist => 0 when calling install_distribution or 
-install_module for this module.  If this is in an install_modules 
-list, please take it out of the list, creating two lists if need 
-be, and create an install_module call for this module with 
-packlist => 0.
-EOF
-		chomp $error;
-		PDWiX->throw($error);
+		my @files_list = map { ($_ =~ /\AInstalling [ ] (.*)\z/msx) ? ($1) : (); } @output_list;
+	
+		if ($#files_list == 0) {
+			PDWiX->throw($error);
+		} else {
+			$fl = Perl::Dist::WiX::Filelist->new->load_array(@files_list);
+		}
 	} ## end else [ if ( -r $perl )
 
 	return $fl->filter( $self->filters );
 } ## end sub search_packlist
+
+
 
 =pod
 
@@ -3701,11 +3727,12 @@ sub write_zip {
 	$zip->addTree( $self->image_dir(), q{} );
 
 	my @members = $zip->members();
+
 	# Set max compression for all members, deleting .AAA files.
-	foreach my $member ( @members ) {
+	foreach my $member (@members) {
 		next if $member->isDirectory();
 		$member->desiredCompressionLevel(9);
-		if ($member->fileName =~ m{\.AAA\z}sm ) {
+		if ( $member->fileName =~ m{\.AAA\z}sm ) {
 			$zip->removeMember($member);
 		}
 	}
@@ -4014,6 +4041,16 @@ sub _pushd {
 	return File::pushd::pushd($dir);
 }
 
+sub _build {
+	my $self   = shift;
+	my @params = @_;
+	$self->trace_line( 2,
+		join( q{ }, '>', 'Build.bat', @params ) . qq{\n} );
+	$self->_run3( 'Build.bat', @params )
+	  or PDWiX->throw('build failed');
+	PDWiX->throw('build failed (OS error)') if ( $CHILD_ERROR >> 8 );
+	return 1;
+}
 
 sub _make {
 	my $self   = shift;

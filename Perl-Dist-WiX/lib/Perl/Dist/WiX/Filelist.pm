@@ -19,7 +19,7 @@ use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
 use IO::File               qw();
 
-use version; $VERSION = version->new('0.170')->numify;
+use version; $VERSION = version->new('0.172')->numify;
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.
@@ -268,7 +268,7 @@ sub load_file {
 		);
 	}
 
-	# Read ,packlist file.
+	# Read .packlist file.
 	my $fh = IO::File->new( $packlist, 'r' );
 	if ( not defined $fh ) {
 		PDWiX->throw("Error reading packlist file $packlist: $!");

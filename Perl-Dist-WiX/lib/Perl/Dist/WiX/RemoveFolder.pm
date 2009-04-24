@@ -21,7 +21,7 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly );
 use Params::Util      qw( _STRING  );
 
-use version; $VERSION = version->new('0.171')->numify;
+use version; $VERSION = version->new('0.172')->numify;
 
 # Defining at this level so it does not need recreated every time.
 Readonly my @ON_OPTIONS => qw(install uninstall both);
@@ -32,7 +32,8 @@ Readonly my @ON_OPTIONS => qw(install uninstall both);
 #   on: Whether the directory should be removed on install, uninstall, or both.
 
 ## no critic 'ProhibitUnusedVariables'
-my @on : Field : Arg('Name' => 'on', 'Default' => 'uninstall') : Get(get_on);
+my @on : Field : Arg('Name' => 'on', 'Default' => 'uninstall') :
+  Get(get_on);
 
 #####################################################################
 # Constructor for RemoveFolder
@@ -74,7 +75,7 @@ sub _init : Init {
 		  . "id D_$directory_id\n" );
 
 	return $self;
-}
+} ## end sub _init :
 
 #####################################################################
 # Main Methods
