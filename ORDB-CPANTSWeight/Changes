@@ -1,0 +1,5 @@
+Changes for Perl extension ORDB-CPANTSWeight
+
+0.01 Sat 25 Apr 2009
+	- Initial experimental release
+	- Adding ORLite::Pod-generated documentation
