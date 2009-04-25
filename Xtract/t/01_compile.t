@@ -6,9 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 
-ok( $] >= 5.006, 'Perl version is new enough' );
+ok( $] >= 5.008005, 'Perl version is new enough' );
 
 use_ok( 'DBIx::Publish' );
 use_ok( 'Xtract'        );

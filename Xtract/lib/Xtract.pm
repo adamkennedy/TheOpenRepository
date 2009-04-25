@@ -18,7 +18,7 @@ More information to follow...
 
 =cut
 
-use 5.006;
+use 5.008005;
 use strict;
 use warnings;
 use Getopt::Long  2.37 ();
