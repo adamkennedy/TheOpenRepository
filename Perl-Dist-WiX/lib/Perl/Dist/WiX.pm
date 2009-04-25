@@ -3202,7 +3202,7 @@ EOF
 	} else {
 
 		# Trying to use the output to make an array.
-		$self->trace_line( 0,
+		$self->trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
 
 		my $fh = IO::File->new( $output, 'r' );
@@ -3222,6 +3222,8 @@ EOF
 		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
 		} else {
+			$self->trace_line ( 4, "Adding files:\n");
+			$self->trace_line ( 4, ' ' . join("\n ", @files_list) );  
 			$fl = Perl::Dist::WiX::Filelist->new->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl )
