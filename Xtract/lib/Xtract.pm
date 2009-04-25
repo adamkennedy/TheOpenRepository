@@ -27,7 +27,7 @@ use Params::Util  0.35 ();
 use DBIx::Publish 0.03 ();
 use DBI           1.57 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Object::Tiny 1.06 qw{
 	from

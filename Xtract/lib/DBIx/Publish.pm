@@ -45,16 +45,18 @@ use strict;
 use warnings;
 use bytes             ();
 use Carp              'croak';
+use File::Remove 1.42 ();
 use Params::Util 0.33 ();
 use DBI          1.57 ();
 use DBD::SQLite  1.21 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 use Object::Tiny 1.06 qw{
+	clear
 	file
 	source
 	dbh
@@ -70,6 +72,11 @@ use Object::Tiny 1.06 qw{
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
+
+	# Delete the target file if we have the flush param
+	if ( $self->flush and -f $self->file ) {
+		File::Remove::remove($self->file);
+	}
 
 	# Connect to the SQLite database
 	my $dsn = "DBI:SQLite:" . $self->file;
