@@ -30,6 +30,13 @@
 		return x; \
 	}
 
+#define MSI_OK_FREE_2(x, y, z) \
+	if (ERROR_SUCCESS != x) { \
+		free(y); \
+		free(z); \
+		return x; \
+	}
+
 #define HANDLE_OK(x) \
 	if (NULL == x) { \
 		return ERROR_INSTALL_FAILURE; \
@@ -396,7 +403,7 @@ UINT AddDirectoryRecord(
 	LPTSTR &sDirectoryID)  // ID to use when adding directory. [out]
 {
 	LPCTSTR sSQL = 
-		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?)");
+		_TEXT("INSERT INTO `Directory` (`Directory`, `Directory_Parent`, `DefaultDir`) VALUES (?, ?, ?) TEMPORARY");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -438,27 +445,37 @@ UINT AddDirectoryRecord(
 
 UINT AddDirectory(
 	MSIHANDLE hModule,     // Handle of MSI being installed. [in]
-	LPCTSTR sDirectory,    // Directory being searched. [in]
+	LPCTSTR sCurrentDir,   // Directory being searched. [in]
 	LPCTSTR sParentDirID,  // ID of parent directory. [in]
 	bool bParentIDExisted) // Did parent ID exist in the MSI originally? [in]
 {
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
-	_tcscpy_s(sFind, MAX_PATH, sDirectory);
+	_tcscpy_s(sFind, MAX_PATH, sCurrentDir);
 	_tcscat_s(sFind, MAX_PATH, TEXT("\\*"));
 
 	// Set up other variables.
-	TCHAR sNewDir[MAX_PATH + 1];
+	TCHAR sSubDir[MAX_PATH + 1];
 	WIN32_FIND_DATA found;
-	TCHAR* sDirectoryID = NULL;
+	TCHAR* sCurrentDirID = NULL;
 
 	HANDLE hFindHandle;
 
 	UINT uiFoundFilesToDelete = 0;
 	BOOL bFileFound = FALSE;
 	UINT uiAnswer = ERROR_SUCCESS;
+	bool bDirectoryFound = false;
 
 	LPTSTR sID = CreateDirectoryGUID();
+
+	if (bParentIDExisted) {
+		// Try and get the ID that already exists.
+		uiAnswer = GetDirectoryID(hModule, 
+			sParentDirID, 
+			found.cFileName, 
+			sCurrentDirID);
+		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+	}
 
 	// Start finding files and directories.
 	hFindHandle = ::FindFirstFile(sFind, &found);
@@ -481,41 +498,22 @@ UINT AddDirectory(
 			}
 
 			// Create a new directory spec to recurse into.
-			_tcscpy_s(sNewDir, MAX_PATH, sDirectory);
-			_tcscat_s(sNewDir, MAX_PATH, found.cFileName);
-			_tcscat_s(sNewDir, MAX_PATH, TEXT("\\"));
+			_tcscpy_s(sSubDir, MAX_PATH, sCurrentDir);
+			_tcscat_s(sSubDir, MAX_PATH, found.cFileName);
+			_tcscat_s(sSubDir, MAX_PATH, TEXT("\\"));
 
-			if (bParentIDExisted) {
-				// Try and get the ID that already exists.
-				uiAnswer = GetDirectoryID(hModule, 
-					sParentDirID, 
-					found.cFileName, 
-					sDirectoryID);
-				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-
-				if (sDirectoryID != NULL) { 
-					// We found an existing directory ID.
-					uiAnswer = AddDirectory(hModule, sNewDir, sDirectoryID, true);
-					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-				} else {
-					// We need to add a directory ID, then go down into this directory.
-					uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
-						found.cFileName, 
-						sID);
-					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-					
-					uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
-					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-				}
+			if (bParentIDExisted && (sCurrentDirID != NULL)) {
+				// We have an existing directory ID.
+				uiAnswer = AddDirectory(hModule, sSubDir, sCurrentDirID, true);
+				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
 			} else {
 				// We need to add a directory ID, then go down into this directory.
-				uiAnswer = AddDirectoryRecord(hModule, sDirectoryID, 
-					found.cFileName, 
-					sID);
-				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+				uiAnswer = AddDirectoryRecord(hModule, sParentDirID, 
+					found.cFileName, sID);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 				
-				uiAnswer = AddDirectory(hModule, sNewDir, sID, false);
-				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+				uiAnswer = AddDirectory(hModule, sSubDir, sID, false);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 			}
 		} else {
 			// Verify that the file wasn't installed by this MSI.
@@ -525,7 +523,7 @@ UINT AddDirectory(
 
 					uiAnswer = IsFileInstalled(hModule, sParentDirID, 
 						found.cFileName, bInstalled);
-					MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+					MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
 
 					if (!bInstalled) {
 						uiFoundFilesToDelete++;
@@ -545,29 +543,29 @@ UINT AddDirectory(
 
 	// If we found extra files, add an entry to delete them.
 	if (uiFoundFilesToDelete > 0) {
-		if (sDirectoryID != NULL) {
-			uiAnswer = AddRemoveFileRecord(hModule, sDirectoryID);
+		if (sCurrentDirID != NULL) {
+			uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID);
 			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
-			LogString(hModule, sDirectoryID);
-			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+			LogString(hModule, sCurrentDirID);
+			MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
 		} else {
 			uiAnswer = AddRemoveFileRecord(hModule, sID);
 			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
 			LogString(hModule, sID);
-			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 		}
 	}
 	
-	// If we found an extra directory, add an entry to delete it.
-	if (sDirectoryID == NULL) {
+	// If we are an extra directory, add an entry to delete ourselves.
+	if (sCurrentDirID == NULL) {
 		uiAnswer = AddRemoveDirectoryRecord(hModule, sID);
 		LogString(hModule, TEXT("Added directory entry with ID string:"));
 		LogString(hModule, sID);
 		LogString(hModule, TEXT("and name:"));
-		LogString(hModule, sDirectory);
-		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+		LogString(hModule, sCurrentDir);
+		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 	} else {
-		free((LPTSTR)sDirectoryID);
+		free((LPTSTR)sCurrentDirID);
 	}
 
 	// Clean up after ourselves.
