@@ -315,7 +315,9 @@ sub set_actions {
             # At this point has chaf rhs or lhs but not both
             if ($has_chaf_lhs) {
 
+                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
                 $action = q{push @_, [];} . "\n" . q{\@_} . "\n";
+                ## use critic
                 last ACTION;
 
             } ## end if ($has_chaf_lhs)
@@ -324,9 +326,11 @@ sub set_actions {
 
             $action =
                   "    TAIL: for (;;) {\n"
+                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
                 . q<        my $tail = pop @_;> . "\n"
                 . q<        last TAIL unless scalar @{$tail};> . "\n"
                 . q<        push @_, @{$tail};> . "\n"
+                ## use critic
                 . "    } # TAIL\n"
                 . $action;
 
@@ -1203,9 +1207,7 @@ sub Marpa::Evaluator::new_value {
 } ## end sub Marpa::Evaluator::new_value
 
 # Apparently perlcritic has a bug and doesn't see the final return
-## no critic (Subroutines::RequireFinalReturn)
 sub Marpa::Evaluator::value {
-## use critic
 
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];

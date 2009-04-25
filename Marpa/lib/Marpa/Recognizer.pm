@@ -128,8 +128,10 @@ sub set_lexers {
             default {
                 my $code =
                       "sub {\n"
+                    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
                     . '    my $STRING = shift;' . "\n"
                     . '    my $START = shift;' . "\n"
+                    ## use critic
                     . '    package '
                     . $package . ";\n" . q{    }
                     . $action . ";\n"
@@ -356,7 +358,11 @@ sub Marpa::Recognizer::new {
 
     for my $state ( @{$start_states} ) {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
-        my $name = sprintf 'S%d@%d-%d', $state_id, 0, 0;
+        my $name = sprintf
+            ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+            'S%d@%d-%d',
+            ## use critic
+            $state_id, 0, 0;
         my $item;
         @{$item}[
             Marpa::Internal::Earley_item::NAME,
@@ -930,8 +936,11 @@ sub scan_set {
                 my $reset    = $state->[Marpa::Internal::QDFA::RESET_ORIGIN];
                 my $origin   = $reset ? $target_ix : $parent;
                 my $state_id = $state->[Marpa::Internal::QDFA::ID];
-                my $name     = sprintf 'S%d@%d-%d', $state_id, $origin,
-                    $target_ix;
+                my $name = sprintf
+                    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+                    'S%d@%d-%d',
+                    ## use critic
+                    $state_id, $origin, $target_ix;
                 my $target_item = $earley_hash->{$name};
                 unless ( defined $target_item ) {
                     $target_item = [];
@@ -1047,8 +1056,11 @@ sub complete_set {
                     my $origin = $reset ? $current_set : $grandparent;
                     my $transition_state_id =
                         $transition_state->[Marpa::Internal::QDFA::ID];
-                    my $name = sprintf 'S%d@%d-%d', $transition_state_id,
-                        $origin, $current_set;
+                    my $name = sprintf
+                        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+                        'S%d@%d-%d',
+                        ## use critic
+                        $transition_state_id, $origin, $current_set;
                     my $target_item = $earley_hash->{$name};
                     unless ( defined $target_item ) {
                         $target_item = [];

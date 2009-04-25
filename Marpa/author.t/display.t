@@ -26,10 +26,12 @@ use English qw( -no_match_vars );
 
 our $FILE_ERROR = 'No error';
 
+## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+our $DEFAULT_CODE = q{ no_code_defined($_) };
+## use critic
 our $PREAMBLE   = q{1};
 our $IN_COMMAND = 0;
 our @DISPLAY;
-our $DEFAULT_CODE             = q{ no_code_defined($_) };
 our $CURRENT_CODE             = $DEFAULT_CODE;
 our $COLLECTING_FROM_LINE_NUM = -1;
 our $COLLECTED_DISPLAY;
@@ -189,10 +191,12 @@ sub test_file {
 
     $Marpa::Test::Display::CURRENT_FILE      = $file;
     @Marpa::Test::Display::DISPLAY           = ();
-    $Marpa::Test::Display::DEFAULT_CODE      = q{ no_code_defined($_) };
     $Marpa::Test::Display::CURRENT_CODE      = $DEFAULT_CODE;
     $Marpa::Test::Display::COMMAND_COUNTDOWN = 0;
     $Marpa::Test::Display::DISPLAY_SKIP      = 0;
+    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+    $Marpa::Test::Display::DEFAULT_CODE = q{ no_code_defined($_) };
+    ## use critic
     my $mismatch_count = 0;
     my $mismatches     = q{};
 
@@ -475,7 +479,9 @@ while ( my ( $file_name, $displays ) = each %normalized_display_uses ) {
     }
 } ## end while ( my ( $file_name, $displays ) = each %normalized_display_uses)
 if ($unused_count) {
+    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
     Test::More::fail('$unused count displays not used');
+    ## use critic
     print {$error_file} "=== UNUSED DISPLAYS ===\n" . $unused
         or Marpa::exception("print failed: $ERRNO");
 }
