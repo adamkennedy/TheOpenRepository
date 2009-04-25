@@ -76,10 +76,14 @@ my @answers = (
     '1 10 45 120 210 252 210 120 45 10 1',
 );
 
+## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 for my $a ( ( 0 .. 5 ), 10 ) {
+## use critic
+
     Marpa::Test::is( ah_extended($a), $answers[$a],
         "Row $a of Pascal's triangle matches parse counts" );
-}
+
+} ## end for my $a ( ( 0 .. 5 ), 10 )
 
 # Local Variables:
 #   mode: cperl

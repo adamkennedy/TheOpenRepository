@@ -23,6 +23,7 @@ my $g = Marpa::Grammar->new(
 
         # Set max_parses to 20 in case there's an infinite loop.
         # This is for debugging, after all
+        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
         max_parses => 20,
         rules      => [
             [ 'S', ['P300'], '300', 300 ],
@@ -30,6 +31,7 @@ my $g = Marpa::Grammar->new(
             [ 'S', ['P400'], '400', 400 ],
             [ 'S', ['P100'], '100', 100 ],
         ],
+        ## use critic
         terminals => [
             [ 'P200' => { regex => qr/a/xms } ],
             [ 'P400' => { regex => qr/a/xms } ],

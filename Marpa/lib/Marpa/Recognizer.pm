@@ -1,13 +1,14 @@
-package Marpa::Internal;
-use 5.010;
+package Marpa::Recognizer;
 
+use 5.010;
 use warnings;
 no warnings 'recursion';
 use strict;
 use integer;
-use English qw( -no_match_vars );
 
 package Marpa::Internal;
+
+use English qw( -no_match_vars );
 
 # Elements of the EARLEY ITEM structure
 # Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
@@ -597,6 +598,12 @@ sub Marpa::Recognizer::earleme {
     return Marpa::Internal::Recognizer::scan_set( $parse, @_ );
 } ## end sub Marpa::Recognizer::earleme
 
+# return values for text method
+package Marpa::Recognizer;
+use constant PARSING_STILL_ACTIVE => -2;
+use constant PARSING_EXHAUSTED    => -1;
+package Marpa::Internal::Recognizer;
+
 sub Marpa::Recognizer::text {
     my $parse        = shift;
     my $input        = shift;
@@ -663,7 +670,9 @@ sub Marpa::Recognizer::text {
         my $lexables = complete_set($parse);
 
         if ( $trace_lex_tries and scalar @{$lexables} ) {
+            ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
             my $string_to_match = substr ${$input_ref}, $pos, 20;
+            ## use critic
             $string_to_match
                 =~ s/([\x00-\x1F\x7F-\xFF])/sprintf('{%#.2x}', ord($1))/gexm;
             say $trace_fh "Match target at $pos: ", $string_to_match;
@@ -793,9 +802,9 @@ sub Marpa::Recognizer::text {
     }    # POS
 
     return
-          $active              ? -2
+          $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
         : $pos < $input_length ? $pos
-        :                        -1;
+        :                        Marpa::Recognizer::PARSING_EXHAUSTED;
 
 }    # sub text
 
@@ -1422,7 +1431,7 @@ see L<Marpa::Doc::Options>.
 
 =head2 text
 
-=begin Marpa::Test::Display:
+_=begin Marpa::Test::Display:
 
 ## next display
 in_file($_, 't/equation_s.t');
@@ -1440,9 +1449,9 @@ a string or a
 reference to a string which contains text to be parsed.
 If all the input was successfully consumed, the C<text> method returns
 a negative number.
-The return value is -1 if parsing was exhausted after consuming the
+The return value is C<Marpa::Recognizer::PARSING_EXHAUSTED> if parsing was exhausted after consuming the
 entire input.
-The return value is -2 if parsing was still active after consuming the
+The return value is C<Marpa::Recognizer::PARSING_STILL_ACTIVE> if parsing was still active after consuming the
 entire input.
 
 If parsing was exhausted before all the input was consumed,
