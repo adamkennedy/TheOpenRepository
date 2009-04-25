@@ -1,8 +1,6 @@
-use inc::Module::Install 0.79;
+use inc::Module::Install::DSL 0.85;
 
-all_from      'lib/ORDB/CPANTS.pm';
-requires      'ORLite::Mirror' => '1.11';
-test_requires 'Test::More'     => '0.42';
-test_requires 'LWP::Online'    => '1.07';
-
-WriteAll;
+all_from      lib/ORDB/CPANTS.pm
+requires_from lib/ORDB/CPANTS.pm
+test_requires Test::More  0.42
+test_requires LWP::Online 1.07

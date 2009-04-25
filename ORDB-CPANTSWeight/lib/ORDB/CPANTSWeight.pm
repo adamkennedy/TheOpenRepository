@@ -3,12 +3,9 @@ package ORDB::CPANTSWeight;
 use 5.008005;
 use strict;
 use warnings;
-use ORLite         1.20 ();
 use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.01';
-
-use constant ONE_WEEK => 7 * 24 * 60 * 60;
+our $VERSION = '0.02';
 
 sub import {
 	my $class = shift;
@@ -17,7 +14,7 @@ sub import {
 	$class->can('orlite') or
 	ORLite::Mirror->import( {
 		url    => 'http://svn.ali.as/cpants_weight.db.gz',
-		maxage => ONE_WEEK,
+		maxage => 7 * 24 * 60 * 60,
 	} );
 
 	return 1;

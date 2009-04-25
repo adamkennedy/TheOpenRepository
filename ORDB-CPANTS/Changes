@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANTesters
 
+0.04 Sun 26 Apr 2009
+	- Upgrading Module::Install to 0.85
+	- Dropping refresh time to a week
+
 0.03 Sun  8 Feb 2009
 	- Bug fix
 

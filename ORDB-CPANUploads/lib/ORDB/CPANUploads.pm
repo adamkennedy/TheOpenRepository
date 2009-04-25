@@ -5,9 +5,8 @@ use strict;
 use warnings;
 use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
-# Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
 	my $class = shift;
 
@@ -15,7 +14,7 @@ sub import {
 	$class->can('orlite') or
 	ORLite::Mirror->import( {
 		url    => 'http://devel.cpantesters.org/uploads/uploads.db.bz2',
-		maxage => 30 * 24 * 60 * 60,
+		maxage => 7 * 24 * 60 * 60,
 	} );
 
 	return 1;

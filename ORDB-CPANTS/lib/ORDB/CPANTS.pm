@@ -3,13 +3,10 @@ package ORDB::CPANTS;
 use 5.008005;
 use strict;
 use warnings;
-use ORLite::Mirror 1.11 ();
+use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
-use constant ONE_MONTH => 30 * 24 * 60 * 60;
-
-# Don't pull the database for 'require' (so it needs a full 'use' line)
 sub import {
 	my $class = shift;
 
@@ -17,7 +14,7 @@ sub import {
 	$class->can('orlite') or
 	ORLite::Mirror->import( {
 		url    => 'http://cpants.perl.org/static/cpants_all.db.gz',
-		maxage => ONE_MONTH,
+		maxage => 7 * 24 * 60 * 60,
 	} );
 
 	return 1;
