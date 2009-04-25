@@ -89,14 +89,14 @@ sub run_preamble {
     my $code = 'package ' . $package . ";\n" . $preamble;
     my $eval_ok;
     my @warnings;
-    my $old_warn_handler = $SIG{__WARN__};
-    $SIG{__WARN__} = sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+    DO_EVAL: {
+        local $SIG{__WARN__} =
+            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    $eval_ok = eval $code;
-    ## use critic
-
-    $SIG{__WARN__} = $old_warn_handler;
+        ## no critic (BuiltinFunctions::ProhibitStringyEval)
+        $eval_ok = eval $code;
+        ## use critic
+    } ## end DO_EVAL:
 
     if ( not $eval_ok or @warnings ) {
         my $fatal_error = $EVAL_ERROR;
@@ -197,14 +197,15 @@ sub set_null_values {
                 . "    package $package;\n"
                 . $action . "};\n" . "1;\n";
             my @warnings;
-            my $old_warn_handler = $SIG{__WARN__};
-            $SIG{__WARN__} = sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+            my $eval_ok;
+            DO_EVAL: {
+                local $SIG{__WARN__} =
+                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-            ## no critic (BuiltinFunctions::ProhibitStringyEval)
-            my $eval_ok = eval $code;
-            ## use critic
-
-            $SIG{__WARN__} = $old_warn_handler;
+                ## no critic (BuiltinFunctions::ProhibitStringyEval)
+                $eval_ok = eval $code;
+                ## use critic
+            } ## end DO_EVAL:
 
             if ( not $eval_ok or @warnings ) {
                 my $fatal_error = $EVAL_ERROR;
@@ -356,31 +357,29 @@ sub set_actions {
         }
 
         my $closure;
-        {
-            my $old_warn_handler = $SIG{__WARN__};
-            my @warnings;
-            $SIG{__WARN__} = sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+        my @warnings;
+        DO_EVAL: {
+            local $SIG{__WARN__} =
+                sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
             ## no critic (BuiltinFunctions::ProhibitStringyEval)
             $closure = eval $code;
             ## use critic
+        } ## end DO_EVAL:
 
-            $SIG{__WARN__} = $old_warn_handler;
-
-            if ( not $closure or @warnings ) {
-                my $fatal_error = $EVAL_ERROR;
-                Marpa::Internal::code_problems(
-                    {   fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        warnings    => \@warnings,
-                        where       => 'compiling action',
-                        long_where  => 'compiling action for '
-                            . Marpa::brief_rule($rule),
-                        code => \$code,
-                    }
-                );
-            } ## end if ( not $closure or @warnings )
-        }
+        if ( not $closure or @warnings ) {
+            my $fatal_error = $EVAL_ERROR;
+            Marpa::Internal::code_problems(
+                {   fatal_error => $fatal_error,
+                    grammar     => $grammar,
+                    warnings    => \@warnings,
+                    where       => 'compiling action',
+                    long_where  => 'compiling action for '
+                        . Marpa::brief_rule($rule),
+                    code => \$code,
+                }
+            );
+        } ## end if ( not $closure or @warnings )
 
         my $rule_datum;
         $rule_datum->[Marpa::Internal::Evaluator::Rule::CODE] = $code;
@@ -1144,37 +1143,35 @@ sub Marpa::Evaluator::new_value {
 
         if ( $closure_type eq 'CODE' ) {
 
-            {
-                my $old_warn_handler = $SIG{__WARN__};
-                my @warnings;
-                $SIG{__WARN__} =
+            my @warnings;
+            my $eval_ok;
+            DO_EVAL: {
+                local $SIG{__WARN__} =
                     sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-                my $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
+                $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
+            } ## end DO_EVAL:
 
-                $SIG{__WARN__} = $old_warn_handler;
+            if ( not $eval_ok or @warnings ) {
+                my $fatal_error = $EVAL_ERROR;
+                my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+                my $code =
+                    $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
+                    ->[Marpa::Internal::Evaluator::Rule::CODE];
+                Marpa::Internal::code_problems(
+                    {   fatal_error => $fatal_error,
+                        grammar     => $grammar,
+                        eval_ok     => $eval_ok,
+                        warnings    => \@warnings,
+                        where       => 'computing value',
+                        long_where  => 'computing value for rule: '
+                            . Marpa::brief_rule($rule),
+                        code => \$code,
+                    }
+                );
+            } ## end if ( not $eval_ok or @warnings )
 
-                if ( not $eval_ok or @warnings ) {
-                    my $fatal_error = $EVAL_ERROR;
-                    my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-                    my $code =
-                        $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
-                        ->[Marpa::Internal::Evaluator::Rule::CODE];
-                    Marpa::Internal::code_problems(
-                        {   fatal_error => $fatal_error,
-                            grammar     => $grammar,
-                            eval_ok     => $eval_ok,
-                            warnings    => \@warnings,
-                            where       => 'computing value',
-                            long_where  => 'computing value for rule: '
-                                . Marpa::brief_rule($rule),
-                            code => \$code,
-                        }
-                    );
-                } ## end if ( not $eval_ok or @warnings )
-            }
-
-        }    # when CODE
+        } ## end if ( $closure_type eq 'CODE' )
 
         # don't document this behavior -- I'll probably want to
         # use non-reference "closure" values for special hacks
@@ -1583,14 +1580,15 @@ sub Marpa::Evaluator::value {
         if ( $closure_type eq 'CODE' ) {
 
             {
-                my $old_warn_handler = $SIG{__WARN__};
                 my @warnings;
-                $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+                my $eval_ok;
+                DO_EVAL: {
+                    local $SIG{__WARN__} =
+                        sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-                my $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
+                    $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
 
-                $SIG{__WARN__} = $old_warn_handler;
+                } ## end DO_EVAL:
 
                 if ( not $eval_ok or @warnings ) {
                     my $fatal_error = $EVAL_ERROR;
