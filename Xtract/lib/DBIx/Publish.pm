@@ -73,8 +73,8 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
-	# Delete the target file if we have the flush param
-	if ( $self->flush and -f $self->file ) {
+	# Delete the target file if we have the clear param
+	if ( $self->clear and -f $self->file ) {
 		File::Remove::remove($self->file);
 	}
 
