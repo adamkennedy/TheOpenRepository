@@ -25,7 +25,7 @@ sub import {
 
 1;
 
-__POD__
+__END__
 
 =pod
 
