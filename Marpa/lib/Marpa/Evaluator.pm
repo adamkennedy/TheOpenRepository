@@ -193,9 +193,11 @@ sub set_null_values {
 
             my $null_value;
             my $code =
-                  '$null_value = do {' . "\n"
-                . "    package $package;\n"
-                . $action . "};\n" . "1;\n";
+                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+                '$null_value = do {' . "\n"
+                ## use critic
+                . "    package $package;\n" . $action . "};\n" . "1;\n";
+
             my @warnings;
             my $eval_ok;
             DO_EVAL: {
@@ -304,7 +306,9 @@ sub set_actions {
             last ACTION unless $has_chaf_lhs or $has_chaf_rhs;
 
             if ( $has_chaf_rhs and $has_chaf_lhs ) {
+                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
                 $action = q{ \@_; };
+                ## use critic
                 last ACTION;
             }
 
