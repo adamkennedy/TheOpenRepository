@@ -4,7 +4,7 @@ package Xtract;
 
 =head1 NAME
 
-Xtract - Take any database and deliver it to the world
+Xtract - Take any data source and deliver it to the world
 
 =head1 DESCRIPTION
 
