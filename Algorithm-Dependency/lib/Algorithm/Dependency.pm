@@ -95,9 +95,9 @@ a source for your particular use is in L<Algorithm::Dependency::Source>.
 
 use 5.005;
 use strict;
+use Params::Util qw{_INSTANCE _ARRAY};
 use Algorithm::Dependency::Item   ();
 use Algorithm::Dependency::Source ();
-use Params::Util qw{_INSTANCE _ARRAY};
 
 use vars qw{$VERSION};
 BEGIN {
