@@ -11,5 +11,5 @@ requires       File::Spec         0.80
 requires       Params::Util       0.10
 requires       Win32::TieRegistry 0.03
 test_requires  Test::More         0.47
-test_requires  Test::Script       0
+test_requires  Test::Script       1.03
 install_script win32envpath

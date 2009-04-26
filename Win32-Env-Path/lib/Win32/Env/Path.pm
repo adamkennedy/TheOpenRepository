@@ -45,7 +45,7 @@ use Params::Util       '_STRING';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 my $USER_ENV   = 'HKEY_CURRENT_USER\\Environment';
