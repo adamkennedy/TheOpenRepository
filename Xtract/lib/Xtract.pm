@@ -21,33 +21,41 @@ More information to follow...
 use 5.008005;
 use strict;
 use warnings;
-use Getopt::Long  2.37 ();
-use File::Remove  1.42 ();
-use Params::Util  0.35 ();
-use DBIx::Publish 0.03 ();
-use DBI           1.57 ();
+use Getopt::Long         2.37 ();
+use File::Remove         1.42 ();
+use Params::Util         0.35 ();
+use DBI                  1.57 ();
+use DBD::SQLite          1.25 ();
+use IO::Compress::Gzip  2.008 ();
+use IO::Compress::Bzip2 2.008 ();
+use DBIx::Publish             ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Object::Tiny 1.06 qw{
 	from
 	user
 	pass
 	to
+	index
 	argv
 };
 
 sub main {
 	# Parse the command line options
-	my $FROM = '';
-	my $USER = '';
-	my $PASS = '';
-	my $TO   = '';
+	my $FROM  = '';
+	my $USER  = '';
+	my $PASS  = '';
+	my $TO    = '';
+	my $INDEX = '';
+	my $QUIET = '';
 	Getopt::Long::GetOptions(
 		"from=s" => \$FROM,
 		"user=s" => \$USER,
 		"pass=s" => \$PASS,
 		"to=s"   => \$TO,
+		"index"  => \$INDEX,
+		"quiet"  => \$QUIET,
 	) or die("Failed to parse options");
 
 	# Create the program instance
@@ -56,32 +64,51 @@ sub main {
 		user  => $USER,
 		pass  => $PASS,
 		to    => $TO,
+		index => $INDEX,
+		trace => $QUIET ? 0 : 1,
 		argv  => [ @ARGV ],
-		trace => 1,
 	);
 
 	# Run the object
 	$self->run;
 }
 
-sub run {
-	my $self = shift;
+sub to_gz {
+	$_[0]->to . '.gz';
+}
 
-	# Clear any existing output database
-	if ( -e $self->to ) {
-		$self->trace("Deleting existing " . $self->to . "...\n");
-		File::Remove::remove($self->to);
+sub to_bz2 {
+	$_[0]->to . '.bz2';
+}
+
+
+
+
+
+#####################################################################
+# Main Methods
+
+sub run {
+	my $self  = shift;
+	my $start = time;
+
+	# Clear any existing output files
+	foreach my $file ( $self->to, $self->to_gz, $self->to_bz2 ) {
+		if ( defined $file and -e $file ) {
+			$self->trace("Deleting previous $file\n");
+			File::Remove::remove($file);
+		}
 	}
 
 	# Connect to the data source
-	$self->trace("Connecting to " . $self->from . "...\n");
+	$self->trace("Connecting to data source " . $self->from . "\n");
 	my $source = DBI->connect( $self->from, $self->user, $self->pass, {
 		PrintError => 1,
 		RaiseError => 1,
 	} ) or die("Failed to connect to " . $self->from);
 
 	# Create the publish object
-	$self->trace("Preparing to publish to " . $self->to . "...\n");
+	$self->trace("Creating SQLite database " . $self->to . "\n");
 	my $publish = DBIx::Publish->new(
 		source => $source,
 		file   => $self->to,
@@ -94,21 +121,47 @@ sub run {
 	}
 
 	# Get the list of tables
-	my @tables = $publish->source->tables;
+	$self->trace("Configuring SQLite database\n");
+	$publish->prepare;
+	my @tables = grep { s/\"//g; $_ !~ /^sqlite_/ } $publish->source->tables;
 	foreach my $table ( @tables ) {
-		$table =~ s/\"//g;
-		next if $table =~ /^sqlite_/;
-		$self->trace("Publishing table $table...\n");
-		$publish->table( $table,
-			"select * from $table",
-		);
+		$self->trace("Publishing table $table ");
+		my $rows = $publish->table( $table );
+		$self->trace("($rows rows)\n");
+	}
+	if ( $self->index ) {
+		foreach my $table ( @tables ) {
+			$self->trace("Indexing table $table\n");
+			$publish->index_table( $table );
+		}
+	}
+	$self->trace("Cleaning SQLite database\n");
+	$publish->finish;
+
+	# Compress the file
+	if ( $self->to_gz ) {
+		$self->trace("Creating gzip archive\n");
+		IO::Compress::Gzip::gzip( $self->to => $self->to_gz )
+			or die 'Failed to gzip SQLite file';
+	}
+	if ( $self->to_bz2 ) {
+		$self->trace("Creating bzip2 archive\n");
+		IO::Compress::Bzip2::bzip2( $self->to => $self->to_bz2 )
+			or die 'Failed to bzip2 SQLite file';
 	}
 
 	# Clean up
-	$self->trace("Cleaning up...\n");
-	$publish->finish;
 	$source->disconnect;
-	$self->trace("Publish run completed\n");
+	$self->trace("Extraction completed in " . (time - $start) . " seconds\n\n");
+
+	# Summarise the run
+	$self->trace("Created " . $self->to . "\n");
+	if ( $self->to_gz ) {
+		$self->trace("Created " . $self->to_gz . "\n");
+	}
+	if ( $self->to_bz2 ) {
+		$self->trace("Created " . $self->to_bz2 . "\n");
+	}
 
 	return 1;
 }

@@ -43,16 +43,16 @@ SQL queries like views into the published SQLite database.
 use 5.006;
 use strict;
 use warnings;
-use bytes             ();
-use Carp              'croak';
-use File::Remove 1.42 ();
-use Params::Util 0.33 ();
-use DBI          1.57 ();
-use DBD::SQLite  1.21 ();
+use bytes        ();
+use Carp         'croak';
+use File::Remove ();
+use Params::Util ();
+use DBI          ();
+use DBD::SQLite  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 use Object::Tiny 1.06 qw{
@@ -85,26 +85,28 @@ sub new {
 		RaiseError => 1,
 	} );
 
-	# Maximise compatibility
-	$self->sqlite('PRAGMA legacy_file_format = 1');
-
-	# Turn on all the go-faster pragmas
-	$self->sqlite('PRAGMA synchronous = 0');
-	$self->sqlite('PRAGMA temp_store = 2');
-	$self->sqlite('PRAGMA journal_mode = OFF');
-	$self->sqlite('PRAGMA locking_mode = EXCLUSIVE');
-
-	# Disable auto-vacuuming because we'll only fill this once.
-	# Do a one-time vacuum so we start with a clean empty database.
-	$self->sqlite('PRAGMA auto_vacuum = 0');
-	$self->sqlite('VACUUM');
-
 	return $self;
 }
 
-# Execute a query on the sqlite database
-sub sqlite {
-	shift->{dbh}->do(@_);
+# Prepare the SQLite database
+sub prepare {
+	my $self = shift;
+
+	# Maximise compatibility
+	$self->dbh->do('PRAGMA legacy_file_format = 1');
+
+	# Turn on all the go-faster pragmas
+	$self->dbh->do('PRAGMA synchronous  = 0');
+	$self->dbh->do('PRAGMA temp_store   = 2');
+	$self->dbh->do('PRAGMA journal_mode = OFF');
+	$self->dbh->do('PRAGMA locking_mode = EXCLUSIVE');
+
+	# Disable auto-vacuuming because we'll only fill this once.
+	# Do a one-time vacuum so we start with a clean empty database.
+	$self->dbh->do('PRAGMA auto_vacuum = 0');
+	$self->dbh->do('VACUUM');
+
+	return 1;
 }
 
 # Clean up the SQLite database
@@ -112,13 +114,10 @@ sub finish {
 	my $self = shift;
 
 	# Tidy up the database
-	$self->sqlite('PRAGMA synchronous = NORMAL');
-	$self->sqlite('PRAGMA temp_store = 0');
-	$self->sqlite('PRAGMA locking_mode = NORMAL');
-	$self->sqlite('VACUUM');
-
-	# Disconnect
-	$self->{dbh}->disconnect;
+	$self->dbh->do('PRAGMA synchronous  = NORMAL');
+	$self->dbh->do('PRAGMA temp_store   = 0');
+	$self->dbh->do('PRAGMA locking_mode = NORMAL');
+	$self->dbh->do('VACUUM');
 
 	return 1;
 }
@@ -130,7 +129,78 @@ sub finish {
 #####################################################################
 # Methods to populate the database
 
+sub catalog {
+	my $self = shift;
+	
+}
+
+sub tables {
+	my $self = shift;
+	while ( @_ ) {
+		$self->table( shift(@_), shift(@_) );
+	}
+	return 1;
+}
+
 sub table {
+	my $self = shift;
+	
+	# Do we have support table copying from this database?
+	my $dbtype = $self->source->get_info( 17 ); # SQL_DBMS_NAME
+	unless ( $dbtype ) {
+		die("Failed to get SQL_DBMS_NAME");
+	}
+	if ( $dbtype eq 'SQLite' ) {
+		return $self->_table_sqlite(@_);
+	}
+
+	# Hand off to the regular select method
+	my $table  = shift;
+	my $from   = shift || $table;
+	return $self->select( $table, "select * from $from" );
+}
+
+sub _table_sqlite {
+	my $self   = shift;
+	my $table  = shift;
+	my $from   = shift || $table;
+	
+	# With a direct table copy, we can interrogate types from the
+	# source table directly (hopefully).
+	my $info = eval {
+		$self->source->column_info('', '', $from, '%')->fetchall_arrayref( {} );
+	};
+	unless ( $@ eq '' and $info ) {
+		# Fallback to regular type detection
+		return $self->select( $table, "select * from $from" );
+	}
+
+	# Generate the column metadata
+	my @columns = ();
+	foreach my $column ( @$info ) {
+		my $name = $column->{COLUMN_NAME};
+		my $type = defined($column->{COLUMN_SIZE})
+			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
+			: $column->{TYPE_NAME};
+		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
+		push @columns, "$name $type $null";
+	}
+
+	# Create the table
+	my $cols = join ",\n", map { "\t$_" } @columns;
+	$self->dbh->do("CREATE TABLE $table (\n$cols\n)");
+
+	# Fill the target table
+	my $place = join ", ",  map { '?' } @$info;
+	my $rows  = $self->fill(
+		"INSERT INTO $table VALUES ( $place )",
+		"select * from $from",
+	);
+
+	return $rows;
+}
+
+sub select {
 	my $self   = shift;
 	my $table  = shift;
 	my $sql    = shift;
@@ -138,11 +208,10 @@ sub table {
 
 	# Make an initial scan pass over the query and do a content-based
 	# classification of the data in each column.
-	my $rows  = 0;
 	my %type  = ();
 	my @names = ();
 	SCOPE: {
-		my $sth = $self->source->prepare($sql) or croak($DBI::errstr);
+		my $sth  = $self->source->prepare($sql) or croak($DBI::errstr);
 		$sth->execute( @params );
 		@names = @{$sth->{NAME}};
 		foreach ( @names ) {
@@ -154,6 +223,7 @@ sub table {
 				STRING    => {},
 			};
 		}
+		my $rows = 0;
 		while ( my $row = $sth->fetchrow_hashref ) {
 			$rows++;
 			foreach my $key ( sort keys %$row ) {
@@ -164,12 +234,12 @@ sub table {
 					next;
 				}
 				$hash->{STRING}->{bytes::length($value)}++;
+				next unless Params::Util::_NUMBER($value);
+				$hash->{NUMBER}++;
 				next unless Params::Util::_POSINT($value);
 				$hash->{POSINT}++;
 				next unless Params::Util::_NONNEGINT($value);
 				$hash->{NONNEGINT}++;
-				next unless Params::Util::_NUMBER($value);
-				$hash->{NUMBER}++;
 			}
 		}
 		$sth->finish;
@@ -214,33 +284,66 @@ sub table {
 		}
 	}
 
-	# Prepare the CREATE and INSERT queries
+	# Create the target table
 	my $columns = join ",\n", map { "\t$_ $type{$_}" } @names;
-	my $place   = join ", ",  map { '?' } @names;
-	my $create  = "CREATE TABLE $table (\n$columns\n)";
-	my $insert  = "INSERT INTO $table values ( $place )";
+	$self->dbh->do("CREATE TABLE $table (\n$columns\n)");
 
-	# Create the table
-	$self->sqlite($create);
+	# Fill the target table
+	my $place = join ", ",  map { '?' } @names;
+	my $rows  = $self->fill(
+		"INSERT INTO $table VALUES ( $place )",
+		$sql, @params,
+	);
 
-	# Do a second pass and fill the destination table
-	SCOPE: {
-		my $sth = $self->source->prepare($sql) or croak($DBI::errstr);
-		$sth->execute( @params );
-		$self->{dbh}->begin_work;
-		while ( my $row = $sth->fetchrow_hashref ) {
-			$self->sqlite($insert, {}, @$row{@names});
-		}
-		$self->{dbh}->commit;
-		$sth->finish;
+	return $rows;
+}
+
+sub fill {
+	my $self   = shift;
+	my $insert = shift;
+	my $rows   = 0;
+
+	# Launch the select query
+	my $from = $self->source->prepare(shift) or croak($DBI::errstr);
+	$from->execute( @_ );
+
+	# Stream the data into the target table
+	$self->dbh->begin_work;
+	my $to = $self->dbh->prepare($insert) or croak($DBI::errstr);
+	while ( my $row = $from->fetchrow_arrayref ) {
+		$to->execute( @$row );
+		$rows++;
+	}
+	$to->finish;
+	$self->dbh->commit;
+
+	# Done
+	$from->finish;
+	return $rows;
+}
+
+sub index_table {
+	my $self  = shift;
+	my $table = shift;
+	my $info  = $self->dbh->selectall_arrayref("PRAGMA table_info($table)");
+	foreach my $column ( map { $_->[1] } @$info ) {
+		$self->index_column($table, $column);
 	}
 
-	# Add an index on all of the columns
-	foreach my $col ( @names ) {
-		$self->sqlite("CREATE INDEX idx__${table}__${col} ON ${table} ( ${col} )");
-	}
+	1;
+}
 
-	return 1;
+sub index_column {
+	my $self = shift;
+	my ($table, $column) = (@_ == 1) ? (split /\./, $_[0]) : @_;
+
+	# Is the column unique?
+	my $rows     = $self->dbh->selectrow_arrayref("SELECT COUNT(*) FROM $table")->[0];
+	my $distinct = $self->dbh->selectrow_arrayref("SELECT COUNT(DISTINCT $column) FROM $table")->[0];
+	my $unique   = ($rows == $distinct) ? 'UNIQUE' : '';
+
+	# Create the index
+	$self->dbh->do("CREATE $unique INDEX IF NOT EXISTS idx__${table}__$column ON $table ( $column )");
 }
 
 1;

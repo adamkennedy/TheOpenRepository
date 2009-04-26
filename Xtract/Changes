@@ -1,5 +1,18 @@
 Changes for Perl extension Xtract
 
+0.05 Sun 26 Apr 2009
+	- Factored out the indexing and filling code to seperate methods
+	- Moved the old ->table to ->select
+	- Made a new fast ->table for complete table extraction
+	- Allow ->table to have a different implementation depending on
+	  the type of the source database driver.
+	- select, table and fill now track and return inserted rows
+	- Automatically generated a compressed version of the database
+	- Add a timer to the publishing run and report elapsed time
+	- Use (faster?) UNIQUE indexes if column values are all different
+	- Indexing is now a specific command line option --index
+	- Added quiet mode --quiet
+
 0.04 Sat 25 Apr 2009
 	- Merged DBIx::Publish into this distribution for now
 
