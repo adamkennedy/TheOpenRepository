@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 BEGIN {
-	if ( $^O ne 'MSWin32' and $ENV{ADAMK_RELEASE} ) {
+	if ( $^O ne 'MSWin32' ) {
 		# Special magic to get past ADAMK's release automation
 		plan( skip_all => "Skipping on ADAMK's release automation" );
 	} else {
