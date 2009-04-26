@@ -1,6 +1,6 @@
 ---
 name: Math-Random-ISAAC-XS
-version: 1.000003
+version: 1.000004
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: C implementation of the ISAAC PRNG Algorithm
@@ -33,7 +33,7 @@ dynamic_config: 1
 provides:
   Math::Random::ISAAC::XS:
     file: lib/Math/Random/ISAAC/XS.pm
-    version: 1.000003
+    version: 1.000004
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
