@@ -47,7 +47,7 @@ $SIG{__WARN__} = sub {
 };
 
 # Run the dist object, and ensure everything we expect was created
-diag( "Building test dist, may take up to an hour... (sorry)" );
+diag( "Building test dist, may take several hours... (sorry)" );
 ok( $dist->run, '->run ok' );
 
 # C toolchain files
