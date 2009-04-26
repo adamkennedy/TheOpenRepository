@@ -1,6 +1,6 @@
 ---
 name: Math-Random-ISAAC
-version: 1.000003
+version: 1.000004
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: Perl interface to the ISAAC PRNG Algorithm
@@ -34,10 +34,10 @@ dynamic_config: 0
 provides:
   Math::Random::ISAAC:
     file: lib/Math/Random/ISAAC.pm
-    version: 1.000003
+    version: 1.000004
   Math::Random::ISAAC::PP:
     file: lib/Math/Random/ISAAC/PP.pm
-    version: 1.000003
+    version: 1.000004
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
