@@ -23,6 +23,7 @@ use warnings;
 use File::Spec                       3.2701 ();
 use File::HomeDir                      0.82 ();
 use File::ShareDir                     1.00 ();
+use DateTime                         0.4501 ();
 use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
@@ -57,7 +58,10 @@ use ORLite::Migrate 0.03 {
 	user_version => 2,
 };
 
-# Load the CPANTS database (This could take a while...)
+# Download and load the CPAN Upload database
+use ORDB::CPANUploads 0.01;
+
+# Download and load the CPANTS database
 use ORDB::CPANTS 0.03;
 
 # Common string fragments
@@ -139,12 +143,6 @@ sub run {
 		'dist',
 	);
 
-	# Indexed table of weighting scores
-	trace("Precalculating weight...");
-	my $weight     = $self->algorithm_weight->weight_all;
-	trace("Precalculating volatility...");
-	my $volatility = $self->algorithm_volatility->weight_all;
-
 	# Populate the AuthorWeight objects
 	trace("Populating Author metrics...");
 	CPANTS::Weight->begin;
@@ -167,10 +165,14 @@ sub run {
 	CPANTS::Weight::DistWeight->truncate;
 	foreach my $dist ( @dists ) { ### Distributions [===|    ] % done
 		my $id = $dist->id;
-		my $k  = $kwalitee->{$id} || {};
+
+		# Calculate the weight and volatility for the distribution
+		my $weight     = $self->algorithm_weight->weight($dist->dist);
+		my $volatility = $self->algorithm_volatility->weight($dist->dist);
 
 		# Does this distribution make life difficult
 		# for downstream packagers.
+		my $k = $kwalitee->{$id} || {};
 		my $enemy_downstream = $k->{easily_repackagable} ? 0 : 1;
 
 		# Is this distribution popular, but NOT provided in
@@ -196,8 +198,8 @@ sub run {
 			id               => $id,
 			dist             => $dist->dist,
 			author           => $dist->author,
-			weight           => $weight->{$id},
-			volatility       => $volatility->{$id},
+			weight           => $weight,
+			volatility       => $volatility,
 			enemy_downstream => $enemy_downstream,
 			debian_candidate => $debian_candidate,
 			meta1            => $meta1,
