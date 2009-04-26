@@ -334,16 +334,30 @@ sub index_table {
 }
 
 sub index_column {
-	my $self = shift;
-	my ($table, $column) = (@_ == 1) ? (split /\./, $_[0]) : @_;
+	my $self    = shift;
+	my ($t, $c) = _COLUMN(@_);
+	my $unique  = _UNIQUE($self->dbh, $t, $c) ? 'UNIQUE' : '';
+	$self->dbh->do("CREATE $unique INDEX IF NOT EXISTS idx__${t}__${c} ON ${t} ( ${c} )");
+}
 
-	# Is the column unique?
-	my $rows     = $self->dbh->selectrow_arrayref("SELECT COUNT(*) FROM $table")->[0];
-	my $distinct = $self->dbh->selectrow_arrayref("SELECT COUNT(DISTINCT $column) FROM $table")->[0];
-	my $unique   = ($rows == $distinct) ? 'UNIQUE' : '';
 
-	# Create the index
-	$self->dbh->do("CREATE $unique INDEX IF NOT EXISTS idx__${table}__$column ON $table ( $column )");
+
+
+
+#####################################################################
+# Support Functions
+
+sub _UNIQUE {
+	my $dbh     = shift;
+	my ($t, $c) = _COLUMN(@_);
+	my $count   = $dbh->selectrow_arrayref(
+		"SELECT COUNT(*), COUNT(DISTINCT $c) FROM $t"
+	);
+	return ( $count->[0] eq $count->[1] );
+}
+
+sub _COLUMN {
+	(@_ == 1) ? [ split /\./, $_[0] ] : [ @_ ]
 }
 
 1;
