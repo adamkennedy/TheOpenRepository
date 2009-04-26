@@ -386,7 +386,9 @@ for my $i ( 0 .. 4 ) {
     );
     my $result = $evaler->value();
     TODO: {
+        ## no critic (ControlStructures::ProhibitPostfixControls)
         local $TODO = 'new evaluator not yet written' if $i == 3;
+        ## use critic
         Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
     }
 } ## end for my $i ( 0 .. 4 )

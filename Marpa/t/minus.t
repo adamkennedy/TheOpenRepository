@@ -164,7 +164,7 @@ for my $string_piece ( '6', '-----', '1' ) {
 $recce->end_input();
 
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
-Marpa::exception('Could not initialize parse') unless $evaler;
+Marpa::exception('Could not initialize parse') if not $evaler;
 
 my $i = -1;
 while ( defined( my $value = $evaler->value() ) ) {

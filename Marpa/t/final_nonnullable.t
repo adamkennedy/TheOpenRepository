@@ -139,7 +139,9 @@ for my $input_length ( 1 .. 4 ) {
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     my $value = $evaler->value();
     TODO: {
+        ## no critic (ControlStructures::ProhibitPostfixControls)
         local $TODO = 'new evaluator not yet finished' if $input_length == 2;
+        ## use critic
         Marpa::Test::is( ${$value}, $results[$input_length],
             "final nonnulling, input length=$input_length" );
     }
