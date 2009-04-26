@@ -226,12 +226,12 @@ UINT IsFileInstalled(
 	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
 	LPCTSTR sDirectoryID, // ID of directory being checked. [in]
 	LPCTSTR sFilename,    // Filename to check. [in]
-	BOOL& bInstalled)     // Whether file was installed by MSI or not. [out]
+	bool& bInstalled)     // Whether file was installed by MSI or not. [out]
 {
 	TCHAR* sSQL = 
 		TEXT("SELECT `File`.`FileName` FROM `Component`,`File` WHERE `Component`.`Component`=`File`.`Component_` AND `Component`.`Directory_` = ?");
 	PMSIHANDLE phView;
-	bInstalled = FALSE;
+	bInstalled = false;
 
 	UINT uiAnswer = ERROR_SUCCESS;
 
@@ -268,7 +268,7 @@ UINT IsFileInstalled(
 
 		// Compare the filename.
 		if (_tcscmp(sFilename, sFile) == 0) {
-			bInstalled = TRUE;
+			bInstalled = true;
 			uiAnswer = ::MsiViewClose(phView);
 			return uiAnswer;
 		}
@@ -280,7 +280,7 @@ UINT IsFileInstalled(
 
 			// NOW compare the filename!
 			if (_tcscmp(sFilename, sPipeLocation) == 0) {
-				bInstalled = TRUE;
+				bInstalled = true;
 				uiAnswer = ::MsiViewClose(phView);
 				return uiAnswer;
 			}
@@ -306,10 +306,11 @@ UINT IsFileInstalled(
 
 UINT AddRemoveFileRecord(
 	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
-	LPCTSTR sDirectoryID) // ID of directory to remove files from. [in]
+	LPCTSTR sDirectoryID, // ID of directory to remove files from. [in]
+	LPCTSTR sFileName)    // Filename to remove.
 {
 	LPCTSTR sSQL = 
-		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, '*', 2)");
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, ?, 2) TEMPORARY");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -323,7 +324,7 @@ UINT AddRemoveFileRecord(
 	MSI_OK(uiAnswer)
 
 	// Create a record storing the values to add.
-	PMSIHANDLE phRecord = MsiCreateRecord(3);
+	PMSIHANDLE phRecord = MsiCreateRecord(4);
 	HANDLE_OK(phRecord)
 
 	// Fill the record.
@@ -336,6 +337,9 @@ UINT AddRemoveFileRecord(
 	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 3, sDirectoryID);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 4, sFileName);
 	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	// Execute the SQL statement and close the view.
@@ -354,7 +358,7 @@ UINT AddRemoveDirectoryRecord(
 	LPCTSTR sDirectoryID) // ID of directory to remove. [in]
 {
 	LPCTSTR sSQL = 
-		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, NULL, 2) TEMPORARY");
+		_TEXT("INSERT INTO `RemoveFile` (`FileKey`, `Component_`, `DirProperty`, `FileName`, `InstallMode`) VALUES (?, ?, ?, ?, 2) TEMPORARY");
 
 	PMSIHANDLE phView;
 	UINT uiAnswer = ERROR_SUCCESS;
@@ -368,7 +372,7 @@ UINT AddRemoveDirectoryRecord(
 	MSI_OK(uiAnswer)
 
 	// Create a record storing the values to add.
-	PMSIHANDLE phRecord = MsiCreateRecord(3);
+	PMSIHANDLE phRecord = MsiCreateRecord(4);
 	HANDLE_OK(phRecord)
 
 	// Fill the record.
@@ -381,6 +385,9 @@ UINT AddRemoveDirectoryRecord(
 	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 3, sDirectoryID);
+	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 4, NULL);
 	MSI_OK_FREE(uiAnswer, (LPTSTR)sFileID)
 
 	// Execute the SQL statement and close the view.
@@ -444,10 +451,10 @@ UINT AddDirectoryRecord(
 // The main routine
 
 UINT AddDirectory(
-	MSIHANDLE hModule,     // Handle of MSI being installed. [in]
-	LPCTSTR sCurrentDir,   // Directory being searched. [in]
-	LPCTSTR sParentDirID,  // ID of parent directory. [in]
-	bool bParentIDExisted) // Did parent ID exist in the MSI originally? [in]
+	MSIHANDLE hModule,      // Handle of MSI being installed. [in]
+	LPCTSTR sCurrentDir,    // Directory being searched. [in]
+	LPCTSTR sCurrentDirID,  // ID of directory being searched. [in]
+	bool bCurrentIDExisted) // Did current ID exist in the MSI originally? [in]
 {
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
@@ -457,25 +464,16 @@ UINT AddDirectory(
 	// Set up other variables.
 	TCHAR sSubDir[MAX_PATH + 1];
 	WIN32_FIND_DATA found;
-	TCHAR* sCurrentDirID = NULL;
+	TCHAR* sSubDirID = NULL;
 
 	HANDLE hFindHandle;
 
-	UINT uiFoundFilesToDelete = 0;
 	BOOL bFileFound = FALSE;
 	UINT uiAnswer = ERROR_SUCCESS;
 	bool bDirectoryFound = false;
+	bool bInstalled = false;
 
 	LPTSTR sID = CreateDirectoryGUID();
-
-	if (bParentIDExisted) {
-		// Try and get the ID that already exists.
-		uiAnswer = GetDirectoryID(hModule, 
-			sParentDirID, 
-			found.cFileName, 
-			sCurrentDirID);
-		MSI_OK_FREE(uiAnswer, LPTSTR(sID))
-	}
 
 	// Start finding files and directories.
 	hFindHandle = ::FindFirstFile(sFind, &found);
@@ -502,35 +500,67 @@ UINT AddDirectory(
 			_tcscat_s(sSubDir, MAX_PATH, found.cFileName);
 			_tcscat_s(sSubDir, MAX_PATH, TEXT("\\"));
 
-			if (bParentIDExisted && (sCurrentDirID != NULL)) {
+			if (bCurrentIDExisted) {
+				// Try and get the ID that already exists.
+				uiAnswer = GetDirectoryID(hModule, 
+					sCurrentDirID, 
+					found.cFileName, 
+					sSubDirID);
+				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+			}
+
+			if (bCurrentIDExisted && (sSubDirID != NULL)) {
 				// We have an existing directory ID.
-				uiAnswer = AddDirectory(hModule, sSubDir, sCurrentDirID, true);
-				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
+				uiAnswer = AddDirectory(hModule, sSubDir, sSubDirID, true);
+				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sSubDirID)
 			} else {
 				// We need to add a directory ID, then go down into this directory.
-				uiAnswer = AddDirectoryRecord(hModule, sParentDirID, 
+				uiAnswer = AddDirectoryRecord(hModule, sCurrentDirID, 
 					found.cFileName, sID);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+#ifdef _DEBUG
+				OutputDebugString(TEXT("ADR: Added directory record entry with ID string: "));
+				OutputDebugString(sCurrentDirID);
+				OutputDebugString(TEXT(" and name: "));
+				OutputDebugString(found.cFileName);
+				OutputDebugString(TEXT(" and new ID: "));
+				OutputDebugString(sID);
+				OutputDebugString(TEXT("\n"));
+#endif //_DEBUG
 				
 				uiAnswer = AddDirectory(hModule, sSubDir, sID, false);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 			}
 		} else {
 			// Verify that the file wasn't installed by this MSI.
-			if (bParentIDExisted) {
-				if (uiFoundFilesToDelete == 0) {
-					BOOL bInstalled = FALSE;
+			if (bCurrentIDExisted) {
+				bInstalled = false;
 
-					uiAnswer = IsFileInstalled(hModule, sParentDirID, 
-						found.cFileName, bInstalled);
-					MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
+				uiAnswer = IsFileInstalled(hModule, sCurrentDirID, 
+					found.cFileName, bInstalled);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 
-					if (!bInstalled) {
-						uiFoundFilesToDelete++;
-					}
+				if (!bInstalled) {
+					uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
+#ifdef _DEBUG
+					OutputDebugString(TEXT("ARFR1: Added remove file record entry with ID string: "));
+					OutputDebugString(sCurrentDirID);
+					OutputDebugString(TEXT(" and name: "));
+					OutputDebugString(found.cFileName);
+					OutputDebugString(TEXT("\n"));
+#endif // _DEBUG
+					MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 				}
 			} else {
-				uiFoundFilesToDelete++;
+				uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+#ifdef _DEBUG
+				OutputDebugString(TEXT("ARFR2: Added remove file record entry with ID string: "));
+				OutputDebugString(sCurrentDirID);
+				OutputDebugString(TEXT(" and name: "));
+				OutputDebugString(found.cFileName);
+				OutputDebugString(TEXT("\n"));
+#endif // _DEBUG
 			}
 		}
 	
@@ -540,32 +570,22 @@ UINT AddDirectory(
 	
 	// Close the find handle.
 	::FindClose(hFindHandle);
-
-	// If we found extra files, add an entry to delete them.
-	if (uiFoundFilesToDelete > 0) {
-		if (sCurrentDirID != NULL) {
-			uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID);
-			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
-			LogString(hModule, sCurrentDirID);
-			MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sCurrentDirID)
-		} else {
-			uiAnswer = AddRemoveFileRecord(hModule, sID);
-			LogString(hModule, TEXT("Found files to delete in directory with ID string:"));
-			LogString(hModule, sID);
-			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-		}
-	}
 	
 	// If we are an extra directory, add an entry to delete ourselves.
-	if (sCurrentDirID == NULL) {
-		uiAnswer = AddRemoveDirectoryRecord(hModule, sID);
-		LogString(hModule, TEXT("Added directory entry with ID string:"));
-		LogString(hModule, sID);
-		LogString(hModule, TEXT("and name:"));
-		LogString(hModule, sCurrentDir);
+	if (!bCurrentIDExisted) {
+		uiAnswer = AddRemoveDirectoryRecord(hModule, sCurrentDirID);
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-	} else {
-		free((LPTSTR)sCurrentDirID);
+#ifdef _DEBUG
+		OutputDebugString(TEXT("ARDR: Added remove directory entry with ID string: "));
+		OutputDebugString(sCurrentDirID);
+		OutputDebugString(TEXT(" and name: "));
+		OutputDebugString(sCurrentDir);
+		OutputDebugString(TEXT("\n"));
+#endif // _DEBUG
+	} 
+
+	if (sSubDirID != NULL) {
+		free(sSubDirID);
 	}
 
 	// Clean up after ourselves.
