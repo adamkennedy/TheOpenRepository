@@ -1,24 +1,5 @@
-#!/usr/bin/perl
-
 use strict;
-use File::Spec ();
-use lib File::Spec->rel2abs(
-	File::Spec->catdir(
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-		File::Spec->updir,
-	)
-);
-use Padre::DB::Patch;
-
-
-
-
-
-#####################################################################
-# Patch Content
+use ORLite::Migrate::Patch;
 
 # Create the file metric table
 do(<<'END_SQL');
@@ -36,5 +17,3 @@ END_SQL
 do( 'create index file_metric_md5_idx on file_metric ( md5 )' );
 do( 'create index file_metric_package_idx on file_metric ( package )' );
 do( 'create unique index file_metric_unique_idx on file_metric ( md5, package, name )' );
-
-exit(0);
