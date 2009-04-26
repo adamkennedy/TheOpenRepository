@@ -2902,7 +2902,20 @@ sub install_distribution {
 			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
 
+	# Build using Build.PL if we have one...
 	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
+
+	# ... unless Module::Build is not installed.
+	unless ( ( -r catfile( catdir ( $self->image_dir, qw( perl site lib Module ) ) , 'Build.pm' ) )
+		or ( -r catfile( catdir ( $self->image_dir, qw( perl lib Module ) ) , 'Build.pm' ) ) )
+	{
+		$buildpl = 0;
+		unless ( -r catfile( $unpack_to, 'Makefile.PL' ) )
+		{
+			PDWiX->throw(
+				"Could not find Makefile.PL in $unpack_to (too early for Build.PL)\n");
+		}
+	}
 
 	# Can't build version.pm using Build.PL until Module::Build
 	# has been upgraded.
