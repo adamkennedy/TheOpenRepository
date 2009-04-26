@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 20;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
 use DBIx::Publish         ();
@@ -94,6 +94,12 @@ ok(
 	'Created table1 table',
 );
 
+# Add indexes to the tables
+ok( $publish->index_table('simple1'), '->index table' );
+ok( $publish->index_table('simple2'), '->index table' );
+ok( $publish->index_table('simple3'), '->index table' );
+ok( $publish->index_table('table1'),  '->index table' );
+
 # Clean up
 ok( $publish->finish, '->finish ok' );
 
@@ -118,3 +124,10 @@ is_deeply(
 	\@data,
 	'table1 data ok',
 );
+
+# Check the indexes were created
+my $rv = $publish->dbh->selectrow_arrayref(
+	'SELECT COUNT(*) FROM sqlite_master WHERE type = ?',
+	{}, 'index',
+)->[0];
+is( $rv, 10, 'Found 12 indexes' );

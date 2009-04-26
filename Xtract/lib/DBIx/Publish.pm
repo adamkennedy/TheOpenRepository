@@ -353,11 +353,11 @@ sub _UNIQUE {
 	my $count   = $dbh->selectrow_arrayref(
 		"SELECT COUNT(*), COUNT(DISTINCT $c) FROM $t"
 	);
-	return ( $count->[0] eq $count->[1] );
+	return !! ( $count->[0] eq $count->[1] );
 }
 
 sub _COLUMN {
-	(@_ == 1) ? [ split /\./, $_[0] ] : [ @_ ]
+	(@_ == 1) ? (split /\./, $_[0]) : @_;
 }
 
 1;
