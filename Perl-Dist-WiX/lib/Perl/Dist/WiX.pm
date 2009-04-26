@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.172_004')->numify;
+use version; $VERSION = version->new('0.172_005')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1438,7 +1438,7 @@ END_PERL
 
 		next if $self->_skip_upgrade($module);
 
-		if (    ( $module->cpan_file =~ m{/Module-Install-/d}msx )
+		if (    ( $module->cpan_file =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version > 0.79 ) )
 		{
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
@@ -1446,8 +1446,9 @@ END_PERL
 			next;
 		}
 
-		if (    ( $module->cpan_file =~ m{/podlators-/d}msx )
-			and ( $module->cpan_version > 2.00 ) )
+		if (    ( $module->cpan_file =~ m{/podlators-\d}msx )
+			and ( $module->cpan_version > 2.00 )
+			and ( $self->perl_version < 5100 ) )
 		{
 			$self->install_modules(qw( Pod::Simple ));
 			$self->_install_cpan_module( $module, $force );
@@ -1465,7 +1466,7 @@ END_PERL
 	} ## end for my $module ( @{$module_info...
 
 	for my $module (@delayed_modules) {
-		$self->_install_cpan_module( $module, 0 );
+		$self->_install_cpan_module( $module, $force );
 	}
 
 	return 1;
