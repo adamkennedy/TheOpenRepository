@@ -1446,6 +1446,14 @@ END_PERL
 			next;
 		}
 
+		if (    ( $module->cpan_file =~ m{/podlators-/d}msx )
+			and ( $module->cpan_version > 2.00 ) )
+		{
+			$self->install_modules(qw( Pod::Simple ));
+			$self->_install_cpan_module( $module, $force );
+			next;
+		}
+
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
