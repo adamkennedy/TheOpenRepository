@@ -76,6 +76,30 @@ sub run {
 		),
 	);
 
+	# Build the Meta 100 index (Level 1)
+	$dataset->add( 'ds5',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		$class->report(
+			sql_score => 'd.volatility * d.meta1',
+		),
+	);
+
+	# Build the Meta 100 index (Level 2)
+	$dataset->add( 'ds6',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		$class->report(
+			sql_score => 'd.volatility * d.meta2',
+		),
+	);
+
+	# Build the Meta 100 index (Level 3)
+	$dataset->add( 'ds7',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
+		$class->report(
+			sql_score => 'd.volatility * d.meta3',
+		),
+	);
+
 	# Write out the daa file
 	$dataset->write(
 		File::Spec->catfile( $dir, 'data.html' )
