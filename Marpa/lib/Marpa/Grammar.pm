@@ -1662,7 +1662,7 @@ sub Marpa::show_NFA_state {
         push @properties, 'at_nulling';
     }
     if (@properties) {
-        $text .= (join q{ }, @properties) . "\n";
+        $text .= ( join q{ }, @properties ) . "\n";
     }
 
     for my $symbol_name ( sort keys %{$transition} ) {

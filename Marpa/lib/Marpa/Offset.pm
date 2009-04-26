@@ -16,7 +16,7 @@ sub import {
     ## use critic
     for my $field (@fields) {
 
-        if ($field !~ s/\A=//xms) {
+        if ( $field !~ s/\A=//xms ) {
             $offset++;
         }
         Marpa::exception("Unacceptable field name: $field")

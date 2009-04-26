@@ -72,8 +72,7 @@ sub slurp {
     my $result = \<$fh>;
 
     # special for corner case: empty file
-    if (not defined ${$result})
-    {
+    if ( not defined ${$result} ) {
         $result = \q{};
     }
     close $fh;
@@ -222,7 +221,7 @@ sub test_file {
             )
         {
             my $do_not_add_display = $eval_result->[1];
-            if (not $do_not_add_display) {
+            if ( not $do_not_add_display ) {
                 $message .= "\n$display";
             }
             $mismatches .= "=== Line $display_line: $message";
@@ -390,7 +389,7 @@ sub command {
             )
         {
             $Marpa::Test::Display::IN_COMMAND++;
-        } ## end if ( $paragraph =~ m{             }xms )
+        } ## end if ( $paragraph =~ m{ )
         if ( $paragraph =~ /\Amake:$/xms ) {
             $Marpa::Test::Display::IN_COMMAND++;
         }
@@ -484,7 +483,7 @@ if ($unused_count) {
     ## use critic
     print {$error_file} "=== UNUSED DISPLAYS ===\n" . $unused
         or Marpa::exception("print failed: $ERRNO");
-}
+} ## end if ($unused_count)
 else {
     Test::More::pass('all displays used');
 }

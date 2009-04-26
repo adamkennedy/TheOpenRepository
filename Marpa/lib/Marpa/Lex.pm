@@ -4,6 +4,7 @@ use 5.010;
 
 use warnings;
 use strict;
+
 # It's all integers, except for the version number
 use integer;
 
@@ -76,8 +77,8 @@ sub lex_q_quote {
     my $depth = 1;
     MATCH: while ( ${$string} =~ /$regex/gxms ) {
         return if not defined $1;
-        if ($left_bracket eq $1)  { $depth++; }
-        if ($right_bracket eq $1) { $depth--; }
+        if ( $left_bracket  eq $1 ) { $depth++; }
+        if ( $right_bracket eq $1 ) { $depth--; }
         if ( $depth <= 0 ) {
             my $length = ( pos ${$string} ) - $start;
             return ( substr( ${$string}, $start, $length ), $length );
@@ -135,8 +136,8 @@ sub lex_regex {
     my $depth = 1;
     MATCH: while ( ${$string} =~ /$regex/gxms ) {
         return if not defined $1;
-        if ($left_bracket eq $1)  { $depth++; }
-        if ($right_bracket eq $1) { $depth--; }
+        if ( $left_bracket  eq $1 ) { $depth++; }
+        if ( $right_bracket eq $1 ) { $depth--; }
         if ( $depth <= 0 ) {
 
             # also take in trailing options

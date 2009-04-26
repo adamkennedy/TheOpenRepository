@@ -93,7 +93,7 @@ BEGIN {
     } ## end if ( not eval ' use Marpa::Source ' )
 
     if ($STRINGIFIED_EVAL_ERROR) {
-        undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
+        undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR;
     }
 
 } ## end BEGIN

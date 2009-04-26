@@ -390,7 +390,7 @@ for my $i ( 0 .. 4 ) {
         local $TODO = 'new evaluator not yet written' if $i == 3;
         ## use critic
         Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
-    }
+    } ## end TODO:
 } ## end for my $i ( 0 .. 4 )
 
 # Local Variables:
