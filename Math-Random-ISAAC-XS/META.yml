@@ -16,6 +16,7 @@ requires:
   Config: 0
 build_requires:
   Test::NoWarnings: 0.084
+  ExtUtils::CBuilder: 0
 recommends:
   Math::Random::ISAAC: 0
   Test::YAML::Meta: 0.11
