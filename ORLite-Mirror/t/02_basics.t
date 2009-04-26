@@ -35,7 +35,9 @@ BEGIN {
 	\$VERSION = '1.00';
 }
 use ORLite::Mirror {
-	url   => '$url',
+	url    => '$url',
+	maxage => 1,
+	index  => [ 'table_one.col2' ],
 }, -DEBUG;
 
 1;

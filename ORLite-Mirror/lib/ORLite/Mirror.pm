@@ -3,20 +3,20 @@ package ORLite::Mirror;
 use 5.006;
 use strict;
 use Carp                    ();
-use File::Spec              ();
-use File::Path              ();
-use File::Remove            ();
-use File::HomeDir           ();
-use Params::Util            qw{ _STRING _NONNEGINT _HASH };
-use IO::Uncompress::Gunzip  ();
-use IO::Uncompress::Bunzip2 ();
-use LWP::UserAgent          ();
-use LWP::Online             ();
-use ORLite 1.19             ();
+use File::Spec               0.80 ();
+use File::Path               2.04 ();
+use File::Remove             1.40 ();
+use File::HomeDir            0.69 ();
+use Params::Util             0.33 qw{ _STRING _NONNEGINT _HASH };
+use IO::Uncompress::Gunzip  2.008 ();
+use IO::Uncompress::Bunzip2 2.008 ();
+use LWP::UserAgent          5.806 ();
+use LWP::Online              1.07 ();
+use ORLite                   1.20 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 	@ISA     = qw{ ORLite };
 }
 
@@ -126,12 +126,14 @@ sub import {
 		}
 
 		# Decompress if we pulled an archive
+		my $refreshed = 0;
 		if ( $path =~ /\.gz$/ ) {
 			unless ( $response->code == 304 and -f $path ) {
 				IO::Uncompress::Gunzip::gunzip(
 					$path      => $db,
 					BinModeOut => 1,
 				) or Carp::croak("gunzip($path) failed");
+				$refreshed = 1;
 			}
 		} elsif ( $path =~ /\.bz2$/ ) {
 			unless ( $response->code == 304 and -f $path ) {
@@ -139,7 +141,21 @@ sub import {
 					$path      => $db,
 					BinModeOut => 1,
 				) or Carp::croak("bunzip2($path) failed");
+				$refreshed = 1;
 			}
+		}
+
+		# If we updated the file, add any extra indexes that we need
+		if ( $refreshed and $params{index} ) {
+			my $dbh = DBI->connect("DBI:SQLite:$db", undef, undef, {
+				RaiseError => 1,
+				PrintError => 1,
+			} );
+			foreach ( @{$params{index}} ) {
+				my ($table, $column) = split /\./, $_;
+				$dbh->do("CREATE INDEX idx__${table}__${column} ON $table ( $column )");
+			}
+			$dbh->disconnect;
 		}
 	}
 

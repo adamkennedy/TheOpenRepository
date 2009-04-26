@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Mirror
 
+1.13 Sun 27 Apr 2009
+	- Upgrading to Module::Install 0.85
+	- Add support for generating additional indexes
+
 1.12 Sat 21 Feb 2009
 	- Adding offline support to the mirror logic
 	- Slightly better test file cleanup
