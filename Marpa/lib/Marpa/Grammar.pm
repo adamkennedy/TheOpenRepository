@@ -368,7 +368,7 @@ sub Marpa::Internal::code_problems {
             if ( $code_lines > $code_length ) {
                 $max_line = $code_length;
             }
-        }
+        } ## end else [ if ( $max_problem_line >= 0 )
 
         # now create an array of the lines to print
         my @lines_to_print = do {
@@ -382,7 +382,7 @@ sub Marpa::Internal::code_problems {
         LINE: for my $i ( 0 .. $#lines_to_print ) {
             my $line_number = $first_line + $i;
             my $marker      = q{};
-            if ($problem_line[$line_number]) {
+            if ( $problem_line[$line_number] ) {
                 $marker = q{*};
             }
             push @labeled_lines,
@@ -774,7 +774,7 @@ sub parse_source_grammar {
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     Marpa::exception(
         'Marpa Internal error: failed to create evaluator for MDL')
-        unless defined $evaler;
+        if not defined $evaler;
     my $value = $evaler->old_value();
     raw_grammar_eval( $grammar, $value );
     return;
@@ -805,7 +805,7 @@ sub Marpa::Grammar::set {
             'Cannot source grammar with some rules already defined')
             if $phase != Marpa::Internal::Phase::NEW;
         Marpa::exception('Source for grammar must be specified as string ref')
-            unless ref $source eq 'SCALAR';
+            if ref $source ne 'SCALAR';
         Marpa::exception('Source for grammar undefined')
             if not defined ${$source};
         parse_source_grammar( $grammar, $source, $args->{'source_options'} );
@@ -904,9 +904,10 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] = $value;
                 if ($value) {
                     say {$trace_fh} "Setting $option option";
-                    say {$trace_fh}
-                        "Warning: setting $option option after semantics were finalized"
-                        if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                    if ( $phase >= Marpa::Internal::Phase::RECOGNIZING ) {
+                        say {$trace_fh}
+                            "Warning: setting $option option after semantics were finalized";
+                    }
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 } ## end if ($value)
             } ## end when ('trace_actions')
@@ -961,9 +962,10 @@ sub Marpa::Grammar::set {
                     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
                     say {$trace_fh} "Setting $option";
-                    say {$trace_fh}
-                        "Warning: Setting $option when $rule_count rules already exist"
-                        if $rule_count;
+                    if ($rule_count) {
+                        say {$trace_fh}
+                            "Warning: Setting $option after $rule_count rules have been defined";
+                    }
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 } ## end if ($value)
             } ## end when ('trace_rules')
@@ -973,9 +975,10 @@ sub Marpa::Grammar::set {
                     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
                     say {$trace_fh} "Setting $option";
-                    say {$trace_fh}
-                        "Warning: Setting $option after $rule_count rules have been defined"
-                        if $rule_count;
+                    if ($rule_count) {
+                        say {$trace_fh}
+                            "Warning: Setting $option after $rule_count rules have been defined";
+                    }
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 } ## end if ($value)
             } ## end when ('trace_strings')
@@ -986,16 +989,17 @@ sub Marpa::Grammar::set {
                     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
                     my $rule_count = @{$rules};
                     say {$trace_fh} "Setting $option";
-                    say {$trace_fh}
-                        "Warning: Setting $option after $rule_count rules have been defined"
-                        if $rule_count;
+                    if ($rule_count) {
+                        say {$trace_fh}
+                            "Warning: Setting $option after $rule_count rules have been defined";
+                    }
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 } ## end if ($value)
             } ## end when ('trace_predefineds')
             when ('trace_iterations') {
                 Marpa::exception(
                     'trace_iterations must be set to a number >= 0')
-                    unless $value =~ /\A\d+\z/xms;
+                    if $value !~ /\A\d+\z/xms;
                 $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] =
                     $value + 0;
                 if ($value) {
@@ -1395,7 +1399,7 @@ sub Marpa::show_symbol {
             );
     } ## end if ( exists $symbol->[Marpa::Internal::Symbol::RHS] )
 
-    $text .= ' stripped' if $stripped;
+    if ($stripped) { $text .= ' stripped' }
 
     ELEMENT:
     for my $comment_element (
@@ -1410,8 +1414,8 @@ sub Marpa::show_symbol {
         my ( $reverse, $comment, $offset ) = @{$comment_element};
         next ELEMENT if not exists $symbol->[$offset];
         my $value = $symbol->[$offset];
-        $value = !$value if $reverse;
-        $text .= " $comment" if $value;
+        if ($reverse) { $value = !$value }
+        if ($value) { $text .= " $comment" }
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
 
     return $text .= "\n";
@@ -1579,7 +1583,7 @@ sub Marpa::show_rule {
         my ( $reverse, $comment, $offset ) = @{$comment_element};
         next ELEMENT if not exists $rule->[$offset];
         my $value = $rule->[$offset];
-        $value = !$value if $reverse;
+        if ($reverse) { $value = !$value }
         next ELEMENT if not $value;
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
@@ -1654,8 +1658,12 @@ sub Marpa::show_NFA_state {
     my $text = $name . ': ';
     $text .= Marpa::show_item($item) . "\n";
     my @properties = ();
-    push @properties, 'at_nulling' if $at_nulling;
-    $text .= join( q{ }, @properties ) . "\n" if @properties;
+    if ($at_nulling) {
+        push @properties, 'at_nulling';
+    }
+    if (@properties) {
+        $text .= (join q{ }, @properties) . "\n";
+    }
 
     for my $symbol_name ( sort keys %{$transition} ) {
         my $transition_states = $transition->{$symbol_name};
@@ -1700,8 +1708,8 @@ sub Marpa::show_QDFA_state {
 
     $text .= Marpa::brief_QDFA_state( $state, $tags ) . ': ';
 
-    if ( exists $state->[Marpa::Internal::QDFA::RESET_ORIGIN] ) {
-        $text .= 'predict; ' if $state->[Marpa::Internal::QDFA::RESET_ORIGIN];
+    if ( $state->[Marpa::Internal::QDFA::RESET_ORIGIN] ) {
+        $text .= 'predict; ';
     }
 
     $text .= $state->[Marpa::Internal::QDFA::NAME] . "\n";
@@ -1714,7 +1722,7 @@ sub Marpa::show_QDFA_state {
         }
     } ## end if ( exists $state->[Marpa::Internal::QDFA::NFA_STATES...
 
-    $text .= "stripped\n" if $stripped;
+    if ($stripped) { $text .= "stripped\n" }
 
     if ( exists $state->[Marpa::Internal::QDFA::TRANSITION] ) {
         my $transition = $state->[Marpa::Internal::QDFA::TRANSITION];
@@ -2103,7 +2111,9 @@ sub add_rules_from_hash {
     Marpa::exception('Only left associative sequences available')
         if not $left_associative;
     Marpa::exception('If min is defined for a rule, it must be 0 or 1')
-        if defined $min and $min != 0 and $min != 1;
+        if defined $min
+            and $min != 0
+            and $min != 1;
 
     if ( scalar @{$rhs_names} == 0 or not defined $min ) {
 
@@ -2230,7 +2240,7 @@ EO_CODE
     );
 
     if ( defined $separator and not $proper_separation ) {
-        if (not $keep_separation) {
+        if ( not $keep_separation ) {
             ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
             $rule_action = q{ pop @_; } . ( $rule_action // q{} );
             ## use critic
@@ -2271,7 +2281,7 @@ EO_CODE
             ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
             $rule_action = q{ unshift(@_, []); } . "\n" . q{ \@_ } . "\n";
             ## use critic
-        }
+        } ## end else [ if ( defined $separator and not $keep_separation )
     } ## end if ($left_associative)
     else {
         Marpa::exception('Only left associative sequences available');
@@ -2317,7 +2327,7 @@ EO_CODE
 
     return;
 
-}
+} ## end sub add_rules_from_hash
 
 sub add_user_terminals {
     my $grammar   = shift;
@@ -3291,7 +3301,7 @@ sub assign_QDFA_state_set {
         my $QDFA_state = $QDFA_by_name->{$name};
 
         # this is a new QDFA state -- create it
-        if (not $QDFA_state) {
+        if ( not $QDFA_state ) {
             my $id = scalar @{$QDFA};
 
             my $start_rule;
@@ -3312,8 +3322,9 @@ sub assign_QDFA_state_set {
                 ];
                 $lhs_list->[$lhs_id] = 1;
                 push @{ $complete_rules->[$lhs_id] }, $rule;
+
                 if ($lhs_is_start) {
-                    $start_rule = $rule
+                    $start_rule = $rule;
                 }
             } ## end for my $NFA_state ( @{$NFA_state_list} )
 
@@ -3333,7 +3344,7 @@ sub assign_QDFA_state_set {
 
             push @{$QDFA}, $QDFA_state;
             $QDFA_by_name->{$name} = $QDFA_state;
-        }
+        } ## end if ( not $QDFA_state )
 
         push @result_states, $QDFA_state;
 
@@ -3827,7 +3838,7 @@ sub rewrite_as_CHAF {
         ]
         ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
         = ( $productive, 1, 1, q{ $_[0] } );
-        ## use critic
+    ## use critic
 
     # If we created a null alias for the original start symbol, we need
     # to create a nulling start rule
