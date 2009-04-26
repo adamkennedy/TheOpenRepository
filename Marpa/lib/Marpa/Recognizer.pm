@@ -1431,7 +1431,7 @@ see L<Marpa::Doc::Options>.
 
 =head2 text
 
-_=begin Marpa::Test::Display:
+=begin Marpa::Test::Display:
 
 ## next display
 in_file($_, 't/equation_s.t');

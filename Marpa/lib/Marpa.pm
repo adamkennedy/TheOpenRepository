@@ -92,8 +92,9 @@ BEGIN {
         } ## end if ( $marpa_version ne $source_version )
     } ## end if ( not eval ' use Marpa::Source ' )
 
-    undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
-        if $STRINGIFIED_EVAL_ERROR;
+    if ($STRINGIFIED_EVAL_ERROR) {
+        undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR
+    }
 
 } ## end BEGIN
 
@@ -110,18 +111,18 @@ sub Marpa::mdl {
     my $ref = ref $grammar;
     Marpa::exception(
         qq{grammar arg to mdl() was ref type "$ref", must be string ref})
-        unless $ref eq 'SCALAR';
+        if $ref ne 'SCALAR';
 
     $ref = ref $text;
     Marpa::exception(
         qq{text arg to mdl() was ref type "$ref", must be string ref})
-        unless $ref eq 'SCALAR';
+        if $ref ne 'SCALAR';
 
     $options //= {};
     $ref = ref $options;
     Marpa::exception(
         qq{text arg to mdl() was ref type "$ref", must be hash ref})
-        unless $ref eq 'HASH';
+        if $ref ne 'HASH';
 
     my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
     my $recce = Marpa::Recognizer->new(

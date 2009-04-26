@@ -1670,7 +1670,7 @@ in_file($_, 't/equation_s.t')
     }
 
     my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
-    Marpa::exception('Parse failed') unless $evaler;
+    Marpa::exception('Parse failed') if not $evaler;
 
     my $i = -1;
     while ( defined( my $value = $evaler->value() ) ) {
