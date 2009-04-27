@@ -97,6 +97,20 @@ LPTSTR CreateFileGUID()
 	return sGUID;
 }
 
+// Operations on string to log to MSI log.
+
+void StartLogString(
+	LPCTSTR s) // String to start logging. [in]
+{
+	_tcscpy_s(sLogString, 512, s);
+}
+
+void AppendLogString(
+	LPCTSTR s) // String to append to log. [in]
+{
+	_tcscat_s(sLogString, 512, s);
+}
+
 /* All routines after this point return UINT error codes,
  * as defined by the Win32 API reference under the Installer Functions
  * area (at http://msdn.microsoft.com/en-us/library/aa369426(VS.85).aspx ) 
@@ -115,24 +129,15 @@ UINT LogString(
 	MSI_OK(uiAnswer)
 	
 	// Send the message
-	return ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
+	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
+
+	// Corrects return value for use with MSI_OK.
+	if (uiAnswer == IDOK) {
+		return ERROR_SUCCESS;
+	} else {
+		return ERROR_INSTALL_FAILURE;
+	}
 }
-
-#ifdef _DEBUG
-void StartLogString(
-	LPCTSTR s) // String to start logging. [in]
-{
-	_tcscpy_s(sLogString, 512, s);
-}
-
-void AppendLogString(
-	LPCTSTR s) // String to append to log. [in]
-{
-	_tcscat_s(sLogString, 512, s);
-}
-
-
-#endif // _DEBUG
 
 // Finds directory ID for directory named in sDirectory.
 
@@ -530,34 +535,18 @@ UINT AddDirectory(
 				uiAnswer = AddDirectory(hModule, sSubDir, sSubDirID, true);
 				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sSubDirID)
 			} else {
-				// We need to add a directory ID, then go down into this directory.
-				uiAnswer = AddDirectoryRecord(hModule, sCurrentDirID, 
-					found.cFileName, sID);
+				// We need to get a directory ID, add the property, then go down 
+				// into this directory.
+				sID = CreateDirectoryGUID(); 
+				uiAnswer = ::MsiSetProperty(hModule, sID, sSubDir); 
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#ifdef _DEBUG
-				AppendLogString(TEXT("ADR: Added directory record entry with ID string: "));
-				AppendLogString(sCurrentDirID);
-				AppendLogString(TEXT(" and name: "));
-				AppendLogString(found.cFileName);
-				AppendLogString(TEXT(" and new ID: "));
-				AppendLogString(sID);
-				AppendLogString(TEXT("\n"));
-				uiAnswer = LogString(hModule);
-				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#endif //_DEBUG
 
-				uiAnswer = ::MsiGetProperty(hModule, sID, sSubDir); 
-				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#ifdef _DEBUG
-				StartLogString(TEXT("ADR: Added directory property with ID string: "));
+				StartLogString(TEXT("MSP: Added directory property with ID string: "));
 				AppendLogString(sID);
 				AppendLogString(TEXT(" and name: "));
 				AppendLogString(sSubDir);
-				AppendLogString(TEXT("\n"));
 				uiAnswer = LogString(hModule);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#endif //_DEBUG
-
 				
 				uiAnswer = AddDirectory(hModule, sSubDir, sID, false);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
@@ -574,28 +563,24 @@ UINT AddDirectory(
 				if (!bInstalled) {
 					uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
 					MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#ifdef _DEBUG
+
 					StartLogString(TEXT("ARFR1: Added remove file record entry with ID string: "));
 					AppendLogString(sCurrentDirID);
 					AppendLogString(TEXT(" and name: "));
 					AppendLogString(found.cFileName);
-					AppendLogString(TEXT("\n"));
 					uiAnswer = LogString(hModule);
 					MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#endif // _DEBUG
 				}
 			} else {
 				uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#ifdef _DEBUG
+
 				StartLogString(TEXT("ARFR2: Added remove file record entry with ID string: "));
 				AppendLogString(sCurrentDirID);
 				AppendLogString(TEXT(" and name: "));
 				AppendLogString(found.cFileName);
-				AppendLogString(TEXT("\n"));
 				uiAnswer = LogString(hModule);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#endif // _DEBUG
 			}
 		}
 	
@@ -610,7 +595,7 @@ UINT AddDirectory(
 	if (!bCurrentIDExisted) {
 		uiAnswer = AddRemoveDirectoryRecord(hModule, sCurrentDirID);
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-#ifdef _DEBUG
+
 		StartLogString(TEXT("ARDR: Added remove directory entry with ID string: "));
 		AppendLogString(sCurrentDirID);
 		AppendLogString(TEXT(" and name: "));
@@ -618,7 +603,6 @@ UINT AddDirectory(
 		AppendLogString(TEXT("\n"));
 		uiAnswer = LogString(hModule);
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)		
-#endif // _DEBUG
 	} 
 
 	if (sSubDirID != NULL) {
