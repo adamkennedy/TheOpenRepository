@@ -9,6 +9,7 @@ use File::Spec        ();
 use File::pushd       ();
 use Params::Util      ();
 use IO::ScalarArray   ();
+use ADAMK::Cache      ();
 use ADAMK::Repository ();
 
 use vars qw{$VERSION};
@@ -33,6 +34,39 @@ sub svn_dir {
 		return undef;
 	}
 	return $dir;
+}
+
+sub svn_cache_command {
+	my $self      = shift;
+	my $directory = $self->directory;
+	my $command   = join( ' ', map { /\s/ ? "'$_'" : $_ } 'svn', @_ );
+
+	# Check for the cached version
+	my @cached = ADAMK::Cache::Svn->select(
+		'where directory = ? and command = ?',
+		$directory, $command,
+	);
+	unless ( @cached ) {
+		# Run the command
+		my $root = File::pushd::pushd( $directory );
+		$self->trace("> $command\n");
+		my $stdout = '';
+		IPC::Run3::run3(
+			[ 'svn', @_ ],
+			\undef,
+			\$stdout,
+			\undef,
+		);
+
+		# Save the result to the cache
+		@cached = ADAMK::Cache::Svn->create(
+			directory => $directory,
+			command   => $command,
+			stdout    => $stdout,
+		);
+	}
+
+	return split /\n/, $cached[0]->stdout;
 }
 
 sub svn_command {
@@ -127,7 +161,7 @@ sub svn_log {
 	my $self  = shift;
 
 	# Load the log tree
-	my @lines = $self->svn_command('log', '--xml', @_);
+	my @lines = $self->svn_cache_command('log', '--xml', @_);
 	my $input = IO::ScalarArray->new(\@lines);
 	my $tree  = XML::Tiny::parsefile($input);
 

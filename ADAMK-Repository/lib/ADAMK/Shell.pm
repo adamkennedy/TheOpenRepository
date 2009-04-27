@@ -3,6 +3,7 @@ package ADAMK::Shell;
 use 5.008;
 use strict;
 use warnings;
+use Getopt::Long      ();
 use Class::Inspector  ();
 use ADAMK::Repository ();
 
@@ -32,8 +33,9 @@ sub new {
 
 	# Create the repository from the root
 	$self->{repository} = ADAMK::Repository->new(
-		path  => $self->path,
-		trace => $self->{trace},
+		path    => $self->path,
+		trace   => $self->{trace},
+		preload => 1,
 	);
 
 	return $self;
@@ -138,6 +140,15 @@ sub compare_export_stable {
 
 sub report_changed_versions {
 	my $self = shift;
+
+	# Handle options
+	my $NOCHANGES = '';
+	my $NOCOMMITS = '';
+	Getopt::Long::GetOptions(
+		'nochanges' => \$NOCHANGES,
+		'nocommits' => \$NOCOMMITS,
+	);
+
 	my $repo = $self->repository;
 	my @rows = ();
 	$self->trace("Scanning distributions... (this may take a few minutes)\n");
@@ -153,7 +164,7 @@ sub report_changed_versions {
 		my $trunk   = $dist->changes->current->version;
 		my $release = $extract->changes->current->version;
 		if ( $trunk eq $release ) {
-			next;
+			next unless $NOCHANGES;
 		}
 
 		# How many log entries are there from the last release
@@ -166,7 +177,7 @@ sub report_changed_versions {
 			$_->author !~ /^adam/
 		} @entries;
 		if ( @_ and not @external ) {
-			next;
+			next unless $NOCOMMITS;
 		}
 
 		push @rows, [

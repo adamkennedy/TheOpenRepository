@@ -6,19 +6,21 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use Test::Script;
 
 ok( $] >= 5.008, 'Perl version is new enough' );
 
 use_ok( 'ADAMK::Util'                   );
+use_ok( 'ADAMK::LogEntry'               );
+use_ok( 'ADAMK::Cache'                  );
 use_ok( 'ADAMK::Role::File'             );
 use_ok( 'ADAMK::Role::SVN'              );
 use_ok( 'ADAMK::Role::Changes'          );
 use_ok( 'ADAMK::Role::Make'             );
-use_ok( 'ADAMK::Mixin::Trace'           );
 use_ok( 'ADAMK::Release'                );
+use_ok( 'ADAMK::Release::Extract'       );
 use_ok( 'ADAMK::Repository'             );
 use_ok( 'ADAMK::Distribution'           );
 use_ok( 'ADAMK::Distribution::Export'   );
