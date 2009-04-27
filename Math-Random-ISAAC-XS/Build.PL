@@ -121,7 +121,7 @@ my $builder = Module::Build->new(
 
       # Official keys (homepage, license, bugtracker)
       repository   => 'http://svn.ali.as/cpan/trunk/Math-Random-ISAAC-XS',
-      bugtracker   => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC',
+      bugtracker   => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC-XS',
       license      => 'http://edwardsamuels.com/copyright/beyond/articles/public.html',
     },
   },
