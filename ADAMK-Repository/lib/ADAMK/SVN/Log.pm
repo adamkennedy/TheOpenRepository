@@ -1,4 +1,4 @@
-package ADAMK::LogEntry;
+package ADAMK::SVN::Log;
 
 use 5.008;
 use strict;

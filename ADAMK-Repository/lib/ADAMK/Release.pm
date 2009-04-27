@@ -71,9 +71,11 @@ sub trunk {
 #####################################################################
 # SVN Integration
 
+# Cache as we fetch
 sub info {
 	my $self = shift;
-	$self->SUPER::info( $self->file, { cache => 1 } );
+	$self->{_info} or
+	$self->{_info} = $self->SUPER::info( $self->file, { cache => 1 } );
 }
 
 sub svn_commit {
@@ -108,7 +110,7 @@ sub extract {
 		) unless $ok;
 		$self->{extract_path} = $ae->extract_path;
 	}
-	return ADAMK::Release::Extract->new(
+	ADAMK::Release::Extract->new(
 		path    => $self->{extract_path},
 		release => $self,
 	);

@@ -122,7 +122,7 @@ SCOPE: {
 
 		# Test svn log support
 		my @lines = $checkout->svn_log;
-		isa_ok( $lines[0], 'ADAMK::LogEntry' );
+		isa_ok( $lines[0], 'ADAMK::SVN::Log' );
 	}
 
 	# Export a distribution

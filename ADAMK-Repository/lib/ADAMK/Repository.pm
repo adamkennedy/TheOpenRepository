@@ -49,7 +49,7 @@ use ADAMK::Release::Extract       ();
 use ADAMK::Distribution           ();
 use ADAMK::Distribution::Export   ();
 use ADAMK::Distribution::Checkout ();
-use ADAMK::LogEntry               ();
+use ADAMK::SVN::Log               ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {

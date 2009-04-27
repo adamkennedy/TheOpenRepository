@@ -50,7 +50,7 @@ sub svn_command {
 			$directory, $command,
 		);
 		if ( @cached ) {
-			$self->trace("- $directory: $command\n");
+			$self->trace("- $command\n");
 			return split /\n/, $cached[0]->stdout;		
 		}
 	}
@@ -58,7 +58,7 @@ sub svn_command {
 	# Run the command
 	my $root = File::pushd::pushd( $directory );
 	my $char = $options->{cache} ? '+' : '>';
-	$self->trace( "$char $directory: $command\n");
+	$self->trace( "$char $command\n");
 	my $stdout = '';
 	IPC::Run3::run3(
 		[ 'svn', @_ ],
@@ -140,7 +140,7 @@ sub svn_log {
 			} @{$hash->{content}}
 		);
 		$entry{message} = delete $entry{msg};
-		push @entries, ADAMK::LogEntry->new( %entry );
+		push @entries, ADAMK::SVN::Log->new( %entry );
 	}
 
 	return @entries;

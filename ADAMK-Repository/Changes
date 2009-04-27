@@ -5,6 +5,8 @@ Changes for Perl extension ADAMK-Repository
 	- Add svn log into "report_changed_versions" and "module" commands
 	- Add CLEANUP => 1 to all tempdir calls
 	- Added command cache ADAMK::Cache
+	- Added class ADAMK::SVN::Info
+	- Moved ADAMK::LogEntry to ADAMK::SVN::Log
 
 0.10 Mon 20 Apr 2009
 	- Added function  ADAMK::Util::ljoin
@@ -13,7 +15,7 @@ Changes for Perl extension ADAMK-Repository
 	- Added command   ADAMK::Shell::usage
 	- Added command   ADAMK::Shell::report_changed_versions
 	- Added command   ADAMK::Shell::report_module_install_versions
-	- Added new class ADAMK::Release::Extract
+	- Added class ADAMK::Release::Extract
 
 0.09 Sat 18 Apr 2009
 	- Updating to Module::Install::DSL 0.83

@@ -13,7 +13,7 @@ use Test::Script;
 ok( $] >= 5.008, 'Perl version is new enough' );
 
 use_ok( 'ADAMK::Util'                   );
-use_ok( 'ADAMK::LogEntry'               );
+use_ok( 'ADAMK::SVN::Log'               );
 use_ok( 'ADAMK::Cache'                  );
 use_ok( 'ADAMK::Role::File'             );
 use_ok( 'ADAMK::Role::SVN'              );
