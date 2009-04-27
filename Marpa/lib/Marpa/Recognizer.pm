@@ -449,11 +449,8 @@ sub Marpa::Recognizer::unstringify {
             local $SIG{__WARN__} =
                 sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
 
-            ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
-            # no strict 'refs';
+            ## no critic (BuiltinFunctions::ProhibitStringyEval)
             $eval_ok = eval ${$stringified_recce};
-
-            # use strict 'refs';
             ## use critic
 
         }
