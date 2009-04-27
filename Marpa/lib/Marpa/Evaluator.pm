@@ -36,11 +36,13 @@ use Marpa::Offset Or_Sapling => qw(
 );
 
 use Marpa::Offset And_Node => qw(
-    NAME ID
+    NAME
     PREDECESSOR CAUSE
     VALUE_REF PERL_CLOSURE END_EARLEME
     ARGC RULE POSITION
+    PARENT_NODE
     PARENT_CHOICE
+    PRIORITIZED_ID
 );
 
 use Marpa::Offset Or_Node => qw(
@@ -63,10 +65,19 @@ use Marpa::Offset Evaluator => qw(
     TREE RULE_DATA PACKAGE
     NULL_VALUES CYCLES
     JOURNAL
+    PRIORITIZED_NODES
+    PRIORITIZED_DECISIONS
 );
 
 # PARSE_COUNT  number of parses in an ambiguous parse
 # TREE         current evaluation tree
+
+# Tags for the Journal Entries
+use Marpa::Offset Journal_Tag => qw(
+    NODE_ITERATION
+    FORK_ITERATION
+    IMPLICATION
+);
 
 package Marpa::Internal::Evaluator;
 
@@ -742,9 +753,10 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
         for my $and_node_choice ( 0 .. scalar @and_nodes ) {
             my $and_node = $and_nodes[$and_node_choice];
+            $and_node->[Marpa::Internal::And_Node::PARENT_NODE] = $or_node_id;
             $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
-                [ $or_node_id, $and_node_choice ];
-        }
+                $and_node_choice;
+        } ## end for my $and_node_choice ( 0 .. scalar @and_nodes )
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME]  = $start_earleme;
@@ -958,6 +970,12 @@ sub Marpa::Evaluator::set {
     return 1;
 } ## end sub Marpa::Evaluator::set
 
+# A constant to indicate in the decision vector,
+# that a node is banned.  It must not be a possible
+# index to that vector, and therefore must be some negative
+# number
+use constant BANNED => -1;
+
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
     my ($evaler) = @_;
@@ -970,6 +988,10 @@ sub Marpa::Evaluator::new_value {
     ) if $evaler_class ne $right_class;
 
     my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $prioritized_nodes =
+        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES];
+    my $prioritized_decisions =
+        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_DECISIONS];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -1002,67 +1024,184 @@ sub Marpa::Evaluator::new_value {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
-    my $beyond_last_earleme =
+    my $earleme_beyond_last =
         @{ $recognizer->[Marpa::Internal::Recognizer::EARLEY_SETS] };
 
+    my $working_ix;
+
+    if ( not defined $journal ) {
+
+        # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
+        # Note the use of Unicode for packing, which I've not seen anyone else do.
+        my @decorated_indexes = ();
+        my @and_nodes         = ();
+        OR_NODE: for my $or_node ( @{$or_nodes} ) {
+            my $start_earleme =
+                $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
+            my $end_earleme =
+                $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
+            my $or_node_children =
+                $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+            for my $and_node ( @{$or_node_children} ) {
+                my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+                my $record_counter = @and_nodes;
+                push @and_nodes, $and_node;
+
+                my $user_priority =
+                    $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+                $user_priority //= 0;
+                ## a non-zero user priority makes an and-node interesting
+
+                my $internal_priority =
+                    $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
+                $internal_priority //= 0;
+
+                # is this and-node interesting for priority purposes?
+                ## any non-zero priority makes an and-node interesting
+                my $interesting = $user_priority || $internal_priority;
+
+                my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
+                my $laziness = 0;
+                if ( defined $is_hasty ) {
+
+                    # a hasty or lazy and-node is interesting
+                    $interesting = 1;
+
+                    $laziness = $end_earleme - $start_earleme;
+                    if ($is_hasty) {
+                        $laziness = $earleme_beyond_last - $laziness;
+                    }
+                } ## end if ( defined $is_hasty )
+
+                # only sort interesting and-nodes by location
+                my $location = $interesting ? $start_earleme : 0;
+
+                push @decorated_indexes,
+                    (
+                    pack 'U*', $location, $user_priority, $internal_priority,
+                    $laziness, $record_counter
+                    );
+            } ## end for my $and_node ( @{$or_node_children} )
+        } ## end for my $or_node ( @{$or_nodes} )
+
+        $prioritized_nodes =
+            $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
+            @and_nodes[ map { ( unpack 'U*', $_ )[-1] } @decorated_indexes ];
+
+        for my $node_ix ( 0 .. $#{$prioritized_nodes} ) {
+            $prioritized_nodes->[$node_ix]
+                ->[Marpa::Internal::And_Node::PRIORITIZED_ID] = $node_ix;
+        }
+
+        # set the size
+        $#{$prioritized_decisions} = $#{$prioritized_nodes};
+        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
+            $prioritized_decisions;
+
+        $working_ix = -1;
+
+    } ## end if ( not defined $journal )
+    ## End not defined $journal
+
     # TODO: insert new iteration logic here
-    if ( defined $journal ) {
+
+    if ( scalar @{$journal} ) {
         Marpa::exception('New evaluator: iteration not yet implemented');
     }
 
-    # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
-    # Note the use of Unicode for packing, which I've not seen anyone else do.
-    my @decorated_indexes = ();
-    my @and_nodes         = ();
-    OR_NODE: for my $or_node ( @{$or_nodes} ) {
-        my $start_earleme =
-            $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
-        my $end_earleme = $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
-        my $or_node_children =
+    # Move down the priority list, including nodes as we go.
+    # as we go.  Prefer include, but ban if there is no other choice.
+    WORKING_NODE: while ( ++$working_ix < @{$prioritized_nodes} ) {
+
+        my $decision = $prioritized_decisions->[$working_ix];
+
+        # If a decision is already made for this node, move on
+        next WORKING_NODES if defined $decision;
+
+        # This prioritized node is not yet decided.  Include it,
+        # and work out all its implications.
+        $prioritized_decisions->[$working_ix] = $working_ix;
+
+        push @{$journal},
+            [ Marpa::Internal::Journal_Tag::NODE_ITERATION, $working_ix ];
+
+        my $and_node   = $prioritized_nodes->[$working_ix];
+        my $or_node_id = $and_node->[Marpa::Internal::And_Node::PARENT_NODE];
+        my $or_node    = $or_nodes->[$or_node_id];
+        my $working_choice =
+            $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+
+        # Having chosen this working node, ban all the alternatives
+        # to it
+        my $alternative_nodes =
             $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        for my $and_node ( @{$or_node_children} ) {
-            my $rule           = $and_node->[Marpa::Internal::And_Node::RULE];
-            my $record_counter = @and_nodes;
-            push @and_nodes, $and_node;
 
-            my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
-            $user_priority //= 0;
-            ## a non-zero user priority makes an and-node interesting
+        ALTERNATIVE_NODE:
+        for my $alternative_node (
+            @{$alternative_nodes}[
+                ( 0 .. $working_choice - 1 ),
+                ( $working_choice + 1 .. $#{$alternative_nodes} )
+            ]
+            )
+        {
+            my $alternative_id = $alternative_nodes
+                ->[Marpa::Internal::And_Node::PRIORITIZED_ID];
 
-            my $internal_priority =
-                $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
-            $internal_priority //= 0;
+            my $alternative_decision =
+                $prioritized_decisions->[$alternative_id];
 
-            # is this and-node interesting for priority purposes?
-            ## any non-zero priority makes an and-node interesting
-            my $interesting = $user_priority || $internal_priority;
+            # if the alternative has not been decided, mark it banned
+            if ( not defined $alternative_decision ) {
 
-            my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
-            my $laziness = 0;
-            if ( defined $is_hasty ) {
+                $prioritized_decisions->[$alternative_id] = BANNED;
 
-                # a hasty or lazy and-node is interesting
-                $interesting = 1;
+                # Note the journal does not actually record that the node
+                # was banned, just the node about which a decision was
+                # made, and what value to use for the decision if this
+                # decision is undone.  In this case, the decision would
+                # go back to no decision -- undefined.
+                push @{$journal},
+                    [
+                    Marpa::Internal::Journal_Tag::IMPLICATION,
+                    $alternative_id, undef
+                    ];
 
-                $laziness = $end_earleme - $start_earleme;
-                if ($is_hasty) {
-                    $laziness = $beyond_last_earleme - $laziness;
-                }
-            } ## end if ( defined $is_hasty )
+                next ALTERNATIVE_NODE;
 
-            # only sort interesting and-nodes by location
-            my $location = $interesting ? $start_earleme : 0;
+            } ## end if ( not defined $alternative_decision )
 
-            push @decorated_indexes,
-                (
-                pack 'U*', $location, $user_priority, $internal_priority,
-                $laziness, $record_counter
+            if ( $alternative_decision == BANNED ) {
+                Marpa::exception(
+                    "Function not yet implemented\n",
+                    "Will need to backtrack on attempt to ban node already included\n"
                 );
-        } ## end for my $and_node ( @{$or_node_children} )
-    } ## end for my $or_node ( @{$or_nodes} )
+            } ## end if ( $alternative_decision == BANNED )
 
-    @and_nodes =
-        @and_nodes[ map { ( unpack 'U*', $_ )[-1] } @decorated_indexes ];
+            if ( $alternative_decision == $working_ix ) {
+                Marpa::exception(
+                    "Function not yet implemented\n",
+                    "Will need to backtrack on cycle while banning alternatives\n"
+                );
+            } ## end if ( $alternative_decision == $working_ix )
+
+            # At this point the alternative node was included at a
+            # previous working node.  Update the index, and record
+            # the new, implied decision in the journal.
+            # Include the previous decision value
+            # so we can back the decision out if
+            # necessary.
+            $prioritized_decisions->[$alternative_id] = $working_ix;
+            push @{$journal},
+                [
+                Marpa::Internal::Journal_Tag::IMPLICATION, $alternative_id,
+                $alternative_decision
+                ];
+
+        } ## end for my $alternative_node ( @{$alternative_nodes}[ ( 0...
+        ## End ALTERNATIVE_NODE
+
+    } ## end while ( ++$working_ix < @{$prioritized_nodes} )
+    ## End PRIORITIZED_NODE
 
     my @work_list;
 
