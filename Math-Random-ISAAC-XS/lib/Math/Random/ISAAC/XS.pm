@@ -88,14 +88,67 @@ XSLoader::load(__PACKAGE__, $VERSION);
 
 Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Math::Random::ISAAC::XS
+
+You can also look for information at:
+
+=over
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Math-Random-ISAAC-XS>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Math-Random-ISAAC-XS>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Math-Random-ISAAC-XS>
+
+=item * CPAN Request Tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC-XS>
+
+=item * CPAN Testing Service (Kwalitee Tests)
+
+L<http://cpants.perl.org/dist/overview/Math-Random-ISAAC-XS>
+
+=item * CPAN Testers Platform Compatibility Matrix
+
+L<http://www.cpantesters.org/show/Math-Random-ISAAC-XS.html>
+
+=back
+
+=head1 REPOSITORY
+
+You can access the most recent development version of this module at:
+
+L<http://svn.ali.as/cpan/trunk/Math-Random-ISAAC-XS>
+
+If you are a CPAN developer and would like to make modifications to the code
+base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the repository
+administrator. I only ask that you contact me first to discuss the changes you
+wish to make to the distribution.
+
+=head1 FEEDBACK
+
+Please send relevant comments, rotten tomatoes and suggestions directly to the
+maintainer noted above.
+
+If you have a bug report or feature request, please file them on the CPAN
+Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
+report in the form of failing unit tests, you are B<strongly> encouraged to do
+so. Regular bug reports are always accepted and appreciated via the CPAN bug
+tracker.
+
 =head1 SEE ALSO
 
 L<Math::Random::ISAAC>
-
-=head1 SUPPORT
-
-Please file bugs for this module under the C<Math::Random::ISAAC>
-distribution. For more information, see L<Math::Random::ISAAC>'s perldoc.
 
 =head1 LICENSE
 

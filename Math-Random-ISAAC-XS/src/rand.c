@@ -40,14 +40,14 @@
 }
 #define mix(a,b,c,d,e,f,g,h) \
 { \
-   a^=b<<11; d+=a; b+=c; \
-   b^=c>>2;  e+=b; c+=d; \
-   c^=d<<8;  f+=c; d+=e; \
-   d^=e>>16; g+=d; e+=f; \
-   e^=f<<10; h+=e; f+=g; \
-   f^=g>>4;  a+=f; g+=h; \
-   g^=h<<8;  b+=g; h+=a; \
-   h^=a>>9;  c+=h; a+=b; \
+  a^=b<<11; d+=a; b+=c; \
+  b^=c>>2;  e+=b; c+=d; \
+  c^=d<<8;  f+=c; d+=e; \
+  d^=e>>16; g+=d; e+=f; \
+  e^=f<<10; h+=e; f+=g; \
+  f^=g>>4;  a+=f; g+=h; \
+  g^=h<<8;  b+=g; h+=a; \
+  h^=a>>9;  c+=h; a+=b; \
 }
 #define shuffle(a, b, mm, m, m2, r, x) \
 { \
@@ -87,13 +87,13 @@ void isaac(randctx *ctx)
 void randinit(randctx *ctx)
 {
   ub4 a, b, c, d, e, f, g, h;
-
-  ub4 *m = ctx->randmem;
-  ub4 *r = ctx->randrsl;
-
+  ub4 *m, *r;
   int i; /* for loop incrementing variable */
 
-  ctx->randa = ctx->randb = ctx->randc = 0;
+  m = ctx->randmem;
+  r = ctx->randrsl;
+
+  ctx->randa = ctx->randb = ctx->randc = (ub4)0;
 
   /* Initialize a to h with the golden ratio */
   a=b=c=d=e=f=g=h = 0x9e3779b9;
