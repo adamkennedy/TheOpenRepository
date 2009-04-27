@@ -96,7 +96,7 @@ sub svn_subdir {
 sub extract {
 	my $self = shift;
 	unless ( $self->{extract_path} ) {
-		my $temp = File::Temp::tempdir(@_);
+		my $temp = File::Temp::tempdir( CLEANUP => 1 );
 		my $ae   = Archive::Extract->new(
 			archive => $self->path,
 		);

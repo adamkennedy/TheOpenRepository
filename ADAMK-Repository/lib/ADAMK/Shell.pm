@@ -163,7 +163,7 @@ sub report_changed_versions {
 
 		# Skip if there are no external commits
 		my @external = grep {
-			$_->author ne 'adamk@cpan.org'
+			$_->author !~ /^adam/
 		} @entries;
 		if ( @_ and not @external ) {
 			next;

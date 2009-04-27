@@ -51,7 +51,7 @@ sub trace {
 
 sub checkout {
 	my $self = shift;
-	my $path = File::Temp::tempdir(@_);
+	my $path = File::Temp::tempdir( CLEANUP => 1 );
 	my $url  = $self->svn_url;
 	$self->repository->svn_checkout( $url, $path );
 
@@ -66,7 +66,7 @@ sub checkout {
 sub export {
 	my $self     = shift;
 	my $revision = shift;
-	my $path     = File::Temp::tempdir(@_);
+	my $path     = File::Temp::tempdir( CLEANUP => 1 );
 	my $url      = $self->svn_url;
 	$self->repository->svn_export( $url, $path, $revision );
 
