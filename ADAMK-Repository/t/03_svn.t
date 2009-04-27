@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 114 );
+		plan( tests => 115 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
@@ -40,22 +40,22 @@ is( $repository->path, $ENV{ADAMK_CHECKOUT}, '->path ok' );
 #####################################################################
 # SVN Methods
 
-my $hash = $repository->svn_info;
-is( ref($hash), 'HASH', '->svn_info' );
+my $info = $repository->info;
+isa_ok( $info, 'ADAMK::SVN::Info' );
 is(
-	$repository->svn_url,
+	$info->url,
 	'http://svn.ali.as/cpan',
-	'svn_info: Repository Root ok',
+	'info: Repository Root ok',
 );
 is(
-	$hash->{RepositoryUUID},
+	$info->{RepositoryUUID},
 	$uuid,
-	'svn_info: Repository UUID ok',
+	'info: Repository UUID ok',
 );
 is(
-	$hash->{NodeKind},
+	$info->{NodeKind},
 	'directory',
-	'svn_info: Node Kind ok',
+	'info: Node Kind ok',
 );
 
 
@@ -74,17 +74,19 @@ SCOPE: {
 		-f catfile($_->path, 'Changes')
 	} $repository->distributions_released;
 	foreach my $distribution ( sort @distributions[0 .. 25] ) {
-		my $info = $distribution->svn_info;
-		is( ref($info), 'HASH', $distribution->name . ': ->svn_info ok' );
+		my $info = $distribution->info;
+		isa_ok( $info, 'ADAMK::SVN::Info' );
 	}
 
-	# Check a typical svn_info
-	my $first        = $distributions[0];
+	# Check a typical info
+	my $first = $distributions[0];
 	diag("Testing " . $first->name . "\n");
-	my $url          = $first->svn_url;
-	my $last_changed = $first->svn_revision;
-	like( $url,          qr/^http:\/\/svn\.ali\.as\/cpan/, '->svn_url ok' );
-	like( $last_changed, qr/^\d+$/, '->last_changed ok' );
+	my $info = $first->info;
+	isa_ok( $info, 'ADAMK::SVN::Info' );
+	my $url      = $info->url;
+	my $revision = $info->revision;
+	like( $url, qr/^http:\/\/svn\.ali\.as\/cpan/, '->url ok' );
+	like( $revision, qr/^\d+$/, '->revision ok' );
 
 	# Check Changes file in the current distribution
 	SCOPE: {
@@ -106,8 +108,8 @@ SCOPE: {
 		ok( -f catfile($path, 'Makefile.PL'), '->export/Makefile.PL exists' );
 
 		# Test svn info in checkouts
-		my $info = $checkout->svn_info;
-		is( ref($info), 'HASH', '->svn_info returns a HASH' );
+		my $info = $checkout->info;
+		isa_ok( $info, 'ADAMK::SVN::Info' );
 		is( $info->{RepositoryUUID}, $uuid, 'RepositoryUUID ok' );
 
 		# Test Changes integration
@@ -125,7 +127,7 @@ SCOPE: {
 
 	# Export a distribution
 	SCOPE: {
-		my $export = $first->export( $last_changed );
+		my $export = $first->export( $revision );
 		isa_ok( $export, 'ADAMK::Distribution::Export' );
 		isa_ok( $export->distribution, 'ADAMK::Distribution' );
 		isa_ok( $export->repository,   'ADAMK::Repository'   );
@@ -154,15 +156,15 @@ SCOPE: {
 		-f catfile($_->path, 'Changes')
 	} $repository->distributions_released;
 	foreach my $release ( sort @releases[0 .. 25] ) {
-		my $info = $release->svn_info;
-		is( ref($info), 'HASH', $release->file . ': ->svn_info ok' );
+		my $info = $release->info;
+		isa_ok( $info, 'ADAMK::SVN::Info' );
 		isa_ok( $release->distribution, 'ADAMK::Distribution' );
 	}
 
-	# Check a typical svn_info
-	my $first    = $releases[0];
+	# Check a typical info
+	my $first = $releases[0];
 	diag("Testing " . $first->file . "\n");
-	my $revision = $first->svn_revision;
+	my $revision = $first->info->revision;
 	like( $revision, qr/^\d+$/, '->revision ok ok' );
 
 	# Export a release
@@ -203,6 +205,6 @@ SCOPE: {
 	my $latest = $dist->latest;
 	isa_ok( $latest, 'ADAMK::Release' );
 
-	my $revision = $latest->svn_revision;
-	is( $revision, 1370, '->svn_revision returns expected version' );
+	my $revision = $latest->info->revision;
+	is( $revision, 1370, '->info->revision returns expected version' );
 }

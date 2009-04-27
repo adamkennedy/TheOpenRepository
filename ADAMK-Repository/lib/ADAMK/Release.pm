@@ -71,14 +71,14 @@ sub trunk {
 #####################################################################
 # SVN Integration
 
-sub svn_info {
+sub info {
 	my $self = shift;
-	$self->SUPER::svn_info($self->file);
+	$self->SUPER::info( $self->file, { cache => 1 } );
 }
 
 sub svn_commit {
 	my $self = shift;
-	$self->SUPER::svn_info($self->file);
+	$self->SUPER::svn_commit($self->file);
 }
 
 sub svn_subdir {
@@ -121,7 +121,7 @@ sub export {
 	unless ( $self->trunk ) {
 		die("Cannot export non-trunk release " . $self->file);
 	}
-	$self->distribution->export( $self->svn_revision, @_ );
+	$self->distribution->export( $self->info->revision, @_ );
 }
 
 sub clear {

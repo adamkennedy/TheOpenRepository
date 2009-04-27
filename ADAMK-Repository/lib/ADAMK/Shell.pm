@@ -75,9 +75,9 @@ sub module {
 	}
 
 	# Find the list of changes
-	my $from    = $dist->latest->svn_revision;
-	my $to      = $dist->svn_revision;
-	my @entries = $dist->svn_log('-r', "$from:$to");
+	my $from    = $dist->latest->info->revision;
+	my $to      = $dist->info->revision;
+	my @entries = $dist->svn_log( '-r', "$from:$to", { cache => 1 } );
 
 	# Show the information
 	my $changes = $dist->changes;
@@ -89,9 +89,9 @@ sub module {
 		( $changes ?
 			[ 'Trunk   Version', $changes->current->version ]
 		: () ),
-		[ 'Trunk   Revision', $dist->svn_revision ],
-		[ 'Trunk   Author',   $dist->svn_author ],
-		[ 'Trunk   Date',     $dist->svn_date ],
+		[ 'Trunk   Revision', $dist->info->revision ],
+		[ 'Trunk   Author',   $dist->info->author ],
+		[ 'Trunk   Date',     $dist->info->date ],
 		( map {
 			my $revision = $_->revision;
 			my $message  = $_->author . ' - ' . $_->message;
@@ -101,9 +101,9 @@ sub module {
 		} @entries ),
 		( $release ? (
 			[ 'Release Version',  $release->version      ],
-			[ 'Release Revision', $release->svn_revision ],
-			[ 'Release Author',   $release->svn_author   ],
-			[ 'Release Date',     $release->svn_date     ],
+			[ 'Release Revision', $release->info->revision ],
+			[ 'Release Author',   $release->info->author   ],
+			[ 'Release Date',     $release->info->date     ],
 		) : () ),
 	);
 }
@@ -168,9 +168,9 @@ sub report_changed_versions {
 		}
 
 		# How many log entries are there from the last release
-		my $from     = $dist->latest->svn_revision;
-		my $to       = $dist->svn_revision;
-		my @entries  = $dist->svn_log('-r', "$from:$to");
+		my $from     = $dist->latest->info->revision;
+		my $to       = $dist->info->revision;
+		my @entries  = $dist->svn_log( '-r', "$from:$to", { cache => 1 } );
 
 		# Skip if there are no external commits
 		my @external = grep {
@@ -186,7 +186,7 @@ sub report_changed_versions {
 			$release,
 			scalar(@entries),
 			scalar(@external),
-			$dist->svn_author,
+			$dist->info->author,
 		];
 	}
 

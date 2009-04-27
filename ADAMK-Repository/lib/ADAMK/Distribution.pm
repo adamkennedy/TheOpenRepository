@@ -53,11 +53,11 @@ sub trace {
 sub checkout {
 	my $self = shift;
 	my $path = File::Temp::tempdir( CLEANUP => 1 );
-	my $url  = $self->svn_url;
+	my $url  = $self->info->url;
 	$self->repository->svn_checkout( $url, $path );
 
 	# Create and return an ADAMK::Distribution::Checkout object
-	return ADAMK::Distribution::Checkout->new(
+	ADAMK::Distribution::Checkout->new(
 		name         => $self->name,
 		path         => $path,
 		distribution => $self,
@@ -68,11 +68,11 @@ sub export {
 	my $self     = shift;
 	my $revision = shift;
 	my $path     = File::Temp::tempdir( CLEANUP => 1 );
-	my $url      = $self->svn_url;
+	my $url      = $self->info->url;
 	$self->repository->svn_export( $url, $path, $revision );
 
 	# Create and return an ADAMK::Distribution::Export object
-	return ADAMK::Distribution::Export->new(
+	ADAMK::Distribution::Export->new(
 		name         => $self->name,
 		path         => $path,
 		distribution => $self,
