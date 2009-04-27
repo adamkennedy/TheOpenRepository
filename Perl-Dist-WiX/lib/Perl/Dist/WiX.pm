@@ -1314,14 +1314,21 @@ sub install_perl_toolchain {
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal }
 		  {$module_id} ? 1 : 0;
+#<<<
 		$self->install_distribution(
 			name              => $dist,
 			mod_name          => $self->_module_fix($module_id),
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
-			$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
+			$core
+			  ? (
+				  makefilepl_param => ['INSTALLDIRS=perl'],
+				  buildpl_param => ['--installdirs core'],
+				)
+			  : (),
 		);
+#>>>
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	return 1;
@@ -1474,21 +1481,29 @@ END_PERL
 
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
-
+	$force = $force or $self->force;
+	my $perl_version = $self->perl_version_literal;
+#<<<
 	my $core =
-	  exists $Module::CoreList::version{ $self->perl_version_literal }
-	  { $module->id } ? 1 : 0;
+	  exists $Module::CoreList::version{ $perl_version }{ $module->id }
+	  ? 1
+	  : 0;
 	my $module_file = substr $module->cpan_file, 5;
 	my $module_id = $self->_module_fix( $module->id );
 	$self->install_distribution(
 		name     => $module_file,
 		mod_name => $module_id,
-		$core ? ( makefilepl_param => ['INSTALLDIRS=perl'] ) : (),
-		(        $self->force
-			  or $force
-		  ) ? ( force => 1 ) : (),
+		$core
+		  ? (
+		      makefilepl_param => ['INSTALLDIRS=perl'],
+			  buildpl_param => ['--installdirs core'],
+		    )
+		  : (),
+		$force
+		  ? ( force => 1 )
+		  : (),
 	);
-
+#>>>
 	return 1;
 } ## end sub _install_cpan_module
 
@@ -2952,7 +2967,7 @@ sub install_distribution {
 
 		$self->trace_line( 2, "Configuring $name...\n" );
 		$buildpl
-		  ? $self->_perl( 'Build.PL',    @{ $dist->makefilepl_param } )
+		  ? $self->_perl( 'Build.PL',    @{ $dist->{buildpl_param} } )
 		  : $self->_perl( 'Makefile.PL', @{ $dist->makefilepl_param } );
 
 		$self->trace_line( 1, "Building $name...\n" );
