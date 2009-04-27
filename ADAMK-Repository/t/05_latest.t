@@ -9,7 +9,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT}) {
-		plan( tests => 12 );
+		plan( tests => 48 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
@@ -24,30 +24,104 @@ use ADAMK::Repository;
 # Simple Constructor
 
 my $repository = ADAMK::Repository->new(
-	path => $ENV{ADAMK_CHECKOUT},
+	path    => $ENV{ADAMK_CHECKOUT},
+	preload => 1,
 );
 isa_ok( $repository, 'ADAMK::Repository' );
 
+# Get the test distribution
+my $distribution = $repository->distribution('Archive-Zip');
+isa_ok( $distribution, 'ADAMK::Distribution' );
 
+# Test the latest release
+SCOPE: {
+	my $release = $distribution->latest;
+	isa_ok( $release, 'ADAMK::Release' );
+	ok( -d $release->directory, '->directory ok' );
+	is( $release->distname, 'Archive-Zip', '->distribution ok' );
+	is( $release->file, 'Archive-Zip-1.27_01.tar.gz', '->file ok' );
+	ok( -f $release->path, "->path exists at " . $release->path );
+	isa_ok( $release->repository, 'ADAMK::Repository' );
+	is( $release->version, '1.27_01', '->version ok' );
 
+	# Extract it for examination
+	my $extract = $release->extract;
+	isa_ok( $extract, 'ADAMK::Release::Extract' );
+	ok( -d $extract->path, '->extract ok' );
 
+	# Find the version of Module::Install used for this release
+	is( $extract->inc_mi, undef, '->inc_mi ok' );
+}
 
-#####################################################################
-# Find the current version of a release
+# Test the latest stable release (it should be different)
+SCOPE: {
+	my $release = $distribution->stable;
+	isa_ok( $release, 'ADAMK::Release' );
+	ok( -d $release->directory, '->directory ok' );
+	is( $release->distname, 'Archive-Zip', '->distribution ok' );
+	is( $release->file, 'Archive-Zip-1.26.tar.gz', '->file ok' );
+	ok( -f $release->path, "->path exists at " . $release->path );
+	isa_ok( $release->repository, 'ADAMK::Repository' );
+	is( $release->version, '1.26', '->version ok' );
 
-my $release = $repository->release_latest('Config-Tiny');
-isa_ok( $release, 'ADAMK::Release' );
-ok( -d $release->directory, '->directory ok' );
-is( $release->distname, 'Config-Tiny', '->distribution ok' );
-is( $release->file, 'Config-Tiny-2.12.tar.gz', '->file ok' );
-ok( -f $release->path, "->path exists at " . $release->path );
-isa_ok( $release->repository, 'ADAMK::Repository' );
-is( $release->version, '2.12', '->version ok' );
+	# Extract it for examination
+	my $extract = $release->extract;
+	isa_ok( $extract, 'ADAMK::Release::Extract' );
+	ok( -d $extract->path, '->extract ok' );
 
-# Extract it for examination
-my $extract = $release->extract;
-isa_ok( $extract, 'ADAMK::Release::Extract' );
-ok( -d $extract->path, '->extract ok' );
+	# Find the version of Module::Install used for this release
+	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+}
+
+# Test the oldest release
+SCOPE: {
+	my $release = $distribution->oldest;
+	isa_ok( $release, 'ADAMK::Release' );
+	ok( -d $release->directory, '->directory ok' );
+	is( $release->distname, 'Archive-Zip', '->distribution ok' );
+	is( $release->file, 'Archive-Zip-1.17_01.tar.gz', '->file ok' );
+	ok( -f $release->path, "->path exists at " . $release->path );
+	isa_ok( $release->repository, 'ADAMK::Repository' );
+	is( $release->version, '1.17_01', '->version ok' );
+
+	# Extract it for examination
+	my $extract = $release->extract;
+	isa_ok( $extract, 'ADAMK::Release::Extract' );
+	ok( -d $extract->path, '->extract ok' );
+
+	# Find the version of Module::Install used for this release
+	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+}
+
+# Test the oldest stable release (it should be different)
+SCOPE: {
+	my $release = $distribution->oldest_stable;
+	isa_ok( $release, 'ADAMK::Release' );
+	ok( -d $release->directory, '->directory ok' );
+	is( $release->distname, 'Archive-Zip', '->distribution ok' );
+	is( $release->file, 'Archive-Zip-1.18.tar.gz', '->file ok' );
+	ok( -f $release->path, "->path exists at " . $release->path );
+	isa_ok( $release->repository, 'ADAMK::Repository' );
+	is( $release->version, '1.18', '->version ok' );
+
+	# Extract it for examination
+	my $extract = $release->extract;
+	isa_ok( $extract, 'ADAMK::Release::Extract' );
+	ok( -d $extract->path, '->extract ok' );
+
+	# Find the version of Module::Install used for this release
+	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+}
+
+# Test something that should have M:I in use
+SCOPE: {
+	my $release = $repository->distribution('ADAMK-Repository')->oldest;
+	isa_ok( $release, 'ADAMK::Release' );
+	is( $release->version, '0.01', '->version ok' );
+	my $extract = $release->extract;
+	isa_ok( $extract, 'ADAMK::Release::Extract' );
+	is( $extract->inc_mi, '0.77', '->inc_mi is 0.85 as expected' );
+}
 
 # Run the Araxis tarball comparison
 SKIP: {

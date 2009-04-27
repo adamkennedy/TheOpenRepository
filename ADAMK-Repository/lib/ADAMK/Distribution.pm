@@ -3,6 +3,7 @@ package ADAMK::Distribution;
 use 5.008;
 use strict;
 use warnings;
+use List::Util        ();
 use File::Spec        ();
 use File::Temp        ();
 use File::pushd       ();
@@ -100,23 +101,23 @@ sub releases {
 }
 
 sub release {
-	my $self     = shift;
-	my @releases = grep {
-		$_->version eq $_[0]
-	} $self->releases;
-	return $releases[0];
+	List::Util::first { $_->version eq $_[1] } $_[0]->releases;
 }
 
 sub latest {
-	my $self     = shift;
-	my @releases = $self->releases;
-	return $releases[0];
+	($_[0]->releases)[0];
 }
 
 sub stable {
-	my $self     = shift;
-	my @releases = grep { $_->stable } $self->releases;
-	return $releases[0];
+	List::Util::first { $_->stable } $_[0]->releases;
+}
+
+sub oldest {
+	($_[0]->releases)[-1];
+}
+
+sub oldest_stable {
+	List::Util::first { $_->stable } reverse $_[0]->releases;
 }
 
 1;

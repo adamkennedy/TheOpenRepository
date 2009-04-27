@@ -29,6 +29,7 @@ use IO::ScalarArray         2.110 ();
 use CPAN::Version             5.5 ();
 use Archive::Extract         0.30 ();
 use Object::Tiny::XS         1.01 ();
+use ExtUtils::MakeMaker      6.50 ();
 use PPI                     1.203 ();
 use Module::Changes::ADAMK   0.10 ();
 use ADAMK::Util                   ();
@@ -72,10 +73,12 @@ sub new {
 	$self->{preload} = !! $self->{preload};
 
 	# Preload if we are into that sort of thing
-	$self->trace("Preloading releases...\n");
-	$self->{releases} = [ $self->releases ];
-	$self->trace("Preloading distributions...\n");
-	$self->{distributions} = [ $self->distributions ];
+	if ( $self->{preload} ) {
+		$self->trace("Preloading releases...\n");
+		$self->{releases} = [ $self->releases ];
+		$self->trace("Preloading distributions...\n");
+		$self->{distributions} = [ $self->distributions ];
+	}
 
 	return $self;
 }
@@ -202,19 +205,6 @@ sub releases {
 	}
 
 	return @releases;
-}
-
-# Releases for distributions currently on the trunk
-sub releases_trunk {
-	grep { $_->trunk } $_[0]->releases;
-}
-
-sub release_latest {
-	$_[0]->distribution($_[1])->latest;
-}
-
-sub release_version {
-	$_[0]->distribution($_[1])->release($_[2]);
 }
 
 

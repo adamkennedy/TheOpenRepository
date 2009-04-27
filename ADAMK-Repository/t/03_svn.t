@@ -17,7 +17,6 @@ BEGIN {
 use File::Spec::Functions ':ALL';
 use ADAMK::Repository;
 
-my $path = $ENV{ADAMK_CHECKOUT};
 my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
 
 
@@ -27,9 +26,12 @@ my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
 #####################################################################
 # Simple Constructor
 
-my $repository = ADAMK::Repository->new( path => $path );
+my $repository = ADAMK::Repository->new(
+	path    => $ENV{ADAMK_CHECKOUT},
+	preload => 1,
+);
 isa_ok( $repository, 'ADAMK::Repository' );
-is( $repository->path, $path, '->path ok' );
+is( $repository->path, $ENV{ADAMK_CHECKOUT}, '->path ok' );
 
 
 
@@ -144,11 +146,13 @@ SCOPE: {
 SCOPE: {
 	my @releases = sort {
 		rand() <=> rand()
+	} map {
+		$_->latest
 	} grep {
-		-f catfile($_->distribution->path, 'Makefile.PL')
+		-f catfile($_->path, 'Makefile.PL')
 		and
-		-f catfile($_->distribution->path, 'Changes')
-	} $repository->releases_trunk;
+		-f catfile($_->path, 'Changes')
+	} $repository->distributions_released;
 	foreach my $release ( sort @releases[0 .. 25] ) {
 		my $info = $release->svn_info;
 		is( ref($info), 'HASH', $release->file . ': ->svn_info ok' );

@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Carp              ();
+use ExtUtils::MM_Unix ();
 use ADAMK::Repository ();
 
 use vars qw{$VERSION @ISA};
@@ -63,17 +64,7 @@ sub inc_mi {
 	}
 
 	# Find the version
-	my $makefile = $self->_slurp($file);
-	unless ( $makefile =~ /use\s+inc::Module::Install\b/ ) {
-		# Doesn't use Module::Install
-		return undef;
-	}
-	unless ( $makefile =~ /use\s+inc::Module::Install(?:::DSL)?\s+([\d.]+)/ ) {
-		# Does not use a specific version of Module::Install
-		return 0;
-	}
-
-	return "$1";
+	return ExtUtils::MM_Unix->parse_version($file);
 }
 
 1;
