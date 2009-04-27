@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.172_005')->numify;
+use version; $VERSION = version->new('0.179_006')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1324,7 +1324,7 @@ sub install_perl_toolchain {
 			$core
 			  ? (
 				  makefilepl_param => ['INSTALLDIRS=perl'],
-				  buildpl_param => ['--installdirs core'],
+				  buildpl_param => ['--installdirs', 'core'],
 				)
 			  : (),
 		);
@@ -1496,7 +1496,7 @@ sub _install_cpan_module {
 		$core
 		  ? (
 		      makefilepl_param => ['INSTALLDIRS=perl'],
-			  buildpl_param => ['--installdirs core'],
+			  buildpl_param => ['--installdirs', 'core'],
 		    )
 		  : (),
 		$force
@@ -2876,7 +2876,7 @@ Returns true or throws an exception on error.
 
 =cut
 
-sub install_distribution {
+sub install_distribution { ## no critic 'ProhibitExcessComplexity'
 	my $self = shift;
 	my $dist = Perl::Dist::Asset::Distribution->new(
 		parent => $self,
@@ -2929,18 +2929,24 @@ sub install_distribution {
 	# Build using Build.PL if we have one...
 	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
 
+#<<<
 	# ... unless Module::Build is not installed.
-	unless ( ( -r catfile( catdir ( $self->image_dir, qw( perl site lib Module ) ) , 'Build.pm' ) )
-		or ( -r catfile( catdir ( $self->image_dir, qw( perl lib Module ) ) , 'Build.pm' ) ) )
+	unless ( ( -r catfile(
+				catdir( $self->image_dir, qw( perl site lib Module ) ),
+				'Build.pm'
+			) )
+		or ( -r catfile(
+				catdir( $self->image_dir, qw( perl lib Module ) ),
+				'Build.pm'
+			) ) )
 	{
 		$buildpl = 0;
-		unless ( -r catfile( $unpack_to, 'Makefile.PL' ) )
-		{
-			PDWiX->throw(
-				"Could not find Makefile.PL in $unpack_to (too early for Build.PL)\n");
+		unless ( -r catfile( $unpack_to, 'Makefile.PL' ) ) {
+			PDWiX->throw("Could not find Makefile.PL in $unpack_to".
+			  " (too early for Build.PL)\n");
 		}
-	}
-
+	} ## end unless ( ( -r catfile( catdir...
+#>>>
 	# Can't build version.pm using Build.PL until Module::Build
 	# has been upgraded.
 	if ( $module eq 'version' ) {
@@ -3250,7 +3256,7 @@ EOF
 		$fh->close;
 
 		my @files_list =
-		  map {
+		  map { ## no critic 'ProhibitComplexMappings'
 			my $t = $_;
 			chomp $t;
 			( $t =~ /\AInstalling [ ] (.*)\z/msx ) ? ($1) : ();
@@ -3259,8 +3265,8 @@ EOF
 		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
 		} else {
-			$self->trace_line ( 4, "Adding files:\n");
-			$self->trace_line ( 4, ' ' . join("\n ", @files_list) );  
+			$self->trace_line( 4, "Adding files:\n" );
+			$self->trace_line( 4, q{ } . join "\n ", @files_list );
 			$fl = Perl::Dist::WiX::Filelist->new->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl )
@@ -4721,19 +4727,13 @@ This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 
 =item 1.
 
-Need to add custom action to delete leftover files from perl
-installation (0.172)
+Create a distribution for handling the XML-generating parts 
+of Perl::Dist::WiX and depend on it (0.190)
 
 =item 2.
 
-Handle installing distributions that only contain a Build.PL 
-by executing the Build.PL (instead of throwing an exception)
-in install_distribution. (0.180)
-
-=item 3.
-
-Create a distribution for handling the XML-generating parts 
-of Perl::Dist::WiX and depend on it (0.180? 0.190?)
+Have an option to have WiX installed modules install in a 
+'vendor path' (0.190? 0.200?)
    
 =back
 
