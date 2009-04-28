@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.180   Not released yet
+0.180   Wed 29 Apr 2009
     1. If the .packlist is missing, attempt to use
        the debug.out file from the install stage
        to get a file list.
