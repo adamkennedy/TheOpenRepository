@@ -70,6 +70,7 @@ CPAN modules don't follow his guidelines all that closely.
 =cut
 
 package Marpa::Internal;
+use English qw( -no_match_vars );
 use Marpa::Internal;
 
 my @CARP_NOT = @Marpa::Internal::CARP_NOT;

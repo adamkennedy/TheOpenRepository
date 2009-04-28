@@ -6,21 +6,23 @@ no warnings 'recursion';
 use strict;
 use integer;
 
-package Marpa::Internal;
-
 use English qw( -no_match_vars );
 
 # Elements of the EARLEY ITEM structure
 # Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
 # LR(0) items.
 
-use Marpa::Offset Earley_item =>
+use Marpa::Offset qw(
 
-    # evaluator data
-    qw(NAME STATE TOKENS LINKS),
+    :package=Marpa::Internal::Earley_item
 
-    # temporary data
-    qw(PARENT SET);
+    NAME STATE TOKENS LINKS
+    =LAST_EVALUATOR_FIELD
+
+    PARENT SET
+    =LAST_FIELD
+
+);
 
 # We don't prune the Earley items because we want PARENT and SET
 # around for debugging
@@ -33,11 +35,16 @@ use Marpa::Offset Earley_item =>
 # SET    - the set this item is in, for debugging
 
 # Elements of the RECOGNIZER structure
-use Marpa::Offset Recognizer => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Recognizer
+
     GRAMMAR EARLEY_SETS CURRENT_SET
     =LAST_EVALUATOR_FIELD
+
     EARLEY_HASH FURTHEST_EARLEME EXHAUSTED
     PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
+
 );
 
 # GRAMMAR            - the grammar used
@@ -606,11 +613,11 @@ sub Marpa::Recognizer::earleme {
 } ## end sub Marpa::Recognizer::earleme
 
 # return values for text method
-package Marpa::Recognizer;
-use constant PARSING_STILL_ACTIVE => -2;
-use constant PARSING_EXHAUSTED    => -1;
-
-package Marpa::Internal::Recognizer;
+use Marpa::Offset qw(
+    :package=Marpa::Recognizer
+    PARSING_STILL_ACTIVE=-2
+    PARSING_EXHAUSTED=-1
+);
 
 sub Marpa::Recognizer::text {
     my $parse        = shift;

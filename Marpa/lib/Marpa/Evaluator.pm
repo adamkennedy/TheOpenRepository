@@ -28,14 +28,19 @@ use integer;
 
 # Saplings which become or-nodes when they grow up.
 
-package Marpa::Internal;
+use Marpa::Offset qw(
 
-use Marpa::Offset Or_Sapling => qw(
+    :package=Marpa::Internal::Or_Sapling
+
     NAME ITEM RULE
     POSITION CHILD_LHS_SYMBOL
+
 );
 
-use Marpa::Offset And_Node => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::And_Node
+
     NAME
     PREDECESSOR CAUSE
     VALUE_REF PERL_CLOSURE END_EARLEME
@@ -43,9 +48,13 @@ use Marpa::Offset And_Node => qw(
     PARENT_NODE
     PARENT_CHOICE
     PRIORITIZED_ID
+
 );
 
-use Marpa::Offset Or_Node => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Or_Node
+
     NAME ID PARENT_OR_NODES AND_NODES IS_COMPLETED
     START_EARLEME END_EARLEME
     PARENT_CHOICES
@@ -53,14 +62,20 @@ use Marpa::Offset Or_Node => qw(
 
 # IS_COMPLETED - is this a completed or-node?
 
-use Marpa::Offset Tree_Node => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Tree_Node
+
     OR_NODE CHOICE PREDECESSOR
     CAUSE DEPTH
     PERL_CLOSURE ARGC VALUE_REF
     RULE POSITION PARENT
 );
 
-use Marpa::Offset Evaluator => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Evaluator
+
     RECOGNIZER PARSE_COUNT OR_NODES
     TREE RULE_DATA PACKAGE
     NULL_VALUES CYCLES
@@ -73,7 +88,10 @@ use Marpa::Offset Evaluator => qw(
 # TREE         current evaluation tree
 
 # Tags for the Journal Entries
-use Marpa::Offset Journal_Tag => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Journal_Tag
+
     NODE_ITERATION
     FORK_ITERATION
     IMPLICATION
@@ -81,7 +99,12 @@ use Marpa::Offset Journal_Tag => qw(
 
 package Marpa::Internal::Evaluator;
 
-use Marpa::Offset Rule => qw(CODE PERL_CLOSURE);
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Evaluator_Rule
+    CODE PERL_CLOSURE
+
+);
 
 use Scalar::Util qw(weaken);
 use List::Util qw(min);
@@ -359,9 +382,9 @@ sub set_actions {
             }
 
             my $rule_datum;
-            $rule_datum->[Marpa::Internal::Evaluator::Rule::CODE] =
+            $rule_datum->[Marpa::Internal::Evaluator_Rule::CODE] =
                 'default to undef';
-            $rule_datum->[Marpa::Internal::Evaluator::Rule::PERL_CLOSURE] =
+            $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
                 \undef;
             $rule_data->[$rule_id] = $rule_datum;
             next RULE;
@@ -402,8 +425,8 @@ sub set_actions {
         } ## end if ( not $closure or @warnings )
 
         my $rule_datum;
-        $rule_datum->[Marpa::Internal::Evaluator::Rule::CODE] = $code;
-        $rule_datum->[Marpa::Internal::Evaluator::Rule::PERL_CLOSURE] =
+        $rule_datum->[Marpa::Internal::Evaluator_Rule::CODE] = $code;
+        $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
             $closure;
 
         $rule_data->[$rule_id] = $rule_datum;
@@ -522,7 +545,7 @@ sub Marpa::Evaluator::new {
 
         my $closure =
             $rule_data->[ $start_rule->[Marpa::Internal::Rule::ID] ]
-            ->[Marpa::Internal::Evaluator::Rule::PERL_CLOSURE];
+            ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
 
         my $or_node  = [];
         my $and_node = [];
@@ -612,7 +635,7 @@ sub Marpa::Evaluator::new {
                 my $rhs = $rule->[Marpa::Internal::Rule::RHS];
                 my $closure =
                     $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
-                    ->[Marpa::Internal::Evaluator::Rule::PERL_CLOSURE];
+                    ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
 
                 my $last_position = @{$rhs} - 1;
                 push @and_saplings,
@@ -1315,7 +1338,7 @@ sub Marpa::Evaluator::new_value {
                 my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
                 my $code =
                     $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
-                    ->[Marpa::Internal::Evaluator::Rule::CODE];
+                    ->[Marpa::Internal::Evaluator_Rule::CODE];
                 Marpa::Internal::code_problems(
                     {   fatal_error => $fatal_error,
                         grammar     => $grammar,
@@ -1755,7 +1778,7 @@ sub Marpa::Evaluator::value {
                     my $rule = $node->[ Marpa::Internal::Tree_Node::RULE, ];
                     my $code =
                         $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
-                        ->[Marpa::Internal::Evaluator::Rule::CODE];
+                        ->[Marpa::Internal::Evaluator_Rule::CODE];
                     Marpa::Internal::code_problems(
                         {   fatal_error => $fatal_error,
                             grammar     => $grammar,

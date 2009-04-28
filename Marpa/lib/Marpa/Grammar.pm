@@ -20,9 +20,10 @@ what in C would be structures.
 
 =cut
 
-package Marpa::Internal;
+use Marpa::Offset qw(
 
-use Marpa::Offset Symbol => qw(
+    :package=Marpa::Internal::Symbol
+
     ID NAME
     =LAST_BASIC_DATA_FIELD
 
@@ -65,7 +66,10 @@ use Marpa::Offset Symbol => qw(
 # IS_CHAF_NULLING - if CHAF nulling lhs, ref to array
 #                   of rhs symbols
 
-use Marpa::Offset Rule => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Rule
+
     ID NAME LHS RHS
     =LAST_BASIC_DATA_FIELD
 
@@ -107,7 +111,10 @@ CYCLE - is this rule part of a cycle?
 
 =cut
 
-use Marpa::Offset NFA => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::NFA
+
     ID NAME ITEM TRANSITION AT_NULLING COMPLETE
 );
 
@@ -122,7 +129,10 @@ COMPLETE - rule is complete?
 
 =cut
 
-use Marpa::Offset QDFA => qw(
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::QDFA
+
     ID NAME TAG
     =LAST_BASIC_DATA_FIELD
 
@@ -154,9 +164,19 @@ RESET_ORIGIN   - reset origin for this state?
 
 =cut
 
-use Marpa::Offset LR0_item => qw(RULE POSITION);
+use Marpa::Offset qw(
 
-use Marpa::Offset Grammar => qw(
+    :package=Marpa::Internal::LR0_item
+
+    RULE
+    POSITION
+
+);
+
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Grammar
+
     ID NAME VERSION
     RULES SYMBOLS QDFA
     PHASE DEFAULT_ACTION
@@ -243,10 +263,13 @@ CYCLE_ACTION - ref to array of the start states
 
 =cut
 
-package Marpa::Internal;
-
 # values for grammar interfaces
-use Marpa::Offset Interface => qw(RAW MDL);
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Interface
+    RAW MDL
+
+);
 
 sub Marpa::Internal::Interface::description {
     my $interface = shift;
@@ -257,8 +280,13 @@ sub Marpa::Internal::Interface::description {
 } ## end sub Marpa::Internal::Interface::description
 
 # values for grammar phases
-use Marpa::Offset Phase =>
-    qw(NEW RULES PRECOMPUTED RECOGNIZING RECOGNIZED EVALUATING);
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Phase
+    NEW RULES
+    PRECOMPUTED RECOGNIZING RECOGNIZED EVALUATING
+
+);
 
 sub Marpa::Internal::Phase::description {
     my $phase = shift;
