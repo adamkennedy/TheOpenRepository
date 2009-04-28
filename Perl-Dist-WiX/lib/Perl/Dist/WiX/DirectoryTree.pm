@@ -18,7 +18,7 @@ use     Params::Util          qw( _IDENTIFIER _STRING            );
 use     File::Spec::Functions qw( catdir                         );
 require Perl::Dist::WiX::Directory;
 
-use version; $VERSION = version->new('0.170')->numify;
+use version; $VERSION = version->new('0.180')->numify;
 #>>>
 #####################################################################
 # Accessors:

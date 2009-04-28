@@ -8,7 +8,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.171.
+This document describes Perl::Dist::WiX version 0.180.
 
 =head1 DESCRIPTION
 
@@ -82,7 +82,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.179_006')->numify;
+use version; $VERSION = version->new('0.180')->numify;
 
 use Object::Tiny qw(
   perl_version
