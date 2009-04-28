@@ -86,6 +86,9 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
               <Directory Id=\'D_67BDAD54_8AF2_3313_B99C_62A8AE59118E\' Name=\'Archive\' />
               <Directory Id=\'D_D418317F_43AB_3EB9_AE5D_B0C6801D54AD\' Name=\'B\' />
               <Directory Id=\'D_B5A75E38_F946_3B45_89F6_C763580585B6\' Name=\'Compress\' />
+              <Directory Id=\'D_A96FBF1E_B301_3164_873D_D40ACE2D9864\' Name=\'CPANPLUS\'>
+                <Directory Id=\'D_BECEA52C_7BB5_3E87_8F6E_6C92B20C401C\' Name=\'Dist\' />
+              </Directory>
               <Directory Id=\'D_44A4B802_8C4F_35FB_A899_E94A0E835B7C\' Name=\'Devel\'>
                 <Directory Id=\'D_763BE847_3480_39B3_81AF_EC866C9B46DE\' Name=\'PPPort\' />
               </Directory>
@@ -156,6 +159,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
               <Directory Id=\'D_93051433_B6F7_3599_97B2_700071DA0864\' Name=\'Term\' />
               <Directory Id=\'D_14F9992E_A451_3D44_AD43_D3A367B02031\' Name=\'Win32\' />
               <Directory Id=\'D_8F84FF33_C4AD_3F0F_A048_EFA5F61F6E82\' Name=\'Win32API\' />
+              <Directory Id=\'D_59F9E423_78C9_325F_9D07_D8905A999769\' Name=\'YAML\' />
               <Directory Id=\'D_7212C99C_98FC_3CC2_B32B_986926035439\' Name=\'auto\'>
                 <Directory Id=\'D_BC0402D3_9BD2_3987_B1B4_35EA398C6BEC\' Name=\'share\' />
                 <Directory Id=\'D_DC0D1A3F_F9FD_3308_A33D_00F4DAFF3A55\' Name=\'Archive\' />
@@ -171,6 +175,7 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
                 <Directory Id=\'D_EE6B1671_0C94_37EC_9C2E_84F5E42CA7BA\' Name=\'Term\' />
                 <Directory Id=\'D_C0D9F7F3_8AA7_3A70_810C_FC5FC5F9AA56\' Name=\'Win32\' />
                 <Directory Id=\'D_1F08A362_0240_3F08_B244_F218AF8B4BB6\' Name=\'Win32API\' />
+                <Directory Id=\'D_261F5472_6673_3900_8AA0_2A05FBE3602F\' Name=\'YAML\' />
               </Directory>
             </Directory>
           </Directory>

@@ -216,6 +216,8 @@ sub initialize_tree {
 		  perl\lib\auto\Archive
 		  perl\lib\auto\B
 		  perl\lib\auto\Compress
+		  perl\lib\auto\CPANPLUS
+		  perl\lib\auto\CPANPLUS\Dist
 		  perl\lib\auto\Devel
 		  perl\lib\auto\Devel\PPPort
 		  perl\lib\auto\Digest
@@ -269,6 +271,7 @@ sub initialize_tree {
 		  perl\site\lib\Term
 		  perl\site\lib\Win32
 		  perl\site\lib\Win32API
+		  perl\site\lib\YAML
 		  perl\site\lib\auto
 		  perl\site\lib\auto\share
 		  perl\site\lib\auto\Archive
@@ -282,6 +285,7 @@ sub initialize_tree {
 		  perl\site\lib\auto\Term
 		  perl\site\lib\auto\Win32
 		  perl\site\lib\auto\Win32API
+		  perl\site\lib\auto\YAML
 		  ), @dirs
 	);
 
