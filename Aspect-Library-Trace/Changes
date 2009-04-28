@@ -1,4 +1,7 @@
 Changes for Perl extension Aspect-Library-Trace
 
+0.02 Tue 28 Apr 2009
+	- Adding support for an import-based usage
+
 0.01 Tue 28 Apr 2009
 	- Created initial implementation

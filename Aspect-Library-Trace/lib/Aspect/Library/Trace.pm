@@ -8,8 +8,16 @@ use Aspect::Modular ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'Aspect::Modular';
+}
+
+sub import {
+	my $class = shift;
+	if ( ref($_[0]) eq 'Regexp' ) {
+		Aspect::aspect( Trace => Aspect::call($_[0]) );
+	}
+	return 1;
 }
 
 sub new {
@@ -66,8 +74,13 @@ B<Aspect::Library::Trace> is an L<Aspect> library that implements nested
 functional call tracing, in the style formerly offered by the C<dprofpp -T>
 command provided by L<Devel::DProf> (before that module became unusable).
 
+=head2 Conventional Usage
+
 The basic usage is very simple, just create an C<Trace> aspect as shown
 in the L</SYNOPSIS>.
+
+Load Aspect, then Aspect::Library::Trace, then create the aspect using
+the C<aspect> function.
 
 Any calls to functions described in the pointcut will be printed to
 C<STDERR>. Nesting is indicated via indenting.
@@ -75,6 +88,15 @@ C<STDERR>. Nesting is indicated via indenting.
 Because the depth is tracked at a per-Aspect level, you should avoid
 creating more than one trace Aspect or the indenting levels will be
 mixed up and the output will become largely meaningless.
+
+=head2 Import Usage
+
+For even more convenience (and even less typing) you can use the
+following shorthand 1-line form.
+
+  use Aspect::Library::Trace qr/^Module::/;
+
+When used this way, you also don't need to C<use Aspect>.
 
 =head1 SUPPORT
 
