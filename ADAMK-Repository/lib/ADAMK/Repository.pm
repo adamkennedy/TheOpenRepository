@@ -37,6 +37,7 @@ use PPI                     1.203 ();
 use ORLite::Migrate          0.03 ();
 use Module::Changes::ADAMK   0.10 ();
 use ADAMK::Util                   ();
+use ADAMK::SVN::Log               ();
 use ADAMK::SVN::Info              ();
 use ADAMK::Role::Trace            ();
 use ADAMK::Role::File             ();
@@ -49,7 +50,6 @@ use ADAMK::Release::Extract       ();
 use ADAMK::Distribution           ();
 use ADAMK::Distribution::Export   ();
 use ADAMK::Distribution::Checkout ();
-use ADAMK::SVN::Log               ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
