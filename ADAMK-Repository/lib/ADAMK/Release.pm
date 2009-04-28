@@ -131,4 +131,23 @@ sub clear {
 	return 1;
 }
 
+
+
+
+
+#####################################################################
+# ORDB::CPANTesters Integration
+
+sub cpan_testers {
+	require ORDB::CPANTesters;
+	ORDB::CPANTesters->import;
+	my $rows = ORDB::CPANTesters->selectall_arrayref(
+		'SELECT state, COUNT(*) AS count FROM cpanstats WHERE dist = ? and version = ? group by state',
+		{}, $_[0]->distname, $_[0]->version,
+	);
+	my %hash = ( map { uc($_->[0]) => $_->[1] } @$rows );
+	delete $hash{CPAN};
+	return \%hash;
+}
+
 1;
