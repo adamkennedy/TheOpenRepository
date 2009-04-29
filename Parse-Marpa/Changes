@@ -1,8 +1,8 @@
 Revision history for Parse::Marpa
 
-1.003_nnn Thu Feb 26
-
-    New series of developer's releases.
+1.004000 Wed Apr 29
+    Fixed RT#45136: Non-existent functions called on certain parse
+    errors.
 
 1.002000 Wed Jan 21
 
