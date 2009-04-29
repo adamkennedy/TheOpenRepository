@@ -7,18 +7,32 @@ use integer;
 
 sub import {
     my ( $class, @fields ) = @_;
-    my $pkg = caller;
-    if ( $fields[0] =~ /\A [:] package [=] /xms ) {
-        $pkg = shift @fields;
-        $pkg =~ s/ \A [:] package [=] //xms;
-    }
-    my $prefix = $pkg . q{::};
-    my $offset = -1;
+    my $pkg        = caller;
+    my $prefix     = $pkg . q{::};
+    my $offset     = -1;
+    my $in_comment = 0;
 
     ## no critic (TestingAndDebugging::ProhibitNoStrict)
     no strict 'refs';
     ## use critic
-    for my $field (@fields) {
+    FIELD: for my $field (@fields) {
+
+        if ($in_comment) {
+            $in_comment = $field ne ':}' && $field ne '}';
+            next FIELD;
+        }
+
+        PROCESS_OPTION: {
+            last PROCESS_OPTION if $field !~ /\A [{:] /xms;
+            if ( $field =~ / \A [:] package [=] (.*) /xms ) {
+                $prefix = $1 . q{::};
+                next FIELD;
+            }
+            if ( $field =~ / \A [:]? [{] /xms ) {
+                $in_comment++;
+                next FIELD;
+            }
+        } ## end PROCESS_OPTION:
 
         if ( $field !~ s/\A=//xms ) {
             $offset++;

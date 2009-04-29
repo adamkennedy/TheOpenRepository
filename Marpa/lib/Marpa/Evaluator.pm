@@ -41,13 +41,13 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::And_Node
 
-    NAME
+    NAME ID
     PREDECESSOR CAUSE
     VALUE_REF PERL_CLOSURE END_EARLEME
     ARGC RULE POSITION
     PARENT_NODE
     PARENT_CHOICE
-    PRIORITIZED_ID
+    PRIORITY
 
 );
 
@@ -55,15 +55,15 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Or_Node
 
-    NAME ID PARENT_OR_NODES AND_NODES IS_COMPLETED
+    NAME ID AND_NODES
+    IS_COMPLETED :{ is this a completed or-node? :}
     START_EARLEME END_EARLEME
-    PARENT_CHOICES
+    PARENTS
 );
-
-# IS_COMPLETED - is this a completed or-node?
 
 use Marpa::Offset qw(
 
+    :{ Will these be needed? :}
     :package=Marpa::Internal::Tree_Node
 
     OR_NODE CHOICE PREDECESSOR
@@ -76,25 +76,35 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator
 
-    RECOGNIZER PARSE_COUNT OR_NODES
-    TREE RULE_DATA PACKAGE
-    NULL_VALUES CYCLES
+    RECOGNIZER
+    PARSE_COUNT :{ number of parses in an ambiguous parse :}
+    OR_NODES
+    AND_NODES
+    TREE { current evaluation tree }
+    RULE_DATA
+    PACKAGE
+    NULL_VALUES
+    CYCLES { Will this be needed? }
     JOURNAL
     PRIORITIZED_NODES
     PRIORITIZED_DECISIONS
 );
-
-# PARSE_COUNT  number of parses in an ambiguous parse
-# TREE         current evaluation tree
 
 # Tags for the Journal Entries
 use Marpa::Offset qw(
 
     :package=Marpa::Internal::Journal_Tag
 
-    NODE_ITERATION
-    FORK_ITERATION
-    IMPLICATION
+    DECIDE_NODE { A decision to include a prioritized and node.
+    Banned and nodes cannot be iterated further and so are not
+    recorded in the journal. }
+
+    DECIDE_FORK { A decision to follow one branch of a fork
+    up the parse bocage. }
+
+    IMPLICATION { An implication of a decision.
+    The implication either includes or bans an and-node }
+
 );
 
 package Marpa::Internal::Evaluator;
@@ -502,7 +512,8 @@ sub Marpa::Evaluator::new {
     }
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
-    my $or_nodes = $self->[Marpa::Internal::Evaluator::OR_NODES] = [];
+    my $or_nodes  = $self->[Marpa::Internal::Evaluator::OR_NODES]  = [];
+    my $and_nodes = $self->[Marpa::Internal::Evaluator::AND_NODES] = [];
     $self->[Marpa::Internal::Evaluator::CYCLES] = {};
 
     my $current_parse_set = $parse_set_arg
@@ -566,6 +577,7 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::RULE]        = $start_rule;
         $and_node->[Marpa::Internal::And_Node::POSITION]    = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME] = 0;
+        $and_node->[Marpa::Internal::And_Node::ID]          = 0;
 
         push @{$or_nodes}, $or_node;
 
@@ -651,7 +663,7 @@ sub Marpa::Evaluator::new {
         my $start_earleme = $item->[Marpa::Internal::Earley_item::PARENT];
         my $end_earleme   = $item->[Marpa::Internal::Earley_item::SET];
 
-        my @and_nodes;
+        my @child_and_nodes;
 
         my $item_name = $item->[Marpa::Internal::Earley_item::NAME];
 
@@ -760,10 +772,12 @@ sub Marpa::Evaluator::new {
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME] =
                     $end_earleme;
-                $and_node->[Marpa::Internal::And_Node::NAME] =
-                    ( $sapling_name . '[' . ( scalar @and_nodes ) . ']' );
+                $and_node->[Marpa::Internal::And_Node::NAME] = (
+                    $sapling_name . '[' . ( scalar @child_and_nodes ) . ']' );
+                $and_node->[Marpa::Internal::And_Node::ID] = @{$and_nodes};
+                push @{$and_nodes}, $and_node;
 
-                push @and_nodes, $and_node;
+                push @child_and_nodes, $and_node;
 
             }    # for my $or_bud
 
@@ -773,18 +787,18 @@ sub Marpa::Evaluator::new {
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] =
             @{$or_nodes};
         $or_node->[Marpa::Internal::Or_Node::NAME]      = $sapling_name;
-        $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@and_nodes;
-        for my $and_node_choice ( 0 .. scalar @and_nodes ) {
-            my $and_node = $and_nodes[$and_node_choice];
+        $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
+        for my $and_node_choice ( 0 .. scalar @child_and_nodes ) {
+            my $and_node = $child_and_nodes[$and_node_choice];
             $and_node->[Marpa::Internal::And_Node::PARENT_NODE] = $or_node_id;
             $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
                 $and_node_choice;
-        } ## end for my $and_node_choice ( 0 .. scalar @and_nodes )
+        } ## end for my $and_node_choice ( 0 .. scalar @child_and_nodes)
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
-        $or_node->[Marpa::Internal::Or_Node::START_EARLEME]  = $start_earleme;
-        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]    = $end_earleme;
-        $or_node->[Marpa::Internal::Or_Node::PARENT_CHOICES] = [];
+        $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
+        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = $end_earleme;
+        $or_node->[Marpa::Internal::Or_Node::PARENTS]       = [];
         push @{$or_nodes}, $or_node;
         $or_node_by_name{$sapling_name} = $or_node;
 
@@ -796,10 +810,11 @@ sub Marpa::Evaluator::new {
     for my $parent_or_node ( @{$or_nodes} ) {
         my $parent_or_node_id =
             $parent_or_node->[Marpa::Internal::Or_Node::ID];
-        my $and_nodes =
+        my $child_and_nodes =
             $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        for my $choice ( 0 .. scalar @{$and_nodes} ) {
-            my $and_node = $and_nodes->[$choice];
+        for my $choice ( 0 .. scalar @{$child_and_nodes} ) {
+            my $and_node    = $child_and_nodes->[$choice];
+            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
 
             FIELD:
             for my $field (
@@ -811,12 +826,11 @@ sub Marpa::Evaluator::new {
                 next FIELD if not defined $name;
                 my $child_or_node = $or_node_by_name{$name};
                 $and_node->[$field] = $child_or_node;
-                push @{ $child_or_node
-                        ->[Marpa::Internal::Or_Node::PARENT_CHOICES] },
-                    [ $parent_or_node_id, $choice ];
+                push @{ $child_or_node->[Marpa::Internal::Or_Node::PARENTS] },
+                    $and_node_id;
             } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
-        } ## end for my $choice ( 0 .. scalar @{$and_nodes} )
+        } ## end for my $choice ( 0 .. scalar @{$child_and_nodes} )
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
     return $self;
@@ -999,6 +1013,16 @@ sub Marpa::Evaluator::set {
 # number
 use constant BANNED => -1;
 
+use Marpa::Offset qw(
+    { tasks for use in Marpa::Evaluator::value }
+    :package=Marpa::Internal::Task
+    DECIDE_NODES
+    BACKTRACK
+    INFER_FROM_INCLUDE
+    INFER_FROM_BAN
+    EVALUATE
+);
+
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
     my ($evaler) = @_;
@@ -1010,7 +1034,8 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $prioritized_nodes =
         $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES];
     my $prioritized_decisions =
@@ -1050,14 +1075,14 @@ sub Marpa::Evaluator::new_value {
     my $earleme_beyond_last =
         @{ $recognizer->[Marpa::Internal::Recognizer::EARLEY_SETS] };
 
-    my $working_ix;
+    my @tasks;
 
     if ( not defined $journal ) {
 
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
         # Note the use of Unicode for packing, which I've not seen anyone else do.
         my @decorated_indexes = ();
-        my @and_nodes         = ();
+        my @child_and_nodes   = ();
         OR_NODE: for my $or_node ( @{$or_nodes} ) {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
@@ -1067,8 +1092,8 @@ sub Marpa::Evaluator::new_value {
                 $or_node->[Marpa::Internal::Or_Node::AND_NODES];
             for my $and_node ( @{$or_node_children} ) {
                 my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-                my $record_counter = @and_nodes;
-                push @and_nodes, $and_node;
+                my $record_counter = @child_and_nodes;
+                push @child_and_nodes, $and_node;
 
                 my $user_priority =
                     $rule->[Marpa::Internal::Rule::USER_PRIORITY];
@@ -1109,11 +1134,12 @@ sub Marpa::Evaluator::new_value {
 
         $prioritized_nodes =
             $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
-            @and_nodes[ map { ( unpack 'U*', $_ )[-1] } @decorated_indexes ];
+            @child_and_nodes[ map { ( unpack 'U*', $_ )[-1] }
+            @decorated_indexes ];
 
         for my $node_ix ( 0 .. $#{$prioritized_nodes} ) {
             $prioritized_nodes->[$node_ix]
-                ->[Marpa::Internal::And_Node::PRIORITIZED_ID] = $node_ix;
+                ->[Marpa::Internal::And_Node::PRIORITY] = $node_ix;
         }
 
         # set the size
@@ -1121,261 +1147,413 @@ sub Marpa::Evaluator::new_value {
         $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
             $prioritized_decisions;
 
-        $working_ix = -1;
+        @tasks = ( [ Marpa::Internal::Task::DECIDE_NODES, 0 ] );
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
 
-    # TODO: insert new iteration logic here
+    scalar @tasks or @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
 
-    if ( scalar @{$journal} ) {
-        Marpa::exception('New evaluator: iteration not yet implemented');
-    }
+    TASK: while ( my $task_data = pop @tasks ) {
 
-    # Move down the priority list, including nodes as we go.
-    # as we go.  Prefer include, but ban if there is no other choice.
-    WORKING_NODE: while ( ++$working_ix < @{$prioritized_nodes} ) {
+        my $task = $task_data->[0];
 
-        my $decision = $prioritized_decisions->[$working_ix];
+        if ( $task == Marpa::Internal::Task::DECIDE_NODES ) {
 
-        # If a decision is already made for this node, move on
-        next WORKING_NODES if defined $decision;
+            my $working_priority = $task_data->[1];
 
-        # This prioritized node is not yet decided.  Include it,
-        # and work out all its implications.
-        $prioritized_decisions->[$working_ix] = $working_ix;
+            # Move down the priority list, including nodes as we go.
+            # as we go.  Prefer include, but ban if there is no other choice.
+            PRIORITY: while ( $working_priority < @{$prioritized_nodes} ) {
+                my $decision = $prioritized_decisions->[$working_priority];
 
-        push @{$journal},
-            [ Marpa::Internal::Journal_Tag::NODE_ITERATION, $working_ix ];
+                # If a decision is already made for this node, move on
+                next PRIORITY if defined $decision;
 
-        my $and_node   = $prioritized_nodes->[$working_ix];
-        my $or_node_id = $and_node->[Marpa::Internal::And_Node::PARENT_NODE];
-        my $or_node    = $or_nodes->[$or_node_id];
-        my $working_choice =
-            $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+                # This prioritized node is not yet decided.  Include it,
+                # and work out all its implications.
+                $prioritized_decisions->[$working_priority] =
+                    $working_priority;
 
-        # Having chosen this working node, ban all the alternatives
-        # to it
-        my $alternative_nodes =
-            $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+                push @{$journal},
+                    [
+                    Marpa::Internal::Journal_Tag::DECIDE_NODE,
+                    $working_priority
+                    ];
 
-        ALTERNATIVE_NODE:
-        for my $alternative_node (
-            @{$alternative_nodes}[
-                ( 0 .. $working_choice - 1 ),
-                ( $working_choice + 1 .. $#{$alternative_nodes} )
-            ]
-            )
-        {
-            my $alternative_id = $alternative_nodes
-                ->[Marpa::Internal::And_Node::PRIORITIZED_ID];
+                @tasks = ( [Marpa::Internal::Task::INFER_FROM_INCLUDE] );
+                next TASK
 
-            my $alternative_decision =
-                $prioritized_decisions->[$alternative_id];
+            } ## end while ( $working_priority < @{$prioritized_nodes} )
 
-            # if the alternative has not been decided, mark it banned
-            if ( not defined $alternative_decision ) {
+            # If we have reached the end of the priority list, evaluate
+            # the parse we have decided on
+            @tasks = ( [Marpa::Internal::Task::EVALUATE] );
+            next TASK;
 
-                $prioritized_decisions->[$alternative_id] = BANNED;
+        } ## end if ( $task == Marpa::Internal::Task::DECIDE_NODES )
 
-                # Note the journal does not actually record that the node
-                # was banned, just the node about which a decision was
-                # made, and what value to use for the decision if this
-                # decision is undone.  In this case, the decision would
-                # go back to no decision -- undefined.
+        if ( $task == Marpa::Internal::Task::INFER_FROM_INCLUDE ) {
+
+            my $working_priority = $task_data->[1];
+
+            my $and_node = $prioritized_nodes->[$working_priority];
+            my $or_node_id =
+                $and_node->[Marpa::Internal::And_Node::PARENT_NODE];
+            my $or_node = $or_nodes->[$or_node_id];
+            my $working_choice =
+                $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+
+            # Having chosen this working node, ban all the alternatives
+            # to it
+            my $alternative_nodes =
+                $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+
+            ALTERNATIVE_NODE:
+            for my $alternative_node (
+                @{$alternative_nodes}[
+                    ( 0 .. $working_choice - 1 ),
+                    ( $working_choice + 1 .. $#{$alternative_nodes} )
+                ]
+                )
+            {
+                my $alternative_id =
+                    $alternative_nodes->[Marpa::Internal::And_Node::PRIORITY];
+
+                my $alternative_decision =
+                    $prioritized_decisions->[$alternative_id];
+
+                # if the alternative has not been decided, mark it banned
+                if ( not defined $alternative_decision ) {
+
+                    $prioritized_decisions->[$alternative_id] = BANNED;
+
+                    # Note the journal does not actually record that the node
+                    # was banned, just the node about which a decision was
+                    # made, and what value to use for the decision if this
+                    # decision is undone.  In this case, the decision would
+                    # go back to no decision -- undefined.
+                    push @{$journal},
+                        [
+                        Marpa::Internal::Journal_Tag::IMPLICATION,
+                        $alternative_id, undef
+                        ];
+
+                    next ALTERNATIVE_NODE;
+
+                } ## end if ( not defined $alternative_decision )
+
+                if ( $alternative_decision == BANNED ) {
+                    Marpa::exception(
+                        "Function not yet implemented\n",
+                        "Will need to backtrack on attempt to ban node already included\n"
+                    );
+                } ## end if ( $alternative_decision == BANNED )
+
+                if ( $alternative_decision == $working_priority ) {
+                    Marpa::exception(
+                        "Function not yet implemented\n",
+                        "Will need to backtrack on cycle while banning alternatives\n"
+                    );
+                } ## end if ( $alternative_decision == $working_priority )
+
+                # At this point the alternative node was included at a
+                # previous working node.  Update the index, and record
+                # the new, implied decision in the journal.
+                # Include the previous decision value
+                # so we can back the decision out if
+                # necessary.
+                $prioritized_decisions->[$alternative_id] = $working_priority;
                 push @{$journal},
                     [
                     Marpa::Internal::Journal_Tag::IMPLICATION,
-                    $alternative_id, undef
+                    $alternative_id,
+                    $alternative_decision
                     ];
 
-                next ALTERNATIVE_NODE;
+            } ## end for my $alternative_node ( @{$alternative_nodes}[ ( 0...
+            ## End ALTERNATIVE_NODE
 
-            } ## end if ( not defined $alternative_decision )
+            my $forks = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
-            if ( $alternative_decision == BANNED ) {
-                Marpa::exception(
-                    "Function not yet implemented\n",
-                    "Will need to backtrack on attempt to ban node already included\n"
+            # If we're at the top or node, we done with this inference,
+            # and we can pick up where we left off deciding prioritized nodes
+            if ( not scalar @{$forks} ) {
+                @tasks = (
+                    [   Marpa::Internal::Task::DECIDE_NODES,
+                        $working_priority + 1
+                    ]
                 );
-            } ## end if ( $alternative_decision == BANNED )
+            } ## end if ( not scalar @{$forks} )
 
-            if ( $alternative_decision == $working_ix ) {
-                Marpa::exception(
-                    "Function not yet implemented\n",
-                    "Will need to backtrack on cycle while banning alternatives\n"
-                );
-            } ## end if ( $alternative_decision == $working_ix )
+            # Pick the first fork
+            my $fork_choice = 0;
+            my $parent_id   = $forks->[$fork_choice];
+            my $parent_node = $and_nodes->[$parent_id];
+            my $parent_priority =
+                $parent_node->[Marpa::Internal::And_Node::PRIORITY];
 
-            # At this point the alternative node was included at a
-            # previous working node.  Update the index, and record
-            # the new, implied decision in the journal.
-            # Include the previous decision value
-            # so we can back the decision out if
-            # necessary.
-            $prioritized_decisions->[$alternative_id] = $working_ix;
             push @{$journal},
                 [
-                Marpa::Internal::Journal_Tag::IMPLICATION, $alternative_id,
-                $alternative_decision
+                Marpa::Internal::Journal_Tag::DECIDE_FORK,
+                $working_priority, $or_node_id, $fork_choice
                 ];
 
-        } ## end for my $alternative_node ( @{$alternative_nodes}[ ( 0...
-        ## End ALTERNATIVE_NODE
+            # If the parent and node has been banned, or if we're in a cycle,
+            # then backtrack
+            my $parent_decision = $prioritized_decisions->[$parent_priority];
+            if (defined $parent_decision
+                and (  $parent_decision == BANNED
+                    or $parent_decision == $working_priority )
+                )
+            {
+                @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
+                next TASK;
+            } ## end if ( defined $parent_decision and ( $parent_decision...
 
-    } ## end while ( ++$working_ix < @{$prioritized_nodes} )
-    ## End PRIORITIZED_NODE
+            # At this point either the parent decision has not been made,
+            # or the parent is included
+            # from a previous priority.
 
-    my @work_list;
+            Carp::confess('INFER FROM INCLUDE Not yet finished');
 
-    # Write the and-nodes out in preorder
-    my @preorder = ();
+            # 1. Make the decision (include) if needed.
+            # 2. Journal the IMPLICATION.
+            # 3. Continuing upward inclusion inference is new task?
 
-    @work_list = (
-        do {
-            my $or_node = $or_nodes->[0];
+        } ## end if ( $task == Marpa::Internal::Task::INFER_FROM_INCLUDE)
+        ## End INFER_FROM_INCLUDE
 
-            # TODO: replace with actual choice
-            my $choice = 0;
-            $or_node->[Marpa::Internal::Or_Node::AND_NODES]->[$choice];
-            } ## end do
-    );
-    OR_NODE: while ( my $and_node = pop @work_list ) {
-        my $left_or_node =
-            $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
-        my $right_or_node = $and_node->[Marpa::Internal::And_Node::CAUSE];
-        if ( not defined $left_or_node and defined $right_or_node ) {
-            $left_or_node  = $right_or_node;
-            $right_or_node = undef;
-        }
-        if ( defined $left_or_node ) {
+        if ( $task == Marpa::Internal::Task::INFER_FROM_BAN ) {
 
-            # TODO: replace with actual choice
-            my $choice = 0;
-            push @work_list,
-                $left_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                ->[$choice];
-        } ## end if ( defined $left_or_node )
-        if ( defined $right_or_node ) {
+            my $working_priority = $task_data->[1];
+            my $inferer_priority = $task_data->[2];
+            my $inferer_node     = $prioritized_nodes->[$inferer_priority];
 
-            # TODO: replace with actual choice
-            my $choice = 0;
-            push @work_list,
-                $right_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                ->[$choice];
-        } ## end if ( defined $right_or_node )
-        push @preorder, $and_node;
-    } ## end while ( my $and_node = pop @work_list )
-    ## End OR_NODE:
+            my $or_node_id =
+                $inferer_node->[Marpa::Internal::And_Node::PARENT_NODE];
+            my $or_node = $or_nodes->[$or_node_id];
+            my $forks   = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
-    my @evaluation_stack = ();
-
-    TREE_NODE: for my $and_node ( reverse @preorder ) {
-
-        if ( $trace_values >= 3 ) {
-            for my $i ( reverse 0 .. $#evaluation_stack ) {
-                printf {$trace_fh} 'Stack position %3d:', $i;
-                print {$trace_fh} q{ },
-                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
-                    ->Dump
-                    or Marpa::exception('print to trace handle failed');
-            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
-        } ## end if ( $trace_values >= 3 )
-
-        my ( $closure, $value_ref, $argc ) = @{$and_node}[
-            Marpa::Internal::And_Node::PERL_CLOSURE,
-            Marpa::Internal::And_Node::VALUE_REF,
-            Marpa::Internal::And_Node::ARGC,
-        ];
-
-        if ( defined $value_ref ) {
-
-            push @evaluation_stack, $value_ref;
-
-            if ($trace_values) {
-                print {$trace_fh}
-                    'Pushed value from ',
-                    $and_node->[Marpa::Internal::And_Node::NAME],
-                    ': ',
-                    Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_values)
-
-        }    # defined $value_ref
-
-        next TREE_NODE if not defined $closure;
-
-        if ($trace_values) {
-            my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-            say {$trace_fh}
-                'Popping ',
-                $argc,
-                ' values to evaluate ',
-                $and_node->[Marpa::Internal::And_Node::NAME],
-                ', rule: ',
-                Marpa::brief_rule($rule);
-        } ## end if ($trace_values)
-
-        my $args = [ map { ${$_} } ( splice @evaluation_stack, -$argc ) ];
-
-        my $result;
-
-        my $closure_type = ref $closure;
-
-        if ( $closure_type eq 'CODE' ) {
-
-            my @warnings;
-            my $eval_ok;
-            DO_EVAL: {
-                local $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-                $eval_ok = eval { $result = $closure->( @{$args} ); 1 };
-            } ## end DO_EVAL:
-
-            if ( not $eval_ok or @warnings ) {
-                my $fatal_error = $EVAL_ERROR;
-                my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-                my $code =
-                    $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
-                    ->[Marpa::Internal::Evaluator_Rule::CODE];
-                Marpa::Internal::code_problems(
-                    {   fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        eval_ok     => $eval_ok,
-                        warnings    => \@warnings,
-                        where       => 'computing value',
-                        long_where  => 'computing value for rule: '
-                            . Marpa::brief_rule($rule),
-                        code => \$code,
-                    }
+            # If we're at the top or node, we done with this inference,
+            # and we can pick up where we left off deciding prioritized nodes
+            if ( not scalar @{$forks} ) {
+                @tasks = (
+                    [   Marpa::Internal::Task::DECIDE_NODES,
+                        $working_priority + 1
+                    ]
                 );
-            } ## end if ( not $eval_ok or @warnings )
+            } ## end if ( not scalar @{$forks} )
 
-        } ## end if ( $closure_type eq 'CODE' )
+            FORK: for my $parent_and_node_id ( @{$forks} ) {
+                my $parent_node = $and_nodes->[$parent_and_node_id];
+                my $parent_priority =
+                    $parent_node->[Marpa::Internal::And_Node::PRIORITY];
+                my $parent_decision =
+                    $prioritized_decisions->[$parent_priority];
+                next FORK
+                    if defined $parent_decision
+                        and $parent_decision == BANNED;
 
-        # don't document this behavior -- I'll probably want to
-        # use non-reference "closure" values for special hacks
-        # in the future.
-        elsif ( $closure_type eq q{} ) {    # when not reference
-            $result = $closure;
-        }    # when not reference
+                # If we're trying to ban an included node, that won't work.  We
+                # have to backtrack.
+                if ( defined $parent_decision ) {
+                    @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
+                    next TASK;
+                }
 
-        else {    # when non-code reference
-            $result = ${$closure};
-        }    # when non-code reference
+                # The parent decision is undefined, that is, none
+                # has been made.  Decide to ban the parent and node
+                # and add following this fork to the task list.
+                # The old decision value of the IMPLICATION
+                # is not explicitly given, so it will be
+                # undefined, which is what we want.
+                push @{$journal},
+                    [
+                    Marpa::Internal::Journal_Tag::IMPLICATION,
+                    $parent_priority
+                    ];
+                $prioritized_decisions->[$parent_priority] = BANNED;
+                push @tasks,
+                    [
+                    Marpa::Internal::Task::INFER_FROM_BAN,
+                    $working_priority,
+                    $parent_priority
+                    ];
 
-        if ($trace_values) {
-            print {$trace_fh} 'Calculated and pushed value: ',
-                Data::Dumper->new( [$result] )->Terse(1)->Dump
-                or Marpa::exception('print to trace handle failed');
-        }
+            } ## end for my $parent_and_node_id ( @{$forks} )
+            ## End FORK:
 
-        push @evaluation_stack, \$result;
+        } ## end if ( $task == Marpa::Internal::Task::INFER_FROM_BAN )
 
-    }    # TREE_NODE
+        if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
-    return pop @evaluation_stack;
+            my @work_list;
+
+            # Write the and-nodes out in preorder
+            my @preorder = ();
+
+            @work_list = (
+                do {
+                    my $or_node = $or_nodes->[0];
+
+                    # TODO: replace with actual choice
+                    my $choice = 0;
+                    $or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                        ->[$choice];
+                    } ## end do
+            );
+            OR_NODE: while ( my $and_node = pop @work_list ) {
+                my $left_or_node =
+                    $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+                my $right_or_node =
+                    $and_node->[Marpa::Internal::And_Node::CAUSE];
+                if ( not defined $left_or_node and defined $right_or_node ) {
+                    $left_or_node  = $right_or_node;
+                    $right_or_node = undef;
+                }
+                if ( defined $left_or_node ) {
+
+                    # TODO: replace with actual choice
+                    my $choice = 0;
+                    push @work_list,
+                        $left_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                        ->[$choice];
+                } ## end if ( defined $left_or_node )
+                if ( defined $right_or_node ) {
+
+                    # TODO: replace with actual choice
+                    my $choice = 0;
+                    push @work_list,
+                        $right_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                        ->[$choice];
+                } ## end if ( defined $right_or_node )
+                push @preorder, $and_node;
+            } ## end while ( my $and_node = pop @work_list )
+            ## End OR_NODE:
+
+            my @evaluation_stack = ();
+
+            TREE_NODE: for my $and_node ( reverse @preorder ) {
+
+                if ( $trace_values >= 3 ) {
+                    for my $i ( reverse 0 .. $#evaluation_stack ) {
+                        printf {$trace_fh} 'Stack position %3d:', $i;
+                        print {$trace_fh} q{ },
+                            Data::Dumper->new( [ $evaluation_stack[$i] ] )
+                            ->Terse(1)->Dump
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end for my $i ( reverse 0 .. $#evaluation_stack )
+                } ## end if ( $trace_values >= 3 )
+
+                my ( $closure, $value_ref, $argc ) = @{$and_node}[
+                    Marpa::Internal::And_Node::PERL_CLOSURE,
+                    Marpa::Internal::And_Node::VALUE_REF,
+                    Marpa::Internal::And_Node::ARGC,
+                ];
+
+                if ( defined $value_ref ) {
+
+                    push @evaluation_stack, $value_ref;
+
+                    if ($trace_values) {
+                        print {$trace_fh}
+                            'Pushed value from ',
+                            $and_node->[Marpa::Internal::And_Node::NAME],
+                            ': ',
+                            Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)
+                            ->Dump
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end if ($trace_values)
+
+                }    # defined $value_ref
+
+                next TREE_NODE if not defined $closure;
+
+                if ($trace_values) {
+                    my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+                    say {$trace_fh}
+                        'Popping ',
+                        $argc,
+                        ' values to evaluate ',
+                        $and_node->[Marpa::Internal::And_Node::NAME],
+                        ', rule: ',
+                        Marpa::brief_rule($rule);
+                } ## end if ($trace_values)
+
+                my $args =
+                    [ map { ${$_} } ( splice @evaluation_stack, -$argc ) ];
+
+                my $result;
+
+                my $closure_type = ref $closure;
+
+                if ( $closure_type eq 'CODE' ) {
+
+                    my @warnings;
+                    my $eval_ok;
+                    DO_EVAL: {
+                        local $SIG{__WARN__} =
+                            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+
+                        $eval_ok =
+                            eval { $result = $closure->( @{$args} ); 1 };
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        my $fatal_error = $EVAL_ERROR;
+                        my $rule =
+                            $and_node->[Marpa::Internal::And_Node::RULE];
+                        my $code =
+                            $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
+                            ->[Marpa::Internal::Evaluator_Rule::CODE];
+                        Marpa::Internal::code_problems(
+                            {   fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => 'computing value',
+                                long_where  => 'computing value for rule: '
+                                    . Marpa::brief_rule($rule),
+                                code => \$code,
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+
+                } ## end if ( $closure_type eq 'CODE' )
+
+                # don't document this behavior -- I'll probably want to
+                # use non-reference "closure" values for special hacks
+                # in the future.
+                elsif ( $closure_type eq q{} ) {    # when not reference
+                    $result = $closure;
+                }    # when not reference
+
+                else {    # when non-code reference
+                    $result = ${$closure};
+                }    # when non-code reference
+
+                if ($trace_values) {
+                    print {$trace_fh} 'Calculated and pushed value: ',
+                        Data::Dumper->new( [$result] )->Terse(1)->Dump
+                        or Marpa::exception('print to trace handle failed');
+                }
+
+                push @evaluation_stack, \$result;
+
+            }    # TREE_NODE
+
+            return pop @evaluation_stack;
+
+        } ## end if ( $task == Marpa::Internal::Task::EVALUATE )
+        ## End EVALUATE
+
+    } ## end while ( my $task_data = pop @tasks )
+    ## End TASK
+
+    Carp::confess('Internal error: Should not reach here');
 
 } ## end sub Marpa::Evaluator::new_value
 
