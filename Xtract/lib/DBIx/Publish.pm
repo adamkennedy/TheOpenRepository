@@ -60,6 +60,7 @@ use Object::Tiny 1.06 qw{
 	file
 	source
 	dbh
+	sqlite_cache
 };
 
 
@@ -106,6 +107,15 @@ sub prepare {
 	$self->dbh->do('PRAGMA auto_vacuum = 0');
 	$self->dbh->do('VACUUM');
 
+	# Set the page cache if needed
+	if ( Params::Util::_POSINT($self->sqlite_cache) ) {
+		my $page_size = $self->dbh->selectrow_arrayref('PRAGMA page_size')->[0];
+		if ( $page_size ) {
+			my $cache_size = $self->sqlite_cache * 1024 * 1024 / $page_size;
+			$self->dbh->do("PRAGMA cache_size = $cache_size");
+		}
+	}
+
 	return 1;
 }
 
@@ -117,7 +127,9 @@ sub finish {
 	$self->dbh->do('PRAGMA synchronous  = NORMAL');
 	$self->dbh->do('PRAGMA temp_store   = 0');
 	$self->dbh->do('PRAGMA locking_mode = NORMAL');
-	$self->dbh->do('VACUUM');
+
+	# Temporarily disabled, takes way too long for large databases
+	# $self->dbh->do('VACUUM');
 
 	return 1;
 }
@@ -308,14 +320,17 @@ sub fill {
 	$from->execute( @_ );
 
 	# Stream the data into the target table
-	$self->dbh->begin_work;
 	my $to = $self->dbh->prepare($insert) or croak($DBI::errstr);
+	$self->dbh->begin_work;
+	$self->dbh->{AutoCommit} = 0;
 	while ( my $row = $from->fetchrow_arrayref ) {
 		$to->execute( @$row );
-		$rows++;
+		next if ++$rows % 10000;
+		$self->dbh->commit;
 	}
-	$to->finish;
 	$self->dbh->commit;
+	$self->dbh->{AutoCommit} = 1;
+	$to->finish;
 
 	# Done
 	$from->finish;

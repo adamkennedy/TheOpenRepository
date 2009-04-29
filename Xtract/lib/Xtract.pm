@@ -24,6 +24,7 @@ use warnings;
 use Getopt::Long         2.37 ();
 use File::Remove         1.42 ();
 use Params::Util         0.35 ();
+use Time::HiRes        1.9709 ();
 use Time::Elapsed        0.24 ();
 use DBI                  1.57 ();
 use DBD::SQLite          1.25 ();
@@ -39,6 +40,7 @@ use Object::Tiny 1.06 qw{
 	pass
 	to
 	index
+	sqlite_cache
 	argv
 };
 
@@ -50,24 +52,27 @@ sub main {
 	my $TO    = '';
 	my $INDEX = '';
 	my $QUIET = '';
+	my $CACHE = '';
 	Getopt::Long::GetOptions(
-		"from=s" => \$FROM,
-		"user=s" => \$USER,
-		"pass=s" => \$PASS,
-		"to=s"   => \$TO,
-		"index"  => \$INDEX,
-		"quiet"  => \$QUIET,
+		"from=s"         => \$FROM,
+		"user=s"         => \$USER,
+		"pass=s"         => \$PASS,
+		"to=s"           => \$TO,
+		"index"          => \$INDEX,
+		"quiet"          => \$QUIET,
+		"sqlite_cache=i" => \$CACHE,
 	) or die("Failed to parse options");
 
 	# Create the program instance
 	my $self = Xtract->new(
-		from  => $FROM,
-		user  => $USER,
-		pass  => $PASS,
-		to    => $TO,
-		index => $INDEX,
-		trace => $QUIET ? 0 : 1,
-		argv  => [ @ARGV ],
+		from         => $FROM,
+		user         => $USER,
+		pass         => $PASS,
+		to           => $TO,
+		index        => $INDEX,
+		trace        => $QUIET ? 0 : 1,
+		sqlite_cache => $CACHE,
+		argv         => [ @ARGV ],
 	);
 
 	# Run the object
@@ -91,7 +96,7 @@ sub to_bz2 {
 
 sub run {
 	my $self  = shift;
-	my $start = time;
+	my $start = Time::HiRes::time();
 
 	# Clear any existing output files
 	foreach my $file ( $self->to, $self->to_gz, $self->to_bz2 ) {
@@ -111,8 +116,9 @@ sub run {
 	# Create the publish object
 	$self->trace("Creating SQLite database " . $self->to);
 	my $publish = DBIx::Publish->new(
-		source => $source,
-		file   => $self->to,
+		source       => $source,
+		file         => $self->to,
+		sqlite_cache => $self->sqlite_cache,
 	) or die("Failed to create DBIx::Publish");
 
 	# Check the command
@@ -127,8 +133,10 @@ sub run {
 	my @tables = grep { s/\"//g; $_ !~ /^sqlite_/ } $publish->source->tables;
 	foreach my $table ( @tables ) {
 		$self->trace("Publishing table $table");
-		my $rows = $publish->table( $table );
-		$self->trace("Completed  table $table ($rows rows)");
+		my $tstart = Time::HiRes::time();
+		my $rows   = $publish->table( $table );
+		my $rate   = int($rows / (Time::HiRes::time() - $tstart));
+		$self->trace("Completed  table $table ($rows rows @ $rate/sec)");
 	}
 	if ( $self->index ) {
 		foreach my $table ( @tables ) {
@@ -153,7 +161,11 @@ sub run {
 
 	# Clean up
 	$source->disconnect;
-	$self->trace("Extraction completed in " . Time::Elapsed::elapsed(time - $start) . " seconds");
+	$self->trace(
+		"Extraction completed in " .
+		Time::Elapsed::elapsed(int(Time::HiRes::time() - $start)) .
+		" seconds"
+	);
 
 	# Summarise the run
 	$self->trace("Created " . $self->to);
