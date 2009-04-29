@@ -58,14 +58,14 @@ foreach my $file (@files) {
     $video = Video::Info->new(-file => $file);
   };
   if ($@) {
-    printf {STDERR} "Problem determining information about '%s':\n", $file;
+    printf {*STDERR} "Problem determining information about '%s':\n", $file;
     print 'In Video::Info: ', $@;
     next;
   }
 
   # Check if we have a FourCC
   unless (length($video->vcodec) == 4) {
-    printf {STDERR} "Video::Info returns '%s', which is not a FourCC\n",
+    printf {*STDERR} "Video::Info returns '%s', which is not a FourCC\n",
       $video->vcodec;
     next;
   }
@@ -75,7 +75,8 @@ foreach my $file (@files) {
     $codec = Video::FourCC::Info->new($video->vcodec);
   };
   if ($@) {
-    printf {STDERR} "Codec '%s' is unregistered or unknown\n", $video->vcodec;
+    printf {*STDERR} "Codec '%s' is unregistered or unknown\n",
+      $video->vcodec;
     next;
   }
 

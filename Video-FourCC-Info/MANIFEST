@@ -26,3 +26,4 @@ t/02core.t
 t/02exceptions.t
 t/02fallback.t
 t/03scripts.t
+t/99data.t
