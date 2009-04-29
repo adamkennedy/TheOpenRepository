@@ -21,13 +21,11 @@ unless ($ENV{TEST_AUTHOR}) {
 }
 
 eval {
-  require Test::Valgrind;
+  require Test::Valgrind; # 5 tests
 };
 if ($@) {
   plan skip_all => 'Test::Valgrind required to test memory leaks';
 }
-
-plan tests => 2;
 
 use Math::Random::ISAAC::XS ();
 

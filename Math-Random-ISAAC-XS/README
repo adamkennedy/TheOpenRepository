@@ -21,28 +21,6 @@ DESCRIPTION
     the late 90s and despite the best efforts of many security researchers,
     no feasible attacks have been found to date.
 
-SYNOPSIS
-      use Math::Random::ISAAC::XS;
-
-      my $rng = Math::Random::ISAAC::XS->new(@seeds);
-
-      for (0..30) {
-        print 'Result: ' . $rng->irand() . "\n";
-      }
-
-PURPOSE
-    This module implements the same interface as C<Math::Random::ISAAC> and
-    can be used as a drop-in replacement. This is the recommended
-    implementation of the module, based on Bob Jenkins' reference
-    implementation in C.
-
-    Selecting the backend to use manually really only has two uses:
-    *   If you are trying to avoid the small overhead incurred with
-        dispatching method calls to the appropriate backend modules.
-
-    *   If you are testing the module for performance and wish to explicitly
-        decide which module you would like to use.
-
 COMPATIBILITY
     This module was tested under Perl 5.10.0, using Debian Linux. Because it
     is C and XS, there may be portability problems, but hopefully these will
@@ -81,7 +59,7 @@ SUPPORT
 
     *   CPAN Request Tracker
 
-        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC>
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Math-Random-ISAAC-XS>
 
     *   CPAN Testing Service (Kwalitee Tests)
 
