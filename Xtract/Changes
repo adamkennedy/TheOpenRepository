@@ -1,5 +1,9 @@
 Changes for Perl extension Xtract
 
+0.06 to be released
+	- Adding timestamp on trace messages
+	- Adding dependency on Time::Elapsed for human elapsed times
+
 0.05 Sun 26 Apr 2009
 	- Factored out the indexing and filling code to seperate methods
 	- Moved the old ->table to ->select

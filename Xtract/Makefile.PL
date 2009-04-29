@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.85;
+use inc::Module::Install::DSL 0.83;
 
 all_from       lib/Xtract.pm
 requires_from  lib/Xtract.pm

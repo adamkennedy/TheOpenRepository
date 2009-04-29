@@ -24,13 +24,14 @@ use warnings;
 use Getopt::Long         2.37 ();
 use File::Remove         1.42 ();
 use Params::Util         0.35 ();
+use Time::Elapsed        0.24 ();
 use DBI                  1.57 ();
 use DBD::SQLite          1.25 ();
 use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use DBIx::Publish             ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Object::Tiny 1.06 qw{
 	from
@@ -95,20 +96,20 @@ sub run {
 	# Clear any existing output files
 	foreach my $file ( $self->to, $self->to_gz, $self->to_bz2 ) {
 		if ( defined $file and -e $file ) {
-			$self->trace("Deleting previous $file\n");
+			$self->trace("Deleting previous $file");
 			File::Remove::remove($file);
 		}
 	}
 
 	# Connect to the data source
-	$self->trace("Connecting to data source " . $self->from . "\n");
+	$self->trace("Connecting to data source " . $self->from);
 	my $source = DBI->connect( $self->from, $self->user, $self->pass, {
 		PrintError => 1,
 		RaiseError => 1,
 	} ) or die("Failed to connect to " . $self->from);
 
 	# Create the publish object
-	$self->trace("Creating SQLite database " . $self->to . "\n");
+	$self->trace("Creating SQLite database " . $self->to);
 	my $publish = DBIx::Publish->new(
 		source => $source,
 		file   => $self->to,
@@ -121,46 +122,46 @@ sub run {
 	}
 
 	# Get the list of tables
-	$self->trace("Configuring SQLite database\n");
+	$self->trace("Configuring SQLite database");
 	$publish->prepare;
 	my @tables = grep { s/\"//g; $_ !~ /^sqlite_/ } $publish->source->tables;
 	foreach my $table ( @tables ) {
-		$self->trace("Publishing table $table ");
+		$self->trace("Publishing table $table");
 		my $rows = $publish->table( $table );
-		$self->trace("($rows rows)\n");
+		$self->trace("Completed  table $table ($rows rows)");
 	}
 	if ( $self->index ) {
 		foreach my $table ( @tables ) {
-			$self->trace("Indexing table $table\n");
+			$self->trace("Indexing table $table");
 			$publish->index_table( $table );
 		}
 	}
-	$self->trace("Cleaning SQLite database\n");
+	$self->trace("Cleaning SQLite database");
 	$publish->finish;
 
 	# Compress the file
 	if ( $self->to_gz ) {
-		$self->trace("Creating gzip archive\n");
+		$self->trace("Creating gzip archive");
 		IO::Compress::Gzip::gzip( $self->to => $self->to_gz )
 			or die 'Failed to gzip SQLite file';
 	}
 	if ( $self->to_bz2 ) {
-		$self->trace("Creating bzip2 archive\n");
+		$self->trace("Creating bzip2 archive");
 		IO::Compress::Bzip2::bzip2( $self->to => $self->to_bz2 )
 			or die 'Failed to bzip2 SQLite file';
 	}
 
 	# Clean up
 	$source->disconnect;
-	$self->trace("Extraction completed in " . (time - $start) . " seconds\n\n");
+	$self->trace("Extraction completed in " . Time::Elapsed::elapsed(time - $start) . " seconds");
 
 	# Summarise the run
-	$self->trace("Created " . $self->to . "\n");
+	$self->trace("Created " . $self->to);
 	if ( $self->to_gz ) {
-		$self->trace("Created " . $self->to_gz . "\n");
+		$self->trace("Created " . $self->to_gz);
 	}
 	if ( $self->to_bz2 ) {
-		$self->trace("Created " . $self->to_bz2 . "\n");
+		$self->trace("Created " . $self->to_bz2);
 	}
 
 	return 1;
@@ -170,7 +171,8 @@ sub trace {
 	if ( Params::Util::_CODE($_[0]->{trace}) ) {
 		$_[0]->trace( @_[1..$#_] );
 	} elsif ( $_[0]->{trace} ) {
-		print @_[1..$#_];
+		my $t = scalar localtime time;
+		print map { "[$t] $_\n" } @_[1..$#_];
 	}
 }
 
