@@ -60,6 +60,7 @@ my %MODULES = (
 		Package::Constants
 		IO::String
 		Archive::Tar
+		Compress::unLZMA
 		Parse::CPAN::Meta
 		YAML
 		Net::FTP
