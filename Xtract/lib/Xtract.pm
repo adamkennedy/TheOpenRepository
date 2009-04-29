@@ -32,7 +32,7 @@ use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use DBIx::Publish             ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Object::Tiny 1.06 qw{
 	from
@@ -77,6 +77,17 @@ sub main {
 
 	# Run the object
 	$self->run;
+}
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	# "DBI:" in --from is optional
+	unless ( $self->from =~ /^DBI:/ ) {
+		$self->{from} = "DBI:$self->{from}";
+	}
+
+	return $self;
 }
 
 sub to_gz {

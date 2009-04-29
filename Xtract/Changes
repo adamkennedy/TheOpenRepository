@@ -1,5 +1,8 @@
 Changes for Perl extension Xtract
 
+0.07 to be released
+	- The "DBI:" in --from is now optional
+
 0.06 Wed 29 Apr 2009
 	- Adding timestamp on trace messages
 	- Adding dependency on Time::Elapsed for human elapsed times
