@@ -3,10 +3,11 @@
 #
 # $Id$
 #
-# Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
+# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# This package is distributed with the same licensing terms as Perl itself.
-# For additional information, please read the included `LICENSE' file.
+# This package and its contents are released by the author into the
+# Public Domain, to the full extent permissible by law. For additional
+# information, please see the included `LICENSE' file.
 
 package Video::FourCC::Info;
 
@@ -55,12 +56,11 @@ my $dbh = DBI->connect(
 
 =head1 NAME
 
-Video::FourCC::Info - Find information about codecs specified as Four
-Character Code
+Video::FourCC::Info - Find information about codecs from its FourCC
 
 =head1 VERSION
 
-Version 1.1.1 ($Id$)
+Version 1.1.2 ($Id$)
 
 =cut
 
@@ -345,8 +345,7 @@ maintainer noted above.
 If you have a bug report or feature request, please file them on the CPAN
 Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
 report in the form of failing unit tests, you are B<strongly> encouraged to do
-so. Regular bug reports are always accepted and appreciated via the CPAN bug
-tracker.
+so.
 
 =head1 SEE ALSO
 

@@ -5,7 +5,11 @@
 #
 # $Id$
 #
-# This example script is hereby released into the public domain.
+# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
+#
+# This package and its contents are released by the author into the
+# Public Domain, to the full extent permissible by law. For additional
+# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -82,9 +86,9 @@ Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
 Copyleft (C) 2009 by Jonathan Yu <frequency@cpan.org>
 
-This script is distributed with the C<Video::FourCC::Info> package to
-provide a simple demonstration of functionality. It is hereby released
-by its author into the public domain.
+This package and its contents are released by the author into the Public
+Domain, to the full extent permissible by law. For additional information,
+please see the included `LICENSE' file.
 
 =head1 SEE ALSO
 

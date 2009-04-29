@@ -14,9 +14,9 @@ DESCRIPTION
     This is similar to the four-byte "magic number" used by the UNIX file(1)
     command to roughly determine a file format.
 
-    As far as I know, this is a case sensitive code, since it is
-    byte-dependent, and is not actually an alphanumeric code (although it is
-    represented as such).
+    Most applications seem to treat this as a case insensitive code. As a
+    result, internally, your given FourCC's will be silently converted to
+    uppercase.
 
 COMPATIBILITY
     This module was tested under Perl 5.10.0, using Debian Linux. However,
@@ -66,12 +66,12 @@ REPOSITORY
 
     You can access the most recent development version of this module at:
 
-    L<http://svn.ali.as/cpan/trunk/Test-DistManifest>
+    L<http://svn.ali.as/cpan/trunk/Video-FourCC-Info>
 
     If you are a CPAN developer and would like to make modifications to the
-    code base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the
-    repository administrator. I only ask that you contact me first to discuss
-    the changes you wish to make to the distribution.
+    code base, please contact Adam Kennedy <adamk@cpan.org>, the repository
+    administrator. I only ask that you contact me first to discuss the
+    changes you wish to make to the distribution.
 
 FEEDBACK
     Please send relevant comments, rotten tomatoes and suggestions directly
@@ -103,7 +103,14 @@ DATA SOURCE
 LICENSE
     Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
 
-    This package is distributed under the same terms as Perl itself.
+    This package is distributed under the same terms as Perl itself. At time
+    of writing, this means that you are entitled to enjoy the covenants of,
+    at your option:
+
+    1   The Free Software Foundation's GNU General Public License (GPL),
+        version 2 or later; or
+
+    2   The Perl Foundation's Artistic License, version 2.0 or later
 
 DISCLAIMER OF WARRANTY
     This software is provided by the copyright holders and contributors "AS

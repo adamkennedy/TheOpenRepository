@@ -4,9 +4,8 @@ version: 1.001002
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: |-
-  Find information about codecs specified as Four
-  Character Code
-license: perl
+  Find information about codecs from its FourCC
+license: unrestricted
 resources:
   Ratings: http://cpanratings.perl.org/d/Video-FourCC-Info
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Video-FourCC-Info
@@ -14,7 +13,7 @@ resources:
   repository: http://svn.ali.as/cpan/trunk/Video-FourCC-Info
 requires:
   Carp: 1.04
-  DBD::SQLite: 0
+  DBD::SQLite: 1.14
   DBI: 0
   File::Basename: 0
   File::Spec: 0
@@ -27,6 +26,7 @@ build_requires:
   Test::NoWarnings: 0.084
 recommends:
   DateTime: 0
+  Video::Info::Magic: 1.01
   Test::DistManifest: 0
   Test::Kwalitee: 1.01
   Test::Perl::Critic: 0
@@ -35,6 +35,9 @@ recommends:
   Test::Signature: 0
   Test::YAML::Meta: 0
   Test::Without::Module: 0
+  Test::Portability::Files: 0
+  Test::MinimumVersion: 0
+  Test::Script: 0
 dynamic_config: 0
 provides:
   Video::FourCC::Info:

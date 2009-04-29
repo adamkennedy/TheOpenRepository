@@ -2,9 +2,11 @@
 #
 # $Id$
 #
-# Copyright (c) 2009 Jonathan Yu
+# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# This configuration file is hereby released into the public domain.
+# This package and its contents are released by the author into the
+# Public Domain, to the full extent permissible by law. For additional
+# information, please see the included `LICENSE' file.
 
 severity = brutal
 

@@ -31,9 +31,13 @@
 \#$
 \b\.#
 \.bak$
+\.tmp$
 
 # Devel::Cover files.
 \bcover_db\b
 
 # Test::Kwalitee cache files.
 ^Debian_CPANTS\.txt
+
+# Debian package control files
+^debian/
