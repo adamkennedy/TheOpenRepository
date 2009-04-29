@@ -377,39 +377,28 @@ L<http://msdn.microsoft.com/en-us/library/ms867195.aspx#fourcccodes>
 
 =head1 LICENSE
 
-Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
+Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
 
-This package is distributed under the same terms as Perl itself. At time of
-writing, this means that you are entitled to enjoy the covenants of, at your
-option:
+I, the copyright holder of this package, hereby release the entire contents
+therein into the public domain. This applies worldwide, to the extent that
+it is permissible by law.
 
-=over
+In case this is not legally possible, I grant any entity the right to use
+this work for any purpose, without any conditions, unless such conditions
+are required by law.
 
-=item 1
-
-The Free Software Foundation's GNU General Public License (GPL), version 2 or
-later; or
-
-=item 2
-
-The Perl Foundation's Artistic License, version 2.0 or later
-
-=back
+The full details of this can be found in the B<LICENSE> file included in
+this package.
 
 =head1 DISCLAIMER OF WARRANTY
 
-This software is provided by the copyright holders and contributors "AS IS"
-and ANY EXPRESS OR IMPLIED WARRANTIES, including, but not limited to, the
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.
-
-In no event shall the copyright owner or contributors be liable for any
-direct, indirect, incidental, special, exemplary or consequential damages
-(including, but not limited to, procurement of substitute goods or services;
-loss of use, data or profits; or business interruption) however caused and on
-any theory of liability, whether in contract, strict liability or tort
-(including negligence or otherwise) arising in any way out of the use of this
-software, even if advised of the possibility of such damage.
+The software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in
+the software.
 
 =cut
 
