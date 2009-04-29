@@ -47,7 +47,7 @@ use Marpa::Offset qw(
     ARGC RULE POSITION
     PARENT_NODE
     PARENT_CHOICE
-    PRIORITY
+    RANK
 
 );
 
@@ -86,8 +86,8 @@ use Marpa::Offset qw(
     NULL_VALUES
     CYCLES { Will this be needed? }
     JOURNAL
-    PRIORITIZED_NODES
-    PRIORITIZED_DECISIONS
+    RANKED_NODES
+    RANKED_DECISIONS
 );
 
 # Tags for the Journal Entries
@@ -95,15 +95,15 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Journal_Tag
 
-    DECIDE_NODE { A decision to include a prioritized and node.
+    DECIDE_NODE { A decision to accept a ranked and node.
     Banned and nodes cannot be iterated further and so are not
     recorded in the journal. }
 
     DECIDE_FORK { A decision to follow one branch of a fork
     up the parse bocage. }
 
-    IMPLICATION { An implication of a decision.
-    The implication either includes or bans an and-node }
+    RESULT { An implication of a decision.
+    The implication either accepts or rejects an and-node }
 
 );
 
@@ -1008,18 +1008,18 @@ sub Marpa::Evaluator::set {
 } ## end sub Marpa::Evaluator::set
 
 # A constant to indicate in the decision vector,
-# that a node is banned.  It must not be a possible
+# that a node is rejected.  It must not be a possible
 # index to that vector, and therefore must be some negative
 # number
-use constant BANNED => -1;
+use constant REJECTED => -1;
 
 use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
     DECIDE_NODES
     BACKTRACK
-    INFER_FROM_INCLUDE
-    INFER_FROM_BAN
+    MARK_ACCEPT_RESULTS
+    MARK_REJECT_RESULTS
     EVALUATE
 );
 
@@ -1034,12 +1034,11 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $prioritized_nodes =
-        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES];
-    my $prioritized_decisions =
-        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_DECISIONS];
+    my $journal      = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $and_nodes    = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES];
+    my $ranked_decisions =
+        $evaler->[Marpa::Internal::Evaluator::RANKED_DECISIONS];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -1132,20 +1131,19 @@ sub Marpa::Evaluator::new_value {
             } ## end for my $and_node ( @{$or_node_children} )
         } ## end for my $or_node ( @{$or_nodes} )
 
-        $prioritized_nodes =
-            $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
+        $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
             @child_and_nodes[ map { ( unpack 'U*', $_ )[-1] }
             @decorated_indexes ];
 
-        for my $node_ix ( 0 .. $#{$prioritized_nodes} ) {
-            $prioritized_nodes->[$node_ix]
-                ->[Marpa::Internal::And_Node::PRIORITY] = $node_ix;
+        for my $node_ix ( 0 .. $#{$ranked_nodes} ) {
+            $ranked_nodes->[$node_ix]->[Marpa::Internal::And_Node::RANK] =
+                $node_ix;
         }
 
         # set the size
-        $#{$prioritized_decisions} = $#{$prioritized_nodes};
-        $evaler->[Marpa::Internal::Evaluator::PRIORITIZED_NODES] =
-            $prioritized_decisions;
+        $#{$ranked_decisions} = $#{$ranked_nodes};
+        $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
+            $ranked_decisions;
 
         @tasks = ( [ Marpa::Internal::Task::DECIDE_NODES, 0 ] );
 
@@ -1156,55 +1154,55 @@ sub Marpa::Evaluator::new_value {
 
     TASK: while ( my $task_data = pop @tasks ) {
 
-        my $task = $task_data->[0];
+        my $task = shift @{$task_data};
 
         if ( $task == Marpa::Internal::Task::DECIDE_NODES ) {
 
-            my $working_priority = $task_data->[1];
+            my ($rank_being_decided) = @{$task_data};
 
-            # Move down the priority list, including nodes as we go.
-            # as we go.  Prefer include, but ban if there is no other choice.
-            PRIORITY: while ( $working_priority < @{$prioritized_nodes} ) {
-                my $decision = $prioritized_decisions->[$working_priority];
+            # Move down the and node rankings, accepting nodes as we go.
+            # as we go.  Prefer accept, but reject if there is no other choice.
+            RANK: while ( $rank_being_decided < @{$ranked_nodes} ) {
+                my $decision = $ranked_decisions->[$rank_being_decided];
 
                 # If a decision is already made for this node, move on
-                next PRIORITY if defined $decision;
+                next RANK if defined $decision;
 
-                # This prioritized node is not yet decided.  Include it,
+                # This ranked node is not yet decided.  Include it,
                 # and work out all its implications.
-                $prioritized_decisions->[$working_priority] =
-                    $working_priority;
+                $ranked_decisions->[$rank_being_decided] =
+                    $rank_being_decided;
 
                 push @{$journal},
                     [
                     Marpa::Internal::Journal_Tag::DECIDE_NODE,
-                    $working_priority
+                    $rank_being_decided
                     ];
 
-                @tasks = ( [Marpa::Internal::Task::INFER_FROM_INCLUDE] );
+                @tasks = ( [Marpa::Internal::Task::MARK_ACCEPT_RESULTS] );
                 next TASK
 
-            } ## end while ( $working_priority < @{$prioritized_nodes} )
+            } ## end while ( $rank_being_decided < @{$ranked_nodes} )
 
-            # If we have reached the end of the priority list, evaluate
+            # If we have reached the end of the and node rankings, evaluate
             # the parse we have decided on
             @tasks = ( [Marpa::Internal::Task::EVALUATE] );
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::DECIDE_NODES )
 
-        if ( $task == Marpa::Internal::Task::INFER_FROM_INCLUDE ) {
+        if ( $task == Marpa::Internal::Task::MARK_ACCEPT_RESULTS ) {
 
-            my $working_priority = $task_data->[1];
+            my ($rank_being_decided) = @{$task_data};
 
-            my $and_node = $prioritized_nodes->[$working_priority];
+            my $and_node = $ranked_nodes->[$rank_being_decided];
             my $or_node_id =
                 $and_node->[Marpa::Internal::And_Node::PARENT_NODE];
             my $or_node = $or_nodes->[$or_node_id];
             my $working_choice =
                 $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
-            # Having chosen this working node, ban all the alternatives
+            # Having chosen this working node, reject all the alternatives
             # to it
             my $alternative_nodes =
                 $or_node->[Marpa::Internal::Or_Node::AND_NODES];
@@ -1218,24 +1216,24 @@ sub Marpa::Evaluator::new_value {
                 )
             {
                 my $alternative_id =
-                    $alternative_nodes->[Marpa::Internal::And_Node::PRIORITY];
+                    $alternative_nodes->[Marpa::Internal::And_Node::RANK];
 
                 my $alternative_decision =
-                    $prioritized_decisions->[$alternative_id];
+                    $ranked_decisions->[$alternative_id];
 
-                # if the alternative has not been decided, mark it banned
+                # if the alternative has not been decided, mark it rejected
                 if ( not defined $alternative_decision ) {
 
-                    $prioritized_decisions->[$alternative_id] = BANNED;
+                    $ranked_decisions->[$alternative_id] = REJECTED;
 
                     # Note the journal does not actually record that the node
-                    # was banned, just the node about which a decision was
+                    # was rejected, just the node about which a decision was
                     # made, and what value to use for the decision if this
                     # decision is undone.  In this case, the decision would
                     # go back to no decision -- undefined.
                     push @{$journal},
                         [
-                        Marpa::Internal::Journal_Tag::IMPLICATION,
+                        Marpa::Internal::Journal_Tag::RESULT,
                         $alternative_id, undef
                         ];
 
@@ -1243,31 +1241,30 @@ sub Marpa::Evaluator::new_value {
 
                 } ## end if ( not defined $alternative_decision )
 
-                if ( $alternative_decision == BANNED ) {
+                if ( $alternative_decision == REJECTED ) {
                     Marpa::exception(
                         "Function not yet implemented\n",
-                        "Will need to backtrack on attempt to ban node already included\n"
+                        "Will need to backtrack on attempt to reject node already accepted\n"
                     );
-                } ## end if ( $alternative_decision == BANNED )
+                } ## end if ( $alternative_decision == REJECTED )
 
-                if ( $alternative_decision == $working_priority ) {
+                if ( $alternative_decision == $rank_being_decided ) {
                     Marpa::exception(
                         "Function not yet implemented\n",
-                        "Will need to backtrack on cycle while banning alternatives\n"
+                        "Will need to backtrack on cycle while rejecting alternatives\n"
                     );
-                } ## end if ( $alternative_decision == $working_priority )
+                } ## end if ( $alternative_decision == $rank_being_decided )
 
-                # At this point the alternative node was included at a
+                # At this point the alternative node was accepted at a
                 # previous working node.  Update the index, and record
                 # the new, implied decision in the journal.
                 # Include the previous decision value
                 # so we can back the decision out if
                 # necessary.
-                $prioritized_decisions->[$alternative_id] = $working_priority;
+                $ranked_decisions->[$alternative_id] = $rank_being_decided;
                 push @{$journal},
                     [
-                    Marpa::Internal::Journal_Tag::IMPLICATION,
-                    $alternative_id,
+                    Marpa::Internal::Journal_Tag::RESULT, $alternative_id,
                     $alternative_decision
                     ];
 
@@ -1277,11 +1274,11 @@ sub Marpa::Evaluator::new_value {
             my $forks = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
             # If we're at the top or node, we done with this inference,
-            # and we can pick up where we left off deciding prioritized nodes
+            # and we can pick up where we left off deciding ranked nodes
             if ( not scalar @{$forks} ) {
                 @tasks = (
                     [   Marpa::Internal::Task::DECIDE_NODES,
-                        $working_priority + 1
+                        $rank_being_decided + 1
                     ]
                 );
             } ## end if ( not scalar @{$forks} )
@@ -1290,21 +1287,20 @@ sub Marpa::Evaluator::new_value {
             my $fork_choice = 0;
             my $parent_id   = $forks->[$fork_choice];
             my $parent_node = $and_nodes->[$parent_id];
-            my $parent_priority =
-                $parent_node->[Marpa::Internal::And_Node::PRIORITY];
+            my $parent_rank = $parent_node->[Marpa::Internal::And_Node::RANK];
 
             push @{$journal},
                 [
                 Marpa::Internal::Journal_Tag::DECIDE_FORK,
-                $working_priority, $or_node_id, $fork_choice
+                $rank_being_decided, $or_node_id, $fork_choice
                 ];
 
-            # If the parent and node has been banned, or if we're in a cycle,
+            # If the parent and node has been rejected, or if we're in a cycle,
             # then backtrack
-            my $parent_decision = $prioritized_decisions->[$parent_priority];
+            my $parent_decision = $ranked_decisions->[$parent_rank];
             if (defined $parent_decision
-                and (  $parent_decision == BANNED
-                    or $parent_decision == $working_priority )
+                and (  $parent_decision == REJECTED
+                    or $parent_decision == $rank_being_decided )
                 )
             {
                 @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
@@ -1312,50 +1308,48 @@ sub Marpa::Evaluator::new_value {
             } ## end if ( defined $parent_decision and ( $parent_decision...
 
             # At this point either the parent decision has not been made,
-            # or the parent is included
-            # from a previous priority.
+            # or the parent is accepted
+            # from a higher ranked and node.
 
-            Carp::confess('INFER FROM INCLUDE Not yet finished');
+            Carp::confess('MARK_ACCEPT_RESULTS Not yet finished');
 
-            # 1. Make the decision (include) if needed.
-            # 2. Journal the IMPLICATION.
-            # 3. Continuing upward inclusion inference is new task?
+            # 1. Make the decision (accept) if needed.
+            # 2. Journal the RESULT.
+            # 3. Continuing upward acceptance inference is new task?
 
-        } ## end if ( $task == Marpa::Internal::Task::INFER_FROM_INCLUDE)
-        ## End INFER_FROM_INCLUDE
+        } ## end if ( $task == Marpa::Internal::Task::MARK_ACCEPT_RESULTS)
+        ## End MARK_ACCEPT_RESULTS
 
-        if ( $task == Marpa::Internal::Task::INFER_FROM_BAN ) {
+        if ( $task == Marpa::Internal::Task::MARK_REJECT_RESULTS ) {
 
-            my $working_priority = $task_data->[1];
-            my $inferer_priority = $task_data->[2];
-            my $inferer_node     = $prioritized_nodes->[$inferer_priority];
+            my ( $rank_being_decided, $rejected_rank ) = @{$task_data};
+            my $rejected_node = $ranked_nodes->[$rejected_rank];
 
             my $or_node_id =
-                $inferer_node->[Marpa::Internal::And_Node::PARENT_NODE];
+                $rejected_node->[Marpa::Internal::And_Node::PARENT_NODE];
             my $or_node = $or_nodes->[$or_node_id];
             my $forks   = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
             # If we're at the top or node, we done with this inference,
-            # and we can pick up where we left off deciding prioritized nodes
+            # and we can pick up where we left off deciding ranked nodes
             if ( not scalar @{$forks} ) {
                 @tasks = (
                     [   Marpa::Internal::Task::DECIDE_NODES,
-                        $working_priority + 1
+                        $rank_being_decided + 1
                     ]
                 );
             } ## end if ( not scalar @{$forks} )
 
             FORK: for my $parent_and_node_id ( @{$forks} ) {
                 my $parent_node = $and_nodes->[$parent_and_node_id];
-                my $parent_priority =
-                    $parent_node->[Marpa::Internal::And_Node::PRIORITY];
-                my $parent_decision =
-                    $prioritized_decisions->[$parent_priority];
+                my $parent_rank =
+                    $parent_node->[Marpa::Internal::And_Node::RANK];
+                my $parent_decision = $ranked_decisions->[$parent_rank];
                 next FORK
                     if defined $parent_decision
-                        and $parent_decision == BANNED;
+                        and $parent_decision == REJECTED;
 
-                # If we're trying to ban an included node, that won't work.  We
+                # If we're trying to reject an accepted node, that won't work.  We
                 # have to backtrack.
                 if ( defined $parent_decision ) {
                     @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
@@ -1363,28 +1357,25 @@ sub Marpa::Evaluator::new_value {
                 }
 
                 # The parent decision is undefined, that is, none
-                # has been made.  Decide to ban the parent and node
+                # has been made.  Decide to reject the parent and node
                 # and add following this fork to the task list.
-                # The old decision value of the IMPLICATION
+                # The old decision value of the RESULT
                 # is not explicitly given, so it will be
                 # undefined, which is what we want.
                 push @{$journal},
-                    [
-                    Marpa::Internal::Journal_Tag::IMPLICATION,
-                    $parent_priority
-                    ];
-                $prioritized_decisions->[$parent_priority] = BANNED;
+                    [ Marpa::Internal::Journal_Tag::RESULT, $parent_rank ];
+                $ranked_decisions->[$parent_rank] = REJECTED;
                 push @tasks,
                     [
-                    Marpa::Internal::Task::INFER_FROM_BAN,
-                    $working_priority,
-                    $parent_priority
+                    Marpa::Internal::Task::MARK_REJECT_RESULTS,
+                    $rank_being_decided,
+                    $parent_rank
                     ];
 
             } ## end for my $parent_and_node_id ( @{$forks} )
             ## End FORK:
 
-        } ## end if ( $task == Marpa::Internal::Task::INFER_FROM_BAN )
+        } ## end if ( $task == Marpa::Internal::Task::MARK_REJECT_RESULTS)
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
