@@ -1,7 +1,7 @@
-use inc::Module::Install 0.82;
+use inc::Module::Install 0.83;
 
 use File::Spec;
-check_innosetup();
+check_innosetup() if winlike;
 
 all_from       'lib/Perl/Dist.pm';
 requires       'Archive::Tar'              => '1.42';
@@ -32,7 +32,7 @@ requires       'Process'                   => '0.25';
 requires       'Process::Storable'         => '0.25';
 requires       'Process::Delegatable'      => '0.25';
 requires       'IO::Capture'               => '0.05';
-requires       'Win32::File::Object'       => '0.01' if $^O eq 'MSWin32';
+requires       'Win32::File::Object'       => '0.01' if winlike;
 requires       'Portable::Dist'            => '0.02';
 requires       'Probe::Perl'               => '0.01';
 test_requires  'Test::More'                => '0.86';
