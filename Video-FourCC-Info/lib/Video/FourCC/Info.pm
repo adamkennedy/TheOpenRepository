@@ -18,19 +18,9 @@ use Carp ();
 
 use DBI ();
 
-use File::Basename ();
-use File::Spec     ();
-
-BEGIN {
-  use DBD::SQLite ();
-  # Avoid warnings like:
-  #  Name "DBD::SQLite::sqlite_version" used only once: possible typo
-  # This is the reason for 90% of the failing CPAN Testers reports
-
-  # We have to do this, unfortunately.
-  ## no critic(ProhibitPackageVars)
-  if (defined $DBD::SQLite::sqlite_version) { }
-}
+use File::Basename  ();
+use File::Spec      ();
+use DBD::SQLite     ();
 
 # Use DateTime if available
 eval { require DateTime; };
@@ -60,11 +50,11 @@ Video::FourCC::Info - Find information about codecs from its FourCC
 
 =head1 VERSION
 
-Version 1.1.2 ($Id$)
+Version 1.1.3 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.1.2');
+use version; our $VERSION = qv('1.1.3');
 
 =head1 DESCRIPTION
 

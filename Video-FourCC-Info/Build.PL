@@ -43,7 +43,7 @@ my $builder = Module::Build->new(
 
     # Database related modules
     'DBI'                     => 0,
-    'DBD::SQLite'             => 1.14,
+    'DBD::SQLite'             => 1.20,
   },
   build_requires => {
     # User tests for good functionality

@@ -24,6 +24,13 @@ if ($@) {
   plan(skip_all => 'Test::Script required to test scripts');
 }
 
+eval {
+  require Video::Info;
+};
+if ($@) {
+  plan(skip_all => 'Video::Info required for bin/peekvideo');
+}
+
 Test::Script->import;
 
 plan tests => 2;
