@@ -1,6 +1,10 @@
 Revision history for Perl module Perl-Dist
 
-1.13 Tue  7 Apr 2009
+1.14 Thu 30 Apr 2009
+	- This release was used to build Strawberry Perl April 2009
+	- Moved dependencies to requires_from and cleaned them up
+
+1.13 Thu 30 Apr 2009
         - really check for InnoSetup in Makefile.PL and do not generate
           Makefile in case of failure (Alexandr Ciornii)
 	- Updating Machine.pm to allow Perl::Dist::WiX and subclasses to

@@ -126,32 +126,53 @@ which details how to sub-class the distribution.
 use 5.006;
 use strict;
 use warnings;
-use Carp                      ();
-use Archive::Tar         1.42 ();
-use Archive::Zip              ();
-use File::Spec                ();
-use File::Spec::Unix          ();
-use File::Spec::Win32         ();
-use File::Copy                ();
-use File::Copy::Recursive     ();
-use File::Path                ();
-use File::PathList            ();
-use File::pushd               ();
-use File::Remove              ();
-use File::Basename            ();
-use File::HomeDir             ();
-use IPC::Run3                 ();
-use Params::Util              ();
-use HTTP::Status              ();
-use LWP::UserAgent            ();
-use LWP::Online               ();
-use Module::CoreList          ();
-use Template                  ();
-use PAR::Dist                 ();
-use Portable::Dist            ();
-use Storable                  ();
-use URI::file                 ();
-use Perl::Dist::Inno::Script  ();
+use Carp                            ();
+use Archive::Tar               1.42 ();
+use Archive::Zip               1.26 ();
+use File::Temp                 0.21 ();
+use File::Spec                 3.29 ();
+use File::Spec::Unix                ();
+use File::Spec::Win32               ();
+use File::Copy                      ();
+use File::Copy::Recursive      0.38 ();
+use File::Path                 2.07 ();
+use File::PathList             1.04 ();
+use File::pushd                1.00 ();
+use File::Remove               1.42 ();
+use File::HomeDir              0.82 ();
+use File::Basename                  ();
+use File::ShareDir             1.00 ();
+use File::Find::Rule           0.30 ();
+use IPC::Run3                 0.042 ();
+use YAML::Tiny                 1.36 ();
+use IO::Capture                0.05 ();
+use Params::Util               0.35 ();
+use HTTP::Status              5.817 ();
+use LWP::UserAgent            5.823 ();
+use LWP::UserAgent::WithCache  0.06 ();
+use LWP::Online                1.07 ();
+use Module::CoreList           2.17 ();
+use Template                   2.20 ();
+use PAR::Dist                  0.42 ();
+use Portable::Dist             0.02 ();
+use Storable                   2.17 ();
+use URI::file                  1.37 ();
+use Probe::Perl                0.01 ();
+use Process                    0.25 ();
+use Process::Storable          0.25 ();
+use Process::Delegatable       0.25 ();
+use Perl::Dist::Asset               ();
+use Perl::Dist::Asset::Binary       ();
+use Perl::Dist::Asset::Library      ();
+use Perl::Dist::Asset::Perl         ();
+use Perl::Dist::Asset::Distribution ();
+use Perl::Dist::Asset::Module       ();
+use Perl::Dist::Asset::PAR          ();
+use Perl::Dist::Asset::File         ();
+use Perl::Dist::Asset::Website      ();
+use Perl::Dist::Asset::Launcher     ();
+use Perl::Dist::Inno::Script        ();
+use Perl::Dist::Util::Toolchain     ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
@@ -159,7 +180,7 @@ BEGIN {
 	@ISA      = 'Perl::Dist::Inno::Script';
 }
 
-use Object::Tiny qw{
+use Object::Tiny 1.06 qw{
 	perl_version
 	portable
 	archlib
@@ -189,19 +210,6 @@ use Object::Tiny qw{
 	checkpoint_before
 	checkpoint_after
 };
-
-use Perl::Dist::Inno                ();
-use Perl::Dist::Asset               ();
-use Perl::Dist::Asset::Binary       ();
-use Perl::Dist::Asset::Library      ();
-use Perl::Dist::Asset::Perl         ();
-use Perl::Dist::Asset::Distribution ();
-use Perl::Dist::Asset::Module       ();
-use Perl::Dist::Asset::PAR          ();
-use Perl::Dist::Asset::File         ();
-use Perl::Dist::Asset::Website      ();
-use Perl::Dist::Asset::Launcher     ();
-use Perl::Dist::Util::Toolchain     ();
 
 
 
