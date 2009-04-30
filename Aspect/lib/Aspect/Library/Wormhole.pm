@@ -1,0 +1,161 @@
+package Aspect::Library::Wormhole;
+
+use strict;
+use warnings;
+use Carp;
+use Aspect;
+
+
+our $VERSION = '0.15';
+
+
+use base 'Aspect::Modular';
+
+sub get_advice {
+	my ($self, $source, $target) = @_;
+	before { my $c = shift; $c->append_param($c->source->self) }
+		call $target & cflow source => $source;
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+Aspect::Library::Wormhole - A wormhole between call frames
+
+=head1 SYNOPSIS
+
+  package A;
+  sub new { bless {}, shift }
+  sub a { B->new->b }
+
+  package B;
+  sub new { bless {}, shift }
+  sub b { C->new->c }
+
+  package C;
+  sub new { bless {}, shift }
+  sub c { ref pop }
+
+  package main;
+
+  print ref A->new->a; # without aspect, prints C
+
+  use Aspect::Library::Wormhole;
+  aspect Wormhole => 'A::a', 'C::c';
+  print ref A->new->a; # with aspect, prints A
+
+=head1 SUPER
+
+L<Aspect::Modular>
+
+=head1 DESCRIPTION
+
+A reusable aspect for passing objects down a call flow, without adding
+extra arguments to the frames between the source and the target. It is a
+tool for acquiring implicit context.
+
+Suppose C<A::a()> calls C<B::b()> calls C<C::c()>... until C<Z::z()>.
+
+All is well, until one day you get a requirement with a crosscutting
+implication- C<Z::Z()> requires one extra argument. It requires an
+instance of the class C<A>. The very same instance on which the method
+C<a()> was called, high up the call chain of C<Z::z()>.
+
+Without this aspect you can either add a global C<$Current_A> (very
+problematic), or make C<A::a()> send C<B::b()> its C<$self>, make
+C<B::b()> pass it on to C<C::c()>, and so on until C<Z::z()>. You are
+forced to add many arguments to many methods.
+
+Show me a developer who has never encountered this situation: you need
+to add an argument to a long call flow, just because someone at the
+bottom needs it, yet only someone on the top has it. The monkey code
+required I<on each call frame> in the call flow, I<for each argument>
+that I<each target> requires, is suffering from B<EEK>- Extraneous
+Embedded Knowledge (L<http://citeseer.ist.psu.edu/254612.html>).
+
+The code for the frames between the two ends of the wormhole, knows more
+about the world than it should. This extraneous knowledge is embedded in
+each method on the call flow, and there is no easy way to remove it.
+
+This aspect removes the EEK by allowing you to setup a wormhole between
+the source and target frames in the call flow. The only effect the
+wormhole has on the call flow, is that the target gets called with one
+extra argument: the calling source object. Thus the target acquires
+implicit context.
+
+So this wormhole:
+
+  aspect Wormhole => 'A::a', 'Z::z';
+
+Means: before the method C<Z::z()> is called, I<if> C<A::a()> exists in
+the call flow, I<then> append one argument to the argument list of
+C<Z::z()>. The argument appended is the calling C<A> object.
+
+No method in the call flow is required to pass the source object, but
+C<Z::z()> will still receive it.
+
+  +--------+                                       +--------+
+  | source |    +--------+    +--------+           | target |
+  +--------+--> | B::b() |--> | C::c() |--> ...--> +--------+
+  | A::a() |    +--------+    +--------+           | Z::z() |
+  +--------+                                       +--------+
+      .                                                ,
+      |                                               /|\
+      |                                              / | \
+      |                                                |
+      +------------- The Bajoran Wormhole -------------+
+
+=head1 USING
+
+The aspect constructor takes two pointcut specs, a source and a target.
+The spec can be a string (full sub name), a regex (sub will match if
+rexep matches), or a coderef (called with sub name, will match if returns
+true).
+
+For example, this will append a calling C<Printer> to any call to a sub
+defined on C<Page>, if it is in the call flow of C<Printer::print>:
+
+  aspect Wormhole => 'Printer::Print', qr/^Page::/;
+
+=head1 SEE ALSO
+
+See the L<Aspect|::Aspect> pods for a guide to the Aspect module.
+
+You can find an example comparing the OO and AOP solutions in the
+C<examples/> directory of the distribution.
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests through the web interface at
+L<http://rt.cpan.org>.
+
+=head1 INSTALLATION
+
+See perlmodinstall for information and options on installing Perl modules.
+
+=head1 AVAILABILITY
+
+The latest version of this module is available from the Comprehensive Perl
+Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
+site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
+
+=head1 AUTHORS
+
+Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
+
+Ran Eilam C<< <eilara@cpan.org> >>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2001 by Marcel GrE<uuml>nauer
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+

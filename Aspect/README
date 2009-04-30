@@ -1,0 +1,89 @@
+NAME
+
+   Aspect - AOP in Perl
+
+DESCRIPTION
+
+   Aspect-oriented Programming (AOP) is a programming method developed
+   by Xerox PARC and others. The basic idea is that in complex class
+   systems there are certain aspects or behaviors that cannot normally
+   be expressed in a coherent, concise and precise way. One example of
+   such aspects are design patterns, which combine various kinds of
+   classes to produce a common type of behavior. Another is logging. See
+   http://www.aosd.net for more info.
+
+   Aspects in Perl provide:
+
+   * Dynamic enabling and disabling of aspects at run-time
+   * Reusable aspects for prepackaged functionality
+
+   Start with the Aspect module pod for for an introduction to Perl AOP.
+   The examples directory in the distribution shows some aspect
+   examples. The unit tests are in the tests directory, and can also be
+   used as API examples.
+
+LIMITATIONS
+
+   * Some types of pointcuts remain unimplemented
+   * Performance may suffer for aspects affecting a wide range of
+     join points
+   * Getting pointcuts to play well with inheritance is not as easy as
+     it could be
+
+PREREQUISITES
+
+   Aspect requires at least Perl 5.8.2, and the following modules, which
+   can be obtained from CPAN:
+
+      Devel::Symdump
+
+   If you install Aspect from the CPAN shell, these modules will, if
+   necessary, be installed automatically as well.
+
+   To use the optional Profiler aspect, you need to install:
+
+      Benchmark::Timer
+
+   For its test suite the Aspect module includes:
+
+      Test::Class
+
+INSTALLATION
+
+   Its all pure Perl, so just put the .pm files in their appropriate local
+   Perl subdirectories.
+
+   The easiest way to install this distribution is using the standard build
+   process for Perl modules:
+
+      perl Makefile.PL
+      make
+      make test
+      make install
+
+    Or you could use the CPAN shell, as described in the "CPAN" module
+    documentation.
+
+CHANGES AND FUTURE DEVELOPMENT
+
+   This README refers to version 0.12. See the Changes file for detailed
+   list of changes.
+
+   Future versions will provide new types of join points, pointcuts and
+   modular aspects. Stability and performance is also an ongoing
+   concern. See the TODO file for more info.
+
+AVAILABILITY
+
+   Aspect has been uploaded to the CPAN.
+
+AUTHORS
+
+   Marcel Grünauer <marcel@cpan.org>, Ran Eilam <eilara@cpan.org>
+
+COPYRIGHT
+
+   Copyright 2001-2002 Marcel Grünauer. All rights reserved.
+
+   This library is free software; you can redistribute it and/or modify
+   it under the same terms as Perl itself.
