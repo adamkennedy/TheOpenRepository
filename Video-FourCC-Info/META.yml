@@ -1,6 +1,6 @@
 ---
 name: Video-FourCC-Info
-version: 1.001003
+version: 1.001004
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: |-
@@ -42,7 +42,7 @@ dynamic_config: 0
 provides:
   Video::FourCC::Info:
     file: lib/Video/FourCC/Info.pm
-    version: 1.001003
+    version: 1.001004
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

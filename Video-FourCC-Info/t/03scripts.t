@@ -15,7 +15,9 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::NoWarnings; # 1 test
+
+# Cannot 'use' because we might skip tests
+require Test::NoWarnings; # 1 test
 
 eval {
   require Test::Script;
@@ -31,8 +33,11 @@ if ($@) {
   plan(skip_all => 'Video::Info required for bin/peekvideo');
 }
 
-Test::Script->import;
-
 plan tests => 2;
 
+# Delay loading of test hooks
+Test::NoWarnings->import();
+Test::Script->import();
+
+# Each of these take 1 test
 script_compiles_ok('bin/peekvideo', 'peekvideo program compiles');

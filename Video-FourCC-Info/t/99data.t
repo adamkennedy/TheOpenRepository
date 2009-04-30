@@ -18,8 +18,8 @@ use Test::More;
 
 use File::Spec;
 
-unless ($ENV{TEST_AUTHOR} or $ENV{TEST_DATA}) {
-  plan skip_all => 'Set TEST_AUTHOR or TEST_DATA to check data integrity';
+unless ($ENV{TEST_AUTHOR}) {
+  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
 }
 
 use DBI ();

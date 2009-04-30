@@ -50,11 +50,11 @@ Video::FourCC::Info - Find information about codecs from its FourCC
 
 =head1 VERSION
 
-Version 1.1.3 ($Id$)
+Version 1.1.4 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.1.3');
+use version; our $VERSION = qv('1.1.4');
 
 =head1 DESCRIPTION
 
