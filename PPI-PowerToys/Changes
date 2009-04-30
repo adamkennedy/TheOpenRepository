@@ -3,6 +3,7 @@ Revision history for Perl extension Perl-PowerToys
 0.12 Thu 30 Apr 2009
 	- Upgrading to Module::Install::DSL 0.83
 	- Adding support for "our $VERSION";
+	- Adding support for all four quote variants
 
 0.11 Thu  6 Mar 2008
 	- Upgrading to Module::Install 0.76

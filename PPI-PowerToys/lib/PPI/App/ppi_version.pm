@@ -114,7 +114,7 @@ sub change {
 			print " no write permission\n";
 			next;
 		}
-		my $rv = _changefile( $file, $from => $to );
+		my $rv = _change_file( $file, $from => $to );
 		if ( $rv ) {
 			print " updated\n";
 			$count++;
