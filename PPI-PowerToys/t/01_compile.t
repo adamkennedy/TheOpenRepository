@@ -11,7 +11,7 @@ BEGIN {
 use Test::More tests => 4;
 use Test::Script;
 
-ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+ok( $] > 5.006, 'Perl version is 5.006 or newer' );
 
 use_ok( 'PPI::PowerToys'    );
 use_ok( 'PPI::App::ppi_version' );
