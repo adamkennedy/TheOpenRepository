@@ -28,6 +28,8 @@ sub match_run {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Pointcut::NotOp - Logical 'not' operation pointcut

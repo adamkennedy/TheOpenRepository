@@ -41,11 +41,11 @@ sub init {}
 sub match_define { 1 }
 sub match_run    { 1 }
 
-
 1;
 
-
 __END__
+
+=pod
 
 =head1 NAME
 

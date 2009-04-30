@@ -24,6 +24,8 @@ sub get_advice {}
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Modular - base class for reusable aspects

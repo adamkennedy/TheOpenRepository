@@ -91,6 +91,8 @@ sub pointcut { shift->{pointcut} }
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Advice - change how Perl code is run at a pointcut

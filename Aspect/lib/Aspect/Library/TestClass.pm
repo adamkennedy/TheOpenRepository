@@ -6,9 +6,7 @@ use Carp;
 use Test::Class;
 use Aspect;
 
-
 our $VERSION = '0.15';
-
 
 use base 'Aspect::Modular';
 
@@ -44,6 +42,8 @@ sub is_test_method_with_subject {
 1;
 
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -125,4 +125,3 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-

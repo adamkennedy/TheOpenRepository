@@ -61,6 +61,8 @@ sub caller_info {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Pointcut::Cflow - Cflow pointcut

@@ -31,6 +31,8 @@ sub get_advice {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Library::Memoize - cross-cutting memoization

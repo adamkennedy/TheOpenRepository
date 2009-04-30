@@ -41,6 +41,8 @@ sub binop { die "Must be implemented by subclass" }
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Pointcut::BinOp - Binary operation pointcut

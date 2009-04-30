@@ -1,24 +1,21 @@
 package Aspect;
 
-require 5.008002;
-
+use 5.008002;
 use strict;
 use warnings;
-use Carp;
-use Aspect::Advice;
-use Aspect::Pointcut::Call;
-use Aspect::Pointcut::Cflow;
-
+use Carp                    'croak';
+use Exporter                ();
+use Aspect::Advice          ();
+use Aspect::Pointcut::Call  ();
+use Aspect::Pointcut::Cflow ();
 
 our $VERSION = '0.15';
-
-
-use base 'Exporter';
-
-
+our @ISA     = 'Exporter';
 our @EXPORT  = qw(aspect before after call cflow);
 
-my (@Aspect_Store, @Advice_Store);
+# Internal data storage
+my @Aspect_Store = undef;
+my @Advice_Store = undef;
 
 sub aspect {
 	my ($name, @params) = @_;
@@ -30,11 +27,21 @@ sub aspect {
 	return $aspect;
 }
 
-sub call   ($)  { Aspect::Pointcut::Call ->new(@_) }
-sub cflow  ($$) { Aspect::Pointcut::Cflow->new(@_) }
+sub call ($) {
+	Aspect::Pointcut::Call->new(@_);
+}
 
-sub before (&$) { advice(before => @_) }
-sub after  (&$) { advice(after  => @_) }
+sub cflow ($$) {
+	Aspect::Pointcut::Cflow->new(@_);
+}
+
+sub before (&$) {
+	advice( before => @_ );
+}
+
+sub after (&$) {
+	advice( after  => @_ );
+}
 
 sub advice {
 	my $advice = Aspect::Advice->new(@_);
@@ -49,11 +56,11 @@ sub runtime_use {
 	croak "Cannot use [$package]: $@" if $@;
 }
 
-
 1;
 
-
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -387,9 +394,7 @@ matches the pointcut spec.
 
 =head1 LIMITATIONS
 
-=over
-
-=item Inheritance Support
+=head2 Inheritance Support
 
 Support for inheritance is lacking. Consider the following two classes:
 
@@ -418,7 +423,7 @@ advice code on symbol table entries. C<Van::compute_mileage> does not
 have one, so nothing happens. Until this is solved, you have to do the
 thinking about inheritance yourself.
 
-=item Performance
+=head2 Performance
 
 You may find it very easy to shoot yourself in the foot with this module.
 Consider this advice:
@@ -438,41 +443,143 @@ solution is to narrow the pointcut:
   before { print shift->sub_name }
      call qr/^MyApp::/ & cflow company => 'MyApp::Company::make_report';
 
-=back
+=head1 TO DO
 
-See the C<TODO> file in the distribution for possible solutions.
+There are a number of things that could be added, if people have an interest
+in contributing to the project.
+
+=head1 Documentation
+
+* cookbook
+
+* tutorial
+
+* example of refactoring a useful CPAN module using aspects
+
+=head2 Pointcuts
+
+* new pointcuts: execution, cflowbelow, within, advice, calledby. Sure
+  you can implement them today with Perl treachery, but it is too much
+  work.
+
+* need a way to match subs with an attribute, attributes::get()
+  will not work for some reason
+
+* isa() support for method pointcuts as Gaal Yahas suggested: match
+  methods on class hierarchies without callbacks
+
+* Perl join points: phasic- BEGIN/INIT/CHECK/END 
+
+* The previous items indicate a need for a real join point specification
+  language
+
+=head2 Weaving
+
+* look into byte code manipulation with B:: modules- could be faster, no
+  need to mess with caller, and could add many more pointcut types. All
+  we need to do for sub pointcuts is add 2 gotos to selected subs.
+
+* use Sub::Uplevel instead of Hook::LexWrap caller trick, thus we will
+  will play nice with other modules that use Sub::Uplevel (e.g. all the
+  test modules seem to use it)
+
+* a debug flag to print out subs that were matched on match_define
+
+* warnings when over 1000 methods wrapped
+
+* support more pulling (vs. pushing) of aspects into packages:
+  attributes, package specific join points
+ 
+* add whatever constructs required for mocking packages, objects,
+  builtins
+
+* debugger support: break on pointcut
+
+* allow finer control of advice execution order
+
+=head2 Reusable Aspects
+
+* need better example for wormhole- something less tedius
+
+* bring back Marcel's tracing aspect and example, class invariants
+  example
+
+* use Scalar-Footnote for adding aspect state to objects, e.g. in
+  Listenable. Problem is it is still in developer release state
+
+* Listenable: when listeners go out of scope, they should be removed from
+  listenables, so you don't have to remember to remove them manually
+
+* Listenable: should overload some operator on listenables so that it is 
+  easier to add/remove listeners, e.g.:
+    $button += (click => sub { print 'click!' });
+
+* design aspects: DBC, threading, more GOF patterns
+
+* middleware aspects: security, load balancing, timeout/retry, distribution
+
+* Perl aspects: add use strict/warning/Carp to all matched packages.
+  Actually, Spiffy, Toolkit, and Toolset do this already very nicely.
+
+* interface with existing Perl modules for logging, tracing, param
+  checking, generally all things that are AOPish on CPAN. One should
+  be able to use it all through one consistent interface. If I have a
+  good set of pointcuts, I should be able to do all kinds of cross-
+  cutting things with them.
+
+* UnderscoreContext aspect: subs that match will, if called with no
+  parameters, get $_, and if in void context, return value will set $_.
+  Allows you to use your subs like builtins, that fall back on $_. So if
+  we have a sub:
+
+     sub replace_foo { my $in = shift; $in =~ s/foo/bar; $in }
+
+  Then both calls would be equivalent:
+
+     $_ = replace_foo($_);
+     replace_foo;
+
+* a generic FriendParamAppender aspect, that adds to a param list
+  for affected methods, any object the method requires. Heuristics
+  are applied to find the friend: maybe it is available in the call
+  flow? Perhaps someone in the call flow has an accessor that can
+  get it? Maybe a lexical in some sub in the call flow has it? The
+  point is to cover all cases where we pass objects around, so that
+  we don't have to. A generalization of the wormhole aspect.
+
+=head1 SUPPORT
+
+Please report any bugs or feature requests through the web interface at
+L<http://rt.cpan.org/Public/Dist/Display.html?Name=Aspect>.
+
+=head1 INSTALLATION
+
+See L<perlmodinstall> for information and options on installing Perl modules.
+
+=head1 AVAILABILITY
+
+The latest version of this module is available from the Comprehensive Perl
+Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
+site near you. Or see L<http://search.cpan.org/perldoc?Aspsect.pm>.
+
+=head1 AUTHORS
+
+Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
+
+Ran Eilam E<lt>eilara@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 You can find AOP examples in the C<examples/> directory of the
 distribution.
 
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
-
-=head1 AUTHORS
-
-Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
-
-Ran Eilam C<< <eilara@cpan.org> >>
-
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2001 by Marcel GrE<uuml>nauer
+
+Some parts copyright 2009 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

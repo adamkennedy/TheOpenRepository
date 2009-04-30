@@ -21,6 +21,8 @@ sub get_advice {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Library::Wormhole - A wormhole between call frames
@@ -158,4 +160,3 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-

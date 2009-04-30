@@ -104,6 +104,8 @@ sub get_value {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::AdviceContext - a pointcut context for advice code

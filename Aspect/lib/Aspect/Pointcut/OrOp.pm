@@ -18,6 +18,8 @@ sub binop { $_[1] || $_[2] }
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Pointcut::OrOp - Logical 'or' operation pointcut

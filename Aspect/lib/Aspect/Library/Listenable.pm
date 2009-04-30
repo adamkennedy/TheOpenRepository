@@ -200,6 +200,8 @@ sub as_string {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Library::Listenable - Observer pattern with events

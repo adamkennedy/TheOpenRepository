@@ -23,6 +23,8 @@ sub match_define {
 
 __END__
 
+=pod
+
 =head1 NAME
 
 Aspect::Pointcut::Call - Call pointcut
