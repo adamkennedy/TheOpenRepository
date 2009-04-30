@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 6;
 use PPI;
 use PPI::App::ppi_version ();
 
@@ -28,15 +28,41 @@ sub version_is {
 	);
 }
 
-# Check ADAMK's normal style
-version_is( <<'END_PERL', '0.01', "\$VERSION = '0.01'; ok" );
+# Single-Quote vars
+version_is( <<'END_PERL', '0.01', q{$VERSION = '0.01'} );
 use vars qw{$VERSION};
 BEGIN {
 	$VERSION = '0.01';
 }
 END_PERL
 
-# Check Padre's style
-version_is( <<'END_PERL', '0.21', "our \$VERSION = 0.21; ok" );
-our $VERSION = 0.21;
+# Double-Quote vars
+version_is( <<'END_PERL', '0.01', q{$VERSION = "0.01"} );
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = "0.01";
+}
+END_PERL
+
+# Numeric vars
+version_is( <<'END_PERL', '0.01', q{$VERSION = 0.01} );
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = 0.01;
+}
+END_PERL
+
+# Single-Quote our
+version_is( <<'END_PERL', '0.01', q{our $VERSION = '0.01'} );
+our $VERSION = '0.01';
+END_PERL
+
+# Double-Quote our
+version_is( <<'END_PERL', '0.01', q{our $VERSION = "0.01"} );
+our $VERSION = "0.01";
+END_PERL
+
+# Numeric our
+version_is( <<'END_PERL', '0.01', q{our $VERSION = 0.01} );
+our $VERSION = 0.01;
 END_PERL

@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 12;
 use File::Spec::Functions ':ALL';
 use Probe::Perl ();
 use IPC::Run3   ();
@@ -17,15 +17,26 @@ my $perl = Probe::Perl->find_perl_interpreter;
 ok( -f $perl, 'Found perl interpreter' );
 
 # Run show against ourself
-my $script = 
+my $script = catfile('script', 'ppi_version');
 my $stdout = '';
-my $rv     = IPC::Run3::run3( [
+my $result = IPC::Run3::run3( [
 	$perl,
 	'-Mblib',
-	,
+	$script,
+	'show',
 ], \undef, \$stdout, \undef );
+is( $result, 1, 'run3 returns true' );
 
-
-foreach my $file ( qw{ adamk.pl padre.pl } ) {
-	like( $stdout, qr/$file\.\.\.\s+0\.01/, "Found version for $file" );
+foreach ( qw{
+	Makefile.PL... no version
+	lib/PPI/PowerToys.pm... 0.12
+	script/ppi_version... 0.12
+	t/01_compile.t... no version
+} ) {
+	my $string = quotemeta $_;
+	like(
+		$stdout,
+		qr/$string/,
+		"Found version for $_",
+	);
 }

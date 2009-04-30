@@ -1,15 +1,9 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install::DSL 0.83;
 
-all_from       'lib/PPI/PowerToys.pm';
-requires       'version'                => '0.74';
-requires       'File::Spec'             => '0.80';
-requires       'File::Find::Rule'       => 0;
-requires       'File::Find::Rule::Perl' => '0.03';
-requires       'Probe::Perl'            => '0.01';
-requires       'IPC::Run3'              => '0.034';
-requires       'PPI'                    => '1.201';
-test_requires  'Test::More'             => '0.47';
-test_requires  'Test::Script'           => '1.03';
-install_script 'ppi_version';
-
-WriteAll;
+all_from       lib/PPI/PowerToys.pm
+requires_from  lib/PPI/App/ppi_version.pm
+test_requires  Test::More             0.47
+test_requires  Test::Script           1.03
+test_requires  Probe::Perl            0.01
+test_requires  IPC::Run3              0.034
+install_script ppi_version

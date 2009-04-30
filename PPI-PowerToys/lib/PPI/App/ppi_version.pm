@@ -2,15 +2,15 @@ package PPI::App::ppi_version;
 
 use 5.005;
 use strict;
-use version;
-use File::Spec             ();
-use PPI::Document          ();
-use File::Find::Rule       ();
-use File::Find::Rule::Perl ();
+use version                0.74 ();
+use File::Spec             0.80 ();
+use PPI::Document         1.201 ();
+use File::Find::Rule       0.30 ();
+use File::Find::Rule::Perl 0.03 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.11';
+        $VERSION = '0.12';
 }
 
 sub FFR () { 'File::Find::Rule' }
@@ -149,7 +149,7 @@ sub _find_version {
 	my $v = $e->sprevious_sibling            or return '';
 	$v->isa('PPI::Token::Symbol')            or return '';
 	$v->content =~ m/^\$(?:\w+::)*VERSION$/  or return '';
-	
+
 	# To the left is either nothing or "our"
 	my $o = $v->sprevious_sibling;
 	if ( $o ) {
