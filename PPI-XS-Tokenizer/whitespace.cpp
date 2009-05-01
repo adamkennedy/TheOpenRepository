@@ -208,7 +208,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
     return error_fail;
 }
 
-extern char end_pod[] = "=cut";
+extern const char end_pod[] = "=cut";
 CharTokenizeResults PodToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// will enter here only on the line's start, but not nessesery on byte 0.
 	// there may be a BOM before it.
@@ -224,4 +224,7 @@ CharTokenizeResults PodToken::tokenize(Tokenizer *t, Token *token, unsigned char
 		t->_new_token(zone);
 	}
 	return done_it_myself;
+}
+
+CharTokenizeResults EndToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 }

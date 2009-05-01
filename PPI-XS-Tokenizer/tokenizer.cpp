@@ -286,6 +286,12 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Attribute] = &m_AttributeToken;
 	TokenTypeNames_pool[Token_Attribute_Parameterized] = &m_ParameterizedAttributeToken;
 	TokenTypeNames_pool[Token_Pod] = &m_PodToken;
+	TokenTypeNames_pool[Token_Cast] = &m_CastToken;
+	TokenTypeNames_pool[Token_Prototype] = &m_PrototypeToken;
+	TokenTypeNames_pool[Token_DashedWord] = &m_DashedWordToken;
+	TokenTypeNames_pool[Token_Number_Version] = &m_VersionNumberToken;
+	TokenTypeNames_pool[Token_BOM] = &m_BOMToken;
+	TokenTypeNames_pool[Token_Separator] = &m_SeparatorToken;
 
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;

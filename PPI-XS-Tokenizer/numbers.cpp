@@ -189,3 +189,29 @@ CharTokenizeResults ExpNumberToken::tokenize(Tokenizer *t, Token *token, unsigne
 	t->_new_token(zone);
 	return done_it_myself;
 }
+
+CharTokenizeResults VersionNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	while ( t->line_length > t->line_pos ) {
+		uchar c = t->c_line[ t->line_pos ];
+		if ( is_digit( c ) ) {
+			token->text[ token->length++ ] = c;
+			t->line_pos++;
+			continue;
+		}
+		if ( c == '.' ) {
+			if ( token->text[ token->length - 1 ] == '.' ) {
+				// a .. operator. backoff.
+				token->length--;
+				t->line_pos--;
+				break;
+			}
+			token->text[ token->length++ ] = c;
+			t->line_pos++;
+			continue;
+		}
+		break;
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}

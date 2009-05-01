@@ -14,7 +14,7 @@ static void is_false( bool check, int line ) {
 #define BE_FALSE( check ) is_false( (check), __LINE__ );
 
 typedef unsigned long ulong;
-extern char l_test[] = "yz";
+extern const char l_test[] = "yz";
 
 void forward_scan2_unittest() {
 	PredicateIsChar< 'x' > regex1;

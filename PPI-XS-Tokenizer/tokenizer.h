@@ -15,11 +15,11 @@ enum TokenTypeNames {
     Token_Symbol, // done
     Token_Comment, // done
     Token_Word, // done
-	Token_DashedWord,
+	Token_DashedWord, // done - will no appear in output
     Token_Structure, // done
 	Token_Magic, // done
 	Token_Number, // done
-	Token_Number_Version,
+	Token_Number_Version, // done
 	Token_Number_Float, // done
 	Token_Number_Hex, // done
 	Token_Number_Binary, // done
@@ -41,8 +41,8 @@ enum TokenTypeNames {
 	Token_Regexp_Match_Bare, // done - Token_Regexp_Match without the 'm'
 	Token_Regexp_Substitute, // done
 	Token_Regexp_Transliterate, // done
-	Token_Cast, 
-	Token_Prototype,
+	Token_Cast, // done
+	Token_Prototype, // done
 	Token_ArrayIndex, // done
 	Token_HereDoc,
 	Token_Attribute, // done
@@ -52,7 +52,7 @@ enum TokenTypeNames {
 	Token_End,
 	Token_Data,
 	Token_Pod, // done
-	Token_BOM,
+	Token_BOM, // done
 	Token_Foreign_Block, // for Perl6 code, unimplemented
 	Token_LastTokenType, // Marker for the last real types
 
@@ -60,6 +60,8 @@ enum TokenTypeNames {
 	isToken_QuoteOrQuotaLike,
 	isToken_Extended
 };
+
+// FIXME: fix the isa-a relationship between the tokens
 
 enum CharTokenizeResults {
     my_char,
@@ -399,6 +401,12 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class VersionNumberToken : public AbstractNumberSubclassToken {
+public:
+	VersionNumberToken() : AbstractNumberSubclassToken( Token_Number_Version, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 class ArrayIndexToken : public AbstractTokenType {
 public:
 	ArrayIndexToken() : AbstractTokenType( Token_ArrayIndex, true ) {}
@@ -427,6 +435,42 @@ public:
 class PodToken : public AbstractTokenType {
 public:
 	PodToken() : AbstractTokenType( Token_Pod, false ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class CastToken : public AbstractTokenType {
+public:
+	CastToken() : AbstractTokenType( Token_Cast, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class PrototypeToken : public AbstractTokenType {
+public:
+	PrototypeToken() : AbstractTokenType( Token_Prototype, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class DashedWordToken : public AbstractTokenType {
+public:
+	DashedWordToken() : AbstractTokenType( Token_DashedWord, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class BOMToken : public AbstractTokenType {
+public:
+	BOMToken() : AbstractTokenType( Token_BOM, false ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class SeparatorToken : public AbstractTokenType {
+public:
+	SeparatorToken() : AbstractTokenType( Token_Separator, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class EndToken : public AbstractTokenType {
+public:
+	EndToken() : AbstractTokenType( Token_End, false ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
@@ -493,6 +537,9 @@ public:
 	/* tokenizeLine - Tokenize one line
 	 */
 	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
+	/* tokenizeLine - Tokenize part of one line
+	 */
+	LineTokenizeResults _tokenize_the_rest_of_the_line(char *line, ulong line_length);
 
 	/* Utility functions */
 	bool is_operator(const char *str);
@@ -536,6 +583,12 @@ private:
 	AttributeToken m_AttributeToken;
 	ParameterizedAttributeToken m_ParameterizedAttributeToken;
 	PodToken m_PodToken;
+	CastToken m_CastToken;
+	PrototypeToken m_PrototypeToken;
+	DashedWordToken m_DashedWordToken;
+	VersionNumberToken m_VersionNumberToken;
+	BOMToken m_BOMToken;
+	SeparatorToken m_SeparatorToken;
 
 	void keep_significant_token(Token *t);
 

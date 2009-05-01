@@ -331,3 +331,42 @@ CharTokenizeResults AttributeToken::tokenize(Tokenizer *t, Token *token, unsigne
 bool ParameterizedAttributeToken::isa( TokenTypeNames is_type ) const {
 	return ( ( is_type == type ) || ( is_type == Token_Attribute ) || ( is_type == isToken_Extended) );
 }
+
+//=====================================
+// DashedWordToken
+//=====================================
+
+static inline bool is_file_test( char c ) {
+	// /^\-[rwxoRWXOezsfdlpSbctugkTBMAC]$/
+	return (( c == 'r' ) || ( c == 'w' ) || ( c == 'x' ) || ( c == 'o' ) || 
+			( c == 'R' ) || ( c == 'W' ) || ( c == 'X' ) || ( c == 'O' ) || 
+			( c == 'e' ) || ( c == 'z' ) || ( c == 's' ) || ( c == 'f' ) || 
+			( c == 'd' ) || ( c == 'l' ) || ( c == 'p' ) || ( c == 'S' ) || 
+			( c == 'b' ) || ( c == 'c' ) || ( c == 't' ) || ( c == 'u' ) || 
+			( c == 'g' ) || ( c == 'k' ) || ( c == 'T' ) || ( c == 'B' ) || 
+			( c == 'M' ) || ( c == 'A' ) || ( c == 'C' ) );
+}
+
+CharTokenizeResults DashedWordToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	while ( ( t->line_length > t->line_pos ) && is_word(t->c_line[ t->line_pos ] ) ) {
+		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+	}
+	// is that a file test operator?
+	if ( ( token->length == 2 ) && ( token->text[0] == '-' ) && is_file_test( token->text[1] ) ) {
+		t->changeTokenType( Token_Operator );
+	} else {
+		t->changeTokenType( Token_Word );
+	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+}
+
+//=====================================
+// Separator Token
+//=====================================
+
+CharTokenizeResults SeparatorToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+	// should never reach here - the Word token will take care of me
+	return error_fail;
+}

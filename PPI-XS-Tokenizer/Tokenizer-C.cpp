@@ -322,7 +322,37 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, "}", Token_Structure);
 
 	Tokenize("=head start of pod\n");
-	Tokenize("=cut");
+	Tokenize("=cut \n");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "=head start of pod\n=cut \n", Token_Pod);
+
+	Tokenize(" %$symbol; \n");
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "%", Token_Cast);
+	CheckToken(&tk, "$symbol", Token_Symbol);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("sub mmss ($$) {return 5}\n");
+	CheckToken(&tk, " \n", Token_WhiteSpace);
+	CheckToken(&tk, "sub", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "mmss", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "($$)", Token_Prototype);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "{", Token_Structure);
+	CheckToken(&tk, "return", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "5", Token_Number);
+	CheckToken(&tk, "}", Token_Structure);
+
+	Tokenize(" + -hello \n");
+	CheckToken(&tk, "\n ", Token_WhiteSpace);
+	CheckToken(&tk, "+", Token_Operator);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "-hello", Token_Word);
+
+	Tokenize(" 1.2.3 \n");
 
 	tk._finalize_token();
 //	CheckToken(&tk, " \n", Token_WhiteSpace);

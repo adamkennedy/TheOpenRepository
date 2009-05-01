@@ -126,7 +126,8 @@ public:
 	}
 };
 
-template <unsigned long len, char *str>
+// please define the input as: extern const char my_str[] = "...";
+template <unsigned long len, const char *str>
 class PredicateLiteral {
 public:
 	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
@@ -145,6 +146,18 @@ public:
 		*position += len;
 		return true;
 	}
+};
+
+// class defined for the future posebility that we use strncmp for PredicateLiteral,
+// that won't work well for binary data
+template <unsigned long len, const char *str>
+class PredicateBinaryLiteral {
+public:
+	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+		return inner.test( text, position, line_lenght );
+	}
+private:
+	PredicateLiteral< len, str > inner;
 };
 
 template <class A1>
