@@ -132,6 +132,7 @@ our $MenuEntryNumber = 0; # in which entry of that menu
 
 
 # Displayed column descriptions
+# index refers to the position in the record (which is an array for efficiency)
 our %Columns =  (
   prio   => { format => '%.5f',  width => 7,  name => 'Prio',  key => 'prio',  'index' => F_prio,  order => 'num_highlow' },
   name   => { format => '%-10s', width => 10, name => 'Name',  key => 'name',  'index' => F_name,  order => 'alpha'       },
