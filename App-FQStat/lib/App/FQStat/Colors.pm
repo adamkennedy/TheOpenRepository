@@ -100,7 +100,7 @@ sub load_color_scheme {
   }
   my $colors = get_config('colors') || {};
   %$colors = %{$schemes->{$schemeName}};
-  App::FQStat::Config::save_configuration();
+  F::Config::save_configuration();
   return 1;
 }
 
@@ -110,7 +110,7 @@ sub save_color_scheme {
   my $schemes = get_config('color_schemes') || {};
   my $colors = get_config('colors') || {};
   $schemes->{$schemeName} = {%$colors};
-  App::FQStat::Config::save_configuration();
+  F::Config::save_configuration();
   return 1;
 }
 
@@ -119,7 +119,7 @@ sub delete_color_scheme {
   my $schemeName = shift;
   my $schemes = get_config('color_schemes') || {};
   delete $schemes->{$schemeName};
-  App::FQStat::Config::save_configuration();
+  F::Config::save_configuration();
   return 1;
 }
 
@@ -133,8 +133,8 @@ sub get_color_scheme_menu_entries {
     $display_name =~ s/^(.{0,8}).*$/$1/;
     push @entries, { name => $display_name, action => sub { load_color_scheme($name) }, },
   }
-  push @entries, { name => 'Delete', action => \&App::FQStat::Actions::delete_color_scheme, };
-  push @entries, { name => 'Save', action => \&App::FQStat::Actions::save_color_scheme, };
+  push @entries, { name => 'Delete', action => \&F::Actions::delete_color_scheme, };
+  push @entries, { name => 'Save', action => \&F::Actions::save_color_scheme, };
   return \@entries;
 }
 

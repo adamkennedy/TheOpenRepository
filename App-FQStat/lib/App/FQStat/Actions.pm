@@ -96,12 +96,12 @@ sub select_sort_field {
   print " (left/right to select, s/Enter to confirm, n for none, q to cancel)\n";
 
   while (1) {
-    App::FQStat::Drawing::draw_header_line($sort+1);
+    F::Drawing::draw_header_line($sort+1);
     my $input = get_input_key();
     if (defined $input) {
       if ($input eq 's' or $input =~ /\n/ or $input =~ /\r/) { # select
         $::SortField = $cols[$sort];
-        App::FQStat::Scanner::sort_current($::Records);
+        F::Scanner::sort_current($::Records);
         return 1; # redraw
       }
       elsif ($input eq 'n') {
@@ -127,7 +127,7 @@ sub toggle_reverse_sort {
   lock($::RecordsReversed);
   if ($::RecordsReversed == 1) { $::RecordsReversed = 0 }
   else { $::RecordsReversed = 1 }
-  App::FQStat::Scanner::reverse_records($::Records);
+  F::Scanner::reverse_records($::Records);
   return 1; # redraw
 }
 
@@ -159,7 +159,7 @@ sub kill_jobs {
       print "\n", join("\n", @ids);
       print "\n";
       foreach my $dead (@ids) {
-        if ( App::FQStat::System::run(get_config("qdelcmd"), $dead) ) {
+        if ( F::System::run(get_config("qdelcmd"), $dead) ) {
             # This branch doesn't seem to be entered because qdel is braindead and doesn't
             # signal failure with exit($POSITIVE_INTEGER)
             print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
@@ -212,7 +212,7 @@ sub change_priority {
       print "\n";
 
       foreach my $job (@ids) {
-        if ( App::FQStat::System::run(get_config("qaltercmd"), '-p', $integerprio, $job) ) {
+        if ( F::System::run(get_config("qaltercmd"), '-p', $integerprio, $job) ) {
           print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
           print "\n(Hit 'q' to quit or any other key to continue)";
           my $tmp = get_input_key(1e9);
@@ -262,7 +262,7 @@ sub hold_jobs {
     print "\n";
 
     foreach my $job (@ids) {
-      if ( App::FQStat::System::run(get_config("qaltercmd"), '-h', 'u', $job) ) {
+      if ( F::System::run(get_config("qaltercmd"), '-h', 'u', $job) ) {
         print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
@@ -307,7 +307,7 @@ sub resume_jobs {
     print "\n";
 
     foreach my $job (@ids) {
-      if ( App::FQStat::System::run(get_config("qaltercmd"), '-h', 'U', $job) ) {
+      if ( F::System::run(get_config("qaltercmd"), '-h', 'U', $job) ) {
         print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
@@ -352,7 +352,7 @@ sub clear_job_error_state {
     print "\n";
 
     foreach my $job (@ids) {
-      if ( App::FQStat::System::run(get_config("qmodcmd"), '-cj', $job) ) {
+      if ( F::System::run(get_config("qmodcmd"), '-cj', $job) ) {
         print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
@@ -434,7 +434,7 @@ sub change_dependencies {
     print "\n";
 
     foreach my $job (@ids) {
-      if ( App::FQStat::System::run(get_config("qaltercmd"), $job, '-hold_jid', $deplist) ) {
+      if ( F::System::run(get_config("qaltercmd"), $job, '-hold_jid', $deplist) ) {
         print "\n", get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
         print "\n(Hit 'q' to quit or any other key to continue)";
         my $tmp = get_input_key(1e9);
@@ -474,7 +474,7 @@ sub show_job_details {
     my $jobs = $::Records;
     my $id = $jobs->[ $selected->[0] ][::F_id]; # get job id
     my $qstat = get_config("qstatcmd");
-    my $output = App::FQStat::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
+    my $output = F::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
     if ($output =~ /^\s*$/ms) {
       print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
       print "\n(Hit Enter to continue)";
@@ -517,7 +517,7 @@ sub show_job_log {
     my $jobs = $::Records;
     my $id = $jobs->[ $selected->[0] ][::F_id]; # get job id
     my $qstat = get_config("qstatcmd");
-    my $output = App::FQStat::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
+    my $output = F::System::run_capture($qstat, '-j', $id); # perhaps IPC::Cmd or IPC::Run or even just Open3 would be better here?
     if ($output =~ /^\s*$/ms) {
       print get_color("warning"), "WARNING: Something went wrong. Return value: $!", RESET;
       print "\n(Hit Enter to continue)";
@@ -576,7 +576,7 @@ sub show_job_log {
       }
       $cmd .= " $err";
     }
-    App::FQStat::System::run("sh", '-c', qq(cat $cmd | less));
+    F::System::run("sh", '-c', qq(cat $cmd | less));
 
   } # end if selection okay
   return 1; # doesn't happen
@@ -637,7 +637,7 @@ sub show_manual {
   my $h = get_color("warning");
   my $r = RESET;
   print <<"HERE";
-${heading}  fqstat v$App::FQStat::VERSION - Interactive front-end for qstat               $r
+${heading}  fqstat v$F::VERSION - Interactive front-end for qstat               $r
 Commands:
   ${h}'h'             ${r}     Show this (H)elp screen
   ${h}'q'             ${r}     (Q)uit

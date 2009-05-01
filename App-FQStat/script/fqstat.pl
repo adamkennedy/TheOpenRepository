@@ -18,6 +18,14 @@ use Getopt::Long;
 use constant DEBUG => 2; # 0=no,1=some,2=lots incl. call tracing,...
 use constant STARTTIME => Time::HiRes::time();
 
+#####################
+# MAINTAINER NOTE
+#
+# We're aliasing App::FQStat into the "F" namespace.
+# Thus, if you see F::Drawing::foo, it's refering to the
+# sub "foo" in package App::FQStat::Drawing::foo.
+
+
 ###################
 # prepare for logging if in debug mode
 BEGIN {
@@ -68,7 +76,11 @@ use constant RECORD_CONSTANT_KEY => [
 ################
 # load local modules
 use App::FQStat;
-our $VERSION = $App::FQStat::VERSION;
+use Package::Alias qw(
+  F App::FQStat
+);
+
+our $VERSION = $F::VERSION;
 use App::FQStat::Input qw/get_input_key/;
 use App::FQStat::Drawing qw/printline/;
 use App::FQStat::Debug;
@@ -112,10 +124,10 @@ our $HighlightUser;
 
 # application mode globals
 our $MenuMode            = 0; # in menu or not
-our $SummaryMode :shared = App::FQStat::Config::get("summary_mode") || 0; # in summary mode or not
+our $SummaryMode :shared = F::Config::get("summary_mode") || 0; # in summary mode or not
 
 # menu globals
-our $MenuNumber      = 0; # which menu (see @App::FQStat::Menu::Menus)
+our $MenuNumber      = 0; # which menu (see @F::Menu::Menus)
 our $MenuEntryNumber = 0; # in which entry of that menu
 
 
@@ -186,19 +198,19 @@ $Interval = $UserInterval; # start out with requested interval
 ##############
 # Get/prepare configuration
 if ($ResetConfig) {
-  App::FQStat::Config::reset_configuration();
-  App::FQStat::Config::save_configuration();
+  F::Config::reset_configuration();
+  F::Config::save_configuration();
   cleanup_and_exit();
 }
 
 if (defined $SSHCommand) {
-  App::FQStat::Config::set("sshcommand", $SSHCommand);
+  F::Config::set("sshcommand", $SSHCommand);
 }
 
 ###################
 # Check that we can run qstat and friends
 
-if (not App::FQStat::System::module_install_can_run(get_config("qstatcmd"))) {
+if (not F::System::module_install_can_run(get_config("qstatcmd"))) {
   print <<HERE;
 ERROR!
 You cannot run fqstat without having a working "qstat" command in your
@@ -217,7 +229,7 @@ HERE
 ###################
 # setup scanner thread
 our $ScannerStartRun : shared = 0;
-our $ScannerThread;# = threads->new(\&App::FQStat::Scanner::scanner_thread);
+our $ScannerThread;# = threads->new(\&F::Scanner::scanner_thread);
 
 # thread exit handler
 sub thread_cleanup {
@@ -248,7 +260,7 @@ $SIG{__DIE__} = sub{warn @_;ReadMode 1;exit(1);};
 # RUN
 GetTermSize();
 cls();
-App::FQStat::Drawing::update_display(1);
+F::Drawing::update_display(1);
 
 print_module_versions() if ::DEBUG;
 %PAR::FileCache = %PAR::FileCache = () if exists $ENV{PAR_TEMP};
@@ -268,52 +280,52 @@ sub GetTermSize {
 
 BEGIN {
   %ControlKeys = (
-    'A'  => sub { App::FQStat::Actions::scroll_up(1); 1 },                # up
-    'B'  => sub { App::FQStat::Actions::scroll_down(1); 1 },              # down
-    '5'  => sub { App::FQStat::Actions::scroll_up($Termsize[1]-4); 1 },   # pgup
-    '6'  => sub { App::FQStat::Actions::scroll_down($Termsize[1]-4); 1 }, # pgdown
-    'H'  => sub { App::FQStat::Actions::scroll_up(1e9); 1 },              # pos1 (640kb ought to be enough for everyone!)
-    'F'  => sub { App::FQStat::Actions::scroll_down(1e9); 1 },            # end (640kb ought to be enough for everyone!)
-    '15' => sub { App::FQStat::Drawing::update_display(1) },              # F5
-    '21' => sub { App::FQStat::Menu::toggle_menu() },                     # F10
+    'A'  => sub { F::Actions::scroll_up(1); 1 },                # up
+    'B'  => sub { F::Actions::scroll_down(1); 1 },              # down
+    '5'  => sub { F::Actions::scroll_up($Termsize[1]-4); 1 },   # pgup
+    '6'  => sub { F::Actions::scroll_down($Termsize[1]-4); 1 }, # pgdown
+    'H'  => sub { F::Actions::scroll_up(1e9); 1 },              # pos1 (640kb ought to be enough for everyone!)
+    'F'  => sub { F::Actions::scroll_down(1e9); 1 },            # end (640kb ought to be enough for everyone!)
+    '15' => sub { F::Drawing::update_display(1) },              # F5
+    '21' => sub { F::Menu::toggle_menu() },                     # F10
   );
 
   %Keys = (
     'q' => \&cleanup_and_exit,
-    'i' => \&App::FQStat::Actions::set_user_interval,
-    'H' => \&App::FQStat::Actions::update_highlighted_user_name,
-    'r' => \&App::FQStat::Actions::toggle_reverse_sort,
-    's' => \&App::FQStat::Actions::select_sort_field,
-    'u' => \&App::FQStat::Actions::update_user_name,
-    'k' => \&App::FQStat::Actions::kill_jobs,
-    'p' => \&App::FQStat::Actions::change_priority,
-    'o' => \&App::FQStat::Actions::hold_jobs,
-    'O' => \&App::FQStat::Actions::resume_jobs,
-    'h' => \&App::FQStat::Actions::show_manual,
-    '?' => \&App::FQStat::Actions::show_manual,
-    'c' => \&App::FQStat::Actions::clear_job_error_state,
-    'd' => \&App::FQStat::Actions::change_dependencies,
-    ' ' => \&App::FQStat::Actions::show_job_details,
-    "\n" => \&App::FQStat::Actions::show_job_details,
-    'l' => \&App::FQStat::Actions::show_job_log,
-    'S' => \&App::FQStat::Actions::toggle_summary_mode,
+    'i' => \&F::Actions::set_user_interval,
+    'H' => \&F::Actions::update_highlighted_user_name,
+    'r' => \&F::Actions::toggle_reverse_sort,
+    's' => \&F::Actions::select_sort_field,
+    'u' => \&F::Actions::update_user_name,
+    'k' => \&F::Actions::kill_jobs,
+    'p' => \&F::Actions::change_priority,
+    'o' => \&F::Actions::hold_jobs,
+    'O' => \&F::Actions::resume_jobs,
+    'h' => \&F::Actions::show_manual,
+    '?' => \&F::Actions::show_manual,
+    'c' => \&F::Actions::clear_job_error_state,
+    'd' => \&F::Actions::change_dependencies,
+    ' ' => \&F::Actions::show_job_details,
+    "\n" => \&F::Actions::show_job_details,
+    'l' => \&F::Actions::show_job_log,
+    'S' => \&F::Actions::toggle_summary_mode,
   );
 
   # copy of the key maps for the menu
   %MenuControlKeys = %ControlKeys;
   delete $MenuControlKeys{$_} foreach qw(5 6 H F); # pg-up, pg-down, home, end
-  $MenuControlKeys{A}    = \&App::FQStat::Menu::menu_up,     # up-arrow
-  $MenuControlKeys{B}    = \&App::FQStat::Menu::menu_down,   # down-arrow
-  $MenuControlKeys{C}    = \&App::FQStat::Menu::menu_right,  # right-arrow
-  $MenuControlKeys{D}    = \&App::FQStat::Menu::menu_left,   # left-arrow
+  $MenuControlKeys{A}    = \&F::Menu::menu_up,     # up-arrow
+  $MenuControlKeys{B}    = \&F::Menu::menu_down,   # down-arrow
+  $MenuControlKeys{C}    = \&F::Menu::menu_right,  # right-arrow
+  $MenuControlKeys{D}    = \&F::Menu::menu_left,   # left-arrow
   
   %MenuKeys = %Keys;
-  $MenuKeys{"\n"} = \&App::FQStat::Menu::menu_select, # Enter
-  $MenuKeys{" "}  = \&App::FQStat::Menu::menu_select, # space
+  $MenuKeys{"\n"} = \&F::Menu::menu_select, # Enter
+  $MenuKeys{" "}  = \&F::Menu::menu_select, # space
   delete $MenuKeys{$_} foreach qw(S);
 
   %SummaryKeys = map {($_ => $Keys{$_})} qw(q i h S);
-  $SummaryKeys{c} = \&App::FQStat::Actions::toggle_summary_name_clustering;
+  $SummaryKeys{c} = \&F::Actions::toggle_summary_name_clustering;
   $SummaryKeys{s} = $SummaryKeys{S};
   %SummaryControlKeys = map {($_ => $ControlKeys{$_})} qw(15 21);
 }
@@ -383,7 +395,7 @@ sub main_loop {
       $startRun = $ScannerStartRun;
     }
     if ($startRun) {
-      App::FQStat::Scanner::run_qstat();
+      F::Scanner::run_qstat();
     }
 
     {
@@ -399,7 +411,7 @@ sub main_loop {
     $Redraw = 1 if time()-$RedrawTime > ($SlowRedraw ? 20.0 : 3.0); 
 
     if ($Redraw) {
-      App::FQStat::Drawing::update_display();
+      F::Drawing::update_display();
       $RedrawOffset = $DisplayOffset;
       $Redraw = 0;
       lock($RecordsChanged);
@@ -446,7 +458,7 @@ sub restart {
     my @inc = map {('-I', $_)} @INC;
     @cmd = ($^X, @inc, $0, @args);
   }
-  App::FQStat::System::exec_local(@cmd);
+  F::System::exec_local(@cmd);
 }
 
 

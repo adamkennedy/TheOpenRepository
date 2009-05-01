@@ -111,9 +111,9 @@ sub _default_config {
     qaltercmd => 'qalter',
     qmodcmd => 'qmod',
     sshcommand => '',
-    version => $App::FQStat::VERSION,
-    colors => $App::FQStat::Colors::DefaultColors,
-    color_schemes => $App::FQStat::Colors::DefaultColorSchemes,
+    version => $F::VERSION,
+    colors => $F::Colors::DefaultColors,
+    color_schemes => $F::Colors::DefaultColorSchemes,
     summary_mode => 0,
     summary_clustering => 0,
     summary_clustering_similarity => 0.25,
@@ -127,13 +127,13 @@ sub _default_config {
     },
     '6.0' => sub {
       my $cfg = shift;
-      $cfg->{colors} = $App::FQStat::Colors::DefaultColors;
+      $cfg->{colors} = $F::Colors::DefaultColors;
       $upgrades{6.1}->($cfg);
       save_configuration();
     },
     '6.1' => sub {
       my $cfg = shift;
-      $cfg->{color_schemes} = $App::FQStat::Colors::DefaultColorSchemes;
+      $cfg->{color_schemes} = $F::Colors::DefaultColorSchemes;
       $upgrades{6.2}->($cfg);
       save_configuration();
     },
@@ -154,7 +154,7 @@ sub _default_config {
 
   $upgrades{$cfgversion}->($Config) if exists $upgrades{$cfgversion};
 
-  $Config->{version} = $App::FQStat::VERSION, save_configuration() if $Config->{version} ne $App::FQStat::VERSION;
+  $Config->{version} = $F::VERSION, save_configuration() if $Config->{version} ne $F::VERSION;
 
   my $add = 0;
   foreach my $key (keys %default) {
@@ -179,12 +179,12 @@ sub edit_configuration {
   if ($@) {
     print $errstr . "The error message from the parser was: $@\n";
     print "(continue with any key)";
-    App::FQStat::Input::get_input_key(1000);
+    F::Input::get_input_key(1000);
   }
   elsif (not defined $yml) {
     print $errstr;
     print "(continue with any key)";
-    App::FQStat::Input::get_input_key(1000);
+    F::Input::get_input_key(1000);
   }
   else {
     $YAMLObject = $yml;

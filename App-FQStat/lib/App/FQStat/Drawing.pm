@@ -41,7 +41,7 @@ sub draw_title_line {
 
   if ($::MenuMode) {
     print get_color("menu_normal");
-    $line = App::FQStat::Menu::get_menu_title_line();
+    $line = F::Menu::get_menu_title_line();
   }
   elsif ($summary_mode) {
     lock($::Interval);
@@ -49,7 +49,7 @@ sub draw_title_line {
     $progress = ' ' if not defined $progress;
     $line = sprintf(
       'fqstat v%.1f %s Jobs:%i Upd:%.1fs [S]witch [F10] Menu ' . get_color('header_highlight') . 'Summary Mode' . RESET . ', Nodes:%i',
-      $App::FQStat::VERSION||0,
+      $F::VERSION||0,
       $progress,
       scalar(@{$::Records})||0,
       $::Interval||0,
@@ -71,7 +71,7 @@ sub draw_title_line {
     $progress = ' ' if not defined $progress;
     $line = sprintf(
       'fqstat v%.1f %s %s%sJobs:%i Upd:%.1fs [h]elp [F10] Menu (c) S. Mueller, Nodes:%i',
-      $App::FQStat::VERSION||0,
+      $F::VERSION||0,
       $progress,
       $status||'',
       (defined($::User) ? "User:$::User " : ""),
@@ -100,7 +100,7 @@ sub draw_header_line {
   my $norm = get_color("header_normal");
 
   my $summary_mode = $::SummaryMode;
-  my $summary_clustering = App::FQStat::Config::get("summary_clustering");
+  my $summary_clustering = F::Config::get("summary_clustering");
 
   print $norm;
   if (not $summary_mode) {
@@ -139,7 +139,7 @@ sub update_display {
     $::ProgressIndicator++;
     $::ProgressIndicator = 0
       if $::ProgressIndicator >= scalar(@{::PROGRESS_INDICATORS()});
-    App::FQStat::Scanner::run_qstat($force);
+    F::Scanner::run_qstat($force);
   }
 
   cls();
@@ -156,7 +156,7 @@ sub update_display {
   }
 
   if ($::MenuMode) {
-    App::FQStat::Menu::draw_menu();
+    F::Menu::draw_menu();
   }
 
   locate(1,1);
@@ -174,11 +174,11 @@ sub draw_summary {
     return;
   }
 
-  App::FQStat::Scanner::calculate_summary()
+  F::Scanner::calculate_summary()
     if not defined $::Summary or @$::Summary == 0;
 
   my $summary = $::Summary;
-  my $summary_clustering = App::FQStat::Config::get("summary_clustering");
+  my $summary_clustering = F::Config::get("summary_clustering");
 
   my $maxno_lines = space_for_jobs();
 

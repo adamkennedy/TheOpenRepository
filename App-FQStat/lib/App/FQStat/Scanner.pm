@@ -21,7 +21,7 @@ sub run_qstat {
 
   if (not defined $::ScannerThread) {
     warnline "Creating new (initial?) scanner thread" if ::DEBUG;
-    $::ScannerThread = threads->new(\&App::FQStat::Scanner::scanner_thread);
+    $::ScannerThread = threads->new(\&F::Scanner::scanner_thread);
   }
   elsif ($::ScannerThread->is_joinable()) {
     warnline "Joining scanner thread" if ::DEBUG;
@@ -31,12 +31,12 @@ sub run_qstat {
     $::Initialized = 1;
     { lock($::RecordsChanged); $::RecordsChanged = 1; }
     warnline "Joined scanner thread. Creating new scanner thread" if ::DEBUG;
-    $::ScannerThread = threads->new(\&App::FQStat::Scanner::scanner_thread);
+    $::ScannerThread = threads->new(\&F::Scanner::scanner_thread);
   }
   elsif (!$::ScannerThread->is_running()) {
     warnline "scanner thread not running. Creating new scanner thread" if ::DEBUG;
     undef $::ScannerThread;
-    $::ScannerThread = threads->new(\&App::FQStat::Scanner::scanner_thread);
+    $::ScannerThread = threads->new(\&F::Scanner::scanner_thread);
   }
   elsif ($forced) {
     warnline "scanner thread running. Force in effect, setting StartRun" if ::DEBUG;
@@ -65,8 +65,8 @@ sub scanner_thread {
   }
 
   my $timebefore = time();
-  my $qstat = App::FQStat::Config::get("qstatcmd");
-  my $output = App::FQStat::System::run_capture($qstat, @args);
+  my $qstat = F::Config::get("qstatcmd");
+  my $output = F::System::run_capture($qstat, @args);
   if (not defined $output) {
     die "Running 'qstat' failed!";
   }
@@ -245,9 +245,9 @@ sub calculate_summary {
     push @{$user_clusters{$user}}, $job;
   }
 
-  if (App::FQStat::Config::get("summary_clustering")) {
+  if (F::Config::get("summary_clustering")) {
     my $trigram = String::Trigram->new(
-      minSim  => App::FQStat::Config::get("summary_clustering_similarity"),
+      minSim  => F::Config::get("summary_clustering_similarity"),
       warp    => 1.2,
       cmpBase => [],
     );

@@ -21,39 +21,39 @@ our @EXPORT_OK = @{$EXPORT_TAGS{'all'}};
 
 our @Menus = (
   { width => 11, name => 'Display', entries => [
-      { name => 'Summary',     action => \&App::FQStat::Actions::toggle_summary_mode },
-      { name => 'Summ.Clust.', action => \&App::FQStat::Actions::toggle_summary_name_clustering },
-      { name => 'Refresh',     action => sub { App::FQStat::Drawing::update_display(1) } },
-      { name => 'Sort',        action => \&App::FQStat::Actions::select_sort_field },
-      { name => 'Reverse',     action => \&App::FQStat::Actions::toggle_reverse_sort },
-      { name => 'Interval',    action => \&App::FQStat::Actions::set_user_interval },
-      { name => 'Highl. User', action => \&App::FQStat::Actions::update_highlighted_user_name },
-      { name => 'Job Details', action => \&App::FQStat::Actions::show_job_details, },
-      { name => 'Job Log',     action => \&App::FQStat::Actions::show_job_log, },
+      { name => 'Summary',     action => \&F::Actions::toggle_summary_mode },
+      { name => 'Summ.Clust.', action => \&F::Actions::toggle_summary_name_clustering },
+      { name => 'Refresh',     action => sub { F::Drawing::update_display(1) } },
+      { name => 'Sort',        action => \&F::Actions::select_sort_field },
+      { name => 'Reverse',     action => \&F::Actions::toggle_reverse_sort },
+      { name => 'Interval',    action => \&F::Actions::set_user_interval },
+      { name => 'Highl. User', action => \&F::Actions::update_highlighted_user_name },
+      { name => 'Job Details', action => \&F::Actions::show_job_details, },
+      { name => 'Job Log',     action => \&F::Actions::show_job_log, },
   ], },
   { width => 11, name => 'Actions', entries => [
-      { name => 'Hold',        action => \&App::FQStat::Actions::hold_jobs, },
-      { name => 'Resume',      action => \&App::FQStat::Actions::resume_jobs, },
-      { name => 'Kill',        action => \&App::FQStat::Actions::kill_jobs, },
-      { name => 'Set Prio.',   action => \&App::FQStat::Actions::change_priority, },
-      { name => 'Clear Error', action => \&App::FQStat::Actions::clear_job_error_state, },
-      { name => 'Change Deps', action => \&App::FQStat::Actions::change_dependencies, },
+      { name => 'Hold',        action => \&F::Actions::hold_jobs, },
+      { name => 'Resume',      action => \&F::Actions::resume_jobs, },
+      { name => 'Kill',        action => \&F::Actions::kill_jobs, },
+      { name => 'Set Prio.',   action => \&F::Actions::change_priority, },
+      { name => 'Clear Error', action => \&F::Actions::clear_job_error_state, },
+      { name => 'Change Deps', action => \&F::Actions::change_dependencies, },
   ], },
   { width => 5, name => 'Help', entries => [
-      { name => 'Help',  action => \&App::FQStat::Actions::show_manual, },
-      { name => 'About', action => \&App::FQStat::Actions::show_manual, },
+      { name => 'Help',  action => \&F::Actions::show_manual, },
+      { name => 'About', action => \&F::Actions::show_manual, },
   ], },
   { width => 6, name => 'Config', entries => [
-      { name => 'Edit',  action => \&App::FQStat::Config::edit_configuration, },
-      { name => 'Reset',  action => \&App::FQStat::Config::reset_configuration, },
+      { name => 'Edit',  action => \&F::Config::edit_configuration, },
+      { name => 'Reset',  action => \&F::Config::reset_configuration, },
   ], },
   { width => 4, name => 'Quit', entries => [
-      { name => 'Menu',  action => \&App::FQStat::Menu::close_menu, },
+      { name => 'Menu',  action => \&F::Menu::close_menu, },
       { name => 'Quit',  action => \&main::cleanup_and_exit, },
   ], },
   {
-    width => 8, name => 'Colors', entries => \&App::FQStat::Colors::get_color_scheme_menu_entries,
-    nEntries => \&App::FQStat::Colors::get_n_color_scheme_entries,
+    width => 8, name => 'Colors', entries => \&F::Colors::get_color_scheme_menu_entries,
+    nEntries => \&F::Colors::get_n_color_scheme_entries,
   },
 );
 
@@ -71,13 +71,13 @@ sub enter_menu {
   $::MenuMode = 1;
   $::MenuNumber = 0;
   $::MenuEntryNumber = 0;
-  App::FQStat::Drawing::update_display(@_);
+  F::Drawing::update_display(@_);
 }
 
 sub close_menu {
   warnenter if ::DEBUG > 0;
   $::MenuMode = 0;
-  App::FQStat::Drawing::update_display(@_);
+  F::Drawing::update_display(@_);
 }
 
 sub toggle_menu {
@@ -85,7 +85,7 @@ sub toggle_menu {
   $::MenuMode = ($::MenuMode ? 0 : 1);
   $::MenuNumber = 0;
   $::MenuEntryNumber = 0;
-  App::FQStat::Drawing::update_display(@_);
+  F::Drawing::update_display(@_);
 }
 
 
@@ -206,7 +206,7 @@ sub menu_select {
   my $entry = $entries->[$::MenuEntryNumber];
   my $action = $entry->{action};
   $::MenuMode = 0;
-  App::FQStat::Drawing::update_display();
+  F::Drawing::update_display();
   return $action->($entry);
 }
 

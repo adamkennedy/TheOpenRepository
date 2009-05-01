@@ -8,6 +8,7 @@ WriteMakefile(
     PREREQ_PM         => {
       DateTime => '0',
       File::HomeDir => '0',
+      Package::Alias => '0',
       String::ShellQuote => '0',
       String::Trigram => '0',
       Term::ANSIScreen => '0',
