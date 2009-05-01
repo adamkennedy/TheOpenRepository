@@ -1024,6 +1024,8 @@ use Marpa::Offset qw(
     EVALUATE
 );
 
+use constant NEGATIVE_N_WIDTH => -4;
+
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
     my ($evaler) = @_;
@@ -1124,16 +1126,18 @@ sub Marpa::Evaluator::new_value {
                 # only sort interesting and-nodes by location
                 my $location = $interesting ? $start_earleme : 0;
 
+                # TODO: N-format is limited to 32-bits.
+                # This can overflow on 64-bit systems.
                 push @decorated_indexes,
                     (
-                    pack 'U*', $location, $user_priority, $internal_priority,
+                    pack 'N*', $location, $user_priority, $internal_priority,
                     $laziness, $record_counter
                     );
             } ## end for my $and_node ( @{$or_node_children} )
         } ## end for my $or_node ( @{$or_nodes} )
 
         $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
-            @child_and_nodes[ map { ( unpack 'U*', $_ )[-1] }
+            @child_and_nodes[ map { substr $_, NEGATIVE_N_WIDTH }
             @decorated_indexes ];
 
         for my $node_ix ( 0 .. $#{$ranked_nodes} ) {
@@ -1162,7 +1166,8 @@ sub Marpa::Evaluator::new_value {
             my ($rank_being_decided) = @{$task_data};
 
             # Move down the and node rankings, accepting nodes as we go.
-            # as we go.  Prefer accept, but reject if there is no other choice.
+            # as we go.  Prefer accept, but reject if the choice is
+            # already made.
             RANK: while ( $rank_being_decided < @{$ranked_nodes} ) {
                 my $decision = $ranked_decisions->[$rank_being_decided];
 
@@ -1226,8 +1231,6 @@ sub Marpa::Evaluator::new_value {
                 # if the sibling has not been decided, mark it rejected
                 if ( not defined $sibling_decision ) {
 
-                    $ranked_decisions->[$sibling_rank] = REJECTED;
-
                     # Note the journal does not actually record that the node
                     # was rejected, just the node about which a decision was
                     # made, and what value to use for the decision if this
@@ -1238,6 +1241,7 @@ sub Marpa::Evaluator::new_value {
                         Marpa::Internal::Journal_Tag::RESULT,
                         $sibling_rank
                         ];
+                    $ranked_decisions->[$sibling_rank] = REJECTED;
 
                     next SIBLING;
 
@@ -1259,19 +1263,20 @@ sub Marpa::Evaluator::new_value {
                 # Include the previous decision value
                 # so we can back the decision out if
                 # necessary.
-                $ranked_decisions->[$sibling_rank] = $rank_being_decided;
                 push @{$journal},
                     [
                     Marpa::Internal::Journal_Tag::RESULT, $sibling_rank,
                     $sibling_decision
                     ];
+                $ranked_decisions->[$sibling_rank] = $rank_being_decided;
 
             } ## end for my $sibling_choice ( 0 .. $#{$siblings} )
 
             my $forks = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
-            # If we're at the top or node, we done with this inference,
-            # and we can pick up where we left off deciding ranked nodes
+            # If we are at the top or node, we are
+            # done with this inference,
+            # and we can pick up where we left off deciding ranked nodes.
             if ( not scalar @{$forks} ) {
                 @tasks = (
                     [   Marpa::Internal::Task::DECIDE_NODES,
@@ -1280,13 +1285,18 @@ sub Marpa::Evaluator::new_value {
                 );
             } ## end if ( not scalar @{$forks} )
 
-            # Pick the first fork
+            # Pick the first fork.  Do not journal the
+            # decision unless it is iterable.  In other
+            # words, do not journal if this fork choice
+            # is already the last possible one.
             my $fork_choice = 0;
-            push @{$journal},
-                [
-                Marpa::Internal::Journal_Tag::DECIDE_FORK,
-                $rank_being_decided, $or_node_id, $fork_choice
-                ];
+            if ( $fork_choice < $#{$forks} ) {
+                push @{$journal},
+                    [
+                    Marpa::Internal::Journal_Tag::DECIDE_FORK,
+                    $rank_being_decided, $forks, $fork_choice
+                    ];
+            } ## end if ( $fork_choice < $#{$forks} )
 
             my $parent_id   = $forks->[$fork_choice];
             my $parent_node = $and_nodes->[$parent_id];
@@ -1305,7 +1315,8 @@ sub Marpa::Evaluator::new_value {
 
             my $parent_rank = $parent_node->[Marpa::Internal::And_Node::RANK];
 
-            # If the parent and node has been rejected, or if we're in a cycle,
+            # If the parent and node has been rejected, or if we
+            # are in a cycle,
             # then backtrack
             my $parent_decision = $ranked_decisions->[$parent_rank];
             if (defined $parent_decision
@@ -1313,7 +1324,7 @@ sub Marpa::Evaluator::new_value {
                     or $parent_decision == $rank_being_decided )
                 )
             {
-                @tasks = ( [ Marpa::Internal::Task::BACKTRACK, 0 ] );
+                @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                 next TASK;
             } ## end if ( defined $parent_decision and ( $parent_decision...
 
@@ -1330,13 +1341,91 @@ sub Marpa::Evaluator::new_value {
             $ranked_decisions->[$parent_rank] = $rank_being_decided;
 
             # Continue accepting upwards
-            push @tasks,
-                [
-                Marpa::Internal::Task::MARK_SIBLINGS_REJECTED,
-                $rank_being_decided, $parent_rank
-                ];
+            @tasks = (
+                [   Marpa::Internal::Task::MARK_SIBLINGS_REJECTED,
+                    $rank_being_decided, $parent_rank
+                ]
+            );
+            next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::MARK_PARENT_ACCEPTED)
+
+        if ( $task == Marpa::Internal::Task::BACKTRACK ) {
+
+            ENTRY: while ( my $journal_entry = pop @{$journal} ) {
+
+                my $entry_type = shift @{$journal_entry};
+
+                # A simple, non-iterable record of a decision about an
+                # and-node.  Restore the previous value,
+                # and move on.
+                if ( $entry_type == Marpa::Internal::Journal_Tag::RESULT ) {
+                    my ( $rank, $previous_value ) = @{$journal_entry};
+                    $ranked_decisions->[$rank] = $previous_value;
+                    next ENTRY;
+                }
+
+                # Iterate the choice at a fork in the upward path
+                # while following up on a decision to accept
+                if ($entry_type == Marpa::Internal::Journal_Tag::DECIDE_FORK )
+                {
+                    my ( $rank_being_decided, $forks, $fork_choice ) =
+                        @{$journal_entry};
+                    $fork_choice++;
+
+                    # Don't add a journal entry unless there is at
+                    # least one more iteration left
+                    if ( $fork_choice < $#{$forks} ) {
+                        push @{$journal},
+                            [
+                            Marpa::Internal::Journal_Tag::DECIDE_FORK,
+                            $rank_being_decided, $forks, $fork_choice
+                            ];
+
+                    } ## end if ( $fork_choice < $#{$forks} )
+
+                    # Because we don't journal non-iterable DECIDE_FORK
+                    # events, we are sure that there is a
+                    # $forks->[$fork_choice]
+                    my $parent_id   = $forks->[$fork_choice];
+                    my $parent_node = $and_nodes->[$parent_id];
+
+                    @tasks = (
+                        [   Marpa::Internal::Task::MARK_PARENT_ACCEPTED,
+                            $rank_being_decided,
+                            $parent_node,
+                        ]
+                    );
+                    next TASK;
+                } ## end if ( $entry_type == ...
+
+                # This entry records a decision to accept a ranked node.
+                # (Decisions to reject are not interable, and therefore
+                # not recorded.)  Iterate this decision by rejecting
+                # this ranked node.
+                if ($entry_type == Marpa::Internal::Journal_Tag::DECIDE_NODE )
+                {
+                    my ($rank) = @{$journal_entry};
+                    $ranked_decisions->[$rank] = REJECTED;
+                    push @tasks,
+                        [
+                        Marpa::Internal::Task::MARK_PARENTS_REJECTED, $rank,
+                        $rank
+                        ];
+                    next TASK;
+                } ## end if ( $entry_type == ...
+
+                Marpa::exception(
+                    'Internal error: unknown evaluator journal entry');
+
+            } ## end while ( my $journal_entry = pop @{$journal} )
+            ## End ENTRY
+
+            # If we are here, we have backed out the entire journal.
+            # There are no (or no more) parses.
+            return;
+
+        } ## end if ( $task == Marpa::Internal::Task::BACKTRACK )
 
         if ( $task == Marpa::Internal::Task::MARK_PARENTS_REJECTED ) {
 
