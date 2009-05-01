@@ -47,7 +47,7 @@ use bytes        ();
 use Carp         'croak';
 use File::Remove ();
 use Params::Util ();
-use DBI          ();
+use DBI          ':sql_types';
 use DBD::SQLite  ();
 
 use vars qw{$VERSION};
@@ -169,7 +169,9 @@ sub table {
 	# Hand off to the regular select method
 	my $table  = shift;
 	my $from   = shift || $table;
-	return $self->select( $table, "select * from $from" );
+	return $self->select( $table,
+		"select * from $from"
+	);
 }
 
 sub _table_sqlite {
@@ -188,143 +190,160 @@ sub _table_sqlite {
 	}
 
 	# Generate the column metadata
-	my @columns = ();
+	my @type = ();
+	my @blob = ();
 	foreach my $column ( @$info ) {
 		my $name = $column->{COLUMN_NAME};
 		my $type = defined($column->{COLUMN_SIZE})
 			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
 			: $column->{TYPE_NAME};
 		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
-		push @columns, "$name $type $null";
+		push @type, "$name $type $null";
+		push @blob, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
 	}
 
 	# Create the table
-	my $cols = join ",\n", map { "\t$_" } @columns;
-	$self->dbh->do("CREATE TABLE $table (\n$cols\n)");
-
-	# Fill the target table
-	my $place = join ", ",  map { '?' } @$info;
-	my $rows  = $self->fill(
-		"INSERT INTO $table VALUES ( $place )",
-		"select * from $from",
+	$self->dbh->do(
+		"CREATE TABLE $table (\n"
+		. join( ",\n", map { "\t$_" } @type )
+		. "\n)"
 	);
 
-	return $rows;
+	# Fill the target table
+	my $placeholders = join ", ",  map { '?' } @$info;
+	return $self->fill(
+		select => [ "SELECT * FROM $from" ],
+		insert => "INSERT INTO $table VALUES ( $placeholders )",
+		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+	);
 }
 
 sub select {
 	my $self   = shift;
-	my $table  = shift;
-	my $sql    = shift;
+	my $table  = lc(shift);
+	my $select = shift;
 	my @params = @_;
 
 	# Make an initial scan pass over the query and do a content-based
 	# classification of the data in each column.
-	my %type  = ();
 	my @names = ();
+	my @type  = ();
+	my @blob  = [];
 	SCOPE: {
-		my $sth  = $self->source->prepare($sql) or croak($DBI::errstr);
+		my $sth = $self->source->prepare($select) or croak($DBI::errstr);
 		$sth->execute( @params );
-		@names = @{$sth->{NAME}};
+		@names = map { lc($_) } @{$sth->{NAME}};
 		foreach ( @names ) {
-			$type{$_} = {
-				NULL      => 0,
-				POSINT    => 0,
-				NONNEGINT => 0,
-				NUMBER    => 0,
-				STRING    => {},
+			push @type, {
+				NULL    => 0,
+				NOTNULL => 0,
+				NUMBER  => 0,
+				INTEGER => 0,
+				INTMIN  => undef,
+				INTMAX  => undef,
+				TEXT    => 0,
 			};
 		}
 		my $rows = 0;
-		while ( my $row = $sth->fetchrow_hashref ) {
+		while ( my $row = $sth->fetchrow_arrayref ) {
 			$rows++;
-			foreach my $key ( sort keys %$row ) {
-				my $value = $row->{$key};
-				my $hash  = $type{$key};
-				unless ( defined $value ) {
+			foreach my $i ( 0 .. $#names ) {
+				my $value = $row->[$i];
+				my $hash  = $type[$i];
+				if ( defined $value ) {
+					$hash->{NOTNULL}++;
+				} else {
 					$hash->{NULL}++;
 					next;
 				}
-				$hash->{STRING}->{bytes::length($value)}++;
-				next unless Params::Util::_NUMBER($value);
-				$hash->{NUMBER}++;
-				next unless Params::Util::_POSINT($value);
-				$hash->{POSINT}++;
-				next unless Params::Util::_NONNEGINT($value);
-				$hash->{NONNEGINT}++;
+				if ( Params::Util::_NUMBER($value) ) {
+					$hash->{NUMBER}++;
+				} elsif ( Params::Util::_NONNEGINT($value) ) {
+					$hash->{INTEGER}++;
+					if ( not defined $hash->{INTMIN} or $value < $hash->{INTMIN} ) {
+						$hash->{INTMIN} = $value;
+					}
+					if ( not defined $hash->{INTMAX} or $value > $hash->{INTMAX} ) {
+						$hash->{INTMAX} = $value;
+					}					
+				} elsif ( length $value <= 255 ) {
+					$hash->{TEXT}++;
+				}
 			}
 		}
 		$sth->finish;
-		foreach my $key ( sort keys %type ) {
-			my $hash    = $type{$key};
+		my $col = 0;
+		foreach my $i ( 0 .. $#names ) {
+			# Initially, assume this isn't a blob
+			push @blob, 0;
+			my $hash    = $type[$i];
 			my $notnull = $hash->{NULL} ? 'NULL' : 'NOT NULL';
-			if ( $hash->{NULL} == $rows or $hash->{NONNEGINT} == $rows ) {
-				$type{$key} = "INTEGER $notnull";
-				next;
-			}
-			if ( $hash->{NUMBER} == $rows ) {
-				$type{$key} = "REAL $notnull";
-				next;
-			}
+			if ( $hash->{NOTNULL} == 0 ) {
+				# The column is completely null, no affinity
+				$type[$i] = "$names[$i] NONE NULL";
+			} elsif ( $hash->{INTEGER} == $hash->{NOTNULL} ) {
+				$type[$i] = "$names[$i] INTEGER $notnull";
+			} elsif ( $hash->{NUMBER} == $hash->{NOTNULL} ) {
+				# This isn't entirely accurate but should be close enough
+				$type[$i] = "$names[$i] REAL $notnull";
+			} elsif ( $hash->{TEXT} == $hash->{NOTNULL} ) {
+				$type[$i] = "$names[$i] TEXT $notnull";
+			} else {
+				# For now lets assume this is a blob
+				$type[$i] = "$names[$i] BLOB $notnull";
 
-			# Look for various string types
-			my $string  = $hash->{STRING};
-			my @lengths = sort { $a <=> $b } keys %$string;
-			if ( scalar(@lengths) == 1) {
-				# Fixed width non-numeric field
-				$type{$key} = "CHAR($lengths[0]) $notnull";
-				next;
+				# This is a blob after all
+				$blob[-1] = 1;
 			}
-			if ( $lengths[-1] <= 10 ) {
-				# Short string
-				$type{$key} = "VARCHAR(10) $notnull";
-				next;
-			}
-			if ( $lengths[-1] <= 32 ) {
-				# Medium string
-				$type{$key} = "VARCHAR(32) $notnull";
-				next;
-			}
-			if ( $lengths[-1] <= 255 ) {
-				# Short string
-				$type{$key} = "VARCHAR(255) $notnull";
-				next;
-			}
-
-			# For now lets assume this is a blob
-			$type{$key} = "BLOB $notnull";
 		}
 	}
 
 	# Create the target table
-	my $columns = join ",\n", map { "\t$_ $type{$_}" } @names;
-	$self->dbh->do("CREATE TABLE $table (\n$columns\n)");
-
-	# Fill the target table
-	my $place = join ", ",  map { '?' } @names;
-	my $rows  = $self->fill(
-		"INSERT INTO $table VALUES ( $place )",
-		$sql, @params,
+	$self->dbh->do(
+		"CREATE TABLE $table (\n"
+		. join(",\n", map { "\t$_" } @type) 
+		. "\n)"
 	);
 
-	return $rows;
+	# Fill the target table
+	my $placeholders = join ", ",  map { '?' } @names;
+	return $self->fill(
+		select => [ $select, @params ],
+		insert => "INSERT INTO $table VALUES ( $placeholders )",
+		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+	);
 }
 
 sub fill {
 	my $self   = shift;
-	my $insert = shift;
-	my $rows   = 0;
+	my %params = @_;
+	my $select = $params{select};
+	my $insert = $params{insert};
+	my $blobs  = $params{blobs};
 
 	# Launch the select query
-	my $from = $self->source->prepare(shift) or croak($DBI::errstr);
-	$from->execute( @_ );
+	my $from = $self->source->prepare(shift(@$select)) or croak($DBI::errstr);
+	$from->execute(@$select);
 
 	# Stream the data into the target table
-	my $to = $self->dbh->prepare($insert) or croak($DBI::errstr);
 	$self->dbh->begin_work;
 	$self->dbh->{AutoCommit} = 0;
+	my $rows = 0;
+	my $to   = $self->dbh->prepare($insert) or croak($DBI::errstr);
 	while ( my $row = $from->fetchrow_arrayref ) {
-		$to->execute( @$row );
+		if ( $blobs ) {
+			# When inserting blobs, we need to use the bind_param method
+			foreach ( 0 .. $#$row ) {
+				if ( $blobs->[$_] ) {
+					$to->bind_param( $_ + 1, $row->[$_], SQL_BLOB );
+				} else {
+					$to->bind_param( $_ + 1, $row->[$_] );
+				}
+			}
+			$to->execute;
+		} else {
+			$to->execute( @$row );
+		}
 		next if ++$rows % 10000;
 		$self->dbh->commit;
 	}
