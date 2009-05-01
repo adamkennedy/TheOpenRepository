@@ -120,4 +120,26 @@ sub oldest_stable {
 	List::Util::first { $_->stable } reverse $_[0]->releases;
 }
 
+
+
+
+
+#####################################################################
+# ORDB::CPAN Integration
+
+sub uploads {
+	require ORDB::CPANUploads;
+	ORDB::CPANUploads->import;
+	ORDB::CPANUploads::Uploads->select('where dist = ? order by released desc', $_[0]->name);
+}
+
+sub maintainer {
+	my @upload = $_[0]->uploads;
+	@upload ? lc($upload[0]->author . '@cpan.org') : '';
+}
+
+sub mine {
+	$_[0]->maintainer eq 'adamk@cpan.org'
+}
+
 1;

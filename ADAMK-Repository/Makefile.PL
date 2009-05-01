@@ -2,10 +2,11 @@ use inc::Module::Install::DSL 0.83;
 
 all_from              lib/ADAMK/Repository.pm
 requires_from         lib/ADAMK/Repository.pm
-requires              ORDB::CPANTesters 
+requires              ORDB::CPANUploads 0.01
+requires              ORDB::CPANTesters 0.08
 test_requires         Test::More        0.86
 test_requires         Test::Script      1.03
 test_requires         Test::NoWarnings  0.84
-install_share
-install_script        adamk
 requires_external_bin svn
+install_script        adamk
+install_share

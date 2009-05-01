@@ -136,6 +136,19 @@ sub clear {
 
 
 #####################################################################
+# ORDB::CPAN Integration
+
+sub upload {
+	require ORDB::CPANUploads;
+	ORDB::CPANUploads->import;
+	ORDB::CPANUploads::Uploads->select('where filename = ?', $_[0]->file);
+}
+
+
+
+
+
+#####################################################################
 # ORDB::CPANTesters Integration
 
 sub cpan_testers {
