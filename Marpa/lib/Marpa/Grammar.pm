@@ -312,6 +312,16 @@ use Data::Dumper;
 use English qw( -no_match_vars );
 use List::Util;
 
+# Longest RHS is 2**28-1.  It's 28 bits, not 32, so
+# it will fit in the internal priorities computed
+# for the CHAF rules
+use constant RHS_LENGTH_MASK => ~(0x7FFFFFF);
+
+# These are 2**31-1.  It's 31 bits, not 32,
+# so we don't have to
+# worry about signedness creeping in.
+use constant PRIORITY_MASK => ~(0x7FFFFFFF);
+
 sub Marpa::Internal::code_problems {
     my $args = shift;
 
@@ -1983,6 +1993,7 @@ sub add_user_rule {
         if exists $rule_hash->{$rule_key};
 
     $user_priority //= 0;
+    $user_priority += 0;
     if ( $user_priority < 0 ) {
         Marpa::exception(
             "User priority must be non-negative:\n",
@@ -2010,12 +2021,68 @@ sub add_rule {
     my $user_priority     = $arg_hash->{user_priority};
     my $internal_priority = $arg_hash->{internal_priority};
 
-    my ( $rules, $package, $trace_rules, $trace_fh, ) = @{$grammar}[
-        Marpa::Internal::Grammar::RULES,
-        Marpa::Internal::Grammar::NAME,
-        Marpa::Internal::Grammar::TRACE_RULES,
-        Marpa::Internal::Grammar::TRACE_FILE_HANDLE,
-    ];
+    my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $package     = $grammar->[ Marpa::Internal::Grammar::NAME ];
+    my $trace_rules = $grammar->[ Marpa::Internal::Grammar::TRACE_RULES ];
+    my $trace_fh = $grammar->[ Marpa::Internal::Grammar::TRACE_FILE_HANDLE ];
+
+    {
+        my $rhs_length = scalar @{$rhs};
+        if ( $rhs_length & Marpa::Internal::Grammar::RHS_LENGTH_MASK ) {
+            Marpa::exception(
+                #<<< no perltidy
+                "Rule rhs too long\n",
+                '  Rule #', $#{$rules}, " has $rhs_length symbols\n",
+                "  Rule starts ", $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
+                    join(
+                        q{ },
+                        map {
+                            $_->[Marpa::Internal::Symbol::NAME]
+                        } @{$rhs}[0 .. 5]
+                    ),
+                    "\n"
+                #>>>
+            );
+        } ## end if ( $rhs_length & Marpa::Grammar::RULE_LENGTH_MASK )
+    }
+    
+    $user_priority //= 0;
+    if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
+        Marpa::exception(
+            #<<< no perltidy
+            "Rule user priority too high\n",
+            '  Rule #', $#{$rules}, " has user priority $user_priority\n",
+            '  Rule #', $#{$rules}, ": ",
+                $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
+                join(
+                    q{ },
+                    map {
+                        $_->[Marpa::Internal::Symbol::NAME]
+                    } @{$rhs}
+                ),
+                "\n"
+            #>>>
+        );
+    } ## end if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
+
+    $internal_priority //= 0;
+    if ( $internal_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
+        Marpa::exception(
+            #<<< no perltidy
+            "Internal Error: Rule internal priority too high\n",
+            '  Rule #', $#{$rules}, " has internal priority $internal_priority\n",
+            '  Rule #', $#{$rules}, ": ",
+                $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
+                join(
+                    q{ },
+                    map {
+                        $_->[Marpa::Internal::Symbol::NAME]
+                    } @{$rhs}
+                ),
+                "\n"
+            #>>>
+        );
+    } ## end if ( $internal_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
 
     my $rule_count = @{$rules};
     my $new_rule   = [];

@@ -73,6 +73,8 @@ use English qw( -no_match_vars );
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
+use constant EARLEME_MASK => ~(0x7FFFFFFF);
+
 my $parse_number = 0;
 
 sub set_lexers {
@@ -921,10 +923,21 @@ sub scan_set {
             my ( $token, $value, $length ) = @{$alternative};
 
             if ( $length <= 0 ) {
+                # make sure it gets reported as a negative number
+                $length += 0;
                 Marpa::exception( 'Token '
                         . $token->[Marpa::Internal::Symbol::NAME]
-                        . ' with bad length '
+                        . ' has negative length '
                         . $length );
+            } ## end if ( $length <= 0 )
+
+            if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK ) {
+                Marpa::exception(
+                    #<<< no perltidy
+                    'Token ' . $token->[Marpa::Internal::Symbol::NAME] . " is too long\n",
+                    "  Token starts at $current_set, and its length is $length\n"
+                    #>>>
+                    );
             } ## end if ( $length <= 0 )
 
             # Make sure it's an allowed terminal symbol.
@@ -944,6 +957,17 @@ sub scan_set {
 
             # Create the kernel item and its link.
             my $target_ix = $current_set + $length;
+
+            if ( $target_ix & Marpa::Internal::Recognizer::EARLEME_MASK ) {
+                Marpa::exception(
+                    #<<< no perltidy
+                    'Token ' . $token->[Marpa::Internal::Symbol::NAME] . " make parse too long\n",
+                    "  Token starts at $current_set, and its length is $length\n",
+                    "  Its last earleme would be at $target_ix\n"
+                    );
+                    #>>>
+            }
+
             my $target_set = ( $earley_set_list->[$target_ix] //= [] );
             if ( $target_ix > $furthest_earleme ) {
                 $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
