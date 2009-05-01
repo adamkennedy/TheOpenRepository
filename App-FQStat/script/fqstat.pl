@@ -15,7 +15,7 @@ use Term::ANSIScreen qw/RESET cls/;
 use Term::ReadKey;
 use Getopt::Long;
 
-use constant DEBUG => 0;
+use constant DEBUG => 2; # 0=no,1=some,2=lots incl. call tracing,...
 use constant STARTTIME => Time::HiRes::time();
 
 ###################
@@ -72,6 +72,7 @@ our $VERSION = $App::FQStat::VERSION;
 use App::FQStat::Input qw/get_input_key/;
 use App::FQStat::Drawing qw/printline/;
 use App::FQStat::Debug;
+use App::FQStat::Config qw/get_config/;
 
 use vars qw/%SIG/;
 autoflush STDIN 1;
@@ -194,17 +195,10 @@ if (defined $SSHCommand) {
   App::FQStat::Config::set("sshcommand", $SSHCommand);
 }
 
-#################
-# Default qstat paths
-our $QStatCmd  = App::FQStat::Config::get("qstat") || 'qstat';
-our $QDelCmd   = App::FQStat::Config::get("qdel") || 'qdel';
-our $QAlterCmd = App::FQStat::Config::get("qalter") || 'qalter';
-our $QModCmd   = App::FQStat::Config::get("qmod") || 'qmod';
-
 ###################
 # Check that we can run qstat and friends
 
-if (not App::FQStat::System::module_install_can_run($QStatCmd)) {
+if (not App::FQStat::System::module_install_can_run(get_config("qstatcmd"))) {
   print <<HERE;
 ERROR!
 You cannot run fqstat without having a working "qstat" command in your
