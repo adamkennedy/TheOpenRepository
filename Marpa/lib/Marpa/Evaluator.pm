@@ -893,6 +893,32 @@ sub Marpa::show_and_node {
 
 } ## end sub Marpa::show_and_node
 
+sub Marpa::Evaluator::show_decisions {
+    my ( $evaler, $verbose ) = @_;
+    $verbose //= 0;
+    my $return_value = q{};
+
+    my $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES];
+    my $ranked_decisions =
+        $evaler->[Marpa::Internal::Evaluator::RANKED_DECISIONS];
+
+    for my $rank ( 0 .. $#{$ranked_nodes} ) {
+        my $ranked_node = $ranked_nodes->[$rank];
+        my $decision = $ranked_decisions->[$rank];
+        my $decision_description = ' -';
+        if ( defined $decision ) {
+            $decision_description =
+                ( $decision < 0 ? ' REJECT' : ' ACCEPT' ) . '('
+                . $decision . ')';
+        }
+        $return_value .= "$rank:$decision_description "
+            . Marpa::show_and_node( $ranked_node, $verbose );
+    }
+
+    return $return_value;
+
+}
+
 sub Marpa::Evaluator::show_bocage {
     my ( $evaler, $verbose ) = @_;
     $verbose //= 0;
@@ -1084,7 +1110,7 @@ sub Marpa::Evaluator::new_value {
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
         # Note the use of Unicode for packing, which I've not seen anyone else do.
         my @decorated_indexes = ();
-        my @child_and_nodes   = ();
+        my @unranked_and_nodes   = ();
         OR_NODE: for my $or_node ( @{$or_nodes} ) {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
@@ -1094,8 +1120,8 @@ sub Marpa::Evaluator::new_value {
                 $or_node->[Marpa::Internal::Or_Node::AND_NODES];
             for my $and_node ( @{$or_node_children} ) {
                 my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-                my $record_counter = @child_and_nodes;
-                push @child_and_nodes, $and_node;
+                my $record_counter = @unranked_and_nodes;
+                push @unranked_and_nodes, $and_node;
 
                 my $user_priority =
                     $rule->[Marpa::Internal::Rule::USER_PRIORITY];
@@ -1137,9 +1163,15 @@ sub Marpa::Evaluator::new_value {
         } ## end for my $or_node ( @{$or_nodes} )
 
         $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
-            @child_and_nodes[ map { substr $_, NEGATIVE_N_WIDTH }
-            @decorated_indexes ];
+            [
+            @unranked_and_nodes[
+                map { unpack 'N', ( substr $_, NEGATIVE_N_WIDTH ) }
+                @decorated_indexes
+            ]
+            ];
 
+        # Not that the and nodes are ranked,
+        # annotate each and node with its rank.
         for my $node_ix ( 0 .. $#{$ranked_nodes} ) {
             $ranked_nodes->[$node_ix]->[Marpa::Internal::And_Node::RANK] =
                 $node_ix;
@@ -1154,6 +1186,8 @@ sub Marpa::Evaluator::new_value {
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
+
+    return \('Not finished');
 
     scalar @tasks or @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
 
