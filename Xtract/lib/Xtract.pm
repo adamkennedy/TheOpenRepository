@@ -47,7 +47,7 @@ if ( MSWin32 ) {
 	$CAN_LZMA = 1;
 }
 
-use Moose 0.76;
+use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
 
 has from         => ( is => 'ro', isa => 'Str' );
