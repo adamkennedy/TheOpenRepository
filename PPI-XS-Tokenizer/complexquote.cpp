@@ -1,75 +1,12 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
-enum QuoteTokenState {
+enum ExtendedTokenState {
 	inital = 0, // not even detected the type of quote
 	consume_whitespaces,
 	in_section_braced, 
 	in_section_not_braced,
 };
-
-//enum QuoteTypes {
-//	Quote_m,
-//	Quote_s,
-//	Quote_y,
-//	Quote_tr,
-//	Quote_q,
-//	Quote_qr,
-//	Quote_qq,
-//	Quote_qx,
-//};
-//
-//static bool DetectQuoteType( QuoteToken *token ) {
-//	if ( token->length == 1 ) {
-//		switch ( token->text[0] ) {
-//			case 'q':
-//				token->quote_type = Quote_q;
-//				token->total_sections = 1;
-//				return true;
-//			case 'm':
-//				token->quote_type = Quote_m;
-//				token->total_sections = 1;
-//				return true;
-//			case 'y':
-//				token->quote_type = Quote_y;
-//				token->total_sections = 2;
-//				return true;
-//			case 's':
-//				token->quote_type = Quote_y;
-//				token->total_sections = 2;
-//				return true;
-//			default:
-//				return false;
-//		}
-//	}
-//	if ( token->length == 2 ) {
-//		if ( token->text[0] == 'q' ) {
-//			switch ( token->text[1] ) {
-//				case 'r':
-//					token->quote_type = Quote_qr;
-//					token->total_sections = 1;
-//					return true;
-//				case 'x':
-//					token->quote_type = Quote_qx;
-//					token->total_sections = 1;
-//					return true;
-//				case 'q':
-//					token->quote_type = Quote_qq;
-//					token->total_sections = 1;
-//					return true;
-//				default:
-//					return false;
-//			}
-//		}
-//		if  ( ( token->text[0] == 't' ) && ( token->text[1] == 'r' ) ) {
-//			token->quote_type = Quote_tr;
-//			token->total_sections = 2;
-//			return true;
-//		}
-//		return false;
-//	}
-//	return false;
-//}
 
 static uchar GetClosingSeperator( uchar opening ) {
 	switch (opening) {
@@ -81,8 +18,8 @@ static uchar GetClosingSeperator( uchar opening ) {
 	}
 }
 
-CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer *t, QuoteToken *token) {
-	QuoteToken::section &ms = token->modifiers;
+CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer *t, ExtendedToken *token) {
+	ExtendedToken::section &ms = token->modifiers;
 	ms.size = 0;
 	ms.position = token->length;
 	if ( m_acceptModifiers ) {
@@ -96,10 +33,10 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer 
 	return done_it_myself;
 }
 
-CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_braced;
 	uchar c_section_num = token->current_section;
-	QuoteToken::section &cs = token->sections[ c_section_num ];
+	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
@@ -129,10 +66,10 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *
 	return done_it_myself;
 }
 
-CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_not_braced;
 	uchar c_section_num = token->current_section;
-	QuoteToken::section &cs = token->sections[ c_section_num ];
+	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
@@ -143,7 +80,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 				return StateFuncConsumeModifiers( t, token );
 			} else {
 				// there is another section - read on
-				QuoteToken::section &next = token->sections[ token->current_section ];
+				ExtendedToken::section &next = token->sections[ token->current_section ];
 				next.position = token->length;
 				next.size = 0;
 				next.open_char = cs.open_char;
@@ -159,11 +96,11 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 }
 
 // Assumation - the charecter we are on is the beginning seperator
-CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer *t, ExtendedToken *token) {
 	uchar my_char = t->c_line[ t->line_pos ];
 	uchar c_section_num = token->current_section;
 	token->text[token->length++] = t->c_line[ t->line_pos++ ];
-	QuoteToken::section &cs = token->sections[ c_section_num ];
+	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	cs.position = token->length;
 	cs.size = 0;
 	cs.open_char = my_char;
@@ -179,7 +116,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer 
 	}
 }
 
-CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeWhitespaces(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeWhitespaces(Tokenizer *t, ExtendedToken *token) {
 	token->state = consume_whitespaces;
 	while ( t->line_length > t->line_pos ) {
 		uchar my_char = t->c_line[ t->line_pos ];
@@ -200,7 +137,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeWhitespaces(Tokenize
 	return done_it_myself;
 }
 
-CharTokenizeResults AbstractQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, ExtendedToken *token) {
 	if ( ! ( t->line_length > t->line_pos ) ) {
 		// the end of the line
 		return StateFuncConsumeWhitespaces( t, token );
@@ -213,7 +150,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncExamineFirstChar(Tokenizer 
 }
 
 CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1, unsigned char c_char) {
-	QuoteToken *token = (QuoteToken*)token1;
+	ExtendedToken *token = (ExtendedToken*)token1;
 	switch ( token->state ) {
 		case inital:
 			return StateFuncExamineFirstChar( t, token );
@@ -227,7 +164,7 @@ CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1
 	return error_fail;
 }
 
-CharTokenizeResults AbstractBareQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token) {
+CharTokenizeResults AbstractBareQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, ExtendedToken *token) {
 	// in this case, we are already after the first char. 
 	// rewind and let the boot strap section to handle it
 	token->length--;
@@ -238,5 +175,10 @@ CharTokenizeResults AbstractBareQuoteTokenType::StateFuncExamineFirstChar(Tokeni
 bool AbstractQuoteTokenType::isa( TokenTypeNames is_type ) const {
 	return ( AbstractTokenType::isa(is_type) || 
 		   ( is_type == isToken_QuoteOrQuotaLike) ||
+		   ( is_type == isToken_Extended) );
+}
+
+bool AbstractExtendedTokenType::isa( TokenTypeNames is_type ) const {
+	return ( AbstractTokenType::isa(is_type) || 
 		   ( is_type == isToken_Extended) );
 }

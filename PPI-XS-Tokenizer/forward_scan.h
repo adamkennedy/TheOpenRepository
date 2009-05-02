@@ -126,6 +126,20 @@ public:
 	}
 };
 
+template <unsigned char c>
+class PredicateIsNotChar {
+public:
+	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+		if ( *position >= line_lenght )
+			return false;
+		if ( text[*position] != c ) {
+			(*position)++;
+			return true;
+		}
+		return false;
+	}
+};
+
 // please define the input as: extern const char my_str[] = "...";
 template <unsigned long len, const char *str>
 class PredicateLiteral {

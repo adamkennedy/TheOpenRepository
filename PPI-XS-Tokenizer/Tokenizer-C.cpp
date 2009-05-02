@@ -29,7 +29,7 @@ void checkToken( Tokenizer *tk, const char *text, TokenTypeNames type, int line)
 }
 
 void checkExtendedTokenModifiers(
-					     QuoteToken *qtoken,
+					     ExtendedToken *qtoken,
 						 const char *section, 
 						 int line) {
 	bool hasError = false;
@@ -64,7 +64,7 @@ void checkExtendedTokenModifiers(
 }
 
 void checkExtendedTokenSection(
-					     QuoteToken *qtoken,
+					     ExtendedToken *qtoken,
 					     uchar section_to_check,
 						 const char *section, 
 						 int line) {
@@ -119,7 +119,7 @@ void checkExtendedToken( Tokenizer *tk,
 		printf("checkExtendedToken: Incorrect token content: expected |%s|, got |%s| (line %d)\n", text, token->text, line);
 	} else 
 	{
-		QuoteToken *qtoken = (QuoteToken *)token;
+		ExtendedToken *qtoken = (ExtendedToken *)token;
 		if ( qtoken->current_section >= 1 )
 			checkExtendedTokenSection( qtoken, 0, section1, line);
 		if ( qtoken->current_section >= 2 )

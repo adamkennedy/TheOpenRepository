@@ -69,26 +69,26 @@ void AbstractTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
 }
 
 //=====================================
-// AbstractQuoteTokenType
+// AbstractExtendedTokenType
 //=====================================
 
-Token *AbstractQuoteTokenType::_get_from_cache(TokensCacheMany& tc) {
+Token *AbstractExtendedTokenType::_get_from_cache(TokensCacheMany& tc) {
 	return tc.quote.get();
 }
 
-Token *AbstractQuoteTokenType::_alloc_from_cache(TokensCacheMany& tc) {
+Token *AbstractExtendedTokenType::_alloc_from_cache(TokensCacheMany& tc) {
 	return tc.quote.alloc();
 }
 
-void AbstractQuoteTokenType::_clean_token_fields( Token *t ) {
-	QuoteToken *t2 = static_cast<QuoteToken*>( t );
+void AbstractExtendedTokenType::_clean_token_fields( Token *t ) {
+	ExtendedToken *t2 = static_cast<ExtendedToken*>( t );
 	t2->seperator = 0;
 	t2->state = 0;
 	t2->current_section = 0;
 }
 
-void AbstractQuoteTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
-	QuoteToken *t2 = static_cast<QuoteToken*>( token );
+void AbstractExtendedTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
+	ExtendedToken *t2 = static_cast<ExtendedToken*>( token );
 	tc.quote.store( t2 );
 }
 
@@ -261,12 +261,12 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Unknown] = &m_UnknownToken;
 	TokenTypeNames_pool[Token_Symbol] = &m_SymbolToken;
 	TokenTypeNames_pool[Token_Operator_Attribute] = &m_AttributeOperatorToken;
-	TokenTypeNames_pool[Token_Quote_Double] = &m_DoubleQuoteToken;
-	TokenTypeNames_pool[Token_Quote_Single] = &m_SingleQuoteToken;
-	TokenTypeNames_pool[Token_QuoteLike_Backtick] = &m_BacktickQuoteToken;
+	TokenTypeNames_pool[Token_Quote_Double] = &m_DoubleExtendedToken;
+	TokenTypeNames_pool[Token_Quote_Single] = &m_SingleExtendedToken;
+	TokenTypeNames_pool[Token_QuoteLike_Backtick] = &m_BacktickExtendedToken;
 	TokenTypeNames_pool[Token_Word] = &m_WordToken;
-	TokenTypeNames_pool[Token_Quote_Literal] = &m_LiteralQuoteToken;
-	TokenTypeNames_pool[Token_Quote_Interpolate] = &m_InterpolateQuoteToken;
+	TokenTypeNames_pool[Token_Quote_Literal] = &m_LiteralExtendedToken;
+	TokenTypeNames_pool[Token_Quote_Interpolate] = &m_InterpolateExtendedToken;
 	TokenTypeNames_pool[Token_QuoteLike_Words] = &m_WordsQuoteLikeToken;
 	TokenTypeNames_pool[Token_QuoteLike_Command] = &m_CommandQuoteLikeToken;
 	TokenTypeNames_pool[Token_QuoteLike_Readline] = &m_ReadlineQuoteLikeToken;
@@ -292,6 +292,8 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Number_Version] = &m_VersionNumberToken;
 	TokenTypeNames_pool[Token_BOM] = &m_BOMToken;
 	TokenTypeNames_pool[Token_Separator] = &m_SeparatorToken;
+	TokenTypeNames_pool[Token_End] = &m_EndToken;
+	TokenTypeNames_pool[Token_Data] = &m_DataToken;
 
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
@@ -346,13 +348,8 @@ OperatorOperandContext Tokenizer::_opcontext() {
 
 //=====================================
 
-LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
-	line_pos = 0;
-	c_line = line;
-	this->line_length = line_length;
-	if (c_token == NULL)
-		_new_token(zone);
-
+LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
+	const char *line = c_line;
     while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
         switch (rv) {
@@ -366,6 +363,16 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
         };
     }
     return reached_eol;
+}
+
+LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
+	line_pos = 0;
+	c_line = line;
+	this->line_length = line_length;
+	if (c_token == NULL)
+		_new_token(zone);
+	return _tokenize_the_rest_of_the_line();
+
 }
 
 void Tokenizer::changeTokenType(TokenTypeNames new_type) {

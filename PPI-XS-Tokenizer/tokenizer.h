@@ -44,13 +44,14 @@ enum TokenTypeNames {
 	Token_Cast, // done
 	Token_Prototype, // done
 	Token_ArrayIndex, // done
-	Token_HereDoc,
+	Token_HereDoc, // need testing
+	Token_HereDoc_Body, // need testing
 	Token_Attribute, // done
 	Token_Attribute_Parameterized, // done
 	Token_Label, // done
-	Token_Separator,
-	Token_End,
-	Token_Data,
+	Token_Separator, // need testing
+	Token_End, // need testing
+	Token_Data, // need testing
 	Token_Pod, // done
 	Token_BOM, // done
 	Token_Foreign_Block, // for Perl6 code, unimplemented
@@ -124,7 +125,7 @@ protected:
 	virtual void _clean_token_fields( Token *t );
 };
 
-class QuoteToken : public Token {
+class ExtendedToken : public Token {
 public:
 	uchar seperator;
 	uchar state;
@@ -136,10 +137,10 @@ public:
 	} sections[2], modifiers;
 };
 
-class AbstractQuoteTokenType : public AbstractTokenType {
+class AbstractExtendedTokenType : public AbstractTokenType {
 public:
 	// my_type, sign, num_sections, accept_modifiers
-	AbstractQuoteTokenType( 
+	AbstractExtendedTokenType( 
 		TokenTypeNames my_type,  
 		bool sign, 
 		uchar num_sections, 
@@ -148,7 +149,6 @@ public:
 		AbstractTokenType( my_type, sign ), 
 		m_numSections(num_sections), 
 		m_acceptModifiers(accept_modifiers) {}
-	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 	virtual bool isa( TokenTypeNames is_type ) const;
 	virtual void FreeToken( TokensCacheMany& tc, Token *token );
 	uchar m_numSections;
@@ -157,13 +157,27 @@ protected:
 	virtual Token *_get_from_cache(TokensCacheMany& tc);
 	virtual Token *_alloc_from_cache(TokensCacheMany& tc);
 	virtual void _clean_token_fields( Token *t );
+};
+
+class AbstractQuoteTokenType : public AbstractExtendedTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	AbstractQuoteTokenType( 
+		TokenTypeNames my_type,  
+		bool sign, 
+		uchar num_sections, 
+		bool accept_modifiers ) 
+		: 
+		AbstractExtendedTokenType( my_type, sign, num_sections, accept_modifiers) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+	virtual bool isa( TokenTypeNames is_type ) const;
 protected:
-	CharTokenizeResults StateFuncInSectionBraced(Tokenizer *t, QuoteToken *token);
-	CharTokenizeResults StateFuncInSectionUnBraced(Tokenizer *t, QuoteToken *token);
-	CharTokenizeResults StateFuncBootstrapSection(Tokenizer *t, QuoteToken *token);
-	CharTokenizeResults StateFuncConsumeWhitespaces(Tokenizer *t, QuoteToken *token);
-	CharTokenizeResults StateFuncConsumeModifiers(Tokenizer *t, QuoteToken *token);
-	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
+	CharTokenizeResults StateFuncInSectionBraced(Tokenizer *t, ExtendedToken *token);
+	CharTokenizeResults StateFuncInSectionUnBraced(Tokenizer *t, ExtendedToken *token);
+	CharTokenizeResults StateFuncBootstrapSection(Tokenizer *t, ExtendedToken *token);
+	CharTokenizeResults StateFuncConsumeWhitespaces(Tokenizer *t, ExtendedToken *token);
+	CharTokenizeResults StateFuncConsumeModifiers(Tokenizer *t, ExtendedToken *token);
+	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, ExtendedToken *token);
 };
 
 class AbstractBareQuoteTokenType : public AbstractQuoteTokenType {
@@ -176,19 +190,19 @@ public:
 		: 
 	AbstractQuoteTokenType( my_type, sign, num_sections, accept_modifiers ) {} 
 protected:
-	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, QuoteToken *token);
+	virtual CharTokenizeResults StateFuncExamineFirstChar(Tokenizer *t, ExtendedToken *token);
 };
 
-class LiteralQuoteToken : public AbstractQuoteTokenType {
+class LiteralExtendedToken : public AbstractQuoteTokenType {
 public:
 	// my_type, sign, num_sections, accept_modifiers
-	LiteralQuoteToken() : AbstractQuoteTokenType( Token_Quote_Literal, true, 1, false ) {}
+	LiteralExtendedToken() : AbstractQuoteTokenType( Token_Quote_Literal, true, 1, false ) {}
 };
 
-class InterpolateQuoteToken : public AbstractQuoteTokenType {
+class InterpolateExtendedToken : public AbstractQuoteTokenType {
 public:
 	// my_type, sign, num_sections, accept_modifiers
-	InterpolateQuoteToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true, 1, false ) {}
+	InterpolateExtendedToken() : AbstractQuoteTokenType( Token_Quote_Interpolate, true, 1, false ) {}
 };
 
 class ReadlineQuoteLikeToken : public AbstractBareQuoteTokenType {
@@ -283,7 +297,7 @@ private:
 class TokensCacheMany {
 public:
 	TokenCache< Token > standard;
-	TokenCache< QuoteToken > quote;
+	TokenCache< ExtendedToken > quote;
 };
 
 class WhiteSpaceToken : public AbstractTokenType {
@@ -337,19 +351,19 @@ private:
 	bool is_an_attribute(Tokenizer *t);
 };
 
-class DoubleQuoteToken : public AbstractSimpleQuote {
+class DoubleExtendedToken : public AbstractSimpleQuote {
 public:
-	DoubleQuoteToken() : AbstractSimpleQuote(  Token_Quote_Double, true, '"' ) {}
+	DoubleExtendedToken() : AbstractSimpleQuote(  Token_Quote_Double, true, '"' ) {}
 };
 
-class SingleQuoteToken : public AbstractSimpleQuote {
+class SingleExtendedToken : public AbstractSimpleQuote {
 public:
-	SingleQuoteToken() : AbstractSimpleQuote(  Token_Quote_Single, true, '\'' ) {}
+	SingleExtendedToken() : AbstractSimpleQuote(  Token_Quote_Single, true, '\'' ) {}
 };
 
-class BacktickQuoteToken : public AbstractSimpleQuote {
+class BacktickExtendedToken : public AbstractSimpleQuote {
 public:
-	BacktickQuoteToken() : AbstractSimpleQuote(  Token_QuoteLike_Backtick, true, '`' ) {}
+	BacktickExtendedToken() : AbstractSimpleQuote(  Token_QuoteLike_Backtick, true, '`' ) {}
 };
 
 class WordToken : public AbstractTokenType {
@@ -474,6 +488,25 @@ public:
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
+class DataToken : public AbstractTokenType {
+public:
+	DataToken() : AbstractTokenType( Token_Data, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class HereDocToken : public AbstractTokenType {
+public:
+	HereDocToken() : AbstractTokenType( Token_HereDoc, true ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
+class HereDocBodyToken : public AbstractExtendedTokenType {
+public:
+	// my_type, sign, num_sections, accept_modifiers
+	HereDocBodyToken() : AbstractExtendedTokenType( Token_HereDoc_Body, true, 2, false ) {}
+	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
+};
+
 #define NUM_SIGNIFICANT_KEPT 3
 
 enum LineTokenizeResults {
@@ -539,7 +572,7 @@ public:
 	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
 	/* tokenizeLine - Tokenize part of one line
 	 */
-	LineTokenizeResults _tokenize_the_rest_of_the_line(char *line, ulong line_length);
+	LineTokenizeResults _tokenize_the_rest_of_the_line();
 
 	/* Utility functions */
 	bool is_operator(const char *str);
@@ -558,12 +591,12 @@ private:
 	UnknownToken m_UnknownToken;
 	SymbolToken m_SymbolToken;
 	AttributeOperatorToken m_AttributeOperatorToken;
-	DoubleQuoteToken m_DoubleQuoteToken;
-	SingleQuoteToken m_SingleQuoteToken;
-	BacktickQuoteToken m_BacktickQuoteToken;
+	DoubleExtendedToken m_DoubleExtendedToken;
+	SingleExtendedToken m_SingleExtendedToken;
+	BacktickExtendedToken m_BacktickExtendedToken;
 	WordToken m_WordToken;
-	LiteralQuoteToken m_LiteralQuoteToken;
-	InterpolateQuoteToken m_InterpolateQuoteToken;
+	LiteralExtendedToken m_LiteralExtendedToken;
+	InterpolateExtendedToken m_InterpolateExtendedToken;
 	WordsQuoteLikeToken m_WordsQuoteLikeToken; 
 	CommandQuoteLikeToken m_CommandQuoteLikeToken;
 	ReadlineQuoteLikeToken m_ReadlineQuoteLikeToken;
@@ -589,6 +622,8 @@ private:
 	VersionNumberToken m_VersionNumberToken;
 	BOMToken m_BOMToken;
 	SeparatorToken m_SeparatorToken;
+	EndToken m_EndToken;
+	DataToken m_DataToken;
 
 	void keep_significant_token(Token *t);
 
