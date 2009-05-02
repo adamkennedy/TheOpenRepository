@@ -73,7 +73,7 @@ use English qw( -no_match_vars );
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
-use constant EARLEME_MASK => ~(0x7FFFFFFF);
+use constant EARLEME_MASK => ~(0x7fffffff);
 
 my $parse_number = 0;
 
@@ -929,16 +929,19 @@ sub scan_set {
                     'Token ' . $token->[Marpa::Internal::Symbol::NAME] . " is too long\n",
                     "  Token starts at $current_set, and its length is $length\n"
                     #>>>
-                    );
-            } ## end if ( $length <= 0 )
+                );
+            } ## end if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK)
 
             if ( $length <= 0 ) {
+
                 # make sure it gets reported as a negative number
                 $length += 0;
+
                 Marpa::exception( 'Token '
                         . $token->[Marpa::Internal::Symbol::NAME]
                         . ' has negative length '
                         . $length );
+
             } ## end if ( $length <= 0 )
 
             # Make sure it's an allowed terminal symbol.
@@ -967,7 +970,7 @@ sub scan_set {
                     "  Its last earleme would be at $target_ix\n"
                     );
                     #>>>
-            }
+            } ## end if ( $target_ix & ...
 
             my $target_set = ( $earley_set_list->[$target_ix] //= [] );
             if ( $target_ix > $furthest_earleme ) {
