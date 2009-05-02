@@ -1,5 +1,9 @@
 Changes for Perl extension Xtract
 
+0.08 Sun  3 May 2009
+	- Added LZMA compression support
+	- Started migration to Moose
+
 0.07 Sat  2 May 2009
 	- The "DBI:" in --from is now optional
 	- Rewrote the autotype code (faster and uses less memory)

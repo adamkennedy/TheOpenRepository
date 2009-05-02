@@ -52,7 +52,7 @@ use DBD::SQLite  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '0.08';
 }
 
 use Object::Tiny 1.06 qw{
