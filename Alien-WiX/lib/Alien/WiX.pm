@@ -9,9 +9,9 @@ use base                qw( Exporter );
 use vars                qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
 use Readonly            qw( Readonly );
 use Win32::TieRegistry  qw( KEY_READ ); 
-use version; $VERSION = version->new('0.305224')->numify();
+use version; $VERSION = version->new('0.305301')->numify();
 
-# http://wix.sourceforge.net/releases/3.0.5224.0/Wix3.msi
+# http://wix.sourceforge.net/releases/3.0.5301.0/Wix3.msi
 
 Readonly my $WIX_REGISTRY_KEY => 'HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows Installer XML/3.0';
 @EXPORT_OK = qw(wix_binary wix_library wix_version wix_version_number wix_bin_candle wix_bin_light wix_lib_wixui);
@@ -91,7 +91,7 @@ Alien::WiX - Installing and finding Windows Installer XML (WiX)
 
 =head1 VERSION
 
-This document describes Alien::WiX version 0.305224.
+This document describes Alien::WiX version 0.305301.
 
 Note that the first digit will change if the API changes 
 in an incompatible manner, while the other digits change 
@@ -103,7 +103,7 @@ changes.
     use Alien::WiX qw(:GENERAL);
 
     print wix_version();
-    # Prints 3.0.5224.0, usually.
+    # Prints 3.0.5301.0, usually.
     
     $version_number = wix_version_number();
     die 'WiX beta-exit build or better required, stopping' 
@@ -112,7 +112,7 @@ changes.
     print wix_binary('candle'), " exists\n";
     print wix_library('WixFirewall'), " exists\n";
     
-    use Alien::WiX 0.305224 qw(:ALL);
+    use Alien::WiX 0.305301 qw(:ALL);
     
     print wix_bin_candle(), " exists\n";
     print wix_bin_light(), " exists\n";
@@ -121,7 +121,7 @@ changes.
 =head1 DESCRIPTION
 
 Installing this module will also install Windows Installer XML (otherwise 
-known as WiX) version 3.0.5224.0, if it (or a later version) has not 
+known as WiX) version 3.0.5301.0, if it (or a later version) has not 
 already been installed.
 
 This module provides utility subroutines that would be useful for programs
@@ -200,7 +200,7 @@ Makefile.PL or Build.PL successfully), L<Module::Build>
 L<Win32::TieRegistry>, L<version>, and L<Readonly>.
 
 Installation of Alien::WiX will install Microsoft .NET Framework 2.0 SP1 
-and Windows Installer XML 3.0.5224.0 by downloading them from the 
+and Windows Installer XML 3.0.5301.0 by downloading them from the 
 appropriate sites unless otherwise specified.
 
 =head1 INCOMPATIBILITIES

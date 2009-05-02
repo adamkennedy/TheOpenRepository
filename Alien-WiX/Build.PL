@@ -11,7 +11,7 @@ my $class = Module::Build->subclass(
             my $self = shift;
             my $install_dotnet = $self->notes('install_dotnet');
             my $install_wix = $self->notes('install_wix');
-            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5224.0/Wix3.msi';
+            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5301.0/Wix3.msi';
             my $NET20_URL = 'http://download.microsoft.com/download/0/8/c/08c19fa4-4c4f-4ffb-9d6c-150906578c9e/NetFx20SP1_x86.exe';
             my $ok;
             
@@ -26,7 +26,7 @@ my $class = Module::Build->subclass(
             }
 
             if ($install_wix) {
-                print "Downloading and installing Windows Installer XML 3.0.5224.0.\n";
+                print "Downloading and installing Windows Installer XML 3.0.5301.0.\n";
                 $ok = $self->do_system("msiexec /i $WIX_URL /qb!");
                 unless ($ok) {
                     die q{Couldn't install WiX, stopped};
@@ -83,7 +83,7 @@ $builder->notes('install_wix' => 0);
 my ($default, $answer, $installed, $key, $type, $data, $int_data, $version);
 my $WIX30_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\Windows Installer XML\\3.0';
 my $NET20_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v2.0.50727';
-my $WIX_VERSION = 5224;
+my $WIX_VERSION = 5301;
 
 $key = 1;
 $installed = 0;
@@ -136,7 +136,7 @@ if (RegOpenKeyEx( regConstant('HKEY_LOCAL_MACHINE'), $WIX30_REGISTRY_KEY, 0, reg
 
 
 unless ($installed) {
-	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5224?', $default);
+	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5301?', $default);
 
 	if ($answer) {
         $builder->notes('install_wix' => 1);
