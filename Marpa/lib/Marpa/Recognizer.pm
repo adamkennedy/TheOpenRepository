@@ -835,6 +835,7 @@ sub Marpa::Recognizer::end_input {
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
     while ( $last_completed_set++ < $furthest_earleme ) {
         Marpa::Internal::Recognizer::complete_set($self);
+        Marpa::Internal::Recognizer::scan_set($self);
     }
     $self->[Marpa::Internal::Recognizer::CURRENT_SET] = $furthest_earleme;
 
@@ -922,15 +923,6 @@ sub scan_set {
         ALTERNATIVE: for my $alternative (@_) {
             my ( $token, $value, $length ) = @{$alternative};
 
-            if ( $length <= 0 ) {
-                # make sure it gets reported as a negative number
-                $length += 0;
-                Marpa::exception( 'Token '
-                        . $token->[Marpa::Internal::Symbol::NAME]
-                        . ' has negative length '
-                        . $length );
-            } ## end if ( $length <= 0 )
-
             if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK ) {
                 Marpa::exception(
                     #<<< no perltidy
@@ -938,6 +930,15 @@ sub scan_set {
                     "  Token starts at $current_set, and its length is $length\n"
                     #>>>
                     );
+            } ## end if ( $length <= 0 )
+
+            if ( $length <= 0 ) {
+                # make sure it gets reported as a negative number
+                $length += 0;
+                Marpa::exception( 'Token '
+                        . $token->[Marpa::Internal::Symbol::NAME]
+                        . ' has negative length '
+                        . $length );
             } ## end if ( $length <= 0 )
 
             # Make sure it's an allowed terminal symbol.
@@ -1138,9 +1139,11 @@ sub complete_set {
     $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;
 
     if ($trace_completions) {
-        print {$trace_fh} Marpa::show_earley_set($earley_set)
+        print {$trace_fh}
+            "Completing set $current_set:\n",
+            Marpa::show_earley_set($earley_set)
             or Marpa::exception('Cannot print to trace file');
-    }
+    } ## end if ($trace_completions)
 
     my $lexables = [
         sort {

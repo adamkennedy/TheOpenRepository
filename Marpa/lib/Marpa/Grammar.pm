@@ -315,12 +315,12 @@ use List::Util;
 # Longest RHS is 2**28-1.  It's 28 bits, not 32, so
 # it will fit in the internal priorities computed
 # for the CHAF rules
-use constant RHS_LENGTH_MASK => ~(0x7FFFFFF);
+use constant RHS_LENGTH_MASK => ~(0x7ffffff);
 
 # These are 2**31-1.  It's 31 bits, not 32,
 # so we don't have to
 # worry about signedness creeping in.
-use constant PRIORITY_MASK => ~(0x7FFFFFFF);
+use constant PRIORITY_MASK => ~(0x7fffffff);
 
 sub Marpa::Internal::code_problems {
     my $args = shift;
@@ -1993,8 +1993,22 @@ sub add_user_rule {
         if exists $rule_hash->{$rule_key};
 
     $user_priority //= 0;
-    $user_priority += 0;
+
+    if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
+        Marpa::exception(
+            #<<< no perltidy
+            "Rule user priority too high\n",
+            "  Rule has user priority $user_priority\n",
+            "  Rule: ",
+                $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ),
+                "\n"
+            #>>>
+        );
+    } ## end if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
+
     if ( $user_priority < 0 ) {
+        # Add zero to make sure it gets reported as a negative number
+        $user_priority += 0;
         Marpa::exception(
             "User priority must be non-negative:\n",
             " Priority given was $user_priority\n",
