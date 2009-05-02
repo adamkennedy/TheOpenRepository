@@ -6,10 +6,18 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More;
+BEGIN {
+	if ( $^O ne 'MSWin32' and $ENV{ADAMK_RELEASE} ) {
+		# Special magic to get past ADAMK's release automation
+		plan( skip_all => "Skipping on ADAMK's release automation" );
+	} else {
+		plan( tests => 15 );
+	}
+}
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
-use Alien::Win32::LZMA ();
+use Alien::Win32::LZMA    ();
 
 my $input = catfile('t', '02_main.t');
 my $small = catfile('t', 'small');
@@ -24,7 +32,7 @@ ok( ! -f $big,   'Decompressed file does not exist' );
 
 
 #####################################################################
-# Basics
+# Basic Functions
 
 # Find the lzma.exe program
 my $bin = Alien::Win32::LZMA->lzma_exe;
