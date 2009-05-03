@@ -35,50 +35,39 @@ my @data = (
 );
 
 # Locate the output database
-my $output = catfile('t', 'output.sqlite');
-File::Remove::clear($output);
+my $to = catfile('t', 'to');
+clear($to);
 
 # Connect to the source database
-my $source = DBI->connect(
-	$ENV{XTRACT_MYSQL_DSN},
+my $from = DBI->connect(
+	,
 	$ENV{XTRACT_MYSQL_USER},
-	$ENV{XTRACT_MYSQL_PASSWORD},
+	,
 	{
 		ReadOnly   => 1,
 		PrintError => 1,
 		RaiseError => 1,
 	}
 );
-isa_ok( $source, 'DBI::db' );
+isa_ok( $from, 'DBI::db' );
 
-# Create the Publish object
-my $publish = DBIx::Publish->new(
-	file   => $output,
-	source => $source,
+# Create the Xtract object
+my $object = Xtract->new(
+	from  => $ENV{XTRACT_MYSQL_DSN},
+	user  => $ENV{XTRACT_MYSQL_USER},
+	pass  => $ENV{XTRACT_MYSQL_PASSWORD},
+	to    => $to,
+	index => 1,
+	trace => 0,
+	argv  => [ ],
 );
-isa_ok( $publish, 'DBIx::Publish' );
-is( $publish->file, $output, '->file ok' );
-ok( $publish->source, '->source ok' );
-isa_ok( $publish->dbh, 'DBI::db', '->sqlite ok' );
+isa_ok( $object, 'Xtract' );
 
-# Prepare the SQLite database
-ok( $publish->prepare, '->prepare' );
+# Run the extract
+ok( $object->run, '->run ok' );
 
-# Find the available tables
-my @tables = grep { /table1/ } $source->tables;
-is( scalar(@tables), 1, 'Found 1 table' );
-
-# Clone a table completely
-ok(
-	$publish->table( 'simple3', $tables[0] ),
-	'Created simple3 table',
-);
-
-# Clean up
-ok( $publish->finish, '->finish ok' );
-
-is_deeply(
-	$publish->dbh->selectall_arrayref('select * from simple3'),
-	\@data,
-	'simple3 data ok',
-);
+#is_deeply(
+#	$publish->dbh->selectall_arrayref('select * from simple3'),
+#	\@data,
+#	'simple3 data ok',
+#);
