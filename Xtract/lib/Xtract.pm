@@ -33,23 +33,10 @@ use DBD::SQLite            1.25 ();
 use IO::Compress::Gzip    2.008 ();
 use IO::Compress::Bzip2   2.008 ();
 use DBIx::Publish               ();
-
-our $VERSION = '0.09';
-
-use constant MSWin32 => !! ( $^O eq 'MSWin32' );
-
-# Do we support lzma compression?
-my $CAN_LZMA = 0;
-if ( MSWin32 ) {
-	require Alien::Win32::LZMA;
-	$CAN_LZMA = 1;
-} elsif ( File::Which::which('lzma') ) {
-	$CAN_LZMA = 1;
-}
+use Xtract::LZMA                ();
 
 use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
-
 has from         => ( is => 'ro', isa => 'Str' );
 has user         => ( is => 'ro', isa => 'Str' );
 has pass         => ( is => 'ro', isa => 'Str' );
@@ -58,7 +45,6 @@ has index        => ( is => 'ro', isa => 'Bool' );
 has trace        => ( is => 'ro', isa => 'Bool' );
 has sqlite_cache => ( is => 'ro', isa => PositiveInt );
 has argv         => ( is => 'ro', isa => 'ArrayRef[Str]' );
-
 no Moose;
 
 
@@ -94,15 +80,14 @@ sub main {
 
 	# Create the program instance
 	my $self = Xtract->new(
-		from         => $FROM,
-		user         => $USER,
-		pass         => $PASS,
-		to           => $TO,
-		index        => $INDEX,
-		trace        => ! $QUIET,
+		from  => $FROM,
+		user  => $USER,
+		pass  => $PASS,
+		to    => $TO,
+		index => $INDEX,
+		trace => ! $QUIET,
 		$CACHE ? ( sqlite_cache => $CACHE ) : (),
-#		sqlite_cache => $CACHE,
-		argv         => [ @ARGV ],
+		argv  => [ @ARGV ],
 	);
 
 	# Run the object
@@ -118,7 +103,7 @@ sub to_bz2 {
 }
 
 sub to_lz {
-	if ( $CAN_LZMA ) {
+	if ( Xtract::LZMA->available ) {
 		return $_[0]->to . '.lz';
 	} else {
 		return;
@@ -207,19 +192,7 @@ sub run {
 	}
 	if ( $self->to_lz ) {
 		$self->say("Creating lzma archive");
-		if ( MSWin32 ) {
-			Alien::Win32::LZMA::lzma_compress(
-				$self->to => $self->to_lz,
-			) or die 'Failed to lzma SQLite file';
-		} else {
-			my $lzma   = File::Which::which('lzma');
-			my $stdout = '';
-			my $stderr = '';
-			IPC::Run3::run3(
-				[ $lzma, 'e', $self->to, $self->to_lz ],
-				\undef, \$stdout, \$stderr,
-			) or die 'Failed to lzma SQLite file';
-		}
+		Xtract::LZMA->compress( $self->to, $self->to_lz );
 	}
 
 	# Clean up
