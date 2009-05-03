@@ -9,23 +9,22 @@ BEGIN {
 use Test::More;
 use DBI;
 BEGIN {
-	# Skip for legitimate reasons first
-	unless ( $^O eq 'MSWin32' ) {
-		plan( skip_all => 'Not on Win32' );
+	unless ( grep { $_ eq 'mysql' } DBI->available_drivers ) {
+		plan( skip_all => 'DBI driver mysql is not available' );
 	}
-	unless ( grep { $_ eq 'ODBC' } DBI->available_drivers ) {
-		plan( skip_all => 'DBI driver ODBC is not available' );
+	unless ( $ENV{XTRACT_MYSQL_DSN} ) {
+		plan( skip_all => 'XTRACT_MYSQL_DSN not provided' );
 	}
-	plan( skip_all => 'Skipping ODBC driver test' );
-	#if ( grep { $_ eq 'ODBC' } DBI->available_drivers ) {
-		#plan( tests => 10 );
-	#} else {
-		#plan( skip_all => 'Skipping ODBC driver test' );
-	#}
+	unless ( $ENV{XTRACT_MYSQL_USER} ) {
+		plan( skip_all => 'XTRACT_MYSQL_USER not provided' );
+	}
+	unless ( $ENV{XTRACT_MYSQL_PASSWORD} ) {
+		plan( skip_all => 'XTRACT_MYSQL_PASSWORD not provided' );
+	}
+	plan( tests => 10 );
 }
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
-use DBIx::Publish         ();
 
 # Command row data
 my @data = (
@@ -40,11 +39,16 @@ my $output = catfile('t', 'output.sqlite');
 File::Remove::clear($output);
 
 # Connect to the source database
-my $source = DBI->connect("DBI:ODBC:Book1", undef, undef, {
-	ReadOnly   => 1,
-	PrintError => 1,
-	RaiseError => 1,
-} );
+my $source = DBI->connect(
+	$ENV{XTRACT_MYSQL_DSN},
+	$ENV{XTRACT_MYSQL_USER},
+	$ENV{XTRACT_MYSQL_PASSWORD},
+	{
+		ReadOnly   => 1,
+		PrintError => 1,
+		RaiseError => 1,
+	}
+);
 isa_ok( $source, 'DBI::db' );
 
 # Create the Publish object

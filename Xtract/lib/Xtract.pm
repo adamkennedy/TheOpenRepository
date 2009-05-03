@@ -34,7 +34,7 @@ use IO::Compress::Gzip    2.008 ();
 use IO::Compress::Bzip2   2.008 ();
 use DBIx::Publish               ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use constant MSWin32 => !! ( $^O eq 'MSWin32' );
 
@@ -54,8 +54,8 @@ has from         => ( is => 'ro', isa => 'Str' );
 has user         => ( is => 'ro', isa => 'Str' );
 has pass         => ( is => 'ro', isa => 'Str' );
 has to           => ( is => 'ro', isa => 'Str' );
-has index        => ( is => 'ro', isa => 'Int' );
-has trace        => ( is => 'ro', isa => 'Int' );
+has index        => ( is => 'ro', isa => 'Bool' );
+has trace        => ( is => 'ro', isa => 'Bool' );
 has sqlite_cache => ( is => 'ro', isa => PositiveInt );
 has argv         => ( is => 'ro', isa => 'ArrayRef[Str]' );
 
@@ -98,8 +98,8 @@ sub main {
 		user         => $USER,
 		pass         => $PASS,
 		to           => $TO,
-		index        => $INDEX ? 1 : 0,
-		trace        => $QUIET ? 0 : 1,
+		index        => $INDEX,
+		trace        => ! $QUIET,
 		$CACHE ? ( sqlite_cache => $CACHE ) : (),
 #		sqlite_cache => $CACHE,
 		argv         => [ @ARGV ],

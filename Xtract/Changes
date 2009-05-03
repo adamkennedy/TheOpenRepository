@@ -1,5 +1,8 @@
 Changes for Perl extension Xtract
 
+0.09 Sun  3 May 2009
+	- Fleshing out some of the tests a bit more
+
 0.08 Sun  3 May 2009
 	- Added LZMA compression support
 	- Started migration to Moose
