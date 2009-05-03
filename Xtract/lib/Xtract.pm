@@ -263,9 +263,9 @@ sub _mysql_table {
 	# With a direct table copy, we can interrogate types from the
 	# source table directly (hopefully).
 	my $info = eval {
-		$self->from_dbh->column_info(
-			'', '', $from, '%'
-		)->fetchall_arrayref( {} );
+		$self->from_dbh->selectall_arrayref(
+			"LISTFIELDS $from", {},
+		)
 	};
 	unless ( $@ eq '' and $info ) {
 		# Fallback to regular type detection
