@@ -903,8 +903,8 @@ sub Marpa::Evaluator::show_decisions {
         $evaler->[Marpa::Internal::Evaluator::RANKED_DECISIONS];
 
     for my $rank ( 0 .. $#{$ranked_nodes} ) {
-        my $ranked_node = $ranked_nodes->[$rank];
-        my $decision = $ranked_decisions->[$rank];
+        my $ranked_node          = $ranked_nodes->[$rank];
+        my $decision             = $ranked_decisions->[$rank];
         my $decision_description = ' -';
         if ( defined $decision ) {
             $decision_description =
@@ -913,11 +913,11 @@ sub Marpa::Evaluator::show_decisions {
         }
         $return_value .= "$rank:$decision_description "
             . Marpa::show_and_node( $ranked_node, $verbose );
-    }
+    } ## end for my $rank ( 0 .. $#{$ranked_nodes} )
 
     return $return_value;
 
-}
+} ## end sub Marpa::Evaluator::show_decisions
 
 sub Marpa::Evaluator::show_bocage {
     my ( $evaler, $verbose ) = @_;
@@ -1109,8 +1109,8 @@ sub Marpa::Evaluator::new_value {
 
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
         # Note the use of Unicode for packing, which I've not seen anyone else do.
-        my @decorated_indexes = ();
-        my @unranked_and_nodes   = ();
+        my @decorated_indexes  = ();
+        my @unranked_and_nodes = ();
         OR_NODE: for my $or_node ( @{$or_nodes} ) {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
@@ -1166,7 +1166,7 @@ sub Marpa::Evaluator::new_value {
             [
             @unranked_and_nodes[
                 map { unpack 'N', ( substr $_, NEGATIVE_N_WIDTH ) }
-                @decorated_indexes
+                reverse sort @decorated_indexes
             ]
             ];
 
@@ -1179,15 +1179,13 @@ sub Marpa::Evaluator::new_value {
 
         # set the size
         $#{$ranked_decisions} = $#{$ranked_nodes};
-        $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
+        $evaler->[Marpa::Internal::Evaluator::RANKED_DECISIONS] =
             $ranked_decisions;
 
         @tasks = ( [ Marpa::Internal::Task::DECIDE_NODES, 0 ] );
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
-
-    return \('Not finished');
 
     scalar @tasks or @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
 
@@ -1555,15 +1553,30 @@ sub Marpa::Evaluator::new_value {
 
             my @work_list;
 
+            my @or_node_choices;
+            $#or_node_choices = $#{$or_nodes};
+            for my $rank ( 0 .. scalar @{$ranked_nodes} ) {
+                my $decision = $ranked_decisions->[$rank];
+                next RANKED_NODE
+                    if not defined $decision
+                        or $decision == REJECTED;
+                my $ranked_node = $ranked_nodes->[$rank];
+                my $parent_choice =
+                    $ranked_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+                my $parent_node =
+                    $ranked_node->[Marpa::Internal::And_Node::PARENT_NODE];
+                my $parent_id = $parent_node->[Marpa::Internal::Or_Node::ID];
+                $or_node_choices[$parent_id] = $parent_choice;
+            } ## end for my $rank ( 0 .. scalar @{$ranked_nodes} )
+
             # Write the and-nodes out in preorder
             my @preorder = ();
 
             @work_list = (
                 do {
-                    my $or_node = $or_nodes->[0];
-
-                    # TODO: replace with actual choice
-                    my $choice = 0;
+                    my $or_node    = $or_nodes->[0];
+                    my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID];
+                    my $choice     = $or_node_choices[$or_node_id];
                     $or_node->[Marpa::Internal::Or_Node::AND_NODES]
                         ->[$choice];
                     } ## end do
@@ -1578,17 +1591,17 @@ sub Marpa::Evaluator::new_value {
                     $right_or_node = undef;
                 }
                 if ( defined $left_or_node ) {
-
-                    # TODO: replace with actual choice
-                    my $choice = 0;
+                    my $or_node_id =
+                        $left_or_node->[Marpa::Internal::Or_Node::ID];
+                    my $choice = $or_node_choices[$or_node_id];
                     push @work_list,
                         $left_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                         ->[$choice];
                 } ## end if ( defined $left_or_node )
                 if ( defined $right_or_node ) {
-
-                    # TODO: replace with actual choice
-                    my $choice = 0;
+                    my $or_node_id =
+                        $right_or_node->[Marpa::Internal::Or_Node::ID];
+                    my $choice = $or_node_choices[$or_node_id];
                     push @work_list,
                         $right_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                         ->[$choice];
