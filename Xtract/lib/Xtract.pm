@@ -196,9 +196,11 @@ sub add_table {
 	my $self = shift;
 
 	# Do we have support table copying from this database?
-	my $dbtype = $self->from_dbh->{Driver}->{Name};
-	if ( $dbtype eq 'SQLite' ) {
+	my $driver = $self->from_dbh->{Driver}->{Name};
+	if ( $driver eq 'SQLite' ) {
 		return $self->_sqlite_table(@_);
+	} elsif ( $driver eq 'mysql' ) {
+		return $self->_mysql_table(@_);
 	}
 
 	# Hand off to the regular select method
@@ -301,7 +303,7 @@ sub _mysql_table {
 	);
 
 	# Fill the target table
-	my $placeholders = join ", ",  map { '?' } @$name;
+	my $placeholders = join ", ",  map { '?' } @name;
 	return $self->fill(
 		select => [ "SELECT * FROM $from" ],
 		insert => "INSERT INTO $table VALUES ( $placeholders )",
