@@ -401,6 +401,24 @@ sub fill {
 	return $rows;
 }
 
+sub index_table {
+	my $self  = shift;
+	my $table = shift;
+	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($table)");
+	foreach my $column ( map { $_->[1] } @$info ) {
+		$self->index_column($table, $column);
+	}
+	return 1;
+}
+
+sub index_column {
+	my $self    = shift;
+	my ($t, $c) = _COLUMN(@_);
+	my $unique  = _UNIQUE($self->to_dbh, $t, $c) ? 'UNIQUE' : '';
+	$self->to_dbh->do("CREATE $unique INDEX IF NOT EXISTS idx__${t}__${c} ON ${t} ( ${c} )");
+	return 1;
+}
+
 
 
 
@@ -535,24 +553,6 @@ sub to_finish {
 
 #####################################################################
 # Support Methods
-
-sub index_table {
-	my $self  = shift;
-	my $table = shift;
-	my $info  = $self->to_dbh->selectall_arrayref("PRAGMA table_info($table)");
-	foreach my $column ( map { $_->[1] } @$info ) {
-		$self->index_column($table, $column);
-	}
-	return 1;
-}
-
-sub index_column {
-	my $self    = shift;
-	my ($t, $c) = _COLUMN(@_);
-	my $unique  = _UNIQUE($self->to_dbh, $t, $c) ? 'UNIQUE' : '';
-	$self->to_dbh->do("CREATE $unique INDEX IF NOT EXISTS idx__${t}__${c} ON ${t} ( ${c} )");
-	return 1;
-}
 
 sub disconnect {
 	my $self = shift;
