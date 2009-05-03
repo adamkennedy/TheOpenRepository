@@ -21,7 +21,7 @@ BEGIN {
 	unless ( $ENV{XTRACT_MYSQL_PASSWORD} ) {
 		plan( skip_all => 'XTRACT_MYSQL_PASSWORD not provided' );
 	}
-	plan( tests => 10 );
+	plan( tests => 2 );
 }
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
