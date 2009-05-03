@@ -25,6 +25,7 @@ BEGIN {
 }
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
+use Xtract                ();
 
 # Command row data
 my @data = (
@@ -37,19 +38,6 @@ my @data = (
 # Locate the output database
 my $to = catfile('t', 'to');
 clear($to);
-
-# Connect to the source database
-my $from = DBI->connect(
-	,
-	$ENV{XTRACT_MYSQL_USER},
-	,
-	{
-		ReadOnly   => 1,
-		PrintError => 1,
-		RaiseError => 1,
-	}
-);
-isa_ok( $from, 'DBI::db' );
 
 # Create the Xtract object
 my $object = Xtract->new(
