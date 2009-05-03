@@ -15,7 +15,7 @@ use Xtract;
 my $from = catfile('t', 'data', 'Foo-Bar.sqlite');
 my $to   = catfile('t', 'to');
 ok( -f $from, 'Found --from file' );
-clear($to);
+clear($to, "$to.gz", "$to.bz2", "$to.lz");
 ok( ! -f $to, 'Cleared --to file' );
 
 
@@ -48,13 +48,11 @@ SCOPE: {
 	# Other accessors
 	is( $object->to_gz,  "$to.gz",  '->to_gz ok'  );
 	is( $object->to_bz2, "$to.bz2", '->to_bz2 ok' );
-	clear( $object->to_gz, $object->to_bz2 );
 	SKIP: {
 		unless ( defined $object->to_lz ) {
 			skip("LZMA support not available", 1);
 		}
 		is( $object->to_lz, "$to.lz", '->to_lz ok' );
-		clear( $object->to_lz );
 	}
 
 	# Get the list of tables
