@@ -256,34 +256,33 @@ sub _sqlite_table {
 }
 
 sub _mysql_table {
-	my $self   = shift;
-	my $table  = shift;
-	my $from   = shift || $table;
+	my $self  = shift;
+	my $table = shift;
+	my $from  = shift || $table;
 
-	# With a direct table copy, we can interrogate types from the
-	# source table directly (hopefully).
-	my $info = eval {
-		$self->from_dbh->selectall_arrayref(
-			"LISTFIELDS $from", {},
-		)
-	};
-	unless ( $@ eq '' and $info ) {
-		# Fallback to regular type detection
+	# Capture table metadata
+	my $sth = $self->from_dbh->prepare("select * from $from");
+	unless ( $sth and $sth->execute ) {
 		return $self->add_select( $table, "select * from $from" );
 	}
+	my @name = @{$sth->{NAME_lc}};
+	my @type = @{$sth->{TYPE}};
+	my @null = @{$sth->{NULLABLE}};
+	my @blob = @{$sth->{mysql_is_blob}};
+	$sth->finish;	
 
-	# Generate the column metadata
-	my @type = ();
-	my @blob = ();
-	foreach my $column ( @$info ) {
-		my $name = $column->{COLUMN_NAME};
-		my $type = defined($column->{COLUMN_SIZE})
-			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
-			: $column->{TYPE_NAME};
-		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
-		push @type, "$name $type $null";
-		push @blob, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
+	# Generate the create fragments
+	foreach my $i ( 0 .. $#name ) {
+		
+		$null[$i] = $null[$i] ? 'NULL' : 'NOT NULL';
 	}
+
+	# Create the table
+	$self->to_dbh->do(
+		"CREATE TABLE $table (\n"
+		. join( ",\n", map { "\t$_" } @type )
+		. "\n)"
+	);
 
 	return 1;
 }
