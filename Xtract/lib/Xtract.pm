@@ -556,6 +556,9 @@ sub index_column {
 
 sub disconnect {
 	my $self = shift;
+	if ( $self->{from_scan} ) {
+		delete($self->{from_scan});
+	}
 	if ( $self->{from_dbh} ) {
 		delete($self->{from_dbh})->disconnect;
 	}
