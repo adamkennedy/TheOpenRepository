@@ -255,6 +255,39 @@ sub _sqlite_table {
 	);
 }
 
+sub _mysql_table {
+	my $self   = shift;
+	my $table  = shift;
+	my $from   = shift || $table;
+
+	# With a direct table copy, we can interrogate types from the
+	# source table directly (hopefully).
+	my $info = eval {
+		$self->from_dbh->column_info(
+			'', '', $from, '%'
+		)->fetchall_arrayref( {} );
+	};
+	unless ( $@ eq '' and $info ) {
+		# Fallback to regular type detection
+		return $self->add_select( $table, "select * from $from" );
+	}
+
+	# Generate the column metadata
+	my @type = ();
+	my @blob = ();
+	foreach my $column ( @$info ) {
+		my $name = $column->{COLUMN_NAME};
+		my $type = defined($column->{COLUMN_SIZE})
+			? "$column->{TYPE_NAME}($column->{COLUMN_SIZE})"
+			: $column->{TYPE_NAME};
+		my $null = $column->{NULLABLE} ? "NULL" : "NOT NULL";
+		push @type, "$name $type $null";
+		push @blob, $column->{TYPE_NAME} eq 'BLOB' ? 1 : 0;
+	}
+
+	return 1;
+}
+
 sub add_select {
 	my $self   = shift;
 	my $table  = lc(shift);
