@@ -14,7 +14,7 @@ my @WHICH = ();
 if ( $^O eq 'MSWin32' ) {
 	require Alien::Win32::LZMA;
 	$LZMA = 'win32';
-} elsif ( @WHICH = File::Which::which('unix') ) {
+} elsif ( @WHICH = File::Which::which('lzma') ) {
 	$LZMA = 'unix';
 }
 
