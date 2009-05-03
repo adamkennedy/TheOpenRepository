@@ -10,11 +10,11 @@ use File::Which ();
 use IPC::Run3   ();
 
 my $LZMA  = '';
-my $WHICH = undef;
+my @WHICH = ();
 if ( $^O eq 'MSWin32' ) {
 	require Alien::Win32::LZMA;
 	$LZMA = 'win32';
-} elsif ( $WHICH = File::Which::which('unix') ) {
+} elsif ( @WHICH = File::Which::which('unix') ) {
 	$LZMA = 'unix';
 }
 
@@ -54,7 +54,7 @@ sub _unix {
 	my $stderr = '';
 	my $result = IPC::Run3::run3(
 		[
-			$WHICH,
+			$WHICH[0],
 			'--compress',
 			'--keep',
 			'--suffix', '.lz',
