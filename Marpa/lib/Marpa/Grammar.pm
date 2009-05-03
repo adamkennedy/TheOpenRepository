@@ -184,10 +184,13 @@ use Marpa::Offset qw(
     STRIP CODE_LINES
     =LAST_BASIC_DATA_FIELD
 
+    { === Evaluator Fields === }
     DEFAULT_NULL_VALUE
     CYCLE_ACTION
     TRACE_ITERATIONS
-    TRACE_ACTIONS TRACE_VALUES TRACE_CHOICES
+    TRACE_ACTIONS TRACE_VALUES
+    TRACE_JOURNAL { Trace the evaluator journal }
+
     MAX_PARSES
     PREAMBLE
     =LAST_EVALUATOR_FIELD
@@ -650,7 +653,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]      = 1;
     $grammar->[Marpa::Internal::Grammar::TRACE_RULES]        = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]       = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_CHOICES]      = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL]      = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
     $grammar->[Marpa::Internal::Grammar::TRACING]            = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]              = 1;
@@ -974,16 +977,16 @@ sub Marpa::Grammar::set {
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
             } ## end when ('trace_lex_matches')
-            when ('trace_choices') {
-                Marpa::exception('trace_choice must be set to a number >= 0')
+            when ('trace_journal') {
+                Marpa::exception("$option must be set to a number >= 0")
                     if not $value =~ /\A\d+\z/xms;
-                $grammar->[Marpa::Internal::Grammar::TRACE_CHOICES] =
+                $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL] =
                     $value + 0;
                 if ($value) {
                     say {$trace_fh} "Setting $option option to $value";
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
-            } ## end when ('trace_choices')
+            } ## end when ('trace_journal')
             when ('trace_values') {
                 Marpa::exception('trace_values must be set to a number >= 0')
                     if not $value =~ /\A\d+\z/xms;
