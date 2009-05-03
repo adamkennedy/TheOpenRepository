@@ -273,18 +273,40 @@ sub _mysql_table {
 
 	# Generate the create fragments
 	foreach my $i ( 0 .. $#name ) {
-		
+		if ( $blob[$i] ) {
+			$type[$i] = 'BLOB';
+		} elsif ( $type[$i] == SQL_INTEGER ) {
+			$type[$i] = 'INTEGER';
+		} elsif ( $type[$i] == SQL_FLOAT ) {
+			$type[$i] = 'REAL';
+		} elsif ( $type[$i] == SQL_REAL ) {
+			$type[$i] = 'REAL';
+		} elsif ( $type[$i] == -6 ) {
+			$type[$i] = 'INTEGER';
+		} else {
+			$type[$i] = 'TEXT';
+		}
 		$null[$i] = $null[$i] ? 'NULL' : 'NOT NULL';
 	}
 
 	# Create the table
 	$self->to_dbh->do(
 		"CREATE TABLE $table (\n"
-		. join( ",\n", map { "\t$_" } @type )
+		. join( ",\n",
+			map {
+				"\t$name[$_] $type[$_] $null[$_]"
+			} (0 .. $#name)
+		)
 		. "\n)"
 	);
 
-	return 1;
+	# Fill the target table
+	my $placeholders = join ", ",  map { '?' } @$name;
+	return $self->fill(
+		select => [ "SELECT * FROM $from" ],
+		insert => "INSERT INTO $table VALUES ( $placeholders )",
+		blobs  => scalar(grep { $_ } @blob) ? \@blob : undef,
+	);
 }
 
 sub add_select {
