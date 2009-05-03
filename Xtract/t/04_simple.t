@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
 use Xtract;
@@ -56,6 +56,13 @@ SCOPE: {
 		is( $object->to_lz, "$to.lz", '->to_lz ok' );
 		clear( $object->to_lz );
 	}
+
+	# Get the list of tables
+	is_deeply(
+		[ $object->from_tables ],
+		[ 'table_one' ],
+		'->tables ok',
+	);
 
 	# Run the extraction
 	ok( $object->run, '->run ok' );
