@@ -1085,11 +1085,13 @@ sub Marpa::Evaluator::new_value {
     my $trace_values     = 0;
     my $trace_journal    = 0;
     my $trace_iterations = 0;
+    my $trace_tasks      = 0;
     if ($tracing) {
         $trace_journal = $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL];
         $trace_values  = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
+        $trace_tasks   = $trace_journal >= 2;
     } ## end if ($tracing)
 
     my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
@@ -1206,6 +1208,12 @@ sub Marpa::Evaluator::new_value {
 
             my ($rank_being_decided) = @{$task_data};
 
+            if ($trace_tasks) {
+                print {$trace_fh}
+                    "Task: DECIDE_NODES, rank being decided = $rank_being_decided\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
             # Move down the and node rankings, accepting nodes as we go.
             # as we go.  Prefer accept, but reject if the choice is
             # already made.
@@ -1255,6 +1263,14 @@ sub Marpa::Evaluator::new_value {
         if ( $task == Marpa::Internal::Task::MARK_SIBLINGS_REJECTED ) {
 
             my ( $rank_being_decided, $accepted_node_rank ) = @{$task_data};
+
+            if ($trace_tasks) {
+                print {$trace_fh}
+                    "Task: MARK_SIBLINGS_REJECTED, ",
+                    "rank being decided is $rank_being_decided; ",
+                    "rank of node last accepted is $accepted_node_rank\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
 
             my $accepted_node = $ranked_nodes->[$accepted_node_rank];
             my $or_node_id =
@@ -1357,6 +1373,7 @@ sub Marpa::Evaluator::new_value {
                         $rank_being_decided + 1
                     ]
                 );
+                next TASK;
             } ## end if ( not scalar @{$forks} )
 
             # Pick the first fork.  Do not journal the
@@ -1371,7 +1388,7 @@ sub Marpa::Evaluator::new_value {
                 my $parent_node_name =
                     $parent_node->[Marpa::Internal::And_Node::NAME];
                 print {$trace_fh}
-                    "Iteration: Choosing upward fork $fork_choice, to and-node $parent_node_name,",
+                    "Iteration: Choosing upward fork $fork_choice, to $parent_node_name,",
                     " rank $rank_being_decided\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_iterations)
@@ -1407,6 +1424,16 @@ sub Marpa::Evaluator::new_value {
 
             my ( $rank_being_decided, $parent_node ) = @{$task_data};
 
+            if ($trace_tasks) {
+                my $parent_node_name = 
+                    $parent_node->[Marpa::Internal::And_Node::NAME];
+                print {$trace_fh}
+                    "Task: MARK_PARENT_ACCEPTED, ",
+                    "rank being decided is $rank_being_decided; ",
+                    "parent is $parent_node_name\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
             my $parent_rank = $parent_node->[Marpa::Internal::And_Node::RANK];
 
             # If the parent and node has been rejected, or if we
@@ -1438,9 +1465,9 @@ sub Marpa::Evaluator::new_value {
                 my $and_node_name =
                     $and_node->[Marpa::Internal::And_Node::NAME];
                 print {$trace_fh}
-                    "Journal: Re-accepted $and_node_name, ",
-                    "rank $rank_being_decided, ",
-                    ' previous rank ', Marpa::show_decision($parent_decision),
+                    "Journal: Accepted $and_node_name, ",
+                    "rank being decided is $rank_being_decided; ",
+                    ' previous decision was ', Marpa::show_decision($parent_decision),
                     "\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
@@ -1458,6 +1485,12 @@ sub Marpa::Evaluator::new_value {
         } ## end if ( $task == Marpa::Internal::Task::MARK_PARENT_ACCEPTED)
 
         if ( $task == Marpa::Internal::Task::BACKTRACK ) {
+
+            if ($trace_tasks) {
+                print {$trace_fh}
+                    "Task: BACKTRACK\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
 
             ENTRY: while ( my $journal_entry = pop @{$journal} ) {
 
@@ -1575,6 +1608,16 @@ sub Marpa::Evaluator::new_value {
             my ( $rank_being_decided, $rejected_node_rank ) = @{$task_data};
             my $rejected_node = $ranked_nodes->[$rejected_node_rank];
 
+            if ($trace_tasks) {
+                my $rejected_node_name =
+                    $rejected_node->[Marpa::Internal::And_Node::NAME];
+                print {$trace_fh}
+                    "Task: MARK_PARENTS_REJECTED, ",
+                    "rank being decided is $rank_being_decided; ",
+                    "last rejected node is $rejected_node_name\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_tasks)
+
             my $or_node_id =
                 $rejected_node->[Marpa::Internal::And_Node::PARENT_NODE];
             my $or_node = $or_nodes->[$or_node_id];
@@ -1670,9 +1713,17 @@ sub Marpa::Evaluator::new_value {
             } ## end for my $parent_node_id ( @{$forks} )
             ## End FORK:
 
+            next TASK;
+
         } ## end if ( $task == Marpa::Internal::Task::MARK_PARENTS_REJECTED)
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
+
+            if ($trace_tasks) {
+                print {$trace_fh}
+                    "Task: EVALUATE\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
 
             my @work_list;
 
