@@ -9,9 +9,4 @@ BEGIN {
 use Test::More tests => 1;
 use CPANTS::Weight ();
 
-ok(
-	CPANTS::Weight->run,
-	'->run ok',
-);
-
-1;
+ok( CPANTS::Weight->run, '->run ok' );

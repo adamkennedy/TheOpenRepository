@@ -1,5 +1,9 @@
 Changes for Perl extension CPANTS-Weight
 
+0.10 Mon  4 May 2009
+	- Fixing a massive bug where I was totaling FAIL results for
+	  the FIRST release instead of the LAST release.
+
 0.09 Mon  4 May 2009
 	- Upgrading to Module::Install::DSL 0.86
 	- Reverted to the old one-shot weight and volatility calculation

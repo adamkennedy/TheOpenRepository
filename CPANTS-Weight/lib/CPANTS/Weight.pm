@@ -30,7 +30,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 our $DEBUG;
 
@@ -307,7 +307,7 @@ sub fail_report {
 
 		# If the version is older than the current version,
 		# shortcut and go to the next row.
-		my $vcmp = CPAN::Version->vcmp($version{$dist}, $version);
+		my $vcmp = CPAN::Version->vcmp($version, $version{$dist});
 		if ( $vcmp < 0 ) {
 			next;
 		}
