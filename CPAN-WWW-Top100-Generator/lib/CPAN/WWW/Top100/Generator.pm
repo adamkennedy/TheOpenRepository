@@ -103,7 +103,7 @@ sub run {
 
 	# Build the FAIL 100 index
 	$dataset->add( 'ds8',
-		[ 'Rank', 'Volatility x FAIL', 'Author', 'Distribution' ],
+		[ 'Rank', 'Score', 'Author', 'Distribution' ],
 		$class->report(
 			sql_score => 'd.volatility * d.fails',
 		),
