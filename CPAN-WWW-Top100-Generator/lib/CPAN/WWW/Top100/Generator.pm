@@ -21,7 +21,7 @@ use File::Spec          0.80 ();
 use CPANTS::Weight      0.10 ();
 use HTML::Spry::DataSet 0.01 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 
