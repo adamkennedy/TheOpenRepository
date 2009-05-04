@@ -16,8 +16,9 @@ This module (for now) has no moving parts...
 
 use 5.008;
 use strict;
+use warnings;
 use File::Spec          0.80 ();
-use CPANTS::Weight      0.08 ();
+use CPANTS::Weight      0.10 ();
 use HTML::Spry::DataSet 0.01 ();
 
 our $VERSION = '0.03';
@@ -97,6 +98,14 @@ sub run {
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
 			sql_score => 'd.volatility * d.meta3',
+		),
+	);
+
+	# Build the FAIL 100 index
+	$dataset->add( 'ds8',
+		[ 'Rank', 'Volatility x FAIL', 'Author', 'Distribution' ],
+		$class->report(
+			sql_score => 'd.volatility * d.fails',
 		),
 	);
 
