@@ -13,4 +13,4 @@ ok( $] >= 5.008, 'Perl version is new enough' );
 
 use_ok( 'CPAN::WWW::Top100::Generator' );
 
-script_compiles_ok( 'script\cpantop100' );
+script_compiles_ok( 'script/cpantop100' );
