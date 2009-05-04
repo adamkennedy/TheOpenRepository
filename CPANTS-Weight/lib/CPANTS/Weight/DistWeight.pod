@@ -82,6 +82,12 @@ Returns a new L<CPANTS::Weight::DistWeight> object.
 
       volatility => 'value',
 
+      enemy_downstream => 'value',
+
+      debian_candidate => 'value',
+
+      fails => 'value',
+
   );
 
 The C<create> constructor is a one-step combination of C<new> and
@@ -169,12 +175,14 @@ The dist_weight table was originally created with the
 following SQL command.
 
   CREATE TABLE dist_weight (
-  	id         integer      not null primary key,
-  	dist       varchar(255) not null unique,
-  	author     integer      not null,
-  	weight     integer          null,
-  	volatility integer          null
-  )
+  	id               integer      not null primary key,
+  	dist             varchar(255) not null unique,
+  	author           integer      not null,
+  	weight           integer          null,
+  	volatility       integer          null,
+  	enemy_downstream integer      not null,
+  	debian_candidate integer      not null
+  , fails integer not null default 0)
 
 =head1 SUPPORT
 

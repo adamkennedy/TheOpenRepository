@@ -1,5 +1,10 @@
 Changes for Perl extension CPANTS-Weight
 
+0.09 Mon  4 May 2009
+	- Upgrading to Module::Install::DSL 0.86
+	- Reverted to the old one-shot weight and volatility calculation
+	- Added integration with ORDB::CPANTesters to count FAILs
+
 0.08 Sun 10 Apr 2009
 	- Upgrading to Module::Install::DSL 0.83
 	- Upgrading to ORLite::Migrate 0.03
