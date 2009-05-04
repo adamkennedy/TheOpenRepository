@@ -30,7 +30,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our $DEBUG;
 
@@ -287,10 +287,24 @@ sub fail_report {
 
 	# Build the statement
 	my $rows = 0;
-	my $sth  = ORDB::CPANTesters->prepare(
-		'select dist, version, state from cpanstats where state in ( ?, ? )',
-	) or die("prepare: $DBI::errstr");
-	$sth->execute('cpan', 'fail') or die("execute: $DBI::errstr");
+	my $sth  = ORDB::CPANTesters->prepare(<<'END_SQL') or die("prepare: $DBI::errstr");
+		select dist, version, state, perl from cpanstats
+		where state = ? or (
+			state = ? and
+			perl not like ? and
+			(
+				perl like ? or
+				perl like ? or
+				perl like ? or
+				perl like ? or
+				perl like ?
+			)
+		)
+END_SQL
+	$sth->execute(
+		'cpan', 'fail', '%patch%',
+		'5.4%', '5.5%', '5.6%', '5.8%', '5.10%'
+	) or die("execute: $DBI::errstr");
 	while ( my $row = $sth->fetchrow_arrayref ) {
 		my ($dist, $version, $state) = @$row;
 
