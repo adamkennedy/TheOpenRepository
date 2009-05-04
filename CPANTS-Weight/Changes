@@ -1,5 +1,8 @@
 Changes for Perl extension CPANTS-Weight
 
+0.12 Tue  5 May 2009
+	- Factor out RC releases
+
 0.11 Tue  5 May 2009
 	- Factor out patch versions of Perl from the FAIL counts
 

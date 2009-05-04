@@ -30,7 +30,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 our $DEBUG;
 
@@ -292,6 +292,7 @@ sub fail_report {
 		where state = ? or (
 			state = ? and
 			perl not like ? and
+			perl not like ? and
 			(
 				perl like ? or
 				perl like ? or
@@ -302,7 +303,7 @@ sub fail_report {
 		)
 END_SQL
 	$sth->execute(
-		'cpan', 'fail', '%patch%',
+		'cpan', 'fail', '%patch%', '%RC%',
 		'5.4%', '5.5%', '5.6%', '5.8%', '5.10%'
 	) or die("execute: $DBI::errstr");
 	while ( my $row = $sth->fetchrow_arrayref ) {
