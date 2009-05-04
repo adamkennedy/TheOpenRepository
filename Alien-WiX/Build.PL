@@ -1,10 +1,9 @@
-use warnings;
 use English '-no_match_vars';
-use Module::Build 0.21;
+use inc::Module::Build::Functions;
 	
 die "OS unsupported" if ('MSWin32' ne $OSNAME);
 
-my $class = Module::Build->subclass(
+subclass
 	class => 'ModuleBuildAlienWiX',
 	code => q{
 		sub ACTION_code {
@@ -37,40 +36,26 @@ my $class = Module::Build->subclass(
             
             $self->SUPER::ACTION_code();
         }
-    }
-);
-
-my $builder = $class->new(
-    module_name         => 'Alien::WiX',
-    license             => 'perl',
-    dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
-    dist_version_from   => 'lib/Alien/WiX.pm',
-    configure_requires  => {
-		'Win32API::Registry'
-		                => '0.30',
-		'Module::Build'
-		                => '0.21',
-	},
-    build_requires  => {
-		'Module::Build'
-		                => '0.21',
-	},
-	requires            => {
-		'perl'          => '5.006',
-        'Test::More'    => '0',
-		'Readonly'      => '1.03',
-        'version'       => '0.76',
-		'Win32API::Registry'
-		                => '0.30',
-		'Win32::TieRegistry'
-		                => '0.26',
-    },
-	recommends          => {
-		'Readonly::XS'  => '1.05',
-	},
-	create_makefile_pl  => 'passthrough',
-    add_to_cleanup      => [ 'Alien-WiX-*' ],
-);
+    };
+	
+module_name         'Alien::WiX';
+license             'perl';
+dist_author         'Curtis Jewell <csjewell@cpan.org>';
+dist_version_from   'lib/Alien/WiX.pm';
+dynamic_config      1;
+configure_requires  'Win32API::Registry'  => '0.30';
+configure_requires  'Module::Build'       => '0.21';
+build_requires		'Module::Build'       => '0.21';
+requires            'perl'                => '5.006';
+requires			'Test::More'          => '0';
+requires            'Readonly'            => '1.03';
+requires			'version'             => '0.76';
+requires            'Win32API::Registry'  => '0.30';
+requires           	'Win32::TieRegistry'  => '0.26';
+recommends          'Readonly::XS'        => '1.05';
+add_to_cleanup      'Alien-WiX-*';
+create_makefile_pl  'passthrough';
+my $builder = get_builder;
 
 eval { require Win32API::Registry; }
     or die q{I can't check whether WiX is installed without Win32API::Registry};
@@ -145,4 +130,4 @@ unless ($installed) {
 	}
 }
 
-$builder->create_build_script();
+create_build_script;
