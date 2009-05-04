@@ -87,7 +87,7 @@ following SQL command.
   	volatility       integer          null,
   	enemy_downstream integer      not null,
   	debian_candidate integer      not null
-  , meta1 integer not null default 0, meta2 integer not null default 0, meta3 integer not null default 0)
+  , meta1 integer not null default 0, meta2 integer not null default 0, meta3 integer not null default 0, fails integer not null default 0)
 
 =head1 SUPPORT
 

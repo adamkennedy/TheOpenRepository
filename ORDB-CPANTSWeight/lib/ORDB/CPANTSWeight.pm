@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use ORLite::Mirror 1.12 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub import {
 	my $class = shift;
@@ -13,8 +13,10 @@ sub import {
 	# Prevent double-initialisation
 	$class->can('orlite') or
 	ORLite::Mirror->import( {
-		url    => 'http://svn.ali.as/cpants_weight.db.gz',
-		maxage => 7 * 24 * 60 * 60,
+		url          => 'http://svn.ali.as/cpants_weight.db.gz',
+		maxage       => 24 * 60 * 60,
+		user_version => 3,
+		@_,
 	} );
 
 	return 1;
