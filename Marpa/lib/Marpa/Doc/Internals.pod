@@ -248,7 +248,7 @@ in_file($_, 'author.t/equation_show_earley_sets.out');
 
 =end Marpa::Test::Display:
 
-    S4@2-3  [p=S1@2-2; t=2]
+    S4@2-3  [p=S1@2-2; t='2']
 
 After the name of the Earley item is an
 B<Earley item source choice>, shown in brackets.
@@ -261,7 +261,7 @@ so all Earley items have at most one source choice entry.
 In this case the source choice entry is for a B<token choice>.
 Token choices are shown as C<[p=>I<predecessor>C<; t=>I<token_value>C<]> pairs.
 In the above example, the token choice
-C<[p=S1@2-2; t=2]>
+C<[p=S1@2-2; t='2']>
 indicates that the token has a value of "2",
 and that, when this token choice is selected,
 the predecessor of S4@2-3 is S1@2-2.
@@ -1571,14 +1571,14 @@ is_file($_, 'author.t/equation_show_earley_sets.out');
     S0@0-0
     S1@0-0
     Earley Set 1
-    S4@0-1 [p=S1@0-0; t=2]
+    S4@0-1 [p=S1@0-0; t='2']
     S2@0-1 [p=S0@0-0; c=S4@0-1]
     S3@0-1 [p=S1@0-0; c=S4@0-1]
     Earley Set 2
-    S5@0-2 [p=S3@0-1; t=+]
+    S5@0-2 [p=S3@0-1; t='+']
     S1@2-2
     Earley Set 3
-    S4@2-3 [p=S1@2-2; t=2]
+    S4@2-3 [p=S1@2-2; t='2']
     S6@0-3 [p=S5@0-2; c=S4@2-3]
     S3@2-3 [p=S1@2-2; c=S4@2-3]
     S2@0-3 [p=S0@0-0; c=S6@0-3]

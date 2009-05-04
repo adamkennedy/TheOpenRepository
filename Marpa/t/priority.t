@@ -56,7 +56,7 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce } );
 Marpa::exception('Could not initialize parse') if not $evaler;
 
 my $i = -1;
-while ( defined( my $value = $evaler->value() ) ) {
+while ( defined( my $value = $evaler->new_value() ) ) {
     $i++;
     if ( $i > $#expected ) {
         Test::More::fail(
@@ -68,7 +68,7 @@ while ( defined( my $value = $evaler->value() ) ) {
             Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
         }
     } ## end else [ if ( $i > $#expected )
-} ## end while ( defined( my $value = $evaler->value() ) )
+} ## end while ( defined( my $value = $evaler->new_value() ) )
 
 # Local Variables:
 #   mode: cperl

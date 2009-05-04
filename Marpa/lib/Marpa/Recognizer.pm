@@ -14,7 +14,7 @@ use English qw( -no_match_vars );
 
 use Marpa::Offset qw(
 
-    :package=Marpa::Internal::Earley_item
+    :package=Marpa::Internal::Earley_Item
 
     NAME STATE TOKENS LINKS
     =LAST_EVALUATOR_FIELD
@@ -248,7 +248,6 @@ sub prepare_grammar_for_recognizer {
     my $parse   = shift;
     my $grammar = shift;
 
-    local ($Data::Dumper::Terse) = 1;
     my $package = $parse->[Marpa::Internal::Recognizer::PACKAGE] =
         sprintf 'Marpa::P_%x', $parse_number++;
 
@@ -382,12 +381,12 @@ sub Marpa::Recognizer::new {
             $state_id, 0, 0;
         my $item;
         @{$item}[
-            Marpa::Internal::Earley_item::NAME,
-            Marpa::Internal::Earley_item::STATE,
-            Marpa::Internal::Earley_item::PARENT,
-            Marpa::Internal::Earley_item::TOKENS,
-            Marpa::Internal::Earley_item::LINKS,
-            Marpa::Internal::Earley_item::SET
+            Marpa::Internal::Earley_Item::NAME,
+            Marpa::Internal::Earley_Item::STATE,
+            Marpa::Internal::Earley_Item::PARENT,
+            Marpa::Internal::Earley_Item::TOKENS,
+            Marpa::Internal::Earley_Item::LINKS,
+            Marpa::Internal::Earley_Item::SET
             ]
             = ( $name, $state, 0, [], [], 0 );
         push @{$earley_set}, $item;
@@ -504,83 +503,67 @@ sub Marpa::Recognizer::clone {
 } ## end sub Marpa::Recognizer::clone
 
 # Viewing methods, for debugging
-sub Marpa::brief_earley_item {
-    my $item = shift;
-    my $ii   = shift;
-    return $item->[Marpa::Internal::Earley_item::NAME] if not $ii;
-    my ( $state, $parent, $set ) = @{$item}[
-        Marpa::Internal::Earley_item::STATE,
-        Marpa::Internal::Earley_item::PARENT,
-        Marpa::Internal::Earley_item::SET
-    ];
-    my ( $id, $tag ) =
-        @{$state}[ Marpa::Internal::QDFA::ID, Marpa::Internal::QDFA::TAG ];
-    my $text = defined $tag ? ( 'St' . $tag ) : ( 'S' . $id );
-    $text .= q{@} . $parent . q{-} . $set;
-    return $text;
-} ## end sub Marpa::brief_earley_item
 
 sub Marpa::show_token_choice {
-    my ( $token, $ii ) = @_;
+    my ($token) = @_;
+    my $token_value = Data::Dumper->new( [ $token->[1] ] )->Terse(1)->Dump;
+    chomp $token_value;
     return
           '[p='
-        . Marpa::brief_earley_item( $token->[0], $ii ) . '; t='
-        . $token->[1] . ']';
+        . $token->[0]->[Marpa::Internal::Earley_Item::NAME]
+        . "; t=$token_value]";
 } ## end sub Marpa::show_token_choice
 
 sub Marpa::show_link_choice {
-    my ( $link, $ii ) = @_;
+    my ($link) = @_;
     return
           '[p='
-        . Marpa::brief_earley_item( $link->[0], $ii ) . '; c='
-        . Marpa::brief_earley_item( $link->[1], $ii ) . ']';
+        . $link->[0]->[Marpa::Internal::Earley_Item::NAME] . '; c='
+        . $link->[1]->[Marpa::Internal::Earley_Item::NAME] . ']';
 } ## end sub Marpa::show_link_choice
 
 sub Marpa::show_earley_item {
-    my ( $item,   $ii )    = @_;
-    my ( $tokens, $links ) = @{$item}[
-        Marpa::Internal::Earley_item::TOKENS,
-        Marpa::Internal::Earley_item::LINKS,
-    ];
-
-    my $text = Marpa::brief_earley_item( $item, $ii );
+    my ($item) = @_;
+    my $tokens = $item->[Marpa::Internal::Earley_Item::TOKENS];
+    my $links  = $item->[Marpa::Internal::Earley_Item::LINKS];
+    my $text   = $item->[Marpa::Internal::Earley_Item::NAME];
 
     if ( defined $tokens and @{$tokens} ) {
         for my $token ( @{$tokens} ) {
-            $text .= q{ } . Marpa::show_token_choice( $token, $ii );
+            $text .= q{ } . Marpa::show_token_choice($token);
         }
     }
     if ( defined $links and @{$links} ) {
         for my $link ( @{$links} ) {
-            $text .= q{ } . Marpa::show_link_choice( $link, $ii );
+            $text .= q{ } . Marpa::show_link_choice($link);
         }
     }
     return $text;
 } ## end sub Marpa::show_earley_item
 
 sub Marpa::show_earley_set {
-    my ( $earley_set, $ii ) = @_;
+    my ($earley_set) = @_;
     my $text = q{};
     for my $earley_item ( @{$earley_set} ) {
-        $text .= Marpa::show_earley_item( $earley_item, $ii ) . "\n";
+        $text .= Marpa::show_earley_item($earley_item) . "\n";
     }
     return $text;
 } ## end sub Marpa::show_earley_set
 
 sub Marpa::show_earley_set_list {
-    my ( $earley_set_list, $ii ) = @_;
-    my $text             = q{};
-    my $earley_set_count = @{$earley_set_list};
+    my ($earley_set_list) = @_;
+    my $text              = q{};
+    my $earley_set_count  = @{$earley_set_list};
     LIST: for my $ix ( 0 .. $earley_set_count - 1 ) {
         my $set = $earley_set_list->[$ix];
         next LIST if not defined $set;
-        $text .= "Earley Set $ix\n" . Marpa::show_earley_set( $set, $ii );
+        $text .= "Earley Set $ix\n" . Marpa::show_earley_set($set);
     }
     return $text;
 } ## end sub Marpa::show_earley_set_list
 
 sub Marpa::Recognizer::show_earley_sets {
-    my ( $recce, $ii ) = @_;
+    my ($recce)          = @_;
     my $current_set      = $recce->[CURRENT_SET];
     my $furthest_earleme = $recce->[FURTHEST_EARLEME];
     my $earley_set_list  = $recce->[EARLEY_SETS];
@@ -590,7 +573,7 @@ sub Marpa::Recognizer::show_earley_sets {
         ? "Current Earley Set: $current_set; Furthest: $furthest_earleme\n"
         : "At End of Input\n";
 
-    $text .= Marpa::show_earley_set_list( $earley_set_list, $ii );
+    $text .= Marpa::show_earley_set_list($earley_set_list);
     return $text;
 } ## end sub Marpa::Recognizer::show_earley_sets
 
@@ -914,8 +897,8 @@ sub scan_set {
         last EARLEY_ITEM if not defined $earley_item;
 
         my ( $state, $parent ) = @{$earley_item}[
-            Marpa::Internal::Earley_item::STATE,
-            Marpa::Internal::Earley_item::PARENT
+            Marpa::Internal::Earley_Item::STATE,
+            Marpa::Internal::Earley_Item::PARENT
         ];
 
         # I allow ambigious tokenization.
@@ -990,19 +973,19 @@ sub scan_set {
                 if ( not defined $target_item ) {
                     $target_item = [];
                     @{$target_item}[
-                        Marpa::Internal::Earley_item::NAME,
-                        Marpa::Internal::Earley_item::STATE,
-                        Marpa::Internal::Earley_item::PARENT,
-                        Marpa::Internal::Earley_item::LINKS,
-                        Marpa::Internal::Earley_item::TOKENS,
-                        Marpa::Internal::Earley_item::SET
+                        Marpa::Internal::Earley_Item::NAME,
+                        Marpa::Internal::Earley_Item::STATE,
+                        Marpa::Internal::Earley_Item::PARENT,
+                        Marpa::Internal::Earley_Item::LINKS,
+                        Marpa::Internal::Earley_Item::TOKENS,
+                        Marpa::Internal::Earley_Item::SET
                         ]
                         = ( $name, $state, $origin, [], [], $target_ix );
                     $earley_hash->{$name} = $target_item;
                     push @{$target_set}, $target_item;
                 } ## end if ( not defined $target_item )
                 next STATE if $reset;
-                push @{ $target_item->[Marpa::Internal::Earley_item::TOKENS]
+                push @{ $target_item->[Marpa::Internal::Earley_Item::TOKENS]
                     },
                     [ $earley_item, $value ];
             }    # for my $state
@@ -1068,8 +1051,8 @@ sub complete_set {
         last EARLEY_ITEM if not defined $earley_item;
 
         my ( $state, $parent ) = @{$earley_item}[
-            Marpa::Internal::Earley_item::STATE,
-            Marpa::Internal::Earley_item::PARENT
+            Marpa::Internal::Earley_Item::STATE,
+            Marpa::Internal::Earley_Item::PARENT
         ];
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
 
@@ -1086,8 +1069,8 @@ sub complete_set {
             PARENT_ITEM:
             for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
                 my ( $parent_state, $grandparent ) = @{$parent_item}[
-                    Marpa::Internal::Earley_item::STATE,
-                    Marpa::Internal::Earley_item::PARENT
+                    Marpa::Internal::Earley_Item::STATE,
+                    Marpa::Internal::Earley_Item::PARENT
                 ];
                 my $states =
                     $QDFA->[ $parent_state->[Marpa::Internal::QDFA::ID] ]
@@ -1110,12 +1093,12 @@ sub complete_set {
                     if ( not defined $target_item ) {
                         $target_item = [];
                         @{$target_item}[
-                            Marpa::Internal::Earley_item::NAME,
-                            Marpa::Internal::Earley_item::STATE,
-                            Marpa::Internal::Earley_item::PARENT,
-                            Marpa::Internal::Earley_item::LINKS,
-                            Marpa::Internal::Earley_item::TOKENS,
-                            Marpa::Internal::Earley_item::SET,
+                            Marpa::Internal::Earley_Item::NAME,
+                            Marpa::Internal::Earley_Item::STATE,
+                            Marpa::Internal::Earley_Item::PARENT,
+                            Marpa::Internal::Earley_Item::LINKS,
+                            Marpa::Internal::Earley_Item::TOKENS,
+                            Marpa::Internal::Earley_Item::SET,
                             ]
                             = (
                             $name, $transition_state, $origin, [], [],
@@ -1126,7 +1109,7 @@ sub complete_set {
                     }    # unless defined $target_item
                     next TRANSITION_STATE if $reset;
                     push
-                        @{ $target_item->[Marpa::Internal::Earley_item::LINKS]
+                        @{ $target_item->[Marpa::Internal::Earley_Item::LINKS]
                         },
                         [ $parent_item, $earley_item ];
                 }    # TRANSITION_STATE

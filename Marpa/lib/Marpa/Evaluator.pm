@@ -527,7 +527,7 @@ sub Marpa::Evaluator::new {
     my $start_state;
 
     EARLEY_ITEM: for my $item ( @{$earley_set} ) {
-        $start_state = $item->[Marpa::Internal::Earley_item::STATE];
+        $start_state = $item->[Marpa::Internal::Earley_Item::STATE];
         $start_rule  = $start_state->[Marpa::Internal::QDFA::START_RULE];
         next EARLEY_ITEM if not $start_rule;
         $start_item = $item;
@@ -562,7 +562,7 @@ sub Marpa::Evaluator::new {
         my $and_node = [];
 
         my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME] =
-            $start_item->[Marpa::Internal::Earley_item::NAME];
+            $start_item->[Marpa::Internal::Earley_Item::NAME];
         $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
@@ -589,7 +589,7 @@ sub Marpa::Evaluator::new {
     my %or_node_by_name;
     my $start_sapling = [];
     {
-        my $start_name = $start_item->[Marpa::Internal::Earley_item::NAME];
+        my $start_name = $start_item->[Marpa::Internal::Earley_Item::NAME];
         my $start_symbol_id = $start_symbol->[Marpa::Internal::Symbol::ID];
         $start_name .= 'L' . $start_symbol_id;
         $start_sapling->[Marpa::Internal::Or_Sapling::NAME] = $start_name;
@@ -636,7 +636,7 @@ sub Marpa::Evaluator::new {
 
             my $child_lhs_id =
                 $child_lhs_symbol->[Marpa::Internal::Symbol::ID];
-            my $state = $item->[Marpa::Internal::Earley_item::STATE];
+            my $state = $item->[Marpa::Internal::Earley_Item::STATE];
             for my $rule (
                 @{  $state->[Marpa::Internal::QDFA::COMPLETE_RULES]
                         ->[$child_lhs_id];
@@ -660,12 +660,12 @@ sub Marpa::Evaluator::new {
 
         }    # closure or-node
 
-        my $start_earleme = $item->[Marpa::Internal::Earley_item::PARENT];
-        my $end_earleme   = $item->[Marpa::Internal::Earley_item::SET];
+        my $start_earleme = $item->[Marpa::Internal::Earley_Item::PARENT];
+        my $end_earleme   = $item->[Marpa::Internal::Earley_Item::SET];
 
         my @child_and_nodes;
 
-        my $item_name = $item->[Marpa::Internal::Earley_item::NAME];
+        my $item_name = $item->[Marpa::Internal::Earley_Item::NAME];
 
         for my $and_sapling (@and_saplings) {
 
@@ -687,10 +687,10 @@ sub Marpa::Evaluator::new {
             else {
                 @or_bud_list = (
                     (   map { [ $_->[0], undef, \( $_->[1] ) ] }
-                            @{ $item->[Marpa::Internal::Earley_item::TOKENS] }
+                            @{ $item->[Marpa::Internal::Earley_Item::TOKENS] }
                     ),
                     (   map { [ $_->[0], $_->[1] ] }
-                            @{ $item->[Marpa::Internal::Earley_item::LINKS] }
+                            @{ $item->[Marpa::Internal::Earley_Item::LINKS] }
                     )
                 );
             } ## end else [ if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
@@ -704,7 +704,7 @@ sub Marpa::Evaluator::new {
                 if ( $sapling_position > 0 ) {
 
                     $predecessor_name =
-                        $predecessor->[Marpa::Internal::Earley_item::NAME]
+                        $predecessor->[Marpa::Internal::Earley_Item::NAME]
                         . "R$rule_id:$sapling_position";
 
                     if ( not $predecessor_name ~~ %or_node_by_name ) {
@@ -737,7 +737,7 @@ sub Marpa::Evaluator::new {
                         $symbol->[Marpa::Internal::Symbol::ID];
 
                     $cause_name =
-                          $cause->[Marpa::Internal::Earley_item::NAME] . 'L'
+                          $cause->[Marpa::Internal::Earley_Item::NAME] . 'L'
                         . $cause_symbol_id;
 
                     if ( not $cause_name ~~ %or_node_by_name ) {
@@ -1673,20 +1673,6 @@ sub Marpa::Evaluator::new_value {
             my $or_node = $or_nodes->[$or_node_id];
             my $forks   = $or_node->[Marpa::Internal::Or_Node::PARENTS];
 
-            # If we're at the top or node, we are done with this fork.
-            # We finish up the other forks, or if there are none,
-            # we can pick up where we left off,
-            # by deciding more ranked nodes.
-            if ( not scalar @{$forks} ) {
-                scalar @tasks
-                    or @tasks = (
-                    [   Marpa::Internal::Task::DECIDE_NODES,
-                        $rank_being_decided + 1
-                    ]
-                    );
-                next TASK;
-            } ## end if ( not scalar @{$forks} )
-
             my $rejected_node_choice =
                 $rejected_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
@@ -1716,6 +1702,17 @@ sub Marpa::Evaluator::new_value {
                     next TASK;
                 } ## end if ( not defined $sibling_decision or ...
             } ## end for my $sibling_choice ( 0 .. $#{$siblings} )
+
+            # We're at the top or node, and have just rejected it
+            # and all its children.  This won't work, and we
+            # need to backtrack.
+            if ( not scalar @{$forks} ) {
+                print {$trace_fh}
+                    "Iteration: Just rejected the top node -- need to backtrack\n"
+                    or Marpa::exception('print to trace handle failed');
+                @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
+                next TASK;
+            } ## end if ( not scalar @{$forks} )
 
             FORK: for my $parent_node_id ( @{$forks} ) {
                 my $parent_node = $and_nodes->[$parent_node_id];

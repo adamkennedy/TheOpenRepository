@@ -133,7 +133,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::QDFA
 
-    ID NAME TAG
+    ID NAME
     =LAST_BASIC_DATA_FIELD
 
     COMPLETE_RULES START_RULE
@@ -1735,11 +1735,9 @@ sub Marpa::Grammar::show_NFA {
 } ## end sub Marpa::Grammar::show_NFA
 
 sub Marpa::brief_QDFA_state {
-    my ( $state, $tags ) = @_;
-    return 'St' . $state->[Marpa::Internal::QDFA::TAG]
-        if defined $tags;
+    my ($state) = @_;
     return 'S' . $state->[Marpa::Internal::QDFA::ID];
-} ## end sub Marpa::brief_QDFA_state
+}
 
 sub Marpa::show_QDFA_state {
     my ( $state, $tags ) = @_;
@@ -1783,23 +1781,6 @@ sub Marpa::show_QDFA_state {
     return $text;
 } ## end sub Marpa::show_QDFA_state
 
-sub tag_QDFA {
-    my $grammar = shift;
-    my $QDFA    = $grammar->[Marpa::Internal::Grammar::QDFA];
-    return if defined $QDFA->[0]->[Marpa::Internal::QDFA::TAG];
-    my $tag = 0;
-    for my $state (
-        sort {
-            $a->[Marpa::Internal::QDFA::NAME]
-                cmp $b->[Marpa::Internal::QDFA::NAME]
-        } @{$QDFA}
-        )
-    {
-        $state->[Marpa::Internal::QDFA::TAG] = $tag++;
-    } ## end for my $state ( sort { $a->[Marpa::Internal::QDFA::NAME...
-    return;
-} ## end sub tag_QDFA
-
 sub Marpa::Grammar::show_QDFA {
     my ( $grammar, $tags ) = @_;
 
@@ -1816,33 +1797,6 @@ sub Marpa::Grammar::show_QDFA {
     }
     return $text;
 } ## end sub Marpa::Grammar::show_QDFA
-
-sub Marpa::Grammar::show_ii_QDFA {
-    my ($grammar) = @_;
-    my $text      = q{};
-    my $QDFA      = $grammar->[Marpa::Internal::Grammar::QDFA];
-    my $tags;
-    tag_QDFA($grammar);
-
-    for my $state ( @{$QDFA} ) {
-        $tags->[ $state->[Marpa::Internal::QDFA::ID] ] =
-            $state->[Marpa::Internal::QDFA::TAG];
-    }
-    my $start_states = $grammar->[Marpa::Internal::Grammar::START_STATES];
-    $text .= 'Start States: ';
-    $text .= join '; ',
-        sort map { Marpa::brief_QDFA_state( $_, $tags ) } @{$start_states};
-    $text .= "\n";
-    for my $state (
-        map  { $_->[0] }
-        sort { $a->[1] <=> $b->[1] }
-        map  { [ $_, $_->[Marpa::Internal::QDFA::TAG] ] } @{$QDFA}
-        )
-    {
-        $text .= Marpa::show_QDFA_state( $state, $tags );
-    } ## end for my $state ( map { $_->[0] } sort { $a->[1] <=> $b...
-    return $text;
-} ## end sub Marpa::Grammar::show_ii_QDFA
 
 sub Marpa::Grammar::get_symbol {
     my $grammar     = shift;
@@ -3381,7 +3335,7 @@ sub assign_QDFA_state_set {
 
         my $transition = $NFA_state->[Marpa::Internal::NFA::TRANSITION];
 
-        # if we are at a nulling symbol, this NFA states does NOT go into the
+        # if we are at a nulling symbol, this NFA state does NOT go into the
         # result, but all transitions go into the work list.  There should be
         # empty transition.
         if ( $NFA_state->[Marpa::Internal::NFA::AT_NULLING] ) {
@@ -3521,19 +3475,19 @@ sub create_QDFA {
         {
             my $transition = $NFA_state->[Marpa::Internal::NFA::TRANSITION];
             NFA_TRANSITION:
-            while ( my ( $symbol, $to_states ) = each %{$transition} ) {
+            for my $symbol ( sort keys %{$transition} ) {
+                my $to_states = $transition->{$symbol};
                 next NFA_TRANSITION if $symbol eq q{};
                 push @{ $NFA_to_states_by_symbol->{$symbol} }, @{$to_states};
             }
         }    # $NFA_state
 
         # for each transition symbol, create the transition to the QDFA kernel state
-        while ( my ( $symbol, $to_states ) =
-            each %{$NFA_to_states_by_symbol} )
-        {
+        for my $symbol ( sort keys %{$NFA_to_states_by_symbol} ) {
+            my $to_states = $NFA_to_states_by_symbol->{$symbol};
             $QDFA_state->[Marpa::Internal::QDFA::TRANSITION]->{$symbol} =
                 assign_QDFA_state_set( $grammar, $to_states );
-        } ## end while ( my ( $symbol, $to_states ) = each %{...
+        }
     } ## end while ( $next_state_id < scalar @{$QDFA} )
 
     return;
