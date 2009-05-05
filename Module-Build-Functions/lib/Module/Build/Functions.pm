@@ -28,10 +28,10 @@ use vars     qw( $VERSION @EXPORT $AUTOLOAD );
   get_builder bundler
 );
 
-$VERSION = '0.001_002';
+$VERSION = '0.001_003';
 
 # Module implementation here
-my %args = { };
+my %args;
 my $object = undef;
 my $class = undef;
 my $mb_required = 0;
@@ -375,8 +375,32 @@ sub add_to_cleanup {
 	return;
 }
 
-sub auto_features { # 0.26
-	croak 'auto_features is not supported yet';
+sub _af_hashref {
+	my $feature = shift;
+	unless (exists $args{auto_features}) {
+		$args{auto_features} = {};
+	}
+	unless (exists $args{auto_features}{$feature}) {
+		$args{auto_features}{$feature} = {};
+		$args{auto_features}{$feature}{requires} = {};
+	}
+	return;
+}
+
+sub auto_features {
+	my $feature = shift;
+	my $type = shift;
+	my $param1 = shift;
+	my $param2 = shift;
+	_af_hashref($type);
+	if ('description' eq $type) {
+		$args{auto_features}{$feature}{description} = $param1;
+	} elsif ('requires' eq $type) {
+		$args{auto_features}{$feature}{requires}{$param1} = $param2;
+	} else {
+		croak "Invalid type $type for auto_features";
+	}
+	_mb_required(0.26);
 	return;
 }
 
@@ -394,10 +418,10 @@ sub autosplit {
 	return;
 }
 
-sub build_class { # 0.28
+sub build_class {
 	my $class = shift;	
 	$args{build_class} = $class;
-	_mb_required(0.04);
+	_mb_required(0.28);
 	return;
 }
 
@@ -504,18 +528,73 @@ sub dynamic_config {
 	return;
 }
 
-sub extra_compiler_flags { # 0.19
-	croak 'extra_compiler_flags is not supported yet';
+# Alias for extra_compiler_flags.
+sub extra_compiler_flag {
+	extra_compiler_flags(@_);
 	return;
 }
 
-sub extra_linker_flags { # 0.19
-	croak 'extra_linker_flags is not supported yet';
+sub extra_compiler_flags {
+	my $flag = shift;
+	if ('ARRAY' eq ref $flag) {
+		foreach my $f (@{$flag}) {
+			extra_compiler_flags($f);
+		}
+	}
+		
+	if ($flag =~ m{\s}) {
+		my @flags = split m{\s+}, $flag;
+		foreach my $f (@flags) {
+			extra_compiler_flags($f);
+		}
+	} else {
+		_create_arrayref('extra_compiler_flags');
+		push @{$args{'extra_compiler_flags'}}, $flag;
+	}
+	_mb_required(0.19);
 	return;
 }
 
-sub get_options { # 0.26
-	croak 'get_options is not supported yet';
+# Alias for extra_linker_flags.
+sub extra_linker_flag {
+	extra_linker_flags(@_);
+	return;
+}
+
+sub extra_linker_flags {
+	my $flag = shift;
+	if ('ARRAY' eq ref $flag) {
+		foreach my $f (@{$flag}) {
+			extra_linker_flags($f);
+		}
+	}
+		
+	if ($flag =~ m{\s}) {
+		my @flags = split m{\s+}, $flag;
+		foreach my $f (@flags) {
+			extra_linker_flags($f);
+		}
+	} else {
+		_create_arrayref('extra_linker_flags');
+		push @{$args{'extra_linker_flags'}}, $flag;
+	}
+	_mb_required(0.19);
+	return;
+}
+
+sub get_options {
+	my $option = shift;
+	my $value = shift;
+	if ('HASH' eq ref $option) {
+		my ($k, $v);
+		while (($k, $v) = each %{$option}) {
+			get_options($k, $v);
+		}
+	}
+	
+	_create_hashref('get_options');
+	$args{get_options}{$option} = $value;
+	_mb_required(0.26);
 	return;
 }
 
@@ -857,6 +936,22 @@ sub get_builder {
 	return $object;
 }
 
+sub functions_bundle {
+	my $code = <<'END_OF_CODE';
+sub ACTION_distmeta {
+	my $self = shift;
+	require Module::Build::Functions;
+	Module::Build::Functions::bundler();
+    $self->SUPER::ACTION_distmeta();
+}
+END_OF_CODE
+
+	subclass(
+		class => 'ModuleBuildFunctions::SelfBundler',
+		code => $code
+	);
+}
+
 1; # Magic true value required at end of module
 
 __END__
@@ -877,6 +972,7 @@ sub bundler {
 			$text =~ s/package [ ] Module/package inc::Module/msx;
 			$text =~ s/use [ ] AutoLoader;//msx;
 			$text =~ s/my [ ] \$autoload [ ] = [ ] 1/my \$autoload = 0/msx;
+			$text =~ s/__END__.*/\n/msx;			
 			$fulldir = File::Spec->catdir(qw(inc Module Build));
 			$outfile = File::Spec->catfile($fulldir, 'Functions.pm');
 			mkpath($fulldir, 0, 0644);

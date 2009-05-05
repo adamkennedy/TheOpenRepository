@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Test that modules pass perlcritic and perltidy.
+# Test that our MANIFEST describes the distribution
 
 use strict;
 
@@ -11,8 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Perl::Critic::More',
-	'Test::Perl::Critic',
+	'Test::DistManifest 1.001003',
 );
 
 # Don't run tests for installs
@@ -23,7 +22,7 @@ unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
-	eval "require $MODULE"; # Has to be require because we pass options to import.
+	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
 		$ENV{RELEASE_TESTING}
 		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
@@ -31,8 +30,4 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-use File::Spec::Functions qw(catfile);
-
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
-Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
-all_critic_ok();
+manifest_ok();

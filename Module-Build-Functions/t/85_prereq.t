@@ -1,8 +1,6 @@
-#!perl -T
-
 #!/usr/bin/perl
 
-# Test that the POD documentation is comprehensive
+# Test that all our prerequisites are defined in the Makefile.PL.
 
 use strict;
 
@@ -13,8 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Pod::Coverage 0.19',
-	'Test::Pod::Coverage 1.08',
+	'Test::Prereq 1.036',
 );
 
 # Don't run tests for installs
@@ -33,4 +30,21 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_pod_coverage_ok();
+diag('Takes a few minutes...');
+my @modules_skip = (
+# Needed only for AUTHOR_TEST tests
+       'Perl::Critic::More',
+       'Test::HasVersion',
+       'Test::MinimumVersion',
+       'Test::Perl::Critic',
+       'Test::Prereq',
+	   'Test::Pod::Coverage',
+);
+
+prereq_ok(5.006, 'Check prerequisites', \@modules_skip);
+
+# use File::Copy qw();
+# use File::Remove qw();
+
+# File::Copy::move( 't\inc\Module\Install.pm', 'inc\Module\Install.pm' );
+# File::Remove::remove( \1, 't\inc' );
