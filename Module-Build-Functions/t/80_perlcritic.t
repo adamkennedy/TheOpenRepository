@@ -34,5 +34,5 @@ foreach my $MODULE ( @MODULES ) {
 use File::Spec::Functions qw(catfile);
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
-Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
+Test::Perl::Critic->import( -profile => $rcfile, -severity => 4 );
 all_critic_ok();
