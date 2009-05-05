@@ -4,14 +4,14 @@ package PPI::Tester;
 
 use 5.006;
 use strict;
-use PPI            ();
-use PPI::Dumper    ();
-use Devel::Dumpvar ();
-use Wx;
+use PPI            1.000 ();
+use PPI::Dumper    1.000 ();
+use Devel::Dumpvar  0.04 ();
+use Wx              0.85 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 sub main {
@@ -33,11 +33,11 @@ sub new {
 
 
 #####################################################################
-package PPI::Tester::App;
-
 # The main application class
 
-use base 'Wx::App';
+package PPI::Tester::App;
+
+our @ISA = 'Wx::App';
 
 use constant APPLICATION_NAME => "PPI Tester $PPI::Tester::VERSION - PPI $PPI::VERSION";
 
@@ -46,23 +46,23 @@ sub OnInit {
 	$self->SetAppName(APPLICATION_NAME);
 
 	# Create the one and only frame
-	my $Frame = PPI::Tester::Window->new(
+	my $frame = PPI::Tester::Window->new(
 		undef,            # Parent Window
 		-1,               # Id
 		APPLICATION_NAME, # Title
 		[-1, -1],         # Default size
 		[-1, -1],         # Default position
-		);
-	$Frame->CentreOnScreen;
+	);
+	$frame->CentreOnScreen;
 
 	# Set it as the top window and show it
-	$self->SetTopWindow($Frame);
-	$Frame->Show(1);
+	$self->SetTopWindow($frame);
+	$frame->Show(1);
 
 	# Do an initial parse
-	$Frame->debug;
+	$frame->debug;
 
-	1;
+	return 1;
 }
 
 
@@ -70,11 +70,12 @@ sub OnInit {
 
 
 #####################################################################
-package PPI::Tester::Window;
-
 # The main window for the application
 
-use base 'Wx::Frame';
+package PPI::Tester::Window;
+
+our @ISA = 'Wx::Frame';
+
 use Wx        qw{ :everything };
 use Wx        qw{ wxHIDE_READONLY };
 use Wx::Event qw{ EVT_TOOL EVT_TEXT EVT_CHECKBOX };
@@ -114,7 +115,7 @@ sub new {
 		-1,                # Default ID
 		wxDefaultPosition, # Normal position
 		wxDefaultSize,     # Automatic size
-		);
+	);
 	my $Left  = Wx::Panel->new( $Splitter, -1 );
 	my $Right = Wx::Panel->new( $Splitter, -1 );
 	$Splitter->SplitVertically( $Left, $Right, 0 );
@@ -129,11 +130,11 @@ sub new {
 			'Ignore Whitespace', # Label
 			wxDefaultPosition,   # Automatic position
 			wxDefaultSize,       # Default size
-			),
+		),
 		0,        # Expands vertically
 		wxALL,    # Border on all sides
 		5,        # Small border area
-		);
+	);
 	$self->{Option}->{StripWhitespace}->SetValue(1);
 
 	# Create the resizer code area on the left side
@@ -146,10 +147,10 @@ sub new {
 			wxDefaultSize,        # Minimum size
 			wxTE_PROCESS_TAB      # We keep tab presses (not working?)
 			| wxTE_MULTILINE,     # Textarea
-			),
+		),
 		1,        # Expands vertically
 		wxEXPAND, # Expands horizontally
-		);
+	);
 
 	# Create the resizing output textbox for the right side
 	$Right->GetSizer->Add(
@@ -162,10 +163,10 @@ sub new {
 			wxTE_READONLY      # Output you can't change
 			| wxTE_MULTILINE   # Textarea
 			| wxHSCROLL,
-			),
+		),
 		1,        # Expands horizontally
 		wxEXPAND, # Expands vertically
-		);
+	);
 	$self->{Output}->Enable(1);
 
 	# Set the initial focus
@@ -185,10 +186,9 @@ sub new {
 
 # Clear the two test areas
 sub clear {
-	my $self = shift;
-	$self->{Code}->Clear;
-	$self->{Output}->Clear;
-	1;
+	$_[0]->{Code}->Clear;
+	$_[0]->{Output}->Clear;
+	return 1;
 }
 
 # Load a file
@@ -208,7 +208,7 @@ sub load {
 
 		# The "Open as Read-Only" means nothing to us (I think)
 		wxFD_OPEN, # | wxFD_HIDE_READONLY
-		);
+	);
 
 	if ( $Dialog->ShowModal == wxID_CANCEL ) {
 		# Do nothing if they cancel
@@ -233,8 +233,10 @@ sub load {
 # Do a processing run
 sub debug {
 	my $self   = shift;
-	my $source = $self->{Code}->GetValue
-		or return $self->_error("Nothing to parse");
+	my $source = $self->{Code}->GetValue;
+	unless ( $source ) {
+		return $self->_error("Nothing to parse");
+	}
 
 	# Parse and dump the content
 	my $Document = eval { PPI::Document->new( \$source ) };
@@ -261,10 +263,14 @@ sub debug {
 	}
 
 	# Dump the Document to the dump screen
-	my $Dumper = PPI::Dumper->new( $Document, indent => 2 )
-		or return $self->_error("Failed to created PPI::Document dumper");
-	my $output = $Dumper->string
-		or return $self->_error("Dumper failed to generate output");
+	my $Dumper = PPI::Dumper->new( $Document, indent => 2 );
+	unless ( $Dumper ) {
+		return $self->_error("Failed to created PPI::Document dumper");
+	}
+	my $output = $Dumper->string;
+	unless ( $output ) {
+		return $self->_error("Dumper failed to generate output");
+	}
 	$self->{Output}->SetValue( $output );
 
 	# Keep the focus on the code
@@ -277,7 +283,7 @@ sub _error {
 	my $self    = shift;
 	my $message = join "\n", @_;
 	$self->{Output}->SetValue( $message );
-	1;
+	return 1;
 }
 
 1;
@@ -330,19 +336,13 @@ For general comments, contact the maintainer.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-=head1 ACKNOWLEDGMENTS
-
-Load function originally by 'DH' (email suppressed)
-
 =head1 SEE ALSO
 
 L<PPI::Manual>, L<http://sf.net/parseperl>
 
 =head1 COPYRIGHT
 
-Copyright 2004 - 2008 Adam Kennedy.
-
-Some parts copyright 2004 'DH'.
+Copyright 2004 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
