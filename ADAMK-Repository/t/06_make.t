@@ -40,6 +40,6 @@ while ( @versions ) {
 	my $expected = shift @versions;
 	my $distribution = $repository->distribution($name);
 	isa_ok( $distribution, 'ADAMK::Distribution' );
-	my $version = $distribution->mi;
+	my $version = $distribution->module_install;
 	is( $version, $expected, "Version for $name matches expected value" );
 }

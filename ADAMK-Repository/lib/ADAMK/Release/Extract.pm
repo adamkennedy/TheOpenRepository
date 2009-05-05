@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Carp              ();
+use CPAN::Version     ();
 use ExtUtils::MM_Unix ();
 use ADAMK::Repository ();
 
@@ -46,25 +47,6 @@ sub repository {
 
 sub trace {
 	shift->repository->trace(@_);
-}
-
-
-
-
-
-#####################################################################
-# Module::Install Enhancement
-
-# Find the version of Module::Install bundled in the tarball
-sub inc_mi {
-	my $self = shift;
-	my $file = $self->file('inc/Module/Install.pm');
-	unless ( -f $file ) {
-		return undef;
-	}
-
-	# Find the version
-	return ExtUtils::MM_Unix->parse_version($file);
 }
 
 1;

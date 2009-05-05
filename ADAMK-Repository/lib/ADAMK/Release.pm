@@ -13,9 +13,7 @@ use ADAMK::Repository ();
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.11';
-	@ISA     = qw{
-		ADAMK::Role::SVN
-	};
+	@ISA     = 'ADAMK::Role::SVN';
 }
 
 use Class::XSAccessor
@@ -103,7 +101,7 @@ sub extract {
 			archive => $self->path,
 		);
 		# $self->trace("Extracting " . $self->file . "...\n");
-		my $ok   = $ae->extract( to => $temp );
+		my $ok = $ae->extract( to => $temp );
 		Carp::croak(
 			"Failed to extract " . $self->path
 			. ": " . $ae->error

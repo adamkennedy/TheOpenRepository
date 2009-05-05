@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Getopt::Long      ();
+use CPAN::Version     ();
 use Class::Inspector  ();
 use ADAMK::Repository ();
 
@@ -201,29 +202,64 @@ sub report_changed_versions {
 sub report_module_install_versions {
 	my $self = shift;
 	my $repo = $self->repository;
+
+	# Get options
+	my $SORT = '';
+	my $BAD  = '';
+	Getopt::Long::GetOptions(
+		'sort=i' => \$SORT,
+		'bad'    => \$BAD,
+	);
+
+	# Generate the table
 	my @rows = ();
 	foreach my $dist ( $repo->distributions_released ) {
-		my $name   = $dist->name;
-		my $svn    = $dist->mi;
-		my $latest = $dist->latest;
+		my $name    = $dist->name;
+		my $extract = eval {
+			local $SIG{__WARN__} = sub { };
+			$dist->latest->extract
+		};
 
-		# Add the final row to the table
+		# Find the M:I versions
+		my $svn = $dist->module_install;
+		my $inc = $extract ? $extract->inc_module_install : 'ERROR';
 		$svn = '~' unless defined $svn;
-		push @rows, [ $name, $svn ];
+		$inc = '~' unless defined $inc;
+
+		# Skip anything that is clearly not M:I
+		if ( $svn eq '~' and $inc eq '~' ) {
+			next;
+		}
+
+		# Filter to just the bad ones if requested
+		my $bad_svn = $dist->bad_module_install;
+		my $bad_inc = $extract ? $extract->bad_inc_module_install : 0;
+		if ( $BAD and ! $bad_svn and ! $bad_inc ) {
+			next;
+		}
+
+		# Add the row to the table
+		push @rows, [ $name, $svn, $inc ];
+	}
+
+	# Sort the table
+	if ( $SORT == 1 ) {
+		@rows = sort { $a->[0] cmp $b->[0] } @rows;
+	} elsif ( $SORT > 1 ) {
+		$SORT--;
+		@rows = sort {
+			CPAN::Version->vcmp( $b->[$SORT], $a->[$SORT] )
+			or
+			$a->[0] cmp $b->[0]
+		} @rows;
 	}
 
 	# Generate the table
-	my $version_order = !! $_[0];
 	print ADAMK::Util::table(
-		[ 'Name', 'Version' ],
-		sort { $version_order
-			? $b->[1] <=> $a->[1]
-			: $a->[0] cmp $b->[0]
-		}
-		@rows,
+		[ 'Name', 'Makefile.PL', 'Tarball' ],
+		@rows
 	);
 }
-
 
 
 
@@ -251,7 +287,7 @@ sub update_current_release_datetime {
 
 	# Commit if we are allowed
 	$checkout->svn_commit(
-		-m => "[bot] Set version $current release date to $date",
+		'-m' => "[bot] Set version $current release date to $date",
 		'Changes',
 	);
 }
@@ -277,7 +313,7 @@ sub update_current_perl_versions {
 
 	# Commit if we are allowed
 	$checkout->svn_commit(
-		-m => "[bot] Changed \$VERSION strings from $released to $current",
+		'-m' => "[bot] Changed \$VERSION strings from $released to $current",
 	);
 }
 

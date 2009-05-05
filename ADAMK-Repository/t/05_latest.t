@@ -50,7 +50,7 @@ SCOPE: {
 	ok( -d $extract->path, '->extract ok' );
 
 	# Find the version of Module::Install used for this release
-	is( $extract->inc_mi, undef, '->inc_mi ok' );
+	is( $extract->inc_module_install, undef, '->inc_module_install ok' );
 }
 
 # Test the latest stable release (it should be different)
@@ -70,7 +70,7 @@ SCOPE: {
 	ok( -d $extract->path, '->extract ok' );
 
 	# Find the version of Module::Install used for this release
-	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+	is( $extract->inc_module_install, undef, '->inc_module_install ok' );	
 }
 
 # Test the oldest release
@@ -90,7 +90,7 @@ SCOPE: {
 	ok( -d $extract->path, '->extract ok' );
 
 	# Find the version of Module::Install used for this release
-	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+	is( $extract->inc_module_install, undef, '->inc_module_install ok' );	
 }
 
 # Test the oldest stable release (it should be different)
@@ -110,7 +110,7 @@ SCOPE: {
 	ok( -d $extract->path, '->extract ok' );
 
 	# Find the version of Module::Install used for this release
-	is( $extract->inc_mi, undef, '->inc_mi ok' );	
+	is( $extract->inc_module_install, undef, '->inc_module_install ok' );	
 }
 
 # Test something that should have M:I in use
@@ -120,7 +120,7 @@ SCOPE: {
 	is( $release->version, '0.01', '->version ok' );
 	my $extract = $release->extract;
 	isa_ok( $extract, 'ADAMK::Release::Extract' );
-	is( $extract->inc_mi, '0.77', '->inc_mi is 0.85 as expected' );
+	is( $extract->inc_module_install, '0.77', '->inc_module_install is 0.85 as expected' );
 }
 
 # Run the Araxis tarball comparison
