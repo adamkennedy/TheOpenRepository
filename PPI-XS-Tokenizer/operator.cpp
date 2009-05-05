@@ -118,7 +118,7 @@ CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	t->_new_token( Token_HereDoc_Body );
 	ExtendedToken *exToken = (ExtendedToken *)t->c_token;
 	for ( ulong ix = start_key; ix < stop_key; ix++ ) {
-		exToken->text[ exToken->length++ ] = token->text[ ix ];
+		exToken->text[ exToken->length++ ] = t->c_line[ ix ];
 	}
 	exToken->sections[0].position = 0;
 	exToken->sections[0].size = exToken->length;

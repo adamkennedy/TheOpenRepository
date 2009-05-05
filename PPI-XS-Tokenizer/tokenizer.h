@@ -44,14 +44,14 @@ enum TokenTypeNames {
 	Token_Cast, // done
 	Token_Prototype, // done
 	Token_ArrayIndex, // done
-	Token_HereDoc, // need testing
-	Token_HereDoc_Body, // need testing
+	Token_HereDoc, // done
+	Token_HereDoc_Body, // done
 	Token_Attribute, // done
 	Token_Attribute_Parameterized, // done
 	Token_Label, // done
-	Token_Separator, // need testing
-	Token_End, // need testing
-	Token_Data, // need testing
+	Token_Separator, // done
+	Token_End, // done
+	Token_Data, // done
 	Token_Pod, // done
 	Token_BOM, // done
 	Token_Foreign_Block, // for Perl6 code, unimplemented
@@ -523,15 +523,7 @@ enum OperatorOperandContext {
 
 class Tokenizer {
 public:
-	Token *c_token;
-	char *c_line;
-	ulong line_length;
-	ulong line_pos;
-	char local_newline;
-	TokenTypeNames zone;
-	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];
-	Tokenizer();
-	~Tokenizer();
+	// --------- Start Of Public Interface -------- 
 	/* _finalize_token - close the current token
 	 * If exists token, close it
 	 * if there is an empty token - return it to the free tokens poll
@@ -541,14 +533,6 @@ public:
 	 * Returns: the type of the current zone. (usually whitespace)
 	 */
 	TokenTypeNames _finalize_token();
-	/* _new_token - create a new token
-	 * If already exists a token - call _finalize_token on it
-	 * Will reuse an empty token
-	 * creates a new token with the requested type
-	 */
-	void _new_token(TokenTypeNames new_type);
-	/* Change the current token's type */
-	void changeTokenType(TokenTypeNames new_type);
 	/* After a line (or more) was tokenize - pop the resulted tokens
 	 * - Will not pop the token under work
 	 * - After poping a token, call freeToken on it to return it to the free tokens poll
@@ -557,6 +541,29 @@ public:
 	/* freeToken - return a token to the free tokens poll
 	 */
 	void freeToken(Token *t);
+	/* tokenizeLine - Tokenize one line
+	 */
+	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
+	void Reset();
+	// --------- End Of Public Interface -------- 
+public:
+	Token *c_token;
+	char *c_line;
+	ulong line_length;
+	ulong line_pos;
+	char local_newline;
+	TokenTypeNames zone;
+	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];
+	Tokenizer();
+	~Tokenizer();
+	/* _new_token - create a new token
+	 * If already exists a token - call _finalize_token on it
+	 * Will reuse an empty token
+	 * creates a new token with the requested type
+	 */
+	void _new_token(TokenTypeNames new_type);
+	/* Change the current token's type */
+	void changeTokenType(TokenTypeNames new_type);
 	/* _last_significant_token - return the n-th last significant token
 	 * must be: 1 <= n <= NUM_SIGNIFICANT_KEPT
 	 * May return NULL is no such token exists.
@@ -567,9 +574,6 @@ public:
 	 * Try to determine operator/operand context, is possible. 
 	 */
 	OperatorOperandContext _opcontext();
-	/* tokenizeLine - Tokenize one line
-	 */
-	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
 	/* tokenizeLine - Tokenize part of one line
 	 */
 	LineTokenizeResults _tokenize_the_rest_of_the_line();
@@ -624,6 +628,8 @@ private:
 	SeparatorToken m_SeparatorToken;
 	EndToken m_EndToken;
 	DataToken m_DataToken;
+	HereDocToken m_HereDocToken;
+	HereDocBodyToken m_HereDocBodyToken;
 
 	void keep_significant_token(Token *t);
 

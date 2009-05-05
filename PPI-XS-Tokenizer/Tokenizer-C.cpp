@@ -353,9 +353,60 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, "-hello", Token_Word);
 
 	Tokenize(" 1.2.3 \n");
+	CheckToken(&tk, " \n ", Token_WhiteSpace);
+	CheckToken(&tk, "1.2.3", Token_Number_Version);
 
+	Tokenize("print <<XYZ;\n");
+	Tokenize("asds vghtjty\n");
+	Tokenize("poiuyt treewq\n");
+	Tokenize("XYZ\n");
+	CheckToken(&tk, " \n", Token_WhiteSpace);
+	CheckToken(&tk, "print", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "<<XYZ", Token_HereDoc);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
+		"XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", NULL, Token_HereDoc_Body );
+
+	Tokenize("print << 'XYZ';\n");
+	Tokenize("asds vghtjty\n");
+	Tokenize("poiuyt treewq\n");
+	Tokenize("XYZ\n");
+	CheckToken(&tk, "print", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, "<< 'XYZ'", Token_HereDoc);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
+		"XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", NULL, Token_HereDoc_Body );
+
+	Tokenize("__END__\n");
+	Tokenize("FDGDF hfghhgfhg gfh\n");
+	Tokenize("=start\n");
+	Tokenize("aaad dkfjs dfsd\n");
+	Tokenize("=cut\n");
+	Tokenize("hjkil jkhjk hjh\n");
+	CheckToken(&tk, "__END__", Token_Separator);
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n", Token_End);
+	CheckToken(&tk, "=start\naaad dkfjs dfsd\n=cut\n", Token_Pod);
 	tk._finalize_token();
-//	CheckToken(&tk, " \n", Token_WhiteSpace);
+	CheckToken(&tk, "hjkil jkhjk hjh\n", Token_End);
+
+	tk.Reset();
+	Tokenize("$symbol;\n");
+	Tokenize("__DATA__\n");
+	Tokenize("FDGDF hfghhgfhg gfh\n");
+	Tokenize("=start\n");
+	tk._finalize_token();
+	CheckToken(&tk, "$symbol", Token_Symbol);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "__DATA__", Token_Separator);
+	CheckToken(&tk, "\n", Token_WhiteSpace);
+	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n=start\n", Token_Data);
+
 	Token *tkn;
 	while (( tkn = tk.pop_one_token() ) != NULL ) {
 		printf("Token: |%s| (%d, %d)\n", tkn->text, tkn->length, tkn->type->type);

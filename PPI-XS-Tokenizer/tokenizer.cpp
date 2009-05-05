@@ -294,6 +294,9 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_Separator] = &m_SeparatorToken;
 	TokenTypeNames_pool[Token_End] = &m_EndToken;
 	TokenTypeNames_pool[Token_Data] = &m_DataToken;
+	TokenTypeNames_pool[Token_HereDoc] = &m_HereDocToken;
+	TokenTypeNames_pool[Token_HereDoc_Body] = &m_HereDocBodyToken;
+	
 
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
 		m_LastSignificant[ix] = NULL;
@@ -302,10 +305,29 @@ Tokenizer::Tokenizer()
 }
 
 Tokenizer::~Tokenizer() {
+	Reset();
+}
+
+void Tokenizer::Reset() {
 	Token *t;
+	if ( c_token != NULL )
+		_finalize_token();
+
 	while ( ( t = pop_one_token() ) != NULL ) {
 		freeToken( t );
 	}
+	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
+		if (m_LastSignificant[ix] != NULL) {
+			freeToken(m_LastSignificant[ix]);
+			m_LastSignificant[ix] = NULL;
+		}
+	}
+	c_token = NULL;
+	c_line = NULL;
+	line_pos = 0;
+	line_length = 0;
+	zone = Token_WhiteSpace;
+	m_nLastSignificantPos = 0;
 }
 
 Token *Tokenizer::_last_significant_token(unsigned int n) {
@@ -370,7 +392,7 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
 	c_line = line;
 	this->line_length = line_length;
 	if (c_token == NULL)
-		_new_token(zone);
+		_new_token(Token_BOM);
 	return _tokenize_the_rest_of_the_line();
 
 }
