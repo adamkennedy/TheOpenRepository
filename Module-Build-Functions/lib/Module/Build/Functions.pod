@@ -1,0 +1,169 @@
+=head1 NAME
+
+Module::Build::Functions - Module::Install style syntax for Module::Build
+
+=head1 VERSION
+
+This document describes Module::Build::Functions version 0.001_002.
+
+=head1 SYNOPSIS
+
+	# Our own Build.PL.
+	use strict;
+	use warnings;
+	use inc::Module::Build::Functions;
+	
+	module_name         'Module::Build::Functions';
+	license             'perl';
+	dist_author         'Curtis Jewell <csjewell@cpan.org>';
+	dist_version_from   'lib/Module/Build/Functions.pm';
+	autosplit           'lib/Module/Build/Functions.pm';
+	requires 		    'File::Slurp';
+	test_requires       'Test::More';
+	add_to_cleanup      'Module-Build-Functions-*';
+	create_makefile_pl  'passthrough';
+	create_build_script;
+
+	# To bundle Module::Build::Functions as above.
+	perl -MModule::Build::Functions -e bundler
+
+=head1 DESCRIPTION
+
+This module gives a Module::Install-like syntax to Module::Build, using 
+modules (other than Module::Build itself) that are in the core in 5.006.
+
+Most commands from Module::Install are supported, and most parameters to
+Module::Build's C<new> routine are supported as commands. This includes 
+the share directory implementation that L<Module::Install::Share> and 
+L<File::ShareDir> implements.
+
+This means that using this module instead of Module::Install can be as easy 
+as replacing the C<use inc::Module::Install> line by 
+C<use inc::Module::Build::Functions>, and renaming the resulting file to 
+Build.PL.
+
+Unfortunately, Module::Install extensions are not supported, nor is the 
+L<Module::Install::DSL> syntax.
+
+You may wish to look at the code for documentation at this point. This 
+will be corrected, I promise.
+
+=for author to fill in:
+    Write a full description of the module and its features here.
+    Use subsections (=head2, =head3) as appropriate.
+
+=head1 INTERFACE 
+
+All functions are exported by default.
+
+=for author to fill in:
+    Write a separate section listing the public components of the modules
+    interface. These normally consist of either subroutines that may be
+    exported, or methods that may be called on objects belonging to the
+    classes provided by the module.
+
+=head1 DIAGNOSTICS
+
+=for author to fill in:
+    List every single error and warning message that the module can
+    generate (even the ones that will "never happen"), with a full
+    explanation of each problem, one or more likely causes, and any
+    suggested remedies.
+
+=over
+
+=item C<< %s cannot be found >>
+
+There was probably a misspelling in the command name in the Build.PL.
+
+=item C<< Invalid install type >>
+=item C<< %s is not supported yet >>
+=item C<< auto_install is deprecated >>
+=item C<< Illegal or invalid share dir type '%s' >>
+=item C<< Illegal or missing directory install_share param >>
+=item C<< Missing or invalid module name '%s' >>
+=item C<< Too many parameters to install_share  >>
+=item C<< cannot add directory %s to a list of script_files >>
+=item C<< attempt to overwrite string script_files with %s failed  >>
+=item C<< cannot add a glob to a list of test_files  >>
+=item C<< attempt to overwrite string test_files failed  >>
+
+Will be documented soon.
+
+=back
+
+
+=head1 CONFIGURATION AND ENVIRONMENT
+  
+Module::Build::Functions requires no configuration files or environment 
+variables of its own. See Module::Build for its configuration variables
+or environment variables.
+
+=head1 DEPENDENCIES
+
+File::Slurp and Module::Build on the author's system.
+
+On the system of the person installing the module, the same version of Perl 
+that is required for the version of Module::Build installed on the system.
+
+
+=head1 INCOMPATIBILITIES
+
+=for author to fill in:
+    A list of any modules that this module cannot be used in conjunction
+    with. This may be due to name conflicts in the interface, or
+    competition for system or program resources, or due to internal
+    limitations of Perl (for example, many modules that use source code
+    filters are mutually incompatible).
+
+None reported.
+
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to the author at the e-mail
+address below for the moment.
+
+=for author to correct:
+
+Please report any bugs or feature requests to
+C<bug-Module-Build-Functions@rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org>.
+
+=over
+
+=head1 AUTHOR
+
+Curtis Jewell  C<< <csjewell@cpan.org> >>
+
+=head1 LICENCE AND COPYRIGHT
+
+Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself. See L<perlartistic>.
+
+=head1 DISCLAIMER OF WARRANTY
+
+BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
+EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
+YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
+NECESSARY SERVICING, REPAIR, OR CORRECTION.
+
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
+LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
+OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
+THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
