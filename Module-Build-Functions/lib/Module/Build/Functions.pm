@@ -1,56 +1,63 @@
 package Module::Build::Functions;
 
-use strict;
-use Carp     qw(croak );
-use Exporter qw(import);
-use Config;
-use Module::Build;
-use AutoLoader;
+#<<<
+use     strict;
+use     5.005;
+use     vars        qw( $VERSION @EXPORT $AUTOLOAD );
+use     Carp        qw( croak                      );
+use     Exporter    qw( import                     );
+use     English     qw( -no_match_vars             );
+use     Config;
+use     AutoLoader;
+require Module::Build;
+#>>>
 
-use vars     qw( $VERSION @EXPORT $AUTOLOAD );
 @EXPORT = qw(
-  name all_from abstract abstract_from author author_from version 
-  version_from license license_from perl_version perl_version_from 
+  name all_from abstract abstract_from author author_from version
+  version_from license license_from perl_version perl_version_from
   recommends requires test_requires configure_requires install_script
   no_index installdirs install_as_core install_as_cpan install_as_site
   install_as_vendor WriteAll auto_install auto_bundle bundle bundle_deps
-  auto_bundle_deps can_use can_run can_cc requires_external_bin 
-  requires_external_cc get_file check_nmake interactive release_testing 
+  auto_bundle_deps can_use can_run can_cc requires_external_bin
+  requires_external_cc get_file check_nmake interactive release_testing
   automated_testing win32 winlike author_context install_share
-  add_to_cleanup auto_features autosplit build_class build_requires 
-  create_packlist c_source conflicts create_makefile_pl create_readme 
-  dist_abstract dist_author dist_name dist_version dist_version_from 
-  dynamic_config extra_compiler_flags extra_linker_flags get_options 
-  include_dirs install_path meta_add meta_merge module_name 
-  PL_files pm_files pod_files recommends recursive_test_files requires 
-  script_files sign test_files use_tap_harness tap_harness_args xs_files 
+  add_to_cleanup auto_features autosplit build_class build_requires
+  create_packlist c_source conflicts create_makefile_pl create_readme
+  dist_abstract dist_author dist_name dist_version dist_version_from
+  dynamic_config extra_compiler_flags extra_linker_flags get_options
+  include_dirs install_path meta_add meta_merge module_name
+  PL_files pm_files pod_files recommends recursive_test_files requires
+  script_files sign test_files use_tap_harness tap_harness_args xs_files
   subclass create_build_script include_dir no_index xs_file PL_file pm_file
-  get_builder bundler
+  get_builder bundler functions_self_bundler
 );
 
-$VERSION = '0.001_003';
+# The equivalent of "use warnings" pre-5.006.
+local $WARNING = 1;
+
+$VERSION = '0.001_004';
 
 # Module implementation here
 my %args;
-my $object = undef;
-my $class = undef;
+my $object      = undef;
+my $class       = undef;
 my $mb_required = 0;
-my $autoload = 1;
+my $autoload    = 1;
 
 # Set defaults.
-if ($Module::Build::VERSION >= 0.28) {
+if ( $Module::Build::VERSION >= 0.28 ) {
 	$args{create_packlist} = 1;
 	$mb_required = 0.28;
 }
 
 my $installdir_used = 0;
-my $object_created = 0;
+my $object_created  = 0;
 
 # helper functions:
 
 sub AUTOLOAD {
 	my $sub = $AUTOLOAD;
-    if ($autoload == 1) {
+	if ( $autoload == 1 ) {
 		$AutoLoader::AUTOLOAD = $sub;
 		goto &AutoLoader::AUTOLOAD;
 	} else {
@@ -60,22 +67,22 @@ sub AUTOLOAD {
 
 sub _mb_required {
 	my $version = shift;
-	if ($version > $mb_required) {
+	if ( $version > $mb_required ) {
 		$mb_required = $version;
 	}
+	return;
 }
 
 sub _installdir {
-	return $Config{'sitelibexp'} if ($args{install_type} eq 'site');
-	return $Config{'privlibexp'} if ($args{install_type} eq 'perl');
-	return $Config{'vendorlibexp'} if ($args{install_type} eq 'vendor');
+	return $Config{'sitelibexp'}   if ( $args{install_type} eq 'site' );
+	return $Config{'privlibexp'}   if ( $args{install_type} eq 'perl' );
+	return $Config{'vendorlibexp'} if ( $args{install_type} eq 'vendor' );
 	croak 'Invalid install type';
-	return undef;
 }
 
 sub _create_hashref {
 	my $name = shift;
-	unless (exists $args{$name}) {
+	unless ( exists $args{$name} ) {
 		$args{$name} = {};
 	}
 	return;
@@ -84,7 +91,7 @@ sub _create_hashref {
 sub _create_hashref_arrayref {
 	my $name1 = shift;
 	my $name2 = shift;
-	unless (exists $args{$name1}{$name2}) {
+	unless ( exists $args{$name1}{$name2} ) {
 		$args{$name1}{$name2} = [];
 	}
 	return;
@@ -92,7 +99,7 @@ sub _create_hashref_arrayref {
 
 sub _create_arrayref {
 	my $name = shift;
-	unless (exists $args{$name}) {
+	unless ( exists $args{$name} ) {
 		$args{$name} = [];
 	}
 	return;
@@ -102,7 +109,7 @@ sub _create_arrayref {
 
 sub name {
 	module_name(@_);
-	return;	
+	return;
 }
 
 sub all_from {
@@ -116,21 +123,18 @@ sub all_from {
 	return;
 }
 
-sub abstract {
+sub abstract { ## no critic(ProhibitAmbiguousNames)
 	dist_abstract(@_);
 	return;
 }
 
 sub abstract_from {
 	my $file = shift;
-	
+
 	require ExtUtils::MM_Unix;
 	abstract(
-		bless(
-			{ DISTNAME => $args{module_name} },
-			'ExtUtils::MM_Unix'
-		)->parse_abstract($file)
-	 );
+		bless( { DISTNAME => $args{module_name} }, 'ExtUtils::MM_Unix' )
+		  ->parse_abstract($file) );
 
 	return;
 }
@@ -142,7 +146,6 @@ sub author {
 
 sub author_from {
 	croak 'author_from is not supported yet';
-	return;
 }
 
 sub version {
@@ -159,17 +162,15 @@ sub version_from {
 
 sub license_from {
 	croak 'license_from is not supported yet';
-	return;
 }
 
 sub perl_version {
-	croak 'perl_version is not supported yet';
+	requires( 'perl', @_ );
 	return;
 }
 
 sub perl_version_from {
 	croak 'perl_version_from is not supported yet';
-	return;
 }
 
 sub test_requires {
@@ -177,10 +178,10 @@ sub test_requires {
 	return;
 }
 
-sub configure_requires { # 0.2808_01
+sub configure_requires {
 	my $module = shift;
 	my $version = shift || 0;
-	
+
 	_create_hashref('configure_requires');
 	$args{configure_requires}{$module} = $version;
 	_mb_required(0.30);
@@ -189,7 +190,6 @@ sub configure_requires { # 0.2808_01
 
 sub install_script {
 	croak 'install_script not supported yet';
-	return;
 }
 
 sub install_as_core {
@@ -197,7 +197,7 @@ sub install_as_core {
 }
 
 sub install_as_cpan {
-	return installdirs('site'); 
+	return installdirs('site');
 }
 
 sub install_as_site {
@@ -208,7 +208,7 @@ sub install_as_vendor {
 	return installdirs('vendor');
 }
 
-sub WriteAll {
+sub WriteAll { ## no critic(Capitalization)
 	my $answer = create_build_script();
 	return $answer;
 }
@@ -217,104 +217,90 @@ sub WriteAll {
 
 sub auto_install {
 	croak 'auto_install is deprecated';
-	return;
 }
 
 # Module::Install::Bundle
 
 sub auto_bundle {
 	croak 'auto_bundle is not supported yet';
-	return;
 }
 
 sub bundle {
-	my ($name, $version) = @_;
-	
+	my ( $name, $version ) = @_;
+
 	croak 'bundle is not supported yet';
-	return;
 }
 
 sub bundle_deps {
-	my ($name, $version) = @_;
+	my ( $name, $version ) = @_;
 
 	croak 'bundle_deps is not supported yet';
-	return;
 }
 
 sub auto_bundle_deps {
 	croak 'auto_bundle_deps is not supported yet';
-	return;
 }
 
 # Module::Install::Can
 
 sub can_use {
 	croak 'can_use is not supported yet';
-	return;
 }
 
 sub can_run {
 	croak 'can_run is not supported yet';
-	return;
 }
 
 sub can_cc {
 	croak 'can_cc is not supported yet';
-	return;
 }
 
 # Module::Install::External
 
 sub requires_external_bin {
 	croak 'requires_external_bin is not supported yet';
-	return;
 }
 
 sub requires_external_cc {
 	croak 'requires_external_cc is not supported yet';
-	return;
 }
 
 # Module::Install::Fetch
 
 sub get_file {
 	croak 'get_file is not supported yet';
-	return;
 }
 
 # Module::Install::Win32
 
 sub check_nmake {
 	croak 'check_nmake is not supported yet';
-	return;
 }
 
 # Module::Install::With
 
 sub interactive {
 	croak 'interactive is not supported yet';
-	return;
 }
 
 sub release_testing {
-	return !! $ENV{RELEASE_TESTING};
+	return !!$ENV{RELEASE_TESTING};
 }
 
 sub automated_testing {
-	return !! $ENV{AUTOMATED_TESTING};
+	return !!$ENV{AUTOMATED_TESTING};
 }
 
 sub win32 {
-	return !! ($^O eq 'MSWin32');
+	return !!( $OSNAME eq 'MSWin32' );
 }
 
 sub winlike {
-	return !! ($^O eq 'MSWin32' or $^O eq 'cygwin');
+	return !!( $OSNAME eq 'MSWin32' or $OSNAME eq 'cygwin' );
 }
 
 sub author_context {
 	croak 'author_context is not supported yet';
-	return;
 }
 
 # Module::Install::Share
@@ -327,60 +313,62 @@ sub install_share {
 		croak "Illegal or invalid share dir type '$type'";
 	}
 	unless ( defined $dir and -d $dir ) {
-		croak "Illegal or missing directory install_share param";
+		croak 'Illegal or missing directory install_share param';
 	}
-	
+
 	my $installation_path;
-	
+
 	if ( $type eq 'dist' ) {
-		croak "Too many parameters to install_share" if @_;
+		croak 'Too many parameters to install_share' if @_;
 
 		my $dist = $args{'dist_name'};
-		
-		$installation_path = catdir( _installdir() , qw(auto share module), $dist);
-		
+
+		$installation_path =
+		  catdir( _installdir(), qw(auto share module), $dist );
+
 	} else {
 		my $module = $args{'module_name'};
-		
+
 		unless ( defined $module ) {
-			die "Missing or invalid module name '$module'";
+			croak "Missing or invalid module name '$module'";
 		}
 
 		$module =~ s/::/-/g;
-		$installation_path = catdir( _installdir() , qw(auto share module), $module);
+		$installation_path =
+		  catdir( _installdir(), qw(auto share module), $module );
 	}
 
-	install_path($dir, $installation_path);
+	install_path( $dir, $installation_path );
 
 	# 99% of the time we don't want to index a shared dir
-	no_index( $dir );
+	no_index($dir);
 	return;
-}
-	
+} ## end sub install_share
+
 # Module::Build syntax
 
 # SAME: license recommends requires no_index
 
 sub add_to_cleanup {
 	my $filespec = shift;
-	if ('ARRAY' eq ref $filespec) {
-		foreach my $f (@{$filespec}) {
+	if ( 'ARRAY' eq ref $filespec ) {
+		foreach my $f ( @{$filespec} ) {
 			add_to_cleanup($f);
 		}
 	}
 
 	_create_arrayref('add_to_cleanup');
-	push @{$args{add_to_cleanup}}, $filespec;
+	push @{ $args{add_to_cleanup} }, $filespec;
 	_mb_required(0.19);
 	return;
-}
+} ## end sub add_to_cleanup
 
 sub _af_hashref {
 	my $feature = shift;
-	unless (exists $args{auto_features}) {
+	unless ( exists $args{auto_features} ) {
 		$args{auto_features} = {};
 	}
-	unless (exists $args{auto_features}{$feature}) {
+	unless ( exists $args{auto_features}{$feature} ) {
 		$args{auto_features}{$feature} = {};
 		$args{auto_features}{$feature}{requires} = {};
 	}
@@ -389,38 +377,39 @@ sub _af_hashref {
 
 sub auto_features {
 	my $feature = shift;
-	my $type = shift;
-	my $param1 = shift;
-	my $param2 = shift;
+	my $type    = shift;
+	my $param1  = shift;
+	my $param2  = shift;
 	_af_hashref($type);
-	if ('description' eq $type) {
+
+	if ( 'description' eq $type ) {
 		$args{auto_features}{$feature}{description} = $param1;
-	} elsif ('requires' eq $type) {
+	} elsif ( 'requires' eq $type ) {
 		$args{auto_features}{$feature}{requires}{$param1} = $param2;
 	} else {
 		croak "Invalid type $type for auto_features";
 	}
 	_mb_required(0.26);
 	return;
-}
+} ## end sub auto_features
 
 sub autosplit {
 	my $file = shift;
-	if ('ARRAY' eq ref $file) {
-		foreach my $f (@{$file}) {
+	if ( 'ARRAY' eq ref $file ) {
+		foreach my $f ( @{$file} ) {
 			autosplit($f);
 		}
 	}
 
 	_create_arrayref('autosplit');
-	push @{$args{autosplit}}, $file;
+	push @{ $args{autosplit} }, $file;
 	_mb_required(0.04);
 	return;
-}
+} ## end sub autosplit
 
 sub build_class {
-	my $class = shift;	
-	$args{build_class} = $class;
+	my $build_class = shift;
+	$args{build_class} = $build_class;
 	_mb_required(0.28);
 	return;
 }
@@ -429,28 +418,28 @@ sub build_class {
 sub build_requires {
 	my $module = shift;
 	my $version = shift || 0;
-	if ('HASH' eq ref $module) {
-		my ($k, $v);
-		while (($k, $v) = each %{$module}) {
-			build_requires($k, $v);
+	if ( 'HASH' eq ref $module ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$module} ) {
+			build_requires( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('build_requires');
 	$args{build_requires}{$module} = $version;
 	_mb_required(0.07);
 	return;
-}
+} ## end sub build_requires
 
 sub create_packlist {
 	my $boolean = shift;
-	$args{create_packlist} = !! $boolean;
+	$args{create_packlist} = !!$boolean;
 	_mb_required(0.28);
 	return;
 }
 
 sub c_source {
-	my $dir = shift;	
+	my $dir = shift;
 	$args{c_source} = $dir;
 	_mb_required(0.04);
 	return;
@@ -459,18 +448,18 @@ sub c_source {
 sub conflicts {
 	my $module = shift;
 	my $version = shift || 0;
-	if ('HASH' eq ref $module) {
-		my ($k, $v);
-		while (($k, $v) = each %{$module}) {
-			conflicts($k, $v);
+	if ( 'HASH' eq ref $module ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$module} ) {
+			conflicts( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('conflicts');
 	$args{conflicts}{$module} = $version;
 	_mb_required(0.07);
 	return;
-}
+} ## end sub conflicts
 
 sub create_makefile_pl {
 	my $makefile_type = shift;
@@ -481,14 +470,14 @@ sub create_makefile_pl {
 
 sub create_readme {
 	my $boolean = shift;
-	$args{create_readme} = !! $boolean;
+	$args{create_readme} = !!$boolean;
 	_mb_required(0.22);
 	return;
 }
 
 sub dist_abstract {
-	my $abstract = shift;
-	$args{dist_abstract} = $abstract;
+	my $dist_abstract = shift;
+	$args{dist_abstract} = $dist_abstract;
 	_mb_required(0.20);
 	return;
 }
@@ -523,7 +512,7 @@ sub dist_version_from {
 
 sub dynamic_config {
 	my $boolean = shift;
-	$args{dynamic_config} = !! $boolean;
+	$args{dynamic_config} = !!$boolean;
 	_mb_required(0.07);
 	return;
 }
@@ -536,24 +525,24 @@ sub extra_compiler_flag {
 
 sub extra_compiler_flags {
 	my $flag = shift;
-	if ('ARRAY' eq ref $flag) {
-		foreach my $f (@{$flag}) {
+	if ( 'ARRAY' eq ref $flag ) {
+		foreach my $f ( @{$flag} ) {
 			extra_compiler_flags($f);
 		}
 	}
-		
-	if ($flag =~ m{\s}) {
+
+	if ( $flag =~ m{\s} ) {
 		my @flags = split m{\s+}, $flag;
 		foreach my $f (@flags) {
 			extra_compiler_flags($f);
 		}
 	} else {
 		_create_arrayref('extra_compiler_flags');
-		push @{$args{'extra_compiler_flags'}}, $flag;
+		push @{ $args{'extra_compiler_flags'} }, $flag;
 	}
 	_mb_required(0.19);
 	return;
-}
+} ## end sub extra_compiler_flags
 
 # Alias for extra_linker_flags.
 sub extra_linker_flag {
@@ -563,40 +552,40 @@ sub extra_linker_flag {
 
 sub extra_linker_flags {
 	my $flag = shift;
-	if ('ARRAY' eq ref $flag) {
-		foreach my $f (@{$flag}) {
+	if ( 'ARRAY' eq ref $flag ) {
+		foreach my $f ( @{$flag} ) {
 			extra_linker_flags($f);
 		}
 	}
-		
-	if ($flag =~ m{\s}) {
+
+	if ( $flag =~ m{\s} ) {
 		my @flags = split m{\s+}, $flag;
 		foreach my $f (@flags) {
 			extra_linker_flags($f);
 		}
 	} else {
 		_create_arrayref('extra_linker_flags');
-		push @{$args{'extra_linker_flags'}}, $flag;
+		push @{ $args{'extra_linker_flags'} }, $flag;
 	}
 	_mb_required(0.19);
 	return;
-}
+} ## end sub extra_linker_flags
 
 sub get_options {
 	my $option = shift;
-	my $value = shift;
-	if ('HASH' eq ref $option) {
-		my ($k, $v);
-		while (($k, $v) = each %{$option}) {
-			get_options($k, $v);
+	my $value  = shift;
+	if ( 'HASH' eq ref $option ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$option} ) {
+			get_options( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('get_options');
 	$args{get_options}{$option} = $value;
 	_mb_required(0.26);
 	return;
-}
+} ## end sub get_options
 
 # Alias for include_dirs
 sub include_dir {
@@ -606,25 +595,25 @@ sub include_dir {
 
 sub include_dirs {
 	my $dir = shift;
-	if ('ARRAY' eq ref $dir) {
-		foreach my $f (@{$dir}) {
+	if ( 'ARRAY' eq ref $dir ) {
+		foreach my $f ( @{$dir} ) {
 			include_dirs($f);
 		}
 	}
-	
+
 	_create_arrayref('include_dirs');
-	push @{$args{include_dirs}}, $dir;
+	push @{ $args{include_dirs} }, $dir;
 	_mb_required(0.24);
 	return;
-}
+} ## end sub include_dirs
 
-sub install_path { 
+sub install_path {
 	my $type = shift;
-	my $dir = shift;
-	if ('HASH' eq ref $type) {
-		my ($k, $v);
-		while (($k, $v) = each %{$type}) {
-			install_path($k, $v);
+	my $dir  = shift;
+	if ( 'HASH' eq ref $type ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$type} ) {
+			install_path( $k, $v );
 		}
 	}
 
@@ -632,9 +621,9 @@ sub install_path {
 	$args{install_path}{$type} = $dir;
 	_mb_required(0.19);
 	return;
-}
+} ## end sub install_path
 
-sub installdirs { 
+sub installdirs {
 	my ($type) = shift;
 	$args{'installdirs'} = $type;
 	_mb_required(0.19);
@@ -650,27 +639,27 @@ sub license {
 
 sub meta_add {
 	my $option = shift;
-	my $value = shift;
-	if ('HASH' eq ref $option) {
-		my ($k, $v);
-		while (($k, $v) = each %{$option}) {
-			meta_add($k, $v);
+	my $value  = shift;
+	if ( 'HASH' eq ref $option ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$option} ) {
+			meta_add( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('meta_add');
 	$args{meta_add}{$option} = $value;
 	_mb_required(0.28);
 	return;
-}
+} ## end sub meta_add
 
 sub meta_merge {
 	my $option = shift;
-	my $value = shift;
-	if ('HASH' eq ref $option) {
-		my ($k, $v);
-		while (($k, $v) = each %{$option}) {
-			meta_merge($k, $v);
+	my $value  = shift;
+	if ( 'HASH' eq ref $option ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$option} ) {
+			meta_merge( $k, $v );
 		}
 	}
 
@@ -678,12 +667,12 @@ sub meta_merge {
 	$args{meta_merge}{$option} = $value;
 	_mb_required(0.28);
 	return;
-}
+} ## end sub meta_merge
 
 sub module_name {
 	my ($name) = shift;
 	$args{'module_name'} = $name;
-	unless (exists $args{'dist_name'}) {
+	unless ( exists $args{'dist_name'} ) {
 		my $dist_name = $name;
 		$dist_name =~ s/::/-/g;
 		dist_name($dist_name);
@@ -694,37 +683,38 @@ sub module_name {
 
 sub no_index {
 	my $name = pop;
-    my $type = shift || 'directory';
+	my $type = shift || 'directory';
+
 	# TODO: compatibility code.
-	
+
 	_create_hashref('no_index');
-	_create_hashref_arrayref('no_index', $type);
-	push @{$args{'no_index'}{$type}}, $name;
+	_create_hashref_arrayref( 'no_index', $type );
+	push @{ $args{'no_index'}{$type} }, $name;
 	_mb_required(0.28);
 	return;
-}
+} ## end sub no_index
 
 # Alias for PL_files.
-sub PL_file {
+sub PL_file { ## no critic(Capitalization)
 	PL_files(@_);
 	return;
 }
 
-sub PL_files {
-	my $PL_file = shift;
+sub PL_files { ## no critic(Capitalization)
+	my $pl_file = shift;
 	my $pm_file = shift || [];
-	if ('HASH' eq ref $PL_file) {
-		my ($k, $v);
-		while (($k, $v) = each %{$PL_file}) {
-			PL_files($k, $v);
+	if ( 'HASH' eq ref $pl_file ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$pl_file} ) {
+			PL_files( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('PL_files');
-	$args{PL_files}{$PL_file} = $pm_file;
+	$args{PL_files}{$pl_file} = $pm_file;
 	_mb_required(0.06);
 	return;
-}
+} ## end sub PL_files
 
 # Alias for pm_files.
 sub pm_file {
@@ -733,12 +723,12 @@ sub pm_file {
 }
 
 sub pm_files {
-	my $pm_file = shift;
+	my $pm_file  = shift;
 	my $location = shift;
-	if ('HASH' eq ref $pm_file) {
-		my ($k, $v);
-		while (($k, $v) = each %{$pm_file}) {
-			pm_files($k, $v);
+	if ( 'HASH' eq ref $pm_file ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$pm_file} ) {
+			pm_files( $k, $v );
 		}
 	}
 
@@ -746,7 +736,7 @@ sub pm_files {
 	$args{pm_files}{$pm_file} = $location;
 	_mb_required(0.19);
 	return;
-}
+} ## end sub pm_files
 
 # Alias for pod_files.
 sub pod_file {
@@ -754,13 +744,13 @@ sub pod_file {
 	return;
 }
 
-sub pod_files { 
+sub pod_files {
 	my $pod_file = shift;
 	my $location = shift;
-	if ('HASH' eq ref $pod_file) {
-		my ($k, $v);
-		while (($k, $v) = each %{$pod_file}) {
-			pod_files($k, $v);
+	if ( 'HASH' eq ref $pod_file ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$pod_file} ) {
+			pod_files( $k, $v );
 		}
 	}
 
@@ -768,46 +758,46 @@ sub pod_files {
 	$args{pod_files}{$pod_file} = $location;
 	_mb_required(0.19);
 	return;
-}
+} ## end sub pod_files
 
-sub recommends { 
+sub recommends {
 	my $module = shift;
 	my $version = shift || 0;
-	if ('HASH' eq ref $module) {
-		my ($k, $v);
-		while (($k, $v) = each %{$module}) {
-			recommends($k, $v);
+	if ( 'HASH' eq ref $module ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$module} ) {
+			recommends( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('recommends');
 	$args{recommends}{$module} = $version;
 	_mb_required(0.08);
 	return;
-}
+} ## end sub recommends
 
 sub recursive_test_files {
 	my $boolean = shift;
-	$args{recursive_test_files} = !! $boolean;
+	$args{recursive_test_files} = !!$boolean;
 	_mb_required(0.28);
 	return;
 }
 
-sub requires { 
+sub requires {
 	my $module = shift;
 	my $version = shift || 0;
-	if ('HASH' eq ref $module) {
-		my ($k, $v);
-		while (($k, $v) = each %{$module}) {
-			requires($k, $v);
+	if ( 'HASH' eq ref $module ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$module} ) {
+			requires( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('requires');
 	$args{requires}{$module} = $version;
 	_mb_required(0.07);
 	return;
-}
+} ## end sub requires
 
 sub script_file {
 	script_files(@_);
@@ -816,33 +806,35 @@ sub script_file {
 
 sub script_files {
 	my $file = shift;
-	if ('ARRAY' eq ref $file) {
-		foreach my $f (@{$file}) {
+	if ( 'ARRAY' eq ref $file ) {
+		foreach my $f ( @{$file} ) {
 			script_files($f);
 		}
 	}
-		
-	if (-d $file) {
-		if (exists $args{'script_files'}) {
-			if ('ARRAY' eq ref $args{'script_files'}) {
-				croak "cannot add directory $file to a list of script_files";
+
+	if ( -d $file ) {
+		if ( exists $args{'script_files'} ) {
+			if ( 'ARRAY' eq ref $args{'script_files'} ) {
+				croak
+				  "cannot add directory $file to a list of script_files";
 			} else {
-				croak "attempt to overwrite string script_files with $file failed";
+				croak
+"attempt to overwrite string script_files with $file failed";
 			}
 		} else {
 			$args{'script_files'} = $file;
 		}
 	} else {
 		_create_arrayref('script_files');
-		push @{$args{'script_files'}}, $file;
+		push @{ $args{'script_files'} }, $file;
 	}
 	_mb_required(0.18);
 	return;
-}
+} ## end sub script_files
 
 sub sign {
 	my $boolean = shift;
-	$args{sign} = !! $boolean;
+	$args{sign} = !!$boolean;
 	_mb_required(0.16);
 	return;
 }
@@ -851,17 +843,18 @@ sub test_file {
 	test_files(@_);
 	return;
 }
+
 sub test_files {
 	my $file = shift;
-	if ('ARRAY' eq ref $file) {
-		foreach my $f (@{$file}) {
+	if ( 'ARRAY' eq ref $file ) {
+		foreach my $f ( @{$file} ) {
 			test_files($f);
 		}
 	}
 
-	if ($file =~ /[*?]/) {
-		if (exists $args{'test_files'}) {
-			if ('ARRAY' eq ref $args{'test_files'}) {
+	if ( $file =~ /[*?]/ ) {
+		if ( exists $args{'test_files'} ) {
+			if ( 'ARRAY' eq ref $args{'test_files'} ) {
 				croak 'cannot add a glob to a list of test_files';
 			} else {
 				croak 'attempt to overwrite string test_files failed';
@@ -871,15 +864,15 @@ sub test_files {
 		}
 	} else {
 		_create_arrayref('test_files');
-		push @{$args{'test_files'}}, $file;
+		push @{ $args{'test_files'} }, $file;
 	}
 	_mb_required(0.23);
 	return;
-}
+} ## end sub test_files
 
 sub use_tap_harness {
 	my $boolean = shift || 1;
-	$args{use_tap_harness} = !! $boolean;
+	$args{use_tap_harness} = !!$boolean;
 	_mb_required(0.30);
 	return;
 }
@@ -898,21 +891,21 @@ sub xs_file {
 }
 
 sub xs_files {
-	my $xs_file = shift;
+	my $xs_file  = shift;
 	my $location = shift;
-	if ('HASH' eq ref $xs_file) {
-		my ($k, $v);
-		while (($k, $v) = each %{$xs_file}) {
-			pm_files($k, $v);
+	if ( 'HASH' eq ref $xs_file ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$xs_file} ) {
+			pm_files( $k, $v );
 		}
 	}
-	
+
 	_create_hashref('xs_files');
 	$args{xs_files}{$xs_file} = $location;
 	_mb_required(0.19);
 	return;
-}
-	
+} ## end sub xs_files
+
 sub subclass {
 	$class = Module::Build->subclass(@_);
 	return;
@@ -926,8 +919,8 @@ sub create_build_script {
 
 # Required to get a builder for later use.
 sub get_builder {
-	unless (defined $object) {
-		if (defined $class) {
+	unless ( defined $object ) {
+		if ( defined $class ) {
 			$object = $class->new(%args);
 		} else {
 			$object = Module::Build->new(%args);
@@ -936,7 +929,7 @@ sub get_builder {
 	return $object;
 }
 
-sub functions_bundle {
+sub functions_self_bundler {
 	my $code = <<'END_OF_CODE';
 sub ACTION_distmeta {
 	my $self = shift;
@@ -948,11 +941,13 @@ END_OF_CODE
 
 	subclass(
 		class => 'ModuleBuildFunctions::SelfBundler',
-		code => $code
+		code  => $code
 	);
-}
 
-1; # Magic true value required at end of module
+	return;
+} ## end sub functions_self_bundler
+
+1;                                     # Magic true value required at end of module
 
 __END__
 
@@ -962,24 +957,27 @@ sub bundler {
 	require File::Path;
 	File::Slurp->import(qw(read_file write_file));
 	File::Path->import(qw(mkpath));
-	my ($fulldir, $file, $text, $outfile);
+	my ( $fulldir, $file, $text, $outfile );
   DIRLOOP:
-	foreach my $dir ( $Config{'sitelibexp'}, $Config{'vendorlibexp'}, $Config{'privlibexp'} ) {
-		$fulldir = File::Spec->catdir($dir, qw(Module Build));
-		$file = File::Spec->catfile($fulldir, 'Functions.pm');
-		if (-f $file) {
+
+	foreach my $dir ( $Config{'sitelibexp'}, $Config{'vendorlibexp'},
+		$Config{'privlibexp'} )
+	{
+		$fulldir = File::Spec->catdir( $dir, qw(Module Build) );
+		$file = File::Spec->catfile( $fulldir, 'Functions.pm' );
+		if ( -f $file ) {
 			$text = read_file($file);
 			$text =~ s/package [ ] Module/package inc::Module/msx;
-			$text =~ s/use [ ] AutoLoader;//msx;
-			$text =~ s/my [ ] \$autoload [ ] = [ ] 1/my \$autoload = 0/msx;
-			$text =~ s/__END__.*/\n/msx;			
+			$text =~ s/use [ ]* AutoLoader;//msx;
+			$text =~ s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload = 0/msx;
+			$text =~ s/__END__.*/\n/ms;
 			$fulldir = File::Spec->catdir(qw(inc Module Build));
-			$outfile = File::Spec->catfile($fulldir, 'Functions.pm');
-			mkpath($fulldir, 0, 0644);
+			$outfile = File::Spec->catfile( $fulldir, 'Functions.pm' );
+			mkpath( $fulldir, 0, 0644 );
 			print "Writing $outfile\n";
-			write_file($outfile, $text);
+			write_file( $outfile, $text );
 			last DIRLOOP;
-		}
-	}
+		} ## end if ( -f $file )
+	} ## end foreach my $dir ( $Config{'sitelibexp'...
 	return;
-}
+} ## end sub bundler

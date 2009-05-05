@@ -10,21 +10,25 @@ This document describes Module::Build::Functions version 0.001_002.
 
 	# Our own Build.PL.
 	use strict;
-	use warnings;
+	$^W = 1; # Can't use "use warnings", see perl_version below.
 	use inc::Module::Build::Functions;
 	
 	module_name         'Module::Build::Functions';
 	license             'perl';
+	perl_version        '5.005';
 	dist_author         'Curtis Jewell <csjewell@cpan.org>';
 	dist_version_from   'lib/Module/Build/Functions.pm';
 	autosplit           'lib/Module/Build/Functions.pm';
 	requires 		    'File::Slurp';
 	test_requires       'Test::More';
+	test_requires       'Test::Compile';
 	add_to_cleanup      'Module-Build-Functions-*';
 	create_makefile_pl  'passthrough';
+	functions_self_bundler;
 	create_build_script;
 
 	# To bundle Module::Build::Functions as above.
+	# (Only needs to be ran once if functions_self_bundler is used)
 	perl -MModule::Build::Functions -e bundler
 
 =head1 DESCRIPTION
@@ -56,6 +60,12 @@ will be corrected, I promise.
 
 All functions are exported by default.
 
+=head2 Module::Build->new parameters
+
+=head3 dist_abstract
+
+Sets the abstract used 
+
 =for author to fill in:
     Write a separate section listing the public components of the modules
     interface. These normally consist of either subroutines that may be
@@ -76,9 +86,23 @@ All functions are exported by default.
 
 There was probably a misspelling in the command name in the Build.PL.
 
-=item C<< Invalid install type >>
 =item C<< %s is not supported yet >>
+
+Module::Build::Functions is not completely implemented yet, so a number of
+functions will croak with this error.
+
+Hang on, support will be coming soon!
+
 =item C<< auto_install is deprecated >>
+
+The author has deliberately chosen to drop support for auto_install.
+(he happens to be irritated at pre-0.86 Module::Installs that stop 
+CPAN upgrades to make him answer an unneeded question.)
+
+Patches, however, would be welcomed to implement an auto_install that 
+is not annoying.
+
+=item C<< Invalid install type >>
 =item C<< Illegal or invalid share dir type '%s' >>
 =item C<< Illegal or missing directory install_share param >>
 =item C<< Missing or invalid module name '%s' >>
@@ -127,12 +151,9 @@ Please report any bugs or feature requests to the author at the e-mail
 address below for the moment.
 
 =for author to correct:
-
-Please report any bugs or feature requests to
-C<bug-Module-Build-Functions@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org>.
-
-=over
+	Please report any bugs or feature requests to
+	C<bug-Module-Build-Functions@rt.cpan.org>, or through the web interface at
+	L<http://rt.cpan.org>.
 
 =head1 AUTHOR
 
