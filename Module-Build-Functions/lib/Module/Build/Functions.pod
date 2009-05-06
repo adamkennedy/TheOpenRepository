@@ -1,10 +1,20 @@
+=pod
+
+=begin readme text
+
+Module-Build-Functions version 0.001_005
+
+=end readme
+
+=for readme stop
+
 =head1 NAME
 
 Module::Build::Functions - Module::Install style syntax for Module::Build
 
 =head1 VERSION
 
-This document describes Module::Build::Functions version 0.001_002.
+This document describes Module::Build::Functions version 0.001_005.
 
 =head1 SYNOPSIS
 
@@ -31,12 +41,14 @@ This document describes Module::Build::Functions version 0.001_002.
 	# (Only needs to be ran once if functions_self_bundler is used)
 	perl -MModule::Build::Functions -e bundler
 
+=for readme continue
+	
 =head1 DESCRIPTION
 
 This module gives a Module::Install-like syntax to Module::Build, using 
 modules (other than Module::Build itself) that are in the core in 5.006.
 
-Most commands from Module::Install are supported, and most parameters to
+Most commands from Module::Install will be supported, and most parameters to
 Module::Build's C<new> routine are supported as commands. This includes 
 the share directory implementation that L<Module::Install::Share> and 
 L<File::ShareDir> implements.
@@ -49,22 +61,49 @@ Build.PL.
 Unfortunately, Module::Install extensions are not supported, nor is the 
 L<Module::Install::DSL> syntax.
 
-You may wish to look at the code for documentation at this point. This 
-will be corrected, I promise.
+You may wish to look at the code for documentation at this point, as not 
+all functions are documented yet. B<This will be corrected, I promise.>
 
-=for author to fill in:
-    Write a full description of the module and its features here.
-    Use subsections (=head2, =head3) as appropriate.
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+This method of installation will install a current version of Module::Build 
+if it is not already installed.
+    
+Alternatively, to install with Module::Build, you can use the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+=end readme
+
+=for readme stop
 
 =head1 INTERFACE 
 
 All functions are exported by default.
 
-=head2 Functions unique to P
+Unless specified otherwise, a function is accumulative - it can be 
+called more that once to add to a list.
+
+=head2 Functions unique to Module::Build::Functions
 
 =head3 bundler
 
 	perl -MModule::Build::Functions -e bundler
+
+Writes out a copy of the installed version of Module::Build::Functions in 
+the inc directory of your distribution.
 
 =head3 functions_self_bundler
 
@@ -73,19 +112,187 @@ All functions are exported by default.
 Calls the L<bundler> function when Module::Build's C<dist> action (actually 
 the C<distmeta> action) is called.
 
-This function 
+This function is incompatible with the use of C<subclass> in the Build.PL. 
+If you need to use subclass for other purposes, add the code below to 
+your subclass:
 
-=head2 Module::Build->new parameters
+	sub ACTION_distmeta {
+		my $self = shift;
+		require Module::Build::Functions;
+		Module::Build::Functions::bundler();
+		$self->SUPER::ACTION_distmeta();
+	}
 
-=head3 dist_abstract
 
-Sets the abstract used 
+=head2 Module::Build->new parameters (with Module::Install synonyms noted)
 
-=for author to fill in:
-    Write a separate section listing the public components of the modules
-    interface. These normally consist of either subroutines that may be
-    exported, or methods that may be called on objects belonging to the
-    classes provided by the module.
+=head3 lists of modules
+
+All lists of modules take a module name (with an optional version) or a 
+hashref that contains a list of modules and versions.
+
+Versions are specified as L<Module::Build::Authoring|Module::Build::Authoring#Format_of_prerequisites>
+specifies them.
+
+If the version parameter is omitted when one module is being added to the 
+list, the version is assumed to be 0.
+
+=head4 build_requires
+
+	build_requires 'Module::CoreList' => 2.17;
+	build_requires 'Acme::24';
+	build_requires 'Acme' => '!1.11111';
+
+Modules listed using this function are only required for running C<./Build> 
+itself, not C<Build.PL>, nor the module(s) being installed.
+
+=head4 conflicts
+
+    conflicts 'Acme' => '1.11111';
+	conflicts 'Perl::Dist' => '<1.14';
+
+Modules listed using this function conflict in some serious way with the 
+module being installed, and the Build.PL will not continue if these modules 
+are already installed.
+
+=head3 Directories
+
+=head4 c_source
+
+	# Not accumulative - only the last c_source is used. 
+    c_source 'src';
+
+This function specifies a directory which contains C source files that the 
+rest of the build may depend on. 
+
+See L<Module::Build's documentation on c_source()|Module::Build#c_source> 
+for more information.
+
+=head3 Metadata
+
+Functions in this section are used when generating metadata for I<META.yml> and PPD files. 
+
+=head4 dist_abstract 
+=head4 abstract (Module::Install synonym)
+
+	# Not accumulative - only the last dist_abstract or abstract is used. 
+	dist_abstract 'Module::Install style syntax for Module::Build';
+	abstract 'Module::Install style syntax for Module::Build';
+
+    This should be a short description of the distribution. 
+	
+	If either this function, L<#abstract_from>, or L<#all_from> is not given then Module::Build looks in the POD of the module from which it gets the distribution's version. If it finds a POD section marked "=head1 NAME", then it looks for the first line matching \s+-\s+(.+), and uses the captured text as the abstract.
+
+=head4 dist_author
+=head4 author (Module::Install synonym)
+
+	dist_author 'John Doe <jdoe@example.com>';
+	author 'Jane Doe <doej@example.com>';
+	
+This should be something like "John Doe <jdoe@example.com>", or if there are multiple authors, this routine can be called multiple times, or an anonymous array of strings may be specified. 
+	
+If either this function, L<author_from>, or L<#all_from> is not used, then Module::Build looks at the module from which it gets the distribution's version. If it finds a POD section marked "=head1 AUTHOR", then it uses the contents of this section.
+
+=head4 dist_name
+
+	dist_name 'Module-Build-Functions';
+
+Specifies the name for this distribution. Most authors won't need to set this directly, they can use L<#module_name> to set C<dist_name> to a reasonable default. However, some agglomerative distributions like C<libwww-perl> or C<bioperl> have names that don't correspond directly to a module name, so C<dist_name> can be set independently.
+
+=head4 dist_version
+=head4 version (Module::Install synonym)
+
+	dist_version '0.001_001';
+
+Specifies a version number for the distribution. See L<#module_name> or L<#dist_version_from> for ways to have this set automatically from a C<$VERSION> variable in a module. One way or another, a version number needs to be set.
+
+=head4 dist_version_from
+=head4 version_from (Module::Install synonym)
+
+	dist_version_from 'lib/Module/Build/Functions.pm';
+
+Specifies a file to look for the distribution version in. Most authors won't need to set this directly, they can use C<module_name> to set it to a reasonable default.
+
+
+=head3 Flags
+
+Functions listed here are B<not> accumulative - only the last value a flag has 
+been set to will apply.
+
+=head4 create_packlist
+
+	create_packlist 1;
+	
+If this flag is set (and it is set by default), Module::Build will create a .packlist 
+file duting the L<install> action.
+
+=head4 create_makefile_pl
+
+    create_makefile_pl 'small';
+    create_makefile_pl 'passthrough';
+    create_makefile_pl 'traditional';
+
+This function lets you use Module::Build::Compat during the C<distdir> (or 
+C<dist>) action to automatically create a C<Makefile.PL> for compatibility 
+with ExtUtils::MakeMaker. The parameter's value should be one of the styles 
+named in the L<Module::Build::Compat|Module::Build::Compat> documentation.
+
+=head4 create_readme
+
+    create_readme 1;
+
+This function tells Module::Build whether to automatically create a README 
+file at the top level of your distribution or not. Currently it will simply 
+use Pod::Text (or Pod::Readme if it's installed) on the file indicated by 
+dist_version_from and put the result in the README file. This is by no means 
+the only recommended style for writing a README, but it seems to be one 
+common one used on the CPAN.
+
+If you generate a README in this way, it's probably a good idea to create a 
+separate INSTALL file if that information isn't in the generated README.
+
+=head3 Other functions
+
+=head4 add_to_cleanup
+ 
+	add_to_cleanup 'Module-Build-Functions-*';
+	add_to_cleanup 'Makefile';
+	 
+Adds a file specification (or an arrayref of file specifications) to the 
+list of files to cleanup when the C<clean> action is performed.
+
+=head4 auto_features
+
+    auto_features 'pg_support',    'description' => 'Interface with Postgres databases';
+    auto_features 'pg_support',    'requires'    => 'DBD::Pg'                 => '23.3';
+    auto_features 'pg_support',    'requires'    => 'DateTime::Format::Pg'    => 0;
+    auto_features 'mysql_support', 'description' => 'Interface with MySQL databases';
+    auto_features 'mysql_support', 'requires'    => 'DBD::mysql'              => '17.9';
+    auto_features 'mysql_support', 'requires'    => 'DateTime::Format::MySQL' => 0;
+
+This parameter supports the setting of features (see L<"Module::Build|feature($name)">) 
+automatically based on a set of prerequisites.
+
+*WARNING* The syntax for this may change before 1.000!
+	
+=head4 autosplit
+
+	autosplit           'lib/Module/Build/Functions.pm';
+	
+Adds a file (or an arrayref containing a list of files) that need(s) to 
+have L<Autosplit::autosplit()|Autosplit#autosplit> ran on them
+(because the file in question uses L<AutoLoader>, most likely).
+
+=head4 build_class
+
+	# Not accumulative - only the last build_class is used. 
+	build_class 'Module::Build::Subclass';
+
+Sets the name of a subclass of Module::Build that the Build script uses.
+
+This is used if the subclass has requirements that are satisfied by 
+L<#build_requires>, but are not neccessarily installed when Build.PL 
+will be executed.
 
 =head1 DIAGNOSTICS
 
@@ -131,20 +338,24 @@ Will be documented soon.
 
 =back
 
-
 =head1 CONFIGURATION AND ENVIRONMENT
   
 Module::Build::Functions requires no configuration files or environment 
-variables of its own. See Module::Build for its configuration variables
+variables of its own. See L<Module::Build> for its configuration variables
 or environment variables.
+
+=for readme continue
 
 =head1 DEPENDENCIES
 
-File::Slurp and Module::Build on the author's system.
+File::Slurp and Module::Build are required on the system of an author 
+using this module in his Build.PL.
 
-On the system of the person installing the module, the same version of Perl 
-that is required for the version of Module::Build installed on the system.
+On the system of the person installing a module using 
+Module::Build::Functions, only Module::Build is required.  The version of 
+Module::Build that will be required is determined by the functions used.
 
+=for readme stop
 
 =head1 INCOMPATIBILITIES
 
@@ -156,7 +367,6 @@ that is required for the version of Module::Build installed on the system.
     filters are mutually incompatible).
 
 None reported.
-
 
 =head1 BUGS AND LIMITATIONS
 
@@ -174,12 +384,16 @@ address below for the moment.
 
 Curtis Jewell  C<< <csjewell@cpan.org> >>
 
+=for readme continue
+
 =head1 LICENCE AND COPYRIGHT
 
 Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
+
+=for readme stop
 
 =head1 DISCLAIMER OF WARRANTY
 
