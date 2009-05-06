@@ -941,6 +941,14 @@ END_OF_CODE
 
 	subclass(
 		class => 'ModuleBuildFunctions::SelfBundler',
+		code => $code
+	);
+}
+
+1; # Magic true value required at end of module
+
+	subclass(
+		class => 'ModuleBuildFunctions::SelfBundler',
 		code  => $code
 	);
 
@@ -971,6 +979,7 @@ sub bundler {
 			$text =~ s/use [ ]* AutoLoader;//msx;
 			$text =~ s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload = 0/msx;
 			$text =~ s/__END__.*/\n/ms;
+			$text =~ s/__END__.*/\n/msx;			
 			$fulldir = File::Spec->catdir(qw(inc Module Build));
 			$outfile = File::Spec->catfile( $fulldir, 'Functions.pm' );
 			mkpath( $fulldir, 0, 0644 );
