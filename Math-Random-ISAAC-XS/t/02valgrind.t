@@ -16,8 +16,8 @@ use warnings;
 
 use Test::More;
 
-unless ($ENV{TEST_AUTHOR}) {
-  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
+unless ($ENV{TEST_VALGRIND}) {
+  plan skip_all => 'Set TEST_VALGRIND to enable memory leak tests';
 }
 
 eval {
