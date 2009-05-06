@@ -2,6 +2,14 @@ package Perl::Dist::WiX;
 
 =pod
 
+=begin readme text
+
+Perl-Dist-WiX version 0.180
+
+=end readme
+
+=for readme stop
+
 =head1 NAME
 
 Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
@@ -10,6 +18,8 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 This document describes Perl::Dist::WiX version 0.180.
 
+=for readme continue
+
 =head1 DESCRIPTION
 
 This package is the experimental upgrade to Perl::Dist based on Windows 
@@ -17,6 +27,21 @@ Install XML technology, instead of Inno Setup.
 
 Perl distributions built with this module have the option of being created
 as Windows Installer databases (otherwise known as .msi files)
+
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+=end readme
+
+=for readme stop
 
 =head1 SYNOPSIS
 
@@ -4721,6 +4746,21 @@ As other errors are noticed, they will be listed here.
 
 This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 
+=for readme continue
+
+=head1 DEPENDENCIES
+
+Perl 5.8.1 is the mimimum version of perl that this module will run on.
+
+Other modules that this module depends on are a working version of 
+L<Alien::WiX>, L<Data::Dump::Streamer> 2.08,  L<Data::UUID> 1.149, 
+L<Devel::StackTrace> 1.20, L<Exception::Class> 1.22, L<File::ShareDir> 
+1.00, L<IO::String> 1.08,L<List::MoreUtils> 0.07, L<Module::Corelist> 2.17, 
+L<Object::InsideOut> 3.53, L<Perl::Dist> 1.14, L<Process> 0.26, L<Readonly> 
+1.03, L<URI> 1.35, and L<Win32> 0.35.
+
+=for readme stop
+
 =head1 TODO
 
 =over
@@ -4732,7 +4772,7 @@ of Perl::Dist::WiX and depend on it (0.190)
 
 =item 2.
 
-Have an option to have WiX installed modules install in a 
+Have an option to have WiX installed non-core modules install in a 
 'vendor path' (0.190? 0.200?)
    
 =back
@@ -4757,6 +4797,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 =head1 SEE ALSO
 
 L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
+
+=for readme continue
 
 =head1 COPYRIGHT
 

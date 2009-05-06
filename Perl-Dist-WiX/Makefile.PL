@@ -2,6 +2,12 @@ use inc::Module::Install 0.83;
 
 die "OS unsupported\n" unless win32;
 
+if (author_context) {
+	require Pod::Readme;
+	my $readme = Pod::Readme->new();
+	$readme->parse_from_file('lib/Perl/Dist/WiX.pm', 'README');
+}
+
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'perl'                 => '5.006';
 requires       'version'              => '0.76';
