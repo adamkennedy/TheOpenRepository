@@ -60,6 +60,21 @@ will be corrected, I promise.
 
 All functions are exported by default.
 
+=head2 Functions unique to P
+
+=head3 bundler
+
+	perl -MModule::Build::Functions -e bundler
+
+=head3 functions_self_bundler
+
+	functions_self_bundler;
+
+Calls the L<bundler> function when Module::Build's C<dist> action (actually 
+the C<distmeta> action) is called.
+
+This function 
+
 =head2 Module::Build->new parameters
 
 =head3 dist_abstract

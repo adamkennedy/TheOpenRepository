@@ -941,11 +941,11 @@ END_OF_CODE
 
 	subclass(
 		class => 'ModuleBuildFunctions::SelfBundler',
-		code  => $code
+		code => $code
 	);
 
 	return;
-} ## end sub functions_self_bundler
+}
 
 1;                                     # Magic true value required at end of module
 
