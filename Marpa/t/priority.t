@@ -63,11 +63,8 @@ while ( defined( my $value = $evaler->new_value() ) ) {
             'Minuses equation has extra value: ' . ${$value} . "\n" );
     }
     else {
-        TODO: {
-            local $TODO = 'new evaluator not yet written';
-            Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
-        }
-    } ## end else [ if ( $i > $#expected )
+        Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
+    }
 } ## end while ( defined( my $value = $evaler->new_value() ) )
 
 # Local Variables:

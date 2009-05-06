@@ -79,6 +79,10 @@ use Marpa::Offset qw(
     INTERNAL_PRIORITY
     MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
+
+    VIRTUAL_SPAN { does this rule have a start or end
+    other than that of its original rule? }
+
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
 
@@ -3851,17 +3855,18 @@ sub rewrite_as_CHAF {
                     }
                 );
 
-                @{$new_rule}[
-                    Marpa::Internal::Rule::USEFUL,
-                    Marpa::Internal::Rule::ACCESSIBLE,
-                    Marpa::Internal::Rule::PRODUCTIVE,
-                    Marpa::Internal::Rule::NULLABLE,
-                    Marpa::Internal::Rule::NULLING,
-                    Marpa::Internal::Rule::HAS_CHAF_LHS,
-                    Marpa::Internal::Rule::HAS_CHAF_RHS,
-                    ]
-                    = ( 1, 1, 1, 0, 0, $has_chaf_lhs, $has_chaf_rhs, );
+                $new_rule->[Marpa::Internal::Rule::USEFUL]     = 1;
+                $new_rule->[Marpa::Internal::Rule::ACCESSIBLE] = 1;
+                $new_rule->[Marpa::Internal::Rule::PRODUCTIVE] = 1;
+                $new_rule->[Marpa::Internal::Rule::NULLABLE]   = 0;
+                $new_rule->[Marpa::Internal::Rule::NULLING]    = 0;
+                $new_rule->[Marpa::Internal::Rule::HAS_CHAF_LHS] =
+                    $has_chaf_lhs;
+                $new_rule->[Marpa::Internal::Rule::HAS_CHAF_RHS] =
+                    $has_chaf_rhs;
 
+                $new_rule->[Marpa::Internal::Rule::VIRTUAL_SPAN] =
+                    $has_chaf_lhs;
                 $new_rule->[Marpa::Internal::Rule::ORIGINAL_RULE] = $rule;
                 $new_rule->[Marpa::Internal::Rule::CHAF_START] = $subp_start;
                 $new_rule->[Marpa::Internal::Rule::CHAF_END]   = $subp_end;
