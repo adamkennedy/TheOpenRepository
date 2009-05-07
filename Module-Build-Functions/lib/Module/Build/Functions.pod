@@ -124,7 +124,7 @@ your subclass:
 	}
 
 
-=head2 Module::Build->new parameters (with Module::Install synonyms noted)
+=head2 Module::Build->new parameters (with synonyms noted)
 
 =head3 lists of modules
 
@@ -168,6 +168,14 @@ rest of the build may depend on.
 See L<Module::Build's documentation on c_source()|Module::Build#c_source> 
 for more information.
 
+=head4 include_dirs
+=head4 include_dir (Module::Build::Functions synonym)
+
+	include_dir 'include';
+	include_dir File::Spec->catdir(qw(include xs));
+	
+Specifies any additional directories in which to search for C header files. May be given as a string indicating a single directory, or as a list reference indicating multiple directories.
+
 =head3 Metadata
 
 Functions in this section are used when generating metadata for I<META.yml> and PPD files. 
@@ -179,9 +187,13 @@ Functions in this section are used when generating metadata for I<META.yml> and 
 	dist_abstract 'Module::Install style syntax for Module::Build';
 	abstract 'Module::Install style syntax for Module::Build';
 
-    This should be a short description of the distribution. 
+This should be a short description of the distribution. 
 	
-	If either this function, L<#abstract_from>, or L<#all_from> is not given then Module::Build looks in the POD of the module from which it gets the distribution's version. If it finds a POD section marked "=head1 NAME", then it looks for the first line matching \s+-\s+(.+), and uses the captured text as the abstract.
+If either this function, L<#abstract_from>, or L<#all_from> is not given, 
+then Module::Build looks in the POD of the module from which it gets the 
+distribution's version. If it finds a POD section marked "=head1 NAME", then 
+it looks for the first line matching \s+-\s+(.+), and uses the captured text 
+as the abstract.
 
 =head4 dist_author
 =head4 author (Module::Install synonym)
@@ -189,9 +201,14 @@ Functions in this section are used when generating metadata for I<META.yml> and 
 	dist_author 'John Doe <jdoe@example.com>';
 	author 'Jane Doe <doej@example.com>';
 	
-This should be something like "John Doe <jdoe@example.com>", or if there are multiple authors, this routine can be called multiple times, or an anonymous array of strings may be specified. 
+This should be something like "John Doe <jdoe@example.com>", or if there are 
+multiple authors, this routine can be called multiple times, or an anonymous 
+array of strings may be specified. 
 	
-If either this function, L<author_from>, or L<#all_from> is not used, then Module::Build looks at the module from which it gets the distribution's version. If it finds a POD section marked "=head1 AUTHOR", then it uses the contents of this section.
+If either this function, L<author_from>, or L<#all_from> is not used, then 
+Module::Build looks at the module from which it gets the distribution's 
+version. If it finds a POD section marked "=head1 AUTHOR", then it uses the 
+contents of this section.
 
 =head4 dist_name
 
@@ -251,6 +268,41 @@ common one used on the CPAN.
 If you generate a README in this way, it's probably a good idea to create a 
 separate INSTALL file if that information isn't in the generated README.
 
+=head4 dynamic_config
+
+	dynamic_config 1;
+
+This function indicates whether the Build.PL file must be executed, or 
+whether this module can be built, tested and installed solely from 
+consulting its metadata file. The main reason to set this to a true value 
+is that your module performs some dynamic configuration as part of its 
+build/install process. If the flag is omitted, the META.yml spec says that 
+installation tools should treat it as 1 (true), because this is a safer way 
+to behave.
+
+Currently Module::Build doesn't actually do anything with this flag - it's up 
+to higher-level tools like CPAN.pm to do something useful with it. It can 
+potentially bring lots of security, packaging, and convenience improvements.
+
+=head4 installdirs
+
+	# Not accumulative - last one of installdirs or 
+	# any aliases to installdirs will be used.
+	installdirs 'site';
+	installdirs 'core';
+	installdirs 'vendor';
+	
+Determines where files are installed within the normal perl hierarchy as 
+determined by Config.pm. Valid values are: core, site, vendor. The 
+default is site. See L<Module::Build#INSTALL PATHS>
+
+=head4 license
+
+	license 'perl';
+
+Specifies the licensing terms of your distribution. Valid licenses are listed in 
+L<Module::Build::API>.
+
 =head3 Other functions
 
 =head4 add_to_cleanup
@@ -294,6 +346,35 @@ This is used if the subclass has requirements that are satisfied by
 L<#build_requires>, but are not neccessarily installed when Build.PL 
 will be executed.
 
+=head4 extra_compiler_flags
+=head4 extra_linker_flags
+
+These parameters can contain strings (which are split on whitespace and accumulate into an array reference in the order added) or array references to pass through to the compiler and linker phases when compiling/linking C code.
+For example, to tell the compiler that your code is C++, you might do:
+
+    extra_compiler_flags '-x c++';
+
+To link your XS code against glib you might write something like:
+
+    extra_compiler_flags scalar `glib-config --cflags`;
+    extra_linker_flags   scalar `glib-config --libs`;
+
+=head3 Supported Module::Install syntax
+	
+=head4 install_as_core
+=head4 install_as_cpan
+
+Alias for C<installdirs 'core';>. See L<#installdirs>.
+
+=head4 install_as_site
+
+Alias for C<installdirs 'site';>. See L<#installdirs>.
+
+=head4 install_as_vendor
+
+Alias for C<installdirs 'vendor';>. See L<#installdirs>.
+
+	 
 =head1 DIAGNOSTICS
 
 =for author to fill in:
