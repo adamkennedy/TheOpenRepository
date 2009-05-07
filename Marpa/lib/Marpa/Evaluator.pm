@@ -47,7 +47,8 @@ use Marpa::Offset qw(
     ARGC RULE POSITION
     PARENT_NODE_ID
     PARENT_CHOICE
-    RANK
+
+    { delete this } RANK
 
 );
 
@@ -55,14 +56,20 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Or_Node
 
-    NAME ID AND_NODES
-    IS_COMPLETED :{ is this a completed or-node? :}
+    NAME ID AND_NODE_IDS
+
+    { Delete this ... }
+    AND_NODES
+    { ... and this }
+    IS_COMPLETED { is this a completed or-node? }
+
     START_EARLEME END_EARLEME
     PARENTS
 );
 
 use Marpa::Offset qw(
 
+    { Delete this whole thing }
     :{ Will these be needed? :}
     :package=Marpa::Internal::Tree_Node
 
@@ -80,29 +87,14 @@ use Marpa::Offset qw(
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
     OR_NODES
     AND_NODES
-    TREE { current evaluation tree }
+    { Delete this } TREE { current evaluation tree }
     RULE_DATA
     PACKAGE
     NULL_VALUES
-    CYCLES { Will this be needed? }
+    { Delete this } CYCLES { Will this be needed? }
     JOURNAL
-
-    RANKED_NODES {
-    Pointer to an array with
-    the information in the Marpa::Internal::Ranked_Node
-    structure for each and-node.
-    The elements of the array are ranked by priority.
-    }
-
-);
-
-use Marpa::Offset qw(
-
-    :package=Marpa::Internal::Ranked_Node
-
-    DECISION
-    SIGNATURE
-    AND_NODE
+    INSTANCES
+    DECISIONS
 
 );
 
@@ -111,19 +103,16 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Journal_Tag
 
-    DECIDE_NODE { A decision to accept a ranked and node.
-    Banned and nodes cannot be iterated further and so are not
-    recorded in the journal. }
+    NODE { A decision to accept or reject an and-node. }
 
-    DECIDE_FORK { A decision to follow one branch of a fork
+    FORK { A decision to follow one branch of a fork
     up the parse bocage. }
 
-    RESULT { An implication of a decision.
-    The implication either accepts or rejects an and-node }
+    { Delete this } DECIDE_NODE
+    { Delete this } DECIDE_FORK
+    { Delete this } RESULT
 
 );
-
-package Marpa::Internal::Evaluator;
 
 use Marpa::Offset qw(
 
@@ -131,6 +120,16 @@ use Marpa::Offset qw(
     CODE PERL_CLOSURE
 
 );
+
+use Marpa::Offset qw(
+
+    { Delete all these }
+    :package=Marpa::Internal::Ranked_Node
+    DECISION
+
+);
+
+package Marpa::Internal::Evaluator;
 
 use Scalar::Util qw(weaken);
 use List::Util qw(min);
@@ -580,6 +579,7 @@ sub Marpa::Evaluator::new {
         my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME] =
             $start_item->[Marpa::Internal::Earley_Item::NAME];
         $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
+        $or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS]  = [0];
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
@@ -595,7 +595,8 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::END_EARLEME] = 0;
         $and_node->[Marpa::Internal::And_Node::ID]          = 0;
 
-        push @{$or_nodes}, $or_node;
+        push @{$or_nodes},  $or_node;
+        push @{$and_nodes}, $and_node;
 
         return $self;
 
@@ -804,6 +805,8 @@ sub Marpa::Evaluator::new {
             @{$or_nodes};
         $or_node->[Marpa::Internal::Or_Node::NAME]      = $sapling_name;
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
+        $or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS] =
+            [ map { $_->[Marpa::Internal::And_Node::ID] } @child_and_nodes ];
         for my $and_node_choice ( 0 .. scalar @child_and_nodes ) {
             my $and_node = $child_and_nodes[$and_node_choice];
             $and_node->[Marpa::Internal::And_Node::PARENT_NODE_ID] =
@@ -827,11 +830,11 @@ sub Marpa::Evaluator::new {
     for my $parent_or_node ( @{$or_nodes} ) {
         my $parent_or_node_id =
             $parent_or_node->[Marpa::Internal::Or_Node::ID];
-        my $child_and_nodes =
-            $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        for my $choice ( 0 .. scalar @{$child_and_nodes} ) {
-            my $and_node    = $child_and_nodes->[$choice];
-            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+        my $child_and_node_ids =
+            $parent_or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS];
+        for my $choice ( 0 .. $#{$child_and_node_ids} ) {
+            my $and_node_id = $child_and_node_ids->[$choice];
+            my $and_node    = $and_nodes->[$and_node_id];
 
             FIELD:
             for my $field (
@@ -847,7 +850,7 @@ sub Marpa::Evaluator::new {
                     $and_node_id;
             } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
-        } ## end for my $choice ( 0 .. scalar @{$child_and_nodes} )
+        } ## end for my $choice ( 0 .. $#{$child_and_node_ids} )
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
     return $self;
@@ -915,15 +918,22 @@ sub Marpa::Evaluator::show_decisions {
     $verbose //= 0;
     my $return_value = q{};
 
-    my $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES];
+    my $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES];
+    my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
-    for my $rank ( 0 .. $#{$ranked_nodes} ) {
-        my ( $decision, $signature, $and_node ) = @{ $ranked_nodes->[$rank] };
-        $return_value
-            .= "$rank: "
-            . Marpa::show_decision($decision) . q{ }
-            . Marpa::show_and_node( $and_node, $verbose );
-    } ## end for my $rank ( 0 .. $#{$ranked_nodes} )
+    for my $rank ( 0 .. $#{$instances} ) {
+        my $and_node_ids = $instances->[$rank];
+        for my $choice ( 0 .. $#{$and_node_ids} ) {
+            my $and_node_id = $and_node_ids->[$choice];
+            my $decision    = $decisions->[$and_node_id];
+            my $and_node    = $and_nodes->[$and_node_id];
+            $return_value
+                .= "$rank.$choice: "
+                . Marpa::show_decision($decision) . q{ }
+                . Marpa::show_and_node( $and_node, $verbose );
+        } ## end for my $choice ( 0 .. $#{$and_node_ids} )
+    } ## end for my $rank ( 0 .. $#{$instances} )
 
     return $return_value;
 
@@ -933,11 +943,10 @@ sub Marpa::Evaluator::show_bocage {
     my ( $evaler, $verbose ) = @_;
     $verbose //= 0;
 
-    my ( $parse_count, $or_nodes, $package, ) = @{$evaler}[
-        Marpa::Internal::Evaluator::PARSE_COUNT,
-        Marpa::Internal::Evaluator::OR_NODES,
-        Marpa::Internal::Evaluator::PACKAGE,
-    ];
+    my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT];
+    my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $package     = $evaler->[Marpa::Internal::Evaluator::PACKAGE];
+    my $and_nodes   = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
     my $text =
         'package: ' . $package . '; parse count: ' . $parse_count . "\n";
@@ -945,10 +954,11 @@ sub Marpa::Evaluator::show_bocage {
     for my $or_node ( @{ $evaler->[OR_NODES] } ) {
 
         my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME];
-        my $and_nodes    = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        my $and_node_ids = $or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS];
 
-        for my $index ( 0 .. $#{$and_nodes} ) {
-            my $and_node = $and_nodes->[$index];
+        for my $index ( 0 .. $#{$and_node_ids} ) {
+            my $and_node_id = $and_node_ids->[$index];
+            my $and_node    = $and_nodes->[$and_node_id];
 
             my $and_node_name = $or_node_name . '[' . $index . ']';
             if ( $verbose >= 2 ) {
@@ -957,7 +967,7 @@ sub Marpa::Evaluator::show_bocage {
 
             $text .= Marpa::show_and_node( $and_node, $verbose );
 
-        } ## end for my $index ( 0 .. $#{$and_nodes} )
+        } ## end for my $index ( 0 .. $#{$and_node_ids} )
 
     } ## end for my $or_node ( @{ $evaler->[OR_NODES] } )
 
@@ -1080,9 +1090,10 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $journal      = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
-    my $and_nodes    = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES];
+    my $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
+    my $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -1127,17 +1138,17 @@ sub Marpa::Evaluator::new_value {
 
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
         # Note the use of Unicode for packing, which I've not seen anyone else do.
-        my @decorated_indexes = ();
-        my @unranked_nodes    = ();
+        my %instances_by_sortkey = ();
         OR_NODE: for my $or_node ( @{$or_nodes} ) {
             my $start_earleme =
                 $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
             my $end_earleme =
                 $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
             my $or_node_children =
-                $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-            for my $and_node ( @{$or_node_children} ) {
-                my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+                $or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS];
+            for my $and_node_id ( @{$or_node_children} ) {
+                my $and_node = $and_nodes->[$and_node_id];
+                my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
                 my $user_priority =
                     $rule->[Marpa::Internal::Rule::USER_PRIORITY];
                 $user_priority //= 0;
@@ -1173,12 +1184,6 @@ sub Marpa::Evaluator::new_value {
                     $location = $earleme_beyond_last - $start_earleme;
                 }
 
-                my $record_counter = @unranked_nodes;
-                my $rule_id        = $rule->[Marpa::Internal::Rule::ID];
-                my $signature      = pack 'N*', $rule_id, $start_earleme,
-                    $end_earleme;
-                push @unranked_nodes, [ undef, $signature, $and_node ];
-
                 # The sort order must
                 # 1.) Preserve the chaf order that is in the internal priority.
                 #     The below does that because all chaf pieces share the same
@@ -1195,37 +1200,30 @@ sub Marpa::Evaluator::new_value {
                 # overflow will occur long before it is reached,
                 # but someday technology may allow there to be 2**31
                 # rules.  Something to live for. :-)
-                push @decorated_indexes,
-                    (
-                    pack 'N4a12N',
-                    $location, $user_priority, $internal_priority, $laziness,
-                    $signature, $record_counter
-                    );
 
-            } ## end for my $and_node ( @{$or_node_children} )
+                my $rule_id = $rule->[Marpa::Internal::Rule::ID];
+                my $rule_position =
+                    $and_node->[Marpa::Internal::And_Node::POSITION];
+                my $sort_key = pack 'N*',
+                    $location, $user_priority, $internal_priority, $laziness,
+                    $rule_id, $rule_position, $start_earleme, $end_earleme;
+                push @{ $instances_by_sortkey{$sort_key} }, $and_node_id;
+
+            } ## end for my $and_node_id ( @{$or_node_children} )
         } ## end for my $or_node ( @{$or_nodes} )
 
-        $ranked_nodes = $evaler->[Marpa::Internal::Evaluator::RANKED_NODES] =
-            [
-            @unranked_nodes[
-                map { unpack 'N', ( substr $_, NEGATIVE_N_WIDTH ) }
-                reverse sort @decorated_indexes
-            ]
-            ];
-
-        # Not that the and nodes are ranked,
-        # annotate each and node with its rank.
-        for my $node_ix ( 0 .. $#{$ranked_nodes} ) {
-            $ranked_nodes->[$node_ix]
-                ->[Marpa::Internal::Ranked_Node::AND_NODE]
-                ->[Marpa::Internal::And_Node::RANK] = $node_ix;
-        }
-
+        $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES] =
+            [ reverse map { $instances_by_sortkey{$_} }
+                sort keys %instances_by_sortkey ];
         $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL] = [];
         @tasks = ( [ Marpa::Internal::Task::DECIDE_NODES, 0 ] );
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
+
+    # temporary hacks for testing;
+    return if defined $journal;
+    my $ranked_nodes;
 
     ## This code is inherently complex, and like a case statement
     ## in that one case is laid out after another.  The performance
@@ -1853,8 +1851,9 @@ sub Marpa::Evaluator::new_value {
                     my $or_node    = $or_nodes->[0];
                     my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID];
                     my $choice     = $or_node_choices[$or_node_id];
-                    $or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                        ->[$choice];
+                    $and_nodes
+                        ->[ $or_node->[Marpa::Internal::Or_Node::AND_NODE_IDS]
+                        ->[$choice] ];
                     } ## end do
             );
             OR_NODE: while ( my $and_node = pop @work_list ) {
@@ -1871,16 +1870,18 @@ sub Marpa::Evaluator::new_value {
                         $left_or_node->[Marpa::Internal::Or_Node::ID];
                     my $choice = $or_node_choices[$or_node_id];
                     push @work_list,
-                        $left_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                        ->[$choice];
+                        $and_nodes->[ $left_or_node
+                        ->[Marpa::Internal::Or_Node::AND_NODE_IDS]->[$choice]
+                        ];
                 } ## end if ( defined $left_or_node )
                 if ( defined $right_or_node ) {
                     my $or_node_id =
                         $right_or_node->[Marpa::Internal::Or_Node::ID];
                     my $choice = $or_node_choices[$or_node_id];
                     push @work_list,
-                        $right_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                        ->[$choice];
+                        $and_nodes->[ $right_or_node
+                        ->[Marpa::Internal::Or_Node::AND_NODE_IDS]->[$choice]
+                        ];
                 } ## end if ( defined $right_or_node )
                 push @preorder, $and_node;
             } ## end while ( my $and_node = pop @work_list )
