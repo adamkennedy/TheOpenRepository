@@ -12,27 +12,58 @@ minimum_regex_length_to_complain_about = 7
 
 [InputOutput::RequireCheckedSyscalls]
 functions = :builtins
-exclude_functions = print
-
-[Variables::ProhibitPackageVars]
-add_packages = Module::CoreList
+exclude_functions = print close
 
 [Modules::PerlMinimumVersion]
-version = 5.006
+version = 5.005
 
 # Exclusions
+
+# Since Readonly is not an option here, I turn this off.
 [-ValuesAndExpressions::ProhibitMagicNumbers]
+
+# I know people for whom 4 spaces is too little, but 8 is too much for me.
 [-CodeLayout::ProhibitHardTabs]
+
+# My opinion is that unless is fine.
 [-ControlStructures::ProhibitUnlessBlocks]
+
+# We use an RCS, and that's the point of this. No need for keywords.
 [-Miscellanea::RequireRcsKeywords]
+
+# Some routines just pass it on.
 [-Subroutines::RequireArgUnpacking]
-[-Subroutines::ProhibitExplicitReturnUndef]
+
+# Since this is to be included in distributions, I have a separate pod.
 [-Documentation::RequirePodAtEnd]
 [-Documentation::RequirePodSections]
-[-ValuesAndExpressions::ProhibitCommaSeparatedStatements]
-[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
-[-ValuesAndExpressions::RestrictLongStrings]
+
+# I don't USE emacs!
 [-Editor::RequireEmacsFileVariables]
 
-# For now
-[-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+# We can't use exceptions in this module because
+# prerequisites have to be minimized.
+[-ErrorHandling::RequireUseOfExceptions]
+
+# Can't require use warnings, since we're aiming pre-5.006.
+[-TestingAndDebugging::RequireUseWarnings]
+
+# This deliberately exports everything!
+[-Modules::ProhibitAutomaticExportation]
+
+# We have to have an AUTOLOAD in this one, bad or not.
+[-ClassHierarchies::ProhibitAutoloading]
+
+# For the simple stuff, there's no need for this.
+[-RegularExpressions::RequireDotMatchAnything]
+[-RegularExpressions::RequireLineBoundaryMatching]
+
+# Since AUTOLOAD uses string eval's, I turn this off.
+[-BuiltinFunctions::ProhibitStringyEval]
+[-ErrorHandling::RequireCheckingReturnValueOfEval]
+
+# Since AUTOLOAD uses string eval's, I turn this off.
+[-References::ProhibitDoubleSigils]
+
+# check close on a READ???
+[-InputOutput::RequireCheckedClose]
