@@ -611,12 +611,15 @@ sub write_msi {
 		                               # feature for Win9X)
 		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
+		'-v',                          # Verbose for the moment.
 		'-out', $output_msi,
 		'-ext', wix_lib_wixui(),
 		$input_wixobj,
 		$input_wixouts,
 	];
 	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	$self->trace_line( 1, $out );
 
 	# Did everything get done correctly?
 	unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {

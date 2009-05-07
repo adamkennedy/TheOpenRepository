@@ -3114,7 +3114,6 @@ sub install_distribution_from_file {
 			  . " requires packlist => 0 *****\n" );
 	}
 
-
 	# Where will it get extracted to
 	my $dist_path = $filename;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
@@ -3162,13 +3161,13 @@ sub install_distribution_from_file {
 
 		$self->trace_line( 2, "Configuring $name...\n" );
 		$buildpl
-		  ? $self->_perl( 'Build.PL',    @{ $dist->makefilepl_param } )
-		  : $self->_perl( 'Makefile.PL', @{ $dist->makefilepl_param } );
+		  ? $self->_perl( 'Build.PL',    @{ $dist->{buildpl_param} } )
+		  : $self->_perl( 'Makefile.PL', @{ $dist->{makefilepl_param} } );
 
 		$self->trace_line( 1, "Building $name...\n" );
 		$buildpl ? $self->_build : $self->_make;
 
-		unless ( $dist->force ) {
+		unless ( $dist->{force} ) {
 			$self->trace_line( 2, "Testing $name...\n" );
 			$buildpl ? $self->_build('test') : $self->_make('test');
 		}

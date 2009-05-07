@@ -5,7 +5,7 @@ package Perl::Dist::WiX::Misc;
 #
 # Copyright 2009 Curtis Jewell
 #
-# License is the same as perl. See Wix.pm for details.
+# License is the same as perl. See WiX.pm for details.
 #
 # NOTE: This is a base class with miscellaneous routines.  It is
 # meant to be subclassed, as opposed to creating objects of this

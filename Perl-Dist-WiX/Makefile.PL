@@ -9,7 +9,7 @@ if (author_context) {
 }
 
 all_from       'lib/Perl/Dist/WiX.pm';
-requires       'perl'                 => '5.006';
+# perl_version   '5.006';
 requires       'version'              => '0.76';
 requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';
