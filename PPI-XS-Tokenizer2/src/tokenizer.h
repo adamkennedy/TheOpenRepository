@@ -7,6 +7,19 @@
 #include "string.h"
 
 #include "Token.h"
+#include "AbstractQuoteTokenType.h"
+#include "AbstractBareQuoteTokenType.h"
+#include "AbstractSimpleQuote.h"
+#include "simpleTokens.h"
+#include "CommentToken.h"
+#include "OperatorToken.h"
+#include "SymbolToken.h"
+#include "StructureToken.h"
+#include "WhiteSpaceToken.h"
+#include "MagicToken.h"
+#include "numbers.h"
+#include "word.h"
+#include "TokenCache.h"
 
 #define NUM_SIGNIFICANT_KEPT 3
 

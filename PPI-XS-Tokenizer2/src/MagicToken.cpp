@@ -1,3 +1,5 @@
+#include "MagicToken.h"
+
 #include "tokenizer.h"
 #include "forward_scan.h"
 

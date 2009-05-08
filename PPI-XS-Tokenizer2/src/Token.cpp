@@ -93,3 +93,8 @@ void AbstractExtendedTokenType::FreeToken( TokensCacheMany& tc, Token *token ) {
 	tc.quote.store( t2 );
 }
 
+
+bool AbstractExtendedTokenType::isa( TokenTypeNames is_type ) const {
+	return ( AbstractTokenType::isa(is_type) || 
+		   ( is_type == isToken_Extended) );
+}

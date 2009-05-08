@@ -1,11 +1,12 @@
-#include "tokenizer.h"
+#include "AbstractQuoteTokenType.h"
+
 #include "forward_scan.h"
 
 using namespace PPITokenizer;
 
 enum ExtendedTokenState {
 	inital = 0, // not even detected the type of quote
-	consume_whitespaces,
+	consume_whitespace,
 	in_section_braced, 
 	in_section_not_braced,
 };
@@ -119,7 +120,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer 
 }
 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeWhitespaces(Tokenizer *t, ExtendedToken *token) {
-	token->state = consume_whitespaces;
+	token->state = consume_whitespace;
 	while ( t->line_length > t->line_pos ) {
 		unsigned char my_char = t->c_line[ t->line_pos ];
 		if ( is_whitespace( my_char ) ) {
@@ -156,7 +157,7 @@ CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1
 	switch ( token->state ) {
 		case inital:
 			return StateFuncExamineFirstChar( t, token );
-		case consume_whitespaces:
+		case consume_whitespace:
 			return StateFuncConsumeWhitespaces( t,  token );
 		case in_section_braced:
 			return StateFuncInSectionBraced( t, token );
@@ -166,21 +167,9 @@ CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1
 	return error_fail;
 }
 
-CharTokenizeResults AbstractBareQuoteTokenType::StateFuncExamineFirstChar(Tokenizer *t, ExtendedToken *token) {
-	// in this case, we are already after the first char. 
-	// rewind and let the boot strap section to handle it
-	token->length--;
-	t->line_pos--;
-	return StateFuncBootstrapSection( t, token );
-}
-
 bool AbstractQuoteTokenType::isa( TokenTypeNames is_type ) const {
 	return ( AbstractTokenType::isa(is_type) || 
 		   ( is_type == isToken_QuoteOrQuotaLike) ||
 		   ( is_type == isToken_Extended) );
 }
 
-bool AbstractExtendedTokenType::isa( TokenTypeNames is_type ) const {
-	return ( AbstractTokenType::isa(is_type) || 
-		   ( is_type == isToken_Extended) );
-}

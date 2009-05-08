@@ -1,4 +1,4 @@
-#include "tokenizer.h"
+#include "AbstractSimpleQuote.h"
 
 using namespace PPITokenizer;
 
@@ -25,3 +25,4 @@ CharTokenizeResults AbstractSimpleQuote::tokenize(Tokenizer *t, Token *token, un
 bool AbstractSimpleQuote::isa( TokenTypeNames is_type ) const {
 	return ( AbstractTokenType::isa(is_type) || ( is_type == isToken_QuoteOrQuotaLike) );
 }
+

@@ -1,4 +1,5 @@
 
+#include "word.h"
 #include "tokenizer.h"
 #include "forward_scan.h"
 
@@ -372,3 +373,4 @@ CharTokenizeResults SeparatorToken::tokenize(Tokenizer *t, Token *token, unsigne
 	// should never reach here - the Word token will take care of me
 	return error_fail;
 }
+

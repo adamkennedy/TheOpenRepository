@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "WhiteSpaceToken.h"
 #include "tokenizer.h"
 #include "forward_scan.h"
 
@@ -210,47 +211,3 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
     return error_fail;
 }
 
-extern const char end_pod[] = "=cut";
-CharTokenizeResults PodToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	// will enter here only on the line's start, but not nessesery on byte 0.
-	// there may be a BOM before it.
-	PredicateLiteral< 4, end_pod > regex;
-	unsigned long pos = t->line_pos;
-	// suck the line anyway
-	for ( unsigned long ix = pos; ix < t->line_length; ix++ ) {
-		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
-	}
-	if ( regex.test( t->c_line, &pos, t->line_length ) &&
-		( ( pos >= t->line_length ) || is_whitespace( t->c_line[ pos ] ) ) ) {
-		TokenTypeNames zone = t->_finalize_token();
-		t->_new_token(zone);
-	}
-	return done_it_myself;
-}
-
-CharTokenizeResults EndToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	// will always reach here in a new line
-	PredicateAnd<
-		PredicateIsChar< '=' >,
-		PredicateFunc< is_word >
-	> regex1;
-	unsigned long pos = 0;
-	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
-		t->_finalize_token();
-		t->_new_token( Token_Pod );
-		return done_it_myself;
-	}
-	// if not Pod - just copy the whole line to myself
-	while ( t->line_length > t->line_pos ) {			
-		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
-	}
-	return done_it_myself;
-}
-
-CharTokenizeResults DataToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	// copy everything anytime
-	while ( t->line_length > t->line_pos ) {			
-		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
-	}
-	return done_it_myself;
-}
