@@ -1,13 +1,21 @@
-lib/UWO/Directory/Student.pm
+Build.PL
+LICENSE
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-README
-t/00load.t
+META.yml
+lib/WebService/UWO/Directory/Student.pm
+t/00signature.t
+t/01compile.t
+t/01critic.rc
+t/01critic.t
+t/01kwalitee.t
+t/01manifest.t
 t/01meta.t
+t/01min-perl.t
 t/01pod.t
 t/01pod-coverage.t
-t/01strict.t
+t/01portability.t
 t/02core.t
 t/03live.t
 t/03parser.t

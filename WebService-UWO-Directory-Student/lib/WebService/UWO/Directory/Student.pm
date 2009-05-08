@@ -31,11 +31,13 @@ Version 0.2 ($Id$)
 
 use version; our $VERSION = qv('0.2');
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 This module provides a Perl interface to the public directory search system
 which lists current students at the University of Western Ontario. For more
 information, see the web interface at L<http://uwo.ca/westerndir/>.
+
+=head1 SYNOPSIS
 
 Example code:
 
@@ -101,7 +103,7 @@ sub new {
     server    => $params->{server} || 'localhost',
   };
 
-  bless($self, $class);
+  return bless($self, $class);
 }
 
 =head2 $dir->lookup(\%params)
@@ -172,9 +174,29 @@ codes before attempting to dereference the expected array/hash.
 
 =head3 Record Format
 
-Each returned record will be a hash with the following fields: last_name,
-given_name (which may contain middle names), email (the registered @uwo.ca
-e-mail address) and faculty. You may explore this using C<Data::Dumper>.
+Each returned record will be a hash with the following fields:
+
+=over
+
+=item *
+
+last_name,
+
+=item *
+
+given_name (which may contain middle names)
+
+=item *
+
+email (the registered @uwo.ca e-mail address)
+
+=item *
+
+faculty
+
+=back
+
+You may explore this using C<Data::Dumper>.
 
 =cut
 
@@ -183,14 +205,14 @@ sub lookup {
 
   Carp::croak('You must call this method as an object') unless ref $self;
 
-  Carp::croak('Parameter not a hash reference!') unless ref($params) eq 'HASH';
+  Carp::croak('Parameter not a hash reference') unless ref($params) eq 'HASH';
 
   Carp::croak('No search parameters provided')
-   unless(
-    exists($params->{first}) ||
-    exists($params->{last})  ||
-    exists($params->{email})
-   );
+    unless(
+      exists($params->{first}) ||
+      exists($params->{last})  ||
+      exists($params->{email})
+    );
 
   # Don't do anything in void context
   unless (defined wantarray) {
@@ -209,7 +231,7 @@ sub lookup {
       }
     }
     else {
-      Carp::croak('Need a UWO username or e-mail address');
+      Carp::croak('Only UWO usernames and addresses can be searched');
     }
 
     # Discover query by deconstructing the username
@@ -227,7 +249,7 @@ sub lookup {
       }
     }
     else {
-      Carp::croak('Given username does not match UWO username pattern.');
+      Carp::croak('Given username does not match UWO username pattern');
     }
   }
   else {
@@ -272,7 +294,8 @@ sub _query {
     query  => $query,
   });
 
-  die 'Error reading response: ' . $r->status_line unless $r->is_success;
+  Carp::croak('Error reading response: ' . $r->status_line)
+    unless $r->is_success;
 
   return \$r->content;
 }
