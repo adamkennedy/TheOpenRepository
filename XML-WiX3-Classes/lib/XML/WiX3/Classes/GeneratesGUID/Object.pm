@@ -1,12 +1,12 @@
-package XML::WiX3::Objects::GeneratesGUID::Object;
+package XML::WiX3::Classes::GeneratesGUID::Object;
 
 #<<<
 use     5.006;
 use		MooseX::Singleton;
 use     vars                      qw( $VERSION      );
 use     Data::UUID                qw( NameSpace_DNS );
-use     XML::WiX3::Objects::Types qw( Host          );
-require XML::WiX3::Objects::Exceptions;
+use     XML::WiX3::Classes::Types qw( Host          );
+require XML::WiX3::Classes::Exceptions;
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -15,7 +15,7 @@ use version; $VERSION = version->new('0.003')->numify;
 #####################################################################
 # Attributes
 
-with 'XML::WiX3::Objects::Traceable';
+with 'XML::WiX3::Classes::Traceable';
 
 has sitename (
     is      => 'ro',
@@ -92,17 +92,17 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Objects - Objects useful for generating Windows Installer XML files.
+XML::WiX3::Classes - Classes useful for generating Windows Installer XML files.
 
 
 =head1 VERSION
 
-This document describes XML::WiX3::Objects version 0.003
+This document describes XML::WiX3::Classes version 0.003
 
 
 =head1 SYNOPSIS
 
-    # use XML::WiX3::Objects;
+    # use XML::WiX3::Classes;
 
 =for author to fill in:
     Brief code example(s) here showing commonest usage(s).
@@ -122,7 +122,7 @@ This document describes XML::WiX3::Objects version 0.003
 =for author to fill in:
     Write a separate section listing the public components of the modules
     interface. These normally consist of either subroutines that may be
-    exported, or methods that may be called on objects belonging to the
+    exported, or methods that may be called on Classes belonging to the
     classes provided by the module.
 
 
@@ -158,7 +158,7 @@ This document describes XML::WiX3::Objects version 0.003
     that can be set. These descriptions must also include details of any
     configuration language used.
   
-XML::WiX3::Objects requires no configuration files or environment variables.
+XML::WiX3::Classes requires no configuration files or environment variables.
 
 
 =head1 DEPENDENCIES
@@ -193,7 +193,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-objects@rt.cpan.org>, or through the web interface at
+C<bug-xml-wix3-Classes@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 

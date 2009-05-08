@@ -1,5 +1,5 @@
 package # Hide from PAUSE.
-	XML::WiX3::Objects::Types;
+	XML::WiX3::Classes::Types;
 
 use 5.008001;
 use Regexp::Common 2.105;

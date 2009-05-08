@@ -1,11 +1,11 @@
-package XML::WiX3::Objects::Role::Tag;
+package XML::WiX3::Classes::Role::Tag;
 
 ####################################################################
-# XML::WiX3::Objects::Base - Miscellaneous routines for Perl::Dist::WiX.
+# XML::WiX3::Classes::Base - Miscellaneous routines for Perl::Dist::WiX.
 #
 # Copyright 2009 Curtis Jewell
 #
-# License is the same as perl. See Objects.pm for details.
+# License is the same as perl. See Classes.pm for details.
 
 #<<<
 use     5.006;
@@ -13,7 +13,7 @@ use		Moose::Role;
 use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
 use     MooseX::AttributeHelpers;
-require XML::WiX3::Objects::Exceptions;
+require XML::WiX3::Classes::Exceptions;
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -27,7 +27,7 @@ use version; $VERSION = version->new('0.003')->numify;
 has tags(
 	metaclass => 'Collection::Array',
 	is => 'rw',
-	isa => 'ArrayRef[XML::WiX3::Objects::Tag]',
+	isa => 'ArrayRef[XML::WiX3::Classes::Tag]',
 	init_arg => undef,
 	default => sub { return []; },
 	provides => {
@@ -90,19 +90,19 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Objects::Role::Tag - Base role for XML tags.
+XML::WiX3::Classes::Role::Tag - Base role for XML tags.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Objects::Role::Tag version 0.003
+This document describes XML::WiX3::Classes::Role::Tag version 0.003
 
 =head1 SYNOPSIS
 
-    # use XML::WiX3::Objects;
+    # use XML::WiX3::Classes;
 
 =head1 DESCRIPTION
 
-This is the base class for all objects that represent XML tags.
+This is the base class for all Classes that represent XML tags.
 
 =head1 INTERFACE 
 
@@ -114,7 +114,7 @@ This routine indents the string passed in with the given number of spaces.
 
 =head1 DIAGNOSTICS
 
-See L<XML::WiX3::Objects#DIAGNOSTICS> for the diagnostics this module uses.
+See L<XML::WiX3::Classes#DIAGNOSTICS> for the diagnostics this module uses.
 
 =head1 INCOMPATIBILITIES
 
@@ -125,7 +125,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-objects@rt.cpan.org>, or through the web interface at
+C<bug-xml-wix3-Classes@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

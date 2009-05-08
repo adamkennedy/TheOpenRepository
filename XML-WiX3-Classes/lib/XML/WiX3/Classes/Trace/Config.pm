@@ -1,5 +1,5 @@
 package # Hide from PAUSE.
-	XML::WiX3::Objects::Trace::Config;
+	XML::WiX3::Classes::Trace::Config;
 
 use 5.008001;
 use Moose;
@@ -13,7 +13,7 @@ Readonly my @LEVELS => ('error', 'notice', 'warning', 'info', 'info', 'debug');
 Readonly my @CONFIGS => ('screen0', 'screen1', 'screen2', 'screen3');
 
 extends 'Log::Dispatch::Configurator';
-with 'XML::WiX3::Objects::Trace::Role';
+with 'XML::WiX3::Classes::Trace::Role';
 
 sub get_attrs_global {
 	my $self = shift;

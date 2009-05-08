@@ -1,5 +1,5 @@
 package # Hide from PAUSE.
-	XML::WiX3::Objects::Role::Traceable;
+	XML::WiX3::Classes::Role::Traceable;
 
 use 5.008001;
 use Moose::Role;
@@ -13,7 +13,7 @@ has trace_opts (
 
 has _traceobject (
     is  => 'ro',
-    isa => 'XML::WiX3::Objects::Trace::Object',
+    isa => 'XML::WiX3::Classes::Trace::Object',
 	lazy => 1,
 	init_arg => undef,
 	builder => '_setup_traceobject',
@@ -22,7 +22,7 @@ has _traceobject (
 
 sub _setup_traceobject {
 	my $self = shift;
-	return XML::WiX3::Objects::Trace::Object->new( 
+	return XML::WiX3::Classes::Trace::Object->new( 
 	  %{ $self->trace_opts() }, 
 	  use_logger_singleton => 1,
 	);

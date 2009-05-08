@@ -1,5 +1,5 @@
 package # Hide from PAUSE.
-	XML::WiX3::Objects::Role::StrictConstructor;
+	XML::WiX3::Classes::Role::StrictConstructor;
 
 use strict;
 use warnings;

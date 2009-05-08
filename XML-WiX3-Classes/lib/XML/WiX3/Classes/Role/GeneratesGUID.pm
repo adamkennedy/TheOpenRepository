@@ -1,9 +1,9 @@
 package # Hide from PAUSE.
-	XML::WiX3::Objects::Role::GeneratesGUID;
+	XML::WiX3::Classes::Role::GeneratesGUID;
 
 use 5.008001;
 use Moose::Role;
-use XML::WiX3::Objects::Types qw(Host);
+use XML::WiX3::Classes::Types qw(Host);
 
 use version; our $VERSION = version->new('0.003')->numify;
 
@@ -16,12 +16,12 @@ has sitename (
 
 has _guidobject (
     is       => 'ro',
-    isa      => 'XML::WiX3::Objects::GeneratesGUID::Object',
+    isa      => 'XML::WiX3::Classes::GeneratesGUID::Object',
 	lazy     => 1,
 	init_arg => undef,
 	builder  => sub {
 		my $self = shift;
-		return XML::WiX3::Objects::GeneratesGUID::Object->new(
+		return XML::WiX3::Classes::GeneratesGUID::Object->new(
 			sitename => $self->_get_sitename()
 		);
 	},

@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::Files;
+package XML::WiX3::Classes::FilesFragment;
 
 ####################################################################
 # Perl::Dist::WiX::Files - <Fragment> tag that contains
@@ -23,7 +23,8 @@ require Perl::Dist::WiX::Files::DirectoryRef;
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-with 'XML::WiX3::Objects::Role::Tag';
+with 'XML::WiX3::Classes::Role::Tag';
+with 'XML::WiX3::Classes::Role::Fragment';
 
 Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';
 

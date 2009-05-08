@@ -1,4 +1,4 @@
-package XML::WiX3::Objects::Exceptions;
+package XML::WiX3::Classes::Exceptions;
 
 ####################################################################
 # XML::WiX3::Objects::Exceptions - Exceptions used in XML::WiX3::Objects.
@@ -22,24 +22,24 @@ use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
 use Exception::Class 1.22 (
-	'XWObj'            => { 
+	'XWC::Exception'            => { 
 		'description' => 'XML::WiX3::Objects error', 
 	},
-	'XWObj::Parameter' => {
+	'XWC::Exception::Parameter' => {
 		'description' =>
 		  'XML::WiX3::Objects error: Parameter missing or invalid',
-		'isa'    => 'XML::WiX3::Objects::Exception',
+		'isa'    => 'XWC::Exception',
 		'fields' => [ 'parameter', 'where', 'info' ],
 	},
-	'XWObj::Caught' => {
+	'XWC::Exception::Caught' => {
 		'description' =>
-		  'Error caught by XML3::WiX::Objects from other module',
-		'isa'    => 'XML::WiX3::Objects::Exception',
+		  'Error caught by XML3::WiX::Classes from other module',
+		'isa'    => 'XWC::Exception',
 		'fields' => [ 'message', 'info' ],
 	},
 );
 
-sub XWObj::full_message { ## no critic 'Capitalization'
+sub XWC::Exception::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -59,7 +59,7 @@ sub XWObj::full_message { ## no critic 'Capitalization'
 		$self->trace->frame(0) );
 } ## end sub PDWiX::full_message
 
-sub XWObj::Parameter::full_message { ## no critic 'Capitalization'
+sub XWC::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -79,7 +79,7 @@ sub XWObj::Parameter::full_message { ## no critic 'Capitalization'
 		$self->trace->frame(0) );
 } ## end sub PDWiX::Parameter::full_message
 
-sub XWObj::Caught::full_message { ## no critic 'Capitalization'
+sub XWC::Exception::Caught::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -106,16 +106,16 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Objects::Exceptions - Exceptions used in XML::WiX3::Objects.
+XML::WiX3::Classes::Exceptions - Exceptions used in XML::WiX3::Objects.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Objects::Exceptions version 0.003
+This document describes XML::WiX3::Classes::Exceptions version 0.003
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Objects::RegistryKey() };
-	if ( my $e = XML::WiX3::Objects::Exception::Parameter->caught() ) {
+    eval { new XML::WiX3::Classes::RegistryKey() };
+	if ( my $e = XWC::Exception::Parameter->caught() ) {
 
 		my $parameter = $e->parameter;
 		die "Bad Parameter $e passed in.";
@@ -124,7 +124,7 @@ This document describes XML::WiX3::Objects::Exceptions version 0.003
   
 =head1 DESCRIPTION
 
-This module defines the exceptions used by XML::WiX3::Objects.  All 
+This module defines the exceptions used by XML::WiX3::Classes.  All 
 exceptions used are L<Exception::Class> objects.
 
 Note that uncaught exceptions will try to print out an understandable
@@ -165,7 +165,7 @@ distribution.  It has no diagnostics of its own.
 
 =head1 CONFIGURATION AND ENVIRONMENT
   
-XML::WiX3::Objects::Exceptions requires no configuration files or environment variables.
+XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
@@ -180,7 +180,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-objects@rt.cpan.org>, or through the web interface at
+C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR
