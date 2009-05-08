@@ -227,6 +227,8 @@ sub lookup {
 
       # no domain provided, assume @uwo.ca for matching
       if (!defined($2)) {
+        # This is intentionally not interpolated
+        ## no critic(RequireInterpolationOfMetachars)
         $params->{email} .= '@uwo.ca';
       }
     }
@@ -321,12 +323,15 @@ sub _parse {
   # Registered In: Faculty Name
 
   # 4 fields captured
+
+  # We don't want the \n swallowed in .+
+  ## no critic(RequireDotMatchAnything)
   my @matches = (
     ${$data} =~ m{
       [ ]{4}Full\ Name:\ ([^,]+),(.+)\n
       [ ]{7}E-mail:.*\>(.+)\</A\>\n
             Registered\ In:\ (.+)\n
-    }xgs
+    }xg
   );
 
   my $res;
