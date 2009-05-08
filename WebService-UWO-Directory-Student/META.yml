@@ -1,6 +1,6 @@
 ---
 name: WebService-UWO-Directory-Service
-version: 1.000000
+version: 1.000001
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: |-
@@ -33,7 +33,7 @@ dynamic_config: 0
 provides:
   WebService::UWO::Directory::Student:
     file: lib/WebService/UWO/Directory/Student.pm
-    version: 1.000000
+    version: 1.000001
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
