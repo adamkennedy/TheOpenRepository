@@ -28,7 +28,7 @@ typedef  struct randctx  randctx;
 
 /* Initialize using randrsl[0..RANDSIZ-1] as the seed */
 void randinit(randctx *);
-void isaac(randctx *);
+static void isaac(randctx *);
 ub4 randInt(randctx *);
 
 /* Call rand(randctx *r) to get a single 32-bit random value

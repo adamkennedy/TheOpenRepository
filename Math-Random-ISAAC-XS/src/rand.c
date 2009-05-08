@@ -57,7 +57,7 @@
   rngstep(a>>16, a, b, mm, m, m2, r, x); \
 }
 
-void isaac(randctx *ctx)
+static void isaac(randctx *ctx)
 {
   /* Keep these in CPU registers if possible, for speed */
   register ub4 a, b, x, y;
@@ -98,14 +98,13 @@ void randinit(randctx *ctx)
   /* Initialize a to h with the golden ratio */
   a=b=c=d=e=f=g=h = 0x9e3779b9;
 
-  for (i = 0; i < 4; i++) /* scramble it */
-  {
+  /* scramble it */
+  for (i = 0; i < 4; i++) {
     mix(a,b,c,d,e,f,g,h);
   }
 
   /* initialize using the contents of r[] as the seed */
-  for (i = 0; i < RANDSIZ; i += 8)
-  {
+  for (i = 0; i < RANDSIZ; i += 8) {
     a += r[i  ];
     b += r[i+1];
     c += r[i+2];
@@ -128,8 +127,7 @@ void randinit(randctx *ctx)
   }
 
   /* do a second pass to make all of the seed affect all of m */
-  for (i = 0; i < RANDSIZ; i += 8)
-  {
+  for (i = 0; i < RANDSIZ; i += 8) {
     a += m[i  ];
     b += m[i+1];
     c += m[i+2];
@@ -161,8 +159,7 @@ void randinit(randctx *ctx)
 ub4 randInt(randctx *ctx)
 {
   /* If we run out of numbers, reset the sequence */
-  if (!ctx->randcnt--)
-  {
+  if (ctx->randcnt-- == 0) {
     isaac(ctx);
     ctx->randcnt = RANDSIZ - 1;
   }
