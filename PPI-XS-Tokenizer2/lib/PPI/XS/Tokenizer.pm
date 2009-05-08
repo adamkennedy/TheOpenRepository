@@ -6,9 +6,16 @@ use warnings;
 
 our $VERSION = '0.01';
 
+use Carp;
+
+use PPI::XS::Tokenizer::Constants;
+
 require XSLoader;
 XSLoader::load('PPI::XS::Tokenizer', $VERSION);
 
+sub test {
+  my $x = reached_eol();
+}
 
 1;
 

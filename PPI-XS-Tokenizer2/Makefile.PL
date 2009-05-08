@@ -24,3 +24,40 @@ WriteMakefile(
     'CC'                => $CC,
     'LD'                => '$(CC)',
 );
+
+if  (eval {require ExtUtils::Constant; 1}) {
+  # If you edit these definitions to change the constants used by this module,
+  # you will need to use the generated const-c.inc and const-xs.inc
+  # files to replace their "fallback" counterparts before distributing your
+  # changes.
+  my @names = (
+    # LineTokenizeResults
+    qw(
+      found_token
+      reached_eol
+      tokenizing_fail
+    ),
+  );
+  ExtUtils::Constant::WriteConstants(
+                                     NAME         => 'PPI::XS::Tokenizer::Constants',
+                                     NAMES        => [map { +{name => $_, macro => 1} } @names],
+                                     DEFAULT_TYPE => 'IV',
+                                     C_FILE       => 'const-c.inc',
+                                     XS_FILE      => 'const-xs.inc',
+                                  );
+  use File::Copy;
+  use File::Spec;
+  foreach my $file ('const-c.inc', 'const-xs.inc') {
+    my $fallback = File::Spec->catfile('fallback', $file);
+    copy($file, $fallback) or die "Can't copy $file to $fallback: $!";
+  }
+}
+else {
+  use File::Copy;
+  use File::Spec;
+  foreach my $file ('const-c.inc', 'const-xs.inc') {
+    my $fallback = File::Spec->catfile('fallback', $file);
+    copy($fallback, $file) or die "Can't copy $fallback to $file: $!";
+  }
+}
+
