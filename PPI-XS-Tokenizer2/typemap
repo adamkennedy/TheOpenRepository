@@ -1,0 +1,3 @@
+TYPEMAP
+Tokenizer*         O_OBJECT
+
