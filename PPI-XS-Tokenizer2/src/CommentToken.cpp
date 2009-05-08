@@ -1,5 +1,6 @@
 
 #include "CommentToken.h"
+#include "Tokenizer.h"
 
 using namespace PPITokenizer;
 

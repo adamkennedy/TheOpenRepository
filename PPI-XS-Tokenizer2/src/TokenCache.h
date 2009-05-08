@@ -2,6 +2,7 @@
 #define __TokenCache_h_
 
 #include "Token.h"
+#include "stdlib.h"
 
 namespace PPITokenizer {
 

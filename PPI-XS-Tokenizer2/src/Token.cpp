@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "Token.h"
+#include "Tokenizer.h"
 
 using namespace PPITokenizer;
 

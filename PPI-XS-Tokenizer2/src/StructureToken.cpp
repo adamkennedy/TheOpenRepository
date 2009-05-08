@@ -3,7 +3,7 @@
 
 #include "StructureToken.h"
 
-#include "tokenizer.h"
+#include "Tokenizer.h"
 #include "forward_scan.h"
 
 using namespace PPITokenizer;

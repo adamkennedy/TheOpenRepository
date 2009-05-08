@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "tokenizer.h"
+#include "Tokenizer.h"
 
 using namespace PPITokenizer;
 

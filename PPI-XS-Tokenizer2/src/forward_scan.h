@@ -1,6 +1,7 @@
 #ifndef __forward_scan_h
 #define __forward_scan_h
 
+#include <stdio.h>
 
 namespace PPITokenizer {
 

@@ -4,6 +4,8 @@
 
 #include "Token.h"
 #include "AbstractQuoteTokenType.h"
+#include "AbstractBareQuoteTokenType.h"
+#include "AbstractSimpleQuote.h"
 
 namespace PPITokenizer {
 

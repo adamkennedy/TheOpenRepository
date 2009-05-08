@@ -2,6 +2,7 @@
 #define __word_h_
 
 #include "Token.h"
+#include "AbstractBareQuoteTokenType.h"
 
 namespace PPITokenizer {
 

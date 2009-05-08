@@ -1,4 +1,5 @@
 #include "AbstractBareQuoteTokenType.h"
+#include "Tokenizer.h"
 
 using namespace PPITokenizer;
 
