@@ -134,7 +134,7 @@ sub clear {
 
 
 #####################################################################
-# ORDB::CPAN Integration
+# ORDB::CPANUploads Integration
 
 sub upload {
 	require ORDB::CPANUploads;
