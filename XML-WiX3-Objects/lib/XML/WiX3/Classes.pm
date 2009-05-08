@@ -1,4 +1,4 @@
-package XML::WiX3::Objects;
+package XML::WiX3::Classes;
 
 use warnings;
 use strict;
@@ -8,32 +8,71 @@ use version; $VERSION = version->new('0.003')->numify;
 1; # Magic true value required at end of module
 __END__
 
+=begin readme text
+
+XML-WiX3-Classes version 0.181_001
+
+=end readme
+
+=for readme stop
+
 =head1 NAME
 
-XML::WiX3::Objects - Objects useful for generating Windows Installer XML files.
-
+XML::WiX3::Classes - Objects useful for generating Windows Installer XML files.
 
 =head1 VERSION
 
 This document describes XML::WiX3::Objects version 0.003
 
+=for readme continue
+
+=head1 DESCRIPTION
+
+This distribution is designed to assist in writing XML files for Windows Installer XML
+version 3.0, otherwise known as WiX.
+
+Since Windows Installer, and therefore WiX, keeps track of each individual 
+file, installers using it are more complicated than other installers.
+
+This distribution, therefore contains Moose classes that represent different 
+WiX tags to keep track of files, directories, etc.
+
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+This method of installation will install a current version of Module::Build 
+if it is not already installed.
+    
+Alternatively, to install with Module::Build, you can use the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+	
+=end readme
+
+=for readme stop
 
 =head1 SYNOPSIS
 
-    # use XML::WiX3::Objects;
+    # use XML::WiX3::Classes;
 
-=for author to fill in:
-    Brief code example(s) here showing commonest usage(s).
-    This section will be as far as many users bother reading
-    so make it as educational and exeplary as possible.
-  
-  
-=head1 DESCRIPTION
+This is a documentation-only module. Instead of this module, you'll be using 
+specific classes in this distribution.
 
-=for author to fill in:
-    Write a full description of the module and its features here.
-    Use subsections (=head2, =head3) as appropriate.
+See those classes for documentation.
 
+Things that apply to all classes are here.
 
 =head1 INTERFACE 
 
@@ -68,45 +107,22 @@ This document describes XML::WiX3::Objects version 0.003
 
 
 =head1 CONFIGURATION AND ENVIRONMENT
-
-=for author to fill in:
-    A full explanation of any configuration system(s) used by the
-    module, including the names and locations of any configuration
-    files, and the meaning of any environment variables or properties
-    that can be set. These descriptions must also include details of any
-    configuration language used.
   
-XML::WiX3::Objects requires no configuration files or environment variables.
+XML::WiX3::Classes requires no configuration files or environment variables.
 
+=for readme continue
 
 =head1 DEPENDENCIES
 
-L<Any::Moose> (which will default to requiring L<Mouse> version 0.20 or 
-later, but will use L<Moose> if it is already available), L<Alien::WiX>
+L<Moose>, L<Exception::Class> (more to add later)
 
+=for readme stop
 
 =head1 INCOMPATIBILITIES
 
-=for author to fill in:
-    A list of any modules that this module cannot be used in conjunction
-    with. This may be due to name conflicts in the interface, or
-    competition for system or program resources, or due to internal
-    limitations of Perl (for example, many modules that use source code
-    filters are mutually incompatible).
-
 None reported.
 
-
 =head1 BUGS AND LIMITATIONS
-
-=for author to fill in:
-    A list of known problems with the module, together with some
-    indication Whether they are likely to be fixed in an upcoming
-    release. Also a list of restrictions on the features the module
-    does provide: data types that cannot be handled, performance issues
-    and the circumstances in which they may arise, practical
-    limitations on the size of data sets, special cases that are not
-    (yet) handled, etc.
 
 No bugs have been reported.
 
@@ -114,11 +130,15 @@ Please report any bugs or feature requests to
 C<bug-xml-wix3-objects@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
+=head1 SEE ALSO
+
+L<Perl::Dist::WiX>, L<Alien::WiX>
 
 =head1 AUTHOR
 
 Curtis Jewell  C<< <csjewell@cpan.org> >>
 
+=for readme continue
 
 =head1 LICENCE AND COPYRIGHT
 
@@ -127,6 +147,7 @@ Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserve
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
 
+=for readme stop
 
 =head1 DISCLAIMER OF WARRANTY
 
