@@ -57,7 +57,7 @@ Marpa::exception('Could not initialize parse') if not $evaler;
 
 my $i = -1;
 TODO: {
-    local $TODO = "priorities broken";
+    local $TODO = 'priorities broken';
     while ( defined( my $value = $evaler->value() ) ) {
         $i++;
         if ( $i > $#expected ) {
