@@ -3,7 +3,6 @@ use warnings;
 
 use Test::More tests => 3;
 BEGIN { use_ok('PPI::XS::Tokenizer') };
-use PPI::XS::Tokenizer qw/:all/;
 
 SCOPE: {
   my $t = PPI::XS::Tokenizer->new();

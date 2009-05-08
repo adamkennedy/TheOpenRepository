@@ -23,6 +23,7 @@ extern "C" {
 #include "src/unknown.cpp"
 #include "src/whitespace.cpp"
 #include "src/word.cpp"
+
 #include "const-c.inc"
 
 
@@ -30,6 +31,7 @@ MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
 
 INCLUDE: XS/Tokenizer.xs
 INCLUDE: XS/Token.xs
+
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer::Constants
 
