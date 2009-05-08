@@ -1,0 +1,94 @@
+NAME
+    WebService::UWO::Directory::Student - Perform lookups using the
+    University of Western Ontario's student directory
+
+$Id$
+
+DESCRIPTION
+    This module provides a Perl interface to the public directory search
+    system which lists current students at the University of Western
+    Ontario. For more information, see the web interface at
+    <http://uwo.ca/westerndir/>.
+
+AUTHOR
+    Jonathan Yu <frequency@cpan.org>
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc WebService::UWO::Directory::Student
+
+    You can also look for information at:
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/WebService-UWO-Directory-Student>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/WebService-UWO-Directory-Student>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/WebService-UWO-Directory-Student>
+
+    *   CPAN Request Tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=WebService-UWO-Directory-S
+        tudent>
+
+    *   CPAN Testing Service (Kwalitee Tests)
+
+        <http://cpants.perl.org/dist/overview/WebService-UWO-Directory-Stude
+        nt>
+
+    *   CPAN Testers Platform Compatibility Matrix
+
+        <http://www.cpantesters.org/show/WebService-UWO-Directory-Student.ht
+        ml>
+
+REPOSITORY
+    You can access the most recent development version of this module at:
+
+    <http://svn.ali.as/cpan/trunk/WebService-UWO-Directory-Student>
+
+    If you are a CPAN developer and would like to make modifications to the
+    code base, please contact Adam Kennedy <adamk@cpan.org>, the repository
+    administrator. I only ask that you contact me first to discuss the
+    changes you wish to make to the distribution.
+
+FEEDBACK
+    Please send relevant comments, rotten tomatoes and suggestions directly
+    to the maintainer noted above.
+
+    If you have a bug report or feature request, please file them on the
+    CPAN Request Tracker at <http://rt.cpan.org>. If you are able to submit
+    your bug report in the form of failing unit tests, you are strongly
+    encouraged to do so.
+
+SEE ALSO
+    <http://uwo.ca/westerndir/index-student.html>
+
+LICENSE
+    Copyleft 2006-2009 by Jonathan Yu <frequency@cpan.org>. All rights
+    reversed.
+
+    I, the copyright holder of this package, hereby release the entire
+    contents therein into the public domain. This applies worldwide, to the
+    extent that it is permissible by law.
+
+    In case this is not legally possible, I grant any entity the right to
+    use this work for any purpose, without any conditions, unless such
+    conditions are required by law.
+
+    The full details of this can be found in the LICENSE file included in
+    this package.
+
+DISCLAIMER OF WARRANTY
+    The software is provided "AS IS", without warranty of any kind, express
+    or implied, including but not limited to the warranties of
+    merchantability, fitness for a particular purpose and noninfringement.
+    In no event shall the authors or copyright holders be liable for any
+    claim, damages or other liability, whether in an action of contract,
+    tort or otherwise, arising from, out of or in connection with the
+    software or the use or other dealings in the software.

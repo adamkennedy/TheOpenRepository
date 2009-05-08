@@ -25,11 +25,11 @@ Western Ontario's student directory
 
 =head1 VERSION
 
-Version 0.2 ($Id$)
+Version 1.0 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.2');
+use version; our $VERSION = qv('1.0');
 
 =head1 DESCRIPTION
 
@@ -335,6 +335,9 @@ sub _parse {
   );
 
   my $res;
+  # Requires an irregular count - in steps of 4
+  ## no critic (ProhibitCStyleForLoops)
+
   # Copy the fields four at a time based on the above regular expression
   for (my $i = 0; $i < scalar(@matches); $i += 4) {
     my $stu = {

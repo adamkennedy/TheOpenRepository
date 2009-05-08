@@ -1,27 +1,45 @@
---- #YAML:1.0
-name: UWO-Directory-Student
-abstract: >
-  Perform lookups using the University of Western Ontario's student directory
-version: 0.02
+---
+name: WebService-UWO-Directory-Service
+version: 1.000000
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
-license: bsd
-distribution_type: module
-urls:
-  license: http://opensource.org/licenses/bsd-license.php
-build_requires:
-  Test: 0
-  Test::More: 0.62
+abstract: |-
+  Perform lookups using the University of Western Ontario's student directory
+license: unrestricted
 requires:
   Carp: 1.04
-  UWO::Student: 0.02
+  HTML::Entities: 0
+  LWP::UserAgent: 0
+  Test::More: 0.62
+  perl: 5.006
+  strict: 0
+  version: 0.76
+  warnings: 0
+build_requires:
+  Test::NoWarnings: 0.084
 recommends:
-  UWO::Directory: 0
+  Perl::Critic: 1.096
+  Test::DistManifest: 1.001002
+  Test::Kwalitee: 1.01
+  Test::MinimumVersion: 0.008
+  Test::Perl::Critic: 1.01
+  Test::Pod: 1.14
+  Test::Pod::Coverage: 1.04
+  Test::Portability::Files: 0.05
+  Test::Signature: 1.1
+  Test::Without::Module: 0.17
+  Test::YAML::Meta: 0.11
+dynamic_config: 0
 provides:
-  UWO::Directory::Student:
-    file: lib/UWO/Directory/Student.pm
-    version: 0.02
-generated_by: hand
+  WebService::UWO::Directory::Student:
+    file: lib/WebService/UWO/Directory/Student.pm
+    version: 1.000000
+generated_by: Module::Build version 0.3
 meta-spec:
-  version: 1.3
-  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
+resources:
+  Ratings: http://cpanratings.perl.org/d/WebService-UWO-Directory-Student
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=WebService-UWO-Directory-Student
+  license: http://edwardsamuels.com/copyright/beyond/articles/public.html
+  repository: http://svn.ali.as/cpan/trunk/WebService-UWO-Directory-Student
