@@ -1,6 +1,7 @@
 #include "AbstractQuoteTokenType.h"
 
 #include "forward_scan.h"
+#include "Tokenizer.h"
 
 using namespace PPITokenizer;
 
