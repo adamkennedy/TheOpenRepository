@@ -48,14 +48,17 @@ namespace PPITokenizer {
        * Returns: the type of the current zone. (usually whitespace)
        */
       TokenTypeNames _finalize_token();
-      /* After a line (or more) was tokenize - pop the resulted tokens
+
+      /* After a line (or more) was tokenized - pop the resulting tokens
        * - Will not pop the token under work
-       * - After poping a token, call freeToken on it to return it to the free tokens poll
+       * - After popping a token, call freeToken on it to return it to the free token pool
        */
       Token *pop_one_token();
-      /* freeToken - return a token to the free tokens poll
+
+      /* freeToken - return a token to the free token pool
        */
       void freeToken(Token *t);
+
       /* tokenizeLine - Tokenize one line
        */
       LineTokenizeResults tokenizeLine(char *line, unsigned long line_length);
