@@ -28,21 +28,21 @@ my $dir = WebService::UWO::Directory::Student->new;
 
 # Normal lookup functionality
 my $res = $dir->lookup({
-  first => 'Continuing',
-  last  => 'Test',
+  first => 'Joyce',
+  last  => 'Peralta',
 });
 
-is($res->[0]->{given_name}, 'Continuing', 'User found by name');
-is($res->[0]->{last_name},  'Test');
-is($res->[0]->{email},      'ctest@uwo.ca');
-is($res->[0]->{faculty},    'Faculty of Graduate Studies');
+is($res->[0]->{given_name}, 'Joyce Mae', 'User found by name');
+is($res->[0]->{last_name},  'Peralta');
+is($res->[0]->{email},      'jperalt2@uwo.ca');
+is($res->[0]->{faculty},    'Faculty of Info & Media Stds');
 
 # Reverse lookup functionality
 $res = $dir->lookup({
-  email => 'ctest@uwo.ca',
+  email => 'jperalt2@uwo.ca',
 });
 
-is($res->{given_name}, 'Continuing', 'User found by email reverse');
-is($res->{last_name},  'Test');
-is($res->{email},      'ctest@uwo.ca');
-is($res->{faculty},    'Faculty of Graduate Studies');
+is($res->{given_name}, 'Joyce Mae', 'User found by email');
+is($res->{last_name},  'Peralta');
+is($res->{email},      'jperalt2@uwo.ca');
+is($res->{faculty},    'Faculty of Info & Media Stds');
