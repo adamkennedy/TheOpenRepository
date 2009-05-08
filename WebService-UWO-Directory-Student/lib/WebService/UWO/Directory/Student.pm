@@ -222,7 +222,7 @@ sub lookup {
 
   if (exists $params->{email}) {
     my $query;
-    if ($params->{email} =~ m/^(\w+)(\@uwo\.ca)?$/) {
+    if ($params->{email} =~ /^(\w+)(\@uwo\.ca)?$/s) {
       $query = $1;
 
       # no domain provided, assume @uwo.ca for matching
@@ -239,7 +239,7 @@ sub lookup {
     #   First name: j
     #   Last name:  doe
     #   E-mail:     jdoe32@uwo.ca
-    if ($query =~ /^(\w)([^\d]+)([\d]*)$/) {
+    if ($query =~ /^(\w)([^\d]+)([\d]*)$/s) {
       my $result = $self->lookup({
         first   => $1,
         last    => $2,
@@ -254,7 +254,7 @@ sub lookup {
   }
   else {
     my $data = $self->_query($params->{last} . ',' . $params->{first});
-    return $self->_parse($data);
+    return _parse($data);
   }
   return 0;
 }
@@ -300,9 +300,7 @@ sub _query {
   return \$r->content;
 }
 
-=head2 $dir->_parse($response)
-
-=head2 WebService::UWO::Directory::Student->_parse($response)
+=head2 WebService::UWO::Directory::Student::_parse($response)
 
 This method processes the HTML content retrieved by _query method and returns
 an ARRAY reference containing HASH references to the result set. This is most
@@ -311,12 +309,9 @@ likely only useful for testing purposes.
 =cut
 
 sub _parse {
-  # magic to allow use as method and function
-  shift if ref($_[0]) ne 'SCALAR';
-
-  Carp::croak('Expecting a scalar reference') unless ref($_[0]) eq 'SCALAR';
-
   my ($data) = @_;
+
+  Carp::croak('Expecting a scalar reference') unless ref($data) eq 'SCALAR';
 
   HTML::Entities::decode_entities(${$data});
 
@@ -331,7 +326,7 @@ sub _parse {
       [ ]{4}Full\ Name:\ ([^,]+),(.+)\n
       [ ]{7}E-mail:.*\>(.+)\</A\>\n
             Registered\ In:\ (.+)\n
-    }xg
+    }xgs
   );
 
   my $res;

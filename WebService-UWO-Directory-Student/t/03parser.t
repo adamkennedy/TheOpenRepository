@@ -104,7 +104,7 @@ Computer Accounts Office</a>, March 23, 2005.
 </HTML>
 __END__
 
-my $res = WebService::UWO::Directory::Student->_parse(\$html);
+my $res = WebService::UWO::Directory::Student::_parse(\$html);
 
 is(ref($res), 'ARRAY', 'Parser returns array reference');
 is(scalar(@{$res}), 2, 'Two elements parsed');

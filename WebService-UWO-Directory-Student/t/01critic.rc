@@ -54,6 +54,9 @@ allow_leading_tabs = 0
 # appropriately (unless, of course, they are obvious)
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 
+# I don't see the benefit of q{} over '', even for one-character strings
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
+
 ###################################################
 ############### DOCUMENTATION
 ###################################################
