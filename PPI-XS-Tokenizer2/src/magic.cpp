@@ -1,11 +1,13 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
+using namespace PPITokenizer;
+
 CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	token->text[ token->length ] = c_char;
 	if ( token->text[0] == '$' ) {
-		ulong pos = 1;
-		ulong nlen = token->length + 1;
+		unsigned long pos = 1;
+		unsigned long nlen = token->length + 1;
 		// /^\$\'[\w]/ 
 		PredicateAnd<
 			PredicateIsChar< '\'' >,

@@ -2,6 +2,8 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
+using namespace PPITokenizer;
+
 CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	if ( token->length != 1 )
 		return error_fail;

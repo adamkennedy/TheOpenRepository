@@ -2,12 +2,14 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
+using namespace PPITokenizer;
+
 // /^(?:q|m|s|y)\'/
-static inline bool is_letter_msyq( uchar c ) {
+static inline bool is_letter_msyq( unsigned char c ) {
 	return ( c == 'm' ) || ( c == 's' ) || ( c == 'y' ) || ( c == 'q' );
 }
 // /^(?:qq|qx|qw|qr)\'/
-static inline bool is_letter_qxwr( uchar c ) {
+static inline bool is_letter_qxwr( unsigned char c ) {
 	return ( c == 'q' ) || ( c == 'x' ) || ( c == 'w' ) || ( c == 'r' );
 }
 // /^(?:eq|ne|tr)\'/
@@ -20,7 +22,7 @@ static inline bool is_quote_like( const char *str ) {
 			 ( ( str[0] == 't' ) && ( str[1] == 'r' ) ) );
 }
 
-static uchar oversuck_protection( const char *text, ulong len) {
+static unsigned char oversuck_protection( const char *text, unsigned long len) {
 		// /^(?:q|m|s|y)\'/
 		if ( ( len >= 2 ) && ( text[1] == '\'' ) && is_letter_msyq( text[0] ) ) {
 			return 1;
@@ -34,7 +36,7 @@ static uchar oversuck_protection( const char *text, ulong len) {
 static TokenTypeNames get_quotelike_type( Token *token) {
 	TokenTypeNames is_quotelike = Token_NoType;
 	if ( token->length == 1 ) {
-		uchar f_char = token->text[0];
+		unsigned char f_char = token->text[0];
 		if (f_char == 'q')
 			is_quotelike = Token_Quote_Literal;
 		else 
@@ -48,8 +50,8 @@ static TokenTypeNames get_quotelike_type( Token *token) {
 			is_quotelike = Token_Regexp_Transliterate;
 	} else
 	if ( token->length == 2 ) {
-		uchar f_char = token->text[0];
-		uchar s_char = token->text[1];
+		unsigned char f_char = token->text[0];
+		unsigned char s_char = token->text[1];
 		if ( f_char == 'q' ) {
 			if (s_char == 'q')
 				is_quotelike = Token_Quote_Interpolate;
@@ -80,7 +82,7 @@ bool is_literal( Tokenizer *t, Token *prev ) {
 	PredicateAnd<
 		PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
 		PredicateIsChar< '}' > > regex1;
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	if ( ( !strcmp( prev->text, "{" ) ) && regex1.test( t->c_line, &pos, t->line_length ) )
 		return true;
 
@@ -114,13 +116,13 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 			PredicateAnd<
 				PredicateIsChar< ':' >,
 				PredicateIsChar< ':' > > > > regex;
-	ulong new_pos = t->line_pos;
+	unsigned long new_pos = t->line_pos;
 	if ( regex.test( t->c_line, &new_pos, t->line_length ) ) {
 		// copy the string
 		while (t->line_pos < new_pos)
 			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 		// oversucking protection
-		uchar new_len = oversuck_protection( token->text, token->length );
+		unsigned char new_len = oversuck_protection( token->text, token->length );
 		if ( new_len > 0 ) {
 			t->line_pos -= token->length - new_len;
 			token->length = new_len;
@@ -145,7 +147,7 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 		return done_it_myself;
 	}
 
-	for (ulong ix=0; ix < token->length; ix++) {
+	for (unsigned long ix=0; ix < token->length; ix++) {
 		if ( token->text[ix] == ':' ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
@@ -153,7 +155,7 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 		}
 	}
 
-	uchar n_char = t->c_line[ t->line_pos ];
+	unsigned char n_char = t->c_line[ t->line_pos ];
 	if ( n_char == ':' ) {
 		token->text[ token->length++ ] = ':';
 		t->line_pos++;
@@ -170,7 +172,7 @@ CharTokenizeResults WordToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 }
 
 static inline bool has_a_colon( Token *token ) {
-	for (ulong ix = 0; ix < token->length; ix++) {
+	for (unsigned long ix = 0; ix < token->length; ix++) {
 		if ( token->text[ix] == ':' )
 			return true;
 	}
@@ -205,7 +207,7 @@ static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev
 			PredicateFunc< is_whitespace > >,
 		PredicateIsChar< ':' >,
 		PredicateNot< PredicateIsChar< ':' > > > regex;
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
 		if ( ( prev != NULL ) && ( !strcmp( prev->text, "sub" ) ) ) {
 			return Token_Word;
@@ -242,12 +244,12 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 			PredicateAnd<
 				PredicateIsChar< ':' >,
 				PredicateIsChar< ':' > > > > regex;
-	ulong new_pos = t->line_pos;
+	unsigned long new_pos = t->line_pos;
 	if ( !regex.test( t->c_line, &new_pos, t->line_length ) ) {
 		return error_fail;
 	}
 
-	uchar new_len = oversuck_protection( t->c_line + t->line_pos, new_pos - t->line_pos );
+	unsigned char new_len = oversuck_protection( t->c_line + t->line_pos, new_pos - t->line_pos );
 	if ( new_len > 0 )
 		new_pos = t->line_pos + new_len;
 

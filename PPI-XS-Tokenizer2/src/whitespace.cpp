@@ -5,6 +5,8 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
+using namespace PPITokenizer;
+
 
 TokenTypeNames commit_map[128] = {
 	Token_NoType, /* 0 */ Token_NoType, /* 1 */ Token_NoType, /* 2 */ Token_NoType, /* 3 */ 
@@ -44,7 +46,7 @@ TokenTypeNames commit_map[128] = {
 // seeking to see if: ( $line =~ /^<(?!\d)\w+>/ )
 // asumations: the current inspected char is '<'
 static bool scan_ahead_for_lineread(const Tokenizer *t) {
-	ulong pos = t->line_pos + 1;
+	unsigned long pos = t->line_pos + 1;
 
 	PredicateAnd<
 		PredicateZeroOrMore< PredicateFunc< is_whitespace > >,
@@ -63,7 +65,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			PredicateIsChar< '=' >,
 			PredicateFunc< is_word >
 		> regex1;
-		ulong pos = 0;
+		unsigned long pos = 0;
 		if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
 			t->_finalize_token();
 			t->_new_token( Token_Pod );
@@ -170,7 +172,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			return my_char;
 		}
 
-		uchar n_char = t->c_line[ t->line_pos + 1 ];
+		unsigned char n_char = t->c_line[ t->line_pos + 1 ];
 		if ( ( n_char == '^' ) || ( n_char == '[' ) || ( n_char == '\\' ) ) {
 			t->_new_token(Token_Regexp_Match);
 			return my_char;
@@ -181,7 +183,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 	}
 
 	if ( c_char == 'x' ) {
-		uchar n_char = t->c_line[ t->line_pos + 1 ];
+		unsigned char n_char = t->c_line[ t->line_pos + 1 ];
 		Token *t0 = t->_last_significant_token(1);
 		if ( ( t0 != NULL ) && ( n_char >= '0' ) && ( n_char <= 9 ) ) {
 			TokenTypeNames p_type = t0->type->type;
@@ -213,9 +215,9 @@ CharTokenizeResults PodToken::tokenize(Tokenizer *t, Token *token, unsigned char
 	// will enter here only on the line's start, but not nessesery on byte 0.
 	// there may be a BOM before it.
 	PredicateLiteral< 4, end_pod > regex;
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	// suck the line anyway
-	for ( ulong ix = pos; ix < t->line_length; ix++ ) {
+	for ( unsigned long ix = pos; ix < t->line_length; ix++ ) {
 		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 	}
 	if ( regex.test( t->c_line, &pos, t->line_length ) &&
@@ -232,7 +234,7 @@ CharTokenizeResults EndToken::tokenize(Tokenizer *t, Token *token, unsigned char
 		PredicateIsChar< '=' >,
 		PredicateFunc< is_word >
 	> regex1;
-	ulong pos = 0;
+	unsigned long pos = 0;
 	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
 		t->_finalize_token();
 		t->_new_token( Token_Pod );

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include "tokenizer.h"
 
+using namespace PPITokenizer;
+
 void forward_scan2_unittest();
 
 void checkToken( Tokenizer *tk, const char *text, TokenTypeNames type, int line) {
@@ -56,7 +58,7 @@ void checkExtendedTokenModifiers(
 			printf("expected not to find modifiers\n");
 		}
 		printf("got size %d and section |", qtoken->modifiers.size);
-		for (ulong ix = 0; ix < qtoken->modifiers.size; ix++) {
+		for (unsigned long ix = 0; ix < qtoken->modifiers.size; ix++) {
 			printf("%c", qtoken->text[ qtoken->modifiers.position + ix ]);
 		}
 		printf("| (line %d)\n", line);
@@ -65,7 +67,7 @@ void checkExtendedTokenModifiers(
 
 void checkExtendedTokenSection(
 					     ExtendedToken *qtoken,
-					     uchar section_to_check,
+					     unsigned char section_to_check,
 						 const char *section, 
 						 int line) {
 	bool hasError = false;
@@ -88,7 +90,7 @@ void checkExtendedTokenSection(
 		printf("checkExtendedToken: Got incorrect section %d:\n", section_to_check);
 		printf("expected size %d, got size %d (line %d)\n", strlen( section ), qtoken->sections[section_to_check].size, line);
 		printf("expected section |%s|, got section |", section );
-		for (ulong ix = 0; ix < qtoken->sections[section_to_check].size; ix++) {
+		for (unsigned long ix = 0; ix < qtoken->sections[section_to_check].size; ix++) {
 			printf("%c", qtoken->text[ qtoken->sections[section_to_check].position + ix ]);
 		}
 		printf("|\n");
@@ -131,7 +133,7 @@ void checkExtendedToken( Tokenizer *tk,
 }
 #define CheckToken( tk, text, type ) checkToken(tk, text, type, __LINE__);
 #define CheckExtendedToken( tk, text, section1, section2, modifiers, type ) checkExtendedToken(tk, text, section1, section2, modifiers, type, __LINE__);
-#define Tokenize( line ) tk.tokenizeLine( line , (ulong)strlen(line) );
+#define Tokenize( line ) tk.tokenizeLine( line , (unsigned long)strlen(line) );
 
 int main(int argc, char* argv[])
 {

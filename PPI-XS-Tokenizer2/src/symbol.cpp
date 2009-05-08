@@ -5,6 +5,9 @@
 #include "tokenizer.h"
 #include "forward_scan.h"
 
+using namespace PPITokenizer;
+
+
 	//$content =~ /^(
 	//	[\$@%&*]
 	//	(?: : (?!:) | # Allow single-colon non-magic vars
@@ -141,9 +144,9 @@ bool inline is_word_colon_tag( char c ) {
 
 CharTokenizeResults ArrayIndexToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	PredicateOneOrMore< PredicateFunc< is_word_colon_tag > > regex;
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
-		for ( ulong ix = t->line_pos; ix < pos; ix++ ) {
+		for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
 			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 		}
 	}

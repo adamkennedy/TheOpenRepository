@@ -3,6 +3,8 @@
 
 #include "tokenizer.h"
 
+using namespace PPITokenizer;
+
 CharTokenizeResults CommentToken::commit(Tokenizer *t) {
     t->_new_token(Token_Comment);
     Token *c_token = t->c_token;
@@ -29,3 +31,4 @@ CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	}
 	return my_char;
 }
+

@@ -3,6 +3,9 @@
 
 #include "Token.h"
 
+using namespace PPITokenizer;
+
+
 //=====================================
 // AbstractTokenType
 //=====================================
@@ -16,7 +19,7 @@ bool AbstractTokenType::isa( TokenTypeNames is_type ) const {
 	return ( is_type == type );
 }
 
-Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany& tc, ulong line_length ) {
+Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany& tc, unsigned long line_length ) {
 	unsigned long needed_size = line_length - t->line_pos;
 	if ( needed_size < 200 ) needed_size = 200;
 
