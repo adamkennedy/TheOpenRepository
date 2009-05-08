@@ -1,3 +1,5 @@
 TYPEMAP
+Token*         O_OBJECT
+
 Tokenizer*         O_OBJECT
 

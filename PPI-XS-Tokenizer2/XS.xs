@@ -11,6 +11,7 @@ extern "C" {
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
 
+INCLUDE: XS/Token.xs
 INCLUDE: XS/Tokenizer.xs
 INCLUDE: XS/CleanMeUp.xs
 
