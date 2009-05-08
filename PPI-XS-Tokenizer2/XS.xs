@@ -9,7 +9,7 @@ extern "C" {
 }
 #endif
 
-#include "src/tokenizer.cpp"
+#include "src/Tokenizer.cpp"
 #include "src/forward_scan.cpp"
 #include "src/Token.cpp"
 #include "src/AbstractQuoteTokenType.cpp"
