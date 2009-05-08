@@ -13,7 +13,9 @@ create table file_metric (
 )
 END_SQL
 
-# Indexes for the main file_metric table
-do( 'create index file_metric_md5_idx on file_metric ( md5 )' );
-do( 'create index file_metric_package_idx on file_metric ( package )' );
-do( 'create unique index file_metric_unique_idx on file_metric ( md5, package, name )' );
+# Index the hell out of the metric table
+do( 'create index file_metric__md5     on file_metric ( md5     )' );
+do( 'create index file_metric__package on file_metric ( package )' );
+do( 'create index file_metric__version on file_metric ( version )' );
+do( 'create index file_metric__name    on file_metric ( name    )' );
+do( 'create index file_metric__value   on file_metric ( value   )' );

@@ -292,7 +292,38 @@ sub process_file {
 		);
 	}
 
-	1;
+	return 1;
+}
+
+sub process_document {
+	my $self     = shift;
+	my $class    = ref $self;
+	my $document = _INSTANCE(shift, 'PPI::Document');
+	unless ( $document ) {
+		Carp::croak("Did not provide a PPI::Document object");
+	}
+
+	# Flush out the old records
+	my $md5 = $document->hex_id;
+	Perl::Metrics2::FileMetric->delete(
+		'where md5 = ? and package = ?',
+		$md5, $class,
+	);
+
+	# Get the list of metrics to run
+	my %metrics = %{$self->metrics};
+	foreach my $name ( sort keys %metrics ) {
+		my $value = $self->_metric($document, $name);
+		Perl::Metrics2::FileMetric->create(
+			md5     => $md5,
+			package => $class,
+			version => $class->VERSION,
+			name    => $name,
+			value   => $value,
+		);
+	}
+
+	return 1;
 }
 
 1;
