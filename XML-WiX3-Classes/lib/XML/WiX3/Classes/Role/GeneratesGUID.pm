@@ -1,5 +1,4 @@
-package # Hide from PAUSE.
-	XML::WiX3::Classes::Role::GeneratesGUID;
+package XML::WiX3::Classes::Role::GeneratesGUID;
 
 use 5.008001;
 use Moose::Role;

@@ -1,5 +1,4 @@
-package # Hide from PAUSE.
-	XML::WiX3::Classes::Role::Traceable;
+package XML::WiX3::Classes::Role::Traceable;
 
 use 5.008001;
 use Moose::Role;

@@ -43,6 +43,7 @@ has _diskid => (
 	is => 'ro',
 	isa => 'Int',
 	getter => '_get_diskid',
+	init_args => 'diskid',
 	default => undef,
 );
 
@@ -50,6 +51,7 @@ has _filesource => (
 	is => 'ro',
 	isa => 'Str',
 	getter => '_get_filesource',
+	init_args => 'filesource',
 	default => undef,
 );
 
@@ -64,6 +66,7 @@ has _sourcename => (
 	is => 'ro',
 	isa => 'Str', # LongFileNameType
 	getter => '_get_sourcename',
+	init_args => 'sourcename',
 	default => undef,
 );
 
@@ -71,6 +74,7 @@ has _shortname => (
 	is => 'ro',
 	isa => 'Str', # ShortFileNameType
 	getter => '_get_shortname',
+	init_args => 'shortname',
 	default => undef,
 );
 
@@ -78,6 +82,7 @@ has _shortsourcename => (
 	is => 'ro',
 	isa => 'Str', # ShortFileNameType
 	getter => '_get_shortsourcename',
+	init_args => 'shortsourcename',
 	default => undef,
 );
 
@@ -101,7 +106,7 @@ sub BUILDARGS {
 	}
 
 	unless (exists $args{'id'}) {
-		my $id = generate_guid($args{'name'});
+		my $id = generate_guid($args{'path'});
 		$id =~ s{-}{_}g; 
 		$args{'id'} = $id;
 	}
@@ -158,7 +163,7 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolder - Exceptions used in XML::WiX3::Objects.
+XML::WiX3::Classes::Directory - Class representing a Directory tag.
 
 =head1 VERSION
 
@@ -166,42 +171,44 @@ This document describes XML::WiX3::Classes::Exceptions version 0.003
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Classes::RegistryKey() };
-	if ( my $e = XWC::Exception::Parameter->caught() ) {
-
-		my $parameter = $e->parameter;
-		die "Bad Parameter $e passed in.";
-	
-	}
+    my $tag = XML::WiX3::Classes::Directory->new(
+	  name => 'Test';
+	  path => 'ProgramFilesDir\Test';
+	);
   
 =head1 DESCRIPTION
 
-This module defines the exceptions used by XML::WiX3::Classes.  All 
-exceptions used are L<Exception::Class> objects.
+This class represents a Directory tag and takes most non-deprecated 
+attributes that the tag has (ComponentGuidGenerationSeed is the exception)
+as parameters.
 
-Note that uncaught exceptions will try to print out an understandable
-error message, and if a high enough tracelevel is available, will print
-out a stack trace, as well.
+If an C<id> parameter is not passed, one will be generated using the C<path> parameter.
+
+All attributes are lowercased when passed as a parameter.
 
 =head1 INTERFACE 
 
-=head2 ::Parameter
+=head2 Other parameters to new
 
-Parameter exceptions will always print a stack trace.
+These parameters will not go into the XML output, although they may affect it.
 
-=head3 $e->parameter()
+=head3 path
 
-The name of the parameter with the error.
+This is a path that will be used when searching for this directory.
 
-=head3 $e->info()
+To easily implement this when using standard directories, just use the 
+standard directory name as the root.
 
-Information about how the parameter was bad.
+=head3 noprefix
 
-=head3 $e->where()
+The Id printed in the XML that this class generates will have a prefix of 
+C<D_> unless this is set to true.
 
-Information about what routine had the bad parameter.
+This is used for standard directories.
 
-=back
+=head2 get_directory_id
+
+Returns the ID of the directory as it will be printed out in the XML file.
 
 =for author to fill in:
     Write a separate section listing the public components of the modules
@@ -209,23 +216,10 @@ Information about what routine had the bad parameter.
     exported, or methods that may be called on objects belonging to the
     classes provided by the module.
 
-
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
-
-=head1 CONFIGURATION AND ENVIRONMENT
-  
-XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
-
-=head1 INCOMPATIBILITIES
-
-None reported.
+This module throws an XWC::Exception::Parameter::Odd object upon build if 
+the parameter count is incorrect.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -241,7 +235,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<http://wix.sourceforge.net/manual-wix3/wix_xsd_directory.htm>
 
 =head1 LICENCE AND COPYRIGHT
 
