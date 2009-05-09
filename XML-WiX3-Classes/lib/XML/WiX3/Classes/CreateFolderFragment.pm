@@ -11,12 +11,12 @@ use version; $VERSION = version->new('0.003')->numify;
 
 with 'XML::WiX3::Classes::Role::Fragment';
 
-has _tag (
-	is => ro,
+has _tag => (
+	is => 'ro',
 	isa => 'XML::WiX3::Classes::Fragment',
-	getter => _get_tag,
-	handles => [qw(get_component_array search_file check_duplicates as_string)],
-)
+	getter => '_get_tag',
+	handles => [qw(search_file check_duplicates get_directory_id)],
+);
 
 #####################################################################
 # Constructor for CreateFolderFragment
@@ -70,11 +70,29 @@ sub BUILDARGS {
 	$tag2->add_tag($tag3);
 	$tag1->add_tag($tag2);
 
-	$self->trace_line( 2,
-		    'Creating directory creation entry for directory '
-		  . "id D_$directory_id\n" );
-	
 	return { '_tag' => $tag1 };
+}
+
+sub BUILD {
+	my $self = shift;
+
+	my $directory_id = $self->get_directory_id();
+	
+	$self->trace_line( 2,
+		'Creating directory creation entry for directory '
+	  . "id $directory_id\n" );
+	
+	return;
+}
+
+sub as_string {
+	my $self = shift;
+	
+	return $self->_get_tag()->as_string();
+}
+
+sub get_namespace {
+	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
 }
 
 1;

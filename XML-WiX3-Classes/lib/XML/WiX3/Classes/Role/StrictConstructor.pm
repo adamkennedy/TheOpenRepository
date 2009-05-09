@@ -3,6 +3,7 @@ package # Hide from PAUSE.
 
 use strict;
 use warnings;
+use XML::WiX3::Classes::Exceptions;
 use Moose::Role;
 
 after 'BUILDALL' => sub
@@ -21,7 +22,7 @@ after 'BUILDALL' => sub
 
     if (@bad)
     {
-        XWObj::Parameter->throw("Found unknown attribute(s) init_arg passed to the constructor: @bad");
+        XWC::Exception::Parameter->throw("Found unknown attribute(s) init_arg passed to the constructor: @bad");
     }
 
     return;

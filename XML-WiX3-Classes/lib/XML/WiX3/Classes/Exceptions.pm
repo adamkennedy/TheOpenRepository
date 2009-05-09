@@ -23,19 +23,37 @@ use version; $VERSION = version->new('0.003')->numify;
 
 use Exception::Class 1.22 (
 	'XWC::Exception'            => { 
-		'description' => 'XML::WiX3::Objects error', 
+		'description' => 'XML::WiX3::Classes error', 
 	},
 	'XWC::Exception::Parameter' => {
 		'description' =>
-		  'XML::WiX3::Objects error: Parameter missing or invalid',
+		  'XML::WiX3::Classes error: Parameter missing or invalid',
 		'isa'    => 'XWC::Exception',
 		'fields' => [ 'parameter', 'where', 'info' ],
 	},
 	'XWC::Exception::Caught' => {
 		'description' =>
-		  'Error caught by XML3::WiX::Classes from other module',
+		  'Error caught by XML::WiX3::Classes from other module',
 		'isa'    => 'XWC::Exception',
 		'fields' => [ 'message', 'info' ],
+	},
+	'XWC::Exception::Parameter::Missing' => {
+		'description' =>
+		  'XML::WiX3::Classes error: Parameter missing',
+		'isa'    => 'XWC::Exception',
+		'fields' => [ 'parameter', 'where', 'info' ],
+	},
+	'XWC::Exception::Parameter::Invalid' => {
+		'description' =>
+		  'XML::WiX3::Classes error: Parameter invalid',
+		'isa'    => 'XWC::Exception',
+		'fields' => [ 'parameter', 'where', 'info' ],
+	},
+	'XWC::Exception::Parameter::Odd' => {
+		'description' =>
+		  'XML::WiX3::Classes error: Parameter missing or invalid',
+		'isa'    => 'XWC::Exception',
+		'fields' => [ 'parameter', 'where', 'info' ],
 	},
 );
 

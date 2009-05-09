@@ -29,6 +29,8 @@ use version; $VERSION = version->new('0.180')->numify;
 # Accessors:
 #   name, path, special: See constructor.
 
+__END__
+
 my @directories : Field : Name(directories);
 my @files : Field : Name(files);
 

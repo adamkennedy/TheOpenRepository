@@ -424,45 +424,4 @@ sub get_component_array {
 	return @answer;
 } ## end sub get_component_array
 
-########################################
-# as_string
-# Parameters:
-#   None
-# Returns:
-#   String representation of <DirectoryRef> tag represented by this object,
-#   along with the <Component> and <Directory> entries it contains.
-
-sub as_string {
-	my $self      = shift;
-	my $object_id = ${$self};
-	my ( $count, $answer, $string );
-
-	# Get our own Id and print it.
-	my $id = $directory_object[$object_id]->get_component_id;
-	$answer = "<DirectoryRef Id='D_$id'>\n";
-
-	# Stringify the WiX::Directory objects we own.
-	$count = scalar @{ $directories[$object_id] };
-	foreach my $i ( 0 .. $count - 1 ) {
-		$string .= $directories[$object_id]->[$i]->as_string;
-	}
-
-	# Stringify the WiX::Files::Component objects we own.
-	$count = scalar @{ $files[$object_id] };
-	foreach my $i ( 0 .. $count - 1 ) {
-		next if ( not defined $files[$object_id]->[$i] );
-		$string .= $files[$object_id]->[$i]->as_string;
-	}
-
-	if ( ( not defined $string ) or ( $string eq q{} ) ) {
-		return q{};
-	}
-
-	# Finish up.
-	$answer .= $self->indent( 2, $string );
-	$answer .= "\n</DirectoryRef>\n";
-
-	return $answer;
-} ## end sub as_string
-
 1;

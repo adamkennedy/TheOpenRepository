@@ -2,7 +2,7 @@ package XML::WiX3::Classes;
 
 use warnings;
 use strict;
-
+use vars qw( $VERSION );
 use version; $VERSION = version->new('0.003')->numify;
 
 1; # Magic true value required at end of module
@@ -10,7 +10,7 @@ __END__
 
 =begin readme text
 
-XML-WiX3-Classes version 0.181_001
+XML-WiX3-Classes version 0.003
 
 =end readme
 

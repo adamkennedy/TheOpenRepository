@@ -10,9 +10,8 @@ use warnings;
 use Moose 0.74 ();
 use Moose::Exporter;
 use Moose::Util::MetaRole;
-use XML::WiX3::Classes::::Role::StrictConstructor;
-use XML::WiX3::Classes::::Role::StrictConstructorMeta;
-
+use XML::WiX3::Classes::Role::StrictConstructor;
+use XML::WiX3::Classes::Role::StrictConstructorMeta;
 
 Moose::Exporter->setup_import_methods();
 
@@ -28,13 +27,13 @@ sub init_meta
     Moose::Util::MetaRole::apply_metaclass_roles( 
 	  for_class => $caller,
       constructor_class_roles =>
-        ['XML::WiX3::Classes::::Role::StrictConstructorMeta'],
+        ['XML::WiX3::Classes::Role::StrictConstructorMeta'],
     );
 
     Moose::Util::MetaRole::apply_base_class_roles( 
 	  for_class => $caller,
       roles =>
-        [ 'XML::WiX3::Classes:::Role::StrictConstructor' ],
+        [ 'XML::WiX3::Classes::Role::StrictConstructor' ],
 	);
 
     return $caller->meta();

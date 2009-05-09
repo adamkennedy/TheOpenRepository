@@ -15,16 +15,16 @@ use version; $VERSION = version->new('0.003')->numify;
 #####################################################################
 # Attributes
 
-with 'XML::WiX3::Classes::Traceable';
+with 'XML::WiX3::Classes::Role::Traceable';
 
-has sitename (
+has _sitename => (
     is      => 'ro',
 	isa     => Host,
 	reader  => '_get_sitename',
 	default => q{www.perl.invalid},
 );
 
-has guidgen (
+has _guidgen => (
 	is       => 'ro',
 	isa      => 'Data::UUID',
 	reader   => '_get_guidgen',
@@ -34,7 +34,7 @@ has guidgen (
 	},
 );
 
-has sitename_guid (
+has _sitename_guid => (
     is       => 'ro',
 	isa      => 'Str',
 	reader   => '_get_sitename_guid',

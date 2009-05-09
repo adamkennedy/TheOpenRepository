@@ -3,15 +3,15 @@ package XML::WiX3::Classes::Role::Fragment;
 #<<<
 use 5.006;
 use Moose::Role;
-use vars              qw( $VERSION );
+use vars qw( $VERSION );
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
 with 'XML::WiX3::Classes::Role::Tag';
 
-has id (
-	is => ro,
+has id => (
+	is => 'ro',
 	isa	=> 'Str',
 	required => 1,
 	getter => 'get_id',

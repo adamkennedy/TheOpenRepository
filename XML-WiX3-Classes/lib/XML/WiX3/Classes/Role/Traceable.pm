@@ -6,12 +6,13 @@ use Moose::Role;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
-has trace_opts (
+has _traceopts => (
+	is => 'ro',
 	isa => 'HashRef',
-	getter => 'get_traceopts'
+	getter => '_get_traceopts'
 );
 
-has _traceobject (
+has _traceobject => (
     is  => 'ro',
     isa => 'XML::WiX3::Classes::Trace::Object',
 	lazy => 1,
@@ -23,7 +24,7 @@ has _traceobject (
 sub _setup_traceobject {
 	my $self = shift;
 	return XML::WiX3::Classes::Trace::Object->new( 
-	  %{ $self->trace_opts() }, 
+	  %{ $self->get_traceopts() }, 
 	  use_logger_singleton => 1,
 	);
 }

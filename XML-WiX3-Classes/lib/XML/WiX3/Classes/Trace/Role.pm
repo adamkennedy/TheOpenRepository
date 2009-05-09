@@ -3,52 +3,52 @@ package # Hide from PAUSE.
 
 use 5.008001;
 use Moose::Role;
-use XML::WiX3::Classes::Types qw(Host);
+use XML::WiX3::Classes::Types qw(Tracelevel);
 use Readonly qw( Readonly );
 
 use version; our $VERSION = version->new('0.003')->numify;
 
 Readonly my @LEVELS => qw(error notice warning info info debug);
 
-has tracelevel (
+has tracelevel => (
 	isa     => Tracelevel,
 	reader  => 'get_tracelevel',
 	writer  => 'set_tracelevel',
 	default => 0,
 );
 
-has testing (
+has testing => (
 	isa     => 'Bool',
 	reader  => '_get_testing',
 	writer  => '_set_testing',
 	default => 0,
 );
 
-has email_from (
+has email_from => (
 	isa     => 'Str',
 	reader  => '_get_email_from',
 	default => q{},
 );
 
-has email_to (
+has email_to => (
 	isa     => 'ArrayRef[Str]',
 	reader  => '_get_email_to',
-	default => [],
+	default => sub { return []; },
 );
 
-has smtp (
+has smtp => (
 	isa     => 'Str',
 	reader  => '_get_smtp',
 	default => q{},
 );
 
-has smtp_user (
+has smtp_user => (
 	isa     => 'Str',
 	reader  => '_get_smtp_user',
 	default => q{},
 );
 
-has smtp_pass (
+has smtp_pass => (
 	isa     => 'Str',
 	reader  => '_get_smtp_pass',
 	default => q{},

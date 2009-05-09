@@ -4,33 +4,124 @@ package XML::WiX3::Classes::Directory;
 use 5.006;
 use Moose;
 use vars              qw( $VERSION );
-use Params::Util      qw( _STRING  );
+# use Params::Util      qw( _STRING  );
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
 with 'XML::WiX3::Classes::Role::Tag';
-## Allows Permission, PermissionEx, Shortcut as children.
+## Allows Component, Directory, Merge, and SymbolPath as children.
+
+with 'XML::WiX3::Classes::Role::GeneratesGUID';
 
 #####################################################################
 # Accessors:
 #   None.
 
-has name (
-	is => ro,
-	isa => 'XML::WiX3::Classes::Directory',
-	getter => _get_directory_object,
-	required => 1,
-	handles => [qw(get_path)],
+has id => (
+	is => 'ro',
+	isa => 'Str',
+	getter => 'get_id',
+	default => undef,
 );
 
+# Path helps us in path searching.
+has path => (
+	is => 'ro',
+	isa => 'Str',
+	getter => 'get_path',
+);
 
+has noprefix => (
+	is => 'ro',
+	isa => 'Str',
+	getter => '_get_noprefix',
+	default => undef,
+);
+
+has _diskid => (
+	is => 'ro',
+	isa => 'Int',
+	getter => '_get_diskid',
+	default => undef,
+);
+
+has _filesource => (
+	is => 'ro',
+	isa => 'Str',
+	getter => '_get_filesource',
+	default => undef,
+);
+
+has name => (
+	is => 'ro',
+	isa => 'Str', # LongFileNameType
+	getter => 'get_name',
+	default => undef,
+);
+
+has _sourcename => (
+	is => 'ro',
+	isa => 'Str', # LongFileNameType
+	getter => '_get_sourcename',
+	default => undef,
+);
+
+has _shortname => (
+	is => 'ro',
+	isa => 'Str', # ShortFileNameType
+	getter => '_get_shortname',
+	default => undef,
+);
+
+has _shortsourcename => (
+	is => 'ro',
+	isa => 'Str', # ShortFileNameType
+	getter => '_get_shortsourcename',
+	default => undef,
+);
+
+# Since we generate GUID's when none is included, 
+# ComponentGuidGenerationSeed is not needed.
 
 #####################################################################
 # Constructor for CreateFolder
 #
-# Parameters: [pairs]
-#   id, directory: See Base::Fragment.
+sub BUILDARGS {
+	my $class = shift;
+	my %args;
+	
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+		%args = %{ $_[0] };
+	}
+	elsif (@_ % 2 == 0) {
+		%args = { @_ };
+	} else {
+		XWC::Exception::Parameter::Odd->throw();
+	}
+
+	unless (exists $args{'id'}) {
+		my $id = generate_guid($args{'name'});
+		$id =~ s{-}{_}g; 
+		$args{'id'} = $id;
+	}
+	
+	unless (defined _IDENTIFIER($args{'id'})) {
+		XWC::Exception::Parameter::Invalid->throw('id');
+	}
+
+}
+
+sub get_directory_id {
+	my $self = shift;
+	my $id = $self->get_id();
+	
+	if ($self->noprefix()) {
+		return $id;
+	} else {
+		return "D_$id";
+	}
+}
 
 #####################################################################
 # Main Methods
@@ -38,22 +129,21 @@ has name (
 sub as_string {
 	my $self = shift;
 
-	my $directory = $self->_get_directory();
 	my $children  = $self->has_children();
-
+	my $tags;
+	$tags  = $self->print_attribute('Id', $self->get_directory_id());
+	$tags .= $self->print_attribute('Name', $self->get_name());
+	$tags .= $self->print_attribute('ShortName', $self->_get_shortname());
+	$tags .= $self->print_attribute('SourceName', $self->_get_sourcename());
+	$tags .= $self->print_attribute('ShortSourceName', $self->_get_shortsourcename());
+	$tags .= $self->print_attribute('DiskId', $self->_get_diskid());
+	$tags .= $self->print_attribute('FileSource', $self->_get_filesource());
+	
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
-		} else {
-			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
-		}
+		return qq{<Directory$tags>\n$child_string</Directory>\n};
 	} else {
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'/>\n};
-		} else {
-			return q{<CreateFolder />\n};
-		}
+		return q{<Directory$tags />\n};
 	}
 
 } ## end sub as_string

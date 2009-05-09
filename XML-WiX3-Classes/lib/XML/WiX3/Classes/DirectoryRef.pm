@@ -10,25 +10,32 @@ use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
 with 'XML::WiX3::Classes::Role::Tag';
-## Allows Permission, PermissionEx, Shortcut as children.
+## Allows Component, Directory, Merge as children.
 
 #####################################################################
 # Accessors:
 #   None.
 
-has directory_object (
-	is => ro,
+has _directory_object => (
+	is => 'ro',
 	isa => 'XML::WiX3::Classes::Directory',
-	getter => _get_directory_object,
+	getter => '_get_directory_object',
+	init_arg => 'directory_object',
 	required => 1,
-	handles => [qw(get_path)],
+	handles => [qw(get_path get_directory_id)],
 );
 
-#####################################################################
-# Constructor for CreateFolder
-#
-# Parameters: [pairs]
-#   id, directory: See Base::Fragment.
+has _diskid => (
+	id => 'ro',
+	isa => 'Int',
+	getter => '_get_diskid',
+);
+
+has _filesource => (
+	id => 'ro',
+	isa => 'Str',
+	getter => '_get_filesource',
+);
 
 #####################################################################
 # Main Methods
@@ -36,22 +43,17 @@ has directory_object (
 sub as_string {
 	my $self = shift;
 
-	my $directory = $self->_get_directory();
 	my $children  = $self->has_children();
+	my $tags;
+	$tags  = $self->print_attribute('Id', $self->get_directory_id());
+	$tags .= $self->print_attribute('DiskId', $self->_get_diskid());
+	$tags .= $self->print_attribute('FileSource', $self->_get_filesource());
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
-		} else {
-			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
-		}
+		return qq{<DirectoryRef$tags>\n$child_string</DirectoryRef>\n};
 	} else {
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'/>\n};
-		} else {
-			return q{<CreateFolder />\n};
-		}
+		return q{<DirectoryRef$tags />\n};
 	}
 
 } ## end sub as_string

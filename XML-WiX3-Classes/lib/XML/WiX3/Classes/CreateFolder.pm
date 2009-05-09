@@ -16,10 +16,10 @@ with 'XML::WiX3::Classes::Role::Tag';
 # Accessors:
 #   None.
 
-has directory (
-	is => ro,
+has directory => (
+	is => 'ro',
 	isa => 'Str',
-	getter => _get_directory,
+	getter => '_get_directory',
 	default => sub { return undef; }
 );
 

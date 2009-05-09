@@ -7,6 +7,7 @@ use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
 use     MooseX::AttributeHelpers;
 require XML::WiX3::Classes::Exceptions;
+use     List::MoreUtils qw( uniq );
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -15,7 +16,7 @@ use version; $VERSION = version->new('0.003')->numify;
 # Attributes
 
 # A tag can contain other tags.
-has child_tags (
+has child_tags => (
 	metaclass => 'Collection::Array',
 	is => 'rw',
 	isa => 'ArrayRef[XML::WiX3::Classes::Role::Tag]',
@@ -48,7 +49,7 @@ requires 'get_namespace';
 #   Indented $string.
 
 sub indent {
-	my ( $self, $spaces, $string ) = @_;
+	my ( $self, $spaces_num, $string ) = @_;
 
 	# Check parameters.
 	unless ( defined $string ) {
@@ -134,7 +135,25 @@ sub get_component_array {
 	return @components;
 }
 
-__PACKAGE__->meta->make_immutable;
+sub print_attribute {
+	my $self = shift;
+	my $attribute = shift || undef;
+	my $value = shift || undef;
+
+	unless (defined $attribute) {
+		XWC::Exception::Parameter::Missing->throw('attribute');
+	}
+
+	# $attribute needs to be an identifier.
+	
+	unless (defined $value) {
+		return q{};
+	}
+	
+	return qq{ $attribute='$value'};
+	
+}
+
 no Moose::Role;
 
 1;
@@ -203,17 +222,25 @@ This routine is used by Fragment::as_string.
 
 =head2 get_component_array
 
-	@component_array = $tag->get_component_array()
+	@component_array = $tag->get_component_array();
 
 Returns a list of components contained in this tag.  If there are no 
 L<XML::WiX3::Classes::Role::Component> children in this tag, an empty list
 is returned.
 
+=head2 print_attribute
+
+	$attribute_string = $tag->print_attribute('Id', $id);
+
+Returns a string to use when printing the attribute specified within a tag if $id is defined, otherwise, returns an empty, but defined, string.
+
+This is meant to be used in as_string routines.
+
 =head1 DIAGNOSTICS
 
-The C<indent> routine will throw XWC::Exception::Parameter::Missing and 
-XWC::Exception::Parameter::Invalid objects, which are defined in
-L<XML::WiX3::Classes::Exceptions>.
+The C<indent> and C<print_attribute> routines will throw 
+XWC::Exception::Parameter::Missing and XWC::Exception::Parameter::Invalid 
+objects, which are defined in L<XML::WiX3::Classes::Exceptions>.
 
 There are no other diagnostics for this role, however, other diagnostics may 
 be used by classes implementing this role.

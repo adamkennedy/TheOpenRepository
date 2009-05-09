@@ -10,21 +10,22 @@ package XML::WiX3::Classes::FilesFragment;
 #
 #<<<
 use     5.006;
-use     strict;
-use     warnings;
+use     Moose;
 use     vars                  qw( $VERSION                 );
 use     Params::Util
 	qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
 use     File::Spec::Functions qw( splitpath catpath catdir );
 use     Readonly              qw( Readonly                 );
-require Perl::Dist::WiX::DirectoryTree;
-require Perl::Dist::WiX::Files::DirectoryRef;
+# require Perl::Dist::WiX::DirectoryTree;
+# require Perl::Dist::WiX::Files::DirectoryRef;
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Tag';
-with 'XML::WiX3::Classes::Role::Fragment';
+# with 'XML::WiX3::Classes::Role::Tag';
+# with 'XML::WiX3::Classes::Role::Fragment';
+
+__END__
 
 Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';
 
