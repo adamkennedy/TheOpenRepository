@@ -14,7 +14,7 @@ with 'XML::WiX3::Classes::Role::Fragment';
 has _tag => (
 	is => 'ro',
 	isa => 'XML::WiX3::Classes::Fragment',
-	getter => '_get_tag',
+	reader => '_get_tag',
 	handles => [qw(search_file check_duplicates get_directory_id)],
 );
 

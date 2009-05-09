@@ -21,7 +21,7 @@ with 'XML::WiX3::Classes::Role::GeneratesGUID';
 has id => (
 	is => 'ro',
 	isa => 'Str',
-	getter => 'get_id',
+	reader => 'get_id',
 	default => undef,
 );
 
@@ -29,20 +29,20 @@ has id => (
 has path => (
 	is => 'ro',
 	isa => 'Str',
-	getter => 'get_path',
+	reader => 'get_path',
 );
 
 has noprefix => (
 	is => 'ro',
 	isa => 'Str',
-	getter => '_get_noprefix',
+	reader => '_get_noprefix',
 	default => undef,
 );
 
 has _diskid => (
 	is => 'ro',
 	isa => 'Int',
-	getter => '_get_diskid',
+	reader => '_get_diskid',
 	init_args => 'diskid',
 	default => undef,
 );
@@ -50,7 +50,7 @@ has _diskid => (
 has _filesource => (
 	is => 'ro',
 	isa => 'Str',
-	getter => '_get_filesource',
+	reader => '_get_filesource',
 	init_args => 'filesource',
 	default => undef,
 );
@@ -58,14 +58,14 @@ has _filesource => (
 has name => (
 	is => 'ro',
 	isa => 'Str', # LongFileNameType
-	getter => 'get_name',
+	reader => 'get_name',
 	default => undef,
 );
 
 has _sourcename => (
 	is => 'ro',
 	isa => 'Str', # LongFileNameType
-	getter => '_get_sourcename',
+	reader => '_get_sourcename',
 	init_args => 'sourcename',
 	default => undef,
 );
@@ -73,7 +73,7 @@ has _sourcename => (
 has _shortname => (
 	is => 'ro',
 	isa => 'Str', # ShortFileNameType
-	getter => '_get_shortname',
+	reader => '_get_shortname',
 	init_args => 'shortname',
 	default => undef,
 );
@@ -81,7 +81,7 @@ has _shortname => (
 has _shortsourcename => (
 	is => 'ro',
 	isa => 'Str', # ShortFileNameType
-	getter => '_get_shortsourcename',
+	reader => '_get_shortsourcename',
 	init_args => 'shortsourcename',
 	default => undef,
 );

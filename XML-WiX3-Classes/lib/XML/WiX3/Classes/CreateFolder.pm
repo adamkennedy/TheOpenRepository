@@ -16,11 +16,11 @@ with 'XML::WiX3::Classes::Role::Tag';
 # Accessors:
 #   None.
 
-has directory => (
+has _directory => (
 	is => 'ro',
-	isa => 'Str',
-	getter => '_get_directory',
-	default => sub { return undef; }
+	isa => 'Maybe[Str]',
+	reader => '_get_directory',
+	default => undef,
 );
 
 #####################################################################
@@ -36,7 +36,7 @@ sub as_string {
 	my $self = shift;
 
 	my $directory = $self->_get_directory();
-	my $children  = $self->has_children();
+	my $children  = $self->has_child_tags();
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
@@ -49,7 +49,7 @@ sub as_string {
 		if (defined $directory) {
 			return qq{<CreateFolder Directory='$directory'/>\n};
 		} else {
-			return q{<CreateFolder />\n};
+			return qq{<CreateFolder />\n};
 		}
 	}
 

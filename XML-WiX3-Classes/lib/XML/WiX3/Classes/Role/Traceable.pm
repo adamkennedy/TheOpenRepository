@@ -8,7 +8,7 @@ use version; our $VERSION = version->new('0.003')->numify;
 has _traceopts => (
 	is => 'ro',
 	isa => 'HashRef',
-	getter => '_get_traceopts'
+	reader => '_get_traceopts'
 );
 
 has _traceobject => (

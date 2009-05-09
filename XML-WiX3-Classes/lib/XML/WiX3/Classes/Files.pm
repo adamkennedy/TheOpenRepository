@@ -1,43 +1,217 @@
-package XML::WiX3::Classes::FilesFragment;
+package XML::WiX3::Classes::Files;
 
-####################################################################
-# Perl::Dist::WiX::Files - <Fragment> tag that contains
-# <DirectoryRef> tags
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See Wix.pm for details.
-#
 #<<<
 use     5.006;
 use     Moose;
 use     vars                  qw( $VERSION                 );
-use     Params::Util
-	qw( _IDENTIFIER _STRING _INSTANCE _ARRAY0 );
-use     File::Spec::Functions qw( splitpath catpath catdir );
-use     Readonly              qw( Readonly                 );
-# require Perl::Dist::WiX::DirectoryTree;
-# require Perl::Dist::WiX::Files::DirectoryRef;
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-# with 'XML::WiX3::Classes::Role::Tag';
-# with 'XML::WiX3::Classes::Role::Fragment';
-
-__END__
-
-Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';
+with 'XML::WiX3::Classes::Role::Tag';
 
 #####################################################################
 # Accessors:
 #   see new.
 
-has directory_tree {
-	is => ro,
-	isa => 'Perl::Dist::WiX::DirectoryTree',
-	getter => '_get_directory_tree';
-}
+has _assembly => (
+	is => 'ro',
+	isa => 'Str', # '.net', 'no', or 'win32'
+	reader => '_get_assembly',
+	init_arg => 'assembly',
+	default => undef,
+);
+
+has _assemblyapplication => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_assemblyapplication',
+	init_arg => 'assemblyapplication',
+	default => undef,
+);
+
+has _assemblymanifest => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_assemblymanifest',
+	init_arg => 'assemblymanifest',
+	default => undef,
+);
+
+has _bindpath => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_bindpath',
+	init_arg => 'bindpath',
+	default => undef,
+);
+
+has _checksum => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_checksum',
+	init_arg => 'checksum',
+	default => undef,
+);
+
+has _companionfile => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_companionfile',
+	init_arg => 'companionfile',
+	default => undef,
+);
+
+has _compressed => (
+	is => 'ro',
+	isa => 'Str', #'yes', 'no', or 'default'
+	reader => '_get_compressed',
+	init_arg => 'compressed',
+	default => undef,
+);
+
+has _defaultlanguage => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_defaultlanguage',
+	init_arg => 'defaultlanguage',
+	default => undef,
+);
+
+has _defaultsize => (
+	is => 'ro',
+	isa => 'Int', # PositiveInt
+	reader => '_get_defaultsize',
+	init_arg => 'defaultsize',
+	default => undef,
+);
+
+has _defaultversion => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_defaultversion',
+	init_arg => 'defaultversion',
+	default => undef,
+);
+
+has _diskid => (
+	is => 'ro',
+	isa => 'Int',
+	reader => '_get_diskid',
+	init_arg => 'diskid',
+	default => undef,
+);
+
+has _fonttitle => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_fonttitle',
+	init_arg => 'fonttitle',
+	default => undef,
+);
+
+has _hidden => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_hidden',
+	init_arg => 'hidden',
+	default => undef,
+);
+
+has id => (
+	is => 'ro',
+	isa => 'Str',
+	reader => 'get_id',
+	default => undef,
+);
+
+has _keypath => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_keypath',
+	init_arg => 'keypath',
+	default => undef,
+);
+
+has name => (
+	is => 'ro',
+	isa => 'Str', # LongNameFileType
+	reader => 'get_name',
+	default => undef,
+);
+
+has _patchallowignoreonerror => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_patchallowignoreonerror',
+	init_arg => 'patchallowignoreonerror',
+	default => undef,
+);
+
+has _patchignore => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_patchignore',
+	init_arg => 'patchignore',
+	default => undef,
+);
+
+has _patchwholefile => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_patchwholefile',
+	init_arg => 'patchwholefile',
+	default => undef,
+);
+
+has _patchgroup => (
+	is => 'ro',
+	isa => 'Int',
+	reader => '_get_diskid',
+	init_arg => 'diskid',
+	default => undef,
+);
+
+has _processorarchitecture => (
+	is => 'ro',
+	isa => 'Str', # 'msil', 'x86', 'x64', or 'ia64'
+	reader => '_get_processorarchitecture',
+	init_arg => 'processorarchitecture',
+	default => undef,
+);
+
+has _readonly => (
+	is => 'ro',
+	isa => 'Bool|Str', # Becomes yes/no.
+	reader => '_get_readonly',
+	init_arg => 'readonly',
+	default => undef,
+);
+
+has _selfregcost => (
+	is => 'ro',
+	isa => 'Int',
+	reader => '_get_selfregcost',
+	init_arg => 'selfregcost',
+	default => undef,
+);
+
+has _shortname => (
+	is => 'ro',
+	isa => 'Str', # ShortFileNameType
+	reader => '_get_shortname',
+	init_arg => 'shortname',
+	default => undef,
+);
+
+has _source => (
+	is => 'ro',
+	isa => 'Str',
+	reader => '_get_source',
+	init_arg => 'source',
+	default => undef,
+);
+
 
 #####################################################################
 # Constructor for Files
@@ -452,6 +626,10 @@ EOF
 EOF
 	return $string;
 } ## end sub as_string
+
+sub get_namespace {
+	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
+}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

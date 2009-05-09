@@ -19,7 +19,7 @@ with 'XML::WiX3::Classes::Role::Tag';
 has _directory_object => (
 	is => 'ro',
 	isa => 'XML::WiX3::Classes::Directory',
-	getter => '_get_directory_object',
+	reader => '_get_directory_object',
 	init_arg => 'directory_object',
 	required => 1,
 	handles => [qw(get_path get_directory_id)],
@@ -28,13 +28,13 @@ has _directory_object => (
 has _diskid => (
 	id => 'ro',
 	isa => 'Int',
-	getter => '_get_diskid',
+	reader => '_get_diskid',
 );
 
 has _filesource => (
 	id => 'ro',
 	isa => 'Str',
-	getter => '_get_filesource',
+	reader => '_get_filesource',
 );
 
 #####################################################################

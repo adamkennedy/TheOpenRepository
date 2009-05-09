@@ -14,7 +14,7 @@ has id => (
 	is => 'ro',
 	isa	=> 'Str',
 	required => 1,
-	getter => 'get_id',
+	reader => 'get_id',
 );
 
 #####################################################################
@@ -29,15 +29,15 @@ sub BUILDARGS {
 	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		if (exists $_[0]->{id}) {
 			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
-			return $class->SUPER::BUILDARGS(@_);
+			return $_[0];
 		} else {
 			XWC::Exception::Parameter::Missing->throw('id');
 		}
 	} else {
-		my %hash = { @_ };
+		my %hash = @_;
 		if (exists $hash{id}) {
 			$hash{id} = 'Fr_' . $hash{'id'};
-			return $class->SUPER::BUILDARGS(%hash);
+			return ${%hash};
 		} else {
 			XWC::Exception::Parameter::Missing->throw('id');
 		}		
