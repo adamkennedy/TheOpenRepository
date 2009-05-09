@@ -9,6 +9,7 @@ requires      'Params::Util'     => '0.37';
 requires      'ORLite'           => '1.20';
 requires      'ORLite::Migrate'  => '0.02';
 test_requires 'Test::More'       => '0.42';
+install_script 'pm2dist';
 install_share;
 
 WriteAll;

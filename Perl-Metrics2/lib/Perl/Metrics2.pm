@@ -68,13 +68,14 @@ use File::Spec             ();
 use File::HomeDir          ();
 use File::ShareDir         ();
 use File::Find::Rule       ();
+use File::Find::Rule::VCS  ();
 use File::Find::Rule::Perl ();
 use Params::Util           ();
 use PPI::Util              ();
 use PPI::Document          ();
 use Module::Pluggable;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -103,6 +104,30 @@ use ORLite::Migrate 0.03 {
 #####################################################################
 # Main Methods
 
+sub process_distribution {
+	my $class = shift;
+
+	# Get and check the directory name
+	my $path = File::Spec->canonpath(shift);
+	unless ( defined Params::Util::_STRING($path) ) {
+		Carp::croak("Did not pass a file name to index_file");
+	}
+	unless ( File::Spec->file_name_is_absolute($path) ) {
+		Carp::croak("Cannot index relative path '$path'. Must be absolute");
+	}
+	Carp::croak("Cannot index '$path'. File does not exist") unless -d $path;
+	Carp::croak("Cannot index '$path'. No read permissions") unless -r _;
+
+	# Find the documents
+	my @files = File::Find::Rule->ignore_svn->no_index->perl_file->in($path);
+	$class->trace("$path: Found " . scalar(@files) . " files");
+	foreach my $file ( @files ) {
+		$class->trace($file);
+		$class->process_file($file);
+	}
+	return 1;
+}
+
 sub process_file {
 	my $class = shift;
 
@@ -120,11 +145,15 @@ sub process_file {
 	# Load the document
 	my $document = PPI::Document->new( $path,
 		readonly => 1,
-	) or die("Failed to parse '$path'");
+	);
+	unless ( $document ) {
+		 warn("Failed to parse '$path'");
+		 next;
+	}
 
 	# Create the plugin objects
 	foreach my $plugin ( $class->plugins ) {
-		$class->trace("STARTING PLUGIN $plugin");
+		# $class->trace("STARTING PLUGIN $plugin");
 		eval "require $plugin";
 		die $@ if $@;
 		$plugin->new->process_document($document);

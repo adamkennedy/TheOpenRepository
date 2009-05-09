@@ -27,7 +27,7 @@ use Perl::Metrics2::Plugin ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'Perl::Metrics2::Plugin';
 }
 
@@ -41,6 +41,20 @@ The C<bytes> metric represents the number of bytes in the file.
 
 sub metric_bytes {
 	bytes::length($_[1]->serialize);
+}
+
+=pod
+
+=head2 integer lines
+
+The C<lines> metric represents the number of raw lines in the file.
+
+=cut
+
+sub metric_lines {
+	my $string   = $_[1]->serialize;
+	my $newlines =()= $string =~ /\n/g;
+	return $newlines + 1;
 }
 
 =pod

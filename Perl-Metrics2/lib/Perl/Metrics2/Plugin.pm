@@ -71,7 +71,7 @@ use Params::Util     '_IDENTIFIER',
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -303,25 +303,30 @@ sub process_document {
 		Carp::croak("Did not provide a PPI::Document object");
 	}
 
-	# Flush out the old records
-	my $md5 = $document->hex_id;
+	# Generate the new metrics values
+	my %metric = %{$self->metrics};
+	foreach my $name ( sort keys %metric ) {
+		$metric{$name} = $self->_metric($document, $name);
+	}
+
+	# Flush out the old records and write the new metrics
+	my $md5     = $document->hex_id;
+	my $version = $class->VERSION,
+	Perl::Metrics2->begin;
 	Perl::Metrics2::FileMetric->delete(
 		'where md5 = ? and package = ?',
 		$md5, $class,
 	);
-
-	# Get the list of metrics to run
-	my %metrics = %{$self->metrics};
-	foreach my $name ( sort keys %metrics ) {
-		my $value = $self->_metric($document, $name);
+	foreach my $name ( sort keys %metric ) {
 		Perl::Metrics2::FileMetric->create(
 			md5     => $md5,
 			package => $class,
-			version => $class->VERSION,
+			version => $version,
 			name    => $name,
-			value   => $value,
+			value   => $metric{$name},
 		);
 	}
+	Perl::Metrics2->commit;
 
 	return 1;
 }
