@@ -1064,8 +1064,9 @@ use Marpa::Offset qw(
     NEXT_INSTANCE
     ACCEPT_NODE
     REJECT_NODE
-    BACKTRACK_TO_INSTANCE
     BACKTRACK_TO_FORK
+    BACKTRACK_TO_INSTANCE
+    BACKTRACK_OVER_INSTANCE
     EVALUATE
 );
 
@@ -1131,7 +1132,7 @@ sub Marpa::Evaluator::new_value {
 
     # Default is to backtrack, but if this is a new parse (no journal)
     # it will be overriden
-    my @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
+    my @tasks = ( [Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE] );
 
     if ( not defined $journal ) {
 
@@ -1215,7 +1216,8 @@ sub Marpa::Evaluator::new_value {
             reverse map { $instances_by_sortkey{$_} }
                 sort keys %instances_by_sortkey
         ];
-        $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL] = [];
+        $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
+        $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS] = [];
         @tasks = ( [ Marpa::Internal::Task::NEXT_INSTANCE, 0 ] );
 
     } ## end if ( not defined $journal )
@@ -1306,10 +1308,7 @@ sub Marpa::Evaluator::new_value {
             if ( not defined $decision ) {
 
                 push @{$journal},
-                    [
-                    Marpa::Internal::Journal_Tag::NODE, $and_node_id,
-                    $rank
-                    ];
+                    [ Marpa::Internal::Journal_Tag::NODE, $and_node_id, ];
 
                 my $and_node = $and_nodes->[$and_node_id];
                 if ($trace_journal) {
@@ -1388,6 +1387,7 @@ sub Marpa::Evaluator::new_value {
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_iterations)
+
                     push @tasks, [Marpa::Internal::Task::BACKTRACK_TO_FORK];
                     next TASK;
 
@@ -1460,6 +1460,7 @@ we left off by deciding more instances.
             if (   $decision == REJECTED
                 or $decision == $rank )
             {
+
                 if ($trace_iterations) {
                     my $problem =
                         $decision == REJECTED
@@ -1473,12 +1474,35 @@ we left off by deciding more instances.
                         "$and_node_name\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_iterations)
+
                 push @tasks, [Marpa::Internal::Task::BACKTRACK_TO_FORK];
                 next TASK;
+
             } ## end if ( $decision == REJECTED or $decision == $rank )
 
-            # At this point the node was accepted
-            # by a previous instance.  Resume scanning instances.
+            # At this point we know that
+            # the node was accepted
+            # by a previous instance.  Update the decision, journal that,
+            # and resume scanning instances.
+
+            my $and_node = $and_nodes->[$and_node_id];
+
+            push @{$journal},
+                [
+                Marpa::Internal::Journal_Tag::NODE, $and_node_id,
+                $decision
+                ];
+
+            if ($trace_journal) {
+                my $and_node_name =
+                    $and_node->[Marpa::Internal::And_Node::NAME];
+                print {$trace_fh}
+                    "Journal: Re-accepted $and_node_name; rank $rank\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_journal)
+
+            $decisions->[$and_node_id] = $rank;
+
             push @tasks, [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1 ];
             next TASK;
 
@@ -1506,13 +1530,16 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 =cut
 
         if (   $task == Marpa::Internal::Task::BACKTRACK_TO_FORK
-            or $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE )
+            or $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE
+            or $task == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE )
         {
 
             if ($trace_tasks) {
                 my $task_name =
                     $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE
                     ? 'BACKTRACK_TO_INSTANCE'
+                    : $task == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE
+                    ? 'BACKTRACK_OVER_INSTANCE'
                     : 'BACKTRACK_TO_FORK';
                 print {$trace_fh} "Task: $task_name; ",
                     ( scalar @tasks ), " tasks pending\n"
@@ -1551,16 +1578,15 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 # while following up on a decision to accept
                 if ( $entry_type == Marpa::Internal::Journal_Tag::FORK ) {
 
-                    # If we're backtrack to iterate an instance, just
+                    # If we're backtracking to iterate an instance, just
                     # throw this away.
                     next ENTRY
-                        if $task
-                            == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE;
+                        if $task != Marpa::Internal::Task::BACKTRACK_TO_FORK;
 
                     my ( $rank, $forks, $fork_choice ) = @{$journal_entry};
                     $fork_choice++;
 
-                    # Because we don't journal non-iterable _FORK
+                    # Because we don't journal non-iterable FORK
                     # events, we are sure that there is a
                     # $forks->[$fork_choice]
                     my $parent_id   = $forks->[$fork_choice];
@@ -1614,10 +1640,13 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     my $choices = $instances->[$rank];
                     $choice++;
 
-                    # Can we iterate?
-                    if ( $choice >= $#{$choices} ) {
+                    # Do we want to iterate, and can we?
+                    if ( $task
+                        == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE
+                        or $choice >= $#{$choices} )
+                    {
                         $choice = -1;
-                    }
+                    } ## end if ( $task == ...
 
                     if ($trace_iterations) {
                         if ( $choice == -1 ) {
@@ -1689,6 +1718,13 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             } ## end while ( my $journal_entry = pop @{$journal} )
             ## End ENTRY
 
+            if ($trace_iterations) {
+                print {$trace_fh}
+                    'Iteration: Have backtracked over the entire journal: ',
+                    "will return no parses\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_iterations)
+
             # If we are here, we have backed out the entire journal.
             # There are no (or no more) parses.
             return;
@@ -1715,9 +1751,19 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             # If we're trying to reject an accepted node, that won't work.  We
             # have to backtrack.
             if ( defined $decision and $decision != REJECTED ) {
+
+                if ($trace_iterations) {
+                    my $and_node_name =
+                        $and_node->[Marpa::Internal::And_Node::NAME];
+                    print {$trace_fh}
+                        "Iteration: Attempted to reject an accepted node: $and_node_name; ",
+                        "need to backtrack\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_iterations)
+
                 @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
                 next TASK;
-            }
+            } ## end if ( defined $decision and $decision != REJECTED )
 
             # If this node is already rejected, go on to
             # the next task
