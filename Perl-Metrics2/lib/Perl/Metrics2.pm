@@ -94,7 +94,7 @@ use ORLite::Migrate 0.03 {
 	file         => ORLITE_FILE,
 	create       => 1,
 	timeline     => ORLITE_TIMELINE,
-	user_version => 1,
+	user_version => 2,
 };
 
 
@@ -158,6 +158,42 @@ sub process_file {
 		die $@ if $@;
 		$plugin->new->process_document($document);
 	}
+
+	return 1;
+}
+
+sub index_distribution {
+	my $class = shift;
+	my $dist  = shift;
+	my $path  = shift;
+
+	# Find the documents
+	my @files = File::Find::Rule->ignore_svn
+		->no_index
+		->perl_file
+		->relative
+		->in($path);
+
+	# Generate the md5 checksums for the files
+	my %md5 = map {
+		$_ => PPI::Util::md5hex_file(
+			File::Spec->catfile($path, $_)
+		)
+	} @files;
+
+	# Flush and push the files into the database
+	Perl::Metrics2->begin;
+	Perl::Metrics2::CpanFile->delete(
+		'where dist = ?', $dist,
+	);
+	foreach my $file ( @files ) {
+		Perl::Metrics2::CpanFile->create(
+			dist => $dist,
+			file => $file,
+			md5  => $md5{$file},
+		);
+	}
+	Perl::Metrics2->commit;
 
 	return 1;
 }
