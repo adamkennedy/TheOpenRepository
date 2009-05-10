@@ -1,5 +1,8 @@
 Changes for Perl extension Perl-Metrics2
 
+0.03 Sun 10 May 2009
+	- Adding source lines of code metric to the core
+
 0.02 Sun 10 May 2009
 	- Adding the CpanFile table
 

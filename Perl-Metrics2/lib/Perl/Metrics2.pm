@@ -75,7 +75,7 @@ use PPI::Util              ();
 use PPI::Document          ();
 use Module::Pluggable;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -102,10 +102,48 @@ use ORLite::Migrate 0.03 {
 
 
 #####################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_,
+		plugins => {},
+	}, $class;
+
+	# Load the plugins
+	foreach my $plugin ( $class->plugins ) {
+		eval "require $plugin";
+		die $@ if $@;
+		$self->{plugins}->{$plugin} = $plugin->new;
+		$self->{plugins}->{$plugin}->study if $self->study;
+	}
+
+	return $self;
+}
+
+sub study {
+	$_[0]->{study};
+}
+
+sub seen {
+	my $self = shift;
+	my $md5  = shift;
+	foreach my $plugin ( sort keys %{$self->{plugins}} ) {
+		next if $self->{plugins}->{$plugin}->{seen}->{$md5};
+		return 0;
+	}
+	return 1;
+}
+
+
+
+
+
+#####################################################################
 # Main Methods
 
 sub process_distribution {
-	my $class = shift;
+	my $self = shift;
 
 	# Get and check the directory name
 	my $path = File::Spec->canonpath(shift);
@@ -119,17 +157,17 @@ sub process_distribution {
 	Carp::croak("Cannot index '$path'. No read permissions") unless -r _;
 
 	# Find the documents
-	my @files = File::Find::Rule->ignore_svn->no_index->perl_file->in($path);
-	$class->trace("$path: Found " . scalar(@files) . " files");
+	my @files = File::Find::Rule->ignore_svn->no_index->perl_module->in($path);
+	$self->trace("$path: Found " . scalar(@files) . " files");
 	foreach my $file ( @files ) {
-		$class->trace($file);
-		$class->process_file($file);
+		$self->trace($file);
+		$self->process_file($file);
 	}
 	return 1;
 }
 
 sub process_file {
-	my $class = shift;
+	my $self = shift;
 
 	# Get and check the filename
 	my $path = File::Spec->canonpath(shift);
@@ -142,6 +180,15 @@ sub process_file {
 	Carp::croak("Cannot index '$path'. File does not exist") unless -f $path;
 	Carp::croak("Cannot index '$path'. No read permissions") unless -r _;
 
+	if ( $self->study ) {
+		# If and only if every plugin has seen the document
+		# we can shortcut and don't need to load it.
+		my $md5 = PPI::Util::md5hex_file($path);
+		if ( $self->seen($md5) ) {
+			return 1;
+		}
+	}
+	
 	# Load the document
 	my $document = PPI::Document->new( $path,
 		readonly => 1,
@@ -152,11 +199,8 @@ sub process_file {
 	}
 
 	# Create the plugin objects
-	foreach my $plugin ( $class->plugins ) {
-		# $class->trace("STARTING PLUGIN $plugin");
-		eval "require $plugin";
-		die $@ if $@;
-		$plugin->new->process_document($document);
+	foreach my $name ( sort keys %{$self->{plugins}} ) {
+		$self->{plugins}->{$name}->process_document($document);
 	}
 
 	return 1;

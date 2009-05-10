@@ -68,10 +68,11 @@ use Carp             ();
 use Class::Inspector ();
 use Params::Util     '_IDENTIFIER',
                      '_INSTANCE';
+use Perl::Metrics2   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -92,7 +93,9 @@ merely as a convenience. You don't really need to think about this.
 
 sub new {
 	my $class = ref $_[0] ? ref shift : shift;
-	my $self  = bless {}, $class;
+	my $self  = bless {
+		seen => {},
+	}, $class;
 	$self;
 }
 
@@ -155,143 +158,16 @@ sub _metric {
 	return scalar($self->$method($document));
 }
 
-=pod
-
-=head2 process_index
-
-The C<process_index> method will cause the metrics plugin to scan every
-single file entry in the database, and run any an all metrics required to
-bring to the database up to complete coverage for that plugin.
-
-This process may take some time for large indexes.
-
-=cut
-
-sub process_index {
-	my $self  = shift;
-	my @files = Perl::Metrics2::File->retrieve_all;
-	@files = sort { $a->path cmp $b->path } @files;
-	while ( my $file = shift @files ) {
-		Perl::Metrics->_trace("Processing $file... ");
-		if ( $self->process_file($file) ) {
-			Perl::Metrics->_trace("done.\n");
-		} else {
-			Perl::Metrics->_trace("error.\n");
-		}
-	}
-	1;
-}
-
-=pod
-
-=head2 process_file $File
-
-The C<process_file> method takes as argument a single
-L<Perl::Metrics2::File> and run any and all metrics required
-to bring that file up to complete coverage for the plugin.
-
-=cut
-
-sub process_file {
-	my $self = shift;
-	my $file = _INSTANCE(shift, 'Perl::Metrics2::File')
-		or Carp::croak("Did not pass a Perl::Metrics2::File to process_file");
-
-	# Has the file been removed since the last run
-	unless ( -f $file->path ) {
-		# Delete the file entry
-		$file->delete;
-		return 1;
-	}
-
-	# Get the metric list for the plugin, and the
-	# database Metric data for this file.
-	my %metrics = %{$self->metrics}; # Copy so we can destroy
-	my @objects = $file->metrics(
-		'package' => $self->class,
+# Prepopulate the seen index
+sub study {
+	my $self    = shift;
+	my $class   = $self->class;
+	my $version = $class->VERSION;
+	my $md5     = Perl::Metrics2->selectcol_arrayref(
+		'select distinct(md5) from file_metric where package = ? and version = ?',
+		{}, $class, $version,
 	);
-
-	# Deal with the existing metrics objects that do not
-	# require the Document in order to be processed.
-	my @todo = ();
-	foreach my $object ( @objects ) {
-		my $name = $object->name;
-
-		# Remove any redundant metrics
-		if ( ! exists $metrics{$name} ) {
-			$object->delete;
-			delete $metrics{$name};
-			next;
-		}
-
-		# If the metric is unversioned, we don't need to rerun
-		if (
-			! defined $metrics{$name}
-			and
-			! defined $object->version
-		) {
-			delete $metrics{$name};
-			next;
-		}
-
-		# Must be versioned. If plugin equals stored version,
-		# then no need to rerun the metric.
-		if (
-			defined $metrics{$name}
-			and
-			defined $object->version
-			and
-			$object->version == $metrics{$name}
-		) {
-			delete $metrics{$name};
-			next;
-		}
-
-		# To do in the next pass
-		push @todo, $object;
-	}
-
-	# Shortcut return now if nothing left to do
-	unless ( @todo or keys %metrics ) {
-		return 1;
-	}
-
-	# Any further metrics will need the document
-	my $document = eval { $file->Document };
-	if ( $@ or ! $document ) {
-		# The document has gone unparsable. If this
-		# is due to a PPI upgrade breaking something, we 
-		# need to flush out any existing metrics for the
-		# document, then skip on to the next file
-		$file->metrics->delete_all;
-		return 0;
-	}
-
-	# Now we have the document, update the remaining metrics
-	foreach my $object ( @todo ) {
-		my $name = $object->name;
-
-		# Versions differ, or it has changed from defined to
-		# not, or back the front.
-		$object->version($metrics{$name});
-		my $value = $self->_metric($document, $name);
-		$object->value($value);
-		$object->update;
-		delete $metrics{$name};
-	}
-
-	# With the existing ones out the way, generate the new ones
-	foreach my $name ( sort keys %metrics ) {
-		my $value = $self->_metric($document, $name);
-		Perl::Metrics2::FileMetric->create(
-			hex_id  => $file->hex_id,
-			package => $self->class,
-			name    => $name,
-			version => $metrics{$name},
-			value   => $value,
-		);
-	}
-
+	$self->{seen} = { map { $_ => 1 } @$md5 };
 	return 1;
 }
 
@@ -303,6 +179,12 @@ sub process_document {
 		Carp::croak("Did not provide a PPI::Document object");
 	}
 
+	# Shortcut if already processed
+	my $md5 = $document->hex_id;
+	if ( $self->{seen}->{$md5} ) {
+		return 1;
+	}
+
 	# Generate the new metrics values
 	my %metric = %{$self->metrics};
 	foreach my $name ( sort keys %metric ) {
@@ -310,9 +192,8 @@ sub process_document {
 	}
 
 	# Flush out the old records and write the new metrics
-	my $md5     = $document->hex_id;
 	my $version = $class->VERSION,
-	Perl::Metrics2->begin;
+	# Perl::Metrics2->begin;
 	Perl::Metrics2::FileMetric->delete(
 		'where md5 = ? and package = ?',
 		$md5, $class,
@@ -326,7 +207,10 @@ sub process_document {
 			value   => $metric{$name},
 		);
 	}
-	Perl::Metrics2->commit;
+	# Perl::Metrics2->commit;
+
+	# Remember that we have processed this document
+	$self->{seen}->{$md5} = 1;
 
 	return 1;
 }
