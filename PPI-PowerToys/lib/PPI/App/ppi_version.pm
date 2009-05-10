@@ -5,13 +5,14 @@ use strict;
 use warnings;
 use version                0.74 ();
 use File::Spec             0.80 ();
+use Getopt::Long           2.36 ();
 use PPI::Document         1.201 ();
 use File::Find::Rule       0.30 ();
 use File::Find::Rule::Perl 0.03 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.13';
+        $VERSION = '0.14';
 }
 
 

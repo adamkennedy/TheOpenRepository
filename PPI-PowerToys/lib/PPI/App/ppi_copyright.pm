@@ -3,15 +3,16 @@ package PPI::App::ppi_copyright;
 use 5.006;
 use strict;
 use warnings;
-use version                0.74 ();
-use File::Spec             0.80 ();
-use PPI::Document         1.201 ();
-use File::Find::Rule       0.30 ();
-use File::Find::Rule::Perl 0.03 ();
+use version                ();
+use File::Spec             ();
+use Getopt::Long           ();
+use PPI::Document          ();
+use File::Find::Rule       ();
+use File::Find::Rule::Perl ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.13';
+        $VERSION = '0.14';
 }
 
 
@@ -56,6 +57,16 @@ sub usage {
 }
 
 sub show {
+	# Capture the author
+	@ARGV = @_;
+	my $AUTHOR = '';
+	Getopt::Long::GetOptions(
+		'author=s' => \$AUTHOR,
+	);
+	if ( $AUTHOR ) {
+		$AUTHOR = quotemeta $AUTHOR;
+	}
+
 	# Find all modules and scripts below the current directory
 	my @files = File::Find::Rule->perl_file->in( File::Spec->curdir );
 	print "Found " . scalar(@files) . " file(s)\n";
@@ -71,7 +82,16 @@ sub show {
 
 		# Does the document contain a simple version number
 		my $elements = $document->find( \&_wanted );
-		unless ( $elements ) {
+
+		# Filter by author if applicable
+		if ( $elements and $AUTHOR ) {
+			@$elements = grep {
+				$_->{content} =~ /$AUTHOR/
+			} @$elements;
+		}
+
+		# Find anything?
+		unless ( $elements and @$elements ) {
 			print " no copyright\n";
 			next;
 		}
@@ -99,6 +119,16 @@ sub show {
 }
 
 sub change {
+	# Capture the author
+	@ARGV = @_;
+	my $AUTHOR = '';
+	Getopt::Long::GetOptions(
+		'author=s' => \$AUTHOR,
+	);
+	if ( $AUTHOR ) {
+		$AUTHOR = quotemeta $AUTHOR;
+	}
+
 	# Find all modules and scripts below the current directory
 	my @files = File::Find::Rule->perl_file->in( File::Spec->curdir );
 	print "Found " . scalar(@files) . " file(s)\n";
@@ -110,7 +140,7 @@ sub change {
 			print " no write permission\n";
 			next;
 		}
-		my $rv = _change_file( $file );
+		my $rv = _change_file( $file, $AUTHOR );
 		if ( $rv ) {
 			print " updated\n";
 			$count++;
@@ -144,7 +174,7 @@ sub _change_file {
 	}
 
 	# Apply the changes
-	my $rv = _change_document( $document );
+	my $rv = _change_document( $document, $_[0] );
 	unless ( defined $rv ) {
 		error("$file contains more than one \$VERSION assignment");
 	}
@@ -162,9 +192,15 @@ sub _change_file {
 
 sub _change_document {
 	my $document = shift;
+	my $AUTHOR   = shift;
 
 	# Does the document contain an element
 	my $elements = $document->find( \&_wanted );
+	if ( $elements and $AUTHOR ) {
+		@$elements = grep {
+			$_->{content} =~ /$AUTHOR/
+		} @$elements;
+	}
 	unless ( $elements and @$elements ) {
 		return '';
 	}

@@ -29,8 +29,8 @@ is( $result, 1, 'run3 returns true' );
 
 foreach ( qw{
 	Makefile.PL... no version
-	lib/PPI/PowerToys.pm... 0.13
-	script/ppi_version... 0.13
+	lib/PPI/PowerToys.pm... 0.14
+	script/ppi_version... 0.14
 	t/01_compile.t... no version
 } ) {
 	my $string = quotemeta $_;

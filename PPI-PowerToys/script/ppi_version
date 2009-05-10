@@ -7,7 +7,7 @@ use PPI::App::ppi_version ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '0.13';
+        $VERSION = '0.14';
 }
 
 $| = 1;
