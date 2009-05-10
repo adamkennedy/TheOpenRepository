@@ -98,3 +98,7 @@ CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned ch
 	t->_new_token(zone);
 	return done_it_myself;
 }
+
+bool MagicToken::isa( TokenTypeNames is_type ) const {
+	return (( is_type == Token_Magic ) || ( is_type == Token_Symbol ));
+}

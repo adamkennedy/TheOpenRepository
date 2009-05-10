@@ -133,10 +133,13 @@ void checkExtendedToken( Tokenizer *tk,
 #define CheckExtendedToken( tk, text, section1, section2, modifiers, type ) checkExtendedToken(tk, text, section1, section2, modifiers, type, __LINE__);
 #define Tokenize( line ) tk.tokenizeLine( line , (ulong)strlen(line) );
 
+void VerifyInheritence( AbstractTokenType **type_pool );
+
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
 	Tokenizer tk;
+	VerifyInheritence( tk.TokenTypeNames_pool );
 
 	Tokenize("  {  }   \n");
 	CheckToken(&tk, "  ", Token_WhiteSpace);
@@ -413,5 +416,68 @@ int main(int argc, char* argv[])
 		tk.freeToken(tkn);
 	}
 	return 0;
+}
+
+void checkISA( AbstractTokenType *tested, TokenTypeNames type, TokenTypeNames should, int line ) {
+	if ( !tested->isa( should ) ) {
+		printf("ISA error: %d is not parent of type %d (%d)\n", should, type, line );
+	}
+}
+#define CheckISA( type, should_be ) checkISA( type_pool[ type ], type, should_be, __LINE__ ) 
+
+void VerifyInheritence( AbstractTokenType **type_pool ) {
+	// I dont care for tokens that only inherent from PPI::Token
+      //PPI::Token
+      //   PPI::Token::HereDoc
+      //   PPI::Token::Cast
+      //   PPI::Token::Structure
+      //   PPI::Token::Label
+      //   PPI::Token::Separator
+      //   PPI::Token::Data
+      //   PPI::Token::End
+      //   PPI::Token::Prototype
+      //   PPI::Token::Attribute
+      //   PPI::Token::Unknown
+      //   PPI::Token::ArrayIndex
+      //   PPI::Token::Operator
+      //   PPI::Token::Word
+      //   PPI::Token::DashedWord
+      //   PPI::Token::Whitespace
+      //   PPI::Token::Comment
+      //   PPI::Token::Pod
+	// the following are interesting.
+
+	  //   PPI::Token::Number
+      //      PPI::Token::Number::Binary
+      //      PPI::Token::Number::Octal
+      //      PPI::Token::Number::Hex
+      //      PPI::Token::Number::Float
+      //         PPI::Token::Number::Exp
+      //      PPI::Token::Number::Version
+	CheckISA( Token_Number_Version, Token_Number );
+	CheckISA( Token_Number_Binary, Token_Number );
+	CheckISA( Token_Number_Hex, Token_Number );
+	CheckISA( Token_Number_Float, Token_Number );
+	CheckISA( Token_Number_Octal, Token_Number );
+	CheckISA( Token_Number_Exp, Token_Number );
+	CheckISA( Token_Number_Exp, Token_Number_Float );
+      //   PPI::Token::Symbol
+      //      PPI::Token::Magic
+	CheckISA( Token_Magic, Token_Symbol );
+      //   PPI::Token::Quote
+      //      PPI::Token::Quote::Single
+      //      PPI::Token::Quote::Double
+      //      PPI::Token::Quote::Literal
+      //      PPI::Token::Quote::Interpolate
+      //   PPI::Token::QuoteLike
+      //      PPI::Token::QuoteLike::Backtick
+      //      PPI::Token::QuoteLike::Command
+      //      PPI::Token::QuoteLike::Regexp
+      //      PPI::Token::QuoteLike::Words
+      //      PPI::Token::QuoteLike::Readline
+      //   PPI::Token::Regexp
+      //      PPI::Token::Regexp::Match
+      //      PPI::Token::Regexp::Substitute
+      //      PPI::Token::Regexp::Transliterate
 }
 

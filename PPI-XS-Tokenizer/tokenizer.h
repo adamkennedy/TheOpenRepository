@@ -329,6 +329,7 @@ public:
 class MagicToken : public AbstractTokenType {
 public:
 	MagicToken() : AbstractTokenType( Token_Magic, true ) {}
+	virtual bool isa( TokenTypeNames is_type ) const;
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
@@ -412,6 +413,7 @@ public:
 class ExpNumberToken : public AbstractNumberSubclassToken {
 public:
 	ExpNumberToken() : AbstractNumberSubclassToken( Token_Number_Exp, true ) {}
+	virtual bool isa( TokenTypeNames is_type ) const;
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 
