@@ -3,10 +3,11 @@ package # Hide from PAUSE.
 
 use 5.008001;
 use MooseX::Singleton;
-use Readonly qw( Readonly );
+use XML::WiX3::Classes::Trace::Config;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
+use Readonly qw( Readonly );
 Readonly my @LEVELS => ('error', 'notice', 'warning', 'info', 'info', 'debug');
 
 with 'XML::WiX3::Classes::Trace::Role';
@@ -29,6 +30,15 @@ has log_dispatch_conf => (
 		);  
 	}
 );
+
+sub trace_line {
+	my $self = shift;
+	my ($level, $text) = @_;
+	
+	$self->logger()->log(level => $LEVELS[$level], message => $text);
+	
+	return $text;
+}
 
 no MooseX::Singleton;
 __PACKAGE__->meta->make_immutable;

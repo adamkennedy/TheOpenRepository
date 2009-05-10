@@ -28,7 +28,7 @@ sub get_attrs_global {
 		@dispatchers = @CONFIGS[ 0 .. $level ];
 	}
 	
-	if ($self->get_email_from() ne q{}) {
+	if (defined $self->_get_email_from()) {
 		push @dispatchers, 'email';
 	}
 	
@@ -80,13 +80,13 @@ sub get_attrs {
 			format => q{[] [%F %L] %m},
 		};
 	} elsif ($name eq 'email') {
-		if ($self->_get_smtp_user ne q{}) {
+		if (defined $self->_get_smtp_user) {
 			MIME::Lite->send( 'smtp', 
 			  $self->_get_smtp(), 
 			  AuthUser => $self->_get_smtp_user(),
 			  AuthPass => $self->_get_smtp_pass(),
 			);
-		} elsif ($self->_get_smtp() ne q{}) {
+		} elsif (defined $self->_get_smtp()) {
 			MIME::Lite->send( 'smtp', $self->_get_smtp() );
 		}
 		return {

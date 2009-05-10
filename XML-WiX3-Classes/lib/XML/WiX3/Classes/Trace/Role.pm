@@ -4,30 +4,28 @@ package # Hide from PAUSE.
 use 5.008001;
 use Moose::Role;
 use XML::WiX3::Classes::Types qw(Tracelevel);
-use Readonly qw( Readonly );
 
 use version; our $VERSION = version->new('0.003')->numify;
-
-Readonly my @LEVELS => qw(error notice warning info info debug);
 
 has tracelevel => (
 	isa     => Tracelevel,
 	reader  => 'get_tracelevel',
 	writer  => 'set_tracelevel',
-	default => 0,
+	default => 1,
 );
 
-has testing => (
-	isa     => 'Bool',
-	reader  => '_get_testing',
-	writer  => '_set_testing',
-	default => 0,
+has _testing => (
+	isa      => 'Bool',
+	reader   => '_get_testing',
+	writer   => '_set_testing',
+	init_arg => undef,
+	default  => 0,
 );
 
 has email_from => (
-	isa     => 'Str',
+	isa     => 'Maybe[Str]',
 	reader  => '_get_email_from',
-	default => q{},
+	default => undef,
 );
 
 has email_to => (
@@ -37,36 +35,27 @@ has email_to => (
 );
 
 has smtp => (
-	isa     => 'Str',
+	isa     => 'Maybe[Str]',
 	reader  => '_get_smtp',
-	default => q{},
+	default => undef,
 );
 
 has smtp_user => (
-	isa     => 'Str',
+	isa     => 'Maybe[Str]',
 	reader  => '_get_smtp_user',
 	default => q{},
 );
 
 has smtp_pass => (
-	isa     => 'Str',
+	isa     => 'Maybe[Str]',
 	reader  => '_get_smtp_pass',
-	default => q{},
+	default => undef,
 );
 
 sub testing {
 	my $self = shift;
 	
 	$self->_set_testing(1);
-	
-	return $self;
-}
-
-sub trace_line {
-	my $self = shift;
-	my ($level, $text) = @_;
-	
-	$self->log(level => $LEVELS[$level], message => $text);
 	
 	return $self;
 }

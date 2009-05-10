@@ -1,22 +1,11 @@
 package XML::WiX3::Classes::Exceptions;
 
-####################################################################
-# XML::WiX3::Objects::Exceptions - Exceptions used in XML::WiX3::Objects.
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See Wix.pm for details.
-#
-# NOTE: This is a base class with miscellaneous routines.  It is
-# meant to be subclassed, as opposed to creating objects of this
-# class directly.
-
 #<<<
 use 5.006;
 use strict;
 use warnings;
 use vars     qw( $VERSION );
-
+use XML::WiX3::Classes::Traceable;
 use version; $VERSION = version->new('0.003')->numify;
 
 #>>>
@@ -29,7 +18,6 @@ use Exception::Class 1.22 (
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
 		'isa'    => 'XWC::Exception',
-		'fields' => [ 'parameter', 'where', 'info' ],
 	},
 	'XWC::Exception::Caught' => {
 		'description' =>
@@ -40,20 +28,17 @@ use Exception::Class 1.22 (
 	'XWC::Exception::Parameter::Missing' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing',
-		'isa'    => 'XWC::Exception',
-		'fields' => [ 'parameter', 'where', 'info' ],
+		'isa'    => 'XWC::Exception::Parameter',
 	},
 	'XWC::Exception::Parameter::Invalid' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter invalid',
-		'isa'    => 'XWC::Exception',
-		'fields' => [ 'parameter', 'where', 'info' ],
+		'isa'    => 'XWC::Exception::Parameter',
 	},
 	'XWC::Exception::Parameter::Odd' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
-		'isa'    => 'XWC::Exception',
-		'fields' => [ 'parameter', 'where', 'info' ],
+		'isa'    => 'XWC::Exception::Parameter',
 	},
 );
 
@@ -65,16 +50,17 @@ sub XWC::Exception::full_message { ## no critic 'Capitalization'
 	  . $self->message() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = Perl::Dist::WiX::Misc->new();
-	my $tracelevel = $misc->get_trace() % 100;
+	my $misc       = XML::WiX3::Classes::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it if tracelevel high enough.
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
-	return $misc->_trace_line( 0, $string, 0, $tracelevel,
-		$self->trace->frame(0) );
+	$misc->trace_line( 0, $string );
+	
+	return q{};
 } ## end sub PDWiX::full_message
 
 sub XWC::Exception::Parameter::full_message { ## no critic 'Capitalization'
@@ -82,19 +68,18 @@ sub XWC::Exception::Parameter::full_message { ## no critic 'Capitalization'
 
 	my $string =
 	    $self->description() . ': '
-	  . $self->parameter()
-	  . ' in Perl::Dist::WiX'
-	  . $self->where() . "\n"
+	  . $self->message() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = Perl::Dist::WiX::Misc->new();
-	my $tracelevel = $misc->get_trace() % 100;
+	my $misc       = XML::WiX3::Classes::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
 
-	return $misc->_trace_line( 0, $string, 0, $tracelevel,
-		$self->trace->frame(0) );
+	$misc->trace_line( 0, $string );
+	
+	return q{};
 } ## end sub PDWiX::Parameter::full_message
 
 sub XWC::Exception::Caught::full_message { ## no critic 'Capitalization'
