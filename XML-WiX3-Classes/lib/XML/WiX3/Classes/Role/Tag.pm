@@ -7,6 +7,7 @@ use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
 use     MooseX::AttributeHelpers;
 use     XML::WiX3::Classes::Types qw(IsTag);
+use     MooseX::Types::Moose qw(ArrayRef);
 use     XML::WiX3::Classes::Exceptions;
 use     List::MoreUtils qw( uniq );
 
@@ -20,20 +21,18 @@ use version; $VERSION = version->new('0.003')->numify;
 has child_tags => (
 	metaclass => 'Collection::Array',
 	is => 'rw',
-	isa => 'ArrayRef[IsTag]',
+	isa => ArrayRef[IsTag],
 	init_arg => undef,
 	default => sub { return []; },
 	provides => {
 	  'elements' => 'get_child_tags',
-	  'push'     => '_add_child_tag',
+	  'push'     => 'add_child_tag',
 	  'get'      => 'get_child_tag',
 	  'empty'    => 'has_child_tags',
 	  'count'    => 'count_child_tags',
 	  'delete'   => 'delete_child_tag',
 	}
-#	alias => { 'add_child_tag' => '_add_child_tag' },
 );
-
 
 # I think you could do method aliasing... with 'Role' => { alias => { 'add_child_tag' => '_add_child_tag' } }
 # then implement your own child tag to do validation

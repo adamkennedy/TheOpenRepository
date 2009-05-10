@@ -18,7 +18,16 @@ subtype Tracelevel,
 	where { ($_ >= 0) && ($_ <= 5) },
 	message { "The tracelevel you provided, $_, was not valid." };
 
+#subtype IsTag,
+#	as Object,
+#	where { $_->meta->does_role('XML::WiX3::Classes::Role::Tag') },
+#	message { "Something not a Tag was passed in." };
+
 subtype IsTag,
 	as role_type 'XML::WiX3::Classes::Role::Tag';
+
+	
+# subtype ArrayOfTags,
+#	as ArrayRef[IsTag];
 	
 1; # Magic true value required at end of module

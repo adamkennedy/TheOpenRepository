@@ -1,4 +1,4 @@
-package XML::WiX3::Classes::Fragment;
+package XML::WiX3::Classes::Traceable;
 
 #<<<
 use 5.006;
@@ -8,60 +8,7 @@ use vars              qw( $VERSION );
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Fragment';
-with 'XML::WiX3::Classes::Role::Tag';
-
-#####################################################################
-# Main Methods
-
-# Append the id parameter to 'Fr_' to indicate a fragment.
-sub BUILDARGS {
-	my $class = shift;
-	
-	if ( @_ == 1 && ! ref $_[0] ) {
-		return { id => 'Fr_' . $_[0] };
-	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		if (exists $_[0]->{id}) {
-			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
-			return $_[0];
-		} else {
-			XWC::Exception::Parameter::Missing->throw('id');
-		}
-	} else {
-		my %hash = @_;
-		if (exists $hash{id}) {
-			$hash{id} = 'Fr_' . $hash{'id'};
-			return \%hash;
-		} else {
-			XWC::Exception::Parameter::Missing->throw('id');
-		}		
-	}
-}
-
-sub as_string {
-	my $self = shift;
-
-	my @namespaces   = $self->get_namespaces();
-	my $namespaces   = join q{ }, @namespaces;
-	my $id           = $self->get_id();
-	my $child_string = q{};
-	$child_string = $self->indent(2, $self->as_string_children()) if $self->has_child_tags();
-	chomp $child_string;
-	
-	return <<"EOF";
-<?xml version='1.0' encoding='windows-1252'?>
-<Wix $namespaces>
-  <Fragment Id='$id'>
-$child_string
-  </Fragment>
-</Wix>
-EOF
-
-} ## end sub as_string
-
-sub get_namespace {
-	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
-}
+with 'XML::WiX3::Classes::Role::Traceable';
 
 1;
 
@@ -69,11 +16,11 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolderFragment - "Shortcut Fragment" containing only a CreateFolder entry.
+XML::WiX3::Classes::Traceable - "Cheat Class" in order to get a Traceable object.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::CreateFolderFragment version 0.003
+This document describes XML::WiX3::Classes::Traceable version 0.003
 
 =head1 SYNOPSIS
 
