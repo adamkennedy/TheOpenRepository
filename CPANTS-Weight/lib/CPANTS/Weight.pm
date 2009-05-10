@@ -30,7 +30,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 our $DEBUG;
 
@@ -290,7 +290,7 @@ sub fail_report {
 	my $sth  = ORDB::CPANTesters->prepare(<<'END_SQL') or die("prepare: $DBI::errstr");
 		select dist, version, state, perl from cpanstats
 		where state = ? or (
-			state = ? and
+			state in ( ?, ? ) and
 			perl not like ? and
 			perl not like ? and
 			(
@@ -303,7 +303,7 @@ sub fail_report {
 		)
 END_SQL
 	$sth->execute(
-		'cpan', 'fail', '%patch%', '%RC%',
+		'cpan', 'fail', 'unknown', '%patch%', '%RC%',
 		'5.4%', '5.5%', '5.6%', '5.8%', '5.10%'
 	) or die("execute: $DBI::errstr");
 	while ( my $row = $sth->fetchrow_arrayref ) {
@@ -334,8 +334,8 @@ END_SQL
 			$version{$dist} = $version;
 		}
 
-		# If the row is a fail record, increment the fail count
-		if ( $state eq 'fail' ) {
+		# If the row is a FAIL or UNKNOWN record, increment the fail count
+		if ( $state eq 'fail' or $state eq 'unknown' ) {
 			$fail{$dist}++;
 		}
 	}
