@@ -1,5 +1,9 @@
 Revision history for Perl extension Perl-PowerToys
 
+0.13 to be released
+	- Upgrading to Module::Install::DSL 0.87
+	- Adding new ppi_copyright tool
+
 0.12 Thu 30 Apr 2009
 	- Upgrading to Module::Install::DSL 0.83
 	- Adding support for "our $VERSION";
