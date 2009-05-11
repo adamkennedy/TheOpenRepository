@@ -52,20 +52,20 @@ BEGIN {
 ######################
 # Record key constants
 use constant {
-  F_id => 0,
-  F_prio => 1,
-  F_name => 2,
-  F_user => 3,
+  F_id     => 0,
+  F_prio   => 1,
+  F_name   => 2,
+  F_user   => 3,
   F_status => 4,
-  F_date => 5,
-  F_time => 6,
-  F_queue => 7,
+  F_date   => 5,
+  F_time   => 6,
+  F_queue  => 7,
 };
 
 use constant RECORD_KEY_CONSTANT => {
-  id => F_id, prio => F_prio, name => F_name,
-  user => F_user, status => F_status, date => F_date,
-  'time' => F_time, queue => F_queue,  
+  id     => F_id,   prio   => F_prio,   name => F_name,
+  user   => F_user, status => F_status, date => F_date,
+  'time' => F_time, queue  => F_queue,  
 };
 use constant RECORD_CONSTANT_KEY => [
   qw/ id prio name user status date time queue /
@@ -179,13 +179,13 @@ my $SSHCommand;
 our $ResetConfig;
 Getopt::Long::Configure("no_ignore_case");
 GetOptions(
-  'u|user=s' => \$User,
+  'u|user=s'      => \$User,
   'H|highlight=s' => \$HighlightUser,
-  'i|interval=f' => \$UserInterval,
-  's|slow' => \$SlowRedraw,
-  'ssh=s' => \$SSHCommand,
-  'resetconfig' => \$ResetConfig,
-  'h|help|?' => sub {
+  'i|interval=f'  => \$UserInterval,
+  's|slow'        => \$SlowRedraw,
+  'ssh=s'         => \$SSHCommand,
+  'resetconfig'   => \$ResetConfig,
+  'h|help|?'      => sub {
     ReadMode 1;
     print RESET;
     print usage();
@@ -252,9 +252,9 @@ sub cleanup_and_exit {
   exit();
 }
 
-$SIG{INT} = \&cleanup_and_exit;
-$SIG{HUP} = \&cleanup_and_exit;
-$SIG{TERM} = \&cleanup_and_exit;
+$SIG{INT}     = \&cleanup_and_exit;
+$SIG{HUP}     = \&cleanup_and_exit;
+$SIG{TERM}    = \&cleanup_and_exit;
 $SIG{__DIE__} = sub{warn @_;ReadMode 1;exit(1);};
 
 ###########################
@@ -292,24 +292,24 @@ BEGIN {
   );
 
   %Keys = (
-    'q' => \&cleanup_and_exit,
-    'i' => \&F::Actions::set_user_interval,
-    'H' => \&F::Actions::update_highlighted_user_name,
-    'r' => \&F::Actions::toggle_reverse_sort,
-    's' => \&F::Actions::select_sort_field,
-    'u' => \&F::Actions::update_user_name,
-    'k' => \&F::Actions::kill_jobs,
-    'p' => \&F::Actions::change_priority,
-    'o' => \&F::Actions::hold_jobs,
-    'O' => \&F::Actions::resume_jobs,
-    'h' => \&F::Actions::show_manual,
-    '?' => \&F::Actions::show_manual,
-    'c' => \&F::Actions::clear_job_error_state,
-    'd' => \&F::Actions::change_dependencies,
-    ' ' => \&F::Actions::show_job_details,
+    'q'  => \&cleanup_and_exit,
+    'i'  => \&F::Actions::set_user_interval,
+    'H'  => \&F::Actions::update_highlighted_user_name,
+    'r'  => \&F::Actions::toggle_reverse_sort,
+    's'  => \&F::Actions::select_sort_field,
+    'u'  => \&F::Actions::update_user_name,
+    'k'  => \&F::Actions::kill_jobs,
+    'p'  => \&F::Actions::change_priority,
+    'o'  => \&F::Actions::hold_jobs,
+    'O'  => \&F::Actions::resume_jobs,
+    'h'  => \&F::Actions::show_manual,
+    '?'  => \&F::Actions::show_manual,
+    'c'  => \&F::Actions::clear_job_error_state,
+    'd'  => \&F::Actions::change_dependencies,
+    ' '  => \&F::Actions::show_job_details,
     "\n" => \&F::Actions::show_job_details,
-    'l' => \&F::Actions::show_job_log,
-    'S' => \&F::Actions::toggle_summary_mode,
+    'l'  => \&F::Actions::show_job_log,
+    'S'  => \&F::Actions::toggle_summary_mode,
   );
 
   # copy of the key maps for the menu

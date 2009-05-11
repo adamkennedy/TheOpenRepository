@@ -40,16 +40,16 @@ our @Menus = (
       { name => 'Change Deps', action => \&F::Actions::change_dependencies, },
   ], },
   { width => 5, name => 'Help', entries => [
-      { name => 'Help',  action => \&F::Actions::show_manual, },
-      { name => 'About', action => \&F::Actions::show_manual, },
+      { name => 'Help',  action       => \&F::Actions::show_manual, },
+      { name => 'About', action       => \&F::Actions::show_manual, },
   ], },
   { width => 6, name => 'Config', entries => [
-      { name => 'Edit',  action => \&F::Config::edit_configuration, },
-      { name => 'Reset',  action => \&F::Config::reset_configuration, },
+      { name => 'Edit',  action       => \&F::Config::edit_configuration, },
+      { name => 'Reset',  action      => \&F::Config::reset_configuration, },
   ], },
   { width => 4, name => 'Quit', entries => [
-      { name => 'Menu',  action => \&F::Menu::close_menu, },
-      { name => 'Quit',  action => \&main::cleanup_and_exit, },
+      { name => 'Menu',  action       => \&F::Menu::close_menu, },
+      { name => 'Quit',  action       => \&main::cleanup_and_exit, },
   ], },
   {
     width => 8, name => 'Colors', entries => \&F::Colors::get_color_scheme_menu_entries,

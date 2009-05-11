@@ -57,27 +57,27 @@ our $DefaultColors = {
 our $DefaultColorSchemes = {
   default => {%$DefaultColors},
   contrast => {
-    header_highlight => 'bold white on red',
-    header_normal => 'bold white on black',
-    header_warning => 'bold red on black',
-    initializing => 'black on green',
-    menu_normal => 'black on cyan',
-    menu_selected => 'bold white on red',
+    header_highlight  => 'bold white on red',
+    header_normal     => 'bold white on black',
+    header_warning    => 'bold red on black',
+    initializing      => 'black on green',
+    menu_normal       => 'black on cyan',
+    menu_selected     => 'bold white on red',
     reverse_indicator => 'blue on white',
-    scrollbar_bg => 'red on black',
-    scrollbar_fg => 'black on red',
-    selected_cursor => 'black on red',
-    selected_job => 'black on cyan',
-    status_error => 'black on red',
-    status_fallback => 'black on yellow',
-    status_hold => 'black on yellow',
-    status_queued => 'bold white on blue',
-    status_running => 'black on green',
-    summary => 'bold red on blue',
-    user_highlight => 'bold red on blue',
-    user_input => 'bold red on black',
+    scrollbar_bg      => 'red on black',
+    scrollbar_fg      => 'black on red',
+    selected_cursor   => 'black on red',
+    selected_job      => 'black on cyan',
+    status_error      => 'black on red',
+    status_fallback   => 'black on yellow',
+    status_hold       => 'black on yellow',
+    status_queued     => 'bold white on blue',
+    status_running    => 'black on green',
+    summary           => 'bold red on blue',
+    user_highlight    => 'bold red on blue',
+    user_input        => 'bold red on black',
     user_instructions => 'bold white on red',
-    warning => 'red',
+    warning           => 'red',
   },
 };
 
@@ -134,7 +134,7 @@ sub get_color_scheme_menu_entries {
     push @entries, { name => $display_name, action => sub { load_color_scheme($name) }, },
   }
   push @entries, { name => 'Delete', action => \&F::Actions::delete_color_scheme, };
-  push @entries, { name => 'Save', action => \&F::Actions::save_color_scheme, };
+  push @entries, { name => 'Save',   action => \&F::Actions::save_color_scheme, };
   return \@entries;
 }
 

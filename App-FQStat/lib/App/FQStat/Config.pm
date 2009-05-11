@@ -105,17 +105,17 @@ sub reset_configuration {
 sub _default_config {
   warnenter if ::DEBUG;
   my %default = (
-    persistent => 1,
-    qstatcmd => 'qstat',
-    qdelcmd => 'qdel',
-    qaltercmd => 'qalter',
-    qmodcmd => 'qmod',
-    sshcommand => '',
-    version => $F::VERSION,
-    colors => $F::Colors::DefaultColors,
-    color_schemes => $F::Colors::DefaultColorSchemes,
-    summary_mode => 0,
-    summary_clustering => 0,
+    persistent                    => 1,
+    qstatcmd                      => 'qstat',
+    qdelcmd                       => 'qdel',
+    qaltercmd                     => 'qalter',
+    qmodcmd                       => 'qmod',
+    sshcommand                    => '',
+    version                       => $F::VERSION,
+    colors                        => $F::Colors::DefaultColors,
+    color_schemes                 => $F::Colors::DefaultColorSchemes,
+    summary_mode                  => 0,
+    summary_clustering            => 0,
     summary_clustering_similarity => 0.25,
   );
 

@@ -335,16 +335,16 @@ sub calculate_summary {
 
     my $runtime = '';
     if ($njobs_started) {
-      my $seconds = $runtime_sum/$njobs_started;
-      my $hours = int($seconds / 3600);
-      my $minutes = int($seconds / 60 - $hours*60);
-      $seconds = int($seconds) % 60;
-      $runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
+      my $seconds  = $runtime_sum/$njobs_started;
+      my $hours    = int($seconds / 3600);
+      my $minutes  = int($seconds / 60 - $hours*60);
+      $seconds     = int($seconds) % 60;
+      $runtime     = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
 
-      $seconds = $max_runtime;
-      $hours = int($seconds / 3600);
-      $minutes = int($seconds / 60 - $hours*60);
-      $seconds = int($seconds) % 60;
+      $seconds     = $max_runtime;
+      $hours       = int($seconds / 3600);
+      $minutes     = int($seconds / 60 - $hours*60);
+      $seconds     = int($seconds) % 60;
       $max_runtime = sprintf('%02u:%02u:%02u', $hours, $minutes, $seconds);
     }
     else {
