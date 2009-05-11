@@ -42,7 +42,7 @@ sub BUILDARGS {
 		$id = $args{'id'};
 		$directory_id = $args{'directory_id'};		
 	} else {
-		XWC::Exception::Parameter->throw('Improperly called');
+		XWC::Exception::Parameter::Odd->throw();
 	}
 	
 	unless (defined $id) {
