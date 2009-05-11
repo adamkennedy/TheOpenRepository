@@ -1116,7 +1116,7 @@ sub Marpa::Evaluator::new_value {
         $trace_values  = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
-        $trace_tasks = $trace_journal >= 2;
+        $trace_tasks = $trace_iterations >= 2;
     } ## end if ($tracing)
 
     my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
@@ -1220,7 +1220,7 @@ sub Marpa::Evaluator::new_value {
         ];
         $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
         $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS] = [];
-        @tasks = ( [ Marpa::Internal::Task::NEXT_INSTANCE, 0 ] );
+        @tasks = ( [ Marpa::Internal::Task::NEXT_INSTANCE, 0, 0 ] );
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
@@ -1238,7 +1238,6 @@ sub Marpa::Evaluator::new_value {
         if ( $task == Marpa::Internal::Task::NEXT_INSTANCE ) {
 
             my ( $rank, $current_choice ) = @{$task_data};
-            $current_choice //= 0;
 
             if ($trace_tasks) {
                 print {$trace_fh} "Task: NEXT_INSTANCE; rank $rank; ",
@@ -1253,160 +1252,10 @@ sub Marpa::Evaluator::new_value {
             }
 
             my $choices      = $instances->[$rank];
-            my @accept_tasks = ();
-            my $accept_choice;
 
-            DETERMINE_ACCEPT_CHOICE: {
-
-                if ( $current_choice > $#{$choices} or $current_choice < 0 ) {
-                    $accept_choice = -1;
-                    last DETERMINE_ACCEPT_CHOICE;
-                }
-
-                CHOICE: for my $choice ( 0 .. $current_choice - 1 ) {
-                    my $and_node_id = $choices->[$choice];
-                    my $decision    = $decisions->[$and_node_id];
-                    next CHOICE if not defined $decision;
-                    next CHOICE if $decision == REJECTED;
-
-                    if ($trace_iterations) {
-                        my $and_node = $and_nodes->[$and_node_id];
-                        my $and_node_name =
-                            $and_node->[Marpa::Internal::And_Node::NAME];
-                        print {$trace_fh}
-                            "Iteration: Iteration would reject an accepted node: $and_node_name; ",
-                            "need to backtrack\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_iterations)
-
-                    @tasks =
-                        ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
-                    next TASK;
-                } ## end for my $choice ( 0 .. $current_choice - 1 )
-
-                my $first_accepted;
-                my $first_undef;
-
-                CHOICE: for my $choice ( $current_choice .. $#{$choices} ) {
-                    my $and_node_id = $choices->[$choice];
-                    my $decision    = $decisions->[$and_node_id];
-                    if ( not defined $decision ) {
-                        $first_undef //= $choice;
-                        next CHOICE;
-                    }
-                    next CHOICE if $decision == REJECTED;
-
-                    # We have more than one accepted choice for this
-                    # instance.  That's impossible, so we have to
-                    # backtrack.
-                    if ( defined $first_accepted ) {
-
-                        if ($trace_iterations) {
-                            my $and_node = $and_nodes->[$and_node_id];
-                            my $and_node_name =
-                                $and_node->[Marpa::Internal::And_Node::NAME];
-                            my $and_node_id2 = $choices->[$first_accepted];
-                            my $and_node2    = $and_nodes->[$and_node_id2];
-                            my $and_node_name2 =
-                                $and_node2->[Marpa::Internal::And_Node::NAME];
-                            print {$trace_fh}
-                                'Iteration: Attempted iteration with two accepted nodes: ',
-                                "$and_node_name and $and_node_name2; ",
-                                "need to backtrack\n"
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end if ($trace_iterations)
-
-                        @tasks =
-                            (
-                            [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
-                        next TASK;
-                    } ## end if ( defined $first_accepted )
-
-                    $first_accepted = $choice;
-
-                } ## end for my $choice ( $current_choice .. $#{$choices} )
-
-                if ( defined $first_accepted ) {
-
-                    if ($trace_iterations) {
-                        my $and_node_id = $choices->[$first_accepted];
-                        my $and_node    = $and_nodes->[$and_node_id];
-                        my $and_node_name =
-                            $and_node->[Marpa::Internal::And_Node::NAME];
-                        print {$trace_fh}
-                            "Iteration: And-node $and_node_name already accepted; ",
-                            "rank $rank; choice $first_accepted\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_iterations)
-
-                    $accept_choice = $first_accepted;
-                    last DETERMINE_ACCEPT_CHOICE;
-                } ## end if ( defined $first_accepted )
-
-                if ( defined $first_undef ) {
-                    $accept_choice = $first_undef;
-                    my $and_node_id = $choices->[$accept_choice];
-                    @accept_tasks = (
-                        [   Marpa::Internal::Task::ACCEPT_NODE, $rank,
-                            $and_node_id
-                        ]
-                    );
-                    last DETERMINE_ACCEPT_CHOICE;
-                } ## end if ( defined $first_undef )
-
-                # No node that could be accepted, so we have to reject the
-                # instance
-                $accept_choice = -1;
-
-            } ## end DETERMINE_ACCEPT_CHOICE:
-
-            # If it's an iterable choice, then journal it.
-            if ( $accept_choice >= 0 ) {
-
-                # Journal this choice.
-                push @{$journal},
-                    [
-                    Marpa::Internal::Journal_Tag::INSTANCE, $rank,
-                    $accept_choice
-                    ];
-
-                if ($trace_journal) {
-                    my $and_node_id = $choices->[$accept_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
-                    print {$trace_fh}
-                        "Journal: Accepted instance, rank $rank, choice $accept_choice\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_journal)
-
-                if ($trace_iterations) {
-                    my $and_node_id = $choices->[$accept_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
-                    print {$trace_fh}
-                        "Iteration: Accepted instance; rank $rank; ",
-                        "choice $accept_choice; and-node $and_node_name\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
-
-            } ## end if ( $accept_choice >= 0 )
-            else {
-
-                if ($trace_iterations) {
-                    my $and_node_id = $choices->[$accept_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
-                    print {$trace_fh}
-                        "Iteration: Rejected instance, rank $rank\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
-            } ## end else [ if ( $accept_choice >= 0 )
+            if ( $current_choice > $#{$choices} or $current_choice < 0 ) {
+                $current_choice = -1;
+            }
 
             # Create the @tasks stack.
             # Note that we # overwrite the @tasks stack,
@@ -1415,47 +1264,78 @@ sub Marpa::Evaluator::new_value {
             # After that, we stack the ACCEPT_NODE task, if there is one.
             # It's important that the ACCEPT_NODE task
             # be performed after all the REJECT_NODE tasks.
-            @tasks = (
-                [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1 ],
-                @accept_tasks
-            );
+
+            # If it's an iterable choice, then journal it.
+            if ( $current_choice >= 0 ) {
+
+                # Journal this choice.
+                push @{$journal},
+                    [
+                    Marpa::Internal::Journal_Tag::INSTANCE, $rank,
+                    $current_choice
+                    ];
+
+                if ($trace_journal) {
+                    my $and_node_id = $choices->[$current_choice];
+                    my $and_node    = $and_nodes->[$and_node_id];
+                    my $and_node_name =
+                        $and_node->[Marpa::Internal::And_Node::NAME];
+                    print {$trace_fh}
+                        "Journal: Accepted instance, rank $rank, choice $current_choice\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_journal)
+
+                if ($trace_iterations) {
+                    my $and_node_id = $choices->[$current_choice];
+                    my $and_node    = $and_nodes->[$and_node_id];
+                    my $and_node_name =
+                        $and_node->[Marpa::Internal::And_Node::NAME];
+                    print {$trace_fh}
+                        "Iteration: Accepted instance; rank $rank; ",
+                        "choice $current_choice; and-node $and_node_name\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_iterations)
+
+                @tasks = (
+                    [   Marpa::Internal::Task::NEXT_INSTANCE, $rank+1, 0
+                    ],
+                    [   Marpa::Internal::Task::ACCEPT_NODE, $rank,
+                        $choices->[$current_choice]
+                    ]
+                );
+
+            } ## end if ( $current_choice >= 0 )
+            else {
+
+                if ($trace_iterations) {
+                    my $and_node_id = $choices->[$current_choice];
+                    my $and_node    = $and_nodes->[$and_node_id];
+                    my $and_node_name =
+                        $and_node->[Marpa::Internal::And_Node::NAME];
+                    print {$trace_fh}
+                        "Iteration: Rejected instance, rank $rank\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_iterations)
+
+                @tasks = (
+                    [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1, 0 ],
+                );
+
+            } ## end else [ if ( $current_choice >= 0 )
 
             REJECT_TASK_CHOICE:
             for my $rejection_choice ( 0 .. $#{$choices} ) {
 
                 # Don't reject the current acceptance choice.
                 next REJECT_TASK_CHOICE
-                    if $rejection_choice == $accept_choice;
-
-                # Don't schedule a task for any choice whose decision
-                # is already made.
-                my $reject_node_id = $choices->[$rejection_choice];
-                my $decision       = $decisions->[$reject_node_id];
-
-                if ( defined $decision ) {
-
-                    # If the decision is defined, it should, by
-                    # prior logic, be a rejection, but guard against
-                    # an incorrect trace message.
-                    if ( $trace_iterations and $decision == REJECTED ) {
-                        my $and_node = $and_nodes->[$reject_node_id];
-                        my $and_node_name =
-                            $and_node->[Marpa::Internal::And_Node::NAME];
-                        print {$trace_fh}
-                            "Iteration: And-node $and_node_name already rejected; ",
-                            "rank $rank; choice $rejection_choice\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ( $trace_iterations and $decision == REJECTED )
-
-                    next REJECT_TASK_CHOICE;
-                } ## end if ( defined $decision )
+                    if $rejection_choice == $current_choice;
 
                 push @tasks,
                     [
                     Marpa::Internal::Task::REJECT_NODE, $rank,
-                    $reject_node_id
+                    $choices->[$rejection_choice]
                     ];
+
             } ## end for my $rejection_choice ( 0 .. $#{$choices} )
 
             next TASK;
@@ -1633,7 +1513,7 @@ sub Marpa::Evaluator::new_value {
 
             $decisions->[$and_node_id] = $rank;
 
-            push @tasks, [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1 ];
+            push @tasks, [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1, 0 ];
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::ACCEPT_NODE )
@@ -1792,6 +1672,14 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     if ( $task
                         == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE )
                     {
+
+                        if ($trace_iterations) {
+                            print {$trace_fh}
+                                "Iteration: Backtracking over instance, rank $rank\n"
+                                or
+                                Marpa::exception('print to trace handle failed');
+                        } ## end if ($trace_iterations)
+
                         @tasks =
                             (
                             [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
@@ -1809,7 +1697,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     } ## end if ($trace_journal)
 
                     @tasks = (
-                        [   Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1,
+                        [   Marpa::Internal::Task::NEXT_INSTANCE, $rank,
                             $choice
                         ]
                     );
@@ -1859,12 +1747,23 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                 # If it's already rejected, we're done.
                 # Next task.
-                next TASK if $decision == REJECTED;
+                if ($decision == REJECTED) {
+
+                    if ($trace_iterations >= 3) {
+                        my $and_node_name =
+                            $and_node->[Marpa::Internal::And_Node::NAME];
+                        print {$trace_fh}
+                            "Iteration: Already rejected and-node $and_node_name, rank $rank\n"
+                            or Marpa::exception('print to trace handle failed');
+                    } ## end if ($trace_tasks)
+
+                    next TASK;
+                }
 
                 # If we're here, a decision to accept has already
                 # been made.  This can't happen and we need to
                 # backtrack.
-                if ($trace_iterations) {
+                if ($trace_iterations >= 3) {
                     my $and_node_name =
                         $and_node->[Marpa::Internal::And_Node::NAME];
                     print {$trace_fh}
