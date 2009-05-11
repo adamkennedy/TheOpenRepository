@@ -342,16 +342,11 @@ OperatorOperandContext Tokenizer::_opcontext() {
 	if ( t0 == NULL )
 		return ooc_Operand;
 	TokenTypeNames p_type = t0->type->type;
-	if ( ( p_type == Token_Symbol ) || ( p_type == Token_Magic ) || 
-		 ( p_type == Token_Number ) || ( p_type == Token_ArrayIndex ) ||
-		 ( p_type == Token_Quote_Single ) || ( p_type == Token_Quote_Double ) ||
-		 ( p_type == Token_Quote_Interpolate ) || ( p_type == Token_Quote_Literal ) ||
-		 ( p_type == Token_QuoteLike_Backtick ) || ( p_type == Token_QuoteLike_Readline ) ||
-		 ( p_type == Token_QuoteLike_Command ) || ( p_type == Token_QuoteLike_Regexp ) ||
-		 ( p_type == Token_QuoteLike_Words ) ) {
+	if ( t0->type->isa( Token_Symbol ) || t0->type->isa( Token_Number ) ||
+		t0->type->isa( isToken_QuoteOrQuotaLike ) || ( p_type == Token_ArrayIndex ) ) {
 		return ooc_Operator;
 	}
-	if ( p_type == Token_Operator )
+	if ( t0->type->isa( Token_Operator ) )
 		return ooc_Operand;
 	
 	// FIXME: Are we searching for Structure tokens?

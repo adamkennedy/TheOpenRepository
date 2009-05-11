@@ -46,7 +46,7 @@ static bool oversuck(char *text, unsigned long length, unsigned long *new_length
 				PredicateAnd< 
 					PredicateIsChar<':'>, 
 					PredicateIsChar<':'> > >
-		>> regex;
+		> > regex;
 	return regex.test( text, new_length, length );
 }
 

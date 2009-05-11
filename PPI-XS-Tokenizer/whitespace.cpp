@@ -86,15 +86,15 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		Token *t0 = t->_last_significant_token(1);
 		Token *t1 = t->_last_significant_token(2);
 		Token *t2 = t->_last_significant_token(3);
-		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && 
-			 ( t1 != NULL ) && ( t1->type->type == Token_Word ) &&
+		if ( ( t0 != NULL ) && ( t0->type->isa( Token_Word ) ) && 
+			 ( t1 != NULL ) && ( t1->type->isa( Token_Word ) ) &&
 			 ( !strcmp(t1->text, "sub") ) &&
-			 ( ( t2 == NULL ) || ( t2->type->type == Token_Structure ) ) ) {
+			 ( ( t2 == NULL ) || ( t2->type->isa( Token_Structure ) ) ) ) {
 			t->_new_token(Token_Prototype);
 			return my_char;
 		}
 
-		if ( ( t0 != NULL ) && ( t0->type->type == Token_Word ) && ( !strcmp(t0->text, "sub") ) ) {
+		if ( ( t0 != NULL ) && ( t0->type->isa( Token_Word ) ) && ( !strcmp(t0->text, "sub") ) ) {
 			t->_new_token(Token_Prototype);
 			return my_char;
 		}
@@ -109,8 +109,8 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			return my_char;
 		}
 		TokenTypeNames t0_type = t0->type->type;
-		if ( ( t0_type == Token_Symbol ) || (  t0_type == Token_Magic ) || 
-			 (  t0_type == Token_Number ) || (  t0_type == Token_ArrayIndex ) ) {
+		if ( t0->type->isa( Token_Symbol ) || t0->type->isa( Token_Number ) ||
+			 ( t0_type == Token_ArrayIndex ) ) {
 			t->_new_token(Token_Operator);
 			return my_char;
 		}
@@ -146,22 +146,21 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
-		if ( t0->type->type == Token_Operator) { 
+		if ( t0->type->isa( Token_Operator ) ) { 
 			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
-		if ( ( t0->type->type == Token_Symbol ) || 
-			 ( t0->type->type == Token_Number ) ||
-			 ( ( t0->type->type == Token_Structure ) && ( !strcmp(t0->text, "]" ) ) ) ) { 
+		if ( t0->type->isa( Token_Symbol ) || t0->type->isa( Token_Number ) ||
+			 ( t0->type->isa( Token_Structure ) && ( !strcmp(t0->text, "]" ) ) ) ) { 
 			t->_new_token(Token_Operator);
 			return my_char;
 		}
-		if ( ( t0->type->type == Token_Structure ) && 
+		if ( t0->type->isa( Token_Structure ) && 
 			( ( !strcmp(t0->text, "(") ) || ( !strcmp(t0->text, "{") ) || ( !strcmp(t0->text, ";") ) ) ) {
 			t->_new_token(Token_Regexp_Match_Bare);
 			return my_char;
 		}
-		if ( ( t0->type->type == Token_Word ) && 
+		if ( t0->type->isa( Token_Word ) && 
 			 ( ( !strcmp(t0->text, "split") ) || 
 			   ( !strcmp(t0->text, "if") ) || 
 			   ( !strcmp(t0->text, "unless") ) || 
