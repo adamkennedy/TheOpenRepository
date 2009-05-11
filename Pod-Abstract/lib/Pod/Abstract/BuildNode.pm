@@ -7,7 +7,7 @@ use Pod::Abstract::Parser;
 use Pod::Abstract::Node;
 use base qw(Exporter);
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 our @EXPORT_OK = qw(node nodes);
 
@@ -211,7 +211,6 @@ sub heading {
 
     my $attr_node = Pod::Abstract::Node->new(
         type => '@attribute',
-        body => 'heading',
         );
     my $parser = Pod::Abstract::Parser->new;
     my $pt = $parser->parse_text($heading);
@@ -318,7 +317,6 @@ sub item {
     
     my $attr_node = Pod::Abstract::Node->new(
         type => '@attribute',
-        body => 'label',
         );
     my $parser = Pod::Abstract::Parser->new;
     my $pt = $parser->parse_text($label);

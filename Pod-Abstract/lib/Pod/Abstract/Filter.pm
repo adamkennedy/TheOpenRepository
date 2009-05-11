@@ -5,7 +5,7 @@ use warnings;
 use Pod::Abstract;
 use UNIVERSAL qw(isa);
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =head1 NAME
 

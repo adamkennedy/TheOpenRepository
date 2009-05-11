@@ -6,7 +6,7 @@ use Data::Dumper;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 sub filter {
     my $self = shift;

@@ -5,7 +5,7 @@ use warnings;
 use Pod::Abstract::Tree;
 use Pod::Abstract::Serial;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =head1 NAME
 

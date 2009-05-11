@@ -5,31 +5,29 @@ use warnings;
 use Data::Dumper;
 $Data::Dumper::Indent = 1;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
-use constant {
-    CHILDREN  => 1,  # /
-    ALL       => 2,  # //
-    NAME      => 3,  # head1
-    INDEX     => 4,  # (3)
-    L_SELECT  => 5,  # [
-    ATTR      => 6,  # @label
-    EQUAL     => 7,  # =
-    STRING    => 8,  # 'foobar'
-    R_SELECT  => 9,  # ]
-    NOT_EQ    => 10, # <>
-    LESS_THAN => 11, # <
-    LESS_EQ   => 12, # <=
-    GT_THAN   => 13, # >
-    GT_EQ     => 14, # >=
-    NOT       => 15, # !
-    PARENT    => 16, # ..
-    MATCHES   => 17, # =~
-    REGEXP    => 18, # {<pattern>}
-    NOP       => 19, # .
-    PREV      => 20, # <<
-    NEXT      => 21, # >>
-};
+use constant CHILDREN  => 1;  # /
+use constant ALL       => 2;  # //
+use constant NAME      => 3;  # head1
+use constant INDEX     => 4;  # (3)
+use constant L_SELECT  => 5;  # [
+use constant ATTR      => 6;  # @label
+use constant EQUAL     => 7;  # =
+use constant STRING    => 8;  # 'foobar'
+use constant R_SELECT  => 9;  # ]
+use constant NOT_EQ    => 10; # <>
+use constant LESS_THAN => 11; # <
+use constant LESS_EQ   => 12; # <=
+use constant GT_THAN   => 13; # >
+use constant GT_EQ     => 14; # >=
+use constant NOT       => 15; # !
+use constant PARENT    => 16; # ..
+use constant MATCHES   => 17; # =~
+use constant REGEXP    => 18; # {<pattern>}
+use constant NOP       => 19; # .
+use constant PREV      => 20; # <<
+use constant NEXT      => 21; # >>
 
 =pod
 

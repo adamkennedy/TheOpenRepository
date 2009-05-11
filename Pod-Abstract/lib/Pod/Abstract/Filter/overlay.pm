@@ -6,7 +6,7 @@ use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =begin :overlay
 

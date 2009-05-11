@@ -1,5 +1,11 @@
 Revision history for Pod-Abstract
 
+0.16    11/05/2009
+        Changed constant declarations to allow older Perl 5.6 constants.
+        Removed body components from heading and label attributes in
+        BuildNode, which would cause ->select to behave incorrectly on
+        newly added nodes.
+
 0.15    12/03/2009
         Improved documentation. Added some real documentation for
         Pod::Abstract::Path. Had an attempt at fixing the compile
