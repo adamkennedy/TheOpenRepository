@@ -80,8 +80,8 @@ has _keypath => (
 has _location => (
 	is => 'ro',
 	isa => 'Maybe[Str]', # Enum: 'local', 'source', 'network'
-	reader => '_get_directory',
-	init_arg => 'directory',
+	reader => '_get_location',
+	init_arg => 'location',
 	default => undef,
 );
 
@@ -183,21 +183,19 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolder - Exceptions used in XML::WiX3::Objects.
+XML::WiX3::Classes::Component - Exceptions used in XML::WiX3::Objects.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Exceptions version 0.003
+This document describes XML::WiX3::Classes::Component version 0.003
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Classes::RegistryKey() };
-	if ( my $e = XWC::Exception::Parameter->caught() ) {
+	my $component = new XML::WiX3::Classes::Component(
+		id => 'MyComponent',
+		
+	);
 
-		my $parameter = $e->parameter;
-		die "Bad Parameter $e passed in.";
-	
-	}
   
 =head1 DESCRIPTION
 
@@ -244,14 +242,6 @@ distribution.  It has no diagnostics of its own.
   
 XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
 
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
-
-=head1 INCOMPATIBILITIES
-
-None reported.
-
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported.
@@ -266,7 +256,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 

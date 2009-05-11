@@ -69,7 +69,7 @@ XML::WiX3::Classes::CreateFolder - Exceptions used in XML::WiX3::Objects.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Exceptions version 0.003
+This document describes XML::WiX3::Classes::CreateFolder version 0.003
 
 =head1 SYNOPSIS
 
@@ -148,7 +148,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 
