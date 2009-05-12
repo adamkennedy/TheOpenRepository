@@ -111,6 +111,13 @@ use Marpa::Offset qw(
     INSTANCE { An iterable decision to accept one of an instance's
     and-nodes , or to reject them all.  }
 
+    RATCHET_INSTANCE_ACCEPTANCES {
+    Ratchet instance acceptances below "here".  That is,
+    the only iteration allowed for an accepted instance
+    is to reject it -- other possible ways of accepting
+    the instance are not considered.
+    }
+
 );
 
 use Marpa::Offset qw(
@@ -1062,12 +1069,11 @@ use constant NOT_REJECTED => ( REJECTED - 1 );
 use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
-    NEXT_INSTANCE
+    ITERATE_INSTANCE
     ACCEPT_NODE
     REJECT_NODE
     BACKTRACK_TO_FORK
     BACKTRACK_TO_INSTANCE
-    BACKTRACK_OVER_INSTANCE
     EVALUATE
     FORK_MARKER
 );
@@ -1134,7 +1140,7 @@ sub Marpa::Evaluator::new_value {
 
     # Default is to backtrack, but if this is a new parse (no journal)
     # it will be overriden
-    my @tasks = ( [Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE] );
+    my @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
 
     if ( not defined $journal ) {
 
@@ -1220,7 +1226,7 @@ sub Marpa::Evaluator::new_value {
         ];
         $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
         $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS] = [];
-        @tasks = ( [ Marpa::Internal::Task::NEXT_INSTANCE, 0, 0 ] );
+        @tasks = ( [ Marpa::Internal::Task::ITERATE_INSTANCE, 0, 0 ] );
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
@@ -1235,12 +1241,12 @@ sub Marpa::Evaluator::new_value {
 
         my $task = shift @{$task_data};
 
-        if ( $task == Marpa::Internal::Task::NEXT_INSTANCE ) {
+        if ( $task == Marpa::Internal::Task::ITERATE_INSTANCE ) {
 
             my ( $rank, $current_choice ) = @{$task_data};
 
             if ($trace_tasks) {
-                print {$trace_fh} "Task: NEXT_INSTANCE; rank $rank; ",
+                print {$trace_fh} "Task: ITERATE_INSTANCE; rank $rank; ",
                     "current choice $current_choice; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
@@ -1251,7 +1257,7 @@ sub Marpa::Evaluator::new_value {
                 next TASK;
             }
 
-            my $choices      = $instances->[$rank];
+            my $choices = $instances->[$rank];
 
             if ( $current_choice > $#{$choices} or $current_choice < 0 ) {
                 $current_choice = -1;
@@ -1297,8 +1303,7 @@ sub Marpa::Evaluator::new_value {
                 } ## end if ($trace_iterations)
 
                 @tasks = (
-                    [   Marpa::Internal::Task::NEXT_INSTANCE, $rank+1, 0
-                    ],
+                    [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
                     [   Marpa::Internal::Task::ACCEPT_NODE, $rank,
                         $choices->[$current_choice]
                     ]
@@ -1318,7 +1323,7 @@ sub Marpa::Evaluator::new_value {
                 } ## end if ($trace_iterations)
 
                 @tasks = (
-                    [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1, 0 ],
+                    [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
                 );
 
             } ## end else [ if ( $current_choice >= 0 )
@@ -1340,7 +1345,7 @@ sub Marpa::Evaluator::new_value {
 
             next TASK;
 
-        } ## end if ( $task == Marpa::Internal::Task::NEXT_INSTANCE )
+        } ## end if ( $task == Marpa::Internal::Task::ITERATE_INSTANCE)
 
         if ( $task == Marpa::Internal::Task::ACCEPT_NODE ) {
 
@@ -1513,7 +1518,8 @@ sub Marpa::Evaluator::new_value {
 
             $decisions->[$and_node_id] = $rank;
 
-            push @tasks, [ Marpa::Internal::Task::NEXT_INSTANCE, $rank + 1, 0 ];
+            push @tasks,
+                [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ];
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::ACCEPT_NODE )
@@ -1538,7 +1544,7 @@ and pushing of BACKTRACK_TO_FORK tasks only happens during an ACCEPT_NODE
 task.  We set up so that ACCEPT_NODE tasks happen last, after all
 REJECT_NODE tasks are popped.  This means that at a FORK iteration, and
 when a BACKTRACK_TO_FORK task is pushed, the @tasks stack will always
-contain only a NEXT_INSTANCE task.  So 'restoring' the @tasks stack is
+contain only a ITERATE_INSTANCE task.  So 'restoring' the @tasks stack is
 a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
 =end Implementation:
@@ -1546,21 +1552,21 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 =cut
 
         if (   $task == Marpa::Internal::Task::BACKTRACK_TO_FORK
-            or $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE
-            or $task == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE )
+            or $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE )
         {
 
             if ($trace_tasks) {
                 my $task_name =
                     $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE
                     ? 'BACKTRACK_TO_INSTANCE'
-                    : $task == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE
-                    ? 'BACKTRACK_OVER_INSTANCE'
                     : 'BACKTRACK_TO_FORK';
                 print {$trace_fh} "Task: $task_name; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
+
+            # Start with ratcheting off
+            my $instance_acceptances_ratcheted = 0;
 
             ENTRY: while ( my $journal_entry = pop @{$journal} ) {
 
@@ -1664,27 +1670,52 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     next TASK;
                 } ## end if ( $entry_type == ...
 
+                # "Ratchet" instance acceptances, that is, only iterate an
+                # accepted instance by rejecting it.
+                if ( $entry_type
+                    == Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES
+                    )
+                {
+
+                    # Ratchets encountered while the ratchet flag is already set will be no-ops.
+                    # There are left over from previous parses, and do no harm.
+                    $instance_acceptances_ratcheted = 1;
+                    next ENTRY;
+                } ## end if ( $entry_type == ...
+
                 # This entry records a decision to accept an instance.
                 # Iterate this instance.
                 if ( $entry_type == Marpa::Internal::Journal_Tag::INSTANCE ) {
                     my ( $rank, $choice ) = @{$journal_entry};
 
-                    if ( $task
-                        == Marpa::Internal::Task::BACKTRACK_OVER_INSTANCE )
-                    {
+                    if ($instance_acceptances_ratcheted) {
+
+                        if ($trace_journal) {
+                            print {$trace_fh}
+                                "Journal: Instance acceptance ratchet moved to rank $rank\n"
+                                or Marpa::exception(
+                                'print to trace handle failed');
+                        } ## end if ($trace_journal)
+
+                        push @{$journal},
+                            [
+                            Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES
+                            ];
 
                         if ($trace_iterations) {
                             print {$trace_fh}
-                                "Iteration: Backtracking over instance, rank $rank\n"
-                                or
-                                Marpa::exception('print to trace handle failed');
+                                "Iteration: Backtracking, rejecting ratcheted instance, rank $rank\n"
+                                or Marpa::exception(
+                                'print to trace handle failed');
                         } ## end if ($trace_iterations)
 
-                        @tasks =
-                            (
-                            [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
+                        @tasks = (
+                            [   Marpa::Internal::Task::ITERATE_INSTANCE,
+                                $rank, -1
+                            ]
+                        );
                         next TASK;
-                    } ## end if ( $task == ...
+                    } ## end if ($instance_acceptances_ratcheted)
 
                     $choice++;
 
@@ -1697,7 +1728,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     } ## end if ($trace_journal)
 
                     @tasks = (
-                        [   Marpa::Internal::Task::NEXT_INSTANCE, $rank,
+                        [   Marpa::Internal::Task::ITERATE_INSTANCE, $rank,
                             $choice
                         ]
                     );
@@ -1747,30 +1778,31 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                 # If it's already rejected, we're done.
                 # Next task.
-                if ($decision == REJECTED) {
+                if ( $decision == REJECTED ) {
 
-                    if ($trace_iterations >= 3) {
+                    if ( $trace_iterations >= 3 ) {
                         my $and_node_name =
                             $and_node->[Marpa::Internal::And_Node::NAME];
                         print {$trace_fh}
                             "Iteration: Already rejected and-node $and_node_name, rank $rank\n"
-                            or Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_tasks)
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end if ( $trace_iterations >= 3 )
 
                     next TASK;
-                }
+                } ## end if ( $decision == REJECTED )
 
                 # If we're here, a decision to accept has already
                 # been made.  This can't happen and we need to
                 # backtrack.
-                if ($trace_iterations >= 3) {
+                if ( $trace_iterations >= 3 ) {
                     my $and_node_name =
                         $and_node->[Marpa::Internal::And_Node::NAME];
                     print {$trace_fh}
                         "Iteration: Attempted to reject an accepted node: $and_node_name; ",
                         "need to backtrack\n"
                         or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
+                } ## end if ( $trace_iterations >= 3 )
 
                 @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
                 next TASK;
@@ -1891,6 +1923,15 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             }
 
             my @work_list;
+
+            if ($trace_journal) {
+                print {$trace_fh}
+                    "Journal: Instance acceptance ratchet placed at end of journal\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
+            push @{$journal},
+                [Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES];
 
             my @or_node_choices;
             $#or_node_choices = $#{$or_nodes};
