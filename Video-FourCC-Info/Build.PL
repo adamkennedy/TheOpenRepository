@@ -70,15 +70,11 @@ my $builder = Module::Build->new(
     'Test::Without::Module'   => 0,
     'Test::Portability::Files' => 0,
     'Test::MinimumVersion'    => 0,
-    'Test::Script'            => 0,
   },
   conflicts => {
   },
 
   add_to_cleanup => [ 'Video-FourCC-Info-*' ],
-  script_files => [
-    'bin/peekvideo',
-  ],
 
   meta_merge => {
     resources => {

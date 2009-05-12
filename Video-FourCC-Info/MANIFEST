@@ -1,7 +1,7 @@
 Build.PL
 Changes
 examples/fourcc.pl
-bin/peekvideo
+examples/peekvideo.pl
 lib/Video/FourCC/codecs.dat
 lib/Video/FourCC/Info.pm
 LICENSE
@@ -25,5 +25,4 @@ t/01portability.t
 t/02core.t
 t/02exceptions.t
 t/02fallback.t
-t/03scripts.t
 t/99data.t

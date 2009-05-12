@@ -3,7 +3,7 @@
 # bin/peekvideo
 #  Determine information about a given media file
 #
-# $Id$
+# $Id: peekvideo 6744 2009-04-29 14:32:07Z FREQUENCY@cpan.org $
 #
 # This package and its contents are released by the author into the
 # Public Domain, to the full extent permissible by law. For additional
@@ -23,7 +23,7 @@ peekvideo - determine a codec used by a given file
 
 =head1 VERSION
 
-Version 1.1 ($Id$)
+Version 1.1 ($Id: peekvideo 6744 2009-04-29 14:32:07Z FREQUENCY@cpan.org $)
 
 =cut
 
@@ -33,7 +33,7 @@ use version; our $VERSION = qv('1.1');
 
 Usage: peekvideo filename [...]
 
-Give a single path referring to a file containing video data, this script
+Given a single path referring to a file containing video data, this script
 will determine the codec required for the media to play.
 
 =head1 DESCRIPTION
