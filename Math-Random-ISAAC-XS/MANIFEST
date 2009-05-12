@@ -8,9 +8,9 @@ Makefile.PL
 MANIFEST                        This list of files
 MANIFEST.SKIP
 META.yml
-ppport.h
 README
 SIGNATURE
+src/ppport.h
 src/rand.h
 src/rand.c
 src/standard.h
