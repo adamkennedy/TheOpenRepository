@@ -21,34 +21,6 @@ DESCRIPTION
     the late 90s and despite the best efforts of many security researchers,
     no feasible attacks have been found to date.
 
-SYNOPSIS
-      use Math::Random::ISAAC;
-
-      my $rng = Math::Random::ISAAC->new(@seeds);
-
-      for (0..30) {
-        print 'Result: ' . $rng->irand() . "\n";
-      }
-
-PURPOSE
-    The intent of this module is to provide single simple interface to the
-    two compatible implementations of this module, namely,
-    Math::Random::ISAAC::XS and Math::Random::ISAAC::PP.
-
-    If, for some reason, you need to determine what version of the module is
-    actually being included by "Math::Random::ISAAC", then:
-
-      print 'Backend type: ', $Math::Random::ISAAC::DRIVER, "\n";
-
-    In order to force use of one or the other, simply load the appropriate
-    module:
-
-      use Math::Random::ISAAC::XS;
-      my $rng = Math::Random::ISAAC::XS->new();
-      # or
-      use Math::Random::ISAAC::PP;
-      my $rng = Math::Random::ISAAC::PP->new();
-
 COMPATIBILITY
     This module was tested under Perl 5.10.0, using Debian Linux. However,
     because it's Pure Perl and doesn't do anything too obscure, it should be

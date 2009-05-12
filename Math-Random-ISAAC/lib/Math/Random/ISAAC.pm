@@ -269,8 +269,7 @@ maintainer noted above.
 If you have a bug report or feature request, please file them on the CPAN
 Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
 report in the form of failing unit tests, you are B<strongly> encouraged to do
-so. Regular bug reports are always accepted and appreciated via the CPAN bug
-tracker.
+so.
 
 =head1 SEE ALSO
 
