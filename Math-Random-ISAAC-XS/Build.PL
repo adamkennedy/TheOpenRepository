@@ -88,6 +88,7 @@ my $builder = Module::Build->new(
 
     # For the XS build process
     'ExtUtils::CBuilder'    => 0,
+    'ExtUtils::ParseXS'     => 0,
   },
   recommends => {
     # The main interface
