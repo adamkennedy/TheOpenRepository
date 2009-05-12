@@ -11,6 +11,7 @@ MANIFEST.SKIP
 META.yml
 README
 SIGNATURE
+source-data.sql
 t/00signature.t
 t/01compile.t
 t/01critic.rc
