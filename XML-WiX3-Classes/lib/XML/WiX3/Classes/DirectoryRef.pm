@@ -38,7 +38,7 @@ has _filesource => (
 );
 
 #####################################################################
-# Main Methods
+# Methods to implement the Tag role.
 
 sub as_string {
 	my $self = shift;
@@ -55,7 +55,6 @@ sub as_string {
 	} else {
 		return q{<DirectoryRef$tags />\n};
 	}
-
 } ## end sub as_string
 
 sub get_namespace {
@@ -68,7 +67,7 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolder - Exceptions used in XML::WiX3::Objects.
+XML::WiX3::Classes::DirectoryRef - Exceptions used in XML::WiX3::Objects.
 
 =head1 VERSION
 

@@ -24,13 +24,7 @@ has _directory => (
 );
 
 #####################################################################
-# Constructor for CreateFolder
-#
-# Parameters: [pairs]
-#   id, directory: See Base::Fragment.
-
-#####################################################################
-# Main Methods
+# Methods to implement the Tag role.
 
 sub as_string {
 	my $self = shift;
@@ -47,7 +41,7 @@ sub as_string {
 		}
 	} else {
 		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'/>\n};
+			return qq{<CreateFolder Directory='$directory' />\n};
 		} else {
 			return qq{<CreateFolder />\n};
 		}

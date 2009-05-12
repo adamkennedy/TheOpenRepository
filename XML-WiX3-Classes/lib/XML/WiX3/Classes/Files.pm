@@ -1,9 +1,11 @@
 package XML::WiX3::Classes::Files;
 
 #<<<
-use     5.006;
-use     Moose;
-use     vars                  qw( $VERSION                 );
+use 5.006;
+use Moose;
+use vars                      qw( $VERSION                             );
+use XML::WiX3::Classes::Types qw( YesNoType PositiveInt NonNegativeInt );
+use MooseX::Types::Moose      qw( Str Maybe Int                        );
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -11,8 +13,7 @@ use version; $VERSION = version->new('0.003')->numify;
 with 'XML::WiX3::Classes::Role::Tag';
 
 #####################################################################
-# Accessors:
-#   see new.
+# Attributes:
 
 has _assembly => (
 	is => 'ro',
@@ -24,7 +25,7 @@ has _assembly => (
 
 has _assemblyapplication => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => '_get_assemblyapplication',
 	init_arg => 'assemblyapplication',
 	default => undef,
@@ -32,7 +33,7 @@ has _assemblyapplication => (
 
 has _assemblymanifest => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => '_get_assemblymanifest',
 	init_arg => 'assemblymanifest',
 	default => undef,
@@ -40,7 +41,7 @@ has _assemblymanifest => (
 
 has _bindpath => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => '_get_bindpath',
 	init_arg => 'bindpath',
 	default => undef,
@@ -48,7 +49,7 @@ has _bindpath => (
 
 has _checksum => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType], # Becomes yes/no.
 	reader => '_get_checksum',
 	init_arg => 'checksum',
 	default => undef,
@@ -56,7 +57,7 @@ has _checksum => (
 
 has _companionfile => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Maybe[Str],
 	reader => '_get_companionfile',
 	init_arg => 'companionfile',
 	default => undef,
@@ -72,7 +73,7 @@ has _compressed => (
 
 has _defaultlanguage => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Maybe[Str],
 	reader => '_get_defaultlanguage',
 	init_arg => 'defaultlanguage',
 	default => undef,
@@ -80,7 +81,7 @@ has _defaultlanguage => (
 
 has _defaultsize => (
 	is => 'ro',
-	isa => 'Int', # PositiveInt
+	isa => Maybe[NonNegativeInt],
 	reader => '_get_defaultsize',
 	init_arg => 'defaultsize',
 	default => undef,
@@ -88,7 +89,7 @@ has _defaultsize => (
 
 has _defaultversion => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Maybe[Str],
 	reader => '_get_defaultversion',
 	init_arg => 'defaultversion',
 	default => undef,
@@ -96,7 +97,7 @@ has _defaultversion => (
 
 has _diskid => (
 	is => 'ro',
-	isa => 'Int',
+	isa => Maybe[PositiveInt],
 	reader => '_get_diskid',
 	init_arg => 'diskid',
 	default => undef,
@@ -104,7 +105,7 @@ has _diskid => (
 
 has _fonttitle => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Maybe[Str],
 	reader => '_get_fonttitle',
 	init_arg => 'fonttitle',
 	default => undef,
@@ -112,7 +113,7 @@ has _fonttitle => (
 
 has _hidden => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_hidden',
 	init_arg => 'hidden',
 	default => undef,
@@ -120,14 +121,14 @@ has _hidden => (
 
 has id => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => 'get_id',
 	default => undef,
 );
 
 has _keypath => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_keypath',
 	init_arg => 'keypath',
 	default => undef,
@@ -142,7 +143,7 @@ has name => (
 
 has _patchallowignoreonerror => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_patchallowignoreonerror',
 	init_arg => 'patchallowignoreonerror',
 	default => undef,
@@ -150,7 +151,7 @@ has _patchallowignoreonerror => (
 
 has _patchignore => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_patchignore',
 	init_arg => 'patchignore',
 	default => undef,
@@ -158,7 +159,7 @@ has _patchignore => (
 
 has _patchwholefile => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_patchwholefile',
 	init_arg => 'patchwholefile',
 	default => undef,
@@ -166,9 +167,9 @@ has _patchwholefile => (
 
 has _patchgroup => (
 	is => 'ro',
-	isa => 'Int',
-	reader => '_get_diskid',
-	init_arg => 'diskid',
+	isa => Maybe[PositiveInt],
+	reader => '_get_patchgroup',
+	init_arg => 'patchgroup',
 	default => undef,
 );
 
@@ -182,7 +183,7 @@ has _processorarchitecture => (
 
 has _readonly => (
 	is => 'ro',
-	isa => 'Bool|Str', # Becomes yes/no.
+	isa => Maybe[YesNoType],
 	reader => '_get_readonly',
 	init_arg => 'readonly',
 	default => undef,
@@ -212,9 +213,31 @@ has _source => (
 	default => undef,
 );
 
+has _system => (
+	is => 'ro',
+	isa => Maybe[YesNoType],
+	reader => '_get_system',
+	init_arg => 'system',
+	default => undef,
+);
+has _truetype => (
+	is => 'ro',
+	isa => Maybe[YesNoType],
+	reader => '_get_truetype',
+	init_arg => 'truetype',
+	default => undef,
+);
+
+has _vital => (
+	is => 'ro',
+	isa => Maybe[YesNoType],
+	reader => '_get_vital',
+	init_arg => 'vital',
+	default => undef,
+);
 
 #####################################################################
-# Constructor for Files
+# Methods
 #
 # Parameters: [pairs]
 #   directory_tree: [Wix::DirectoryTree object] The initial directory tree.
@@ -556,75 +579,52 @@ sub check_duplicates {
 	return $self;
 } ## end sub check_duplicates
 
-########################################
-# get_component_array
-# Parameters:
-#   None.
-# Returns:
-#   Array of the Id attributes of the components within this object.
-
-sub get_component_array {
-	my $self = shift;
-	my @answer;
-
-	# Get the array for each descendant.
-	my $count = scalar @{ $self->get_components };
-	foreach my $i ( 0 .. $count - 1 ) {
-		push @answer, $self->get_components->[$i]->get_component_array;
-	}
-
-	return @answer;
-} ## end sub get_component_array
-
-########################################
-# as_string
-# Parameters:
-#   None.
-# Returns:
-#   String containing fragment defined by this object
-#   and DirectoryRef objects contained in this object.
+#####################################################################
+# Methods to implement the Tag role.
 
 sub as_string {
 	my $self = shift;
-	my ( $string, $s );
 
-	my $components = $self->get_components;
-
-	# How many descendants do we have?
-	my $count = scalar @{$components};
-
-	# Short circuit.
-	if ( $count == 0 ) {
-		my $id = $self->get_fragment_id();
-		$self->trace_line( 2, "No components in fragment $id" );
-		return q{};
+	my $children  = $self->has_children();
+	my $tags;
+	$tags  = $self->print_attribute('Id', $self->get_file_id());
+	$tags .= $self->print_attribute('Name', $self->get_name());
+	$tags .= $self->print_attribute('DiskId', $self->_get_diskid());
+	$tags .= $self->print_attribute('Assembly', $self->_get_assembly());
+	$tags .= $self->print_attribute('AssemblyApplication', $self->_get_assemblyapplication());
+	$tags .= $self->print_attribute('AssemblyManifest', $self->_get_assemblymanifest());
+	$tags .= $self->print_attribute('BindPath', $self->_get_bindpath());
+	$tags .= $self->print_attribute('Checksum', $self->_get_checksum());
+	$tags .= $self->print_attribute('CompanionFile', $self->_get_companionfile());
+	$tags .= $self->print_attribute('Compressed', $self->_get_compressed());
+	$tags .= $self->print_attribute('DefaultLanguage', $self->_get_defaultlanguage());
+	$tags .= $self->print_attribute('DefaultSize', $self->_get_defaultsize());
+	$tags .= $self->print_attribute('DefaultVersion', $self->_get_defaultversion());
+	$tags .= $self->print_attribute('FontTitle', $self->_get_fonttitle());
+	$tags .= $self->print_attribute('Hidden', $self->_get_hidden());
+	$tags .= $self->print_attribute('KeyPath', $self->_get_keypath());
+	$tags .= $self->print_attribute('PatchAllowIgnoreOnError', $self->_get_patchallowignoreonerror());
+	$tags .= $self->print_attribute('PatchIgnore', $self->_get_patchignore());
+	$tags .= $self->print_attribute('PatchWholeFile', $self->_get_patchwholefile());
+	$tags .= $self->print_attribute('PatchGroup', $self->_get_patchgroup());
+	$tags .= $self->print_attribute('ProcessorArchitecture', $self->_get_processorarchitecture());
+	$tags .= $self->print_attribute('ReadOnly', $self->_get_readonly());
+	$tags .= $self->print_attribute('SelfRegCost', $self->_get_selfregcost());
+	$tags .= $self->print_attribute('ShortName', $self->_get_shortname());
+	$tags .= $self->print_attribute('Source', $self->_get_source());
+	$tags .= $self->print_attribute('System', $self->_get_source());
+	$tags .= $self->print_attribute('TrueType', $self->_get_source());
+	$tags .= $self->print_attribute('Vital', $self->_get_source());
+	
+	
+	
+	
+	if ($children) {
+		my $child_string = $self->as_string_children();
+		return qq{<DirectoryRef$tags>\n$child_string</DirectoryRef>\n};
+	} else {
+		return q{<DirectoryRef$tags />\n};
 	}
-
-	my $id = $self->get_fragment_id();
-
-	# Start our fragment.
-	$string = <<"EOF";
-<?xml version='1.0' encoding='windows-1252'?>
-<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
-  <Fragment Id='Fr_$id'>
-EOF
-
-	# Get the string for each descendant.
-	foreach my $i ( 0 .. $count - 1 ) {
-		$s = $components->[$i]->as_string;
-		chomp $s;
-		if ( $s ne q{} ) {
-			$string .= $self->indent( 4, $s );
-			$string .= "\n";
-		}
-	}
-
-	# End the fragment.
-	$string .= <<'EOF';
-  </Fragment>
-</Wix>
-EOF
-	return $string;
 } ## end sub as_string
 
 sub get_namespace {

@@ -90,8 +90,9 @@ has _shortsourcename => (
 # ComponentGuidGenerationSeed is not needed.
 
 #####################################################################
-# Constructor for CreateFolder
+# Constructor for Directory
 #
+
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
@@ -114,7 +115,6 @@ sub BUILDARGS {
 	unless (defined _IDENTIFIER($args{'id'})) {
 		XWC::Exception::Parameter::Invalid->throw('id');
 	}
-
 }
 
 sub get_directory_id {
@@ -129,7 +129,7 @@ sub get_directory_id {
 }
 
 #####################################################################
-# Main Methods
+# Methods to implement the Tag role.
 
 sub as_string {
 	my $self = shift;
@@ -150,7 +150,6 @@ sub as_string {
 	} else {
 		return q{<Directory$tags />\n};
 	}
-
 } ## end sub as_string
 
 sub get_namespace {
@@ -167,7 +166,7 @@ XML::WiX3::Classes::Directory - Class representing a Directory tag.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Exceptions version 0.003
+This document describes XML::WiX3::Classes::Directory version 0.003
 
 =head1 SYNOPSIS
 
@@ -187,6 +186,10 @@ If an C<id> parameter is not passed, one will be generated using the C<path> par
 All attributes are lowercased when passed as a parameter.
 
 =head1 INTERFACE 
+
+This class implementes all methods of the L<XML::WiX3::Classes::Role::Tag> role.
+
+
 
 =head2 Other parameters to new
 

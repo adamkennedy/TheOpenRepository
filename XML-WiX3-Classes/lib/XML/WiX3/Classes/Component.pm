@@ -3,8 +3,10 @@ package XML::WiX3::Classes::Component;
 #<<<
 use 5.006;
 use Moose;
-use vars              qw( $VERSION );
-use Params::Util      qw( _STRING  );
+use vars                      qw( $VERSION      );
+use Params::Util              qw( _STRING       );
+use XML::WiX3::Classes::Types qw( YesNoType     );
+use MooseX::Types::Moose      qw( Str Maybe Int );
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -24,14 +26,14 @@ with 'XML::WiX3::Classes::Role::Tag';
 
 has id => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => 'get_id',
 	required => 1,
 );
 
 has _complusflags => (
 	is => 'ro',
-	isa => 'Maybe[Int]',
+	isa => Maybe[Int],
 	reader => '_get_complusflags',
 	init_arg => 'complusflags',
 	default => undef,
@@ -39,15 +41,25 @@ has _complusflags => (
 
 has _directory => (
 	is => 'ro',
-	isa => 'Maybe[Str]',
+	isa => Maybe[Str],
 	reader => '_get_directory',
 	init_arg => 'directory',
 	default => undef,
 );
 
+# DisableRegistryReflection requires Windows Installer 4.0
+
+has _disableregistryreflection => (
+	is => 'ro',
+	isa => Maybe[YesNoType],
+	reader => '_get_disableregistryreflection',
+	init_arg => 'disableregistryreflection',
+	default => undef,
+);
+
 has _diskid => (
 	is => 'ro',
-	isa => 'Maybe[Int]',
+	isa => Maybe[Int],
 	reader => '_get_diskid',
 	init_arg => 'diskid',
 	default => undef,
@@ -55,7 +67,7 @@ has _diskid => (
 
 has _feature => (
 	is => 'ro',
-	isa => 'Maybe[Str]',
+	isa => Maybe[Str],
 	reader => '_get_feature',
 	init_arg => 'feature',
 	default => undef,
@@ -63,15 +75,15 @@ has _feature => (
 
 has _guid => (
 	is => 'ro',
-	isa => 'Str', # ComponentGuidType
-	reader => '_get_directory',
-	init_arg => 'directory',
+	isa => ComponentGuidType,
+	reader => '_get_guid',
+	init_arg => 'guid',
 	default => 'PUT-GUID-HERE',
 );
 
 has _keypath => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_keypath',
 	init_arg => 'keypath',
 	default => undef,
@@ -87,7 +99,7 @@ has _location => (
 
 has _neveroverwrite => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_neveroverwrite',
 	init_arg => 'neveroverwrite',
 	default => undef,
@@ -95,15 +107,17 @@ has _neveroverwrite => (
 
 has _permanent => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_permanent',
 	init_arg => 'permanent',
 	default => undef,
 );
 
+# Shared requires Windows Installer 4.5
+
 has _shared => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_shared',
 	init_arg => 'shared',
 	default => undef,
@@ -111,7 +125,7 @@ has _shared => (
 
 has _shareddllrefcount => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_shareddllrefcount',
 	init_arg => 'shareddllrefcount',
 	default => undef,
@@ -119,36 +133,32 @@ has _shareddllrefcount => (
 
 has _transitive => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_transitive',
 	init_arg => 'transitive',
 	default => undef,
 );
-has _updatewhensuperceded => (
+
+# UninstallWhenSuperceded requires Windows Installer 4.5
+
+has _uninstallwhensuperceded => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
-	reader => '_get_updatewhensuperceded',
-	init_arg => 'updatewhensuperceded',
+	isa => Maybe[YesNoType],
+	reader => '_get_uninstallwhensuperceded',
+	init_arg => 'uninstallwhensuperceded',
 	default => undef,
 );
+
 has _win64 => (
 	is => 'ro',
-	isa => 'Maybe[Bool]', # YesNoType
+	isa => Maybe[YesNoType],
 	reader => '_get_win64',
 	init_arg => 'win64',
 	default => undef,
 );
 
-# ComponentGuidType must match the regular expression: '[{(]?[0-9A-Fa-f]{8}\-?[0-9A-Fa-f]{4}\-?[0-9A-Fa-f]{4}\-?[0-9A-Fa-f]{4}\-?[0-9A-Fa-f]{12}[})]?|PUT\-GUID\-(?:\d+\-)?HERE|([!$])(\(var|\(loc|\(wix)\.[_A-Za-z][0-9A-Za-z_.]*\)|\*|^$'. 
-
 #####################################################################
-# Constructor for CreateFolder
-#
-# Parameters: [pairs]
-#   id, directory: See Base::Fragment.
-
-#####################################################################
-# Main Methods
+# Methods to implement the Tag role.
 
 sub as_string {
 	my $self = shift;
@@ -170,11 +180,24 @@ sub as_string {
 			return qq{<CreateFolder />\n};
 		}
 	}
-
 } ## end sub as_string
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
+}
+
+#####################################################################
+# Other methods.
+
+sub get_directory_id {
+	my $self = shift;
+	my $id = $self->get_id();
+	
+	if ($self->noprefix()) {
+		return $id;
+	} else {
+		return "D_$id";
+	}
 }
 
 1;

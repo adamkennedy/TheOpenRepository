@@ -38,6 +38,9 @@ sub BUILDARGS {
 	}
 }
 
+#####################################################################
+# Methods to implement the Tag role.
+
 sub as_string {
 	my $self = shift;
 
@@ -56,7 +59,6 @@ $child_string
   </Fragment>
 </Wix>
 EOF
-
 } ## end sub as_string
 
 sub get_namespace {
