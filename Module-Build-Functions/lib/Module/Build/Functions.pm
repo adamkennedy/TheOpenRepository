@@ -5,8 +5,8 @@ use     strict;
 use     5.005;
 use     vars        qw( $VERSION @EXPORT $AUTOLOAD );
 use     Carp        qw( croak                      );
-use     Exporter    qw( import                     );
 use     English     qw( -no_match_vars             );
+use     Exporter    qw( import                     );
 use     Config;
 use     AutoLoader;
 require Module::Build;
@@ -14,112 +14,116 @@ require Module::Build;
 
 # The equivalent of "use warnings" pre-5.006.
 local $WARNING = 1;
-
-$VERSION = '0.001_005';
-
-# Module implementation here
 my %args;
 my $object         = undef;
 my $class          = undef;
 my $mb_required    = 0;
 my $autoload       = 1;
 my $object_created = 0;
+my (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
 
-# Set defaults.
-if ( $Module::Build::VERSION >= 0.28 ) {
-	$args{create_packlist} = 1;
-	$mb_required = 0.28;
+BEGIN {
+	$VERSION = '0.001_006';
+
+	# Module implementation here
+
+	# Set defaults.
+	if ( $Module::Build::VERSION >= 0.28 ) {
+		$args{create_packlist} = 1;
+		$mb_required = 0.28;
+	}
+
+	%FLAGS = (
+		'build_class'          => [ 0.28, 0 ],
+		'create_makefile_pl'   => [ 0.19, 0 ],
+		'dist_abstract'        => [ 0.20, 0 ],
+		'dist_name'            => [ 0.11, 0 ],
+		'dist_version'         => [ 0.11, 0 ],
+		'dist_version_from'    => [ 0.11, 0 ],
+		'installdirs'          => [ 0.19, 0 ],
+		'license'              => [ 0.11, 0 ],
+		'create_packlist'      => [ 0.28, 1 ],
+		'create_readme'        => [ 0.22, 1 ],
+		'create_license'       => [ 0.31, 1 ],
+		'dynamic_config'       => [ 0.07, 1 ],
+		'use_tap_harness'      => [ 0.30, 1 ],
+		'sign'                 => [ 0.16, 1 ],
+		'recursive_test_files' => [ 0.28, 1 ],
+	);
+
+	%ALIASES = (
+		'test_requires'       => 'build_requires',
+		'abstract'            => 'dist_abstract',
+		'name'                => 'module_name',
+		'author'              => 'dist_author',
+		'version'             => 'dist_version',
+		'version_from'        => 'dist_version_from',
+		'extra_compiler_flag' => 'extra_compiler_flags',
+		'extra_linker_flag'   => 'extra_linker_flags',
+		'include_dir'         => 'include_dirs',
+		'pl_file'             => 'PL_files',
+		'pl_files'            => 'PL_files',
+		'PL_file'             => 'PL_files',
+		'pm_file'             => 'pm_files',
+		'pod_file'            => 'pod_files',
+		'xs_file'             => 'xs_files',
+		'test_file'           => 'test_files',
+		'script_file'         => 'script_files',
+	);
+
+	%ARRAY = (
+		'autosplit'      => 0.04,
+		'add_to_cleanup' => 0.19,
+		'include_dirs'   => 0.24,
+		'dist_author'    => 0.20,
+	);
+
+	%HASH = (
+		'configure_requires' => [ 0.30, 1 ],
+		'build_requires'     => [ 0.07, 1 ],
+		'conflicts'          => [ 0.07, 1 ],
+		'recommends'         => [ 0.08, 1 ],
+		'requires'           => [ 0.07, 1 ],
+		'get_options'        => [ 0.26, 0 ],
+		'meta_add'           => [ 0.28, 0 ],
+		'meta_merge'         => [ 0.28, 0 ],
+		'pm_files'           => [ 0.19, 0 ],
+		'pod_files'          => [ 0.19, 0 ],
+		'xs_files'           => [ 0.19, 0 ],
+		'install_path'       => [ 0.19, 0 ],
+	);
+
+	@AUTOLOADED = ( keys %HASH, keys %ARRAY, keys %ALIASES, keys %FLAGS );
+	@DEFINED = qw(
+	  all_from abstract_from author_from license_from perl_version
+	  perl_version_from install_script install_as_core install_as_cpan
+	  install_as_site install_as_vendor WriteAll auto_install auto_bundle
+	  bundle bundle_deps auto_bundle_deps can_use can_run can_cc
+	  requires_external_bin requires_external_cc get_file check_nmake
+	  interactive release_testing automated_testing win32 winlike
+	  author_context install_share auto_features extra_compiler_flags
+	  extra_linker_flags module_name no_index PL_files script_files test_files
+	  tap_harness_args subclass create_build_script get_builder
+	  functions_self_bundler bundler
+	);
+	@EXPORT = ( @DEFINED, @AUTOLOADED );
+	# print join ' ', 'Exported:', @EXPORT, "\n";
 }
-
-my %FLAGS = (
-	'build_class'          => [ 0.28, 0 ],
-	'create_makefile_pl'   => [ 0.19, 0 ],
-	'dist_abstract'        => [ 0.20, 0 ],
-	'dist_name'            => [ 0.11, 0 ],
-	'dist_version'         => [ 0.11, 0 ],
-	'dist_version_from'    => [ 0.11, 0 ],
-	'installdirs'          => [ 0.19, 0 ],
-	'license'              => [ 0.11, 0 ],
-	'create_packlist'      => [ 0.28, 1 ],
-	'create_readme'        => [ 0.22, 1 ],
-	'dynamic_config'       => [ 0.07, 1 ],
-	'use_tap_harness'      => [ 0.30, 1 ],
-	'sign'                 => [ 0.16, 1 ],
-	'recursive_test_files' => [ 0.28, 1 ],
-);
-
-my %ALIASES = (
-	'test_requires'       => 'build_requires',
-	'abstract'            => 'dist_abstract',
-	'name'                => 'module_name',
-	'author'              => 'dist_author',
-	'version'             => 'dist_version',
-	'version_from'        => 'dist_version_from',
-	'extra_compiler_flag' => 'extra_compiler_flags',
-	'extra_linker_flag'   => 'extra_linker_flags',
-	'include_dir'         => 'include_dirs',
-	'pl_file'             => 'PL_files',
-	'pl_files'            => 'PL_files',
-	'PL_file'             => 'PL_files',
-	'pm_file'             => 'pm_files',
-	'pod_file'            => 'pod_files',
-	'xs_file'             => 'xs_files',
-	'test_file'           => 'test_files',
-	'script_file'         => 'script_files',
-);
-
-my %ARRAY = (
-	'autosplit'      => 0.04,
-	'add_to_cleanup' => 0.19,
-	'include_dirs'   => 0.24,
-	'dist_author'    => 0.20,
-);
-
-my %HASH = (
-	'configure_requires' => [ 0.30, 1 ],
-	'build_requires'     => [ 0.07, 1 ],
-	'conflicts'          => [ 0.07, 1 ],
-	'recommends'         => [ 0.08, 1 ],
-	'requires'           => [ 0.07, 1 ],
-	'get_options'        => [ 0.26, 0 ],
-	'meta_add'           => [ 0.28, 0 ],
-	'meta_merge'         => [ 0.28, 0 ],
-	'pm_files'           => [ 0.19, 0 ],
-	'pod_files'          => [ 0.19, 0 ],
-	'xs_files'           => [ 0.19, 0 ],
-	'install_path'       => [ 0.19, 0 ],
-);
-
-my @AUTOLOADED = ( keys %HASH, keys %ARRAY, keys %ALIASES, keys %FLAGS );
-my @DEFINED = qw(
-  all_from abstract_from author_from license_from perl_version
-  perl_version_from install_script install_as_core install_as_cpan
-  install_as_site install_as_vendor WriteAll auto_install auto_bundle
-  bundle bundle_deps auto_bundle_deps can_use can_run can_cc
-  requires_external_bin requires_external_cc get_file check_nmake
-  interactive release_testing automated_testing win32 winlike
-  author_context install_share auto_features extra_compiler_flags
-  extra_linker_flags module_name no_index PL_files script_files test_files
-  tap_harness_args subclass create_build_script get_builder
-  functions_self_bundler
-);
-my @EXPORT = ( @DEFINED, @AUTOLOADED );
-
-# helper functions:
 
 # The autoload handles 4 types of "similar" routines, for 45 names.
 sub AUTOLOAD {
-	my $sub = $AUTOLOAD;
+	my $full_sub = $AUTOLOAD;
+	my ($sub) = $AUTOLOAD =~ m{\A.*::([^:]*)\z};
 
 	if ( exists $ALIASES{$sub} ) {
 		my $alias = $ALIASES{$sub};
 		eval <<"END_OF_CODE";
-sub $sub {
+sub $full_sub {
 	$alias(\@_);
 	return;
 }
 END_OF_CODE
-		goto &$sub;
+		goto &$full_sub;
 	}
 
 	if ( exists $FLAGS{$sub} ) {
@@ -127,33 +131,44 @@ END_OF_CODE
 		my $boolean1 = $FLAGS{$sub}[1] ? '|| 1' : q{};
 		my $boolean2 = $FLAGS{$sub}[1] ? q{!!} : q{};
 		eval <<"END_OF_CODE";
-sub $sub {	
+sub $full_sub {	
 	my \$argument = shift $boolean1;
 	\$args{$sub} = $boolean2 \$argument;
 	_mb_required($version);
 	return;
 }
 END_OF_CODE
-		goto &$sub;
+		goto &$full_sub;
 	} ## end if ( exists $FLAGS{$sub...
 
 	if ( exists $ARRAY{$sub} ) {
-		_create_arrayref($sub);
-		eval <<"END_OF_CODE";
-sub $sub {
+#		_create_arrayref($sub);
+		my $code = <<"END_OF_CODE";
+sub $full_sub {
 	my \$argument = shift;
 	if ( 'ARRAY' eq ref \$argument ) {
 		foreach my \$f ( \@{\$argument} ) {
 			$sub(\$f);
 		}
+		return;
 	}
-
-	push \@{ \$args{$sub} }, \$argument;
+	
+	my \@array;
+	if (exists \$args{$sub}) {
+		\$args{$sub} = [ \@{ \$args{$sub} }, \$argument ];
+	} else {
+		\$args{$sub} = [ \$argument ];
+	}
 	_mb_required(\$ARRAY{$sub});
 	return;
 }
 END_OF_CODE
-		goto &$sub;
+		eval $code;
+#		if ($EVAL_ERROR) {
+#			print "$@\n";
+#			exit;
+#		} 
+		goto &$full_sub;
 	} ## end if ( exists $ARRAY{$sub...
 
 	if ( exists $HASH{$sub} ) {
@@ -161,7 +176,7 @@ END_OF_CODE
 		my $version = $HASH{$sub}[0];
 		my $default = $HASH{$sub}[1] ? '|| 0' : q{};
 		eval <<"END_OF_CODE";
-sub $sub {
+sub $full_sub {
 	my \$argument1 = shift;
 	my \$argument2 = shift $default;
 	if ( 'HASH' eq ref \$argument1 ) {
@@ -169,6 +184,7 @@ sub $sub {
 		while ( ( \$k, \$v ) = each \%{\$argument1} ) {
 			$sub( \$k, \$v );
 		}
+		return;
 	}
 
 	\$args{$sub}{\$argument1} = \$argument2;
@@ -176,11 +192,11 @@ sub $sub {
 	return;
 }
 END_OF_CODE
-		goto &$sub;
+		goto &$full_sub;
 	} ## end if ( exists $HASH{$sub...
 
 	if ( $autoload == 1 ) {
-		$AutoLoader::AUTOLOAD = $sub;
+		$AutoLoader::AUTOLOAD = $full_sub;
 		goto &AutoLoader::AUTOLOAD;
 	} else {
 		croak "$sub cannot be found";
@@ -215,14 +231,6 @@ sub _create_hashref_arrayref {
 	my $name2 = shift;
 	unless ( exists $args{$name1}{$name2} ) {
 		$args{$name1}{$name2} = [];
-	}
-	return;
-}
-
-sub _create_arrayref {
-	my $name = shift;
-	unless ( exists $args{$name} ) {
-		$args{$name} = [];
 	}
 	return;
 }
@@ -664,8 +672,6 @@ END_OF_CODE
 	return;
 } ## end sub functions_self_bundler
 
-1;                                     # Magic true value required at end of module
-
 __END__
 
 sub bundler {
@@ -686,7 +692,7 @@ sub bundler {
 			$text = read_file($file);
 			$text =~ s/package [ ] Module/package inc::Module/msx;
 			$text =~ s/use [ ]* AutoLoader;//msx;
-			$text =~ s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload = 0/msx;
+			$text =~ s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload =       0/msx;
 			$text =~ s/__END__.*/\n/ms;
 			$text =~ s/__END__.*/\n/msx;
 			$fulldir = File::Spec->catdir(qw(inc Module Build));
@@ -699,3 +705,7 @@ sub bundler {
 	} ## end foreach my $dir ( $Config{'sitelibexp'...
 	return;
 } ## end sub bundler
+
+1;                                     # Magic true value required at end of module
+
+__END__

@@ -268,6 +268,14 @@ common one used on the CPAN.
 If you generate a README in this way, it's probably a good idea to create a 
 separate INSTALL file if that information isn't in the generated README.
 
+=head4 create_license
+
+    create_license 1;
+
+This function tells Module::Build whether to automatically create a LICENSE 
+file at the top level of your distribution or not. If set to 1, it creates 
+a LICENSE file based on the license you give for your META.yml file.
+
 =head4 dynamic_config
 
 	dynamic_config 1;
