@@ -2,7 +2,7 @@
 
 =begin readme text
 
-Module-Build-Functions version 0.001_005
+Module-Build-Functions version 0.001_007
 
 =end readme
 
@@ -14,7 +14,7 @@ Module::Build::Functions - Module::Install style syntax for Module::Build
 
 =head1 VERSION
 
-This document describes Module::Build::Functions version 0.001_005.
+This document describes Module::Build::Functions version 0.001_007.
 
 =head1 SYNOPSIS
 
@@ -275,6 +275,8 @@ separate INSTALL file if that information isn't in the generated README.
 This function tells Module::Build whether to automatically create a LICENSE 
 file at the top level of your distribution or not. If set to 1, it creates 
 a LICENSE file based on the license you give for your META.yml file.
+
+This requires L<Software::License> to be installed.
 
 =head4 dynamic_config
 

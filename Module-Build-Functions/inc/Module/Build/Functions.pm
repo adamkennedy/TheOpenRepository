@@ -3,10 +3,12 @@ package inc::Module::Build::Functions;
 #<<<
 use     strict;
 use     5.005;
-use     vars        qw( $VERSION @EXPORT $AUTOLOAD );
-use     Carp        qw( croak                      );
-use     English     qw( -no_match_vars             );
-use     Exporter    qw( import                     );
+use     vars                  
+  qw( $VERSION @EXPORT $AUTOLOAD %args @install_types );
+use     Carp                  qw( croak                            );
+use     English               qw( -no_match_vars                   );
+use     Exporter              qw( import                           );
+use     File::Spec::Functions qw( catdir catfile                   );
 use     Config;
 
 require Module::Build;
@@ -14,16 +16,16 @@ require Module::Build;
 
 # The equivalent of "use warnings" pre-5.006.
 local $WARNING = 1;
-my %args;
 my $object         = undef;
 my $class          = undef;
 my $mb_required    = 0;
 my $autoload =       0;
 my $object_created = 0;
+my $sharemod_used  = 1;
 my (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
 
 BEGIN {
-	$VERSION = '0.001_006';
+	$VERSION = '0.001_007';
 
 	# Module implementation here
 
@@ -212,9 +214,10 @@ sub _mb_required {
 }
 
 sub _installdir {
-	return $Config{'sitelibexp'}   if ( $args{install_type} eq 'site' );
-	return $Config{'privlibexp'}   if ( $args{install_type} eq 'perl' );
-	return $Config{'vendorlibexp'} if ( $args{install_type} eq 'vendor' );
+	return $Config{'sitelibexp'}   unless ( defined     $args{install_type} );
+	return $Config{'sitelibexp'}   if     ( 'site'   eq $args{install_type} );
+	return $Config{'privlibexp'}   if     ( 'perl'   eq $args{install_type} );
+	return $Config{'vendorlibexp'} if     ( 'vendor' eq $args{install_type} );
 	croak 'Invalid install type';
 }
 
@@ -414,27 +417,67 @@ sub author_context {
 
 # Module::Install::Share
 
+sub _scan_dir {
+	my ($srcdir, $destdir, $type, $skip) = @_;
+
+	my $type_files = $type . '_files';
+	
+	$args{$type_files} = {} unless exists $args{"$type_files"};
+	
+	my $dir_handle;
+	
+	if ( $] < 5.006 ) { ## no critic(ProhibitPunctuationVars)
+		require Symbol;
+		$dir_handle = Symbol::gensym();
+	} 
+		
+	opendir $dir_handle, $srcdir ## no critic(RequireBriefOpen)
+	  or croak $OS_ERROR;
+
+  FILE:
+	foreach my $direntry (readdir $dir_handle) {
+		if (-d $direntry) {
+			next FILE if ($direntry eq '.');
+			next FILE if ($direntry eq '..');
+			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry), $type, $skip);
+		} else {
+			my $sourcefile = catfile($srcdir, $direntry);
+			
+			unless ($skip->($sourcefile)) {
+				$args{$type_files}{$sourcefile} = catfile($destdir, $direntry);
+			}
+		}
+	}
+
+	closedir $dir_handle;	
+}
+
 sub install_share {
 	my $dir  = @_ ? pop   : 'share';
 	my $type = @_ ? shift : 'dist';
 
-	unless ( defined $type and $type eq 'module' or $type eq 'dist' ) {
+	unless ( defined $type and ( ($type eq 'module') or ($type eq 'dist') ) ) {
 		croak "Illegal or invalid share dir type '$type'";
 	}
 	unless ( defined $dir and -d $dir ) {
 		croak 'Illegal or missing directory install_share param';
 	}
 
+	require ExtUtils::Manifest;
+	my $skip = ExtUtils::Manifest::maniskip();
 	my $installation_path;
-
+	my $sharecode;
+	
 	if ( $type eq 'dist' ) {
 		croak 'Too many parameters to install_share' if @_;
 
 		my $dist = $args{'dist_name'};
 
 		$installation_path =
-		  catdir( _installdir(), qw(auto share module), $dist );
-
+		  catdir( _installdir(), qw(auto share dist), $dist );
+		_scan_dir($dir, 'share', 'share', $skip); 
+		push @install_types, 'share';
+		$sharecode = 'share';
 	} else {
 		my $module = $args{'module_name'};
 
@@ -445,10 +488,14 @@ sub install_share {
 		$module =~ s/::/-/g;
 		$installation_path =
 		  catdir( _installdir(), qw(auto share module), $module );
+		$sharecode = 'share_d' . $sharemod_used;
+		_scan_dir($dir, $sharecode, $sharecode, $skip); 
+		push @install_types, $sharecode;
+		$sharemod_used++;
 	}
 
-	install_path( $dir, $installation_path );
-
+	install_path( $sharecode, $installation_path );
+	
 	# 99% of the time we don't want to index a shared dir
 	no_index($dir);
 	return;
@@ -643,6 +690,9 @@ sub create_build_script {
 
 # Required to get a builder for later use.
 sub get_builder {
+#	require Data::Dumper;
+#	my $d = Data::Dumper->new([\%args], [qw(*args)]);
+#	print $d->Indent(1)->Dump();
 	unless ( defined $object ) {
 		if ( defined $class ) {
 			$object = $class->new(%args);
@@ -651,6 +701,11 @@ sub get_builder {
 		}
 		$object_created = 1;
 	}
+	
+	foreach my $type (@install_types) {
+		$object->add_build_element($type);
+	}
+	
 	return $object;
 }
 
