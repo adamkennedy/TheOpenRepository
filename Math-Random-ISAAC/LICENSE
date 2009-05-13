@@ -45,14 +45,6 @@ your option:
 2. The Perl Artistic License, version 2.0 or later; or,
 3. The GNU General Public License, version 2.0 or later
 
-Note that points (3) and (4) roughly coincide with the distribution terms of
-Perl itself; so if you have considered and accepted the licensing restrictions
-posed by Perl 5.10, you have accepted suitable terms to use this software.
-
-On the other hand, I'm not a lawyer, and you may wish to construe use of the
-code under what the author believes is the least restrictive open source
-software license - the MIT/X11 License.
-
 For the sake of convenience, the full texts of all these licenses follow.
 
 -------------- MIT/X11 License -------------- 
