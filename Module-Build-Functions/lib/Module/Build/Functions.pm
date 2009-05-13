@@ -25,7 +25,7 @@ my $sharemod_used  = 1;
 my (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
 
 BEGIN {
-	$VERSION = '0.001_007';
+	$VERSION = '0.001_008';
 
 	# Module implementation here
 
@@ -391,16 +391,58 @@ sub check_nmake {
 
 # Module::Install::With
 
-sub interactive {
-	croak 'interactive is not supported yet';
-}
-
 sub release_testing {
 	return !!$ENV{RELEASE_TESTING};
 }
 
 sub automated_testing {
 	return !!$ENV{AUTOMATED_TESTING};
+}
+
+# Mostly borrowed from Scalar::Util::openhandle, since I should 
+# not use modules that were non-core in 5.005.
+sub _openhandle {
+  my $fh = shift;
+  my $rt = reftype($fh) || '';
+
+  return defined(fileno($fh)) ? $fh : undef
+    if $rt eq 'IO';
+
+  if ($rt ne 'GLOB') {
+    return undef;
+  }
+
+  (tied(*$fh) or defined(fileno($fh)))
+    ? $fh : undef;
+}
+
+# Mostly borrowed from IO::Interactive::is_interactive, since I should 
+# not use modules that were non-core in 5.005.
+sub interactive {
+	# If we're doing automated testing, we assume that we don't have
+	# a terminal, even if we otherwise would.
+	return 0 if automated_testing();
+
+    # Not interactive if output is not to terminal...
+    return 0 if not -t *STDOUT;
+
+    # If *ARGV is opened, we're interactive if...
+    if (_openhandle(*ARGV)) {
+        # ...it's currently opened to the magic '-' file
+        return -t *STDIN if defined $ARGV && $ARGV eq '-';
+
+        # ...it's at end-of-file and the next file is the magic '-' file
+        return @ARGV > 0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
+
+        # ...it's directly attached to the terminal 
+        return -t *ARGV;
+    }
+
+    # If *ARGV isn't opened, it will be interactive if *STDIN is attached 
+    # to a terminal.
+    else {
+        return -t *STDIN;
+    }
 }
 
 sub win32 {
@@ -412,13 +454,18 @@ sub winlike {
 }
 
 sub author_context {
-	croak 'author_context is not supported yet';
+	return 1 if -d 'inc/.author';
+	return 1 if -d '.svn';
+	return 1 if -f '.cvsignore';
+	return 1 if -f '.gitignore';
+	return 1 if -f 'MANIFEST.SKIP';
+	return 0;
 }
 
 # Module::Install::Share
 
 sub _scan_dir {
-	my ($srcdir, $destdir, $type, $skip) = @_;
+	my ($srcdir, $destdir, $unixdir, $type, $files) = @_;
 
 	my $type_files = $type . '_files';
 	
@@ -439,17 +486,18 @@ sub _scan_dir {
 		if (-d $direntry) {
 			next FILE if ($direntry eq '.');
 			next FILE if ($direntry eq '..');
-			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry), $type, $skip);
+			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry), 
+			  File::Spec::Unix->catdir($unixdir, $direntry), $type, $files);
 		} else {
 			my $sourcefile = catfile($srcdir, $direntry);
-			
-			unless ($skip->($sourcefile)) {
+			my $unixfile = File::Spec::Unix->catfile($unixdir, $direntry);
+			if ( exists $files->{$unixfile}) {
 				$args{$type_files}{$sourcefile} = catfile($destdir, $direntry);
 			}
 		}
 	}
 
-	closedir $dir_handle;	
+	closedir $dir_handle;
 }
 
 sub install_share {
@@ -463,8 +511,9 @@ sub install_share {
 		croak 'Illegal or missing directory install_share param';
 	}
 
+	require File::Spec::Unix;
 	require ExtUtils::Manifest;
-	my $skip = ExtUtils::Manifest::maniskip();
+	my $files = ExtUtils::Manifest::maniread();
 	my $installation_path;
 	my $sharecode;
 	
@@ -475,11 +524,11 @@ sub install_share {
 
 		$installation_path =
 		  catdir( _installdir(), qw(auto share dist), $dist );
-		_scan_dir($dir, 'share', 'share', $skip); 
+		_scan_dir($dir, 'share', $dir, 'share', $files); 
 		push @install_types, 'share';
 		$sharecode = 'share';
 	} else {
-		my $module = $args{'module_name'};
+		my $module = shift;
 
 		unless ( defined $module ) {
 			croak "Missing or invalid module name '$module'";
@@ -489,7 +538,7 @@ sub install_share {
 		$installation_path =
 		  catdir( _installdir(), qw(auto share module), $module );
 		$sharecode = 'share_d' . $sharemod_used;
-		_scan_dir($dir, $sharecode, $sharecode, $skip); 
+		_scan_dir($dir, $sharecode, $dir, $sharecode, $files); 
 		push @install_types, $sharecode;
 		$sharemod_used++;
 	}
@@ -758,6 +807,7 @@ sub bundler {
 			last DIRLOOP;
 		} ## end if ( -f $file )
 	} ## end foreach my $dir ( $Config{'sitelibexp'...
+	mkdir File::Spec->catdir(qw(inc .author));
 	return;
 } ## end sub bundler
 
