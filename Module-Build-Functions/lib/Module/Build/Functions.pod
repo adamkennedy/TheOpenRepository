@@ -410,10 +410,21 @@ Hang on, support will be coming soon!
 
 The author has deliberately chosen to drop support for auto_install.
 (he happens to be irritated at pre-0.86 Module::Installs that stop 
-CPAN upgrades to make him answer an unneeded question.)
+CPAN upgrades to make him answer an unneeded question.  Of COURSE, I
+want prerequisites installed. Why would I not?)
 
 Patches, however, would be welcomed to implement an auto_install that 
 is not annoying.
+
+=item C<< bundle is deprecated >>
+=item C<< auto_bundle is deprecated >>
+=item C<< bundle_deps is deprecated >>
+=item C<< auto_bundle_deps is deprecated >>
+
+The author has deliberately chosen to drop support for bundling at 
+this point.
+
+Patches, however, would be welcomed.
 
 =item C<< Invalid install type >>
 =item C<< Illegal or invalid share dir type '%s' >>

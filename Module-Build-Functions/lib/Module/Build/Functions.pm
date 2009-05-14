@@ -437,23 +437,19 @@ sub auto_install {
 # Module::Install::Bundle
 
 sub auto_bundle {
-	croak 'auto_bundle is not supported yet';
+	croak 'auto_bundle is deprecated';
 }
 
 sub bundle {
-	my ( $name, $version ) = @_;
-
-	croak 'bundle is not supported yet';
+	croak 'bundle is deprecated';
 }
 
 sub bundle_deps {
-	my ( $name, $version ) = @_;
-
-	croak 'bundle_deps is not supported yet';
+	croak 'bundle_deps is deprecated';
 }
 
 sub auto_bundle_deps {
-	croak 'auto_bundle_deps is not supported yet';
+	croak 'auto_bundle_deps is deprecated';
 }
 
 # Module::Install::Can
