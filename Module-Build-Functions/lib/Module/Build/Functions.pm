@@ -5,7 +5,7 @@ use     strict;
 use     5.005;
 use     vars                  
   qw( $VERSION @EXPORT $AUTOLOAD %args @install_types );
-use     Carp                  qw( croak                            );
+use     Carp                  qw( croak carp                       );
 use     English               qw( -no_match_vars                   );
 use     Exporter              qw( import                           );
 use     File::Spec::Functions qw( catdir catfile                   );
@@ -283,12 +283,96 @@ sub abstract_from {
 	return;
 }
 
+# Borrowed from Module::Install::Metadata->author_from
 sub author_from {
-	croak 'author_from is not supported yet';
+	my $file    = shift;
+	my $content = _slurp_file($file);
+	my $author;
+		
+	if ($content =~ m{
+		=head \d \s+ (?:authors?)\b \s*
+		(.*?)
+		=head \d
+	}ixms) {
+		# Grab all author lines.
+		my $authors = $1;
+		
+		# Now break up each line.
+		while ($authors =~ m{\G([^\n]+) \s*}gcixms) {
+			$author = $1;
+			# Convert E<lt> and E<gt> into the right characters.
+			$author =~ s{E<lt>}{<}g;
+			$author =~ s{E<gt>}{>}g;
+			
+			# Remove new-style C<< >> markers. 
+			if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+				$author = "$1 $2";
+			}
+			dist_author($author);
+		}		
+	} elsif ($content =~ m{
+		=head \d \s+ (?:licen[cs]e|licensing|copyright|legal)\b \s*
+		.*? copyright .*? \d\d\d[\d.]+ \s* (?:\bby\b)? \s*
+		([^\n]*)
+	}ixms) {
+		$author = $1;
+		# Convert E<lt> and E<gt> into the right characters.
+		$author =~ s{E<lt>}{<}g;
+		$author =~ s{E<gt>}{>}g;
+		
+		# Remove new-style C<< >> markers. 
+		if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+			$author = "$1 $2";
+		}
+		dist_author($author);
+	} else {
+		carp "Cannot determine author info from $file";
+	}
 }
 
+# Borrowed from Module::Install::Metadata->license_from
 sub license_from {
-	croak 'license_from is not supported yet';
+	my $file = shift;
+	my $content = _slurp_file($file);
+	if ($content =~ m{
+		(
+			=head \d \s+
+			(?:licen[cs]e|licensing|copyright|legal)\b
+			.*?
+		)
+		(=head\\d.*|=cut.*|)
+		\z
+	}ixms ) {
+		my $license_text = $1;
+		my @phrases      = (
+			'under the same (?:terms|license) as perl itself' => 'perl',        1,
+			'GNU general public license'                      => 'gpl',         1,
+			'GNU public license'                              => 'gpl',         1,
+			'GNU lesser general public license'               => 'lgpl',        1,
+			'GNU lesser public license'                       => 'lgpl',        1,
+			'GNU library general public license'              => 'lgpl',        1,
+			'GNU library public license'                      => 'lgpl',        1,
+			'BSD license'                                     => 'bsd',         1,
+			'Artistic license'                                => 'artistic',    1,
+			'GPL'                                             => 'gpl',         1,
+			'LGPL'                                            => 'lgpl',        1,
+			'BSD'                                             => 'bsd',         1,
+			'Artistic'                                        => 'artistic',    1,
+			'MIT'                                             => 'mit',         1,
+			'proprietary'                                     => 'proprietary', 0,
+		);
+		while ( my ($pattern, $license, $osi) = splice(@phrases, 0, 3) ) {
+			$pattern =~ s{\s+}{\\s+}g;
+			if ( $license_text =~ /\b$pattern\b/i ) {
+				license($license);
+				return;
+			}
+		}
+	}
+
+	carp "Cannot determine license info from $file";
+	license('unknown');
+	return;
 }
 
 sub perl_version {
@@ -296,8 +380,27 @@ sub perl_version {
 	return;
 }
 
+# Borrowed from Module::Install::Metadata->license_from
 sub perl_version_from {
-	croak 'perl_version_from is not supported yet';
+	my $file = shift;
+	my $content = _slurp_file($file);
+	if (
+		$content =~ m{
+		^  # Start of LINE, not start of STRING.
+		(?:use|require) \s*
+		v?
+		([\d_\.]+)
+		\s* ;
+		}ixms
+	) {
+		my $perl_version = $1;
+		$perl_version =~ s{_}{}g;
+		perl_version($perl_version);
+	} else {
+		carp "Cannot determine perl version info from $file";
+	}
+
+	return;
 }
 
 sub install_script {
